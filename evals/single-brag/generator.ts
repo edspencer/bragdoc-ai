@@ -37,6 +37,57 @@ const achievementTemplates = [
         details: "Spearheaded the team's transition to agile methodologies, resulting in a {metric}% increase in sprint velocity. Successfully implemented new processes and practices that enhanced team productivity.",
       }
     ]
+  },
+  {
+    category: 'Casual',
+    templates: [
+      {
+        input: "btw, fixed that annoying bug in the login flow that was driving everyone crazy",
+        title: "Login Flow Bug Resolution",
+        summary: "Fixed critical bug in authentication system",
+        details: "Identified and resolved a persistent bug in the login flow that was impacting user experience. The fix improves system reliability and reduces user frustration.",
+      },
+      {
+        input: "had a good week - managed to get that old legacy system finally retired",
+        title: "Legacy System Retirement",
+        summary: "Successfully decommissioned legacy system",
+        details: "Completed the retirement of an outdated legacy system, reducing technical debt and maintenance overhead while ensuring smooth transition to modern solutions.",
+      }
+    ]
+  },
+  {
+    category: 'Process',
+    templates: [
+      {
+        input: "Finally got the team to adopt code reviews. Already seeing better code quality!",
+        title: "Code Review Process Implementation",
+        summary: "Established team-wide code review practices",
+        details: "Implemented a structured code review process, leading to improved code quality, knowledge sharing, and reduced defects in production deployments.",
+      },
+      {
+        input: "Set up automated testing for the frontend components. No more manual QA needed for basic UI changes.",
+        title: "Frontend Testing Automation",
+        summary: "Implemented automated testing for UI components",
+        details: "Established automated testing framework for frontend components, reducing manual QA effort and improving deployment confidence through consistent test coverage.",
+      }
+    ]
+  },
+  {
+    category: 'Team',
+    templates: [
+      {
+        input: "Really proud of how the team handled the platform migration last week. Everyone stepped up.",
+        title: "Successful Platform Migration",
+        summary: "Led cross-functional team through platform migration",
+        details: "Coordinated and executed a complex platform migration with the team, demonstrating strong collaboration and technical leadership while maintaining system stability.",
+      },
+      {
+        input: "Our documentation initiative is paying off - new team members are getting up to speed much faster now",
+        title: "Documentation Impact",
+        summary: "Improved team onboarding through documentation",
+        details: "Led documentation improvement initiative that significantly reduced onboarding time for new team members and improved overall team knowledge sharing.",
+      }
+    ]
   }
 ];
 

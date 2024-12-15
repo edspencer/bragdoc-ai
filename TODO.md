@@ -59,7 +59,31 @@
   }
   ```
 
-## Feature Implementation
+## Feature Implementation 
+
+### Authentication
+- [ ] Set up NextAuth.js
+  - [ ] Email/password authentication
+  - [ ] Google OAuth integration
+  - [ ] GitHub OAuth integration
+- [ ] Create user database schema
+- [ ] Add authentication middleware
+- [ ] Implement protected routes
+- [ ] Add user session management
+
+### GitHub Integration
+- [ ] Set up GitHub OAuth application
+- [ ] Implement repository connection
+  - [ ] Add repository selection UI
+  - [ ] Store repository metadata
+- [ ] Create Brag extraction from Git history
+  - [ ] Parse commit messages
+  - [ ] Extract pull request descriptions
+  - [ ] Process issue comments
+- [ ] Implement Project creation from repositories
+  - [ ] Auto-generate project structure
+  - [ ] Map repository timeline to Brags
+- [ ] Add premium feature flagging for retro-active scanning
 
 ### Email Integration
 - [ ] Set up email receiving service
@@ -83,6 +107,25 @@
 - [ ] Create tag management system
 - [ ] Add email preferences configuration
 - [ ] Enhance document generation interface with more options
+
+## Business Model Implementation
+- [ ] Set up Stripe/Link integration
+  - [ ] Configure payment processing
+  - [ ] Set up subscription plans
+  - [ ] Implement usage tracking
+- [ ] Implement tiered features
+  - [ ] Free tier
+    - [ ] Usage limitations
+    - [ ] Usage tracking
+  - [ ] Mid Account ($3/month, $30/year)
+    - [ ] Unlimited Brags/Docs
+    - [ ] Remove usage limitations
+  - [ ] Pro Account ($9/month, $90/year)
+    - [ ] GitHub integration
+- [ ] Add subscription management
+  - [ ] Upgrade/downgrade flows
+  - [ ] Billing history
+  - [ ] Payment method management
 
 ## Conversation Examples & Testing
 

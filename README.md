@@ -44,6 +44,15 @@ From time to time, the user will want a summary of these brags over some period.
 - Secure multi-company data separation
 - Historical achievement tracking and access
 
+### Auth
+- Email/password authentication
+- Google authentication
+- GitHub authentication
+
+### GitHub Integration
+- Automatically creates Brags out of connected repositories!
+- Can retro-actively link a repo, creating a Project for it and filling it with Brags from the repo history [Premium Feature]
+
 ## Homepage
 
 Should have some copy about how many things you will forget without it.
@@ -82,11 +91,26 @@ type UserMessage = {
 
 ## Business Model
 
-- 50 brags free?
-- 3 summary generations free?
-- $3/month otherwise
+### Free Level
+- Free
+- Some limitation on usage
+
+### Basic Bragger
+- $3/month
+- $30/year
+- Unlimited Brags/Docs/everything
+
+### Pro Bragger
+- $9/month
+- $90/year
+- GitHub integration
+
+Should be integrated with Link or Stripe (Link has a really nice UX).
 
 ## Application Features
+
+This application was initially built on top of a sample [Next.js](https://nextjs.org) app template from Vercel.
+It has that following application-level features:
 
 - [Next.js](https://nextjs.org) App Router
   - Advanced routing for seamless navigation and performance

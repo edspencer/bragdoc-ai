@@ -8,6 +8,7 @@
     "start": "next start",
     "test": "jest",
     "test:watch": "jest --watch",
+    "eval": "npx braintrust eval ./evals/**/eval.ts",
     "lint": "next lint && biome lint --write --unsafe",
     "lint:fix": "next lint --fix && biome lint --write --unsafe",
     "format": "biome format --write",
@@ -100,5 +101,5 @@
     "tsx": "^4.19.2",
     "typescript": "^5.6.3"
   },
-  "packageManager": "pnpm@9.5.0+sha1.8c155dc114e1689d18937974f6571e0ceee66f1d"
+  "packageManager": "pnpm@9.5.0"
 }

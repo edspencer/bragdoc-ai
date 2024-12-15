@@ -8,17 +8,24 @@
 
 ## Project Structure
 
+### Core Library Code
+- All reusable library code should be in the `lib` folder
+- This includes AI/LLM function calls (e.g., generateObject, generateText)
+- Keep implementation details separate from evaluation and testing code
+
 ### Evaluations and Testing
 ```
 /
-├── evals/                    # BrainTrust evaluations
-│   ├── single-brag/         # Single brag logging evaluations
-│   │   ├── eval.ts         # BrainTrust evaluation setup
-│   │   ├── dataset.ts      # Example conversations
-│   │   ├── generator.ts    # Generator for example conversations
-│   │   └── generated/      # Generated example conversations
-│   └── types.ts            # Shared types for evals
-├── test/                    # Jest tests
+├── lib/                     # Core library code
+│   └── ai/                 # AI/LLM function implementations
+├── evals/                   # BrainTrust evaluations
+│   ├── single-brag/        # Single brag logging evaluations
+│   │   ├── eval.ts        # BrainTrust evaluation setup
+│   │   ├── dataset.ts     # Example conversations
+│   │   ├── generator.ts   # Generator for example conversations
+│   │   └── generated/     # Generated example conversations
+│   └── types.ts           # Shared types for evals
+├── test/                   # Jest tests
 │   └── evals/
 │       └── single-brag/
 │           ├── dataset.test.ts
