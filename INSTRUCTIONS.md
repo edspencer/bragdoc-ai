@@ -1,5 +1,9 @@
 # Instructions for reasoning and implementation of features in this repository
 
+## General Instructions
+
+- Update the INSTRUCTIONS.md whenever I provide you with additional information about project structure or instructions
+
 ## Code Generation
 
 - The project uses pnpm

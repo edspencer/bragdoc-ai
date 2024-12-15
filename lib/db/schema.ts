@@ -44,6 +44,23 @@ export const company = pgTable('Company', {
 
 export type Company = InferSelectModel<typeof company>;
 
+export const project = pgTable('Project', {
+  id: uuid('id').primaryKey().notNull().defaultRandom(),
+  userId: uuid('user_id')
+    .notNull()
+    .references(() => user.id),
+  companyId: uuid('company_id')
+    .references(() => company.id),
+  name: varchar('name', { length: 256 }).notNull(),
+  description: text('description'),
+  startDate: timestamp('start_date'),
+  endDate: timestamp('end_date'),
+  createdAt: timestamp('created_at').notNull().defaultNow(),
+  updatedAt: timestamp('updated_at').notNull().defaultNow(),
+});
+
+export type Project = InferSelectModel<typeof project>;
+
 export const brag = pgTable('Brag', {
   id: uuid('id').primaryKey().notNull().defaultRandom(),
   userId: uuid('user_id')
@@ -51,6 +68,8 @@ export const brag = pgTable('Brag', {
     .references(() => user.id),
   companyId: uuid('company_id')
     .references(() => company.id),
+  projectId: uuid('project_id')
+    .references(() => project.id),
   userMessageId: uuid('user_message_id')
     .notNull()
     .references(() => userMessage.id),
