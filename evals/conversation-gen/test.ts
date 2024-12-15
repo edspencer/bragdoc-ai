@@ -13,7 +13,7 @@ async function main() {
   
   for (const template of templates) {
     console.log(`Generating test data for template: ${template}`);
-    const testData = await generateTestData(template, 10);
+    const testData = await generateTestData(template, 50);
     
     const outputPath = path.join(outputDir, `${template.toLowerCase()}.json`);
     fs.writeFileSync(

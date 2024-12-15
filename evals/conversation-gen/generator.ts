@@ -40,11 +40,14 @@ const messageSchema = z.object({
 
 const bragSchema = z.object({
   brags: z.array(z.object({
-    text: z.string(),
-    date: z.string().datetime(),
+    title: z.string(),
+    summary: z.string(),
+    details: z.string(),
+    eventStart: z.string().datetime(),
+    eventEnd: z.string().datetime(),
+    eventDuration: z.enum(["day", "week", "month", "quarter", "year"]),
     companyId: z.string().optional(),
-    projectId: z.string().optional(),
-    type: z.enum(["technical", "leadership", "personal"])
+    projectId: z.string().optional()
   }))
 });
 
@@ -59,7 +62,7 @@ export async function generateScenario(template: ScenarioTemplate): Promise<Conv
         role: "system",
         content: `You are a helpful assistant that creates detailed scenarios for testing a brag tracking application. 
         Generate realistic scenarios with specific company names, project names, and dates. 
-        Use realistic dates within the last 2 years.
+        Use realistic dates within the last 12 months (between ${new Date(Date.now() - 365 * 24 * 60 * 60 * 1000).toISOString()} and ${new Date().toISOString()}).
         IMPORTANT: All dates must be in ISO 8601 format with timezone (e.g. "2024-12-14T00:00:00Z").
         Do not use "Present" or any other text for dates - use actual dates.`
       },
@@ -73,6 +76,7 @@ export async function generateScenario(template: ScenarioTemplate): Promise<Conv
 
   return {
     ...object,
+    userId: uuidv4(), // Add test user ID
     companies: object.companies.map(c => ({
       ...c,
       startDate: new Date(c.startDate),
@@ -101,14 +105,38 @@ export async function generateConversation(
     messages: [
       {
         role: "system",
-        content: `You are simulating a conversation between a user and an AI assistant that helps track professional and personal achievements ("brags").
-The conversation should be natural and include:
-- The user sharing updates about their work and achievements
-- The AI asking relevant follow-up questions
-- References to companies (${scenario.companies.map(c => c.name).join(', ')})
-- References to projects (${scenario.projects.map(p => p.name).join(', ')})
-- Mix of direct achievements and casual conversation
-IMPORTANT: All timestamps must be in ISO 8601 format with timezone (e.g. "2024-12-14T00:00:00Z").`
+        content: `You are simulating messages from a user to an AI assistant that helps track professional and personal achievements ("brags").
+The user should send multiple messages over time (spanning several weeks or months) sharing:
+
+1. Initial achievements and updates
+- Multiple detailed work accomplishments
+- Project status updates
+- Personal development milestones
+- Mix of major achievements and smaller wins
+
+2. Follow-up messages about previous topics
+- Progress updates on ongoing projects
+- Final results of completed initiatives
+- Additional metrics or impact that wasn't known initially
+- Reflections on earlier achievements
+
+3. New developments
+- Starting new projects
+- Taking on new responsibilities
+- Unexpected wins
+- Learning experiences
+
+The messages should:
+- Reference companies (${scenario.companies.map(c => c.name).join(', ')})
+- Reference projects (${scenario.projects.map(p => p.name).join(', ')})
+- Include both technical and non-technical achievements
+- Mention specific metrics and impact when possible
+- Feel natural and conversational
+- Span multiple conversation sessions over time
+
+The AI assistant should give brief, encouraging responses but the focus should be on the user's detailed updates.
+IMPORTANT: All timestamps must be in ISO 8601 format with timezone (e.g. "2024-12-14T00:00:00Z").
+Space out the timestamps to simulate updates over several weeks/months within the scenario timeframe.`
       },
       {
         role: "user",
@@ -143,11 +171,20 @@ export async function generateExpectedBrags(
         role: "system",
         content: `You are analyzing a conversation to extract achievements ("brags") with their associated company and project context.
 For each achievement mentioned in the conversation, output a brag object with:
-- text: The achievement text
-- date: When it occurred (must be ISO 8601 format with timezone, e.g. "2024-12-14T00:00:00Z")
+- title: A concise one-line title for the achievement (e.g. "Led development of new CRM system")
+- summary: A 1-2 sentence summary focusing on the impact and metrics (e.g. "Successfully delivered new CRM system on time and within budget, resulting in 20% efficiency increase for sales team")
+- details: A detailed 2-3 sentence description including the challenge, approach, and outcome
+- eventStart: When the achievement began (must be ISO 8601 format with timezone)
+- eventEnd: When the achievement completed (must be ISO 8601 format with timezone) 
+- eventDuration: The duration of the achievement (must be one of: "day", "week", "month", "quarter", "year")
 - companyId: ID of the company it's associated with (if any)
 - projectId: ID of the project it's associated with (if any)
-- type: The type of achievement (e.g., "technical", "leadership", "personal")`
+
+Make sure to:
+1. Keep titles concise and action-oriented
+2. Include specific metrics and impacts in summaries
+3. Provide rich context in details
+4. Use appropriate durations (e.g. "day" for a presentation, "quarter" for a project phase)`
       },
       {
         role: "user",
@@ -164,12 +201,24 @@ ${JSON.stringify(conversation.messages, null, 2)}`
   });
 
   return object.brags.map(b => ({
-    ...b,
-    date: new Date(b.date)
+    id: uuidv4(),
+    userId: conversation.scenario.userId,
+    userMessageId: uuidv4(), // Since this is test data, we'll generate a new ID
+    createdAt: new Date(),
+    updatedAt: new Date(),
+    eventStart: new Date(b.eventStart),
+    eventEnd: new Date(b.eventEnd),
+    eventDuration: b.eventDuration,
+    title: b.title,
+    summary: b.summary,
+    details: b.details,
+    companyId: b.companyId || null,
+    projectId: b.projectId || null,
+    isArchived: false
   }));
 }
 
-export async function generateTestData(template: ScenarioTemplate, numTurns = 10): Promise<GeneratedTestData> {
+export async function generateTestData(template: ScenarioTemplate, numTurns = 50): Promise<GeneratedTestData> {
   const scenario = await generateScenario(template);
   const conversation = await generateConversation(scenario, numTurns);
   const expectedBrags = await generateExpectedBrags(conversation, scenario);

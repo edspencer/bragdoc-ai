@@ -1,161 +1,371 @@
 {
   "scenario": {
-    "description": "Professional transitioning from Google to Amazon",
+    "description": "Professional transitioning between companies",
     "companies": [
       {
-        "id": "1",
+        "id": "c1",
         "name": "Google",
         "role": "Senior Software Engineer",
-        "domain": "Technology",
-        "startDate": "2018-06-01T00:00:00.000Z",
-        "endDate": "2020-12-31T00:00:00.000Z"
+        "domain": "Tech",
+        "startDate": "2020-01-01T00:00:00.000Z",
+        "endDate": "2024-06-30T00:00:00.000Z"
       },
       {
-        "id": "2",
-        "name": "Amazon",
-        "role": "Principal Software Engineer",
-        "domain": "E-commerce",
-        "startDate": "2021-01-01T00:00:00.000Z",
-        "endDate": "2021-12-31T23:59:59.000Z"
+        "id": "c2",
+        "name": "Microsoft",
+        "role": "Lead Software Engineer",
+        "domain": "Tech",
+        "startDate": "2024-07-01T00:00:00.000Z",
+        "endDate": "2024-12-15T16:27:46.749Z"
       }
     ],
     "projects": [
       {
-        "id": "1",
+        "id": "p1",
         "name": "Google Search Optimization",
-        "companyId": "1",
+        "companyId": "c1",
         "description": "Improving the efficiency and accuracy of Google's search engine",
-        "startDate": "2019-01-01T00:00:00.000Z",
-        "endDate": "2020-12-31T00:00:00.000Z"
+        "startDate": "2023-01-01T00:00:00.000Z",
+        "endDate": "2024-06-30T00:00:00.000Z"
       },
       {
-        "id": "2",
-        "name": "Amazon Prime Delivery Optimization",
-        "companyId": "2",
-        "description": "Enhancing the delivery system of Amazon Prime to ensure faster and more reliable deliveries",
-        "startDate": "2021-01-01T00:00:00.000Z",
-        "endDate": "2021-12-31T23:59:59.000Z"
+        "id": "p2",
+        "name": "Microsoft Azure Expansion",
+        "companyId": "c2",
+        "description": "Expanding the capabilities and reach of Microsoft's Azure cloud services",
+        "startDate": "2024-07-01T00:00:00.000Z",
+        "endDate": "2024-12-15T16:27:46.749Z"
       }
     ],
-    "userPersona": "Professional Software Engineer transitioning between companies",
+    "userPersona": "Professional transitioning between companies",
     "timeframe": {
-      "start": "2018-06-01T00:00:00.000Z",
-      "end": "2021-12-31T23:59:59.000Z"
-    }
+      "start": "2023-01-01T00:00:00.000Z",
+      "end": "2024-12-15T16:27:46.749Z"
+    },
+    "userId": "04bf94fe-4df9-411f-b6d2-4b2803f64ece"
   },
   "conversation": {
-    "id": "04d7e560-329e-4bd5-90ab-a841b7ebb11e",
+    "id": "4e334d29-86c2-46cc-8c1c-9bd3720b73ac",
     "messages": [
       {
         "role": "user",
-        "content": "Hey there! I wanted to update my achievements. I've recently transitioned from Google to Amazon.",
-        "timestamp": "2021-01-02T00:00:00.000Z"
+        "content": "Hey there! Just wanted to share that I've started working on the Google Search Optimization project. I'm really excited about the potential impact of this project!",
+        "timestamp": "2023-01-15T00:00:00.000Z"
       },
       {
         "role": "assistant",
-        "content": "That's a significant transition! Can you share more about your roles at both companies?",
-        "timestamp": "2021-01-02T00:01:00.000Z"
+        "content": "That's fantastic! The Google Search Optimization project sounds like a great opportunity. Keep me updated on your progress!",
+        "timestamp": "2023-01-15T01:00:00.000Z"
       },
       {
         "role": "user",
-        "content": "Sure, I was a Senior Software Engineer at Google and now I'm a Principal Software Engineer at Amazon.",
-        "timestamp": "2021-01-02T00:02:00.000Z"
+        "content": "Sure thing! We've just completed the first phase of the project. We've managed to reduce the search latency by 15% already.",
+        "timestamp": "2023-03-01T00:00:00.000Z"
       },
       {
         "role": "assistant",
-        "content": "Impressive! What were some of the projects you worked on at Google and now at Amazon?",
-        "timestamp": "2021-01-02T00:03:00.000Z"
+        "content": "Wow, that's impressive! Keep up the good work.",
+        "timestamp": "2023-03-01T01:00:00.000Z"
       },
       {
         "role": "user",
-        "content": "At Google, I worked on the Google Search Optimization project. Now at Amazon, I'm working on the Amazon Prime Delivery Optimization project.",
-        "timestamp": "2021-01-02T00:04:00.000Z"
+        "content": "Thanks! We've just started the second phase. The goal is to improve the accuracy of search results by 20%. It's a challenging task, but I'm confident we can do it.",
+        "timestamp": "2023-05-01T00:00:00.000Z"
       },
       {
         "role": "assistant",
-        "content": "Those are high-impact projects. Can you share more about your achievements in these projects?",
-        "timestamp": "2021-01-02T00:05:00.000Z"
+        "content": "That sounds like a challenging but rewarding task. I'm sure you'll do great!",
+        "timestamp": "2023-05-01T01:00:00.000Z"
       },
       {
         "role": "user",
-        "content": "Sure, at Google, I was able to improve the efficiency and accuracy of the search engine. At Amazon, I'm enhancing the delivery system to ensure faster and more reliable deliveries.",
-        "timestamp": "2021-01-02T00:06:00.000Z"
+        "content": "Just a quick update: we've managed to improve the accuracy of search results by 10% so far. We're halfway there!",
+        "timestamp": "2023-07-01T00:00:00.000Z"
       },
       {
         "role": "assistant",
-        "content": "That's quite an achievement! How has the transition been from Google's technology domain to Amazon's e-commerce domain?",
-        "timestamp": "2021-01-02T00:07:00.000Z"
+        "content": "Great job! You're making steady progress. Keep it up!",
+        "timestamp": "2023-07-01T01:00:00.000Z"
       },
       {
         "role": "user",
-        "content": "It's been challenging but exciting. I'm learning a lot about the e-commerce industry and how technology can drive improvements in delivery systems.",
-        "timestamp": "2021-01-02T00:08:00.000Z"
+        "content": "We did it! We've improved the accuracy of search results by 20%. I'm really proud of the team.",
+        "timestamp": "2023-09-01T00:00:00.000Z"
       },
       {
         "role": "assistant",
-        "content": "That's great to hear! Keep up the good work and don't hesitate to share more of your achievements in the future.",
-        "timestamp": "2021-01-02T00:09:00.000Z"
+        "content": "Congratulations! That's a significant achievement. You should be proud!",
+        "timestamp": "2023-09-01T01:00:00.000Z"
+      },
+      {
+        "role": "user",
+        "content": "Thanks! Now we're focusing on the final phase of the project: improving the user interface. I'll keep you posted.",
+        "timestamp": "2023-11-01T00:00:00.000Z"
+      },
+      {
+        "role": "assistant",
+        "content": "Sounds like a great next step. I'm looking forward to hearing about your progress!",
+        "timestamp": "2023-11-01T01:00:00.000Z"
+      },
+      {
+        "role": "user",
+        "content": "We've just completed the final phase of the Google Search Optimization project. The new user interface is more intuitive and user-friendly. I'm really happy with the results.",
+        "timestamp": "2024-01-01T00:00:00.000Z"
+      },
+      {
+        "role": "assistant",
+        "content": "Congratulations on completing the project! Improving the user interface is a crucial step in enhancing the overall user experience. Well done!",
+        "timestamp": "2024-01-01T01:00:00.000Z"
+      },
+      {
+        "role": "user",
+        "content": "Thanks! I've also been promoted to Lead Software Engineer at Google. It's a big step in my career.",
+        "timestamp": "2024-03-01T00:00:00.000Z"
+      },
+      {
+        "role": "assistant",
+        "content": "That's fantastic news! Congratulations on your promotion. You've earned it!",
+        "timestamp": "2024-03-01T01:00:00.000Z"
+      },
+      {
+        "role": "user",
+        "content": "Thanks! I've decided to take on a new challenge. I'll be joining Microsoft as a Lead Software Engineer next month. I'm really excited about this new opportunity.",
+        "timestamp": "2024-06-01T00:00:00.000Z"
+      },
+      {
+        "role": "assistant",
+        "content": "That's a big step! Congratulations on your new role at Microsoft. I'm sure you'll do great!",
+        "timestamp": "2024-06-01T01:00:00.000Z"
+      },
+      {
+        "role": "user",
+        "content": "Thanks! I've just started working on the Microsoft Azure Expansion project. It's a huge project with a lot of potential.",
+        "timestamp": "2024-07-15T00:00:00.000Z"
+      },
+      {
+        "role": "assistant",
+        "content": "That sounds like an exciting project! I'm sure you'll make a significant contribution. Keep me updated on your progress!",
+        "timestamp": "2024-07-15T01:00:00.000Z"
+      },
+      {
+        "role": "user",
+        "content": "Sure thing! We've just completed the first phase of the project. We've managed to increase the capacity of Azure by 25% already.",
+        "timestamp": "2024-09-01T00:00:00.000Z"
+      },
+      {
+        "role": "assistant",
+        "content": "Wow, that's impressive! Keep up the good work.",
+        "timestamp": "2024-09-01T01:00:00.000Z"
+      },
+      {
+        "role": "user",
+        "content": "Thanks! We've just started the second phase. The goal is to improve the efficiency of Azure services by 30%. It's a challenging task, but I'm confident we can do it.",
+        "timestamp": "2024-10-01T00:00:00.000Z"
+      },
+      {
+        "role": "assistant",
+        "content": "That sounds like a challenging but rewarding task. I'm sure you'll do great!",
+        "timestamp": "2024-10-01T01:00:00.000Z"
+      },
+      {
+        "role": "user",
+        "content": "Just a quick update: we've managed to improve the efficiency of Azure services by 15% so far. We're halfway there!",
+        "timestamp": "2024-11-01T00:00:00.000Z"
+      },
+      {
+        "role": "assistant",
+        "content": "Great job! You're making steady progress. Keep it up!",
+        "timestamp": "2024-11-01T01:00:00.000Z"
+      },
+      {
+        "role": "user",
+        "content": "We did it! We've improved the efficiency of Azure services by 30%. I'm really proud of the team.",
+        "timestamp": "2024-12-01T00:00:00.000Z"
+      },
+      {
+        "role": "assistant",
+        "content": "Congratulations! That's a significant achievement. You should be proud!",
+        "timestamp": "2024-12-01T01:00:00.000Z"
+      },
+      {
+        "role": "user",
+        "content": "Thanks! Now we're focusing on the final phase of the project: expanding Azure's reach to new markets. I'll keep you posted.",
+        "timestamp": "2024-12-05T00:00:00.000Z"
+      },
+      {
+        "role": "assistant",
+        "content": "Sounds like a great next step. I'm looking forward to hearing about your progress!",
+        "timestamp": "2024-12-05T01:00:00.000Z"
+      },
+      {
+        "role": "user",
+        "content": "We've just completed the final phase of the Microsoft Azure Expansion project. Azure is now available in 10 new markets. I'm really happy with the results.",
+        "timestamp": "2024-12-15T00:00:00.000Z"
+      },
+      {
+        "role": "assistant",
+        "content": "Congratulations on completing the project! Expanding Azure's reach is a crucial step in enhancing its overall impact. Well done!",
+        "timestamp": "2024-12-15T01:00:00.000Z"
       }
     ],
     "scenario": {
-      "description": "Professional transitioning from Google to Amazon",
+      "description": "Professional transitioning between companies",
       "companies": [
         {
-          "id": "1",
+          "id": "c1",
           "name": "Google",
           "role": "Senior Software Engineer",
-          "domain": "Technology",
-          "startDate": "2018-06-01T00:00:00.000Z",
-          "endDate": "2020-12-31T00:00:00.000Z"
+          "domain": "Tech",
+          "startDate": "2020-01-01T00:00:00.000Z",
+          "endDate": "2024-06-30T00:00:00.000Z"
         },
         {
-          "id": "2",
-          "name": "Amazon",
-          "role": "Principal Software Engineer",
-          "domain": "E-commerce",
-          "startDate": "2021-01-01T00:00:00.000Z",
-          "endDate": "2021-12-31T23:59:59.000Z"
+          "id": "c2",
+          "name": "Microsoft",
+          "role": "Lead Software Engineer",
+          "domain": "Tech",
+          "startDate": "2024-07-01T00:00:00.000Z",
+          "endDate": "2024-12-15T16:27:46.749Z"
         }
       ],
       "projects": [
         {
-          "id": "1",
+          "id": "p1",
           "name": "Google Search Optimization",
-          "companyId": "1",
+          "companyId": "c1",
           "description": "Improving the efficiency and accuracy of Google's search engine",
-          "startDate": "2019-01-01T00:00:00.000Z",
-          "endDate": "2020-12-31T00:00:00.000Z"
+          "startDate": "2023-01-01T00:00:00.000Z",
+          "endDate": "2024-06-30T00:00:00.000Z"
         },
         {
-          "id": "2",
-          "name": "Amazon Prime Delivery Optimization",
-          "companyId": "2",
-          "description": "Enhancing the delivery system of Amazon Prime to ensure faster and more reliable deliveries",
-          "startDate": "2021-01-01T00:00:00.000Z",
-          "endDate": "2021-12-31T23:59:59.000Z"
+          "id": "p2",
+          "name": "Microsoft Azure Expansion",
+          "companyId": "c2",
+          "description": "Expanding the capabilities and reach of Microsoft's Azure cloud services",
+          "startDate": "2024-07-01T00:00:00.000Z",
+          "endDate": "2024-12-15T16:27:46.749Z"
         }
       ],
-      "userPersona": "Professional Software Engineer transitioning between companies",
+      "userPersona": "Professional transitioning between companies",
       "timeframe": {
-        "start": "2018-06-01T00:00:00.000Z",
-        "end": "2021-12-31T23:59:59.000Z"
-      }
+        "start": "2023-01-01T00:00:00.000Z",
+        "end": "2024-12-15T16:27:46.749Z"
+      },
+      "userId": "04bf94fe-4df9-411f-b6d2-4b2803f64ece"
     }
   },
   "expectedBrags": [
     {
-      "text": "At Google, I was able to improve the efficiency and accuracy of the search engine.",
-      "date": "2021-01-02T00:06:00.000Z",
-      "companyId": "1",
-      "projectId": "1",
-      "type": "technical"
+      "id": "a0f0d9f5-2c43-47bb-8535-9ea9d93c19c5",
+      "userId": "04bf94fe-4df9-411f-b6d2-4b2803f64ece",
+      "userMessageId": "d9102db3-91a5-499d-b3ba-6aa52981297c",
+      "createdAt": "2024-12-15T16:29:25.838Z",
+      "updatedAt": "2024-12-15T16:29:25.838Z",
+      "eventStart": "2023-01-15T00:00:00.000Z",
+      "eventEnd": "2023-03-01T00:00:00.000Z",
+      "eventDuration": "month",
+      "title": "Reduced Google Search Latency by 15%",
+      "summary": "Successfully completed the first phase of the Google Search Optimization project, reducing search latency by 15%.",
+      "details": "Started working on the Google Search Optimization project with the goal of improving efficiency and accuracy. The first phase focused on reducing search latency, which was successfully reduced by 15%.",
+      "companyId": "c1",
+      "projectId": "p1",
+      "isArchived": false
     },
     {
-      "text": "At Amazon, I'm enhancing the delivery system to ensure faster and more reliable deliveries.",
-      "date": "2021-01-02T00:06:00.000Z",
-      "companyId": "2",
-      "projectId": "2",
-      "type": "technical"
+      "id": "e9ade046-452d-4459-be62-7b7708162814",
+      "userId": "04bf94fe-4df9-411f-b6d2-4b2803f64ece",
+      "userMessageId": "5abcfb82-6be8-41af-9a5b-df05b8171f67",
+      "createdAt": "2024-12-15T16:29:25.838Z",
+      "updatedAt": "2024-12-15T16:29:25.838Z",
+      "eventStart": "2023-05-01T00:00:00.000Z",
+      "eventEnd": "2023-09-01T00:00:00.000Z",
+      "eventDuration": "quarter",
+      "title": "Improved Google Search Accuracy by 20%",
+      "summary": "Successfully improved the accuracy of Google search results by 20% during the second phase of the project.",
+      "details": "The second phase of the Google Search Optimization project aimed to improve the accuracy of search results. Despite the challenging task, the team managed to improve the accuracy by 20%.",
+      "companyId": "c1",
+      "projectId": "p1",
+      "isArchived": false
+    },
+    {
+      "id": "9f9802e7-ed34-413a-898a-f4425674d9fd",
+      "userId": "04bf94fe-4df9-411f-b6d2-4b2803f64ece",
+      "userMessageId": "022f5bf2-85af-40cd-96e5-db176cd9cad5",
+      "createdAt": "2024-12-15T16:29:25.838Z",
+      "updatedAt": "2024-12-15T16:29:25.838Z",
+      "eventStart": "2023-11-01T00:00:00.000Z",
+      "eventEnd": "2024-01-01T00:00:00.000Z",
+      "eventDuration": "month",
+      "title": "Enhanced Google Search User Interface",
+      "summary": "Successfully completed the final phase of the Google Search Optimization project by enhancing the user interface.",
+      "details": "The final phase of the Google Search Optimization project focused on improving the user interface. The new interface is more intuitive and user-friendly, significantly enhancing the overall user experience.",
+      "companyId": "c1",
+      "projectId": "p1",
+      "isArchived": false
+    },
+    {
+      "id": "e36d1831-b858-4845-9368-7482671141d7",
+      "userId": "04bf94fe-4df9-411f-b6d2-4b2803f64ece",
+      "userMessageId": "9c3c7dd2-907c-4484-8bd4-1ecdc2d383e3",
+      "createdAt": "2024-12-15T16:29:25.838Z",
+      "updatedAt": "2024-12-15T16:29:25.838Z",
+      "eventStart": "2024-01-01T00:00:00.000Z",
+      "eventEnd": "2024-03-01T00:00:00.000Z",
+      "eventDuration": "month",
+      "title": "Promoted to Lead Software Engineer at Google",
+      "summary": "Received a promotion to the position of Lead Software Engineer at Google.",
+      "details": "After successfully completing the Google Search Optimization project, I was promoted to the position of Lead Software Engineer at Google. This was a significant step in my career.",
+      "companyId": "c1",
+      "projectId": "p1",
+      "isArchived": false
+    },
+    {
+      "id": "4418e19e-147d-4874-bf48-d47cca0f680d",
+      "userId": "04bf94fe-4df9-411f-b6d2-4b2803f64ece",
+      "userMessageId": "4ba3f0a0-05ce-40f2-9f04-ef1d0d2144d2",
+      "createdAt": "2024-12-15T16:29:25.838Z",
+      "updatedAt": "2024-12-15T16:29:25.838Z",
+      "eventStart": "2024-07-15T00:00:00.000Z",
+      "eventEnd": "2024-09-01T00:00:00.000Z",
+      "eventDuration": "month",
+      "title": "Increased Microsoft Azure Capacity by 25%",
+      "summary": "Successfully completed the first phase of the Microsoft Azure Expansion project, increasing Azure's capacity by 25%.",
+      "details": "Started working on the Microsoft Azure Expansion project with the goal of expanding Azure's capabilities and reach. The first phase focused on increasing Azure's capacity, which was successfully increased by 25%.",
+      "companyId": "c2",
+      "projectId": "p2",
+      "isArchived": false
+    },
+    {
+      "id": "5ee1123b-dd5b-4349-886c-bb740605dbf4",
+      "userId": "04bf94fe-4df9-411f-b6d2-4b2803f64ece",
+      "userMessageId": "0229c767-6f3b-497a-b552-c15a6cf2ce34",
+      "createdAt": "2024-12-15T16:29:25.838Z",
+      "updatedAt": "2024-12-15T16:29:25.838Z",
+      "eventStart": "2024-10-01T00:00:00.000Z",
+      "eventEnd": "2024-12-01T00:00:00.000Z",
+      "eventDuration": "month",
+      "title": "Improved Efficiency of Azure Services by 30%",
+      "summary": "Successfully improved the efficiency of Azure services by 30% during the second phase of the project.",
+      "details": "The second phase of the Microsoft Azure Expansion project aimed to improve the efficiency of Azure services. Despite the challenging task, the team managed to improve the efficiency by 30%.",
+      "companyId": "c2",
+      "projectId": "p2",
+      "isArchived": false
+    },
+    {
+      "id": "4ae9c475-68eb-4e09-b177-9992344a6099",
+      "userId": "04bf94fe-4df9-411f-b6d2-4b2803f64ece",
+      "userMessageId": "5d4d8b49-17e0-4f44-b7e2-dc4a0f5c545f",
+      "createdAt": "2024-12-15T16:29:25.838Z",
+      "updatedAt": "2024-12-15T16:29:25.838Z",
+      "eventStart": "2024-12-05T00:00:00.000Z",
+      "eventEnd": "2024-12-15T00:00:00.000Z",
+      "eventDuration": "week",
+      "title": "Expanded Microsoft Azure's Reach to 10 New Markets",
+      "summary": "Successfully completed the final phase of the Microsoft Azure Expansion project by expanding Azure's reach to 10 new markets.",
+      "details": "The final phase of the Microsoft Azure Expansion project focused on expanding Azure's reach to new markets. Azure is now available in 10 new markets, significantly enhancing its overall impact.",
+      "companyId": "c2",
+      "projectId": "p2",
+      "isArchived": false
     }
   ]
 }

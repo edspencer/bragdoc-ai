@@ -1,145 +1,247 @@
 {
   "scenario": {
-    "description": "Scenario for a project lead managing multiple initiatives at a single company, with a mix of technical and people management responsibilities.",
+    "description": "Scenario for a Senior Project Lead at TechSolutions Inc. managing multiple initiatives",
     "companies": [
       {
         "id": "c1",
         "name": "TechSolutions Inc.",
         "role": "Senior Project Lead",
         "domain": "Information Technology",
-        "startDate": "2019-01-07T00:00:00.000Z",
-        "endDate": "2021-12-31T00:00:00.000Z"
+        "startDate": "2024-01-01T00:00:00.000Z",
+        "endDate": "2024-12-31T23:59:59.000Z"
       }
     ],
     "projects": [
       {
         "id": "p1",
-        "name": "Project Alpha",
+        "name": "Cloud Migration Initiative",
         "companyId": "c1",
-        "description": "A project to develop a new customer relationship management (CRM) system. The team size was 15, including developers, designers, and QA testers. The project had clear milestones, including system design completion, coding completion, testing phase, and final deployment. The project was completed on time and within budget, with a 20% increase in efficiency for the client's sales team.",
-        "startDate": "2019-02-01T00:00:00.000Z",
-        "endDate": "2020-01-31T00:00:00.000Z"
+        "description": "Leading a team of 10 to migrate company's data to a new cloud platform. Key metrics include migration speed, data integrity, and system uptime.",
+        "startDate": "2024-01-15T00:00:00.000Z",
+        "endDate": "2024-06-30T23:59:59.000Z"
       },
       {
         "id": "p2",
-        "name": "Project Beta",
+        "name": "AI Integration Project",
         "companyId": "c1",
-        "description": "A project to upgrade the company's internal network infrastructure. The team size was 10, including network engineers, system administrators, and security experts. The project had clear milestones, including network design, hardware procurement, installation, and final testing. The project was completed ahead of schedule and resulted in a 30% increase in network speed and a 15% decrease in downtime.",
-        "startDate": "2020-02-01T00:00:00.000Z",
-        "endDate": "2021-01-31T00:00:00.000Z"
+        "description": "Managing a team of 15 to integrate AI capabilities into company's existing software. Key metrics include AI performance, user adoption rate, and bug count.",
+        "startDate": "2024-04-01T00:00:00.000Z",
+        "endDate": "2024-12-31T23:59:59.000Z"
+      },
+      {
+        "id": "p3",
+        "name": "Cybersecurity Enhancement",
+        "companyId": "c1",
+        "description": "Overseeing a team of 8 to enhance company's cybersecurity measures. Key metrics include number of vulnerabilities detected, response time to threats, and system security score.",
+        "startDate": "2024-07-01T00:00:00.000Z",
+        "endDate": "2024-12-31T23:59:59.000Z"
       }
     ],
-    "userPersona": "Senior Project Lead at TechSolutions Inc. managing multiple concurrent projects with different teams, with a mix of technical and people management responsibilities.",
+    "userPersona": "Senior Project Lead with a mix of technical and people management skills, responsible for managing multiple concurrent projects with different teams.",
     "timeframe": {
-      "start": "2019-01-07T00:00:00.000Z",
-      "end": "2021-12-31T00:00:00.000Z"
-    }
+      "start": "2024-01-01T00:00:00.000Z",
+      "end": "2024-12-31T23:59:59.000Z"
+    },
+    "userId": "ca6b1101-6dac-4d2b-918e-89c6f71189bf"
   },
   "conversation": {
-    "id": "7ba4c41a-6028-4057-8fd2-f8f19719ad12",
+    "id": "cf2c8ff1-ea72-4e36-91db-75dc6d8fdd5b",
     "messages": [
       {
         "role": "user",
-        "content": "Hey there! I just wanted to share some updates about my work at TechSolutions Inc.",
-        "timestamp": "2021-12-14T00:00:00.000Z"
+        "content": "Hey there! Just wanted to share that we've officially kicked off the Cloud Migration Initiative at TechSolutions Inc. I'm leading a team of 10 on this and our goal is to migrate all company data to a new cloud platform. Exciting times ahead!",
+        "timestamp": "2024-01-15T10:00:00.000Z"
       },
       {
         "role": "assistant",
-        "content": "Hello! I'm excited to hear about your achievements. What would you like to share?",
-        "timestamp": "2021-12-14T00:01:00.000Z"
+        "content": "That's fantastic news! Leading a team on such a crucial project is a significant achievement. Keep up the good work!",
+        "timestamp": "2024-01-15T10:05:00.000Z"
       },
       {
         "role": "user",
-        "content": "Well, I successfully led Project Alpha, where we developed a new CRM system. The project was completed on time and within budget, and we saw a 20% increase in efficiency for the client's sales team.",
-        "timestamp": "2021-12-14T00:02:00.000Z"
+        "content": "Thanks! We've made some progress. We've migrated 20% of the data so far and everything is running smoothly. The team is doing a great job.",
+        "timestamp": "2024-02-15T10:00:00.000Z"
       },
       {
         "role": "assistant",
-        "content": "That's fantastic! Can you tell me more about the team you worked with on Project Alpha?",
-        "timestamp": "2021-12-14T00:03:00.000Z"
+        "content": "Great to hear that! Keep the momentum going. Your leadership is clearly making a difference.",
+        "timestamp": "2024-02-15T10:05:00.000Z"
       },
       {
         "role": "user",
-        "content": "Sure, the team was composed of 15 members, including developers, designers, and QA testers. It was a diverse and talented group.",
-        "timestamp": "2021-12-14T00:04:00.000Z"
+        "content": "Just an update on the Cloud Migration Initiative. We've successfully migrated 50% of the data. Also, I've started leading the AI Integration Project. It's a challenge managing two projects, but I'm learning a lot.",
+        "timestamp": "2024-04-15T10:00:00.000Z"
       },
       {
         "role": "assistant",
-        "content": "Sounds like a strong team. What about other projects? Any other achievements you'd like to share?",
-        "timestamp": "2021-12-14T00:05:00.000Z"
+        "content": "That's impressive progress on the Cloud Migration Initiative! And taking on the AI Integration Project is a testament to your capabilities. Keep going!",
+        "timestamp": "2024-04-15T10:05:00.000Z"
       },
       {
         "role": "user",
-        "content": "Yes, I also led Project Beta, which was about upgrading our company's internal network infrastructure. We completed the project ahead of schedule and saw a 30% increase in network speed and a 15% decrease in downtime.",
-        "timestamp": "2021-12-14T00:06:00.000Z"
+        "content": "We've done it! The Cloud Migration Initiative is complete. We migrated all the data ahead of schedule and maintained 99.9% data integrity. I'm really proud of the team.",
+        "timestamp": "2024-06-15T10:00:00.000Z"
       },
       {
         "role": "assistant",
-        "content": "Impressive work on Project Beta! Can you share more about the team and the challenges you faced during this project?",
-        "timestamp": "2021-12-14T00:07:00.000Z"
+        "content": "Congratulations on successfully completing the Cloud Migration Initiative! Your leadership and the team's hard work have really paid off. Well done!",
+        "timestamp": "2024-06-15T10:05:00.000Z"
       },
       {
         "role": "user",
-        "content": "The team for Project Beta was smaller, with 10 members including network engineers, system administrators, and security experts. One of the main challenges was coordinating with different departments to minimize disruption during the upgrade.",
-        "timestamp": "2021-12-14T00:08:00.000Z"
+        "content": "Thanks! On the AI Integration Project, we've managed to integrate AI capabilities into 30% of our software so far. The user adoption rate is at 60%, which is higher than we expected at this stage.",
+        "timestamp": "2024-07-15T10:00:00.000Z"
       },
       {
         "role": "assistant",
-        "content": "It sounds like you handled the challenge well. Your leadership skills and ability to manage complex projects are commendable. Keep up the good work!",
-        "timestamp": "2021-12-14T00:09:00.000Z"
+        "content": "That's excellent news! The high user adoption rate is a clear sign of success. Keep up the good work!",
+        "timestamp": "2024-07-15T10:05:00.000Z"
+      },
+      {
+        "role": "user",
+        "content": "I've got another project on my plate now - the Cybersecurity Enhancement. I'll be overseeing a team of 8 to enhance our company's cybersecurity measures. It's going to be a busy second half of the year!",
+        "timestamp": "2024-07-20T10:00:00.000Z"
+      },
+      {
+        "role": "assistant",
+        "content": "Wow, you're really taking on a lot! It's a testament to your skills and dedication. Best of luck with the Cybersecurity Enhancement!",
+        "timestamp": "2024-07-20T10:05:00.000Z"
+      },
+      {
+        "role": "user",
+        "content": "Just a quick update. We've integrated AI capabilities into 60% of our software now. The user adoption rate is steady at 70%. On the Cybersecurity Enhancement, we've detected and fixed 20 vulnerabilities so far.",
+        "timestamp": "2024-09-15T10:00:00.000Z"
+      },
+      {
+        "role": "assistant",
+        "content": "That's great progress on both projects! Your hard work and leadership are clearly paying off. Keep it up!",
+        "timestamp": "2024-09-15T10:05:00.000Z"
+      },
+      {
+        "role": "user",
+        "content": "We've successfully completed the AI Integration Project! We've integrated AI into all our software and the final user adoption rate is 80%. I'm really proud of what we've achieved.",
+        "timestamp": "2024-12-01T10:00:00.000Z"
+      },
+      {
+        "role": "assistant",
+        "content": "Congratulations on completing the AI Integration Project! An 80% user adoption rate is fantastic. Your leadership has clearly made a difference. Well done!",
+        "timestamp": "2024-12-01T10:05:00.000Z"
+      },
+      {
+        "role": "user",
+        "content": "Thanks! On the Cybersecurity Enhancement, we've detected and fixed 50 vulnerabilities. Our system security score has improved by 20%. We're making good progress.",
+        "timestamp": "2024-12-15T10:00:00.000Z"
+      },
+      {
+        "role": "assistant",
+        "content": "That's excellent progress on the Cybersecurity Enhancement! Improving the system security score by 20% is a significant achievement. Keep going!",
+        "timestamp": "2024-12-15T10:05:00.000Z"
+      },
+      {
+        "role": "user",
+        "content": "We've done it! The Cybersecurity Enhancement is complete. We've detected and fixed 100 vulnerabilities and our system security score has improved by 30%. It's been a successful year!",
+        "timestamp": "2024-12-31T10:00:00.000Z"
+      },
+      {
+        "role": "assistant",
+        "content": "Congratulations on successfully completing the Cybersecurity Enhancement! Improving the system security score by 30% is a major achievement. You've had an incredible year. Well done!",
+        "timestamp": "2024-12-31T10:05:00.000Z"
       }
     ],
     "scenario": {
-      "description": "Scenario for a project lead managing multiple initiatives at a single company, with a mix of technical and people management responsibilities.",
+      "description": "Scenario for a Senior Project Lead at TechSolutions Inc. managing multiple initiatives",
       "companies": [
         {
           "id": "c1",
           "name": "TechSolutions Inc.",
           "role": "Senior Project Lead",
           "domain": "Information Technology",
-          "startDate": "2019-01-07T00:00:00.000Z",
-          "endDate": "2021-12-31T00:00:00.000Z"
+          "startDate": "2024-01-01T00:00:00.000Z",
+          "endDate": "2024-12-31T23:59:59.000Z"
         }
       ],
       "projects": [
         {
           "id": "p1",
-          "name": "Project Alpha",
+          "name": "Cloud Migration Initiative",
           "companyId": "c1",
-          "description": "A project to develop a new customer relationship management (CRM) system. The team size was 15, including developers, designers, and QA testers. The project had clear milestones, including system design completion, coding completion, testing phase, and final deployment. The project was completed on time and within budget, with a 20% increase in efficiency for the client's sales team.",
-          "startDate": "2019-02-01T00:00:00.000Z",
-          "endDate": "2020-01-31T00:00:00.000Z"
+          "description": "Leading a team of 10 to migrate company's data to a new cloud platform. Key metrics include migration speed, data integrity, and system uptime.",
+          "startDate": "2024-01-15T00:00:00.000Z",
+          "endDate": "2024-06-30T23:59:59.000Z"
         },
         {
           "id": "p2",
-          "name": "Project Beta",
+          "name": "AI Integration Project",
           "companyId": "c1",
-          "description": "A project to upgrade the company's internal network infrastructure. The team size was 10, including network engineers, system administrators, and security experts. The project had clear milestones, including network design, hardware procurement, installation, and final testing. The project was completed ahead of schedule and resulted in a 30% increase in network speed and a 15% decrease in downtime.",
-          "startDate": "2020-02-01T00:00:00.000Z",
-          "endDate": "2021-01-31T00:00:00.000Z"
+          "description": "Managing a team of 15 to integrate AI capabilities into company's existing software. Key metrics include AI performance, user adoption rate, and bug count.",
+          "startDate": "2024-04-01T00:00:00.000Z",
+          "endDate": "2024-12-31T23:59:59.000Z"
+        },
+        {
+          "id": "p3",
+          "name": "Cybersecurity Enhancement",
+          "companyId": "c1",
+          "description": "Overseeing a team of 8 to enhance company's cybersecurity measures. Key metrics include number of vulnerabilities detected, response time to threats, and system security score.",
+          "startDate": "2024-07-01T00:00:00.000Z",
+          "endDate": "2024-12-31T23:59:59.000Z"
         }
       ],
-      "userPersona": "Senior Project Lead at TechSolutions Inc. managing multiple concurrent projects with different teams, with a mix of technical and people management responsibilities.",
+      "userPersona": "Senior Project Lead with a mix of technical and people management skills, responsible for managing multiple concurrent projects with different teams.",
       "timeframe": {
-        "start": "2019-01-07T00:00:00.000Z",
-        "end": "2021-12-31T00:00:00.000Z"
-      }
+        "start": "2024-01-01T00:00:00.000Z",
+        "end": "2024-12-31T23:59:59.000Z"
+      },
+      "userId": "ca6b1101-6dac-4d2b-918e-89c6f71189bf"
     }
   },
   "expectedBrags": [
     {
-      "text": "I successfully led Project Alpha, where we developed a new CRM system. The project was completed on time and within budget, and we saw a 20% increase in efficiency for the client's sales team.",
-      "date": "2021-12-14T00:02:00.000Z",
+      "id": "5fe8ea45-3cc3-456f-a09d-d2730260418d",
+      "userId": "ca6b1101-6dac-4d2b-918e-89c6f71189bf",
+      "userMessageId": "272d5603-c9a3-4459-ba1d-17bf23ded901",
+      "createdAt": "2024-12-15T16:31:43.485Z",
+      "updatedAt": "2024-12-15T16:31:43.485Z",
+      "eventStart": "2024-01-15T00:00:00.000Z",
+      "eventEnd": "2024-06-15T10:00:00.000Z",
+      "eventDuration": "quarter",
+      "title": "Led Cloud Migration Initiative",
+      "summary": "Successfully migrated all company data to a new cloud platform ahead of schedule, maintaining 99.9% data integrity.",
+      "details": "Led a team of 10 to migrate all company data to a new cloud platform. The project was completed ahead of schedule and maintained 99.9% data integrity, demonstrating effective leadership and project management.",
       "companyId": "c1",
       "projectId": "p1",
-      "type": "technical"
+      "isArchived": false
     },
     {
-      "text": "I also led Project Beta, which was about upgrading our company's internal network infrastructure. We completed the project ahead of schedule and saw a 30% increase in network speed and a 15% decrease in downtime.",
-      "date": "2021-12-14T00:06:00.000Z",
+      "id": "558bf55a-3a1b-4560-bce5-420fd0af2ebf",
+      "userId": "ca6b1101-6dac-4d2b-918e-89c6f71189bf",
+      "userMessageId": "b6e62a51-749a-4811-9f39-08bee11b853f",
+      "createdAt": "2024-12-15T16:31:43.485Z",
+      "updatedAt": "2024-12-15T16:31:43.485Z",
+      "eventStart": "2024-04-01T00:00:00.000Z",
+      "eventEnd": "2024-12-01T10:00:00.000Z",
+      "eventDuration": "quarter",
+      "title": "Managed AI Integration Project",
+      "summary": "Successfully integrated AI capabilities into all company software, achieving an 80% user adoption rate.",
+      "details": "Managed a team of 15 to integrate AI capabilities into all company software. The project was completed successfully with a final user adoption rate of 80%, indicating high user satisfaction and effective project management.",
       "companyId": "c1",
       "projectId": "p2",
-      "type": "technical"
+      "isArchived": false
+    },
+    {
+      "id": "069e201d-7fdf-4d11-a703-216a9cbda6f2",
+      "userId": "ca6b1101-6dac-4d2b-918e-89c6f71189bf",
+      "userMessageId": "a7625c6f-5865-4ade-923e-824522056b5a",
+      "createdAt": "2024-12-15T16:31:43.486Z",
+      "updatedAt": "2024-12-15T16:31:43.486Z",
+      "eventStart": "2024-07-01T00:00:00.000Z",
+      "eventEnd": "2024-12-31T10:00:00.000Z",
+      "eventDuration": "quarter",
+      "title": "Oversaw Cybersecurity Enhancement",
+      "summary": "Successfully enhanced company's cybersecurity measures, detecting and fixing 100 vulnerabilities and improving system security score by 30%.",
+      "details": "Oversaw a team of 8 to enhance company's cybersecurity measures. The project was completed successfully, with 100 vulnerabilities detected and fixed, and a 30% improvement in the system security score, demonstrating effective leadership and project management.",
+      "companyId": "c1",
+      "projectId": "p3",
+      "isArchived": false
     }
   ]
 }

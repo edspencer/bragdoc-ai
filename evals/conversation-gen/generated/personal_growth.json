@@ -1,14 +1,14 @@
 {
   "scenario": {
-    "description": "Scenario for a user who is a Software Engineer at Google, has personal side projects, is involved in community service, and has non-work related accomplishments.",
+    "description": "Scenario for testing a brag tracking application",
     "companies": [
       {
         "id": "1",
         "name": "Google",
-        "role": "Software Engineer",
-        "domain": "Technology",
-        "startDate": "2019-06-01T00:00:00.000Z",
-        "endDate": "2022-12-31T23:59:59.000Z"
+        "role": "Senior Software Engineer",
+        "domain": "Tech",
+        "startDate": "2024-01-01T00:00:00.000Z",
+        "endDate": "2024-12-15T16:29:25.840Z"
       }
     ],
     "projects": [
@@ -16,105 +16,156 @@
         "id": "1",
         "name": "Google Search Optimization",
         "companyId": "1",
-        "description": "Worked on improving the efficiency of Google's search algorithm by 15%",
-        "startDate": "2019-06-01T00:00:00.000Z",
-        "endDate": "2020-05-31T23:59:59.000Z"
+        "description": "Worked on improving the search algorithm to provide more relevant results to users",
+        "startDate": "2024-01-01T00:00:00.000Z",
+        "endDate": "2024-06-30T00:00:00.000Z"
       },
       {
         "id": "2",
-        "name": "Personal Blog",
+        "name": "Personal Blog Development",
         "companyId": "1",
-        "description": "Created a personal blog to share knowledge about software development and machine learning. The blog has over 10,000 monthly visitors.",
-        "startDate": "2020-06-01T00:00:00.000Z",
-        "endDate": "2022-12-31T23:59:59.000Z"
+        "description": "Developed a personal blog using React and Node.js to share knowledge about software development",
+        "startDate": "2024-07-01T00:00:00.000Z",
+        "endDate": "2024-12-15T16:29:25.840Z"
       },
       {
         "id": "3",
-        "name": "Community Coding Bootcamp",
+        "name": "Mentorship at CodeNewbie",
         "companyId": "1",
-        "description": "Volunteered to teach coding to underprivileged students in the local community. The bootcamp has helped over 50 students learn basic coding skills.",
-        "startDate": "2021-01-01T00:00:00.000Z",
-        "endDate": "2022-12-31T23:59:59.000Z"
+        "description": "Mentored new coders, helping them understand basic programming concepts and guiding them on their learning journey",
+        "startDate": "2024-01-01T00:00:00.000Z",
+        "endDate": "2024-12-15T16:29:25.840Z"
       },
       {
         "id": "4",
-        "name": "Marathon Runner",
+        "name": "Marathon Training",
         "companyId": "1",
-        "description": "Completed a full marathon in under 4 hours.",
-        "startDate": "2021-10-03T00:00:00.000Z",
-        "endDate": "2021-10-03T23:59:59.000Z"
+        "description": "Trained for and completed a full marathon",
+        "startDate": "2024-01-01T00:00:00.000Z",
+        "endDate": "2024-10-01T00:00:00.000Z"
       }
     ],
-    "userPersona": "Software Engineer",
+    "userPersona": "Senior Software Engineer at Google who is passionate about sharing knowledge, mentoring new coders, and maintaining a healthy lifestyle",
     "timeframe": {
-      "start": "2019-06-01T00:00:00.000Z",
-      "end": "2022-12-31T23:59:59.000Z"
-    }
+      "start": "2024-01-01T00:00:00.000Z",
+      "end": "2024-12-15T16:29:25.840Z"
+    },
+    "userId": "f306ac78-a350-4087-af62-a38905aab8f2"
   },
   "conversation": {
-    "id": "0ecb94d7-6108-4c17-9e7a-389fd02fcf7c",
+    "id": "86e35bfd-d516-437e-b4d9-82348d641374",
     "messages": [
       {
         "role": "user",
-        "content": "Hey there! I wanted to update my achievements.",
-        "timestamp": "2022-12-31T23:59:59.000Z"
+        "content": "Hey there! Just wanted to share that I've started working on the Google Search Optimization project. I'll be focusing on improving the search algorithm to provide more relevant results to users.",
+        "timestamp": "2024-01-02T10:00:00.000Z"
       },
       {
         "role": "assistant",
-        "content": "Of course! I'm here to help. What would you like to update?",
-        "timestamp": "2023-01-01T00:00:01.000Z"
+        "content": "That sounds like an exciting project! Looking forward to hearing about your progress.",
+        "timestamp": "2024-01-02T10:05:00.000Z"
       },
       {
         "role": "user",
-        "content": "I've been working on Google Search Optimization at Google and we've improved the efficiency of the search algorithm by 15%.",
-        "timestamp": "2023-01-01T00:00:05.000Z"
+        "content": "I've made some significant progress on the Google Search Optimization project. We've managed to reduce the average search time by 15% so far.",
+        "timestamp": "2024-02-15T16:00:00.000Z"
       },
       {
         "role": "assistant",
-        "content": "That's a significant achievement! When did you complete this project?",
-        "timestamp": "2023-01-01T00:00:07.000Z"
+        "content": "That's impressive! Keep up the good work.",
+        "timestamp": "2024-02-15T16:05:00.000Z"
       },
       {
         "role": "user",
-        "content": "The project was completed on May 31, 2020.",
-        "timestamp": "2023-01-01T00:00:10.000Z"
+        "content": "I've also started mentoring at CodeNewbie. It's been a rewarding experience helping new coders understand basic programming concepts.",
+        "timestamp": "2024-02-20T18:00:00.000Z"
       },
       {
         "role": "assistant",
-        "content": "Great! I've updated that. Do you have any other professional achievements to add?",
-        "timestamp": "2023-01-01T00:00:12.000Z"
+        "content": "That's wonderful! Sharing knowledge is a great way to contribute to the community.",
+        "timestamp": "2024-02-20T18:05:00.000Z"
       },
       {
         "role": "user",
-        "content": "Yes, I've also been running a personal blog about software development and machine learning. It's been getting over 10,000 monthly visitors.",
-        "timestamp": "2023-01-01T00:00:15.000Z"
+        "content": "Just completed the Google Search Optimization project. We've managed to improve the relevancy of search results by 20% and reduce the average search time by 25%.",
+        "timestamp": "2024-06-30T15:00:00.000Z"
       },
       {
         "role": "assistant",
-        "content": "That's impressive! When did you start the blog?",
-        "timestamp": "2023-01-01T00:00:17.000Z"
+        "content": "Congratulations on completing the project! Those are some impressive results.",
+        "timestamp": "2024-06-30T15:05:00.000Z"
       },
       {
         "role": "user",
-        "content": "I started the blog on June 1, 2020.",
-        "timestamp": "2023-01-01T00:00:20.000Z"
+        "content": "I've started a new project - Personal Blog Development. I'm using React and Node.js to build it. The goal is to share my knowledge about software development.",
+        "timestamp": "2024-07-01T10:00:00.000Z"
       },
       {
         "role": "assistant",
-        "content": "Excellent! I've added that to your achievements. Is there anything else you'd like to update?",
-        "timestamp": "2023-01-01T00:00:22.000Z"
+        "content": "That's a great initiative! It will be a valuable resource for many. Good luck!",
+        "timestamp": "2024-07-01T10:05:00.000Z"
+      },
+      {
+        "role": "user",
+        "content": "I've been making steady progress on my Personal Blog Development project. I've completed the backend and started working on the frontend.",
+        "timestamp": "2024-08-15T16:00:00.000Z"
+      },
+      {
+        "role": "assistant",
+        "content": "Great to hear that you're making progress. Keep it up!",
+        "timestamp": "2024-08-15T16:05:00.000Z"
+      },
+      {
+        "role": "user",
+        "content": "In other news, I've been training for a marathon. I've managed to run 10 miles without stopping so far.",
+        "timestamp": "2024-08-20T18:00:00.000Z"
+      },
+      {
+        "role": "assistant",
+        "content": "That's a great personal achievement! Keep pushing your limits.",
+        "timestamp": "2024-08-20T18:05:00.000Z"
+      },
+      {
+        "role": "user",
+        "content": "I've completed my Personal Blog Development project. I've already started posting articles and the response has been positive so far.",
+        "timestamp": "2024-12-01T15:00:00.000Z"
+      },
+      {
+        "role": "assistant",
+        "content": "Congratulations on completing your blog! It's great to hear that you're getting a positive response.",
+        "timestamp": "2024-12-01T15:05:00.000Z"
+      },
+      {
+        "role": "user",
+        "content": "I've also completed my marathon training and managed to finish a full marathon. It was a challenging but rewarding experience.",
+        "timestamp": "2024-12-02T10:00:00.000Z"
+      },
+      {
+        "role": "assistant",
+        "content": "That's a huge accomplishment! Congratulations on completing the marathon.",
+        "timestamp": "2024-12-02T10:05:00.000Z"
+      },
+      {
+        "role": "user",
+        "content": "Looking back, it's been a productive year. I've managed to achieve a lot, both professionally and personally.",
+        "timestamp": "2024-12-15T16:00:00.000Z"
+      },
+      {
+        "role": "assistant",
+        "content": "Indeed, you've had an impressive year! Here's to more achievements in the future.",
+        "timestamp": "2024-12-15T16:05:00.000Z"
       }
     ],
     "scenario": {
-      "description": "Scenario for a user who is a Software Engineer at Google, has personal side projects, is involved in community service, and has non-work related accomplishments.",
+      "description": "Scenario for testing a brag tracking application",
       "companies": [
         {
           "id": "1",
           "name": "Google",
-          "role": "Software Engineer",
-          "domain": "Technology",
-          "startDate": "2019-06-01T00:00:00.000Z",
-          "endDate": "2022-12-31T23:59:59.000Z"
+          "role": "Senior Software Engineer",
+          "domain": "Tech",
+          "startDate": "2024-01-01T00:00:00.000Z",
+          "endDate": "2024-12-15T16:29:25.840Z"
         }
       ],
       "projects": [
@@ -122,56 +173,107 @@
           "id": "1",
           "name": "Google Search Optimization",
           "companyId": "1",
-          "description": "Worked on improving the efficiency of Google's search algorithm by 15%",
-          "startDate": "2019-06-01T00:00:00.000Z",
-          "endDate": "2020-05-31T23:59:59.000Z"
+          "description": "Worked on improving the search algorithm to provide more relevant results to users",
+          "startDate": "2024-01-01T00:00:00.000Z",
+          "endDate": "2024-06-30T00:00:00.000Z"
         },
         {
           "id": "2",
-          "name": "Personal Blog",
+          "name": "Personal Blog Development",
           "companyId": "1",
-          "description": "Created a personal blog to share knowledge about software development and machine learning. The blog has over 10,000 monthly visitors.",
-          "startDate": "2020-06-01T00:00:00.000Z",
-          "endDate": "2022-12-31T23:59:59.000Z"
+          "description": "Developed a personal blog using React and Node.js to share knowledge about software development",
+          "startDate": "2024-07-01T00:00:00.000Z",
+          "endDate": "2024-12-15T16:29:25.840Z"
         },
         {
           "id": "3",
-          "name": "Community Coding Bootcamp",
+          "name": "Mentorship at CodeNewbie",
           "companyId": "1",
-          "description": "Volunteered to teach coding to underprivileged students in the local community. The bootcamp has helped over 50 students learn basic coding skills.",
-          "startDate": "2021-01-01T00:00:00.000Z",
-          "endDate": "2022-12-31T23:59:59.000Z"
+          "description": "Mentored new coders, helping them understand basic programming concepts and guiding them on their learning journey",
+          "startDate": "2024-01-01T00:00:00.000Z",
+          "endDate": "2024-12-15T16:29:25.840Z"
         },
         {
           "id": "4",
-          "name": "Marathon Runner",
+          "name": "Marathon Training",
           "companyId": "1",
-          "description": "Completed a full marathon in under 4 hours.",
-          "startDate": "2021-10-03T00:00:00.000Z",
-          "endDate": "2021-10-03T23:59:59.000Z"
+          "description": "Trained for and completed a full marathon",
+          "startDate": "2024-01-01T00:00:00.000Z",
+          "endDate": "2024-10-01T00:00:00.000Z"
         }
       ],
-      "userPersona": "Software Engineer",
+      "userPersona": "Senior Software Engineer at Google who is passionate about sharing knowledge, mentoring new coders, and maintaining a healthy lifestyle",
       "timeframe": {
-        "start": "2019-06-01T00:00:00.000Z",
-        "end": "2022-12-31T23:59:59.000Z"
-      }
+        "start": "2024-01-01T00:00:00.000Z",
+        "end": "2024-12-15T16:29:25.840Z"
+      },
+      "userId": "f306ac78-a350-4087-af62-a38905aab8f2"
     }
   },
   "expectedBrags": [
     {
-      "text": "Improved the efficiency of Google's search algorithm by 15%",
-      "date": "2020-05-31T00:00:00.000Z",
+      "id": "1d69b1bd-f554-4408-b4be-b278d80f917e",
+      "userId": "f306ac78-a350-4087-af62-a38905aab8f2",
+      "userMessageId": "a2a5645a-c507-4ef6-baa7-ee0f7c6d7713",
+      "createdAt": "2024-12-15T16:30:45.648Z",
+      "updatedAt": "2024-12-15T16:30:45.648Z",
+      "eventStart": "2024-01-02T10:00:00.000Z",
+      "eventEnd": "2024-06-30T15:00:00.000Z",
+      "eventDuration": "quarter",
+      "title": "Improved Google Search Algorithm",
+      "summary": "Reduced average search time by 25% and improved the relevancy of search results by 20% in the Google Search Optimization project.",
+      "details": "Started working on the Google Search Optimization project with a focus on improving the search algorithm. Made significant progress by reducing the average search time by 15% initially. Upon completion, managed to improve the relevancy of search results by 20% and reduce the average search time by 25%.",
       "companyId": "1",
       "projectId": "1",
-      "type": "technical"
+      "isArchived": false
     },
     {
-      "text": "Started a personal blog about software development and machine learning with over 10,000 monthly visitors",
-      "date": "2020-06-01T00:00:00.000Z",
+      "id": "f05821ba-2408-415f-9741-156ceae41539",
+      "userId": "f306ac78-a350-4087-af62-a38905aab8f2",
+      "userMessageId": "6ae7ed62-a8c3-4cd5-a642-567402f581e9",
+      "createdAt": "2024-12-15T16:30:45.648Z",
+      "updatedAt": "2024-12-15T16:30:45.648Z",
+      "eventStart": "2024-02-20T18:00:00.000Z",
+      "eventEnd": "2024-12-15T16:29:25.840Z",
+      "eventDuration": "year",
+      "title": "Mentored at CodeNewbie",
+      "summary": "Mentored new coders at CodeNewbie, helping them understand basic programming concepts.",
+      "details": "Started mentoring at CodeNewbie, focusing on helping new coders understand basic programming concepts. Found the experience rewarding and contributed to the community by sharing knowledge.",
+      "companyId": "1",
+      "projectId": "3",
+      "isArchived": false
+    },
+    {
+      "id": "574726b1-ad79-49aa-ac9a-cc323a88b04a",
+      "userId": "f306ac78-a350-4087-af62-a38905aab8f2",
+      "userMessageId": "2f19bbf1-528e-457b-8ea0-8754e9abf6d1",
+      "createdAt": "2024-12-15T16:30:45.648Z",
+      "updatedAt": "2024-12-15T16:30:45.648Z",
+      "eventStart": "2024-07-01T10:00:00.000Z",
+      "eventEnd": "2024-12-01T15:00:00.000Z",
+      "eventDuration": "quarter",
+      "title": "Developed Personal Blog",
+      "summary": "Developed a personal blog using React and Node.js to share knowledge about software development, receiving positive responses.",
+      "details": "Started the Personal Blog Development project using React and Node.js with the goal of sharing knowledge about software development. Made steady progress by completing the backend and starting on the frontend. Upon completion, started posting articles and received positive responses.",
       "companyId": "1",
       "projectId": "2",
-      "type": "personal"
+      "isArchived": false
+    },
+    {
+      "id": "14154440-e68f-409a-9507-53c608d54df1",
+      "userId": "f306ac78-a350-4087-af62-a38905aab8f2",
+      "userMessageId": "f68c437d-4b53-42c3-a372-cce1b2cf9684",
+      "createdAt": "2024-12-15T16:30:45.648Z",
+      "updatedAt": "2024-12-15T16:30:45.648Z",
+      "eventStart": "2024-01-01T00:00:00.000Z",
+      "eventEnd": "2024-12-02T10:00:00.000Z",
+      "eventDuration": "year",
+      "title": "Completed Marathon Training",
+      "summary": "Trained for and completed a full marathon.",
+      "details": "Started training for a marathon and made progress by managing to run 10 miles without stopping. Eventually completed the training and finished a full marathon, finding the experience challenging but rewarding.",
+      "companyId": "1",
+      "projectId": "4",
+      "isArchived": false
     }
   ]
 }

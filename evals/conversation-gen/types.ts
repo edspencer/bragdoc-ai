@@ -1,4 +1,4 @@
-import { type Brag } from '../../lib/types';
+import { type Brag } from "../../lib/db/schema";
 
 export type CompanyContext = {
   id: string;
@@ -23,6 +23,7 @@ export type ConversationScenario = {
   companies: CompanyContext[];
   projects: ProjectContext[];
   userPersona: string;
+  userId: string;
   timeframe: {
     start: Date;
     end: Date;

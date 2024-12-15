@@ -1,207 +1,409 @@
 {
   "scenario": {
-    "description": "Tech professional with multiple roles and projects",
+    "description": "Scenario for a tech professional juggling multiple roles and projects",
     "companies": [
       {
-        "id": "1",
-        "name": "Techtronics Inc.",
+        "id": "c1",
+        "name": "TechNova Solutions",
         "role": "Senior Software Engineer",
         "domain": "Technology",
-        "startDate": "2019-06-01T00:00:00.000Z",
-        "endDate": "2021-12-31T00:00:00.000Z"
+        "startDate": "2024-01-03T00:00:00.000Z",
+        "endDate": "2024-12-15T16:25:11.777Z"
       },
       {
-        "id": "2",
-        "name": "Innovative Solutions",
-        "role": "Part-time Consultant",
-        "domain": "Technology",
-        "startDate": "2020-01-01T00:00:00.000Z",
-        "endDate": "2021-12-31T00:00:00.000Z"
+        "id": "c2",
+        "name": "Innovative Minds Consulting",
+        "role": "Part-time Tech Consultant",
+        "domain": "Consulting",
+        "startDate": "2024-03-01T00:00:00.000Z",
+        "endDate": "2024-12-15T16:25:11.777Z"
       }
     ],
     "projects": [
       {
-        "id": "1",
-        "name": "Project Alpha",
-        "companyId": "1",
-        "description": "Developing a new feature for the main product",
-        "startDate": "2019-06-01T00:00:00.000Z",
-        "endDate": "2020-06-01T00:00:00.000Z"
+        "id": "p1",
+        "name": "Project Orion",
+        "companyId": "c1",
+        "description": "Developing a cloud-based data management system",
+        "startDate": "2024-02-01T00:00:00.000Z",
+        "endDate": "2024-12-15T16:25:11.777Z"
       },
       {
-        "id": "2",
-        "name": "Project Beta",
-        "companyId": "1",
-        "description": "Leading a team to improve the product's performance",
-        "startDate": "2020-06-02T00:00:00.000Z",
-        "endDate": "2021-06-01T00:00:00.000Z"
+        "id": "p2",
+        "name": "Project Gemini",
+        "companyId": "c1",
+        "description": "Leading a team to build a machine learning model for predictive analysis",
+        "startDate": "2024-06-01T00:00:00.000Z",
+        "endDate": "2024-12-15T16:25:11.777Z"
       },
       {
-        "id": "3",
-        "name": "Project Gamma",
-        "companyId": "2",
-        "description": "Consulting on a project to implement a new technology",
-        "startDate": "2020-01-01T00:00:00.000Z",
-        "endDate": "2021-01-01T00:00:00.000Z"
+        "id": "p3",
+        "name": "Project Apollo",
+        "companyId": "c2",
+        "description": "Consulting on the integration of AI capabilities into existing software",
+        "startDate": "2024-04-01T00:00:00.000Z",
+        "endDate": "2024-12-15T16:25:11.777Z"
       },
       {
-        "id": "4",
-        "name": "Project Delta",
-        "companyId": "2",
-        "description": "Advising on a project to improve the company's software architecture",
-        "startDate": "2021-01-02T00:00:00.000Z",
-        "endDate": "2021-12-31T00:00:00.000Z"
+        "id": "p4",
+        "name": "Project Mercury",
+        "companyId": "c2",
+        "description": "Advising on the development of a cybersecurity strategy",
+        "startDate": "2024-07-01T00:00:00.000Z",
+        "endDate": "2024-12-15T16:25:11.777Z"
       }
     ],
-    "userPersona": "Tech Professional",
+    "userPersona": "Tech professional with a mix of technical and leadership responsibilities, working full-time at a tech company and part-time as a consultant",
     "timeframe": {
-      "start": "2019-06-01T00:00:00.000Z",
-      "end": "2021-12-31T00:00:00.000Z"
-    }
+      "start": "2024-01-03T00:00:00.000Z",
+      "end": "2024-12-15T16:25:11.777Z"
+    },
+    "userId": "3ca538cd-7174-449e-abdd-c0cb7d01183c"
   },
   "conversation": {
-    "id": "943c57ea-903f-48d0-8bb9-f8f6626ce3e6",
+    "id": "b4e85752-cb16-4932-a3d7-6db657b24583",
     "messages": [
       {
         "role": "user",
-        "content": "Hey there! I'd like to update my achievements.",
-        "timestamp": "2022-01-01T00:00:00.000Z"
+        "content": "Hey there! Just wanted to share that I've started a new role at TechNova Solutions as a Senior Software Engineer. I'm really excited about this opportunity!",
+        "timestamp": "2024-01-03T10:00:00.000Z"
       },
       {
         "role": "assistant",
-        "content": "Of course! I'm here to help. What would you like to update?",
-        "timestamp": "2022-01-01T00:01:00.000Z"
+        "content": "That's fantastic news! Congratulations on your new role at TechNova Solutions. I'm sure you'll do great.",
+        "timestamp": "2024-01-03T10:05:00.000Z"
       },
       {
         "role": "user",
-        "content": "I've completed a couple of projects at Techtronics Inc. and Innovative Solutions.",
-        "timestamp": "2022-01-01T00:02:00.000Z"
+        "content": "Thanks! I've also been assigned to Project Orion where we're developing a cloud-based data management system. It's a challenging task but I'm looking forward to it.",
+        "timestamp": "2024-02-01T09:00:00.000Z"
       },
       {
         "role": "assistant",
-        "content": "That's great! Could you tell me more about these projects?",
-        "timestamp": "2022-01-01T00:03:00.000Z"
+        "content": "Sounds like an exciting project! I'm sure you'll bring a lot of value to the team. Keep me updated on your progress.",
+        "timestamp": "2024-02-01T09:05:00.000Z"
       },
       {
         "role": "user",
-        "content": "Sure, at Techtronics Inc., I worked on Project Alpha and Project Beta. I developed a new feature for the main product in Project Alpha and led a team to improve the product's performance in Project Beta.",
-        "timestamp": "2022-01-01T00:04:00.000Z"
+        "content": "Will do! In other news, I've also started a part-time role as a Tech Consultant at Innovative Minds Consulting. I'll be consulting on Project Apollo, helping them integrate AI capabilities into their existing software.",
+        "timestamp": "2024-03-01T15:00:00.000Z"
       },
       {
         "role": "assistant",
-        "content": "Impressive work! And what about the projects at Innovative Solutions?",
-        "timestamp": "2022-01-01T00:05:00.000Z"
+        "content": "Wow, you're really taking on a lot! It's great to see you expanding your skills and taking on new challenges. Best of luck with Project Apollo!",
+        "timestamp": "2024-03-01T15:05:00.000Z"
       },
       {
         "role": "user",
-        "content": "At Innovative Solutions, I was a consultant on Project Gamma and Project Delta. I helped implement a new technology in Project Gamma and advised on improving the company's software architecture in Project Delta.",
-        "timestamp": "2022-01-01T00:06:00.000Z"
+        "content": "Thanks! I've made some progress on Project Orion. We've completed the initial design of the data management system and are now moving into the development phase.",
+        "timestamp": "2024-03-15T10:00:00.000Z"
       },
       {
         "role": "assistant",
-        "content": "You've been quite busy! It's great to see your contributions across different projects and companies. Is there anything else you'd like to add?",
-        "timestamp": "2022-01-01T00:07:00.000Z"
+        "content": "Great job on moving forward with Project Orion! Keep up the good work.",
+        "timestamp": "2024-03-15T10:05:00.000Z"
       },
       {
         "role": "user",
-        "content": "No, that's all for now. Thanks for your help!",
-        "timestamp": "2022-01-01T00:08:00.000Z"
+        "content": "I've got another update. I've been assigned to lead a team on Project Gemini at TechNova Solutions. We'll be building a machine learning model for predictive analysis.",
+        "timestamp": "2024-06-01T09:00:00.000Z"
       },
       {
         "role": "assistant",
-        "content": "You're welcome! Don't hesitate to reach out if you have more updates. Keep up the good work!",
-        "timestamp": "2022-01-01T00:09:00.000Z"
+        "content": "That's a big responsibility! I'm sure you'll lead your team to success on Project Gemini. Keep me posted on your progress.",
+        "timestamp": "2024-06-01T09:05:00.000Z"
+      },
+      {
+        "role": "user",
+        "content": "Will do! On the consulting side, I've been asked to advise on the development of a cybersecurity strategy for Project Mercury at Innovative Minds Consulting.",
+        "timestamp": "2024-07-01T15:00:00.000Z"
+      },
+      {
+        "role": "assistant",
+        "content": "That's a crucial task! Your expertise will surely be valuable in developing a robust cybersecurity strategy for Project Mercury. Keep up the good work!",
+        "timestamp": "2024-07-01T15:05:00.000Z"
+      },
+      {
+        "role": "user",
+        "content": "Thanks for the encouragement! I've got some good news. We've completed the development phase of Project Orion and are now moving into testing. The team has worked really hard and I'm proud of what we've accomplished so far.",
+        "timestamp": "2024-08-15T10:00:00.000Z"
+      },
+      {
+        "role": "assistant",
+        "content": "That's fantastic news! Congratulations to you and your team on reaching this milestone in Project Orion. I'm looking forward to hearing about the next stages.",
+        "timestamp": "2024-08-15T10:05:00.000Z"
+      },
+      {
+        "role": "user",
+        "content": "Thanks! On Project Gemini, we've made significant progress on the machine learning model. We've trained it on a large dataset and initial results are promising. We're seeing an accuracy of about 85% in our predictions.",
+        "timestamp": "2024-09-01T09:00:00.000Z"
+      },
+      {
+        "role": "assistant",
+        "content": "That's impressive! An 85% accuracy rate is a great start. Keep refining the model and I'm sure you'll see even better results.",
+        "timestamp": "2024-09-01T09:05:00.000Z"
+      },
+      {
+        "role": "user",
+        "content": "I appreciate the support! On the consulting side, we've successfully integrated AI capabilities into the software for Project Apollo. The client is really happy with the results.",
+        "timestamp": "2024-09-15T15:00:00.000Z"
+      },
+      {
+        "role": "assistant",
+        "content": "That's wonderful news! Congratulations on the successful integration for Project Apollo. It's great to hear that the client is happy with the results.",
+        "timestamp": "2024-09-15T15:05:00.000Z"
+      },
+      {
+        "role": "user",
+        "content": "Thanks! We've also finalized the cybersecurity strategy for Project Mercury. The client has approved it and we're now moving into the implementation phase.",
+        "timestamp": "2024-10-01T15:00:00.000Z"
+      },
+      {
+        "role": "assistant",
+        "content": "Great job on getting the cybersecurity strategy approved for Project Mercury! I'm sure the implementation phase will go smoothly with your guidance.",
+        "timestamp": "2024-10-01T15:05:00.000Z"
+      },
+      {
+        "role": "user",
+        "content": "I've got some more good news. We've completed testing for Project Orion and are now ready to launch the data management system. It's been a long journey but we're finally here.",
+        "timestamp": "2024-11-01T10:00:00.000Z"
+      },
+      {
+        "role": "assistant",
+        "content": "That's fantastic! Congratulations on reaching the finish line with Project Orion. I'm sure the launch will be a success.",
+        "timestamp": "2024-11-01T10:05:00.000Z"
+      },
+      {
+        "role": "user",
+        "content": "Thanks! On Project Gemini, we've improved the accuracy of our machine learning model to 90%. It's been a lot of work but it's paying off.",
+        "timestamp": "2024-11-15T09:00:00.000Z"
+      },
+      {
+        "role": "assistant",
+        "content": "That's a significant improvement! Your hard work on Project Gemini is definitely showing. Keep it up!",
+        "timestamp": "2024-11-15T09:05:00.000Z"
+      },
+      {
+        "role": "user",
+        "content": "I appreciate the encouragement! On the consulting side, we've successfully implemented the cybersecurity strategy for Project Mercury. The client is really happy with the results.",
+        "timestamp": "2024-12-01T15:00:00.000Z"
+      },
+      {
+        "role": "assistant",
+        "content": "That's wonderful news! Congratulations on the successful implementation for Project Mercury. It's great to hear that the client is happy with the results.",
+        "timestamp": "2024-12-01T15:05:00.000Z"
+      },
+      {
+        "role": "user",
+        "content": "Thanks! As for Project Apollo, we've completed our consulting work and the client is really happy with the AI integration. It's been a great experience.",
+        "timestamp": "2024-12-15T15:00:00.000Z"
+      },
+      {
+        "role": "assistant",
+        "content": "Congratulations on successfully completing your consulting work on Project Apollo! It's great to hear that the client is satisfied with the AI integration. Well done!",
+        "timestamp": "2024-12-15T15:05:00.000Z"
+      },
+      {
+        "role": "user",
+        "content": "I appreciate it! It's been a busy year but I'm really proud of what I've accomplished. I've learned a lot and I'm looking forward to what's next.",
+        "timestamp": "2024-12-15T16:00:00.000Z"
+      },
+      {
+        "role": "assistant",
+        "content": "You've certainly had a productive year! Congratulations on all your achievements. I'm excited to see what you'll accomplish next.",
+        "timestamp": "2024-12-15T16:05:00.000Z"
       }
     ],
     "scenario": {
-      "description": "Tech professional with multiple roles and projects",
+      "description": "Scenario for a tech professional juggling multiple roles and projects",
       "companies": [
         {
-          "id": "1",
-          "name": "Techtronics Inc.",
+          "id": "c1",
+          "name": "TechNova Solutions",
           "role": "Senior Software Engineer",
           "domain": "Technology",
-          "startDate": "2019-06-01T00:00:00.000Z",
-          "endDate": "2021-12-31T00:00:00.000Z"
+          "startDate": "2024-01-03T00:00:00.000Z",
+          "endDate": "2024-12-15T16:25:11.777Z"
         },
         {
-          "id": "2",
-          "name": "Innovative Solutions",
-          "role": "Part-time Consultant",
-          "domain": "Technology",
-          "startDate": "2020-01-01T00:00:00.000Z",
-          "endDate": "2021-12-31T00:00:00.000Z"
+          "id": "c2",
+          "name": "Innovative Minds Consulting",
+          "role": "Part-time Tech Consultant",
+          "domain": "Consulting",
+          "startDate": "2024-03-01T00:00:00.000Z",
+          "endDate": "2024-12-15T16:25:11.777Z"
         }
       ],
       "projects": [
         {
-          "id": "1",
-          "name": "Project Alpha",
-          "companyId": "1",
-          "description": "Developing a new feature for the main product",
-          "startDate": "2019-06-01T00:00:00.000Z",
-          "endDate": "2020-06-01T00:00:00.000Z"
+          "id": "p1",
+          "name": "Project Orion",
+          "companyId": "c1",
+          "description": "Developing a cloud-based data management system",
+          "startDate": "2024-02-01T00:00:00.000Z",
+          "endDate": "2024-12-15T16:25:11.777Z"
         },
         {
-          "id": "2",
-          "name": "Project Beta",
-          "companyId": "1",
-          "description": "Leading a team to improve the product's performance",
-          "startDate": "2020-06-02T00:00:00.000Z",
-          "endDate": "2021-06-01T00:00:00.000Z"
+          "id": "p2",
+          "name": "Project Gemini",
+          "companyId": "c1",
+          "description": "Leading a team to build a machine learning model for predictive analysis",
+          "startDate": "2024-06-01T00:00:00.000Z",
+          "endDate": "2024-12-15T16:25:11.777Z"
         },
         {
-          "id": "3",
-          "name": "Project Gamma",
-          "companyId": "2",
-          "description": "Consulting on a project to implement a new technology",
-          "startDate": "2020-01-01T00:00:00.000Z",
-          "endDate": "2021-01-01T00:00:00.000Z"
+          "id": "p3",
+          "name": "Project Apollo",
+          "companyId": "c2",
+          "description": "Consulting on the integration of AI capabilities into existing software",
+          "startDate": "2024-04-01T00:00:00.000Z",
+          "endDate": "2024-12-15T16:25:11.777Z"
         },
         {
-          "id": "4",
-          "name": "Project Delta",
-          "companyId": "2",
-          "description": "Advising on a project to improve the company's software architecture",
-          "startDate": "2021-01-02T00:00:00.000Z",
-          "endDate": "2021-12-31T00:00:00.000Z"
+          "id": "p4",
+          "name": "Project Mercury",
+          "companyId": "c2",
+          "description": "Advising on the development of a cybersecurity strategy",
+          "startDate": "2024-07-01T00:00:00.000Z",
+          "endDate": "2024-12-15T16:25:11.777Z"
         }
       ],
-      "userPersona": "Tech Professional",
+      "userPersona": "Tech professional with a mix of technical and leadership responsibilities, working full-time at a tech company and part-time as a consultant",
       "timeframe": {
-        "start": "2019-06-01T00:00:00.000Z",
-        "end": "2021-12-31T00:00:00.000Z"
-      }
+        "start": "2024-01-03T00:00:00.000Z",
+        "end": "2024-12-15T16:25:11.777Z"
+      },
+      "userId": "3ca538cd-7174-449e-abdd-c0cb7d01183c"
     }
   },
   "expectedBrags": [
     {
-      "text": "Developed a new feature for the main product in Project Alpha",
-      "date": "2020-06-01T00:00:00.000Z",
-      "companyId": "1",
-      "projectId": "1",
-      "type": "technical"
+      "id": "6f74fa6a-e525-4380-b72e-e1b2cd7b0892",
+      "userId": "3ca538cd-7174-449e-abdd-c0cb7d01183c",
+      "userMessageId": "baf5e9b9-d506-403c-92f0-4f90e32a6931",
+      "createdAt": "2024-12-15T16:27:46.745Z",
+      "updatedAt": "2024-12-15T16:27:46.746Z",
+      "eventStart": "2024-01-03T00:00:00.000Z",
+      "eventEnd": "2024-12-15T16:25:11.777Z",
+      "eventDuration": "year",
+      "title": "Started new role at TechNova Solutions",
+      "summary": "Began a new role as a Senior Software Engineer at TechNova Solutions, marking a significant career advancement.",
+      "details": "Started a new role at TechNova Solutions as a Senior Software Engineer, bringing technical expertise to the company and taking on new responsibilities. This role represents a significant step forward in my career.",
+      "companyId": "c1",
+      "projectId": null,
+      "isArchived": false
     },
     {
-      "text": "Led a team to improve the product's performance in Project Beta",
-      "date": "2021-06-01T00:00:00.000Z",
-      "companyId": "1",
-      "projectId": "2",
-      "type": "leadership"
+      "id": "ed636114-5a43-4856-891e-6a7b9aa326f7",
+      "userId": "3ca538cd-7174-449e-abdd-c0cb7d01183c",
+      "userMessageId": "7b7bda4b-6c80-408c-9303-09170e487ceb",
+      "createdAt": "2024-12-15T16:27:46.746Z",
+      "updatedAt": "2024-12-15T16:27:46.746Z",
+      "eventStart": "2024-02-01T00:00:00.000Z",
+      "eventEnd": "2024-12-15T16:25:11.777Z",
+      "eventDuration": "year",
+      "title": "Assigned to Project Orion at TechNova Solutions",
+      "summary": "Assigned to Project Orion, a challenging task of developing a cloud-based data management system.",
+      "details": "Took on the challenging task of developing a cloud-based data management system as part of Project Orion at TechNova Solutions. This project represents a significant technical challenge and an opportunity to contribute to a key strategic initiative for the company.",
+      "companyId": "c1",
+      "projectId": "p1",
+      "isArchived": false
     },
     {
-      "text": "Helped implement a new technology in Project Gamma",
-      "date": "2021-01-01T00:00:00.000Z",
-      "companyId": "2",
-      "projectId": "3",
-      "type": "technical"
+      "id": "5c3e8e4d-4553-4670-adc2-5fa5fc2d094f",
+      "userId": "3ca538cd-7174-449e-abdd-c0cb7d01183c",
+      "userMessageId": "d0f1cb61-f75e-4237-8221-41542fb51454",
+      "createdAt": "2024-12-15T16:27:46.746Z",
+      "updatedAt": "2024-12-15T16:27:46.746Z",
+      "eventStart": "2024-03-01T00:00:00.000Z",
+      "eventEnd": "2024-12-15T16:25:11.777Z",
+      "eventDuration": "year",
+      "title": "Started part-time role at Innovative Minds Consulting",
+      "summary": "Began a part-time role as a Tech Consultant at Innovative Minds Consulting, expanding skills and taking on new challenges.",
+      "details": "Started a part-time role as a Tech Consultant at Innovative Minds Consulting. This role represents an opportunity to expand my skills and take on new challenges, including consulting on Project Apollo to help integrate AI capabilities into existing software.",
+      "companyId": "c2",
+      "projectId": "p3",
+      "isArchived": false
     },
     {
-      "text": "Advised on improving the company's software architecture in Project Delta",
-      "date": "2021-12-31T00:00:00.000Z",
-      "companyId": "2",
-      "projectId": "4",
-      "type": "technical"
+      "id": "ae9f8e79-e0a6-4b51-ae02-b5c11a90fb0b",
+      "userId": "3ca538cd-7174-449e-abdd-c0cb7d01183c",
+      "userMessageId": "a2ebf32f-92ad-4bdd-b936-ed904f3eeaa4",
+      "createdAt": "2024-12-15T16:27:46.746Z",
+      "updatedAt": "2024-12-15T16:27:46.746Z",
+      "eventStart": "2024-06-01T00:00:00.000Z",
+      "eventEnd": "2024-12-15T16:25:11.777Z",
+      "eventDuration": "year",
+      "title": "Led team on Project Gemini at TechNova Solutions",
+      "summary": "Assigned to lead a team on Project Gemini, building a machine learning model for predictive analysis.",
+      "details": "Took on a leadership role in Project Gemini at TechNova Solutions, leading a team to build a machine learning model for predictive analysis. This project represents a significant technical and leadership challenge, and an opportunity to contribute to a key strategic initiative for the company.",
+      "companyId": "c1",
+      "projectId": "p2",
+      "isArchived": false
+    },
+    {
+      "id": "b0b6d10d-869e-4738-b97b-46d9eca7b687",
+      "userId": "3ca538cd-7174-449e-abdd-c0cb7d01183c",
+      "userMessageId": "50951011-7429-4a2b-8142-ebd945519159",
+      "createdAt": "2024-12-15T16:27:46.746Z",
+      "updatedAt": "2024-12-15T16:27:46.746Z",
+      "eventStart": "2024-07-01T00:00:00.000Z",
+      "eventEnd": "2024-12-15T16:25:11.777Z",
+      "eventDuration": "year",
+      "title": "Advised on cybersecurity strategy for Project Mercury",
+      "summary": "Advised on the development of a cybersecurity strategy for Project Mercury at Innovative Minds Consulting.",
+      "details": "Took on a crucial task of advising on the development of a cybersecurity strategy for Project Mercury at Innovative Minds Consulting. This task represents a significant challenge and an opportunity to contribute to a key strategic initiative for the client.",
+      "companyId": "c2",
+      "projectId": "p4",
+      "isArchived": false
+    },
+    {
+      "id": "484fec7c-fa0d-492a-8c22-b6a14d29f682",
+      "userId": "3ca538cd-7174-449e-abdd-c0cb7d01183c",
+      "userMessageId": "2085d4cc-eb5d-4192-af6d-39f2800f073c",
+      "createdAt": "2024-12-15T16:27:46.746Z",
+      "updatedAt": "2024-12-15T16:27:46.746Z",
+      "eventStart": "2024-11-15T09:00:00.000Z",
+      "eventEnd": "2024-12-15T16:25:11.777Z",
+      "eventDuration": "month",
+      "title": "Improved accuracy of machine learning model in Project Gemini",
+      "summary": "Made significant progress on the machine learning model in Project Gemini, improving the accuracy of predictions to 90%.",
+      "details": "Achieved a significant milestone in Project Gemini by improving the accuracy of our machine learning model to 90%. This improvement represents a significant technical achievement and demonstrates the effectiveness of our approach to machine learning.",
+      "companyId": "c1",
+      "projectId": "p2",
+      "isArchived": false
+    },
+    {
+      "id": "067e3092-89ab-4593-8dad-e730e885a785",
+      "userId": "3ca538cd-7174-449e-abdd-c0cb7d01183c",
+      "userMessageId": "98048ab0-47bb-4ddc-a3f0-9d86c3c57408",
+      "createdAt": "2024-12-15T16:27:46.746Z",
+      "updatedAt": "2024-12-15T16:27:46.746Z",
+      "eventStart": "2024-12-01T15:00:00.000Z",
+      "eventEnd": "2024-12-15T16:25:11.777Z",
+      "eventDuration": "month",
+      "title": "Successfully implemented cybersecurity strategy for Project Mercury",
+      "summary": "Successfully implemented the cybersecurity strategy for Project Mercury at Innovative Minds Consulting, with the client expressing satisfaction with the results.",
+      "details": "Successfully implemented the cybersecurity strategy for Project Mercury at Innovative Minds Consulting. The client expressed satisfaction with the results, marking a successful conclusion to this phase of the project.",
+      "companyId": "c2",
+      "projectId": "p4",
+      "isArchived": false
+    },
+    {
+      "id": "dc6787c2-299a-4337-a96f-4bbd254ae512",
+      "userId": "3ca538cd-7174-449e-abdd-c0cb7d01183c",
+      "userMessageId": "6d789448-a8b7-42da-b471-f9b0ce4bf03b",
+      "createdAt": "2024-12-15T16:27:46.746Z",
+      "updatedAt": "2024-12-15T16:27:46.746Z",
+      "eventStart": "2024-12-15T15:00:00.000Z",
+      "eventEnd": "2024-12-15T16:25:11.777Z",
+      "eventDuration": "day",
+      "title": "Completed consulting work on Project Apollo",
+      "summary": "Successfully completed consulting work on Project Apollo at Innovative Minds Consulting, with the client expressing satisfaction with the AI integration.",
+      "details": "Successfully completed consulting work on Project Apollo at Innovative Minds Consulting. The client expressed satisfaction with the AI integration, marking a successful conclusion to the project.",
+      "companyId": "c2",
+      "projectId": "p3",
+      "isArchived": false
     }
   ]
 }
