@@ -1,21 +1,92 @@
-<a href="https://chat.vercel.ai/">
-  <img alt="Next.js 14 and App Router-ready AI chatbot." src="app/(chat)/opengraph-image.png">
-  <h1 align="center">Next.js AI Chatbot</h1>
-</a>
+# brag.ai
 
-<p align="center">
-  An Open-Source AI Chatbot Template Built With Next.js and the AI SDK by Vercel.
-</p>
+AI chatbot that helps you keep a brag document about your achievements at work.
 
-<p align="center">
-  <a href="#features"><strong>Features</strong></a> ·
-  <a href="#model-providers"><strong>Model Providers</strong></a> ·
-  <a href="#deploy-your-own"><strong>Deploy Your Own</strong></a> ·
-  <a href="#running-locally"><strong>Running locally</strong></a>
-</p>
-<br/>
+Helps employees shine in their performance reviews by keeping a record of their accomplishments,
+and crafting beautiful documents to share with their managers for the year-end review, semi-annual review,
+or any other time period. Or even just a "State of me" weekly update to manager, and monthly update to skip manager.
+
+The existing UI is already a familiar chatbot experience, and has a "Canvas" mode that allows the human and an LLM to collaborate on a single document. There is an existing data model that represents these Documents, as well as other things.
+
+Day to day, the user is just telling the chat bot about things they've done at work. Tasks they've completed, potentially things that are blocking them, unexpected events, etc. The chatbot will use an LLM to populate a database via the Brag model - a Brag being a thing that the user has achieved. Users might "brag" to the bot about one thing they've just achieved, or tell the bot about a bunch of things they've done over the last few weeks and didn't have time to brag about yet.
+
+From time to time, the user will want a summary of these brags over some period. The period could be 6-12 months for a performance review, one week for a weekly summary to manager, one month for a monthly summary to skip manager, etc. The chatbot will use an LLM to generate a summary of these brags for the user, presenting it as a Document in the "Canvas" mode.
 
 ## Features
+
+### Core Functionality
+- Interactive chatbot interface for logging achievements
+- Canvas mode for collaborative document editing with AI
+- Intelligent achievement tracking and categorization
+- Multi-company support as you change employers
+
+### Achievement Logging
+- Record individual or batch accomplishments
+- Track projects and collaborators
+- Document blockers and unexpected challenges
+- Capture daily/weekly tasks and their impact
+
+### Document Generation
+- Performance review documents (6-12 month summaries)
+- Weekly updates for direct managers
+- Monthly summaries for skip-level managers
+- Custom time period reports
+- AI-assisted document editing and refinement
+
+### Engagement & Reminders
+- Email integration for sending achievements directly
+- Automated reminder system for regular updates
+- Email responses with AI-processed achievement logging
+- Proactive notifications for extended periods without updates
+
+### Data Management
+- Persistent storage of achievements and documents
+- Secure multi-company data separation
+- Historical achievement tracking and access
+
+## Homepage
+
+Should have some copy about how many things you will forget without it.
+Sign up / Sign in buttons
+
+## Dev tasks
+
+- Use LLM to generate a bunch of past conversations that a user could have had with Braggart to save their work on something
+- Use this to drive Evals
+- Use it to generate test & dev data (needs to be spread out over last 12 months ideally)
+
+## Data Model
+
+```js
+type Brag = {
+  id: uuid,
+  userId: uuid,
+  createdAt: Date,
+  updatedAt: Date,
+  eventStart: Date, //detected start data of the Brag
+  eventEnd: Date, //detected end date of the Brag
+  eventDuration: string, //day, week, month, quarter, year - how long a time period this Brag covers (but eventStart/eventEnd are canonical)
+  userMessageId: uuid, //the text the user submitted about this brag saved here
+  summary: string, //the LLM summary of originalText
+  title: string, //bullet list-compatible title for the Brag (LLM generated)
+  details: string, //most
+};
+
+type UserMessage = {
+  id: uuid,
+  originalText: string, //what the user actually said
+
+  brags: Brag[], //the one or more Brags detected in what the user said
+};
+```
+
+## Business Model
+
+- 50 brags free?
+- 3 summary generations free?
+- $3/month otherwise
+
+## Application Features
 
 - [Next.js](https://nextjs.org) App Router
   - Advanced routing for seamless navigation and performance
@@ -37,15 +108,9 @@
 
 This template ships with OpenAI `gpt-4o` as the default. However, with the [AI SDK](https://sdk.vercel.ai/docs), you can switch LLM providers to [OpenAI](https://openai.com), [Anthropic](https://anthropic.com), [Cohere](https://cohere.com/), and [many more](https://sdk.vercel.ai/providers/ai-sdk-providers) with just a few lines of code.
 
-## Deploy Your Own
-
-You can deploy your own version of the Next.js AI Chatbot to Vercel with one click:
-
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Fvercel%2Fai-chatbot&env=AUTH_SECRET,OPENAI_API_KEY&envDescription=Learn%20more%20about%20how%20to%20get%20the%20API%20Keys%20for%20the%20application&envLink=https%3A%2F%2Fgithub.com%2Fvercel%2Fai-chatbot%2Fblob%2Fmain%2F.env.example&demo-title=AI%20Chatbot&demo-description=An%20Open-Source%20AI%20Chatbot%20Template%20Built%20With%20Next.js%20and%20the%20AI%20SDK%20by%20Vercel.&demo-url=https%3A%2F%2Fchat.vercel.ai&stores=[{%22type%22:%22postgres%22},{%22type%22:%22blob%22}])
-
 ## Running locally
 
-You will need to use the environment variables [defined in `.env.example`](.env.example) to run Next.js AI Chatbot. It's recommended you use [Vercel Environment Variables](https://vercel.com/docs/projects/environment-variables) for this, but a `.env` file is all that is necessary.
+You will need to use the environment variables [defined in `.env.example`](.env.example) to run the Brag AI ChatBot. It's recommended you use [Vercel Environment Variables](https://vercel.com/docs/projects/environment-variables) for this, but a `.env` file is all that is necessary.
 
 > Note: You should not commit your `.env` file or it will expose secrets that will allow others to control access to your various OpenAI and authentication provider accounts.
 

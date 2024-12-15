@@ -19,6 +19,56 @@ export const user = pgTable('User', {
 
 export type User = InferSelectModel<typeof user>;
 
+export const userMessage = pgTable('UserMessage', {
+  id: uuid('id').primaryKey().notNull().defaultRandom(),
+  userId: uuid('userId')
+    .notNull()
+    .references(() => user.id),
+  originalText: text('original_text').notNull(),
+  createdAt: timestamp('created_at').notNull().defaultNow(),
+});
+
+export type UserMessage = InferSelectModel<typeof userMessage>;
+
+export const company = pgTable('Company', {
+  id: uuid('id').primaryKey().notNull().defaultRandom(),
+  userId: uuid('user_id')
+    .notNull()
+    .references(() => user.id),
+  name: varchar('name', { length: 256 }).notNull(),
+  domain: varchar('domain', { length: 256 }),
+  role: varchar('role', { length: 256 }).notNull(),
+  startDate: timestamp('start_date').notNull(),
+  endDate: timestamp('end_date'),
+});
+
+export type Company = InferSelectModel<typeof company>;
+
+export const brag = pgTable('Brag', {
+  id: uuid('id').primaryKey().notNull().defaultRandom(),
+  userId: uuid('user_id')
+    .notNull()
+    .references(() => user.id),
+  companyId: uuid('company_id')
+    .references(() => company.id),
+  userMessageId: uuid('user_message_id')
+    .notNull()
+    .references(() => userMessage.id),
+  createdAt: timestamp('created_at').notNull().defaultNow(),
+  updatedAt: timestamp('updated_at').notNull().defaultNow(),
+  eventStart: timestamp('event_start').notNull(),
+  eventEnd: timestamp('event_end').notNull(),
+  eventDuration: varchar('event_duration', { 
+    enum: ['day', 'week', 'month', 'quarter', 'year'] 
+  }).notNull(),
+  summary: text('summary'),
+  title: text('title'),
+  details: text('details'),
+  isArchived: boolean('is_archived').default(false),
+});
+
+export type Brag = InferSelectModel<typeof brag>;
+
 export const chat = pgTable('Chat', {
   id: uuid('id').primaryKey().notNull().defaultRandom(),
   createdAt: timestamp('createdAt').notNull(),
@@ -75,6 +125,8 @@ export const document = pgTable(
     userId: uuid('userId')
       .notNull()
       .references(() => user.id),
+    companyId: uuid('company_id')
+      .references(() => company.id),
   },
   (table) => {
     return {
@@ -100,13 +152,11 @@ export const suggestion = pgTable(
       .references(() => user.id),
     createdAt: timestamp('createdAt').notNull(),
   },
-  (table) => ({
-    pk: primaryKey({ columns: [table.id] }),
-    documentRef: foreignKey({
-      columns: [table.documentId, table.documentCreatedAt],
-      foreignColumns: [document.id, document.createdAt],
-    }),
-  }),
+  (table) => {
+    return {
+      pk: primaryKey({ columns: [table.id, table.documentId, table.documentCreatedAt] }),
+    };
+  },
 );
 
 export type Suggestion = InferSelectModel<typeof suggestion>;
