@@ -1,0 +1,162 @@
+[
+  {
+    "description": "Technical achievement with metrics",
+    "input": "Finally got the new microservice architecture deployed, handling 64 requests per second now",
+    "chat_history": [],
+    "expected": {
+      "brag": {
+        "title": "Microservice Architecture Deployment",
+        "summary": "Successfully deployed new microservice architecture handling 64 RPS",
+        "details": "Led the deployment of a new microservice architecture capable of processing 64 requests per second. This modernization effort improves system scalability and maintenance.",
+        "eventStart": "2024-11-15T00:35:27.000Z",
+        "eventEnd": "2024-12-15T00:35:27.000Z",
+        "eventDuration": "month"
+      },
+      "response": "That's impressive! I've recorded your technical achievement. Would you like to add any additional context about the impact or process?"
+    }
+  },
+  {
+    "description": "Leadership achievement with metrics",
+    "input": "Just finished mentoring 74 junior devs through their first production deployment",
+    "chat_history": [],
+    "expected": {
+      "brag": {
+        "title": "Mentored Team Through Production Deployment",
+        "summary": "Successfully mentored 74 junior developers in production deployment",
+        "details": "Provided mentorship and guidance to 74 junior developers through their first production deployment, ensuring knowledge transfer and building team confidence in deployment processes.",
+        "eventStart": "2024-11-15T00:35:27.000Z",
+        "eventEnd": "2024-12-15T00:35:27.000Z",
+        "eventDuration": "month"
+      },
+      "response": "That's impressive! I've recorded your leadership achievement. Would you like to add any additional context about the impact or process?"
+    }
+  },
+  {
+    "description": "Leadership achievement with metrics",
+    "input": "Just finished mentoring 90 junior devs through their first production deployment",
+    "chat_history": [],
+    "expected": {
+      "brag": {
+        "title": "Mentored Team Through Production Deployment",
+        "summary": "Successfully mentored 90 junior developers in production deployment",
+        "details": "Provided mentorship and guidance to 90 junior developers through their first production deployment, ensuring knowledge transfer and building team confidence in deployment processes.",
+        "eventStart": "2024-11-15T00:35:27.000Z",
+        "eventEnd": "2024-12-15T00:35:27.000Z",
+        "eventDuration": "month"
+      },
+      "response": "That's impressive! I've recorded your leadership achievement. Would you like to add any additional context about the impact or process?"
+    }
+  },
+  {
+    "description": "Technical achievement with metrics",
+    "input": "Finally got the new microservice architecture deployed, handling 38 requests per second now",
+    "chat_history": [],
+    "expected": {
+      "brag": {
+        "title": "Microservice Architecture Deployment",
+        "summary": "Successfully deployed new microservice architecture handling 38 RPS",
+        "details": "Led the deployment of a new microservice architecture capable of processing 38 requests per second. This modernization effort improves system scalability and maintenance.",
+        "eventStart": "2024-11-15T00:35:27.000Z",
+        "eventEnd": "2024-12-15T00:35:27.000Z",
+        "eventDuration": "month"
+      },
+      "response": "That's impressive! I've recorded your technical achievement. Would you like to add any additional context about the impact or process?"
+    }
+  },
+  {
+    "description": "Technical achievement with metrics",
+    "input": "Finally got the new microservice architecture deployed, handling 48 requests per second now",
+    "chat_history": [],
+    "expected": {
+      "brag": {
+        "title": "Microservice Architecture Deployment",
+        "summary": "Successfully deployed new microservice architecture handling 48 RPS",
+        "details": "Led the deployment of a new microservice architecture capable of processing 48 requests per second. This modernization effort improves system scalability and maintenance.",
+        "eventStart": "2024-12-08T00:35:27.000Z",
+        "eventEnd": "2024-12-15T00:35:27.000Z",
+        "eventDuration": "week"
+      },
+      "response": "That's impressive! I've recorded your technical achievement. Would you like to add any additional context about the impact or process?"
+    }
+  },
+  {
+    "description": "Leadership achievement with metrics",
+    "input": "Just finished mentoring 21 junior devs through their first production deployment",
+    "chat_history": [],
+    "expected": {
+      "brag": {
+        "title": "Mentored Team Through Production Deployment",
+        "summary": "Successfully mentored 21 junior developers in production deployment",
+        "details": "Provided mentorship and guidance to 21 junior developers through their first production deployment, ensuring knowledge transfer and building team confidence in deployment processes.",
+        "eventStart": "2023-12-15T00:35:27.000Z",
+        "eventEnd": "2024-12-15T00:35:27.000Z",
+        "eventDuration": "year"
+      },
+      "response": "That's impressive! I've recorded your leadership achievement. Would you like to add any additional context about the impact or process?"
+    }
+  },
+  {
+    "description": "Leadership achievement with metrics",
+    "input": "Just finished mentoring 74 junior devs through their first production deployment",
+    "chat_history": [],
+    "expected": {
+      "brag": {
+        "title": "Mentored Team Through Production Deployment",
+        "summary": "Successfully mentored 74 junior developers in production deployment",
+        "details": "Provided mentorship and guidance to 74 junior developers through their first production deployment, ensuring knowledge transfer and building team confidence in deployment processes.",
+        "eventStart": "2023-12-15T00:35:27.000Z",
+        "eventEnd": "2024-12-15T00:35:27.000Z",
+        "eventDuration": "year"
+      },
+      "response": "That's impressive! I've recorded your leadership achievement. Would you like to add any additional context about the impact or process?"
+    }
+  },
+  {
+    "description": "Leadership achievement with metrics",
+    "input": "Completed our team's transition to agile, improved sprint velocity by 51%",
+    "chat_history": [],
+    "expected": {
+      "brag": {
+        "title": "Agile Transformation Leadership",
+        "summary": "Led team's agile transformation, achieving 51% sprint velocity improvement",
+        "details": "Spearheaded the team's transition to agile methodologies, resulting in a 51% increase in sprint velocity. Successfully implemented new processes and practices that enhanced team productivity.",
+        "eventStart": "2024-12-14T00:35:27.000Z",
+        "eventEnd": "2024-12-15T00:35:27.000Z",
+        "eventDuration": "day"
+      },
+      "response": "That's impressive! I've recorded your leadership achievement. Would you like to add any additional context about the impact or process?"
+    }
+  },
+  {
+    "description": "Leadership achievement with metrics",
+    "input": "Just finished mentoring 87 junior devs through their first production deployment",
+    "chat_history": [],
+    "expected": {
+      "brag": {
+        "title": "Mentored Team Through Production Deployment",
+        "summary": "Successfully mentored 87 junior developers in production deployment",
+        "details": "Provided mentorship and guidance to 87 junior developers through their first production deployment, ensuring knowledge transfer and building team confidence in deployment processes.",
+        "eventStart": "2024-12-14T00:35:27.000Z",
+        "eventEnd": "2024-12-15T00:35:27.000Z",
+        "eventDuration": "day"
+      },
+      "response": "That's impressive! I've recorded your leadership achievement. Would you like to add any additional context about the impact or process?"
+    }
+  },
+  {
+    "description": "Leadership achievement with metrics",
+    "input": "Completed our team's transition to agile, improved sprint velocity by 25%",
+    "chat_history": [],
+    "expected": {
+      "brag": {
+        "title": "Agile Transformation Leadership",
+        "summary": "Led team's agile transformation, achieving 25% sprint velocity improvement",
+        "details": "Spearheaded the team's transition to agile methodologies, resulting in a 25% increase in sprint velocity. Successfully implemented new processes and practices that enhanced team productivity.",
+        "eventStart": "2024-12-14T00:35:27.000Z",
+        "eventEnd": "2024-12-15T00:35:27.000Z",
+        "eventDuration": "day"
+      },
+      "response": "That's impressive! I've recorded your leadership achievement. Would you like to add any additional context about the impact or process?"
+    }
+  }
+]
