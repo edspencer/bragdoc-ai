@@ -67,6 +67,22 @@
   - [ ] Map repository timeline to Brags
 - [ ] Add premium feature flagging for retro-active scanning
 
+### GitHub Integration
+
+### Authentication & Types [✅]
+- [x] Extend NextAuth types for GitHub integration
+- [x] Implement GitHub access token handling
+- [x] Fix TypeScript errors in GitHub components
+
+### Repository Integration [🚧]
+- [ ] Create GitHubRepository table in database
+- [ ] Implement repository selection and storage
+- [ ] Add repository sync functionality
+- [ ] Create achievement extraction from GitHub data
+  - [ ] Parse commit messages
+  - [ ] Parse PR descriptions
+  - [ ] Extract meaningful achievements
+
 ### Email Integration
 - [ ] Set up email receiving service
 - [ ] Implement email parsing for brag extraction

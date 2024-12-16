@@ -83,12 +83,14 @@ export const {
       if (user) {
         token.provider = user.provider;
         token.providerId = user.providerId;
+        token.id = user.id;
       }
       return token;
     },
     async session({ session, token }: { session: any; token: any }) {
       session.user.provider = token.provider;
       session.user.providerId = token.providerId;
+      session.user.id = token.id;
       session.user.githubAccessToken = token.githubAccessToken;
       return session;
     },

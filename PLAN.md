@@ -36,6 +36,20 @@ GitHubPullRequest {
 }
 ```
 
+## Implementation Progress
+
+### Authentication & GitHub Integration
+✅ Extended NextAuth types to support GitHub access token
+- Added proper type definitions for User and Session
+- Implemented token handling in auth callbacks
+- Fixed TypeScript errors in GitHub integration components
+
+### Next Steps
+1. Implement repository selection UI
+2. Store selected repositories in GitHubRepository table
+3. Implement periodic sync of commit messages and PR descriptions
+4. Add achievement extraction from GitHub data
+
 ## Next Steps
 
 1. GitHub API Integration 

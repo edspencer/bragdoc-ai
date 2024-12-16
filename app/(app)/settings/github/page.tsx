@@ -1,19 +1,23 @@
-import { getSession } from '@/lib/auth';
-import { db } from '@/lib/db';
+import { auth } from '@/app/(auth)/auth';
+
+import { db } from '@/lib/db/queries';
 import { githubRepository } from '@/lib/db/schema';
-import { eq } from 'drizzle-orm';
+import { eq, desc } from 'drizzle-orm';
 import { RepositorySelector } from '@/components/github/RepositorySelector';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 
 export default async function GitHubSettingsPage() {
-  const session = await getSession();
+  const session = await auth();
   if (!session?.user?.id) {
     return null;
   }
 
-  const repositories = await db.query.githubRepository.findMany({
-    where: eq(githubRepository.userId, session.user.id),
-  });
+
+  const repositories = await db.select()
+    .from(githubRepository)
+    .limit(30)
+    .orderBy(desc(githubRepository.lastSynced))
+    .where(eq(githubRepository.userId, session.user.id));
 
   return (
     <div className="container max-w-4xl py-8">
@@ -64,7 +68,7 @@ export default async function GitHubSettingsPage() {
                 onRepositorySelect={async (repo) => {
                   'use server';
                   await db.insert(githubRepository).values({
-                    userId: session.user.id,
+                    userId: session.user.id as any,
                     name: repo.name,
                     fullName: repo.fullName,
                     description: repo.description,
