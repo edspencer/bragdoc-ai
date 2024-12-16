@@ -9,6 +9,8 @@ import { getUser, db } from '@/lib/db/queries';
 
 import { authConfig } from './auth.config';
 
+import { account, session, user, verificationToken } from "@/lib/db/schema"
+
 interface CustomUser extends User {
   provider?: string;
 }
@@ -19,7 +21,16 @@ export const {
   signIn,
   signOut,
 } = NextAuth({
-  adapter: DrizzleAdapter(db),
+  adapter: DrizzleAdapter(db, {
+    usersTable: user,
+    accountsTable: account,
+    sessionsTable: session,
+    verificationTokensTable: verificationToken
+}),
+  session: {
+    strategy: 'jwt',
+  },
+
   ...authConfig,
   providers: [
     Google({

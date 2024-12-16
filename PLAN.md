@@ -42,27 +42,29 @@
   - [ ] Handle user cancellation
   - [ ] Handle API errors
 
-## 4. Testing
-- [ ] Test Google OAuth flow
-  - [ ] New user registration
-  - [ ] Existing user login
-  - [ ] Error cases
+## 4. Database Schema
+- [x] Fix table naming conventions
+  - [x] Update all table names to use lowercase
+  - [x] Add NextAuth.js required tables (account, session, verification_token)
+  - [x] Fix foreign key references to use lowercase table names
+
+## 5. Testing
+- [x] Test Google OAuth flow
+  - [x] New user registration
+  - [x] Existing user login
+  - [x] Database schema compatibility
 - [ ] Test GitHub OAuth flow
   - [ ] New user registration
   - [ ] Existing user login
-  - [ ] Error cases
-  - [ ] Access token storage
+  - [ ] Repository access permissions
 
-## 5. Documentation
+## 6. Documentation
 - [ ] Update README with OAuth setup instructions
 - [ ] Document environment variables
 - [ ] Add troubleshooting guide for common OAuth issues
 
 ## Next Steps
-1. Add loading states to social login buttons
-   - Update SocialAuthButtons component to handle loading state
-   - Add loading state to button click handlers
-2. Implement error handling for OAuth failures
-   - Add error toast messages
-   - Handle user cancellation and API errors
-3. Begin testing OAuth flows with both providers
+1. Complete GitHub OAuth integration
+2. Add loading states and error handling for OAuth flows
+3. Implement repository access and commit message extraction
+4. Add user settings page for managing OAuth connections

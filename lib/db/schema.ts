@@ -9,6 +9,7 @@ import {
   primaryKey,
   foreignKey,
   boolean,
+  integer,
 } from 'drizzle-orm/pg-core';
 
 export const user = pgTable('User', {
@@ -22,6 +23,7 @@ export const user = pgTable('User', {
   githubAccessToken: varchar('github_access_token', { length: 256 }),
   createdAt: timestamp('created_at').notNull().defaultNow(),
   updatedAt: timestamp('updated_at').notNull().defaultNow(),
+  emailVerified: timestamp('email_verified').defaultNow(),
 });
 
 export type User = InferSelectModel<typeof user>;
@@ -186,3 +188,55 @@ export const suggestion = pgTable(
 );
 
 export type Suggestion = InferSelectModel<typeof suggestion>;
+
+
+
+// NextAuth.js required tables
+export const account = pgTable(
+  'Account',
+  {
+    userId: uuid('userId')
+      .notNull()
+      .references(() => user.id, { onDelete: 'cascade' }),
+    type: varchar('type', { length: 255 })
+      .notNull(),
+    provider: varchar('provider', { length: 255 })
+      .notNull(),
+    providerAccountId: varchar('providerAccountId', { length: 255 })
+      .notNull(),
+    refresh_token: text('refresh_token'),
+    access_token: text('access_token'),
+    expires_at: integer('expires_at'),
+    token_type: varchar('token_type', { length: 255 }),
+    scope: varchar('scope', { length: 255 }),
+    id_token: text('id_token'),
+    session_state: varchar('session_state', { length: 255 }),
+  },
+  (table) => ({
+    pk: primaryKey({ columns: [table.provider, table.providerAccountId] }),
+  })
+);
+
+export const session = pgTable('Session', {
+  sessionToken: varchar('sessionToken', { length: 255 }).primaryKey(),
+  userId: uuid('userId')
+    .notNull()
+    .references(() => user.id, { onDelete: 'cascade' }),
+  expires: timestamp('expires', { mode: 'date' }).notNull(),
+});
+
+export const verificationToken = pgTable(
+  'VerificationToken',
+  {
+    identifier: varchar('identifier', { length: 255 }).notNull(),
+    token: varchar('token', { length: 255 }).notNull(),
+    expires: timestamp('expires', { mode: 'date' }).notNull(),
+  },
+  (table) => ({
+    pk: primaryKey({ columns: [table.identifier, table.token] }),
+  })
+);
+
+export type Account = InferSelectModel<typeof account>;
+export type Session = InferSelectModel<typeof session>;
+export type VerificationToken = InferSelectModel<typeof verificationToken>;
