@@ -22,10 +22,16 @@ From time to time, the user will want a summary of these brags over some period.
 
 ### Document Publishing
 
+Documents can be created and edited inside the UI with Canvas mode. The user can then just copy the content and paste it somewhere else, like in an email to their manager.
+
+There are also various publishing options:
+
 - After creating an update Document, user can:
-  - publish it to a url like https://bragdoc.ai/edspencer/world-labs/weekly/2024-12-20
+  - publish it to a url like https://bragdoc.ai/edspencer/world-labs/weekly/some-private-fragment/2024-12-20. Allows manager to view the doc. The some-private-fragment is a password that lets the manager view the document. Should be generated randomly from a dictionary of English words
   - Update a Google Document by creating a new page and adding the document content to it
   - Email the document to a recipient (would allow user to schedule a weekly update report generation, with it being emailed to them, their manager or both)
+
+The document editing UI is already complete.
 
 ### Achievement Logging
 - Record individual or batch accomplishments
