@@ -27,7 +27,7 @@ import {
   sanitizeResponseMessages,
 } from '@/lib/utils';
 
-import { generateTitleFromUserMessage } from '../../../chat/actions';
+import { generateTitleFromUserMessage } from '../../chat/actions';
 
 export const maxDuration = 60;
 
