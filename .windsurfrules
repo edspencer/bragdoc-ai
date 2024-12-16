@@ -25,7 +25,7 @@ Note that not all features are implemented yet, but the core idea is to help use
 │   ├── (auth)/               # Auth UI and API
 │   └── (chat)/               # Chat UI and API
 ├── components/               # Shared UI components specific to brag.ai 
-│   └── ui/                   # Generic UI components like labels, inputs, buttons, etc.
+│   └── ui/                   # ShadCN UI components like labels, inputs, buttons, etc.
 ├── evals/                    # Braintrust Evals for the various LLM calls
 │   ├── context-brag/         # Complex use cases pull many brags out of many messages
 │   ├── conversation-gen/     # Generates plausible conversation histories for other evals
@@ -44,16 +44,40 @@ Note that not all features are implemented yet, but the core idea is to help use
 ```
 
 ## Tech Stack
+
+These are the core technologies and libraries used in the project. 
+Please ask before using anything not in the following list of libraries and technologies:
+
+### Core
 - TypeScript
 - React
 - Next.js
 - Node.js
-- PostgreSQL
+
+### UI & Styling
 - Tailwind CSS
-- pnpm for package management
+- Radix UI (Component Library)
+- Shadcn UI (UI Component System)
+- Framer Motion (Animations)
+- Sonner (Toast Notifications)
+- Geist (Typography)
+- ProseMirror (Rich Text Editor Framework)
+
+### Data & Backend
+- PostgreSQL
+- Drizzle ORM (Database ORM)
+- Zod (Schema Validation)
+- SWR (Data Fetching)
+
+### AI & Auth
 - Vercel AI SDK
 - NextAuth.js
 - Braintrust (LLM Evaluation Framework)
+
+### Development Tools
+- pnpm (Package Management)
+- Biome (Linting and Formatting)
+- Changesets (Version Management)
 
 ## Naming Conventions
 - use lowercase with dashes for directories (e.g. `components/form-wizard`)
@@ -74,6 +98,7 @@ Note that not all features are implemented yet, but the core idea is to help use
 - Use Shadcn UI and Radix UI for UI components
 - Use `npx shadcn@latest add <component-name>` to add a new shadcn component
 - When adding new shadch component, document the installation command
+- The project supports dark mode, and must continue to do so
 
 ## Error Handling
 - Implement proper error boundaries in React components
