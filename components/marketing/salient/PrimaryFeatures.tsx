@@ -52,16 +52,31 @@ export function PrimaryFeatures() {
     <section
       id="features"
       aria-label="Features for running your books"
-      className="relative overflow-hidden bg-blue-600 pb-28 pt-20 sm:py-32"
+      className="relative overflow-hidden bg-blue-600 pb-28 pt-20 dark:bg-blue-900 sm:py-32"
     >
+      <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
+        <div
+          className="absolute inset-0 -z-10 mx-0 max-w-none overflow-hidden"
+          aria-hidden="true"
+        >
+          <div className="absolute left-1/2 top-0 ml-[-38rem] h-[25rem] w-[81.25rem] dark:[mask-image:linear-gradient(white,transparent)]">
+            <div className="absolute inset-0 bg-gradient-to-r from-blue-500 to-blue-400 opacity-40 dark:opacity-20 [mask-image:radial-gradient(farthest-side_at_top,white,transparent)]" />
+            <svg
+              viewBox="0 0 1113 440"
+              aria-hidden="true"
+              className="absolute left-1/2 top-0 ml-[-19rem] w-[69.5625rem] fill-white blur-[26px] dark:fill-blue-400"
+            >
+            </svg>
+          </div>
+        </div>
+      </div>
       <Container className="relative">
         <div className="max-w-2xl md:mx-auto md:text-center xl:max-w-none">
           <h2 className="font-display text-3xl tracking-tight text-white sm:text-4xl md:text-5xl">
-            Everything you need to track your professional growth.
+            Everything you need to track your achievements
           </h2>
-          <p className="mt-6 text-lg tracking-tight text-blue-100">
-            Well everything you need if you aren&apos;t that picky about minor details
-            like tax compliance.
+          <p className="mt-6 text-lg tracking-tight text-blue-100 dark:text-blue-200">
+            brag.ai combines AI-powered achievement tracking with powerful integrations to help you build a comprehensive record of your accomplishments.
           </p>
         </div>
         <Tab.Group

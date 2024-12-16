@@ -43,19 +43,18 @@ export function Faqs() {
     <section
       id="faqs"
       aria-labelledby="faqs-title"
-      className="border-t border-slate-200 py-20 sm:py-32"
+      className="relative overflow-hidden bg-slate-50 py-20 dark:bg-slate-900/50 sm:py-32"
     >
-      <Container>
+      <Container className="relative">
         <div className="mx-auto max-w-2xl lg:mx-0">
           <h2
             id="faqs-title"
-            className="font-display text-3xl tracking-tight text-slate-900 sm:text-4xl"
+            className="font-display text-3xl tracking-tight text-slate-900 dark:text-white sm:text-4xl"
           >
             Frequently asked questions
           </h2>
-          <p className="mt-4 text-lg tracking-tight text-slate-700">
-            If you can&apos;t find what you&apos;re looking for, email our support team and
-            we&apos;ll get back to you as soon as possible.
+          <p className="mt-4 text-lg tracking-tight text-slate-700 dark:text-slate-300">
+            If you can&apos;t find what you&apos;re looking for, email our support team and if you&apos;re lucky someone will get back to you.
           </p>
         </div>
         <ul
@@ -64,17 +63,17 @@ export function Faqs() {
         >
           {faqs.map((faq, faqIndex) => (
             <li key={faqIndex}>
-              <Disclosure as="div" className="hover:bg-slate-50 p-6 rounded-lg">
+              <Disclosure as="div" className="rounded-lg bg-white dark:bg-slate-800/60 p-6 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors duration-150">
                 {({ open }) => (
                   <>
                     <Disclosure.Button className="flex w-full items-start justify-between text-left">
-                      <span className="text-base font-semibold leading-7 text-slate-900">
+                      <span className="text-base font-semibold leading-7 text-slate-900 dark:text-white">
                         {faq.question}
                       </span>
                       <span className="ml-6 flex h-7 items-center">
                         <svg
                           className={clsx(
-                            'h-6 w-6 transform',
+                            'h-6 w-6 transform text-slate-600 dark:text-slate-400',
                             open ? 'rotate-180' : ''
                           )}
                           aria-hidden="true"
@@ -91,7 +90,7 @@ export function Faqs() {
                         </svg>
                       </span>
                     </Disclosure.Button>
-                    <Disclosure.Panel className="mt-2 text-base leading-7 text-slate-600">
+                    <Disclosure.Panel className="mt-2 text-base leading-7 text-slate-600 dark:text-slate-300">
                       {faq.answer}
                     </Disclosure.Panel>
                   </>

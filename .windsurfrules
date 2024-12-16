@@ -152,6 +152,17 @@ Rules:
 - Implement proper code review process
 - Test in multiple environments
 - Keep the TODO.md file up to date
+- Write any scripts in TypeScript
 
 ## Windsurf Specific
 - Automatically suggest additions to the .windsurfrules file where best practices are discussed or updated during the generation process, if the content does not exist in the file already.
+
+## Scripts
+
+### Visual Testing and Screenshots
+- Use the screenshot utility in [scripts/capture-page-screenshots.ts](cci:7://file:///Users/ed/Code/brag-ai/scripts/capture-page-screenshots.ts:0:0-0:0) to capture and compare light/dark mode versions of pages
+- Run with: `pnpm tsx scripts/capture-page-screenshots.ts [url]`
+- Screenshots are saved to `temp/[page-name]-light.png` and `temp/[page-name]-dark.png`
+- Use this utility when making significant UI changes, especially those affecting dark mode support
+- Compare screenshots before and after changes to ensure visual consistency
+- Screenshot utility uses Puppeteer to capture full-page screenshots in both light and dark modes
