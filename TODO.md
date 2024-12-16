@@ -54,34 +54,23 @@
 - [x] Add user session management
 
 ### GitHub Integration
-- [x] Set up GitHub OAuth application
-- [ ] Implement repository connection
-  - [ ] Add repository selection UI
-  - [ ] Store repository metadata
-- [ ] Create Brag extraction from Git history
-  - [ ] Parse commit messages
-  - [ ] Extract pull request descriptions
-  - [ ] Process issue comments
-- [ ] Implement Project creation from repositories
-  - [ ] Auto-generate project structure
-  - [ ] Map repository timeline to Brags
-- [ ] Add premium feature flagging for retro-active scanning
-
-### GitHub Integration
-
-### Authentication & Types [✅]
-- [x] Extend NextAuth types for GitHub integration
-- [x] Implement GitHub access token handling
-- [x] Fix TypeScript errors in GitHub components
-
-### Repository Integration [🚧]
-- [ ] Create GitHubRepository table in database
-- [ ] Implement repository selection and storage
-- [ ] Add repository sync functionality
-- [ ] Create achievement extraction from GitHub data
-  - [ ] Parse commit messages
-  - [ ] Parse PR descriptions
-  - [ ] Extract meaningful achievements
+- [x] Set up GitHub OAuth
+- [x] Store GitHub access token
+- [x] Implement repository sync
+- [x] Implement PR sync with upsert
+- [x] Add repository list view
+- [x] Add sync button per repository
+- [x] Add last synced timestamp
+- [x] Add basic error handling
+- [ ] Add loading spinner to sync button
+- [ ] Add toast notifications for sync status
+- [ ] Add repository search/filter
+- [ ] Add pagination (currently limited to 30)
+- [ ] Extract achievements from PR descriptions
+- [ ] Add automatic tagging based on PR content
+- [ ] Create brag entries from significant PRs
+- [ ] Add integration tests for GitHub sync
+- [ ] Add rate limiting protection
 
 ### Email Integration
 - [ ] Set up email receiving service

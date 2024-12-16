@@ -9,6 +9,7 @@ import {
   primaryKey,
   boolean,
   integer,
+  uniqueIndex,
 } from 'drizzle-orm/pg-core';
 
 export const user = pgTable('User', {
@@ -205,21 +206,27 @@ export const githubRepository = pgTable('GitHubRepository', {
 
 export type GitHubRepository = InferSelectModel<typeof githubRepository>;
 
-export const githubPullRequest = pgTable('GitHubPullRequest', {
-  id: uuid('id').primaryKey().notNull().defaultRandom(),
-  repositoryId: uuid('repository_id')
-    .notNull()
-    .references(() => githubRepository.id),
-  prNumber: integer('pr_number').notNull(),
-  title: varchar('title', { length: 512 }).notNull(),
-  description: text('description'),
-  state: varchar('state', { length: 32 }).notNull(),
-  createdAt: timestamp('created_at').notNull().defaultNow(),
-  updatedAt: timestamp('updated_at').notNull().defaultNow(),
-  mergedAt: timestamp('merged_at'),
-  bragId: uuid('brag_id')
-    .references(() => brag.id),
-});
+export const githubPullRequest = pgTable(
+  'GitHubPullRequest',
+  {
+    id: uuid('id').primaryKey().notNull().defaultRandom(),
+    repositoryId: uuid('repository_id')
+      .notNull()
+      .references(() => githubRepository.id),
+    prNumber: integer('pr_number').notNull(),
+    title: varchar('title', { length: 512 }).notNull(),
+    description: text('description'),
+    state: varchar('state', { length: 32 }).notNull(),
+    createdAt: timestamp('created_at').notNull().defaultNow(),
+    updatedAt: timestamp('updated_at').notNull().defaultNow(),
+    mergedAt: timestamp('merged_at'),
+    bragId: uuid('brag_id')
+      .references(() => brag.id),
+  },
+  (table) => ({
+    repoAndPrUnique: uniqueIndex('repo_pr_unique').on(table.repositoryId, table.prNumber),
+  }),
+);
 
 export type GitHubPullRequest = InferSelectModel<typeof githubPullRequest>;
 

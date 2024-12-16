@@ -57,6 +57,13 @@
       "when": 1734389901903,
       "tag": "0007_premium_barracuda",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1734393009138,
+      "tag": "0008_worried_supernaut",
+      "breakpoints": true
     }
   ]
 }
