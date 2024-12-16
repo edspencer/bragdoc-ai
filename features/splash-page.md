@@ -92,7 +92,7 @@ app/
 - `/pricing` - Detailed pricing page
 - `/about` - About page
 - `/login` - Enhanced login page
-- `/signup` - New user registration
+- `/register` - New user registration
 
 ## TypeScript Implementation Details
 

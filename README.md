@@ -64,6 +64,30 @@ Sign up / Sign in buttons
 - Use this to drive Evals
 - Use it to generate test & dev data (needs to be spread out over last 12 months ideally)
 
+## Project Structure
+
+The project is organized into several key areas:
+
+### Frontend
+- `app/(marketing)`: Marketing pages and layouts
+  - Landing page with feature highlights
+  - SEO-optimized metadata
+  - Dark mode support
+  - Responsive design
+- `app/(auth)`: Authentication flows
+- `app/(chat)`: Main application interface
+  - Chat interface for logging achievements
+  - Canvas mode for document collaboration
+  - Document generation and editing
+
+### Components
+- `components/marketing`: Marketing page components
+  - Hero section
+  - Feature showcases
+  - Pricing plans
+  - FAQ section
+- `components/ui`: Reusable UI components (based on shadcn/ui)
+
 ## Data Model
 
 ```js

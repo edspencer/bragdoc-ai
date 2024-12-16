@@ -16,7 +16,7 @@ const plans = [
       'Perfect for individual contributors looking to track their achievements.',
     button: {
       label: 'Get started for free',
-      href: '/signup',
+      href: '/register',
     },
     features: [
       'Unlimited achievement tracking',
@@ -34,7 +34,7 @@ const plans = [
       'For professionals who want advanced features and integrations.',
     button: {
       label: 'Start free trial',
-      href: '/signup?plan=pro',
+      href: '/register?plan=pro',
     },
     features: [
       'Everything in Personal',

@@ -17,7 +17,7 @@ export function CallToAction() {
           <p className="mt-4 text-lg tracking-tight text-white">
             It&apos;s time to take control of your career narrative. Start tracking your achievements with brag.ai and never miss a win.
           </p>
-          <Button href="/signup" color="white" className="mt-10">
+          <Button href="/register" color="white" className="mt-10">
             Get started for free
           </Button>
         </div>

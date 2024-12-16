@@ -25,33 +25,12 @@ export function Hero() {
         brag.ai helps you track your work accomplishments effortlessly. Perfect for performance reviews, resumes, and career growth.
       </p>
       <div className="mt-10 flex justify-center gap-x-6">
-        <Button href="/signup" color="blue">
+        <Button href="/register" color="blue">
           Get started
         </Button>
         <Button href="/about" variant="outline">
           <span>Learn more</span>
         </Button>
-      </div>
-      <div className="mt-36 lg:mt-44">
-        <p className="font-display text-base text-slate-900">
-          Trusted by teams at
-        </p>
-        <ul
-          role="list"
-          className="mt-8 flex items-center justify-center gap-x-8 sm:flex-col sm:gap-x-0 sm:gap-y-10 xl:flex-row xl:gap-x-12 xl:gap-y-0"
-        >
-          {[
-            ['GitHub', '/'],
-            ['Linear', '/'],
-            ['Vercel', '/'],
-            ['Notion', '/'],
-            ['Loom', '/'],
-          ].map(([name, logo]) => (
-            <li key={name}>
-              <span className="text-slate-500">{name}</span>
-            </li>
-          ))}
-        </ul>
       </div>
     </Container>
   )

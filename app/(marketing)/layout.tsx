@@ -1,10 +1,13 @@
 import { ThemeProvider } from "@/components/theme-provider"
+import { defaultMetadata } from './metadata'
 import { Navigation } from "@/components/marketing/Navigation"
 import { Footer } from "@/components/marketing/Footer"
 
 interface MarketingLayoutProps {
   children: React.ReactNode
 }
+
+export const metadata = defaultMetadata
 
 export default function MarketingLayout({ children }: MarketingLayoutProps) {
   return (

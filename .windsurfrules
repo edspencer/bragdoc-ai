@@ -43,6 +43,13 @@ Note that not all features are implemented yet, but the core idea is to help use
 └── test/                     # Test cases
 ```
 
+## URL Structure
+- The project has a single base URL: `https://brag.ai`, when deployed into production
+- /register - register a new user
+- /login - login a user
+- /chat - main view for logged-in users, shows the chatbot and chat history
+- / - home page, mostly marketing. Prominent CTA to logged-in users to go to /chat
+
 ## Tech Stack
 
 These are the core technologies and libraries used in the project. 
