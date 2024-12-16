@@ -221,7 +221,7 @@ export function SecondaryFeatures() {
             Build your career story
           </h2>
           <p className="mt-4 text-lg tracking-tight text-slate-700 dark:text-slate-300">
-            brag.ai helps you capture and organize your achievements, making it easy to showcase your impact and growth.
+            bragdoc.ai helps you capture and organize your achievements, making it easy to showcase your impact and growth.
           </p>
         </div>
         <FeaturesMobile />

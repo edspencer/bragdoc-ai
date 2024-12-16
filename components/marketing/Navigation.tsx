@@ -9,7 +9,7 @@ export function Navigation() {
       <div className="container flex h-14 items-center">
         <div className="mr-4 flex">
           <Link href="/" className="mr-6 flex items-center space-x-2">
-            <span className="font-bold">brag.ai</span>
+            <span className="font-bold">bragdoc.ai</span>
           </Link>
         </div>
         <NavigationMenu>

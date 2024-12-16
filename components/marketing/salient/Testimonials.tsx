@@ -6,7 +6,7 @@ const testimonials = [
   [
     {
       content:
-        'brag.ai has completely changed how I approach performance reviews. No more scrambling to remember what I did six months ago.',
+        'bragdoc.ai has completely changed how I approach performance reviews. No more scrambling to remember what I did six months ago.',
       author: {
         name: 'Sarah Chen',
         role: 'Senior Software Engineer',

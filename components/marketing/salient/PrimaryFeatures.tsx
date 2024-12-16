@@ -76,7 +76,7 @@ export function PrimaryFeatures() {
             Everything you need to track your achievements
           </h2>
           <p className="mt-6 text-lg tracking-tight text-blue-100 dark:text-blue-200">
-            brag.ai combines AI-powered achievement tracking with powerful integrations to help you build a comprehensive record of your accomplishments.
+            bragdoc.ai combines AI-powered achievement tracking with powerful integrations to help you build a comprehensive record of your accomplishments.
           </p>
         </div>
         <Tab.Group

@@ -68,7 +68,7 @@ export function Footer() {
         </div>
         <div className="mt-8 border-t pt-8">
           <p className="text-center text-sm text-muted-foreground">
-            © {new Date().getFullYear()} brag.ai. All rights reserved.
+            {new Date().getFullYear()} bragdoc.ai. All rights reserved.
           </p>
         </div>
       </div>

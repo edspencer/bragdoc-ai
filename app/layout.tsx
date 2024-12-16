@@ -7,8 +7,27 @@ import './globals.css';
 
 export const metadata: Metadata = {
   metadataBase: new URL('https://chat.vercel.ai'),
-  title: 'Next.js Chatbot Template',
-  description: 'Next.js chatbot template using the AI SDK.',
+  title: {
+    default: 'bragdoc.ai - Never Forget Your Achievements',
+    template: '%s | bragdoc.ai'
+  },
+  description: 'bragdoc.ai helps you track your work accomplishments effortlessly. Perfect for performance reviews, resumes, and career growth.',
+  authors: [
+    {
+      name: 'bragdoc.ai team'
+    }
+  ],
+  openGraph: 
+    {
+      title: 'bragdoc.ai - Never Forget Your Achievements',
+      description: 'Track your achievements effortlessly',
+      url: 'https://bragdoc.ai',
+      siteName: 'bragdoc.ai',
+    },
+  twitter: 
+    {
+      title: 'bragdoc.ai - Never Forget Your Achievements',
+    },
 };
 
 export const viewport = {

@@ -1,10 +1,10 @@
-# brag.ai - instructions for code-generating LLMS
+# bragdoc.ai - instructions for code-generating LLMS
 
 Every time you choose to apply a rule(s), explicitly state the rule(s) in the output. You can abbreviate the rule description to a single word or phrase.
 
 ## Project Context
 
-The project is called brag.ai and is a chatbot that helps users keep a brag document about their achievements at work. Key features:
+The project is called bragdoc.ai and is a chatbot that helps users keep a brag document about their achievements at work. Key features:
 - Reads/listens to user messages, creates rows in a Brag table for each achievement the user mentioned
 - Creates weekly/monthly/performance review documents based on the data in the Brag table
 - Integrates with GitHub to extract achievements from commit messages and pull request descriptions
@@ -24,7 +24,7 @@ Note that not all features are implemented yet, but the core idea is to help use
 ├── app/
 │   ├── (auth)/               # Auth UI and API
 │   └── (chat)/               # Chat UI and API
-├── components/               # Shared UI components specific to brag.ai 
+├── components/               # Shared UI components specific to bragdoc.ai 
 │   └── ui/                   # ShadCN UI components like labels, inputs, buttons, etc.
 ├── evals/                    # Braintrust Evals for the various LLM calls
 │   ├── context-brag/         # Complex use cases pull many brags out of many messages
@@ -44,7 +44,7 @@ Note that not all features are implemented yet, but the core idea is to help use
 ```
 
 ## URL Structure
-- The project has a single base URL: `https://brag.ai`, when deployed into production
+- The project has a single base URL: `https://bragdoc.ai`, when deployed into production
 - /register - register a new user
 - /login - login a user
 - /chat - main view for logged-in users, shows the chatbot and chat history

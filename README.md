@@ -1,4 +1,4 @@
-# brag.ai
+# bragdoc.ai
 
 AI chatbot that helps you keep a brag document about your achievements at work.
 

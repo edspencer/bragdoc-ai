@@ -7,9 +7,9 @@ import { Container } from './Container'
 
 const faqs = [
   {
-    question: 'How does brag.ai capture my achievements?',
+    question: 'How does bragdoc.ai capture my achievements?',
     answer:
-      'brag.ai uses AI to analyze your messages, GitHub activity, and other inputs to automatically identify and document your achievements. You can also manually add achievements through our intuitive interface.',
+      'bragdoc.ai uses AI to analyze your messages, GitHub activity, and other inputs to automatically identify and document your achievements. You can also manually add achievements through our intuitive interface.',
   },
   {
     question: 'Can I export my achievements for performance reviews?',
@@ -27,7 +27,7 @@ const faqs = [
       'Absolutely. We take security seriously and employ industry-standard encryption for all data. Your achievements and personal information are never shared without your explicit permission.',
   },
   {
-    question: 'Can I use brag.ai with my team?',
+    question: 'Can I use bragdoc.ai with my team?',
     answer:
       'Yes! Our Pro and Enterprise plans include team collaboration features. Team members can share achievements, provide feedback, and managers can track team accomplishments.',
   },

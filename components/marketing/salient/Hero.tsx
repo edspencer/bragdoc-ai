@@ -22,7 +22,7 @@ export function Hero() {
         again
       </h1>
       <p className="mx-auto mt-6 max-w-2xl text-lg tracking-tight text-slate-700 dark:text-slate-300">
-        brag.ai helps you track your work accomplishments effortlessly. Perfect for performance reviews, resumes, and career growth.
+        bragdoc.ai helps you track your work accomplishments effortlessly. Perfect for performance reviews, resumes, and career growth.
       </p>
       <div className="mt-10 flex justify-center gap-x-6">
         <Button href="/register" color="blue">

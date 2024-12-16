@@ -1,7 +1,7 @@
 # Splash Page Feature
 
 ## Overview
-Replace the current direct login form with a modern, responsive marketing homepage that showcases brag.ai's value proposition and provides clear paths to sign up, log in, and learn more about the product.
+Replace the current direct login form with a modern, responsive marketing homepage that showcases bragdoc.ai's value proposition and provides clear paths to sign up, log in, and learn more about the product.
 
 ## Technical Requirements
 

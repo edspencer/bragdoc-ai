@@ -2,10 +2,10 @@ import { Metadata } from 'next'
 
 export const defaultMetadata: Metadata = {
   title: {
-    default: 'brag.ai - Never Forget Your Achievements',
-    template: '%s | brag.ai',
+    default: 'bragdoc.ai - Never Forget Your Achievements',
+    template: '%s | bragdoc.ai',
   },
-  description: 'brag.ai helps you track your work accomplishments effortlessly. Perfect for performance reviews, resumes, and career growth.',
+  description: 'bragdoc.ai helps you track your work accomplishments effortlessly. Perfect for performance reviews, resumes, and career growth.',
   keywords: [
     'achievement tracking',
     'performance review',
@@ -16,17 +16,17 @@ export const defaultMetadata: Metadata = {
     'AI assistant',
     'career growth',
   ],
-  authors: [{ name: 'brag.ai team' }],
+  authors: [{ name: 'bragdoc.ai team' }],
   openGraph: {
-    title: 'brag.ai - Never Forget Your Achievements',
+    title: 'bragdoc.ai - Never Forget Your Achievements',
     description: 'Track your work accomplishments effortlessly with AI assistance',
-    url: 'https://brag.ai',
-    siteName: 'brag.ai',
+    url: 'https://bragdoc.ai',
+    siteName: 'bragdoc.ai',
     type: 'website',
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'brag.ai - Never Forget Your Achievements',
+    title: 'bragdoc.ai - Never Forget Your Achievements',
     description: 'Track your work accomplishments effortlessly with AI assistance',
   },
   robots: {

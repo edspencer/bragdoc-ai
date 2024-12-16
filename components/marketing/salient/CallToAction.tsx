@@ -15,7 +15,7 @@ export function CallToAction() {
             Get started today
           </h2>
           <p className="mt-4 text-lg tracking-tight text-white">
-            It&apos;s time to take control of your career narrative. Start tracking your achievements with brag.ai and never miss a win.
+            It&apos;s time to take control of your career narrative. Start tracking your achievements with bragdoc.ai and never miss a win.
           </p>
           <Button href="/register" color="white" className="mt-10">
             Get started for free
