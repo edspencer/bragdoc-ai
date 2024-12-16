@@ -131,16 +131,21 @@ type UserMessage = {
 ### Free Level
 - Free
 - Some limitation on usage
+- No integration with GitHub
 
 ### Basic Bragger
 - $3/month
 - $30/year
+- Integrates with up to 1 GitHub repository
 - Unlimited Brags/Docs/everything
 
 ### Pro Bragger
 - $9/month
 - $90/year
-- GitHub integration
+- Integrates with unlimited GitHub repositories
+- Scheduled updates
+- Publishing options
+
 
 Should be integrated with Link or Stripe (Link has a really nice UX).
 

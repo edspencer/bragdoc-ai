@@ -30,21 +30,31 @@
 
 ## Feature Implementation 
 
-### Splash Page
-- [x] Add a beautiful landing/home page that we show people who are not logged in
+### Ancillary Pages
+
+- [ ] Add "About" page at /about
+- [ ] Add "Pricing" page at /pricing
+- [ ] Add "Terms of Service" page at /terms
+- [ ] Add "Privacy Policy" page at /privacy
 
 ### Authentication
 - [x] Set up NextAuth.js
   - [x] Email/password authentication
-  - [ ] Google OAuth integration
-  - [ ] GitHub OAuth integration
+  - [x] Google OAuth integration
+  - [-] GitHub OAuth integration (in progress)
+    - [x] OAuth app setup
+    - [x] Provider configuration
+    - [ ] Loading states and error handling
+    - [ ] Repository access implementation
 - [x] Create user database schema
+  - [x] Add OAuth-specific fields
+  - [x] Fix table naming conventions
 - [x] Add authentication middleware
 - [x] Implement protected routes
 - [x] Add user session management
 
 ### GitHub Integration
-- [ ] Set up GitHub OAuth application
+- [x] Set up GitHub OAuth application
 - [ ] Implement repository connection
   - [ ] Add repository selection UI
   - [ ] Store repository metadata
