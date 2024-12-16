@@ -1,278 +1,362 @@
 {
   "scenario": {
-    "description": "Scenario for testing a brag tracking application",
+    "description": "This scenario involves a professional working in a tech company, engaging in personal development projects, community involvement, and achieving a personal milestone.",
     "companies": [
       {
         "id": "1",
-        "name": "Google",
-        "role": "Senior Software Engineer",
-        "domain": "Tech",
-        "startDate": "2024-01-01T00:00:00.000Z",
-        "endDate": "2024-12-15T16:29:25.840Z"
+        "name": "Tech Innovators Inc.",
+        "role": "Software Engineer",
+        "domain": "Technology",
+        "startDate": "2024-01-15T00:00:00.000Z"
       }
     ],
     "projects": [
       {
         "id": "1",
-        "name": "Google Search Optimization",
+        "name": "AI-Powered Personal Finance App",
         "companyId": "1",
-        "description": "Worked on improving the search algorithm to provide more relevant results to users",
-        "startDate": "2024-01-01T00:00:00.000Z",
+        "description": "Developed a personal finance application using AI to help users manage their budgets and investments more effectively.",
+        "startDate": "2024-03-01T00:00:00.000Z",
         "endDate": "2024-06-30T00:00:00.000Z"
       },
       {
         "id": "2",
-        "name": "Personal Blog Development",
-        "companyId": "1",
-        "description": "Developed a personal blog using React and Node.js to share knowledge about software development",
-        "startDate": "2024-07-01T00:00:00.000Z",
-        "endDate": "2024-12-15T16:29:25.840Z"
+        "name": "Open Source Contribution to Machine Learning Library",
+        "description": "Contributed to an open-source machine learning library, improving its documentation and adding new features.",
+        "startDate": "2024-04-15T00:00:00.000Z",
+        "endDate": "2024-07-15T00:00:00.000Z"
       },
       {
         "id": "3",
-        "name": "Mentorship at CodeNewbie",
-        "companyId": "1",
-        "description": "Mentored new coders, helping them understand basic programming concepts and guiding them on their learning journey",
-        "startDate": "2024-01-01T00:00:00.000Z",
-        "endDate": "2024-12-15T16:29:25.840Z"
+        "name": "Local Coding Bootcamp Mentorship",
+        "description": "Volunteered as a mentor at a local coding bootcamp, helping students learn programming and develop their projects.",
+        "startDate": "2024-05-01T00:00:00.000Z",
+        "endDate": "2024-09-01T00:00:00.000Z"
       },
       {
         "id": "4",
-        "name": "Marathon Training",
-        "companyId": "1",
-        "description": "Trained for and completed a full marathon",
-        "startDate": "2024-01-01T00:00:00.000Z",
-        "endDate": "2024-10-01T00:00:00.000Z"
+        "name": "Marathon Training and Completion",
+        "description": "Trained for and completed a marathon, achieving a personal best time.",
+        "startDate": "2024-02-01T00:00:00.000Z",
+        "endDate": "2024-10-15T00:00:00.000Z"
       }
     ],
-    "userPersona": "Senior Software Engineer at Google who is passionate about sharing knowledge, mentoring new coders, and maintaining a healthy lifestyle",
+    "userPersona": "A software engineer passionate about technology, personal growth, and community involvement.",
     "timeframe": {
       "start": "2024-01-01T00:00:00.000Z",
-      "end": "2024-12-15T16:29:25.840Z"
+      "end": "2024-12-01T00:00:00.000Z"
     },
-    "userId": "f306ac78-a350-4087-af62-a38905aab8f2"
+    "userId": "41a37b16-ae8c-4a9e-827a-b7298a5a7e95"
   },
   "conversation": {
-    "id": "86e35bfd-d516-437e-b4d9-82348d641374",
+    "id": "0d06c4fe-c83b-49ec-b0a8-3bbbda1c204a",
     "messages": [
       {
         "role": "user",
-        "content": "Hey there! Just wanted to share that I've started working on the Google Search Optimization project. I'll be focusing on improving the search algorithm to provide more relevant results to users.",
-        "timestamp": "2024-01-02T10:00:00.000Z"
+        "content": "Started my new role as a Software Engineer at Tech Innovators Inc. Excited to work on innovative projects!",
+        "timestamp": "2024-01-15T09:00:00.000Z"
       },
       {
         "role": "assistant",
-        "content": "That sounds like an exciting project! Looking forward to hearing about your progress.",
-        "timestamp": "2024-01-02T10:05:00.000Z"
+        "content": "Congratulations on your new role! Looking forward to hearing about your exciting projects.",
+        "timestamp": "2024-01-15T09:01:00.000Z"
       },
       {
         "role": "user",
-        "content": "I've made some significant progress on the Google Search Optimization project. We've managed to reduce the average search time by 15% so far.",
-        "timestamp": "2024-02-15T16:00:00.000Z"
+        "content": "Kicked off the AI-Powered Personal Finance App project. We're aiming to help users manage their budgets more effectively using AI.",
+        "timestamp": "2024-03-01T10:00:00.000Z"
       },
       {
         "role": "assistant",
-        "content": "That's impressive! Keep up the good work.",
-        "timestamp": "2024-02-15T16:05:00.000Z"
+        "content": "That sounds like a fantastic project! AI can really make a difference in personal finance management.",
+        "timestamp": "2024-03-01T10:01:00.000Z"
       },
       {
         "role": "user",
-        "content": "I've also started mentoring at CodeNewbie. It's been a rewarding experience helping new coders understand basic programming concepts.",
-        "timestamp": "2024-02-20T18:00:00.000Z"
+        "content": "Contributed to an open-source machine learning library by improving documentation and adding new features. It's been a great learning experience!",
+        "timestamp": "2024-04-15T11:00:00.000Z"
       },
       {
         "role": "assistant",
-        "content": "That's wonderful! Sharing knowledge is a great way to contribute to the community.",
-        "timestamp": "2024-02-20T18:05:00.000Z"
+        "content": "Open-source contributions are a great way to learn and give back to the community. Well done!",
+        "timestamp": "2024-04-15T11:01:00.000Z"
       },
       {
         "role": "user",
-        "content": "Just completed the Google Search Optimization project. We've managed to improve the relevancy of search results by 20% and reduce the average search time by 25%.",
+        "content": "Started mentoring at a local coding bootcamp. It's rewarding to help students learn programming and develop their projects.",
+        "timestamp": "2024-05-01T12:00:00.000Z"
+      },
+      {
+        "role": "assistant",
+        "content": "Mentoring is such a valuable way to share your knowledge and inspire the next generation of developers. Keep it up!",
+        "timestamp": "2024-05-01T12:01:00.000Z"
+      },
+      {
+        "role": "user",
+        "content": "Completed the first phase of the AI-Powered Personal Finance App. We've integrated a budgeting tool that uses AI to predict spending patterns.",
+        "timestamp": "2024-05-15T13:00:00.000Z"
+      },
+      {
+        "role": "assistant",
+        "content": "Great progress on the app! Predicting spending patterns can really help users stay on top of their finances.",
+        "timestamp": "2024-05-15T13:01:00.000Z"
+      },
+      {
+        "role": "user",
+        "content": "Ran my first half-marathon as part of my marathon training. Achieved a personal best time!",
+        "timestamp": "2024-06-01T14:00:00.000Z"
+      },
+      {
+        "role": "assistant",
+        "content": "That's an amazing achievement! Your dedication to training is really paying off.",
+        "timestamp": "2024-06-01T14:01:00.000Z"
+      },
+      {
+        "role": "user",
+        "content": "Launched the AI-Powered Personal Finance App. Early feedback shows 95% user satisfaction with the budgeting tool!",
         "timestamp": "2024-06-30T15:00:00.000Z"
       },
       {
         "role": "assistant",
-        "content": "Congratulations on completing the project! Those are some impressive results.",
-        "timestamp": "2024-06-30T15:05:00.000Z"
+        "content": "Congratulations on the successful launch! A 95% satisfaction rate is impressive.",
+        "timestamp": "2024-06-30T15:01:00.000Z"
       },
       {
         "role": "user",
-        "content": "I've started a new project - Personal Blog Development. I'm using React and Node.js to build it. The goal is to share my knowledge about software development.",
-        "timestamp": "2024-07-01T10:00:00.000Z"
+        "content": "Wrapped up my contributions to the open-source machine learning library. The new features have been well-received by the community.",
+        "timestamp": "2024-07-15T16:00:00.000Z"
       },
       {
         "role": "assistant",
-        "content": "That's a great initiative! It will be a valuable resource for many. Good luck!",
-        "timestamp": "2024-07-01T10:05:00.000Z"
+        "content": "Fantastic work on the open-source project! It's great to see your contributions making an impact.",
+        "timestamp": "2024-07-15T16:01:00.000Z"
       },
       {
         "role": "user",
-        "content": "I've been making steady progress on my Personal Blog Development project. I've completed the backend and started working on the frontend.",
-        "timestamp": "2024-08-15T16:00:00.000Z"
+        "content": "The coding bootcamp students just completed their final projects. It's been amazing to see their growth and creativity.",
+        "timestamp": "2024-08-01T17:00:00.000Z"
       },
       {
         "role": "assistant",
-        "content": "Great to hear that you're making progress. Keep it up!",
-        "timestamp": "2024-08-15T16:05:00.000Z"
+        "content": "It's wonderful to hear about the students' success. Your mentorship has clearly made a difference!",
+        "timestamp": "2024-08-01T17:01:00.000Z"
       },
       {
         "role": "user",
-        "content": "In other news, I've been training for a marathon. I've managed to run 10 miles without stopping so far.",
-        "timestamp": "2024-08-20T18:00:00.000Z"
+        "content": "Started a new initiative at Tech Innovators Inc. to improve our internal tools for better productivity. Excited to see where this leads!",
+        "timestamp": "2024-08-15T18:00:00.000Z"
       },
       {
         "role": "assistant",
-        "content": "That's a great personal achievement! Keep pushing your limits.",
-        "timestamp": "2024-08-20T18:05:00.000Z"
+        "content": "Improving internal tools is a great way to boost productivity. Best of luck with this new initiative!",
+        "timestamp": "2024-08-15T18:01:00.000Z"
       },
       {
         "role": "user",
-        "content": "I've completed my Personal Blog Development project. I've already started posting articles and the response has been positive so far.",
-        "timestamp": "2024-12-01T15:00:00.000Z"
+        "content": "Completed my marathon training and ran the full marathon. Achieved a new personal best time!",
+        "timestamp": "2024-10-15T19:00:00.000Z"
       },
       {
         "role": "assistant",
-        "content": "Congratulations on completing your blog! It's great to hear that you're getting a positive response.",
-        "timestamp": "2024-12-01T15:05:00.000Z"
+        "content": "Congratulations on completing the marathon! Achieving a personal best is a testament to your hard work and dedication.",
+        "timestamp": "2024-10-15T19:01:00.000Z"
       },
       {
         "role": "user",
-        "content": "I've also completed my marathon training and managed to finish a full marathon. It was a challenging but rewarding experience.",
-        "timestamp": "2024-12-02T10:00:00.000Z"
+        "content": "The internal tools improvement project is showing results. We've reduced task completion time by 30% across the team.",
+        "timestamp": "2024-11-01T20:00:00.000Z"
       },
       {
         "role": "assistant",
-        "content": "That's a huge accomplishment! Congratulations on completing the marathon.",
-        "timestamp": "2024-12-02T10:05:00.000Z"
+        "content": "That's a significant improvement! It's great to see your initiative having such a positive impact.",
+        "timestamp": "2024-11-01T20:01:00.000Z"
       },
       {
         "role": "user",
-        "content": "Looking back, it's been a productive year. I've managed to achieve a lot, both professionally and personally.",
-        "timestamp": "2024-12-15T16:00:00.000Z"
+        "content": "Started a cross-company collaboration to integrate AI solutions into our customer service platform. It's a big step forward for us!",
+        "timestamp": "2024-11-15T21:00:00.000Z"
       },
       {
         "role": "assistant",
-        "content": "Indeed, you've had an impressive year! Here's to more achievements in the future.",
-        "timestamp": "2024-12-15T16:05:00.000Z"
+        "content": "Integrating AI into customer service can really enhance user experience. Exciting times ahead!",
+        "timestamp": "2024-11-15T21:01:00.000Z"
+      },
+      {
+        "role": "user",
+        "content": "Began learning a new programming language to expand my skill set. It's challenging but rewarding!",
+        "timestamp": "2024-11-20T22:00:00.000Z"
+      },
+      {
+        "role": "assistant",
+        "content": "Learning a new language is a great way to grow as a developer. Keep pushing through the challenges!",
+        "timestamp": "2024-11-20T22:01:00.000Z"
+      },
+      {
+        "role": "user",
+        "content": "The AI integration in customer service is progressing well. We've already seen a 20% increase in customer satisfaction.",
+        "timestamp": "2024-11-25T23:00:00.000Z"
+      },
+      {
+        "role": "assistant",
+        "content": "A 20% increase in satisfaction is fantastic! Your efforts are clearly making a difference.",
+        "timestamp": "2024-11-25T23:01:00.000Z"
+      },
+      {
+        "role": "user",
+        "content": "Finished the coding bootcamp mentorship. The students have gone on to secure jobs in tech, which is incredibly rewarding to see.",
+        "timestamp": "2024-12-01T00:00:00.000Z"
+      },
+      {
+        "role": "assistant",
+        "content": "It's amazing to hear about the students' success. Your mentorship has truly been impactful!",
+        "timestamp": "2024-12-01T00:01:00.000Z"
       }
     ],
     "scenario": {
-      "description": "Scenario for testing a brag tracking application",
+      "description": "This scenario involves a professional working in a tech company, engaging in personal development projects, community involvement, and achieving a personal milestone.",
       "companies": [
         {
           "id": "1",
-          "name": "Google",
-          "role": "Senior Software Engineer",
-          "domain": "Tech",
-          "startDate": "2024-01-01T00:00:00.000Z",
-          "endDate": "2024-12-15T16:29:25.840Z"
+          "name": "Tech Innovators Inc.",
+          "role": "Software Engineer",
+          "domain": "Technology",
+          "startDate": "2024-01-15T00:00:00.000Z"
         }
       ],
       "projects": [
         {
           "id": "1",
-          "name": "Google Search Optimization",
+          "name": "AI-Powered Personal Finance App",
           "companyId": "1",
-          "description": "Worked on improving the search algorithm to provide more relevant results to users",
-          "startDate": "2024-01-01T00:00:00.000Z",
+          "description": "Developed a personal finance application using AI to help users manage their budgets and investments more effectively.",
+          "startDate": "2024-03-01T00:00:00.000Z",
           "endDate": "2024-06-30T00:00:00.000Z"
         },
         {
           "id": "2",
-          "name": "Personal Blog Development",
-          "companyId": "1",
-          "description": "Developed a personal blog using React and Node.js to share knowledge about software development",
-          "startDate": "2024-07-01T00:00:00.000Z",
-          "endDate": "2024-12-15T16:29:25.840Z"
+          "name": "Open Source Contribution to Machine Learning Library",
+          "description": "Contributed to an open-source machine learning library, improving its documentation and adding new features.",
+          "startDate": "2024-04-15T00:00:00.000Z",
+          "endDate": "2024-07-15T00:00:00.000Z"
         },
         {
           "id": "3",
-          "name": "Mentorship at CodeNewbie",
-          "companyId": "1",
-          "description": "Mentored new coders, helping them understand basic programming concepts and guiding them on their learning journey",
-          "startDate": "2024-01-01T00:00:00.000Z",
-          "endDate": "2024-12-15T16:29:25.840Z"
+          "name": "Local Coding Bootcamp Mentorship",
+          "description": "Volunteered as a mentor at a local coding bootcamp, helping students learn programming and develop their projects.",
+          "startDate": "2024-05-01T00:00:00.000Z",
+          "endDate": "2024-09-01T00:00:00.000Z"
         },
         {
           "id": "4",
-          "name": "Marathon Training",
-          "companyId": "1",
-          "description": "Trained for and completed a full marathon",
-          "startDate": "2024-01-01T00:00:00.000Z",
-          "endDate": "2024-10-01T00:00:00.000Z"
+          "name": "Marathon Training and Completion",
+          "description": "Trained for and completed a marathon, achieving a personal best time.",
+          "startDate": "2024-02-01T00:00:00.000Z",
+          "endDate": "2024-10-15T00:00:00.000Z"
         }
       ],
-      "userPersona": "Senior Software Engineer at Google who is passionate about sharing knowledge, mentoring new coders, and maintaining a healthy lifestyle",
+      "userPersona": "A software engineer passionate about technology, personal growth, and community involvement.",
       "timeframe": {
         "start": "2024-01-01T00:00:00.000Z",
-        "end": "2024-12-15T16:29:25.840Z"
+        "end": "2024-12-01T00:00:00.000Z"
       },
-      "userId": "f306ac78-a350-4087-af62-a38905aab8f2"
+      "userId": "41a37b16-ae8c-4a9e-827a-b7298a5a7e95"
     }
   },
   "expectedBrags": [
     {
-      "id": "1d69b1bd-f554-4408-b4be-b278d80f917e",
-      "userId": "f306ac78-a350-4087-af62-a38905aab8f2",
-      "userMessageId": "a2a5645a-c507-4ef6-baa7-ee0f7c6d7713",
-      "createdAt": "2024-12-15T16:30:45.648Z",
-      "updatedAt": "2024-12-15T16:30:45.648Z",
-      "eventStart": "2024-01-02T10:00:00.000Z",
-      "eventEnd": "2024-06-30T15:00:00.000Z",
+      "id": "33c66b2f-1b4a-4122-8acb-f6f26a8604a1",
+      "userId": "41a37b16-ae8c-4a9e-827a-b7298a5a7e95",
+      "userMessageId": "e501075b-8bb6-41a5-bafc-e80c39c5145f",
+      "createdAt": "2024-12-15T20:16:55.579Z",
+      "updatedAt": "2024-12-15T20:16:55.579Z",
+      "eventStart": "2024-03-01T00:00:00.000Z",
+      "eventEnd": "2024-06-30T00:00:00.000Z",
       "eventDuration": "quarter",
-      "title": "Improved Google Search Algorithm",
-      "summary": "Reduced average search time by 25% and improved the relevancy of search results by 20% in the Google Search Optimization project.",
-      "details": "Started working on the Google Search Optimization project with a focus on improving the search algorithm. Made significant progress by reducing the average search time by 15% initially. Upon completion, managed to improve the relevancy of search results by 20% and reduce the average search time by 25%.",
+      "title": "Led AI-Powered Personal Finance App Development",
+      "summary": "Successfully launched the AI-Powered Personal Finance App with 95% user satisfaction, enhancing budget management for users.",
+      "details": "Initiated and led the development of an AI-Powered Personal Finance App at Tech Innovators Inc., focusing on integrating AI to predict spending patterns. The project, which began in March 2024, culminated in a successful launch by June 2024, achieving a 95% user satisfaction rate with its budgeting tool.",
       "companyId": "1",
       "projectId": "1",
       "isArchived": false
     },
     {
-      "id": "f05821ba-2408-415f-9741-156ceae41539",
-      "userId": "f306ac78-a350-4087-af62-a38905aab8f2",
-      "userMessageId": "6ae7ed62-a8c3-4cd5-a642-567402f581e9",
-      "createdAt": "2024-12-15T16:30:45.648Z",
-      "updatedAt": "2024-12-15T16:30:45.648Z",
-      "eventStart": "2024-02-20T18:00:00.000Z",
-      "eventEnd": "2024-12-15T16:29:25.840Z",
-      "eventDuration": "year",
-      "title": "Mentored at CodeNewbie",
-      "summary": "Mentored new coders at CodeNewbie, helping them understand basic programming concepts.",
-      "details": "Started mentoring at CodeNewbie, focusing on helping new coders understand basic programming concepts. Found the experience rewarding and contributed to the community by sharing knowledge.",
-      "companyId": "1",
-      "projectId": "3",
-      "isArchived": false
-    },
-    {
-      "id": "574726b1-ad79-49aa-ac9a-cc323a88b04a",
-      "userId": "f306ac78-a350-4087-af62-a38905aab8f2",
-      "userMessageId": "2f19bbf1-528e-457b-8ea0-8754e9abf6d1",
-      "createdAt": "2024-12-15T16:30:45.648Z",
-      "updatedAt": "2024-12-15T16:30:45.648Z",
-      "eventStart": "2024-07-01T10:00:00.000Z",
-      "eventEnd": "2024-12-01T15:00:00.000Z",
+      "id": "9e49760a-b34a-4e54-935a-5782074d67ee",
+      "userId": "41a37b16-ae8c-4a9e-827a-b7298a5a7e95",
+      "userMessageId": "313b606c-b0d9-4527-94bd-3e2b35a968ad",
+      "createdAt": "2024-12-15T20:16:55.579Z",
+      "updatedAt": "2024-12-15T20:16:55.579Z",
+      "eventStart": "2024-04-15T00:00:00.000Z",
+      "eventEnd": "2024-07-15T00:00:00.000Z",
       "eventDuration": "quarter",
-      "title": "Developed Personal Blog",
-      "summary": "Developed a personal blog using React and Node.js to share knowledge about software development, receiving positive responses.",
-      "details": "Started the Personal Blog Development project using React and Node.js with the goal of sharing knowledge about software development. Made steady progress by completing the backend and starting on the frontend. Upon completion, started posting articles and received positive responses.",
-      "companyId": "1",
+      "title": "Contributed to Open Source Machine Learning Library",
+      "summary": "Enhanced an open-source machine learning library by improving documentation and adding features, receiving positive community feedback.",
+      "details": "From April to July 2024, contributed to an open-source machine learning library by enhancing its documentation and adding new features. These contributions were well-received by the community, providing a valuable learning experience and improving the library's usability.",
+      "companyId": null,
       "projectId": "2",
       "isArchived": false
     },
     {
-      "id": "14154440-e68f-409a-9507-53c608d54df1",
-      "userId": "f306ac78-a350-4087-af62-a38905aab8f2",
-      "userMessageId": "f68c437d-4b53-42c3-a372-cce1b2cf9684",
-      "createdAt": "2024-12-15T16:30:45.648Z",
-      "updatedAt": "2024-12-15T16:30:45.648Z",
-      "eventStart": "2024-01-01T00:00:00.000Z",
-      "eventEnd": "2024-12-02T10:00:00.000Z",
-      "eventDuration": "year",
-      "title": "Completed Marathon Training",
-      "summary": "Trained for and completed a full marathon.",
-      "details": "Started training for a marathon and made progress by managing to run 10 miles without stopping. Eventually completed the training and finished a full marathon, finding the experience challenging but rewarding.",
-      "companyId": "1",
+      "id": "20a0451f-d420-4dd1-b0f5-b331e914d349",
+      "userId": "41a37b16-ae8c-4a9e-827a-b7298a5a7e95",
+      "userMessageId": "3db69f96-caa6-4bf4-911e-5bc6e4e3d5a1",
+      "createdAt": "2024-12-15T20:16:55.579Z",
+      "updatedAt": "2024-12-15T20:16:55.579Z",
+      "eventStart": "2024-05-01T00:00:00.000Z",
+      "eventEnd": "2024-12-01T00:00:00.000Z",
+      "eventDuration": "half year",
+      "title": "Mentored at Local Coding Bootcamp",
+      "summary": "Mentored students at a local coding bootcamp, helping them secure jobs in tech and fostering their growth and creativity.",
+      "details": "Volunteered as a mentor from May to December 2024 at a local coding bootcamp, guiding students through programming and project development. The mentorship resulted in students successfully completing their projects and securing jobs in the tech industry, highlighting the impact of the guidance provided.",
+      "companyId": null,
+      "projectId": "3",
+      "isArchived": false
+    },
+    {
+      "id": "82dbb788-295f-496e-9db4-b2cdef641e04",
+      "userId": "41a37b16-ae8c-4a9e-827a-b7298a5a7e95",
+      "userMessageId": "353ff475-7d2c-4a9d-9eb4-421df3f7bf5e",
+      "createdAt": "2024-12-15T20:16:55.579Z",
+      "updatedAt": "2024-12-15T20:16:55.579Z",
+      "eventStart": "2024-02-01T00:00:00.000Z",
+      "eventEnd": "2024-10-15T00:00:00.000Z",
+      "eventDuration": "half year",
+      "title": "Completed Marathon with Personal Best",
+      "summary": "Trained for and completed a marathon, achieving a personal best time, demonstrating dedication and perseverance.",
+      "details": "Embarked on marathon training in February 2024, culminating in completing a full marathon by October 2024. Achieved a personal best time, showcasing commitment to personal fitness goals and resilience through rigorous training.",
+      "companyId": null,
       "projectId": "4",
+      "isArchived": false
+    },
+    {
+      "id": "96cbf4ec-70db-40c4-8d11-cc9ef7dee151",
+      "userId": "41a37b16-ae8c-4a9e-827a-b7298a5a7e95",
+      "userMessageId": "cb1e72fd-e3ac-43b7-8df0-21f02a324dd2",
+      "createdAt": "2024-12-15T20:16:55.579Z",
+      "updatedAt": "2024-12-15T20:16:55.579Z",
+      "eventStart": "2024-08-15T00:00:00.000Z",
+      "eventEnd": "2024-11-01T00:00:00.000Z",
+      "eventDuration": "quarter",
+      "title": "Improved Internal Tools at Tech Innovators Inc.",
+      "summary": "Initiated and led an internal tools improvement project, reducing task completion time by 30% across the team.",
+      "details": "Started a project in August 2024 at Tech Innovators Inc. to enhance internal productivity tools. By November 2024, the initiative resulted in a 30% reduction in task completion time, significantly boosting team efficiency and productivity.",
+      "companyId": "1",
+      "projectId": null,
+      "isArchived": false
+    },
+    {
+      "id": "e43057f9-363f-40f9-883b-28168f7a2285",
+      "userId": "41a37b16-ae8c-4a9e-827a-b7298a5a7e95",
+      "userMessageId": "fbaeb73a-e8f7-48c0-ad21-803735f9b8f7",
+      "createdAt": "2024-12-15T20:16:55.579Z",
+      "updatedAt": "2024-12-15T20:16:55.579Z",
+      "eventStart": "2024-11-15T00:00:00.000Z",
+      "eventEnd": "2024-11-25T00:00:00.000Z",
+      "eventDuration": "week",
+      "title": "Integrated AI in Customer Service Platform",
+      "summary": "Led a cross-company AI integration in customer service, increasing customer satisfaction by 20%.",
+      "details": "In November 2024, initiated a cross-company collaboration to integrate AI solutions into the customer service platform at Tech Innovators Inc. This project led to a 20% increase in customer satisfaction, marking a significant improvement in user experience.",
+      "companyId": "1",
+      "projectId": null,
       "isArchived": false
     }
   ]

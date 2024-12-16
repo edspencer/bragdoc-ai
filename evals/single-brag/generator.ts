@@ -154,7 +154,9 @@ export const generateBragConversation = (referenceDate: Date): Conversation => {
         details: filledTemplate.details,
         eventStart: timeframe.start,
         eventEnd: timeframe.end,
-        eventDuration: timeframe.duration
+        eventDuration: timeframe.duration,
+        companyId: null,
+        projectId: null
       },
       response: `That's impressive! I've recorded your ${category.category.toLowerCase()} achievement. Would you like to add any additional context about the impact or process?`
     }

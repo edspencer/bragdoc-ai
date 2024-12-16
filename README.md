@@ -74,7 +74,7 @@ type Brag = {
   updatedAt: Date,
   eventStart: Date, //detected start data of the Brag
   eventEnd: Date, //detected end date of the Brag
-  eventDuration: string, //day, week, month, quarter, year - how long a time period this Brag covers (but eventStart/eventEnd are canonical)
+  eventDuration: string, //day, week, month, quarter, half year, year - how long a time period this Brag covers (but eventStart/eventEnd are canonical)
   userMessageId: uuid, //the text the user submitted about this brag saved here
   summary: string, //the LLM summary of originalText
   title: string, //bullet list-compatible title for the Brag (LLM generated)

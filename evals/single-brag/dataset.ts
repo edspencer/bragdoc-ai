@@ -12,7 +12,9 @@ export const singleBragExamples: Conversation[] = [
         "details": "Established automated testing framework for frontend components, reducing manual QA effort and improving deployment confidence through consistent test coverage.",
         "eventStart": new Date("2024-11-15T00:35:27.000Z"),
         "eventEnd": new Date("2024-12-15T00:35:27.000Z"),
-        "eventDuration": "month"
+        "eventDuration": "month",
+        "companyId": null,
+        "projectId": null
       },
       "response": "That's impressive! I've recorded your process achievement. Would you like to add any additional context about the impact or process?"
     }
@@ -28,7 +30,9 @@ export const singleBragExamples: Conversation[] = [
         "details": "Completed the retirement of an outdated legacy system, reducing technical debt and maintenance overhead while ensuring smooth transition to modern solutions.",
         "eventStart": new Date("2024-11-15T00:35:27.000Z"),
         "eventEnd": new Date("2024-12-15T00:35:27.000Z"),
-        "eventDuration": "month"
+        "eventDuration": "month",
+        "companyId": null,
+        "projectId": null
       },
       "response": "That's impressive! I've recorded your casual achievement. Would you like to add any additional context about the impact or process?"
     }
@@ -44,7 +48,9 @@ export const singleBragExamples: Conversation[] = [
         "details": "Led documentation improvement initiative that significantly reduced onboarding time for new team members and improved overall team knowledge sharing.",
         "eventStart": new Date("2024-11-15T00:35:27.000Z"),
         "eventEnd": new Date("2024-12-15T00:35:27.000Z"),
-        "eventDuration": "month"
+        "eventDuration": "month",
+        "companyId": null,
+        "projectId": null
       },
       "response": "That's impressive! I've recorded your team achievement. Would you like to add any additional context about the impact or process?"
     }
@@ -60,7 +66,9 @@ export const singleBragExamples: Conversation[] = [
         "details": "Implemented a structured code review process, leading to improved code quality, knowledge sharing, and reduced defects in production deployments.",
         "eventStart": new Date("2024-11-15T00:35:27.000Z"),
         "eventEnd": new Date("2024-12-15T00:35:27.000Z"),
-        "eventDuration": "month"
+        "eventDuration": "month",
+        "companyId": null,
+        "projectId": null
       },
       "response": "That's impressive! I've recorded your process achievement. Would you like to add any additional context about the impact or process?"
     }
@@ -76,7 +84,9 @@ export const singleBragExamples: Conversation[] = [
         "details": "Led the deployment of a new microservice architecture capable of processing 42 requests per second. This modernization effort improves system scalability and maintenance.",
         "eventStart": new Date("2024-12-08T00:35:27.000Z"),
         "eventEnd": new Date("2024-12-15T00:35:27.000Z"),
-        "eventDuration": "week"
+        "eventDuration": "week",
+        "companyId": null,
+        "projectId": null
       },
       "response": "That's impressive! I've recorded your technical achievement. Would you like to add any additional context about the impact or process?"
     }
@@ -92,7 +102,9 @@ export const singleBragExamples: Conversation[] = [
         "details": "Led documentation improvement initiative that significantly reduced onboarding time for new team members and improved overall team knowledge sharing.",
         "eventStart": new Date("2023-12-15T00:35:27.000Z"),
         "eventEnd": new Date("2024-12-15T00:35:27.000Z"),
-        "eventDuration": "year"
+        "eventDuration": "year",
+        "companyId": null,
+        "projectId": null
       },
       "response": "That's impressive! I've recorded your team achievement. Would you like to add any additional context about the impact or process?"
     }
@@ -108,7 +120,9 @@ export const singleBragExamples: Conversation[] = [
         "details": "Provided mentorship and guidance to 50 junior developers through their first production deployment, ensuring knowledge transfer and building team confidence in deployment processes.",
         "eventStart": new Date("2024-11-15T00:35:27.000Z"),
         "eventEnd": new Date("2024-12-15T00:35:27.000Z"),
-        "eventDuration": "month"
+        "eventDuration": "month",
+        "companyId": null,
+        "projectId": null
       },
       "response": "That's impressive! I've recorded your leadership achievement. Would you like to add any additional context about the impact or process?"
     }
@@ -124,7 +138,9 @@ export const singleBragExamples: Conversation[] = [
         "details": "Led documentation improvement initiative that significantly reduced onboarding time for new team members and improved overall team knowledge sharing.",
         "eventStart": new Date("2024-09-14T23:35:27.000Z"),
         "eventEnd": new Date("2024-12-15T00:35:27.000Z"),
-        "eventDuration": "quarter"
+        "eventDuration": "quarter",
+        "companyId": null,
+        "projectId": null
       },
       "response": "That's impressive! I've recorded your team achievement. Would you like to add any additional context about the impact or process?"
     }
@@ -140,7 +156,9 @@ export const singleBragExamples: Conversation[] = [
         "details": "Coordinated and executed a complex platform migration with the team, demonstrating strong collaboration and technical leadership while maintaining system stability.",
         "eventStart": new Date("2024-09-14T23:35:27.000Z"),
         "eventEnd": new Date("2024-12-15T00:35:27.000Z"),
-        "eventDuration": "quarter"
+        "eventDuration": "quarter",
+        "companyId": null,
+        "projectId": null
       },
       "response": "That's impressive! I've recorded your team achievement. Would you like to add any additional context about the impact or process?"
     }
@@ -156,7 +174,9 @@ export const singleBragExamples: Conversation[] = [
         "details": "Led the deployment of a new microservice architecture capable of processing 93 requests per second. This modernization effort improves system scalability and maintenance.",
         "eventStart": new Date("2024-12-08T00:35:27.000Z"),
         "eventEnd": new Date("2024-12-15T00:35:27.000Z"),
-        "eventDuration": "week"
+        "eventDuration": "week",
+        "companyId": null,
+        "projectId": null
       },
       "response": "That's impressive! I've recorded your technical achievement. Would you like to add any additional context about the impact or process?"
     }

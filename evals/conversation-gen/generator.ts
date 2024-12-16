@@ -45,18 +45,21 @@ const bragSchema = z.object({
     details: z.string(),
     eventStart: z.string().datetime(),
     eventEnd: z.string().datetime(),
-    eventDuration: z.enum(["day", "week", "month", "quarter", "year"]),
-    companyId: z.string().optional(),
-    projectId: z.string().optional()
+    eventDuration: z.enum(["day", "week", "month", "quarter", "half year", "year"]),
+    companyId: z.string().nullable(),
+    projectId: z.string().nullable()
   }))
 });
 
 export async function generateScenario(template: ScenarioTemplate): Promise<ConversationScenario> {
   const { prompt } = SCENARIO_TEMPLATES[template];
-  const model = openai.chat("gpt-4");
+  const model = openai("gpt-4o");
+
+  console.log('Generating scenario...');
   
   const { object } = await generateObject({
     model,
+    maxRetries: 3,
     messages: [
       {
         role: "system",
@@ -73,6 +76,8 @@ export async function generateScenario(template: ScenarioTemplate): Promise<Conv
     ],
     schema: scenarioSchema,
   });
+
+  console.log('Generated scenario:', object);
 
   return {
     ...object,
@@ -98,10 +103,13 @@ export async function generateConversation(
   scenario: ConversationScenario,
   numTurns: number
 ): Promise<Conversation> {
-  const model = openai.chat("gpt-4");
+  const model = openai("gpt-4o");
+
+  console.log('Generating conversation...');
   
   const { object } = await generateObject({
     model,
+    maxRetries: 3,
     messages: [
       {
         role: "system",
@@ -109,30 +117,38 @@ export async function generateConversation(
 The user should send multiple messages over time (spanning several weeks or months) sharing:
 
 1. Initial achievements and updates
-- Multiple detailed work accomplishments
-- Project status updates
-- Personal development milestones
-- Mix of major achievements and smaller wins
+- Bundle multiple related achievements in single messages
+- Include both major milestones and supporting achievements
+- Mix technical accomplishments with leadership/impact
+- Combine project updates with personal growth
 
 2. Follow-up messages about previous topics
-- Progress updates on ongoing projects
-- Final results of completed initiatives
-- Additional metrics or impact that wasn't known initially
-- Reflections on earlier achievements
+- Multiple progress updates on different ongoing projects
+- Quantitative results and qualitative impact
+- Unexpected challenges overcome
+- Team growth and dynamics
 
 3. New developments
-- Starting new projects
-- Taking on new responsibilities
-- Unexpected wins
-- Learning experiences
+- Multiple parallel initiatives starting
+- Cross-project or cross-company achievements
+- Skill development across different areas
+- Community impact and mentorship
 
-The messages should:
-- Reference companies (${scenario.companies.map(c => c.name).join(', ')})
-- Reference projects (${scenario.projects.map(p => p.name).join(', ')})
+Each message should:
+- Contain 2-4 distinct achievements
+- Have clear, action-oriented titles for each achievement
+- Reference specific companies (${scenario.companies.map(c => c.name).join(', ')})
+- Reference specific projects (${scenario.projects.map(p => p.name).join(', ')})
 - Include both technical and non-technical achievements
-- Mention specific metrics and impact when possible
+- Mention specific metrics and impact
 - Feel natural and conversational
-- Span multiple conversation sessions over time
+- Build on previous updates when relevant
+
+Example achievement titles:
+- "Led Migration of 200+ Services to Cloud Platform"
+- "Grew Team from 5 to 12 Engineers"
+- "Reduced API Response Time by 40%"
+- "Launched New Customer Dashboard with 98% Satisfaction"
 
 The AI assistant should give brief, encouraging responses but the focus should be on the user's detailed updates.
 IMPORTANT: All timestamps must be in ISO 8601 format with timezone (e.g. "2024-12-14T00:00:00Z").
@@ -162,10 +178,13 @@ export async function generateExpectedBrags(
   conversation: Conversation,
   context: ConversationScenario
 ): Promise<GeneratedTestData['expectedBrags']> {
-  const model = openai.chat("gpt-4");
+  const model = openai("gpt-4o");
+
+  console.log('Generating expected brags...');
   
   const { object } = await generateObject({
     model,
+    maxRetries: 3,
     messages: [
       {
         role: "system",
@@ -176,7 +195,7 @@ For each achievement mentioned in the conversation, output a brag object with:
 - details: A detailed 2-3 sentence description including the challenge, approach, and outcome
 - eventStart: When the achievement began (must be ISO 8601 format with timezone)
 - eventEnd: When the achievement completed (must be ISO 8601 format with timezone) 
-- eventDuration: The duration of the achievement (must be one of: "day", "week", "month", "quarter", "year")
+- eventDuration: The duration of the achievement (must be one of: "day", "week", "month", "quarter", "half year", "year")
 - companyId: ID of the company it's associated with (if any)
 - projectId: ID of the project it's associated with (if any)
 

@@ -303,9 +303,9 @@ export async function createBrag({
   userMessageId: string;
   eventStart: Date;
   eventEnd: Date;
-  eventDuration: 'day' | 'week' | 'month' | 'quarter' | 'year';
+  eventDuration: 'day' | 'week' | 'month' | 'quarter' | 'half year' | 'year';
   summary?: string;
-  title?: string;
+  title: string;
   details?: string;
 }): Promise<BragType[]> {
   try {

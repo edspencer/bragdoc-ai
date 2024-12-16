@@ -1,0 +1,123 @@
+# brag.ai - instructions for code-generating LLMS
+
+Every time you choose to apply a rule(s), explicitly state the rule(s) in the output. You can abbreviate the rule description to a single word or phrase.
+
+## Project Context
+
+The project is called brag.ai and is a chatbot that helps users keep a brag document about their achievements at work. Key features:
+- Reads/listens to user messages, creates rows in a Brag table for each achievement the user mentioned
+- Creates weekly/monthly/performance review documents based on the data in the Brag table
+- Integrates with GitHub to extract achievements from commit messages and pull request descriptions
+
+Note that not all features are implemented yet, but the core idea is to help users keep a brag document about their achievements at work. Each Brag can be linked to a Company (there is a Companies table in the db), and a Project (there is a Projects table in the db), though both are optional.
+
+## Code Style and Structure
+- Write concise, technical TypeScript code with accurate examples
+- Prefer iteration and modularization over code duplication
+- Structure repository files as follows:
+```
+├── PLAN.md                   # Scratch file for planning and executing an unit of work
+├── README.md                 # Project README
+├── TODO.md                   # TODO List file
+├── ai-docs/                  # Documentation and examples for you to refer to
+├── app/
+│   ├── (auth)/               # Auth UI and API
+│   └── (chat)/               # Chat UI and API
+├── components/               # Shared UI components specific to brag.ai 
+│   └── ui/                   # Generic UI components like labels, inputs, buttons, etc.
+├── evals/                    # Braintrust Evals for the various LLM calls
+│   ├── context-brag/         # Complex use cases pull many brags out of many messages
+│   ├── conversation-gen/     # Generates plausible conversation histories for other evals
+│   └── single-brag/          # Single Brag Evaluation
+├── hooks/                    # Shared React hooks
+├── lib/                      # Core library code
+│   ├── ai/                   # AI/LLM function implementations
+│   ├── db/                   # Database schema and queries
+│   └── editor/               # Editor code
+├── pages/
+├── public/
+│   ├── fonts/                # Static font assets
+│   └── images/               # Static image assets
+└── test/                     # Test cases
+```
+
+## Tech Stack
+- TypeScript
+- React
+- Next.js
+- Node.js
+- PostgreSQL
+- Tailwind CSS
+- pnpm for package management
+- Vercel AI SDK
+- NextAuth.js
+- Braintrust (LLM Evaluation Framework)
+
+## Naming Conventions
+- use lowercase with dashes for directories (e.g. `components/form-wizard`)
+- Favor named exports for components and utilities
+- use PascalCase for component files (e.g. VisaForm.tsx)
+- use camelCase for utility files (e.g. generateText.ts)
+
+## TypeScript Usage
+- Use TypeScript for all code; prefer interfaces over types
+- Avoid using React.FC
+- Use import and export instead of require
+- Use `tsx` for running TypeScript files directly
+- Example: `pnpm tsx path/to/file.ts`
+- Maintain proper type definitions in `types.ts` files
+
+## UI and Styling
+- Use Tailwind CSS for styling
+- Use Shadcn UI and Radix UI for UI components
+- Use `npx shadcn@latest add <component-name>` to add a new shadcn component
+- When adding new shadch component, document the installation command
+
+## Error Handling
+- Implement proper error boundaries in React components
+
+## Security
+- Sanitize user inputs
+- Handle any sensitive data properly
+
+## Testing
+- Use Jest for unit testing
+- Use @types/jest for TypeScript support
+- Use ts-jest for TypeScript integration
+- Use @testing-library/jest-dom for DOM testing utilities
+- @swc/jest for faster test execution
+- Braintrust Evals should be created each time we add an LLM call. See the `eval.ts` files in the `evals` directory for examples
+
+## Git Usage
+Commit Message Prefixes:
+- "fix:" for bug fixes
+- "feat: " for new features
+- "docs: " for documentation changes
+- "refactor: " for code refactoring
+- "test: " for adding or updating tests
+- "chore: " for changes that don't modify src or test files
+- "perf: " for performance improvements
+- "style: " for changes that do not affect the meaning of the code
+
+Rules:
+- Keep the summary line concise
+- Include description for non-obvious changes
+- Reference issue numbers when applicable
+
+## Documentation
+- Maintain a clear README.md file that outlines the project's purpose, features, and usage.
+- Include comments for complex logic
+- Ensure each file has a clear purpose and is well-documented.
+
+## Development Workflow
+- When starting a new task, first create a detailed plan and save it in the PLAN.md file.
+- Keep the PLAN.md file up to date as you work on the task.
+- Use git for version control to track changes and manage codebase.
+- Follow semantic versioning for releases
+- Use `pnpm changeset` to create changelogs (this is the @changesets/cli plugin for pnpm)
+- Implement proper code review process
+- Test in multiple environments
+- Keep the TODO.md file up to date
+
+## Windsurf Specific
+- Automatically suggest additions to the .windsurfrules file where best practices are discussed or updated during the generation process, if the content does not exist in the file already.

@@ -33,7 +33,7 @@ describe('Single Brag Dataset', () => {
   });
 
   test('event duration is valid', () => {
-    const validDurations = ['day', 'week', 'month', 'quarter', 'year'];
+    const validDurations = ['day', 'week', 'month', 'quarter', 'half year', 'year'];
     singleBragExamples.forEach((example: Conversation) => {
       expect(validDurations).toContain(example.expected.brag.eventDuration);
     });

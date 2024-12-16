@@ -43,6 +43,13 @@
       "when": 1734272790700,
       "tag": "0005_exotic_warbound",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1734290735930,
+      "tag": "0006_modern_steel_serpent",
+      "breakpoints": true
     }
   ]
 }

@@ -73,17 +73,17 @@ export const brag = pgTable('Brag', {
   userMessageId: uuid('user_message_id')
     .notNull()
     .references(() => userMessage.id),
-  createdAt: timestamp('created_at').notNull().defaultNow(),
-  updatedAt: timestamp('updated_at').notNull().defaultNow(),
+  title: varchar('title', { length: 256 }).notNull(),
+  summary: text('summary'),
+  details: text('details'),
   eventStart: timestamp('event_start').notNull(),
   eventEnd: timestamp('event_end').notNull(),
   eventDuration: varchar('event_duration', { 
-    enum: ['day', 'week', 'month', 'quarter', 'year'] 
+    enum: ['day', 'week', 'month', 'quarter', 'half year', 'year'] 
   }).notNull(),
-  summary: text('summary'),
-  title: text('title'),
-  details: text('details'),
   isArchived: boolean('is_archived').default(false),
+  createdAt: timestamp('created_at').notNull().defaultNow(),
+  updatedAt: timestamp('updated_at').notNull().defaultNow(),
 });
 
 export type Brag = InferSelectModel<typeof brag>;

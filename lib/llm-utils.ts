@@ -7,7 +7,7 @@ const BragSchema = z.object({
   title: z.string().describe('A concise, bullet-list compatible title for the achievement'),
   eventStart: z.string().transform(date => new Date(date)).describe('The start date of the event or achievement'),
   eventEnd: z.string().transform(date => new Date(date)).describe('The end date of the event or achievement'),
-  eventDuration: z.enum(['day', 'week', 'month', 'quarter', 'year']).describe('The duration of the achievement'),
+  eventDuration: z.enum(['day', 'week', 'month', 'quarter', 'half year', 'year']).describe('The duration of the achievement'),
   summary: z.string().describe('A brief summary of the achievement'),
   details: z.string().optional().describe('Additional details about the achievement')
 })
@@ -48,7 +48,7 @@ export async function detectBragsFromMessage(
                 "title": string,
                 "eventStart": date string (ISO format),
                 "eventEnd": date string (ISO format),
-                "eventDuration": "day"|"week"|"month"|"quarter"|"year",
+                "eventDuration": "day"|"week"|"month"|"quarter"|"half year"|"year",
                 "summary": string,
                 "details"?: string
               }
