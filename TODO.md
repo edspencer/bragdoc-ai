@@ -2,37 +2,6 @@
 
 ## Database Enhancements
 
-### Company Support
-- [x] Add `company` table
-  ```typescript
-  company {
-    id: uuid
-    userId: uuid // owner of this company record
-    name: string
-    domain: string? // optional for email matching
-    role: string // user's role at this company
-    startDate: timestamp
-    endDate: timestamp?
-  }
-  ```
-- [x] Add company reference to `brag` table
-- [x] Add company reference to `document` table
-
-### Project Management
-- [ ] Add `project` table
-  ```typescript
-  project {
-    id: uuid
-    userId: uuid
-    companyId: uuid
-    name: string
-    description: text?
-    startDate: timestamp?
-    endDate: timestamp?
-  }
-  ```
-- [ ] Add project reference to `brag` table
-
 ### Achievement Metadata
 - [ ] Add tagging system
   ```typescript
@@ -62,14 +31,14 @@
 ## Feature Implementation 
 
 ### Authentication
-- [ ] Set up NextAuth.js
-  - [ ] Email/password authentication
+- [x] Set up NextAuth.js
+  - [x] Email/password authentication
   - [ ] Google OAuth integration
   - [ ] GitHub OAuth integration
-- [ ] Create user database schema
-- [ ] Add authentication middleware
-- [ ] Implement protected routes
-- [ ] Add user session management
+- [x] Create user database schema
+- [x] Add authentication middleware
+- [x] Implement protected routes
+- [x] Add user session management
 
 ### GitHub Integration
 - [ ] Set up GitHub OAuth application
