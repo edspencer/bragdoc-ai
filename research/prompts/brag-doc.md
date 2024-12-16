@@ -1,0 +1,5 @@
+Please write me a detailed report about "brag documents", which are usually text files that employees can keep to track their work achievements, usually in preparation for a performance review. 
+
+Sometimes at previous companies, I have kept a document of achievements that I have done recently during my work in order that I can generate a nice document for my performance review, but this was always pretty haphazard and I always lose them so I'm going to generate a new project called brag.ai which allows people to brag to the LLM behind the service about things that they've done at work. Brag is used kind of playfully here because it's sometimes called a brag document, the document that I called they referred to.
+
+I think these brag documents are a really good idea for performance reviews - justification for bonuses, promotions, etc.

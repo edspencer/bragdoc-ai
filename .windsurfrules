@@ -19,6 +19,7 @@ Note that not all features are implemented yet, but the core idea is to help use
 ├── PLAN.md                   # Scratch file for planning and executing an unit of work
 ├── README.md                 # Project README
 ├── TODO.md                   # TODO List file
+├── TODAY.md                  # Keeps track of the set of things we want to work on today, in order
 ├── ai-docs/                  # Documentation and examples for you to refer to
 ├── app/
 │   ├── (auth)/               # Auth UI and API
@@ -34,7 +35,8 @@ Note that not all features are implemented yet, but the core idea is to help use
 │   ├── ai/                   # AI/LLM function implementations
 │   ├── db/                   # Database schema and queries
 │   └── editor/               # Editor code
-├── pages/
+├── research/                 # Research and documentation about the project, the market, etc
+├── features/                 # Documents that describe features to implement
 ├── public/
 │   ├── fonts/                # Static font assets
 │   └── images/               # Static image assets
