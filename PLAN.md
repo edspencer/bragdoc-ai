@@ -1,70 +1,117 @@
-# OAuth Integration Plan
+# GitHub Integration Implementation Plan
 
-## 1. Environment Setup 
-- [x] Create OAuth applications
-  - [x] Google Cloud Console: Create OAuth 2.0 Client
-  - [x] GitHub Developer Settings: Create OAuth App
-- [x] Add environment variables
-  ```env
-  # Google OAuth
-  GOOGLE_CLIENT_ID=
-  GOOGLE_CLIENT_SECRET=
+## Overview
+Implement GitHub integration to extract achievements from user's repositories, focusing on commit messages and pull request descriptions.
 
-  # GitHub OAuth
-  GITHUB_CLIENT_ID=
-  GITHUB_CLIENT_SECRET=
-  ```
+## Database Schema Updates 
 
-## 2. NextAuth Configuration 
-- [x] Add OAuth providers to auth.ts
-  - [x] Google provider
-  - [x] GitHub provider
-- [x] Update user schema to include OAuth-specific fields
-  - [x] Add provider field (enum: 'credentials' | 'google' | 'github')
-  - [x] Add provider-specific user IDs
-  - [x] Add GitHub access token for later repository access
+### 1. GitHub Repository Table 
+```sql
+GitHubRepository {
+    id: uuid PRIMARY KEY
+    userId: uuid REFERENCES User(id)
+    name: varchar(256)
+    fullName: varchar(512)  // owner/repo format
+    description: text
+    private: boolean
+    lastSynced: timestamp
+    createdAt: timestamp
+    updatedAt: timestamp
+}
+```
 
-## 3. UI Implementation
-- [x] Update login page
-  - [x] Add "Continue with Google" button
-  - [x] Add "Continue with GitHub" button
-  - [x] Add social login divider
-- [x] Update register page with same social buttons
-  - [x] Add "Continue with Google" button
-  - [x] Add "Continue with GitHub" button
-  - [x] Add social login divider
-- [ ] Add loading states for OAuth flows
-  - [ ] Add loading state to Google button
-  - [ ] Add loading state to GitHub button
-  - [ ] Disable buttons during OAuth redirect
-- [ ] Add error handling for OAuth failures
-  - [ ] Display toast messages for OAuth errors
-  - [ ] Handle user cancellation
-  - [ ] Handle API errors
-
-## 4. Database Schema
-- [x] Fix table naming conventions
-  - [x] Update all table names to use lowercase
-  - [x] Add NextAuth.js required tables (account, session, verification_token)
-  - [x] Fix foreign key references to use lowercase table names
-
-## 5. Testing
-- [x] Test Google OAuth flow
-  - [x] New user registration
-  - [x] Existing user login
-  - [x] Database schema compatibility
-- [ ] Test GitHub OAuth flow
-  - [ ] New user registration
-  - [ ] Existing user login
-  - [ ] Repository access permissions
-
-## 6. Documentation
-- [ ] Update README with OAuth setup instructions
-- [ ] Document environment variables
-- [ ] Add troubleshooting guide for common OAuth issues
+### 2. GitHub Pull Request Table 
+```sql
+GitHubPullRequest {
+    id: uuid PRIMARY KEY
+    repositoryId: uuid REFERENCES GitHubRepository(id)
+    prNumber: integer
+    title: varchar(512)
+    description: text
+    state: varchar(32)  // open, closed, merged
+    createdAt: timestamp
+    updatedAt: timestamp
+    mergedAt: timestamp
+    bragId: uuid REFERENCES Brag(id)  // null until processed into a brag
+}
+```
 
 ## Next Steps
-1. Complete GitHub OAuth integration
-2. Add loading states and error handling for OAuth flows
-3. Implement repository access and commit message extraction
-4. Add user settings page for managing OAuth connections
+
+1. GitHub API Integration 
+   - Set up GitHub API client with proper typing 
+   - Implement repository listing and selection 
+   - Add PR fetching functionality 
+   - Handle pagination and rate limiting 
+
+2. UI Components 
+   - Create repository selection modal 
+   - Add repository list view 
+   - Implement repository sync status indicators 
+   - Add PR viewing interface 
+
+3. Background Jobs
+   - Implement periodic repository sync
+   - Add PR processing to extract achievements
+   - Set up webhook handling for real-time updates
+
+4. Brag Generation
+   - Create AI prompt templates for PR analysis
+   - Implement PR to Brag conversion logic
+   - Add manual review/edit capability
+
+## Testing Plan
+1. Unit Tests
+   - GitHub API client methods
+   - Database operations
+   - PR processing logic
+
+2. Integration Tests
+   - Repository sync flow
+   - PR to Brag conversion
+   - Webhook handling
+
+3. UI Tests
+   - Repository selection flow
+   - Sync status updates
+   - Error handling
+
+## Security Considerations
+- Secure storage of GitHub access tokens
+- Proper scope handling for GitHub OAuth
+- Rate limiting for API calls
+- Access control for private repositories
+
+## Rollout Plan
+1. Alpha Testing
+   - Internal testing with team repositories
+   - Validate PR processing accuracy
+   - Monitor API usage and rate limits
+
+2. Beta Release
+   - Limited user group testing
+   - Gather feedback on UI/UX
+   - Monitor system performance
+
+3. General Release
+   - Full feature rollout
+   - Documentation updates
+   - User guides and tutorials
+
+## Completed Tasks 
+1. Database Schema
+   - Added GitHubRepository and GitHubPullRequest tables to schema.ts
+   - Generated migration (0007_premium_barracuda.sql)
+   - Applied migration to database
+
+2. GitHub API Integration
+   - Created GitHubClient class with TypeScript types
+   - Implemented repository listing with pagination
+   - Added PR fetching functionality
+   - Added proper error handling and rate limit awareness
+
+3. UI Components
+   - Created RepositorySelector component using Shadcn UI
+   - Implemented GitHub settings page
+   - Added repository list view with sync status
+   - Added PR viewing interface

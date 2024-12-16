@@ -50,6 +50,13 @@
       "when": 1734290735930,
       "tag": "0006_modern_steel_serpent",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1734389901903,
+      "tag": "0007_premium_barracuda",
+      "breakpoints": true
     }
   ]
 }

@@ -8,6 +8,7 @@ import useSWR, { useSWRConfig } from 'swr';
 import { useWindowSize } from 'usehooks-ts';
 
 import { ChatHeader } from '@/components/chat-header';
+import { GitHubConnect } from '@/components/github-connect';
 import type { Vote } from '@/lib/db/schema';
 import { fetcher } from '@/lib/utils';
 
@@ -77,45 +78,42 @@ export function Chat({
   const [attachments, setAttachments] = useState<Array<Attachment>>([]);
 
   return (
-    <>
-      <div className="flex flex-col min-w-0 h-dvh bg-background">
-        <ChatHeader
-          chatId={id}
-          selectedModelId={selectedModelId}
-          selectedVisibilityType={selectedVisibilityType}
-          isReadonly={isReadonly}
-        />
-
-        <Messages
-          chatId={id}
-          block={block}
-          setBlock={setBlock}
-          isLoading={isLoading}
-          votes={votes}
-          messages={messages}
-          setMessages={setMessages}
-          reload={reload}
-          isReadonly={isReadonly}
-        />
-
-        <form className="flex mx-auto px-4 bg-background pb-4 md:pb-6 gap-2 w-full md:max-w-3xl">
-          {!isReadonly && (
-            <MultimodalInput
-              chatId={id}
-              input={input}
-              setInput={setInput}
-              handleSubmit={handleSubmit}
-              isLoading={isLoading}
-              stop={stop}
-              attachments={attachments}
-              setAttachments={setAttachments}
-              messages={messages}
-              setMessages={setMessages}
-              append={append}
-            />
-          )}
-        </form>
-      </div>
+    <div className="flex flex-col h-full">
+      <ChatHeader
+        chatId={id}
+        selectedModelId={selectedModelId}
+        selectedVisibilityType={selectedVisibilityType}
+        isReadonly={isReadonly}
+      />
+      <GitHubConnect />
+      <Messages
+        chatId={id}
+        block={block}
+        setBlock={setBlock}
+        isLoading={isLoading}
+        votes={votes}
+        messages={messages}
+        setMessages={setMessages}
+        reload={reload}
+        isReadonly={isReadonly}
+      />
+      <form className="flex mx-auto px-4 bg-background pb-4 md:pb-6 gap-2 w-full md:max-w-3xl">
+        {!isReadonly && (
+          <MultimodalInput
+            chatId={id}
+            input={input}
+            setInput={setInput}
+            handleSubmit={handleSubmit}
+            isLoading={isLoading}
+            stop={stop}
+            attachments={attachments}
+            setAttachments={setAttachments}
+            messages={messages}
+            setMessages={setMessages}
+            append={append}
+          />
+        )}
+      </form>
 
       <AnimatePresence>
         {block?.isVisible && (
@@ -141,6 +139,6 @@ export function Chat({
       </AnimatePresence>
 
       <BlockStreamHandler streamingData={streamingData} setBlock={setBlock} />
-    </>
+    </div>
   );
 }

@@ -136,7 +136,7 @@ type UserMessage = {
 ### Basic Bragger
 - $3/month
 - $30/year
-- Integrates with up to 1 GitHub repository
+- Integrates with one GitHub repository
 - Unlimited Brags/Docs/everything
 
 ### Pro Bragger

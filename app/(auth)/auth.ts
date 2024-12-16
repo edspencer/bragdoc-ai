@@ -58,7 +58,6 @@ export const {
           image: profile.avatar_url,
           provider: 'github',
           providerId: profile.id.toString(),
-          githubAccessToken: profile.access_token,
         };
       },
     }),
@@ -78,24 +77,19 @@ export const {
   ],
   callbacks: {
     async jwt({ token, user, account }) {
+      if (account?.provider === 'github') {
+        token.githubAccessToken = account.access_token;
+      }
       if (user) {
-        const customUser = user as CustomUser;
-        token.id = customUser.id;
-        token.provider = customUser.provider;
-        if (account?.provider === 'github') {
-          token.githubAccessToken = account.access_token;
-        }
+        token.provider = user.provider;
+        token.providerId = user.providerId;
       }
       return token;
     },
     async session({ session, token }: { session: any; token: any }) {
-      if (session.user) {
-        session.user.id = token.id;
-        session.user.provider = token.provider;
-        if (token.githubAccessToken) {
-          session.user.githubAccessToken = token.githubAccessToken;
-        }
-      }
+      session.user.provider = token.provider;
+      session.user.providerId = token.providerId;
+      session.user.githubAccessToken = token.githubAccessToken;
       return session;
     },
   },

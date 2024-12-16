@@ -145,7 +145,7 @@ Rules:
 
 ## Development Workflow
 - When starting a new task, first create a detailed plan and save it in the PLAN.md file.
-- Keep the PLAN.md file up to date as you work on the task.
+- Each time you complete a task, update the PLAN.md file and add the task to the TODAY.md file.
 - Use git for version control to track changes and manage codebase.
 - Follow semantic versioning for releases
 - Use `pnpm changeset` to create changelogs (this is the @changesets/cli plugin for pnpm)
