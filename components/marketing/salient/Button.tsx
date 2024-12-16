@@ -24,25 +24,35 @@ const variantStyles = {
   },
 }
 
-type VariantKey = keyof typeof variantStyles
-type ColorKey<V extends VariantKey> = keyof (typeof variantStyles)[V]
+type ButtonProps = (
+  | {
+      variant?: 'solid'
+      color?: keyof typeof variantStyles.solid
+    }
+  | {
+      variant: 'outline'
+      color?: keyof typeof variantStyles.outline
+    }
+) &
+  (
+    | Omit<React.ComponentPropsWithoutRef<typeof Link>, 'color'>
+    | (Omit<React.ComponentPropsWithoutRef<'button'>, 'color'> & {
+        href?: undefined
+      })
+  )
 
-type ButtonProps<V extends VariantKey, C extends ColorKey<V>> = {
-  variant?: V
-  color?: C
-} & (
-  | React.ComponentPropsWithoutRef<typeof Link>
-  | (React.ComponentPropsWithoutRef<'button'> & { href?: undefined })
-)
+export function Button({ className, ...props }: ButtonProps) {
+  props.variant ??= 'solid'
+  props.color ??= 'slate'
 
-export function Button<
-  V extends VariantKey = 'solid',
-  C extends ColorKey<V> = 'slate',
->({ variant = 'solid' as V, color = 'slate' as C, className, ...props }: ButtonProps<V, C>) {
   className = clsx(
-    baseStyles[variant],
-    variantStyles[variant][color],
-    className
+    baseStyles[props.variant],
+    props.variant === 'outline'
+      ? variantStyles.outline[props.color]
+      : props.variant === 'solid'
+        ? variantStyles.solid[props.color]
+        : undefined,
+    className,
   )
 
   return typeof props.href === 'undefined' ? (
