@@ -31,7 +31,7 @@
 ## Feature Implementation 
 
 ### Splash Page
-- [ ] Add a beautiful landing/home page that we show people who are not logged in
+- [x] Add a beautiful landing/home page that we show people who are not logged in
 
 ### Authentication
 - [x] Set up NextAuth.js

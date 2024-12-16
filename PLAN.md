@@ -1,138 +1,68 @@
-# Splash Page Implementation Plan
+# OAuth Integration Plan
 
-> **Important**: This plan implements the splash page feature as specified in `features/splash-page.md`. All development work should refer back to the feature document to ensure alignment with requirements. Check the feature document at each phase to verify implementation matches specifications.
+## 1. Environment Setup 
+- [x] Create OAuth applications
+  - [x] Google Cloud Console: Create OAuth 2.0 Client
+  - [x] GitHub Developer Settings: Create OAuth App
+- [x] Add environment variables
+  ```env
+  # Google OAuth
+  GOOGLE_CLIENT_ID=
+  GOOGLE_CLIENT_SECRET=
 
-## Phase 1: Setup and Layout (Est. 2 days)
-
-### 1.1 Project Structure
-- [ ] Create marketing layout directory `app/(marketing)/layout.tsx`
-- [ ] Set up marketing components directory `components/marketing/`
-- [ ] Install required Shadcn UI components:
-  ```bash
-  npx shadcn-ui@latest add button
-  npx shadcn-ui@latest add navigation-menu
-  npx shadcn-ui@latest add sheet
-  npx shadcn-ui@latest add card
-  npx shadcn-ui@latest add tabs
-  npx shadcn-ui@latest add accordion
+  # GitHub OAuth
+  GITHUB_CLIENT_ID=
+  GITHUB_CLIENT_SECRET=
   ```
 
-### 1.2 Type Definitions
-- [ ] Create `types/marketing.ts` for shared types:
-  - Feature interface
-  - Pricing tier interface
-  - Testimonial interface
-  - FAQ item interface
+## 2. NextAuth Configuration 
+- [x] Add OAuth providers to auth.ts
+  - [x] Google provider
+  - [x] GitHub provider
+- [x] Update user schema to include OAuth-specific fields
+  - [x] Add provider field (enum: 'credentials' | 'google' | 'github')
+  - [x] Add provider-specific user IDs
+  - [x] Add GitHub access token for later repository access
 
-### 1.3 Base Layout Components
-- [ ] Implement marketing layout with dark mode support
-- [ ] Create base Navigation component
-- [ ] Create base Footer component
-- [ ] Set up responsive container utilities
+## 3. UI Implementation
+- [x] Update login page
+  - [x] Add "Continue with Google" button
+  - [x] Add "Continue with GitHub" button
+  - [x] Add social login divider
+- [x] Update register page with same social buttons
+  - [x] Add "Continue with Google" button
+  - [x] Add "Continue with GitHub" button
+  - [x] Add social login divider
+- [ ] Add loading states for OAuth flows
+  - [ ] Add loading state to Google button
+  - [ ] Add loading state to GitHub button
+  - [ ] Disable buttons during OAuth redirect
+- [ ] Add error handling for OAuth failures
+  - [ ] Display toast messages for OAuth errors
+  - [ ] Handle user cancellation
+  - [ ] Handle API errors
 
-## Phase 2: Core Components (Est. 3 days)
+## 4. Testing
+- [ ] Test Google OAuth flow
+  - [ ] New user registration
+  - [ ] Existing user login
+  - [ ] Error cases
+- [ ] Test GitHub OAuth flow
+  - [ ] New user registration
+  - [ ] Existing user login
+  - [ ] Error cases
+  - [ ] Access token storage
 
-### 2.1 Navigation
-- [x] Implement desktop navigation menu
-- [x] Create mobile hamburger menu using Sheet component
-- [x] Add dark mode toggle
-- [x] Style logo and branding elements
+## 5. Documentation
+- [ ] Update README with OAuth setup instructions
+- [ ] Document environment variables
+- [ ] Add troubleshooting guide for common OAuth issues
 
-### 2.2 Hero Section
-- [x] Design and implement hero layout
-- [x] Create animated transitions for hero content
-- [x] Implement responsive CTA buttons
-- [x] Add hero illustration/animation
-
-### 2.3 Features Section
-- [x] Create feature card component
-- [x] Implement features grid layout
-- [x] Add icons and visual elements
-- [x] Implement responsive behavior
-
-### 2.4 Social Proof
-- [x] Design testimonial card component
-- [x] Create company logo grid
-- [x] Implement statistics display
-- [x] Add smooth scroll animations
-
-### 2.5 Pricing Section
-- [x] Create pricing tier cards
-- [x] Implement feature comparison table
-- [x] Create FAQ accordion
-- [x] Add pricing toggle (monthly/yearly)
-
-## Phase 3: Routes and Pages (Est. 2 days)
-
-### 3.1 Main Routes
-- [x] Set up route handlers for:
-  - `/` (main splash page)
-  - `/pricing`
-  - `/about`
-  - `/login`
-  - `/register`
-
-### 3.2 Authentication Flow
-- [ ] Integrate with existing auth system
-- [ ] Create smooth transitions between auth states
-- [ ] Implement protected route handling
-
-## Phase 4: Polish and Performance (Est. 2 days)
-
-### 4.1 Animations
-- [ ] Add Framer Motion animations for:
-  - Page transitions
-  - Scroll animations
-  - Hover effects
-  - Loading states
-
-### 4.2 Performance Optimization
-- [ ] Implement image optimization
-- [ ] Add loading states and suspense boundaries
-- [ ] Optimize bundle size
-- [ ] Add error boundaries
-
-### 4.3 Testing and QA
-- [ ] Write component tests
-- [ ] Test responsive behavior
-- [ ] Cross-browser testing
-- [ ] Accessibility testing
-
-## Phase 5: Launch Preparation (Est. 1 day)
-
-### 5.1 Final Tasks
-- [x] SEO optimization
-- [ ] Analytics integration
-- [ ] Documentation update
-- [ ] Performance monitoring setup
-
-### 5.2 Launch Checklist
-- [ ] Final accessibility audit
-- [ ] Cross-browser testing
-- [ ] Mobile testing
-- [ ] Performance metrics verification
-- [ ] SEO verification
-
-## Timeline Summary
-- Phase 1: 2 days
-- Phase 2: 3 days
-- Phase 3: 2 days
-- Phase 4: 2 days
-- Phase 5: 1 day
-
-Total Estimated Time: 10 working days
-
-## Dependencies
-- Shadcn UI
-- Framer Motion
-- NextAuth.js
-- Tailwind CSS
-- TypeScript
-- Next.js
-
-## Notes
-- All components should support dark mode
-- Mobile-first approach throughout implementation
-- Use Tailwind CSS for styling
-- Follow TypeScript best practices
-- Maintain accessibility standards
+## Next Steps
+1. Add loading states to social login buttons
+   - Update SocialAuthButtons component to handle loading state
+   - Add loading state to button click handlers
+2. Implement error handling for OAuth failures
+   - Add error toast messages
+   - Handle user cancellation and API errors
+3. Begin testing OAuth flows with both providers

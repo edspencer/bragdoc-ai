@@ -20,6 +20,13 @@ From time to time, the user will want a summary of these brags over some period.
 - Intelligent achievement tracking and categorization
 - Multi-company support as you change employers
 
+### Document Publishing
+
+- After creating an update Document, user can:
+  - publish it to a url like https://bragdoc.ai/edspencer/world-labs/weekly/2024-12-20
+  - Update a Google Document by creating a new page and adding the document content to it
+  - Email the document to a recipient (would allow user to schedule a weekly update report generation, with it being emailed to them, their manager or both)
+
 ### Achievement Logging
 - Record individual or batch accomplishments
 - Track projects and collaborators

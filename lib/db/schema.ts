@@ -15,6 +15,13 @@ export const user = pgTable('User', {
   id: uuid('id').primaryKey().notNull().defaultRandom(),
   email: varchar('email', { length: 64 }).notNull(),
   password: varchar('password', { length: 64 }),
+  name: varchar('name', { length: 256 }),
+  image: varchar('image', { length: 512 }),
+  provider: varchar('provider', { length: 32 }).notNull().default('credentials'),
+  providerId: varchar('provider_id', { length: 256 }),
+  githubAccessToken: varchar('github_access_token', { length: 256 }),
+  createdAt: timestamp('created_at').notNull().defaultNow(),
+  updatedAt: timestamp('updated_at').notNull().defaultNow(),
 });
 
 export type User = InferSelectModel<typeof user>;
