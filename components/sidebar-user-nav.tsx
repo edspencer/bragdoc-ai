@@ -17,6 +17,7 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from '@/components/ui/sidebar';
+import { redirect } from 'next/navigation';
 
 export function SidebarUserNav({ user }: { user: User }) {
   const { setTheme, theme } = useTheme();
@@ -47,6 +48,12 @@ export function SidebarUserNav({ user }: { user: User }) {
               onSelect={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
             >
               {`Toggle ${theme === 'light' ? 'dark' : 'light'} mode`}
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              className="cursor-pointer"
+              onSelect={() => {redirect('/settings/github')}}
+            >
+              Settings
             </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem asChild>

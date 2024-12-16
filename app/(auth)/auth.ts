@@ -4,6 +4,7 @@ import Credentials from 'next-auth/providers/credentials';
 import Google from 'next-auth/providers/google';
 import GitHub from 'next-auth/providers/github';
 import { DrizzleAdapter } from '@auth/drizzle-adapter';
+import { eq } from 'drizzle-orm';
 
 import { getUser, db } from '@/lib/db/queries';
 
@@ -76,6 +77,16 @@ export const {
     }),
   ],
   callbacks: {
+    async signIn({ user: authUser, account }) {
+      if (account?.provider === 'github' && account.access_token) {
+        // Update the user record with the GitHub access token
+        await db
+          .update(user)
+          .set({ githubAccessToken: account.access_token })
+          .where(eq(user.id, authUser.id as string));
+      }
+      return true;
+    },
     async jwt({ token, user, account }) {
       if (account?.provider === 'github') {
         token.githubAccessToken = account.access_token;

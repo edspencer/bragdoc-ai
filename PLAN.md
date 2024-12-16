@@ -44,11 +44,26 @@ GitHubPullRequest {
 - Implemented token handling in auth callbacks
 - Fixed TypeScript errors in GitHub integration components
 
+✅ Created GitHub Settings Page
+- Added repository selection UI
+- Implemented repository connection flow
+- Added connected repositories display
+
 ### Next Steps
-1. Implement repository selection UI
-2. Store selected repositories in GitHubRepository table
-3. Implement periodic sync of commit messages and PR descriptions
-4. Add achievement extraction from GitHub data
+1. Implement GitHub Data Sync
+   - Extract commit messages and PR descriptions
+   - Create sync job for connected repositories
+   - Store relevant data in database
+
+2. Achievement Extraction
+   - Use Vercel AI SDK to generate Brags from commit messages and PR descriptions
+   - Store generated Brags in database
+
+3. Integration Features
+   - Add repository disconnect functionality
+   - Implement sync status indicators
+   - Add manual sync triggers
+   - Create achievement extraction settings
 
 ## Next Steps
 

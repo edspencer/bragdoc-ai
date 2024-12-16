@@ -5,13 +5,14 @@ import { githubRepository } from '@/lib/db/schema';
 import { eq, desc } from 'drizzle-orm';
 import { RepositorySelector } from '@/components/github/RepositorySelector';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { GitBranch, Lock } from 'lucide-react';
+import { SyncRepositoryButton } from '@/components/github/SyncRepositoryButton';
 
 export default async function GitHubSettingsPage() {
   const session = await auth();
   if (!session?.user?.id) {
     return null;
   }
-
 
   const repositories = await db.select()
     .from(githubRepository)
@@ -41,16 +42,19 @@ export default async function GitHubSettingsPage() {
             {repositories.map((repo) => (
               <div
                 key={repo.id}
-                className="flex items-center justify-between rounded-lg border p-4"
+                className="flex items-center justify-between p-2 rounded-md border"
               >
-                <div>
-                  <h3 className="font-medium">{repo.name}</h3>
-                  {repo.description && (
-                    <p className="text-sm text-muted-foreground">{repo.description}</p>
-                  )}
+                <div className="flex items-center gap-2">
+                  <span>{repo.fullName}</span>
+                  {repo.private && <Lock className="h-4 w-4 text-muted-foreground" />}
                 </div>
-                <div className="text-sm text-muted-foreground">
-                  Last synced: {repo.lastSynced ? new Date(repo.lastSynced).toLocaleDateString() : 'Never'}
+                <div className="flex items-center gap-2">
+                  <SyncRepositoryButton repositoryId={repo.id} />
+                  <span className="text-xs text-muted-foreground">
+                    {repo.lastSynced
+                      ? `Last synced: ${new Date(repo.lastSynced).toLocaleDateString()}`
+                      : 'Never synced'}
+                  </span>
                 </div>
               </div>
             ))}
