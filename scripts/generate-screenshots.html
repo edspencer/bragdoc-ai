@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Brag.ai Screenshots Generator</title>
+    <style>
+        body { margin: 0; padding: 20px; font-family: system-ui, -apple-system, sans-serif; }
+        .screenshot {
+            width: 800px;
+            height: 500px;
+            margin: 20px;
+            padding: 20px;
+            border-radius: 8px;
+            background: #f8fafc;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            color: #1a1a1a;
+        }
+        .dark { background: #1a1a1a; color: #f8fafc; }
+        .header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+        .content {
+            display: flex;
+            gap: 20px;
+        }
+        .sidebar {
+            width: 200px;
+            background: rgba(0,0,0,0.05);
+            padding: 15px;
+            border-radius: 6px;
+        }
+        .main {
+            flex: 1;
+            background: white;
+            padding: 15px;
+            border-radius: 6px;
+        }
+        .dark .sidebar { background: rgba(255,255,255,0.1); }
+        .dark .main { background: #2a2a2a; }
+        .achievement {
+            padding: 10px;
+            margin: 10px 0;
+            background: white;
+            border-radius: 4px;
+        }
+        .dark .achievement { background: #333; }
+        .tag {
+            display: inline-block;
+            padding: 2px 8px;
+            background: #e2e8f0;
+            border-radius: 4px;
+            font-size: 12px;
+            margin: 2px;
+        }
+        .dark .tag { background: #444; }
+        .button {
+            padding: 8px 16px;
+            background: #3b82f6;
+            color: white;
+            border-radius: 4px;
+            border: none;
+            cursor: pointer;
+        }
+        .chart {
+            height: 200px;
+            background: repeating-linear-gradient(
+                45deg,
+                rgba(0,0,0,0.05) 0px,
+                rgba(0,0,0,0.05) 10px,
+                transparent 10px,
+                transparent 20px
+            );
+            border-radius: 4px;
+            margin: 10px 0;
+        }
+        .dark .chart {
+            background: repeating-linear-gradient(
+                45deg,
+                rgba(255,255,255,0.1) 0px,
+                rgba(255,255,255,0.1) 10px,
+                transparent 10px,
+                transparent 20px
+            );
+        }
+    </style>
+</head>
+<body>
+    <!-- Achievement Tracking -->
+    <div class="screenshot">
+        <div class="header">
+            <h2>Achievement Tracking</h2>
+            <button class="button">New Achievement</button>
+        </div>
+        <div class="content">
+            <div class="sidebar">
+                <div>Categories</div>
+                <div class="tag">Technical</div>
+                <div class="tag">Leadership</div>
+                <div class="tag">Impact</div>
+            </div>
+            <div class="main">
+                <div class="achievement">
+                    <strong>Improved API Performance</strong>
+                    <p>Optimized database queries resulting in 40% faster response times</p>
+                    <div>
+                        <span class="tag">Technical</span>
+                        <span class="tag">Impact</span>
+                    </div>
+                </div>
+                <div class="achievement">
+                    <strong>Led Team Workshop</strong>
+                    <p>Organized and led a technical workshop on best practices</p>
+                    <div>
+                        <span class="tag">Leadership</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- GitHub Integration -->
+    <div class="screenshot dark">
+        <div class="header">
+            <h2>GitHub Integration</h2>
+            <button class="button">Sync Now</button>
+        </div>
+        <div class="content">
+            <div class="sidebar">
+                <div>Repositories</div>
+                <div class="tag">frontend-app</div>
+                <div class="tag">api-service</div>
+                <div class="tag">docs</div>
+            </div>
+            <div class="main">
+                <div class="achievement">
+                    <strong>feat: Add user authentication</strong>
+                    <p>Implemented OAuth2 flow and session management</p>
+                    <div>
+                        <span class="tag">PR #123</span>
+                        <span class="tag">+2.5k lines</span>
+                    </div>
+                </div>
+                <div class="achievement">
+                    <strong>fix: Database connection pool</strong>
+                    <p>Fixed memory leak in connection handling</p>
+                    <div>
+                        <span class="tag">PR #456</span>
+                        <span class="tag">+150 lines</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Performance Review -->
+    <div class="screenshot">
+        <div class="header">
+            <h2>Performance Review Generator</h2>
+            <button class="button">Generate Report</button>
+        </div>
+        <div class="content">
+            <div class="sidebar">
+                <div>Time Period</div>
+                <div class="tag">Q4 2023</div>
+                <div class="tag">Last 6 months</div>
+                <div class="tag">Custom</div>
+            </div>
+            <div class="main">
+                <div class="chart"></div>
+                <div class="achievement">
+                    <strong>Technical Impact</strong>
+                    <p>Led 5 major features, improved performance by 40%</p>
+                </div>
+                <div class="achievement">
+                    <strong>Leadership Growth</strong>
+                    <p>Mentored 2 junior developers, led 3 workshops</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
