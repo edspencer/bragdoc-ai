@@ -1,5 +1,4 @@
-import { wrapAISDKModel, Eval } from "braintrust";
-import { openai } from "@ai-sdk/openai";
+import { Eval } from "braintrust";
 import { LLMClassifierFromSpec } from "autoevals";
 import { contextBragExamples } from "./dataset";
 import { extractBrags } from "../../lib/ai/extract";

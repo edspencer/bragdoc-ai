@@ -2,7 +2,7 @@ import { generateObject } from 'ai';
 import { openai } from '@ai-sdk/openai';
 import { v4 as uuidv4 } from 'uuid';
 import { z } from 'zod';
-import { type ConversationScenario, type Conversation, type GeneratedTestData, type Message } from './types';
+import type { ConversationScenario, Conversation, GeneratedTestData, } from './types';
 import { SCENARIO_TEMPLATES, type ScenarioTemplate } from './templates';
 
 const scenarioSchema = z.object({

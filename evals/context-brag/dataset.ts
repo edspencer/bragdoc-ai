@@ -1,5 +1,5 @@
-import { type ExtractBragsInput, type ExtractedBrag } from '../../lib/ai/extract';
-import { type GeneratedTestData } from '../conversation-gen/types';
+import type { ExtractBragsInput, ExtractedBrag } from '../../lib/ai/extract';
+import type { GeneratedTestData } from '../conversation-gen/types';
 
 export type ContextBragExample = {
   input: ExtractBragsInput;
@@ -53,8 +53,8 @@ export function convertGeneratedToEvalExample(data: GeneratedTestData): ContextB
 }
 
 // Load and convert all generated test data
-import fs from 'fs';
-import path from 'path';
+import fs from 'node:fs';
+import path from 'node:path';
 
 const generatedDir = path.join(__dirname, '../conversation-gen/generated');
 export const contextBragExamples = fs

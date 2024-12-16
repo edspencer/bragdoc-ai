@@ -1,7 +1,7 @@
 import { generateObject } from 'ai';
 import { openai } from '@ai-sdk/openai';
 import { z } from 'zod';
-import { Brag } from '../../evals/types';
+import type { Brag } from '../../evals/types';
 
 // Schema for validating LLM response
 const bragResponseSchema = z.object({

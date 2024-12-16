@@ -19,7 +19,7 @@ export default function MarketingLayout({ children }: MarketingLayoutProps) {
     >
       <div className="relative min-h-screen flex flex-col">
         <Navigation />
-        <main className="flex-grow">
+        <main className="grow">
           {children}
         </main>
         <Footer />

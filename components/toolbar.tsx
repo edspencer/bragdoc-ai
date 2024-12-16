@@ -33,7 +33,6 @@ import {
   StopIcon,
   SummarizeIcon,
 } from './icons';
-import equal from 'fast-deep-equal';
 
 type ToolProps = {
   type: 'final-polish' | 'request-suggestions' | 'adjust-reading-level';

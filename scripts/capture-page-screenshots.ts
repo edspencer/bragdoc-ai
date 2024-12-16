@@ -1,5 +1,5 @@
 const puppeteer = require('puppeteer');
-const path = require('path');
+const path = require('node:path');
 
 // Get URL from command line arguments, default to localhost:3000
 const url = process.argv[2] || 'http://localhost:3000';

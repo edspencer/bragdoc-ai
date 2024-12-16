@@ -1,6 +1,6 @@
-import { Conversation } from '../types';
-import fs from 'fs';
-import path from 'path';
+import type { Conversation } from '../types';
+import fs from 'node:fs';
+import path from 'node:path';
 
 // Templates for generating varied achievements
 const achievementTemplates = [

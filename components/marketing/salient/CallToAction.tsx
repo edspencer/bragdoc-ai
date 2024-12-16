@@ -1,4 +1,4 @@
-import Image from 'next/image'
+
 
 import { Button } from './Button'
 import { Container } from './Container'

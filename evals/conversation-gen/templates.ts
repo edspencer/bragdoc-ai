@@ -1,4 +1,4 @@
-import { type ConversationScenario } from './types';
+
 
 export const SCENARIO_TEMPLATES = {
   MULTI_COMPANY: {

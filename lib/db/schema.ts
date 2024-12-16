@@ -7,7 +7,6 @@ import {
   uuid,
   text,
   primaryKey,
-  foreignKey,
   boolean,
   integer,
 } from 'drizzle-orm/pg-core';

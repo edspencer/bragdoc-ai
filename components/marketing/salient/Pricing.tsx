@@ -116,7 +116,6 @@ function Plan({
         {price[activePeriod]}
       </p>
       <ul
-        role="list"
         className={clsx(
           'order-last mt-10 flex flex-col gap-y-3 text-sm',
           featured ? 'text-white' : 'text-slate-200'
@@ -124,7 +123,7 @@ function Plan({
       >
         {features.map((feature: string) => (
           <li key={feature} className="flex">
-            <CheckIcon className={clsx('h-6 w-6 flex-none', featured ? 'text-white' : 'text-slate-400')} />
+            <CheckIcon className={clsx('size-6 flex-none', featured ? 'text-white' : 'text-slate-400')} />
             <span className="ml-4">{feature}</span>
           </li>
         ))}
@@ -143,7 +142,7 @@ function Plan({
 }
 
 export function Pricing() {
-  let [activePeriod, setActivePeriod] = useState<'Monthly' | 'Yearly'>('Monthly')
+  const [activePeriod, setActivePeriod] = useState<'Monthly' | 'Yearly'>('Monthly')
 
   return (
     <section

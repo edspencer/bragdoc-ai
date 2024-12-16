@@ -1,5 +1,5 @@
 const puppeteer = require('puppeteer');
-const path = require('path');
+const path = require('node:path');
 
 (async () => {
   const browser = await puppeteer.launch();

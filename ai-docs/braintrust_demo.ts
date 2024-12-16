@@ -1,9 +1,8 @@
 import { wrapAISDKModel, Eval } from "braintrust";
 import { openai } from "@ai-sdk/openai";
 import { generateText } from "ai";
-import { Factuality } from "autoevals";
 
-import dataset, { ChatTurn } from "./datasets";
+import dataset, { type ChatTurn } from "./datasets";
 
 const experimentData = dataset.map((data) => ({
   input: { input: data.input, chat_history: data.chat_history },
@@ -51,7 +50,7 @@ Eval("Chat assistant", {
   },
 });
 
-import { LLMClassifierFromSpec, Score } from "autoevals";
+import { LLMClassifierFromSpec, type Score } from "autoevals";
 
 function Factual(args: {
   input: {

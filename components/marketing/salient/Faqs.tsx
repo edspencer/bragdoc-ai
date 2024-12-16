@@ -58,11 +58,10 @@ export function Faqs() {
           </p>
         </div>
         <ul
-          role="list"
           className="mx-auto mt-16 grid max-w-2xl grid-cols-1 gap-8 lg:max-w-none lg:grid-cols-3"
         >
-          {faqs.map((faq, faqIndex) => (
-            <li key={faqIndex}>
+          {faqs.map((faq) => (
+            <li key={faq.question}>
               <Disclosure as="div" className="rounded-lg bg-white dark:bg-slate-800/60 p-6 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors duration-150">
                 {({ open }) => (
                   <>
@@ -73,7 +72,7 @@ export function Faqs() {
                       <span className="ml-6 flex h-7 items-center">
                         <svg
                           className={clsx(
-                            'h-6 w-6 transform text-slate-600 dark:text-slate-400',
+                            'size-6 text-slate-600 dark:text-slate-400',
                             open ? 'rotate-180' : ''
                           )}
                           aria-hidden="true"

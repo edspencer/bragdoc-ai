@@ -1,5 +1,5 @@
 import { singleBragExamples } from '../../../evals/single-brag/dataset';
-import { Brag, Conversation } from '../../../evals/types';
+import type { Brag, Conversation } from '../../../evals/types';
 
 describe('Single Brag Dataset', () => {
   test('each example has required fields', () => {

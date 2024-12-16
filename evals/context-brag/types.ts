@@ -1,6 +1,6 @@
-import { type Brag } from "../../lib/db/schema";
+import type { Brag } from "../../lib/db/schema";
 
-import { type CompanyContext, type ProjectContext } from '../conversation-gen/types';
+import type { CompanyContext, ProjectContext } from '../conversation-gen/types';
 
 export type ContextBragExample = {
   input: { 

@@ -1,6 +1,6 @@
 import { generateTestData } from './generator';
-import fs from 'fs';
-import path from 'path';
+import fs from 'node:fs';
+import path from 'node:path';
 
 async function main() {
   const outputDir = path.join(__dirname, 'generated');

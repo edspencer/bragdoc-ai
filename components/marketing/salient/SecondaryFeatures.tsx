@@ -15,7 +15,7 @@ const features = [
       'Stay on top of your accomplishments with automated weekly summaries. Perfect for team meetings and progress tracking.',
     image: '/images/screenshots/profit-loss.png',
     icon: function ReportingIcon() {
-      let id = useId()
+      const id = useId()
       return (
         <>
           <defs>
@@ -107,7 +107,7 @@ function Feature({ feature, isActive, className, ...props }: any) {
           isActive ? 'bg-blue-600 dark:bg-blue-500' : 'bg-slate-500 dark:bg-slate-600'
         )}
       >
-        <svg aria-hidden="true" className="h-9 w-9" fill="none">
+        <svg aria-hidden="true" className="size-9" fill="none">
           <feature.icon />
         </svg>
       </div>

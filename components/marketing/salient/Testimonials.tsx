@@ -81,14 +81,13 @@ export function Testimonials() {
           </p>
         </div>
         <ul
-          role="list"
           className="mx-auto mt-16 grid max-w-2xl grid-cols-1 gap-6 sm:gap-8 lg:mt-20 lg:max-w-none lg:grid-cols-3"
         >
-          {testimonials.map((column, columnIndex) => (
-            <li key={columnIndex}>
-              <ul role="list" className="flex flex-col gap-y-6 sm:gap-y-8">
-                {column.map((testimonial, testimonialIndex) => (
-                  <li key={testimonialIndex}>
+          {testimonials.map((column) => (
+            <li key={`column-${column[0].author.name}`}>
+              <ul className="flex flex-col gap-y-6 sm:gap-y-8">
+                {column.map((testimonial) => (
+                  <li key={testimonial.author.name}>
                     <figure className="relative rounded-2xl bg-white p-6 shadow-xl shadow-slate-900/10">
                       <QuoteIcon className="absolute left-6 top-6 fill-slate-100" />
                       <blockquote className="relative">
@@ -107,7 +106,7 @@ export function Testimonials() {
                         </div>
                         <div className="overflow-hidden rounded-full bg-slate-50">
                           <Image
-                            className="h-14 w-14 object-cover"
+                            className="size-14 object-cover"
                             src={testimonial.author.image}
                             alt=""
                             width={56}
