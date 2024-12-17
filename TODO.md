@@ -72,6 +72,9 @@
 - [ ] Add integration tests for GitHub sync
 - [ ] Add rate limiting protection
 
+### General Tasks
+- [ ] GDPR Compliance
+
 ### Email Integration
 - [ ] Set up email receiving service
 - [ ] Implement email parsing for brag extraction
@@ -88,12 +91,23 @@
 - [ ] Add company-specific document formatting
 - [ ] Implement project-based filtering for documents
 
+### LLM Tools
+- [ ] Automatically prepend brags to LLM context (perhaps only up to 100 brags)
+- [ ] Automatically expose all companies and libraries for the user with the LLM context
+- [ ] Automatically expose all userPreferences for the user with the LLM context
+- [ ] getBrags tool? - vector search on brags
+- [ ] saveUserPreferences tool - should be called whenever the user says things like "Always arrange this (weekly report) into sections by project
+- [ ] 
+- [ ] 
+
 ### UI/UX Improvements
-- [ ] Add company selection in UI
+- [ ] Add company management in UI
 - [ ] Add project management interface
 - [ ] Create tag management system
 - [ ] Add email preferences configuration
 - [ ] Enhance document generation interface with more options
+- [ ] Stream Brags into the UI one by one instead of all as a response from extractBrags
+- [ ] Show something in the UI BragAction component before the first one streams in - "Thinking..." or something
 
 ## Business Model Implementation
 - [ ] Set up Stripe/Link integration
