@@ -28,10 +28,12 @@ import {
 } from '@/lib/utils';
 
 import { generateTitleFromUserMessage } from '../../chat/actions';
+import { extractBrag, extractBrags } from '@/lib/ai/extract';
 
 export const maxDuration = 60;
 
 type AllowedTools =
+  | 'saveBrags'
   | 'createDocument'
   | 'updateDocument'
   | 'requestSuggestions'
@@ -44,8 +46,9 @@ const blocksTools: AllowedTools[] = [
 ];
 
 const weatherTools: AllowedTools[] = ['getWeather'];
+const bragTools: AllowedTools[] = ['saveBrags'];
 
-const allTools: AllowedTools[] = [...blocksTools, ...weatherTools];
+const allTools: AllowedTools[] = [...blocksTools, ...weatherTools, ...bragTools];
 
 export async function POST(request: Request) {
   const {
@@ -100,9 +103,43 @@ export async function POST(request: Request) {
     model: customModel(model.apiIdentifier),
     system: systemPrompt,
     messages: coreMessages,
-    maxSteps: 5,
+    maxSteps: 10,
     experimental_activeTools: allTools,
     tools: {
+      saveBrags: {
+        description: 'Save detected achievements to the database',
+        parameters: z.object({
+          message: z.string().describe('The message the user sent'),
+        }),
+        execute: async ({ message }) => {
+          console.log('message', message);
+          if (session.user?.id) {
+            
+          }
+
+          console.log('extracting brags');
+          const brags = await extractBrags({
+            chat_history: messages.filter(m => m.role === 'user').map(({ role, content }) => ({
+              role,
+              content,
+            })),
+            input: message,
+            context: {
+              companies: [],
+              projects: [],
+            },
+
+          })
+
+          console.log('extracted brags', brags);
+
+          return {
+            id,
+            brags,
+            content: 'Brags were created successfully.',
+          };
+        }
+      },
       getWeather: {
         description: 'Get the current weather at a location',
         parameters: z.object({

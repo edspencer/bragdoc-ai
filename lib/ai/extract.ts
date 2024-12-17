@@ -84,7 +84,7 @@ If duration is not clear from the context, default to "day".`,
 }
 
 export type ChatMessage = {
-  role: "user" | "assistant";
+  role: "user" | "assistant" | "system" | "data";
   content: string;
 };
 
