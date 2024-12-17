@@ -12,7 +12,7 @@ export function Navigation() {
             <span className="font-bold">bragdoc.ai</span>
           </Link>
         </div>
-        <NavigationMenu>
+        {/* <NavigationMenu>
           <NavigationMenuList>
             <NavigationMenuItem>
               <Link href="/pricing" legacyBehavior passHref>
@@ -25,7 +25,7 @@ export function Navigation() {
               </Link>
             </NavigationMenuItem>
           </NavigationMenuList>
-        </NavigationMenu>
+        </NavigationMenu> */}
         <div className="ml-auto flex items-center space-x-4">
           <ModeToggle />
           <Button variant="ghost" asChild>
