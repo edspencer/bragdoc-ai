@@ -32,10 +32,10 @@
 
 ### Ancillary Pages
 
-- [ ] Add "About" page at /about
-- [ ] Add "Pricing" page at /pricing
-- [ ] Add "Terms of Service" page at /terms
-- [ ] Add "Privacy Policy" page at /privacy
+- [x] Add "About" page at /about
+- [x] Add "Pricing" page at /pricing
+- [x] Add "Terms of Service" page at /terms
+- [x] Add "Privacy Policy" page at /privacy
 
 ### Authentication
 - [x] Set up NextAuth.js
