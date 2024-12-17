@@ -1,20 +1,21 @@
-import { generateObject } from 'ai';
+import { streamObject, generateObject } from 'ai';
 import { openai } from '@ai-sdk/openai';
 import { z } from 'zod';
 import type { Brag } from '../../evals/types';
+import { customModel } from './index';
 
 // Schema for validating LLM response
 const bragResponseSchema = z.object({
-  title: z.string().min(1), // Ensure non-empty title
-  summary: z.string(),
-  details: z.string(),
-  eventStart: z.string().datetime(),
-  eventEnd: z.string().datetime(),
-  eventDuration: z.enum(['day', 'week', 'month', 'quarter', 'half year', 'year']),
-  companyId: z.string().nullable(),
-  projectId: z.string().nullable(),
-  suggestNewProject: z.boolean()
-});
+  title: z.string().min(1, "Title must be at least 1 character").describe("A concise title for the achievement"),
+  summary: z.string().describe("A brief summary of the achievement").optional(),
+  details: z.string().describe("Additional details about the achievement").optional(),
+  eventStart: z.date().nullable().describe("The start date of the event or achievement").optional(),
+  eventEnd: z.date().nullable().describe("The end date of the event or achievement").optional(),
+  eventDuration: z.enum(['day', 'week', 'month', 'quarter', 'half year', 'year']).describe("The duration of the achievement"),
+  companyId: z.string().nullable().describe("The ID of the company this achievement is associated with (null if not specified)"),
+  projectId: z.string().nullable().describe("The ID of the project this achievement is associated with (null if not specified)"),
+  suggestNewProject: z.boolean().describe("Set to true if this achievement suggests creating a new project").optional(),
+})
 
 const titleQualitySchema = z.string()
   .min(10, "Title must be at least 10 characters")
@@ -72,11 +73,11 @@ If duration is not clear from the context, default to "day".`,
   // Convert string dates to Date objects and ensure all properties are included
   return {
     title: object.title,
-    summary: object.summary,
-    details: object.details,
+    summary: object.summary || "",
+    details: object.details || "",
     eventDuration: object.eventDuration,
-    eventStart: new Date(object.eventStart),
-    eventEnd: new Date(object.eventEnd),
+    eventStart: object.eventStart ? new Date(object.eventStart) : null,
+    eventEnd: object.eventEnd ? new Date(object.eventEnd) : null,
     companyId: object.companyId,
     projectId: object.projectId,
     // suggestNewProject: object.suggestNewProject
@@ -114,16 +115,18 @@ export type ExtractBragsInput = {
 export type ExtractedBrag = {
   title: string;
   summary: string;
-  details: string;
+  details?: string;
   eventDuration: string;
+  eventStart: Date | null;
+  eventEnd: Date | null;
   companyId: string | null;
   projectId: string | null;
   suggestNewProject?: boolean;
 };
 
-export async function extractBrags(
+export async function* extractBrags(
   input: ExtractBragsInput
-): Promise<ExtractedBrag[]> {
+): AsyncGenerator<ExtractedBrag, void, unknown> {
   const chatStr = input.chat_history
     .map(({ role, content }) => `${role}: ${content}`)
     .join("\n");
@@ -190,26 +193,25 @@ For each achievement found, provide:
 6. Related project ID (or null if none)
 7. Whether to suggest creating a new project (true/false)
 
-Extract ALL distinct achievements from the message, even small ones.
+Extract ONE achievement at a time, responding with each achievement as you find it.
 Each achievement should be complete and self-contained.
 
 Today's date is ${new Intl.DateTimeFormat('en-US', { day: 'numeric', month: 'long', year: 'numeric' }).format(new Date())}.`;
 
-  const { object } = await generateObject({
-    model: openai("gpt-4o"),
+  const {elementStream} = await streamObject({
+    model: customModel("gpt-4o"),
     prompt,
+    temperature: 0.5,
     output: 'array',
-    schema: z.object({
-        title: titleQualitySchema,
-        summary: z.string(),
-        details: z.string(),
-        eventDuration: z.enum(["day", "week", "month", "quarter", "half year", "year"]),
-        companyId: z.string().nullable(),
-        projectId: z.string().nullable(),
-        suggestNewProject: z.boolean(),
-
-    })
+    schema: bragResponseSchema
   });
 
-  return object;
+  console.log('Stream created, processing brags...');
+  console.log(elementStream)
+
+  for await (const brag of elementStream) {
+    yield brag as ExtractedBrag;
+  }
+
+  console.log("Brag extraction complete");
 }

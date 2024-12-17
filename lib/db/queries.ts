@@ -298,15 +298,19 @@ export async function createBrag({
   summary,
   title,
   details,
+  companyId,
+  projectId
 }: {
   userId: string;
   userMessageId: string;
-  eventStart: Date;
-  eventEnd: Date;
+  eventStart: Date | null;
+  eventEnd: Date | null;
   eventDuration: 'day' | 'week' | 'month' | 'quarter' | 'half year' | 'year';
   summary?: string;
   title: string;
   details?: string;
+  companyId: string | null;
+  projectId: string | null;
 }): Promise<BragType[]> {
   try {
     return await db.insert(brag).values({
@@ -318,6 +322,8 @@ export async function createBrag({
       summary,
       title,
       details,
+      companyId,
+      projectId
     }).returning();
   } catch (error) {
     console.error("Failed to create brag", error);

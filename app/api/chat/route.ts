@@ -32,6 +32,7 @@ import {
 
 import { generateTitleFromUserMessage } from '../../chat/actions';
 import { extractBrags } from '@/lib/ai/extract';
+import { streamingChunkSchema } from '@/lib/types/streaming';
 
 export const maxDuration = 60;
 
@@ -111,20 +112,23 @@ export async function POST(request: Request) {
     tools: {
       saveBrags: {
         description: 'Save detected achievements to the database',
-        parameters: z.object({
-          message: z.string().describe('The message the user sent'),
-        }),
-        execute: async ({ message }) => {
-          console.log('message', message);
-          if (session.user?.id) {
-            // First create a user message record
-            const [userMessage] = await createUserMessage({
-              userId: session.user.id,
-              originalText: message,
-            });
+        parameters: z.object({}),
+        execute: async () => {
+          const message = userMessage.content as string
 
+          console.log('Starting brag extraction for message:', message)
+
+          // First create a user message record
+          const [newUserMessage] = await createUserMessage({
+            userId: session.user.id!,
+            originalText: message
+          });
+
+          console.log('Created user message:', newUserMessage.id);
+
+          try {
             console.log('extracting brags');
-            const brags = await extractBrags({
+            const bragsStream = extractBrags({
               chat_history: messages.filter(m => m.role === 'user').map(({ role, content }) => ({
                 role,
                 content,
@@ -136,30 +140,63 @@ export async function POST(request: Request) {
               },
             });
 
-            console.log('extracted brags', brags);
+            const savedBrags = [];
 
-            // Save each extracted brag to the database
-            const savedBrags = await Promise.all(
-              brags.map(async (brag) => {
+            streamingData.append({
+              type: 'status',
+              content: 'Analyzing your achievements...',
+            });
+
+            // Process each brag as it comes in
+            for await (const brag of bragsStream) {
+              console.log('Processing brag:', brag.title);
+
+              try {
                 const [savedBrag] = await createBrag({
                   userId: session.user.id!,
-                  userMessageId: userMessage.id,
+                  userMessageId: newUserMessage.id,
                   title: brag.title,
                   summary: brag.summary,
                   details: brag.details,
-                  eventStart: new Date(), // Using current date since the brag extractor doesn't provide dates
-                  eventEnd: new Date(),
-                  eventDuration: brag.eventDuration as 'day' | 'week' | 'month' | 'quarter' | 'half year' | 'year',
+                  eventDuration: brag.eventDuration as any,
+                  eventStart: brag.eventStart || null,
+                  eventEnd: brag.eventEnd || null,
+                  companyId: brag.companyId,
+                  projectId: brag.projectId,
                 });
-                return savedBrag;
-              })
-            );
+
+                console.log('Saved brag:', savedBrag.id);
+                savedBrags.push(savedBrag);
+
+                streamingData.append({
+                  type: 'brag',
+                  content: savedBrag.title,
+                });
+              } catch (error) {
+                console.error('Error saving brag:', error);
+                throw error;
+              }
+            }
+
+            console.log('Finished processing all brags');
+
+            streamingData.append({
+              type: 'complete',
+              content: `Successfully processed ${savedBrags.length} brag${savedBrags.length === 1 ? '' : 's'}.`,
+            });
 
             return {
-              id,
+              id: newUserMessage.id,
               brags: savedBrags,
-              content: 'Brags were created successfully.',
+              content: `Successfully processed ${savedBrags.length} brag${savedBrags.length === 1 ? '' : 's'}.`,
             };
+          } catch (error) {
+            console.error('Error in brag extraction:', error);
+            streamingData.append({
+              type: 'error',
+              content: 'Failed to process achievements.',
+            });
+            throw error;
           }
         },
       },
@@ -416,6 +453,7 @@ Recent achievements: ${userBrags.map((brag) => `${brag.title}: ${brag.summary}`)
           const responseMessagesWithoutIncompleteToolCalls =
             sanitizeResponseMessages(response.messages);
 
+          console.log('onFinish');
           await saveMessages({
             messages: responseMessagesWithoutIncompleteToolCalls.map(
               (message) => {
@@ -439,6 +477,7 @@ Recent achievements: ${userBrags.map((brag) => `${brag.title}: ${brag.summary}`)
           });
         } catch (error) {
           console.error('Failed to save chat');
+          console.log(error)
         }
       }
 
