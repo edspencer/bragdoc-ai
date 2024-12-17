@@ -191,7 +191,9 @@ For each achievement found, provide:
 7. Whether to suggest creating a new project (true/false)
 
 Extract ALL distinct achievements from the message, even small ones.
-Each achievement should be complete and self-contained.`;
+Each achievement should be complete and self-contained.
+
+Today's date is ${new Intl.DateTimeFormat('en-US', { day: 'numeric', month: 'long', year: 'numeric' }).format(new Date())}.`;
 
   const { object } = await generateObject({
     model: openai("gpt-4o"),

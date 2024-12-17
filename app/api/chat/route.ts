@@ -19,6 +19,9 @@ import {
   saveDocument,
   saveMessages,
   saveSuggestions,
+  createUserMessage,
+  createBrag,
+  getBragsByUserId,
 } from '@/lib/db/queries';
 import type { Suggestion } from '@/lib/db/schema';
 import {
@@ -28,7 +31,7 @@ import {
 } from '@/lib/utils';
 
 import { generateTitleFromUserMessage } from '../../chat/actions';
-import { extractBrag, extractBrags } from '@/lib/ai/extract';
+import { extractBrags } from '@/lib/ai/extract';
 
 export const maxDuration = 60;
 
@@ -114,31 +117,51 @@ export async function POST(request: Request) {
         execute: async ({ message }) => {
           console.log('message', message);
           if (session.user?.id) {
-            
+            // First create a user message record
+            const [userMessage] = await createUserMessage({
+              userId: session.user.id,
+              originalText: message,
+            });
+
+            console.log('extracting brags');
+            const brags = await extractBrags({
+              chat_history: messages.filter(m => m.role === 'user').map(({ role, content }) => ({
+                role,
+                content,
+              })),
+              input: message,
+              context: {
+                companies: [],
+                projects: [],
+              },
+            });
+
+            console.log('extracted brags', brags);
+
+            // Save each extracted brag to the database
+            const savedBrags = await Promise.all(
+              brags.map(async (brag) => {
+                const [savedBrag] = await createBrag({
+                  userId: session.user.id!,
+                  userMessageId: userMessage.id,
+                  title: brag.title,
+                  summary: brag.summary,
+                  details: brag.details,
+                  eventStart: new Date(), // Using current date since the brag extractor doesn't provide dates
+                  eventEnd: new Date(),
+                  eventDuration: brag.eventDuration as 'day' | 'week' | 'month' | 'quarter' | 'half year' | 'year',
+                });
+                return savedBrag;
+              })
+            );
+
+            return {
+              id,
+              brags: savedBrags,
+              content: 'Brags were created successfully.',
+            };
           }
-
-          console.log('extracting brags');
-          const brags = await extractBrags({
-            chat_history: messages.filter(m => m.role === 'user').map(({ role, content }) => ({
-              role,
-              content,
-            })),
-            input: message,
-            context: {
-              companies: [],
-              projects: [],
-            },
-
-          })
-
-          console.log('extracted brags', brags);
-
-          return {
-            id,
-            brags,
-            content: 'Brags were created successfully.',
-          };
-        }
+        },
       },
       getWeather: {
         description: 'Get the current weather at a location',
@@ -156,13 +179,19 @@ export async function POST(request: Request) {
         },
       },
       createDocument: {
-        description: 'Create a document for a writing activity',
+        description: 'Create a document based on the User\'s achievements',
         parameters: z.object({
-          title: z.string(),
+          title: z.string().describe('The title of the document'),
         }),
         execute: async ({ title }) => {
           const id = generateUUID();
           let draftText = '';
+
+          // Fetch user's brags to provide context for document creation
+          const userBrags = await getBragsByUserId({ 
+            userId: session.user.id!,
+            limit: 50  // Get the 50 most recent brags
+          });
 
           streamingData.append({
             type: 'id',
@@ -182,8 +211,19 @@ export async function POST(request: Request) {
           const { fullStream } = streamText({
             model: customModel(model.apiIdentifier),
             system:
-              'Write about the given topic. Markdown is supported. Use headings wherever appropriate.',
-            prompt: title,
+              `Write about the given topic. Markdown is supported. Use headings wherever appropriate.
+              When asked to write a report, put the current date at the top of the report.`,
+            prompt: `
+Document title: ${title}
+Today's date: ${new Date().toLocaleDateString('en-US', {
+              weekday: 'long',
+              year: 'numeric',
+              month: 'long',
+              day: 'numeric',
+            })}
+
+Recent achievements: ${userBrags.map((brag) => `${brag.title}: ${brag.summary}`).join('\n')}
+            `,
           });
 
           for await (const delta of fullStream) {

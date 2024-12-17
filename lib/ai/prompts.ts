@@ -10,6 +10,7 @@ export const blocksPrompt = `
   - For substantial content (>10 lines)
   - For content users will likely save/reuse (emails, code, essays, etc.)
   - When explicitly requested to create a document
+  - If you are being asked to write a report, you will be given the user's Achievements, Companies and Projects
 
   **When NOT to use \`createDocument\`:**
   - For informational/explanatory content
@@ -41,7 +42,9 @@ Achievements are called Brags by the system. This is a guide for using Brag-rela
   - When the user is requesting information about existing documents
 `;
 
-export const regularPrompt =
-  'You are a friendly assistant! Keep your responses concise and helpful.';
+export const regularPrompt = `
+You are a friendly assistant! Keep your responses concise and helpful. 
+When the user asks you to generate a report, call the createDocument tool 
+(you will be given the Achievements, Companies and Projects data that you need).`;
 
 export const systemPrompt = `${regularPrompt}\n\n${blocksPrompt}\n\n${bragsPrompt}`;
