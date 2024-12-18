@@ -86,6 +86,7 @@ export function RepositorySelector({
             {isLoading ? (
               <div className="space-y-2">
                 {Array.from({ length: 5 }).map((_, i) => (
+                  // eslint-disable-next-line react/no-array-index-key
                   <Skeleton key={i} className="h-20 w-full" />
                 ))}
               </div>
@@ -97,6 +98,7 @@ export function RepositorySelector({
               <div className="space-y-2">
                 {data?.repositories.map((repo) => (
                   <button
+                    type="button"
                     key={repo.fullName}
                     onClick={() => handleSelect(repo)}
                     className={cn(

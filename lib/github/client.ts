@@ -1,5 +1,5 @@
 import { Octokit } from '@octokit/rest';
-import { type GitHubRepository } from '../db/schema';
+import type { GitHubRepository } from '../db/schema';
 
 export interface GitHubClientConfig {
   accessToken: string;

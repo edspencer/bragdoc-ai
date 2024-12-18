@@ -32,7 +32,6 @@ import {
 
 import { generateTitleFromUserMessage } from '../../chat/actions';
 import { extractBrags } from '@/lib/ai/extract';
-import { streamingChunkSchema } from '@/lib/types/streaming';
 
 export const maxDuration = 60;
 

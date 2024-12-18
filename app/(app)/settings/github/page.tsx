@@ -5,7 +5,7 @@ import { githubRepository } from '@/lib/db/schema';
 import { eq, desc } from 'drizzle-orm';
 import { RepositorySelector } from '@/components/github/RepositorySelector';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { GitBranch, Lock } from 'lucide-react';
+import { Lock } from 'lucide-react';
 import { SyncRepositoryButton } from '@/components/github/SyncRepositoryButton';
 
 export default async function GitHubSettingsPage() {
