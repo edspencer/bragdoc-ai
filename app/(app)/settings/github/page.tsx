@@ -5,7 +5,7 @@ import { githubRepository } from '@/lib/db/schema';
 import { eq, desc } from 'drizzle-orm';
 import { RepositorySelector } from '@/components/github/RepositorySelector';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { GitBranch, Lock } from 'lucide-react';
+import { Lock } from 'lucide-react';
 import { SyncRepositoryButton } from '@/components/github/SyncRepositoryButton';
 
 export default async function GitHubSettingsPage() {
@@ -46,7 +46,7 @@ export default async function GitHubSettingsPage() {
               >
                 <div className="flex items-center gap-2">
                   <span>{repo.fullName}</span>
-                  {repo.private && <Lock className="h-4 w-4 text-muted-foreground" />}
+                  {repo.private && <Lock className="size-4 text-muted-foreground" />}
                 </div>
                 <div className="flex items-center gap-2">
                   <SyncRepositoryButton repositoryId={repo.id} />

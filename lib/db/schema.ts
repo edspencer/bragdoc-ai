@@ -85,8 +85,8 @@ export const brag = pgTable('Brag', {
   title: varchar('title', { length: 256 }).notNull(),
   summary: text('summary'),
   details: text('details'),
-  eventStart: timestamp('event_start').notNull(),
-  eventEnd: timestamp('event_end').notNull(),
+  eventStart: timestamp('event_start'),
+  eventEnd: timestamp('event_end'),
   eventDuration: varchar('event_duration', { 
     enum: ['day', 'week', 'month', 'quarter', 'half year', 'year'] 
   }).notNull(),

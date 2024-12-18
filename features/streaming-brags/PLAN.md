@@ -1,89 +1,65 @@
 # Implementation Plan: Streaming Brags Feature
 
-## Phase 1: Backend Generator Implementation
-1. Create types for streaming Brag response
-   - Update `lib/types.ts` to include streaming types
-   - Add interfaces for stream chunks and responses
+## Phase 2: Frontend Streaming Implementation 
+1. Study existing streaming patterns
+   - Review document editing streaming implementation
+   - Look at `use-block-stream.tsx` for reference
+   - Understand StreamData handling pattern
 
-2. Modify extractBrags function
-   - Location: `lib/ai/extractBrags.ts`
-   - Convert to async generator function
-   - Implement yield for each Brag
-   - Add proper error handling
-   - Update type signatures
+2. Update BragAction component
+   - [x] Basic component structure exists
+   - [ ] Add loading state UI
+   - [ ] Connect to StreamData events
+   - [x] Show "Processing your achievements..." message
+   - [ ] Add transition states for each brag
+   - [ ] Use Framer Motion for smooth animations
+   - [ ] Add proper TypeScript types (currently using any)
 
-3. Update API route
-   - Location: `app/api/chat/route.ts`
-   - Implement streaming response handler
-   - Add streamingData.append() calls
-   - Update error handling for streaming context
-
-## Phase 2: Frontend Loading States
-1. Update BragAction component
-   - Location: `components/BragAction.tsx`
-   - Add loading state UI
-   - Implement "Thinking..." animation
-   - Add transition states
-
-2. Create streaming state hook
-   - Location: `hooks/useStreamingBrags.ts`
-   - Implement state management for streaming
-   - Handle connection and disconnection
+3. Create useExtractBrags hook
+   - Location: `hooks/useExtractBrags.ts`
+   - Handle brag extraction state
    - Manage loading states
+   - Track processed brags
+   - Connect to StreamData events
 
-## Phase 3: Frontend Stream Processing
+## Phase 3: UI Improvements
 1. Update Message component
-   - Location: `components/message.tsx`
-   - Add stream processing logic
-   - Implement incremental updates
-   - Add smooth transitions
+   - Add brag preview cards
+   - Implement smooth transitions
+   - Show company/project links if available
 
-2. Create stream processor utility
-   - Location: `lib/utils/streamProcessor.ts`
-   - Implement chunk processing
-   - Add type parsing and validation
-   - Handle error cases
+2. Add progress indicators
+   - Show number of brags found
+   - Add subtle animations
+   - Improve feedback during processing
 
 ## Phase 4: Testing
 1. Backend Tests
-   - Create generator function tests
-   - Test streaming response format
-   - Test error handling
-   - Test edge cases
+   - Test async generator functionality
+   - Test date handling
+   - Test error cases
+   - Test with various input types
 
 2. Frontend Tests
    - Test loading states
-   - Test stream processing
    - Test UI transitions
    - Test error states
+   - Test accessibility
 
 3. Integration Tests
    - Test end-to-end flow
-   - Test performance with varying loads
-   - Test network conditions
+   - Test with various message sizes
    - Test error recovery
 
-## Phase 5: Performance Optimization
-1. Implement throttling if needed
-   - Add rate limiting
-   - Optimize chunk size
-   - Monitor performance
-
-2. Add error recovery
-   - Implement retry logic
-   - Add fallback states
-   - Improve error messages
-
-## Phase 6: Documentation and Polish
+## Phase 5: Polish and Documentation
 1. Update documentation
-   - Add streaming API docs
-   - Document new components
-   - Update usage examples
+   - Document async generator usage
+   - Update API documentation
+   - Add usage examples
 
 2. Final testing and review
    - Performance testing
    - UI/UX review
-   - Accessibility check
    - Cross-browser testing
 
 ## Dependencies
@@ -92,29 +68,33 @@
 - Framer Motion for animations
 
 ## Timeline Estimate
-- Phase 1: 1-2 days
-- Phase 2: 1 day
+- Phase 1: 
+- Phase 2: 1 day (Current Focus)
 - Phase 3: 1-2 days
-- Phase 4: 1-2 days
+- Phase 4: 1 day
 - Phase 5: 1 day
-- Phase 6: 1 day
 
-Total: 6-9 days
+Total remaining: 3-4 days
 
 ## Success Metrics
-- All tests passing
 - Smooth UI transitions
-- No performance degradation
+- Clear user feedback
 - Proper error handling
-- Improved user feedback
+- Improved user experience
 
 ## Rollout Strategy
-1. Implement behind feature flag
+1. Deploy behind feature flag
 2. Test in development
 3. Beta test with subset of users
 4. Gradual rollout to all users
 
 ## Rollback Plan
-- Keep old non-streaming implementation
-- Add feature flag for quick disable
+- Keep feature flag for quick disable
 - Monitor error rates during rollout
+
+## Current Focus
+Priority is implementing the frontend streaming in the BragAction component:
+1. Study the existing document editing streaming implementation for patterns
+2. Implement similar streaming pattern in BragAction
+3. Add proper loading states and transitions
+4. Test with real data

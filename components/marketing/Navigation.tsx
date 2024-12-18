@@ -1,5 +1,4 @@
 import Link from "next/link"
-import { NavigationMenu, NavigationMenuContent, NavigationMenuItem, NavigationMenuLink, NavigationMenuList, NavigationMenuTrigger } from "@/components/ui/navigation-menu"
 import { Button } from "@/components/ui/button"
 import ModeToggle from "@/components/mode-toggle"
 

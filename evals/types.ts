@@ -7,8 +7,8 @@ export interface Brag {
   title: string;
   summary: string;
   details: string;
-  eventStart: Date;
-  eventEnd: Date;
+  eventStart: Date | null;
+  eventEnd: Date | null;
   eventDuration: 'day' | 'week' | 'month' | 'quarter' | 'half year' | 'year';
   companyId: string | null;
   projectId: string | null;

@@ -1,4 +1,4 @@
-import { Container } from '@/components/marketing/salient/Container'
+
 import { Pricing } from '@/components/marketing/salient/Pricing'
 
 export const metadata = {

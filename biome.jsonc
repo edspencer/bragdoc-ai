@@ -75,6 +75,7 @@
         "noUselessElse": "off" // Stylistic opinion
       },
       "suspicious": {
+        "noArrayIndexKey": "warn", // Not in recommended ruleset, turning on manually
         "noExplicitAny": "off" // We trust Vercelians to use any only when necessary
       },
       "nursery": {

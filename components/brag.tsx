@@ -3,6 +3,10 @@ import { Check } from "lucide-react"
 export function BragAction({ action }: { action: any }) {
   const {brags} = action
 
+  if (!brags || brags.length === 0) {
+    return <p>Extracting Achievements...</p>
+  }
+
   return (
     <div className="flex gap-4 flex-wrap">
       {brags.map((brag: any) => (

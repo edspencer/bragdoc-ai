@@ -28,7 +28,7 @@ export function SyncRepositoryButton({ repositoryId }: SyncRepositoryButtonProps
       size="sm"
       onClick={handleSync}
     >
-      <RefreshCw className="h-4 w-4" />
+      <RefreshCw className="size-4" />
       <span className="sr-only">Sync repository</span>
     </Button>
   );
