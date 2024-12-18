@@ -50,6 +50,8 @@ const jestConfig = {
   preset: 'ts-jest',
   testEnvironment: 'node',
 
+  setupFilesAfterEnv: ['<rootDir>/jest.setup.ts'],
+
   moduleDirectories: ['node_modules', '<rootDir>/node_modules'],
   moduleNameMapper: {
     '^@/(.*)$': '<rootDir>/$1',
@@ -60,6 +62,12 @@ const jestConfig = {
   testMatch: ['<rootDir>/test/**/*.(test|spec).ts'],
 
   transformIgnorePatterns: [`!node_modules/(?!${esModules})`],
+
+  maxWorkers: 1,
+  // Automatically clear mock calls and instances between every test
+  clearMocks: true,
+  // Run all tests serially in the current process
+  runInBand: true,
 
   transform: {
     '^.+\\.(t|j)sx?$': ['@swc/jest'],

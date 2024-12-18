@@ -185,6 +185,7 @@ Rules:
 - Do not add time estimates
 - Write a detailed plan for the feature, including tasks and dependencies
 - Put tasks into a logical order
+- describe, expect, test, beforeAll, afterAll, beforeEach and so on are available globally - do not import them
 
 ## Scripts
 

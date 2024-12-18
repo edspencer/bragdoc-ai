@@ -54,13 +54,21 @@
   ```
 
 ### 1.2 API Routes
-- [ ] Create `app/api/companies/route.ts`:
-  - GET handler for listing companies
-  - POST handler for creating companies
-- [ ] Create `app/api/companies/[id]/route.ts`:
-  - GET handler for single company
-  - PUT handler for updating
-  - DELETE handler for removing
+- [x] Create `app/api/companies/route.ts`:
+  - [x] GET handler for listing companies
+  - [x] POST handler for creating companies
+- [x] Create `app/api/companies/[id]/route.ts`:
+  - [x] GET handler for single company
+  - [x] PUT handler for updating
+  - [x] DELETE handler for removing
+- [x] Create API tests in `test/companies/api.test.ts`:
+  - [x] Test authentication and authorization
+  - [x] Test input validation
+  - [x] Test success and error cases
+  - [x] Test data persistence
+  - [x] Fix database connection issues in tests
+  - [x] Ensure proper test isolation
+  - [x] Add proper error handling
 
 ### 1.3 Type Definitions
 - [ ] Add company-related types in `lib/db/types.ts`:

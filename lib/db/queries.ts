@@ -1,7 +1,6 @@
 import { genSaltSync, hashSync } from "bcrypt-ts";
 import { and, asc, desc, eq, gt, gte, InferSelectModel, lte } from "drizzle-orm";
-import { drizzle } from "drizzle-orm/postgres-js";
-import postgres from "postgres";
+import { db as defaultDb } from "@/lib/db";
 
 import { 
   user, 
@@ -24,91 +23,86 @@ import {
 // use the Drizzle adapter for Auth.js / NextAuth
 // https://authjs.dev/reference/adapter/drizzle
 
-// biome-ignore lint: Forbidden non-null assertion.
-const client = postgres(process.env.POSTGRES_URL!);
-export const db = drizzle(client);
-
-export async function getUser(email: string): Promise<Array<User>> {
+export async function getUser(email: string, dbInstance = defaultDb): Promise<Array<User>> {
   try {
-    return await db.select().from(user).where(eq(user.email, email));
+    return await dbInstance.select().from(user).where(eq(user.email, email));
   } catch (error) {
-    console.log(error);
-    console.error("Failed to get user from database");
+    console.error('Error in getUser:', error);
     throw error;
   }
 }
 
-export async function createUser(email: string, password: string) {
+export async function createUser(email: string, password: string, dbInstance = defaultDb) {
   const salt = genSaltSync(10);
   const hash = hashSync(password, salt);
 
   try {
-    return await db.insert(user).values({ email, password: hash });
+    return await dbInstance.insert(user).values({ email, password: hash });
   } catch (error) {
-    console.error("Failed to create user in database");
+    console.error('Error in createUser:', error);
     throw error;
   }
 }
 
-export async function saveChat({ id, userId, title }: { id: string; userId: string; title: string }) {
+export async function saveChat({ id, userId, title }: { id: string; userId: string; title: string }, dbInstance = defaultDb) {
   try {
-    return await db.insert(chat).values({
+    return await dbInstance.insert(chat).values({
       id,
       createdAt: new Date(),
       userId,
       title,
     });
   } catch (error) {
-    console.error("Failed to save chat in database");
+    console.error('Error in saveChat:', error);
     throw error;
   }
 }
 
-export async function deleteChatById({ id }: { id: string }) {
+export async function deleteChatById({ id }: { id: string }, dbInstance = defaultDb) {
   try {
-    await db.delete(vote).where(eq(vote.chatId, id));
-    await db.delete(message).where(eq(message.chatId, id));
+    await dbInstance.delete(vote).where(eq(vote.chatId, id));
+    await dbInstance.delete(message).where(eq(message.chatId, id));
 
-    return await db.delete(chat).where(eq(chat.id, id));
+    return await dbInstance.delete(chat).where(eq(chat.id, id));
   } catch (error) {
-    console.error("Failed to delete chat by id from database");
+    console.error('Error in deleteChatById:', error);
     throw error;
   }
 }
 
-export async function getChatsByUserId({ id }: { id: string }) {
+export async function getChatsByUserId({ id }: { id: string }, dbInstance = defaultDb) {
   try {
-    return await db.select().from(chat).where(eq(chat.userId, id)).orderBy(desc(chat.createdAt));
+    return await dbInstance.select().from(chat).where(eq(chat.userId, id)).orderBy(desc(chat.createdAt));
   } catch (error) {
-    console.error("Failed to get chats by user from database");
+    console.error('Error in getChatsByUserId:', error);
     throw error;
   }
 }
 
-export async function getChatById({ id }: { id: string }) {
+export async function getChatById({ id }: { id: string }, dbInstance = defaultDb) {
   try {
-    const [selectedChat] = await db.select().from(chat).where(eq(chat.id, id));
+    const [selectedChat] = await dbInstance.select().from(chat).where(eq(chat.id, id));
     return selectedChat;
   } catch (error) {
-    console.error("Failed to get chat by id from database");
+    console.error('Error in getChatById:', error);
     throw error;
   }
 }
 
-export async function saveMessages({ messages }: { messages: Array<Message> }) {
+export async function saveMessages({ messages }: { messages: Array<Message> }, dbInstance = defaultDb) {
   try {
-    return await db.insert(message).values(messages);
+    return await dbInstance.insert(message).values(messages);
   } catch (error) {
-    console.error("Failed to save messages in database", error);
+    console.error('Error in saveMessages:', error);
     throw error;
   }
 }
 
-export async function getMessagesByChatId({ id }: { id: string }) {
+export async function getMessagesByChatId({ id }: { id: string }, dbInstance = defaultDb) {
   try {
-    return await db.select().from(message).where(eq(message.chatId, id)).orderBy(asc(message.createdAt));
+    return await dbInstance.select().from(message).where(eq(message.chatId, id)).orderBy(asc(message.createdAt));
   } catch (error) {
-    console.error("Failed to get messages by chat id from database", error);
+    console.error('Error in getMessagesByChatId:', error);
     throw error;
   }
 }
@@ -121,35 +115,35 @@ export async function voteMessage({
   chatId: string;
   messageId: string;
   type: "up" | "down";
-}) {
+}, dbInstance = defaultDb) {
   try {
-    const [existingVote] = await db
+    const [existingVote] = await dbInstance
       .select()
       .from(vote)
       .where(and(eq(vote.messageId, messageId)));
 
     if (existingVote) {
-      return await db
+      return await dbInstance
         .update(vote)
         .set({ isUpvoted: type === "up" })
         .where(and(eq(vote.messageId, messageId), eq(vote.chatId, chatId)));
     }
-    return await db.insert(vote).values({
+    return await dbInstance.insert(vote).values({
       chatId,
       messageId,
       isUpvoted: type === "up",
     });
   } catch (error) {
-    console.error("Failed to upvote message in database", error);
+    console.error('Error in voteMessage:', error);
     throw error;
   }
 }
 
-export async function getVotesByChatId({ id }: { id: string }) {
+export async function getVotesByChatId({ id }: { id: string }, dbInstance = defaultDb) {
   try {
-    return await db.select().from(vote).where(eq(vote.chatId, id));
+    return await dbInstance.select().from(vote).where(eq(vote.chatId, id));
   } catch (error) {
-    console.error("Failed to get votes by chat id from database", error);
+    console.error('Error in getVotesByChatId:', error);
     throw error;
   }
 }
@@ -164,9 +158,9 @@ export async function saveDocument({
   title: string;
   content: string;
   userId: string;
-}) {
+}, dbInstance = defaultDb) {
   try {
-    return await db.insert(document).values({
+    return await dbInstance.insert(document).values({
       id,
       title,
       content,
@@ -174,25 +168,25 @@ export async function saveDocument({
       createdAt: new Date(),
     });
   } catch (error) {
-    console.error("Failed to save document in database");
+    console.error('Error in saveDocument:', error);
     throw error;
   }
 }
 
-export async function getDocumentsById({ id }: { id: string }) {
+export async function getDocumentsById({ id }: { id: string }, dbInstance = defaultDb) {
   try {
-    const documents = await db.select().from(document).where(eq(document.id, id)).orderBy(asc(document.createdAt));
+    const documents = await dbInstance.select().from(document).where(eq(document.id, id)).orderBy(asc(document.createdAt));
 
     return documents;
   } catch (error) {
-    console.error("Failed to get document by id from database");
+    console.error('Error in getDocumentsById:', error);
     throw error;
   }
 }
 
-export async function getDocumentById({ id }: { id: string }) {
+export async function getDocumentById({ id }: { id: string }, dbInstance = defaultDb) {
   try {
-    const [selectedDocument] = await db
+    const [selectedDocument] = await dbInstance
       .select()
       .from(document)
       .where(eq(document.id, id))
@@ -200,57 +194,57 @@ export async function getDocumentById({ id }: { id: string }) {
 
     return selectedDocument;
   } catch (error) {
-    console.error("Failed to get document by id from database");
+    console.error('Error in getDocumentById:', error);
     throw error;
   }
 }
 
-export async function deleteDocumentsByIdAfterTimestamp({ id, timestamp }: { id: string; timestamp: Date }) {
+export async function deleteDocumentsByIdAfterTimestamp({ id, timestamp }: { id: string; timestamp: Date }, dbInstance = defaultDb) {
   try {
-    await db.delete(suggestion).where(and(eq(suggestion.documentId, id), gt(suggestion.documentCreatedAt, timestamp)));
+    await dbInstance.delete(suggestion).where(and(eq(suggestion.documentId, id), gt(suggestion.documentCreatedAt, timestamp)));
 
-    return await db.delete(document).where(and(eq(document.id, id), gt(document.createdAt, timestamp)));
+    return await dbInstance.delete(document).where(and(eq(document.id, id), gt(document.createdAt, timestamp)));
   } catch (error) {
-    console.error("Failed to delete documents by id after timestamp from database");
+    console.error('Error in deleteDocumentsByIdAfterTimestamp:', error);
     throw error;
   }
 }
 
-export async function saveSuggestions({ suggestions }: { suggestions: Array<Suggestion> }) {
+export async function saveSuggestions({ suggestions }: { suggestions: Array<Suggestion> }, dbInstance = defaultDb) {
   try {
-    return await db.insert(suggestion).values(suggestions);
+    return await dbInstance.insert(suggestion).values(suggestions);
   } catch (error) {
-    console.error("Failed to save suggestions in database");
+    console.error('Error in saveSuggestions:', error);
     throw error;
   }
 }
 
-export async function getSuggestionsByDocumentId({ documentId }: { documentId: string }) {
+export async function getSuggestionsByDocumentId({ documentId }: { documentId: string }, dbInstance = defaultDb) {
   try {
-    return await db
+    return await dbInstance
       .select()
       .from(suggestion)
       .where(and(eq(suggestion.documentId, documentId)));
   } catch (error) {
-    console.error("Failed to get suggestions by document version from database");
+    console.error('Error in getSuggestionsByDocumentId:', error);
     throw error;
   }
 }
 
-export async function getMessageById({ id }: { id: string }) {
+export async function getMessageById({ id }: { id: string }, dbInstance = defaultDb) {
   try {
-    return await db.select().from(message).where(eq(message.id, id));
+    return await dbInstance.select().from(message).where(eq(message.id, id));
   } catch (error) {
-    console.error("Failed to get message by id from database");
+    console.error('Error in getMessageById:', error);
     throw error;
   }
 }
 
-export async function deleteMessagesByChatIdAfterTimestamp({ chatId, timestamp }: { chatId: string; timestamp: Date }) {
+export async function deleteMessagesByChatIdAfterTimestamp({ chatId, timestamp }: { chatId: string; timestamp: Date }, dbInstance = defaultDb) {
   try {
-    return await db.delete(message).where(and(eq(message.chatId, chatId), gte(message.createdAt, timestamp)));
+    return await dbInstance.delete(message).where(and(eq(message.chatId, chatId), gte(message.createdAt, timestamp)));
   } catch (error) {
-    console.error("Failed to delete messages by id after timestamp from database");
+    console.error('Error in deleteMessagesByChatIdAfterTimestamp:', error);
     throw error;
   }
 }
@@ -261,11 +255,11 @@ export async function updateChatVisiblityById({
 }: {
   chatId: string;
   visibility: "private" | "public";
-}) {
+}, dbInstance = defaultDb) {
   try {
-    return await db.update(chat).set({ visibility }).where(eq(chat.id, chatId));
+    return await dbInstance.update(chat).set({ visibility }).where(eq(chat.id, chatId));
   } catch (error) {
-    console.error("Failed to update chat visibility in database");
+    console.error('Error in updateChatVisiblityById:', error);
     throw error;
   }
 }
@@ -276,14 +270,14 @@ export async function createUserMessage({
 }: {
   userId: string;
   originalText: string;
-}): Promise<UserMessageType[]> {
+}, dbInstance = defaultDb): Promise<UserMessageType[]> {
   try {
-    return await db.insert(userMessage).values({
+    return await dbInstance.insert(userMessage).values({
       userId,
       originalText,
     }).returning();
   } catch (error) {
-    console.error("Failed to create user message", error);
+    console.error('Error in createUserMessage:', error);
     throw error;
   }
 }
@@ -310,9 +304,9 @@ export async function createBrag({
   details?: string;
   companyId: string | null;
   projectId: string | null;
-}): Promise<BragType[]> {
+}, dbInstance = defaultDb): Promise<BragType[]> {
   try {
-    return await db.insert(brag).values({
+    return await dbInstance.insert(brag).values({
       userId,
       userMessageId,
       eventStart,
@@ -325,7 +319,7 @@ export async function createBrag({
       projectId
     }).returning();
   } catch (error) {
-    console.error("Failed to create brag", error);
+    console.error('Error in createBrag:', error);
     throw error;
   }
 }
@@ -338,16 +332,16 @@ export async function getBragsByUserId({
   userId: string;
   limit?: number;
   offset?: number;
-}): Promise<BragType[]> {
+}, dbInstance = defaultDb): Promise<BragType[]> {
   try {
-    return await db.select()
+    return await dbInstance.select()
       .from(brag)
       .where(eq(brag.userId, userId))
       .limit(limit)
       .offset(offset)
       .orderBy(desc(brag.eventStart));
   } catch (error) {
-    console.error("Failed to get brags by user", error);
+    console.error('Error in getBragsByUserId:', error);
     throw error;
   }
 }
@@ -360,9 +354,9 @@ export async function generatePeriodSummary({
   userId: string;
   startDate: Date;
   endDate: Date;
-}): Promise<BragType[]> {
+}, dbInstance = defaultDb): Promise<BragType[]> {
   try {
-    return await db.select()
+    return await dbInstance.select()
       .from(brag)
       .where(
         and(
@@ -373,7 +367,7 @@ export async function generatePeriodSummary({
       )
       .orderBy(desc(brag.eventStart));
   } catch (error) {
-    console.error("Failed to generate period summary", error);
+    console.error('Error in generatePeriodSummary:', error);
     throw error;
   }
 }
@@ -388,7 +382,7 @@ export async function getCompaniesByUserId({
   userId,
   limit = 50,
   offset = 0,
-  db = drizzle(postgres())
+  db = defaultDb
 }: { 
   userId: string;
   limit?: number;
@@ -403,7 +397,7 @@ export async function getCompaniesByUserId({
       .offset(offset)
       .orderBy(desc(company.startDate));
   } catch (error) {
-    console.error("Failed to get companies by user", error);
+    console.error('Error in getCompaniesByUserId:', error);
     throw error;
   }
 }
@@ -411,7 +405,7 @@ export async function getCompaniesByUserId({
 export async function getCompanyById({ 
   id,
   userId,
-  db = drizzle(postgres())
+  db = defaultDb
 }: { 
   id: string;
   userId: string;
@@ -426,18 +420,21 @@ export async function getCompanyById({
       ));
     return selectedCompany || null;
   } catch (error) {
-    console.error("Failed to get company by id", error);
+    console.error('Error in getCompanyById:', error);
     throw error;
   }
 }
 
-export async function createCompany(input: CreateCompanyInput, db = drizzle(postgres())): Promise<Company[]> {
+export async function createCompany(
+  input: CreateCompanyInput, 
+  db = defaultDb
+): Promise<Company[]> {
   try {
     return await db.insert(company)
       .values(input)
       .returning();
   } catch (error) {
-    console.error("Failed to create company", error);
+    console.error('Error in createCompany:', error);
     throw error;
   }
 }
@@ -446,7 +443,7 @@ export async function updateCompany({
   id,
   userId,
   data,
-  db = drizzle(postgres())
+  db = defaultDb
 }: { 
   id: string;
   userId: string;
@@ -482,7 +479,7 @@ export async function updateCompany({
       ))
       .returning();
   } catch (error) {
-    console.error("Failed to update company", error);
+    console.error('Error in updateCompany:', error);
     throw error;
   }
 }
@@ -490,7 +487,7 @@ export async function updateCompany({
 export async function deleteCompany({ 
   id,
   userId,
-  db = drizzle(postgres())
+  db = defaultDb
 }: { 
   id: string;
   userId: string;
@@ -504,7 +501,7 @@ export async function deleteCompany({
       ))
       .returning();
   } catch (error) {
-    console.error("Failed to delete company", error);
+    console.error('Error in deleteCompany:', error);
     throw error;
   }
 }
