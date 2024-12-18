@@ -7,7 +7,8 @@
     "build": "next build",
     "build:OLDVERSION": "tsx lib/db/migrate && next build",
     "start": "next start",
-    "test": "jest",
+    "test:setup": "tsx test/setup.ts && drizzle-kit push --config=drizzle.config.test.ts",
+    "test": "pnpm test:setup && jest",
     "test:watch": "jest --watch",
     "eval": "npx braintrust eval ./evals/**/eval.ts",
     "lint": "next lint && biome lint --write --unsafe",
@@ -115,5 +116,6 @@
     "ts-node": "^10.9.2",
     "tsx": "^4.19.2",
     "typescript": "^5.6.3"
-  }
+  },
+  "packageManager": "pnpm@9.5.0+sha1.8c155dc114e1689d18937974f6571e0ceee66f1d"
 }

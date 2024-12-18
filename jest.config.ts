@@ -1,5 +1,7 @@
 // import { transform } from 'next/dist/build/swc/generated-native';
 
+import { isGeneratorFunction } from "util/types";
+
 require('dotenv').config({ path: '.env.test' });
 
 const esModules = ['.*\\.mjs$', 'bcrypt-ts', 'nanoid'].join('|');
@@ -55,7 +57,7 @@ const jestConfig = {
     '^bcrypt-ts$': '<rootDir>/node_modules/bcrypt-ts',
     '^nanoid$': 'nanoid',
   },
-  modulePaths: ['<rootDir>'],
+  testMatch: ['<rootDir>/test/**/*.(test|spec).ts'],
 
   transformIgnorePatterns: [`!node_modules/(?!${esModules})`],
 

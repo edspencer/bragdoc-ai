@@ -1,7 +1,5 @@
-import "server-only";
-
 import { genSaltSync, hashSync } from "bcrypt-ts";
-import { and, asc, desc, eq, gt, gte, lte } from "drizzle-orm";
+import { and, asc, desc, eq, gt, gte, InferSelectModel, lte } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/postgres-js";
 import postgres from "postgres";
 
@@ -18,7 +16,8 @@ import {
   userMessage,
   brag,
   type UserMessage as UserMessageType,
-  type Brag as BragType
+  type Brag as BragType,
+  company
 } from "./schema";
 
 // Optionally, if not using email/pass login, you can
@@ -375,6 +374,137 @@ export async function generatePeriodSummary({
       .orderBy(desc(brag.eventStart));
   } catch (error) {
     console.error("Failed to generate period summary", error);
+    throw error;
+  }
+}
+
+// Company Types
+export type Company = InferSelectModel<typeof company>;
+export type CreateCompanyInput = Pick<Company, 'userId' | 'name' | 'domain' | 'role' | 'startDate' | 'endDate'>;
+export type UpdateCompanyInput = Partial<Omit<Company, 'id' | 'userId'>>;
+
+// Company Queries
+export async function getCompaniesByUserId({ 
+  userId,
+  limit = 50,
+  offset = 0,
+  db = drizzle(postgres())
+}: { 
+  userId: string;
+  limit?: number;
+  offset?: number;
+  db?: any;
+}): Promise<Company[]> {
+  try {
+    return await db.select()
+      .from(company)
+      .where(eq(company.userId, userId))
+      .limit(limit)
+      .offset(offset)
+      .orderBy(desc(company.startDate));
+  } catch (error) {
+    console.error("Failed to get companies by user", error);
+    throw error;
+  }
+}
+
+export async function getCompanyById({ 
+  id,
+  userId,
+  db = drizzle(postgres())
+}: { 
+  id: string;
+  userId: string;
+  db?: any;
+}): Promise<Company | null> {
+  try {
+    const [selectedCompany] = await db.select()
+      .from(company)
+      .where(and(
+        eq(company.id, id),
+        eq(company.userId, userId)
+      ));
+    return selectedCompany || null;
+  } catch (error) {
+    console.error("Failed to get company by id", error);
+    throw error;
+  }
+}
+
+export async function createCompany(input: CreateCompanyInput, db = drizzle(postgres())): Promise<Company[]> {
+  try {
+    return await db.insert(company)
+      .values(input)
+      .returning();
+  } catch (error) {
+    console.error("Failed to create company", error);
+    throw error;
+  }
+}
+
+export async function updateCompany({ 
+  id,
+  userId,
+  data,
+  db = drizzle(postgres())
+}: { 
+  id: string;
+  userId: string;
+  data: UpdateCompanyInput;
+  db?: any;
+}): Promise<Company[]> {
+  try {
+    // Get the current company first
+    const [currentCompany] = await db.select()
+      .from(company)
+      .where(and(
+        eq(company.id, id),
+        eq(company.userId, userId)
+      ));
+
+    if (!currentCompany) {
+      return [];
+    }
+
+    // Merge current data with updates
+    const updateData = {
+      ...currentCompany,
+      ...data,
+      id: currentCompany.id, // Ensure we don't override the ID
+      userId: currentCompany.userId // Ensure we don't override the user ID
+    };
+
+    return await db.update(company)
+      .set(updateData)
+      .where(and(
+        eq(company.id, id),
+        eq(company.userId, userId)
+      ))
+      .returning();
+  } catch (error) {
+    console.error("Failed to update company", error);
+    throw error;
+  }
+}
+
+export async function deleteCompany({ 
+  id,
+  userId,
+  db = drizzle(postgres())
+}: { 
+  id: string;
+  userId: string;
+  db?: any;
+}): Promise<Company[]> {
+  try {
+    return await db.delete(company)
+      .where(and(
+        eq(company.id, id),
+        eq(company.userId, userId)
+      ))
+      .returning();
+  } catch (error) {
+    console.error("Failed to delete company", error);
     throw error;
   }
 }

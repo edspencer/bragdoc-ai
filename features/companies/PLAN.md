@@ -4,7 +4,7 @@
 
 ### 1.1 Database Setup and Testing
 - [x] Company table schema (already exists)
-- [ ] Add database queries in `lib/db/queries.ts`:
+- [x] Add database queries in `lib/db/queries.ts`:
   ```typescript
   - getCompaniesByUserId()
   - getCompanyById()
@@ -12,44 +12,44 @@
   - updateCompany()
   - deleteCompany()
   ```
-- [ ] Create test file `test/companies/queries.test.ts`:
+- [x] Create test file `test/companies/queries.test.ts`:
   ```typescript
   describe('Company Queries', () => {
     // Test data setup
-    - Mock user data
-    - Sample company data
-    - Sample project data (for relations)
+    - [x] Mock user data
+    - [x] Sample company data
+    - [x] Sample project data (for relations)
 
     // Individual query tests
-    - getCompaniesByUserId
-      - Returns empty array for new user
-      - Returns all companies for user
-      - Does not return other users' companies
-      - Correctly orders by start date
+    - [x] getCompaniesByUserId
+      - [x] Returns empty array for new user
+      - [x] Returns all companies for user
+      - [x] Does not return other users' companies
+      - [x] Correctly orders by start date
 
-    - getCompanyById
-      - Returns company for valid ID
-      - Returns null for invalid ID
-      - Only returns company if owned by user
+    - [x] getCompanyById
+      - [x] Returns company for valid ID
+      - [x] Returns null for invalid ID
+      - [x] Only returns company if owned by user
 
-    - createCompany
-      - Creates with all required fields
-      - Creates with optional fields
-      - Validates required fields
-      - Associates with correct user
+    - [x] createCompany
+      - [x] Creates with all required fields
+      - [x] Creates with optional fields
+      - [x] Validates required fields
+      - [x] Associates with correct user
 
-    - updateCompany
-      - Updates all fields
-      - Updates partial fields
-      - Maintains unchanged fields
-      - Only updates if owned by user
-      - Validates required fields
+    - [x] updateCompany
+      - [x] Updates all fields
+      - [x] Updates partial fields
+      - [x] Maintains unchanged fields
+      - [x] Only updates if owned by user
+      - [x] Validates required fields
 
-    - deleteCompany
-      - Removes company
-      - Only deletes if owned by user
-      - Handles related projects
-      - Returns error for non-existent company
+    - [x] deleteCompany
+      - [x] Removes company
+      - [x] Only deletes if owned by user
+      - [x] Handles related projects
+      - [x] Returns error for non-existent company
   })
   ```
 
