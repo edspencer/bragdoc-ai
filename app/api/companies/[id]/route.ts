@@ -17,10 +17,13 @@ const updateCompanySchema = z.object({
   endDate: z.string().nullable().transform((str) => str ? new Date(str) : null).optional(),
 });
 
+type Params = Promise<{ id: string }>
+
 export async function GET(
-  request: NextRequest,
-  { params }: { params: { id: string } }
+  request: Request,
+  { params }: { params: Params }
 ) {
+  const {id} = await params;
   try {
     const session = await auth();
     if (!session?.user?.id) {
@@ -28,7 +31,7 @@ export async function GET(
     }
 
     const company = await getCompanyById({
-      id: params.id,
+      id,
       userId: session.user.id,
       db
     });
@@ -46,8 +49,10 @@ export async function GET(
 
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Params }
 ) {
+  const {id} = await params;
+
   try {
     const session = await auth();
     if (!session?.user?.id) {
@@ -58,7 +63,7 @@ export async function PUT(
     const validatedData = updateCompanySchema.parse(body);
 
     const [company] = await updateCompany({
-      id: params.id,
+      id,
       userId: session.user.id,
       data: validatedData,
       db
@@ -78,10 +83,13 @@ export async function PUT(
   }
 }
 
+
+
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Params }
 ) {
+  const {id} = await params;
   try {
     const session = await auth();
     if (!session?.user?.id) {
@@ -89,7 +97,7 @@ export async function DELETE(
     }
 
     const deleted = await deleteCompany({
-      id: params.id,
+      id,
       userId: session.user.id,
       db
     });
