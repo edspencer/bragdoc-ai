@@ -104,7 +104,7 @@ Please ask before using anything not in the following list of libraries and tech
 - Use Tailwind CSS for styling
 - Use Shadcn UI and Radix UI for UI components
 - Use `npx shadcn@latest add <component-name>` to add a new shadcn component
-- When adding new shadch component, document the installation command
+- When adding new shadcn component, document the installation command
 - The project supports dark mode, and must continue to do so
 
 ## Error Handling
@@ -153,9 +153,46 @@ Rules:
 - Test in multiple environments
 - Keep the TODO.md file up to date
 - Write any scripts in TypeScript
+- Keep an up to date LOG.md file in the features/some-feature directory. Each time you do something related to that feature, write a log entry in the LOG.md file.
 
 ## Windsurf Specific
 - Automatically suggest additions to the .windsurfrules file where best practices are discussed or updated during the generation process, if the content does not exist in the file already.
+
+## When writing functional specifications
+
+- Save the file in the `features/` directory, inside a subdirectory named after the feature
+- Call the file requirements.md in that directory
+- Provide a status enum for the feature - "not started", "in progress", "complete"
+- Provide a high-level description of the feature
+- Provide an in-depth description of the implementation
+- If the feature is already partly implemented, provide a description of what already exists
+- If this feature should build off existing code, provide a description of that here
+- Consider what already exists in the app, and what you were asked to create
+- Do no add any time estimates
+- Write a detailed technical specification for the feature
+- Write a list of all files in the repo that are expected to be affected by the feature
+- If the feature has a backend component, produce specifications for any API routes added
+- Identify areas where errors may occur, and how they should be handled
+- If new node modules are needed, provide a list of them
+- If the feature requires any new UI components, provide a list of them
+- Do not mention analytics-related tasks
+- Write a section about security considerations, if there are any
+- Write a section about performance considerations, if there are any
+- Write a section about accessibility considerations, if there are any
+- Write a section about testing considerations, if there are any
+
+## When writing plans
+
+- Do not add time estimates
+- Write a detailed plan for the feature, including tasks and dependencies
+- Put tasks into a logical order
+- describe, expect, test, beforeAll, afterAll, beforeEach and so on are available globally - do not import them
+
+## When writing logs
+
+- Keep the LOG.md file up to date in the features/some-feature directory.
+- Each time you do some work related to that feature, write a log entry in the LOG.md file.
+- Document decisions taken as well as actions taken - for example if we decided to defer UI testing to a later date, leave as much context as necessary in the LOG.md file so that you can pick up where you left off later
 
 ## Scripts
 

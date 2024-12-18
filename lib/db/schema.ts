@@ -43,7 +43,7 @@ export const company = pgTable('Company', {
   id: uuid('id').primaryKey().notNull().defaultRandom(),
   userId: uuid('user_id')
     .notNull()
-    .references(() => user.id),
+    .references(() => user.id, { onDelete: 'cascade' }),
   name: varchar('name', { length: 256 }).notNull(),
   domain: varchar('domain', { length: 256 }),
   role: varchar('role', { length: 256 }).notNull(),

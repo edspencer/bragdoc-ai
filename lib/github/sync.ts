@@ -1,5 +1,5 @@
 import { GitHubClient } from './client';
-import { db } from '@/lib/db/queries';
+import { db } from '@/lib/db';
 import { githubPullRequest, githubRepository, user } from '@/lib/db/schema';
 import { eq } from 'drizzle-orm';
 

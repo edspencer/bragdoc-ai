@@ -1,4 +1,4 @@
-// import { transform } from 'next/dist/build/swc/generated-native';
+
 
 require('dotenv').config({ path: '.env.test' });
 
@@ -48,6 +48,8 @@ const jestConfig = {
   preset: 'ts-jest',
   testEnvironment: 'node',
 
+  setupFilesAfterEnv: ['<rootDir>/jest.setup.ts'],
+
   moduleDirectories: ['node_modules', '<rootDir>/node_modules'],
   moduleNameMapper: {
     '^@/(.*)$': '<rootDir>/$1',
@@ -55,9 +57,15 @@ const jestConfig = {
     '^bcrypt-ts$': '<rootDir>/node_modules/bcrypt-ts',
     '^nanoid$': 'nanoid',
   },
-  modulePaths: ['<rootDir>'],
+  testMatch: ['<rootDir>/test/**/*.(test|spec).ts'],
 
   transformIgnorePatterns: [`!node_modules/(?!${esModules})`],
+
+  maxWorkers: 1,
+  // Automatically clear mock calls and instances between every test
+  clearMocks: true,
+  // Run all tests serially in the current process
+  runInBand: true,
 
   transform: {
     '^.+\\.(t|j)sx?$': ['@swc/jest'],
