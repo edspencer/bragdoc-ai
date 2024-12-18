@@ -104,7 +104,7 @@ Please ask before using anything not in the following list of libraries and tech
 - Use Tailwind CSS for styling
 - Use Shadcn UI and Radix UI for UI components
 - Use `npx shadcn@latest add <component-name>` to add a new shadcn component
-- When adding new shadch component, document the installation command
+- When adding new shadcn component, document the installation command
 - The project supports dark mode, and must continue to do so
 
 ## Error Handling
