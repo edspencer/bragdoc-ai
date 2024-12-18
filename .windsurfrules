@@ -153,6 +153,7 @@ Rules:
 - Test in multiple environments
 - Keep the TODO.md file up to date
 - Write any scripts in TypeScript
+- Keep an up to date LOG.md file in the features/some-feature directory. Each time you do something related to that feature, write a log entry in the LOG.md file.
 
 ## Windsurf Specific
 - Automatically suggest additions to the .windsurfrules file where best practices are discussed or updated during the generation process, if the content does not exist in the file already.
@@ -186,6 +187,12 @@ Rules:
 - Write a detailed plan for the feature, including tasks and dependencies
 - Put tasks into a logical order
 - describe, expect, test, beforeAll, afterAll, beforeEach and so on are available globally - do not import them
+
+## When writing logs
+
+- Keep the LOG.md file up to date in the features/some-feature directory.
+- Each time you do some work related to that feature, write a log entry in the LOG.md file.
+- Document decisions taken as well as actions taken - for example if we decided to defer UI testing to a later date, leave as much context as necessary in the LOG.md file so that you can pick up where you left off later
 
 ## Scripts
 
