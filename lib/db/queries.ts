@@ -1,5 +1,5 @@
 import { genSaltSync, hashSync } from "bcrypt-ts";
-import { and, asc, desc, eq, gt, gte, InferSelectModel, lte } from "drizzle-orm";
+import { and, asc, desc, eq, gt, gte, type InferSelectModel, lte } from "drizzle-orm";
 import { db as defaultDb } from "@/lib/db";
 
 import { 

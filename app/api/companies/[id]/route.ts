@@ -1,12 +1,10 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { auth } from '@/app/(auth)/auth';
 import {
   getCompanyById,
   updateCompany,
   deleteCompany
 } from "@/lib/db/queries";
-import { drizzle } from "drizzle-orm/postgres-js";
-import postgres from "postgres";
 import { z } from "zod";
 import { db } from "@/lib/db";
 
@@ -20,7 +18,7 @@ const updateCompanySchema = z.object({
 });
 
 export async function GET(
-  request: Request,
+  request: NextRequest,
   { params }: { params: { id: string } }
 ) {
   try {
@@ -36,24 +34,18 @@ export async function GET(
     });
 
     if (!company) {
-      return NextResponse.json(
-        { error: "Company not found" },
-        { status: 404 }
-      );
+      return new Response('Not Found', { status: 404 });
     }
 
     return NextResponse.json(company);
   } catch (error) {
-    console.error("Failed to get company:", error);
-    return NextResponse.json(
-      { error: "Failed to get company" },
-      { status: 500 }
-    );
+    console.error('Error fetching company:', error);
+    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
   }
 }
 
 export async function PUT(
-  request: Request,
+  request: NextRequest,
   { params }: { params: { id: string } }
 ) {
   try {
@@ -73,39 +65,25 @@ export async function PUT(
     });
 
     if (!company) {
-      return NextResponse.json(
-        { error: "Company not found" },
-        { status: 404 }
-      );
+      return new Response('Not Found', { status: 404 });
     }
 
     return NextResponse.json(company);
   } catch (error) {
-    console.error("Failed to update company:", error);
     if (error instanceof z.ZodError) {
-      return NextResponse.json(
-        { error: "Invalid input", details: error.errors },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: error.errors }, { status: 400 });
     }
-    return NextResponse.json(
-      { error: "Failed to update company" },
-      { status: 500 }
-    );
+    console.error('Error updating company:', error);
+    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
   }
 }
 
 export async function DELETE(
-  request: Request,
+  request: NextRequest,
   { params }: { params: { id: string } }
 ) {
   try {
     const session = await auth();
-    
-    if (!session || !session.user || !session.user.id) {
-      return new Response('Unauthorized', { status: 401 });
-    }
-
     if (!session?.user?.id) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
@@ -116,19 +94,13 @@ export async function DELETE(
       db
     });
 
-    if (deleted.length === 0) {
-      return NextResponse.json(
-        { error: "Company not found" },
-        { status: 404 }
-      );
+    if (!deleted || deleted.length === 0) {
+      return new Response('Not Found', { status: 404 });
     }
 
-    return new NextResponse(null, { status: 204 });
+    return new Response(null, { status: 204 });
   } catch (error) {
-    console.error("Failed to delete company:", error);
-    return NextResponse.json(
-      { error: "Failed to delete company" },
-      { status: 500 }
-    );
+    console.error('Error deleting company:', error);
+    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
   }
 }

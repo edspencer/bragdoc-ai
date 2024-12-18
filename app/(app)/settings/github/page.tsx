@@ -1,6 +1,6 @@
 import { auth } from '@/app/(auth)/auth';
 
-import { db } from '@/lib/db/queries';
+import { db } from '@/lib/db';
 import { githubRepository } from '@/lib/db/schema';
 import { eq, desc } from 'drizzle-orm';
 import { RepositorySelector } from '@/components/github/RepositorySelector';

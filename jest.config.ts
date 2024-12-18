@@ -1,6 +1,4 @@
-// import { transform } from 'next/dist/build/swc/generated-native';
 
-import { isGeneratorFunction } from "util/types";
 
 require('dotenv').config({ path: '.env.test' });
 

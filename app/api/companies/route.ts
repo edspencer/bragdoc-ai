@@ -1,8 +1,6 @@
 import { NextResponse } from "next/server";
 import { auth } from '@/app/(auth)/auth';
 import { getCompaniesByUserId, createCompany } from "@/lib/db/queries";
-import { drizzle } from "drizzle-orm/postgres-js";
-import postgres from "postgres";
 import { z } from "zod";
 import { db } from "@/lib/db";
 

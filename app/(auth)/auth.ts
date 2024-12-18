@@ -6,7 +6,8 @@ import GitHub from 'next-auth/providers/github';
 import { DrizzleAdapter } from '@auth/drizzle-adapter';
 import { eq } from 'drizzle-orm';
 
-import { getUser, db } from '@/lib/db/queries';
+import { getUser } from '@/lib/db/queries';
+import { db } from '@/lib/db';
 
 import { authConfig } from './auth.config';
 
