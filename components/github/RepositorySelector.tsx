@@ -70,7 +70,7 @@ export function RepositorySelector({
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         <Button variant="outline">
-          <GitBranch className="mr-2 h-4 w-4" />
+          <GitBranch className="mr-2 size-4" />
           Connect GitHub Repository
         </Button>
       </DialogTrigger>
@@ -108,13 +108,13 @@ export function RepositorySelector({
                       <div className="flex items-center space-x-2">
                         <span className="font-medium">{repo.name}</span>
                         {repo.private ? (
-                          <Lock className="h-4 w-4 text-muted-foreground" />
+                          <Lock className="size-4 text-muted-foreground" />
                         ) : (
-                          <Unlock className="h-4 w-4 text-muted-foreground" />
+                          <Unlock className="size-4 text-muted-foreground" />
                         )}
                       </div>
                       {repo.fullName === selectedRepositoryId && (
-                        <Check className="h-4 w-4 text-primary" />
+                        <Check className="size-4 text-primary" />
                       )}
                     </div>
                     {repo.description && (

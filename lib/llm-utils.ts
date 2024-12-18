@@ -9,7 +9,9 @@ const BragSchema = z.object({
   eventEnd: z.string().transform(date => new Date(date)).describe('The end date of the event or achievement'),
   eventDuration: z.enum(['day', 'week', 'month', 'quarter', 'half year', 'year']).describe('The duration of the achievement'),
   summary: z.string().describe('A brief summary of the achievement'),
-  details: z.string().optional().describe('Additional details about the achievement')
+  details: z.string().optional().describe('Additional details about the achievement'),
+  companyId: z.string().nullable().describe('The ID of the company this achievement is associated with (null if not specified)'),
+  projectId: z.string().nullable().describe('The ID of the project this achievement is associated with (null if not specified)'),
 })
 
 export async function detectBragsFromMessage(

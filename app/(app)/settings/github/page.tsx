@@ -46,7 +46,7 @@ export default async function GitHubSettingsPage() {
               >
                 <div className="flex items-center gap-2">
                   <span>{repo.fullName}</span>
-                  {repo.private && <Lock className="h-4 w-4 text-muted-foreground" />}
+                  {repo.private && <Lock className="size-4 text-muted-foreground" />}
                 </div>
                 <div className="flex items-center gap-2">
                   <SyncRepositoryButton repositoryId={repo.id} />
