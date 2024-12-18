@@ -10,6 +10,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { MagnifyingGlassIcon } from "@radix-ui/react-icons";
+import { motion } from "framer-motion";
 
 interface CompanyFiltersProps {
   filter: "all" | "current" | "past";
@@ -25,7 +26,12 @@ export function CompanyFilters({
   onSearchChange,
 }: CompanyFiltersProps) {
   return (
-    <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+    <motion.div
+      initial={{ opacity: 0, y: -20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.3 }}
+      className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between"
+    >
       <div className="flex items-center gap-2">
         <Select value={filter} onValueChange={onFilterChange}>
           <SelectTrigger className="w-[180px]">
@@ -39,16 +45,21 @@ export function CompanyFilters({
         </Select>
       </div>
 
-      <div className="relative">
-        <MagnifyingGlassIcon className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-500 dark:text-gray-400" />
+      <motion.div
+        initial={{ opacity: 0, x: 20 }}
+        animate={{ opacity: 1, x: 0 }}
+        transition={{ duration: 0.3, delay: 0.1 }}
+        className="relative"
+      >
+        <MagnifyingGlassIcon className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
         <Input
           type="search"
           placeholder="Search companies..."
           value={searchQuery}
           onChange={(e) => onSearchChange(e.target.value)}
-          className="pl-8"
+          className="pl-8 transition-shadow duration-200 focus-visible:ring-2 focus-visible:ring-primary"
         />
-      </div>
-    </div>
+      </motion.div>
+    </motion.div>
   );
 }

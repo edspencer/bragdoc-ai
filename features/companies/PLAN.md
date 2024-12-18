@@ -126,10 +126,10 @@
 ## Phase 4: Polish and Testing
 
 ### 4.1 UI Polish
-- [ ] Add loading skeletons
-- [ ] Add transitions/animations
-- [ ] Ensure responsive design
-- [ ] Dark mode support
+- [x] Add loading skeletons
+- [x] Add transitions/animations
+- [x] Ensure responsive design
+- [x] Dark mode support
 
 ### 4.2 Testing
 - [ ] API Route Tests in `test/companies/api.test.ts`:

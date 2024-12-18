@@ -13,8 +13,10 @@ import { PlusIcon } from "@radix-ui/react-icons";
 import { format } from "date-fns";
 import { CompanyActions } from "./company-actions";
 import { CompanyDialog } from "./company-dialog";
+import { CompanyListSkeleton } from "./company-list-skeleton";
 import { useState } from "react";
 import { CompanyFormData } from "./company-form";
+import { motion } from "framer-motion";
 
 interface Company {
   id: string;
@@ -43,6 +45,10 @@ export function CompanyList({
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [editCompany, setEditCompany] = useState<Company | null>(null);
 
+  if (isLoading) {
+    return <CompanyListSkeleton />;
+  }
+
   const sortedCompanies = [...companies].sort(
     (a, b) => b.startDate.getTime() - a.startDate.getTime()
   );
@@ -65,7 +71,11 @@ export function CompanyList({
 
   if (companies.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center p-8 text-center">
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="flex flex-col items-center justify-center p-8 text-center"
+      >
         <h3 className="mt-2 text-sm font-semibold text-gray-900 dark:text-gray-100">
           No companies
         </h3>
@@ -86,12 +96,16 @@ export function CompanyList({
           mode="create"
           isLoading={isLoading}
         />
-      </div>
+      </motion.div>
     );
   }
 
   return (
-    <div>
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.3 }}
+    >
       <div className="mb-4 flex justify-end">
         <Button onClick={() => setCreateDialogOpen(true)}>
           <PlusIcon className="mr-2 h-4 w-4" />
@@ -111,13 +125,21 @@ export function CompanyList({
             </TableRow>
           </TableHeader>
           <TableBody>
-            {sortedCompanies.map((company) => (
-              <TableRow key={company.id}>
+            {sortedCompanies.map((company, index) => (
+              <motion.tr
+                key={company.id}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: index * 0.1 }}
+                className="group"
+              >
                 <TableCell>
                   <div>
-                    <div className="font-medium">{company.name}</div>
+                    <div className="font-medium transition-colors group-hover:text-primary">
+                      {company.name}
+                    </div>
                     {company.domain && (
-                      <div className="text-sm text-gray-500 dark:text-gray-400">
+                      <div className="text-sm text-muted-foreground">
                         {company.domain}
                       </div>
                     )}
@@ -137,7 +159,7 @@ export function CompanyList({
                     isLoading={isLoading}
                   />
                 </TableCell>
-              </TableRow>
+              </motion.tr>
             ))}
           </TableBody>
         </Table>
@@ -159,6 +181,6 @@ export function CompanyList({
         mode="edit"
         isLoading={isLoading}
       />
-    </div>
+    </motion.div>
   );
 }
