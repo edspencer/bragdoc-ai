@@ -170,6 +170,7 @@ const PurePreviewMessage = ({
                     </div>
                   );
                 }
+
                 return (
                   <div
                     key={toolCallId}
@@ -179,6 +180,8 @@ const PurePreviewMessage = ({
                   >
                     {toolName === 'getWeather' ? (
                       <Weather />
+                    ) : toolName === 'saveBrags' ? (
+                        <BragAction action={{brags: []}} />
                     ) : toolName === 'createDocument' ? (
                       <DocumentToolCall
                         type="create"

@@ -111,7 +111,7 @@ export async function POST(request: Request) {
     experimental_activeTools: allTools,
     tools: {
       saveBrags: {
-        description: 'Save detected achievements to the database',
+        description: 'Saves detected achievements to the database. Takes no parameters. Only call once.',
         parameters: z.object({}),
         execute: async () => {
           const message = userMessage.content as string
@@ -124,7 +124,7 @@ export async function POST(request: Request) {
             originalText: message
           });
 
-          console.log('Created user message:', newUserMessage.id);
+          console.log('\nCreated user message:', newUserMessage.id);
 
           try {
             console.log('extracting brags');
