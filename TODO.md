@@ -107,7 +107,7 @@
 - [ ] Add email preferences configuration
 - [ ] Enhance document generation interface with more options
 - [ ] Stream Brags into the UI one by one instead of all as a response from extractBrags
-- [ ] Show something in the UI BragAction component before the first one streams in - "Thinking..." or something
+- [x] Show something in the UI BragAction component before the first one streams in - "Thinking..." or something
 
 ## Business Model Implementation
 - [ ] Set up Stripe/Link integration
