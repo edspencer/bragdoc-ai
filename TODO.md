@@ -67,6 +67,16 @@
 - [ ] getBrags tool? - vector search on brags
 - [ ] saveUserPreferences tool - should be called whenever the user says things like "Always arrange this (weekly report) into sections by project"
 
+### Brags renaming to Achievements
+- [ ] Change the Brag model name to Achievement, including table names, all references
+- [ ] Anywhere in the code base that we deal with the Brag model/type/drizzle table, replace it with Achievement
+- [ ] The product is still called "bragdoc.ai", and we can still talk about brag documents, but the underlying model is now called "Achievement", not "Brag"
+ 
+### Achievements UI & API
+- [ ] Implement Achievements UI - similar CRUD options as we have for Companies and Projects
+- [ ] Implement Achievements API - similar to Companies and Projects
+- [ ] Jest tests for Achievements API
+
 ### UI/UX Improvements
 - [ ] Create tag management system
 - [ ] Add email preferences configuration
