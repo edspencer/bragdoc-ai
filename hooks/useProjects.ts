@@ -5,14 +5,19 @@ import type { ProjectWithCompany } from '@/lib/db/projects/queries';
 const fetcher = async (url: string) => {
   const response = await fetch(url);
   if (!response.ok) {
-    throw new Error('Failed to fetch projects');
+    throw new Error(`Failed to fetch: ${url}`);
   }
   return response.json();
 };
 
 export function useProjects() {
-  const { data: projects, error, isLoading } = useSWR<ProjectWithCompany[]>(
+  const { data: projects, error: projectsError, isLoading: projectsLoading } = useSWR<ProjectWithCompany[]>(
     '/api/projects',
+    fetcher
+  );
+
+  const { data: companies, error: companiesError, isLoading: companiesLoading } = useSWR<Array<{ id: string; name: string }>>(
+    '/api/companies',
     fetcher
   );
 
@@ -90,8 +95,9 @@ export function useProjects() {
 
   return {
     projects: projects || [],
-    isLoading,
-    error,
+    companies: companies || [],
+    isLoading: projectsLoading || companiesLoading,
+    error: projectsError || companiesError,
     createProject,
     updateProject,
     deleteProject,

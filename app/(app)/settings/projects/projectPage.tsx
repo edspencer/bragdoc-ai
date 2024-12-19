@@ -14,6 +14,7 @@ import { ErrorBoundary } from "@/components/error-boundary";
 export default function ProjectPage() {
   const { 
     projects, 
+    companies,
     isLoading, 
     error, 
     createProject, 
@@ -85,15 +86,6 @@ export default function ProjectPage() {
   if (isLoading) {
     return <ProjectListSkeleton />;
   }
-
-  // Get unique companies from projects for the company filter
-  const companies = Array.from(
-    new Set(
-      projects
-        .filter((p) => p.company)
-        .map((p) => ({ id: p.company!.id, name: p.company!.name }))
-    )
-  );
 
   const filteredProjects = filterProjects(projects);
 
