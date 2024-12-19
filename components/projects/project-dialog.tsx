@@ -43,6 +43,7 @@ export function ProjectDialog({
           initialData={initialData}
           onSubmit={onSubmit}
           isLoading={isLoading}
+          mode={mode}
         />
       </DialogContent>
     </Dialog>

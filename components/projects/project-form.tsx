@@ -51,6 +51,9 @@ interface ProjectFormProps {
   onSubmit: (data: ProjectFormData) => void;
   isLoading?: boolean;
   companies?: Array<{ id: string; name: string }>;
+  mode: 'create' | 'edit';
+  id?: string;
+  name?: string;
 }
 
 export function ProjectForm({
@@ -58,6 +61,9 @@ export function ProjectForm({
   onSubmit,
   isLoading = false,
   companies = [],
+  mode,
+  id,
+  name,
 }: ProjectFormProps) {
   const form = useForm<ProjectFormData>({
     resolver: zodResolver(formSchema),
