@@ -9,6 +9,7 @@
     "start": "next start",
     "test:setup": "tsx test/setup.ts && drizzle-kit push --config=drizzle.config.test.ts",
     "test": "pnpm test:setup && jest",
+    "test:ide": "IDE_TEST=true pnpm test:setup && IDE_TEST=true jest",
     "test:watch": "jest --watch",
     "eval": "npx braintrust eval ./evals/**/eval.ts",
     "lint": "next lint && biome lint --write --unsafe",
