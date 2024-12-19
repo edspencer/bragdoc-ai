@@ -1,4 +1,4 @@
-import { Metadata } from "next"
+import type { Metadata } from "next"
 import { PageHeader } from "@/components/shared/page-header"
 
 export const metadata: Metadata = {

@@ -1,7 +1,6 @@
 'use client';
 
 import Link from 'next/link';
-import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 import { Building2, FolderKanban, Trophy, Settings, Sun, Moon, LogOut } from 'lucide-react';
 import { signOut } from 'next-auth/react';
@@ -60,11 +59,11 @@ export function SidebarNav({ user }: { user: User }) {
               <SidebarMenuItem key={item.href}>
                 <Link
                   href={item.href}
-                  className={`flex items-center gap-2 rounded-md p-2 text-sm font-medium hover:bg-accent hover:text-accent-foreground ${
-                    isActive ? 'bg-accent text-accent-foreground' : ''
+                  className={`flex items-center gap-2 rounded-md p-2 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground ${
+                    isActive ? 'bg-accent text-accent-foreground' : 'text-muted-foreground'
                   }`}
                 >
-                  <Icon className="h-4 w-4" />
+                  <Icon className="size-4" />
                   <span>{item.label}</span>
                 </Link>
               </SidebarMenuItem>
@@ -73,17 +72,22 @@ export function SidebarNav({ user }: { user: User }) {
         </div>
 
         {/* Bottom Actions Row */}
-        <div className="flex items-center justify-between px-2 py-2 border-t">
+        <div className="flex items-center justify-between p-2 border-t border-border">
           {/* User Avatar */}
           <Tooltip>
             <TooltipTrigger asChild>
-              <Link href="/settings" className="block">
-                <Avatar className="h-8 w-8">
+              <Link 
+                href="/settings" 
+                className="block transition-opacity hover:opacity-80"
+              >
+                <Avatar className="size-8">
                   <AvatarImage
                     src={user.image || `https://avatar.vercel.sh/${user.email}`}
                     alt={user.name || user.email || 'User avatar'}
                   />
-                  <AvatarFallback>{getInitials()}</AvatarFallback>
+                  <AvatarFallback className="bg-muted text-muted-foreground">
+                    {getInitials()}
+                  </AvatarFallback>
                 </Avatar>
               </Link>
             </TooltipTrigger>
@@ -99,13 +103,13 @@ export function SidebarNav({ user }: { user: User }) {
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="p-2"
+                  className="size-8 p-0 transition-colors hover:bg-accent hover:text-accent-foreground"
                   onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
                 >
                   {theme === 'dark' ? (
-                    <Sun className="h-4 w-4" />
+                    <Sun className="size-4" />
                   ) : (
-                    <Moon className="h-4 w-4" />
+                    <Moon className="size-4" />
                   )}
                 </Button>
               </TooltipTrigger>
@@ -118,9 +122,9 @@ export function SidebarNav({ user }: { user: User }) {
               <TooltipTrigger asChild>
                 <Link
                   href="/settings"
-                  className="p-2 rounded-md hover:bg-accent hover:text-accent-foreground"
+                  className="inline-flex size-8 items-center justify-center rounded-md transition-colors hover:bg-accent hover:text-accent-foreground"
                 >
-                  <Settings className="h-4 w-4" />
+                  <Settings className="size-4" />
                 </Link>
               </TooltipTrigger>
               <TooltipContent side="top">Settings</TooltipContent>
@@ -131,10 +135,10 @@ export function SidebarNav({ user }: { user: User }) {
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="p-2"
+                  className="size-8 p-0 transition-colors hover:bg-accent hover:text-accent-foreground"
                   onClick={() => signOut({ redirectTo: '/' })}
                 >
-                  <LogOut className="h-4 w-4" />
+                  <LogOut className="size-4" />
                 </Button>
               </TooltipTrigger>
               <TooltipContent side="top">Sign out</TooltipContent>

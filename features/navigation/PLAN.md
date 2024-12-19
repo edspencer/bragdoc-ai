@@ -39,27 +39,36 @@
   - [x] Sign out
 - [x] Add tooltips for all actions
 
-## Phase 3: UI Consistency
+## Phase 3: Directory Structure
 
-### 3.1 Navigation Styling
+### 3.1 App Directory Organization
+- [x] Move chat directory to (app)
+- [x] Move achievements to (app)
+- [x] Update import paths to reflect new structure
+- [x] Clean up old directories
+
+## Phase 4: UI Consistency
+
+### 4.1 Navigation Styling
 - [ ] Test and refine hover states
 - [ ] Verify spacing and alignment
 - [ ] Ensure dark mode compatibility
 
-### 3.2 Layout Consistency
+### 4.2 Layout Consistency
 - [ ] Test responsive behavior
 - [ ] Verify navigation state persistence
 - [ ] Check mobile layout
 
-## Phase 4: Testing and Cleanup
+## Phase 5: Testing and Cleanup
 
-### 4.1 Testing
+### 5.1 Navigation Testing
 - [ ] Test navigation flow between pages
-- [ ] Verify all CRUD operations in new locations
+- [ ] Verify all pages inherit correct layout
 - [ ] Test responsive behavior
 - [ ] Validate theme persistence
 
-### 4.2 Final Cleanup
-- [ ] Remove any remaining old navigation code
-- [ ] Update type definitions if needed
-- [ ] Document new navigation structure
+### 5.2 Final Cleanup
+- [ ] Review and update documentation
+- [ ] Clean up any unused imports
+- [ ] Verify type definitions
+- [ ] Final QA pass

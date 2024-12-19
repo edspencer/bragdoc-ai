@@ -1,8 +1,6 @@
-import { cookies } from 'next/headers';
+
 
 import { SettingsNav } from '@/components/settings-nav';
-
-import { auth } from '../../(auth)/auth';
 
 export const experimental_ppr = true;
 
