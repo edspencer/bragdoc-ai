@@ -19,7 +19,9 @@ export default async function Layout({
     <SidebarProvider defaultOpen={!isCollapsed}>
       <AppSidebar user={session?.user} />
       <SidebarInset>
-        <main className="flex-1">{children}</main>
+        <main className="flex-1 min-h-screen overflow-auto p-4 sm:p-6">
+          {children}
+        </main>
       </SidebarInset>
     </SidebarProvider>
   );

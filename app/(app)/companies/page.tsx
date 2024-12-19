@@ -27,7 +27,7 @@ export default function CompaniesPage() {
     if (filter === "current") return !company.endDate;
     if (filter === "past") return company.endDate;
     return true;
-  });
+  }) ?? [];
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -38,9 +38,9 @@ export default function CompaniesPage() {
       <div className="space-y-4">
         <CompanyFilters
           filter={filter}
-          setFilter={setFilter}
+          onFilterChange={setFilter}
           searchQuery={searchQuery}
-          setSearchQuery={setSearchQuery}
+          onSearchChange={setSearchQuery}
         />
         <CompanyList
           companies={filteredCompanies}
