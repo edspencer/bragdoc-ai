@@ -108,6 +108,11 @@
 - [ ] Enhance document generation interface with more options
 - [ ] Stream Brags into the UI one by one instead of all as a response from extractBrags
 - [x] Show something in the UI BragAction component before the first one streams in - "Thinking..." or something
+- [ ] Fix calendar/date picker components throughout the app
+  - Calendar appears behind modal overlays
+  - Click events are intercepted by modal overlays
+  - Affects all date pickers in modals (project dates, etc.)
+  - Need to investigate proper z-index and event handling in shadcn components
 
 ## Business Model Implementation
 - [ ] Set up Stripe/Link integration
