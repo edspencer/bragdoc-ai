@@ -117,10 +117,10 @@ export function CompanyList({
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Company</TableHead>
-              <TableHead>Role</TableHead>
-              <TableHead>Start Date</TableHead>
-              <TableHead>End Date</TableHead>
+              <TableHead className="min-w-[200px]">Company</TableHead>
+              <TableHead className="min-w-[120px]">Role</TableHead>
+              <TableHead className="min-w-[120px]">Start Date</TableHead>
+              <TableHead className="min-w-[120px]">End Date</TableHead>
               <TableHead className="w-[100px]">Actions</TableHead>
             </TableRow>
           </TableHeader>

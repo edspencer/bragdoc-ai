@@ -30,7 +30,7 @@ import {
   sanitizeResponseMessages,
 } from '@/lib/utils';
 
-import { generateTitleFromUserMessage } from '../../chat/actions';
+import { generateTitleFromUserMessage } from '@/app/(app)/chat/actions';
 import { extractBrags } from '@/lib/ai/extract';
 
 export const maxDuration = 60;

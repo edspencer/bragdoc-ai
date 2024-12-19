@@ -102,9 +102,20 @@
 
 ### UI/UX Improvements
 - [x] Add company management in UI
-- [ ] Add project management interface
+- [x] Add project management interface
+- [x] Top-level nav restructure:
+  - [x] Move Companies CRUD out of settings and into its own page at /companies
+  - [x] Settings should remain as it is, but should not have the companies CRUD inside it. It should though have basic user management (edit profile, change password, etc.)
+  - [x] Move Projects CRUD to /projects instead of /settings/projects
+  - [x] Create a skeleton Achievements page at /achievements - later this will allow the user to do CRUD on their Brags/Achievements
+  - [x] Update the bottom-left nav:
+    - [x] Remove the dropdown activated list of buttons (toggle light/dark mode, settings, and sign out)
+    - [x] Create icons for each of those buttons instead
+    - [x] Above this, add links to the /companies, /projects, and /achievements pages
+  - [x] The Projects, Companies, and Achievements pages should all have the same feel, same use of headings, component layout where appropriate, etc.
 - [ ] Create tag management system
 - [ ] Add email preferences configuration
+- [x] Add confetti when a company is created (same as we have for project creation)
 - [ ] Enhance document generation interface with more options
 - [ ] Stream Brags into the UI one by one instead of all as a response from extractBrags
 - [x] Show something in the UI BragAction component before the first one streams in - "Thinking..." or something
