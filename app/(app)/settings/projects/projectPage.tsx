@@ -5,6 +5,7 @@ import { ProjectList } from '@/components/projects/project-list';
 import { toast } from 'sonner';
 import type { ProjectFormData } from '@/components/projects/project-form';
 import { ProjectListSkeleton } from '@/components/projects/project-list-skeleton';
+import { ErrorBoundary } from "@/components/error-boundary";
 
 export default function ProjectPage() {
   const { 
@@ -56,13 +57,17 @@ export default function ProjectPage() {
 
   return (
     <div className="p-6">
-      <ProjectList
-        projects={projects}
-        onCreateProject={handleCreateProject}
-        onUpdateProject={handleUpdateProject}
-        onDeleteProject={handleDeleteProject}
-        isLoading={isLoading}
-      />
+      <div className="space-y-4">
+        <ErrorBoundary>
+          <ProjectList
+            projects={projects}
+            onCreateProject={handleCreateProject}
+            onUpdateProject={handleUpdateProject}
+            onDeleteProject={handleDeleteProject}
+            isLoading={isLoading}
+          />
+        </ErrorBoundary>
+      </div>
     </div>
   );
 }
