@@ -53,6 +53,12 @@ export const company = pgTable('Company', {
 
 export type Company = InferSelectModel<typeof company>;
 
+export enum ProjectStatus {
+  Active = 'active',
+  Completed = 'completed',
+  Archived = 'archived'
+}
+
 export const project = pgTable('Project', {
   id: uuid('id').primaryKey().notNull().defaultRandom(),
   userId: uuid('user_id')
@@ -62,7 +68,8 @@ export const project = pgTable('Project', {
     .references(() => company.id),
   name: varchar('name', { length: 256 }).notNull(),
   description: text('description'),
-  startDate: timestamp('start_date'),
+  status: varchar('status', { length: 32 }).notNull().default('active'),
+  startDate: timestamp('start_date').notNull(),
   endDate: timestamp('end_date'),
   createdAt: timestamp('created_at').notNull().defaultNow(),
   updatedAt: timestamp('updated_at').notNull().defaultNow(),

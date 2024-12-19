@@ -1,6 +1,4 @@
 "use client";
-
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
   Select,
@@ -51,7 +49,7 @@ export function CompanyFilters({
         transition={{ duration: 0.3, delay: 0.1 }}
         className="relative"
       >
-        <MagnifyingGlassIcon className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+        <MagnifyingGlassIcon className="absolute left-2.5 top-2.5 size-4 text-muted-foreground" />
         <Input
           type="search"
           placeholder="Search companies..."

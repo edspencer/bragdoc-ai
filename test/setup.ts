@@ -1,4 +1,3 @@
-
 import postgres from 'postgres';
 
 const TEST_DB_NAME = 'bragai-test';

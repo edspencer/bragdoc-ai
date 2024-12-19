@@ -1,6 +1,6 @@
 import useSWR from "swr";
 import { toast } from "sonner";
-import { CompanyFormData } from "@/components/companies/company-form";
+import type { CompanyFormData } from "@/components/companies/company-form";
 
 interface Company {
   id: string;

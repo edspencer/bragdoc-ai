@@ -10,7 +10,7 @@ import {
 } from "@/components/ui/table";
 import { Skeleton } from "@/components/ui/skeleton";
 
-export function CompanyListSkeleton() {
+export function ProjectListSkeleton() {
   return (
     <div>
       <div className="mb-4 flex justify-end">
@@ -21,8 +21,9 @@ export function CompanyListSkeleton() {
         <Table>
           <TableHeader>
             <TableRow>
+              <TableHead>Project</TableHead>
               <TableHead>Company</TableHead>
-              <TableHead>Role</TableHead>
+              <TableHead>Status</TableHead>
               <TableHead>Start Date</TableHead>
               <TableHead>End Date</TableHead>
               <TableHead className="w-[100px]">Actions</TableHead>
@@ -33,12 +34,15 @@ export function CompanyListSkeleton() {
               <TableRow key={i}>
                 <TableCell>
                   <div className="space-y-2">
-                    <Skeleton className="h-4 w-[140px]" />
-                    <Skeleton className="h-3 w-[100px]" />
+                    <Skeleton className="h-4 w-[180px]" />
+                    <Skeleton className="h-3 w-[140px]" />
                   </div>
                 </TableCell>
                 <TableCell>
-                  <Skeleton className="h-4 w-[120px]" />
+                  <Skeleton className="h-4 w-[140px]" />
+                </TableCell>
+                <TableCell>
+                  <Skeleton className="h-6 w-[80px] rounded-full" />
                 </TableCell>
                 <TableCell>
                   <Skeleton className="h-4 w-[80px]" />

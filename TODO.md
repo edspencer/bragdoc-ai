@@ -101,13 +101,18 @@
 - [ ] 
 
 ### UI/UX Improvements
-- [ ] Add company management in UI
+- [x] Add company management in UI
 - [ ] Add project management interface
 - [ ] Create tag management system
 - [ ] Add email preferences configuration
 - [ ] Enhance document generation interface with more options
 - [ ] Stream Brags into the UI one by one instead of all as a response from extractBrags
 - [x] Show something in the UI BragAction component before the first one streams in - "Thinking..." or something
+- [ ] Fix calendar/date picker components throughout the app
+  - Calendar appears behind modal overlays
+  - Click events are intercepted by modal overlays
+  - Affects all date pickers in modals (project dates, etc.)
+  - Need to investigate proper z-index and event handling in shadcn components
 
 ## Business Model Implementation
 - [ ] Set up Stripe/Link integration
@@ -127,6 +132,13 @@
   - [ ] Upgrade/downgrade flows
   - [ ] Billing history
   - [ ] Payment method management
+
+## Testing Infrastructure
+- [ ] Add support for React component testing
+  - [ ] Configure Jest to support both Node and jsdom environments
+  - [ ] Set up proper test file organization (.node.test.ts vs .test.tsx)
+  - [ ] Add examples and documentation for component testing
+  - [ ] Ensure proper mocking of Next.js features (router, etc)
 
 ## Conversation Examples & Testing
 

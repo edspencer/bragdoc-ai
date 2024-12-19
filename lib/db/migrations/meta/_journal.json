@@ -71,6 +71,13 @@
       "when": 1734477558614,
       "tag": "0009_married_moon_knight",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1734566286967,
+      "tag": "0010_fixed_wallow",
+      "breakpoints": true
     }
   ]
 }

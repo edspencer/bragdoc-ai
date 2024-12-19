@@ -15,7 +15,7 @@ import { CompanyActions } from "./company-actions";
 import { CompanyDialog } from "./company-dialog";
 import { CompanyListSkeleton } from "./company-list-skeleton";
 import { useState } from "react";
-import { CompanyFormData } from "./company-form";
+import type { CompanyFormData } from "./company-form";
 import { motion } from "framer-motion";
 
 interface Company {
@@ -84,7 +84,7 @@ export function CompanyList({
         </p>
         <div className="mt-6">
           <Button onClick={() => setCreateDialogOpen(true)}>
-            <PlusIcon className="mr-2 h-4 w-4" />
+            <PlusIcon className="mr-2 size-4" />
             Add Company
           </Button>
         </div>
@@ -108,7 +108,7 @@ export function CompanyList({
     >
       <div className="mb-4 flex justify-end">
         <Button onClick={() => setCreateDialogOpen(true)}>
-          <PlusIcon className="mr-2 h-4 w-4" />
+          <PlusIcon className="mr-2 size-4" />
           Add Company
         </Button>
       </div>

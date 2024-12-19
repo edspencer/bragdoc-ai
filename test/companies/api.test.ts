@@ -126,7 +126,7 @@ describe('Companies API', () => {
 
       const response = await GET(
         new NextRequest(new NextRequest(`http://localhost/api/companies/${created.id}`)),
-        { params: { id: created.id } }
+        { params: Promise.resolve({id: created.id})  }
       );
       
       expect(response.status).toBe(200);
@@ -137,7 +137,7 @@ describe('Companies API', () => {
     it('returns 404 for non-existent company', async () => {
       const response = await GET(
         new NextRequest(new NextRequest('http://localhost/api/companies/123e4567-e89b-12d3-a456-426614174001')),
-        { params: { id: '123e4567-e89b-12d3-a456-426614174001' } }
+        { params: Promise.resolve({id: '123e4567-e89b-12d3-a456-426614174001' }) }
       );
       
       expect(response.status).toBe(404);
@@ -172,7 +172,7 @@ describe('Companies API', () => {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(updateData),
         }),
-        { params: { id: created.id } }
+        { params: Promise.resolve({id: created.id}) }
       );
 
       expect(response.status).toBe(200);
@@ -196,7 +196,7 @@ describe('Companies API', () => {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(updateData),
         }),
-        { params: { id: '123e4567-e89b-12d3-a456-426614174001' } }
+        { params: Promise.resolve({id: '123e4567-e89b-12d3-a456-426614174001' }) }
       );
 
       expect(response.status).toBe(404);
@@ -219,7 +219,7 @@ describe('Companies API', () => {
         new NextRequest(`http://localhost/api/companies/${created.id}`, {
           method: 'DELETE',
         }),
-        { params: { id: created.id } }
+        { params: Promise.resolve({ id: created.id }) }
       );
 
       expect(response.status).toBe(204);
@@ -234,7 +234,7 @@ describe('Companies API', () => {
         new NextRequest('http://localhost/api/companies/123e4567-e89b-12d3-a456-426614174002', {
           method: 'DELETE',
         }),
-        { params: { id: '123e4567-e89b-12d3-a456-426614174002' } }
+        { params: Promise.resolve({ id: '123e4567-e89b-12d3-a456-426614174002' }) }
       );
 
       expect(response.status).toBe(404);

@@ -45,7 +45,7 @@ export function CompanyActions({
         onClick={onEdit}
         disabled={isLoading || isDeleting}
       >
-        <Pencil1Icon className="h-4 w-4" />
+        <Pencil1Icon className="size-4" />
         <span className="sr-only">Edit</span>
       </Button>
 
@@ -57,7 +57,7 @@ export function CompanyActions({
             disabled={isLoading || isDeleting}
             className="text-red-600 hover:text-red-700 dark:text-red-500 dark:hover:text-red-600"
           >
-            <TrashIcon className="h-4 w-4" />
+            <TrashIcon className="size-4" />
             <span className="sr-only">Delete</span>
           </Button>
         </AlertDialogTrigger>
