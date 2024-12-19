@@ -85,7 +85,7 @@ export function ProjectFilters({
           )}>
             <SelectValue placeholder="Filter by status" />
             {loading.status && (
-              <Loader2Icon className="ml-2 h-4 w-4 animate-spin" />
+              <Loader2Icon className="ml-2 size-4 animate-spin" />
             )}
           </SelectTrigger>
           <SelectContent>
@@ -108,7 +108,7 @@ export function ProjectFilters({
           )}>
             <SelectValue placeholder="Filter by company" />
             {loading.company && (
-              <Loader2Icon className="ml-2 h-4 w-4 animate-spin" />
+              <Loader2Icon className="ml-2 size-4 animate-spin" />
             )}
           </SelectTrigger>
           <SelectContent>
@@ -138,9 +138,9 @@ export function ProjectFilters({
               )}
             >
               {isLoading ? (
-                <Loader2Icon className="mr-2 h-4 w-4 animate-spin" />
+                <Loader2Icon className="mr-2 size-4 animate-spin" />
               ) : (
-                <ResetIcon className="mr-2 h-4 w-4" />
+                <ResetIcon className="mr-2 size-4" />
               )}
               Reset
             </Button>
@@ -155,7 +155,7 @@ export function ProjectFilters({
         className="relative"
       >
         <MagnifyingGlassIcon className={cn(
-          "absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground",
+          "absolute left-2.5 top-2.5 size-4 text-muted-foreground",
           loading.search && "opacity-70"
         )} />
         <Input
@@ -173,7 +173,7 @@ export function ProjectFilters({
         />
         {loading.search && (
           <div className="absolute right-2.5 top-2.5">
-            <Loader2Icon className="h-4 w-4 animate-spin text-muted-foreground" />
+            <Loader2Icon className="size-4 animate-spin text-muted-foreground" />
           </div>
         )}
       </motion.div>

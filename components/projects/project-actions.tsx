@@ -60,13 +60,13 @@ export function ProjectActions({
             variant="ghost"
             className="flex h-8 w-8 p-0 data-[state=open]:bg-muted"
           >
-            <DotsHorizontalIcon className="h-4 w-4" />
+            <DotsHorizontalIcon className="size-4" />
             <span className="sr-only">Open menu</span>
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" className="w-[160px]">
           <DropdownMenuItem onClick={() => onEdit(project)}>
-            <Pencil1Icon className="mr-2 h-4 w-4" />
+            <Pencil1Icon className="mr-2 size-4" />
             Edit
           </DropdownMenuItem>
           <DropdownMenuSeparator />
@@ -74,7 +74,7 @@ export function ProjectActions({
             onClick={() => setShowDeleteDialog(true)}
             className="text-red-600"
           >
-            <TrashIcon className="mr-2 h-4 w-4" />
+            <TrashIcon className="mr-2 size-4" />
             Delete
           </DropdownMenuItem>
         </DropdownMenuContent>

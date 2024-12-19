@@ -57,7 +57,7 @@ export function ProjectList({
           className="ml-auto"
           size="sm"
         >
-          <PlusIcon className="mr-2 h-4 w-4" />
+          <PlusIcon className="mr-2 size-4" />
           Add Project
         </Button>
       </div>
@@ -75,7 +75,7 @@ export function ProjectList({
               className="relative"
               size="sm"
             >
-              <PlusIcon className="mr-2 h-4 w-4" />
+              <PlusIcon className="mr-2 size-4" />
               Add Project
             </Button>
           </div>

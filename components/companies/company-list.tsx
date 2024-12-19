@@ -84,7 +84,7 @@ export function CompanyList({
         </p>
         <div className="mt-6">
           <Button onClick={() => setCreateDialogOpen(true)}>
-            <PlusIcon className="mr-2 h-4 w-4" />
+            <PlusIcon className="mr-2 size-4" />
             Add Company
           </Button>
         </div>
@@ -108,7 +108,7 @@ export function CompanyList({
     >
       <div className="mb-4 flex justify-end">
         <Button onClick={() => setCreateDialogOpen(true)}>
-          <PlusIcon className="mr-2 h-4 w-4" />
+          <PlusIcon className="mr-2 size-4" />
           Add Company
         </Button>
       </div>

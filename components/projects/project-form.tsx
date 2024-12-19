@@ -186,7 +186,7 @@ export function ProjectForm({
                         ) : (
                           <span>Pick a date</span>
                         )}
-                        <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                        <CalendarIcon className="ml-auto size-4 opacity-50" />
                       </Button>
                     </FormControl>
                   </PopoverTrigger>
@@ -228,7 +228,7 @@ export function ProjectForm({
                         ) : (
                           <span>Pick a date</span>
                         )}
-                        <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                        <CalendarIcon className="ml-auto size-4 opacity-50" />
                       </Button>
                     </FormControl>
                   </PopoverTrigger>
@@ -256,7 +256,7 @@ export function ProjectForm({
             {isLoading && <span className="mr-2">Saving...</span>}
             {!isLoading && (
               <>
-                <CheckIcon className="mr-2 h-4 w-4" />
+                <CheckIcon className="mr-2 size-4" />
                 Save
               </>
             )}
