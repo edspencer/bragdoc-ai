@@ -1,6 +1,7 @@
 'use client';
 
 import { useProjects } from '@/hooks/useProjects';
+import { useRetry } from '@/hooks/useRetry';
 import { ProjectList } from '@/components/projects/project-list';
 import { toast } from 'sonner';
 import type { ProjectFormData } from '@/components/projects/project-form';
@@ -16,35 +17,51 @@ export default function ProjectPage() {
     updateProject, 
     deleteProject 
   } = useProjects();
+  const { executeWithRetry } = useRetry<boolean>();
 
   const handleCreateProject = async (data: ProjectFormData): Promise<boolean> => {
-    const success = await createProject(data);
-    if (success) {
-      toast.success('Project created successfully');
-    } else {
-      toast.error('Failed to create project');
+    try {
+      const success = await executeWithRetry(() => createProject(data));
+      if (success) {
+        toast.success('Project created successfully');
+      } else {
+        toast.error('Failed to create project');
+      }
+      return success;
+    } catch (error) {
+      toast.error('Failed to create project after multiple attempts');
+      return false;
     }
-    return success;
   };
 
   const handleUpdateProject = async (id: string, data: ProjectFormData): Promise<boolean> => {
-    const success = await updateProject(id, data);
-    if (success) {
-      toast.success('Project updated successfully');
-    } else {
-      toast.error('Failed to update project');
+    try {
+      const success = await executeWithRetry(() => updateProject(id, data));
+      if (success) {
+        toast.success('Project updated successfully');
+      } else {
+        toast.error('Failed to update project');
+      }
+      return success;
+    } catch (error) {
+      toast.error('Failed to update project after multiple attempts');
+      return false;
     }
-    return success;
   };
 
   const handleDeleteProject = async (id: string): Promise<boolean> => {
-    const success = await deleteProject(id);
-    if (success) {
-      toast.success('Project deleted successfully');
-    } else {
-      toast.error('Failed to delete project');
+    try {
+      const success = await executeWithRetry(() => deleteProject(id));
+      if (success) {
+        toast.success('Project deleted successfully');
+      } else {
+        toast.error('Failed to delete project');
+      }
+      return success;
+    } catch (error) {
+      toast.error('Failed to delete project after multiple attempts');
+      return false;
     }
-    return success;
   };
 
   if (error) {

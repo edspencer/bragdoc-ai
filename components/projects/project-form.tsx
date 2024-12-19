@@ -50,14 +50,17 @@ interface ProjectFormProps {
   initialData?: Partial<ProjectFormData>;
   onSubmit: (data: ProjectFormData) => void;
   isLoading?: boolean;
-  companies?: Array<{ id: string; name: string }>;
-  mode: 'create' | 'edit';
+  companies?: { id: string; name: string }[];
+  mode: "create" | "edit";
   id?: string;
   name?: string;
 }
 
 export function ProjectForm({
-  initialData,
+  initialData = {
+    status: ProjectStatus.Active,
+    startDate: new Date(),
+  },
   onSubmit,
   isLoading = false,
   companies = [],
@@ -68,18 +71,25 @@ export function ProjectForm({
   const form = useForm<ProjectFormData>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      name: initialData?.name || "",
-      description: initialData?.description || "",
-      companyId: initialData?.companyId || "none",
-      status: initialData?.status,
-      startDate: initialData?.startDate || new Date(),
-      endDate: initialData?.endDate || null,
+      name: initialData.name || "",
+      description: initialData.description || "",
+      companyId: initialData.companyId || "none",
+      status: initialData.status || ProjectStatus.Active,
+      startDate: initialData.startDate || new Date(),
+      endDate: initialData.endDate || null,
     },
   });
 
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      form.handleSubmit((data) => onSubmit(data))();
+    }
+  };
+
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4" onKeyDown={handleKeyDown}>
         <FormField
           control={form.control}
           name="name"
@@ -154,9 +164,9 @@ export function ProjectForm({
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
-                  <SelectItem value="active">Active</SelectItem>
-                  <SelectItem value="completed">Completed</SelectItem>
-                  <SelectItem value="archived">Archived</SelectItem>
+                  <SelectItem value={ProjectStatus.Active}>Active</SelectItem>
+                  <SelectItem value={ProjectStatus.Completed}>Completed</SelectItem>
+                  <SelectItem value={ProjectStatus.Archived}>Archived</SelectItem>
                 </SelectContent>
               </Select>
               <FormMessage />
