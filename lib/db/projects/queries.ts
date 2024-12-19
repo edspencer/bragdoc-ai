@@ -1,49 +1,122 @@
 import { and, desc, eq, isNull } from 'drizzle-orm';
 import { db } from '@/lib/db';
-import { project, type Project } from '@/lib/db/schema';
+import { project, company, type Project, type Company } from '@/lib/db/schema';
+
+export type ProjectWithCompany = Omit<Project, 'companyId'> & {
+  companyId: string | null;
+  company: Company | null;
+};
 
 export type CreateProjectInput = {
   userId: string;
   name: string;
   description?: string;
-  companyId?: string;
+  companyId?: string | null;
   status: 'active' | 'completed' | 'archived';
   startDate: Date;
-  endDate?: Date;
+  endDate?: Date | null;
 };
 
 export type UpdateProjectInput = Partial<Omit<CreateProjectInput, 'userId'>>;
 
-export async function getProjectsByUserId(userId: string) {
-  return db
-    .select()
+export async function getProjectsByUserId(userId: string): Promise<ProjectWithCompany[]> {
+  const results = await db
+    .select({
+      id: project.id,
+      userId: project.userId,
+      name: project.name,
+      description: project.description,
+      companyId: project.companyId,
+      status: project.status,
+      startDate: project.startDate,
+      endDate: project.endDate,
+      createdAt: project.createdAt,
+      updatedAt: project.updatedAt,
+      company: company,
+    })
     .from(project)
+    .leftJoin(company, eq(project.companyId, company.id))
     .where(eq(project.userId, userId))
     .orderBy(desc(project.startDate));
+
+  return results.map(row => ({
+    ...row,
+    company: row.company || null,
+  }));
 }
 
-export async function getProjectById(id: string, userId: string) {
+export async function getProjectById(id: string, userId: string): Promise<ProjectWithCompany | null> {
   const results = await db
-    .select()
+    .select({
+      id: project.id,
+      userId: project.userId,
+      name: project.name,
+      description: project.description,
+      companyId: project.companyId,
+      status: project.status,
+      startDate: project.startDate,
+      endDate: project.endDate,
+      createdAt: project.createdAt,
+      updatedAt: project.updatedAt,
+      company: company,
+    })
     .from(project)
+    .leftJoin(company, eq(project.companyId, company.id))
     .where(and(eq(project.id, id), eq(project.userId, userId)));
-  return results[0] || null;
+
+  if (!results.length) return null;
+
+  return {
+    ...results[0],
+    company: results[0].company || null,
+  };
 }
 
-export async function getProjectsByCompanyId(companyId: string, userId: string) {
-  return db
-    .select()
+export async function getProjectsByCompanyId(companyId: string, userId: string): Promise<ProjectWithCompany[]> {
+  const results = await db
+    .select({
+      id: project.id,
+      userId: project.userId,
+      name: project.name,
+      description: project.description,
+      companyId: project.companyId,
+      status: project.status,
+      startDate: project.startDate,
+      endDate: project.endDate,
+      createdAt: project.createdAt,
+      updatedAt: project.updatedAt,
+      company: company,
+    })
     .from(project)
+    .leftJoin(company, eq(project.companyId, company.id))
     .where(
       and(eq(project.companyId, companyId), eq(project.userId, userId))
     )
     .orderBy(desc(project.startDate));
+
+  return results.map(row => ({
+    ...row,
+    company: row.company || null,
+  }));
 }
 
-export async function getActiveProjects(userId: string) {
-  return db
-    .select()
+export async function getActiveProjects(userId: string): Promise<ProjectWithCompany[]> {
+  const results = await db
+    .select({
+      id: project.id,
+      userId: project.userId,
+      name: project.name,
+      description: project.description,
+      companyId: project.companyId,
+      status: project.status,
+      startDate: project.startDate,
+      endDate: project.endDate,
+      createdAt: project.createdAt,
+      updatedAt: project.updatedAt,
+      company: company,
+    })
     .from(project)
+    .leftJoin(company, eq(project.companyId, company.id))
     .where(
       and(
         eq(project.userId, userId),
@@ -52,19 +125,20 @@ export async function getActiveProjects(userId: string) {
       )
     )
     .orderBy(desc(project.startDate));
+
+  return results.map(row => ({
+    ...row,
+    company: row.company || null,
+  }));
 }
 
 export async function createProject(input: CreateProjectInput): Promise<Project> {
   const results = await db
     .insert(project)
     .values({
-      userId: input.userId,
-      name: input.name,
-      description: input.description,
-      companyId: input.companyId,
-      status: input.status,
-      startDate: input.startDate,
-      endDate: input.endDate,
+      ...input,
+      createdAt: new Date(),
+      updatedAt: new Date(),
     })
     .returning();
   return results[0];

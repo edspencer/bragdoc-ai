@@ -17,32 +17,15 @@ import { useState } from "react";
 import { ProjectFormData } from "./project-form";
 import { motion } from "framer-motion";
 import { Badge } from "@/components/ui/badge";
-import { ProjectStatus } from "@/lib/db/types";
+import { ProjectStatus } from "@/lib/db/schema";
 import { ProjectActions } from "./project-actions";
-import { ProjectFilters } from "./project-filters";
-import { useProjectFilters } from "@/hooks/use-project-filters";
-
-interface Company {
-  id: string;
-  name: string;
-}
-
-interface Project {
-  id: string;
-  name: string;
-  description: string | null;
-  status: ProjectStatus;
-  startDate: Date;
-  endDate: Date | null;
-  company?: Company;
-}
+import type { ProjectWithCompany } from "@/lib/db/projects/queries";
 
 interface ProjectListProps {
-  projects: Project[];
-  companies: Company[];
-  onCreateProject: (data: ProjectFormData) => Promise<void>;
-  onUpdateProject: (id: string, data: ProjectFormData) => Promise<void>;
-  onDeleteProject: (id: string) => Promise<void>;
+  projects: ProjectWithCompany[];
+  onCreateProject: (data: ProjectFormData) => Promise<boolean>;
+  onUpdateProject: (id: string, data: ProjectFormData) => Promise<boolean>;
+  onDeleteProject: (id: string) => Promise<boolean>;
   isLoading?: boolean;
 }
 
@@ -54,176 +37,111 @@ const statusColors: Record<ProjectStatus, string> = {
 
 export function ProjectList({
   projects,
-  companies,
   onCreateProject,
   onUpdateProject,
   onDeleteProject,
   isLoading = false,
 }: ProjectListProps) {
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
-  const [editProject, setEditProject] = useState<Project | null>(null);
-  const {
-    filters,
-    setStatus,
-    setCompanyId,
-    setSearch,
-    resetFilters,
-    applyFilters,
-  } = useProjectFilters();
+  const [editProject, setEditProject] = useState<ProjectWithCompany | null>(null);
 
   if (isLoading) {
     return <ProjectListSkeleton />;
   }
 
-  const filteredProjects = applyFilters(projects);
-  const sortedProjects = [...filteredProjects].sort(
-    (a, b) => b.startDate.getTime() - a.startDate.getTime()
-  );
-
-  const handleEdit = (project: Project) => {
-    setEditProject(project);
-  };
-
-  const handleEditSubmit = async (data: ProjectFormData) => {
-    if (editProject) {
-      await onUpdateProject(editProject.id, data);
-      setEditProject(null);
-    }
-  };
-
-  const handleCreate = async (data: ProjectFormData) => {
-    await onCreateProject(data);
-    setCreateDialogOpen(false);
-  };
-
-  if (projects.length === 0) {
-    return (
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="flex flex-col items-center justify-center p-8 text-center"
-      >
-        <h3 className="mt-2 text-sm font-semibold text-gray-900 dark:text-gray-100">
-          No projects
-        </h3>
-        <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-          Get started by adding a project to track your achievements.
-        </p>
-        <div className="mt-6">
-          <Button onClick={() => setCreateDialogOpen(true)}>
-            <PlusIcon className="mr-2 h-4 w-4" />
-            Add Project
-          </Button>
-        </div>
-
-        <ProjectDialog
-          open={createDialogOpen}
-          onOpenChange={setCreateDialogOpen}
-          onSubmit={handleCreate}
-          mode="create"
-          isLoading={isLoading}
-          companies={companies}
-        />
-      </motion.div>
-    );
-  }
-
   return (
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      transition={{ duration: 0.3 }}
-    >
-      <div className="mb-6">
-        <ProjectFilters
-          status={filters.status}
-          onStatusChange={setStatus}
-          companyId={filters.companyId}
-          onCompanyChange={setCompanyId}
-          searchQuery={filters.search}
-          onSearchChange={setSearch}
-          companies={companies}
-          onReset={resetFilters}
-        />
-      </div>
-
-      <div className="mb-4 flex justify-end">
-        <Button onClick={() => setCreateDialogOpen(true)}>
+    <div className="space-y-4">
+      <div className="flex justify-end">
+        <Button
+          onClick={() => setCreateDialogOpen(true)}
+          className="ml-auto"
+          size="sm"
+        >
           <PlusIcon className="mr-2 h-4 w-4" />
           Add Project
         </Button>
       </div>
 
-      <div className="rounded-md border">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Project</TableHead>
-              <TableHead>Company</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead>Start Date</TableHead>
-              <TableHead>End Date</TableHead>
-              <TableHead className="w-[100px]">Actions</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {sortedProjects.map((project, index) => (
-              <motion.tr
-                key={project.id}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: index * 0.1 }}
-                className="group"
-              >
-                <TableCell>
-                  <div>
-                    <div className="font-medium transition-colors group-hover:text-primary">
-                      {project.name}
-                    </div>
-                    {project.description && (
-                      <div className="text-sm text-muted-foreground">
-                        {project.description}
-                      </div>
-                    )}
-                  </div>
-                </TableCell>
-                <TableCell>
-                  {project.company ? project.company.name : "-"}
-                </TableCell>
-                <TableCell>
-                  <Badge
-                    variant="secondary"
-                    className={statusColors[project.status]}
-                  >
-                    {project.status}
-                  </Badge>
-                </TableCell>
-                <TableCell>{format(project.startDate, "MMM yyyy")}</TableCell>
-                <TableCell>
-                  {project.endDate
-                    ? format(project.endDate, "MMM yyyy")
-                    : "Present"}
-                </TableCell>
-                <TableCell>
-                  <ProjectActions
-                    project={project}
-                    onEdit={handleEdit}
-                    onDelete={onDeleteProject}
-                  />
-                </TableCell>
-              </motion.tr>
-            ))}
-          </TableBody>
-        </Table>
-      </div>
+      {projects.length === 0 ? (
+        <div className="flex min-h-[400px] flex-col items-center justify-center rounded-md border border-dashed p-8 text-center animate-in fade-in-50">
+          <div className="mx-auto flex max-w-[420px] flex-col items-center justify-center text-center">
+            <h2 className="mt-6 text-xl font-semibold">No projects added</h2>
+            <p className="mb-8 mt-2 text-center text-sm font-normal leading-6 text-muted-foreground">
+              You haven&apos;t added any projects yet. Add your first project to start
+              tracking achievements.
+            </p>
+            <Button
+              onClick={() => setCreateDialogOpen(true)}
+              className="relative"
+              size="sm"
+            >
+              <PlusIcon className="mr-2 h-4 w-4" />
+              Add Project
+            </Button>
+          </div>
+        </div>
+      ) : (
+        <div className="rounded-md border">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Project</TableHead>
+                <TableHead>Company</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead>Start Date</TableHead>
+                <TableHead>End Date</TableHead>
+                <TableHead className="w-[100px]"></TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {projects.map((project) => (
+                <motion.tr
+                  key={project.id}
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  className="group hover:bg-muted/50"
+                >
+                  <TableCell className="font-medium">{project.name}</TableCell>
+                  <TableCell>{project.company?.name || "—"}</TableCell>
+                  <TableCell>
+                    <Badge
+                      variant="secondary"
+                      className={statusColors[project.status]}
+                    >
+                      {project.status}
+                    </Badge>
+                  </TableCell>
+                  <TableCell>
+                    {format(new Date(project.startDate), "MMM d, yyyy")}
+                  </TableCell>
+                  <TableCell>
+                    {project.endDate
+                      ? format(new Date(project.endDate), "MMM d, yyyy")
+                      : "—"}
+                  </TableCell>
+                  <TableCell>
+                    <ProjectActions
+                      project={project}
+                      onEdit={() => setEditProject(project)}
+                      onDelete={() => onDeleteProject(project.id)}
+                    />
+                  </TableCell>
+                </motion.tr>
+              ))}
+            </TableBody>
+          </Table>
+        </div>
+      )}
 
       <ProjectDialog
         open={createDialogOpen}
         onOpenChange={setCreateDialogOpen}
-        onSubmit={handleCreate}
+        onSubmit={async (data) => {
+          const success = await onCreateProject(data);
+          if (success) setCreateDialogOpen(false);
+        }}
         mode="create"
-        isLoading={isLoading}
-        companies={companies}
       />
 
       {editProject && (
@@ -231,19 +149,16 @@ export function ProjectList({
           open={true}
           onOpenChange={() => setEditProject(null)}
           initialData={{
-            name: editProject.name,
-            description: editProject.description || "",
-            companyId: editProject.company?.id,
-            status: editProject.status,
-            startDate: editProject.startDate,
-            endDate: editProject.endDate,
+            ...editProject,
+            description: editProject.description ?? undefined,
           }}
-          onSubmit={handleEditSubmit}
+          onSubmit={async (data) => {
+            const success = await onUpdateProject(editProject.id, data);
+            if (success) setEditProject(null);
+          }}
           mode="edit"
-          isLoading={isLoading}
-          companies={companies}
         />
       )}
-    </motion.div>
+    </div>
   );
 }

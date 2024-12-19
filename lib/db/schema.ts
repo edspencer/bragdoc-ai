@@ -53,6 +53,8 @@ export const company = pgTable('Company', {
 
 export type Company = InferSelectModel<typeof company>;
 
+export type ProjectStatus = 'active' | 'completed' | 'archived';
+
 export const project = pgTable('Project', {
   id: uuid('id').primaryKey().notNull().defaultRandom(),
   userId: uuid('user_id')

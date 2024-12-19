@@ -128,6 +128,13 @@
   - [ ] Billing history
   - [ ] Payment method management
 
+## Testing Infrastructure
+- [ ] Add support for React component testing
+  - [ ] Configure Jest to support both Node and jsdom environments
+  - [ ] Set up proper test file organization (.node.test.ts vs .test.tsx)
+  - [ ] Add examples and documentation for component testing
+  - [ ] Ensure proper mocking of Next.js features (router, etc)
+
 ## Conversation Examples & Testing
 
 ### Example Conversations

@@ -31,12 +31,12 @@ import {
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
-import { ProjectStatus } from "@/lib/db/types";
+import { ProjectStatus } from "@/lib/db/schema";
 
 const formSchema = z.object({
   name: z.string().min(1, "Project name is required").max(256),
   description: z.string().optional(),
-  companyId: z.string().uuid().optional().nullable(),
+  companyId: z.string().transform(val => val === "none" ? null : val).nullable().optional(),
   status: z.enum(["active", "completed", "archived"] as const, {
     required_error: "Status is required",
   }),
@@ -64,7 +64,7 @@ export function ProjectForm({
     defaultValues: {
       name: initialData?.name || "",
       description: initialData?.description || "",
-      companyId: initialData?.companyId || null,
+      companyId: initialData?.companyId || "none",
       status: initialData?.status || "active",
       startDate: initialData?.startDate || new Date(),
       endDate: initialData?.endDate || null,
@@ -114,7 +114,7 @@ export function ProjectForm({
               <FormLabel>Company</FormLabel>
               <Select
                 onValueChange={field.onChange}
-                defaultValue={field.value || undefined}
+                defaultValue={field.value || "none"}
               >
                 <FormControl>
                   <SelectTrigger>
@@ -122,7 +122,7 @@ export function ProjectForm({
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
-                  <SelectItem value="">None</SelectItem>
+                  <SelectItem value="none">None</SelectItem>
                   {companies.map((company) => (
                     <SelectItem key={company.id} value={company.id}>
                       {company.name}
@@ -229,13 +229,11 @@ export function ProjectForm({
                   <PopoverContent className="w-auto p-0" align="start">
                     <Calendar
                       mode="single"
-                      selected={field.value || undefined}
+                      selected={field.value}
                       onSelect={field.onChange}
                       disabled={(date) =>
-                        date > new Date() ||
-                        date < new Date("1900-01-01") ||
-                        (form.getValues("startDate") &&
-                          date < form.getValues("startDate"))
+                        date < form.getValues("startDate") ||
+                        date < new Date("1900-01-01")
                       }
                       initialFocus
                     />
@@ -247,9 +245,17 @@ export function ProjectForm({
           />
         </div>
 
-        <Button type="submit" className="w-full" disabled={isLoading}>
-          {isLoading ? "Saving..." : "Save Project"}
-        </Button>
+        <div className="flex justify-end">
+          <Button type="submit" disabled={isLoading}>
+            {isLoading && <span className="mr-2">Saving...</span>}
+            {!isLoading && (
+              <>
+                <CheckIcon className="mr-2 h-4 w-4" />
+                Save
+              </>
+            )}
+          </Button>
+        </div>
       </form>
     </Form>
   );

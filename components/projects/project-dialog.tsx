@@ -16,7 +16,6 @@ interface ProjectDialogProps {
   onSubmit: (data: ProjectFormData) => void;
   isLoading?: boolean;
   mode: "create" | "edit";
-  companies?: Array<{ id: string; name: string }>;
 }
 
 export function ProjectDialog({
@@ -26,7 +25,6 @@ export function ProjectDialog({
   onSubmit,
   isLoading,
   mode,
-  companies,
 }: ProjectDialogProps) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -45,7 +43,6 @@ export function ProjectDialog({
           initialData={initialData}
           onSubmit={onSubmit}
           isLoading={isLoading}
-          companies={companies}
         />
       </DialogContent>
     </Dialog>

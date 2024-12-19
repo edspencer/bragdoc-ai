@@ -9,10 +9,10 @@ import { z } from 'zod';
 const createProjectSchema = z.object({
   name: z.string().min(1).max(256),
   description: z.string().optional().transform(val => val === null ? undefined : val),
-  companyId: z.string().uuid().optional(),
+  companyId: z.string().uuid().nullable().optional(),
   status: z.enum(['active', 'completed', 'archived']),
-  startDate: z.string().transform((str) => new Date(str)),
-  endDate: z.string().optional().transform((str) => str ? new Date(str) : undefined),
+  startDate: z.coerce.date(),
+  endDate: z.coerce.date().nullable().optional(),
 });
 
 export async function GET() {
@@ -50,12 +50,12 @@ export async function POST(request: Request) {
     console.error('Error creating project:', error);
     if (error instanceof z.ZodError) {
       return NextResponse.json(
-        { error: "Invalid input", details: error.errors },
+        { error: "Validation Error", details: error.errors },
         { status: 400 }
       );
     }
     return NextResponse.json(
-      { error: "Failed to create project" },
+      { error: "Internal Server Error" },
       { status: 500 }
     );
   }
