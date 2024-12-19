@@ -2,9 +2,9 @@
 
 ## Phase 1: Database and API Layer
 
-### 1.1 Database Setup and Testing
-- [ ] Project table schema (create if not exists)
-- [ ] Add database queries in `lib/db/queries.ts`:
+### 1.1 Database Setup and Testing 
+- [x] Project table schema (create if not exists)
+- [x] Create `lib/db/projects/queries.ts`:
   ```typescript
   - getProjectsByUserId()
   - getProjectById()
@@ -13,70 +13,70 @@
   - updateProject()
   - deleteProject()
   ```
-- [ ] Create test file `test/projects/queries.test.ts`:
+- [x] Create test file `test/db/projects/queries.test.ts`:
   ```typescript
   describe('Project Queries', () => {
     // Test data setup
-    - [ ] Mock user data
-    - [ ] Sample company data (for relations)
-    - [ ] Sample project data
+    - [x] Mock user data
+    - [x] Sample company data (for relations)
+    - [x] Sample project data
 
     // Individual query tests
-    - [ ] getProjectsByUserId
-      - [ ] Returns empty array for new user
-      - [ ] Returns all projects for user
-      - [ ] Does not return other users' projects
-      - [ ] Correctly orders by start date
-      - [ ] Correctly filters by status
+    - [x] getProjectsByUserId
+      - [x] Returns empty array for new user
+      - [x] Returns all projects for user
+      - [x] Does not return other users' projects
+      - [x] Correctly orders by start date
+      - [x] Correctly filters by status
 
-    - [ ] getProjectById
-      - [ ] Returns project for valid ID
-      - [ ] Returns null for invalid ID
-      - [ ] Only returns project if owned by user
+    - [x] getProjectById
+      - [x] Returns project for valid ID
+      - [x] Returns null for invalid ID
+      - [x] Only returns project if owned by user
 
-    - [ ] getProjectsByCompanyId
-      - [ ] Returns projects for valid company
-      - [ ] Returns empty array for company with no projects
-      - [ ] Only returns projects if company owned by user
+    - [x] getProjectsByCompanyId
+      - [x] Returns projects for valid company
+      - [x] Returns empty array for company with no projects
+      - [x] Only returns projects if company owned by user
 
-    - [ ] createProject
-      - [ ] Creates with all required fields
-      - [ ] Creates with optional fields
-      - [ ] Creates with company association
-      - [ ] Validates required fields
-      - [ ] Associates with correct user
+    - [x] createProject
+      - [x] Creates with all required fields
+      - [x] Creates with optional fields
+      - [x] Creates with company association
+      - [x] Validates required fields
+      - [x] Associates with correct user
 
-    - [ ] updateProject
-      - [ ] Updates all fields
-      - [ ] Updates partial fields
-      - [ ] Updates company association
-      - [ ] Maintains unchanged fields
-      - [ ] Only updates if owned by user
-      - [ ] Validates required fields
+    - [x] updateProject
+      - [x] Updates all fields
+      - [x] Updates partial fields
+      - [x] Updates company association
+      - [x] Maintains unchanged fields
+      - [x] Only updates if owned by user
+      - [x] Validates required fields
 
-    - [ ] deleteProject
-      - [ ] Removes project
-      - [ ] Only deletes if owned by user
-      - [ ] Returns error for non-existent project
+    - [x] deleteProject
+      - [x] Removes project
+      - [x] Only deletes if owned by user
+      - [x] Returns error for non-existent project
   })
   ```
 
-### 1.2 API Routes
-- [ ] Create `app/api/projects/route.ts`:
-  - [ ] GET handler for listing projects
-  - [ ] POST handler for creating projects
-- [ ] Create `app/api/projects/[id]/route.ts`:
-  - [ ] GET handler for single project
-  - [ ] PUT handler for updating
-  - [ ] DELETE handler for removing
-- [ ] Create API tests in `test/projects/api.test.ts`:
-  - [ ] Test authentication and authorization
-  - [ ] Test input validation
-  - [ ] Test success and error cases
-  - [ ] Test data persistence
-  - [ ] Test company associations
-  - [ ] Ensure proper test isolation
-  - [ ] Add proper error handling
+### 1.2 API Routes 
+- [x] Create `app/api/projects/route.ts`:
+  - [x] GET handler for listing projects
+  - [x] POST handler for creating projects
+- [x] Create `app/api/projects/[id]/route.ts`:
+  - [x] GET handler for single project
+  - [x] PUT handler for updating
+  - [x] DELETE handler for removing
+- [x] Create API tests in `test/api/projects/route.test.ts`:
+  - [x] Test authentication and authorization
+  - [x] Test input validation
+  - [x] Test success and error cases
+  - [x] Test data persistence
+  - [x] Test company associations
+  - [x] Ensure proper test isolation
+  - [x] Add proper error handling
 
 ### 1.3 Type Definitions
 - [ ] Add project-related types in `lib/db/types.ts`:
@@ -149,7 +149,7 @@
 - [ ] Status color indicators
 
 ### 4.2 Testing
-- [ ] API Route Tests in `test/projects/api.test.ts`:
+- [ ] API Route Tests in `test/api/projects/route.test.ts`:
   ```typescript
   describe('Project API Routes', () => {
     // GET /api/projects
@@ -188,7 +188,7 @@
     - Returns 403 for unauthorized access
   })
   ```
-- [ ] Component Tests in `test/projects/components.test.tsx`:
+- [ ] Component Tests in `test/components/projects/components.test.tsx`:
   ```typescript
   // ProjectForm
   - Renders all fields
@@ -223,4 +223,4 @@
   - Shows delete confirmation
   - Handles delete confirmation
   - Handles archive action
-  ```
+  
