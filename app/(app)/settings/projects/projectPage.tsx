@@ -1,79 +1,54 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useProjects } from '@/hooks/useProjects';
 import { ProjectList } from '@/components/projects/project-list';
-import { ProjectListSkeleton } from '@/components/projects/project-list-skeleton';
-import type { ProjectWithCompany } from '@/lib/db/projects/queries';
+import { toast } from 'sonner';
 import type { ProjectFormData } from '@/components/projects/project-form';
+import { ProjectListSkeleton } from '@/components/projects/project-list-skeleton';
 
 export default function ProjectPage() {
-  const [projects, setProjects] = useState<ProjectWithCompany[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-
-  useEffect(() => {
-    const fetchProjects = async () => {
-      try {
-        const response = await fetch('/api/projects');
-        if (!response.ok) {
-          throw new Error('Failed to fetch projects');
-        }
-        const data = await response.json();
-        setProjects(data);
-      } catch (error) {
-        console.error('Error fetching projects:', error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchProjects();
-  }, []);
+  const { 
+    projects, 
+    isLoading, 
+    error, 
+    createProject, 
+    updateProject, 
+    deleteProject 
+  } = useProjects();
 
   const handleCreateProject = async (data: ProjectFormData): Promise<boolean> => {
-    try {
-      const response = await fetch('/api/projects', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data),
-      });
-      if (!response.ok) throw new Error('Failed to create project');
-      const newProject = await response.json();
-      setProjects(prev => [...prev, newProject]);
-      return true;
-    } catch (error) {
-      console.error('Error creating project:', error);
-      return false;
+    const success = await createProject(data);
+    if (success) {
+      toast.success('Project created successfully');
+    } else {
+      toast.error('Failed to create project');
     }
+    return success;
   };
 
   const handleUpdateProject = async (id: string, data: ProjectFormData): Promise<boolean> => {
-    try {
-      const response = await fetch(`/api/projects/${id}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data),
-      });
-      if (!response.ok) throw new Error('Failed to update project');
-      const updatedProject = await response.json();
-      setProjects(prev => prev.map(p => p.id === id ? updatedProject : p));
-      return true;
-    } catch (error) {
-      console.error('Error updating project:', error);
-      return false;
+    const success = await updateProject(id, data);
+    if (success) {
+      toast.success('Project updated successfully');
+    } else {
+      toast.error('Failed to update project');
     }
+    return success;
   };
 
   const handleDeleteProject = async (id: string): Promise<boolean> => {
-    try {
-      const response = await fetch(`/api/projects/${id}`, { method: 'DELETE' });
-      if (!response.ok) throw new Error('Failed to delete project');
-      setProjects(prev => prev.filter(p => p.id !== id));
-      return true;
-    } catch (error) {
-      console.error('Error deleting project:', error);
-      return false;
+    const success = await deleteProject(id);
+    if (success) {
+      toast.success('Project deleted successfully');
+    } else {
+      toast.error('Failed to delete project');
     }
+    return success;
   };
+
+  if (error) {
+    toast.error('Failed to load projects');
+  }
 
   if (isLoading) {
     return <ProjectListSkeleton />;

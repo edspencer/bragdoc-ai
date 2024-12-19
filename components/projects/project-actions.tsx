@@ -8,11 +8,8 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import {
-  DotsHorizontalIcon,
-  Pencil1Icon,
-  TrashIcon,
-} from "@radix-ui/react-icons";
+import { DotsHorizontalIcon, Pencil1Icon, TrashIcon } from "@radix-ui/react-icons";
+import { Loader2 } from "lucide-react";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -30,12 +27,14 @@ interface ProjectActionsProps {
   project: ProjectWithCompany;
   onEdit: (project: ProjectWithCompany) => void;
   onDelete: (id: string) => Promise<boolean>;
+  isLoading?: boolean;
 }
 
 export function ProjectActions({
   project,
   onEdit,
   onDelete,
+  isLoading = false,
 }: ProjectActionsProps) {
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -58,23 +57,28 @@ export function ProjectActions({
         <DropdownMenuTrigger asChild>
           <Button
             variant="ghost"
-            className="flex size-8 p-0 data-[state=open]:bg-muted"
+            className="flex h-8 w-8 p-0 data-[state=open]:bg-muted"
+            disabled={isLoading}
           >
-            <DotsHorizontalIcon className="size-4" />
+            {isLoading ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <DotsHorizontalIcon className="h-4 w-4" />
+            )}
             <span className="sr-only">Open menu</span>
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" className="w-[160px]">
           <DropdownMenuItem onClick={() => onEdit(project)}>
-            <Pencil1Icon className="mr-2 size-4" />
+            <Pencil1Icon className="mr-2 h-4 w-4" />
             Edit
           </DropdownMenuItem>
           <DropdownMenuSeparator />
           <DropdownMenuItem
             onClick={() => setShowDeleteDialog(true)}
-            className="text-red-600"
+            className="text-red-600 dark:text-red-400"
           >
-            <TrashIcon className="mr-2 size-4" />
+            <TrashIcon className="mr-2 h-4 w-4" />
             Delete
           </DropdownMenuItem>
         </DropdownMenuContent>

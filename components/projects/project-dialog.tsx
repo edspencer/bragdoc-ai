@@ -8,42 +8,57 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { ProjectForm, ProjectFormData } from "./project-form";
+import type { ProjectWithCompany } from "@/lib/db/projects/queries";
+import { ProjectStatus } from "@/lib/db/schema";
 
 interface ProjectDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  initialData?: Partial<ProjectFormData>;
-  onSubmit: (data: ProjectFormData) => void;
+  onSubmit: (data: ProjectFormData) => Promise<void>;
+  defaultValues?: ProjectWithCompany;
   isLoading?: boolean;
-  mode: "create" | "edit";
 }
 
 export function ProjectDialog({
   open,
   onOpenChange,
-  initialData,
   onSubmit,
-  isLoading,
-  mode,
+  defaultValues,
+  isLoading = false,
 }: ProjectDialogProps) {
+  const isEdit = !!defaultValues;
+  
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
           <DialogTitle>
-            {mode === "create" ? "Add Project" : "Edit Project"}
+            {isEdit ? "Edit Project" : "Create Project"}
           </DialogTitle>
           <DialogDescription>
-            {mode === "create"
-              ? "Add a new project to track your achievements."
-              : "Update your project information."}
+            {isEdit
+              ? "Make changes to your project here."
+              : "Add a new project to track your achievements."}
           </DialogDescription>
         </DialogHeader>
         <ProjectForm
-          initialData={initialData}
           onSubmit={onSubmit}
+          initialData={{
+            name: defaultValues?.name ?? "",
+            description: defaultValues?.description ?? "",
+            companyId: defaultValues?.companyId ?? undefined,
+            status: defaultValues?.status as ProjectStatus,
+            startDate: defaultValues?.startDate
+              ? new Date(defaultValues.startDate)
+              : new Date(),
+            endDate: defaultValues?.endDate
+              ? new Date(defaultValues.endDate)
+              : undefined,
+          }}
           isLoading={isLoading}
-          mode={mode}
+          mode={isEdit ? "edit" : "create"}
+          id={defaultValues?.id}
+          name={defaultValues?.name ?? ""}
         />
       </DialogContent>
     </Dialog>

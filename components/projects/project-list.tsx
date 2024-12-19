@@ -44,6 +44,39 @@ export function ProjectList({
 }: ProjectListProps) {
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [editProject, setEditProject] = useState<ProjectWithCompany | null>(null);
+  const [actionLoading, setActionLoading] = useState<string | null>(null);
+
+  const handleCreateProject = async (data: ProjectFormData) => {
+    try {
+      const success = await onCreateProject(data);
+      if (success) {
+        setCreateDialogOpen(false);
+      }
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
+  const handleUpdateProject = async (id: string, data: ProjectFormData) => {
+    setActionLoading(`update-${id}`);
+    try {
+      const success = await onUpdateProject(id, data);
+      if (success) {
+        setEditProject(null);
+      }
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
+  const handleDeleteProject = async (id: string) => {
+    setActionLoading(`delete-${id}`);
+    try {
+      return await onDeleteProject(id);
+    } finally {
+      setActionLoading(null);
+    }
+  };
 
   if (isLoading) {
     return <ProjectListSkeleton />;
@@ -51,59 +84,50 @@ export function ProjectList({
 
   return (
     <div className="space-y-4">
-      <div className="flex justify-end">
+      <div className="flex justify-between items-center">
+        <h2 className="text-lg font-semibold">Projects</h2>
         <Button
           onClick={() => setCreateDialogOpen(true)}
-          className="ml-auto"
-          size="sm"
+          disabled={!!actionLoading}
         >
           <PlusIcon className="mr-2 size-4" />
-          Add Project
+          New Project
         </Button>
       </div>
 
-      {projects.length === 0 ? (
-        <div className="flex min-h-[400px] flex-col items-center justify-center rounded-md border border-dashed p-8 text-center animate-in fade-in-50">
-          <div className="mx-auto flex max-w-[420px] flex-col items-center justify-center text-center">
-            <h2 className="mt-6 text-xl font-semibold">No projects added</h2>
-            <p className="mb-8 mt-2 text-center text-sm font-normal leading-6 text-muted-foreground">
-              You haven&apos;t added any projects yet. Add your first project to start
-              tracking achievements.
-            </p>
-            <Button
-              onClick={() => setCreateDialogOpen(true)}
-              className="relative"
-              size="sm"
-            >
-              <PlusIcon className="mr-2 size-4" />
-              Add Project
-            </Button>
-          </div>
-        </div>
-      ) : (
-        <div className="rounded-md border">
-          <Table>
-            <TableHeader>
+      <div className="rounded-md border">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Name</TableHead>
+              <TableHead>Company</TableHead>
+              <TableHead>Status</TableHead>
+              <TableHead>Start Date</TableHead>
+              <TableHead>End Date</TableHead>
+              <TableHead className="w-[100px]">Actions</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {projects.length === 0 ? (
               <TableRow>
-                <TableHead>Project</TableHead>
-                <TableHead>Company</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Start Date</TableHead>
-                <TableHead>End Date</TableHead>
-                <TableHead className="w-[100px]"></TableHead>
+                <TableCell
+                  colSpan={6}
+                  className="h-24 text-center text-muted-foreground"
+                >
+                  No projects found. Create your first project to get started.
+                </TableCell>
               </TableRow>
-            </TableHeader>
-            <TableBody>
-              {projects.map((project) => (
+            ) : (
+              projects.map((project) => (
                 <motion.tr
                   key={project.id}
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   exit={{ opacity: 0 }}
-                  className="group hover:bg-muted/50"
+                  className="group"
                 >
                   <TableCell className="font-medium">{project.name}</TableCell>
-                  <TableCell>{project.company?.name || "—"}</TableCell>
+                  <TableCell>{project.company?.name || '-'}</TableCell>
                   <TableCell>
                     <Badge
                       variant="secondary"
@@ -113,54 +137,42 @@ export function ProjectList({
                     </Badge>
                   </TableCell>
                   <TableCell>
-                    {format(new Date(project.startDate), "MMM d, yyyy")}
+                    {format(new Date(project.startDate), 'MMM d, yyyy')}
                   </TableCell>
                   <TableCell>
                     {project.endDate
-                      ? format(new Date(project.endDate), "MMM d, yyyy")
-                      : "—"}
+                      ? format(new Date(project.endDate), 'MMM d, yyyy')
+                      : '-'}
                   </TableCell>
                   <TableCell>
                     <ProjectActions
                       project={project}
-                      onEdit={setEditProject}
-                      onDelete={onDeleteProject}
+                      onEdit={() => setEditProject(project)}
+                      onDelete={() => handleDeleteProject(project.id)}
+                      isLoading={actionLoading === `delete-${project.id}`}
                     />
                   </TableCell>
                 </motion.tr>
-              ))}
-            </TableBody>
-          </Table>
-        </div>
-      )}
+              ))
+            )}
+          </TableBody>
+        </Table>
+      </div>
 
       <ProjectDialog
         open={createDialogOpen}
         onOpenChange={setCreateDialogOpen}
-        onSubmit={async (data) => {
-          const success = await onCreateProject(data);
-          if (success) setCreateDialogOpen(false);
-        }}
-        mode="create"
+        onSubmit={handleCreateProject}
+        isLoading={actionLoading === 'create'}
       />
 
       {editProject && (
         <ProjectDialog
-          open={true}
-          onOpenChange={() => setEditProject(null)}
-          initialData={{
-            name: editProject.name,
-            description: editProject.description ?? undefined,
-            companyId: editProject.companyId ?? undefined,
-            status: editProject.status as ProjectStatus,
-            startDate: new Date(editProject.startDate),
-            endDate: editProject.endDate ? new Date(editProject.endDate) : undefined,
-          }}
-          onSubmit={async (data) => {
-            const success = await onUpdateProject(editProject.id, data);
-            if (success) setEditProject(null);
-          }}
-          mode="edit"
+          open={!!editProject}
+          onOpenChange={(open) => !open && setEditProject(null)}
+          onSubmit={(data) => handleUpdateProject(editProject.id, data)}
+          defaultValues={editProject}
+          isLoading={actionLoading === `update-${editProject.id}`}
         />
       )}
     </div>
