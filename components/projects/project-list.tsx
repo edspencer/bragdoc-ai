@@ -27,6 +27,7 @@ interface ProjectListProps {
   onUpdateProject: (id: string, data: ProjectFormData) => Promise<boolean>;
   onDeleteProject: (id: string) => Promise<boolean>;
   isLoading?: boolean;
+  companies: Array<{ id: string; name: string }>;
 }
 
 const statusColors: Record<ProjectStatus, string> = {
@@ -41,6 +42,7 @@ export function ProjectList({
   onUpdateProject,
   onDeleteProject,
   isLoading = false,
+  companies = [],
 }: ProjectListProps) {
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [editProject, setEditProject] = useState<ProjectWithCompany | null>(null);
@@ -164,6 +166,7 @@ export function ProjectList({
         onOpenChange={setCreateDialogOpen}
         onSubmit={handleCreateProject}
         isLoading={actionLoading === 'create'}
+        companies={companies}
       />
 
       {editProject && (
@@ -173,6 +176,7 @@ export function ProjectList({
           onSubmit={(data) => handleUpdateProject(editProject.id, data)}
           defaultValues={editProject}
           isLoading={actionLoading === `update-${editProject.id}`}
+          companies={companies}
         />
       )}
     </div>

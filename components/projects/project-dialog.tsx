@@ -17,6 +17,7 @@ interface ProjectDialogProps {
   onSubmit: (data: ProjectFormData) => Promise<void>;
   defaultValues?: ProjectWithCompany;
   isLoading?: boolean;
+  companies: Array<{ id: string; name: string }>;
 }
 
 export function ProjectDialog({
@@ -25,6 +26,7 @@ export function ProjectDialog({
   onSubmit,
   defaultValues,
   isLoading = false,
+  companies = [],
 }: ProjectDialogProps) {
   const isEdit = !!defaultValues;
   
@@ -59,6 +61,7 @@ export function ProjectDialog({
           mode={isEdit ? "edit" : "create"}
           id={defaultValues?.id}
           name={defaultValues?.name ?? ""}
+          companies={companies}
         />
       </DialogContent>
     </Dialog>
