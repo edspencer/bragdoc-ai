@@ -1,6 +1,6 @@
 // app/projects/page.tsx
 import type { Metadata } from 'next';
-
+import { PageHeader } from "@/components/shared/page-header";
 import ProjectPage from './projectPage';
 
 export const metadata: Metadata = {
@@ -10,7 +10,11 @@ export const metadata: Metadata = {
 
 export default function ProjectsPage() {
   return (
-    <div className="p-6">
+    <div className="container mx-auto px-4 py-8">
+      <PageHeader
+        title="Projects"
+        description="Manage your projects and track achievements"
+      />
       <ProjectPage />
     </div>
   );

@@ -2,6 +2,7 @@
 
 import { CompanyList } from "@/components/companies/company-list";
 import { CompanyFilters } from "@/components/companies/company-filters";
+import { PageHeader } from "@/components/shared/page-header";
 import {
   useCompanies,
   useCreateCompany,
@@ -29,26 +30,26 @@ export default function CompaniesPage() {
   });
 
   return (
-    <div className="space-y-6 p-6">
-      <div>
-        <h3 className="text-lg font-medium">Companies</h3>
-        <p className="text-sm text-muted-foreground">
-          Manage the companies you&apos;ve worked with
-        </p>
+    <div className="container mx-auto px-4 py-8">
+      <PageHeader
+        title="Companies"
+        description="Manage your companies and work history"
+      />
+      <div className="space-y-4">
+        <CompanyFilters
+          filter={filter}
+          setFilter={setFilter}
+          searchQuery={searchQuery}
+          setSearchQuery={setSearchQuery}
+        />
+        <CompanyList
+          companies={filteredCompanies}
+          isLoading={isLoading}
+          onCreateCompany={createCompany}
+          onUpdateCompany={updateCompany}
+          onDeleteCompany={deleteCompany}
+        />
       </div>
-      <CompanyFilters
-        filter={filter}
-        setFilter={setFilter}
-        searchQuery={searchQuery}
-        setSearchQuery={setSearchQuery}
-      />
-      <CompanyList
-        companies={filteredCompanies}
-        isLoading={isLoading}
-        onCreateCompany={createCompany}
-        onUpdateCompany={updateCompany}
-        onDeleteCompany={deleteCompany}
-      />
     </div>
   );
 }
