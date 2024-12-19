@@ -2,6 +2,7 @@
 
 import { useProjects } from '@/hooks/useProjects';
 import { useRetry } from '@/hooks/useRetry';
+import { useConfetti } from '@/hooks/useConfetti';
 import { ProjectList } from '@/components/projects/project-list';
 import { toast } from 'sonner';
 import type { ProjectFormData } from '@/components/projects/project-form';
@@ -18,12 +19,14 @@ export default function ProjectPage() {
     deleteProject 
   } = useProjects();
   const { executeWithRetry } = useRetry<boolean>();
+  const { fire: fireConfetti } = useConfetti();
 
   const handleCreateProject = async (data: ProjectFormData): Promise<boolean> => {
     try {
       const success = await executeWithRetry(() => createProject(data));
       if (success) {
         toast.success('Project created successfully');
+        fireConfetti();
       } else {
         toast.error('Failed to create project');
       }
