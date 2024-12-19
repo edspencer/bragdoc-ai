@@ -1,5 +1,5 @@
 // app/(app)/settings/projects/page.tsx
-import { Metadata } from 'next';
+import type { Metadata } from 'next';
 
 import ProjectPage from './projectPage';
 

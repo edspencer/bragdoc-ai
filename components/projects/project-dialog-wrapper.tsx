@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog';
-import { ProjectForm, ProjectFormData } from './project-form';
+import { ProjectForm, type ProjectFormData } from './project-form';
 
 interface ProjectDialogWrapperProps {
   children: React.ReactNode;

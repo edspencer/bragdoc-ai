@@ -1,6 +1,6 @@
 import { useCallback, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
-import { ProjectStatus } from '@/lib/db/types';
+import type { ProjectStatus } from '@/lib/db/types';
 import type { ProjectWithCompany } from '@/lib/db/projects/queries';
 
 export function useProjectFilters() {

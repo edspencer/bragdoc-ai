@@ -7,7 +7,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { CompanyForm, CompanyFormData } from "./company-form";
+import { CompanyForm, type CompanyFormData } from "./company-form";
 
 interface CompanyDialogProps {
   open: boolean;

@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { ProjectStatus } from "@/lib/db/types";
+import type { ProjectStatus } from "@/lib/db/types";
 import { z } from "zod";
 
 export interface ProjectFilters {
@@ -77,7 +77,7 @@ function parseURLParams(searchParams: URLSearchParams): ProjectFilters {
  * Sanitize and validate filter values before updating state
  */
 function sanitizeFilters(filters: Partial<ProjectFilters>): ProjectFilters {
-  let sanitized = { ...defaultFilters };
+  const sanitized = { ...defaultFilters };
 
   // Status validation
   if (filters.status) {

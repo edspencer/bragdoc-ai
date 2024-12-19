@@ -130,7 +130,7 @@ describe('Project API Routes', () => {
       });
 
       const response = await getProject(
-        new Request('http://localhost/api/projects/' + testProject.id),
+        new Request(`http://localhost/api/projects/${testProject.id}`),
         { params: Promise.resolve({ id: testProject.id }) }
       );
 
@@ -145,7 +145,7 @@ describe('Project API Routes', () => {
       });
 
       const response = await getProject(
-        new Request('http://localhost/api/projects/' + uuidv4()),
+        new Request(`http://localhost/api/projects/${uuidv4()}`),
         { params: Promise.resolve({ id: uuidv4() }) }
       );
 
@@ -167,7 +167,7 @@ describe('Project API Routes', () => {
       });
 
       const response = await updateProject(
-        new Request('http://localhost/api/projects/' + testProject.id, {
+        new Request(`http://localhost/api/projects/${testProject.id}`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(update),
@@ -187,7 +187,7 @@ describe('Project API Routes', () => {
       });
 
       const response = await updateProject(
-        new Request('http://localhost/api/projects/' + uuidv4(), {
+        new Request(`http://localhost/api/projects/${uuidv4()}`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ name: 'Updated' }),
@@ -208,7 +208,7 @@ describe('Project API Routes', () => {
       });
 
       const response = await deleteProject(
-        new Request('http://localhost/api/projects/' + testProject.id, {
+        new Request(`http://localhost/api/projects/${testProject.id}`, {
           method: 'DELETE',
         }),
         { params: Promise.resolve({ id: testProject.id }) }
@@ -229,7 +229,7 @@ describe('Project API Routes', () => {
       });
 
       const response = await deleteProject(
-        new Request('http://localhost/api/projects/' + uuidv4(), {
+        new Request(`http://localhost/api/projects/${uuidv4()}`, {
           method: 'DELETE',
         }),
         { params: Promise.resolve({ id: uuidv4() }) }

@@ -19,7 +19,7 @@ const config = {
   },
   transformIgnorePatterns: [`!node_modules/(?!${esModules})`],
   maxWorkers: process.env.CI || process.env.IDE_TEST ? 1 : '50%',
-  runInBand: process.env.CI || process.env.IDE_TEST ? true : false,
+  runInBand: !!(process.env.CI || process.env.IDE_TEST ),
   clearMocks: true,
 };
 

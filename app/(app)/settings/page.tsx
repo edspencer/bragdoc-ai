@@ -39,7 +39,7 @@ export default function SettingsPage() {
         (company) =>
           company.name.toLowerCase().includes(query) ||
           company.role.toLowerCase().includes(query) ||
-          (company.domain && company.domain.toLowerCase().includes(query))
+          (company.domain?.toLowerCase().includes(query))
       );
     }
 

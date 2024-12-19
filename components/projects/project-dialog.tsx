@@ -7,9 +7,9 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { ProjectForm, ProjectFormData } from "./project-form";
+import { ProjectForm, type ProjectFormData } from "./project-form";
 import type { ProjectWithCompany } from "@/lib/db/projects/queries";
-import { ProjectStatus } from "@/lib/db/schema";
+import type { ProjectStatus } from "@/lib/db/schema";
 
 interface ProjectDialogProps {
   open: boolean;

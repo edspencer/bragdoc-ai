@@ -14,7 +14,7 @@ import {
   ResetIcon,
 } from "@radix-ui/react-icons";
 import { motion } from "framer-motion";
-import { ProjectStatus } from "@/lib/db/types";
+import type { ProjectStatus } from "@/lib/db/types";
 import { cn } from "@/lib/utils";
 import { Loader2Icon } from "lucide-react";
 

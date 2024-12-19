@@ -15,7 +15,7 @@ import { CompanyActions } from "./company-actions";
 import { CompanyDialog } from "./company-dialog";
 import { CompanyListSkeleton } from "./company-list-skeleton";
 import { useState } from "react";
-import { CompanyFormData } from "./company-form";
+import type { CompanyFormData } from "./company-form";
 import { motion } from "framer-motion";
 
 interface Company {

@@ -14,10 +14,10 @@ import { format } from "date-fns";
 import { ProjectDialog } from "./project-dialog";
 import { ProjectListSkeleton } from "./project-list-skeleton";
 import { useState } from "react";
-import { ProjectFormData } from "./project-form";
+import type { ProjectFormData } from "./project-form";
 import { motion } from "framer-motion";
 import { Badge } from "@/components/ui/badge";
-import { ProjectStatus } from "@/lib/db/schema";
+import type { ProjectStatus } from "@/lib/db/schema";
 import { ProjectActions } from "./project-actions";
 import type { ProjectWithCompany } from "@/lib/db/projects/queries";
 
