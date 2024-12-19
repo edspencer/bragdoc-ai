@@ -30,38 +30,7 @@
 
 ## Feature Implementation 
 
-### Ancillary Pages
-
-- [x] Add "About" page at /about
-- [x] Add "Pricing" page at /pricing
-- [x] Add "Terms of Service" page at /terms
-- [x] Add "Privacy Policy" page at /privacy
-
-### Authentication
-- [x] Set up NextAuth.js
-  - [x] Email/password authentication
-  - [x] Google OAuth integration
-  - [-] GitHub OAuth integration (in progress)
-    - [x] OAuth app setup
-    - [x] Provider configuration
-    - [ ] Loading states and error handling
-    - [ ] Repository access implementation
-- [x] Create user database schema
-  - [x] Add OAuth-specific fields
-  - [x] Fix table naming conventions
-- [x] Add authentication middleware
-- [x] Implement protected routes
-- [x] Add user session management
-
 ### GitHub Integration
-- [x] Set up GitHub OAuth
-- [x] Store GitHub access token
-- [x] Implement repository sync
-- [x] Implement PR sync with upsert
-- [x] Add repository list view
-- [x] Add sync button per repository
-- [x] Add last synced timestamp
-- [x] Add basic error handling
 - [ ] Add loading spinner to sync button
 - [ ] Add toast notifications for sync status
 - [ ] Add repository search/filter
@@ -96,29 +65,13 @@
 - [ ] Automatically expose all companies and libraries for the user with the LLM context
 - [ ] Automatically expose all userPreferences for the user with the LLM context
 - [ ] getBrags tool? - vector search on brags
-- [ ] saveUserPreferences tool - should be called whenever the user says things like "Always arrange this (weekly report) into sections by project
-- [ ] 
-- [ ] 
+- [ ] saveUserPreferences tool - should be called whenever the user says things like "Always arrange this (weekly report) into sections by project"
 
 ### UI/UX Improvements
-- [x] Add company management in UI
-- [x] Add project management interface
-- [x] Top-level nav restructure:
-  - [x] Move Companies CRUD out of settings and into its own page at /companies
-  - [x] Settings should remain as it is, but should not have the companies CRUD inside it. It should though have basic user management (edit profile, change password, etc.)
-  - [x] Move Projects CRUD to /projects instead of /settings/projects
-  - [x] Create a skeleton Achievements page at /achievements - later this will allow the user to do CRUD on their Brags/Achievements
-  - [x] Update the bottom-left nav:
-    - [x] Remove the dropdown activated list of buttons (toggle light/dark mode, settings, and sign out)
-    - [x] Create icons for each of those buttons instead
-    - [x] Above this, add links to the /companies, /projects, and /achievements pages
-  - [x] The Projects, Companies, and Achievements pages should all have the same feel, same use of headings, component layout where appropriate, etc.
 - [ ] Create tag management system
 - [ ] Add email preferences configuration
-- [x] Add confetti when a company is created (same as we have for project creation)
 - [ ] Enhance document generation interface with more options
 - [ ] Stream Brags into the UI one by one instead of all as a response from extractBrags
-- [x] Show something in the UI BragAction component before the first one streams in - "Thinking..." or something
 - [ ] Fix calendar/date picker components throughout the app
   - Calendar appears behind modal overlays
   - Click events are intercepted by modal overlays
