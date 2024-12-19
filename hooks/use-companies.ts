@@ -1,5 +1,6 @@
 import useSWR from "swr";
 import { toast } from "sonner";
+import { useConfetti } from "@/hooks/useConfetti";
 import type { CompanyFormData } from "@/components/companies/company-form";
 
 interface Company {
@@ -54,6 +55,7 @@ export function useCompany(id: string) {
 
 export function useCreateCompany() {
   const { mutate: mutateList } = useCompanies();
+  const { fire: fireConfetti } = useConfetti();
 
   const createCompany = async (data: CompanyFormData) => {
     try {
@@ -69,6 +71,7 @@ export function useCreateCompany() {
 
       await mutateList();
       toast.success("Company created successfully");
+      fireConfetti();
     } catch (error) {
       console.error("Error creating company:", error);
       toast.error("Failed to create company");

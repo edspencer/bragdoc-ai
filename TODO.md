@@ -115,6 +115,7 @@
   - [x] The Projects, Companies, and Achievements pages should all have the same feel, same use of headings, component layout where appropriate, etc.
 - [ ] Create tag management system
 - [ ] Add email preferences configuration
+- [x] Add confetti when a company is created (same as we have for project creation)
 - [ ] Enhance document generation interface with more options
 - [ ] Stream Brags into the UI one by one instead of all as a response from extractBrags
 - [x] Show something in the UI BragAction component before the first one streams in - "Thinking..." or something
