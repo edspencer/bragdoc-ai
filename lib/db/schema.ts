@@ -53,7 +53,11 @@ export const company = pgTable('Company', {
 
 export type Company = InferSelectModel<typeof company>;
 
-export type ProjectStatus = 'active' | 'completed' | 'archived';
+export enum ProjectStatus {
+  Active = 'active',
+  Completed = 'completed',
+  Archived = 'archived'
+}
 
 export const project = pgTable('Project', {
   id: uuid('id').primaryKey().notNull().defaultRandom(),

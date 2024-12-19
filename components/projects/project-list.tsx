@@ -107,7 +107,7 @@ export function ProjectList({
                   <TableCell>
                     <Badge
                       variant="secondary"
-                      className={statusColors[project.status]}
+                      className={statusColors[project.status as ProjectStatus]}
                     >
                       {project.status}
                     </Badge>
@@ -123,8 +123,8 @@ export function ProjectList({
                   <TableCell>
                     <ProjectActions
                       project={project}
-                      onEdit={() => setEditProject(project)}
-                      onDelete={() => onDeleteProject(project.id)}
+                      onEdit={setEditProject}
+                      onDelete={onDeleteProject}
                     />
                   </TableCell>
                 </motion.tr>
@@ -149,8 +149,12 @@ export function ProjectList({
           open={true}
           onOpenChange={() => setEditProject(null)}
           initialData={{
-            ...editProject,
+            name: editProject.name,
             description: editProject.description ?? undefined,
+            companyId: editProject.companyId ?? undefined,
+            status: editProject.status as ProjectStatus,
+            startDate: new Date(editProject.startDate),
+            endDate: editProject.endDate ? new Date(editProject.endDate) : undefined,
           }}
           onSubmit={async (data) => {
             const success = await onUpdateProject(editProject.id, data);

@@ -24,18 +24,12 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { useState } from "react";
-import { ProjectStatus } from "@/lib/db/types";
-
-interface Project {
-  id: string;
-  name: string;
-  status: ProjectStatus;
-}
+import type { ProjectWithCompany } from "@/lib/db/projects/queries";
 
 interface ProjectActionsProps {
-  project: Project;
-  onEdit: (project: Project) => void;
-  onDelete: (id: string) => Promise<void>;
+  project: ProjectWithCompany;
+  onEdit: (project: ProjectWithCompany) => void;
+  onDelete: (id: string) => Promise<boolean>;
 }
 
 export function ProjectActions({
@@ -50,9 +44,11 @@ export function ProjectActions({
     try {
       setIsDeleting(true);
       await onDelete(project.id);
+      setShowDeleteDialog(false);
+    } catch (error) {
+      console.error("Error deleting project:", error);
     } finally {
       setIsDeleting(false);
-      setShowDeleteDialog(false);
     }
   };
 
@@ -76,7 +72,7 @@ export function ProjectActions({
           <DropdownMenuSeparator />
           <DropdownMenuItem
             onClick={() => setShowDeleteDialog(true)}
-            className="text-red-600 dark:text-red-400"
+            className="text-red-600"
           >
             <TrashIcon className="mr-2 h-4 w-4" />
             Delete
@@ -87,17 +83,17 @@ export function ProjectActions({
       <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Delete Project</AlertDialogTitle>
+            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to delete &quot;{project.name}&quot;? This
-              action cannot be undone.
+              This will permanently delete the project &quot;{project.name}&quot;
+              and remove it from our servers.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
             <AlertDialogAction
               onClick={handleDelete}
-              className="bg-red-600 hover:bg-red-700 dark:bg-red-600 dark:hover:bg-red-700"
+              className="bg-red-600 focus:ring-red-600"
               disabled={isDeleting}
             >
               {isDeleting ? "Deleting..." : "Delete"}

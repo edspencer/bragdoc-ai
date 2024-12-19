@@ -37,7 +37,7 @@ const formSchema = z.object({
   name: z.string().min(1, "Project name is required").max(256),
   description: z.string().optional(),
   companyId: z.string().transform(val => val === "none" ? null : val).nullable().optional(),
-  status: z.enum(["active", "completed", "archived"] as const, {
+  status: z.nativeEnum(ProjectStatus, {
     required_error: "Status is required",
   }),
   startDate: z.date({ required_error: "Start date is required" }),
@@ -65,7 +65,7 @@ export function ProjectForm({
       name: initialData?.name || "",
       description: initialData?.description || "",
       companyId: initialData?.companyId || "none",
-      status: initialData?.status || "active",
+      status: initialData?.status,
       startDate: initialData?.startDate || new Date(),
       endDate: initialData?.endDate || null,
     },
@@ -187,7 +187,7 @@ export function ProjectForm({
                   <PopoverContent className="w-auto p-0" align="start">
                     <Calendar
                       mode="single"
-                      selected={field.value}
+                      selected={field.value || undefined}
                       onSelect={field.onChange}
                       disabled={(date) =>
                         date > new Date() || date < new Date("1900-01-01")
@@ -229,7 +229,7 @@ export function ProjectForm({
                   <PopoverContent className="w-auto p-0" align="start">
                     <Calendar
                       mode="single"
-                      selected={field.value}
+                      selected={field.value || undefined}
                       onSelect={field.onChange}
                       disabled={(date) =>
                         date < form.getValues("startDate") ||
