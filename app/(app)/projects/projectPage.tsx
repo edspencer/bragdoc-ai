@@ -90,30 +90,28 @@ export default function ProjectPage() {
   const filteredProjects = filterProjects(projects);
 
   return (
-    <div className="p-6">
-      <div className="space-y-4">
-        <ErrorBoundary>
-          <ProjectFilters
-            status={filters.status}
-            onStatusChange={handleStatusChange}
-            companyId={filters.companyId}
-            onCompanyChange={handleCompanyChange}
-            searchQuery={filters.searchQuery}
-            onSearchChange={handleSearchChange}
-            companies={companies}
-            onReset={handleReset}
-            loading={filterLoading}
-          />
-          <ProjectList
-            projects={filteredProjects}
-            onCreateProject={handleCreateProject}
-            onUpdateProject={handleUpdateProject}
-            onDeleteProject={handleDeleteProject}
-            isLoading={isLoading}
-            companies={companies}
-          />
-        </ErrorBoundary>
-      </div>
+    <div className="space-y-4">
+      <ErrorBoundary>
+        <ProjectFilters
+          status={filters.status}
+          onStatusChange={handleStatusChange}
+          companyId={filters.companyId}
+          onCompanyChange={handleCompanyChange}
+          searchQuery={filters.searchQuery}
+          onSearchChange={handleSearchChange}
+          companies={companies}
+          onReset={handleReset}
+          loading={filterLoading}
+        />
+        <ProjectList
+          projects={filteredProjects}
+          onCreateProject={handleCreateProject}
+          onUpdateProject={handleUpdateProject}
+          onDeleteProject={handleDeleteProject}
+          isLoading={isLoading}
+          companies={companies}
+        />
+      </ErrorBoundary>
     </div>
   );
 }

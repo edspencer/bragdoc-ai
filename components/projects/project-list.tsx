@@ -87,12 +87,12 @@ export function ProjectList({
   return (
     <div className="space-y-4">
       <div className="flex justify-between items-center">
-        <h2 className="text-lg font-semibold">Projects</h2>
         <Button
           onClick={() => setCreateDialogOpen(true)}
-          disabled={!!actionLoading}
+          className="ml-auto"
+          size="sm"
         >
-          <PlusIcon className="mr-2 size-4" />
+          <PlusIcon className="size-4 mr-2" />
           New Project
         </Button>
       </div>
