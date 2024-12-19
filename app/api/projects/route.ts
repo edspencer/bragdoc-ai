@@ -8,11 +8,11 @@ import { z } from 'zod';
 
 const createProjectSchema = z.object({
   name: z.string().min(1).max(256),
-  description: z.string().nullable().optional(),
-  companyId: z.string().uuid().nullable().optional(),
+  description: z.string().optional().transform(val => val === null ? undefined : val),
+  companyId: z.string().uuid().optional(),
   status: z.enum(['active', 'completed', 'archived']),
   startDate: z.string().transform((str) => new Date(str)),
-  endDate: z.string().nullable().transform((str) => str ? new Date(str) : null).optional(),
+  endDate: z.string().optional().transform((str) => str ? new Date(str) : undefined),
 });
 
 export async function GET() {

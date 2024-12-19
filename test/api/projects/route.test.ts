@@ -7,6 +7,7 @@ import {
   PUT as updateProject,
   DELETE as deleteProject,
 } from '@/app/api/projects/[id]/route';
+import { eq } from 'drizzle-orm'
 
 // Mock auth
 jest.mock('@/app/(auth)/auth', () => ({
@@ -218,7 +219,7 @@ describe('Project API Routes', () => {
       const deleted = await db
         .select()
         .from(project)
-        .where({ id: testProject.id });
+        .where(eq(project.id, testProject.id));
       expect(deleted).toHaveLength(0);
     });
 
