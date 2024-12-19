@@ -1,101 +1,63 @@
 # Navigation Restructure Implementation Plan
 
-## Phase 1: Page Structure Setup
+## Phase 1: Page Structure Setup 
 
-### 1.1 Create New Route Pages
-- [ ] Create `/app/companies/page.tsx`:
-  - [ ] Move Companies CRUD from settings
-  - [ ] Implement layout matching existing CRUD patterns
-  - [ ] Add proper page metadata
-- [ ] Create `/app/projects/page.tsx`:
-  - [ ] Move Projects CRUD from settings/projects
-  - [ ] Update import paths and routes
-  - [ ] Add proper page metadata
-- [ ] Create `/app/achievements/page.tsx`:
-  - [ ] Create skeleton layout
-  - [ ] Add placeholder for future CRUD operations
-  - [ ] Add proper page metadata
+### 1.1 Move Existing CRUD Pages 
+- [x] Move Projects CRUD from settings/projects to (app)/projects
+- [x] Move Companies CRUD from settings page to (app)/companies
+- [x] Create skeleton for /achievements page (deferred)
 
-### 1.2 Update Settings Page
-- [ ] Remove Companies CRUD components
-- [ ] Remove Projects CRUD components if they exist
-- [ ] Consolidate user management features:
-  - [ ] Profile editing
-  - [ ] Password management
-  - [ ] Account settings
+### 1.2 Update Settings Page 
+- [x] Remove Companies CRUD components
+- [x] Remove Projects CRUD components if they exist
+- [x] Consolidate user management features in settings
+
+### 1.3 Layout Restructuring 
+- [x] Create app-level layout in (app)/layout.tsx with navigation
+- [x] Simplify settings layout to only include settings-specific navigation
+- [x] Ensure all pages inherit the main app navigation
 
 ## Phase 2: Navigation Component
 
 ### 2.1 Create New Navigation Components
-- [ ] Create `components/navigation/bottom-nav.tsx`:
+- [ ] Create bottom-nav component:
   ```typescript
   - Icon-based action buttons
-  - Page navigation links
+  - Direct page navigation links
   - Theme toggle
   - Settings link
   - Sign out button
   ```
-- [ ] Create necessary subcomponents:
-  - [ ] `nav-link.tsx` for consistent link styling
-  - [ ] `nav-icon-button.tsx` for action buttons
 
-### 2.2 Update Layout
-- [ ] Modify `app/layout.tsx`:
-  - [ ] Remove old dropdown navigation
-  - [ ] Integrate new bottom-nav component
-  - [ ] Update layout constraints if needed
+### 2.2 Update AppSidebar
+- [ ] Remove dropdown menu system
+- [ ] Add direct icon buttons for actions
+- [ ] Add navigation links for new pages:
+  - [ ] Companies
+  - [ ] Projects
+  - [ ] Achievements (coming soon)
 
 ## Phase 3: UI Consistency
 
-### 3.1 Shared Components
-- [ ] Create `components/shared/page-header.tsx`:
-  ```typescript
-  - Consistent page title styling
-  - Action button placement
-  - Breadcrumb navigation (if needed)
-  ```
-- [ ] Create `components/shared/content-layout.tsx`:
-  ```typescript
-  - Standard page padding
-  - Content width constraints
-  - Responsive layout rules
-  ```
-
-### 3.2 Apply Consistent Styling
-- [ ] Update Companies page styling
-- [ ] Update Projects page styling
-- [ ] Apply styling to Achievements page
+### 3.1 Navigation Styling
+- [ ] Implement consistent icon button styles
+- [ ] Add hover and active states
 - [ ] Ensure dark mode compatibility
 
-## Phase 4: Testing and Validation
+### 3.2 Layout Consistency
+- [ ] Verify padding and spacing across pages
+- [ ] Check responsive behavior
+- [ ] Test navigation state persistence
 
-### 4.1 Component Tests
-- [ ] Create `test/components/navigation/bottom-nav.test.tsx`:
-  ```typescript
-  - Test link functionality
-  - Test button actions
-  - Test theme toggle
-  - Test responsive behavior
-  ```
-- [ ] Test shared components:
-  - [ ] Page header functionality
-  - [ ] Content layout responsiveness
+## Phase 4: Testing and Cleanup
 
-### 4.2 Integration Tests
+### 4.1 Testing
 - [ ] Test navigation flow between pages
-- [ ] Verify CRUD operations in new locations
+- [ ] Verify all CRUD operations in new locations
+- [ ] Test responsive behavior
 - [ ] Validate theme persistence
-- [ ] Check responsive behavior across breakpoints
 
-## Phase 5: Documentation and Cleanup
-
-### 5.1 Documentation Updates
-- [ ] Update component documentation
-- [ ] Add usage examples for shared components
-- [ ] Document new routing structure
-
-### 5.2 Final Cleanup
-- [ ] Remove deprecated navigation code
-- [ ] Clean up unused imports
-- [ ] Update type definitions
-- [ ] Verify no broken links or routes
+### 4.2 Final Cleanup
+- [ ] Remove any remaining old navigation code
+- [ ] Update type definitions if needed
+- [ ] Document new navigation structure
