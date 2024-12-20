@@ -8,9 +8,9 @@ or any other time period. Or even just a "State of me" weekly update to manager,
 
 The existing UI is already a familiar chatbot experience, and has a "Canvas" mode that allows the human and an LLM to collaborate on a single document. There is an existing data model that represents these Documents, as well as other things.
 
-Day to day, the user is just telling the chat bot about things they've done at work. Tasks they've completed, potentially things that are blocking them, unexpected events, etc. The chatbot will use an LLM to populate a database via the Brag model - a Brag being a thing that the user has achieved. Users might "brag" to the bot about one thing they've just achieved, or tell the bot about a bunch of things they've done over the last few weeks and didn't have time to brag about yet.
+Day to day, the user is just telling the chat bot about things they've done at work. Tasks they've completed, potentially things that are blocking them, unexpected events, etc. The chatbot will use an LLM to populate a database via the Achievement model - a Achievement is being a thing that the user has achieved. Users might "brag" to the bot about one thing they've just achieved, or tell the bot about a bunch of things they've done over the last few weeks and didn't have time to brag about yet.
 
-From time to time, the user will want a summary of these brags over some period. The period could be 6-12 months for a performance review, one week for a weekly summary to manager, one month for a monthly summary to skip manager, etc. The chatbot will use an LLM to generate a summary of these brags for the user, presenting it as a Document in the "Canvas" mode.
+From time to time, the user will want a summary of these achievements over some period. The period could be 6-12 months for a performance review, one week for a weekly summary to manager, one month for a monthly summary to skip manager, etc. The chatbot will use an LLM to generate a summary of these brags for the user, presenting it as a Document in the "Canvas" mode.
 
 ## Features
 
@@ -63,8 +63,8 @@ The document editing UI is already complete.
 - GitHub authentication
 
 ### GitHub Integration
-- Automatically creates Brags out of connected repositories!
-- Can retro-actively link a repo, creating a Project for it and filling it with Brags from the repo history [Premium Feature]
+- Automatically creates Achievements out of connected repositories!
+- Can retro-actively link a repo, creating a Project for it and filling it with Achievements from the repo history [Premium Feature]
 
 ## Homepage
 
@@ -104,17 +104,17 @@ The project is organized into several key areas:
 ## Data Model
 
 ```js
-type Brag = {
+type Achievement = {
   id: uuid,
   userId: uuid,
   createdAt: Date,
   updatedAt: Date,
-  eventStart: Date, //detected start data of the Brag
-  eventEnd: Date, //detected end date of the Brag
-  eventDuration: string, //day, week, month, quarter, half year, year - how long a time period this Brag covers (but eventStart/eventEnd are canonical)
-  userMessageId: uuid, //the text the user submitted about this brag saved here
+  eventStart: Date, //detected start data of the Achievement
+  eventEnd: Date, //detected end date of the Achievement
+  eventDuration: string, //day, week, month, quarter, half year, year - how long a time period this Achievement covers (but eventStart/eventEnd are canonical)
+  userMessageId: uuid, //the text the user submitted about this Achievement saved here
   summary: string, //the LLM summary of originalText
-  title: string, //bullet list-compatible title for the Brag (LLM generated)
+  title: string, //bullet list-compatible title for the Achievement (LLM generated)
   details: string, //most
 };
 
@@ -122,7 +122,7 @@ type UserMessage = {
   id: uuid,
   originalText: string, //what the user actually said
 
-  brags: Brag[], //the one or more Brags detected in what the user said
+  achievements: Achievement[], //the one or more Achievements detected in what the user said
 };
 ```
 

@@ -25,7 +25,7 @@ export default async function GitHubSettingsPage() {
       <div className="mb-8">
         <h1 className="text-3xl font-bold">GitHub Settings</h1>
         <p className="text-muted-foreground">
-          Connect your GitHub repositories to automatically generate brags from your pull requests.
+          Connect your GitHub repositories to automatically generate Achievements from your pull requests.
         </p>
       </div>
 

@@ -83,18 +83,19 @@ export async function createMissingUserMessages(userId: string) {
     );
 
   const results = await Promise.all(
-    achievements.map(async (achievement) => {
+    achievements.map(async (achievementRow) => {
       const message = await createSystemUserMessage(
         userId,
-        achievement.title,
-        achievement.summary ?? undefined
+        achievementRow.title,
+        achievementRow.summary ?? undefined
       );
 
-      await db.update(achievement)
+      await db
+        .update(achievement)
         .set({ userMessageId: message.id })
-        .where(eq(achievement.id, achievement.id));
+        .where(eq(achievement.id, achievementRow.id));
 
-      return achievement.id;
+      return achievementRow.id;
     })
   );
 

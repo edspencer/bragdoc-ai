@@ -1,7 +1,7 @@
 import { genSaltSync, hashSync } from "bcrypt-ts";
 import { and, asc, between, desc, eq, gt, gte, type InferSelectModel, lte, sql } from "drizzle-orm";
 import { db as defaultDb } from "@/lib/db";
-import type { CreateAchievementRequest, UpdateAchievementRequest } from "@/lib/types/achievement";
+import type { UpdateAchievementRequest } from "@/lib/types/achievement";
 
 import { 
   user, 
@@ -177,9 +177,7 @@ export async function saveDocument({
 
 export async function getDocumentsById({ id }: { id: string }, dbInstance = defaultDb) {
   try {
-    const documents = await dbInstance.select().from(document).where(eq(document.id, id)).orderBy(asc(document.createdAt));
-
-    return documents;
+    return await dbInstance.select().from(document).where(eq(document.id, id)).orderBy(asc(document.createdAt));
   } catch (error) {
     console.error('Error in getDocumentsById:', error);
     throw error;
@@ -284,43 +282,12 @@ export async function createUserMessage({
   }
 }
 
-export async function createAchievement({
-  userId,
-  userMessageId,
-  eventStart,
-  eventEnd,
-  eventDuration,
-  summary,
-  title,
-  details,
-  companyId,
-  projectId
-}: {
-  userId: string;
-  userMessageId: string;
-  eventStart: Date | null;
-  eventEnd: Date | null;
-  eventDuration: 'day' | 'week' | 'month' | 'quarter' | 'half year' | 'year';
-  summary?: string;
-  title: string;
-  details?: string;
-  companyId: string | null;
-  projectId: string | null;
-}, dbInstance = defaultDb): Promise<Achievement[]> {
+export async function createAchievement(
+  data: Omit<typeof achievement.$inferInsert, 'id' | 'createdAt' | 'updatedAt'>,
+  dbInstance = defaultDb
+): Promise<Achievement[]> {
   try {
-    return await dbInstance.insert(achievement).values({
-      userId,
-      userMessageId,
-      eventStart,
-      eventEnd,
-      eventDuration,
-      summary,
-      title,
-      details,
-      companyId,
-      projectId,
-      source: 'manual'
-    }).returning();
+    return await dbInstance.insert(achievement).values(data).returning();
   } catch (error) {
     console.error('Error in createAchievement:', error);
     throw error;

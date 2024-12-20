@@ -1,6 +1,7 @@
 import { createAI, createStreamableValue } from 'ai/rsc'
 import { z } from 'zod'
 import { createAchievement, createUserMessage, generatePeriodSummary as queryGeneratePeriodSummary } from './db/queries'
+import type { Achievement } from './types/achievement'
 
 // Zod schema for structured achievement extraction
 const AchievementSchema = z.object({
@@ -8,7 +9,7 @@ const AchievementSchema = z.object({
   eventStart: z.string().transform(date => new Date(date)).describe('The start date of the event or achievement'),
   eventEnd: z.string().transform(date => new Date(date)).describe('The end date of the event or achievement'),
   eventDuration: z.enum(['day', 'week', 'month', 'quarter', 'half year', 'year']).describe('The duration of the achievement'),
-  summary: z.string().describe('A brief summary of the achievement'),
+  summary: z.string().nullable().optional().describe('A brief summary of the achievement'),
   details: z.string().optional().describe('Additional details about the achievement'),
   companyId: z.string().nullable().describe('The ID of the company this achievement is associated with (null if not specified)'),
   projectId: z.string().nullable().describe('The ID of the project this achievement is associated with (null if not specified)'),
@@ -71,7 +72,7 @@ export async function detectAchievementsFromMessage(
     }
 
     const data = await response.json()
-    const achievements = data.choices[0].message.content
+    const achievements = data.choices[0].message.content;
 
     try {
       const parsedAchievements = JSON.parse(achievements).map((achievement: any) => 
@@ -80,12 +81,11 @@ export async function detectAchievementsFromMessage(
 
       // Create achievements in parallel
       const createdAchievements = await Promise.all(
-        parsedAchievements.map(achievement => 
+        parsedAchievements.map((achievement: Omit<Achievement, 'id' | 'createdAt' | 'updatedAt' | 'isArchived'>) => 
           createAchievement({
             ...achievement,
             userId,
-            userMessageId: userMessage.id,
-            source: 'llm'
+            userMessageId: userMessage.id
           })
         )
       )

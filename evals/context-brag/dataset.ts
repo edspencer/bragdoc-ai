@@ -1,6 +1,5 @@
 import type { ExtractAchievementsInput, ExtractedAchievement } from '../../lib/ai/extract';
 import type { GeneratedTestData } from '../conversation-gen/types';
-import type { ContextAchievementExample } from './types';
 
 export type ContextAchievementExample = {
   input: ExtractAchievementsInput;
