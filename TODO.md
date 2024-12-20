@@ -71,7 +71,15 @@
 - [ ] Change the Brag model name to Achievement, including table names, all references
 - [ ] Anywhere in the code base that we deal with the Brag model/type/drizzle table, replace it with Achievement
 - [ ] The product is still called "bragdoc.ai", and we can still talk about brag documents, but the underlying model is now called "Achievement", not "Brag"
- 
+
+### API Docs
+- [x] Create an OpenAPI spec for the API (swagger.json created via RepoPrompt sending content of all route.ts files to LLM and asking for a swagger spec)
+- [ ] Need to automate this process of extracting OpenAPI spec
+- [ ] Need to set up hosting (github pages ideally). Ideally can serve a static swagger API docs UI on github pages. CNAME docs.bragdoc.ai to it
+
+### NPM CLI
+- [ ] Add support for NPM CLI
+
 ### Achievements UI & API
 - [x] Implement Achievements UI - similar CRUD options as we have for Companies and Projects
 - [x] Implement Achievements API - similar to Companies and Projects

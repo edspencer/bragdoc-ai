@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import { format } from 'date-fns';
 import { motion } from 'framer-motion';
 import { PlusIcon } from '@radix-ui/react-icons';
 import { Button } from '@/components/ui/button';
@@ -17,7 +16,6 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { Badge } from '@/components/ui/badge';
 
 interface AchievementListProps {
   page: number;
