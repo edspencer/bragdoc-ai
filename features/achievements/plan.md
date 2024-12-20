@@ -58,7 +58,8 @@
    - `bulkUpdateAchievements` (for bulk operations)
    - `getDuration` for calculating achievement duration
 
-## Phase 3: React Hooks 
+## Phase 3: React Hooks & UI 
+### React Hooks 
 1. Create `hooks/use-achievements.ts`:
    - List achievements with filtering
    - SWR configuration
@@ -77,7 +78,7 @@
    - `useAchievementFilters` for managing filter state
    - `useDateRangeFilter` for date range handling
 
-## Phase 4: UI Components 
+### UI Components 
 1. Create base components:
    ```
    components/achievements/
@@ -119,6 +120,15 @@
    - Offline state handling
    - Rate limit error handling
    - Retry mechanism UI
+
+## Phase 4: Export & Integration 
+1. Add export functionality:
+   - Export to Markdown
+   - Export to PDF
+   - Export to CSV
+
+2. Integrate with existing chat UI:
+   - Add achievement suggestions from chat
 
 ## Phase 5: Page Implementation 
 1. Create `/app/achievements/page.tsx`:
