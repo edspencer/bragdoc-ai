@@ -16,6 +16,15 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
+import {
+  Pagination,
+  PaginationContent,
+  PaginationEllipsis,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from "@/components/ui/pagination"
 
 interface AchievementListProps {
   page: number;
@@ -164,6 +173,86 @@ export function AchievementList({
           </TableBody>
         </Table>
       </div>
+
+      {pagination && pagination.totalPages > 1 && (
+        <div className="mt-6">
+          <Pagination className="justify-end">
+            <PaginationContent>
+              <PaginationItem>
+                <PaginationPrevious
+                  onClick={() => onPageChange(page - 1)}
+                  className={page <= 1 ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
+                />
+              </PaginationItem>
+
+              {(() => {
+                const visiblePages: (number | 'ellipsis')[] = [];
+                const addPage = (p: number) => {
+                  if (!visiblePages.includes(p)) {
+                    visiblePages.push(p);
+                  }
+                };
+                const addEllipsis = () => {
+                  if (visiblePages[visiblePages.length - 1] !== 'ellipsis') {
+                    visiblePages.push('ellipsis');
+                  }
+                };
+
+                // Always show first page
+                addPage(1);
+
+                // Show two pages before and after current page
+                const delta = 2;
+                const leftBound = Math.max(2, page - delta);
+                const rightBound = Math.min(pagination.totalPages - 1, page + delta);
+
+                // Add ellipsis if there's a gap after 1
+                if (leftBound > 2) {
+                  addEllipsis();
+                }
+
+                // Add pages around current page
+                for (let i = leftBound; i <= rightBound; i++) {
+                  addPage(i);
+                }
+
+                // Add ellipsis if there's a gap before last page
+                if (rightBound < pagination.totalPages - 1) {
+                  addEllipsis();
+                }
+
+                // Always show last page
+                if (pagination.totalPages > 1) {
+                  addPage(pagination.totalPages);
+                }
+
+                return visiblePages.map((p, i) => (
+                  <PaginationItem key={`${p}-${i}`}>
+                    {p === 'ellipsis' ? (
+                      <PaginationEllipsis />
+                    ) : (
+                      <PaginationLink
+                        onClick={() => onPageChange(p)}
+                        isActive={p === page}
+                        className="cursor-pointer"
+                      >
+                        {p}
+                      </PaginationLink>
+                    )}
+                  </PaginationItem>
+                ));
+              })()}
+
+              <PaginationItem>
+                <PaginationNext 
+                  onClick={() => onPageChange(page + 1)}
+                  className={page >= pagination.totalPages ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
+                />
+              </PaginationItem>
+            </PaginationContent>
+          </Pagination>
+        </div>
+      )}
 
       <AchievementDialog
         mode={dialog.mode}
