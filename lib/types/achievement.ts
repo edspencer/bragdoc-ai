@@ -1,15 +1,15 @@
 import type { InferSelectModel } from 'drizzle-orm';
-import type { brag, company, project, userMessage } from '@/lib/db/schema';
+import type { Brag, company, project, userMessage } from '@/lib/db/schema';
 import { z } from 'zod';
 
 // Export base type from Drizzle schema
-export type Achievement = InferSelectModel<typeof brag>;
+export type { Brag as Achievement } from '@/lib/db/schema';
 export type Company = InferSelectModel<typeof company>;
 export type Project = InferSelectModel<typeof project>;
 export type UserMessage = InferSelectModel<typeof userMessage>;
 
 // Type with resolved relations
-export type AchievementWithRelations = Achievement & {
+export type AchievementWithRelations = Brag & {
   company: Company | null;
   project: Project | null;
   userMessage: UserMessage | null;
@@ -44,6 +44,18 @@ export const achievementRequestSchema = z.object({
 export type CreateAchievementRequest = z.infer<typeof achievementRequestSchema>;
 export type UpdateAchievementRequest = Partial<CreateAchievementRequest>;
 
+// Form type
+export type FormValues = {
+  title: string;
+  summary: string | null;
+  details: string | null;
+  eventStart: Date | null;
+  eventEnd: Date | null;
+  eventDuration: EventDuration;
+  companyId: string | null;
+  projectId: string | null;
+};
+
 // Achievement source
 export type AchievementSource = 'llm' | 'manual';
 
@@ -52,9 +64,12 @@ export interface AchievementFilters {
     start: Date;
     end: Date;
   };
+  startDate?: Date;
+  endDate?: Date;
   companyId?: string;
   projectId?: string;
   duration?: EventDuration;
   isArchived?: boolean;
   source?: AchievementSource;
+  searchQuery?: string;
 }

@@ -2,17 +2,9 @@ import useSWR from "swr";
 import { toast } from "sonner";
 import { useConfetti } from "@/hooks/useConfetti";
 import type { CompanyFormData } from "@/components/companies/company-form";
+import type { Company } from "@/lib/db/schema";
 
-interface Company {
-  id: string;
-  name: string;
-  domain: string | undefined;
-  role: string;
-  startDate: Date;
-  endDate: Date | null;
-}
-
-const fetcher = async (url: string) => {
+const fetchCompanies = async (url: string) => {
   const res = await fetch(url);
   if (!res.ok) {
     throw new Error("Failed to fetch companies");
@@ -22,13 +14,26 @@ const fetcher = async (url: string) => {
     ...company,
     startDate: new Date(company.startDate),
     endDate: company.endDate ? new Date(company.endDate) : null,
-  }));
+  })) as Company[];
+};
+
+const fetchCompany = async (url: string) => {
+  const res = await fetch(url);
+  if (!res.ok) {
+    throw new Error("Failed to fetch company");
+  }
+  const company = await res.json();
+  return {
+    ...company,
+    startDate: new Date(company.startDate),
+    endDate: company.endDate ? new Date(company.endDate) : null,
+  } as Company;
 };
 
 export function useCompanies() {
   const { data, error, mutate } = useSWR<Company[]>(
     "/api/companies",
-    fetcher
+    fetchCompanies
   );
 
   return {
@@ -42,7 +47,7 @@ export function useCompanies() {
 export function useCompany(id: string) {
   const { data, error, mutate } = useSWR<Company>(
     `/api/companies/${id}`,
-    fetcher
+    fetchCompany
   );
 
   return {
