@@ -1,14 +1,6 @@
 'use client';
 
-import { Loader2Icon, MoreHorizontal } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -18,70 +10,57 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
+  AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
+import { Pencil1Icon, TrashIcon } from '@radix-ui/react-icons';
 import { useState } from 'react';
 
 interface AchievementActionsProps {
   onEdit: () => void;
   onDelete: () => Promise<void>;
-  onArchive: () => void;
-  isArchived: boolean;
   isLoading?: boolean;
 }
 
 export function AchievementActions({
   onEdit,
   onDelete,
-  onArchive,
-  isArchived,
   isLoading = false,
 }: AchievementActionsProps) {
-  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
 
   const handleDelete = async () => {
     try {
       setIsDeleting(true);
       await onDelete();
-      setShowDeleteDialog(false);
     } finally {
       setIsDeleting(false);
     }
   };
 
-  if (isLoading || isDeleting) {
-    return (
-      <div className="flex items-center justify-center">
-        <Loader2Icon className="size-4 animate-spin text-muted-foreground" />
-      </div>
-    );
-  }
-
   return (
-    <>
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <Button variant="ghost" size="icon" className="size-8">
-            <span className="sr-only">Open menu</span>
-            <MoreHorizontal className="size-4" />
-          </Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent align="end">
-          <DropdownMenuItem onClick={onEdit}>Edit</DropdownMenuItem>
-          <DropdownMenuItem onClick={onArchive}>
-            {isArchived ? 'Unarchive' : 'Archive'}
-          </DropdownMenuItem>
-          <DropdownMenuSeparator />
-          <DropdownMenuItem
-            onClick={() => setShowDeleteDialog(true)}
-            className="text-red-600 dark:text-red-400"
-          >
-            Delete
-          </DropdownMenuItem>
-        </DropdownMenuContent>
-      </DropdownMenu>
+    <div className="flex items-center gap-2">
+      <Button
+        variant="ghost"
+        size="icon"
+        onClick={onEdit}
+        disabled={isLoading || isDeleting}
+      >
+        <Pencil1Icon className="size-4" />
+        <span className="sr-only">Edit</span>
+      </Button>
 
-      <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+      <AlertDialog>
+        <AlertDialogTrigger asChild>
+          <Button
+            variant="ghost"
+            size="icon"
+            disabled={isLoading || isDeleting}
+            className="text-red-600 hover:text-red-700 dark:text-red-500 dark:hover:text-red-600"
+          >
+            <TrashIcon className="size-4" />
+            <span className="sr-only">Delete</span>
+          </Button>
+        </AlertDialogTrigger>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Delete Achievement</AlertDialogTitle>
@@ -102,6 +81,6 @@ export function AchievementActions({
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </>
+    </div>
   );
 }

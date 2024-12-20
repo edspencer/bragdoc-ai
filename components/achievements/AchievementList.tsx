@@ -174,10 +174,6 @@ export function AchievementList({
                       })
                     }
                     onDelete={() => handleDelete(achievement.id)}
-                    onArchive={() =>
-                      handleArchive(achievement.id, achievement.isArchived ?? false)
-                    }
-                    isArchived={achievement.isArchived ?? false}
                     isLoading={actionLoading === `delete-${achievement.id}`}
                   />
                 </TableCell>
