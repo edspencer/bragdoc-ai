@@ -41,9 +41,12 @@ export function CompanyList({
     return <CompanyListSkeleton />;
   }
 
-  const sortedCompanies = [...companies].sort(
-    (a, b) => b.startDate.getTime() - a.startDate.getTime()
-  );
+  const sortedCompanies = [...companies].sort((a, b) => {
+    const startDateA = a.startDate instanceof Date ? a.startDate : new Date(a.startDate);
+    const startDateB = b.startDate instanceof Date ? b.startDate : new Date(b.startDate);
+    
+    return startDateB.getTime() - startDateA.getTime();
+  });
 
   const handleEdit = (company: Company) => {
     setEditCompany(company);
