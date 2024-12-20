@@ -1,8 +1,8 @@
-import type { Brag } from "../../lib/db/schema";
+import type { Achievement } from "../../lib/types/achievement";
 
 import type { CompanyContext, ProjectContext } from '../conversation-gen/types';
 
-export type ContextBragExample = {
+export type ContextAchievementExample = {
   input: { 
     input: string
     chat_history: { role: string; content: string }[]
@@ -12,7 +12,7 @@ export type ContextBragExample = {
     }
   }
   expected: {
-    brag: Brag
+    achievement: Achievement
     companyId: string | null
     projectId: string | null
     suggestNewProject?: boolean

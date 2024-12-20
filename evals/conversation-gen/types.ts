@@ -1,5 +1,3 @@
-
-
 export type CompanyContext = {
   id: string;
   name: string;
@@ -42,7 +40,7 @@ export type Conversation = {
   scenario: ConversationScenario;
 };
 
-export type GeneratedBrag = {
+export type GeneratedAchievement = {
   id: string;
   userId: string;
   userMessageId: string;
@@ -63,5 +61,5 @@ export type GeneratedBrag = {
 export type GeneratedTestData = {
   scenario: ConversationScenario;
   conversation: Conversation;
-  expectedBrags: GeneratedBrag[];
+  expectedAchievements: GeneratedAchievement[];
 };

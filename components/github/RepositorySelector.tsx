@@ -78,7 +78,7 @@ export function RepositorySelector({
         <DialogHeader>
           <DialogTitle>Connect GitHub Repository</DialogTitle>
           <DialogDescription>
-            Select a repository to sync pull requests and generate brags from your work.
+            Select a repository to sync pull requests and generate achievements from your work.
           </DialogDescription>
         </DialogHeader>
         <div className="py-4">

@@ -32,7 +32,7 @@
 
 ## Phase 2: Core Type Updates
 **Estimated time: 2-3 hours**
-**Status: In Progress**
+**Status: Completed**
 
 1. Create type mapping file `lib/types/achievement.ts`:
    - Define Achievement interface
@@ -50,7 +50,7 @@
 
 ## Phase 3: Component Updates
 **Estimated time: 3-4 hours**
-**Status: Not Started**
+**Status: Completed**
 
 1. Rename and update components:
    - `components/brag.tsx` → `components/achievement.tsx`

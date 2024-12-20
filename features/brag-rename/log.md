@@ -32,8 +32,19 @@
   - Updated test examples to use Achievement instead of Brag
 - Next: Search for remaining type imports in components
 
+### 16:00-16:16
+- Updated prompts.ts to use Achievement terminology
+- Updated chat/route.ts to use Achievement terminology
+- Updated eval files to use Achievement terminology:
+  - evals/context-brag/types.ts
+  - evals/context-brag/dataset.ts
+  - evals/context-brag/eval.ts
+  - evals/conversation-gen/types.ts
+  - evals/conversation-gen/generator.ts
+- Updated plan.md to mark Phase 2 and 3 as completed
+
 ### Current Status
-Making good progress on Phase 2: Core Type Updates. All major type definitions and eval files have been updated.
+Completed Phase 2 and 3. All major type definitions, eval files, and components have been updated.
 
 ### Notes
 - Migration strategy: Using a simple ALTER TABLE RENAME approach
@@ -47,9 +58,6 @@ Making good progress on Phase 2: Core Type Updates. All major type definitions a
 None currently.
 
 ### Next Actions
-1. Continue Phase 2: Core Type Updates
-   - Search for any remaining type imports in components
-   - Add type aliases for backward compatibility if needed
-2. Begin Phase 3: Component Updates
-   - Search for components using old terminology
-   - Update component props and state
+1. Run tests to verify changes
+2. Update documentation
+3. Clean up any remaining references to "brag"

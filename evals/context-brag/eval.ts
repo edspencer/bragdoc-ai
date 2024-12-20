@@ -2,9 +2,10 @@ import { Eval } from "braintrust";
 import { LLMClassifierFromSpec } from "autoevals";
 import { contextAchievementExamples } from "./dataset";
 import { extractAchievements } from "../../lib/ai/extract";
+import type { ContextAchievementExample } from './types';
 
 // Convert our examples to the format expected by BrainTrust
-const experimentData = contextAchievementExamples.map((example) => ({
+const experimentData = contextAchievementExamples.map((example: ContextAchievementExample) => ({
   input: {
     ...example.input,
     chatStr: example.input.chat_history
