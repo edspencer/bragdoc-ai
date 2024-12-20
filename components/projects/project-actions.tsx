@@ -1,14 +1,7 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { DotsHorizontalIcon, Pencil1Icon, TrashIcon } from "@radix-ui/react-icons";
+import { Pencil1Icon, TrashIcon } from "@radix-ui/react-icons";
 import { Loader2 } from "lucide-react";
 import {
   AlertDialog,
@@ -53,36 +46,32 @@ export function ProjectActions({
 
   return (
     <>
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <Button
-            variant="ghost"
-            className="flex size-8 p-0 data-[state=open]:bg-muted"
-            disabled={isLoading}
-          >
-            {isLoading ? (
-              <Loader2 className="size-4 animate-spin" />
-            ) : (
-              <DotsHorizontalIcon className="size-4" />
-            )}
-            <span className="sr-only">Open menu</span>
-          </Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent align="end" className="w-[160px]">
-          <DropdownMenuItem onClick={() => onEdit(project)}>
-            <Pencil1Icon className="mr-2 size-4" />
-            Edit
-          </DropdownMenuItem>
-          <DropdownMenuSeparator />
-          <DropdownMenuItem
-            onClick={() => setShowDeleteDialog(true)}
-            className="text-red-600 dark:text-red-400"
-          >
-            <TrashIcon className="mr-2 size-4" />
-            Delete
-          </DropdownMenuItem>
-        </DropdownMenuContent>
-      </DropdownMenu>
+      <div className="flex items-center gap-2">
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={() => onEdit(project)}
+          disabled={isLoading}
+          className="size-8"
+        >
+          <Pencil1Icon className="size-4" />
+          <span className="sr-only">Edit project</span>
+        </Button>
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={() => setShowDeleteDialog(true)}
+          disabled={isLoading}
+          className="size-8 text-red-600 dark:text-red-400"
+        >
+          {isLoading ? (
+            <Loader2 className="size-4 animate-spin" />
+          ) : (
+            <TrashIcon className="size-4" />
+          )}
+          <span className="sr-only">Delete project</span>
+        </Button>
+      </div>
 
       <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
         <AlertDialogContent>
@@ -97,10 +86,13 @@ export function ProjectActions({
             <AlertDialogCancel>Cancel</AlertDialogCancel>
             <AlertDialogAction
               onClick={handleDelete}
-              className="bg-red-600 focus:ring-red-600"
+              className="bg-red-600 hover:bg-red-700 focus:ring-red-600"
               disabled={isDeleting}
             >
-              {isDeleting ? "Deleting..." : "Delete"}
+              {isDeleting ? (
+                <Loader2 className="mr-2 size-4 animate-spin" />
+              ) : null}
+              Delete
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
