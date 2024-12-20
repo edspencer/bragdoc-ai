@@ -66,7 +66,6 @@
 - [ ] Automatically expose all userPreferences for the user with the LLM context
 - [ ] getBrags tool? - vector search on brags
 - [ ] saveUserPreferences tool - should be called whenever the user says things like "Always arrange this (weekly report) into sections by project"
-<<<<<<< HEAD
 
 ### Brags renaming to Achievements
 - [ ] Change the Brag model name to Achievement, including table names, all references
@@ -77,8 +76,6 @@
 - [x] Implement Achievements UI - similar CRUD options as we have for Companies and Projects
 - [x] Implement Achievements API - similar to Companies and Projects
 - [ ] Jest tests for Achievements API
-=======
->>>>>>> 4b8b3c6 (Features and TODO updates)
 
 ### UI/UX Improvements
 - [ ] Create tag management system
