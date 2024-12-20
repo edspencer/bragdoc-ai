@@ -1,6 +1,6 @@
 'use client';
 
-import { Loader2Icon } from 'lucide-react';
+import { Loader2Icon , MoreHorizontal } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -9,7 +9,6 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { MoreHorizontal } from 'lucide-react';
 
 interface AchievementActionsProps {
   onEdit: () => void;

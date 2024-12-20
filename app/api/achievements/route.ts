@@ -91,13 +91,13 @@ export async function POST(req: NextRequest) {
   }
 }
 
+type Params = Promise<{ id: string }>
+
 // PUT /api/achievements/[id]
-export async function PUT(
-  req: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function PUT(req: NextRequest, { params }: { params: Params }) {
   try {
     const session = await auth();
+    const {id} = await params;
     if (!session?.user?.id) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
@@ -106,7 +106,7 @@ export async function PUT(
     const validatedData = achievementRequestSchema.partial().parse(body);
 
     const [updated] = await updateAchievement({
-      id: params.id,
+      id,
       userId: session.user.id,
       data: validatedData
     });
@@ -138,8 +138,9 @@ export async function PUT(
 // DELETE /api/achievements/[id]
 export async function DELETE(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Params }
 ) {
+  const {id} = await params;
   try {
     const session = await auth();
     if (!session?.user?.id) {
@@ -147,7 +148,7 @@ export async function DELETE(
     }
 
     const [deleted] = await deleteAchievement({
-      id: params.id,
+      id,
       userId: session.user.id
     });
 

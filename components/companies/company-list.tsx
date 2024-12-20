@@ -17,15 +17,7 @@ import { CompanyListSkeleton } from "./company-list-skeleton";
 import { useState } from "react";
 import type { CompanyFormData } from "./company-form";
 import { motion } from "framer-motion";
-
-interface Company {
-  id: string;
-  name: string;
-  domain: string | undefined;
-  role: string;
-  startDate: Date;
-  endDate: Date | null;
-}
+import type { Company } from "@/lib/db/schema";
 
 interface CompanyListProps {
   companies: Company[];
@@ -174,11 +166,24 @@ export function CompanyList({
       />
 
       <CompanyDialog
-        open={!!editCompany}
-        onOpenChange={() => setEditCompany(null)}
-        initialData={editCompany || undefined}
-        onSubmit={handleEditSubmit}
         mode="edit"
+        open={!!editCompany}
+        onOpenChange={(open) => !open && setEditCompany(null)}
+        onSubmit={(data) => {
+          if (editCompany) {
+            onUpdateCompany(editCompany.id, data);
+            setEditCompany(null);
+          }
+        }}
+        initialData={
+          editCompany
+            ? {
+                ...editCompany,
+                domain: editCompany.domain ?? undefined,
+                endDate: editCompany.endDate ?? undefined,
+              }
+            : undefined
+        }
         isLoading={isLoading}
       />
     </motion.div>

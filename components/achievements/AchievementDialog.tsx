@@ -40,7 +40,6 @@ import {
   type Achievement,
   type FormValues,
   achievementRequestSchema,
-  EventDuration 
 } from '@/lib/types/achievement';
 import { useCompanies } from '@/hooks/use-companies';
 import { useProjects } from '@/hooks/useProjects';
@@ -198,7 +197,7 @@ export function AchievementDialog({
                             ) : (
                               <span>Pick a date</span>
                             )}
-                            <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                            <CalendarIcon className="ml-auto size-4 opacity-50" />
                           </Button>
                         </FormControl>
                       </PopoverTrigger>
@@ -239,7 +238,7 @@ export function AchievementDialog({
                             ) : (
                               <span>Pick a date</span>
                             )}
-                            <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                            <CalendarIcon className="ml-auto size-4 opacity-50" />
                           </Button>
                         </FormControl>
                       </PopoverTrigger>

@@ -1,6 +1,6 @@
 import { motion } from 'framer-motion';
 import { Loader2Icon } from 'lucide-react';
-import { MagnifyingGlassIcon, ResetIcon } from '@radix-ui/react-icons';
+import { MagnifyingGlassIcon, ResetIcon , CalendarIcon } from '@radix-ui/react-icons';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import {
@@ -19,7 +19,6 @@ import { Calendar } from '@/components/ui/calendar';
 import { cn } from '@/lib/utils';
 import type { Company, Project } from '@/lib/db/schema';
 import { format } from 'date-fns';
-import { CalendarIcon } from '@radix-ui/react-icons';
 
 interface AchievementFiltersProps {
   companyId: string;

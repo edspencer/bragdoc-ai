@@ -14,6 +14,7 @@ const fetchCompanies = async (url: string) => {
     ...company,
     startDate: new Date(company.startDate),
     endDate: company.endDate ? new Date(company.endDate) : null,
+    domain: company.domain ?? null,
   })) as Company[];
 };
 
@@ -27,6 +28,7 @@ const fetchCompany = async (url: string) => {
     ...company,
     startDate: new Date(company.startDate),
     endDate: company.endDate ? new Date(company.endDate) : null,
+    domain: company.domain ?? null,
   } as Company;
 };
 
