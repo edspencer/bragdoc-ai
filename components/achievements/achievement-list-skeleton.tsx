@@ -24,8 +24,6 @@ export function AchievementListSkeleton() {
               <TableHead>Achievement</TableHead>
               <TableHead>Company</TableHead>
               <TableHead>Project</TableHead>
-              <TableHead>Duration</TableHead>
-              <TableHead>Date</TableHead>
               <TableHead className="w-[100px]">Actions</TableHead>
             </TableRow>
           </TableHeader>
@@ -43,12 +41,6 @@ export function AchievementListSkeleton() {
                 </TableCell>
                 <TableCell>
                   <Skeleton className="h-4 w-[140px]" />
-                </TableCell>
-                <TableCell>
-                  <Skeleton className="h-6 w-[80px] rounded-full" />
-                </TableCell>
-                <TableCell>
-                  <Skeleton className="h-4 w-[80px]" />
                 </TableCell>
                 <TableCell>
                   <div className="flex items-center gap-2">

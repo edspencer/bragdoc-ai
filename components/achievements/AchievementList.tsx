@@ -139,9 +139,6 @@ export function AchievementList({
               <TableHead className="min-w-[200px]">Achievement</TableHead>
               <TableHead className="min-w-[120px]">Company</TableHead>
               <TableHead className="min-w-[120px]">Project</TableHead>
-              <TableHead className="min-w-[100px]">Duration</TableHead>
-              <TableHead className="min-w-[120px]">Date</TableHead>
-              <TableHead className="min-w-[100px]">Status</TableHead>
               <TableHead className="w-[100px]">Actions</TableHead>
             </TableRow>
           </TableHeader>
@@ -151,19 +148,6 @@ export function AchievementList({
                 <TableCell>{achievement.title}</TableCell>
                 <TableCell>{achievement.company?.name ?? '-'}</TableCell>
                 <TableCell>{achievement.project?.name ?? '-'}</TableCell>
-                <TableCell>{achievement.eventDuration}</TableCell>
-                <TableCell>
-                  {achievement.eventStart
-                    ? format(new Date(achievement.eventStart), 'MMM d, yyyy')
-                    : '-'}
-                </TableCell>
-                <TableCell>
-                  {achievement.isArchived ? (
-                    <Badge variant="secondary">Archived</Badge>
-                  ) : (
-                    <Badge>Active</Badge>
-                  )}
-                </TableCell>
                 <TableCell>
                   <AchievementActions
                     onEdit={() =>

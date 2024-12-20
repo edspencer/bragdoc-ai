@@ -78,11 +78,13 @@
 - [ ] Jest tests for Achievements API
 
 ### UI/UX Improvements
+- [ ] New/Edit Achievement modal is tall - need to make it scrollable for shorter screen heights
 - [ ] Create tag management system
 - [ ] Add email preferences configuration
 - [ ] Enhance document generation interface with more options
 - [ ] Stream Brags into the UI one by one instead of all as a response from extractBrags
 - [ ] Fix calendar/date picker components throughout the app
+- [ ] Calendar filtering on Achievements page sucks - can't clear, and should be a date range picker UI instead
   - Calendar appears behind modal overlays
   - Click events are intercepted by modal overlays
   - Affects all date pickers in modals (project dates, etc.)
