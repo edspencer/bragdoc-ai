@@ -76,7 +76,7 @@ export function AchievementDialog({
 }: AchievementDialogProps) {
   const { companies } = useCompanies();
   const { projects } = useProjects();
-  const { createAchievement } = useAchievements();
+  const { createAchievement, updateAchievement } = useAchievements();
   const { fire: fireConfetti } = useConfetti();
   const isViewMode = mode === 'view';
   
@@ -111,14 +111,23 @@ export function AchievementDialog({
 
   const handleSubmit = async (data: FormValues) => {
     try {
-      await createAchievement(data);
-      toast.success('Achievement created successfully');
-      fireConfetti();
+      if (mode === 'edit' && achievement) {
+        await updateAchievement(achievement.id, data);
+        toast.success('Achievement updated successfully');
+      } else {
+        await createAchievement(data);
+        toast.success('Achievement created successfully');
+        fireConfetti();
+      }
       onOpenChange(false);
       form.reset();
     } catch (error) {
-      console.error('Error creating achievement:', error);
-      toast.error('Failed to create achievement');
+      console.error('Error saving achievement:', error);
+      toast.error(
+        mode === 'edit' 
+          ? 'Failed to update achievement' 
+          : 'Failed to create achievement'
+      );
     }
   };
 

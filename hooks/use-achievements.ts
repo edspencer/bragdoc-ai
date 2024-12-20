@@ -100,6 +100,32 @@ export function useAchievements(options: UseAchievementsOptions = {}) {
     [mutate]
   );
 
+  const updateAchievement = useCallback(
+    async (id: string, data: CreateAchievementRequest) => {
+      try {
+        const response = await fetch(`/api/achievements/${id}`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(data),
+        });
+
+        if (!response.ok) {
+          throw new Error('Failed to update achievement');
+        }
+
+        const achievement = await response.json();
+        await mutate();
+        return achievement;
+      } catch (error) {
+        console.error('Error updating achievement:', error);
+        throw error;
+      }
+    },
+    [mutate]
+  );
+
   return {
     achievements: data?.achievements ?? [],
     pagination: data?.pagination,
@@ -107,5 +133,6 @@ export function useAchievements(options: UseAchievementsOptions = {}) {
     isLoading,
     mutate,
     createAchievement,
+    updateAchievement,
   };
 }
