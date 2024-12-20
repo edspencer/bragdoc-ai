@@ -51,6 +51,14 @@
 - Updated plan.md to mark Phase 4 as completed
 - All tests are passing
 
+### 16:44-16:51 - Core Type Updates (Part 3)
+- Updated ExtractedAchievement to be a subset of Achievement using Pick
+- Fixed date handling in generator.ts to properly handle null dates
+- Updated single-brag generator to use achievement instead of brag
+- Removed unused Achievement import from context-brag/types.ts
+- Updated all eval files to use consistent Achievement terminology
+- Added next steps to plan.md for final review and testing
+
 ### Current Status
 Completed Phase 2, 3, and 4. All major type definitions, eval files, components, and tests have been updated.
 
