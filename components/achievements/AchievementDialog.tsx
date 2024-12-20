@@ -40,6 +40,9 @@ import { z } from 'zod';
 import type { Brag as Achievement } from '@/lib/db/schema';
 import { useCompanies } from '@/hooks/use-companies';
 import { useProjects } from '@/hooks/useProjects';
+import { useAchievements } from '@/hooks/use-achievements';
+import { useConfetti } from '@/hooks/useConfetti';
+import { toast } from 'sonner';
 
 const achievementRequestSchema = z.object({
   title: z.string().min(1).max(256),
@@ -73,6 +76,8 @@ export function AchievementDialog({
 }: AchievementDialogProps) {
   const { companies } = useCompanies();
   const { projects } = useProjects();
+  const { createAchievement } = useAchievements();
+  const { fire: fireConfetti } = useConfetti();
   const isViewMode = mode === 'view';
   
   const form = useForm<FormValues>({
@@ -104,10 +109,18 @@ export function AchievementDialog({
     }
   }, [achievement, open, form]);
 
-  const handleSubmit = form.handleSubmit((data) => {
-    onSubmit?.(data as FormValues);
-    onOpenChange(false);
-  });
+  const handleSubmit = async (data: FormValues) => {
+    try {
+      await createAchievement(data);
+      toast.success('Achievement created successfully');
+      fireConfetti();
+      onOpenChange(false);
+      form.reset();
+    } catch (error) {
+      console.error('Error creating achievement:', error);
+      toast.error('Failed to create achievement');
+    }
+  };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -126,7 +139,7 @@ export function AchievementDialog({
         </DialogHeader>
 
         <Form {...form}>
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
             <FormField
               control={form.control}
               name="title"

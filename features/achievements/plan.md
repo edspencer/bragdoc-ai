@@ -39,22 +39,22 @@
 
 ## Phase 2: API Layer 
 1. Create API route handlers in `app/api/achievements/route.ts`:
-   - GET handler with filtering and pagination
-   - POST handler for creation (handle userMessageId)
-   - PUT handler for updates
-   - DELETE handler for deletion
+   - ✓ GET handler with filtering and pagination
+   - ✓ POST handler for creation (handle userMessageId)
+   - ✓ PUT handler for updates
+   - ✓ DELETE handler for deletion
    - GET /export handler for generating review documents
 
 2. Create API utilities in `lib/db/achievements/queries.ts`:
-   - `getAchievementsByUserId` with filters:
+   - ✓ `getAchievementsByUserId` with filters:
      - Date range (eventStart/eventEnd)
      - Company
      - Project
      - Duration
      - Archive status
-   - `createAchievement` (with userMessageId creation)
-   - `updateAchievement`
-   - `deleteAchievement`
+   - ✓ `createAchievement` with proper relations
+   - `updateAchievement` with validation
+   - `deleteAchievement` with cleanup
    - `bulkUpdateAchievements` (for bulk operations)
    - `getDuration` for calculating achievement duration
 
@@ -125,35 +125,20 @@
    - Rate limit error handling
    - Retry mechanism UI
 
-## Phase 4: Relations & Types 
-1. Update Achievement type to use Drizzle relations 
-   - Correctly handle optional company relation 
-   - Correctly handle optional project relation 
-   - Correctly handle optional userMessage relation 
-
-2. Type Safety Improvements 
-   - Update getAchievements query to properly join relations
-   - Define BragWithRelations type for joined queries
-   - Consider using Drizzle's type system for form validation
-   - Evaluate trade-offs between manual Zod schemas vs. Drizzle-generated ones
-
-3. Next Steps
-   - Review current form validation approach
-   - Document decisions about type handling
-   - Add tests for type safety
-   - Update API documentation
-
-## Phase 5: Testing & Documentation 
+## Phase 4: Testing & Documentation 
 1. Add unit tests for:
    - Achievement creation with relations
    - Achievement updates
    - Relation handling
-2. Update documentation:
-   - API endpoints
-   - Type system decisions
-   - Form validation approach
+   - Error handling
 
-## Phase 6: Page Implementation 
+2. Add integration tests for:
+   - API routes related to achievements
+   - Form submission flows
+   - Error handling cases
+   - Filter combinations
+
+## Phase 5: Page Implementation 
 1. Create `/app/achievements/page.tsx`:
    - Layout structure
    - List integration
@@ -161,7 +146,7 @@
    - Filter state management
    - Bulk selection state
 
-## Phase 7: Testing 
+## Phase 6: Testing 
 1. API Tests:
    - Unit tests for API routes
    - Unit tests for database queries
@@ -199,7 +184,7 @@
    - ARIA label verification
    - Focus management testing
 
-## Phase 8: Polish 
+## Phase 7: Polish 
 1. Error Handling:
    - Error boundaries for each major component
    - Toast notifications with retry options
@@ -238,11 +223,6 @@
    - Accessibility audit
    - Performance testing
    - Error scenario testing
-
-## Notes
-- Decided to keep manual Zod schema for now as it gives us more control over form validation
-- Relations are working correctly with left joins
-- Type safety is maintained through BragWithRelations type
 
 ## Dependencies 
 - ShadcnUI components:

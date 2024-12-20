@@ -1,6 +1,7 @@
 import { useCallback } from 'react';
 import useSWR from 'swr';
 import type { BragWithRelations } from '@/lib/db/queries';
+import type { CreateAchievementRequest } from '@/lib/types/achievement';
 
 export interface AchievementFilters {
   companyId?: string;
@@ -73,11 +74,38 @@ export function useAchievements(options: UseAchievementsOptions = {}) {
     }
   );
 
+  const createAchievement = useCallback(
+    async (data: CreateAchievementRequest) => {
+      try {
+        const response = await fetch('/api/achievements', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(data),
+        });
+
+        if (!response.ok) {
+          throw new Error('Failed to create achievement');
+        }
+
+        const achievement = await response.json();
+        await mutate();
+        return achievement;
+      } catch (error) {
+        console.error('Error creating achievement:', error);
+        throw error;
+      }
+    },
+    [mutate]
+  );
+
   return {
     achievements: data?.achievements ?? [],
     pagination: data?.pagination,
     error,
     isLoading,
     mutate,
+    createAchievement,
   };
 }
