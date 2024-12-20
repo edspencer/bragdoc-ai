@@ -3,24 +3,24 @@
 import { useState } from 'react';
 import { useAchievementFilters } from '@/hooks/use-achievement-filters';
 import { AchievementList } from '@/components/achievements/AchievementList';
+import { AchievementFilters } from '@/components/achievements/AchievementFilters';
 import { Button } from '@/components/ui/button';
 import { Plus } from 'lucide-react';
 
-export default function AchievementsPage() {
+export function AchievementsContent() {
   const [page, setPage] = useState(1);
-  const { filters, setFilter, clearFilters } = useAchievementFilters();
+  const { filters } = useAchievementFilters();
 
   return (
-    <div className="container py-8">
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold">Achievements</h1>
+    <div className="mt-8">
+      <div className="flex justify-end mb-6">
         <Button>
-          <Plus className="mr-2 h-4 w-4" />
+          <Plus className="mr-2 size-4" />
           New Achievement
         </Button>
       </div>
 
-      {/* TODO: Add filter UI here */}
+      <AchievementFilters />
 
       <AchievementList
         page={page}

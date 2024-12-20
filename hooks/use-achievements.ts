@@ -1,6 +1,6 @@
 import { useCallback } from 'react';
 import useSWR from 'swr';
-import { type Achievement, type AchievementFilters } from '@/lib/types/achievement';
+import type { Achievement, AchievementFilters } from '@/lib/types/achievement';
 
 interface UseAchievementsOptions {
   page?: number;

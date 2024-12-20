@@ -1,7 +1,7 @@
 import { genSaltSync, hashSync } from "bcrypt-ts";
 import { and, asc, between, desc, eq, gt, gte, type InferSelectModel, lte, sql } from "drizzle-orm";
 import { db as defaultDb } from "@/lib/db";
-import { CreateAchievementRequest, UpdateAchievementRequest } from "@/lib/types/achievement";
+import type { CreateAchievementRequest, UpdateAchievementRequest } from "@/lib/types/achievement";
 
 import { 
   user, 

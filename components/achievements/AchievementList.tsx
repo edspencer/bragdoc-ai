@@ -1,7 +1,6 @@
 import { useAchievements } from '@/hooks/use-achievements';
 import { useAchievementMutations } from '@/hooks/use-achievement-mutations';
 import { AchievementCard } from './AchievementCard';
-import { Button } from '@/components/ui/button';
 import {
   Pagination,
   PaginationContent,
@@ -11,7 +10,7 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from '@/components/ui/pagination';
-import { type AchievementFilters } from '@/lib/types/achievement';
+import type { AchievementFilters } from '@/lib/types/achievement';
 
 interface AchievementListProps {
   page: number;

@@ -1,6 +1,6 @@
 import { format } from 'date-fns';
 import { MoreHorizontal, Calendar, Building2, FolderGit2 } from 'lucide-react';
-import { type Achievement } from '@/lib/types/achievement';
+import type { Achievement } from '@/lib/types/achievement';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card';
 import {
@@ -53,9 +53,9 @@ export function AchievementCard({
           </Badge>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="h-8 w-8 p-0">
+              <Button variant="ghost" className="size-8 p-0">
                 <span className="sr-only">Open menu</span>
-                <MoreHorizontal className="h-4 w-4" />
+                <MoreHorizontal className="size-4" />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
@@ -92,7 +92,7 @@ export function AchievementCard({
       <CardFooter className="flex flex-wrap gap-2 text-xs text-muted-foreground">
         {eventStart && (
           <div className="flex items-center gap-1">
-            <Calendar className="h-3 w-3" />
+            <Calendar className="size-3" />
             <span>
               {format(new Date(eventStart), 'MMM d, yyyy')}
               {eventEnd && ` - ${format(new Date(eventEnd), 'MMM d, yyyy')}`}
@@ -101,13 +101,13 @@ export function AchievementCard({
         )}
         {companyId && (
           <div className="flex items-center gap-1">
-            <Building2 className="h-3 w-3" />
+            <Building2 className="size-3" />
             <span>{companyId}</span>
           </div>
         )}
         {projectId && (
           <div className="flex items-center gap-1">
-            <FolderGit2 className="h-3 w-3" />
+            <FolderGit2 className="size-3" />
             <span>{projectId}</span>
           </div>
         )}

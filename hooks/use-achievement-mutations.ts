@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 import { useSWRConfig } from 'swr';
-import { type CreateAchievementRequest, type UpdateAchievementRequest } from '@/lib/types/achievement';
+import type { CreateAchievementRequest, UpdateAchievementRequest } from '@/lib/types/achievement';
 import { toast } from 'sonner';
 
 interface UseMutationsOptions {

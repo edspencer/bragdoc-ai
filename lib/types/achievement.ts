@@ -1,5 +1,5 @@
-import { InferSelectModel } from 'drizzle-orm';
-import { brag, company, project, userMessage } from '@/lib/db/schema';
+import type { InferSelectModel } from 'drizzle-orm';
+import type { brag, company, project, userMessage } from '@/lib/db/schema';
 import { z } from 'zod';
 
 // Export base type from Drizzle schema

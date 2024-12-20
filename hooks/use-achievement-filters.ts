@@ -1,5 +1,5 @@
 import { useState, useCallback, useMemo } from 'react';
-import { type AchievementFilters } from '@/lib/types/achievement';
+import type { AchievementFilters } from '@/lib/types/achievement';
 
 interface UseAchievementFiltersOptions {
   initialFilters?: Partial<AchievementFilters>;

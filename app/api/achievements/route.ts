@@ -1,8 +1,6 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { type NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/app/(auth)/auth';
 import { z } from 'zod';
-import { db } from '@/lib/db';
-import { brag } from '@/lib/db/schema';
 import { achievementRequestSchema } from '@/lib/types/achievement';
 import { 
   createAchievement,
@@ -10,7 +8,6 @@ import {
   updateAchievement, 
   deleteAchievement 
 } from '@/lib/db/queries';
-import { desc, eq, and, between, isNull, sql } from 'drizzle-orm';
 
 // GET /api/achievements
 export async function GET(req: NextRequest) {
@@ -21,8 +18,8 @@ export async function GET(req: NextRequest) {
     }
 
     const searchParams = req.nextUrl.searchParams;
-    const page = parseInt(searchParams.get('page') ?? '1');
-    const limit = parseInt(searchParams.get('limit') ?? '10');
+    const page = Number.parseInt(searchParams.get('page') ?? '1');
+    const limit = Number.parseInt(searchParams.get('limit') ?? '10');
     const companyId = searchParams.get('companyId');
     const projectId = searchParams.get('projectId');
     const source = searchParams.get('source') as 'llm' | 'manual' | null;

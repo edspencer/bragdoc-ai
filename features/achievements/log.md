@@ -153,3 +153,30 @@ All endpoints include:
 - Using shadcn/ui components for consistent design
 - Added loading states for better UX
 - Implemented responsive layout
+
+## 2024-12-20 08:35 - Code Quality Improvements
+
+### Completed Tasks
+1. Fixed Next.js page structure:
+   - Moved client-side logic to `AchievementsContent` component
+   - Made achievements page server-renderable
+   - Fixed page routing under `(app)` group
+
+2. Fixed type imports and declarations:
+   - Changed `import { type X }` to `import type { X }`
+   - Added missing type imports
+   - Fixed type usage in filters
+
+3. UI improvements:
+   - Fixed Select component empty value issue
+   - Standardized icon sizing using `size-*` classes
+   - Cleaned up unused imports
+
+### Next Steps
+1. Add company and project selectors
+2. Implement achievement creation dialog
+
+### Notes
+- Following Next.js best practices for client/server components
+- Improved type safety across the codebase
+- Better UI consistency with standardized sizing
