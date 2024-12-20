@@ -68,7 +68,7 @@
 
 ## Phase 4: API and Route Updates
 **Estimated time: 2-3 hours**
-**Status: Not Started**
+**Status: Completed**
 
 1. Update API routes:
    - `app/api/chat/route.ts`
@@ -82,7 +82,7 @@
 
 ## Phase 5: AI/LLM Updates
 **Estimated time: 2-3 hours**
-**Status: Not Started**
+**Status: Completed**
 
 1. Update AI prompts and extractors:
    - Review and update prompts in `lib/ai/prompts.ts`
@@ -96,7 +96,7 @@
 
 ## Phase 6: Testing
 **Estimated time: 3-4 hours**
-**Status: Not Started**
+**Status: Completed**
 
 1. Update test setup:
    - Update `test/setup.ts` for new schema

@@ -26,7 +26,7 @@ export const blocksPrompt = `
   Do not update document right after creating it. Wait for user feedback or request to update it.
   `;
 
-export const bragsPrompt = `
+export const achievementsPrompt = `
 This application allows users to log their Achievements at work, organizing them by project and company.
 The Achievement data is later used to generate weekly/monthly/performance review documents.
 
@@ -50,4 +50,4 @@ If the user tells you about things they've done at work, call the extractAchieve
 When the user asks you to generate a report, call the createDocument tool 
 (you will be given the Achievements, Companies and Projects data that you need).`;
 
-export const systemPrompt = `${regularPrompt}\n\n${blocksPrompt}\n\n${bragsPrompt}`;
+export const systemPrompt = `${regularPrompt}\n\n${blocksPrompt}\n\n${achievementsPrompt}`;

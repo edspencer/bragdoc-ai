@@ -1,29 +1,30 @@
 import { Check } from "lucide-react"
 
-export function BragAction({ action }: { action: any }) {
-  const {brags} = action
+export function AchievementAction({ action }: { action: any }) {
+  const {achievements} = action
 
-  if (!brags || brags.length === 0) {
-    return <p>Extracting Achievements...</p>
+  if (!achievements || achievements.length === 0) {
+    return null;
   }
 
   return (
-    <div className="flex gap-4 flex-wrap">
-      {brags.map((brag: any) => (
-        <BragCreated key={brag.title} brag={brag} />
+    <div className="flex flex-col gap-2">
+      {achievements.map((achievement: any) => (
+        <AchievementCreated key={achievement.title} achievement={achievement} />
       ))}
     </div>
-  )
+  );
 }
 
-export function BragCreated({brag}: {brag: any}) {
+export function AchievementCreated({achievement}: {achievement: any}) {
   return (
-    <div className="bg-slate-100 border border-slate-400 text-slate-700 px-2 py-1 rounded-md relative max-w-54" role="alert">
-      <span className="inline-block align-middle mr-2">
-        <Check className="size-4" />
-      </span>
-
-      <span className="block sm:inline text-sm">{brag.title}</span>
+    <div className="flex flex-col gap-1 rounded-lg border border-gray-200 bg-gray-50 p-4 dark:border-gray-800 dark:bg-gray-900">
+      <div className="flex items-center gap-2">
+        <span className="inline-block align-middle mr-2">
+          <Check className="size-4" />
+        </span>
+        <span className="block sm:inline text-sm">{achievement.title}</span>
+      </div>
     </div>
-  )
+  );
 }
