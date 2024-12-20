@@ -85,13 +85,16 @@
 - [x] Implement Achievements API - similar to Companies and Projects
 - [ ] Jest tests for Achievements API
 
+### Bugs
+- [ ] What happens when a project or company is deleted but it's referenced in an achievement?
+
 ### UI/UX Improvements
 - [ ] New/Edit Achievement modal is tall - need to make it scrollable for shorter screen heights
 - [ ] Create tag management system
 - [ ] Add email preferences configuration
-- [ ] Enhance document generation interface with more options
 - [ ] Stream Brags into the UI one by one instead of all as a response from extractBrags
 - [ ] Fix calendar/date picker components throughout the app
+- [ ] Ability to delete many achievements at once?
 - [ ] Calendar filtering on Achievements page sucks - can't clear, and should be a date range picker UI instead
   - Calendar appears behind modal overlays
   - Click events are intercepted by modal overlays
@@ -123,6 +126,12 @@
   - [ ] Set up proper test file organization (.node.test.ts vs .test.tsx)
   - [ ] Add examples and documentation for component testing
   - [ ] Ensure proper mocking of Next.js features (router, etc)
+
+## Achievement Importance
+- [ ] Add ability to assign importance to achievements
+- [ ] Track whether score was assigned by user or LLM
+- [ ] Regularly update LLM-scored achievement importance scores
+- [ ] Differentiate high/medium/low importance achievements in the UI
 
 ## Conversation Examples & Testing
 
