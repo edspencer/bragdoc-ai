@@ -79,10 +79,8 @@ export function AchievementList({
   const handleDelete = async (id: string) => {
     setActionLoading(`delete-${id}`);
     try {
-      if (confirm('Are you sure you want to delete this achievement?')) {
-        await deleteAchievement(id);
-        mutate();
-      }
+      await deleteAchievement(id);
+      mutate();
     } finally {
       setActionLoading(null);
     }

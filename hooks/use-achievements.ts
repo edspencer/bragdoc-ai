@@ -126,6 +126,27 @@ export function useAchievements(options: UseAchievementsOptions = {}) {
     [mutate]
   );
 
+  const deleteAchievement = useCallback(
+    async (id: string) => {
+      try {
+        const response = await fetch(`/api/achievements/${id}`, {
+          method: 'DELETE',
+        });
+
+        if (!response.ok) {
+          throw new Error('Failed to delete achievement');
+        }
+
+        await mutate();
+        return response.json();
+      } catch (error) {
+        console.error('Error deleting achievement:', error);
+        throw error;
+      }
+    },
+    [mutate]
+  );
+
   return {
     achievements: data?.achievements ?? [],
     pagination: data?.pagination,
@@ -134,5 +155,6 @@ export function useAchievements(options: UseAchievementsOptions = {}) {
     mutate,
     createAchievement,
     updateAchievement,
+    deleteAchievement,
   };
 }
