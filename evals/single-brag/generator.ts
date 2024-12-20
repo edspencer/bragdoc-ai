@@ -148,7 +148,7 @@ export const generateBragConversation = (referenceDate: Date): Conversation => {
     input: filledTemplate.input,
     chat_history: [],
     expected: {
-      brag: {
+      achievement: {
         title: filledTemplate.title,
         summary: filledTemplate.summary,
         details: filledTemplate.details,

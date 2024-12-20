@@ -1,4 +1,4 @@
-import type { Achievement } from "../../lib/types/achievement";
+
 import type { ExtractedAchievement, ChatMessage } from '../../lib/ai/extract';
 
 import type { CompanyContext, ProjectContext } from '../conversation-gen/types';

@@ -2,7 +2,8 @@ import { generateObject } from 'ai';
 import { openai } from '@ai-sdk/openai';
 import { v4 as uuidv4 } from 'uuid';
 import { z } from 'zod';
-import type { ConversationScenario, Conversation, GeneratedTestData, } from './types';
+import type { ConversationScenario, Conversation, GeneratedTestData } from './types';
+import type { Achievement } from '../../lib/db/schema';
 import { SCENARIO_TEMPLATES, type ScenarioTemplate } from './templates';
 
 const scenarioSchema = z.object({
@@ -43,8 +44,8 @@ const achievementSchema = z.object({
     title: z.string(),
     summary: z.string(),
     details: z.string(),
-    eventStart: z.string().datetime(),
-    eventEnd: z.string().datetime(),
+    eventStart: z.string().nullable(),
+    eventEnd: z.string().nullable(),
     eventDuration: z.enum(["day", "week", "month", "quarter", "half year", "year"]),
     companyId: z.string().nullable(),
     projectId: z.string().nullable()
@@ -219,21 +220,22 @@ ${JSON.stringify(conversation.messages, null, 2)}`
     schema: achievementSchema,
   });
 
-  return object.achievements.map(a => ({
+  return object.achievements.map<Achievement>(a => ({
     id: uuidv4(),
     userId: conversation.scenario.userId,
     userMessageId: uuidv4(), // Since this is test data, we'll generate a new ID
     createdAt: new Date(),
     updatedAt: new Date(),
-    eventStart: new Date(a.eventStart),
-    eventEnd: new Date(a.eventEnd),
+    eventStart: a.eventStart ? new Date(a.eventStart) : null,
+    eventEnd: a.eventEnd ? new Date(a.eventEnd) : null,
     eventDuration: a.eventDuration,
     title: a.title,
     summary: a.summary,
     details: a.details,
-    companyId: a.companyId || null,
-    projectId: a.projectId || null,
-    isArchived: false
+    companyId: a.companyId,
+    projectId: a.projectId,
+    isArchived: false,
+    source: 'llm'
   }));
 }
 
