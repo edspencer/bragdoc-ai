@@ -7,7 +7,7 @@ import {
   DELETE as deleteAchievement,
 } from '@/app/api/achievements/[id]/route';
 import { eq } from 'drizzle-orm';
-import { EventDuration } from '@/lib/types/achievement';
+import type { EventDuration } from '@/lib/types/achievement';
 import { NextRequest } from 'next/server';
 
 // Mock auth
@@ -451,7 +451,7 @@ describe('Achievement API Routes', () => {
       });
 
       const response = await updateAchievement(
-        new NextRequest('http://localhost/api/achievements/' + testAchievement.id, {
+        new NextRequest(`http://localhost/api/achievements/${testAchievement.id}`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(update),
@@ -473,7 +473,7 @@ describe('Achievement API Routes', () => {
       });
 
       const response = await updateAchievement(
-        new NextRequest('http://localhost/api/achievements/' + nonExistentId, {
+        new NextRequest(`http://localhost/api/achievements/${nonExistentId}`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ title: 'Updated Achievement' }),
@@ -496,7 +496,7 @@ describe('Achievement API Routes', () => {
       };
 
       const response = await updateAchievement(
-        new NextRequest('http://localhost/api/achievements/' + testAchievement.id, {
+        new NextRequest(`http://localhost/api/achievements/${testAchievement.id}`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(update),
@@ -525,7 +525,7 @@ describe('Achievement API Routes', () => {
       };
 
       const response = await updateAchievement(
-        new NextRequest('http://localhost/api/achievements/' + testAchievement.id, {
+        new NextRequest(`http://localhost/api/achievements/${testAchievement.id}`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(update),
@@ -552,7 +552,7 @@ describe('Achievement API Routes', () => {
       });
 
       const response = await deleteAchievement(
-        new NextRequest('http://localhost/api/achievements/' + testAchievement.id, {
+        new NextRequest(`http://localhost/api/achievements/${testAchievement.id}`, {
           method: 'DELETE',
         }),
         { params: Promise.resolve({ id: testAchievement.id }) }
@@ -575,7 +575,7 @@ describe('Achievement API Routes', () => {
       });
 
       const response = await deleteAchievement(
-        new NextRequest('http://localhost/api/achievements/' + nonExistentId, {
+        new NextRequest(`http://localhost/api/achievements/${nonExistentId}`, {
           method: 'DELETE',
         }),
         { params: Promise.resolve({ id: nonExistentId }) }
@@ -592,7 +592,7 @@ describe('Achievement API Routes', () => {
       });
 
       const response = await deleteAchievement(
-        new NextRequest('http://localhost/api/achievements/' + testAchievement.id),
+        new NextRequest(`http://localhost/api/achievements/${testAchievement.id}`),
         { params: Promise.resolve({ id: testAchievement.id }) }
       );
 
