@@ -1,7 +1,7 @@
 import { streamObject, generateObject } from 'ai';
 import { openai } from '@ai-sdk/openai';
 import { z } from 'zod';
-import type { Achievement } from '../../evals/types';
+import type { Achievement } from '../db/schema';
 import { customModel } from './index';
 
 // Schema for validating LLM response
@@ -30,7 +30,7 @@ const titleQualitySchema = z.string()
   //   "Title should include specific metrics or achievements"
   // );
 
-export async function extractAchievement({ input, chat_history }: { input: string; chat_history: { role: string; content: string }[] }): Promise<Achievement> {
+export async function extractAchievement({ input, chat_history }: { input: string; chat_history: { role: string; content: string }[] }): Promise<ExtractedAchievement> {
   const model = openai("gpt-4o");
 
   const prompt = [
@@ -112,15 +112,10 @@ export type ExtractAchievementsInput = {
   };
 };
 
-export type ExtractedAchievement = {
-  title: string;
-  summary: string;
-  details?: string;
-  eventDuration: string;
-  eventStart: Date | null;
-  eventEnd: Date | null;
-  companyId: string | null;
-  projectId: string | null;
+export type ExtractedAchievement = Pick<Achievement, 
+  'title' | 'summary' | 'details' | 'eventDuration' | 
+  'eventStart' | 'eventEnd' | 'companyId' | 'projectId'
+> & {
   suggestNewProject?: boolean;
 };
 

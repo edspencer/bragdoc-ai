@@ -1,4 +1,4 @@
-import type { ExtractAchievementsInput, ExtractedAchievement } from '../../lib/ai/extract';
+import type { ExtractAchievementsInput, ExtractedAchievement, ChatMessage } from '../../lib/ai/extract';
 import type { GeneratedTestData } from '../conversation-gen/types';
 
 export type ContextAchievementExample = {
@@ -25,28 +25,36 @@ export function convertGeneratedToEvalExample(data: GeneratedTestData): ContextA
     // Get the chat history up to this message
     const chatHistory = data.conversation.messages
       .slice(0, messageIndex + 1)
-      .map(m => ({ role: m.role, content: m.content }));
+      .map(m => ({ 
+        role: m.role === 'user' ? 'user' : 'assistant', 
+        content: m.content 
+      }));
 
-    // Find expected achievements for this message
-    const expectedAchievements = data.expectedAchievements.filter(achievement => {
-      // TODO: Add logic to match achievements to specific messages
-      // For now, associate all achievements with the first message
-      return messageIndex === 0;
+    examples.push({
+      input: {
+        input: message,
+        chat_history: chatHistory as ChatMessage[],
+        context: {
+          companies: data.scenario.companies.map(c => ({
+            id: c.id,
+            name: c.name,
+            role: c.role,
+            domain: c.domain,
+            startDate: c.startDate,
+            endDate: c.endDate
+          })),
+          projects: data.scenario.projects.map(p => ({
+            id: p.id,
+            name: p.name,
+            companyId: p.companyId,
+            description: p.description,
+            startDate: p.startDate,
+            endDate: p.endDate
+          }))
+        }
+      },
+      expected: data.expectedAchievements
     });
-
-    if (expectedAchievements.length > 0) {
-      examples.push({
-        input: {
-          input: message,
-          chat_history: chatHistory,
-          context: {
-            companies: data.scenario.companies,
-            projects: data.scenario.projects
-          }
-        },
-        expected: expectedAchievements
-      });
-    }
   });
 
   return examples;
