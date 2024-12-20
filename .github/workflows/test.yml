@@ -45,7 +45,7 @@ jobs:
         run: pnpm install
 
       - name: Run migrations
-        run: pnpm drizzle-kit push:pg --config=drizzle.config.test.ts
+        run: pnpm test:setup
         env:
           DATABASE_URL: postgres://postgres:postgres@localhost:5432/bragai-test
 
