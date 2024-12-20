@@ -14,9 +14,9 @@ import {
   message, 
   vote,
   userMessage,
-  brag,
+  achievement,
   type UserMessage as UserMessageType,
-  type Brag as BragType,
+  type Achievement,
   company,
   project
 } from "./schema";
@@ -284,7 +284,7 @@ export async function createUserMessage({
   }
 }
 
-export async function createBrag({
+export async function createAchievement({
   userId,
   userMessageId,
   eventStart,
@@ -306,9 +306,9 @@ export async function createBrag({
   details?: string;
   companyId: string | null;
   projectId: string | null;
-}, dbInstance = defaultDb): Promise<BragType[]> {
+}, dbInstance = defaultDb): Promise<Achievement[]> {
   try {
-    return await dbInstance.insert(brag).values({
+    return await dbInstance.insert(achievement).values({
       userId,
       userMessageId,
       eventStart,
@@ -318,15 +318,16 @@ export async function createBrag({
       title,
       details,
       companyId,
-      projectId
+      projectId,
+      source: 'manual'
     }).returning();
   } catch (error) {
-    console.error('Error in createBrag:', error);
+    console.error('Error in createAchievement:', error);
     throw error;
   }
 }
 
-export async function getBragsByUserId({
+export async function getAchievementsByUserId({
   userId,
   limit = 50,
   offset = 0,
@@ -334,16 +335,17 @@ export async function getBragsByUserId({
   userId: string;
   limit?: number;
   offset?: number;
-}, dbInstance = defaultDb): Promise<BragType[]> {
+}, dbInstance = defaultDb): Promise<Achievement[]> {
   try {
-    return await dbInstance.select()
-      .from(brag)
-      .where(eq(brag.userId, userId))
+    return await dbInstance
+      .select()
+      .from(achievement)
+      .where(eq(achievement.userId, userId))
+      .orderBy(desc(achievement.createdAt))
       .limit(limit)
-      .offset(offset)
-      .orderBy(desc(brag.eventStart));
+      .offset(offset);
   } catch (error) {
-    console.error('Error in getBragsByUserId:', error);
+    console.error('Error in getAchievementsByUserId:', error);
     throw error;
   }
 }
@@ -356,18 +358,19 @@ export async function generatePeriodSummary({
   userId: string;
   startDate: Date;
   endDate: Date;
-}, dbInstance = defaultDb): Promise<BragType[]> {
+}, dbInstance = defaultDb): Promise<Achievement[]> {
   try {
-    return await dbInstance.select()
-      .from(brag)
+    return await dbInstance
+      .select()
+      .from(achievement)
       .where(
         and(
-          eq(brag.userId, userId),
-          gte(brag.eventStart, startDate),
-          lte(brag.eventEnd, endDate)
+          eq(achievement.userId, userId),
+          gte(achievement.eventStart, startDate),
+          lte(achievement.eventEnd, endDate)
         )
       )
-      .orderBy(desc(brag.eventStart));
+      .orderBy(asc(achievement.eventStart));
   } catch (error) {
     console.error('Error in generatePeriodSummary:', error);
     throw error;
@@ -398,40 +401,40 @@ export async function getAchievements({
   db?: any;
 }) {
   try {
-    const conditions = [eq(brag.userId, userId)];
+    const conditions = [eq(achievement.userId, userId)];
 
     if (companyId) {
-      conditions.push(eq(brag.companyId, companyId));
+      conditions.push(eq(achievement.companyId, companyId));
     }
     if (projectId) {
-      conditions.push(eq(brag.projectId, projectId));
+      conditions.push(eq(achievement.projectId, projectId));
     }
     if (source) {
-      conditions.push(eq(brag.source, source));
+      conditions.push(eq(achievement.source, source));
     }
     if (typeof isArchived === 'boolean') {
-      conditions.push(eq(brag.isArchived, isArchived));
+      conditions.push(eq(achievement.isArchived, isArchived));
     }
     if (startDate && endDate) {
       conditions.push(
-        between(brag.eventStart, startDate, endDate)
+        between(achievement.eventStart, startDate, endDate)
       );
     }
 
     const achievements = await db
       .select({
-        id: brag.id,
-        userId: brag.userId,
-        title: brag.title,
-        summary: brag.summary,
-        details: brag.details,
-        eventStart: brag.eventStart,
-        eventEnd: brag.eventEnd,
-        eventDuration: brag.eventDuration,
-        isArchived: brag.isArchived,
-        source: brag.source,
-        createdAt: brag.createdAt,
-        updatedAt: brag.updatedAt,
+        id: achievement.id,
+        userId: achievement.userId,
+        title: achievement.title,
+        summary: achievement.summary,
+        details: achievement.details,
+        eventStart: achievement.eventStart,
+        eventEnd: achievement.eventEnd,
+        eventDuration: achievement.eventDuration,
+        isArchived: achievement.isArchived,
+        source: achievement.source,
+        createdAt: achievement.createdAt,
+        updatedAt: achievement.updatedAt,
         company: {
           id: company.id,
           name: company.name,
@@ -457,18 +460,18 @@ export async function getAchievements({
           createdAt: userMessage.createdAt,
         }
       })
-      .from(brag)
-      .leftJoin(company, eq(brag.companyId, company.id))
-      .leftJoin(project, eq(brag.projectId, project.id))
-      .leftJoin(userMessage, eq(brag.userMessageId, userMessage.id))
+      .from(achievement)
+      .leftJoin(company, eq(achievement.companyId, company.id))
+      .leftJoin(project, eq(achievement.projectId, project.id))
+      .leftJoin(userMessage, eq(achievement.userMessageId, userMessage.id))
       .where(and(...conditions))
       .limit(limit)
       .offset(offset)
-      .orderBy(desc(brag.eventStart));
+      .orderBy(desc(achievement.eventStart));
 
     const [{ count }] = await db
       .select({ count: sql<number>`count(*)` })
-      .from(brag)
+      .from(achievement)
       .where(and(...conditions));
 
     return {
@@ -491,18 +494,18 @@ export async function updateAchievement({
   userId: string;
   data: UpdateAchievementRequest;
   db?: any;
-}): Promise<BragType[]> {
+}): Promise<Achievement[]> {
   try {
     return await db
-      .update(brag)
+      .update(achievement)
       .set({
         ...data,
         updatedAt: new Date(),
       })
       .where(
         and(
-          eq(brag.id, id),
-          eq(brag.userId, userId)
+          eq(achievement.id, id),
+          eq(achievement.userId, userId)
         )
       )
       .returning();
@@ -520,14 +523,14 @@ export async function deleteAchievement({
   id: string;
   userId: string;
   db?: any;
-}): Promise<BragType[]> {
+}): Promise<Achievement[]> {
   try {
     return await db
-      .delete(brag)
+      .delete(achievement)
       .where(
         and(
-          eq(brag.id, id),
-          eq(brag.userId, userId)
+          eq(achievement.id, id),
+          eq(achievement.userId, userId)
         )
       )
       .returning();
@@ -537,23 +540,8 @@ export async function deleteAchievement({
   }
 }
 
-export async function createAchievement(
-  userId: string,
-  data: CreateAchievementRequest,
-  source: 'llm' | 'manual' = 'manual',
-  userMessageId?: string,
-  db = defaultDb
-) {
-  return await db.insert(brag).values({
-    ...data,
-    userId,
-    userMessageId,
-    source,
-  }).returning().then(rows => rows[0]);
-}
-
-// Type for a Brag with its relations
-export type BragWithRelations = InferSelectModel<typeof brag> & {
+// Type for an Achievement with its relations
+export type AchievementWithRelations = Achievement & {
   company: InferSelectModel<typeof company> | null;
   project: InferSelectModel<typeof project> | null;
   userMessage: InferSelectModel<typeof userMessage> | null;

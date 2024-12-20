@@ -3,7 +3,7 @@ export interface ChatTurn {
   content: string;
 }
 
-export interface Brag {
+export interface Achievement {
   title: string;
   summary: string;
   details: string;
@@ -19,7 +19,7 @@ export interface Conversation {
   input: string;
   chat_history: ChatTurn[];
   expected: {
-    brag: Brag;
+    achievement: Achievement;
     response: string;
   };
 }

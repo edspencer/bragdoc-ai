@@ -1,11 +1,11 @@
 import { streamObject, generateObject } from 'ai';
 import { openai } from '@ai-sdk/openai';
 import { z } from 'zod';
-import type { Brag } from '../../evals/types';
+import type { Achievement } from '../../evals/types';
 import { customModel } from './index';
 
 // Schema for validating LLM response
-const bragResponseSchema = z.object({
+const achievementResponseSchema = z.object({
   title: z.string().min(1, "Title must be at least 1 character").describe("A concise title for the achievement"),
   summary: z.string().describe("A brief summary of the achievement").optional(),
   details: z.string().describe("Additional details about the achievement").optional(),
@@ -30,7 +30,7 @@ const titleQualitySchema = z.string()
   //   "Title should include specific metrics or achievements"
   // );
 
-export async function extractBrag({ input, chat_history }: { input: string; chat_history: { role: string; content: string }[] }): Promise<Brag> {
+export async function extractAchievement({ input, chat_history }: { input: string; chat_history: { role: string; content: string }[] }): Promise<Achievement> {
   const model = openai("gpt-4o");
 
   const prompt = [
@@ -67,7 +67,7 @@ If duration is not clear from the context, default to "day".`,
   const { object } = await generateObject({
     model,
     messages: prompt,
-    schema: bragResponseSchema,
+    schema: achievementResponseSchema,
   });
 
   // Convert string dates to Date objects and ensure all properties are included
@@ -89,7 +89,7 @@ export type ChatMessage = {
   content: string;
 };
 
-export type ExtractBragsInput = {
+export type ExtractAchievementsInput = {
   input: string;
   chat_history: ChatMessage[];
   context: {
@@ -112,7 +112,7 @@ export type ExtractBragsInput = {
   };
 };
 
-export type ExtractedBrag = {
+export type ExtractedAchievement = {
   title: string;
   summary: string;
   details?: string;
@@ -124,9 +124,9 @@ export type ExtractedBrag = {
   suggestNewProject?: boolean;
 };
 
-export async function* extractBrags(
-  input: ExtractBragsInput
-): AsyncGenerator<ExtractedBrag, void, unknown> {
+export async function* extractAchievements(
+  input: ExtractAchievementsInput
+): AsyncGenerator<ExtractedAchievement, void, unknown> {
   const chatStr = input.chat_history
     .map(({ role, content }) => `${role}: ${content}`)
     .join("\n");
@@ -203,15 +203,15 @@ Today's date is ${new Intl.DateTimeFormat('en-US', { day: 'numeric', month: 'lon
     prompt,
     temperature: 0.5,
     output: 'array',
-    schema: bragResponseSchema
+    schema: achievementResponseSchema
   });
 
-  console.log('Stream created, processing brags...');
+  console.log('Stream created, processing achievements...');
   console.log(elementStream)
 
-  for await (const brag of elementStream) {
-    yield brag as ExtractedBrag;
+  for await (const achievement of elementStream) {
+    yield achievement as ExtractedAchievement;
   }
 
-  console.log("Brag extraction complete");
+  console.log("Achievement extraction complete");
 }
