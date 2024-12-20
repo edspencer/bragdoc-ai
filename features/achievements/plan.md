@@ -1,4 +1,4 @@
-# Achievement Management Implementation Plan
+# Achievement Feature Implementation Plan
 
 ## Phase 1: Data Migration & Types 
 1. Create migration for optional userMessageId:
@@ -6,7 +6,6 @@
    -- Make userMessageId optional
    ALTER TABLE "Brag" ALTER COLUMN "user_message_id" DROP NOT NULL;
    ```
-
 2. Create type definitions in `lib/types/achievement.ts`:
    ```typescript
    // Export types from Drizzle schema
@@ -17,14 +16,12 @@
    export type CreateAchievementRequest = ...
    export type UpdateAchievementRequest = ...
    ```
-
 3. Update schema in `lib/db/schema.ts`:
    ```typescript
    userMessageId: uuid('user_message_id')
      .references(() => userMessage.id),
    archived: boolean('archived').notNull().default(false),
    ```
-
 4. Add source tracking:
    - Add UI indicator for LLM-extracted vs manually created achievements
    - Add filter for achievement source (LLM/Manual)
@@ -61,7 +58,7 @@
    - `bulkUpdateAchievements` (for bulk operations)
    - `getDuration` for calculating achievement duration
 
-## Phase 3: React Hooks
+## Phase 3: React Hooks 
 1. Create `hooks/use-achievements.ts`:
    - List achievements with filtering
    - SWR configuration
@@ -80,7 +77,7 @@
    - `useAchievementFilters` for managing filter state
    - `useDateRangeFilter` for date range handling
 
-## Phase 4: UI Components
+## Phase 4: UI Components 
 1. Create base components:
    ```
    components/achievements/
@@ -123,7 +120,7 @@
    - Rate limit error handling
    - Retry mechanism UI
 
-## Phase 5: Page Implementation
+## Phase 5: Page Implementation 
 1. Create `/app/achievements/page.tsx`:
    - Layout structure
    - List integration
@@ -131,7 +128,7 @@
    - Filter state management
    - Bulk selection state
 
-## Phase 6: Testing
+## Phase 6: Testing 
 1. API Tests:
    - Unit tests for API routes
    - Unit tests for database queries
@@ -169,7 +166,7 @@
    - ARIA label verification
    - Focus management testing
 
-## Phase 7: Polish
+## Phase 7: Polish 
 1. Error Handling:
    - Error boundaries for each major component
    - Toast notifications with retry options
@@ -209,7 +206,7 @@
    - Performance testing
    - Error scenario testing
 
-## Dependencies
+## Dependencies 
 - ShadcnUI components:
   - Dialog
   - Form

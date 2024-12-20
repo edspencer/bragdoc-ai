@@ -27,42 +27,24 @@ export const EventDuration = {
 
 export type EventDuration = typeof EventDuration[keyof typeof EventDuration];
 
-// API request types
-export type CreateAchievementRequest = Pick<Achievement,
-  | 'title'
-  | 'summary'
-  | 'details'
-  | 'eventStart'
-  | 'eventEnd'
-  | 'eventDuration'
-  | 'companyId'
-  | 'projectId'
->;
-
-export type UpdateAchievementRequest = Partial<CreateAchievementRequest> & {
-  isArchived?: boolean;
-};
-
 // Zod validation schemas
 export const achievementRequestSchema = z.object({
   title: z.string().min(1).max(256),
   summary: z.string().nullable().optional(),
   details: z.string().nullable().optional(),
-  eventStart: z.date().nullable().optional(),
-  eventEnd: z.date().nullable().optional(),
-  eventDuration: z.enum([
-    EventDuration.Day,
-    EventDuration.Week,
-    EventDuration.Month,
-    EventDuration.Quarter,
-    EventDuration.HalfYear,
-    EventDuration.Year,
-  ]),
-  companyId: z.string().uuid().nullable().optional(),
-  projectId: z.string().uuid().nullable().optional(),
+  eventStart: z.coerce.date().nullable().optional(),
+  eventEnd: z.coerce.date().nullable().optional(),
+  eventDuration: z.enum(['day', 'week', 'month', 'quarter', 'half year', 'year']),
+  companyId: z.string().nullable().optional(),
+  projectId: z.string().nullable().optional(),
   isArchived: z.boolean().optional(),
 });
 
+// API request types
+export type CreateAchievementRequest = z.infer<typeof achievementRequestSchema>;
+export type UpdateAchievementRequest = Partial<CreateAchievementRequest>;
+
+// Achievement source
 export type AchievementSource = 'llm' | 'manual';
 
 export interface AchievementFilters {
