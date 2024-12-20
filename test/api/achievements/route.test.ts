@@ -78,6 +78,15 @@ describe('Achievement API Routes', () => {
     await db.insert(achievement).values(testAchievement);
   });
 
+  afterEach(async () => {
+    // Clean up after each test
+    await db.delete(achievement);
+    await db.delete(userMessage);
+    await db.delete(project);
+    await db.delete(company);
+    await db.delete(user);
+  });
+
   describe('GET /api/achievements', () => {
     it('returns achievements for authenticated user', async () => {
       require('@/app/(auth)/auth').auth.mockResolvedValueOnce({
@@ -226,6 +235,63 @@ describe('Achievement API Routes', () => {
       expect(response.status).toBe(401);
       expect(data.error).toBe('Unauthorized');
     });
+
+    it('returns empty results when no achievements match filters', async () => {
+      require('@/app/(auth)/auth').auth.mockResolvedValueOnce({
+        user: { id: testUser.id },
+      });
+
+      const url = new URL('http://localhost/api/achievements');
+      url.searchParams.set('startDate', '2024-01-01');
+      url.searchParams.set('endDate', '2024-12-31');
+      url.searchParams.set('source', 'llm');
+      
+      const response = await GET(new NextRequest(url));
+      const { achievements, pagination } = await response.json();
+
+      expect(response.status).toBe(200);
+      expect(achievements).toHaveLength(0);
+      expect(pagination.total).toBe(0);
+    });
+
+    it('handles multiple filters simultaneously', async () => {
+      require('@/app/(auth)/auth').auth.mockResolvedValueOnce({
+        user: { id: testUser.id },
+      });
+
+      const url = new URL('http://localhost/api/achievements');
+      url.searchParams.set('companyId', testCompany.id);
+      url.searchParams.set('projectId', testProject.id);
+      url.searchParams.set('source', 'manual');
+      url.searchParams.set('isArchived', 'false');
+      
+      const response = await GET(new NextRequest(url));
+      const { achievements } = await response.json();
+
+      expect(response.status).toBe(200);
+      expect(achievements).toHaveLength(1);
+      expect(achievements[0]).toEqual(expect.objectContaining({
+        companyId: testCompany.id,
+        projectId: testProject.id,
+        source: 'manual',
+        isArchived: false
+      }));
+    });
+
+    it('handles invalid UUID format for companyId/projectId', async () => {
+      require('@/app/(auth)/auth').auth.mockResolvedValueOnce({
+        user: { id: testUser.id },
+      });
+
+      const url = new URL('http://localhost/api/achievements');
+      url.searchParams.set('companyId', 'invalid-uuid');
+      
+      const response = await GET(new NextRequest(url));
+      
+      expect(response.status).toBe(500);
+      const data = await response.json();
+      expect(data.error).toBe('Failed to fetch achievements');
+    });
   });
 
   describe('POST /api/achievements', () => {
@@ -290,6 +356,87 @@ describe('Achievement API Routes', () => {
       expect(response.status).toBe(401);
       expect(data.error).toBe('Unauthorized');
     });
+
+    it('validates required fields', async () => {
+      require('@/app/(auth)/auth').auth.mockResolvedValueOnce({
+        user: { id: testUser.id },
+      });
+
+      const invalidAchievement = {
+        summary: 'Missing required fields'
+      };
+
+      const response = await POST(new NextRequest('http://localhost/api/achievements', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(invalidAchievement),
+      }));
+
+      expect(response.status).toBe(400);
+      const data = await response.json();
+      expect(data.error).toBe('Invalid achievement data');
+      expect(data.details).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({ path: ['title'] }),
+          expect.objectContaining({ path: ['eventDuration'] })
+        ])
+      );
+    });
+
+    it('validates field constraints', async () => {
+      require('@/app/(auth)/auth').auth.mockResolvedValueOnce({
+        user: { id: testUser.id },
+      });
+
+      const invalidAchievement = {
+        title: '', // Empty title
+        eventDuration: 'invalid-duration', // Invalid duration
+      };
+
+      const response = await POST(new NextRequest('http://localhost/api/achievements', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(invalidAchievement),
+      }));
+
+      expect(response.status).toBe(400);
+      const data = await response.json();
+      expect(data.error).toBe('Invalid achievement data');
+      expect(data.details).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({ path: ['title'] }),
+          expect.objectContaining({ path: ['eventDuration'] })
+        ])
+      );
+    });
+
+    it('handles optional fields correctly', async () => {
+      require('@/app/(auth)/auth').auth.mockResolvedValueOnce({
+        user: { id: testUser.id },
+      });
+
+      const minimalAchievement = {
+        title: 'Minimal Achievement',
+        eventDuration: 'week',
+      };
+
+      const response = await POST(new NextRequest('http://localhost/api/achievements', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(minimalAchievement),
+      }));
+
+      expect(response.status).toBe(200);
+      const achievement = await response.json();
+      expect(achievement).toEqual(expect.objectContaining({
+        title: 'Minimal Achievement',
+        eventDuration: 'week',
+        summary: null,
+        details: null,
+        companyId: null,
+        projectId: null,
+      }));
+    });
   });
 
   describe('PUT /api/achievements/[id]', () => {
@@ -338,6 +485,64 @@ describe('Achievement API Routes', () => {
       expect(response.status).toBe(404);
       expect(data.error).toBe('Achievement not found');
     });
+
+    it('validates partial updates correctly', async () => {
+      require('@/app/(auth)/auth').auth.mockResolvedValueOnce({
+        user: { id: testUser.id },
+      });
+
+      const update = {
+        eventDuration: 'month' as const,
+      };
+
+      const response = await updateAchievement(
+        new NextRequest('http://localhost/api/achievements/' + testAchievement.id, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(update),
+        }),
+        { params: Promise.resolve({ id: testAchievement.id }) }
+      );
+
+      expect(response.status).toBe(200);
+      const updated = await response.json();
+      expect(updated).toEqual(expect.objectContaining({
+        id: testAchievement.id,
+        eventDuration: 'month',
+        // Other fields should remain unchanged
+        title: testAchievement.title,
+      }));
+    });
+
+    it('validates field constraints in updates', async () => {
+      require('@/app/(auth)/auth').auth.mockResolvedValueOnce({
+        user: { id: testUser.id },
+      });
+
+      const update = {
+        title: '', // Empty title
+        eventDuration: 'invalid-duration', // Invalid duration
+      };
+
+      const response = await updateAchievement(
+        new NextRequest('http://localhost/api/achievements/' + testAchievement.id, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(update),
+        }),
+        { params: Promise.resolve({ id: testAchievement.id }) }
+      );
+
+      expect(response.status).toBe(400);
+      const data = await response.json();
+      expect(data.error).toBe('Invalid achievement data');
+      expect(data.details).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({ path: ['title'] }),
+          expect.objectContaining({ path: ['eventDuration'] })
+        ])
+      );
+    });
   });
 
   describe('DELETE /api/achievements/[id]', () => {
@@ -378,6 +583,45 @@ describe('Achievement API Routes', () => {
 
       const data = await response.json();
       expect(response.status).toBe(404);
+      expect(data.error).toBe('Achievement not found');
+    });
+
+    it('prevents deleting achievements of other users', async () => {
+      require('@/app/(auth)/auth').auth.mockResolvedValueOnce({
+        user: { id: uuidv4() }, 
+      });
+
+      const response = await deleteAchievement(
+        new NextRequest('http://localhost/api/achievements/' + testAchievement.id),
+        { params: Promise.resolve({ id: testAchievement.id }) }
+      );
+
+      expect(response.status).toBe(404); // Should return 404 to not leak info about existence
+      const data = await response.json();
+      expect(data.error).toBe('Achievement not found');
+
+      // Verify achievement still exists
+      const achievements = await db
+        .select()
+        .from(achievement)
+        .where(eq(achievement.id, testAchievement.id));
+      expect(achievements).toHaveLength(1);
+    });
+
+    it('handles malformed achievement ID', async () => {
+      require('@/app/(auth)/auth').auth.mockResolvedValueOnce({
+        user: { id: testUser.id },
+      });
+
+      const response = await deleteAchievement(
+        new NextRequest('http://localhost/api/achievements/invalid-id', {
+          method: 'DELETE',
+        }),
+        { params: Promise.resolve({ id: 'invalid-id' }) }
+      );
+
+      expect(response.status).toBe(404);
+      const data = await response.json();
       expect(data.error).toBe('Achievement not found');
     });
   });
