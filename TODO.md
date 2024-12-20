@@ -82,6 +82,7 @@
 
 ### Bugs
 - [ ] What happens when a project or company is deleted but it's referenced in an achievement?
+- [ ] We still have a model selector in the UI - get rid of it and hard code them. Perhaps create an ais.ts file that exports the different models for different use cases?
 
 ### UI/UX Improvements
 - [ ] New/Edit Achievement modal is tall - need to make it scrollable for shorter screen heights
