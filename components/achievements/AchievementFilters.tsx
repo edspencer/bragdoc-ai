@@ -20,22 +20,34 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { useAchievementFilters } from '@/hooks/use-achievement-filters';
+import { useCompanies } from '@/hooks/use-companies';
+import { useProjects } from '@/hooks/useProjects';
 import type { AchievementSource } from '@/lib/types/achievement';
 
 export function AchievementFilters() {
   const { filters, setFilter, clearFilters } = useAchievementFilters();
-  const [dateRange, setDateRange] = useState<DateRange | undefined>({
-    from: filters.dateRange?.start ? new Date(filters.dateRange.start) : undefined,
-    to: filters.dateRange?.end ? new Date(filters.dateRange.end) : undefined,
-  });
+  const { companies, isLoading: isLoadingCompanies } = useCompanies();
+  const { projects, isLoading: isLoadingProjects } = useProjects();
+  const [dateRange, setDateRange] = useState<DateRange | undefined>(
+    filters.dateRange?.start && filters.dateRange?.end
+      ? {
+          from: new Date(filters.dateRange.start),
+          to: new Date(filters.dateRange.end),
+        }
+      : undefined
+  );
 
   // Update filters when date range changes
   const handleDateRangeChange = (range: DateRange | undefined) => {
     setDateRange(range);
-    setFilter('dateRange', range ? {
-      start: range.from!,
-      end: range.to!,
-    } : undefined);
+    setFilter('dateRange', 
+      range?.from && range?.to 
+        ? {
+            start: range.from,
+            end: range.to
+          } 
+        : undefined
+    );
   };
 
   return (
@@ -77,6 +89,44 @@ export function AchievementFilters() {
         </PopoverContent>
       </Popover>
 
+      {/* Company Filter */}
+      <Select
+        value={filters.companyId ?? "all"}
+        onValueChange={(value) => setFilter('companyId', value === "all" ? undefined : value)}
+        disabled={isLoadingCompanies}
+      >
+        <SelectTrigger className="w-[180px]">
+          <SelectValue placeholder="All companies" />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="all">All companies</SelectItem>
+          {companies?.map((company) => (
+            <SelectItem key={company.id} value={company.id}>
+              {company.name}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+
+      {/* Project Filter */}
+      <Select
+        value={filters.projectId ?? "all"}
+        onValueChange={(value) => setFilter('projectId', value === "all" ? undefined : value)}
+        disabled={isLoadingProjects}
+      >
+        <SelectTrigger className="w-[180px]">
+          <SelectValue placeholder="All projects" />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="all">All projects</SelectItem>
+          {projects?.map((project) => (
+            <SelectItem key={project.id} value={project.id}>
+              {project.name}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+
       {/* Source Filter */}
       <Select
         value={filters.source ?? "all"}
@@ -103,7 +153,7 @@ export function AchievementFilters() {
           <SelectValue placeholder="Archive status" />
         </SelectTrigger>
         <SelectContent>
-          <SelectItem value="all">All status</SelectItem>
+          <SelectItem value="all">Any status</SelectItem>
           <SelectItem value="false">Active</SelectItem>
           <SelectItem value="true">Archived</SelectItem>
         </SelectContent>
