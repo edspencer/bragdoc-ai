@@ -1,4 +1,5 @@
 import Link from "next/link"
+import Image from "next/image"
 import { Button } from "@/components/ui/button"
 import ModeToggle from "@/components/mode-toggle"
 
@@ -8,7 +9,13 @@ export function Navigation() {
       <div className="container flex h-14 items-center mx-auto">
         <div className="mr-4 flex">
           <Link href="/" className="mr-6 flex items-center space-x-2">
-            <span className="font-bold">bragdoc.ai</span>
+            <Image
+              src="/images/logo/logo-transparent-svg.svg"
+              alt="bragdoc.ai logo"
+              width={120}
+              height={48}
+              className="h-20 w-auto"
+            />
           </Link>
         </div>
         {/* <NavigationMenu>

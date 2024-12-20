@@ -78,7 +78,7 @@
 ### Achievements UI & API
 - [x] Implement Achievements UI - similar CRUD options as we have for Companies and Projects
 - [x] Implement Achievements API - similar to Companies and Projects
-- [ ] Jest tests for Achievements API
+- [x] Jest tests for Achievements API
 
 ### Bugs
 - [ ] What happens when a project or company is deleted but it's referenced in an achievement?
