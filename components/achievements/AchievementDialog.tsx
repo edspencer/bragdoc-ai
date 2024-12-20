@@ -37,7 +37,7 @@ import {
 } from '@/components/ui/select';
 import { cn } from '@/lib/utils';
 import { z } from 'zod';
-import type { Brag as Achievement } from '@/lib/db/schema';
+import type { Achievement } from '@/lib/types/achievement';
 import { useCompanies } from '@/hooks/use-companies';
 import { useProjects } from '@/hooks/useProjects';
 import { useAchievements } from '@/hooks/use-achievements';

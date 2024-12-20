@@ -19,7 +19,7 @@ import { cn } from '@/lib/utils';
 import { Button } from './ui/button';
 import { Tooltip, TooltipContent, TooltipTrigger } from './ui/tooltip';
 import { MessageEditor } from './message-editor';
-import { BragAction } from './brag';
+import { AchievementAction } from './achievement';
 
 const PurePreviewMessage = ({
   chatId,
@@ -138,8 +138,8 @@ const PurePreviewMessage = ({
                     <div key={toolCallId}>
                       {toolName === 'getWeather' ? (
                         <Weather weatherAtLocation={result} />
-                      ) : toolName === 'saveBrags' ? (
-                        <BragAction action={result} />
+                      ) : toolName === 'saveAchievements' ? (
+                        <AchievementAction action={result} />
                       ) : toolName === 'createDocument' ? (
                         <DocumentToolResult
                           type="create"
@@ -180,8 +180,8 @@ const PurePreviewMessage = ({
                   >
                     {toolName === 'getWeather' ? (
                       <Weather />
-                    ) : toolName === 'saveBrags' ? (
-                        <BragAction action={{brags: []}} />
+                    ) : toolName === 'saveAchievements' ? (
+                        <AchievementAction action={{achievements: []}} />
                     ) : toolName === 'createDocument' ? (
                       <DocumentToolCall
                         type="create"

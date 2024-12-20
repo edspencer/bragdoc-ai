@@ -17,20 +17,39 @@
   - Fixed companies API test cleanup
 - ✓ All tests passing
 
+### 16:10-16:12 - Phase 2: Core Type Updates (Part 1)
+- ✓ Updated types in lib/types/achievement.ts
+- ✓ Updated hooks/use-achievements.ts
+- ✓ Updated lib/llm-utils.ts
+- ✓ Updated lib/ai/extract.ts
+- ✓ Updated evals/types.ts
+
+### 16:12-16:15 - Phase 2: Core Type Updates (Part 2)
+- ✓ Updated eval datasets:
+  - Renamed types and functions in context-brag/dataset.ts
+  - Updated context-brag/eval.ts to use Achievement terminology
+  - Updated single-brag/dataset.ts and eval.ts
+  - Updated test examples to use Achievement instead of Brag
+- Next: Search for remaining type imports in components
+
 ### Current Status
-Phase 1 (Database Schema Changes) is complete. Moving on to Phase 2: Core Type Updates.
+Making good progress on Phase 2: Core Type Updates. All major type definitions and eval files have been updated.
 
 ### Notes
 - Migration strategy: Using a simple ALTER TABLE RENAME approach
 - Maintaining backward compatibility in the database layer
 - Added proper cleanup order in tests to handle foreign key constraints
 - No GitHub integration changes needed yet
+- Updated all major type definitions to use Achievement terminology
+- Updated eval files to maintain consistent terminology
 
 ### Issues/Questions
 None currently.
 
 ### Next Actions
-1. Begin Phase 2: Core Type Updates
-   - Search for type files in lib/types/
-   - Update type imports in components
-   - Add type aliases for backward compatibility
+1. Continue Phase 2: Core Type Updates
+   - Search for any remaining type imports in components
+   - Add type aliases for backward compatibility if needed
+2. Begin Phase 3: Component Updates
+   - Search for components using old terminology
+   - Update component props and state

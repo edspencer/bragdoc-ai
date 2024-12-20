@@ -2,7 +2,7 @@
 
 ## Phase 1: Database Schema Changes 
 **Estimated time: 2-3 hours**
-**Status: In Progress**
+**Status: Completed**
 
 1. Update Drizzle schema in `lib/db/schema.ts`:
    - Rename `brag` table definition to `achievement`
@@ -26,13 +26,13 @@
    - Run `pnpm test:setup` to update test database
    - Fix any failing tests due to schema changes
    - Next Steps:
-     - [ ] Run migration on development database
-     - [ ] Run `pnpm test:setup` to update test database
-     - [ ] Fix any failing tests due to schema changes
+     - [x] Run migration on development database
+     - [x] Run `pnpm test:setup` to update test database
+     - [x] Fix any failing tests due to schema changes
 
 ## Phase 2: Core Type Updates
 **Estimated time: 2-3 hours**
-**Status: Not Started**
+**Status: In Progress**
 
 1. Create type mapping file `lib/types/achievement.ts`:
    - Define Achievement interface

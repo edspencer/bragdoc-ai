@@ -1,10 +1,10 @@
 import { Eval } from "braintrust";
 import { LLMClassifierFromSpec } from "autoevals";
-import { contextBragExamples } from "./dataset";
-import { extractBrags } from "../../lib/ai/extract";
+import { contextAchievementExamples } from "./dataset";
+import { extractAchievements } from "../../lib/ai/extract";
 
 // Convert our examples to the format expected by BrainTrust
-const experimentData = contextBragExamples.map((example) => ({
+const experimentData = contextAchievementExamples.map((example) => ({
   input: {
     ...example.input,
     chatStr: example.input.chat_history
@@ -28,37 +28,37 @@ Start Date: ${project.startDate || "N/A"}
 End Date: ${project.endDate || "N/A"}
       `)
       .join("\n"),
-    expectedBragsStr: example.expected
-      .map((brag, index) => `
+    expectedAchievementsStr: example.expected
+      .map((achievement, index) => `
 Achievement #${index + 1}:
-Title: ${brag.title}
-Summary: ${brag.summary}
-Details: ${brag.details}
-Duration: ${brag.eventDuration}
-Company ID: ${brag.companyId}
-Project ID: ${brag.projectId}
-Suggest New Project: ${brag.suggestNewProject}
+Title: ${achievement.title}
+Summary: ${achievement.summary}
+Details: ${achievement.details}
+Duration: ${achievement.eventDuration}
+Company ID: ${achievement.companyId}
+Project ID: ${achievement.projectId}
+Suggest New Project: ${achievement.suggestNewProject}
       `)
       .join("\n"),
-    extractedBragsStr: (output: typeof example.expected) =>
+    extractedAchievementsStr: (output: typeof example.expected) =>
       output
-        .map((brag, index) => `
+        .map((achievement, index) => `
 Achievement #${index + 1}:
-Title: ${brag.title}
-Summary: ${brag.summary}
-Details: ${brag.details}
-Duration: ${brag.eventDuration}
-Company ID: ${brag.companyId}
-Project ID: ${brag.projectId}
-Suggest New Project: ${brag.suggestNewProject}
+Title: ${achievement.title}
+Summary: ${achievement.summary}
+Details: ${achievement.details}
+Duration: ${achievement.eventDuration}
+Company ID: ${achievement.companyId}
+Project ID: ${achievement.projectId}
+Suggest New Project: ${achievement.suggestNewProject}
       `)
         .join("\n"),
   },
   expected: example.expected,
 }));
 
-// Function to evaluate the accuracy of extracted brags with context
-const BragContextAccuracy = LLMClassifierFromSpec("BragContextAccuracy", {
+// Function to evaluate the accuracy of extracted achievements with context
+const AchievementContextAccuracy = LLMClassifierFromSpec("AchievementContextAccuracy", {
   prompt: `You are evaluating how well an AI system extracted achievements from a user message.
 Compare the extracted achievements with the expected output. Consider that a single message may 
 contain multiple achievements.
@@ -83,11 +83,11 @@ Here is the data:
 
 ************
 [Expected Achievements]: 
-{{{input.expectedBragsStr}}}
+{{{input.expectedAchievementsStr}}}
 
 ************
 [Extracted Achievements]:
-{{{input.extractedBragsStr output}}}
+{{{input.extractedAchievementsStr output}}}
 
 ************
 [END DATA]
@@ -117,14 +117,14 @@ choice_scores: {
 });
 
 // Create the evaluation
-Eval("brag-company-and-project", {
+Eval("achievement-company-and-project", {
   data: experimentData,
-  task: extractBrags,
-  scores: [BragContextAccuracy],
+  task: extractAchievements,
+  scores: [AchievementContextAccuracy],
   trialCount: 3,
   metadata: {
     model: "gpt-4",
-    description: "Evaluating brag extraction with company and project context",
+    description: "Evaluating achievement extraction with company and project context",
     owner: "ed"
   }
 });
