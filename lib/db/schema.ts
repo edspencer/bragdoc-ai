@@ -97,6 +97,7 @@ export const brag = pgTable('Brag', {
     enum: ['day', 'week', 'month', 'quarter', 'half year', 'year'] 
   }).notNull(),
   isArchived: boolean('is_archived').default(false),
+  source: varchar('source', { enum: ['llm', 'manual'] }).notNull().default('manual'),
   createdAt: timestamp('created_at').notNull().defaultNow(),
   updatedAt: timestamp('updated_at').notNull().defaultNow(),
 });

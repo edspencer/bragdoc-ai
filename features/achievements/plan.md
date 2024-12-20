@@ -1,6 +1,6 @@
 # Achievement Management Implementation Plan
 
-## Phase 1: Data Migration & Types
+## Phase 1: Data Migration & Types 
 1. Create migration for optional userMessageId:
    ```sql
    -- Make userMessageId optional
@@ -40,7 +40,7 @@
    - Function to create UserMessages for existing Brags if needed
    - Function to validate data consistency
 
-## Phase 2: API Layer
+## Phase 2: API Layer 
 1. Create API route handlers in `app/api/achievements/route.ts`:
    - GET handler with filtering and pagination
    - POST handler for creation (handle userMessageId)
