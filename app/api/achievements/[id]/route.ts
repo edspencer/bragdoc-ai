@@ -4,15 +4,25 @@ import { z } from 'zod';
 import { achievementRequestSchema } from '@/lib/types/achievement';
 import { updateAchievement, deleteAchievement } from '@/lib/db/queries';
 
-type Params = Promise<{ id: string }>
+type Params = { id: string }
+
+// Utility to validate UUID format
+const isValidUUID = (uuid: string) => {
+  const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+  return uuidRegex.test(uuid);
+};
 
 // PUT /api/achievements/[id]
-export async function PUT(req: NextRequest, { params }: { params: Params }) {
+export async function PUT(req: NextRequest, { params }: { params: Promise<Params> }) {
   try {
     const session = await auth();
     const {id} = await params;
     if (!session?.user?.id) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    if (!isValidUUID(id)) {
+      return NextResponse.json({ error: 'Achievement not found' }, { status: 404 });
     }
 
     const body = await req.json();
@@ -51,13 +61,17 @@ export async function PUT(req: NextRequest, { params }: { params: Params }) {
 // DELETE /api/achievements/[id]
 export async function DELETE(
   req: NextRequest,
-  { params }: { params: Params }
+  { params }: { params: Promise<Params> }
 ) {
-  const {id} = await params;
+  const { id } = await params;
   try {
     const session = await auth();
     if (!session?.user?.id) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    if (!isValidUUID(id)) {
+      return NextResponse.json({ error: 'Achievement not found' }, { status: 404 });
     }
 
     const [deleted] = await deleteAchievement({
@@ -81,4 +95,3 @@ export async function DELETE(
     );
   }
 }
-

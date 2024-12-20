@@ -15,7 +15,8 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const searchParams = req.nextUrl.searchParams;
+    const url = new URL(req.url);
+    const searchParams = url.searchParams;
     const page = Number.parseInt(searchParams.get('page') ?? '1');
     const limit = Number.parseInt(searchParams.get('limit') ?? '10');
     const companyId = searchParams.get('companyId');
