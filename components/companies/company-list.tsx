@@ -17,15 +17,7 @@ import { CompanyListSkeleton } from "./company-list-skeleton";
 import { useState } from "react";
 import type { CompanyFormData } from "./company-form";
 import { motion } from "framer-motion";
-
-interface Company {
-  id: string;
-  name: string;
-  domain: string | undefined;
-  role: string;
-  startDate: Date;
-  endDate: Date | null;
-}
+import type { Company } from "@/lib/db/schema";
 
 interface CompanyListProps {
   companies: Company[];
@@ -49,9 +41,12 @@ export function CompanyList({
     return <CompanyListSkeleton />;
   }
 
-  const sortedCompanies = [...companies].sort(
-    (a, b) => b.startDate.getTime() - a.startDate.getTime()
-  );
+  const sortedCompanies = [...companies].sort((a, b) => {
+    const startDateA = a.startDate instanceof Date ? a.startDate : new Date(a.startDate);
+    const startDateB = b.startDate instanceof Date ? b.startDate : new Date(b.startDate);
+    
+    return startDateB.getTime() - startDateA.getTime();
+  });
 
   const handleEdit = (company: Company) => {
     setEditCompany(company);
@@ -174,11 +169,24 @@ export function CompanyList({
       />
 
       <CompanyDialog
-        open={!!editCompany}
-        onOpenChange={() => setEditCompany(null)}
-        initialData={editCompany || undefined}
-        onSubmit={handleEditSubmit}
         mode="edit"
+        open={!!editCompany}
+        onOpenChange={(open) => !open && setEditCompany(null)}
+        onSubmit={(data) => {
+          if (editCompany) {
+            onUpdateCompany(editCompany.id, data);
+            setEditCompany(null);
+          }
+        }}
+        initialData={
+          editCompany
+            ? {
+                ...editCompany,
+                domain: editCompany.domain ?? undefined,
+                endDate: editCompany.endDate ?? undefined,
+              }
+            : undefined
+        }
         isLoading={isLoading}
       />
     </motion.div>

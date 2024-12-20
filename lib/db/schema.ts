@@ -87,7 +87,6 @@ export const brag = pgTable('Brag', {
   projectId: uuid('project_id')
     .references(() => project.id),
   userMessageId: uuid('user_message_id')
-    .notNull()
     .references(() => userMessage.id),
   title: varchar('title', { length: 256 }).notNull(),
   summary: text('summary'),
@@ -98,8 +97,17 @@ export const brag = pgTable('Brag', {
     enum: ['day', 'week', 'month', 'quarter', 'half year', 'year'] 
   }).notNull(),
   isArchived: boolean('is_archived').default(false),
+  source: varchar('source', { enum: ['llm', 'manual'] }).notNull().default('manual'),
   createdAt: timestamp('created_at').notNull().defaultNow(),
   updatedAt: timestamp('updated_at').notNull().defaultNow(),
+}, (table) => {
+  return {
+    relations: {
+      company: { fields: [table.companyId], references: [company.id] },
+      project: { fields: [table.projectId], references: [project.id] },
+      userMessage: { fields: [table.userMessageId], references: [userMessage.id] },
+    },
+  };
 });
 
 export type Brag = InferSelectModel<typeof brag>;

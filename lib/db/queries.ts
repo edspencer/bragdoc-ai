@@ -1,6 +1,7 @@
 import { genSaltSync, hashSync } from "bcrypt-ts";
-import { and, asc, desc, eq, gt, gte, type InferSelectModel, lte } from "drizzle-orm";
+import { and, asc, between, desc, eq, gt, gte, type InferSelectModel, lte, sql } from "drizzle-orm";
 import { db as defaultDb } from "@/lib/db";
+import type { CreateAchievementRequest, UpdateAchievementRequest } from "@/lib/types/achievement";
 
 import { 
   user, 
@@ -16,7 +17,8 @@ import {
   brag,
   type UserMessage as UserMessageType,
   type Brag as BragType,
-  company
+  company,
+  project
 } from "./schema";
 
 // Optionally, if not using email/pass login, you can
@@ -371,6 +373,191 @@ export async function generatePeriodSummary({
     throw error;
   }
 }
+
+export async function getAchievements({
+  userId,
+  companyId,
+  projectId,
+  source,
+  isArchived,
+  startDate,
+  endDate,
+  limit = 10,
+  offset = 0,
+  db = defaultDb
+}: {
+  userId: string;
+  companyId?: string | null;
+  projectId?: string | null;
+  source?: 'llm' | 'manual';
+  isArchived?: boolean;
+  startDate?: Date;
+  endDate?: Date;
+  limit?: number;
+  offset?: number;
+  db?: any;
+}) {
+  try {
+    const conditions = [eq(brag.userId, userId)];
+
+    if (companyId) {
+      conditions.push(eq(brag.companyId, companyId));
+    }
+    if (projectId) {
+      conditions.push(eq(brag.projectId, projectId));
+    }
+    if (source) {
+      conditions.push(eq(brag.source, source));
+    }
+    if (typeof isArchived === 'boolean') {
+      conditions.push(eq(brag.isArchived, isArchived));
+    }
+    if (startDate && endDate) {
+      conditions.push(
+        between(brag.eventStart, startDate, endDate)
+      );
+    }
+
+    const achievements = await db
+      .select({
+        id: brag.id,
+        userId: brag.userId,
+        title: brag.title,
+        summary: brag.summary,
+        details: brag.details,
+        eventStart: brag.eventStart,
+        eventEnd: brag.eventEnd,
+        eventDuration: brag.eventDuration,
+        isArchived: brag.isArchived,
+        source: brag.source,
+        createdAt: brag.createdAt,
+        updatedAt: brag.updatedAt,
+        company: {
+          id: company.id,
+          name: company.name,
+          userId: company.userId,
+          domain: company.domain,
+          role: company.role,
+          startDate: company.startDate,
+          endDate: company.endDate,
+        },
+        project: {
+          id: project.id,
+          name: project.name,
+          description: project.description,
+          status: project.status,
+          startDate: project.startDate,
+          endDate: project.endDate,
+          createdAt: project.createdAt,
+          updatedAt: project.updatedAt,
+        },
+        userMessage: {
+          id: userMessage.id,
+          originalText: userMessage.originalText,
+          createdAt: userMessage.createdAt,
+        }
+      })
+      .from(brag)
+      .leftJoin(company, eq(brag.companyId, company.id))
+      .leftJoin(project, eq(brag.projectId, project.id))
+      .leftJoin(userMessage, eq(brag.userMessageId, userMessage.id))
+      .where(and(...conditions))
+      .limit(limit)
+      .offset(offset)
+      .orderBy(desc(brag.eventStart));
+
+    const [{ count }] = await db
+      .select({ count: sql<number>`count(*)` })
+      .from(brag)
+      .where(and(...conditions));
+
+    return {
+      achievements,
+      total: Number(count),
+    };
+  } catch (error) {
+    console.error('Error in getAchievements:', error);
+    throw error;
+  }
+}
+
+export async function updateAchievement({
+  id,
+  userId,
+  data,
+  db = defaultDb
+}: {
+  id: string;
+  userId: string;
+  data: UpdateAchievementRequest;
+  db?: any;
+}): Promise<BragType[]> {
+  try {
+    return await db
+      .update(brag)
+      .set({
+        ...data,
+        updatedAt: new Date(),
+      })
+      .where(
+        and(
+          eq(brag.id, id),
+          eq(brag.userId, userId)
+        )
+      )
+      .returning();
+  } catch (error) {
+    console.error('Error in updateAchievement:', error);
+    throw error;
+  }
+}
+
+export async function deleteAchievement({
+  id,
+  userId,
+  db = defaultDb
+}: {
+  id: string;
+  userId: string;
+  db?: any;
+}): Promise<BragType[]> {
+  try {
+    return await db
+      .delete(brag)
+      .where(
+        and(
+          eq(brag.id, id),
+          eq(brag.userId, userId)
+        )
+      )
+      .returning();
+  } catch (error) {
+    console.error('Error in deleteAchievement:', error);
+    throw error;
+  }
+}
+
+export async function createAchievement(
+  userId: string,
+  data: CreateAchievementRequest,
+  source: 'llm' | 'manual' = 'manual',
+  userMessageId?: string,
+  db = defaultDb
+) {
+  return await db.insert(brag).values({
+    ...data,
+    userId,
+    userMessageId,
+    source,
+  }).returning().then(rows => rows[0]);
+}
+
+// Type for a Brag with its relations
+export type BragWithRelations = InferSelectModel<typeof brag> & {
+  company: InferSelectModel<typeof company> | null;
+  project: InferSelectModel<typeof project> | null;
+  userMessage: InferSelectModel<typeof userMessage> | null;
+};
 
 // Company Types
 export type Company = InferSelectModel<typeof company>;

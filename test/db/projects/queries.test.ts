@@ -12,17 +12,19 @@ import {
 } from '@/lib/db/projects/queries';
 
 describe('Project Queries', () => {
+  // Generate unique test identifiers
+  const testId = uuidv4();
   const testUser = {
     id: uuidv4(),
-    email: 'test@example.com',
-    name: 'Test User',
+    email: `test${testId}@example.com`,
+    name: `Test User ${testId}`,
   };
 
   const testCompany = {
     id: uuidv4(),
     userId: testUser.id,
-    name: 'Test Company',
-    domain: 'test.com',
+    name: `Test Company ${testId}`,
+    domain: `test${testId}.com`,
     role: 'Software Engineer',
     startDate: new Date('2023-01-01'),
   };
@@ -31,8 +33,8 @@ describe('Project Queries', () => {
     id: uuidv4(),
     userId: testUser.id,
     companyId: testCompany.id,
-    name: 'Test Project',
-    description: 'A test project',
+    name: `Test Project ${testId}`,
+    description: `A test project ${testId}`,
     status: 'active',
     startDate: new Date('2023-01-01'),
   };
@@ -65,8 +67,8 @@ describe('Project Queries', () => {
     it('does not return other users projects', async () => {
       const otherUser = {
         id: uuidv4(),
-        email: 'other@example.com',
-        name: 'Other User',
+        email: `other${testId}@example.com`,
+        name: `Other User ${testId}`,
       };
       await db.insert(user).values(otherUser);
 
@@ -90,8 +92,8 @@ describe('Project Queries', () => {
     it('returns null if not owned by user', async () => {
       const otherUser = {
         id: uuidv4(),
-        email: 'other@example.com',
-        name: 'Other User',
+        email: `other${testId}@example.com`,
+        name: `Other User ${testId}`,
       };
       await db.insert(user).values(otherUser);
 
@@ -111,8 +113,8 @@ describe('Project Queries', () => {
       const newCompany = {
         id: uuidv4(),
         userId: testUser.id,
-        name: 'New Company',
-        domain: 'new.com',
+        name: `New Company ${testId}`,
+        domain: `new${testId}.com`,
         role: 'Developer',
         startDate: new Date(),
       };
@@ -128,7 +130,7 @@ describe('Project Queries', () => {
       const completedProject = {
         id: uuidv4(),
         userId: testUser.id,
-        name: 'Completed Project',
+        name: `Completed Project ${testId}`,
         status: 'completed',
         startDate: new Date('2023-01-01'),
         endDate: new Date('2023-12-31'),
@@ -145,8 +147,8 @@ describe('Project Queries', () => {
     it('creates project with all fields', async () => {
       const newProject = {
         userId: testUser.id,
-        name: 'New Project',
-        description: 'A new project',
+        name: `New Project ${testId}`,
+        description: `A new project ${testId}`,
         companyId: testCompany.id,
         status: 'active' as const,
         startDate: new Date(),
@@ -159,7 +161,7 @@ describe('Project Queries', () => {
     it('creates project without optional fields', async () => {
       const newProject = {
         userId: testUser.id,
-        name: 'New Project',
+        name: `New Project ${testId}`,
         status: 'active' as const,
         startDate: new Date(),
       };
@@ -174,8 +176,8 @@ describe('Project Queries', () => {
   describe('updateProject', () => {
     it('updates project fields', async () => {
       const update = {
-        name: 'Updated Project',
-        description: 'Updated description',
+        name: `Updated Project ${testId}`,
+        description: `Updated description ${testId}`,
       };
 
       const updated = await updateProject(testProject.id, testUser.id, update);
@@ -186,7 +188,7 @@ describe('Project Queries', () => {
 
     it('returns null if project not found', async () => {
       const updated = await updateProject(uuidv4(), testUser.id, {
-        name: 'Updated',
+        name: `Updated ${testId}`,
       });
       expect(updated).toBeNull();
     });
@@ -194,13 +196,13 @@ describe('Project Queries', () => {
     it('only updates if owned by user', async () => {
       const otherUser = {
         id: uuidv4(),
-        email: 'other@example.com',
-        name: 'Other User',
+        email: `other${testId}@example.com`,
+        name: `Other User ${testId}`,
       };
       await db.insert(user).values(otherUser);
 
       const updated = await updateProject(testProject.id, otherUser.id, {
-        name: 'Updated',
+        name: `Updated ${testId}`,
       });
       expect(updated).toBeNull();
     });
@@ -224,8 +226,8 @@ describe('Project Queries', () => {
     it('only deletes if owned by user', async () => {
       const otherUser = {
         id: uuidv4(),
-        email: 'other@example.com',
-        name: 'Other User',
+        email: `other${testId}@example.com`,
+        name: `Other User ${testId}`,
       };
       await db.insert(user).values(otherUser);
 
@@ -235,5 +237,12 @@ describe('Project Queries', () => {
       const project = await getProjectById(testProject.id, testUser.id);
       expect(project).not.toBeNull();
     });
+  });
+
+  afterAll(async () => {
+    // Clean up test data
+    await db.delete(project);
+    await db.delete(company);
+    await db.delete(user);
   });
 });
