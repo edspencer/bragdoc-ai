@@ -13,7 +13,7 @@ jobs:
         env:
           POSTGRES_USER: postgres
           POSTGRES_PASSWORD: postgres
-          POSTGRES_DB: bragai-test
+          POSTGRES_DB: postgres
         ports:
           - 5432:5432
         options: >-
@@ -47,9 +47,17 @@ jobs:
       - name: Run migrations
         run: pnpm test:setup
         env:
-          DATABASE_URL: postgres://postgres:postgres@localhost:5432/bragai-test
+          PGHOST: localhost
+          PGPORT: 5432
+          PGUSER: postgres
+          PGPASSWORD: postgres
+          PGDATABASE: postgres
 
       - name: Run tests
         run: pnpm test
         env:
-          DATABASE_URL: postgres://postgres:postgres@localhost:5432/bragai-test
+          PGHOST: localhost
+          PGPORT: 5432
+          PGUSER: postgres
+          PGPASSWORD: postgres
+          PGDATABASE: bragai-test
