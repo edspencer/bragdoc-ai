@@ -3,21 +3,32 @@
 ## Phase 1: Database Schema Changes
 **Estimated time: 2-3 hours**
 
-1. Create new migration file `lib/db/migrations/[timestamp]_rename_brag_to_achievement.sql`:
-   - Rename `brags` table to `achievements`
-   - Update foreign key constraints
-   - Update indexes
-   - Add rollback statements
+1. Update Drizzle schema in `lib/db/schema.ts`:
+   - Rename `brag` table definition to `achievement`
+   - Update type export from `Brag` to `Achievement`
+   - Update any relations referencing the brag table
+   - Update any indexes or constraints
 
-2. Update schema definitions in `lib/db/schema.ts`:
-   - Rename `brags` table definition to `achievements`
-   - Update related table references
-   - Update type exports
+2. Generate and apply migration:
+   ```bash
+   # Generate migration files
+   pnpm db:generate
+   
+   # Try running migration
+   pnpm db:migrate
+   
+   # If migration fails, use push as fallback
+   pnpm db:push
+   ```
 
 3. Update database queries in `lib/db/queries.ts`:
-   - Update table references
-   - Rename query functions
-   - Update return types
+   - Update table references to use new `achievement` table
+   - Rename query functions (e.g., `getBrags` to `getAchievements`)
+   - Update return types to use `Achievement` type
+
+4. Update tests:
+   - Run `pnpm test:setup` to update test database
+   - Fix any failing tests due to schema changes
 
 ## Phase 2: Core Type Updates
 **Estimated time: 2-3 hours**
@@ -82,19 +93,32 @@
 ## Phase 6: Testing
 **Estimated time: 3-4 hours**
 
-1. Update test files:
+1. Update test setup:
+   - Update `test/setup.ts` for new schema
+   - Run `pnpm test:setup` to recreate test database
+   - Fix any setup script issues
+
+2. Update test files:
    - `test/companies/queries.test.ts`
-   - Add migration tests
-   - Update existing test cases
+   - Update test data factories
+   - Update assertion types
 
-2. Add new tests:
-   - Achievement creation/update/delete
-   - API endpoint tests
-   - Component render tests
+3. Run test suites:
+   ```bash
+   # Run full test suite
+   pnpm test
+   
+   # Run tests with IDE support
+   pnpm test:ide
+   
+   # Run tests in watch mode during development
+   pnpm test:watch
+   ```
 
-3. Run full test suite:
-   - Fix any failing tests
-   - Update test data and fixtures
+4. Fix failing tests:
+   - Update type references
+   - Update query references
+   - Update test data
 
 ## Phase 7: Documentation
 **Estimated time: 2-3 hours**
