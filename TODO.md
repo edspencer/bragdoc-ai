@@ -85,14 +85,17 @@
 - [x] Implement Achievements API - similar to Companies and Projects
 - [ ] Jest tests for Achievements API
 
+### Bugs
+- [ ] What happens when a project or company is deleted but it's referenced in an achievement?
+
 ### UI/UX Improvements
 - [ ] New/Edit Achievement modal is tall - need to make it scrollable for shorter screen heights
 - [ ] Create tag management system
 - [ ] Add email preferences configuration
 - [ ] Stream Brags into the UI one by one instead of all as a response from extractBrags
 - [ ] Fix calendar/date picker components throughout the app
+- [ ] Ability to delete many achievements at once?
 - [ ] Calendar filtering on Achievements page sucks - can't clear, and should be a date range picker UI instead
-- [ ] Add pagination UI to Achievements page at /achievements
   - Calendar appears behind modal overlays
   - Click events are intercepted by modal overlays
   - Affects all date pickers in modals (project dates, etc.)
