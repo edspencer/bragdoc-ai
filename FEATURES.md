@@ -42,6 +42,17 @@ This document outlines the implemented features of BragDoc.ai, a chatbot that he
   - Links to Companies, Projects, and Achievements
   - Theme toggle functionality
 
+#### Achievement Management
+- Complete CRUD operations for achievements
+  - Create achievements with title, date, company, and project links
+  - View achievements in a list with sorting and filtering
+  - Edit achievement details through modal interface
+  - Delete achievements with confirmation dialog
+- Consistent UI patterns matching company/project management
+- Interactive feedback with loading states and toasts
+- Modern UI with side-by-side action buttons
+- Dark mode support throughout
+
 #### Company & Project Management
 - Complete CRUD operations for companies
 - Complete CRUD operations for projects

@@ -73,8 +73,8 @@
 - [ ] The product is still called "bragdoc.ai", and we can still talk about brag documents, but the underlying model is now called "Achievement", not "Brag"
  
 ### Achievements UI & API
-- [ ] Implement Achievements UI - similar CRUD options as we have for Companies and Projects
-- [ ] Implement Achievements API - similar to Companies and Projects
+- [x] Implement Achievements UI - similar CRUD options as we have for Companies and Projects
+- [x] Implement Achievements API - similar to Companies and Projects
 - [ ] Jest tests for Achievements API
 
 ### UI/UX Improvements
