@@ -8,17 +8,19 @@ import { AchievementList } from '@/components/achievements/AchievementList';
 import { AchievementFilters } from '@/components/achievements/achievement-filters';
 import { Button } from '@/components/ui/button';
 import { Plus } from 'lucide-react';
+import { AchievementDialog } from './AchievementDialog';
 
 export function AchievementsContent() {
   const [page, setPage] = useState(1);
   const { filters, setFilter, clearFilters } = useAchievementFilters();
   const { companies, isLoading: isLoadingCompanies } = useCompanies();
   const { projects, isLoading: isLoadingProjects } = useProjects();
+  const [dialogOpen, setDialogOpen] = useState(false);
 
   return (
     <div className="mt-8">
       <div className="flex justify-end mb-6">
-        <Button>
+        <Button onClick={() => setDialogOpen(true)}>
           <Plus className="mr-2 size-4" />
           New Achievement
         </Button>
@@ -45,10 +47,23 @@ export function AchievementsContent() {
         }}
       />
 
-      <AchievementList
-        page={page}
-        onPageChange={setPage}
-        filters={filters}
+      <div className="mt-6">
+        <AchievementList
+          page={page}
+          onPageChange={setPage}
+          filters={filters}
+          onCreateClick={() => setDialogOpen(true)}
+        />
+      </div>
+
+      <AchievementDialog
+        mode="create"
+        open={dialogOpen}
+        onOpenChange={setDialogOpen}
+        onSubmit={async (data) => {
+          // Handle achievement creation
+          setDialogOpen(false);
+        }}
       />
     </div>
   );

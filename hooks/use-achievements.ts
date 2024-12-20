@@ -1,6 +1,16 @@
 import { useCallback } from 'react';
 import useSWR from 'swr';
-import type { AchievementWithRelations as Achievement, AchievementFilters } from '@/lib/types/achievement';
+import type { BragWithRelations } from '@/lib/db/queries';
+
+export interface AchievementFilters {
+  companyId?: string;
+  projectId?: string;
+  source?: 'llm' | 'manual';
+  isArchived?: boolean;
+  searchQuery?: string;
+  startDate?: Date;
+  endDate?: Date;
+}
 
 interface UseAchievementsOptions {
   page?: number;
@@ -9,7 +19,7 @@ interface UseAchievementsOptions {
 }
 
 interface AchievementsResponse {
-  achievements: Achievement[];
+  achievements: BragWithRelations[];
   pagination: {
     total: number;
     page: number;
@@ -41,9 +51,14 @@ export function useAchievements(options: UseAchievementsOptions = {}) {
       if (typeof filters.isArchived === 'boolean') {
         params.set('isArchived', filters.isArchived.toString());
       }
-      if (filters.dateRange) {
-        params.set('startDate', filters.dateRange.start.toISOString());
-        params.set('endDate', filters.dateRange.end.toISOString());
+      if (filters.searchQuery) {
+        params.set('searchQuery', filters.searchQuery);
+      }
+      if (filters.startDate) {
+        params.set('startDate', filters.startDate.toISOString());
+      }
+      if (filters.endDate) {
+        params.set('endDate', filters.endDate.toISOString());
       }
     }
 

@@ -98,20 +98,20 @@
    - Company/Project selectors
    - Archive toggle
 
-3. Implement AchievementList: ✅
-   - Card-based layout with pagination ✅
-   - Filtering controls: ✅
-     - Date range picker ✅
-     - Archive status toggle ✅
-     - Source filter (LLM/Manual) ✅
-     - Company selector ✅
-     - Project selector ✅
-   - Empty states with helpful messages ✅
-   - Loading and error states ✅
-   - Toast notifications for actions ✅
-   - Proper Next.js client/server structure ✅
+3. Implement AchievementList: 
+   - Card-based layout with pagination 
+   - Filtering controls: 
+     - Date range picker 
+     - Archive status toggle 
+     - Source filter (LLM/Manual) 
+     - Company selector 
+     - Project selector 
+   - Empty states with helpful messages 
+   - Loading and error states 
+   - Toast notifications for actions 
+   - Proper Next.js client/server structure 
 
-4. Achievement Creation: 🚧
+4. Achievement Creation: 
    - Create achievement dialog
    - Form validation
    - Success/error states
@@ -119,22 +119,41 @@
    - Optimistic updates
 
 5. Error Handling Components:
-   - API error display component ✅
+   - API error display component 
    - Form validation error messages
    - Offline state handling
    - Rate limit error handling
    - Retry mechanism UI
 
-## Phase 4: Export & Integration 
-1. Add export functionality:
-   - Export to Markdown
-   - Export to PDF
-   - Export to CSV
+## Phase 4: Relations & Types 
+1. Update Achievement type to use Drizzle relations 
+   - Correctly handle optional company relation 
+   - Correctly handle optional project relation 
+   - Correctly handle optional userMessage relation 
 
-2. Integrate with existing chat UI:
-   - Add achievement suggestions from chat
+2. Type Safety Improvements 
+   - Update getAchievements query to properly join relations
+   - Define BragWithRelations type for joined queries
+   - Consider using Drizzle's type system for form validation
+   - Evaluate trade-offs between manual Zod schemas vs. Drizzle-generated ones
 
-## Phase 5: Page Implementation 
+3. Next Steps
+   - Review current form validation approach
+   - Document decisions about type handling
+   - Add tests for type safety
+   - Update API documentation
+
+## Phase 5: Testing & Documentation 
+1. Add unit tests for:
+   - Achievement creation with relations
+   - Achievement updates
+   - Relation handling
+2. Update documentation:
+   - API endpoints
+   - Type system decisions
+   - Form validation approach
+
+## Phase 6: Page Implementation 
 1. Create `/app/achievements/page.tsx`:
    - Layout structure
    - List integration
@@ -142,7 +161,7 @@
    - Filter state management
    - Bulk selection state
 
-## Phase 6: Testing 
+## Phase 7: Testing 
 1. API Tests:
    - Unit tests for API routes
    - Unit tests for database queries
@@ -180,7 +199,7 @@
    - ARIA label verification
    - Focus management testing
 
-## Phase 7: Polish 
+## Phase 8: Polish 
 1. Error Handling:
    - Error boundaries for each major component
    - Toast notifications with retry options
@@ -219,6 +238,11 @@
    - Accessibility audit
    - Performance testing
    - Error scenario testing
+
+## Notes
+- Decided to keep manual Zod schema for now as it gives us more control over form validation
+- Relations are working correctly with left joins
+- Type safety is maintained through BragWithRelations type
 
 ## Dependencies 
 - ShadcnUI components:

@@ -100,6 +100,14 @@ export const brag = pgTable('Brag', {
   source: varchar('source', { enum: ['llm', 'manual'] }).notNull().default('manual'),
   createdAt: timestamp('created_at').notNull().defaultNow(),
   updatedAt: timestamp('updated_at').notNull().defaultNow(),
+}, (table) => {
+  return {
+    relations: {
+      company: { fields: [table.companyId], references: [company.id] },
+      project: { fields: [table.projectId], references: [project.id] },
+      userMessage: { fields: [table.userMessageId], references: [userMessage.id] },
+    },
+  };
 });
 
 export type Brag = InferSelectModel<typeof brag>;

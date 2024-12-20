@@ -5,13 +5,10 @@ import { PlusIcon } from '@radix-ui/react-icons';
 import { Button } from '@/components/ui/button';
 import { AchievementDialog } from './AchievementDialog';
 import { AchievementActions } from './achievement-actions';
-import { AchievementFilters } from './achievement-filters';
 import { AchievementListSkeleton } from './achievement-list-skeleton';
 import type { AchievementWithRelations as Achievement, AchievementFilters as AchievementFiltersType } from '@/lib/types/achievement';
 import { useAchievements } from '@/hooks/use-achievements';
 import { useAchievementMutations } from '@/hooks/use-achievement-mutations';
-import { useCompanies } from '@/hooks/use-companies';
-import { useProjects } from '@/hooks/useProjects';
 import {
   Table,
   TableBody,
@@ -26,6 +23,7 @@ interface AchievementListProps {
   page: number;
   onPageChange: (page: number) => void;
   filters?: Partial<AchievementFiltersType>;
+  onCreateClick: () => void;
 }
 
 type DialogState = {
@@ -38,6 +36,7 @@ export function AchievementList({
   page,
   onPageChange,
   filters,
+  onCreateClick,
 }: AchievementListProps) {
   const [dialog, setDialog] = useState<DialogState>({
     isOpen: false,
@@ -45,25 +44,10 @@ export function AchievementList({
   });
 
   const [actionLoading, setActionLoading] = useState<string | null>(null);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [companyId, setCompanyId] = useState('all');
-  const [projectId, setProjectId] = useState('all');
-  const [startDate, setStartDate] = useState<Date>();
-  const [endDate, setEndDate] = useState<Date>();
-
-  const { companies } = useCompanies();
-  const { projects } = useProjects();
   
   const { achievements, pagination, isLoading, mutate } = useAchievements({
     page,
-    filters: {
-      ...filters,
-      searchQuery,
-      companyId: companyId === 'all' ? undefined : companyId,
-      projectId: projectId === 'all' ? undefined : projectId,
-      startDate,
-      endDate,
-    },
+    filters,
   });
 
   const { createAchievement, updateAchievement, deleteAchievement } = useAchievementMutations();
@@ -114,14 +98,6 @@ export function AchievementList({
     }
   };
 
-  const handleReset = () => {
-    setSearchQuery('');
-    setCompanyId('all');
-    setProjectId('all');
-    setStartDate(undefined);
-    setEndDate(undefined);
-  };
-
   if (isLoading) {
     return <AchievementListSkeleton />;
   }
@@ -140,7 +116,7 @@ export function AchievementList({
           Get started by adding your first achievement.
         </p>
         <div className="mt-6">
-          <Button onClick={() => setDialog({ isOpen: true, mode: 'create' })}>
+          <Button onClick={onCreateClick}>
             <PlusIcon className="mr-2 size-4" />
             New Achievement
           </Button>
@@ -158,37 +134,6 @@ export function AchievementList({
 
   return (
     <div className="space-y-4">
-      <div className="flex justify-between items-center">
-        <AchievementFilters
-          companyId={companyId}
-          onCompanyChange={setCompanyId}
-          projectId={projectId}
-          onProjectChange={setProjectId}
-          searchQuery={searchQuery}
-          onSearchChange={setSearchQuery}
-          startDate={startDate}
-          onStartDateChange={setStartDate}
-          endDate={endDate}
-          onEndDateChange={setEndDate}
-          companies={companies || []}
-          projects={projects || []}
-          onReset={handleReset}
-          loading={{
-            company: isLoading,
-            project: isLoading,
-            search: isLoading,
-          }}
-        />
-
-        <Button
-          onClick={() => setDialog({ isOpen: true, mode: 'create' })}
-          size="sm"
-        >
-          <PlusIcon className="mr-2 size-4" />
-          New Achievement
-        </Button>
-      </div>
-
       <div className="rounded-md border">
         <Table>
           <TableHeader>
@@ -198,45 +143,28 @@ export function AchievementList({
               <TableHead className="min-w-[120px]">Project</TableHead>
               <TableHead className="min-w-[100px]">Duration</TableHead>
               <TableHead className="min-w-[120px]">Date</TableHead>
+              <TableHead className="min-w-[100px]">Status</TableHead>
               <TableHead className="w-[100px]">Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-            {achievements.map((achievement, index) => (
-              <motion.tr
-                key={achievement.id}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: index * 0.1 }}
-                className="group"
-              >
-                <TableCell>
-                  <div>
-                    <div className="font-medium transition-colors group-hover:text-primary">
-                      {achievement.title}
-                    </div>
-                    {achievement.summary && (
-                      <div className="text-sm text-muted-foreground">
-                        {achievement.summary}
-                      </div>
-                    )}
-                  </div>
-                </TableCell>
-                <TableCell>
-                  {achievement.company?.name || '-'}
-                </TableCell>
-                <TableCell>
-                  {achievement.project?.name || '-'}
-                </TableCell>
-                <TableCell>
-                  <Badge variant="secondary">
-                    {achievement.eventDuration}
-                  </Badge>
-                </TableCell>
+            {achievements.map((achievement) => (
+              <TableRow key={achievement.id}>
+                <TableCell>{achievement.title}</TableCell>
+                <TableCell>{achievement.company?.name ?? '-'}</TableCell>
+                <TableCell>{achievement.project?.name ?? '-'}</TableCell>
+                <TableCell>{achievement.eventDuration}</TableCell>
                 <TableCell>
                   {achievement.eventStart
-                    ? format(new Date(achievement.eventStart), 'MMM yyyy')
+                    ? format(new Date(achievement.eventStart), 'MMM d, yyyy')
                     : '-'}
+                </TableCell>
+                <TableCell>
+                  {achievement.isArchived ? (
+                    <Badge variant="secondary">Archived</Badge>
+                  ) : (
+                    <Badge>Active</Badge>
+                  )}
                 </TableCell>
                 <TableCell>
                   <AchievementActions
@@ -248,15 +176,14 @@ export function AchievementList({
                       })
                     }
                     onDelete={() => handleDelete(achievement.id)}
-                    onArchive={() => handleArchive(achievement.id, achievement.isArchived || false)}
-                    isArchived={achievement.isArchived || false}
-                    isLoading={
-                      actionLoading === `delete-${achievement.id}` ||
-                      actionLoading === `archive-${achievement.id}`
+                    onArchive={() =>
+                      handleArchive(achievement.id, achievement.isArchived ?? false)
                     }
+                    isArchived={achievement.isArchived ?? false}
+                    isLoading={actionLoading === `delete-${achievement.id}`}
                   />
                 </TableCell>
-              </motion.tr>
+              </TableRow>
             ))}
           </TableBody>
         </Table>
@@ -264,14 +191,9 @@ export function AchievementList({
 
       <AchievementDialog
         mode={dialog.mode}
-        open={dialog.isOpen}
-        onOpenChange={(open) =>
-          setDialog((prev) => ({
-            ...prev,
-            isOpen: open,
-          }))
-        }
         achievement={dialog.achievement}
+        open={dialog.isOpen}
+        onOpenChange={(open) => setDialog((prev) => ({ ...prev, isOpen: open }))}
         onSubmit={dialog.mode === 'create' ? handleCreate : handleUpdate}
       />
     </div>

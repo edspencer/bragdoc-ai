@@ -17,7 +17,8 @@ import {
   brag,
   type UserMessage as UserMessageType,
   type Brag as BragType,
-  company
+  company,
+  project
 } from "./schema";
 
 // Optionally, if not using email/pass login, you can
@@ -418,8 +419,48 @@ export async function getAchievements({
     }
 
     const achievements = await db
-      .select()
+      .select({
+        id: brag.id,
+        userId: brag.userId,
+        title: brag.title,
+        summary: brag.summary,
+        details: brag.details,
+        eventStart: brag.eventStart,
+        eventEnd: brag.eventEnd,
+        eventDuration: brag.eventDuration,
+        isArchived: brag.isArchived,
+        source: brag.source,
+        createdAt: brag.createdAt,
+        updatedAt: brag.updatedAt,
+        company: {
+          id: company.id,
+          name: company.name,
+          userId: company.userId,
+          domain: company.domain,
+          role: company.role,
+          startDate: company.startDate,
+          endDate: company.endDate,
+        },
+        project: {
+          id: project.id,
+          name: project.name,
+          description: project.description,
+          status: project.status,
+          startDate: project.startDate,
+          endDate: project.endDate,
+          createdAt: project.createdAt,
+          updatedAt: project.updatedAt,
+        },
+        userMessage: {
+          id: userMessage.id,
+          originalText: userMessage.originalText,
+          createdAt: userMessage.createdAt,
+        }
+      })
       .from(brag)
+      .leftJoin(company, eq(brag.companyId, company.id))
+      .leftJoin(project, eq(brag.projectId, project.id))
+      .leftJoin(userMessage, eq(brag.userMessageId, userMessage.id))
       .where(and(...conditions))
       .limit(limit)
       .offset(offset)
@@ -510,6 +551,13 @@ export async function createAchievement(
     source,
   }).returning().then(rows => rows[0]);
 }
+
+// Type for a Brag with its relations
+export type BragWithRelations = InferSelectModel<typeof brag> & {
+  company: InferSelectModel<typeof company> | null;
+  project: InferSelectModel<typeof project> | null;
+  userMessage: InferSelectModel<typeof userMessage> | null;
+};
 
 // Company Types
 export type Company = InferSelectModel<typeof company>;

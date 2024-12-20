@@ -36,13 +36,23 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { cn } from '@/lib/utils';
-import { 
-  type Achievement,
-  type FormValues,
-  achievementRequestSchema,
-} from '@/lib/types/achievement';
+import { z } from 'zod';
+import type { Brag as Achievement } from '@/lib/db/schema';
 import { useCompanies } from '@/hooks/use-companies';
 import { useProjects } from '@/hooks/useProjects';
+
+const achievementRequestSchema = z.object({
+  title: z.string().min(1).max(256),
+  summary: z.string().nullable().optional(),
+  details: z.string().nullable().optional(),
+  eventStart: z.date().nullable().optional(),
+  eventEnd: z.date().nullable().optional(),
+  eventDuration: z.enum(['day', 'week', 'month', 'quarter', 'half year', 'year']),
+  companyId: z.string().uuid().nullable().optional(),
+  projectId: z.string().uuid().nullable().optional(),
+});
+
+type FormValues = z.infer<typeof achievementRequestSchema>;
 
 type DialogMode = 'create' | 'edit' | 'view';
 
@@ -204,9 +214,8 @@ export function AchievementDialog({
                       <PopoverContent className="w-auto p-0" align="start">
                         <Calendar
                           mode="single"
-                          selected={field.value || undefined}
+                          selected={field.value ?? undefined}
                           onSelect={field.onChange}
-                          disabled={isViewMode}
                           initialFocus
                         />
                       </PopoverContent>
@@ -245,73 +254,12 @@ export function AchievementDialog({
                       <PopoverContent className="w-auto p-0" align="start">
                         <Calendar
                           mode="single"
-                          selected={field.value || undefined}
+                          selected={field.value ?? undefined}
                           onSelect={field.onChange}
-                          disabled={isViewMode}
                           initialFocus
                         />
                       </PopoverContent>
                     </Popover>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <FormField
-                control={form.control}
-                name="companyId"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Company</FormLabel>
-                    <Select
-                      onValueChange={field.onChange}
-                      defaultValue={field.value ?? undefined}
-                      disabled={isViewMode}
-                    >
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select company" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {companies?.map((company) => (
-                          <SelectItem key={company.id} value={company.id}>
-                            {company.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="projectId"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Project</FormLabel>
-                    <Select
-                      onValueChange={field.onChange}
-                      defaultValue={field.value ?? undefined}
-                      disabled={isViewMode}
-                    >
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select project" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {projects?.map((project) => (
-                          <SelectItem key={project.id} value={project.id}>
-                            {project.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -325,9 +273,9 @@ export function AchievementDialog({
                 <FormItem>
                   <FormLabel>Duration</FormLabel>
                   <Select
+                    disabled={isViewMode}
                     onValueChange={field.onChange}
                     defaultValue={field.value}
-                    disabled={isViewMode}
                   >
                     <FormControl>
                       <SelectTrigger>
@@ -348,17 +296,68 @@ export function AchievementDialog({
               )}
             />
 
+            <FormField
+              control={form.control}
+              name="companyId"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Company</FormLabel>
+                  <Select
+                    disabled={isViewMode}
+                    onValueChange={field.onChange}
+                    defaultValue={field.value ?? undefined}
+                  >
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select company" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {companies?.map((company) => (
+                        <SelectItem key={company.id} value={company.id}>
+                          {company.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="projectId"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Project</FormLabel>
+                  <Select
+                    disabled={isViewMode}
+                    onValueChange={field.onChange}
+                    defaultValue={field.value ?? undefined}
+                  >
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select project" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {projects?.map((project) => (
+                        <SelectItem key={project.id} value={project.id}>
+                          {project.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
             {!isViewMode && (
               <DialogFooter>
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => onOpenChange(false)}
-                >
-                  Cancel
-                </Button>
                 <Button type="submit">
-                  {mode === 'create' ? 'Create' : 'Save Changes'}
+                  {mode === 'create' ? 'Create' : 'Save changes'}
                 </Button>
               </DialogFooter>
             )}
