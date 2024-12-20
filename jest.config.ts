@@ -21,6 +21,12 @@ const config = {
   maxWorkers: process.env.CI || process.env.IDE_TEST ? 1 : '50%',
   runInBand: !!(process.env.CI || process.env.IDE_TEST ),
   clearMocks: true,
+  // Set a timeout for tests to force cleanup
+  testTimeout: 10000,
+  // Force exit after all tests complete
+  forceExit: true,
+  // Set a timeout for the entire test suite
+  globalTimeout: 30000,
 };
 
 export default config;
