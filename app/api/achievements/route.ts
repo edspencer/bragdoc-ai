@@ -5,8 +5,6 @@ import { achievementRequestSchema } from '@/lib/types/achievement';
 import { 
   createAchievement,
   getAchievements, 
-  updateAchievement, 
-  deleteAchievement 
 } from '@/lib/db/queries';
 
 // GET /api/achievements
