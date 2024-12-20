@@ -392,6 +392,8 @@ export async function getAchievements({
       .select({
         id: achievement.id,
         userId: achievement.userId,
+        companyId: achievement.companyId,
+        projectId: achievement.projectId,
         title: achievement.title,
         summary: achievement.summary,
         details: achievement.details,
