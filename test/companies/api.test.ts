@@ -1,6 +1,6 @@
 import { GET, PUT, DELETE } from '@/app/api/companies/[id]/route';
 import { GET as getCompanies, POST as createCompany } from '@/app/api/companies/route';
-import { company, user } from '@/lib/db/schema';
+import { company, user, project, achievement } from '@/lib/db/schema';
 import { auth } from '@/app/(auth)/auth';
 import { eq } from 'drizzle-orm';
 import { NextRequest } from 'next/server';
@@ -23,7 +23,9 @@ describe('Companies API', () => {
     // Reset all mocks
     jest.clearAllMocks();
     
-    // Clean up any existing data
+    // Clean up any existing data in correct order
+    await db.delete(achievement);
+    await db.delete(project);
     await db.delete(company);
     await db.delete(user);
     
@@ -37,7 +39,9 @@ describe('Companies API', () => {
   });
 
   afterEach(async () => {
-    // Clean up after each test
+    // Clean up after each test in correct order
+    await db.delete(achievement);
+    await db.delete(project);
     await db.delete(company);
     await db.delete(user);
   });

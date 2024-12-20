@@ -20,8 +20,8 @@ import {
   saveMessages,
   saveSuggestions,
   createUserMessage,
-  createBrag,
-  getBragsByUserId,
+  createAchievement,
+  getAchievementsByUserId,
 } from '@/lib/db/queries';
 import type { Suggestion } from '@/lib/db/schema';
 import {
@@ -31,12 +31,12 @@ import {
 } from '@/lib/utils';
 
 import { generateTitleFromUserMessage } from '@/app/(app)/chat/actions';
-import { extractBrags } from '@/lib/ai/extract';
+import { extractAchievements } from '@/lib/ai/extract';
 
 export const maxDuration = 60;
 
 type AllowedTools =
-  | 'saveBrags'
+  | 'saveAchievements'
   | 'createDocument'
   | 'updateDocument'
   | 'requestSuggestions'
@@ -49,9 +49,9 @@ const blocksTools: AllowedTools[] = [
 ];
 
 const weatherTools: AllowedTools[] = ['getWeather'];
-const bragTools: AllowedTools[] = ['saveBrags'];
+const achievementTools: AllowedTools[] = ['saveAchievements'];
 
-const allTools: AllowedTools[] = [...blocksTools, ...weatherTools, ...bragTools];
+const allTools: AllowedTools[] = [...blocksTools, ...weatherTools, ...achievementTools];
 
 export async function POST(request: Request) {
   const {
@@ -109,13 +109,13 @@ export async function POST(request: Request) {
     maxSteps: 10,
     experimental_activeTools: allTools,
     tools: {
-      saveBrags: {
+      saveAchievements: {
         description: 'Saves detected achievements to the database. Takes no parameters. Only call once.',
         parameters: z.object({}),
         execute: async () => {
           const message = userMessage.content as string
 
-          console.log('Starting brag extraction for message:', message)
+          console.log('Starting achievement extraction for message:', message)
 
           // First create a user message record
           const [newUserMessage] = await createUserMessage({
@@ -126,8 +126,8 @@ export async function POST(request: Request) {
           console.log('\nCreated user message:', newUserMessage.id);
 
           try {
-            console.log('extracting brags');
-            const bragsStream = extractBrags({
+            console.log('extracting achievements');
+            const achievementsStream = extractAchievements({
               chat_history: messages.filter(m => m.role === 'user').map(({ role, content }) => ({
                 role,
                 content,
@@ -139,58 +139,58 @@ export async function POST(request: Request) {
               },
             });
 
-            const savedBrags = [];
+            const savedAchievements = [];
 
             streamingData.append({
               type: 'status',
               content: 'Analyzing your achievements...',
             });
 
-            // Process each brag as it comes in
-            for await (const brag of bragsStream) {
-              console.log('Processing brag:', brag.title);
+            // Process each achievement as it comes in
+            for await (const achievement of achievementsStream) {
+              console.log('Processing achievement:', achievement.title);
 
               try {
-                const [savedBrag] = await createBrag({
+                const [savedAchievement] = await createAchievement({
                   userId: session.user.id!,
                   userMessageId: newUserMessage.id,
-                  title: brag.title,
-                  summary: brag.summary,
-                  details: brag.details,
-                  eventDuration: brag.eventDuration as any,
-                  eventStart: brag.eventStart || null,
-                  eventEnd: brag.eventEnd || null,
-                  companyId: brag.companyId,
-                  projectId: brag.projectId,
+                  title: achievement.title,
+                  summary: achievement.summary,
+                  details: achievement.details,
+                  eventDuration: achievement.eventDuration as any,
+                  eventStart: achievement.eventStart || null,
+                  eventEnd: achievement.eventEnd || null,
+                  companyId: achievement.companyId,
+                  projectId: achievement.projectId,
                 });
 
-                console.log('Saved brag:', savedBrag.id);
-                savedBrags.push(savedBrag);
+                console.log('Saved achievement:', savedAchievement.id);
+                savedAchievements.push(savedAchievement);
 
                 streamingData.append({
-                  type: 'brag',
-                  content: savedBrag.title,
+                  type: 'achievement',
+                  content: savedAchievement.title,
                 });
               } catch (error) {
-                console.error('Error saving brag:', error);
+                console.error('Error saving achievement:', error);
                 throw error;
               }
             }
 
-            console.log('Finished processing all brags');
+            console.log('Finished processing all achievements');
 
             streamingData.append({
               type: 'complete',
-              content: `Successfully processed ${savedBrags.length} brag${savedBrags.length === 1 ? '' : 's'}.`,
+              content: `Successfully processed ${savedAchievements.length} achievement${savedAchievements.length === 1 ? '' : 's'}.`,
             });
 
             return {
               id: newUserMessage.id,
-              brags: savedBrags,
-              content: `Successfully processed ${savedBrags.length} brag${savedBrags.length === 1 ? '' : 's'}.`,
+              achievements: savedAchievements,
+              content: `Successfully processed ${savedAchievements.length} achievement${savedAchievements.length === 1 ? '' : 's'}.`,
             };
           } catch (error) {
-            console.error('Error in brag extraction:', error);
+            console.error('Error in achievement extraction:', error);
             streamingData.append({
               type: 'error',
               content: 'Failed to process achievements.',
@@ -223,10 +223,10 @@ export async function POST(request: Request) {
           const id = generateUUID();
           let draftText = '';
 
-          // Fetch user's brags to provide context for document creation
-          const userBrags = await getBragsByUserId({ 
+          // Fetch user's achievements to provide context for document creation
+          const userAchievements = await getAchievementsByUserId({ 
             userId: session.user.id!,
-            limit: 50  // Get the 50 most recent brags
+            limit: 50  // Get the 50 most recent achievements
           });
 
           streamingData.append({
@@ -258,7 +258,7 @@ Today's date: ${new Date().toLocaleDateString('en-US', {
               day: 'numeric',
             })}
 
-Recent achievements: ${userBrags.map((brag) => `${brag.title}: ${brag.summary}`).join('\n')}
+Recent achievements: ${userAchievements.map((achievement) => `${achievement.title}: ${achievement.summary}`).join('\n')}
             `,
           });
 

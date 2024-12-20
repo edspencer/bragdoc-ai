@@ -5,11 +5,11 @@ Every time you choose to apply a rule(s), explicitly state the rule(s) in the ou
 ## Project Context
 
 The project is called bragdoc.ai and is a chatbot that helps users keep a brag document about their achievements at work. Key features:
-- Reads/listens to user messages, creates rows in a Brag table for each achievement the user mentioned
-- Creates weekly/monthly/performance review documents based on the data in the Brag table
+- Reads/listens to user messages, creates rows in a Achievements table for each achievement the user mentioned
+- Creates weekly/monthly/performance review documents based on the data in the Achievements table
 - Integrates with GitHub to extract achievements from commit messages and pull request descriptions
 
-Note that not all features are implemented yet, but the core idea is to help users keep a brag document about their achievements at work. Each Brag can be linked to a Company (there is a Companies table in the db), and a Project (there is a Projects table in the db), though both are optional.
+Note that not all features are implemented yet, but the core idea is to help users keep a brag document about their achievements at work. Each Achievement can be linked to a Company (there is a Companies table in the db), and a Project (there is a Projects table in the db), though both are optional.
 
 ## Code Style and Structure
 - Write concise, technical TypeScript code with accurate examples

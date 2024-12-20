@@ -1,4 +1,4 @@
-
+import type { Achievement } from '../../lib/db/schema';
 
 export type CompanyContext = {
   id: string;
@@ -42,26 +42,8 @@ export type Conversation = {
   scenario: ConversationScenario;
 };
 
-export type GeneratedBrag = {
-  id: string;
-  userId: string;
-  userMessageId: string;
-  title: string; 
-  summary: string;
-  details: string;
-  eventStart: Date;
-  eventEnd: Date;
-  eventDuration: string;
-  companyId: string | null;
-  projectId: string | null;
-  isArchived: boolean;
-  createdAt: Date;
-  updatedAt: Date;
-  suggestNewProject?: boolean;
-};
-
 export type GeneratedTestData = {
   scenario: ConversationScenario;
   conversation: Conversation;
-  expectedBrags: GeneratedBrag[];
+  expectedAchievements: Achievement[];
 };

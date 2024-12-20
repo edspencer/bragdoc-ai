@@ -26,7 +26,7 @@ const plans = [
     ],
   },
   {
-    name: 'Basic Bragger',
+    name: 'Basic Achiever',
     featured: true,
     price: { Monthly: '$3/month', Yearly: '$30/year' },
     description:
@@ -39,12 +39,12 @@ const plans = [
       'Everything in Free',
       'Unlimited usage',
       'Single GitHub repository integration',
-      'Unlimited Brags & Documents',
+      'Unlimited Achievements & Documents',
       'Document publishing',
     ],
   },
   {
-    name: 'Pro Bragger',
+    name: 'Pro Achiever',
     featured: false,
     price: { Monthly: '$9/month', Yearly: '$90/year' },
     description:

@@ -3,9 +3,9 @@ import { auth } from '@/app/(auth)/auth';
 import { z } from 'zod';
 import { achievementRequestSchema } from '@/lib/types/achievement';
 import { 
-  createAchievement,
   getAchievements, 
 } from '@/lib/db/queries';
+import { createAchievement } from '@/lib/db/achievements/utils';
 
 // GET /api/achievements
 export async function GET(req: NextRequest) {
@@ -88,4 +88,3 @@ export async function POST(req: NextRequest) {
     );
   }
 }
-

@@ -1,15 +1,15 @@
 import type { InferSelectModel } from 'drizzle-orm';
-import type { Brag, company, project, userMessage } from '@/lib/db/schema';
+import type { achievement, company, project, userMessage } from '@/lib/db/schema';
 import { z } from 'zod';
 
 // Export base type from Drizzle schema
-export type { Brag as Achievement } from '@/lib/db/schema';
+export type Achievement = InferSelectModel<typeof achievement>;
 export type Company = InferSelectModel<typeof company>;
 export type Project = InferSelectModel<typeof project>;
 export type UserMessage = InferSelectModel<typeof userMessage>;
 
 // Type with resolved relations
-export type AchievementWithRelations = Brag & {
+export type AchievementWithRelations = Achievement & {
   company: Company | null;
   project: Project | null;
   userMessage: UserMessage | null;

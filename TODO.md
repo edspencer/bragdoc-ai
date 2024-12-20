@@ -37,7 +37,7 @@
 - [ ] Add pagination (currently limited to 30)
 - [ ] Extract achievements from PR descriptions
 - [ ] Add automatic tagging based on PR content
-- [ ] Create brag entries from significant PRs
+- [ ] Create achievement entries from significant PRs
 - [ ] Add integration tests for GitHub sync
 - [ ] Add rate limiting protection
 
@@ -46,7 +46,7 @@
 
 ### Email Integration
 - [ ] Set up email receiving service
-- [ ] Implement email parsing for brag extraction
+- [ ] Implement email parsing for achievement extraction
 - [ ] Set up email response system
 - [ ] Create email templates for different types of notifications
 
@@ -61,16 +61,11 @@
 - [ ] Implement project-based filtering for documents
 
 ### LLM Tools
-- [ ] Automatically prepend brags to LLM context (perhaps only up to 100 brags)
+- [ ] Automatically prepend achievements to LLM context (perhaps only up to 100 achievements)
 - [ ] Automatically expose all companies and libraries for the user with the LLM context
 - [ ] Automatically expose all userPreferences for the user with the LLM context
-- [ ] getBrags tool? - vector search on brags
+- [ ] getAchievements tool? - vector search on achievements
 - [ ] saveUserPreferences tool - should be called whenever the user says things like "Always arrange this (weekly report) into sections by project"
-
-### Brags renaming to Achievements
-- [ ] Change the Brag model name to Achievement, including table names, all references
-- [ ] Anywhere in the code base that we deal with the Brag model/type/drizzle table, replace it with Achievement
-- [ ] The product is still called "bragdoc.ai", and we can still talk about brag documents, but the underlying model is now called "Achievement", not "Brag"
 
 ### API Docs
 - [x] Create an OpenAPI spec for the API (swagger.json created via RepoPrompt sending content of all route.ts files to LLM and asking for a swagger spec)
@@ -92,7 +87,7 @@
 - [ ] New/Edit Achievement modal is tall - need to make it scrollable for shorter screen heights
 - [ ] Create tag management system
 - [ ] Add email preferences configuration
-- [ ] Stream Brags into the UI one by one instead of all as a response from extractBrags
+- [ ] Stream Achievements into the UI one by one instead of all as a response from extractAchievements
 - [ ] Fix calendar/date picker components throughout the app
 - [ ] Ability to delete many achievements at once?
 - [ ] Calendar filtering on Achievements page sucks - can't clear, and should be a date range picker UI instead
@@ -111,7 +106,7 @@
     - [ ] Usage limitations
     - [ ] Usage tracking
   - [ ] Mid Account ($3/month, $30/year)
-    - [ ] Unlimited Brags/Docs
+    - [ ] Unlimited Achievements/Documents
     - [ ] Remove usage limitations
   - [ ] Pro Account ($9/month, $90/year)
     - [ ] GitHub integration
@@ -137,8 +132,8 @@
 
 ### Example Conversations
 - [ ] Create example conversations for:
-  - [ ] Single brag logging (e.g., "I just finished project X")
-  - [ ] Batch brag logging (e.g., "Here's what I did last week...")
+  - [ ] Single achievement logging (e.g., "I just finished project X")
+  - [ ] Batch achievement logging (e.g., "Here's what I did last week...")
   - [ ] Performance review document generation
   - [ ] Weekly update for manager
   - [ ] Monthly update for skip-level manager

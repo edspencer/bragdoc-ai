@@ -2,7 +2,8 @@ import { generateObject } from 'ai';
 import { openai } from '@ai-sdk/openai';
 import { v4 as uuidv4 } from 'uuid';
 import { z } from 'zod';
-import type { ConversationScenario, Conversation, GeneratedTestData, } from './types';
+import type { ConversationScenario, Conversation, GeneratedTestData } from './types';
+import type { Achievement } from '../../lib/db/schema';
 import { SCENARIO_TEMPLATES, type ScenarioTemplate } from './templates';
 
 const scenarioSchema = z.object({
@@ -38,13 +39,13 @@ const messageSchema = z.object({
   }))
 });
 
-const bragSchema = z.object({
-  brags: z.array(z.object({
+const achievementSchema = z.object({
+  achievements: z.array(z.object({
     title: z.string(),
     summary: z.string(),
     details: z.string(),
-    eventStart: z.string().datetime(),
-    eventEnd: z.string().datetime(),
+    eventStart: z.string().nullable(),
+    eventEnd: z.string().nullable(),
     eventDuration: z.enum(["day", "week", "month", "quarter", "half year", "year"]),
     companyId: z.string().nullable(),
     projectId: z.string().nullable()
@@ -174,13 +175,13 @@ ${JSON.stringify(scenario, null, 2)}`
   };
 }
 
-export async function generateExpectedBrags(
+export async function generateExpectedAchievements(
   conversation: Conversation,
   context: ConversationScenario
-): Promise<GeneratedTestData['expectedBrags']> {
+): Promise<GeneratedTestData['expectedAchievements']> {
   const model = openai("gpt-4o");
 
-  console.log('Generating expected brags...');
+  console.log('Generating expected achievements...');
   
   const { object } = await generateObject({
     model,
@@ -207,7 +208,7 @@ Make sure to:
       },
       {
         role: "user",
-        content: `Extract brags from this conversation, using the provided context to properly attribute them to companies and projects:
+        content: `Extract achievements from this conversation, using the provided context to properly attribute them to companies and projects:
 
 Context:
 ${JSON.stringify(context, null, 2)}
@@ -216,35 +217,36 @@ Conversation:
 ${JSON.stringify(conversation.messages, null, 2)}`
       }
     ],
-    schema: bragSchema,
+    schema: achievementSchema,
   });
 
-  return object.brags.map(b => ({
+  return object.achievements.map<Achievement>(a => ({
     id: uuidv4(),
     userId: conversation.scenario.userId,
     userMessageId: uuidv4(), // Since this is test data, we'll generate a new ID
     createdAt: new Date(),
     updatedAt: new Date(),
-    eventStart: new Date(b.eventStart),
-    eventEnd: new Date(b.eventEnd),
-    eventDuration: b.eventDuration,
-    title: b.title,
-    summary: b.summary,
-    details: b.details,
-    companyId: b.companyId || null,
-    projectId: b.projectId || null,
-    isArchived: false
+    eventStart: a.eventStart ? new Date(a.eventStart) : null,
+    eventEnd: a.eventEnd ? new Date(a.eventEnd) : null,
+    eventDuration: a.eventDuration,
+    title: a.title,
+    summary: a.summary,
+    details: a.details,
+    companyId: a.companyId,
+    projectId: a.projectId,
+    isArchived: false,
+    source: 'llm'
   }));
 }
 
 export async function generateTestData(template: ScenarioTemplate, numTurns = 50): Promise<GeneratedTestData> {
   const scenario = await generateScenario(template);
   const conversation = await generateConversation(scenario, numTurns);
-  const expectedBrags = await generateExpectedBrags(conversation, scenario);
+  const expectedAchievements = await generateExpectedAchievements(conversation, scenario);
 
   return {
     scenario,
     conversation,
-    expectedBrags
+    expectedAchievements
   };
 }

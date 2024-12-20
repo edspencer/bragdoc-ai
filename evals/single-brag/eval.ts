@@ -1,19 +1,19 @@
 import { Eval } from "braintrust";
 import { LLMClassifierFromSpec } from "autoevals";
-import { singleBragExamples } from "./dataset";
-import { extractBrag } from "../../lib/ai/extract";
+import { singleAchievementExamples } from "./dataset";
+import { extractAchievement } from "../../lib/ai/extract";
 
 // Convert our examples to the format expected by BrainTrust
-const experimentData = singleBragExamples.map((example) => ({
+const experimentData = singleAchievementExamples.map((example) => ({
   input: { 
     input: example.input, 
     chat_history: example.chat_history 
   },
-  expected: example.expected.brag,
+  expected: example.expected.achievement,
 }));
 
-// Function to evaluate the accuracy of extracted brags
-const BragAccuracy = LLMClassifierFromSpec("BragAccuracy", {
+// Function to evaluate the accuracy of extracted achievements
+const AchievementAccuracy = LLMClassifierFromSpec("AchievementAccuracy", {
   prompt: `You are evaluating how well an AI system extracted achievement information from a user message. Compare the extracted achievement with the expected output.
 Here is the data:
 [BEGIN DATA]
@@ -51,14 +51,14 @@ Answer by selecting one of the following options:
 });
 
 // Create the evaluation
-Eval("Brag Extraction", {
-  experimentName: "brag-extraction-accuracy",
+Eval("Achievement Extraction", {
+  experimentName: "achievement-extraction-accuracy",
   data: () => experimentData,
-  task: extractBrag,
-  scores: [BragAccuracy],
+  task: extractAchievement,
+  scores: [AchievementAccuracy],
   trialCount: 3,
   metadata: {
     model: "gpt-4",
-    useCase: "single-brag-logging"
+    useCase: "single-achievement-logging"
   }
 });

@@ -65,7 +65,7 @@ This document outlines the implemented features of BragDoc.ai, a chatbot that he
 - Users table with OAuth support
 - Companies table for organization management
 - Projects table for project tracking
-- Brags table for achievement storage
+- Achievements table for achievement storage
 
 ## Technical Implementation
 - Next.js-based architecture

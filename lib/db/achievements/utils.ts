@@ -1,5 +1,5 @@
 import { db } from '@/lib/db';
-import { userMessage, brag } from '@/lib/db/schema';
+import { userMessage, achievement } from '@/lib/db/schema';
 import { eq, and, notExists, isNull } from 'drizzle-orm';
 import type { CreateAchievementRequest } from '@/lib/types/achievement';
 
@@ -35,7 +35,7 @@ export async function createAchievement(
     ? (await createSystemUserMessage(userId, data.title, data.summary ?? undefined))?.id 
     : undefined);
 
-  return await db.insert(brag).values({
+  return await db.insert(achievement).values({
     ...data,
     userId,
     userMessageId: messageId,
@@ -49,15 +49,15 @@ export async function createAchievement(
 export async function validateAchievementData(userId: string) {
   // Find achievements with invalid userMessageIds
   const invalidMessageIds = await db.select()
-    .from(brag)
+    .from(achievement)
     .where(
       and(
-        eq(brag.userId, userId),
-        eq(brag.source, 'llm'),
+        eq(achievement.userId, userId),
+        eq(achievement.source, 'llm'),
         notExists(
           db.select()
             .from(userMessage)
-            .where(eq(userMessage.id, brag.userMessageId))
+            .where(eq(userMessage.id, achievement.userMessageId))
         )
       )
     );
@@ -73,33 +73,34 @@ export async function validateAchievementData(userId: string) {
  */
 export async function createMissingUserMessages(userId: string) {
   const achievements = await db.select()
-    .from(brag)
+    .from(achievement)
     .where(
       and(
-        eq(brag.userId, userId),
-        eq(brag.source, 'manual'),
-        isNull(brag.userMessageId)
+        eq(achievement.userId, userId),
+        eq(achievement.source, 'manual'),
+        isNull(achievement.userMessageId)
       )
     );
 
   const results = await Promise.all(
-    achievements.map(async (achievement) => {
+    achievements.map(async (achievementRow) => {
       const message = await createSystemUserMessage(
         userId,
-        achievement.title,
-        achievement.summary ?? undefined
+        achievementRow.title,
+        achievementRow.summary ?? undefined
       );
 
-      await db.update(brag)
+      await db
+        .update(achievement)
         .set({ userMessageId: message.id })
-        .where(eq(brag.id, achievement.id));
+        .where(eq(achievement.id, achievementRow.id));
 
-      return achievement.id;
+      return achievementRow.id;
     })
   );
 
   return {
-    updated: results,
+    updatedIds: results,
     total: results.length,
   };
 }

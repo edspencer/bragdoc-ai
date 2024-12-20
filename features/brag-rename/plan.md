@@ -1,7 +1,8 @@
 # Brag to Achievement Rename: Implementation Plan
 
-## Phase 1: Database Schema Changes
+## Phase 1: Database Schema Changes 
 **Estimated time: 2-3 hours**
+**Status: Completed**
 
 1. Update Drizzle schema in `lib/db/schema.ts`:
    - Rename `brag` table definition to `achievement`
@@ -11,27 +12,27 @@
 
 2. Generate and apply migration:
    ```bash
-   # Generate migration files
-   pnpm db:generate
-   
-   # Try running migration
-   pnpm db:migrate
-   
-   # If migration fails, use push as fallback
-   pnpm db:push
+   # Created migration file manually:
+   lib/db/migrations/0000_brag_to_achievement.ts
    ```
 
 3. Update database queries in `lib/db/queries.ts`:
    - Update table references to use new `achievement` table
    - Rename query functions (e.g., `getBrags` to `getAchievements`)
    - Update return types to use `Achievement` type
+   - Update `lib/db/achievements/utils.ts`
 
 4. Update tests:
    - Run `pnpm test:setup` to update test database
    - Fix any failing tests due to schema changes
+   - Next Steps:
+     - [x] Run migration on development database
+     - [x] Run `pnpm test:setup` to update test database
+     - [x] Fix any failing tests due to schema changes
 
 ## Phase 2: Core Type Updates
 **Estimated time: 2-3 hours**
+**Status: Completed**
 
 1. Create type mapping file `lib/types/achievement.ts`:
    - Define Achievement interface
@@ -49,6 +50,7 @@
 
 ## Phase 3: Component Updates
 **Estimated time: 3-4 hours**
+**Status: Completed**
 
 1. Rename and update components:
    - `components/brag.tsx` → `components/achievement.tsx`
@@ -66,6 +68,7 @@
 
 ## Phase 4: API and Route Updates
 **Estimated time: 2-3 hours**
+**Status: Completed**
 
 1. Update API routes:
    - `app/api/chat/route.ts`
@@ -79,6 +82,7 @@
 
 ## Phase 5: AI/LLM Updates
 **Estimated time: 2-3 hours**
+**Status: Completed**
 
 1. Update AI prompts and extractors:
    - Review and update prompts in `lib/ai/prompts.ts`
@@ -92,6 +96,7 @@
 
 ## Phase 6: Testing
 **Estimated time: 3-4 hours**
+**Status: Completed**
 
 1. Update test setup:
    - Update `test/setup.ts` for new schema
@@ -122,6 +127,7 @@
 
 ## Phase 7: Documentation
 **Estimated time: 2-3 hours**
+**Status: Not Started**
 
 1. Update API documentation:
    - Update endpoint descriptions

@@ -1,6 +1,6 @@
 import { useCallback } from 'react';
 import useSWR from 'swr';
-import type { BragWithRelations } from '@/lib/db/queries';
+import type { AchievementWithRelations } from '@/lib/types/achievement';
 import type { CreateAchievementRequest } from '@/lib/types/achievement';
 
 export interface AchievementFilters {
@@ -20,7 +20,7 @@ interface UseAchievementsOptions {
 }
 
 interface AchievementsResponse {
-  achievements: BragWithRelations[];
+  achievements: AchievementWithRelations[];
   pagination: {
     total: number;
     page: number;

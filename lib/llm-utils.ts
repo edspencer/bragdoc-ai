@@ -1,20 +1,21 @@
 import { createAI, createStreamableValue } from 'ai/rsc'
 import { z } from 'zod'
-import { createBrag, createUserMessage, generatePeriodSummary as queryGeneratePeriodSummary } from './db/queries'
+import { createAchievement, createUserMessage, generatePeriodSummary as queryGeneratePeriodSummary } from './db/queries'
+import type { Achievement } from './types/achievement'
 
-// Zod schema for structured brag extraction
-const BragSchema = z.object({
+// Zod schema for structured achievement extraction
+const AchievementSchema = z.object({
   title: z.string().describe('A concise, bullet-list compatible title for the achievement'),
   eventStart: z.string().transform(date => new Date(date)).describe('The start date of the event or achievement'),
   eventEnd: z.string().transform(date => new Date(date)).describe('The end date of the event or achievement'),
   eventDuration: z.enum(['day', 'week', 'month', 'quarter', 'half year', 'year']).describe('The duration of the achievement'),
-  summary: z.string().describe('A brief summary of the achievement'),
+  summary: z.string().nullable().optional().describe('A brief summary of the achievement'),
   details: z.string().optional().describe('Additional details about the achievement'),
   companyId: z.string().nullable().describe('The ID of the company this achievement is associated with (null if not specified)'),
   projectId: z.string().nullable().describe('The ID of the project this achievement is associated with (null if not specified)'),
 })
 
-export async function detectBragsFromMessage(
+export async function detectAchievementsFromMessage(
   userId: string, 
   originalText: string
 ) {
@@ -26,10 +27,10 @@ export async function detectBragsFromMessage(
     originalText 
   })
 
-  // Use AI to generate structured brag data
+  // Use AI to generate structured achievement data
   const streamableResult = createStreamableValue<any[]>()
 
-  const generateBrags = async () => {
+  const generateAchievements = async () => {
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: {
@@ -37,7 +38,7 @@ export async function detectBragsFromMessage(
         'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`
       },
       body: JSON.stringify({
-        model: 'gpt-4o',
+        model: 'gpt-4',
         response_format: { type: 'json_object' },
         messages: [
           {
@@ -50,9 +51,11 @@ export async function detectBragsFromMessage(
                 "title": string,
                 "eventStart": date string (ISO format),
                 "eventEnd": date string (ISO format),
-                "eventDuration": "day"|"week"|"month"|"quarter"|"half year"|"year",
+                "eventDuration": "day" | "week" | "month" | "quarter" | "half year" | "year",
                 "summary": string,
-                "details"?: string
+                "details": string (optional),
+                "companyId": string | null,
+                "projectId": string | null
               }
             `
           },
@@ -64,35 +67,44 @@ export async function detectBragsFromMessage(
       })
     })
 
-    const data = await response.json()
-    const bragsData = JSON.parse(data.choices[0].message.content || '[]')
-    
-    // Validate and create brags
-    const validatedBrags = z.array(BragSchema).parse(bragsData)
-    
-    const createdBrags = await Promise.all(
-      validatedBrags.map(bragData => 
-        createBrag({
-          userId,
-          userMessageId: userMessage.id,
-          ...bragData,
-          // Ensure dates are converted correctly
-          eventStart: bragData.eventStart,
-          eventEnd: bragData.eventEnd,
-        })
-      )
-    )
+    if (!response.ok) {
+      throw new Error(`Failed to generate achievements: ${response.statusText}`)
+    }
 
-    return createdBrags
+    const data = await response.json()
+    const achievements = data.choices[0].message.content;
+
+    try {
+      const parsedAchievements = JSON.parse(achievements).map((achievement: any) => 
+        AchievementSchema.parse(achievement)
+      )
+
+      // Create achievements in parallel
+      const createdAchievements = await Promise.all(
+        parsedAchievements.map((achievement: Omit<Achievement, 'id' | 'createdAt' | 'updatedAt' | 'isArchived'>) => 
+          createAchievement({
+            ...achievement,
+            userId,
+            userMessageId: userMessage.id
+          })
+        )
+      )
+
+      streamableResult.update(createdAchievements)
+      streamableResult.done()
+
+    } catch (error) {
+      console.error('Failed to parse achievements:', error)
+      streamableResult.error(error as Error)
+    }
   }
 
-  // Start generating brags
-  generateBrags()
-    .then(brags => streamableResult.update(brags))
-    .catch(error => streamableResult.error(error))
-    .finally(() => streamableResult.done())
+  generateAchievements().catch(error => {
+    console.error('Failed to generate achievements:', error)
+    streamableResult.error(error)
+  })
 
-  return streamableResult.value
+  return streamableResult
 }
 
 export async function generatePeriodSummary(
@@ -102,8 +114,8 @@ export async function generatePeriodSummary(
 ) {
   'use server'
 
-  // Fetch brags for the period
-  const brags = await queryGeneratePeriodSummary({ 
+  // Fetch achievements for the period
+  const achievements = await queryGeneratePeriodSummary({ 
     userId, 
     startDate, 
     endDate 
@@ -120,7 +132,7 @@ export async function generatePeriodSummary(
         'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`
       },
       body: JSON.stringify({
-        model: 'gpt-4o',
+        model: 'gpt-4',
         messages: [
           {
             role: 'system',
@@ -128,7 +140,7 @@ export async function generatePeriodSummary(
           },
           {
             role: 'user',
-            content: brags.map(brag => brag.summary || '').join('\n')
+            content: achievements.map(achievement => achievement.summary || '').join('\n')
           }
         ]
       })
@@ -150,7 +162,7 @@ export async function generatePeriodSummary(
 // Create an AI context for server actions
 export const AI = createAI({
   actions: {
-    detectBragsFromMessage,
+    detectAchievementsFromMessage,
     generatePeriodSummary
   }
 })

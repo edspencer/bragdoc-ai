@@ -77,7 +77,7 @@ export const project = pgTable('Project', {
 
 export type Project = InferSelectModel<typeof project>;
 
-export const brag = pgTable('Brag', {
+export const achievement = pgTable('Achievement', {
   id: uuid('id').primaryKey().notNull().defaultRandom(),
   userId: uuid('user_id')
     .notNull()
@@ -110,7 +110,7 @@ export const brag = pgTable('Brag', {
   };
 });
 
-export type Brag = InferSelectModel<typeof brag>;
+export type Achievement = InferSelectModel<typeof achievement>;
 
 export const chat = pgTable('Chat', {
   id: uuid('id').primaryKey().notNull().defaultRandom(),
@@ -235,8 +235,8 @@ export const githubPullRequest = pgTable(
     createdAt: timestamp('created_at').notNull().defaultNow(),
     updatedAt: timestamp('updated_at').notNull().defaultNow(),
     mergedAt: timestamp('merged_at'),
-    bragId: uuid('brag_id')
-      .references(() => brag.id),
+    achievementId: uuid('achievement_id')
+      .references(() => achievement.id),
   },
   (table) => ({
     repoAndPrUnique: uniqueIndex('repo_pr_unique').on(table.repositoryId, table.prNumber),
