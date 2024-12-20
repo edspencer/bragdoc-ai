@@ -87,7 +87,6 @@ export const brag = pgTable('Brag', {
   projectId: uuid('project_id')
     .references(() => project.id),
   userMessageId: uuid('user_message_id')
-    .notNull()
     .references(() => userMessage.id),
   title: varchar('title', { length: 256 }).notNull(),
   summary: text('summary'),
