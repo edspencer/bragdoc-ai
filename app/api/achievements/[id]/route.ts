@@ -3,15 +3,14 @@ import { auth } from '@/app/(auth)/auth';
 import { z } from 'zod';
 import type { UpdateAchievementRequest } from '@/lib/types/achievement';
 import { updateAchievement, deleteAchievement } from '@/lib/db/queries';
+import { EventDuration } from '@/lib/types/achievement';
 
 type Params = { id: string }
 
-// Validation schema for achievement updates
-const updateSchema = z.object({
+// Runtime validation schema
+const updateValidationSchema = z.object({
   title: z.string().min(1, 'Title is required').optional(),
-  eventDuration: z.enum(['day', 'week', 'month', 'quarter', 'year'], {
-    invalid_type_error: 'Invalid event duration',
-  }).optional(),
+  eventDuration: z.enum(Object.values(EventDuration) as [string, ...string[]]).optional(),
   eventStart: z.string().datetime().optional(),
   eventEnd: z.string().datetime().optional(),
   summary: z.string().optional(),
@@ -44,29 +43,18 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<Params
     }
 
     const body = await req.json();
-    const result = updateSchema.safeParse(body);
-
-    if (!result.success) {
+    
+    // Validate the input data at runtime
+    const validationResult = updateValidationSchema.safeParse(body);
+    if (!validationResult.success) {
       return NextResponse.json({
         error: 'Invalid achievement data',
-        details: result.error.errors,
+        details: validationResult.error.errors,
       }, { status: 400 });
     }
 
-    // Convert date strings to Date objects and prepare data
-    const data: UpdateAchievementRequest = {
-      ...result.data,
-      eventStart: result.data.eventStart ? new Date(result.data.eventStart) : null,
-      eventEnd: result.data.eventEnd ? new Date(result.data.eventEnd) : null,
-      impactUpdatedAt: result.data.impactUpdatedAt ? new Date(result.data.impactUpdatedAt) : null,
-      summary: result.data.summary ?? null,
-      details: result.data.details ?? null,
-      companyId: result.data.companyId ?? null,
-      projectId: result.data.projectId ?? null,
-      impact: result.data.impact ?? null,
-      impactSource: result.data.impactSource ?? null,
-      source: result.data.source,
-    };
+    // Use the validated data with Drizzle types
+    const data = validationResult.data as UpdateAchievementRequest;
 
     const [updated] = await updateAchievement({
       id,
@@ -75,10 +63,7 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<Params
     });
 
     if (!updated) {
-      return NextResponse.json(
-        { error: 'Achievement not found' },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: 'Achievement not found' }, { status: 404 });
     }
 
     return NextResponse.json(updated);

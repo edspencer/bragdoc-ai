@@ -3,14 +3,6 @@
 ## Database Enhancements
 
 ### Achievement Metadata
-- [ ] Add tagging system
-  ```typescript
-  bragTag {
-    bragId: uuid
-    tag: string
-    primary key (bragId, tag)
-  }
-  ```
 - [ ] Add impact field to `brag` table
 - [ ] Add metrics/quantification fields to `brag` table
 
@@ -36,7 +28,6 @@
 - [ ] Add repository search/filter
 - [ ] Add pagination (currently limited to 30)
 - [ ] Extract achievements from PR descriptions
-- [ ] Add automatic tagging based on PR content
 - [ ] Create achievement entries from significant PRs
 - [ ] Add integration tests for GitHub sync
 - [ ] Add rate limiting protection
@@ -84,9 +75,11 @@
 - [ ] What happens when a project or company is deleted but it's referenced in an achievement?
 - [ ] We still have a model selector in the UI - get rid of it and hard code them. Perhaps create an ais.ts file that exports the different models for different use cases?
 
+## Tech Debt
+- [x] updateSchema in app/api/achievements/[id]/route.ts should not exist - use drizzle type
+ 
 ### UI/UX Improvements
 - [ ] New/Edit Achievement modal is tall - need to make it scrollable for shorter screen heights
-- [ ] Create tag management system
 - [ ] Add email preferences configuration
 - [ ] Stream Achievements into the UI one by one instead of all as a response from extractAchievements
 - [ ] Fix calendar/date picker components throughout the app
