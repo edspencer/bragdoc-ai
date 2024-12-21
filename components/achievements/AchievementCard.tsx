@@ -11,12 +11,14 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Badge } from '@/components/ui/badge';
+import { ImpactRating } from '@/components/ui/impact-rating';
 
 interface AchievementCardProps {
   achievement: Achievement;
   onEdit?: () => void;
   onDelete?: () => void;
   onArchive?: () => void;
+  onImpactChange?: (value: number) => void;
 }
 
 export function AchievementCard({
@@ -24,6 +26,7 @@ export function AchievementCard({
   onEdit,
   onDelete,
   onArchive,
+  onImpactChange,
 }: AchievementCardProps) {
   const {
     title,
@@ -36,13 +39,26 @@ export function AchievementCard({
     projectId,
     source,
     isArchived,
+    impact,
+    impactSource,
+    impactUpdatedAt,
   } = achievement;
 
   return (
     <Card className={`w-full ${isArchived ? 'opacity-60' : ''}`}>
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
         <div className="flex flex-col space-y-1.5">
-          <h3 className="font-semibold leading-none tracking-tight">{title}</h3>
+          <div className="flex items-center gap-3">
+            <h3 className="font-semibold leading-none tracking-tight">{title}</h3>
+            <ImpactRating
+              value={impact ?? 2}
+              onChange={onImpactChange}
+              source={impactSource}
+              updatedAt={impactUpdatedAt}
+              readOnly={!onImpactChange}
+              className="mt-0.5"
+            />
+          </div>
           {summary && (
             <p className="text-sm text-muted-foreground">{summary}</p>
           )}

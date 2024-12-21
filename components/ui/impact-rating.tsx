@@ -10,14 +10,14 @@ import {
 
 export interface ImpactRatingProps
   extends Omit<React.ComponentPropsWithoutRef<"div">, "onChange"> {
-  value: number
+  value?: number | null
   onChange?: (value: number) => void
-  source?: "user" | "llm"
+  source?: "user" | "llm" | null
   readOnly?: boolean
-  updatedAt?: Date
+  updatedAt?: Date | null
 }
 
-const impactLabels = {
+const impactLabels: Record<number, string> = {
   1: "Low impact - Minor achievements and routine tasks",
   2: "Medium impact - Notable achievements that show growth",
   3: "High impact - Major achievements with significant impact",
@@ -40,7 +40,8 @@ export function ImpactRating({
   }
 
   const renderStar = (starValue: number) => {
-    const isActive = (hoveredValue || value) >= starValue
+    const effectiveValue = (hoveredValue ?? value ?? 2)
+    const isActive = effectiveValue >= starValue
     const starClass = cn(
       "w-5 h-5 transition-colors",
       isActive ? "text-yellow-400" : "text-gray-300",
@@ -62,11 +63,11 @@ export function ImpactRating({
     )
   }
 
-  const sourceText = source === "llm" ? "AI-suggested" : "User-defined"
+  const sourceText = source === "llm" ? "AI-suggested" : source === "user" ? "User-defined" : ""
   const timeText = updatedAt
     ? `Last updated ${updatedAt.toLocaleDateString()}`
     : ""
-  const tooltipText = `${impactLabels[value as 1 | 2 | 3]}\n${sourceText}${
+  const tooltipText = `${impactLabels[value as 1 | 2 | 3] ?? ""}\n${sourceText}${
     timeText ? `\n${timeText}` : ""
   }`
 
