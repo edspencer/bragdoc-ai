@@ -27,6 +27,7 @@ export interface ImpactRatingProps
   source?: "user" | "llm" | null
   readOnly?: boolean
   updatedAt?: Date | null
+  showLabel?: boolean
 }
 
 export function ImpactRating({
@@ -36,6 +37,7 @@ export function ImpactRating({
   readOnly = false,
   updatedAt,
   className,
+  showLabel=false,
   ...props
 }: ImpactRatingProps) {
   const [hoveredValue, setHoveredValue] = React.useState<number | null>(null)
@@ -118,9 +120,9 @@ export function ImpactRating({
       >
         {[1, 2, 3].map(renderStar)}
       </div>
-      <span className="text-sm text-muted-foreground italic pt-2">
+      {showLabel ? <span className="text-sm text-muted-foreground italic pt-2">
         {getImpactLabel(hoveredValue ?? value ?? 2)}
-      </span>
+      </span> : null}
     </div>
   )
 }

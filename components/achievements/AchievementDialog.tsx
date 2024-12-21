@@ -210,6 +210,7 @@ export function AchievementDialog({
                       readOnly={isViewMode}
                       source="user"
                       className="mt-2"
+                      showLabel
                     />
                   </FormControl>
                   <FormMessage />
