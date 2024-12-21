@@ -79,10 +79,25 @@
 - Added fallback to default impact value (2)
 - Improved type safety for enum values
 
+## 2024-12-21 12:58-13:00 EST - Achievement Form Integration
+
+### Changes Made
+1. Updated `components/achievements/AchievementDialog.tsx`:
+   - Added impact field to form schema with validation
+   - Added ImpactRating component to form
+   - Updated form values and default values
+   - Added impact source and timestamp on submit
+
+### Technical Notes
+- Used Zod for impact field validation (min: 1, max: 3)
+- Set default impact value to 2
+- Added proper form field handling with React Hook Form
+- Automatically set impactSource to 'user' on form submission
+
 ### Next Steps
-- Add impact field to achievement edit form
 - Implement LLM scoring integration
 - Add tests for impact rating functionality
+- Add impact filtering to achievement list
 
 ### Status
 ✅ Database schema changes complete
@@ -90,5 +105,5 @@
 ✅ TypeScript fixes complete
 ✅ Achievement card integration complete
 ✅ Type safety improvements complete
-⏳ Achievement form integration pending
+✅ Achievement form integration complete
 ⏳ LLM integration pending
