@@ -190,16 +190,16 @@ export function AchievementList({
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead className="w-24">Impact</TableHead>
-              <TableHead>Title</TableHead>
-              <TableHead>Date</TableHead>
-              <TableHead className="w-[100px]">Actions</TableHead>
+              <TableHead className="py-1">Impact</TableHead>
+              <TableHead className="py-1">Title</TableHead>
+              <TableHead className="py-1">Date</TableHead>
+              <TableHead className="py-1">Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {achievements.map((achievement) => (
               <TableRow key={achievement.id}>
-                <TableCell>
+                <TableCell className="py-1">
                   <ImpactRating
                     value={achievement.impact}
                     source={achievement.impactSource}
@@ -208,9 +208,9 @@ export function AchievementList({
                     readOnly={!!actionLoading}
                   />
                 </TableCell>
-                <TableCell>{achievement.title}</TableCell>
-                <TableCell>{achievement.company?.name ?? '-'}</TableCell>
-                <TableCell>
+                <TableCell className="py-1">{achievement.title}</TableCell>
+                <TableCell className="py-1">{achievement.company?.name ?? '-'}</TableCell>
+                <TableCell className="py-1">
                   <AchievementActions
                     onEdit={() =>
                       setDialog({

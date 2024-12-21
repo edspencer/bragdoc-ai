@@ -30,7 +30,7 @@ interface AchievementsResponse {
 }
 
 export function useAchievements(options: UseAchievementsOptions = {}) {
-  const { page = 1, limit = 10, filters } = options;
+  const { page = 1, limit = 20, filters } = options;
 
   // Build query string from filters
   const buildQueryString = useCallback(() => {
