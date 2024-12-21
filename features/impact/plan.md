@@ -59,11 +59,11 @@
 - [ ] Add Zod validation schema for impact fields
 
 ### Update Achievement Mutations
-- [ ] Update `lib/db/queries.ts` with impact fields
-- [ ] Update achievement update API handler
-- [ ] Add optimistic updates in UI
-- [ ] Add error handling for invalid impact values
-- [ ] Ensure impactUpdatedAt is set on every impact change
+- [x] Update `lib/db/queries.ts` with impact fields
+- [x] Update achievement update API handler
+- [x] Add optimistic updates in UI
+- [x] Add error handling for invalid impact values
+- [x] Ensure impactUpdatedAt is set on every impact change
 
 ## 4. LLM Integration
 
@@ -143,3 +143,41 @@
 - [ ] Update help documentation
 - [ ] Consider adding onboarding tooltip
 - [ ] Create user guide for impact scoring
+
+## Impact Rating Feature Plan
+
+### Phase 1: Core Impact Rating 
+- [x] Add impact rating field to achievements
+- [x] Create ImpactRating component
+- [x] Add impact rating to achievement form
+- [x] Add impact rating to achievement list
+- [x] Implement optimistic updates
+- [x] Add visual feedback for impact levels
+- [x] Fix database persistence issues
+- [x] Add proper type handling
+
+### Phase 2: Impact Analytics 
+- [ ] Add impact level filtering to achievement list
+- [ ] Create impact distribution visualization
+- [ ] Generate impact insights for performance reviews
+
+### Phase 3: Advanced Features 
+- [ ] Bulk impact updates
+- [ ] AI-assisted impact suggestions
+- [ ] Impact-based achievement sorting
+- [ ] Impact level explanations
+- [ ] Impact comparison across time periods
+
+### Technical Debt & Improvements
+- [ ] Add comprehensive tests for impact rating
+- [ ] Add error boundary for impact rating component
+- [ ] Add accessibility improvements
+- [ ] Add keyboard navigation for star rating
+- [ ] Add impact rating analytics tracking
+
+### Future Ideas
+1. Impact score normalization
+2. Team impact aggregation
+3. Project impact tracking
+4. Impact-based achievement recommendations
+5. Custom impact criteria per company/team
