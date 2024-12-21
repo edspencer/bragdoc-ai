@@ -8,6 +8,18 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip"
 
+const impactLabels: Record<number, string> = {
+  1: "Low Impact",
+  2: "Medium Impact",
+  3: "High Impact",
+}
+
+const impactDescriptions: Record<number, string> = {
+  1: "Routine tasks or minor improvements with individual/small team benefit",
+  2: "Notable improvements with team/department level impact",
+  3: "Major initiatives with organization-wide strategic impact",
+}
+
 export interface ImpactRatingProps
   extends Omit<React.ComponentPropsWithoutRef<"div">, "onChange"> {
   value?: number | null
@@ -15,12 +27,6 @@ export interface ImpactRatingProps
   source?: "user" | "llm" | null
   readOnly?: boolean
   updatedAt?: Date | null
-}
-
-const impactLabels: Record<number, string> = {
-  1: "Low impact - Minor achievements and routine tasks",
-  2: "Medium impact - Notable achievements that show growth",
-  3: "High impact - Major achievements with significant impact",
 }
 
 export function ImpactRating({
@@ -34,9 +40,20 @@ export function ImpactRating({
 }: ImpactRatingProps) {
   const [hoveredValue, setHoveredValue] = React.useState<number | null>(null)
 
-  const handleStarClick = (starValue: number) => {
-    if (readOnly) return
-    onChange?.(starValue)
+  const handleMouseEnter = (starValue: number) => {
+    if (!readOnly) {
+      setHoveredValue(starValue)
+    }
+  }
+
+  const handleMouseLeave = () => {
+    setHoveredValue(null)
+  }
+
+  const handleClick = (starValue: number) => {
+    if (!readOnly && onChange) {
+      onChange(starValue)
+    }
   }
 
   const renderStar = (starValue: number) => {
@@ -49,45 +66,49 @@ export function ImpactRating({
       source === "llm" && "opacity-80"
     )
 
+    const tooltipContent = (
+      <div className="max-w-xs">
+        <div className="font-semibold">{impactLabels[starValue as 1 | 2 | 3]}</div>
+        <div className="text-sm text-muted-foreground">
+          {impactDescriptions[starValue as 1 | 2 | 3]}
+        </div>
+        {starValue === (value ?? 2) && source && updatedAt && (
+          <div className="mt-1 text-xs text-muted-foreground">
+            Set by {source === "llm" ? "AI" : "user"} on {updatedAt.toLocaleDateString()}
+          </div>
+        )}
+      </div>
+    )
+
     return (
-      <TooltipTrigger asChild>
-        <Star
-          className={starClass}
-          fill={isActive ? "currentColor" : "none"}
-          onClick={() => handleStarClick(starValue)}
-          onMouseEnter={() => !readOnly && setHoveredValue(starValue)}
-          onMouseLeave={() => !readOnly && setHoveredValue(null)}
-          data-testid={`impact-star-${starValue}`}
-        />
-      </TooltipTrigger>
+      <TooltipProvider key={starValue}>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Star
+              className={starClass}
+              onMouseEnter={() => handleMouseEnter(starValue)}
+              onMouseLeave={handleMouseLeave}
+              onClick={() => handleClick(starValue)}
+              data-testid={`impact-star-${starValue}`}
+              role="button"
+              aria-label={`Rate impact ${starValue} out of 3 stars`}
+            />
+          </TooltipTrigger>
+          <TooltipContent>
+            {tooltipContent}
+          </TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
     )
   }
 
-  const sourceText = source === "llm" ? "AI-suggested" : source === "user" ? "User-defined" : ""
-  const timeText = updatedAt
-    ? `Last updated ${updatedAt.toLocaleDateString()}`
-    : ""
-  const tooltipText = `${impactLabels[value as 1 | 2 | 3] ?? ""}\n${sourceText}${
-    timeText ? `\n${timeText}` : ""
-  }`
-
   return (
-    <TooltipProvider>
-      <Tooltip delayDuration={300}>
-        <div
-          className={cn(
-            "flex items-center gap-1 p-1",
-            source === "llm" && "opacity-90",
-            className
-          )}
-          {...props}
-        >
-          {[1, 2, 3].map((starValue) => renderStar(starValue))}
-        </div>
-        <TooltipContent>
-          <p className="text-sm whitespace-pre-line">{tooltipText}</p>
-        </TooltipContent>
-      </Tooltip>
-    </TooltipProvider>
+    <div
+      className={cn("flex items-center gap-1", className)}
+      onMouseLeave={handleMouseLeave}
+      {...props}
+    >
+      {[1, 2, 3].map(renderStar)}
+    </div>
   )
 }

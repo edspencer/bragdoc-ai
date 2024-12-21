@@ -15,20 +15,9 @@ const achievementResponseSchema = z.object({
   companyId: z.string().nullable().describe("The ID of the company this achievement is associated with (null if not specified)"),
   projectId: z.string().nullable().describe("The ID of the project this achievement is associated with (null if not specified)"),
   suggestNewProject: z.boolean().describe("Set to true if this achievement suggests creating a new project").optional(),
+  impact: z.number().min(1).max(3).describe("Impact level of the achievement (1: Low, 2: Medium, 3: High)").default(2),
+  impactExplanation: z.string().describe("Brief explanation of why this impact level was chosen"),
 })
-
-const titleQualitySchema = z.string()
-  .min(10, "Title must be at least 10 characters")
-  .max(256, "Title must be at most 256 characters")
-  // .refine(
-  //   (title) => {
-  //     // Check for metrics or specific achievements
-  //     const hasMetrics = /\d+%|\d+x|\d+\+?(?:\s+[a-zA-Z]+\b)/.test(title);
-  //     const hasSpecifics = /team|platform|system|framework|api|service|feature|product|project|initiative/i.test(title);
-  //     return hasMetrics || hasSpecifics;
-  //   },
-  //   "Title should include specific metrics or achievements"
-  // );
 
 export async function extractAchievement({ input, chat_history }: { input: string; chat_history: { role: string; content: string }[] }): Promise<ExtractedAchievement> {
   const model = openai("gpt-4o");
@@ -50,6 +39,28 @@ Always include:
   - companyId: The ID of the company this achievement is associated with (null if not specified)
   - projectId: The ID of the project this achievement is associated with (null if not specified)
   - suggestNewProject: Set to true if this achievement suggests creating a new project
+- Impact rating:
+  - impact: A number from 1-3 indicating the impact level
+  - impactExplanation: Brief explanation of why this impact level was chosen
+
+Impact Level Criteria:
+1 (Low Impact):
+- Routine tasks or minor improvements
+- Benefits limited to individual or small team
+- Short-term or temporary impact
+- Example: "Fixed a minor UI bug affecting a few users"
+
+2 (Medium Impact):
+- Notable improvements or initiatives
+- Benefits team or department level
+- Medium-term impact with some lasting effects
+- Example: "Led a successful migration to a new testing framework, improving team productivity"
+
+3 (High Impact):
+- Major initiatives or transformative work
+- Benefits entire organization or multiple teams
+- Long-term strategic impact
+- Example: "Architected and implemented a new microservices platform, reducing system downtime by 90%"
 
 If exact dates are not provided, use the current date (${new Date().toISOString()}) for both start and end dates.
 If duration is not clear from the context, default to "day".`,
@@ -80,6 +91,9 @@ If duration is not clear from the context, default to "day".`,
     eventEnd: object.eventEnd ? new Date(object.eventEnd) : null,
     companyId: object.companyId,
     projectId: object.projectId,
+    impact: object.impact,
+    impactSource: 'llm',
+    impactUpdatedAt: new Date(),
     // suggestNewProject: object.suggestNewProject
   };
 }
@@ -114,7 +128,8 @@ export type ExtractAchievementsInput = {
 
 export type ExtractedAchievement = Pick<Achievement, 
   'title' | 'summary' | 'details' | 'eventDuration' | 
-  'eventStart' | 'eventEnd' | 'companyId' | 'projectId'
+  'eventStart' | 'eventEnd' | 'companyId' | 'projectId' |
+  'impact' | 'impactSource' | 'impactUpdatedAt'
 > & {
   suggestNewProject?: boolean;
 };
@@ -187,6 +202,11 @@ For each achievement found, provide:
 5. Related company ID (or null if none)
 6. Related project ID (or null if none)
 7. Whether to suggest creating a new project (true/false)
+8. Impact rating (1-3) based on these criteria:
+   - Level 1 (Low): Routine tasks, individual/small team benefit, short-term impact
+   - Level 2 (Medium): Notable improvements, team/department benefit, medium-term impact
+   - Level 3 (High): Major initiatives, org-wide benefit, long-term strategic impact
+9. Brief explanation of the impact rating choice
 
 Extract ONE achievement at a time, responding with each achievement as you find it.
 Each achievement should be complete and self-contained.
@@ -201,12 +221,19 @@ Today's date is ${new Intl.DateTimeFormat('en-US', { day: 'numeric', month: 'lon
     schema: achievementResponseSchema
   });
 
-  console.log('Stream created, processing achievements...');
-  console.log(elementStream)
-
-  for await (const achievement of elementStream) {
-    yield achievement as ExtractedAchievement;
+  for await (const element of elementStream) {
+    yield {
+      title: element.title,
+      summary: element.summary || "",
+      details: element.details || "",
+      eventDuration: element.eventDuration,
+      eventStart: element.eventStart ? new Date(element.eventStart) : null,
+      eventEnd: element.eventEnd ? new Date(element.eventEnd) : null,
+      companyId: element.companyId,
+      projectId: element.projectId,
+      impact: element.impact,
+      impactSource: 'llm',
+      impactUpdatedAt: new Date(),
+    };
   }
-
-  console.log("Achievement extraction complete");
 }

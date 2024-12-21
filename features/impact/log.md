@@ -94,8 +94,40 @@
 - Added proper form field handling with React Hook Form
 - Automatically set impactSource to 'user' on form submission
 
+## 2024-12-21 13:02-13:04 EST - LLM Integration
+
+### Changes Made
+1. Updated `lib/ai/extract.ts`:
+   - Added impact and impactExplanation to achievement schema
+   - Added impact rating criteria to system prompt
+   - Updated achievement extraction to include impact fields
+   - Set impactSource to 'llm' for extracted achievements
+
+### Technical Notes
+- Used Zod for impact field validation (min: 1, max: 3)
+- Added detailed impact level criteria to prompt
+- Included examples for each impact level
+- Maintained consistent impact scoring with UI
+- Added proper typing for impact fields
+
+## 2024-12-21 13:10-13:11 EST - Impact UI Refinements
+
+### Changes Made
+1. Updated `components/ui/impact-rating.tsx`:
+   - Enhanced tooltip to show impact descriptions
+   - Added detailed impact level descriptions
+   - Improved tooltip layout and styling
+
+2. Updated `components/achievements/AchievementCard.tsx`:
+   - Improved layout of title and rating
+   - Fixed prop types
+
+### Technical Notes
+- Added clear visual hierarchy in tooltip
+- Maintained consistent styling with shadcn/ui
+- Improved accessibility with proper ARIA labels
+
 ### Next Steps
-- Implement LLM scoring integration
 - Add tests for impact rating functionality
 - Add impact filtering to achievement list
 
@@ -106,4 +138,5 @@
 ✅ Achievement card integration complete
 ✅ Type safety improvements complete
 ✅ Achievement form integration complete
-⏳ LLM integration pending
+✅ LLM integration complete
+⏳ Testing and polish pending

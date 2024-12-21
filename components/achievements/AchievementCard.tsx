@@ -48,15 +48,14 @@ export function AchievementCard({
     <Card className={`w-full ${isArchived ? 'opacity-60' : ''}`}>
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
         <div className="flex flex-col space-y-1.5">
-          <div className="flex items-center gap-3">
-            <h3 className="font-semibold leading-none tracking-tight">{title}</h3>
+          <div className="flex items-center gap-2">
+            <h3 className="text-lg font-semibold">{title}</h3>
             <ImpactRating
-              value={impact ?? 2}
+              value={impact}
               onChange={onImpactChange}
+              readOnly={!onImpactChange}
               source={impactSource}
               updatedAt={impactUpdatedAt}
-              readOnly={!onImpactChange}
-              className="mt-0.5"
             />
           </div>
           {summary && (
