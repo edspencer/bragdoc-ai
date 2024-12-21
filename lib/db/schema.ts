@@ -98,6 +98,9 @@ export const achievement = pgTable('Achievement', {
   }).notNull(),
   isArchived: boolean('is_archived').default(false),
   source: varchar('source', { enum: ['llm', 'manual'] }).notNull().default('manual'),
+  impact: integer('impact').default(2),
+  impactSource: varchar('impact_source', { enum: ['user', 'llm'] }).default('llm'),
+  impactUpdatedAt: timestamp('impact_updated_at').defaultNow(),
   createdAt: timestamp('created_at').notNull().defaultNow(),
   updatedAt: timestamp('updated_at').notNull().defaultNow(),
 }, (table) => {
