@@ -127,6 +127,78 @@
 - Maintained consistent styling with shadcn/ui
 - Improved accessibility with proper ARIA labels
 
+## 2024-12-21 13:13-13:14 EST - Achievement List Impact Column
+
+### Changes Made
+1. Updated `components/achievements/AchievementList.tsx`:
+   - Added impact rating as first column
+   - Added handleImpactChange function for inline editing
+   - Set impactSource to 'user' on manual changes
+   - Added loading state for impact updates
+
+### Technical Notes
+- Centered impact rating in table cell
+- Maintained consistent styling with other columns
+- Reused ImpactRating component for consistency
+- Added proper mutation handling
+
+## 2024-12-21 13:15-13:16 EST - Schema Type Updates
+
+### Changes Made
+1. Updated `lib/types/achievement.ts`:
+   - Removed redundant Zod schema
+   - Using schema types directly from Drizzle
+   - Updated request types to use Achievement type
+   - Added impact fields to FormValues type
+
+2. Updated API routes:
+   - Using CreateAchievementRequest and UpdateAchievementRequest
+   - Simplified validation to check required fields
+   - Removed Zod validation in favor of type safety
+
+### Technical Notes
+- Better type safety by using schema types directly
+- Reduced code duplication
+- Simplified API validation
+- Consistent types across codebase
+
+## 2024-12-21 13:17-13:18 EST - Test Fixes
+
+### Changes Made
+1. Fixed API error message:
+   - Updated error message to match test expectations
+   - Kept consistent error format across endpoints
+
+2. Updated test data:
+   - Added impact fields to test achievement data
+   - Added source and impact-related fields
+   - Ensured all required fields are present
+
+### Technical Notes
+- Maintained consistent error messages
+- Added all required fields in test data
+- Fixed test expectations
+
+## 2024-12-21 13:24 - Fixed Achievement API Type Issues
+
+### Changes Made
+1. Fixed validation schema for achievement data:
+   - Changed fields to be `optional()` instead of `nullable()`
+   - Added `source` field to match test data
+   - Properly handle optional fields in data conversion
+
+2. Fixed data type conversion:
+   - Use `??` operator to convert undefined to null for optional fields
+   - Keep source field as is in update endpoint to preserve original value
+   - Ensure all date fields are properly converted to Date objects
+
+3. Updated both POST and PUT endpoints to handle optional fields correctly
+
+### Next Steps
+1. Run tests to verify all endpoints are working correctly
+2. Consider adding validation for source field in schema
+3. Review error handling for edge cases
+
 ### Next Steps
 - Add tests for impact rating functionality
 - Add impact filtering to achievement list
@@ -139,4 +211,8 @@
 ✅ Type safety improvements complete
 ✅ Achievement form integration complete
 ✅ LLM integration complete
+✅ Achievement list integration complete
+✅ Schema type updates complete
+✅ Test fixes complete
+✅ Achievement API type issues fixed
 ⏳ Testing and polish pending

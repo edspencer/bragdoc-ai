@@ -1,10 +1,28 @@
 import { type NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/app/(auth)/auth';
 import { z } from 'zod';
-import { achievementRequestSchema } from '@/lib/types/achievement';
+import type { UpdateAchievementRequest } from '@/lib/types/achievement';
 import { updateAchievement, deleteAchievement } from '@/lib/db/queries';
 
 type Params = { id: string }
+
+// Validation schema for achievement updates
+const updateSchema = z.object({
+  title: z.string().min(1, 'Title is required').optional(),
+  eventDuration: z.enum(['day', 'week', 'month', 'quarter', 'year'], {
+    invalid_type_error: 'Invalid event duration',
+  }).optional(),
+  eventStart: z.string().datetime().optional(),
+  eventEnd: z.string().datetime().optional(),
+  summary: z.string().optional(),
+  details: z.string().optional(),
+  companyId: z.string().uuid().optional(),
+  projectId: z.string().uuid().optional(),
+  impact: z.number().int().min(1).max(5).optional(),
+  impactSource: z.enum(['user', 'llm']).optional(),
+  impactUpdatedAt: z.string().datetime().optional(),
+  source: z.enum(['manual', 'llm']).optional(),
+});
 
 // Utility to validate UUID format
 const isValidUUID = (uuid: string) => {
@@ -26,12 +44,34 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<Params
     }
 
     const body = await req.json();
-    const validatedData = achievementRequestSchema.partial().parse(body);
+    const result = updateSchema.safeParse(body);
+
+    if (!result.success) {
+      return NextResponse.json({
+        error: 'Invalid achievement data',
+        details: result.error.errors,
+      }, { status: 400 });
+    }
+
+    // Convert date strings to Date objects and prepare data
+    const data: UpdateAchievementRequest = {
+      ...result.data,
+      eventStart: result.data.eventStart ? new Date(result.data.eventStart) : null,
+      eventEnd: result.data.eventEnd ? new Date(result.data.eventEnd) : null,
+      impactUpdatedAt: result.data.impactUpdatedAt ? new Date(result.data.impactUpdatedAt) : null,
+      summary: result.data.summary ?? null,
+      details: result.data.details ?? null,
+      companyId: result.data.companyId ?? null,
+      projectId: result.data.projectId ?? null,
+      impact: result.data.impact ?? null,
+      impactSource: result.data.impactSource ?? null,
+      source: result.data.source,
+    };
 
     const [updated] = await updateAchievement({
       id,
       userId: session.user.id,
-      data: validatedData
+      data
     });
 
     if (!updated) {
@@ -43,13 +83,6 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<Params
 
     return NextResponse.json(updated);
   } catch (error) {
-    if (error instanceof z.ZodError) {
-      return NextResponse.json(
-        { error: 'Invalid achievement data', details: error.errors },
-        { status: 400 }
-      );
-    }
-
     console.error('Error updating achievement:', error);
     return NextResponse.json(
       { error: 'Failed to update achievement' },

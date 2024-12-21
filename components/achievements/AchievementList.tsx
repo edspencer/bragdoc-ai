@@ -25,6 +25,7 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from "@/components/ui/pagination"
+import { ImpactRating } from '@/components/ui/impact-rating';
 
 interface AchievementListProps {
   page: number;
@@ -103,6 +104,20 @@ export function AchievementList({
     }
   };
 
+  const handleImpactChange = async (id: string, impact: number) => {
+    setActionLoading(`impact-${id}`);
+    try {
+      await updateAchievement(id, { 
+        impact,
+        impactSource: 'user',
+        impactUpdatedAt: new Date(),
+      });
+      mutate();
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
   if (isLoading) {
     return <AchievementListSkeleton />;
   }
@@ -143,6 +158,7 @@ export function AchievementList({
         <Table>
           <TableHeader>
             <TableRow>
+              <TableHead className="w-[100px]">Impact</TableHead>
               <TableHead className="min-w-[200px]">Achievement</TableHead>
               <TableHead className="min-w-[120px]">Company</TableHead>
               <TableHead className="min-w-[120px]">Project</TableHead>
@@ -152,6 +168,15 @@ export function AchievementList({
           <TableBody>
             {achievements.map((achievement) => (
               <TableRow key={achievement.id}>
+                <TableCell>
+                  <ImpactRating
+                    value={achievement.impact}
+                    onChange={(value) => handleImpactChange(achievement.id, value)}
+                    source={achievement.impactSource}
+                    updatedAt={achievement.impactUpdatedAt}
+                    className="justify-center"
+                  />
+                </TableCell>
                 <TableCell>{achievement.title}</TableCell>
                 <TableCell>{achievement.company?.name ?? '-'}</TableCell>
                 <TableCell>{achievement.project?.name ?? '-'}</TableCell>

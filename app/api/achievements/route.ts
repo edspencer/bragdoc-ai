@@ -1,11 +1,30 @@
 import { type NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/app/(auth)/auth';
 import { z } from 'zod';
-import { achievementRequestSchema } from '@/lib/types/achievement';
+import type { CreateAchievementRequest } from '@/lib/types/achievement';
 import { 
   getAchievements, 
 } from '@/lib/db/queries';
 import { createAchievement } from '@/lib/db/achievements/utils';
+
+// Validation schema for achievement data
+const achievementSchema = z.object({
+  title: z.string().min(1, 'Title is required'),
+  eventDuration: z.enum(['day', 'week', 'month', 'quarter', 'year'], {
+    required_error: 'Event duration is required',
+    invalid_type_error: 'Invalid event duration',
+  }),
+  eventStart: z.string().datetime().optional(),
+  eventEnd: z.string().datetime().optional(),
+  summary: z.string().optional(),
+  details: z.string().optional(),
+  companyId: z.string().uuid().optional(),
+  projectId: z.string().uuid().optional(),
+  impact: z.number().int().min(1).max(5).optional(),
+  impactSource: z.enum(['user', 'llm']).optional(),
+  impactUpdatedAt: z.string().datetime().optional(),
+  source: z.enum(['manual', 'llm']).optional(),
+});
 
 // GET /api/achievements
 export async function GET(req: NextRequest) {
@@ -65,23 +84,40 @@ export async function POST(req: NextRequest) {
     }
 
     const body = await req.json();
-    const validatedData = achievementRequestSchema.parse(body);
+    const result = achievementSchema.safeParse(body);
+
+    if (!result.success) {
+      return NextResponse.json({
+        error: 'Invalid achievement data',
+        details: result.error.errors,
+      }, { status: 400 });
+    }
+
+    // Convert date strings to Date objects and prepare data
+    const data: CreateAchievementRequest = {
+      ...result.data,
+      eventStart: result.data.eventStart ? new Date(result.data.eventStart) : null,
+      eventEnd: result.data.eventEnd ? new Date(result.data.eventEnd) : null,
+      impactUpdatedAt: result.data.impactUpdatedAt ? new Date(result.data.impactUpdatedAt) : null,
+      source: result.data.source ?? 'manual',
+      isArchived: false,
+      userMessageId: null,
+      summary: result.data.summary ?? null,
+      details: result.data.details ?? null,
+      companyId: result.data.companyId ?? null,
+      projectId: result.data.projectId ?? null,
+      impact: result.data.impact ?? null,
+      impactSource: result.data.impactSource ?? null,
+    };
 
     const achievement = await createAchievement(
       session.user.id,
-      validatedData,
+      data,
       'manual'
     );
 
     return NextResponse.json(achievement);
   } catch (error) {
-    if (error instanceof z.ZodError) {
-      return NextResponse.json(
-        { error: 'Invalid achievement data', details: error.errors },
-        { status: 400 }
-      );
-    }
-
     console.error('Error creating achievement:', error);
     return NextResponse.json(
       { error: 'Failed to create achievement' },

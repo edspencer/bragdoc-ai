@@ -302,8 +302,12 @@ describe('Achievement API Routes', () => {
         details: 'Details about the new achievement',
         companyId: testCompany.id,
         projectId: testProject.id,
-        eventStart: '2024-01-01',
+        eventStart: new Date('2024-01-01').toISOString(),
         eventDuration: 'week' as EventDuration,
+        source: 'manual' as const,
+        impact: 2,
+        impactSource: 'user' as const,
+        impactUpdatedAt: new Date().toISOString(),
       };
 
       require('@/app/(auth)/auth').auth.mockResolvedValueOnce({
