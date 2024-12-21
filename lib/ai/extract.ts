@@ -43,24 +43,44 @@ Always include:
   - impact: A number from 1-3 indicating the impact level
   - impactExplanation: Brief explanation of why this impact level was chosen
 
-Impact Level Criteria:
+Impact Level Criteria and Examples:
+
 1 (Low Impact):
-- Routine tasks or minor improvements
+- Routine tasks, maintenance work, or minor improvements
 - Benefits limited to individual or small team
 - Short-term or temporary impact
-- Example: "Fixed a minor UI bug affecting a few users"
+Examples:
+- Fixed a minor UI bug affecting a few users
+- Updated documentation for a single component
+- Completed routine code reviews
+- Attended team training sessions
 
 2 (Medium Impact):
 - Notable improvements or initiatives
 - Benefits team or department level
-- Medium-term impact with some lasting effects
-- Example: "Led a successful migration to a new testing framework, improving team productivity"
+- Medium-term impact with measurable results
+Examples:
+- Led a successful migration to a new testing framework
+- Implemented a new feature used by multiple teams
+- Improved build pipeline, reducing build times by 30%
+- Mentored junior developers, improving team velocity
 
 3 (High Impact):
 - Major initiatives or transformative work
-- Benefits entire organization or multiple teams
-- Long-term strategic impact
-- Example: "Architected and implemented a new microservices platform, reducing system downtime by 90%"
+- Benefits entire organization or multiple departments
+- Long-term strategic impact with significant results
+Examples:
+- Architected and implemented a new microservices platform
+- Led a major product launch that increased revenue by 25%
+- Implemented organization-wide security improvements
+- Created a new framework adopted by multiple teams
+
+Consider these factors when scoring impact:
+1. Scope: How many people/teams were affected?
+2. Duration: How long did the impact last?
+3. Metrics: Were there measurable improvements?
+4. Innovation: Was this a novel solution?
+5. Strategic Value: How aligned was this with company goals?
 
 If exact dates are not provided, use the current date (${new Date().toISOString()}) for both start and end dates.
 If duration is not clear from the context, default to "day".`,

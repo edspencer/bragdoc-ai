@@ -74,7 +74,8 @@ export function ImpactRating({
         </div>
         {starValue === (value ?? 2) && source && updatedAt && (
           <div className="mt-1 text-xs text-muted-foreground">
-            Set by {source === "llm" ? "AI" : "user"} on {updatedAt.toLocaleDateString()}
+            Set by {source === "llm" ? "AI" : "user"}
+            {updatedAt && ` on ${new Date(updatedAt).toLocaleDateString()}`}
           </div>
         )}
       </div>
