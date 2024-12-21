@@ -1,7 +1,6 @@
 import { useCallback } from 'react';
 import useSWR from 'swr';
-import type { AchievementWithRelations } from '@/lib/types/achievement';
-import type { CreateAchievementRequest } from '@/lib/types/achievement';
+import type { AchievementWithRelations, CreateAchievementRequest } from '@/lib/types/achievement';
 
 export interface AchievementFilters {
   companyId?: string;
