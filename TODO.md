@@ -124,10 +124,10 @@
   - [ ] Ensure proper mocking of Next.js features (router, etc)
 
 ## Achievement Importance
-- [ ] Add ability to assign importance to achievements
-- [ ] Track whether score was assigned by user or LLM
+- [x] Add ability to assign importance to achievements
+- [x] Track whether score was assigned by user or LLM
 - [ ] Regularly update LLM-scored achievement importance scores
-- [ ] Differentiate high/medium/low importance achievements in the UI
+- [x] Differentiate high/medium/low importance achievements in the UI
 
 ## Conversation Examples & Testing
 
