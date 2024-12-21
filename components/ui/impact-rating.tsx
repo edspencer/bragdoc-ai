@@ -60,7 +60,7 @@ export function ImpactRating({
     const effectiveValue = (hoveredValue ?? value ?? 2)
     const isActive = effectiveValue >= starValue
     const starClass = cn(
-      "w-5 h-5 transition-colors",
+      "size-6 transition-colors",
       isActive ? "text-yellow-400" : "text-gray-300",
       !readOnly && "cursor-pointer hover:text-yellow-400",
       source === "llm" && "opacity-80"
@@ -103,13 +103,24 @@ export function ImpactRating({
     )
   }
 
+  const getImpactLabel = (value: number) => {
+    if (value === 1) return "Low Impact";
+    if (value === 2) return "Medium Impact";
+    return "High Impact";
+  };
+
   return (
-    <div
-      className={cn("flex items-center gap-1", className)}
-      onMouseLeave={handleMouseLeave}
-      {...props}
-    >
-      {[1, 2, 3].map(renderStar)}
+    <div className="flex items-center gap-4 md:gap-8">
+      <div
+        className={cn("flex items-center gap-1", className)}
+        onMouseLeave={handleMouseLeave}
+        {...props}
+      >
+        {[1, 2, 3].map(renderStar)}
+      </div>
+      <span className="text-sm text-muted-foreground italic pt-2">
+        {getImpactLabel(hoveredValue ?? value ?? 2)}
+      </span>
     </div>
   )
 }

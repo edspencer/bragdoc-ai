@@ -439,7 +439,7 @@ export async function getAchievements({
       .where(and(...conditions))
       .limit(limit)
       .offset(offset)
-      .orderBy(desc(achievement.eventStart));
+      .orderBy(desc(achievement.createdAt));
 
     const [{ count }] = await db
       .select({ count: sql<number>`count(*)` })

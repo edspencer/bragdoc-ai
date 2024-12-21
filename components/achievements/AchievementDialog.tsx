@@ -121,11 +121,31 @@ export function AchievementDialog({
 
   const handleSubmit = async (data: FormValues) => {
     try {
+      const achievementData = {
+        ...data,
+        source: 'manual' as const,
+        impactSource: 'user' as const,
+        impactUpdatedAt: new Date(),
+        isArchived: false,
+        companyId: data.companyId || null,
+        projectId: data.projectId || null,
+        summary: data.summary || null,
+        details: data.details || null,
+        eventStart: data.eventStart || null,
+        eventEnd: data.eventEnd || null,
+      };
+
       if (mode === 'edit' && achievement) {
-        await updateAchievement(achievement.id, data);
+        await updateAchievement(achievement.id, {
+          ...achievementData,
+          userMessageId: achievement.userMessageId,
+        });
         toast.success('Achievement updated successfully');
       } else {
-        await createAchievement(data);
+        await createAchievement({
+          ...achievementData,
+          userMessageId: null,
+        });
         toast.success('Achievement created successfully');
         fireConfetti();
       }
@@ -134,8 +154,8 @@ export function AchievementDialog({
     } catch (error) {
       console.error('Error saving achievement:', error);
       toast.error(
-        mode === 'edit'
-          ? 'Failed to update achievement'
+        mode === 'edit' 
+          ? 'Failed to update achievement' 
           : 'Failed to create achievement'
       );
     }
