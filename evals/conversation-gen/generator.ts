@@ -235,7 +235,10 @@ ${JSON.stringify(conversation.messages, null, 2)}`
     companyId: a.companyId,
     projectId: a.projectId,
     isArchived: false,
-    source: 'llm'
+    source: 'llm',
+    impact: 2, // Default to medium impact
+    impactSource: 'llm',
+    impactUpdatedAt: new Date()
   }));
 }
 

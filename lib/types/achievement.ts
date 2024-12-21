@@ -1,6 +1,5 @@
 import type { InferSelectModel } from 'drizzle-orm';
 import type { achievement, company, project, userMessage } from '@/lib/db/schema';
-import { z } from 'zod';
 
 // Export base type from Drizzle schema
 export type Achievement = InferSelectModel<typeof achievement>;
@@ -27,21 +26,8 @@ export const EventDuration = {
 
 export type EventDuration = typeof EventDuration[keyof typeof EventDuration];
 
-// Zod validation schemas
-export const achievementRequestSchema = z.object({
-  title: z.string().min(1).max(256),
-  summary: z.string().nullable().optional(),
-  details: z.string().nullable().optional(),
-  eventStart: z.coerce.date().nullable().optional(),
-  eventEnd: z.coerce.date().nullable().optional(),
-  eventDuration: z.enum(['day', 'week', 'month', 'quarter', 'half year', 'year']),
-  companyId: z.string().nullable().optional(),
-  projectId: z.string().nullable().optional(),
-  isArchived: z.boolean().optional(),
-});
-
 // API request types
-export type CreateAchievementRequest = z.infer<typeof achievementRequestSchema>;
+export type CreateAchievementRequest = Omit<Achievement, 'id' | 'userId' | 'createdAt' | 'updatedAt'>;
 export type UpdateAchievementRequest = Partial<CreateAchievementRequest>;
 
 // Form type
@@ -54,16 +40,23 @@ export type FormValues = {
   eventDuration: EventDuration;
   companyId: string | null;
   projectId: string | null;
+  isArchived?: boolean;
+  impact?: number;
+  impactSource?: 'user' | 'llm';
+  impactUpdatedAt?: Date;
 };
 
 // Achievement source
 export type AchievementSource = 'llm' | 'manual';
 
+// Achievement filters
 export interface AchievementFilters {
   dateRange?: {
     start: Date;
     end: Date;
   };
+  start: Date;
+  end: Date;
   startDate?: Date;
   endDate?: Date;
   companyId?: string;

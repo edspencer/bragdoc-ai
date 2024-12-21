@@ -1,7 +1,6 @@
 import { useCallback } from 'react';
 import useSWR from 'swr';
-import type { AchievementWithRelations } from '@/lib/types/achievement';
-import type { CreateAchievementRequest } from '@/lib/types/achievement';
+import type { AchievementWithRelations, CreateAchievementRequest } from '@/lib/types/achievement';
 
 export interface AchievementFilters {
   companyId?: string;
@@ -30,7 +29,7 @@ interface AchievementsResponse {
 }
 
 export function useAchievements(options: UseAchievementsOptions = {}) {
-  const { page = 1, limit = 10, filters } = options;
+  const { page = 1, limit = 20, filters } = options;
 
   // Build query string from filters
   const buildQueryString = useCallback(() => {

@@ -402,6 +402,9 @@ export async function getAchievements({
         eventDuration: achievement.eventDuration,
         isArchived: achievement.isArchived,
         source: achievement.source,
+        impact: achievement.impact,
+        impactSource: achievement.impactSource,
+        impactUpdatedAt: achievement.impactUpdatedAt,
         createdAt: achievement.createdAt,
         updatedAt: achievement.updatedAt,
         company: {
@@ -436,7 +439,7 @@ export async function getAchievements({
       .where(and(...conditions))
       .limit(limit)
       .offset(offset)
-      .orderBy(desc(achievement.eventStart));
+      .orderBy(desc(achievement.createdAt));
 
     const [{ count }] = await db
       .select({ count: sql<number>`count(*)` })
@@ -465,12 +468,22 @@ export async function updateAchievement({
   db?: any;
 }): Promise<Achievement[]> {
   try {
-    return await db
-      .update(achievement)
-      .set({
+    // Filter out undefined values and ensure impact is properly set
+    const updateData = Object.fromEntries(
+      Object.entries({
         ...data,
         updatedAt: new Date(),
-      })
+      }).filter(([_, value]) => value !== undefined)
+    );
+
+    // Ensure impact is treated as a number
+    if ('impact' in data) {
+      updateData.impact = Number(data.impact);
+    }
+
+    return await db
+      .update(achievement)
+      .set(updateData)
       .where(
         and(
           eq(achievement.id, id),

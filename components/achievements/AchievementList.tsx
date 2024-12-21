@@ -25,6 +25,7 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from "@/components/ui/pagination"
+import { ImpactRating } from '@/components/ui/impact-rating';
 
 interface AchievementListProps {
   page: number;
@@ -103,6 +104,52 @@ export function AchievementList({
     }
   };
 
+  const handleImpactChange = async (id: string, impact: number) => {
+    setActionLoading(`impact-${id}`);
+    
+    if (!achievements || !pagination) return;
+
+    // Optimistically update the UI
+    const optimisticData = {
+      achievements: achievements.map(achievement =>
+        achievement.id === id
+          ? {
+              ...achievement,
+              impact,
+              impactSource: 'user' as const,
+              impactUpdatedAt: new Date()
+            }
+          : achievement
+      ),
+      pagination: {
+        total: pagination.total,
+        page: pagination.page,
+        limit: pagination.limit,
+        totalPages: pagination.totalPages
+      }
+    };
+    
+    try {
+      // Optimistically update the cache
+      mutate(optimisticData, false);
+      
+      await updateAchievement(id, { 
+        impact,
+        impactSource: 'user',
+        impactUpdatedAt: new Date()
+      });
+
+      // After successful update, revalidate the data
+      mutate();
+    } catch (error) {
+      // Revert optimistic update on error
+      mutate();
+      console.error('Error updating impact:', error);
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
   if (isLoading) {
     return <AchievementListSkeleton />;
   }
@@ -143,19 +190,27 @@ export function AchievementList({
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead className="min-w-[200px]">Achievement</TableHead>
-              <TableHead className="min-w-[120px]">Company</TableHead>
-              <TableHead className="min-w-[120px]">Project</TableHead>
-              <TableHead className="w-[100px]">Actions</TableHead>
+              <TableHead className="py-1">Impact</TableHead>
+              <TableHead className="py-1">Title</TableHead>
+              <TableHead className="py-1">Date</TableHead>
+              <TableHead className="py-1">Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {achievements.map((achievement) => (
               <TableRow key={achievement.id}>
-                <TableCell>{achievement.title}</TableCell>
-                <TableCell>{achievement.company?.name ?? '-'}</TableCell>
-                <TableCell>{achievement.project?.name ?? '-'}</TableCell>
-                <TableCell>
+                <TableCell className="py-1">
+                  <ImpactRating
+                    value={achievement.impact}
+                    source={achievement.impactSource}
+                    updatedAt={achievement.impactUpdatedAt}
+                    onChange={(value) => handleImpactChange(achievement.id, value)}
+                    readOnly={!!actionLoading}
+                  />
+                </TableCell>
+                <TableCell className="py-1">{achievement.title}</TableCell>
+                <TableCell className="py-1">{achievement.company?.name ?? '-'}</TableCell>
+                <TableCell className="py-1">
                   <AchievementActions
                     onEdit={() =>
                       setDialog({

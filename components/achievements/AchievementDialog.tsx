@@ -35,6 +35,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { ImpactRating } from '@/components/ui/impact-rating';
 import { cn } from '@/lib/utils';
 import { z } from 'zod';
 import type { Achievement } from '@/lib/types/achievement';
@@ -53,6 +54,9 @@ const achievementRequestSchema = z.object({
   eventDuration: z.enum(['day', 'week', 'month', 'quarter', 'half year', 'year']),
   companyId: z.string().uuid().nullable().optional(),
   projectId: z.string().uuid().nullable().optional(),
+  impact: z.number().min(1).max(3).default(2),
+  impactSource: z.enum(['user', 'llm']).default('user'),
+  impactUpdatedAt: z.date().default(() => new Date()),
 });
 
 type FormValues = z.infer<typeof achievementRequestSchema>;
@@ -79,7 +83,7 @@ export function AchievementDialog({
   const { createAchievement, updateAchievement } = useAchievements();
   const { fire: fireConfetti } = useConfetti();
   const isViewMode = mode === 'view';
-  
+
   const form = useForm<FormValues>({
     resolver: zodResolver(achievementRequestSchema),
     defaultValues: {
@@ -91,6 +95,9 @@ export function AchievementDialog({
       eventDuration: 'day',
       companyId: null,
       projectId: null,
+      impact: 2,
+      impactSource: 'user',
+      impactUpdatedAt: new Date(),
     },
   });
 
@@ -105,17 +112,40 @@ export function AchievementDialog({
         eventDuration: achievement.eventDuration,
         companyId: achievement.companyId,
         projectId: achievement.projectId,
+        impact: achievement.impact ?? 2,
+        impactSource: achievement.impactSource ?? 'user',
+        impactUpdatedAt: achievement.impactUpdatedAt ? new Date(achievement.impactUpdatedAt) : new Date(),
       });
     }
   }, [achievement, open, form]);
 
   const handleSubmit = async (data: FormValues) => {
     try {
+      const achievementData = {
+        ...data,
+        source: 'manual' as const,
+        impactSource: 'user' as const,
+        impactUpdatedAt: new Date(),
+        isArchived: false,
+        companyId: data.companyId || null,
+        projectId: data.projectId || null,
+        summary: data.summary || null,
+        details: data.details || null,
+        eventStart: data.eventStart || null,
+        eventEnd: data.eventEnd || null,
+      };
+
       if (mode === 'edit' && achievement) {
-        await updateAchievement(achievement.id, data);
+        await updateAchievement(achievement.id, {
+          ...achievementData,
+          userMessageId: achievement.userMessageId,
+        });
         toast.success('Achievement updated successfully');
       } else {
-        await createAchievement(data);
+        await createAchievement({
+          ...achievementData,
+          userMessageId: null,
+        });
         toast.success('Achievement created successfully');
         fireConfetti();
       }
@@ -139,7 +169,7 @@ export function AchievementDialog({
             {mode === 'create' ? 'New Achievement' : mode === 'edit' ? 'Edit Achievement' : 'View Achievement'}
           </DialogTitle>
           <DialogDescription>
-            {mode === 'create' 
+            {mode === 'create'
               ? 'Add a new achievement to your brag document.'
               : mode === 'edit'
               ? 'Edit the details of your achievement.'
@@ -160,6 +190,27 @@ export function AchievementDialog({
                       placeholder="What did you achieve?"
                       {...field}
                       disabled={isViewMode}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="impact"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Impact Level</FormLabel>
+                  <FormControl>
+                    <ImpactRating
+                      value={field.value}
+                      onChange={field.onChange}
+                      readOnly={isViewMode}
+                      source="user"
+                      className="mt-2"
+                      showLabel
                     />
                   </FormControl>
                   <FormMessage />
