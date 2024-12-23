@@ -3,6 +3,7 @@ import { LLMClassifierFromSpec } from "autoevals";
 import { contextAchievementExamples } from "./dataset";
 import { extractAchievements } from "../../lib/ai/extract";
 import type { ContextAchievementExample } from './types';
+import type { ExtractedAchievement, ExtractAchievementsInput } from '../../lib/ai/extract';
 
 // Convert our examples to the format expected by BrainTrust
 const experimentData = contextAchievementExamples.map((example: ContextAchievementExample) => ({
@@ -117,10 +118,20 @@ choice_scores: {
 },
 });
 
+// Function to wrap the async generator into a promise
+async function wrappedExtractAchievements(input: ExtractAchievementsInput): Promise<ExtractedAchievement[]> {
+  const achievements: ExtractedAchievement[] = [];
+  for await (const achievement of extractAchievements(input)) {
+    achievements.push(achievement);
+  }
+
+  return achievements;
+}
+
 // Create the evaluation
 Eval("achievement-company-and-project", {
   data: experimentData,
-  task: extractAchievements,
+  task: wrappedExtractAchievements,
   scores: [AchievementContextAccuracy],
   trialCount: 3,
   metadata: {

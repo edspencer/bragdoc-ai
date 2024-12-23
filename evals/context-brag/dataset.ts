@@ -65,12 +65,44 @@ import fs from 'node:fs';
 import path from 'node:path';
 
 const generatedDir = path.join(__dirname, '../conversation-gen/generated');
+
+function parseDate(dateStr: string | undefined): Date | undefined {
+  return dateStr ? new Date(dateStr) : undefined;
+}
+
+function parseGeneratedTestData(data: any): GeneratedTestData {
+  return {
+    scenario: {
+      ...data.scenario,
+      companies: data.scenario.companies.map((c: any) => ({
+        ...c,
+        startDate: parseDate(c.startDate)!,
+        endDate: parseDate(c.endDate)
+      })),
+      projects: data.scenario.projects.map((p: any) => ({
+        ...p,
+        startDate: parseDate(p.startDate),
+        endDate: parseDate(p.endDate)
+      }))
+    },
+    conversation: {
+      ...data.conversation,
+      messages: data.conversation.messages.map((m: any) => ({
+        ...m,
+        timestamp: parseDate(m.timestamp)!
+      }))
+    },
+    expectedAchievements: data.expectedBrags || []
+  };
+}
+
 export const contextAchievementExamples = fs
   .readdirSync(generatedDir)
   .filter(f => f.endsWith('.json'))
   .flatMap(file => {
-    const data = JSON.parse(
+    const rawData = JSON.parse(
       fs.readFileSync(path.join(generatedDir, file), 'utf-8')
-    ) as GeneratedTestData;
+    );
+    const data = parseGeneratedTestData(rawData);
     return convertGeneratedToEvalExample(data);
   });
