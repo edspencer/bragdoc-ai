@@ -85,7 +85,6 @@ export function Chat({
         selectedVisibilityType={selectedVisibilityType}
         isReadonly={isReadonly}
       />
-      <GitHubConnect />
       <Messages
         chatId={id}
         block={block}
