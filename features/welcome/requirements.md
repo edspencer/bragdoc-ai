@@ -98,16 +98,16 @@ export const authOptions = {
 app/
   (app)/
     welcome/
-      page.tsx             # Welcome carousel page for new users
+      page.tsx          # Welcome carousel page for new users
     chat/
-      page.tsx             # Update to handle empty state
+      page.tsx          # Update to handle empty state
 
 components/
   chat/
-    empty-state.tsx       # New component for empty chat state
-    action-buttons.tsx    # New component for company/project buttons
+    empty-state.tsx     # New component for empty chat state
+    action-buttons.tsx  # New component for company/project buttons
   welcome/
-    carousel.tsx         # Main carousel component
+    carousel.tsx        # Main carousel component
     card.tsx            # Individual card component
     chat-demo.tsx       # First card demo content
     project-demo.tsx    # Second card demo content
