@@ -1,9 +1,11 @@
 "use client";
 
 import * as React from "react";
-import { Chat } from "@/components/chat";
+import { Messages } from "@/components/messages";
 import { type Message } from "ai";
 import { nanoid } from "nanoid";
+import { useWindowSize } from "usehooks-ts";
+import { UIBlock } from "../block";
 
 const EXAMPLE_MESSAGE = "I fixed up the bugs with the autofocus dashboard generation and we launched autofocus version 2.1 this morning. I also added a new feature to do custom printing jobs.";
 
@@ -115,11 +117,29 @@ export function ChatDemo() {
   const [achievementIndex, setAchievementIndex] = React.useState(-1);
   const demoId = React.useRef(nanoid());
 
-  console.log(JSON.stringify(messages).length);
+  const { width: windowWidth = 1920, height: windowHeight = 1080 } =
+  useWindowSize();
+
+
+  const [block, setBlock] = React.useState<UIBlock>({
+    documentId: 'init',
+    content: '',
+    title: '',
+    status: 'idle',
+    isVisible: false,
+    boundingBox: {
+      top: windowHeight / 4,
+      left: windowWidth / 4,
+      width: 250,
+      height: 50,
+    },
+  });
 
   // Initial messages setup
   React.useEffect(() => {
-    setMessages(allMessages.slice(0, 1) as Message[]);
+    const initialTimeout = setTimeout(() => {
+      setMessages(allMessages.slice(0, 1) as Message[]);
+    }, 100);
     
     // Start assistant response after 1 second
     const assistantTimeout = setTimeout(() => {
@@ -176,12 +196,16 @@ export function ChatDemo() {
   }, [achievementIndex]);
 
   return (
-    <div className="h-[400px] overflow-hidden rounded-lg border">
-      <Chat
-        id={demoId.current}
-        initialMessages={messages}
-        selectedModelId="gpt-4"
-        selectedVisibilityType="private"
+    <div className="h-[400px] overflow-hidden rounded-lg">
+      <Messages
+        chatId={demoId.current}
+        messages={messages}
+        setMessages={setMessages}
+        isLoading={false}
+        votes={[]}
+        block={block}
+        setBlock={() => {}}
+        reload={() => Promise.resolve(undefined)}
         isReadonly={true}
       />
     </div>

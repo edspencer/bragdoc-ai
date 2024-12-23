@@ -72,14 +72,10 @@ export default function WelcomePage() {
   if (!user) return null;
 
   return (
-    <main className="container flex min-h-screen items-center justify-center py-8">
-      <div className="w-full max-w-3xl">
-        <WelcomeCarousel
-          cards={WELCOME_CARDS}
-          onComplete={handleComplete}
-          onSkip={handleSkip}
-        />
-      </div>
-    </main>
+      <WelcomeCarousel
+        cards={WELCOME_CARDS}
+        onComplete={handleComplete}
+        onSkip={handleSkip}
+      />
   );
 }

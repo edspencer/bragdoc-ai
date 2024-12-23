@@ -23,11 +23,14 @@ export function WelcomeCard({
 }: WelcomeCardProps) {
   return (
     <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: isActive ? 1 : 0, y: isActive ? 0 : 20 }}
+      initial={{ opacity: 0, scale: 0.95 }}
+      animate={{ 
+        opacity: isActive ? 1 : 0,
+        scale: isActive ? 1 : 0.95,
+        display: isActive ? "block" : "none"
+      }}
       transition={{ duration: 0.3 }}
-      className={cn("absolute inset-0", className)}
-      style={{ pointerEvents: isActive ? "auto" : "none" }}
+      className={cn("flex-shrink-0 w-full", className)}
     >
       <Card className="h-full">
         <CardHeader>
@@ -36,13 +39,12 @@ export function WelcomeCard({
         </CardHeader>
         <CardContent className="flex flex-col items-center justify-center gap-6">
           {image && (
-            <div className="relative aspect-video w-full overflow-hidden rounded-lg">
+            <div className="w-full overflow-hidden rounded-lg aspect-video">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src={image}
                 alt={title}
-                className="object-cover"
-                style={{ width: "100%", height: "100%" }}
+                className="object-cover w-full h-full"
               />
             </div>
           )}

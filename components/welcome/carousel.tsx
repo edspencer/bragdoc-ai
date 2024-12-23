@@ -37,14 +37,16 @@ export function WelcomeCarousel({
   }, [onSkip]);
 
   return (
-    <div className={cn("flex flex-col gap-8", className)}>
-      <div className="relative h-[500px]">
-        {cards.map((card, index) => (
-          <WelcomeCard key={index} {...card} isActive={index === activeIndex} />
-        ))}
+    <div className={cn("flex flex-grow flex-col gap-8 items-stretch justify-center", className)}>
+      <div className="">
+        <div className="relative">
+          {cards.map((card, index) => (
+            <WelcomeCard key={index} {...card} isActive={index === activeIndex} />
+          ))}
+        </div>
       </div>
-      <div className="flex flex-col gap-4">
-        <div className="flex items-center justify-between">
+      <div className="flex gap-4">
+        <div className="flex grow items-center justify-between">
           <Button
             variant="outline"
             onClick={handlePrevious}
