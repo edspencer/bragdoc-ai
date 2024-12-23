@@ -5,18 +5,40 @@ This plan outlines the implementation steps for the welcome carousel feature tha
 
 ## Implementation Phases
 
-### Phase 1: Database & Authentication Setup
-1. Add user preferences column
+### Phase 1: Database & User Model Updates 
+1. Add preferences JSON column to User table 
 ```sql
-ALTER TABLE user_preferences 
-ADD COLUMN has_seen_welcome BOOLEAN DEFAULT FALSE;
+ALTER TABLE "User" 
+ADD COLUMN preferences jsonb NOT NULL DEFAULT '{
+  "hasSeenWelcome": false,
+  "language": "en"
+}';
 ```
 
-2. Update NextAuth configuration to handle new user redirection
-- Modify `/app/api/auth/[...nextauth]/route.ts`
-- Add middleware to protect welcome route from returning users
+2. Update User schema in Drizzle 
+```typescript
+// lib/db/schema.ts
+export const user = pgTable('User', {
+  // ... existing fields
+  preferences: jsonb('preferences').$type<{
+    hasSeenWelcome: boolean;
+    language: string;
+  }>().notNull().default({
+    hasSeenWelcome: false,
+    language: 'en'
+  }),
+});
+```
 
-### Phase 2: Core Components Development
+3. Update NextAuth configuration to capture language from OAuth 
+- Modify auth.ts to extract language from OAuth profile
+- Set default language in preferences during user creation
+
+4. Update API routes 
+- Modify `/api/user` route to handle preferences updates
+- Remove planned `/api/preferences` route
+
+### Phase 2: Core Components Development 
 
 #### 1. Base Carousel Components
 ```typescript
@@ -176,8 +198,8 @@ interface CarouselCardProps {
 - Accessibility score maintained
 
 ## Timeline
-1. Phase 1: 1 day
-2. Phase 2: 2 days
+1. Phase 1: 1 day 
+2. Phase 2: 2 days 
 3. Phase 3: 1 day
 4. Phase 4: 1 day
 5. Testing & Polish: 1 day

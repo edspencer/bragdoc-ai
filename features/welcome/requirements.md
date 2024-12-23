@@ -122,10 +122,11 @@ npx shadcn-ui@latest add card
 ```
 
 ### State Management
-- Carousel state:
+- User preferences stored in User table:
 ```typescript
-interface WelcomeState {
-  currentCard: number;
+interface UserPreferences {
+  hasSeenWelcome: boolean;
+  language: string;  // Default from OAuth provider or 'en'
 }
 ```
 
@@ -137,18 +138,24 @@ interface WelcomeState {
 ### API Routes
 - Update user preferences:
 ```typescript
-// PUT /api/user/preferences
-interface UpdatePreferencesRequest {
-  hasSeenWelcome?: boolean;
-  // ... other preferences
+// PUT /api/user
+interface UpdateUserRequest {
+  preferences?: {
+    hasSeenWelcome?: boolean;
+    language?: string;
+  };
+  // ... other user fields
 }
 ```
 
 ### Database Changes
 ```sql
--- Add column to user_preferences table
-ALTER TABLE user_preferences 
-ADD COLUMN has_seen_welcome BOOLEAN DEFAULT FALSE;
+-- Add preferences JSON column to User table
+ALTER TABLE "User" 
+ADD COLUMN preferences jsonb NOT NULL DEFAULT '{
+  "hasSeenWelcome": false,
+  "language": "en"
+}';
 ```
 
 ### Error Handling
@@ -278,7 +285,7 @@ hasCompletedWelcome: boolean('has_completed_welcome').default(false)
 ```
 
 ## API Routes
-- `PUT /api/user/preferences` - Update user preferences including welcome completion status
+- `PUT /api/user` - Update user preferences including welcome completion status
 
 ## Testing Requirements
 - Unit tests for carousel navigation

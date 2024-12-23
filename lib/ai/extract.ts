@@ -1,9 +1,7 @@
-import { streamObject, generateObject } from 'ai';
-import { openai } from '@ai-sdk/openai';
+import { streamObject, } from 'ai';
 import {google } from '@ai-sdk/google';
 import { z } from 'zod';
 import type { Achievement } from '../db/schema';
-import { customModel } from './index';
 
 // Schema for validating LLM response
 const achievementResponseSchema = z.object({

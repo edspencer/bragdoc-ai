@@ -4,6 +4,7 @@ import {
   varchar,
   timestamp,
   json,
+  jsonb,
   uuid,
   text,
   primaryKey,
@@ -11,6 +12,11 @@ import {
   integer,
   uniqueIndex,
 } from 'drizzle-orm/pg-core';
+
+export interface UserPreferences {
+  hasSeenWelcome: boolean;
+  language: string;
+}
 
 export const user = pgTable('User', {
   id: uuid('id').primaryKey().notNull().defaultRandom(),
@@ -21,6 +27,10 @@ export const user = pgTable('User', {
   provider: varchar('provider', { length: 32 }).notNull().default('credentials'),
   providerId: varchar('provider_id', { length: 256 }),
   githubAccessToken: varchar('github_access_token', { length: 256 }),
+  preferences: jsonb('preferences').$type<UserPreferences>().notNull().default({
+    hasSeenWelcome: false,
+    language: 'en'
+  }),
   createdAt: timestamp('created_at').notNull().defaultNow(),
   updatedAt: timestamp('updated_at').notNull().defaultNow(),
   emailVerified: timestamp('email_verified').defaultNow(),
