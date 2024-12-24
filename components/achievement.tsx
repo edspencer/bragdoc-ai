@@ -4,12 +4,10 @@ import equal from "fast-deep-equal"
 
 export const AchievementAction = memo(function AchievementAction({ action }: { action: any }) {
   const { achievements } = action
-  console.log(achievements) 
 
   if (!achievements || achievements.length === 0) {
     return <p>Extracting Achievements...</p>
   }
-
 
   return (
     <div className="flex gap-4 flex-wrap">

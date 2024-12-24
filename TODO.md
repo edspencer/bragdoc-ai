@@ -77,6 +77,12 @@
 
 ## Tech Debt
 - [x] updateSchema in app/api/achievements/[id]/route.ts should not exist - use drizzle type
+- [ ] Add route tests for app/api/user/route.ts
+- [ ] Integrate the empty-state component into Chat UI
+- [ ] Revisit projects/companies welcome card - don't want people actually adding projects/companies there (chat/action-buttons.tsx)
+- [ ] Do we even use components/welcome/animated-text?
+- [ ] Do we use shadcn Carousel?
+- [ ] Add test for getUserById in lib/db/queries.ts
  
 ### UI/UX Improvements
 - [ ] New/Edit Achievement modal is tall - need to make it scrollable for shorter screen heights
