@@ -1,4 +1,4 @@
-import { extractAchievements, ExtractAchievementsInput } from "@/lib/ai/extract";
+import { extractAchievements, type ExtractAchievementsInput } from "@/lib/ai/extract";
 
 const input: ExtractAchievementsInput = {
     input: `

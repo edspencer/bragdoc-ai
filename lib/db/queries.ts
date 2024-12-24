@@ -34,6 +34,16 @@ export async function getUser(email: string, dbInstance = defaultDb): Promise<Ar
   }
 }
 
+export async function getUserById(id: string, dbInstance = defaultDb): Promise<User | null> {
+  try {
+    const users = await dbInstance.select().from(user).where(eq(user.id, id));
+    return users[0] || null;
+  } catch (error) {
+    console.error('Error in getUserById:', error);
+    throw error;
+  }
+}
+
 export async function createUser(email: string, password: string, dbInstance = defaultDb) {
   const salt = genSaltSync(10);
   const hash = hashSync(password, salt);

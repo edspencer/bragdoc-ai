@@ -8,7 +8,6 @@ import useSWR, { useSWRConfig } from 'swr';
 import { useWindowSize } from 'usehooks-ts';
 
 import { ChatHeader } from '@/components/chat-header';
-import { GitHubConnect } from '@/components/github-connect';
 import type { Vote } from '@/lib/db/schema';
 import { fetcher } from '@/lib/utils';
 
@@ -85,7 +84,6 @@ export function Chat({
         selectedVisibilityType={selectedVisibilityType}
         isReadonly={isReadonly}
       />
-      <GitHubConnect />
       <Messages
         chatId={id}
         block={block}
