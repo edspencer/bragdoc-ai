@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { BuildingIcon, FolderIcon, PlusIcon } from "lucide-react";
+import { BuildingIcon, FolderIcon, } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useMediaQuery } from "@/hooks/use-media-query";
 import { Drawer, DrawerContent, DrawerDescription, DrawerFooter, DrawerHeader, DrawerTitle, DrawerTrigger } from "@/components/ui/drawer";
@@ -58,7 +58,7 @@ export function ActionButtons({
       <CompanyDialog>
         <CompanyDialogTrigger asChild>
           <Button variant="outline" className="w-full gap-2 md:w-auto">
-            <BuildingIcon className="h-4 w-4" />
+            <BuildingIcon className="size-4" />
             Add Company
           </Button>
         </CompanyDialogTrigger>
@@ -92,7 +92,7 @@ export function ActionButtons({
       <ProjectDialog>
         <ProjectDialogTrigger asChild>
           <Button variant="outline" className="w-full gap-2 md:w-auto">
-            <FolderIcon className="h-4 w-4" />
+            <FolderIcon className="size-4" />
             Add Project
           </Button>
         </ProjectDialogTrigger>

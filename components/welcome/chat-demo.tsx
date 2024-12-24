@@ -2,10 +2,10 @@
 
 import * as React from "react";
 import { Messages } from "@/components/messages";
-import { type Message } from "ai";
+import type { Message } from "ai";
 import { nanoid } from "nanoid";
 import { useWindowSize } from "usehooks-ts";
-import { UIBlock } from "../block";
+import type { UIBlock } from "../block";
 
 const EXAMPLE_MESSAGE = "I fixed up the bugs with the autofocus dashboard generation and we launched autofocus version 2.1 this morning. I also added a new feature to do custom printing jobs.";
 

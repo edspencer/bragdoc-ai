@@ -1,6 +1,5 @@
 import { compare } from 'bcrypt-ts';
-import NextAuth, { type User } from 'next-auth';
-import type { JWT } from 'next-auth/jwt';
+import NextAuth from 'next-auth';
 import Credentials from 'next-auth/providers/credentials';
 import Google from 'next-auth/providers/google';
 import GitHub from 'next-auth/providers/github';
@@ -12,7 +11,7 @@ import { db } from '@/lib/db';
 
 import { authConfig } from './auth.config';
 
-import { account, session, user, verificationToken, UserPreferences } from "@/lib/db/schema"
+import { account, session, user, verificationToken, type UserPreferences } from "@/lib/db/schema"
 
 declare module 'next-auth' {
   interface User {
@@ -32,7 +31,7 @@ declare module 'next-auth' {
   }
 }
 
-declare module 'next-auth/jwt' {
+declare module '@auth/core/jwt' {
   interface JWT {
     provider?: string;
     providerId?: string;
@@ -142,11 +141,11 @@ export const {
     },
     async session({ session, token }) {
       if (session.user) {
-        session.user.provider = token.provider;
-        session.user.providerId = token.providerId;
+        session.user.provider = token.provider as string;
+        session.user.providerId = token.providerId as string;
         session.user.id = token.id as string;
-        session.user.githubAccessToken = token.githubAccessToken;
-        session.user.preferences = token.preferences;
+        session.user.githubAccessToken = token.githubAccessToken as string;
+        session.user.preferences = token.preferences as UserPreferences;
       }
       return session;
     },

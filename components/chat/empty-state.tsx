@@ -20,7 +20,7 @@ export function EmptyState({
   return (
     <div className={cn("flex flex-col items-center justify-center gap-6", className)}>
       <Card className="flex aspect-square w-full max-w-[200px] items-center justify-center bg-muted">
-        <MessageSquareIcon className="h-12 w-12 text-muted-foreground" />
+        <MessageSquareIcon className="size-12 text-muted-foreground" />
       </Card>
       <div className="flex flex-col items-center gap-1.5 text-center">
         <h3 className="text-lg font-semibold">No messages yet</h3>

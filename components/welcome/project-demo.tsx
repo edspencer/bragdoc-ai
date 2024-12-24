@@ -23,7 +23,7 @@ export function ProjectDemo() {
     <div className="flex flex-col gap-6">
       <div className="flex flex-col gap-3">
         <div className="flex items-center gap-2">
-          <BuildingIcon className="h-4 w-4" />
+          <BuildingIcon className="size-4" />
           <h4 className="text-sm font-medium">Companies</h4>
           <Badge variant="outline" className="ml-auto">Optional</Badge>
         </div>
@@ -37,14 +37,14 @@ export function ProjectDemo() {
             >
               <Card className="p-3">
                 <div className="flex items-center gap-2">
-                  <BuildingIcon className="h-4 w-4 text-muted-foreground" />
+                  <BuildingIcon className="size-4 text-muted-foreground" />
                   <span className="text-sm">{company.name}</span>
                 </div>
               </Card>
             </motion.div>
           ))}
           <Button variant="outline" className="gap-2" size="sm">
-            <PlusIcon className="h-4 w-4" />
+            <PlusIcon className="size-4" />
             Add Company
           </Button>
         </div>
@@ -52,7 +52,7 @@ export function ProjectDemo() {
 
       <div className="flex flex-col gap-3">
         <div className="flex items-center gap-2">
-          <FolderIcon className="h-4 w-4" />
+          <FolderIcon className="size-4" />
           <h4 className="text-sm font-medium">Projects</h4>
           <Badge variant="outline" className="ml-auto">Optional</Badge>
         </div>
@@ -66,7 +66,7 @@ export function ProjectDemo() {
             >
               <Card className="p-3">
                 <div className="flex items-center gap-2">
-                  <FolderIcon className="h-4 w-4 text-muted-foreground" />
+                  <FolderIcon className="size-4 text-muted-foreground" />
                   <span className="text-sm">{project.name}</span>
                   <Badge variant="secondary" className="ml-auto">
                     {EXAMPLE_COMPANIES.find(c => c.id === project.companyId)?.name}
@@ -76,7 +76,7 @@ export function ProjectDemo() {
             </motion.div>
           ))}
           <Button variant="outline" className="gap-2" size="sm">
-            <PlusIcon className="h-4 w-4" />
+            <PlusIcon className="size-4" />
             Add Project
           </Button>
         </div>
