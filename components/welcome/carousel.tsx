@@ -4,6 +4,7 @@ import * as React from "react";
 import { Button } from "@/components/ui/button";
 import { WelcomeCard, type WelcomeCardProps } from "./card";
 import { cn } from "@/lib/utils";
+import { AnimatePresence } from "framer-motion";
 
 export interface WelcomeCarouselProps {
   cards: Omit<WelcomeCardProps, "isActive">[];
@@ -38,14 +39,22 @@ export function WelcomeCarousel({
 
   return (
     <div className={cn("flex flex-grow flex-col gap-8 items-stretch justify-center", className)}>
-      <div className="">
-        <div className="relative">
-          {cards.map((card, index) => (
-            <WelcomeCard key={index} {...card} isActive={index === activeIndex} />
-          ))}
+      <div className="relative flex items-center justify-center">
+        <div className="w-full max-w-3xl">
+          <AnimatePresence mode="wait">
+            {cards.map((card, index) => (
+              index === activeIndex && (
+                <WelcomeCard 
+                  key={index} 
+                  {...card} 
+                  isActive={true}
+                />
+              )
+            ))}
+          </AnimatePresence>
         </div>
       </div>
-      <div className="flex gap-4">
+      <div className="flex gap-4 px-8">
         <div className="flex grow items-center justify-between">
           <Button
             variant="outline"
@@ -54,26 +63,11 @@ export function WelcomeCarousel({
           >
             Previous
           </Button>
-          <div className="flex items-center gap-2">
-            {cards.map((_, index) => (
-              <div
-                key={index}
-                className={cn(
-                  "h-2 w-2 rounded-full transition-colors",
-                  index === activeIndex
-                    ? "bg-primary"
-                    : "bg-muted-foreground/20"
-                )}
-              />
-            ))}
-          </div>
+          {activeIndex === cards.length - 1  ? null : <Button variant="ghost" onClick={handleSkip}>Skip</Button>}
           <Button onClick={handleNext}>
-            {activeIndex === cards.length - 1 ? "Complete" : "Next"}
+            {activeIndex === cards.length - 1 ? "Let's Go!" : "Next"}
           </Button>
         </div>
-        <Button variant="ghost" onClick={handleSkip}>
-          Skip
-        </Button>
       </div>
     </div>
   );
