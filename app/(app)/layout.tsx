@@ -20,6 +20,7 @@ export default async function Layout({
       <AppSidebar user={session?.user} />
       <SidebarInset>
         {children}
+
       </SidebarInset>
     </SidebarProvider>
   );
