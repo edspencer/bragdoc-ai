@@ -1,3 +1,24 @@
+export type PlanId = 'free' | 'basic_monthly' | 'basic_yearly' | 'pro_monthly' | 'pro_yearly';
+
+export type FrequencyOption = 'Monthly' | 'Yearly';
+
+export type Plan = {
+  name: string;
+  featured: boolean;
+  price: Record<FrequencyOption, PriceDetails>;
+  description: string;
+  button: {
+    label: string;
+    href: string;
+  };
+  features: string[];
+}
+
+type PriceDetails = {
+  amount: string;
+  stripe_price_id: PlanId;
+}
+
 export const stripeLinks = {
   pro_yearly: 'https://buy.stripe.com/test_5kA5ks7tc0Ox1aM5kn',
   pro_monthly: 'https://buy.stripe.com/test_8wM008dRA1SB4mYaEG',
@@ -14,13 +35,13 @@ export const stripeDetails = {
   pro_yearly: { amount: '$90', stripe_price_id: 'pro_yearly' },
 };
 
-export const plans = [
+export const plans: Plan[] = [
   {
     name: 'Free',
     featured: false,
     price: {
-      Monthly: { amount: '$0', stripe_price_id: 'free_monthly' },
-      Yearly: { amount: '$0', stripe_price_id: 'free_yearly' },
+      Monthly: { amount: '$0', stripe_price_id: 'free' },
+      Yearly: { amount: '$0', stripe_price_id: 'free' },
     },
     description: 'Perfect for trying out bragdoc.ai with basic features.',
     button: {

@@ -3,26 +3,9 @@
 import { useState } from 'react';
 import { Radio, RadioGroup } from '@headlessui/react';
 import { CheckCircledIcon } from '@radix-ui/react-icons';
-import { plans } from '@/lib/plans';
+import { plans, PlanId, stripeLinks } from '@/lib/plans';
 
 type FrequencyOption = 'Monthly' | 'Yearly';
-
-type PriceDetails = {
-  amount: string;
-  stripe_price_id: string;
-};
-
-type Plan = {
-  name: string;
-  featured: boolean;
-  price: Record<FrequencyOption, PriceDetails>;
-  description: string;
-  button: {
-    label: string;
-    href: string;
-  };
-  features: string[];
-};
 
 const frequencies: { value: FrequencyOption; label: string }[] = [
   { value: 'Monthly', label: 'Monthly' },
@@ -33,17 +16,65 @@ function classNames(...classes: string[]) {
   return classes.filter(Boolean).join(' ');
 }
 
-export function Plan() {
+export function Plan({
+  currentPlan,
+  user,
+}: {
+  currentPlan: PlanId;
+  user: any;
+}) {
   const [frequency, setFrequency] = useState<FrequencyOption>('Monthly');
 
+  const getButtonConfig = (planName: string) => {
+    const currentPlanType = currentPlan.split('_')[0]; // free, basic, or pro
+    const planType = planName.toLowerCase().split(' ')[0]; // free, basic, or pro
+
+    if (planType === currentPlanType) {
+      return {
+        label:
+          currentPlanType === 'free' ? 'Current Plan' : 'Cancel Subscription',
+        href: currentPlanType === 'free' ? '#' : '/api/stripe/cancel',
+        disabled: currentPlanType === 'free',
+      };
+    }
+
+    // Handle upgrade paths
+    if (currentPlanType === 'free') {
+      const stripeLinkKey =
+        `${planType}_${frequency.toLowerCase()}` as keyof typeof stripeLinks;
+      return {
+        label: `Upgrade to ${planName}`,
+        href: stripeLinks[stripeLinkKey],
+        disabled: false,
+      };
+    }
+
+    if (currentPlanType === 'basic' && planType === 'pro') {
+      const stripeLinkKey =
+        `pro_${frequency.toLowerCase()}` as keyof typeof stripeLinks;
+      return {
+        label: 'Upgrade to Pro',
+        href: stripeLinks[stripeLinkKey],
+        disabled: false,
+      };
+    }
+
+    // Disable downgrade options
+    return {
+      label: `Contact Support to Downgrade`,
+      href: '#',
+      disabled: true,
+    };
+  };
+
+  const isCurrentPlan = (planName: string) => {
+    return planName.toLowerCase().split(' ')[0] === currentPlan.split('_')[0];
+  };
+
   return (
-    <div className="">
+    <div className="pt-4">
+      <h2 className="text-2xl font-bold tracking-tight">Account Plan</h2>
       <div className="mx-auto max-w-7xl px-6 lg:px-8">
-        <p className="mx-auto mt-6 max-w-2xl text-pretty font-medium text-gray-600">
-          Choose an affordable plan that&apos;s packed with the best features
-          for engaging your audience, creating customer loyalty, and driving
-          sales.
-        </p>
         <div className="mt-16 flex justify-center">
           <fieldset aria-label="Payment frequency">
             <RadioGroup
@@ -68,7 +99,7 @@ export function Plan() {
             <div
               key={plan.name}
               className={classNames(
-                plan.featured
+                isCurrentPlan(plan.name)
                   ? 'ring-2 ring-indigo-600'
                   : 'ring-1 ring-gray-200',
                 'rounded-3xl p-6'
@@ -77,7 +108,9 @@ export function Plan() {
               <h3
                 id={plan.name}
                 className={classNames(
-                  plan.featured ? 'text-indigo-600' : 'text-gray-900',
+                  isCurrentPlan(plan.name)
+                    ? 'text-indigo-600'
+                    : 'text-gray-900',
                   'text-lg/8 font-semibold'
                 )}
               >
@@ -90,16 +123,19 @@ export function Plan() {
                 </span>
               </p>
               <a
-                href={plan.button.href}
+                href={getButtonConfig(plan.name).href}
                 aria-describedby={plan.name}
                 className={classNames(
-                  plan.featured
+                  isCurrentPlan(plan.name)
                     ? 'bg-indigo-600 text-white shadow-sm hover:bg-indigo-500'
                     : 'text-indigo-600 ring-1 ring-inset ring-indigo-200 hover:ring-indigo-300',
+                  getButtonConfig(plan.name).disabled
+                    ? 'opacity-50 cursor-not-allowed'
+                    : '',
                   'mt-6 block rounded-md px-3 py-2 text-center text-sm/6 font-semibold focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600'
                 )}
               >
-                {plan.button.label}
+                {getButtonConfig(plan.name).label}
               </a>
               <ul
                 role="list"

@@ -5,17 +5,18 @@ import { config } from 'dotenv';
 // Load environment variables
 if (process.env.NODE_ENV === 'test') {
   config({ path: '.env.test' });
+} else {
+  config();
 }
 
 // Use test database URL in test environment
-const dbUrl = process.env.NODE_ENV === 'test' 
+export const dbUrl = process.env.NODE_ENV === 'test' 
   ? (process.env.TEST_POSTGRES_URL || 'postgres://localhost:5432/bragai-test')
   : process.env.POSTGRES_URL!;
-
 
 if (!dbUrl) {
   throw new Error('Database connection string not found');
 }
 
-const client = postgres(dbUrl);
-export const db = drizzle(client);
+export const connection = postgres(dbUrl);
+export const db = drizzle(connection);

@@ -34,6 +34,12 @@ export const user = pgTable('User', {
   createdAt: timestamp('created_at').notNull().defaultNow(),
   updatedAt: timestamp('updated_at').notNull().defaultNow(),
   emailVerified: timestamp('email_verified').defaultNow(),
+
+  level: varchar('level', { enum: ['free', 'basic', 'pro'] }).notNull().default('free'),
+  renewalPeriod: varchar('renewal_period', { enum: ['monthly', 'yearly'] }).notNull().default('monthly'),
+  lastPayment: timestamp('last_payment'),
+
+  status: varchar('status', { enum: ['active', 'banned', 'deleted'] }).notNull().default('active'),
 });
 
 export type User = InferSelectModel<typeof user>;
