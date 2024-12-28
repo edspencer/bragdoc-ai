@@ -42,6 +42,10 @@ resource "stripe_price" "basic_monthly" {
   recurring_interval       = "month"
   recurring_interval_count = 1
   recurring_usage_type     = "licensed"
+
+  lifecycle {
+    ignore_changes = [unit_amount_decimal]
+  }
 }
 
 resource "stripe_price" "basic_yearly" {
@@ -54,6 +58,10 @@ resource "stripe_price" "basic_yearly" {
   recurring_interval       = "year"
   recurring_interval_count = 1
   recurring_usage_type     = "licensed"
+
+  lifecycle {
+    ignore_changes = [unit_amount_decimal]
+  }
 }
 
 resource "stripe_price" "pro_monthly" {
@@ -66,6 +74,10 @@ resource "stripe_price" "pro_monthly" {
   recurring_interval       = "month"
   recurring_interval_count = 1
   recurring_usage_type     = "licensed"
+
+  lifecycle {
+    ignore_changes = [unit_amount_decimal]
+  }
 }
 
 resource "stripe_price" "pro_yearly" {
@@ -78,6 +90,10 @@ resource "stripe_price" "pro_yearly" {
   recurring_interval       = "year"
   recurring_interval_count = 1
   recurring_usage_type     = "licensed"
+
+  lifecycle {
+    ignore_changes = [unit_amount_decimal]
+  }
 }
 
 ###############################################################################
@@ -91,6 +107,11 @@ resource "stripe_payment_link" "basic_monthly" {
   tax_id_collection_enabled     = true
   after_completion_type         = "redirect"
   after_completion_redirect_url = var.redirect_url
+  currency                      = "usd"
+  submit_type                   = "auto"
+  payment_method_collection     = "always"
+  customer_creation             = "if_required"
+  billing_address_collection    = "auto"
 }
 
 resource "stripe_payment_link" "basic_yearly" {
@@ -101,6 +122,11 @@ resource "stripe_payment_link" "basic_yearly" {
   tax_id_collection_enabled     = true
   after_completion_type         = "redirect"
   after_completion_redirect_url = var.redirect_url
+  currency                      = "usd"
+  submit_type                   = "auto"
+  payment_method_collection     = "always"
+  customer_creation             = "if_required"
+  billing_address_collection    = "auto"
 }
 
 resource "stripe_payment_link" "pro_monthly" {
@@ -111,6 +137,11 @@ resource "stripe_payment_link" "pro_monthly" {
   tax_id_collection_enabled     = true
   after_completion_type         = "redirect"
   after_completion_redirect_url = var.redirect_url
+  currency                      = "usd"
+  submit_type                   = "auto"
+  payment_method_collection     = "always"
+  customer_creation             = "if_required"
+  billing_address_collection    = "auto"
 }
 
 resource "stripe_payment_link" "pro_yearly" {
@@ -121,6 +152,11 @@ resource "stripe_payment_link" "pro_yearly" {
   tax_id_collection_enabled     = true
   after_completion_type         = "redirect"
   after_completion_redirect_url = var.redirect_url
+  currency                      = "usd"
+  submit_type                   = "auto"
+  payment_method_collection     = "always"
+  customer_creation             = "if_required"
+  billing_address_collection    = "auto"
 }
 
 ###############################################################################
