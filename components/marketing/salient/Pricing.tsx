@@ -7,7 +7,7 @@ import clsx from 'clsx';
 import { Button } from './Button';
 import { Container } from './Container';
 
-import { plans, stripeLinks, stripeDetails } from '@/lib/plans';
+import { plans, } from '@/lib/plans';
 
 function CheckIcon(props: React.ComponentPropsWithoutRef<'svg'>) {
   return (

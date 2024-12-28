@@ -1,4 +1,4 @@
-import { SettingsNav } from '@/components/settings-nav';
+
 
 export const experimental_ppr = true;
 

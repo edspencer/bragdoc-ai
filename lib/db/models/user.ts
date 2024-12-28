@@ -1,4 +1,4 @@
-import { User } from '../schema';
+import type { User } from '../schema';
 import { addMonths, addYears, isAfter } from 'date-fns';
 
 export function isActiveSubscription(user: User): boolean {
@@ -45,5 +45,5 @@ export function getMaxAllowedRepositories(user: User): number {
   if (!isActiveSubscription(user)) {
     return 0;
   }
-  return user.level === 'pro' ? Infinity : 1;
+  return user.level === 'pro' ? Number.POSITIVE_INFINITY : 1;
 }

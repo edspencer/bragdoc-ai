@@ -34,7 +34,7 @@ export async function POST(req: Request) {
   ];
 
   if (permittedEvents.includes(event.type)) {
-    let data;
+    let data: Stripe.Checkout.Session | Stripe.PaymentIntent;
 
     try {
       switch (event.type) {

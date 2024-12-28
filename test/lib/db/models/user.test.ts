@@ -1,9 +1,9 @@
-import { User } from '@/lib/db/schema';
+import type { User } from '@/lib/db/schema';
 import { 
   isActiveSubscription, 
   getCurrentPlan
 } from '@/lib/db/models/user';
-import { subDays, addDays } from 'date-fns';
+import { subDays, } from 'date-fns';
 
 describe('User Model', () => {
   const baseUser: User = {

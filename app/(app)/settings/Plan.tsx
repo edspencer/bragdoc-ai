@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { Radio, RadioGroup } from '@headlessui/react';
 import { CheckCircledIcon } from '@radix-ui/react-icons';
-import { plans, PlanId, stripeLinks } from '@/lib/plans';
+import { plans, type PlanId, stripeLinks } from '@/lib/plans';
 
 type FrequencyOption = 'Monthly' | 'Yearly';
 
@@ -138,7 +138,6 @@ export function Plan({
                 {getButtonConfig(plan.name).label}
               </a>
               <ul
-                role="list"
                 className="mt-8 space-y-3 text-sm/6 text-gray-600"
               >
                 {plan.features.map((feature) => (
