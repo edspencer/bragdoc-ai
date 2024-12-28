@@ -2,6 +2,12 @@
   "version": "7",
   "dialect": "postgresql",
   "entries": [
-    
+    {
+      "idx": 0,
+      "version": "7",
+      "when": 1735417478543,
+      "tag": "0000_remarkable_rocket_raccoon",
+      "breakpoints": true
+    }
   ]
 }

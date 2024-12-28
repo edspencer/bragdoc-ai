@@ -11,12 +11,17 @@ import {
   boolean,
   integer,
   uniqueIndex,
+  pgEnum,
 } from 'drizzle-orm/pg-core';
 
 export interface UserPreferences {
   hasSeenWelcome: boolean;
   language: string;
 }
+
+export const userLevelEnum = pgEnum('user_level', ['free', 'basic', 'pro']);
+export const renewalPeriodEnum = pgEnum('renewal_period', ['monthly', 'yearly']);
+export const userStatusEnum = pgEnum('user_status', ['active', 'banned', 'deleted']);
 
 export const user = pgTable('User', {
   id: uuid('id').primaryKey().notNull().defaultRandom(),
@@ -35,11 +40,11 @@ export const user = pgTable('User', {
   updatedAt: timestamp('updated_at').notNull().defaultNow(),
   emailVerified: timestamp('email_verified').defaultNow(),
 
-  level: varchar('level', { enum: ['free', 'basic', 'pro'] }).notNull().default('free'),
-  renewalPeriod: varchar('renewal_period', { enum: ['monthly', 'yearly'] }).notNull().default('monthly'),
+  level: userLevelEnum('level').notNull().default('free'),
+  renewalPeriod: renewalPeriodEnum('renewal_period').notNull().default('monthly'),
   lastPayment: timestamp('last_payment'),
 
-  status: varchar('status', { enum: ['active', 'banned', 'deleted'] }).notNull().default('active'),
+  status: userStatusEnum('status').notNull().default('active'),
 });
 
 export type User = InferSelectModel<typeof user>;
