@@ -8,8 +8,6 @@ terraform {
   }
 }
 
-provider "stripe" {}
-
 module "stripe" {
   source         = "../../modules/stripe"
   redirect_url   = var.redirect_url
@@ -25,4 +23,17 @@ variable "stripe_api_key" {
   type        = string
   description = "API key for Stripe API"
   sensitive   = true
+}
+
+output "basic_monthly_price_id" {
+  value = module.stripe.basic_monthly_payment_link_url
+}
+output "basic_yearly_price_id" {
+  value = module.stripe.basic_yearly_payment_link_url
+}
+output "pro_monthly_price_id" {
+  value = module.stripe.pro_monthly_payment_link_url
+}
+output "pro_yearly_price_id" {
+  value = module.stripe.pro_yearly_payment_link_url
 }
