@@ -4,6 +4,7 @@ export type FrequencyOption = 'Monthly' | 'Yearly';
 
 export type Plan = {
   name: string;
+  shortName: string;
   featured: boolean;
   price: Record<FrequencyOption, PriceDetails>;
   description: string;
@@ -38,6 +39,7 @@ export const stripeDetails = {
 export const plans: Plan[] = [
   {
     name: 'Free',
+    shortName: 'Free',
     featured: false,
     price: {
       Monthly: { amount: '$0', stripe_price_id: 'free' },
@@ -57,6 +59,7 @@ export const plans: Plan[] = [
   },
   {
     name: 'Basic Achiever',
+    shortName: 'Basic',
     featured: true,
     price: {
       Monthly: { amount: '$5/month', stripe_price_id: 'basic_monthly' },
@@ -78,6 +81,7 @@ export const plans: Plan[] = [
   },
   {
     name: 'Pro Achiever',
+    shortName: 'Pro',
     featured: false,
     price: {
       Monthly: { amount: '$9/month', stripe_price_id: 'pro_monthly' },

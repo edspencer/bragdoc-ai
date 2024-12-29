@@ -20,13 +20,15 @@ provider "stripe" {
 # STRIPE PRODUCTS
 ###############################################################################
 resource "stripe_product" "bragger_basic" {
-  name     = "Basic Bragger"
-  tax_code = "txcd_10000000"
+  name        = "Basic Bragger"
+  tax_code    = "txcd_10000000"
+  description = "Unlimited access to Bragger Basic features."
 }
 
 resource "stripe_product" "bragger_pro" {
-  name     = "Pro Bragger"
-  tax_code = "txcd_10000000"
+  name        = "Pro Bragger"
+  tax_code    = "txcd_10000000"
+  description = "Unlimited access to bragdoc.ai Pro features."
 }
 
 ###############################################################################
@@ -159,8 +161,19 @@ resource "stripe_payment_link" "pro_yearly" {
   billing_address_collection    = "auto"
 }
 
+# resource "stripe_billing_portal_configuration" "default" {
+#   business_profile_headline             = "Bragdoc.ai YEA"
+#   default_return_url                    = "${var.base_url}/chat"
+#   business_profile_privacy_policy_url   = "${var.base_url}/privacy"
+#   business_profile_terms_of_service_url = "${var.base_url}/terms"
+
+#   features_subscription_update_enabled = false
+#   features_subscription_cancel_enabled = true
+#   features_customer_update_enabled     = true
+# }
+
 ###############################################################################
-# OUTPUTS
+# WEBHOOK
 ###############################################################################
 
 resource "stripe_webhook_endpoint" "default" {

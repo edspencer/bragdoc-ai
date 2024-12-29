@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { Radio, RadioGroup } from '@headlessui/react';
 import { CheckCircledIcon } from '@radix-ui/react-icons';
-import { plans, type PlanId, stripeLinks } from '@/lib/plans';
+import { plans, type PlanId, type Plan, stripeLinks } from '@/lib/plans';
 
 type FrequencyOption = 'Monthly' | 'Yearly';
 
@@ -25,9 +25,9 @@ export function Plan({
 }) {
   const [frequency, setFrequency] = useState<FrequencyOption>('Monthly');
 
-  const getButtonConfig = (planName: string) => {
+  const getButtonConfig = (plan: Plan) => {
     const currentPlanType = currentPlan.split('_')[0]; // free, basic, or pro
-    const planType = planName.toLowerCase().split(' ')[0]; // free, basic, or pro
+    const planType = plan.shortName.toLowerCase().split(' ')[0]; // free, basic, or pro
 
     if (planType === currentPlanType) {
       return {
@@ -43,7 +43,7 @@ export function Plan({
       const stripeLinkKey =
         `${planType}_${frequency.toLowerCase()}` as keyof typeof stripeLinks;
       return {
-        label: `Upgrade to ${planName}`,
+        label: `Upgrade to ${plan.shortName}`,
         href: stripeLinks[stripeLinkKey],
         disabled: false,
       };
@@ -123,7 +123,7 @@ export function Plan({
                 </span>
               </p>
               <a
-                href={`${getButtonConfig(plan.name).href}?prefilled_email=${
+                href={`${getButtonConfig(plan).href}?prefilled_email=${
                   user.email
                 }`}
                 aria-describedby={plan.name}
@@ -131,13 +131,13 @@ export function Plan({
                   isCurrentPlan(plan.name)
                     ? 'bg-indigo-600 text-white shadow-sm hover:bg-indigo-500'
                     : 'text-indigo-600 ring-1 ring-inset ring-indigo-200 hover:ring-indigo-300',
-                  getButtonConfig(plan.name).disabled
+                  getButtonConfig(plan).disabled
                     ? 'opacity-50 cursor-not-allowed'
                     : '',
                   'mt-6 block rounded-md px-3 py-2 text-center text-sm/6 font-semibold focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600'
                 )}
               >
-                {getButtonConfig(plan.name).label}
+                {getButtonConfig(plan).label}
               </a>
               <ul className="mt-8 space-y-3 text-sm/6 text-gray-600">
                 {plan.features.map((feature) => (
