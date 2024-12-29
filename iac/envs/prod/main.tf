@@ -10,13 +10,13 @@ terraform {
 
 module "stripe" {
   source         = "../../modules/stripe"
-  redirect_url   = var.redirect_url
+  base_url       = var.base_url
   stripe_api_key = var.stripe_api_key
 }
 
-variable "redirect_url" {
+variable "base_url" {
   type    = string
-  default = "https://bragdoc.ai/chat"
+  default = "https://www.bragdoc.ai"
 }
 
 variable "stripe_api_key" {

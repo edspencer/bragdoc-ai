@@ -20,10 +20,10 @@ type PriceDetails = {
 }
 
 export const stripeLinks = {
-  pro_yearly: 'https://buy.stripe.com/test_5kA5ks7tc0Ox1aM5kn',
-  pro_monthly: 'https://buy.stripe.com/test_8wM008dRA1SB4mYaEG',
-  basic_yearly: 'https://buy.stripe.com/test_aEUfZ6eVE68R6v69AB',
-  basic_monthly: 'https://buy.stripe.com/test_eVaeV2aFogNv3iUbII',
+  pro_yearly: process.env.NEXT_PUBLIC_PRO_YEARLY_PRICE_ID!,
+  pro_monthly: process.env.NEXT_PUBLIC_PRO_MONTHLY_PRICE_ID!,
+  basic_yearly: process.env.NEXT_PUBLIC_BASIC_YEARLY_PRICE_ID!,
+  basic_monthly: process.env.NEXT_PUBLIC_BASIC_MONTHLY_PRICE_ID!,
 };
 
 export const stripeDetails = {

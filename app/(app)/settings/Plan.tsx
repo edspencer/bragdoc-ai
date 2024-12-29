@@ -123,7 +123,9 @@ export function Plan({
                 </span>
               </p>
               <a
-                href={getButtonConfig(plan.name).href}
+                href={`${getButtonConfig(plan.name).href}?prefilled_email=${
+                  user.email
+                }`}
                 aria-describedby={plan.name}
                 className={classNames(
                   isCurrentPlan(plan.name)
@@ -137,9 +139,7 @@ export function Plan({
               >
                 {getButtonConfig(plan.name).label}
               </a>
-              <ul
-                className="mt-8 space-y-3 text-sm/6 text-gray-600"
-              >
+              <ul className="mt-8 space-y-3 text-sm/6 text-gray-600">
                 {plan.features.map((feature) => (
                   <li key={feature} className="flex gap-x-3">
                     <CheckCircledIcon

@@ -1,7 +1,7 @@
-variable "redirect_url" {
+variable "base_url" {
   type        = string
-  description = "URL to redirect after successful payment"
-  default     = "https://example.com/chat"
+  description = "Base URL for the application"
+  default     = "https://www.bragdoc.ai"
 }
 
 variable "stripe_api_key" {

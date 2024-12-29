@@ -106,7 +106,7 @@ resource "stripe_payment_link" "basic_monthly" {
   }
   tax_id_collection_enabled     = true
   after_completion_type         = "redirect"
-  after_completion_redirect_url = var.redirect_url
+  after_completion_redirect_url = "${var.base_url}/chat"
   currency                      = "usd"
   submit_type                   = "auto"
   payment_method_collection     = "always"
@@ -121,7 +121,7 @@ resource "stripe_payment_link" "basic_yearly" {
   }
   tax_id_collection_enabled     = true
   after_completion_type         = "redirect"
-  after_completion_redirect_url = var.redirect_url
+  after_completion_redirect_url = "${var.base_url}/chat"
   currency                      = "usd"
   submit_type                   = "auto"
   payment_method_collection     = "always"
@@ -136,7 +136,7 @@ resource "stripe_payment_link" "pro_monthly" {
   }
   tax_id_collection_enabled     = true
   after_completion_type         = "redirect"
-  after_completion_redirect_url = var.redirect_url
+  after_completion_redirect_url = "${var.base_url}/chat"
   currency                      = "usd"
   submit_type                   = "auto"
   payment_method_collection     = "always"
@@ -151,12 +151,26 @@ resource "stripe_payment_link" "pro_yearly" {
   }
   tax_id_collection_enabled     = true
   after_completion_type         = "redirect"
-  after_completion_redirect_url = var.redirect_url
+  after_completion_redirect_url = "${var.base_url}/chat"
   currency                      = "usd"
   submit_type                   = "auto"
   payment_method_collection     = "always"
   customer_creation             = "if_required"
   billing_address_collection    = "auto"
+}
+
+###############################################################################
+# OUTPUTS
+###############################################################################
+
+resource "stripe_webhook_endpoint" "default" {
+  enabled_events = [
+    "checkout.session.completed",
+    "payment_intent.succeeded",
+    "payment_intent.payment_failed",
+    "customer.subscription.deleted",
+  ]
+  url = "${var.base_url}/api/stripe/callback"
 }
 
 ###############################################################################
