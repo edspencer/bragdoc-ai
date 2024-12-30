@@ -3,10 +3,12 @@
 ## Database Enhancements
 
 ### Achievement Metadata
+
 - [ ] Add impact field to `brag` table
 - [ ] Add metrics/quantification fields to `brag` table
 
 ### User Preferences & Engagement
+
 - [ ] Add `userPreferences` table
   ```typescript
   userPreferences {
@@ -20,9 +22,10 @@
   }
   ```
 
-## Feature Implementation 
+## Feature Implementation
 
 ### GitHub Integration
+
 - [ ] Add loading spinner to sync button
 - [ ] Add toast notifications for sync status
 - [ ] Add repository search/filter
@@ -33,26 +36,30 @@
 - [ ] Add rate limiting protection
 
 ### General Tasks
-- [ ] Google Analytics
+
 - [ ] GDPR Compliance
 
 ### Email Integration
+
 - [ ] Set up email receiving service
 - [ ] Implement email parsing for achievement extraction
 - [ ] Set up email response system
 - [ ] Create email templates for different types of notifications
 
 ### Reminder System
+
 - [ ] Implement reminder scheduling service
 - [ ] Create reminder logic based on user preferences
 - [ ] Set up notification triggers for long periods of inactivity
 
 ### Document Generation
+
 - [ ] Enhance document templates for different time periods
 - [ ] Add company-specific document formatting
 - [ ] Implement project-based filtering for documents
 
 ### LLM Tools
+
 - [ ] Automatically prepend achievements to LLM context (perhaps only up to 100 achievements)
 - [ ] Automatically expose all companies and libraries for the user with the LLM context
 - [ ] Automatically expose all userPreferences for the user with the LLM context
@@ -60,23 +67,28 @@
 - [ ] saveUserPreferences tool - should be called whenever the user says things like "Always arrange this (weekly report) into sections by project"
 
 ### API Docs
+
 - [x] Create an OpenAPI spec for the API (swagger.json created via RepoPrompt sending content of all route.ts files to LLM and asking for a swagger spec)
 - [ ] Need to automate this process of extracting OpenAPI spec
 - [ ] Need to set up hosting (github pages ideally). Ideally can serve a static swagger API docs UI on github pages. CNAME docs.bragdoc.ai to it
 
 ### NPM CLI
+
 - [ ] Add support for NPM CLI
 
 ### Achievements UI & API
+
 - [x] Implement Achievements UI - similar CRUD options as we have for Companies and Projects
 - [x] Implement Achievements API - similar to Companies and Projects
 - [x] Jest tests for Achievements API
 
 ### Bugs
+
 - [ ] What happens when a project or company is deleted but it's referenced in an achievement?
 - [ ] We still have a model selector in the UI - get rid of it and hard code them. Perhaps create an ais.ts file that exports the different models for different use cases?
 
 ## Tech Debt
+
 - [x] updateSchema in app/api/achievements/[id]/route.ts should not exist - use drizzle type
 - [ ] Add route tests for app/api/user/route.ts
 - [ ] Integrate the empty-state component into Chat UI
@@ -84,8 +96,9 @@
 - [ ] Do we even use components/welcome/animated-text?
 - [ ] Do we use shadcn Carousel?
 - [ ] Add test for getUserById in lib/db/queries.ts
- 
+
 ### UI/UX Improvements
+
 - [ ] New/Edit Achievement modal is tall - need to make it scrollable for shorter screen heights
 - [ ] Add email preferences configuration
 - [ ] Stream Achievements into the UI one by one instead of all as a response from extractAchievements
@@ -98,6 +111,7 @@
   - Need to investigate proper z-index and event handling in shadcn components
 
 ## Business Model Implementation
+
 - [ ] Set up Stripe/Link integration
   - [ ] Configure payment processing
   - [ ] Set up subscription plans
@@ -116,6 +130,7 @@
   - [ ] Payment method management
 
 ## Testing Infrastructure
+
 - [ ] Add support for React component testing
   - [ ] Configure Jest to support both Node and jsdom environments
   - [ ] Set up proper test file organization (.node.test.ts vs .test.tsx)
@@ -123,6 +138,7 @@
   - [ ] Ensure proper mocking of Next.js features (router, etc)
 
 ## Achievement Importance
+
 - [x] Add ability to assign importance to achievements
 - [x] Track whether score was assigned by user or LLM
 - [ ] Regularly update LLM-scored achievement importance scores
@@ -131,6 +147,7 @@
 ## Conversation Examples & Testing
 
 ### Example Conversations
+
 - [ ] Create example conversations for:
   - [ ] Single achievement logging (e.g., "I just finished project X")
   - [ ] Batch achievement logging (e.g., "Here's what I did last week...")
@@ -141,6 +158,7 @@
   - [ ] Cross-company career progression
 
 ### LLM Prompt Engineering
+
 - [ ] Design prompts for:
   - [ ] Extracting brag-worthy achievements from casual conversation
   - [ ] Categorizing achievements by impact level
@@ -150,6 +168,7 @@
   - [ ] Asking follow-up questions to gather missing context
 
 ### Testing & Validation Scenarios
+
 - [ ] Create test cases for:
   - [ ] Different writing styles and verbosity levels
   - [ ] Multiple achievements in single message
@@ -160,6 +179,7 @@
   - [ ] Multi-language support
 
 ### Mock Data Generation
+
 - [ ] Create realistic mock data for:
   - [ ] User profiles with different career paths
   - [ ] Various company types and roles
@@ -169,6 +189,7 @@
   - [ ] Project progression and milestones
 
 ## Testing & Validation
+
 - [ ] Add tests for new database models
 - [ ] Add tests for email integration
 - [ ] Add tests for reminder system

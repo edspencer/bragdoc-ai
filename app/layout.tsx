@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { GoogleAnalytics } from '@next/third-parties/google';
 
 import { Providers } from '@/components/providers';
 
@@ -8,25 +9,24 @@ export const metadata: Metadata = {
   metadataBase: new URL('https://chat.vercel.ai'),
   title: {
     default: 'bragdoc.ai - Never Forget Your Achievements',
-    template: '%s | bragdoc.ai'
+    template: '%s | bragdoc.ai',
   },
-  description: 'bragdoc.ai helps you track your work accomplishments effortlessly. Perfect for performance reviews, resumes, and career growth.',
+  description:
+    'bragdoc.ai helps you track your work accomplishments effortlessly. Perfect for performance reviews, resumes, and career growth.',
   authors: [
     {
-      name: 'bragdoc.ai team'
-    }
+      name: 'bragdoc.ai team',
+    },
   ],
-  openGraph: 
-    {
-      title: 'bragdoc.ai - Never Forget Your Achievements',
-      description: 'Track your achievements effortlessly',
-      url: 'https://bragdoc.ai',
-      siteName: 'bragdoc.ai',
-    },
-  twitter: 
-    {
-      title: 'bragdoc.ai - Never Forget Your Achievements',
-    },
+  openGraph: {
+    title: 'bragdoc.ai - Never Forget Your Achievements',
+    description: 'Track your achievements effortlessly',
+    url: 'https://bragdoc.ai',
+    siteName: 'bragdoc.ai',
+  },
+  twitter: {
+    title: 'bragdoc.ai - Never Forget Your Achievements',
+  },
 };
 
 export const viewport = {
@@ -59,10 +59,7 @@ export default async function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html
-      lang="en"
-      suppressHydrationWarning
-    >
+    <html lang="en" suppressHydrationWarning>
       <head>
         <script
           dangerouslySetInnerHTML={{
@@ -72,6 +69,7 @@ export default async function RootLayout({
       </head>
       <body className="antialiased">
         <Providers>{children}</Providers>
+        <GoogleAnalytics gaId="G-ZM1CT7E42H" />
       </body>
     </html>
   );

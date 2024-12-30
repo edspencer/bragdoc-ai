@@ -5,6 +5,7 @@ import { CallToAction } from '@/components/marketing/salient/CallToAction';
 import { Testimonials } from '@/components/marketing/salient/Testimonials';
 import { Pricing } from '@/components/marketing/salient/Pricing';
 import { Faqs } from '@/components/marketing/salient/Faqs';
+import { SecondaryCTA } from '@/components/marketing/salient/SecondaryCTA';
 
 export default function HomePage() {
   return (
@@ -16,6 +17,7 @@ export default function HomePage() {
       <Testimonials />
       <Pricing />
       <Faqs />
+      <SecondaryCTA />
     </>
   );
 }

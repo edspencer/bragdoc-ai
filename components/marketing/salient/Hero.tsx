@@ -2,6 +2,8 @@ import Link from 'next/link';
 import { Button } from './Button';
 import { Container } from './Container';
 
+import { Highlight } from './Highlight';
+
 export function HeroOld() {
   return (
     <Container className="pb-16 pt-20 text-center lg:pt-32">
@@ -36,14 +38,6 @@ export function HeroOld() {
   );
 }
 
-function Highlight({ children }: { children: React.ReactNode }) {
-  return (
-    <span className="text-blue-600 dark:text-blue-400 font-bold">
-      {children}
-    </span>
-  );
-}
-
 export function Hero() {
   return (
     <div className="bg-white dark:bg-gray-900">
@@ -68,26 +62,32 @@ export function Hero() {
                 </div>
                 <h1 className="text-pretty text-5xl font-semibold tracking-tight text-gray-900 dark:text-gray-100 sm:text-7xl">
                   Get <Highlight>recognized</Highlight> for all your{' '}
-                  <span className="underline">hard work</span>
+                  <span className="">hard work</span>
                 </h1>
-                <p className="mt-8 text-pretty text-lg font-medium text-gray-500 dark:text-gray-400 sm:text-xl/8">
+                <p className="hidden mt-8 text-pretty text-lg font-medium text-gray-500 dark:text-gray-400 sm:text-xl/8">
                   Bragdoc helps you{' '}
                   <Highlight>track your work achievements</Highlight>{' '}
                   effortlessly, and generate performance review documents that
                   <Highlight> your manager will love</Highlight>.
+                </p>
+                <p className="mt-8 text-pretty text-lg font-medium text-gray-500 dark:text-gray-400 sm:text-xl/8">
+                  Bragdoc helps you <Highlight>get recognized</Highlight> for
+                  your hard work by tracking your{' '}
+                  <Highlight>achievements</Highlight> and creating beautiful
+                  documents to share with your boss
                 </p>
                 <div className="mt-10 flex items-center gap-x-6">
                   <Link
                     href="/register"
                     className="rounded-md bg-blue-600 dark:bg-blue-400 px-3.5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 dark:hover:bg-indigo-400 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 dark:focus-visible:outline-indigo-400"
                   >
-                    Get started
+                    Create my FREE account
                   </Link>
                   <Link
                     href="/about"
                     className="text-sm/6 font-semibold text-gray-900 dark:text-gray-100"
                   >
-                    Learn more <span aria-hidden="true">→</span>
+                    Try an instant demo <span aria-hidden="true">→</span>
                   </Link>
                 </div>
               </div>
