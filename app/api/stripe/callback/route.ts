@@ -12,6 +12,8 @@ async function updateUserSubscription(
   // Extract level and renewal period from planId (e.g., 'basic_monthly' -> ['basic', 'monthly'])
   const [level, renewalPeriod] = planId.split('_') as [typeof userLevelEnum.enumValues[number], typeof renewalPeriodEnum.enumValues[number]];
 
+  console.log(`Updating user subscription for customer ${customerId} to level ${level} and renewal period ${renewalPeriod}`);
+
   // Find user by Stripe customer ID (stored in providerId for stripe provider)
   await db
     .update(user)

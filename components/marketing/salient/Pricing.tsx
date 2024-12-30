@@ -7,7 +7,7 @@ import clsx from 'clsx';
 import { Button } from './Button';
 import { Container } from './Container';
 
-import { plans, } from '@/lib/plans';
+import { plans } from '@/lib/plans';
 
 function CheckIcon(props: React.ComponentPropsWithoutRef<'svg'>) {
   return (
@@ -141,7 +141,7 @@ export function Pricing() {
                   value={period}
                   className={({ checked }) =>
                     clsx(
-                      'cursor-pointer rounded-full px-4 py-2 text-sm font-semibold',
+                      'text-center cursor-pointer rounded-full px-4 py-2 text-sm font-semibold',
                       'focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500',
                       checked
                         ? 'bg-blue-600 text-white'

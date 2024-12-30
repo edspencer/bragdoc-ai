@@ -208,3 +208,8 @@ output "pro_yearly_payment_link_url" {
   description = "Payment Link for Pro Yearly"
   value       = stripe_payment_link.pro_yearly.url
 }
+
+output "webhook_secret" {
+  description = "Webhook Secret"
+  value       = stripe_webhook_endpoint.default.secret
+}

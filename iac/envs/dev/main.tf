@@ -37,3 +37,8 @@ output "pro_monthly_price_id" {
 output "pro_yearly_price_id" {
   value = module.stripe.pro_yearly_payment_link_url
 }
+
+output "webhook_secret" {
+  description = "Webhook Secret"
+  value       = module.stripe.webhook_secret
+}
