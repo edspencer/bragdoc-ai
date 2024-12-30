@@ -33,6 +33,7 @@
 - [ ] Add rate limiting protection
 
 ### General Tasks
+- [ ] Google Analytics
 - [ ] GDPR Compliance
 
 ### Email Integration
@@ -100,7 +101,6 @@
 - [ ] Set up Stripe/Link integration
   - [ ] Configure payment processing
   - [ ] Set up subscription plans
-  - [ ] Implement usage tracking
 - [ ] Implement tiered features
   - [ ] Free tier
     - [ ] Usage limitations

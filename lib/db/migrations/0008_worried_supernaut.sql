@@ -1,1 +1,0 @@
-ALTER TABLE "GitHubPullRequest" ADD CONSTRAINT "GitHubPullRequest_repository_id_pr_number_pk" PRIMARY KEY("repository_id","pr_number");

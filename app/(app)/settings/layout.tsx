@@ -1,7 +1,5 @@
 
 
-import { SettingsNav } from '@/components/settings-nav';
-
 export const experimental_ppr = true;
 
 export default function SettingsLayout({
@@ -11,9 +9,9 @@ export default function SettingsLayout({
 }) {
   return (
     <div className="flex flex-col md:flex-row md:gap-12">
-      <aside className="md:w-48 p-6 md:p-8">
+      {/* <aside className="md:w-48 p-6 md:p-8">
         <SettingsNav />
-      </aside>
+      </aside> */}
       <main className="flex-1">{children}</main>
     </div>
   );

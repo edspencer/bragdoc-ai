@@ -1,9 +1,8 @@
+import Link from 'next/link';
+import { Button } from './Button';
+import { Container } from './Container';
 
-
-import { Button } from './Button'
-import { Container } from './Container'
-
-export function Hero() {
+export function HeroOld() {
   return (
     <Container className="pb-16 pt-20 text-center lg:pt-32">
       <h1 className="mx-auto max-w-4xl font-display text-5xl font-medium tracking-tight text-slate-900 dark:text-white sm:text-7xl">
@@ -22,7 +21,8 @@ export function Hero() {
         again
       </h1>
       <p className="mx-auto mt-6 max-w-2xl text-lg tracking-tight text-slate-700 dark:text-slate-300">
-        bragdoc.ai helps you track your work accomplishments effortlessly. Perfect for performance reviews, resumes, and career growth.
+        bragdoc.ai helps you track your work accomplishments effortlessly.
+        Perfect for performance reviews, resumes, and career growth.
       </p>
       <div className="mt-10 flex justify-center gap-x-6">
         <Button href="/register" color="blue">
@@ -33,5 +33,75 @@ export function Hero() {
         </Button>
       </div>
     </Container>
-  )
+  );
+}
+
+function Highlight({ children }: { children: React.ReactNode }) {
+  return (
+    <span className="text-blue-600 dark:text-blue-400 font-bold">
+      {children}
+    </span>
+  );
+}
+
+export function Hero() {
+  return (
+    <div className="bg-white dark:bg-gray-900">
+      <div className="relative">
+        <div className="mx-auto max-w-7xl">
+          <div className="relative z-10 pt-14 lg:w-full lg:max-w-2xl">
+            <svg
+              viewBox="0 0 100 100"
+              preserveAspectRatio="none"
+              aria-hidden="true"
+              className="absolute inset-y-0 right-8 hidden h-full w-80 translate-x-1/2 fill-white dark:fill-gray-900 lg:block"
+            >
+              <polygon points="0,0 90,0 50,100 0,100" />
+            </svg>
+
+            <div className="relative px-6 py-32 sm:py-40 lg:px-8 lg:py-56 lg:pr-0">
+              <div className="mx-auto max-w-2xl lg:mx-0 lg:max-w-xl">
+                <div className="hidden sm:mb-10 sm:flex">
+                  <div className="relative rounded-full px-3 py-1 text-sm/6 text-gray-500 dark:text-gray-400">
+                    45,000+ Achievements tracked
+                  </div>
+                </div>
+                <h1 className="text-pretty text-5xl font-semibold tracking-tight text-gray-900 dark:text-gray-100 sm:text-7xl">
+                  Get <Highlight>recognized</Highlight> for all your{' '}
+                  <span className="underline">hard work</span>
+                </h1>
+                <p className="mt-8 text-pretty text-lg font-medium text-gray-500 dark:text-gray-400 sm:text-xl/8">
+                  Bragdoc helps you{' '}
+                  <Highlight>track your work achievements</Highlight>{' '}
+                  effortlessly, and generate performance review documents that
+                  <Highlight> your manager will love</Highlight>.
+                </p>
+                <div className="mt-10 flex items-center gap-x-6">
+                  <Link
+                    href="/register"
+                    className="rounded-md bg-blue-600 dark:bg-blue-400 px-3.5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 dark:hover:bg-indigo-400 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 dark:focus-visible:outline-indigo-400"
+                  >
+                    Get started
+                  </Link>
+                  <Link
+                    href="/about"
+                    className="text-sm/6 font-semibold text-gray-900 dark:text-gray-100"
+                  >
+                    Learn more <span aria-hidden="true">→</span>
+                  </Link>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div className="bg-gray-50 dark:bg-gray-800 lg:absolute lg:inset-y-0 lg:right-0 lg:w-1/2">
+          <img
+            alt=""
+            src="https://images.unsplash.com/photo-1483389127117-b6a2102724ae?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1587&q=80"
+            className="aspect-[3/2] object-cover lg:aspect-auto lg:size-full"
+          />
+        </div>
+      </div>
+    </div>
+  );
 }

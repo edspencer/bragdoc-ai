@@ -1,67 +1,13 @@
-'use client'
+'use client';
 
-import { useState } from 'react'
-import { RadioGroup } from '@headlessui/react'
-import clsx from 'clsx'
+import { useState } from 'react';
+import { RadioGroup } from '@headlessui/react';
+import clsx from 'clsx';
 
-import { Button } from './Button'
-import { Container } from './Container'
+import { Button } from './Button';
+import { Container } from './Container';
 
-const plans = [
-  {
-    name: 'Free',
-    featured: false,
-    price: { Monthly: '$0', Yearly: '$0' },
-    description:
-      'Perfect for trying out bragdoc.ai with basic features.',
-    button: {
-      label: 'Get started for free',
-      href: '/register',
-    },
-    features: [
-      'Basic usage limits',
-      'Achievement tracking',
-      'Document generation',
-      'Dark mode',
-    ],
-  },
-  {
-    name: 'Basic Achiever',
-    featured: true,
-    price: { Monthly: '$3/month', Yearly: '$30/year' },
-    description:
-      'For professionals who want unlimited features and GitHub integration.',
-    button: {
-      label: 'Start Basic plan',
-      href: '/register?plan=basic',
-    },
-    features: [
-      'Everything in Free',
-      'Unlimited usage',
-      'Single GitHub repository integration',
-      'Unlimited Achievements & Documents',
-      'Document publishing',
-    ],
-  },
-  {
-    name: 'Pro Achiever',
-    featured: false,
-    price: { Monthly: '$9/month', Yearly: '$90/year' },
-    description:
-      'For power users who need advanced features and integrations.',
-    button: {
-      label: 'Start Pro plan',
-      href: '/register?plan=pro',
-    },
-    features: [
-      'Everything in Basic',
-      'Unlimited GitHub repositories',
-      'Scheduled updates',
-      'Advanced publishing options',
-      'Priority support',
-    ],
-  },
-]
+import { plans } from '@/lib/plans';
 
 function CheckIcon(props: React.ComponentPropsWithoutRef<'svg'>) {
   return (
@@ -81,7 +27,7 @@ function CheckIcon(props: React.ComponentPropsWithoutRef<'svg'>) {
         strokeLinejoin="round"
       />
     </svg>
-  )
+  );
 }
 
 function Plan({
@@ -110,7 +56,7 @@ function Plan({
         {description}
       </p>
       <p className="order-first font-display text-5xl font-light tracking-tight text-white">
-        {price[activePeriod]}
+        {price[activePeriod].amount}
       </p>
       <ul
         className={clsx(
@@ -120,7 +66,12 @@ function Plan({
       >
         {features.map((feature: string) => (
           <li key={feature} className="flex">
-            <CheckIcon className={clsx('size-6 flex-none', featured ? 'text-white' : 'text-slate-400')} />
+            <CheckIcon
+              className={clsx(
+                'size-6 flex-none',
+                featured ? 'text-white' : 'text-slate-400'
+              )}
+            />
             <span className="ml-4">{feature}</span>
           </li>
         ))}
@@ -135,11 +86,13 @@ function Plan({
         {button.label}
       </Button>
     </section>
-  )
+  );
 }
 
 export function Pricing() {
-  const [activePeriod, setActivePeriod] = useState<'Monthly' | 'Yearly'>('Monthly')
+  const [activePeriod, setActivePeriod] = useState<'Monthly' | 'Yearly'>(
+    'Monthly'
+  );
 
   return (
     <section
@@ -168,7 +121,8 @@ export function Pricing() {
             for everyone.
           </h2>
           <p className="mt-4 text-lg text-slate-400">
-            Whether you&apos;re just starting out or looking to level up your career, we have a plan that&apos;s right for you.
+            Whether you&apos;re just starting out or looking to level up your
+            career, we have a plan that&apos;s right for you.
           </p>
         </div>
         <div className="mt-8 flex justify-center">
@@ -178,14 +132,16 @@ export function Pricing() {
               onChange={setActivePeriod}
               className="grid grid-cols-2 gap-x-1 rounded-full bg-slate-800/80 p-1"
             >
-              <RadioGroup.Label className="sr-only">Payment frequency</RadioGroup.Label>
+              <RadioGroup.Label className="sr-only">
+                Payment frequency
+              </RadioGroup.Label>
               {['Monthly', 'Yearly'].map((period) => (
                 <RadioGroup.Option
                   key={period}
                   value={period}
                   className={({ checked }) =>
                     clsx(
-                      'cursor-pointer rounded-full px-4 py-2 text-sm font-semibold',
+                      'text-center cursor-pointer rounded-full px-4 py-2 text-sm font-semibold',
                       'focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500',
                       checked
                         ? 'bg-blue-600 text-white'
@@ -206,5 +162,5 @@ export function Pricing() {
         </div>
       </Container>
     </section>
-  )
+  );
 }
