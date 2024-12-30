@@ -1,7 +1,7 @@
 import { NextRequest } from 'next/server';
 import { stripe } from '@/lib/stripe/stripe';
 import { db } from '@/lib/db';
-import { User, user } from '@/lib/db/schema';
+import { type User, user } from '@/lib/db/schema';
 import { POST } from '@/app/api/stripe/callback/route';
 import type { Stripe } from 'stripe';
 import { eq } from 'drizzle-orm';

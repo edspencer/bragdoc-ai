@@ -3,7 +3,12 @@
 import { useState } from 'react';
 import { Radio, RadioGroup } from '@headlessui/react';
 import { CheckCircledIcon } from '@radix-ui/react-icons';
-import { plans, type PlanId, type Plan, stripeLinks } from '@/lib/plans';
+import {
+  plans,
+  type PlanId,
+  type Plan as PlanType,
+  stripeLinks,
+} from '@/lib/plans';
 
 type FrequencyOption = 'Monthly' | 'Yearly';
 
@@ -25,7 +30,7 @@ export function Plan({
 }) {
   const [frequency, setFrequency] = useState<FrequencyOption>('Monthly');
 
-  const getButtonConfig = (plan: Plan) => {
+  const getButtonConfig = (plan: PlanType) => {
     const currentPlanType = currentPlan.split('_')[0]; // free, basic, or pro
     const planType = plan.shortName.toLowerCase().split(' ')[0]; // free, basic, or pro
 

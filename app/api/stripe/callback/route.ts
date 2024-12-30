@@ -2,7 +2,7 @@ import type { Stripe } from "stripe";
 import { NextResponse } from "next/server";
 import { stripe } from "@/lib/stripe/stripe";
 import { db } from "@/lib/db";
-import { user, userLevelEnum, renewalPeriodEnum } from "@/lib/db/schema";
+import { user, type userLevelEnum, type renewalPeriodEnum } from "@/lib/db/schema";
 import { eq } from "drizzle-orm";
 
 async function updateUserSubscription(
