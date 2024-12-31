@@ -1,7 +1,13 @@
-import Link from "next/link"
-import Image from "next/image"
-import { Button } from "@/components/ui/button"
-import ModeToggle from "@/components/mode-toggle"
+import Link from 'next/link';
+import Image from 'next/image';
+import { Button } from '@/components/ui/button';
+import ModeToggle from '@/components/mode-toggle';
+import {
+  NavigationMenu,
+  NavigationMenuItem,
+  NavigationMenuLink,
+  NavigationMenuList,
+} from '@/components/ui/navigation-menu';
 
 export function Navigation() {
   return (
@@ -18,21 +24,35 @@ export function Navigation() {
             />
           </Link>
         </div>
-        {/* <NavigationMenu>
-          <NavigationMenuList>
-            <NavigationMenuItem>
-              <Link href="/pricing" legacyBehavior passHref>
-                <NavigationMenuLink>Pricing</NavigationMenuLink>
-              </Link>
-            </NavigationMenuItem>
-            <NavigationMenuItem>
-              <Link href="/about" legacyBehavior passHref>
-                <NavigationMenuLink>About</NavigationMenuLink>
-              </Link>
-            </NavigationMenuItem>
-          </NavigationMenuList>
-        </NavigationMenu> */}
-        <div className="ml-auto flex items-center space-x-4">
+        <div className="hidden md:flex justify-end flex-1 pr-8">
+          <NavigationMenu>
+            <NavigationMenuList className="gap-8">
+              <NavigationMenuItem>
+                <Link href="/what" legacyBehavior passHref>
+                  <NavigationMenuLink className="hover:font-semibold">
+                    What
+                  </NavigationMenuLink>
+                </Link>
+              </NavigationMenuItem>
+              <NavigationMenuItem>
+                <Link href="/why" legacyBehavior passHref>
+                  <NavigationMenuLink className="hover:font-semibold">
+                    Why
+                  </NavigationMenuLink>
+                </Link>
+              </NavigationMenuItem>
+              <NavigationMenuItem>
+                <Link href="/how" legacyBehavior passHref>
+                  <NavigationMenuLink className="hover:font-semibold">
+                    How
+                  </NavigationMenuLink>
+                </Link>
+              </NavigationMenuItem>
+            </NavigationMenuList>
+          </NavigationMenu>
+        </div>
+
+        <div className="flex items-center space-x-4">
           <ModeToggle />
           <Button variant="ghost" asChild>
             <Link href="/login">Login</Link>
@@ -43,5 +63,5 @@ export function Navigation() {
         </div>
       </div>
     </header>
-  )
+  );
 }
