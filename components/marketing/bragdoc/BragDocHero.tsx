@@ -22,7 +22,7 @@ export function BragDocHero() {
         <Button asChild size="lg">
           <Link href="/register">
             Start Your Brag Document
-            <ArrowRightIcon className="ml-2 h-4 w-4" />
+            <ArrowRightIcon className="ml-2 size-4" />
           </Link>
         </Button>
         <Button variant="outline" size="lg" asChild>
@@ -34,7 +34,6 @@ export function BragDocHero() {
           Trusted by professionals at leading companies
         </p>
         <ul
-          role="list"
           className="mt-8 flex items-center justify-center gap-x-8 sm:flex-col sm:gap-x-0 sm:gap-y-10 xl:flex-row xl:gap-x-12 xl:gap-y-0"
         >
           {[

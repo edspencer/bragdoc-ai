@@ -100,6 +100,7 @@ export function HowTemplates() {
           <div className="flex justify-center space-x-4">
             {templates.map((template, index) => (
               <button
+                type="button"
                 key={template.name}
                 onClick={() => setActiveTemplate(index)}
                 className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${

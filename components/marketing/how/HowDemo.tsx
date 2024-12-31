@@ -12,11 +12,13 @@ const demoSteps = [
     chat: [
       {
         user: true,
-        message: "Hey! Today I finished the user authentication system refactor. We moved from a custom solution to Auth0, which should improve security and reduce maintenance overhead. The team was really happy with how smooth the migration went.",
+        message:
+          'Hey! Today I finished the user authentication system refactor. We moved from a custom solution to Auth0, which should improve security and reduce maintenance overhead. The team was really happy with how smooth the migration went.',
       },
       {
         user: false,
-        message: "That's great! I've identified an achievement from your message:\n\n🏆 Led successful migration from custom auth to Auth0\n- Improved system security\n- Reduced maintenance overhead\n- Received positive team feedback\n\nWould you like to add any metrics or additional context?",
+        message:
+          "That's great! I've identified an achievement from your message:\n\n🏆 Led successful migration from custom auth to Auth0\n- Improved system security\n- Reduced maintenance overhead\n- Received positive team feedback\n\nWould you like to add any metrics or additional context?",
       },
     ],
   },
@@ -27,11 +29,13 @@ const demoSteps = [
     chat: [
       {
         user: true,
-        message: "The migration affected about 10,000 users and we had zero downtime during the switch. We're estimating it'll save about 10 hours of maintenance work per month.",
+        message:
+          "The migration affected about 10,000 users and we had zero downtime during the switch. We're estimating it'll save about 10 hours of maintenance work per month.",
       },
       {
         user: false,
-        message: "I've updated your achievement with these metrics:\n\n🏆 Led successful migration from custom auth to Auth0\n- Migrated 10,000 users with zero downtime\n- Improved system security through industry-standard authentication\n- Reduced maintenance overhead by ~120 hours annually\n- Received positive team feedback\n\nThis demonstrates both technical leadership and business impact. Great work!",
+        message:
+          "I've updated your achievement with these metrics:\n\n🏆 Led successful migration from custom auth to Auth0\n- Migrated 10,000 users with zero downtime\n- Improved system security through industry-standard authentication\n- Reduced maintenance overhead by ~120 hours annually\n- Received positive team feedback\n\nThis demonstrates both technical leadership and business impact. Great work!",
       },
     ],
   },
@@ -42,11 +46,12 @@ const demoSteps = [
     chat: [
       {
         user: true,
-        message: "Can you help me prepare for my performance review next week?",
+        message: 'Can you help me prepare for my performance review next week?',
       },
       {
         user: false,
-        message: "I've prepared a performance review document highlighting your key achievements this quarter:\n\n📊 Technical Leadership\n- Led Auth0 migration (10k users, zero downtime)\n- Architected new microservices infrastructure\n- Mentored 2 junior developers\n\n💡 Innovation & Impact\n- Reduced maintenance by 120 hours/year\n- Improved system security\n- Introduced automated testing (90% coverage)\n\nWould you like me to generate a full document with these points?",
+        message:
+          "I've prepared a performance review document highlighting your key achievements this quarter:\n\n📊 Technical Leadership\n- Led Auth0 migration (10k users, zero downtime)\n- Architected new microservices infrastructure\n- Mentored 2 junior developers\n\n💡 Innovation & Impact\n- Reduced maintenance by 120 hours/year\n- Improved system security\n- Introduced automated testing (90% coverage)\n\nWould you like me to generate a full document with these points?",
       },
     ],
   },
@@ -67,14 +72,15 @@ export function HowDemo() {
             See How It Works
           </h2>
           <p className="mt-4 text-lg tracking-tight text-slate-700 dark:text-slate-300">
-            Experience how bragdoc.ai makes it effortless to capture and leverage
-            your achievements.
+            Experience how bragdoc.ai makes it effortless to capture and
+            leverage your achievements.
           </p>
         </div>
         <div className="mt-16">
           <div className="flex justify-center space-x-4">
             {demoSteps.map((step, index) => (
               <button
+                type="button"
                 key={step.title}
                 onClick={() => setActiveStep(index)}
                 className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${

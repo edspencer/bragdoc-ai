@@ -56,7 +56,6 @@ export function BragDocFaqs() {
           </p>
         </div>
         <ul
-          role="list"
           className="mx-auto mt-16 grid max-w-2xl grid-cols-1 gap-8 lg:max-w-none lg:grid-cols-2"
         >
           {faqs.map((faq, faqIndex) => (

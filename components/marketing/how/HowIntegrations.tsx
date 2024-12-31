@@ -78,7 +78,7 @@ export function HowIntegrations() {
                 className="relative overflow-hidden rounded-2xl border border-slate-200 dark:border-slate-800 p-8"
               >
                 <div className="flex items-center gap-x-4">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-slate-100 dark:bg-slate-800">
+                  <div className="flex size-10 items-center justify-center rounded-lg bg-slate-100 dark:bg-slate-800">
                     <integration.icon
                       className="size-6 text-slate-900 dark:text-slate-100"
                       aria-hidden="true"

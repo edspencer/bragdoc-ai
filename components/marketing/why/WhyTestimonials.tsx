@@ -52,7 +52,6 @@ export function WhyTestimonials() {
           </p>
         </div>
         <ul
-          role="list"
           className="mx-auto mt-16 grid max-w-2xl grid-cols-1 gap-6 sm:gap-8 lg:mt-20 lg:max-w-none lg:grid-cols-3"
         >
           {testimonials.map((testimonial, testimonialIndex) => (
@@ -77,7 +76,7 @@ export function WhyTestimonials() {
                   </div>
                   <div className="overflow-hidden rounded-full bg-slate-50">
                     <Image
-                      className="h-14 w-14 object-cover"
+                      className="size-14 object-cover"
                       src={testimonial.author.image}
                       alt=""
                       width={56}

@@ -58,7 +58,7 @@ export function WhyStories() {
                 <Image
                   src={story.image}
                   alt={story.name}
-                  className="h-14 w-14 rounded-full object-cover"
+                  className="size-14 rounded-full object-cover"
                   width={56}
                   height={56}
                 />

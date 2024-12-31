@@ -44,7 +44,7 @@ export function WhyProcess() {
                 className="relative pl-16 lg:pl-0 lg:text-center"
               >
                 <div
-                  className={`absolute left-0 top-0 flex h-10 w-10 items-center justify-center rounded-full border-2 ${
+                  className={`absolute left-0 top-0 flex size-10 items-center justify-center rounded-full border-2 ${
                     stepIdx === steps.length - 1
                       ? 'border-blue-600 bg-blue-600 text-white'
                       : 'border-blue-600/10 bg-blue-600/10 text-blue-600'

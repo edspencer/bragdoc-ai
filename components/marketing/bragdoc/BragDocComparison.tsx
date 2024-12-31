@@ -85,7 +85,7 @@ export function BragDocComparison() {
               <p className="mt-2 text-sm text-slate-700 dark:text-slate-300">
                 {option.description}
               </p>
-              <ul role="list" className="mt-8 space-y-4">
+              <ul className="mt-8 space-y-4">
                 {option.features.map((feature, featureIndex) => (
                   <li key={featureIndex} className="flex gap-x-3">
                     {feature.positive ? (
