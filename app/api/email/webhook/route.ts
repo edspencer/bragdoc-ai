@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
-import crypto from 'crypto';
+import crypto from 'node:crypto';
 import { processIncomingEmail } from '@/lib/email/process';
 
 // Mailgun webhook payload schema based on their parsed message format
@@ -14,8 +14,8 @@ const mailgunWebhookSchema = z.object({
   'stripped-signature': z.string().optional(),
   'body-html': z.string().optional(),
   'stripped-html': z.string().optional(),
-  'attachment-count': z.string().optional().transform(n => n ? parseInt(n, 10) : 0),
-  timestamp: z.string().transform(n => parseInt(n, 10)),
+  'attachment-count': z.string().optional().transform(n => n ? Number.parseInt(n, 10) : 0),
+  timestamp: z.string().transform(n => Number.parseInt(n, 10)),
   token: z.string(),
   signature: z.string(),
   'message-headers': z.string().transform(str => {

@@ -1,9 +1,9 @@
-import { generateText } from 'ai';
-import { customModel } from '@/lib/ai';
 import { createUserMessage, getUser, getCompaniesByUserId, getAchievements, createAchievement } from '@/lib/db/queries';
 import { getProjectsByUserId } from '@/lib/db/projects/queries';
-import { z } from 'zod';
 import { extractAchievements } from '@/lib/ai/extract';
+import { generateText } from 'ai';
+import { customModel } from '@/lib/ai';
+import { z } from 'zod';
 
 export interface IncomingEmail {
   from: string;
@@ -57,69 +57,109 @@ export async function processIncomingEmail(email: IncomingEmail): Promise<{ succ
       }),
     ]);
 
-    // Create a user message record first
-    const [newUserMessage] = await createUserMessage({
-      userId: user.id,
-      originalText: email.textContent,
-    });
+    console.log('Asking the LLM about what kind of email this is...');
 
-    console.log('Created user message:', newUserMessage.id);
+    // Build context for the LLM
+    const userContext = `
+User Information:
+- Name: ${user.name || 'Unknown'}
+- Email: ${user.email}
 
-    // Extract achievements using the AI
-    const achievementsStream = extractAchievements({
-      input: email.textContent,
-      chat_history: [{ role: 'user', content: email.textContent }],
-      context: {
-        companies: companies.map(c => ({
-          id: c.id,
-          name: c.name,
-          role: c.role,
-          domain: c.domain || undefined,
-          startDate: c.startDate,
-          endDate: c.endDate || undefined,
-        })),
-        projects: projects.map(p => ({
-          id: p.id,
-          name: p.name,
-          companyId: p.companyId || undefined,
-          description: p.description || '',
-          startDate: p.startDate || undefined,
-          endDate: p.endDate || undefined,
-        })),
+Companies (${companies.length}):
+${companies.map(c => `- ${c.name}`).join('\n')}
+
+Projects (${projects.length}):
+${projects.map(p => `- ${p.name} (${p.company?.name || 'No Company'})`).join('\n')}
+
+Recent Achievements (${achievements.length}):
+${achievements.map(a => `- ${a.title}`).join('\n')}`;
+
+    // First, use LLM to determine if we should extract achievements
+    const { text } = await generateText({
+      model: customModel('gpt-4o-mini'),
+      system: systemPrompt,
+      messages: [
+        { role: 'system', content: userContext },
+        { role: 'user', content: email.textContent }
+      ],
+      maxSteps: 10,
+      tools: {
+        saveAchievements: {
+          description: 'Saves detected achievements to the database. Takes no parameters. Only call once.',
+          parameters: z.object({}),
+          execute: async () => {
+            console.log('Starting achievement extraction for email from:', senderEmail);
+
+            // Create a user message record first
+            const [newUserMessage] = await createUserMessage({
+              userId: user.id,
+              originalText: email.textContent,
+            });
+
+            console.log('Created user message:', newUserMessage.id);
+
+            // Extract achievements using the AI
+            const achievementsStream = extractAchievements({
+              input: email.textContent,
+              chat_history: [{ role: 'user', content: email.textContent }],
+              context: {
+                companies: companies.map(c => ({
+                  id: c.id,
+                  name: c.name,
+                  role: c.role,
+                  domain: c.domain || undefined,
+                  startDate: c.startDate,
+                  endDate: c.endDate || undefined,
+                })),
+                projects: projects.map(p => ({
+                  id: p.id,
+                  name: p.name,
+                  companyId: p.companyId || undefined,
+                  description: p.description || '',
+                  startDate: p.startDate || undefined,
+                  endDate: p.endDate || undefined,
+                })),
+              },
+            });
+
+            const savedAchievements = [];
+
+            // Process each achievement as it comes in
+            for await (const achievement of achievementsStream) {
+              console.log('Processing achievement:', achievement.title);
+
+              try {
+                const [savedAchievement] = await createAchievement({
+                  userId: user.id,
+                  userMessageId: newUserMessage.id,
+                  title: achievement.title,
+                  summary: achievement.summary,
+                  details: achievement.details,
+                  eventDuration: achievement.eventDuration,
+                  eventStart: achievement.eventStart || null,
+                  eventEnd: achievement.eventEnd || null,
+                  companyId: achievement.companyId,
+                  projectId: achievement.projectId,
+                  impact: achievement.impact,
+                });
+
+                console.log('Saved achievement:', savedAchievement.id);
+                savedAchievements.push(savedAchievement);
+              } catch (error) {
+                console.error('Error saving achievement:', error);
+                throw error;
+              }
+            }
+
+            console.log('Finished processing achievements:', savedAchievements.length);
+            return { success: true };
+          },
+        },
       },
     });
 
-    const savedAchievements = [];
-
-    // Process each achievement as it comes in
-    for await (const achievement of achievementsStream) {
-      console.log('Processing achievement:', achievement.title);
-
-      try {
-        const [savedAchievement] = await createAchievement({
-          userId: user.id,
-          userMessageId: newUserMessage.id,
-          title: achievement.title,
-          summary: achievement.summary,
-          details: achievement.details,
-          eventDuration: achievement.eventDuration,
-          eventStart: achievement.eventStart || null,
-          eventEnd: achievement.eventEnd || null,
-          companyId: achievement.companyId,
-          projectId: achievement.projectId,
-          impact: achievement.impact,
-        });
-
-        console.log('Saved achievement:', savedAchievement.id);
-        savedAchievements.push(savedAchievement);
-      } catch (error) {
-        console.error('Error saving achievement:', error);
-        throw error;
-      }
-    }
-
     console.log('Processed email from:', senderEmail);
-    console.log('Saved achievements:', savedAchievements.length);
+    console.log('LLM response:', text);
 
     return { success: true };
   } catch (error) {

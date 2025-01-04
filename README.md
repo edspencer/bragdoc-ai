@@ -19,6 +19,7 @@ From time to time, the user will want a summary of these achievements over some 
 - Canvas mode for collaborative document editing with AI
 - Intelligent achievement tracking and categorization
 - Multi-company support as you change employers
+- Email integration for sending and receiving achievements
 
 ### Document Publishing
 
@@ -65,6 +66,29 @@ The document editing UI is already complete.
 ### GitHub Integration
 - Automatically creates Achievements out of connected repositories!
 - Can retro-actively link a repo, creating a Project for it and filling it with Achievements from the repo history [Premium Feature]
+
+### Email Integration
+
+The application now supports bi-directional email communication:
+
+#### Receiving Achievements
+- Send achievements directly to `hello@bragdoc.ai`
+- AI automatically extracts achievements from email content
+- Supports rich text and plain text email formats
+- Achievements are linked to your user account and companies/projects
+
+#### Email Updates (Coming Soon)
+- Weekly/monthly achievement summaries
+- Performance review documents
+- Manager updates
+- Customizable email templates using React Email
+- Unsubscribe management
+
+#### Security
+- Email sender verification
+- Mailgun webhook signature validation
+- Rate limiting and spam protection
+- GDPR-compliant data handling
 
 ## Homepage
 
