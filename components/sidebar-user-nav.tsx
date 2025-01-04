@@ -51,7 +51,9 @@ export function SidebarUserNav({ user }: { user: User }) {
             </DropdownMenuItem>
             <DropdownMenuItem
               className="cursor-pointer"
-              onSelect={() => {redirect('/settings')}}
+              onSelect={() => {
+                redirect('/settings');
+              }}
             >
               Settings
             </DropdownMenuItem>

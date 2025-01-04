@@ -9,17 +9,19 @@ async function main() {
   }
 
   // Generate one test case for each template
-  const templates = ['MULTI_COMPANY', 'CAREER_TRANSITION', 'PERSONAL_GROWTH', 'PROJECT_LEAD'] as const;
-  
+  const templates = [
+    'MULTI_COMPANY',
+    'CAREER_TRANSITION',
+    'PERSONAL_GROWTH',
+    'PROJECT_LEAD',
+  ] as const;
+
   for (const template of templates) {
     console.log(`Generating test data for template: ${template}`);
     const testData = await generateTestData(template, 50);
-    
+
     const outputPath = path.join(outputDir, `${template.toLowerCase()}.json`);
-    fs.writeFileSync(
-      outputPath,
-      JSON.stringify(testData, null, 2)
-    );
+    fs.writeFileSync(outputPath, JSON.stringify(testData, null, 2));
     console.log(`Generated test data written to: ${outputPath}`);
   }
 }

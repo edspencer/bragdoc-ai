@@ -2,12 +2,15 @@ import { db } from '@/lib/db';
 import { emailPreferences } from '@/lib/db/schema';
 import { eq } from 'drizzle-orm';
 import type { EmailType, UnsubscribeData } from './types';
-import { encode, decode, } from 'next-auth/jwt';
+import { encode, decode } from 'next-auth/jwt';
 import { randomBytes } from 'node:crypto';
 
 const SECRET = process.env.NEXTAUTH_SECRET!;
 
-export async function generateUnsubscribeUrl(userId: string, emailType?: EmailType): Promise<string> {
+export async function generateUnsubscribeUrl(
+  userId: string,
+  emailType?: EmailType,
+): Promise<string> {
   const salt = randomBytes(16).toString('hex');
   const token = await encode({
     token: { userId, emailType },
@@ -17,13 +20,16 @@ export async function generateUnsubscribeUrl(userId: string, emailType?: EmailTy
   });
 
   const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
-  const params = new URLSearchParams({ token, salt }); 
+  const params = new URLSearchParams({ token, salt });
   if (emailType) params.append('type', emailType);
 
   return `${baseUrl}/api/email/unsubscribe?${params.toString()}`;
 }
 
-export async function verifyUnsubscribeToken(token: string, salt: string): Promise<UnsubscribeData> {
+export async function verifyUnsubscribeToken(
+  token: string,
+  salt: string,
+): Promise<UnsubscribeData> {
   try {
     const decoded = await decode({
       token,
@@ -41,17 +47,20 @@ export async function verifyUnsubscribeToken(token: string, salt: string): Promi
   }
 }
 
-export async function isUnsubscribed(userId: string, emailType?: EmailType): Promise<boolean> {
+export async function isUnsubscribed(
+  userId: string,
+  emailType?: EmailType,
+): Promise<boolean> {
   const [prefs] = await db
     .select()
     .from(emailPreferences)
     .where(eq(emailPreferences.userId, userId));
 
   if (!prefs || !prefs.unsubscribedAt) return false;
-  
+
   // If they've unsubscribed from all emails
   if (!prefs.emailTypes || prefs.emailTypes.length === 0) return true;
-  
+
   // If checking for a specific email type
   return emailType ? prefs.emailTypes.includes(emailType) : false;
 }
@@ -68,7 +77,9 @@ export async function unsubscribeUser(userId: string, emailType?: EmailType) {
       .update(emailPreferences)
       .set({
         unsubscribedAt: new Date(),
-        emailTypes: emailType ? [...(existing.emailTypes || []), emailType] : [],
+        emailTypes: emailType
+          ? [...(existing.emailTypes || []), emailType]
+          : [],
         updatedAt: new Date(),
       })
       .where(eq(emailPreferences.userId, userId));

@@ -19,7 +19,9 @@ export type CreateProjectInput = {
 
 export type UpdateProjectInput = Partial<Omit<CreateProjectInput, 'userId'>>;
 
-export async function getProjectsByUserId(userId: string): Promise<ProjectWithCompany[]> {
+export async function getProjectsByUserId(
+  userId: string,
+): Promise<ProjectWithCompany[]> {
   const results = await db
     .select({
       id: project.id,
@@ -39,13 +41,16 @@ export async function getProjectsByUserId(userId: string): Promise<ProjectWithCo
     .where(eq(project.userId, userId))
     .orderBy(desc(project.startDate));
 
-  return results.map(row => ({
+  return results.map((row) => ({
     ...row,
     company: row.company || null,
   }));
 }
 
-export async function getProjectById(id: string, userId: string): Promise<ProjectWithCompany | null> {
+export async function getProjectById(
+  id: string,
+  userId: string,
+): Promise<ProjectWithCompany | null> {
   const results = await db
     .select({
       id: project.id,
@@ -72,7 +77,10 @@ export async function getProjectById(id: string, userId: string): Promise<Projec
   };
 }
 
-export async function getProjectsByCompanyId(companyId: string, userId: string): Promise<ProjectWithCompany[]> {
+export async function getProjectsByCompanyId(
+  companyId: string,
+  userId: string,
+): Promise<ProjectWithCompany[]> {
   const results = await db
     .select({
       id: project.id,
@@ -89,18 +97,18 @@ export async function getProjectsByCompanyId(companyId: string, userId: string):
     })
     .from(project)
     .leftJoin(company, eq(project.companyId, company.id))
-    .where(
-      and(eq(project.companyId, companyId), eq(project.userId, userId))
-    )
+    .where(and(eq(project.companyId, companyId), eq(project.userId, userId)))
     .orderBy(desc(project.startDate));
 
-  return results.map(row => ({
+  return results.map((row) => ({
     ...row,
     company: row.company || null,
   }));
 }
 
-export async function getActiveProjects(userId: string): Promise<ProjectWithCompany[]> {
+export async function getActiveProjects(
+  userId: string,
+): Promise<ProjectWithCompany[]> {
   const results = await db
     .select({
       id: project.id,
@@ -121,18 +129,20 @@ export async function getActiveProjects(userId: string): Promise<ProjectWithComp
       and(
         eq(project.userId, userId),
         eq(project.status, 'active'),
-        isNull(project.endDate)
-      )
+        isNull(project.endDate),
+      ),
     )
     .orderBy(desc(project.startDate));
 
-  return results.map(row => ({
+  return results.map((row) => ({
     ...row,
     company: row.company || null,
   }));
 }
 
-export async function createProject(input: CreateProjectInput): Promise<Project> {
+export async function createProject(
+  input: CreateProjectInput,
+): Promise<Project> {
   const results = await db
     .insert(project)
     .values({
@@ -147,7 +157,7 @@ export async function createProject(input: CreateProjectInput): Promise<Project>
 export async function updateProject(
   id: string,
   userId: string,
-  input: UpdateProjectInput
+  input: UpdateProjectInput,
 ): Promise<Project | null> {
   const results = await db
     .update(project)
@@ -162,7 +172,7 @@ export async function updateProject(
 
 export async function deleteProject(
   id: string,
-  userId: string
+  userId: string,
 ): Promise<Project | null> {
   const results = await db
     .delete(project)

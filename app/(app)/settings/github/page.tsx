@@ -4,7 +4,13 @@ import { db } from '@/lib/db';
 import { githubRepository } from '@/lib/db/schema';
 import { eq, desc } from 'drizzle-orm';
 import { RepositorySelector } from '@/components/github/RepositorySelector';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
 import { Lock } from 'lucide-react';
 import { SyncRepositoryButton } from '@/components/github/SyncRepositoryButton';
 
@@ -14,7 +20,8 @@ export default async function GitHubSettingsPage() {
     return null;
   }
 
-  const repositories = await db.select()
+  const repositories = await db
+    .select()
     .from(githubRepository)
     .limit(30)
     .orderBy(desc(githubRepository.lastSynced))
@@ -25,7 +32,8 @@ export default async function GitHubSettingsPage() {
       <div className="mb-8">
         <h1 className="text-3xl font-bold">GitHub Settings</h1>
         <p className="text-muted-foreground">
-          Connect your GitHub repositories to automatically generate Achievements from your pull requests.
+          Connect your GitHub repositories to automatically generate
+          Achievements from your pull requests.
         </p>
       </div>
 
@@ -33,8 +41,8 @@ export default async function GitHubSettingsPage() {
         <CardHeader>
           <CardTitle>Connected Repositories</CardTitle>
           <CardDescription>
-            Select repositories to sync. Free accounts can connect one repository,
-            while Pro accounts can connect unlimited repositories.
+            Select repositories to sync. Free accounts can connect one
+            repository, while Pro accounts can connect unlimited repositories.
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -46,7 +54,9 @@ export default async function GitHubSettingsPage() {
               >
                 <div className="flex items-center gap-2">
                   <span>{repo.fullName}</span>
-                  {repo.private && <Lock className="size-4 text-muted-foreground" />}
+                  {repo.private && (
+                    <Lock className="size-4 text-muted-foreground" />
+                  )}
                 </div>
                 <div className="flex items-center gap-2">
                   <SyncRepositoryButton repositoryId={repo.id} />

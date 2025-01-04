@@ -1,7 +1,7 @@
-import { Check } from "lucide-react"
+import { Check } from 'lucide-react';
 
 export function AchievementAction({ action }: { action: any }) {
-  const {achievements} = action
+  const { achievements } = action;
 
   if (!achievements || achievements.length === 0) {
     return null;
@@ -16,7 +16,7 @@ export function AchievementAction({ action }: { action: any }) {
   );
 }
 
-export function AchievementCreated({achievement}: {achievement: any}) {
+export function AchievementCreated({ achievement }: { achievement: any }) {
   return (
     <div className="flex flex-col gap-1 rounded-lg border border-gray-200 bg-gray-50 p-4 dark:border-gray-800 dark:bg-gray-900">
       <div className="flex items-center gap-2">

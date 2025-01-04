@@ -1,4 +1,4 @@
-import Link from "next/link"
+import Link from 'next/link';
 
 export function Footer() {
   return (
@@ -9,12 +9,18 @@ export function Footer() {
             <h3 className="text-lg font-semibold">Product</h3>
             <ul className="mt-4 space-y-2">
               <li>
-                <Link href="/features" className="text-sm text-muted-foreground hover:text-foreground">
+                <Link
+                  href="/features"
+                  className="text-sm text-muted-foreground hover:text-foreground"
+                >
                   Features
                 </Link>
               </li>
               <li>
-                <Link href="/pricing" className="text-sm text-muted-foreground hover:text-foreground">
+                <Link
+                  href="/pricing"
+                  className="text-sm text-muted-foreground hover:text-foreground"
+                >
                   Pricing
                 </Link>
               </li>
@@ -24,12 +30,18 @@ export function Footer() {
             <h3 className="text-lg font-semibold">Company</h3>
             <ul className="mt-4 space-y-2">
               <li>
-                <Link href="/about" className="text-sm text-muted-foreground hover:text-foreground">
+                <Link
+                  href="/about"
+                  className="text-sm text-muted-foreground hover:text-foreground"
+                >
                   About
                 </Link>
               </li>
               <li>
-                <Link href="/blog" className="text-sm text-muted-foreground hover:text-foreground">
+                <Link
+                  href="/blog"
+                  className="text-sm text-muted-foreground hover:text-foreground"
+                >
                   Blog
                 </Link>
               </li>
@@ -39,12 +51,18 @@ export function Footer() {
             <h3 className="text-lg font-semibold">Legal</h3>
             <ul className="mt-4 space-y-2">
               <li>
-                <Link href="/privacy" className="text-sm text-muted-foreground hover:text-foreground">
+                <Link
+                  href="/privacy"
+                  className="text-sm text-muted-foreground hover:text-foreground"
+                >
                   Privacy
                 </Link>
               </li>
               <li>
-                <Link href="/terms" className="text-sm text-muted-foreground hover:text-foreground">
+                <Link
+                  href="/terms"
+                  className="text-sm text-muted-foreground hover:text-foreground"
+                >
                   Terms
                 </Link>
               </li>
@@ -54,12 +72,18 @@ export function Footer() {
             <h3 className="text-lg font-semibold">Connect</h3>
             <ul className="mt-4 space-y-2">
               <li>
-                <Link href="https://twitter.com/bragai" className="text-sm text-muted-foreground hover:text-foreground">
+                <Link
+                  href="https://twitter.com/bragai"
+                  className="text-sm text-muted-foreground hover:text-foreground"
+                >
                   Twitter
                 </Link>
               </li>
               <li>
-                <Link href="https://github.com/bragai" className="text-sm text-muted-foreground hover:text-foreground">
+                <Link
+                  href="https://github.com/bragai"
+                  className="text-sm text-muted-foreground hover:text-foreground"
+                >
                   GitHub
                 </Link>
               </li>
@@ -73,5 +97,5 @@ export function Footer() {
         </div>
       </div>
     </footer>
-  )
+  );
 }

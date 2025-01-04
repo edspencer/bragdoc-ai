@@ -2,7 +2,12 @@ import { format } from 'date-fns';
 import { MoreHorizontal, Calendar, Building2, FolderGit2 } from 'lucide-react';
 import type { Achievement } from '@/lib/types/achievement';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card';
+import {
+  Card,
+  CardContent,
+  CardFooter,
+  CardHeader,
+} from '@/components/ui/card';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -75,9 +80,7 @@ export function AchievementCard({
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
               {onEdit && (
-                <DropdownMenuItem onClick={onEdit}>
-                  Edit
-                </DropdownMenuItem>
+                <DropdownMenuItem onClick={onEdit}>Edit</DropdownMenuItem>
               )}
               {onArchive && (
                 <DropdownMenuItem onClick={onArchive}>

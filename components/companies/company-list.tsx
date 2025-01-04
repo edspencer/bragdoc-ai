@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 import {
   Table,
@@ -7,17 +7,17 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/components/ui/table";
-import { Button } from "@/components/ui/button";
-import { PlusIcon } from "@radix-ui/react-icons";
-import { format } from "date-fns";
-import { CompanyActions } from "./company-actions";
-import { CompanyDialog } from "./company-dialog";
-import { CompanyListSkeleton } from "./company-list-skeleton";
-import { useState } from "react";
-import type { CompanyFormData } from "./company-form";
-import { motion } from "framer-motion";
-import type { Company } from "@/lib/db/schema";
+} from '@/components/ui/table';
+import { Button } from '@/components/ui/button';
+import { PlusIcon } from '@radix-ui/react-icons';
+import { format } from 'date-fns';
+import { CompanyActions } from './company-actions';
+import { CompanyDialog } from './company-dialog';
+import { CompanyListSkeleton } from './company-list-skeleton';
+import { useState } from 'react';
+import type { CompanyFormData } from './company-form';
+import { motion } from 'framer-motion';
+import type { Company } from '@/lib/db/schema';
 
 interface CompanyListProps {
   companies: Company[];
@@ -42,9 +42,11 @@ export function CompanyList({
   }
 
   const sortedCompanies = [...companies].sort((a, b) => {
-    const startDateA = a.startDate instanceof Date ? a.startDate : new Date(a.startDate);
-    const startDateB = b.startDate instanceof Date ? b.startDate : new Date(b.startDate);
-    
+    const startDateA =
+      a.startDate instanceof Date ? a.startDate : new Date(a.startDate);
+    const startDateB =
+      b.startDate instanceof Date ? b.startDate : new Date(b.startDate);
+
     return startDateB.getTime() - startDateA.getTime();
   });
 
@@ -141,11 +143,11 @@ export function CompanyList({
                   </div>
                 </TableCell>
                 <TableCell>{company.role}</TableCell>
-                <TableCell>{format(company.startDate, "MMM yyyy")}</TableCell>
+                <TableCell>{format(company.startDate, 'MMM yyyy')}</TableCell>
                 <TableCell>
                   {company.endDate
-                    ? format(company.endDate, "MMM yyyy")
-                    : "Present"}
+                    ? format(company.endDate, 'MMM yyyy')
+                    : 'Present'}
                 </TableCell>
                 <TableCell>
                   <CompanyActions

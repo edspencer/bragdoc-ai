@@ -1,23 +1,57 @@
-import { streamObject, } from 'ai';
-import {google } from '@ai-sdk/google';
+import { streamObject } from 'ai';
+import { google } from '@ai-sdk/google';
 import { z } from 'zod';
 import type { Achievement } from '../db/schema';
 
 // Schema for validating LLM response
 const achievementResponseSchema = z.object({
-  title: z.string().min(1, "Title must be at least 1 character").describe("A concise title for the achievement"),
-  summary: z.string().describe("A brief summary of the achievement").optional(),
-  details: z.string().describe("Additional details about the achievement").optional(),
-  eventStart: z.string().describe("The start date of the event or achievement. Fill this if the user mentions a date").optional(),
-  eventEnd: z.string().nullable().describe("The end date of the event or achievement. This is less important than eventStart").optional(),
-  eventDuration: z.enum(['day', 'week', 'month', 'quarter', 'half year', 'year']).describe("The duration of the achievement"),
-  companyId: z.string().nullable().describe("The ID of the company this achievement is associated with (null if not specified)"),
-  projectId: z.string().nullable().describe("The ID of the project this achievement is associated with (null if not specified)"),
-  impact: z.number().min(1).max(3).describe("Impact level of the achievement (1: Low, 2: Medium, 3: High)").default(2)
-})
+  title: z
+    .string()
+    .min(1, 'Title must be at least 1 character')
+    .describe('A concise title for the achievement'),
+  summary: z.string().describe('A brief summary of the achievement').optional(),
+  details: z
+    .string()
+    .describe('Additional details about the achievement')
+    .optional(),
+  eventStart: z
+    .string()
+    .describe(
+      'The start date of the event or achievement. Fill this if the user mentions a date',
+    )
+    .optional(),
+  eventEnd: z
+    .string()
+    .nullable()
+    .describe(
+      'The end date of the event or achievement. This is less important than eventStart',
+    )
+    .optional(),
+  eventDuration: z
+    .enum(['day', 'week', 'month', 'quarter', 'half year', 'year'])
+    .describe('The duration of the achievement'),
+  companyId: z
+    .string()
+    .nullable()
+    .describe(
+      'The ID of the company this achievement is associated with (null if not specified)',
+    ),
+  projectId: z
+    .string()
+    .nullable()
+    .describe(
+      'The ID of the project this achievement is associated with (null if not specified)',
+    ),
+  impact: z
+    .number()
+    .min(1)
+    .max(3)
+    .describe('Impact level of the achievement (1: Low, 2: Medium, 3: High)')
+    .default(2),
+});
 
 export type ChatMessage = {
-  role: "user" | "assistant" | "system" | "data";
+  role: 'user' | 'assistant' | 'system' | 'data';
   content: string;
 };
 
@@ -44,46 +78,59 @@ export type ExtractAchievementsInput = {
   };
 };
 
-export type ExtractedAchievement = Pick<Achievement, 
-  'title' | 'summary' | 'details' | 'eventDuration' | 
-  'eventStart' | 'eventEnd' | 'companyId' | 'projectId' |
-  'impact' | 'impactSource' | 'impactUpdatedAt'
+export type ExtractedAchievement = Pick<
+  Achievement,
+  | 'title'
+  | 'summary'
+  | 'details'
+  | 'eventDuration'
+  | 'eventStart'
+  | 'eventEnd'
+  | 'companyId'
+  | 'projectId'
+  | 'impact'
+  | 'impactSource'
+  | 'impactUpdatedAt'
 > & {
   suggestNewProject?: boolean;
 };
 
 export async function* extractAchievements(
-  input: ExtractAchievementsInput
+  input: ExtractAchievementsInput,
 ): AsyncGenerator<ExtractedAchievement, void, unknown> {
   const chatStr = input.chat_history
     .map(({ role, content }) => `${role}: ${content}`)
-    .join("\n");
+    .join('\n');
 
   const companiesStr = input.context.companies
     .map(
       (company) => `
 Name: ${company.name} (ID: ${company.id})
 Role: ${company.role}
-Domain: ${company.domain || "N/A"}
+Domain: ${company.domain || 'N/A'}
 Start Date: ${company.startDate}
-End Date: ${company.endDate || "Present"}
-    `
+End Date: ${company.endDate || 'Present'}
+    `,
     )
-    .join("\n");
+    .join('\n');
 
   const projectsStr = input.context.projects
     .map(
       (project) => `
 Name: ${project.name} (ID: ${project.id})
-Company: ${project.companyId || "N/A"}
+Company: ${project.companyId || 'N/A'}
 Description: ${project.description}
-Start Date: ${project.startDate || "N/A"}
-End Date: ${project.endDate || "N/A"}
-    `
+Start Date: ${project.startDate || 'N/A'}
+End Date: ${project.endDate || 'N/A'}
+    `,
     )
-    .join("\n");
+    .join('\n');
 
-  const today = new Intl.DateTimeFormat('en-US', { day: 'numeric', month: 'long', year: 'numeric' }).format(new Date())
+  const today = new Intl.DateTimeFormat('en-US', {
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric',
+  }).format(new Date());
 
   const prompt = `Extract all achievements from the following user message. Consider the chat history and context to understand the full scope of each achievement. Pay special attention to:
 1. Recent updates or progress reports
@@ -132,23 +179,23 @@ Each achievement should be complete and self-contained.
 
 Today's date is ${today}.`;
 
-console.log(prompt)
+  console.log(prompt);
 
-  const {elementStream} = await streamObject({
+  const { elementStream } = await streamObject({
     // model: customModel("gpt-4o"),
     // model: google('gemini-2-flash'),
     model: google('gemini-2.0-flash-exp'),
     prompt,
     temperature: 0.5,
     output: 'array',
-    schema: achievementResponseSchema
+    schema: achievementResponseSchema,
   });
-  
+
   for await (const element of elementStream) {
     yield {
       title: element.title,
-      summary: element.summary || "",
-      details: element.details || "",
+      summary: element.summary || '',
+      details: element.details || '',
       eventDuration: element.eventDuration,
       eventStart: element.eventStart ? new Date(element.eventStart) : null,
       eventEnd: element.eventEnd ? new Date(element.eventEnd) : null,

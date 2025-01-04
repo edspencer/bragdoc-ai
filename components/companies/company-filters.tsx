@@ -1,18 +1,18 @@
-"use client";
-import { Input } from "@/components/ui/input";
+'use client';
+import { Input } from '@/components/ui/input';
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
-import { MagnifyingGlassIcon } from "@radix-ui/react-icons";
-import { motion } from "framer-motion";
+} from '@/components/ui/select';
+import { MagnifyingGlassIcon } from '@radix-ui/react-icons';
+import { motion } from 'framer-motion';
 
 interface CompanyFiltersProps {
-  filter: "all" | "current" | "past";
-  onFilterChange: (value: "all" | "current" | "past") => void;
+  filter: 'all' | 'current' | 'past';
+  onFilterChange: (value: 'all' | 'current' | 'past') => void;
   searchQuery: string;
   onSearchChange: (value: string) => void;
 }

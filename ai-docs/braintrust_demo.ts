@@ -1,8 +1,8 @@
-import { wrapAISDKModel, Eval } from "braintrust";
-import { openai } from "@ai-sdk/openai";
-import { generateText } from "ai";
+import { wrapAISDKModel, Eval } from 'braintrust';
+import { openai } from '@ai-sdk/openai';
+import { generateText } from 'ai';
 
-import dataset, { type ChatTurn } from "./datasets";
+import dataset, { type ChatTurn } from './datasets';
 
 const experimentData = dataset.map((data) => ({
   input: { input: data.input, chat_history: data.chat_history },
@@ -10,21 +10,24 @@ const experimentData = dataset.map((data) => ({
 }));
 console.log(experimentData[0]);
 
-async function runTask({ input, chat_history }: { input: string; chat_history: ChatTurn[] }) {
-  const model = wrapAISDKModel(openai.chat("gpt-4o"));
+async function runTask({
+  input,
+  chat_history,
+}: { input: string; chat_history: ChatTurn[] }) {
+  const model = wrapAISDKModel(openai.chat('gpt-4o'));
 
   const prompt = [
     {
-      role: "system",
-      content: "You are a helpful and polite assistant who knows about sports.",
+      role: 'system',
+      content: 'You are a helpful and polite assistant who knows about sports.',
     },
     ...(chat_history.map(({ role, content }) => ({
       role,
-      content: [{ type: "text", text: content }],
+      content: [{ type: 'text', text: content }],
     })) as any),
     {
-      role: "user",
-      content: [{ type: "text", text: input }],
+      role: 'user',
+      content: [{ type: 'text', text: input }],
     },
   ];
 
@@ -35,22 +38,22 @@ async function runTask({ input, chat_history }: { input: string; chat_history: C
     messages: prompt,
   });
 
-  return text || "";
+  return text || '';
 }
 
-Eval("Chat assistant", {
-  experimentName: "gpt-4o assistant - no history",
+Eval('Chat assistant', {
+  experimentName: 'gpt-4o assistant - no history',
   data: () => experimentData,
   task: runTask,
   scores: [Factual],
   trialCount: 3,
   metadata: {
-    model: "gpt-4o",
-    prompt: "You are a helpful and polite assistant who knows about sports.",
+    model: 'gpt-4o',
+    prompt: 'You are a helpful and polite assistant who knows about sports.',
   },
 });
 
-import { LLMClassifierFromSpec, type Score } from "autoevals";
+import { LLMClassifierFromSpec, type Score } from 'autoevals';
 
 function Factual(args: {
   input: {
@@ -60,7 +63,7 @@ function Factual(args: {
   output: string;
   expected: string;
 }): Score | Promise<Score> {
-  const factualityScorer = LLMClassifierFromSpec("Factuality", {
+  const factualityScorer = LLMClassifierFromSpec('Factuality', {
     prompt: `You are comparing a submitted answer to an expert answer on a given question. Here is the data:
               [BEGIN DATA]
               ************

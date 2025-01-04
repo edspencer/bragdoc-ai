@@ -41,7 +41,7 @@ export function useProjectFilters() {
         return true;
       });
     },
-    [status, companyId, searchQuery]
+    [status, companyId, searchQuery],
   );
 
   const updateSearchParams = useCallback((params: Record<string, string>) => {
@@ -56,23 +56,41 @@ export function useProjectFilters() {
     window.history.pushState({}, '', url);
   }, []);
 
-  const handleStatusChange = useCallback((value: ProjectStatus | 'all') => {
-    setLoading((prev) => ({ ...prev, status: true }));
-    updateSearchParams({ ...Object.fromEntries(searchParams.entries()), status: value });
-    setLoading((prev) => ({ ...prev, status: false }));
-  }, [searchParams, updateSearchParams]);
+  const handleStatusChange = useCallback(
+    (value: ProjectStatus | 'all') => {
+      setLoading((prev) => ({ ...prev, status: true }));
+      updateSearchParams({
+        ...Object.fromEntries(searchParams.entries()),
+        status: value,
+      });
+      setLoading((prev) => ({ ...prev, status: false }));
+    },
+    [searchParams, updateSearchParams],
+  );
 
-  const handleCompanyChange = useCallback((value: string) => {
-    setLoading((prev) => ({ ...prev, company: true }));
-    updateSearchParams({ ...Object.fromEntries(searchParams.entries()), company: value });
-    setLoading((prev) => ({ ...prev, company: false }));
-  }, [searchParams, updateSearchParams]);
+  const handleCompanyChange = useCallback(
+    (value: string) => {
+      setLoading((prev) => ({ ...prev, company: true }));
+      updateSearchParams({
+        ...Object.fromEntries(searchParams.entries()),
+        company: value,
+      });
+      setLoading((prev) => ({ ...prev, company: false }));
+    },
+    [searchParams, updateSearchParams],
+  );
 
-  const handleSearchChange = useCallback((value: string) => {
-    setLoading((prev) => ({ ...prev, search: true }));
-    updateSearchParams({ ...Object.fromEntries(searchParams.entries()), search: value });
-    setLoading((prev) => ({ ...prev, search: false }));
-  }, [searchParams, updateSearchParams]);
+  const handleSearchChange = useCallback(
+    (value: string) => {
+      setLoading((prev) => ({ ...prev, search: true }));
+      updateSearchParams({
+        ...Object.fromEntries(searchParams.entries()),
+        search: value,
+      });
+      setLoading((prev) => ({ ...prev, search: false }));
+    },
+    [searchParams, updateSearchParams],
+  );
 
   const handleReset = useCallback(() => {
     setLoading({ status: true, company: true, search: true });

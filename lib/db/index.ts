@@ -10,9 +10,10 @@ if (process.env.NODE_ENV === 'test') {
 }
 
 // Use test database URL in test environment
-export const dbUrl = process.env.NODE_ENV === 'test' 
-  ? (process.env.TEST_POSTGRES_URL || 'postgres://localhost:5432/bragai-test')
-  : process.env.POSTGRES_URL!;
+export const dbUrl =
+  process.env.NODE_ENV === 'test'
+    ? process.env.TEST_POSTGRES_URL || 'postgres://localhost:5432/bragai-test'
+    : process.env.POSTGRES_URL!;
 
 if (!dbUrl) {
   throw new Error('Database connection string not found');

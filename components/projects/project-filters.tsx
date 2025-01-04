@@ -1,22 +1,19 @@
-"use client";
+'use client';
 
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
-import {
-  MagnifyingGlassIcon,
-  ResetIcon,
-} from "@radix-ui/react-icons";
-import { motion } from "framer-motion";
-import type { ProjectStatus } from "@/lib/db/types";
-import { cn } from "@/lib/utils";
-import { Loader2Icon } from "lucide-react";
+} from '@/components/ui/select';
+import { MagnifyingGlassIcon, ResetIcon } from '@radix-ui/react-icons';
+import { motion } from 'framer-motion';
+import type { ProjectStatus } from '@/lib/db/types';
+import { cn } from '@/lib/utils';
+import { Loader2Icon } from 'lucide-react';
 
 interface Company {
   id: string;
@@ -24,9 +21,9 @@ interface Company {
 }
 
 interface ProjectFiltersProps {
-  status: ProjectStatus | "all";
-  onStatusChange: (value: ProjectStatus | "all") => void;
-  companyId: string | "all";
+  status: ProjectStatus | 'all';
+  onStatusChange: (value: ProjectStatus | 'all') => void;
+  companyId: string | 'all';
   onCompanyChange: (value: string) => void;
   searchQuery: string;
   onSearchChange: (value: string) => void;
@@ -39,11 +36,11 @@ interface ProjectFiltersProps {
   };
 }
 
-const statusOptions: { value: ProjectStatus | "all"; label: string }[] = [
-  { value: "all", label: "All Projects" },
-  { value: "active", label: "Active Projects" },
-  { value: "completed", label: "Completed Projects" },
-  { value: "archived", label: "Archived Projects" },
+const statusOptions: { value: ProjectStatus | 'all'; label: string }[] = [
+  { value: 'all', label: 'All Projects' },
+  { value: 'active', label: 'Active Projects' },
+  { value: 'completed', label: 'Completed Projects' },
+  { value: 'archived', label: 'Archived Projects' },
 ];
 
 export function ProjectFilters({
@@ -62,7 +59,7 @@ export function ProjectFilters({
   },
 }: ProjectFiltersProps) {
   const hasFilters =
-    status !== "all" || companyId !== "all" || searchQuery.length > 0;
+    status !== 'all' || companyId !== 'all' || searchQuery.length > 0;
 
   const isLoading = loading.status || loading.company || loading.search;
 
@@ -79,10 +76,9 @@ export function ProjectFilters({
           onValueChange={onStatusChange}
           disabled={loading.status}
         >
-          <SelectTrigger className={cn(
-            "w-[180px]",
-            loading.status && "opacity-70"
-          )}>
+          <SelectTrigger
+            className={cn('w-[180px]', loading.status && 'opacity-70')}
+          >
             <SelectValue placeholder="Filter by status" />
             {loading.status && (
               <Loader2Icon className="ml-2 size-4 animate-spin" />
@@ -102,10 +98,9 @@ export function ProjectFilters({
           onValueChange={onCompanyChange}
           disabled={loading.company}
         >
-          <SelectTrigger className={cn(
-            "w-[180px]",
-            loading.company && "opacity-70"
-          )}>
+          <SelectTrigger
+            className={cn('w-[180px]', loading.company && 'opacity-70')}
+          >
             <SelectValue placeholder="Filter by company" />
             {loading.company && (
               <Loader2Icon className="ml-2 size-4 animate-spin" />
@@ -132,10 +127,7 @@ export function ProjectFilters({
               size="sm"
               onClick={onReset}
               disabled={isLoading}
-              className={cn(
-                "h-8 px-2 lg:px-3",
-                isLoading && "opacity-70"
-              )}
+              className={cn('h-8 px-2 lg:px-3', isLoading && 'opacity-70')}
             >
               {isLoading ? (
                 <Loader2Icon className="mr-2 size-4 animate-spin" />
@@ -154,10 +146,12 @@ export function ProjectFilters({
         transition={{ duration: 0.3, delay: 0.1 }}
         className="relative"
       >
-        <MagnifyingGlassIcon className={cn(
-          "absolute left-2.5 top-2.5 size-4 text-muted-foreground",
-          loading.search && "opacity-70"
-        )} />
+        <MagnifyingGlassIcon
+          className={cn(
+            'absolute left-2.5 top-2.5 size-4 text-muted-foreground',
+            loading.search && 'opacity-70',
+          )}
+        />
         <Input
           type="search"
           placeholder="Search projects..."
@@ -165,10 +159,10 @@ export function ProjectFilters({
           onChange={(e) => onSearchChange(e.target.value)}
           disabled={loading.search}
           className={cn(
-            "pl-8 transition-shadow duration-200",
-            "w-full sm:w-[250px]",
-            "focus-visible:ring-2 focus-visible:ring-primary",
-            loading.search && "opacity-70"
+            'pl-8 transition-shadow duration-200',
+            'w-full sm:w-[250px]',
+            'focus-visible:ring-2 focus-visible:ring-primary',
+            loading.search && 'opacity-70',
           )}
         />
         {loading.search && (

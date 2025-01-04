@@ -1,15 +1,15 @@
-import dotenv from "dotenv";
+import dotenv from 'dotenv';
 
 dotenv.config();
 
 // createStripeData.ts
-import Stripe from "stripe";
+import Stripe from 'stripe';
 
 export const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string, {
   // https://github.com/stripe/stripe-node#configuration
   appInfo: {
-    name: "bragdoc.ai",
-    url: "https://bragdoc.ai",
+    name: 'bragdoc.ai',
+    url: 'https://bragdoc.ai',
   },
 });
 
@@ -33,7 +33,7 @@ interface PriceInput {
 
 // Products from CSV (omitting date, description, and URL):
 const products: ProductInput[] = [
-  { id: 'bragger_pro', name: 'Pro Bragger',  tax_code: 'txcd_10000000' },
+  { id: 'bragger_pro', name: 'Pro Bragger', tax_code: 'txcd_10000000' },
   { id: 'bragger_basic', name: 'Basic Bragger', tax_code: 'txcd_10000000' },
 ];
 
@@ -85,11 +85,15 @@ const prices: PriceInput[] = [
   },
 ];
 
-const REDIRECT_URL = process.env.NODE_ENV === 'production' 
-  ? 'https://bragdoc.ai/chat' 
-  : 'https://ngrok.edspencer.net/chat';
+const REDIRECT_URL =
+  process.env.NODE_ENV === 'production'
+    ? 'https://bragdoc.ai/chat'
+    : 'https://ngrok.edspencer.net/chat';
 
-async function createPaymentLinkForPrice(priceId: string, redirectUrl: string): Promise<string> {
+async function createPaymentLinkForPrice(
+  priceId: string,
+  redirectUrl: string,
+): Promise<string> {
   const paymentLink = await stripe.paymentLinks.create({
     line_items: [{ price: priceId, quantity: 1 }],
     after_completion: {
@@ -98,7 +102,7 @@ async function createPaymentLinkForPrice(priceId: string, redirectUrl: string): 
     },
     tax_id_collection: { enabled: true },
   });
-  
+
   return paymentLink.url;
 }
 
@@ -115,7 +119,9 @@ async function createProductsAndPrices() {
 
   // Create prices
   for (const price of prices) {
-    console.log(`Creating price: ${price.lookupKey} for product ${price.productId}`);
+    console.log(
+      `Creating price: ${price.lookupKey} for product ${price.productId}`,
+    );
     const stripePrice = await stripe.prices.create({
       product: price.productId,
       lookup_key: price.lookupKey,
@@ -153,25 +159,25 @@ async function deleteProduct(productId: string) {
     });
 
     // Delete payment links that use any of this product's prices
-    const priceIds = new Set(prices.data.map(price => price.id));
-    const relevantPaymentLinks = paymentLinks.data.filter(link => 
-      link.line_items?.data.some(item => 
-        item.price && priceIds.has(item.price.id)
-      )
+    const priceIds = new Set(prices.data.map((price) => price.id));
+    const relevantPaymentLinks = paymentLinks.data.filter((link) =>
+      link.line_items?.data.some(
+        (item) => item.price && priceIds.has(item.price.id),
+      ),
     );
 
     //delete prices
     for (const price of prices.data) {
       console.log(`Deleting price: ${price.id}`);
       await stripe.prices.update(price.id, {
-        active: false
+        active: false,
       });
     }
 
     for (const link of relevantPaymentLinks) {
       console.log(`Deactivating payment link: ${link.id}`);
       await stripe.paymentLinks.update(link.id, {
-        active: false
+        active: false,
       });
     }
 
@@ -179,7 +185,9 @@ async function deleteProduct(productId: string) {
     console.log(`Deleting product: ${productId}`);
     await stripe.products.del(productId);
 
-    console.log(`Successfully deleted product ${productId} and all associated resources`);
+    console.log(
+      `Successfully deleted product ${productId} and all associated resources`,
+    );
   } catch (error) {
     console.error(`Error deleting product ${productId}:`, error);
     throw error;

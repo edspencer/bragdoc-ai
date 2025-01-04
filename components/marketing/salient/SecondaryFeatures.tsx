@@ -1,11 +1,11 @@
-'use client'
+'use client';
 
-import { useId } from 'react'
-import Image from 'next/image'
-import { Tab } from '@headlessui/react'
-import clsx from 'clsx'
+import { useId } from 'react';
+import Image from 'next/image';
+import { Tab } from '@headlessui/react';
+import clsx from 'clsx';
 
-import { Container } from './Container'
+import { Container } from './Container';
 
 const features = [
   {
@@ -15,7 +15,7 @@ const features = [
       'Stay on top of your accomplishments with automated weekly summaries. Perfect for team meetings and progress tracking.',
     image: '/images/screenshots/profit-loss.png',
     icon: function ReportingIcon() {
-      const id = useId()
+      const id = useId();
       return (
         <>
           <defs>
@@ -39,7 +39,7 @@ const features = [
             strokeLinejoin="round"
           />
         </>
-      )
+      );
     },
   },
   {
@@ -67,13 +67,12 @@ const features = [
             fill="#fff"
           />
         </>
-      )
+      );
     },
   },
   {
     name: 'Export & Share',
-    summary:
-      'Export your achievements in multiple formats or share directly.',
+    summary: 'Export your achievements in multiple formats or share directly.',
     description:
       'Generate professional documents for performance reviews, job applications, or team updates. Share your achievements directly with your manager or team.',
     image: '/images/screenshots/contacts.png',
@@ -90,10 +89,10 @@ const features = [
             fill="#fff"
           />
         </>
-      )
+      );
     },
   },
-]
+];
 
 function Feature({ feature, isActive, className, ...props }: any) {
   return (
@@ -104,7 +103,9 @@ function Feature({ feature, isActive, className, ...props }: any) {
       <div
         className={clsx(
           'w-9 rounded-lg',
-          isActive ? 'bg-blue-600 dark:bg-blue-500' : 'bg-slate-500 dark:bg-slate-600'
+          isActive
+            ? 'bg-blue-600 dark:bg-blue-500'
+            : 'bg-slate-500 dark:bg-slate-600',
         )}
       >
         <svg aria-hidden="true" className="size-9" fill="none">
@@ -114,7 +115,9 @@ function Feature({ feature, isActive, className, ...props }: any) {
       <h3
         className={clsx(
           'mt-6 text-sm font-medium',
-          isActive ? 'text-blue-600 dark:text-blue-400' : 'text-slate-600 dark:text-slate-400'
+          isActive
+            ? 'text-blue-600 dark:text-blue-400'
+            : 'text-slate-600 dark:text-slate-400',
         )}
       >
         {feature.name}
@@ -122,9 +125,11 @@ function Feature({ feature, isActive, className, ...props }: any) {
       <p className="mt-2 font-display text-xl text-slate-900 dark:text-white">
         {feature.summary}
       </p>
-      <p className="mt-4 text-sm text-slate-600 dark:text-slate-400">{feature.description}</p>
+      <p className="mt-4 text-sm text-slate-600 dark:text-slate-400">
+        {feature.description}
+      </p>
     </div>
-  )
+  );
 }
 
 function FeaturesMobile() {
@@ -149,7 +154,7 @@ function FeaturesMobile() {
         </div>
       ))}
     </div>
-  )
+  );
 }
 
 function FeaturesDesktop() {
@@ -183,7 +188,7 @@ function FeaturesDesktop() {
                   key={feature.name}
                   className={clsx(
                     'px-5 transition duration-500 ease-in-out ui-not-focus-visible:outline-none',
-                    featureIndex !== selectedIndex && 'opacity-60'
+                    featureIndex !== selectedIndex && 'opacity-60',
                   )}
                   style={{ transform: `translateX(-${selectedIndex * 100}%)` }}
                   aria-hidden={featureIndex !== selectedIndex}
@@ -205,7 +210,7 @@ function FeaturesDesktop() {
         </>
       )}
     </Tab.Group>
-  )
+  );
 }
 
 export function SecondaryFeatures() {
@@ -221,12 +226,13 @@ export function SecondaryFeatures() {
             Build your career story
           </h2>
           <p className="mt-4 text-lg tracking-tight text-slate-700 dark:text-slate-300">
-            bragdoc.ai helps you capture and organize your achievements, making it easy to showcase your impact and growth.
+            bragdoc.ai helps you capture and organize your achievements, making
+            it easy to showcase your impact and growth.
           </p>
         </div>
         <FeaturesMobile />
         <FeaturesDesktop />
       </Container>
     </section>
-  )
+  );
 }

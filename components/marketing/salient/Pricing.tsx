@@ -43,14 +43,14 @@ function Plan({
     <section
       className={clsx(
         'flex flex-col rounded-3xl px-6 sm:px-8',
-        featured ? 'order-first bg-blue-600 py-8 lg:order-none' : 'lg:py-8'
+        featured ? 'order-first bg-blue-600 py-8 lg:order-none' : 'lg:py-8',
       )}
     >
       <h3 className="mt-5 font-display text-lg text-white">{name}</h3>
       <p
         className={clsx(
           'mt-2 text-base',
-          featured ? 'text-white' : 'text-slate-400'
+          featured ? 'text-white' : 'text-slate-400',
         )}
       >
         {description}
@@ -61,7 +61,7 @@ function Plan({
       <ul
         className={clsx(
           'order-last mt-10 flex flex-col gap-y-3 text-sm',
-          featured ? 'text-white' : 'text-slate-200'
+          featured ? 'text-white' : 'text-slate-200',
         )}
       >
         {features.map((feature: string) => (
@@ -69,7 +69,7 @@ function Plan({
             <CheckIcon
               className={clsx(
                 'size-6 flex-none',
-                featured ? 'text-white' : 'text-slate-400'
+                featured ? 'text-white' : 'text-slate-400',
               )}
             />
             <span className="ml-4">{feature}</span>
@@ -91,7 +91,7 @@ function Plan({
 
 export function Pricing() {
   const [activePeriod, setActivePeriod] = useState<'Monthly' | 'Yearly'>(
-    'Monthly'
+    'Monthly',
   );
 
   return (
@@ -145,7 +145,7 @@ export function Pricing() {
                       'focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500',
                       checked
                         ? 'bg-blue-600 text-white'
-                        : 'text-slate-300 hover:bg-slate-700'
+                        : 'text-slate-300 hover:bg-slate-700',
                     )
                   }
                 >

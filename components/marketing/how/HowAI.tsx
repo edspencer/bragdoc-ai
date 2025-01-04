@@ -56,8 +56,8 @@ export function HowAI() {
             Powered by Advanced AI
           </h2>
           <p className="mt-4 text-lg tracking-tight text-slate-700 dark:text-slate-300">
-            Our AI assistant makes it effortless to capture, enhance, and leverage
-            your achievements for career growth.
+            Our AI assistant makes it effortless to capture, enhance, and
+            leverage your achievements for career growth.
           </p>
         </div>
         <div className="mx-auto mt-16 max-w-7xl">

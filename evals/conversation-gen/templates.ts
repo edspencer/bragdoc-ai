@@ -1,5 +1,3 @@
-
-
 export const SCENARIO_TEMPLATES = {
   MULTI_COMPANY: {
     description: 'Professional working at multiple companies simultaneously',

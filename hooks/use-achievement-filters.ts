@@ -6,14 +6,17 @@ interface UseAchievementFiltersOptions {
   onChange?: (filters: Partial<AchievementFilters>) => void;
 }
 
-export function useAchievementFilters(options: UseAchievementFiltersOptions = {}) {
+export function useAchievementFilters(
+  options: UseAchievementFiltersOptions = {},
+) {
   const { initialFilters = {}, onChange } = options;
-  const [filters, setFilters] = useState<Partial<AchievementFilters>>(initialFilters);
+  const [filters, setFilters] =
+    useState<Partial<AchievementFilters>>(initialFilters);
 
   const setFilter = useCallback(
     <K extends keyof AchievementFilters>(
       key: K,
-      value: AchievementFilters[K] | undefined
+      value: AchievementFilters[K] | undefined,
     ) => {
       const newFilters = {
         ...filters,
@@ -30,7 +33,7 @@ export function useAchievementFilters(options: UseAchievementFiltersOptions = {}
       setFilters(newFilters);
       onChange?.(newFilters);
     },
-    [filters, onChange]
+    [filters, onChange],
   );
 
   const clearFilters = useCallback(() => {
@@ -40,7 +43,7 @@ export function useAchievementFilters(options: UseAchievementFiltersOptions = {}
 
   const hasActiveFilters = useMemo(
     () => Object.keys(filters).length > 0,
-    [filters]
+    [filters],
   );
 
   return {

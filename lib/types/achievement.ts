@@ -1,5 +1,10 @@
 import type { InferSelectModel } from 'drizzle-orm';
-import type { achievement, company, project, userMessage } from '@/lib/db/schema';
+import type {
+  achievement,
+  company,
+  project,
+  userMessage,
+} from '@/lib/db/schema';
 
 // Export base type from Drizzle schema
 export type Achievement = InferSelectModel<typeof achievement>;
@@ -24,10 +29,13 @@ export const EventDuration = {
   Year: 'year',
 } as const;
 
-export type EventDuration = typeof EventDuration[keyof typeof EventDuration];
+export type EventDuration = (typeof EventDuration)[keyof typeof EventDuration];
 
 // API request types
-export type CreateAchievementRequest = Omit<Achievement, 'id' | 'userId' | 'createdAt' | 'updatedAt'>;
+export type CreateAchievementRequest = Omit<
+  Achievement,
+  'id' | 'userId' | 'createdAt' | 'updatedAt'
+>;
 export type UpdateAchievementRequest = Partial<CreateAchievementRequest>;
 
 // Form type

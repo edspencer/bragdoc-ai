@@ -7,7 +7,7 @@ import {
   PUT as updateProject,
   DELETE as deleteProject,
 } from '@/app/api/projects/[id]/route';
-import { eq } from 'drizzle-orm'
+import { eq } from 'drizzle-orm';
 
 // Mock auth
 jest.mock('@/app/(auth)/auth', () => ({
@@ -91,11 +91,13 @@ describe('Project API Routes', () => {
         user: { id: testUser.id },
       });
 
-      const response = await POST(new Request('http://localhost/api/projects', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(newProject),
-      }));
+      const response = await POST(
+        new Request('http://localhost/api/projects', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(newProject),
+        }),
+      );
 
       const data = await response.json();
       expect(response.status).toBe(201);
@@ -108,13 +110,15 @@ describe('Project API Routes', () => {
         user: { id: testUser.id },
       });
 
-      const response = await POST(new Request('http://localhost/api/projects', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          description: 'Missing required fields',
+      const response = await POST(
+        new Request('http://localhost/api/projects', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            description: 'Missing required fields',
+          }),
         }),
-      }));
+      );
 
       const data = await response.json();
       expect(response.status).toBe(400);
@@ -131,7 +135,7 @@ describe('Project API Routes', () => {
 
       const response = await getProject(
         new Request(`http://localhost/api/projects/${testProject.id}`),
-        { params: Promise.resolve({ id: testProject.id }) }
+        { params: Promise.resolve({ id: testProject.id }) },
       );
 
       const data = await response.json();
@@ -146,7 +150,7 @@ describe('Project API Routes', () => {
 
       const response = await getProject(
         new Request(`http://localhost/api/projects/${uuidv4()}`),
-        { params: Promise.resolve({ id: uuidv4() }) }
+        { params: Promise.resolve({ id: uuidv4() }) },
       );
 
       const data = await response.json();
@@ -172,7 +176,7 @@ describe('Project API Routes', () => {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(update),
         }),
-        { params: Promise.resolve({ id: testProject.id }) }
+        { params: Promise.resolve({ id: testProject.id }) },
       );
 
       const data = await response.json();
@@ -192,7 +196,7 @@ describe('Project API Routes', () => {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ name: 'Updated' }),
         }),
-        { params: Promise.resolve({ id: uuidv4() }) }
+        { params: Promise.resolve({ id: uuidv4() }) },
       );
 
       const data = await response.json();
@@ -211,7 +215,7 @@ describe('Project API Routes', () => {
         new Request(`http://localhost/api/projects/${testProject.id}`, {
           method: 'DELETE',
         }),
-        { params: Promise.resolve({ id: testProject.id }) }
+        { params: Promise.resolve({ id: testProject.id }) },
       );
 
       expect(response.status).toBe(200);
@@ -232,7 +236,7 @@ describe('Project API Routes', () => {
         new Request(`http://localhost/api/projects/${uuidv4()}`, {
           method: 'DELETE',
         }),
-        { params: Promise.resolve({ id: uuidv4() }) }
+        { params: Promise.resolve({ id: uuidv4() }) },
       );
 
       const data = await response.json();

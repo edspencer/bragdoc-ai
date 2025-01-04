@@ -104,7 +104,10 @@ describe('Project Queries', () => {
 
   describe('getProjectsByCompanyId', () => {
     it('returns projects for valid company', async () => {
-      const projects = await getProjectsByCompanyId(testCompany.id, testUser.id);
+      const projects = await getProjectsByCompanyId(
+        testCompany.id,
+        testUser.id,
+      );
       expect(projects).toHaveLength(1);
       expect(projects[0].name).toBe(testProject.name);
     });

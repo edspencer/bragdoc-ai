@@ -1,8 +1,8 @@
-"use client";
+'use client';
 
-import { Component, type ErrorInfo, type ReactNode } from "react";
-import { Button } from "./ui/button";
-import { AlertCircle } from "lucide-react";
+import { Component, type ErrorInfo, type ReactNode } from 'react';
+import { Button } from './ui/button';
+import { AlertCircle } from 'lucide-react';
 
 interface Props {
   children: ReactNode;
@@ -25,7 +25,7 @@ export class ErrorBoundary extends Component<Props, State> {
   }
 
   public componentDidCatch(error: Error, errorInfo: ErrorInfo) {
-    console.error("Uncaught error:", error, errorInfo);
+    console.error('Uncaught error:', error, errorInfo);
   }
 
   private handleRetry = () => {
@@ -43,7 +43,7 @@ export class ErrorBoundary extends Component<Props, State> {
           <AlertCircle className="size-12 text-destructive" />
           <h2 className="text-lg font-semibold">Something went wrong</h2>
           <p className="text-sm text-muted-foreground max-w-[500px]">
-            {this.state.error?.message || "An unexpected error occurred"}
+            {this.state.error?.message || 'An unexpected error occurred'}
           </p>
           <Button onClick={this.handleRetry} variant="outline">
             Try again

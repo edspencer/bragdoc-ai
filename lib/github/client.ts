@@ -14,8 +14,14 @@ export class GitHubClient {
     });
   }
 
-  async listRepositories(page = 1, perPage = 30): Promise<{
-    repositories: Omit<GitHubRepository, 'id' | 'userId' | 'lastSynced' | 'createdAt' | 'updatedAt'>[];
+  async listRepositories(
+    page = 1,
+    perPage = 30,
+  ): Promise<{
+    repositories: Omit<
+      GitHubRepository,
+      'id' | 'userId' | 'lastSynced' | 'createdAt' | 'updatedAt'
+    >[];
     hasNextPage: boolean;
   }> {
     const response = await this.octokit.repos.listForAuthenticatedUser({

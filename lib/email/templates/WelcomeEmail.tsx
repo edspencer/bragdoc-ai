@@ -32,12 +32,13 @@ export const WelcomeEmail = ({
       <Body style={main}>
         <Container style={container}>
           <Heading style={h1}>Welcome to Bragdoc.ai!</Heading>
-          
+
           <Text style={text}>Hi {username},</Text>
-          
+
           <Text style={text}>
-            We&apos;re excited to have you on board! Bragdoc.ai is your personal achievement
-            tracker that helps you document and showcase your professional growth.
+            We&apos;re excited to have you on board! Bragdoc.ai is your personal
+            achievement tracker that helps you document and showcase your
+            professional growth.
           </Text>
 
           <Section style={buttonContainer}>
@@ -53,7 +54,7 @@ export const WelcomeEmail = ({
           </Section>
 
           <Text style={text}>Here&apos;s what you can do with Bragdoc.ai:</Text>
-          
+
           <ul>
             <li style={listItem}>Track your daily achievements</li>
             <li style={listItem}>Generate performance review documents</li>
@@ -62,7 +63,8 @@ export const WelcomeEmail = ({
           </ul>
 
           <Text style={text}>
-            Need help getting started? Just reply to this email - we&apos;re here to help!
+            Need help getting started? Just reply to this email - we&apos;re
+            here to help!
           </Text>
 
           <Text style={footer}>

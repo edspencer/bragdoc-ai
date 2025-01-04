@@ -43,10 +43,9 @@ export function RepositorySelector({
   const perPage = 30;
 
   const client = new GitHubClient({ accessToken });
-  
-  const { data, error, isLoading } = useSWR(
-    ['repositories', page],
-    () => client.listRepositories(page, perPage)
+
+  const { data, error, isLoading } = useSWR(['repositories', page], () =>
+    client.listRepositories(page, perPage),
   );
 
   const handleSelect = async (repo: Repository) => {
@@ -55,12 +54,13 @@ export function RepositorySelector({
       setOpen(false);
       toast({
         title: 'Repository connected',
-        description: 'We\'ll start syncing your pull requests.',
+        description: "We'll start syncing your pull requests.",
       });
     } catch (error) {
       toast({
         title: 'Error connecting repository',
-        description: error instanceof Error ? error.message : 'An error occurred',
+        description:
+          error instanceof Error ? error.message : 'An error occurred',
         variant: 'destructive',
       });
     }
@@ -78,7 +78,8 @@ export function RepositorySelector({
         <DialogHeader>
           <DialogTitle>Connect GitHub Repository</DialogTitle>
           <DialogDescription>
-            Select a repository to sync pull requests and generate achievements from your work.
+            Select a repository to sync pull requests and generate achievements
+            from your work.
           </DialogDescription>
         </DialogHeader>
         <div className="py-4">
@@ -103,7 +104,8 @@ export function RepositorySelector({
                     onClick={() => handleSelect(repo)}
                     className={cn(
                       'w-full rounded-lg border p-4 text-left hover:bg-accent',
-                      repo.fullName === selectedRepositoryId && 'border-primary'
+                      repo.fullName === selectedRepositoryId &&
+                        'border-primary',
                     )}
                   >
                     <div className="flex items-center justify-between">

@@ -11,15 +11,17 @@ const fetcher = async (url: string) => {
 };
 
 export function useProjects() {
-  const { data: projects, error: projectsError, isLoading: projectsLoading } = useSWR<ProjectWithCompany[]>(
-    '/api/projects',
-    fetcher
-  );
+  const {
+    data: projects,
+    error: projectsError,
+    isLoading: projectsLoading,
+  } = useSWR<ProjectWithCompany[]>('/api/projects', fetcher);
 
-  const { data: companies, error: companiesError, isLoading: companiesLoading } = useSWR<Array<{ id: string; name: string }>>(
-    '/api/companies',
-    fetcher
-  );
+  const {
+    data: companies,
+    error: companiesError,
+    isLoading: companiesLoading,
+  } = useSWR<Array<{ id: string; name: string }>>('/api/companies', fetcher);
 
   const createProject = async (data: ProjectFormData): Promise<boolean> => {
     try {
@@ -30,13 +32,14 @@ export function useProjects() {
       });
       if (!response.ok) throw new Error('Failed to create project');
       const newProject = await response.json();
-      
+
       // Update the cache optimistically
-      mutate('/api/projects', 
+      mutate(
+        '/api/projects',
         projects ? [...projects, newProject] : [newProject],
-        false
+        false,
       );
-      
+
       // Revalidate
       mutate('/api/projects');
       return true;
@@ -46,7 +49,10 @@ export function useProjects() {
     }
   };
 
-  const updateProject = async (id: string, data: ProjectFormData): Promise<boolean> => {
+  const updateProject = async (
+    id: string,
+    data: ProjectFormData,
+  ): Promise<boolean> => {
     try {
       const response = await fetch(`/api/projects/${id}`, {
         method: 'PUT',
@@ -57,9 +63,10 @@ export function useProjects() {
       const updatedProject = await response.json();
 
       // Update the cache optimistically
-      mutate('/api/projects',
-        projects?.map(p => p.id === id ? updatedProject : p),
-        false
+      mutate(
+        '/api/projects',
+        projects?.map((p) => (p.id === id ? updatedProject : p)),
+        false,
       );
 
       // Revalidate
@@ -79,9 +86,10 @@ export function useProjects() {
       if (!response.ok) throw new Error('Failed to delete project');
 
       // Update the cache optimistically
-      mutate('/api/projects',
-        projects?.filter(p => p.id !== id),
-        false
+      mutate(
+        '/api/projects',
+        projects?.filter((p) => p.id !== id),
+        false,
       );
 
       // Revalidate

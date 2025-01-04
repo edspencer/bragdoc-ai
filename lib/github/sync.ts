@@ -21,22 +21,24 @@ export async function syncGitHubData({ userId, repositoryId }: SyncOptions) {
     throw new Error('GitHub access token not found');
   }
 
-  const client = new GitHubClient({ accessToken: userRecord.githubAccessToken });
+  const client = new GitHubClient({
+    accessToken: userRecord.githubAccessToken,
+  });
 
   // Get repositories to sync
   const repositories = await db
     .select()
     .from(githubRepository)
     .where(
-      repositoryId 
+      repositoryId
         ? eq(githubRepository.id, repositoryId)
-        : eq(githubRepository.userId, userId)
+        : eq(githubRepository.userId, userId),
     );
 
   for (const repo of repositories) {
     try {
       const [owner, repoName] = repo.fullName.split('/');
-      
+
       // Sync pull requests
       let page = 1;
       const perPage = 100;
@@ -47,7 +49,7 @@ export async function syncGitHubData({ userId, repositoryId }: SyncOptions) {
           owner,
           repoName,
           page,
-          perPage
+          perPage,
         );
 
         // Upsert pull requests
@@ -65,7 +67,10 @@ export async function syncGitHubData({ userId, repositoryId }: SyncOptions) {
               mergedAt: pr.mergedAt ? new Date(pr.mergedAt) : null,
             })
             .onConflictDoUpdate({
-              target: [githubPullRequest.repositoryId, githubPullRequest.prNumber],
+              target: [
+                githubPullRequest.repositoryId,
+                githubPullRequest.prNumber,
+              ],
               set: {
                 title: pr.title,
                 description: pr.description || '',
@@ -85,7 +90,6 @@ export async function syncGitHubData({ userId, repositoryId }: SyncOptions) {
         .update(githubRepository)
         .set({ lastSynced: new Date() })
         .where(eq(githubRepository.id, repo.id));
-
     } catch (error) {
       console.error(`Failed to sync repository ${repo.fullName}:`, error);
       // Continue with next repository

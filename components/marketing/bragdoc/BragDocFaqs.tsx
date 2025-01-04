@@ -55,9 +55,7 @@ export function BragDocFaqs() {
             .
           </p>
         </div>
-        <ul
-          className="mx-auto mt-16 grid max-w-2xl grid-cols-1 gap-8 lg:max-w-none lg:grid-cols-2"
-        >
+        <ul className="mx-auto mt-16 grid max-w-2xl grid-cols-1 gap-8 lg:max-w-none lg:grid-cols-2">
           {faqs.map((faq, faqIndex) => (
             <li key={faqIndex}>
               <h3 className="font-display text-lg leading-7 text-slate-900 dark:text-slate-100">

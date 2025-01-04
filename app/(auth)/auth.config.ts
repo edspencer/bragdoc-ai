@@ -3,7 +3,7 @@ import type { NextAuthConfig } from 'next-auth';
 export const authConfig = {
   pages: {
     signIn: '/login',
-    newUser: '/welcome',  
+    newUser: '/welcome',
   },
   providers: [
     // added later in auth.ts since it requires bcrypt which is only compatible with Node.js
@@ -23,7 +23,9 @@ export const authConfig = {
       }
 
       if (isLoggedIn && (isOnLogin || isOnRegister)) {
-        return Response.redirect(new URL('/welcome', nextUrl as unknown as URL));
+        return Response.redirect(
+          new URL('/welcome', nextUrl as unknown as URL),
+        );
       }
 
       return true;

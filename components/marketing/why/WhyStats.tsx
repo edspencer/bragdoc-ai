@@ -3,19 +3,23 @@ import { Container } from '@/components/marketing/salient/Container';
 const stats = [
   {
     number: '78%',
-    description: 'of professionals underreport their achievements in performance reviews',
+    description:
+      'of professionals underreport their achievements in performance reviews',
   },
   {
     number: '3.5x',
-    description: 'more likely to receive a promotion when keeping a brag document',
+    description:
+      'more likely to receive a promotion when keeping a brag document',
   },
   {
     number: '92%',
-    description: 'of managers value documented achievements in promotion decisions',
+    description:
+      'of managers value documented achievements in promotion decisions',
   },
   {
     number: '45%',
-    description: 'higher salary increases for employees who track accomplishments',
+    description:
+      'higher salary increases for employees who track accomplishments',
   },
 ];
 

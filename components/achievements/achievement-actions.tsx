@@ -65,8 +65,8 @@ export function AchievementActions({
           <AlertDialogHeader>
             <AlertDialogTitle>Delete Achievement</AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to delete this achievement? This action cannot be
-              undone.
+              Are you sure you want to delete this achievement? This action
+              cannot be undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -76,7 +76,7 @@ export function AchievementActions({
               disabled={isDeleting}
               className="bg-red-600 text-white hover:bg-red-700 dark:bg-red-900 dark:text-red-100 dark:hover:bg-red-800"
             >
-              {isDeleting ? "Deleting..." : "Delete"}
+              {isDeleting ? 'Deleting...' : 'Delete'}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

@@ -1,9 +1,9 @@
-'use client'
+'use client';
 
-import { Disclosure } from '@headlessui/react'
-import clsx from 'clsx'
+import { Disclosure } from '@headlessui/react';
+import clsx from 'clsx';
 
-import { Container } from './Container'
+import { Container } from './Container';
 
 const faqs = [
   {
@@ -36,7 +36,7 @@ const faqs = [
     answer:
       'Yes, we offer a 14-day free trial of our Pro plan. You can also use our Personal plan for free indefinitely with basic features.',
   },
-]
+];
 
 export function Faqs() {
   return (
@@ -54,15 +54,17 @@ export function Faqs() {
             Frequently asked questions
           </h2>
           <p className="mt-4 text-lg tracking-tight text-slate-700 dark:text-slate-300">
-            If you can&apos;t find what you&apos;re looking for, email our support team and if you&apos;re lucky someone will get back to you.
+            If you can&apos;t find what you&apos;re looking for, email our
+            support team and if you&apos;re lucky someone will get back to you.
           </p>
         </div>
-        <ul
-          className="mx-auto mt-16 grid max-w-2xl grid-cols-1 gap-8 lg:max-w-none lg:grid-cols-3"
-        >
+        <ul className="mx-auto mt-16 grid max-w-2xl grid-cols-1 gap-8 lg:max-w-none lg:grid-cols-3">
           {faqs.map((faq) => (
             <li key={faq.question}>
-              <Disclosure as="div" className="rounded-lg bg-white dark:bg-slate-800/60 p-6 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors duration-150">
+              <Disclosure
+                as="div"
+                className="rounded-lg bg-white dark:bg-slate-800/60 p-6 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors duration-150"
+              >
                 {({ open }) => (
                   <>
                     <Disclosure.Button className="flex w-full items-start justify-between text-left">
@@ -73,7 +75,7 @@ export function Faqs() {
                         <svg
                           className={clsx(
                             'size-6 text-slate-600 dark:text-slate-400',
-                            open ? 'rotate-180' : ''
+                            open ? 'rotate-180' : '',
                           )}
                           aria-hidden="true"
                           fill="none"
@@ -100,5 +102,5 @@ export function Faqs() {
         </ul>
       </Container>
     </section>
-  )
+  );
 }

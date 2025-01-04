@@ -23,7 +23,14 @@ interface SendEmailOptions {
   emailType?: EmailType;
 }
 
-export const sendEmail = async ({ to, subject, html, text, userId, emailType }: SendEmailOptions) => {
+export const sendEmail = async ({
+  to,
+  subject,
+  html,
+  text,
+  userId,
+  emailType,
+}: SendEmailOptions) => {
   // Check if user is unsubscribed
   if (await isUnsubscribed(userId, emailType)) {
     console.log(`Skipping email to ${to} - user has unsubscribed`);
@@ -33,7 +40,7 @@ export const sendEmail = async ({ to, subject, html, text, userId, emailType }: 
   try {
     // Generate unsubscribe URL
     const unsubscribeUrl = await generateUnsubscribeUrl(userId, emailType);
-    
+
     // Add unsubscribe header
     const result = await client.messages.create(MAILGUN_DOMAIN, {
       from: FROM_EMAIL,
@@ -43,7 +50,7 @@ export const sendEmail = async ({ to, subject, html, text, userId, emailType }: 
       text,
       'h:List-Unsubscribe': `<${unsubscribeUrl}>`,
     });
-    
+
     return { success: true, messageId: result.id };
   } catch (error) {
     console.error('Error sending email:', error);
@@ -53,13 +60,16 @@ export const sendEmail = async ({ to, subject, html, text, userId, emailType }: 
 
 type WelcomeEmailProps = ComponentProps<typeof WelcomeEmail>;
 
-interface SendWelcomeEmailParams extends Omit<WelcomeEmailProps, 'preview' | 'unsubscribeUrl'> {
+interface SendWelcomeEmailParams
+  extends Omit<WelcomeEmailProps, 'preview' | 'unsubscribeUrl'> {
   to: string;
   userId: string;
 }
 
 // Shared function to render welcome email template
-export const renderWelcomeEmail = async (props: WelcomeEmailProps): Promise<string> => {
+export const renderWelcomeEmail = async (
+  props: WelcomeEmailProps,
+): Promise<string> => {
   return render(WelcomeEmail(props));
 };
 
@@ -71,7 +81,7 @@ export const sendWelcomeEmail = async ({
 }: SendWelcomeEmailParams) => {
   const unsubscribeUrl = await generateUnsubscribeUrl(userId, 'welcome');
   const html = await renderWelcomeEmail({ username, loginUrl, unsubscribeUrl });
-  
+
   return sendEmail({
     to,
     userId,

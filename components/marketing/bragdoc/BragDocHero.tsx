@@ -33,9 +33,7 @@ export function BragDocHero() {
         <p className="font-display text-base text-slate-900 dark:text-slate-100">
           Trusted by professionals at leading companies
         </p>
-        <ul
-          className="mt-8 flex items-center justify-center gap-x-8 sm:flex-col sm:gap-x-0 sm:gap-y-10 xl:flex-row xl:gap-x-12 xl:gap-y-0"
-        >
+        <ul className="mt-8 flex items-center justify-center gap-x-8 sm:flex-col sm:gap-x-0 sm:gap-y-10 xl:flex-row xl:gap-x-12 xl:gap-y-0">
           {[
             ['Meta', 'text-[#1877F2]'],
             ['Google', 'text-[#4285F4]'],

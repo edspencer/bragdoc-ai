@@ -2,13 +2,25 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Building2, FolderKanban, Trophy, Settings, Sun, Moon, LogOut } from 'lucide-react';
+import {
+  Building2,
+  FolderKanban,
+  Trophy,
+  Settings,
+  Sun,
+  Moon,
+  LogOut,
+} from 'lucide-react';
 import { signOut } from 'next-auth/react';
 import { useTheme } from 'next-themes';
 import type { User } from 'next-auth';
 
 import { Button } from '@/components/ui/button';
-import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 import { SidebarMenu, SidebarMenuItem } from '@/components/ui/sidebar';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 
@@ -21,7 +33,7 @@ export function SidebarNav({ user }: { user: User }) {
     if (user.name) {
       return user.name
         .split(' ')
-        .map(n => n[0])
+        .map((n) => n[0])
         .join('')
         .toUpperCase();
     }
@@ -54,13 +66,15 @@ export function SidebarNav({ user }: { user: User }) {
           {navItems.map((item) => {
             const Icon = item.icon;
             const isActive = pathname === item.href;
-            
+
             return (
               <SidebarMenuItem key={item.href}>
                 <Link
                   href={item.href}
                   className={`flex items-center gap-2 rounded-md p-2 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground ${
-                    isActive ? 'bg-accent text-accent-foreground' : 'text-muted-foreground'
+                    isActive
+                      ? 'bg-accent text-accent-foreground'
+                      : 'text-muted-foreground'
                   }`}
                 >
                   <Icon className="size-4" />
@@ -76,8 +90,8 @@ export function SidebarNav({ user }: { user: User }) {
           {/* User Avatar */}
           <Tooltip>
             <TooltipTrigger asChild>
-              <Link 
-                href="/settings" 
+              <Link
+                href="/settings"
                 className="block transition-opacity hover:opacity-80"
               >
                 <Avatar className="size-8">

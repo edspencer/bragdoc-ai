@@ -1,6 +1,6 @@
-"use client";
+'use client';
 
-import { Button } from "@/components/ui/button";
+import { Button } from '@/components/ui/button';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -11,9 +11,9 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
   AlertDialogTrigger,
-} from "@/components/ui/alert-dialog";
-import { Pencil1Icon, TrashIcon } from "@radix-ui/react-icons";
-import { useState } from "react";
+} from '@/components/ui/alert-dialog';
+import { Pencil1Icon, TrashIcon } from '@radix-ui/react-icons';
+import { useState } from 'react';
 
 interface CompanyActionsProps {
   onEdit: () => void;
@@ -65,8 +65,8 @@ export function CompanyActions({
           <AlertDialogHeader>
             <AlertDialogTitle>Delete Company</AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to delete this company? This action cannot be
-              undone.
+              Are you sure you want to delete this company? This action cannot
+              be undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -76,7 +76,7 @@ export function CompanyActions({
               disabled={isDeleting}
               className="bg-red-600 text-white hover:bg-red-700 dark:bg-red-900 dark:text-red-100 dark:hover:bg-red-800"
             >
-              {isDeleting ? "Deleting..." : "Delete"}
+              {isDeleting ? 'Deleting...' : 'Delete'}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

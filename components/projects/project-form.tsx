@@ -1,12 +1,12 @@
-"use client";
+'use client';
 
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
-import * as z from "zod";
-import { format } from "date-fns";
-import { CalendarIcon, CheckIcon } from "@radix-ui/react-icons";
+import { zodResolver } from '@hookform/resolvers/zod';
+import { useForm } from 'react-hook-form';
+import * as z from 'zod';
+import { format } from 'date-fns';
+import { CalendarIcon, CheckIcon } from '@radix-ui/react-icons';
 
-import { Button } from "@/components/ui/button";
+import { Button } from '@/components/ui/button';
 import {
   Form,
   FormControl,
@@ -14,33 +14,37 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
-import { Calendar } from "@/components/ui/calendar";
+} from '@/components/ui/form';
+import { Input } from '@/components/ui/input';
+import { Calendar } from '@/components/ui/calendar';
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
-} from "@/components/ui/popover";
+} from '@/components/ui/popover';
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
-import { Textarea } from "@/components/ui/textarea";
-import { cn } from "@/lib/utils";
-import { ProjectStatus } from "@/lib/db/schema";
+} from '@/components/ui/select';
+import { Textarea } from '@/components/ui/textarea';
+import { cn } from '@/lib/utils';
+import { ProjectStatus } from '@/lib/db/schema';
 
 const formSchema = z.object({
-  name: z.string().min(1, "Project name is required").max(256),
+  name: z.string().min(1, 'Project name is required').max(256),
   description: z.string().optional(),
-  companyId: z.string().transform(val => val === "none" ? null : val).nullable().optional(),
+  companyId: z
+    .string()
+    .transform((val) => (val === 'none' ? null : val))
+    .nullable()
+    .optional(),
   status: z.nativeEnum(ProjectStatus, {
-    required_error: "Status is required",
+    required_error: 'Status is required',
   }),
-  startDate: z.date({ required_error: "Start date is required" }),
+  startDate: z.date({ required_error: 'Start date is required' }),
   endDate: z.date().optional().nullable(),
 });
 
@@ -51,7 +55,7 @@ interface ProjectFormProps {
   onSubmit: (data: ProjectFormData) => void;
   isLoading?: boolean;
   companies?: { id: string; name: string }[];
-  mode: "create" | "edit";
+  mode: 'create' | 'edit';
   id?: string;
   name?: string;
 }
@@ -71,9 +75,9 @@ export function ProjectForm({
   const form = useForm<ProjectFormData>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      name: initialData.name || "",
-      description: initialData.description || "",
-      companyId: initialData.companyId || "none",
+      name: initialData.name || '',
+      description: initialData.description || '',
+      companyId: initialData.companyId || 'none',
       status: initialData.status || ProjectStatus.Active,
       startDate: initialData.startDate || new Date(),
       endDate: initialData.endDate || null,
@@ -81,7 +85,7 @@ export function ProjectForm({
   });
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === "Enter" && !e.shiftKey) {
+    if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
       form.handleSubmit((data) => onSubmit(data))();
     }
@@ -89,7 +93,11 @@ export function ProjectForm({
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4" onKeyDown={handleKeyDown}>
+      <form
+        onSubmit={form.handleSubmit(onSubmit)}
+        className="space-y-4"
+        onKeyDown={handleKeyDown}
+      >
         <FormField
           control={form.control}
           name="name"
@@ -130,7 +138,7 @@ export function ProjectForm({
               <FormLabel>Company</FormLabel>
               <Select
                 onValueChange={field.onChange}
-                defaultValue={field.value || "none"}
+                defaultValue={field.value || 'none'}
               >
                 <FormControl>
                   <SelectTrigger>
@@ -165,8 +173,12 @@ export function ProjectForm({
                 </FormControl>
                 <SelectContent>
                   <SelectItem value={ProjectStatus.Active}>Active</SelectItem>
-                  <SelectItem value={ProjectStatus.Completed}>Completed</SelectItem>
-                  <SelectItem value={ProjectStatus.Archived}>Archived</SelectItem>
+                  <SelectItem value={ProjectStatus.Completed}>
+                    Completed
+                  </SelectItem>
+                  <SelectItem value={ProjectStatus.Archived}>
+                    Archived
+                  </SelectItem>
                 </SelectContent>
               </Select>
               <FormMessage />
@@ -185,14 +197,14 @@ export function ProjectForm({
                   <PopoverTrigger asChild>
                     <FormControl>
                       <Button
-                        variant={"outline"}
+                        variant={'outline'}
                         className={cn(
-                          "pl-3 text-left font-normal",
-                          !field.value && "text-muted-foreground"
+                          'pl-3 text-left font-normal',
+                          !field.value && 'text-muted-foreground',
                         )}
                       >
                         {field.value ? (
-                          format(field.value, "PPP")
+                          format(field.value, 'PPP')
                         ) : (
                           <span>Pick a date</span>
                         )}
@@ -206,7 +218,7 @@ export function ProjectForm({
                       selected={field.value || undefined}
                       onSelect={field.onChange}
                       disabled={(date) =>
-                        date > new Date() || date < new Date("1900-01-01")
+                        date > new Date() || date < new Date('1900-01-01')
                       }
                       initialFocus
                     />
@@ -227,14 +239,14 @@ export function ProjectForm({
                   <PopoverTrigger asChild>
                     <FormControl>
                       <Button
-                        variant={"outline"}
+                        variant={'outline'}
                         className={cn(
-                          "pl-3 text-left font-normal",
-                          !field.value && "text-muted-foreground"
+                          'pl-3 text-left font-normal',
+                          !field.value && 'text-muted-foreground',
                         )}
                       >
                         {field.value ? (
-                          format(field.value, "PPP")
+                          format(field.value, 'PPP')
                         ) : (
                           <span>Pick a date</span>
                         )}
@@ -248,8 +260,8 @@ export function ProjectForm({
                       selected={field.value || undefined}
                       onSelect={field.onChange}
                       disabled={(date) =>
-                        date < form.getValues("startDate") ||
-                        date < new Date("1900-01-01")
+                        date < form.getValues('startDate') ||
+                        date < new Date('1900-01-01')
                       }
                       initialFocus
                     />

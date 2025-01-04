@@ -12,7 +12,7 @@ export function useRetry<T>() {
   const executeWithRetry = useCallback(
     async (
       operation: () => Promise<T>,
-      { maxAttempts = 3, delayMs = 1000 }: RetryOptions = {}
+      { maxAttempts = 3, delayMs = 1000 }: RetryOptions = {},
     ): Promise<T> => {
       setIsRetrying(true);
       try {
@@ -21,18 +21,18 @@ export function useRetry<T>() {
         return result;
       } catch (error) {
         setAttemptCount((prev) => prev + 1);
-        
+
         if (attemptCount < maxAttempts - 1) {
           await new Promise((resolve) => setTimeout(resolve, delayMs));
           return executeWithRetry(operation, { maxAttempts, delayMs });
         }
-        
+
         throw error;
       } finally {
         setIsRetrying(false);
       }
     },
-    [attemptCount]
+    [attemptCount],
   );
 
   return {

@@ -25,30 +25,42 @@ describe('Stripe Webhook Handler', () => {
     jest.clearAllMocks();
 
     // Create test users with Stripe customer IDs
-    checkoutUser = await db.insert(user).values({
-      email: 'checkout@test.com',
-      provider: 'stripe',
-      providerId: 'cus_checkout123',
-      level: 'free',
-      renewalPeriod: 'monthly',
-    }).returning().then(users => users[0]);
+    checkoutUser = await db
+      .insert(user)
+      .values({
+        email: 'checkout@test.com',
+        provider: 'stripe',
+        providerId: 'cus_checkout123',
+        level: 'free',
+        renewalPeriod: 'monthly',
+      })
+      .returning()
+      .then((users) => users[0]);
 
-    paymentUser = await db.insert(user).values({
-      email: 'payment@test.com',
-      provider: 'stripe',
-      providerId: 'cus_payment123',
-      level: 'free',
-      renewalPeriod: 'monthly',
-    }).returning().then(users => users[0]);
+    paymentUser = await db
+      .insert(user)
+      .values({
+        email: 'payment@test.com',
+        provider: 'stripe',
+        providerId: 'cus_payment123',
+        level: 'free',
+        renewalPeriod: 'monthly',
+      })
+      .returning()
+      .then((users) => users[0]);
 
-    subscriptionUser = await db.insert(user).values({
-      email: 'subscription@test.com',
-      provider: 'stripe',
-      providerId: 'cus_subscription123',
-      level: 'basic',
-      renewalPeriod: 'monthly',
-      lastPayment: new Date(),
-    }).returning().then(users => users[0]);
+    subscriptionUser = await db
+      .insert(user)
+      .values({
+        email: 'subscription@test.com',
+        provider: 'stripe',
+        providerId: 'cus_subscription123',
+        level: 'basic',
+        renewalPeriod: 'monthly',
+        lastPayment: new Date(),
+      })
+      .returning()
+      .then((users) => users[0]);
   });
 
   afterEach(async () => {
@@ -94,7 +106,11 @@ describe('Stripe Webhook Handler', () => {
     expect(response.status).toBe(200);
 
     // Verify database was updated correctly
-    const updatedUser = await db.select().from(user).where(eq(user.id, checkoutUser.id)).then(users => users[0]);
+    const updatedUser = await db
+      .select()
+      .from(user)
+      .where(eq(user.id, checkoutUser.id))
+      .then((users) => users[0]);
     expect(updatedUser.level).toBe('basic');
     expect(updatedUser.renewalPeriod).toBe('monthly');
     expect(updatedUser.lastPayment).toBeTruthy();
@@ -135,7 +151,11 @@ describe('Stripe Webhook Handler', () => {
     expect(response.status).toBe(200);
 
     // Verify database was updated correctly
-    const updatedUser = await db.select().from(user).where(eq(user.id, paymentUser.id)).then(users => users[0]);
+    const updatedUser = await db
+      .select()
+      .from(user)
+      .where(eq(user.id, paymentUser.id))
+      .then((users) => users[0]);
     expect(updatedUser.level).toBe('basic');
     expect(updatedUser.renewalPeriod).toBe('monthly');
     expect(updatedUser.lastPayment).toBeTruthy();
@@ -173,7 +193,11 @@ describe('Stripe Webhook Handler', () => {
     expect(response.status).toBe(200);
 
     // Verify database was updated correctly
-    const updatedUser = await db.select().from(user).where(eq(user.id, subscriptionUser.id)).then(users => users[0]);
+    const updatedUser = await db
+      .select()
+      .from(user)
+      .where(eq(user.id, subscriptionUser.id))
+      .then((users) => users[0]);
     expect(updatedUser.level).toBe('free');
     expect(updatedUser.lastPayment).toBeNull();
   });
@@ -192,9 +216,13 @@ describe('Stripe Webhook Handler', () => {
 
     const response = await POST(req);
     expect(response.status).toBe(400);
-    
+
     // Verify no database changes occurred
-    const unchangedUser = await db.select().from(user).where(eq(user.id, checkoutUser.id)).then(users => users[0]);
+    const unchangedUser = await db
+      .select()
+      .from(user)
+      .where(eq(user.id, checkoutUser.id))
+      .then((users) => users[0]);
     expect(unchangedUser.level).toBe('free');
   });
 
@@ -224,9 +252,13 @@ describe('Stripe Webhook Handler', () => {
 
     const response = await POST(req);
     expect(response.status).toBe(200); // Still return 200 to acknowledge receipt
-    
+
     // Verify no database changes occurred
-    const unchangedUser = await db.select().from(user).where(eq(user.id, checkoutUser.id)).then(users => users[0]);
+    const unchangedUser = await db
+      .select()
+      .from(user)
+      .where(eq(user.id, checkoutUser.id))
+      .then((users) => users[0]);
     expect(unchangedUser.level).toBe('free');
   });
 });

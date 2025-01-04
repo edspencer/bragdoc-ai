@@ -122,7 +122,7 @@ export function BragDocExamples() {
                       </div>
                     ))}
                   </motion.div>
-                )
+                ),
             )}
           </div>
         </div>

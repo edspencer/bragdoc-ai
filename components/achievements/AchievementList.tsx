@@ -5,7 +5,10 @@ import { Button } from '@/components/ui/button';
 import { AchievementDialog } from './AchievementDialog';
 import { AchievementActions } from './achievement-actions';
 import { AchievementListSkeleton } from './achievement-list-skeleton';
-import type { AchievementWithRelations as Achievement, AchievementFilters as AchievementFiltersType } from '@/lib/types/achievement';
+import type {
+  AchievementWithRelations as Achievement,
+  AchievementFilters as AchievementFiltersType,
+} from '@/lib/types/achievement';
 import { useAchievements } from '@/hooks/use-achievements';
 import { useAchievementMutations } from '@/hooks/use-achievement-mutations';
 import {
@@ -24,7 +27,7 @@ import {
   PaginationLink,
   PaginationNext,
   PaginationPrevious,
-} from "@/components/ui/pagination"
+} from '@/components/ui/pagination';
 import { ImpactRating } from '@/components/ui/impact-rating';
 
 interface AchievementListProps {
@@ -52,13 +55,14 @@ export function AchievementList({
   });
 
   const [actionLoading, setActionLoading] = useState<string | null>(null);
-  
+
   const { achievements, pagination, isLoading, mutate } = useAchievements({
     page,
     filters,
   });
 
-  const { createAchievement, updateAchievement, deleteAchievement } = useAchievementMutations();
+  const { createAchievement, updateAchievement, deleteAchievement } =
+    useAchievementMutations();
 
   const handleCreate = async (data: any) => {
     setActionLoading('create');
@@ -106,37 +110,37 @@ export function AchievementList({
 
   const handleImpactChange = async (id: string, impact: number) => {
     setActionLoading(`impact-${id}`);
-    
+
     if (!achievements || !pagination) return;
 
     // Optimistically update the UI
     const optimisticData = {
-      achievements: achievements.map(achievement =>
+      achievements: achievements.map((achievement) =>
         achievement.id === id
           ? {
               ...achievement,
               impact,
               impactSource: 'user' as const,
-              impactUpdatedAt: new Date()
+              impactUpdatedAt: new Date(),
             }
-          : achievement
+          : achievement,
       ),
       pagination: {
         total: pagination.total,
         page: pagination.page,
         limit: pagination.limit,
-        totalPages: pagination.totalPages
-      }
+        totalPages: pagination.totalPages,
+      },
     };
-    
+
     try {
       // Optimistically update the cache
       mutate(optimisticData, false);
-      
-      await updateAchievement(id, { 
+
+      await updateAchievement(id, {
         impact,
         impactSource: 'user',
-        impactUpdatedAt: new Date()
+        impactUpdatedAt: new Date(),
       });
 
       // After successful update, revalidate the data
@@ -177,7 +181,9 @@ export function AchievementList({
         <AchievementDialog
           mode="create"
           open={dialog.isOpen}
-          onOpenChange={(open) => setDialog((prev) => ({ ...prev, isOpen: open }))}
+          onOpenChange={(open) =>
+            setDialog((prev) => ({ ...prev, isOpen: open }))
+          }
           onSubmit={handleCreate}
         />
       </motion.div>
@@ -204,12 +210,16 @@ export function AchievementList({
                     value={achievement.impact}
                     source={achievement.impactSource}
                     updatedAt={achievement.impactUpdatedAt}
-                    onChange={(value) => handleImpactChange(achievement.id, value)}
+                    onChange={(value) =>
+                      handleImpactChange(achievement.id, value)
+                    }
                     readOnly={!!actionLoading}
                   />
                 </TableCell>
                 <TableCell className="py-1">{achievement.title}</TableCell>
-                <TableCell className="py-1">{achievement.company?.name ?? '-'}</TableCell>
+                <TableCell className="py-1">
+                  {achievement.company?.name ?? '-'}
+                </TableCell>
                 <TableCell className="py-1">
                   <AchievementActions
                     onEdit={() =>
@@ -236,7 +246,11 @@ export function AchievementList({
               <PaginationItem>
                 <PaginationPrevious
                   onClick={() => onPageChange(page - 1)}
-                  className={page <= 1 ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
+                  className={
+                    page <= 1
+                      ? 'pointer-events-none opacity-50'
+                      : 'cursor-pointer'
+                  }
                 />
               </PaginationItem>
 
@@ -259,7 +273,10 @@ export function AchievementList({
                 // Show two pages before and after current page
                 const delta = 2;
                 const leftBound = Math.max(2, page - delta);
-                const rightBound = Math.min(pagination.totalPages - 1, page + delta);
+                const rightBound = Math.min(
+                  pagination.totalPages - 1,
+                  page + delta,
+                );
 
                 // Add ellipsis if there's a gap after 1
                 if (leftBound > 2) {
@@ -299,9 +316,13 @@ export function AchievementList({
               })()}
 
               <PaginationItem>
-                <PaginationNext 
+                <PaginationNext
                   onClick={() => onPageChange(page + 1)}
-                  className={page >= pagination.totalPages ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
+                  className={
+                    page >= pagination.totalPages
+                      ? 'pointer-events-none opacity-50'
+                      : 'cursor-pointer'
+                  }
                 />
               </PaginationItem>
             </PaginationContent>
@@ -313,7 +334,9 @@ export function AchievementList({
         mode={dialog.mode}
         achievement={dialog.achievement}
         open={dialog.isOpen}
-        onOpenChange={(open) => setDialog((prev) => ({ ...prev, isOpen: open }))}
+        onOpenChange={(open) =>
+          setDialog((prev) => ({ ...prev, isOpen: open }))
+        }
         onSubmit={dialog.mode === 'create' ? handleCreate : handleUpdate}
       />
     </div>

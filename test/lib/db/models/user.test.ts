@@ -1,9 +1,6 @@
 import type { User } from '@/lib/db/schema';
-import { 
-  isActiveSubscription, 
-  getCurrentPlan
-} from '@/lib/db/models/user';
-import { subDays, } from 'date-fns';
+import { isActiveSubscription, getCurrentPlan } from '@/lib/db/models/user';
+import { subDays } from 'date-fns';
 
 describe('User Model', () => {
   const baseUser: User = {
@@ -16,7 +13,7 @@ describe('User Model', () => {
     status: 'active',
     preferences: {
       hasSeenWelcome: false,
-      language: 'en'
+      language: 'en',
     },
     createdAt: new Date(),
     updatedAt: new Date(),
@@ -25,7 +22,7 @@ describe('User Model', () => {
     providerId: null,
     githubAccessToken: null,
     image: null,
-    password: null
+    password: null,
   };
 
   describe('isActiveSubscription', () => {

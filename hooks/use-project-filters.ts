@@ -1,11 +1,11 @@
-import { useCallback, useEffect, useState } from "react";
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import type { ProjectStatus } from "@/lib/db/types";
-import { z } from "zod";
+import { useCallback, useEffect, useState } from 'react';
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
+import type { ProjectStatus } from '@/lib/db/types';
+import { z } from 'zod';
 
 export interface ProjectFilters {
-  status: ProjectStatus | "all";
-  companyId: string | "all";
+  status: ProjectStatus | 'all';
+  companyId: string | 'all';
   search: string;
 }
 
@@ -16,9 +16,9 @@ export interface FilterLoadingStates {
 }
 
 const defaultFilters: ProjectFilters = {
-  status: "all",
-  companyId: "all",
-  search: "",
+  status: 'all',
+  companyId: 'all',
+  search: '',
 };
 
 const defaultLoadingStates: FilterLoadingStates = {
@@ -28,7 +28,7 @@ const defaultLoadingStates: FilterLoadingStates = {
 };
 
 // Validation schemas for URL parameters
-const statusSchema = z.enum(["all", "active", "completed", "archived"]);
+const statusSchema = z.enum(['all', 'active', 'completed', 'archived']);
 const companyIdSchema = z.string().min(1);
 const searchSchema = z.string().max(100); // Reasonable limit for search query
 
@@ -37,8 +37,8 @@ const searchSchema = z.string().max(100); // Reasonable limit for search query
  */
 function parseURLParams(searchParams: URLSearchParams): ProjectFilters {
   // Status validation
-  let status: ProjectStatus | "all" = "all";
-  const statusParam = searchParams.get("status");
+  let status: ProjectStatus | 'all' = 'all';
+  const statusParam = searchParams.get('status');
   if (statusParam) {
     try {
       status = statusSchema.parse(statusParam);
@@ -48,9 +48,9 @@ function parseURLParams(searchParams: URLSearchParams): ProjectFilters {
   }
 
   // Company ID validation
-  let companyId = "all";
-  const companyParam = searchParams.get("company");
-  if (companyParam && companyParam !== "all") {
+  let companyId = 'all';
+  const companyParam = searchParams.get('company');
+  if (companyParam && companyParam !== 'all') {
     try {
       companyIdSchema.parse(companyParam);
       companyId = companyParam;
@@ -60,8 +60,8 @@ function parseURLParams(searchParams: URLSearchParams): ProjectFilters {
   }
 
   // Search validation
-  let search = "";
-  const searchParam = searchParams.get("search");
+  let search = '';
+  const searchParam = searchParams.get('search');
   if (searchParam) {
     try {
       search = searchSchema.parse(searchParam);
@@ -89,7 +89,7 @@ function sanitizeFilters(filters: Partial<ProjectFilters>): ProjectFilters {
   }
 
   // Company ID validation
-  if (filters.companyId && filters.companyId !== "all") {
+  if (filters.companyId && filters.companyId !== 'all') {
     try {
       companyIdSchema.parse(filters.companyId);
       sanitized.companyId = filters.companyId;
@@ -122,83 +122,87 @@ export function useProjectFilters() {
   });
 
   // Loading states for each filter operation
-  const [loading, setLoading] = useState<FilterLoadingStates>(defaultLoadingStates);
+  const [loading, setLoading] =
+    useState<FilterLoadingStates>(defaultLoadingStates);
 
   // Update URL when filters change
   const updateURL = useCallback(
-    async (newFilters: ProjectFilters, filterType: keyof FilterLoadingStates) => {
-      setLoading(prev => ({ ...prev, [filterType]: true }));
-      
+    async (
+      newFilters: ProjectFilters,
+      filterType: keyof FilterLoadingStates,
+    ) => {
+      setLoading((prev) => ({ ...prev, [filterType]: true }));
+
       try {
         const params = new URLSearchParams(searchParams.toString());
         const sanitizedFilters = sanitizeFilters(newFilters);
 
         // Update status
-        if (sanitizedFilters.status === "all") {
-          params.delete("status");
+        if (sanitizedFilters.status === 'all') {
+          params.delete('status');
         } else {
-          params.set("status", sanitizedFilters.status);
+          params.set('status', sanitizedFilters.status);
         }
 
         // Update company
-        if (sanitizedFilters.companyId === "all") {
-          params.delete("company");
+        if (sanitizedFilters.companyId === 'all') {
+          params.delete('company');
         } else {
-          params.set("company", sanitizedFilters.companyId);
+          params.set('company', sanitizedFilters.companyId);
         }
 
         // Update search
         if (!sanitizedFilters.search) {
-          params.delete("search");
+          params.delete('search');
         } else {
-          params.set("search", sanitizedFilters.search);
+          params.set('search', sanitizedFilters.search);
         }
 
         // Update URL without triggering navigation if filters are invalid
         const newURL = params.toString()
           ? `${pathname}?${params.toString()}`
           : pathname;
-        
+
         if (newURL !== window.location.pathname + window.location.search) {
           await router.push(newURL, { scroll: false });
         }
       } catch (error) {
         console.error(`Error updating URL for ${filterType}:`, error);
       } finally {
-        setLoading(prev => ({ ...prev, [filterType]: false }));
+        setLoading((prev) => ({ ...prev, [filterType]: false }));
       }
     },
-    [pathname, router, searchParams]
+    [pathname, router, searchParams],
   );
 
   // Filter update handlers with validation and loading states
   const setStatus = useCallback(
-    async (status: ProjectStatus | "all") => {
+    async (status: ProjectStatus | 'all') => {
       try {
         const validStatus = statusSchema.parse(status);
         const newFilters = { ...filters, status: validStatus };
         setFilters(newFilters);
-        await updateURL(newFilters, "status");
+        await updateURL(newFilters, 'status');
       } catch (error) {
         console.warn(`Invalid status: ${status}`);
-        setLoading(prev => ({ ...prev, status: false }));
+        setLoading((prev) => ({ ...prev, status: false }));
       }
     },
-    [filters, updateURL]
+    [filters, updateURL],
   );
 
   const setCompanyId = useCallback(
     async (companyId: string) => {
       const newFilters = { ...filters, companyId };
-      if (companyId === "all" || companyIdSchema.safeParse(companyId).success) {
+      if (companyId === 'all' || companyIdSchema.safeParse(companyId).success) {
         setFilters(newFilters);
-        await updateURL(newFilters, "company");
+        await updateURL(newFilters, 'company');
       } else {
         console.warn(`Invalid company ID: ${companyId}`);
-        setLoading(prev => ({ ...prev, company: false }));
+        setLoading((prev) => ({ ...prev, company: false }));
       }
     },
-    [filters, updateURL]
+    [filters, updateURL],
   );
 
   const setSearch = useCallback(
@@ -207,26 +211,26 @@ export function useProjectFilters() {
         const validSearch = searchSchema.parse(search);
         const newFilters = { ...filters, search: validSearch };
         setFilters(newFilters);
-        await updateURL(newFilters, "search");
+        await updateURL(newFilters, 'search');
       } catch (error) {
         // For search, we'll truncate instead of rejecting
         const truncated = search.slice(0, 100);
         const newFilters = { ...filters, search: truncated };
         setFilters(newFilters);
-        await updateURL(newFilters, "search");
+        await updateURL(newFilters, 'search');
         console.warn(`Search query truncated to: ${truncated}`);
       }
     },
-    [filters, updateURL]
+    [filters, updateURL],
   );
 
   const resetFilters = useCallback(async () => {
     // Set all loading states to true
     setLoading({ status: true, company: true, search: true });
-    
+
     try {
       setFilters(defaultFilters);
-      await updateURL(defaultFilters, "status"); // We only need one update for reset
+      await updateURL(defaultFilters, 'status'); // We only need one update for reset
     } finally {
       // Reset all loading states
       setLoading(defaultLoadingStates);
@@ -235,18 +239,24 @@ export function useProjectFilters() {
 
   // Apply filters to projects with type safety
   const applyFilters = useCallback(
-    <T extends { status: ProjectStatus; companyId?: string | null; name: string }>(
-      projects: T[]
+    <
+      T extends {
+        status: ProjectStatus;
+        companyId?: string | null;
+        name: string;
+      },
+    >(
+      projects: T[],
     ) => {
       return projects.filter((project) => {
         // Status filter
-        if (filters.status !== "all" && project.status !== filters.status) {
+        if (filters.status !== 'all' && project.status !== filters.status) {
           return false;
         }
 
         // Company filter
         if (
-          filters.companyId !== "all" &&
+          filters.companyId !== 'all' &&
           project.companyId !== filters.companyId
         ) {
           return false;
@@ -261,7 +271,7 @@ export function useProjectFilters() {
         return true;
       });
     },
-    [filters]
+    [filters],
   );
 
   // Listen for external URL changes
