@@ -56,6 +56,7 @@ export const user = pgTable('User', {
   lastPayment: timestamp('last_payment'),
 
   status: userStatusEnum('status').notNull().default('active'),
+  stripeCustomerId: varchar('stripe_customer_id', { length: 256 }),
 });
 
 export type User = InferSelectModel<typeof user>;

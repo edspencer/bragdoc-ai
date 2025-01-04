@@ -2,7 +2,7 @@
 
 ## Before launch
 
-- [ ] Fix stripe callback [20m]
+- [x] Fix stripe callback [20m]
 - [x] Remove Vercel chatbot text [20m]
 - [ ] Add proper blank chat page [30m]
 - [ ] Hide overly optimistic features from /what, /why, /how [10m]

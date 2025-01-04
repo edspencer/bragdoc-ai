@@ -9,7 +9,7 @@ import {
 } from '@/lib/db/schema';
 import { eq } from 'drizzle-orm';
 
-async function updateUserSubscription(customerId: string, planId: string) {
+async function updateUserSubscription(customerId: string, planId: string, email: string) {
   // Extract level and renewal period from planId (e.g., 'basic_monthly' -> ['basic', 'monthly'])
   const [level, renewalPeriod] = planId.split('_') as [
     (typeof userLevelEnum.enumValues)[number],
@@ -20,15 +20,16 @@ async function updateUserSubscription(customerId: string, planId: string) {
     `Updating user subscription for customer ${customerId} to level ${level} and renewal period ${renewalPeriod}`,
   );
 
-  // Find user by Stripe customer ID (stored in providerId for stripe provider)
+  // Update user's subscription details and store Stripe customer ID
   await db
     .update(user)
     .set({
       level,
       renewalPeriod,
       lastPayment: new Date(),
+      stripeCustomerId: customerId,
     })
-    .where(eq(user.providerId, customerId));
+    .where(eq(user.email, email));
 }
 
 export async function POST(req: Request) {
@@ -68,11 +69,34 @@ export async function POST(req: Request) {
           const session = event.data.object as Stripe.Checkout.Session;
           console.log(`💰 CheckoutSession status: ${session.payment_status}`);
 
-          if (session.payment_status === 'paid' && session.metadata?.planId) {
-            await updateUserSubscription(
-              session.customer as string,
-              session.metadata.planId,
+          if (session.payment_status === 'paid') {
+            // Retrieve the session with line items
+            const expandedSession = await stripe.checkout.sessions.retrieve(
+              session.id,
+              {
+                expand: ['line_items.data.price'],
+              }
             );
+
+            const lineItems = expandedSession.line_items?.data;
+
+            console.log(
+              `Line items for session ${session.id}:`,
+              lineItems?.map((item) => item.price?.product)
+            );
+
+            if (lineItems && lineItems.length > 0) {
+              const price = lineItems[0].price as Stripe.Price;
+              const planId = price.lookup_key;
+
+              if (planId) {
+                await updateUserSubscription(
+                  session.customer as string,
+                  planId,
+                  session.customer_details?.email ?? '',
+                );
+              }
+            }
           }
           break;
         }
@@ -98,11 +122,19 @@ export async function POST(req: Request) {
           console.log(`💰 PaymentIntent status: ${paymentIntent.status}`);
 
           // Update last payment date if this was a subscription payment
-          if (paymentIntent.metadata?.planId) {
-            await updateUserSubscription(
-              paymentIntent.customer as string,
-              paymentIntent.metadata.planId,
+          if (paymentIntent.metadata?.planId && paymentIntent.customer) {
+            // Fetch customer to get their email
+            const customer = await stripe.customers.retrieve(
+              paymentIntent.customer as string
             );
+
+            if (!customer.deleted) {
+              await updateUserSubscription(
+                paymentIntent.customer as string,
+                paymentIntent.metadata.planId,
+                customer.email ?? '',
+              );
+            }
           }
           break;
         }
