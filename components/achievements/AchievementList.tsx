@@ -199,6 +199,7 @@ export function AchievementList({
               <TableHead className="py-1">Impact</TableHead>
               <TableHead className="py-1">Title</TableHead>
               <TableHead className="py-1">Date</TableHead>
+              <TableHead className="py-1">Info</TableHead>
               <TableHead className="py-1">Actions</TableHead>
             </TableRow>
           </TableHeader>
@@ -217,8 +218,10 @@ export function AchievementList({
                   />
                 </TableCell>
                 <TableCell className="py-1">{achievement.title}</TableCell>
+                <TableCell className="py-1">{achievement.eventStart ? new Date(achievement.eventStart).toLocaleDateString() : '-'}</TableCell>
                 <TableCell className="py-1">
                   {achievement.company?.name ?? '-'}
+                  {achievement.project?.name ? ` (${achievement.project.name})` : ''}
                 </TableCell>
                 <TableCell className="py-1">
                   <AchievementActions

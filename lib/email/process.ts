@@ -1,0 +1,129 @@
+import { generateText } from 'ai';
+import { customModel } from '@/lib/ai';
+import { createUserMessage, getUser, getCompaniesByUserId, getAchievements, createAchievement } from '@/lib/db/queries';
+import { getProjectsByUserId } from '@/lib/db/projects/queries';
+import { z } from 'zod';
+import { extractAchievements } from '@/lib/ai/extract';
+
+export interface IncomingEmail {
+  from: string;
+  subject: string;
+  textContent: string;
+  htmlContent?: string;
+}
+
+// Extract email from "From" header (e.g. "John Doe <john@example.com>" -> "john@example.com")
+function extractEmailFromSender(from: string): string {
+  const match = from.match(/<(.+?)>/);
+  if (match) return match[1];
+  return from;
+}
+
+const systemPrompt = `
+You are BragDoc AI, an AI assistant that helps users track their professional achievements.
+You are given the contents of all emails that are sent to hello@bragdoc.ai.
+If the message came from an active user, you will be told about the user.
+You have received an email that may contain achievements. Your task is to analyze the email content and identify any achievements that should be saved.
+
+If you identify any achievements, use the saveAchievements tool to save them. Only call this tool once, even if multiple achievements are found.
+Do not pass any content to the saveAchievements tool. It already has access to the email content.
+
+Remember:
+- Focus on professional achievements and accomplishments
+- Look for concrete results, impacts, and outcomes
+- Consider both major and minor achievements
+- If no achievements are found, do not call the saveAchievements tool`;
+
+export async function processIncomingEmail(email: IncomingEmail): Promise<{ success: boolean; error?: string }> {
+  try {
+    const senderEmail = extractEmailFromSender(email.from);
+    
+    // Look up the user by email
+    const [user] = await getUser(senderEmail);
+    
+    if (!user) {
+      console.log(`Ignoring email from unknown sender: ${senderEmail}`);
+      return { success: true };
+    }
+
+    // Get user's context
+    const [companies, projects, {achievements}] = await Promise.all([
+      getCompaniesByUserId({ userId: user.id }),
+      getProjectsByUserId(user.id),
+      getAchievements({
+        userId: user.id,
+        startDate: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000), // 30 days ago
+        limit: 50,
+      }),
+    ]);
+
+    // Create a user message record first
+    const [newUserMessage] = await createUserMessage({
+      userId: user.id,
+      originalText: email.textContent,
+    });
+
+    console.log('Created user message:', newUserMessage.id);
+
+    // Extract achievements using the AI
+    const achievementsStream = extractAchievements({
+      input: email.textContent,
+      chat_history: [{ role: 'user', content: email.textContent }],
+      context: {
+        companies: companies.map(c => ({
+          id: c.id,
+          name: c.name,
+          role: c.role,
+          domain: c.domain || undefined,
+          startDate: c.startDate,
+          endDate: c.endDate || undefined,
+        })),
+        projects: projects.map(p => ({
+          id: p.id,
+          name: p.name,
+          companyId: p.companyId || undefined,
+          description: p.description || '',
+          startDate: p.startDate || undefined,
+          endDate: p.endDate || undefined,
+        })),
+      },
+    });
+
+    const savedAchievements = [];
+
+    // Process each achievement as it comes in
+    for await (const achievement of achievementsStream) {
+      console.log('Processing achievement:', achievement.title);
+
+      try {
+        const [savedAchievement] = await createAchievement({
+          userId: user.id,
+          userMessageId: newUserMessage.id,
+          title: achievement.title,
+          summary: achievement.summary,
+          details: achievement.details,
+          eventDuration: achievement.eventDuration,
+          eventStart: achievement.eventStart || null,
+          eventEnd: achievement.eventEnd || null,
+          companyId: achievement.companyId,
+          projectId: achievement.projectId,
+          impact: achievement.impact,
+        });
+
+        console.log('Saved achievement:', savedAchievement.id);
+        savedAchievements.push(savedAchievement);
+      } catch (error) {
+        console.error('Error saving achievement:', error);
+        throw error;
+      }
+    }
+
+    console.log('Processed email from:', senderEmail);
+    console.log('Saved achievements:', savedAchievements.length);
+
+    return { success: true };
+  } catch (error) {
+    console.error('Error processing email:', error);
+    return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
+  }
+}

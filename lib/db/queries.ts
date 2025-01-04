@@ -494,7 +494,7 @@ export async function getAchievements({
   endDate?: Date;
   limit?: number;
   offset?: number;
-  db?: any;
+  db?: typeof defaultDb;
 }) {
   try {
     const conditions = [eq(achievement.userId, userId)];
