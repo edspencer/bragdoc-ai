@@ -1,5 +1,5 @@
-import * as fs from 'fs';
-import * as path from 'path';
+import * as fs from 'node:fs';
+import * as path from 'node:path';
 import { get_encoding } from 'tiktoken';
 
 const IGNORE_DIRS = [
@@ -55,7 +55,7 @@ async function main() {
   const enc = get_encoding('cl100k_base');  // GPT-4 encoding
   
   let totalTokens = 0;
-  let fileStats: { [key: string]: number } = {};
+  const fileStats: { [key: string]: number } = {};
 
   files.forEach(file => {
     try {

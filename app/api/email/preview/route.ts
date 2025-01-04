@@ -1,4 +1,4 @@
-import { NextRequest } from 'next/server';
+import type { NextRequest } from 'next/server';
 import { renderWelcomeEmail } from '@/lib/email/sendEmail';
 
 export async function GET(req: NextRequest) {

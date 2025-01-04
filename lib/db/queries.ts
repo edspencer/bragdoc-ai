@@ -44,12 +44,13 @@ export async function getUserById(id: string, dbInstance = defaultDb): Promise<U
   }
 }
 
-export async function createUser(email: string, password: string, dbInstance = defaultDb) {
+export async function createUser(email: string, password: string, dbInstance = defaultDb): Promise<User> {
   const salt = genSaltSync(10);
   const hash = hashSync(password, salt);
 
   try {
-    return await dbInstance.insert(user).values({ email, password: hash });
+    const [newUser] = await dbInstance.insert(user).values({ email, password: hash }).returning();
+    return newUser;
   } catch (error) {
     console.error('Error in createUser:', error);
     throw error;

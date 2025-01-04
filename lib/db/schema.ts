@@ -318,3 +318,15 @@ export const verificationToken = pgTable(
 export type Account = InferSelectModel<typeof account>;
 export type Session = InferSelectModel<typeof session>;
 export type VerificationToken = InferSelectModel<typeof verificationToken>;
+
+export const emailPreferences = pgTable('email_preferences', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  userId: uuid('user_id').references(() => user.id).notNull(),
+  unsubscribedAt: timestamp('unsubscribed_at'),
+  // Specific email types they've unsubscribed from (null means unsubscribed from all)
+  emailTypes: text('email_types').array(),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+});
+
+export type EmailPreferences = InferSelectModel<typeof emailPreferences>;

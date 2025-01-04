@@ -67,13 +67,14 @@ export const register = async (
     if (user) {
       return { status: 'user_exists' } as RegisterActionState;
     }
-    await createUser(validatedData.email, validatedData.password);
+    const newUser = await createUser(validatedData.email, validatedData.password);
     
     // Send welcome email
     try {
       await sendWelcomeEmail({
         to: validatedData.email,
-        username: validatedData.email.split('@')[0], // Use email prefix as username for now
+        userId: newUser.id,
+        username: validatedData.email.split('@')[0], 
         loginUrl: `${process.env.NEXT_PUBLIC_APP_URL}/login`,
       });
     } catch (error) {

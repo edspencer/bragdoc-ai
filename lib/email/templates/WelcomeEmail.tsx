@@ -15,11 +15,13 @@ import * as React from 'react';
 interface WelcomeEmailProps {
   username: string;
   loginUrl: string;
+  unsubscribeUrl?: string;
 }
 
 export const WelcomeEmail = ({
   username = 'there',
   loginUrl = 'https://bragdoc.ai/login',
+  unsubscribeUrl,
 }: WelcomeEmailProps) => {
   const previewText = `Welcome to Bragdoc.ai - Start tracking your achievements!`;
 
@@ -65,6 +67,21 @@ export const WelcomeEmail = ({
 
           <Text style={footer}>
             Bragdoc.ai - Your Professional Achievement Tracker
+            {unsubscribeUrl && (
+              <>
+                <br />
+                <Link
+                  href={unsubscribeUrl}
+                  style={{
+                    color: '#898989',
+                    fontSize: '12px',
+                    textDecoration: 'underline',
+                  }}
+                >
+                  Unsubscribe from emails
+                </Link>
+              </>
+            )}
           </Text>
         </Container>
       </Body>
