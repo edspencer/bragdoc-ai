@@ -4,13 +4,14 @@ import {
   unsubscribeUser,
 } from '@/lib/email/unsubscribe';
 
+type Params = Promise<{ token: string, salt : string }>;
+
 export default async function UnsubscribedPage({
   searchParams,
 }: {
-  searchParams: { token?: string; salt?: string };
+  searchParams: Params
 }) {
-  const token = searchParams.token;
-  const salt = searchParams.salt;
+  const {token, salt} = await searchParams;
 
   if (!token || !salt) {
     return (
