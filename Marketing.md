@@ -46,3 +46,15 @@ Design a campaign of emails that will be sent out to the user introducing them t
 This can easily become annoying so be careful on frequency.
 Maybe it can be personalized with a weekly summary of their activity?
 Should this be separate from the weekly review/update email?
+
+#### Stripe email example
+
+After I made a Payment Link, the next day I got this email from Stripe. Seemed a good excuse for a touch point:
+
+Now that you've created a payment link, there are several ways you can share it with your customers:
+
+- Add a buy button to your site
+- Generate a QR code
+- Share the link online, on social media, or via SMS or email
+
+<a>Start sharing</a>
