@@ -21,6 +21,12 @@ export async function GET(
     return Response.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
+  // Validate UUID format
+  const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+  if (!uuidRegex.test(params.id)) {
+    return Response.json({ error: 'Document not found' }, { status: 404 });
+  }
+
   try {
     const [doc] = await db
       .select()
@@ -54,6 +60,12 @@ export async function PUT(
 
   if (!session?.user?.id) {
     return Response.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+
+  // Validate UUID format
+  const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+  if (!uuidRegex.test(params.id)) {
+    return Response.json({ error: 'Document not found' }, { status: 404 });
   }
 
   try {
@@ -109,6 +121,12 @@ export async function PATCH(
     return Response.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
+  // Validate UUID format
+  const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+  if (!uuidRegex.test(params.id)) {
+    return Response.json({ error: 'Document not found' }, { status: 404 });
+  }
+
   try {
     const { timestamp }: { timestamp: string } = await request.json();
 
@@ -153,6 +171,12 @@ export async function DELETE(
 
   if (!session?.user?.id) {
     return Response.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+
+  // Validate UUID format
+  const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+  if (!uuidRegex.test(params.id)) {
+    return Response.json({ error: 'Document not found' }, { status: 404 });
   }
 
   try {
