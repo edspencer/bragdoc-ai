@@ -36,15 +36,28 @@ type: varchar('type', { length: 32 }), // weekly_report, performance_review, etc
 updatedAt: timestamp('updated_at').notNull().defaultNow(),
 ```
 
-## API Routes
-- `GET /api/documents` - List all documents for current user
-- `POST /api/documents` - Create a new document
-- `GET /api/documents/[id]` - Get document details
-- `PUT /api/documents/[id]` - Update document
-- `DELETE /api/documents/[id]` - Delete document
-- `POST /api/documents/[id]/share` - Generate share token
-- `DELETE /api/documents/[id]/share` - Remove share token
-- `GET /api/shared/[token]` - View shared document (public route)
+## API Structure
+Following the existing companies feature structure:
+
+```
+app/api/
+├── documents/
+│   ├── route.ts               # GET (list), POST (create)
+│   ├── [id]/
+│   │   ├── route.ts          # GET, PUT, DELETE
+│   │   ├── share/
+│   │   │   └── route.ts      # POST (create), DELETE (revoke)
+│   └── shared/
+│       └── [token]/
+│           └── route.ts      # GET (public view)
+```
+
+Each route follows the same patterns as companies:
+- Uses Next.js App Router conventions
+- Implements proper error handling
+- Returns consistent response formats
+- Includes proper TypeScript types
+- Validates input with Zod schemas
 
 ## UI Components
 
@@ -73,6 +86,27 @@ Form for editing documents with fields:
 - Rich text viewer for document content
 - Shared view has simplified layout
 - Print-friendly styling
+
+## Component Structure
+Following the existing companies feature structure, components will be organized in `/components/documents/`:
+
+```
+components/documents/
+├── document-actions.tsx    # Action buttons (edit, delete, share)
+├── document-filters.tsx    # Search and filter controls
+├── document-list.tsx       # Main list component
+├── document-form.tsx       # Create/edit form
+├── document-list-skeleton.tsx  # Loading state
+└── document-dialog.tsx     # Modal dialog wrapper
+```
+
+Each component follows the same patterns as their company counterparts:
+- Uses Shadcn UI components
+- Implements loading states
+- Handles errors consistently
+- Supports dark/light mode
+- Uses SWR for data fetching
+- Follows existing TypeScript patterns
 
 ## Page Layouts
 

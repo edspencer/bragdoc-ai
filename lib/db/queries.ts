@@ -226,11 +226,15 @@ export async function saveDocument(
     title,
     content,
     userId,
+    type,
+    companyId,
   }: {
     id: string;
     title: string;
     content: string;
     userId: string;
+    type?: string;
+    companyId?: string;
   },
   dbInstance = defaultDb,
 ) {
@@ -240,7 +244,10 @@ export async function saveDocument(
       title,
       content,
       userId,
+      type,
+      companyId,
       createdAt: new Date(),
+      updatedAt: new Date(),
     });
   } catch (error) {
     console.error('Error in saveDocument:', error);
@@ -278,6 +285,59 @@ export async function getDocumentById(
     return selectedDocument;
   } catch (error) {
     console.error('Error in getDocumentById:', error);
+    throw error;
+  }
+}
+
+export async function getDocumentByShareToken(
+  { token }: { token: string },
+  dbInstance = defaultDb,
+) {
+  try {
+    const [selectedDocument] = await dbInstance
+      .select()
+      .from(document)
+      .where(eq(document.shareToken, token))
+      .leftJoin(company, eq(document.companyId, company.id));
+
+    return selectedDocument;
+  } catch (error) {
+    console.error('Error in getDocumentByShareToken:', error);
+    throw error;
+  }
+}
+
+export async function updateDocument(
+  {
+    id,
+    userId,
+    data,
+  }: {
+    id: string;
+    userId: string;
+    data: {
+      title?: string;
+      content?: string;
+      type?: string;
+      companyId?: string | null;
+      shareToken?: string | null;
+    };
+  },
+  dbInstance = defaultDb,
+) {
+  try {
+    const [updated] = await dbInstance
+      .update(document)
+      .set({
+        ...data,
+        updatedAt: new Date(),
+      })
+      .where(and(eq(document.id, id), eq(document.userId, userId)))
+      .returning();
+
+    return updated;
+  } catch (error) {
+    console.error('Error in updateDocument:', error);
     throw error;
   }
 }

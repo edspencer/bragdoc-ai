@@ -206,16 +206,29 @@ export const document = pgTable(
   {
     id: uuid('id').notNull().defaultRandom(),
     createdAt: timestamp('createdAt').notNull(),
+    updatedAt: timestamp('updatedAt').notNull().defaultNow(),
     title: text('title').notNull(),
     content: text('content'),
     userId: uuid('userId')
       .notNull()
       .references(() => user.id),
     companyId: uuid('company_id').references(() => company.id),
+    type: varchar('type', { length: 32 }), // weekly_report, performance_review, etc.
+    shareToken: varchar('share_token', { length: 64 }), // null if not shared
   },
   (table) => {
     return {
       pk: primaryKey({ columns: [table.id, table.createdAt] }),
+      relations: {
+        company: {
+          fields: [table.companyId],
+          references: [company.id],
+        },
+        user: {
+          fields: [table.userId],
+          references: [user.id],
+        },
+      },
     };
   },
 );
