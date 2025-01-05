@@ -6,7 +6,7 @@ import type { UIBlock } from './block';
 import { type Dispatch, memo, type SetStateAction } from 'react';
 import type { Vote } from '@/lib/db/schema';
 import equal from 'fast-deep-equal';
-import { User } from 'next-auth';
+import type { User } from 'next-auth';
 
 interface MessagesProps {
   chatId: string;

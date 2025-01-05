@@ -6,8 +6,6 @@ import { useCompanies } from '@/hooks/use-companies';
 import { useProjects } from '@/hooks/useProjects';
 import { AchievementList } from '@/components/achievements/AchievementList';
 import { AchievementFilters } from '@/components/achievements/achievement-filters';
-import { Button } from '@/components/ui/button';
-import { Plus } from 'lucide-react';
 import { AchievementDialog } from './AchievementDialog';
 
 export function AchievementsContent() {

@@ -2,7 +2,7 @@
 
 ## Before launch
 
-- [ ] Add proper blank chat page [30m]
+- [x] Add proper blank chat page [30m]
 - [ ] Hide overly optimistic features from /what, /why, /how [10m]
 - [ ] Replace home screen screenshots [1h]
 - [ ] Fix Welcome flow [1h]

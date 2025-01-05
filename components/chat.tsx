@@ -3,11 +3,11 @@
 import type { Attachment, Message } from 'ai';
 import { useChat } from 'ai/react';
 import { AnimatePresence } from 'framer-motion';
-import { useState, useEffect } from 'react';
+import { useState, } from 'react';
 import useSWR, { useSWRConfig } from 'swr';
 import { useWindowSize } from 'usehooks-ts';
 import { useSession } from 'next-auth/react';
-import { type User } from 'next-auth';
+import type { User } from 'next-auth';
 
 import { ChatHeader } from '@/components/chat-header';
 import type { Vote } from '@/lib/db/schema';
