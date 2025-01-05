@@ -19,13 +19,6 @@ export function AchievementsContent() {
 
   return (
     <div className="mt-8">
-      <div className="flex justify-end mb-6">
-        <Button onClick={() => setDialogOpen(true)}>
-          <Plus className="mr-2 size-4" />
-          New Achievement
-        </Button>
-      </div>
-
       <AchievementFilters
         companyId={filters.companyId || 'all'}
         onCompanyChange={(value) =>

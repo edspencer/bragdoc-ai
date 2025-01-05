@@ -1,10 +1,9 @@
 import { cookies } from 'next/headers';
-
+import { generateUUID } from '@/lib/utils';
 import { Chat } from '@/components/chat';
 import { DEFAULT_MODEL_NAME, models } from '@/lib/ai/models';
-import { generateUUID } from '@/lib/utils';
 
-export default async function Page() {
+export default async function ChatPage() {
   const id = generateUUID();
 
   const cookieStore = await cookies();

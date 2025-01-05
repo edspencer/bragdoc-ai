@@ -1,6 +1,9 @@
 import { motion } from 'framer-motion';
+import { User } from 'next-auth';
 
-export const Overview = () => {
+export const Overview = ({ user }: { user: User | null | undefined }) => {
+  console.log(user);
+
   return (
     <motion.div
       key="overview"

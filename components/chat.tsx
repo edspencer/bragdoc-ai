@@ -3,9 +3,11 @@
 import type { Attachment, Message } from 'ai';
 import { useChat } from 'ai/react';
 import { AnimatePresence } from 'framer-motion';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import useSWR, { useSWRConfig } from 'swr';
 import { useWindowSize } from 'usehooks-ts';
+import { useSession } from 'next-auth/react';
+import { type User } from 'next-auth';
 
 import { ChatHeader } from '@/components/chat-header';
 import type { Vote } from '@/lib/db/schema';
@@ -31,6 +33,7 @@ export function Chat({
   isReadonly: boolean;
 }) {
   const { mutate } = useSWRConfig();
+  const { data: session } = useSession();
 
   const {
     messages,
@@ -94,6 +97,7 @@ export function Chat({
         setMessages={setMessages}
         reload={reload}
         isReadonly={isReadonly}
+        user={session?.user as User}
       />
       <form className="flex mx-auto px-4 bg-background pb-4 md:pb-6 gap-2 w-full md:max-w-3xl">
         {!isReadonly && (

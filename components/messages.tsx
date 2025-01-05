@@ -6,6 +6,7 @@ import type { UIBlock } from './block';
 import { type Dispatch, memo, type SetStateAction } from 'react';
 import type { Vote } from '@/lib/db/schema';
 import equal from 'fast-deep-equal';
+import { User } from 'next-auth';
 
 interface MessagesProps {
   chatId: string;
@@ -21,6 +22,7 @@ interface MessagesProps {
     chatRequestOptions?: ChatRequestOptions,
   ) => Promise<string | null | undefined>;
   isReadonly: boolean;
+  user: User | null | undefined;
 }
 
 function PureMessages({
@@ -33,6 +35,7 @@ function PureMessages({
   setMessages,
   reload,
   isReadonly,
+  user,
 }: MessagesProps) {
   const [messagesContainerRef, messagesEndRef] =
     useScrollToBottom<HTMLDivElement>();
@@ -42,7 +45,7 @@ function PureMessages({
       ref={messagesContainerRef}
       className="flex flex-col min-w-0 gap-6 flex-1 overflow-y-scroll pt-4"
     >
-      {messages.length === 0 && <Overview />}
+      {messages.length === 0 && <Overview user={user} />}
 
       {messages.map((message, index) => (
         <PreviewMessage
