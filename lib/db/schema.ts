@@ -20,8 +20,15 @@ export interface UserPreferences {
 }
 
 export const userLevelEnum = pgEnum('user_level', ['free', 'basic', 'pro']);
-export const renewalPeriodEnum = pgEnum('renewal_period', ['monthly', 'yearly']);
-export const userStatusEnum = pgEnum('user_status', ['active', 'banned', 'deleted']);
+export const renewalPeriodEnum = pgEnum('renewal_period', [
+  'monthly',
+  'yearly',
+]);
+export const userStatusEnum = pgEnum('user_status', [
+  'active',
+  'banned',
+  'deleted',
+]);
 
 export const user = pgTable('User', {
   id: uuid('id').primaryKey().notNull().defaultRandom(),
@@ -29,22 +36,27 @@ export const user = pgTable('User', {
   password: varchar('password', { length: 64 }),
   name: varchar('name', { length: 256 }),
   image: varchar('image', { length: 512 }),
-  provider: varchar('provider', { length: 32 }).notNull().default('credentials'),
+  provider: varchar('provider', { length: 32 })
+    .notNull()
+    .default('credentials'),
   providerId: varchar('provider_id', { length: 256 }),
   githubAccessToken: varchar('github_access_token', { length: 256 }),
   preferences: jsonb('preferences').$type<UserPreferences>().notNull().default({
     hasSeenWelcome: false,
-    language: 'en'
+    language: 'en',
   }),
   createdAt: timestamp('created_at').notNull().defaultNow(),
   updatedAt: timestamp('updated_at').notNull().defaultNow(),
   emailVerified: timestamp('email_verified').defaultNow(),
 
   level: userLevelEnum('level').notNull().default('free'),
-  renewalPeriod: renewalPeriodEnum('renewal_period').notNull().default('monthly'),
+  renewalPeriod: renewalPeriodEnum('renewal_period')
+    .notNull()
+    .default('monthly'),
   lastPayment: timestamp('last_payment'),
 
   status: userStatusEnum('status').notNull().default('active'),
+  stripeCustomerId: varchar('stripe_customer_id', { length: 256 }),
 });
 
 export type User = InferSelectModel<typeof user>;
@@ -77,7 +89,7 @@ export type Company = InferSelectModel<typeof company>;
 export enum ProjectStatus {
   Active = 'active',
   Completed = 'completed',
-  Archived = 'archived'
+  Archived = 'archived',
 }
 
 export const project = pgTable('Project', {
@@ -85,8 +97,7 @@ export const project = pgTable('Project', {
   userId: uuid('user_id')
     .notNull()
     .references(() => user.id),
-  companyId: uuid('company_id')
-    .references(() => company.id),
+  companyId: uuid('company_id').references(() => company.id),
   name: varchar('name', { length: 256 }).notNull(),
   description: text('description'),
   status: varchar('status', { length: 32 }).notNull().default('active'),
@@ -98,41 +109,49 @@ export const project = pgTable('Project', {
 
 export type Project = InferSelectModel<typeof project>;
 
-export const achievement = pgTable('Achievement', {
-  id: uuid('id').primaryKey().notNull().defaultRandom(),
-  userId: uuid('user_id')
-    .notNull()
-    .references(() => user.id),
-  companyId: uuid('company_id')
-    .references(() => company.id),
-  projectId: uuid('project_id')
-    .references(() => project.id),
-  userMessageId: uuid('user_message_id')
-    .references(() => userMessage.id),
-  title: varchar('title', { length: 256 }).notNull(),
-  summary: text('summary'),
-  details: text('details'),
-  eventStart: timestamp('event_start'),
-  eventEnd: timestamp('event_end'),
-  eventDuration: varchar('event_duration', { 
-    enum: ['day', 'week', 'month', 'quarter', 'half year', 'year'] 
-  }).notNull(),
-  isArchived: boolean('is_archived').default(false),
-  source: varchar('source', { enum: ['llm', 'manual'] }).notNull().default('manual'),
-  impact: integer('impact').default(2),
-  impactSource: varchar('impact_source', { enum: ['user', 'llm'] }).default('llm'),
-  impactUpdatedAt: timestamp('impact_updated_at').defaultNow(),
-  createdAt: timestamp('created_at').notNull().defaultNow(),
-  updatedAt: timestamp('updated_at').notNull().defaultNow(),
-}, (table) => {
-  return {
-    relations: {
-      company: { fields: [table.companyId], references: [company.id] },
-      project: { fields: [table.projectId], references: [project.id] },
-      userMessage: { fields: [table.userMessageId], references: [userMessage.id] },
-    },
-  };
-});
+export const achievement = pgTable(
+  'Achievement',
+  {
+    id: uuid('id').primaryKey().notNull().defaultRandom(),
+    userId: uuid('user_id')
+      .notNull()
+      .references(() => user.id),
+    companyId: uuid('company_id').references(() => company.id),
+    projectId: uuid('project_id').references(() => project.id),
+    userMessageId: uuid('user_message_id').references(() => userMessage.id),
+    title: varchar('title', { length: 256 }).notNull(),
+    summary: text('summary'),
+    details: text('details'),
+    eventStart: timestamp('event_start'),
+    eventEnd: timestamp('event_end'),
+    eventDuration: varchar('event_duration', {
+      enum: ['day', 'week', 'month', 'quarter', 'half year', 'year'],
+    }).notNull(),
+    isArchived: boolean('is_archived').default(false),
+    source: varchar('source', { enum: ['llm', 'manual'] })
+      .notNull()
+      .default('manual'),
+    impact: integer('impact').default(2),
+    impactSource: varchar('impact_source', { enum: ['user', 'llm'] }).default(
+      'llm',
+    ),
+    impactUpdatedAt: timestamp('impact_updated_at').defaultNow(),
+    createdAt: timestamp('created_at').notNull().defaultNow(),
+    updatedAt: timestamp('updated_at').notNull().defaultNow(),
+  },
+  (table) => {
+    return {
+      relations: {
+        company: { fields: [table.companyId], references: [company.id] },
+        project: { fields: [table.projectId], references: [project.id] },
+        userMessage: {
+          fields: [table.userMessageId],
+          references: [userMessage.id],
+        },
+      },
+    };
+  },
+);
 
 export type Achievement = InferSelectModel<typeof achievement>;
 
@@ -187,17 +206,29 @@ export const document = pgTable(
   {
     id: uuid('id').notNull().defaultRandom(),
     createdAt: timestamp('createdAt').notNull(),
+    updatedAt: timestamp('updatedAt').notNull().defaultNow(),
     title: text('title').notNull(),
     content: text('content'),
     userId: uuid('userId')
       .notNull()
       .references(() => user.id),
-    companyId: uuid('company_id')
-      .references(() => company.id),
+    companyId: uuid('company_id').references(() => company.id),
+    type: varchar('type', { length: 32 }), // weekly_report, performance_review, etc.
+    shareToken: varchar('share_token', { length: 64 }), // null if not shared
   },
   (table) => {
     return {
       pk: primaryKey({ columns: [table.id, table.createdAt] }),
+      relations: {
+        company: {
+          fields: [table.companyId],
+          references: [company.id],
+        },
+        user: {
+          fields: [table.userId],
+          references: [user.id],
+        },
+      },
     };
   },
 );
@@ -221,7 +252,9 @@ export const suggestion = pgTable(
   },
   (table) => {
     return {
-      pk: primaryKey({ columns: [table.id, table.documentId, table.documentCreatedAt] }),
+      pk: primaryKey({
+        columns: [table.id, table.documentId, table.documentCreatedAt],
+      }),
     };
   },
 );
@@ -259,11 +292,13 @@ export const githubPullRequest = pgTable(
     createdAt: timestamp('created_at').notNull().defaultNow(),
     updatedAt: timestamp('updated_at').notNull().defaultNow(),
     mergedAt: timestamp('merged_at'),
-    achievementId: uuid('achievement_id')
-      .references(() => achievement.id),
+    achievementId: uuid('achievement_id').references(() => achievement.id),
   },
   (table) => ({
-    repoAndPrUnique: uniqueIndex('repo_pr_unique').on(table.repositoryId, table.prNumber),
+    repoAndPrUnique: uniqueIndex('repo_pr_unique').on(
+      table.repositoryId,
+      table.prNumber,
+    ),
   }),
 );
 
@@ -276,12 +311,9 @@ export const account = pgTable(
     userId: uuid('userId')
       .notNull()
       .references(() => user.id, { onDelete: 'cascade' }),
-    type: varchar('type', { length: 255 })
-      .notNull(),
-    provider: varchar('provider', { length: 255 })
-      .notNull(),
-    providerAccountId: varchar('providerAccountId', { length: 255 })
-      .notNull(),
+    type: varchar('type', { length: 255 }).notNull(),
+    provider: varchar('provider', { length: 255 }).notNull(),
+    providerAccountId: varchar('providerAccountId', { length: 255 }).notNull(),
     refresh_token: text('refresh_token'),
     access_token: text('access_token'),
     expires_at: integer('expires_at'),
@@ -292,7 +324,7 @@ export const account = pgTable(
   },
   (table) => ({
     pk: primaryKey({ columns: [table.provider, table.providerAccountId] }),
-  })
+  }),
 );
 
 export const session = pgTable('Session', {
@@ -312,9 +344,23 @@ export const verificationToken = pgTable(
   },
   (table) => ({
     pk: primaryKey({ columns: [table.identifier, table.token] }),
-  })
+  }),
 );
 
 export type Account = InferSelectModel<typeof account>;
 export type Session = InferSelectModel<typeof session>;
 export type VerificationToken = InferSelectModel<typeof verificationToken>;
+
+export const emailPreferences = pgTable('email_preferences', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  userId: uuid('user_id')
+    .references(() => user.id)
+    .notNull(),
+  unsubscribedAt: timestamp('unsubscribed_at'),
+  // Specific email types they've unsubscribed from (null means unsubscribed from all)
+  emailTypes: text('email_types').array(),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+});
+
+export type EmailPreferences = InferSelectModel<typeof emailPreferences>;

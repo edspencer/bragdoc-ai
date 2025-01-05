@@ -28,9 +28,13 @@ export function AchievementsContent() {
 
       <AchievementFilters
         companyId={filters.companyId || 'all'}
-        onCompanyChange={(value) => setFilter('companyId', value === 'all' ? undefined : value)}
+        onCompanyChange={(value) =>
+          setFilter('companyId', value === 'all' ? undefined : value)
+        }
         projectId={filters.projectId || 'all'}
-        onProjectChange={(value) => setFilter('projectId', value === 'all' ? undefined : value)}
+        onProjectChange={(value) =>
+          setFilter('projectId', value === 'all' ? undefined : value)
+        }
         searchQuery={filters.searchQuery || ''}
         onSearchChange={(value) => setFilter('searchQuery', value || undefined)}
         startDate={filters.startDate}

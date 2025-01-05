@@ -10,14 +10,18 @@ import type { CreateAchievementRequest } from '@/lib/types/achievement';
 export async function createSystemUserMessage(
   userId: string,
   title: string,
-  summary?: string
+  summary?: string,
 ) {
   const message = `Created achievement: ${title}${summary ? `\n${summary}` : ''}`;
-  
-  return await db.insert(userMessage).values({
-    userId,
-    originalText: message,
-  }).returning().then(rows => rows[0]);
+
+  return await db
+    .insert(userMessage)
+    .values({
+      userId,
+      originalText: message,
+    })
+    .returning()
+    .then((rows) => rows[0]);
 }
 
 /**
@@ -27,20 +31,32 @@ export async function createAchievement(
   userId: string,
   data: CreateAchievementRequest,
   source: 'llm' | 'manual' = 'manual',
-  userMessageId?: string
+  userMessageId?: string,
 ) {
   // If no userMessageId is provided and it's a manual creation,
   // create a system message
-  const messageId = userMessageId || (source === 'manual' 
-    ? (await createSystemUserMessage(userId, data.title, data.summary ?? undefined))?.id 
-    : undefined);
+  const messageId =
+    userMessageId ||
+    (source === 'manual'
+      ? (
+          await createSystemUserMessage(
+            userId,
+            data.title,
+            data.summary ?? undefined,
+          )
+        )?.id
+      : undefined);
 
-  return await db.insert(achievement).values({
-    ...data,
-    userId,
-    userMessageId: messageId,
-    source,
-  }).returning().then(rows => rows[0]);
+  return await db
+    .insert(achievement)
+    .values({
+      ...data,
+      userId,
+      userMessageId: messageId,
+      source,
+    })
+    .returning()
+    .then((rows) => rows[0]);
 }
 
 /**
@@ -48,22 +64,24 @@ export async function createAchievement(
  */
 export async function validateAchievementData(userId: string) {
   // Find achievements with invalid userMessageIds
-  const invalidMessageIds = await db.select()
+  const invalidMessageIds = await db
+    .select()
     .from(achievement)
     .where(
       and(
         eq(achievement.userId, userId),
         eq(achievement.source, 'llm'),
         notExists(
-          db.select()
+          db
+            .select()
             .from(userMessage)
-            .where(eq(userMessage.id, achievement.userMessageId))
-        )
-      )
+            .where(eq(userMessage.id, achievement.userMessageId)),
+        ),
+      ),
     );
 
   return {
-    invalidMessageIds: invalidMessageIds.map(b => b.id),
+    invalidMessageIds: invalidMessageIds.map((b) => b.id),
     total: invalidMessageIds.length,
   };
 }
@@ -72,14 +90,15 @@ export async function validateAchievementData(userId: string) {
  * Creates missing user messages for existing achievements
  */
 export async function createMissingUserMessages(userId: string) {
-  const achievements = await db.select()
+  const achievements = await db
+    .select()
     .from(achievement)
     .where(
       and(
         eq(achievement.userId, userId),
         eq(achievement.source, 'manual'),
-        isNull(achievement.userMessageId)
-      )
+        isNull(achievement.userMessageId),
+      ),
     );
 
   const results = await Promise.all(
@@ -87,7 +106,7 @@ export async function createMissingUserMessages(userId: string) {
       const message = await createSystemUserMessage(
         userId,
         achievementRow.title,
-        achievementRow.summary ?? undefined
+        achievementRow.summary ?? undefined,
       );
 
       await db
@@ -96,7 +115,7 @@ export async function createMissingUserMessages(userId: string) {
         .where(eq(achievement.id, achievementRow.id));
 
       return achievementRow.id;
-    })
+    }),
   );
 
   return {

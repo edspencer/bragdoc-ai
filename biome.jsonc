@@ -10,7 +10,7 @@
       ".next",
       "public",
       ".vercel",
-      "./ai-docs/**/*.tsx",
+      "./ai-docs/**/*.tsx"
     ]
   },
   "vcs": {

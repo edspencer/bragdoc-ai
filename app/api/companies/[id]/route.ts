@@ -1,39 +1,39 @@
-import { type NextRequest, NextResponse } from "next/server";
+import { type NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/app/(auth)/auth';
-import {
-  getCompanyById,
-  updateCompany,
-  deleteCompany
-} from "@/lib/db/queries";
-import { z } from "zod";
-import { db } from "@/lib/db";
+import { getCompanyById, updateCompany, deleteCompany } from '@/lib/db/queries';
+import { z } from 'zod';
+import { db } from '@/lib/db';
 
 // Validation schema for updating a company
 const updateCompanySchema = z.object({
   name: z.string().min(1).max(256).optional(),
   domain: z.string().max(256).nullable().optional(),
   role: z.string().min(1).max(256).optional(),
-  startDate: z.string().transform((str) => new Date(str)).optional(),
-  endDate: z.string().nullable().transform((str) => str ? new Date(str) : null).optional(),
+  startDate: z
+    .string()
+    .transform((str) => new Date(str))
+    .optional(),
+  endDate: z
+    .string()
+    .nullable()
+    .transform((str) => (str ? new Date(str) : null))
+    .optional(),
 });
 
-type Params = Promise<{ id: string }>
+type Params = Promise<{ id: string }>;
 
-export async function GET(
-  request: Request,
-  { params }: { params: Params }
-) {
-  const {id} = await params;
+export async function GET(request: Request, { params }: { params: Params }) {
+  const { id } = await params;
   try {
     const session = await auth();
     if (!session?.user?.id) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     const company = await getCompanyById({
       id,
       userId: session.user.id,
-      db
+      db,
     });
 
     if (!company) {
@@ -43,20 +43,23 @@ export async function GET(
     return NextResponse.json(company);
   } catch (error) {
     console.error('Error fetching company:', error);
-    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
+    return NextResponse.json(
+      { error: 'Internal Server Error' },
+      { status: 500 },
+    );
   }
 }
 
 export async function PUT(
   request: NextRequest,
-  { params }: { params: Params }
+  { params }: { params: Params },
 ) {
-  const {id} = await params;
+  const { id } = await params;
 
   try {
     const session = await auth();
     if (!session?.user?.id) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     const body = await request.json();
@@ -66,7 +69,7 @@ export async function PUT(
       id,
       userId: session.user.id,
       data: validatedData,
-      db
+      db,
     });
 
     if (!company) {
@@ -79,27 +82,28 @@ export async function PUT(
       return NextResponse.json({ error: error.errors }, { status: 400 });
     }
     console.error('Error updating company:', error);
-    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
+    return NextResponse.json(
+      { error: 'Internal Server Error' },
+      { status: 500 },
+    );
   }
 }
 
-
-
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: Params }
+  { params }: { params: Params },
 ) {
-  const {id} = await params;
+  const { id } = await params;
   try {
     const session = await auth();
     if (!session?.user?.id) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     const deleted = await deleteCompany({
       id,
       userId: session.user.id,
-      db
+      db,
     });
 
     if (!deleted || deleted.length === 0) {
@@ -109,6 +113,9 @@ export async function DELETE(
     return new Response(null, { status: 204 });
   } catch (error) {
     console.error('Error deleting company:', error);
-    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
+    return NextResponse.json(
+      { error: 'Internal Server Error' },
+      { status: 500 },
+    );
   }
 }

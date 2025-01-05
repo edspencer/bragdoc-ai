@@ -31,6 +31,33 @@ This document outlines the implemented features of BragDoc.ai, a chatbot that he
   - Pull request synchronization with upsert
   - Basic error handling
 
+### Email Integration
+#### Inbound Email Processing
+- Mailgun webhook integration for receiving emails
+- Email sender verification and validation
+- Achievement extraction from email content
+  - Support for both plain text and HTML formats
+  - Context-aware achievement parsing
+  - Company and project linking
+  - Date and duration detection
+- Secure webhook endpoint with signature verification
+- Automatic user message creation from emails
+- Error handling and logging
+
+#### Email Management (Coming Soon)
+- Weekly/monthly achievement summaries
+- Performance review document generation
+- Manager update emails
+- React Email-based templating system
+- Email preference management
+- Unsubscribe functionality
+
+#### Security & Compliance
+- Email sender verification
+- Mailgun webhook signature validation
+- Rate limiting implementation
+- GDPR-compliant data handling
+
 ### User Interface
 #### Navigation Structure
 - Companies management at `/companies`

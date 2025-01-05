@@ -1,13 +1,13 @@
-"use client";
+'use client';
 
-import * as React from "react";
-import { Button } from "@/components/ui/button";
-import { WelcomeCard, type WelcomeCardProps } from "./card";
-import { cn } from "@/lib/utils";
-import { AnimatePresence } from "framer-motion";
+import * as React from 'react';
+import { Button } from '@/components/ui/button';
+import { WelcomeCard, type WelcomeCardProps } from './card';
+import { cn } from '@/lib/utils';
+import { AnimatePresence } from 'framer-motion';
 
 export interface WelcomeCarouselProps {
-  cards: Omit<WelcomeCardProps, "isActive">[];
+  cards: Omit<WelcomeCardProps, 'isActive'>[];
   onComplete: () => void;
   onSkip: () => void;
   className?: string;
@@ -38,19 +38,21 @@ export function WelcomeCarousel({
   }, [onSkip]);
 
   return (
-    <div className={cn("flex flex-grow flex-col gap-8 items-stretch justify-center", className)}>
+    <div
+      className={cn(
+        'flex flex-grow flex-col gap-8 items-stretch justify-center',
+        className,
+      )}
+    >
       <div className="relative flex items-center justify-center">
         <div className="w-full max-w-3xl">
           <AnimatePresence mode="wait">
-            {cards.map((card, index) => (
-              index === activeIndex && (
-                <WelcomeCard 
-                  key={index} 
-                  {...card} 
-                  isActive={true}
-                />
-              )
-            ))}
+            {cards.map(
+              (card, index) =>
+                index === activeIndex && (
+                  <WelcomeCard key={index} {...card} isActive={true} />
+                ),
+            )}
           </AnimatePresence>
         </div>
       </div>
@@ -63,9 +65,13 @@ export function WelcomeCarousel({
           >
             Previous
           </Button>
-          {activeIndex === cards.length - 1  ? null : <Button variant="ghost" onClick={handleSkip}>Skip</Button>}
+          {activeIndex === cards.length - 1 ? null : (
+            <Button variant="ghost" onClick={handleSkip}>
+              Skip
+            </Button>
+          )}
           <Button onClick={handleNext}>
-            {activeIndex === cards.length - 1 ? "Let's Go!" : "Next"}
+            {activeIndex === cards.length - 1 ? "Let's Go!" : 'Next'}
           </Button>
         </div>
       </div>

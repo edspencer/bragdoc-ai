@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 import {
   Dialog,
@@ -6,8 +6,8 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog";
-import { CompanyForm, type CompanyFormData } from "./company-form";
+} from '@/components/ui/dialog';
+import { CompanyForm, type CompanyFormData } from './company-form';
 
 interface CompanyDialogProps {
   open: boolean;
@@ -15,7 +15,7 @@ interface CompanyDialogProps {
   initialData?: Partial<CompanyFormData>;
   onSubmit: (data: CompanyFormData) => void;
   isLoading?: boolean;
-  mode: "create" | "edit";
+  mode: 'create' | 'edit';
 }
 
 export function CompanyDialog({
@@ -31,12 +31,12 @@ export function CompanyDialog({
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
           <DialogTitle>
-            {mode === "create" ? "Add Company" : "Edit Company"}
+            {mode === 'create' ? 'Add Company' : 'Edit Company'}
           </DialogTitle>
           <DialogDescription>
-            {mode === "create"
-              ? "Add a new company to your work history."
-              : "Update your company information."}
+            {mode === 'create'
+              ? 'Add a new company to your work history.'
+              : 'Update your company information.'}
           </DialogDescription>
         </DialogHeader>
         <CompanyForm

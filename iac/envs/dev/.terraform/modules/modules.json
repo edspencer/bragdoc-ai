@@ -1,1 +1,10 @@
-{"Modules":[{"Key":"stripe","Source":"../../modules/stripe","Dir":"../../modules/stripe"},{"Key":"","Source":"","Dir":"."}]}
+{
+  "Modules": [
+    {
+      "Key": "stripe",
+      "Source": "../../modules/stripe",
+      "Dir": "../../modules/stripe"
+    },
+    { "Key": "", "Source": "", "Dir": "." }
+  ]
+}

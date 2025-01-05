@@ -9,17 +9,17 @@ import { ProjectFilters } from '@/components/projects/project-filters';
 import { toast } from 'sonner';
 import type { ProjectFormData } from '@/components/projects/project-form';
 import { ProjectListSkeleton } from '@/components/projects/project-list-skeleton';
-import { ErrorBoundary } from "@/components/error-boundary";
+import { ErrorBoundary } from '@/components/error-boundary';
 
 export default function ProjectPage() {
-  const { 
-    projects, 
+  const {
+    projects,
     companies,
-    isLoading, 
-    error, 
-    createProject, 
-    updateProject, 
-    deleteProject 
+    isLoading,
+    error,
+    createProject,
+    updateProject,
+    deleteProject,
   } = useProjects();
   const {
     filters,
@@ -33,7 +33,9 @@ export default function ProjectPage() {
   const { executeWithRetry } = useRetry<boolean>();
   const { fire: fireConfetti } = useConfetti();
 
-  const handleCreateProject = async (data: ProjectFormData): Promise<boolean> => {
+  const handleCreateProject = async (
+    data: ProjectFormData,
+  ): Promise<boolean> => {
     try {
       const success = await executeWithRetry(() => createProject(data));
       if (success) {
@@ -49,7 +51,10 @@ export default function ProjectPage() {
     }
   };
 
-  const handleUpdateProject = async (id: string, data: ProjectFormData): Promise<boolean> => {
+  const handleUpdateProject = async (
+    id: string,
+    data: ProjectFormData,
+  ): Promise<boolean> => {
     try {
       const success = await executeWithRetry(() => updateProject(id, data));
       if (success) {

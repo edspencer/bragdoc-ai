@@ -60,8 +60,8 @@ export function WhyBenefits() {
             Transform Your Career Trajectory
           </h2>
           <p className="mt-4 text-lg tracking-tight text-slate-700 dark:text-slate-300">
-            A brag document is more than just a list of achievements - it&apos;s a
-            powerful tool for career advancement and personal growth.
+            A brag document is more than just a list of achievements - it&apos;s
+            a powerful tool for career advancement and personal growth.
           </p>
         </div>
         <div className="mx-auto mt-16 max-w-7xl">
@@ -70,7 +70,10 @@ export function WhyBenefits() {
               <div key={benefit.title} className="relative pl-16">
                 <dt className="text-base font-semibold leading-7 text-slate-900 dark:text-slate-100">
                   <div className="absolute left-0 top-0 flex size-10 items-center justify-center rounded-lg bg-blue-600">
-                    <benefit.icon className="size-6 text-white" aria-hidden="true" />
+                    <benefit.icon
+                      className="size-6 text-white"
+                      aria-hidden="true"
+                    />
                   </div>
                   {benefit.title}
                 </dt>

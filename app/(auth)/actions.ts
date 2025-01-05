@@ -3,6 +3,7 @@
 import { z } from 'zod';
 
 import { createUser, getUser } from '@/lib/db/queries';
+import { sendWelcomeEmail } from '@/lib/email/sendEmail';
 
 import { signIn } from './auth';
 
@@ -66,7 +67,24 @@ export const register = async (
     if (user) {
       return { status: 'user_exists' } as RegisterActionState;
     }
-    await createUser(validatedData.email, validatedData.password);
+    const newUser = await createUser(
+      validatedData.email,
+      validatedData.password,
+    );
+
+    // Send welcome email
+    try {
+      await sendWelcomeEmail({
+        to: validatedData.email,
+        userId: newUser.id,
+        username: validatedData.email.split('@')[0],
+        loginUrl: `${process.env.NEXT_PUBLIC_APP_URL}/login`,
+      });
+    } catch (error) {
+      console.error('Failed to send welcome email:', error);
+      // Don't fail registration if email fails
+    }
+
     await signIn('credentials', {
       email: validatedData.email,
       password: validatedData.password,

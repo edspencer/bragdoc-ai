@@ -1,4 +1,9 @@
-export type PlanId = 'free' | 'basic_monthly' | 'basic_yearly' | 'pro_monthly' | 'pro_yearly';
+export type PlanId =
+  | 'free'
+  | 'basic_monthly'
+  | 'basic_yearly'
+  | 'pro_monthly'
+  | 'pro_yearly';
 
 export type FrequencyOption = 'Monthly' | 'Yearly';
 
@@ -13,12 +18,12 @@ export type Plan = {
     href: string;
   };
   features: string[];
-}
+};
 
 type PriceDetails = {
   amount: string;
   stripe_price_id: PlanId;
-}
+};
 
 export const stripeLinks = {
   pro_yearly: process.env.NEXT_PUBLIC_PRO_YEARLY_PRICE_ID!,

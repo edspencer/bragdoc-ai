@@ -51,7 +51,11 @@ const blocksTools: AllowedTools[] = [
 const weatherTools: AllowedTools[] = ['getWeather'];
 const achievementTools: AllowedTools[] = ['saveAchievements'];
 
-const allTools: AllowedTools[] = [...blocksTools, ...weatherTools, ...achievementTools];
+const allTools: AllowedTools[] = [
+  ...blocksTools,
+  ...weatherTools,
+  ...achievementTools,
+];
 
 export async function POST(request: Request) {
   const {
@@ -110,17 +114,18 @@ export async function POST(request: Request) {
     experimental_activeTools: allTools,
     tools: {
       saveAchievements: {
-        description: 'Saves detected achievements to the database. Takes no parameters. Only call once.',
+        description:
+          'Saves detected achievements to the database. Takes no parameters. Only call once.',
         parameters: z.object({}),
         execute: async () => {
-          const message = userMessage.content as string
+          const message = userMessage.content as string;
 
-          console.log('Starting achievement extraction for message:', message)
+          console.log('Starting achievement extraction for message:', message);
 
           // First create a user message record
           const [newUserMessage] = await createUserMessage({
             userId: session.user.id!,
-            originalText: message
+            originalText: message,
           });
 
           console.log('\nCreated user message:', newUserMessage.id);
@@ -128,10 +133,12 @@ export async function POST(request: Request) {
           try {
             console.log('extracting achievements');
             const achievementsStream = extractAchievements({
-              chat_history: messages.filter(m => m.role === 'user').map(({ role, content }) => ({
-                role,
-                content,
-              })),
+              chat_history: messages
+                .filter((m) => m.role === 'user')
+                .map(({ role, content }) => ({
+                  role,
+                  content,
+                })),
               input: message,
               context: {
                 companies: [],
@@ -215,7 +222,7 @@ export async function POST(request: Request) {
         },
       },
       createDocument: {
-        description: 'Create a document based on the User\'s achievements',
+        description: "Create a document based on the User's achievements",
         parameters: z.object({
           title: z.string().describe('The title of the document'),
         }),
@@ -224,9 +231,9 @@ export async function POST(request: Request) {
           let draftText = '';
 
           // Fetch user's achievements to provide context for document creation
-          const userAchievements = await getAchievementsByUserId({ 
+          const userAchievements = await getAchievementsByUserId({
             userId: session.user.id!,
-            limit: 50  // Get the 50 most recent achievements
+            limit: 50, // Get the 50 most recent achievements
           });
 
           streamingData.append({
@@ -246,8 +253,7 @@ export async function POST(request: Request) {
 
           const { fullStream } = streamText({
             model: customModel(model.apiIdentifier),
-            system:
-              `Write about the given topic. Markdown is supported. Use headings wherever appropriate.
+            system: `Write about the given topic. Markdown is supported. Use headings wherever appropriate.
               When asked to write a report, put the current date at the top of the report.`,
             prompt: `
 Document title: ${title}
@@ -476,7 +482,7 @@ Recent achievements: ${userAchievements.map((achievement) => `${achievement.titl
           });
         } catch (error) {
           console.error('Failed to save chat');
-          console.log(error)
+          console.log(error);
         }
       }
 

@@ -1,6 +1,12 @@
 import { v4 as uuidv4 } from 'uuid';
 import { db } from '@/lib/db';
-import { user, company, project, achievement, userMessage } from '@/lib/db/schema';
+import {
+  user,
+  company,
+  project,
+  achievement,
+  userMessage,
+} from '@/lib/db/schema';
 import { GET, POST } from '@/app/api/achievements/route';
 import {
   PUT as updateAchievement,
@@ -145,18 +151,20 @@ describe('Achievement API Routes', () => {
       const url = new URL('http://localhost/api/achievements');
       url.searchParams.set('page', '2');
       url.searchParams.set('limit', '10');
-      
+
       const response = await GET(new NextRequest(url));
       const { achievements, pagination } = await response.json();
 
       expect(response.status).toBe(200);
       expect(achievements.length).toBeLessThanOrEqual(10);
-      expect(pagination).toEqual(expect.objectContaining({
-        page: 2,
-        limit: 10,
-        total: 16, // 15 new + 1 original
-        totalPages: 2,
-      }));
+      expect(pagination).toEqual(
+        expect.objectContaining({
+          page: 2,
+          limit: 10,
+          total: 16, // 15 new + 1 original
+          totalPages: 2,
+        }),
+      );
     });
 
     it('filters achievements by source', async () => {
@@ -182,7 +190,7 @@ describe('Achievement API Routes', () => {
 
       const url = new URL('http://localhost/api/achievements');
       url.searchParams.set('source', 'llm');
-      
+
       const response = await GET(new NextRequest(url));
       const { achievements } = await response.json();
 
@@ -201,7 +209,7 @@ describe('Achievement API Routes', () => {
       const url = new URL('http://localhost/api/achievements');
       url.searchParams.set('startDate', startDate);
       url.searchParams.set('endDate', endDate);
-      
+
       const response = await GET(new NextRequest(url));
       const { achievements } = await response.json();
 
@@ -217,7 +225,7 @@ describe('Achievement API Routes', () => {
 
       const url = new URL('http://localhost/api/achievements');
       url.searchParams.set('startDate', 'invalid-date');
-      
+
       const response = await GET(new NextRequest(url));
       const { achievements } = await response.json();
 
@@ -245,7 +253,7 @@ describe('Achievement API Routes', () => {
       url.searchParams.set('startDate', '2024-01-01');
       url.searchParams.set('endDate', '2024-12-31');
       url.searchParams.set('source', 'llm');
-      
+
       const response = await GET(new NextRequest(url));
       const { achievements, pagination } = await response.json();
 
@@ -264,18 +272,20 @@ describe('Achievement API Routes', () => {
       url.searchParams.set('projectId', testProject.id);
       url.searchParams.set('source', 'manual');
       url.searchParams.set('isArchived', 'false');
-      
+
       const response = await GET(new NextRequest(url));
       const { achievements } = await response.json();
 
       expect(response.status).toBe(200);
       expect(achievements).toHaveLength(1);
-      expect(achievements[0]).toEqual(expect.objectContaining({
-        companyId: testCompany.id,
-        projectId: testProject.id,
-        source: 'manual',
-        isArchived: false
-      }));
+      expect(achievements[0]).toEqual(
+        expect.objectContaining({
+          companyId: testCompany.id,
+          projectId: testProject.id,
+          source: 'manual',
+          isArchived: false,
+        }),
+      );
     });
 
     it('handles invalid UUID format for companyId/projectId', async () => {
@@ -285,9 +295,9 @@ describe('Achievement API Routes', () => {
 
       const url = new URL('http://localhost/api/achievements');
       url.searchParams.set('companyId', 'invalid-uuid');
-      
+
       const response = await GET(new NextRequest(url));
-      
+
       expect(response.status).toBe(500);
       const data = await response.json();
       expect(data.error).toBe('Failed to fetch achievements');
@@ -314,11 +324,13 @@ describe('Achievement API Routes', () => {
         user: { id: testUser.id },
       });
 
-      const response = await POST(new NextRequest('http://localhost/api/achievements', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(newAchievement),
-      }));
+      const response = await POST(
+        new NextRequest('http://localhost/api/achievements', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(newAchievement),
+        }),
+      );
 
       const data = await response.json();
       expect(response.status).toBe(200);
@@ -336,11 +348,13 @@ describe('Achievement API Routes', () => {
         user: { id: testUser.id },
       });
 
-      const response = await POST(new NextRequest('http://localhost/api/achievements', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(invalidAchievement),
-      }));
+      const response = await POST(
+        new NextRequest('http://localhost/api/achievements', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(invalidAchievement),
+        }),
+      );
 
       const data = await response.json();
       expect(response.status).toBe(400);
@@ -350,11 +364,13 @@ describe('Achievement API Routes', () => {
     it('returns 401 for unauthenticated requests', async () => {
       require('@/app/(auth)/auth').auth.mockResolvedValueOnce(null);
 
-      const response = await POST(new NextRequest('http://localhost/api/achievements', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({}),
-      }));
+      const response = await POST(
+        new NextRequest('http://localhost/api/achievements', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({}),
+        }),
+      );
 
       const data = await response.json();
       expect(response.status).toBe(401);
@@ -367,14 +383,16 @@ describe('Achievement API Routes', () => {
       });
 
       const invalidAchievement = {
-        summary: 'Missing required fields'
+        summary: 'Missing required fields',
       };
 
-      const response = await POST(new NextRequest('http://localhost/api/achievements', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(invalidAchievement),
-      }));
+      const response = await POST(
+        new NextRequest('http://localhost/api/achievements', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(invalidAchievement),
+        }),
+      );
 
       expect(response.status).toBe(400);
       const data = await response.json();
@@ -382,8 +400,8 @@ describe('Achievement API Routes', () => {
       expect(data.details).toEqual(
         expect.arrayContaining([
           expect.objectContaining({ path: ['title'] }),
-          expect.objectContaining({ path: ['eventDuration'] })
-        ])
+          expect.objectContaining({ path: ['eventDuration'] }),
+        ]),
       );
     });
 
@@ -397,11 +415,13 @@ describe('Achievement API Routes', () => {
         eventDuration: 'invalid-duration', // Invalid duration
       };
 
-      const response = await POST(new NextRequest('http://localhost/api/achievements', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(invalidAchievement),
-      }));
+      const response = await POST(
+        new NextRequest('http://localhost/api/achievements', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(invalidAchievement),
+        }),
+      );
 
       expect(response.status).toBe(400);
       const data = await response.json();
@@ -409,8 +429,8 @@ describe('Achievement API Routes', () => {
       expect(data.details).toEqual(
         expect.arrayContaining([
           expect.objectContaining({ path: ['title'] }),
-          expect.objectContaining({ path: ['eventDuration'] })
-        ])
+          expect.objectContaining({ path: ['eventDuration'] }),
+        ]),
       );
     });
 
@@ -424,22 +444,26 @@ describe('Achievement API Routes', () => {
         eventDuration: 'week',
       };
 
-      const response = await POST(new NextRequest('http://localhost/api/achievements', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(minimalAchievement),
-      }));
+      const response = await POST(
+        new NextRequest('http://localhost/api/achievements', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(minimalAchievement),
+        }),
+      );
 
       expect(response.status).toBe(200);
       const achievement = await response.json();
-      expect(achievement).toEqual(expect.objectContaining({
-        title: 'Minimal Achievement',
-        eventDuration: 'week',
-        summary: null,
-        details: null,
-        companyId: null,
-        projectId: null,
-      }));
+      expect(achievement).toEqual(
+        expect.objectContaining({
+          title: 'Minimal Achievement',
+          eventDuration: 'week',
+          summary: null,
+          details: null,
+          companyId: null,
+          projectId: null,
+        }),
+      );
     });
   });
 
@@ -455,12 +479,15 @@ describe('Achievement API Routes', () => {
       });
 
       const response = await updateAchievement(
-        new NextRequest(`http://localhost/api/achievements/${testAchievement.id}`, {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(update),
-        }),
-        { params: Promise.resolve({ id: testAchievement.id }) }
+        new NextRequest(
+          `http://localhost/api/achievements/${testAchievement.id}`,
+          {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(update),
+          },
+        ),
+        { params: Promise.resolve({ id: testAchievement.id }) },
       );
 
       const data = await response.json();
@@ -482,7 +509,7 @@ describe('Achievement API Routes', () => {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ title: 'Updated Achievement' }),
         }),
-        { params: Promise.resolve({ id: nonExistentId }) }
+        { params: Promise.resolve({ id: nonExistentId }) },
       );
 
       const data = await response.json();
@@ -500,22 +527,27 @@ describe('Achievement API Routes', () => {
       };
 
       const response = await updateAchievement(
-        new NextRequest(`http://localhost/api/achievements/${testAchievement.id}`, {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(update),
-        }),
-        { params: Promise.resolve({ id: testAchievement.id }) }
+        new NextRequest(
+          `http://localhost/api/achievements/${testAchievement.id}`,
+          {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(update),
+          },
+        ),
+        { params: Promise.resolve({ id: testAchievement.id }) },
       );
 
       expect(response.status).toBe(200);
       const updated = await response.json();
-      expect(updated).toEqual(expect.objectContaining({
-        id: testAchievement.id,
-        eventDuration: 'month',
-        // Other fields should remain unchanged
-        title: testAchievement.title,
-      }));
+      expect(updated).toEqual(
+        expect.objectContaining({
+          id: testAchievement.id,
+          eventDuration: 'month',
+          // Other fields should remain unchanged
+          title: testAchievement.title,
+        }),
+      );
     });
 
     it('validates field constraints in updates', async () => {
@@ -529,12 +561,15 @@ describe('Achievement API Routes', () => {
       };
 
       const response = await updateAchievement(
-        new NextRequest(`http://localhost/api/achievements/${testAchievement.id}`, {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(update),
-        }),
-        { params: Promise.resolve({ id: testAchievement.id }) }
+        new NextRequest(
+          `http://localhost/api/achievements/${testAchievement.id}`,
+          {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(update),
+          },
+        ),
+        { params: Promise.resolve({ id: testAchievement.id }) },
       );
 
       expect(response.status).toBe(400);
@@ -543,8 +578,8 @@ describe('Achievement API Routes', () => {
       expect(data.details).toEqual(
         expect.arrayContaining([
           expect.objectContaining({ path: ['title'] }),
-          expect.objectContaining({ path: ['eventDuration'] })
-        ])
+          expect.objectContaining({ path: ['eventDuration'] }),
+        ]),
       );
     });
   });
@@ -556,10 +591,13 @@ describe('Achievement API Routes', () => {
       });
 
       const response = await deleteAchievement(
-        new NextRequest(`http://localhost/api/achievements/${testAchievement.id}`, {
-          method: 'DELETE',
-        }),
-        { params: Promise.resolve({ id: testAchievement.id }) }
+        new NextRequest(
+          `http://localhost/api/achievements/${testAchievement.id}`,
+          {
+            method: 'DELETE',
+          },
+        ),
+        { params: Promise.resolve({ id: testAchievement.id }) },
       );
 
       const data = await response.json();
@@ -567,7 +605,10 @@ describe('Achievement API Routes', () => {
       expect(data.success).toBe(true);
 
       // Verify achievement was deleted
-      const achievements = await db.select().from(achievement).where(eq(achievement.id, testAchievement.id));
+      const achievements = await db
+        .select()
+        .from(achievement)
+        .where(eq(achievement.id, testAchievement.id));
       expect(achievements).toHaveLength(0);
     });
 
@@ -582,7 +623,7 @@ describe('Achievement API Routes', () => {
         new NextRequest(`http://localhost/api/achievements/${nonExistentId}`, {
           method: 'DELETE',
         }),
-        { params: Promise.resolve({ id: nonExistentId }) }
+        { params: Promise.resolve({ id: nonExistentId }) },
       );
 
       const data = await response.json();
@@ -592,12 +633,14 @@ describe('Achievement API Routes', () => {
 
     it('prevents deleting achievements of other users', async () => {
       require('@/app/(auth)/auth').auth.mockResolvedValueOnce({
-        user: { id: uuidv4() }, 
+        user: { id: uuidv4() },
       });
 
       const response = await deleteAchievement(
-        new NextRequest(`http://localhost/api/achievements/${testAchievement.id}`),
-        { params: Promise.resolve({ id: testAchievement.id }) }
+        new NextRequest(
+          `http://localhost/api/achievements/${testAchievement.id}`,
+        ),
+        { params: Promise.resolve({ id: testAchievement.id }) },
       );
 
       expect(response.status).toBe(404); // Should return 404 to not leak info about existence
@@ -621,7 +664,7 @@ describe('Achievement API Routes', () => {
         new NextRequest('http://localhost/api/achievements/invalid-id', {
           method: 'DELETE',
         }),
-        { params: Promise.resolve({ id: 'invalid-id' }) }
+        { params: Promise.resolve({ id: 'invalid-id' }) },
       );
 
       expect(response.status).toBe(404);

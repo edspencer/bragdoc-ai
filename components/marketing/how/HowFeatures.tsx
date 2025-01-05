@@ -61,8 +61,8 @@ export function HowFeatures() {
           </h2>
           <p className="mt-4 text-lg tracking-tight text-slate-700 dark:text-slate-300">
             bragdoc.ai combines AI-powered conversation, automatic achievement
-            tracking, and smart document generation to help you build a compelling
-            career narrative.
+            tracking, and smart document generation to help you build a
+            compelling career narrative.
           </p>
         </div>
         <div className="mx-auto mt-16 max-w-7xl">

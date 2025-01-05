@@ -1,11 +1,14 @@
 # TODO List
 
-## Database Enhancements
+## Before launch
 
-### Achievement Metadata
-
-- [ ] Add impact field to `brag` table
-- [ ] Add metrics/quantification fields to `brag` table
+- [x] Fix stripe callback [20m]
+- [x] Remove Vercel chatbot text [20m]
+- [ ] Add proper blank chat page [30m]
+- [ ] Hide overly optimistic features from /what, /why, /how [10m]
+- [ ] Replace home screen screenshots [1h]
+- [ ] Fix Welcome flow [1h]
+- [x] Welcome Email [1h]
 
 ### User Preferences & Engagement
 

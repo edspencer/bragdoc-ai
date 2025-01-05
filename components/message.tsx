@@ -181,7 +181,7 @@ const PurePreviewMessage = ({
                     {toolName === 'getWeather' ? (
                       <Weather />
                     ) : toolName === 'saveAchievements' ? (
-                        <AchievementAction action={{achievements: []}} />
+                      <AchievementAction action={{ achievements: [] }} />
                     ) : toolName === 'createDocument' ? (
                       <DocumentToolCall
                         type="create"

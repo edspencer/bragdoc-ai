@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 import {
   Table,
@@ -7,19 +7,19 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/components/ui/table";
-import { Button } from "@/components/ui/button";
-import { PlusIcon } from "@radix-ui/react-icons";
-import { format } from "date-fns";
-import { ProjectDialog } from "./project-dialog";
-import { ProjectListSkeleton } from "./project-list-skeleton";
-import { useState } from "react";
-import type { ProjectFormData } from "./project-form";
-import { motion } from "framer-motion";
-import { Badge } from "@/components/ui/badge";
-import type { ProjectStatus } from "@/lib/db/schema";
-import { ProjectActions } from "./project-actions";
-import type { ProjectWithCompany } from "@/lib/db/projects/queries";
+} from '@/components/ui/table';
+import { Button } from '@/components/ui/button';
+import { PlusIcon } from '@radix-ui/react-icons';
+import { format } from 'date-fns';
+import { ProjectDialog } from './project-dialog';
+import { ProjectListSkeleton } from './project-list-skeleton';
+import { useState } from 'react';
+import type { ProjectFormData } from './project-form';
+import { motion } from 'framer-motion';
+import { Badge } from '@/components/ui/badge';
+import type { ProjectStatus } from '@/lib/db/schema';
+import { ProjectActions } from './project-actions';
+import type { ProjectWithCompany } from '@/lib/db/projects/queries';
 
 interface ProjectListProps {
   projects: ProjectWithCompany[];
@@ -31,9 +31,9 @@ interface ProjectListProps {
 }
 
 const statusColors: Record<ProjectStatus, string> = {
-  active: "bg-green-500/10 text-green-500 dark:bg-green-500/20",
-  completed: "bg-blue-500/10 text-blue-500 dark:bg-blue-500/20",
-  archived: "bg-gray-500/10 text-gray-500 dark:bg-gray-500/20",
+  active: 'bg-green-500/10 text-green-500 dark:bg-green-500/20',
+  completed: 'bg-blue-500/10 text-blue-500 dark:bg-blue-500/20',
+  archived: 'bg-gray-500/10 text-gray-500 dark:bg-gray-500/20',
 };
 
 export function ProjectList({
@@ -45,7 +45,9 @@ export function ProjectList({
   companies = [],
 }: ProjectListProps) {
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
-  const [editProject, setEditProject] = useState<ProjectWithCompany | null>(null);
+  const [editProject, setEditProject] = useState<ProjectWithCompany | null>(
+    null,
+  );
   const [actionLoading, setActionLoading] = useState<string | null>(null);
 
   const handleCreateProject = async (data: ProjectFormData) => {

@@ -1,37 +1,46 @@
-import { Eval } from "braintrust";
-import { LLMClassifierFromSpec } from "autoevals";
-import { contextAchievementExamples } from "./dataset";
-import { extractAchievements } from "../../lib/ai/extract";
+import { Eval } from 'braintrust';
+import { LLMClassifierFromSpec } from 'autoevals';
+import { contextAchievementExamples } from './dataset';
+import { extractAchievements } from '../../lib/ai/extract';
 import type { ContextAchievementExample } from './types';
-import type { ExtractedAchievement, ExtractAchievementsInput } from '../../lib/ai/extract';
+import type {
+  ExtractedAchievement,
+  ExtractAchievementsInput,
+} from '../../lib/ai/extract';
 
 // Convert our examples to the format expected by BrainTrust
-const experimentData = contextAchievementExamples.map((example: ContextAchievementExample) => ({
-  input: {
-    ...example.input,
-    chatStr: example.input.chat_history
-      .map(({ role, content }) => `${role}: ${content}`)
-      .join("\n"),
-    companiesStr: example.input.context.companies
-      .map((company) => `
+const experimentData = contextAchievementExamples.map(
+  (example: ContextAchievementExample) => ({
+    input: {
+      ...example.input,
+      chatStr: example.input.chat_history
+        .map(({ role, content }) => `${role}: ${content}`)
+        .join('\n'),
+      companiesStr: example.input.context.companies
+        .map(
+          (company) => `
 Name: ${company.name} (ID: ${company.id})
 Role: ${company.role}
-Domain: ${company.domain || "N/A"}
+Domain: ${company.domain || 'N/A'}
 Start Date: ${company.startDate}
-End Date: ${company.endDate || "Present"}
-      `)
-      .join("\n"),
-    projectsStr: example.input.context.projects
-      .map((project) => `
+End Date: ${company.endDate || 'Present'}
+      `,
+        )
+        .join('\n'),
+      projectsStr: example.input.context.projects
+        .map(
+          (project) => `
 Name: ${project.name} (ID: ${project.id})
-Company: ${project.companyId || "N/A"}
+Company: ${project.companyId || 'N/A'}
 Description: ${project.description}
-Start Date: ${project.startDate || "N/A"}
-End Date: ${project.endDate || "N/A"}
-      `)
-      .join("\n"),
-    expectedAchievementsStr: example.expected
-      .map((achievement, index) => `
+Start Date: ${project.startDate || 'N/A'}
+End Date: ${project.endDate || 'N/A'}
+      `,
+        )
+        .join('\n'),
+      expectedAchievementsStr: example.expected
+        .map(
+          (achievement, index) => `
 Achievement #${index + 1}:
 Title: ${achievement.title}
 Summary: ${achievement.summary}
@@ -40,11 +49,13 @@ Duration: ${achievement.eventDuration}
 Company ID: ${achievement.companyId}
 Project ID: ${achievement.projectId}
 Suggest New Project: ${achievement.suggestNewProject}
-      `)
-      .join("\n"),
-    extractedAchievementsStr: (output: typeof example.expected) =>
-      output
-        .map((achievement, index) => `
+      `,
+        )
+        .join('\n'),
+      extractedAchievementsStr: (output: typeof example.expected) =>
+        output
+          .map(
+            (achievement, index) => `
 Achievement #${index + 1}:
 Title: ${achievement.title}
 Summary: ${achievement.summary}
@@ -53,15 +64,19 @@ Duration: ${achievement.eventDuration}
 Company ID: ${achievement.companyId}
 Project ID: ${achievement.projectId}
 Suggest New Project: ${achievement.suggestNewProject}
-      `)
-        .join("\n"),
-  },
-  expected: example.expected,
-}));
+      `,
+          )
+          .join('\n'),
+    },
+    expected: example.expected,
+  }),
+);
 
 // Function to evaluate the accuracy of extracted achievements with context
-const AchievementContextAccuracy = LLMClassifierFromSpec("AchievementContextAccuracy", {
-  prompt: `You are evaluating how well an AI system extracted achievements from a user message.
+const AchievementContextAccuracy = LLMClassifierFromSpec(
+  'AchievementContextAccuracy',
+  {
+    prompt: `You are evaluating how well an AI system extracted achievements from a user message.
 Compare the extracted achievements with the expected output. Consider that a single message may 
 contain multiple achievements.
 
@@ -109,17 +124,20 @@ Answer by selecting one of the following options:
 (C) The extraction has minor inaccuracies but is generally correct
 (D) The extraction misses key information or has significant inaccuracies
 (E) The extraction is completely incorrect or misunderstands the achievement`,
-choice_scores: {
-  A: 1.0,   // Perfect match
-  B: 0.8,   // Good but missing details
-  C: 0.6,   // Minor issues
-  D: 0.3,   // Major issues
-  E: 0.0,   // Completely wrong
-},
-});
+    choice_scores: {
+      A: 1.0, // Perfect match
+      B: 0.8, // Good but missing details
+      C: 0.6, // Minor issues
+      D: 0.3, // Major issues
+      E: 0.0, // Completely wrong
+    },
+  },
+);
 
 // Function to wrap the async generator into a promise
-async function wrappedExtractAchievements(input: ExtractAchievementsInput): Promise<ExtractedAchievement[]> {
+async function wrappedExtractAchievements(
+  input: ExtractAchievementsInput,
+): Promise<ExtractedAchievement[]> {
   const achievements: ExtractedAchievement[] = [];
   for await (const achievement of extractAchievements(input)) {
     achievements.push(achievement);
@@ -129,14 +147,15 @@ async function wrappedExtractAchievements(input: ExtractAchievementsInput): Prom
 }
 
 // Create the evaluation
-Eval("achievement-company-and-project", {
+Eval('achievement-company-and-project', {
   data: experimentData,
   task: wrappedExtractAchievements,
   scores: [AchievementContextAccuracy],
   trialCount: 3,
   metadata: {
-    model: "gpt-4",
-    description: "Evaluating achievement extraction with company and project context",
-    owner: "ed"
-  }
+    model: 'gpt-4',
+    description:
+      'Evaluating achievement extraction with company and project context',
+    owner: 'ed',
+  },
 });

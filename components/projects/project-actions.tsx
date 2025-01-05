@@ -1,8 +1,8 @@
-"use client";
+'use client';
 
-import { Button } from "@/components/ui/button";
-import { Pencil1Icon, TrashIcon } from "@radix-ui/react-icons";
-import { Loader2 } from "lucide-react";
+import { Button } from '@/components/ui/button';
+import { Pencil1Icon, TrashIcon } from '@radix-ui/react-icons';
+import { Loader2 } from 'lucide-react';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -12,9 +12,9 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
-import { useState } from "react";
-import type { ProjectWithCompany } from "@/lib/db/projects/queries";
+} from '@/components/ui/alert-dialog';
+import { useState } from 'react';
+import type { ProjectWithCompany } from '@/lib/db/projects/queries';
 
 interface ProjectActionsProps {
   project: ProjectWithCompany;
@@ -38,7 +38,7 @@ export function ProjectActions({
       await onDelete(project.id);
       setShowDeleteDialog(false);
     } catch (error) {
-      console.error("Error deleting project:", error);
+      console.error('Error deleting project:', error);
     } finally {
       setIsDeleting(false);
     }
@@ -78,8 +78,8 @@ export function ProjectActions({
           <AlertDialogHeader>
             <AlertDialogTitle>Are you sure?</AlertDialogTitle>
             <AlertDialogDescription>
-              This will permanently delete the project &quot;{project.name}&quot;
-              and remove it from our servers.
+              This will permanently delete the project &quot;{project.name}
+              &quot; and remove it from our servers.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

@@ -1,14 +1,30 @@
-"use client";
+'use client';
 
-import * as React from "react";
-import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { BuildingIcon, FolderIcon, } from "lucide-react";
-import { cn } from "@/lib/utils";
-import { useMediaQuery } from "@/hooks/use-media-query";
-import { Drawer, DrawerContent, DrawerDescription, DrawerFooter, DrawerHeader, DrawerTitle, DrawerTrigger } from "@/components/ui/drawer";
+import * as React from 'react';
+import { Button } from '@/components/ui/button';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { BuildingIcon, FolderIcon } from 'lucide-react';
+import { cn } from '@/lib/utils';
+import { useMediaQuery } from '@/hooks/use-media-query';
+import {
+  Drawer,
+  DrawerContent,
+  DrawerDescription,
+  DrawerFooter,
+  DrawerHeader,
+  DrawerTitle,
+  DrawerTrigger,
+} from '@/components/ui/drawer';
 
 interface ActionButtonsProps {
   className?: string;
@@ -21,16 +37,18 @@ export function ActionButtons({
   onCompanyCreate,
   onProjectCreate,
 }: ActionButtonsProps) {
-  const [companyName, setCompanyName] = React.useState("");
-  const [projectName, setProjectName] = React.useState("");
-  const isDesktop = useMediaQuery("(min-width: 768px)");
+  const [companyName, setCompanyName] = React.useState('');
+  const [projectName, setProjectName] = React.useState('');
+  const isDesktop = useMediaQuery('(min-width: 768px)');
 
   const CompanyDialog = isDesktop ? Dialog : Drawer;
   const CompanyDialogContent = isDesktop ? DialogContent : DrawerContent;
   const CompanyDialogHeader = isDesktop ? DialogHeader : DrawerHeader;
   const CompanyDialogFooter = isDesktop ? DialogFooter : DrawerFooter;
   const CompanyDialogTitle = isDesktop ? DialogTitle : DrawerTitle;
-  const CompanyDialogDescription = isDesktop ? DialogDescription : DrawerDescription;
+  const CompanyDialogDescription = isDesktop
+    ? DialogDescription
+    : DrawerDescription;
   const CompanyDialogTrigger = isDesktop ? DialogTrigger : DrawerTrigger;
 
   const ProjectDialog = isDesktop ? Dialog : Drawer;
@@ -38,23 +56,25 @@ export function ActionButtons({
   const ProjectDialogHeader = isDesktop ? DialogHeader : DrawerHeader;
   const ProjectDialogFooter = isDesktop ? DialogFooter : DrawerFooter;
   const ProjectDialogTitle = isDesktop ? DialogTitle : DrawerTitle;
-  const ProjectDialogDescription = isDesktop ? DialogDescription : DrawerDescription;
+  const ProjectDialogDescription = isDesktop
+    ? DialogDescription
+    : DrawerDescription;
   const ProjectDialogTrigger = isDesktop ? DialogTrigger : DrawerTrigger;
 
   const handleCompanySubmit = (e: React.FormEvent) => {
     e.preventDefault();
     onCompanyCreate?.(companyName);
-    setCompanyName("");
+    setCompanyName('');
   };
 
   const handleProjectSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     onProjectCreate?.(projectName);
-    setProjectName("");
+    setProjectName('');
   };
 
   return (
-    <div className={cn("flex flex-col gap-3 md:flex-row md:gap-4", className)}>
+    <div className={cn('flex flex-col gap-3 md:flex-row md:gap-4', className)}>
       <CompanyDialog>
         <CompanyDialogTrigger asChild>
           <Button variant="outline" className="w-full gap-2 md:w-auto">

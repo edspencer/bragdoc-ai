@@ -14,9 +14,7 @@
   "paths": {
     "/api/vote": {
       "get": {
-        "tags": [
-          "Votes"
-        ],
+        "tags": ["Votes"],
         "summary": "Get votes by chatId",
         "description": "Retrieve votes associated with a given chat ID.",
         "parameters": [
@@ -58,9 +56,7 @@
         ]
       },
       "patch": {
-        "tags": [
-          "Votes"
-        ],
+        "tags": ["Votes"],
         "summary": "Vote a message",
         "description": "Vote up or down a message in a given chat",
         "requestBody": {
@@ -78,17 +74,10 @@
                   },
                   "type": {
                     "type": "string",
-                    "enum": [
-                      "up",
-                      "down"
-                    ]
+                    "enum": ["up", "down"]
                   }
                 },
-                "required": [
-                  "chatId",
-                  "messageId",
-                  "type"
-                ]
+                "required": ["chatId", "messageId", "type"]
               }
             }
           }
@@ -113,9 +102,7 @@
     },
     "/api/chat": {
       "post": {
-        "tags": [
-          "Chat"
-        ],
+        "tags": ["Chat"],
         "summary": "Create or continue a chat",
         "description": "Send messages to the chat and receive streaming responses.",
         "requestBody": {
@@ -138,11 +125,7 @@
                     "type": "string"
                   }
                 },
-                "required": [
-                  "id",
-                  "messages",
-                  "modelId"
-                ]
+                "required": ["id", "messages", "modelId"]
               }
             }
           }
@@ -175,9 +158,7 @@
         ]
       },
       "delete": {
-        "tags": [
-          "Chat"
-        ],
+        "tags": ["Chat"],
         "summary": "Delete a chat",
         "description": "Delete a chat by its ID.",
         "parameters": [
@@ -214,9 +195,7 @@
     },
     "/api/achievements": {
       "get": {
-        "tags": [
-          "Achievements"
-        ],
+        "tags": ["Achievements"],
         "summary": "Get achievements",
         "description": "List achievements with optional filters and pagination.",
         "parameters": [
@@ -253,10 +232,7 @@
             "in": "query",
             "schema": {
               "type": "string",
-              "enum": [
-                "llm",
-                "manual"
-              ]
+              "enum": ["llm", "manual"]
             }
           },
           {
@@ -333,9 +309,7 @@
         ]
       },
       "post": {
-        "tags": [
-          "Achievements"
-        ],
+        "tags": ["Achievements"],
         "summary": "Create an achievement",
         "description": "Create a new achievement.",
         "requestBody": {
@@ -378,9 +352,7 @@
     },
     "/api/achievements/{id}": {
       "put": {
-        "tags": [
-          "Achievements"
-        ],
+        "tags": ["Achievements"],
         "summary": "Update an achievement",
         "description": "Update an existing achievement by its ID.",
         "parameters": [
@@ -434,9 +406,7 @@
         ]
       },
       "delete": {
-        "tags": [
-          "Achievements"
-        ],
+        "tags": ["Achievements"],
         "summary": "Delete an achievement",
         "description": "Delete an achievement by its ID.",
         "parameters": [
@@ -472,9 +442,7 @@
     },
     "/api/projects": {
       "get": {
-        "tags": [
-          "Projects"
-        ],
+        "tags": ["Projects"],
         "summary": "Get projects",
         "description": "List all projects for the current user.",
         "responses": {
@@ -505,9 +473,7 @@
         ]
       },
       "post": {
-        "tags": [
-          "Projects"
-        ],
+        "tags": ["Projects"],
         "summary": "Create a project",
         "description": "Create a new project for the current user.",
         "requestBody": {
@@ -550,9 +516,7 @@
     },
     "/api/projects/{id}": {
       "get": {
-        "tags": [
-          "Projects"
-        ],
+        "tags": ["Projects"],
         "summary": "Get a project",
         "description": "Get details of a single project by ID.",
         "parameters": [
@@ -593,9 +557,7 @@
         ]
       },
       "put": {
-        "tags": [
-          "Projects"
-        ],
+        "tags": ["Projects"],
         "summary": "Update a project",
         "description": "Update an existing project by ID.",
         "parameters": [
@@ -649,9 +611,7 @@
         ]
       },
       "delete": {
-        "tags": [
-          "Projects"
-        ],
+        "tags": ["Projects"],
         "summary": "Delete a project",
         "description": "Delete a project by ID.",
         "parameters": [
@@ -694,9 +654,7 @@
     },
     "/api/document": {
       "get": {
-        "tags": [
-          "Documents"
-        ],
+        "tags": ["Documents"],
         "summary": "Get documents by ID",
         "parameters": [
           {
@@ -739,9 +697,7 @@
         ]
       },
       "post": {
-        "tags": [
-          "Documents"
-        ],
+        "tags": ["Documents"],
         "summary": "Save document content",
         "parameters": [
           {
@@ -767,10 +723,7 @@
                     "type": "string"
                   }
                 },
-                "required": [
-                  "content",
-                  "title"
-                ]
+                "required": ["content", "title"]
               }
             }
           }
@@ -800,9 +753,7 @@
         ]
       },
       "patch": {
-        "tags": [
-          "Documents"
-        ],
+        "tags": ["Documents"],
         "summary": "Delete documents after a timestamp",
         "parameters": [
           {
@@ -826,9 +777,7 @@
                     "format": "date-time"
                   }
                 },
-                "required": [
-                  "timestamp"
-                ]
+                "required": ["timestamp"]
               }
             }
           }
@@ -853,9 +802,7 @@
     },
     "/api/github/sync": {
       "post": {
-        "tags": [
-          "GitHub"
-        ],
+        "tags": ["GitHub"],
         "summary": "Sync GitHub data",
         "description": "Sync data from a connected GitHub repository.",
         "requestBody": {
@@ -869,9 +816,7 @@
                     "type": "string"
                   }
                 },
-                "required": [
-                  "repositoryId"
-                ]
+                "required": ["repositoryId"]
               }
             }
           }
@@ -896,9 +841,7 @@
     },
     "/api/companies": {
       "get": {
-        "tags": [
-          "Companies"
-        ],
+        "tags": ["Companies"],
         "summary": "Get companies",
         "description": "List all companies for the current user.",
         "responses": {
@@ -929,9 +872,7 @@
         ]
       },
       "post": {
-        "tags": [
-          "Companies"
-        ],
+        "tags": ["Companies"],
         "summary": "Create a company",
         "description": "Create a new company for the current user.",
         "requestBody": {
@@ -974,9 +915,7 @@
     },
     "/api/companies/{id}": {
       "get": {
-        "tags": [
-          "Companies"
-        ],
+        "tags": ["Companies"],
         "summary": "Get a company",
         "description": "Get details of a company by ID.",
         "parameters": [
@@ -1017,9 +956,7 @@
         ]
       },
       "put": {
-        "tags": [
-          "Companies"
-        ],
+        "tags": ["Companies"],
         "summary": "Update a company",
         "description": "Update an existing company.",
         "parameters": [
@@ -1073,9 +1010,7 @@
         ]
       },
       "delete": {
-        "tags": [
-          "Companies"
-        ],
+        "tags": ["Companies"],
         "summary": "Delete a company",
         "description": "Delete a company by ID.",
         "parameters": [
@@ -1111,9 +1046,7 @@
     },
     "/api/suggestions": {
       "get": {
-        "tags": [
-          "Suggestions"
-        ],
+        "tags": ["Suggestions"],
         "summary": "Get suggestions by documentId",
         "description": "Retrieve suggestions for a given document ID.",
         "parameters": [
@@ -1153,9 +1086,7 @@
     },
     "/api/history": {
       "get": {
-        "tags": [
-          "History"
-        ],
+        "tags": ["History"],
         "summary": "Get user chat history",
         "description": "Retrieve chat history for the authenticated user.",
         "responses": {
@@ -1201,10 +1132,7 @@
           },
           "type": {
             "type": "string",
-            "enum": [
-              "up",
-              "down"
-            ]
+            "enum": ["up", "down"]
           },
           "userId": {
             "type": "string"
@@ -1216,11 +1144,7 @@
         "properties": {
           "role": {
             "type": "string",
-            "enum": [
-              "user",
-              "assistant",
-              "system"
-            ]
+            "enum": ["user", "assistant", "system"]
           },
           "content": {
             "type": "string"
@@ -1317,10 +1241,7 @@
             "nullable": true
           }
         },
-        "required": [
-          "title",
-          "eventDuration"
-        ]
+        "required": ["title", "eventDuration"]
       },
       "UpdateAchievementRequest": {
         "type": "object",
@@ -1384,11 +1305,7 @@
           },
           "status": {
             "type": "string",
-            "enum": [
-              "active",
-              "completed",
-              "archived"
-            ]
+            "enum": ["active", "completed", "archived"]
           },
           "startDate": {
             "type": "string",
@@ -1417,11 +1334,7 @@
           },
           "status": {
             "type": "string",
-            "enum": [
-              "active",
-              "completed",
-              "archived"
-            ]
+            "enum": ["active", "completed", "archived"]
           },
           "startDate": {
             "type": "string",
@@ -1433,11 +1346,7 @@
             "nullable": true
           }
         },
-        "required": [
-          "name",
-          "status",
-          "startDate"
-        ]
+        "required": ["name", "status", "startDate"]
       },
       "UpdateProjectRequest": {
         "type": "object",
@@ -1455,11 +1364,7 @@
           },
           "status": {
             "type": "string",
-            "enum": [
-              "active",
-              "completed",
-              "archived"
-            ]
+            "enum": ["active", "completed", "archived"]
           },
           "startDate": {
             "type": "string",
@@ -1550,11 +1455,7 @@
             "nullable": true
           }
         },
-        "required": [
-          "name",
-          "role",
-          "startDate"
-        ]
+        "required": ["name", "role", "startDate"]
       },
       "UpdateCompanyRequest": {
         "type": "object",

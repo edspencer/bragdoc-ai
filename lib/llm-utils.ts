@@ -1,41 +1,72 @@
-import { createAI, createStreamableValue } from 'ai/rsc'
-import { z } from 'zod'
-import { createAchievement, createUserMessage, generatePeriodSummary as queryGeneratePeriodSummary } from './db/queries'
-import type { Achievement } from './types/achievement'
+import { createAI, createStreamableValue } from 'ai/rsc';
+import { z } from 'zod';
+import {
+  createAchievement,
+  createUserMessage,
+  generatePeriodSummary as queryGeneratePeriodSummary,
+} from './db/queries';
+import type { Achievement } from './types/achievement';
 
 // Zod schema for structured achievement extraction
 const AchievementSchema = z.object({
-  title: z.string().describe('A concise, bullet-list compatible title for the achievement'),
-  eventStart: z.string().transform(date => new Date(date)).describe('The start date of the event or achievement'),
-  eventEnd: z.string().transform(date => new Date(date)).describe('The end date of the event or achievement'),
-  eventDuration: z.enum(['day', 'week', 'month', 'quarter', 'half year', 'year']).describe('The duration of the achievement'),
-  summary: z.string().nullable().optional().describe('A brief summary of the achievement'),
-  details: z.string().optional().describe('Additional details about the achievement'),
-  companyId: z.string().nullable().describe('The ID of the company this achievement is associated with (null if not specified)'),
-  projectId: z.string().nullable().describe('The ID of the project this achievement is associated with (null if not specified)'),
-})
+  title: z
+    .string()
+    .describe('A concise, bullet-list compatible title for the achievement'),
+  eventStart: z
+    .string()
+    .transform((date) => new Date(date))
+    .describe('The start date of the event or achievement'),
+  eventEnd: z
+    .string()
+    .transform((date) => new Date(date))
+    .describe('The end date of the event or achievement'),
+  eventDuration: z
+    .enum(['day', 'week', 'month', 'quarter', 'half year', 'year'])
+    .describe('The duration of the achievement'),
+  summary: z
+    .string()
+    .nullable()
+    .optional()
+    .describe('A brief summary of the achievement'),
+  details: z
+    .string()
+    .optional()
+    .describe('Additional details about the achievement'),
+  companyId: z
+    .string()
+    .nullable()
+    .describe(
+      'The ID of the company this achievement is associated with (null if not specified)',
+    ),
+  projectId: z
+    .string()
+    .nullable()
+    .describe(
+      'The ID of the project this achievement is associated with (null if not specified)',
+    ),
+});
 
 export async function detectAchievementsFromMessage(
-  userId: string, 
-  originalText: string
+  userId: string,
+  originalText: string,
 ) {
-  'use server'
+  'use server';
 
   // Create the user message first
-  const [userMessage] = await createUserMessage({ 
-    userId, 
-    originalText 
-  })
+  const [userMessage] = await createUserMessage({
+    userId,
+    originalText,
+  });
 
   // Use AI to generate structured achievement data
-  const streamableResult = createStreamableValue<any[]>()
+  const streamableResult = createStreamableValue<any[]>();
 
   const generateAchievements = async () => {
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`
+        Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
       },
       body: JSON.stringify({
         model: 'gpt-4',
@@ -57,112 +88,121 @@ export async function detectAchievementsFromMessage(
                 "companyId": string | null,
                 "projectId": string | null
               }
-            `
+            `,
           },
           {
             role: 'user',
-            content: originalText
-          }
-        ]
-      })
-    })
+            content: originalText,
+          },
+        ],
+      }),
+    });
 
     if (!response.ok) {
-      throw new Error(`Failed to generate achievements: ${response.statusText}`)
+      throw new Error(
+        `Failed to generate achievements: ${response.statusText}`,
+      );
     }
 
-    const data = await response.json()
+    const data = await response.json();
     const achievements = data.choices[0].message.content;
 
     try {
-      const parsedAchievements = JSON.parse(achievements).map((achievement: any) => 
-        AchievementSchema.parse(achievement)
-      )
+      const parsedAchievements = JSON.parse(achievements).map(
+        (achievement: any) => AchievementSchema.parse(achievement),
+      );
 
       // Create achievements in parallel
       const createdAchievements = await Promise.all(
-        parsedAchievements.map((achievement: Omit<Achievement, 'id' | 'createdAt' | 'updatedAt' | 'isArchived'>) => 
-          createAchievement({
-            ...achievement,
-            userId,
-            userMessageId: userMessage.id
-          })
-        )
-      )
+        parsedAchievements.map(
+          (
+            achievement: Omit<
+              Achievement,
+              'id' | 'createdAt' | 'updatedAt' | 'isArchived'
+            >,
+          ) =>
+            createAchievement({
+              ...achievement,
+              userId,
+              userMessageId: userMessage.id,
+            }),
+        ),
+      );
 
-      streamableResult.update(createdAchievements)
-      streamableResult.done()
-
+      streamableResult.update(createdAchievements);
+      streamableResult.done();
     } catch (error) {
-      console.error('Failed to parse achievements:', error)
-      streamableResult.error(error as Error)
+      console.error('Failed to parse achievements:', error);
+      streamableResult.error(error as Error);
     }
-  }
+  };
 
-  generateAchievements().catch(error => {
-    console.error('Failed to generate achievements:', error)
-    streamableResult.error(error)
-  })
+  generateAchievements().catch((error) => {
+    console.error('Failed to generate achievements:', error);
+    streamableResult.error(error);
+  });
 
-  return streamableResult
+  return streamableResult;
 }
 
 export async function generatePeriodSummary(
-  userId: string, 
-  startDate: Date, 
-  endDate: Date
+  userId: string,
+  startDate: Date,
+  endDate: Date,
 ) {
-  'use server'
+  'use server';
 
   // Fetch achievements for the period
-  const achievements = await queryGeneratePeriodSummary({ 
-    userId, 
-    startDate, 
-    endDate 
-  })
+  const achievements = await queryGeneratePeriodSummary({
+    userId,
+    startDate,
+    endDate,
+  });
 
   // Use AI to generate a summary
-  const streamableResult = createStreamableValue<string>()
+  const streamableResult = createStreamableValue<string>();
 
   const generateSummary = async () => {
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`
+        Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
       },
       body: JSON.stringify({
         model: 'gpt-4',
         messages: [
           {
             role: 'system',
-            content: 'Generate a professional, concise summary of achievements'
+            content: 'Generate a professional, concise summary of achievements',
           },
           {
             role: 'user',
-            content: achievements.map(achievement => achievement.summary || '').join('\n')
-          }
-        ]
-      })
-    })
+            content: achievements
+              .map((achievement) => achievement.summary || '')
+              .join('\n'),
+          },
+        ],
+      }),
+    });
 
-    const data = await response.json()
-    return data.choices[0].message.content || ''
-  }
+    const data = await response.json();
+    return data.choices[0].message.content || '';
+  };
 
   // Start generating summary
   generateSummary()
-    .then(summary => streamableResult.update(summary))
-    .catch(error => streamableResult.error(error))
-    .finally(() => streamableResult.done())
+    .then((summary) => streamableResult.update(summary))
+    .catch((error) => streamableResult.error(error))
+    .finally(() => streamableResult.done());
 
-  return streamableResult.value
+  return streamableResult.value;
 }
 
 // Create an AI context for server actions
 export const AI = createAI({
   actions: {
     detectAchievementsFromMessage,
-    generatePeriodSummary
-  }
-})
+    generatePeriodSummary,
+  },
+});

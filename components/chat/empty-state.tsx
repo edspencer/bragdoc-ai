@@ -1,10 +1,10 @@
-"use client";
+'use client';
 
-import * as React from "react";
-import { Card } from "@/components/ui/card";
-import { ActionButtons } from "./action-buttons";
-import { MessageSquareIcon } from "lucide-react";
-import { cn } from "@/lib/utils";
+import * as React from 'react';
+import { Card } from '@/components/ui/card';
+import { ActionButtons } from './action-buttons';
+import { MessageSquareIcon } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 interface EmptyStateProps {
   className?: string;
@@ -18,14 +18,20 @@ export function EmptyState({
   onProjectCreate,
 }: EmptyStateProps) {
   return (
-    <div className={cn("flex flex-col items-center justify-center gap-6", className)}>
+    <div
+      className={cn(
+        'flex flex-col items-center justify-center gap-6',
+        className,
+      )}
+    >
       <Card className="flex aspect-square w-full max-w-[200px] items-center justify-center bg-muted">
         <MessageSquareIcon className="size-12 text-muted-foreground" />
       </Card>
       <div className="flex flex-col items-center gap-1.5 text-center">
         <h3 className="text-lg font-semibold">No messages yet</h3>
         <p className="text-sm text-muted-foreground">
-          Start by telling me about your achievements, or organize your work first.
+          Start by telling me about your achievements, or organize your work
+          first.
         </p>
       </div>
       <ActionButtons

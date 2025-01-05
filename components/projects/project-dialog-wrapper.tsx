@@ -35,10 +35,7 @@ export function ProjectDialog({ children }: ProjectDialogWrapperProps) {
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>{children}</DialogTrigger>
       <DialogContent>
-        <ProjectForm
-          onSubmit={handleSubmit}
-          mode="create"
-        />
+        <ProjectForm onSubmit={handleSubmit} mode="create" />
       </DialogContent>
     </Dialog>
   );

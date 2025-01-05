@@ -15,7 +15,11 @@ const projectBaseSchema = {
   companyId: z.string().uuid().nullable().optional(),
   status: z.enum(['active', 'completed', 'archived']),
   startDate: z.string().transform((str) => new Date(str)),
-  endDate: z.string().nullable().transform((str) => str ? new Date(str) : null).optional(),
+  endDate: z
+    .string()
+    .nullable()
+    .transform((str) => (str ? new Date(str) : null))
+    .optional(),
 };
 
 /**

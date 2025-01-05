@@ -11,7 +11,13 @@ import { db } from '@/lib/db';
 
 import { authConfig } from './auth.config';
 
-import { account, session, user, verificationToken, type UserPreferences } from "@/lib/db/schema"
+import {
+  account,
+  session,
+  user,
+  verificationToken,
+  type UserPreferences,
+} from '@/lib/db/schema';
 
 declare module 'next-auth' {
   interface User {
@@ -50,7 +56,7 @@ export const {
     usersTable: user,
     accountsTable: account,
     sessionsTable: session,
-    verificationTokensTable: verificationToken
+    verificationTokensTable: verificationToken,
   }),
   session: {
     strategy: 'jwt',
@@ -70,8 +76,8 @@ export const {
           providerId: profile.sub,
           preferences: {
             hasSeenWelcome: false,
-            language: profile.locale || 'en'
-          }
+            language: profile.locale || 'en',
+          },
         };
       },
     }),
@@ -88,8 +94,8 @@ export const {
           providerId: profile.id.toString(),
           preferences: {
             hasSeenWelcome: false,
-            language: 'en' // GitHub API doesn't provide language preference
-          }
+            language: 'en', // GitHub API doesn't provide language preference
+          },
         };
       },
     }),
@@ -105,8 +111,8 @@ export const {
           provider: 'credentials',
           preferences: {
             hasSeenWelcome: false,
-            language: 'en'
-          }
+            language: 'en',
+          },
         } as any;
       },
     }),
@@ -116,12 +122,12 @@ export const {
       if (account?.provider === 'github' && account.access_token) {
         await db
           .update(user)
-          .set({ 
+          .set({
             githubAccessToken: account.access_token,
             preferences: authUser.preferences || {
               hasSeenWelcome: false,
-              language: 'en'
-            }
+              language: 'en',
+            },
           })
           .where(eq(user.id, authUser.id as string));
       }

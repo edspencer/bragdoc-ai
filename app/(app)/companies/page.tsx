@@ -38,21 +38,19 @@ export default function CompaniesPage() {
       title="Companies"
       description="Manage your companies and work history"
     >
-      <div className="space-y-4">
-        <CompanyFilters
-          filter={filter}
-          onFilterChange={setFilter}
-          searchQuery={searchQuery}
-          onSearchChange={setSearchQuery}
-        />
-        <CompanyList
-          companies={filteredCompanies}
-          isLoading={isLoading}
-          onCreateCompany={createCompany}
-          onUpdateCompany={updateCompany}
-          onDeleteCompany={deleteCompany}
-        />
-      </div>
+      <CompanyFilters
+        filter={filter}
+        onFilterChange={setFilter}
+        searchQuery={searchQuery}
+        onSearchChange={setSearchQuery}
+      />
+      <CompanyList
+        companies={filteredCompanies}
+        isLoading={isLoading}
+        onCreateCompany={createCompany}
+        onUpdateCompany={updateCompany}
+        onDeleteCompany={deleteCompany}
+      />
     </AppPage>
   );
 }

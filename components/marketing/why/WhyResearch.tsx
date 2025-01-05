@@ -67,8 +67,8 @@ export function WhyResearch() {
           </div>
           <div className="mt-16 text-center">
             <p className="text-sm text-slate-500 dark:text-slate-400">
-              Research data compiled from industry surveys and academic studies on
-              career progression and performance management.
+              Research data compiled from industry surveys and academic studies
+              on career progression and performance management.
             </p>
           </div>
         </div>

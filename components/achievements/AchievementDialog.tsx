@@ -51,7 +51,14 @@ const achievementRequestSchema = z.object({
   details: z.string().nullable().optional(),
   eventStart: z.date().nullable().optional(),
   eventEnd: z.date().nullable().optional(),
-  eventDuration: z.enum(['day', 'week', 'month', 'quarter', 'half year', 'year']),
+  eventDuration: z.enum([
+    'day',
+    'week',
+    'month',
+    'quarter',
+    'half year',
+    'year',
+  ]),
   companyId: z.string().uuid().nullable().optional(),
   projectId: z.string().uuid().nullable().optional(),
   impact: z.number().min(1).max(3).default(2),
@@ -107,14 +114,18 @@ export function AchievementDialog({
         title: achievement.title,
         summary: achievement.summary,
         details: achievement.details,
-        eventStart: achievement.eventStart ? new Date(achievement.eventStart) : null,
+        eventStart: achievement.eventStart
+          ? new Date(achievement.eventStart)
+          : null,
         eventEnd: achievement.eventEnd ? new Date(achievement.eventEnd) : null,
         eventDuration: achievement.eventDuration,
         companyId: achievement.companyId,
         projectId: achievement.projectId,
         impact: achievement.impact ?? 2,
         impactSource: achievement.impactSource ?? 'user',
-        impactUpdatedAt: achievement.impactUpdatedAt ? new Date(achievement.impactUpdatedAt) : new Date(),
+        impactUpdatedAt: achievement.impactUpdatedAt
+          ? new Date(achievement.impactUpdatedAt)
+          : new Date(),
       });
     }
   }, [achievement, open, form]);
@@ -154,9 +165,9 @@ export function AchievementDialog({
     } catch (error) {
       console.error('Error saving achievement:', error);
       toast.error(
-        mode === 'edit' 
-          ? 'Failed to update achievement' 
-          : 'Failed to create achievement'
+        mode === 'edit'
+          ? 'Failed to update achievement'
+          : 'Failed to create achievement',
       );
     }
   };
@@ -166,19 +177,26 @@ export function AchievementDialog({
       <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
           <DialogTitle>
-            {mode === 'create' ? 'New Achievement' : mode === 'edit' ? 'Edit Achievement' : 'View Achievement'}
+            {mode === 'create'
+              ? 'New Achievement'
+              : mode === 'edit'
+                ? 'Edit Achievement'
+                : 'View Achievement'}
           </DialogTitle>
           <DialogDescription>
             {mode === 'create'
               ? 'Add a new achievement to your brag document.'
               : mode === 'edit'
-              ? 'Edit the details of your achievement.'
-              : 'View the details of your achievement.'}
+                ? 'Edit the details of your achievement.'
+                : 'View the details of your achievement.'}
           </DialogDescription>
         </DialogHeader>
 
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
+          <form
+            onSubmit={form.handleSubmit(handleSubmit)}
+            className="space-y-4"
+          >
             <FormField
               control={form.control}
               name="title"
@@ -271,7 +289,7 @@ export function AchievementDialog({
                             variant="outline"
                             className={cn(
                               'w-full pl-3 text-left font-normal',
-                              !field.value && 'text-muted-foreground'
+                              !field.value && 'text-muted-foreground',
                             )}
                             disabled={isViewMode}
                           >
@@ -311,7 +329,7 @@ export function AchievementDialog({
                             variant="outline"
                             className={cn(
                               'w-full pl-3 text-left font-normal',
-                              !field.value && 'text-muted-foreground'
+                              !field.value && 'text-muted-foreground',
                             )}
                             disabled={isViewMode}
                           >

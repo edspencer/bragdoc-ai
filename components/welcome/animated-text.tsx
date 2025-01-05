@@ -1,8 +1,8 @@
-"use client";
+'use client';
 
-import * as React from "react";
-import { motion, useAnimate } from "framer-motion";
-import { cn } from "@/lib/utils";
+import * as React from 'react';
+import { motion, useAnimate } from 'framer-motion';
+import { cn } from '@/lib/utils';
 
 interface AnimatedTextProps {
   text: string;
@@ -25,11 +25,7 @@ export function AnimatedText({
   React.useEffect(() => {
     const timeout = setTimeout(() => {
       setIsVisible(true);
-      animate(
-        scope.current,
-        { opacity: 1, y: 0 },
-        { duration, onComplete }
-      );
+      animate(scope.current, { opacity: 1, y: 0 }, { duration, onComplete });
     }, delay);
 
     return () => clearTimeout(timeout);
@@ -39,7 +35,7 @@ export function AnimatedText({
     <motion.div
       ref={scope}
       initial={{ opacity: 0, y: 10 }}
-      className={cn("", className)}
+      className={cn('', className)}
       style={{ opacity: isVisible ? undefined : 0 }}
     >
       {text}

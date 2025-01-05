@@ -1,6 +1,9 @@
 import { useMemo } from 'react';
 import { useSWRConfig } from 'swr';
-import type { CreateAchievementRequest, UpdateAchievementRequest } from '@/lib/types/achievement';
+import type {
+  CreateAchievementRequest,
+  UpdateAchievementRequest,
+} from '@/lib/types/achievement';
 import { toast } from 'sonner';
 
 interface UseMutationsOptions {
@@ -30,7 +33,10 @@ export function useAchievementMutations(options: UseMutationsOptions = {}) {
           }
 
           // Invalidate achievements cache
-          await mutate((key) => typeof key === 'string' && key.startsWith('/api/achievements'));
+          await mutate(
+            (key) =>
+              typeof key === 'string' && key.startsWith('/api/achievements'),
+          );
           toast.success('Achievement created');
           onSuccess?.();
         } catch (error) {
@@ -57,7 +63,10 @@ export function useAchievementMutations(options: UseMutationsOptions = {}) {
           }
 
           // Invalidate achievements cache
-          await mutate((key) => typeof key === 'string' && key.startsWith('/api/achievements'));
+          await mutate(
+            (key) =>
+              typeof key === 'string' && key.startsWith('/api/achievements'),
+          );
           toast.success('Achievement updated');
           onSuccess?.();
         } catch (error) {
@@ -80,7 +89,10 @@ export function useAchievementMutations(options: UseMutationsOptions = {}) {
           }
 
           // Invalidate achievements cache
-          await mutate((key) => typeof key === 'string' && key.startsWith('/api/achievements'));
+          await mutate(
+            (key) =>
+              typeof key === 'string' && key.startsWith('/api/achievements'),
+          );
           toast.success('Achievement deleted');
           onSuccess?.();
         } catch (error) {
@@ -91,6 +103,6 @@ export function useAchievementMutations(options: UseMutationsOptions = {}) {
         }
       },
     }),
-    [mutate, onSuccess, onError]
+    [mutate, onSuccess, onError],
   );
 }

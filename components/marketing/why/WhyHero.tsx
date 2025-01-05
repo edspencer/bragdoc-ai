@@ -13,9 +13,9 @@ export function WhyHero() {
         </span>
       </h1>
       <p className="mx-auto mt-6 max-w-2xl text-lg tracking-tight text-slate-700 dark:text-slate-300">
-        In today&apos;s competitive workplace, your achievements speak louder than
-        your job title. Learn why keeping a brag document is crucial for your
-        career growth and success.
+        In today&apos;s competitive workplace, your achievements speak louder
+        than your job title. Learn why keeping a brag document is crucial for
+        your career growth and success.
       </p>
       <div className="mt-10 flex justify-center gap-x-6">
         <Button asChild size="lg">

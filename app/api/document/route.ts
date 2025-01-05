@@ -1,6 +1,5 @@
 import { auth } from '@/app/(auth)/auth';
 import {
-  deleteDocumentsByIdAfterTimestamp,
   getDocumentsById,
   saveDocument,
 } from '@/lib/db/queries';
@@ -62,36 +61,4 @@ export async function POST(request: Request) {
     return Response.json(document, { status: 200 });
   }
   return new Response('Unauthorized', { status: 401 });
-}
-
-export async function PATCH(request: Request) {
-  const { searchParams } = new URL(request.url);
-  const id = searchParams.get('id');
-
-  const { timestamp }: { timestamp: string } = await request.json();
-
-  if (!id) {
-    return new Response('Missing id', { status: 400 });
-  }
-
-  const session = await auth();
-
-  if (!session || !session.user) {
-    return new Response('Unauthorized', { status: 401 });
-  }
-
-  const documents = await getDocumentsById({ id });
-
-  const [document] = documents;
-
-  if (document.userId !== session.user.id) {
-    return new Response('Unauthorized', { status: 401 });
-  }
-
-  await deleteDocumentsByIdAfterTimestamp({
-    id,
-    timestamp: new Date(timestamp),
-  });
-
-  return new Response('Deleted', { status: 200 });
 }

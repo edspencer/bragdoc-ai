@@ -12,6 +12,14 @@ jest.mock('@/lib/stripe/stripe', () => ({
     webhooks: {
       constructEvent: jest.fn(),
     },
+    checkout: {
+      sessions: {
+        retrieve: jest.fn(),
+      },
+    },
+    customers: {
+      retrieve: jest.fn(),
+    },
   },
 }));
 
@@ -25,30 +33,42 @@ describe('Stripe Webhook Handler', () => {
     jest.clearAllMocks();
 
     // Create test users with Stripe customer IDs
-    checkoutUser = await db.insert(user).values({
-      email: 'checkout@test.com',
-      provider: 'stripe',
-      providerId: 'cus_checkout123',
-      level: 'free',
-      renewalPeriod: 'monthly',
-    }).returning().then(users => users[0]);
+    checkoutUser = await db
+      .insert(user)
+      .values({
+        email: 'checkout@test.com',
+        provider: 'stripe',
+        stripeCustomerId: 'cus_checkout123',
+        level: 'free',
+        renewalPeriod: 'monthly',
+      })
+      .returning()
+      .then((users) => users[0]);
 
-    paymentUser = await db.insert(user).values({
-      email: 'payment@test.com',
-      provider: 'stripe',
-      providerId: 'cus_payment123',
-      level: 'free',
-      renewalPeriod: 'monthly',
-    }).returning().then(users => users[0]);
+    paymentUser = await db
+      .insert(user)
+      .values({
+        email: 'payment@test.com',
+        provider: 'stripe',
+        stripeCustomerId: 'cus_payment123',
+        level: 'free',
+        renewalPeriod: 'monthly',
+      })
+      .returning()
+      .then((users) => users[0]);
 
-    subscriptionUser = await db.insert(user).values({
-      email: 'subscription@test.com',
-      provider: 'stripe',
-      providerId: 'cus_subscription123',
-      level: 'basic',
-      renewalPeriod: 'monthly',
-      lastPayment: new Date(),
-    }).returning().then(users => users[0]);
+    subscriptionUser = await db
+      .insert(user)
+      .values({
+        email: 'subscription@test.com',
+        provider: 'stripe',
+        stripeCustomerId: 'cus_subscription123',
+        level: 'basic',
+        renewalPeriod: 'monthly',
+        lastPayment: new Date(),
+      })
+      .returning()
+      .then((users) => users[0]);
   });
 
   afterEach(async () => {
@@ -66,11 +86,11 @@ describe('Stripe Webhook Handler', () => {
       data: {
         object: {
           id: 'cs_test123',
-          customer: checkoutUser.providerId,
+          customer: checkoutUser.stripeCustomerId,
           payment_status: 'paid',
-          metadata: {
-            planId: 'basic_monthly',
-          } as Stripe.Metadata,
+          customer_details: {
+            email: checkoutUser.email,
+          },
         } as Stripe.Checkout.Session,
       },
       object: 'event',
@@ -81,7 +101,20 @@ describe('Stripe Webhook Handler', () => {
       request: null,
     };
 
+    const mockExpandedSession = {
+      line_items: {
+        data: [
+          {
+            price: {
+              lookup_key: 'basic_monthly',
+            } as Stripe.Price,
+          },
+        ],
+      },
+    };
+
     (stripe.webhooks.constructEvent as jest.Mock).mockReturnValue(mockEvent);
+    (stripe.checkout.sessions.retrieve as jest.Mock).mockResolvedValue(mockExpandedSession);
 
     const req = new NextRequest('https://bragdoc.ai/api/stripe/callback', {
       method: 'POST',
@@ -93,11 +126,22 @@ describe('Stripe Webhook Handler', () => {
     const response = await POST(req);
     expect(response.status).toBe(200);
 
-    // Verify database was updated correctly
-    const updatedUser = await db.select().from(user).where(eq(user.id, checkoutUser.id)).then(users => users[0]);
+    // Verify the stripe API calls
+    expect(stripe.webhooks.constructEvent).toHaveBeenCalled();
+    expect(stripe.checkout.sessions.retrieve).toHaveBeenCalledWith('cs_test123', {
+      expand: ['line_items.data.price'],
+    });
+
+    // Verify user subscription was updated
+    const updatedUser = await db
+      .select()
+      .from(user)
+      .where(eq(user.email, checkoutUser.email))
+      .then((users) => users[0]);
+
     expect(updatedUser.level).toBe('basic');
     expect(updatedUser.renewalPeriod).toBe('monthly');
-    expect(updatedUser.lastPayment).toBeTruthy();
+    expect(updatedUser.stripeCustomerId).toBe(checkoutUser.stripeCustomerId);
   });
 
   it('should handle payment_intent.succeeded event', async () => {
@@ -107,7 +151,7 @@ describe('Stripe Webhook Handler', () => {
       data: {
         object: {
           id: 'pi_test456',
-          customer: paymentUser.providerId,
+          customer: paymentUser.stripeCustomerId,
           status: 'succeeded',
           metadata: {
             planId: 'basic_monthly',
@@ -122,7 +166,37 @@ describe('Stripe Webhook Handler', () => {
       request: null,
     };
 
+    const mockCustomer: Stripe.Customer = {
+      id: paymentUser.stripeCustomerId!,
+      email: paymentUser.email,
+      object: 'customer',
+      created: Date.now(),
+      livemode: false,
+      metadata: {},
+      currency: 'usd',
+      delinquent: false,
+      description: null,
+      discount: null,
+      invoice_prefix: 'TEST',
+      name: null,
+      next_invoice_sequence: 1,
+      phone: null,
+      preferred_locales: [],
+      shipping: null,
+      tax_exempt: 'none',
+      test_clock: null,
+      balance: 0,
+      default_source: null,
+      invoice_settings: {
+        default_payment_method: null,
+        custom_fields: null,
+        rendering_options: null,
+        footer: null,
+      }
+    };
+
     (stripe.webhooks.constructEvent as jest.Mock).mockReturnValue(mockEvent);
+    (stripe.customers.retrieve as jest.Mock).mockResolvedValue(mockCustomer);
 
     const req = new NextRequest('https://bragdoc.ai/api/stripe/callback', {
       method: 'POST',
@@ -134,10 +208,20 @@ describe('Stripe Webhook Handler', () => {
     const response = await POST(req);
     expect(response.status).toBe(200);
 
+    // Verify the stripe API calls
+    expect(stripe.webhooks.constructEvent).toHaveBeenCalled();
+    expect(stripe.customers.retrieve).toHaveBeenCalledWith(paymentUser.stripeCustomerId);
+
     // Verify database was updated correctly
-    const updatedUser = await db.select().from(user).where(eq(user.id, paymentUser.id)).then(users => users[0]);
+    const updatedUser = await db
+      .select()
+      .from(user)
+      .where(eq(user.email, paymentUser.email))
+      .then((users) => users[0]);
+
     expect(updatedUser.level).toBe('basic');
     expect(updatedUser.renewalPeriod).toBe('monthly');
+    expect(updatedUser.stripeCustomerId).toBe(paymentUser.stripeCustomerId);
     expect(updatedUser.lastPayment).toBeTruthy();
   });
 
@@ -148,7 +232,7 @@ describe('Stripe Webhook Handler', () => {
       data: {
         object: {
           id: 'sub_test789',
-          customer: subscriptionUser.providerId,
+          customer: subscriptionUser.stripeCustomerId,
           status: 'canceled',
         } as Stripe.Subscription,
       },
@@ -173,7 +257,11 @@ describe('Stripe Webhook Handler', () => {
     expect(response.status).toBe(200);
 
     // Verify database was updated correctly
-    const updatedUser = await db.select().from(user).where(eq(user.id, subscriptionUser.id)).then(users => users[0]);
+    const updatedUser = await db
+      .select()
+      .from(user)
+      .where(eq(user.id, subscriptionUser.id))
+      .then((users) => users[0]);
     expect(updatedUser.level).toBe('free');
     expect(updatedUser.lastPayment).toBeNull();
   });
@@ -192,9 +280,13 @@ describe('Stripe Webhook Handler', () => {
 
     const response = await POST(req);
     expect(response.status).toBe(400);
-    
+
     // Verify no database changes occurred
-    const unchangedUser = await db.select().from(user).where(eq(user.id, checkoutUser.id)).then(users => users[0]);
+    const unchangedUser = await db
+      .select()
+      .from(user)
+      .where(eq(user.id, checkoutUser.id))
+      .then((users) => users[0]);
     expect(unchangedUser.level).toBe('free');
   });
 
@@ -224,9 +316,13 @@ describe('Stripe Webhook Handler', () => {
 
     const response = await POST(req);
     expect(response.status).toBe(200); // Still return 200 to acknowledge receipt
-    
+
     // Verify no database changes occurred
-    const unchangedUser = await db.select().from(user).where(eq(user.id, checkoutUser.id)).then(users => users[0]);
+    const unchangedUser = await db
+      .select()
+      .from(user)
+      .where(eq(user.id, checkoutUser.id))
+      .then((users) => users[0]);
     expect(unchangedUser.level).toBe('free');
   });
 });

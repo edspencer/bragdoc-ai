@@ -2,26 +2,41 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Building2, FolderKanban, Trophy, Settings, Sun, Moon, LogOut } from 'lucide-react';
+import {
+  Building2,
+  FolderKanban,
+  Trophy,
+  Settings,
+  Sun,
+  Moon,
+  LogOut,
+  FileText,
+} from 'lucide-react';
 import { signOut } from 'next-auth/react';
 import { useTheme } from 'next-themes';
 import type { User } from 'next-auth';
 
 import { Button } from '@/components/ui/button';
-import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
-import { SidebarMenu, SidebarMenuItem } from '@/components/ui/sidebar';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
+import { SidebarMenu, SidebarMenuItem, SidebarMenuBadge } from '@/components/ui/sidebar';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
+import { useNavCounts } from '@/hooks/use-nav-counts';
 
 export function SidebarNav({ user }: { user: User }) {
   const pathname = usePathname();
   const { setTheme, theme } = useTheme();
+  const { counts } = useNavCounts();
 
   // Get user initials from name or email
   const getInitials = () => {
     if (user.name) {
       return user.name
         .split(' ')
-        .map(n => n[0])
+        .map((n) => n[0])
         .join('')
         .toUpperCase();
     }
@@ -30,20 +45,29 @@ export function SidebarNav({ user }: { user: User }) {
 
   const navItems = [
     {
+      href: '/achievements',
+      icon: Trophy,
+      label: 'Achievements',
+      count: counts.achievements,
+    },
+    {
+      href: '/documents',
+      icon: FileText,
+      label: 'Documents',
+      count: counts.documents,
+    },
+    {
       href: '/companies',
       icon: Building2,
       label: 'Companies',
+      count: counts.companies,
     },
     {
       href: '/projects',
       icon: FolderKanban,
       label: 'Projects',
-    },
-    {
-      href: '/achievements',
-      icon: Trophy,
-      label: 'Achievements',
-    },
+      count: counts.projects,
+    }
   ];
 
   return (
@@ -54,17 +78,22 @@ export function SidebarNav({ user }: { user: User }) {
           {navItems.map((item) => {
             const Icon = item.icon;
             const isActive = pathname === item.href;
-            
+
             return (
               <SidebarMenuItem key={item.href}>
                 <Link
                   href={item.href}
                   className={`flex items-center gap-2 rounded-md p-2 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground ${
-                    isActive ? 'bg-accent text-accent-foreground' : 'text-muted-foreground'
+                    isActive
+                      ? 'bg-accent text-accent-foreground'
+                      : 'text-muted-foreground'
                   }`}
                 >
                   <Icon className="size-4" />
                   <span>{item.label}</span>
+                  <SidebarMenuBadge className="ml-auto">
+                    {item.count}
+                  </SidebarMenuBadge>
                 </Link>
               </SidebarMenuItem>
             );
@@ -76,8 +105,8 @@ export function SidebarNav({ user }: { user: User }) {
           {/* User Avatar */}
           <Tooltip>
             <TooltipTrigger asChild>
-              <Link 
-                href="/settings" 
+              <Link
+                href="/settings"
                 className="block transition-opacity hover:opacity-80"
               >
                 <Avatar className="size-8">

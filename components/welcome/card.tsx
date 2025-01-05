@@ -1,8 +1,14 @@
-"use client";
+'use client';
 
-import { cn } from "@/lib/utils";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { AnimatePresence, motion } from "framer-motion";
+import { cn } from '@/lib/utils';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
+import { AnimatePresence, motion } from 'framer-motion';
 
 export interface WelcomeCardProps {
   title: string;
@@ -28,11 +34,11 @@ export function WelcomeCard({
           initial={{ opacity: 0, x: 20 }}
           animate={{ opacity: 1, x: 0 }}
           exit={{ opacity: 0, x: -20 }}
-          transition={{ 
+          transition={{
             duration: 0.3,
-            ease: "easeInOut"
+            ease: 'easeInOut',
           }}
-          className={cn("w-full", className)}
+          className={cn('w-full', className)}
           key={title}
         >
           <Card className="h-full">

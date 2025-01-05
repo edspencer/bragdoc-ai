@@ -33,7 +33,8 @@ export function WhyProcess() {
           </h2>
           <p className="mt-4 text-lg tracking-tight text-slate-700 dark:text-slate-300">
             No more manual tracking or forgotten accomplishments. Our AI-powered
-            assistant makes maintaining your brag document completely effortless.
+            assistant makes maintaining your brag document completely
+            effortless.
           </p>
         </div>
         <div className="mx-auto mt-16 max-w-7xl">

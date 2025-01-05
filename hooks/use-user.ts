@@ -1,6 +1,6 @@
-import { useCallback, useEffect, useState } from "react";
-import type { User } from "@/lib/db/schema";
-import { useSession } from "next-auth/react";
+import { useCallback, useEffect, useState } from 'react';
+import type { User } from '@/lib/db/schema';
+import { useSession } from 'next-auth/react';
 
 interface UseUserResponse {
   user: User | null;
@@ -20,42 +20,45 @@ export function useUser(): UseUserResponse {
     if (!session?.user?.id) return;
 
     try {
-      const response = await fetch("/api/user");
+      const response = await fetch('/api/user');
       if (!response.ok) {
-        throw new Error("Failed to fetch user");
+        throw new Error('Failed to fetch user');
       }
       const data = await response.json();
       setUser(data);
     } catch (err) {
-      setError(err instanceof Error ? err : new Error("Unknown error"));
+      setError(err instanceof Error ? err : new Error('Unknown error'));
     } finally {
       setIsLoading(false);
     }
   }, [session?.user?.id]);
 
-  const updateUser = useCallback(async (data: Partial<User>) => {
-    if (!session?.user?.id) return;
+  const updateUser = useCallback(
+    async (data: Partial<User>) => {
+      if (!session?.user?.id) return;
 
-    try {
-      const response = await fetch("/api/user", {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(data),
-      });
+      try {
+        const response = await fetch('/api/user', {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(data),
+        });
 
-      if (!response.ok) {
-        throw new Error("Failed to update user");
+        if (!response.ok) {
+          throw new Error('Failed to update user');
+        }
+
+        const updatedUser = await response.json();
+        setUser(updatedUser);
+      } catch (err) {
+        setError(err instanceof Error ? err : new Error('Unknown error'));
+        throw err;
       }
-
-      const updatedUser = await response.json();
-      setUser(updatedUser);
-    } catch (err) {
-      setError(err instanceof Error ? err : new Error("Unknown error"));
-      throw err;
-    }
-  }, [session?.user?.id]);
+    },
+    [session?.user?.id],
+  );
 
   const mutate = useCallback(async () => {
     setIsLoading(true);

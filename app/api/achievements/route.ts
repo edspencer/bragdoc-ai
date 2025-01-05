@@ -2,9 +2,7 @@ import { type NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/app/(auth)/auth';
 import { z } from 'zod';
 import type { CreateAchievementRequest } from '@/lib/types/achievement';
-import { 
-  getAchievements, 
-} from '@/lib/db/queries';
+import { getAchievements } from '@/lib/db/queries';
 import { createAchievement } from '@/lib/db/achievements/utils';
 
 // Validation schema for achievement data
@@ -70,7 +68,7 @@ export async function GET(req: NextRequest) {
     console.error('Error fetching achievements:', error);
     return NextResponse.json(
       { error: 'Failed to fetch achievements' },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
@@ -87,18 +85,25 @@ export async function POST(req: NextRequest) {
     const result = achievementSchema.safeParse(body);
 
     if (!result.success) {
-      return NextResponse.json({
-        error: 'Invalid achievement data',
-        details: result.error.errors,
-      }, { status: 400 });
+      return NextResponse.json(
+        {
+          error: 'Invalid achievement data',
+          details: result.error.errors,
+        },
+        { status: 400 },
+      );
     }
 
     // Convert date strings to Date objects and prepare data
     const data: CreateAchievementRequest = {
       ...result.data,
-      eventStart: result.data.eventStart ? new Date(result.data.eventStart) : null,
+      eventStart: result.data.eventStart
+        ? new Date(result.data.eventStart)
+        : null,
       eventEnd: result.data.eventEnd ? new Date(result.data.eventEnd) : null,
-      impactUpdatedAt: result.data.impactUpdatedAt ? new Date(result.data.impactUpdatedAt) : null,
+      impactUpdatedAt: result.data.impactUpdatedAt
+        ? new Date(result.data.impactUpdatedAt)
+        : null,
       source: result.data.source ?? 'manual',
       isArchived: false,
       userMessageId: null,
@@ -113,7 +118,7 @@ export async function POST(req: NextRequest) {
     const achievement = await createAchievement(
       session.user.id,
       data,
-      'manual'
+      'manual',
     );
 
     return NextResponse.json(achievement);
@@ -121,7 +126,7 @@ export async function POST(req: NextRequest) {
     console.error('Error creating achievement:', error);
     return NextResponse.json(
       { error: 'Failed to create achievement' },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
