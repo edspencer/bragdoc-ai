@@ -10,6 +10,7 @@ import {
   Sun,
   Moon,
   LogOut,
+  FileText,
 } from 'lucide-react';
 import { signOut } from 'next-auth/react';
 import { useTheme } from 'next-themes';
@@ -55,6 +56,11 @@ export function SidebarNav({ user }: { user: User }) {
       href: '/achievements',
       icon: Trophy,
       label: 'Achievements',
+    },
+    {
+      href: '/documents',
+      icon: FileText,
+      label: 'Documents',
     },
   ];
 

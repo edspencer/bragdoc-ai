@@ -32,9 +32,9 @@ export function DocumentActions({ document, onDelete }: DocumentActionsProps) {
     try {
       setIsLoading(true);
       const response = await fetch(
-        `/api/document?id=${document.id}&action=share`,
+        `/api/documents/${document.id}/share`,
         {
-          method: 'PUT',
+          method: 'POST',
         },
       );
       const data = await response.json();
@@ -55,9 +55,9 @@ export function DocumentActions({ document, onDelete }: DocumentActionsProps) {
     try {
       setIsLoading(true);
       const response = await fetch(
-        `/api/document?id=${document.id}&action=unshare`,
+        `/api/documents/${document.id}/share`,
         {
-          method: 'PUT',
+          method: 'DELETE',
         },
       );
       if (!response.ok) {
@@ -76,7 +76,7 @@ export function DocumentActions({ document, onDelete }: DocumentActionsProps) {
   const handleDelete = async () => {
     try {
       setIsLoading(true);
-      const response = await fetch(`/api/document?id=${document.id}`, {
+      const response = await fetch(`/api/documents/${document.id}`, {
         method: 'DELETE',
       });
       if (!response.ok) {
