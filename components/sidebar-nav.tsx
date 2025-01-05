@@ -22,12 +22,14 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
-import { SidebarMenu, SidebarMenuItem } from '@/components/ui/sidebar';
+import { SidebarMenu, SidebarMenuItem, SidebarMenuBadge } from '@/components/ui/sidebar';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
+import { useNavCounts } from '@/hooks/use-nav-counts';
 
 export function SidebarNav({ user }: { user: User }) {
   const pathname = usePathname();
   const { setTheme, theme } = useTheme();
+  const { counts } = useNavCounts();
 
   // Get user initials from name or email
   const getInitials = () => {
@@ -43,25 +45,29 @@ export function SidebarNav({ user }: { user: User }) {
 
   const navItems = [
     {
-      href: '/companies',
-      icon: Building2,
-      label: 'Companies',
-    },
-    {
-      href: '/projects',
-      icon: FolderKanban,
-      label: 'Projects',
-    },
-    {
       href: '/achievements',
       icon: Trophy,
       label: 'Achievements',
+      count: counts.achievements,
     },
     {
       href: '/documents',
       icon: FileText,
       label: 'Documents',
+      count: counts.documents,
     },
+    {
+      href: '/companies',
+      icon: Building2,
+      label: 'Companies',
+      count: counts.companies,
+    },
+    {
+      href: '/projects',
+      icon: FolderKanban,
+      label: 'Projects',
+      count: counts.projects,
+    }
   ];
 
   return (
@@ -85,6 +91,9 @@ export function SidebarNav({ user }: { user: User }) {
                 >
                   <Icon className="size-4" />
                   <span>{item.label}</span>
+                  <SidebarMenuBadge className="ml-auto">
+                    {item.count}
+                  </SidebarMenuBadge>
                 </Link>
               </SidebarMenuItem>
             );
