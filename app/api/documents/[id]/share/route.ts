@@ -2,11 +2,11 @@ import { auth } from '@/app/(auth)/auth';
 import { db } from '@/lib/db';
 import { document } from '@/lib/db/schema';
 import { and, eq } from 'drizzle-orm';
-import { randomUUID } from 'crypto';
+import { randomUUID } from 'node:crypto';
 
 export async function POST(
   request: Request,
-  { params }: { params: { id: string } },
+  { params }: { params: Promise<{ id: string }> },
 ) {
   const session = await auth();
 
@@ -14,6 +14,8 @@ export async function POST(
     if (!session?.user?.id) {
       return Response.json({ error: 'Unauthorized' }, { status: 401 });
     }
+
+    const { id } = await params;
 
     // Generate a secure random token
     const shareToken = Buffer.from(randomUUID()).toString('base64url');
@@ -23,7 +25,7 @@ export async function POST(
       .set({ shareToken })
       .where(
         and(
-          eq(document.id, params.id),
+          eq(document.id, id),
           eq(document.userId, session.user.id),
         ),
       )
@@ -45,7 +47,7 @@ export async function POST(
 
 export async function DELETE(
   request: Request,
-  { params }: { params: { id: string } },
+  { params }: { params: Promise<{ id: string }> },
 ) {
   const session = await auth();
 
@@ -54,12 +56,14 @@ export async function DELETE(
       return Response.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
+    const { id } = await params;
+
     const [updated] = await db
       .update(document)
       .set({ shareToken: null })
       .where(
         and(
-          eq(document.id, params.id),
+          eq(document.id, id),
           eq(document.userId, session.user.id),
         ),
       )

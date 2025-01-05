@@ -98,10 +98,10 @@ export function DocumentActions({ document, onDelete }: DocumentActionsProps) {
       <DropdownMenuTrigger asChild>
         <Button
           variant="ghost"
-          className="flex h-8 w-8 p-0"
+          className="flex size-8 p-0"
           disabled={isLoading}
         >
-          <MoreHorizontal className="h-4 w-4" />
+          <MoreHorizontal className="size-4" />
           <span className="sr-only">Open menu</span>
         </Button>
       </DropdownMenuTrigger>
@@ -109,17 +109,17 @@ export function DocumentActions({ document, onDelete }: DocumentActionsProps) {
         <DropdownMenuItem
           onClick={() => router.push(`/documents/${document.id}`)}
         >
-          <Link2 className="mr-2 h-4 w-4" />
+          <Link2 className="mr-2 size-4" />
           View
         </DropdownMenuItem>
         {document.shareToken ? (
           <DropdownMenuItem onClick={handleUnshare}>
-            <Share2 className="mr-2 h-4 w-4" />
+            <Share2 className="mr-2 size-4" />
             Disable Sharing
           </DropdownMenuItem>
         ) : (
           <DropdownMenuItem onClick={handleShare}>
-            <Share2 className="mr-2 h-4 w-4" />
+            <Share2 className="mr-2 size-4" />
             Share
           </DropdownMenuItem>
         )}
@@ -128,7 +128,7 @@ export function DocumentActions({ document, onDelete }: DocumentActionsProps) {
           onClick={handleDelete}
           className="text-destructive"
         >
-          <Trash className="mr-2 h-4 w-4" />
+          <Trash className="mr-2 size-4" />
           Delete
         </DropdownMenuItem>
       </DropdownMenuContent>

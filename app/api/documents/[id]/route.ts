@@ -13,7 +13,7 @@ const documentSchema = z.object({
 
 export async function GET(
   request: Request,
-  { params }: { params: { id: string } },
+  { params }: { params: Promise<{ id: string }> },
 ) {
   const session = await auth();
 
@@ -21,9 +21,11 @@ export async function GET(
     return Response.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
+  const { id } = await params;
+
   // Validate UUID format
   const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
-  if (!uuidRegex.test(params.id)) {
+  if (!uuidRegex.test(id)) {
     return Response.json({ error: 'Document not found' }, { status: 404 });
   }
 
@@ -33,7 +35,7 @@ export async function GET(
       .from(document)
       .where(
         and(
-          eq(document.id, params.id),
+          eq(document.id, id),
           eq(document.userId, session.user.id),
         ),
       );
@@ -54,7 +56,7 @@ export async function GET(
 
 export async function PUT(
   request: Request,
-  { params }: { params: { id: string } },
+  { params }: { params: Promise<{ id: string }> },
 ) {
   const session = await auth();
 
@@ -62,9 +64,11 @@ export async function PUT(
     return Response.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
+  const { id } = await params;
+
   // Validate UUID format
   const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
-  if (!uuidRegex.test(params.id)) {
+  if (!uuidRegex.test(id)) {
     return Response.json({ error: 'Document not found' }, { status: 404 });
   }
 
@@ -91,7 +95,7 @@ export async function PUT(
       })
       .where(
         and(
-          eq(document.id, params.id),
+          eq(document.id, id),
           eq(document.userId, session.user.id),
         ),
       )
@@ -113,7 +117,7 @@ export async function PUT(
 
 export async function PATCH(
   request: Request,
-  { params }: { params: { id: string } },
+  { params }: { params: Promise<{ id: string }> },
 ) {
   const session = await auth();
 
@@ -121,9 +125,11 @@ export async function PATCH(
     return Response.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
+  const { id } = await params;
+
   // Validate UUID format
   const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
-  if (!uuidRegex.test(params.id)) {
+  if (!uuidRegex.test(id)) {
     return Response.json({ error: 'Document not found' }, { status: 404 });
   }
 
@@ -135,7 +141,7 @@ export async function PATCH(
       .from(document)
       .where(
         and(
-          eq(document.id, params.id),
+          eq(document.id, id),
           eq(document.userId, session.user.id),
         ),
       );
@@ -148,7 +154,7 @@ export async function PATCH(
       .delete(document)
       .where(
         and(
-          eq(document.id, params.id),
+          eq(document.id, id),
           eq(document.userId, session.user.id),
         ),
       );
@@ -165,7 +171,7 @@ export async function PATCH(
 
 export async function DELETE(
   request: Request,
-  { params }: { params: { id: string } },
+  { params }: { params: Promise<{ id: string }> },
 ) {
   const session = await auth();
 
@@ -173,9 +179,11 @@ export async function DELETE(
     return Response.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
+  const { id } = await params;
+
   // Validate UUID format
   const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
-  if (!uuidRegex.test(params.id)) {
+  if (!uuidRegex.test(id)) {
     return Response.json({ error: 'Document not found' }, { status: 404 });
   }
 
@@ -184,7 +192,7 @@ export async function DELETE(
       .delete(document)
       .where(
         and(
-          eq(document.id, params.id),
+          eq(document.id, id),
           eq(document.userId, session.user.id),
         ),
       )

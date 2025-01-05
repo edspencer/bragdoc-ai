@@ -19,7 +19,7 @@ export function DocumentListSkeleton() {
             </div>
             <div className="flex items-center space-x-2">
               <Skeleton className="h-6 w-16" />
-              <Skeleton className="h-8 w-8 rounded-full" />
+              <Skeleton className="size-8 rounded-full" />
             </div>
           </CardHeader>
           <CardContent>

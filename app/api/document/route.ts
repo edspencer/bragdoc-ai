@@ -1,6 +1,5 @@
 import { auth } from '@/app/(auth)/auth';
 import {
-  deleteDocumentsByIdAfterTimestamp,
   getDocumentsById,
   saveDocument,
 } from '@/lib/db/queries';

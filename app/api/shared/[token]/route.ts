@@ -4,13 +4,14 @@ import { eq } from 'drizzle-orm';
 
 export async function GET(
   request: Request,
-  { params }: { params: { token: string } },
+  { params }: { params: Promise<{ token: string }> },
 ) {
   try {
+    const { token } = await params;
     const documents = await db
       .select()
       .from(document)
-      .where(eq(document.shareToken, params.token));
+      .where(eq(document.shareToken, token));
 
     const [doc] = documents;
     if (!doc) {

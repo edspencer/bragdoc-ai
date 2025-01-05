@@ -1,4 +1,4 @@
-import { GET, PUT, DELETE, PATCH } from '@/app/api/documents/[id]/route';
+import { GET, PUT, DELETE, } from '@/app/api/documents/[id]/route';
 import {
   GET as getDocuments,
   POST as createDocument,
