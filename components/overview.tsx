@@ -7,9 +7,13 @@ import { useNavCounts } from "@/hooks/use-nav-counts";
 import { CompanyDialog } from '@/components/companies/company-dialog';
 import { ProjectDialog } from '@/components/projects/project-dialog';
 import { Button } from '@/components/ui/button';
+import type { Company } from '@/lib/db/schema';
+import { useCompanies, useCreateCompany } from '@/hooks/use-companies';
 
 export const Overview = ({ user }: { user: User | null | undefined }) => {
   const { counts } = useNavCounts();
+  const { companies } = useCompanies();
+  const createCompany = useCreateCompany();
   const [companyDialogOpen, setCompanyDialogOpen] = useState(false);
   const [projectDialogOpen, setProjectDialogOpen] = useState(false);
 
@@ -17,17 +21,8 @@ export const Overview = ({ user }: { user: User | null | undefined }) => {
   const hasProjects = counts.projects > 0;
 
   const handleCompanySubmit = async (data: any) => {
-    try {
-      await fetch('/api/companies', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data),
-      });
-      await mutate('/api/counts');
-      setCompanyDialogOpen(false);
-    } catch (error) {
-      console.error('Failed to create company:', error);
-    }
+    await createCompany(data);
+    setCompanyDialogOpen(false);
   };
 
   const handleProjectSubmit = async (data: any) => {
@@ -90,7 +85,7 @@ export const Overview = ({ user }: { user: User | null | undefined }) => {
         open={projectDialogOpen}
         onOpenChange={setProjectDialogOpen}
         onSubmit={handleProjectSubmit}
-        companies={[]}
+        companies={companies || []}
       />
     </motion.div>
   );
