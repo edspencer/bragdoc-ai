@@ -1,6 +1,7 @@
 import { auth } from '@/app/(auth)/auth';
 import { DocumentList } from '@/components/documents/document-list';
 import { redirect } from 'next/navigation';
+import { AppPage } from '@/components/shared/app-page';
 
 export const metadata = {
   title: 'Documents - bragdoc.ai',
@@ -15,13 +16,11 @@ export default async function DocumentsPage() {
   }
 
   return (
-    <div className="flex-1 space-y-4 p-8 pt-6">
-      <div className="flex items-center justify-between space-y-2">
-        <h2 className="text-3xl font-bold tracking-tight">Documents</h2>
-      </div>
-      <div className="h-full flex-1 flex-col space-y-8 md:flex">
-        <DocumentList />
-      </div>
-    </div>
+    <AppPage
+      title="Documents"
+      description="Manage and share your documents"
+    >
+      <DocumentList />
+    </AppPage>
   );
 }
