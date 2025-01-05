@@ -32,6 +32,16 @@ async function updateUserSubscription(customerId: string, planId: string, email:
     .where(eq(user.email, email));
 }
 
+async function getSessionWithLineItems(sessionId: string) {
+  return await stripe.checkout.sessions.retrieve(sessionId, {
+    expand: ['line_items.data.price'],
+  });
+}
+
+async function getCustomerDetails(customerId: string) {
+  return await stripe.customers.retrieve(customerId);
+}
+
 export async function POST(req: Request) {
   let event: Stripe.Event;
 
@@ -71,13 +81,7 @@ export async function POST(req: Request) {
 
           if (session.payment_status === 'paid') {
             // Retrieve the session with line items
-            const expandedSession = await stripe.checkout.sessions.retrieve(
-              session.id,
-              {
-                expand: ['line_items.data.price'],
-              }
-            );
-
+            const expandedSession = await getSessionWithLineItems(session.id);
             const lineItems = expandedSession.line_items?.data;
 
             console.log(
@@ -124,9 +128,7 @@ export async function POST(req: Request) {
           // Update last payment date if this was a subscription payment
           if (paymentIntent.metadata?.planId && paymentIntent.customer) {
             // Fetch customer to get their email
-            const customer = await stripe.customers.retrieve(
-              paymentIntent.customer as string
-            );
+            const customer = await getCustomerDetails(paymentIntent.customer as string);
 
             if (!customer.deleted) {
               await updateUserSubscription(
@@ -148,7 +150,7 @@ export async function POST(req: Request) {
               level: 'free',
               lastPayment: null,
             })
-            .where(eq(user.providerId, subscription.customer as string));
+            .where(eq(user.stripeCustomerId, subscription.customer as string));
           break;
         }
 

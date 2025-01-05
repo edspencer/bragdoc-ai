@@ -23,6 +23,7 @@ describe('User Model', () => {
     githubAccessToken: null,
     image: null,
     password: null,
+    stripeCustomerId: null,
   };
 
   describe('isActiveSubscription', () => {
