@@ -1,7 +1,6 @@
 import { HowHero } from '@/components/marketing/how/HowHero';
 import { HowFeatures } from '@/components/marketing/how/HowFeatures';
 import { HowDemo } from '@/components/marketing/how/HowDemo';
-import { HowIntegrations } from '@/components/marketing/how/HowIntegrations';
 import { HowAI } from '@/components/marketing/how/HowAI';
 import { HowTemplates } from '@/components/marketing/how/HowTemplates';
 import { HowTestimonials } from '@/components/marketing/how/HowTestimonials';

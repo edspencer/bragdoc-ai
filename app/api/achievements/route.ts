@@ -1,7 +1,6 @@
 import { type NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/app/(auth)/auth';
 import { z } from 'zod';
-import type { CreateAchievementRequest } from '@/lib/types/achievement';
 import { getAchievements } from '@/lib/db/queries';
 import { createAchievement } from '@/lib/db/achievements/utils';
 

@@ -1,9 +1,7 @@
 import { type NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/app/(auth)/auth';
 import { z } from 'zod';
-import type { UpdateAchievementRequest } from '@/lib/types/achievement';
 import { updateAchievement, deleteAchievement } from '@/lib/db/queries';
-import { EventDuration } from '@/lib/types/achievement';
 
 type Params = { id: string };
 

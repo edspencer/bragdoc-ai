@@ -46,7 +46,7 @@ export function DatePicker({
           }
 
           const date = parse(inputValue, "MM/dd/yyyy", new Date());
-          if (isValid(date) && !isNaN(date.getTime())) {
+          if (isValid(date) && !Number.isNaN(date.getTime())) {
             onChange(date);
           }
         }}

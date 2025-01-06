@@ -29,7 +29,6 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { ImpactRating } from '@/components/ui/impact-rating';
-import { cn } from '@/lib/utils';
 import { z } from 'zod';
 import type { Achievement } from '@/lib/types/achievement';
 import { useCompanies } from '@/hooks/use-companies';

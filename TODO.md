@@ -12,6 +12,11 @@
 - [x] Remove Vercel chatbot text [20m]
 - [x] Welcome Email [1h]
 
+### Marketing pages
+
+- [ ] Restore HowIntegrations component
+- [ ] Restore BragDocExamples component
+
 ### User Preferences & Engagement
 
 - [ ] Add `userPreferences` table

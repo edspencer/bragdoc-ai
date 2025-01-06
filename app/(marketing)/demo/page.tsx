@@ -1,6 +1,5 @@
 import Link from 'next/link';
 import { Container } from '@/components/marketing/salient/Container';
-import { Highlight } from '@/components/marketing/salient/Highlight';
 
 export default function Page() {
   return (
