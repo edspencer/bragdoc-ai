@@ -56,6 +56,7 @@ const achievementSchema = z.object({
     z.object({
       title: z.string(),
       summary: z.string(),
+      details: z.string(),
       eventStart: z.string().nullable(),
       eventEnd: z.string().nullable(),
       eventDuration: z.enum([
@@ -183,9 +184,16 @@ For each achievement:
 4. Use appropriate timeframes within the scenario dates
 5. Include quantifiable metrics and qualitative impact
 
-Output a list of achievements, each with:
+For each achievement, think about an achievement as a human would write it down. Here are some examples:
+
+- "I fixed 7 UX bugs with the Dashboard for AutoFocus"
+- "I deployed the new Companies CRUD pages to production"
+- "Sped up the MyProject deployment process from 3 hours to 15 minutes"
+
+Then, based on this sentence, generate the following fields:
 - title: Concise, action-oriented one-line title
-- summary: 1-2 sentence summary focusing on impact and metrics
+- summary: A summarized restatement of the achievement. Do not invent any details.
+- details: If the achievement is complex, provide a detailed description. Do not invent any details.
 - eventStart: Start date in ISO 8601 format with timezone
 - eventEnd: End date in ISO 8601 format with timezone
 - eventDuration: One of: "day", "week", "month", "quarter", "half year", "year"
@@ -212,7 +220,7 @@ ${JSON.stringify(scenario, null, 2)}`,
     eventDuration: a.eventDuration,
     title: a.title,
     summary: a.summary,
-    details: null,
+    details: a.details,
     companyId: a.companyId,
     projectId: a.projectId,
     isArchived: false,
