@@ -7,7 +7,7 @@ import type {
   ExtractedAchievement,
   ExtractAchievementsInput,
 } from '../../lib/ai/extract';
-import { CompanyContext, ProjectContext } from '../conversation-gen';
+import type { CompanyContext, ProjectContext } from '../conversation-gen';
 
 
 const mapAchievementsToString = (achievements: ExtractedAchievement[]) => {
