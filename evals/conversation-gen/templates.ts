@@ -35,6 +35,13 @@ export const SCENARIO_TEMPLATES = {
     - Clear project milestones and metrics
     Include specific details about the company, role, project names, team sizes, and measurable outcomes.`,
   },
+  SIMPLE_ACHIEVEMENT: {
+    description: 'Simple achievement extraction',
+    prompt: `Create a scenario for a simple achievement:
+    - Create multiple companies that the user already works at
+    - Create multiple projects for each company that the user is involved in
+    - Create a conversation with a single message from the user that mentions some achievement they have completed at one of the projects`,
+  },
 } as const;
 
 export type ScenarioTemplate = keyof typeof SCENARIO_TEMPLATES;

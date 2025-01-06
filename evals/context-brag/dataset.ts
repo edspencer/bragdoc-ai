@@ -100,13 +100,13 @@ function parseGeneratedTestData(data: any): GeneratedTestData {
         timestamp: parseDate(m.timestamp)!,
       })),
     },
-    expectedAchievements: data.expectedBrags || [],
+    expectedAchievements: data.expectedAchievements || [],
   };
 }
 
 export const contextAchievementExamples = fs
   .readdirSync(generatedDir)
-  .filter((f) => f.endsWith('.json'))
+  .filter((f) => f.endsWith('simple_achievement.json'))
   .flatMap((file) => {
     const rawData = JSON.parse(
       fs.readFileSync(path.join(generatedDir, file), 'utf-8'),

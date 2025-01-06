@@ -7,7 +7,6 @@ import { useNavCounts } from "@/hooks/use-nav-counts";
 import { CompanyDialog } from '@/components/companies/company-dialog';
 import { ProjectDialog } from '@/components/projects/project-dialog';
 import { Button } from '@/components/ui/button';
-import type { Company } from '@/lib/db/schema';
 import { useCompanies, useCreateCompany } from '@/hooks/use-companies';
 
 export const Overview = ({ user }: { user: User | null | undefined }) => {
@@ -51,7 +50,7 @@ export const Overview = ({ user }: { user: User | null | undefined }) => {
       <div className="rounded-xl p-6 flex flex-col gap-8 leading-relaxed text-center max-w-xl mx-auto">
         {hasCompanies && hasProjects
           ? <p>Welcome back, what can I do for you today?</p>
-          : <p>Let's get started! Usually you'll want to track achievements for a company and a project.</p>}
+          : <p>Let&apos;s get started! Usually you&apos;ll want to track achievements for a company and a project.</p>}
         
         <div className="flex gap-12 items-center justify-center">
           {!hasCompanies && (
@@ -69,7 +68,7 @@ export const Overview = ({ user }: { user: User | null | undefined }) => {
 
         {!(hasCompanies && hasProjects) && (
           <p>
-            Or, just tell me what you've achieved lately and I'll track it for you:
+            Or, just tell me what you&apos;ve achieved lately and I&apos;ll track it for you:
           </p>
         )}
       </div>
