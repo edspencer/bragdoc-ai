@@ -42,6 +42,13 @@ export const SCENARIO_TEMPLATES = {
     - Create multiple projects for each company that the user is involved in
     - Create a conversation with a single message from the user that mentions some achievement they have completed at one of the projects`,
   },
+  MULTIPLE_ACHIEVEMENT: {
+    description: 'Multiple achievement extraction',
+    prompt: `Create a scenario for extracting muliple achievements in one go from an existing using
+    - Create multiple companies that the user already works at (though only one currently)
+    - Create multiple projects for each company that the user is involved in
+    - Create a conversation with a single message from the user that mentions multiple achievements they have completed on one or more projects for the current company`,
+  }
 } as const;
 
 export type ScenarioTemplate = keyof typeof SCENARIO_TEMPLATES;

@@ -56,7 +56,6 @@ const achievementSchema = z.object({
     z.object({
       title: z.string(),
       summary: z.string(),
-      details: z.string(),
       eventStart: z.string().nullable(),
       eventEnd: z.string().nullable(),
       eventDuration: z.enum([
@@ -187,7 +186,6 @@ For each achievement:
 Output a list of achievements, each with:
 - title: Concise, action-oriented one-line title
 - summary: 1-2 sentence summary focusing on impact and metrics
-- details: 2-3 sentence description including challenge, approach, and outcome
 - eventStart: Start date in ISO 8601 format with timezone
 - eventEnd: End date in ISO 8601 format with timezone
 - eventDuration: One of: "day", "week", "month", "quarter", "half year", "year"
@@ -214,7 +212,7 @@ ${JSON.stringify(scenario, null, 2)}`,
     eventDuration: a.eventDuration,
     title: a.title,
     summary: a.summary,
-    details: a.details,
+    details: null,
     companyId: a.companyId,
     projectId: a.projectId,
     isArchived: false,

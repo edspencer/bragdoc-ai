@@ -1,6 +1,6 @@
 import { streamObject } from 'ai';
-import { google } from '@ai-sdk/google';
 import { z } from 'zod';
+import {extractAchievementsModel} from '@/lib/ai';
 import type { Achievement } from '../db/schema';
 
 // Schema for validating LLM response
@@ -163,8 +163,8 @@ For each achievement found, provide:
    - "Led Migration of 200+ Services to Cloud Platform"
    - "Reduced API Response Time by 40% through Caching"
    - "Grew Frontend Team from 5 to 12 Engineers"
-2. A concise summary highlighting key metrics and impact
-3. Detailed description including context and significance
+2. A concise summary highlighting key metrics and impact. Do not add anything beyond what the user told you.
+3. Detailed description including context and significance. Do not add anything beyond what the user told you. Do not speculate.
 4. Event duration (day/week/month/quarter/half year/year)
 5. Related company ID (or null if none)
 6. Related project ID (or null if none)
@@ -182,9 +182,7 @@ Today's date is ${today}.`;
   console.log(prompt);
 
   const { elementStream } = await streamObject({
-    // model: customModel("gpt-4o"),
-    // model: google('gemini-2-flash'),
-    model: google('gemini-2.0-flash-exp'),
+    model: extractAchievementsModel,
     prompt,
     temperature: 0.5,
     output: 'array',
