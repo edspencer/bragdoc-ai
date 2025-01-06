@@ -17,6 +17,8 @@ import {
   user,
   verificationToken,
   type UserPreferences,
+  type UserLevel,
+  type RenewalPeriod,
 } from '@/lib/db/schema';
 
 declare module 'next-auth' {
@@ -25,6 +27,8 @@ declare module 'next-auth' {
     providerId?: string;
     preferences?: UserPreferences;
     githubAccessToken?: string;
+    level?: UserLevel;
+    renewalPeriod?: RenewalPeriod;
   }
 
   interface Session {
@@ -33,6 +37,8 @@ declare module 'next-auth' {
       providerId?: string;
       preferences?: UserPreferences;
       githubAccessToken?: string;
+      level?: UserLevel;
+      renewalPeriod?: RenewalPeriod;
     };
   }
 }
@@ -43,6 +49,8 @@ declare module '@auth/core/jwt' {
     providerId?: string;
     preferences?: UserPreferences;
     githubAccessToken?: string;
+    level?: UserLevel;
+    renewalPeriod?: RenewalPeriod;
   }
 }
 
@@ -142,17 +150,19 @@ export const {
         token.providerId = user.providerId;
         token.id = user.id;
         token.preferences = user.preferences;
+        token.level = user.level;
+        token.renewalPeriod = user.renewalPeriod;
       }
       return token;
     },
     async session({ session, token }) {
-      if (session.user) {
-        session.user.provider = token.provider as string;
-        session.user.providerId = token.providerId as string;
-        session.user.id = token.id as string;
-        session.user.githubAccessToken = token.githubAccessToken as string;
-        session.user.preferences = token.preferences as UserPreferences;
-      }
+      session.user.provider = token.provider as string;
+      session.user.providerId = token.providerId as string;
+      session.user.id = token.id as string;
+      session.user.githubAccessToken = token.githubAccessToken as string;
+      session.user.preferences = token.preferences as UserPreferences;
+      session.user.level = token.level as UserLevel;
+      session.user.renewalPeriod = token.renewalPeriod as RenewalPeriod;
       return session;
     },
   },

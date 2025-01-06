@@ -13,7 +13,7 @@ export default async function SettingsPage() {
       title="Settings"
       description="Manage your account settings and preferences"
     >
-      <Plan currentPlan="free" user={session.user} />
+      <Plan user={session.user} />
     </AppPage>
   );
 }

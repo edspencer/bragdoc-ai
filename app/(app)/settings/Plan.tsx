@@ -21,14 +21,12 @@ function classNames(...classes: string[]) {
   return classes.filter(Boolean).join(' ');
 }
 
-export function Plan({
-  currentPlan,
-  user,
-}: {
-  currentPlan: PlanId;
-  user: any;
-}) {
+export function Plan({ user }: { user: any }) {
   const [frequency, setFrequency] = useState<FrequencyOption>('Monthly');
+
+  console.log(user);
+
+  const currentPlan = `${user.level}_${user.renewalPeriod}` as PlanId;
 
   const getButtonConfig = (plan: PlanType) => {
     const currentPlanType = currentPlan.split('_')[0]; // free, basic, or pro
@@ -107,7 +105,7 @@ export function Plan({
                 isCurrentPlan(plan.name)
                   ? 'ring-2 ring-indigo-600'
                   : 'ring-1 ring-gray-200',
-                'rounded-3xl p-6',
+                'rounded-3xl p-6'
               )}
             >
               <h3
@@ -116,7 +114,7 @@ export function Plan({
                   isCurrentPlan(plan.name)
                     ? 'text-indigo-600'
                     : 'text-gray-900',
-                  'text-lg/8 font-semibold',
+                  'text-lg/8 font-semibold'
                 )}
               >
                 {plan.name}
@@ -139,7 +137,7 @@ export function Plan({
                   getButtonConfig(plan).disabled
                     ? 'opacity-50 cursor-not-allowed'
                     : '',
-                  'mt-6 block rounded-md px-3 py-2 text-center text-sm/6 font-semibold focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600',
+                  'mt-6 block rounded-md px-3 py-2 text-center text-sm/6 font-semibold focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600'
                 )}
               >
                 {getButtonConfig(plan).label}

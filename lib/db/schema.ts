@@ -20,10 +20,11 @@ export interface UserPreferences {
 }
 
 export const userLevelEnum = pgEnum('user_level', ['free', 'basic', 'pro']);
-export const renewalPeriodEnum = pgEnum('renewal_period', [
-  'monthly',
-  'yearly',
-]);
+export type UserLevel = typeof userLevelEnum.enumValues[number];
+
+export const renewalPeriodEnum = pgEnum('renewal_period', ['monthly', 'yearly']);
+export type RenewalPeriod = typeof renewalPeriodEnum.enumValues[number];
+
 export const userStatusEnum = pgEnum('user_status', [
   'active',
   'banned',
