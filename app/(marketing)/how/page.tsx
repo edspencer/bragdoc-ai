@@ -13,7 +13,7 @@ export default function HowPage() {
       <HowHero />
       <HowFeatures />
       <HowDemo />
-      <HowIntegrations />
+      {/* <HowIntegrations /> */}
       <HowAI />
       <HowTemplates />
       <HowTestimonials />

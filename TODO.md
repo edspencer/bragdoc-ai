@@ -2,7 +2,7 @@
 
 ## Before launch
 
-- [ ] Hide overly optimistic features from /what, /why, /how [10m]
+- [x] Hide overly optimistic features from /what, /why, /how [10m]
 - [ ] Replace home screen screenshots [1h]
 - [ ] We're in beta banner [15m]
 - [ ] Fix Welcome flow [1h]

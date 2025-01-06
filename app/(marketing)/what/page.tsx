@@ -12,7 +12,7 @@ export default function WhatPage() {
     <>
       <BragDocHero />
       <BragDocBenefits />
-      <BragDocExamples />
+      {/* <BragDocExamples /> */}
       <BragDocCallToAction />
       <BragDocTestimonials />
       <BragDocComparison />
