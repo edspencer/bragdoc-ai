@@ -1,10 +1,10 @@
 import * as React from "react";
 import { format, parse, isValid } from "date-fns";
+import { CalendarIcon } from "lucide-react";
 import { Input } from "./input";
 import { Button } from "./button";
 import { Calendar } from "./calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "./popover";
-import { CalendarIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export interface DatePickerProps {
@@ -15,6 +15,7 @@ export interface DatePickerProps {
   placeholder?: string;
   className?: string;
   required?: boolean;
+  disabled?: boolean;
 }
 
 export function DatePicker({
@@ -25,6 +26,7 @@ export function DatePicker({
   placeholder = "MM/DD/YYYY",
   className,
   required = false,
+  disabled = false,
 }: DatePickerProps) {
   const [inputValue, setInputValue] = React.useState(
     value ? format(value, "MM/dd/yyyy") : ""
@@ -49,9 +51,10 @@ export function DatePicker({
           }
         }}
         className={cn(
-          "w-[240px]",
+          "max-w-[240px]",
           inputValue && !value && "border-red-500"
         )}
+        disabled={disabled}
       />
       <Popover modal={true}>
         <PopoverTrigger asChild>
@@ -59,6 +62,7 @@ export function DatePicker({
             variant="ghost" 
             size="icon"
             className="size-10"
+            disabled={disabled}
           >
             <CalendarIcon className="size-4" />
           </Button>

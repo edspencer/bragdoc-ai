@@ -47,7 +47,7 @@ export function CompanyForm({
       name: initialData?.name || '',
       domain: initialData?.domain || '',
       role: initialData?.role || '',
-      startDate: initialData?.startDate || new Date(),
+      startDate: initialData?.startDate || undefined,
       endDate: initialData?.endDate ?? null,
     },
   });

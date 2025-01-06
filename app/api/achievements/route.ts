@@ -13,11 +13,11 @@ const achievementSchema = z.object({
     invalid_type_error: 'Invalid event duration',
   }),
   eventStart: z.string().datetime().optional(),
-  eventEnd: z.string().datetime().optional(),
+  eventEnd: z.string().datetime().optional().nullable(),
   summary: z.string().optional(),
   details: z.string().optional(),
-  companyId: z.string().uuid().optional(),
-  projectId: z.string().uuid().optional(),
+  companyId: z.string().uuid().optional().nullable(),
+  projectId: z.string().uuid().optional().nullable(),
   impact: z.number().int().min(1).max(5).optional(),
   impactSource: z.enum(['user', 'llm']).optional(),
   impactUpdatedAt: z.string().datetime().optional(),
@@ -95,15 +95,19 @@ export async function POST(req: NextRequest) {
     }
 
     // Convert date strings to Date objects and prepare data
-    const data: CreateAchievementRequest = {
+    const data = {
       ...result.data,
       eventStart: result.data.eventStart
         ? new Date(result.data.eventStart)
         : null,
-      eventEnd: result.data.eventEnd ? new Date(result.data.eventEnd) : null,
+      eventEnd: result.data.eventEnd === null
+        ? null
+        : result.data.eventEnd
+          ? new Date(result.data.eventEnd)
+          : null,
       impactUpdatedAt: result.data.impactUpdatedAt
         ? new Date(result.data.impactUpdatedAt)
-        : null,
+        : new Date(),
       source: result.data.source ?? 'manual',
       isArchived: false,
       userMessageId: null,
@@ -112,15 +116,10 @@ export async function POST(req: NextRequest) {
       companyId: result.data.companyId ?? null,
       projectId: result.data.projectId ?? null,
       impact: result.data.impact ?? null,
-      impactSource: result.data.impactSource ?? null,
+      impactSource: result.data.impactSource ?? 'user',
     };
 
-    const achievement = await createAchievement(
-      session.user.id,
-      data,
-      'manual',
-    );
-
+    const achievement = await createAchievement(session.user.id, data);
     return NextResponse.json(achievement);
   } catch (error) {
     console.error('Error creating achievement:', error);

@@ -658,8 +658,7 @@ export async function updateAchievement({
     // Filter out undefined values and ensure impact is properly set
     const updateData = Object.fromEntries(
       Object.entries({
-        ...data,
-        updatedAt: new Date(),
+        ...data
       }).filter(([_, value]) => value !== undefined),
     );
 
