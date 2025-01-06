@@ -157,7 +157,7 @@ Eval('achievement-company-and-project', {
   data: experimentData,
   task: wrappedExtractAchievements,
   scores: [AchievementFactualityScorer],
-  trialCount: 1,
+  trialCount: 3,
   metadata: {
     model: 'gpt-4',
     description:

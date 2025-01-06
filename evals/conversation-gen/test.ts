@@ -15,7 +15,8 @@ async function main() {
     // 'PERSONAL_GROWTH',
     // 'PROJECT_LEAD',
     // 'SIMPLE_ACHIEVEMENT',
-    'MULTIPLE_ACHIEVEMENT',
+    // 'MULTIPLE_ACHIEVEMENT',
+    'CONVERSATION_WITH_CONTEXT'
   ] as const;
 
   for (const template of templates) {

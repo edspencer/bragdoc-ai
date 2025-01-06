@@ -1,0 +1,220 @@
+{
+  "scenario": {
+    "description": "Testing extraction of achievements from a conversation where the user talks about completing important milestones in different projects across their working history at various companies, focusing on their current role.",
+    "companies": [
+      {
+        "id": "9d3e866f-8822-4123-83a1-3244592380a9",
+        "name": "TechNova Solutions",
+        "role": "Software Developer",
+        "startDate": "2024-03-01T00:00:00.000Z",
+        "endDate": "2024-11-15T00:00:00.000Z"
+      },
+      {
+        "id": "a8ba35ab-5108-4ebf-9926-9b359feba6ab",
+        "name": "EcoWave Innovations",
+        "role": "Project Manager",
+        "startDate": "2024-12-01T00:00:00.000Z"
+      },
+      {
+        "id": "5e0c8f46-6c56-4705-86ca-53fe7145042f",
+        "name": "QuantumCraft Industries",
+        "role": "Data Analyst",
+        "startDate": "2024-01-10T00:00:00.000Z",
+        "endDate": "2024-07-30T00:00:00.000Z"
+      }
+    ],
+    "projects": [
+      {
+        "id": "419894ec-1be3-4f4e-a5c3-42b78534cdb8",
+        "name": "NovaCRM Development",
+        "companyId": "9d3e866f-8822-4123-83a1-3244592380a9",
+        "description": "Development of a CRM system with advanced analytics features.",
+        "startDate": "2024-03-10T00:00:00.000Z",
+        "endDate": "2024-07-01T00:00:00.000Z"
+      },
+      {
+        "id": "d6e3e410-29e6-475a-a892-c6648ee1fae5",
+        "name": "WaveForm Energy Tracker",
+        "companyId": "a8ba35ab-5108-4ebf-9926-9b359feba6ab",
+        "description": "Project to create an energy tracking application for home utilities.",
+        "startDate": "2024-12-10T00:00:00.000Z"
+      },
+      {
+        "id": "76202962-bb92-441a-8dcd-42c82f048655",
+        "name": "CraftData Insights",
+        "companyId": "5e0c8f46-6c56-4705-86ca-53fe7145042f",
+        "description": "Data analysis project focusing on emerging market trends.",
+        "startDate": "2024-02-01T00:00:00.000Z",
+        "endDate": "2024-06-20T00:00:00.000Z"
+      },
+      {
+        "id": "ed082f36-3488-4b5d-af32-c19f28c76d19",
+        "name": "GreenCity Planner",
+        "companyId": "a8ba35ab-5108-4ebf-9926-9b359feba6ab",
+        "description": "Smart city planning software to optimize energy use.",
+        "startDate": "2024-12-15T00:00:00.000Z"
+      }
+    ],
+    "userPersona": "The user is currently a Project Manager at EcoWave Innovations, leading key initiatives in renewable energy tracking and sustainability planning.",
+    "timeframe": {
+      "start": "2024-01-07T23:27:39.480Z",
+      "end": "2025-01-06T23:27:39.480Z"
+    },
+    "userId": "2514b874-c4a7-4c0e-a103-1fcc9d4a3f82"
+  },
+  "conversation": {
+    "id": "559d1885-7fe4-4448-975a-38715620b06e",
+    "messages": [
+      {
+        "role": " user",
+        "content": "I set up a new admin panel on CraftData, so we can now see all the users without poking in the database",
+        "timestamp": "2025-01-06T16:00:00.000Z"
+      },
+      {
+        "role": "system",
+        "content": "I've recorded your process achievement. Would you like to add any additional context about the impact or process?",
+        "timestamp": "2025-01-06T16:00:30.000Z"
+      },
+      {
+        "role": "user",
+        "content": "I made good progress on the CraftData Insights project, providing critical market trend analysis at QuantumCraft Industries that informed strategic decisions.",
+        "timestamp": "2025-01-06T16:03:00.000Z"
+      },
+      {
+        "role": "system",
+        "content": "I've recorded your achievement. Would you like to add any additional context about the impact or process?",
+        "timestamp": "2025-01-06T16:03:30.000Z"
+      },
+      {
+        "role": "user",
+        "content": "Wrapped up the CraftData Insights project, providing critical market trend analysis at QuantumCraft Industries that informed strategic decisions. Also, successfully led the NovaCRM Development at TechNova, improving reporting efficiency by 30%. Now, driving the WaveForm Energy Tracker at EcoWave, boosting tracking efficiency by 25%.",
+        "timestamp": "2025-01-06T16:13:15.000Z"
+      }
+    ],
+    "scenario": {
+      "description": "Testing extraction of achievements from a conversation where the user talks about completing important milestones in different projects across their working history at various companies, focusing on their current role.",
+      "companies": [
+        {
+          "id": "9d3e866f-8822-4123-83a1-3244592380a9",
+          "name": "TechNova Solutions",
+          "role": "Software Developer",
+          "startDate": "2024-03-01T00:00:00.000Z",
+          "endDate": "2024-11-15T00:00:00.000Z"
+        },
+        {
+          "id": "a8ba35ab-5108-4ebf-9926-9b359feba6ab",
+          "name": "EcoWave Innovations",
+          "role": "Project Manager",
+          "startDate": "2024-12-01T00:00:00.000Z"
+        },
+        {
+          "id": "5e0c8f46-6c56-4705-86ca-53fe7145042f",
+          "name": "QuantumCraft Industries",
+          "role": "Data Analyst",
+          "startDate": "2024-01-10T00:00:00.000Z",
+          "endDate": "2024-07-30T00:00:00.000Z"
+        }
+      ],
+      "projects": [
+        {
+          "id": "419894ec-1be3-4f4e-a5c3-42b78534cdb8",
+          "name": "NovaCRM Development",
+          "companyId": "9d3e866f-8822-4123-83a1-3244592380a9",
+          "description": "Development of a CRM system with advanced analytics features.",
+          "startDate": "2024-03-10T00:00:00.000Z",
+          "endDate": "2024-07-01T00:00:00.000Z"
+        },
+        {
+          "id": "d6e3e410-29e6-475a-a892-c6648ee1fae5",
+          "name": "WaveForm Energy Tracker",
+          "companyId": "a8ba35ab-5108-4ebf-9926-9b359feba6ab",
+          "description": "Project to create an energy tracking application for home utilities.",
+          "startDate": "2024-12-10T00:00:00.000Z"
+        },
+        {
+          "id": "76202962-bb92-441a-8dcd-42c82f048655",
+          "name": "CraftData Insights",
+          "companyId": "5e0c8f46-6c56-4705-86ca-53fe7145042f",
+          "description": "Data analysis project focusing on emerging market trends.",
+          "startDate": "2024-02-01T00:00:00.000Z",
+          "endDate": "2024-06-20T00:00:00.000Z"
+        },
+        {
+          "id": "ed082f36-3488-4b5d-af32-c19f28c76d19",
+          "name": "GreenCity Planner",
+          "companyId": "a8ba35ab-5108-4ebf-9926-9b359feba6ab",
+          "description": "Smart city planning software to optimize energy use.",
+          "startDate": "2024-12-15T00:00:00.000Z"
+        }
+      ],
+      "userPersona": "The user is currently a Project Manager at EcoWave Innovations, leading key initiatives in renewable energy tracking and sustainability planning.",
+      "timeframe": {
+        "start": "2024-01-07T23:27:39.480Z",
+        "end": "2025-01-06T23:27:39.480Z"
+      },
+      "userId": "2514b874-c4a7-4c0e-a103-1fcc9d4a3f82"
+    }
+  },
+  "expectedAchievements": [
+    {
+      "id": "28e9ef54-2670-4087-a3e2-4441e72d8ff3",
+      "userId": "2514b874-c4a7-4c0e-a103-1fcc9d4a3f82",
+      "userMessageId": "5e5ef854-bca5-4551-8c42-4c8952727989",
+      "createdAt": "2025-01-06T23:28:05.945Z",
+      "updatedAt": "2025-01-06T23:28:05.946Z",
+      "eventStart": "2024-03-10T00:00:00.000Z",
+      "eventEnd": "2024-07-01T00:00:00.000Z",
+      "eventDuration": "quarter",
+      "title": "Spearheaded NovaCRM Development Project",
+      "summary": "Successfully led the development and deployment of NovaCRM with advanced analytics features at TechNova Solutions.",
+      "details": "During my tenure at TechNova Solutions from March to July 2024, I spearheaded the NovaCRM Development Project. This included planning and overseeing the implementation of advanced analytics features which improved data accessibility and reporting efficiency by 30%. My role also involved coordinating a team of 8 developers, conducting regular progress meetings, and ensuring on-time project delivery.",
+      "companyId": "9d3e866f-8822-4123-83a1-3244592380a9",
+      "projectId": "419894ec-1be3-4f4e-a5c3-42b78534cdb8",
+      "isArchived": false,
+      "source": "llm",
+      "impact": 2,
+      "impactSource": "llm",
+      "impactUpdatedAt": "2025-01-06T23:28:05.946Z"
+    },
+    {
+      "id": "578a3a7f-d402-457f-ba3b-8b87dd0a8b38",
+      "userId": "2514b874-c4a7-4c0e-a103-1fcc9d4a3f82",
+      "userMessageId": "08715990-e2f0-4ef8-bcda-e6c8d1b74749",
+      "createdAt": "2025-01-06T23:28:05.946Z",
+      "updatedAt": "2025-01-06T23:28:05.946Z",
+      "eventStart": "2024-12-10T00:00:00.000Z",
+      "eventEnd": null,
+      "eventDuration": "month",
+      "title": "Led Energy Efficiency Optimization in WaveForm",
+      "summary": "Led the WaveForm Energy Tracker project, increasing home utility tracking efficiency by 25% at EcoWave Innovations.",
+      "details": "Starting in December 2024, as a Project Manager at EcoWave Innovations, I led the WaveForm Energy Tracker project. This initiative involved assembling and guiding a team to develop an application aimed at optimizing energy tracking for home utilities. Through implementing new algorithms and user-friendly interfaces, I facilitated a 25% increase in tracking efficiency, thereby supporting sustainability goals and enhancing customer satisfaction.",
+      "companyId": "a8ba35ab-5108-4ebf-9926-9b359feba6ab",
+      "projectId": "d6e3e410-29e6-475a-a892-c6648ee1fae5",
+      "isArchived": false,
+      "source": "llm",
+      "impact": 2,
+      "impactSource": "llm",
+      "impactUpdatedAt": "2025-01-06T23:28:05.946Z"
+    },
+    {
+      "id": "c1265f08-0e7c-487e-b7d6-2eb8ff4771e9",
+      "userId": "2514b874-c4a7-4c0e-a103-1fcc9d4a3f82",
+      "userMessageId": "c604898f-d9f7-46b4-b9c9-6815916fee81",
+      "createdAt": "2025-01-06T23:28:05.946Z",
+      "updatedAt": "2025-01-06T23:28:05.946Z",
+      "eventStart": "2024-02-01T00:00:00.000Z",
+      "eventEnd": "2024-06-20T00:00:00.000Z",
+      "eventDuration": "month",
+      "title": "Delivered Market Trend Insights for CraftData",
+      "summary": "Completed data analysis for CraftData Insights at QuantumCraft Industries, revealing key market trends which informed strategic decisions.",
+      "details": "As a Data Analyst at QuantumCraft Industries from February to June 2024, I worked on the CraftData Insights project which focused on analyzing emerging market trends. My contributions included compiling and synthesizing large datasets, which led to insights that informed several strategic decisions by upper management. This analysis played a critical role in pivoting the product direction to align with current market needs, providing the company a competitive edge.",
+      "companyId": "5e0c8f46-6c56-4705-86ca-53fe7145042f",
+      "projectId": "76202962-bb92-441a-8dcd-42c82f048655",
+      "isArchived": false,
+      "source": "llm",
+      "impact": 2,
+      "impactSource": "llm",
+      "impactUpdatedAt": "2025-01-06T23:28:05.946Z"
+    }
+  ]
+}
