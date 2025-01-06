@@ -2,7 +2,7 @@ import { ThemeProvider } from '@/components/theme-provider';
 import { defaultMetadata } from './metadata';
 import { Navigation } from '@/components/marketing/Navigation';
 import { Footer } from '@/components/marketing/Footer';
-
+import { BetaBanner } from '@/components/BetaBanner';
 interface MarketingLayoutProps {
   children: React.ReactNode;
 }
@@ -17,6 +17,7 @@ export default function MarketingLayout({ children }: MarketingLayoutProps) {
       enableSystem
       disableTransitionOnChange
     >
+      <BetaBanner />
       <div className="relative min-h-screen flex flex-col">
         <Navigation />
         <main className="grow">{children}</main>
