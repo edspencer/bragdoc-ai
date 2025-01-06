@@ -100,7 +100,7 @@ function parseGeneratedTestData(data: any): GeneratedTestData {
         timestamp: parseDate(m.timestamp)!,
       })),
     },
-    expectedAchievements: data.expectedBrags || [],
+    expectedAchievements: data.expectedAchievements || [],
   };
 }
 

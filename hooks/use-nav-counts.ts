@@ -9,15 +9,22 @@ interface NavCounts {
 }
 
 export function useNavCounts() {
-  const { data, error } = useSWR<NavCounts>('/api/counts');
+  const { data, error } = useSWR<{ [key in keyof NavCounts]: number }>('/api/counts');
 
   return {
-    counts: data ?? {
-      companies: 0,
-      projects: 0,
-      achievements: 0,
-      documents: 0,
-    },
+    counts: data
+      ? {
+          companies: Number(data.companies),
+          projects: Number(data.projects),
+          achievements: Number(data.achievements),
+          documents: Number(data.documents),
+        }
+      : {
+          companies: 0,
+          projects: 0,
+          achievements: 0,
+          documents: 0,
+        },
     isLoading: !error && !data,
     error,
   };

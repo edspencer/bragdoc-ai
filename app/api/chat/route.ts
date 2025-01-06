@@ -22,7 +22,9 @@ import {
   createUserMessage,
   createAchievement,
   getAchievementsByUserId,
+  getCompaniesByUserId,
 } from '@/lib/db/queries';
+import {getProjectsByUserId} from '@/lib/db/projects/queries';
 import type { Suggestion } from '@/lib/db/schema';
 import {
   generateUUID,
@@ -132,6 +134,11 @@ export async function POST(request: Request) {
 
           try {
             console.log('extracting achievements');
+            const [companies, projects] = await Promise.all([
+              getCompaniesByUserId({ userId: session.user.id! }),
+              getProjectsByUserId(session.user.id!),
+            ]);
+
             const achievementsStream = extractAchievements({
               chat_history: messages
                 .filter((m) => m.role === 'user')
@@ -141,8 +148,8 @@ export async function POST(request: Request) {
                 })),
               input: message,
               context: {
-                companies: [],
-                projects: [],
+                companies: companies as any,
+                projects: projects as any,
               },
             });
 

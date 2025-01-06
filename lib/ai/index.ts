@@ -11,3 +11,11 @@ export const customModel = (apiIdentifier: string = defaultModel) => {
     middleware: customMiddleware,
   });
 };
+
+export const extractAchievementsModel = customModel('gpt-4o-mini');
+export const chatModel = customModel('gpt-4o');
+
+// import { google } from '@ai-sdk/google';
+    // model: customModel("gpt-4o"),
+    // model: google('gemini-2-flash'),
+    // model: google('gemini-2.0-flash-exp'),

@@ -1,5 +1,5 @@
 import { Eval } from 'braintrust';
-import { LLMClassifierFromSpec } from 'autoevals';
+import { LLMClassifierFromSpec, type Score } from 'autoevals';
 import { contextAchievementExamples } from './dataset';
 import { extractAchievements } from '../../lib/ai/extract';
 import type { ContextAchievementExample } from './types';
@@ -7,6 +7,53 @@ import type {
   ExtractedAchievement,
   ExtractAchievementsInput,
 } from '../../lib/ai/extract';
+import { CompanyContext, ProjectContext } from '../conversation-gen';
+
+
+const mapAchievementsToString = (achievements: ExtractedAchievement[]) => {
+  return achievements
+    .map(
+      (achievement, index) => `
+Achievement #${index + 1}:
+Title: ${achievement.title}
+Summary: ${achievement.summary}
+Details: ${achievement.details}
+Duration: ${achievement.eventDuration}
+Company ID: ${achievement.companyId}
+Project ID: ${achievement.projectId}
+Suggest New Project: ${achievement.suggestNewProject}
+      `,
+    )
+    .join('\n');
+};
+
+const mapCompaniesToString = (companies: CompanyContext[]) => {
+  return companies
+    .map(
+      (company) => `
+Name: ${company.name} (ID: ${company.id})
+Role: ${company.role}
+Domain: ${company.domain || 'N/A'}
+Start Date: ${company.startDate}
+End Date: ${company.endDate || 'Present'}
+      `,
+    )
+    .join('\n');
+};
+
+const mapProjectsToString = (projects: ProjectContext[]) => {
+  return projects
+    .map(
+      (project) => `
+Name: ${project.name} (ID: ${project.id})
+Company: ${project.companyId || 'N/A'}
+Description: ${project.description}
+Start Date: ${project.startDate || 'N/A'}
+End Date: ${project.endDate || 'N/A'}
+      `,
+    )
+    .join('\n');
+};
 
 // Convert our examples to the format expected by BrainTrust
 const experimentData = contextAchievementExamples.map(
@@ -16,57 +63,9 @@ const experimentData = contextAchievementExamples.map(
       chatStr: example.input.chat_history
         .map(({ role, content }) => `${role}: ${content}`)
         .join('\n'),
-      companiesStr: example.input.context.companies
-        .map(
-          (company) => `
-Name: ${company.name} (ID: ${company.id})
-Role: ${company.role}
-Domain: ${company.domain || 'N/A'}
-Start Date: ${company.startDate}
-End Date: ${company.endDate || 'Present'}
-      `,
-        )
-        .join('\n'),
-      projectsStr: example.input.context.projects
-        .map(
-          (project) => `
-Name: ${project.name} (ID: ${project.id})
-Company: ${project.companyId || 'N/A'}
-Description: ${project.description}
-Start Date: ${project.startDate || 'N/A'}
-End Date: ${project.endDate || 'N/A'}
-      `,
-        )
-        .join('\n'),
-      expectedAchievementsStr: example.expected
-        .map(
-          (achievement, index) => `
-Achievement #${index + 1}:
-Title: ${achievement.title}
-Summary: ${achievement.summary}
-Details: ${achievement.details}
-Duration: ${achievement.eventDuration}
-Company ID: ${achievement.companyId}
-Project ID: ${achievement.projectId}
-Suggest New Project: ${achievement.suggestNewProject}
-      `,
-        )
-        .join('\n'),
-      extractedAchievementsStr: (output: typeof example.expected) =>
-        output
-          .map(
-            (achievement, index) => `
-Achievement #${index + 1}:
-Title: ${achievement.title}
-Summary: ${achievement.summary}
-Details: ${achievement.details}
-Duration: ${achievement.eventDuration}
-Company ID: ${achievement.companyId}
-Project ID: ${achievement.projectId}
-Suggest New Project: ${achievement.suggestNewProject}
-      `,
-          )
-          .join('\n'),
+      companiesStr: mapCompaniesToString(example.input.context.companies),
+      projectsStr: mapProjectsToString(example.input.context.projects),
+      expectedAchievementsStr: mapAchievementsToString(example.expected)
     },
     expected: example.expected,
   }),
@@ -104,7 +103,7 @@ Here is the data:
 
 ************
 [Extracted Achievements]:
-{{{input.extractedAchievementsStr output}}}
+{{{outputFormatted}}}
 
 ************
 [END DATA]
@@ -134,6 +133,13 @@ Answer by selecting one of the following options:
   },
 );
 
+async function AchievementFactualityScorer(args: any): Promise<Score> {
+  args.outputFormatted = mapAchievementsToString(args.output);
+
+  return AchievementContextAccuracy(args);
+}
+
+
 // Function to wrap the async generator into a promise
 async function wrappedExtractAchievements(
   input: ExtractAchievementsInput,
@@ -150,8 +156,8 @@ async function wrappedExtractAchievements(
 Eval('achievement-company-and-project', {
   data: experimentData,
   task: wrappedExtractAchievements,
-  scores: [AchievementContextAccuracy],
-  trialCount: 3,
+  scores: [AchievementFactualityScorer],
+  trialCount: 1,
   metadata: {
     model: 'gpt-4',
     description:

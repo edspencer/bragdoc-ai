@@ -215,6 +215,7 @@ export function ChatDemo() {
         setBlock={() => {}}
         reload={() => Promise.resolve(undefined)}
         isReadonly={true}
+        user={{ id: '1', name: 'John Doe' }}
       />
     </div>
   );

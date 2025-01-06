@@ -6,8 +6,6 @@ import { useCompanies } from '@/hooks/use-companies';
 import { useProjects } from '@/hooks/useProjects';
 import { AchievementList } from '@/components/achievements/AchievementList';
 import { AchievementFilters } from '@/components/achievements/achievement-filters';
-import { Button } from '@/components/ui/button';
-import { Plus } from 'lucide-react';
 import { AchievementDialog } from './AchievementDialog';
 
 export function AchievementsContent() {
@@ -19,13 +17,6 @@ export function AchievementsContent() {
 
   return (
     <div className="mt-8">
-      <div className="flex justify-end mb-6">
-        <Button onClick={() => setDialogOpen(true)}>
-          <Plus className="mr-2 size-4" />
-          New Achievement
-        </Button>
-      </div>
-
       <AchievementFilters
         companyId={filters.companyId || 'all'}
         onCompanyChange={(value) =>
