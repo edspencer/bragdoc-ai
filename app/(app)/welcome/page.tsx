@@ -14,12 +14,12 @@ const WELCOME_CARDS = [
       "Simply tell me about your work, and I'll help you track your achievements. No more forgetting what you've accomplished!",
     demo: <ChatDemo />,
   },
-  {
-    title: 'Organize Your Work',
-    description:
-      'Optionally organize achievements by company and project. Perfect for consultants and anyone working across multiple teams.',
-    demo: <ProjectDemo />,
-  },
+  // {
+  //   title: 'Organize Your Work',
+  //   description:
+  //     'Optionally organize achievements by company and project. Perfect for consultants and anyone working across multiple teams.',
+  //   demo: <ProjectDemo />,
+  // },
   {
     title: 'Generate Reports',
     description:

@@ -9,7 +9,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { MagnifyingGlassIcon, ResetIcon } from '@radix-ui/react-icons';
+import { ResetIcon } from '@radix-ui/react-icons';
 import { motion } from 'framer-motion';
 import type { ProjectStatus } from '@/lib/db/types';
 import { cn } from '@/lib/utils';

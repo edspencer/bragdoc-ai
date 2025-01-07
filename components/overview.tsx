@@ -52,7 +52,7 @@ export const Overview = ({ user }: { user: User | null | undefined }) => {
           ? <h1 className="text-2xl">Welcome back, what can I track for you today?</h1>
           : <p>Let&apos;s get started! Usually you&apos;ll want to track achievements for a company and a project.</p>}
         
-        <div className="flex gap-12 items-center justify-center">
+        <div className="flex sm:flex-row flex-col sm:gap-12 gap-6 items-center justify-center">
           {!hasCompanies && (
             <Button variant='ghost' className='border rounded-xl px-20 py-8' onClick={() => setCompanyDialogOpen(true)}>
               Add my Company
