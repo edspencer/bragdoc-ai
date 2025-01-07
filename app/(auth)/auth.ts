@@ -168,14 +168,15 @@ export const {
     },
   },
   events: {
-    async createUser({ user }) {
+    createUser({ user }) {
       const { email } = user;
 
       if (email) {
-        try {
-          console.log(`Sending welcome email to ${email}`);
+        console.log(`Sending welcome email to ${email}`);
 
-          await sendWelcomeEmail({
+        try {
+          //this is an async call, but we don't want to block on it
+          sendWelcomeEmail({
             to: email,
             userId: user.id!,
             username: email.split('@')[0],
