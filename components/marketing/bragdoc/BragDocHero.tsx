@@ -9,14 +9,12 @@ export function BragDocHero() {
       <h1 className="mx-auto max-w-4xl font-display text-5xl font-medium tracking-tight text-slate-900 dark:text-slate-100 sm:text-7xl">
         Your{' '}
         <span className="relative whitespace-nowrap text-blue-600">
-          <span className="relative">professional achievements</span>
+          <span className="relative">brag doc</span>
         </span>{' '}
-        deserve to be remembered
+        is your career superpower
       </h1>
       <p className="mx-auto mt-6 max-w-2xl text-lg tracking-tight text-slate-700 dark:text-slate-300">
-        A brag document is your personal record of professional wins, making
-        performance reviews and career advancement effortless. Stop letting your
-        achievements go unnoticed.
+        A brag doc is your personal record of professional wins, big and small. Keep track of your achievements, generate performance reviews, and advance your career with confidence.
       </p>
       <div className="mt-10 flex justify-center gap-x-6">
         <Button asChild size="lg">

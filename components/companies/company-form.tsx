@@ -14,22 +14,14 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { CalendarIcon } from '@radix-ui/react-icons';
-import { Calendar } from '@/components/ui/calendar';
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from '@/components/ui/popover';
-import { cn } from '@/lib/utils';
-import { format } from 'date-fns';
+import { DatePicker } from '@/components/ui/date-picker';
 
 const formSchema = z.object({
   name: z.string().min(1, 'Company name is required').max(256),
   domain: z.string().max(256).optional(),
   role: z.string().min(1, 'Role is required').max(256),
   startDate: z.date({ required_error: 'Start date is required' }),
-  endDate: z.date().optional().nullable(),
+  endDate: z.date().nullable().optional(),
 });
 
 export type CompanyFormData = z.infer<typeof formSchema>;
@@ -51,14 +43,22 @@ export function CompanyForm({
       name: initialData?.name || '',
       domain: initialData?.domain || '',
       role: initialData?.role || '',
-      startDate: initialData?.startDate || new Date(),
-      endDate: initialData?.endDate || null,
+      startDate: initialData?.startDate || undefined,
+      endDate: initialData?.endDate ?? null,
     },
   });
 
+  const handleSubmit = (data: CompanyFormData) => {
+    // Ensure endDate is explicitly included, even if null
+    onSubmit({
+      ...data,
+      endDate: data.endDate ?? null,
+    });
+  };
+
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+      <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
         <FormField
           control={form.control}
           name="name"
@@ -107,37 +107,14 @@ export function CompanyForm({
           render={({ field }) => (
             <FormItem className="flex flex-col">
               <FormLabel>Start Date</FormLabel>
-              <Popover>
-                <PopoverTrigger asChild>
-                  <FormControl>
-                    <Button
-                      variant={'outline'}
-                      className={cn(
-                        'w-[240px] pl-3 text-left font-normal',
-                        !field.value && 'text-muted-foreground',
-                      )}
-                    >
-                      {field.value ? (
-                        format(field.value, 'PPP')
-                      ) : (
-                        <span>Pick a date</span>
-                      )}
-                      <CalendarIcon className="ml-auto size-4 opacity-50" />
-                    </Button>
-                  </FormControl>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0" align="start">
-                  <Calendar
-                    mode="single"
-                    selected={field.value}
-                    onSelect={field.onChange}
-                    disabled={(date) =>
-                      date > new Date() || date < new Date('1900-01-01')
-                    }
-                    initialFocus
-                  />
-                </PopoverContent>
-              </Popover>
+              <FormControl>
+                <DatePicker
+                  value={field.value}
+                  onChange={field.onChange}
+                  maxDate={new Date()}
+                  required
+                />
+              </FormControl>
               <FormMessage />
             </FormItem>
           )}
@@ -149,40 +126,15 @@ export function CompanyForm({
           render={({ field }) => (
             <FormItem className="flex flex-col">
               <FormLabel>End Date (Optional)</FormLabel>
-              <Popover>
-                <PopoverTrigger asChild>
-                  <FormControl>
-                    <Button
-                      variant={'outline'}
-                      className={cn(
-                        'w-[240px] pl-3 text-left font-normal',
-                        !field.value && 'text-muted-foreground',
-                      )}
-                    >
-                      {field.value ? (
-                        format(field.value, 'PPP')
-                      ) : (
-                        <span>Pick a date</span>
-                      )}
-                      <CalendarIcon className="ml-auto size-4 opacity-50" />
-                    </Button>
-                  </FormControl>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0" align="start">
-                  <Calendar
-                    mode="single"
-                    selected={field.value || undefined}
-                    onSelect={field.onChange}
-                    disabled={(date) =>
-                      date > new Date() ||
-                      date < new Date('1900-01-01') ||
-                      (form.getValues('startDate') &&
-                        date < form.getValues('startDate'))
-                    }
-                    initialFocus
-                  />
-                </PopoverContent>
-              </Popover>
+              <FormControl>
+                <DatePicker
+                  value={field.value ?? undefined}
+                  onChange={field.onChange}
+                  maxDate={new Date()}
+                  minDate={form.getValues("startDate") || new Date("1900-01-01")}
+                  required
+                />
+              </FormControl>
               <FormMessage />
             </FormItem>
           )}

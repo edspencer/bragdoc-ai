@@ -7,7 +7,7 @@ import type {
   ExtractedAchievement,
   ExtractAchievementsInput,
 } from '../../lib/ai/extract';
-import { CompanyContext, ProjectContext } from '../conversation-gen';
+import type { CompanyContext, ProjectContext } from '../conversation-gen';
 
 
 const mapAchievementsToString = (achievements: ExtractedAchievement[]) => {
@@ -157,7 +157,7 @@ Eval('achievement-company-and-project', {
   data: experimentData,
   task: wrappedExtractAchievements,
   scores: [AchievementFactualityScorer],
-  trialCount: 1,
+  trialCount: 3,
   metadata: {
     model: 'gpt-4',
     description:

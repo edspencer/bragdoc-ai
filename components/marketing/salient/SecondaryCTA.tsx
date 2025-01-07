@@ -20,7 +20,7 @@ export function SecondaryCTA() {
           </Link>
           <Link
             href="/demo"
-            className="text-sm/6 font-semibold text-gray-900 dark:text-white"
+            className="text-sm/6 font-semibold text-gray-900 dark:text-white hidden"
           >
             1-click instant demo <span aria-hidden="true">→</span>
           </Link>

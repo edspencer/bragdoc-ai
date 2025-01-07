@@ -1,6 +1,5 @@
 import { BragDocHero } from '@/components/marketing/bragdoc/BragDocHero';
 import { BragDocBenefits } from '@/components/marketing/bragdoc/BragDocBenefits';
-import { BragDocExamples } from '@/components/marketing/bragdoc/BragDocExamples';
 import { BragDocCallToAction } from '@/components/marketing/bragdoc/BragDocCallToAction';
 import { BragDocTestimonials } from '@/components/marketing/bragdoc/BragDocTestimonials';
 import { BragDocComparison } from '@/components/marketing/bragdoc/BragDocComparison';
@@ -12,7 +11,7 @@ export default function WhatPage() {
     <>
       <BragDocHero />
       <BragDocBenefits />
-      <BragDocExamples />
+      {/* <BragDocExamples /> */}
       <BragDocCallToAction />
       <BragDocTestimonials />
       <BragDocComparison />

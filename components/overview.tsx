@@ -49,7 +49,7 @@ export const Overview = ({ user }: { user: User | null | undefined }) => {
     >
       <div className="rounded-xl p-6 flex flex-col gap-8 leading-relaxed text-center max-w-xl mx-auto">
         {hasCompanies && hasProjects
-          ? <p>Welcome back, what can I do for you today?</p>
+          ? <h1 className="text-2xl">Welcome back, what can I track for you today?</h1>
           : <p>Let&apos;s get started! Usually you&apos;ll want to track achievements for a company and a project.</p>}
         
         <div className="flex gap-12 items-center justify-center">

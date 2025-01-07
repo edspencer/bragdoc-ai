@@ -44,10 +44,18 @@ export const SCENARIO_TEMPLATES = {
   },
   MULTIPLE_ACHIEVEMENT: {
     description: 'Multiple achievement extraction',
-    prompt: `Create a scenario for extracting muliple achievements in one go from an existing using
+    prompt: `Create a scenario for extracting multiple achievements in one go from an existing user
     - Create multiple companies that the user already works at (though only one currently)
     - Create multiple projects for each company that the user is involved in
     - Create a conversation with a single message from the user that mentions multiple achievements they have completed on one or more projects for the current company`,
+  },
+  CONVERSATION_WITH_CONTEXT: {
+    description: 'Longer conversation',
+    prompt: `Create a scenario for extracting multiple achievements in one go from an existing user
+    - Create multiple companies that the user already works at (though only one currently)
+    - Create multiple projects for each company that the user is involved in
+    - Create a conversation with a several messages from the user, each message from the user that mentions multiple achievements they have completed on one or more projects for the current company
+    - Only the final message in the conversation should contain the achievements you've been given. For previous messages, please invent some similar achievements`,
   }
 } as const;
 

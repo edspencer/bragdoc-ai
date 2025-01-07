@@ -1,9 +1,7 @@
 import { type NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/app/(auth)/auth';
 import { z } from 'zod';
-import type { UpdateAchievementRequest } from '@/lib/types/achievement';
 import { updateAchievement, deleteAchievement } from '@/lib/db/queries';
-import { EventDuration } from '@/lib/types/achievement';
 
 type Params = { id: string };
 
@@ -11,14 +9,14 @@ type Params = { id: string };
 const updateValidationSchema = z.object({
   title: z.string().min(1, 'Title is required').optional(),
   eventDuration: z
-    .enum(Object.values(EventDuration) as [string, ...string[]])
+    .enum(['day', 'week', 'month', 'quarter', 'half year', 'year'] as const)
     .optional(),
   eventStart: z.string().datetime().optional(),
-  eventEnd: z.string().datetime().optional(),
+  eventEnd: z.string().datetime().optional().nullable(),
   summary: z.string().optional(),
   details: z.string().optional(),
-  companyId: z.string().uuid().optional(),
-  projectId: z.string().uuid().optional(),
+  companyId: z.string().uuid().optional().nullable(),
+  projectId: z.string().uuid().optional().nullable(),
   impact: z.number().int().min(1).max(5).optional(),
   impactSource: z.enum(['user', 'llm']).optional(),
   impactUpdatedAt: z.string().datetime().optional(),
@@ -35,7 +33,7 @@ const isValidUUID = (uuid: string) => {
 // PUT /api/achievements/[id]
 export async function PUT(
   req: NextRequest,
-  { params }: { params: Promise<Params> },
+  { params }: { params: Promise<{ id: string }> },
 ) {
   try {
     const session = await auth();
@@ -52,21 +50,34 @@ export async function PUT(
     }
 
     const body = await req.json();
+    const result = updateValidationSchema.safeParse(body);
 
-    // Validate the input data at runtime
-    const validationResult = updateValidationSchema.safeParse(body);
-    if (!validationResult.success) {
+    if (!result.success) {
       return NextResponse.json(
         {
           error: 'Invalid achievement data',
-          details: validationResult.error.errors,
+          details: result.error.errors,
         },
         { status: 400 },
       );
     }
 
-    // Use the validated data with Drizzle types
-    const data = validationResult.data as UpdateAchievementRequest;
+    // Convert date strings to Date objects and prepare data
+    const data = {
+      ...result.data,
+      eventStart: result.data.eventStart
+        ? new Date(result.data.eventStart)
+        : undefined,
+      eventEnd: result.data.eventEnd === null
+        ? null
+        : result.data.eventEnd
+          ? new Date(result.data.eventEnd)
+          : undefined,
+      impactUpdatedAt: result.data.impactUpdatedAt
+        ? new Date(result.data.impactUpdatedAt)
+        : undefined,
+      updatedAt: new Date(),
+    };
 
     const [updated] = await updateAchievement({
       id,
@@ -94,7 +105,7 @@ export async function PUT(
 // DELETE /api/achievements/[id]
 export async function DELETE(
   req: NextRequest,
-  { params }: { params: Promise<Params> },
+  { params }: { params: Promise<{ id: string }> },
 ) {
   const { id } = await params;
   try {

@@ -84,8 +84,8 @@ export function Hero() {
                     Create my FREE account
                   </Link>
                   <Link
-                    href="/about"
-                    className="text-sm/6 font-semibold text-gray-900 dark:text-gray-100"
+                    href="/demo"
+                    className="text-sm/6 font-semibold text-gray-900 dark:text-gray-100 hidden"
                   >
                     Try an instant demo <span aria-hidden="true">→</span>
                   </Link>

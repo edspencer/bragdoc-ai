@@ -3,8 +3,6 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import * as z from 'zod';
-import { format } from 'date-fns';
-import { CalendarIcon, CheckIcon } from '@radix-ui/react-icons';
 
 import { Button } from '@/components/ui/button';
 import {
@@ -16,12 +14,7 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { Calendar } from '@/components/ui/calendar';
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from '@/components/ui/popover';
+import { DatePicker } from '@/components/ui/date-picker';
 import {
   Select,
   SelectContent,
@@ -30,7 +23,6 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
-import { cn } from '@/lib/utils';
 import { ProjectStatus } from '@/lib/db/schema';
 
 const formSchema = z.object({
@@ -45,7 +37,7 @@ const formSchema = z.object({
     required_error: 'Status is required',
   }),
   startDate: z.date({ required_error: 'Start date is required' }),
-  endDate: z.date().optional().nullable(),
+  endDate: z.date().nullable(),
 });
 
 export type ProjectFormData = z.infer<typeof formSchema>;
@@ -63,7 +55,6 @@ interface ProjectFormProps {
 export function ProjectForm({
   initialData = {
     status: ProjectStatus.Active,
-    startDate: new Date(),
   },
   onSubmit,
   isLoading = false,
@@ -79,22 +70,29 @@ export function ProjectForm({
       description: initialData.description || '',
       companyId: initialData.companyId || 'none',
       status: initialData.status || ProjectStatus.Active,
-      startDate: initialData.startDate || new Date(),
-      endDate: initialData.endDate || null,
+      startDate: initialData.startDate || undefined,
+      endDate: initialData.endDate ?? null,
     },
   });
+
+  const handleSubmit = (data: ProjectFormData) => {
+    onSubmit({
+      ...data,
+      endDate: data.endDate ?? null,
+    });
+  };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
-      form.handleSubmit((data) => onSubmit(data))();
+      form.handleSubmit(handleSubmit)();
     }
   };
 
   return (
     <Form {...form}>
       <form
-        onSubmit={form.handleSubmit(onSubmit)}
+        onSubmit={form.handleSubmit(handleSubmit)}
         className="space-y-4"
         onKeyDown={handleKeyDown}
       >
@@ -193,37 +191,14 @@ export function ProjectForm({
             render={({ field }) => (
               <FormItem className="flex flex-col">
                 <FormLabel>Start Date</FormLabel>
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <FormControl>
-                      <Button
-                        variant={'outline'}
-                        className={cn(
-                          'pl-3 text-left font-normal',
-                          !field.value && 'text-muted-foreground',
-                        )}
-                      >
-                        {field.value ? (
-                          format(field.value, 'PPP')
-                        ) : (
-                          <span>Pick a date</span>
-                        )}
-                        <CalendarIcon className="ml-auto size-4 opacity-50" />
-                      </Button>
-                    </FormControl>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0" align="start">
-                    <Calendar
-                      mode="single"
-                      selected={field.value || undefined}
-                      onSelect={field.onChange}
-                      disabled={(date) =>
-                        date > new Date() || date < new Date('1900-01-01')
-                      }
-                      initialFocus
-                    />
-                  </PopoverContent>
-                </Popover>
+                <FormControl>
+                  <DatePicker
+                    value={field.value}
+                    onChange={field.onChange}
+                    maxDate={new Date()}
+                    required
+                  />
+                </FormControl>
                 <FormMessage />
               </FormItem>
             )}
@@ -234,56 +209,24 @@ export function ProjectForm({
             name="endDate"
             render={({ field }) => (
               <FormItem className="flex flex-col">
-                <FormLabel>End Date</FormLabel>
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <FormControl>
-                      <Button
-                        variant={'outline'}
-                        className={cn(
-                          'pl-3 text-left font-normal',
-                          !field.value && 'text-muted-foreground',
-                        )}
-                      >
-                        {field.value ? (
-                          format(field.value, 'PPP')
-                        ) : (
-                          <span>Pick a date</span>
-                        )}
-                        <CalendarIcon className="ml-auto size-4 opacity-50" />
-                      </Button>
-                    </FormControl>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0" align="start">
-                    <Calendar
-                      mode="single"
-                      selected={field.value || undefined}
-                      onSelect={field.onChange}
-                      disabled={(date) =>
-                        date < form.getValues('startDate') ||
-                        date < new Date('1900-01-01')
-                      }
-                      initialFocus
-                    />
-                  </PopoverContent>
-                </Popover>
+                <FormLabel>End Date (Optional)</FormLabel>
+                <FormControl>
+                  <DatePicker
+                    value={field.value}
+                    onChange={field.onChange}
+                    maxDate={new Date()}
+                    minDate={form.getValues("startDate") || new Date("1900-01-01")}
+                  />
+                </FormControl>
                 <FormMessage />
               </FormItem>
             )}
           />
         </div>
 
-        <div className="flex justify-end">
-          <Button type="submit" disabled={isLoading}>
-            {isLoading && <span className="mr-2">Saving...</span>}
-            {!isLoading && (
-              <>
-                <CheckIcon className="mr-2 size-4" />
-                Save
-              </>
-            )}
-          </Button>
-        </div>
+        <Button type="submit" disabled={isLoading}>
+          {isLoading ? 'Saving...' : mode === 'create' ? 'Create Project' : 'Save Project'}
+        </Button>
       </form>
     </Form>
   );

@@ -2,15 +2,20 @@
 
 ## Before launch
 
-- [ ] Hide overly optimistic features from /what, /why, /how [10m]
+- [x] Hide overly optimistic features from /what, /why, /how [10m]
 - [ ] Replace home screen screenshots [1h]
-- [ ] We're in beta banner [15m]
+- [x] We're in beta banner [15m]
 - [ ] Fix Welcome flow [1h]
-- [ ] Settings page not showing proper level [15m]
+- [x] Settings page not showing proper level [15m]
 - [x] Add proper blank chat page [30m]
 - [x] Fix stripe callback [20m]
 - [x] Remove Vercel chatbot text [20m]
 - [x] Welcome Email [1h]
+
+### Marketing pages
+
+- [ ] Restore HowIntegrations component
+- [ ] Restore BragDocExamples component
 
 ### User Preferences & Engagement
 

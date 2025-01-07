@@ -139,19 +139,23 @@ End Date: ${project.endDate || 'N/A'}
 4. Quantitative metrics or impact
 5. Technical implementations or solutions
 
-[User Message]:
+<user-message>
 ${input.input}
+</user-message>
 
-[Chat History]:
+<chat-history>
 ${chatStr}
+</chat-history>
 
-[Context]:
-
-Companies:
+<context>
+<companies>
 ${companiesStr}
+</companies>
 
-Projects:
+<projects>
 ${projectsStr}
+</projects>
+</context>
 
 For each achievement found, provide:
 1. A clear, action-oriented title (REQUIRED) that:
@@ -177,6 +181,10 @@ For each achievement found, provide:
 
 Each achievement should be complete and self-contained.
 
+Consider only the single message inside <user-message> when creating Achievements. If the user mentions achievements in the <chat-history>
+you are given, you should not extract them because they have already been extracted. However, if those previous messages are relevant to the current
+message, you should use them to inform your extraction.
+
 Today's date is ${today}.`;
 
   console.log(prompt);
@@ -184,7 +192,7 @@ Today's date is ${today}.`;
   const { elementStream } = await streamObject({
     model: extractAchievementsModel,
     prompt,
-    temperature: 0.5,
+    temperature: 0,
     output: 'array',
     schema: achievementResponseSchema,
   });

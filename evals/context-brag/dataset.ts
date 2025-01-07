@@ -23,49 +23,34 @@ function findAchievementsInConversation(
 export function convertGeneratedToEvalExample(
   data: GeneratedTestData,
 ): ContextAchievementExample[] {
-  const examples: ContextAchievementExample[] = [];
-
-  // Find messages that contain achievements
-  const achievementMessages = findAchievementsInConversation(data.conversation);
-
-  // For each message that contains achievements
-  achievementMessages.forEach((message, messageIndex) => {
-    // Get the chat history up to this message
-    const chatHistory = data.conversation.messages
-      .slice(0, messageIndex + 1)
-      .map((m) => ({
+  return [{
+    input: {
+      input: data.conversation.messages[data.conversation.messages.length - 1].content,
+      chat_history: data.conversation.messages.map(m => ({
         role: m.role === 'user' ? 'user' : 'assistant',
         content: m.content,
-      }));
-
-    examples.push({
-      input: {
-        input: message,
-        chat_history: chatHistory as ChatMessage[],
-        context: {
-          companies: data.scenario.companies.map((c) => ({
-            id: c.id,
-            name: c.name,
-            role: c.role,
-            domain: c.domain,
-            startDate: c.startDate,
-            endDate: c.endDate,
-          })),
-          projects: data.scenario.projects.map((p) => ({
-            id: p.id,
-            name: p.name,
-            companyId: p.companyId,
-            description: p.description,
-            startDate: p.startDate,
-            endDate: p.endDate,
-          })),
-        },
+      })) as ChatMessage[],
+      context: {
+        companies: data.scenario.companies.map((c) => ({
+          id: c.id,
+          name: c.name,
+          role: c.role,
+          domain: c.domain,
+          startDate: c.startDate,
+          endDate: c.endDate,
+        })),
+        projects: data.scenario.projects.map((p) => ({
+          id: p.id,
+          name: p.name,
+          companyId: p.companyId,
+          description: p.description,
+          startDate: p.startDate,
+          endDate: p.endDate,
+        })),
       },
-      expected: data.expectedAchievements,
-    });
-  });
-
-  return examples;
+    },
+    expected: data.expectedAchievements,
+  }];
 }
 
 // Load and convert all generated test data
@@ -112,5 +97,6 @@ export const contextAchievementExamples = fs
       fs.readFileSync(path.join(generatedDir, file), 'utf-8'),
     );
     const data = parseGeneratedTestData(rawData);
+
     return convertGeneratedToEvalExample(data);
   });

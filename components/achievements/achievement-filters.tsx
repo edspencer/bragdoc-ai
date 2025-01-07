@@ -150,7 +150,7 @@ export function AchievementFilters({
       </Select>
 
       <div className="flex items-center gap-2">
-        <Popover>
+        <Popover modal={true}>
           <PopoverTrigger asChild>
             <Button
               variant="outline"
@@ -173,7 +173,7 @@ export function AchievementFilters({
           </PopoverContent>
         </Popover>
 
-        <Popover>
+        <Popover modal={true}>
           <PopoverTrigger asChild>
             <Button
               variant="outline"

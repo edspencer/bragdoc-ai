@@ -24,7 +24,7 @@ export const authConfig = {
 
       if (isLoggedIn && (isOnLogin || isOnRegister)) {
         return Response.redirect(
-          new URL('/welcome', nextUrl as unknown as URL),
+          new URL('/chat', nextUrl as unknown as URL),
         );
       }
 
