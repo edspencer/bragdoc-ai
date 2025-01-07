@@ -1,9 +1,5 @@
 # TODO List
 
-## Before launch
-
-- [ ] Replace home screen screenshots [1h]
-
 ### Marketing pages
 
 - [ ] Restore HowIntegrations component
