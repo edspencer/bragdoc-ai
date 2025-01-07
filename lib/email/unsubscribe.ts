@@ -19,11 +19,11 @@ export async function generateUnsubscribeUrl(
     maxAge: 365 * 24 * 60 * 60, // 1 year
   });
 
-  const baseUrl = process.env.NEXTAUTH_URL || 'http://localhost:3000';
+  const baseUrl = process.env.NEXTAUTH_URL;
   const params = new URLSearchParams({ token, salt });
   if (emailType) params.append('type', emailType);
 
-  return `${baseUrl}/api/email/unsubscribe?${params.toString()}`;
+  return `${baseUrl}api/email/unsubscribe?${params.toString()}`;
 }
 
 export async function verifyUnsubscribeToken(
