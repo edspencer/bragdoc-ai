@@ -78,7 +78,7 @@ export const register = async (
         to: validatedData.email,
         userId: newUser.id,
         username: validatedData.email.split('@')[0],
-        loginUrl: `${process.env.NEXT_PUBLIC_APP_URL}/login`,
+        loginUrl: `${process.env.NEXTAUTH_URL}/login`,
       });
     } catch (error) {
       console.error('Failed to send welcome email:', error);
