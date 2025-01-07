@@ -48,6 +48,7 @@
 ### General Tasks
 
 - [ ] GDPR Compliance
+- [ ] https://orm.drizzle.team/docs/latest-releases/drizzle-orm-v0305#onupdate-functionality-for-postgresql-mysql-and-sqlite
 
 ### Email Integration
 
@@ -187,20 +188,3 @@
   - [ ] Cross-referencing previous achievements
   - [ ] Different document formats and lengths
   - [ ] Multi-language support
-
-### Mock Data Generation
-
-- [ ] Create realistic mock data for:
-  - [ ] User profiles with different career paths
-  - [ ] Various company types and roles
-  - [ ] Achievement patterns over time
-  - [ ] Document templates for different purposes
-  - [ ] Email interactions and reminders
-  - [ ] Project progression and milestones
-
-## Testing & Validation
-
-- [ ] Add tests for new database models
-- [ ] Add tests for email integration
-- [ ] Add tests for reminder system
-- [ ] Add tests for enhanced document generation

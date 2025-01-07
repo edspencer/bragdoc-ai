@@ -28,7 +28,7 @@ export function CompanyFilters({
       initial={{ opacity: 0, y: -20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3 }}
-      className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between"
+      className="sm:flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between hidden"
     >
       <div className="flex items-center gap-2">
         <Select value={filter} onValueChange={onFilterChange}>

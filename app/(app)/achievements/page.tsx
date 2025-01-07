@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
-import { PageHeader } from '@/components/shared/page-header';
 import { AchievementsContent } from '@/components/achievements/AchievementsContent';
+import { AppPage } from '@/components/shared/app-page';
 
 export const metadata: Metadata = {
   title: 'Achievements | Bragdoc.ai',
@@ -9,12 +9,8 @@ export const metadata: Metadata = {
 
 export default function AchievementsPage() {
   return (
-    <div className="container mx-auto px-4 py-8">
-      <PageHeader
-        title="Achievements"
-        description="View and manage your professional achievements"
-      />
+    <AppPage title="Achievements" description="View and manage your professional achievements">
       <AchievementsContent />
-    </div>
+    </AppPage>
   );
 }

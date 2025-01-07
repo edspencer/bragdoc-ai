@@ -140,7 +140,7 @@ export function ProjectFilters({
         )}
       </div>
 
-      <motion.div
+      {/* <motion.div
         initial={{ opacity: 0, x: 20 }}
         animate={{ opacity: 1, x: 0 }}
         transition={{ duration: 0.3, delay: 0.1 }}
@@ -170,7 +170,7 @@ export function ProjectFilters({
             <Loader2Icon className="size-4 animate-spin text-muted-foreground" />
           </div>
         )}
-      </motion.div>
+      </motion.div> */}
     </motion.div>
   );
 }

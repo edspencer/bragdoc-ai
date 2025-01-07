@@ -18,6 +18,7 @@ import { useState } from 'react';
 import type { CompanyFormData } from './company-form';
 import { motion } from 'framer-motion';
 import type { Company } from '@/lib/db/schema';
+import { CRUDHeader } from '../shared/page-header';
 
 interface CompanyListProps {
   companies: Company[];
@@ -103,12 +104,12 @@ export function CompanyList({
       animate={{ opacity: 1 }}
       transition={{ duration: 0.3 }}
     >
-      <div className="mb-4 flex justify-end">
+      <CRUDHeader title="Companies" description="Manage your companies and work history">
         <Button onClick={() => setCreateDialogOpen(true)}>
           <PlusIcon className="mr-2 size-4" />
           Add Company
         </Button>
-      </div>
+      </CRUDHeader>
 
       <div className="rounded-md border">
         <Table>

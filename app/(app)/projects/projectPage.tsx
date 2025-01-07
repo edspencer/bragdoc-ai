@@ -97,7 +97,7 @@ export default function ProjectPage() {
   return (
     <div className="space-y-4">
       <ErrorBoundary>
-        <ProjectFilters
+        {false ? <ProjectFilters
           status={filters.status}
           onStatusChange={handleStatusChange}
           companyId={filters.companyId}
@@ -107,7 +107,7 @@ export default function ProjectPage() {
           companies={companies}
           onReset={handleReset}
           loading={filterLoading}
-        />
+        /> : null}
         <ProjectList
           projects={filteredProjects}
           onCreateProject={handleCreateProject}

@@ -20,6 +20,7 @@ import { Badge } from '@/components/ui/badge';
 import type { ProjectStatus } from '@/lib/db/schema';
 import { ProjectActions } from './project-actions';
 import type { ProjectWithCompany } from '@/lib/db/projects/queries';
+import { CRUDHeader } from '../shared/page-header';
 
 interface ProjectListProps {
   projects: ProjectWithCompany[];
@@ -88,16 +89,12 @@ export function ProjectList({
 
   return (
     <div className="space-y-4">
-      <div className="flex justify-between items-center">
-        <Button
-          onClick={() => setCreateDialogOpen(true)}
-          className="ml-auto"
-          size="sm"
-        >
-          <PlusIcon className="size-4 mr-2" />
-          New Project
+      <CRUDHeader title="Projects" description="Manage your projects and track achievements">
+        <Button onClick={() => setCreateDialogOpen(true)}>
+          <PlusIcon className="mr-2 size-4" />
+          Add Project
         </Button>
-      </div>
+      </CRUDHeader>
 
       <div className="rounded-md border">
         <Table>
