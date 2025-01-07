@@ -24,8 +24,6 @@ function classNames(...classes: string[]) {
 export function Plan({ user }: { user: any }) {
   const [frequency, setFrequency] = useState<FrequencyOption>('Monthly');
 
-  console.log(user);
-
   const currentPlan = `${user.level}_${user.renewalPeriod}` as PlanId;
 
   const getButtonConfig = (plan: PlanType) => {
