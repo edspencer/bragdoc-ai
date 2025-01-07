@@ -20,6 +20,7 @@ import {
   type UserLevel,
   type RenewalPeriod,
 } from '@/lib/db/schema';
+import { sendWelcomeEmail } from '@/lib/email/sendEmail';
 
 declare module 'next-auth' {
   interface User {
@@ -166,4 +167,26 @@ export const {
       return session;
     },
   },
+  events: {
+    createUser({ user }) {
+      const { email } = user;
+
+      if (email) {
+        console.log(`Sending welcome email to ${email}`);
+
+        try {
+          //this is an async call, but we don't want to block on it
+          sendWelcomeEmail({
+            to: email,
+            userId: user.id!,
+            username: email.split('@')[0],
+            loginUrl: `${process.env.NEXTAUTH_URL}/login`,
+          });
+        } catch (error) {
+          console.error('Failed to send welcome email:', error);
+          // Don't fail registration if email fails
+        }
+      }
+    }
+  }
 });

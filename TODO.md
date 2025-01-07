@@ -1,9 +1,5 @@
 # TODO List
 
-## Before launch
-
-- [ ] Replace home screen screenshots [1h]
-
 ### Marketing pages
 
 - [ ] Restore HowIntegrations component
@@ -75,6 +71,7 @@
 
 - [ ] What happens when a project or company is deleted but it's referenced in an achievement?
 - [ ] Counts in bottom left nav don't update when things are added/deleted
+- [ ] Next Auth account linking doesn't work
 
 ## Tech Debt
 
