@@ -10,7 +10,6 @@ import {
   Sun,
   Moon,
   LogOut,
-  FileText,
 } from 'lucide-react';
 import { signOut } from 'next-auth/react';
 import { useTheme } from 'next-themes';

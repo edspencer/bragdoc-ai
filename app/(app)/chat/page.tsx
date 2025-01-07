@@ -1,6 +1,6 @@
 import { generateUUID } from '@/lib/utils';
 import { Chat } from '@/components/chat';
-import { DEFAULT_MODEL_NAME, models } from '@/lib/ai/models';
+import { DEFAULT_MODEL_NAME, } from '@/lib/ai/models';
 
 export default async function ChatPage() {
   const id = generateUUID();

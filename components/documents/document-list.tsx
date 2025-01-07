@@ -10,7 +10,6 @@ import {
 } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { DocumentActions } from './document-actions';
-import { DocumentFilters } from './document-filters';
 import { DocumentListSkeleton } from './document-list-skeleton';
 import { format } from 'date-fns';
 import { useRouter } from 'next/navigation';
@@ -71,7 +70,7 @@ export function DocumentList() {
 
   return (
     <div className="space-y-4">
-      {false ? <DocumentFilters /> : null}
+      {/* <DocumentFilters /> */}
       {data.documents.map((document) => (
         <Card key={document.id}>
           <CardHeader className="flex flex-row items-start justify-between space-y-0 pb-2">

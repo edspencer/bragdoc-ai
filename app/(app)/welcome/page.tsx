@@ -4,7 +4,6 @@ import * as React from 'react';
 import { useRouter } from 'next/navigation';
 import { WelcomeCarousel } from '@/components/welcome/carousel';
 import { ChatDemo } from '@/components/welcome/chat-demo';
-import { ProjectDemo } from '@/components/welcome/project-demo';
 import { useUser } from '@/hooks/use-user';
 
 const WELCOME_CARDS = [
