@@ -38,7 +38,7 @@ export function AchievementActions({
   };
 
   return (
-    <div className="flex items-center gap-2">
+    <div className="flex items-center sm:gap-2">
       <Button
         variant="ghost"
         size="icon"

@@ -62,7 +62,7 @@ export function ImpactRating({
     const effectiveValue = hoveredValue ?? value ?? 2;
     const isActive = effectiveValue >= starValue;
     const starClass = cn(
-      'size-6 transition-colors',
+      'size-4 sm:size-6 transition-colors',
       isActive ? 'text-yellow-400' : 'text-gray-300',
       !readOnly && 'cursor-pointer hover:text-yellow-400',
       source === 'llm' && 'opacity-80',

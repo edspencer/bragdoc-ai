@@ -71,7 +71,7 @@ export function DocumentList() {
 
   return (
     <div className="space-y-4">
-      <DocumentFilters />
+      {false ? <DocumentFilters /> : null}
       {data.documents.map((document) => (
         <Card key={document.id}>
           <CardHeader className="flex flex-row items-start justify-between space-y-0 pb-2">

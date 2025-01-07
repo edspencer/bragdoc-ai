@@ -103,9 +103,9 @@ export function ProjectList({
               <TableHead>Name</TableHead>
               <TableHead>Company</TableHead>
               <TableHead>Status</TableHead>
-              <TableHead>Start Date</TableHead>
-              <TableHead>End Date</TableHead>
-              <TableHead className="w-[100px]">Actions</TableHead>
+              <TableHead className="hidden sm:table-cell">Start Date</TableHead>
+              <TableHead className="hidden sm:table-cell">End Date</TableHead>
+              <TableHead className="sm:w-[100px]">Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -137,10 +137,10 @@ export function ProjectList({
                       {project.status}
                     </Badge>
                   </TableCell>
-                  <TableCell>
+                  <TableCell className="sm:table-cell hidden">
                     {format(new Date(project.startDate), 'MMM d, yyyy')}
                   </TableCell>
-                  <TableCell>
+                  <TableCell className="sm:table-cell hidden">
                     {project.endDate
                       ? format(new Date(project.endDate), 'MMM d, yyyy')
                       : '-'}
