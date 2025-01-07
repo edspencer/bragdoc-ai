@@ -18,6 +18,7 @@ import { useState } from 'react';
 import type { CompanyFormData } from './company-form';
 import { motion } from 'framer-motion';
 import type { Company } from '@/lib/db/schema';
+import { CRUDHeader } from '../shared/page-header';
 
 interface CompanyListProps {
   companies: Company[];
@@ -103,22 +104,22 @@ export function CompanyList({
       animate={{ opacity: 1 }}
       transition={{ duration: 0.3 }}
     >
-      <div className="mb-4 flex justify-end">
+      <CRUDHeader title="Companies" description="Manage your companies and work history">
         <Button onClick={() => setCreateDialogOpen(true)}>
           <PlusIcon className="mr-2 size-4" />
           Add Company
         </Button>
-      </div>
+      </CRUDHeader>
 
       <div className="rounded-md border">
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead className="min-w-[200px]">Company</TableHead>
-              <TableHead className="min-w-[120px]">Role</TableHead>
-              <TableHead className="min-w-[120px]">Start Date</TableHead>
-              <TableHead className="min-w-[120px]">End Date</TableHead>
-              <TableHead className="w-[100px]">Actions</TableHead>
+              <TableHead className="sm:min-w-[200px]">Company</TableHead>
+              <TableHead className="sm:min-w-[120px]">Role</TableHead>
+              <TableHead className="hidden sm:table-cell sm:min-w-[120px]">Start Date</TableHead>
+              <TableHead className="hidden sm:table-cell sm:min-w-[120px]">End Date</TableHead>
+              <TableHead className="sm:w-[100px]">Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -143,13 +144,13 @@ export function CompanyList({
                   </div>
                 </TableCell>
                 <TableCell>{company.role}</TableCell>
-                <TableCell>{format(company.startDate, 'MMM yyyy')}</TableCell>
-                <TableCell>
+                <TableCell className="hidden sm:table-cell">{format(company.startDate, 'MMM yyyy')}</TableCell>
+                <TableCell className="hidden sm:table-cell">
                   {company.endDate
                     ? format(company.endDate, 'MMM yyyy')
                     : 'Present'}
                 </TableCell>
-                <TableCell>
+                <TableCell className="sm:p-2 p-0">
                   <CompanyActions
                     onEdit={() => handleEdit(company)}
                     onDelete={() => onDeleteCompany(company.id)}

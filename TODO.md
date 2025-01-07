@@ -2,15 +2,7 @@
 
 ## Before launch
 
-- [x] Hide overly optimistic features from /what, /why, /how [10m]
 - [ ] Replace home screen screenshots [1h]
-- [x] We're in beta banner [15m]
-- [ ] Fix Welcome flow [1h]
-- [x] Settings page not showing proper level [15m]
-- [x] Add proper blank chat page [30m]
-- [x] Fix stripe callback [20m]
-- [x] Remove Vercel chatbot text [20m]
-- [x] Welcome Email [1h]
 
 ### Marketing pages
 
@@ -34,25 +26,13 @@
 
 ## Feature Implementation
 
-### GitHub Integration
-
-- [ ] Add loading spinner to sync button
-- [ ] Add toast notifications for sync status
-- [ ] Add repository search/filter
-- [ ] Add pagination (currently limited to 30)
-- [ ] Extract achievements from PR descriptions
-- [ ] Create achievement entries from significant PRs
-- [ ] Add integration tests for GitHub sync
-- [ ] Add rate limiting protection
-
 ### General Tasks
 
 - [ ] GDPR Compliance
+- [ ] https://orm.drizzle.team/docs/latest-releases/drizzle-orm-v0305#onupdate-functionality-for-postgresql-mysql-and-sqlite
 
 ### Email Integration
 
-- [ ] Set up email receiving service
-- [ ] Implement email parsing for achievement extraction
 - [ ] Set up email response system
 - [ ] Create email templates for different types of notifications
 
@@ -65,13 +45,12 @@
 ### Document Generation
 
 - [ ] Enhance document templates for different time periods
-- [ ] Add company-specific document formatting
+- [ ] Add user-specific document formatting (e.g. a system prompt)
 - [ ] Implement project-based filtering for documents
 
 ### LLM Tools
 
 - [ ] Automatically prepend achievements to LLM context (perhaps only up to 100 achievements)
-- [ ] Automatically expose all companies and libraries for the user with the LLM context
 - [ ] Automatically expose all userPreferences for the user with the LLM context
 - [ ] getAchievements tool? - vector search on achievements
 - [ ] saveUserPreferences tool - should be called whenever the user says things like "Always arrange this (weekly report) into sections by project"
@@ -95,7 +74,7 @@
 ### Bugs
 
 - [ ] What happens when a project or company is deleted but it's referenced in an achievement?
-- [ ] We still have a model selector in the UI - get rid of it and hard code them. Perhaps create an ais.ts file that exports the different models for different use cases?
+- [ ] Counts in bottom left nav don't update when things are added/deleted
 
 ## Tech Debt
 
@@ -104,7 +83,6 @@
 - [ ] Integrate the empty-state component into Chat UI
 - [ ] Revisit projects/companies welcome card - don't want people actually adding projects/companies there (chat/action-buttons.tsx)
 - [ ] Do we even use components/welcome/animated-text?
-- [ ] Do we use shadcn Carousel?
 - [ ] Add test for getUserById in lib/db/queries.ts
 
 ### UI/UX Improvements
@@ -112,7 +90,6 @@
 - [ ] New/Edit Achievement modal is tall - need to make it scrollable for shorter screen heights
 - [ ] Add email preferences configuration
 - [ ] Stream Achievements into the UI one by one instead of all as a response from extractAchievements
-- [ ] Fix calendar/date picker components throughout the app
 - [ ] Ability to delete many achievements at once?
 - [ ] Calendar filtering on Achievements page sucks - can't clear, and should be a date range picker UI instead
   - Calendar appears behind modal overlays
@@ -120,32 +97,11 @@
   - Affects all date pickers in modals (project dates, etc.)
   - Need to investigate proper z-index and event handling in shadcn components
 
-## Business Model Implementation
-
-- [ ] Set up Stripe/Link integration
-  - [ ] Configure payment processing
-  - [ ] Set up subscription plans
-- [ ] Implement tiered features
-  - [ ] Free tier
-    - [ ] Usage limitations
-    - [ ] Usage tracking
-  - [ ] Mid Account ($3/month, $30/year)
-    - [ ] Unlimited Achievements/Documents
-    - [ ] Remove usage limitations
-  - [ ] Pro Account ($9/month, $90/year)
-    - [ ] GitHub integration
-- [ ] Add subscription management
-  - [ ] Upgrade/downgrade flows
-  - [ ] Billing history
-  - [ ] Payment method management
-
 ## Testing Infrastructure
 
 - [ ] Add support for React component testing
   - [ ] Configure Jest to support both Node and jsdom environments
   - [ ] Set up proper test file organization (.node.test.ts vs .test.tsx)
-  - [ ] Add examples and documentation for component testing
-  - [ ] Ensure proper mocking of Next.js features (router, etc)
 
 ## Achievement Importance
 
@@ -170,16 +126,14 @@
 ### LLM Prompt Engineering
 
 - [ ] Design prompts for:
-  - [ ] Extracting brag-worthy achievements from casual conversation
-  - [ ] Categorizing achievements by impact level
-  - [ ] Identifying quantifiable metrics in achievements
+  - [x] Extracting brag-worthy achievements from casual conversation
+  - [x] Categorizing achievements by impact level
   - [ ] Generating different document styles (formal review vs casual update)
-  - [ ] Maintaining consistent tone across interactions
   - [ ] Asking follow-up questions to gather missing context
 
-### Testing & Validation Scenarios
+### Evals
 
-- [ ] Create test cases for:
+- [ ] Create evals cases for:
   - [ ] Different writing styles and verbosity levels
   - [ ] Multiple achievements in single message
   - [ ] Ambiguous time periods
@@ -187,20 +141,3 @@
   - [ ] Cross-referencing previous achievements
   - [ ] Different document formats and lengths
   - [ ] Multi-language support
-
-### Mock Data Generation
-
-- [ ] Create realistic mock data for:
-  - [ ] User profiles with different career paths
-  - [ ] Various company types and roles
-  - [ ] Achievement patterns over time
-  - [ ] Document templates for different purposes
-  - [ ] Email interactions and reminders
-  - [ ] Project progression and milestones
-
-## Testing & Validation
-
-- [ ] Add tests for new database models
-- [ ] Add tests for email integration
-- [ ] Add tests for reminder system
-- [ ] Add tests for enhanced document generation

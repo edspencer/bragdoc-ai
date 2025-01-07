@@ -75,7 +75,7 @@ export function AchievementFilters({
   const isLoading = loading.company || loading.project || loading.search;
 
   return (
-    <div className="flex items-center gap-4">
+    <div className="hidden sm:flex items-center gap-4">
       <div className="relative">
         <MagnifyingGlassIcon
           className={cn(

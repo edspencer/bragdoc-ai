@@ -196,11 +196,11 @@ export function AchievementList({
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead className="py-1">Impact</TableHead>
-              <TableHead className="py-1">Title</TableHead>
-              <TableHead className="py-1">Date</TableHead>
-              <TableHead className="py-1">Info</TableHead>
-              <TableHead className="py-1">Actions</TableHead>
+              <TableHead>Impact</TableHead>
+              <TableHead>Title</TableHead>
+              <TableHead className="hidden sm:table-cell ">Date</TableHead>
+              <TableHead>Info</TableHead>
+              <TableHead className="sm:w-[100px]">Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -217,13 +217,13 @@ export function AchievementList({
                     readOnly={!!actionLoading}
                   />
                 </TableCell>
-                <TableCell className="py-1">{achievement.title}</TableCell>
-                <TableCell className="py-1">{achievement.eventStart ? new Date(achievement.eventStart).toLocaleDateString() : '-'}</TableCell>
-                <TableCell className="py-1">
+                <TableCell>{achievement.title}</TableCell>
+                <TableCell className="hidden sm:table-cell">{achievement.eventStart ? new Date(achievement.eventStart).toLocaleDateString() : '-'}</TableCell>
+                <TableCell>
                   {achievement.company?.name ?? '-'}
                   {achievement.project?.name ? ` (${achievement.project.name})` : ''}
                 </TableCell>
-                <TableCell className="py-1">
+                <TableCell>
                   <AchievementActions
                     onEdit={() =>
                       setDialog({

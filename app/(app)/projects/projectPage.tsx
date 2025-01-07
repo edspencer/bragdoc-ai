@@ -5,7 +5,6 @@ import { useRetry } from '@/hooks/useRetry';
 import { useConfetti } from '@/hooks/useConfetti';
 import { useProjectFilters } from '@/hooks/useProjectFilters';
 import { ProjectList } from '@/components/projects/project-list';
-import { ProjectFilters } from '@/components/projects/project-filters';
 import { toast } from 'sonner';
 import type { ProjectFormData } from '@/components/projects/project-form';
 import { ProjectListSkeleton } from '@/components/projects/project-list-skeleton';
@@ -97,7 +96,7 @@ export default function ProjectPage() {
   return (
     <div className="space-y-4">
       <ErrorBoundary>
-        <ProjectFilters
+        {/* <ProjectFilters
           status={filters.status}
           onStatusChange={handleStatusChange}
           companyId={filters.companyId}
@@ -107,7 +106,7 @@ export default function ProjectPage() {
           companies={companies}
           onReset={handleReset}
           loading={filterLoading}
-        />
+        /> */}
         <ProjectList
           projects={filteredProjects}
           onCreateProject={handleCreateProject}

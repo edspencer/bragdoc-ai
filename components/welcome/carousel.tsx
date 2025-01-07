@@ -40,7 +40,7 @@ export function WelcomeCarousel({
   return (
     <div
       className={cn(
-        'flex flex-grow flex-col gap-8 items-stretch justify-center',
+        'flex flex-grow flex-col gap-8 items-stretch justify-center mx-auto',
         className,
       )}
     >

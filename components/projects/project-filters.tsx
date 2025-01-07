@@ -1,7 +1,6 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import {
   Select,
   SelectContent,
@@ -9,7 +8,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { MagnifyingGlassIcon, ResetIcon } from '@radix-ui/react-icons';
+import { ResetIcon } from '@radix-ui/react-icons';
 import { motion } from 'framer-motion';
 import type { ProjectStatus } from '@/lib/db/types';
 import { cn } from '@/lib/utils';
@@ -140,7 +139,7 @@ export function ProjectFilters({
         )}
       </div>
 
-      <motion.div
+      {/* <motion.div
         initial={{ opacity: 0, x: 20 }}
         animate={{ opacity: 1, x: 0 }}
         transition={{ duration: 0.3, delay: 0.1 }}
@@ -170,7 +169,7 @@ export function ProjectFilters({
             <Loader2Icon className="size-4 animate-spin text-muted-foreground" />
           </div>
         )}
-      </motion.div>
+      </motion.div> */}
     </motion.div>
   );
 }

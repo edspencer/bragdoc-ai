@@ -10,10 +10,7 @@ export const metadata: Metadata = {
 
 export default function ProjectsPage() {
   return (
-    <AppPage
-      title="Projects"
-      description="Manage your projects and track achievements"
-    >
+    <AppPage>
       <ProjectPage />
     </AppPage>
   );

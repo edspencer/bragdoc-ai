@@ -2,7 +2,6 @@ import { cookies } from 'next/headers';
 
 import { AppSidebar } from '@/components/app-sidebar';
 import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar';
-import { BetaBanner } from '@/components/BetaBanner';
 
 import { auth } from '../(auth)/auth';
 
@@ -20,9 +19,8 @@ export default async function Layout({
     <SidebarProvider defaultOpen={!isCollapsed}>
       <AppSidebar user={session?.user} />
       <SidebarInset>
-        <BetaBanner />
         {children}
-        </SidebarInset>
+      </SidebarInset>
     </SidebarProvider>
   );
 }

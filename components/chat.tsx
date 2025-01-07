@@ -18,6 +18,7 @@ import { BlockStreamHandler } from './block-stream-handler';
 import { MultimodalInput } from './multimodal-input';
 import { Messages } from './messages';
 import type { VisibilityType } from './visibility-selector';
+import { BetaBanner } from '@/components/BetaBanner';
 
 export function Chat({
   id,
@@ -80,13 +81,9 @@ export function Chat({
   const [attachments, setAttachments] = useState<Array<Attachment>>([]);
 
   return (
-    <div className="flex flex-col h-full">
-      <ChatHeader
-        chatId={id}
-        selectedModelId={selectedModelId}
-        selectedVisibilityType={selectedVisibilityType}
-        isReadonly={isReadonly}
-      />
+    <div className="flex flex-col h-svh">
+      <BetaBanner />
+      <ChatHeader />
       <Messages
         chatId={id}
         block={block}
