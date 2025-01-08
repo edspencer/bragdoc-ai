@@ -75,7 +75,7 @@ export function Plan({ user }: { user: any }) {
   return (
     <div className="pt-4">
       <h2 className="text-2xl font-bold tracking-tight">Account Plan</h2>
-      <div className="mx-auto max-w-7xl px-6 lg:px-8">
+      <div className="mx-auto max-w-7xl px-2 md:px-4 xl:px-8">
         <div className="mt-16 flex justify-center">
           <fieldset aria-label="Payment frequency">
             <RadioGroup
@@ -95,7 +95,7 @@ export function Plan({ user }: { user: any }) {
             </RadioGroup>
           </fieldset>
         </div>
-        <div className="isolate mx-auto mt-10 grid max-w-md grid-cols-1 gap-8 md:max-w-2xl md:grid-cols-2 lg:max-w-4xl xl:mx-0 xl:max-w-none xl:grid-cols-3">
+        <div className="isolate mx-auto mt-10 grid max-w-md grid-cols-1 xl:gap-8 gap-4 md:max-w-2xl md:grid-cols-2 lg:max-w-4xl xl:mx-0 xl:max-w-none lg:grid-cols-3">
           {plans.map((plan) => (
             <div
               key={plan.name}
