@@ -51,7 +51,7 @@ jobs:
           PGPORT: 5432
           PGUSER: postgres
           PGPASSWORD: postgres
-          PGDATABASE: postgres
+          PGDATABASE: bragai-test
 
       - name: Run tests
         run: pnpm test
