@@ -75,7 +75,7 @@
 - [x] Account type switcher in settings looks bad on mobile/tablet
 - [ ] Dark mode has some funk with logo and other places
 - [ ] Email/password register does not redirect to /welcome
-- [ ] Side nav should hide on navigation on mobile devices
+- [x] Side nav should hide on navigation on mobile devices
 
 ## Tech Debt
 

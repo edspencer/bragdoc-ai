@@ -21,7 +21,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
-import { SidebarMenu, SidebarMenuItem, SidebarMenuBadge } from '@/components/ui/sidebar';
+import { SidebarMenu, SidebarMenuItem, SidebarMenuBadge, useSidebar } from '@/components/ui/sidebar';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { useNavCounts } from '@/hooks/use-nav-counts';
 
@@ -29,6 +29,7 @@ export function SidebarNav({ user }: { user: User }) {
   const pathname = usePathname();
   const { setTheme, theme } = useTheme();
   const { counts } = useNavCounts();
+  const { setOpenMobile } = useSidebar();
 
   // Get user initials from name or email
   const getInitials = () => {
@@ -82,6 +83,7 @@ export function SidebarNav({ user }: { user: User }) {
               <SidebarMenuItem key={item.href}>
                 <Link
                   href={item.href}
+                  onClick={() => setOpenMobile(false)}
                   className={`flex items-center gap-2 rounded-md p-2 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground ${
                     isActive
                       ? 'bg-accent text-accent-foreground'
@@ -107,6 +109,7 @@ export function SidebarNav({ user }: { user: User }) {
               <Link
                 href="/settings"
                 className="block transition-opacity hover:opacity-80"
+                onClick={() => setOpenMobile(false)}
               >
                 <Avatar className="size-8">
                   <AvatarImage
@@ -151,6 +154,7 @@ export function SidebarNav({ user }: { user: User }) {
                 <Link
                   href="/settings"
                   className="inline-flex size-8 items-center justify-center rounded-md transition-colors hover:bg-accent hover:text-accent-foreground"
+                  onClick={() => setOpenMobile(false)}
                 >
                   <Settings className="size-4" />
                 </Link>
