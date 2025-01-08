@@ -76,6 +76,8 @@
 - [x] Dark mode has some funk with logo and other places
 - [ ] Email/password register does not redirect to /welcome
 - [x] Side nav should hide on navigation on mobile devices
+- [ ] Screenshots at bottom of home page are hilariously wrong
+- [ ] LLM-generated testimonials are lies and should be removed
 
 ## Tech Debt
 
