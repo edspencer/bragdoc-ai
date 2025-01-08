@@ -73,7 +73,7 @@
 - [ ] Counts in bottom left nav don't update when things are added/deleted
 - [ ] Next Auth account linking doesn't work
 - [x] Account type switcher in settings looks bad on mobile/tablet
-- [ ] Dark mode has some funk with logo and other places
+- [x] Dark mode has some funk with logo and other places
 - [ ] Email/password register does not redirect to /welcome
 - [x] Side nav should hide on navigation on mobile devices
 

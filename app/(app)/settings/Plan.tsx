@@ -102,8 +102,8 @@ export function Plan({ user }: { user: any }) {
               className={classNames(
                 isCurrentPlan(plan.name)
                   ? 'ring-2 ring-indigo-600'
-                  : 'ring-1 ring-gray-200',
-                'rounded-3xl p-6'
+                  : 'ring-1 ring-gray-200 dark:ring-gray-800',
+                'rounded-3xl p-6 dark:bg-gray-900'
               )}
             >
               <h3
@@ -111,15 +111,15 @@ export function Plan({ user }: { user: any }) {
                 className={classNames(
                   isCurrentPlan(plan.name)
                     ? 'text-indigo-600'
-                    : 'text-gray-900',
+                    : 'text-gray-900 dark:text-gray-100',
                   'text-lg/8 font-semibold'
                 )}
               >
                 {plan.name}
               </h3>
-              <p className="mt-4 text-sm/6 text-gray-600">{plan.description}</p>
+              <p className="mt-4 text-sm/6 text-gray-600 dark:text-gray-400">{plan.description}</p>
               <p className="mt-6 flex items-baseline gap-x-1">
-                <span className="text-4xl font-semibold tracking-tight text-gray-900">
+                <span className="text-4xl font-semibold tracking-tight text-gray-900 dark:text-gray-100">
                   {plan.price[frequency].amount}
                 </span>
               </p>
@@ -131,7 +131,7 @@ export function Plan({ user }: { user: any }) {
                 className={classNames(
                   isCurrentPlan(plan.name)
                     ? 'bg-indigo-600 text-white shadow-sm hover:bg-indigo-500'
-                    : 'text-indigo-600 ring-1 ring-inset ring-indigo-200 hover:ring-indigo-300',
+                    : 'text-indigo-600 ring-1 ring-inset ring-indigo-200 hover:ring-indigo-300 dark:ring-indigo-400/30 dark:hover:ring-indigo-400/50',
                   getButtonConfig(plan).disabled
                     ? 'opacity-50 cursor-not-allowed'
                     : '',
@@ -140,7 +140,7 @@ export function Plan({ user }: { user: any }) {
               >
                 {getButtonConfig(plan).label}
               </a>
-              <ul className="mt-8 space-y-3 text-sm/6 text-gray-600">
+              <ul className="mt-8 space-y-3 text-sm/6 text-gray-600 dark:text-gray-400">
                 {plan.features.map((feature) => (
                   <li key={feature} className="flex gap-x-3">
                     <CheckCircledIcon
