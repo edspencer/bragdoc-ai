@@ -73,11 +73,6 @@
 - [ ] What happens when a project or company is deleted but it's referenced in an achievement?
 - [ ] Counts in bottom left nav don't update when things are added/deleted
 - [ ] Next Auth account linking doesn't work
-- [x] Account type switcher in settings looks bad on mobile/tablet
-- [x] Dark mode has some funk with logo and other places
-- [x] Email/password register does not redirect to /welcome
-- [x] Side nav should hide on navigation on mobile devices
-- [x] Screenshots at bottom of home page are hilariously wrong
 - [ ] LLM-generated testimonials are lies and should be removed
 
 ## Tech Debt
@@ -106,13 +101,6 @@
 - [ ] Add support for React component testing
   - [ ] Configure Jest to support both Node and jsdom environments
   - [ ] Set up proper test file organization (.node.test.ts vs .test.tsx)
-
-## Achievement Importance
-
-- [x] Add ability to assign importance to achievements
-- [x] Track whether score was assigned by user or LLM
-- [ ] Regularly update LLM-scored achievement importance scores
-- [x] Differentiate high/medium/low importance achievements in the UI
 
 ## Conversation Examples & Testing
 

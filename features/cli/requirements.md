@@ -1,27 +1,20 @@
-# Requirements for Bragdoc CLI & API Client
+# Requirements for Bragdoc CLI
 
 ## Overview
 
-The `bragdoc` CLI tool enables users to extract achievements from their local git repositories and push them to the bragdoc.ai service. This includes private repositories or environments where direct GitHub API access isn’t possible. The tool will:
+The `bragdoc` CLI tool enables users to extract achievements from their local git repositories and push them to the bragdoc.ai service. This includes private repositories or environments where direct GitHub API access isn't possible. The tool will:
 
-- Identify and parse commits from the user’s local git repo.
-- Optionally extract pull request details (if accessible locally).
-- Send the collected commit data to bragdoc.ai for achievement extraction.
-- Provide a smooth authentication flow and handle session tokens securely.
-- Allow users to configure identities, time ranges, and other extraction parameters.
-
-A companion API client library will also be released to npm to allow programmatic interaction with bragdoc.ai (e.g., integrating into custom CI/CD pipelines).
+- Identify and parse commits from the user's local git repo
+- Extract pull request details when available locally
+- Send the collected commit data to bragdoc.ai for achievement extraction
+- Provide a smooth authentication flow and handle session tokens securely
+- Allow users to configure identities, time ranges, and other extraction parameters
 
 ## NPM Package Strategy & Naming
 
 - **CLI Package**: `@bragdoc/cli`
-  - Globally installed CLI tool exposed under the `bragdoc` command.
-  - Provides all the features for local git extraction and uploading commits.
-- **API Client Package**: `@bragdoc/api-client`
-  - A wrapper around the bragdoc.ai API endpoints.
-  - Includes authentication management, batch submission, and status checking.
-- **Shared Types Package**: `@bragdoc/types`
-  - Shared TypeScript interfaces and types used by `@bragdoc/cli` and `@bragdoc/api-client`.
+  - Globally installed CLI tool exposed under the `bragdoc` command
+  - Provides all the features for local git extraction and uploading commits
 
 ### Global Installation & Usage
 ```bash
@@ -43,7 +36,6 @@ npx bragdoc extract
 │   ├── commands/         # Command implementations (extract, auth, etc.)
 │   ├── git/              # Git interaction utilities
 │   ├── config/           # Configuration management and .bragdoc file handling
-│   ├── api/              # API client integration using @bragdoc/api-client
 │   └── utils/            # Utility modules (caching, logging)
 ├── package.json
 └── README.md
@@ -52,27 +44,27 @@ npx bragdoc extract
 ## Core Features
 
 ### Git Integration
-- Detect whether the current directory is within a git repository. If not, display a clear error (`"Not a git repository. Please navigate to a valid repo and retry."`) and exit.
+- Detect whether the current directory is within a git repository. If not, display a clear error (`"Not a git repository. Please navigate to a valid repo and retry."`) and exit
 - Extract commits from:
-  - Current HEAD by default.
-  - Full history or a time-limited history based on config or CLI flags.
-  - A specific branch if specified by `--branch, -b`.
+  - Current HEAD by default
+  - Full history or a time-limited history based on config or CLI flags
+  - A specific branch if specified by `--branch, -b`
 - Handle large repositories gracefully:
-  - By default, limit extraction to recent commits (e.g., last 30 days or a configurable default).
-  - Provide CLI options (`--time-range`, `--full-history`) to override this limit.
+  - By default, limit extraction to recent commits (e.g., last 30 days or a configurable default)
+  - Provide CLI options (`--time-range`, `--full-history`) to override this limit
 
 ### Achievement Processing
-- Batch processing of commits to minimize API calls (default max: 100 commits per batch).
-- Deduplicate previously processed commits using a local cache of processed commit hashes.
-- If a user wants to reprocess commits (e.g., after updating extraction logic), provide a `--force` or `--clear-cache` option to ignore cached entries.
-- `--dry-run` option to show which commits would be processed without actually sending data to the API.
+- Batch processing of commits to minimize API calls (default max: 100 commits per batch)
+- Deduplicate previously processed commits using a local cache of processed commit hashes
+- If a user wants to reprocess commits (e.g., after updating extraction logic), provide a `--force` or `--clear-cache` option to ignore cached entries
+- `--dry-run` option to show which commits would be processed without actually sending data to the API
 
 ### Configuration
 
 #### Configuration Precedence
-- Command-line flags override `.bragdoc` configuration settings.
-- `.bragdoc` configuration overrides built-in defaults.
-- Document these precedence rules in the README.
+- Command-line flags override `.bragdoc` configuration settings
+- `.bragdoc` configuration overrides built-in defaults
+- Document these precedence rules in the README
 
 #### .bragdoc Configuration File
 ```typescript
@@ -93,99 +85,254 @@ interface BragdocConfig {
 ```
 
 #### CLI Options
-- `--branch, -b`: Extract from the current branch only (overrides `defaultBranchOnly` setting).
-- `--time-range`: Specify time range (e.g., "1w", "3m", "1y"). Overrides config `timeFrame`.
-- `--identity`: Specify git identity to filter by. If provided, overrides `.bragdoc` identities.
-- `--no-cache`: Skip checking cache; still writes new entries to cache after processing.
-- `--dry-run`: Show commits that would be processed without sending them.
-- `--full-history`: Disable time-based extraction limits and process the entire repo history.
-- `--force` or `--clear-cache`: Clear cached commit hashes and reprocess them.
+- `--branch, -b`: Extract from the current branch only (overrides `defaultBranchOnly` setting)
+- `--time-range`: Specify time range (e.g., "1w", "3m", "1y"). Overrides config `timeFrame`
+- `--identity`: Specify git identity to filter by. If provided, overrides `.bragdoc` identities
+- `--no-cache`: Skip checking cache; still writes new entries to cache after processing
+- `--dry-run`: Show commits that would be processed without sending them
+- `--full-history`: Disable time-based extraction limits and process the entire repo history
 
-## Authentication
+### Configuration Management
 
-### Workflow
-1. `bragdoc auth login`:
-   - Opens the browser to `https://bragdoc.ai/cli-auth?state={state}`.
-   - CLI starts a local HTTP server to receive callback.
-   - On successful login, CLI stores session token securely using the system keychain.
-   
-2. `bragdoc auth logout` or `bragdoc auth revoke`:
-   - Revokes CLI access and removes local session token.
-   
-3. Environments without a system keychain (e.g., headless CI):
-   - Environment variable fallback for storing tokens.
-   - Document best practices for secure token handling in CI.
-
-4. Sessions:
-   - Automatically refreshed as needed.
-   - Support for multiple authenticated sessions if needed.
-
-### Required API Endpoints
-```typescript
-POST /api/cli/auth/session    // Exchange callback data for session token
-POST /api/cli/auth/refresh    // Refresh expired session
-POST /api/cli/auth/revoke     // Revoke CLI session
-
-POST /api/cli/achievements/batch   // Submit multiple commits for processing
-GET  /api/cli/achievements/status  // Check processing status of a batch
+#### Directory Structure
+```
+~/.bragdoc/
+├── config.yml          # Main configuration file
+└── cache/             # Directory for storing cache files
+    └── commits/       # Cached commit hashes by repository
 ```
 
-## Security Considerations
-- Implement PKCE (Proof Key for Code Exchange) flow.
-- Store sessions in system keychain or secure environment variable.
-- Rate limit API calls.
-- Sensitive data should never be written to disk in plaintext.
+#### Configuration File Format
+```yaml
+# ~/.bragdoc/config.yml
 
-## API Integration
-- Use `@bragdoc/api-client` for all API interactions.
-- Handle partial successes/failures from the API:
-  - Retry failed batches with exponential backoff.
-  - If non-recoverable, print a clear error and indicate which commits failed.
-- Display progress indicators for large operations.
+# Authentication
+auth:
+  accessToken: "jwt_access_token_here"
+  refreshToken: "jwt_refresh_token_here"
+  expiresAt: 1672531200  # Unix timestamp
 
-## Caching & Deduplication
-- Maintain a local cache of processed commit hashes in `cacheDir`.
-- On subsequent runs, skip previously processed commits by default.
-- Allow `--force` or `--clear-cache` to reprocess them.
+# Repository Management
+repositories:
+  - path: "/Users/username/projects/repo1"
+    name: "Project 1"  # Optional friendly name
+    enabled: true      # Whether to include in 'extract all'
+    
+  - path: "/Users/username/work/repo2"
+    name: "Work Project"
+    enabled: true
+    
+  - path: "/Users/username/experiments/repo3"
+    name: "Side Project"
+    enabled: false     # Temporarily disabled
 
-## Logging & Error Handling
-- `--debug` flag for verbose logging.
-- Clear error messages for:
-  - Not a git repository.
-  - Missing or invalid session token.
-  - Network or rate limit issues.
-- JSON-formatted errors on request for machine-readable output.
-
-## Example Workflows
-
-### Initial Setup & Extraction
-```bash
-bragdoc auth login       # Opens browser for authentication
-bragdoc extract          # Extract from current repo (default: last 30 days)
+# Global Settings
+settings:
+  defaultTimeRange: "30d"  # Default time range for extractions
+  maxCommitsPerBatch: 100
+  cacheEnabled: true
 ```
 
-### Specific Branch & Time Range
-```bash
-bragdoc extract -b --time-range "1w"
-```
+#### Repository Management Commands
 
-### Full History Without Cache
-```bash
-bragdoc extract --full-history --no-cache
-```
+1. **List Repositories**:
+   ```bash
+   bragdoc repos list
+   # Output:
+   # Project 1 (/Users/username/projects/repo1)
+   # Work Project (/Users/username/work/repo2)
+   # Side Project (/Users/username/experiments/repo3) [disabled]
+   ```
 
-### Reprocessing Commits
-```bash
-bragdoc extract --force   # Clears cache and reprocesses all recent commits
-```
+2. **Add Repository**:
+   ```bash
+   bragdoc repos add [path] --name "Project Name"
+   # Adds current directory if path not specified
+   ```
 
-## Future Considerations
-- Support other VCS systems (e.g., Mercurial, SVN).
-- Integrations with CI/CD pipelines (document environment variable auth flows).
-- Team-wide configuration or shared config files.
-- Custom achievement templates.
-- Offline mode with later synchronization.
+3. **Remove Repository**:
+   ```bash
+   bragdoc repos remove [path]
+   # Removes current directory if path not specified
+   ```
 
----
+4. **Enable/Disable Repository**:
+   ```bash
+   bragdoc repos enable [path]
+   bragdoc repos disable [path]
+   ```
 
-This updated requirements document addresses previous feedback by clarifying configuration precedence, default behaviors, caching logic, authentication flows, error handling, and logging. It also refines the npm package strategy and naming conventions for easier adoption by software engineers.
+#### Extract Commands
+
+1. **Extract from Current Repository**:
+   ```bash
+   bragdoc extract
+   # Extracts from current directory if it's a git repository
+   ```
+
+2. **Extract from All Enabled Repositories**:
+   ```bash
+   bragdoc extract all
+   # Extracts from all enabled repositories in config.yml
+   ```
+
+3. **Extract with Repository Filter**:
+   ```bash
+   bragdoc extract --repo "Project 1"  # Extract from specific repository by name
+   bragdoc extract --repo-path "/path/to/repo"  # Extract from specific path
+   ```
+
+#### Repository Auto-Discovery
+
+1. **Scan for Repositories**:
+   ```bash
+   bragdoc repos scan [root_directory]
+   # Scans directory tree for git repositories
+   # Prompts user to add discovered repositories
+   ```
+
+2. **Auto-add Current Repository**:
+   - When running `bragdoc extract` in a new repository
+   - Prompt user to add to config if not already present
+   - Option to always add new repositories: `--auto-add`
+
+#### Configuration File Management
+
+1. **Edit Configuration**:
+   ```bash
+   bragdoc config edit
+   # Opens config.yml in system default editor
+   ```
+
+2. **View Configuration**:
+   ```bash
+   bragdoc config view
+   # Displays current configuration (with sensitive values masked)
+   ```
+
+3. **Set Configuration Values**:
+   ```bash
+   bragdoc config set settings.defaultTimeRange "7d"
+   bragdoc config set settings.maxCommitsPerBatch 50
+   ```
+
+#### Security Considerations
+
+1. **File Permissions**:
+   - `~/.bragdoc` directory: 700 (drwx------)
+   - `config.yml`: 600 (-rw-------)
+   - Ensure secure creation of new files
+
+2. **Token Storage**:
+   - Tokens stored in YAML with appropriate file permissions
+   - Consider encrypting tokens at rest (optional future improvement)
+
+3. **Repository Validation**:
+   - Validate repository paths exist and are git repositories
+   - Validate user has read access to repositories
+   - Handle broken symlinks and invalid paths gracefully
+
+### Authentication & Security
+
+#### CLI Authentication Flow
+
+1. **Initial Authentication**:
+   - User runs `bragdoc login`
+   - CLI starts a local HTTP server on an available port
+   - CLI requests an auth URL from `https://bragdoc.ai/api/auth/cli`
+   - Browser opens to the auth URL
+   - If user is already logged in to bragdoc.ai, token is immediately returned
+   - Otherwise, user completes normal login flow
+   - Token is returned to local CLI server
+   - CLI saves token in `~/.bragdoc/config.json`
+
+2. **Token Storage**:
+   ```typescript
+   interface BragdocConfig {
+     accessToken: string;
+     refreshToken: string;
+     expiresAt: number;
+   }
+   ```
+   - Tokens stored in `~/.bragdoc/config.json`
+   - File permissions set to user-only read/write
+   - Tokens are JWTs with CLI-specific claims
+   - Access tokens valid for 30 days
+   - Refresh tokens valid for 90 days
+
+3. **Token Refresh**:
+   - Check token expiration before each API call
+   - If token expires within 24 hours, attempt refresh
+   - Use refresh token to get new access token
+   - Update stored tokens in config file
+   - If refresh fails, prompt for re-authentication
+
+4. **Logout Flow**:
+   - User runs `bragdoc logout`
+   - Revoke tokens on server
+   - Delete local config file
+   - Clear any in-memory token state
+
+#### Required API Endpoints
+
+1. **CLI Authentication**:
+   ```typescript
+   POST /api/auth/cli
+   Request: { callbackPort: number }
+   Response: { url: string }
+   ```
+
+2. **CLI Token Exchange**:
+   ```typescript
+   GET /api/auth/cli/callback
+   Query: { state: string, code: string }
+   Response: {
+     accessToken: string,
+     refreshToken: string,
+     expiresAt: number
+   }
+   ```
+
+3. **Token Refresh**:
+   ```typescript
+   POST /api/auth/cli/refresh
+   Headers: { Authorization: "Bearer ${refreshToken}" }
+   Response: {
+     accessToken: string,
+     refreshToken: string,
+     expiresAt: number
+   }
+   ```
+
+4. **Token Revocation**:
+   ```typescript
+   POST /api/auth/cli/revoke
+   Headers: { Authorization: "Bearer ${accessToken}" }
+   ```
+
+#### Security Considerations
+
+1. **Token Security**:
+   - Use JWTs with appropriate expiration
+   - Include CLI-specific audience claim
+   - Store tokens with appropriate file permissions
+   - Never log or display tokens
+
+2. **State Validation**:
+   - Generate cryptographically secure state token
+   - Validate state in callback to prevent CSRF
+   - Use short-lived state tokens (5 minute max)
+
+3. **Error Handling**:
+   - Clear error messages for auth failures
+   - Automatic retry with exponential backoff
+   - Graceful handling of network issues
+   - Clear guidance for re-authentication
+
+## Future Improvements
+
+### API Client Package
+- Create a separate `@bragdoc/api-client` package
+- Provide a TypeScript wrapper around the bragdoc.ai API endpoints
+- Include authentication management, batch submission, and status checking
+- Enable programmatic interaction with bragdoc.ai (e.g., for CI/CD pipelines)
