@@ -3,6 +3,7 @@ import path from 'path';
 import fetch from 'node-fetch';
 import { collectGitCommits, getRepositoryInfo } from '../git/operations';
 import { GitCommit, BragdocPayload, RepositoryInfo } from '../git/types';
+import { processInBatches, type BatchConfig } from '../git/batching';
 
 /**
  * Format a commit for display in dry-run mode
@@ -86,7 +87,7 @@ export const extractCommand = new Command('extract')
   .description('Extract commits from the current repository')
   .option('--branch <branch>', 'Git branch to read commits from')
   .option('--max-commits <number>', 'Number of commits to retrieve', '10')
-  .option('--repo <name>', 'Label for this repository', '')
+  .option('--repo <n>', 'Label for this repository', '')
   .option('--api-token <token>', 'Bragdoc API token')
   .option(
     '--api-url <url>',
@@ -98,6 +99,21 @@ export const extractCommand = new Command('extract')
     'Show commits that would be sent without making API call',
     false
   )
+  .option(
+    '--batch-size <number>',
+    'Maximum number of commits per API request',
+    '100'
+  )
+  .option(
+    '--max-retries <number>',
+    'Maximum number of retries per batch',
+    '3'
+  )
+  .option(
+    '--retry-delay <number>',
+    'Delay between retries in milliseconds',
+    '1000'
+  )
   .action(async (options) => {
     const {
       branch,
@@ -105,7 +121,10 @@ export const extractCommand = new Command('extract')
       repo,
       apiToken,
       apiUrl,
-      dryRun
+      dryRun,
+      batchSize,
+      maxRetries,
+      retryDelay
     } = options;
 
     // Only require API token if not in dry-run mode
@@ -142,9 +161,49 @@ export const extractCommand = new Command('extract')
         displayDryRun(payload);
       } else {
         console.log(`Collected ${commits.length} commits.`);
-        console.log('Sending commits to Bragdoc...');
-        await sendCommitsToBragDoc(payload, apiUrl, apiToken);
-        console.log('Done!');
+        console.log('Processing commits in batches...');
+
+        const batchConfig: BatchConfig = {
+          maxCommitsPerBatch: parseInt(batchSize, 10),
+          maxRetries: parseInt(maxRetries, 10),
+          retryDelayMs: parseInt(retryDelay, 10),
+        };
+
+        let totalAchievements = 0;
+        let totalErrors = 0;
+
+        try {
+          for await (const result of processInBatches(
+            repoInfo,
+            commits,
+            batchConfig,
+            apiUrl,
+            apiToken
+          )) {
+            totalAchievements += result.achievements.length;
+            totalErrors += result.errors?.length || 0;
+
+            // Log achievements from this batch
+            result.achievements.forEach(achievement => {
+              console.log(`✓ ${achievement.description}`);
+            });
+
+            // Log any errors from this batch
+            result.errors?.forEach(error => {
+              console.error(`✗ ${error.commit}: ${error.error}`);
+            });
+          }
+
+          console.log('\nDone!');
+          console.log(`Processed ${commits.length} commits`);
+          console.log(`Found ${totalAchievements} achievements`);
+          if (totalErrors > 0) {
+            console.log(`Encountered ${totalErrors} errors`);
+          }
+        } catch (error: any) {
+          console.error('Error processing commits:', error.message);
+          process.exit(1);
+        }
       }
     } catch (error: any) {
       console.error(`Error: ${error.message}`);
