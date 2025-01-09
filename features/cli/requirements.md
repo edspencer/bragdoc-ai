@@ -81,6 +81,12 @@ interface BragdocConfig {
   cacheDir?: string;  // default: ~/.bragdoc/cache
   maxCommitsPerBatch?: number; // default: 100
   defaultBranchOnly?: boolean; // if true, `bragdoc extract` uses current branch by default
+  repositories?: {
+    path: string;
+    name?: string;
+    enabled?: boolean;
+    maxCommits?: number;
+  }[];
 }
 ```
 
@@ -117,19 +123,23 @@ repositories:
   - path: "/Users/username/projects/repo1"
     name: "Project 1"  # Optional friendly name
     enabled: true      # Whether to include in 'extract all'
+    maxCommits: 500    # Maximum commits to extract (overrides global setting)
     
   - path: "/Users/username/work/repo2"
     name: "Work Project"
     enabled: true
+    maxCommits: 1000   # Larger history for work project
     
   - path: "/Users/username/experiments/repo3"
     name: "Side Project"
     enabled: false     # Temporarily disabled
+    maxCommits: 100    # Smaller history for side project
 
 # Global Settings
 settings:
   defaultTimeRange: "30d"  # Default time range for extractions
-  maxCommitsPerBatch: 100
+  maxCommitsPerBatch: 100  # How many commits to send in each API request
+  defaultMaxCommits: 300   # Default max commits if not specified per repository
   cacheEnabled: true
 ```
 
@@ -139,24 +149,31 @@ settings:
    ```bash
    bragdoc repos list
    # Output:
-   # Project 1 (/Users/username/projects/repo1)
-   # Work Project (/Users/username/work/repo2)
-   # Side Project (/Users/username/experiments/repo3) [disabled]
+   # ✓ Project 1 (/Users/username/projects/repo1) [max: 500]
+   # ✓ Work Project (/Users/username/work/repo2) [max: 1000]
+   # ⨯ Side Project (/Users/username/experiments/repo3) [disabled] [max: 100]
    ```
 
 2. **Add Repository**:
    ```bash
-   bragdoc repos add [path] --name "Project Name"
+   bragdoc repos add [path] --name "Project Name" --max-commits 500
    # Adds current directory if path not specified
+   # Uses defaultMaxCommits from settings if --max-commits not specified
    ```
 
-3. **Remove Repository**:
+3. **Update Repository Settings**:
+   ```bash
+   bragdoc repos update [path] --max-commits 1000
+   # Updates settings for specified repository
+   ```
+
+4. **Remove Repository**:
    ```bash
    bragdoc repos remove [path]
    # Removes current directory if path not specified
    ```
 
-4. **Enable/Disable Repository**:
+5. **Enable/Disable Repository**:
    ```bash
    bragdoc repos enable [path]
    bragdoc repos disable [path]

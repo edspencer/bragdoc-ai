@@ -5,6 +5,7 @@ import { execSync } from 'child_process';
 import fetch from 'node-fetch'; // npm install node-fetch
 import path from 'path';
 import fs from 'fs';
+import { reposCommand } from './commands/repos';
 
 /** Type describing a single Git commit. */
 type GitCommit = {
@@ -34,7 +35,11 @@ function collectGitCommits(
   console.log(output)
 
   return lines.map(line => {
-    const [hash, fullMessage] = line.split('|||');
+    const [hash, fullMessage, author, date] = line.split('|||');
+
+    console.log(hash)
+    console.log(fullMessage)
+
     return {
       repository: repositoryName,
       hash: hash.trim(),
@@ -78,8 +83,11 @@ const program = new Command();
 
 program
   .name('bragdoc')
-  .description('Bragdoc CLI tool to gather Git commits and send them to bragdoc.ai')
+  .description('CLI tool for managing your brag document')
   .version('0.1.0');
+
+// Add the repos command
+program.addCommand(reposCommand);
 
 // The "extract" command collects Git commits and sends them to the API.
 program
