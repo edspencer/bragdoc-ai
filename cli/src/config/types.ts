@@ -13,8 +13,7 @@ export interface Repository {
  */
 export interface BragdocConfig {
   auth?: {
-    accessToken?: string;
-    refreshToken?: string;
+    token?: string;
     expiresAt?: number;
   };
   repositories: Repository[];
