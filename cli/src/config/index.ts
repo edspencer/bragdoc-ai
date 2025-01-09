@@ -33,6 +33,13 @@ export function getConfigPath(): string {
 }
 
 /**
+ * Get the API base URL from config or use default
+ */
+export function getApiBaseUrl(config: BragdocConfig): string {
+  return config.settings.apiBaseUrl || 'https://www.bragdoc.ai';
+}
+
+/**
  * Ensure all required directories exist with correct permissions
  */
 export async function ensureConfigDir(): Promise<void> {

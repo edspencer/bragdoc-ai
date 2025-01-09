@@ -5,15 +5,12 @@ import {
   company,
   project,
   achievement,
+  cliToken,
 } from '@/lib/db/schema';
+import { eq } from 'drizzle-orm';
 import { POST } from '@/app/api/cli/commits/route';
 import { NextRequest } from 'next/server';
 import type { EventDuration } from '@/lib/types/achievement';
-
-// Mock auth
-jest.mock('@/app/(auth)/auth', () => ({
-  auth: jest.fn(),
-}));
 
 // Mock extractFromCommits
 jest.mock('@/lib/ai/extractFromCommits', () => ({
@@ -28,6 +25,16 @@ describe('CLI Commits API Route', () => {
     provider: 'credentials',
     createdAt: new Date(),
     updatedAt: new Date(),
+  };
+
+  const testToken = {
+    id: uuidv4(),
+    userId: testUser.id,
+    token: 'test-token',
+    deviceName: 'test-device',
+    lastUsedAt: new Date(),
+    expiresAt: new Date('2025-12-31'),
+    createdAt: new Date(),
   };
 
   const testCompany = {
@@ -81,11 +88,13 @@ describe('CLI Commits API Route', () => {
     await db.delete(achievement);
     await db.delete(project);
     await db.delete(company);
+    await db.delete(cliToken);
     await db.delete(user);
     // Insert test data
     await db.insert(user).values(testUser);
     await db.insert(company).values(testCompany);
     await db.insert(project).values(testProject);
+    await db.insert(cliToken).values(testToken);
   });
 
   afterEach(async () => {
@@ -93,15 +102,12 @@ describe('CLI Commits API Route', () => {
     await db.delete(achievement);
     await db.delete(project);
     await db.delete(company);
+    await db.delete(cliToken);
     await db.delete(user);
   });
 
   describe('POST /api/cli/commits', () => {
     it('processes commits and creates achievements for authenticated user', async () => {
-      require('@/app/(auth)/auth').auth.mockResolvedValueOnce({
-        user: { id: testUser.id },
-      });
-
       const mockAchievement = {
         title: 'Implemented new feature',
         summary: 'Added a significant feature with tests',
@@ -121,7 +127,10 @@ describe('CLI Commits API Route', () => {
       const response = await POST(
         new NextRequest('http://localhost/api/cli/commits', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${testToken.token}`,
+          },
           body: JSON.stringify(testCommits),
         }),
       );
@@ -136,9 +145,7 @@ describe('CLI Commits API Route', () => {
       });
     });
 
-    it('returns 401 for unauthenticated requests', async () => {
-      require('@/app/(auth)/auth').auth.mockResolvedValueOnce(null);
-
+    it('returns 401 for missing authorization header', async () => {
       const response = await POST(
         new NextRequest('http://localhost/api/cli/commits', {
           method: 'POST',
@@ -149,14 +156,49 @@ describe('CLI Commits API Route', () => {
 
       const data = await response.json();
       expect(response.status).toBe(401);
-      expect(data.error).toBe('Unauthorized');
+      expect(data.error).toBe('Missing or invalid authorization header');
+    });
+
+    it('returns 401 for invalid token', async () => {
+      const response = await POST(
+        new NextRequest('http://localhost/api/cli/commits', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer invalid-token',
+          },
+          body: JSON.stringify(testCommits),
+        }),
+      );
+
+      const data = await response.json();
+      expect(response.status).toBe(401);
+      expect(data.error).toBe('Invalid or expired token');
+    });
+
+    it('returns 401 for expired token', async () => {
+      // Update token to be expired
+      await db.update(cliToken)
+        .set({ expiresAt: new Date('2020-01-01') })
+        .where(eq(cliToken.id, testToken.id));
+
+      const response = await POST(
+        new NextRequest('http://localhost/api/cli/commits', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${testToken.token}`,
+          },
+          body: JSON.stringify(testCommits),
+        }),
+      );
+
+      const data = await response.json();
+      expect(response.status).toBe(401);
+      expect(data.error).toBe('Invalid or expired token');
     });
 
     it('validates commit limit', async () => {
-      require('@/app/(auth)/auth').auth.mockResolvedValueOnce({
-        user: { id: testUser.id },
-      });
-
       const tooManyCommits = {
         ...testCommits,
         commits: Array(101).fill(testCommits.commits[0]),
@@ -165,7 +207,10 @@ describe('CLI Commits API Route', () => {
       const response = await POST(
         new NextRequest('http://localhost/api/cli/commits', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${testToken.token}`,
+          },
           body: JSON.stringify(tooManyCommits),
         }),
       );
@@ -179,10 +224,6 @@ describe('CLI Commits API Route', () => {
     });
 
     it('handles invalid request body', async () => {
-      require('@/app/(auth)/auth').auth.mockResolvedValueOnce({
-        user: { id: testUser.id },
-      });
-
       const invalidCommits = {
         repository: {
           // missing required fields
@@ -197,7 +238,10 @@ describe('CLI Commits API Route', () => {
       const response = await POST(
         new NextRequest('http://localhost/api/cli/commits', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${testToken.token}`,
+          },
           body: JSON.stringify(invalidCommits),
         }),
       );
@@ -208,10 +252,6 @@ describe('CLI Commits API Route', () => {
     });
 
     it('handles extraction errors gracefully', async () => {
-      require('@/app/(auth)/auth').auth.mockResolvedValueOnce({
-        user: { id: testUser.id },
-      });
-
       require('@/lib/ai/extractFromCommits').extractFromCommits.mockImplementation(
         () => {
           throw new Error('Extraction failed');
@@ -221,7 +261,10 @@ describe('CLI Commits API Route', () => {
       const response = await POST(
         new NextRequest('http://localhost/api/cli/commits', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${testToken.token}`,
+          },
           body: JSON.stringify(testCommits),
         }),
       );

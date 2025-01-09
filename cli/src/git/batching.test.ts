@@ -1,33 +1,30 @@
 import { processInBatches, type BatchConfig } from './batching';
 import type { GitCommit, RepositoryInfo } from './types';
+import logger from '../utils/logger';
+
+// Mock logger
+jest.mock('../utils/logger', () => ({
+  __esModule: true,
+  default: {
+    debug: jest.fn(),
+    info: jest.fn(),
+    warn: jest.fn(),
+    error: jest.fn(),
+  },
+}));
 
 // Mock global fetch
 const mockFetch = jest.fn();
 global.fetch = mockFetch;
 
 describe('Batching Logic', () => {
-  // Mock console methods to test output
-  const originalConsole = { ...console };
-  let consoleOutput: string[] = [];
-
   beforeEach(() => {
-    consoleOutput = [];
-    console.log = jest.fn((...args) => {
-      consoleOutput.push(args.join(' '));
-    });
-    console.warn = jest.fn((...args) => {
-      consoleOutput.push(args.join(' '));
-    });
-    console.error = jest.fn((...args) => {
-      consoleOutput.push(args.join(' '));
-    });
     mockFetch.mockReset();
-  });
-
-  afterEach(() => {
-    console.log = originalConsole.log;
-    console.warn = originalConsole.warn;
-    console.error = originalConsole.error;
+    // Reset all logger mock functions
+    (logger.debug as jest.Mock).mockReset();
+    (logger.info as jest.Mock).mockReset();
+    (logger.warn as jest.Mock).mockReset();
+    (logger.error as jest.Mock).mockReset();
   });
 
   const mockRepo: RepositoryInfo = {
@@ -96,6 +93,11 @@ describe('Batching Logic', () => {
     const lastBatchBody = JSON.parse(calls[2][1].body);
     expect(firstBatchBody.commits).toHaveLength(2);
     expect(lastBatchBody.commits).toHaveLength(1);
+
+    // Verify debug logs
+    expect(logger.debug).toHaveBeenCalledWith(
+      expect.stringContaining('Processing 5 commits in 3 batches')
+    );
   });
 
   it('retries on failure and succeeds eventually', async () => {
@@ -128,14 +130,20 @@ describe('Batching Logic', () => {
     expect(results).toHaveLength(1);
 
     // Check retry messaging
-    expect(consoleOutput).toEqual(
-      expect.arrayContaining([
-        expect.stringContaining('Error processing batch 1 (attempt 1/3)'),
-        expect.stringContaining('Retry attempt 1/2 for batch 1'),
-        expect.stringContaining('Error processing batch 1 (attempt 2/3)'),
-        expect.stringContaining('Retry attempt 2/2 for batch 1'),
-        expect.stringContaining('Successfully processed batch 1 after 3 attempts'),
-      ]),
+    expect(logger.warn).toHaveBeenCalledWith(
+      expect.stringContaining('Error processing batch 1 (attempt 1/3)')
+    );
+    expect(logger.warn).toHaveBeenCalledWith(
+      expect.stringContaining('Retry attempt 1/2 for batch 1')
+    );
+    expect(logger.warn).toHaveBeenCalledWith(
+      expect.stringContaining('Error processing batch 1 (attempt 2/3)')
+    );
+    expect(logger.warn).toHaveBeenCalledWith(
+      expect.stringContaining('Retry attempt 2/2 for batch 1')
+    );
+    expect(logger.info).toHaveBeenCalledWith(
+      expect.stringContaining('Successfully processed batch 1 after 3 attempts')
     );
   });
 
@@ -160,12 +168,14 @@ describe('Batching Logic', () => {
     expect(mockFetch).toHaveBeenCalledTimes(3);
 
     // Check error messaging
-    expect(consoleOutput).toEqual(
-      expect.arrayContaining([
-        expect.stringContaining('Error processing batch 1 (attempt 1/3)'),
-        expect.stringContaining('Error processing batch 1 (attempt 2/3)'),
-        expect.stringContaining('Failed to process batch 1/1 after 3 attempts'),
-      ]),
+    expect(logger.warn).toHaveBeenCalledWith(
+      expect.stringContaining('Error processing batch 1 (attempt 1/3)')
+    );
+    expect(logger.warn).toHaveBeenCalledWith(
+      expect.stringContaining('Error processing batch 1 (attempt 2/3)')
+    );
+    expect(logger.error).toHaveBeenCalledWith(
+      expect.stringContaining('Failed to process batch 1/1 after 3 attempts')
     );
   });
 

@@ -1,11 +1,10 @@
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
-import { auth } from '@/app/(auth)/auth';
 import { extractFromCommits } from '@/lib/ai/extractFromCommits';
 import { db } from '@/lib/db';
 import { RepositoryCommitHistory } from '@/types/commits';
-import { getCompaniesByUserId, createAchievement } from '@/lib/db/queries';
-import {getProjectsByUserId} from '@/lib/db/projects/queries';
+import { getCompaniesByUserId, createAchievement, validateCLIToken } from '@/lib/db/queries';
+import { getProjectsByUserId } from '@/lib/db/projects/queries';
 
 // Validate request body
 const requestSchema = z.object({
@@ -31,9 +30,23 @@ const requestSchema = z.object({
 
 export async function POST(req: Request) {
   try {
-    const session = await auth();
-    if (!session?.user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    // Get token from Authorization header
+    const authHeader = req.headers.get('Authorization');
+    if (!authHeader?.startsWith('Bearer ')) {
+      return NextResponse.json(
+        { error: 'Missing or invalid authorization header' },
+        { status: 401 }
+      );
+    }
+    const token = authHeader.slice(7); // Remove 'Bearer ' prefix
+
+    // Validate CLI token
+    const { userId, isValid } = await validateCLIToken(token);
+    if (!isValid) {
+      return NextResponse.json(
+        { error: 'Invalid or expired token' },
+        { status: 401 }
+      );
     }
 
     const body = await req.json();
@@ -47,11 +60,14 @@ export async function POST(req: Request) {
     }
 
     const history: RepositoryCommitHistory = result.data;
+    console.log(
+      `Processing ${history.commits.length} commits from repository ${history.repository.name}`
+    );
 
     // Get user's companies and projects for context
     const [companies, projects] = await Promise.all([
-      getCompaniesByUserId({ userId: session.user.id! }),
-      getProjectsByUserId(session.user.id!),
+      getCompaniesByUserId({ userId }),
+      getProjectsByUserId(userId),
     ]);
 
     // Extract achievements
@@ -65,7 +81,7 @@ export async function POST(req: Request) {
       },
     })) {
       const [savedAchievement] = await createAchievement({
-        userId: session.user.id!,
+        userId,
         title: achievement.title,
         summary: achievement.summary,
         details: achievement.details,

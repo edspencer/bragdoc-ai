@@ -4,6 +4,8 @@ import { collectGitCommits, getRepositoryInfo } from '../git/operations';
 import { GitCommit, BragdocPayload, RepositoryInfo } from '../git/types';
 import { processInBatches, type BatchConfig } from '../git/batching';
 import { CommitCache } from '../cache/commits';
+import { loadConfig, getApiBaseUrl } from '../config';
+import logger from '../utils/logger';
 
 /**
  * Format a commit for display in dry-run mode
@@ -88,11 +90,9 @@ export const extractCommand = new Command('extract')
   .option('--branch <branch>', 'Git branch to read commits from')
   .option('--max-commits <number>', 'Number of commits to retrieve', '10')
   .option('--repo <n>', 'Label for this repository', '')
-  .option('--api-token <token>', 'Bragdoc API token')
   .option(
     '--api-url <url>',
-    'Bragdoc API base URL',
-    'https://api.bragdoc.ai'
+    'Override Bragdoc API base URL',
   )
   .option(
     '--dry-run',
@@ -114,20 +114,31 @@ export const extractCommand = new Command('extract')
       branch,
       maxCommits,
       repo,
-      apiToken,
-      apiUrl,
+      apiUrl: overrideApiUrl,
       dryRun,
       batchSize,
       cache: useCache
     } = options;
 
-    // Only require API token if not in dry-run mode
-    if (!dryRun && !apiToken) {
-      console.error('Error: Missing --api-token option.');
-      process.exit(1);
-    }
-
     try {
+      // Load config to get API base URL and auth token
+      const config = await loadConfig();
+      const apiUrl = overrideApiUrl || getApiBaseUrl(config);
+      
+      // Check for auth token
+      if (!config.auth?.token) {
+        logger.error('Not authenticated. Please run "bragdoc login" first.');
+        process.exit(1);
+      }
+
+      // Check token expiration
+      if (config.auth.expiresAt && config.auth.expiresAt < Date.now()) {
+        logger.error('Authentication token has expired. Please run "bragdoc login" to get a new token.');
+        process.exit(1);
+      }
+      
+      logger.debug(`Using API base URL: ${apiUrl}`);
+
       // If --repo is not specified, use the current folder name
       const repository = repo || path.basename(process.cwd());
       
@@ -138,92 +149,89 @@ export const extractCommand = new Command('extract')
       const branchToUse = branch || repoInfo.currentBranch;
       
       // Collect the Git commits
-      console.log(`Collecting commits from ${repository} (branch: ${branchToUse})...`);
-      const allCommits = collectGitCommits(
+      logger.info(`Collecting commits from ${repository} (branch: ${branchToUse})...`);
+      const commits = collectGitCommits(
         branchToUse,
         parseInt(maxCommits, 10),
         repository
       );
 
-      // Filter out cached commits if cache is enabled
-      let commits = allCommits;
-      if (useCache) {
-        const cache = new CommitCache();
-        const newCommits = [];
-        console.log('Checking commit cache...');
-        
-        for (const commit of allCommits) {
-          if (!(await cache.has(repository, commit.hash))) {
-            newCommits.push(commit);
-          }
-        }
-        
-        commits = newCommits;
-        console.log(`Found ${commits.length} new commits (${allCommits.length - commits.length} already cached)`);
+      if (commits.length === 0) {
+        logger.info('No commits found.');
+        return;
       }
 
-      // Prepare payload
-      const payload: BragdocPayload = {
-        repository: repoInfo,
-        commits
-      };
+      logger.info(`Found ${commits.length} commits.`);
 
       if (dryRun) {
-        displayDryRun(payload);
-      } else {
-        console.log(`Processing ${commits.length} commits in batches...`);
+        logger.info('\nDry run mode - commits that would be sent:');
+        commits.forEach((commit) => {
+          logger.info(formatCommit(commit));
+        });
+        return;
+      }
 
-        const batchConfig: BatchConfig = {
-          maxCommitsPerBatch: parseInt(batchSize, 10),
-        };
-
-        let totalAchievements = 0;
-        let totalErrors = 0;
-        const cache = new CommitCache();
-
-        try {
-          for await (const result of processInBatches(
-            repoInfo,
-            commits,
-            batchConfig,
-            apiUrl,
-            apiToken
-          )) {
-            totalAchievements += result.achievements.length;
-            totalErrors += result.errors?.length || 0;
-
-            // Update cache with successfully processed commits
-            if (useCache) {
-              const processedHashes = result.achievements
-                .map(a => a.source.hash)
-                .filter((hash): hash is string => hash !== undefined);
-              await cache.add(repository, processedHashes);
-            }
-
-            // Log achievements from this batch
-            result.achievements.forEach(achievement => {
-              console.log(`✓ ${achievement.description}`);
-            });
-
-            // Log any errors from this batch
-            result.errors?.forEach(error => {
-              console.error(`✗ ${error.commit}: ${error.error}`);
-            });
+      // Initialize commit cache
+      const cache = useCache ? new CommitCache() : null;
+      
+      // Filter out cached commits
+      let commitsToProcess = commits;
+      if (cache) {
+        const uncachedCommits = [];
+        for (const commit of commits) {
+          if (!(await cache.has(repository, commit.hash))) {
+            uncachedCommits.push(commit);
           }
+        }
+        commitsToProcess = uncachedCommits;
+        logger.info(`${commits.length - uncachedCommits.length} commits already processed, skipping...`);
+      }
 
-          console.log('\nDone!');
-          console.log(`Processed ${commits.length} commits`);
-          console.log(`Found ${totalAchievements} achievements`);
-          if (totalErrors > 0) {
-            console.log(`Encountered ${totalErrors} errors`);
-          }
-        } catch (error: any) {
-          console.error('Error processing commits:', error.message);
-          process.exit(1);
+      if (commitsToProcess.length === 0) {
+        logger.info('All commits have already been processed.');
+        return;
+      }
+
+      // Process commits in batches
+      const batchConfig: BatchConfig = {
+        maxCommitsPerBatch: parseInt(batchSize, 10),
+      };
+
+      logger.info(`Processing ${commitsToProcess.length} commits...`);
+
+      for await (const result of processInBatches(
+        repoInfo,
+        commitsToProcess,
+        batchConfig,
+        apiUrl,
+        config.auth.token
+      )) {
+        // Add successfully processed commits to cache
+        if (cache) {
+          const processedHashes = commitsToProcess
+            .slice(0, result.processedCount)
+            .map((c) => c.hash);
+          await cache.add(repository, processedHashes);
+        }
+
+        if (result.achievements.length > 0) {
+          logger.info('\nAchievements found:');
+          result.achievements.forEach((achievement) => {
+            logger.info(`- ${achievement.description}`);
+          });
+        }
+
+        if (result.errors?.length) {
+          logger.warn('\nErrors:');
+          result.errors.forEach((error) => {
+            logger.warn(`- ${error.commit}: ${error.error}`);
+          });
         }
       }
+
+      logger.info('Done!');
     } catch (error: any) {
-      console.error(`Error: ${error.message}`);
+      logger.error('Error:', error.message);
       process.exit(1);
     }
   });

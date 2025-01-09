@@ -22,6 +22,7 @@ export interface BragdocConfig {
     maxCommitsPerBatch: number;
     defaultMaxCommits: number;
     cacheEnabled: boolean;
+    apiBaseUrl?: string; // Optional API base URL for development/testing
   };
 }
 

@@ -2,7 +2,7 @@ import { Command } from 'commander';
 import chalk from 'chalk';
 import { createServer } from 'http';
 import { randomBytes } from 'crypto';
-import { loadConfig, saveConfig } from '../config';
+import { loadConfig, saveConfig, getApiBaseUrl } from '../config';
 import { getDeviceName } from '../utils/device';
 import fetch from 'node-fetch';
 import logger from '../utils/logger';
@@ -17,12 +17,10 @@ interface TokenResponse {
   expiresAt: number;
 }
 
-const BASE_URL = process.env.BRAGDOC_URL || 'https://ngrok.edspencer.net';
-
 /**
  * Start a local server to receive the auth token
  */
-async function startAuthServer(state: string, deviceName: string): Promise<TokenResponse> {
+async function startAuthServer(state: string, deviceName: string, apiUrl: string): Promise<TokenResponse> {
   return new Promise((resolve, reject) => {
     logger.debug('Starting local server...');
     const server = createServer((req, res) => {
@@ -92,8 +90,13 @@ async function startAuthServer(state: string, deviceName: string): Promise<Token
 /**
  * Login to bragdoc
  */
-async function login() {
+async function login(options: { apiUrl?: string }) {
   try {
+    const config = await loadConfig();
+    const apiUrl = options.apiUrl || getApiBaseUrl(config);
+    
+    logger.debug(`Using API base URL: ${apiUrl}`);
+    
     // Generate state for CSRF protection
     const state = randomBytes(32).toString('hex');
     
@@ -104,10 +107,10 @@ async function login() {
     
     // Start server
     logger.debug('Starting local server...');
-    const tokenPromise = startAuthServer(state, deviceName);
+    const tokenPromise = startAuthServer(state, deviceName, apiUrl);
     
     // Open browser
-    const authUrl = `${BASE_URL}/cli-auth?state=${state}&port=5556`;
+    const authUrl = `${apiUrl}/cli-auth?state=${state}&port=5556`;
     logger.debug('Opening browser for authentication...');
     const open = await import('open');
     await open.default(authUrl);
@@ -117,7 +120,6 @@ async function login() {
     const { token, expiresAt } = await tokenPromise;
     
     // Save tokens
-    const config = await loadConfig();
     config.auth = {
       token,
       expiresAt,
@@ -183,6 +185,7 @@ export const authCommand = new Command('auth')
   .addCommand(
     new Command('login')
       .description('Login to bragdoc')
+      .option('--api-url <url>', 'Override Bragdoc API base URL')
       .action(login)
   )
   .addCommand(
@@ -198,7 +201,8 @@ export const authCommand = new Command('auth')
 
 // Create top-level login/logout commands as aliases
 export const loginCommand = new Command('login')
-  .description('Login to bragdoc')
+  .description('Log in to your Bragdoc account')
+  .option('--api-url <url>', 'Override Bragdoc API base URL')
   .action(login);
 
 export const logoutCommand = new Command('logout')
