@@ -5,6 +5,7 @@ import { randomBytes } from 'crypto';
 import { loadConfig, saveConfig } from '../config';
 import { getDeviceName } from '../utils/device';
 import fetch from 'node-fetch';
+import logger from '../utils/logger';
 
 interface AuthConfig {
   token?: string;
@@ -23,7 +24,7 @@ const BASE_URL = process.env.BRAGDOC_URL || 'https://ngrok.edspencer.net';
  */
 async function startAuthServer(state: string, deviceName: string): Promise<TokenResponse> {
   return new Promise((resolve, reject) => {
-    console.log(chalk.blue('Starting local server...'));
+    logger.debug('Starting local server...');
     const server = createServer((req, res) => {
       // Enable CORS for the browser to connect
       res.setHeader('Access-Control-Allow-Origin', '*');
@@ -37,7 +38,7 @@ async function startAuthServer(state: string, deviceName: string): Promise<Token
         return;
       }
 
-      console.log(chalk.blue(`Received ${req.method} request`));
+      logger.debug(`Received ${req.method} request`);
       if (req.method === 'POST') {
         let body = '';
         req.on('data', chunk => {
@@ -45,10 +46,10 @@ async function startAuthServer(state: string, deviceName: string): Promise<Token
         });
         req.on('end', async () => {
           try {
-            console.log(chalk.blue('Received body:', body));
+            logger.debug('Received body:', body);
             const { token, state: receivedState } = JSON.parse(body);
             
-            console.log(chalk.blue('Comparing states:', { expected: state, received: receivedState }));
+            logger.debug('Comparing states:', { expected: state, received: receivedState });
             // Verify state parameter
             if (state !== receivedState) {
               throw new Error('Invalid state parameter');
@@ -57,10 +58,10 @@ async function startAuthServer(state: string, deviceName: string): Promise<Token
             res.writeHead(200);
             res.end('OK');
             server.close();
-            console.log(chalk.green('Successfully received token'));
+            logger.debug('Successfully received token');
             resolve({ token, expiresAt: Date.now() + 30 * 24 * 60 * 60 * 1000 });
           } catch (err) {
-            console.error(chalk.red('Error processing request:', err));
+            logger.error('Error processing request:', err);
             res.writeHead(400);
             res.end('Invalid request');
             reject(err);
@@ -78,11 +79,11 @@ async function startAuthServer(state: string, deviceName: string): Promise<Token
       if (!address || typeof address === 'string') {
         throw new Error('Failed to start server');
       }
-      console.log(chalk.blue(`Server listening on port ${address.port}`));
+      logger.debug(`Server listening on port ${address.port}`);
     });
 
     server.on('error', (err) => {
-      console.error(chalk.red('Server error:', err));
+      logger.error('Server error:', err);
       reject(err);
     });
   });
@@ -96,23 +97,23 @@ async function login() {
     // Generate state for CSRF protection
     const state = randomBytes(32).toString('hex');
     
-    console.log(chalk.blue('Starting authentication...'));
+    logger.debug('Starting authentication...');
     
     // Get device name
     const deviceName = await getDeviceName();
     
     // Start server
-    console.log(chalk.blue('Starting local server...'));
+    logger.debug('Starting local server...');
     const tokenPromise = startAuthServer(state, deviceName);
     
     // Open browser
     const authUrl = `${BASE_URL}/cli-auth?state=${state}&port=5556`;
-    console.log(chalk.blue('Opening browser for authentication...'));
+    logger.debug('Opening browser for authentication...');
     const open = await import('open');
     await open.default(authUrl);
     
     // Wait for token
-    console.log(chalk.blue('Waiting for authentication to complete...'));
+    logger.debug('Waiting for authentication to complete...');
     const { token, expiresAt } = await tokenPromise;
     
     // Save tokens
@@ -125,7 +126,8 @@ async function login() {
     
     console.log(chalk.green('Successfully authenticated!'));
   } catch (error) {
-    console.error(chalk.red('Authentication failed:'), error);
+    logger.error('Authentication failed:', error);
+    console.error(chalk.red('Authentication failed'));
     process.exit(1);
   }
 }
@@ -140,7 +142,8 @@ async function logout() {
     await saveConfig(config);
     console.log(chalk.green('Successfully logged out!'));
   } catch (error) {
-    console.error(chalk.red('Logout failed:'), error);
+    logger.error('Logout failed:', error);
+    console.error(chalk.red('Logout failed'));
     process.exit(1);
   }
 }
@@ -153,21 +156,22 @@ async function status() {
     const config = await loadConfig();
     const auth = config.auth as AuthConfig;
     
-    if (!auth?.token) {
-      console.log(chalk.yellow('Not authenticated'));
+    if (!auth?.token || !auth?.expiresAt) {
+      logger.warn('Not authenticated');
       return;
     }
     
-    const expiresIn = auth.expiresAt ? Math.floor((auth.expiresAt - Date.now()) / (1000 * 60 * 60 * 24)) : 0;
+    const expiresIn = Math.floor((auth.expiresAt - Date.now()) / (1000 * 60 * 60 * 24));
     if (expiresIn <= 0) {
-      console.log(chalk.yellow('Authentication expired'));
+      logger.warn('Authentication expired');
       return;
     }
     
-    console.log(chalk.green('Authenticated'));
-    console.log(chalk.gray(`Token expires in ${expiresIn} days`));
+    logger.info('Authenticated');
+    logger.info(`Token expires in ${expiresIn} days`);
   } catch (error) {
-    console.error(chalk.red('Failed to check auth status:'), error);
+    logger.error('Failed to check auth status');
+    logger.debug('Error details:', error);
     process.exit(1);
   }
 }
