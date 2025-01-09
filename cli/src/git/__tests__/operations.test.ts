@@ -1,5 +1,5 @@
 import { execSync } from 'child_process';
-import { collectGitCommits } from '../operations';
+import { collectGitCommits, getRepositoryInfo } from '../operations';
 import fs from 'fs';
 import path from 'path';
 import os from 'os';
@@ -7,24 +7,71 @@ import os from 'os';
 jest.mock('child_process');
 
 describe('git operations', () => {
+  const mockExecSync = execSync as jest.MockedFunction<typeof execSync>;
+  let tempDir: string;
+  let originalCwd: string;
+
+  beforeEach(() => {
+    // Save original working directory
+    originalCwd = process.cwd();
+    
+    // Create a temporary directory for each test
+    tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'git-test-'));
+
+    // Reset all mocks before each test
+    jest.resetAllMocks();
+  });
+
+  afterEach(() => {
+    // Restore original working directory
+    process.chdir(originalCwd);
+    
+    // Clean up temporary directory after each test
+    fs.rmSync(tempDir, { recursive: true, force: true });
+  });
+
+  describe('getRepositoryInfo', () => {
+    it('should return repository information', () => {
+      // Mock git command outputs
+      mockExecSync
+        .mockImplementationOnce(() => Buffer.from('git@github.com:user/repo.git')) // remote url
+        .mockImplementationOnce(() => Buffer.from('feature/test')); // current branch
+
+      const info = getRepositoryInfo(tempDir);
+
+      expect(mockExecSync).toHaveBeenCalledTimes(2);
+      expect(mockExecSync).toHaveBeenNthCalledWith(1, 'git config --get remote.origin.url', { cwd: tempDir });
+      expect(mockExecSync).toHaveBeenNthCalledWith(2, 'git rev-parse --abbrev-ref HEAD', { cwd: tempDir });
+
+      expect(info).toEqual({
+        remoteUrl: 'git@github.com:user/repo.git',
+        currentBranch: 'feature/test',
+        path: tempDir
+      });
+    });
+
+    it('should handle HTTPS remote URLs', () => {
+      mockExecSync
+        .mockImplementationOnce(() => Buffer.from('https://github.com/user/repo.git'))
+        .mockImplementationOnce(() => Buffer.from('main'));
+
+      const info = getRepositoryInfo(tempDir);
+
+      expect(info.remoteUrl).toBe('https://github.com/user/repo.git');
+    });
+
+    it('should handle missing remote', () => {
+      mockExecSync
+        .mockImplementationOnce(() => { throw new Error('No remote configured'); })
+        .mockImplementationOnce(() => Buffer.from('main'));
+
+      expect(() => {
+        getRepositoryInfo(tempDir);
+      }).toThrow('Failed to get repository info: No remote configured');
+    });
+  });
+
   describe('collectGitCommits', () => {
-    const mockExecSync = execSync as jest.MockedFunction<typeof execSync>;
-    let tempDir: string;
-
-    beforeEach(() => {
-      // Create a temporary directory for each test
-      tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'git-test-'));
-      process.chdir(tempDir);
-
-      // Reset all mocks before each test
-      jest.resetAllMocks();
-    });
-
-    afterEach(() => {
-      // Clean up temporary directory after each test
-      fs.rmSync(tempDir, { recursive: true, force: true });
-    });
-
     it('should parse git log output correctly', () => {
       // Mock git log output with null and unit separators
       const mockGitLog = [

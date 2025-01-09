@@ -18,3 +18,16 @@ export interface ExtractionOptions {
   maxCommits: number;
   repository: string;
 }
+
+/** Repository information */
+export interface RepositoryInfo {
+  remoteUrl: string;
+  currentBranch: string;
+  path: string;
+}
+
+/** Payload sent to Bragdoc API */
+export interface BragdocPayload {
+  repository: RepositoryInfo;
+  commits: GitCommit[];
+}

@@ -1,8 +1,8 @@
 import { Command } from 'commander';
 import path from 'path';
 import fetch from 'node-fetch';
-import { collectGitCommits } from '../git/operations';
-import { GitCommit } from '../git/types';
+import { collectGitCommits, getRepositoryInfo } from '../git/operations';
+import { GitCommit, BragdocPayload, RepositoryInfo } from '../git/types';
 
 /**
  * Format a commit for display in dry-run mode
@@ -22,16 +22,34 @@ function formatCommit(commit: GitCommit): string {
 }
 
 /**
+ * Format repository info for display in dry-run mode
+ */
+function formatRepoInfo(info: RepositoryInfo): string {
+  return [
+    'Repository Information:',
+    `  Remote URL: ${info.remoteUrl}`,
+    `  Current Branch: ${info.currentBranch}`,
+    `  Local Path: ${info.path}`,
+    ''
+  ].join('\n');
+}
+
+/**
  * Display commits that would be sent to the API
  */
-function displayDryRun(commits: GitCommit[]): void {
-  console.log('\nDry run mode - commits that would be sent to API:');
-  console.log('================================================');
-  console.log(`Found ${commits.length} commits in ${commits[0]?.repository || 'repository'}\n`);
+function displayDryRun(payload: BragdocPayload): void {
+  console.log('\nDry run mode - data that would be sent to API:');
+  console.log('============================================');
   
-  commits.forEach((commit, index) => {
+  // Display repository info
+  console.log(formatRepoInfo(payload.repository));
+  
+  // Display commits
+  console.log(`Found ${payload.commits.length} commits\n`);
+  
+  payload.commits.forEach((commit, index) => {
     console.log(formatCommit(commit));
-    if (index < commits.length - 1) {
+    if (index < payload.commits.length - 1) {
       console.log(''); // Add blank line between commits
     }
   });
@@ -43,7 +61,7 @@ function displayDryRun(commits: GitCommit[]): void {
  * Send commits to the Bragdoc API
  */
 async function sendCommitsToBragDoc(
-  commits: GitCommit[],
+  payload: BragdocPayload,
   apiUrl: string,
   apiToken: string
 ): Promise<void> {
@@ -53,7 +71,7 @@ async function sendCommitsToBragDoc(
       'Content-Type': 'application/json',
       'Authorization': `Bearer ${apiToken}`
     },
-    body: JSON.stringify({ commits })
+    body: JSON.stringify(payload)
   });
 
   if (!response.ok) {
@@ -66,8 +84,8 @@ async function sendCommitsToBragDoc(
 
 export const extractCommand = new Command('extract')
   .description('Extract commits from the current repository')
-  .option('--branch <branch>', 'Git branch to read commits from', 'main')
-  .option('--max-commits <number>', 'Number of commits to retrieve', '50')
+  .option('--branch <branch>', 'Git branch to read commits from')
+  .option('--max-commits <number>', 'Number of commits to retrieve', '10')
   .option('--repo <name>', 'Label for this repository', '')
   .option('--api-token <token>', 'Bragdoc API token')
   .option(
@@ -100,20 +118,32 @@ export const extractCommand = new Command('extract')
       // If --repo is not specified, use the current folder name
       const repository = repo || path.basename(process.cwd());
       
+      // Get repository info
+      const repoInfo = getRepositoryInfo(process.cwd());
+      
+      // Use current branch if none specified
+      const branchToUse = branch || repoInfo.currentBranch;
+      
       // Collect the Git commits
-      console.log(`Collecting commits from ${repository}...`);
+      console.log(`Collecting commits from ${repository} (branch: ${branchToUse})...`);
       const commits = collectGitCommits(
-        branch,
+        branchToUse,
         parseInt(maxCommits, 10),
         repository
       );
 
+      // Prepare payload
+      const payload: BragdocPayload = {
+        repository: repoInfo,
+        commits
+      };
+
       if (dryRun) {
-        displayDryRun(commits);
+        displayDryRun(payload);
       } else {
         console.log(`Collected ${commits.length} commits.`);
         console.log('Sending commits to Bragdoc...');
-        await sendCommitsToBragDoc(commits, apiUrl, apiToken);
+        await sendCommitsToBragDoc(payload, apiUrl, apiToken);
         console.log('Done!');
       }
     } catch (error: any) {

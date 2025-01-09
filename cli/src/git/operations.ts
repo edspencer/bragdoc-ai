@@ -1,5 +1,30 @@
 import { execSync } from 'child_process';
-import { GitCommit } from './types';
+import { GitCommit, RepositoryInfo } from './types';
+
+/**
+ * Get information about the current git repository
+ */
+export function getRepositoryInfo(path: string = '.'): RepositoryInfo {
+  try {
+    // Get remote URL
+    const remoteUrl = execSync('git config --get remote.origin.url', { cwd: path })
+      .toString()
+      .trim();
+
+    // Get current branch
+    const currentBranch = execSync('git rev-parse --abbrev-ref HEAD', { cwd: path })
+      .toString()
+      .trim();
+
+    return {
+      remoteUrl,
+      currentBranch,
+      path
+    };
+  } catch (error: any) {
+    throw new Error(`Failed to get repository info: ${error.message}`);
+  }
+}
 
 /**
  * Collects Git commit data for a given branch and maxCommits count.
