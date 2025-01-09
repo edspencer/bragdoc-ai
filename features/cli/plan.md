@@ -110,7 +110,95 @@ interface ProcessingResponse {
 - Add progress reporting to user
 - Handle API errors and retries
 
-### 6. Testing
+### 6. Commit Cache Implementation
+
+#### Cache Module
+```typescript
+// src/cache/commits.ts
+interface CommitCache {
+  add(repoName: string, commitHashes: string[]): Promise<void>;
+  has(repoName: string, commitHash: string): Promise<boolean>;
+  list(repoName: string): Promise<string[]>;
+  clear(repoName?: string): Promise<void>;
+}
+
+class FileCommitCache implements CommitCache {
+  constructor(private basePath: string) {}
+  
+  private getCachePath(repoName: string): string {
+    // Sanitize repo name for filesystem
+    const safeName = repoName.replace(/[^a-zA-Z0-9-]/g, '_');
+    return path.join(this.basePath, 'cache/commits', `${safeName}.txt`);
+  }
+  
+  // Implementation details...
+}
+```
+
+#### Implementation Steps
+
+1. Cache Directory Setup
+   - Create cache module for managing commit hashes
+   - Implement filesystem operations for cache files
+   - Add cache directory initialization to CLI startup
+
+2. Cache Integration with Extract Command
+   - Filter commits against cache before batching
+   - Update cache after successful API responses
+   - Handle `--no-cache` flag to skip cache
+   - Add progress reporting for cache operations
+
+3. Cache Management Commands
+   - Implement `cache list` command
+   - Implement `cache clear` command
+   - Add repository-specific cache operations
+   - Add cache statistics reporting
+
+4. Testing
+   - Unit tests for cache operations
+   - Integration tests with extract command
+   - Test cache file format and persistence
+   - Test error handling and recovery
+
+5. Documentation
+   - Update README with cache commands
+   - Document cache file format
+   - Add troubleshooting guide for cache issues
+
+#### Modified Extract Flow
+```typescript
+async function extractCommits(options: ExtractOptions) {
+  // Initialize cache
+  const cache = new FileCommitCache(config.cacheDir);
+  
+  // Get all commits
+  const allCommits = collectGitCommits(options);
+  
+  // Filter out cached commits
+  const newCommits = [];
+  for (const commit of allCommits) {
+    if (options.noCache || !(await cache.has(options.repository, commit.hash))) {
+      newCommits.push(commit);
+    }
+  }
+  
+  console.log(`Found ${newCommits.length} new commits to process`);
+  
+  // Process in batches
+  for await (const result of processInBatches(newCommits, batchConfig)) {
+    // Update cache after successful processing
+    await cache.add(
+      options.repository,
+      result.achievements.map(a => a.source.hash).filter(Boolean)
+    );
+    
+    // Report progress
+    console.log(`Processed ${result.achievements.length} achievements`);
+  }
+}
+```
+
+### 7. Testing
 
 - Add comprehensive test suite
   - Token validation
@@ -121,7 +209,7 @@ interface ProcessingResponse {
   - CLI batching and caching
 - Add Braintrust eval for commit-based achievement extraction
 
-### 7. Documentation
+### 8. Documentation
 
 - Update API documentation
 - Add examples for CLI usage

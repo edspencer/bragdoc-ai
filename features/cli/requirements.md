@@ -98,6 +98,52 @@ interface BragdocConfig {
 - `--dry-run`: Show commits that would be processed without sending them
 - `--full-history`: Disable time-based extraction limits and process the entire repo history
 
+### Commit Caching
+
+#### Cache Structure
+```
+~/.bragdoc/
+├── config.yml          # Main configuration file
+└── cache/             # Directory for storing cache files
+    └── commits/       # Cached commit hashes by repository
+        ├── repo1.txt  # One file per repository
+        └── repo2.txt  # Format: one commit hash per line
+```
+
+#### Cache File Format
+Each repository cache file (`~/.bragdoc/cache/commits/{repo-name}.txt`):
+- One commit hash per line
+- File name derived from repository name/path (sanitized for filesystem)
+- Simple text format for easy inspection and manual editing
+
+#### Cache Management
+- Cache is consulted before processing commits in the extract command
+- Commits found in cache are excluded from API requests
+- New commits are added to cache only after successful API processing
+- Cache can be inspected with `bragdoc cache list`
+- Cache can be cleared with:
+  - `bragdoc cache clear` (all repositories)
+  - `bragdoc cache clear --repo <name>` (specific repository)
+  - `--no-cache` flag on extract command (temporary skip)
+
+#### Cache Operations
+```bash
+# List cached commits for current repository
+bragdoc cache list
+
+# List cached commits for specific repository
+bragdoc cache list --repo "repo-name"
+
+# Clear cache for current repository
+bragdoc cache clear
+
+# Clear cache for specific repository
+bragdoc cache clear --repo "repo-name"
+
+# Clear all caches
+bragdoc cache clear --all
+```
+
 ### Configuration Management
 
 #### Directory Structure

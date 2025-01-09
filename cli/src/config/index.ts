@@ -12,6 +12,20 @@ export function getConfigDir(): string {
 }
 
 /**
+ * Get the path to the cache directory
+ */
+export function getCacheDir(): string {
+  return join(getConfigDir(), 'cache');
+}
+
+/**
+ * Get the path to the commits cache directory
+ */
+export function getCommitsCacheDir(): string {
+  return join(getCacheDir(), 'commits');
+}
+
+/**
  * Get the path to the config file
  */
 export function getConfigPath(): string {
@@ -19,17 +33,24 @@ export function getConfigPath(): string {
 }
 
 /**
- * Ensure the config directory exists with correct permissions
+ * Ensure all required directories exist with correct permissions
  */
 export async function ensureConfigDir(): Promise<void> {
-  const dir = getConfigDir();
-  try {
-    await access(dir);
-  } catch {
-    // Directory doesn't exist, create it
-    await mkdir(dir, { recursive: true });
-    // Set directory permissions to 700 (drwx------)
-    await chmod(dir, 0o700);
+  const dirs = [
+    getConfigDir(),
+    getCacheDir(),
+    getCommitsCacheDir()
+  ];
+
+  for (const dir of dirs) {
+    try {
+      await access(dir);
+    } catch {
+      // Directory doesn't exist, create it
+      await mkdir(dir, { recursive: true });
+      // Set directory permissions to 700 (drwx------)
+      await chmod(dir, 0o700);
+    }
   }
 }
 

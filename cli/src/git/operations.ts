@@ -68,3 +68,31 @@ export function collectGitCommits(
     throw new Error(`Failed to extract commits: ${error.message}`);
   }
 }
+
+/**
+ * Get the name of the current repository from the remote URL or directory name
+ */
+export async function getCurrentRepoName(): Promise<string> {
+  try {
+    const repoInfo = getRepositoryInfo();
+    
+    // Try to extract name from remote URL first
+    const remoteUrl = repoInfo.remoteUrl;
+    if (remoteUrl) {
+      // Handle SSH URLs like 'git@github.com:owner/repo.git'
+      if (remoteUrl.includes('@')) {
+        const match = remoteUrl.match(/[:/]([^/]+)\/([^/]+?)(?:\.git)?$/);
+        if (match) return match[2];
+      }
+      
+      // Handle HTTPS URLs like 'https://github.com/owner/repo.git'
+      const urlMatch = remoteUrl.match(/\/([^/]+?)(?:\.git)?$/);
+      if (urlMatch) return urlMatch[1];
+    }
+    
+    // Fallback to directory name
+    return repoInfo.path.split('/').pop() || 'unknown-repo';
+  } catch (error: any) {
+    throw new Error(`Failed to get repository name: ${error.message}`);
+  }
+}

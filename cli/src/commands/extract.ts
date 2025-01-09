@@ -1,9 +1,9 @@
 import { Command } from 'commander';
 import path from 'path';
-import fetch from 'node-fetch';
 import { collectGitCommits, getRepositoryInfo } from '../git/operations';
 import { GitCommit, BragdocPayload, RepositoryInfo } from '../git/types';
 import { processInBatches, type BatchConfig } from '../git/batching';
+import { CommitCache } from '../cache/commits';
 
 /**
  * Format a commit for display in dry-run mode
@@ -105,14 +105,9 @@ export const extractCommand = new Command('extract')
     '100'
   )
   .option(
-    '--max-retries <number>',
-    'Maximum number of retries per batch',
-    '3'
-  )
-  .option(
-    '--retry-delay <number>',
-    'Delay between retries in milliseconds',
-    '1000'
+    '--no-cache',
+    'Skip checking commit cache',
+    false
   )
   .action(async (options) => {
     const {
@@ -123,8 +118,7 @@ export const extractCommand = new Command('extract')
       apiUrl,
       dryRun,
       batchSize,
-      maxRetries,
-      retryDelay
+      cache: useCache
     } = options;
 
     // Only require API token if not in dry-run mode
@@ -145,11 +139,28 @@ export const extractCommand = new Command('extract')
       
       // Collect the Git commits
       console.log(`Collecting commits from ${repository} (branch: ${branchToUse})...`);
-      const commits = collectGitCommits(
+      const allCommits = collectGitCommits(
         branchToUse,
         parseInt(maxCommits, 10),
         repository
       );
+
+      // Filter out cached commits if cache is enabled
+      let commits = allCommits;
+      if (useCache) {
+        const cache = new CommitCache();
+        const newCommits = [];
+        console.log('Checking commit cache...');
+        
+        for (const commit of allCommits) {
+          if (!(await cache.has(repository, commit.hash))) {
+            newCommits.push(commit);
+          }
+        }
+        
+        commits = newCommits;
+        console.log(`Found ${commits.length} new commits (${allCommits.length - commits.length} already cached)`);
+      }
 
       // Prepare payload
       const payload: BragdocPayload = {
@@ -160,17 +171,15 @@ export const extractCommand = new Command('extract')
       if (dryRun) {
         displayDryRun(payload);
       } else {
-        console.log(`Collected ${commits.length} commits.`);
-        console.log('Processing commits in batches...');
+        console.log(`Processing ${commits.length} commits in batches...`);
 
         const batchConfig: BatchConfig = {
           maxCommitsPerBatch: parseInt(batchSize, 10),
-          maxRetries: parseInt(maxRetries, 10),
-          retryDelayMs: parseInt(retryDelay, 10),
         };
 
         let totalAchievements = 0;
         let totalErrors = 0;
+        const cache = new CommitCache();
 
         try {
           for await (const result of processInBatches(
@@ -182,6 +191,14 @@ export const extractCommand = new Command('extract')
           )) {
             totalAchievements += result.achievements.length;
             totalErrors += result.errors?.length || 0;
+
+            // Update cache with successfully processed commits
+            if (useCache) {
+              const processedHashes = result.achievements
+                .map(a => a.source.hash)
+                .filter((hash): hash is string => hash !== undefined);
+              await cache.add(repository, processedHashes);
+            }
 
             // Log achievements from this batch
             result.achievements.forEach(achievement => {
