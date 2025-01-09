@@ -16,7 +16,7 @@ interface TokenResponse {
   expiresAt: number;
 }
 
-const BASE_URL = process.env.BRAGDOC_URL || 'http://localhost:3000';
+const BASE_URL = process.env.BRAGDOC_URL || 'https://ngrok.edspencer.net';
 
 /**
  * Start a local server to receive the auth token
@@ -78,9 +78,19 @@ async function login() {
     // Get device name
     const deviceName = await getDeviceName();
     
-    // Start local server
+    // Create and start server
     const server = createServer();
-    const port = (server.address() as any).port;
+    const serverPromise = new Promise<number>((resolve) => {
+      server.listen(0, () => {
+        const address = server.address();
+        if (!address || typeof address === 'string') {
+          throw new Error('Failed to start server');
+        }
+        resolve(address.port);
+      });
+    });
+    
+    const port = await serverPromise;
     
     // Open browser
     const authUrl = `${BASE_URL}/cli-auth?state=${state}&port=${port}`;

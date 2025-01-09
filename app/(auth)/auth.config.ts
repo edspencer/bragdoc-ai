@@ -17,15 +17,22 @@ export const authConfig = {
       const isOnLogin = nextUrl.pathname.startsWith('/login');
       const isOnWelcome = nextUrl.pathname.startsWith('/welcome');
       const isOnMarketing = nextUrl.pathname === '/';
+      const isOnCliAuth = nextUrl.pathname.startsWith('/cli-auth');
+      
+      // Store CLI auth parameters if present
+      if ((isOnLogin || isOnRegister) && nextUrl.searchParams.has('state') && nextUrl.searchParams.has('port')) {
+        const returnTo = new URL('/cli-auth', nextUrl);
+        returnTo.searchParams.set('state', nextUrl.searchParams.get('state')!);
+        returnTo.searchParams.set('port', nextUrl.searchParams.get('port')!);
+        return Response.redirect(returnTo);
+      }
 
       if (!isLoggedIn && (isOnChat || isOnWelcome)) {
         return false;
       }
 
-      if (isLoggedIn && (isOnLogin || isOnRegister)) {
-        return Response.redirect(
-          new URL('/chat', nextUrl as unknown as URL),
-        );
+      if (isLoggedIn && (isOnLogin || isOnRegister) && !nextUrl.searchParams.has('state')) {
+        return Response.redirect(new URL('/chat', nextUrl));
       }
 
       return true;
