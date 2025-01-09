@@ -1,224 +1,192 @@
-# Implementation Plan: Repository Management
+# Implementation Plan: Git Commit Extraction
 
-## Phase 1: Config File Management
+## Phase 1: Core Git Extraction Module
 
-### 1. Core Configuration Module
-Location: `cli/src/config/index.ts`
+### 1. Git Extraction Types and Interfaces
+Location: `cli/src/git/types.ts`
 
-1. Create base configuration types:
 ```typescript
-interface Repository {
-  path: string;
-  name?: string;
-  enabled: boolean;
+interface GitCommit {
+  hash: string;
+  message: string;
+  author: string;
+  date: string;
+  repository: string;
+  branch: string;
+  pullRequest?: {
+    number: number;
+    title: string;
+    body: string;
+  };
+}
+
+interface ExtractionOptions {
+  branch?: string;
+  since?: string;
   maxCommits?: number;
-}
-
-interface BragdocConfig {
-  auth?: {
-    accessToken?: string;
-    refreshToken?: string;
-    expiresAt?: number;
-  };
-  repositories: Repository[];
-  settings: {
-    defaultTimeRange: string;
-    maxCommitsPerBatch: number;
-    defaultMaxCommits: number;
-    cacheEnabled: boolean;
-  };
+  includePRs?: boolean;
 }
 ```
 
-2. Implement core configuration functions:
+### 2. Git Operations Module
+Location: `cli/src/git/operations.ts`
+
+Core functions:
 ```typescript
-// Get config directory path
-function getConfigDir(): string;
+// Get commits from a repository with options
+async function getCommits(repoPath: string, options: ExtractionOptions): Promise<GitCommit[]>;
 
-// Ensure config directory exists with correct permissions
-async function ensureConfigDir(): Promise<void>;
+// Extract PR information from commit messages if available
+async function extractPRDetails(commit: GitCommit): Promise<GitCommit>;
 
-// Load config, creating default if doesn't exist
-async function loadConfig(): Promise<BragdocConfig>;
+// Parse git log output into structured data
+function parseGitLog(output: string, repoName: string): GitCommit[];
 
-// Save config with correct permissions
-async function saveConfig(config: BragdocConfig): Promise<void>;
+// Validate time range format (e.g., "30d", "6m", "1y")
+function validateTimeRange(timeRange: string): boolean;
+
+// Convert time range to git-compatible date
+function timeRangeToDate(timeRange: string): string;
 ```
 
-### 2. Repository Management Commands
-Location: `cli/src/commands/repos.ts`
+## Phase 2: Command Implementation
 
-1. Implement base command:
+### 1. Extract Command
+Location: `cli/src/commands/extract.ts`
+
+1. Command Structure:
 ```typescript
 program
-  .command('repos')
-  .description('Manage repositories for bragdoc')
-  .addCommand(/* list command */)
-  .addCommand(/* add command */)
-  .addCommand(/* remove command */)
-  .addCommand(/* update command */)
-  .addCommand(/* enable command */)
-  .addCommand(/* disable command */);
+  .command('extract')
+  .description('Extract commits from repositories')
+  .option('-b, --branch <branch>', 'Git branch to extract from', 'main')
+  .option('-t, --time-range <range>', 'Time range to extract (e.g., 30d, 6m, 1y)', '30d')
+  .option('-m, --max-commits <number>', 'Maximum commits to extract')
+  .option('--include-prs', 'Include pull request details', false)
+  .option('-r, --repository <path>', 'Specific repository to extract from')
+  .action(extractCommand);
 ```
 
-2. Implement subcommands:
-   - `repos list`: Display all repositories
-   - `repos add`: Add new repository
-   - `repos remove`: Remove repository
-   - `repos update`: Update repository settings
-   - `repos enable/disable`: Toggle repository state
-
-### 3. Repository Validation
-Location: `cli/src/utils/git.ts`
-
-1. Implement validation functions:
+2. Implementation:
 ```typescript
-// Check if path is a git repository
-async function isGitRepository(path: string): Promise<boolean>;
-
-// Validate repository path exists and is accessible
-async function validateRepository(path: string): Promise<void>;
-```
-
-## Phase 2: Command Implementation Details
-
-### 1. `repos list` Command
-```typescript
-async function listRepos() {
+async function extractCommand(options: ExtractOptions) {
   const config = await loadConfig();
-  
-  // Format and display repositories
-  config.repositories.forEach(repo => {
-    const status = repo.enabled ? '✓' : '⨯';
-    const maxCommits = repo.maxCommits || config.settings.defaultMaxCommits;
-    console.log(`${status} ${repo.name || ''} (${repo.path}) [max: ${maxCommits}]`);
-  });
-}
-```
+  const repositories = options.repository 
+    ? [{ path: options.repository }] 
+    : config.repositories.filter(r => r.enabled);
 
-### 2. `repos add` Command
-```typescript
-async function addRepo(path: string, options: { name?: string; maxCommits?: number }) {
-  const config = await loadConfig();
-  
-  // Validate path is a git repository
-  await validateRepository(path);
-  
-  // Check for duplicates
-  if (config.repositories.some(r => r.path === path)) {
-    throw new Error('Repository already exists in config');
-  }
-  
-  // Add repository
-  config.repositories.push({
-    path,
-    name: options.name,
-    enabled: true,
-    maxCommits: options.maxCommits,
-  });
-  
-  await saveConfig(config);
-  console.log(`Added repository: ${path}`);
-}
-```
+  for (const repo of repositories) {
+    const commits = await getCommits(repo.path, {
+      branch: options.branch,
+      since: options.timeRange,
+      maxCommits: options.maxCommits || repo.maxCommits || config.settings.defaultMaxCommits,
+      includePRs: options.includePrs
+    });
 
-### 3. `repos remove` Command
-```typescript
-async function removeRepo(path: string) {
-  const config = await loadConfig();
-  
-  const index = config.repositories.findIndex(r => r.path === path);
-  if (index === -1) {
-    throw new Error('Repository not found in config');
-  }
-  
-  config.repositories.splice(index, 1);
-  await saveConfig(config);
-  console.log(`Removed repository: ${path}`);
-}
-```
-
-### 4. `repos update` Command
-```typescript
-async function updateRepo(path: string, options: { name?: string; maxCommits?: number }) {
-  const config = await loadConfig();
-  
-  const repo = config.repositories.find(r => r.path === path);
-  if (!repo) {
-    throw new Error('Repository not found in config');
-  }
-  
-  // Update repository settings
-  if (options.name) repo.name = options.name;
-  if (options.maxCommits) repo.maxCommits = options.maxCommits;
-  
-  await saveConfig(config);
-  console.log(`Updated repository: ${path}`);
-}
-```
-
-## Phase 3: Error Handling and User Experience
-
-### 1. First-time Setup
-```typescript
-async function initializeConfig() {
-  const configDir = getConfigDir();
-  
-  if (!await exists(configDir)) {
-    console.log('Creating bragdoc configuration directory...');
-    await ensureConfigDir();
-  }
-  
-  const config = await loadConfig();
-  if (!config.repositories.length) {
-    // Check if current directory is a git repo
-    if (await isGitRepository(process.cwd())) {
-      console.log('Current directory is a git repository. Would you like to add it? (Y/n)');
-      // Handle user input...
-    }
+    await sendCommitsBatch(commits, config.settings.maxCommitsPerBatch);
   }
 }
 ```
 
-### 2. Error Messages
-- Config file not found: "Creating new configuration file at ~/.bragdoc/config.yml"
-- Invalid repository path: "Error: Path is not a git repository: {path}"
-- Permission issues: "Error: Unable to access repository at {path}. Check permissions."
-- Duplicate repository: "Repository already exists in configuration"
+### 2. API Integration
+Location: `cli/src/api/commits.ts`
 
-### 3. User Feedback
-- Show spinner for long operations
-- Clear success/error messages
-- Confirmation prompts for destructive operations
-- Color-coded output for better visibility
+```typescript
+// Send commits in batches to avoid overwhelming the API
+async function sendCommitsBatch(
+  commits: GitCommit[], 
+  batchSize: number
+): Promise<void>;
+
+// Handle API responses and errors
+function handleApiResponse(
+  response: Response, 
+  commits: GitCommit[]
+): Promise<void>;
+```
+
+## Phase 3: Caching and Performance
+
+### 1. Commit Cache
+Location: `cli/src/cache/commits.ts`
+
+```typescript
+interface CommitCache {
+  lastExtracted: string;
+  commits: Map<string, GitCommit>;
+}
+
+// Cache management functions
+async function saveToCache(commits: GitCommit[]): Promise<void>;
+async function loadFromCache(): Promise<CommitCache>;
+async function clearCache(): Promise<void>;
+```
+
+### 2. Performance Optimizations
+- Implement parallel processing for multiple repositories
+- Use streaming for large git logs
+- Implement rate limiting for API requests
+- Cache API responses
+
+## Phase 4: Error Handling and Logging
+
+### 1. Error Types
+Location: `cli/src/errors.ts`
+
+```typescript
+class GitExtractionError extends Error {
+  constructor(message: string, public readonly cause?: Error) {
+    super(message);
+  }
+}
+
+class ApiError extends Error {
+  constructor(message: string, public readonly statusCode: number) {
+    super(message);
+  }
+}
+```
+
+### 2. Logging Module
+Location: `cli/src/utils/logger.ts`
+
+```typescript
+interface LogOptions {
+  level: 'debug' | 'info' | 'warn' | 'error';
+  timestamp: boolean;
+  prefix?: string;
+}
+
+function createLogger(options: LogOptions): Logger;
+```
 
 ## Implementation Order
 
-1. Core Configuration Module
-   - Basic config types
-   - File operations
-   - Default config creation
+1. Core Git Operations
+   - Basic commit extraction
+   - Time range parsing
+   - Git log parsing
 
-2. Repository Validation
-   - Git repository checking
-   - Path validation
-   - Permission checking
+2. Command Structure
+   - Extract command implementation
+   - Options handling
+   - Configuration integration
 
-3. Basic Commands
-   - `repos list`
-   - `repos add`
-   - `repos remove`
+3. API Integration
+   - Batch processing
+   - Error handling
+   - Rate limiting
 
-4. Advanced Commands
-   - `repos update`
-   - `repos enable/disable`
+4. Caching Layer
+   - Cache implementation
+   - Performance optimizations
 
-5. Error Handling & UX
-   - First-time setup
+5. Error Handling & Logging
+   - Error types
+   - Logging system
    - User feedback
-   - Error messages
 
 6. Testing
-   - Unit tests for config operations
-   - Integration tests for commands
+   - Unit tests for git operations
+   - Integration tests for API
    - Error case testing
