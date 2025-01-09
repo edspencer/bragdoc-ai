@@ -4,6 +4,15 @@ import { loadConfig, saveConfig } from '../config';
 import { validateRepository } from '../utils/git';
 import { Repository } from '../config/types';
 
+import { resolve } from 'path';
+
+/**
+ * Normalize a repository path to an absolute path
+ */
+export function normalizeRepoPath(path: string): string {
+  return resolve(path);
+}
+
 export const reposCommand = new Command('repos')
   .description('Manage repositories for bragdoc')
   .addCommand(
@@ -80,18 +89,19 @@ export async function listRepos() {
  */
 export async function addRepo(path: string = process.cwd(), options: { name?: string; maxCommits?: number } = {}) {
   const config = await loadConfig();
+  const absolutePath = normalizeRepoPath(path);
   
   // Validate repository
-  await validateRepository(path);
+  await validateRepository(absolutePath);
   
   // Check for duplicates
-  if (config.repositories.some(r => r.path === path)) {
+  if (config.repositories.some(r => r.path === absolutePath)) {
     throw new Error('Repository already exists in configuration');
   }
   
   // Add repository
   const newRepo: Repository = {
-    path,
+    path: absolutePath,
     name: options.name,
     enabled: true,
     maxCommits: options.maxCommits ? parseInt(options.maxCommits.toString(), 10) : undefined,
@@ -108,16 +118,17 @@ export async function addRepo(path: string = process.cwd(), options: { name?: st
  */
 export async function removeRepo(path: string = process.cwd()) {
   const config = await loadConfig();
+  const absolutePath = normalizeRepoPath(path);
   
-  const index = config.repositories.findIndex(r => r.path === path);
+  const index = config.repositories.findIndex(r => r.path === absolutePath);
   if (index === -1) {
     throw new Error('Repository not found in configuration');
   }
   
-  const removed = config.repositories.splice(index, 1)[0];
+  config.repositories.splice(index, 1);
   await saveConfig(config);
   
-  console.log(`Removed repository: ${formatRepo(removed, config.settings.defaultMaxCommits)}`);
+  console.log(`Removed repository: ${absolutePath}`);
 }
 
 /**
@@ -128,14 +139,20 @@ export async function updateRepo(
   options: { name?: string; maxCommits?: number } = {}
 ) {
   const config = await loadConfig();
+  const absolutePath = normalizeRepoPath(path);
   
-  const repo = config.repositories.find(r => r.path === path);
+  const repo = config.repositories.find(r => r.path === absolutePath);
   if (!repo) {
     throw new Error('Repository not found in configuration');
   }
   
-  if (options.name) repo.name = options.name;
-  if (options.maxCommits) repo.maxCommits = parseInt(options.maxCommits.toString(), 10);
+  if (options.name !== undefined) {
+    repo.name = options.name;
+  }
+  
+  if (options.maxCommits !== undefined) {
+    repo.maxCommits = parseInt(options.maxCommits.toString(), 10);
+  }
   
   await saveConfig(config);
   console.log(`Updated repository: ${formatRepo(repo, config.settings.defaultMaxCommits)}`);
@@ -146,8 +163,9 @@ export async function updateRepo(
  */
 export async function toggleRepo(path: string = process.cwd(), enabled: boolean) {
   const config = await loadConfig();
+  const absolutePath = normalizeRepoPath(path);
   
-  const repo = config.repositories.find(r => r.path === path);
+  const repo = config.repositories.find(r => r.path === absolutePath);
   if (!repo) {
     throw new Error('Repository not found in configuration');
   }
