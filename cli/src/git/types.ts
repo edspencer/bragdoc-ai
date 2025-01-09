@@ -1,5 +1,5 @@
 /**
- * Represents a single Git commit with optional PR information
+ * Type describing a single Git commit
  */
 export interface GitCommit {
   repository: string;
@@ -8,28 +8,13 @@ export interface GitCommit {
   author: string;
   date: string;
   branch: string;
-  pullRequest?: {
-    number: number;
-    title: string;
-    body: string;
-  };
 }
 
 /**
- * Options for git commit extraction
+ * Options for extracting commits
  */
 export interface ExtractionOptions {
-  branch?: string;
-  since?: string;
-  maxCommits?: number;
-  includePRs?: boolean;
-}
-
-/**
- * Represents a parsed PR reference from a commit message
- */
-export interface PullRequestRef {
-  number: number;
-  title?: string;
-  body?: string;
+  branch: string;
+  maxCommits: number;
+  repository: string;
 }

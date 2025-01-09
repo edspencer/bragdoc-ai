@@ -5,22 +5,20 @@ import { collectGitCommits } from '../git/operations';
 import { GitCommit } from '../git/types';
 
 /**
- * Sends the collected commits to the Bragdoc API.
+ * Send commits to the Bragdoc API
  */
 async function sendCommitsToBragDoc(
   commits: GitCommit[],
-  bragdocApiUrl: string,
+  apiUrl: string,
   apiToken: string
-) {
-  const payload = { commits };
-
-  const response = await fetch(`${bragdocApiUrl}/api/extract-from-commits`, {
+): Promise<void> {
+  const response = await fetch(`${apiUrl}/api/extract-from-commits`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
       'Authorization': `Bearer ${apiToken}`
     },
-    body: JSON.stringify(payload)
+    body: JSON.stringify({ commits })
   });
 
   if (!response.ok) {
@@ -29,19 +27,17 @@ async function sendCommitsToBragDoc(
       `Error from Bragdoc API (status ${response.status}): ${body}`
     );
   }
-
-  console.log('Commits sent successfully!');
 }
 
 export const extractCommand = new Command('extract')
-  .description('Extract commits from repositories')
+  .description('Extract commits from the current repository')
   .option('--branch <branch>', 'Git branch to read commits from', 'main')
   .option('--max-commits <number>', 'Number of commits to retrieve', '50')
   .option('--repo <name>', 'Label for this repository', '')
   .option('--api-token <token>', 'Bragdoc API token')
   .option(
     '--api-url <url>',
-    'Bragdoc API base URL (default: https://api.bragdoc.ai)',
+    'Bragdoc API base URL',
     'https://api.bragdoc.ai'
   )
   .action(async (options) => {
@@ -53,26 +49,31 @@ export const extractCommand = new Command('extract')
       apiUrl
     } = options;
 
-    // Make sure user provided an API token.
+    // Make sure user provided an API token
     if (!apiToken) {
       console.error('Error: Missing --api-token option.');
       process.exit(1);
     }
 
-    // Collect the Git commits locally.
-    // If --repo is not specified, use the current folder name by default.
-    const repositoryName = repo || path.basename(process.cwd());
-    const commits = await collectGitCommits(branch, parseInt(maxCommits, 10), repositoryName);
-
-    console.log(`Collected ${commits.length} commits from ${repositoryName} ...`);
-
-    // Send them up to the Bragdoc service.
     try {
+      // If --repo is not specified, use the current folder name
+      const repository = repo || path.basename(process.cwd());
+      
+      // Collect the Git commits
+      console.log(`Collecting commits from ${repository}...`);
+      const commits = collectGitCommits(
+        branch,
+        parseInt(maxCommits, 10),
+        repository
+      );
+      console.log(`Collected ${commits.length} commits.`);
+
+      // Send to Bragdoc API
+      console.log('Sending commits to Bragdoc...');
       await sendCommitsToBragDoc(commits, apiUrl, apiToken);
-    } catch (err: any) {
-      console.error(`Failed to send commits: ${err.message}`);
+      console.log('Done!');
+    } catch (error: any) {
+      console.error(`Error: ${error.message}`);
       process.exit(1);
     }
-
-    console.log('Done!');
   });

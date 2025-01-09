@@ -10,7 +10,6 @@ describe('git operations', () => {
   describe('collectGitCommits', () => {
     const mockExecSync = execSync as jest.MockedFunction<typeof execSync>;
     let tempDir: string;
-    const separator = '|||<<COMMIT_SEPARATOR>>|||';
 
     beforeEach(() => {
       // Create a temporary directory for each test
@@ -27,11 +26,11 @@ describe('git operations', () => {
     });
 
     it('should parse git log output correctly', () => {
-      // Mock git log output
+      // Mock git log output with null and unit separators
       const mockGitLog = [
-        `abc123${separator}Initial commit${separator}John Doe${separator}2024-01-09 10:00:00 -0500`,
-        `def456${separator}Add feature${separator}Jane Smith${separator}2024-01-09 11:00:00 -0500`
-      ].join(separator + '\n');
+        `abc123\x1fInitial commit\x1fJohn Doe\x1f2024-01-09 10:00:00 -0500\0`,
+        `def456\x1fAdd feature\x1fJane Smith\x1f2024-01-09 11:00:00 -0500\0`
+      ].join('');
 
       mockExecSync.mockReturnValue(Buffer.from(mockGitLog));
 
@@ -39,7 +38,7 @@ describe('git operations', () => {
 
       // Verify the git command
       expect(mockExecSync).toHaveBeenCalledWith(
-        `git log main --pretty=format:"%H${separator}%B${separator}%an${separator}%ai" --max-count=2`
+        'git log main --pretty=format:"%H%x1f%B%x1f%an%x1f%ai%x00" --max-count=2'
       );
 
       // Verify parsed commits
@@ -71,7 +70,7 @@ describe('git operations', () => {
     });
 
     it('should handle git log with empty lines', () => {
-      const mockGitLog = `\n\nabc123${separator}Initial commit${separator}John Doe${separator}2024-01-09 10:00:00 -0500\n\n`;
+      const mockGitLog = `\0\0abc123\x1fInitial commit\x1fJohn Doe\x1f2024-01-09 10:00:00 -0500\0\0`;
       mockExecSync.mockReturnValue(Buffer.from(mockGitLog));
 
       const commits = collectGitCommits('main', 1, 'test-repo');
@@ -81,7 +80,7 @@ describe('git operations', () => {
     });
 
     it('should handle multiline commit messages', () => {
-      const mockGitLog = `abc123${separator}First line\nSecond line\nThird line${separator}John Doe${separator}2024-01-09 10:00:00 -0500`;
+      const mockGitLog = `abc123\x1fFirst line\nSecond line\nThird line\x1fJohn Doe\x1f2024-01-09 10:00:00 -0500\0`;
       mockExecSync.mockReturnValue(Buffer.from(mockGitLog));
 
       const commits = collectGitCommits('main', 1, 'test-repo');
@@ -91,7 +90,7 @@ describe('git operations', () => {
     });
 
     it('should handle special characters in commit messages', () => {
-      const mockGitLog = `abc123${separator}Message with "quotes" and 'apostrophes'${separator}John Doe${separator}2024-01-09 10:00:00 -0500`;
+      const mockGitLog = `abc123\x1fMessage with "quotes" and 'apostrophes'\x1fJohn Doe\x1f2024-01-09 10:00:00 -0500\0`;
       mockExecSync.mockReturnValue(Buffer.from(mockGitLog));
 
       const commits = collectGitCommits('main', 1, 'test-repo');
@@ -107,16 +106,16 @@ describe('git operations', () => {
 
       expect(() => {
         collectGitCommits('main', 1, 'test-repo');
-      }).toThrow('fatal: not a git repository');
+      }).toThrow('Failed to extract commits: fatal: not a git repository');
     });
 
     it('should throw error on malformed git log entry', () => {
-      const mockGitLog = `abc123${separator}Incomplete entry`;
+      const mockGitLog = `abc123\x1fIncomplete entry\0`;
       mockExecSync.mockReturnValue(Buffer.from(mockGitLog));
 
       expect(() => {
         collectGitCommits('main', 1, 'test-repo');
-      }).toThrow('Invalid git log entry format');
+      }).toThrow('Failed to extract commits: Invalid git log entry format');
     });
   });
 });
