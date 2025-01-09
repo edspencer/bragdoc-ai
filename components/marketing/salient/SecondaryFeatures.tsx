@@ -180,7 +180,7 @@ function FeaturesDesktop() {
               />
             ))}
           </Tab.List>
-          <Tab.Panels className="relative mt-20 overflow-hidden rounded-4xl bg-slate-200 dark:bg-slate-800 px-14 py-16 xl:px-16">
+          <Tab.Panels className="hidden relative mt-20 overflow-hidden rounded-4xl bg-slate-200 dark:bg-slate-800 px-14 py-16 xl:px-16">
             <div className="-mx-5 flex">
               {features.map((feature, featureIndex) => (
                 <Tab.Panel

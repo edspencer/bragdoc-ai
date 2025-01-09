@@ -1,7 +1,6 @@
 'use client';
 
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
 import { useActionState, useEffect, useState } from 'react';
 import { toast } from 'sonner';
 
@@ -12,8 +11,6 @@ import { SocialAuthButtons } from '@/components/social-auth-buttons';
 import { register, type RegisterActionState } from '../actions';
 
 export default function Page() {
-  const router = useRouter();
-
   const [email, setEmail] = useState('');
   const [isSuccessful, setIsSuccessful] = useState(false);
 
@@ -34,9 +31,9 @@ export default function Page() {
     } else if (state.status === 'success') {
       toast.success('Account created successfully');
       setIsSuccessful(true);
-      router.refresh();
+      window.location.href = '/welcome';
     }
-  }, [state, router]);
+  }, [state]);
 
   const handleSubmit = (formData: FormData) => {
     setEmail(formData.get('email') as string);

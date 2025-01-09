@@ -4,6 +4,7 @@
 
 - [ ] Restore HowIntegrations component
 - [ ] Restore BragDocExamples component
+- [ ] Restore FeaturesDesktop component (SecondaryFeatures.tsx - hidden screenshots)
 
 ### User Preferences & Engagement
 
@@ -72,6 +73,12 @@
 - [ ] What happens when a project or company is deleted but it's referenced in an achievement?
 - [ ] Counts in bottom left nav don't update when things are added/deleted
 - [ ] Next Auth account linking doesn't work
+- [x] Account type switcher in settings looks bad on mobile/tablet
+- [x] Dark mode has some funk with logo and other places
+- [x] Email/password register does not redirect to /welcome
+- [x] Side nav should hide on navigation on mobile devices
+- [x] Screenshots at bottom of home page are hilariously wrong
+- [ ] LLM-generated testimonials are lies and should be removed
 
 ## Tech Debt
 

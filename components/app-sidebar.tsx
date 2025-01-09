@@ -2,7 +2,6 @@
 
 import type { User } from 'next-auth';
 import { useRouter } from 'next/navigation';
-import Image from 'next/image';
 
 import { PlusIcon } from '@/components/icons';
 import { SidebarHistory } from '@/components/sidebar-history';
@@ -35,14 +34,9 @@ export function AppSidebar({ user }: { user: User | undefined }) {
               }}
               className="flex flex-row gap-3 items-center"
             >
-              <Image
-                src="/images/logo/logo-transparent-svg.svg"
-                alt="bragdoc.ai"
-                width={120}
-                height={48}
-                className="h-12 w-auto -ml-4"
-                priority
-              />
+              <span className="font-geist text-2xl font-bold tracking-tight text-slate-600 dark:text-indigo-400">
+                bragdoc.ai
+              </span>
             </Link>
             <Tooltip>
               <TooltipTrigger asChild>

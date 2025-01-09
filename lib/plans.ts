@@ -59,7 +59,8 @@ export const plans: Plan[] = [
       'Basic usage limits',
       'Achievement tracking',
       'Document generation',
-      'Dark mode',
+      'Company tracking',
+      'Project tracking',
     ],
   },
   {

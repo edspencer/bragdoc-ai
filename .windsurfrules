@@ -15,11 +15,12 @@ Note that not all features are implemented yet, but the core idea is to help use
 - Write concise, technical TypeScript code with accurate examples
 - Prefer iteration and modularization over code duplication
 - Structure repository files as follows:
+
 ```
 ├── PLAN.md                   # Scratch file for planning and executing an unit of work
 ├── README.md                 # Project README
+├── FEATURES.md               # Contains a list of features supported by the project
 ├── TODO.md                   # TODO List file
-├── TODAY.md                  # Keeps track of the set of things we want to work on today, in order
 ├── ai-docs/                  # Documentation and examples for you to refer to
 ├── app/
 │   ├── (auth)/               # Auth UI and API
