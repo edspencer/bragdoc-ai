@@ -5,6 +5,41 @@ import { collectGitCommits } from '../git/operations';
 import { GitCommit } from '../git/types';
 
 /**
+ * Format a commit for display in dry-run mode
+ */
+function formatCommit(commit: GitCommit): string {
+  const hashShort = commit.hash.slice(0, 7);
+  const messageFirstLine = commit.message.split('\n')[0];
+  const date = new Date(commit.date).toLocaleDateString();
+  
+  return [
+    `${hashShort} - ${date} - ${commit.author}`,
+    `  ${messageFirstLine}`,
+    commit.message.split('\n').slice(1)
+      .map(line => `  ${line}`)
+      .join('\n'),
+  ].filter(Boolean).join('\n');
+}
+
+/**
+ * Display commits that would be sent to the API
+ */
+function displayDryRun(commits: GitCommit[]): void {
+  console.log('\nDry run mode - commits that would be sent to API:');
+  console.log('================================================');
+  console.log(`Found ${commits.length} commits in ${commits[0]?.repository || 'repository'}\n`);
+  
+  commits.forEach((commit, index) => {
+    console.log(formatCommit(commit));
+    if (index < commits.length - 1) {
+      console.log(''); // Add blank line between commits
+    }
+  });
+  
+  console.log('\nNo changes were sent to the API (dry-run mode)');
+}
+
+/**
  * Send commits to the Bragdoc API
  */
 async function sendCommitsToBragDoc(
@@ -40,17 +75,23 @@ export const extractCommand = new Command('extract')
     'Bragdoc API base URL',
     'https://api.bragdoc.ai'
   )
+  .option(
+    '--dry-run',
+    'Show commits that would be sent without making API call',
+    false
+  )
   .action(async (options) => {
     const {
       branch,
       maxCommits,
       repo,
       apiToken,
-      apiUrl
+      apiUrl,
+      dryRun
     } = options;
 
-    // Make sure user provided an API token
-    if (!apiToken) {
+    // Only require API token if not in dry-run mode
+    if (!dryRun && !apiToken) {
       console.error('Error: Missing --api-token option.');
       process.exit(1);
     }
@@ -66,12 +107,15 @@ export const extractCommand = new Command('extract')
         parseInt(maxCommits, 10),
         repository
       );
-      console.log(`Collected ${commits.length} commits.`);
 
-      // Send to Bragdoc API
-      console.log('Sending commits to Bragdoc...');
-      await sendCommitsToBragDoc(commits, apiUrl, apiToken);
-      console.log('Done!');
+      if (dryRun) {
+        displayDryRun(commits);
+      } else {
+        console.log(`Collected ${commits.length} commits.`);
+        console.log('Sending commits to Bragdoc...');
+        await sendCommitsToBragDoc(commits, apiUrl, apiToken);
+        console.log('Done!');
+      }
     } catch (error: any) {
       console.error(`Error: ${error.message}`);
       process.exit(1);
