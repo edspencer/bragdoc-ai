@@ -83,3 +83,36 @@ Implemented a browser-based authentication flow for the CLI tool, similar to how
 2. Add token management UI to web interface
 3. Add token refresh mechanism if needed
 4. Add tests for CLI authentication commands
+
+## 2025-01-09: CLI Authentication and Logging Improvements
+
+### Authentication Flow
+- Fixed the CLI authentication flow to properly handle the token exchange
+- Server now listens on all interfaces (0.0.0.0) with CORS enabled
+- Set fixed port (5556) for more reliable local server connection
+- Improved server startup and browser opening sequence
+- Added proper state parameter validation for security
+- Fixed token handling and storage in config
+
+### Logging System
+- Implemented Winston logger for structured logging
+- Created hierarchical log levels:
+  - debug: Internal debugging details
+  - info: Progress information
+  - warn: Warning messages
+  - error: Error conditions
+- Added file-based logging:
+  - All logs go to `~/.bragdoc/logs/combined.log`
+  - Errors separately logged to `~/.bragdoc/logs/error.log`
+- Console output maintains user-friendly colored messages
+- Log level configurable via LOG_LEVEL environment variable
+
+### Code Organization
+- Separated server startup logic from main login flow
+- Improved error handling with detailed debug logs
+- Added TypeScript type checking for auth configuration
+
+### Next Steps
+- [ ] Implement Git repository detection
+- [ ] Add commit history extraction
+- [ ] Support time-limited history based on configuration

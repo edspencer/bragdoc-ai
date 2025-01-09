@@ -157,21 +157,22 @@ async function status() {
     const auth = config.auth as AuthConfig;
     
     if (!auth?.token || !auth?.expiresAt) {
-      logger.warn('Not authenticated');
+      console.log(chalk.yellow('Not authenticated'));
       return;
     }
     
     const expiresIn = Math.floor((auth.expiresAt - Date.now()) / (1000 * 60 * 60 * 24));
     if (expiresIn <= 0) {
-      logger.warn('Authentication expired');
+      console.log(chalk.yellow('Authentication expired'));
       return;
     }
-    
-    logger.info('Authenticated');
-    logger.info(`Token expires in ${expiresIn} days`);
+
+    console.log(chalk.green('Authenticated'));
+    console.log(chalk.gray(`Token expires in ${expiresIn} days`));
   } catch (error) {
     logger.error('Failed to check auth status');
     logger.debug('Error details:', error);
+    console.error(chalk.red('Failed to check auth status'));
     process.exit(1);
   }
 }
