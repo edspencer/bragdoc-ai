@@ -1,10 +1,13 @@
 import fs from 'fs/promises';
 import { Dirent } from 'fs';
 import path from 'path';
-import { getCommitsCacheDir, ensureConfigDir } from '../config';
+import { ensureConfigDir } from '../config';
+import { getCommitsCacheDir } from '../config/paths';
+import logger from '../utils/logger'; // Assuming logger is defined in this file
 
 export class CommitCache {
   private readonly cacheDir: string;
+  private cachedHashes: Map<string, Set<string>> = new Map();
 
   constructor() {
     this.cacheDir = getCommitsCacheDir();
@@ -44,6 +47,15 @@ export class CommitCache {
 
       if (newHashes.length === 0) return;
 
+      // Update in-memory cache
+      const repoHashes = this.cachedHashes.get(repoName) || new Set();
+      newHashes.forEach(hash => repoHashes.add(hash));
+      this.cachedHashes.set(repoName, repoHashes);
+
+      logger.debug(`Cache path: ${cachePath}`);
+      logger.debug(`Existing hashes: ${existing.length}`);
+      logger.debug(`New hashes: ${newHashes.length}`);
+
       // Append new hashes
       await fs.appendFile(cachePath, newHashes.join('\n') + '\n', 'utf-8');
     } catch (error: any) {
@@ -56,7 +68,18 @@ export class CommitCache {
    */
   async has(repoName: string, commitHash: string): Promise<boolean> {
     try {
+      // Check in-memory cache first
+      const repoHashes = this.cachedHashes.get(repoName);
+      if (repoHashes) {
+        return repoHashes.has(commitHash);
+      }
+
+      // Load from file if not in memory
       const hashes = await this.list(repoName);
+      
+      // Cache in memory for future lookups
+      this.cachedHashes.set(repoName, new Set(hashes));
+      
       return hashes.includes(commitHash);
     } catch (error: any) {
       if (error.code === 'ENOENT') return false;
@@ -68,10 +91,21 @@ export class CommitCache {
    * List all cached commit hashes for a repository
    */
   async list(repoName: string): Promise<string[]> {
+    // Check in-memory cache first
+    const repoHashes = this.cachedHashes.get(repoName);
+    if (repoHashes) {
+      return Array.from(repoHashes);
+    }
+
     const cachePath = this.getCachePath(repoName);
     try {
       const content = await fs.readFile(cachePath, 'utf-8');
-      return content.split('\n').filter(Boolean); // Filter out empty lines
+      const hashes = content.split('\n').filter(Boolean);
+      
+      // Cache in memory for future lookups
+      this.cachedHashes.set(repoName, new Set(hashes));
+      
+      return hashes;
     } catch (error: any) {
       if (error.code === 'ENOENT') return [];
       throw new Error(`Failed to read cache: ${error?.message || 'Unknown error'}`);
@@ -87,13 +121,18 @@ export class CommitCache {
         // Clear specific repository cache
         const cachePath = this.getCachePath(repoName);
         try {
+          logger.debug(`Deleting cache file: ${cachePath}`);
           await fs.unlink(cachePath);
         } catch (error: any) {
           if (error.code !== 'ENOENT') throw error;
         }
+        
+        // Clear in-memory cache
+        this.cachedHashes.delete(repoName);
       } else {
         // Clear all repository caches
         try {
+          logger.debug(`Clearing all cache files in directory: ${this.cacheDir}`);
           const files = await fs.readdir(this.cacheDir) as (string | Dirent)[];
           await Promise.all(
             files.map(file => 
@@ -105,6 +144,9 @@ export class CommitCache {
         } catch (error: any) {
           if (error.code !== 'ENOENT') throw error;
         }
+        
+        // Clear in-memory cache
+        this.cachedHashes.clear();
       }
     } catch (error: any) {
       throw new Error(`Failed to clear cache: ${error?.message || 'Unknown error'}`);
@@ -133,6 +175,7 @@ export class CommitCache {
       let totalCommits = 0;
 
       try {
+        logger.debug(`Getting stats for all repositories in directory: ${this.cacheDir}`);
         const files = await fs.readdir(this.cacheDir) as (string | Dirent)[];
         await Promise.all(
           files.map(async file => {

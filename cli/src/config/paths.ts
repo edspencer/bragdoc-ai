@@ -1,41 +1,43 @@
-import os from 'os';
-import path from 'path';
+import { homedir } from 'os';
+import { join } from 'path';
+
+import { BragdocConfig } from './types';
 
 /**
- * Get the global .bragdoc directory path
- * This is where we store configuration, cache, and other global data
+ * Get the path to the bragdoc config directory
  */
-export function getGlobalDir(): string {
-  const homeDir = os.homedir();
-  return path.join(homeDir, '.bragdoc');
+export function getConfigDir(): string {
+  return join(homedir(), '.bragdoc');
 }
 
-/**
- * Get the path to the global config file
- */
-export function getConfigPath(): string {
-  return path.join(getGlobalDir(), 'config.yml');
+export function getLogsDir(): string {
+  return join(getConfigDir(), 'logs');
 }
 
 /**
  * Get the path to the cache directory
  */
-export function getCachePath(): string {
-  return path.join(getGlobalDir(), 'cache');
+export function getCacheDir(): string {
+  return join(getConfigDir(), 'cache');
 }
 
 /**
- * Ensure all required directories exist
+ * Get the path to the commits cache directory
  */
-export async function ensureDirectories(): Promise<void> {
-  const fs = await import('fs/promises');
-  const dirs = [
-    getGlobalDir(),
-    getCachePath(),
-    path.join(getCachePath(), 'commits')
-  ];
+export function getCommitsCacheDir(): string {
+  return join(getCacheDir(), 'commits');
+}
 
-  await Promise.all(
-    dirs.map(dir => fs.mkdir(dir, { recursive: true }))
-  );
+/**
+ * Get the path to the config file
+ */
+export function getConfigPath(): string {
+  return join(getConfigDir(), 'config.yml');
+}
+
+/**
+ * Get the API base URL from config or use default
+ */
+export function getApiBaseUrl(config: BragdocConfig): string {
+  return config.settings.apiBaseUrl || 'https://www.bragdoc.ai';
 }

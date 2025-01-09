@@ -60,23 +60,17 @@ describe('CLI Commits API Route', () => {
 
   const testCommits = {
     repository: {
-      name: 'test-repo',
+      remoteUrl: 'https://github.com/test/test-repo.git',
+      currentBranch: 'main',
       path: '/path/to/repo',
     },
     commits: [
       {
         hash: '123abc',
         message: 'feat: implement new feature',
-        author: {
-          name: 'Test User',
-          email: 'test@example.com',
-        },
+        author: 'Test User <test@example.com>',
         date: new Date().toISOString(),
-        prDetails: {
-          title: 'Add new feature',
-          description: 'Implements the new feature with tests',
-          number: 123,
-        },
+        branch: 'main',
       },
     ],
   };
@@ -140,8 +134,11 @@ describe('CLI Commits API Route', () => {
       expect(data.processedCount).toBe(1);
       expect(data.achievements).toHaveLength(1);
       expect(data.achievements[0]).toMatchObject({
-        title: mockAchievement.title,
-        userId: testUser.id,
+        description: mockAchievement.summary || mockAchievement.title,
+        source: {
+          type: 'commit',
+          hash: testCommits.commits[0].hash,
+        },
       });
     });
 

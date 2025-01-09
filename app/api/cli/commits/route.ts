@@ -9,22 +9,16 @@ import { getProjectsByUserId } from '@/lib/db/projects/queries';
 // Validate request body
 const requestSchema = z.object({
   repository: z.object({
-    name: z.string(),
+    remoteUrl: z.string(),
+    currentBranch: z.string(),
     path: z.string(),
   }),
   commits: z.array(z.object({
     hash: z.string(),
     message: z.string(),
-    author: z.object({
-      name: z.string(),
-      email: z.string(),
-    }),
+    author: z.string(),
     date: z.string(),
-    prDetails: z.object({
-      title: z.string(),
-      description: z.string(),
-      number: z.number(),
-    }).optional(),
+    branch: z.string(),
   })).max(100, 'Maximum 100 commits per request'),
 });
 
@@ -59,7 +53,23 @@ export async function POST(req: Request) {
       );
     }
 
-    const history: RepositoryCommitHistory = result.data;
+    const history: RepositoryCommitHistory = {
+      repository: {
+        name: result.data.repository.remoteUrl.split('/').pop()?.replace(/\.git$/, '') || 'unknown',
+        path: result.data.repository.path,
+      },
+      commits: result.data.commits.map(commit => ({
+        hash: commit.hash,
+        message: commit.message,
+        author: {
+          name: commit.author.split('<')[0].trim(),
+          email: commit.author.match(/<(.+?)>/)?.[1] || '',
+        },
+        date: commit.date,
+        prDetails: undefined,
+      })),
+    };
+
     console.log(
       `Processing ${history.commits.length} commits from repository ${history.repository.name}`
     );
@@ -94,7 +104,17 @@ export async function POST(req: Request) {
         impact: achievement.impact,
         impactSource: 'llm',
       });
-      achievements.push(savedAchievement);
+
+      // Format achievement for CLI response
+      achievements.push({
+        id: savedAchievement.id,
+        description: savedAchievement.summary || savedAchievement.title,
+        date: savedAchievement.createdAt.toISOString(),
+        source: {
+          type: 'commit',
+          hash: history.commits[0].hash,
+        },
+      });
     }
 
     return NextResponse.json({

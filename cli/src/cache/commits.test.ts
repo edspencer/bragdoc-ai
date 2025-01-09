@@ -2,7 +2,8 @@ import fs from 'fs/promises';
 import { Dirent } from 'fs';
 import path from 'path';
 import { CommitCache } from './commits';
-import { getCommitsCacheDir, ensureConfigDir } from '../config';
+import { ensureConfigDir } from '../config';
+import { getCommitsCacheDir } from '../config/paths';
 
 // Mock fs/promises
 jest.mock('fs/promises');
@@ -10,8 +11,11 @@ const mockFs = fs as jest.Mocked<typeof fs>;
 
 // Mock config functions
 jest.mock('../config', () => ({
-  getCommitsCacheDir: jest.fn(() => '/mock/.bragdoc/cache/commits'),
   ensureConfigDir: jest.fn(),
+}));
+
+jest.mock('../config/paths', () => ({
+  getCommitsCacheDir: jest.fn(() => '/mock/.bragdoc/cache/commits'),
 }));
 
 // Helper to create mock Dirent objects

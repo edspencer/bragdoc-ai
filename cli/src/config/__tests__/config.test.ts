@@ -2,7 +2,8 @@ import { homedir } from 'os';
 import { join } from 'path';
 import * as fs from 'fs/promises';
 import { parse, stringify } from 'yaml';
-import { loadConfig, saveConfig, getConfigDir, getConfigPath, ensureConfigDir } from '../index';
+import { loadConfig, saveConfig,  ensureConfigDir } from '../index';
+import { getConfigDir, getConfigPath } from '../paths';
 import { BragdocConfig, DEFAULT_CONFIG } from '../types';
 
 // Mock fs/promises

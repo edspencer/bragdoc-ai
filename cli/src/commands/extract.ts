@@ -4,7 +4,8 @@ import { collectGitCommits, getRepositoryInfo } from '../git/operations';
 import { GitCommit, BragdocPayload, RepositoryInfo } from '../git/types';
 import { processInBatches, type BatchConfig } from '../git/batching';
 import { CommitCache } from '../cache/commits';
-import { loadConfig, getApiBaseUrl } from '../config';
+import { loadConfig } from '../config';
+import { getApiBaseUrl } from '../config/paths';
 import logger from '../utils/logger';
 
 /**
@@ -117,7 +118,7 @@ export const extractCommand = new Command('extract')
       apiUrl: overrideApiUrl,
       dryRun,
       batchSize,
-      cache: useCache
+      noCache
     } = options;
 
     try {
@@ -171,8 +172,8 @@ export const extractCommand = new Command('extract')
         return;
       }
 
-      // Initialize commit cache
-      const cache = useCache ? new CommitCache() : null;
+      // Initialize commit cache if not disabled
+      const cache = !noCache ? new CommitCache() : null;
       
       // Filter out cached commits
       let commitsToProcess = commits;
@@ -211,6 +212,8 @@ export const extractCommand = new Command('extract')
           const processedHashes = commitsToProcess
             .slice(0, result.processedCount)
             .map((c) => c.hash);
+          logger.debug(`Adding ${processedHashes.length} commits to cache for repository ${repository}`);
+          logger.debug(`Commit hashes: ${processedHashes.join(', ')}`);
           await cache.add(repository, processedHashes);
         }
 

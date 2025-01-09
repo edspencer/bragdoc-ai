@@ -1,6 +1,6 @@
 import * as winston from 'winston';
 import * as path from 'path';
-import { getConfigDir } from '../config';
+import { getLogsDir } from '../config/paths';
 
 // Define log levels
 const levels = {
@@ -30,7 +30,8 @@ const format = winston.format.combine(
   )
 );
 
-const logDir = path.join(getConfigDir(), 'logs');
+//TODO: wtf... this suddenly started to not work.
+// const logDir = getLogsDir()
 
 // Create logger
 const logger = winston.createLogger({
@@ -41,16 +42,16 @@ const logger = winston.createLogger({
     new winston.transports.Console({
       level: process.env.LOG_LEVEL || 'info',
     }),
-    // Write all errors to error.log
-    new winston.transports.File({
-      filename: path.join(logDir, 'error.log'),
-      level: 'error',
-    }),
-    // Write all logs to combined.log
-    new winston.transports.File({
-      filename: path.join(logDir, 'combined.log'),
-      level: 'debug'
-    }),
+    // // Write all errors to error.log
+    // new winston.transports.File({
+    //   filename: path.join(logDir, 'error.log'),
+    //   level: 'error',
+    // }),
+    // // Write all logs to combined.log
+    // new winston.transports.File({
+    //   filename: path.join(logDir, 'combined.log'),
+    //   level: 'debug'
+    // }),
   ],
 });
 
