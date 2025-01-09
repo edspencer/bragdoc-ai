@@ -23,8 +23,21 @@ const BASE_URL = process.env.BRAGDOC_URL || 'https://ngrok.edspencer.net';
  */
 async function startAuthServer(state: string, deviceName: string): Promise<TokenResponse> {
   return new Promise((resolve, reject) => {
-    // Find an available port
+    console.log(chalk.blue('Starting local server...'));
     const server = createServer((req, res) => {
+      // Enable CORS for the browser to connect
+      res.setHeader('Access-Control-Allow-Origin', '*');
+      res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
+      res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+
+      // Handle preflight requests
+      if (req.method === 'OPTIONS') {
+        res.writeHead(200);
+        res.end();
+        return;
+      }
+
+      console.log(chalk.blue(`Received ${req.method} request`));
       if (req.method === 'POST') {
         let body = '';
         req.on('data', chunk => {
@@ -32,22 +45,22 @@ async function startAuthServer(state: string, deviceName: string): Promise<Token
         });
         req.on('end', async () => {
           try {
-            const response = await fetch(`${BASE_URL}/api/cli/token`, {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ state, deviceName }),
-            });
+            console.log(chalk.blue('Received body:', body));
+            const { token, state: receivedState } = JSON.parse(body);
             
-            if (!response.ok) {
-              throw new Error(`HTTP error! status: ${response.status}`);
+            console.log(chalk.blue('Comparing states:', { expected: state, received: receivedState }));
+            // Verify state parameter
+            if (state !== receivedState) {
+              throw new Error('Invalid state parameter');
             }
             
-            const data = await response.json() as TokenResponse;
             res.writeHead(200);
             res.end('OK');
             server.close();
-            resolve(data);
+            console.log(chalk.green('Successfully received token'));
+            resolve({ token, expiresAt: Date.now() + 30 * 24 * 60 * 60 * 1000 });
           } catch (err) {
+            console.error(chalk.red('Error processing request:', err));
             res.writeHead(400);
             res.end('Invalid request');
             reject(err);
@@ -57,9 +70,19 @@ async function startAuthServer(state: string, deviceName: string): Promise<Token
         res.writeHead(405);
         res.end('Method not allowed');
       }
-    }).listen(0); // Let the OS assign a random port
+    });
+
+    // Listen on all interfaces
+    server.listen(5556, '0.0.0.0', () => {
+      const address = server.address();
+      if (!address || typeof address === 'string') {
+        throw new Error('Failed to start server');
+      }
+      console.log(chalk.blue(`Server listening on port ${address.port}`));
+    });
 
     server.on('error', (err) => {
+      console.error(chalk.red('Server error:', err));
       reject(err);
     });
   });
@@ -78,29 +101,19 @@ async function login() {
     // Get device name
     const deviceName = await getDeviceName();
     
-    // Create and start server
-    const server = createServer();
-    const serverPromise = new Promise<number>((resolve) => {
-      server.listen(0, () => {
-        const address = server.address();
-        if (!address || typeof address === 'string') {
-          throw new Error('Failed to start server');
-        }
-        resolve(address.port);
-      });
-    });
-    
-    const port = await serverPromise;
+    // Start server
+    console.log(chalk.blue('Starting local server...'));
+    const tokenPromise = startAuthServer(state, deviceName);
     
     // Open browser
-    const authUrl = `${BASE_URL}/cli-auth?state=${state}&port=${port}`;
+    const authUrl = `${BASE_URL}/cli-auth?state=${state}&port=5556`;
     console.log(chalk.blue('Opening browser for authentication...'));
     const open = await import('open');
     await open.default(authUrl);
     
     // Wait for token
     console.log(chalk.blue('Waiting for authentication to complete...'));
-    const { token, expiresAt } = await startAuthServer(state, deviceName);
+    const { token, expiresAt } = await tokenPromise;
     
     // Save tokens
     const config = await loadConfig();

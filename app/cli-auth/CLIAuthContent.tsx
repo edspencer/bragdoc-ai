@@ -18,11 +18,14 @@ export function CLIAuthContent({ state, port }: CLIAuthContentProps) {
   useEffect(() => {
     const authenticate = async () => {
       try {
+        console.log('CLIAuthContent - Starting authentication with:', { state, port });
         if (!state || !port) {
+          console.error('CLIAuthContent - Missing parameters:', { state, port });
           throw new Error("Missing required parameters");
         }
 
         // Generate CLI token
+        console.log('CLIAuthContent - Generating token...');
         const response = await fetch("/api/cli/token", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -33,18 +36,26 @@ export function CLIAuthContent({ state, port }: CLIAuthContentProps) {
         });
 
         if (!response.ok) {
+          console.error('CLIAuthContent - Failed to generate token:', response.status);
           throw new Error("Failed to generate token");
         }
 
         const { token } = await response.json();
+        console.log('CLIAuthContent - Token generated, sending to CLI...');
 
         // Send token to CLI's local server
-        await fetch(`http://localhost:${port}`, {
+        const cliResponse = await fetch(`http://localhost:${port}`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ token, state }),
         });
 
+        if (!cliResponse.ok) {
+          console.error('CLIAuthContent - Failed to send token to CLI:', cliResponse.status);
+          throw new Error("Failed to send token to CLI");
+        }
+
+        console.log('CLIAuthContent - Successfully sent token to CLI');
         setStatus("success");
 
         // Auto-close window after success
@@ -52,6 +63,7 @@ export function CLIAuthContent({ state, port }: CLIAuthContentProps) {
           window.close();
         }, 3000);
       } catch (err) {
+        console.error('CLIAuthContent - Authentication failed:', err);
         setStatus("error");
         setError(err instanceof Error ? err.message : "Unknown error occurred");
       }
