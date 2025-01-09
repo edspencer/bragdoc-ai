@@ -1,186 +1,137 @@
-# CLI Authentication Implementation Plan
+# CLI Achievement Extraction API Implementation Plan
 
 ## Overview
-Plan for implementing browser-based authentication flow for the bragdoc CLI tool, integrating with NextAuth.js backend.
 
-## 1. User Experience Flow
+Implement API endpoint to receive and process git commits from the CLI tool, extracting achievements and storing them in the database. The CLI will handle batching of commits, while the API enforces a strict limit on commits per request.
 
-### 1.1 CLI Side
-```bash
-$ bragdoc login
-> Opening browser for authentication...
-> Waiting for authentication to complete...
-> Successfully authenticated! You can close the browser tab.
-```
+## Implementation Steps
 
-### 1.2 Browser Side
-1. Browser opens to `https://bragdoc.ai/cli-auth?state={state}&port={port}`
-2. User sees loading state with spinner
-3. If not logged in:
-   - Redirects to normal login page
-   - After login, returns to cli-auth page
-4. Once authenticated:
-   - Shows success message with checkmark
-   - "CLI Successfully Authenticated"
-   - "You can close this window and return to your terminal"
-   - Window auto-closes after 3 seconds
+### 1. API Endpoint Creation
 
-## 2. Technical Implementation
+- Create `/api/cli/commits` endpoint in Next.js app
+- Implement POST method to receive repository commit history
+- Add CLI token validation middleware
+- Add request body validation using Zod
+- Enforce strict limit of 100 commits per request
 
-### 2.1 CLI Authentication Flow
-```mermaid
-sequenceDiagram
-    participant CLI
-    participant LocalServer
-    participant Browser
-    participant BragdocAPI
+### 2. Request/Response Types
 
-    CLI->>LocalServer: Start server on random port
-    CLI->>Browser: Open /cli-auth?state=xyz&port=54321
-    Browser->>BragdocAPI: GET /cli-auth
-    Note over Browser: If not logged in
-    Browser->>BragdocAPI: Complete login flow
-    BragdocAPI->>BragdocAPI: Generate CLI token
-    Browser->>LocalServer: POST token via JavaScript
-    LocalServer->>CLI: Pass token
-    CLI->>CLI: Save to config.yml
-    Browser->>Browser: Show success & auto-close
-```
-
-### 2.2 CLI Auth Page Implementation
 ```typescript
-// app/cli-auth/page.tsx
-export default function CLIAuthPage() {
-  const [status, setStatus] = useState<'pending' | 'success'>('pending');
-  
-  useEffect(() => {
-    const authenticate = async () => {
-      // 1. Get URL params
-      const { state, port } = getURLParams();
-      
-      // 2. Generate CLI token
-      const token = await generateCLIToken({
-        deviceName: getDeviceName(),
-        userId: session.user.id
-      });
-      
-      // 3. Send to CLI's local server
-      await fetch(`http://localhost:${port}`, {
-        method: 'POST',
-        body: JSON.stringify({ token, state })
-      });
-      
-      // 4. Update UI
-      setStatus('success');
-      
-      // 5. Auto-close window
-      setTimeout(() => window.close(), 3000);
+interface RepositoryCommitHistory {
+  repository: {
+    name: string;
+    path: string;
+  };
+  commits: Array<{
+    hash: string;
+    message: string;
+    author: {
+      name: string;
+      email: string;
     };
-    
-    authenticate();
-  }, []);
-  
-  return (
-    <div className="flex min-h-screen items-center justify-center">
-      {status === 'pending' && (
-        <div className="text-center">
-          <Spinner />
-          <h1>Authenticating CLI...</h1>
-        </div>
-      )}
-      
-      {status === 'success' && (
-        <div className="text-center">
-          <CheckIcon className="text-green-500 w-16 h-16 mx-auto" />
-          <h1 className="text-2xl font-bold mt-4">
-            CLI Successfully Authenticated
-          </h1>
-          <p className="text-gray-600 mt-2">
-            You can close this window and return to your terminal.
-          </p>
-        </div>
-      )}
-    </div>
-  );
+    date: string;
+    prDetails?: {
+      title: string;
+      description: string;
+      number: number;
+    };
+  }>;
+}
+
+interface ProcessingResponse {
+  processedCount: number;
+  achievements: Array<{
+    id: string;
+    description: string;
+    date: string;
+    source: {
+      type: 'commit' | 'pr';
+      hash?: string;
+      prNumber?: number;
+    };
+  }>;
+  errors?: Array<{
+    commit: string;
+    error: string;
+  }>;
 }
 ```
 
-### 2.3 Token Management
-```typescript
-// lib/db/cli-tokens.ts
-interface CLIToken {
-  id: string;
-  userId: string;
-  token: string;
-  deviceName: string;
-  lastUsedAt: Date;
-  expiresAt: Date;
-}
+### 3. Database Updates
 
-async function generateCLIToken({
-  userId,
-  deviceName,
-}: {
-  userId: string;
-  deviceName: string;
-}): Promise<string> {
-  const token = crypto.randomBytes(32).toString('hex');
-  const expiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000); // 30 days
-  
-  await db.insert(cliTokens).values({
-    id: crypto.randomUUID(),
-    userId,
-    token,
-    deviceName,
-    expiresAt,
-  });
-  
-  return token;
-}
-```
+- Add source tracking for achievements
+  - Add `source_type` enum ('commit', 'pr', 'chat')
+  - Add `source_data` JSONB field for metadata
+- Add commit hash tracking table
+  - Store processed commit hashes
+  - Link to resulting achievements
 
-## 3. Implementation Steps
+### 4. Achievement Extraction Logic
 
-1. Frontend Changes:
-   - Create `/cli-auth` page with loading and success states
-   - Implement token generation and local server communication
-   - Add device name detection
-   - Style success/error messages
+- Reuse existing achievement extraction logic from chat
+- Adapt prompts for git commit context
+- Add special handling for PR descriptions
+- Process commits in context:
+  - Include surrounding commit context for better understanding
+  - Group related commits (e.g., same PR or related changes)
+  - Handle duplicate detection
 
-2. CLI Auth Command:
-   - Implement local HTTP server
-   - Add state parameter generation
-   - Handle token storage in config
-   - Add timeout handling (5 min max wait)
+### 5. CLI Updates
 
-3. Database:
-   - Add cli_tokens table
-   - Add token management functions
-   - Add token revocation endpoints
+- Implement client-side batching:
 
-## 4. Security Considerations
+  ```typescript
+  interface BatchConfig {
+    maxCommitsPerBatch: number; // Default: 100
+    contextWindow: number; // Number of commits for context
+  }
 
-- Local server only accepts localhost connections
-- State parameter prevents CSRF
-- Short server lifetime (closes after token received)
-- Random port assignment prevents conflicts
-- Device tracking for token management
-- Secure token storage in config
+  async function* extractInBatches(commits: Commit[], config: BatchConfig) {
+    const batches = [];
+    for (let i = 0; i < commits.length; i += config.maxCommitsPerBatch) {
+      const batch = commits.slice(i, i + config.maxCommitsPerBatch);
+      try {
+        const result = await sendToAPI(batch);
+        // Update local cache only after successful processing
+        await updateProcessedCommitsCache(batch.map((c) => c.hash));
+        yield result;
+      } catch (error) {
+        console.error(
+          `Failed to process batch ${i}-${i + batch.length}`,
+          error
+        );
+        throw error;
+      }
+    }
+  }
+  ```
 
-## 5. Testing Plan
+- Implement local caching of processed commits
+- Add progress reporting to user
+- Handle API errors and retries
 
-1. Unit Tests:
-   - Token generation and validation
-   - Config file management
-   - Device name detection
+### 6. Testing
 
-2. Integration Tests:
-   - Complete auth flow
-   - Login requirement handling
-   - Network error cases
-   - Timeout scenarios
+- Add comprehensive test suite
+  - Token validation
+  - Request validation
+  - Commit limit enforcement
+  - Achievement extraction
+  - Error handling
+  - CLI batching and caching
+- Add Braintrust eval for commit-based achievement extraction
 
-3. Security Tests:
-   - CSRF protection
-   - Local server security
-   - Token storage security
+### 7. Documentation
+
+- Update API documentation
+- Add examples for CLI usage
+- Document commit limits and batching behavior
+
+## Next Steps
+
+1. Implement database schema changes
+2. Create API endpoint with validation and limits
+3. Adapt achievement extraction
+4. Implement CLI batching
+5. Add tests
+6. Update documentation
