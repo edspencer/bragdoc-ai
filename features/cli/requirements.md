@@ -114,9 +114,8 @@ interface BragdocConfig {
 
 # Authentication
 auth:
-  accessToken: "jwt_access_token_here"
-  refreshToken: "jwt_refresh_token_here"
-  expiresAt: 1672531200  # Unix timestamp
+  token: string        # CLI authentication token
+  expires_at: number   # Unix timestamp for expiration
 
 # Repository Management
 repositories:
@@ -253,98 +252,56 @@ settings:
 
 #### CLI Authentication Flow
 
-1. **Initial Authentication**:
-   - User runs `bragdoc login`
-   - CLI starts a local HTTP server on an available port
-   - CLI requests an auth URL from `https://bragdoc.ai/api/auth/cli`
-   - Browser opens to the auth URL
-   - If user is already logged in to bragdoc.ai, token is immediately returned
-   - Otherwise, user completes normal login flow
-   - Token is returned to local CLI server
-   - CLI saves token in `~/.bragdoc/config.json`
+1. **Browser Authentication**:
+   - When user runs `bragdoc login`, CLI opens default browser
+   - Browser loads `/cli-auth` page with state parameter
+   - If user not logged in, redirects to normal login flow
+   - After authentication, page shows success message
+   - Token automatically sent to CLI via local callback server
 
-2. **Token Storage**:
-   ```typescript
-   interface BragdocConfig {
-     accessToken: string;
-     refreshToken: string;
-     expiresAt: number;
-   }
-   ```
-   - Tokens stored in `~/.bragdoc/config.json`
-   - File permissions set to user-only read/write
-   - Tokens are JWTs with CLI-specific claims
-   - Access tokens valid for 30 days
-   - Refresh tokens valid for 90 days
-
-3. **Token Refresh**:
-   - Check token expiration before each API call
-   - If token expires within 24 hours, attempt refresh
-   - Use refresh token to get new access token
-   - Update stored tokens in config file
-   - If refresh fails, prompt for re-authentication
-
-4. **Logout Flow**:
-   - User runs `bragdoc logout`
-   - Revoke tokens on server
-   - Delete local config file
-   - Clear any in-memory token state
-
-#### Required API Endpoints
-
-1. **CLI Authentication**:
-   ```typescript
-   POST /api/auth/cli
-   Request: { callbackPort: number }
-   Response: { url: string }
+2. **Token Management**:
+   ```yaml
+   # ~/.bragdoc/config.yml
+   auth:
+     token: string        # CLI authentication token
+     expires_at: number   # Unix timestamp for expiration
    ```
 
-2. **CLI Token Exchange**:
-   ```typescript
-   GET /api/auth/cli/callback
-   Query: { state: string, code: string }
-   Response: {
-     accessToken: string,
-     refreshToken: string,
-     expiresAt: number
-   }
-   ```
-
-3. **Token Refresh**:
-   ```typescript
-   POST /api/auth/cli/refresh
-   Headers: { Authorization: "Bearer ${refreshToken}" }
-   Response: {
-     accessToken: string,
-     refreshToken: string,
-     expiresAt: number
-   }
+3. **CLI Auth Commands**:
+   ```bash
+   # Login via browser
+   bragdoc login
+   
+   # Check auth status
+   bragdoc auth status
+   
+   # Logout/remove token
+   bragdoc logout
    ```
 
 4. **Token Revocation**:
-   ```typescript
-   POST /api/auth/cli/revoke
-   Headers: { Authorization: "Bearer ${accessToken}" }
-   ```
+   - Users can revoke CLI access from web UI
+   - Lists all active CLI tokens with device names
+   - Shows last used timestamp for each token
 
 #### Security Considerations
 
 1. **Token Security**:
-   - Use JWTs with appropriate expiration
-   - Include CLI-specific audience claim
-   - Store tokens with appropriate file permissions
+   - Use long-lived (30 day) revocable tokens
+   - Store tokens securely in config file
+   - Track device information for each token
    - Never log or display tokens
 
 2. **State Validation**:
-   - Generate cryptographically secure state token
+   - Generate cryptographically secure state parameter
    - Validate state in callback to prevent CSRF
    - Use short-lived state tokens (5 minute max)
 
 3. **Error Handling**:
    - Clear error messages for auth failures
-   - Automatic retry with exponential backoff
-   - Graceful handling of network issues
+   - Graceful handling of browser/network issues
    - Clear guidance for re-authentication
+   - Timeout after 5 minutes if browser flow not completed
 
 ## Future Improvements
 

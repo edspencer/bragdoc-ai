@@ -1,192 +1,186 @@
-# Implementation Plan: Git Commit Extraction
+# CLI Authentication Implementation Plan
 
-## Phase 1: Core Git Extraction Module
+## Overview
+Plan for implementing browser-based authentication flow for the bragdoc CLI tool, integrating with NextAuth.js backend.
 
-### 1. Git Extraction Types and Interfaces
-Location: `cli/src/git/types.ts`
+## 1. User Experience Flow
 
-```typescript
-interface GitCommit {
-  hash: string;
-  message: string;
-  author: string;
-  date: string;
-  repository: string;
-  branch: string;
-  pullRequest?: {
-    number: number;
-    title: string;
-    body: string;
-  };
-}
-
-interface ExtractionOptions {
-  branch?: string;
-  since?: string;
-  maxCommits?: number;
-  includePRs?: boolean;
-}
+### 1.1 CLI Side
+```bash
+$ bragdoc login
+> Opening browser for authentication...
+> Waiting for authentication to complete...
+> Successfully authenticated! You can close the browser tab.
 ```
 
-### 2. Git Operations Module
-Location: `cli/src/git/operations.ts`
+### 1.2 Browser Side
+1. Browser opens to `https://bragdoc.ai/cli-auth?state={state}&port={port}`
+2. User sees loading state with spinner
+3. If not logged in:
+   - Redirects to normal login page
+   - After login, returns to cli-auth page
+4. Once authenticated:
+   - Shows success message with checkmark
+   - "CLI Successfully Authenticated"
+   - "You can close this window and return to your terminal"
+   - Window auto-closes after 3 seconds
 
-Core functions:
-```typescript
-// Get commits from a repository with options
-async function getCommits(repoPath: string, options: ExtractionOptions): Promise<GitCommit[]>;
+## 2. Technical Implementation
 
-// Extract PR information from commit messages if available
-async function extractPRDetails(commit: GitCommit): Promise<GitCommit>;
+### 2.1 CLI Authentication Flow
+```mermaid
+sequenceDiagram
+    participant CLI
+    participant LocalServer
+    participant Browser
+    participant BragdocAPI
 
-// Parse git log output into structured data
-function parseGitLog(output: string, repoName: string): GitCommit[];
-
-// Validate time range format (e.g., "30d", "6m", "1y")
-function validateTimeRange(timeRange: string): boolean;
-
-// Convert time range to git-compatible date
-function timeRangeToDate(timeRange: string): string;
+    CLI->>LocalServer: Start server on random port
+    CLI->>Browser: Open /cli-auth?state=xyz&port=54321
+    Browser->>BragdocAPI: GET /cli-auth
+    Note over Browser: If not logged in
+    Browser->>BragdocAPI: Complete login flow
+    BragdocAPI->>BragdocAPI: Generate CLI token
+    Browser->>LocalServer: POST token via JavaScript
+    LocalServer->>CLI: Pass token
+    CLI->>CLI: Save to config.yml
+    Browser->>Browser: Show success & auto-close
 ```
 
-## Phase 2: Command Implementation
-
-### 1. Extract Command
-Location: `cli/src/commands/extract.ts`
-
-1. Command Structure:
+### 2.2 CLI Auth Page Implementation
 ```typescript
-program
-  .command('extract')
-  .description('Extract commits from repositories')
-  .option('-b, --branch <branch>', 'Git branch to extract from', 'main')
-  .option('-t, --time-range <range>', 'Time range to extract (e.g., 30d, 6m, 1y)', '30d')
-  .option('-m, --max-commits <number>', 'Maximum commits to extract')
-  .option('--include-prs', 'Include pull request details', false)
-  .option('-r, --repository <path>', 'Specific repository to extract from')
-  .action(extractCommand);
-```
-
-2. Implementation:
-```typescript
-async function extractCommand(options: ExtractOptions) {
-  const config = await loadConfig();
-  const repositories = options.repository 
-    ? [{ path: options.repository }] 
-    : config.repositories.filter(r => r.enabled);
-
-  for (const repo of repositories) {
-    const commits = await getCommits(repo.path, {
-      branch: options.branch,
-      since: options.timeRange,
-      maxCommits: options.maxCommits || repo.maxCommits || config.settings.defaultMaxCommits,
-      includePRs: options.includePrs
-    });
-
-    await sendCommitsBatch(commits, config.settings.maxCommitsPerBatch);
-  }
-}
-```
-
-### 2. API Integration
-Location: `cli/src/api/commits.ts`
-
-```typescript
-// Send commits in batches to avoid overwhelming the API
-async function sendCommitsBatch(
-  commits: GitCommit[], 
-  batchSize: number
-): Promise<void>;
-
-// Handle API responses and errors
-function handleApiResponse(
-  response: Response, 
-  commits: GitCommit[]
-): Promise<void>;
-```
-
-## Phase 3: Caching and Performance
-
-### 1. Commit Cache
-Location: `cli/src/cache/commits.ts`
-
-```typescript
-interface CommitCache {
-  lastExtracted: string;
-  commits: Map<string, GitCommit>;
-}
-
-// Cache management functions
-async function saveToCache(commits: GitCommit[]): Promise<void>;
-async function loadFromCache(): Promise<CommitCache>;
-async function clearCache(): Promise<void>;
-```
-
-### 2. Performance Optimizations
-- Implement parallel processing for multiple repositories
-- Use streaming for large git logs
-- Implement rate limiting for API requests
-- Cache API responses
-
-## Phase 4: Error Handling and Logging
-
-### 1. Error Types
-Location: `cli/src/errors.ts`
-
-```typescript
-class GitExtractionError extends Error {
-  constructor(message: string, public readonly cause?: Error) {
-    super(message);
-  }
-}
-
-class ApiError extends Error {
-  constructor(message: string, public readonly statusCode: number) {
-    super(message);
-  }
+// app/cli-auth/page.tsx
+export default function CLIAuthPage() {
+  const [status, setStatus] = useState<'pending' | 'success'>('pending');
+  
+  useEffect(() => {
+    const authenticate = async () => {
+      // 1. Get URL params
+      const { state, port } = getURLParams();
+      
+      // 2. Generate CLI token
+      const token = await generateCLIToken({
+        deviceName: getDeviceName(),
+        userId: session.user.id
+      });
+      
+      // 3. Send to CLI's local server
+      await fetch(`http://localhost:${port}`, {
+        method: 'POST',
+        body: JSON.stringify({ token, state })
+      });
+      
+      // 4. Update UI
+      setStatus('success');
+      
+      // 5. Auto-close window
+      setTimeout(() => window.close(), 3000);
+    };
+    
+    authenticate();
+  }, []);
+  
+  return (
+    <div className="flex min-h-screen items-center justify-center">
+      {status === 'pending' && (
+        <div className="text-center">
+          <Spinner />
+          <h1>Authenticating CLI...</h1>
+        </div>
+      )}
+      
+      {status === 'success' && (
+        <div className="text-center">
+          <CheckIcon className="text-green-500 w-16 h-16 mx-auto" />
+          <h1 className="text-2xl font-bold mt-4">
+            CLI Successfully Authenticated
+          </h1>
+          <p className="text-gray-600 mt-2">
+            You can close this window and return to your terminal.
+          </p>
+        </div>
+      )}
+    </div>
+  );
 }
 ```
 
-### 2. Logging Module
-Location: `cli/src/utils/logger.ts`
-
+### 2.3 Token Management
 ```typescript
-interface LogOptions {
-  level: 'debug' | 'info' | 'warn' | 'error';
-  timestamp: boolean;
-  prefix?: string;
+// lib/db/cli-tokens.ts
+interface CLIToken {
+  id: string;
+  userId: string;
+  token: string;
+  deviceName: string;
+  lastUsedAt: Date;
+  expiresAt: Date;
 }
 
-function createLogger(options: LogOptions): Logger;
+async function generateCLIToken({
+  userId,
+  deviceName,
+}: {
+  userId: string;
+  deviceName: string;
+}): Promise<string> {
+  const token = crypto.randomBytes(32).toString('hex');
+  const expiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000); // 30 days
+  
+  await db.insert(cliTokens).values({
+    id: crypto.randomUUID(),
+    userId,
+    token,
+    deviceName,
+    expiresAt,
+  });
+  
+  return token;
+}
 ```
 
-## Implementation Order
+## 3. Implementation Steps
 
-1. Core Git Operations
-   - Basic commit extraction
-   - Time range parsing
-   - Git log parsing
+1. Frontend Changes:
+   - Create `/cli-auth` page with loading and success states
+   - Implement token generation and local server communication
+   - Add device name detection
+   - Style success/error messages
 
-2. Command Structure
-   - Extract command implementation
-   - Options handling
-   - Configuration integration
+2. CLI Auth Command:
+   - Implement local HTTP server
+   - Add state parameter generation
+   - Handle token storage in config
+   - Add timeout handling (5 min max wait)
 
-3. API Integration
-   - Batch processing
-   - Error handling
-   - Rate limiting
+3. Database:
+   - Add cli_tokens table
+   - Add token management functions
+   - Add token revocation endpoints
 
-4. Caching Layer
-   - Cache implementation
-   - Performance optimizations
+## 4. Security Considerations
 
-5. Error Handling & Logging
-   - Error types
-   - Logging system
-   - User feedback
+- Local server only accepts localhost connections
+- State parameter prevents CSRF
+- Short server lifetime (closes after token received)
+- Random port assignment prevents conflicts
+- Device tracking for token management
+- Secure token storage in config
 
-6. Testing
-   - Unit tests for git operations
-   - Integration tests for API
-   - Error case testing
+## 5. Testing Plan
+
+1. Unit Tests:
+   - Token generation and validation
+   - Config file management
+   - Device name detection
+
+2. Integration Tests:
+   - Complete auth flow
+   - Login requirement handling
+   - Network error cases
+   - Timeout scenarios
+
+3. Security Tests:
+   - CSRF protection
+   - Local server security
+   - Token storage security
