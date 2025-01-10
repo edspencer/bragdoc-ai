@@ -48,10 +48,6 @@ jobs:
           PGUSER: postgres
           PGPASSWORD: postgres
           PGDATABASE: bragai-test
-
-      - name: Run migrations
-        run: pnpm db:migrate
-        env:
           POSTGRES_URL: postgresql://postgres:postgres@localhost:5432/bragai-test
 
       - name: Run tests
