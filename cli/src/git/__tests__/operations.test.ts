@@ -85,7 +85,7 @@ describe('git operations', () => {
 
       // Verify the git command
       expect(mockExecSync).toHaveBeenCalledWith(
-        'git log main --pretty=format:"%H%x1f%B%x1f%an%x1f%ai%x00" --max-count=2'
+        'git log main --reverse --pretty=format:\"%H%x1f%B%x1f%an%x1f%ai%x00\" --max-count=2'
       );
 
       // Verify parsed commits

@@ -95,7 +95,7 @@ describe('Batching Logic', () => {
     expect(lastBatchBody.commits).toHaveLength(1);
 
     // Verify debug logs
-    expect(logger.debug).toHaveBeenCalledWith(
+    expect(logger.info).toHaveBeenCalledWith(
       expect.stringContaining('Processing 5 commits in 3 batches')
     );
   });
