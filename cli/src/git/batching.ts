@@ -2,7 +2,7 @@ import type { GitCommit, BragdocPayload, RepositoryInfo } from './types';
 import logger from '../utils/logger';
 
 export interface BatchConfig {
-  maxCommitsPerBatch: number; // Default: 100
+  maxCommitsPerBatch: number; // Default: 10
   contextWindow?: number; // Number of commits for context
   maxRetries?: number; // Maximum number of retries per batch
   retryDelayMs?: number; // Delay between retries in milliseconds
@@ -25,7 +25,7 @@ export async function* processInBatches(
   const retryDelayMs = config.retryDelayMs || 1000;
   const totalBatches = Math.ceil(commits.length / batchSize);
 
-  logger.debug(`Processing ${commits.length} commits in ${totalBatches} batches`);
+  logger.info(`Processing ${commits.length} commits in ${totalBatches} batches`);
   logger.debug(`Batch config: size=${batchSize}, maxRetries=${maxRetries}, retryDelay=${retryDelayMs}ms`);
 
   for (let batchNum = 0; batchNum < totalBatches; batchNum++) {
@@ -35,7 +35,7 @@ export async function* processInBatches(
 
     // Log progress
     logger.info(
-      `Processing batch ${batchNum + 1}/${totalBatches} (${batchCommits.length} commits)...`
+      `\nProcessing batch ${batchNum + 1}/${totalBatches} (${batchCommits.length} commits)...`
     );
 
     let lastError: Error | null = null;

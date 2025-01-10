@@ -33,7 +33,7 @@ export const DEFAULT_CONFIG: BragdocConfig = {
   repositories: [],
   settings: {
     defaultTimeRange: '30d',
-    maxCommitsPerBatch: 100,
+    maxCommitsPerBatch: 10,
     defaultMaxCommits: 300,
     cacheEnabled: true,
   },

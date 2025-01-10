@@ -61,35 +61,10 @@ function displayDryRun(payload: BragdocPayload): void {
   console.log('\nNo changes were sent to the API (dry-run mode)');
 }
 
-/**
- * Send commits to the Bragdoc API
- */
-async function sendCommitsToBragDoc(
-  payload: BragdocPayload,
-  apiUrl: string,
-  apiToken: string
-): Promise<void> {
-  const response = await fetch(`${apiUrl}/api/extract-from-commits`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${apiToken}`
-    },
-    body: JSON.stringify(payload)
-  });
-
-  if (!response.ok) {
-    const body = await response.text();
-    throw new Error(
-      `Error from Bragdoc API (status ${response.status}): ${body}`
-    );
-  }
-}
-
 export const extractCommand = new Command('extract')
   .description('Extract commits from the current repository')
   .option('--branch <branch>', 'Git branch to read commits from')
-  .option('--max-commits <number>', 'Number of commits to retrieve', '10')
+  .option('--max-commits <number>', 'Number of commits to retrieve', '100')
   .option('--repo <n>', 'Label for this repository', '')
   .option(
     '--api-url <url>',
@@ -103,7 +78,7 @@ export const extractCommand = new Command('extract')
   .option(
     '--batch-size <number>',
     'Maximum number of commits per API request',
-    '100'
+    '10'
   )
   .option(
     '--no-cache',
