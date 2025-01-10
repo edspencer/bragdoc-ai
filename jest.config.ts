@@ -19,7 +19,7 @@ const config = {
   },
   transformIgnorePatterns: [`!node_modules/(?!${esModules})`],
   maxWorkers: process.env.CI || process.env.IDE_TEST ? 1 : '50%',
-  // runInBand: !!(process.env.CI || process.env.IDE_TEST ),
+  runInBand: !!(process.env.CI || process.env.IDE_TEST),
   clearMocks: true,
 
   // Force exit after all tests complete

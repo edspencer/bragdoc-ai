@@ -1,6 +1,6 @@
 import { v4 as uuidv4 } from 'uuid';
 import { db } from '@/lib/db';
-import { user, cliToken } from '@/lib/db/schema';
+import { user, cliToken, project } from '@/lib/db/schema';
 import { POST } from '@/app/api/cli/token/route';
 import { eq } from 'drizzle-orm';
 import { NextRequest } from 'next/server';
@@ -21,13 +21,17 @@ describe('CLI Token API Routes', () => {
   };
 
   beforeEach(async () => {
+    // Delete all related records first
     await db.delete(cliToken);
+    await db.delete(project);
     await db.delete(user);
     await db.insert(user).values(testUser);
   });
 
   afterEach(async () => {
+    // Delete all related records first
     await db.delete(cliToken);
+    await db.delete(project);
     await db.delete(user);
   });
 
