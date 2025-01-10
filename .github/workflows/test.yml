@@ -22,10 +22,6 @@ jobs:
           --health-timeout 5s
           --health-retries 5
 
-    strategy:
-      matrix:
-        node-version: [20]
-
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -35,17 +31,26 @@ jobs:
         with:
           version: 9
 
-      - name: Use Node.js ${{ matrix.node-version }}
+      - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: ${{ matrix.node-version }}
+          node-version: 20
           cache: 'pnpm'
 
       - name: Install dependencies
         run: pnpm install
 
-      - name: Run migrations
+      - name: Run test setup
         run: pnpm test:setup
+        env:
+          PGHOST: localhost
+          PGPORT: 5432
+          PGUSER: postgres
+          PGPASSWORD: postgres
+          PGDATABASE: bragai-test
+
+      - name: Run migrations
+        run: pnpm db:migrate
         env:
           PGHOST: localhost
           PGPORT: 5432
