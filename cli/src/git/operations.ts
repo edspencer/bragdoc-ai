@@ -70,29 +70,43 @@ export function collectGitCommits(
 }
 
 /**
+ * Extract repository name from remote URL
+ */
+export function getRepositoryName(remoteUrl: string): string {
+  try {
+    // Handle SSH URLs (git@github.com:user/repo.git)
+    if (remoteUrl.startsWith('git@')) {
+      const match = remoteUrl.match(/git@[^:]+:([^\/]+)\/([^\.]+)(\.git)?$/);
+      if (match) {
+        return `${match[1]}/${match[2]}`;
+      }
+    }
+
+    // Handle HTTPS URLs (https://github.com/user/repo.git)
+    if (remoteUrl.startsWith('http')) {
+      const match = remoteUrl.match(/https?:\/\/[^\/]+\/([^\/]+)\/([^\.]+)(\.git)?$/);
+      if (match) {
+        return `${match[1]}/${match[2]}`;
+      }
+    }
+
+    // If we can't parse the URL, use it as is (sanitized)
+    return remoteUrl.replace(/[^a-zA-Z0-9-]/g, '_');
+  } catch (error) {
+    // If anything goes wrong, return a sanitized version of the URL
+    return remoteUrl.replace(/[^a-zA-Z0-9-]/g, '_');
+  }
+}
+
+/**
  * Get the name of the current repository from the remote URL or directory name
  */
 export async function getCurrentRepoName(): Promise<string> {
   try {
     const repoInfo = getRepositoryInfo();
-    
-    // Try to extract name from remote URL first
-    const remoteUrl = repoInfo.remoteUrl;
-    if (remoteUrl) {
-      // Handle SSH URLs like 'git@github.com:owner/repo.git'
-      if (remoteUrl.includes('@')) {
-        const match = remoteUrl.match(/[:/]([^/]+)\/([^/]+?)(?:\.git)?$/);
-        if (match) return match[2];
-      }
-      
-      // Handle HTTPS URLs like 'https://github.com/owner/repo.git'
-      const urlMatch = remoteUrl.match(/\/([^/]+?)(?:\.git)?$/);
-      if (urlMatch) return urlMatch[1];
-    }
-    
-    // Fallback to directory name
-    return repoInfo.path.split('/').pop() || 'unknown-repo';
-  } catch (error: any) {
-    throw new Error(`Failed to get repository name: ${error.message}`);
+    return getRepositoryName(repoInfo.remoteUrl);
+  } catch (error) {
+    // If we can't get the repository info, use the current directory name
+    return process.cwd().split('/').pop() || '';
   }
 }

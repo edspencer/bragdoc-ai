@@ -1,6 +1,6 @@
 import { Command } from 'commander';
 import path from 'path';
-import { collectGitCommits, getRepositoryInfo } from '../git/operations';
+import { collectGitCommits, getRepositoryInfo, getRepositoryName } from '../git/operations';
 import { GitCommit, BragdocPayload, RepositoryInfo } from '../git/types';
 import { processInBatches, type BatchConfig } from '../git/batching';
 import { CommitCache } from '../cache/commits';
@@ -140,14 +140,14 @@ export const extractCommand = new Command('extract')
       
       logger.debug(`Using API base URL: ${apiUrl}`);
 
-      // If --repo is not specified, use the current folder name
-      const repository = repo || path.basename(process.cwd());
-      
       // Get repository info
       const repoInfo = getRepositoryInfo(process.cwd());
       
       // Use current branch if none specified
       const branchToUse = branch || repoInfo.currentBranch;
+      
+      // Use provided repo name or extract from remote URL
+      const repository = repo || getRepositoryName(repoInfo.remoteUrl);
       
       // Collect the Git commits
       logger.info(`Collecting commits from ${repository} (branch: ${branchToUse})...`);
