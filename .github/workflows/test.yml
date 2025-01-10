@@ -43,29 +43,17 @@ jobs:
       - name: Run test setup
         run: pnpm test:setup
         env:
-          PGHOST: localhost
-          PGPORT: 5432
-          PGUSER: postgres
-          PGPASSWORD: postgres
-          PGDATABASE: bragai-test
+          POSTGRES_URL: postgresql://postgres:postgres@localhost:5432/bragai-test
 
       - name: Run migrations
         run: pnpm db:migrate
         env:
-          PGHOST: localhost
-          PGPORT: 5432
-          PGUSER: postgres
-          PGPASSWORD: postgres
-          PGDATABASE: bragai-test
+          POSTGRES_URL: postgresql://postgres:postgres@localhost:5432/bragai-test
 
       - name: Run tests
         run: pnpm test
         env:
-          PGHOST: localhost
-          PGPORT: 5432
-          PGUSER: postgres
-          PGPASSWORD: postgres
-          PGDATABASE: bragai-test
+          POSTGRES_URL: postgresql://postgres:postgres@localhost:5432/bragai-test
 
   cli-test:
     name: Run CLI Tests
