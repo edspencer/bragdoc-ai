@@ -15,6 +15,13 @@
       "when": 1736451935777,
       "tag": "0001_fat_komodo",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1736519698569,
+      "tag": "0002_yummy_rhino",
+      "breakpoints": true
     }
   ]
 }

@@ -7,7 +7,7 @@ import {
   POST as shareDocument,
   DELETE as unshareDocument,
 } from '@/app/api/documents/[id]/share/route';
-import { document, user, company } from '@/lib/db/schema';
+import { document, user, company, project } from '@/lib/db/schema';
 import { auth } from '@/app/(auth)/auth';
 import { eq } from 'drizzle-orm';
 import { NextRequest } from 'next/server';
@@ -43,6 +43,7 @@ describe('Documents API', () => {
 
     // Clean up any existing data
     await db.delete(document);
+    await db.delete(project);
     await db.delete(company);
     await db.delete(user);
 

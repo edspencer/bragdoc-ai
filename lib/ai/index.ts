@@ -14,6 +14,7 @@ export const customModel = (apiIdentifier: string = defaultModel) => {
 
 export const extractAchievementsModel = customModel('gpt-4o-mini');
 export const chatModel = customModel('gpt-4o');
+export const findExistingProjectModel = customModel('gpt-4o-mini');
 
 // import { google } from '@ai-sdk/google';
     // model: customModel("gpt-4o"),

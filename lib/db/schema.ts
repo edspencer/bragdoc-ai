@@ -104,6 +104,7 @@ export const project = pgTable('Project', {
   status: varchar('status', { length: 32 }).notNull().default('active'),
   startDate: timestamp('start_date').notNull(),
   endDate: timestamp('end_date'),
+  repoRemoteUrl: varchar('repo_remote_url', { length: 256 }),
   createdAt: timestamp('created_at').notNull().defaultNow(),
   updatedAt: timestamp('updated_at').notNull().defaultNow(),
 });

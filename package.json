@@ -7,7 +7,7 @@
     "build": "next build",
     "build:OLDVERSION": "tsx lib/db/migrate && next build",
     "start": "next start",
-    "test:setup": "tsx test/setup.ts && drizzle-kit push --config=drizzle.config.test.ts && drizzle-kit migrate --config=drizzle.config.test.ts",
+    "test:setup": "tsx test/setup.ts && drizzle-kit push --config=drizzle.config.test.ts",
     "test:push": "drizzle-kit push --config=drizzle.config.test.ts",
     "test": "pnpm test:setup && jest",
     "test:ide": "IDE_TEST=true pnpm test:setup && IDE_TEST=true jest",

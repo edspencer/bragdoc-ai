@@ -4,7 +4,7 @@ import { extractFromCommits } from '@/lib/ai/extractFromCommits';
 import { db } from '@/lib/db';
 import { RepositoryCommitHistory } from '@/types/commits';
 import { getCompaniesByUserId, createAchievement, validateCLIToken } from '@/lib/db/queries';
-import { getProjectsByUserId } from '@/lib/db/projects/queries';
+import { getProjectsByUserId, ensureProject } from '@/lib/db/projects/queries';
 
 // Validate request body
 const requestSchema = z.object({
@@ -53,11 +53,31 @@ export async function POST(req: Request) {
       );
     }
 
-    const history: RepositoryCommitHistory = {
-      repository: {
-        name: result.data.repository.remoteUrl.split('/').pop()?.replace(/\.git$/, '') || 'unknown',
-        path: result.data.repository.path,
-      },
+    const repository = {
+      name: result.data.repository.remoteUrl.split('/').pop()?.replace(/\.git$/, '') || 'unknown',
+      path: result.data.repository.path,
+    };
+
+    // Ensure we have a project for this repository
+    const { projectId } = await ensureProject({
+      userId,
+      remoteUrl: result.data.repository.remoteUrl,
+      repositoryName: repository.name,
+    });
+
+    // Get user's companies and projects for context
+    const [companies, projects] = await Promise.all([
+      getCompaniesByUserId({ userId }),
+      getProjectsByUserId(userId),
+    ]);
+
+    console.log(
+      `Processing ${result.data.commits.length} commits from repository ${repository.name}`
+    );
+
+    // Extract achievements
+    const achievements = [];
+    for await (const achievement of extractFromCommits({
       commits: result.data.commits.map(commit => ({
         hash: commit.hash,
         message: commit.message,
@@ -68,23 +88,7 @@ export async function POST(req: Request) {
         date: commit.date,
         prDetails: undefined,
       })),
-    };
-
-    console.log(
-      `Processing ${history.commits.length} commits from repository ${history.repository.name}`
-    );
-
-    // Get user's companies and projects for context
-    const [companies, projects] = await Promise.all([
-      getCompaniesByUserId({ userId }),
-      getProjectsByUserId(userId),
-    ]);
-
-    // Extract achievements
-    const achievements = [];
-    for await (const achievement of extractFromCommits({
-      commits: history.commits,
-      repository: history.repository,
+      repository,
       context: {
         companies: companies as any,
         projects: projects as any,
@@ -112,13 +116,13 @@ export async function POST(req: Request) {
         date: savedAchievement.createdAt.toISOString(),
         source: {
           type: 'commit',
-          hash: history.commits[0].hash,
+          hash: result.data.commits[0].hash,
         },
       });
     }
 
     return NextResponse.json({
-      processedCount: history.commits.length,
+      processedCount: result.data.commits.length,
       achievements,
     });
   } catch (error) {

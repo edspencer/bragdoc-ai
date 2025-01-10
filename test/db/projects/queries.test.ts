@@ -1,6 +1,7 @@
-import { v4 as uuidv4 } from 'uuid';
 import { db } from '@/lib/db';
-import { user, company, project } from '@/lib/db/schema';
+import { project, user, company } from '@/lib/db/schema';
+import { eq } from 'drizzle-orm';
+import { v4 as uuidv4 } from 'uuid';
 import {
   getProjectsByUserId,
   getProjectById,
@@ -9,7 +10,12 @@ import {
   createProject,
   updateProject,
   deleteProject,
+  ensureProject,
 } from '@/lib/db/projects/queries';
+import * as fuzzyFind from '@/lib/db/projects/fuzzyFind';
+
+jest.mock('@/lib/db/projects/fuzzyFind');
+const mockFuzzyFind = fuzzyFind as jest.Mocked<typeof fuzzyFind>;
 
 describe('Project Queries', () => {
   // Generate unique test identifiers
@@ -239,6 +245,120 @@ describe('Project Queries', () => {
 
       const project = await getProjectById(testProject.id, testUser.id);
       expect(project).not.toBeNull();
+    });
+  });
+
+  describe('ensureProject', () => {
+    let testProject: any;
+    let fuzzyFindProject: jest.Mock;
+
+    beforeEach(async () => {
+      // Get the mock function
+      fuzzyFindProject = jest.requireMock('@/lib/db/projects/fuzzyFind').fuzzyFindProject;
+      fuzzyFindProject.mockReset();
+
+      // Clear all projects
+      await db.delete(project).where(eq(project.userId, testUser.id));
+      
+      // Create a test project
+      testProject = await createProject({
+        userId: testUser.id,
+        name: 'Test Project',
+        description: 'Test project description',
+        status: 'active',
+        startDate: new Date(),
+      });
+    });
+
+    it('returns existing project when remote URL matches', async () => {
+      // Update test project with remote URL
+      await db
+        .update(project)
+        .set({ repoRemoteUrl: 'git@github.com:edspencer/test-repo.git' })
+        .where(eq(project.id, testProject.id));
+
+      const result = await ensureProject({
+        userId: testUser.id,
+        remoteUrl: 'git@github.com:edspencer/test-repo.git',
+        repositoryName: 'test-repo',
+      });
+
+      expect(result.projectId).toBe(testProject.id);
+      expect(fuzzyFindProject).not.toHaveBeenCalled();
+
+      const foundProject = await getProjectById(result.projectId, testUser.id);
+      expect(foundProject).toBeTruthy();
+      expect(foundProject?.repoRemoteUrl).toBe('git@github.com:edspencer/test-repo.git');
+    });
+
+    it('creates new project when no match found', async () => {
+      mockFuzzyFind.fuzzyFindProject.mockResolvedValue(null);
+
+      const result = await ensureProject({
+        userId: testUser.id,
+        remoteUrl: 'git@github.com:edspencer/new-repo.git',
+        repositoryName: 'new-repo',
+      });
+
+      // Verify a new project was created
+      const newProject = await getProjectById(result.projectId, testUser.id);
+      expect(newProject).toBeTruthy();
+      expect(newProject?.name).toBe('new-repo');
+      expect(newProject?.repoRemoteUrl).toBe('git@github.com:edspencer/new-repo.git');
+      expect(newProject?.startDate).toBeTruthy();
+      expect(newProject?.status).toBe('active');
+      expect(fuzzyFindProject).toHaveBeenCalled();
+    });
+
+    it('updates existing project when fuzzy match found', async () => {
+      fuzzyFindProject.mockResolvedValue(testProject.id);
+
+      const result = await ensureProject({
+        userId: testUser.id,
+        remoteUrl: 'git@github.com:edspencer/matched-repo.git',
+        repositoryName: 'Test Project',
+      });
+
+      // Verify the existing project was updated
+      expect(result.projectId).toBe(testProject.id);
+      const updatedProject = await getProjectById(testProject.id, testUser.id);
+      expect(updatedProject?.repoRemoteUrl).toBe('git@github.com:edspencer/matched-repo.git');
+      expect(fuzzyFindProject).toHaveBeenCalled();
+    });
+
+    it('only considers projects from the correct user', async () => {
+      // Create a project with matching URL but different user
+      const otherUser = {
+        id: uuidv4(),
+        email: `other${testId}@example.com`,
+        name: `Other User ${testId}`,
+      };
+      await db.insert(user).values(otherUser);
+      
+      await createProject({
+        userId: otherUser.id,
+        name: 'Other User Project',
+        description: 'Project belonging to other user',
+        repoRemoteUrl: 'git@github.com:edspencer/test-repo.git',
+        status: 'active',
+        startDate: new Date(),
+      });
+
+      fuzzyFindProject.mockResolvedValue(null);
+
+      const result = await ensureProject({
+        userId: testUser.id,
+        remoteUrl: 'git@github.com:edspencer/test-repo.git',
+        repositoryName: 'test-repo',
+      });
+
+      // Should create new project since the existing one belongs to different user
+      const newProject = await getProjectById(result.projectId, testUser.id);
+      expect(newProject?.userId).toBe(testUser.id);
+      expect(newProject?.repoRemoteUrl).toBe('git@github.com:edspencer/test-repo.git');
+      expect(newProject?.startDate).toBeTruthy();
+      expect(newProject?.status).toBe('active');
+      expect(fuzzyFindProject).toHaveBeenCalled();
     });
   });
 

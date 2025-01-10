@@ -17,6 +17,12 @@ jest.mock('@/lib/ai/extractFromCommits', () => ({
   extractFromCommits: jest.fn(),
 }));
 
+import * as fuzzyFind from '@/lib/db/projects/fuzzyFind';
+
+jest.mock('@/lib/db/projects/fuzzyFind');
+const mockFuzzyFind = fuzzyFind as jest.Mocked<typeof fuzzyFind>;
+mockFuzzyFind.fuzzyFindProject.mockResolvedValue(null);
+
 describe('CLI Commits API Route', () => {
   const testUser = {
     id: uuidv4(),

@@ -1,6 +1,8 @@
 import { and, desc, eq, isNull } from 'drizzle-orm';
 import { db } from '@/lib/db';
 import { project, company, type Project, type Company } from '@/lib/db/schema';
+import { v4 as uuidv4 } from 'uuid';
+import { fuzzyFindProject } from './fuzzyFind';
 
 export type ProjectWithCompany = Omit<Project, 'companyId'> & {
   companyId: string | null;
@@ -15,6 +17,7 @@ export type CreateProjectInput = {
   status: 'active' | 'completed' | 'archived';
   startDate: Date;
   endDate?: Date | null;
+  repoRemoteUrl?: string;
 };
 
 export type UpdateProjectInput = Partial<Omit<CreateProjectInput, 'userId'>>;
@@ -35,6 +38,7 @@ export async function getProjectsByUserId(
       createdAt: project.createdAt,
       updatedAt: project.updatedAt,
       company: company,
+      repoRemoteUrl: project.repoRemoteUrl,
     })
     .from(project)
     .leftJoin(company, eq(project.companyId, company.id))
@@ -64,6 +68,7 @@ export async function getProjectById(
       createdAt: project.createdAt,
       updatedAt: project.updatedAt,
       company: company,
+      repoRemoteUrl: project.repoRemoteUrl,
     })
     .from(project)
     .leftJoin(company, eq(project.companyId, company.id))
@@ -94,6 +99,7 @@ export async function getProjectsByCompanyId(
       createdAt: project.createdAt,
       updatedAt: project.updatedAt,
       company: company,
+      repoRemoteUrl: project.repoRemoteUrl,
     })
     .from(project)
     .leftJoin(company, eq(project.companyId, company.id))
@@ -122,6 +128,7 @@ export async function getActiveProjects(
       createdAt: project.createdAt,
       updatedAt: project.updatedAt,
       company: company,
+      repoRemoteUrl: project.repoRemoteUrl,
     })
     .from(project)
     .leftJoin(company, eq(project.companyId, company.id))
@@ -179,4 +186,82 @@ export async function deleteProject(
     .where(and(eq(project.id, id), eq(project.userId, userId)))
     .returning();
   return results[0] || null;
+}
+
+/**
+ * Ensure a project exists for the given repository
+ */
+export async function ensureProject({
+  userId,
+  remoteUrl,
+  repositoryName,
+}: {
+  userId: string;
+  remoteUrl: string;
+  repositoryName: string;
+}): Promise<{ projectId: string }> {
+  console.log(`Ensure project for ${repositoryName} (${remoteUrl})`);
+
+  // First check if we already have a project with this remote URL
+  const [existingProject] = await db
+    .select()
+    .from(project)
+    .where(
+      and(
+        eq(project.userId, userId),
+        eq(project.repoRemoteUrl, remoteUrl)
+      )
+    )
+    .limit(1);
+
+  if (existingProject) {
+    console.log(`Found existing project ${existingProject.id}`);
+
+    return { projectId: existingProject.id };
+  }
+
+  // Get all projects for this user that don't have a remote URL set
+  const projects = await db
+    .select()
+    .from(project)
+    .where(
+      and(
+        eq(project.userId, userId),
+        isNull(project.repoRemoteUrl)
+      )
+    );
+
+  if (projects.length > 0) {
+    const matchingProjectId = await fuzzyFindProject(repositoryName, projects);
+
+    if (matchingProjectId) {
+      // Update the matching project with the remote URL
+      await db
+        .update(project)
+        .set({ repoRemoteUrl: remoteUrl })
+        .where(eq(project.id, matchingProjectId));
+
+      console.log(`Found matching project ${matchingProjectId}, set remote URL`);
+      
+      return { projectId: matchingProjectId };
+    }
+  }
+
+  // Create a new project
+  const [newProject] = await db
+    .insert(project)
+    .values({
+      id: uuidv4(),
+      userId,
+      name: repositoryName,
+      description: `Project for ${repositoryName} repository`,
+      status: 'active',
+      startDate: new Date(),
+      repoRemoteUrl: remoteUrl,
+    })
+    .returning();
+
+  console.log(`Created new project ${newProject.id}`);
+
+  return { projectId: newProject.id };
 }

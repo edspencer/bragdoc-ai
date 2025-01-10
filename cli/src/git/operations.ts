@@ -37,7 +37,7 @@ export function collectGitCommits(
   try {
     // Get commit hash and full message (title + body).
     // Use %x00 as a commit separator and %x1f as a field separator
-    const logCommand = `git log ${branch} --pretty=format:"%H%x1f%B%x1f%an%x1f%ai%x00" --max-count=${maxCommits}`;
+    const logCommand = `git log ${branch} --reverse --pretty=format:"%H%x1f%B%x1f%an%x1f%ai%x00" --max-count=${maxCommits}`;
     const output = execSync(logCommand).toString();
 
     // Split the output by null character to get individual commits
