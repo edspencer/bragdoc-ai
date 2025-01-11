@@ -74,6 +74,7 @@
 - [ ] Counts in bottom left nav don't update when things are added/deleted
 - [ ] Next Auth account linking doesn't work
 - [ ] LLM-generated testimonials are lies and should be removed
+- [ ] When we create an Achievement linked to a Project but the Company was not provided, use the Project's Company ID
 
 ## Tech Debt
 
@@ -90,11 +91,6 @@
 - [ ] Add email preferences configuration
 - [ ] Stream Achievements into the UI one by one instead of all as a response from extractAchievements
 - [ ] Ability to delete many achievements at once?
-- [ ] Calendar filtering on Achievements page sucks - can't clear, and should be a date range picker UI instead
-  - Calendar appears behind modal overlays
-  - Click events are intercepted by modal overlays
-  - Affects all date pickers in modals (project dates, etc.)
-  - Need to investigate proper z-index and event handling in shadcn components
 
 ## Testing Infrastructure
 

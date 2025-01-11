@@ -1,0 +1,109 @@
+---
+slug: introducing-bragdoc-cli
+status: publish
+title: 'Introducing the Bragdoc CLI: Turn Your Git History Into Career Achievements'
+tags:
+  - cli
+  - git
+  - feature
+  - opensource
+date: '2025-01-10 19:27:09'
+images:
+  - /images/posts/bragdoc-cli-hero.png
+description: 'Automatically extract achievements from your git history with our new CLI tool'
+excerptSections: 6
+related:
+---
+
+<Aside>
+Today we're launching the bragdoc CLI tool, available via npm as `@bragdoc/cli`. This new addition to bragdoc.ai makes it even easier to track your technical achievements by automatically extracting them from your git history. Install it globally with `npm install -g @bragdoc/cli` to get started.
+</Aside>
+
+If you're a software engineer, some of your most important achievements are already documented in your git history. Every feature shipped, bug fixed, and system optimized is there in your commits and pull requests. But when it's time for your performance review, turning that technical history into meaningful achievements can be challenging.
+
+That's why we built the bragdoc CLI – a powerful tool that connects your local git repositories to bragdoc.ai, automatically extracting and documenting your achievements.
+
+## What is a Brag Document?
+
+Before we dive into the CLI, let's talk about why keeping a brag document is crucial for your career. A brag document is a running record of your professional achievements, projects, and impact. It's not about bragging in the negative sense – it's about maintaining an accurate record of your contributions.
+
+When it's time for your performance review or you're discussing a promotion, having a well-maintained brag document means you don't have to rely on memory. You have concrete examples of your impact, complete with dates and specific details.
+
+## Introducing the Bragdoc CLI
+
+Our new CLI tool makes maintaining your brag document even easier by automatically extracting achievements from your git history. Here's what you can do with it:
+
+```bash
+# Install the CLI globally
+npm install -g @bragdoc/cli
+
+# Authenticate with your bragdoc.ai account
+bragdoc login
+
+# Extract achievements from your current git repository
+bragdoc extract
+
+# Extract achievements from a specific time range
+bragdoc extract --since "3 months ago"
+
+# Extract from a specific branch
+bragdoc extract --branch feature/major-refactor
+```
+
+The CLI tool is especially useful if you:
+- Work with private repositories
+- Need to extract achievements from multiple repositories
+- Want to maintain a local record of your achievements
+- Prefer command-line tools over web interfaces
+
+## How It Works
+
+When you run `bragdoc extract`, the CLI:
+1. Analyzes your local git repository
+2. Extracts commits and pull request information
+3. Sends this data to bragdoc.ai for processing
+4. Uses AI to transform technical changes into achievement descriptions
+5. Adds these achievements to your brag document
+
+For example, a series of commits implementing a new feature might be transformed into an achievement like:
+
+<Quote>
+"Led the implementation of a new authentication system, improving security and reducing login times by 40%. The project involved coordinating with three teams and implementing OAuth 2.0 standards."
+</Quote>
+
+## Privacy and Security
+
+We know you might be working with sensitive code, so the CLI is designed with privacy in mind:
+- Only commit messages and PR descriptions are sent to bragdoc.ai
+- No code content is ever transmitted
+- You control exactly which repositories and time periods to extract from
+- Authentication tokens are stored securely in your system's credential manager
+
+## Getting Started
+
+Ready to start automatically tracking your achievements? Here's how to get started:
+
+1. Install the CLI: `npm install -g @bragdoc/cli`
+2. Authenticate: `bragdoc login`
+3. Navigate to your git repository
+4. Run: `bragdoc extract`
+
+The CLI will handle the rest, turning your git history into properly formatted achievements in your brag document.
+
+## What's Next
+
+This is just the beginning for the bragdoc CLI. We're already working on features like:
+- Automatic achievement categorization
+- Custom achievement templates
+- Team achievement tracking
+- Integration with more version control systems
+
+## Your Career Story Matters
+
+Every commit, every pull request, every code review is part of your professional story. With the bragdoc CLI, we're making it easier than ever to capture that story and present it in a way that resonates with managers and peers alike.
+
+Whether you're preparing for your next performance review, aiming for a promotion, or just want to maintain a better record of your professional growth, the bragdoc CLI is here to help.
+
+<Aside type="success">
+Start tracking your achievements today with `npm install -g @bragdoc/cli`. Your future self will thank you when it's time for that next performance review!
+</Aside>

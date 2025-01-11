@@ -6,19 +6,13 @@ import { notFound } from 'next/navigation';
 
 const { siteName, siteUrl, twitterHandle } = config;
 
-type Props = {
-  params: { id: string };
-};
-
 export async function generateMetadata(
-  { params }: Props,
+  { params }: { params: Params },
   parent: ResolvingMetadata
 ): Promise<Metadata> {
-  const { id } = params;
+  const { id } = await params;
   const { visiblePosts } = new Posts();
   const post = visiblePosts.find((post: any) => post.slug === id);
-
-  console.log(post);
 
   if (!post) {
     return {
@@ -72,8 +66,10 @@ export function generateStaticParams() {
   return all;
 }
 
-export default async function Page({ params }: Props) {
-  const { id } = params;
+type Params = Promise<{ id: string }>;
+
+export default async function Page({ params }: { params: Params }) {
+  const { id } = await params;
   const { visiblePosts } = new Posts();
 
   const post = visiblePosts.find((post: any) => post.slug === id);

@@ -12,10 +12,7 @@ import CaptionedContent from './CaptionedContent';
 import { Code } from 'bright';
 import { MDXRemote } from 'next-mdx-remote/rsc';
 
-Code.theme = {
-  dark: 'github-dark',
-  light: 'github-light',
-};
+Code.theme = 'github-light';
 
 Code.defaultProps = {
   lang: 'shell',
