@@ -78,5 +78,11 @@ export default async function Page({ params }: { params: Params }) {
     return notFound();
   }
 
-  return <FullPost post={post} />;
+  return (
+    <div className="min-h-screen bg-white dark:bg-gray-950 transition-colors duration-300">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
+        <FullPost post={post} />
+      </div>
+    </div>
+  );
 }

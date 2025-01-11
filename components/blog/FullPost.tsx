@@ -29,14 +29,14 @@ export function FullPost({
   sidebar?: boolean;
 }) {
   return (
-    <div className="bg-white py-0 lg:py-8">
-      <div className="mx-auto max-w-6xl lg:max-w-7xl text-base leading-7 text-gray-700 lg:grid lg:grid-cols-2 lg:grid-flow-col lg:gap-2 xl:gap-8">
+    <div className="py-0 lg:py-8">
+      <div className="mx-auto max-w-6xl lg:max-w-7xl text-base leading-7 text-gray-700 dark:text-gray-300 lg:grid lg:grid-cols-2 lg:grid-flow-col lg:gap-2 xl:gap-8">
         <div className="blog-post col-span-3">
-          <h1>
+          <h1 className="dark:text-gray-100">
             <Link href={post.relativeLink}>{post.title}</Link>
           </h1>
           {post.date && (
-            <div className="my-4">
+            <div className="my-4 text-gray-600 dark:text-gray-400">
               <time dateTime={post.date}>{formatDate(post.date)}</time>
             </div>
           )}
@@ -51,13 +51,13 @@ export function FullPost({
 
 export function PostTeaser({ post }: { post: any }) {
   return (
-    <div className="bg-white blog-post mb-24">
-      <div className="mx-auto text-base leading-7 text-gray-700">
-        <h1>
+    <div className="blog-post mb-24">
+      <div className="mx-auto text-base leading-7 text-gray-700 dark:text-gray-300">
+        <h1 className="dark:text-gray-100">
           <Link href={post.relativeLink}>{post.title}</Link>
         </h1>
         {post.date && (
-          <div className="my-4">
+          <div className="my-4 text-gray-600 dark:text-gray-400">
             <time dateTime={post.date}>{formatDate(post.date)}</time>
           </div>
         )}
@@ -65,7 +65,7 @@ export function PostTeaser({ post }: { post: any }) {
         <PostExcerpt post={post} />
         <Link
           href={post.relativeLink}
-          className="font-semibold leading-6 text-indigo-600"
+          className="font-semibold leading-6 text-blue-600 hover:text-blue-500 dark:text-blue-400 dark:hover:text-blue-300"
         >
           Continue reading <span aria-hidden="true">→</span>
         </Link>
@@ -83,10 +83,9 @@ export async function PostExcerpt({ post }: { post: any }) {
   }
 
   return (
-    <div
-      className="body"
-      dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(excerpt) }}
-    ></div>
+    <div className="body">
+      <MarkdownContent content={excerpt} />
+    </div>
   );
 }
 
@@ -98,7 +97,7 @@ export async function PostBody({
   excerpt?: boolean;
 }) {
   return (
-    <div className="body">
+    <div className="body dark:text-gray-300">
       <PostContent post={post} />
     </div>
   );

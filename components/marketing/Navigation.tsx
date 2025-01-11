@@ -15,13 +15,9 @@ export function Navigation() {
       <div className="container flex h-14 items-center mx-auto">
         <div className="mr-4 flex">
           <Link href="/" className="mr-6 flex items-center space-x-2">
-            <Image
-              src="/images/logo/logo-transparent-svg.svg"
-              alt="bragdoc.ai logo"
-              width={120}
-              height={48}
-              className="h-20 w-auto"
-            />
+            <span className="font-geist text-3xl font-bold tracking-tight text-slate-600 dark:text-indigo-400">
+              bragdoc.ai
+            </span>
           </Link>
         </div>
         <div className="hidden md:flex justify-end flex-1 pr-8">
@@ -45,6 +41,13 @@ export function Navigation() {
                 <Link href="/how" legacyBehavior passHref>
                   <NavigationMenuLink className="hover:font-semibold">
                     How
+                  </NavigationMenuLink>
+                </Link>
+              </NavigationMenuItem>
+              <NavigationMenuItem>
+                <Link href="/blog" legacyBehavior passHref>
+                  <NavigationMenuLink className="hover:font-semibold">
+                    Blog
                   </NavigationMenuLink>
                 </Link>
               </NavigationMenuItem>

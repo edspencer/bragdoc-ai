@@ -27,8 +27,8 @@ export type Post = {
   datetime?: string;
 };
 
-export const dirForExcerpt = (post: any) => path.join(process.cwd(), 'excerpts', String(post.year));
-export const pathForExcerpt = (post: any) => path.join(dirForExcerpt(post), post.slug + '.html');
+export const dirForExcerpt = (post: any) => path.join(process.cwd(), 'app', 'excerpts', String(post.year));
+export const pathForExcerpt = (post: any) => path.join(dirForExcerpt(post), post.slug + '.mdx');
 export const hasExcerpt = (post: any) => fs.existsSync(pathForExcerpt(post));
 
 //returns an array of all .mdx files in a directory and its subdirectories

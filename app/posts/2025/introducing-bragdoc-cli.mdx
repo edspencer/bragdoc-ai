@@ -1,7 +1,7 @@
 ---
 slug: introducing-bragdoc-cli
 status: publish
-title: 'Introducing the Bragdoc CLI: Turn Your Git History Into Career Achievements'
+title: 'Introducing the Bragdoc CLI: Turn Your Git History into Achievements'
 tags:
   - cli
   - git
@@ -21,7 +21,7 @@ Today we're launching the bragdoc CLI tool, available via npm as `@bragdoc/cli`.
 
 If you're a software engineer, some of your most important achievements are already documented in your git history. Every feature shipped, bug fixed, and system optimized is there in your commits and pull requests. But when it's time for your performance review, turning that technical history into meaningful achievements can be challenging.
 
-That's why we built the bragdoc CLI – a powerful tool that connects your local git repositories to bragdoc.ai, automatically extracting and documenting your achievements.
+That's why we built the bragdoc CLI - a powerful tool that connects your local git repositories to bragdoc.ai, automatically extracting and documenting your achievements.
 
 ## What is a Brag Document?
 
@@ -40,6 +40,9 @@ npm install -g @bragdoc/cli
 # Authenticate with your bragdoc.ai account
 bragdoc login
 
+# Add a repository to extract achievements from
+bragdoc repos add .
+
 # Extract achievements from your current git repository
 bragdoc extract
 
@@ -56,28 +59,61 @@ The CLI tool is especially useful if you:
 - Want to maintain a local record of your achievements
 - Prefer command-line tools over web interfaces
 
-## How It Works
+## Full Example
 
-When you run `bragdoc extract`, the CLI:
-1. Analyzes your local git repository
-2. Extracts commits and pull request information
-3. Sends this data to bragdoc.ai for processing
-4. Uses AI to transform technical changes into achievement descriptions
-5. Adds these achievements to your brag document
+Here's what a typical run of the CLI tool looks like:
 
-For example, a series of commits implementing a new feature might be transformed into an achievement like:
+```bash
+> npm install -g @bragdoc/cli
 
-<Quote>
-"Led the implementation of a new authentication system, improving security and reducing login times by 40%. The project involved coordinating with three teams and implementing OAuth 2.0 standards."
-</Quote>
+> bragdoc login
+
+Logging in to bragdoc.ai...
+Logged in successfully
+
+> bragdoc extract
+
+Collecting commits from edspencer/bragdoc-ai (branch: cli)...
+Found 25 commits.
+13 commits already processed, skipping...
+Processing 12 commits in 2 batches
+
+Processing batch 1/2 (10 commits)...
+Achievements found:
+- Resolved multiple build issues and corrected API URLs to ensure proper functionality.
+- Implemented initial GitHub repository integration and syncing features.
+- Applied various styling fixes and updated the logo to a square format.
+
+Processing batch 2/2 (2 commits)...
+Achievements found:
+- Resolved an issue with toast notifications not displaying correctly.
+
+Done!
+```
+
+With one command we just pulled 12 commits worth of achievements out of git history and into your brag document. The CLI tool keeps track of what it's already processed - in the example above 13 out of 25 commits were already processed so were skipped.
+
+For software engineers this makes it really easy to just run a command and know it's going to automatically pull out the work you've done on it automatically, saving you time but also ensuring you don't miss anything important.
+
+If your performance review is next week and you haven't kept good records of your work accomplishments, the bragdoc CLI tool can scan back as far as you like and pull out everything you did. Basic plan users can use it for a single repo, while pro users can use it on up to 25.
 
 ## Privacy and Security
 
 We know you might be working with sensitive code, so the CLI is designed with privacy in mind:
-- Only commit messages and PR descriptions are sent to bragdoc.ai
+- Only commit messages are sent to bragdoc.ai - the same as if you just ran `git log` and then pasted it into the chatbot UI
 - No code content is ever transmitted
 - You control exactly which repositories and time periods to extract from
-- Authentication tokens are stored securely in your system's credential manager
+- The CLI sends the commit messages securely via https
+- The bragdoc.ai service never sees your git credentials
+- The bragdoc.ai service does not save the commit messages, nor log them as logs. They are passed directly to an LLM provider for processing.
+
+All the CLI is really doing is running a local git log command and passing that to the bragdoc.ai chatbot via an API endpoint. The actual command it runs is this:
+
+```bash
+git log ${branch} --reverse --pretty=format:"%H%x1f%B%x1f%an%x1f%ai%x00" --max-count=${maxCommits}
+```
+
+It splits the output and sends it to the API, but you could equally just run that git log command yourself and paste it into the Bragdoc UI. All of the code is open source and available on GitHub: [https://github.com/edspencer/bragdoc-ai](https://github.com/edspencer/bragdoc-ai) so you can see exactly how it handles your data.
 
 ## Getting Started
 
@@ -89,21 +125,3 @@ Ready to start automatically tracking your achievements? Here's how to get start
 4. Run: `bragdoc extract`
 
 The CLI will handle the rest, turning your git history into properly formatted achievements in your brag document.
-
-## What's Next
-
-This is just the beginning for the bragdoc CLI. We're already working on features like:
-- Automatic achievement categorization
-- Custom achievement templates
-- Team achievement tracking
-- Integration with more version control systems
-
-## Your Career Story Matters
-
-Every commit, every pull request, every code review is part of your professional story. With the bragdoc CLI, we're making it easier than ever to capture that story and present it in a way that resonates with managers and peers alike.
-
-Whether you're preparing for your next performance review, aiming for a promotion, or just want to maintain a better record of your professional growth, the bragdoc CLI is here to help.
-
-<Aside type="success">
-Start tracking your achievements today with `npm install -g @bragdoc/cli`. Your future self will thank you when it's time for that next performance review!
-</Aside>

@@ -6,7 +6,7 @@ export function Footer() {
       <div className="container py-8 md:py-12 mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 relative">
         <div className="grid grid-cols-2 gap-8 md:grid-cols-4">
           <div>
-            <h3 className="text-lg font-semibold">Product</h3>
+            <h3 className="text-lg font-semibold text-foreground">Product</h3>
             <ul className="mt-4 space-y-2">
               <li>
                 <Link
@@ -27,7 +27,7 @@ export function Footer() {
             </ul>
           </div>
           <div>
-            <h3 className="text-lg font-semibold">Company</h3>
+            <h3 className="text-lg font-semibold text-foreground">Company</h3>
             <ul className="mt-4 space-y-2">
               <li>
                 <Link
@@ -48,7 +48,7 @@ export function Footer() {
             </ul>
           </div>
           <div>
-            <h3 className="text-lg font-semibold">Legal</h3>
+            <h3 className="text-lg font-semibold text-foreground">Legal</h3>
             <ul className="mt-4 space-y-2">
               <li>
                 <Link
@@ -69,7 +69,7 @@ export function Footer() {
             </ul>
           </div>
           <div>
-            <h3 className="text-lg font-semibold">Connect</h3>
+            <h3 className="text-lg font-semibold text-foreground">Connect</h3>
             <ul className="mt-4 space-y-2">
               <li>
                 <Link

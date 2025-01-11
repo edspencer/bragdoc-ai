@@ -144,9 +144,6 @@
 .suggestion-highlight {
   @apply bg-blue-200 hover:bg-blue-300 dark:hover:bg-blue-400/50 dark:text-blue-50 dark:bg-blue-500/40;
 }
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
 
 :root {
   --gray-700: #d1d5db;
@@ -159,16 +156,6 @@ html {
     'cv03' 1,
     'cv04' 1,
     'cv11' 1;
-}
-
-.contact {
-  .hljs-string {
-    color: var(--gray-700);
-  }
-}
-
-.transition-padding {
-  transition: padding 0.2s ease-in-out;
 }
 
 /** START IPAD text-sm FIX **/
@@ -189,62 +176,6 @@ html {
   }
 }
 /** END IPAD text-sm FIX **/
-
-h1 {
-  @apply mt-2 text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl mb-4;
-}
-
-h2 {
-  @apply sm:mt-8 mt-2 text-2xl font-bold tracking-tight text-gray-900 mb-2;
-}
-
-h3 {
-  @apply mt-6 text-xl font-bold tracking-tight text-gray-900 mb-2;
-}
-
-h4 {
-  @apply mt-4 text-lg font-bold tracking-tight text-gray-900 mb-2;
-}
-
-p > a {
-  @apply underline hover:no-underline;
-}
-
-.info-page-container {
-  @apply bg-white py-0 lg:py-8;
-}
-
-.info-page-inner {
-  @apply max-w-7xl mx-auto px-0 sm:px-6 lg:px-8;
-
-  p {
-    @apply text-base mb-4;
-  }
-
-  a {
-    @apply underline hover:no-underline;
-  }
-
-  figure {
-    @apply my-6;
-  }
-
-  p img {
-    @apply mx-auto;
-  }
-
-  ul {
-    @apply list-disc list-inside mb-6;
-
-    li {
-      @apply mb-2;
-    }
-  }
-
-  ol {
-    @apply list-decimal list-inside mb-6;
-  }
-}
 
 .post-sidebar {
   > div.section {
@@ -297,8 +228,7 @@ p > a {
   }
 }
 
-.blog-post,
-.book {
+.blog-post {
   .body {
     @apply pt-6;
 
@@ -322,11 +252,11 @@ p > a {
   }
 
   pre {
-    @apply bg-gray-100 p-0 mb-2 rounded-md !important;
+    @apply bg-gray-100 dark:bg-gray-900 p-0 mb-2 rounded-md !important;
   }
 
   pre code {
-    @apply py-2 bg-gray-100 text-sm;
+    @apply py-2 bg-gray-100 dark:bg-gray-900 text-sm;
   }
 
   .tags a {
@@ -349,7 +279,7 @@ p > a {
     @apply p-4 my-6 pl-6 sm:pl-8 relative sm:ml-4 ml-1 border-l-4 rounded-bl-sm rounded-2xl;
 
     h4 {
-      @apply mt-0 text-base font-bold;
+      @apply mt-0 text-base font-bold dark:text-gray-100;
     }
 
     p {
@@ -365,51 +295,51 @@ p > a {
     }
 
     &.info {
-      @apply bg-blue-50 border-blue-600;
+      @apply bg-blue-50 dark:bg-blue-950/50 border-blue-600;
 
       .icon {
-        @apply text-blue-600;
+        @apply text-blue-600 dark:text-blue-400;
       }
     }
 
     &.warning {
-      @apply bg-yellow-50 border-yellow-600;
+      @apply bg-yellow-50 dark:bg-yellow-950/50 border-yellow-600;
 
       .icon {
-        @apply text-yellow-600;
+        @apply text-yellow-600 dark:text-yellow-400;
       }
     }
 
     &.quote {
-      @apply bg-violet-50 border-violet-600;
+      @apply bg-violet-50 dark:bg-violet-950/50 border-violet-600;
 
       .icon {
-        @apply text-violet-600;
+        @apply text-violet-600 dark:text-violet-400;
       }
     }
 
     .icon {
-      @apply p-1 rounded-2xl mb-4 absolute w-10 h-10 -top-3 -left-5 bg-white;
+      @apply p-1 rounded-2xl mb-4 absolute w-10 h-10 -top-3 -left-5 bg-white dark:bg-gray-950;
     }
   }
 
   h1 {
-    @apply mt-2 text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl mb-4;
+    @apply mt-2 text-3xl font-bold tracking-tight text-gray-900 dark:text-gray-100 sm:text-4xl mb-4;
   }
 
   h2 {
-    @apply sm:mt-8 mt-2 text-2xl font-bold tracking-tight text-gray-900 mb-2;
+    @apply sm:mt-8 mt-2 text-2xl font-bold tracking-tight text-gray-900 dark:text-gray-100 mb-2;
   }
 
   h3 {
-    @apply mt-6 text-xl font-bold tracking-tight text-gray-900 mb-2;
+    @apply mt-6 text-xl font-bold tracking-tight text-gray-900 dark:text-gray-100 mb-2;
   }
 
   h4 {
-    @apply mt-4 text-lg font-bold tracking-tight text-gray-900 mb-2;
+    @apply mt-4 text-lg font-bold tracking-tight text-gray-900 dark:text-gray-100 mb-2;
   }
 
   p > a {
-    @apply underline hover:no-underline;
+    @apply underline hover:no-underline text-blue-600 dark:text-blue-400;
   }
 }

@@ -12,13 +12,13 @@ export default function Blog() {
   );
 
   return (
-    <div className="bg-white p-0 sm:pt-4">
-      <div className="mx-auto max-w-7xl text-base leading-7 text-gray-700">
+    <div className="bg-background">
+      <div className="mx-auto max-w-7xl text-base leading-7 text-foreground/80">
         <div className="my-4">
           <Categories />
           <CompactCTA />
           <RecentPosts posts={recentPosts} />
-          <h1>All Posts by Tag</h1>
+          <h1 className="text-3xl mb-4 text-foreground">All Posts by Tag</h1>
           <TagCloud tags={new Posts().getTagsWithCounts()} />
         </div>
       </div>
@@ -28,13 +28,13 @@ export default function Blog() {
 
 function CompactCTA() {
   return (
-    <div className="mb-8 rounded-lg bg-blue-50 p-4">
+    <div className="mb-8 rounded-lg bg-blue-50 dark:bg-blue-950/50 p-4">
       <div className="flex items-center justify-between">
         <div className="flex-1">
-          <h3 className="text-lg font-semibold text-blue-900">
+          <h3 className="text-lg font-semibold text-blue-900 dark:text-blue-100">
             Ready to start tracking your achievements?
           </h3>
-          <p className="mt-1 text-sm text-blue-700">
+          <p className="mt-1 text-sm text-blue-700 dark:text-blue-300">
             Join thousands of professionals using bragdoc.ai
           </p>
         </div>
@@ -62,8 +62,8 @@ function RecentPosts({ posts }: { posts: Post[] }) {
 function Categories() {
   return (
     <div className="mb-4">
-      <h1 className="text-3xl font-semibold mb-4">Blog</h1>
-      <p>
+      <h1 className="text-3xl font-semibold mb-4 text-foreground">Blog</h1>
+      <p className="text-muted-foreground">
         Welcome to the bragdoc.ai blog! We&apos;ll usually post stuff here about
         new product features as we ship them.
       </p>
