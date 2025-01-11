@@ -66,6 +66,18 @@ export default async function RootLayout({
             __html: THEME_COLOR_SCRIPT,
           }}
         />
+        <link
+          rel="alternate"
+          type="application/rss+xml"
+          title="bragdoc.ai RSS Feed (XML)"
+          href="https://www.bragdoc.ai/feed"
+        />
+        <link
+          rel="alternate"
+          type="application/json"
+          title="bragdoc.ai JSON Feed"
+          href="https://www.bragdoc.ai/feed?type=json"
+        />
       </head>
       <body className="antialiased">
         <Providers>{children}</Providers>
