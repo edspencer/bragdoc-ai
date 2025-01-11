@@ -72,7 +72,7 @@ export const plans: Plan[] = [
       Yearly: { amount: '$30/year', stripe_price_id: 'basic_yearly' },
     },
     description:
-      'For professionals who want unlimited features and GitHub integration.',
+      'For professionals who want unlimited features and git integration.',
     button: {
       label: 'Start Basic plan',
       href: '/register?plan=basic',
@@ -80,7 +80,7 @@ export const plans: Plan[] = [
     features: [
       'Everything in Free',
       'Unlimited usage',
-      'Single GitHub repository integration',
+      'Single git repo sync',
       'Unlimited Achievements & Documents',
       'Document publishing',
     ],
@@ -100,10 +100,9 @@ export const plans: Plan[] = [
     },
     features: [
       'Everything in Basic',
-      'Unlimited GitHub repositories',
+      'Unlimited git repos',
       'Scheduled updates',
-      'Advanced publishing options',
-      'Priority support',
+      'Advanced publishing options'
     ],
   },
 ];
