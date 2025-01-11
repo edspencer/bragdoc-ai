@@ -2,9 +2,9 @@ import { Command } from 'commander';
 import chalk from 'chalk';
 import { loadConfig, saveConfig } from '../config';
 import { validateRepository } from '../utils/git';
-import { Repository } from '../config/types';
+import type { Repository } from '../config/types';
 
-import { resolve } from 'path';
+import { resolve } from 'node:path';
 
 /**
  * Normalize a repository path to an absolute path
@@ -104,7 +104,7 @@ export async function addRepo(path: string = process.cwd(), options: { name?: st
     path: absolutePath,
     name: options.name,
     enabled: true,
-    maxCommits: options.maxCommits ? parseInt(options.maxCommits.toString(), 10) : undefined,
+    maxCommits: options.maxCommits ? Number.parseInt(options.maxCommits.toString(), 10) : undefined,
   };
   
   config.repositories.push(newRepo);
@@ -151,7 +151,7 @@ export async function updateRepo(
   }
   
   if (options.maxCommits !== undefined) {
-    repo.maxCommits = parseInt(options.maxCommits.toString(), 10);
+    repo.maxCommits = Number.parseInt(options.maxCommits.toString(), 10);
   }
   
   await saveConfig(config);
@@ -161,7 +161,7 @@ export async function updateRepo(
 /**
  * Enable or disable a repository
  */
-export async function toggleRepo(path: string = process.cwd(), enabled: boolean) {
+export async function toggleRepo(path: string, enabled: boolean) {
   const config = await loadConfig();
   const absolutePath = normalizeRepoPath(path);
   

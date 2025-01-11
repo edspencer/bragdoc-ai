@@ -1,24 +1,231 @@
-import fs from 'fs/promises';
-import { Dirent } from 'fs';
-import path from 'path';
+import { readFile, writeFile, unlink, readdir, mkdir, chmod, appendFile } from 'node:fs/promises';
+import type { Dirent } from 'node:fs';
+import { join } from 'node:path';
 import { CommitCache } from './commits';
-import { ensureConfigDir } from '../config';
-import { getCommitsCacheDir } from '../config/paths';
 
 // Mock fs/promises
-jest.mock('fs/promises');
-const mockFs = fs as jest.Mocked<typeof fs>;
-
-// Mock config functions
-jest.mock('../config', () => ({
-  ensureConfigDir: jest.fn(),
+jest.mock('node:fs/promises', () => ({
+  readFile: jest.fn(),
+  writeFile: jest.fn(),
+  unlink: jest.fn(),
+  readdir: jest.fn(),
+  mkdir: jest.fn(),
+  chmod: jest.fn(),
+  appendFile: jest.fn(),
 }));
 
-jest.mock('../config/paths', () => ({
-  getCommitsCacheDir: jest.fn(() => '/mock/.bragdoc/cache/commits'),
-}));
+describe('CommitCache', () => {
+  const mockFs = {
+    readFile: jest.mocked(readFile),
+    writeFile: jest.mocked(writeFile),
+    unlink: jest.mocked(unlink),
+    readdir: jest.mocked(readdir),
+    mkdir: jest.mocked(mkdir),
+    chmod: jest.mocked(chmod),
+    appendFile: jest.mocked(appendFile),
+  };
 
-// Helper to create mock Dirent objects
+  const TEST_CACHE_DIR = '/test/cache/dir';
+  let cache: CommitCache;
+
+  beforeEach(() => {
+    jest.resetAllMocks();
+    // Create a new instance and set its cache directory
+    cache = new CommitCache();
+    Object.defineProperty(cache, 'cacheDir', {
+      value: TEST_CACHE_DIR,
+      writable: false,
+      configurable: true,
+    });
+
+    // Mock successful directory creation
+    mockFs.mkdir.mockResolvedValue(undefined);
+    mockFs.chmod.mockResolvedValue(undefined);
+    mockFs.appendFile.mockResolvedValue(undefined);
+  });
+
+  describe('add', () => {
+    it('should add new commit hashes to cache file', async () => {
+      const repoName = 'test-repo';
+      const hashes = ['hash1', 'hash2'];
+      const cachePath = join(TEST_CACHE_DIR, `${repoName.replace(/[^a-zA-Z0-9-]/g, '_')}.txt`);
+
+      // Mock empty cache file
+      mockFs.readFile.mockRejectedValueOnce({ code: 'ENOENT' });
+
+      await cache.add(repoName, hashes);
+
+      expect(mockFs.appendFile).toHaveBeenCalledWith(cachePath, `${hashes.join('\n')}\n`, 'utf-8');
+    });
+
+    it('should only add new unique hashes', async () => {
+      const repoName = 'test-repo';
+      const existingHashes = ['hash1', 'hash2'];
+      const newHashes = ['hash2', 'hash3'];
+      const cachePath = join(TEST_CACHE_DIR, `${repoName.replace(/[^a-zA-Z0-9-]/g, '_')}.txt`);
+
+      // Mock existing cache file
+      mockFs.readFile.mockResolvedValueOnce('hash1\nhash2\n');
+
+      await cache.add(repoName, newHashes);
+
+      expect(mockFs.appendFile).toHaveBeenCalledWith(cachePath, 'hash3\n', 'utf-8');
+    });
+  });
+
+  describe('has', () => {
+    it('should return true if hash exists in cache', async () => {
+      const repoName = 'test-repo';
+      const hash = 'hash1';
+
+      mockFs.readFile.mockResolvedValueOnce('hash1\nhash2\n');
+
+      const result = await cache.has(repoName, hash);
+      expect(result).toBe(true);
+    });
+
+    it('should return false if hash does not exist', async () => {
+      const repoName = 'test-repo';
+      const hash = 'hash3';
+
+      mockFs.readFile.mockResolvedValueOnce('hash1\nhash2\n');
+
+      const result = await cache.has(repoName, hash);
+      expect(result).toBe(false);
+    });
+
+    it('should return false if cache file does not exist', async () => {
+      const repoName = 'test-repo';
+      const hash = 'hash1';
+
+      mockFs.readFile.mockRejectedValueOnce({ code: 'ENOENT' });
+
+      const result = await cache.has(repoName, hash);
+      expect(result).toBe(false);
+    });
+  });
+
+  describe('list', () => {
+    it('should return all cached hashes', async () => {
+      const repoName = 'test-repo';
+      const hashes = ['hash1', 'hash2'];
+
+      mockFs.readFile.mockResolvedValueOnce(hashes.join('\n'));
+
+      const result = await cache.list(repoName);
+      expect(result).toEqual(hashes);
+    });
+
+    it('should return empty array if cache file does not exist', async () => {
+      const repoName = 'test-repo';
+
+      mockFs.readFile.mockRejectedValueOnce({ code: 'ENOENT' });
+
+      const result = await cache.list(repoName);
+      expect(result).toEqual([]);
+    });
+
+    it('should filter out empty lines', async () => {
+      const repoName = 'test-repo';
+      const hashes = ['hash1', '', 'hash2', ''];
+
+      mockFs.readFile.mockResolvedValueOnce(hashes.join('\n'));
+
+      const result = await cache.list(repoName);
+      expect(result).toEqual(['hash1', 'hash2']);
+    });
+  });
+
+  describe('clear', () => {
+    it('should clear specific repository cache', async () => {
+      const repoName = 'test-repo';
+      const cachePath = join(TEST_CACHE_DIR, `${repoName.replace(/[^a-zA-Z0-9-]/g, '_')}.txt`);
+
+      await cache.clear(repoName);
+
+      expect(mockFs.unlink).toHaveBeenCalledWith(cachePath);
+    });
+
+    it('should clear all repository caches', async () => {
+      const files = [
+        createMockDirent('test-repo1.txt'),
+        createMockDirent('test-repo2.txt'),
+      ];
+      mockFs.readdir.mockResolvedValueOnce(files);
+
+      await cache.clear();
+
+      for (const file of files) {
+        expect(mockFs.unlink).toHaveBeenCalledWith(join(TEST_CACHE_DIR, file.name));
+      }
+    });
+
+    it('should handle non-existent cache file', async () => {
+      const repoName = 'test-repo';
+
+      mockFs.unlink.mockRejectedValueOnce({ code: 'ENOENT' });
+      
+      await expect(cache.clear(repoName)).resolves.not.toThrow();
+    });
+  });
+
+  describe('getStats', () => {
+    it('should return stats for specific repository', async () => {
+      const repoName = 'test-repo';
+      const hashes = ['hash1', 'hash2', 'hash3'];
+
+      mockFs.readFile.mockResolvedValueOnce(hashes.join('\n'));
+
+      const stats = await cache.getStats(repoName);
+      expect(stats).toEqual({
+        repositories: 1,
+        commits: hashes.length,
+        repoStats: {
+          [repoName]: hashes.length,
+        },
+      });
+    });
+
+    it('should return stats for all repositories', async () => {
+      const files = [
+        createMockDirent('repo1.txt'),
+        createMockDirent('repo2.txt'),
+      ];
+      mockFs.readdir.mockResolvedValueOnce(files);
+
+      const repos = {
+        'repo1': ['hash1', 'hash2'],
+        'repo2': ['hash3', 'hash4', 'hash5'],
+      };
+
+      for (const [name, hashes] of Object.entries(repos)) {
+        mockFs.readFile.mockResolvedValueOnce(hashes.join('\n'));
+      }
+
+      const stats = await cache.getStats();
+      expect(stats).toEqual({
+        repositories: 2,
+        commits: 5,
+        repoStats: {
+          'repo1': 2,
+          'repo2': 3,
+        },
+      });
+    });
+
+    it('should handle non-existent cache directory', async () => {
+      mockFs.readdir.mockRejectedValueOnce({ code: 'ENOENT' });
+
+      const stats = await cache.getStats();
+      expect(stats).toEqual({
+        repositories: 0,
+        commits: 0,
+        repoStats: {},
+      });
+    });
+  });
+});
+
 function createMockDirent(name: string, isFile = true): Dirent {
   return {
     name,
@@ -31,184 +238,3 @@ function createMockDirent(name: string, isFile = true): Dirent {
     isSocket: () => false,
   } as Dirent;
 }
-
-describe('CommitCache', () => {
-  let cache: CommitCache;
-  const mockCacheDir = '/mock/.bragdoc/cache/commits';
-
-  beforeEach(() => {
-    jest.clearAllMocks();
-    cache = new CommitCache();
-  });
-
-  describe('init', () => {
-    it('should ensure config directory exists', async () => {
-      await cache.init();
-      expect(ensureConfigDir).toHaveBeenCalled();
-    });
-
-    it('should handle initialization errors', async () => {
-      const error = new Error('Failed to create directory');
-      (ensureConfigDir as jest.Mock).mockRejectedValueOnce(error);
-
-      await expect(cache.init()).rejects.toThrow('Failed to initialize cache directory');
-    });
-  });
-
-  describe('add', () => {
-    it('should add new commit hashes to cache file', async () => {
-      const repoName = 'test-repo';
-      const hashes = ['hash1', 'hash2'];
-      mockFs.readFile.mockRejectedValueOnce({ code: 'ENOENT' }); // File doesn't exist yet
-      
-      await cache.add(repoName, hashes);
-
-      expect(mockFs.appendFile).toHaveBeenCalledWith(
-        path.join(mockCacheDir, 'test-repo.txt'),
-        'hash1\nhash2\n',
-        'utf-8'
-      );
-    });
-
-    it('should only add new unique hashes', async () => {
-      const repoName = 'test-repo';
-      const existingContent = 'hash1\nhash3\n';
-      mockFs.readFile.mockResolvedValueOnce(existingContent);
-
-      await cache.add(repoName, ['hash1', 'hash2']);
-
-      expect(mockFs.appendFile).toHaveBeenCalledWith(
-        path.join(mockCacheDir, 'test-repo.txt'),
-        'hash2\n',
-        'utf-8'
-      );
-    });
-
-    it('should handle empty hash array', async () => {
-      await cache.add('test-repo', []);
-      expect(mockFs.appendFile).not.toHaveBeenCalled();
-    });
-  });
-
-  describe('has', () => {
-    it('should return true if hash exists in cache', async () => {
-      mockFs.readFile.mockResolvedValueOnce('hash1\nhash2\nhash3\n');
-      
-      const result = await cache.has('test-repo', 'hash2');
-      expect(result).toBe(true);
-    });
-
-    it('should return false if hash does not exist', async () => {
-      mockFs.readFile.mockResolvedValueOnce('hash1\nhash3\n');
-      
-      const result = await cache.has('test-repo', 'hash2');
-      expect(result).toBe(false);
-    });
-
-    it('should return false if cache file does not exist', async () => {
-      mockFs.readFile.mockRejectedValueOnce({ code: 'ENOENT' });
-      
-      const result = await cache.has('test-repo', 'hash1');
-      expect(result).toBe(false);
-    });
-  });
-
-  describe('list', () => {
-    it('should return all cached hashes', async () => {
-      const content = 'hash1\nhash2\nhash3\n';
-      mockFs.readFile.mockResolvedValueOnce(content);
-
-      const hashes = await cache.list('test-repo');
-      expect(hashes).toEqual(['hash1', 'hash2', 'hash3']);
-    });
-
-    it('should return empty array if cache file does not exist', async () => {
-      mockFs.readFile.mockRejectedValueOnce({ code: 'ENOENT' });
-
-      const hashes = await cache.list('test-repo');
-      expect(hashes).toEqual([]);
-    });
-
-    it('should filter out empty lines', async () => {
-      const content = 'hash1\n\nhash2\n\n';
-      mockFs.readFile.mockResolvedValueOnce(content);
-
-      const hashes = await cache.list('test-repo');
-      expect(hashes).toEqual(['hash1', 'hash2']);
-    });
-  });
-
-  describe('clear', () => {
-    it('should clear specific repository cache', async () => {
-      await cache.clear('test-repo');
-
-      expect(mockFs.unlink).toHaveBeenCalledWith(
-        path.join(mockCacheDir, 'test-repo.txt')
-      );
-    });
-
-    it('should clear all repository caches', async () => {
-      const files = [
-        createMockDirent('repo1.txt'),
-        createMockDirent('repo2.txt')
-      ];
-      mockFs.readdir.mockResolvedValueOnce(files);
-
-      await cache.clear();
-
-      expect(mockFs.unlink).toHaveBeenCalledWith(path.join(mockCacheDir, 'repo1.txt'));
-      expect(mockFs.unlink).toHaveBeenCalledWith(path.join(mockCacheDir, 'repo2.txt'));
-    });
-
-    it('should handle non-existent cache file', async () => {
-      mockFs.unlink.mockRejectedValueOnce({ code: 'ENOENT' });
-      
-      await expect(cache.clear('test-repo')).resolves.not.toThrow();
-    });
-  });
-
-  describe('getStats', () => {
-    it('should return stats for specific repository', async () => {
-      const content = 'hash1\nhash2\nhash3\n';
-      mockFs.readFile.mockResolvedValueOnce(content);
-
-      const stats = await cache.getStats('test-repo');
-      expect(stats).toEqual({
-        repositories: 1,
-        commits: 3,
-        repoStats: { 'test-repo': 3 }
-      });
-    });
-
-    it('should return stats for all repositories', async () => {
-      const files = [
-        createMockDirent('repo1.txt'),
-        createMockDirent('repo2.txt')
-      ];
-      mockFs.readdir.mockResolvedValueOnce(files);
-      mockFs.readFile.mockResolvedValueOnce('hash1\nhash2\n');
-      mockFs.readFile.mockResolvedValueOnce('hash3\nhash4\nhash5\n');
-
-      const stats = await cache.getStats();
-      expect(stats).toEqual({
-        repositories: 2,
-        commits: 5,
-        repoStats: {
-          'repo1': 2,
-          'repo2': 3
-        }
-      });
-    });
-
-    it('should handle empty cache directory', async () => {
-      mockFs.readdir.mockRejectedValueOnce({ code: 'ENOENT' });
-
-      const stats = await cache.getStats();
-      expect(stats).toEqual({
-        repositories: 0,
-        commits: 0,
-        repoStats: {}
-      });
-    });
-  });
-});

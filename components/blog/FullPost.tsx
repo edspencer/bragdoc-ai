@@ -6,10 +6,8 @@ import { ShareOnSocialMedia } from './Share';
 import MarkdownContent from './MarkdownContent';
 import Divider from './Divider';
 
-import fs from 'fs';
+import fs from 'node:fs';
 import matter from 'gray-matter';
-
-import DOMPurify from 'isomorphic-dompurify';
 
 export function formatDate(dateString: string) {
   const options: Intl.DateTimeFormatOptions = {

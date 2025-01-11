@@ -1,21 +1,21 @@
-import { access } from 'fs/promises';
-import { join } from 'path';
-import { exec } from 'child_process';
+import { access } from 'node:fs/promises';
+import { join } from 'node:path';
+import { exec } from 'node:child_process';
 import { isGitRepository, validateRepository } from '../git';
 
 // Mock fs/promises
-jest.mock('fs/promises', () => ({
+jest.mock('node:fs/promises', () => ({
   access: jest.fn(),
 }));
 
 // Mock child_process
-jest.mock('child_process', () => ({
+jest.mock('node:child_process', () => ({
   exec: jest.fn(),
 }));
 
 describe('Git Utilities', () => {
-  const mockAccess = access as jest.MockedFunction<typeof access>;
-  const mockExec = exec as jest.MockedFunction<typeof exec>;
+  const mockAccess = jest.mocked(access);
+  const mockExec = jest.mocked(exec);
   const TEST_PATH = '/test/repo';
   const GIT_DIR = join(TEST_PATH, '.git');
 

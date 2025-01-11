@@ -7,7 +7,8 @@ export default function IFrame({ src }: { src: string }) {
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const handleRefresh = () => {
     if (iframeRef.current) {
-      iframeRef.current.src = iframeRef.current.src;
+      const timestamp = Date.now();
+      iframeRef.current.src = `${src}${src.includes('?') ? '&' : '?'}_t=${timestamp}`;
     }
   };
 
@@ -15,6 +16,7 @@ export default function IFrame({ src }: { src: string }) {
     <figure className="my-6">
       <div className="flex items-center justify-end mb-1">
         <button
+          type="button"
           className="text-slate-500 hover:text-slate-800 focus:outline-none"
           onClick={handleRefresh}
           title="Refresh"
@@ -36,6 +38,7 @@ export default function IFrame({ src }: { src: string }) {
         </button>
       </div>
       <iframe
+        title={src}
         ref={iframeRef}
         src={src}
         className="h-96 w-full rounded-md border border-slate-500"

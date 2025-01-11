@@ -3,7 +3,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { db } from "@/lib/db";
 import { cliToken } from "@/lib/db/schema";
-import { randomBytes } from "crypto";
+import { randomBytes } from "node:crypto";
 
 const requestSchema = z.object({
   state: z.string(),

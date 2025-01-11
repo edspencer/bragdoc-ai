@@ -1,11 +1,10 @@
 import { Command } from 'commander';
 import chalk from 'chalk';
-import { createServer } from 'http';
-import { randomBytes } from 'crypto';
+import { createServer } from 'node:http';
+import { randomBytes } from 'node:crypto';
 import { loadConfig, saveConfig } from '../config';
 import { getApiBaseUrl } from '../config/paths';
 import { getDeviceName } from '../utils/device';
-import fetch from 'node-fetch';
 import logger from '../utils/logger';
 
 interface AuthConfig {
@@ -141,7 +140,7 @@ async function login(options: { apiUrl?: string }) {
 async function logout() {
   try {
     const config = await loadConfig();
-    delete config.auth;
+    config.auth = undefined;
     await saveConfig(config);
     console.log(chalk.green('Successfully logged out!'));
   } catch (error) {

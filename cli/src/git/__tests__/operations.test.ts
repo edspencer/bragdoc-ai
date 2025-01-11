@@ -1,13 +1,15 @@
-import { execSync } from 'child_process';
-import { collectGitCommits, getRepositoryInfo } from '../operations';
-import fs from 'fs';
-import path from 'path';
-import os from 'os';
+import { execSync } from 'node:child_process';
+import { getRepositoryInfo, collectGitCommits } from '../operations';
+import fs from 'node:fs';
+import { join } from 'node:path';
+import os from 'node:os';
 
-jest.mock('child_process');
+jest.mock('node:child_process', () => ({
+  execSync: jest.fn(),
+}));
 
 describe('git operations', () => {
-  const mockExecSync = execSync as jest.MockedFunction<typeof execSync>;
+  const mockExecSync = jest.mocked(execSync);
   let tempDir: string;
   let originalCwd: string;
 
@@ -16,7 +18,7 @@ describe('git operations', () => {
     originalCwd = process.cwd();
     
     // Create a temporary directory for each test
-    tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'git-test-'));
+    tempDir = fs.mkdtempSync(join(os.tmpdir(), 'git-test-'));
 
     // Reset all mocks before each test
     jest.resetAllMocks();

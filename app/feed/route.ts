@@ -1,5 +1,5 @@
 import Posts from '@/lib/blog/Posts';
-import { Feed, Item } from 'feed';
+import { Feed, type Item } from 'feed';
 import markdownToHtml from '@/lib/markdownToHTML';
 
 import config from '@/lib/config';
@@ -11,20 +11,14 @@ export async function GET(request: Request) {
   const { publishedPosts } = posts;
 
   const items = await Promise.all(
-    publishedPosts.map(
-      async post =>
-        new Promise(async resolve => {
-          resolve({
-            author,
-            title: post.title,
-            id: post.slug,
-            link: post.link,
-            content: (await markdownToHtml(posts.getContent(post))).value,
-            date: new Date(post.date),
-            image: post.images?.[0] ? `${siteUrl}${post.images[0]}` : undefined,
-          });
-        })
-    )
+    publishedPosts.map(async post => ({
+      title: post.title,
+      id: post.slug,
+      link: post.link,
+      content: (await markdownToHtml(posts.getContent(post))).value,
+      date: new Date(post.date),
+      image: post.images?.[0] ? `${siteUrl}${post.images[0]}` : undefined,
+    }))
   );
 
   const feed = new Feed({

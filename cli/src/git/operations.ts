@@ -1,10 +1,10 @@
-import { execSync } from 'child_process';
-import { GitCommit, RepositoryInfo } from './types';
+import { execSync } from 'node:child_process';
+import type { GitCommit, RepositoryInfo } from './types';
 
 /**
  * Get information about the current git repository
  */
-export function getRepositoryInfo(path: string = '.'): RepositoryInfo {
+export function getRepositoryInfo(path = '.'): RepositoryInfo {
   try {
     // Get remote URL
     const remoteUrl = execSync('git config --get remote.origin.url', { cwd: path })

@@ -1,6 +1,4 @@
 import * as winston from 'winston';
-import * as path from 'path';
-import { getLogsDir } from '../config/paths';
 
 // Define log levels
 const levels = {

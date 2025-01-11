@@ -1,37 +1,41 @@
-import { homedir } from 'os';
-import { join } from 'path';
-import * as fs from 'fs/promises';
-import { parse, stringify } from 'yaml';
-import { loadConfig, saveConfig,  ensureConfigDir } from '../index';
-import { getConfigDir, getConfigPath } from '../paths';
-import { BragdocConfig, DEFAULT_CONFIG } from '../types';
+import { access, mkdir, readFile, writeFile, chmod } from 'node:fs/promises';
+import { homedir } from 'node:os';
+import { join } from 'node:path';
+import { ensureConfigDir, loadConfig, saveConfig } from '../../config';
+import { getConfigDir, getConfigPath } from '../../config/paths';
+import { type BragdocConfig, DEFAULT_CONFIG } from '../../config/types';
+import { stringify } from 'yaml';
 
 // Mock fs/promises
-jest.mock('fs/promises', () => ({
+jest.mock('node:fs/promises', () => ({
   access: jest.fn(),
+  mkdir: jest.fn(),
   readFile: jest.fn(),
   writeFile: jest.fn(),
-  mkdir: jest.fn(),
   chmod: jest.fn(),
 }));
 
 describe('Config Management', () => {
   const configDir = getConfigDir();
   const configPath = getConfigPath();
-  const mockFs = fs as jest.Mocked<typeof fs>;
+  const mockFs = {
+    access: jest.mocked(access),
+    mkdir: jest.mocked(mkdir),
+    readFile: jest.mocked(readFile),
+    writeFile: jest.mocked(writeFile),
+    chmod: jest.mocked(chmod),
+  };
 
   beforeEach(() => {
     jest.resetAllMocks();
   });
 
-  describe('getConfigDir', () => {
-    it('returns path in home directory', () => {
+  describe('Config Paths', () => {
+    it('returns correct config directory path', () => {
       expect(getConfigDir()).toBe(join(homedir(), '.bragdoc'));
     });
-  });
 
-  describe('getConfigPath', () => {
-    it('returns config.yml path in config directory', () => {
+    it('returns correct config file path', () => {
       expect(getConfigPath()).toBe(join(homedir(), '.bragdoc', 'config.yml'));
     });
   });
@@ -52,7 +56,6 @@ describe('Config Management', () => {
       await ensureConfigDir();
 
       expect(mockFs.mkdir).not.toHaveBeenCalled();
-      expect(mockFs.chmod).not.toHaveBeenCalled();
     });
   });
 

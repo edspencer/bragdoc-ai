@@ -1,8 +1,6 @@
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import { extractFromCommits } from '@/lib/ai/extractFromCommits';
-import { db } from '@/lib/db';
-import { RepositoryCommitHistory } from '@/types/commits';
 import { getCompaniesByUserId, createAchievement, validateCLIToken } from '@/lib/db/queries';
 import { getProjectsByUserId, ensureProject } from '@/lib/db/projects/queries';
 

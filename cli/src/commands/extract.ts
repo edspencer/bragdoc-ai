@@ -1,7 +1,6 @@
 import { Command } from 'commander';
-import path from 'path';
 import { collectGitCommits, getRepositoryInfo, getRepositoryName } from '../git/operations';
-import { GitCommit, BragdocPayload, RepositoryInfo } from '../git/types';
+import type { GitCommit, BragdocPayload, RepositoryInfo } from '../git/types';
 import { processInBatches, type BatchConfig } from '../git/batching';
 import { CommitCache } from '../cache/commits';
 import { loadConfig } from '../config';
@@ -128,7 +127,7 @@ export const extractCommand = new Command('extract')
       logger.info(`Collecting commits from ${repository} (branch: ${branchToUse})...`);
       const commits = collectGitCommits(
         branchToUse,
-        parseInt(maxCommits, 10),
+        Number.parseInt(maxCommits, 10),
         repository
       );
 
@@ -170,7 +169,7 @@ export const extractCommand = new Command('extract')
 
       // Process commits in batches
       const batchConfig: BatchConfig = {
-        maxCommitsPerBatch: parseInt(batchSize, 10),
+        maxCommitsPerBatch: Number.parseInt(batchSize, 10),
       };
 
       logger.info(`Processing ${commitsToProcess.length} commits...`);

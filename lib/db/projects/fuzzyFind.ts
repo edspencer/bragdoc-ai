@@ -1,7 +1,7 @@
 import { generateObject } from 'ai';
 import { findExistingProjectModel } from '@/lib/ai';
 import { z } from 'zod';
-import { type Project } from '@/lib/db/schema';
+import type { Project } from '@/lib/db/schema';
 
 /**
  * Schema for LLM response when matching repository to project

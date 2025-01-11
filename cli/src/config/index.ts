@@ -1,8 +1,7 @@
-import { homedir } from 'os';
-import { join } from 'path';
-import { mkdir, chmod, readFile, writeFile, access } from 'fs/promises';
+
+import { mkdir, chmod, readFile, writeFile, access } from 'node:fs/promises';
 import { parse, stringify } from 'yaml';
-import { BragdocConfig, DEFAULT_CONFIG } from './types';
+import { type BragdocConfig, DEFAULT_CONFIG } from './types';
 
 import {
   getCacheDir,

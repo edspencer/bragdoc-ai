@@ -1,6 +1,6 @@
 import Posts from '@/lib/blog/Posts';
 import { FullPost } from '@/components/blog/FullPost';
-import { Metadata, ResolvingMetadata } from 'next';
+import type { Metadata, ResolvingMetadata } from 'next';
 import config from '@/lib/config';
 import { notFound } from 'next/navigation';
 

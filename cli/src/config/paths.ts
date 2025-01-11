@@ -1,7 +1,7 @@
-import { homedir } from 'os';
-import { join } from 'path';
+import { homedir } from 'node:os';
+import { join } from 'node:path';
 
-import { BragdocConfig } from './types';
+import type { BragdocConfig } from './types';
 
 /**
  * Get the path to the bragdoc config directory

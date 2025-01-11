@@ -1,4 +1,4 @@
-import os from 'os';
+import os from 'node:os';
 
 /**
  * Get a friendly name for the current device

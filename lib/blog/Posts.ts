@@ -1,5 +1,5 @@
-import path from 'path';
-import fs from 'fs';
+import path from 'node:path';
+import fs from 'node:fs';
 import matter, {stringify} from 'gray-matter';
 import config from '../config';
 
@@ -28,7 +28,7 @@ export type Post = {
 };
 
 export const dirForExcerpt = (post: any) => path.join(process.cwd(), 'app', 'excerpts', String(post.year));
-export const pathForExcerpt = (post: any) => path.join(dirForExcerpt(post), post.slug + '.mdx');
+export const pathForExcerpt = (post: any) => path.join(dirForExcerpt(post), `${post.slug}.mdx`);
 export const hasExcerpt = (post: any) => fs.existsSync(pathForExcerpt(post));
 
 //returns an array of all .mdx files in a directory and its subdirectories
@@ -50,7 +50,7 @@ function findMdxFiles(dir: string, files: string[] = []) {
 }
 
 export const dirForPosts = path.join(process.cwd(), 'app', 'posts');
-export const pathForPostFile = (post: any) => path.join(dirForPosts, String(post.year), post.slug + '.mdx');
+export const pathForPostFile = (post: any) => path.join(dirForPosts, String(post.year), `${post.slug}.mdx`);
 
 export default class Posts {
   baseDirectory: string;
@@ -77,7 +77,7 @@ export default class Posts {
         data.month = postDate.getMonth() + 1;
         data.day = postDate.getDate();
 
-        data.relativeLink = '/blog/' + data.slug;
+        data.relativeLink = `/blog/${data.slug}`;
         data.link = `${config.siteUrl}/${data.relativeLink}`;
 
         return data;
@@ -129,11 +129,11 @@ export default class Posts {
       ...updates,
     };
 
-    delete matterData.data.year;
-    delete matterData.data.month;
-    delete matterData.data.day;
-    delete matterData.data.relativeLink;
-    delete matterData.data.link;
+    matterData.data.year = undefined;
+    matterData.data.month = undefined;
+    matterData.data.day = undefined;
+    matterData.data.relativeLink = undefined;
+    matterData.data.link = undefined;
 
     const newContent = stringify(matterData.content, matterData.data);
 
@@ -154,7 +154,7 @@ export default class Posts {
 
   getRelatedPosts(post: Post) {
     const { visiblePosts } = this;
-    let { tags, related = [] } = post;
+    const { tags, related = [] } = post;
     let relatedPosts: Post[] = [];
 
     if (related.length === 0) {

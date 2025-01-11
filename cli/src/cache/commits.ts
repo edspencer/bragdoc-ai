@@ -1,6 +1,6 @@
-import fs from 'fs/promises';
-import { Dirent } from 'fs';
-import path from 'path';
+import fs from 'node:fs/promises';
+import type { Dirent } from 'node:fs';
+import path from 'node:path';
 import { ensureConfigDir } from '../config';
 import { getCommitsCacheDir } from '../config/paths';
 import logger from '../utils/logger'; // Assuming logger is defined in this file
@@ -57,7 +57,7 @@ export class CommitCache {
       logger.debug(`New hashes: ${newHashes.length}`);
 
       // Append new hashes
-      await fs.appendFile(cachePath, newHashes.join('\n') + '\n', 'utf-8');
+      await fs.appendFile(cachePath, `${newHashes.join('\n')}\n`, 'utf-8');
     } catch (error: any) {
       throw new Error(`Failed to add commits to cache: ${error.message}`);
     }

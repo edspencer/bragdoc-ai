@@ -1,4 +1,4 @@
-import Posts, { Post } from '@/lib/blog/Posts';
+import Posts, { type Post } from '@/lib/blog/Posts';
 import { TagCloud } from '@/components/blog/Tag';
 import Link from 'next/link';
 import { PostTeaser } from '@/components/blog/FullPost';

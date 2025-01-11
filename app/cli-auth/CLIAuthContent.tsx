@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { Spinner } from "@/components/spinner";
-import { CheckCircle2, AlertTriangle } from "lucide-react";
+import { CheckCircle2, } from "lucide-react";
 import { useSession } from "next-auth/react";
 
 interface CLIAuthContentProps {
@@ -78,7 +78,7 @@ export function CLIAuthContent({ state, port }: CLIAuthContentProps) {
         <div className="text-center">
           <div className="text-red-500 mb-4">
             <svg
-              className="h-12 w-12 mx-auto"
+              className="size-12 mx-auto"
               fill="none"
               viewBox="0 0 24 24"
               stroke="currentColor"
@@ -105,13 +105,13 @@ export function CLIAuthContent({ state, port }: CLIAuthContentProps) {
     <div className="flex min-h-screen items-center justify-center">
       {status === "pending" ? (
         <div className="text-center">
-          <Spinner className="h-12 w-12 mx-auto" />
+          <Spinner className="size-12 mx-auto" />
           <h1 className="text-2xl font-bold mt-4">Authenticating CLI...</h1>
           <p className="text-gray-600 mt-2">This will only take a moment.</p>
         </div>
       ) : (
         <div className="text-center">
-          <CheckCircle2 className="h-12 w-12 mx-auto text-green-500" />
+          <CheckCircle2 className="size-12 mx-auto text-green-500" />
           <h1 className="text-2xl font-bold mt-4">CLI Successfully Authenticated</h1>
           <p className="text-gray-600 mt-2">
             You can close this window and return to your terminal.

@@ -1,4 +1,4 @@
-import { MetadataRoute } from 'next';
+import type { MetadataRoute } from 'next';
 import Posts from '@/lib/blog/Posts';
 
 const SITE = 'https://www.bragdoc.ai';
@@ -58,12 +58,12 @@ function toW3CDateForFlorida(dateString: string) {
   const parts = formatter.formatToParts(date);
 
   // Extract the parts
-  const year = parts.find(part => part.type === 'year')!.value;
-  const month = parts.find(part => part.type === 'month')!.value;
-  const day = parts.find(part => part.type === 'day')!.value;
-  const hour = parts.find(part => part.type === 'hour')!.value;
-  const minute = parts.find(part => part.type === 'minute')!.value;
-  const second = parts.find(part => part.type === 'second')!.value;
+  const year = parts.find(part => part.type === 'year')?.value;
+  const month = parts.find(part => part.type === 'month')?.value;
+  const day = parts.find(part => part.type === 'day')?.value;
+  const hour = parts.find(part => part.type === 'hour')?.value;
+  const minute = parts.find(part => part.type === 'minute')?.value;
+  const second = parts.find(part => part.type === 'second')?.value;
 
   // Get the timezone offset in hours and minutes
   const timezoneOffsetMinutes = -date.getTimezoneOffset();
