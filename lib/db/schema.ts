@@ -104,6 +104,7 @@ export const project = pgTable('Project', {
   status: varchar('status', { length: 32 }).notNull().default('active'),
   startDate: timestamp('start_date').notNull(),
   endDate: timestamp('end_date'),
+  repoRemoteUrl: varchar('repo_remote_url', { length: 256 }),
   createdAt: timestamp('created_at').notNull().defaultNow(),
   updatedAt: timestamp('updated_at').notNull().defaultNow(),
 });
@@ -365,3 +366,18 @@ export const emailPreferences = pgTable('email_preferences', {
 });
 
 export type EmailPreferences = InferSelectModel<typeof emailPreferences>;
+
+// CLI Authentication
+export const cliToken = pgTable('cli_token', {
+  id: uuid('id').primaryKey().notNull().defaultRandom(),
+  userId: uuid('user_id')
+    .notNull()
+    .references(() => user.id, { onDelete: 'cascade' }),
+  token: text('token').notNull(),
+  deviceName: text('device_name').notNull(),
+  lastUsedAt: timestamp('last_used_at').notNull().defaultNow(),
+  expiresAt: timestamp('expires_at').notNull(),
+  createdAt: timestamp('created_at').notNull().defaultNow(),
+});
+
+export type CLIToken = InferSelectModel<typeof cliToken>;

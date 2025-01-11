@@ -6,12 +6,14 @@ import { Testimonials } from '@/components/marketing/salient/Testimonials';
 import { Pricing } from '@/components/marketing/salient/Pricing';
 import { Faqs } from '@/components/marketing/salient/Faqs';
 import { SecondaryCTA } from '@/components/marketing/salient/SecondaryCTA';
+import { CliFeature } from '@/components/marketing/CliFeature';
 
 export default function HomePage() {
   return (
     <>
       <Hero />
       <PrimaryFeatures />
+      <CliFeature />
       <SecondaryFeatures />
       <CallToAction />
       <Testimonials />

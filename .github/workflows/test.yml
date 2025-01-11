@@ -4,9 +4,9 @@ on:
 
 jobs:
   test:
-    name: Run tests
+    name: Run App Tests
     runs-on: ubuntu-latest
-    
+
     services:
       postgres:
         image: postgres:15
@@ -22,9 +22,50 @@ jobs:
           --health-timeout 5s
           --health-retries 5
 
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install
+
+      - name: Run test setup
+        run: pnpm test:setup
+        env:
+          PGHOST: localhost
+          PGPORT: 5432
+          PGUSER: postgres
+          PGPASSWORD: postgres
+          PGDATABASE: bragai-test
+          POSTGRES_URL: postgresql://postgres:postgres@localhost:5432/bragai-test
+
+      - name: Run tests
+        run: pnpm test
+        env:
+          PGHOST: localhost
+          PGPORT: 5432
+          PGUSER: postgres
+          PGPASSWORD: postgres
+          PGDATABASE: bragai-test
+
+  cli-test:
+    name: Run CLI Tests
+    runs-on: ubuntu-latest
+
     strategy:
       matrix:
-        node-version: [20]
+        node-version: [18, 20, 22]
 
     steps:
       - name: Checkout
@@ -42,22 +83,11 @@ jobs:
           cache: 'pnpm'
 
       - name: Install dependencies
-        run: pnpm install
+        run: |
+          cd cli
+          pnpm install
 
-      - name: Run migrations
-        run: pnpm test:setup
-        env:
-          PGHOST: localhost
-          PGPORT: 5432
-          PGUSER: postgres
-          PGPASSWORD: postgres
-          PGDATABASE: bragai-test
-
-      - name: Run tests
-        run: pnpm test
-        env:
-          PGHOST: localhost
-          PGPORT: 5432
-          PGUSER: postgres
-          PGPASSWORD: postgres
-          PGDATABASE: bragai-test
+      - name: Run CLI tests
+        run: |
+          cd cli
+          pnpm test
