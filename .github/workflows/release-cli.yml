@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - main
+      - fix-cli
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -30,7 +31,7 @@ jobs:
           registry-url: 'https://registry.npmjs.org'
 
       - name: Install Dependencies
-        run: pnpm install
+        run: cd cli && pnpm install
 
       - name: Run Tests
         env:
@@ -41,7 +42,8 @@ jobs:
         id: changesets
         uses: changesets/action@v1
         with:
-          publish: cd cli && pnpm release
+          publish: pnpm release
+          cwd: ./cli
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}

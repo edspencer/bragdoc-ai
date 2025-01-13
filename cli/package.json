@@ -6,7 +6,26 @@
   "bin": {
     "bragdoc": "dist/index.js"
   },
-  "files": ["dist"],
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/edspencer/bragdoc-ai.git",
+    "directory": "cli"
+  },
+  "keywords": [
+    "brag-document",
+    "cli",
+    "career",
+    "achievements"
+  ],
+  "author": "Ed Spencer",
+  "license": "MIT",
   "scripts": {
     "build": "tsc",
     "start": "node dist/index.js",
