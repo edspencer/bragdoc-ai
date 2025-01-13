@@ -25,7 +25,7 @@ import {
   getCompaniesByUserId,
 } from '@/lib/db/queries';
 import {getProjectsByUserId} from '@/lib/db/projects/queries';
-import type { Suggestion } from '@/lib/db/schema';
+import type { Suggestion, User, Message as DBMessage } from '@/lib/db/schema';
 import {
   generateUUID,
   getMostRecentUserMessage,
@@ -34,6 +34,7 @@ import {
 
 import { generateTitleFromUserMessage } from '@/app/(app)/chat/actions';
 import { extractAchievements } from '@/lib/ai/extract';
+import { prepareAndGenerateDocument, renderCompany, renderProject } from '@/lib/ai/generate-document';
 
 export const maxDuration = 60;
 
@@ -101,6 +102,11 @@ export async function POST(request: Request) {
     ],
   });
 
+  const [companies, projects] = await Promise.all([
+    getCompaniesByUserId({ userId: session.user.id! }),
+    getProjectsByUserId(session.user.id!),
+  ]);
+
   const streamingData = new StreamData();
 
   streamingData.append({
@@ -110,7 +116,19 @@ export async function POST(request: Request) {
 
   const result = streamText({
     model: customModel(model.apiIdentifier),
-    system: systemPrompt,
+    system: `${systemPrompt}
+The user has the following projects defined:
+
+<projects>
+${projects.map(renderProject).join('\n')}
+</projects>
+
+The user has the following companies defined:
+
+<companies>
+${companies.map(renderCompany).join('\n')}
+</companies>
+    `,
     messages: coreMessages,
     maxSteps: 10,
     experimental_activeTools: allTools,
@@ -134,10 +152,6 @@ export async function POST(request: Request) {
 
           try {
             console.log('extracting achievements');
-            const [companies, projects] = await Promise.all([
-              getCompaniesByUserId({ userId: session.user.id! }),
-              getProjectsByUserId(session.user.id!),
-            ]);
 
             const achievementsStream = extractAchievements({
               chat_history: messages
@@ -232,16 +246,18 @@ export async function POST(request: Request) {
         description: "Create a document based on the User's achievements",
         parameters: z.object({
           title: z.string().describe('The title of the document'),
+          days: z
+            .number()
+            .int()
+            .min(1)
+            .max(720)
+            .describe('The number of days ago to load Achievements from'),
+          projectId: z.string().optional().describe('The ID of the project that the user is talking about'),
+          companyId: z.string().optional().describe('The ID of the company that the user is talking about (use the project\'s company if not specified and the project has a companyId)'),
         }),
-        execute: async ({ title }) => {
+        execute: async ({ title, days, projectId, companyId }) => {
           const id = generateUUID();
           let draftText = '';
-
-          // Fetch user's achievements to provide context for document creation
-          const userAchievements = await getAchievementsByUserId({
-            userId: session.user.id!,
-            limit: 50, // Get the 50 most recent achievements
-          });
 
           streamingData.append({
             type: 'id',
@@ -258,22 +274,14 @@ export async function POST(request: Request) {
             content: '',
           });
 
-          const { fullStream } = streamText({
-            model: customModel(model.apiIdentifier),
-            system: `Write about the given topic. Markdown is supported. Use headings wherever appropriate.
-              When asked to write a report, put the current date at the top of the report.`,
-            prompt: `
-Document title: ${title}
-Today's date: ${new Date().toLocaleDateString('en-US', {
-              weekday: 'long',
-              year: 'numeric',
-              month: 'long',
-              day: 'numeric',
-            })}
-
-Recent achievements: ${userAchievements.map((achievement) => `${achievement.title}: ${achievement.summary}`).join('\n')}
-            `,
-          });
+          const { fullStream }  = await prepareAndGenerateDocument({
+            user: session.user as User,
+            projectId: projectId ?? undefined,
+            companyId: companyId ?? undefined,
+            title,
+            days,
+            chatHistory: messages as DBMessage[]
+          })
 
           for await (const delta of fullStream) {
             const { type } = delta;
@@ -465,7 +473,7 @@ Recent achievements: ${userAchievements.map((achievement) => `${achievement.titl
           const responseMessagesWithoutIncompleteToolCalls =
             sanitizeResponseMessages(response.messages);
 
-          console.log('onFinish');
+          console.log('Chat endpoint onFinish');
           await saveMessages({
             messages: responseMessagesWithoutIncompleteToolCalls.map(
               (message) => {

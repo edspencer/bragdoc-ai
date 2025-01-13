@@ -156,7 +156,7 @@ beforeAll(async () => {
 describe('preparePromptData', () => {
   test('returns correct data with user instructions', async () => {
     const result = await preparePromptData({
-      name: 'Weekly Update',
+      title: 'Weekly Update',
       days: 7,
       user: testData.users.withInstructions!,
       projectId: testData.projects.main,
@@ -180,7 +180,7 @@ describe('preparePromptData', () => {
     });
 
     expect(result).toMatchObject({
-      name: 'Weekly Update',
+      title: 'Weekly Update',
       days: 7,
       user: testData.users.withInstructions,
       company: expect.objectContaining({
@@ -208,7 +208,7 @@ describe('preparePromptData', () => {
 
   test('returns correct data without user instructions', async () => {
     const result = await preparePromptData({
-      name: 'Weekly Update',
+      title: 'Weekly Update',
       days: 7,
       user: testData.users.withoutInstructions!,
       projectId: testData.projects.main,
@@ -236,7 +236,7 @@ describe('preparePromptData', () => {
 
   test('handles non-existent project gracefully', async () => {
     const result = await preparePromptData({
-      name: 'Weekly Update',
+      title: 'Weekly Update',
       days: 7,
       user: testData.users.withInstructions!,
       projectId: uuidv4(), // Non-existent project ID
@@ -264,7 +264,7 @@ describe('preparePromptData', () => {
 
   test('handles non-existent company gracefully', async () => {
     const result = await preparePromptData({
-      name: 'Weekly Update',
+      title: 'Weekly Update',
       days: 7,
       user: testData.users.withInstructions!,
       projectId: testData.projects.main,
@@ -293,7 +293,7 @@ describe('preparePromptData', () => {
   test('returns achievements for correct date range', async () => {
     const days = 15;
     const result = await preparePromptData({
-      name: 'Bi-weekly Update',
+      title: 'Bi-weekly Update',
       days,
       user: testData.users.withInstructions!,
       projectId: testData.projects.main,
@@ -344,7 +344,7 @@ describe('preparePromptData', () => {
     );
 
     const result = await preparePromptData({
-      name: 'Monthly Update',
+      title: 'Monthly Update',
       days: 30,
       user: testData.users.withInstructions!,
       projectId: testData.projects.main,
@@ -374,7 +374,7 @@ describe('preparePromptData', () => {
 describe('renderPrompt', () => {
   test('includes all required sections', async () => {
     const promptData = await preparePromptData({
-      name: 'Weekly Update',
+      title: 'Weekly Update',
       days: 7,
       user: testData.users.withInstructions!,
       projectId: testData.projects.main,
@@ -416,7 +416,7 @@ describe('renderPrompt', () => {
 
   test('includes user instructions when present', async () => {
     const promptData = await preparePromptData({
-      name: 'Weekly Update',
+      title: 'Weekly Update',
       days: 7,
       user: testData.users.withInstructions!,
       projectId: testData.projects.main,
@@ -445,7 +445,7 @@ describe('renderPrompt', () => {
 
   test('excludes user instructions when not present', async () => {
     const promptData = await preparePromptData({
-      name: 'Weekly Update',
+      title: 'Weekly Update',
       days: 7,
       user: testData.users.withoutInstructions!,
       projectId: testData.projects.main,
@@ -474,7 +474,7 @@ describe('renderPrompt', () => {
 
   test('includes project details when present', async () => {
     const promptData = await preparePromptData({
-      name: 'Weekly Update',
+      title: 'Weekly Update',
       days: 7,
       user: testData.users.withInstructions!,
       projectId: testData.projects.main,
@@ -503,7 +503,7 @@ describe('renderPrompt', () => {
 
   test('includes company details when present', async () => {
     const promptData = await preparePromptData({
-      name: 'Weekly Update',
+      title: 'Weekly Update',
       days: 7,
       user: testData.users.withInstructions!,
       projectId: testData.projects.main,
@@ -532,7 +532,7 @@ describe('renderPrompt', () => {
 
   test('includes achievements in context', async () => {
     const promptData = await preparePromptData({
-      name: 'Weekly Update',
+      title: 'Weekly Update',
       days: 7,
       user: testData.users.withInstructions!,
       projectId: testData.projects.main,
@@ -581,7 +581,7 @@ describe('renderPrompt', () => {
     ];
 
     const promptData = await preparePromptData({
-      name: 'Weekly Update',
+      title: 'Weekly Update',
       days: 7,
       user: testData.users.withInstructions!,
       projectId: testData.projects.main,

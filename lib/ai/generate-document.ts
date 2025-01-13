@@ -5,7 +5,7 @@ import { streamText } from 'ai';
 import { documentWritingModel } from '.';
 
 export interface PreparePromptDataArgs {
-  name: string;
+  title: string;
   days: number;
   user: User;
   projectId: string;
@@ -14,7 +14,7 @@ export interface PreparePromptDataArgs {
 }
 
 export type DocumentPromptData = {
-  name: string;
+  title: string;
   days: number;
   user: Partial<User>;
   project?: Project;
@@ -35,7 +35,7 @@ export type DocumentPromptData = {
  * @returns The DocumentPromptData that can then be used to generate the document
  */
 export async function preparePromptData({
-  name,
+  title,
   days = 7,
   user,
   projectId,
@@ -58,7 +58,7 @@ export async function preparePromptData({
   const userInstructions = user.preferences.documentInstructions || '';
 
   return {
-    name,
+    title,
     days,
     user,
     project: project || undefined,
@@ -73,18 +73,18 @@ export async function preparePromptData({
   }
 }
 
-export async function generateDocument(promptData: DocumentPromptData) {
+export async function prepareAndGenerateDocument(promptData: PreparePromptDataArgs, streamTextOptions?: typeof streamText) {
+  const preparedPromptData = await preparePromptData(promptData);
+  return generateDocument(preparedPromptData, streamTextOptions);
+}
 
-  console.log('Generating document...');
-  console.log('Generating document...');
-  console.log('Generating document...');
-  console.log(promptData);
-
+export async function generateDocument(promptData: DocumentPromptData, streamTextOptions?: typeof streamText) {
   const prompt = await renderPrompt(promptData);
 
   return streamText({
     model: documentWritingModel,
-    prompt
+    prompt,
+    ...streamTextOptions
   });
 }
 
@@ -93,7 +93,7 @@ export async function generateDocument(promptData: DocumentPromptData) {
  * @returns The full prompt to be fed to the LLM
  */
 export async function renderPrompt({
-  name,
+  title,
   days,
   user,
   project,
@@ -133,7 +133,7 @@ documents for them.
 </instructions>
 
 <variables>
-  <name>The name of the document being generated, if the user provided one</name>
+  <title>The title of the document being generated, if the user provided one</title>
   <language>The language to use for this document</language>
   <days>The number of days for which the document is being generated</days>
   <userInstructions>Instructions from the user for how to write the document</userInstructions>
@@ -145,7 +145,7 @@ documents for them.
 </variables>
 
 <data>
-  <name>${name}</name>
+  <title>${title}</title>
   <language>${user.preferences?.language}</language>
   <userInstructions>${userInstructions}</userInstructions>
   <project>${project ? renderProject(project) : ''}</project>

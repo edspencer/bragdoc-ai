@@ -133,7 +133,7 @@ const chatHistory: Message[] = [];
 const experimentData: Experiment[] = [
   {
     input: {
-      name: 'Specific Doc name requested by user',
+      title: 'Specific Doc name requested by user',
       days: 7,
 
       user,
