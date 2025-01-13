@@ -154,140 +154,6 @@ beforeAll(async () => {
 });
 
 describe('preparePromptData', () => {
-  // Set up test data before running tests
-  // beforeAll(async () => {
-  //   // Generate unique test suite ID to avoid conflicts with parallel test runs
-  //   const testSuiteId = uuidv4().slice(0, 8);
-    
-  //   // Insert test users with unique emails
-  //   await db.insert(user).values([
-  //     {
-  //       id: uuidv4(),
-  //       email: `test1.${testSuiteId}@example.com`,
-  //       preferences: {
-  //         hasSeenWelcome: true,
-  //         language: 'en',
-  //         documentInstructions: 'Always include impact metrics'
-  //       }
-  //     },
-  //     {
-  //       id: uuidv4(),
-  //       email: `test2.${testSuiteId}@example.com`,
-  //       preferences: {
-  //         hasSeenWelcome: true,
-  //         language: 'en'
-  //       }
-  //     }
-  //   ]);
-
-  //   // Get the actual user instances from the database using the unique emails
-  //   const [withInstructions] = await db.select().from(user).where(eq(user.email, `test1.${testSuiteId}@example.com`));
-  //   const [withoutInstructions] = await db.select().from(user).where(eq(user.email, `test2.${testSuiteId}@example.com`));
-  //   testData.users.withInstructions = withInstructions;
-  //   testData.users.withoutInstructions = withoutInstructions;
-
-  //   // Insert test company using createCompany with unique name
-  //   const [createdCompany] = await createCompany({
-  //     userId: testData.users.withInstructions!.id,
-  //     name: `TechCorp-${testSuiteId}`,
-  //     domain: 'techcorp.com',
-  //     role: 'Senior Engineer',
-  //     startDate: new Date('2023-01-01'),
-  //     endDate: null
-  //   });
-  //   testData.company = createdCompany.id;
-
-  //   // Insert test projects using createProject with unique names
-  //   const [mainProject, secondaryProject, tertiaryProject] = await Promise.all([
-  //     createProject({
-  //       userId: testData.users.withInstructions!.id,
-  //       name: `Core Platform-${testSuiteId}`,
-  //       description: 'Main platform development',
-  //       status: 'active',
-  //       startDate: new Date()
-  //     }),
-  //     createProject({
-  //       userId: testData.users.withInstructions!.id,
-  //       name: `Mobile App-${testSuiteId}`,
-  //       description: 'Mobile application development',
-  //       status: 'active',
-  //       startDate: new Date()
-  //     }),
-  //     createProject({
-  //       userId: testData.users.withInstructions!.id,
-  //       name: `Analytics Dashboard-${testSuiteId}`,
-  //       description: 'Data visualization dashboard',
-  //       status: 'active',
-  //       startDate: new Date()
-  //     })
-  //   ]);
-
-  //   testData.projects = {
-  //     main: mainProject.id,
-  //     secondary: secondaryProject.id,
-  //     tertiary: tertiaryProject.id
-  //   };
-
-  //   // Store the testSuiteId for test expectations
-  //   testData.testSuiteId = testSuiteId;
-
-  //   // Current time for consistent date calculations
-  //   const now = new Date();
-  //   testData.baseTime = now;
-
-  //   // Generate achievements for the main project using createAchievement
-  //   const mainProjectAchievements = await Promise.all(
-  //     Array.from({ length: 20 }, (_, i) => {
-  //       // Create achievements with dates relative to now
-  //       // i=0 is 30 days ago, i=19 is 11 days ago
-  //       const daysAgo = 30 - i;
-  //       return createAchievement({
-  //         userId: testData.users.withInstructions!.id,
-  //         projectId: testData.projects.main,
-  //         title: `Achievement ${i + 1}`,
-  //         summary: `Summary for achievement ${i + 1}`,
-  //         impact: 2,
-  //         eventDuration: 'day',
-  //         eventStart: new Date(Date.now() - daysAgo * 24 * 60 * 60 * 1000)
-  //       });
-  //     })
-  //   );
-
-  //   // Generate achievements for secondary project
-  //   const secondaryProjectAchievements = await Promise.all(
-  //     Array.from({ length: 5 }, (_, i) => {
-  //       // i=0 is 15 days ago, i=4 is 11 days ago
-  //       const daysAgo = 15 - i;
-  //       return createAchievement({
-  //         userId: testData.users.withInstructions!.id,
-  //         projectId: testData.projects.secondary,
-  //         title: `Secondary Achievement ${i + 1}`,
-  //         summary: `Summary for secondary achievement ${i + 1}`,
-  //         impact: 2,
-  //         eventDuration: 'day',
-  //         eventStart: new Date(Date.now() - daysAgo * 24 * 60 * 60 * 1000)
-  //       });
-  //     })
-  //   );
-
-  //   // Generate achievements for tertiary project
-  //   const tertiaryProjectAchievements = await Promise.all(
-  //     Array.from({ length: 5 }, (_, i) => {
-  //       // i=0 is 10 days ago, i=4 is 6 days ago
-  //       const daysAgo = 10 - i;
-  //       return createAchievement({
-  //         userId: testData.users.withInstructions!.id,
-  //         projectId: testData.projects.tertiary,
-  //         title: `Tertiary Achievement ${i + 1}`,
-  //         summary: `Summary for tertiary achievement ${i + 1}`,
-  //         impact: 2,
-  //         eventDuration: 'day',
-  //         eventStart: new Date(Date.now() - daysAgo * 24 * 60 * 60 * 1000)
-  //       });
-  //     })
-  //   );
-  // });
-
   test('returns correct data with user instructions', async () => {
     const result = await preparePromptData({
       name: 'Weekly Update',
@@ -661,7 +527,7 @@ describe('renderPrompt', () => {
     });
 
     const prompt = await renderPrompt(promptData);
-    expect(prompt).toContain(`<n>TechCorp-${testData.testSuiteId}</n>`);
+    expect(prompt).toContain(`<name>TechCorp-${testData.testSuiteId}</name>`);
   });
 
   test('includes achievements in context', async () => {

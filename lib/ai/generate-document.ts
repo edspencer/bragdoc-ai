@@ -4,7 +4,7 @@ import type { Achievement, Company, Project, User, Message } from '@/lib/db/sche
 import { streamText } from 'ai';
 import { documentWritingModel } from '.';
 
-interface PreparePromptDataArgs {
+export interface PreparePromptDataArgs {
   name: string;
   days: number;
   user: User;
@@ -16,12 +16,16 @@ interface PreparePromptDataArgs {
 export type DocumentPromptData = {
   name: string;
   days: number;
-  user: User;
+  user: Partial<User>;
   project?: Project;
   company?: Company;
   achievements: any[];
   userInstructions?: string;
-  chatHistory?: Message[]
+  chatHistory?: Message[],
+
+  companiesStr?: string;
+  projectsStr?: string;
+  chatStr?: string;
 }
 
 /**
@@ -61,14 +65,26 @@ export async function preparePromptData({
     company: company || undefined,
     achievements: achievements.achievements,
     userInstructions,
-    chatHistory
+    chatHistory,
+
+    companiesStr: company && renderCompany(company) || '',
+    projectsStr: project && renderProject(project) || '',
+    chatStr: chatHistory && chatHistory.map(renderMessage).join('\n') || ''
   }
 }
 
 export async function generateDocument(promptData: DocumentPromptData) {
+
+  console.log('Generating document...');
+  console.log('Generating document...');
+  console.log('Generating document...');
+  console.log(promptData);
+
+  const prompt = await renderPrompt(promptData);
+
   return streamText({
     model: documentWritingModel,
-    prompt: await renderPrompt(promptData)
+    prompt
   });
 }
 
@@ -93,7 +109,7 @@ export async function renderPrompt({
     day: 'numeric',
   });
 
-  return `
+  const prompt = `
 <purpose>
 You are a document writer in the service of a user of the bragdoc.ai application.
 </purpose>
@@ -130,7 +146,7 @@ documents for them.
 
 <data>
   <name>${name}</name>
-  <language>${user.preferences.language}</language>
+  <language>${user.preferences?.language}</language>
   <userInstructions>${userInstructions}</userInstructions>
   <project>${project ? renderProject(project) : ''}</project>
   <company>${company ? renderCompany(company) : ''}</company>
@@ -144,6 +160,10 @@ documents for them.
 
 </examples>
 `
+
+  console.log(prompt);
+  
+  return prompt
 }
 
 const renderProject = (project: Project) => {
@@ -159,7 +179,7 @@ const renderProject = (project: Project) => {
 
 const renderCompany = (company: Company) => {
   return `
-    <n>${company.name}</n>
+    <name>${company.name}</name>
     <id>${company.id}</id>
     <role>${company.role}</role>
     <domain>${company.domain || 'N/A'}</domain>
@@ -184,4 +204,11 @@ const renderMessage = (message: Message) => {
     <content>${message.content}</content>
   </message>
   `;
+}
+
+export {
+  renderProject, 
+  renderCompany,
+  renderAchievement,
+  renderMessage
 }

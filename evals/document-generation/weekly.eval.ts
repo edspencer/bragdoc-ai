@@ -1,73 +1,74 @@
 import { Eval } from 'braintrust';
 import { LLMClassifierFromSpec, type Score } from 'autoevals';
-
-
-// // Convert our examples to the format expected by BrainTrust
-// const experimentData = contextAchievementExamples.map(
-//   (example: ContextAchievementExample) => ({
-//     input: {
-//       ...example.input,
-//       chatStr: example.input.chat_history
-//         .map(({ role, content }) => `${role}: ${content}`)
-//         .join('\n'),
-//       expectedAchievementsStr: mapAchievementsToString(example.expected)
-//     },
-//     expected: example.expected,
-//   }),
-// );
+import { DocumentPromptData, generateDocument, renderCompany, renderProject, preparePromptData, PreparePromptDataArgs, renderMessage } from '@/lib/ai/generate-document';
+import { Achievement, Company, Message, Project } from '@/lib/db/schema';
 
 // Function to evaluate the accuracy of extracted achievements with context
 const DocumentAccuracy = LLMClassifierFromSpec(
   'DocumentAccuracy',
   {
-    prompt: `You are evaluating how well an AI system extracted achievements from a user message.
-Compare the extracted achievements with the expected output. Consider that a single message may 
-contain multiple achievements.
+    prompt: `
+<purpose>
+You are an evaluator assessing how well an AI system generated a document based on user data and preferences.
+Your task is to evaluate if the generated document follows the user's instructions and effectively presents their achievements.
+</purpose>
 
-Here is the data:
-[BEGIN DATA]
-************
-[User Message]: {{{input.input}}}
+<background>
+bragdoc.ai helps people track their professional achievements and generate documents such as weekly updates,
+monthly updates, and performance review documents. The system should generate these documents following user
+preferences and instructions while maintaining professionalism and accuracy.
+</background>
 
-[Chat History]:
-{{{input.chatStr}}}
+<instructions>
+- Evaluate if the document follows the user's specified language and format preferences
+- Check if achievements are properly grouped and prioritized
+- Verify that impact metrics are appropriately highlighted
+- Ensure the document maintains professionalism without unnecessary fluff
+- Consider if the document appropriately responds to the chat history context
+- Assess if company and project references are used appropriately
+</instructions>
 
-[Context]:
+<variables>
+  <userMessage>The user's original message</userMessage>
+  <userInstructions>The user's instructions for the document</userInstructions>
+  <chatHistory>Chat history context</chatHistory>
+  <companiesStr>Context about companies</companiesStr>
+  <projectsStr>Context about projects</projectsStr>
+  <generatedDocument>The generated document</generatedDocument>
+</variables>
 
-## Companies:
+<data>
+  <userMessage>{{{input.input}}}</userMessage>
+  <userInstructions>{{{input.userInstructions}}}</userInstructions>
+  <chatHistory>{{{input.chatStr}}}</chatHistory>
+  <companies>{{{input.companiesStr}}}</companies>
+  <projects>{{{input.projectsStr}}}</projects>
+  <generatedDocument>{{{output}}}</generatedDocument>
+</data>
 
-{{{input.companiesStr}}}
+<evaluationCriteria>
+1. Document Structure and Format
+   - Does it follow user's language and formatting preferences?
+   - Are achievements properly organized and grouped?
 
-## Projects:
+2. Content Quality
+   - Are achievements clearly and professionally described?
+   - Are impact metrics and key results highlighted?
+   - Is the content free of unnecessary fluff or exaggeration?
 
-{{{input.projectsStr}}}
+3. Context Awareness
+   - Does it appropriately reference and projects?
+   - Does it respond effectively to the chat history?
+   - Are user instructions followed correctly?
 
-************
-[Expected Achievements]: 
-{{{input.expectedAchievementsStr}}}
-
-************
-[Extracted Achievements]:
-{{{outputFormatted}}}
-
-************
-[END DATA]
-
-Compare the extracted achievements with the expected output. Consider:
-1. Did the system extract all achievements mentioned in the message?
-2. Are the titles clear and action-oriented?
-3. Do the summaries capture key metrics and impact?
-4. Are the details comprehensive and contextual?
-5. Is the duration appropriate for each achievement?
-6. Are company and project IDs correctly matched?
-7. Is the suggestNewProject flag appropriate given the context?
-
-Answer by selecting one of the following options:
-(A) The extraction matches the expected output perfectly
-(B) The extraction captures the main achievement but misses some details
-(C) The extraction has minor inaccuracies but is generally correct
-(D) The extraction misses key information or has significant inaccuracies
-(E) The extraction is completely incorrect or misunderstands the achievement`,
+4. Overall Assessment
+   Select one of the following grades:
+   (A) The document matches expectations perfectly
+   (B) The document is good but missing minor details
+   (C) The document has minor issues but is generally acceptable
+   (D) The document has significant issues or missing information
+   (E) The document is completely incorrect or inappropriate
+</evaluationCriteria>`,
     choice_scores: {
       A: 1.0, // Perfect match
       B: 0.8, // Good but missing details
@@ -79,56 +80,160 @@ Answer by selecting one of the following options:
 );
 
 async function DocumentScorer(args: any): Promise<Score> {
-  args.outputFormatted = mapAchievementsToString(args.output);
+
 
   return DocumentAccuracy(args);
 }
 
-const experimentData = [
+
+
+
+type Experiment = {
+  input: DocumentPromptData;
+}
+
+const company: Company = {
+  name: 'Acme Corp',
+  id: '1234',
+  startDate: new Date('2023-01-01'),
+  endDate: new Date('2023-01-01'),
+  userId: '1234',
+  role: 'Engineer',
+  domain: 'www.boo.com',
+};
+
+const project: Project = {
+  name: 'Project X',
+  description: 'Description of Project X',
+  startDate: new Date('2023-01-01'),
+  endDate: new Date('2023-06-30'),
+  id: '1234',
+  companyId: '1234',
+  status: 'active',
+  createdAt: new Date('2023-01-01'),
+  updatedAt: new Date('2023-01-01'),
+  userId: '1234',
+  repoRemoteUrl: null
+}
+
+const user = {
+  name: 'Ed Spencer',
+  preferences: {
+    documentInstructions: 'Always use the title "Weekly Summary"',
+    language: 'en',
+    hasSeenWelcome: true
+  },
+  id: '1234',
+  email: 'Q3Sd2@example.com',
+
+};
+
+const chatHistory: Message[] = [];
+
+const experimentData: Experiment[] = [
   {
     input: {
       name: 'Specific Doc name requested by user',
       days: 7,
 
-      user: {
-        name: 'Ed Spencer',
-      },
+      user,
 
       //assuming the document was generated via chat UI
-      chatHistory: [
+      chatHistory,
 
-      ],
+      chatStr: chatHistory.map(renderMessage).join('\n'),
 
       // From user.documentInstructions
       userInstructions: `For weekly documents, always use the title "Weekly Summary"`,
 
-      project: {
-        //if the user was clearly talking about a specific project,
-        //this will be provided now
-      },
+      //if the user was clearly talking about a specific project,
+      //this will be provided now
+      project,
+      projectsStr: renderProject(project),
 
-      company: {
-        //if there is a project, and the project has a company,
-        //this will be provided now
-      },
+      //if there is a project, and the project has a company,
+  //this will be provided now
+      company,
+      companiesStr: renderCompany(company),
 
       achievements: [
         //any achievements that were found for the request
+
+        {
+          id: '1',
+          title: 'Implemented feature',
+          summary: 'Implemented feature X on project X',
+          impact: 1,
+          eventDuration: 'day',
+          eventStart: new Date('2023-02-01'),
+        },
+        {
+          id: '2',
+          title: 'Debugged bug',
+          summary: 'Found and fixed a login-related bug on project X',
+          impact: 2,
+          eventDuration: 'day',
+          eventStart: new Date('2023-02-02'),
+        },
+        {
+          id: '3',
+          title: 'Tested feature',
+          summary: 'Tested feature X on project X',
+          impact: 1,
+          eventDuration: 'day',
+          eventStart: new Date('2023-02-03'),
+        },
+        {
+          id: '4',
+          title: 'Refactored code',
+          summary: 'Refactored a section of the codebase for project X',
+          impact: 1,
+          eventDuration: 'day',
+          eventStart: new Date('2023-02-04'),
+        },
+        {
+          id: '5',
+          title: 'Documented code',
+          summary: 'Wrote unit tests for feature X on project X',
+          impact: 1,
+          eventDuration: 'day',
+          eventStart: new Date('2023-02-05'),
+        },
+        {
+          id: '6',
+          title: 'Researched',
+          summary: 'Spent a few hours researching options for feature Y on project X',
+          impact: 1,
+          eventDuration: 'day',
+          eventStart: new Date('2023-02-06'),
+        },
+
       ]
-    },
-    expected: {
-      
     }
   }
 ]
 
+const createDocument = async (input: any): Promise<string> => {
+  const { fullStream } = await generateDocument(input);
+  let docText = '';
 
+  for await (const delta of fullStream) {
+    const { type } = delta;
 
+    if (type === 'text-delta') {
+      const { textDelta } = delta;
+
+      docText += textDelta;
+    }
+  }
+
+  return docText;
+}
 
 // Create the evaluation
 Eval('weekly-document-generation', {
   data: experimentData,
-  task: wrappedExtractAchievements,
+  task: createDocument,
   scores: [DocumentScorer],
   trialCount: 3,
   metadata: {
