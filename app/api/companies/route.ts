@@ -48,6 +48,8 @@ export async function POST(request: Request) {
     const company = await createCompany(
       {
         ...validatedData,
+        domain: validatedData.domain || null,
+        endDate: validatedData.endDate || null,
         userId: session.user.id,
       },
       db,

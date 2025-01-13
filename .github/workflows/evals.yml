@@ -1,15 +1,15 @@
 name: Evals
- 
+
 on:
   pull_request:
     # Uncomment to run only when files in the 'evals' directory change
     # - paths:
     #     - "evals/**"
- 
+
 permissions:
   pull-requests: write
   contents: read
- 
+
 jobs:
   eval:
     name: Run evals
@@ -26,25 +26,25 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
- 
+
       - name: Setup Node.js
         id: setup-node
         uses: actions/setup-node@v4
         with:
           node-version: 20
- 
+
       - uses: pnpm/action-setup@v3
         with:
           version: 8
- 
+
       - name: Install Dependencies
         id: install
         run: pnpm install
- 
+
       - name: Run Evals
         uses: braintrustdata/eval-action@v1
         with:
           api_key: ${{ secrets.BRAINTRUST_API_KEY }}
           runtime: node
           root: evals
-          paths: "**/eval.ts"
+          paths: '**/*eval.ts'

@@ -69,7 +69,7 @@ export async function preparePromptData({
 
     companiesStr: company && renderCompany(company) || '',
     projectsStr: project && renderProject(project) || '',
-    chatStr: chatHistory && chatHistory.map(renderMessage).join('\n') || ''
+    chatStr: chatHistory?.map(renderMessage).join('\n') || ''
   }
 }
 
@@ -160,8 +160,6 @@ documents for them.
 
 </examples>
 `
-
-  console.log(prompt);
   
   return prompt
 }

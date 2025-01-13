@@ -43,14 +43,35 @@ describe('Project API Routes', () => {
   beforeEach(async () => {
     // Reset mocks
     jest.clearAllMocks();
-    // Clean up existing data
-    await db.delete(project);
-    await db.delete(company);
-    await db.delete(user);
-    // Insert test data
-    await db.insert(user).values(testUser);
-    await db.insert(company).values(testCompany);
-    await db.insert(project).values(testProject);
+    
+    try {            
+      // Clean up any existing test data in correct order (children first)
+      await db.delete(project).where(eq(project.companyId, testCompany.id));
+      await db.delete(project).where(eq(project.id, testProject.id));
+      await db.delete(company).where(eq(company.id, testCompany.id));
+      await db.delete(user).where(eq(user.id, testUser.id));
+      
+      // Insert test data in correct order (parents first)
+      await db.insert(user).values(testUser);
+      await db.insert(company).values(testCompany);
+      await db.insert(project).values(testProject);
+    } catch (error) {
+      console.error('Error in test setup:', error);
+      throw error;
+    }
+  });
+
+  afterAll(async () => {
+    try {
+      // Final cleanup in correct order (children first)
+      await db.delete(project).where(eq(project.companyId, testCompany.id));
+      await db.delete(project).where(eq(project.id, testProject.id));
+      await db.delete(company).where(eq(company.id, testCompany.id));
+      await db.delete(user).where(eq(user.id, testUser.id));
+    } catch (error) {
+      console.error('Error in test cleanup:', error);
+      throw error;
+    }
   });
 
   describe('GET /api/projects', () => {

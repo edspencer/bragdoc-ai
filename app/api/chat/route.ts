@@ -21,7 +21,6 @@ import {
   saveSuggestions,
   createUserMessage,
   createAchievement,
-  getAchievementsByUserId,
   getCompaniesByUserId,
 } from '@/lib/db/queries';
 import {getProjectsByUserId} from '@/lib/db/projects/queries';

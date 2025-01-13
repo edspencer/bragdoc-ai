@@ -1,7 +1,7 @@
 import { Eval } from 'braintrust';
 import { LLMClassifierFromSpec, type Score } from 'autoevals';
-import { DocumentPromptData, generateDocument, renderCompany, renderProject, preparePromptData, PreparePromptDataArgs, renderMessage } from '@/lib/ai/generate-document';
-import { Achievement, Company, Message, Project } from '@/lib/db/schema';
+import { type DocumentPromptData, generateDocument, renderCompany, renderProject, renderMessage } from '@/lib/ai/generate-document';
+import type { Company, Message, Project } from '@/lib/db/schema';
 
 // Function to evaluate the accuracy of extracted achievements with context
 const DocumentAccuracy = LLMClassifierFromSpec(
