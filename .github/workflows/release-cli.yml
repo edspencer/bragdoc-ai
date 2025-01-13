@@ -28,6 +28,7 @@ jobs:
           node-version: '20'
           cache: 'pnpm'
           registry-url: 'https://registry.npmjs.org'
+          scope: '@bragdoc'
 
       - name: Install Dependencies
         run: cd cli && pnpm install
@@ -45,4 +46,5 @@ jobs:
           cwd: ./cli
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
