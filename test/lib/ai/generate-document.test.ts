@@ -1,8 +1,7 @@
 import { v4 as uuidv4 } from 'uuid';
 import { preparePromptData, renderPrompt } from '@/lib/ai/generate-document';
 import { db } from '@/lib/db';
-import { user, company, project, achievement, User } from '@/lib/db/schema';
-import { eq } from 'drizzle-orm';
+import { user, type User } from '@/lib/db/schema';
 import { createAchievement, createCompany } from '@/lib/db/queries';
 import { createProject } from '@/lib/db/projects/queries';
 
@@ -68,7 +67,7 @@ beforeAll(async () => {
   // Insert test projects using createProject with unique names
   const [mainProject, secondaryProject, tertiaryProject] = await Promise.all([
     createProject({
-      userId: testData.users.withInstructions!.id,
+      userId: testData.users.withInstructions?.id,
       name: `Core Platform-${testSuiteId}`,
       description: 'Main platform development',
       companyId: testData.company,
@@ -76,7 +75,7 @@ beforeAll(async () => {
       status: 'active'
     }),
     createProject({
-      userId: testData.users.withInstructions!.id,
+      userId: testData.users.withInstructions?.id,
       name: `Mobile App-${testSuiteId}`,
       description: 'Mobile app development',
       companyId: testData.company,
@@ -84,7 +83,7 @@ beforeAll(async () => {
       status: 'active'
     }),
     createProject({
-      userId: testData.users.withInstructions!.id,
+      userId: testData.users.withInstructions?.id,
       name: `Analytics-${testSuiteId}`,
       description: 'Analytics platform',
       companyId: testData.company,
@@ -108,7 +107,7 @@ beforeAll(async () => {
       // i=0 is 30 days ago, i=19 is 11 days ago
       const daysAgo = 30 - i;
       return createAchievement({
-        userId: testData.users.withInstructions!.id,
+        userId: testData.users.withInstructions?.id!,
         projectId: testData.projects.main,
         title: `Achievement ${i + 1}`,
         summary: `Summary for achievement ${i + 1}`,
@@ -125,7 +124,7 @@ beforeAll(async () => {
       // i=0 is 15 days ago, i=4 is 11 days ago
       const daysAgo = 15 - i;
       return createAchievement({
-        userId: testData.users.withInstructions!.id,
+        userId: testData.users.withInstructions?.id!,
         projectId: testData.projects.secondary,
         title: `Secondary Achievement ${i + 1}`,
         summary: `Summary for secondary achievement ${i + 1}`,
@@ -142,7 +141,7 @@ beforeAll(async () => {
       // i=0 is 10 days ago, i=4 is 6 days ago
       const daysAgo = 10 - i;
       return createAchievement({
-        userId: testData.users.withInstructions!.id,
+        userId: testData.users.withInstructions?.id!,
         projectId: testData.projects.tertiary,
         title: `Tertiary Achievement ${i + 1}`,
         summary: `Summary for tertiary achievement ${i + 1}`,
@@ -467,7 +466,7 @@ describe('preparePromptData', () => {
     const extraAchievements = await Promise.all(
       Array.from({ length: 210 }, (_, i) => {
         return createAchievement({
-          userId: testData.users.withInstructions!.id,
+          userId: testData.users.withInstructions?.id!,
           projectId: testData.projects.main,
           title: `Extra Achievement ${i + 1}`,
           summary: `Summary for extra achievement ${i + 1}`,

@@ -1,10 +1,5 @@
 import { Eval } from 'braintrust';
 import { LLMClassifierFromSpec, type Score } from 'autoevals';
-import { extractAchievements } from '../../lib/ai/extract';
-import type {
-  ExtractedAchievement,
-  ExtractAchievementsInput,
-} from '../../lib/ai/extract';
 
 
 // // Convert our examples to the format expected by BrainTrust

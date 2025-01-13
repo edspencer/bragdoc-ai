@@ -1,8 +1,6 @@
 import { getProjectById } from '@/lib/db/projects/queries';
-import { getAchievements, getCompanyById, getUserById } from '@/lib/db/queries';
-import { getProjectById } from '@/lib/db/projects/queries';
-import { getAchievements, getCompanyById } from '@/lib/db/queries';
-import { Achievement, Company, Project, User, Message } from '@/lib/db/schema';
+import { getAchievements, getCompanyById, } from '@/lib/db/queries';
+import type { Achievement, Company, Project, User, Message } from '@/lib/db/schema';
 import { streamText } from 'ai';
 import { documentWritingModel } from '.';
 
@@ -138,7 +136,7 @@ documents for them.
   <company>${company ? renderCompany(company) : ''}</company>
   <achievements>${achievements.map(renderAchievement).join('\n')}</achievements>
   <days>${days}</days>
-  <chatHistory>${chatHistory && chatHistory.map(renderMessage).join('\n')}</chatHistory>
+  <chatHistory>${chatHistory?.map(renderMessage).join('\n')}</chatHistory>
   <today>${today}</today>
 </data>
 
