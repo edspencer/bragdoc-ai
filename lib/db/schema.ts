@@ -17,6 +17,7 @@ import {
 export interface UserPreferences {
   hasSeenWelcome: boolean;
   language: string;
+  documentInstructions?: string
 }
 
 export const userLevelEnum = pgEnum('user_level', ['free', 'basic', 'pro']);
@@ -45,6 +46,7 @@ export const user = pgTable('User', {
   preferences: jsonb('preferences').$type<UserPreferences>().notNull().default({
     hasSeenWelcome: false,
     language: 'en',
+    documentInstructions: ''
   }),
   createdAt: timestamp('created_at').notNull().defaultNow(),
   updatedAt: timestamp('updated_at').notNull().defaultNow(),

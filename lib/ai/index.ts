@@ -16,6 +16,8 @@ export const extractAchievementsModel = customModel('gpt-4o-mini');
 export const chatModel = customModel('gpt-4o');
 export const findExistingProjectModel = customModel('gpt-4o-mini');
 
+export const documentWritingModel = customModel('gpt-4o');
+
 // import { google } from '@ai-sdk/google';
     // model: customModel("gpt-4o"),
     // model: google('gemini-2-flash'),

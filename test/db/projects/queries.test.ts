@@ -46,15 +46,65 @@ describe('Project Queries', () => {
   };
 
   beforeEach(async () => {
-    // Clean up existing data
-    await db.delete(project);
-    await db.delete(company);
-    await db.delete(user);
+    // Create test user first
+    const [createdUser] = await db
+      .insert(user)
+      .values(testUser)
+      .returning();
 
-    // Insert test data
-    await db.insert(user).values(testUser);
-    await db.insert(company).values(testCompany);
-    await db.insert(project).values(testProject);
+    // Clean up existing data for this user
+    await db
+      .delete(project)
+      .where(eq(project.userId, testUser.id))
+      .execute();
+    await db
+      .delete(company)
+      .where(eq(company.userId, testUser.id))
+      .execute();
+
+    // Create test company
+    const [createdCompany] = await db
+      .insert(company)
+      .values(testCompany)
+      .returning();
+
+    // Create test project
+    const [createdProject] = await db
+      .insert(project)
+      .values(testProject)
+      .returning();
+  });
+
+  afterEach(async () => {
+    // Clean up in correct order with specific where clauses
+    await db
+      .delete(project)
+      .where(eq(project.userId, testUser.id))
+      .execute();
+    await db
+      .delete(company)
+      .where(eq(company.userId, testUser.id))
+      .execute();
+    await db
+      .delete(user)
+      .where(eq(user.id, testUser.id))
+      .execute();
+  });
+
+  afterAll(async () => {
+    // Final cleanup
+    await db
+      .delete(project)
+      .where(eq(project.userId, testUser.id))
+      .execute();
+    await db
+      .delete(company)
+      .where(eq(company.userId, testUser.id))
+      .execute();
+    await db
+      .delete(user)
+      .where(eq(user.id, testUser.id))
+      .execute();
   });
 
   describe('getProjectsByUserId', () => {
@@ -360,12 +410,5 @@ describe('Project Queries', () => {
       expect(newProject?.status).toBe('active');
       expect(fuzzyFindProject).toHaveBeenCalled();
     });
-  });
-
-  afterAll(async () => {
-    // Clean up test data
-    await db.delete(project);
-    await db.delete(company);
-    await db.delete(user);
   });
 });

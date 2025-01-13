@@ -13,6 +13,9 @@ jobs:
   release:
     name: Release
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: cli
     steps:
       - name: Checkout Repo
         uses: actions/checkout@v4
@@ -36,7 +39,7 @@ jobs:
       - name: Run Tests
         env:
           OPENAI_API_KEY: nope
-        run: cd cli && pnpm test
+        run: pnpm test
 
       - name: Create Release Pull Request or Publish to npm
         id: changesets
