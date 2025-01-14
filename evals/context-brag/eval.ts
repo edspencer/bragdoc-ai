@@ -153,9 +153,8 @@ async function wrappedExtractAchievements(
 }
 
 // Create the evaluation
-Eval('bragdoc', {
+Eval('extract-achievement-company-and-project', {
   data: experimentData,
-  experimentName: 'extract-achievement-company-and-project',
   task: wrappedExtractAchievements,
   scores: [AchievementFactualityScorer],
   trialCount: 3,
