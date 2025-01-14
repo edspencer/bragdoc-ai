@@ -65,20 +65,16 @@ export async function preparePromptData({
     company: company || undefined,
     achievements: achievements.achievements,
     userInstructions,
-    chatHistory,
-
-    companiesStr: company && renderCompany(company) || '',
-    projectsStr: project && renderProject(project) || '',
-    chatStr: chatHistory?.map(renderMessage).join('\n') || ''
+    chatHistory
   }
 }
 
-export async function prepareAndGenerateDocument(promptData: PreparePromptDataArgs, streamTextOptions?: typeof streamText) {
+export async function prepareAndGenerateDocument(promptData: PreparePromptDataArgs, streamTextOptions?: Parameters<typeof streamText>[0]) {
   const preparedPromptData = await preparePromptData(promptData);
   return generateDocument(preparedPromptData, streamTextOptions);
 }
 
-export async function generateDocument(promptData: DocumentPromptData, streamTextOptions?: typeof streamText) {
+export async function generateDocument(promptData: DocumentPromptData, streamTextOptions?: Parameters<typeof streamText>[0]) {
   const prompt = await renderPrompt(promptData);
 
   return streamText({

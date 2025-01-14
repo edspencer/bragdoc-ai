@@ -153,7 +153,7 @@ async function wrappedExtractAchievements(
 }
 
 // Create the evaluation
-Eval('achievement-company-and-project', {
+Eval('extract-achievement-company-and-project', {
   data: experimentData,
   task: wrappedExtractAchievements,
   scores: [AchievementFactualityScorer],
