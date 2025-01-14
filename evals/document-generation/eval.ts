@@ -231,8 +231,9 @@ const createDocument = async (input: any): Promise<string> => {
 }
 
 // Create the evaluation
-Eval('weekly-document-generation', {
+Eval('bragdoc', {
   data: experimentData,
+  experimentName: 'weekly-document-generation',
   task: createDocument,
   scores: [DocumentScorer],
   trialCount: 3,

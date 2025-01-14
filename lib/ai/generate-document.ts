@@ -65,11 +65,7 @@ export async function preparePromptData({
     company: company || undefined,
     achievements: achievements.achievements,
     userInstructions,
-    chatHistory,
-
-    companiesStr: company && renderCompany(company) || '',
-    projectsStr: project && renderProject(project) || '',
-    chatStr: chatHistory?.map(renderMessage).join('\n') || ''
+    chatHistory
   }
 }
 
