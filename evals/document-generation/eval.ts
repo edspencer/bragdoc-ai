@@ -1,7 +1,7 @@
 import { Eval } from 'braintrust';
 import { LLMClassifierFromSpec, type Score } from 'autoevals';
 import { type DocumentPromptData, generateDocument, renderCompany, renderProject, renderMessage } from '@/lib/ai/generate-document';
-import type { Company, Message, Project } from '@/lib/db/schema';
+
 
 // Function to evaluate the accuracy of extracted achievements with context
 const DocumentAccuracy = LLMClassifierFromSpec(
@@ -92,7 +92,7 @@ type Experiment = {
   input: DocumentPromptData;
 }
 
-const company: Company = {
+const company = {
   name: 'Acme Corp',
   id: '1234',
   startDate: new Date('2023-01-01'),
@@ -102,7 +102,7 @@ const company: Company = {
   domain: 'www.boo.com',
 };
 
-const project: Project = {
+const project = {
   name: 'Project X',
   description: 'Description of Project X',
   startDate: new Date('2023-01-01'),
@@ -128,7 +128,7 @@ const user = {
 
 };
 
-const chatHistory: Message[] = [];
+const chatHistory: any[] = [];
 
 const experimentData: Experiment[] = [
   {
