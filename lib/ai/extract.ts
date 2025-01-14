@@ -141,7 +141,7 @@ message, you should use them to inform your extraction.
 
 Today's date is ${today}.`;
 
-  console.log(prompt);
+  // console.log(prompt);
 
   const { elementStream } = await streamObject({
     model: extractAchievementsModel,
