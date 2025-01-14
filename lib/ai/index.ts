@@ -1,15 +1,18 @@
 import { openai } from '@ai-sdk/openai';
 import { experimental_wrapLanguageModel as wrapLanguageModel } from 'ai';
+import { wrapAISDKModel } from 'braintrust';
 
 import { customMiddleware } from './custom-middleware';
 
 export const defaultModel = 'gpt-4o';
 
 export const customModel = (apiIdentifier: string = defaultModel) => {
-  return wrapLanguageModel({
+  const wrappedModel = wrapLanguageModel({
     model: openai(apiIdentifier),
     middleware: customMiddleware,
   });
+
+  return wrapAISDKModel(wrappedModel);
 };
 
 export const extractAchievementsModel = customModel('gpt-4o-mini');
