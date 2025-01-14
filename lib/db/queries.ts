@@ -799,9 +799,9 @@ export async function getCompanyById({
 export async function createCompany(
   input: CreateCompanyInput,
   db = defaultDb,
-): Promise<Company[]> {
+): Promise<Company> {
   try {
-    return await db.insert(company).values(input).returning();
+    return (await db.insert(company).values(input).returning())[0];
   } catch (error) {
     console.error('Error in createCompany:', error);
     throw error;
@@ -818,31 +818,17 @@ export async function updateCompany({
   userId: string;
   data: UpdateCompanyInput;
   db?: any;
-}): Promise<Company[]> {
+}): Promise<Company> {
   try {
-    // Get the current company first
-    const [currentCompany] = await db
-      .select()
-      .from(company)
-      .where(and(eq(company.id, id), eq(company.userId, userId)));
-
-    if (!currentCompany) {
-      return [];
-    }
-
-    // Merge current data with updates
-    const updateData = {
-      ...currentCompany,
-      ...data,
-      id: currentCompany.id, // Ensure we don't override the ID
-      userId: currentCompany.userId, // Ensure we don't override the user ID
-    };
-
-    return await db
+    const [updated] = await db
       .update(company)
-      .set(updateData)
+      .set({
+        ...data,
+        updatedAt: new Date(),
+      })
       .where(and(eq(company.id, id), eq(company.userId, userId)))
       .returning();
+    return updated;
   } catch (error) {
     console.error('Error in updateCompany:', error);
     throw error;
@@ -857,12 +843,13 @@ export async function deleteCompany({
   id: string;
   userId: string;
   db?: any;
-}): Promise<Company[]> {
+}): Promise<Company> {
   try {
-    return await db
+    const [deleted] = await db
       .delete(company)
       .where(and(eq(company.id, id), eq(company.userId, userId)))
       .returning();
+    return deleted;
   } catch (error) {
     console.error('Error in deleteCompany:', error);
     throw error;

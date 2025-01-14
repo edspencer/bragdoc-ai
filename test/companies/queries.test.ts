@@ -29,19 +29,8 @@ describe('Company Queries', () => {
   const testId = uuidv4();
 
   beforeEach(async () => {
-    // Clean up any existing test data
-    await db.delete(project).execute();
-    await db
-      .delete(company)
-      .where(eq(company.name, `Test Company ${testId}`))
-      .execute();
-    await db
-      .delete(user)
-      .where(eq(user.email, `test${testId}@example.com`))
-      .execute();
-
     // Create test user first with unique email
-    const [createdUser] = await db
+    testUser = await db
       .insert(user)
       .values({
         email: `test${testId}@example.com`,
@@ -53,11 +42,23 @@ describe('Company Queries', () => {
         githubAccessToken: null,
         emailVerified: null,
       })
-      .returning();
-    testUser = createdUser;
+      .returning()
+      .then((res) => res[0]);
+
+    // Clean up any existing test data for this user
+    if (testUser) {
+      await db
+        .delete(project)
+        .where(eq(project.userId, testUser.id))
+        .execute();
+      await db
+        .delete(company)
+        .where(eq(company.userId, testUser.id))
+        .execute();
+    }
 
     // Then create test company with unique name
-    const [createdCompany] = await createCompany(
+    const createdCompany = await createCompany(
       {
         userId: testUser.id,
         name: `Test Company ${testId}`,
@@ -73,28 +74,38 @@ describe('Company Queries', () => {
 
   afterEach(async () => {
     // Clean up in correct order with specific where clauses
-    await db.delete(project).execute();
-    await db
-      .delete(company)
-      .where(eq(company.name, `Test Company ${testId}`))
-      .execute();
-    await db
-      .delete(user)
-      .where(eq(user.email, `test${testId}@example.com`))
-      .execute();
+    if (testUser) {
+      await db
+        .delete(project)
+        .where(eq(project.userId, testUser.id))
+        .execute();
+      await db
+        .delete(company)
+        .where(eq(company.userId, testUser.id))
+        .execute();
+      await db
+        .delete(user)
+        .where(eq(user.id, testUser.id))
+        .execute();
+    }
   });
 
   afterAll(async () => {
     // Final cleanup
-    await db.delete(project).execute();
-    await db
-      .delete(company)
-      .where(eq(company.name, `Test Company ${testId}`))
-      .execute();
-    await db
-      .delete(user)
-      .where(eq(user.email, `test${testId}@example.com`))
-      .execute();
+    if (testUser) {
+      await db
+        .delete(project)
+        .where(eq(project.userId, testUser.id))
+        .execute();
+      await db
+        .delete(company)
+        .where(eq(company.userId, testUser.id))
+        .execute();
+      await db
+        .delete(user)
+        .where(eq(user.id, testUser.id))
+        .execute();
+    }
     // Close database connection
     await client.end();
   });
@@ -128,10 +139,7 @@ describe('Company Queries', () => {
           .delete(company)
           .where(eq(company.userId, newUser.id))
           .execute();
-        await db
-          .delete(user)
-          .where(eq(user.email, `new${testId}@example.com`))
-          .execute();
+        await db.delete(user).where(eq(user.id, newUser.id)).execute();
       }
     });
 
@@ -252,7 +260,7 @@ describe('Company Queries', () => {
         endDate: null,
       };
 
-      const [created] = await createCompany(newCompany, db);
+      const created = await createCompany(newCompany, db);
       expect(created).toBeTruthy();
       expect(created.name).toBe(newCompany.name);
       expect(created.domain).toBe(newCompany.domain);
@@ -269,7 +277,7 @@ describe('Company Queries', () => {
         endDate: new Date(),
       };
 
-      const [created] = await createCompany(newCompany, db);
+      const created = await createCompany(newCompany, db);
       expect(created).toBeTruthy();
       expect(created.domain).toBeNull();
       expect(created.endDate).toBeTruthy();
@@ -286,7 +294,7 @@ describe('Company Queries', () => {
         endDate: new Date('2023-12-31'),
       };
 
-      const [updated] = await updateCompany({
+      const updated = await updateCompany({
         id: testCompany.id,
         userId: testUser.id,
         data: updates,
@@ -305,7 +313,7 @@ describe('Company Queries', () => {
         role: 'Lead Engineer',
       };
 
-      const [updated] = await updateCompany({
+      const updated = await updateCompany({
         id: testCompany.id,
         userId: testUser.id,
         data: updates,
@@ -318,7 +326,7 @@ describe('Company Queries', () => {
     });
 
     test('only updates if owned by user', async () => {
-      const [otherUser] = await db
+      const otherUser = await db
         .insert(user)
         .values({
           email: `other${testId}@example.com`,
@@ -330,10 +338,13 @@ describe('Company Queries', () => {
           githubAccessToken: null,
           emailVerified: null,
         })
-        .returning();
+        .returning()
+        .then((res) => res[0]);
 
       const updates = {
-        name: `Unauthorized Update ${testId}`,
+        name: `Updated Company ${testId}`,
+        domain: `updated${testId}.com`,
+        role: 'Senior Developer',
       };
 
       const updated = await updateCompany({
@@ -343,7 +354,7 @@ describe('Company Queries', () => {
         db,
       });
 
-      expect(updated).toHaveLength(0);
+      expect(updated).toBeUndefined();
 
       await db.delete(user).where(eq(user.id, otherUser.id));
     });
@@ -351,13 +362,13 @@ describe('Company Queries', () => {
 
   describe('deleteCompany', () => {
     test('removes company', async () => {
-      const [company] = await createCompany(
+      const company = await createCompany(
         {
           userId: testUser.id,
           name: `To Delete ${testId}`,
-          domain: `delete${testId}.com`,
+          domain: null,
           role: 'Developer',
-          startDate: new Date(),
+          startDate: new Date(), // Add required startDate field
           endDate: null,
         },
         db,
@@ -368,7 +379,8 @@ describe('Company Queries', () => {
         userId: testUser.id,
         db,
       });
-      expect(deleted).toHaveLength(1);
+
+      expect(deleted).toBeTruthy();
 
       const found = await getCompanyById({
         id: company.id,
@@ -379,26 +391,13 @@ describe('Company Queries', () => {
     });
 
     test('only deletes if owned by user', async () => {
-      const [otherUser] = await db
-        .insert(user)
-        .values({
-          email: `other${testId}@example.com`,
-          name: `Other User ${testId}`,
-          provider: 'credentials',
-          password: null,
-          image: null,
-          providerId: null,
-          githubAccessToken: null,
-          emailVerified: null,
-        })
-        .returning();
-
       const deleted = await deleteCompany({
         id: testCompany.id,
-        userId: otherUser.id,
+        userId: uuidv4(),
         db,
       });
-      expect(deleted).toHaveLength(0);
+
+      expect(deleted).toBeUndefined();
 
       const stillExists = await getCompanyById({
         id: testCompany.id,
@@ -406,8 +405,6 @@ describe('Company Queries', () => {
         db,
       });
       expect(stillExists).toBeTruthy();
-
-      await db.delete(user).where(eq(user.id, otherUser.id));
     });
   });
 });

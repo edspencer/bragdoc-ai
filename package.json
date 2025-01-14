@@ -12,6 +12,7 @@
     "test": "pnpm test:setup && jest",
     "test:ide": "IDE_TEST=true pnpm test:setup && IDE_TEST=true jest",
     "test:watch": "jest --watch",
+    "test:cli": "cd cli && pnpm test",
     "eval": "npx braintrust eval ./evals/**/eval.ts",
     "lint": "next lint && biome lint --write --unsafe",
     "lint:fix": "next lint --fix && biome lint --write --unsafe",

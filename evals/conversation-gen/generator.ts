@@ -101,8 +101,6 @@ export async function generateScenario(
     ],
   });
 
-  console.log(companyNames)
-
   const { object } = await generateObject({
     model,
     maxRetries: 3,

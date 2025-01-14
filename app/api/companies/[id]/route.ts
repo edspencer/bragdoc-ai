@@ -9,15 +9,8 @@ const updateCompanySchema = z.object({
   name: z.string().min(1).max(256).optional(),
   domain: z.string().max(256).nullable().optional(),
   role: z.string().min(1).max(256).optional(),
-  startDate: z
-    .string()
-    .transform((str) => new Date(str))
-    .optional(),
-  endDate: z
-    .string()
-    .nullable()
-    .transform((str) => (str ? new Date(str) : null))
-    .optional(),
+  startDate: z.coerce.date().optional(),
+  endDate: z.coerce.date().nullable().optional(),
 });
 
 type Params = Promise<{ id: string }>;
@@ -65,7 +58,7 @@ export async function PUT(
     const body = await request.json();
     const validatedData = updateCompanySchema.parse(body);
 
-    const [company] = await updateCompany({
+    const company = await updateCompany({
       id,
       userId: session.user.id,
       data: validatedData,
@@ -100,13 +93,13 @@ export async function DELETE(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const deleted = await deleteCompany({
+    const company = await deleteCompany({
       id,
       userId: session.user.id,
       db,
     });
 
-    if (!deleted || deleted.length === 0) {
+    if (!company) {
       return new Response('Not Found', { status: 404 });
     }
 

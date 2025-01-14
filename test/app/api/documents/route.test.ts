@@ -41,27 +41,70 @@ describe('Documents API', () => {
     // Reset all mocks
     jest.clearAllMocks();
 
-    // Clean up any existing data
-    await db.delete(document);
-    await db.delete(project);
-    await db.delete(company);
-    await db.delete(user);
-
-    // Insert the mock user and company before each test
+    // Create test user first
     await db.insert(user).values(mockUser);
+
+    // Clean up any existing data for this user
+    await db
+      .delete(document)
+      .where(eq(document.userId, mockUser.id))
+      .execute();
+    await db
+      .delete(project)
+      .where(eq(project.userId, mockUser.id))
+      .execute();
+    await db
+      .delete(company)
+      .where(eq(company.userId, mockUser.id))
+      .execute();
+
+    // Insert the mock company
     await db.insert(company).values(mockCompany);
 
-    // Set up auth mock to return our test user
+    // Mock auth to return our test user
     (auth as jest.Mock).mockResolvedValue({
       user: mockUser,
     });
   });
 
   afterEach(async () => {
-    // Clean up after each test
-    await db.delete(document);
-    await db.delete(company);
-    await db.delete(user);
+    // Clean up in correct order with specific where clauses
+    await db
+      .delete(document)
+      .where(eq(document.userId, mockUser.id))
+      .execute();
+    await db
+      .delete(project)
+      .where(eq(project.userId, mockUser.id))
+      .execute();
+    await db
+      .delete(company)
+      .where(eq(company.userId, mockUser.id))
+      .execute();
+    await db
+      .delete(user)
+      .where(eq(user.id, mockUser.id))
+      .execute();
+  });
+
+  afterAll(async () => {
+    // Final cleanup
+    await db
+      .delete(document)
+      .where(eq(document.userId, mockUser.id))
+      .execute();
+    await db
+      .delete(project)
+      .where(eq(project.userId, mockUser.id))
+      .execute();
+    await db
+      .delete(company)
+      .where(eq(company.userId, mockUser.id))
+      .execute();
+    await db
+      .delete(user)
+      .where(eq(user.id, mockUser.id))
+      .execute();
   });
 
   describe('GET /api/documents', () => {
@@ -160,7 +203,7 @@ describe('Documents API', () => {
       await db.insert(document).values(testDoc);
 
       const url = new URL(`http://localhost/api/documents/${testDoc.id}`);
-      const response = await GET(new NextRequest(url), { params: { id: testDoc.id } });
+      const response = await GET(new NextRequest(url), { params: Promise.resolve({ id: testDoc.id }) });
 
       expect(response.status).toBe(200);
       const data = await response.json();
@@ -175,7 +218,7 @@ describe('Documents API', () => {
 
       const nonExistentId = uuidv4();
       const url = new URL(`http://localhost/api/documents/${nonExistentId}`);
-      const response = await GET(new NextRequest(url), { params: { id: nonExistentId } });
+      const response = await GET(new NextRequest(url), { params: Promise.resolve({ id: nonExistentId }) });
 
       expect(response.status).toBe(404);
     });
@@ -208,7 +251,7 @@ describe('Documents API', () => {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(updates),
         }),
-        { params: { id: testDoc.id } },
+        { params: Promise.resolve({ id: testDoc.id }) },
       );
 
       expect(response.status).toBe(200);
@@ -233,7 +276,7 @@ describe('Documents API', () => {
       await db.insert(document).values(testDoc);
 
       const url = new URL(`http://localhost/api/documents/${testDoc.id}`);
-      const response = await DELETE(new NextRequest(url), { params: { id: testDoc.id } });
+      const response = await DELETE(new NextRequest(url), { params: Promise.resolve({ id: testDoc.id }) });
 
       expect(response.status).toBe(200);
 
@@ -261,7 +304,7 @@ describe('Documents API', () => {
       await db.insert(document).values(testDoc);
 
       const url = new URL(`http://localhost/api/documents/${testDoc.id}/share`);
-      const response = await shareDocument(new NextRequest(url), { params: { id: testDoc.id } });
+      const response = await shareDocument(new NextRequest(url), { params: Promise.resolve({ id: testDoc.id }) });
 
       expect(response.status).toBe(200);
       const data = await response.json();
@@ -290,7 +333,7 @@ describe('Documents API', () => {
       await db.insert(document).values(testDoc);
 
       const url = new URL(`http://localhost/api/documents/${testDoc.id}/share`);
-      const response = await unshareDocument(new NextRequest(url), { params: { id: testDoc.id } });
+      const response = await unshareDocument(new NextRequest(url), { params: Promise.resolve({ id: testDoc.id }) });
 
       expect(response.status).toBe(200);
 

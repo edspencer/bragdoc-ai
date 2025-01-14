@@ -7,13 +7,10 @@ import { db } from '@/lib/db';
 // Validation schema for creating a company
 const createCompanySchema = z.object({
   name: z.string().min(1).max(256),
-  domain: z.string().max(256).nullable(),
+  domain: z.string().max(256).nullable().optional(),
   role: z.string().min(1).max(256),
-  startDate: z.string().transform((str) => new Date(str)),
-  endDate: z
-    .string()
-    .nullable()
-    .transform((str) => (str ? new Date(str) : null)),
+  startDate: z.coerce.date(),
+  endDate: z.coerce.date().nullable().optional(),
 });
 
 export async function GET() {
@@ -48,9 +45,11 @@ export async function POST(request: Request) {
     const body = await request.json();
     const validatedData = createCompanySchema.parse(body);
 
-    const [company] = await createCompany(
+    const company = await createCompany(
       {
         ...validatedData,
+        domain: validatedData.domain || null,
+        endDate: validatedData.endDate || null,
         userId: session.user.id,
       },
       db,

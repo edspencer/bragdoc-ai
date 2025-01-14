@@ -11,6 +11,11 @@ export const blocksPrompt = `
   - For content users will likely save/reuse (emails, code, essays, etc.)
   - When explicitly requested to create a document
   - If you are being asked to write a report, you will be given the user's Achievements, Companies and Projects
+  - The user may refer specifically to a project, in which case you should set the projectId to that project's ID
+  - The user may refer specifically to a company, in which case you should set the companyId to that company's ID
+  - If the user does not refer to a specific company, but does refer to a project, use that project's company ID as the companyId parameter
+  - If the user requested a specific document title, please use that as the title parameter
+  - If the user is requesting a specific time period, please supply the number of days as the days parameter. Achievements are are loaded back to N days ago, where N is the number of days requested. These will then be used to create the document
 
   **When NOT to use \`createDocument\`:**
   - For informational/explanatory content
