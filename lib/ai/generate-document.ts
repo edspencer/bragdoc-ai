@@ -166,32 +166,38 @@ documents for them.
 
 const renderProject = (project: Project) => {
   return `
-    <name>${project.name}</name>
-    <id>${project.id}</id>
-    <description>${project.description}</description>
-    <status>${project.status}</status>
-    <startDate>${project.startDate}</startDate>
-    <endDate>${project.endDate || 'Present'}</endDate>
+    <project>
+      <name>${project.name}</name>
+      <id>${project.id}</id>
+      <description>${project.description}</description>
+      <status>${project.status}</status>
+      <startDate>${project.startDate}</startDate>
+      <endDate>${project.endDate || 'Present'}</endDate>
+    </project>
   `;
 }
 
 const renderCompany = (company: Company) => {
   return `
-    <name>${company.name}</name>
-    <id>${company.id}</id>
-    <role>${company.role}</role>
-    <domain>${company.domain || 'N/A'}</domain>
-    <startDate>${company.startDate.toISOString()}</startDate>
-    <endDate>${company.endDate ? company.endDate.toISOString() : 'Present'}</endDate>
+    <company>
+      <name>${company.name}</name>
+      <id>${company.id}</id>
+      <role>${company.role}</role>
+      <domain>${company.domain || 'N/A'}</domain>
+      <startDate>${company.startDate.toISOString()}</startDate>
+      <endDate>${company.endDate ? company.endDate.toISOString() : 'Present'}</endDate>
+    </company>
   `;
 }
 
 const renderAchievement = (achievement: Achievement) => {
   return `
-    <title>${achievement.title}</title>
-    <summary>${achievement.summary}</summary>
-    <details>${achievement.details}</details>
-    <impact>${achievement.impact}</impact>
+    <achievement>
+      <title>${achievement.title}</title>
+      <summary>${achievement.summary}</summary>
+      <details>${achievement.details}</details>
+      <impact>${achievement.impact}</impact>
+    </achievement>
   `;
 }
 

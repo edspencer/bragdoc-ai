@@ -123,7 +123,7 @@ export function AchievementList({
               impactSource: 'user' as const,
               impactUpdatedAt: new Date(),
             }
-          : achievement,
+          : achievement
       ),
       pagination: {
         total: pagination.total,
@@ -199,14 +199,14 @@ export function AchievementList({
               <TableHead>Impact</TableHead>
               <TableHead>Title</TableHead>
               <TableHead className="hidden sm:table-cell ">Date</TableHead>
-              <TableHead>Info</TableHead>
+              <TableHead>Project</TableHead>
               <TableHead className="sm:w-[100px]">Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {achievements.map((achievement) => (
               <TableRow key={achievement.id}>
-                <TableCell className="py-1">
+                <TableCell className="py-1 sm:p-2">
                   <ImpactRating
                     value={achievement.impact}
                     source={achievement.impactSource}
@@ -217,13 +217,21 @@ export function AchievementList({
                     readOnly={!!actionLoading}
                   />
                 </TableCell>
-                <TableCell>{achievement.title}</TableCell>
-                <TableCell className="hidden sm:table-cell">{achievement.eventStart ? new Date(achievement.eventStart).toLocaleDateString() : '-'}</TableCell>
-                <TableCell>
-                  {achievement.company?.name ?? '-'}
-                  {achievement.project?.name ? ` (${achievement.project.name})` : ''}
+                <TableCell className="sm:p-2">{achievement.title}</TableCell>
+                <TableCell className="hidden sm:table-cell sm:p-2">
+                  {achievement.eventStart
+                    ? new Date(achievement.eventStart).toLocaleDateString()
+                    : '-'}
                 </TableCell>
-                <TableCell>
+                <TableCell className="sm:p-2">
+                  {achievement.project?.name
+                    ? ` ${achievement.project.name}`
+                    : ''}
+                  {achievement.company?.name
+                    ? `(${achievement.company.name})`
+                    : ''}
+                </TableCell>
+                <TableCell className="sm:p-2">
                   <AchievementActions
                     onEdit={() =>
                       setDialog({
@@ -278,7 +286,7 @@ export function AchievementList({
                 const leftBound = Math.max(2, page - delta);
                 const rightBound = Math.min(
                   pagination.totalPages - 1,
-                  page + delta,
+                  page + delta
                 );
 
                 // Add ellipsis if there's a gap after 1
