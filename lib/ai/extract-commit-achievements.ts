@@ -6,15 +6,13 @@ import { extractAchievementsModel } from ".";
 import { getProjectsByUserId } from "../db/projects/queries";
 import { getCompaniesByUserId } from "../db/queries";
 
-export type PrepareExtractAchievementsPromptData = {
+export type PrepareExtractCommitAchievementsPromptData = {
   user: User;
   message: string;
   chatHistory: Message[];
 }
 
-//given a minimal set of data, prepare the rest of the data required for the achievements extraction prompt
-//This allows multiple LLM entrypoints to benefit from the same prompt prep
-export async function preparePromptData(props: PrepareExtractAchievementsPromptData): Promise<ExtractAchievementsPromptProps> {
+export async function preparePromptData(props: PrepareExtractCommitAchievementsPromptData): Promise<ExtractAchievementsPromptProps> {
   const {user, message, chatHistory} = props;
 
   const [projects, companies] = await Promise.all([

@@ -1,8 +1,14 @@
 import { streamObject } from 'ai';
 import { extractAchievementsModel } from '@/lib/ai';
 import type { Achievement, Company, Project, User } from '@/lib/db/schema';
-import type { RepositoryCommitHistory } from '@/types/commits';
-import { achievementResponseSchema, LLMExtractedAchievement } from './types';
+
+import {
+  achievementResponseSchema,
+  LLMExtractedAchievement,
+  ExtractCommitAchievementsPromptProps,
+  RepositoryCommit,
+  Repository,
+} from './types';
 import { examples } from './evals/data/extract-achievements';
 
 import {
@@ -14,17 +20,9 @@ import {
   UserInput,
   ChatHistory,
   Variables,
+  renderPrompt,
 } from '../aisx';
 import { Companies, Projects } from '../aisx/elements';
-
-export type ExtractFromCommitsInput = {
-  commits: RepositoryCommitHistory['commits'];
-  repository: RepositoryCommitHistory['repository'];
-  context: {
-    companies: Array<Company>;
-    projects: Array<Project>;
-  };
-};
 
 const instructions = [
   'Consider the chat history and context to understand the full scope of each achievement.',
@@ -75,29 +73,20 @@ message, you should use them to inform your extraction.`,
 export function ExtractCommitAchievementsPrompt({
   companies,
   projects,
-  message,
-  chatHistory,
+  commits,
+  repository,
   user,
-}: {
-  companies: Company[];
-  projects: Project[];
-  message: string;
-  chatHistory: any[];
-  user: User;
-}) {
+}: ExtractCommitAchievementsPromptProps) {
   return (
     <Prompt>
       <Purpose>
         You are a careful and attentive assistant who extracts work achievements
-        from conversations between users and AI assistants. Extract all of the
-        achievements in the user message contained within the {`<user-input>`}
+        from source control commit messages. Extract all of the achievements in
+        the commit messages contained within the {`<user-input>`}
         tag. Follow all of the instructions provided below.
       </Purpose>
       <Instructions instructions={instructions} />
       <InputFormat>
-        <user-input>
-          The message that the user just sent you to extract achievements from
-        </user-input>
         <chat-history>
           Recent chat history between the user and AI assistant
         </chat-history>
@@ -111,6 +100,10 @@ export function ExtractCommitAchievementsPrompt({
           Any specific instructions from the user to guide the extraction
           process
         </user-instructions>
+        <user-input>The git commits to extract achievements from</user-input>
+        <repository>
+          Information about the repository the commits are from
+        </repository>
       </InputFormat>
       <Variables>
         <Companies companies={companies} />
@@ -119,10 +112,43 @@ export function ExtractCommitAchievementsPrompt({
         <user-instructions>
           {user.preferences.documentInstructions}
         </user-instructions>
-        <ChatHistory messages={chatHistory} />
-        <UserInput>{message}</UserInput>
+        <UserInput>
+          {commits.map((c) => (
+            <Commit key={c.hash} commit={c} />
+          ))}
+        </UserInput>
+        <Repo repository={repository} />
       </Variables>
       <Examples examples={examples.map((e) => JSON.stringify(e, null, 4))} />
     </Prompt>
   );
+}
+
+export function Commit({ commit }: { commit: RepositoryCommit }) {
+  return (
+    <commit>
+      <message>{commit.message}</message>
+      <hash>{commit.hash}</hash>
+      <author>
+        {commit.author.name} - {commit.author.email}
+      </author>
+      <date>{commit.date}</date>
+    </commit>
+  );
+}
+
+export function Repo({ repository }: { repository: Repository }) {
+  return (
+    <repository>
+      <name>{repository.name}</name>
+      <path>{repository.path}</path>
+      <remote-url>{repository.remoteUrl}</remote-url>
+    </repository>
+  );
+}
+
+export function renderExtractCommitAchievementsPrompt(
+  config: ExtractCommitAchievementsPromptProps
+) {
+  return renderPrompt(<ExtractCommitAchievementsPrompt {...config} />);
 }

@@ -1,7 +1,7 @@
 import { z } from 'zod';
 import { Achievement, Company, Project, User } from '@/lib/db/schema';
 
-// Zod schema for validation
+//Schema we use to ask the LLM for a structured response using
 export const achievementResponseSchema = z.object({
   title: z
     .string()
@@ -48,10 +48,10 @@ export const achievementResponseSchema = z.object({
     .default(2),
 });
 
-// Type inference from Zod schema (alternative way to get the type)
 export type LLMExtractedAchievement = z.infer<typeof achievementResponseSchema>;
 
 // the type of Achievement emitted by the LLM wrapper (not saved to db yet)
+// basically what the LLM sent back plus a couple of fields like impactUpdatedAt
 export type ExtractedAchievement = Pick<
   Achievement,
   | 'title'
@@ -67,7 +67,7 @@ export type ExtractedAchievement = Pick<
   | 'impactUpdatedAt'
 >;
 
-
+//props required to render the Extract Achievements Prompt
 export interface ExtractAchievementsPromptProps {
   companies: Company[];
   projects: Project[];
@@ -75,3 +75,33 @@ export interface ExtractAchievementsPromptProps {
   chatHistory: any[];
   user: User;
 }
+
+// props required to render the Extract Commit Achievements Prompt
+export interface ExtractCommitAchievementsPromptProps {
+  commits: RepositoryCommit[];
+  repository: Repository;
+  companies: Company[];
+  projects: Project[];
+  user: User;
+};
+
+export type RepositoryCommit = {
+  hash: string;
+  message: string;
+  author: {
+    name: string;
+    email: string;
+  };
+  date: string;
+  prDetails?: {
+    title: string;
+    description: string;
+    number: number;
+  };
+};
+
+export type Repository = {
+  name: string;
+  path: string;
+  remoteUrl?: string;
+};
