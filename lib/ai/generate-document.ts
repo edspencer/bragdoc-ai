@@ -1,8 +1,10 @@
 import { getProjectById } from '@/lib/db/projects/queries';
 import { getAchievements, getCompanyById, } from '@/lib/db/queries';
-import type { Achievement, Company, Project, User, Message } from '@/lib/db/schema';
+import type { Company, Project, User, Message } from '@/lib/db/schema';
 import { streamText } from 'ai';
 import { documentWritingModel } from '.';
+
+import { renderCompany, renderProject, renderAchievement, renderMessage } from './renderers';
 
 export interface PreparePromptDataArgs {
   title: string;
@@ -75,7 +77,7 @@ export async function prepareAndGenerateDocument(promptData: PreparePromptDataAr
 }
 
 export async function generateDocument(promptData: DocumentPromptData, streamTextOptions?: Parameters<typeof streamText>[0]) {
-  const prompt = await renderPrompt(promptData);
+  const prompt = renderPrompt(promptData);
 
   return streamText({
     model: documentWritingModel,
@@ -88,7 +90,7 @@ export async function generateDocument(promptData: DocumentPromptData, streamTex
  * Renders the prompt that asks the LLM to generate a document
  * @returns The full prompt to be fed to the LLM
  */
-export async function renderPrompt({
+export function renderPrompt({
   title,
   days,
   user,
@@ -160,55 +162,3 @@ documents for them.
   return prompt
 }
 
-const renderProject = (project: Project) => {
-  return `
-    <project>
-      <name>${project.name}</name>
-      <id>${project.id}</id>
-      <description>${project.description}</description>
-      <status>${project.status}</status>
-      <startDate>${project.startDate}</startDate>
-      <endDate>${project.endDate || 'Present'}</endDate>
-    </project>
-  `;
-}
-
-const renderCompany = (company: Company) => {
-  return `
-    <company>
-      <name>${company.name}</name>
-      <id>${company.id}</id>
-      <role>${company.role}</role>
-      <domain>${company.domain || 'N/A'}</domain>
-      <startDate>${company.startDate.toISOString()}</startDate>
-      <endDate>${company.endDate ? company.endDate.toISOString() : 'Present'}</endDate>
-    </company>
-  `;
-}
-
-const renderAchievement = (achievement: Achievement) => {
-  return `
-    <achievement>
-      <title>${achievement.title}</title>
-      <summary>${achievement.summary}</summary>
-      <details>${achievement.details}</details>
-      <impact>${achievement.impact}</impact>
-    </achievement>
-  `;
-}
-
-const renderMessage = (message: Message) => {
-  return `
-  <message>
-    <role>${message.role}</role>
-    <content>${message.content}</content>
-  </message>
-  `;
-}
-
-export {
-  renderProject, 
-  renderCompany,
-  renderAchievement,
-  renderMessage
-}

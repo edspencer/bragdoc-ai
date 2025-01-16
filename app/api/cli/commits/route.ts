@@ -88,8 +88,8 @@ export async function POST(req: Request) {
       })),
       repository,
       context: {
-        companies: companies as any,
-        projects: projects as any,
+        companies,
+        projects,
       },
     })) {
       const [savedAchievement] = await createAchievement({

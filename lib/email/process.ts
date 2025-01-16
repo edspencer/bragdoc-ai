@@ -101,25 +101,9 @@ ${achievements.map(a => `- ${a.title}`).join('\n')}`;
             // Extract achievements using the AI
             const achievementsStream = extractAchievements({
               input: email.textContent,
-              chat_history: [{ role: 'user', content: email.textContent }],
-              context: {
-                companies: companies.map(c => ({
-                  id: c.id,
-                  name: c.name,
-                  role: c.role,
-                  domain: c.domain || undefined,
-                  startDate: c.startDate,
-                  endDate: c.endDate || undefined,
-                })),
-                projects: projects.map(p => ({
-                  id: p.id,
-                  name: p.name,
-                  companyId: p.companyId || undefined,
-                  description: p.description || '',
-                  startDate: p.startDate || undefined,
-                  endDate: p.endDate || undefined,
-                })),
-              },
+              chatHistory: [{ role: 'user', content: email.textContent }],
+              companies,
+              projects,
             });
 
             const savedAchievements = [];

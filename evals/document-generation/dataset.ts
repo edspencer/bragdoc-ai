@@ -1,5 +1,5 @@
 import { Experiment } from "./types";
-import { renderCompany, renderProject, renderMessage } from '@/lib/ai/generate-document';
+import { renderCompanies, renderProjects, renderMessage } from '@/lib/ai/renderers';
 
 export const company = {
   name: 'Acme Corp',
@@ -57,12 +57,12 @@ export const experimentData: Experiment[] = [
       //if the user was clearly talking about a specific project,
       //this will be provided now
       project,
-      projectsStr: renderProject(project),
+      projectsStr: renderProjects([project]),
 
       //if there is a project, and the project has a company,
   //this will be provided now
       company,
-      companiesStr: renderCompany(company),
+      companiesStr: renderCompanies([company]),
 
       achievements: [
         //any achievements that were found for the request

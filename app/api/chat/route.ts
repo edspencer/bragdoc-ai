@@ -33,7 +33,8 @@ import {
 
 import { generateTitleFromUserMessage } from '@/app/(app)/chat/actions';
 import { extractAchievements } from '@/lib/ai/extract';
-import { prepareAndGenerateDocument, renderCompany, renderProject } from '@/lib/ai/generate-document';
+import { prepareAndGenerateDocument } from '@/lib/ai/generate-document';
+import { renderCompany, renderProject } from '@/lib/ai/renderers';
 
 export const maxDuration = 60;
 
@@ -153,17 +154,15 @@ ${companies.map(renderCompany).join('\n')}
             console.log('extracting achievements');
 
             const achievementsStream = extractAchievements({
-              chat_history: messages
+              chatHistory: messages
                 .filter((m) => m.role === 'user')
                 .map(({ role, content }) => ({
                   role,
                   content,
                 })),
               input: message,
-              context: {
-                companies: companies as any,
-                projects: projects as any,
-              },
+              companies,
+              projects,
             });
 
             const savedAchievements = [];

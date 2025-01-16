@@ -1,36 +1,12 @@
 import { streamObject } from 'ai';
 
 import {extractAchievementsModel} from '@/lib/ai';
-import type { Achievement } from '../db/schema';
+import type { Achievement, Company, Project, User } from '../db/schema';
 import {achievementResponseSchema } from './llm-object-schema';
+import { getCompaniesByUserId } from '../db/queries';
+import { getProjectsByUserId } from '../db/projects/queries';
 
-export type ChatMessage = {
-  role: 'user' | 'assistant' | 'system' | 'data';
-  content: string;
-};
-
-export type ExtractAchievementsInput = {
-  input: string;
-  chat_history: ChatMessage[];
-  context: {
-    companies: Array<{
-      id: string;
-      name: string;
-      role: string;
-      domain?: string;
-      startDate: Date;
-      endDate?: Date;
-    }>;
-    projects: Array<{
-      id: string;
-      name: string;
-      companyId?: string;
-      description: string;
-      startDate?: Date;
-      endDate?: Date;
-    }>;
-  };
-};
+import { renderCompanies, renderProjects } from './renderers';
 
 export type ExtractedAchievement = Pick<
   Achievement,
@@ -45,39 +21,29 @@ export type ExtractedAchievement = Pick<
   | 'impact'
   | 'impactSource'
   | 'impactUpdatedAt'
-> & {
-  suggestNewProject?: boolean;
+>;
+
+export type PrepareExtractAchievementsPromptData = {
+  user: User;
+  input: string;
+  chatHistory: ChatMessage[];
+}
+
+export type ChatMessage = {
+  role: 'user' | 'assistant' | 'system' | 'data';
+  content: string;
 };
 
-export async function* extractAchievements(
-  input: ExtractAchievementsInput,
-): AsyncGenerator<ExtractedAchievement, void, unknown> {
-  const chatStr = input.chat_history
+export type ExtractAchievementsInput = {
+  input: string;
+  chatHistory: ChatMessage[];
+  companies: Array<Company>;
+  projects: Array<Project>;
+};
+
+export function renderPrompt(input: ExtractAchievementsInput) {
+  const chatStr = input.chatHistory
     .map(({ role, content }) => `${role}: ${content}`)
-    .join('\n');
-
-  const companiesStr = input.context.companies
-    .map(
-      (company) => `
-Name: ${company.name} (ID: ${company.id})
-Role: ${company.role}
-Domain: ${company.domain || 'N/A'}
-Start Date: ${company.startDate}
-End Date: ${company.endDate || 'Present'}
-    `,
-    )
-    .join('\n');
-
-  const projectsStr = input.context.projects
-    .map(
-      (project) => `
-Name: ${project.name} (ID: ${project.id})
-Company: ${project.companyId || 'N/A'}
-Description: ${project.description}
-Start Date: ${project.startDate || 'N/A'}
-End Date: ${project.endDate || 'N/A'}
-    `,
-    )
     .join('\n');
 
   const today = new Intl.DateTimeFormat('en-US', {
@@ -102,14 +68,13 @@ ${chatStr}
 </chat-history>
 
 <context>
-<companies>
-${companiesStr}
-</companies>
-
-<projects>
-${projectsStr}
-</projects>
+${renderCompanies(input.companies)}
+${renderProjects(input.projects)}
 </context>
+
+<today>
+${today}
+</today>
 
 For each achievement found, provide:
 1. A clear, action-oriented title (REQUIRED) that:
@@ -137,11 +102,29 @@ Each achievement should be complete and self-contained.
 
 Consider only the single message inside <user-message> when creating Achievements. If the user mentions achievements in the <chat-history>
 you are given, you should not extract them because they have already been extracted. However, if those previous messages are relevant to the current
-message, you should use them to inform your extraction.
+message, you should use them to inform your extraction.`;
 
-Today's date is ${today}.`;
+  return prompt;
+}
 
-  // console.log(prompt);
+export async function preparePromptData(props: PrepareExtractAchievementsPromptData): Promise<ExtractAchievementsInput> {
+  const {user, input, chatHistory} = props;
+
+  const [projects, companies] = await Promise.all([
+    getProjectsByUserId(user.id),
+    getCompaniesByUserId({ userId: user.id }),
+  ]);
+
+  return {
+    input,
+    chatHistory,
+    companies,
+    projects,
+  }
+}
+
+export async function* extractAchievements(input: ExtractAchievementsInput): AsyncGenerator<ExtractedAchievement, void, unknown> {
+  const prompt = renderPrompt(input);
 
   const { elementStream } = await streamObject({
     model: extractAchievementsModel,

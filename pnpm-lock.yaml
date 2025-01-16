@@ -242,9 +242,6 @@ importers:
       react-day-picker:
         specifier: 8.10.1
         version: 8.10.1(date-fns@4.1.0)(react@19.0.0-rc-45804af1-20241021)
-      react-dom:
-        specifier: 19.0.0-rc-45804af1-20241021
-        version: 19.0.0-rc-45804af1-20241021(react@19.0.0-rc-45804af1-20241021)
       react-hook-form:
         specifier: ^7.54.1
         version: 7.54.1(react@19.0.0-rc-45804af1-20241021)
@@ -254,6 +251,9 @@ importers:
       react-share:
         specifier: ^5.1.2
         version: 5.1.2(react@19.0.0-rc-45804af1-20241021)
+      react-xml:
+        specifier: ^0.3.0
+        version: 0.3.0(react@19.0.0-rc-45804af1-20241021)
       rehype-sanitize:
         specifier: ^6.0.0
         version: 6.0.0
@@ -343,7 +343,7 @@ importers:
         specifier: ^18
         version: 18.3.12
       '@types/react-dom':
-        specifier: ^18
+        specifier: ^18.3.1
         version: 18.3.1
       drizzle-kit:
         specifier: ^0.25.0
@@ -381,6 +381,9 @@ importers:
       puppeteer:
         specifier: ^23.10.4
         version: 23.10.4(bufferutil@4.0.8)(typescript@5.6.3)
+      react-dom:
+        specifier: 19.0.0-rc-45804af1-20241021
+        version: 19.0.0-rc-45804af1-20241021(react@19.0.0-rc-45804af1-20241021)
       shadcn:
         specifier: ^2.1.7
         version: 2.1.7(typescript@5.6.3)
@@ -6419,6 +6422,12 @@ packages:
     peerDependenciesMeta:
       '@types/react':
         optional: true
+
+  react-xml@0.3.0:
+    resolution: {integrity: sha512-bPD0iKQUDQ4R9FKfRgCw8fDSCSeHplcFBxpW8UdeqtbubdXXC2jk/qWNDJu/hX3sNERP9UxU7/mhqP2oYUjjdg==}
+    engines: {node: '>=10.13.0'}
+    peerDependencies:
+      react: '>=16.0.0'
 
   react@19.0.0-rc-45804af1-20241021:
     resolution: {integrity: sha512-RYkYXmX7Iia56DQJaNK0Ribh5uF/sDBNirtNNHNNqqa3wpIlcFOkRvPTW3RSwAXmBVnEZlKbeaMhlBT9p52lqA==}
@@ -14398,6 +14407,11 @@ snapshots:
       tslib: 2.8.0
     optionalDependencies:
       '@types/react': 18.3.12
+
+  react-xml@0.3.0(react@19.0.0-rc-45804af1-20241021):
+    dependencies:
+      react: 19.0.0-rc-45804af1-20241021
+      react-is: 16.13.1
 
   react@19.0.0-rc-45804af1-20241021: {}
 
