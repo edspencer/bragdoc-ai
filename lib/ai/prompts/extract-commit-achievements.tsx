@@ -1,3 +1,10 @@
+import { streamObject } from 'ai';
+import { extractAchievementsModel } from '@/lib/ai';
+import type { Achievement, Company, Project, User } from '@/lib/db/schema';
+import type { RepositoryCommitHistory } from '@/types/commits';
+import { achievementResponseSchema, LLMExtractedAchievement } from './types';
+import { examples } from './evals/data/extract-achievements';
+
 import {
   Prompt,
   Purpose,
@@ -7,12 +14,17 @@ import {
   UserInput,
   ChatHistory,
   Variables,
-  renderPrompt,
 } from '../aisx';
 import { Companies, Projects } from '../aisx/elements';
-import { Company, Project, User } from '@/lib/db/schema';
-import { examples } from './evals/data/extract-achievements';
-import { ExtractAchievementsPromptProps } from './types';
+
+export type ExtractFromCommitsInput = {
+  commits: RepositoryCommitHistory['commits'];
+  repository: RepositoryCommitHistory['repository'];
+  context: {
+    companies: Array<Company>;
+    projects: Array<Project>;
+  };
+};
 
 const instructions = [
   'Consider the chat history and context to understand the full scope of each achievement.',
@@ -60,13 +72,19 @@ message, you should use them to inform your extraction.`,
   - "Grew Frontend Team from 5 to 12 Engineers"`,
 ];
 
-export function ExtractAchievementsPrompt({
+export function ExtractCommitAchievementsPrompt({
   companies,
   projects,
   message,
   chatHistory,
   user,
-}: ExtractAchievementsPromptProps) {
+}: {
+  companies: Company[];
+  projects: Project[];
+  message: string;
+  chatHistory: any[];
+  user: User;
+}) {
   return (
     <Prompt>
       <Purpose>
@@ -107,10 +125,4 @@ export function ExtractAchievementsPrompt({
       <Examples examples={examples.map((e) => JSON.stringify(e, null, 4))} />
     </Prompt>
   );
-}
-
-export function renderExtractAchievementsPrompt(
-  config: ExtractAchievementsPromptProps
-) {
-  return renderPrompt(<ExtractAchievementsPrompt {...config} />);
 }

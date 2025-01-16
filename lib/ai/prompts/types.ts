@@ -1,6 +1,7 @@
 import { z } from 'zod';
+import { Achievement, Company, Project, User } from '@/lib/db/schema';
 
-// Schema for validating LLM response
+// Zod schema for validation
 export const achievementResponseSchema = z.object({
   title: z
     .string()
@@ -46,3 +47,31 @@ export const achievementResponseSchema = z.object({
     .describe('Impact level of the achievement (1: Low, 2: Medium, 3: High)')
     .default(2),
 });
+
+// Type inference from Zod schema (alternative way to get the type)
+export type LLMExtractedAchievement = z.infer<typeof achievementResponseSchema>;
+
+// the type of Achievement emitted by the LLM wrapper (not saved to db yet)
+export type ExtractedAchievement = Pick<
+  Achievement,
+  | 'title'
+  | 'summary'
+  | 'details'
+  | 'eventDuration'
+  | 'eventStart'
+  | 'eventEnd'
+  | 'companyId'
+  | 'projectId'
+  | 'impact'
+  | 'impactSource'
+  | 'impactUpdatedAt'
+>;
+
+
+export interface ExtractAchievementsPromptProps {
+  companies: Company[];
+  projects: Project[];
+  message: string;
+  chatHistory: any[];
+  user: User;
+}

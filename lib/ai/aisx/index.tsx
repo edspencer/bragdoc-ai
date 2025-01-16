@@ -25,9 +25,14 @@ function formatXML(xml: string): string {
   return formatted.substring(1, formatted.length - 2);
 }
 
+export function renderPrompt(children: React.ReactNode) {
+  return formatXML(renderToStaticMarkup(children));
+}
+
 export function Prompt({ children }: { children: React.ReactNode }) {
   // Convert the <prompt>…</prompt> element to a static XML string
-  const xmlString = formatXML(renderToStaticMarkup(<>{children}</>));
+  const xmlString = renderPrompt(children);
+
   // Then render that as plain text instead of letting React treat it as DOM
   return (
     <Code lang="xml" className="text-sm">

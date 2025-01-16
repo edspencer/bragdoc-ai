@@ -2,7 +2,7 @@ import { streamObject } from 'ai';
 import { extractAchievementsModel } from '@/lib/ai';
 import type { Achievement, Company, Project } from '../db/schema';
 import type { RepositoryCommitHistory } from '@/types/commits';
-import { achievementResponseSchema } from './llm-object-schema';
+import { achievementResponseSchema } from './prompts/types';
 
 export type ExtractFromCommitsInput = {
   commits: RepositoryCommitHistory['commits'];

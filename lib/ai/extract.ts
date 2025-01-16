@@ -2,7 +2,7 @@ import { streamObject } from 'ai';
 
 import {extractAchievementsModel} from '@/lib/ai';
 import type { Achievement, Company, Project, User } from '../db/schema';
-import {achievementResponseSchema } from './llm-object-schema';
+import {achievementResponseSchema } from './prompts/types';
 import { getCompaniesByUserId } from '../db/queries';
 import { getProjectsByUserId } from '../db/projects/queries';
 
