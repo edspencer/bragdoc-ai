@@ -3,7 +3,9 @@ import { Code } from 'bright';
 
 Code.theme = 'github-light';
 
+// const { renderToStaticMarkup } = await import('react-dom/server');
 const { renderToStaticMarkup } = await import('react-dom/server');
+// import { renderToStaticMarkup } from 'react-dom/server';
 
 function formatXML(xml: string): string {
   let formatted = '';
@@ -59,17 +61,28 @@ export function Instructions({
   return (
     <instructions>
       {instructions.map((instruction) => (
-        <Instruction key={instruction.replace(/\s/g, '')}>
-          {instruction}
-        </Instruction>
+        <Instruction
+          key={instruction.replace(/\s/g, '')}
+          dangerouslySetInnerHTML={{ __html: instruction }}
+        />
       ))}
       {children}
     </instructions>
   );
 }
 
-export function Instruction({ children }: { children: React.ReactNode }) {
-  return <instruction>{children}</instruction>;
+export function Instruction({
+  children,
+  dangerouslySetInnerHTML,
+}: {
+  children?: React.ReactNode;
+  dangerouslySetInnerHTML?: { __html: string };
+}) {
+  return (
+    <instruction dangerouslySetInnerHTML={dangerouslySetInnerHTML}>
+      {children}
+    </instruction>
+  );
 }
 
 export function UserInput({ children }: { children: React.ReactNode }) {
@@ -89,8 +102,8 @@ export function Examples({
 }) {
   return (
     <examples>
-      {examples?.map((example, index) => (
-        <Example key={index}>{example}</Example>
+      {examples.map((example, i) => (
+        <example key={i} dangerouslySetInnerHTML={{ __html: example }} />
       ))}
       {children}
     </examples>
@@ -105,6 +118,22 @@ export function InputFormat({
   title?: string;
 }) {
   return <input-format title={title}>{children}</input-format>;
+}
+
+export function OutputFormat({
+  children,
+  title = 'Your response should be formatted as:',
+  format = '',
+}: {
+  children?: React.ReactNode;
+  title?: string;
+  format?: string;
+}) {
+  return (
+    <output-format title={title}>
+      {children} {format}
+    </output-format>
+  );
 }
 
 export function ChatHistory({ messages }: { messages: any[] }) {

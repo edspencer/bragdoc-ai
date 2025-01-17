@@ -7,6 +7,7 @@ import {
 export function Company({ company }: { company: CompanyType }) {
   return (
     <company>
+      <id>{company.id}</id>
       <name>{company.name}</name>
       <role>{company.role}</role>
       <start-date>{company.startDate.toLocaleDateString()}</start-date>
@@ -28,6 +29,7 @@ export function Companies({ companies }: { companies: CompanyType[] }) {
 export function Project({ project }: { project: ProjectType }) {
   return (
     <project>
+      <id>{project.id}</id>
       <name>{project.name}</name>
       <description>{project.description}</description>
       <status>{project.status}</status>

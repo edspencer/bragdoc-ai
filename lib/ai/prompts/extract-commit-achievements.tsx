@@ -6,10 +6,10 @@ import {
   achievementResponseSchema,
   LLMExtractedAchievement,
   ExtractCommitAchievementsPromptProps,
-  RepositoryCommit,
+  Commit as RepositoryCommit,
   Repository,
 } from './types';
-import { examples } from './evals/data/extract-achievements';
+import { expectedAchievements } from './evals/data/extract-achievements';
 
 import {
   Prompt,
@@ -18,7 +18,6 @@ import {
   Examples,
   InputFormat,
   UserInput,
-  ChatHistory,
   Variables,
   renderPrompt,
 } from '../aisx';
@@ -40,9 +39,9 @@ const instructions = [
   - Mentions specific systems or teams affected
   - Is between 10 and 256 characters
   Example good titles:
-  - "Led Migration of 200+ Services to Cloud Platform"
-  - "Reduced API Response Time by 40% through Caching"
-  - "Grew Frontend Team from 5 to 12 Engineers"`,
+  - 'Led Migration of 200+ Services to Cloud Platform'
+  - 'Reduced API Response Time by 40% through Caching'
+  - 'Grew Frontend Team from 5 to 12 Engineers'`,
 
   'Create a concise summary highlighting key metrics and impact. Do not add anything beyond what the user told you.',
   'Create a detailed description including context and significance. Do not add anything beyond what the user told you. Do not speculate',
@@ -53,7 +52,7 @@ const instructions = [
   `Create an eventStart date if possible. If the user tells you they did something on a specific date, include it.`,
   'Create an eventEnd date if possible. If the user does not explicitly mention an end date, do not return one',
 
-  `Impact rating (1-3) based on these criteria:,
+  `Return an Impact rating (1-3) based on these criteria:,
    - Level 1 (Low): Routine tasks, individual/small team benefit, short-term impact
    - Level 2 (Medium): Notable improvements, team/department benefit, medium-term impact
    - Level 3 (High): Major initiatives, org-wide benefit, long-term strategic impact`,
@@ -65,9 +64,9 @@ you are given, you should not extract them because they have already been extrac
 message, you should use them to inform your extraction.`,
 
   `Example good titles:
-  - "Led Migration of 200+ Services to Cloud Platform"
-  - "Reduced API Response Time by 40% through Caching"
-  - "Grew Frontend Team from 5 to 12 Engineers"`,
+  - 'Led Migration of 200+ Services to Cloud Platform'
+  - 'Reduced API Response Time by 40% through Caching'
+  - 'Grew Frontend Team from 5 to 12 Engineers'`,
 ];
 
 export function ExtractCommitAchievementsPrompt({
@@ -87,9 +86,6 @@ export function ExtractCommitAchievementsPrompt({
       </Purpose>
       <Instructions instructions={instructions} />
       <InputFormat>
-        <chat-history>
-          Recent chat history between the user and AI assistant
-        </chat-history>
         <companies>
           All of the companies that the user works at (or has worked at)
         </companies>
@@ -119,7 +115,9 @@ export function ExtractCommitAchievementsPrompt({
         </UserInput>
         <Repo repository={repository} />
       </Variables>
-      <Examples examples={examples.map((e) => JSON.stringify(e, null, 4))} />
+      <Examples
+        examples={expectedAchievements.map((e) => JSON.stringify(e, null, 4))}
+      />
     </Prompt>
   );
 }

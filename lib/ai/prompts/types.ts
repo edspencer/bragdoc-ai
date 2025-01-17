@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { Achievement, Company, Project, User } from '@/lib/db/schema';
+import { Message } from 'ai';
 
 //Schema we use to ask the LLM for a structured response using
 export const achievementResponseSchema = z.object({
@@ -48,6 +49,7 @@ export const achievementResponseSchema = z.object({
     .default(2),
 });
 
+// The type that we get back from the LLM
 export type LLMExtractedAchievement = z.infer<typeof achievementResponseSchema>;
 
 // the type of Achievement emitted by the LLM wrapper (not saved to db yet)
@@ -67,25 +69,31 @@ export type ExtractedAchievement = Pick<
   | 'impactUpdatedAt'
 >;
 
+export type ExtractAchievementsFetcherProps = {
+  user: User;
+  message: string;
+  chatHistory: Message[];
+}
+
 //props required to render the Extract Achievements Prompt
 export interface ExtractAchievementsPromptProps {
   companies: Company[];
   projects: Project[];
   message: string;
-  chatHistory: any[];
+  chatHistory: Message[];
   user: User;
 }
 
 // props required to render the Extract Commit Achievements Prompt
 export interface ExtractCommitAchievementsPromptProps {
-  commits: RepositoryCommit[];
+  commits: Commit[];
   repository: Repository;
   companies: Company[];
   projects: Project[];
   user: User;
 };
 
-export type RepositoryCommit = {
+export type Commit = {
   hash: string;
   message: string;
   author: {

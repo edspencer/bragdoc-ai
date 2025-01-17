@@ -10,8 +10,7 @@ import {
   renderPrompt,
 } from '../aisx';
 import { Companies, Projects } from '../aisx/elements';
-import { Company, Project, User } from '@/lib/db/schema';
-import { examples } from './evals/data/extract-achievements';
+import { expectedAchievements as examples } from './evals/data/extract-achievements';
 import { ExtractAchievementsPromptProps } from './types';
 
 const instructions = [
@@ -95,13 +94,13 @@ export function ExtractAchievementsPrompt({
         </user-instructions>
       </InputFormat>
       <Variables>
-        <Companies companies={companies} />
-        <Projects projects={projects} />
         <today>{new Date().toLocaleDateString()}</today>
         <user-instructions>
           {user.preferences.documentInstructions}
         </user-instructions>
         <ChatHistory messages={chatHistory} />
+        <Companies companies={companies} />
+        <Projects projects={projects} />
         <UserInput>{message}</UserInput>
       </Variables>
       <Examples examples={examples.map((e) => JSON.stringify(e, null, 4))} />

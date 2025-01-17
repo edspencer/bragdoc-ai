@@ -1,20 +1,13 @@
-import { User } from "@/lib/db/schema";
 import { renderExtractAchievementsPrompt } from "./prompts/extract-achievements";
-import { achievementResponseSchema, ExtractAchievementsPromptProps, ExtractedAchievement } from "./prompts/types";
-import { streamObject, Message } from "ai";
+import { achievementResponseSchema, ExtractAchievementsFetcherProps, ExtractAchievementsPromptProps, ExtractedAchievement } from "./prompts/types";
+import { streamObject } from "ai";
 import { extractAchievementsModel } from ".";
 import { getProjectsByUserId } from "../db/projects/queries";
 import { getCompaniesByUserId } from "../db/queries";
 
-export type PrepareExtractAchievementsPromptData = {
-  user: User;
-  message: string;
-  chatHistory: Message[];
-}
-
 //given a minimal set of data, prepare the rest of the data required for the achievements extraction prompt
 //This allows multiple LLM entrypoints to benefit from the same prompt prep
-export async function preparePromptData(props: PrepareExtractAchievementsPromptData): Promise<ExtractAchievementsPromptProps> {
+export async function fetchPromptData(props: ExtractAchievementsFetcherProps): Promise<ExtractAchievementsPromptProps> {
   const {user, message, chatHistory} = props;
 
   const [projects, companies] = await Promise.all([
@@ -31,9 +24,25 @@ export async function preparePromptData(props: PrepareExtractAchievementsPromptD
   }
 }
 
-export async function* extractAchievements(input: ExtractAchievementsPromptProps): AsyncGenerator<ExtractedAchievement, void, unknown> {
-  const prompt = renderExtractAchievementsPrompt(input);
+export async function fetchAndExtractAchievements(input: ExtractAchievementsFetcherProps): Promise<ExtractedAchievement[]> {
+  const data = await fetchPromptData(input);
 
+  return await extractAchievements(data);
+}
+
+export async function extractAchievements(data: ExtractAchievementsPromptProps): Promise<ExtractedAchievement[]> {
+  const prompt = renderExtractAchievementsPrompt(data);
+  const achievements: ExtractedAchievement[] = [];
+  
+  for await (const achievement of executePrompt(prompt)) {
+    achievements.push(achievement);
+  }
+
+  return achievements;
+}
+
+
+export async function* executePrompt(prompt: string): AsyncGenerator<ExtractedAchievement, void, unknown> {
   const { elementStream } = streamObject({
     model: extractAchievementsModel,
     prompt,
