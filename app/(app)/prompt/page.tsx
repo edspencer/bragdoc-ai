@@ -1,7 +1,10 @@
+import { Code } from 'bright';
 import { AppPage } from '@/components/shared/app-page';
 import { ExtractAchievementsPrompt } from '@/lib/ai/prompts/extract-achievements';
 import { ExtractCommitAchievementsPrompt } from '@/lib/ai/prompts/extract-commit-achievements';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+
+Code.theme = 'github-light';
 
 import {
   companies,
@@ -26,34 +29,38 @@ export default function PromptPage() {
           </TabsTrigger>
         </TabsList>
         <TabsContent value="extract-achievements">
-          <ExtractAchievementsPrompt
-            user={user as User}
-            companies={companies}
-            projects={projects}
-            message="I got some cool stuff done today, I'm really proud of it"
-            chatHistory={[
-              {
-                role: 'user',
-                content:
-                  "I got some cool stuff done today, I'm really proud of it",
-                id: '1',
-              },
-              {
-                role: 'assistant',
-                content: "Thanks for the feedback, I'll keep working on it!",
-                id: '2',
-              },
-            ]}
-          />
+          <pre>
+            <ExtractAchievementsPrompt
+              user={user as User}
+              companies={companies}
+              projects={projects}
+              message="I got some cool stuff done today, I'm really proud of it"
+              chatHistory={[
+                {
+                  role: 'user',
+                  content:
+                    "I got some cool stuff done today, I'm really proud of it",
+                  id: '1',
+                },
+                {
+                  role: 'assistant',
+                  content: "Thanks for the feedback, I'll keep working on it!",
+                  id: '2',
+                },
+              ]}
+            />
+          </pre>
         </TabsContent>
         <TabsContent value="extract-commits">
-          <ExtractCommitAchievementsPrompt
-            user={user as User}
-            companies={companies}
-            projects={projects}
-            repository={repository}
-            commits={commits}
-          />
+          <pre>
+            <ExtractCommitAchievementsPrompt
+              user={user as User}
+              companies={companies}
+              projects={projects}
+              repository={repository}
+              commits={commits}
+            />
+          </pre>
         </TabsContent>
       </Tabs>
     </AppPage>

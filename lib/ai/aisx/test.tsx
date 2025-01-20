@@ -2,7 +2,7 @@ import { addYears } from 'date-fns';
 import React, { createElement } from 'react';
 import { Company, Project } from '@/lib/db/schema';
 import { Companies, Projects } from './elements';
-import { renderToStaticMarkup } from 'react-dom/server';
+import { formattedRender } from './render';
 import './xml.d.ts';
 
 const userId = 'b4b0c5cb-0e33-4f67-95c9-8f7c0b9a9bcb';
@@ -80,26 +80,6 @@ const projects: Project[] = [
   },
 ];
 
-function formatXML(xml: string): string {
-  let formatted = '';
-  let indent = '';
-  const tab = '  '; // 2 spaces for indentation
-
-  xml.split(/>\s*</).forEach((node) => {
-    if (node.match(/^\/\w/)) {
-      // Closing tag
-      indent = indent.substring(tab.length);
-    }
-    formatted += indent + '<' + node + '>\n';
-    if (node.match(/^<?\w[^>]*[^\/]$/)) {
-      // Opening tag
-      indent += tab;
-    }
-  });
-
-  return formatted.substring(1, formatted.length - 2);
-}
-
 const Prompt = () => {
   return (
     <>
@@ -111,7 +91,7 @@ const Prompt = () => {
 };
 
 // Render the component to string
-const output = renderToStaticMarkup(createElement(Prompt));
+const output = formattedRender(createElement(Prompt));
 
 // Output the formatted result
-console.log(formatXML(output));
+console.log(output);

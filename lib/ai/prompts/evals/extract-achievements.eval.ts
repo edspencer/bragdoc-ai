@@ -4,7 +4,7 @@ import { extractAchievements } from '../../extract-achievements';
 import {
   ExtractedAchievement,
   ExtractAchievementsPromptProps,
-} from '../../prompts/types';
+} from '../types';
 
 // Function to wrap the async generator into a promise
 async function wrappedExtractAchievements(

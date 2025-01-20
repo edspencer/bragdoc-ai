@@ -1,3 +1,4 @@
+import React from 'react';
 import {
   Prompt,
   Purpose,
@@ -7,8 +8,8 @@ import {
   UserInput,
   ChatHistory,
   Variables,
-  renderPrompt,
 } from '../aisx';
+import { formattedRender } from '../aisx/render';
 import { Companies, Projects } from '../aisx/elements';
 import { expectedAchievements as examples } from './evals/data/extract-achievements';
 import { ExtractAchievementsPromptProps } from './types';
@@ -111,5 +112,5 @@ export function ExtractAchievementsPrompt({
 export function renderExtractAchievementsPrompt(
   config: ExtractAchievementsPromptProps
 ) {
-  return renderPrompt(<ExtractAchievementsPrompt {...config} />);
+  return formattedRender(<ExtractAchievementsPrompt {...config} />);
 }

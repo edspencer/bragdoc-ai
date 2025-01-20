@@ -1,3 +1,4 @@
+import React from 'react';
 import { streamObject } from 'ai';
 import { extractAchievementsModel } from '@/lib/ai';
 import type { Achievement, Company, Project, User } from '@/lib/db/schema';
@@ -19,9 +20,9 @@ import {
   InputFormat,
   UserInput,
   Variables,
-  renderPrompt,
 } from '../aisx';
 import { Companies, Projects } from '../aisx/elements';
+import { formattedRender } from '../aisx/render';
 
 const instructions = [
   'Consider the chat history and context to understand the full scope of each achievement.',
@@ -148,5 +149,5 @@ export function Repo({ repository }: { repository: Repository }) {
 export function renderExtractCommitAchievementsPrompt(
   config: ExtractCommitAchievementsPromptProps
 ) {
-  return renderPrompt(<ExtractCommitAchievementsPrompt {...config} />);
+  return formattedRender(<ExtractCommitAchievementsPrompt {...config} />);
 }

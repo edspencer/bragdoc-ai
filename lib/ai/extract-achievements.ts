@@ -1,3 +1,4 @@
+import React from "react";
 import { renderExtractAchievementsPrompt } from "./prompts/extract-achievements";
 import { achievementResponseSchema, ExtractAchievementsFetcherProps, ExtractAchievementsPromptProps, ExtractedAchievement } from "./prompts/types";
 import { streamObject } from "ai";

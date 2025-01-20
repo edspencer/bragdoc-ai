@@ -1,46 +1,9 @@
 import React from 'react';
-import { Code } from 'bright';
 
-Code.theme = 'github-light';
-
-// const { renderToStaticMarkup } = await import('react-dom/server');
-const { renderToStaticMarkup } = await import('react-dom/server');
-// import { renderToStaticMarkup } from 'react-dom/server';
-
-function formatXML(xml: string): string {
-  let formatted = '';
-  let indent = '';
-  const tab = '  '; // 2 spaces for indentation
-
-  xml.split(/>\s*</).forEach((node) => {
-    if (node.match(/^\/\w/)) {
-      // Closing tag
-      indent = indent.substring(tab.length);
-    }
-    formatted += indent + '<' + node + '>\n';
-    if (node.match(/^<?\w[^>]*[^\/]$/)) {
-      // Opening tag
-      indent += tab;
-    }
-  });
-
-  return formatted.substring(1, formatted.length - 2);
-}
-
-export function renderPrompt(children: React.ReactNode) {
-  return formatXML(renderToStaticMarkup(children));
-}
+import { formattedRender } from './render';
 
 export function Prompt({ children }: { children: React.ReactNode }) {
-  // Convert the <prompt>…</prompt> element to a static XML string
-  const xmlString = renderPrompt(children);
-
-  // Then render that as plain text instead of letting React treat it as DOM
-  return (
-    <Code lang="xml" className="text-sm">
-      {xmlString}
-    </Code>
-  );
+  return <>{formattedRender(children)}</>;
 }
 
 export function Purpose({ children }: { children: React.ReactNode }) {

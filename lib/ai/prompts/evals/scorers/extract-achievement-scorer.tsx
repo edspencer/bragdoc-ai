@@ -1,3 +1,4 @@
+import React from 'react';
 import { LLMClassifierFromSpec, type Score } from 'autoevals';
 
 import {
@@ -9,8 +10,9 @@ import {
   OutputFormat,
   UserInput,
   Variables,
-  renderPrompt,
 } from '../../../aisx';
+
+import { formattedRender } from '../../../aisx/render';
 
 import { Companies, Projects } from '../../../aisx/elements';
 
@@ -79,7 +81,7 @@ function EvaluateExtractedAchievementsPrompt() {
 }
 
 export async function ExtractAchievementScorer(args: any): Promise<Score> {
-  const prompt = renderPrompt(<EvaluateExtractedAchievementsPrompt />);
+  const prompt = formattedRender(<EvaluateExtractedAchievementsPrompt />);
 
   return LLMClassifierFromSpec('ExtractAchievementScorer', {
     prompt,

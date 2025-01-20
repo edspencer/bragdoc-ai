@@ -251,9 +251,6 @@ importers:
       react-share:
         specifier: ^5.1.2
         version: 5.1.2(react@19.0.0-rc-45804af1-20241021)
-      react-xml:
-        specifier: ^0.3.0
-        version: 0.3.0(react@19.0.0-rc-45804af1-20241021)
       rehype-sanitize:
         specifier: ^6.0.0
         version: 6.0.0
@@ -269,6 +266,9 @@ importers:
       remark-rehype:
         specifier: ^11.1.1
         version: 11.1.1
+      server,browser:
+        specifier: link:@types/react-dom/server,browser
+        version: link:@types/react-dom/server,browser
       server-only:
         specifier: ^0.0.1
         version: 0.0.1
@@ -384,6 +384,9 @@ importers:
       react-dom:
         specifier: 19.0.0-rc-45804af1-20241021
         version: 19.0.0-rc-45804af1-20241021(react@19.0.0-rc-45804af1-20241021)
+      server-cli-only:
+        specifier: ^0.3.2
+        version: 0.3.2
       shadcn:
         specifier: ^2.1.7
         version: 2.1.7(typescript@5.6.3)
@@ -6423,12 +6426,6 @@ packages:
       '@types/react':
         optional: true
 
-  react-xml@0.3.0:
-    resolution: {integrity: sha512-bPD0iKQUDQ4R9FKfRgCw8fDSCSeHplcFBxpW8UdeqtbubdXXC2jk/qWNDJu/hX3sNERP9UxU7/mhqP2oYUjjdg==}
-    engines: {node: '>=10.13.0'}
-    peerDependencies:
-      react: '>=16.0.0'
-
   react@19.0.0-rc-45804af1-20241021:
     resolution: {integrity: sha512-RYkYXmX7Iia56DQJaNK0Ribh5uF/sDBNirtNNHNNqqa3wpIlcFOkRvPTW3RSwAXmBVnEZlKbeaMhlBT9p52lqA==}
     engines: {node: '>=0.10.0'}
@@ -6632,6 +6629,9 @@ packages:
     resolution: {integrity: sha512-oVekP1cKtI+CTDvHWYFUcMtsK/00wmAEfyqKfNdARm8u1wNVhSgaX7A8d4UuIlUI5e84iEwOhs7ZPYRmzU9U6A==}
     engines: {node: '>=10'}
     hasBin: true
+
+  server-cli-only@0.3.2:
+    resolution: {integrity: sha512-t8cH7ZPomACZ+T+yb5s9TjVjjMe62DLgT5VXkN71Ix7nuPQfR6HQMM/XG1k4MesiHiRKw5mpwwZC7A+bzuZRfw==}
 
   server-only@0.0.1:
     resolution: {integrity: sha512-qepMx2JxAa5jjfzxG79yPPq+8BuFToHd1hm7kI+Z4zAq1ftQiP7HcxMhDDItrbtwVeLg/cY2JnKnrcFkmiswNA==}
@@ -14408,11 +14408,6 @@ snapshots:
     optionalDependencies:
       '@types/react': 18.3.12
 
-  react-xml@0.3.0(react@19.0.0-rc-45804af1-20241021):
-    dependencies:
-      react: 19.0.0-rc-45804af1-20241021
-      react-is: 16.13.1
-
   react@19.0.0-rc-45804af1-20241021: {}
 
   read-cache@1.0.0:
@@ -14672,6 +14667,8 @@ snapshots:
   semver@6.3.1: {}
 
   semver@7.6.3: {}
+
+  server-cli-only@0.3.2: {}
 
   server-only@0.0.1: {}
 
