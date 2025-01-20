@@ -1,5 +1,5 @@
 import React from 'react'
-import { renderToString } from 'react-dom/server.browser'
+import { renderToString } from 'react-dom/server'
 
 export function formattedRender(children: React.ReactNode): string {
   return formatXML(renderToString(children))

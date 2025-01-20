@@ -1,3 +1,5 @@
+'use client';
+
 import React from 'react';
 import { streamObject } from 'ai';
 import { extractAchievementsModel } from '@/lib/ai';

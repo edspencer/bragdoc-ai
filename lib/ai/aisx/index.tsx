@@ -3,7 +3,11 @@ import React from 'react';
 import { formattedRender } from './render';
 
 export function Prompt({ children }: { children: React.ReactNode }) {
-  return <>{formattedRender(children)}</>;
+  return typeof window === 'undefined' ? (
+    <>{formattedRender(children)}</>
+  ) : (
+    <>{formattedRender(children)}</>
+  );
 }
 
 export function Purpose({ children }: { children: React.ReactNode }) {
