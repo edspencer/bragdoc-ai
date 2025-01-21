@@ -93,7 +93,7 @@ nextMidnight.setDate(nextMidnight.getDate() + 1);
 nextMidnight.setHours(0, 0, 0, 0);
 
 
-import { ExtractedAchievement } from '../../types';
+import type { ExtractedAchievement } from '../../types';
 import {companies, projects} from './user';
 
 export const expectedAchievementsFromNoisyCommits: ExtractedAchievement[] = [

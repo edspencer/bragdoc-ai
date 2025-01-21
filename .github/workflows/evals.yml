@@ -49,4 +49,4 @@ jobs:
           api_key: ${{ secrets.BRAINTRUST_API_KEY }}
           runtime: node
           root: evals
-          paths: './lib/ai/prompts/evals/**/*eval.ts'
+          paths: '**ai/prompts/evals/**/*eval.ts'
