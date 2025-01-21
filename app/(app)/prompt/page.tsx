@@ -1,8 +1,9 @@
 import { Code } from 'bright';
-import { AppPage } from '@/components/shared/app-page';
 import { ExtractAchievementsPrompt } from '@/lib/ai/prompts/extract-achievements';
 import { ExtractCommitAchievementsPrompt } from '@/lib/ai/prompts/extract-commit-achievements';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+
+import { PageHeader } from '@/components/shared/page-header';
 
 Code.theme = 'github-light';
 
@@ -19,8 +20,12 @@ import { PrettyPrompt } from './PrettyPrompt';
 
 export default function PromptPage() {
   return (
-    <AppPage>
-      <Tabs defaultValue="extract-achievements" className="w-full">
+    <Tabs
+      defaultValue="extract-achievements"
+      className="w-full flex flex-col h-svh items-center gap-8 content-evenly"
+    >
+      <div className="mt-8 flex gap-12 container px-4">
+        <PageHeader title="JSX Prompt Previews" />
         <TabsList>
           <TabsTrigger value="extract-achievements">
             Extract Achievements
@@ -29,41 +34,47 @@ export default function PromptPage() {
             Extract from Commits
           </TabsTrigger>
         </TabsList>
-        <TabsContent value="extract-achievements">
-          <PrettyPrompt>
-            <ExtractAchievementsPrompt
-              user={user as User}
-              companies={companies}
-              projects={projects}
-              message="I got some cool stuff done today, I'm really proud of it"
-              chatHistory={[
-                {
-                  role: 'user',
-                  content:
-                    "I got some cool stuff done today, I'm really proud of it",
-                  id: '1',
-                },
-                {
-                  role: 'assistant',
-                  content: "Thanks for the feedback, I'll keep working on it!",
-                  id: '2',
-                },
-              ]}
-            />
-          </PrettyPrompt>
-        </TabsContent>
-        <TabsContent value="extract-commits">
-          <PrettyPrompt>
-            <ExtractCommitAchievementsPrompt
-              user={user as User}
-              companies={companies}
-              projects={projects}
-              repository={repository}
-              commits={commits}
-            />
-          </PrettyPrompt>
-        </TabsContent>
-      </Tabs>
-    </AppPage>
+      </div>
+      <TabsContent
+        value="extract-achievements"
+        className="flex-1 overflow-y-auto container"
+      >
+        <PrettyPrompt>
+          <ExtractAchievementsPrompt
+            user={user as User}
+            companies={companies}
+            projects={projects}
+            message="I got some cool stuff done today, I'm really proud of it"
+            chatHistory={[
+              {
+                role: 'user',
+                content:
+                  "I got some cool stuff done today, I'm really proud of it",
+                id: '1',
+              },
+              {
+                role: 'assistant',
+                content: "Thanks for the feedback, I'll keep working on it!",
+                id: '2',
+              },
+            ]}
+          />
+        </PrettyPrompt>
+      </TabsContent>
+      <TabsContent
+        value="extract-commits"
+        className="flex-1 overflow-y-auto container"
+      >
+        <PrettyPrompt>
+          <ExtractCommitAchievementsPrompt
+            user={user as User}
+            companies={companies}
+            projects={projects}
+            repository={repository}
+            commits={commits}
+          />
+        </PrettyPrompt>
+      </TabsContent>
+    </Tabs>
   );
 }

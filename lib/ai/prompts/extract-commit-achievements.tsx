@@ -17,7 +17,7 @@ import {
   Variables,
   formattedRender,
 } from 'jsx-prompt';
-import { Companies, Projects } from '../aisx/elements';
+import { Companies, Projects } from './elements';
 
 const instructions = [
   'Consider the chat history and context to understand the full scope of each achievement.',

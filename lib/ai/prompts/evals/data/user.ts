@@ -7,7 +7,7 @@ export const previousCompany = {
   startDate: new Date('2016-02-01'),
   endDate: new Date('2021-09-30'),
   userId: uuidv4(),
-  role: 'PrincipalEngineer',
+  role: 'Principal Engineer',
   domain: 'www.paloaltonetworks.com',
 };
 

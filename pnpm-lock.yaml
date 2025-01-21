@@ -183,8 +183,8 @@ importers:
         specifier: ^26.0.0
         version: 26.0.0(bufferutil@4.0.9)
       jsx-prompt:
-        specifier: file:../jsx-prompt/jsx-prompt-0.1.1.tgz
-        version: file:../jsx-prompt/jsx-prompt-0.1.1.tgz(react-dom@19.0.0-rc-65e06cb7-20241218(react@19.0.0-rc-65e06cb7-20241218))(react@19.0.0-rc-65e06cb7-20241218)
+        specifier: ^0.1.2
+        version: 0.1.2(react-dom@19.0.0-rc-65e06cb7-20241218(react@19.0.0-rc-65e06cb7-20241218))(react@19.0.0-rc-65e06cb7-20241218)
       lucide-react:
         specifier: ^0.446.0
         version: 0.446.0(react@19.0.0-rc-65e06cb7-20241218)
@@ -5114,9 +5114,8 @@ packages:
     resolution: {integrity: sha512-ZZow9HBI5O6EPgSJLUb8n2NKgmVWTwCvHGwFuJlMjvLFqlGG6pjirPhtdsseaLZjSibD8eegzmYpUZwoIlj2cQ==}
     engines: {node: '>=4.0'}
 
-  jsx-prompt@file:../jsx-prompt/jsx-prompt-0.1.1.tgz:
-    resolution: {integrity: sha512-wMLFrq/2ufu/8O96UvfY0Hwa95vlii2R8cr6ao0/huzu7aIWM5DevwyDHd26218ui/GGb97oY+pAOqqScr+QvA==, tarball: file:../jsx-prompt/jsx-prompt-0.1.1.tgz}
-    version: 0.1.1
+  jsx-prompt@0.1.2:
+    resolution: {integrity: sha512-XtV7zxbKqvSKAD4/uS4pZrXBREu3ATJW+aS5afS7esk0f/GJMY8QRD49Ltap4hnzit4Mp56lxEGTSkAO6hH1bw==}
     peerDependencies:
       react: 19.0.0-rc-65e06cb7-20241218
       react-dom: 19.0.0-rc-65e06cb7-20241218
@@ -12648,7 +12647,7 @@ snapshots:
       object.assign: 4.1.7
       object.values: 1.2.1
 
-  jsx-prompt@file:../jsx-prompt/jsx-prompt-0.1.1.tgz(react-dom@19.0.0-rc-65e06cb7-20241218(react@19.0.0-rc-65e06cb7-20241218))(react@19.0.0-rc-65e06cb7-20241218):
+  jsx-prompt@0.1.2(react-dom@19.0.0-rc-65e06cb7-20241218(react@19.0.0-rc-65e06cb7-20241218))(react@19.0.0-rc-65e06cb7-20241218):
     dependencies:
       async_hooks: 1.0.0
       react: 19.0.0-rc-65e06cb7-20241218

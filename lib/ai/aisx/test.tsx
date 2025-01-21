@@ -1,9 +1,8 @@
 import { addYears } from 'date-fns';
 import React, { createElement } from 'react';
 import type { Company, Project } from '@/lib/db/schema';
-import { Companies, Projects } from './elements';
+import { Companies, Projects } from '../prompts/elements';
 import { formattedRender } from 'jsx-prompt';
-// import './xml.d.ts';
 
 const userId = 'b4b0c5cb-0e33-4f67-95c9-8f7c0b9a9bcb';
 

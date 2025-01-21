@@ -11,9 +11,9 @@ import {
   formattedRender,
 } from 'jsx-prompt';
 
-import { Companies, Projects } from '../../../aisx/elements';
+import { Companies, Projects } from '../../elements';
 
-import { companies, projects, } from '../data/user';
+import { companies, projects } from '../data/user';
 
 const outputFormat = `
 Answer by selecting one of the following options:

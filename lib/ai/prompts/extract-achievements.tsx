@@ -12,7 +12,7 @@ import {
   InputFormat,
   Examples,
 } from 'jsx-prompt';
-import { Companies, Projects } from '../aisx/elements';
+import { Companies, Projects } from './elements';
 import { expectedAchievements as examples } from './evals/data/extract-achievements';
 import type { ExtractAchievementsPromptProps } from './types';
 
