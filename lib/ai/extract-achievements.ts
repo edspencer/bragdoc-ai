@@ -25,6 +25,12 @@ export async function fetchPromptData(props: ExtractAchievementsFetcherProps): P
   }
 }
 
+export async function* streamFetchAndExtractAchievements(input: ExtractAchievementsFetcherProps): AsyncGenerator<ExtractedAchievement> {
+  const data = await fetchPromptData(input);
+
+  return extractAchievements(data);
+}
+
 export async function fetchAndExtractAchievements(input: ExtractAchievementsFetcherProps): Promise<ExtractedAchievement[]> {
   const data = await fetchPromptData(input);
 

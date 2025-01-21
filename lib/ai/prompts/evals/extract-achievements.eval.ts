@@ -10,41 +10,46 @@ import type {
 async function wrappedExtractAchievements(
   input: ExtractAchievementsPromptProps
 ): Promise<ExtractedAchievement[]> {
-  const achievements = await extractAchievements(input);
-
-  return achievements;
+  return await extractAchievements(input);
 }
 
 const chatHistory = [
   {
     role: 'user' as const,
-    content: 'I worked on Project A at Company A',
+    content: 'I fixed several UX bugs in the checkout flow on Bragdoc today',
     id: '1',
   },
 ];
 
 import { companies, projects, user } from './data/user';
 
-const experimentData: Experiment[] = [
+const lastMidnight = new Date();
+lastMidnight.setHours(0, 0, 0, 0);
+
+const nextMidnight = new Date();
+nextMidnight.setDate(nextMidnight.getDate() + 1);
+nextMidnight.setHours(0, 0, 0, 0);
+
+const experimentData: Experiment[] = [  
   {
     input: {
       companies,
       projects,
       chatHistory,
       user,
-      message: 'I worked on Project A at Company A',
+      message: 'I fixed several UX bugs in the checkout flow on Bragdoc today',
     },
     expected: [
       {
-        summary: 'Worked on Project A at Company A',
-        details: 'Worked on Project A at Company A',
-        eventStart: new Date(),
-        eventEnd: new Date(),
+        summary: 'Fixed several UX bugs in the checkout flow',
+        details: 'Fixed several UX bugs in the checkout flow on Bragdoc',
+        eventStart: lastMidnight,
+        eventEnd: nextMidnight,
         impactSource: 'llm',
         impactUpdatedAt: new Date(),
         companyId: companies[0].id,
         projectId: projects[0].id,
-        title: 'Worked on Project A at Company A',
+        title: 'Fixed several UX bugs in the checkout flow',
         eventDuration: 'day',
         impact: 1,
       },
@@ -65,7 +70,7 @@ Eval('extract-achievement-company-and-project', {
   },
 });
 
-type Experiment = {
+export type Experiment = {
   input: ExtractAchievementsPromptProps;
   expected: ExtractedAchievement[];
 };

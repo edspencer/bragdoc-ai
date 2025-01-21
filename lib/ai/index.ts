@@ -23,7 +23,7 @@ export const gpt4oMiniModel = customModel('gpt-4o-mini');
 export const geminiFlashModel = customModel('gemini-2-flash', google);
 export const geminiFlashExpModel = customModel('gemini-2.0-flash-exp', google);
 
-export const extractAchievementsModel = gpt4oMiniModel;
+export const extractAchievementsModel = gpt4oModel;
 export const chatModel = gpt4oModel;
 export const findExistingProjectModel = gpt4oMiniModel;
 

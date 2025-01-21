@@ -21,7 +21,6 @@
 // Duration: ${achievement.eventDuration}
 // Company ID: ${achievement.companyId}
 // Project ID: ${achievement.projectId}
-// Suggest New Project: ${achievement.suggestNewProject}
 //       `,
 //     )
 //     .join('\n');
@@ -60,7 +59,7 @@
 //   (example: ContextAchievementExample) => ({
 //     input: {
 //       ...example.input,
-//       chatStr: example.input.chat_history
+//       chatStr: example.input.chatHistory
 //         .map(({ role, content }) => `${role}: ${content}`)
 //         .join('\n'),
 //       companiesStr: mapCompaniesToString(example.input.context.companies),

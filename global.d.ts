@@ -29,6 +29,8 @@ type CustomTags =
   | 'message'
   | 'author'
   | 'date'
+  | 'expected-achievements'
+  | 'extracted-achievements'
   | 'remote-url';
 
 //adds all the custom tags to the JSX namespace

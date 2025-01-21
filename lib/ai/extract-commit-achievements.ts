@@ -1,11 +1,10 @@
 import type { User } from "@/lib/db/schema";
 import { renderExtractCommitAchievementsPrompt } from "./prompts/extract-commit-achievements";
-import { achievementResponseSchema, type ExtractCommitAchievementsPromptProps, type ExtractedAchievement } from "./prompts/types";
+import { achievementResponseSchema, type ExtractCommitAchievementsPromptProps, type ExtractedAchievement, type Commit, type Repository } from "./prompts/types";
 import { streamObject } from "ai";
 import { extractAchievementsModel } from ".";
 import { getProjectsByUserId } from "../db/projects/queries";
 import { getCompaniesByUserId } from "../db/queries";
-import type { Commit, Repository } from "./prompts/types";
 
 export type FetchExtractCommitAchievementsPromptProps = {
   user: User;
@@ -34,6 +33,7 @@ export async function fetchExtractCommitAchievements(input: FetchExtractCommitAc
   const data = await fetchPromptData(input);
   const prompt = renderExtractCommitAchievementsPrompt(data);
   const achievements: ExtractedAchievement[] = [];
+  
   for await (const achievement of extractCommitAchievements(prompt)) {
     achievements.push(achievement);
   }

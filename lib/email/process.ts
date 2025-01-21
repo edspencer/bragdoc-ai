@@ -1,9 +1,10 @@
 import { createUserMessage, getUser, getCompaniesByUserId, getAchievements, createAchievement } from '@/lib/db/queries';
 import { getProjectsByUserId } from '@/lib/db/projects/queries';
-import { extractAchievements } from '@/lib/ai/extract';
+import { streamFetchAndExtractAchievements  } from '@/lib/ai/extract-achievements';
 import { generateText } from 'ai';
 import { customModel } from '@/lib/ai';
 import { z } from 'zod';
+import { v4 as uuidv4 } from 'uuid';
 
 export interface IncomingEmail {
   from: string;
@@ -99,11 +100,10 @@ ${achievements.map(a => `- ${a.title}`).join('\n')}`;
             console.log('Created user message:', newUserMessage.id);
 
             // Extract achievements using the AI
-            const achievementsStream = extractAchievements({
-              input: email.textContent,
-              chatHistory: [{ role: 'user', content: email.textContent }],
-              companies,
-              projects,
+            const achievementsStream = streamFetchAndExtractAchievements({
+              message: email.textContent,
+              chatHistory: [{ role: 'user', content: email.textContent, id: uuidv4() }],
+              user
             });
 
             const savedAchievements = [];

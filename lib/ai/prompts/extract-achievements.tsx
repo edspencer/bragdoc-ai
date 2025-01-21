@@ -60,6 +60,8 @@ message, you should use them to inform your extraction.`,
   - "Led Migration of 200+ Services to Cloud Platform"
   - "Reduced API Response Time by 40% through Caching"
   - "Grew Frontend Team from 5 to 12 Engineers"`,
+
+  'Do not invent details that the user did not explicitly say.',
 ];
 
 export function ExtractAchievementsPrompt({

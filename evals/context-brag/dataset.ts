@@ -26,28 +26,12 @@
 //   return [{
 //     input: {
 //       input: data.conversation.messages[data.conversation.messages.length - 1].content,
-//       chat_history: data.conversation.messages.map(m => ({
+//       chatHistory: data.conversation.messages.map(m => ({
 //         role: m.role === 'user' ? 'user' : 'assistant',
 //         content: m.content,
 //       })) as ChatMessage[],
-//       context: {
-//         companies: data.scenario.companies.map((c) => ({
-//           id: c.id,
-//           name: c.name,
-//           role: c.role,
-//           domain: c.domain,
-//           startDate: c.startDate,
-//           endDate: c.endDate,
-//         })),
-//         projects: data.scenario.projects.map((p) => ({
-//           id: p.id,
-//           name: p.name,
-//           companyId: p.companyId,
-//           description: p.description,
-//           startDate: p.startDate,
-//           endDate: p.endDate,
-//         })),
-//       },
+//       companies: [],
+//       projects: []
 //     },
 //     expected: data.expectedAchievements,
 //   }];

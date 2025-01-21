@@ -11,10 +11,6 @@ import {
   formattedRender,
 } from 'jsx-prompt';
 
-import { Companies, Projects } from '../../elements';
-
-import { companies, projects } from '../data/user';
-
 const outputFormat = `
 Answer by selecting one of the following options:
 (A) The extraction matches the expected output perfectly
@@ -24,6 +20,7 @@ Answer by selecting one of the following options:
 (E) The extraction is completely incorrect or misunderstands the achievement`;
 
 const instructions = [
+  'Compare the extracted impact scores. Are they consistent with the expected scores?',
   `
 Compare the extracted achievements with the expected output. Consider:
 1. Did the system extract all achievements mentioned in the message?
@@ -47,7 +44,36 @@ Compare the extracted achievements with the expected output. Consider:
   outputFormat,
 ];
 
-function EvaluateExtractedAchievementsPrompt() {
+function EvaluateExtractedAchievementsPrompt({
+  expectedAchievements,
+  extractedAchievements,
+}: {
+  expectedAchievements: any;
+  extractedAchievements: any;
+}) {
+  //filter out other things like updated at timestamps
+  const fieldsToPluck = [
+    'eventStart',
+    'eventEnd',
+    'eventDuration',
+    'title',
+    'summary',
+    'details',
+    'companyId',
+    'projectId',
+    'impact',
+  ];
+
+  const extractedAchievementsPlucked = fieldsToPluck.reduce((acc, field) => {
+    acc[field] = extractedAchievements[field];
+    return acc;
+  }, {} as any);
+
+  const expectedAchievementsPlucked = fieldsToPluck.reduce((acc, field) => {
+    acc[field] = expectedAchievements[field];
+    return acc;
+  }, {} as any);
+
   return (
     <Prompt>
       <Purpose>
@@ -58,27 +84,33 @@ function EvaluateExtractedAchievementsPrompt() {
       </Purpose>
       <Instructions instructions={instructions} />
       <InputFormat>
-        <user-input>
-          The message that the user just sent you to extract achievements from
-        </user-input>
-        <companies>
-          All of the companies that the user works at (or has worked at)
-        </companies>
-        <projects>
-          All of the projects that the user works on (or has worked on)
-        </projects>
+        <expected-achievements>
+          The correct Achievements that should have been extracted by the model
+        </expected-achievements>
+        <extracted-achievements>
+          The achievements that were actually extracted by the model
+        </extracted-achievements>
       </InputFormat>
       <OutputFormat format={outputFormat} />
       <Variables>
-        <Companies companies={companies} />
-        <Projects projects={projects} />
+        <expected-achievements>
+          {JSON.stringify(expectedAchievementsPlucked, null, 4)}
+        </expected-achievements>
+        <extracted-achievements>
+          {JSON.stringify(extractedAchievementsPlucked, null, 4)}
+        </extracted-achievements>
       </Variables>
     </Prompt>
   );
 }
 
 export async function ExtractAchievementScorer(args: any): Promise<Score> {
-  const prompt = formattedRender(<EvaluateExtractedAchievementsPrompt />);
+  const prompt = formattedRender(
+    <EvaluateExtractedAchievementsPrompt
+      expectedAchievements={args.expected}
+      extractedAchievements={args.output}
+    />
+  );
 
   return LLMClassifierFromSpec('ExtractAchievementScorer', {
     prompt,

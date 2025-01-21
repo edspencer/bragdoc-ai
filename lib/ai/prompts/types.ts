@@ -11,7 +11,7 @@ export const achievementResponseSchema = z.object({
   summary: z.string().describe('A brief summary of the achievement').optional(),
   details: z
     .string()
-    .describe('Additional details about the achievement')
+    .describe('If the user input had to be summarized to fit into the title, put their entire input here. Otherwise, leave this empty')
     .optional(),
   eventStart: z
     .string()
