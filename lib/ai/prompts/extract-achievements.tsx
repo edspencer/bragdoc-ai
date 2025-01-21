@@ -1,17 +1,17 @@
-'use client';
+// 'use client';
 
 import React from 'react';
 import {
+  formattedRender,
   Prompt,
   Purpose,
   Instructions,
-  Examples,
-  InputFormat,
-  UserInput,
-  ChatHistory,
   Variables,
-} from '../aisx';
-import { formattedRender } from '../aisx/render';
+  ChatHistory,
+  UserInput,
+  InputFormat,
+  Examples,
+} from 'jsx-prompt';
 import { Companies, Projects } from '../aisx/elements';
 import { expectedAchievements as examples } from './evals/data/extract-achievements';
 import { ExtractAchievementsPromptProps } from './types';
@@ -78,24 +78,7 @@ export function ExtractAchievementsPrompt({
         tag. Follow all of the instructions provided below.
       </Purpose>
       <Instructions instructions={instructions} />
-      <InputFormat>
-        <user-input>
-          The message that the user just sent you to extract achievements from
-        </user-input>
-        <chat-history>
-          Recent chat history between the user and AI assistant
-        </chat-history>
-        <companies>
-          All of the companies that the user works at (or has worked at)
-        </companies>
-        <projects>
-          All of the projects that the user works on (or has worked on)
-        </projects>
-        <user-instructions>
-          Any specific instructions from the user to guide the extraction
-          process
-        </user-instructions>
-      </InputFormat>
+      <InputFormat>{message}</InputFormat>
       <Variables>
         <today>{new Date().toLocaleDateString()}</today>
         <user-instructions>

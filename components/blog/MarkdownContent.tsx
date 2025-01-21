@@ -14,9 +14,9 @@ import { MDXRemote } from 'next-mdx-remote/rsc';
 
 Code.theme = 'github-light';
 
-Code.defaultProps = {
-  lang: 'shell',
-};
+// Code.defaultProps = {
+//   lang: 'shell',
+// };
 
 const mdxOptions = {
   remarkPlugins: [remarkGfm], //adds support for tables

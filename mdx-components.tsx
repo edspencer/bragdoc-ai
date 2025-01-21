@@ -8,9 +8,9 @@ import { Code } from 'bright';
 
 Code.theme = 'github-dark';
 
-Code.defaultProps = {
-  lang: 'shell',
-};
+// Code.defaultProps = {
+//   lang: 'shell',
+// };
 
 export function useMDXComponents(components: MDXComponents): MDXComponents {
   return {

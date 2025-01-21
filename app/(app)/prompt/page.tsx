@@ -6,6 +6,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 Code.theme = 'github-light';
 
+import { formattedRender } from 'jsx-prompt';
+
 import {
   companies,
   projects,
@@ -15,6 +17,7 @@ import {
 } from '@/lib/ai/prompts/evals/data/user';
 
 import { User } from '@/lib/db/schema';
+import { PrettyPrompt } from './PrettyPrompt';
 
 export default function PromptPage() {
   return (
@@ -29,7 +32,7 @@ export default function PromptPage() {
           </TabsTrigger>
         </TabsList>
         <TabsContent value="extract-achievements">
-          <pre>
+          <PrettyPrompt>
             <ExtractAchievementsPrompt
               user={user as User}
               companies={companies}
@@ -49,10 +52,10 @@ export default function PromptPage() {
                 },
               ]}
             />
-          </pre>
+          </PrettyPrompt>
         </TabsContent>
         <TabsContent value="extract-commits">
-          <pre>
+          <PrettyPrompt>
             <ExtractCommitAchievementsPrompt
               user={user as User}
               companies={companies}
@@ -60,7 +63,7 @@ export default function PromptPage() {
               repository={repository}
               commits={commits}
             />
-          </pre>
+          </PrettyPrompt>
         </TabsContent>
       </Tabs>
     </AppPage>

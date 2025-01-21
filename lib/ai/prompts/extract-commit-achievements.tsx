@@ -1,5 +1,3 @@
-'use client';
-
 import React from 'react';
 import { streamObject } from 'ai';
 import { extractAchievementsModel } from '@/lib/ai';
@@ -22,9 +20,9 @@ import {
   InputFormat,
   UserInput,
   Variables,
-} from '../aisx';
+  formattedRender,
+} from 'jsx-prompt';
 import { Companies, Projects } from '../aisx/elements';
-import { formattedRender } from '../aisx/render';
 
 const instructions = [
   'Consider the chat history and context to understand the full scope of each achievement.',

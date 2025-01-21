@@ -10,9 +10,8 @@ import {
   OutputFormat,
   UserInput,
   Variables,
-} from '../../../aisx';
-
-import { formattedRender } from '../../../aisx/render';
+  formattedRender,
+} from 'jsx-prompt';
 
 import { Companies, Projects } from '../../../aisx/elements';
 

@@ -1,12 +1,3 @@
-declare namespace JSX {
-  interface IntrinsicElements {
-    [elemName: string]: React.DetailedHTMLProps<
-      React.HTMLAttributes<HTMLElement>,
-      HTMLElement
-    >;
-  }
-}
-
 
 // Define XML namespace for our custom elements
 // declare namespace JSX {
