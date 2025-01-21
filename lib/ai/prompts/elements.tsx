@@ -33,6 +33,7 @@ export function Project({ project }: { project: ProjectType }) {
       <name>{project.name}</name>
       <description>{project.description}</description>
       <status>{project.status}</status>
+      <company-id>{project.companyId}</company-id>
       <start-date>{project.startDate.toLocaleDateString()}</start-date>
       <end-date>{project.endDate?.toLocaleDateString() || 'Present'}</end-date>
       <remote-repo-url>{project.repoRemoteUrl}</remote-repo-url>

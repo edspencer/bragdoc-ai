@@ -13,6 +13,7 @@ async function wrappedExtractAchievements(
   return await extractAchievements(input);
 }
 
+//we should be extracting 4 Achievements out of this - 2 from each paragraph
 const followupBrag = `
 I added the Documents CRUD pages for logged in users today - so a user can see all of the documents that they've created,
 and edit them without having to go back through the chat. Also I removed the Github Repo management UI files as it was vestigial

@@ -73,6 +73,11 @@ export async function POST(req: Request) {
       `Processing ${result.data.commits.length} commits from repository ${repository.name}`
     );
 
+    console.log(repository);
+
+    console.log(result.data.commits)
+    console.log(JSON.stringify(result.data.commits, null, 2))
+
     // Extract achievements
     const achievements = [];
     for await (const achievement of extractFromCommits({

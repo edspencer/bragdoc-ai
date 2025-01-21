@@ -1,10 +1,8 @@
 import { LLMClassifierFromSpec, type Score } from 'autoevals';
 
 // Function to evaluate the accuracy of extracted achievements with context
-const DocumentAccuracy = LLMClassifierFromSpec(
-  'DocumentAccuracy',
-  {
-    prompt: `
+const DocumentAccuracy = LLMClassifierFromSpec('DocumentAccuracy', {
+  prompt: `
 <purpose>
 You are an evaluator assessing how well an AI system generated a document based on user data and preferences.
 Your task is to evaluate if the generated document follows the user's instructions and effectively presents their achievements.
@@ -66,15 +64,14 @@ preferences and instructions while maintaining professionalism and accuracy.
    (D) The document has significant issues or missing information
    (E) The document is completely incorrect or inappropriate
 </evaluationCriteria>`,
-    choice_scores: {
-      A: 1.0, // Perfect match
-      B: 0.8, // Good but missing details
-      C: 0.6, // Minor issues
-      D: 0.3, // Major issues
-      E: 0.0, // Completely wrong
-    },
+  choice_scores: {
+    A: 1.0, // Perfect match
+    B: 0.8, // Good but missing details
+    C: 0.6, // Minor issues
+    D: 0.3, // Major issues
+    E: 0.0, // Completely wrong
   },
-);
+});
 
 async function DocumentScorer(args: any): Promise<Score> {
   return DocumentAccuracy(args);

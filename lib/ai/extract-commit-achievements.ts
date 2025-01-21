@@ -31,17 +31,23 @@ export async function fetchPromptData(props: FetchExtractCommitAchievementsPromp
 
 export async function fetchExtractCommitAchievements(input: FetchExtractCommitAchievementsPromptProps): Promise<ExtractedAchievement[]> {
   const data = await fetchPromptData(input);
-  const prompt = renderExtractCommitAchievementsPrompt(data);
-  const achievements: ExtractedAchievement[] = [];
   
-  for await (const achievement of extractCommitAchievements(prompt)) {
+  return await extractCommitAchievements(data);
+} 
+
+export async function extractCommitAchievements(data: ExtractCommitAchievementsPromptProps): Promise<ExtractedAchievement[]> {
+  const prompt = renderExtractCommitAchievementsPrompt(data);
+
+  const achievements: ExtractedAchievement[] = [];
+
+  for await (const achievement of executePrompt(prompt)) {
     achievements.push(achievement);
   }
 
   return achievements;
 }
 
-export async function* extractCommitAchievements(prompt: string): AsyncGenerator<ExtractedAchievement, void, unknown> {
+export async function* executePrompt(prompt: string): AsyncGenerator<ExtractedAchievement, void, unknown> {
   const { elementStream } = streamObject({
     model: extractAchievementsModel,
     prompt,

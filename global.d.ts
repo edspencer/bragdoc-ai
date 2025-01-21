@@ -31,6 +31,7 @@ type CustomTags =
   | 'date'
   | 'expected-achievements'
   | 'extracted-achievements'
+  | 'company-id'
   | 'remote-url';
 
 //adds all the custom tags to the JSX namespace

@@ -57,7 +57,7 @@ const experimentData: Experiment[] = [
   },
 ];
 
-Eval('extract-achievement-company-and-project', {
+Eval('extract-chat-achievements', {
   data: experimentData,
   task: wrappedExtractAchievements,
   scores: [ExtractAchievementScorer],
