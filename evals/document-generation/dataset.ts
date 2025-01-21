@@ -1,4 +1,4 @@
-import { Experiment } from "./types";
+import type { Experiment } from "./types";
 import { renderCompanies, renderProjects, renderMessage } from '@/lib/ai/renderers';
 
 export const company = {

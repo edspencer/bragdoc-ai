@@ -346,7 +346,7 @@ importers:
         specifier: ^19
         version: 19.0.7
       '@types/react-dom':
-        specifier: 19.0.3
+        specifier: ^19
         version: 19.0.3(@types/react@19.0.7)
       drizzle-kit:
         specifier: ^0.25.0

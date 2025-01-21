@@ -1,4 +1,4 @@
-import { LLMExtractedAchievement } from "../../types";
+import type { LLMExtractedAchievement } from "../../types";
 import {user, project1, project2, company, previousCompany} from './user';
 import {v4 as uuidv4} from 'uuid';
 

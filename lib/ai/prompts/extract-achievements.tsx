@@ -14,7 +14,7 @@ import {
 } from 'jsx-prompt';
 import { Companies, Projects } from '../aisx/elements';
 import { expectedAchievements as examples } from './evals/data/extract-achievements';
-import { ExtractAchievementsPromptProps } from './types';
+import type { ExtractAchievementsPromptProps } from './types';
 
 const instructions = [
   'Consider the chat history and context to understand the full scope of each achievement.',

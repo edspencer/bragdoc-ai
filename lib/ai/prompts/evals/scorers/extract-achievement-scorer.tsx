@@ -5,17 +5,15 @@ import {
   Prompt,
   Purpose,
   Instructions,
-  Examples,
   InputFormat,
   OutputFormat,
-  UserInput,
   Variables,
   formattedRender,
 } from 'jsx-prompt';
 
 import { Companies, Projects } from '../../../aisx/elements';
 
-import { companies, projects, user } from '../data/user';
+import { companies, projects, } from '../data/user';
 
 const outputFormat = `
 Answer by selecting one of the following options:

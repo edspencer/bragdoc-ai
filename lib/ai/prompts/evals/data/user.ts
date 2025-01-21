@@ -1,4 +1,4 @@
-import { User } from '@/lib/db/schema';
+import type { User } from '@/lib/db/schema';
 import { v4 as uuidv4 } from 'uuid';
 
 export const previousCompany = {

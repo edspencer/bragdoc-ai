@@ -6,8 +6,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 Code.theme = 'github-light';
 
-import { formattedRender } from 'jsx-prompt';
-
 import {
   companies,
   projects,
@@ -16,7 +14,7 @@ import {
   commits,
 } from '@/lib/ai/prompts/evals/data/user';
 
-import { User } from '@/lib/db/schema';
+import type { User } from '@/lib/db/schema';
 import { PrettyPrompt } from './PrettyPrompt';
 
 export default function PromptPage() {

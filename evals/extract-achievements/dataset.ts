@@ -1,6 +1,6 @@
 import { v4 as uuidv4 } from 'uuid';
-import { Experiment } from "./types";
-import { LLMExtractedAchievement } from '@/lib/ai/prompts/types';
+import type { Experiment } from "./types";
+import type { LLMExtractedAchievement } from '@/lib/ai/prompts/types';
 
 export const previousCompany = {
   name: 'Palo Alto Networks',

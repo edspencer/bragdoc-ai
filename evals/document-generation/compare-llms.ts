@@ -3,7 +3,7 @@ import { generateDocument} from '@/lib/ai/generate-document';
 import { DocumentScorer } from './scorers';
 import { experimentData } from './dataset';
 import { gpt35TurboModel, gpt4Model, gpt4oModel, gpt4oMiniModel, geminiFlashModel, geminiFlashExpModel } from '@/lib/ai';
-import { LanguageModelV1 } from 'ai';
+import type { LanguageModelV1 } from 'ai';
 
 const createDocument = async (input: any, model: LanguageModelV1): Promise<string> => {
   const { fullStream } = await generateDocument(input, {model});

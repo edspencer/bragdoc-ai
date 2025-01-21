@@ -1,6 +1,6 @@
 import { z } from 'zod';
-import { Achievement, Company, Project, User } from '@/lib/db/schema';
-import { Message } from 'ai';
+import type { Achievement, Company, Project, User } from '@/lib/db/schema';
+import type { Message } from 'ai';
 
 //Schema we use to ask the LLM for a structured response using
 export const achievementResponseSchema = z.object({

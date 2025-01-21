@@ -1,6 +1,6 @@
 import { addYears } from 'date-fns';
 import React, { createElement } from 'react';
-import { Company, Project } from '@/lib/db/schema';
+import type { Company, Project } from '@/lib/db/schema';
 import { Companies, Projects } from './elements';
 import { formattedRender } from 'jsx-prompt';
 // import './xml.d.ts';

@@ -1,7 +1,7 @@
 import { Eval } from 'braintrust';
 import { ExtractAchievementScorer } from './scorers/extract-achievement-scorer';
 import { extractAchievements } from '../../extract-achievements';
-import {
+import type {
   ExtractedAchievement,
   ExtractAchievementsPromptProps,
 } from '../types';

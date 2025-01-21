@@ -1,7 +1,7 @@
 import React from 'react';
-import {
-  type Company as CompanyType,
-  type Project as ProjectType,
+import type {
+  Company as CompanyType,
+  Project as ProjectType,
 } from '@/lib/db/schema';
 
 export function Company({ company }: { company: CompanyType }) {

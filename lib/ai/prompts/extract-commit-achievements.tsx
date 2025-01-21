@@ -1,11 +1,6 @@
 import React from 'react';
-import { streamObject } from 'ai';
-import { extractAchievementsModel } from '@/lib/ai';
-import type { Achievement, Company, Project, User } from '@/lib/db/schema';
 
-import {
-  achievementResponseSchema,
-  LLMExtractedAchievement,
+import type {
   ExtractCommitAchievementsPromptProps,
   Commit as RepositoryCommit,
   Repository,

@@ -1,4 +1,4 @@
-import type { Achievement, Company, Project, User, Message } from '@/lib/db/schema';
+import type { Achievement, Company, Project, Message } from '@/lib/db/schema';
 
 const renderProject = (project: Project) => {
   return `
@@ -14,7 +14,7 @@ const renderProject = (project: Project) => {
 }
 
 const renderProjects = (projects: Project[]) => {
-  return `<projects>` + projects.map(renderProject).join('\n') + `</projects>`;
+  return `<projects>${projects.map(renderProject).join('\n')}</projects>`;
 }
 
 const renderCompany = (company: Company) => {
@@ -31,7 +31,7 @@ const renderCompany = (company: Company) => {
 }
 
 const renderCompanies = (companies: Company[]) => {
-  return `<companies>` + companies.map(renderCompany).join('\n') + `</companies>`;
+  return `<companies>${companies.map(renderCompany).join('\n')}</companies>`;
 }
 
 const renderAchievement = (achievement: Achievement) => {
@@ -46,7 +46,7 @@ const renderAchievement = (achievement: Achievement) => {
 }
 
 const renderAchievements = (achievements: Achievement[]) => {
-  return `<achievements>` + achievements.map(renderAchievement).join('\n') + `</achievements>`;
+  return `<achievements>${achievements.map(renderAchievement).join('\n')}</achievements>`;
 }
 
 const renderMessage = (message: Message) => {
@@ -59,7 +59,7 @@ const renderMessage = (message: Message) => {
 }
 
 const renderMessages = (messages: Message[]) => {
-  return `<messages>` + messages.map(renderMessage).join('\n') + `</messages>`;
+  return `<messages>${messages.map(renderMessage).join('\n')}</messages>`;
 }
 
 export {
