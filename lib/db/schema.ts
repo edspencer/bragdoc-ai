@@ -132,7 +132,7 @@ export const achievement = pgTable(
       enum: ['day', 'week', 'month', 'quarter', 'half year', 'year'],
     }).notNull(),
     isArchived: boolean('is_archived').default(false),
-    source: varchar('source', { enum: ['llm', 'manual'] })
+    source: varchar('source', { enum: ['llm', 'manual', 'commit'] })
       .notNull()
       .default('manual'),
     impact: integer('impact').default(2),

@@ -137,16 +137,12 @@ describe('CLI Commits API Route', () => {
       );
 
       const data = await response.json();
+
       expect(response.status).toBe(200);
       expect(data.processedCount).toBe(1);
       expect(data.achievements).toHaveLength(1);
-      expect(data.achievements[0]).toMatchObject({
-        description: mockAchievement.summary || mockAchievement.title,
-        source: {
-          type: 'commit',
-          hash: testCommits.commits[0].hash,
-        },
-      });
+      const { eventStart, ...expectedAchievement } = mockAchievement;
+      expect(data.achievements[0]).toMatchObject(expectedAchievement);
     });
 
     it('returns 401 for missing authorization header', async () => {

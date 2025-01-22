@@ -114,13 +114,9 @@ export interface BatchResult {
   processedCount: number;
   achievements: Array<{
     id: string;
-    description: string;
     date: string;
-    source: {
-      type: 'commit' | 'pr';
-      hash?: string;
-      prNumber?: number;
-    };
+    source: string;
+    title: string;
   }>;
   errors?: Array<{
     commit: string;

@@ -113,15 +113,7 @@ export async function POST(req: Request) {
       });
 
       // Format achievement for CLI response
-      achievements.push({
-        id: savedAchievement.id,
-        description: savedAchievement.summary || savedAchievement.title,
-        date: savedAchievement.createdAt.toISOString(),
-        source: {
-          type: 'commit',
-          hash: result.data.commits[0].hash,
-        },
-      });
+      achievements.push(savedAchievement);
     }
 
     console.log(achievements)

@@ -30,7 +30,7 @@ export async function createSystemUserMessage(
 export async function createAchievement(
   userId: string,
   data: CreateAchievementRequest,
-  source: 'llm' | 'manual' = 'manual',
+  source: 'llm' | 'manual' | 'commit' = 'manual',
   userMessageId?: string,
 ) {
   // If no userMessageId is provided and it's a manual creation,
