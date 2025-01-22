@@ -12,9 +12,10 @@ import { POST } from '@/app/api/cli/commits/route';
 import { NextRequest } from 'next/server';
 import type { EventDuration } from '@/lib/types/achievement';
 
-// Mock extractFromCommits
-jest.mock('@/lib/ai/extractFromCommits', () => ({
-  extractFromCommits: jest.fn(),
+// Mock extract-commit-achievements
+jest.mock('@/lib/ai/extract-commit-achievements', () => ({
+  execute: jest.fn(),
+  fetch: jest.fn(),
 }));
 
 import * as fuzzyFind from '@/lib/db/projects/fuzzyFind';
@@ -118,9 +119,9 @@ describe('CLI Commits API Route', () => {
         impactSource: 'llm' as const,
       };
 
-      require('@/lib/ai/extractFromCommits').extractFromCommits.mockImplementation(
-        function* () {
-          yield mockAchievement;
+      require('@/lib/ai/extract-commit-achievements').execute.mockImplementation(
+        async () => {
+          return [mockAchievement];
         },
       );
 
@@ -255,7 +256,7 @@ describe('CLI Commits API Route', () => {
     });
 
     it('handles extraction errors gracefully', async () => {
-      require('@/lib/ai/extractFromCommits').extractFromCommits.mockImplementation(
+      require('@/lib/ai/extract-commit-achievements').execute.mockImplementation(
         () => {
           throw new Error('Extraction failed');
         },

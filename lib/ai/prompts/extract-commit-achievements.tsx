@@ -102,12 +102,10 @@ export function ExtractCommitAchievementsPrompt({
         <Projects projects={projects} />
         <today>{new Date().toLocaleDateString()}</today>
         <user-instructions>
-          {user.preferences.documentInstructions}
+          {user?.preferences?.documentInstructions}
         </user-instructions>
         <UserInput>
-          {commits.map((c) => (
-            <Commit key={c.hash} commit={c} />
-          ))}
+          {commits?.map((c) => <Commit key={c.hash} commit={c} />)}
         </UserInput>
         <Repo repository={repository} />
       </Variables>
@@ -121,12 +119,12 @@ export function ExtractCommitAchievementsPrompt({
 export function Commit({ commit }: { commit: RepositoryCommit }) {
   return (
     <commit>
-      <message>{commit.message}</message>
-      <hash>{commit.hash}</hash>
+      <message>{commit?.message}</message>
+      <hash>{commit?.hash}</hash>
       <author>
-        {commit.author.name} - {commit.author.email}
+        {commit?.author?.name} - {commit?.author?.email}
       </author>
-      <date>{commit.date}</date>
+      <date>{commit?.date}</date>
     </commit>
   );
 }
@@ -134,9 +132,9 @@ export function Commit({ commit }: { commit: RepositoryCommit }) {
 export function Repo({ repository }: { repository: Repository }) {
   return (
     <repository>
-      <name>{repository.name}</name>
-      <path>{repository.path}</path>
-      <remote-url>{repository.remoteUrl}</remote-url>
+      <name>{repository?.name}</name>
+      <path>{repository?.path}</path>
+      <remote-url>{repository?.remoteUrl}</remote-url>
     </repository>
   );
 }

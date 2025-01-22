@@ -24,7 +24,7 @@ export function Company({ company }: { company?: CompanyType }) {
 export function Companies({ companies }: { companies: CompanyType[] }) {
   return (
     <companies>
-      {companies.map((company) => (
+      {companies?.map((company) => (
         <Company key={company.id} company={company} />
       ))}
     </companies>
@@ -53,7 +53,7 @@ export function Project({ project }: { project?: ProjectType }) {
 export function Projects({ projects }: { projects: ProjectType[] }) {
   return (
     <projects>
-      {projects.map((project) => (
+      {projects?.map((project) => (
         <Project key={project.id} project={project} />
       ))}
     </projects>

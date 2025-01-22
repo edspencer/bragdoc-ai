@@ -117,6 +117,12 @@ export interface ExtractAchievementsPromptProps {
  * Commit Achievement Extraction Types
  */
 
+export type FetchExtractCommitAchievementsPromptProps = {
+  user: User;
+  commits: Commit[];
+  repository: Repository;
+}
+
 // props required to render the Extract Commit Achievements Prompt
 export interface ExtractCommitAchievementsPromptProps {
   commits: Commit[];

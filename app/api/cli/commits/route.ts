@@ -1,8 +1,14 @@
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
-import { extractFromCommits } from '@/lib/ai/extractFromCommits';
-import { getCompaniesByUserId, createAchievement, validateCLIToken } from '@/lib/db/queries';
-import { getProjectsByUserId, ensureProject } from '@/lib/db/projects/queries';
+import {  createAchievement, validateCLIToken, getUserById } from '@/lib/db/queries';
+import {  ensureProject } from '@/lib/db/projects/queries';
+import {execute, fetch as fetchAchievementsPromptProps} from '@/lib/ai/extract-commit-achievements';
+import { User } from '@/lib/db/schema';
+
+// import { renderToStaticMarkup } from 'react-dom/server';
+import { formatXML } from 'jsx-prompt';
+import {ExtractCommitAchievementsPrompt} from '@/lib/ai/prompts/extract-commit-achievements';
+import React from 'react';
 
 // Validate request body
 const requestSchema = z.object({
@@ -63,24 +69,13 @@ export async function POST(req: Request) {
       repositoryName: repository.name,
     });
 
-    // Get user's companies and projects for context
-    const [companies, projects] = await Promise.all([
-      getCompaniesByUserId({ userId }),
-      getProjectsByUserId(userId),
-    ]);
-
     console.log(
       `Processing ${result.data.commits.length} commits from repository ${repository.name}`
     );
 
-    console.log(repository);
+    const user = await getUserById(userId);
 
-    console.log(result.data.commits)
-    console.log(JSON.stringify(result.data.commits, null, 2))
-
-    // Extract achievements
-    const achievements = [];
-    for await (const achievement of extractFromCommits({
+    const props = await fetchAchievementsPromptProps({
       commits: result.data.commits.map(commit => ({
         hash: commit.hash,
         message: commit.message,
@@ -92,11 +87,16 @@ export async function POST(req: Request) {
         prDetails: undefined,
       })),
       repository,
-      context: {
-        companies,
-        projects,
-      },
-    })) {
+      user: user as User
+    })
+
+    const { renderToStaticMarkup } = await import('react-dom/server');
+
+    const prompt = renderToStaticMarkup(React.createElement(ExtractCommitAchievementsPrompt, props))
+
+    // Extract achievements
+    const achievements = [];
+    for await (const achievement of await execute(prompt)) {
       const [savedAchievement] = await createAchievement({
         userId,
         title: achievement.title,
@@ -123,6 +123,8 @@ export async function POST(req: Request) {
         },
       });
     }
+
+    console.log(achievements)
 
     return NextResponse.json({
       processedCount: result.data.commits.length,
