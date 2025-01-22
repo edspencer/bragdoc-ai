@@ -69,7 +69,35 @@ export type ExtractedAchievement = Pick<
   | 'impactUpdatedAt'
 >;
 
-export type ExtractAchievementsFetcherProps = {
+/**
+ * Document Generation Types
+ */
+export interface GenerateDocumentFetcherProps {
+  title: string;
+  days: number;
+  user: User;
+  projectId: string;
+  companyId: string;
+  chatHistory: Message[]
+}
+
+
+export interface GenerateDocumentPromptProps {
+  title: string;
+  days: number;
+  user: Partial<User>;
+  project?: Project;
+  company?: Company;
+  achievements: any[];
+  userInstructions?: string;
+  chatHistory?: Message[];
+};
+
+/**
+ * Chat Session Achievement Extraction Types
+ */
+
+export interface ExtractAchievementsFetcherProps {
   user: User;
   message: string;
   chatHistory: Message[];
@@ -84,6 +112,11 @@ export interface ExtractAchievementsPromptProps {
   user: User;
 }
 
+
+/**
+ * Commit Achievement Extraction Types
+ */
+
 // props required to render the Extract Commit Achievements Prompt
 export interface ExtractCommitAchievementsPromptProps {
   commits: Commit[];
@@ -93,7 +126,7 @@ export interface ExtractCommitAchievementsPromptProps {
   user: User;
 };
 
-export type Commit = {
+export interface Commit {
   hash: string;
   message: string;
   author: {
@@ -108,7 +141,7 @@ export type Commit = {
   };
 };
 
-export type Repository = {
+export interface Repository {
   name: string;
   path: string;
   remoteUrl?: string;

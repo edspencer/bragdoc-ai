@@ -1,5 +1,5 @@
 import { v4 as uuidv4 } from 'uuid';
-import { preparePromptData, renderPrompt } from '@/lib/ai/generate-document';
+import { fetch, render } from '@/lib/ai/generate-document';
 import { db } from '@/lib/db';
 import { user, type User } from '@/lib/db/schema';
 import { createAchievement, createCompany } from '@/lib/db/queries';
@@ -155,7 +155,7 @@ beforeAll(async () => {
 
 describe('preparePromptData', () => {
   test('returns correct data with user instructions', async () => {
-    const result = await preparePromptData({
+    const result = await fetch({
       title: 'Weekly Update',
       days: 7,
       user: testData.users.withInstructions!,
@@ -164,14 +164,12 @@ describe('preparePromptData', () => {
       chatHistory: [
         {
           id: uuidv4(),
-          chatId: uuidv4(),
           role: 'user',
           content: 'Can you help me write a weekly report?',
           createdAt: new Date()
         },
         {
           id: uuidv4(),
-          chatId: uuidv4(),
           role: 'assistant',
           content: 'I will help you generate a weekly report.',
           createdAt: new Date()
@@ -207,7 +205,7 @@ describe('preparePromptData', () => {
   });
 
   test('returns correct data without user instructions', async () => {
-    const result = await preparePromptData({
+    const result = await fetch({
       title: 'Weekly Update',
       days: 7,
       user: testData.users.withoutInstructions!,
@@ -216,14 +214,12 @@ describe('preparePromptData', () => {
       chatHistory: [
         {
           id: uuidv4(),
-          chatId: uuidv4(),
           role: 'user',
           content: 'Can you help me write a weekly report?',
           createdAt: new Date()
         },
         {
           id: uuidv4(),
-          chatId: uuidv4(),
           role: 'assistant',
           content: 'I will help you generate a weekly report.',
           createdAt: new Date()
@@ -235,7 +231,7 @@ describe('preparePromptData', () => {
   });
 
   test('handles non-existent project gracefully', async () => {
-    const result = await preparePromptData({
+    const result = await fetch({
       title: 'Weekly Update',
       days: 7,
       user: testData.users.withInstructions!,
@@ -244,14 +240,12 @@ describe('preparePromptData', () => {
       chatHistory: [
         {
           id: uuidv4(),
-          chatId: uuidv4(),
           role: 'user',
           content: 'Can you help me write a weekly report?',
           createdAt: new Date()
         },
         {
           id: uuidv4(),
-          chatId: uuidv4(),
           role: 'assistant',
           content: 'I will help you generate a weekly report.',
           createdAt: new Date()
@@ -263,7 +257,7 @@ describe('preparePromptData', () => {
   });
 
   test('handles non-existent company gracefully', async () => {
-    const result = await preparePromptData({
+    const result = await fetch({
       title: 'Weekly Update',
       days: 7,
       user: testData.users.withInstructions!,
@@ -272,14 +266,12 @@ describe('preparePromptData', () => {
       chatHistory: [
         {
           id: uuidv4(),
-          chatId: uuidv4(),
           role: 'user',
           content: 'Can you help me write a weekly report?',
           createdAt: new Date()
         },
         {
           id: uuidv4(),
-          chatId: uuidv4(),
           role: 'assistant',
           content: 'I will help you generate a weekly report.',
           createdAt: new Date()
@@ -292,7 +284,7 @@ describe('preparePromptData', () => {
 
   test('returns achievements for correct date range', async () => {
     const days = 15;
-    const result = await preparePromptData({
+    const result = await fetch({
       title: 'Bi-weekly Update',
       days,
       user: testData.users.withInstructions!,
@@ -301,14 +293,12 @@ describe('preparePromptData', () => {
       chatHistory: [
         {
           id: uuidv4(),
-          chatId: uuidv4(),
           role: 'user',
           content: 'Can you help me write a bi-weekly report?',
           createdAt: new Date()
         },
         {
           id: uuidv4(),
-          chatId: uuidv4(),
           role: 'assistant',
           content: 'I will help you generate a bi-weekly report.',
           createdAt: new Date()
@@ -343,7 +333,7 @@ describe('preparePromptData', () => {
       })
     );
 
-    const result = await preparePromptData({
+    const result = await fetch({
       title: 'Monthly Update',
       days: 30,
       user: testData.users.withInstructions!,
@@ -352,14 +342,12 @@ describe('preparePromptData', () => {
       chatHistory: [
         {
           id: uuidv4(),
-          chatId: uuidv4(),
           role: 'user',
           content: 'Can you help me write a monthly report?',
           createdAt: new Date()
         },
         {
           id: uuidv4(),
-          chatId: uuidv4(),
           role: 'assistant',
           content: 'I will help you generate a monthly report.',
           createdAt: new Date()
@@ -373,7 +361,7 @@ describe('preparePromptData', () => {
 
 describe('renderPrompt', () => {
   test('includes all required sections', async () => {
-    const promptData = await preparePromptData({
+    const promptData = await fetch({
       title: 'Weekly Update',
       days: 7,
       user: testData.users.withInstructions!,
@@ -382,14 +370,12 @@ describe('renderPrompt', () => {
       chatHistory: [
         {
           id: uuidv4(),
-          chatId: uuidv4(),
           role: 'user',
           content: 'Can you help me write a weekly report?',
           createdAt: new Date()
         },
         {
           id: uuidv4(),
-          chatId: uuidv4(),
           role: 'assistant',
           content: 'I will help you generate a weekly report.',
           createdAt: new Date()
@@ -397,7 +383,7 @@ describe('renderPrompt', () => {
       ]
     });
 
-    const prompt = await renderPrompt(promptData);
+    const prompt = await render(promptData);
 
     // Check for required sections
     expect(prompt).toContain('<purpose>');
@@ -408,14 +394,10 @@ describe('renderPrompt', () => {
     expect(prompt).toContain('</instructions>');
     expect(prompt).toContain('<variables>');
     expect(prompt).toContain('</variables>');
-    expect(prompt).toContain('<data>');
-    expect(prompt).toContain('</data>');
-    expect(prompt).toContain('<examples>');
-    expect(prompt).toContain('</examples>');
   });
 
   test('includes user instructions when present', async () => {
-    const promptData = await preparePromptData({
+    const promptData = await fetch({
       title: 'Weekly Update',
       days: 7,
       user: testData.users.withInstructions!,
@@ -424,14 +406,12 @@ describe('renderPrompt', () => {
       chatHistory: [
         {
           id: uuidv4(),
-          chatId: uuidv4(),
           role: 'user',
           content: 'Can you help me write a weekly report?',
           createdAt: new Date()
         },
         {
           id: uuidv4(),
-          chatId: uuidv4(),
           role: 'assistant',
           content: 'I will help you generate a weekly report.',
           createdAt: new Date()
@@ -439,12 +419,12 @@ describe('renderPrompt', () => {
       ]
     });
 
-    const prompt = await renderPrompt(promptData);
+    const prompt = await render(promptData);
     expect(prompt).toContain('Always include impact metrics');
   });
 
   test('excludes user instructions when not present', async () => {
-    const promptData = await preparePromptData({
+    const promptData = await fetch({
       title: 'Weekly Update',
       days: 7,
       user: testData.users.withoutInstructions!,
@@ -453,14 +433,12 @@ describe('renderPrompt', () => {
       chatHistory: [
         {
           id: uuidv4(),
-          chatId: uuidv4(),
           role: 'user',
           content: 'Can you help me write a weekly report?',
           createdAt: new Date()
         },
         {
           id: uuidv4(),
-          chatId: uuidv4(),
           role: 'assistant',
           content: 'I will help you generate a weekly report.',
           createdAt: new Date()
@@ -468,12 +446,12 @@ describe('renderPrompt', () => {
       ]
     });
 
-    const prompt = await renderPrompt(promptData);
+    const prompt = await render(promptData);
     expect(prompt).not.toContain('Always include impact metrics');
   });
 
   test('includes project details when present', async () => {
-    const promptData = await preparePromptData({
+    const promptData = await fetch({
       title: 'Weekly Update',
       days: 7,
       user: testData.users.withInstructions!,
@@ -482,14 +460,12 @@ describe('renderPrompt', () => {
       chatHistory: [
         {
           id: uuidv4(),
-          chatId: uuidv4(),
           role: 'user',
           content: 'Can you help me write a weekly report?',
           createdAt: new Date()
         },
         {
           id: uuidv4(),
-          chatId: uuidv4(),
           role: 'assistant',
           content: 'I will help you generate a weekly report.',
           createdAt: new Date()
@@ -497,12 +473,12 @@ describe('renderPrompt', () => {
       ]
     });
 
-    const prompt = await renderPrompt(promptData);
+    const prompt = await render(promptData);
     expect(prompt).toContain(`Core Platform-${testData.testSuiteId}`);
   });
 
   test('includes company details when present', async () => {
-    const promptData = await preparePromptData({
+    const promptData = await fetch({
       title: 'Weekly Update',
       days: 7,
       user: testData.users.withInstructions!,
@@ -511,14 +487,12 @@ describe('renderPrompt', () => {
       chatHistory: [
         {
           id: uuidv4(),
-          chatId: uuidv4(),
           role: 'user',
           content: 'Can you help me write a weekly report?',
           createdAt: new Date()
         },
         {
           id: uuidv4(),
-          chatId: uuidv4(),
           role: 'assistant',
           content: 'I will help you generate a weekly report.',
           createdAt: new Date()
@@ -526,12 +500,12 @@ describe('renderPrompt', () => {
       ]
     });
 
-    const prompt = await renderPrompt(promptData);
+    const prompt = await render(promptData);
     expect(prompt).toContain(`<name>TechCorp-${testData.testSuiteId}</name>`);
   });
 
   test('includes achievements in context', async () => {
-    const promptData = await preparePromptData({
+    const promptData = await fetch({
       title: 'Weekly Update',
       days: 7,
       user: testData.users.withInstructions!,
@@ -540,14 +514,12 @@ describe('renderPrompt', () => {
       chatHistory: [
         {
           id: uuidv4(),
-          chatId: uuidv4(),
           role: 'user',
           content: 'Can you help me write a weekly report?',
           createdAt: new Date()
         },
         {
           id: uuidv4(),
-          chatId: uuidv4(),
           role: 'assistant',
           content: 'I will help you generate a weekly report.',
           createdAt: new Date()
@@ -555,7 +527,7 @@ describe('renderPrompt', () => {
       ]
     });
 
-    const prompt = await renderPrompt(promptData);
+    const prompt = await render(promptData);
     promptData.achievements.forEach(achievement => {
       expect(prompt).toContain(achievement.title);
       expect(prompt).toContain(achievement.summary);
@@ -566,21 +538,19 @@ describe('renderPrompt', () => {
     const chatHistory = [
       {
         id: uuidv4(),
-        chatId: uuidv4(),
-        role: 'user',
+        role: 'user' as any,
         content: 'Test message 1',
         createdAt: new Date()
       },
       {
         id: uuidv4(),
-        chatId: uuidv4(),
-        role: 'assistant',
+        role: 'assistant' as any,
         content: 'Test response 1',
         createdAt: new Date()
       }
     ];
 
-    const promptData = await preparePromptData({
+    const promptData = await fetch({
       title: 'Weekly Update',
       days: 7,
       user: testData.users.withInstructions!,
@@ -589,7 +559,7 @@ describe('renderPrompt', () => {
       chatHistory
     });
 
-    const prompt = await renderPrompt(promptData);
+    const prompt = await render(promptData);
     chatHistory.forEach(message => {
       expect(prompt).toContain(message.content);
     });

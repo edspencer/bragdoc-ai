@@ -31,7 +31,22 @@ type CustomTags =
   | 'date'
   | 'expected-achievements'
   | 'extracted-achievements'
+  | 'achievement-source'
   | 'company-id'
+  | 'background'
+  | 'chat-history'
+  | 'language'
+  | 'days'
+  | 'achievement'
+  | 'achievements'
+  | 'impact'
+  | 'details'
+  | 'summary'
+  | 'document-title'
+  | 'achievement-title'
+  | 'event-start'
+  | 'event-end'
+  | 'event-duration'
   | 'remote-url';
 
 //adds all the custom tags to the JSX namespace

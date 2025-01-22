@@ -33,7 +33,7 @@ import {
 
 import { generateTitleFromUserMessage } from '@/app/(app)/chat/actions';
 import { streamFetchRenderExecute } from '@/lib/ai/extract-achievements';
-import { prepareAndGenerateDocument } from '@/lib/ai/generate-document';
+import { fetchRenderExecute } from '@/lib/ai/generate-document';
 import { renderCompany, renderProject } from '@/lib/ai/renderers';
 
 export const maxDuration = 60;
@@ -266,13 +266,13 @@ ${companies.map(renderCompany).join('\n')}
             content: '',
           });
 
-          const { fullStream }  = await prepareAndGenerateDocument({
+          const { fullStream }  = await fetchRenderExecute({
             user: session.user as User,
             projectId: projectId ?? undefined,
             companyId: companyId ?? undefined,
             title,
             days,
-            chatHistory: messages as DBMessage[]
+            chatHistory: messages
           })
 
           for await (const delta of fullStream) {

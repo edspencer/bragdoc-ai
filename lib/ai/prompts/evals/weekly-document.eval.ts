@@ -1,9 +1,9 @@
 import { Eval } from 'braintrust';
-import { generateDocument} from '@/lib/ai/generate-document';
+import { renderExecute} from '@/lib/ai/generate-document';
 import { DocumentScorer } from './scorers/document-scorer';
 
 const createDocument = async (input: any): Promise<string> => {
-  const { fullStream } = await generateDocument(input);
+  const { fullStream } = await renderExecute(input);
   let docText = '';
 
   for await (const delta of fullStream) {
@@ -19,15 +19,13 @@ const createDocument = async (input: any): Promise<string> => {
   return docText;
 }
 
-
-
-import type { DocumentPromptData } from '@/lib/ai/generate-document';
+import type { GenerateDocumentPromptProps } from '@/lib/ai/prompts/types';
 
 export type Experiment = {
-  input: DocumentPromptData;
+  input: GenerateDocumentPromptProps;
 }
 
-import { renderCompanies, renderProjects, renderMessage } from '@/lib/ai/renderers';
+import { existingAchievements } from './data/weekly-document-achievements';
 
 export const company = {
   name: 'Acme Corp',
@@ -77,73 +75,18 @@ export const experimentData: Experiment[] = [
       //assuming the document was generated via chat UI
       chatHistory,
 
-      chatStr: chatHistory.map(renderMessage).join('\n'),
-
       // From user.documentInstructions
       userInstructions: `For weekly documents, always use the title "Weekly Summary"`,
 
       //if the user was clearly talking about a specific project,
       //this will be provided now
       project,
-      projectsStr: renderProjects([project]),
 
       //if there is a project, and the project has a company,
   //this will be provided now
       company,
-      companiesStr: renderCompanies([company]),
 
-      achievements: [
-        //any achievements that were found for the request
-
-        {
-          id: '1',
-          title: 'Implemented feature',
-          summary: 'Implemented feature X on project X',
-          impact: 1,
-          eventDuration: 'day',
-          eventStart: new Date('2023-02-01'),
-        },
-        {
-          id: '2',
-          title: 'Debugged bug',
-          summary: 'Found and fixed a login-related bug on project X',
-          impact: 2,
-          eventDuration: 'day',
-          eventStart: new Date('2023-02-02'),
-        },
-        {
-          id: '3',
-          title: 'Tested feature',
-          summary: 'Tested feature X on project X',
-          impact: 1,
-          eventDuration: 'day',
-          eventStart: new Date('2023-02-03'),
-        },
-        {
-          id: '4',
-          title: 'Refactored code',
-          summary: 'Refactored a section of the codebase for project X',
-          impact: 1,
-          eventDuration: 'day',
-          eventStart: new Date('2023-02-04'),
-        },
-        {
-          id: '5',
-          title: 'Documented code',
-          summary: 'Wrote unit tests for feature X on project X',
-          impact: 1,
-          eventDuration: 'day',
-          eventStart: new Date('2023-02-05'),
-        },
-        {
-          id: '6',
-          title: 'Researched',
-          summary: 'Spent a few hours researching options for feature Y on project X',
-          impact: 1,
-          eventDuration: 'day',
-          eventStart: new Date('2023-02-06'),
-        },
-      ]
+      achievements: existingAchievements
     }
   }
 ]

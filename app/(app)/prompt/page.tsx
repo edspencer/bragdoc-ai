@@ -1,6 +1,7 @@
 import { Code } from 'bright';
 import { ExtractAchievementsPrompt } from '@/lib/ai/prompts/extract-achievements';
 import { ExtractCommitAchievementsPrompt } from '@/lib/ai/prompts/extract-commit-achievements';
+import { GenerateDocumentPrompt } from '@/lib/ai/prompts/generate-document';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 import { PageHeader } from '@/components/shared/page-header';
@@ -17,6 +18,7 @@ import {
 
 import type { User } from '@/lib/db/schema';
 import { PrettyPrompt } from './PrettyPrompt';
+import { existingAchievements } from '@/lib/ai/prompts/evals/data/weekly-document-achievements';
 
 export default function PromptPage() {
   return (
@@ -33,6 +35,7 @@ export default function PromptPage() {
           <TabsTrigger value="extract-commits">
             Extract from Commits
           </TabsTrigger>
+          <TabsTrigger value="generate-document">Generate Document</TabsTrigger>
         </TabsList>
       </div>
       <TabsContent
@@ -72,6 +75,21 @@ export default function PromptPage() {
             projects={projects}
             repository={repository}
             commits={commits}
+          />
+        </PrettyPrompt>
+      </TabsContent>
+      <TabsContent
+        value="generate-document"
+        className="flex-1 overflow-y-auto container"
+      >
+        <PrettyPrompt>
+          <GenerateDocumentPrompt
+            user={user as User}
+            company={companies[0]}
+            project={projects[0]}
+            title="Weekly Summary"
+            days={7}
+            achievements={existingAchievements}
           />
         </PrettyPrompt>
       </TabsContent>

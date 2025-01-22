@@ -2,6 +2,7 @@ import React from 'react';
 import type {
   Company as CompanyType,
   Project as ProjectType,
+  Achievement as AchievementType,
 } from '@/lib/db/schema';
 
 export function Company({ company }: { company: CompanyType }) {
@@ -48,5 +49,34 @@ export function Projects({ projects }: { projects: ProjectType[] }) {
         <Project key={project.id} project={project} />
       ))}
     </projects>
+  );
+}
+
+export function Achievement({ achievement }: { achievement: AchievementType }) {
+  return (
+    <achievement>
+      <id>{achievement.id}</id>
+      <achievement-title>{achievement.title}</achievement-title>
+      <summary>{achievement.summary}</summary>
+      <achievement-source>{achievement.source}</achievement-source>
+      <event-start>{achievement.eventStart?.toLocaleDateString()}</event-start>
+      <event-end>
+        {achievement.eventEnd?.toLocaleDateString() || 'Present'}
+      </event-end>
+    </achievement>
+  );
+}
+
+export function Achievements({
+  achievements,
+}: {
+  achievements: AchievementType[];
+}) {
+  return (
+    <achievements>
+      {achievements.map((achievement) => (
+        <Achievement key={achievement.id} achievement={achievement} />
+      ))}
+    </achievements>
   );
 }
