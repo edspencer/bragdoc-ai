@@ -1,6 +1,6 @@
 import { Eval } from 'braintrust';
 import { ExtractAchievementScorer } from './scorers/extract-achievement-scorer';
-import { extractAchievements } from '../../extract-achievements';
+import { renderExecute } from '../../extract-achievements';
 import type {
   ExtractedAchievement,
   ExtractAchievementsPromptProps,
@@ -10,7 +10,7 @@ import type {
 async function wrappedExtractAchievements(
   input: ExtractAchievementsPromptProps
 ): Promise<ExtractedAchievement[]> {
-  return await extractAchievements(input);
+  return await renderExecute(input);
 }
 
 //we should be extracting 4 Achievements out of this - 2 from each paragraph

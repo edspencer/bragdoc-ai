@@ -32,7 +32,7 @@ import {
 } from '@/lib/utils';
 
 import { generateTitleFromUserMessage } from '@/app/(app)/chat/actions';
-import { streamFetchAndExtractAchievements } from '@/lib/ai/extract-achievements';
+import { streamFetchRenderExecute } from '@/lib/ai/extract-achievements';
 import { prepareAndGenerateDocument } from '@/lib/ai/generate-document';
 import { renderCompany, renderProject } from '@/lib/ai/renderers';
 
@@ -153,7 +153,7 @@ ${companies.map(renderCompany).join('\n')}
           try {
             console.log('extracting achievements');
 
-            const achievementsStream = streamFetchAndExtractAchievements({
+            const achievementsStream = streamFetchRenderExecute({
               chatHistory: messages,
               message,
               user: session.user as User

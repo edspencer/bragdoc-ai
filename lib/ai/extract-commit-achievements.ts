@@ -12,7 +12,7 @@ export type FetchExtractCommitAchievementsPromptProps = {
   repository: Repository;
 }
 
-export async function fetchPromptData(props: FetchExtractCommitAchievementsPromptProps): Promise<ExtractCommitAchievementsPromptProps> {
+export async function fetch(props: FetchExtractCommitAchievementsPromptProps): Promise<ExtractCommitAchievementsPromptProps> {
   const {user, commits, repository} = props;
 
   const [projects, companies] = await Promise.all([
@@ -29,25 +29,11 @@ export async function fetchPromptData(props: FetchExtractCommitAchievementsPromp
   }
 }
 
-export async function fetchExtractCommitAchievements(input: FetchExtractCommitAchievementsPromptProps): Promise<ExtractedAchievement[]> {
-  const data = await fetchPromptData(input);
-  
-  return await extractCommitAchievements(data);
-} 
-
-export async function extractCommitAchievements(data: ExtractCommitAchievementsPromptProps): Promise<ExtractedAchievement[]> {
-  const prompt = renderExtractCommitAchievementsPrompt(data);
-
-  const achievements: ExtractedAchievement[] = [];
-
-  for await (const achievement of executePrompt(prompt)) {
-    achievements.push(achievement);
-  }
-
-  return achievements;
+export function render(data: ExtractCommitAchievementsPromptProps): string {
+  return renderExtractCommitAchievementsPrompt(data);
 }
 
-export async function* executePrompt(prompt: string): AsyncGenerator<ExtractedAchievement, void, unknown> {
+export async function* execute(prompt: string): AsyncGenerator<ExtractedAchievement, void, unknown> {
   const { elementStream } = streamObject({
     model: extractAchievementsModel,
     prompt,
@@ -67,4 +53,20 @@ export async function* executePrompt(prompt: string): AsyncGenerator<ExtractedAc
       impactUpdatedAt: new Date(),
     };
   }
+}
+
+export async function fetchRenderExecute(input: FetchExtractCommitAchievementsPromptProps): Promise<ExtractedAchievement[]> {
+  const data = await fetch(input);
+  
+  return await renderExecute(data);
+} 
+
+export async function renderExecute(data: ExtractCommitAchievementsPromptProps): Promise<ExtractedAchievement[]> {
+  const achievements: ExtractedAchievement[] = [];
+
+  for await (const achievement of execute(render(data))) {
+    achievements.push(achievement);
+  }
+
+  return achievements;
 }

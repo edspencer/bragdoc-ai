@@ -1,6 +1,6 @@
 import { Eval } from 'braintrust';
 import { ExtractAchievementScorer } from './scorers/extract-achievement-scorer';
-import { extractCommitAchievements } from '../../extract-commit-achievements';
+import { renderExecute } from '../../extract-commit-achievements';
 import type {
   ExtractedAchievement,
   ExtractCommitAchievementsPromptProps,
@@ -12,7 +12,7 @@ import {repository, noisyCommits, qualityCommits, expectedAchievementsFromNoisyC
 async function wrappedExtractCommitAchievements(
   input: ExtractCommitAchievementsPromptProps
 ): Promise<ExtractedAchievement[]> {
-  return await extractCommitAchievements(input);
+  return await renderExecute(input);
 }
 
 const lastMidnight = new Date();
