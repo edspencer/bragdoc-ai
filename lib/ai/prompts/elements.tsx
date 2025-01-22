@@ -5,7 +5,11 @@ import type {
   Achievement as AchievementType,
 } from '@/lib/db/schema';
 
-export function Company({ company }: { company: CompanyType }) {
+export function Company({ company }: { company?: CompanyType }) {
+  if (!company) {
+    return null;
+  }
+
   return (
     <company>
       <id>{company.id}</id>
@@ -27,7 +31,11 @@ export function Companies({ companies }: { companies: CompanyType[] }) {
   );
 }
 
-export function Project({ project }: { project: ProjectType }) {
+export function Project({ project }: { project?: ProjectType }) {
+  if (!project) {
+    return null;
+  }
+
   return (
     <project>
       <id>{project.id}</id>

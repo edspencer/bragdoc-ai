@@ -10,7 +10,7 @@ import {
   Variables,
   formattedRender,
 } from 'jsx-prompt';
-import { Companies, Projects, Achievements } from './elements';
+import { Company, Project, Achievements } from './elements';
 import type { GenerateDocumentPromptProps } from './types';
 
 const instructions = [
@@ -76,8 +76,8 @@ export function GenerateDocumentPrompt({
         <document-title>{title}</document-title>
         <language>{user.preferences?.language}</language>
         <user-instructions>{userInstructions}</user-instructions>
-        <Projects projects={project ? [project] : []} />
-        <Companies companies={company ? [company] : []} />
+        <Project project={project} />
+        <Company company={company} />
         <Achievements achievements={achievements} />
         <days>{days}</days>
         <ChatHistory messages={chatHistory || []} />

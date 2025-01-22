@@ -46,6 +46,7 @@ type CustomTags =
   | 'achievement-title'
   | 'event-start'
   | 'event-end'
+  | 'generated-document'
   | 'event-duration'
   | 'remote-url';
 
