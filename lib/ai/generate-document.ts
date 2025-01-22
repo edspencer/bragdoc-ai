@@ -1,6 +1,5 @@
 import { getProjectById } from '@/lib/db/projects/queries';
 import { getAchievements, getCompanyById, } from '@/lib/db/queries';
-import type { Company, Project, User, Message } from '@/lib/db/schema';
 import { streamText } from 'ai';
 import { documentWritingModel } from '.';
 

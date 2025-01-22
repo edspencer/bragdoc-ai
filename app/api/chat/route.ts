@@ -24,7 +24,7 @@ import {
   getCompaniesByUserId,
 } from '@/lib/db/queries';
 import {getProjectsByUserId} from '@/lib/db/projects/queries';
-import type { Suggestion, User, Message as DBMessage } from '@/lib/db/schema';
+import type { Suggestion, User, } from '@/lib/db/schema';
 import {
   generateUUID,
   getMostRecentUserMessage,

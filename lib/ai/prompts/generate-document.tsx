@@ -4,7 +4,6 @@ import {
   Prompt,
   Purpose,
   Instructions,
-  Examples,
   InputFormat,
   ChatHistory,
   Variables,

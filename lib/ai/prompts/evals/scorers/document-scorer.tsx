@@ -13,7 +13,7 @@ import {
 } from 'jsx-prompt';
 import { Achievements, Company, Project } from '../../elements';
 
-import {
+import type {
   Project as ProjectType,
   Company as CompanyType,
 } from '@/lib/db/schema';
