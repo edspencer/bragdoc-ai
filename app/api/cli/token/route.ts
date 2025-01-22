@@ -46,3 +46,19 @@ export async function POST(request: Request) {
     );
   }
 }
+
+// Add OPTIONS method handler
+export async function OPTIONS(request: Request) {
+  return new NextResponse(null, {
+    status: 204,
+    headers: {
+      'Access-Control-Allow-Methods': 'POST, OPTIONS',
+      'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+      'Access-Control-Allow-Origin': '*',
+    },
+  });
+}
+
+// Configure allowed methods
+export const runtime = 'edge';
+export const dynamic = 'force-dynamic';
