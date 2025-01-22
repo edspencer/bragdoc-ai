@@ -58,7 +58,3 @@ export async function OPTIONS(request: Request) {
     },
   });
 }
-
-// Configure allowed methods
-export const runtime = 'edge';
-export const dynamic = 'force-dynamic';
