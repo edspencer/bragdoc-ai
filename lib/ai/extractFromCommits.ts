@@ -1,29 +1,36 @@
 import { streamObject } from 'ai';
 import { extractAchievementsModel } from '@/lib/ai';
-import type { Achievement } from '../db/schema';
-import type { RepositoryCommitHistory } from '@/types/commits';
-import { achievementResponseSchema } from './llm-object-schema';
+import type { Achievement, Company, Project } from '../db/schema';
+import { achievementResponseSchema } from './prompts/types';
+
+export interface RepositoryCommitHistory {
+  repository: {
+    name: string;
+    path: string;
+  };
+  commits: Array<{
+    hash: string;
+    message: string;
+    author: {
+      name: string;
+      email: string;
+    };
+    date: string;
+    prDetails?: {
+      title: string;
+      description: string;
+      number: number;
+    };
+  }>;
+}
+
 
 export type ExtractFromCommitsInput = {
   commits: RepositoryCommitHistory['commits'];
   repository: RepositoryCommitHistory['repository'];
   context: {
-    companies: Array<{
-      id: string;
-      name: string;
-      role: string;
-      domain?: string;
-      startDate: Date;
-      endDate?: Date;
-    }>;
-    projects: Array<{
-      id: string;
-      name: string;
-      companyId?: string;
-      description: string;
-      startDate?: Date;
-      endDate?: Date;
-    }>;
+    companies: Array<Company>;
+    projects: Array<Project>;
   };
 };
 

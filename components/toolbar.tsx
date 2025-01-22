@@ -37,7 +37,7 @@ import {
 type ToolProps = {
   type: 'final-polish' | 'request-suggestions' | 'adjust-reading-level';
   description: string;
-  icon: JSX.Element;
+  icon: any; //JSX.Element;
   selectedTool: string | null;
   setSelectedTool: Dispatch<SetStateAction<string | null>>;
   isToolbarVisible?: boolean;
@@ -45,7 +45,7 @@ type ToolProps = {
   isAnimating: boolean;
   append: (
     message: Message | CreateMessage,
-    chatRequestOptions?: ChatRequestOptions,
+    chatRequestOptions?: ChatRequestOptions
   ) => Promise<string | null | undefined>;
 };
 
@@ -159,7 +159,7 @@ const ReadingLevelSelector = ({
   isAnimating: boolean;
   append: (
     message: Message | CreateMessage,
-    chatRequestOptions?: ChatRequestOptions,
+    chatRequestOptions?: ChatRequestOptions
   ) => Promise<string | null | undefined>;
 }) => {
   const LEVELS = [
@@ -212,7 +212,7 @@ const ReadingLevelSelector = ({
                 {
                   'bg-primary text-primary-foreground': currentLevel !== 2,
                   'bg-background text-foreground': currentLevel === 2,
-                },
+                }
               )}
               style={{ y }}
               drag="y"
@@ -272,7 +272,7 @@ export const Tools = ({
   setSelectedTool: Dispatch<SetStateAction<string | null>>;
   append: (
     message: Message | CreateMessage,
-    chatRequestOptions?: ChatRequestOptions,
+    chatRequestOptions?: ChatRequestOptions
   ) => Promise<string | null | undefined>;
   isAnimating: boolean;
   setIsToolbarVisible: Dispatch<SetStateAction<boolean>>;
@@ -338,18 +338,18 @@ const PureToolbar = ({
   isLoading: boolean;
   append: (
     message: Message | CreateMessage,
-    chatRequestOptions?: ChatRequestOptions,
+    chatRequestOptions?: ChatRequestOptions
   ) => Promise<string | null | undefined>;
   stop: () => void;
   setMessages: Dispatch<SetStateAction<Message[]>>;
 }) => {
   const toolbarRef = useRef<HTMLDivElement>(null);
-  const timeoutRef = useRef<ReturnType<typeof setTimeout>>();
+  const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const [selectedTool, setSelectedTool] = useState<string | null>(null);
   const [isAnimating, setIsAnimating] = useState(false);
 
-  useOnClickOutside(toolbarRef, () => {
+  useOnClickOutside(toolbarRef as React.RefObject<HTMLDivElement>, () => {
     setIsToolbarVisible(false);
     setSelectedTool(null);
   });

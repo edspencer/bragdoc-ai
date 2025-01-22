@@ -1,9 +1,10 @@
 import { createUserMessage, getUser, getCompaniesByUserId, getAchievements, createAchievement } from '@/lib/db/queries';
 import { getProjectsByUserId } from '@/lib/db/projects/queries';
-import { extractAchievements } from '@/lib/ai/extract';
+import { streamFetchRenderExecute  } from '@/lib/ai/extract-achievements';
 import { generateText } from 'ai';
 import { customModel } from '@/lib/ai';
 import { z } from 'zod';
+import { v4 as uuidv4 } from 'uuid';
 
 export interface IncomingEmail {
   from: string;
@@ -99,27 +100,10 @@ ${achievements.map(a => `- ${a.title}`).join('\n')}`;
             console.log('Created user message:', newUserMessage.id);
 
             // Extract achievements using the AI
-            const achievementsStream = extractAchievements({
-              input: email.textContent,
-              chat_history: [{ role: 'user', content: email.textContent }],
-              context: {
-                companies: companies.map(c => ({
-                  id: c.id,
-                  name: c.name,
-                  role: c.role,
-                  domain: c.domain || undefined,
-                  startDate: c.startDate,
-                  endDate: c.endDate || undefined,
-                })),
-                projects: projects.map(p => ({
-                  id: p.id,
-                  name: p.name,
-                  companyId: p.companyId || undefined,
-                  description: p.description || '',
-                  startDate: p.startDate || undefined,
-                  endDate: p.endDate || undefined,
-                })),
-              },
+            const achievementsStream = streamFetchRenderExecute({
+              message: email.textContent,
+              chatHistory: [{ role: 'user', content: email.textContent, id: uuidv4() }],
+              user
             });
 
             const savedAchievements = [];

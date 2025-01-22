@@ -194,7 +194,7 @@ export const extractCommand = new Command('extract')
         if (result.achievements.length > 0) {
           logger.info('\nAchievements found:');
           result.achievements.forEach((achievement) => {
-            logger.info(`- ${achievement.description}`);
+            logger.info(`- ${achievement.title}`);
           });
         }
 

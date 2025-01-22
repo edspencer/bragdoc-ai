@@ -12,9 +12,10 @@ import { POST } from '@/app/api/cli/commits/route';
 import { NextRequest } from 'next/server';
 import type { EventDuration } from '@/lib/types/achievement';
 
-// Mock extractFromCommits
-jest.mock('@/lib/ai/extractFromCommits', () => ({
-  extractFromCommits: jest.fn(),
+// Mock extract-commit-achievements
+jest.mock('@/lib/ai/extract-commit-achievements', () => ({
+  execute: jest.fn(),
+  fetch: jest.fn(),
 }));
 
 import * as fuzzyFind from '@/lib/db/projects/fuzzyFind';
@@ -118,9 +119,9 @@ describe('CLI Commits API Route', () => {
         impactSource: 'llm' as const,
       };
 
-      require('@/lib/ai/extractFromCommits').extractFromCommits.mockImplementation(
-        function* () {
-          yield mockAchievement;
+      require('@/lib/ai/extract-commit-achievements').execute.mockImplementation(
+        async () => {
+          return [mockAchievement];
         },
       );
 
@@ -136,16 +137,12 @@ describe('CLI Commits API Route', () => {
       );
 
       const data = await response.json();
+
       expect(response.status).toBe(200);
       expect(data.processedCount).toBe(1);
       expect(data.achievements).toHaveLength(1);
-      expect(data.achievements[0]).toMatchObject({
-        description: mockAchievement.summary || mockAchievement.title,
-        source: {
-          type: 'commit',
-          hash: testCommits.commits[0].hash,
-        },
-      });
+      const { eventStart, ...expectedAchievement } = mockAchievement;
+      expect(data.achievements[0]).toMatchObject(expectedAchievement);
     });
 
     it('returns 401 for missing authorization header', async () => {
@@ -255,7 +252,7 @@ describe('CLI Commits API Route', () => {
     });
 
     it('handles extraction errors gracefully', async () => {
-      require('@/lib/ai/extractFromCommits').extractFromCommits.mockImplementation(
+      require('@/lib/ai/extract-commit-achievements').execute.mockImplementation(
         () => {
           throw new Error('Extraction failed');
         },

@@ -24,7 +24,7 @@ import {
   getCompaniesByUserId,
 } from '@/lib/db/queries';
 import {getProjectsByUserId} from '@/lib/db/projects/queries';
-import type { Suggestion, User, Message as DBMessage } from '@/lib/db/schema';
+import type { Suggestion, User, } from '@/lib/db/schema';
 import {
   generateUUID,
   getMostRecentUserMessage,
@@ -32,8 +32,9 @@ import {
 } from '@/lib/utils';
 
 import { generateTitleFromUserMessage } from '@/app/(app)/chat/actions';
-import { extractAchievements } from '@/lib/ai/extract';
-import { prepareAndGenerateDocument, renderCompany, renderProject } from '@/lib/ai/generate-document';
+import { streamFetchRenderExecute } from '@/lib/ai/extract-achievements';
+import { fetchRenderExecute } from '@/lib/ai/generate-document';
+import { renderCompany, renderProject } from '@/lib/ai/renderers';
 
 export const maxDuration = 60;
 
@@ -152,18 +153,10 @@ ${companies.map(renderCompany).join('\n')}
           try {
             console.log('extracting achievements');
 
-            const achievementsStream = extractAchievements({
-              chat_history: messages
-                .filter((m) => m.role === 'user')
-                .map(({ role, content }) => ({
-                  role,
-                  content,
-                })),
-              input: message,
-              context: {
-                companies: companies as any,
-                projects: projects as any,
-              },
+            const achievementsStream = streamFetchRenderExecute({
+              chatHistory: messages,
+              message,
+              user: session.user as User
             });
 
             const savedAchievements = [];
@@ -273,13 +266,13 @@ ${companies.map(renderCompany).join('\n')}
             content: '',
           });
 
-          const { fullStream }  = await prepareAndGenerateDocument({
+          const { fullStream }  = await fetchRenderExecute({
             user: session.user as User,
             projectId: projectId ?? undefined,
             companyId: companyId ?? undefined,
             title,
             days,
-            chatHistory: messages as DBMessage[]
+            chatHistory: messages
           })
 
           for await (const delta of fullStream) {
