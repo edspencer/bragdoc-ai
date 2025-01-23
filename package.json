@@ -84,7 +84,7 @@
     "gray-matter": "^4.0.3",
     "isomorphic-dompurify": "^2.20.0",
     "jsdom": "^26.0.0",
-    "jsx-prompt": "^0.1.2",
+    "jsx-prompt": "0.3.0",
     "lucide-react": "^0.446.0",
     "mailgun.js": "^10.4.0",
     "mdx": "^0.3.1",

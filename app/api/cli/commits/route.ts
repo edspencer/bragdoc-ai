@@ -1,14 +1,10 @@
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
-import {  createAchievement, validateCLIToken, getUserById } from '@/lib/db/queries';
-import {  ensureProject } from '@/lib/db/projects/queries';
-import {execute, fetch as fetchAchievementsPromptProps} from '@/lib/ai/extract-commit-achievements';
+import { createAchievement, validateCLIToken, getUserById } from '@/lib/db/queries';
+import { ensureProject } from '@/lib/db/projects/queries';
+import { fetchRenderExecute } from '@/lib/ai/extract-commit-achievements';
 import { User } from '@/lib/db/schema';
-
-// import { renderToStaticMarkup } from 'react-dom/server';
-import { formatXML } from 'jsx-prompt';
-import {ExtractCommitAchievementsPrompt} from '@/lib/ai/prompts/extract-commit-achievements';
-import React from 'react';
+import '@/app/init-jsx-prompt'
 
 // Validate request body
 const requestSchema = z.object({
@@ -75,7 +71,9 @@ export async function POST(req: Request) {
 
     const user = await getUserById(userId);
 
-    const props = await fetchAchievementsPromptProps({
+    // Extract achievements
+    const achievements = [];
+    for await (const achievement of await fetchRenderExecute({
       commits: result.data.commits.map(commit => ({
         hash: commit.hash,
         message: commit.message,
@@ -88,15 +86,7 @@ export async function POST(req: Request) {
       })),
       repository,
       user: user as User
-    })
-
-    const { renderToStaticMarkup } = await import('react-dom/server');
-
-    const prompt = renderToStaticMarkup(React.createElement(ExtractCommitAchievementsPrompt, props))
-
-    // Extract achievements
-    const achievements = [];
-    for await (const achievement of await execute(prompt)) {
+    })) {
       const [savedAchievement] = await createAchievement({
         userId,
         title: achievement.title,

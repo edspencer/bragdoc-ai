@@ -50,10 +50,10 @@ export async function fetch({
 export async function fetchRenderExecute(input: GenerateDocumentFetcherProps, streamTextOptions?: Parameters<typeof streamText>[0]) {
   const data = await fetch(input);
 
-  return await renderExecute(data, streamTextOptions);
+  return renderExecute(data, streamTextOptions);
 }
 
-export async function renderExecute(promptData: GenerateDocumentPromptProps, streamTextOptions?: Parameters<typeof streamText>[0]) {
+export function renderExecute(promptData: GenerateDocumentPromptProps, streamTextOptions?: Parameters<typeof streamText>[0]) {
   const prompt = render(promptData);
 
   return streamText({
