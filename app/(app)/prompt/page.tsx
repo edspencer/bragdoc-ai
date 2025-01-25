@@ -47,12 +47,12 @@ export default function PromptPage() {
             user={user as User}
             companies={companies}
             projects={projects}
-            message="I got some cool stuff done today, I'm really proud of it"
+            message="I fixed several UX bugs in the checkout flow on Bragdoc today"
             chatHistory={[
               {
                 role: 'user',
                 content:
-                  "I got some cool stuff done today, I'm really proud of it",
+                  'I fixed several UX bugs in the checkout flow on Bragdoc today',
                 id: '1',
               },
               {
