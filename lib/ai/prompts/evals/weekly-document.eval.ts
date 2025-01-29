@@ -67,7 +67,7 @@ export const chatHistory: any[] = [];
 export const experimentData: Experiment[] = [
   {
     input: {
-      title: 'Specific Doc name requested by user',
+      docTitle: 'Specific Doc name requested by user',
       days: 7,
 
       user,

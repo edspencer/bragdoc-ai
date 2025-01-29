@@ -51,16 +51,11 @@ export async function GET(
       });
       break;
     case 'extract-commit-achievements':
-
-
       prompt = await fetchRenderExtractCommitAchievements({
         user: user as any,
         commits,
         repository
       });
-
-      break;
-    default:
 
       break;
   }

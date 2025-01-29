@@ -1,7 +1,6 @@
 #!/usr/bin/env tsx
 import fs from 'fs/promises';
 import path from 'path';
-import React from 'react';
 import { renderMDXFile } from '../lib/ai/mdx-prompt.server';
 
 async function main() {

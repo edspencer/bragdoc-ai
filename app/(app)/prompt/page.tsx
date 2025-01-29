@@ -66,58 +66,18 @@ export default async function PromptPage() {
         className="flex-1 overflow-y-auto container"
       >
         <PrettyPrompt id="extract-achievements" />
-        {/* <PrettyPrompt>
-          <ExtractAchievementsPrompt
-          user={user as User}
-          companies={companies}
-          projects={projects}
-          message="I fixed several UX bugs in the checkout flow on Bragdoc today"
-          chatHistory={[
-            {
-              role: 'user',
-              content:
-              'I fixed several UX bugs in the checkout flow on Bragdoc today',
-              id: '1',
-              },
-              {
-                role: 'assistant',
-                content: "Thanks for the feedback, I'll keep working on it!",
-                id: '2',
-                },
-                ]}
-                />
-                </PrettyPrompt> */}
       </TabsContent>
       <TabsContent
         value="extract-commit-achievements"
         className="flex-1 overflow-y-auto container"
       >
         <PrettyPrompt id="extract-commit-achievements" />
-        {/* <PrettyPrompt>
-          <ExtractCommitAchievementsPrompt
-            user={user as User}
-            companies={companies}
-            projects={projects}
-            repository={repository}
-            commits={commits}
-          />
-        </PrettyPrompt> */}
       </TabsContent>
       <TabsContent
         value="generate-document"
         className="flex-1 overflow-y-auto container"
       >
         <PrettyPrompt id="generate-document" />
-        {/* <PrettyPrompt>
-          <GenerateDocumentPrompt
-            user={user as User}
-            company={companies[0]}
-            project={projects[0]}
-            title="Weekly Summary"
-            days={7}
-            achievements={existingAchievements}
-          />
-        </PrettyPrompt> */}
       </TabsContent>
     </Tabs>
   );

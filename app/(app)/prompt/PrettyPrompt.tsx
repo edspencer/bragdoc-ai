@@ -16,7 +16,7 @@ export function PrettyPrompt({ id }: { id: PromptId }) {
   useEffect(() => {
     async function fetchPrompt() {
       try {
-        const response = await fetch(`/api/prompts/${id}/user`);
+        const response = await fetch(`/api/prompts/${id}/mock`);
         const text = await response.text();
         setPrompt(text);
       } catch (error) {
