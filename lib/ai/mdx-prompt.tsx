@@ -11,7 +11,7 @@ export const Components = {
   p: (props: any) => props.children,
   ul: (props: any) => props.children,
   ol: (props: any) => props.children,
-  li: (props: any) => '- ' + props.children,
+  li: (props: any) => `- ${props.children}`,
 };
 
 // A helper that uses rehype-format to pretty-print the final HTML
@@ -28,7 +28,7 @@ export function prettyHtml(rawHtml: string): string {
   return String(file);
 }
 
-import fs from 'fs';
+import fs from 'node:fs';
 import { compileMDX } from 'next-mdx-remote/rsc';
 
 export async function compileMDXPromptFile(filePath: string, data?: any) {
@@ -49,13 +49,13 @@ export async function compileMDXPromptFile(filePath: string, data?: any) {
 
 export async function renderCompiledMDXSource(
   mdxSource: React.ReactElement,
-  renderFn: Function
+  renderFn: (mdxSource: React.ReactElement) => string
 ) {
   return prettyHtml(renderFn(mdxSource));
 }
 
 export interface RenderOptions {
-  renderFn: Function;
+  renderFn: (mdxSource: React.ReactElement) => string;
   filePath: string;
   data?: any;
 }

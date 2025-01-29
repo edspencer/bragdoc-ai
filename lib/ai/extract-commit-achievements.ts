@@ -1,10 +1,10 @@
-import { achievementResponseSchema, type ExtractCommitAchievementsPromptProps, type ExtractedAchievement, type Commit, type Repository, FetchExtractCommitAchievementsPromptProps } from "./prompts/types";
+import { achievementResponseSchema, type ExtractCommitAchievementsPromptProps, type ExtractedAchievement, type FetchExtractCommitAchievementsPromptProps } from "./prompts/types";
 import { streamObject } from "ai";
 import { extractAchievementsModel } from ".";
 import { getProjectsByUserId } from "../db/projects/queries";
 import { getCompaniesByUserId } from "../db/queries";
 
-import path from "path";
+import path from "node:path";
 
 const promptPath = path.resolve("./lib/ai/prompts/extract-commit-achievements.mdx");
 import { renderMDXPromptFile } from "./mdx-prompt";

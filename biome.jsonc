@@ -63,7 +63,8 @@
         "noUnnecessaryContinue": "off" // Turned off due to developer preferences
       },
       "security": {
-        "noDangerouslySetInnerHtml": "off" // Covered by Conformance
+        "noDangerouslySetInnerHtml": "off", // Covered by Conformance
+        "noDangerouslySetInnerHtmlWithChildren": "warn"
       },
       "style": {
         "noNonNullAssertion": "off", // Not in recommended ruleset, turning on manually

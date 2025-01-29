@@ -5,7 +5,7 @@ import type {
   Achievement as AchievementType,
 } from '@/lib/db/schema';
 
-import { Repository, Commit as RepositoryCommit } from './types';
+import type { Repository, Commit as RepositoryCommit } from './types';
 
 export function Company({ company }: { company?: CompanyType }) {
   if (!company) {

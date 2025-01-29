@@ -27,7 +27,7 @@ export async function GET(
   const { id } = await params;
 
   let input: any;
-  let prompt: string =  '';
+  let prompt =  '';
 
   switch (id) {
     case 'extract-achievements':

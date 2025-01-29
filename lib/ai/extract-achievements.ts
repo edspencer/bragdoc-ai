@@ -4,7 +4,7 @@ import { extractAchievementsModel } from ".";
 import { getProjectsByUserId } from "../db/projects/queries";
 import { getCompaniesByUserId } from "../db/queries";
 
-import path from "path";
+import path from "node:path";
 
 const promptPath = path.resolve("./lib/ai/prompts/extract-achievements.mdx");
 import { renderMDXPromptFile } from "./mdx-prompt";
@@ -35,7 +35,7 @@ export async function fetch(props: ExtractAchievementsFetcherProps): Promise<Ext
 }
 
 export type RunOptions = {
-  renderFn: Function;
+  renderFn: (mdxSource: React.ReactElement) => string;
 };
 
 /**

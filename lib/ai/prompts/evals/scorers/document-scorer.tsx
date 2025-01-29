@@ -9,9 +9,8 @@ import {
   OutputFormat,
   Variables,
   ChatHistory,
-} from '../../elements';
+ Achievements, Company, Project } from '../../elements';
 import { formattedRender } from '@/lib/ai/prompts/formattedRender';
-import { Achievements, Company, Project } from '../../elements';
 
 import type {
   Project as ProjectType,

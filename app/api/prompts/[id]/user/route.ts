@@ -4,14 +4,11 @@ import { NextResponse } from 'next/server';
 import { fetchRender as fetchRenderExtractAchievements } from '@/lib/ai/extract-achievements';
 import { fetchRender as fetchRenderExtractCommitAchievements } from '@/lib/ai/extract-commit-achievements';
 
-type Params = {
+type Params = Promise<{
   id: string;
-};
+}>;
 
 import {
-  companies,
-  projects,
-  user,
   repository,
   commits,
 } from '@/lib/ai/prompts/evals/data/user';
@@ -33,8 +30,8 @@ export async function GET(
 
   const user = session.user;
 
-  let prompt: string =  '';
-  let status: number = 200;
+  let prompt =  '';
+  let status = 200;
 
   switch (id) {
     case 'extract-achievements':

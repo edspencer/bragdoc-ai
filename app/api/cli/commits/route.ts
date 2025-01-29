@@ -3,7 +3,7 @@ import { z } from 'zod';
 import { createAchievement, validateCLIToken, getUserById } from '@/lib/db/queries';
 import { ensureProject } from '@/lib/db/projects/queries';
 import { fetchRenderExecute } from '@/lib/ai/extract-commit-achievements';
-import { User } from '@/lib/db/schema';
+import type { User } from '@/lib/db/schema';
 
 // Validate request body
 const requestSchema = z.object({

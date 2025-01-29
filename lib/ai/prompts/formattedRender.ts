@@ -45,7 +45,7 @@ export function formatXML(xml: string): string {
       // Closing tag
       indent = indent.substring(tab.length);
     }
-    formatted += indent + '<' + node + '>\n';
+    formatted += `${indent}<${node}>\n`;
     if (node.match(/^<?\w[^>]*[^\/]$/)) {
       // Opening tag
       indent += tab;

@@ -5,7 +5,7 @@ import { documentWritingModel } from '.';
 
 import type { GenerateDocumentFetcherProps, GenerateDocumentPromptProps } from './prompts/types';
 
-import path from "path";
+import path from "node:path";
 
 const promptPath = path.resolve("./lib/ai/prompts/generate-document.mdx");
 import { renderMDXPromptFile } from "./mdx-prompt";

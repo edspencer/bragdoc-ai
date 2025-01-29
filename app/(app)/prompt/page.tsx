@@ -13,17 +13,14 @@ import {
   commits,
 } from '@/lib/ai/prompts/evals/data/user';
 
-import type { User } from '@/lib/db/schema';
 import { PrettyPrompt } from './PrettyPrompt';
-import { existingAchievements } from '@/lib/ai/prompts/evals/data/weekly-document-achievements';
 
 import { Components } from '@/lib/ai/mdx-prompt';
 
-import path from 'path';
-import * as fs from 'fs';
+import path from 'node:path';
+import * as fs from 'node:fs';
 
 import MarkdownContent from '@/components/blog/MarkdownContent';
-import { PromptCode } from './PromptCode';
 
 const mdxFilePath = path.resolve(
   './lib/ai/prompts/extract-commit-achievements.mdx'
