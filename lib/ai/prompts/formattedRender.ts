@@ -1,6 +1,5 @@
 // import { renderToStaticMarkup } from 'react-dom/server'
 
-// my-jsx-prompt/src/global-render.ts
 // import type React from 'react';
 // const { renderToStaticMarkup } = await import('react-dom/server');
 // import {renderToStaticMarkup} from 'react-dom/server';

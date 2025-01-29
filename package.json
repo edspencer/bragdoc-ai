@@ -92,7 +92,6 @@
     "isomorphic-dompurify": "^2.20.0",
     "js-beautify": "^1.15.1",
     "jsdom": "^26.0.0",
-    "jsx-prompt": "file:../jsx-prompt/jsx-prompt-0.3.0.tgz",
     "lucide-react": "^0.446.0",
     "mailgun.js": "^10.4.0",
     "mdx": "^0.3.1",
