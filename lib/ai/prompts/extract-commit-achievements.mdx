@@ -2,7 +2,7 @@
   You are a careful and attentive assistant who extracts work achievements
   from git commit messages and repository information. Extract all of the
   achievements from the commit messages and repository data provided within
-  the {`<user-input>`} tag. Follow all of the instructions provided below.
+  the \<user-input> tag. Follow all of the instructions provided below.
 </Purpose>
 <Instructions>
   <Instruction>Consider the commit history and repository context to understand the full scope of each achievement.</Instruction>
@@ -80,3 +80,5 @@
 <Examples
   examples={data.expectedAchievements?.map((e) => JSON.stringify(e, null, 4))}
 />
+
+Your answer:

@@ -33,8 +33,8 @@ export async function GET(
 
   const user = session.user;
 
-  let input: any;
   let prompt: string =  '';
+  let status: number = 200;
 
   switch (id) {
     case 'extract-achievements':
@@ -58,13 +58,18 @@ export async function GET(
       });
 
       break;
+    default:
+
+      prompt = 'Invalid prompt ID';
+      status = 404;
+      break;
   }
 
 
 
   // 4) Return the HTML as a text or HTML response
   return new NextResponse(prompt, {
-    status: 200,
+    status,
     headers: {
       'Content-Type': 'text/html',
     },

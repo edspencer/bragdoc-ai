@@ -2,41 +2,35 @@
 
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { oneLight } from 'react-syntax-highlighter/dist/esm/styles/prism';
-import { useEffect, useState } from 'react';
+import useSWR from 'swr';
 
 type PromptId =
   | 'extract-achievements'
   | 'extract-commit-achievements'
   | 'generate-document';
 
+const fetcher = (url: string) => fetch(url).then((res) => res.text());
+
 export function PrettyPrompt({ id }: { id: PromptId }) {
-  const [prompt, setPrompt] = useState<string>('');
-  const [loading, setLoading] = useState(true);
+  const {
+    data: prompt,
+    isLoading,
+    error,
+  } = useSWR(`/api/prompts/${id}/mock`, fetcher, {
+    revalidateOnMount: true
+  });
 
-  useEffect(() => {
-    async function fetchPrompt() {
-      try {
-        const response = await fetch(`/api/prompts/${id}/mock`);
-        const text = await response.text();
-        setPrompt(text);
-      } catch (error) {
-        console.error('Error fetching prompt:', error);
-        setPrompt('Error loading prompt');
-      } finally {
-        setLoading(false);
-      }
-    }
-
-    fetchPrompt();
-  }, [id]);
-
-  if (loading) {
+  if (isLoading) {
     return <div>Loading...</div>;
+  }
+
+  if (error) {
+    return <div>Error loading prompt</div>;
   }
 
   return (
     <SyntaxHighlighter language="xml" style={oneLight}>
-      {prompt}
+      {prompt || ''}
     </SyntaxHighlighter>
   );
 }

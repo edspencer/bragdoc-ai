@@ -48,15 +48,11 @@ export type RunOptions = {
 export async function render(data: ExtractAchievementsPromptProps, options?: RunOptions): Promise<string> {
   const { renderToStaticMarkup: renderFn } = await import('react-dom/server');
 
-  const res = await renderMDXPromptFile({
+  return await renderMDXPromptFile({
     filePath: promptPath,
     renderFn,
     data,
   });
-
-  console.log(res)
-  return res; 
-
 }
 
 /**
