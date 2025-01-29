@@ -1,7 +1,4 @@
 import { Code } from 'bright';
-import { ExtractAchievementsPrompt } from '@/lib/ai/prompts/extract-achievements';
-import { ExtractCommitAchievementsPrompt } from '@/lib/ai/prompts/extract-commit-achievements';
-import { GenerateDocumentPrompt } from '@/lib/ai/prompts/generate-document';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 import { PageHeader } from '@/components/shared/page-header';
@@ -20,7 +17,33 @@ import type { User } from '@/lib/db/schema';
 import { PrettyPrompt } from './PrettyPrompt';
 import { existingAchievements } from '@/lib/ai/prompts/evals/data/weekly-document-achievements';
 
-export default function PromptPage() {
+import { Components } from '@/lib/ai/mdx-prompt';
+
+import path from 'path';
+import * as fs from 'fs';
+
+import MarkdownContent from '@/components/blog/MarkdownContent';
+import { PromptCode } from './PromptCode';
+
+const mdxFilePath = path.resolve(
+  './lib/ai/prompts/extract-commit-achievements.mdx'
+);
+
+export default async function PromptPage() {
+  const prompt = fs.readFileSync(mdxFilePath, 'utf-8');
+
+  const data = {
+    user,
+    repository,
+    projects,
+    commits,
+    companies,
+  };
+
+  const previous = (
+    <MarkdownContent content={prompt} components={Components} data={data} />
+  );
+
   return (
     <Tabs
       defaultValue="extract-achievements"
@@ -32,7 +55,7 @@ export default function PromptPage() {
           <TabsTrigger value="extract-achievements">
             Extract Achievements
           </TabsTrigger>
-          <TabsTrigger value="extract-commits">
+          <TabsTrigger value="extract-commit-achievements">
             Extract from Commits
           </TabsTrigger>
           <TabsTrigger value="generate-document">Generate Document</TabsTrigger>
@@ -42,33 +65,35 @@ export default function PromptPage() {
         value="extract-achievements"
         className="flex-1 overflow-y-auto container"
       >
-        <PrettyPrompt>
+        <PrettyPrompt id="extract-achievements" />
+        {/* <PrettyPrompt>
           <ExtractAchievementsPrompt
-            user={user as User}
-            companies={companies}
-            projects={projects}
-            message="I fixed several UX bugs in the checkout flow on Bragdoc today"
-            chatHistory={[
-              {
-                role: 'user',
-                content:
-                  'I fixed several UX bugs in the checkout flow on Bragdoc today',
-                id: '1',
+          user={user as User}
+          companies={companies}
+          projects={projects}
+          message="I fixed several UX bugs in the checkout flow on Bragdoc today"
+          chatHistory={[
+            {
+              role: 'user',
+              content:
+              'I fixed several UX bugs in the checkout flow on Bragdoc today',
+              id: '1',
               },
               {
                 role: 'assistant',
                 content: "Thanks for the feedback, I'll keep working on it!",
                 id: '2',
-              },
-            ]}
-          />
-        </PrettyPrompt>
+                },
+                ]}
+                />
+                </PrettyPrompt> */}
       </TabsContent>
       <TabsContent
-        value="extract-commits"
+        value="extract-commit-achievements"
         className="flex-1 overflow-y-auto container"
       >
-        <PrettyPrompt>
+        <PrettyPrompt id="extract-commit-achievements" />
+        {/* <PrettyPrompt>
           <ExtractCommitAchievementsPrompt
             user={user as User}
             companies={companies}
@@ -76,13 +101,14 @@ export default function PromptPage() {
             repository={repository}
             commits={commits}
           />
-        </PrettyPrompt>
+        </PrettyPrompt> */}
       </TabsContent>
       <TabsContent
         value="generate-document"
         className="flex-1 overflow-y-auto container"
       >
-        <PrettyPrompt>
+        <PrettyPrompt id="generate-document" />
+        {/* <PrettyPrompt>
           <GenerateDocumentPrompt
             user={user as User}
             company={companies[0]}
@@ -91,7 +117,7 @@ export default function PromptPage() {
             days={7}
             achievements={existingAchievements}
           />
-        </PrettyPrompt>
+        </PrettyPrompt> */}
       </TabsContent>
     </Tabs>
   );

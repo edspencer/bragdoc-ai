@@ -178,7 +178,7 @@ describe('preparePromptData', () => {
     });
 
     expect(result).toMatchObject({
-      title: 'Weekly Update',
+      docTitle: 'Weekly Update',
       days: 7,
       user: testData.users.withInstructions,
       company: expect.objectContaining({

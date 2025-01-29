@@ -7,6 +7,15 @@ type CustomHTMLProps = React.DetailedHTMLProps<
 
 // Define any custom tags you want to permit for your LLM prompts here
 type CustomTags =
+  | 'purpose'
+  | 'instructions'
+  | 'instruction'
+  | 'background'
+  | 'variables'
+  | 'examples'
+  | 'example'
+  | 'input-format'
+  | 'output-format'
   | 'companies'
   | 'company'
   | 'projects'
@@ -48,6 +57,7 @@ type CustomTags =
   | 'event-end'
   | 'generated-document'
   | 'event-duration'
+  | 'variables'
   | 'remote-url';
 
 //adds all the custom tags to the JSX namespace

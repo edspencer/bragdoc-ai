@@ -4,7 +4,6 @@ import { createAchievement, validateCLIToken, getUserById } from '@/lib/db/queri
 import { ensureProject } from '@/lib/db/projects/queries';
 import { fetchRenderExecute } from '@/lib/ai/extract-commit-achievements';
 import { User } from '@/lib/db/schema';
-import '@/app/init-jsx-prompt'
 
 // Validate request body
 const requestSchema = z.object({
@@ -72,8 +71,7 @@ export async function POST(req: Request) {
     const user = await getUserById(userId);
 
     // Extract achievements
-    const achievements = [];
-    for await (const achievement of await fetchRenderExecute({
+    const extracted = await fetchRenderExecute({
       commits: result.data.commits.map(commit => ({
         hash: commit.hash,
         message: commit.message,
@@ -86,7 +84,11 @@ export async function POST(req: Request) {
       })),
       repository,
       user: user as User
-    })) {
+    });
+
+    const achievements = [];
+
+    for await (const achievement of extracted) {
       const [savedAchievement] = await createAchievement({
         userId,
         title: achievement.title,
@@ -105,8 +107,6 @@ export async function POST(req: Request) {
       // Format achievement for CLI response
       achievements.push(savedAchievement);
     }
-
-    console.log(achievements)
 
     return NextResponse.json({
       processedCount: result.data.commits.length,

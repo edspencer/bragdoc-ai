@@ -83,7 +83,7 @@ export interface GenerateDocumentFetcherProps {
 
 
 export interface GenerateDocumentPromptProps {
-  title: string;
+  docTitle: string;
   days: number;
   user: Partial<User>;
   project?: Project;

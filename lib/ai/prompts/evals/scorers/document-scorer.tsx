@@ -9,8 +9,8 @@ import {
   OutputFormat,
   Variables,
   ChatHistory,
-  formattedRender,
-} from 'jsx-prompt';
+} from '../../elements';
+import { formattedRender } from '@/lib/ai/prompts/formattedRender';
 import { Achievements, Company, Project } from '../../elements';
 
 import type {

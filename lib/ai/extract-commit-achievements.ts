@@ -1,11 +1,13 @@
-import type { User } from "@/lib/db/schema";
-import { renderExtractCommitAchievementsPrompt } from "./prompts/extract-commit-achievements";
 import { achievementResponseSchema, type ExtractCommitAchievementsPromptProps, type ExtractedAchievement, type Commit, type Repository, FetchExtractCommitAchievementsPromptProps } from "./prompts/types";
 import { streamObject } from "ai";
 import { extractAchievementsModel } from ".";
 import { getProjectsByUserId } from "../db/projects/queries";
 import { getCompaniesByUserId } from "../db/queries";
 
+import path from "path";
+
+const promptPath = path.resolve("./lib/ai/prompts/extract-commit-achievements.mdx");
+import { renderMDXPromptFile } from "./mdx-prompt";
 
 
 /**
@@ -37,8 +39,14 @@ export async function fetch(props: FetchExtractCommitAchievementsPromptProps): P
  * @param data 
  * @returns a string that can be used to execute the prompt
  */
-export function render(data: ExtractCommitAchievementsPromptProps): string {
-  return renderExtractCommitAchievementsPrompt(data);
+export async function render(data: ExtractCommitAchievementsPromptProps): Promise<string> {
+  const { renderToStaticMarkup: renderFn } = await import('react-dom/server');
+
+  return await renderMDXPromptFile({
+    filePath: promptPath,
+    renderFn,
+    data,
+  });
 }
 
 /**
@@ -84,6 +92,12 @@ export async function execute(prompt: string): Promise<ExtractedAchievement[]> {
   return achievements;
 }
 
+export async function fetchRender(input: FetchExtractCommitAchievementsPromptProps): Promise<string> {
+  const data = await fetch(input);
+  return await render(data);
+}
+
+
 /**
  * First fetches data necessary to render the prompt from, renders the prompt, and executes
  * the rendered prompt.
@@ -92,7 +106,7 @@ export async function execute(prompt: string): Promise<ExtractedAchievement[]> {
  * @returns ExtractedAchievement[]
  */
 export async function fetchRenderExecute(input: FetchExtractCommitAchievementsPromptProps): Promise<ExtractedAchievement[]> {
-  return await execute(render(await fetch(input)));
+  return await execute(await render(await fetch(input)));
 } 
 
 /**
@@ -103,5 +117,5 @@ export async function fetchRenderExecute(input: FetchExtractCommitAchievementsPr
  * @returns ExtractedAchievement[]
  */
 export async function renderExecute(data: ExtractCommitAchievementsPromptProps): Promise<ExtractedAchievement[]> {
-  return await execute(render(data));
+  return await execute(await render(data));
 }

@@ -3,8 +3,12 @@ import { getAchievements, getCompanyById, } from '@/lib/db/queries';
 import { streamText } from 'ai';
 import { documentWritingModel } from '.';
 
-import {renderGenerateDocumentPrompt} from './prompts/generate-document';
 import type { GenerateDocumentFetcherProps, GenerateDocumentPromptProps } from './prompts/types';
+
+import path from "path";
+
+const promptPath = path.resolve("./lib/ai/prompts/generate-document.mdx");
+import { renderMDXPromptFile } from "./mdx-prompt";
 
 /**
  * Fetches all the data needed to generate a document based on the parameters
@@ -36,7 +40,7 @@ export async function fetch({
   const userInstructions = user.preferences.documentInstructions || '';
 
   return {
-    title,
+    docTitle: title,
     days,
     user,
     project: project || undefined,
@@ -50,11 +54,11 @@ export async function fetch({
 export async function fetchRenderExecute(input: GenerateDocumentFetcherProps, streamTextOptions?: Parameters<typeof streamText>[0]) {
   const data = await fetch(input);
 
-  return renderExecute(data, streamTextOptions);
+  return await renderExecute(data, streamTextOptions);
 }
 
-export function renderExecute(promptData: GenerateDocumentPromptProps, streamTextOptions?: Parameters<typeof streamText>[0]) {
-  const prompt = render(promptData);
+export async function renderExecute(promptData: GenerateDocumentPromptProps, streamTextOptions?: Parameters<typeof streamText>[0]) {
+  const prompt = await render(promptData);
 
   return streamText({
     model: documentWritingModel,
@@ -63,6 +67,18 @@ export function renderExecute(promptData: GenerateDocumentPromptProps, streamTex
   });
 }
 
-export function render(data: GenerateDocumentPromptProps): string {
-  return renderGenerateDocumentPrompt(data);
+/**
+ * Renders the prompt that extracts achievements from commit messages
+ * 
+ * @param data 
+ * @returns a string that can be used to execute the prompt
+ */
+export async function render(data: GenerateDocumentPromptProps): Promise<string> {
+  const { renderToString: renderFn } = await import('react-dom/server');
+
+  return await renderMDXPromptFile({
+    filePath: promptPath,
+    renderFn,
+    data,
+  });
 }

@@ -36,8 +36,6 @@ import { streamFetchRenderExecute } from '@/lib/ai/extract-achievements';
 import { fetchRenderExecute } from '@/lib/ai/generate-document';
 import { renderCompany, renderProject } from '@/lib/ai/renderers';
 
-import '@/app/init-jsx-prompt'
-
 export const maxDuration = 60;
 
 type AllowedTools =

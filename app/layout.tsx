@@ -4,7 +4,6 @@ import { GoogleAnalytics } from '@next/third-parties/google';
 import { Providers } from '@/components/providers';
 
 import './globals.css';
-import './init-jsx-prompt';
 
 export const metadata: Metadata = {
   metadataBase: new URL('https://chat.vercel.ai'),
