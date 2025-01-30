@@ -5,6 +5,9 @@ import rehypeParse from 'rehype-parse';
 import rehypeFormat from 'rehype-format';
 import rehypeStringify from 'rehype-stringify';
 
+import fs from 'node:fs';
+import { compileMDX } from 'next-mdx-remote/rsc';
+
 // Custom components to inject into MDX via MDXProvider-like approach
 export const Components = {
   ...Elements,
@@ -27,9 +30,6 @@ export function prettyHtml(rawHtml: string): string {
 
   return String(file);
 }
-
-import fs from 'node:fs';
-import { compileMDX } from 'next-mdx-remote/rsc';
 
 export async function compileMDXPromptFile(filePath: string, data?: any) {
   const mdxSource = fs.readFileSync(filePath, 'utf-8');

@@ -1,5 +1,7 @@
 import React from 'react';
 import { LLMClassifierFromSpec, type Score } from 'autoevals';
+import { renderToStaticMarkup } from 'react-dom/server';
+import { renderCompiledMDXSource } from '@/lib/ai/mdx-prompt';
 
 import {
   Prompt,
@@ -9,8 +11,10 @@ import {
   OutputFormat,
   Variables,
   ChatHistory,
- Achievements, Company, Project } from '../../elements';
-import { formattedRender } from '@/lib/ai/prompts/formattedRender';
+  Achievements,
+  Company,
+  Project,
+} from '../../elements';
 
 import type {
   Project as ProjectType,
@@ -117,13 +121,12 @@ function EvaluateGeneratedDocumentPrompt({
         <Company company={company} />
         <Project project={project} />
       </Variables>
-      `
     </Prompt>
   );
 }
 
 export async function DocumentScorer(args: any): Promise<Score> {
-  const prompt = formattedRender(
+  const prompt = await renderCompiledMDXSource(
     <EvaluateGeneratedDocumentPrompt
       achievements={args.input.achievements}
       generatedDocument={args.output}
@@ -132,7 +135,8 @@ export async function DocumentScorer(args: any): Promise<Score> {
       days={args.input.days}
       company={args.input.company}
       project={args.input.project}
-    />
+    />,
+    renderToStaticMarkup
   );
 
   return LLMClassifierFromSpec('DocumentScorer', {

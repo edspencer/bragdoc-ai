@@ -1,5 +1,7 @@
 import React from 'react';
 import { LLMClassifierFromSpec, type Score } from 'autoevals';
+import { renderToStaticMarkup } from 'react-dom/server';
+import { renderCompiledMDXSource } from '@/lib/ai/mdx-prompt';
 
 import {
   Prompt,
@@ -9,7 +11,6 @@ import {
   OutputFormat,
   Variables,
 } from '../../elements';
-import { formattedRender } from '@/lib/ai/prompts/formattedRender';
 
 const outputFormat = `
 Answer by selecting one of the following options:
@@ -107,11 +108,12 @@ function EvaluateExtractedAchievementsPrompt({
 }
 
 export async function ExtractAchievementScorer(args: any): Promise<Score> {
-  const prompt = formattedRender(
+  const prompt = await renderCompiledMDXSource(
     <EvaluateExtractedAchievementsPrompt
       expectedAchievements={args.expected}
       extractedAchievements={args.output}
-    />
+    />,
+    renderToStaticMarkup
   );
 
   return LLMClassifierFromSpec('ExtractAchievementScorer', {

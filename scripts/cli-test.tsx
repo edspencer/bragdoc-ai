@@ -1,14 +1,13 @@
 #!/usr/bin/env tsx
-import fs from 'node:fs/promises';
 import path from 'node:path';
-import { renderMDXFile } from '../lib/ai/mdx-prompt.server';
+import { renderMDXPromptFile } from '../lib/ai/mdx-prompt';
+import { renderToStaticMarkup } from 'react-dom/server';
 
 async function main() {
   // 1) Read the MDX file
   const filePath = path.resolve(
     './lib/ai/prompts/extract-commit-achievements.mdx'
   );
-  const mdxSource = await fs.readFile(filePath, 'utf-8');
 
   // 2) Prepare some data to pass in as scope
   const data = {
@@ -28,7 +27,11 @@ async function main() {
     ],
   };
 
-  const result = await renderMDXFile(mdxSource, data);
+  const result = await renderMDXPromptFile({
+    filePath,
+    data,
+    renderFn: renderToStaticMarkup,
+  });
 
   console.log(result);
 }

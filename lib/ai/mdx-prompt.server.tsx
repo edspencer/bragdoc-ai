@@ -1,3 +1,5 @@
+//this is now vestigial, but it works well enough any may be useful in the future
+
 import { serialize } from 'next-mdx-remote/serialize';
 import React from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
