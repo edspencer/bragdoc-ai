@@ -7,7 +7,8 @@ import { getCompaniesByUserId } from "../db/queries";
 import path from "node:path";
 
 const promptPath = path.resolve("./lib/ai/prompts/extract-commit-achievements.mdx");
-import { renderMDXPromptFile } from "./mdx-prompt";
+import { renderMDXPromptFile } from "mdx-prompt";
+import * as components from './prompts/elements';
 
 
 /**
@@ -46,6 +47,7 @@ export async function render(data: ExtractCommitAchievementsPromptProps): Promis
     filePath: promptPath,
     renderFn,
     data,
+    components
   });
 }
 

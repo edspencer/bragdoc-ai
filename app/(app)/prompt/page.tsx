@@ -15,12 +15,8 @@ import {
 
 import { PrettyPrompt } from './PrettyPrompt';
 
-import { Components } from '@/lib/ai/mdx-prompt';
-
 import path from 'node:path';
 import * as fs from 'node:fs';
-
-import MarkdownContent from '@/components/blog/MarkdownContent';
 
 const mdxFilePath = path.resolve(
   './lib/ai/prompts/extract-commit-achievements.mdx'
@@ -36,10 +32,6 @@ export default async function PromptPage() {
     commits,
     companies,
   };
-
-  const previous = (
-    <MarkdownContent content={prompt} components={Components} data={data} />
-  );
 
   return (
     <Tabs

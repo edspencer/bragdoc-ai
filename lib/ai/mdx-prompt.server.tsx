@@ -3,7 +3,7 @@
 import { serialize } from 'next-mdx-remote/serialize';
 import React from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
-import { Components, prettyHtml } from './mdx-prompt'; // your custom stuff
+import { Components, prettyPrompt } from 'mdx-prompt';
 import { MDXRemote } from 'next-mdx-remote';
 
 // A helper to compile and run MDX purely in Node
@@ -24,5 +24,5 @@ export async function renderMDXFile(
     <MDXRemote {...mdxCompiled} components={Components} />
   );
 
-  return prettyHtml(html);
+  return prettyPrompt(html);
 }

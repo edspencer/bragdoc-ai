@@ -8,7 +8,8 @@ import type { GenerateDocumentFetcherProps, GenerateDocumentPromptProps } from '
 import path from "node:path";
 
 const promptPath = path.resolve("./lib/ai/prompts/generate-document.mdx");
-import { renderMDXPromptFile } from "./mdx-prompt";
+import { renderMDXPromptFile } from "mdx-prompt";
+import * as components from './prompts/elements';
 
 /**
  * Fetches all the data needed to generate a document based on the parameters
@@ -85,5 +86,6 @@ export async function render(data: GenerateDocumentPromptProps): Promise<string>
     filePath: promptPath,
     renderFn,
     data,
+    components
   });
 }

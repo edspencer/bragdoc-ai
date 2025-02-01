@@ -1,7 +1,8 @@
 #!/usr/bin/env tsx
 import path from 'node:path';
-import { renderMDXPromptFile } from '../lib/ai/mdx-prompt';
+import { renderMDXPromptFile } from 'mdx-prompt';
 import { renderToStaticMarkup } from 'react-dom/server';
+import * as components from '../lib/ai/prompts/elements';
 
 async function main() {
   // 1) Read the MDX file
@@ -31,6 +32,7 @@ async function main() {
     filePath,
     data,
     renderFn: renderToStaticMarkup,
+    components,
   });
 
   console.log(result);

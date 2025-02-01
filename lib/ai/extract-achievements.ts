@@ -7,7 +7,8 @@ import { getCompaniesByUserId } from "../db/queries";
 import path from "node:path";
 
 const promptPath = path.resolve("./lib/ai/prompts/extract-achievements.mdx");
-import { renderMDXPromptFile } from "./mdx-prompt";
+import { renderMDXPromptFile } from "mdx-prompt";
+import * as components from './prompts/elements';
 
 /**
  * Fetches the data necessary to render the Extract Achievements Prompt.
@@ -52,6 +53,7 @@ export async function render(data: ExtractAchievementsPromptProps, options?: Run
     filePath: promptPath,
     renderFn,
     data,
+    components
   });
 }
 

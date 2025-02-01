@@ -1,7 +1,7 @@
 import React from 'react';
 import { LLMClassifierFromSpec, type Score } from 'autoevals';
 import { renderToStaticMarkup } from 'react-dom/server';
-import { renderCompiledMDXSource } from '@/lib/ai/mdx-prompt';
+import { renderCompiledMDXSource } from 'mdx-prompt';
 
 import {
   Prompt,
