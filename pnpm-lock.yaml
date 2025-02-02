@@ -210,8 +210,8 @@ importers:
         specifier: ^0.3.1
         version: 0.3.1
       mdx-prompt:
-        specifier: file:../mdx-prompt/mdx-prompt-0.1.0.tgz
-        version: file:../mdx-prompt/mdx-prompt-0.1.0.tgz(@types/react@19.0.8)(acorn@8.14.0)(react-dom@19.0.0(react@19.0.0))(react@19.0.0)
+        specifier: '>=0.1.1'
+        version: 0.1.1(@types/react@19.0.8)(acorn@8.14.0)(react-dom@19.0.0(react@19.0.0))(react@19.0.0)
       nanoid:
         specifier: ^5.0.8
         version: 5.0.9
@@ -5475,9 +5475,8 @@ packages:
   mdurl@2.0.0:
     resolution: {integrity: sha512-Lf+9+2r+Tdp5wXDXC4PcIBjTDtq4UKjCPMQhKIuzpJNW0b96kVqSwW0bT7FhRSfmAiFYgP+SCRvdrDozfh0U5w==}
 
-  mdx-prompt@file:../mdx-prompt/mdx-prompt-0.1.0.tgz:
-    resolution: {integrity: sha512-LdFPKgStsjFvyBboE7NkVNBpFeoSiq+t0LRZiROZBnWeNMEcTy/chZj1fzKudJIRKDcTPRzp+DZ+rvI9F5OI0w==, tarball: file:../mdx-prompt/mdx-prompt-0.1.0.tgz}
-    version: 0.1.0
+  mdx-prompt@0.1.1:
+    resolution: {integrity: sha512-JvWoqzFKnsn++7eM5Rg03UStkNL/esHYJgArZNUTYpS75pCxG1n/eQurhSAQB7pu88BadAYQeN+Y7CzUPEpQUA==}
     peerDependencies:
       react: '>=19'
       react-dom: '>=19'
@@ -13295,7 +13294,7 @@ snapshots:
 
   mdurl@2.0.0: {}
 
-  mdx-prompt@file:../mdx-prompt/mdx-prompt-0.1.0.tgz(@types/react@19.0.8)(acorn@8.14.0)(react-dom@19.0.0(react@19.0.0))(react@19.0.0):
+  mdx-prompt@0.1.1(@types/react@19.0.8)(acorn@8.14.0)(react-dom@19.0.0(react@19.0.0))(react@19.0.0):
     dependencies:
       next-mdx-remote: 5.0.0(@types/react@19.0.8)(acorn@8.14.0)(react@19.0.0)
       react: 19.0.0
