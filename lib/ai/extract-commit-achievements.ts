@@ -41,11 +41,8 @@ export async function fetch(props: FetchExtractCommitAchievementsPromptProps): P
  * @returns a string that can be used to execute the prompt
  */
 export async function render(data: ExtractCommitAchievementsPromptProps): Promise<string> {
-  const { renderToStaticMarkup: renderFn } = await import('react-dom/server');
-
   return await renderMDXPromptFile({
     filePath: promptPath,
-    renderFn,
     data,
     components
   });

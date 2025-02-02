@@ -1,7 +1,6 @@
 #!/usr/bin/env tsx
 import path from 'node:path';
 import { renderMDXPromptFile } from 'mdx-prompt';
-import { renderToStaticMarkup } from 'react-dom/server';
 import * as components from '../lib/ai/prompts/elements';
 
 async function main() {
@@ -31,7 +30,6 @@ async function main() {
   const result = await renderMDXPromptFile({
     filePath,
     data,
-    renderFn: renderToStaticMarkup,
     components,
   });
 

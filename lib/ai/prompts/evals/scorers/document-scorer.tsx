@@ -1,7 +1,6 @@
 import React from 'react';
 import { LLMClassifierFromSpec, type Score } from 'autoevals';
-import { renderToStaticMarkup } from 'react-dom/server';
-import { renderCompiledMDXSource } from 'mdx-prompt';
+import { renderMDX } from 'mdx-prompt';
 
 import {
   Prompt,
@@ -11,10 +10,9 @@ import {
   OutputFormat,
   Variables,
   ChatHistory,
-  Achievements,
-  Company,
-  Project,
-} from '../../elements';
+} from 'mdx-prompt/components';
+
+import { Achievements, Company, Project } from '../../elements';
 
 import type {
   Project as ProjectType,
@@ -126,7 +124,7 @@ function EvaluateGeneratedDocumentPrompt({
 }
 
 export async function DocumentScorer(args: any): Promise<Score> {
-  const prompt = await renderCompiledMDXSource(
+  const prompt = await renderMDX(
     <EvaluateGeneratedDocumentPrompt
       achievements={args.input.achievements}
       generatedDocument={args.output}
@@ -135,8 +133,7 @@ export async function DocumentScorer(args: any): Promise<Score> {
       days={args.input.days}
       company={args.input.company}
       project={args.input.project}
-    />,
-    renderToStaticMarkup
+    />
   );
 
   return LLMClassifierFromSpec('DocumentScorer', {

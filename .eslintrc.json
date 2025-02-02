@@ -8,6 +8,7 @@
   ],
   "plugins": ["tailwindcss"],
   "rules": {
+    "import/no-named-as-default": "off",
     "tailwindcss/no-custom-classname": "off",
     "tailwindcss/classnames-order": "off",
     "@typescript-eslint/no-non-null-assertion": "off"

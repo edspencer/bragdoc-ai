@@ -80,11 +80,8 @@ export async function renderExecute(promptData: GenerateDocumentPromptProps, str
  * @returns a string that can be used to execute the prompt
  */
 export async function render(data: GenerateDocumentPromptProps): Promise<string> {
-  const { renderToString: renderFn } = await import('react-dom/server');
-
   return await renderMDXPromptFile({
     filePath: promptPath,
-    renderFn,
     data,
     components
   });

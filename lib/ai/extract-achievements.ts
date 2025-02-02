@@ -35,23 +35,15 @@ export async function fetch(props: ExtractAchievementsFetcherProps): Promise<Ext
   }
 }
 
-export type RunOptions = {
-  renderFn: (mdxSource: React.ReactElement) => string;
-};
-
 /**
  * Renders the Extract Achievements Prompt
  * 
  * @param data ExtractAchievementsPromptProps
- * @param options RenderOptions
  * @returns string
  */
-export async function render(data: ExtractAchievementsPromptProps, options?: RunOptions): Promise<string> {
-  const { renderToStaticMarkup: renderFn } = await import('react-dom/server');
-
+export async function render(data: ExtractAchievementsPromptProps): Promise<string> {
   return await renderMDXPromptFile({
     filePath: promptPath,
-    renderFn,
     data,
     components
   });
@@ -91,17 +83,17 @@ export async function* execute(prompt: string): AsyncGenerator<ExtractedAchievem
  * @param input ExtractAchievementsFetcherProps
  * @returns AsyncGenerator<ExtractedAchievement>
  */
-export async function* streamFetchRenderExecute(input: ExtractAchievementsFetcherProps, options?: RunOptions): AsyncGenerator<ExtractedAchievement> {
+export async function* streamFetchRenderExecute(input: ExtractAchievementsFetcherProps): AsyncGenerator<ExtractedAchievement> {
   const data = await fetch(input);
 
-  for await (const achievement of execute(await render(data, options))) {
+  for await (const achievement of execute(await render(data))) {
     yield achievement;
   }
 }
 
-export async function fetchRender(input: ExtractAchievementsFetcherProps, options?: RunOptions): Promise<string> {
+export async function fetchRender(input: ExtractAchievementsFetcherProps): Promise<string> {
   const data = await fetch(input);
-  return await render(data, options);
+  return await render(data);
 }
 
 /**
@@ -110,10 +102,10 @@ export async function fetchRender(input: ExtractAchievementsFetcherProps, option
  * @param input ExtractAchievementsFetcherProps
  * @returns Promise<ExtractedAchievement[]>
  */
-export async function fetchRenderExecute(input: ExtractAchievementsFetcherProps, options?: RunOptions): Promise<ExtractedAchievement[]> {
+export async function fetchRenderExecute(input: ExtractAchievementsFetcherProps): Promise<ExtractedAchievement[]> {
   const data = await fetch(input);
 
-  return await renderExecute(data, options);
+  return await renderExecute(data);
 }
 
 /**
@@ -122,10 +114,10 @@ export async function fetchRenderExecute(input: ExtractAchievementsFetcherProps,
  * @param data ExtractAchievementsPromptProps
  * @returns Promise<ExtractedAchievement[]>
  */
-export async function renderExecute(data: ExtractAchievementsPromptProps, options?: RunOptions): Promise<ExtractedAchievement[]> {
+export async function renderExecute(data: ExtractAchievementsPromptProps): Promise<ExtractedAchievement[]> {
   const achievements: ExtractedAchievement[] = [];
   
-  for await (const achievement of execute(await render(data, options))) {
+  for await (const achievement of execute(await render(data))) {
     achievements.push(achievement);
   }
 
