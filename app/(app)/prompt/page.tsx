@@ -17,6 +17,8 @@ import { PrettyPrompt } from './PrettyPrompt';
 
 import path from 'node:path';
 import * as fs from 'node:fs';
+import { AppPage } from '@/components/shared/app-page';
+import Link from 'next/link';
 
 const mdxFilePath = path.resolve(
   './lib/ai/prompts/extract-commit-achievements.mdx'
@@ -33,41 +35,59 @@ export default async function PromptPage() {
     companies,
   };
 
+  const description = (
+    <>
+      Previews of the various{' '}
+      <Link
+        className="decoration-dashed underline hover:decoration-solid"
+        target="_blank"
+        href="https://github.com/edspencer/mdx-prompt"
+      >
+        mdx-prompt
+      </Link>{' '}
+      driven prompts used in bragdoc.ai
+    </>
+  );
+
   return (
-    <Tabs
-      defaultValue="extract-achievements"
-      className="w-full flex flex-col h-svh items-center gap-8 content-evenly"
-    >
-      <div className="mt-8 flex gap-12 container px-4">
-        <PageHeader title="MDX Prompt Previews" />
-        <TabsList>
-          <TabsTrigger value="extract-achievements">
-            Extract Achievements
-          </TabsTrigger>
-          <TabsTrigger value="extract-commit-achievements">
-            Extract from Commits
-          </TabsTrigger>
-          <TabsTrigger value="generate-document">Generate Document</TabsTrigger>
-        </TabsList>
-      </div>
-      <TabsContent
-        value="extract-achievements"
-        className="flex-1 overflow-y-auto container"
+    <AppPage>
+      <Tabs
+        defaultValue="extract-achievements"
+        className="w-full flex flex-col items-center gap-4 content-evenly"
       >
-        <PrettyPrompt id="extract-achievements" />
-      </TabsContent>
-      <TabsContent
-        value="extract-commit-achievements"
-        className="flex-1 overflow-y-auto container"
-      >
-        <PrettyPrompt id="extract-commit-achievements" />
-      </TabsContent>
-      <TabsContent
-        value="generate-document"
-        className="flex-1 overflow-y-auto container"
-      >
-        <PrettyPrompt id="generate-document" />
-      </TabsContent>
-    </Tabs>
+        <div className="flex gap-12 container">
+          <PageHeader title="MDX Prompt Previews" description={description} />
+          <TabsList>
+            <TabsTrigger value="extract-achievements">
+              Extract Achievements
+            </TabsTrigger>
+            <TabsTrigger value="extract-commit-achievements">
+              Extract from Commits
+            </TabsTrigger>
+            <TabsTrigger value="generate-document">
+              Generate Document
+            </TabsTrigger>
+          </TabsList>
+        </div>
+        <TabsContent
+          value="extract-achievements"
+          className="flex-1 overflow-y-auto container"
+        >
+          <PrettyPrompt id="extract-achievements" />
+        </TabsContent>
+        <TabsContent
+          value="extract-commit-achievements"
+          className="flex-1 overflow-y-auto container"
+        >
+          <PrettyPrompt id="extract-commit-achievements" />
+        </TabsContent>
+        <TabsContent
+          value="generate-document"
+          className="flex-1 overflow-y-auto container"
+        >
+          <PrettyPrompt id="generate-document" />
+        </TabsContent>
+      </Tabs>
+    </AppPage>
   );
 }

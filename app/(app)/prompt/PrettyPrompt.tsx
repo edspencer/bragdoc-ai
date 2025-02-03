@@ -17,7 +17,7 @@ export function PrettyPrompt({ id }: { id: PromptId }) {
     isLoading,
     error,
   } = useSWR(`/api/prompts/${id}/mock`, fetcher, {
-    revalidateOnMount: true
+    revalidateOnMount: true,
   });
 
   if (isLoading) {
@@ -29,7 +29,7 @@ export function PrettyPrompt({ id }: { id: PromptId }) {
   }
 
   return (
-    <SyntaxHighlighter language="xml" style={oneLight}>
+    <SyntaxHighlighter language="xml" style={oneLight} className="text-sm">
       {prompt || ''}
     </SyntaxHighlighter>
   );
