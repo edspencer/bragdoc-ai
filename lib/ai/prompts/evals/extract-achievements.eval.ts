@@ -6,6 +6,8 @@ import type {
   ExtractAchievementsPromptProps,
 } from '../types';
 
+import { companies, projects, user } from './data/user';
+
 // Function to wrap the async generator into a promise
 async function wrappedExtractAchievements(
   input: ExtractAchievementsPromptProps
@@ -20,8 +22,6 @@ const chatHistory = [
     id: '1',
   },
 ];
-
-import { companies, projects, user } from './data/user';
 
 const lastMidnight = new Date();
 lastMidnight.setHours(0, 0, 0, 0);
@@ -64,8 +64,7 @@ Eval('extract-chat-achievements', {
   trialCount: 3,
   metadata: {
     model: 'gpt-4',
-    description:
-      'Evaluating achievement extraction with company and project context',
+    description: 'Evaluating achievement extraction',
     owner: 'ed',
   },
 });

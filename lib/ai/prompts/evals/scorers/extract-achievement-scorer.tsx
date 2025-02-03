@@ -1,5 +1,6 @@
 import React from 'react';
 import { LLMClassifierFromSpec, type Score } from 'autoevals';
+import { renderMDX } from 'mdx-prompt';
 
 import {
   Prompt,
@@ -8,8 +9,7 @@ import {
   InputFormat,
   OutputFormat,
   Variables,
-  formattedRender,
-} from 'jsx-prompt';
+} from 'mdx-prompt/components';
 
 const outputFormat = `
 Answer by selecting one of the following options:
@@ -44,13 +44,7 @@ Compare the extracted achievements with the expected output. Consider:
   outputFormat,
 ];
 
-function EvaluateExtractedAchievementsPrompt({
-  expectedAchievements,
-  extractedAchievements,
-}: {
-  expectedAchievements: any;
-  extractedAchievements: any;
-}) {
+function pluckFields(achievements: any[]) {
   //filter out other things like updated at timestamps
   const fieldsToPluck = [
     'eventStart',
@@ -61,18 +55,26 @@ function EvaluateExtractedAchievementsPrompt({
     'details',
     'companyId',
     'projectId',
-    'impact',
   ];
 
-  const extractedAchievementsPlucked = fieldsToPluck.reduce((acc, field) => {
-    acc[field] = extractedAchievements[field];
-    return acc;
-  }, {} as any);
+  return achievements.map((a) => {
+    const plucked = fieldsToPluck.reduce((acc, field) => {
+      acc[field] = a[field];
+      return acc;
+    }, {} as any);
+    return plucked;
+  });
+}
 
-  const expectedAchievementsPlucked = fieldsToPluck.reduce((acc, field) => {
-    acc[field] = expectedAchievements[field];
-    return acc;
-  }, {} as any);
+function EvaluateExtractedAchievementsPrompt({
+  expectedAchievements,
+  extractedAchievements,
+}: {
+  expectedAchievements: any;
+  extractedAchievements: any;
+}) {
+  const extractedAchievementsPlucked = pluckFields(extractedAchievements);
+  const expectedAchievementsPlucked = pluckFields(expectedAchievements);
 
   return (
     <Prompt>
@@ -105,7 +107,7 @@ function EvaluateExtractedAchievementsPrompt({
 }
 
 export async function ExtractAchievementScorer(args: any): Promise<Score> {
-  const prompt = formattedRender(
+  const prompt = await renderMDX(
     <EvaluateExtractedAchievementsPrompt
       expectedAchievements={args.expected}
       extractedAchievements={args.output}

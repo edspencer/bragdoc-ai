@@ -63,7 +63,8 @@
         "noUnnecessaryContinue": "off" // Turned off due to developer preferences
       },
       "security": {
-        "noDangerouslySetInnerHtml": "off" // Covered by Conformance
+        "noDangerouslySetInnerHtml": "off", // Covered by Conformance
+        "noDangerouslySetInnerHtmlWithChildren": "warn"
       },
       "style": {
         "noNonNullAssertion": "off", // Not in recommended ruleset, turning on manually
@@ -75,7 +76,7 @@
         "noUselessElse": "off" // Stylistic opinion
       },
       "suspicious": {
-        "noArrayIndexKey": "warn", // Not in recommended ruleset, turning on manually
+        "noArrayIndexKey": "off",
         "noExplicitAny": "off" // We trust Vercelians to use any only when necessary
       },
       "nursery": {

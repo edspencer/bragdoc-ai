@@ -11,7 +11,7 @@ const nextConfig: NextConfig = {
         hostname: 'avatar.vercel.sh',
       },
     ],
-  },
+  }
 };
 
 export default nextConfig;

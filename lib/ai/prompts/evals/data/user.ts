@@ -1,12 +1,23 @@
 import type { User } from '@/lib/db/schema';
 import { v4 as uuidv4 } from 'uuid';
 
+export const user: User = {
+  name: 'Ed Spencer',
+  preferences: {
+    documentInstructions: `If I don't mention a specific project, I'm talking about Brag Doc.`,
+    language: 'en',
+    hasSeenWelcome: true
+  },
+  id: uuidv4(),
+  email: 'Q3Sd2@example.com',
+} as User;
+
 export const previousCompany = {
   name: 'Palo Alto Networks',
   id: uuidv4(),
   startDate: new Date('2016-02-01'),
   endDate: new Date('2021-09-30'),
-  userId: uuidv4(),
+  userId: user.id,
   role: 'Principal Engineer',
   domain: 'www.paloaltonetworks.com',
 };
@@ -16,7 +27,7 @@ export const company = {
   id: uuidv4(),
   startDate: new Date('2023-01-01'),
   endDate: null,
-  userId: uuidv4(),
+  userId: user.id,
   role: 'Chief Scientist',
   domain: 'www.edspencer.net',
 };
@@ -31,7 +42,7 @@ export const project1 = {
   status: 'active',
   createdAt: new Date('2023-01-01'),
   updatedAt: new Date('2023-01-01'),
-  userId: company.userId,
+  userId: user.id,
   repoRemoteUrl: null
 }
 
@@ -45,23 +56,12 @@ export const project2 = {
   status: 'active',
   createdAt: new Date('2023-01-01'),
   updatedAt: new Date('2023-01-01'),
-  userId: company.userId,
+  userId: user.id,
   repoRemoteUrl: null
 }
 
 export const projects = [project1, project2];
 export const companies = [company, previousCompany];
-
-export const user: User = {
-  name: 'Ed Spencer',
-  preferences: {
-    documentInstructions: `If I don't mention a specific project, I'm talking about Brag Doc.`,
-    language: 'en',
-    hasSeenWelcome: true
-  },
-  id: uuidv4(),
-  email: 'Q3Sd2@example.com',
-} as User;
 
 export const repository = {
   name: 'bragdoc-ai',

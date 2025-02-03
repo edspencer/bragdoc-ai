@@ -1,18 +1,36 @@
-import { Code } from 'bright';
-import { formatXML } from 'jsx-prompt';
+'use client';
 
-Code.theme = 'github-light';
+import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
+import { oneLight } from 'react-syntax-highlighter/dist/esm/styles/prism';
+import useSWR from 'swr';
 
-export async function PrettyPrompt({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
-  const ReactDOMServer = (await import('react-dom/server')).default;
+type PromptId =
+  | 'extract-achievements'
+  | 'extract-commit-achievements'
+  | 'generate-document';
+
+const fetcher = (url: string) => fetch(url).then((res) => res.text());
+
+export function PrettyPrompt({ id }: { id: PromptId }) {
+  const {
+    data: prompt,
+    isLoading,
+    error,
+  } = useSWR(`/api/prompts/${id}/mock`, fetcher, {
+    revalidateOnMount: true
+  });
+
+  if (isLoading) {
+    return <div>Loading...</div>;
+  }
+
+  if (error) {
+    return <div>Error loading prompt</div>;
+  }
 
   return (
-    <Code lang="xml">
-      {formatXML(ReactDOMServer.renderToStaticMarkup(children))}
-    </Code>
+    <SyntaxHighlighter language="xml" style={oneLight}>
+      {prompt || ''}
+    </SyntaxHighlighter>
   );
 }

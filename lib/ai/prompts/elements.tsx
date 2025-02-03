@@ -5,6 +5,8 @@ import type {
   Achievement as AchievementType,
 } from '@/lib/db/schema';
 
+import type { Repository, Commit as RepositoryCommit } from './types';
+
 export function Company({ company }: { company?: CompanyType }) {
   if (!company) {
     return null;
@@ -15,7 +17,7 @@ export function Company({ company }: { company?: CompanyType }) {
       <id>{company.id}</id>
       <name>{company.name}</name>
       <role>{company.role}</role>
-      <start-date>{company.startDate.toLocaleDateString()}</start-date>
+      <start-date>{company.startDate?.toLocaleDateString()}</start-date>
       <end-date>{company.endDate?.toLocaleDateString() || 'Present'}</end-date>
     </company>
   );
@@ -86,5 +88,28 @@ export function Achievements({
         <Achievement key={achievement.id} achievement={achievement} />
       ))}
     </achievements>
+  );
+}
+
+export function Commit({ commit }: { commit: RepositoryCommit }) {
+  return (
+    <commit>
+      <message>{commit?.message}</message>
+      <hash>{commit?.hash}</hash>
+      <author>
+        {commit?.author?.name} - {commit?.author?.email}
+      </author>
+      <date>{commit?.date}</date>
+    </commit>
+  );
+}
+
+export function Repo({ repository }: { repository: Repository }) {
+  return (
+    <repository>
+      <name>{repository?.name}</name>
+      <path>{repository?.path}</path>
+      <remote-url>{repository?.remoteUrl}</remote-url>
+    </repository>
   );
 }

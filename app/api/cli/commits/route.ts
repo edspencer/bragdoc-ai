@@ -1,14 +1,9 @@
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
-import {  createAchievement, validateCLIToken, getUserById } from '@/lib/db/queries';
-import {  ensureProject } from '@/lib/db/projects/queries';
-import {execute, fetch as fetchAchievementsPromptProps} from '@/lib/ai/extract-commit-achievements';
-import { User } from '@/lib/db/schema';
-
-// import { renderToStaticMarkup } from 'react-dom/server';
-import { formatXML } from 'jsx-prompt';
-import {ExtractCommitAchievementsPrompt} from '@/lib/ai/prompts/extract-commit-achievements';
-import React from 'react';
+import { createAchievement, validateCLIToken, getUserById } from '@/lib/db/queries';
+import { ensureProject } from '@/lib/db/projects/queries';
+import { fetchRenderExecute } from '@/lib/ai/extract-commit-achievements';
+import type { User } from '@/lib/db/schema';
 
 // Validate request body
 const requestSchema = z.object({
@@ -75,7 +70,8 @@ export async function POST(req: Request) {
 
     const user = await getUserById(userId);
 
-    const props = await fetchAchievementsPromptProps({
+    // Extract achievements
+    const extracted = await fetchRenderExecute({
       commits: result.data.commits.map(commit => ({
         hash: commit.hash,
         message: commit.message,
@@ -88,15 +84,11 @@ export async function POST(req: Request) {
       })),
       repository,
       user: user as User
-    })
+    });
 
-    const { renderToStaticMarkup } = await import('react-dom/server');
-
-    const prompt = renderToStaticMarkup(React.createElement(ExtractCommitAchievementsPrompt, props))
-
-    // Extract achievements
     const achievements = [];
-    for await (const achievement of await execute(prompt)) {
+
+    for await (const achievement of extracted) {
       const [savedAchievement] = await createAchievement({
         userId,
         title: achievement.title,
@@ -115,8 +107,6 @@ export async function POST(req: Request) {
       // Format achievement for CLI response
       achievements.push(savedAchievement);
     }
-
-    console.log(achievements)
 
     return NextResponse.json({
       processedCount: result.data.commits.length,

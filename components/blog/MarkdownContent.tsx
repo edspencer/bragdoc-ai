@@ -23,7 +23,7 @@ const mdxOptions = {
   rehypePlugins: [],
 };
 
-const components = {
+const defaultComponents = {
   pre: Code,
   Aside,
   Video,
@@ -41,10 +41,23 @@ const components = {
   ),
 };
 
-export default function MarkdownContent({ content }: { content: string }) {
+export default function MarkdownContent({
+  content,
+  components = defaultComponents,
+  data = {},
+}: {
+  content: string;
+  components?: any;
+  data?: any;
+}) {
   return (
     <MDXRemote
-      options={{ mdxOptions }}
+      options={{
+        mdxOptions,
+        scope: {
+          data,
+        },
+      }}
       source={content}
       components={components}
     />
