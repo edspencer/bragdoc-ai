@@ -1,7 +1,14 @@
+// next.config.mjs (or next.config.js)
+
+import withMDX from '@next/mdx';
 import type { NextConfig } from 'next';
 
-const nextConfig: NextConfig = {
-  /* config options here */
+const withMDXConfig = withMDX({
+  extension: /\.mdx?$/,
+});
+
+const baseConfig: NextConfig = {
+  pageExtensions: ['ts', 'tsx', 'js', 'jsx', 'md', 'mdx'],
   experimental: {
     // ppr: true,
   },
@@ -11,7 +18,7 @@ const nextConfig: NextConfig = {
         hostname: 'avatar.vercel.sh',
       },
     ],
-  }
+  },
 };
 
-export default nextConfig;
+export default withMDXConfig(baseConfig);

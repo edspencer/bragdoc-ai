@@ -84,7 +84,7 @@ export function Achievements({
 }) {
   return (
     <achievements>
-      {achievements.map((achievement) => (
+      {achievements?.map((achievement) => (
         <Achievement key={achievement.id} achievement={achievement} />
       ))}
     </achievements>
