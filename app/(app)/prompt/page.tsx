@@ -39,7 +39,7 @@ export default async function PromptPage() {
       className="w-full flex flex-col h-svh items-center gap-8 content-evenly"
     >
       <div className="mt-8 flex gap-12 container px-4">
-        <PageHeader title="JSX Prompt Previews" />
+        <PageHeader title="MDX Prompt Previews" />
         <TabsList>
           <TabsTrigger value="extract-achievements">
             Extract Achievements

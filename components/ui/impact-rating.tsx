@@ -65,7 +65,7 @@ export function ImpactRating({
       'size-4 sm:size-6 transition-colors',
       isActive ? 'text-yellow-400' : 'text-gray-300',
       !readOnly && 'cursor-pointer hover:text-yellow-400',
-      source === 'llm' && 'opacity-80',
+      source === 'llm' && 'opacity-80'
     );
 
     const tooltipContent = (
@@ -116,6 +116,8 @@ export function ImpactRating({
       <div
         className={cn('flex items-center gap-1', className)}
         onMouseLeave={handleMouseLeave}
+        tabIndex={0}
+        role="button"
         {...props}
       >
         {[1, 2, 3].map(renderStar)}
