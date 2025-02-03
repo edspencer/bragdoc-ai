@@ -16,6 +16,7 @@ type CustomTags =
   | 'description'
   | 'status'
   | 'title'
+  | 'doctitle'
   | 'today'
   | 'user-instructions'
   | 'id'
