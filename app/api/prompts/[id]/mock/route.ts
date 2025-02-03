@@ -16,8 +16,9 @@ import {
   repository,
   commits,
 } from '@/lib/ai/prompts/evals/data/user';
+
+import { chatHistory, expectedAchievements as examples } from '@/lib/ai/prompts/evals/data/extract-achievements';
 import { existingAchievements } from '@/lib/ai/prompts/evals/data/weekly-document-achievements';
-import { chatHistory } from '@/lib/ai/prompts/evals/data/extract-achievements';
 
 // This is a Server Route, so no "use client" here
 export async function GET(
@@ -36,7 +37,8 @@ export async function GET(
         message: 'Hello',
         chatHistory,
         projects,
-        companies
+        companies,
+        examples
       }
 
       prompt = await renderExtractAchievements(input);

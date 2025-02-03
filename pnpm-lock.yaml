@@ -5485,7 +5485,7 @@ packages:
     resolution: {integrity: sha512-Lf+9+2r+Tdp5wXDXC4PcIBjTDtq4UKjCPMQhKIuzpJNW0b96kVqSwW0bT7FhRSfmAiFYgP+SCRvdrDozfh0U5w==}
 
   mdx-prompt@file:../mdx-prompt/mdx-prompt-0.2.0.tgz:
-    resolution: {integrity: sha512-ZZD18nFqvsx2KtPy80xapBZU37Cvh9ez6g3RWmqdK+oi4U2CW3mnYndN9q2jiXBdbE7XRMxDTGt4CJJTqp8BOQ==, tarball: file:../mdx-prompt/mdx-prompt-0.2.0.tgz}
+    resolution: {integrity: sha512-pwhCIdkUy/LnM2/KNCzZJcTjLbpzlX3CXBg7gBkZtkraT2kg6MTVAUXpzFT+vxK2P2soFt0XRFispls2MOxjVA==, tarball: file:../mdx-prompt/mdx-prompt-0.2.0.tgz}
     version: 0.2.0
     peerDependencies:
       react: '>=18'

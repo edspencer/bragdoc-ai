@@ -1,45 +1,15 @@
-import { Code } from 'bright';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-
+import Link from 'next/link';
+import { AppPage } from '@/components/shared/app-page';
 import { PageHeader } from '@/components/shared/page-header';
-
-Code.theme = 'github-light';
-
-import {
-  companies,
-  projects,
-  user,
-  repository,
-  commits,
-} from '@/lib/ai/prompts/evals/data/user';
-
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { PrettyPrompt } from './PrettyPrompt';
 
-import path from 'node:path';
-import * as fs from 'node:fs';
-import { AppPage } from '@/components/shared/app-page';
-import Link from 'next/link';
-
-const mdxFilePath = path.resolve(
-  './lib/ai/prompts/extract-commit-achievements.mdx'
-);
-
 export default async function PromptPage() {
-  const prompt = fs.readFileSync(mdxFilePath, 'utf-8');
-
-  const data = {
-    user,
-    repository,
-    projects,
-    commits,
-    companies,
-  };
-
   const description = (
     <>
       Previews of the various{' '}
       <Link
-        className="decoration-dashed underline hover:decoration-solid"
+        className="decoration-dotted underline hover:decoration-solid"
         target="_blank"
         href="https://github.com/edspencer/mdx-prompt"
       >
@@ -55,8 +25,9 @@ export default async function PromptPage() {
         defaultValue="extract-achievements"
         className="w-full flex flex-col items-center gap-4 content-evenly"
       >
-        <div className="flex gap-12 container">
+        <div className="flex gap-4 container items-center">
           <PageHeader title="MDX Prompt Previews" description={description} />
+          <h2 className="flex-1 font-semibold text-right">Prompt:</h2>
           <TabsList>
             <TabsTrigger value="extract-achievements">
               Extract Achievements

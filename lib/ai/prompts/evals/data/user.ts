@@ -47,10 +47,10 @@ export const project1 = {
 }
 
 export const project2 = {
-  name: 'Project Y',
-  description: 'Description of Project Y',
-  startDate: new Date('2023-01-01'),
-  endDate: new Date('2023-06-30'),
+  name: 'mdx-prompt',
+  description: 'Composable LLM prompts with JSX and MDX',
+  startDate: new Date('2024-01-05'),
+  endDate: null,
   id: uuidv4(),
   companyId: company.id,
   status: 'active',
