@@ -99,7 +99,7 @@ const allMessages = [
       {
         state: 'result',
         toolCallId: 'call_3wKLG25K0JCs7pT6dUG7tAPf',
-        toolName: 'saveAchievements',
+        toolName: 'extractAchievements',
         args: {},
         result: {
           id: '1685d049-490d-4fd5-bc8a-75a78e65cd4a',

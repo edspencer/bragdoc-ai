@@ -23,8 +23,8 @@ import {
   createAchievement,
   getCompaniesByUserId,
 } from '@/lib/db/queries';
-import {getProjectsByUserId} from '@/lib/db/projects/queries';
-import type { Suggestion, User, } from '@/lib/db/schema';
+import { getProjectsByUserId } from '@/lib/db/projects/queries';
+import type { Suggestion, User } from '@/lib/db/schema';
 import {
   generateUUID,
   getMostRecentUserMessage,
@@ -39,7 +39,7 @@ import { renderCompany, renderProject } from '@/lib/ai/renderers';
 export const maxDuration = 60;
 
 type AllowedTools =
-  | 'saveAchievements'
+  | 'extractAchievements'
   | 'createDocument'
   | 'updateDocument'
   | 'requestSuggestions'
@@ -52,7 +52,7 @@ const blocksTools: AllowedTools[] = [
 ];
 
 const weatherTools: AllowedTools[] = ['getWeather'];
-const achievementTools: AllowedTools[] = ['saveAchievements'];
+const achievementTools: AllowedTools[] = ['extractAchievements'];
 
 const allTools: AllowedTools[] = [
   ...blocksTools,
@@ -133,9 +133,9 @@ ${companies.map(renderCompany).join('\n')}
     maxSteps: 10,
     experimental_activeTools: allTools,
     tools: {
-      saveAchievements: {
+      extractAchievements: {
         description:
-          'Saves detected achievements to the database. Takes no parameters. Only call once.',
+          "Extracts achievements from the user's message. Takes no parameters. Only call once.",
         parameters: z.object({}),
         execute: async () => {
           const message = userMessage.content as string;
@@ -156,7 +156,7 @@ ${companies.map(renderCompany).join('\n')}
             const achievementsStream = streamFetchRenderExecute({
               chatHistory: messages,
               message,
-              user: session.user as User
+              user: session.user as User,
             });
 
             const savedAchievements = [];
@@ -227,7 +227,7 @@ ${companies.map(renderCompany).join('\n')}
         }),
         execute: async ({ latitude, longitude }) => {
           const response = await fetch(
-            `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current=temperature_2m&hourly=temperature_2m&daily=sunrise,sunset&timezone=auto`,
+            `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current=temperature_2m&hourly=temperature_2m&daily=sunrise,sunset&timezone=auto`
           );
 
           const weatherData = await response.json();
@@ -244,8 +244,16 @@ ${companies.map(renderCompany).join('\n')}
             .min(1)
             .max(720)
             .describe('The number of days ago to load Achievements from'),
-          projectId: z.string().optional().describe('The ID of the project that the user is talking about'),
-          companyId: z.string().optional().describe('The ID of the company that the user is talking about (use the project\'s company if not specified and the project has a companyId)'),
+          projectId: z
+            .string()
+            .optional()
+            .describe('The ID of the project that the user is talking about'),
+          companyId: z
+            .string()
+            .optional()
+            .describe(
+              "The ID of the company that the user is talking about (use the project's company if not specified and the project has a companyId)"
+            ),
         }),
         execute: async ({ title, days, projectId, companyId }) => {
           const id = generateUUID();
@@ -272,8 +280,8 @@ ${companies.map(renderCompany).join('\n')}
             companyId: companyId ?? undefined,
             title,
             days,
-            chatHistory: messages
-          })
+            chatHistory: messages,
+          });
 
           for await (const delta of fullStream) {
             const { type } = delta;
@@ -483,7 +491,7 @@ ${companies.map(renderCompany).join('\n')}
                   content: message.content,
                   createdAt: new Date(),
                 };
-              },
+              }
             ),
           });
         } catch (error) {
