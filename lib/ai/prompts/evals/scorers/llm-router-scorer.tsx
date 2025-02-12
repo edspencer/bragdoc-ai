@@ -77,9 +77,6 @@ function EvaluateRouterPrompt({
 }
 
 export async function RouterScorer(args: any): Promise<Score> {
-  console.log('scorer ');
-  console.log(JSON.stringify(args, null, 2));
-
   const prompt = await renderMDX(
     <EvaluateRouterPrompt
       userInstructions={args.input.userInstructions}
@@ -90,8 +87,6 @@ export async function RouterScorer(args: any): Promise<Score> {
       message={args.input.message}
     />
   );
-
-  console.log('prompt ', prompt);
 
   return LLMClassifierFromSpec('RouterScorer', {
     prompt,

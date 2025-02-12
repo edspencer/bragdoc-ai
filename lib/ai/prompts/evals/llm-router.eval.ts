@@ -16,39 +16,21 @@ const callRouter = async (
     data: input.data,
     streamTextOptions: {
       onStepFinish: (event) => {
-        console.log('onStepFinish');
-        console.log(JSON.stringify(event, null, 2));
-        console.log(event.toolCalls);
         toolCalls = event.toolCalls;
       },
 
       onFinish: (event) => {
-        console.log('onFinish');
-        console.log(JSON.stringify(event, null, 2));
-        console.log(event.toolCalls);
         toolCalls = event.toolCalls;
       },
     },
-    createDocumentToolExecute: async ({
-      title,
-      days,
-      projectId,
-      companyId,
-    }) => {
-      console.log('boo');
-      console.log({ title, days, projectId, companyId });
-
+    createDocumentToolExecute: async () => {
       throw Error('Intentionally throwing to halt execution');
     },
     extractAchievementsToolExecute: async () => {
-      console.log('extractAchievementsToolExecute');
-
       throw Error('Intentionally throwing to halt execution');
     },
   });
   let docText = '';
-
-  console.log('done');
 
   for await (const delta of fullStream) {
     const { type } = delta;
@@ -59,12 +41,6 @@ const callRouter = async (
       docText += textDelta;
     }
   }
-
-  console.log('docText');
-  console.log(docText);
-
-  console.log('toolCalls');
-  console.log(toolCalls);
 
   return {
     finishReason: await finishReason,
