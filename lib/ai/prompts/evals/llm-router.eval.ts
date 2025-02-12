@@ -29,6 +29,9 @@ const callRouter = async (
     extractAchievementsToolExecute: async () => {
       throw Error('Intentionally throwing to halt execution');
     },
+    updateDocumentToolExecute: async () => {
+      throw Error('Intentionally throwing to halt execution');
+    },
   });
   let docText = '';
 
@@ -182,6 +185,95 @@ export const experimentData: Experiment[] = [
         {
           toolName: 'extractAchievements',
           args: {},
+          type: 'tool-call',
+          toolCallId: '123',
+        },
+      ],
+    },
+  },
+
+  //tests that updateDocument is called properly
+  {
+    input: {
+      data: {
+        user: user as User,
+        chatHistory: [
+          {
+            role: 'user',
+            content:
+              'Write a report of all the stuff I did on Bragdoc over the last 3 months',
+          },
+          {
+            role: 'assistant',
+            content: JSON.stringify(
+              [
+                {
+                  type: 'text',
+                  text: '',
+                },
+                {
+                  type: 'tool-call',
+                  toolCallId: 'call_4rrSuLQ5CoH6bhXw8vB3yx6N',
+                  toolName: 'createDocument',
+                  args: {
+                    title: 'Bragdoc Work Report',
+                    days: 90,
+                    projectId: '0b0c4b53-b299-4f70-9e9a-8f16a508974a',
+                  },
+                },
+              ],
+              null,
+              2
+            ),
+          },
+          {
+            role: 'tool',
+            content: JSON.stringify(
+              [
+                {
+                  type: 'tool-result',
+                  toolCallId: 'call_4rrSuLQ5CoH6bhXw8vB3yx6N',
+                  toolName: 'createDocument',
+                  result: {
+                    id: 'document-12345',
+                    title: 'Bragdoc Work Report',
+                    content:
+                      'A document was created and is now visible to the user.',
+                  },
+                },
+              ],
+              null,
+              2
+            ),
+          },
+          {
+            role: 'assistant',
+            content: JSON.stringify(
+              [
+                {
+                  type: 'text',
+                  text: "I've created the report for all the work you did on Bragdoc over the last 3 months. You can now view it! If you need any changes or additional information, just let me know.",
+                },
+              ],
+              null,
+              2
+            ),
+          },
+        ],
+        message: 'Can you remove the Payment and Integration bit?',
+        companies: [company],
+        projects: [projectX, projectBragdoc],
+      },
+    },
+    expected: {
+      finishReason: 'tool-calls',
+      toolCalls: [
+        {
+          toolName: 'updateDocument',
+          args: {
+            id: 'document-12345',
+            description: `Remove the Payment and Integration section`,
+          },
           type: 'tool-call',
           toolCallId: '123',
         },

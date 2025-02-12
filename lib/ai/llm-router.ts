@@ -71,6 +71,9 @@ export type LlmRouterRenderExecuteProps = {
   createDocumentToolExecute?: (
     props: CreateDocumentExecuteProps
   ) => Promise<CreateDocumentExecuteReturn>;
+  updateDocumentToolExecute?: (
+    props: { id: string; description: string } & CreateDocumentExecuteProps
+  ) => Promise<CreateDocumentExecuteReturn>;
   extractAchievementsToolExecute?: () => Promise<any>;
 };
 
@@ -97,8 +100,11 @@ export function execute({
   data,
   onEvent,
   createDocumentToolExecute,
+  updateDocumentToolExecute,
   extractAchievementsToolExecute,
 }: LlmRouterExecuteProps) {
+  const eventCallback = data.onEvent || onEvent;
+
   //the default execute function for createDocument
   const createDocumentExecuteDefault = async ({
     title,
@@ -106,22 +112,22 @@ export function execute({
     projectId,
     companyId,
   }: CreateDocumentExecuteProps) => {
-    const { user, chatHistory, message, onEvent } = data;
+    const { user, chatHistory, message } = data;
 
     const id = generateUUID();
     let draftText = '';
 
-    onEvent?.({
+    eventCallback?.({
       type: 'id',
       content: id,
     });
 
-    onEvent?.({
+    eventCallback?.({
       type: 'title',
       content: title,
     });
 
-    onEvent?.({
+    eventCallback?.({
       type: 'clear',
       content: '',
     });
@@ -141,14 +147,14 @@ export function execute({
       if (type === 'text-delta') {
         const { textDelta } = delta;
         draftText += textDelta;
-        onEvent?.({
+        eventCallback?.({
           type: 'text-delta',
           content: textDelta,
         });
       }
     }
 
-    onEvent?.({
+    eventCallback?.({
       type: 'finish',
       content: '',
     });
@@ -166,6 +172,83 @@ export function execute({
       id,
       title,
       content: 'A document was created and is now visible to the user.',
+    };
+  };
+
+  const updateDocumentExecuteDefault = async ({
+    id,
+    description,
+  }: {
+    id: string;
+    description: string;
+  }) => {
+    const document = await getDocumentById({ id });
+    const { user, onEvent } = data;
+
+    if (!document) {
+      return {
+        error: 'Document not found',
+      };
+    }
+
+    const { content: currentContent } = document;
+    let draftText = '';
+
+    eventCallback?.({
+      type: 'clear',
+      content: document.title,
+    });
+
+    const { fullStream } = streamText({
+      model: documentWritingModel,
+      system:
+        'You are a helpful writing assistant. Based on the description, please update the piece of writing.',
+      experimental_providerMetadata: {
+        openai: {
+          prediction: {
+            type: 'content',
+            content: currentContent,
+          },
+        },
+      },
+      messages: [
+        {
+          role: 'user',
+          content: description,
+        },
+        { role: 'user', content: currentContent! },
+      ],
+    });
+
+    for await (const delta of fullStream) {
+      const { type } = delta;
+
+      if (type === 'text-delta') {
+        const { textDelta } = delta;
+
+        draftText += textDelta;
+        eventCallback?.({
+          type: 'text-delta',
+          content: textDelta,
+        });
+      }
+    }
+
+    eventCallback?.({ type: 'finish', content: '' });
+
+    if (user.id) {
+      await saveDocument({
+        id,
+        title: document.title,
+        content: draftText,
+        userId: user.id,
+      });
+    }
+
+    return {
+      id,
+      title: document.title,
+      content: 'The document has been updated successfully.',
     };
   };
 
@@ -194,7 +277,7 @@ export function execute({
 
       const savedAchievements = [];
 
-      onEvent?.({
+      eventCallback?.({
         type: 'status',
         content: 'Analyzing your achievements...',
       });
@@ -220,7 +303,7 @@ export function execute({
           console.log('Saved achievement:', savedAchievement.id);
           savedAchievements.push(savedAchievement);
 
-          onEvent?.({
+          eventCallback?.({
             type: 'achievement',
             content: savedAchievement.title,
           });
@@ -232,7 +315,7 @@ export function execute({
 
       console.log('Finished processing all achievements');
 
-      onEvent?.({
+      eventCallback?.({
         type: 'complete',
         content: `Successfully processed ${savedAchievements.length} achievement${savedAchievements.length === 1 ? '' : 's'}.`,
       });
@@ -244,7 +327,7 @@ export function execute({
       };
     } catch (error) {
       console.error('Error in achievement extraction:', error);
-      onEvent?.({
+      eventCallback?.({
         type: 'error',
         content: 'Failed to process achievements.',
       });
@@ -298,76 +381,7 @@ export function execute({
             .string()
             .describe('The description of changes that need to be made'),
         }),
-        execute: async ({ id, description }) => {
-          const document = await getDocumentById({ id });
-          const { user, onEvent } = data;
-
-          if (!document) {
-            return {
-              error: 'Document not found',
-            };
-          }
-
-          const { content: currentContent } = document;
-          let draftText = '';
-
-          onEvent?.({
-            type: 'clear',
-            content: document.title,
-          });
-
-          const { fullStream } = streamText({
-            model: documentWritingModel,
-            system:
-              'You are a helpful writing assistant. Based on the description, please update the piece of writing.',
-            experimental_providerMetadata: {
-              openai: {
-                prediction: {
-                  type: 'content',
-                  content: currentContent,
-                },
-              },
-            },
-            messages: [
-              {
-                role: 'user',
-                content: description,
-              },
-              { role: 'user', content: currentContent },
-            ],
-          });
-
-          for await (const delta of fullStream) {
-            const { type } = delta;
-
-            if (type === 'text-delta') {
-              const { textDelta } = delta;
-
-              draftText += textDelta;
-              onEvent?.({
-                type: 'text-delta',
-                content: textDelta,
-              });
-            }
-          }
-
-          onEvent?.({ type: 'finish', content: '' });
-
-          if (user.id) {
-            await saveDocument({
-              id,
-              title: document.title,
-              content: draftText,
-              userId: user.id,
-            });
-          }
-
-          return {
-            id,
-            title: document.title,
-            content: 'The document has been updated successfully.',
-          };
-        },
+        execute: updateDocumentToolExecute || updateDocumentExecuteDefault,
       },
       requestSuggestions: {
         description: 'Request suggestions for a document',
@@ -415,7 +429,7 @@ export function execute({
               isResolved: false,
             };
 
-            onEvent?.({
+            eventCallback?.({
               type: 'suggestion',
               content: suggestion,
             });
