@@ -191,7 +191,7 @@ export const experimentData: Experiment[] = [
 ];
 
 // Create the evaluation
-Eval('weekly-document-generation', {
+Eval('llm-router', {
   data: experimentData,
   task: callRouter,
   scores: [RouterScorer],
@@ -199,7 +199,7 @@ Eval('weekly-document-generation', {
   metadata: {
     model: 'gpt-4',
     description:
-      'Evaluating achievement extraction with company and project context',
+      'Evaluating how well the LLM Router dispatches to the correct tool',
     owner: 'ed',
   },
 });
