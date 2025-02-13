@@ -5,10 +5,9 @@ import {
   getCompaniesByUserId,
   getDocumentById,
   saveDocument,
-  saveSuggestions,
 } from '../db/queries';
-import type { User, Company, Project, Suggestion } from '../db/schema';
-import { type JSONValue, streamObject, streamText } from 'ai';
+import type { User, Company, Project } from '../db/schema';
+import { type JSONValue, streamText } from 'ai';
 import { documentWritingModel, routerModel } from '.';
 
 import path from 'node:path';
@@ -35,6 +34,12 @@ export type LlmRouterPromptProps = LlmRouterFetchProps & {
   projects: Project[];
 };
 
+/**
+ * Fetches the necessary data for the LLM router prompt.
+ *
+ * @param {LlmRouterFetchProps} props - The properties including user, chat history, and message.
+ * @returns {Promise<LlmRouterPromptProps>} The fetched data including user details, companies, projects, chat history, message, and event callback.
+ */
 export async function fetch(
   props: LlmRouterFetchProps
 ): Promise<LlmRouterPromptProps> {
@@ -55,6 +60,12 @@ export async function fetch(
   };
 }
 
+/**
+ * Renders the LLM router prompt using the provided data.
+ *
+ * @param {LlmRouterPromptProps} data - The data including user details, companies, projects, chat history, message, and event callback.
+ * @returns {Promise<string>} The rendered prompt.
+ */
 export async function render(data: LlmRouterPromptProps) {
   return await renderMDXPromptFile({
     filePath: promptPath,
@@ -68,13 +79,17 @@ export type LlmRouterRenderExecuteProps = {
   data: LlmRouterPromptProps;
   onEvent?: (item: JSONValue) => void;
 
-  createDocumentToolExecute?: (
+  tools?: Tools;
+};
+
+export type Tools = {
+  createDocument?: (
     props: CreateDocumentExecuteProps
   ) => Promise<CreateDocumentExecuteReturn>;
-  updateDocumentToolExecute?: (
+  updateDocument?: (
     props: { id: string; description: string } & CreateDocumentExecuteProps
   ) => Promise<CreateDocumentExecuteReturn>;
-  extractAchievementsToolExecute?: () => Promise<any>;
+  extractAchievements?: () => Promise<any>;
 };
 
 export type LlmRouterExecuteProps = LlmRouterRenderExecuteProps & {
@@ -94,19 +109,23 @@ export interface CreateDocumentExecuteReturn {
   content: string;
 }
 
+/**
+ * Executes the LLM router with the provided prompt and data.
+ *
+ * @param {LlmRouterExecuteProps} props - The properties including prompt, stream text options, data, event callback, and tool execute functions.
+ * @returns {Promise<JSONValue>} The result of the execution.
+ */
 export function execute({
   prompt,
   streamTextOptions,
   data,
   onEvent,
-  createDocumentToolExecute,
-  updateDocumentToolExecute,
-  extractAchievementsToolExecute,
+  tools,
 }: LlmRouterExecuteProps) {
   const eventCallback = data.onEvent || onEvent;
 
-  //the default execute function for createDocument
-  const createDocumentExecuteDefault = async ({
+  //the default execute function for the createDocument tool
+  const createDocument = async ({
     title,
     days,
     projectId,
@@ -175,7 +194,8 @@ export function execute({
     };
   };
 
-  const updateDocumentExecuteDefault = async ({
+  //the default execute function for the updateDocument tool
+  const updateDocument = async ({
     id,
     description,
   }: {
@@ -252,8 +272,8 @@ export function execute({
     };
   };
 
-  //the default execute function for extractAchievements
-  const extractAchievementsExecuteDefault = async () => {
+  //the default execute function for the extractAchievements tool
+  const extractAchievements = async () => {
     const { user, chatHistory, message } = data;
 
     console.log('Starting achievement extraction for message:', message);
@@ -340,14 +360,12 @@ export function execute({
     maxSteps: 10,
     ...streamTextOptions,
     model: routerModel,
-
     tools: {
       extractAchievements: {
         description:
           'Extract achievements from the chat to be saved to the database',
         parameters: z.object({}),
-        execute:
-          extractAchievementsToolExecute || extractAchievementsExecuteDefault,
+        execute: tools?.extractAchievements || extractAchievements,
       },
 
       createDocument: {
@@ -371,7 +389,7 @@ export function execute({
               "The ID of the company that the user is talking about (use the project's company if not specified and the project has a companyId)"
             ),
         }),
-        execute: createDocumentToolExecute || createDocumentExecuteDefault,
+        execute: tools?.createDocument || createDocument,
       },
       updateDocument: {
         description: 'Update a document with the given description',
@@ -381,86 +399,18 @@ export function execute({
             .string()
             .describe('The description of changes that need to be made'),
         }),
-        execute: updateDocumentToolExecute || updateDocumentExecuteDefault,
-      },
-      requestSuggestions: {
-        description: 'Request suggestions for a document',
-        parameters: z.object({
-          documentId: z
-            .string()
-            .describe('The ID of the document to request edits'),
-        }),
-        execute: async ({ documentId }) => {
-          const document = await getDocumentById({ id: documentId });
-          const { user, onEvent } = data;
-
-          if (!document || !document.content) {
-            return {
-              error: 'Document not found',
-            };
-          }
-
-          const suggestions: Array<
-            Omit<Suggestion, 'userId' | 'createdAt' | 'documentCreatedAt'>
-          > = [];
-
-          const { elementStream } = streamObject({
-            model: documentWritingModel,
-            system:
-              'You are a help writing assistant. Given a piece of writing, please offer suggestions to improve the piece of writing and describe the change. It is very important for the edits to contain full sentences instead of just words. Max 5 suggestions.',
-            prompt: document.content,
-            output: 'array',
-            schema: z.object({
-              originalSentence: z.string().describe('The original sentence'),
-              suggestedSentence: z.string().describe('The suggested sentence'),
-              description: z
-                .string()
-                .describe('The description of the suggestion'),
-            }),
-          });
-
-          for await (const element of elementStream) {
-            const suggestion = {
-              originalText: element.originalSentence,
-              suggestedText: element.suggestedSentence,
-              description: element.description,
-              id: generateUUID(),
-              documentId: documentId,
-              isResolved: false,
-            };
-
-            eventCallback?.({
-              type: 'suggestion',
-              content: suggestion,
-            });
-
-            suggestions.push(suggestion);
-          }
-
-          if (user.id) {
-            const userId = user.id;
-
-            await saveSuggestions({
-              suggestions: suggestions.map((suggestion) => ({
-                ...suggestion,
-                userId,
-                createdAt: new Date(),
-                documentCreatedAt: document.createdAt,
-              })),
-            });
-          }
-
-          return {
-            id: documentId,
-            title: document.title,
-            message: 'Suggestions have been added to the document',
-          };
-        },
+        execute: tools?.updateDocument || updateDocument,
       },
     },
   });
 }
 
+/**
+ * Renders and executes the LLM router with the provided data.
+ *
+ * @param {LlmRouterRenderExecuteProps} props - The properties including stream text options, data, event callback, and tool execute functions.
+ * @returns {Promise<JSONValue>} The result of the execution.
+ */
 export async function renderExecute(props: LlmRouterRenderExecuteProps) {
   const prompt = await render(props.data);
 
@@ -476,6 +426,12 @@ export interface LlmRouterFetchExecuteProps {
   streamTextOptions?: Partial<Parameters<typeof streamText>[0]>;
 }
 
+/**
+ * Fetches, renders, and executes the LLM router with the provided input.
+ *
+ * @param {LlmRouterFetchExecuteProps} props - The properties including input, event callback, and stream text options.
+ * @returns {Promise<JSONValue>} The result of the execution.
+ */
 export async function streamFetchRenderExecute({
   input,
   onEvent,

@@ -23,14 +23,16 @@ const callRouter = async (
         toolCalls = event.toolCalls;
       },
     },
-    createDocumentToolExecute: async () => {
-      throw Error('Intentionally throwing to halt execution');
-    },
-    extractAchievementsToolExecute: async () => {
-      throw Error('Intentionally throwing to halt execution');
-    },
-    updateDocumentToolExecute: async () => {
-      throw Error('Intentionally throwing to halt execution');
+    tools: {
+      createDocument: async () => {
+        throw Error('Intentionally throwing to halt execution');
+      },
+      extractAchievements: async () => {
+        throw Error('Intentionally throwing to halt execution');
+      },
+      updateDocument: async () => {
+        throw Error('Intentionally throwing to halt execution');
+      },
     },
   });
   let docText = '';
