@@ -41,3 +41,5 @@ export const chatModel = gpt4oModel;
 export const findExistingProjectModel = gpt4oMiniModel;
 
 export const documentWritingModel = gpt4oModel;
+
+export const routerModel = gpt4oMiniModel

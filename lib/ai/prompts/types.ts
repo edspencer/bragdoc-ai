@@ -76,8 +76,8 @@ export interface GenerateDocumentFetcherProps {
   title: string;
   days: number;
   user: User;
-  projectId: string;
-  companyId: string;
+  projectId?: string;
+  companyId?: string;
   chatHistory: Message[]
 }
 
