@@ -2,8 +2,8 @@ import type { NextRequest } from 'next/server';
 import {
   verifyUnsubscribeToken,
   unsubscribeUser,
-} from '@/lib/email/unsubscribe';
-import type { EmailType } from '@/lib/email/types';
+} from '@bragdoc/email';
+import type { EmailType } from '@bragdoc/email';
 
 export async function GET(req: NextRequest) {
   try {

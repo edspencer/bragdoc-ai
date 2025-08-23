@@ -3,7 +3,7 @@
 import { z } from 'zod';
 
 import { createUser, getUser } from '@/lib/db/queries';
-import { sendWelcomeEmail } from '@/lib/email/sendEmail';
+import { sendWelcomeEmail } from '@/lib/email/sendWelcomeEmail';
 
 import { signIn } from './auth';
 

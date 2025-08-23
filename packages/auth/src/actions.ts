@@ -2,8 +2,8 @@
 
 import { z } from 'zod';
 
-import { createUser, getUser } from '@/lib/db/queries';
-import { sendWelcomeEmail } from '@/lib/email/sendEmail';
+import { createUser, getUser } from '@bragdoc/database/queries';
+import { sendWelcomeEmail } from '@bragdoc/email';
 
 import { signIn } from './auth';
 

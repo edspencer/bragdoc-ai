@@ -1,5 +1,5 @@
 import type { NextRequest } from 'next/server';
-import { renderWelcomeEmail } from '@/lib/email/sendEmail';
+import { renderWelcomeEmail } from '@bragdoc/email';
 
 export async function GET(req: NextRequest) {
   const searchParams = req.nextUrl.searchParams;
@@ -8,6 +8,7 @@ export async function GET(req: NextRequest) {
   const html = await renderWelcomeEmail({
     username,
     loginUrl: 'https://bragdoc.ai/login',
+    unsubscribeUrl: 'https://bragdoc.ai/unsubscribed?preview=true',
   });
 
   return new Response(html, {

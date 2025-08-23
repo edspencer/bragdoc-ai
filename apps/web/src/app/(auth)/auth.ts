@@ -20,7 +20,7 @@ import {
   type UserLevel,
   type RenewalPeriod,
 } from '@/lib/db/schema';
-import { sendWelcomeEmail } from '@/lib/email/sendEmail';
+import { sendWelcomeEmail } from '@/lib/email/sendWelcomeEmail';
 
 declare module 'next-auth' {
   interface User {
