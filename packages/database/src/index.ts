@@ -21,3 +21,48 @@ if (!dbUrl) {
 
 export const connection = postgres(dbUrl);
 export const db = drizzle(connection);
+
+// Re-export all schema types and tables
+export * from './schema';
+
+// Re-export query functions (excluding duplicate types)
+export {
+  getUser,
+  getUserById,
+  createUser,
+  saveChat,
+  deleteChatById,
+  getChatsByUserId,
+  getChatById,
+  saveMessages,
+  getMessagesByChatId,
+  voteMessage,
+  getVotesByChatId,
+  saveDocument,
+  getDocumentsById,
+  getDocumentById,
+  getDocumentByShareToken,
+  updateDocument,
+  deleteDocumentsByIdAfterTimestamp,
+  saveSuggestions,
+  getSuggestionsByDocumentId,
+  getMessageById,
+  deleteMessagesByChatIdAfterTimestamp,
+  updateChatVisiblityById,
+  createUserMessage,
+  createAchievement,
+  getAchievementsByUserId,
+  generatePeriodSummary,
+  getAchievements,
+  updateAchievement,
+  deleteAchievement,
+  validateCLIToken,
+  getCompaniesByUserId,
+  getCompanyById,
+  createCompany,
+  updateCompany,
+  deleteCompany
+} from './queries';
+
+// Re-export project queries
+export { getProjectsByUserId, createProject, updateProject, deleteProject, ensureProject } from './projects/queries';

@@ -1,12 +1,12 @@
 import * as React from 'react';
-import { cn } from '@/lib/utils';
+import { cn } from './utils';
 import { Star } from 'lucide-react';
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
-} from '@/components/ui/tooltip';
+} from './tooltip';
 
 const impactLabels: Record<number, string> = {
   1: 'Low Impact',

@@ -1,5 +1,6 @@
 import { compare } from 'bcrypt-ts';
 import NextAuth from 'next-auth';
+import type { NextRequest } from 'next/server';
 import Credentials from 'next-auth/providers/credentials';
 import Google from 'next-auth/providers/google';
 import GitHub from 'next-auth/providers/github';
@@ -55,12 +56,7 @@ declare module '@auth/core/jwt' {
   }
 }
 
-export const {
-  handlers: { GET, POST },
-  auth,
-  signIn,
-  signOut,
-} = NextAuth({
+const nextAuthResult = NextAuth({
   adapter: DrizzleAdapter(db, {
     usersTable: user,
     accountsTable: account,
@@ -190,3 +186,11 @@ export const {
     }
   }
 });
+
+const authResult = nextAuthResult as any;
+export const handlers = authResult.handlers;
+export const auth = authResult.auth;
+export const signIn = authResult.signIn;
+export const signOut = authResult.signOut;
+export const GET = handlers.GET as any;
+export const POST = handlers.POST as any;

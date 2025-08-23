@@ -4,38 +4,70 @@ import Posts from '@/lib/blog/Posts';
 const SITE = 'https://www.bragdoc.ai';
 
 export default function sitemap(): MetadataRoute.Sitemap {
-  const publishedPosts = new Posts().publishedPosts;
+  try {
+    const publishedPosts = new Posts().publishedPosts;
 
-  const postUrls = publishedPosts.map(post => ({
-    url: post.link as string,
-    lastModified: toW3CDateForFlorida(post.date),
-    changeFrequency: 'monthly',
-  }));
+    const postUrls: MetadataRoute.Sitemap = publishedPosts.map(post => ({
+      url: post.link as string,
+      lastModified: toW3CDateForFlorida(post.date),
+      changeFrequency: 'monthly',
+    }));
 
-  const pageUrls = [
-    {
-      url: `${SITE}/what`,
-      lastModified: toW3CDateForFlorida(publishedPosts[0].date),
-      changeFrequency: 'monthly',
-    },
-    {
-      url: `${SITE}/why`,
-      lastModified: toW3CDateForFlorida(publishedPosts[0].date),
-      changeFrequency: 'monthly',
-    },
-    {
-      url: `${SITE}/how`,
-      lastModified: toW3CDateForFlorida(publishedPosts[0].date),
-      changeFrequency: 'monthly',
-    },
-    {
-      url: `${SITE}/blog`,
-      lastModified: toW3CDateForFlorida(publishedPosts[0].date),
-      changeFrequency: 'weekly',
-    },
-  ];
+    const defaultDate = new Date().toISOString();
+    const fallbackDate = publishedPosts.length > 0 ? publishedPosts[0].date : defaultDate;
 
-  return postUrls.concat(pageUrls) as MetadataRoute.Sitemap;
+    const pageUrls: MetadataRoute.Sitemap = [
+      {
+        url: `${SITE}/what`,
+        lastModified: toW3CDateForFlorida(fallbackDate),
+        changeFrequency: 'monthly',
+      },
+      {
+        url: `${SITE}/why`,
+        lastModified: toW3CDateForFlorida(fallbackDate),
+        changeFrequency: 'monthly',
+      },
+      {
+        url: `${SITE}/how`,
+        lastModified: toW3CDateForFlorida(fallbackDate),
+        changeFrequency: 'monthly',
+      },
+      {
+        url: `${SITE}/blog`,
+        lastModified: toW3CDateForFlorida(fallbackDate),
+        changeFrequency: 'weekly',
+      },
+    ];
+
+    return [...postUrls, ...pageUrls];
+  } catch (error) {
+    // Fallback if posts directory doesn't exist
+    console.warn('Posts directory not found, using fallback sitemap');
+    const defaultDate = new Date().toISOString();
+    
+    return [
+      {
+        url: `${SITE}/what`,
+        lastModified: toW3CDateForFlorida(defaultDate),
+        changeFrequency: 'monthly',
+      },
+      {
+        url: `${SITE}/why`,
+        lastModified: toW3CDateForFlorida(defaultDate),
+        changeFrequency: 'monthly',
+      },
+      {
+        url: `${SITE}/how`,
+        lastModified: toW3CDateForFlorida(defaultDate),
+        changeFrequency: 'monthly',
+      },
+      {
+        url: `${SITE}/blog`,
+        lastModified: toW3CDateForFlorida(defaultDate),
+        changeFrequency: 'weekly',
+      },
+    ];
+  }
 }
 
 function toW3CDateForFlorida(dateString: string) {

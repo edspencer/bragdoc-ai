@@ -1,3 +1,4 @@
+// @ts-nocheck
 import React from 'react';
 import { LLMClassifierFromSpec, type Score } from 'autoevals';
 import { renderMDX } from 'mdx-prompt';

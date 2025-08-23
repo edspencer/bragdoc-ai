@@ -11,8 +11,8 @@ import {
   lte,
   sql,
 } from 'drizzle-orm';
-import { db as defaultDb } from '@/lib/db';
-import type { UpdateAchievementRequest } from '@/lib/types/achievement';
+import { db as defaultDb } from './index';
+import type { UpdateAchievementRequest } from './types/achievement';
 
 import {
   user,

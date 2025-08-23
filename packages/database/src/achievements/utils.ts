@@ -1,7 +1,7 @@
-import { db } from '@/lib/db';
-import { userMessage, achievement } from '@/lib/db/schema';
+import { db } from '../index';
+import { userMessage, achievement } from '../schema';
 import { eq, and, notExists, isNull } from 'drizzle-orm';
-import type { CreateAchievementRequest } from '@/lib/types/achievement';
+import type { CreateAchievementRequest } from '../types/achievement';
 
 /**
  * Creates a system user message for manually created achievements

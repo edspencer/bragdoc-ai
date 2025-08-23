@@ -28,7 +28,7 @@ export const sendWelcomeEmail = async ({
   try {
     // For now, use a placeholder unsubscribe URL - this can be enhanced later
     const unsubscribeUrl = `${process.env.NEXTAUTH_URL}/unsubscribed?placeholder=true`;
-    const html = render(WelcomeEmail({ username, loginUrl, unsubscribeUrl }));
+    const html = await render(WelcomeEmail({ username, loginUrl, unsubscribeUrl }));
 
     const result = await client.messages.create(MAILGUN_DOMAIN, {
       from: FROM_EMAIL,

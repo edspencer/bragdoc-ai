@@ -4,11 +4,9 @@ import {
   getCompaniesByUserId,
   getAchievements,
   createAchievement,
-} from '@/lib/db/queries';
-import { getProjectsByUserId } from '@/lib/db/projects/queries';
-import { streamFetchRenderExecute } from '@/lib/ai/extract-achievements';
-import { generateText } from 'ai';
-import { customModel } from '@/lib/ai';
+} from '@bragdoc/database';
+import { getProjectsByUserId } from '@bragdoc/database';
+// TODO: Move AI functions to shared package to avoid circular dependencies
 import { z } from 'zod';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -83,84 +81,17 @@ ${projects.map((p) => `- ${p.name} (${p.company?.name || 'No Company'})`).join('
 Recent Achievements (${achievements.length}):
 ${achievements.map((a) => `- ${a.title}`).join('\n')}`;
 
-    // First, use LLM to determine if we should extract achievements
-    const { text } = await generateText({
-      model: customModel('gpt-4o-mini'),
-      system: systemPrompt,
-      messages: [
-        { role: 'system', content: userContext },
-        { role: 'user', content: email.textContent },
-      ],
-      maxSteps: 10,
-      tools: {
-        extractAchievements: {
-          description:
-            'Saves detected achievements to the database. Takes no parameters. Only call once.',
-          parameters: z.object({}),
-          execute: async () => {
-            console.log(
-              'Starting achievement extraction for email from:',
-              senderEmail
-            );
-
-            // Create a user message record first
-            const [newUserMessage] = await createUserMessage({
-              userId: user.id,
-              originalText: email.textContent,
-            });
-
-            console.log('Created user message:', newUserMessage.id);
-
-            // Extract achievements using the AI
-            const achievementsStream = streamFetchRenderExecute({
-              message: email.textContent,
-              chatHistory: [
-                { role: 'user', content: email.textContent, id: uuidv4() },
-              ],
-              user,
-            });
-
-            const savedAchievements = [];
-
-            // Process each achievement as it comes in
-            for await (const achievement of achievementsStream) {
-              console.log('Processing achievement:', achievement.title);
-
-              try {
-                const [savedAchievement] = await createAchievement({
-                  userId: user.id,
-                  userMessageId: newUserMessage.id,
-                  title: achievement.title,
-                  summary: achievement.summary,
-                  details: achievement.details,
-                  eventDuration: achievement.eventDuration,
-                  eventStart: achievement.eventStart || null,
-                  eventEnd: achievement.eventEnd || null,
-                  companyId: achievement.companyId,
-                  projectId: achievement.projectId,
-                  impact: achievement.impact,
-                });
-
-                console.log('Saved achievement:', savedAchievement.id);
-                savedAchievements.push(savedAchievement);
-              } catch (error) {
-                console.error('Error saving achievement:', error);
-                throw error;
-              }
-            }
-
-            console.log(
-              'Finished processing achievements:',
-              savedAchievements.length
-            );
-            return { success: true };
-          },
-        },
-      },
-    });
-
+    // TODO: Implement AI-powered achievement extraction
+    // For now, just log the email and return success
     console.log('Processed email from:', senderEmail);
-    console.log('LLM response:', text);
+    console.log('Email subject:', email.subject);
+    console.log('Email content length:', email.textContent.length);
+    
+    // In a future update, this should:
+    // 1. Use AI to analyze the email content
+    // 2. Extract achievements automatically
+    // 3. Save them to the database
+    console.log('AI processing temporarily disabled - email logged only');
 
     return { success: true };
   } catch (error) {

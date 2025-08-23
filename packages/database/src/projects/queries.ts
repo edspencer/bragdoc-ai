@@ -1,6 +1,6 @@
 import { and, desc, eq, isNull } from 'drizzle-orm';
-import { db } from '@/lib/db';
-import { project, company, type Project, type Company } from '@/lib/db/schema';
+import { db } from '../index';
+import { project, company, type Project, type Company } from '../schema';
 import { v4 as uuidv4 } from 'uuid';
 import { fuzzyFindProject } from './fuzzyFind';
 

@@ -5,7 +5,7 @@ import { Input } from "./input";
 import { Button } from "./button";
 import { Calendar } from "./calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "./popover";
-import { cn } from "@/lib/utils";
+import { cn } from "./utils";
 
 export interface DatePickerProps {
   value?: Date | null;

@@ -151,7 +151,7 @@ describe('CommitCache', () => {
         createMockDirent('test-repo1.txt'),
         createMockDirent('test-repo2.txt'),
       ];
-      mockFs.readdir.mockResolvedValueOnce(files);
+      (mockFs.readdir as jest.Mock).mockResolvedValueOnce(files);
 
       await cache.clear();
 
@@ -191,7 +191,7 @@ describe('CommitCache', () => {
         createMockDirent('repo1.txt'),
         createMockDirent('repo2.txt'),
       ];
-      mockFs.readdir.mockResolvedValueOnce(files);
+      (mockFs.readdir as jest.Mock).mockResolvedValueOnce(files);
 
       const repos = {
         'repo1': ['hash1', 'hash2'],
