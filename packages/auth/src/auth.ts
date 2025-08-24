@@ -109,7 +109,7 @@ const nextAuthResult = NextAuth({
       async authorize({ email, password }: any) {
         const users = await getUser(email);
         if (users.length === 0) return null;
-        const passwordsMatch = await compare(password, users[0].password!);
+        const passwordsMatch = await compare(password, users[0]!.password!);
         if (!passwordsMatch) return null;
         return {
           ...users[0],
@@ -175,7 +175,7 @@ const nextAuthResult = NextAuth({
           sendWelcomeEmail({
             to: email,
             userId: user.id!,
-            username: email.split('@')[0],
+            username: email.split('@')[0]!,
             loginUrl: `${process.env.NEXTAUTH_URL}/login`,
           });
         } catch (error) {
@@ -183,8 +183,8 @@ const nextAuthResult = NextAuth({
           // Don't fail registration if email fails
         }
       }
-    }
-  }
+    },
+  },
 });
 
 const authResult = nextAuthResult as any;

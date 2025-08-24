@@ -110,6 +110,9 @@ importers:
       '@react-email/render':
         specifier: ^1.0.3
         version: 1.0.4(react-dom@19.0.0(react@19.0.0))(react@19.0.0)
+      '@repo/typescript-config':
+        specifier: workspace:*
+        version: link:packages/typescript-config
       '@stripe/stripe-js':
         specifier: ^5.4.0
         version: 5.6.0
@@ -722,6 +725,9 @@ importers:
         specifier: ^3.23.8
         version: 3.24.1
     devDependencies:
+      '@repo/typescript-config':
+        specifier: workspace:*
+        version: link:../../packages/typescript-config
       '@types/node':
         specifier: ^22.8.6
         version: 22.13.0
@@ -918,6 +924,8 @@ importers:
       typescript:
         specifier: ^5.6.3
         version: 5.7.3
+
+  packages/typescript-config: {}
 
   packages/ui:
     dependencies:

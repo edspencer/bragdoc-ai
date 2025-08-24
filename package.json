@@ -38,6 +38,7 @@
     "db:up": "drizzle-kit up"
   },
   "dependencies": {
+    "@repo/typescript-config": "workspace:*",
     "@ai-sdk/deepseek": "^0.1.2",
     "@ai-sdk/google": "^1.0.12",
     "@ai-sdk/openai": "1.0.6",

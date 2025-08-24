@@ -20,7 +20,7 @@ export interface IncomingEmail {
 // Extract email from "From" header (e.g. "John Doe <john@example.com>" -> "john@example.com")
 function extractEmailFromSender(from: string): string {
   const match = from.match(/<(.+?)>/);
-  if (match) return match[1];
+  if (match && match[1]) return match[1];
   return from;
 }
 

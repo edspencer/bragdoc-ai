@@ -7,10 +7,7 @@ const withMDXConfig = withMDX({
 
 const baseConfig: NextConfig = {
   pageExtensions: ['ts', 'tsx', 'js', 'jsx', 'md', 'mdx'],
-  experimental: {
-    // ppr: true,
-    serverComponentsExternalPackages: ['puppeteer-core', '@sparticuz/chromium'],
-  },
+  serverExternalPackages: ['puppeteer-core', '@sparticuz/chromium'],
   images: {
     remotePatterns: [
       {
@@ -32,7 +29,7 @@ const baseConfig: NextConfig = {
         source: '/api/auth/:path*',
         destination: '/api/auth/:path*',
       },
-    ]
+    ];
   },
 };
 

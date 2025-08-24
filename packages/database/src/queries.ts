@@ -39,7 +39,7 @@ import {
 
 export async function getUser(
   email: string,
-  dbInstance = defaultDb,
+  dbInstance = defaultDb
 ): Promise<Array<User>> {
   try {
     return await dbInstance.select().from(user).where(eq(user.email, email));
@@ -51,7 +51,7 @@ export async function getUser(
 
 export async function getUserById(
   id: string,
-  dbInstance = defaultDb,
+  dbInstance = defaultDb
 ): Promise<User | null> {
   try {
     const users = await dbInstance.select().from(user).where(eq(user.id, id));
@@ -65,7 +65,7 @@ export async function getUserById(
 export async function createUser(
   email: string,
   password: string,
-  dbInstance = defaultDb,
+  dbInstance = defaultDb
 ): Promise<User> {
   const salt = genSaltSync(10);
   const hash = hashSync(password, salt);
@@ -75,7 +75,7 @@ export async function createUser(
       .insert(user)
       .values({ email, password: hash })
       .returning();
-    return newUser;
+    return newUser!;
   } catch (error) {
     console.error('Error in createUser:', error);
     throw error;
@@ -84,7 +84,7 @@ export async function createUser(
 
 export async function saveChat(
   { id, userId, title }: { id: string; userId: string; title: string },
-  dbInstance = defaultDb,
+  dbInstance = defaultDb
 ) {
   try {
     return await dbInstance.insert(chat).values({
@@ -101,7 +101,7 @@ export async function saveChat(
 
 export async function deleteChatById(
   { id }: { id: string },
-  dbInstance = defaultDb,
+  dbInstance = defaultDb
 ) {
   try {
     await dbInstance.delete(vote).where(eq(vote.chatId, id));
@@ -116,7 +116,7 @@ export async function deleteChatById(
 
 export async function getChatsByUserId(
   { id }: { id: string },
-  dbInstance = defaultDb,
+  dbInstance = defaultDb
 ) {
   try {
     return await dbInstance
@@ -132,7 +132,7 @@ export async function getChatsByUserId(
 
 export async function getChatById(
   { id }: { id: string },
-  dbInstance = defaultDb,
+  dbInstance = defaultDb
 ) {
   try {
     const [selectedChat] = await dbInstance
@@ -148,7 +148,7 @@ export async function getChatById(
 
 export async function saveMessages(
   { messages }: { messages: Array<Message> },
-  dbInstance = defaultDb,
+  dbInstance = defaultDb
 ) {
   try {
     return await dbInstance.insert(message).values(messages);
@@ -160,7 +160,7 @@ export async function saveMessages(
 
 export async function getMessagesByChatId(
   { id }: { id: string },
-  dbInstance = defaultDb,
+  dbInstance = defaultDb
 ) {
   try {
     return await dbInstance
@@ -184,7 +184,7 @@ export async function voteMessage(
     messageId: string;
     type: 'up' | 'down';
   },
-  dbInstance = defaultDb,
+  dbInstance = defaultDb
 ) {
   try {
     const [existingVote] = await dbInstance
@@ -211,7 +211,7 @@ export async function voteMessage(
 
 export async function getVotesByChatId(
   { id }: { id: string },
-  dbInstance = defaultDb,
+  dbInstance = defaultDb
 ) {
   try {
     return await dbInstance.select().from(vote).where(eq(vote.chatId, id));
@@ -237,7 +237,7 @@ export async function saveDocument(
     type?: string;
     companyId?: string;
   },
-  dbInstance = defaultDb,
+  dbInstance = defaultDb
 ) {
   try {
     return await dbInstance.insert(document).values({
@@ -258,7 +258,7 @@ export async function saveDocument(
 
 export async function getDocumentsById(
   { id }: { id: string },
-  dbInstance = defaultDb,
+  dbInstance = defaultDb
 ) {
   try {
     return await dbInstance
@@ -274,7 +274,7 @@ export async function getDocumentsById(
 
 export async function getDocumentById(
   { id }: { id: string },
-  dbInstance = defaultDb,
+  dbInstance = defaultDb
 ) {
   try {
     const [selectedDocument] = await dbInstance
@@ -292,7 +292,7 @@ export async function getDocumentById(
 
 export async function getDocumentByShareToken(
   { token }: { token: string },
-  dbInstance = defaultDb,
+  dbInstance = defaultDb
 ) {
   try {
     const [selectedDocument] = await dbInstance
@@ -324,7 +324,7 @@ export async function updateDocument(
       shareToken?: string | null;
     };
   },
-  dbInstance = defaultDb,
+  dbInstance = defaultDb
 ) {
   try {
     const [updated] = await dbInstance
@@ -345,7 +345,7 @@ export async function updateDocument(
 
 export async function deleteDocumentsByIdAfterTimestamp(
   { id, timestamp }: { id: string; timestamp: Date },
-  dbInstance = defaultDb,
+  dbInstance = defaultDb
 ) {
   try {
     await dbInstance
@@ -353,8 +353,8 @@ export async function deleteDocumentsByIdAfterTimestamp(
       .where(
         and(
           eq(suggestion.documentId, id),
-          gt(suggestion.documentCreatedAt, timestamp),
-        ),
+          gt(suggestion.documentCreatedAt, timestamp)
+        )
       );
 
     return await dbInstance
@@ -368,7 +368,7 @@ export async function deleteDocumentsByIdAfterTimestamp(
 
 export async function saveSuggestions(
   { suggestions }: { suggestions: Array<Suggestion> },
-  dbInstance = defaultDb,
+  dbInstance = defaultDb
 ) {
   try {
     return await dbInstance.insert(suggestion).values(suggestions);
@@ -380,7 +380,7 @@ export async function saveSuggestions(
 
 export async function getSuggestionsByDocumentId(
   { documentId }: { documentId: string },
-  dbInstance = defaultDb,
+  dbInstance = defaultDb
 ) {
   try {
     return await dbInstance
@@ -395,7 +395,7 @@ export async function getSuggestionsByDocumentId(
 
 export async function getMessageById(
   { id }: { id: string },
-  dbInstance = defaultDb,
+  dbInstance = defaultDb
 ) {
   try {
     return await dbInstance.select().from(message).where(eq(message.id, id));
@@ -407,13 +407,13 @@ export async function getMessageById(
 
 export async function deleteMessagesByChatIdAfterTimestamp(
   { chatId, timestamp }: { chatId: string; timestamp: Date },
-  dbInstance = defaultDb,
+  dbInstance = defaultDb
 ) {
   try {
     return await dbInstance
       .delete(message)
       .where(
-        and(eq(message.chatId, chatId), gte(message.createdAt, timestamp)),
+        and(eq(message.chatId, chatId), gte(message.createdAt, timestamp))
       );
   } catch (error) {
     console.error('Error in deleteMessagesByChatIdAfterTimestamp:', error);
@@ -429,7 +429,7 @@ export async function updateChatVisiblityById(
     chatId: string;
     visibility: 'private' | 'public';
   },
-  dbInstance = defaultDb,
+  dbInstance = defaultDb
 ) {
   try {
     return await dbInstance
@@ -450,7 +450,7 @@ export async function createUserMessage(
     userId: string;
     originalText: string;
   },
-  dbInstance = defaultDb,
+  dbInstance = defaultDb
 ): Promise<UserMessageType[]> {
   try {
     return await dbInstance
@@ -468,7 +468,7 @@ export async function createUserMessage(
 
 export async function createAchievement(
   data: Omit<typeof achievement.$inferInsert, 'id' | 'createdAt' | 'updatedAt'>,
-  dbInstance = defaultDb,
+  dbInstance = defaultDb
 ): Promise<Achievement[]> {
   try {
     return await dbInstance.insert(achievement).values(data).returning();
@@ -488,7 +488,7 @@ export async function getAchievementsByUserId(
     limit?: number;
     offset?: number;
   },
-  dbInstance = defaultDb,
+  dbInstance = defaultDb
 ): Promise<Achievement[]> {
   try {
     return await dbInstance
@@ -514,7 +514,7 @@ export async function generatePeriodSummary(
     startDate: Date;
     endDate: Date;
   },
-  dbInstance = defaultDb,
+  dbInstance = defaultDb
 ): Promise<Achievement[]> {
   try {
     return await dbInstance
@@ -524,8 +524,8 @@ export async function generatePeriodSummary(
         and(
           eq(achievement.userId, userId),
           gte(achievement.eventStart, startDate),
-          lte(achievement.eventEnd, endDate),
-        ),
+          lte(achievement.eventEnd, endDate)
+        )
       )
       .orderBy(asc(achievement.eventStart));
   } catch (error) {
@@ -629,14 +629,14 @@ export async function getAchievements({
       .offset(offset)
       .orderBy(desc(achievement.eventStart), desc(achievement.createdAt));
 
-    const [{ count }] = await db
+    const countResult = await db
       .select({ count: sql<number>`count(*)` })
       .from(achievement)
       .where(and(...conditions));
 
     return {
       achievements,
-      total: Number(count),
+      total: Number(countResult[0]?.count ?? 0),
     };
   } catch (error) {
     console.error('Error in getAchievements:', error);
@@ -659,8 +659,8 @@ export async function updateAchievement({
     // Filter out undefined values and ensure impact is properly set
     const updateData = Object.fromEntries(
       Object.entries({
-        ...data
-      }).filter(([_, value]) => value !== undefined),
+        ...data,
+      }).filter(([_, value]) => value !== undefined)
     );
 
     // Ensure impact is treated as a number
@@ -704,7 +704,7 @@ export async function deleteAchievement({
  */
 export async function validateCLIToken(
   token: string,
-  dbInstance = defaultDb,
+  dbInstance = defaultDb
 ): Promise<{ userId: string; isValid: boolean }> {
   try {
     const [cliTokenRecord] = await dbInstance
@@ -798,10 +798,14 @@ export async function getCompanyById({
 
 export async function createCompany(
   input: CreateCompanyInput,
-  db = defaultDb,
+  db = defaultDb
 ): Promise<Company> {
   try {
-    return (await db.insert(company).values(input).returning())[0];
+    const result = await db.insert(company).values(input).returning();
+    if (!result[0]) {
+      throw new Error('Failed to create company');
+    }
+    return result[0];
   } catch (error) {
     console.error('Error in createCompany:', error);
     throw error;
