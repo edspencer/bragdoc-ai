@@ -15,14 +15,14 @@
     "db:studio": "drizzle-kit studio"
   },
   "dependencies": {
-    "@bragdoc/ui": "workspace:*",
-    "@bragdoc/database": "workspace:*",
-    "@bragdoc/auth": "workspace:*",
-    "@bragdoc/email": "workspace:*",
-    "@bragdoc/config": "workspace:*",
     "@ai-sdk/deepseek": "^0.1.2",
     "@ai-sdk/google": "^1.0.12",
     "@ai-sdk/openai": "1.0.6",
+    "@bragdoc/auth": "workspace:*",
+    "@bragdoc/config": "workspace:*",
+    "@bragdoc/database": "workspace:*",
+    "@bragdoc/email": "workspace:*",
+    "@bragdoc/ui": "workspace:*",
     "@headlessui/react": "^2.2.0",
     "@hookform/resolvers": "^3.9.1",
     "@mdx-js/loader": "^3.1.0",
@@ -86,6 +86,9 @@
     "@types/node": "^22.8.6",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "autoprefixer": "^10.4.21",
+    "postcss": "^8",
+    "tailwindcss": "^3.4.1",
     "typescript": "^5.6.3"
   }
 }

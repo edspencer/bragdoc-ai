@@ -1,1 +1,0 @@
-ALTER TABLE "Project" ADD COLUMN "repo_remote_url" varchar(256);

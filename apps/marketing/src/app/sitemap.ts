@@ -1,51 +1,52 @@
 import type { MetadataRoute } from 'next';
-import Posts from '@/lib/blog/Posts';
+import Posts from '../lib/blog/Posts';
 
 const SITE = 'https://www.bragdoc.ai';
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const publishedPosts = new Posts().publishedPosts;
+  const fallbackDate = publishedPosts[0]?.date || new Date().toISOString();
 
-  const postUrls = publishedPosts.map(post => ({
+  const postUrls: MetadataRoute.Sitemap = publishedPosts.map((post) => ({
     url: post.link as string,
     lastModified: toW3CDateForFlorida(post.date),
-    changeFrequency: 'monthly' as const,
+    changeFrequency: 'monthly',
   }));
 
-  const pageUrls = [
+  const pageUrls: MetadataRoute.Sitemap = [
     {
       url: `${SITE}`,
-      lastModified: toW3CDateForFlorida(publishedPosts[0]?.date || new Date().toISOString()),
-      changeFrequency: 'daily' as const,
+      lastModified: toW3CDateForFlorida(fallbackDate),
+      changeFrequency: 'daily',
     },
     {
       url: `${SITE}/what`,
-      lastModified: toW3CDateForFlorida(publishedPosts[0]?.date || new Date().toISOString()),
-      changeFrequency: 'monthly' as const,
+      lastModified: toW3CDateForFlorida(fallbackDate),
+      changeFrequency: 'monthly',
     },
     {
       url: `${SITE}/why`,
-      lastModified: toW3CDateForFlorida(publishedPosts[0]?.date || new Date().toISOString()),
-      changeFrequency: 'monthly' as const,
+      lastModified: toW3CDateForFlorida(fallbackDate),
+      changeFrequency: 'monthly',
     },
     {
       url: `${SITE}/how`,
-      lastModified: toW3CDateForFlorida(publishedPosts[0]?.date || new Date().toISOString()),
-      changeFrequency: 'monthly' as const,
+      lastModified: toW3CDateForFlorida(fallbackDate),
+      changeFrequency: 'monthly',
     },
     {
       url: `${SITE}/blog`,
-      lastModified: toW3CDateForFlorida(publishedPosts[0]?.date || new Date().toISOString()),
-      changeFrequency: 'weekly' as const,
+      lastModified: toW3CDateForFlorida(fallbackDate),
+      changeFrequency: 'weekly',
     },
     {
       url: `${SITE}/feed`,
-      lastModified: toW3CDateForFlorida(publishedPosts[0]?.date || new Date().toISOString()),
-      changeFrequency: 'daily' as const,
+      lastModified: toW3CDateForFlorida(fallbackDate),
+      changeFrequency: 'daily',
     },
   ];
 
-  return postUrls.concat(pageUrls) as MetadataRoute.Sitemap;
+  return [...postUrls, ...pageUrls];
 }
 
 function toW3CDateForFlorida(dateString: string) {
@@ -68,19 +69,21 @@ function toW3CDateForFlorida(dateString: string) {
   const parts = formatter.formatToParts(date);
 
   // Extract the parts
-  const year = parts.find(part => part.type === 'year')?.value;
-  const month = parts.find(part => part.type === 'month')?.value;
-  const day = parts.find(part => part.type === 'day')?.value;
-  const hour = parts.find(part => part.type === 'hour')?.value;
-  const minute = parts.find(part => part.type === 'minute')?.value;
-  const second = parts.find(part => part.type === 'second')?.value;
+  const year = parts.find((part) => part.type === 'year')?.value;
+  const month = parts.find((part) => part.type === 'month')?.value;
+  const day = parts.find((part) => part.type === 'day')?.value;
+  const hour = parts.find((part) => part.type === 'hour')?.value;
+  const minute = parts.find((part) => part.type === 'minute')?.value;
+  const second = parts.find((part) => part.type === 'second')?.value;
 
   // Get the timezone offset in hours and minutes
   const timezoneOffsetMinutes = -date.getTimezoneOffset();
   const offsetHours = Math.floor(Math.abs(timezoneOffsetMinutes) / 60)
     .toString()
     .padStart(2, '0');
-  const offsetMinutes = (Math.abs(timezoneOffsetMinutes) % 60).toString().padStart(2, '0');
+  const offsetMinutes = (Math.abs(timezoneOffsetMinutes) % 60)
+    .toString()
+    .padStart(2, '0');
   const sign = timezoneOffsetMinutes >= 0 ? '+' : '-';
 
   // Return the date in W3C datetime format

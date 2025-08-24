@@ -27,29 +27,34 @@ export type Post = {
   datetime?: string;
 };
 
-export const dirForExcerpt = (post: any) => path.join(process.cwd(), 'app', 'excerpts', String(post.year));
+export const dirForExcerpt = (post: any) => path.join(process.cwd(), 'src', 'app', 'excerpts', String(post.year));
 export const pathForExcerpt = (post: any) => path.join(dirForExcerpt(post), `${post.slug}.mdx`);
 export const hasExcerpt = (post: any) => fs.existsSync(pathForExcerpt(post));
 
 //returns an array of all .mdx files in a directory and its subdirectories
 function findMdxFiles(dir: string, files: string[] = []) {
-  const items = fs.readdirSync(dir);
+  try {
+    const items = fs.readdirSync(dir);
 
-  items.forEach(item => {
-    const fullPath = path.join(dir, item);
-    const stats = fs.statSync(fullPath);
+    items.forEach(item => {
+      const fullPath = path.join(dir, item);
+      const stats = fs.statSync(fullPath);
 
-    if (stats.isDirectory()) {
-      findMdxFiles(fullPath, files);
-    } else if (stats.isFile() && path.extname(fullPath) === '.mdx') {
-      files.push(fullPath);
-    }
-  });
+      if (stats.isDirectory()) {
+        findMdxFiles(fullPath, files);
+      } else if (stats.isFile() && path.extname(fullPath) === '.mdx') {
+        files.push(fullPath);
+      }
+    });
+  } catch (error) {
+    // Directory doesn't exist, return empty array
+    console.warn(`Directory ${dir} not found, returning empty posts array`);
+  }
 
   return files;
 }
 
-export const dirForPosts = path.join(process.cwd(), 'app', 'posts');
+export const dirForPosts = path.join(process.cwd(), 'src', 'app', 'posts');
 export const pathForPostFile = (post: any) => path.join(dirForPosts, String(post.year), `${post.slug}.mdx`);
 
 export default class Posts {
