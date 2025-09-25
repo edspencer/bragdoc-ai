@@ -7,7 +7,6 @@
       "@/email/*": ["../../packages/email/src/*"],
       "@/ui/*": ["../../packages/ui/src/*"],
       "@/database/*": ["../../packages/database/src/*"],
-      "@/auth/*": ["../../packages/auth/src/*"],
       "@/config/*": ["../../packages/config/src/*"]
     },
     "plugins": [
