@@ -31,92 +31,25 @@ import { GenerateDocumentDialog } from '@/components/generate-document-dialog';
 import { AppSidebar } from '@/components/app-sidebar';
 import { SiteHeader } from '@/components/site-header';
 import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar';
-import type { AchievementInsert, Achievement } from '@/lib/db/schema';
-
-// Mock data - in real app this would come from your database
-const mockProjects = [
-  { id: '1', name: 'E-commerce Platform', companyName: 'Acme Corp' },
-  { id: '2', name: 'Task Management App', companyName: 'TechStart Inc' },
-  { id: '3', name: 'Personal Portfolio', companyName: null },
-];
-
-const mockCompanies = [
-  { id: '1', name: 'Acme Corp' },
-  { id: '2', name: 'TechStart Inc' },
-  { id: '3', name: 'Innovation Labs' },
-];
-
-const mockAchievements: Achievement[] = [
-  {
-    id: '1',
-    title: 'Implemented new authentication system',
-    summary: 'Built secure OAuth integration with multi-factor authentication',
-    details:
-      'Designed and implemented a comprehensive authentication system using OAuth 2.0 with support for Google, GitHub, and email/password login. Added multi-factor authentication and session management.',
-    projectId: '1',
-    companyId: '1',
-    impact: 8,
-    eventStart: new Date('2024-01-15'),
-    eventEnd: new Date('2024-01-20'),
-    eventDuration: 'week' as const,
-    source: 'manual' as const,
-    createdAt: new Date('2024-01-15'),
-    updatedAt: new Date('2024-01-15'),
-    isArchived: false,
-    impactSource: 'llm' as const,
-    impactUpdatedAt: new Date('2024-01-15'),
-    userMessageId: '1',
-    userId: '1',
-  },
-  {
-    id: '2',
-    title: 'Led team of 5 developers on mobile app redesign',
-    summary:
-      'Coordinated cross-functional team to deliver new mobile experience',
-    details:
-      'Led a team of 5 developers through a complete mobile app redesign, improving user engagement by 40% and reducing bounce rate by 25%. Managed sprint planning, code reviews, and stakeholder communication.',
-    projectId: '2',
-    companyId: '2',
-    impact: 9,
-    eventStart: new Date('2024-01-10'),
-    eventEnd: new Date('2024-01-25'),
-    eventDuration: 'month' as const,
-    source: 'manual' as const,
-    createdAt: new Date('2024-01-12'),
-    updatedAt: new Date('2024-01-12'),
-    isArchived: false,
-    impactSource: 'llm' as const,
-    impactUpdatedAt: new Date('2024-01-12'),
-    userMessageId: '2',
-    userId: '2',
-  },
-  {
-    id: '3',
-    title: 'Reduced API response time by 40%',
-    summary: 'Optimized database queries and implemented caching',
-    details:
-      'Identified performance bottlenecks in the API layer and implemented Redis caching, optimized database queries, and added connection pooling. Reduced average response time from 500ms to 300ms.',
-    projectId: '1',
-    companyId: '1',
-    impact: 7,
-    eventStart: new Date('2024-01-08'),
-    eventEnd: new Date('2024-01-10'),
-    eventDuration: 'day' as const,
-    source: 'manual' as const,
-    createdAt: new Date('2024-01-10'),
-    updatedAt: new Date('2024-01-10'),
-    isArchived: false,
-    impactSource: 'llm' as const,
-    impactUpdatedAt: new Date('2024-01-10'),
-    userMessageId: '3',
-    userId: '3',
-  },
-];
+import { useCompanies } from '@/hooks/use-companies';
+import { useProjects } from '@/hooks/useProjects';
+import { useAchievementMutations } from '@/hooks/use-achievement-mutations';
+import { useAchievements } from '@/hooks/use-achievements';
+import type { CreateAchievementRequest } from '@/lib/types/achievement';
 
 export default function AchievementsPage() {
-  const [achievements, setAchievements] = React.useState(mockAchievements);
-  const [projects] = React.useState(mockProjects);
-  const [companies] = React.useState(mockCompanies);
+  // Data fetching hooks
+  const { companies, isLoading: isLoadingCompanies } = useCompanies();
+  const { projects, isLoading: isLoadingProjects } = useProjects();
+  const { createAchievement, updateAchievement } = useAchievementMutations();
+  const {
+    achievements,
+    isLoading: isLoadingAchievements,
+    mutate: mutateAchievements,
+  } = useAchievements();
+
+  console.log('achievements', achievements);
+  console.log('isLoadingAchievements', isLoadingAchievements);
 
   // Quick entry form state
   const [newAchievementText, setNewAchievementText] = React.useState('');
@@ -133,7 +66,7 @@ export default function AchievementsPage() {
   // Remember last selected project
   React.useEffect(() => {
     const lastProject = localStorage.getItem('lastSelectedProject');
-    if (lastProject && projects.find((p) => p.id === lastProject)) {
+    if (lastProject && projects?.find((p) => p.id === lastProject)) {
       setSelectedProjectId(lastProject);
     }
   }, [projects]);
@@ -166,7 +99,7 @@ export default function AchievementsPage() {
     );
   }
 
-  const handleQuickAdd = () => {
+  const handleQuickAdd = async () => {
     if (!newAchievementText.trim()) {
       toast.error('Please enter an achievement description');
       return;
@@ -175,54 +108,54 @@ export default function AchievementsPage() {
     const actualProjectId =
       selectedProjectId === 'none' ? null : selectedProjectId;
     const selectedProject = actualProjectId
-      ? projects.find((p) => p.id === actualProjectId)
+      ? projects?.find((p) => p.id === actualProjectId)
       : null;
-    const selectedCompany = selectedProject
-      ? companies.find((c) => c.name === selectedProject.companyName)
-      : null;
+    const selectedCompany = selectedProject?.company || null;
 
-    const newAchievement: Achievement = {
-      id: Math.random().toString(36).substr(2, 9),
+    const achievementData: CreateAchievementRequest = {
       title: newAchievementText.trim(),
       summary: null,
       details: null,
-      projectId: actualProjectId,
+      projectId: actualProjectId || null,
       companyId: selectedCompany?.id || null,
       impact: newAchievementImpact,
       eventStart: new Date(),
       eventEnd: null,
       eventDuration: 'day',
       source: 'manual',
-      createdAt: new Date(),
-      updatedAt: new Date(),
+      userMessageId: null,
       isArchived: false,
-      impactSource: 'llm',
+      impactSource: 'user',
       impactUpdatedAt: new Date(),
-      userMessageId: '1',
-      userId: '1',
     };
 
-    setAchievements((prev) => [newAchievement, ...prev]);
-    setNewAchievementText('');
-    setNewAchievementImpact(5);
+    try {
+      await createAchievement(achievementData);
+      setNewAchievementText('');
+      setNewAchievementImpact(5);
+      mutateAchievements(); // Refresh the achievements list
 
-    // Remember the selected project
-    if (actualProjectId) {
-      localStorage.setItem('lastSelectedProject', actualProjectId);
+      // Remember the selected project
+      if (actualProjectId) {
+        localStorage.setItem('lastSelectedProject', actualProjectId);
+      }
+    } catch (error) {
+      // Error toast is already handled in the hook
+      console.error('Failed to create achievement:', error);
     }
-
-    toast.success('Achievement added successfully');
   };
 
-  const handleImpactChange = (id: string, newImpact: number) => {
-    setAchievements((prev) =>
-      prev.map((achievement) =>
-        achievement.id === id
-          ? { ...achievement, impact: newImpact }
-          : achievement
-      )
-    );
-    toast.success('Impact rating updated');
+  const handleImpactChange = async (id: string, newImpact: number) => {
+    try {
+      await updateAchievement(id, {
+        impact: newImpact,
+        impactSource: 'user',
+        impactUpdatedAt: new Date(),
+      });
+      mutateAchievements();
+    } catch (error) {
+      console.error('Failed to update impact:', error);
+    }
   };
 
   const handleSelectionChange = (selectedIds: string[]) => {
@@ -289,7 +222,7 @@ export default function AchievementsPage() {
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="none">No project</SelectItem>
-                        {projects.map((project) => (
+                        {projects?.map((project) => (
                           <SelectItem key={project.id} value={project.id}>
                             {project.name}
                           </SelectItem>
@@ -321,8 +254,15 @@ export default function AchievementsPage() {
               {/* Achievements Table */}
               <AchievementsTable
                 achievements={achievements}
-                projects={projects}
-                companies={companies}
+                projects={(projects || []).map((p) => ({
+                  id: p.id,
+                  name: p.name,
+                  companyName: p.company?.name || null,
+                }))}
+                companies={(companies || []).map((c) => ({
+                  id: c.id,
+                  name: c.name,
+                }))}
                 onImpactChange={handleImpactChange}
                 onSelectionChange={handleSelectionChange}
                 selectedAchievements={selectedAchievements}

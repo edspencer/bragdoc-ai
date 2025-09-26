@@ -38,10 +38,10 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
-import type { Achievement } from '@/database/schema';
+import type { AchievementWithRelations } from '@/lib/types/achievement';
 
 interface AchievementsTableProps {
-  achievements: Achievement[];
+  achievements: AchievementWithRelations[];
   projects: Array<{ id: string; name: string; companyName: string | null }>;
   companies: Array<{ id: string; name: string }>;
   onImpactChange: (id: string, impact: number) => void;
@@ -122,14 +122,14 @@ export function AchievementsTable({
     // Project filter
     if (selectedProject !== 'all') {
       filtered = filtered.filter(
-        (achievement) => achievement.projectId === selectedProject
+        (achievement) => achievement.project?.id === selectedProject
       );
     }
 
     // Company filter
     if (selectedCompany !== 'all') {
       filtered = filtered.filter(
-        (achievement) => achievement.companyId === selectedCompany
+        (achievement) => achievement.company?.id === selectedCompany
       );
     }
 
@@ -332,10 +332,10 @@ export function AchievementsTable({
                     </div>
                   </TableCell>
                   <TableCell>
-                    {achievement.projectId ? (
+                    {achievement.project ? (
                       <div className="flex items-center gap-2">
                         <IconFolder className="size-4 text-muted-foreground" />
-                        <span className="text-sm">{achievement.projectId}</span>
+                        <span className="text-sm">{achievement.project.name}</span>
                       </div>
                     ) : (
                       <span className="text-sm text-muted-foreground">
@@ -344,10 +344,10 @@ export function AchievementsTable({
                     )}
                   </TableCell>
                   <TableCell>
-                    {achievement.companyId ? (
+                    {achievement.company ? (
                       <div className="flex items-center gap-2">
                         <IconBuilding className="size-4 text-muted-foreground" />
-                        <span className="text-sm">{achievement.companyId}</span>
+                        <span className="text-sm">{achievement.company.name}</span>
                       </div>
                     ) : (
                       <span className="text-sm text-muted-foreground">

@@ -68,12 +68,69 @@ export function useAchievements(options: UseAchievementsOptions = {}) {
     return params.toString();
   }, [page, limit, filters]);
 
+  const swrKey = `/api/achievements?${buildQueryString()}`;
+
+  const fetcher = async (url: string) => {
+    const res = await fetch(url);
+    if (!res.ok) {
+      throw new Error('Failed to fetch achievements');
+    }
+    const data = await res.json();
+
+    // Convert date strings to Date objects
+    if (data.achievements) {
+      data.achievements = data.achievements.map((achievement: any) => ({
+        ...achievement,
+        createdAt: new Date(achievement.createdAt),
+        updatedAt: new Date(achievement.updatedAt),
+        eventStart: achievement.eventStart
+          ? new Date(achievement.eventStart)
+          : null,
+        eventEnd: achievement.eventEnd ? new Date(achievement.eventEnd) : null,
+        impactUpdatedAt: achievement.impactUpdatedAt
+          ? new Date(achievement.impactUpdatedAt)
+          : null,
+        // Handle nested company dates
+        company: achievement.company
+          ? {
+              ...achievement.company,
+              startDate: new Date(achievement.company.startDate),
+              endDate: achievement.company.endDate
+                ? new Date(achievement.company.endDate)
+                : null,
+            }
+          : null,
+        // Handle nested project dates
+        project: achievement.project
+          ? {
+              ...achievement.project,
+              startDate: new Date(achievement.project.startDate),
+              endDate: achievement.project.endDate
+                ? new Date(achievement.project.endDate)
+                : null,
+              createdAt: new Date(achievement.project.createdAt),
+              updatedAt: new Date(achievement.project.updatedAt),
+            }
+          : null,
+        // Handle nested userMessage dates
+        userMessage: achievement.userMessage
+          ? {
+              ...achievement.userMessage,
+              createdAt: new Date(achievement.userMessage.createdAt),
+            }
+          : null,
+      }));
+    }
+
+    return data;
+  };
+
   const { data, error, isLoading, mutate } = useSWR<AchievementsResponse>(
-    `/api/achievements?${buildQueryString()}`,
-    null, // Use the default fetcher from SWR config
+    swrKey,
+    fetcher,
     {
       keepPreviousData: true,
-    },
+    }
   );
 
   const createAchievement = useCallback(
@@ -99,7 +156,7 @@ export function useAchievements(options: UseAchievementsOptions = {}) {
         throw error;
       }
     },
-    [mutate],
+    [mutate]
   );
 
   const updateAchievement = useCallback(
@@ -125,7 +182,7 @@ export function useAchievements(options: UseAchievementsOptions = {}) {
         throw error;
       }
     },
-    [mutate],
+    [mutate]
   );
 
   const deleteAchievement = useCallback(
@@ -146,7 +203,7 @@ export function useAchievements(options: UseAchievementsOptions = {}) {
         throw error;
       }
     },
-    [mutate],
+    [mutate]
   );
 
   return {
