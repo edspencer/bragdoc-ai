@@ -859,3 +859,155 @@ export async function deleteCompany({
     throw error;
   }
 }
+
+// Stats Functions
+export interface AchievementStats {
+  totalAchievements: number;
+  totalImpactPoints: number;
+  thisWeekImpact: number;
+  avgImpactPerAchievement: number;
+  weeklyGrowth: number;
+  monthlyGrowth: number;
+}
+
+export async function getAchievementStats({
+  userId,
+  db = defaultDb,
+}: {
+  userId: string;
+  db?: typeof defaultDb;
+}): Promise<AchievementStats> {
+  try {
+    // Get total achievements and total impact
+    const [totalStatsResult] = await db
+      .select({
+        totalAchievements: sql<number>`count(*)`,
+        totalImpact: sql<number>`coalesce(sum(${achievement.impact}), 0)`,
+      })
+      .from(achievement)
+      .where(and(eq(achievement.userId, userId), eq(achievement.isArchived, false)));
+
+    const totalAchievements = Number(totalStatsResult?.totalAchievements ?? 0);
+    const totalImpactPoints = Number(totalStatsResult?.totalImpact ?? 0);
+    const avgImpactPerAchievement = totalAchievements > 0 ? totalImpactPoints / totalAchievements : 0;
+
+    // Get this week's impact
+    const now = new Date();
+    const startOfThisWeek = new Date(now);
+    startOfThisWeek.setDate(now.getDate() - now.getDay()); // Sunday
+    startOfThisWeek.setHours(0, 0, 0, 0);
+
+    const [thisWeekResult] = await db
+      .select({
+        thisWeekImpact: sql<number>`coalesce(sum(${achievement.impact}), 0)`,
+      })
+      .from(achievement)
+      .where(
+        and(
+          eq(achievement.userId, userId),
+          eq(achievement.isArchived, false),
+          gte(achievement.eventStart, startOfThisWeek)
+        )
+      );
+
+    const thisWeekImpact = Number(thisWeekResult?.thisWeekImpact ?? 0);
+
+    // Get last week's impact for growth calculation
+    const startOfLastWeek = new Date(startOfThisWeek);
+    startOfLastWeek.setDate(startOfLastWeek.getDate() - 7);
+
+    const [lastWeekResult] = await db
+      .select({
+        lastWeekImpact: sql<number>`coalesce(sum(${achievement.impact}), 0)`,
+      })
+      .from(achievement)
+      .where(
+        and(
+          eq(achievement.userId, userId),
+          eq(achievement.isArchived, false),
+          gte(achievement.eventStart, startOfLastWeek),
+          lte(achievement.eventStart, startOfThisWeek)
+        )
+      );
+
+    const lastWeekImpact = Number(lastWeekResult?.lastWeekImpact ?? 0);
+    const weeklyGrowth = lastWeekImpact > 0 ? ((thisWeekImpact - lastWeekImpact) / lastWeekImpact) * 100 : 0;
+
+    // Get this month's impact
+    const startOfThisMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+
+    const [thisMonthResult] = await db
+      .select({
+        thisMonthImpact: sql<number>`coalesce(sum(${achievement.impact}), 0)`,
+      })
+      .from(achievement)
+      .where(
+        and(
+          eq(achievement.userId, userId),
+          eq(achievement.isArchived, false),
+          gte(achievement.eventStart, startOfThisMonth)
+        )
+      );
+
+    // Get last month's impact for growth calculation
+    const startOfLastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+    const endOfLastMonth = new Date(now.getFullYear(), now.getMonth(), 0);
+
+    const [lastMonthResult] = await db
+      .select({
+        lastMonthImpact: sql<number>`coalesce(sum(${achievement.impact}), 0)`,
+      })
+      .from(achievement)
+      .where(
+        and(
+          eq(achievement.userId, userId),
+          eq(achievement.isArchived, false),
+          gte(achievement.eventStart, startOfLastMonth),
+          lte(achievement.eventStart, endOfLastMonth)
+        )
+      );
+
+    const thisMonthImpact = Number(thisMonthResult?.thisMonthImpact ?? 0);
+    const lastMonthImpact = Number(lastMonthResult?.lastMonthImpact ?? 0);
+    const monthlyGrowth = lastMonthImpact > 0 ? ((thisMonthImpact - lastMonthImpact) / lastMonthImpact) * 100 : 0;
+
+    return {
+      totalAchievements,
+      totalImpactPoints,
+      thisWeekImpact,
+      avgImpactPerAchievement: Math.round(avgImpactPerAchievement * 10) / 10, // Round to 1 decimal
+      weeklyGrowth: Math.round(weeklyGrowth * 10) / 10, // Round to 1 decimal
+      monthlyGrowth: Math.round(monthlyGrowth * 10) / 10, // Round to 1 decimal
+    };
+  } catch (error) {
+    console.error('Error in getAchievementStats:', error);
+    throw error;
+  }
+}
+
+export async function getActiveProjectsCount({
+  userId,
+  db = defaultDb,
+}: {
+  userId: string;
+  db?: typeof defaultDb;
+}): Promise<number> {
+  try {
+    const [result] = await db
+      .select({
+        count: sql<number>`count(*)`,
+      })
+      .from(project)
+      .where(
+        and(
+          eq(project.userId, userId),
+          eq(project.status, 'active')
+        )
+      );
+
+    return Number(result?.count ?? 0);
+  } catch (error) {
+    console.error('Error in getActiveProjectsCount:', error);
+    throw error;
+  }
+}

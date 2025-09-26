@@ -61,8 +61,13 @@ export {
   getCompanyById,
   createCompany,
   updateCompany,
-  deleteCompany
+  deleteCompany,
+  getAchievementStats,
+  getActiveProjectsCount
 } from './queries';
 
 // Re-export project queries
 export { getProjectsByUserId, createProject, updateProject, deleteProject, ensureProject } from './projects/queries';
+
+// Re-export types
+export type { AchievementStats } from './queries';

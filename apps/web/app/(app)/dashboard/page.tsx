@@ -1,17 +1,11 @@
-'use client';
-
 import type React from 'react';
 import { AppSidebar } from '@/components/app-sidebar';
 import { AchievementStats } from '@/components/achievement-stats';
-import { WeeklyImpactChart } from '@/components/weekly-impact-chart';
-import { RecentAchievementsTable } from '@/components/recent-achievements-table';
-import { ActivityStream } from '@/components/dashboard/activity-stream';
+import { ClientDashboardContent } from '@/components/client-dashboard-content';
 import { SiteHeader } from '@/components/site-header';
 import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar';
-import { useAchievements } from '@/hooks/use-achievements';
 
-export default function Page() {
-  const { achievements } = useAchievements();
+export default async function Page() {
 
   return (
     <SidebarProvider
@@ -29,13 +23,7 @@ export default function Page() {
           <div className="@container/main flex flex-1 flex-col gap-2">
             <div className="flex flex-col gap-4 py-4 md:gap-6 md:py-6">
               <AchievementStats />
-              <div className="px-4 lg:px-6">
-                <WeeklyImpactChart achievements={achievements} />
-              </div>
-              <div className="grid grid-cols-1 gap-6 px-4 lg:grid-cols-2 lg:px-6">
-                <RecentAchievementsTable achievements={achievements} />
-                <ActivityStream achievements={achievements} />
-              </div>
+              <ClientDashboardContent />
             </div>
           </div>
         </div>

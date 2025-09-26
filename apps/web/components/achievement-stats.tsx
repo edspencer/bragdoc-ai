@@ -1,5 +1,6 @@
 import { IconTrendingUp, IconTarget, IconCalendar } from '@tabler/icons-react';
 import Link from 'next/link';
+import { auth } from 'app/(auth)/auth';
 
 import { Badge } from '@/components/ui/badge';
 import {
@@ -10,18 +11,27 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
+import { getAchievementStats, getActiveProjectsCount } from '@bragdoc/database';
 
-// Mock data - in real app this would come from your database
-const mockStats = {
-  totalAchievements: 47,
-  totalImpactPoints: 312,
-  thisWeekImpact: 28,
-  avgImpactPerAchievement: 6.6,
-  weeklyGrowth: 12.5,
-  monthlyGrowth: 8.3,
-};
+export async function AchievementStats() {
+  const session = await auth();
 
-export function AchievementStats() {
+  if (!session?.user?.id) {
+    return <div>Please log in to view stats</div>;
+  }
+
+  const userId = session.user.id;
+
+  // Fetch achievement stats and active projects count
+  const [achievementStats, activeProjectsCount] = await Promise.all([
+    getAchievementStats({ userId }),
+    getActiveProjectsCount({ userId }),
+  ]);
+
+  const displayStats = {
+    ...achievementStats,
+    activeProjectsCount,
+  };
   return (
     <div className="*:data-[slot=card]:from-primary/5 *:data-[slot=card]:to-card dark:*:data-[slot=card]:bg-card grid grid-cols-1 gap-4 px-4 *:data-[slot=card]:bg-gradient-to-t *:data-[slot=card]:shadow-xs lg:px-6 @xl/main:grid-cols-2 @5xl/main:grid-cols-4">
       <Link href="/achievements">
@@ -29,7 +39,7 @@ export function AchievementStats() {
           <CardHeader>
             <CardDescription>Total Achievements</CardDescription>
             <CardTitle className="text-2xl font-semibold tabular-nums @[250px]/card:text-3xl">
-              {mockStats.totalAchievements}
+              {displayStats.totalAchievements}
             </CardTitle>
             <CardAction>
               <Badge variant="outline">
@@ -53,11 +63,12 @@ export function AchievementStats() {
         <CardHeader>
           <CardDescription>Total Impact Points</CardDescription>
           <CardTitle className="text-2xl font-semibold tabular-nums @[250px]/card:text-3xl">
-            {mockStats.totalImpactPoints}
+            {displayStats.totalImpactPoints}
           </CardTitle>
           <CardAction>
             <Badge variant="outline">
-              <IconTrendingUp className="size-3" />+{mockStats.monthlyGrowth}%
+              <IconTrendingUp className="size-3" />
+              {displayStats.monthlyGrowth > 0 ? '+' : ''}{displayStats.monthlyGrowth}%
             </Badge>
           </CardAction>
         </CardHeader>
@@ -66,7 +77,7 @@ export function AchievementStats() {
             Growing impact this month <IconTrendingUp className="size-4" />
           </div>
           <div className="text-muted-foreground">
-            Average {mockStats.avgImpactPerAchievement} points per achievement
+            Average {displayStats.avgImpactPerAchievement} points per achievement
           </div>
         </CardFooter>
       </Card>
@@ -75,11 +86,12 @@ export function AchievementStats() {
         <CardHeader>
           <CardDescription>This Week&apos;s Impact</CardDescription>
           <CardTitle className="text-2xl font-semibold tabular-nums @[250px]/card:text-3xl">
-            {mockStats.thisWeekImpact}
+            {displayStats.thisWeekImpact}
           </CardTitle>
           <CardAction>
             <Badge variant="outline">
-              <IconTrendingUp className="size-3" />+{mockStats.weeklyGrowth}%
+              <IconTrendingUp className="size-3" />
+              {displayStats.weeklyGrowth > 0 ? '+' : ''}{displayStats.weeklyGrowth}%
             </Badge>
           </CardAction>
         </CardHeader>
@@ -96,7 +108,7 @@ export function AchievementStats() {
           <CardHeader>
             <CardDescription>Active Projects</CardDescription>
             <CardTitle className="text-2xl font-semibold tabular-nums @[250px]/card:text-3xl">
-              8
+              {displayStats.activeProjectsCount}
             </CardTitle>
             <CardAction>
               <Badge variant="outline">
@@ -107,7 +119,7 @@ export function AchievementStats() {
           </CardHeader>
           <CardFooter className="flex-col items-start gap-1.5 text-sm">
             <div className="line-clamp-1 flex gap-2 font-medium">
-              Across 3 companies <IconCalendar className="size-4" />
+              {displayStats.activeProjectsCount > 0 ? 'Currently active' : 'No active projects'} <IconCalendar className="size-4" />
             </div>
             <div className="text-muted-foreground">
               Click to manage projects

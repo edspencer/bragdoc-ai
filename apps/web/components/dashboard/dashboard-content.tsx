@@ -2,8 +2,8 @@
 
 import type { User } from 'next-auth';
 import { StatsGrid } from './stats-grid';
-import { WeeklyImpactChart } from './weekly-impact-chart';
-import { ActivityStream } from './activity-stream';
+// import { WeeklyImpactChart } from '../weekly-impact-chart';
+// import { ActivityStream } from './activity-stream';
 import { PageHeader } from 'components/shared/page-header';
 
 interface DashboardContentProps {
@@ -25,10 +25,12 @@ export function DashboardContent({ user }: DashboardContentProps) {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2">
-          <WeeklyImpactChart userId={userId} />
+          {/* TODO: WeeklyImpactChart needs achievements prop now */}
+          <div>Weekly Impact Chart placeholder</div>
         </div>
         <div className="lg:col-span-1">
-          <ActivityStream userId={userId} />
+          {/* TODO: ActivityStream needs achievements prop now */}
+          <div>Activity Stream placeholder</div>
         </div>
       </div>
     </div>
