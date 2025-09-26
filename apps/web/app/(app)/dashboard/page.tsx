@@ -5,6 +5,7 @@ import { AppSidebar } from '@/components/app-sidebar';
 import { AchievementStats } from '@/components/achievement-stats';
 import { WeeklyImpactChart } from '@/components/weekly-impact-chart';
 import { RecentAchievementsTable } from '@/components/recent-achievements-table';
+import { ActivityStream } from '@/components/dashboard/activity-stream';
 import { SiteHeader } from '@/components/site-header';
 import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar';
 import { useAchievements } from '@/hooks/use-achievements';
@@ -31,8 +32,9 @@ export default function Page() {
               <div className="px-4 lg:px-6">
                 <WeeklyImpactChart achievements={achievements} />
               </div>
-              <div className="px-4 lg:px-6">
-                <RecentAchievementsTable />
+              <div className="grid grid-cols-1 gap-6 px-4 lg:grid-cols-2 lg:px-6">
+                <RecentAchievementsTable achievements={achievements} />
+                <ActivityStream achievements={achievements} />
               </div>
             </div>
           </div>

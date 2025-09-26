@@ -27,95 +27,25 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
+import type { AchievementWithRelations } from '@/lib/types/achievement';
 
-// Mock achievement data - in real app this would come from your database
-const mockAchievements = [
-  {
-    id: 1,
-    title: 'Implemented new authentication system',
-    project: 'User Management Portal',
-    company: 'TechCorp Inc',
-    impactRating: 8,
-    dateAdded: new Date('2024-01-15'),
-    category: 'Technical',
-  },
-  {
-    id: 2,
-    title: 'Led team of 5 developers on mobile app redesign',
-    project: 'Mobile App v2.0',
-    company: 'TechCorp Inc',
-    impactRating: 9,
-    dateAdded: new Date('2024-01-12'),
-    category: 'Leadership',
-  },
-  {
-    id: 3,
-    title: 'Reduced API response time by 40%',
-    project: 'Performance Optimization',
-    company: 'StartupXYZ',
-    impactRating: 7,
-    dateAdded: new Date('2024-01-10'),
-    category: 'Technical',
-  },
-  {
-    id: 4,
-    title: 'Mentored 3 junior developers',
-    project: 'Team Development',
-    company: 'TechCorp Inc',
-    impactRating: 6,
-    dateAdded: new Date('2024-01-08'),
-    category: 'Mentoring',
-  },
-  {
-    id: 5,
-    title: 'Delivered presentation to 50+ stakeholders',
-    project: 'Q4 Strategy Review',
-    company: 'StartupXYZ',
-    impactRating: 8,
-    dateAdded: new Date('2024-01-05'),
-    category: 'Communication',
-  },
-];
-
-function StarRating({
-  rating,
-  onRatingChange,
-}: { rating: number; onRatingChange: (rating: number) => void }) {
-  return (
-    <div className="flex gap-1">
-      {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((star) => (
-        <Button
-          key={star}
-          variant="ghost"
-          size="icon"
-          className="size-4 p-0 hover:bg-transparent"
-          onClick={() => onRatingChange(star)}
-        >
-          {star <= rating ? (
-            <IconStarFilled className="size-3 fill-yellow-400 text-yellow-400" />
-          ) : (
-            <IconStar className="size-3 text-muted-foreground hover:text-yellow-400" />
-          )}
-        </Button>
-      ))}
-    </div>
-  );
+interface RecentAchievementsTableProps {
+  achievements: AchievementWithRelations[];
 }
 
-export function RecentAchievementsTable() {
-  const [achievements, setAchievements] = React.useState(mockAchievements);
 
-  const handleRatingChange = (id: number, newRating: number) => {
-    setAchievements((prev) =>
-      prev.map((achievement) =>
-        achievement.id === id
-          ? { ...achievement, impactRating: newRating }
-          : achievement,
-      ),
-    );
-    // In real app, this would make an API call to update the database
-    console.log(`[v0] Updated achievement ${id} rating to ${newRating}`);
-  };
+export function RecentAchievementsTable({
+  achievements,
+}: RecentAchievementsTableProps) {
+  // Get the 10 most recent achievements
+  const recentAchievements = React.useMemo(() => {
+    return [...achievements]
+      .sort(
+        (a, b) =>
+          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+      )
+      .slice(0, 10);
+  }, [achievements]);
 
   return (
     <Card>
@@ -134,11 +64,11 @@ export function RecentAchievementsTable() {
                 <TableHead>Project</TableHead>
                 <TableHead>Company</TableHead>
                 <TableHead>Impact Rating</TableHead>
-                <TableHead>Date Added</TableHead>
+                <TableHead>When</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {achievements.map((achievement) => (
+              {recentAchievements.map((achievement) => (
                 <TableRow key={achievement.id}>
                   <TableCell className="max-w-xs">
                     <div className="flex flex-col gap-1">
@@ -146,32 +76,51 @@ export function RecentAchievementsTable() {
                         {achievement.title}
                       </div>
                       <Badge variant="secondary" className="w-fit text-xs">
-                        {achievement.category}
+                        {achievement.source}
                       </Badge>
                     </div>
                   </TableCell>
                   <TableCell>
-                    <div className="flex items-center gap-2">
-                      <IconFolder className="size-4 text-muted-foreground" />
-                      <span className="text-sm">{achievement.project}</span>
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex items-center gap-2">
-                      <IconBuilding className="size-4 text-muted-foreground" />
-                      <span className="text-sm">{achievement.company}</span>
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex items-center gap-2">
-                      <StarRating
-                        rating={achievement.impactRating}
-                        onRatingChange={(rating) =>
-                          handleRatingChange(achievement.id, rating)
-                        }
-                      />
+                    {achievement.project ? (
+                      <div className="flex items-center gap-2">
+                        <IconFolder className="size-4 text-muted-foreground" />
+                        <span className="text-sm">
+                          {achievement.project.name}
+                        </span>
+                      </div>
+                    ) : (
                       <span className="text-sm text-muted-foreground">
-                        {achievement.impactRating}/10
+                        No project
+                      </span>
+                    )}
+                  </TableCell>
+                  <TableCell>
+                    {achievement.company ? (
+                      <div className="flex items-center gap-2">
+                        <IconBuilding className="size-4 text-muted-foreground" />
+                        <span className="text-sm">
+                          {achievement.company.name}
+                        </span>
+                      </div>
+                    ) : (
+                      <span className="text-sm text-muted-foreground">
+                        No company
+                      </span>
+                    )}
+                  </TableCell>
+                  <TableCell>
+                    <div className="flex items-center gap-1">
+                      {[...Array(10)].map((_, i) => (
+                        <div key={i} className="size-3">
+                          {i < (achievement.impact || 0) ? (
+                            <IconStarFilled className="size-3 fill-yellow-400 text-yellow-400" />
+                          ) : (
+                            <IconStar className="size-3 text-muted-foreground" />
+                          )}
+                        </div>
+                      ))}
+                      <span className="ml-2 text-sm text-muted-foreground">
+                        {achievement.impact || 0}/10
                       </span>
                     </div>
                   </TableCell>
@@ -179,7 +128,12 @@ export function RecentAchievementsTable() {
                     <div className="flex items-center gap-2">
                       <IconCalendar className="size-4 text-muted-foreground" />
                       <span className="text-sm">
-                        {format(achievement.dateAdded, 'MMM d, yyyy')}
+                        {achievement.eventStart
+                          ? format(
+                              new Date(achievement.eventStart),
+                              'MMM d, yyyy'
+                            )
+                          : 'No date'}
                       </span>
                     </div>
                   </TableCell>

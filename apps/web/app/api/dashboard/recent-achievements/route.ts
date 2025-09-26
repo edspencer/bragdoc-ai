@@ -1,4 +1,5 @@
-import { NextRequest, NextResponse } from 'next/server';
+import type { NextRequest } from 'next/server';
+import { NextResponse } from 'next/server';
 import { auth } from 'app/(auth)/auth';
 import { db } from '@/lib/db';
 import { achievement, project, company } from '@/lib/db/schema';
@@ -42,7 +43,7 @@ export async function GET(request: NextRequest) {
       .leftJoin(project, eq(achievement.projectId, project.id))
       .leftJoin(company, eq(achievement.companyId, company.id))
       .where(
-        eq(achievement.userId, userId) && eq(achievement.isArchived, false),
+        eq(achievement.userId, userId) && eq(achievement.isArchived, false)
       )
       .orderBy(desc(achievement.createdAt))
       .limit(10);
@@ -66,7 +67,7 @@ export async function GET(request: NextRequest) {
     console.error('Error fetching recent achievements:', error);
     return NextResponse.json(
       { error: 'Internal server error' },
-      { status: 500 },
+      { status: 500 }
     );
   }
 }

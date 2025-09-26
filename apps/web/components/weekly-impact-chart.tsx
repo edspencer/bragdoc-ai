@@ -76,7 +76,6 @@ export function WeeklyImpactChart({ achievements }: WeeklyImpactChartProps) {
     return result;
   }, [achievements, timeRange]);
 
-
   React.useEffect(() => {
     if (isMobile) {
       setTimeRange('6w');
