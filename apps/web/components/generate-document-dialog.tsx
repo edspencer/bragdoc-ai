@@ -15,12 +15,12 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent } from '@/components/ui/card';
 import { FileText, Calendar, BarChart3, Edit3, Loader2 } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
-import type { Achievement } from '@/lib/db/schema';
+import type { AchievementWithRelations } from '@/lib/types/achievement';
 
 interface GenerateDocumentDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  selectedAchievements: Achievement[];
+  selectedAchievements: AchievementWithRelations[];
 }
 
 const documentTypes = [

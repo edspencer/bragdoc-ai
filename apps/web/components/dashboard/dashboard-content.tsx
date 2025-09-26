@@ -1,6 +1,6 @@
 'use client';
 
-import { User } from 'next-auth';
+import type { User } from 'next-auth';
 import { StatsGrid } from './stats-grid';
 import { WeeklyImpactChart } from './weekly-impact-chart';
 import { ActivityStream } from './activity-stream';

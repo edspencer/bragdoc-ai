@@ -39,17 +39,14 @@ import type { CreateAchievementRequest } from '@/lib/types/achievement';
 
 export default function AchievementsPage() {
   // Data fetching hooks
-  const { companies, isLoading: isLoadingCompanies } = useCompanies();
-  const { projects, isLoading: isLoadingProjects } = useProjects();
+  const { companies } = useCompanies();
+  const { projects } = useProjects();
   const { createAchievement, updateAchievement } = useAchievementMutations();
   const {
     achievements,
-    isLoading: isLoadingAchievements,
     mutate: mutateAchievements,
   } = useAchievements();
 
-  console.log('achievements', achievements);
-  console.log('isLoadingAchievements', isLoadingAchievements);
 
   // Quick entry form state
   const [newAchievementText, setNewAchievementText] = React.useState('');
@@ -269,7 +266,7 @@ export default function AchievementsPage() {
                 onGenerateDocument={handleGenerateDocument}
               />
 
-              <WeeklyImpactChart />
+              <WeeklyImpactChart achievements={achievements} />
             </div>
           </div>
         </div>

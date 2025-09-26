@@ -2,8 +2,10 @@
 
 import * as React from 'react';
 import { Bar, BarChart, CartesianGrid, XAxis, YAxis } from 'recharts';
+import { format, startOfWeek, isSameWeek } from 'date-fns';
 
 import { useIsMobile } from '@/hooks/use-mobile';
+import type { AchievementWithRelations } from '@/lib/types/achievement';
 import {
   Card,
   CardAction,
@@ -27,22 +29,6 @@ import {
 } from '@/components/ui/select';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 
-// Mock weekly impact data - in real app this would come from your database
-const chartData = [
-  { week: 'Week 1', impact: 45, achievements: 3 },
-  { week: 'Week 2', impact: 32, achievements: 2 },
-  { week: 'Week 3', impact: 58, achievements: 4 },
-  { week: 'Week 4', impact: 41, achievements: 3 },
-  { week: 'Week 5', impact: 67, achievements: 5 },
-  { week: 'Week 6', impact: 38, achievements: 2 },
-  { week: 'Week 7', impact: 52, achievements: 4 },
-  { week: 'Week 8', impact: 73, achievements: 6 },
-  { week: 'Week 9', impact: 29, achievements: 2 },
-  { week: 'Week 10', impact: 61, achievements: 4 },
-  { week: 'Week 11', impact: 44, achievements: 3 },
-  { week: 'Week 12', impact: 28, achievements: 2 },
-];
-
 const chartConfig = {
   impact: {
     label: 'Impact Points',
@@ -50,20 +36,52 @@ const chartConfig = {
   },
 } satisfies ChartConfig;
 
-export function WeeklyImpactChart() {
+interface WeeklyImpactChartProps {
+  achievements: AchievementWithRelations[];
+}
+
+export function WeeklyImpactChart({ achievements }: WeeklyImpactChartProps) {
   const isMobile = useIsMobile();
-  const [timeRange, setTimeRange] = React.useState('12w');
+  const [timeRange, setTimeRange] = React.useState('8w');
+
+  // Compute weekly data from achievements
+  const chartData = React.useMemo(() => {
+    const weeks = timeRange === '6w' ? 6 : timeRange === '8w' ? 8 : 12;
+    const result = [];
+
+    for (let i = weeks - 1; i >= 0; i--) {
+      const weekStart = new Date();
+      weekStart.setDate(weekStart.getDate() - i * 7);
+      const weekStartOfWeek = startOfWeek(weekStart, { weekStartsOn: 1 }); // Monday start
+
+      const weekAchievements = achievements.filter((achievement) => {
+        if (!achievement.eventStart) return false;
+        return isSameWeek(new Date(achievement.eventStart), weekStartOfWeek, {
+          weekStartsOn: 1,
+        });
+      });
+
+      const totalImpact = weekAchievements.reduce(
+        (sum, a) => sum + (a.impact || 0),
+        0
+      );
+
+      result.push({
+        week: format(weekStartOfWeek, 'MMM d'),
+        impact: totalImpact,
+        achievements: weekAchievements.length,
+      });
+    }
+
+    return result;
+  }, [achievements, timeRange]);
+
 
   React.useEffect(() => {
     if (isMobile) {
       setTimeRange('6w');
     }
   }, [isMobile]);
-
-  const filteredData = React.useMemo(() => {
-    const weeks = timeRange === '6w' ? 6 : timeRange === '8w' ? 8 : 12;
-    return chartData.slice(-weeks);
-  }, [timeRange]);
 
   return (
     <Card className="@container/card">
@@ -115,7 +133,7 @@ export function WeeklyImpactChart() {
           className="aspect-auto h-[250px] w-full"
         >
           <BarChart
-            data={filteredData}
+            data={chartData}
             margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
           >
             <CartesianGrid strokeDasharray="3 3" vertical={false} />
