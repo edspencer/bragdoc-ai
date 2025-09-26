@@ -19,7 +19,7 @@ const projectMatchResponseSchema = z.object({
   reasoning: z
     .string()
     .describe(
-      'Explanation of why this project matches or why no match was found'
+      'Explanation of why this project matches or why no match was found',
     ),
 });
 
@@ -29,7 +29,7 @@ const projectMatchResponseSchema = z.object({
  */
 export async function fuzzyFindProject(
   repositoryName: string,
-  projects: Project[]
+  projects: Project[],
 ): Promise<string | null> {
   console.log('Fuzzy finding project for repository:', repositoryName);
 
@@ -61,7 +61,7 @@ Respond with:
             description: p.description,
             startDate: p.startDate,
             endDate: p.endDate,
-          }))
+          })),
         ),
       },
     ],

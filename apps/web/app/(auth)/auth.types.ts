@@ -19,7 +19,7 @@ export type SignInFunction = (
     password?: string;
     callbackUrl?: string;
     [key: string]: any;
-  }
+  },
 ) => Promise<void>;
 
 /**

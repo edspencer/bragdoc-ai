@@ -38,14 +38,14 @@ export async function GET(request: Request, { params }: { params: Params }) {
     console.error('Error fetching company:', error);
     return NextResponse.json(
       { error: 'Internal Server Error' },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
 
 export async function PUT(
   request: NextRequest,
-  { params }: { params: Params }
+  { params }: { params: Params },
 ) {
   const { id } = await params;
 
@@ -77,14 +77,14 @@ export async function PUT(
     console.error('Error updating company:', error);
     return NextResponse.json(
       { error: 'Internal Server Error' },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: Params }
+  { params }: { params: Params },
 ) {
   const { id } = await params;
   try {
@@ -108,7 +108,7 @@ export async function DELETE(
     console.error('Error deleting company:', error);
     return NextResponse.json(
       { error: 'Internal Server Error' },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

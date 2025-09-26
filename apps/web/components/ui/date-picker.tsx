@@ -29,7 +29,7 @@ export function DatePicker({
   disabled = false,
 }: DatePickerProps) {
   const [inputValue, setInputValue] = React.useState(
-    value ? format(value, 'MM/dd/yyyy') : ''
+    value ? format(value, 'MM/dd/yyyy') : '',
   );
 
   return (
@@ -52,7 +52,7 @@ export function DatePicker({
         }}
         className={cn(
           'max-w-[240px]',
-          inputValue && !value && 'border-red-500'
+          inputValue && !value && 'border-red-500',
         )}
         disabled={disabled}
       />

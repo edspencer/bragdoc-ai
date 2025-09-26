@@ -9,7 +9,10 @@ import { customMiddleware } from './custom-middleware';
 
 export const defaultModel = 'gpt-4o';
 
-export const customModel = (apiIdentifier: string = defaultModel, provider: any = openai) => {
+export const customModel = (
+  apiIdentifier: string = defaultModel,
+  provider: any = openai,
+) => {
   const wrappedModel = wrapLanguageModel({
     model: provider(apiIdentifier),
     middleware: customMiddleware,
@@ -31,7 +34,10 @@ export const gpt4Model = customModel('gpt-4');
 export const gpt4oModel = customModel('gpt-4o');
 export const gpt4oMiniModel = customModel('gpt-4o-mini');
 export const geminiFlashModel = customModel('gemini-2-flash', google);
-export const geminiFlashExpModel = customModel('google/gemini-2.0-flash-exp:free', openrouter);
+export const geminiFlashExpModel = customModel(
+  'google/gemini-2.0-flash-exp:free',
+  openrouter,
+);
 export const deepseekV3Model = customModel('deepseek-chat', deepseek);
 
 // export const myModel = customModel('openai/gpt-4o-mini', openrouter);
@@ -42,4 +48,4 @@ export const findExistingProjectModel = gpt4oMiniModel;
 
 export const documentWritingModel = gpt4oModel;
 
-export const routerModel = gpt4oMiniModel
+export const routerModel = gpt4oMiniModel;

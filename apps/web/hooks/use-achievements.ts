@@ -73,7 +73,7 @@ export function useAchievements(options: UseAchievementsOptions = {}) {
     null, // Use the default fetcher from SWR config
     {
       keepPreviousData: true,
-    }
+    },
   );
 
   const createAchievement = useCallback(
@@ -99,7 +99,7 @@ export function useAchievements(options: UseAchievementsOptions = {}) {
         throw error;
       }
     },
-    [mutate]
+    [mutate],
   );
 
   const updateAchievement = useCallback(
@@ -125,7 +125,7 @@ export function useAchievements(options: UseAchievementsOptions = {}) {
         throw error;
       }
     },
-    [mutate]
+    [mutate],
   );
 
   const deleteAchievement = useCallback(
@@ -146,7 +146,7 @@ export function useAchievements(options: UseAchievementsOptions = {}) {
         throw error;
       }
     },
-    [mutate]
+    [mutate],
   );
 
   return {

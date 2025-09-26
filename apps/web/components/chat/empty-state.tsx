@@ -21,7 +21,7 @@ export function EmptyState({
     <div
       className={cn(
         'flex flex-col items-center justify-center gap-6',
-        className
+        className,
       )}
     >
       <Card className="flex aspect-square w-full max-w-[200px] items-center justify-center bg-muted">

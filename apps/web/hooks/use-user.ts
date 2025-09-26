@@ -57,7 +57,7 @@ export function useUser(): UseUserResponse {
         throw err;
       }
     },
-    [session?.user?.id]
+    [session?.user?.id],
   );
 
   const mutate = useCallback(async () => {

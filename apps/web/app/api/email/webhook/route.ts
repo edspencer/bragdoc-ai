@@ -14,11 +14,14 @@ const mailgunWebhookSchema = z.object({
   'stripped-signature': z.string().optional(),
   'body-html': z.string().optional(),
   'stripped-html': z.string().optional(),
-  'attachment-count': z.string().optional().transform(n => n ? Number.parseInt(n, 10) : 0),
-  timestamp: z.string().transform(n => Number.parseInt(n, 10)),
+  'attachment-count': z
+    .string()
+    .optional()
+    .transform((n) => (n ? Number.parseInt(n, 10) : 0)),
+  timestamp: z.string().transform((n) => Number.parseInt(n, 10)),
   token: z.string(),
   signature: z.string(),
-  'message-headers': z.string().transform(str => {
+  'message-headers': z.string().transform((str) => {
     try {
       return JSON.parse(str);
     } catch {
@@ -30,9 +33,14 @@ const mailgunWebhookSchema = z.object({
 type MailgunWebhookPayload = z.infer<typeof mailgunWebhookSchema>;
 
 // Verify Mailgun webhook signature
-function verifyWebhookSignature(timestamp: number, token: string, signature: string): boolean {
+function verifyWebhookSignature(
+  timestamp: number,
+  token: string,
+  signature: string,
+): boolean {
   const signingKey = process.env.MAILGUN_WEBHOOK_SIGNING_KEY;
-  if (!signingKey) throw new Error('MAILGUN_WEBHOOK_SIGNING_KEY not configured');
+  if (!signingKey)
+    throw new Error('MAILGUN_WEBHOOK_SIGNING_KEY not configured');
 
   const encodedData = timestamp.toString() + token;
   const hmac = crypto.createHmac('sha256', signingKey);
@@ -52,7 +60,10 @@ export async function POST(req: Request) {
 
     if (!result.success) {
       console.error('Invalid webhook payload:', result.error);
-      return NextResponse.json({ error: 'Invalid webhook payload' }, { status: 400 });
+      return NextResponse.json(
+        { error: 'Invalid webhook payload' },
+        { status: 400 },
+      );
     }
 
     const data = result.data;
@@ -60,7 +71,10 @@ export async function POST(req: Request) {
     // Verify webhook signature
     if (!verifyWebhookSignature(data.timestamp, data.token, data.signature)) {
       console.error('Invalid webhook signature');
-      return NextResponse.json({ error: 'Invalid webhook signature' }, { status: 401 });
+      return NextResponse.json(
+        { error: 'Invalid webhook signature' },
+        { status: 401 },
+      );
     }
 
     // Process the email
@@ -74,7 +88,7 @@ export async function POST(req: Request) {
     if (!processResult.success) {
       return NextResponse.json(
         { error: processResult.error || 'Failed to process email' },
-        { status: 500 }
+        { status: 500 },
       );
     }
 
@@ -83,7 +97,7 @@ export async function POST(req: Request) {
     console.error('Error processing webhook:', error);
     return NextResponse.json(
       { error: 'Internal server error' },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

@@ -1,7 +1,15 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+} from 'recharts';
 import { Card, CardContent, CardHeader, CardTitle } from 'components/ui/card';
 import { Skeleton } from 'components/ui/skeleton';
 
@@ -15,7 +23,9 @@ interface WeeklyImpactData {
   achievementCount: number;
 }
 
-async function getWeeklyImpactData(userId: string): Promise<WeeklyImpactData[]> {
+async function getWeeklyImpactData(
+  userId: string,
+): Promise<WeeklyImpactData[]> {
   const response = await fetch(`/api/dashboard/weekly-impact?userId=${userId}`);
   if (!response.ok) {
     throw new Error('Failed to fetch weekly impact data');
@@ -47,9 +57,7 @@ export function WeeklyImpactChart({ userId }: WeeklyImpactChartProps) {
       return (
         <div className="bg-background border border-border rounded-lg p-3 shadow-lg">
           <p className="font-medium">{`Week of ${label}`}</p>
-          <p className="text-blue-600">
-            {`Total Impact: ${data.totalImpact}`}
-          </p>
+          <p className="text-blue-600">{`Total Impact: ${data.totalImpact}`}</p>
           <p className="text-muted-foreground text-sm">
             {`${data.achievementCount} achievement${data.achievementCount !== 1 ? 's' : ''}`}
           </p>
@@ -98,7 +106,10 @@ export function WeeklyImpactChart({ userId }: WeeklyImpactChartProps) {
         </CardHeader>
         <CardContent>
           <div className="flex items-center justify-center h-64 text-muted-foreground">
-            <p>No achievement data available yet. Start tracking your accomplishments!</p>
+            <p>
+              No achievement data available yet. Start tracking your
+              accomplishments!
+            </p>
           </div>
         </CardContent>
       </Card>
@@ -116,7 +127,10 @@ export function WeeklyImpactChart({ userId }: WeeklyImpactChartProps) {
       <CardContent>
         <div className="h-64">
           <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={data} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
+            <BarChart
+              data={data}
+              margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
+            >
               <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
               <XAxis
                 dataKey="week"

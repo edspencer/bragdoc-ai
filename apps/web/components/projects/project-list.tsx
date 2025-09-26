@@ -47,7 +47,7 @@ export function ProjectList({
 }: ProjectListProps) {
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [editProject, setEditProject] = useState<ProjectWithCompany | null>(
-    null
+    null,
   );
   const [actionLoading, setActionLoading] = useState<string | null>(null);
 

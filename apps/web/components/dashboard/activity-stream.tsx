@@ -32,15 +32,22 @@ interface RecentAchievement {
   };
 }
 
-async function getRecentAchievements(userId: string): Promise<RecentAchievement[]> {
-  const response = await fetch(`/api/dashboard/recent-achievements?userId=${userId}`);
+async function getRecentAchievements(
+  userId: string,
+): Promise<RecentAchievement[]> {
+  const response = await fetch(
+    `/api/dashboard/recent-achievements?userId=${userId}`,
+  );
   if (!response.ok) {
     throw new Error('Failed to fetch recent achievements');
   }
   return response.json();
 }
 
-async function updateAchievementImpact(achievementId: string, impact: number): Promise<void> {
+async function updateAchievementImpact(
+  achievementId: string,
+  impact: number,
+): Promise<void> {
   const response = await fetch(`/api/achievements/${achievementId}/impact`, {
     method: 'PATCH',
     headers: {
@@ -72,22 +79,25 @@ export function ActivityStream({ userId }: ActivityStreamProps) {
       });
   }, [userId]);
 
-  const handleImpactChange = async (achievementId: string, newImpact: number) => {
+  const handleImpactChange = async (
+    achievementId: string,
+    newImpact: number,
+  ) => {
     try {
       await updateAchievementImpact(achievementId, newImpact);
 
       // Optimistically update the local state
-      setAchievements(prevAchievements =>
-        prevAchievements.map(achievement =>
+      setAchievements((prevAchievements) =>
+        prevAchievements.map((achievement) =>
           achievement.id === achievementId
             ? {
                 ...achievement,
                 impact: newImpact,
                 impactSource: 'user' as const,
-                impactUpdatedAt: new Date()
+                impactUpdatedAt: new Date(),
               }
-            : achievement
-        )
+            : achievement,
+        ),
       );
     } catch (error) {
       console.error('Failed to update impact:', error);
@@ -205,7 +215,9 @@ export function ActivityStream({ userId }: ActivityStreamProps) {
                 <div className="flex items-center justify-between">
                   <ImpactRating
                     value={achievement.impact}
-                    onChange={(newImpact) => handleImpactChange(achievement.id, newImpact)}
+                    onChange={(newImpact) =>
+                      handleImpactChange(achievement.id, newImpact)
+                    }
                     source={achievement.impactSource}
                     updatedAt={achievement.impactUpdatedAt}
                   />
@@ -213,7 +225,7 @@ export function ActivityStream({ userId }: ActivityStreamProps) {
                   <div className="flex items-center gap-1 text-xs text-muted-foreground">
                     <Clock className="h-3 w-3" />
                     {formatDistanceToNow(new Date(achievement.createdAt), {
-                      addSuffix: true
+                      addSuffix: true,
                     })}
                   </div>
                 </div>

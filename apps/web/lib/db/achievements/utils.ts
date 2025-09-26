@@ -10,7 +10,7 @@ import type { CreateAchievementRequest } from 'lib/types/achievement';
 export async function createSystemUserMessage(
   userId: string,
   title: string,
-  summary?: string
+  summary?: string,
 ) {
   const message = `Created achievement: ${title}${summary ? `\n${summary}` : ''}`;
 
@@ -31,7 +31,7 @@ export async function createAchievement(
   userId: string,
   data: CreateAchievementRequest,
   source: 'llm' | 'manual' | 'commit' = 'manual',
-  userMessageId?: string
+  userMessageId?: string,
 ) {
   // If no userMessageId is provided and it's a manual creation,
   // create a system message
@@ -42,7 +42,7 @@ export async function createAchievement(
           await createSystemUserMessage(
             userId,
             data.title,
-            data.summary ?? undefined
+            data.summary ?? undefined,
           )
         )?.id
       : undefined);
@@ -75,9 +75,9 @@ export async function validateAchievementData(userId: string) {
           db
             .select()
             .from(userMessage)
-            .where(eq(userMessage.id, achievement.userMessageId))
-        )
-      )
+            .where(eq(userMessage.id, achievement.userMessageId)),
+        ),
+      ),
     );
 
   return {
@@ -97,8 +97,8 @@ export async function createMissingUserMessages(userId: string) {
       and(
         eq(achievement.userId, userId),
         eq(achievement.source, 'manual'),
-        isNull(achievement.userMessageId)
-      )
+        isNull(achievement.userMessageId),
+      ),
     );
 
   const results = await Promise.all(
@@ -106,12 +106,12 @@ export async function createMissingUserMessages(userId: string) {
       const message = await createSystemUserMessage(
         userId,
         achievementRow.title,
-        achievementRow.summary ?? undefined
+        achievementRow.summary ?? undefined,
       );
 
       if (!message) {
         throw new Error(
-          `Failed to create user message for achievement ${achievementRow.id}`
+          `Failed to create user message for achievement ${achievementRow.id}`,
         );
       }
 
@@ -121,7 +121,7 @@ export async function createMissingUserMessages(userId: string) {
         .where(eq(achievement.id, achievementRow.id));
 
       return achievementRow.id;
-    })
+    }),
   );
 
   return {

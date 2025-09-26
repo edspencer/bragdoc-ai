@@ -112,7 +112,7 @@ export async function ExtractAchievementScorer(args: any): Promise<Score> {
     <EvaluateExtractedAchievementsPrompt
       expectedAchievements={args.expected}
       extractedAchievements={args.output}
-    />
+    />,
   );
 
   return LLMClassifierFromSpec('ExtractAchievementScorer', {

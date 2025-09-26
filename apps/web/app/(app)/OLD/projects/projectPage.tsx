@@ -33,7 +33,7 @@ export default function ProjectPage() {
   const { fire: fireConfetti } = useConfetti();
 
   const handleCreateProject = async (
-    data: ProjectFormData
+    data: ProjectFormData,
   ): Promise<boolean> => {
     try {
       const success = await executeWithRetry(() => createProject(data));
@@ -52,7 +52,7 @@ export default function ProjectPage() {
 
   const handleUpdateProject = async (
     id: string,
-    data: ProjectFormData
+    data: ProjectFormData,
   ): Promise<boolean> => {
     try {
       const success = await executeWithRetry(() => updateProject(id, data));

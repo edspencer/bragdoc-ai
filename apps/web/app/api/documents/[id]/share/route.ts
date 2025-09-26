@@ -6,7 +6,7 @@ import { randomUUID } from 'node:crypto';
 
 export async function POST(
   request: Request,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ id: string }> },
 ) {
   const session = await auth();
 
@@ -35,14 +35,14 @@ export async function POST(
     console.error('Error sharing document:', error);
     return Response.json(
       { error: 'Failed to share document' },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
 
 export async function DELETE(
   request: Request,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ id: string }> },
 ) {
   const session = await auth();
 
@@ -68,7 +68,7 @@ export async function DELETE(
     console.error('Error unsharing document:', error);
     return Response.json(
       { error: 'Failed to unshare document' },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

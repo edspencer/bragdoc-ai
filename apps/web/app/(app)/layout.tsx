@@ -1,24 +1,28 @@
-import { cookies } from 'next/headers';
+import type React from 'react';
+import type { Metadata } from 'next';
+import { GeistSans } from 'geist/font/sans';
+import { GeistMono } from 'geist/font/mono';
+import { Analytics } from '@vercel/analytics/next';
+import { Suspense } from 'react';
+import '../globals.css';
 
-import { AppSidebar } from 'components/app-sidebar';
-import { SidebarInset, SidebarProvider } from 'components/ui/sidebar';
+export const metadata: Metadata = {
+  title: 'BragDoc - Achievement Dashboard',
+  description: 'Track your achievements and build your career story',
+  generator: 'v0.app',
+};
 
-import { auth } from '../(auth)/auth';
-
-export const experimental_ppr = true;
-
-export default async function Layout({
+export default function RootLayout({
   children,
-}: {
+}: Readonly<{
   children: React.ReactNode;
-}) {
-  const [session, cookieStore] = await Promise.all([auth(), cookies()]);
-  const isCollapsed = cookieStore.get('sidebar:state')?.value !== 'true';
-
+}>) {
   return (
-    <SidebarProvider defaultOpen={!isCollapsed}>
-      <AppSidebar user={session?.user} />
-      <SidebarInset>{children}</SidebarInset>
-    </SidebarProvider>
+    <html lang="en">
+      <body className={`font-sans ${GeistSans.variable} ${GeistMono.variable}`}>
+        <Suspense fallback={<div>Loading...</div>}>{children}</Suspense>
+        <Analytics />
+      </body>
+    </html>
   );
 }

@@ -10,7 +10,7 @@ import { companies, projects, user } from './data/user';
 
 // Function to wrap the async generator into a promise
 async function wrappedExtractAchievements(
-  input: ExtractAchievementsPromptProps
+  input: ExtractAchievementsPromptProps,
 ): Promise<ExtractedAchievement[]> {
   return await renderExecute(input);
 }

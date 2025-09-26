@@ -4,14 +4,14 @@ import {
   unsubscribeUser,
 } from '@bragdoc/email/unsubscribe';
 
-type Params = Promise<{ token: string, salt : string }>;
+type Params = Promise<{ token: string; salt: string }>;
 
 export default async function UnsubscribedPage({
   searchParams,
 }: {
-  searchParams: Params
+  searchParams: Params;
 }) {
-  const {token, salt} = await searchParams;
+  const { token, salt } = await searchParams;
 
   if (!token || !salt) {
     return (

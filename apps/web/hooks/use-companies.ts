@@ -35,7 +35,7 @@ const fetchCompany = async (url: string) => {
 export function useCompanies() {
   const { data, error, mutate } = useSWR<Company[]>(
     '/api/companies',
-    fetchCompanies
+    fetchCompanies,
   );
 
   return {
@@ -49,7 +49,7 @@ export function useCompanies() {
 export function useCompany(id: string) {
   const { data, error, mutate } = useSWR<Company>(
     `/api/companies/${id}`,
-    fetchCompany
+    fetchCompany,
   );
 
   return {

@@ -41,7 +41,7 @@ export function WelcomeCarousel({
     <div
       className={cn(
         'flex flex-grow flex-col gap-8 items-stretch justify-center mx-auto',
-        className
+        className,
       )}
     >
       <div className="relative flex items-center justify-center">
@@ -51,7 +51,7 @@ export function WelcomeCarousel({
               (card, index) =>
                 index === activeIndex && (
                   <WelcomeCard key={index} {...card} isActive={true} />
-                )
+                ),
             )}
           </AnimatePresence>
         </div>

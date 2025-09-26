@@ -42,7 +42,7 @@ export async function POST(request: Request) {
       error instanceof z.ZodError
         ? 'Invalid request body'
         : 'Internal server error',
-      { status: error instanceof z.ZodError ? 400 : 500 }
+      { status: error instanceof z.ZodError ? 400 : 500 },
     );
   }
 }

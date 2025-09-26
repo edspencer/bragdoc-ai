@@ -6,11 +6,17 @@ import type {
   ExtractCommitAchievementsPromptProps,
 } from '../types';
 import { companies, projects, user } from './data/user';
-import {repository, noisyCommits, qualityCommits, expectedAchievementsFromNoisyCommits, expectedAchievementsFromQualityCommits} from './data/extract-commit-achievements';
+import {
+  repository,
+  noisyCommits,
+  qualityCommits,
+  expectedAchievementsFromNoisyCommits,
+  expectedAchievementsFromQualityCommits,
+} from './data/extract-commit-achievements';
 
 // Function to wrap the async generator into a promise
 async function wrappedExtractCommitAchievements(
-  input: ExtractCommitAchievementsPromptProps
+  input: ExtractCommitAchievementsPromptProps,
 ): Promise<ExtractedAchievement[]> {
   return await renderExecute(input);
 }
@@ -22,14 +28,14 @@ const nextMidnight = new Date();
 nextMidnight.setDate(nextMidnight.getDate() + 1);
 nextMidnight.setHours(0, 0, 0, 0);
 
-const experimentData: Experiment[] = [  
+const experimentData: Experiment[] = [
   {
     input: {
       companies,
       projects,
       commits: noisyCommits,
       repository,
-      user
+      user,
     },
     expected: expectedAchievementsFromNoisyCommits,
   },
@@ -39,9 +45,9 @@ const experimentData: Experiment[] = [
       projects,
       commits: qualityCommits,
       repository,
-      user
+      user,
     },
-    expected: expectedAchievementsFromQualityCommits
+    expected: expectedAchievementsFromQualityCommits,
   },
 ];
 

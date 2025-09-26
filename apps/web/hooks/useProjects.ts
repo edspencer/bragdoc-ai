@@ -37,7 +37,7 @@ export function useProjects() {
       mutate(
         '/api/projects',
         projects ? [...projects, newProject] : [newProject],
-        false
+        false,
       );
 
       // Revalidate
@@ -51,7 +51,7 @@ export function useProjects() {
 
   const updateProject = async (
     id: string,
-    data: ProjectFormData
+    data: ProjectFormData,
   ): Promise<boolean> => {
     try {
       const response = await fetch(`/api/projects/${id}`, {
@@ -66,7 +66,7 @@ export function useProjects() {
       mutate(
         '/api/projects',
         projects?.map((p) => (p.id === id ? updatedProject : p)),
-        false
+        false,
       );
 
       // Revalidate
@@ -89,7 +89,7 @@ export function useProjects() {
       mutate(
         '/api/projects',
         projects?.filter((p) => p.id !== id),
-        false
+        false,
       );
 
       // Revalidate

@@ -1,8 +1,5 @@
 import type { NextRequest } from 'next/server';
-import {
-  verifyUnsubscribeToken,
-  unsubscribeUser,
-} from '@bragdoc/email';
+import { verifyUnsubscribeToken, unsubscribeUser } from '@bragdoc/email';
 import type { EmailType } from '@bragdoc/email';
 
 export async function GET(req: NextRequest) {

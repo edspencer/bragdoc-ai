@@ -8,7 +8,8 @@ interface NavCounts {
 }
 
 export function useNavCounts() {
-  const { data, error } = useSWR<{ [key in keyof NavCounts]: number }>('/api/counts');
+  const { data, error } =
+    useSWR<{ [key in keyof NavCounts]: number }>('/api/counts');
 
   return {
     counts: data

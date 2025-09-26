@@ -45,7 +45,7 @@ export function RepositorySelector({
   const client = new GitHubClient({ accessToken });
 
   const { data, error, isLoading } = useSWR(['repositories', page], () =>
-    client.listRepositories(page, perPage)
+    client.listRepositories(page, perPage),
   );
 
   const handleSelect = async (repo: Repository) => {
@@ -104,7 +104,8 @@ export function RepositorySelector({
                     onClick={() => handleSelect(repo)}
                     className={cn(
                       'w-full rounded-lg border p-4 text-left hover:bg-accent',
-                      repo.fullName === selectedRepositoryId && 'border-primary'
+                      repo.fullName === selectedRepositoryId &&
+                        'border-primary',
                     )}
                   >
                     <div className="flex items-center justify-between">

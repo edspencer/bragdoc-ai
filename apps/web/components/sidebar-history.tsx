@@ -276,7 +276,7 @@ export function SidebarHistory({ user }: { user: User | undefined }) {
         lastWeek: [],
         lastMonth: [],
         older: [],
-      } as GroupedChats
+      } as GroupedChats,
     );
   };
 

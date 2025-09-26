@@ -1,4 +1,4 @@
-import { auth } from 'app/(auth)/auth';
+import { auth } from '@/app/(auth)/auth';
 import { redirect } from 'next/navigation';
 import { CLIAuthContent } from './CLIAuthContent';
 

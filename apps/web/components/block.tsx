@@ -76,16 +76,16 @@ function PureBlock({
   votes: Array<Vote> | undefined;
   append: (
     message: Message | CreateMessage,
-    chatRequestOptions?: ChatRequestOptions
+    chatRequestOptions?: ChatRequestOptions,
   ) => Promise<string | null | undefined>;
   handleSubmit: (
     event?: {
       preventDefault?: () => void;
     },
-    chatRequestOptions?: ChatRequestOptions
+    chatRequestOptions?: ChatRequestOptions,
   ) => void;
   reload: (
-    chatRequestOptions?: ChatRequestOptions
+    chatRequestOptions?: ChatRequestOptions,
   ) => Promise<string | null | undefined>;
   isReadonly: boolean;
 }) {
@@ -97,7 +97,7 @@ function PureBlock({
     block && block.status !== 'streaming'
       ? `/api/document?id=${block.documentId}`
       : null,
-    fetcher
+    fetcher,
   );
 
   const { data: suggestions } = useSWR<Array<Suggestion>>(
@@ -107,7 +107,7 @@ function PureBlock({
     fetcher,
     {
       dedupingInterval: 5000,
-    }
+    },
   );
 
   const [mode, setMode] = useState<'edit' | 'diff'>('edit');
@@ -173,15 +173,15 @@ function PureBlock({
           }
           return currentDocuments;
         },
-        { revalidate: false }
+        { revalidate: false },
       );
     },
-    [block, mutate]
+    [block, mutate],
   );
 
   const debouncedHandleContentChange = useDebounceCallback(
     handleContentChange,
-    2000
+    2000,
   );
 
   const saveContent = useCallback(
@@ -196,7 +196,7 @@ function PureBlock({
         }
       }
     },
-    [document, debouncedHandleContentChange, handleContentChange]
+    [document, debouncedHandleContentChange, handleContentChange],
   );
 
   function getDocumentContentById(index: number) {
@@ -400,7 +400,7 @@ function PureBlock({
                     new Date(),
                     {
                       addSuffix: true,
-                    }
+                    },
                   )}`}
                 </div>
               ) : (

@@ -95,7 +95,7 @@ export async function POST(request: Request) {
                     content: message.content,
                     createdAt: new Date(),
                   };
-                }
+                },
               ),
             });
           } catch (error) {

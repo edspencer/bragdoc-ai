@@ -30,7 +30,7 @@ export async function GET() {
     console.error('Failed to get companies:', error);
     return NextResponse.json(
       { error: 'Failed to get companies' },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
@@ -52,7 +52,7 @@ export async function POST(request: Request) {
         endDate: validatedData.endDate || null,
         userId: session.user.id,
       },
-      db
+      db,
     );
 
     return NextResponse.json(company, { status: 201 });
@@ -61,12 +61,12 @@ export async function POST(request: Request) {
     if (error instanceof z.ZodError) {
       return NextResponse.json(
         { error: 'Invalid input', details: error.errors },
-        { status: 400 }
+        { status: 400 },
       );
     }
     return NextResponse.json(
       { error: 'Failed to create company' },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

@@ -102,7 +102,7 @@ export const plans: Plan[] = [
       'Everything in Basic',
       'Unlimited git repos',
       'Scheduled updates',
-      'Advanced publishing options'
+      'Advanced publishing options',
     ],
   },
 ];

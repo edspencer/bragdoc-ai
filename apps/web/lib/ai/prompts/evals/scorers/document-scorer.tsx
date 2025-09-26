@@ -134,7 +134,7 @@ export async function DocumentScorer(args: any): Promise<Score> {
       days={args.input.days}
       company={args.input.company}
       project={args.input.project}
-    />
+    />,
   );
 
   return LLMClassifierFromSpec('DocumentScorer', {

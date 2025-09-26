@@ -46,7 +46,7 @@ export async function GET(request: Request, { params }: { params: Params }) {
     console.error('Error fetching project:', error);
     return NextResponse.json(
       { error: 'Internal Server Error' },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
@@ -73,12 +73,12 @@ export async function PUT(request: Request, { params }: { params: Params }) {
     if (error instanceof z.ZodError) {
       return NextResponse.json(
         { error: 'Invalid input', details: error.errors },
-        { status: 400 }
+        { status: 400 },
       );
     }
     return NextResponse.json(
       { error: 'Failed to update project' },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
@@ -101,7 +101,7 @@ export async function DELETE(request: Request, { params }: { params: Params }) {
     console.error('Error deleting project:', error);
     return NextResponse.json(
       { error: 'Failed to delete project' },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

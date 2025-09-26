@@ -123,7 +123,7 @@ export function AchievementList({
               impactSource: 'user' as const,
               impactUpdatedAt: new Date(),
             }
-          : achievement
+          : achievement,
       ),
       pagination: {
         total: pagination.total,
@@ -286,7 +286,7 @@ export function AchievementList({
                 const leftBound = Math.max(2, page - delta);
                 const rightBound = Math.min(
                   pagination.totalPages - 1,
-                  page + delta
+                  page + delta,
                 );
 
                 // Add ellipsis if there's a gap after 1

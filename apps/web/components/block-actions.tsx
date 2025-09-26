@@ -80,7 +80,7 @@ function PureBlockActions({
               'p-2 h-fit !pointer-events-auto dark:hover:bg-zinc-700',
               {
                 'bg-muted': mode === 'diff',
-              }
+              },
             )}
             onClick={() => {
               handleVersionChange('toggle');

@@ -33,7 +33,7 @@ const isValidUUID = (uuid: string) => {
 // PUT /api/achievements/[id]
 export async function PUT(
   req: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ id: string }> },
 ) {
   try {
     const session = await auth();
@@ -45,7 +45,7 @@ export async function PUT(
     if (!isValidUUID(id)) {
       return NextResponse.json(
         { error: 'Achievement not found' },
-        { status: 404 }
+        { status: 404 },
       );
     }
 
@@ -58,7 +58,7 @@ export async function PUT(
           error: 'Invalid achievement data',
           details: result.error.errors,
         },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -89,7 +89,7 @@ export async function PUT(
     if (!updated) {
       return NextResponse.json(
         { error: 'Achievement not found' },
-        { status: 404 }
+        { status: 404 },
       );
     }
 
@@ -98,7 +98,7 @@ export async function PUT(
     console.error('Error updating achievement:', error);
     return NextResponse.json(
       { error: 'Failed to update achievement' },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
@@ -106,7 +106,7 @@ export async function PUT(
 // DELETE /api/achievements/[id]
 export async function DELETE(
   req: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ id: string }> },
 ) {
   const { id } = await params;
   try {
@@ -118,7 +118,7 @@ export async function DELETE(
     if (!isValidUUID(id)) {
       return NextResponse.json(
         { error: 'Achievement not found' },
-        { status: 404 }
+        { status: 404 },
       );
     }
 
@@ -130,7 +130,7 @@ export async function DELETE(
     if (!deleted) {
       return NextResponse.json(
         { error: 'Achievement not found' },
-        { status: 404 }
+        { status: 404 },
       );
     }
 
@@ -139,7 +139,7 @@ export async function DELETE(
     console.error('Error deleting achievement:', error);
     return NextResponse.json(
       { error: 'Failed to delete achievement' },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

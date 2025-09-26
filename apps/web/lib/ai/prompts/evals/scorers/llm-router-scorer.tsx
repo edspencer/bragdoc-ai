@@ -86,7 +86,7 @@ export async function RouterScorer(args: any): Promise<Score> {
       output={JSON.stringify(args.output, null, 2)}
       input={JSON.stringify(args.input, null, 2)}
       message={args.input.message}
-    />
+    />,
   );
 
   return LLMClassifierFromSpec('RouterScorer', {

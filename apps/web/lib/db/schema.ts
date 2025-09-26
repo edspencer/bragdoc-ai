@@ -17,14 +17,17 @@ import {
 export interface UserPreferences {
   hasSeenWelcome: boolean;
   language: string;
-  documentInstructions?: string
+  documentInstructions?: string;
 }
 
 export const userLevelEnum = pgEnum('user_level', ['free', 'basic', 'pro']);
-export type UserLevel = typeof userLevelEnum.enumValues[number];
+export type UserLevel = (typeof userLevelEnum.enumValues)[number];
 
-export const renewalPeriodEnum = pgEnum('renewal_period', ['monthly', 'yearly']);
-export type RenewalPeriod = typeof renewalPeriodEnum.enumValues[number];
+export const renewalPeriodEnum = pgEnum('renewal_period', [
+  'monthly',
+  'yearly',
+]);
+export type RenewalPeriod = (typeof renewalPeriodEnum.enumValues)[number];
 
 export const userStatusEnum = pgEnum('user_status', [
   'active',
@@ -46,7 +49,7 @@ export const user = pgTable('User', {
   preferences: jsonb('preferences').$type<UserPreferences>().notNull().default({
     hasSeenWelcome: false,
     language: 'en',
-    documentInstructions: ''
+    documentInstructions: '',
   }),
   createdAt: timestamp('created_at').notNull().defaultNow(),
   updatedAt: timestamp('updated_at').notNull().defaultNow(),

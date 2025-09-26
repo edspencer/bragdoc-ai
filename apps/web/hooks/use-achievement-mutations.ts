@@ -35,7 +35,7 @@ export function useAchievementMutations(options: UseMutationsOptions = {}) {
           // Invalidate achievements cache
           await mutate(
             (key) =>
-              typeof key === 'string' && key.startsWith('/api/achievements')
+              typeof key === 'string' && key.startsWith('/api/achievements'),
           );
           toast.success('Achievement created');
           onSuccess?.();
@@ -65,7 +65,7 @@ export function useAchievementMutations(options: UseMutationsOptions = {}) {
           // Invalidate achievements cache
           await mutate(
             (key) =>
-              typeof key === 'string' && key.startsWith('/api/achievements')
+              typeof key === 'string' && key.startsWith('/api/achievements'),
           );
           toast.success('Achievement updated');
           onSuccess?.();
@@ -91,7 +91,7 @@ export function useAchievementMutations(options: UseMutationsOptions = {}) {
           // Invalidate achievements cache
           await mutate(
             (key) =>
-              typeof key === 'string' && key.startsWith('/api/achievements')
+              typeof key === 'string' && key.startsWith('/api/achievements'),
           );
           toast.success('Achievement deleted');
           onSuccess?.();
@@ -103,6 +103,6 @@ export function useAchievementMutations(options: UseMutationsOptions = {}) {
         }
       },
     }),
-    [mutate, onSuccess, onError]
+    [mutate, onSuccess, onError],
   );
 }

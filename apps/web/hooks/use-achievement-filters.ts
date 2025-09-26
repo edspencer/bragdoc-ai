@@ -7,7 +7,7 @@ interface UseAchievementFiltersOptions {
 }
 
 export function useAchievementFilters(
-  options: UseAchievementFiltersOptions = {}
+  options: UseAchievementFiltersOptions = {},
 ) {
   const { initialFilters = {}, onChange } = options;
   const [filters, setFilters] =
@@ -16,7 +16,7 @@ export function useAchievementFilters(
   const setFilter = useCallback(
     <K extends keyof AchievementFilters>(
       key: K,
-      value: AchievementFilters[K] | undefined
+      value: AchievementFilters[K] | undefined,
     ) => {
       const newFilters = {
         ...filters,
@@ -33,7 +33,7 @@ export function useAchievementFilters(
       setFilters(newFilters);
       onChange?.(newFilters);
     },
-    [filters, onChange]
+    [filters, onChange],
   );
 
   const clearFilters = useCallback(() => {
@@ -43,7 +43,7 @@ export function useAchievementFilters(
 
   const hasActiveFilters = useMemo(
     () => Object.keys(filters).length > 0,
-    [filters]
+    [filters],
   );
 
   return {

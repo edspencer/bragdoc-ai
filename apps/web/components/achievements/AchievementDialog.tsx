@@ -159,7 +159,7 @@ export function AchievementDialog({
       toast.error(
         mode === 'edit'
           ? 'Failed to update achievement'
-          : 'Failed to create achievement'
+          : 'Failed to create achievement',
       );
     }
   };

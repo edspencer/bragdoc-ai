@@ -32,8 +32,8 @@ export async function GET(request: NextRequest) {
       .from(achievement)
       .where(
         eq(achievement.userId, userId) &&
-        gte(achievement.eventStart, eightWeeksAgo) &&
-        eq(achievement.isArchived, false)
+          gte(achievement.eventStart, eightWeeksAgo) &&
+          eq(achievement.isArchived, false),
       )
       .groupBy(sql`DATE_TRUNC('week', ${achievement.eventStart})`)
       .orderBy(sql`DATE_TRUNC('week', ${achievement.eventStart}) DESC`)
@@ -50,14 +50,17 @@ export async function GET(request: NextRequest) {
 
       const weekString = weekStart.toISOString().split('T')[0];
 
-      const existingData = weeklyData.find(
-        (data) => data.week === weekString
-      );
+      const existingData = weeklyData.find((data) => data.week === weekString);
 
       result.push({
-        week: weekStart.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+        week: weekStart.toLocaleDateString('en-US', {
+          month: 'short',
+          day: 'numeric',
+        }),
         totalImpact: existingData ? Number(existingData.totalImpact) : 0,
-        achievementCount: existingData ? Number(existingData.achievementCount) : 0,
+        achievementCount: existingData
+          ? Number(existingData.achievementCount)
+          : 0,
       });
     }
 
@@ -66,7 +69,7 @@ export async function GET(request: NextRequest) {
     console.error('Error fetching weekly impact data:', error);
     return NextResponse.json(
       { error: 'Internal server error' },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

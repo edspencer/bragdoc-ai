@@ -32,7 +32,7 @@ export async function syncGitHubData({ userId, repositoryId }: SyncOptions) {
     .where(
       repositoryId
         ? eq(githubRepository.id, repositoryId)
-        : eq(githubRepository.userId, userId)
+        : eq(githubRepository.userId, userId),
     );
 
   for (const repo of repositories) {
@@ -49,7 +49,7 @@ export async function syncGitHubData({ userId, repositoryId }: SyncOptions) {
           owner!,
           repoName!,
           page,
-          perPage
+          perPage,
         );
 
         // Upsert pull requests

@@ -121,7 +121,7 @@ beforeAll(async () => {
         eventDuration: 'day',
         eventStart: new Date(Date.now() - daysAgo * 24 * 60 * 60 * 1000),
       });
-    })
+    }),
   );
 
   // Generate achievements for secondary project
@@ -138,7 +138,7 @@ beforeAll(async () => {
         eventDuration: 'day',
         eventStart: new Date(Date.now() - daysAgo * 24 * 60 * 60 * 1000),
       });
-    })
+    }),
   );
 
   // Generate achievements for tertiary project
@@ -155,7 +155,7 @@ beforeAll(async () => {
         eventDuration: 'day',
         eventStart: new Date(Date.now() - daysAgo * 24 * 60 * 60 * 1000),
       });
-    })
+    }),
   );
 });
 
@@ -336,7 +336,7 @@ describe('preparePromptData', () => {
           eventDuration: 'day',
           eventStart: now,
         });
-      })
+      }),
     );
 
     const result = await fetch({

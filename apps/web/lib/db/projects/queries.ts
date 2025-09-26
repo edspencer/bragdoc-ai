@@ -23,7 +23,7 @@ export type CreateProjectInput = {
 export type UpdateProjectInput = Partial<Omit<CreateProjectInput, 'userId'>>;
 
 export async function getProjectsByUserId(
-  userId: string
+  userId: string,
 ): Promise<ProjectWithCompany[]> {
   const results = await db
     .select({
@@ -53,7 +53,7 @@ export async function getProjectsByUserId(
 
 export async function getProjectById(
   id: string,
-  userId: string
+  userId: string,
 ): Promise<ProjectWithCompany | null> {
   const results = await db
     .select({
@@ -84,7 +84,7 @@ export async function getProjectById(
 
 export async function getProjectsByCompanyId(
   companyId: string,
-  userId: string
+  userId: string,
 ): Promise<ProjectWithCompany[]> {
   const results = await db
     .select({
@@ -113,7 +113,7 @@ export async function getProjectsByCompanyId(
 }
 
 export async function getActiveProjects(
-  userId: string
+  userId: string,
 ): Promise<ProjectWithCompany[]> {
   const results = await db
     .select({
@@ -136,8 +136,8 @@ export async function getActiveProjects(
       and(
         eq(project.userId, userId),
         eq(project.status, 'active'),
-        isNull(project.endDate)
-      )
+        isNull(project.endDate),
+      ),
     )
     .orderBy(desc(project.startDate));
 
@@ -148,7 +148,7 @@ export async function getActiveProjects(
 }
 
 export async function createProject(
-  input: CreateProjectInput
+  input: CreateProjectInput,
 ): Promise<Project> {
   const results = await db
     .insert(project)
@@ -164,7 +164,7 @@ export async function createProject(
 export async function updateProject(
   id: string,
   userId: string,
-  input: UpdateProjectInput
+  input: UpdateProjectInput,
 ): Promise<Project | null> {
   const results = await db
     .update(project)
@@ -179,7 +179,7 @@ export async function updateProject(
 
 export async function deleteProject(
   id: string,
-  userId: string
+  userId: string,
 ): Promise<Project | null> {
   const results = await db
     .delete(project)
@@ -207,7 +207,7 @@ export async function ensureProject({
     .select()
     .from(project)
     .where(
-      and(eq(project.userId, userId), eq(project.repoRemoteUrl, remoteUrl))
+      and(eq(project.userId, userId), eq(project.repoRemoteUrl, remoteUrl)),
     )
     .limit(1);
 
@@ -234,7 +234,7 @@ export async function ensureProject({
         .where(eq(project.id, matchingProjectId));
 
       console.log(
-        `Found matching project ${matchingProjectId}, set remote URL`
+        `Found matching project ${matchingProjectId}, set remote URL`,
       );
 
       return { projectId: matchingProjectId };

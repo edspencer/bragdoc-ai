@@ -53,4 +53,4 @@ export const existingAchievements = [
     eventDuration: 'day',
     eventStart: new Date('2023-02-06'),
   },
-]
+];
