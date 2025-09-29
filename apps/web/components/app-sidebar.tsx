@@ -16,6 +16,7 @@ import {
   IconSettings,
   IconStar,
 } from '@tabler/icons-react';
+import { useSession } from 'next-auth/react';
 
 import { NavDocuments } from '@/components/nav-documents';
 import { NavMain } from '@/components/nav-main';
@@ -31,12 +32,7 @@ import {
   SidebarMenuItem,
 } from '@/components/ui/sidebar';
 
-const data = {
-  user: {
-    name: 'John Doe',
-    email: 'john@example.com',
-    avatar: '/avatars/user.jpg',
-  },
+const staticData = {
   navMain: [
     {
       title: 'Dashboard',
@@ -58,11 +54,11 @@ const data = {
       url: '/companies',
       icon: IconBuilding,
     },
-    {
-      title: 'Analytics',
-      url: '/analytics',
-      icon: IconChartBar,
-    },
+    // {
+    //   title: 'Analytics',
+    //   url: '/analytics',
+    //   icon: IconChartBar,
+    // },
   ],
   navClouds: [
     {
@@ -107,16 +103,16 @@ const data = {
       url: '/settings',
       icon: IconSettings,
     },
-    {
-      title: 'Get Help',
-      url: '/help',
-      icon: IconHelp,
-    },
-    {
-      title: 'Search',
-      url: '/search',
-      icon: IconSearch,
-    },
+    // {
+    //   title: 'Get Help',
+    //   url: '/help',
+    //   icon: IconHelp,
+    // },
+    // {
+    //   title: 'Search',
+    //   url: '/search',
+    //   icon: IconSearch,
+    // },
   ],
   documents: [
     {
@@ -138,6 +134,19 @@ const data = {
 };
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+  const { data: session, status } = useSession();
+
+  const user = {
+    name: session?.user?.name || 'User',
+    email: session?.user?.email || '',
+    avatar: session?.user?.image || '/avatars/user.jpg',
+  };
+
+  // Don't render until we have session data loaded
+  if (status === 'loading') {
+    return null;
+  }
+
   return (
     <Sidebar collapsible="offcanvas" {...props}>
       <SidebarHeader>
@@ -156,12 +165,12 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         </SidebarMenu>
       </SidebarHeader>
       <SidebarContent>
-        <NavMain items={data.navMain} />
-        <NavDocuments items={data.documents} />
-        <NavSecondary items={data.navSecondary} className="mt-auto" />
+        <NavMain items={staticData.navMain} />
+        <NavDocuments items={staticData.documents} />
+        <NavSecondary items={staticData.navSecondary} className="mt-auto" />
       </SidebarContent>
       <SidebarFooter>
-        <NavUser user={data.user} />
+        <NavUser user={user} />
       </SidebarFooter>
     </Sidebar>
   );
