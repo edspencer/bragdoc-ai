@@ -41,3 +41,5 @@ temp
 
 .cache_ggshield
 cli/dist
+
+*.tsbuildinfo
