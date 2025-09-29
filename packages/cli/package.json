@@ -31,7 +31,6 @@
   "scripts": {
     "build": "tsc",
     "start": "node dist/index.js",
-    "devDISABLED": "ts-node src/index.ts",
     "test": "jest",
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",

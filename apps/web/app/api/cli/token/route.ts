@@ -47,7 +47,6 @@ export async function POST(request: Request) {
   }
 }
 
-// Add OPTIONS method handler
 export async function OPTIONS(request: Request) {
   return new NextResponse(null, {
     status: 204,
