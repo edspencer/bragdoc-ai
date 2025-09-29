@@ -1,5 +1,5 @@
 import { Octokit } from '@octokit/rest';
-import type { GitHubRepository } from '../db/schema';
+import type { GitHubRepository } from '@/database/schema';
 
 export interface GitHubClientConfig {
   accessToken: string;
@@ -16,7 +16,7 @@ export class GitHubClient {
 
   async listRepositories(
     page = 1,
-    perPage = 30,
+    perPage = 30
   ): Promise<{
     repositories: Omit<
       GitHubRepository,

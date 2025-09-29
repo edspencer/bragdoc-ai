@@ -1,6 +1,6 @@
 import { auth } from 'app/(auth)/auth';
-import { db } from '@/lib/db';
-import { company, project, achievement, document } from '@/lib/db/schema';
+import { db } from '@/database/index';
+import { company, project, achievement, document } from '@/database/schema';
 import { eq, sql } from 'drizzle-orm';
 
 export async function GET() {

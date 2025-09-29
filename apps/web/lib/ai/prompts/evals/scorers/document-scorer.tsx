@@ -18,7 +18,7 @@ import { Achievements, Company, Project } from '../../elements';
 import type {
   Project as ProjectType,
   Company as CompanyType,
-} from 'lib/db/schema';
+} from '@/database/schema';
 
 const outputFormat = `
 (A) The document matches expectations perfectly
@@ -134,7 +134,7 @@ export async function DocumentScorer(args: any): Promise<Score> {
       days={args.input.days}
       company={args.input.company}
       project={args.input.project}
-    />,
+    />
   );
 
   return LLMClassifierFromSpec('DocumentScorer', {

@@ -2,7 +2,7 @@ import { type Dispatch, memo, type SetStateAction } from 'react';
 import type { UIBlock } from './block';
 import { PreviewMessage } from './message';
 import { useScrollToBottom } from './use-scroll-to-bottom';
-import type { Vote } from 'lib/db/schema';
+import type { Vote } from '@/database/schema';
 import type { ChatRequestOptions, Message } from 'ai';
 
 interface BlockMessagesProps {
@@ -13,10 +13,10 @@ interface BlockMessagesProps {
   votes: Array<Vote> | undefined;
   messages: Array<Message>;
   setMessages: (
-    messages: Message[] | ((messages: Message[]) => Message[]),
+    messages: Message[] | ((messages: Message[]) => Message[])
   ) => void;
   reload: (
-    chatRequestOptions?: ChatRequestOptions,
+    chatRequestOptions?: ChatRequestOptions
   ) => Promise<string | null | undefined>;
   isReadonly: boolean;
 }
@@ -69,7 +69,7 @@ function PureBlockMessages({
 
 function areEqual(
   prevProps: BlockMessagesProps,
-  nextProps: BlockMessagesProps,
+  nextProps: BlockMessagesProps
 ) {
   if (
     prevProps.block.status === 'streaming' &&

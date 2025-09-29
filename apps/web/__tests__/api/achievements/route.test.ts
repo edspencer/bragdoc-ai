@@ -1,12 +1,12 @@
 import { v4 as uuidv4 } from 'uuid';
-import { db } from 'lib/db';
+import { db } from '@/database/index';
 import {
   user,
   company,
   project,
   achievement,
   userMessage,
-} from 'lib/db/schema';
+} from '@/database/schema';
 import { GET, POST } from 'app/api/achievements/route';
 import {
   PUT as updateAchievement,

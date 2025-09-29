@@ -41,8 +41,8 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 
-import type { Project, Company } from '@/database/schema';
-import type { ProjectWithCompany } from '@/lib/db/projects/queries';
+import type { Company } from '@/database/schema';
+import type { ProjectWithCompany } from '@/database/projects/queries';
 
 const projectSchema = z.object({
   name: z.string().min(1, 'Project name is required'),

@@ -4,7 +4,7 @@ import type {
   Company as CompanyType,
   Project as ProjectType,
   Achievement as AchievementType,
-} from 'lib/db/schema';
+} from '@/database/schema';
 
 import type { Repository, Commit as RepositoryCommit } from './types';
 

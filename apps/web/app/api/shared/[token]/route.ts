@@ -1,10 +1,10 @@
-import { db } from 'lib/db';
-import { document } from 'lib/db/schema';
+import { db } from '@/database/index';
+import { document } from '@/database/schema';
 import { eq } from 'drizzle-orm';
 
 export async function GET(
   request: Request,
-  { params }: { params: Promise<{ token: string }> },
+  { params }: { params: Promise<{ token: string }> }
 ) {
   try {
     const { token } = await params;
@@ -26,7 +26,7 @@ export async function GET(
     console.error('Error fetching shared document:', error);
     return Response.json(
       { error: 'Failed to fetch document' },
-      { status: 500 },
+      { status: 500 }
     );
   }
 }

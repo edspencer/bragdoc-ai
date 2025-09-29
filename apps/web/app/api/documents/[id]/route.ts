@@ -1,6 +1,6 @@
 import { auth } from 'app/(auth)/auth';
-import { db } from 'lib/db';
-import { document } from 'lib/db/schema';
+import { db } from '@/database/index';
+import { document } from '@/database/schema';
 import { and, eq } from 'drizzle-orm';
 import { z } from 'zod';
 
@@ -21,7 +21,7 @@ const documentSchema = z.object({
 
 export async function GET(
   request: Request,
-  { params }: { params: Promise<{ id: string }> },
+  { params }: { params: Promise<{ id: string }> }
 ) {
   const session = await auth();
 
@@ -53,14 +53,14 @@ export async function GET(
     console.error('Error fetching document:', error);
     return Response.json(
       { error: 'Failed to fetch document' },
-      { status: 500 },
+      { status: 500 }
     );
   }
 }
 
 export async function PUT(
   request: Request,
-  { params }: { params: Promise<{ id: string }> },
+  { params }: { params: Promise<{ id: string }> }
 ) {
   const session = await auth();
 
@@ -83,7 +83,7 @@ export async function PUT(
     if (!parsed.success) {
       return Response.json(
         { error: 'Invalid request', details: parsed.error },
-        { status: 400 },
+        { status: 400 }
       );
     }
 
@@ -110,14 +110,14 @@ export async function PUT(
     console.error('Error updating document:', error);
     return Response.json(
       { error: 'Failed to update document' },
-      { status: 500 },
+      { status: 500 }
     );
   }
 }
 
 export async function PATCH(
   request: Request,
-  { params }: { params: Promise<{ id: string }> },
+  { params }: { params: Promise<{ id: string }> }
 ) {
   const session = await auth();
 
@@ -155,14 +155,14 @@ export async function PATCH(
     console.error('Error deleting document:', error);
     return Response.json(
       { error: 'Failed to delete document' },
-      { status: 500 },
+      { status: 500 }
     );
   }
 }
 
 export async function DELETE(
   request: Request,
-  { params }: { params: Promise<{ id: string }> },
+  { params }: { params: Promise<{ id: string }> }
 ) {
   const session = await auth();
 
@@ -194,7 +194,7 @@ export async function DELETE(
     console.error('Error deleting document:', error);
     return Response.json(
       { error: 'Failed to delete document' },
-      { status: 500 },
+      { status: 500 }
     );
   }
 }

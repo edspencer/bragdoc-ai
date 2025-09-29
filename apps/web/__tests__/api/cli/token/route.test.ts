@@ -1,6 +1,6 @@
 import { v4 as uuidv4 } from 'uuid';
-import { db } from 'lib/db';
-import { user, cliToken, project } from 'lib/db/schema';
+import { db } from '@/database/index';
+import { user, cliToken, project } from '@/database/schema';
 import { POST } from 'app/api/cli/token/route';
 import { eq } from 'drizzle-orm';
 import { NextRequest } from 'next/server';

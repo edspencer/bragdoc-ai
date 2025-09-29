@@ -47,20 +47,11 @@ describe('Project Queries', () => {
 
   beforeEach(async () => {
     // Create test user first
-    const [createdUser] = await db
-      .insert(user)
-      .values(testUser)
-      .returning();
+    const [createdUser] = await db.insert(user).values(testUser).returning();
 
     // Clean up existing data for this user
-    await db
-      .delete(project)
-      .where(eq(project.userId, testUser.id))
-      .execute();
-    await db
-      .delete(company)
-      .where(eq(company.userId, testUser.id))
-      .execute();
+    await db.delete(project).where(eq(project.userId, testUser.id)).execute();
+    await db.delete(company).where(eq(company.userId, testUser.id)).execute();
 
     // Create test company
     const [createdCompany] = await db
@@ -77,34 +68,16 @@ describe('Project Queries', () => {
 
   afterEach(async () => {
     // Clean up in correct order with specific where clauses
-    await db
-      .delete(project)
-      .where(eq(project.userId, testUser.id))
-      .execute();
-    await db
-      .delete(company)
-      .where(eq(company.userId, testUser.id))
-      .execute();
-    await db
-      .delete(user)
-      .where(eq(user.id, testUser.id))
-      .execute();
+    await db.delete(project).where(eq(project.userId, testUser.id)).execute();
+    await db.delete(company).where(eq(company.userId, testUser.id)).execute();
+    await db.delete(user).where(eq(user.id, testUser.id)).execute();
   });
 
   afterAll(async () => {
     // Final cleanup
-    await db
-      .delete(project)
-      .where(eq(project.userId, testUser.id))
-      .execute();
-    await db
-      .delete(company)
-      .where(eq(company.userId, testUser.id))
-      .execute();
-    await db
-      .delete(user)
-      .where(eq(user.id, testUser.id))
-      .execute();
+    await db.delete(project).where(eq(project.userId, testUser.id)).execute();
+    await db.delete(company).where(eq(company.userId, testUser.id)).execute();
+    await db.delete(user).where(eq(user.id, testUser.id)).execute();
   });
 
   describe('getProjectsByUserId', () => {
@@ -162,7 +135,7 @@ describe('Project Queries', () => {
     it('returns projects for valid company', async () => {
       const projects = await getProjectsByCompanyId(
         testCompany.id,
-        testUser.id,
+        testUser.id
       );
       expect(projects).toHaveLength(1);
       expect(projects[0].name).toBe(testProject.name);
@@ -304,12 +277,14 @@ describe('Project Queries', () => {
 
     beforeEach(async () => {
       // Get the mock function
-      fuzzyFindProject = jest.requireMock('@/lib/db/projects/fuzzyFind').fuzzyFindProject;
+      fuzzyFindProject = jest.requireMock(
+        '@/database/projects/fuzzyFind'
+      ).fuzzyFindProject;
       fuzzyFindProject.mockReset();
 
       // Clear all projects
       await db.delete(project).where(eq(project.userId, testUser.id));
-      
+
       // Create a test project
       testProject = await createProject({
         userId: testUser.id,
@@ -338,7 +313,9 @@ describe('Project Queries', () => {
 
       const foundProject = await getProjectById(result.projectId, testUser.id);
       expect(foundProject).toBeTruthy();
-      expect(foundProject?.repoRemoteUrl).toBe('git@github.com:edspencer/test-repo.git');
+      expect(foundProject?.repoRemoteUrl).toBe(
+        'git@github.com:edspencer/test-repo.git'
+      );
     });
 
     it('creates new project when no match found', async () => {
@@ -354,7 +331,9 @@ describe('Project Queries', () => {
       const newProject = await getProjectById(result.projectId, testUser.id);
       expect(newProject).toBeTruthy();
       expect(newProject?.name).toBe('new-repo');
-      expect(newProject?.repoRemoteUrl).toBe('git@github.com:edspencer/new-repo.git');
+      expect(newProject?.repoRemoteUrl).toBe(
+        'git@github.com:edspencer/new-repo.git'
+      );
       expect(newProject?.startDate).toBeTruthy();
       expect(newProject?.status).toBe('active');
       expect(fuzzyFindProject).toHaveBeenCalled();
@@ -372,7 +351,9 @@ describe('Project Queries', () => {
       // Verify the existing project was updated
       expect(result.projectId).toBe(testProject.id);
       const updatedProject = await getProjectById(testProject.id, testUser.id);
-      expect(updatedProject?.repoRemoteUrl).toBe('git@github.com:edspencer/matched-repo.git');
+      expect(updatedProject?.repoRemoteUrl).toBe(
+        'git@github.com:edspencer/matched-repo.git'
+      );
       expect(fuzzyFindProject).toHaveBeenCalled();
     });
 
@@ -384,7 +365,7 @@ describe('Project Queries', () => {
         name: `Other User ${testId}`,
       };
       await db.insert(user).values(otherUser);
-      
+
       await createProject({
         userId: otherUser.id,
         name: 'Other User Project',
@@ -405,7 +386,9 @@ describe('Project Queries', () => {
       // Should create new project since the existing one belongs to different user
       const newProject = await getProjectById(result.projectId, testUser.id);
       expect(newProject?.userId).toBe(testUser.id);
-      expect(newProject?.repoRemoteUrl).toBe('git@github.com:edspencer/test-repo.git');
+      expect(newProject?.repoRemoteUrl).toBe(
+        'git@github.com:edspencer/test-repo.git'
+      );
       expect(newProject?.startDate).toBeTruthy();
       expect(newProject?.status).toBe('active');
       expect(fuzzyFindProject).toHaveBeenCalled();

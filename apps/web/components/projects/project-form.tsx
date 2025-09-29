@@ -23,7 +23,7 @@ import {
   SelectValue,
 } from 'components/ui/select';
 import { Textarea } from 'components/ui/textarea';
-import { ProjectStatus } from 'lib/db/schema';
+import { ProjectStatus } from '@/database/schema';
 
 const formSchema = z.object({
   name: z.string().min(1, 'Project name is required').max(256),

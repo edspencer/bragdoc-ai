@@ -1,9 +1,9 @@
 import { v4 as uuidv4 } from 'uuid';
 import { fetch, render } from 'lib/ai/generate-document';
-import { db } from 'lib/db';
-import { user, type User } from 'lib/db/schema';
-import { createAchievement, createCompany } from 'lib/db/queries';
-import { createProject } from 'lib/db/projects/queries';
+import { db } from '@/database/index';
+import { user, type User } from '@/database/schema';
+import { createAchievement, createCompany } from '@/database/queries';
+import { createProject } from '@/database/projects/queries';
 
 // Test data shared across all tests
 const testData = {
@@ -121,7 +121,7 @@ beforeAll(async () => {
         eventDuration: 'day',
         eventStart: new Date(Date.now() - daysAgo * 24 * 60 * 60 * 1000),
       });
-    }),
+    })
   );
 
   // Generate achievements for secondary project
@@ -138,7 +138,7 @@ beforeAll(async () => {
         eventDuration: 'day',
         eventStart: new Date(Date.now() - daysAgo * 24 * 60 * 60 * 1000),
       });
-    }),
+    })
   );
 
   // Generate achievements for tertiary project
@@ -155,7 +155,7 @@ beforeAll(async () => {
         eventDuration: 'day',
         eventStart: new Date(Date.now() - daysAgo * 24 * 60 * 60 * 1000),
       });
-    }),
+    })
   );
 });
 
@@ -336,7 +336,7 @@ describe('preparePromptData', () => {
           eventDuration: 'day',
           eventStart: now,
         });
-      }),
+      })
     );
 
     const result = await fetch({

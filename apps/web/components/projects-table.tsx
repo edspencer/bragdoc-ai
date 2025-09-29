@@ -41,7 +41,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import type { ProjectWithCompany } from '@/lib/db/projects/queries';
+import type { ProjectWithCompany } from '@/database/projects/queries';
 
 interface ProjectsTableProps {
   data: ProjectWithCompany[];
@@ -56,7 +56,12 @@ const statusConfig = {
   archived: { label: 'Archived', variant: 'outline' as const },
 };
 
-export function ProjectsTable({ data, onEdit, onDelete, isLoading = false }: ProjectsTableProps) {
+export function ProjectsTable({
+  data,
+  onEdit,
+  onDelete,
+  isLoading = false,
+}: ProjectsTableProps) {
   const [sorting, setSorting] = React.useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
     []

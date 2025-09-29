@@ -14,7 +14,7 @@ import {
   AlertDialogTitle,
 } from 'components/ui/alert-dialog';
 import { useState } from 'react';
-import type { ProjectWithCompany } from 'lib/db/projects/queries';
+import type { ProjectWithCompany } from '@/database/projects/queries';
 
 interface ProjectActionsProps {
   project: ProjectWithCompany;

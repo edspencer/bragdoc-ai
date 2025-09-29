@@ -1,6 +1,9 @@
 import { NextResponse } from 'next/server';
 import { auth } from 'app/(auth)/auth';
-import { createProject, getProjectsByUserId } from 'lib/db/projects/queries';
+import {
+  createProject,
+  getProjectsByUserId,
+} from '@/database/projects/queries';
 import { z } from 'zod';
 
 const createProjectSchema = z.object({
@@ -28,7 +31,7 @@ export async function GET() {
     console.error('Error fetching projects:', error);
     return NextResponse.json(
       { error: 'Internal Server Error' },
-      { status: 500 },
+      { status: 500 }
     );
   }
 }
@@ -54,12 +57,12 @@ export async function POST(request: Request) {
     if (error instanceof z.ZodError) {
       return NextResponse.json(
         { error: 'Validation Error', details: error.errors },
-        { status: 400 },
+        { status: 400 }
       );
     }
     return NextResponse.json(
       { error: 'Internal Server Error' },
-      { status: 500 },
+      { status: 500 }
     );
   }
 }

@@ -1,7 +1,7 @@
 import { auth } from 'app/(auth)/auth';
-import { db } from 'lib/db';
-import { user, type UserPreferences } from 'lib/db/schema';
-import { getUserById } from 'lib/db/queries';
+import { db } from '@/database/index';
+import { user, type UserPreferences } from '@/database/schema';
+import { getUserById } from '@/database/queries';
 import { eq } from 'drizzle-orm';
 import { NextResponse } from 'next/server';
 

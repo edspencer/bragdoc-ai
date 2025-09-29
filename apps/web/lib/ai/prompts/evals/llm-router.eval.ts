@@ -4,11 +4,11 @@ import {
   type LlmRouterRenderExecuteProps,
 } from 'lib/ai/llm-router';
 import { RouterScorer } from './scorers/llm-router-scorer';
-import type { User } from 'lib/db/schema';
+import type { User } from '@/database/schema';
 import type { StepResult, ToolCallPart } from 'ai';
 
 const callRouter = async (
-  input: LlmRouterRenderExecuteProps,
+  input: LlmRouterRenderExecuteProps
 ): Promise<Partial<StepResult<any>>> => {
   let toolCalls: ToolCallPart[] = [];
 
@@ -225,7 +225,7 @@ export const experimentData: Experiment[] = [
                 },
               ],
               null,
-              2,
+              2
             ),
           },
           {
@@ -245,7 +245,7 @@ export const experimentData: Experiment[] = [
                 },
               ],
               null,
-              2,
+              2
             ),
           },
           {
@@ -258,7 +258,7 @@ export const experimentData: Experiment[] = [
                 },
               ],
               null,
-              2,
+              2
             ),
           },
         ],

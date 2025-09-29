@@ -1,8 +1,12 @@
 import { type NextRequest, NextResponse } from 'next/server';
 import { auth } from 'app/(auth)/auth';
-import { getCompanyById, updateCompany, deleteCompany } from 'lib/db/queries';
+import {
+  getCompanyById,
+  updateCompany,
+  deleteCompany,
+} from '@/database/queries';
 import { z } from 'zod';
-import { db } from 'lib/db';
+import { db } from '@/database/index';
 
 // Validation schema for updating a company
 const updateCompanySchema = z.object({
@@ -38,14 +42,14 @@ export async function GET(request: Request, { params }: { params: Params }) {
     console.error('Error fetching company:', error);
     return NextResponse.json(
       { error: 'Internal Server Error' },
-      { status: 500 },
+      { status: 500 }
     );
   }
 }
 
 export async function PUT(
   request: NextRequest,
-  { params }: { params: Params },
+  { params }: { params: Params }
 ) {
   const { id } = await params;
 
@@ -77,14 +81,14 @@ export async function PUT(
     console.error('Error updating company:', error);
     return NextResponse.json(
       { error: 'Internal Server Error' },
-      { status: 500 },
+      { status: 500 }
     );
   }
 }
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: Params },
+  { params }: { params: Params }
 ) {
   const { id } = await params;
   try {
@@ -108,7 +112,7 @@ export async function DELETE(
     console.error('Error deleting company:', error);
     return NextResponse.json(
       { error: 'Internal Server Error' },
-      { status: 500 },
+      { status: 500 }
     );
   }
 }

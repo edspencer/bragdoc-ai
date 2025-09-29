@@ -45,7 +45,7 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from 'components/ui/sidebar';
-import type { Chat } from 'lib/db/schema';
+import type { Chat } from '@/database/schema';
 import { fetcher } from 'lib/utils';
 import { useChatVisibility } from 'hooks/use-chat-visibility';
 
@@ -276,7 +276,7 @@ export function SidebarHistory({ user }: { user: User | undefined }) {
         lastWeek: [],
         lastMonth: [],
         older: [],
-      } as GroupedChats,
+      } as GroupedChats
     );
   };
 

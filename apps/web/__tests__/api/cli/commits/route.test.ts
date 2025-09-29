@@ -1,6 +1,12 @@
 import { v4 as uuidv4 } from 'uuid';
-import { db } from 'lib/db';
-import { user, company, project, achievement, cliToken } from 'lib/db/schema';
+import { db } from '@/database/index';
+import {
+  user,
+  company,
+  project,
+  achievement,
+  cliToken,
+} from '@/database/schema';
 import { eq } from 'drizzle-orm';
 import { POST } from 'app/api/cli/commits/route';
 import { NextRequest } from 'next/server';
@@ -11,9 +17,9 @@ jest.mock('@/lib/ai/extract-commit-achievements', () => ({
   fetchRenderExecute: jest.fn(),
 }));
 
-import * as fuzzyFind from 'lib/db/projects/fuzzyFind';
+import * as fuzzyFind from '@/database/projects/fuzzyFind';
 
-jest.mock('@/lib/db/projects/fuzzyFind');
+jest.mock('@/database/projects/fuzzyFind');
 const mockFuzzyFind = fuzzyFind as jest.Mocked<typeof fuzzyFind>;
 mockFuzzyFind.fuzzyFindProject.mockResolvedValue(null);
 

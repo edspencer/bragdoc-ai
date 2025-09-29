@@ -1,4 +1,4 @@
-import type { Achievement, Company, Project, Message } from 'lib/db/schema';
+import type { Achievement, Company, Project, Message } from '@/database/schema';
 
 const renderProject = (project: Project) => {
   return `

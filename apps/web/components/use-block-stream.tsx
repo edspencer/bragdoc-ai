@@ -2,7 +2,7 @@ import type { JSONValue } from 'ai';
 import { type Dispatch, type SetStateAction, useEffect, useState } from 'react';
 import { useSWRConfig } from 'swr';
 
-import type { Suggestion } from 'lib/db/schema';
+import type { Suggestion } from '@/database/schema';
 
 import type { UIBlock } from './block';
 import { useUserMessageId } from 'hooks/use-user-message-id';

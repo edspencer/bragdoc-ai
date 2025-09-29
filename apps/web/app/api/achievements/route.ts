@@ -1,8 +1,8 @@
 import { type NextRequest, NextResponse } from 'next/server';
 import { auth } from 'app/(auth)/auth';
 import { z } from 'zod';
-import { getAchievements } from 'lib/db/queries';
-import { createAchievement } from 'lib/db/achievements/utils';
+import { getAchievements } from '@/database/queries';
+import { createAchievement } from '@/database/achievements/utils';
 
 // Validation schema for achievement data
 const achievementSchema = z.object({
@@ -67,7 +67,7 @@ export async function GET(req: NextRequest) {
     console.error('Error fetching achievements:', error);
     return NextResponse.json(
       { error: 'Failed to fetch achievements' },
-      { status: 500 },
+      { status: 500 }
     );
   }
 }
@@ -89,7 +89,7 @@ export async function POST(req: NextRequest) {
           error: 'Invalid achievement data',
           details: result.error.errors,
         },
-        { status: 400 },
+        { status: 400 }
       );
     }
 
@@ -125,7 +125,7 @@ export async function POST(req: NextRequest) {
     console.error('Error creating achievement:', error);
     return NextResponse.json(
       { error: 'Failed to create achievement' },
-      { status: 500 },
+      { status: 500 }
     );
   }
 }

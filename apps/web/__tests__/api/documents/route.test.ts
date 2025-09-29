@@ -7,13 +7,13 @@ import {
   POST as shareDocument,
   DELETE as unshareDocument,
 } from 'app/api/documents/[id]/share/route';
-import { document, user, company, project } from 'lib/db/schema';
+import { document, user, company, project } from '@/database/schema';
 import { auth } from 'app/(auth)/auth';
 import { eq } from 'drizzle-orm';
 import { NextRequest } from 'next/server';
 import { v4 as uuidv4 } from 'uuid';
 
-import { db } from 'lib/db';
+import { db } from '@/database/index';
 
 // Mock the auth module
 jest.mock('@/app/(auth)/auth', () => ({
@@ -133,7 +133,7 @@ describe('Documents API', () => {
         .from(document)
         .where(eq(document.title, newDoc.title));
       expect(dbDoc).toHaveLength(1);
-      expect(dbDoc[0].content).toBe(newDoc.content);
+      expect(dbDoc[0]?.content).toBe(newDoc.content);
     });
 
     it('validates required fields', async () => {
@@ -290,7 +290,7 @@ describe('Documents API', () => {
         .select()
         .from(document)
         .where(eq(document.id, testDoc.id));
-      expect(dbDoc[0].shareToken).toBe(data.shareToken);
+      expect(dbDoc[0]?.shareToken).toBe(data.shareToken);
     });
 
     it('revokes a share token', async () => {
@@ -319,7 +319,7 @@ describe('Documents API', () => {
         .select()
         .from(document)
         .where(eq(document.id, testDoc.id));
-      expect(dbDoc[0].shareToken).toBeNull();
+      expect(dbDoc[0]?.shareToken).toBeNull();
     });
   });
 });

@@ -1,8 +1,8 @@
 import { auth } from 'app/(auth)/auth';
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
-import { db } from 'lib/db';
-import { cliToken } from 'lib/db/schema';
+import { db } from '@/database/index';
+import { cliToken } from '@/database/schema';
 import { randomBytes } from 'node:crypto';
 
 const requestSchema = z.object({
@@ -42,7 +42,7 @@ export async function POST(request: Request) {
       error instanceof z.ZodError
         ? 'Invalid request body'
         : 'Internal server error',
-      { status: error instanceof z.ZodError ? 400 : 500 },
+      { status: error instanceof z.ZodError ? 400 : 500 }
     );
   }
 }

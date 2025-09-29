@@ -8,8 +8,8 @@ import {
   DialogTitle,
 } from 'components/ui/dialog';
 import { ProjectForm, type ProjectFormData } from './project-form';
-import type { ProjectWithCompany } from 'lib/db/projects/queries';
-import type { ProjectStatus } from 'lib/db/schema';
+import type { ProjectWithCompany } from '@/database/projects/queries';
+import type { ProjectStatus } from '@/database/schema';
 
 interface ProjectDialogProps {
   open: boolean;

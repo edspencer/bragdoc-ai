@@ -2,7 +2,7 @@ import useSWR from 'swr';
 import { toast } from 'sonner';
 import { useConfetti } from 'hooks/useConfetti';
 import type { CompanyFormData } from 'components/companies/company-form';
-import type { Company } from 'lib/db/schema';
+import type { Company } from '@/database/schema';
 
 const fetchCompanies = async (url: string) => {
   const res = await fetch(url);
@@ -35,7 +35,7 @@ const fetchCompany = async (url: string) => {
 export function useCompanies() {
   const { data, error, mutate } = useSWR<Company[]>(
     '/api/companies',
-    fetchCompanies,
+    fetchCompanies
   );
 
   return {
@@ -49,7 +49,7 @@ export function useCompanies() {
 export function useCompany(id: string) {
   const { data, error, mutate } = useSWR<Company>(
     `/api/companies/${id}`,
-    fetchCompany,
+    fetchCompany
   );
 
   return {

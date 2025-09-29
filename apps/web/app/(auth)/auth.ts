@@ -6,8 +6,8 @@ import GitHub from 'next-auth/providers/github';
 import { DrizzleAdapter } from '@auth/drizzle-adapter';
 import { eq } from 'drizzle-orm';
 
-import { getUser } from '@/lib/db/queries';
-import { db } from '@/lib/db';
+import { getUser } from '@/database/queries';
+import { db } from '@/database/index';
 
 import { authConfig } from './auth.config';
 import type {
@@ -24,7 +24,7 @@ import {
   type UserPreferences,
   type UserLevel,
   type RenewalPeriod,
-} from '@/lib/db/schema';
+} from '@/database/schema';
 import { sendWelcomeEmail } from '@/lib/email/sendWelcomeEmail';
 
 declare module 'next-auth' {

@@ -1,5 +1,5 @@
 import { auth } from 'app/(auth)/auth';
-import { getDocumentsById, saveDocument } from 'lib/db/queries';
+import { getDocumentsById, saveDocument } from '@/database/queries';
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);

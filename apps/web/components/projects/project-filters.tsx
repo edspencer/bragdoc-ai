@@ -10,8 +10,8 @@ import {
 } from 'components/ui/select';
 import { ResetIcon } from '@radix-ui/react-icons';
 import { motion } from 'framer-motion';
-import type { ProjectStatus } from 'lib/db/types';
-import { cn } from 'lib/utils';
+import type { ProjectStatus } from '@/database/types';
+import { cn } from '@/lib/utils';
 import { Loader2Icon } from 'lucide-react';
 
 interface Company {

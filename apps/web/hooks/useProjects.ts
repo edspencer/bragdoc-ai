@@ -2,7 +2,7 @@ import useSWR, { mutate } from 'swr';
 import { toast } from 'sonner';
 import { useConfetti } from 'hooks/useConfetti';
 import type { ProjectFormData } from 'components/projects/project-form';
-import type { ProjectWithCompany } from 'lib/db/projects/queries';
+import type { ProjectWithCompany } from '@/database/projects/queries';
 
 const fetcher = async (url: string) => {
   const response = await fetch(url);
@@ -24,19 +24,24 @@ const fetchProjects = async (url: string): Promise<ProjectWithCompany[]> => {
     endDate: project.endDate ? new Date(project.endDate) : null,
     createdAt: new Date(project.createdAt),
     updatedAt: new Date(project.updatedAt),
-    company: project.company ? {
-      ...project.company,
-      startDate: new Date(project.company.startDate),
-      endDate: project.company.endDate ? new Date(project.company.endDate) : null,
-    } : null,
+    company: project.company
+      ? {
+          ...project.company,
+          startDate: new Date(project.company.startDate),
+          endDate: project.company.endDate
+            ? new Date(project.company.endDate)
+            : null,
+        }
+      : null,
   }));
 };
 
 export function useProjects() {
-  const { data, error, mutate: mutateProjects } = useSWR<ProjectWithCompany[]>(
-    '/api/projects',
-    fetchProjects,
-  );
+  const {
+    data,
+    error,
+    mutate: mutateProjects,
+  } = useSWR<ProjectWithCompany[]>('/api/projects', fetchProjects);
 
   return {
     projects: data || [],

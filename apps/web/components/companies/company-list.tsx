@@ -17,7 +17,7 @@ import { CompanyListSkeleton } from './company-list-skeleton';
 import { useState } from 'react';
 import type { CompanyFormData } from './company-form';
 import { motion } from 'framer-motion';
-import type { Company } from 'lib/db/schema';
+import type { Company } from '@/database/schema';
 import { CRUDHeader } from '../shared/page-header';
 
 interface CompanyListProps {

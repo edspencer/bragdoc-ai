@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import type { Achievement, Company, Project, User } from 'lib/db/schema';
+import type { Achievement, Company, Project, User } from '@/database/schema';
 import type { Message } from 'ai';
 
 //Schema we use to ask the LLM for a structured response using
@@ -12,20 +12,20 @@ export const achievementResponseSchema = z.object({
   details: z
     .string()
     .describe(
-      'If the user input had to be summarized to fit into the title, put their entire input here. Otherwise, leave this empty',
+      'If the user input had to be summarized to fit into the title, put their entire input here. Otherwise, leave this empty'
     )
     .optional(),
   eventStart: z
     .string()
     .describe(
-      'The start date of the event or achievement. Fill this if the user mentions a date',
+      'The start date of the event or achievement. Fill this if the user mentions a date'
     )
     .optional(),
   eventEnd: z
     .string()
     .nullable()
     .describe(
-      'The end date of the event or achievement. This is less important than eventStart',
+      'The end date of the event or achievement. This is less important than eventStart'
     )
     .optional(),
   eventDuration: z
@@ -35,13 +35,13 @@ export const achievementResponseSchema = z.object({
     .string()
     .nullable()
     .describe(
-      'The ID of the company this achievement is associated with (null if not specified)',
+      'The ID of the company this achievement is associated with (null if not specified)'
     ),
   projectId: z
     .string()
     .nullable()
     .describe(
-      'The ID of the project this achievement is associated with (null if not specified)',
+      'The ID of the project this achievement is associated with (null if not specified)'
     ),
   impact: z
     .number()

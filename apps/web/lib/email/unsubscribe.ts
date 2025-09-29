@@ -1,5 +1,5 @@
-import { db } from 'lib/db';
-import { emailPreferences } from 'lib/db/schema';
+import { db } from '@/database/index';
+import { emailPreferences } from '@/database/schema';
 import { eq } from 'drizzle-orm';
 import type { EmailType, UnsubscribeData } from './types';
 import { encode, decode } from 'next-auth/jwt';
@@ -9,7 +9,7 @@ const SECRET = process.env.AUTH_SECRET!;
 
 export async function generateUnsubscribeUrl(
   userId: string,
-  emailType?: EmailType,
+  emailType?: EmailType
 ): Promise<string> {
   const salt = randomBytes(16).toString('hex');
   const token = await encode({
@@ -28,7 +28,7 @@ export async function generateUnsubscribeUrl(
 
 export async function verifyUnsubscribeToken(
   token: string,
-  salt: string,
+  salt: string
 ): Promise<UnsubscribeData> {
   try {
     const decoded = await decode({
@@ -49,7 +49,7 @@ export async function verifyUnsubscribeToken(
 
 export async function isUnsubscribed(
   userId: string,
-  emailType?: EmailType,
+  emailType?: EmailType
 ): Promise<boolean> {
   const [prefs] = await db
     .select()

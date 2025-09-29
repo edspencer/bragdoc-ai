@@ -17,9 +17,9 @@ import { useState } from 'react';
 import type { ProjectFormData } from './project-form';
 import { motion } from 'framer-motion';
 import { Badge } from 'components/ui/badge';
-import type { ProjectStatus } from 'lib/db/schema';
+import type { ProjectStatus } from '@/database/schema';
 import { ProjectActions } from './project-actions';
-import type { ProjectWithCompany } from 'lib/db/projects/queries';
+import type { ProjectWithCompany } from '@/database/projects/queries';
 import { CRUDHeader } from '../shared/page-header';
 
 interface ProjectListProps {
@@ -47,7 +47,7 @@ export function ProjectList({
 }: ProjectListProps) {
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [editProject, setEditProject] = useState<ProjectWithCompany | null>(
-    null,
+    null
   );
   const [actionLoading, setActionLoading] = useState<string | null>(null);
 

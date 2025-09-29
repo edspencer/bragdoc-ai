@@ -4,11 +4,11 @@ import {
   getCompaniesByUserId,
   getAchievements,
   createAchievement,
-} from 'lib/db/queries';
-import { getProjectsByUserId } from 'lib/db/projects/queries';
-import { streamFetchRenderExecute } from 'lib/ai/extract-achievements';
+} from '@/database/queries';
+import { getProjectsByUserId } from '@/database/projects/queries';
+import { streamFetchRenderExecute } from '@/lib/ai/extract-achievements';
 import { generateText } from 'ai';
-import { customModel } from 'lib/ai';
+import { customModel } from '@/lib/ai';
 import { z } from 'zod';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -42,7 +42,7 @@ Remember:
 - If no achievements are found, do not call the extractAchievements tool`;
 
 export async function processIncomingEmail(
-  email: IncomingEmail,
+  email: IncomingEmail
 ): Promise<{ success: boolean; error?: string }> {
   try {
     const senderEmail = extractEmailFromSender(email.from);
@@ -100,7 +100,7 @@ ${achievements.map((a) => `- ${a.title}`).join('\n')}`;
           execute: async () => {
             console.log(
               'Starting achievement extraction for email from:',
-              senderEmail,
+              senderEmail
             );
 
             // Create a user message record first
@@ -151,7 +151,7 @@ ${achievements.map((a) => `- ${a.title}`).join('\n')}`;
 
             console.log(
               'Finished processing achievements:',
-              savedAchievements.length,
+              savedAchievements.length
             );
             return { success: true };
           },

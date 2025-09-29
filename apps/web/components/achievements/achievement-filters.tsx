@@ -17,7 +17,7 @@ import {
 import { Popover, PopoverContent, PopoverTrigger } from 'components/ui/popover';
 import { Calendar } from 'components/ui/calendar';
 import { cn } from 'lib/utils';
-import type { Company, Project } from 'lib/db/schema';
+import type { Company, Project } from '@/database/schema';
 import { format } from 'date-fns';
 
 interface AchievementFiltersProps {
@@ -76,7 +76,7 @@ export function AchievementFilters({
         <MagnifyingGlassIcon
           className={cn(
             'absolute left-2.5 top-2.5 size-4 text-muted-foreground',
-            loading.search && 'opacity-70',
+            loading.search && 'opacity-70'
           )}
         />
         <Input
@@ -89,7 +89,7 @@ export function AchievementFilters({
             'pl-8 transition-shadow duration-200',
             'w-[200px]',
             'focus-visible:ring-2 focus-visible:ring-primary',
-            loading.search && 'opacity-70',
+            loading.search && 'opacity-70'
           )}
         />
         {loading.search && (
@@ -152,7 +152,7 @@ export function AchievementFilters({
               variant="outline"
               className={cn(
                 'w-[130px] justify-start text-left font-normal',
-                !startDate && 'text-muted-foreground',
+                !startDate && 'text-muted-foreground'
               )}
             >
               <CalendarIcon className="mr-2 size-4" />
@@ -175,7 +175,7 @@ export function AchievementFilters({
               variant="outline"
               className={cn(
                 'w-[130px] justify-start text-left font-normal',
-                !endDate && 'text-muted-foreground',
+                !endDate && 'text-muted-foreground'
               )}
             >
               <CalendarIcon className="mr-2 size-4" />

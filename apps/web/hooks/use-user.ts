@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
-import type { User } from 'lib/db/schema';
+import type { User } from '@/database/schema';
 import { useSession } from 'next-auth/react';
 
 interface UseUserResponse {
@@ -57,7 +57,7 @@ export function useUser(): UseUserResponse {
         throw err;
       }
     },
-    [session?.user?.id],
+    [session?.user?.id]
   );
 
   const mutate = useCallback(async () => {

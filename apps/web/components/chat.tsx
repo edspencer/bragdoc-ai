@@ -10,7 +10,7 @@ import { useSession } from 'next-auth/react';
 import type { User } from 'next-auth';
 
 import { ChatHeader } from 'components/chat-header';
-import type { Vote } from 'lib/db/schema';
+import type { Vote } from '@/database/schema';
 import { fetcher } from 'lib/utils';
 
 import { Block, type UIBlock } from './block';
@@ -75,7 +75,7 @@ export function Chat({
 
   const { data: votes } = useSWR<Array<Vote>>(
     `/api/vote?chatId=${id}`,
-    fetcher,
+    fetcher
   );
 
   const [attachments, setAttachments] = useState<Array<Attachment>>([]);

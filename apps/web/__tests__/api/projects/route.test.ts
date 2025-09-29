@@ -1,6 +1,6 @@
 import { v4 as uuidv4 } from 'uuid';
-import { db } from 'lib/db';
-import { user, company, project } from 'lib/db/schema';
+import { db } from '@/database/index';
+import { user, company, project } from '@/database/schema';
 import { GET, POST } from 'app/api/projects/route';
 import {
   GET as getProject,

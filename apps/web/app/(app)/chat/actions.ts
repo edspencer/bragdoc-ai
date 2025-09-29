@@ -8,7 +8,7 @@ import {
   deleteMessagesByChatIdAfterTimestamp,
   getMessageById,
   updateChatVisiblityById,
-} from '@/lib/db/queries';
+} from '@/database/queries';
 import type { VisibilityType } from 'components/visibility-selector';
 
 export async function saveModelId(model: string) {

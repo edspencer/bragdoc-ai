@@ -4,7 +4,7 @@ import { useScrollToBottom } from './use-scroll-to-bottom';
 import { Overview } from './overview';
 import type { UIBlock } from './block';
 import { type Dispatch, memo, type SetStateAction } from 'react';
-import type { Vote } from 'lib/db/schema';
+import type { Vote } from '@/database/schema';
 import equal from 'fast-deep-equal';
 import type { User } from 'next-auth';
 
@@ -16,10 +16,10 @@ interface MessagesProps {
   votes: Array<Vote> | undefined;
   messages: Array<Message>;
   setMessages: (
-    messages: Message[] | ((messages: Message[]) => Message[]),
+    messages: Message[] | ((messages: Message[]) => Message[])
   ) => void;
   reload: (
-    chatRequestOptions?: ChatRequestOptions,
+    chatRequestOptions?: ChatRequestOptions
   ) => Promise<string | null | undefined>;
   isReadonly: boolean;
   user: User | null | undefined;

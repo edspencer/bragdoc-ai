@@ -1,12 +1,12 @@
-import { getProjectsByUserId } from '../db/projects/queries';
+import { getProjectsByUserId } from '@/database/projects/queries';
 import {
   createAchievement,
   createUserMessage,
   getCompaniesByUserId,
   getDocumentById,
   saveDocument,
-} from '../db/queries';
-import type { User, Company, Project } from '../db/schema';
+} from '@/database/queries';
+import type { User, Company, Project } from '@/database/schema';
 import { type JSONValue, streamText } from 'ai';
 import { documentWritingModel, routerModel } from '.';
 
@@ -41,7 +41,7 @@ export type LlmRouterPromptProps = LlmRouterFetchProps & {
  * @returns {Promise<LlmRouterPromptProps>} The fetched data including user details, companies, projects, chat history, message, and event callback.
  */
 export async function fetch(
-  props: LlmRouterFetchProps,
+  props: LlmRouterFetchProps
 ): Promise<LlmRouterPromptProps> {
   const { user, chatHistory, message, onEvent } = props;
 
@@ -84,10 +84,10 @@ export type LlmRouterRenderExecuteProps = {
 
 export type Tools = {
   createDocument?: (
-    props: CreateDocumentExecuteProps,
+    props: CreateDocumentExecuteProps
   ) => Promise<CreateDocumentExecuteReturn>;
   updateDocument?: (
-    props: { id: string; description: string } & CreateDocumentExecuteProps,
+    props: { id: string; description: string } & CreateDocumentExecuteProps
   ) => Promise<CreateDocumentExecuteReturn>;
   extractAchievements?: () => Promise<any>;
 };
@@ -394,7 +394,7 @@ export function execute({
             .string()
             .optional()
             .describe(
-              "The ID of the company that the user is talking about (use the project's company if not specified and the project has a companyId)",
+              "The ID of the company that the user is talking about (use the project's company if not specified and the project has a companyId)"
             ),
         }),
         execute: tools?.createDocument || createDocument,

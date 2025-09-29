@@ -3,12 +3,12 @@ import {
   GET as getCompanies,
   POST as createCompany,
 } from 'app/api/companies/route';
-import { company, user, project, achievement } from 'lib/db/schema';
+import { company, user, project, achievement } from '@/database/schema';
 import { auth } from 'app/(auth)/auth';
 import { eq } from 'drizzle-orm';
 import { NextRequest } from 'next/server';
 
-import { db } from 'lib/db';
+import { db } from '@/database/index';
 
 // Mock the auth module
 jest.mock('@/app/(auth)/auth', () => ({

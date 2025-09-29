@@ -3,7 +3,7 @@ import { toast } from 'sonner';
 import { useSWRConfig } from 'swr';
 import { useCopyToClipboard } from 'usehooks-ts';
 
-import type { Vote } from 'lib/db/schema';
+import type { Vote } from '@/database/schema';
 import { getMessageIdFromAnnotations } from '../lib/utils';
 
 import { CopyIcon, ThumbDownIcon, ThumbUpIcon } from './icons';
@@ -82,7 +82,7 @@ export function PureMessageActions({
                         if (!currentVotes) return [];
 
                         const votesWithoutCurrent = currentVotes.filter(
-                          (vote) => vote.messageId !== message.id,
+                          (vote) => vote.messageId !== message.id
                         );
 
                         return [
@@ -94,7 +94,7 @@ export function PureMessageActions({
                           },
                         ];
                       },
-                      { revalidate: false },
+                      { revalidate: false }
                     );
 
                     return 'Upvoted Response!';
@@ -136,7 +136,7 @@ export function PureMessageActions({
                         if (!currentVotes) return [];
 
                         const votesWithoutCurrent = currentVotes.filter(
-                          (vote) => vote.messageId !== message.id,
+                          (vote) => vote.messageId !== message.id
                         );
 
                         return [
@@ -148,7 +148,7 @@ export function PureMessageActions({
                           },
                         ];
                       },
-                      { revalidate: false },
+                      { revalidate: false }
                     );
 
                     return 'Downvoted Response!';
@@ -174,5 +174,5 @@ export const MessageActions = memo(
     if (prevProps.isLoading !== nextProps.isLoading) return false;
 
     return true;
-  },
+  }
 );

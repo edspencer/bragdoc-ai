@@ -5,16 +5,16 @@ import {
   saveChat,
   saveMessages,
   deleteChatById,
-} from 'lib/db/queries';
-import type { User } from 'lib/db/schema';
+} from '@/database/queries';
+import type { User } from '@/database/schema';
 import {
   generateUUID,
   getMostRecentUserMessage,
   sanitizeResponseMessages,
-} from 'lib/utils';
+} from '@/lib/utils';
 
-import { generateTitleFromUserMessage } from 'app/(app)/chat/actions';
-import { streamFetchRenderExecute } from 'lib/ai/llm-router';
+import { generateTitleFromUserMessage } from '@/app/(app)/chat/actions';
+import { streamFetchRenderExecute } from '@/lib/ai/llm-router';
 
 export const maxDuration = 60;
 
@@ -95,7 +95,7 @@ export async function POST(request: Request) {
                     content: message.content,
                     createdAt: new Date(),
                   };
-                },
+                }
               ),
             });
           } catch (error) {

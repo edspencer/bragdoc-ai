@@ -15,7 +15,7 @@ import {
   useDeleteProject,
 } from '@/hooks/useProjects';
 import { useCompanies } from '@/hooks/use-companies';
-import type { ProjectWithCompany } from '@/lib/db/projects/queries';
+import type { ProjectWithCompany } from '@/database/projects/queries';
 import { AppPage } from '@/components/shared/app-page';
 
 export default function ProjectsPage() {
