@@ -6,9 +6,8 @@ import type { Company } from '@/database/schema';
 
 import { Button } from 'components/ui/button';
 import { CompaniesTable } from '@/components/companies-table';
-import { AppSidebar } from '@/components/app-sidebar';
 import { SiteHeader } from '@/components/site-header';
-import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar';
+import { SidebarInset } from '@/components/ui/sidebar';
 import { CompanyDialog } from '@/components/company-dialog';
 import {
   useCompanies,
@@ -16,6 +15,7 @@ import {
   useUpdateCompany,
   useDeleteCompany,
 } from '@/hooks/use-companies';
+import { AppPage } from '@/components/shared/app-page';
 
 export default function CompaniesPage() {
   const { companies, isLoading } = useCompanies();
@@ -25,7 +25,7 @@ export default function CompaniesPage() {
 
   const [dialogOpen, setDialogOpen] = React.useState(false);
   const [editingCompany, setEditingCompany] = React.useState<Company | null>(
-    null,
+    null
   );
 
   const handleAddCompany = () => {
@@ -63,15 +63,7 @@ export default function CompaniesPage() {
   };
 
   return (
-    <SidebarProvider
-      style={
-        {
-          '--sidebar-width': 'calc(var(--spacing) * 72)',
-          '--header-height': 'calc(var(--spacing) * 12)',
-        } as React.CSSProperties
-      }
-    >
-      <AppSidebar variant="inset" />
+    <AppPage>
       <SidebarInset>
         <SiteHeader />
         <div className="flex flex-1 flex-col">
@@ -111,6 +103,6 @@ export default function CompaniesPage() {
         company={editingCompany}
         onSubmit={handleSubmitCompany}
       />
-    </SidebarProvider>
+    </AppPage>
   );
 }

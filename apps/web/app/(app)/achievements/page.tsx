@@ -36,17 +36,14 @@ import { useProjects } from '@/hooks/useProjects';
 import { useAchievementMutations } from '@/hooks/use-achievement-mutations';
 import { useAchievements } from '@/hooks/use-achievements';
 import type { CreateAchievementRequest } from '@/lib/types/achievement';
+import { AppPage } from '@/components/shared/app-page';
 
 export default function AchievementsPage() {
   // Data fetching hooks
   const { companies } = useCompanies();
   const { projects } = useProjects();
   const { createAchievement, updateAchievement } = useAchievementMutations();
-  const {
-    achievements,
-    mutate: mutateAchievements,
-  } = useAchievements();
-
+  const { achievements, mutate: mutateAchievements } = useAchievements();
 
   // Quick entry form state
   const [newAchievementText, setNewAchievementText] = React.useState('');
@@ -168,15 +165,7 @@ export default function AchievementsPage() {
   };
 
   return (
-    <SidebarProvider
-      style={
-        {
-          '--sidebar-width': 'calc(var(--spacing) * 72)',
-          '--header-height': 'calc(var(--spacing) * 12)',
-        } as React.CSSProperties
-      }
-    >
-      <AppSidebar variant="inset" />
+    <AppPage>
       <SidebarInset>
         <SiteHeader />
         <div className="flex flex-1 flex-col">
@@ -279,6 +268,6 @@ export default function AchievementsPage() {
           selectedAchievements.includes(a.id)
         )}
       />
-    </SidebarProvider>
+    </AppPage>
   );
 }

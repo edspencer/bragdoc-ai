@@ -1,8 +1,8 @@
 import Link from 'next/link';
-import { AppPage } from 'components/shared/app-page';
 import { PageHeader } from 'components/shared/page-header';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from 'components/ui/tabs';
 import { PrettyPrompt } from './PrettyPrompt';
+import { AppPage } from 'components/shared/app-page';
 
 export default async function PromptPage() {
   const description = (

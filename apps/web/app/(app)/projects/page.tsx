@@ -6,12 +6,17 @@ import { IconFolderCode, IconPlus } from '@tabler/icons-react';
 import { Button } from '@/components/ui/button';
 import { ProjectsTable } from '@/components/projects-table';
 import { ProjectDialog } from '@/components/project-dialog';
-import { AppSidebar } from '@/components/app-sidebar';
 import { SiteHeader } from '@/components/site-header';
-import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar';
-import { useProjects, useCreateProject, useUpdateProject, useDeleteProject } from '@/hooks/useProjects';
+import { SidebarInset } from '@/components/ui/sidebar';
+import {
+  useProjects,
+  useCreateProject,
+  useUpdateProject,
+  useDeleteProject,
+} from '@/hooks/useProjects';
 import { useCompanies } from '@/hooks/use-companies';
 import type { ProjectWithCompany } from '@/lib/db/projects/queries';
+import { AppPage } from '@/components/shared/app-page';
 
 export default function ProjectsPage() {
   const { projects, isLoading: projectsLoading } = useProjects();
@@ -21,9 +26,8 @@ export default function ProjectsPage() {
   const deleteProject = useDeleteProject();
 
   const [dialogOpen, setDialogOpen] = React.useState(false);
-  const [editingProject, setEditingProject] = React.useState<ProjectWithCompany | null>(
-    null
-  );
+  const [editingProject, setEditingProject] =
+    React.useState<ProjectWithCompany | null>(null);
 
   const handleAddProject = () => {
     setEditingProject(null);
@@ -60,15 +64,7 @@ export default function ProjectsPage() {
   };
 
   return (
-    <SidebarProvider
-      style={
-        {
-          '--sidebar-width': 'calc(var(--spacing) * 72)',
-          '--header-height': 'calc(var(--spacing) * 12)',
-        } as React.CSSProperties
-      }
-    >
-      <AppSidebar variant="inset" />
+    <AppPage>
       <SidebarInset>
         <SiteHeader />
         <div className="flex flex-1 flex-col">
@@ -111,6 +107,6 @@ export default function ProjectsPage() {
         onSubmit={handleSubmitProject}
         isLoading={companiesLoading}
       />
-    </SidebarProvider>
+    </AppPage>
   );
 }

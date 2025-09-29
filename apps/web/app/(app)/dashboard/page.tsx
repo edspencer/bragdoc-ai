@@ -1,22 +1,13 @@
 import type React from 'react';
-import { AppSidebar } from '@/components/app-sidebar';
 import { AchievementStats } from '@/components/achievement-stats';
 import { ClientDashboardContent } from '@/components/client-dashboard-content';
 import { SiteHeader } from '@/components/site-header';
-import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar';
+import { SidebarInset } from '@/components/ui/sidebar';
+import { AppPage } from '@/components/shared/app-page';
 
 export default async function Page() {
-
   return (
-    <SidebarProvider
-      style={
-        {
-          '--sidebar-width': 'calc(var(--spacing) * 72)',
-          '--header-height': 'calc(var(--spacing) * 12)',
-        } as React.CSSProperties
-      }
-    >
-      <AppSidebar variant="inset" />
+    <AppPage>
       <SidebarInset>
         <SiteHeader />
         <div className="flex flex-1 flex-col">
@@ -28,6 +19,6 @@ export default async function Page() {
           </div>
         </div>
       </SidebarInset>
-    </SidebarProvider>
+    </AppPage>
   );
 }
