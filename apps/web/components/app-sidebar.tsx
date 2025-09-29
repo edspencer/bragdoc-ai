@@ -15,8 +15,10 @@ import {
   IconSearch,
   IconSettings,
   IconStar,
+  IconCirclePlusFilled,
 } from '@tabler/icons-react';
 import { useSession } from 'next-auth/react';
+import { useDocuments } from '@/hooks/use-documents';
 
 import { NavDocuments } from '@/components/nav-documents';
 import { NavMain } from '@/components/nav-main';
@@ -60,43 +62,6 @@ const staticData = {
     //   icon: IconChartBar,
     // },
   ],
-  navClouds: [
-    {
-      title: 'Documents',
-      icon: IconFileAi,
-      isActive: true,
-      url: '/documents',
-      items: [
-        {
-          title: 'Performance Reviews',
-          url: '/documents/reviews',
-        },
-        {
-          title: 'Career Summaries',
-          url: '/documents/summaries',
-        },
-        {
-          title: 'Templates',
-          url: '/documents/templates',
-        },
-      ],
-    },
-    {
-      title: 'GitHub Integration',
-      icon: IconBrandGithub,
-      url: '/github',
-      items: [
-        {
-          title: 'Connected Repos',
-          url: '/github/repos',
-        },
-        {
-          title: 'Commit History',
-          url: '/github/commits',
-        },
-      ],
-    },
-  ],
   navSecondary: [
     {
       title: 'Settings',
@@ -114,27 +79,11 @@ const staticData = {
     //   icon: IconSearch,
     // },
   ],
-  documents: [
-    {
-      name: 'AI Assistant',
-      url: '/ai',
-      icon: IconFileAi,
-    },
-    {
-      name: 'Reports',
-      url: '/reports',
-      icon: IconReport,
-    },
-    {
-      name: 'Export Data',
-      url: '/export',
-      icon: IconListDetails,
-    },
-  ],
 };
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const { data: session, status } = useSession();
+  const { documents } = useDocuments();
 
   const user = {
     name: session?.user?.name || 'User',
@@ -166,7 +115,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       </SidebarHeader>
       <SidebarContent>
         <NavMain items={staticData.navMain} />
-        <NavDocuments items={staticData.documents} />
+        <NavDocuments documents={documents} />
         <NavSecondary items={staticData.navSecondary} className="mt-auto" />
       </SidebarContent>
       <SidebarFooter>

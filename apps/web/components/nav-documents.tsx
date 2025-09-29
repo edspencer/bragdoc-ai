@@ -3,10 +3,11 @@
 import Link from 'next/link';
 import {
   IconDots,
+  IconFile,
   IconFolder,
   IconShare3,
   IconTrash,
-  type Icon,
+  IconCirclePlusFilled,
 } from '@tabler/icons-react';
 
 import {
@@ -26,27 +27,42 @@ import {
   useSidebar,
 } from '@/components/ui/sidebar';
 
-export function NavDocuments({
-  items,
-}: {
-  items: {
+interface Document {
+  id: string;
+  title: string;
+  content: string;
+  type?: string;
+  companyId?: string;
+  company?: {
     name: string;
-    url: string;
-    icon: Icon;
-  }[];
-}) {
+  };
+  createdAt: string;
+  updatedAt: string;
+  shareToken?: string;
+}
+
+export function NavDocuments({ documents = [] }: { documents?: Document[] }) {
   const { isMobile } = useSidebar();
 
   return (
     <SidebarGroup className="group-data-[collapsible=icon]:hidden">
       <SidebarGroupLabel>Documents</SidebarGroupLabel>
       <SidebarMenu>
-        {items.map((item) => (
-          <SidebarMenuItem key={item.name}>
+        {/* Static menu items */}
+        <SidebarMenuItem>
+          <SidebarMenuButton className="bg-primary text-primary-foreground hover:bg-primary/90 hover:text-primary-foreground active:bg-primary/90 active:text-primary-foreground min-w-8 duration-200 ease-linear">
+            <IconCirclePlusFilled />
+            <span>Generate Document</span>
+          </SidebarMenuButton>
+        </SidebarMenuItem>
+
+        {/* Real user documents */}
+        {documents.slice(0, 5).map((document) => (
+          <SidebarMenuItem key={document.id}>
             <SidebarMenuButton asChild>
-              <Link href={item.url}>
-                <item.icon />
-                <span>{item.name}</span>
+              <Link href={`/documents/${document.id}`}>
+                <IconFile />
+                <span>{document.title}</span>
               </Link>
             </SidebarMenuButton>
             <DropdownMenu>
@@ -81,12 +97,17 @@ export function NavDocuments({
             </DropdownMenu>
           </SidebarMenuItem>
         ))}
-        <SidebarMenuItem>
-          <SidebarMenuButton className="text-sidebar-foreground/70">
-            <IconDots className="text-sidebar-foreground/70" />
-            <span>More</span>
-          </SidebarMenuButton>
-        </SidebarMenuItem>
+
+        {documents.length > 5 && (
+          <SidebarMenuItem>
+            <SidebarMenuButton asChild className="text-sidebar-foreground/70">
+              <Link href="/documents">
+                <IconDots className="text-sidebar-foreground/70" />
+                <span>View All ({documents.length})</span>
+              </Link>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+        )}
       </SidebarMenu>
     </SidebarGroup>
   );

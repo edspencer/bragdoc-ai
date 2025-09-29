@@ -1,6 +1,5 @@
 import { auth } from 'app/(auth)/auth';
 import { AppPage } from 'components/shared/app-page';
-import { Plan } from './Plan';
 
 export default async function SettingsPage() {
   const session = await auth();
@@ -13,7 +12,7 @@ export default async function SettingsPage() {
       title="Settings"
       description="Manage your account settings and preferences"
     >
-      <Plan user={session.user} />
+      Setting coming soon
     </AppPage>
   );
 }
