@@ -12,16 +12,18 @@ export const authConfig = {
   callbacks: {
     authorized({ auth, request: { nextUrl } }) {
       const isLoggedIn = !!auth?.user;
-      const isOnChat = nextUrl.pathname.startsWith('/chat');
-      const isOnRegister = nextUrl.pathname.startsWith('/register');
-      const isOnLogin = nextUrl.pathname.startsWith('/login');
-      const isOnWelcome = nextUrl.pathname.startsWith('/welcome');
-      const isOnMarketing = nextUrl.pathname === '/';
-      const isOnCliAuth = nextUrl.pathname.startsWith('/cli-auth');
+
+      // Allow auth-related pages and API routes
+      const isAuthPage = nextUrl.pathname.startsWith('/login') ||
+                         nextUrl.pathname.startsWith('/register') ||
+                         nextUrl.pathname.startsWith('/api/auth') ||
+                         nextUrl.pathname.startsWith('/cli-auth') ||
+                         nextUrl.pathname.startsWith('/unsubscribed') ||
+                         nextUrl.pathname.startsWith('/shared/')
 
       // Store CLI auth parameters if present
       if (
-        (isOnLogin || isOnRegister) &&
+        (nextUrl.pathname.startsWith('/login') || nextUrl.pathname.startsWith('/register')) &&
         nextUrl.searchParams.has('state') &&
         nextUrl.searchParams.has('port')
       ) {
@@ -31,19 +33,22 @@ export const authConfig = {
         return Response.redirect(returnTo);
       }
 
-      if (!isLoggedIn && (isOnChat || isOnWelcome)) {
-        return false;
-      }
-
+      // If user is logged in and trying to access login/register, redirect to dashboard
       if (
         isLoggedIn &&
-        (isOnLogin || isOnRegister) &&
+        (nextUrl.pathname.startsWith('/login') || nextUrl.pathname.startsWith('/register')) &&
         !nextUrl.searchParams.has('state')
       ) {
         return Response.redirect(new URL('/dashboard', nextUrl));
       }
 
-      return true;
+      // Allow access to auth pages without login
+      if (isAuthPage) {
+        return true;
+      }
+
+      // For all other pages, require authentication
+      return isLoggedIn;
     },
   },
 } satisfies NextAuthConfig;

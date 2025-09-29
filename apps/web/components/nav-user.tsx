@@ -7,6 +7,7 @@ import {
   IconNotification,
   IconUserCircle,
 } from '@tabler/icons-react';
+import { signOut } from 'next-auth/react';
 
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import {
@@ -94,7 +95,14 @@ export function NavUser({
               </DropdownMenuItem>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
-            <DropdownMenuItem>
+            <DropdownMenuItem
+              className="cursor-pointer"
+              onClick={() => {
+                signOut({
+                  redirectTo: '/',
+                });
+              }}
+            >
               <IconLogout />
               Log out
             </DropdownMenuItem>
