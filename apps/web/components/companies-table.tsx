@@ -47,12 +47,14 @@ interface CompaniesTableProps {
   data: Company[];
   onEdit: (company: Company) => void;
   onDelete: (id: string) => void;
+  isLoading?: boolean;
 }
 
 export function CompaniesTable({
   data,
   onEdit,
   onDelete,
+  isLoading = false,
 }: CompaniesTableProps) {
   const [sorting, setSorting] = React.useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(

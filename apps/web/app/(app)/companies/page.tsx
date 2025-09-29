@@ -2,7 +2,6 @@
 
 import * as React from 'react';
 import { IconBuilding, IconPlus } from '@tabler/icons-react';
-import { toast } from 'sonner';
 import type { Company } from '@/database/schema';
 
 import { Button } from 'components/ui/button';
@@ -11,40 +10,19 @@ import { AppSidebar } from '@/components/app-sidebar';
 import { SiteHeader } from '@/components/site-header';
 import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar';
 import { CompanyDialog } from '@/components/company-dialog';
-
-// Mock data for companies - replace with real data from your database
-const mockCompanies: Company[] = [
-  {
-    id: '1',
-    userId: '1',
-    name: 'Acme Corp',
-    domain: 'acme.com',
-    role: 'Senior Software Engineer',
-    startDate: new Date('2022-01-15'),
-    endDate: new Date('2024-03-30'),
-  },
-  {
-    id: '2',
-    userId: '1',
-    name: 'TechStart Inc',
-    domain: 'techstart.io',
-    role: 'Full Stack Developer',
-    startDate: new Date('2021-06-01'),
-    endDate: null, // Current job
-  },
-  {
-    id: '3',
-    userId: '1',
-    name: 'Innovation Labs',
-    domain: 'innovationlabs.com',
-    role: 'Frontend Developer',
-    startDate: new Date('2020-03-15'),
-    endDate: new Date('2021-05-30'),
-  },
-];
+import {
+  useCompanies,
+  useCreateCompany,
+  useUpdateCompany,
+  useDeleteCompany,
+} from '@/hooks/use-companies';
 
 export default function CompaniesPage() {
-  const [companies, setCompanies] = React.useState(mockCompanies);
+  const { companies, isLoading } = useCompanies();
+  const createCompany = useCreateCompany();
+  const updateCompany = useUpdateCompany();
+  const deleteCompany = useDeleteCompany();
+
   const [dialogOpen, setDialogOpen] = React.useState(false);
   const [editingCompany, setEditingCompany] = React.useState<Company | null>(
     null,
@@ -60,28 +38,27 @@ export default function CompaniesPage() {
     setDialogOpen(true);
   };
 
-  const handleDeleteCompany = (id: string) => {
-    setCompanies((prev) => prev.filter((company) => company.id !== id));
-    toast.success('Company deleted successfully');
+  const handleDeleteCompany = async (id: string) => {
+    try {
+      await deleteCompany(id);
+    } catch (error) {
+      // Error is handled in the hook
+      console.error('Failed to delete company:', error);
+    }
   };
 
-  const handleSubmitCompany = (data: Omit<Company, 'id'>) => {
-    if (editingCompany) {
-      setCompanies((prev) =>
-        prev.map((company) =>
-          company.id === editingCompany.id
-            ? { ...data, id: editingCompany.id }
-            : company,
-        ),
-      );
-      toast.success('Company updated successfully');
-    } else {
-      const newCompany = {
-        ...data,
-        id: Math.random().toString(36).substr(2, 9),
-      };
-      setCompanies((prev) => [...prev, newCompany]);
-      toast.success('Company added successfully');
+  const handleSubmitCompany = async (data: any) => {
+    try {
+      if (editingCompany) {
+        await updateCompany(editingCompany.id, data);
+      } else {
+        await createCompany(data);
+      }
+      setDialogOpen(false);
+      setEditingCompany(null);
+    } catch (error) {
+      // Error is handled in the hooks
+      console.error('Failed to submit company:', error);
     }
   };
 
@@ -119,9 +96,10 @@ export default function CompaniesPage() {
               </div>
 
               <CompaniesTable
-                data={companies}
+                data={companies || []}
                 onEdit={handleEditCompany}
                 onDelete={handleDeleteCompany}
+                isLoading={isLoading}
               />
             </div>
           </div>
