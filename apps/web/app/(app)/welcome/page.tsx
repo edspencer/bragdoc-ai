@@ -42,8 +42,7 @@ export default function WelcomePage() {
       },
     });
 
-    // Redirect to chat
-    router.push('/chat');
+    router.push('/dashboard');
   }, [router, user, updateUser]);
 
   const handleSkip = React.useCallback(async () => {
@@ -57,14 +56,13 @@ export default function WelcomePage() {
       },
     });
 
-    // Redirect to chat
-    router.push('/chat');
+    router.push('/dashboard');
   }, [router, user, updateUser]);
 
-  // If user has already seen welcome, redirect to chat
+  // If user has already seen welcome, redirect to dashboard
   // React.useEffect(() => {
   //   if (user?.preferences?.hasSeenWelcome) {
-  //     router.push("/chat");
+  //     router.push("/dashboard");
   //   }
   // }, [router, user?.preferences?.hasSeenWelcome]);
 

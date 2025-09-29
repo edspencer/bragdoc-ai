@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import { GoogleAnalytics } from '@next/third-parties/google';
+import { Suspense } from 'react';
 
 import { Providers } from 'components/providers';
 
@@ -68,7 +69,9 @@ export default async function RootLayout({
         />
       </head>
       <body className="antialiased">
-        <Providers>{children}</Providers>
+        <Providers>
+          <Suspense fallback={<div>Loading...</div>}>{children}</Suspense>
+        </Providers>
         <GoogleAnalytics gaId="G-ZM1CT7E42H" />
       </body>
     </html>

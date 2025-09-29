@@ -1,7 +1,15 @@
 import { SidebarProvider } from '@/components/ui/sidebar';
 import { AppSidebar } from '@/components/app-sidebar';
 
-export const AppPage = ({ children }: { children: React.ReactNode }) => {
+export const AppPage = ({
+  title,
+  description,
+  children,
+}: {
+  title?: string;
+  description?: string;
+  children: React.ReactNode;
+}) => {
   return (
     <SidebarProvider
       style={

@@ -40,7 +40,7 @@ export const authConfig = {
         (isOnLogin || isOnRegister) &&
         !nextUrl.searchParams.has('state')
       ) {
-        return Response.redirect(new URL('/chat', nextUrl));
+        return Response.redirect(new URL('/dashboard', nextUrl));
       }
 
       return true;
