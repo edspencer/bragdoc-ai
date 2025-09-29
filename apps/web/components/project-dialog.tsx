@@ -42,6 +42,7 @@ import {
 } from '@/components/ui/select';
 
 import type { Project, Company } from '@/database/schema';
+import type { ProjectWithCompany } from '@/lib/db/projects/queries';
 
 const projectSchema = z.object({
   name: z.string().min(1, 'Project name is required'),
@@ -65,9 +66,10 @@ type ProjectFormData = z.infer<typeof projectSchema>;
 interface ProjectDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  project?: Project | null;
+  project?: ProjectWithCompany | null;
   companies: Company[];
-  onSubmit: (data: Omit<Project, 'id' | 'companyName'>) => void;
+  onSubmit: (data: any) => void;
+  isLoading?: boolean;
 }
 
 export function ProjectDialog({
@@ -76,6 +78,7 @@ export function ProjectDialog({
   project,
   companies,
   onSubmit,
+  isLoading = false,
 }: ProjectDialogProps) {
   const isEditing = !!project;
 

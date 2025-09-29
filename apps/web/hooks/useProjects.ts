@@ -1,4 +1,6 @@
 import useSWR, { mutate } from 'swr';
+import { toast } from 'sonner';
+import { useConfetti } from 'hooks/useConfetti';
 import type { ProjectFormData } from 'components/projects/project-form';
 import type { ProjectWithCompany } from 'lib/db/projects/queries';
 
@@ -10,104 +12,117 @@ const fetcher = async (url: string) => {
   return response.json();
 };
 
+const fetchProjects = async (url: string): Promise<ProjectWithCompany[]> => {
+  const res = await fetch(url);
+  if (!res.ok) {
+    throw new Error('Failed to fetch projects');
+  }
+  const data = await res.json();
+  return data.map((project: any) => ({
+    ...project,
+    startDate: new Date(project.startDate),
+    endDate: project.endDate ? new Date(project.endDate) : null,
+    createdAt: new Date(project.createdAt),
+    updatedAt: new Date(project.updatedAt),
+    company: project.company ? {
+      ...project.company,
+      startDate: new Date(project.company.startDate),
+      endDate: project.company.endDate ? new Date(project.company.endDate) : null,
+    } : null,
+  }));
+};
+
 export function useProjects() {
-  const {
-    data: projects,
-    error: projectsError,
-    isLoading: projectsLoading,
-  } = useSWR<ProjectWithCompany[]>('/api/projects', fetcher);
+  const { data, error, mutate: mutateProjects } = useSWR<ProjectWithCompany[]>(
+    '/api/projects',
+    fetchProjects,
+  );
 
-  const {
-    data: companies,
-    error: companiesError,
-    isLoading: companiesLoading,
-  } = useSWR<Array<{ id: string; name: string }>>('/api/companies', fetcher);
+  return {
+    projects: data || [],
+    isLoading: !error && !data,
+    isError: error,
+    mutate: mutateProjects,
+  };
+}
 
-  const createProject = async (data: ProjectFormData): Promise<boolean> => {
+export function useCreateProject() {
+  const { mutate: mutateList } = useProjects();
+  const { fire: fireConfetti } = useConfetti();
+
+  const createProject = async (data: ProjectFormData) => {
     try {
-      const response = await fetch('/api/projects', {
+      const res = await fetch('/api/projects', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data),
       });
-      if (!response.ok) throw new Error('Failed to create project');
-      const newProject = await response.json();
 
-      // Update the cache optimistically
-      mutate(
-        '/api/projects',
-        projects ? [...projects, newProject] : [newProject],
-        false,
-      );
+      if (!res.ok) {
+        throw new Error('Failed to create project');
+      }
 
-      // Revalidate
-      mutate('/api/projects');
-      return true;
+      await mutateList();
+      toast.success('Project created successfully');
+      fireConfetti();
     } catch (error) {
       console.error('Error creating project:', error);
-      return false;
+      toast.error('Failed to create project');
+      throw error;
     }
   };
 
-  const updateProject = async (
-    id: string,
-    data: ProjectFormData,
-  ): Promise<boolean> => {
+  return createProject;
+}
+
+export function useUpdateProject() {
+  const { mutate: mutateList } = useProjects();
+
+  const updateProject = async (id: string, data: ProjectFormData) => {
     try {
-      const response = await fetch(`/api/projects/${id}`, {
+      const res = await fetch(`/api/projects/${id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data),
       });
-      if (!response.ok) throw new Error('Failed to update project');
-      const updatedProject = await response.json();
 
-      // Update the cache optimistically
-      mutate(
-        '/api/projects',
-        projects?.map((p) => (p.id === id ? updatedProject : p)),
-        false,
-      );
+      if (!res.ok) {
+        throw new Error('Failed to update project');
+      }
 
-      // Revalidate
-      mutate('/api/projects');
-      return true;
+      await mutateList();
+      toast.success('Project updated successfully');
     } catch (error) {
       console.error('Error updating project:', error);
-      return false;
+      toast.error('Failed to update project');
+      throw error;
     }
   };
 
-  const deleteProject = async (id: string): Promise<boolean> => {
+  return updateProject;
+}
+
+export function useDeleteProject() {
+  const { mutate: mutateList } = useProjects();
+
+  const deleteProject = async (id: string) => {
     try {
-      const response = await fetch(`/api/projects/${id}`, {
+      const res = await fetch(`/api/projects/${id}`, {
         method: 'DELETE',
       });
-      if (!response.ok) throw new Error('Failed to delete project');
 
-      // Update the cache optimistically
-      mutate(
-        '/api/projects',
-        projects?.filter((p) => p.id !== id),
-        false,
-      );
+      if (!res.ok) {
+        throw new Error('Failed to delete project');
+      }
 
-      // Revalidate
-      mutate('/api/projects');
-      return true;
+      await mutateList();
+      toast.success('Project deleted successfully');
     } catch (error) {
       console.error('Error deleting project:', error);
-      return false;
+      toast.error('Failed to delete project');
+      throw error;
     }
   };
 
-  return {
-    projects: projects || [],
-    companies: companies || [],
-    isLoading: projectsLoading || companiesLoading,
-    error: projectsError || companiesError,
-    createProject,
-    updateProject,
-    deleteProject,
-  };
+  return deleteProject;
 }
