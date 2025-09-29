@@ -40,6 +40,6 @@ yarn-error.log*
 temp
 
 .cache_ggshield
-cli/dist
+packages/cli/dist
 
 *.tsbuildinfo
