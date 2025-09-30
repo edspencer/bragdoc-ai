@@ -6,6 +6,7 @@ export interface Repository {
   name?: string;
   enabled: boolean;
   maxCommits?: number;
+  cronSchedule?: string;
 }
 
 /**

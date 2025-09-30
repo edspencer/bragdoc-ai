@@ -1,6 +1,20 @@
 # bragdoc CLI
 
-The bragdoc CLI helps you track and document your achievements by extracting information from your Git repositories. It seamlessly integrates with bragdoc.ai to maintain your professional brag document.
+**Automatically track, score, and summarize your professional achievements from Git commits.**
+
+The bragdoc CLI intelligently analyzes your Git repositories to extract and document your professional contributions. It automatically identifies meaningful work from commit messages, code changes, and project history, then scores and summarizes your achievements to build a comprehensive professional brag document.
+
+## ✨ **Key Features**
+
+- **🤖 Intelligent Achievement Extraction**: Automatically identifies and scores meaningful work from Git commits
+- **📅 Scheduled Automation**: Set up automatic extractions on any schedule (hourly, daily, custom)
+- **🔍 Multi-Repository Support**: Track achievements across unlimited repositories simultaneously
+- **⚡ Smart Caching**: Processes only new commits, avoiding duplicate work
+- **🌍 Cross-Platform Scheduling**: Native system integration (cron, Task Scheduler, systemd, LaunchAgent)
+- **📊 Achievement Scoring**: AI-powered analysis ranks the impact and importance of your work
+- **📝 Professional Summaries**: Generates polished descriptions of your contributions
+
+Perfect for developers who want to maintain an up-to-date record of their professional accomplishments without manual effort.
 
 ## Installation
 
@@ -19,7 +33,7 @@ bragdoc login
 2. Add your repository:
 
 ```bash
-bragdoc repos add /path/to/repo --name "My Project"
+bragdoc repos add /path/to/repo
 ```
 
 3. Extract achievements from commits:
@@ -47,17 +61,24 @@ bragdoc auth logout # aliased as `logout`
 
 ### Repository Management (`repos`)
 
-Manage repositories that bragdoc will track.
+Manage repositories that bragdoc will track and configure automatic scheduling.
 
 ```bash
-# List configured repositories
+# List configured repositories (shows schedules)
 bragdoc repos list
 
-# Add a repository (current directory if path not specified)
-bragdoc repos add [path] --name "Project Name" --max-commits 100
+# Add a repository with automatic scheduling setup
+cd /path/to/repo
+bragdoc repos add .
+# You'll be prompted to:
+# 1. Choose extraction schedule (no/hourly/daily/custom)
+# 2. Automatic system installation (crontab/Task Scheduler)
 
 # Update repository settings
 bragdoc repos update [path] --name "New Name" --max-commits 200
+
+# Update repository schedule (automatically updates system scheduling)
+bragdoc repos update [path] --schedule
 
 # Remove a repository
 bragdoc repos remove [path]
@@ -85,6 +106,28 @@ bragdoc extract --max-commits 50
 bragdoc extract --dry-run
 ```
 
+### Monitoring Your Schedules
+
+Check your automatic extractions using platform-specific tools:
+
+**Linux/macOS**
+```bash
+# View your scheduled extractions
+crontab -l
+
+# Check cron service is running
+ps aux | grep cron
+```
+
+**Windows**
+```bash
+# View your scheduled tasks
+schtasks /query /tn BragDoc*
+
+# Open Task Scheduler GUI for visual management
+taskschd.msc
+```
+
 ### Cache Management (`cache`)
 
 Manage the local commit cache to optimize performance.
@@ -102,23 +145,59 @@ bragdoc cache clear --repo name  # Clear specific repo's cache
 
 ## Configuration
 
-The CLI stores configuration in your user's config directory:
+The CLI stores configuration in `~/.bragdoc/config.yml`:
 
 - Authentication tokens
-- Repository settings
-- Commit cache
+- Repository settings and schedules
+- Commit cache locations
+- API configuration
+
+## Automated Workflow Example
+
+Here's how to set up fully automated achievement tracking:
+
+```bash
+# 1. Install and authenticate
+npm install -g @bragdoc/cli
+bragdoc login
+
+# 2. Add your repositories with scheduling
+bragdoc repos add ~/work/frontend-app --name "Frontend App"
+# Choose "Daily" → Enter "18:00" → Automatically installs to crontab
+
+bragdoc repos add ~/work/backend-api --name "Backend API"
+# Choose "Hourly" → Enter "0" → Automatically updates crontab
+
+bragdoc repos add ~/work/mobile-app --name "Mobile App"
+# Choose "Daily" → Enter "09:00" → Automatically updates crontab
+
+# 3. Your achievements are now automatically extracted:
+# - Frontend App: Daily at 6:00 PM
+# - Backend API: Every hour on the hour
+# - Mobile App: Daily at 9:00 AM
+```
 
 ## Best Practices
 
-1. **Regular Updates**: Run `extract` periodically to keep your brag document current.
+1. **Automatic Scheduling**:
+
+   - Set daily extractions for active repositories
+   - Use hourly for rapidly evolving projects
+   - Schedule during off-hours to avoid interruption
 
 2. **Repository Organization**:
 
    - Add repositories you actively contribute to
    - Use meaningful repository names
-   - Set appropriate max-commit limits
+   - Set appropriate max-commit limits (100-500)
 
-3. **Cache Management**:
+3. **Schedule Management**:
+
+   - Use system-level scheduling for reliability
+   - Check system logs if extractions fail
+   - Re-run installation commands to update schedules
+
+4. **Cache Management**:
    - The cache prevents re-processing of commits
    - Clear cache if you need to re-process commits
    - Use `cache list --stats` to monitor cache size
@@ -152,9 +231,23 @@ The CLI provides detailed error messages and logging:
    - Check repository permissions
 
 3. **Extraction Issues**
-   - Verify repository is enabled
+
+   - Verify repository is enabled: `bragdoc repos list`
    - Check max-commits setting
    - Try clearing the cache
+
+4. **Scheduling Issues**
+
+   - **Linux/macOS**: Check crontab with `crontab -l`
+   - **Windows**: Check tasks with `schtasks /query /tn BragDoc*`
+   - Verify system scheduling permissions
+   - Check extraction logs in system scheduler
+   - Check that system scheduling was properly set up automatically
+
+5. **System Integration Issues**
+   - **Windows**: Run Command Prompt as Administrator for task creation
+   - **macOS**: Check LaunchAgent with `launchctl list | grep bragdoc`
+   - **Linux**: Verify systemd user services are enabled
 
 ## Contributing
 
