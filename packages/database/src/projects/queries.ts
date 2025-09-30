@@ -1,6 +1,6 @@
-import { and, desc, eq, isNull } from 'drizzle-orm';
+import { and, desc, eq, isNull, sum, sql } from 'drizzle-orm';
 import { db } from '../index';
-import { project, company, type Project, type Company } from '../schema';
+import { project, company, achievement, type Project, type Company } from '../schema';
 import { v4 as uuidv4 } from 'uuid';
 import { fuzzyFindProject } from './fuzzyFind';
 
@@ -21,6 +21,11 @@ export type CreateProjectInput = {
 };
 
 export type UpdateProjectInput = Partial<Omit<CreateProjectInput, 'userId'>>;
+
+export type ProjectWithImpact = ProjectWithCompany & {
+  totalImpact: number;
+  achievementCount: number;
+};
 
 export async function getProjectsByUserId(
   userId: string
@@ -258,4 +263,63 @@ export async function ensureProject({
   console.log(`Created new project ${newProject!.id}`);
 
   return { projectId: newProject!.id };
+}
+
+export async function getTopProjectsByImpact(
+  userId: string,
+  limit: number = 5
+): Promise<ProjectWithImpact[]> {
+  const results = await db
+    .select({
+      id: project.id,
+      userId: project.userId,
+      name: project.name,
+      description: project.description,
+      companyId: project.companyId,
+      status: project.status,
+      startDate: project.startDate,
+      endDate: project.endDate,
+      createdAt: project.createdAt,
+      updatedAt: project.updatedAt,
+      repoRemoteUrl: project.repoRemoteUrl,
+      company: company,
+      totalImpact: sql<number>`COALESCE(SUM(${achievement.impact}), 0)`,
+      achievementCount: sql<number>`COUNT(${achievement.id})`,
+    })
+    .from(project)
+    .leftJoin(company, eq(project.companyId, company.id))
+    .leftJoin(achievement, and(
+      eq(achievement.projectId, project.id),
+      eq(achievement.isArchived, false)
+    ))
+    .where(eq(project.userId, userId))
+    .groupBy(
+      project.id,
+      project.userId,
+      project.name,
+      project.description,
+      project.companyId,
+      project.status,
+      project.startDate,
+      project.endDate,
+      project.createdAt,
+      project.updatedAt,
+      project.repoRemoteUrl,
+      company.id,
+      company.name,
+      company.domain,
+      company.role,
+      company.startDate,
+      company.endDate,
+      company.userId
+    )
+    .orderBy(desc(sql`COALESCE(SUM(${achievement.impact}), 0)`), desc(project.startDate))
+    .limit(limit);
+
+  return results.map((row) => ({
+    ...row,
+    company: row.company || null,
+    totalImpact: Number(row.totalImpact),
+    achievementCount: Number(row.achievementCount),
+  }));
 }

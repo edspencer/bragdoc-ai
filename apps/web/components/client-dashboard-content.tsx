@@ -1,7 +1,7 @@
 'use client';
 
 import { WeeklyImpactChart } from '@/components/weekly-impact-chart';
-import { RecentAchievementsTable } from '@/components/recent-achievements-table';
+import { TopProjects } from '@/components/dashboard/top-projects';
 import { ActivityStream } from '@/components/dashboard/activity-stream';
 import { useAchievements } from '@/hooks/use-achievements';
 
@@ -14,7 +14,7 @@ export function ClientDashboardContent() {
         <WeeklyImpactChart achievements={achievements} />
       </div>
       <div className="grid grid-cols-1 gap-6 px-4 lg:grid-cols-2 lg:px-6">
-        <RecentAchievementsTable achievements={achievements} />
+        <TopProjects />
         <ActivityStream achievements={achievements} />
       </div>
     </div>
