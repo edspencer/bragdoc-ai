@@ -67,7 +67,10 @@ export {
 } from './queries';
 
 // Re-export project queries
-export { getProjectsByUserId, createProject, updateProject, deleteProject, ensureProject } from './projects/queries';
+export { getProjectsByUserId, getProjectById, createProject, updateProject, deleteProject, ensureProject } from './projects/queries';
+
+// Re-export project types
+export type { ProjectWithCompany, CreateProjectInput, UpdateProjectInput } from './projects/queries';
 
 // Re-export types
 export type { AchievementStats } from './queries';

@@ -148,10 +148,7 @@ export function WeeklyImpactChart({ achievements }: WeeklyImpactChartProps) {
               content={
                 <ChartTooltipContent
                   labelFormatter={(value) => `${value}`}
-                  formatter={(value, name, props) => [
-                    `${value} points`,
-                    'Impact Points',
-                  ]}
+                  formatter={(value, name, props) => [value, ' Impact Points']}
                 />
               }
             />

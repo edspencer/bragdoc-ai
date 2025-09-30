@@ -9,7 +9,9 @@ import {
   IconTrash,
   IconGitBranch,
   IconBuilding,
+  IconEye,
 } from '@tabler/icons-react';
+import Link from 'next/link';
 import {
   type ColumnDef,
   flexRender,
@@ -47,6 +49,7 @@ interface ProjectsTableProps {
   data: ProjectWithCompany[];
   onEdit: (project: ProjectWithCompany) => void;
   onDelete: (id: string) => void;
+  onView?: (project: ProjectWithCompany) => void;
   isLoading?: boolean;
 }
 
@@ -80,7 +83,12 @@ export function ProjectsTable({
               <IconFolderCode className="size-4 text-primary" />
             </div>
             <div className="min-w-0 flex-1">
-              <div className="font-medium">{project.name}</div>
+              <Link
+                href={`/projects/${project.id}`}
+                className="font-medium hover:text-primary hover:underline"
+              >
+                {project.name}
+              </Link>
               {project.description && (
                 <div className="text-muted-foreground text-sm truncate">
                   {project.description}
@@ -109,10 +117,10 @@ export function ProjectsTable({
       header: 'Company',
       cell: ({ row }) => {
         const project = row.original;
-        return project.companyId ? (
+        return project.company ? (
           <div className="flex items-center gap-2">
             <IconBuilding className="size-4 text-muted-foreground" />
-            <span className="text-sm">{project.companyId}</span>
+            <span className="text-sm">{project.company.name}</span>
           </div>
         ) : (
           <span className="text-muted-foreground text-sm">Personal</span>
@@ -182,7 +190,13 @@ export function ProjectsTable({
                 <span className="sr-only">Open menu</span>
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-32">
+            <DropdownMenuContent align="end" className="w-40">
+              <DropdownMenuItem asChild>
+                <Link href={`/projects/${project.id}`}>
+                  <IconEye className="size-4" />
+                  View Details
+                </Link>
+              </DropdownMenuItem>
               <DropdownMenuItem onClick={() => onEdit(project)}>
                 <IconEdit className="size-4" />
                 Edit
