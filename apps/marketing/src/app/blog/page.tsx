@@ -2,7 +2,7 @@ import Posts, { type Post } from '@/lib/blog/Posts';
 import { TagCloud } from '@/components/blog/Tag';
 import Link from 'next/link';
 import { PostTeaser } from '@/components/blog/FullPost';
-import { Button } from '@bragdoc/ui/button';
+import { Button } from '@/components/ui/button';
 import { ArrowRightIcon } from 'lucide-react';
 
 export default function Blog() {

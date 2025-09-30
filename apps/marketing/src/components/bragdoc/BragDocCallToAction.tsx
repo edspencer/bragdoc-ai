@@ -1,4 +1,4 @@
-import { Button } from '@bragdoc/ui/button';
+import { Button } from '@/components/ui/button';
 import { Container } from '@/components/salient/Container';
 import { ArrowRightIcon } from '@radix-ui/react-icons';
 import Link from 'next/link';

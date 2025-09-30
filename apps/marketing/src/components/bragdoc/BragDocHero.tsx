@@ -1,4 +1,4 @@
-import { Button } from '@bragdoc/ui/button';
+import { Button } from '@/components/ui/button';
 import { Container } from '@/components/salient/Container';
 import { ArrowRightIcon } from '@radix-ui/react-icons';
 import Link from 'next/link';
@@ -14,7 +14,9 @@ export function BragDocHero() {
         is your career superpower
       </h1>
       <p className="mx-auto mt-6 max-w-2xl text-lg tracking-tight text-slate-700 dark:text-slate-300">
-        A brag doc is your personal record of professional wins, big and small. Keep track of your achievements, generate performance reviews, and advance your career with confidence.
+        A brag doc is your personal record of professional wins, big and small.
+        Keep track of your achievements, generate performance reviews, and
+        advance your career with confidence.
       </p>
       <div className="mt-10 flex justify-center gap-x-6">
         <Button asChild size="lg">

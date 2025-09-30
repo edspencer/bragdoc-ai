@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { Spinner } from '@bragdoc/ui/spinner';
+import { Spinner } from '@/components/spinner';
 import { CheckCircle2 } from 'lucide-react';
 import { useSession } from 'next-auth/react';
 
@@ -12,7 +12,7 @@ interface CLIAuthContentProps {
 
 export function CLIAuthContent({ state, port }: CLIAuthContentProps) {
   const [status, setStatus] = useState<'pending' | 'success' | 'error'>(
-    'pending',
+    'pending'
   );
   const [error, setError] = useState<string>();
   const { data: session } = useSession();
@@ -46,7 +46,7 @@ export function CLIAuthContent({ state, port }: CLIAuthContentProps) {
         if (!response.ok) {
           console.error(
             'CLIAuthContent - Failed to generate token:',
-            response.status,
+            response.status
           );
           throw new Error('Failed to generate token');
         }
@@ -64,7 +64,7 @@ export function CLIAuthContent({ state, port }: CLIAuthContentProps) {
         if (!cliResponse.ok) {
           console.error(
             'CLIAuthContent - Failed to send token to CLI:',
-            cliResponse.status,
+            cliResponse.status
           );
           throw new Error('Failed to send token to CLI');
         }

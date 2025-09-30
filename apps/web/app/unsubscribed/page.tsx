@@ -1,4 +1,4 @@
-import { Container } from '@bragdoc/ui/container';
+import { Container } from '@/components/container';
 import {
   verifyUnsubscribeToken,
   unsubscribeUser,

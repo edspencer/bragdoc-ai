@@ -1,7 +1,7 @@
 'use client';
 
 import { Container } from '@/components/salient/Container';
-import { Button } from '@bragdoc/ui/button';
+import { Button } from '@/components/ui/button';
 import { useState } from 'react';
 import { motion } from 'framer-motion';
 
@@ -122,7 +122,7 @@ export function BragDocExamples() {
                       </div>
                     ))}
                   </motion.div>
-                ),
+                )
             )}
           </div>
         </div>

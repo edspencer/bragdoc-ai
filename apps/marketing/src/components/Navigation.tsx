@@ -1,12 +1,12 @@
 import Link from 'next/link';
-import { Button } from '@bragdoc/ui/button';
+import { Button } from '@/components/ui/button';
 import ModeToggle from '@/components/mode-toggle';
 import {
   NavigationMenu,
   NavigationMenuItem,
   NavigationMenuLink,
   NavigationMenuList,
-} from '@bragdoc/ui/navigation-menu';
+} from '@/components/ui/navigation-menu';
 
 export function Navigation() {
   return (

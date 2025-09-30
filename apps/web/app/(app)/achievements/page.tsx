@@ -28,9 +28,8 @@ import {
 import { WeeklyImpactChart } from '@/components/weekly-impact-chart';
 import { AchievementsTable } from '@/components/achievements-table';
 import { GenerateDocumentDialog } from '@/components/generate-document-dialog';
-import { AppSidebar } from '@/components/app-sidebar';
 import { SiteHeader } from '@/components/site-header';
-import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar';
+import { SidebarInset } from '@/components/ui/sidebar';
 import { useCompanies } from '@/hooks/use-companies';
 import { useProjects } from '@/hooks/useProjects';
 import { useAchievementMutations } from '@/hooks/use-achievement-mutations';
