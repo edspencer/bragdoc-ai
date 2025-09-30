@@ -117,7 +117,7 @@ beforeAll(async () => {
         projectId: testData.projects.main,
         title: `Achievement ${i + 1}`,
         summary: `Summary for achievement ${i + 1}`,
-        impact: 2,
+        impact: 5,
         eventDuration: 'day',
         eventStart: new Date(Date.now() - daysAgo * 24 * 60 * 60 * 1000),
       });
@@ -134,7 +134,7 @@ beforeAll(async () => {
         projectId: testData.projects.secondary,
         title: `Secondary Achievement ${i + 1}`,
         summary: `Summary for secondary achievement ${i + 1}`,
-        impact: 2,
+        impact: 5,
         eventDuration: 'day',
         eventStart: new Date(Date.now() - daysAgo * 24 * 60 * 60 * 1000),
       });
@@ -151,7 +151,7 @@ beforeAll(async () => {
         projectId: testData.projects.tertiary,
         title: `Tertiary Achievement ${i + 1}`,
         summary: `Summary for tertiary achievement ${i + 1}`,
-        impact: 2,
+        impact: 5,
         eventDuration: 'day',
         eventStart: new Date(Date.now() - daysAgo * 24 * 60 * 60 * 1000),
       });
@@ -332,7 +332,7 @@ describe('preparePromptData', () => {
           projectId: testData.projects.main,
           title: `Extra Achievement ${i + 1}`,
           summary: `Summary for extra achievement ${i + 1}`,
-          impact: 2,
+          impact: 5,
           eventDuration: 'day',
           eventStart: now,
         });

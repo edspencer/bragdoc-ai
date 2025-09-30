@@ -9,15 +9,29 @@ import {
 } from 'components/ui/tooltip';
 
 const impactLabels: Record<number, string> = {
-  1: 'Low Impact',
-  2: 'Medium Impact',
-  3: 'High Impact',
+  1: 'Minimal Impact',
+  2: 'Minor Impact',
+  3: 'Low Impact',
+  4: 'Low-Medium Impact',
+  5: 'Medium Impact',
+  6: 'Medium-High Impact',
+  7: 'High Impact',
+  8: 'Significant Impact',
+  9: 'Major Impact',
+  10: 'Exceptional Impact',
 };
 
 const impactDescriptions: Record<number, string> = {
-  1: 'Routine tasks or minor improvements with individual/small team benefit',
-  2: 'Notable improvements with team/department level impact',
-  3: 'Major initiatives with organization-wide strategic impact',
+  1: 'Minimal routine tasks',
+  2: 'Small individual tasks',
+  3: 'Routine improvements with individual benefit',
+  4: 'Minor improvements with small team benefit',
+  5: 'Notable improvements with team level impact',
+  6: 'Significant improvements with department impact',
+  7: 'Major improvements with cross-department impact',
+  8: 'Significant initiatives with organization-wide impact',
+  9: 'Major strategic initiatives with company-wide impact',
+  10: 'Exceptional achievements with industry/market impact',
 };
 
 export interface ImpactRatingProps
@@ -71,10 +85,10 @@ export function ImpactRating({
     const tooltipContent = (
       <div className="max-w-xs">
         <div className="font-semibold">
-          {impactLabels[starValue as 1 | 2 | 3]}
+          {impactLabels[starValue as keyof typeof impactLabels]}
         </div>
         <div className="text-sm text-muted-foreground">
-          {impactDescriptions[starValue as 1 | 2 | 3]}
+          {impactDescriptions[starValue as keyof typeof impactDescriptions]}
         </div>
         {starValue === (value ?? 2) && source && updatedAt && (
           <div className="mt-1 text-xs text-muted-foreground">
@@ -96,7 +110,7 @@ export function ImpactRating({
               onClick={() => handleClick(starValue)}
               data-testid={`impact-star-${starValue}`}
               role="button"
-              aria-label={`Rate impact ${starValue} out of 3 stars`}
+              aria-label={`Rate impact ${starValue} out of 10 stars`}
             />
           </TooltipTrigger>
           <TooltipContent>{tooltipContent}</TooltipContent>
@@ -106,9 +120,7 @@ export function ImpactRating({
   };
 
   const getImpactLabel = (value: number) => {
-    if (value === 1) return 'Low Impact';
-    if (value === 2) return 'Medium Impact';
-    return 'High Impact';
+    return impactLabels[value] || 'Unknown Impact';
   };
 
   return (
@@ -120,7 +132,7 @@ export function ImpactRating({
         role="button"
         {...props}
       >
-        {[1, 2, 3].map(renderStar)}
+        {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(renderStar)}
       </div>
       {showLabel ? (
         <span className="text-sm text-muted-foreground italic pt-2">

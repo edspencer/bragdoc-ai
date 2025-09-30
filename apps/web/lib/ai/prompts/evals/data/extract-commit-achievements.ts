@@ -110,7 +110,7 @@ export const expectedAchievementsFromNoisyCommits: ExtractedAchievement[] = [
     projectId: projects[0]!.id,
     title: 'Restored functionality for CLI rendering',
     eventDuration: 'day',
-    impact: 1,
+    impact: 9,
   },
   {
     summary: 'Fixed issues in the build process',
@@ -124,7 +124,7 @@ export const expectedAchievementsFromNoisyCommits: ExtractedAchievement[] = [
     projectId: projects[0]!.id,
     title: 'Fixed issues in the build process',
     eventDuration: 'day',
-    impact: 2,
+    impact: 6,
   },
   {
     summary: 'Improved the evaluation process for extracting achievements',
@@ -138,7 +138,7 @@ export const expectedAchievementsFromNoisyCommits: ExtractedAchievement[] = [
     projectId: projects[0]!.id,
     title: 'Improved the evaluation process for extracting achievements',
     eventDuration: 'day',
-    impact: 1,
+    impact: 9,
   },
 ];
 
@@ -343,7 +343,7 @@ export const expectedAchievementsFromQualityCommits: ExtractedAchievement[] = [
     projectId: projects[0]!.id,
     title: 'Implemented a new welcome carousel feature',
     eventDuration: 'day',
-    impact: 1,
+    impact: 9,
   },
   {
     summary:
@@ -358,7 +358,7 @@ export const expectedAchievementsFromQualityCommits: ExtractedAchievement[] = [
     projectId: projects[0]!.id,
     title: 'Integrated Stripe for payment processing',
     eventDuration: 'day',
-    impact: 2,
+    impact: 6,
   },
   {
     summary: 'Created What, Why, and How marketing landing pages.',
@@ -371,7 +371,7 @@ export const expectedAchievementsFromQualityCommits: ExtractedAchievement[] = [
     projectId: projects[0]!.id,
     title: 'Created What, Why, and How marketing landing pages',
     eventDuration: 'day',
-    impact: 1,
+    impact: 9,
   },
   {
     summary:
@@ -387,7 +387,7 @@ export const expectedAchievementsFromQualityCommits: ExtractedAchievement[] = [
     title:
       'Beta1 release including welcome email, document CRUD, and Stripe fixes',
     eventDuration: 'day',
-    impact: 1,
+    impact: 9,
   },
   {
     summary:
@@ -402,7 +402,7 @@ export const expectedAchievementsFromQualityCommits: ExtractedAchievement[] = [
     projectId: projects[0]!.id,
     title: 'Cleanup and minor fixes in Beta version',
     eventDuration: 'day',
-    impact: 2,
+    impact: 6,
   },
   {
     summary: 'Enhanced mobile user experience in Beta4 release',
@@ -415,7 +415,7 @@ export const expectedAchievementsFromQualityCommits: ExtractedAchievement[] = [
     projectId: projects[0]!.id,
     title: 'Enhanced mobile user experience in Beta4 release',
     eventDuration: 'day',
-    impact: 2,
+    impact: 6,
   },
   {
     summary: 'Improved mobile UX and added dark mode',
@@ -428,6 +428,6 @@ export const expectedAchievementsFromQualityCommits: ExtractedAchievement[] = [
     projectId: projects[0]!.id,
     title: 'Improved mobile UX and added dark mode',
     eventDuration: 'day',
-    impact: 1,
+    impact: 9,
   },
 ];

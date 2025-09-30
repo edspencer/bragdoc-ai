@@ -53,7 +53,7 @@ const achievementRequestSchema = z.object({
   ]),
   companyId: z.string().uuid().nullable().optional(),
   projectId: z.string().uuid().nullable().optional(),
-  impact: z.number().min(1).max(3).default(2),
+  impact: z.number().min(1).max(10).default(2),
   impactSource: z.enum(['user', 'llm']).default('user'),
   impactUpdatedAt: z.date().default(() => new Date()),
 });

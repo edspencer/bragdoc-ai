@@ -22,7 +22,7 @@ Here are the relevant parts of the database schema:
     <column name="projectId" type="uuid" />
     <column name="eventStart" type="date" />
     <column name="eventEnd" type="date" />
-    <column name="impact" type="number" desc="1, 2, or 3 where 3 is high impact" />
+    <column name="impact" type="number" desc="1-10 where 10 is exceptional impact" />
     <column name="impactSource" type="string" desc="Impact rated by user or llm" />
   </table>
   <table name="Company">
