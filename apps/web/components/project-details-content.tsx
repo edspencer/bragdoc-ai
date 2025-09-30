@@ -20,6 +20,7 @@ import { AchievementsTable } from '@/components/achievements-table';
 import { useAchievements } from '@/hooks/use-achievements';
 import { useCompanies } from '@/hooks/use-companies';
 import { useUpdateProject } from '@/hooks/useProjects';
+import { useAchievementMutations } from '@/hooks/use-achievement-mutations';
 import type { ProjectWithCompany } from '@/database/projects/queries';
 
 interface ProjectDetailsContentProps {
@@ -30,9 +31,10 @@ export function ProjectDetailsContent({ project }: ProjectDetailsContentProps) {
   const [editDialogOpen, setEditDialogOpen] = React.useState(false);
   const [selectedAchievements, setSelectedAchievements] = React.useState<string[]>([]);
 
-  const { achievements } = useAchievements();
+  const { achievements, mutate: mutateAchievements } = useAchievements();
   const { companies } = useCompanies();
   const updateProject = useUpdateProject();
+  const { updateAchievement } = useAchievementMutations();
 
   // Filter achievements for this project
   const projectAchievements = React.useMemo(() => {
@@ -74,9 +76,17 @@ export function ProjectDetailsContent({ project }: ProjectDetailsContentProps) {
     }
   };
 
-  const handleImpactChange = (achievementId: string, impact: number) => {
-    // This would typically update the achievement impact via API
-    console.log('Update impact for achievement:', achievementId, impact);
+  const handleImpactChange = async (achievementId: string, newImpact: number) => {
+    try {
+      await updateAchievement(achievementId, {
+        impact: newImpact,
+        impactSource: 'user',
+        impactUpdatedAt: new Date(),
+      });
+      mutateAchievements();
+    } catch (error) {
+      console.error('Failed to update impact:', error);
+    }
   };
 
   const handleGenerateDocument = () => {

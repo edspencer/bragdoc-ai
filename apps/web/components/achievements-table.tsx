@@ -64,7 +64,7 @@ function StarRating({
           key={star}
           variant="ghost"
           size="icon"
-          className="size-4 p-0 hover:bg-transparent"
+          className="size-4 p-0 hover:bg-transparent cursor-pointer"
           onClick={() => onRatingChange(star)}
         >
           {star <= rating ? (
@@ -298,7 +298,7 @@ export function AchievementsTable({
                 <TableHead>Project</TableHead>
                 <TableHead>Company</TableHead>
                 <TableHead>Impact Rating</TableHead>
-                <TableHead>Date Added</TableHead>
+                <TableHead>Date</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -335,7 +335,9 @@ export function AchievementsTable({
                     {achievement.project ? (
                       <div className="flex items-center gap-2">
                         <IconFolder className="size-4 text-muted-foreground" />
-                        <span className="text-sm">{achievement.project.name}</span>
+                        <span className="text-sm">
+                          {achievement.project.name}
+                        </span>
                       </div>
                     ) : (
                       <span className="text-sm text-muted-foreground">
@@ -347,7 +349,9 @@ export function AchievementsTable({
                     {achievement.company ? (
                       <div className="flex items-center gap-2">
                         <IconBuilding className="size-4 text-muted-foreground" />
-                        <span className="text-sm">{achievement.company.name}</span>
+                        <span className="text-sm">
+                          {achievement.company.name}
+                        </span>
                       </div>
                     ) : (
                       <span className="text-sm text-muted-foreground">
@@ -372,7 +376,9 @@ export function AchievementsTable({
                     <div className="flex items-center gap-2">
                       <IconCalendar className="size-4 text-muted-foreground" />
                       <span className="text-sm">
-                        {format(achievement.createdAt, 'MMM d, yyyy')}
+                        {achievement.eventStart
+                          ? format(achievement.eventStart, 'MMM d, yyyy')
+                          : format(achievement.createdAt, 'MMM d, yyyy')}
                       </span>
                     </div>
                   </TableCell>

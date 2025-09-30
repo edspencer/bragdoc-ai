@@ -17,7 +17,7 @@ const updateValidationSchema = z.object({
   details: z.string().optional(),
   companyId: z.string().uuid().optional().nullable(),
   projectId: z.string().uuid().optional().nullable(),
-  impact: z.number().int().min(1).max(5).optional(),
+  impact: z.number().int().min(1).max(10).optional(),
   impactSource: z.enum(['user', 'llm']).optional(),
   impactUpdatedAt: z.string().datetime().optional(),
   source: z.enum(['manual', 'llm']).optional(),
