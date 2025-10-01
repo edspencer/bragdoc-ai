@@ -22,6 +22,7 @@ import { useDocuments } from '@/hooks/use-documents';
 
 import { NavDocuments } from '@/components/nav-documents';
 import { NavMain } from '@/components/nav-main';
+import { NavProjects } from '@/components/nav-projects';
 import { NavSecondary } from '@/components/nav-secondary';
 import { NavUser } from '@/components/nav-user';
 import {
@@ -45,11 +46,6 @@ const staticData = {
       title: 'Achievements',
       url: '/achievements',
       icon: IconTarget,
-    },
-    {
-      title: 'Projects',
-      url: '/projects',
-      icon: IconFolder,
     },
     {
       title: 'Companies',
@@ -115,6 +111,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       </SidebarHeader>
       <SidebarContent>
         <NavMain items={staticData.navMain} />
+        <NavProjects />
         <NavDocuments documents={documents} />
         <NavSecondary items={staticData.navSecondary} className="mt-auto" />
       </SidebarContent>
