@@ -31,7 +31,20 @@ export function getRepositoryInfo(path = '.'): RepositoryInfo {
 }
 
 /**
+ * Get the current git user's name
+ */
+export function getCurrentGitUser(): string {
+  try {
+    const userName = execSync('git config user.name').toString().trim();
+    return userName;
+  } catch (error: any) {
+    throw new Error(`Failed to get git user name: ${error.message}`);
+  }
+}
+
+/**
  * Collects Git commit data for a given branch and maxCommits count.
+ * Only collects commits authored by the current git user.
  */
 export function collectGitCommits(
   branch: string,
@@ -39,9 +52,13 @@ export function collectGitCommits(
   repository: string,
 ): GitCommit[] {
   try {
+    // Get the current git user to filter commits
+    const currentUser = getCurrentGitUser();
+
     // Get commit hash and full message (title + body).
     // Use %x00 as a commit separator and %x1f as a field separator
-    const logCommand = `git log ${branch} --reverse --pretty=format:"%H%x1f%B%x1f%an%x1f%ai%x00" --max-count=${maxCommits}`;
+    // Filter by current user with --author flag
+    const logCommand = `git log ${branch} --reverse --author="${currentUser}" --pretty=format:"%H%x1f%B%x1f%an%x1f%ai%x00" --max-count=${maxCommits}`;
     const output = execSync(logCommand).toString();
 
     // Split the output by null character to get individual commits
