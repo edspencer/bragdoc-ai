@@ -17,7 +17,7 @@ const achievementSchema = z.object({
   details: z.string().optional(),
   companyId: z.string().uuid().optional().nullable(),
   projectId: z.string().uuid().optional().nullable(),
-  impact: z.number().int().min(1).max(5).optional(),
+  impact: z.number().int().min(1).max(10).optional(),
   impactSource: z.enum(['user', 'llm']).optional(),
   impactUpdatedAt: z.string().datetime().optional(),
   source: z.enum(['manual', 'llm']).optional(),
@@ -67,7 +67,7 @@ export async function GET(req: NextRequest) {
     console.error('Error fetching achievements:', error);
     return NextResponse.json(
       { error: 'Failed to fetch achievements' },
-      { status: 500 },
+      { status: 500 }
     );
   }
 }
@@ -89,7 +89,7 @@ export async function POST(req: NextRequest) {
           error: 'Invalid achievement data',
           details: result.error.errors,
         },
-        { status: 400 },
+        { status: 400 }
       );
     }
 
@@ -125,7 +125,7 @@ export async function POST(req: NextRequest) {
     console.error('Error creating achievement:', error);
     return NextResponse.json(
       { error: 'Failed to create achievement' },
-      { status: 500 },
+      { status: 500 }
     );
   }
 }

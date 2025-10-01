@@ -41,10 +41,17 @@
     <Instruction>Create an eventEnd date if possible. If the user does not explicitly mention an end date, do not return one</Instruction>
 
     <Instruction>
-    Impact rating (1-3) based on these criteria:,
-    - Level 1 (Low): Routine tasks, individual/small team benefit, short-term impact
-    - Level 2 (Medium): Notable improvements, team/department benefit, medium-term impact
-    - Level 3 (High): Major initiatives, org-wide benefit, long-term strategic impact
+  Return an Impact rating (1-10) based on these criteria:
+  1: Minimal routine tasks
+  2: Small individual tasks
+  3: Routine improvements with individual benefit
+  4: Minor improvements with small team benefit
+  5: Notable improvements with team level impact
+  6: Significant improvements with department impact
+  7: Major improvements with cross-department impact
+  8: Significant initiatives with organization-wide impact
+  9: Major strategic initiatives with company-wide impact
+  10: Exceptional achievements with industry/market impact
     </Instruction>
     <Instruction>Each Achievement should be complete and self-contained.</Instruction>
     <Instruction>If the user mentions multiple achievements in a single message, extract them all.</Instruction>
