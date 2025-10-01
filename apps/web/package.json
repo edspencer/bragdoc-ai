@@ -12,7 +12,11 @@
     "test:watch": "jest --watch",
     "db:generate": "drizzle-kit generate",
     "db:push": "drizzle-kit push",
-    "db:studio": "drizzle-kit studio"
+    "db:studio": "drizzle-kit studio",
+    "preview": "opennextjs-cloudflare build && opennextjs-cloudflare preview",
+    "deploy": "opennextjs-cloudflare build && opennextjs-cloudflare deploy",
+    "upload": "opennextjs-cloudflare build && opennextjs-cloudflare upload",
+    "cf-typegen": "wrangler types --env-interface CloudflareEnv cloudflare-env.d.ts"
   },
   "dependencies": {
     "@ai-sdk/deepseek": "^0.1.2",
@@ -106,6 +110,7 @@
     "zod": "^3.23.8"
   },
   "devDependencies": {
+    "@opennextjs/cloudflare": "^1.9.1",
     "@repo/typescript-config": "workspace:*",
     "@types/node": "^22.8.6",
     "@types/react": "^19",
@@ -113,6 +118,7 @@
     "autoprefixer": "^10.4.21",
     "postcss": "^8",
     "tailwindcss": "4.1.9",
-    "typescript": "^5.6.3"
+    "typescript": "^5.6.3",
+    "wrangler": "^4.40.3"
   }
 }

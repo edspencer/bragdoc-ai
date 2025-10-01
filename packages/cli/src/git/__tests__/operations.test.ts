@@ -95,13 +95,17 @@ describe('git operations', () => {
         `def456\x1fAdd feature\x1fJane Smith\x1f2024-01-09 11:00:00 -0500\0`,
       ].join('');
 
-      mockExecSync.mockReturnValue(Buffer.from(mockGitLog));
+      mockExecSync
+        .mockReturnValueOnce(Buffer.from('John Doe')) // git config user.name
+        .mockReturnValueOnce(Buffer.from(mockGitLog)); // git log
 
       const commits = collectGitCommits('main', 2, 'test-repo');
 
-      // Verify the git command
-      expect(mockExecSync).toHaveBeenCalledWith(
-        'git log main --reverse --pretty=format:"%H%x1f%B%x1f%an%x1f%ai%x00" --max-count=2',
+      // Verify the git commands
+      expect(mockExecSync).toHaveBeenNthCalledWith(1, 'git config user.name');
+      expect(mockExecSync).toHaveBeenNthCalledWith(
+        2,
+        'git log main --reverse --author="John Doe" --pretty=format:"%H%x1f%B%x1f%an%x1f%ai%x00" --max-count=2',
       );
 
       // Verify parsed commits
@@ -125,7 +129,9 @@ describe('git operations', () => {
     });
 
     it('should handle empty git log output', () => {
-      mockExecSync.mockReturnValue(Buffer.from(''));
+      mockExecSync
+        .mockReturnValueOnce(Buffer.from('John Doe')) // git config user.name
+        .mockReturnValueOnce(Buffer.from('')); // git log
 
       const commits = collectGitCommits('main', 10, 'test-repo');
 
@@ -134,7 +140,9 @@ describe('git operations', () => {
 
     it('should handle git log with empty lines', () => {
       const mockGitLog = `\0\0abc123\x1fInitial commit\x1fJohn Doe\x1f2024-01-09 10:00:00 -0500\0\0`;
-      mockExecSync.mockReturnValue(Buffer.from(mockGitLog));
+      mockExecSync
+        .mockReturnValueOnce(Buffer.from('John Doe')) // git config user.name
+        .mockReturnValueOnce(Buffer.from(mockGitLog)); // git log
 
       const commits = collectGitCommits('main', 1, 'test-repo');
 
@@ -144,7 +152,9 @@ describe('git operations', () => {
 
     it('should handle multiline commit messages', () => {
       const mockGitLog = `abc123\x1fFirst line\nSecond line\nThird line\x1fJohn Doe\x1f2024-01-09 10:00:00 -0500\0`;
-      mockExecSync.mockReturnValue(Buffer.from(mockGitLog));
+      mockExecSync
+        .mockReturnValueOnce(Buffer.from('John Doe')) // git config user.name
+        .mockReturnValueOnce(Buffer.from(mockGitLog)); // git log
 
       const commits = collectGitCommits('main', 1, 'test-repo');
 
@@ -154,7 +164,9 @@ describe('git operations', () => {
 
     it('should handle special characters in commit messages', () => {
       const mockGitLog = `abc123\x1fMessage with "quotes" and 'apostrophes'\x1fJohn Doe\x1f2024-01-09 10:00:00 -0500\0`;
-      mockExecSync.mockReturnValue(Buffer.from(mockGitLog));
+      mockExecSync
+        .mockReturnValueOnce(Buffer.from('John Doe')) // git config user.name
+        .mockReturnValueOnce(Buffer.from(mockGitLog)); // git log
 
       const commits = collectGitCommits('main', 1, 'test-repo');
 
@@ -171,12 +183,14 @@ describe('git operations', () => {
 
       expect(() => {
         collectGitCommits('main', 1, 'test-repo');
-      }).toThrow('Failed to extract commits: fatal: not a git repository');
+      }).toThrow('Failed to extract commits: Failed to get git user name: fatal: not a git repository');
     });
 
     it('should throw error on malformed git log entry', () => {
       const mockGitLog = `abc123\x1fIncomplete entry\0`;
-      mockExecSync.mockReturnValue(Buffer.from(mockGitLog));
+      mockExecSync
+        .mockReturnValueOnce(Buffer.from('John Doe')) // git config user.name
+        .mockReturnValueOnce(Buffer.from(mockGitLog)); // git log
 
       expect(() => {
         collectGitCommits('main', 1, 'test-repo');

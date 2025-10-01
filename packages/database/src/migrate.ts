@@ -1,8 +1,9 @@
 import { config } from 'dotenv';
-import { drizzle } from 'drizzle-orm/postgres-js';
-import { migrate } from 'drizzle-orm/postgres-js/migrator';
-import postgres from 'postgres';
+import { drizzle } from 'drizzle-orm/neon-http';
+import { migrate } from 'drizzle-orm/neon-http/migrator';
+import { neon } from '@neondatabase/serverless';
 import { dbUrl } from './index';
+import path from 'node:path';
 
 config({
   path: '../.env',
@@ -21,13 +22,16 @@ const runMigrate = async () => {
   }
 
   console.log(`Database URL: ${dbUrl}`);
-  const connection = postgres(dbUrl, { max: 1 });
+  const connection = neon(dbUrl);
   const db = drizzle(connection);
 
   console.log('⏳ Running migrations...');
 
+  const migrationsFolder = path.join(__dirname, 'migrations');
+  console.log('Migrations folder:', migrationsFolder);
+
   const start = Date.now();
-  await migrate(db, { migrationsFolder: './migrations' });
+  await migrate(db, { migrationsFolder });
   const end = Date.now();
 
   console.log('✅ Migrations completed in', end - start, 'ms');
