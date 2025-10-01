@@ -5,13 +5,13 @@ import postgres from 'postgres';
 import { dbUrl } from './index';
 
 config({
-  path: '.env',
+  path: '../.env',
 });
 
 // Also try .env.local if .env doesn't have what we need
 if (!process.env.POSTGRES_URL) {
   config({
-    path: '.env.local',
+    path: '../.env.local',
   });
 }
 
@@ -27,7 +27,7 @@ const runMigrate = async () => {
   console.log('⏳ Running migrations...');
 
   const start = Date.now();
-  await migrate(db, { migrationsFolder: './lib/db/migrations' });
+  await migrate(db, { migrationsFolder: './migrations' });
   const end = Date.now();
 
   console.log('✅ Migrations completed in', end - start, 'ms');

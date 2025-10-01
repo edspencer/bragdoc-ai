@@ -15,6 +15,7 @@ const updateProjectSchema = z.object({
     .transform((val) => (val === null ? undefined : val)),
   companyId: z.string().uuid().nullable().optional(),
   status: z.enum(['active', 'completed', 'archived']).optional(),
+  color: z.string().length(7).regex(/^#[0-9A-F]{6}$/i, 'Must be a valid hex color').optional(),
   startDate: z
     .string()
     .transform((str) => new Date(str))

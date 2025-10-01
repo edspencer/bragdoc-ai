@@ -43,11 +43,14 @@ import {
 
 import type { Company } from '@/database/schema';
 import type { ProjectWithCompany } from '@/database/projects/queries';
+import { ColorPicker } from '@/components/ui/color-picker';
+import { getNextProjectColor } from '@/lib/colors';
 
 const projectSchema = z.object({
   name: z.string().min(1, 'Project name is required'),
   description: z.string().optional(),
   status: z.enum(['active', 'completed', 'archived']),
+  color: z.string().min(1, 'Color is required'),
   startDate: z.date({
     required_error: 'Start date is required',
   }),
@@ -88,6 +91,7 @@ export function ProjectDialog({
       name: '',
       description: '',
       status: 'active',
+      color: getNextProjectColor(0).hex, // Default to first color
       startDate: new Date(),
       endDate: undefined,
       repoRemoteUrl: '',
@@ -107,6 +111,7 @@ export function ProjectDialog({
           name: project.name,
           description: project.description || '',
           status: project.status as any,
+          color: project.color || getNextProjectColor(0).hex,
           startDate: project.startDate,
           endDate: project.endDate || undefined,
           repoRemoteUrl: project.repoRemoteUrl || '',
@@ -118,6 +123,7 @@ export function ProjectDialog({
           name: '',
           description: '',
           status: 'active',
+          color: getNextProjectColor(0).hex,
           startDate: new Date(),
           endDate: undefined,
           repoRemoteUrl: '',
@@ -205,6 +211,23 @@ export function ProjectDialog({
                       className="resize-none"
                       rows={3}
                       {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="color"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Project Color</FormLabel>
+                  <FormControl>
+                    <ColorPicker
+                      value={field.value}
+                      onChange={field.onChange}
                     />
                   </FormControl>
                   <FormMessage />

@@ -17,6 +17,7 @@ import {
 import { ProjectDialog } from '@/components/project-dialog';
 import { WeeklyImpactChart } from '@/components/weekly-impact-chart';
 import { AchievementsTable } from '@/components/achievements-table';
+import { GenerateDocumentDialog } from '@/components/generate-document-dialog';
 import { useAchievements } from '@/hooks/use-achievements';
 import { useCompanies } from '@/hooks/use-companies';
 import { useUpdateProject } from '@/hooks/useProjects';
@@ -29,6 +30,7 @@ interface ProjectDetailsContentProps {
 
 export function ProjectDetailsContent({ project }: ProjectDetailsContentProps) {
   const [editDialogOpen, setEditDialogOpen] = React.useState(false);
+  const [generateDialogOpen, setGenerateDialogOpen] = React.useState(false);
   const [selectedAchievements, setSelectedAchievements] = React.useState<string[]>([]);
 
   const { achievements, mutate: mutateAchievements } = useAchievements();
@@ -90,8 +92,10 @@ export function ProjectDetailsContent({ project }: ProjectDetailsContentProps) {
   };
 
   const handleGenerateDocument = () => {
-    // This would typically generate a document with selected achievements
-    console.log('Generate document for selected achievements:', selectedAchievements);
+    if (selectedAchievements.length === 0) {
+      return;
+    }
+    setGenerateDialogOpen(true);
   };
 
   // Get available projects and companies for the achievements table (excluding current project)
@@ -282,6 +286,14 @@ export function ProjectDetailsContent({ project }: ProjectDetailsContentProps) {
         project={project}
         companies={companies || []}
         onSubmit={handleSubmitProject}
+      />
+
+      <GenerateDocumentDialog
+        open={generateDialogOpen}
+        onOpenChange={setGenerateDialogOpen}
+        selectedAchievements={projectAchievements.filter((a) =>
+          selectedAchievements.includes(a.id)
+        )}
       />
     </>
   );

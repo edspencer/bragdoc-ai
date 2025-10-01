@@ -38,6 +38,11 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 import type { AchievementWithRelations } from '@/lib/types/achievement';
 
 interface AchievementsTableProps {
@@ -218,12 +223,24 @@ export function AchievementsTable({
               Your latest accomplishments with impact ratings
             </CardDescription>
           </div>
-          {selectedAchievements.length > 0 && (
-            <Button onClick={onGenerateDocument}>
-              <IconFileText className="size-4" />
-              Generate Document ({selectedAchievements.length} selected)
-            </Button>
-          )}
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                onClick={onGenerateDocument}
+                disabled={selectedAchievements.length === 0}
+              >
+                <IconFileText className="size-4" />
+                Generate Document
+                {selectedAchievements.length > 0 &&
+                  ` (${selectedAchievements.length} selected)`}
+              </Button>
+            </TooltipTrigger>
+            {selectedAchievements.length === 0 && (
+              <TooltipContent>
+                Select at least one achievement to generate a document
+              </TooltipContent>
+            )}
+          </Tooltip>
         </div>
 
         {/* Filters */}

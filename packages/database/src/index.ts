@@ -9,11 +9,7 @@ if (process.env.NODE_ENV === 'test') {
   config();
 }
 
-// Use test database URL in test environment
-export const dbUrl =
-  process.env.NODE_ENV === 'test'
-    ? process.env.TEST_POSTGRES_URL || 'postgres://localhost:5432/bragai-test'
-    : process.env.POSTGRES_URL!;
+export const dbUrl = process.env.POSTGRES_URL!;
 
 if (!dbUrl) {
   throw new Error('Database connection string not found');
@@ -48,7 +44,7 @@ export {
   getSuggestionsByDocumentId,
   getMessageById,
   deleteMessagesByChatIdAfterTimestamp,
-  updateChatVisiblityById,
+  updateChatVisibilityById,
   createUserMessage,
   createAchievement,
   getAchievementsByUserId,
@@ -63,14 +59,25 @@ export {
   updateCompany,
   deleteCompany,
   getAchievementStats,
-  getActiveProjectsCount
+  getActiveProjectsCount,
 } from './queries';
 
 // Re-export project queries
-export { getProjectsByUserId, getProjectById, createProject, updateProject, deleteProject, ensureProject } from './projects/queries';
+export {
+  getProjectsByUserId,
+  getProjectById,
+  createProject,
+  updateProject,
+  deleteProject,
+  ensureProject,
+} from './projects/queries';
 
 // Re-export project types
-export type { ProjectWithCompany, CreateProjectInput, UpdateProjectInput } from './projects/queries';
+export type {
+  ProjectWithCompany,
+  CreateProjectInput,
+  UpdateProjectInput,
+} from './projects/queries';
 
 // Re-export types
 export type { AchievementStats } from './queries';

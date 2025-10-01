@@ -1,8 +1,28 @@
-import { and, desc, eq, isNull, sum, sql } from 'drizzle-orm';
+import { and, desc, eq, isNull, sum, sql, count } from 'drizzle-orm';
 import { db } from '../index';
 import { project, company, achievement, type Project, type Company } from '../schema';
 import { v4 as uuidv4 } from 'uuid';
 import { fuzzyFindProject } from './fuzzyFind';
+
+// Color palette for projects - defined here to avoid cross-package dependencies
+const PROJECT_COLORS = [
+  '#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6', '#06B6D4', '#F97316', '#84CC16',
+  '#EC4899', '#6366F1', '#14B8A6', '#FACC15', '#A855F7', '#0EA5E9', '#FB923C', '#22C55E'
+] as const;
+
+/**
+ * Get the next color for a user's projects using round-robin assignment
+ */
+async function getNextProjectColor(userId: string): Promise<string> {
+  // Get the count of existing projects for the user
+  const result = await db
+    .select({ count: count(project.id) })
+    .from(project)
+    .where(eq(project.userId, userId));
+
+  const existingProjectCount = result[0]?.count || 0;
+  return PROJECT_COLORS[existingProjectCount % PROJECT_COLORS.length]!;
+}
 
 export type ProjectWithCompany = Omit<Project, 'companyId'> & {
   companyId: string | null;
@@ -18,6 +38,7 @@ export type CreateProjectInput = {
   startDate: Date;
   endDate?: Date | null;
   repoRemoteUrl?: string;
+  color?: string;
 };
 
 export type UpdateProjectInput = Partial<Omit<CreateProjectInput, 'userId'>>;
@@ -38,6 +59,7 @@ export async function getProjectsByUserId(
       description: project.description,
       companyId: project.companyId,
       status: project.status,
+      color: project.color,
       startDate: project.startDate,
       endDate: project.endDate,
       createdAt: project.createdAt,
@@ -68,6 +90,7 @@ export async function getProjectById(
       description: project.description,
       companyId: project.companyId,
       status: project.status,
+      color: project.color,
       startDate: project.startDate,
       endDate: project.endDate,
       createdAt: project.createdAt,
@@ -99,6 +122,7 @@ export async function getProjectsByCompanyId(
       description: project.description,
       companyId: project.companyId,
       status: project.status,
+      color: project.color,
       startDate: project.startDate,
       endDate: project.endDate,
       createdAt: project.createdAt,
@@ -128,6 +152,7 @@ export async function getActiveProjects(
       description: project.description,
       companyId: project.companyId,
       status: project.status,
+      color: project.color,
       startDate: project.startDate,
       endDate: project.endDate,
       createdAt: project.createdAt,
@@ -155,10 +180,14 @@ export async function getActiveProjects(
 export async function createProject(
   input: CreateProjectInput
 ): Promise<Project> {
+  // If no color is provided, use round-robin assignment
+  const color = input.color || await getNextProjectColor(input.userId);
+
   const results = await db
     .insert(project)
     .values({
       ...input,
+      color,
       createdAt: new Date(),
       updatedAt: new Date(),
     })
@@ -246,7 +275,8 @@ export async function ensureProject({
     }
   }
 
-  // Create a new project
+  // Create a new project with round-robin color assignment
+  const color = await getNextProjectColor(userId);
   const [newProject] = await db
     .insert(project)
     .values({
@@ -257,6 +287,7 @@ export async function ensureProject({
       status: 'active',
       startDate: new Date(),
       repoRemoteUrl: remoteUrl,
+      color,
     })
     .returning();
 
@@ -277,6 +308,7 @@ export async function getTopProjectsByImpact(
       description: project.description,
       companyId: project.companyId,
       status: project.status,
+      color: project.color,
       startDate: project.startDate,
       endDate: project.endDate,
       createdAt: project.createdAt,
@@ -300,6 +332,7 @@ export async function getTopProjectsByImpact(
       project.description,
       project.companyId,
       project.status,
+      project.color,
       project.startDate,
       project.endDate,
       project.createdAt,

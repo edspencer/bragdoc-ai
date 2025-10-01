@@ -45,6 +45,7 @@ export const project = {
   id: '1234',
   companyId: '1234',
   status: 'active',
+  color: '#3B82F6',
   createdAt: new Date('2023-01-01'),
   updatedAt: new Date('2023-01-01'),
   userId: '1234',

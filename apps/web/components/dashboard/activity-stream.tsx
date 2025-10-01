@@ -88,7 +88,12 @@ export function ActivityStream({ achievements }: ActivityStreamProps) {
                       {achievement.project && (
                         <div className="flex items-center gap-1">
                           <FolderKanban className="h-3 w-3" />
-                          {achievement.project.name}
+                          <span
+                            style={{ color: achievement.project.color }}
+                            className="font-medium hover:underline cursor-pointer"
+                          >
+                            {achievement.project.name}
+                          </span>
                         </div>
                       )}
                       {achievement.company && (

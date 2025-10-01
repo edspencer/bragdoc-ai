@@ -101,7 +101,10 @@ export function TopProjects() {
                         )}
                         <div className="flex items-center gap-4 text-xs text-muted-foreground">
                           <div className="flex items-center gap-1">
-                            <Trophy className="h-3 w-3" />
+                            <Trophy
+                              className="h-3 w-3"
+                              style={{ color: project.color }}
+                            />
                             {project.totalImpact || 0} impact ({project.achievementCount} achievements)
                           </div>
                           {project.company && (

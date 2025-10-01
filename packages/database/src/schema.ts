@@ -107,6 +107,7 @@ export const project = pgTable('Project', {
   name: varchar('name', { length: 256 }).notNull(),
   description: text('description'),
   status: varchar('status', { length: 32 }).notNull().default('active'),
+  color: varchar('color', { length: 7 }).notNull().default('#3B82F6'),
   startDate: timestamp('start_date').notNull(),
   endDate: timestamp('end_date'),
   repoRemoteUrl: varchar('repo_remote_url', { length: 256 }),

@@ -16,11 +16,12 @@
   },
   "scripts": {
     "build": "tsc --noEmit",
-    "lint": "biome lint --write --unsafe src/",
-    "format": "biome format --write src/",
+    "lint": "biome lint --write --unsafe ./src/",
+    "format": "biome format --write ./src/",
     "db:generate": "drizzle-kit generate",
     "db:push": "drizzle-kit push",
-    "db:studio": "drizzle-kit studio"
+    "db:studio": "drizzle-kit studio",
+    "db:migrate": "npx tsx ./src/migrate.ts"
   },
   "dependencies": {
     "drizzle-orm": "^0.34.1",

@@ -421,7 +421,7 @@ export async function deleteMessagesByChatIdAfterTimestamp(
   }
 }
 
-export async function updateChatVisiblityById(
+export async function updateChatVisibilityById(
   {
     chatId,
     visibility,
@@ -437,7 +437,7 @@ export async function updateChatVisiblityById(
       .set({ visibility })
       .where(eq(chat.id, chatId));
   } catch (error) {
-    console.error('Error in updateChatVisiblityById:', error);
+    console.error('Error in updateChatVisibilityById:', error);
     throw error;
   }
 }
@@ -885,11 +885,14 @@ export async function getAchievementStats({
         totalImpact: sql<number>`coalesce(sum(${achievement.impact}), 0)`,
       })
       .from(achievement)
-      .where(and(eq(achievement.userId, userId), eq(achievement.isArchived, false)));
+      .where(
+        and(eq(achievement.userId, userId), eq(achievement.isArchived, false))
+      );
 
     const totalAchievements = Number(totalStatsResult?.totalAchievements ?? 0);
     const totalImpactPoints = Number(totalStatsResult?.totalImpact ?? 0);
-    const avgImpactPerAchievement = totalAchievements > 0 ? totalImpactPoints / totalAchievements : 0;
+    const avgImpactPerAchievement =
+      totalAchievements > 0 ? totalImpactPoints / totalAchievements : 0;
 
     // Get this week's impact
     const now = new Date();
@@ -931,7 +934,10 @@ export async function getAchievementStats({
       );
 
     const lastWeekImpact = Number(lastWeekResult?.lastWeekImpact ?? 0);
-    const weeklyGrowth = lastWeekImpact > 0 ? ((thisWeekImpact - lastWeekImpact) / lastWeekImpact) * 100 : 0;
+    const weeklyGrowth =
+      lastWeekImpact > 0
+        ? ((thisWeekImpact - lastWeekImpact) / lastWeekImpact) * 100
+        : 0;
 
     // Get this month's impact
     const startOfThisMonth = new Date(now.getFullYear(), now.getMonth(), 1);
@@ -969,7 +975,10 @@ export async function getAchievementStats({
 
     const thisMonthImpact = Number(thisMonthResult?.thisMonthImpact ?? 0);
     const lastMonthImpact = Number(lastMonthResult?.lastMonthImpact ?? 0);
-    const monthlyGrowth = lastMonthImpact > 0 ? ((thisMonthImpact - lastMonthImpact) / lastMonthImpact) * 100 : 0;
+    const monthlyGrowth =
+      lastMonthImpact > 0
+        ? ((thisMonthImpact - lastMonthImpact) / lastMonthImpact) * 100
+        : 0;
 
     return {
       totalAchievements,
@@ -998,12 +1007,7 @@ export async function getActiveProjectsCount({
         count: sql<number>`count(*)`,
       })
       .from(project)
-      .where(
-        and(
-          eq(project.userId, userId),
-          eq(project.status, 'active')
-        )
-      );
+      .where(and(eq(project.userId, userId), eq(project.status, 'active')));
 
     return Number(result?.count ?? 0);
   } catch (error) {
