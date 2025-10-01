@@ -79,8 +79,14 @@ export function ProjectsTable({
         const project = row.original;
         return (
           <div className="flex items-center gap-3">
-            <div className="flex size-8 items-center justify-center rounded-lg bg-primary/10">
-              <IconFolderCode className="size-4 text-primary" />
+            <div
+              className="flex size-8 items-center justify-center rounded-lg"
+              style={{ backgroundColor: `${project.color}20` }}
+            >
+              <IconFolderCode
+                className="size-4"
+                style={{ color: project.color }}
+              />
             </div>
             <div className="min-w-0 flex-1">
               <Link

@@ -25,7 +25,7 @@ export function ActivityStream({ achievements }: ActivityStreamProps) {
     return [...achievements]
       .sort(
         (a, b) =>
-          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
+          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
       )
       .slice(0, 5);
   }, [achievements]);
@@ -90,19 +90,22 @@ export function ActivityStream({ achievements }: ActivityStreamProps) {
                             new Date(achievement.eventStart),
                             {
                               addSuffix: true,
-                            },
+                            }
                           )}
                         </div>
                       )}
                       {achievement.project && (
-                        <div className="flex items-center gap-1">
+                        <div
+                          className="flex items-center gap-1"
+                          style={{ color: achievement.project.color }}
+                        >
                           <FolderKanban className="h-3 w-3" />
-                          <span
-                            style={{ color: achievement.project.color }}
-                            className="font-medium hover:underline cursor-pointer"
+                          <Link
+                            href={`/projects/${achievement.project.id}`}
+                            className="font-medium hover:underline"
                           >
                             {achievement.project.name}
-                          </span>
+                          </Link>
                         </div>
                       )}
                       {achievement.company && (

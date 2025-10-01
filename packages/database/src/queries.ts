@@ -609,6 +609,7 @@ export async function getAchievements({
           name: project.name,
           description: project.description,
           status: project.status,
+          color: project.color,
           startDate: project.startDate,
           endDate: project.endDate,
           createdAt: project.createdAt,
