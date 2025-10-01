@@ -53,6 +53,7 @@ interface AchievementsTableProps {
   onSelectionChange: (selectedIds: string[]) => void;
   selectedAchievements: string[];
   onGenerateDocument: () => void; // Added onGenerateDocument prop
+  projectId?: string; // Optional project ID to filter and hide project/company filters
 }
 
 function StarRating({
@@ -101,12 +102,16 @@ export function AchievementsTable({
   onSelectionChange,
   selectedAchievements,
   onGenerateDocument, // Added onGenerateDocument prop
+  projectId, // Optional project ID to filter and hide project/company filters
 }: AchievementsTableProps) {
   const [searchTerm, setSearchTerm] = React.useState('');
   const [selectedProject, setSelectedProject] = React.useState<string>('all');
   const [selectedCompany, setSelectedCompany] = React.useState<string>('all');
   const [timePeriod, setTimePeriod] = React.useState<string>('all');
   const [displayCount, setDisplayCount] = React.useState(20);
+
+  // When projectId is provided, automatically set the project filter and hide UI filters
+  const effectiveSelectedProject = projectId || selectedProject;
 
   // Filter achievements based on search and filters
   const filteredAchievements = React.useMemo(() => {
@@ -125,9 +130,9 @@ export function AchievementsTable({
     }
 
     // Project filter
-    if (selectedProject !== 'all') {
+    if (effectiveSelectedProject !== 'all') {
       filtered = filtered.filter(
-        (achievement) => achievement.project?.id === selectedProject,
+        (achievement) => achievement.project?.id === effectiveSelectedProject,
       );
     }
 
@@ -184,7 +189,7 @@ export function AchievementsTable({
     return filtered.sort(
       (a, b) => b.createdAt.getTime() - a.createdAt.getTime(),
     );
-  }, [achievements, searchTerm, selectedProject, selectedCompany, timePeriod]);
+  }, [achievements, searchTerm, effectiveSelectedProject, selectedCompany, timePeriod]);
 
   const displayedAchievements = filteredAchievements.slice(0, displayCount);
   const hasMore = filteredAchievements.length > displayCount;
@@ -257,33 +262,37 @@ export function AchievementsTable({
             </div>
           </div>
 
-          <Select value={selectedProject} onValueChange={setSelectedProject}>
-            <SelectTrigger className="w-[180px]">
-              <SelectValue placeholder="All Projects" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Projects</SelectItem>
-              {projects.map((project) => (
-                <SelectItem key={project.id} value={project.id}>
-                  {project.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          {!projectId && (
+            <Select value={selectedProject} onValueChange={setSelectedProject}>
+              <SelectTrigger className="w-[180px]">
+                <SelectValue placeholder="All Projects" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Projects</SelectItem>
+                {projects.map((project) => (
+                  <SelectItem key={project.id} value={project.id}>
+                    {project.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          )}
 
-          <Select value={selectedCompany} onValueChange={setSelectedCompany}>
-            <SelectTrigger className="w-[180px]">
-              <SelectValue placeholder="All Companies" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Companies</SelectItem>
-              {companies.map((company) => (
-                <SelectItem key={company.id} value={company.id}>
-                  {company.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          {!projectId && (
+            <Select value={selectedCompany} onValueChange={setSelectedCompany}>
+              <SelectTrigger className="w-[180px]">
+                <SelectValue placeholder="All Companies" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Companies</SelectItem>
+                {companies.map((company) => (
+                  <SelectItem key={company.id} value={company.id}>
+                    {company.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          )}
 
           <Select value={timePeriod} onValueChange={setTimePeriod}>
             <SelectTrigger className="w-[150px]">

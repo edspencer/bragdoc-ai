@@ -41,7 +41,7 @@ export function ProjectDetailsContent({ project }: ProjectDetailsContentProps) {
     string[]
   >([]);
 
-  const { achievements, mutate: mutateAchievements } = useAchievements();
+  const { achievements, mutate: mutateAchievements } = useAchievements({ limit: 1000 });
   const { companies } = useCompanies();
   const updateProject = useUpdateProject();
   const { updateAchievement } = useAchievementMutations();
@@ -325,6 +325,7 @@ export function ProjectDetailsContent({ project }: ProjectDetailsContentProps) {
             onSelectionChange={setSelectedAchievements}
             selectedAchievements={selectedAchievements}
             onGenerateDocument={handleGenerateDocument}
+            projectId={project.id}
           />
         </div>
       </div>

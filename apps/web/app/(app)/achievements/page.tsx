@@ -42,7 +42,7 @@ export default function AchievementsPage() {
   const { companies } = useCompanies();
   const { projects } = useProjects();
   const { createAchievement, updateAchievement } = useAchievementMutations();
-  const { achievements, mutate: mutateAchievements } = useAchievements();
+  const { achievements, mutate: mutateAchievements } = useAchievements({ limit: 1000 });
 
   // Quick entry form state
   const [newAchievementText, setNewAchievementText] = React.useState('');

@@ -1,4 +1,4 @@
-import { and, desc, eq, isNull, sum, sql, count } from 'drizzle-orm';
+import { and, desc, eq, isNull, sql, count } from 'drizzle-orm';
 import { db } from '../index';
 import {
   project,
@@ -318,7 +318,7 @@ export async function ensureProject({
 
 export async function getTopProjectsByImpact(
   userId: string,
-  limit: number = 5,
+  limit = 5,
 ): Promise<ProjectWithImpact[]> {
   const results = await db
     .select({

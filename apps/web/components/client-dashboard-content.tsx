@@ -6,7 +6,7 @@ import { ActivityStream } from '@/components/dashboard/activity-stream';
 import { useAchievements } from '@/hooks/use-achievements';
 
 export function ClientDashboardContent() {
-  const { achievements } = useAchievements();
+  const { achievements } = useAchievements({ limit: 1000 });
 
   return (
     <div className="flex flex-col gap-4 py-4 md:gap-6 md:py-6">

@@ -33,8 +33,7 @@ export async function fuzzyFindProject(
   // Look for matches in description
   for (const project of projects) {
     if (
-      project.description &&
-      project.description.toLowerCase().includes(repoNameLower)
+      project.description?.toLowerCase().includes(repoNameLower)
     ) {
       return project.id;
     }
