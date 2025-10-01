@@ -1,4 +1,4 @@
-import useSWR, { mutate } from 'swr';
+import useSWR from 'swr';
 import { toast } from 'sonner';
 import { useConfetti } from 'hooks/useConfetti';
 import type { ProjectFormData } from 'components/projects/project-form';

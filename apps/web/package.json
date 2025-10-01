@@ -6,7 +6,7 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint && biome lint --write --unsafe src/",
+    "lint": "next lint && biome lint --write --unsafe",
     "format": "biome format --write app/ components/ lib/ hooks/",
     "test": "jest",
     "test:watch": "jest --watch",

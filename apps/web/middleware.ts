@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { type NextRequest, NextResponse } from 'next/server'
 import { isPaymentRequired } from '@bragdoc/config'
 
 export async function middleware(request: NextRequest) {

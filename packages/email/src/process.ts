@@ -1,14 +1,9 @@
 import {
-  createUserMessage,
   getUser,
   getCompaniesByUserId,
   getAchievements,
-  createAchievement,
 } from '@bragdoc/database';
 import { getProjectsByUserId } from '@bragdoc/database';
-// TODO: Move AI functions to shared package to avoid circular dependencies
-import { z } from 'zod';
-import { v4 as uuidv4 } from 'uuid';
 
 export interface IncomingEmail {
   from: string;
@@ -20,7 +15,7 @@ export interface IncomingEmail {
 // Extract email from "From" header (e.g. "John Doe <john@example.com>" -> "john@example.com")
 function extractEmailFromSender(from: string): string {
   const match = from.match(/<(.+?)>/);
-  if (match && match[1]) return match[1];
+  if (match?.[1]) return match[1];
   return from;
 }
 

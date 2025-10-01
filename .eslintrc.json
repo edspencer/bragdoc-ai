@@ -20,6 +20,5 @@
       }
     }
   },
-  "ignorePatterns": ["**/components/ui/**", "**/ai-docs/**"],
-  "eslint.workingDirectories": [{ "mode": "auto" }]
+  "ignorePatterns": ["**/components/ui/**", "**/ai-docs/**"]
 }

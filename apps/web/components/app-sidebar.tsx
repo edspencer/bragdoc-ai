@@ -3,19 +3,10 @@
 import type * as React from 'react';
 import {
   IconTarget,
-  IconChartBar,
   IconDashboard,
   IconBuilding,
-  IconFileAi,
-  IconFolder,
-  IconHelp,
-  IconBrandGithub,
-  IconListDetails,
-  IconReport,
-  IconSearch,
   IconSettings,
   IconStar,
-  IconCirclePlusFilled,
 } from '@tabler/icons-react';
 import { useSession } from 'next-auth/react';
 import { useDocuments } from '@/hooks/use-documents';
