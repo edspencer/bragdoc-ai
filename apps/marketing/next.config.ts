@@ -1,5 +1,6 @@
 import withMDX from '@next/mdx';
 import type { NextConfig } from 'next';
+import { initOpenNextCloudflareForDev } from '@opennextjs/cloudflare';
 
 const withMDXConfig = withMDX({
   extension: /\.mdx?$/,
@@ -27,8 +28,10 @@ const baseConfig: NextConfig = {
         source: '/app/:path*',
         destination: `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/:path*`,
       },
-    ]
+    ];
   },
 };
 
 export default withMDXConfig(baseConfig);
+
+initOpenNextCloudflareForDev();

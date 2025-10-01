@@ -144,9 +144,9 @@ export const extractCommand = new Command('extract')
       logger.info(`Found ${commits.length} commits.`);
 
       if (dryRun) {
-        logger.info('\nDry run mode - commits that would be sent:');
-        commits.forEach((commit) => {
-          logger.info(formatCommit(commit));
+        displayDryRun({
+          repository: repoInfo,
+          commits: commits,
         });
         return;
       }

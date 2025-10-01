@@ -4,10 +4,14 @@
   "private": true,
   "scripts": {
     "dev": "next dev -p 3001",
-    "build": "next build",
     "start": "next start -p 3001",
     "lint": "next lint && biome lint --write --unsafe src/",
-    "format": "biome format --write src/"
+    "format": "biome format --write src/",
+    "build": "next build",
+    "preview": "opennextjs-cloudflare build && opennextjs-cloudflare preview",
+    "deploy": "opennextjs-cloudflare build && opennextjs-cloudflare deploy",
+    "upload": "opennextjs-cloudflare build && opennextjs-cloudflare upload",
+    "cf-typegen": "wrangler types --env-interface CloudflareEnv cloudflare-env.d.ts"
   },
   "dependencies": {
     "@bragdoc/config": "workspace:*",
@@ -30,12 +34,14 @@
     "react-share": "^5.1.2"
   },
   "devDependencies": {
+    "@opennextjs/cloudflare": "^1.9.1",
     "@types/node": "^22.8.6",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "autoprefixer": "^10.4.21",
     "postcss": "^8",
     "tailwindcss": "^3.4.1",
-    "typescript": "^5.6.3"
+    "typescript": "^5.6.3",
+    "wrangler": "^4.40.3"
   }
 }
