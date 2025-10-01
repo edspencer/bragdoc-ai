@@ -41,7 +41,9 @@ export function ProjectDetailsContent({ project }: ProjectDetailsContentProps) {
     string[]
   >([]);
 
-  const { achievements, mutate: mutateAchievements } = useAchievements({ limit: 1000 });
+  const { achievements, mutate: mutateAchievements } = useAchievements({
+    limit: 1000,
+  });
   const { companies } = useCompanies();
   const updateProject = useUpdateProject();
   const { updateAchievement } = useAchievementMutations();

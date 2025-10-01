@@ -94,7 +94,7 @@ export function WeeklyImpactChart({ achievements }: WeeklyImpactChartProps) {
           const eventDate = new Date(achievement.eventStart);
           return !earliest || eventDate < earliest ? eventDate : earliest;
         },
-        null as Date | null
+        null as Date | null,
       );
 
       if (!earliestDate) return [];
@@ -129,7 +129,7 @@ export function WeeklyImpactChart({ achievements }: WeeklyImpactChartProps) {
           const currentImpact = projectImpacts.get(projectId) || 0;
           projectImpacts.set(
             projectId,
-            currentImpact + (achievement.impact || 0)
+            currentImpact + (achievement.impact || 0),
           );
         });
 
@@ -151,7 +151,7 @@ export function WeeklyImpactChart({ achievements }: WeeklyImpactChartProps) {
           if (!achievement.eventStart) return false;
           return isSameMonth(
             new Date(achievement.eventStart),
-            monthStartOfMonth
+            monthStartOfMonth,
           );
         });
 
@@ -167,7 +167,7 @@ export function WeeklyImpactChart({ achievements }: WeeklyImpactChartProps) {
           const currentImpact = projectImpacts.get(projectId) || 0;
           projectImpacts.set(
             projectId,
-            currentImpact + (achievement.impact || 0)
+            currentImpact + (achievement.impact || 0),
           );
         });
 
@@ -206,7 +206,7 @@ export function WeeklyImpactChart({ achievements }: WeeklyImpactChartProps) {
           const currentImpact = projectImpacts.get(projectId) || 0;
           projectImpacts.set(
             projectId,
-            currentImpact + (achievement.impact || 0)
+            currentImpact + (achievement.impact || 0),
           );
         });
 

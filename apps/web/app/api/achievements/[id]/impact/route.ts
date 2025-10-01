@@ -21,7 +21,7 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
     if (!impact || impact < 1 || impact > 10) {
       return NextResponse.json(
         { error: 'Impact must be between 1 and 10' },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -38,7 +38,7 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
     if (!updatedAchievement) {
       return NextResponse.json(
         { error: 'Achievement not found or access denied' },
-        { status: 404 }
+        { status: 404 },
       );
     }
 
@@ -47,7 +47,7 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
     console.error('Error updating achievement impact:', error);
     return NextResponse.json(
       { error: 'Internal server error' },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

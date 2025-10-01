@@ -189,7 +189,13 @@ export function AchievementsTable({
     return filtered.sort(
       (a, b) => b.createdAt.getTime() - a.createdAt.getTime(),
     );
-  }, [achievements, searchTerm, effectiveSelectedProject, selectedCompany, timePeriod]);
+  }, [
+    achievements,
+    searchTerm,
+    effectiveSelectedProject,
+    selectedCompany,
+    timePeriod,
+  ]);
 
   const displayedAchievements = filteredAchievements.slice(0, displayCount);
   const hasMore = filteredAchievements.length > displayCount;
