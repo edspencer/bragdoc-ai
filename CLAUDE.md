@@ -14,9 +14,9 @@
 
 ## CLI Commands
 
-- `cd cli && pnpm build` - Build CLI
-- `cd cli && pnpm test` - Run CLI tests
-- `cd cli && pnpm dev` - Run CLI in dev mode
+- `cd packages/cli && pnpm build` - Build CLI
+- `cd packages/cli && pnpm test` - Run CLI tests
+- `cd packages/cli && pnpm dev` - Run CLI in dev mode
 - `pnpm changeset` - Create changelogs with Changesets
 
 ## Code Style

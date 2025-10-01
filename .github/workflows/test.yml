@@ -84,10 +84,10 @@ jobs:
 
       - name: Install dependencies
         run: |
-          cd cli
+          cd packages/cli
           pnpm install
 
       - name: Run CLI tests
         run: |
-          cd cli
+          cd packages/cli
           pnpm test

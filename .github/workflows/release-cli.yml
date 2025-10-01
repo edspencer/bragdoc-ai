@@ -31,12 +31,12 @@ jobs:
           scope: "@bragdoc"
 
       - name: Install Dependencies
-        run: cd cli && pnpm install
+        run: cd packages/cli && pnpm install
 
       - name: Run Tests
         env:
           OPENAI_API_KEY: nope
-        run: cd cli && pnpm test
+        run: cd packages/cli && pnpm test
 
       - name: Create Release Pull Request or Publish to npm
         id: changesets
