@@ -20,7 +20,11 @@ interface TokenResponse {
 /**
  * Start a local server to receive the auth token
  */
-async function startAuthServer(state: string, deviceName: string, apiUrl: string): Promise<TokenResponse> {
+async function startAuthServer(
+  state: string,
+  deviceName: string,
+  apiUrl: string,
+): Promise<TokenResponse> {
   return new Promise((resolve, reject) => {
     logger.debug('Starting local server...');
     const server = createServer((req, res) => {
@@ -39,25 +43,31 @@ async function startAuthServer(state: string, deviceName: string, apiUrl: string
       logger.debug(`Received ${req.method} request`);
       if (req.method === 'POST') {
         let body = '';
-        req.on('data', chunk => {
+        req.on('data', (chunk) => {
           body += chunk.toString();
         });
         req.on('end', async () => {
           try {
             logger.debug('Received body:', body);
             const { token, state: receivedState } = JSON.parse(body);
-            
-            logger.debug('Comparing states:', { expected: state, received: receivedState });
+
+            logger.debug('Comparing states:', {
+              expected: state,
+              received: receivedState,
+            });
             // Verify state parameter
             if (state !== receivedState) {
               throw new Error('Invalid state parameter');
             }
-            
+
             res.writeHead(200);
             res.end('OK');
             server.close();
             logger.debug('Successfully received token');
-            resolve({ token, expiresAt: Date.now() + 30 * 24 * 60 * 60 * 1000 });
+            resolve({
+              token,
+              expiresAt: Date.now() + 30 * 24 * 60 * 60 * 1000,
+            });
           } catch (err) {
             logger.error('Error processing request:', err);
             res.writeHead(400);
@@ -94,38 +104,38 @@ async function login(options: { apiUrl?: string }) {
   try {
     const config = await loadConfig();
     const apiUrl = options.apiUrl || getApiBaseUrl(config);
-    
+
     logger.debug(`Using API base URL: ${apiUrl}`);
-    
+
     // Generate state for CSRF protection
     const state = randomBytes(32).toString('hex');
-    
+
     logger.debug('Starting authentication...');
-    
+
     // Get device name
     const deviceName = await getDeviceName();
-    
+
     // Start server
     logger.debug('Starting local server...');
     const tokenPromise = startAuthServer(state, deviceName, apiUrl);
-    
+
     // Open browser
     const authUrl = `${apiUrl}/cli-auth?state=${state}&port=5556`;
     logger.debug('Opening browser for authentication...');
     const open = await import('open');
     await open.default(authUrl);
-    
+
     // Wait for token
     logger.debug('Waiting for authentication to complete...');
     const { token, expiresAt } = await tokenPromise;
-    
+
     // Save tokens
     config.auth = {
       token,
       expiresAt,
     };
     await saveConfig(config);
-    
+
     console.log(chalk.green('Successfully authenticated!'));
   } catch (error) {
     logger.error('Authentication failed:', error);
@@ -157,13 +167,15 @@ async function status() {
   try {
     const config = await loadConfig();
     const auth = config.auth as AuthConfig;
-    
+
     if (!auth?.token || !auth?.expiresAt) {
       console.log(chalk.yellow('Not authenticated'));
       return;
     }
-    
-    const expiresIn = Math.floor((auth.expiresAt - Date.now()) / (1000 * 60 * 60 * 24));
+
+    const expiresIn = Math.floor(
+      (auth.expiresAt - Date.now()) / (1000 * 60 * 60 * 24),
+    );
     if (expiresIn <= 0) {
       console.log(chalk.yellow('Authentication expired'));
       return;
@@ -186,17 +198,15 @@ export const authCommand = new Command('auth')
     new Command('login')
       .description('Login to bragdoc')
       .option('--api-url <url>', 'Override Bragdoc API base URL')
-      .action(login)
+      .action(login),
   )
   .addCommand(
-    new Command('logout')
-      .description('Logout from bragdoc')
-      .action(logout)
+    new Command('logout').description('Logout from bragdoc').action(logout),
   )
   .addCommand(
     new Command('status')
       .description('Show authentication status')
-      .action(status)
+      .action(status),
   );
 
 // Create top-level login/logout commands as aliases

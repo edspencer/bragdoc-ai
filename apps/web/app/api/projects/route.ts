@@ -14,7 +14,11 @@ const createProjectSchema = z.object({
     .transform((val) => (val === null ? undefined : val)),
   companyId: z.string().uuid().nullable().optional(),
   status: z.enum(['active', 'completed', 'archived']),
-  color: z.string().length(7).regex(/^#[0-9A-F]{6}$/i, 'Must be a valid hex color').optional(),
+  color: z
+    .string()
+    .length(7)
+    .regex(/^#[0-9A-F]{6}$/i, 'Must be a valid hex color')
+    .optional(),
   startDate: z.coerce.date(),
   endDate: z.coerce.date().nullable().optional(),
 });
@@ -32,7 +36,7 @@ export async function GET() {
     console.error('Error fetching projects:', error);
     return NextResponse.json(
       { error: 'Internal Server Error' },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
@@ -58,12 +62,12 @@ export async function POST(request: Request) {
     if (error instanceof z.ZodError) {
       return NextResponse.json(
         { error: 'Validation Error', details: error.errors },
-        { status: 400 }
+        { status: 400 },
       );
     }
     return NextResponse.json(
       { error: 'Internal Server Error' },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

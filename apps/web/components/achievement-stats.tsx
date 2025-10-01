@@ -68,7 +68,8 @@ export async function AchievementStats() {
           <CardAction>
             <Badge variant="outline">
               <IconTrendingUp className="size-3" />
-              {displayStats.monthlyGrowth > 0 ? '+' : ''}{displayStats.monthlyGrowth}%
+              {displayStats.monthlyGrowth > 0 ? '+' : ''}
+              {displayStats.monthlyGrowth}%
             </Badge>
           </CardAction>
         </CardHeader>
@@ -77,7 +78,8 @@ export async function AchievementStats() {
             Growing impact this month <IconTrendingUp className="size-4" />
           </div>
           <div className="text-muted-foreground">
-            Average {displayStats.avgImpactPerAchievement} points per achievement
+            Average {displayStats.avgImpactPerAchievement} points per
+            achievement
           </div>
         </CardFooter>
       </Card>
@@ -91,7 +93,8 @@ export async function AchievementStats() {
           <CardAction>
             <Badge variant="outline">
               <IconTrendingUp className="size-3" />
-              {displayStats.weeklyGrowth > 0 ? '+' : ''}{displayStats.weeklyGrowth}%
+              {displayStats.weeklyGrowth > 0 ? '+' : ''}
+              {displayStats.weeklyGrowth}%
             </Badge>
           </CardAction>
         </CardHeader>
@@ -119,7 +122,10 @@ export async function AchievementStats() {
           </CardHeader>
           <CardFooter className="flex-col items-start gap-1.5 text-sm">
             <div className="line-clamp-1 flex gap-2 font-medium">
-              {displayStats.activeProjectsCount > 0 ? 'Currently active' : 'No active projects'} <IconCalendar className="size-4" />
+              {displayStats.activeProjectsCount > 0
+                ? 'Currently active'
+                : 'No active projects'}{' '}
+              <IconCalendar className="size-4" />
             </div>
             <div className="text-muted-foreground">
               Click to manage projects

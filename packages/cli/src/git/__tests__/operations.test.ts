@@ -16,7 +16,7 @@ describe('git operations', () => {
   beforeEach(() => {
     // Save original working directory
     originalCwd = process.cwd();
-    
+
     // Create a temporary directory for each test
     tempDir = fs.mkdtempSync(join(os.tmpdir(), 'git-test-'));
 
@@ -27,7 +27,7 @@ describe('git operations', () => {
   afterEach(() => {
     // Restore original working directory
     process.chdir(originalCwd);
-    
+
     // Clean up temporary directory after each test
     fs.rmSync(tempDir, { recursive: true, force: true });
   });
@@ -36,25 +36,37 @@ describe('git operations', () => {
     it('should return repository information', () => {
       // Mock git command outputs
       mockExecSync
-        .mockImplementationOnce(() => Buffer.from('git@github.com:user/repo.git')) // remote url
+        .mockImplementationOnce(() =>
+          Buffer.from('git@github.com:user/repo.git'),
+        ) // remote url
         .mockImplementationOnce(() => Buffer.from('feature/test')); // current branch
 
       const info = getRepositoryInfo(tempDir);
 
       expect(mockExecSync).toHaveBeenCalledTimes(2);
-      expect(mockExecSync).toHaveBeenNthCalledWith(1, 'git config --get remote.origin.url', { cwd: tempDir });
-      expect(mockExecSync).toHaveBeenNthCalledWith(2, 'git rev-parse --abbrev-ref HEAD', { cwd: tempDir });
+      expect(mockExecSync).toHaveBeenNthCalledWith(
+        1,
+        'git config --get remote.origin.url',
+        { cwd: tempDir },
+      );
+      expect(mockExecSync).toHaveBeenNthCalledWith(
+        2,
+        'git rev-parse --abbrev-ref HEAD',
+        { cwd: tempDir },
+      );
 
       expect(info).toEqual({
         remoteUrl: 'git@github.com:user/repo.git',
         currentBranch: 'feature/test',
-        path: tempDir
+        path: tempDir,
       });
     });
 
     it('should handle HTTPS remote URLs', () => {
       mockExecSync
-        .mockImplementationOnce(() => Buffer.from('https://github.com/user/repo.git'))
+        .mockImplementationOnce(() =>
+          Buffer.from('https://github.com/user/repo.git'),
+        )
         .mockImplementationOnce(() => Buffer.from('main'));
 
       const info = getRepositoryInfo(tempDir);
@@ -64,7 +76,9 @@ describe('git operations', () => {
 
     it('should handle missing remote', () => {
       mockExecSync
-        .mockImplementationOnce(() => { throw new Error('No remote configured'); })
+        .mockImplementationOnce(() => {
+          throw new Error('No remote configured');
+        })
         .mockImplementationOnce(() => Buffer.from('main'));
 
       expect(() => {
@@ -78,7 +92,7 @@ describe('git operations', () => {
       // Mock git log output with null and unit separators
       const mockGitLog = [
         `abc123\x1fInitial commit\x1fJohn Doe\x1f2024-01-09 10:00:00 -0500\0`,
-        `def456\x1fAdd feature\x1fJane Smith\x1f2024-01-09 11:00:00 -0500\0`
+        `def456\x1fAdd feature\x1fJane Smith\x1f2024-01-09 11:00:00 -0500\0`,
       ].join('');
 
       mockExecSync.mockReturnValue(Buffer.from(mockGitLog));
@@ -87,7 +101,7 @@ describe('git operations', () => {
 
       // Verify the git command
       expect(mockExecSync).toHaveBeenCalledWith(
-        'git log main --reverse --pretty=format:\"%H%x1f%B%x1f%an%x1f%ai%x00\" --max-count=2'
+        'git log main --reverse --pretty=format:"%H%x1f%B%x1f%an%x1f%ai%x00" --max-count=2',
       );
 
       // Verify parsed commits
@@ -98,7 +112,7 @@ describe('git operations', () => {
         message: 'Initial commit',
         author: 'John Doe',
         date: '2024-01-09 10:00:00 -0500',
-        branch: 'main'
+        branch: 'main',
       });
       expect(commits[1]).toEqual({
         repository: 'test-repo',
@@ -106,7 +120,7 @@ describe('git operations', () => {
         message: 'Add feature',
         author: 'Jane Smith',
         date: '2024-01-09 11:00:00 -0500',
-        branch: 'main'
+        branch: 'main',
       });
     });
 
@@ -145,7 +159,9 @@ describe('git operations', () => {
       const commits = collectGitCommits('main', 1, 'test-repo');
 
       expect(commits).toHaveLength(1);
-      expect(commits[0].message).toBe('Message with "quotes" and \'apostrophes\'');
+      expect(commits[0].message).toBe(
+        'Message with "quotes" and \'apostrophes\'',
+      );
     });
 
     it('should throw error when git command fails', () => {

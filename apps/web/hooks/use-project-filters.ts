@@ -129,7 +129,7 @@ export function useProjectFilters() {
   const updateURL = useCallback(
     async (
       newFilters: ProjectFilters,
-      filterType: keyof FilterLoadingStates
+      filterType: keyof FilterLoadingStates,
     ) => {
       setLoading((prev) => ({ ...prev, [filterType]: true }));
 
@@ -172,7 +172,7 @@ export function useProjectFilters() {
         setLoading((prev) => ({ ...prev, [filterType]: false }));
       }
     },
-    [pathname, router, searchParams]
+    [pathname, router, searchParams],
   );
 
   // Filter update handlers with validation and loading states
@@ -188,7 +188,7 @@ export function useProjectFilters() {
         setLoading((prev) => ({ ...prev, status: false }));
       }
     },
-    [filters, updateURL]
+    [filters, updateURL],
   );
 
   const setCompanyId = useCallback(
@@ -202,7 +202,7 @@ export function useProjectFilters() {
         setLoading((prev) => ({ ...prev, company: false }));
       }
     },
-    [filters, updateURL]
+    [filters, updateURL],
   );
 
   const setSearch = useCallback(
@@ -221,7 +221,7 @@ export function useProjectFilters() {
         console.warn(`Search query truncated to: ${truncated}`);
       }
     },
-    [filters, updateURL]
+    [filters, updateURL],
   );
 
   const resetFilters = useCallback(async () => {
@@ -246,7 +246,7 @@ export function useProjectFilters() {
         name: string;
       },
     >(
-      projects: T[]
+      projects: T[],
     ) => {
       return projects.filter((project) => {
         // Status filter
@@ -271,7 +271,7 @@ export function useProjectFilters() {
         return true;
       });
     },
-    [filters]
+    [filters],
   );
 
   // Listen for external URL changes

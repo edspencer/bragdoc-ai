@@ -8,7 +8,7 @@ import { ArrowRightIcon } from 'lucide-react';
 export default function Blog() {
   const { visiblePosts } = new Posts();
   const recentPosts = visiblePosts.filter(
-    (post) => new Date(post.date).getFullYear() > 2019
+    (post) => new Date(post.date).getFullYear() > 2019,
   );
 
   return (

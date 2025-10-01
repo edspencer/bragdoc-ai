@@ -19,9 +19,8 @@ interface DocumentsResponse {
 }
 
 export function useDocuments() {
-  const { data, error, isLoading, mutate } = useSWR<DocumentsResponse>(
-    '/api/documents'
-  );
+  const { data, error, isLoading, mutate } =
+    useSWR<DocumentsResponse>('/api/documents');
 
   return {
     documents: data?.documents || [],

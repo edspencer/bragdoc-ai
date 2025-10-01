@@ -24,7 +24,7 @@ import * as components from './prompts/elements';
  * @returns ExtractAchievementsPromptProps
  */
 export async function fetch(
-  props: ExtractAchievementsFetcherProps
+  props: ExtractAchievementsFetcherProps,
 ): Promise<ExtractAchievementsPromptProps> {
   const { user, message, chatHistory } = props;
 
@@ -49,7 +49,7 @@ export async function fetch(
  * @returns string
  */
 export async function render(
-  data: ExtractAchievementsPromptProps
+  data: ExtractAchievementsPromptProps,
 ): Promise<string> {
   return await renderMDXPromptFile({
     filePath: promptPath,
@@ -65,7 +65,7 @@ export async function render(
  * @returns AsyncGenerator<ExtractedAchievement, void, unknown>
  */
 export async function* execute(
-  prompt: string
+  prompt: string,
 ): AsyncGenerator<ExtractedAchievement, void, unknown> {
   const { elementStream } = streamObject({
     model: extractAchievementsModel,
@@ -95,7 +95,7 @@ export async function* execute(
  * @returns AsyncGenerator<ExtractedAchievement>
  */
 export async function* streamFetchRenderExecute(
-  input: ExtractAchievementsFetcherProps
+  input: ExtractAchievementsFetcherProps,
 ): AsyncGenerator<ExtractedAchievement> {
   const data = await fetch(input);
 
@@ -105,7 +105,7 @@ export async function* streamFetchRenderExecute(
 }
 
 export async function fetchRender(
-  input: ExtractAchievementsFetcherProps
+  input: ExtractAchievementsFetcherProps,
 ): Promise<string> {
   const data = await fetch(input);
   return await render(data);
@@ -118,7 +118,7 @@ export async function fetchRender(
  * @returns Promise<ExtractedAchievement[]>
  */
 export async function fetchRenderExecute(
-  input: ExtractAchievementsFetcherProps
+  input: ExtractAchievementsFetcherProps,
 ): Promise<ExtractedAchievement[]> {
   const data = await fetch(input);
 
@@ -132,7 +132,7 @@ export async function fetchRenderExecute(
  * @returns Promise<ExtractedAchievement[]>
  */
 export async function renderExecute(
-  data: ExtractAchievementsPromptProps
+  data: ExtractAchievementsPromptProps,
 ): Promise<ExtractedAchievement[]> {
   const achievements: ExtractedAchievement[] = [];
 

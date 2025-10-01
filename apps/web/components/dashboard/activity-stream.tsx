@@ -23,7 +23,10 @@ export function ActivityStream({ achievements }: ActivityStreamProps) {
   // Get the 5 most recent achievements for the activity stream
   const recentAchievements = React.useMemo(() => {
     return [...achievements]
-      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+      .sort(
+        (a, b) =>
+          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
+      )
       .slice(0, 5);
   }, [achievements]);
 
@@ -62,7 +65,10 @@ export function ActivityStream({ achievements }: ActivityStreamProps) {
         ) : (
           <div className="space-y-4">
             {recentAchievements.map((achievement) => (
-              <div key={achievement.id} className="space-y-2 border-b border-border pb-4 last:border-b-0">
+              <div
+                key={achievement.id}
+                className="space-y-2 border-b border-border pb-4 last:border-b-0"
+              >
                 <div className="flex items-start justify-between">
                   <div className="space-y-1 flex-1">
                     <Link
@@ -80,9 +86,12 @@ export function ActivityStream({ achievements }: ActivityStreamProps) {
                       {achievement.eventStart && (
                         <div className="flex items-center gap-1">
                           <Clock className="h-3 w-3" />
-                          {formatDistanceToNow(new Date(achievement.eventStart), {
-                            addSuffix: true,
-                          })}
+                          {formatDistanceToNow(
+                            new Date(achievement.eventStart),
+                            {
+                              addSuffix: true,
+                            },
+                          )}
                         </div>
                       )}
                       {achievement.project && (
@@ -109,7 +118,9 @@ export function ActivityStream({ achievements }: ActivityStreamProps) {
                       value={achievement.impact || 0}
                       source={achievement.impactSource || 'llm'}
                       updatedAt={achievement.impactUpdatedAt}
-                      onChange={(value) => handleImpactChange(achievement.id, value)}
+                      onChange={(value) =>
+                        handleImpactChange(achievement.id, value)
+                      }
                       readOnly={!!actionLoading}
                     />
                     <Badge variant="outline" className="text-xs">

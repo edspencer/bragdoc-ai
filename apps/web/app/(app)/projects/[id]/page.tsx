@@ -12,7 +12,9 @@ interface ProjectDetailsPageProps {
   params: Promise<{ id: string }>;
 }
 
-export default async function ProjectDetailsPage({ params }: ProjectDetailsPageProps) {
+export default async function ProjectDetailsPage({
+  params,
+}: ProjectDetailsPageProps) {
   const resolvedParams = await params;
   const session = await auth();
 

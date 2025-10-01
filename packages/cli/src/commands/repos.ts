@@ -122,11 +122,15 @@ async function ensureSystemScheduling(): Promise<void> {
     const hasExistingCron = await checkExistingCrontab();
 
     if (!hasExistingCron) {
-      console.log(chalk.blue('🔧 Setting up automatic extraction scheduling...'));
+      console.log(
+        chalk.blue('🔧 Setting up automatic extraction scheduling...'),
+      );
 
       // Simple choice: crontab for Unix-like, Task Scheduler for Windows
       const isWindows = process.platform === 'win32';
-      const recommendedMethod = isWindows ? 'Windows Task Scheduler' : 'System crontab';
+      const recommendedMethod = isWindows
+        ? 'Windows Task Scheduler'
+        : 'System crontab';
 
       const setupChoice = await inquirer.prompt([
         {
@@ -134,14 +138,20 @@ async function ensureSystemScheduling(): Promise<void> {
           name: 'method',
           message: 'How would you like to set up automatic scheduling?',
           choices: [
-            { name: `${recommendedMethod} (recommended)`, value: isWindows ? 'windows' : 'crontab' },
-            { name: 'Skip for now (manual setup later)', value: 'skip' }
+            {
+              name: `${recommendedMethod} (recommended)`,
+              value: isWindows ? 'windows' : 'crontab',
+            },
+            { name: 'Skip for now (manual setup later)', value: 'skip' },
           ],
-          default: isWindows ? 'windows' : 'crontab'
-        }
+          default: isWindows ? 'windows' : 'crontab',
+        },
       ]);
 
-      if (setupChoice.method === 'crontab' || setupChoice.method === 'windows') {
+      if (
+        setupChoice.method === 'crontab' ||
+        setupChoice.method === 'windows'
+      ) {
         // Automatically install system scheduling
         if (setupChoice.method === 'crontab') {
           await installSystemCrontab();
@@ -156,7 +166,9 @@ async function ensureSystemScheduling(): Promise<void> {
     }
   } catch (error) {
     console.log(chalk.yellow('⚠️  Could not set up automatic scheduling.'));
-    console.log(chalk.blue('💡 Run `bragdoc install crontab` manually when ready.'));
+    console.log(
+      chalk.blue('💡 Run `bragdoc install crontab` manually when ready.'),
+    );
   }
 }
 
@@ -178,7 +190,9 @@ async function checkExistingCrontab(): Promise<boolean> {
 async function installSystemCrontab(): Promise<void> {
   try {
     const config = await loadConfig();
-    const scheduledRepos = config.repositories.filter(r => r.enabled && r.cronSchedule);
+    const scheduledRepos = config.repositories.filter(
+      (r) => r.enabled && r.cronSchedule,
+    );
 
     if (scheduledRepos.length === 0) {
       console.log(chalk.yellow('No scheduled repositories to install.'));
@@ -199,7 +213,10 @@ async function installSystemCrontab(): Promise<void> {
           skipBragDocSection = true;
           continue;
         }
-        if (skipBragDocSection && (line.startsWith('#') || line.trim() === '')) {
+        if (
+          skipBragDocSection &&
+          (line.startsWith('#') || line.trim() === '')
+        ) {
           if (line.startsWith('#') && !line.includes('BragDoc')) {
             skipBragDocSection = false;
             filteredLines.push(line);
@@ -239,12 +256,24 @@ async function installSystemCrontab(): Promise<void> {
     await execAsync(`echo '${newCrontab.replace(/'/g, "'\\''")}' | crontab -`);
 
     console.log(chalk.green('✓ System scheduling installed successfully!'));
-    console.log(chalk.blue(`📅 Added ${scheduledRepos.length} automatic extraction schedules.`));
-    console.log(chalk.blue('💡 Run `crontab -l` to view your installed schedules.'));
-
+    console.log(
+      chalk.blue(
+        `📅 Added ${scheduledRepos.length} automatic extraction schedules.`,
+      ),
+    );
+    console.log(
+      chalk.blue('💡 Run `crontab -l` to view your installed schedules.'),
+    );
   } catch (error: any) {
-    console.error(chalk.red('Failed to install crontab entries:'), error.message);
-    console.log(chalk.blue('💡 You can manually run `bragdoc install crontab` to try again.'));
+    console.error(
+      chalk.red('Failed to install crontab entries:'),
+      error.message,
+    );
+    console.log(
+      chalk.blue(
+        '💡 You can manually run `bragdoc install crontab` to try again.',
+      ),
+    );
   }
 }
 
@@ -254,7 +283,9 @@ async function installSystemCrontab(): Promise<void> {
 async function installWindowsScheduling(): Promise<void> {
   try {
     const config = await loadConfig();
-    const scheduledRepos = config.repositories.filter(r => r.enabled && r.cronSchedule);
+    const scheduledRepos = config.repositories.filter(
+      (r) => r.enabled && r.cronSchedule,
+    );
 
     if (scheduledRepos.length === 0) {
       console.log(chalk.yellow('No scheduled repositories to install.'));
@@ -270,27 +301,37 @@ async function installWindowsScheduling(): Promise<void> {
         const taskName = `BragDoc-Extract-${index + 1}`;
 
         // Delete existing task if it exists
-        await execAsync(`schtasks /delete /tn "${taskName}" /f 2>nul || exit 0`);
+        await execAsync(
+          `schtasks /delete /tn "${taskName}" /f 2>nul || exit 0`,
+        );
 
         // Create new task with logging
         const logFile = '%USERPROFILE%\\.bragdoc\\logs\\combined.log';
         const command = `schtasks /create /tn "${taskName}" /tr "cmd /c if not exist \\"%USERPROFILE%\\.bragdoc\\logs\\" mkdir \\"%USERPROFILE%\\.bragdoc\\logs\\" && cd /d \\"${repo.path}\\" && node \\"${bragdocPath}\\" extract >> \\"${logFile}\\" 2>&1" ${schedule}`;
 
         await execAsync(command);
-        console.log(chalk.green(`✓ Created task: ${taskName} for ${repo.path}`));
-
+        console.log(
+          chalk.green(`✓ Created task: ${taskName} for ${repo.path}`),
+        );
       } catch (error: any) {
-        console.error(chalk.red(`Failed to create task for ${repo.path}:`, error.message));
+        console.error(
+          chalk.red(`Failed to create task for ${repo.path}:`, error.message),
+        );
       }
     }
 
     console.log(chalk.green('✓ Windows Task Scheduler setup completed!'));
     console.log(chalk.blue('📅 Your automatic extractions are now active.'));
-    console.log(chalk.blue('💡 Run `schtasks /query /tn BragDoc*` to view your tasks.'));
-
+    console.log(
+      chalk.blue('💡 Run `schtasks /query /tn BragDoc*` to view your tasks.'),
+    );
   } catch (error: any) {
     console.error(chalk.red('Failed to install Windows tasks:'), error.message);
-    console.log(chalk.blue('💡 You can manually run `bragdoc install windows` to try again.'));
+    console.log(
+      chalk.blue(
+        '💡 You can manually run `bragdoc install windows` to try again.',
+      ),
+    );
   }
 }
 
@@ -311,13 +352,23 @@ function convertCronToWindowsSchedule(cronSchedule: string): string {
   }
 
   // Weekly schedule (if weekday is specified)
-  if (day === '*' && month === '*' && weekday !== '*' && weekday !== '0-6' && weekday !== '*') {
+  if (
+    day === '*' &&
+    month === '*' &&
+    weekday !== '*' &&
+    weekday !== '0-6' &&
+    weekday !== '*'
+  ) {
     const windowsDay = convertCronDayToWindows(weekday);
     return `/sc weekly /d ${windowsDay} /st ${hour.padStart(2, '0')}:${minute.padStart(2, '0')}`;
   }
 
   // Default to daily if we can't parse it properly
-  console.log(chalk.yellow(`⚠️  Complex cron schedule "${cronSchedule}" converted to daily at midnight.`));
+  console.log(
+    chalk.yellow(
+      `⚠️  Complex cron schedule "${cronSchedule}" converted to daily at midnight.`,
+    ),
+  );
   return '/sc daily /st 00:00';
 }
 
@@ -326,9 +377,14 @@ function convertCronToWindowsSchedule(cronSchedule: string): string {
  */
 function convertCronDayToWindows(cronDay: string): string {
   const dayMap: Record<string, string> = {
-    '0': 'SUN', '7': 'SUN', // Sunday
-    '1': 'MON', '2': 'TUE', '3': 'WED',
-    '4': 'THU', '5': 'FRI', '6': 'SAT'
+    '0': 'SUN',
+    '7': 'SUN', // Sunday
+    '1': 'MON',
+    '2': 'TUE',
+    '3': 'WED',
+    '4': 'THU',
+    '5': 'FRI',
+    '6': 'SAT',
   };
   return dayMap[cronDay] || 'SUN';
 }
@@ -338,7 +394,7 @@ export const reposCommand = new Command('repos')
   .addCommand(
     new Command('list')
       .description('List all configured repositories')
-      .action(listRepos)
+      .action(listRepos),
   )
   .addCommand(
     new Command('add')
@@ -347,15 +403,15 @@ export const reposCommand = new Command('repos')
       .option('-n, --name <name>', 'Friendly name for the repository')
       .option(
         '-m, --max-commits <number>',
-        'Maximum number of commits to extract'
+        'Maximum number of commits to extract',
       )
-      .action(addRepo)
+      .action(addRepo),
   )
   .addCommand(
     new Command('remove')
       .description('Remove a repository from bragdoc')
       .argument('[path]', 'Path to repository (defaults to current directory)')
-      .action(removeRepo)
+      .action(removeRepo),
   )
   .addCommand(
     new Command('update')
@@ -364,19 +420,19 @@ export const reposCommand = new Command('repos')
       .option('-n, --name <name>', 'Update friendly name')
       .option('-m, --max-commits <number>', 'Update maximum commits')
       .option('-s, --schedule', 'Update automatic extraction schedule')
-      .action(updateRepo)
+      .action(updateRepo),
   )
   .addCommand(
     new Command('enable')
       .description('Enable a repository')
       .argument('[path]', 'Path to repository (defaults to current directory)')
-      .action((path) => toggleRepo(path, true))
+      .action((path) => toggleRepo(path, true)),
   )
   .addCommand(
     new Command('disable')
       .description('Disable a repository')
       .argument('[path]', 'Path to repository (defaults to current directory)')
-      .action((path) => toggleRepo(path, false))
+      .action((path) => toggleRepo(path, false)),
   );
 
 /**
@@ -400,7 +456,7 @@ export async function listRepos() {
 
   if (config.repositories.length === 0) {
     console.log(
-      'No repositories configured. Add one with: bragdoc repos add <path>'
+      'No repositories configured. Add one with: bragdoc repos add <path>',
     );
     return;
   }
@@ -416,7 +472,7 @@ export async function listRepos() {
  */
 export async function addRepo(
   path: string = process.cwd(),
-  options: { name?: string; maxCommits?: number } = {}
+  options: { name?: string; maxCommits?: number } = {},
 ) {
   const config = await loadConfig();
   const absolutePath = normalizeRepoPath(path);
@@ -449,8 +505,8 @@ export async function addRepo(
   console.log(
     `Added repository: ${formatRepo(
       newRepo,
-      config.settings.defaultMaxCommits
-    )}`
+      config.settings.defaultMaxCommits,
+    )}`,
   );
 
   // If this repo has a schedule, ensure system-level scheduling is set up
@@ -487,7 +543,10 @@ export async function removeRepo(path: string = process.cwd()) {
         await installSystemCrontab();
       }
     } catch (error: any) {
-      console.error(chalk.red('Failed to update system scheduling:'), error.message);
+      console.error(
+        chalk.red('Failed to update system scheduling:'),
+        error.message,
+      );
     }
   }
 }
@@ -497,7 +556,7 @@ export async function removeRepo(path: string = process.cwd()) {
  */
 export async function updateRepo(
   path: string = process.cwd(),
-  options: { name?: string; maxCommits?: number; schedule?: boolean } = {}
+  options: { name?: string; maxCommits?: number; schedule?: boolean } = {},
 ) {
   const config = await loadConfig();
   const absolutePath = normalizeRepoPath(path);
@@ -522,7 +581,7 @@ export async function updateRepo(
 
   await saveConfig(config);
   console.log(
-    `Updated repository: ${formatRepo(repo, config.settings.defaultMaxCommits)}`
+    `Updated repository: ${formatRepo(repo, config.settings.defaultMaxCommits)}`,
   );
 
   // If schedule was updated, automatically update system scheduling
@@ -536,8 +595,13 @@ export async function updateRepo(
         await installSystemCrontab();
       }
     } catch (error: any) {
-      console.error(chalk.red('Failed to update system scheduling:'), error.message);
-      console.log(chalk.blue('💡 You can manually run the install command if needed.'));
+      console.error(
+        chalk.red('Failed to update system scheduling:'),
+        error.message,
+      );
+      console.log(
+        chalk.blue('💡 You can manually run the install command if needed.'),
+      );
     }
   }
 }
@@ -560,7 +624,7 @@ export async function toggleRepo(path: string, enabled: boolean) {
   console.log(
     `${enabled ? 'Enabled' : 'Disabled'} repository: ${formatRepo(
       repo,
-      config.settings.defaultMaxCommits
-    )}`
+      config.settings.defaultMaxCommits,
+    )}`,
   );
 }

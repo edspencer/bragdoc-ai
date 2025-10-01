@@ -25,8 +25,12 @@ export async function* processInBatches(
   const retryDelayMs = config.retryDelayMs || 1000;
   const totalBatches = Math.ceil(commits.length / batchSize);
 
-  logger.info(`Processing ${commits.length} commits in ${totalBatches} batches`);
-  logger.debug(`Batch config: size=${batchSize}, maxRetries=${maxRetries}, retryDelay=${retryDelayMs}ms`);
+  logger.info(
+    `Processing ${commits.length} commits in ${totalBatches} batches`,
+  );
+  logger.debug(
+    `Batch config: size=${batchSize}, maxRetries=${maxRetries}, retryDelay=${retryDelayMs}ms`,
+  );
 
   for (let batchNum = 0; batchNum < totalBatches; batchNum++) {
     const start = batchNum * batchSize;
@@ -35,7 +39,7 @@ export async function* processInBatches(
 
     // Log progress
     logger.info(
-      `\nProcessing batch ${batchNum + 1}/${totalBatches} (${batchCommits.length} commits)...`
+      `\nProcessing batch ${batchNum + 1}/${totalBatches} (${batchCommits.length} commits)...`,
     );
 
     let lastError: Error | null = null;
@@ -44,9 +48,13 @@ export async function* processInBatches(
     while (attempt < maxRetries) {
       try {
         if (attempt > 0) {
-          logger.warn(`Retry attempt ${attempt}/${maxRetries - 1} for batch ${batchNum + 1}...`);
+          logger.warn(
+            `Retry attempt ${attempt}/${maxRetries - 1} for batch ${batchNum + 1}...`,
+          );
           // Use injected delay function or setTimeout
-          const delay = config.delayFn || ((ms: number) => new Promise(resolve => setTimeout(resolve, ms)));
+          const delay =
+            config.delayFn ||
+            ((ms: number) => new Promise((resolve) => setTimeout(resolve, ms)));
           await delay(retryDelayMs);
         }
 
@@ -55,7 +63,9 @@ export async function* processInBatches(
           commits: batchCommits,
         };
 
-        logger.debug(`Sending batch ${batchNum + 1} to API: ${apiUrl}/api/cli/commits`);
+        logger.debug(
+          `Sending batch ${batchNum + 1} to API: ${apiUrl}/api/cli/commits`,
+        );
         logger.debug(`Batch payload: ${JSON.stringify(payload, null, 2)}`);
 
         const response = await fetch(`${apiUrl}/api/cli/commits`, {
@@ -75,17 +85,19 @@ export async function* processInBatches(
         }
 
         const result: BatchResult = await response.json();
-        
+
         if (attempt > 0) {
-          logger.info(`Successfully processed batch ${batchNum + 1} after ${attempt + 1} attempts`);
+          logger.info(
+            `Successfully processed batch ${batchNum + 1} after ${attempt + 1} attempts`,
+          );
         }
 
         logger.debug(
           `Batch ${batchNum + 1} results: ${result.processedCount} commits processed, ` +
-          `${result.achievements.length} achievements found, ` +
-          `${result.errors?.length || 0} errors`
+            `${result.achievements.length} achievements found, ` +
+            `${result.errors?.length || 0} errors`,
         );
-        
+
         yield result;
         // Success, break the retry loop
         break;
@@ -95,14 +107,14 @@ export async function* processInBatches(
 
         if (attempt === maxRetries) {
           logger.error(
-            `Failed to process batch ${batchNum + 1}/${totalBatches} after ${maxRetries} attempts: ${error.message}`
+            `Failed to process batch ${batchNum + 1}/${totalBatches} after ${maxRetries} attempts: ${error.message}`,
           );
           throw new Error(
             `Maximum retries (${maxRetries}) exceeded for batch ${batchNum + 1}. Last error: ${error.message}`,
           );
         } else {
           logger.warn(
-            `Error processing batch ${batchNum + 1} (attempt ${attempt}/${maxRetries}): ${error.message}`
+            `Error processing batch ${batchNum + 1} (attempt ${attempt}/${maxRetries}): ${error.message}`,
           );
         }
       }

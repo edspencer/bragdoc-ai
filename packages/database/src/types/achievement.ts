@@ -1,10 +1,5 @@
 import type { InferSelectModel } from 'drizzle-orm';
-import type {
-  achievement,
-  company,
-  project,
-  userMessage,
-} from '../schema';
+import type { achievement, company, project, userMessage } from '../schema';
 
 // Export base type from Drizzle schema
 export type Achievement = InferSelectModel<typeof achievement>;

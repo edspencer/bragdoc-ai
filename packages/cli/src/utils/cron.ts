@@ -59,7 +59,7 @@ export function convertToCronSchedule(options: CronOptions): string | null {
       const cronParts = options.cronExpression.trim().split(/\s+/);
       if (cronParts.length !== 5) {
         throw new Error(
-          'Cron expression must have exactly 5 parts (minute hour day month weekday)'
+          'Cron expression must have exactly 5 parts (minute hour day month weekday)',
         );
       }
       return options.cronExpression;

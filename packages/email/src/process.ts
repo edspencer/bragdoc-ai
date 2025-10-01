@@ -40,7 +40,7 @@ Remember:
 - If no achievements are found, do not call the extractAchievements tool`;
 
 export async function processIncomingEmail(
-  email: IncomingEmail
+  email: IncomingEmail,
 ): Promise<{ success: boolean; error?: string }> {
   try {
     const senderEmail = extractEmailFromSender(email.from);
@@ -86,7 +86,7 @@ ${achievements.map((a) => `- ${a.title}`).join('\n')}`;
     console.log('Processed email from:', senderEmail);
     console.log('Email subject:', email.subject);
     console.log('Email content length:', email.textContent.length);
-    
+
     // In a future update, this should:
     // 1. Use AI to analyze the email content
     // 2. Extract achievements automatically

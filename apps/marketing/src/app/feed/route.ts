@@ -11,14 +11,14 @@ export async function GET(request: Request) {
   const { publishedPosts } = posts;
 
   const items = await Promise.all(
-    publishedPosts.map(async post => ({
+    publishedPosts.map(async (post) => ({
       title: post.title,
       id: post.slug,
       link: post.link,
       content: (await markdownToHtml(posts.getContent(post))).value,
       date: new Date(post.date),
       image: post.images?.[0] ? `${siteUrl}${post.images[0]}` : undefined,
-    }))
+    })),
   );
 
   const feed = new Feed({
@@ -37,7 +37,7 @@ export async function GET(request: Request) {
     author,
   });
 
-  items.forEach(item => feed.addItem(item as Item));
+  items.forEach((item) => feed.addItem(item as Item));
 
   if (request.url.includes('json')) {
     return new Response(feed.json1(), {

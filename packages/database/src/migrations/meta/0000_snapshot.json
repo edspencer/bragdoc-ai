@@ -34,12 +34,8 @@
           "tableFrom": "Session",
           "tableTo": "User",
           "schemaTo": "public",
-          "columnsFrom": [
-            "userId"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["userId"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -85,12 +81,8 @@
           "tableFrom": "UserMessage",
           "tableTo": "User",
           "schemaTo": "public",
-          "columnsFrom": [
-            "userId"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["userId"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -197,12 +189,8 @@
           "tableFrom": "GitHubPullRequest",
           "tableTo": "GitHubRepository",
           "schemaTo": "public",
-          "columnsFrom": [
-            "repository_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["repository_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         },
@@ -211,12 +199,8 @@
           "tableFrom": "GitHubPullRequest",
           "tableTo": "Achievement",
           "schemaTo": "public",
-          "columnsFrom": [
-            "achievement_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["achievement_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -391,12 +375,8 @@
           "tableFrom": "Message",
           "tableTo": "Chat",
           "schemaTo": "public",
-          "columnsFrom": [
-            "chatId"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["chatId"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -459,12 +439,8 @@
           "tableFrom": "Company",
           "tableTo": "User",
           "schemaTo": "public",
-          "columnsFrom": [
-            "user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["user_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -600,12 +576,8 @@
           "tableFrom": "Achievement",
           "tableTo": "User",
           "schemaTo": "public",
-          "columnsFrom": [
-            "user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["user_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         },
@@ -614,12 +586,8 @@
           "tableFrom": "Achievement",
           "tableTo": "Company",
           "schemaTo": "public",
-          "columnsFrom": [
-            "company_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["company_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         },
@@ -628,12 +596,8 @@
           "tableFrom": "Achievement",
           "tableTo": "Project",
           "schemaTo": "public",
-          "columnsFrom": [
-            "project_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["project_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         },
@@ -642,12 +606,8 @@
           "tableFrom": "Achievement",
           "tableTo": "UserMessage",
           "schemaTo": "public",
-          "columnsFrom": [
-            "user_message_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["user_message_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -699,12 +659,8 @@
           "tableFrom": "Chat",
           "tableTo": "User",
           "schemaTo": "public",
-          "columnsFrom": [
-            "userId"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["userId"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -763,12 +719,8 @@
           "tableFrom": "email_preferences",
           "tableTo": "User",
           "schemaTo": "public",
-          "columnsFrom": [
-            "user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["user_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -846,12 +798,8 @@
           "tableFrom": "GitHubRepository",
           "tableTo": "User",
           "schemaTo": "public",
-          "columnsFrom": [
-            "user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["user_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -935,12 +883,8 @@
           "tableFrom": "Project",
           "tableTo": "User",
           "schemaTo": "public",
-          "columnsFrom": [
-            "user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["user_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         },
@@ -949,12 +893,8 @@
           "tableFrom": "Project",
           "tableTo": "Company",
           "schemaTo": "public",
-          "columnsFrom": [
-            "company_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["company_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -990,10 +930,7 @@
       "compositePrimaryKeys": {
         "VerificationToken_identifier_token_pk": {
           "name": "VerificationToken_identifier_token_pk",
-          "columns": [
-            "identifier",
-            "token"
-          ]
+          "columns": ["identifier", "token"]
         }
       },
       "uniqueConstraints": {}
@@ -1028,12 +965,8 @@
           "tableFrom": "Vote",
           "tableTo": "Chat",
           "schemaTo": "public",
-          "columnsFrom": [
-            "chatId"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["chatId"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         },
@@ -1042,12 +975,8 @@
           "tableFrom": "Vote",
           "tableTo": "Message",
           "schemaTo": "public",
-          "columnsFrom": [
-            "messageId"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["messageId"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -1055,10 +984,7 @@
       "compositePrimaryKeys": {
         "Vote_chatId_messageId_pk": {
           "name": "Vote_chatId_messageId_pk",
-          "columns": [
-            "chatId",
-            "messageId"
-          ]
+          "columns": ["chatId", "messageId"]
         }
       },
       "uniqueConstraints": {}
@@ -1131,12 +1057,8 @@
           "tableFrom": "Suggestion",
           "tableTo": "User",
           "schemaTo": "public",
-          "columnsFrom": [
-            "userId"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["userId"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -1144,11 +1066,7 @@
       "compositePrimaryKeys": {
         "Suggestion_id_documentId_documentCreatedAt_pk": {
           "name": "Suggestion_id_documentId_documentCreatedAt_pk",
-          "columns": [
-            "id",
-            "documentId",
-            "documentCreatedAt"
-          ]
+          "columns": ["id", "documentId", "documentCreatedAt"]
         }
       },
       "uniqueConstraints": {}
@@ -1221,12 +1139,8 @@
           "tableFrom": "Document",
           "tableTo": "User",
           "schemaTo": "public",
-          "columnsFrom": [
-            "userId"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["userId"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         },
@@ -1235,12 +1149,8 @@
           "tableFrom": "Document",
           "tableTo": "Company",
           "schemaTo": "public",
-          "columnsFrom": [
-            "company_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["company_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -1248,10 +1158,7 @@
       "compositePrimaryKeys": {
         "Document_id_createdAt_pk": {
           "name": "Document_id_createdAt_pk",
-          "columns": [
-            "id",
-            "createdAt"
-          ]
+          "columns": ["id", "createdAt"]
         }
       },
       "uniqueConstraints": {}
@@ -1334,12 +1241,8 @@
           "tableFrom": "Account",
           "tableTo": "User",
           "schemaTo": "public",
-          "columnsFrom": [
-            "userId"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["userId"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -1347,10 +1250,7 @@
       "compositePrimaryKeys": {
         "Account_provider_providerAccountId_pk": {
           "name": "Account_provider_providerAccountId_pk",
-          "columns": [
-            "provider",
-            "providerAccountId"
-          ]
+          "columns": ["provider", "providerAccountId"]
         }
       },
       "uniqueConstraints": {}
@@ -1359,28 +1259,17 @@
   "enums": {
     "public.renewal_period": {
       "name": "renewal_period",
-      "values": [
-        "monthly",
-        "yearly"
-      ],
+      "values": ["monthly", "yearly"],
       "schema": "public"
     },
     "public.user_level": {
       "name": "user_level",
-      "values": [
-        "free",
-        "basic",
-        "pro"
-      ],
+      "values": ["free", "basic", "pro"],
       "schema": "public"
     },
     "public.user_status": {
       "name": "user_status",
-      "values": [
-        "active",
-        "banned",
-        "deleted"
-      ],
+      "values": ["active", "banned", "deleted"],
       "schema": "public"
     }
   },

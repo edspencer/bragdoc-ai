@@ -8,7 +8,7 @@ const { siteName, siteUrl, twitterHandle } = config;
 
 export async function generateMetadata(
   { params }: { params: Params },
-  parent: ResolvingMetadata
+  parent: ResolvingMetadata,
 ): Promise<Metadata> {
   const { id } = await params;
   const { visiblePosts } = new Posts();

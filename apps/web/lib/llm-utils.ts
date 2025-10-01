@@ -36,19 +36,19 @@ const AchievementSchema = z.object({
     .string()
     .nullable()
     .describe(
-      'The ID of the company this achievement is associated with (null if not specified)'
+      'The ID of the company this achievement is associated with (null if not specified)',
     ),
   projectId: z
     .string()
     .nullable()
     .describe(
-      'The ID of the project this achievement is associated with (null if not specified)'
+      'The ID of the project this achievement is associated with (null if not specified)',
     ),
 });
 
 export async function detectAchievementsFromMessage(
   userId: string,
-  originalText: string
+  originalText: string,
 ): Promise<{ value: StreamableValue<any[]> }> {
   'use server';
 
@@ -100,7 +100,7 @@ export async function detectAchievementsFromMessage(
 
     if (!response.ok) {
       throw new Error(
-        `Failed to generate achievements: ${response.statusText}`
+        `Failed to generate achievements: ${response.statusText}`,
       );
     }
 
@@ -109,7 +109,7 @@ export async function detectAchievementsFromMessage(
 
     try {
       const parsedAchievements = JSON.parse(achievements).map(
-        (achievement: any) => AchievementSchema.parse(achievement)
+        (achievement: any) => AchievementSchema.parse(achievement),
       );
 
       // Create achievements in parallel
@@ -119,14 +119,14 @@ export async function detectAchievementsFromMessage(
             achievement: Omit<
               Achievement,
               'id' | 'createdAt' | 'updatedAt' | 'isArchived'
-            >
+            >,
           ) =>
             createAchievement({
               ...achievement,
               userId,
               userMessageId: userMessage!.id,
-            })
-        )
+            }),
+        ),
       );
 
       streamableResult.update(createdAchievements);
@@ -148,7 +148,7 @@ export async function detectAchievementsFromMessage(
 export async function generatePeriodSummary(
   userId: string,
   startDate: Date,
-  endDate: Date
+  endDate: Date,
 ): Promise<StreamableValue<string>> {
   'use server';
 

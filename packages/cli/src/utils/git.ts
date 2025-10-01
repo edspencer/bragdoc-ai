@@ -12,7 +12,7 @@ export async function isGitRepository(path: string): Promise<boolean> {
   try {
     const gitDir = join(path, '.git');
     await access(gitDir);
-    
+
     // Additional check: try git status
     await execAsync('git status', { cwd: path });
     return true;
@@ -32,7 +32,7 @@ export async function validateRepository(path: string): Promise<void> {
     throw new Error(`Path does not exist or is not accessible: ${path}`);
   }
 
-  if (!await isGitRepository(path)) {
+  if (!(await isGitRepository(path))) {
     throw new Error(`Path is not a git repository: ${path}`);
   }
 }

@@ -106,6 +106,7 @@ export default function ProjectsPage() {
         companies={companies || []}
         onSubmit={handleSubmitProject}
         isLoading={companiesLoading}
+        existingProjectCount={projects?.length || 0}
       />
     </AppPage>
   );

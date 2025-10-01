@@ -1,4 +1,3 @@
-
 import { mkdir, chmod, readFile, writeFile, access } from 'node:fs/promises';
 import { parse, stringify } from 'yaml';
 import { type BragdocConfig, DEFAULT_CONFIG } from './types';
@@ -14,11 +13,7 @@ import {
  * Ensure all required directories exist with correct permissions
  */
 export async function ensureConfigDir(): Promise<void> {
-  const dirs = [
-    getConfigDir(),
-    getCacheDir(),
-    getCommitsCacheDir()
-  ];
+  const dirs = [getConfigDir(), getCacheDir(), getCommitsCacheDir()];
 
   for (const dir of dirs) {
     try {
@@ -42,7 +37,7 @@ export async function loadConfig(): Promise<BragdocConfig> {
   try {
     const content = await readFile(configPath, 'utf8');
     const config = parse(content) as BragdocConfig;
-    
+
     // Merge with default config to ensure all fields exist
     return {
       ...DEFAULT_CONFIG,
@@ -69,6 +64,6 @@ export async function loadConfig(): Promise<BragdocConfig> {
 export async function saveConfig(config: BragdocConfig): Promise<void> {
   const configPath = getConfigPath();
   const yamlContent = stringify(config);
-  
+
   await writeFile(configPath, yamlContent, { encoding: 'utf8', mode: 0o600 });
 }

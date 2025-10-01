@@ -6,7 +6,7 @@ import os from 'node:os';
 export async function getDeviceName(): Promise<string> {
   const hostname = os.hostname();
   const platform = os.platform();
-  
+
   let deviceType = 'Device';
   switch (platform) {
     case 'darwin':
@@ -19,6 +19,6 @@ export async function getDeviceName(): Promise<string> {
       deviceType = 'Linux';
       break;
   }
-  
+
   return `CLI on ${hostname} (${deviceType})`;
 }

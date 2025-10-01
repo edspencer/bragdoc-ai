@@ -14,16 +14,18 @@ export const authConfig = {
       const isLoggedIn = !!auth?.user;
 
       // Allow auth-related pages and API routes
-      const isAuthPage = nextUrl.pathname.startsWith('/login') ||
-                         nextUrl.pathname.startsWith('/register') ||
-                         nextUrl.pathname.startsWith('/api/auth') ||
-                         nextUrl.pathname.startsWith('/cli-auth') ||
-                         nextUrl.pathname.startsWith('/unsubscribed') ||
-                         nextUrl.pathname.startsWith('/shared/')
+      const isAuthPage =
+        nextUrl.pathname.startsWith('/login') ||
+        nextUrl.pathname.startsWith('/register') ||
+        nextUrl.pathname.startsWith('/api/auth') ||
+        nextUrl.pathname.startsWith('/cli-auth') ||
+        nextUrl.pathname.startsWith('/unsubscribed') ||
+        nextUrl.pathname.startsWith('/shared/');
 
       // Store CLI auth parameters if present
       if (
-        (nextUrl.pathname.startsWith('/login') || nextUrl.pathname.startsWith('/register')) &&
+        (nextUrl.pathname.startsWith('/login') ||
+          nextUrl.pathname.startsWith('/register')) &&
         nextUrl.searchParams.has('state') &&
         nextUrl.searchParams.has('port')
       ) {
@@ -36,7 +38,8 @@ export const authConfig = {
       // If user is logged in and trying to access login/register, redirect to dashboard
       if (
         isLoggedIn &&
-        (nextUrl.pathname.startsWith('/login') || nextUrl.pathname.startsWith('/register')) &&
+        (nextUrl.pathname.startsWith('/login') ||
+          nextUrl.pathname.startsWith('/register')) &&
         !nextUrl.searchParams.has('state')
       ) {
         return Response.redirect(new URL('/dashboard', nextUrl));

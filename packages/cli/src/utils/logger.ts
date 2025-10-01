@@ -23,9 +23,11 @@ winston.addColors(colors);
 const format = winston.format.combine(
   winston.format.timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }),
   winston.format.colorize({ all: true }),
-  winston.format.printf(
-    (info) => info.level === 'info' ? `${info.timestamp} ${info.level}: ${info.message}` : info.message as string
-  )
+  winston.format.printf((info) =>
+    info.level === 'info'
+      ? `${info.timestamp} ${info.level}: ${info.message}`
+      : (info.message as string),
+  ),
 );
 
 //TODO: wtf... this suddenly started to not work.

@@ -50,8 +50,8 @@ export function NavMain({
             const isActive = pathname === item.url;
             return (
               <SidebarMenuItem key={item.title}>
-                <SidebarMenuButton 
-                  tooltip={item.title} 
+                <SidebarMenuButton
+                  tooltip={item.title}
                   asChild
                   isActive={isActive}
                 >

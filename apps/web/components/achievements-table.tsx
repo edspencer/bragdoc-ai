@@ -120,21 +120,21 @@ export function AchievementsTable({
           achievement.summary
             ?.toLowerCase()
             .includes(searchTerm.toLowerCase()) ||
-          achievement.details?.toLowerCase().includes(searchTerm.toLowerCase())
+          achievement.details?.toLowerCase().includes(searchTerm.toLowerCase()),
       );
     }
 
     // Project filter
     if (selectedProject !== 'all') {
       filtered = filtered.filter(
-        (achievement) => achievement.project?.id === selectedProject
+        (achievement) => achievement.project?.id === selectedProject,
       );
     }
 
     // Company filter
     if (selectedCompany !== 'all') {
       filtered = filtered.filter(
-        (achievement) => achievement.company?.id === selectedCompany
+        (achievement) => achievement.company?.id === selectedCompany,
       );
     }
 
@@ -159,12 +159,12 @@ export function AchievementsTable({
             const lastMonth = new Date(
               now.getFullYear(),
               now.getMonth() - 1,
-              1
+              1,
             );
             const endOfLastMonth = new Date(
               now.getFullYear(),
               now.getMonth(),
-              0
+              0,
             );
             return createdAt >= lastMonth && createdAt <= endOfLastMonth;
           }
@@ -182,7 +182,7 @@ export function AchievementsTable({
     }
 
     return filtered.sort(
-      (a, b) => b.createdAt.getTime() - a.createdAt.getTime()
+      (a, b) => b.createdAt.getTime() - a.createdAt.getTime(),
     );
   }, [achievements, searchTerm, selectedProject, selectedCompany, timePeriod]);
 
@@ -202,7 +202,7 @@ export function AchievementsTable({
       onSelectionChange([...selectedAchievements, id]);
     } else {
       onSelectionChange(
-        selectedAchievements.filter((selectedId) => selectedId !== id)
+        selectedAchievements.filter((selectedId) => selectedId !== id),
       );
     }
   };
@@ -210,7 +210,7 @@ export function AchievementsTable({
   const allDisplayedSelected =
     displayedAchievements.length > 0 &&
     displayedAchievements.every((achievement) =>
-      selectedAchievements.includes(achievement.id)
+      selectedAchievements.includes(achievement.id),
     );
 
   return (
@@ -327,7 +327,7 @@ export function AchievementsTable({
                       onCheckedChange={(checked) =>
                         handleSelectAchievement(
                           achievement.id,
-                          checked as boolean
+                          checked as boolean,
                         )
                       }
                       aria-label={`Select ${achievement.title}`}

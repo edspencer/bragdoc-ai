@@ -39,7 +39,7 @@ describe('Batching Logic', () => {
     message: `commit message ${i}`,
     author: 'Test User <test@example.com>',
     date: new Date().toISOString(),
-    branch: 'main'
+    branch: 'main',
   }));
 
   const mockConfig: BatchConfig = {
@@ -57,17 +57,18 @@ describe('Batching Logic', () => {
     // Mock successful responses
     mockFetch.mockResolvedValue({
       ok: true,
-      json: () => Promise.resolve({
-        processedCount: 2,
-        achievements: [
-          {
-            id: '1',
-            description: 'Achievement 1',
-            date: new Date().toISOString(),
-            source: { type: 'commit', hash: 'hash1' },
-          },
-        ],
-      }),
+      json: () =>
+        Promise.resolve({
+          processedCount: 2,
+          achievements: [
+            {
+              id: '1',
+              description: 'Achievement 1',
+              date: new Date().toISOString(),
+              source: { type: 'commit', hash: 'hash1' },
+            },
+          ],
+        }),
     });
 
     const generator = processInBatches(
@@ -96,7 +97,7 @@ describe('Batching Logic', () => {
 
     // Verify debug logs
     expect(logger.info).toHaveBeenCalledWith(
-      expect.stringContaining('Processing 5 commits in 3 batches')
+      expect.stringContaining('Processing 5 commits in 3 batches'),
     );
   });
 
@@ -107,10 +108,11 @@ describe('Batching Logic', () => {
       .mockRejectedValueOnce(new Error('Network error'))
       .mockResolvedValueOnce({
         ok: true,
-        json: () => Promise.resolve({
-          processedCount: 2,
-          achievements: [],
-        }),
+        json: () =>
+          Promise.resolve({
+            processedCount: 2,
+            achievements: [],
+          }),
       });
 
     const generator = processInBatches(
@@ -131,19 +133,21 @@ describe('Batching Logic', () => {
 
     // Check retry messaging
     expect(logger.warn).toHaveBeenCalledWith(
-      expect.stringContaining('Error processing batch 1 (attempt 1/3)')
+      expect.stringContaining('Error processing batch 1 (attempt 1/3)'),
     );
     expect(logger.warn).toHaveBeenCalledWith(
-      expect.stringContaining('Retry attempt 1/2 for batch 1')
+      expect.stringContaining('Retry attempt 1/2 for batch 1'),
     );
     expect(logger.warn).toHaveBeenCalledWith(
-      expect.stringContaining('Error processing batch 1 (attempt 2/3)')
+      expect.stringContaining('Error processing batch 1 (attempt 2/3)'),
     );
     expect(logger.warn).toHaveBeenCalledWith(
-      expect.stringContaining('Retry attempt 2/2 for batch 1')
+      expect.stringContaining('Retry attempt 2/2 for batch 1'),
     );
     expect(logger.info).toHaveBeenCalledWith(
-      expect.stringContaining('Successfully processed batch 1 after 3 attempts')
+      expect.stringContaining(
+        'Successfully processed batch 1 after 3 attempts',
+      ),
     );
   });
 
@@ -169,13 +173,13 @@ describe('Batching Logic', () => {
 
     // Check error messaging
     expect(logger.warn).toHaveBeenCalledWith(
-      expect.stringContaining('Error processing batch 1 (attempt 1/3)')
+      expect.stringContaining('Error processing batch 1 (attempt 1/3)'),
     );
     expect(logger.warn).toHaveBeenCalledWith(
-      expect.stringContaining('Error processing batch 1 (attempt 2/3)')
+      expect.stringContaining('Error processing batch 1 (attempt 2/3)'),
     );
     expect(logger.error).toHaveBeenCalledWith(
-      expect.stringContaining('Failed to process batch 1/1 after 3 attempts')
+      expect.stringContaining('Failed to process batch 1/1 after 3 attempts'),
     );
   });
 

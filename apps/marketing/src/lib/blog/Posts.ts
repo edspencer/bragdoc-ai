@@ -1,6 +1,6 @@
 import path from 'node:path';
 import fs from 'node:fs';
-import matter, {stringify} from 'gray-matter';
+import matter, { stringify } from 'gray-matter';
 import config from '../config';
 
 export type Tag = {
@@ -27,8 +27,10 @@ export type Post = {
   datetime?: string;
 };
 
-export const dirForExcerpt = (post: any) => path.join(process.cwd(), 'src', 'app', 'excerpts', String(post.year));
-export const pathForExcerpt = (post: any) => path.join(dirForExcerpt(post), `${post.slug}.mdx`);
+export const dirForExcerpt = (post: any) =>
+  path.join(process.cwd(), 'src', 'app', 'excerpts', String(post.year));
+export const pathForExcerpt = (post: any) =>
+  path.join(dirForExcerpt(post), `${post.slug}.mdx`);
 export const hasExcerpt = (post: any) => fs.existsSync(pathForExcerpt(post));
 
 //returns an array of all .mdx files in a directory and its subdirectories
@@ -36,7 +38,7 @@ function findMdxFiles(dir: string, files: string[] = []) {
   try {
     const items = fs.readdirSync(dir);
 
-    items.forEach(item => {
+    items.forEach((item) => {
       const fullPath = path.join(dir, item);
       const stats = fs.statSync(fullPath);
 
@@ -55,7 +57,8 @@ function findMdxFiles(dir: string, files: string[] = []) {
 }
 
 export const dirForPosts = path.join(process.cwd(), 'src', 'app', 'posts');
-export const pathForPostFile = (post: any) => path.join(dirForPosts, String(post.year), `${post.slug}.mdx`);
+export const pathForPostFile = (post: any) =>
+  path.join(dirForPosts, String(post.year), `${post.slug}.mdx`);
 
 export default class Posts {
   baseDirectory: string;
@@ -73,7 +76,7 @@ export default class Posts {
 
     // console.time('Reading all .mdx files');
     this.allPosts = this.allFiles
-      .map(file => {
+      .map((file) => {
         const source = fs.readFileSync(file);
         const { data } = matter(source);
 
@@ -90,7 +93,9 @@ export default class Posts {
       .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
     // console.timeEnd('Reading all .mdx files');
 
-    this.publishedPosts = this.allPosts.filter(post => post.status === 'publish');
+    this.publishedPosts = this.allPosts.filter(
+      (post) => post.status === 'publish',
+    );
     if (process.env.NODE_ENV !== 'production') {
       this.visiblePosts = this.allPosts;
     } else {
@@ -109,7 +114,7 @@ export default class Posts {
         tags.add(tag);
       });
     });
-    return Array.from(tags).map(tag => String(tag));
+    return Array.from(tags).map((tag) => String(tag));
   }
 
   getTagsWithCounts(): Tag[] {
@@ -164,9 +169,13 @@ export default class Posts {
 
     if (related.length === 0) {
       //if no explicit related posts, find recent posts with the same tags
-      relatedPosts = visiblePosts.filter(p => p.tags.some(t => tags.includes(t)) && p.slug !== post.slug);
+      relatedPosts = visiblePosts.filter(
+        (p) => p.tags.some((t) => tags.includes(t)) && p.slug !== post.slug,
+      );
     } else {
-      relatedPosts = related.map(id => visiblePosts.find(p => p.slug === id)).filter(p => !!p);
+      relatedPosts = related
+        .map((id) => visiblePosts.find((p) => p.slug === id))
+        .filter((p) => !!p);
     }
 
     return relatedPosts;

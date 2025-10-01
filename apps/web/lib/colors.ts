@@ -60,7 +60,9 @@ export function getProjectColorName(colorIndex: number): string {
  * Get the color index from hex value
  */
 export function getColorIndex(hexColor: string): number {
-  const index = PROJECT_COLORS.indexOf(hexColor as typeof PROJECT_COLORS[number]);
+  const index = PROJECT_COLORS.indexOf(
+    hexColor as (typeof PROJECT_COLORS)[number],
+  );
   return index === -1 ? 0 : index;
 }
 

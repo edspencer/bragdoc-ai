@@ -9,12 +9,15 @@ export const cacheCommand = new Command('cache')
   .addCommand(
     new Command('list')
       .description('List cached commits')
-      .option('--repo <name>', 'Repository name (defaults to current repository)')
+      .option(
+        '--repo <name>',
+        'Repository name (defaults to current repository)',
+      )
       .option('--stats', 'Show only statistics')
       .action(async (options) => {
         try {
-          const repoName = options.repo || await getCurrentRepoName();
-          
+          const repoName = options.repo || (await getCurrentRepoName());
+
           if (options.stats) {
             const stats = await cache.getStats(repoName);
             console.log('Cache Statistics:');
@@ -36,10 +39,13 @@ export const cacheCommand = new Command('cache')
           }
 
           console.log(`Cached commits for ${repoName}:`);
-          commits.forEach(hash => console.log(hash));
+          commits.forEach((hash) => console.log(hash));
           console.log(`\nTotal: ${commits.length} commits`);
         } catch (error: any) {
-          console.error('Failed to list cache:', error?.message || 'Unknown error');
+          console.error(
+            'Failed to list cache:',
+            error?.message || 'Unknown error',
+          );
           process.exit(1);
         }
       }),
@@ -47,7 +53,10 @@ export const cacheCommand = new Command('cache')
   .addCommand(
     new Command('clear')
       .description('Clear commit cache')
-      .option('--repo <name>', 'Repository name (defaults to current repository)')
+      .option(
+        '--repo <name>',
+        'Repository name (defaults to current repository)',
+      )
       .option('--all', 'Clear cache for all repositories')
       .action(async (options) => {
         try {
@@ -57,11 +66,14 @@ export const cacheCommand = new Command('cache')
             return;
           }
 
-          const repoName = options.repo || await getCurrentRepoName();
+          const repoName = options.repo || (await getCurrentRepoName());
           await cache.clear(repoName);
           console.log(`Cleared cache for repository: ${repoName}`);
         } catch (error: any) {
-          console.error('Failed to clear cache:', error?.message || 'Unknown error');
+          console.error(
+            'Failed to clear cache:',
+            error?.message || 'Unknown error',
+          );
           process.exit(1);
         }
       }),

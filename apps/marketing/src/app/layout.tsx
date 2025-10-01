@@ -17,7 +17,8 @@ export const metadata: Metadata = {
   ],
   openGraph: {
     title: 'BragDoc - Never Forget Your Professional Achievements',
-    description: 'Track your achievements effortlessly. Perfect for performance reviews and career growth.',
+    description:
+      'Track your achievements effortlessly. Perfect for performance reviews and career growth.',
     url: 'https://bragdoc.ai',
     siteName: 'BragDoc',
   },
@@ -34,7 +35,7 @@ export const viewport = {
 export default function RootLayout({
   children,
 }: {
-  children: React.ReactNode
+  children: React.ReactNode;
 }) {
   return (
     <html lang="en" suppressHydrationWarning>
@@ -49,5 +50,5 @@ export default function RootLayout({
         </ThemeProvider>
       </body>
     </html>
-  )
+  );
 }

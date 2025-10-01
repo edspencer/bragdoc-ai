@@ -1,2 +1,2 @@
-export { default } from './config'
-export * from './payment-gates'
+export { default } from './config';
+export * from './payment-gates';

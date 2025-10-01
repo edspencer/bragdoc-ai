@@ -63,7 +63,7 @@ export function WeeklyImpactChart({ achievements }: WeeklyImpactChartProps) {
 
       const totalImpact = weekAchievements.reduce(
         (sum, a) => sum + (a.impact || 0),
-        0
+        0,
       );
 
       result.push({

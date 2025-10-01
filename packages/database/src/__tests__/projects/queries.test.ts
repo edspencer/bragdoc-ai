@@ -135,7 +135,7 @@ describe('Project Queries', () => {
     it('returns projects for valid company', async () => {
       const projects = await getProjectsByCompanyId(
         testCompany.id,
-        testUser.id
+        testUser.id,
       );
       expect(projects).toHaveLength(1);
       expect(projects[0].name).toBe(testProject.name);
@@ -278,7 +278,7 @@ describe('Project Queries', () => {
     beforeEach(async () => {
       // Get the mock function
       fuzzyFindProject = jest.requireMock(
-        '@/database/projects/fuzzyFind'
+        '@/database/projects/fuzzyFind',
       ).fuzzyFindProject;
       fuzzyFindProject.mockReset();
 
@@ -314,7 +314,7 @@ describe('Project Queries', () => {
       const foundProject = await getProjectById(result.projectId, testUser.id);
       expect(foundProject).toBeTruthy();
       expect(foundProject?.repoRemoteUrl).toBe(
-        'git@github.com:edspencer/test-repo.git'
+        'git@github.com:edspencer/test-repo.git',
       );
     });
 
@@ -332,7 +332,7 @@ describe('Project Queries', () => {
       expect(newProject).toBeTruthy();
       expect(newProject?.name).toBe('new-repo');
       expect(newProject?.repoRemoteUrl).toBe(
-        'git@github.com:edspencer/new-repo.git'
+        'git@github.com:edspencer/new-repo.git',
       );
       expect(newProject?.startDate).toBeTruthy();
       expect(newProject?.status).toBe('active');
@@ -352,7 +352,7 @@ describe('Project Queries', () => {
       expect(result.projectId).toBe(testProject.id);
       const updatedProject = await getProjectById(testProject.id, testUser.id);
       expect(updatedProject?.repoRemoteUrl).toBe(
-        'git@github.com:edspencer/matched-repo.git'
+        'git@github.com:edspencer/matched-repo.git',
       );
       expect(fuzzyFindProject).toHaveBeenCalled();
     });
@@ -387,7 +387,7 @@ describe('Project Queries', () => {
       const newProject = await getProjectById(result.projectId, testUser.id);
       expect(newProject?.userId).toBe(testUser.id);
       expect(newProject?.repoRemoteUrl).toBe(
-        'git@github.com:edspencer/test-repo.git'
+        'git@github.com:edspencer/test-repo.git',
       );
       expect(newProject?.startDate).toBeTruthy();
       expect(newProject?.status).toBe('active');

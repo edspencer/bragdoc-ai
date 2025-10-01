@@ -15,7 +15,11 @@ const updateProjectSchema = z.object({
     .transform((val) => (val === null ? undefined : val)),
   companyId: z.string().uuid().nullable().optional(),
   status: z.enum(['active', 'completed', 'archived']).optional(),
-  color: z.string().length(7).regex(/^#[0-9A-F]{6}$/i, 'Must be a valid hex color').optional(),
+  color: z
+    .string()
+    .length(7)
+    .regex(/^#[0-9A-F]{6}$/i, 'Must be a valid hex color')
+    .optional(),
   startDate: z
     .string()
     .transform((str) => new Date(str))
@@ -47,7 +51,7 @@ export async function GET(request: Request, { params }: { params: Params }) {
     console.error('Error fetching project:', error);
     return NextResponse.json(
       { error: 'Internal Server Error' },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
@@ -74,12 +78,12 @@ export async function PUT(request: Request, { params }: { params: Params }) {
     if (error instanceof z.ZodError) {
       return NextResponse.json(
         { error: 'Invalid input', details: error.errors },
-        { status: 400 }
+        { status: 400 },
       );
     }
     return NextResponse.json(
       { error: 'Failed to update project' },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
@@ -102,7 +106,7 @@ export async function DELETE(request: Request, { params }: { params: Params }) {
     console.error('Error deleting project:', error);
     return NextResponse.json(
       { error: 'Failed to delete project' },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

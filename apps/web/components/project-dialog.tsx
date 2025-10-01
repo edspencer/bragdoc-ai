@@ -73,6 +73,7 @@ interface ProjectDialogProps {
   companies: Company[];
   onSubmit: (data: any) => void;
   isLoading?: boolean;
+  existingProjectCount?: number;
 }
 
 export function ProjectDialog({
@@ -82,6 +83,7 @@ export function ProjectDialog({
   companies,
   onSubmit,
   isLoading = false,
+  existingProjectCount = 0,
 }: ProjectDialogProps) {
   const isEditing = !!project;
 
@@ -91,7 +93,7 @@ export function ProjectDialog({
       name: '',
       description: '',
       status: 'active',
-      color: getNextProjectColor(0).hex, // Default to first color
+      color: getNextProjectColor(existingProjectCount).hex,
       startDate: new Date(),
       endDate: undefined,
       repoRemoteUrl: '',
@@ -123,7 +125,7 @@ export function ProjectDialog({
           name: '',
           description: '',
           status: 'active',
-          color: getNextProjectColor(0).hex,
+          color: getNextProjectColor(existingProjectCount).hex,
           startDate: new Date(),
           endDate: undefined,
           repoRemoteUrl: '',
@@ -132,7 +134,7 @@ export function ProjectDialog({
         });
       }
     }
-  }, [open, project, form]);
+  }, [open, project, form, existingProjectCount]);
 
   // Handle active status changes
   React.useEffect(() => {

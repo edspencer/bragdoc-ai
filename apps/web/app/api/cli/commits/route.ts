@@ -24,7 +24,7 @@ const requestSchema = z.object({
         author: z.string(),
         date: z.string(),
         branch: z.string(),
-      })
+      }),
     )
     .max(100, 'Maximum 100 commits per request'),
 });
@@ -36,7 +36,7 @@ export async function POST(req: Request) {
     if (!authHeader?.startsWith('Bearer ')) {
       return NextResponse.json(
         { error: 'Missing or invalid authorization header' },
-        { status: 401 }
+        { status: 401 },
       );
     }
     const token = authHeader.slice(7); // Remove 'Bearer ' prefix
@@ -46,7 +46,7 @@ export async function POST(req: Request) {
     if (!isValid) {
       return NextResponse.json(
         { error: 'Invalid or expired token' },
-        { status: 401 }
+        { status: 401 },
       );
     }
 
@@ -56,7 +56,7 @@ export async function POST(req: Request) {
     if (!result.success) {
       return NextResponse.json(
         { error: 'Invalid request', details: result.error.format() },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -77,7 +77,7 @@ export async function POST(req: Request) {
     });
 
     console.log(
-      `Processing ${result.data.commits.length} commits from repository ${repository.name}`
+      `Processing ${result.data.commits.length} commits from repository ${repository.name}`,
     );
 
     const user = await getUserById(userId);
@@ -132,7 +132,7 @@ export async function POST(req: Request) {
     console.error('Error processing commits:', error);
     return NextResponse.json(
       { error: 'Internal server error' },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

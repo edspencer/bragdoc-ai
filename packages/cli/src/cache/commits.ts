@@ -43,13 +43,13 @@ export class CommitCache {
 
       // Get existing hashes
       const existing = await this.list(repoName);
-      const newHashes = commitHashes.filter(hash => !existing.includes(hash));
+      const newHashes = commitHashes.filter((hash) => !existing.includes(hash));
 
       if (newHashes.length === 0) return;
 
       // Update in-memory cache
       const repoHashes = this.cachedHashes.get(repoName) || new Set();
-      newHashes.forEach(hash => repoHashes.add(hash));
+      newHashes.forEach((hash) => repoHashes.add(hash));
       this.cachedHashes.set(repoName, repoHashes);
 
       logger.debug(`Cache path: ${cachePath}`);
@@ -76,10 +76,10 @@ export class CommitCache {
 
       // Load from file if not in memory
       const hashes = await this.list(repoName);
-      
+
       // Cache in memory for future lookups
       this.cachedHashes.set(repoName, new Set(hashes));
-      
+
       return hashes.includes(commitHash);
     } catch (error: any) {
       if (error.code === 'ENOENT') return false;
@@ -101,14 +101,16 @@ export class CommitCache {
     try {
       const content = await fs.readFile(cachePath, 'utf-8');
       const hashes = content.split('\n').filter(Boolean);
-      
+
       // Cache in memory for future lookups
       this.cachedHashes.set(repoName, new Set(hashes));
-      
+
       return hashes;
     } catch (error: any) {
       if (error.code === 'ENOENT') return [];
-      throw new Error(`Failed to read cache: ${error?.message || 'Unknown error'}`);
+      throw new Error(
+        `Failed to read cache: ${error?.message || 'Unknown error'}`,
+      );
     }
   }
 
@@ -126,30 +128,37 @@ export class CommitCache {
         } catch (error: any) {
           if (error.code !== 'ENOENT') throw error;
         }
-        
+
         // Clear in-memory cache
         this.cachedHashes.delete(repoName);
       } else {
         // Clear all repository caches
         try {
-          logger.debug(`Clearing all cache files in directory: ${this.cacheDir}`);
-          const files = await fs.readdir(this.cacheDir) as (string | Dirent)[];
+          logger.debug(
+            `Clearing all cache files in directory: ${this.cacheDir}`,
+          );
+          const files = (await fs.readdir(this.cacheDir)) as (
+            | string
+            | Dirent
+          )[];
           await Promise.all(
-            files.map(file => 
-              typeof file === 'string' 
+            files.map((file) =>
+              typeof file === 'string'
                 ? fs.unlink(path.join(this.cacheDir, file))
-                : fs.unlink(path.join(this.cacheDir, file.name))
-            )
+                : fs.unlink(path.join(this.cacheDir, file.name)),
+            ),
           );
         } catch (error: any) {
           if (error.code !== 'ENOENT') throw error;
         }
-        
+
         // Clear in-memory cache
         this.cachedHashes.clear();
       }
     } catch (error: any) {
-      throw new Error(`Failed to clear cache: ${error?.message || 'Unknown error'}`);
+      throw new Error(
+        `Failed to clear cache: ${error?.message || 'Unknown error'}`,
+      );
     }
   }
 
@@ -167,7 +176,7 @@ export class CommitCache {
         return {
           repositories: 1,
           commits: commits.length,
-          repoStats: { [repoName]: commits.length }
+          repoStats: { [repoName]: commits.length },
         };
       }
 
@@ -175,22 +184,24 @@ export class CommitCache {
       let totalCommits = 0;
 
       try {
-        logger.debug(`Getting stats for all repositories in directory: ${this.cacheDir}`);
-        const files = await fs.readdir(this.cacheDir) as (string | Dirent)[];
+        logger.debug(
+          `Getting stats for all repositories in directory: ${this.cacheDir}`,
+        );
+        const files = (await fs.readdir(this.cacheDir)) as (string | Dirent)[];
         await Promise.all(
-          files.map(async file => {
+          files.map(async (file) => {
             const fileName = typeof file === 'string' ? file : file.name;
             const repoName = path.basename(fileName, '.txt');
             const commits = await this.list(repoName);
             repoStats[repoName] = commits.length;
             totalCommits += commits.length;
-          })
+          }),
         );
 
         return {
           repositories: files.length,
           commits: totalCommits,
-          repoStats
+          repoStats,
         };
       } catch (error: any) {
         if (error.code === 'ENOENT') {
@@ -199,7 +210,9 @@ export class CommitCache {
         throw error;
       }
     } catch (error: any) {
-      throw new Error(`Failed to get cache stats: ${error?.message || 'Unknown error'}`);
+      throw new Error(
+        `Failed to get cache stats: ${error?.message || 'Unknown error'}`,
+      );
     }
   }
 }

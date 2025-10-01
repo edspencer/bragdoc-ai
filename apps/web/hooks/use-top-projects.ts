@@ -40,7 +40,7 @@ export function useTopProjects(limit = 5) {
 
   const { data, error, isLoading, mutate } = useSWR<TopProjectsResponse>(
     `/api/projects/top?limit=${limit}`,
-    fetcher
+    fetcher,
   );
 
   return {

@@ -1,13 +1,33 @@
 import { and, desc, eq, isNull, sum, sql, count } from 'drizzle-orm';
 import { db } from '../index';
-import { project, company, achievement, type Project, type Company } from '../schema';
+import {
+  project,
+  company,
+  achievement,
+  type Project,
+  type Company,
+} from '../schema';
 import { v4 as uuidv4 } from 'uuid';
 import { fuzzyFindProject } from './fuzzyFind';
 
 // Color palette for projects - defined here to avoid cross-package dependencies
 const PROJECT_COLORS = [
-  '#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6', '#06B6D4', '#F97316', '#84CC16',
-  '#EC4899', '#6366F1', '#14B8A6', '#FACC15', '#A855F7', '#0EA5E9', '#FB923C', '#22C55E'
+  '#3B82F6',
+  '#10B981',
+  '#F59E0B',
+  '#EF4444',
+  '#8B5CF6',
+  '#06B6D4',
+  '#F97316',
+  '#84CC16',
+  '#EC4899',
+  '#6366F1',
+  '#14B8A6',
+  '#FACC15',
+  '#A855F7',
+  '#0EA5E9',
+  '#FB923C',
+  '#22C55E',
 ] as const;
 
 /**
@@ -49,7 +69,7 @@ export type ProjectWithImpact = ProjectWithCompany & {
 };
 
 export async function getProjectsByUserId(
-  userId: string
+  userId: string,
 ): Promise<ProjectWithCompany[]> {
   const results = await db
     .select({
@@ -80,7 +100,7 @@ export async function getProjectsByUserId(
 
 export async function getProjectById(
   id: string,
-  userId: string
+  userId: string,
 ): Promise<ProjectWithCompany | null> {
   const results = await db
     .select({
@@ -112,7 +132,7 @@ export async function getProjectById(
 
 export async function getProjectsByCompanyId(
   companyId: string,
-  userId: string
+  userId: string,
 ): Promise<ProjectWithCompany[]> {
   const results = await db
     .select({
@@ -142,7 +162,7 @@ export async function getProjectsByCompanyId(
 }
 
 export async function getActiveProjects(
-  userId: string
+  userId: string,
 ): Promise<ProjectWithCompany[]> {
   const results = await db
     .select({
@@ -166,8 +186,8 @@ export async function getActiveProjects(
       and(
         eq(project.userId, userId),
         eq(project.status, 'active'),
-        isNull(project.endDate)
-      )
+        isNull(project.endDate),
+      ),
     )
     .orderBy(desc(project.startDate));
 
@@ -178,10 +198,10 @@ export async function getActiveProjects(
 }
 
 export async function createProject(
-  input: CreateProjectInput
+  input: CreateProjectInput,
 ): Promise<Project> {
   // If no color is provided, use round-robin assignment
-  const color = input.color || await getNextProjectColor(input.userId);
+  const color = input.color || (await getNextProjectColor(input.userId));
 
   const results = await db
     .insert(project)
@@ -198,7 +218,7 @@ export async function createProject(
 export async function updateProject(
   id: string,
   userId: string,
-  input: UpdateProjectInput
+  input: UpdateProjectInput,
 ): Promise<Project | null> {
   const results = await db
     .update(project)
@@ -213,7 +233,7 @@ export async function updateProject(
 
 export async function deleteProject(
   id: string,
-  userId: string
+  userId: string,
 ): Promise<Project | null> {
   const results = await db
     .delete(project)
@@ -241,7 +261,7 @@ export async function ensureProject({
     .select()
     .from(project)
     .where(
-      and(eq(project.userId, userId), eq(project.repoRemoteUrl, remoteUrl))
+      and(eq(project.userId, userId), eq(project.repoRemoteUrl, remoteUrl)),
     )
     .limit(1);
 
@@ -268,7 +288,7 @@ export async function ensureProject({
         .where(eq(project.id, matchingProjectId));
 
       console.log(
-        `Found matching project ${matchingProjectId}, set remote URL`
+        `Found matching project ${matchingProjectId}, set remote URL`,
       );
 
       return { projectId: matchingProjectId };
@@ -298,7 +318,7 @@ export async function ensureProject({
 
 export async function getTopProjectsByImpact(
   userId: string,
-  limit: number = 5
+  limit: number = 5,
 ): Promise<ProjectWithImpact[]> {
   const results = await db
     .select({
@@ -320,10 +340,13 @@ export async function getTopProjectsByImpact(
     })
     .from(project)
     .leftJoin(company, eq(project.companyId, company.id))
-    .leftJoin(achievement, and(
-      eq(achievement.projectId, project.id),
-      eq(achievement.isArchived, false)
-    ))
+    .leftJoin(
+      achievement,
+      and(
+        eq(achievement.projectId, project.id),
+        eq(achievement.isArchived, false),
+      ),
+    )
     .where(eq(project.userId, userId))
     .groupBy(
       project.id,
@@ -344,9 +367,12 @@ export async function getTopProjectsByImpact(
       company.role,
       company.startDate,
       company.endDate,
-      company.userId
+      company.userId,
     )
-    .orderBy(desc(sql`COALESCE(SUM(${achievement.impact}), 0)`), desc(project.startDate))
+    .orderBy(
+      desc(sql`COALESCE(SUM(${achievement.impact}), 0)`),
+      desc(project.startDate),
+    )
     .limit(limit);
 
   return results.map((row) => ({

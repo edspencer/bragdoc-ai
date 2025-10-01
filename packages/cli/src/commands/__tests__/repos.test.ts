@@ -21,11 +21,17 @@ jest.mock('../../utils/git', () => ({
 
 // Mock inquirer to avoid interactive prompts in tests
 jest.mock('inquirer', () => ({
-  prompt: jest.fn().mockResolvedValue({ frequency: 'no' })
+  prompt: jest.fn().mockResolvedValue({ frequency: 'no' }),
 }));
 
 // Import functions after mocking
-import { addRepo, listRepos, removeRepo, updateRepo, toggleRepo } from '../repos';
+import {
+  addRepo,
+  listRepos,
+  removeRepo,
+  updateRepo,
+  toggleRepo,
+} from '../repos';
 
 describe('Repository Management', () => {
   const mockFs = {
@@ -53,7 +59,11 @@ describe('Repository Management', () => {
 
     // Mock successful access to git directories
     mockFs.access.mockImplementation((path) => {
-      if (path === TEST_REPO_PATH || path === TEST_REPO2_PATH || path.toString().endsWith('.git')) {
+      if (
+        path === TEST_REPO_PATH ||
+        path === TEST_REPO2_PATH ||
+        path.toString().endsWith('.git')
+      ) {
         return Promise.resolve();
       }
       return Promise.reject(new Error('ENOENT'));
@@ -70,24 +80,30 @@ describe('Repository Management', () => {
       await listRepos();
 
       expect(console.log).toHaveBeenCalledWith(
-        expect.stringContaining('No repositories configured')
+        expect.stringContaining('No repositories configured'),
       );
     });
 
     it('lists configured repositories', async () => {
       mockLoadConfig.mockResolvedValueOnce({
         ...DEFAULT_CONFIG,
-        repositories: [{
-          path: TEST_REPO_PATH,
-          name: 'Test Repo',
-          enabled: true,
-        }],
+        repositories: [
+          {
+            path: TEST_REPO_PATH,
+            name: 'Test Repo',
+            enabled: true,
+          },
+        ],
       });
 
       await listRepos();
 
-      expect(console.log).toHaveBeenCalledWith(expect.stringContaining('Test Repo'));
-      expect(console.log).toHaveBeenCalledWith(expect.stringContaining(TEST_REPO_PATH));
+      expect(console.log).toHaveBeenCalledWith(
+        expect.stringContaining('Test Repo'),
+      );
+      expect(console.log).toHaveBeenCalledWith(
+        expect.stringContaining(TEST_REPO_PATH),
+      );
     });
   });
 
@@ -111,22 +127,28 @@ describe('Repository Management', () => {
               enabled: true,
             }),
           ],
-        })
+        }),
       );
-      expect(console.log).toHaveBeenCalledWith(expect.stringContaining('Added repository'));
+      expect(console.log).toHaveBeenCalledWith(
+        expect.stringContaining('Added repository'),
+      );
     });
 
     it('prevents adding duplicate repositories', async () => {
       mockLoadConfig.mockResolvedValueOnce({
         ...DEFAULT_CONFIG,
-        repositories: [{
-          path: TEST_REPO_PATH,
-          name: 'Test Repo',
-          enabled: true,
-        }],
+        repositories: [
+          {
+            path: TEST_REPO_PATH,
+            name: 'Test Repo',
+            enabled: true,
+          },
+        ],
       });
 
-      await expect(addRepo(TEST_REPO_PATH)).rejects.toThrow('Repository already exists');
+      await expect(addRepo(TEST_REPO_PATH)).rejects.toThrow(
+        'Repository already exists',
+      );
     });
   });
 
@@ -134,11 +156,13 @@ describe('Repository Management', () => {
     it('removes an existing repository', async () => {
       mockLoadConfig.mockResolvedValueOnce({
         ...DEFAULT_CONFIG,
-        repositories: [{
-          path: TEST_REPO_PATH,
-          name: 'Test Repo',
-          enabled: true,
-        }],
+        repositories: [
+          {
+            path: TEST_REPO_PATH,
+            name: 'Test Repo',
+            enabled: true,
+          },
+        ],
       });
 
       await removeRepo(TEST_REPO_PATH);
@@ -146,9 +170,11 @@ describe('Repository Management', () => {
       expect(mockSaveConfig).toHaveBeenCalledWith(
         expect.objectContaining({
           repositories: [],
-        })
+        }),
       );
-      expect(console.log).toHaveBeenCalledWith(expect.stringContaining('Removed repository'));
+      expect(console.log).toHaveBeenCalledWith(
+        expect.stringContaining('Removed repository'),
+      );
     });
 
     it('fails gracefully when removing non-existent repository', async () => {
@@ -157,7 +183,9 @@ describe('Repository Management', () => {
         repositories: [],
       });
 
-      await expect(removeRepo('/non/existent/repo')).rejects.toThrow('Repository not found');
+      await expect(removeRepo('/non/existent/repo')).rejects.toThrow(
+        'Repository not found',
+      );
     });
   });
 
@@ -165,11 +193,13 @@ describe('Repository Management', () => {
     it('updates repository settings', async () => {
       mockLoadConfig.mockResolvedValueOnce({
         ...DEFAULT_CONFIG,
-        repositories: [{
-          path: TEST_REPO_PATH,
-          name: 'Old Name',
-          enabled: true,
-        }],
+        repositories: [
+          {
+            path: TEST_REPO_PATH,
+            name: 'Old Name',
+            enabled: true,
+          },
+        ],
       });
 
       await updateRepo(TEST_REPO_PATH, { name: 'New Name', maxCommits: 1000 });
@@ -184,9 +214,11 @@ describe('Repository Management', () => {
               enabled: true,
             }),
           ],
-        })
+        }),
       );
-      expect(console.log).toHaveBeenCalledWith(expect.stringContaining('Updated repository'));
+      expect(console.log).toHaveBeenCalledWith(
+        expect.stringContaining('Updated repository'),
+      );
     });
 
     it('fails gracefully when updating non-existent repository', async () => {
@@ -195,7 +227,9 @@ describe('Repository Management', () => {
         repositories: [],
       });
 
-      await expect(updateRepo('/non/existent/repo')).rejects.toThrow('Repository not found');
+      await expect(updateRepo('/non/existent/repo')).rejects.toThrow(
+        'Repository not found',
+      );
     });
   });
 
@@ -203,11 +237,13 @@ describe('Repository Management', () => {
     it('enables a repository', async () => {
       mockLoadConfig.mockResolvedValueOnce({
         ...DEFAULT_CONFIG,
-        repositories: [{
-          path: TEST_REPO_PATH,
-          name: 'Test Repo',
-          enabled: false,
-        }],
+        repositories: [
+          {
+            path: TEST_REPO_PATH,
+            name: 'Test Repo',
+            enabled: false,
+          },
+        ],
       });
 
       await toggleRepo(TEST_REPO_PATH, true);
@@ -220,19 +256,23 @@ describe('Repository Management', () => {
               enabled: true,
             }),
           ],
-        })
+        }),
       );
-      expect(console.log).toHaveBeenCalledWith(expect.stringContaining('Enabled repository'));
+      expect(console.log).toHaveBeenCalledWith(
+        expect.stringContaining('Enabled repository'),
+      );
     });
 
     it('disables a repository', async () => {
       mockLoadConfig.mockResolvedValueOnce({
         ...DEFAULT_CONFIG,
-        repositories: [{
-          path: TEST_REPO_PATH,
-          name: 'Test Repo',
-          enabled: true,
-        }],
+        repositories: [
+          {
+            path: TEST_REPO_PATH,
+            name: 'Test Repo',
+            enabled: true,
+          },
+        ],
       });
 
       await toggleRepo(TEST_REPO_PATH, false);
@@ -245,9 +285,11 @@ describe('Repository Management', () => {
               enabled: false,
             }),
           ],
-        })
+        }),
       );
-      expect(console.log).toHaveBeenCalledWith(expect.stringContaining('Disabled repository'));
+      expect(console.log).toHaveBeenCalledWith(
+        expect.stringContaining('Disabled repository'),
+      );
     });
 
     it('fails gracefully when toggling non-existent repository', async () => {
@@ -256,7 +298,9 @@ describe('Repository Management', () => {
         repositories: [],
       });
 
-      await expect(toggleRepo('/non/existent/repo', true)).rejects.toThrow('Repository not found');
+      await expect(toggleRepo('/non/existent/repo', true)).rejects.toThrow(
+        'Repository not found',
+      );
     });
   });
 });

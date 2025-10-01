@@ -39,12 +39,12 @@ describe('Git Utilities', () => {
 
       // Verify .git directory was checked
       expect(mockAccess).toHaveBeenCalledWith(GIT_DIR);
-      
+
       // Verify git status was run
       expect(mockExec).toHaveBeenCalledWith(
         'git status',
         { cwd: TEST_PATH },
-        expect.any(Function)
+        expect.any(Function),
       );
     });
 
@@ -61,7 +61,11 @@ describe('Git Utilities', () => {
 
       // but git status fails
       mockExec.mockImplementationOnce((cmd, opts, callback) => {
-        callback?.(new Error('not a git repository'), Buffer.from(''), Buffer.from(''));
+        callback?.(
+          new Error('not a git repository'),
+          Buffer.from(''),
+          Buffer.from(''),
+        );
         return undefined as any;
       });
 
@@ -90,9 +94,9 @@ describe('Git Utilities', () => {
     it('throws if path does not exist', async () => {
       mockAccess.mockRejectedValueOnce(new Error('ENOENT'));
 
-      await expect(validateRepository(TEST_PATH))
-        .rejects
-        .toThrow('Path does not exist or is not accessible');
+      await expect(validateRepository(TEST_PATH)).rejects.toThrow(
+        'Path does not exist or is not accessible',
+      );
     });
 
     it('throws if path exists but is not a git repository', async () => {
@@ -102,9 +106,9 @@ describe('Git Utilities', () => {
       // But .git directory does not
       mockAccess.mockRejectedValueOnce(new Error('ENOENT'));
 
-      await expect(validateRepository(TEST_PATH))
-        .rejects
-        .toThrow('Path is not a git repository');
+      await expect(validateRepository(TEST_PATH)).rejects.toThrow(
+        'Path is not a git repository',
+      );
     });
 
     it('throws if path and .git exist but git status fails', async () => {
@@ -116,13 +120,17 @@ describe('Git Utilities', () => {
 
       // But git status fails
       mockExec.mockImplementationOnce((cmd, opts, callback) => {
-        callback?.(new Error('not a git repository'), Buffer.from(''), Buffer.from(''));
+        callback?.(
+          new Error('not a git repository'),
+          Buffer.from(''),
+          Buffer.from(''),
+        );
         return undefined as any;
       });
 
-      await expect(validateRepository(TEST_PATH))
-        .rejects
-        .toThrow('Path is not a git repository');
+      await expect(validateRepository(TEST_PATH)).rejects.toThrow(
+        'Path is not a git repository',
+      );
     });
   });
 });

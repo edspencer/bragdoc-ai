@@ -101,7 +101,7 @@ describe('Config Management', () => {
       expect(mockFs.writeFile).toHaveBeenCalledWith(
         configPath,
         stringify(DEFAULT_CONFIG),
-        expect.any(Object)
+        expect.any(Object),
       );
     });
 
@@ -132,7 +132,7 @@ describe('Config Management', () => {
       expect(mockFs.writeFile).toHaveBeenCalledWith(
         configPath,
         stringify(config),
-        { encoding: 'utf8', mode: 0o600 }
+        { encoding: 'utf8', mode: 0o600 },
       );
     });
   });

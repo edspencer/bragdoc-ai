@@ -38,7 +38,7 @@ export async function GET(request: Request) {
     console.error('Error fetching documents:', error);
     return Response.json(
       { error: 'Failed to fetch documents' },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
@@ -56,7 +56,7 @@ export async function POST(request: Request) {
     if (!parsed.success) {
       return Response.json(
         { error: 'Invalid request', details: parsed.error },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -80,7 +80,7 @@ export async function POST(request: Request) {
     console.error('Error creating document:', error);
     return Response.json(
       { error: 'Failed to create document' },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

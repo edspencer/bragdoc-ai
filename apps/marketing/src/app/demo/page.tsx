@@ -8,9 +8,10 @@ export default function Page() {
         <h1 className="text-4xl font-semibold tracking-tight text-gray-900 dark:text-gray-100 sm:text-5xl mb-8">
           Live demo coming soon
         </h1>
-        
+
         <p className="text-lg text-gray-500 dark:text-gray-400 mb-12">
-          This feature is not yet available, but you can sign up for free and play with it yourself!
+          This feature is not yet available, but you can sign up for free and
+          play with it yourself!
         </p>
 
         <div className="flex flex-col items-center gap-6">
@@ -20,7 +21,7 @@ export default function Page() {
           >
             Create my FREE account
           </Link>
-          
+
           <Link
             href="/register"
             className="text-sm/6 font-semibold text-gray-900 dark:text-gray-100"

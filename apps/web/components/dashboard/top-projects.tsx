@@ -71,9 +71,13 @@ export function TopProjects() {
           {projects.length === 0 ? (
             <div className="text-center py-6">
               <p className="text-sm text-muted-foreground mb-4">
-                No projects yet. Create your first project to start tracking achievements.
+                No projects yet. Create your first project to start tracking
+                achievements.
               </p>
-              <Button onClick={() => setCreateDialogOpen(true)} className="gap-2">
+              <Button
+                onClick={() => setCreateDialogOpen(true)}
+                className="gap-2"
+              >
                 <Plus className="h-4 w-4" />
                 Create Project
               </Button>
@@ -81,52 +85,61 @@ export function TopProjects() {
           ) : (
             <>
               <div className="space-y-4">
-                {projects.slice(0, projects.length < 5 ? projects.length : 5).map((project, index) => (
-                  <div key={project.id} className="space-y-2 border-b border-border pb-4 last:border-b-0">
-                    <div className="flex items-start justify-between">
-                      <div className="space-y-1 flex-1">
-                        <div className="flex items-center gap-2">
-                          <span className="text-xs text-muted-foreground font-mono">#{index + 1}</span>
-                          <Link
-                            href={`/projects/${project.id}`}
-                            className="text-sm font-medium hover:underline"
-                          >
-                            {project.name}
-                          </Link>
-                        </div>
-                        {project.description && (
-                          <p className="text-sm text-muted-foreground line-clamp-2">
-                            {project.description}
-                          </p>
-                        )}
-                        <div className="flex items-center gap-4 text-xs text-muted-foreground">
-                          <div className="flex items-center gap-1">
-                            <Trophy
-                              className="h-3 w-3"
-                              style={{ color: project.color }}
-                            />
-                            {project.totalImpact || 0} impact ({project.achievementCount} achievements)
+                {projects
+                  .slice(0, projects.length < 5 ? projects.length : 5)
+                  .map((project, index) => (
+                    <div
+                      key={project.id}
+                      className="space-y-2 border-b border-border pb-4 last:border-b-0"
+                    >
+                      <div className="flex items-start justify-between">
+                        <div className="space-y-1 flex-1">
+                          <div className="flex items-center gap-2">
+                            <span className="text-xs text-muted-foreground font-mono">
+                              #{index + 1}
+                            </span>
+                            <Link
+                              href={`/projects/${project.id}`}
+                              className="text-sm font-medium hover:underline"
+                            >
+                              {project.name}
+                            </Link>
                           </div>
-                          {project.company && (
-                            <div className="flex items-center gap-1">
-                              <Building2 className="h-3 w-3" />
-                              {project.company.name}
-                            </div>
+                          {project.description && (
+                            <p className="text-sm text-muted-foreground line-clamp-2">
+                              {project.description}
+                            </p>
                           )}
-                          <div>
-                            Started {format(new Date(project.startDate), 'MMM yyyy')}
+                          <div className="flex items-center gap-4 text-xs text-muted-foreground">
+                            <div className="flex items-center gap-1">
+                              <Trophy
+                                className="h-3 w-3"
+                                style={{ color: project.color }}
+                              />
+                              {project.totalImpact || 0} impact (
+                              {project.achievementCount} achievements)
+                            </div>
+                            {project.company && (
+                              <div className="flex items-center gap-1">
+                                <Building2 className="h-3 w-3" />
+                                {project.company.name}
+                              </div>
+                            )}
+                            <div>
+                              Started{' '}
+                              {format(new Date(project.startDate), 'MMM yyyy')}
+                            </div>
                           </div>
                         </div>
+                        <Badge
+                          variant="outline"
+                          className={`${statusColors[project.status as keyof typeof statusColors]} text-xs`}
+                        >
+                          {project.status}
+                        </Badge>
                       </div>
-                      <Badge
-                        variant="outline"
-                        className={`${statusColors[project.status as keyof typeof statusColors]} text-xs`}
-                      >
-                        {project.status}
-                      </Badge>
                     </div>
-                  </div>
-                ))}
+                  ))}
               </div>
               {projects.length < 5 && (
                 <div className="mt-4 pt-4 border-t">
@@ -151,6 +164,7 @@ export function TopProjects() {
         onOpenChange={setCreateDialogOpen}
         companies={companies || []}
         onSubmit={handleCreateProject}
+        existingProjectCount={projects.length}
       />
     </>
   );

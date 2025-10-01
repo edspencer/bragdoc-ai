@@ -1,4 +1,12 @@
-import { readFile, writeFile, unlink, readdir, mkdir, chmod, appendFile } from 'node:fs/promises';
+import {
+  readFile,
+  writeFile,
+  unlink,
+  readdir,
+  mkdir,
+  chmod,
+  appendFile,
+} from 'node:fs/promises';
 import type { Dirent } from 'node:fs';
 import { join } from 'node:path';
 import { CommitCache } from './commits';
@@ -48,28 +56,42 @@ describe('CommitCache', () => {
     it('should add new commit hashes to cache file', async () => {
       const repoName = 'test-repo';
       const hashes = ['hash1', 'hash2'];
-      const cachePath = join(TEST_CACHE_DIR, `${repoName.replace(/[^a-zA-Z0-9-]/g, '_')}.txt`);
+      const cachePath = join(
+        TEST_CACHE_DIR,
+        `${repoName.replace(/[^a-zA-Z0-9-]/g, '_')}.txt`,
+      );
 
       // Mock empty cache file
       mockFs.readFile.mockRejectedValueOnce({ code: 'ENOENT' });
 
       await cache.add(repoName, hashes);
 
-      expect(mockFs.appendFile).toHaveBeenCalledWith(cachePath, `${hashes.join('\n')}\n`, 'utf-8');
+      expect(mockFs.appendFile).toHaveBeenCalledWith(
+        cachePath,
+        `${hashes.join('\n')}\n`,
+        'utf-8',
+      );
     });
 
     it('should only add new unique hashes', async () => {
       const repoName = 'test-repo';
       const existingHashes = ['hash1', 'hash2'];
       const newHashes = ['hash2', 'hash3'];
-      const cachePath = join(TEST_CACHE_DIR, `${repoName.replace(/[^a-zA-Z0-9-]/g, '_')}.txt`);
+      const cachePath = join(
+        TEST_CACHE_DIR,
+        `${repoName.replace(/[^a-zA-Z0-9-]/g, '_')}.txt`,
+      );
 
       // Mock existing cache file
       mockFs.readFile.mockResolvedValueOnce('hash1\nhash2\n');
 
       await cache.add(repoName, newHashes);
 
-      expect(mockFs.appendFile).toHaveBeenCalledWith(cachePath, 'hash3\n', 'utf-8');
+      expect(mockFs.appendFile).toHaveBeenCalledWith(
+        cachePath,
+        'hash3\n',
+        'utf-8',
+      );
     });
   });
 
@@ -139,7 +161,10 @@ describe('CommitCache', () => {
   describe('clear', () => {
     it('should clear specific repository cache', async () => {
       const repoName = 'test-repo';
-      const cachePath = join(TEST_CACHE_DIR, `${repoName.replace(/[^a-zA-Z0-9-]/g, '_')}.txt`);
+      const cachePath = join(
+        TEST_CACHE_DIR,
+        `${repoName.replace(/[^a-zA-Z0-9-]/g, '_')}.txt`,
+      );
 
       await cache.clear(repoName);
 
@@ -156,7 +181,9 @@ describe('CommitCache', () => {
       await cache.clear();
 
       for (const file of files) {
-        expect(mockFs.unlink).toHaveBeenCalledWith(join(TEST_CACHE_DIR, file.name));
+        expect(mockFs.unlink).toHaveBeenCalledWith(
+          join(TEST_CACHE_DIR, file.name),
+        );
       }
     });
 
@@ -164,7 +191,7 @@ describe('CommitCache', () => {
       const repoName = 'test-repo';
 
       mockFs.unlink.mockRejectedValueOnce({ code: 'ENOENT' });
-      
+
       await expect(cache.clear(repoName)).resolves.not.toThrow();
     });
   });
@@ -194,8 +221,8 @@ describe('CommitCache', () => {
       (mockFs.readdir as jest.Mock).mockResolvedValueOnce(files);
 
       const repos = {
-        'repo1': ['hash1', 'hash2'],
-        'repo2': ['hash3', 'hash4', 'hash5'],
+        repo1: ['hash1', 'hash2'],
+        repo2: ['hash3', 'hash4', 'hash5'],
       };
 
       for (const [name, hashes] of Object.entries(repos)) {
@@ -207,8 +234,8 @@ describe('CommitCache', () => {
         repositories: 2,
         commits: 5,
         repoStats: {
-          'repo1': 2,
-          'repo2': 3,
+          repo1: 2,
+          repo2: 3,
         },
       });
     });

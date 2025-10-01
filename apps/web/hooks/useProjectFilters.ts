@@ -41,7 +41,7 @@ export function useProjectFilters() {
         return true;
       });
     },
-    [status, companyId, searchQuery]
+    [status, companyId, searchQuery],
   );
 
   const updateSearchParams = useCallback((params: Record<string, string>) => {
@@ -65,7 +65,7 @@ export function useProjectFilters() {
       });
       setLoading((prev) => ({ ...prev, status: false }));
     },
-    [searchParams, updateSearchParams]
+    [searchParams, updateSearchParams],
   );
 
   const handleCompanyChange = useCallback(
@@ -77,7 +77,7 @@ export function useProjectFilters() {
       });
       setLoading((prev) => ({ ...prev, company: false }));
     },
-    [searchParams, updateSearchParams]
+    [searchParams, updateSearchParams],
   );
 
   const handleSearchChange = useCallback(
@@ -89,7 +89,7 @@ export function useProjectFilters() {
       });
       setLoading((prev) => ({ ...prev, search: false }));
     },
-    [searchParams, updateSearchParams]
+    [searchParams, updateSearchParams],
   );
 
   const handleReset = useCallback(() => {

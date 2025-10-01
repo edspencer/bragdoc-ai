@@ -1,7 +1,13 @@
 'use client';
 
 import * as React from 'react';
-import { IconEdit, IconBuilding, IconCalendar, IconTarget, IconTrendingUp } from '@tabler/icons-react';
+import {
+  IconEdit,
+  IconBuilding,
+  IconCalendar,
+  IconTarget,
+  IconTrendingUp,
+} from '@tabler/icons-react';
 import { format } from 'date-fns';
 
 import { Button } from '@/components/ui/button';
@@ -31,7 +37,9 @@ interface ProjectDetailsContentProps {
 export function ProjectDetailsContent({ project }: ProjectDetailsContentProps) {
   const [editDialogOpen, setEditDialogOpen] = React.useState(false);
   const [generateDialogOpen, setGenerateDialogOpen] = React.useState(false);
-  const [selectedAchievements, setSelectedAchievements] = React.useState<string[]>([]);
+  const [selectedAchievements, setSelectedAchievements] = React.useState<
+    string[]
+  >([]);
 
   const { achievements, mutate: mutateAchievements } = useAchievements();
   const { companies } = useCompanies();
@@ -40,22 +48,33 @@ export function ProjectDetailsContent({ project }: ProjectDetailsContentProps) {
 
   // Filter achievements for this project
   const projectAchievements = React.useMemo(() => {
-    return achievements.filter(achievement => achievement.project?.id === project.id);
+    return achievements.filter(
+      (achievement) => achievement.project?.id === project.id,
+    );
   }, [achievements, project.id]);
 
   // Calculate project stats
   const projectStats = React.useMemo(() => {
     const totalAchievements = projectAchievements.length;
-    const totalImpactPoints = projectAchievements.reduce((sum, achievement) => sum + (achievement.impact || 0), 0);
-    const avgImpactPerAchievement = totalAchievements > 0 ? Math.round(totalImpactPoints / totalAchievements * 10) / 10 : 0;
+    const totalImpactPoints = projectAchievements.reduce(
+      (sum, achievement) => sum + (achievement.impact || 0),
+      0,
+    );
+    const avgImpactPerAchievement =
+      totalAchievements > 0
+        ? Math.round((totalImpactPoints / totalAchievements) * 10) / 10
+        : 0;
 
     // Calculate this week's impact
     const oneWeekAgo = new Date();
     oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
-    const thisWeekAchievements = projectAchievements.filter(achievement =>
-      new Date(achievement.createdAt) >= oneWeekAgo
+    const thisWeekAchievements = projectAchievements.filter(
+      (achievement) => new Date(achievement.createdAt) >= oneWeekAgo,
     );
-    const thisWeekImpact = thisWeekAchievements.reduce((sum, achievement) => sum + (achievement.impact || 0), 0);
+    const thisWeekImpact = thisWeekAchievements.reduce(
+      (sum, achievement) => sum + (achievement.impact || 0),
+      0,
+    );
 
     return {
       totalAchievements,
@@ -78,7 +97,10 @@ export function ProjectDetailsContent({ project }: ProjectDetailsContentProps) {
     }
   };
 
-  const handleImpactChange = async (achievementId: string, newImpact: number) => {
+  const handleImpactChange = async (
+    achievementId: string,
+    newImpact: number,
+  ) => {
     try {
       await updateAchievement(achievementId, {
         impact: newImpact,
@@ -99,20 +121,32 @@ export function ProjectDetailsContent({ project }: ProjectDetailsContentProps) {
   };
 
   // Get available projects and companies for the achievements table (excluding current project)
-  const allProjects = React.useMemo(() =>
-    achievements
-      .filter(a => a.project && a.project.id !== project.id)
-      .map(a => ({ id: a.project!.id, name: a.project!.name, companyName: a.company?.name || null }))
-      .filter((proj, index, self) => self.findIndex(p => p.id === proj.id) === index),
-    [achievements, project.id]
+  const allProjects = React.useMemo(
+    () =>
+      achievements
+        .filter((a) => a.project && a.project.id !== project.id)
+        .map((a) => ({
+          id: a.project!.id,
+          name: a.project!.name,
+          companyName: a.company?.name || null,
+        }))
+        .filter(
+          (proj, index, self) =>
+            self.findIndex((p) => p.id === proj.id) === index,
+        ),
+    [achievements, project.id],
   );
 
-  const allCompanies = React.useMemo(() =>
-    achievements
-      .filter(a => a.company)
-      .map(a => ({ id: a.company!.id, name: a.company!.name }))
-      .filter((comp, index, self) => self.findIndex(c => c.id === comp.id) === index),
-    [achievements]
+  const allCompanies = React.useMemo(
+    () =>
+      achievements
+        .filter((a) => a.company)
+        .map((a) => ({ id: a.company!.id, name: a.company!.name }))
+        .filter(
+          (comp, index, self) =>
+            self.findIndex((c) => c.id === comp.id) === index,
+        ),
+    [achievements],
   );
 
   const getStatusColor = (status: string) => {
@@ -141,7 +175,9 @@ export function ProjectDetailsContent({ project }: ProjectDetailsContentProps) {
               </Badge>
             </div>
             {project.description && (
-              <p className="text-muted-foreground max-w-2xl">{project.description}</p>
+              <p className="text-muted-foreground max-w-2xl">
+                {project.description}
+              </p>
             )}
             <div className="flex items-center gap-6 text-sm text-muted-foreground">
               {project.company && (
@@ -154,7 +190,8 @@ export function ProjectDetailsContent({ project }: ProjectDetailsContentProps) {
                 <IconCalendar className="size-4" />
                 <span>
                   {format(project.startDate, 'MMM yyyy')}
-                  {project.endDate && ` - ${format(project.endDate, 'MMM yyyy')}`}
+                  {project.endDate &&
+                    ` - ${format(project.endDate, 'MMM yyyy')}`}
                 </span>
               </div>
             </div>
@@ -208,7 +245,8 @@ export function ProjectDetailsContent({ project }: ProjectDetailsContentProps) {
                 Project impact score <IconTrendingUp className="size-4" />
               </div>
               <div className="text-muted-foreground">
-                Average {projectStats.avgImpactPerAchievement} points per achievement
+                Average {projectStats.avgImpactPerAchievement} points per
+                achievement
               </div>
             </CardFooter>
           </Card>
@@ -239,9 +277,15 @@ export function ProjectDetailsContent({ project }: ProjectDetailsContentProps) {
               <CardDescription>Project Duration</CardDescription>
               <CardTitle className="text-2xl font-semibold tabular-nums @[250px]/card:text-3xl">
                 {project.endDate
-                  ? Math.ceil((project.endDate.getTime() - project.startDate.getTime()) / (1000 * 60 * 60 * 24 * 30))
-                  : Math.ceil((Date.now() - project.startDate.getTime()) / (1000 * 60 * 60 * 24 * 30))
-                }
+                  ? Math.ceil(
+                      (project.endDate.getTime() -
+                        project.startDate.getTime()) /
+                        (1000 * 60 * 60 * 24 * 30),
+                    )
+                  : Math.ceil(
+                      (Date.now() - project.startDate.getTime()) /
+                        (1000 * 60 * 60 * 24 * 30),
+                    )}
               </CardTitle>
               <CardAction>
                 <Badge variant="outline">
@@ -252,10 +296,15 @@ export function ProjectDetailsContent({ project }: ProjectDetailsContentProps) {
             </CardHeader>
             <CardFooter className="flex-col items-start gap-1.5 text-sm">
               <div className="line-clamp-1 flex gap-2 font-medium">
-                {project.status === 'active' ? 'Ongoing project' : 'Completed project'} <IconCalendar className="size-4" />
+                {project.status === 'active'
+                  ? 'Ongoing project'
+                  : 'Completed project'}{' '}
+                <IconCalendar className="size-4" />
               </div>
               <div className="text-muted-foreground">
-                {project.status === 'active' ? 'Since start date' : 'Total duration'}
+                {project.status === 'active'
+                  ? 'Since start date'
+                  : 'Total duration'}
               </div>
             </CardFooter>
           </Card>
@@ -286,13 +335,14 @@ export function ProjectDetailsContent({ project }: ProjectDetailsContentProps) {
         project={project}
         companies={companies || []}
         onSubmit={handleSubmitProject}
+        existingProjectCount={0}
       />
 
       <GenerateDocumentDialog
         open={generateDialogOpen}
         onOpenChange={setGenerateDialogOpen}
         selectedAchievements={projectAchievements.filter((a) =>
-          selectedAchievements.includes(a.id)
+          selectedAchievements.includes(a.id),
         )}
       />
     </>

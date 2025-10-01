@@ -72,7 +72,7 @@ export async function fetch({
  */
 export async function fetchRenderExecute(
   input: GenerateDocumentFetcherProps,
-  streamTextOptions?: Parameters<typeof streamText>[0]
+  streamTextOptions?: Parameters<typeof streamText>[0],
 ) {
   const data = await fetch(input);
 
@@ -86,7 +86,7 @@ export async function fetchRenderExecute(
  * @returns Promise<string> - Rendered prompt string
  */
 export async function fetchRender(
-  input: GenerateDocumentFetcherProps
+  input: GenerateDocumentFetcherProps,
 ): Promise<string> {
   const data = await fetch(input);
   return await render(data);
@@ -101,7 +101,7 @@ export async function fetchRender(
  */
 export async function renderExecute(
   promptData: GenerateDocumentPromptProps,
-  streamTextOptions?: Parameters<typeof streamText>[0]
+  streamTextOptions?: Parameters<typeof streamText>[0],
 ) {
   const prompt = await render(promptData);
 
@@ -117,7 +117,7 @@ export async function renderExecute(
  */
 export async function execute(
   prompt: string,
-  streamTextOptions?: Parameters<typeof streamText>[0]
+  streamTextOptions?: Parameters<typeof streamText>[0],
 ) {
   return streamText({
     model: documentWritingModel,
@@ -133,7 +133,7 @@ export async function execute(
  * @returns Promise<string> - Rendered prompt string ready for execution
  */
 export async function render(
-  data: GenerateDocumentPromptProps
+  data: GenerateDocumentPromptProps,
 ): Promise<string> {
   return await renderMDXPromptFile({
     filePath: promptPath,

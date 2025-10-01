@@ -18,7 +18,7 @@ export interface LoginActionState {
 
 export const login = async (
   _: LoginActionState,
-  formData: FormData
+  formData: FormData,
 ): Promise<LoginActionState> => {
   try {
     const validatedData = authFormSchema.parse({
@@ -54,7 +54,7 @@ export interface RegisterActionState {
 
 export const register = async (
   _: RegisterActionState,
-  formData: FormData
+  formData: FormData,
 ): Promise<RegisterActionState> => {
   try {
     const validatedData = authFormSchema.parse({
@@ -69,7 +69,7 @@ export const register = async (
     }
     const newUser = await createUser(
       validatedData.email,
-      validatedData.password
+      validatedData.password,
     );
 
     // Send welcome email

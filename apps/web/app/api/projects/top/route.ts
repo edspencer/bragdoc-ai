@@ -20,7 +20,7 @@ export async function GET(req: NextRequest) {
     console.error('Error fetching top projects:', error);
     return NextResponse.json(
       { error: 'Failed to fetch top projects' },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

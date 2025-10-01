@@ -2,7 +2,11 @@
 
 import * as React from 'react';
 import { cn } from '@/lib/utils';
-import { PROJECT_COLORS, PROJECT_COLOR_NAMES, getColorIndex } from '@/lib/colors';
+import {
+  PROJECT_COLORS,
+  PROJECT_COLOR_NAMES,
+  getColorIndex,
+} from '@/lib/colors';
 
 interface ColorPickerProps {
   value?: string;
@@ -25,7 +29,7 @@ export function ColorPicker({ value, onChange, className }: ColorPickerProps) {
               'relative size-8 rounded-full border-2 transition-all hover:scale-110',
               selectedIndex === index
                 ? 'border-foreground shadow-md'
-                : 'border-border hover:border-foreground/50'
+                : 'border-border hover:border-foreground/50',
             )}
             style={{ backgroundColor: color }}
             title={PROJECT_COLOR_NAMES[index]}

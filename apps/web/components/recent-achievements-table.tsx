@@ -33,7 +33,6 @@ interface RecentAchievementsTableProps {
   achievements: AchievementWithRelations[];
 }
 
-
 export function RecentAchievementsTable({
   achievements,
 }: RecentAchievementsTableProps) {
@@ -42,7 +41,7 @@ export function RecentAchievementsTable({
     return [...achievements]
       .sort(
         (a, b) =>
-          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
       )
       .slice(0, 10);
   }, [achievements]);
@@ -131,7 +130,7 @@ export function RecentAchievementsTable({
                         {achievement.eventStart
                           ? format(
                               new Date(achievement.eventStart),
-                              'MMM d, yyyy'
+                              'MMM d, yyyy',
                             )
                           : 'No date'}
                       </span>
