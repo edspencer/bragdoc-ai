@@ -29,6 +29,7 @@
 	"env": {
 		"staging": {
 			"name": "bragdoc-app-staging",
+      "route": "https://staging.bragdoc.ai",
 			"vars": {
 				"NEXTAUTH_URL": "https://staging.bragdoc.ai",
 				"AUTH_TRUST_HOST": "https://staging.bragdoc.ai"
@@ -42,6 +43,7 @@
 		},
 		"production": {
 			"name": "bragdoc-app-production",
+      "route": "https://app.bragdoc.ai",
 			"vars": {
 				"NEXTAUTH_URL": "https://app.bragdoc.ai",
 				"AUTH_TRUST_HOST": "https://app.bragdoc.ai"
