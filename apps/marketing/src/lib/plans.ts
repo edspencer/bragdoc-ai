@@ -1,3 +1,5 @@
+const APP_HOST = process.env.APP_HOST || 'https://app.bragdoc.ai';
+
 export type PlanId =
   | 'free'
   | 'basic_monthly'
@@ -53,7 +55,7 @@ export const plans: Plan[] = [
     description: 'Perfect for trying out bragdoc.ai with basic features.',
     button: {
       label: 'Get started for free',
-      href: '/register',
+      href: `${APP_HOST}/register`,
     },
     features: [
       'Basic usage limits',
@@ -75,7 +77,7 @@ export const plans: Plan[] = [
       'For professionals who want unlimited features and git integration.',
     button: {
       label: 'Start Basic plan',
-      href: '/register?plan=basic',
+      href: `${APP_HOST}/register?plan=basic`,
     },
     features: [
       'Everything in Free',
@@ -96,7 +98,7 @@ export const plans: Plan[] = [
     description: 'For power users who need advanced features and integrations.',
     button: {
       label: 'Start Pro plan',
-      href: '/register?plan=pro',
+      href: `${APP_HOST}/register?plan=pro`,
     },
     features: [
       'Everything in Basic',

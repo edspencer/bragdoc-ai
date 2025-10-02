@@ -3,6 +3,8 @@ import { Container } from '@/components/salient/Container';
 import { ArrowRightIcon } from '@radix-ui/react-icons';
 import Link from 'next/link';
 
+const APP_HOST = process.env.APP_HOST || 'https://app.bragdoc.ai';
+
 export function WhyCallToAction() {
   return (
     <section
@@ -19,7 +21,7 @@ export function WhyCallToAction() {
             advance their careers. Start documenting your achievements today.
           </p>
           <Button asChild variant="secondary" size="lg" className="mt-10">
-            <Link href="/register">
+            <Link href={`${APP_HOST}/register`}>
               Start Your Brag Document
               <ArrowRightIcon className="ml-2 size-4" />
             </Link>

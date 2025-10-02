@@ -1,6 +1,8 @@
 import { Button } from './Button';
 import { Container } from './Container';
 
+const APP_HOST = process.env.APP_HOST || 'https://app.bragdoc.ai';
+
 export function CallToAction() {
   return (
     <section
@@ -16,7 +18,7 @@ export function CallToAction() {
             It&apos;s time to take control of your career narrative. Start
             tracking your achievements with bragdoc.ai and never miss a win.
           </p>
-          <Button href="/register" color="white" className="mt-10">
+          <Button href={`${APP_HOST}/register`} color="white" className="mt-10">
             Get started for free
           </Button>
         </div>

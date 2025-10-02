@@ -8,6 +8,8 @@ import {
   NavigationMenuList,
 } from '@/components/ui/navigation-menu';
 
+const APP_HOST = process.env.APP_HOST || 'https://app.bragdoc.ai';
+
 export function Navigation() {
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -57,10 +59,10 @@ export function Navigation() {
         <div className="flex items-center space-x-4">
           <ModeToggle />
           <Button variant="ghost" asChild>
-            <Link href="/login">Login</Link>
+            <Link href={`${APP_HOST}/login`}>Login</Link>
           </Button>
           <Button asChild>
-            <Link href="/register">Sign Up</Link>
+            <Link href={`${APP_HOST}/register`}>Sign Up</Link>
           </Button>
         </div>
       </div>

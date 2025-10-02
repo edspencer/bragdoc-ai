@@ -4,6 +4,8 @@ import { Container } from './Container';
 
 import { Highlight } from './Highlight';
 
+const APP_HOST = process.env.APP_HOST || 'https://app.bragdoc.ai';
+
 export function HeroOld() {
   return (
     <Container className="pb-16 pt-20 text-center lg:pt-32">
@@ -27,7 +29,7 @@ export function HeroOld() {
         Perfect for performance reviews, resumes, and career growth.
       </p>
       <div className="mt-10 flex justify-center gap-x-6">
-        <Button href="/register" color="blue">
+        <Button href={`${APP_HOST}/register`} color="blue">
           Get started
         </Button>
         <Button href="/about" variant="outline">
@@ -78,7 +80,7 @@ export function Hero() {
                 </p>
                 <div className="mt-10 flex items-center gap-x-6">
                   <Link
-                    href="/register"
+                    href={`${APP_HOST}/register`}
                     className="rounded-md bg-blue-600 dark:bg-blue-400 px-3.5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 dark:hover:bg-indigo-400 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 dark:focus-visible:outline-indigo-400"
                   >
                     Create my FREE account

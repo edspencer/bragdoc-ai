@@ -3,6 +3,8 @@ import { Container } from '@/components/salient/Container';
 import { ArrowRightIcon } from '@radix-ui/react-icons';
 import Link from 'next/link';
 
+const APP_HOST = process.env.APP_HOST || 'https://app.bragdoc.ai';
+
 export function BragDocCallToAction() {
   return (
     <section
@@ -19,7 +21,7 @@ export function BragDocCallToAction() {
             assistant helps you capture and organize your wins as they happen.
           </p>
           <Button asChild variant="secondary" size="lg" className="mt-10">
-            <Link href="/register">
+            <Link href={`${APP_HOST}/register`}>
               Get Started Free
               <ArrowRightIcon className="ml-2 size-4" />
             </Link>
