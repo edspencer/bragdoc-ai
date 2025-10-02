@@ -46,6 +46,7 @@
     "@types/yaml": "^1.9.7",
     "chalk": "^4.1.2",
     "commander": "^11.1.0",
+    "inquirer": "^12.9.6",
     "node-fetch": "^2.7.0",
     "open": "^10.1.0",
     "winston": "^3.17.0",
