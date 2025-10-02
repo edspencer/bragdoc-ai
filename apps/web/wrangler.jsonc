@@ -31,7 +31,7 @@
 			"name": "bragdoc-app-staging",
       "routes": [
         {
-          "pattern": "https://staging.bragdoc.ai",
+          "pattern": "staging.bragdoc.ai",
           "custom_domain": true
         }
       ],
@@ -50,7 +50,7 @@
 			"name": "bragdoc-app-production",
       "routes": [
         {
-          "pattern": "https://app.bragdoc.ai",
+          "pattern": "app.bragdoc.ai",
           "custom_domain": true
         }
       ],
