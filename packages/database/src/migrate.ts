@@ -21,14 +21,12 @@ const runMigrate = async () => {
     throw new Error('POSTGRES_URL is not defined');
   }
 
-  console.log(`Database URL: ${dbUrl}`);
   const connection = neon(dbUrl);
   const db = drizzle(connection);
 
   console.log('⏳ Running migrations...');
 
   const migrationsFolder = path.join(__dirname, 'migrations');
-  console.log('Migrations folder:', migrationsFolder);
 
   const start = Date.now();
   await migrate(db, { migrationsFolder });
