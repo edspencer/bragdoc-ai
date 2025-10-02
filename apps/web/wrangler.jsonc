@@ -7,6 +7,11 @@
 		"nodejs_compat",
 		"global_fetch_strictly_public"
 	],
+  "observability": {
+		"logs": {
+			"enabled": true
+			}
+		},
 	"dev": {
 		"port": 3000
 	},
