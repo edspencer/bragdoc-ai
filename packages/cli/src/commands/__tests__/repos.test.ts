@@ -80,7 +80,7 @@ describe('Repository Management', () => {
       await listRepos();
 
       expect(console.log).toHaveBeenCalledWith(
-        expect.stringContaining('No repositories configured')
+        expect.stringContaining('No repositories configured'),
       );
     });
 
@@ -99,10 +99,10 @@ describe('Repository Management', () => {
       await listRepos();
 
       expect(console.log).toHaveBeenCalledWith(
-        expect.stringContaining('Test Repo')
+        expect.stringContaining('Test Repo'),
       );
       expect(console.log).toHaveBeenCalledWith(
-        expect.stringContaining(TEST_REPO_PATH)
+        expect.stringContaining(TEST_REPO_PATH),
       );
     });
   });
@@ -127,10 +127,10 @@ describe('Repository Management', () => {
               enabled: true,
             }),
           ],
-        })
+        }),
       );
       expect(console.log).toHaveBeenCalledWith(
-        expect.stringContaining('Added repository')
+        expect.stringContaining('Added repository'),
       );
     });
 
@@ -147,7 +147,7 @@ describe('Repository Management', () => {
       });
 
       await expect(addRepo(TEST_REPO_PATH)).rejects.toThrow(
-        'Repository already exists'
+        'Repository already exists',
       );
     });
   });
@@ -170,10 +170,10 @@ describe('Repository Management', () => {
       expect(mockSaveConfig).toHaveBeenCalledWith(
         expect.objectContaining({
           repositories: [],
-        })
+        }),
       );
       expect(console.log).toHaveBeenCalledWith(
-        expect.stringContaining('Removed repository')
+        expect.stringContaining('Removed repository'),
       );
     });
 
@@ -184,7 +184,7 @@ describe('Repository Management', () => {
       });
 
       await expect(removeRepo('/non/existent/repo')).rejects.toThrow(
-        'Repository not found'
+        'Repository not found',
       );
     });
   });
@@ -214,10 +214,10 @@ describe('Repository Management', () => {
               enabled: true,
             }),
           ],
-        })
+        }),
       );
       expect(console.log).toHaveBeenCalledWith(
-        expect.stringContaining('Updated repository')
+        expect.stringContaining('Updated repository'),
       );
     });
 
@@ -228,7 +228,7 @@ describe('Repository Management', () => {
       });
 
       await expect(updateRepo('/non/existent/repo')).rejects.toThrow(
-        'Repository not found'
+        'Repository not found',
       );
     });
   });
@@ -256,10 +256,10 @@ describe('Repository Management', () => {
               enabled: true,
             }),
           ],
-        })
+        }),
       );
       expect(console.log).toHaveBeenCalledWith(
-        expect.stringContaining('Enabled repository')
+        expect.stringContaining('Enabled repository'),
       );
     });
 
@@ -285,10 +285,10 @@ describe('Repository Management', () => {
               enabled: false,
             }),
           ],
-        })
+        }),
       );
       expect(console.log).toHaveBeenCalledWith(
-        expect.stringContaining('Disabled repository')
+        expect.stringContaining('Disabled repository'),
       );
     });
 
@@ -299,7 +299,7 @@ describe('Repository Management', () => {
       });
 
       await expect(toggleRepo('/non/existent/repo', true)).rejects.toThrow(
-        'Repository not found'
+        'Repository not found',
       );
     });
   });

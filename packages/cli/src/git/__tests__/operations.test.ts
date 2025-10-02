@@ -183,7 +183,9 @@ describe('git operations', () => {
 
       expect(() => {
         collectGitCommits('main', 1, 'test-repo');
-      }).toThrow('Failed to extract commits: Failed to get git user name: fatal: not a git repository');
+      }).toThrow(
+        'Failed to extract commits: Failed to get git user name: fatal: not a git repository',
+      );
     });
 
     it('should throw error on malformed git log entry', () => {

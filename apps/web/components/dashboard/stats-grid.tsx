@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { Trophy, Building2, FolderKanban, } from 'lucide-react';
+import { Trophy, Building2, FolderKanban } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from 'components/ui/card';
 import { useNavCounts } from 'hooks/use-nav-counts';
 import { Skeleton } from 'components/ui/skeleton';

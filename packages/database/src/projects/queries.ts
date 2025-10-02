@@ -235,6 +235,12 @@ export async function deleteProject(
   id: string,
   userId: string,
 ): Promise<Project | null> {
+  // First delete all achievements associated with this project
+  await db
+    .delete(achievement)
+    .where(and(eq(achievement.projectId, id), eq(achievement.userId, userId)));
+
+  // Then delete the project
   const results = await db
     .delete(project)
     .where(and(eq(project.id, id), eq(project.userId, userId)))

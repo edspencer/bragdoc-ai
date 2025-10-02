@@ -7,11 +7,24 @@ import {
   IconCalendar,
   IconTarget,
   IconTrendingUp,
+  IconTrash,
 } from '@tabler/icons-react';
 import { format } from 'date-fns';
+import { useRouter } from 'next/navigation';
 
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
 import {
   Card,
   CardAction,
@@ -26,7 +39,7 @@ import { AchievementsTable } from '@/components/achievements-table';
 import { GenerateDocumentDialog } from '@/components/generate-document-dialog';
 import { useAchievements } from '@/hooks/use-achievements';
 import { useCompanies } from '@/hooks/use-companies';
-import { useUpdateProject } from '@/hooks/useProjects';
+import { useUpdateProject, useDeleteProject } from '@/hooks/useProjects';
 import { useAchievementMutations } from '@/hooks/use-achievement-mutations';
 import type { ProjectWithCompany } from '@/database/projects/queries';
 
@@ -40,12 +53,15 @@ export function ProjectDetailsContent({ project }: ProjectDetailsContentProps) {
   const [selectedAchievements, setSelectedAchievements] = React.useState<
     string[]
   >([]);
+  const [isDeleting, setIsDeleting] = React.useState(false);
 
+  const router = useRouter();
   const { achievements, mutate: mutateAchievements } = useAchievements({
     limit: 1000,
   });
   const { companies } = useCompanies();
   const updateProject = useUpdateProject();
+  const deleteProject = useDeleteProject();
   const { updateAchievement } = useAchievementMutations();
 
   // Filter achievements for this project
@@ -122,6 +138,18 @@ export function ProjectDetailsContent({ project }: ProjectDetailsContentProps) {
     setGenerateDialogOpen(true);
   };
 
+  const handleDeleteProject = async () => {
+    try {
+      setIsDeleting(true);
+      await deleteProject(project.id);
+      router.push('/projects');
+    } catch (error) {
+      console.error('Failed to delete project:', error);
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
   // Get available projects and companies for the achievements table (excluding current project)
   const allProjects = React.useMemo(
     () =>
@@ -166,6 +194,14 @@ export function ProjectDetailsContent({ project }: ProjectDetailsContentProps) {
 
   return (
     <>
+      {isDeleting && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-sm">
+          <div className="flex flex-col items-center gap-4">
+            <div className="size-12 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+            <p className="text-sm text-muted-foreground">Deleting project...</p>
+          </div>
+        </div>
+      )}
       <div className="flex flex-col gap-4 py-4 md:gap-6 md:py-6">
         {/* Project Header */}
         <div className="flex items-start justify-between px-4 lg:px-6">
@@ -198,10 +234,47 @@ export function ProjectDetailsContent({ project }: ProjectDetailsContentProps) {
               </div>
             </div>
           </div>
-          <Button onClick={handleEditProject}>
-            <IconEdit className="size-4" />
-            Edit Project
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button onClick={handleEditProject}>
+              <IconEdit className="size-4" />
+              Edit Project
+            </Button>
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  disabled={isDeleting}
+                  className="text-red-600 hover:text-red-700 dark:text-red-500 dark:hover:text-red-600"
+                >
+                  <IconTrash className="size-4" />
+                  <span className="sr-only">Delete Project</span>
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Delete Project</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    Are you sure you want to delete this project? This action
+                    cannot be undone and will permanently delete all associated
+                    achievements.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel disabled={isDeleting}>
+                    Cancel
+                  </AlertDialogCancel>
+                  <AlertDialogAction
+                    onClick={handleDeleteProject}
+                    disabled={isDeleting}
+                    className="bg-red-600 text-white hover:bg-red-700 dark:bg-red-900 dark:text-red-100 dark:hover:bg-red-800"
+                  >
+                    {isDeleting ? 'Deleting...' : 'Delete'}
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+          </div>
         </div>
 
         {/* Project Stats */}
