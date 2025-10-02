@@ -21,5 +21,37 @@
 			"binding": "NEXT_INC_CACHE_R2_BUCKET",
 			"bucket_name": "cache"
 		}
-	]
+	],
+	"vars": {
+		"NEXTAUTH_URL": "https://ngrok.edspencer.net",
+		"AUTH_TRUST_HOST": "https://ngrok.edspencer.net"
+	},
+	"env": {
+		"staging": {
+			"name": "bragdoc-app-staging",
+			"vars": {
+				"NEXTAUTH_URL": "https://staging.bragdoc.ai",
+				"AUTH_TRUST_HOST": "https://staging.bragdoc.ai"
+			},
+			"r2_buckets": [
+				{
+					"binding": "NEXT_INC_CACHE_R2_BUCKET",
+					"bucket_name": "cache-staging"
+				}
+			]
+		},
+		"production": {
+			"name": "bragdoc-app-production",
+			"vars": {
+				"NEXTAUTH_URL": "https://app.bragdoc.ai",
+				"AUTH_TRUST_HOST": "https://app.bragdoc.ai"
+			},
+			"r2_buckets": [
+				{
+					"binding": "NEXT_INC_CACHE_R2_BUCKET",
+					"bucket_name": "cache-production"
+				}
+			]
+		}
+	}
 }
