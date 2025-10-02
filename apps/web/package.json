@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
+    "build": "npx opennextjs-cloudflare build",
     "start": "next start",
     "lint": "next lint && biome lint --write --unsafe",
     "format": "biome format --write app/ components/ lib/ hooks/",
