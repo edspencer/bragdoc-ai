@@ -51,8 +51,8 @@ const staticData = {
   ],
   navSecondary: [
     {
-      title: 'Settings',
-      url: '/settings',
+      title: 'Account Settings',
+      url: '/account',
       icon: IconSettings,
     },
     // {
