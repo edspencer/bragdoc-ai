@@ -15,12 +15,12 @@
     "db:push": "drizzle-kit push",
     "db:studio": "drizzle-kit studio",
     "preview": "opennextjs-cloudflare build && opennextjs-cloudflare preview",
+    "predeploy": "cd ../../packages/database && pnpm db:migrate",
     "deploy": "opennextjs-cloudflare build && opennextjs-cloudflare deploy",
     "upload": "opennextjs-cloudflare build && opennextjs-cloudflare upload",
     "cf-typegen": "wrangler types --env-interface CloudflareEnv cloudflare-env.d.ts"
   },
   "dependencies": {
-    "@ai-sdk/deepseek": "^0.1.2",
     "@ai-sdk/google": "^1.0.12",
     "@ai-sdk/openai": "1.0.6",
     "@bragdoc/config": "workspace:*",
@@ -38,7 +38,6 @@
     "@next/mdx": "^15.1.6",
     "@next/third-parties": "^15.1.3",
     "@octokit/rest": "^21.0.2",
-    "@openrouter/ai-sdk-provider": "^0.0.6",
     "@radix-ui/react-aspect-ratio": "^1.1.7",
     "@radix-ui/react-checkbox": "^1.3.3",
     "@radix-ui/react-collapsible": "^1.1.12",

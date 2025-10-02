@@ -5,18 +5,21 @@ BragDoc is designed to be easily self-hosted with full control over your data an
 ## Quick Start
 
 1. **Clone the repository**
+
    ```bash
    git clone https://github.com/your-org/bragdoc-ai.git
    cd bragdoc-ai
    ```
 
 2. **Set up environment variables**
+
    ```bash
    cp .env.example .env
    # Edit .env with your configuration
    ```
 
 3. **Install dependencies and set up database**
+
    ```bash
    pnpm setup
    ```
@@ -29,47 +32,54 @@ BragDoc is designed to be easily self-hosted with full control over your data an
    ```
 
 Your applications will be available at:
+
 - **Web app**: http://localhost:3000
 - **Marketing site**: http://localhost:3001
 
 ## Environment Variables
 
 ### Required Variables
+
 - `DATABASE_URL`: PostgreSQL connection string
 - `NEXTAUTH_SECRET`: Random secret for session encryption (generate with `openssl rand -base64 32`)
 
 ### Payment Integration (Optional)
+
 BragDoc supports two modes:
 
 **Open Source Mode (Default):**
+
 - `PAYMENT_TOKEN_REQUIRED=false` or unset
 - All features available to all users
 - No payment integration required
 
 **Commercial Mode:**
+
 - `PAYMENT_TOKEN_REQUIRED=true`
 - Enable subscription-based feature gating
 - Requires Stripe configuration:
   - `STRIPE_SECRET_KEY`: Your Stripe secret key
-  - `STRIPE_PUBLISHABLE_KEY`: Your Stripe publishable key  
+  - `STRIPE_PUBLISHABLE_KEY`: Your Stripe publishable key
   - `STRIPE_WEBHOOK_SECRET`: Your Stripe webhook secret
 
 ### Authentication Providers (Optional)
+
 - `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET`: For Google OAuth
 - `GITHUB_CLIENT_ID` / `GITHUB_CLIENT_SECRET`: For GitHub OAuth
 
 ### Email Integration (Optional)
+
 - `MAILGUN_API_KEY`: For sending emails
 - `MAILGUN_DOMAIN`: Your Mailgun domain
 
-### AI Providers (Optional)
+### AI Providers
+
 - `OPENAI_API_KEY`: For OpenAI GPT models
-- `GOOGLE_GENERATIVE_AI_API_KEY`: For Google Gemini models
-- `DEEPSEEK_API_KEY`: For DeepSeek models
 
 ## Deployment Options
 
 ### Option 1: Single Server Deployment
+
 Run both apps on the same server with different ports:
 
 ```bash
@@ -79,11 +89,12 @@ pnpm build
 # Start web app (port 3000)
 cd apps/web && pnpm start &
 
-# Start marketing site (port 3001) 
+# Start marketing site (port 3001)
 cd apps/marketing && pnpm start &
 ```
 
 ### Option 2: Separate Deployments
+
 Deploy applications independently:
 
 ```bash
@@ -91,15 +102,17 @@ Deploy applications independently:
 pnpm build:web
 cd apps/web && pnpm start
 
-# Build and deploy marketing site only  
+# Build and deploy marketing site only
 pnpm build:marketing
 cd apps/marketing && pnpm start
 ```
 
 ### Option 3: Docker Deployment
+
 Use the provided Dockerfile configurations for containerized deployment.
 
 ### Option 4: Vercel/Netlify
+
 Each app can be deployed separately to platforms like Vercel or Netlify using their monorepo support.
 
 ## Database Setup
@@ -107,6 +120,7 @@ Each app can be deployed separately to platforms like Vercel or Netlify using th
 BragDoc uses PostgreSQL. You can use any PostgreSQL instance:
 
 1. **Local PostgreSQL**
+
    ```bash
    # Install PostgreSQL locally
    createdb bragdoc
@@ -114,6 +128,7 @@ BragDoc uses PostgreSQL. You can use any PostgreSQL instance:
    ```
 
 2. **Docker PostgreSQL**
+
    ```bash
    docker run --name bragdoc-db -e POSTGRES_PASSWORD=password -e POSTGRES_DB=bragdoc -p 5432:5432 -d postgres
    ```
@@ -124,24 +139,29 @@ BragDoc uses PostgreSQL. You can use any PostgreSQL instance:
 ## Feature Configuration
 
 ### Open Source Mode Features
+
 When `PAYMENT_TOKEN_REQUIRED=false` (default):
+
 - ✅ Unlimited achievement tracking
-- ✅ Document generation  
+- ✅ Document generation
 - ✅ AI assistance (if API keys provided)
 - ✅ Email integration
 - ✅ GitHub integration
 - ✅ All analytics and exports
 
 ### Commercial Mode Features
+
 When `PAYMENT_TOKEN_REQUIRED=true`, features are gated by subscription level:
 
 **Free Tier:**
+
 - Basic achievement tracking
 - Limited documents
 
 **Paid Tiers (Basic/Pro):**
+
 - Unlimited documents
-- AI assistance  
+- AI assistance
 - Advanced analytics
 - Email integration
 - API access
@@ -149,19 +169,23 @@ When `PAYMENT_TOKEN_REQUIRED=true`, features are gated by subscription level:
 ## Development Workflow
 
 ### Working on Web App Only
+
 ```bash
 pnpm dev:web-only
 ```
 
-### Working on Marketing Site Only  
+### Working on Marketing Site Only
+
 ```bash
 pnpm dev:marketing-only
 ```
 
 ### Working on Shared Packages
+
 Changes to packages (UI, database, auth, etc.) will automatically reload in both apps.
 
 ### Running Tests
+
 ```bash
 # All tests
 pnpm test
@@ -174,11 +198,12 @@ pnpm test:watch
 ```
 
 ### Database Management
+
 ```bash
 # Generate migrations
 pnpm db:generate
 
-# Apply migrations  
+# Apply migrations
 pnpm db:push
 
 # Open database studio
@@ -188,7 +213,9 @@ pnpm db:studio
 ## Troubleshooting
 
 ### Port Already in Use
+
 If ports 3000 or 3001 are in use, modify the port in the respective app's package.json:
+
 ```json
 {
   "scripts": {
@@ -198,16 +225,19 @@ If ports 3000 or 3001 are in use, modify the port in the respective app's packag
 ```
 
 ### Database Connection Issues
+
 1. Verify PostgreSQL is running
 2. Check DATABASE_URL format: `postgresql://user:password@host:port/database`
 3. Ensure database exists and user has proper permissions
 
-### Build Failures  
+### Build Failures
+
 1. Clear node_modules and reinstall: `rm -rf node_modules && pnpm install`
 2. Clear Next.js cache: `pnpm turbo build --force`
 3. Check for TypeScript errors: `pnpm turbo lint`
 
 ### Missing Environment Variables
+
 Required variables will cause startup failures. Check the console for specific missing variables.
 
 ## Security Considerations
