@@ -202,7 +202,7 @@ export function GenerateDocumentDialog({
                     >
                       <CardContent className="p-4">
                         <div className="flex items-start space-x-3">
-                          <Icon className="h-5 w-5 mt-0.5 text-muted-foreground" />
+                          <Icon className="size-5 mt-0.5 text-muted-foreground" />
                           <div className="space-y-1">
                             <h4 className="font-medium">{type.title}</h4>
                             <p className="text-sm text-muted-foreground">
@@ -294,7 +294,7 @@ export function GenerateDocumentDialog({
                 disabled={!selectedType || isGenerating}
               >
                 {isGenerating && (
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  <Loader2 className="mr-2 size-4 animate-spin" />
                 )}
                 Generate
               </Button>

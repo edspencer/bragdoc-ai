@@ -53,7 +53,7 @@ export function ActivityStream({ achievements }: ActivityStreamProps) {
     <Card>
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
-          <Trophy className="h-5 w-5" />
+          <Trophy className="size-5" />
           Recent Activity
         </CardTitle>
       </CardHeader>
@@ -85,7 +85,7 @@ export function ActivityStream({ achievements }: ActivityStreamProps) {
                     <div className="flex items-center gap-4 text-xs text-muted-foreground">
                       {achievement.eventStart && (
                         <div className="flex items-center gap-1">
-                          <Clock className="h-3 w-3" />
+                          <Clock className="size-3" />
                           {formatDistanceToNow(
                             new Date(achievement.eventStart),
                             {
@@ -99,7 +99,7 @@ export function ActivityStream({ achievements }: ActivityStreamProps) {
                           className="flex items-center gap-1"
                           style={{ color: achievement.project.color }}
                         >
-                          <FolderKanban className="h-3 w-3" />
+                          <FolderKanban className="size-3" />
                           <Link
                             href={`/projects/${achievement.project.id}`}
                             className="font-medium hover:underline"
@@ -110,7 +110,7 @@ export function ActivityStream({ achievements }: ActivityStreamProps) {
                       )}
                       {achievement.company && (
                         <div className="flex items-center gap-1">
-                          <Building2 className="h-3 w-3" />
+                          <Building2 className="size-3" />
                           {achievement.company.name}
                         </div>
                       )}

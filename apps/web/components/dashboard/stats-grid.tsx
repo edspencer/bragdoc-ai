@@ -44,7 +44,7 @@ export function StatsGrid({ userId }: StatsGridProps) {
           <Card key={index}>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <Skeleton className="h-4 w-20" />
-              <Skeleton className="h-8 w-8 rounded" />
+              <Skeleton className="size-8 rounded" />
             </CardHeader>
             <CardContent>
               <Skeleton className="h-8 w-12 mb-2" />
@@ -74,7 +74,7 @@ export function StatsGrid({ userId }: StatsGridProps) {
                   {stat.title}
                 </CardTitle>
                 <div className={`p-2 rounded ${stat.bgColor}`}>
-                  <Icon className={`h-4 w-4 ${stat.color}`} />
+                  <Icon className={`size-4 ${stat.color}`} />
                 </div>
               </CardHeader>
               <CardContent>

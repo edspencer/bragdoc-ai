@@ -40,7 +40,7 @@ export function TopProjects() {
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <FolderKanban className="h-5 w-5" />
+            <FolderKanban className="size-5" />
             Top Projects
           </CardTitle>
         </CardHeader>
@@ -63,7 +63,7 @@ export function TopProjects() {
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <FolderKanban className="h-5 w-5" />
+            <FolderKanban className="size-5" />
             Top Projects
           </CardTitle>
         </CardHeader>
@@ -78,7 +78,7 @@ export function TopProjects() {
                 onClick={() => setCreateDialogOpen(true)}
                 className="gap-2"
               >
-                <Plus className="h-4 w-4" />
+                <Plus className="size-4" />
                 Create Project
               </Button>
             </div>
@@ -113,7 +113,7 @@ export function TopProjects() {
                           <div className="flex items-center gap-4 text-xs text-muted-foreground">
                             <div className="flex items-center gap-1">
                               <Trophy
-                                className="h-3 w-3"
+                                className="size-3"
                                 style={{ color: project.color }}
                               />
                               {project.totalImpact || 0} impact (
@@ -121,7 +121,7 @@ export function TopProjects() {
                             </div>
                             {project.company && (
                               <div className="flex items-center gap-1">
-                                <Building2 className="h-3 w-3" />
+                                <Building2 className="size-3" />
                                 {project.company.name}
                               </div>
                             )}
@@ -149,7 +149,7 @@ export function TopProjects() {
                     onClick={() => setCreateDialogOpen(true)}
                     className="w-full gap-2"
                   >
-                    <Plus className="h-4 w-4" />
+                    <Plus className="size-4" />
                     Create Project
                   </Button>
                 </div>

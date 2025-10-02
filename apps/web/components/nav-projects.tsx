@@ -31,7 +31,7 @@ export function NavProjects() {
               isActive={pathname === '/projects'}
             >
               <Link href="/projects">
-                <IconFolder className="w-4 h-4" />
+                <IconFolder className="size-4" />
                 <span>All Projects</span>
               </Link>
             </SidebarMenuButton>
@@ -42,7 +42,7 @@ export function NavProjects() {
               [...Array(3)].map((_, i) => (
                 <SidebarMenuItem key={i}>
                   <SidebarMenuButton disabled>
-                    <div className="w-4 h-4 bg-muted rounded animate-pulse" />
+                    <div className="size-4 bg-muted rounded animate-pulse" />
                     <div className="h-3 bg-muted rounded w-20 animate-pulse" />
                   </SidebarMenuButton>
                 </SidebarMenuItem>
@@ -59,7 +59,7 @@ export function NavProjects() {
                     >
                       <Link href={`/projects/${project.id}`}>
                         <IconFolder
-                          className="w-4 h-4"
+                          className="size-4"
                           style={{ color: project.color || '#6b7280' }}
                         />
                         <span className="truncate">{project.name}</span>
