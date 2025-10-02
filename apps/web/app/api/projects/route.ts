@@ -10,6 +10,7 @@ const createProjectSchema = z.object({
   name: z.string().min(1).max(256),
   description: z
     .string()
+    .nullable()
     .optional()
     .transform((val) => (val === null ? undefined : val)),
   companyId: z.string().uuid().nullable().optional(),
