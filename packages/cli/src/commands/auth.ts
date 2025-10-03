@@ -60,24 +60,29 @@ async function startAuthServer(
               throw new Error('Invalid state parameter');
             }
 
-            res.writeHead(200);
-            res.end('OK');
-            server.close();
-            logger.debug('Successfully received token');
+            res.writeHead(200, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify({ success: true }));
+
+            // Close server after response is fully sent
+            setTimeout(() => {
+              server.close();
+              logger.debug('Successfully received token');
+            }, 100);
+
             resolve({
               token,
               expiresAt: Date.now() + 30 * 24 * 60 * 60 * 1000,
             });
           } catch (err) {
             logger.error('Error processing request:', err);
-            res.writeHead(400);
-            res.end('Invalid request');
+            res.writeHead(400, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify({ error: 'Invalid request' }));
             reject(err);
           }
         });
       } else {
-        res.writeHead(405);
-        res.end('Method not allowed');
+        res.writeHead(405, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ error: 'Method not allowed' }));
       }
     });
 

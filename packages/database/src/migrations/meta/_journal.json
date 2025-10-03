@@ -36,6 +36,13 @@
       "when": 1759323621686,
       "tag": "0004_real_timeslip",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1759508108657,
+      "tag": "0005_violet_sentinels",
+      "breakpoints": true
     }
   ]
 }

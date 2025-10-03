@@ -42,11 +42,14 @@
     "release": "pnpm build && changeset publish"
   },
   "dependencies": {
+    "@ai-sdk/openai": "1.0.6",
     "@bragdoc/config": "workspace:*",
     "@types/yaml": "^1.9.7",
+    "ai": "4.0.20",
     "chalk": "^4.1.2",
     "commander": "^11.1.0",
     "inquirer": "^12.9.6",
+    "mdx-prompt": "^0.4.1",
     "node-fetch": "^2.7.0",
     "open": "^10.1.0",
     "winston": "^3.17.0",

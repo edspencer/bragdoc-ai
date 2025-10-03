@@ -30,7 +30,6 @@ import {
   type Achievement,
   company,
   project,
-  cliToken,
 } from './schema';
 
 // Optionally, if not using email/pass login, you can
@@ -697,41 +696,6 @@ export async function deleteAchievement({
   } catch (error) {
     console.error('Error in deleteAchievement:', error);
     throw error;
-  }
-}
-
-/**
- * Validate a CLI token and return the associated user if valid
- */
-export async function validateCLIToken(
-  token: string,
-  dbInstance = defaultDb,
-): Promise<{ userId: string; isValid: boolean }> {
-  try {
-    const [cliTokenRecord] = await dbInstance
-      .select()
-      .from(cliToken)
-      .where(eq(cliToken.token, token));
-
-    if (!cliTokenRecord) {
-      return { userId: '', isValid: false };
-    }
-
-    // Check if token has expired
-    if (new Date(cliTokenRecord.expiresAt) < new Date()) {
-      return { userId: '', isValid: false };
-    }
-
-    // Update last used timestamp
-    await dbInstance
-      .update(cliToken)
-      .set({ lastUsedAt: new Date() })
-      .where(eq(cliToken.id, cliTokenRecord.id));
-
-    return { userId: cliTokenRecord.userId, isValid: true };
-  } catch (error) {
-    console.error('Error validating CLI token:', error);
-    return { userId: '', isValid: false };
   }
 }
 

@@ -52,7 +52,6 @@ export {
   getAchievements,
   updateAchievement,
   deleteAchievement,
-  validateCLIToken,
   getCompaniesByUserId,
   getCompanyById,
   createCompany,

@@ -1,9 +1,7 @@
 import { auth } from 'app/(auth)/auth';
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
-import { db } from '@/database/index';
-import { cliToken } from '@/database/schema';
-import { randomBytes } from 'node:crypto';
+import { encode } from 'next-auth/jwt';
 
 const requestSchema = z.object({
   state: z.string(),
@@ -20,22 +18,34 @@ export async function POST(request: Request) {
     const body = await request.json();
     const { state, deviceName } = requestSchema.parse(body);
 
-    // Generate a secure random token
-    const token = randomBytes(32).toString('hex');
-
     // 30 days from now
-    const expiresAt = Date.now() + 30 * 24 * 60 * 60 * 1000;
+    const expiresAt = Math.floor(Date.now() / 1000) + 30 * 24 * 60 * 60;
 
-    // Save token to database
-    await db.insert(cliToken).values({
-      userId: session.user.id,
-      token,
-      deviceName,
-      expiresAt: new Date(expiresAt),
-      lastUsedAt: new Date(),
+    // Generate a NextAuth JWT token
+    const token = await encode({
+      token: {
+        id: session.user.id,
+        email: session.user.email,
+        name: session.user.name,
+        picture: session.user.image,
+        provider: session.user.provider,
+        providerId: session.user.providerId,
+        preferences: session.user.preferences,
+        githubAccessToken: session.user.githubAccessToken,
+        level: session.user.level,
+        renewalPeriod: session.user.renewalPeriod,
+        sub: session.user.id,
+        iat: Math.floor(Date.now() / 1000),
+        exp: expiresAt,
+      },
+      secret: process.env.AUTH_SECRET!,
+      salt: '',
     });
 
-    return NextResponse.json({ token, expiresAt });
+    return NextResponse.json({
+      token,
+      expiresAt: expiresAt * 1000, // Convert back to milliseconds for consistency
+    });
   } catch (error) {
     console.error('Error generating CLI token:', error);
     return new NextResponse(

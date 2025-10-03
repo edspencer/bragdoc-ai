@@ -1,13 +1,10 @@
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
-import {
-  createAchievement,
-  validateCLIToken,
-  getUserById,
-} from '@/database/queries';
+import { createAchievement } from '@/database/queries';
 import { ensureProject } from '@/database/projects/queries';
 import { fetchRenderExecute } from 'lib/ai/extract-commit-achievements';
 import type { User } from '@/database/schema';
+import { getAuthUser } from 'lib/getAuthUser';
 
 // Validate request body
 const requestSchema = z.object({
@@ -31,24 +28,13 @@ const requestSchema = z.object({
 
 export async function POST(req: Request) {
   try {
-    // Get token from Authorization header
-    const authHeader = req.headers.get('Authorization');
-    if (!authHeader?.startsWith('Bearer ')) {
-      return NextResponse.json(
-        { error: 'Missing or invalid authorization header' },
-        { status: 401 },
-      );
+    // Authenticate user (supports both session cookies and JWT tokens)
+    const auth = await getAuthUser(req);
+    if (!auth?.user?.id) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
-    const token = authHeader.slice(7); // Remove 'Bearer ' prefix
 
-    // Validate CLI token
-    const { userId, isValid } = await validateCLIToken(token);
-    if (!isValid) {
-      return NextResponse.json(
-        { error: 'Invalid or expired token' },
-        { status: 401 },
-      );
-    }
+    const userId = auth.user.id;
 
     const body = await req.json();
     const result = requestSchema.safeParse(body);
@@ -80,12 +66,6 @@ export async function POST(req: Request) {
       `Processing ${result.data.commits.length} commits from repository ${repository.name}`,
     );
 
-    const user = await getUserById(userId);
-
-    if (!user) {
-      return NextResponse.json({ error: 'User not found' }, { status: 404 });
-    }
-
     // Extract achievements
     const extracted = await fetchRenderExecute({
       commits: result.data.commits.map((commit) => ({
@@ -99,7 +79,7 @@ export async function POST(req: Request) {
         prDetails: undefined,
       })),
       repository,
-      user: user as User,
+      user: auth.user as User,
     });
 
     const achievements = [];
