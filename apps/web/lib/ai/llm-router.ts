@@ -10,8 +10,9 @@ import type { User, Company, Project } from '@/database/schema';
 import { type JSONValue, streamText } from 'ai';
 import { documentWritingModel, routerModel } from '.';
 
-import { join } from 'node:path';
+import path from 'node:path';
 
+const promptPath = path.resolve('./lib/ai/prompts/llm-router.mdx');
 import { renderMDXPromptFile } from 'mdx-prompt';
 import * as components from './prompts/elements';
 import { z } from 'zod';
@@ -66,8 +67,6 @@ export async function fetch(
  * @returns {Promise<string>} The rendered prompt.
  */
 export async function render(data: LlmRouterPromptProps) {
-  const promptPath = join(process.cwd(), 'lib/ai/prompts/llm-router.mdx');
-
   return await renderMDXPromptFile({
     filePath: promptPath,
     data,
