@@ -53,6 +53,9 @@ export async function render(
     'lib/ai/prompts/extract-commit-achievements.mdx'
   );
 
+  console.log('promptPath:', promptPath);
+  console.log('cwd:', process.cwd());
+
   return await renderMDXPromptFile({
     filePath: promptPath,
     data,
