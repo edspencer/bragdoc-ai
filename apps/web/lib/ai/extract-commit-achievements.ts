@@ -9,13 +9,9 @@ import { extractAchievementsModel } from '.';
 import { getProjectsByUserId } from '@/database/projects/queries';
 import { getCompaniesByUserId } from '@/database/queries';
 
-import path from 'node:path';
-
-const promptPath = path.resolve(
-  './lib/ai/prompts/extract-commit-achievements.mdx'
-);
 import { renderMDXPromptFile } from 'mdx-prompt';
 import * as components from './prompts/elements';
+import { join } from 'node:path';
 
 /**
  * Fetches data necessary to render the Extract Commit Achievements Prompt
@@ -51,7 +47,12 @@ export async function fetch(
 export async function render(
   data: ExtractCommitAchievementsPromptProps
 ): Promise<string> {
-  console.log('Rendering prompt from path:', promptPath);
+  // Use absolute path from process.cwd() for better compatibility
+  const promptPath = join(
+    process.cwd(),
+    'lib/ai/prompts/extract-commit-achievements.mdx'
+  );
+
   return await renderMDXPromptFile({
     filePath: promptPath,
     data,

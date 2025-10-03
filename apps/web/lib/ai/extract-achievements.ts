@@ -9,11 +9,9 @@ import { extractAchievementsModel } from '.';
 import { getProjectsByUserId } from '@/database/projects/queries';
 import { getCompaniesByUserId } from '@/database/queries';
 
-import path from 'node:path';
-
-const promptPath = path.resolve('./lib/ai/prompts/extract-achievements.mdx');
 import { renderMDXPromptFile } from 'mdx-prompt';
 import * as components from './prompts/elements';
+import { join } from 'node:path';
 
 /**
  * Fetches the data necessary to render the Extract Achievements Prompt.
@@ -51,6 +49,11 @@ export async function fetch(
 export async function render(
   data: ExtractAchievementsPromptProps,
 ): Promise<string> {
+  const promptPath = join(
+    process.cwd(),
+    'lib/ai/prompts/extract-achievements.mdx'
+  );
+
   return await renderMDXPromptFile({
     filePath: promptPath,
     data,
