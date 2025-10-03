@@ -82,12 +82,12 @@ export const extractCommand = new Command('extract')
   .option(
     '--dry-run',
     'Show commits that would be sent without making API call',
-    false
+    false,
   )
   .option(
     '--batch-size <number>',
     'Maximum number of commits per API request',
-    '10'
+    '10',
   )
   .option('--no-cache', 'Skip checking commit cache', false)
   .action(async (options) => {
@@ -115,7 +115,7 @@ export const extractCommand = new Command('extract')
       // Check token expiration
       if (config.auth.expiresAt && config.auth.expiresAt < Date.now()) {
         logger.error(
-          'Authentication token has expired. Please run "bragdoc login" to get a new token.'
+          'Authentication token has expired. Please run "bragdoc login" to get a new token.',
         );
         process.exit(1);
       }
@@ -135,7 +135,7 @@ export const extractCommand = new Command('extract')
         (r) =>
           r.path === process.cwd() ||
           r.path === repoInfo.path ||
-          repoInfo.path.startsWith(r.path)
+          repoInfo.path.startsWith(r.path),
       );
 
       if (!repoConfig?.projectId) {
@@ -152,12 +152,12 @@ export const extractCommand = new Command('extract')
 
       // Collect the Git commits
       logger.info(
-        `Collecting commits from ${repository} (branch: ${branchToUse})...`
+        `Collecting commits from ${repository} (branch: ${branchToUse})...`,
       );
       const commits = collectGitCommits(
         branchToUse,
         Number.parseInt(maxCommits, 10),
-        repository
+        repository,
       );
 
       if (commits.length === 0) {
@@ -188,7 +188,7 @@ export const extractCommand = new Command('extract')
         logger.info(
           `${
             commits.length - uncachedCommits.length
-          } commits already processed, skipping...`
+          } commits already processed, skipping...`,
         );
       }
 
@@ -214,7 +214,7 @@ export const extractCommand = new Command('extract')
       };
 
       logger.debug(
-        `Loaded ${companies.length} companies, ${projects.length} projects`
+        `Loaded ${companies.length} companies, ${projects.length} projects`,
       );
 
       // Process commits in batches
@@ -230,7 +230,7 @@ export const extractCommand = new Command('extract')
         commitsToProcess,
         batchConfig,
         extractionContext,
-        apiClient
+        apiClient,
       )) {
         // Add successfully processed commits to cache
         if (cache) {
@@ -239,7 +239,7 @@ export const extractCommand = new Command('extract')
             .map((c) => c.hash);
           processedSoFar += result.processedCount;
           logger.debug(
-            `Adding ${processedHashes.length} commits to cache for repository ${repository}`
+            `Adding ${processedHashes.length} commits to cache for repository ${repository}`,
           );
           logger.debug(`Commit hashes: ${processedHashes.join(', ')}`);
           await cache.add(repository, processedHashes);

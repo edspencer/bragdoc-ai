@@ -214,7 +214,9 @@ describe('Batching Logic', () => {
       expect.stringContaining('Retry attempt 2/2 for batch 1'),
     );
     expect(logger.info).toHaveBeenCalledWith(
-      expect.stringContaining('Successfully processed batch 1 after 3 attempts'),
+      expect.stringContaining(
+        'Successfully processed batch 1 after 3 attempts',
+      ),
     );
   });
 

@@ -12,7 +12,7 @@ import * as components from './prompts/elements';
 // Path to the MDX prompt file
 const promptPath = path.resolve(
   __dirname,
-  './prompts/extract-commit-achievements.mdx'
+  './prompts/extract-commit-achievements.mdx',
 );
 
 /**
@@ -22,7 +22,7 @@ const promptPath = path.resolve(
  * @returns a string that can be used to execute the prompt
  */
 export async function render(
-  data: ExtractCommitAchievementsPromptProps
+  data: ExtractCommitAchievementsPromptProps,
 ): Promise<string> {
   return await renderMDXPromptFile({
     filePath: promptPath,
@@ -38,7 +38,7 @@ export async function render(
  * @param prompt The prompt to extract achievements from
  */
 export async function* executeStream(
-  prompt: string
+  prompt: string,
 ): AsyncGenerator<ExtractedAchievement, void, unknown> {
   const { elementStream } = streamObject({
     model: extractAchievementsModel,
@@ -84,7 +84,7 @@ export async function execute(prompt: string): Promise<ExtractedAchievement[]> {
  * @returns ExtractedAchievement[]
  */
 export async function renderExecute(
-  data: ExtractCommitAchievementsPromptProps
+  data: ExtractCommitAchievementsPromptProps,
 ): Promise<ExtractedAchievement[]> {
   return await execute(await render(data));
 }

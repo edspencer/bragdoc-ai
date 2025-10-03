@@ -1,11 +1,7 @@
 import type { GitCommit, RepositoryInfo } from './types';
 import logger from '../utils/logger';
 import { renderExecute } from '../ai/extract-commit-achievements';
-import type {
-  Company,
-  Project,
-  User,
-} from '../ai/prompts/types';
+import type { Company, Project, User } from '../ai/prompts/types';
 import type { ApiClient } from '../api/client';
 
 export interface BatchConfig {

@@ -69,9 +69,7 @@ async function syncProjectWithApi(
     const projects = await apiClient.get<Project[]>('/api/projects');
 
     // Find project by remoteUrl
-    const existingProject = projects.find(
-      (p) => p.repoRemoteUrl === remoteUrl,
-    );
+    const existingProject = projects.find((p) => p.repoRemoteUrl === remoteUrl);
 
     if (existingProject) {
       logger.debug('Found existing project:', existingProject.id);

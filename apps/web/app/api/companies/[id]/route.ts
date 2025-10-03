@@ -19,7 +19,10 @@ const updateCompanySchema = z.object({
 
 type Params = Promise<{ id: string }>;
 
-export async function GET(request: NextRequest, { params }: { params: Params }) {
+export async function GET(
+  request: NextRequest,
+  { params }: { params: Params },
+) {
   const { id } = await params;
   try {
     const auth = await getAuthUser(request);

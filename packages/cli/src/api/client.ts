@@ -111,7 +111,7 @@ export class ApiClient {
         }
 
         let errorMessage = `API request failed: ${response.statusText}`;
-        let errorData;
+        let errorData: any;
 
         try {
           errorData = await response.json();
@@ -133,7 +133,9 @@ export class ApiClient {
       if (error instanceof ApiError) {
         throw error;
       }
-      throw new Error(`Failed to make API request: ${(error as Error).message}`);
+      throw new Error(
+        `Failed to make API request: ${(error as Error).message}`,
+      );
     }
   }
 
