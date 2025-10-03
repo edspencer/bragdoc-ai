@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { IconFolder } from '@tabler/icons-react';
+import { IconFolder, IconDots } from '@tabler/icons-react';
 
 import {
   SidebarGroup,
@@ -23,20 +23,6 @@ export function NavProjects() {
       <SidebarGroupLabel>Projects</SidebarGroupLabel>
       <SidebarGroupContent>
         <SidebarMenu>
-          {/* All Projects link */}
-          <SidebarMenuItem>
-            <SidebarMenuButton
-              tooltip="All Projects"
-              asChild
-              isActive={pathname === '/projects'}
-            >
-              <Link href="/projects">
-                <IconFolder className="size-4" />
-                <span>All Projects</span>
-              </Link>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
-
           {isLoading
             ? // Show loading skeleton
               [...Array(3)].map((_, i) => (
@@ -55,7 +41,6 @@ export function NavProjects() {
                       tooltip={project.name}
                       asChild
                       isActive={isActive}
-                      className="pl-6" // Indent to show it's under Projects
                     >
                       <Link href={`/projects/${project.id}`}>
                         <IconFolder
@@ -68,6 +53,20 @@ export function NavProjects() {
                   </SidebarMenuItem>
                 );
               })}
+
+          {/* More Projects link */}
+          <SidebarMenuItem>
+            <SidebarMenuButton
+              tooltip="More Projects"
+              asChild
+              isActive={pathname === '/projects'}
+            >
+              <Link href="/projects">
+                <IconDots className="size-4" />
+                <span>More Projects</span>
+              </Link>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
         </SidebarMenu>
       </SidebarGroupContent>
     </SidebarGroup>
