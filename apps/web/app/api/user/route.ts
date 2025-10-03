@@ -1,4 +1,4 @@
-import { auth } from 'app/(auth)/auth';
+import { getAuthUser } from 'lib/getAuthUser';
 import { db } from '@/database/index';
 import { user, type UserPreferences } from '@/database/schema';
 import { getUserById } from '@/database/queries';
@@ -7,8 +7,8 @@ import { NextResponse } from 'next/server';
 
 export async function PUT(req: Request) {
   try {
-    const session = await auth();
-    if (!session?.user?.id) {
+    const auth = await getAuthUser(req);
+    if (!auth?.user?.id) {
       return new NextResponse('Unauthorized', { status: 401 });
     }
 
@@ -16,7 +16,7 @@ export async function PUT(req: Request) {
     const { preferences } = json;
 
     // Get current user to merge preferences
-    const currentUser = await getUserById(session.user.id);
+    const currentUser = await getUserById(auth.user.id);
 
     if (!currentUser) {
       return new NextResponse('User not found', { status: 404 });
@@ -35,7 +35,7 @@ export async function PUT(req: Request) {
         preferences: updatedPreferences,
         updatedAt: new Date(),
       })
-      .where(eq(user.id, session.user.id))
+      .where(eq(user.id, auth.user.id))
       .returning();
 
     return NextResponse.json(result[0]);
@@ -47,12 +47,12 @@ export async function PUT(req: Request) {
 
 export async function GET(req: Request) {
   try {
-    const session = await auth();
-    if (!session?.user?.id) {
+    const auth = await getAuthUser(req);
+    if (!auth?.user?.id) {
       return new NextResponse('Unauthorized', { status: 401 });
     }
 
-    const currentUser = await getUserById(session.user.id);
+    const currentUser = await getUserById(auth.user.id);
 
     if (!currentUser) {
       return new NextResponse('User not found', { status: 404 });

@@ -1,10 +1,10 @@
 import { NextResponse } from 'next/server';
-import { auth } from 'app/(auth)/auth';
 import {
   createProject,
   getProjectsByUserId,
 } from '@/database/projects/queries';
 import { z } from 'zod';
+import { getAuthUser } from 'lib/getAuthUser';
 
 const createProjectSchema = z.object({
   name: z.string().min(1).max(256),
@@ -24,14 +24,14 @@ const createProjectSchema = z.object({
   endDate: z.coerce.date().nullable().optional(),
 });
 
-export async function GET() {
+export async function GET(request: Request) {
   try {
-    const session = await auth();
-    if (!session?.user?.id) {
+    const auth = await getAuthUser(request);
+    if (!auth?.user?.id) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const projects = await getProjectsByUserId(session.user.id);
+    const projects = await getProjectsByUserId(auth.user.id);
     return NextResponse.json(projects);
   } catch (error) {
     console.error('Error fetching projects:', error);
@@ -44,8 +44,8 @@ export async function GET() {
 
 export async function POST(request: Request) {
   try {
-    const session = await auth();
-    if (!session?.user?.id) {
+    const auth = await getAuthUser(request);
+    if (!auth?.user?.id) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
@@ -53,7 +53,7 @@ export async function POST(request: Request) {
     const validatedData = createProjectSchema.parse(body);
 
     const project = await createProject({
-      userId: session.user.id,
+      userId: auth.user.id,
       ...validatedData,
     });
 

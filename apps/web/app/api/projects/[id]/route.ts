@@ -1,11 +1,11 @@
 import { NextResponse } from 'next/server';
-import { auth } from 'app/(auth)/auth';
 import {
   getProjectById,
   updateProject,
   deleteProject,
 } from '@/database/projects/queries';
 import { z } from 'zod';
+import { getAuthUser } from 'lib/getAuthUser';
 
 const updateProjectSchema = z.object({
   name: z.string().min(1).max(256),
@@ -36,12 +36,12 @@ type Params = Promise<{ id: string }>;
 export async function GET(request: Request, { params }: { params: Params }) {
   const { id } = await params;
   try {
-    const session = await auth();
-    if (!session?.user?.id) {
+    const auth = await getAuthUser(request);
+    if (!auth?.user?.id) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const project = await getProjectById(id, session.user.id);
+    const project = await getProjectById(id, auth.user.id);
     if (!project) {
       return NextResponse.json({ error: 'Not Found' }, { status: 404 });
     }
@@ -59,15 +59,15 @@ export async function GET(request: Request, { params }: { params: Params }) {
 export async function PUT(request: Request, { params }: { params: Params }) {
   const { id } = await params;
   try {
-    const session = await auth();
-    if (!session?.user?.id) {
+    const auth = await getAuthUser(request);
+    if (!auth?.user?.id) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     const body = await request.json();
     const validatedData = updateProjectSchema.parse(body);
 
-    const project = await updateProject(id, session.user.id, validatedData);
+    const project = await updateProject(id, auth.user.id, validatedData);
     if (!project) {
       return NextResponse.json({ error: 'Not Found' }, { status: 404 });
     }
@@ -91,12 +91,12 @@ export async function PUT(request: Request, { params }: { params: Params }) {
 export async function DELETE(request: Request, { params }: { params: Params }) {
   const { id } = await params;
   try {
-    const session = await auth();
-    if (!session?.user?.id) {
+    const auth = await getAuthUser(request);
+    if (!auth?.user?.id) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const project = await deleteProject(id, session.user.id);
+    const project = await deleteProject(id, auth.user.id);
     if (!project) {
       return NextResponse.json({ error: 'Not Found' }, { status: 404 });
     }

@@ -1,5 +1,5 @@
-import { NextResponse } from 'next/server';
-import { auth } from 'app/(auth)/auth';
+import { type NextRequest, NextResponse } from 'next/server';
+import { getAuthUser } from 'lib/getAuthUser';
 import { getCompaniesByUserId, createCompany } from '@/database/queries';
 import { z } from 'zod';
 import { db } from '@/database/index';
@@ -13,15 +13,15 @@ const createCompanySchema = z.object({
   endDate: z.coerce.date().nullable().optional(),
 });
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
-    const session = await auth();
-    if (!session?.user?.id) {
+    const auth = await getAuthUser(request);
+    if (!auth?.user?.id) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     const companies = await getCompaniesByUserId({
-      userId: session.user.id,
+      userId: auth.user.id,
       db,
     });
 
@@ -35,10 +35,10 @@ export async function GET() {
   }
 }
 
-export async function POST(request: Request) {
+export async function POST(request: NextRequest) {
   try {
-    const session = await auth();
-    if (!session?.user?.id) {
+    const auth = await getAuthUser(request);
+    if (!auth?.user?.id) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
@@ -50,7 +50,7 @@ export async function POST(request: Request) {
         ...validatedData,
         domain: validatedData.domain || null,
         endDate: validatedData.endDate || null,
-        userId: session.user.id,
+        userId: auth.user.id,
       },
       db,
     );

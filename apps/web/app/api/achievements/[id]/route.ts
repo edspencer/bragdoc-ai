@@ -1,5 +1,5 @@
 import { type NextRequest, NextResponse } from 'next/server';
-import { auth } from 'app/(auth)/auth';
+import { getAuthUser } from 'lib/getAuthUser';
 import { z } from 'zod';
 import { updateAchievement, deleteAchievement } from '@/database/queries';
 
@@ -36,9 +36,9 @@ export async function PUT(
   { params }: { params: Promise<{ id: string }> },
 ) {
   try {
-    const session = await auth();
+    const auth = await getAuthUser(req);
     const { id } = await params;
-    if (!session?.user?.id) {
+    if (!auth?.user?.id) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
@@ -82,7 +82,7 @@ export async function PUT(
 
     const [updated] = await updateAchievement({
       id,
-      userId: session.user.id,
+      userId: auth.user.id,
       data,
     });
 
@@ -110,8 +110,8 @@ export async function DELETE(
 ) {
   const { id } = await params;
   try {
-    const session = await auth();
-    if (!session?.user?.id) {
+    const auth = await getAuthUser(req);
+    if (!auth?.user?.id) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
@@ -124,7 +124,7 @@ export async function DELETE(
 
     const [deleted] = await deleteAchievement({
       id,
-      userId: session.user.id,
+      userId: auth.user.id,
     });
 
     if (!deleted) {

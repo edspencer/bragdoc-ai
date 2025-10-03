@@ -1,8 +1,8 @@
 import { type NextRequest, NextResponse } from 'next/server';
-import { auth } from 'app/(auth)/auth';
 import { z } from 'zod';
 import { getAchievements } from '@/database/queries';
 import { createAchievement } from '@/database/achievements/utils';
+import { getAuthUser } from 'lib/getAuthUser';
 
 // Validation schema for achievement data
 const achievementSchema = z.object({
@@ -26,8 +26,8 @@ const achievementSchema = z.object({
 // GET /api/achievements
 export async function GET(req: NextRequest) {
   try {
-    const session = await auth();
-    if (!session?.user?.id) {
+    const auth = await getAuthUser(req);
+    if (!auth?.user?.id) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
@@ -43,7 +43,7 @@ export async function GET(req: NextRequest) {
     const endDate = searchParams.get('endDate');
 
     const { achievements, total } = await getAchievements({
-      userId: session.user.id,
+      userId: auth.user.id,
       companyId: companyId || null,
       projectId: projectId || null,
       source: source || undefined,
@@ -75,8 +75,8 @@ export async function GET(req: NextRequest) {
 // POST /api/achievements
 export async function POST(req: NextRequest) {
   try {
-    const session = await auth();
-    if (!session?.user?.id) {
+    const auth = await getAuthUser(req);
+    if (!auth?.user?.id) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
@@ -119,7 +119,7 @@ export async function POST(req: NextRequest) {
       impactSource: result.data.impactSource ?? 'user',
     };
 
-    const achievement = await createAchievement(session.user.id, data);
+    const achievement = await createAchievement(auth.user.id, data);
     return NextResponse.json(achievement);
   } catch (error) {
     console.error('Error creating achievement:', error);

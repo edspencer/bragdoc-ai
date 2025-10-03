@@ -1,5 +1,5 @@
 import { type NextRequest, NextResponse } from 'next/server';
-import { auth } from 'app/(auth)/auth';
+import { getAuthUser } from 'lib/getAuthUser';
 import {
   getCompanyById,
   updateCompany,
@@ -19,17 +19,17 @@ const updateCompanySchema = z.object({
 
 type Params = Promise<{ id: string }>;
 
-export async function GET(request: Request, { params }: { params: Params }) {
+export async function GET(request: NextRequest, { params }: { params: Params }) {
   const { id } = await params;
   try {
-    const session = await auth();
-    if (!session?.user?.id) {
+    const auth = await getAuthUser(request);
+    if (!auth?.user?.id) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     const company = await getCompanyById({
       id,
-      userId: session.user.id,
+      userId: auth.user.id,
       db,
     });
 
@@ -54,8 +54,8 @@ export async function PUT(
   const { id } = await params;
 
   try {
-    const session = await auth();
-    if (!session?.user?.id) {
+    const auth = await getAuthUser(request);
+    if (!auth?.user?.id) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
@@ -64,7 +64,7 @@ export async function PUT(
 
     const company = await updateCompany({
       id,
-      userId: session.user.id,
+      userId: auth.user.id,
       data: validatedData,
       db,
     });
@@ -92,14 +92,14 @@ export async function DELETE(
 ) {
   const { id } = await params;
   try {
-    const session = await auth();
-    if (!session?.user?.id) {
+    const auth = await getAuthUser(request);
+    if (!auth?.user?.id) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     const company = await deleteCompany({
       id,
-      userId: session.user.id,
+      userId: auth.user.id,
       db,
     });
 

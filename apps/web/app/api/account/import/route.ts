@@ -1,5 +1,5 @@
 import { type NextRequest, NextResponse } from 'next/server';
-import { auth } from 'app/(auth)/auth';
+import { getAuthUser } from 'lib/getAuthUser';
 import { db } from '@/database/index';
 import { achievement, company, project, document } from '@/database/schema';
 import { eq, and } from 'drizzle-orm';
@@ -7,12 +7,12 @@ import { exportDataSchema } from '@/lib/export-import-schema';
 
 export async function POST(req: NextRequest) {
   try {
-    const session = await auth();
-    if (!session?.user?.id) {
+    const auth = await getAuthUser(req);
+    if (!auth?.user?.id) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const userId = session.user.id;
+    const userId = auth.user.id;
     const body = await req.json();
 
     // Validate the import data
