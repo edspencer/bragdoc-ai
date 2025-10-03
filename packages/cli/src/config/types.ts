@@ -7,6 +7,7 @@ export interface Repository {
   enabled: boolean;
   maxCommits?: number;
   cronSchedule?: string;
+  projectId?: string; // UUID of the project in the Bragdoc API
 }
 
 /**

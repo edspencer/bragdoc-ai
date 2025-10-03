@@ -30,10 +30,10 @@ npm install -g @bragdoc/cli
 bragdoc login
 ```
 
-2. Add your repository:
+2. Initialize your repository:
 
 ```bash
-bragdoc repos add /path/to/repo
+bragdoc init
 ```
 
 3. Extract achievements from commits:
@@ -59,20 +59,23 @@ bragdoc auth status
 bragdoc auth logout # aliased as `logout`
 ```
 
-### Repository Management (`repos`)
+### Repository Management
 
-Manage repositories that bragdoc will track and configure automatic scheduling.
+Initialize and manage repositories that bragdoc will track.
 
 ```bash
-# List configured repositories (shows schedules)
-bragdoc repos list
-
-# Add a repository with automatic scheduling setup
+# Initialize a repository (syncs with web app if authenticated)
 cd /path/to/repo
-bragdoc repos add .
+bragdoc init
 # You'll be prompted to:
 # 1. Choose extraction schedule (no/hourly/daily/custom)
 # 2. Automatic system installation (crontab/Task Scheduler)
+
+# Or use the repos command (init is an alias for repos add)
+bragdoc repos add [path]
+
+# List configured repositories (shows schedules)
+bragdoc repos list
 
 # Update repository settings
 bragdoc repos update [path] --name "New Name" --max-commits 200
@@ -161,14 +164,17 @@ Here's how to set up fully automated achievement tracking:
 npm install -g @bragdoc/cli
 bragdoc login
 
-# 2. Add your repositories with scheduling
-bragdoc repos add ~/work/frontend-app --name "Frontend App"
+# 2. Initialize your repositories with scheduling
+cd ~/work/frontend-app
+bragdoc init --name "Frontend App"
 # Choose "Daily" → Enter "18:00" → Automatically installs to crontab
 
-bragdoc repos add ~/work/backend-api --name "Backend API"
+cd ~/work/backend-api
+bragdoc init --name "Backend API"
 # Choose "Hourly" → Enter "0" → Automatically updates crontab
 
-bragdoc repos add ~/work/mobile-app --name "Mobile App"
+cd ~/work/mobile-app
+bragdoc init --name "Mobile App"
 # Choose "Daily" → Enter "09:00" → Automatically updates crontab
 
 # 3. Your achievements are now automatically extracted:

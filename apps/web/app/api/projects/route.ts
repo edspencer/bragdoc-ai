@@ -22,6 +22,7 @@ const createProjectSchema = z.object({
     .optional(),
   startDate: z.coerce.date(),
   endDate: z.coerce.date().nullable().optional(),
+  repoRemoteUrl: z.string().max(256).optional(),
 });
 
 export async function GET(request: Request) {

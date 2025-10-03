@@ -14,6 +14,9 @@ import {
 import { resolve } from 'node:path';
 import { exec } from 'node:child_process';
 import { promisify } from 'node:util';
+import { getRepositoryInfo, getRepositoryName } from '../git/operations';
+import { createApiClient, UnauthenticatedError } from '../api/client';
+import logger from '../utils/logger';
 
 const execAsync = promisify(exec);
 
@@ -22,6 +25,100 @@ const execAsync = promisify(exec);
  */
 export function normalizeRepoPath(path: string): string {
   return resolve(path);
+}
+
+/**
+ * Sync project with the API - find existing or create new project
+ * Returns the projectId if successful, undefined if user not authenticated
+ */
+async function syncProjectWithApi(
+  repoPath: string,
+  repoName: string,
+): Promise<string | undefined> {
+  try {
+    // Get repository info
+    const repoInfo = getRepositoryInfo(repoPath);
+    const remoteUrl = repoInfo.remoteUrl;
+
+    logger.debug('Repository info:', {
+      path: repoPath,
+      remoteUrl,
+      name: repoName,
+    });
+
+    // Create API client
+    const apiClient = await createApiClient();
+
+    if (!apiClient.isAuthenticated()) {
+      logger.debug('User not authenticated, skipping project sync');
+      console.log(
+        chalk.yellow(
+          '⚠️  Not logged in. Run `bragdoc login` to sync with the web app.',
+        ),
+      );
+      return undefined;
+    }
+
+    // Get all user projects
+    logger.debug('Fetching projects from API...');
+    interface Project {
+      id: string;
+      name: string;
+      repoRemoteUrl?: string | null;
+    }
+    const projects = await apiClient.get<Project[]>('/api/projects');
+
+    // Find project by remoteUrl
+    const existingProject = projects.find(
+      (p) => p.repoRemoteUrl === remoteUrl,
+    );
+
+    if (existingProject) {
+      logger.debug('Found existing project:', existingProject.id);
+      console.log(
+        chalk.green(
+          `✓ Found existing project: ${existingProject.name} (${existingProject.id})`,
+        ),
+      );
+      return existingProject.id;
+    }
+
+    // Create new project
+    logger.debug('Creating new project...');
+    console.log(chalk.blue('Creating new project in the web app...'));
+
+    const newProject = await apiClient.post<Project>('/api/projects', {
+      name: repoName,
+      repoRemoteUrl: remoteUrl,
+      status: 'active',
+      startDate: new Date().toISOString(),
+    });
+
+    logger.debug('Created project:', newProject.id);
+    console.log(
+      chalk.green(`✓ Created project: ${newProject.name} (${newProject.id})`),
+    );
+
+    return newProject.id;
+  } catch (error) {
+    if (error instanceof UnauthenticatedError) {
+      console.log(
+        chalk.yellow(
+          '⚠️  Authentication required. Run `bragdoc login` to sync with the web app.',
+        ),
+      );
+      return undefined;
+    }
+
+    // Log error but don't fail the whole operation
+    logger.error('Failed to sync project with API:', error);
+    console.log(
+      chalk.yellow(
+        '⚠️  Could not sync with the web app. Repository added locally.',
+      ),
+    );
+    return undefined;
+  }
 }
 
 /**
@@ -481,9 +578,37 @@ export async function addRepo(
   await validateRepository(absolutePath);
 
   // Check for duplicates
-  if (config.repositories.some((r) => r.path === absolutePath)) {
-    throw new Error('Repository already exists in configuration');
+  const existingRepo = config.repositories.find((r) => r.path === absolutePath);
+  if (existingRepo) {
+    // If repository exists and doesn't have a projectId, try to sync it
+    if (!existingRepo.projectId) {
+      console.log(
+        chalk.yellow('Repository already exists. Syncing with web app...'),
+      );
+      const repoInfo = getRepositoryInfo(absolutePath);
+      const repoName =
+        existingRepo.name || getRepositoryName(repoInfo.remoteUrl);
+      const projectId = await syncProjectWithApi(absolutePath, repoName);
+
+      if (projectId) {
+        existingRepo.projectId = projectId;
+        await saveConfig(config);
+        console.log(chalk.green('✓ Repository synced with web app'));
+      }
+    } else {
+      console.log(
+        chalk.yellow('Repository already exists and is synced with web app.'),
+      );
+    }
+    return;
   }
+
+  // Get repository info for name and remote URL
+  const repoInfo = getRepositoryInfo(absolutePath);
+  const repoName = options.name || getRepositoryName(repoInfo.remoteUrl);
+
+  // Sync with API to get or create project
+  const projectId = await syncProjectWithApi(absolutePath, repoName);
 
   // Always prompt for cron schedule
   const cronSchedule = await promptForCronSchedule();
@@ -497,16 +622,19 @@ export async function addRepo(
       ? Number.parseInt(options.maxCommits.toString(), 10)
       : undefined,
     cronSchedule: cronSchedule || undefined,
+    projectId,
   };
 
   config.repositories.push(newRepo);
   await saveConfig(config);
 
   console.log(
-    `Added repository: ${formatRepo(
-      newRepo,
-      config.settings.defaultMaxCommits,
-    )}`,
+    chalk.green(
+      `✓ Added repository: ${formatRepo(
+        newRepo,
+        config.settings.defaultMaxCommits,
+      )}`,
+    ),
   );
 
   // If this repo has a schedule, ensure system-level scheduling is set up
@@ -628,3 +756,13 @@ export async function toggleRepo(path: string, enabled: boolean) {
     )}`,
   );
 }
+
+/**
+ * Create an alias 'init' command that points to 'repos add'
+ */
+export const initCommand = new Command('init')
+  .description('Initialize a repository for bragdoc (alias for repos add)')
+  .argument('[path]', 'Path to repository (defaults to current directory)')
+  .option('-n, --name <name>', 'Friendly name for the repository')
+  .option('-m, --max-commits <number>', 'Maximum number of commits to extract')
+  .action(addRepo);
