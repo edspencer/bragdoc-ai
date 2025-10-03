@@ -43,7 +43,7 @@ interface WeeklyImpactChartProps {
 
 export function WeeklyImpactChart({ achievements }: WeeklyImpactChartProps) {
   const isMobile = useIsMobile();
-  const [timeRange, setTimeRange] = React.useState('12w');
+  const [timeRange, setTimeRange] = React.useState('all');
 
   // Get unique projects with colors
   const projectsWithColors = React.useMemo(() => {
