@@ -29,7 +29,9 @@
   "author": "Ed Spencer",
   "license": "MIT",
   "scripts": {
-    "build": "tsc",
+    "build": "tsc && pnpm build:copy-assets",
+    "build:watch": "tsc -w && pnpm build:copy-assets",
+    "build:copy-assets": "copyfiles -u 1 'src/**/*.mdx' dist",
     "start": "node dist/index.js",
     "test": "jest",
     "test:watch": "jest --watch",
@@ -52,8 +54,10 @@
     "mdx-prompt": "^0.4.1",
     "node-fetch": "^2.7.0",
     "open": "^10.1.0",
+    "react": ">=19",
     "winston": "^3.17.0",
-    "yaml": "^2.7.0"
+    "yaml": "^2.7.0",
+    "zod": "^3.23.8"
   },
   "devDependencies": {
     "@changesets/cli": "^2.27.11",
@@ -62,6 +66,7 @@
     "@types/mock-fs": "^4.13.4",
     "@types/node": "^20.10.6",
     "@types/node-fetch": "^2.6.10",
+    "copyfiles": "^2.4.1",
     "jest": "^29.7.0",
     "mock-fs": "^5.4.1",
     "ts-jest": "^29.1.1",

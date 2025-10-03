@@ -4,12 +4,17 @@ import {
   getRepositoryInfo,
   getRepositoryName,
 } from '../git/operations';
-import type { GitCommit, BragdocPayload, RepositoryInfo } from '../git/types';
-import { processInBatches, type BatchConfig } from '../git/batching';
+import type { GitCommit, RepositoryInfo } from '../git/types';
+import {
+  processInBatches,
+  type BatchConfig,
+  type ExtractionContext,
+} from '../git/batching';
 import { CommitCache } from '../cache/commits';
 import { loadConfig } from '../config';
 import { getApiBaseUrl } from '../config/paths';
 import logger from '../utils/logger';
+import { createApiClient } from '../api/client';
 
 /**
  * Format a commit for display in dry-run mode
@@ -48,19 +53,19 @@ function formatRepoInfo(info: RepositoryInfo): string {
 /**
  * Display commits that would be sent to the API
  */
-function displayDryRun(payload: BragdocPayload): void {
-  console.log('\nDry run mode - data that would be sent to API:');
+function displayDryRun(repository: RepositoryInfo, commits: GitCommit[]): void {
+  console.log('\nDry run mode - data that would be processed:');
   console.log('============================================');
 
   // Display repository info
-  console.log(formatRepoInfo(payload.repository));
+  console.log(formatRepoInfo(repository));
 
   // Display commits
-  console.log(`Found ${payload.commits.length} commits\n`);
+  console.log(`Found ${commits.length} commits\n`);
 
-  payload.commits.forEach((commit, index) => {
+  commits.forEach((commit, index) => {
     console.log(formatCommit(commit));
-    if (index < payload.commits.length - 1) {
+    if (index < commits.length - 1) {
       console.log(''); // Add blank line between commits
     }
   });
@@ -77,12 +82,12 @@ export const extractCommand = new Command('extract')
   .option(
     '--dry-run',
     'Show commits that would be sent without making API call',
-    false,
+    false
   )
   .option(
     '--batch-size <number>',
     'Maximum number of commits per API request',
-    '10',
+    '10'
   )
   .option('--no-cache', 'Skip checking commit cache', false)
   .action(async (options) => {
@@ -110,15 +115,34 @@ export const extractCommand = new Command('extract')
       // Check token expiration
       if (config.auth.expiresAt && config.auth.expiresAt < Date.now()) {
         logger.error(
-          'Authentication token has expired. Please run "bragdoc login" to get a new token.',
+          'Authentication token has expired. Please run "bragdoc login" to get a new token.'
         );
+        process.exit(1);
+      }
+
+      if (!process.env.OPENAI_API_KEY) {
+        logger.error('OPENAI_API_KEY environment variable is required.');
+        logger.info('Set it with: export OPENAI_API_KEY=your-api-key');
         process.exit(1);
       }
 
       logger.debug(`Using API base URL: ${apiUrl}`);
 
-      // Get repository info
       const repoInfo = getRepositoryInfo(process.cwd());
+
+      // Check if this repository has a projectId configured
+      const repoConfig = config.repositories.find(
+        (r) =>
+          r.path === process.cwd() ||
+          r.path === repoInfo.path ||
+          repoInfo.path.startsWith(r.path)
+      );
+
+      if (!repoConfig?.projectId) {
+        logger.error('This repository is not linked to a Bragdoc project.');
+        logger.info('Run "bragdoc init" to set up the connection.');
+        process.exit(1);
+      }
 
       // Use current branch if none specified
       const branchToUse = branch || repoInfo.currentBranch;
@@ -128,12 +152,12 @@ export const extractCommand = new Command('extract')
 
       // Collect the Git commits
       logger.info(
-        `Collecting commits from ${repository} (branch: ${branchToUse})...`,
+        `Collecting commits from ${repository} (branch: ${branchToUse})...`
       );
       const commits = collectGitCommits(
         branchToUse,
         Number.parseInt(maxCommits, 10),
-        repository,
+        repository
       );
 
       if (commits.length === 0) {
@@ -144,10 +168,7 @@ export const extractCommand = new Command('extract')
       logger.info(`Found ${commits.length} commits.`);
 
       if (dryRun) {
-        displayDryRun({
-          repository: repoInfo,
-          commits: commits,
-        });
+        displayDryRun(repoInfo, commits);
         return;
       }
 
@@ -167,7 +188,7 @@ export const extractCommand = new Command('extract')
         logger.info(
           `${
             commits.length - uncachedCommits.length
-          } commits already processed, skipping...`,
+          } commits already processed, skipping...`
         );
       }
 
@@ -175,6 +196,26 @@ export const extractCommand = new Command('extract')
         logger.info('All commits have already been processed.');
         return;
       }
+
+      const apiClient = await createApiClient();
+
+      logger.info('Fetching user context from API...');
+      const [companies, projects, userProfile] = await Promise.all([
+        apiClient.get<any[]>('/api/companies'),
+        apiClient.get<any[]>('/api/projects'),
+        apiClient.get<any>('/api/user'),
+      ]);
+
+      const extractionContext: ExtractionContext = {
+        projectId: repoConfig.projectId!,
+        companies,
+        projects,
+        user: userProfile,
+      };
+
+      logger.debug(
+        `Loaded ${companies.length} companies, ${projects.length} projects`
+      );
 
       // Process commits in batches
       const batchConfig: BatchConfig = {
@@ -188,8 +229,8 @@ export const extractCommand = new Command('extract')
         repoInfo,
         commitsToProcess,
         batchConfig,
-        apiUrl,
-        config.auth.token,
+        extractionContext,
+        apiClient
       )) {
         // Add successfully processed commits to cache
         if (cache) {
@@ -198,7 +239,7 @@ export const extractCommand = new Command('extract')
             .map((c) => c.hash);
           processedSoFar += result.processedCount;
           logger.debug(
-            `Adding ${processedHashes.length} commits to cache for repository ${repository}`,
+            `Adding ${processedHashes.length} commits to cache for repository ${repository}`
           );
           logger.debug(`Commit hashes: ${processedHashes.join(', ')}`);
           await cache.add(repository, processedHashes);

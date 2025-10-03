@@ -1,6 +1,12 @@
-import { processInBatches, type BatchConfig } from './batching';
+import {
+  processInBatches,
+  type BatchConfig,
+  type ExtractionContext,
+} from './batching';
 import type { GitCommit, RepositoryInfo } from './types';
 import logger from '../utils/logger';
+import * as extractModule from '../ai/extract-commit-achievements';
+import type { ApiClient } from '../api/client';
 
 // Mock logger
 jest.mock('../utils/logger', () => ({
@@ -13,18 +19,33 @@ jest.mock('../utils/logger', () => ({
   },
 }));
 
-// Mock global fetch
-const mockFetch = jest.fn();
-global.fetch = mockFetch;
+// Mock the extraction module
+jest.mock('../ai/extract-commit-achievements');
 
 describe('Batching Logic', () => {
+  let mockRenderExecute: jest.Mock;
+  let mockApiClient: jest.Mocked<ApiClient>;
+
   beforeEach(() => {
-    mockFetch.mockReset();
     // Reset all logger mock functions
     (logger.debug as jest.Mock).mockReset();
     (logger.info as jest.Mock).mockReset();
     (logger.warn as jest.Mock).mockReset();
     (logger.error as jest.Mock).mockReset();
+
+    // Mock renderExecute
+    mockRenderExecute = jest.fn();
+    (extractModule.renderExecute as jest.Mock) = mockRenderExecute;
+
+    // Mock API client
+    mockApiClient = {
+      createAchievements: jest.fn(),
+      get: jest.fn(),
+      post: jest.fn(),
+      put: jest.fn(),
+      delete: jest.fn(),
+      isAuthenticated: jest.fn(),
+    } as any;
   });
 
   const mockRepo: RepositoryInfo = {
@@ -50,33 +71,71 @@ describe('Batching Logic', () => {
     delayFn: async () => Promise.resolve(),
   };
 
-  const mockApiUrl = 'http://api.test';
-  const mockToken = 'test-token';
+  const mockExtractionContext: ExtractionContext = {
+    projectId: 'project-123',
+    companies: [
+      {
+        id: 'company-1',
+        name: 'Test Company',
+        role: 'Engineer',
+        startDate: '2020-01-01',
+        endDate: null,
+      },
+    ],
+    projects: [
+      {
+        id: 'project-123',
+        name: 'Test Project',
+        description: 'A test project',
+        status: 'active',
+        companyId: 'company-1',
+        startDate: '2020-01-01',
+        endDate: null,
+        repoRemoteUrl: 'git@github.com:test/repo.git',
+      },
+    ],
+    user: {
+      id: 'user-1',
+      name: 'Test User',
+      email: 'test@example.com',
+      preferences: null,
+    },
+  };
 
   it('processes commits in correct batch sizes', async () => {
-    // Mock successful responses
-    mockFetch.mockResolvedValue({
-      ok: true,
-      json: () =>
-        Promise.resolve({
-          processedCount: 2,
-          achievements: [
-            {
-              id: '1',
-              description: 'Achievement 1',
-              date: new Date().toISOString(),
-              source: { type: 'commit', hash: 'hash1' },
-            },
-          ],
-        }),
-    });
+    // Mock LLM extraction
+    mockRenderExecute.mockResolvedValue([
+      {
+        title: 'Achievement 1',
+        summary: 'Summary 1',
+        details: 'Details 1',
+        eventDuration: 'week',
+        eventStart: new Date(),
+        eventEnd: null,
+        companyId: 'company-1',
+        projectId: 'project-123',
+        impact: 5,
+        impactSource: 'llm',
+        impactUpdatedAt: new Date(),
+      },
+    ]);
+
+    // Mock API client
+    mockApiClient.createAchievements.mockResolvedValue([
+      {
+        id: 'achievement-1',
+        title: 'Achievement 1',
+        createdAt: new Date().toISOString(),
+        source: 'llm',
+      },
+    ]);
 
     const generator = processInBatches(
       mockRepo,
       mockCommits,
       mockConfig,
-      mockApiUrl,
-      mockToken,
+      mockExtractionContext,
+      mockApiClient,
     );
 
     const results = [];
@@ -85,15 +144,9 @@ describe('Batching Logic', () => {
     }
 
     // Should have 3 batches (2 commits, 2 commits, 1 commit)
-    expect(mockFetch).toHaveBeenCalledTimes(3);
+    expect(mockRenderExecute).toHaveBeenCalledTimes(3);
+    expect(mockApiClient.createAchievements).toHaveBeenCalledTimes(3);
     expect(results).toHaveLength(3);
-
-    // Check batch sizes in API calls
-    const calls = mockFetch.mock.calls;
-    const firstBatchBody = JSON.parse(calls[0][1].body);
-    const lastBatchBody = JSON.parse(calls[2][1].body);
-    expect(firstBatchBody.commits).toHaveLength(2);
-    expect(lastBatchBody.commits).toHaveLength(1);
 
     // Verify debug logs
     expect(logger.info).toHaveBeenCalledWith(
@@ -103,24 +156,40 @@ describe('Batching Logic', () => {
 
   it('retries on failure and succeeds eventually', async () => {
     // Fail twice, succeed on third try
-    mockFetch
-      .mockRejectedValueOnce(new Error('Network error'))
-      .mockRejectedValueOnce(new Error('Network error'))
-      .mockResolvedValueOnce({
-        ok: true,
-        json: () =>
-          Promise.resolve({
-            processedCount: 2,
-            achievements: [],
-          }),
-      });
+    mockRenderExecute
+      .mockRejectedValueOnce(new Error('LLM API error'))
+      .mockRejectedValueOnce(new Error('LLM API error'))
+      .mockResolvedValueOnce([
+        {
+          title: 'Achievement 1',
+          summary: 'Summary 1',
+          details: 'Details 1',
+          eventDuration: 'week',
+          eventStart: new Date(),
+          eventEnd: null,
+          companyId: 'company-1',
+          projectId: 'project-123',
+          impact: 5,
+          impactSource: 'llm',
+          impactUpdatedAt: new Date(),
+        },
+      ]);
+
+    mockApiClient.createAchievements.mockResolvedValue([
+      {
+        id: 'achievement-1',
+        title: 'Achievement 1',
+        createdAt: new Date().toISOString(),
+        source: 'llm',
+      },
+    ]);
 
     const generator = processInBatches(
       mockRepo,
       mockCommits.slice(0, 2),
       mockConfig,
-      mockApiUrl,
-      mockToken,
+      mockExtractionContext,
+      mockApiClient,
     );
 
     const results = [];
@@ -128,7 +197,7 @@ describe('Batching Logic', () => {
       results.push(result);
     }
 
-    expect(mockFetch).toHaveBeenCalledTimes(3);
+    expect(mockRenderExecute).toHaveBeenCalledTimes(3);
     expect(results).toHaveLength(1);
 
     // Check retry messaging
@@ -145,22 +214,20 @@ describe('Batching Logic', () => {
       expect.stringContaining('Retry attempt 2/2 for batch 1'),
     );
     expect(logger.info).toHaveBeenCalledWith(
-      expect.stringContaining(
-        'Successfully processed batch 1 after 3 attempts',
-      ),
+      expect.stringContaining('Successfully processed batch 1 after 3 attempts'),
     );
   });
 
   it('fails after max retries', async () => {
     // Always fail
-    mockFetch.mockRejectedValue(new Error('Persistent error'));
+    mockRenderExecute.mockRejectedValue(new Error('Persistent LLM error'));
 
     const generator = processInBatches(
       mockRepo,
       mockCommits.slice(0, 2),
       mockConfig,
-      mockApiUrl,
-      mockToken,
+      mockExtractionContext,
+      mockApiClient,
     );
 
     await expect(async () => {
@@ -169,7 +236,7 @@ describe('Batching Logic', () => {
       }
     }).rejects.toThrow('Maximum retries (3) exceeded for batch 1');
 
-    expect(mockFetch).toHaveBeenCalledTimes(3);
+    expect(mockRenderExecute).toHaveBeenCalledTimes(3);
 
     // Check error messaging
     expect(logger.warn).toHaveBeenCalledWith(
@@ -183,52 +250,75 @@ describe('Batching Logic', () => {
     );
   });
 
-  it('handles API errors with error responses', async () => {
-    mockFetch.mockResolvedValue({
-      ok: false,
-      status: 400,
-      text: () => Promise.resolve('Invalid request'),
-    });
+  it('handles API client errors', async () => {
+    mockRenderExecute.mockResolvedValue([
+      {
+        title: 'Achievement 1',
+        summary: 'Summary 1',
+        details: 'Details 1',
+        eventDuration: 'week',
+        eventStart: new Date(),
+        eventEnd: null,
+        companyId: 'company-1',
+        projectId: 'project-123',
+        impact: 5,
+        impactSource: 'llm',
+        impactUpdatedAt: new Date(),
+      },
+    ]);
+
+    // API client fails
+    mockApiClient.createAchievements.mockRejectedValue(
+      new Error('API error: Invalid request'),
+    );
 
     const generator = processInBatches(
       mockRepo,
       mockCommits.slice(0, 2),
       mockConfig,
-      mockApiUrl,
-      mockToken,
+      mockExtractionContext,
+      mockApiClient,
     );
 
     await expect(async () => {
       for await (const result of generator) {
         // Should throw before yielding any results
       }
-    }).rejects.toThrow('API error (status 400)');
+    }).rejects.toThrow('Maximum retries (3) exceeded for batch 1');
   });
 
-  it('sends correct authorization headers', async () => {
-    mockFetch.mockResolvedValue({
-      ok: true,
-      json: () => Promise.resolve({ processedCount: 2, achievements: [] }),
-    });
+  it('passes correct context to LLM extraction', async () => {
+    mockRenderExecute.mockResolvedValue([]);
+    mockApiClient.createAchievements.mockResolvedValue([]);
 
     const generator = processInBatches(
       mockRepo,
       mockCommits.slice(0, 2),
       mockConfig,
-      mockApiUrl,
-      mockToken,
+      mockExtractionContext,
+      mockApiClient,
     );
 
     for await (const result of generator) {
       // Process results
     }
 
-    expect(mockFetch).toHaveBeenCalledWith(
-      expect.any(String),
+    // Verify LLM was called with correct context
+    expect(mockRenderExecute).toHaveBeenCalledWith(
       expect.objectContaining({
-        headers: expect.objectContaining({
-          Authorization: 'Bearer test-token',
+        companies: mockExtractionContext.companies,
+        projects: mockExtractionContext.projects,
+        user: mockExtractionContext.user,
+        repository: expect.objectContaining({
+          path: mockRepo.path,
+          remoteUrl: mockRepo.remoteUrl,
         }),
+        commits: expect.arrayContaining([
+          expect.objectContaining({
+            hash: 'hash0',
+            message: 'commit message 0',
+          }),
+        ]),
       }),
     );
   });

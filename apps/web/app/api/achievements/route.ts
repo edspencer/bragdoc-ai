@@ -3,6 +3,9 @@ import { z } from 'zod';
 import { getAchievements } from '@/database/queries';
 import { createAchievement } from '@/database/achievements/utils';
 import { getAuthUser } from 'lib/getAuthUser';
+import { db } from '@/database/index';
+import { project } from '@/database/schema';
+import { eq, and } from 'drizzle-orm';
 
 // Validation schema for achievement data
 const achievementSchema = z.object({
@@ -67,7 +70,7 @@ export async function GET(req: NextRequest) {
     console.error('Error fetching achievements:', error);
     return NextResponse.json(
       { error: 'Failed to fetch achievements' },
-      { status: 500 },
+      { status: 500 }
     );
   }
 }
@@ -89,8 +92,27 @@ export async function POST(req: NextRequest) {
           error: 'Invalid achievement data',
           details: result.error.errors,
         },
-        { status: 400 },
+        { status: 400 }
       );
+    }
+
+    // If projectId is provided but companyId is not, look it up
+    let finalCompanyId = result.data.companyId;
+    if (result.data.projectId && !finalCompanyId) {
+      const [projectRecord] = await db
+        .select({ companyId: project.companyId })
+        .from(project)
+        .where(
+          and(
+            eq(project.id, result.data.projectId),
+            eq(project.userId, auth.user.id)
+          )
+        )
+        .limit(1);
+
+      if (projectRecord?.companyId) {
+        finalCompanyId = projectRecord.companyId;
+      }
     }
 
     // Convert date strings to Date objects and prepare data
@@ -113,7 +135,7 @@ export async function POST(req: NextRequest) {
       userMessageId: null,
       summary: result.data.summary ?? null,
       details: result.data.details ?? null,
-      companyId: result.data.companyId ?? null,
+      companyId: finalCompanyId ?? null,
       projectId: result.data.projectId ?? null,
       impact: result.data.impact ?? null,
       impactSource: result.data.impactSource ?? 'user',
@@ -125,7 +147,7 @@ export async function POST(req: NextRequest) {
     console.error('Error creating achievement:', error);
     return NextResponse.json(
       { error: 'Failed to create achievement' },
-      { status: 500 },
+      { status: 500 }
     );
   }
 }

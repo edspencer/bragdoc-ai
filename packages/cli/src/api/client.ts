@@ -138,6 +138,39 @@ export class ApiClient {
   }
 
   /**
+   * Create multiple achievements in batch
+   */
+  async createAchievements(
+    achievements: Array<{
+      title: string;
+      summary?: string;
+      details?: string;
+      eventDuration: string;
+      eventStart?: Date | null;
+      eventEnd?: Date | null;
+      projectId: string;
+      companyId?: string | null;
+      impact?: number;
+      impactSource?: 'llm' | 'user';
+      source?: 'llm' | 'manual';
+    }>,
+  ): Promise<any[]> {
+    const results = [];
+    for (const achievement of achievements) {
+      const result = await this.post('/api/achievements', {
+        ...achievement,
+        eventStart: achievement.eventStart?.toISOString(),
+        eventEnd: achievement.eventEnd?.toISOString(),
+        impactUpdatedAt: new Date().toISOString(),
+        source: achievement.source || 'llm',
+        impactSource: achievement.impactSource || 'llm',
+      });
+      results.push(result);
+    }
+    return results;
+  }
+
+  /**
    * Check if the client is authenticated
    */
   isAuthenticated(): boolean {

@@ -1,5 +1,12 @@
-import type { GitCommit, BragdocPayload, RepositoryInfo } from './types';
+import type { GitCommit, RepositoryInfo } from './types';
 import logger from '../utils/logger';
+import { renderExecute } from '../ai/extract-commit-achievements';
+import type {
+  Company,
+  Project,
+  User,
+} from '../ai/prompts/types';
+import type { ApiClient } from '../api/client';
 
 export interface BatchConfig {
   maxCommitsPerBatch: number; // Default: 10
@@ -10,15 +17,22 @@ export interface BatchConfig {
   delayFn?: (ms: number) => Promise<void>;
 }
 
+export interface ExtractionContext {
+  projectId: string;
+  companies: Company[];
+  projects: Project[];
+  user: User;
+}
+
 /**
- * Process commits in batches, sending them to the API
+ * Process commits in batches, extracting achievements locally via LLM
  */
 export async function* processInBatches(
   repository: RepositoryInfo,
   commits: GitCommit[],
   config: BatchConfig,
-  apiUrl: string,
-  apiToken: string,
+  extractionContext: ExtractionContext,
+  apiClient: ApiClient,
 ): AsyncGenerator<BatchResult, void, unknown> {
   const batchSize = config.maxCommitsPerBatch;
   const maxRetries = config.maxRetries || 3;
@@ -58,33 +72,65 @@ export async function* processInBatches(
           await delay(retryDelayMs);
         }
 
-        const payload: BragdocPayload = {
-          repository,
-          commits: batchCommits,
-        };
-
         logger.debug(
-          `Sending batch ${batchNum + 1} to API: ${apiUrl}/api/cli/commits`,
+          `Extracting achievements from ${batchCommits.length} commits locally...`,
         );
-        logger.debug(`Batch payload: ${JSON.stringify(payload, null, 2)}`);
 
-        const response = await fetch(`${apiUrl}/api/cli/commits`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${apiToken}`,
+        // Extract achievements locally using LLM
+        const extractedAchievements = await renderExecute({
+          commits: batchCommits.map((commit) => ({
+            hash: commit.hash,
+            message: commit.message,
+            author: {
+              name: commit.author.split('<')[0]?.trim() || '',
+              email: commit.author.match(/<(.+?)>/)?.[1] || '',
+            },
+            date: commit.date,
+          })),
+          repository: {
+            name:
+              repository.remoteUrl
+                ?.split('/')
+                .pop()
+                ?.replace(/\.git$/, '') || 'unknown',
+            path: repository.path,
+            remoteUrl: repository.remoteUrl,
           },
-          body: JSON.stringify(payload),
+          companies: extractionContext.companies,
+          projects: extractionContext.projects,
+          user: extractionContext.user,
         });
 
-        if (!response.ok) {
-          const errorText = await response.text();
-          throw new Error(
-            `API error (status ${response.status}): ${errorText}`,
-          );
-        }
+        logger.debug(
+          `Extracted ${extractedAchievements.length} achievements, sending to API...`,
+        );
 
-        const result: BatchResult = await response.json();
+        // Send extracted achievements to API for saving
+        const savedAchievements = await apiClient.createAchievements(
+          extractedAchievements.map((achievement) => ({
+            title: achievement.title,
+            summary: achievement.summary,
+            details: achievement.details,
+            eventDuration: achievement.eventDuration,
+            eventStart: achievement.eventStart,
+            eventEnd: achievement.eventEnd,
+            projectId: extractionContext.projectId,
+            companyId: achievement.companyId,
+            impact: achievement.impact,
+            impactSource: 'llm' as const,
+            source: 'llm' as const,
+          })),
+        );
+
+        const result: BatchResult = {
+          processedCount: batchCommits.length,
+          achievements: savedAchievements.map((a) => ({
+            id: a.id,
+            date: a.createdAt || new Date().toISOString(),
+            source: a.source || 'llm',
+            title: a.title,
+          })),
+        };
 
         if (attempt > 0) {
           logger.info(
