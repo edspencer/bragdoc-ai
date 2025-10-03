@@ -23,10 +23,11 @@ export function ActivityStream({ achievements }: ActivityStreamProps) {
   // Get the 5 most recent achievements for the activity stream
   const recentAchievements = React.useMemo(() => {
     return [...achievements]
-      .sort(
-        (a, b) =>
-          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
-      )
+      .sort((a, b) => {
+        const aDate = a.eventStart ? new Date(a.eventStart).getTime() : 0;
+        const bDate = b.eventStart ? new Date(b.eventStart).getTime() : 0;
+        return bDate - aDate;
+      })
       .slice(0, 5);
   }, [achievements]);
 
@@ -90,7 +91,7 @@ export function ActivityStream({ achievements }: ActivityStreamProps) {
                             new Date(achievement.eventStart),
                             {
                               addSuffix: true,
-                            },
+                            }
                           )}
                         </div>
                       )}

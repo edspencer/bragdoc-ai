@@ -87,7 +87,8 @@ export function ProjectDetailsContent({ project }: ProjectDetailsContentProps) {
     const oneWeekAgo = new Date();
     oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
     const thisWeekAchievements = projectAchievements.filter(
-      (achievement) => new Date(achievement.createdAt) >= oneWeekAgo,
+      (achievement) =>
+        achievement.eventStart && new Date(achievement.eventStart) >= oneWeekAgo,
     );
     const thisWeekImpact = thisWeekAchievements.reduce(
       (sum, achievement) => sum + (achievement.impact || 0),

@@ -70,7 +70,7 @@ export async function GET(req: NextRequest) {
     console.error('Error fetching achievements:', error);
     return NextResponse.json(
       { error: 'Failed to fetch achievements' },
-      { status: 500 },
+      { status: 500 }
     );
   }
 }
@@ -92,7 +92,7 @@ export async function POST(req: NextRequest) {
           error: 'Invalid achievement data',
           details: result.error.errors,
         },
-        { status: 400 },
+        { status: 400 }
       );
     }
 
@@ -105,8 +105,8 @@ export async function POST(req: NextRequest) {
         .where(
           and(
             eq(project.id, result.data.projectId),
-            eq(project.userId, auth.user.id),
-          ),
+            eq(project.userId, auth.user.id)
+          )
         )
         .limit(1);
 
@@ -141,13 +141,17 @@ export async function POST(req: NextRequest) {
       impactSource: result.data.impactSource ?? 'user',
     };
 
-    const achievement = await createAchievement(auth.user.id, data);
+    const achievement = await createAchievement(
+      auth.user.id,
+      data,
+      data.source
+    );
     return NextResponse.json(achievement);
   } catch (error) {
     console.error('Error creating achievement:', error);
     return NextResponse.json(
       { error: 'Failed to create achievement' },
-      { status: 500 },
+      { status: 500 }
     );
   }
 }
