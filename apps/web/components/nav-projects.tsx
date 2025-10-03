@@ -13,6 +13,7 @@ import {
   SidebarMenuItem,
 } from '@/components/ui/sidebar';
 import { useTopProjects } from '@/hooks/use-top-projects';
+import { cn } from '@/lib/utils';
 
 export function NavProjects() {
   const { projects, isLoading } = useTopProjects(5);
@@ -40,7 +41,10 @@ export function NavProjects() {
                     <SidebarMenuButton
                       tooltip={project.name}
                       asChild
-                      isActive={isActive}
+                      className={cn(
+                        isActive &&
+                          'bg-primary text-primary-foreground hover:bg-primary/90 hover:text-primary-foreground active:bg-primary/90 active:text-primary-foreground font-medium',
+                      )}
                     >
                       <Link href={`/projects/${project.id}`}>
                         <IconFolder
@@ -59,7 +63,10 @@ export function NavProjects() {
             <SidebarMenuButton
               tooltip="More Projects"
               asChild
-              isActive={pathname === '/projects'}
+              className={cn(
+                pathname === '/projects' &&
+                  'bg-primary text-primary-foreground hover:bg-primary/90 hover:text-primary-foreground active:bg-primary/90 active:text-primary-foreground font-medium',
+              )}
             >
               <Link href="/projects">
                 <IconDots className="size-4" />
