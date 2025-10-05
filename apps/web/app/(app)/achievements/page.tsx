@@ -28,7 +28,6 @@ import {
 import { WeeklyImpactChart } from '@/components/weekly-impact-chart';
 import { AchievementsTable } from '@/components/achievements-table';
 import { GenerateDocumentDialog } from '@/components/generate-document-dialog';
-import { SiteHeader } from '@/components/site-header';
 import { SidebarInset } from '@/components/ui/sidebar';
 import { useCompanies } from '@/hooks/use-companies';
 import { useProjects } from '@/hooks/useProjects';
@@ -168,7 +167,6 @@ export default function AchievementsPage() {
   return (
     <AppPage>
       <SidebarInset>
-        <SiteHeader />
         <div className="flex flex-1 flex-col">
           <div className="@container/main flex flex-1 flex-col gap-2">
             <div className="flex flex-col gap-6 p-6">
@@ -266,7 +264,7 @@ export default function AchievementsPage() {
         open={generateDialogOpen}
         onOpenChange={setGenerateDialogOpen}
         selectedAchievements={achievements.filter((a) =>
-          selectedAchievements.includes(a.id),
+          selectedAchievements.includes(a.id)
         )}
       />
     </AppPage>

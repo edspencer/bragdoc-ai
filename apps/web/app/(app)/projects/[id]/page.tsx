@@ -4,7 +4,6 @@ import { auth } from 'app/(auth)/auth';
 import { getProjectById } from '@bragdoc/database';
 
 import { ProjectDetailsContent } from '@/components/project-details-content';
-import { SiteHeader } from '@/components/site-header';
 import { SidebarInset } from '@/components/ui/sidebar';
 import { AppPage } from '@/components/shared/app-page';
 
@@ -32,7 +31,6 @@ export default async function ProjectDetailsPage({
   return (
     <AppPage>
       <SidebarInset>
-        <SiteHeader />
         <div className="flex flex-1 flex-col">
           <div className="@container/main flex flex-1 flex-col gap-2">
             <ProjectDetailsContent project={project} />

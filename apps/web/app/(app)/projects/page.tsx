@@ -6,7 +6,6 @@ import { IconFolderCode, IconPlus } from '@tabler/icons-react';
 import { Button } from '@/components/ui/button';
 import { ProjectsTable } from '@/components/projects-table';
 import { ProjectDialog } from '@/components/project-dialog';
-import { SiteHeader } from '@/components/site-header';
 import { SidebarInset } from '@/components/ui/sidebar';
 import {
   useProjects,
@@ -66,7 +65,6 @@ export default function ProjectsPage() {
   return (
     <AppPage>
       <SidebarInset>
-        <SiteHeader />
         <div className="flex flex-1 flex-col">
           <div className="@container/main flex flex-1 flex-col gap-2">
             <div className="flex flex-col gap-6 p-6">

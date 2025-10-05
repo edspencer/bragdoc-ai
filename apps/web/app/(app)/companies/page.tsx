@@ -6,7 +6,6 @@ import type { Company } from '@/database/schema';
 
 import { Button } from 'components/ui/button';
 import { CompaniesTable } from '@/components/companies-table';
-import { SiteHeader } from '@/components/site-header';
 import { SidebarInset } from '@/components/ui/sidebar';
 import { CompanyDialog } from '@/components/company-dialog';
 import {
@@ -25,7 +24,7 @@ export default function CompaniesPage() {
 
   const [dialogOpen, setDialogOpen] = React.useState(false);
   const [editingCompany, setEditingCompany] = React.useState<Company | null>(
-    null,
+    null
   );
 
   const handleAddCompany = () => {
@@ -65,7 +64,6 @@ export default function CompaniesPage() {
   return (
     <AppPage>
       <SidebarInset>
-        <SiteHeader />
         <div className="flex flex-1 flex-col">
           <div className="@container/main flex flex-1 flex-col gap-2">
             <div className="flex flex-col gap-6 p-6">
