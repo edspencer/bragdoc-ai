@@ -29,6 +29,41 @@ export function getCommitsCacheDir(): string {
 }
 
 /**
+ * Get the path to the data cache directory
+ */
+export function getDataCacheDir(): string {
+  return join(getCacheDir(), 'data');
+}
+
+/**
+ * Get the path to the companies cache file
+ */
+export function getCompaniesCachePath(): string {
+  return join(getDataCacheDir(), 'companies.yml');
+}
+
+/**
+ * Get the path to the projects cache file
+ */
+export function getProjectsCachePath(): string {
+  return join(getDataCacheDir(), 'projects.yml');
+}
+
+/**
+ * Get the path to the standups cache file
+ */
+export function getStandupsCachePath(): string {
+  return join(getDataCacheDir(), 'standups.yml');
+}
+
+/**
+ * Get the path to the meta cache file
+ */
+export function getMetaCachePath(): string {
+  return join(getDataCacheDir(), 'meta.yml');
+}
+
+/**
  * Get the path to the config file
  */
 export function getConfigPath(): string {

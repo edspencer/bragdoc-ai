@@ -114,6 +114,7 @@ bragdoc extract --dry-run
 Check your automatic extractions using platform-specific tools:
 
 **Linux/macOS**
+
 ```bash
 # View your scheduled extractions
 crontab -l
@@ -123,6 +124,7 @@ ps aux | grep cron
 ```
 
 **Windows**
+
 ```bash
 # View your scheduled tasks
 schtasks /query /tn BragDoc*
@@ -145,6 +147,27 @@ bragdoc cache clear              # Clear current repo's cache
 bragdoc cache clear --all        # Clear all cached data
 bragdoc cache clear --repo name  # Clear specific repo's cache
 ```
+
+### Data Management (`data`)
+
+Manage the local cache of companies, projects, and standups data. The CLI automatically caches this data to reduce API calls and improve performance.
+
+```bash
+# Fetch all data from API (force refresh)
+bragdoc data fetch
+
+# Clear all cached data
+bragdoc data clear
+```
+
+**Cache Timeout**: By default, cached data is refreshed every 5 minutes. You can configure this in your config file using the `dataCacheTimeout` setting (in minutes).
+
+The data cache is stored in `~/.bragdoc/cache/` and includes:
+
+- `companies.yml` - Your companies
+- `projects.yml` - Your projects
+- `standups.yml` - Your standups
+- `meta.yml` - Cache metadata and timestamps
 
 ## Configuration
 

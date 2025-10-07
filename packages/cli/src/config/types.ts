@@ -36,6 +36,7 @@ export interface BragdocConfig {
     maxCommitsPerBatch: number;
     defaultMaxCommits: number;
     cacheEnabled: boolean;
+    dataCacheTimeout?: number; // Cache timeout in minutes for companies/projects/standups data
     apiBaseUrl?: string; // Optional API base URL for development/testing
   };
 }
@@ -50,5 +51,6 @@ export const DEFAULT_CONFIG: BragdocConfig = {
     maxCommitsPerBatch: 10,
     defaultMaxCommits: 300,
     cacheEnabled: true,
+    dataCacheTimeout: 5, // 5 minutes default
   },
 };
