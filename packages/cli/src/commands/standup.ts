@@ -142,7 +142,7 @@ async function installSystemCrontab(): Promise<void> {
     const existingCrontab = await getCleanedCrontab();
 
     // Generate repository extraction entries
-    const scheduledRepos = config.repositories.filter(
+    const scheduledRepos = config.projects.filter(
       (r) => r.enabled && r.cronSchedule
     );
 
@@ -257,7 +257,7 @@ async function installWindowsScheduling(): Promise<void> {
     const logFile = '%USERPROFILE%\\.bragdoc\\logs\\combined.log';
 
     // Install repository extraction tasks
-    const scheduledRepos = config.repositories.filter(
+    const scheduledRepos = config.projects.filter(
       (r) => r.enabled && r.cronSchedule
     );
 

@@ -131,14 +131,14 @@ export const extractCommand = new Command('extract')
       const repoInfo = getRepositoryInfo(process.cwd());
 
       // Check if this repository has a projectId configured
-      const repoConfig = config.repositories.find(
-        (r) =>
-          r.path === process.cwd() ||
-          r.path === repoInfo.path ||
-          repoInfo.path.startsWith(r.path),
+      const repoConfig = config.projects.find(
+        (p) =>
+          p.path === process.cwd() ||
+          p.path === repoInfo.path ||
+          repoInfo.path.startsWith(p.path),
       );
 
-      if (!repoConfig?.projectId) {
+      if (!repoConfig?.id) {
         logger.error('This repository is not linked to a Bragdoc project.');
         logger.info('Run "bragdoc init" to set up the connection.');
         process.exit(1);
@@ -207,7 +207,7 @@ export const extractCommand = new Command('extract')
       ]);
 
       const extractionContext: ExtractionContext = {
-        projectId: repoConfig.projectId!,
+        projectId: repoConfig.id!,
         companies,
         projects,
         user: userProfile,

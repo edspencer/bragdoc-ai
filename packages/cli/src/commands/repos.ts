@@ -3,7 +3,7 @@ import chalk from 'chalk';
 import inquirer from 'inquirer';
 import { loadConfig, saveConfig } from '../config';
 import { validateRepository } from '../utils/git';
-import type { Repository } from '../config/types';
+import type { Project } from '../config/types';
 import {
   convertToCronSchedule,
   describeCronSchedule,
@@ -285,7 +285,7 @@ async function checkExistingCrontab(): Promise<boolean> {
 async function installSystemCrontab(): Promise<void> {
   try {
     const config = await loadConfig();
-    const scheduledRepos = config.repositories.filter(
+    const scheduledRepos = config.projects.filter(
       (r) => r.enabled && r.cronSchedule,
     );
 
@@ -378,7 +378,7 @@ async function installSystemCrontab(): Promise<void> {
 async function installWindowsScheduling(): Promise<void> {
   try {
     const config = await loadConfig();
-    const scheduledRepos = config.repositories.filter(
+    const scheduledRepos = config.projects.filter(
       (r) => r.enabled && r.cronSchedule,
     );
 
@@ -533,14 +533,14 @@ export const reposCommand = new Command('repos')
 /**
  * Format repository for display
  */
-function formatRepo(repo: Repository, defaultMaxCommits: number): string {
-  const status = repo.enabled ? chalk.green('✓') : chalk.red('⨯');
-  const name = repo.name ? `${repo.name} ` : '';
-  const maxCommits = repo.maxCommits || defaultMaxCommits;
-  const disabled = !repo.enabled ? ' [disabled]' : '';
-  const schedule = describeCronSchedule(repo.cronSchedule || null);
+function formatRepo(project: Project, defaultMaxCommits: number): string {
+  const status = project.enabled ? chalk.green('✓') : chalk.red('⨯');
+  const name = project.name ? `${project.name} ` : '';
+  const maxCommits = project.maxCommits || defaultMaxCommits;
+  const disabled = !project.enabled ? ' [disabled]' : '';
+  const schedule = describeCronSchedule(project.cronSchedule || null);
 
-  return `${status} ${name}(${repo.path}) [max: ${maxCommits}] [schedule: ${schedule}]${disabled}`;
+  return `${status} ${name}(${project.path}) [max: ${maxCommits}] [schedule: ${schedule}]${disabled}`;
 }
 
 /**
@@ -549,7 +549,7 @@ function formatRepo(repo: Repository, defaultMaxCommits: number): string {
 export async function listRepos() {
   const config = await loadConfig();
 
-  if (config.repositories.length === 0) {
+  if (config.projects.length === 0) {
     console.log(
       'No repositories configured. Add one with: bragdoc repos add <path>',
     );
@@ -557,8 +557,8 @@ export async function listRepos() {
   }
 
   console.log('Configured repositories:');
-  config.repositories.forEach((repo) => {
-    console.log(formatRepo(repo, config.settings.defaultMaxCommits));
+  config.projects.forEach((project) => {
+    console.log(formatRepo(project, config.settings.defaultMaxCommits));
   });
 }
 
@@ -576,20 +576,21 @@ export async function addRepo(
   await validateRepository(absolutePath);
 
   // Check for duplicates
-  const existingRepo = config.repositories.find((r) => r.path === absolutePath);
-  if (existingRepo) {
-    // If repository exists and doesn't have a projectId, try to sync it
-    if (!existingRepo.projectId) {
+  const existingProject = config.projects.find((p) => p.path === absolutePath);
+  if (existingProject) {
+    // If project exists and doesn't have an id, try to sync it
+    if (!existingProject.id) {
       console.log(
         chalk.yellow('Repository already exists. Syncing with web app...'),
       );
       const repoInfo = getRepositoryInfo(absolutePath);
       const repoName =
-        existingRepo.name || getRepositoryName(repoInfo.remoteUrl);
+        existingProject.name || getRepositoryName(repoInfo.remoteUrl);
       const projectId = await syncProjectWithApi(absolutePath, repoName);
 
       if (projectId) {
-        existingRepo.projectId = projectId;
+        existingProject.id = projectId;
+        existingProject.remote = repoInfo.remoteUrl;
         await saveConfig(config);
         console.log(chalk.green('✓ Repository synced with web app'));
       }
@@ -611,8 +612,8 @@ export async function addRepo(
   // Always prompt for cron schedule
   const cronSchedule = await promptForCronSchedule();
 
-  // Add repository
-  const newRepo: Repository = {
+  // Add project
+  const newProject: Project = {
     path: absolutePath,
     name: options.name,
     enabled: true,
@@ -620,16 +621,17 @@ export async function addRepo(
       ? Number.parseInt(options.maxCommits.toString(), 10)
       : undefined,
     cronSchedule: cronSchedule || undefined,
-    projectId,
+    id: projectId,
+    remote: repoInfo.remoteUrl,
   };
 
-  config.repositories.push(newRepo);
+  config.projects.push(newProject);
   await saveConfig(config);
 
   console.log(
     chalk.green(
       `✓ Added repository: ${formatRepo(
-        newRepo,
+        newProject,
         config.settings.defaultMaxCommits,
       )}`,
     ),
@@ -648,13 +650,13 @@ export async function removeRepo(path: string = process.cwd()) {
   const config = await loadConfig();
   const absolutePath = normalizeRepoPath(path);
 
-  const index = config.repositories.findIndex((r) => r.path === absolutePath);
+  const index = config.projects.findIndex((p) => p.path === absolutePath);
   if (index === -1) {
     throw new Error('Repository not found in configuration');
   }
 
-  const hadSchedule = config.repositories[index].cronSchedule;
-  config.repositories.splice(index, 1);
+  const hadSchedule = config.projects[index].cronSchedule;
+  config.projects.splice(index, 1);
   await saveConfig(config);
 
   console.log(`Removed repository: ${absolutePath}`);
@@ -687,27 +689,27 @@ export async function updateRepo(
   const config = await loadConfig();
   const absolutePath = normalizeRepoPath(path);
 
-  const repo = config.repositories.find((r) => r.path === absolutePath);
-  if (!repo) {
+  const project = config.projects.find((p) => p.path === absolutePath);
+  if (!project) {
     throw new Error('Repository not found in configuration');
   }
 
   if (options.name !== undefined) {
-    repo.name = options.name;
+    project.name = options.name;
   }
 
   if (options.maxCommits !== undefined) {
-    repo.maxCommits = Number.parseInt(options.maxCommits.toString(), 10);
+    project.maxCommits = Number.parseInt(options.maxCommits.toString(), 10);
   }
 
   if (options.schedule) {
     const cronSchedule = await promptForCronSchedule();
-    repo.cronSchedule = cronSchedule || undefined;
+    project.cronSchedule = cronSchedule || undefined;
   }
 
   await saveConfig(config);
   console.log(
-    `Updated repository: ${formatRepo(repo, config.settings.defaultMaxCommits)}`,
+    `Updated repository: ${formatRepo(project, config.settings.defaultMaxCommits)}`,
   );
 
   // If schedule was updated, automatically update system scheduling
@@ -739,17 +741,17 @@ export async function toggleRepo(path: string, enabled: boolean) {
   const config = await loadConfig();
   const absolutePath = normalizeRepoPath(path);
 
-  const repo = config.repositories.find((r) => r.path === absolutePath);
-  if (!repo) {
+  const project = config.projects.find((p) => p.path === absolutePath);
+  if (!project) {
     throw new Error('Repository not found in configuration');
   }
 
-  repo.enabled = enabled;
+  project.enabled = enabled;
   await saveConfig(config);
 
   console.log(
     `${enabled ? 'Enabled' : 'Disabled'} repository: ${formatRepo(
-      repo,
+      project,
       config.settings.defaultMaxCommits,
     )}`,
   );

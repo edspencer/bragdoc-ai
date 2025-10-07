@@ -1,17 +1,19 @@
 /**
- * Types for repository configuration
+ * Types for project configuration
  */
-export interface Repository {
+export interface Project {
   path: string;
   name?: string;
   enabled: boolean;
   maxCommits?: number;
   cronSchedule?: string;
-  projectId?: string; // UUID of the project in the Bragdoc API
+  id?: string; // UUID of the project in the Bragdoc API
+  remote?: string; // Git remote URL
+  standupId?: string; // UUID of the standup this project is enrolled in (if any)
 }
 
 /**
- * Standup configuration
+ * Legacy standup configuration (for backwards compatibility)
  */
 export interface StandupConfig {
   enabled: boolean;
@@ -22,6 +24,18 @@ export interface StandupConfig {
 }
 
 /**
+ * Standup configuration within a project
+ */
+export interface StandupProjectConfig {
+  id: string; // UUID of the standup
+  name?: string; // Friendly name for display
+  enabled: boolean; // Whether this standup is active
+  cronSchedule?: string; // Cron schedule for WIP extraction (typically 10 mins before standup)
+  maxConcurrentExtracts?: number; // For bragdoc extract parallelization
+  maxConcurrentWips?: number; // For WIP extraction parallelization
+}
+
+/**
  * Main configuration type
  */
 export interface BragdocConfig {
@@ -29,10 +43,12 @@ export interface BragdocConfig {
     token?: string;
     expiresAt?: number;
   };
-  repositories: Repository[];
-  standup?: StandupConfig; // Optional standup configuration
+  projects: Project[];
+  standups: StandupProjectConfig[];
+  // Legacy fields for backwards compatibility
+  repositories?: Project[]; // Deprecated: use projects instead
+  standup?: StandupConfig; // Deprecated: use standups instead
   settings: {
-    defaultTimeRange: string;
     maxCommitsPerBatch: number;
     defaultMaxCommits: number;
     cacheEnabled: boolean;
@@ -45,9 +61,9 @@ export interface BragdocConfig {
  * Default configuration settings
  */
 export const DEFAULT_CONFIG: BragdocConfig = {
-  repositories: [],
+  projects: [],
+  standups: [],
   settings: {
-    defaultTimeRange: '30d',
     maxCommitsPerBatch: 10,
     defaultMaxCommits: 300,
     cacheEnabled: true,
