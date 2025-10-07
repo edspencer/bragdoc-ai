@@ -109,6 +109,20 @@ bragdoc extract --max-commits 50
 bragdoc extract --dry-run
 ```
 
+### WIP Extraction (`wip`)
+
+Extract uncommitted work-in-progress from your current repository. This command analyzes git status and diffs to generate a summary of changes, but does not upload to the API.
+
+```bash
+# Extract WIP from current directory
+bragdoc wip
+
+# Extract with verbose logging
+bragdoc wip --log
+```
+
+**Note**: This command is useful for testing WIP extraction locally. For automated standup WIP extraction, use `bragdoc standup wip`.
+
 ### Monitoring Your Schedules
 
 Check your automatic extractions using platform-specific tools:

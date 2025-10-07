@@ -3,6 +3,7 @@
 import { Command } from 'commander';
 import { reposCommand, initCommand } from './commands/repos';
 import { extractCommand } from './commands/extract';
+import { wipCommand } from './commands/wip';
 import { authCommand, loginCommand, logoutCommand } from './commands/auth';
 import { cacheCommand } from './commands/cache';
 import { standupCommand } from './commands/standup';
@@ -20,6 +21,7 @@ program
 program.addCommand(reposCommand);
 program.addCommand(initCommand);
 program.addCommand(extractCommand);
+program.addCommand(wipCommand);
 program.addCommand(authCommand);
 program.addCommand(loginCommand);
 program.addCommand(logoutCommand);
