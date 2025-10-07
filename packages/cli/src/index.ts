@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 import { Command } from 'commander';
-import { reposCommand, initCommand } from './commands/repos';
+import { projectsCommand, initCommand } from './commands/projects';
 import { extractCommand } from './commands/extract';
 import { wipCommand } from './commands/wip';
 import { authCommand, loginCommand, logoutCommand } from './commands/auth';
@@ -18,7 +18,7 @@ program
   .version('0.1.0');
 
 // Add commands
-program.addCommand(reposCommand);
+program.addCommand(projectsCommand);
 program.addCommand(initCommand);
 program.addCommand(extractCommand);
 program.addCommand(wipCommand);

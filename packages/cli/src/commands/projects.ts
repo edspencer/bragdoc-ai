@@ -484,56 +484,56 @@ function convertCronDayToWindows(cronDay: string): string {
   return dayMap[cronDay] || 'SUN';
 }
 
-export const reposCommand = new Command('repos')
-  .description('Manage repositories for bragdoc')
+export const projectsCommand = new Command('projects')
+  .description('Manage projects for bragdoc')
   .addCommand(
     new Command('list')
-      .description('List all configured repositories')
-      .action(listRepos),
+      .description('List all configured projects')
+      .action(listProjects),
   )
   .addCommand(
     new Command('add')
-      .description('Add a repository to bragdoc')
+      .description('Add a project to bragdoc')
       .argument('[path]', 'Path to repository (defaults to current directory)')
       .option('-n, --name <name>', 'Friendly name for the repository')
       .option(
         '-m, --max-commits <number>',
         'Maximum number of commits to extract',
       )
-      .action(addRepo),
+      .action(addProject),
   )
   .addCommand(
     new Command('remove')
-      .description('Remove a repository from bragdoc')
+      .description('Remove a project from bragdoc')
       .argument('[path]', 'Path to repository (defaults to current directory)')
-      .action(removeRepo),
+      .action(removeProject),
   )
   .addCommand(
     new Command('update')
-      .description('Update repository settings')
+      .description('Update project settings')
       .argument('[path]', 'Path to repository (defaults to current directory)')
       .option('-n, --name <name>', 'Update friendly name')
       .option('-m, --max-commits <number>', 'Update maximum commits')
       .option('-s, --schedule', 'Update automatic extraction schedule')
-      .action(updateRepo),
+      .action(updateProject),
   )
   .addCommand(
     new Command('enable')
-      .description('Enable a repository')
+      .description('Enable a project')
       .argument('[path]', 'Path to repository (defaults to current directory)')
-      .action((path) => toggleRepo(path, true)),
+      .action((path) => toggleProject(path, true)),
   )
   .addCommand(
     new Command('disable')
-      .description('Disable a repository')
+      .description('Disable a project')
       .argument('[path]', 'Path to repository (defaults to current directory)')
-      .action((path) => toggleRepo(path, false)),
+      .action((path) => toggleProject(path, false)),
   );
 
 /**
- * Format repository for display
+ * Format project for display
  */
-function formatRepo(project: Project, defaultMaxCommits: number): string {
+function formatProject(project: Project, defaultMaxCommits: number): string {
   const status = project.enabled ? chalk.green('✓') : chalk.red('⨯');
   const name = project.name ? `${project.name} ` : '';
   const maxCommits = project.maxCommits || defaultMaxCommits;
@@ -544,28 +544,28 @@ function formatRepo(project: Project, defaultMaxCommits: number): string {
 }
 
 /**
- * List all repositories
+ * List all projects
  */
-export async function listRepos() {
+export async function listProjects() {
   const config = await loadConfig();
 
   if (config.projects.length === 0) {
     console.log(
-      'No repositories configured. Add one with: bragdoc repos add <path>',
+      'No projects configured. Add one with: bragdoc projects add <path>',
     );
     return;
   }
 
-  console.log('Configured repositories:');
+  console.log('Configured projects:');
   config.projects.forEach((project) => {
-    console.log(formatRepo(project, config.settings.defaultMaxCommits));
+    console.log(formatProject(project, config.settings.defaultMaxCommits));
   });
 }
 
 /**
- * Add a new repository
+ * Add a new project
  */
-export async function addRepo(
+export async function addProject(
   path: string = process.cwd(),
   options: { name?: string; maxCommits?: number } = {},
 ) {
@@ -581,7 +581,7 @@ export async function addRepo(
     // If project exists and doesn't have an id, try to sync it
     if (!existingProject.id) {
       console.log(
-        chalk.yellow('Repository already exists. Syncing with web app...'),
+        chalk.yellow('Project already exists. Syncing with web app...'),
       );
       const repoInfo = getRepositoryInfo(absolutePath);
       const repoName =
@@ -596,7 +596,7 @@ export async function addRepo(
       }
     } else {
       console.log(
-        chalk.yellow('Repository already exists and is synced with web app.'),
+        chalk.yellow('Project already exists and is synced with web app.'),
       );
     }
     return;
@@ -630,7 +630,7 @@ export async function addRepo(
 
   console.log(
     chalk.green(
-      `✓ Added repository: ${formatRepo(
+      `✓ Added project: ${formatProject(
         newProject,
         config.settings.defaultMaxCommits,
       )}`,
@@ -644,22 +644,22 @@ export async function addRepo(
 }
 
 /**
- * Remove a repository
+ * Remove a project
  */
-export async function removeRepo(path: string = process.cwd()) {
+export async function removeProject(path: string = process.cwd()) {
   const config = await loadConfig();
   const absolutePath = normalizeRepoPath(path);
 
   const index = config.projects.findIndex((p) => p.path === absolutePath);
   if (index === -1) {
-    throw new Error('Repository not found in configuration');
+    throw new Error('Project not found in configuration');
   }
 
   const hadSchedule = config.projects[index].cronSchedule;
   config.projects.splice(index, 1);
   await saveConfig(config);
 
-  console.log(`Removed repository: ${absolutePath}`);
+  console.log(`Removed project: ${absolutePath}`);
 
   // If the removed repo had a schedule, update system scheduling
   if (hadSchedule) {
@@ -680,9 +680,9 @@ export async function removeRepo(path: string = process.cwd()) {
 }
 
 /**
- * Update repository settings
+ * Update project settings
  */
-export async function updateRepo(
+export async function updateProject(
   path: string = process.cwd(),
   options: { name?: string; maxCommits?: number; schedule?: boolean } = {},
 ) {
@@ -691,7 +691,7 @@ export async function updateRepo(
 
   const project = config.projects.find((p) => p.path === absolutePath);
   if (!project) {
-    throw new Error('Repository not found in configuration');
+    throw new Error('Project not found in configuration');
   }
 
   if (options.name !== undefined) {
@@ -709,7 +709,7 @@ export async function updateRepo(
 
   await saveConfig(config);
   console.log(
-    `Updated repository: ${formatRepo(project, config.settings.defaultMaxCommits)}`,
+    `Updated project: ${formatProject(project, config.settings.defaultMaxCommits)}`,
   );
 
   // If schedule was updated, automatically update system scheduling
@@ -735,22 +735,22 @@ export async function updateRepo(
 }
 
 /**
- * Enable or disable a repository
+ * Enable or disable a project
  */
-export async function toggleRepo(path: string, enabled: boolean) {
+export async function toggleProject(path: string, enabled: boolean) {
   const config = await loadConfig();
   const absolutePath = normalizeRepoPath(path);
 
   const project = config.projects.find((p) => p.path === absolutePath);
   if (!project) {
-    throw new Error('Repository not found in configuration');
+    throw new Error('Project not found in configuration');
   }
 
   project.enabled = enabled;
   await saveConfig(config);
 
   console.log(
-    `${enabled ? 'Enabled' : 'Disabled'} repository: ${formatRepo(
+    `${enabled ? 'Enabled' : 'Disabled'} project: ${formatProject(
       project,
       config.settings.defaultMaxCommits,
     )}`,
@@ -758,11 +758,11 @@ export async function toggleRepo(path: string, enabled: boolean) {
 }
 
 /**
- * Create an alias 'init' command that points to 'repos add'
+ * Create an alias 'init' command that points to 'projects add'
  */
 export const initCommand = new Command('init')
-  .description('Initialize a repository for bragdoc (alias for repos add)')
+  .description('Initialize a project for bragdoc (alias for projects add)')
   .argument('[path]', 'Path to repository (defaults to current directory)')
   .option('-n, --name <name>', 'Friendly name for the repository')
   .option('-m, --max-commits <number>', 'Maximum number of commits to extract')
-  .action(addRepo);
+  .action(addProject);

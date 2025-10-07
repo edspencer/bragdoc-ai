@@ -2,6 +2,7 @@ import { Command } from 'commander';
 import chalk from 'chalk';
 import inquirer from 'inquirer';
 import { loadConfig, saveConfig } from '../config';
+import type { Project } from '../config/types';
 import { createApiClient, UnauthenticatedError } from '../api/client';
 import logger from '../utils/logger';
 import {
@@ -9,35 +10,21 @@ import {
   type CronOptions,
   convertToCronSchedule,
 } from '../utils/cron';
+import { fetchStandups } from '../utils/data';
+import { extractWip as extractGitWip, isGitRepository } from '../git/wip';
 import { exec } from 'node:child_process';
 import { promisify } from 'node:util';
 
 const execAsync = promisify(exec);
 
-/**
- * Fetch available standups from the API
- */
-async function fetchStandups() {
-  const apiClient = await createApiClient();
-
-  if (!apiClient.isAuthenticated()) {
-    console.log(chalk.yellow('⚠️  Not logged in. Run `bragdoc login` first.'));
-    throw new UnauthenticatedError();
-  }
-
-  interface Standup {
-    id: string;
-    name: string;
-    meetingTime: string;
-    timezone: string;
-    daysMask: number;
-    enabled: boolean;
-  }
-
-  const { standups } = await apiClient.get<{ standups: Standup[] }>(
-    '/api/standups'
-  );
-  return standups;
+// Standup interface for type safety
+interface Standup {
+  id: string;
+  name: string;
+  meetingTime: string;
+  timezone: string;
+  daysMask: number;
+  enabled: boolean;
 }
 
 /**
@@ -160,11 +147,24 @@ async function installSystemCrontab(): Promise<void> {
       }
     }
 
-    // Add standup WIP extraction if configured
-    if (config.standup?.enabled && config.standup?.cronSchedule) {
-      newEntries += '\n# BragDoc standup WIP extraction\n';
-      const repoPath = config.standup.repositoryPath || '.';
-      newEntries += `${config.standup.cronSchedule} mkdir -p ~/.bragdoc/logs && cd "${repoPath}" && "${nodePath}" "${bragdocPath}" standup wip >> ${logFile} 2>&1\n`;
+    // Add standup WIP extraction for each configured standup
+    for (const standup of config.standups || []) {
+      // Get all projects enrolled in this standup
+      const enrolledProjects = config.projects.filter(
+        (p: Project) => p.standupId === standup.id
+      );
+
+      // Only add cron entry if there are enrolled projects
+      if (
+        enrolledProjects.length > 0 &&
+        standup.enabled &&
+        standup.cronSchedule
+      ) {
+        newEntries += `\n# BragDoc standup WIP extraction - ${
+          standup.name || standup.id
+        }\n`;
+        newEntries += `${standup.cronSchedule} mkdir -p ~/.bragdoc/logs && "${nodePath}" "${bragdocPath}" standup wip --id ${standup.id} >> ${logFile} 2>&1\n`;
+      }
     }
 
     // Create new crontab content
@@ -181,9 +181,23 @@ async function installSystemCrontab(): Promise<void> {
         )
       );
     }
-    if (config.standup?.enabled && config.standup?.cronSchedule) {
-      console.log(chalk.blue('📅 Standup WIP extraction schedule installed.'));
+
+    // Count standups with enrolled projects
+    const activeStandups = (config.standups || []).filter((s: any) => {
+      const enrolledCount = config.projects.filter(
+        (p: Project) => p.standupId === s.id
+      ).length;
+      return enrolledCount > 0 && s.enabled && s.cronSchedule;
+    });
+
+    if (activeStandups.length > 0) {
+      console.log(
+        chalk.blue(
+          `📅 ${activeStandups.length} standup WIP extraction schedule(s) installed.`
+        )
+      );
     }
+
     console.log(
       chalk.blue('💡 Run `crontab -l` to view your installed schedules.')
     );
@@ -283,27 +297,43 @@ async function installWindowsScheduling(): Promise<void> {
       }
     }
 
-    // Install standup WIP extraction task
-    if (config.standup?.enabled && config.standup?.cronSchedule) {
-      try {
-        const schedule = convertCronToWindowsSchedule(
-          config.standup.cronSchedule
-        );
-        const taskName = 'BragDoc-Standup-WIP';
-        const repoPath = config.standup.repositoryPath || '.';
+    // Install standup WIP extraction tasks
+    for (const [index, standup] of (config.standups || []).entries()) {
+      // Get all projects enrolled in this standup
+      const enrolledProjects = config.projects.filter(
+        (p: Project) => p.standupId === standup.id
+      );
 
-        await execAsync(
-          `schtasks /delete /tn "${taskName}" /f 2>nul || exit 0`
-        );
+      // Only add task if there are enrolled projects
+      if (
+        enrolledProjects.length > 0 &&
+        standup.enabled &&
+        standup.cronSchedule
+      ) {
+        try {
+          const schedule = convertCronToWindowsSchedule(standup.cronSchedule);
+          const taskName = `BragDoc-Standup-${
+            standup.name?.replace(/\s/g, '-') || index + 1
+          }`;
 
-        const command = `schtasks /create /tn "${taskName}" /tr "cmd /c if not exist \\"%USERPROFILE%\\.bragdoc\\logs\\" mkdir \\"%USERPROFILE%\\.bragdoc\\logs\\" && cd /d \\"${repoPath}\\" && node \\"${bragdocPath}\\" standup wip >> \\"${logFile}\\" 2>&1" ${schedule}`;
+          await execAsync(
+            `schtasks /delete /tn "${taskName}" /f 2>nul || exit 0`
+          );
 
-        await execAsync(command);
-        console.log(chalk.green(`✓ Created task: ${taskName}`));
-      } catch (error: any) {
-        console.error(
-          chalk.red('Failed to create standup WIP task:', error.message)
-        );
+          const command = `schtasks /create /tn "${taskName}" /tr "cmd /c if not exist \\"%USERPROFILE%\\.bragdoc\\logs\\" mkdir \\"%USERPROFILE%\\.bragdoc\\logs\\" && node \\"${bragdocPath}\\" standup wip --id ${standup.id} >> \\"${logFile}\\" 2>&1" ${schedule}`;
+
+          await execAsync(command);
+          console.log(chalk.green(`✓ Created task: ${taskName}`));
+        } catch (error: any) {
+          console.error(
+            chalk.red(
+              `Failed to create standup WIP task for ${
+                standup.name || standup.id
+              }:`,
+              error.message
+            )
+          );
+        }
       }
     }
 
@@ -318,59 +348,243 @@ async function installWindowsScheduling(): Promise<void> {
 }
 
 /**
+ * Enroll a single project in a standup
+ */
+async function enrollSingleProject(
+  config: any,
+  project: Project,
+  selectedStandup: Standup
+): Promise<void> {
+  // Check if project has no id field
+  if (!project.id) {
+    console.log(chalk.red('⨯ This project is not synced with the web app'));
+    console.log(chalk.blue('💡 Run `bragdoc projects add` to sync it first'));
+    return;
+  }
+
+  // Check if project already has this standupId
+  if (project.standupId === selectedStandup.id) {
+    console.log(
+      chalk.yellow('⚠️  This project is already enrolled in this standup')
+    );
+    const { reconfigure } = await inquirer.prompt([
+      {
+        type: 'confirm',
+        name: 'reconfigure',
+        message: 'Do you want to reconfigure it?',
+        default: false,
+      },
+    ]);
+    if (!reconfigure) {
+      return;
+    }
+  }
+
+  // Set the standupId field on the project
+  project.standupId = selectedStandup.id;
+
+  // Calculate cron schedule
+  const cronSchedule = calculateStandupCronSchedule(
+    selectedStandup.meetingTime,
+    selectedStandup.daysMask
+  );
+
+  console.log(
+    chalk.blue(
+      `📅 WIP extraction will run ${describeCronSchedule(cronSchedule)}`
+    )
+  );
+
+  // Check if standup config already exists
+  let standupConfig = config.standups.find(
+    (s: any) => s.id === selectedStandup.id
+  );
+  if (!standupConfig) {
+    standupConfig = {
+      id: selectedStandup.id,
+      name: selectedStandup.name,
+      enabled: true,
+      cronSchedule,
+    };
+    config.standups.push(standupConfig);
+  } else {
+    // Update existing config
+    standupConfig.cronSchedule = cronSchedule;
+    standupConfig.enabled = true;
+  }
+
+  await saveConfig(config);
+  console.log(chalk.green('✓ Enrolled project in standup'));
+
+  // Install system scheduling
+  const isWindows = process.platform === 'win32';
+  try {
+    if (isWindows) {
+      await installWindowsScheduling();
+    } else {
+      await installSystemCrontab();
+    }
+  } catch (error: any) {
+    console.error(
+      chalk.red('Failed to set up automatic scheduling:'),
+      error.message
+    );
+  }
+}
+
+/**
+ * Enroll multiple projects in a standup
+ */
+async function enrollMultipleProjects(
+  config: any,
+  selectedStandup: Standup
+): Promise<void> {
+  // Get projects that could be enrolled
+  const eligibleProjects = config.projects.filter(
+    (p: Project) => p.id && p.enabled
+  );
+
+  if (eligibleProjects.length === 0) {
+    console.log(chalk.yellow('⚠️  No projects available to enroll'));
+    console.log(
+      chalk.blue(
+        '💡 Run `bragdoc projects add` in your project directories first'
+      )
+    );
+    return;
+  }
+
+  // Use inquirer with checkbox to let user select multiple projects
+  const { selectedProjects } = await inquirer.prompt([
+    {
+      type: 'checkbox',
+      name: 'selectedProjects',
+      message:
+        'Select projects to enroll in this standup (use spacebar to select):',
+      choices: eligibleProjects.map((p: Project) => ({
+        name: `${p.name || p.path}`,
+        value: p.path,
+        checked: p.standupId === selectedStandup.id, // Pre-check if already enrolled
+      })),
+    },
+  ]);
+
+  if (selectedProjects.length === 0) {
+    console.log(chalk.yellow('No projects selected'));
+    return;
+  }
+
+  // Calculate cron schedule
+  const cronSchedule = calculateStandupCronSchedule(
+    selectedStandup.meetingTime,
+    selectedStandup.daysMask
+  );
+
+  console.log(
+    chalk.blue(
+      `📅 WIP extraction will run ${describeCronSchedule(cronSchedule)}`
+    )
+  );
+
+  // For each selected project path
+  for (const projectPath of selectedProjects) {
+    const project = config.projects.find(
+      (p: Project) => p.path === projectPath
+    );
+    if (project) {
+      project.standupId = selectedStandup.id;
+    }
+  }
+
+  // Check if standup config exists, if not create it
+  let standupConfig = config.standups.find(
+    (s: any) => s.id === selectedStandup.id
+  );
+  if (!standupConfig) {
+    standupConfig = {
+      id: selectedStandup.id,
+      name: selectedStandup.name,
+      enabled: true,
+      cronSchedule,
+    };
+    config.standups.push(standupConfig);
+  } else {
+    standupConfig.cronSchedule = cronSchedule;
+    standupConfig.enabled = true;
+  }
+
+  await saveConfig(config);
+  console.log(
+    chalk.green(`✓ Enrolled ${selectedProjects.length} project(s) in standup`)
+  );
+
+  // Install system scheduling
+  const isWindows = process.platform === 'win32';
+  try {
+    if (isWindows) {
+      await installWindowsScheduling();
+    } else {
+      await installSystemCrontab();
+    }
+  } catch (error: any) {
+    console.error(
+      chalk.red('Failed to set up automatic scheduling:'),
+      error.message
+    );
+  }
+}
+
+/**
  * Enable standup WIP extraction
  */
 async function enableStandup() {
   try {
+    const cwd = process.cwd();
     const config = await loadConfig();
 
-    // Check if already enabled
-    if (config.standup?.enabled) {
-      console.log(chalk.yellow('⚠️  Standup is already enabled.'));
-      console.log(
-        chalk.blue(
-          `Current schedule: ${describeCronSchedule(
-            config.standup.cronSchedule || null
-          )}`
-        )
-      );
-
-      const { continueAnyway } = await inquirer.prompt([
-        {
-          type: 'confirm',
-          name: 'continueAnyway',
-          message: 'Do you want to reconfigure it?',
-          default: false,
-        },
-      ]);
-
-      if (!continueAnyway) {
-        return;
-      }
-    }
+    // Find if current directory matches a project
+    const currentProject = config.projects.find((p: Project) => p.path === cwd);
 
     // Fetch standups from API
     console.log(chalk.blue('Fetching your standups from the web app...'));
-    const standups = await fetchStandups();
-
-    console.log(standups);
+    let standups: Standup[];
+    try {
+      standups = (await fetchStandups({ force: true })) as any;
+    } catch (error) {
+      if (error instanceof UnauthenticatedError) {
+        console.log(
+          chalk.yellow(
+            '⚠️  Not authenticated. Please run `bragdoc login` first.'
+          )
+        );
+        return;
+      }
+      console.error(
+        chalk.red('Failed to fetch standups:'),
+        (error as Error).message
+      );
+      console.log(
+        chalk.blue('💡 Check your internet connection and try again')
+      );
+      return;
+    }
 
     if (standups.length === 0) {
       console.log(chalk.yellow('⚠️  No standups found in your account.'));
       console.log(
         chalk.blue(
-          '💡 Create a standup at https://www.bragdoc.ai/standup first.'
+          '💡 Create a standup at https://app.bragdoc.ai/standups first (takes <30 seconds).'
         )
       );
       return;
     }
 
-    // Let user select a standup
+    // Prompt user to select a standup
     const { selectedStandupId } = await inquirer.prompt([
       {
         type: 'list',
         name: 'selectedStandupId',
-        message: 'Which standup do you want to enable WIP extraction for?',
+        message: 'Which standup would you like to configure?',
         choices: standups.map((s) => ({
           name: `${s.name} (${s.meetingTime} ${s.timezone})`,
           value: s.id,
@@ -383,87 +597,15 @@ async function enableStandup() {
       throw new Error('Selected standup not found');
     }
 
-    // Calculate cron schedule (10 minutes before standup time)
-    const cronSchedule = calculateStandupCronSchedule(
-      selectedStandup.meetingTime,
-      selectedStandup.daysMask
-    );
-
-    console.log(
-      chalk.blue(
-        `📅 WIP extraction will run ${describeCronSchedule(cronSchedule)}`
-      )
-    );
-
-    // Optionally let user specify a repository path
-    const { useCurrentDir } = await inquirer.prompt([
-      {
-        type: 'confirm',
-        name: 'useCurrentDir',
-        message: 'Extract WIP from the current directory when running?',
-        default: true,
-      },
-    ]);
-
-    let repositoryPath: string | undefined;
-    if (!useCurrentDir) {
-      const { customPath } = await inquirer.prompt([
-        {
-          type: 'input',
-          name: 'customPath',
-          message: 'Enter the repository path:',
-          default: process.cwd(),
-        },
-      ]);
-      repositoryPath = customPath;
-    }
-
-    // Save standup config
-    config.standup = {
-      enabled: true,
-      standupId: selectedStandup.id,
-      standupName: selectedStandup.name,
-      cronSchedule,
-      repositoryPath,
-    };
-
-    await saveConfig(config);
-
-    console.log(
-      chalk.green(
-        `✓ Enabled standup WIP extraction for "${selectedStandup.name}"`
-      )
-    );
-
-    // Install system scheduling
-    console.log(chalk.blue('🔧 Setting up automatic WIP extraction...'));
-
-    const isWindows = process.platform === 'win32';
-    try {
-      if (isWindows) {
-        await installWindowsScheduling();
-      } else {
-        await installSystemCrontab();
-      }
-    } catch (error: any) {
-      console.error(
-        chalk.red('Failed to set up automatic scheduling:'),
-        error.message
-      );
-      console.log(
-        chalk.yellow(
-          '⚠️  WIP extraction is configured but automatic scheduling failed.'
-        )
-      );
-      console.log(
-        chalk.blue(
-          '💡 You can manually run `bragdoc standup wip` to extract WIP.'
-        )
-      );
+    // Branch logic based on whether in project directory
+    if (currentProject) {
+      await enrollSingleProject(config, currentProject, selectedStandup);
+    } else {
+      await enrollMultipleProjects(config, selectedStandup);
     }
   } catch (error) {
     if (error instanceof UnauthenticatedError) {
-      return; // Already logged in fetchStandups
+      return;
     }
     throw error;
   }
@@ -473,30 +615,57 @@ async function enableStandup() {
  * Disable standup WIP extraction
  */
 async function disableStandup() {
+  const cwd = process.cwd();
   const config = await loadConfig();
 
-  if (!config.standup?.enabled) {
-    console.log(chalk.yellow('⚠️  Standup is not enabled.'));
+  // Find current project
+  const project = config.projects.find((p: Project) => p.path === cwd);
+
+  if (!project) {
+    console.log(chalk.red('⨯ Current directory is not a configured project'));
+    console.log(
+      chalk.blue(
+        '💡 Run this command from within a project directory, or use `bragdoc projects list` to see configured projects'
+      )
+    );
     return;
   }
 
-  // Disable standup
-  config.standup.enabled = false;
+  if (!project.standupId) {
+    console.log(
+      chalk.yellow('⚠️  This project is not enrolled in any standup')
+    );
+    return;
+  }
+
+  const standupId = project.standupId;
+
+  // Remove the standupId from project
+  project.standupId = undefined;
+
+  // Check if any other projects are still using this standup
+  const stillUsed = config.projects.some(
+    (p: Project) => p.standupId === standupId
+  );
+
+  // If no other projects use this standup, optionally remove from config.standups
+  if (!stillUsed) {
+    const standupIndex = config.standups.findIndex(
+      (s: any) => s.id === standupId
+    );
+    if (standupIndex !== -1) {
+      config.standups.splice(standupIndex, 1);
+    }
+  }
 
   await saveConfig(config);
+  console.log(chalk.green('✓ Unenrolled project from standup'));
 
-  console.log(chalk.green('✓ Disabled standup WIP extraction'));
-
-  // Update system scheduling to remove standup entry
+  // Update system scheduling
   console.log(chalk.blue('🔧 Updating system scheduling...'));
   try {
     const isWindows = process.platform === 'win32';
     if (isWindows) {
-      // Delete the standup task
-      await execAsync(
-        'schtasks /delete /tn "BragDoc-Standup-WIP" /f 2>nul || exit 0'
-      );
-      // Reinstall other tasks
       await installWindowsScheduling();
     } else {
       await installSystemCrontab();
@@ -516,87 +685,197 @@ async function disableStandup() {
 async function showStatus() {
   const config = await loadConfig();
 
-  if (!config.standup) {
-    console.log(chalk.yellow('No standup configured.'));
+  // Check if any standups configured
+  if (config.standups.length === 0) {
+    console.log(chalk.yellow('No standups configured.'));
     console.log(
       chalk.blue(
-        '💡 Run `bragdoc standup enable` to set up automatic WIP extraction.'
+        '💡 Run `bragdoc standup enable` to set up standup WIP extraction.'
       )
     );
     return;
   }
 
-  const status = config.standup.enabled
-    ? chalk.green('Enabled')
-    : chalk.red('Disabled');
-  const schedule = describeCronSchedule(config.standup.cronSchedule || null);
-  const repoPath = config.standup.repositoryPath || 'current directory';
+  // For each standup in config.standups
+  for (const standup of config.standups) {
+    console.log(chalk.bold(`\nStandup: ${standup.name || standup.id}`));
+    const status = standup.enabled
+      ? chalk.green('Enabled')
+      : chalk.red('Disabled');
+    console.log(`  Status: ${status}`);
+    console.log(
+      `  Schedule: ${describeCronSchedule(standup.cronSchedule || null)}`
+    );
 
-  console.log(chalk.bold('\nStandup Configuration:'));
-  console.log(`  Status: ${status}`);
-  console.log(
-    `  Standup: ${config.standup.standupName || config.standup.standupId}`
-  );
-  console.log(`  Schedule: ${schedule}`);
-  console.log(`  Repository: ${repoPath}`);
+    // Get enrolled projects
+    const enrolledProjects = config.projects.filter(
+      (p: Project) => p.standupId === standup.id
+    );
+    console.log(`  Enrolled projects: ${enrolledProjects.length}`);
+
+    // List project names (up to 5, then "and X more")
+    if (enrolledProjects.length > 0) {
+      const projectNames = enrolledProjects
+        .map((p: Project) => `    - ${p.name || p.path}`)
+        .slice(0, 5);
+
+      console.log(projectNames.join('\n'));
+
+      if (enrolledProjects.length > 5) {
+        console.log(`    ... and ${enrolledProjects.length - 5} more`);
+      }
+    }
+  }
+
   console.log('');
 }
 
 /**
- * Extract and submit WIP
+ * Extract and submit WIP for standup
  */
-async function extractWip() {
+async function extractAndSubmitStandupWip(options: { id?: string } = {}) {
   try {
     const config = await loadConfig();
+    const cwd = process.cwd();
+    let standupId: string | undefined = options.id;
 
-    // Check if standup is configured
-    if (!config.standup || !config.standup.enabled) {
-      console.log(chalk.yellow('⚠️  Standup is not enabled.'));
-      console.log(
-        chalk.blue(
-          '💡 Run `bragdoc standup enable` to set up automatic WIP extraction.'
-        )
-      );
-      return;
+    // If standupId not provided, try to determine from current directory
+    if (!standupId) {
+      const project = config.projects.find((p: Project) => p.path === cwd);
+      if (project?.standupId) {
+        standupId = project.standupId;
+      } else if (project && !project.standupId) {
+        console.log(chalk.red('⨯ This project is not enrolled in a standup'));
+        console.log(chalk.blue('💡 Run `bragdoc standup enable` first'));
+        return;
+      }
     }
 
-    // Import git utilities
-    const { extractWip: extractGitWip, isGitRepository } = await import(
-      '../git/wip.js'
+    // If still no standup ID, check how many standups are configured
+    if (!standupId) {
+      if (config.standups.length === 0) {
+        console.log(chalk.yellow('⚠️  No standups configured'));
+        console.log(chalk.blue('💡 Run `bragdoc standup enable` first'));
+        return;
+      } else if (config.standups.length === 1) {
+        standupId = config.standups[0].id;
+      } else {
+        // Multiple standups - prompt user to select
+        const { selectedStandupId } = await inquirer.prompt([
+          {
+            type: 'list',
+            name: 'selectedStandupId',
+            message: 'Which standup do you want to extract WIP for?',
+            choices: config.standups.map((s: any) => ({
+              name: `${s.name || s.id}`,
+              value: s.id,
+            })),
+          },
+        ]);
+        standupId = selectedStandupId;
+      }
+    }
+
+    // Get enrolled projects for this standup
+    const enrolledProjects = config.projects.filter(
+      (p: Project) => p.standupId === standupId && p.enabled
     );
 
-    // Determine repository path
-    const repoPath = config.standup.repositoryPath || process.cwd();
-
-    // Check if it's a git repository
-    if (!isGitRepository(repoPath)) {
-      console.log(chalk.red(`⨯ Not a git repository: ${repoPath}`));
-      console.log(
-        chalk.blue(
-          '💡 Make sure you are in a git repository or configure a repository path.'
-        )
-      );
+    if (enrolledProjects.length === 0) {
+      console.log(chalk.yellow('⚠️  No projects enrolled in this standup'));
       return;
     }
 
-    console.log(chalk.blue('📝 Extracting work-in-progress from git...'));
+    // Get standup configuration
+    const standupConfig = config.standups.find((s: any) => s.id === standupId);
+    const maxConcurrentExtracts = standupConfig?.maxConcurrentExtracts ?? 3;
+    const maxConcurrentWips = standupConfig?.maxConcurrentWips ?? 3;
 
-    // Extract WIP
-    const wipInfo = extractGitWip(repoPath);
+    console.log(
+      chalk.blue(
+        `📊 Extracting achievements from ${enrolledProjects.length} enrolled project(s)...`
+      )
+    );
 
-    if (!wipInfo.hasChanges) {
-      console.log(chalk.yellow('No uncommitted changes found.'));
+    // Dynamically import p-limit (ESM module)
+    const pLimit = (await import('p-limit')).default;
+
+    // Create concurrency limits
+    const extractLimit = pLimit(maxConcurrentExtracts);
+
+    // For now, we'll skip the achievement extraction step as it requires
+    // refactoring the extract command. This is noted in the plan as needing
+    // to export a reusable function from extract.ts
+    // TODO: Implement extractAchievementsFromProject() in extract.ts and use it here
+
+    // Extract WIP from all enrolled projects
+    console.log(
+      chalk.blue('📝 Extracting work-in-progress from enrolled projects...')
+    );
+
+    const wipLimit = pLimit(maxConcurrentWips);
+    const wipPromises = enrolledProjects.map((project) =>
+      wipLimit(async () => {
+        try {
+          if (!isGitRepository(project.path)) {
+            console.warn(
+              chalk.yellow(
+                `  Skipping ${
+                  project.name || project.path
+                } (not a git repository)`
+              )
+            );
+            return null;
+          }
+
+          const wipInfo = extractGitWip(project.path);
+          if (!wipInfo.hasChanges) {
+            return null; // No changes
+          }
+
+          return {
+            projectName: project.name || project.path,
+            summary: wipInfo.summary,
+          };
+        } catch (error: any) {
+          console.error(
+            chalk.red(
+              `  Failed to extract WIP from ${project.name || project.path}: ${
+                error.message
+              }`
+            )
+          );
+          return null;
+        }
+      })
+    );
+
+    const wipResults = await Promise.all(wipPromises);
+    const validWips = wipResults.filter((w) => w !== null);
+
+    // Concatenate and format all WIP summaries
+    if (validWips.length === 0) {
+      console.log(chalk.yellow('No uncommitted changes found in any project'));
       return;
     }
 
-    console.log(chalk.green('✓ Found changes:'));
-    console.log(wipInfo.summary);
+    const combinedWip = validWips
+      .map((w) => {
+        return `## ${w!.projectName}\n\n${w!.summary}`;
+      })
+      .join('\n\n---\n\n');
 
-    // Send to API
+    console.log(
+      chalk.green(`✓ Found changes in ${validWips.length} project(s)`)
+    );
+
+    // Send combined WIP to API
     const apiClient = await createApiClient();
 
     if (!apiClient.isAuthenticated()) {
-      console.log(chalk.yellow('⚠️  Not logged in. Skipping API submission.'));
+      console.log(
+        chalk.yellow('⚠️  Not authenticated. Skipping API submission.')
+      );
       console.log(
         chalk.blue('💡 Run `bragdoc login` to submit WIP to your standup.')
       );
@@ -605,12 +884,12 @@ async function extractWip() {
 
     console.log(chalk.blue('📤 Submitting WIP to standup...'));
 
-    await apiClient.post(`/api/standups/${config.standup.standupId}/wip`, {
-      wip: wipInfo.summary,
+    await apiClient.post(`/api/standups/${standupId}/wip`, {
+      wip: combinedWip,
     });
 
     console.log(chalk.green('✓ WIP submitted successfully!'));
-    console.log(chalk.blue(`View at: https://www.bragdoc.ai/standup`));
+    console.log(chalk.blue('View at: https://app.bragdoc.ai/standups'));
   } catch (error: any) {
     logger.error('Error extracting WIP:', error);
     console.error(chalk.red('Failed to extract WIP:'), error.message);
@@ -637,5 +916,6 @@ export const standupCommand = new Command('standup')
   .addCommand(
     new Command('wip')
       .description('Extract and submit current WIP')
-      .action(extractWip)
+      .option('--id <standupId>', 'Standup ID to extract WIP for')
+      .action(extractAndSubmitStandupWip)
   );
