@@ -5,6 +5,7 @@ import { reposCommand, initCommand } from './commands/repos';
 import { extractCommand } from './commands/extract';
 import { authCommand, loginCommand, logoutCommand } from './commands/auth';
 import { cacheCommand } from './commands/cache';
+import { standupCommand } from './commands/standup';
 
 // Create a Commander program for the CLI:
 const program = new Command();
@@ -22,6 +23,7 @@ program.addCommand(authCommand);
 program.addCommand(loginCommand);
 program.addCommand(logoutCommand);
 program.addCommand(cacheCommand);
+program.addCommand(standupCommand);
 
 // Parse the command line args.
 program.parse(process.argv);

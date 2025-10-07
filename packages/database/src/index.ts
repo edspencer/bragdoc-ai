@@ -80,3 +80,26 @@ export type {
 
 // Re-export types
 export type { AchievementStats } from './queries';
+
+// Re-export standup queries
+export {
+  getStandupsByUserId,
+  getStandupById,
+  createStandup,
+  updateStandup,
+  deleteStandup,
+  getStandupDocumentsByStandupId,
+  getCurrentStandupDocument,
+  createStandupDocument,
+  updateStandupDocumentWip,
+  updateStandupDocumentAchievementsSummary,
+  getRecentAchievementsForStandup,
+} from './standups/queries';
+
+// Re-export standup types
+export type {
+  StandupInsert,
+  StandupWithRelations,
+  StandupDocumentWithDetails,
+  StandupDocumentUpdate,
+} from './standups/types';

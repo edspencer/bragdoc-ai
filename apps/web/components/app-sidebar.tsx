@@ -7,6 +7,7 @@ import {
   IconBuilding,
   IconSettings,
   IconStar,
+  IconUsers,
 } from '@tabler/icons-react';
 import { useSession } from 'next-auth/react';
 import { useDocuments } from '@/hooks/use-documents';
@@ -32,6 +33,11 @@ const staticData = {
       title: 'Dashboard',
       url: '/dashboard',
       icon: IconDashboard,
+    },
+    {
+      title: 'Standup',
+      url: '/standup',
+      icon: IconUsers,
     },
     {
       title: 'Achievements',

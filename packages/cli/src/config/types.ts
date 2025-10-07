@@ -11,6 +11,17 @@ export interface Repository {
 }
 
 /**
+ * Standup configuration
+ */
+export interface StandupConfig {
+  enabled: boolean;
+  standupId: string; // UUID of the standup in the Bragdoc API
+  standupName?: string; // Friendly name for display
+  cronSchedule?: string; // Cron schedule for WIP extraction (typically 10 mins before standup)
+  repositoryPath?: string; // Optional: specific repo to extract WIP from (defaults to current dir)
+}
+
+/**
  * Main configuration type
  */
 export interface BragdocConfig {
@@ -19,6 +30,7 @@ export interface BragdocConfig {
     expiresAt?: number;
   };
   repositories: Repository[];
+  standup?: StandupConfig; // Optional standup configuration
   settings: {
     defaultTimeRange: string;
     maxCommitsPerBatch: number;
