@@ -21,7 +21,9 @@
     "db:generate": "drizzle-kit generate",
     "db:push": "drizzle-kit push",
     "db:studio": "drizzle-kit studio",
-    "db:migrate": "npx tsx ./src/migrate.ts"
+    "db:migrate": "npx tsx ./src/migrate.ts",
+    "test:setup": "tsx src/test-setup.ts && drizzle-kit push --config=drizzle.config.test.ts",
+    "test:push": "drizzle-kit push --config=drizzle.config.test.ts"
   },
   "dependencies": {
     "drizzle-orm": "^0.34.1",

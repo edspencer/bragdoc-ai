@@ -26,6 +26,7 @@ yarn-error.log*
 # local env files
 .env.local
 .env.development.local
+.env.test
 .env.test.local
 .env.production.local
 
@@ -46,3 +47,4 @@ packages/cli/dist
 .open-next
 .wrangler
 .dev.vars
+temp-v0-app

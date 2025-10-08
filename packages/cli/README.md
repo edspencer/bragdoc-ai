@@ -8,7 +8,7 @@ The bragdoc CLI intelligently analyzes your Git repositories to extract and docu
 
 - **🤖 Intelligent Achievement Extraction**: Automatically identifies and scores meaningful work from Git commits
 - **📅 Scheduled Automation**: Set up automatic extractions on any schedule (hourly, daily, custom)
-- **🔍 Multi-Repository Support**: Track achievements across unlimited repositories simultaneously
+- **🔍 Multi-Project Support**: Track achievements across unlimited projects simultaneously
 - **⚡ Smart Caching**: Processes only new commits, avoiding duplicate work
 - **🌍 Cross-Platform Scheduling**: Native system integration (cron, Task Scheduler, systemd, LaunchAgent)
 - **📊 Achievement Scoring**: AI-powered analysis ranks the impact and importance of your work
@@ -30,7 +30,7 @@ npm install -g @bragdoc/cli
 bragdoc login
 ```
 
-2. Initialize your repository:
+2. Initialize your project:
 
 ```bash
 bragdoc init
@@ -59,36 +59,36 @@ bragdoc auth status
 bragdoc auth logout # aliased as `logout`
 ```
 
-### Repository Management
+### Project Management
 
-Initialize and manage repositories that bragdoc will track.
+Initialize and manage projects that bragdoc will track.
 
 ```bash
-# Initialize a repository (syncs with web app if authenticated)
+# Initialize a project (syncs with web app if authenticated)
 cd /path/to/repo
 bragdoc init
 # You'll be prompted to:
 # 1. Choose extraction schedule (no/hourly/daily/custom)
 # 2. Automatic system installation (crontab/Task Scheduler)
 
-# Or use the repos command (init is an alias for repos add)
-bragdoc repos add [path]
+# Or use the projects command (init is an alias for projects add)
+bragdoc projects add [path]
 
-# List configured repositories (shows schedules)
-bragdoc repos list
+# List configured projects (shows schedules)
+bragdoc projects list
 
-# Update repository settings
-bragdoc repos update [path] --name "New Name" --max-commits 200
+# Update project settings
+bragdoc projects update [path] --name "New Name" --max-commits 200
 
-# Update repository schedule (automatically updates system scheduling)
-bragdoc repos update [path] --schedule
+# Update project schedule (automatically updates system scheduling)
+bragdoc projects update [path] --schedule
 
-# Remove a repository
-bragdoc repos remove [path]
+# Remove a project
+bragdoc projects remove [path]
 
-# Enable/disable repository tracking
-bragdoc repos enable [path]
-bragdoc repos disable [path]
+# Enable/disable project tracking
+bragdoc projects enable [path]
+bragdoc projects disable [path]
 ```
 
 ### Achievement Extraction (`extract`)
@@ -96,7 +96,7 @@ bragdoc repos disable [path]
 Extract achievements from Git commits.
 
 ```bash
-# Extract from current repository
+# Extract from current project
 bragdoc extract
 
 # Extract from specific branch
@@ -109,11 +109,114 @@ bragdoc extract --max-commits 50
 bragdoc extract --dry-run
 ```
 
+### WIP Extraction (`wip`)
+
+Extract uncommitted work-in-progress from your current project. This command analyzes git status and diffs to generate a summary of changes, but does not upload to the API.
+
+```bash
+# Extract WIP from current directory
+bragdoc wip
+
+# Extract with verbose logging
+bragdoc wip --log
+```
+
+**Note**: This command is useful for testing WIP extraction locally. For automated standup WIP extraction, use `bragdoc standup wip`.
+
+### Standup WIP Automation (`standup`)
+
+Automatically extract achievements and work-in-progress summaries before your daily standup meetings. The CLI can extract from multiple projects and submit to your standup in one command.
+
+#### Setup
+
+First, create a standup in the web app at https://app.bragdoc.ai/standups (takes <30 seconds). Then enroll your projects:
+
+```bash
+# From within a project directory - enroll single project
+cd /path/to/project
+bragdoc standup enable
+
+# From anywhere - enroll multiple projects
+bragdoc standup enable
+# You'll see a checkbox list to select multiple projects
+```
+
+When you enable a standup, the CLI will:
+1. Fetch your standups from the web app
+2. Let you select which standup to configure
+3. Automatically set up system scheduling (cron/Task Scheduler)
+4. Extract achievements and WIP 10 minutes before your standup time
+
+#### Commands
+
+```bash
+# Enable standup WIP extraction
+bragdoc standup enable
+
+# Check standup configuration
+bragdoc standup status
+
+# Manually extract and submit WIP for all enrolled projects
+bragdoc standup wip
+
+# Manually extract for specific standup (if you have multiple)
+bragdoc standup wip --id <standupId>
+
+# Disable standup for current project
+cd /path/to/project
+bragdoc standup disable
+```
+
+#### How It Works
+
+**Automatic Mode** (Scheduled):
+- 10 minutes before your standup time, the CLI automatically:
+  1. Extracts new achievements from git commits (all enrolled projects)
+  2. Extracts work-in-progress summaries from uncommitted changes (all enrolled projects)
+  3. Submits combined WIP to your standup in the web app
+
+**Manual Mode**:
+- Run `bragdoc standup wip` anytime to extract and submit immediately
+- Useful for testing or ad-hoc updates
+
+**Multi-Project Support**:
+- Enroll multiple projects in a single standup
+- WIP extraction runs concurrently across all projects
+- Combined summary includes all projects with clear headers
+
+#### Example Workflow
+
+```bash
+# 1. Set up your first project
+cd ~/work/frontend-app
+bragdoc init --name "Frontend App"
+bragdoc standup enable
+# Select your standup from the list
+
+# 2. Add more projects to the same standup
+cd ~/work/backend-api
+bragdoc init --name "Backend API"
+bragdoc standup enable
+# Select the same standup
+
+# 3. Check configuration
+bragdoc standup status
+# Shows:
+# - Standup name and schedule
+# - Number of enrolled projects
+# - List of project names
+
+# 4. Test manual extraction
+bragdoc standup wip
+# Extracts from both projects and submits to web app
+```
+
 ### Monitoring Your Schedules
 
 Check your automatic extractions using platform-specific tools:
 
 **Linux/macOS**
+
 ```bash
 # View your scheduled extractions
 crontab -l
@@ -123,6 +226,7 @@ ps aux | grep cron
 ```
 
 **Windows**
+
 ```bash
 # View your scheduled tasks
 schtasks /query /tn BragDoc*
@@ -141,17 +245,38 @@ bragdoc cache list
 bragdoc cache list --stats
 
 # Clear cache
-bragdoc cache clear              # Clear current repo's cache
+bragdoc cache clear              # Clear current project's cache
 bragdoc cache clear --all        # Clear all cached data
-bragdoc cache clear --repo name  # Clear specific repo's cache
+bragdoc cache clear --project name  # Clear specific project's cache
 ```
+
+### Data Management (`data`)
+
+Manage the local cache of companies, projects, and standups data. The CLI automatically caches this data to reduce API calls and improve performance.
+
+```bash
+# Fetch all data from API (force refresh)
+bragdoc data fetch
+
+# Clear all cached data
+bragdoc data clear
+```
+
+**Cache Timeout**: By default, cached data is refreshed every 5 minutes. You can configure this in your config file using the `dataCacheTimeout` setting (in minutes).
+
+The data cache is stored in `~/.bragdoc/cache/` and includes:
+
+- `companies.yml` - Your companies
+- `projects.yml` - Your projects
+- `standups.yml` - Your standups
+- `meta.yml` - Cache metadata and timestamps
 
 ## Configuration
 
 The CLI stores configuration in `~/.bragdoc/config.yml`:
 
 - Authentication tokens
-- Repository settings and schedules
+- Project settings and schedules
 - Commit cache locations
 - API configuration
 
@@ -164,7 +289,7 @@ Here's how to set up fully automated achievement tracking:
 npm install -g @bragdoc/cli
 bragdoc login
 
-# 2. Initialize your repositories with scheduling
+# 2. Initialize your projects with scheduling
 cd ~/work/frontend-app
 bragdoc init --name "Frontend App"
 # Choose "Daily" → Enter "18:00" → Automatically installs to crontab
@@ -187,14 +312,14 @@ bragdoc init --name "Mobile App"
 
 1. **Automatic Scheduling**:
 
-   - Set daily extractions for active repositories
+   - Set daily extractions for active projects
    - Use hourly for rapidly evolving projects
    - Schedule during off-hours to avoid interruption
 
-2. **Repository Organization**:
+2. **Project Organization**:
 
-   - Add repositories you actively contribute to
-   - Use meaningful repository names
+   - Add projects you actively contribute to
+   - Use meaningful project names
    - Set appropriate max-commit limits (100-500)
 
 3. **Schedule Management**:
@@ -213,7 +338,7 @@ bragdoc init --name "Mobile App"
 The CLI provides detailed error messages and logging:
 
 - Authentication errors
-- Repository validation issues
+- Project validation issues
 - API communication problems
 - Cache-related errors
 
@@ -230,15 +355,15 @@ The CLI provides detailed error messages and logging:
    - Try logging out and back in
    - Check your internet connection
 
-2. **Repository Issues**
+2. **Project Issues**
 
-   - Verify repository path exists
-   - Ensure repository has a remote URL
-   - Check repository permissions
+   - Verify project path exists
+   - Ensure project has a remote URL
+   - Check project permissions
 
 3. **Extraction Issues**
 
-   - Verify repository is enabled: `bragdoc repos list`
+   - Verify project is enabled: `bragdoc projects list`
    - Check max-commits setting
    - Try clearing the cache
 

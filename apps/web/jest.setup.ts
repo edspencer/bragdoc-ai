@@ -6,6 +6,16 @@
 // Load environment variables
 require('dotenv').config({ path: '.env.test' });
 
+// Mock bcrypt-ts
+jest.mock('bcrypt-ts', () => ({
+  genSaltSync: jest.fn(() => '$2a$10$abcdefghijklmnopqrstuv'),
+  hashSync: jest.fn((password) => `$2a$10$hashedPassword${password}`),
+  compareSync: jest.fn(() => true),
+  compare: jest.fn(() => Promise.resolve(true)),
+  genSalt: jest.fn(() => Promise.resolve('$2a$10$abcdefghijklmnopqrstuv')),
+  hash: jest.fn((password) => Promise.resolve(`$2a$10$hashedPassword${password}`)),
+}));
+
 // Mock Next.js router
 jest.mock('next/router', () => ({
   useRouter: () => ({

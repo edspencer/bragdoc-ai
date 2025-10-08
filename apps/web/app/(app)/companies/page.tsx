@@ -24,7 +24,7 @@ export default function CompaniesPage() {
 
   const [dialogOpen, setDialogOpen] = React.useState(false);
   const [editingCompany, setEditingCompany] = React.useState<Company | null>(
-    null
+    null,
   );
 
   const handleAddCompany = () => {

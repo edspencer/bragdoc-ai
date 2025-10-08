@@ -41,7 +41,9 @@ jobs:
         run: pnpm install
 
       - name: Run test setup
-        run: pnpm test:setup
+        run: |
+          cd apps/web
+          pnpm test:setup
         env:
           PGHOST: localhost
           PGPORT: 5432
@@ -51,13 +53,23 @@ jobs:
           POSTGRES_URL: postgresql://postgres:postgres@localhost:5432/bragai-test
 
       - name: Run tests
-        run: pnpm test
+        run: |
+          cd apps/web
+          pnpm test
         env:
+          NODE_ENV: test
           PGHOST: localhost
           PGPORT: 5432
           PGUSER: postgres
           PGPASSWORD: postgres
           PGDATABASE: bragai-test
+          POSTGRES_URL: postgresql://postgres:postgres@localhost:5432/bragai-test
+          AUTH_SECRET: test-secret-at-least-32-characters-long
+          NEXTAUTH_URL: http://localhost:3000
+          MAILGUN_API_KEY: test-mailgun-key
+          MAILGUN_DOMAIN: test.mailgun.org
+          NEXT_PUBLIC_APP_URL: http://localhost:3000
+          STRIPE_SECRET_KEY: sk_test_fake
 
   cli-test:
     name: Run CLI Tests
