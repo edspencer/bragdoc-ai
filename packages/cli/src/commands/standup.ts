@@ -5,12 +5,15 @@ import { loadConfig, saveConfig } from '../config';
 import type { Project } from '../config/types';
 import { createApiClient, UnauthenticatedError } from '../api/client';
 import logger from '../utils/logger';
-import {
-  describeCronSchedule,
-} from '../utils/cron';
+import { describeCronSchedule } from '../utils/cron';
 import { fetchStandups } from '../utils/data';
 import { extractWip as extractGitWip, isGitRepository } from '../git/wip';
 import { extractAchievementsFromProject } from '../lib/extraction';
+import {
+  calculateStandupCronSchedule,
+  getCleanedCrontab,
+  convertCronToWindowsSchedule,
+} from '../lib/scheduling';
 import { exec } from 'node:child_process';
 import { promisify } from 'node:util';
 
@@ -26,96 +29,6 @@ interface Standup {
   enabled: boolean;
 }
 
-/**
- * Calculate cron schedule for standup (10 minutes before meeting time)
- */
-function calculateStandupCronSchedule(
-  meetingTime: string,
-  daysMask: number
-): string {
-  // Parse meeting time (HH:MM format)
-  const [hoursStr, minsStr] = meetingTime.split(':');
-  let hours = Number.parseInt(hoursStr, 10);
-  let mins = Number.parseInt(minsStr, 10);
-
-  // Subtract 10 minutes
-  mins -= 10;
-  if (mins < 0) {
-    mins += 60;
-    hours -= 1;
-    if (hours < 0) {
-      hours += 24;
-    }
-  }
-
-  // Convert daysMask to weekday string
-  // daysMask uses: Mon=1, Tue=2, Wed=4, Thu=8, Fri=16, Sat=32, Sun=64
-  // cron uses: 0=Sun, 1=Mon, 2=Tue, 3=Wed, 4=Thu, 5=Fri, 6=Sat
-  const daysMap = [
-    { mask: 1, cron: 1 }, // Mon
-    { mask: 2, cron: 2 }, // Tue
-    { mask: 4, cron: 3 }, // Wed
-    { mask: 8, cron: 4 }, // Thu
-    { mask: 16, cron: 5 }, // Fri
-    { mask: 32, cron: 6 }, // Sat
-    { mask: 64, cron: 0 }, // Sun
-  ];
-
-  const weekdaysList: number[] = [];
-  for (const day of daysMap) {
-    if (daysMask & day.mask) {
-      weekdaysList.push(day.cron);
-    }
-  }
-
-  const weekdays = weekdaysList.sort().join(',');
-
-  // Build cron expression: minute hour * * weekdays
-  return `${mins} ${hours} * * ${weekdays}`;
-}
-
-/**
- * Get existing crontab content and remove BragDoc entries
- */
-async function getCleanedCrontab(): Promise<string> {
-  try {
-    const { stdout } = await execAsync('crontab -l 2>/dev/null || true');
-    const lines = stdout.split('\n');
-    const filteredLines = [];
-    let skipBragDocSection = false;
-
-    for (const line of lines) {
-      if (
-        line.trim() === '# BragDoc automatic extractions' ||
-        line.trim() === '# BragDoc standup WIP extraction'
-      ) {
-        skipBragDocSection = true;
-        continue;
-      }
-      if (skipBragDocSection && (line.startsWith('#') || line.trim() === '')) {
-        if (line.startsWith('#') && !line.includes('BragDoc')) {
-          skipBragDocSection = false;
-          filteredLines.push(line);
-        }
-        continue;
-      }
-      if (skipBragDocSection && line.trim() !== '') {
-        continue; // Skip BragDoc cron entries
-      }
-      if (!skipBragDocSection) {
-        filteredLines.push(line);
-      }
-    }
-
-    let cleaned = filteredLines.join('\n').replace(/\n+$/, ''); // Remove trailing newlines
-    if (cleaned && !cleaned.endsWith('\n')) {
-      cleaned += '\n';
-    }
-    return cleaned;
-  } catch {
-    return '';
-  }
-}
 
 /**
  * Install or update system crontab entries (Unix/Linux/Mac)
@@ -209,56 +122,6 @@ async function installSystemCrontab(): Promise<void> {
   }
 }
 
-/**
- * Convert cron schedule to Windows Task Scheduler parameters
- */
-function convertCronToWindowsSchedule(cronSchedule: string): string {
-  const [minute, hour, day, month, weekday] = cronSchedule.split(' ');
-
-  // Daily schedule (most common case)
-  if (day === '*' && month === '*' && weekday === '*' && hour !== '*') {
-    return `/sc daily /st ${hour.padStart(2, '0')}:${minute.padStart(2, '0')}`;
-  }
-
-  // Weekly schedule (if weekday is specified)
-  if (
-    day === '*' &&
-    month === '*' &&
-    weekday !== '*' &&
-    weekday !== '0-6' &&
-    weekday !== '*'
-  ) {
-    // Convert comma-separated weekdays to Windows format
-    const weekdaysList = weekday.split(',');
-    const windowsDays = weekdaysList
-      .map((d) => {
-        const dayMap: Record<string, string> = {
-          '0': 'SUN',
-          '1': 'MON',
-          '2': 'TUE',
-          '3': 'WED',
-          '4': 'THU',
-          '5': 'FRI',
-          '6': 'SAT',
-        };
-        return dayMap[d] || 'SUN';
-      })
-      .join(',');
-
-    return `/sc weekly /d ${windowsDays} /st ${hour.padStart(
-      2,
-      '0'
-    )}:${minute.padStart(2, '0')}`;
-  }
-
-  // Default to daily if we can't parse it properly
-  console.log(
-    chalk.yellow(
-      `⚠️  Complex cron schedule "${cronSchedule}" converted to daily at specified time.`
-    )
-  );
-  return `/sc daily /st ${hour.padStart(2, '0')}:${minute.padStart(2, '0')}`;
-}
 
 /**
  * Install or update Windows Task Scheduler entries
@@ -276,7 +139,10 @@ async function installWindowsScheduling(): Promise<void> {
 
     for (const [index, repo] of scheduledRepos.entries()) {
       try {
-        const schedule = convertCronToWindowsSchedule(repo.cronSchedule!);
+        const { schedule, warning } = convertCronToWindowsSchedule(repo.cronSchedule!);
+        if (warning) {
+          console.log(chalk.yellow(`⚠️  ${warning}`));
+        }
         const taskName = `BragDoc-Extract-${index + 1}`;
 
         await execAsync(
@@ -310,7 +176,10 @@ async function installWindowsScheduling(): Promise<void> {
         standup.cronSchedule
       ) {
         try {
-          const schedule = convertCronToWindowsSchedule(standup.cronSchedule);
+          const { schedule, warning } = convertCronToWindowsSchedule(standup.cronSchedule);
+          if (warning) {
+            console.log(chalk.yellow(`⚠️  ${warning}`));
+          }
           const taskName = `BragDoc-Standup-${
             standup.name?.replace(/\s/g, '-') || index + 1
           }`;

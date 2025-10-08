@@ -15,8 +15,12 @@ import { resolve } from 'node:path';
 import { exec } from 'node:child_process';
 import { promisify } from 'node:util';
 import { getRepositoryInfo, getRepositoryName } from '../git/operations';
-import { createApiClient, UnauthenticatedError } from '../api/client';
-import logger from '../utils/logger';
+import {
+  checkExistingCrontab,
+  getCleanedCrontab,
+  convertCronToWindowsSchedule,
+} from '../lib/scheduling';
+import { syncProjectWithApi as syncProjectWithApiLib } from '../lib/projects';
 
 const execAsync = promisify(exec);
 
@@ -33,90 +37,25 @@ export function normalizeRepoPath(path: string): string {
  */
 async function syncProjectWithApi(
   repoPath: string,
-  repoName: string,
+  repoName: string
 ): Promise<string | undefined> {
-  try {
-    // Get repository info
-    const repoInfo = getRepositoryInfo(repoPath);
-    const remoteUrl = repoInfo.remoteUrl;
+  const result = await syncProjectWithApiLib(repoPath, repoName);
 
-    logger.debug('Repository info:', {
-      path: repoPath,
-      remoteUrl,
-      name: repoName,
-    });
-
-    // Create API client
-    const apiClient = await createApiClient();
-
-    if (!apiClient.isAuthenticated()) {
-      logger.debug('User not authenticated, skipping project sync');
-      console.log(
-        chalk.yellow(
-          '⚠️  Not logged in. Run `bragdoc login` to sync with the web app.',
-        ),
-      );
-      return undefined;
+  // Display message based on result
+  if (result.type === 'warning') {
+    console.log(chalk.yellow(`⚠️  ${result.message}`));
+  } else if (result.type === 'error') {
+    console.error(chalk.red(result.message));
+  } else if (result.type === 'success') {
+    if (result.existed) {
+      console.log(chalk.green(`✓ ${result.message}`));
+    } else {
+      console.log(chalk.blue('Creating new project in the web app...'));
+      console.log(chalk.green(`✓ ${result.message}`));
     }
-
-    // Get all user projects
-    logger.debug('Fetching projects from API...');
-    interface Project {
-      id: string;
-      name: string;
-      repoRemoteUrl?: string | null;
-    }
-    const projects = await apiClient.get<Project[]>('/api/projects');
-
-    // Find project by remoteUrl
-    const existingProject = projects.find((p) => p.repoRemoteUrl === remoteUrl);
-
-    if (existingProject) {
-      logger.debug('Found existing project:', existingProject.id);
-      console.log(
-        chalk.green(
-          `✓ Found existing project: ${existingProject.name} (${existingProject.id})`,
-        ),
-      );
-      return existingProject.id;
-    }
-
-    // Create new project
-    logger.debug('Creating new project...');
-    console.log(chalk.blue('Creating new project in the web app...'));
-
-    const newProject = await apiClient.post<Project>('/api/projects', {
-      name: repoName,
-      repoRemoteUrl: remoteUrl,
-      status: 'active',
-      startDate: new Date().toISOString(),
-    });
-
-    logger.debug('Created project:', newProject.id);
-    console.log(
-      chalk.green(`✓ Created project: ${newProject.name} (${newProject.id})`),
-    );
-
-    return newProject.id;
-  } catch (error) {
-    if (error instanceof UnauthenticatedError) {
-      console.log(
-        chalk.yellow(
-          '⚠️  Authentication required. Run `bragdoc login` to sync with the web app.',
-        ),
-      );
-      return undefined;
-    }
-
-    // Log error but don't fail the whole operation
-    logger.error('Failed to sync project with API:', error);
-    console.log(
-      chalk.yellow(
-        '⚠️  Could not sync with the web app. Repository added locally.',
-      ),
-    );
-    return undefined;
   }
+
+  return result.projectId;
 }
 
 /**
@@ -209,6 +148,114 @@ export async function promptForCronSchedule(): Promise<string | null> {
 }
 
 /**
+ * Install system-level crontab entries (project extractions only)
+ */
+async function installSystemCrontab(): Promise<void> {
+  try {
+    const config = await loadConfig();
+    const scheduledRepos = config.projects.filter(
+      (r) => r.enabled && r.cronSchedule
+    );
+
+    if (scheduledRepos.length === 0) {
+      console.log(chalk.yellow('No scheduled projects to install.'));
+      return;
+    }
+
+    // Get cleaned crontab (without BragDoc entries)
+    const existingCrontab = await getCleanedCrontab();
+
+    // Generate new crontab entries
+    const bragdocPath = process.argv[1];
+    const nodePath = process.execPath;
+    let newEntries = '\n# BragDoc automatic extractions\n';
+
+    const logFile = '~/.bragdoc/logs/combined.log';
+    for (const repo of scheduledRepos) {
+      newEntries += `${repo.cronSchedule} mkdir -p ~/.bragdoc/logs && cd "${repo.path}" && "${nodePath}" "${bragdocPath}" extract >> ${logFile} 2>&1\n`;
+    }
+
+    // Create new crontab content
+    const newCrontab = existingCrontab + newEntries;
+
+    // Install new crontab
+    await execAsync(`echo '${newCrontab.replace(/'/g, "'\\''")}' | crontab -`);
+
+    console.log(chalk.green('✓ System scheduling installed successfully!'));
+    console.log(
+      chalk.blue(
+        `📅 Added ${scheduledRepos.length} automatic extraction schedules.`
+      )
+    );
+    console.log(
+      chalk.blue('💡 Run `crontab -l` to view your installed schedules.')
+    );
+  } catch (error: any) {
+    console.error(
+      chalk.red('Failed to install crontab entries:'),
+      error.message
+    );
+    console.log(
+      chalk.blue(
+        '💡 You can manually run `bragdoc install crontab` to try again.'
+      )
+    );
+  }
+}
+
+/**
+ * Install Windows Task Scheduler entries (project extractions only)
+ */
+async function installWindowsScheduling(): Promise<void> {
+  try {
+    const config = await loadConfig();
+    const scheduledRepos = config.projects.filter(
+      (r) => r.enabled && r.cronSchedule
+    );
+
+    if (scheduledRepos.length === 0) {
+      console.log(chalk.yellow('No scheduled projects to install.'));
+      return;
+    }
+
+    const bragdocPath = process.argv[1].replace(/\\/g, '\\\\');
+    const logFile = '%USERPROFILE%\\.bragdoc\\logs\\combined.log';
+
+    for (const [index, repo] of scheduledRepos.entries()) {
+      try {
+        const { schedule, warning } = convertCronToWindowsSchedule(repo.cronSchedule!);
+        if (warning) {
+          console.log(chalk.yellow(`⚠️  ${warning}`));
+        }
+        const taskName = `BragDoc-Extract-${index + 1}`;
+
+        await execAsync(
+          `schtasks /delete /tn "${taskName}" /f 2>nul || exit 0`
+        );
+
+        const command = `schtasks /create /tn "${taskName}" /tr "cmd /c if not exist \\"%USERPROFILE%\\.bragdoc\\logs\\" mkdir \\"%USERPROFILE%\\.bragdoc\\logs\\" && cd /d \\"${repo.path}\\" && node \\"${bragdocPath}\\" extract >> \\"${logFile}\\" 2>&1" ${schedule}`;
+
+        await execAsync(command);
+        console.log(
+          chalk.green(`✓ Created task: ${taskName} for ${repo.path}`)
+        );
+      } catch (error: any) {
+        console.error(
+          chalk.red(`Failed to create task for ${repo.path}:`, error.message)
+        );
+      }
+    }
+
+    console.log(chalk.green('✓ Windows Task Scheduler setup completed!'));
+    console.log(
+      chalk.blue('💡 Run `schtasks /query /tn BragDoc*` to view your tasks.')
+    );
+  } catch (error: any) {
+    console.error(chalk.red('Failed to install Windows tasks:'), error.message);
+  }
+}
+
+/**
  * Ensure system-level scheduling is set up for automatic extractions
  */
 async function ensureSystemScheduling(): Promise<void> {
@@ -270,220 +317,6 @@ async function ensureSystemScheduling(): Promise<void> {
 /**
  * Check if crontab already has bragdoc entries
  */
-async function checkExistingCrontab(): Promise<boolean> {
-  try {
-    const { stdout } = await execAsync('crontab -l 2>/dev/null || true');
-    return stdout.includes('bragdoc extract');
-  } catch {
-    return false;
-  }
-}
-
-/**
- * Install system-level crontab entries
- */
-async function installSystemCrontab(): Promise<void> {
-  try {
-    const config = await loadConfig();
-    const scheduledRepos = config.projects.filter(
-      (r) => r.enabled && r.cronSchedule,
-    );
-
-    if (scheduledRepos.length === 0) {
-      console.log(chalk.yellow('No scheduled repositories to install.'));
-      return;
-    }
-
-    // Get current crontab and remove existing BragDoc entries
-    let existingCrontab = '';
-    try {
-      const { stdout } = await execAsync('crontab -l 2>/dev/null || true');
-      // Remove all existing BragDoc entries (lines between "# BragDoc automatic extractions" and next comment or end)
-      const lines = stdout.split('\n');
-      const filteredLines = [];
-      let skipBragDocSection = false;
-
-      for (const line of lines) {
-        if (line.trim() === '# BragDoc automatic extractions') {
-          skipBragDocSection = true;
-          continue;
-        }
-        if (
-          skipBragDocSection &&
-          (line.startsWith('#') || line.trim() === '')
-        ) {
-          if (line.startsWith('#') && !line.includes('BragDoc')) {
-            skipBragDocSection = false;
-            filteredLines.push(line);
-          }
-          continue;
-        }
-        if (skipBragDocSection && line.trim() !== '') {
-          continue; // Skip BragDoc cron entries
-        }
-        if (!skipBragDocSection) {
-          filteredLines.push(line);
-        }
-      }
-
-      existingCrontab = filteredLines.join('\n').replace(/\n+$/, ''); // Remove trailing newlines
-      if (existingCrontab && !existingCrontab.endsWith('\n')) {
-        existingCrontab += '\n';
-      }
-    } catch {
-      // No existing crontab, that's fine
-    }
-
-    // Generate new crontab entries
-    const bragdocPath = process.argv[1];
-    const nodePath = process.execPath; // Full path to node executable
-    let newEntries = '\n# BragDoc automatic extractions\n';
-
-    const logFile = '~/.bragdoc/logs/combined.log';
-    for (const repo of scheduledRepos) {
-      newEntries += `${repo.cronSchedule} mkdir -p ~/.bragdoc/logs && cd "${repo.path}" && "${nodePath}" "${bragdocPath}" extract >> ${logFile} 2>&1\n`;
-    }
-
-    // Create new crontab content
-    const newCrontab = existingCrontab + newEntries;
-
-    // Install new crontab
-    await execAsync(`echo '${newCrontab.replace(/'/g, "'\\''")}' | crontab -`);
-
-    console.log(chalk.green('✓ System scheduling installed successfully!'));
-    console.log(
-      chalk.blue(
-        `📅 Added ${scheduledRepos.length} automatic extraction schedules.`,
-      ),
-    );
-    console.log(
-      chalk.blue('💡 Run `crontab -l` to view your installed schedules.'),
-    );
-  } catch (error: any) {
-    console.error(
-      chalk.red('Failed to install crontab entries:'),
-      error.message,
-    );
-    console.log(
-      chalk.blue(
-        '💡 You can manually run `bragdoc install crontab` to try again.',
-      ),
-    );
-  }
-}
-
-/**
- * Install Windows Task Scheduler entries (simplified version for repos add)
- */
-async function installWindowsScheduling(): Promise<void> {
-  try {
-    const config = await loadConfig();
-    const scheduledRepos = config.projects.filter(
-      (r) => r.enabled && r.cronSchedule,
-    );
-
-    if (scheduledRepos.length === 0) {
-      console.log(chalk.yellow('No scheduled repositories to install.'));
-      return;
-    }
-
-    const bragdocPath = process.argv[1].replace(/\\/g, '\\\\');
-
-    for (const [index, repo] of scheduledRepos.entries()) {
-      try {
-        // Convert cron schedule to Windows Task Scheduler format
-        const schedule = convertCronToWindowsSchedule(repo.cronSchedule!);
-        const taskName = `BragDoc-Extract-${index + 1}`;
-
-        // Delete existing task if it exists
-        await execAsync(
-          `schtasks /delete /tn "${taskName}" /f 2>nul || exit 0`,
-        );
-
-        // Create new task with logging
-        const logFile = '%USERPROFILE%\\.bragdoc\\logs\\combined.log';
-        const command = `schtasks /create /tn "${taskName}" /tr "cmd /c if not exist \\"%USERPROFILE%\\.bragdoc\\logs\\" mkdir \\"%USERPROFILE%\\.bragdoc\\logs\\" && cd /d \\"${repo.path}\\" && node \\"${bragdocPath}\\" extract >> \\"${logFile}\\" 2>&1" ${schedule}`;
-
-        await execAsync(command);
-        console.log(
-          chalk.green(`✓ Created task: ${taskName} for ${repo.path}`),
-        );
-      } catch (error: any) {
-        console.error(
-          chalk.red(`Failed to create task for ${repo.path}:`, error.message),
-        );
-      }
-    }
-
-    console.log(chalk.green('✓ Windows Task Scheduler setup completed!'));
-    console.log(chalk.blue('📅 Your automatic extractions are now active.'));
-    console.log(
-      chalk.blue('💡 Run `schtasks /query /tn BragDoc*` to view your tasks.'),
-    );
-  } catch (error: any) {
-    console.error(chalk.red('Failed to install Windows tasks:'), error.message);
-    console.log(
-      chalk.blue(
-        '💡 You can manually run `bragdoc install windows` to try again.',
-      ),
-    );
-  }
-}
-
-/**
- * Convert cron schedule to Windows Task Scheduler parameters (duplicate from install.ts)
- */
-function convertCronToWindowsSchedule(cronSchedule: string): string {
-  const [minute, hour, day, month, weekday] = cronSchedule.split(' ');
-
-  // Daily schedule (most common case)
-  if (day === '*' && month === '*' && weekday === '*' && hour !== '*') {
-    return `/sc daily /st ${hour.padStart(2, '0')}:${minute.padStart(2, '0')}`;
-  }
-
-  // Hourly schedule
-  if (hour === '*' && day === '*' && month === '*' && weekday === '*') {
-    return `/sc hourly /mo 1 /st 00:${minute.padStart(2, '0')}`;
-  }
-
-  // Weekly schedule (if weekday is specified)
-  if (
-    day === '*' &&
-    month === '*' &&
-    weekday !== '*' &&
-    weekday !== '0-6' &&
-    weekday !== '*'
-  ) {
-    const windowsDay = convertCronDayToWindows(weekday);
-    return `/sc weekly /d ${windowsDay} /st ${hour.padStart(2, '0')}:${minute.padStart(2, '0')}`;
-  }
-
-  // Default to daily if we can't parse it properly
-  console.log(
-    chalk.yellow(
-      `⚠️  Complex cron schedule "${cronSchedule}" converted to daily at midnight.`,
-    ),
-  );
-  return '/sc daily /st 00:00';
-}
-
-/**
- * Convert cron day number to Windows day name (duplicate from install.ts)
- */
-function convertCronDayToWindows(cronDay: string): string {
-  const dayMap: Record<string, string> = {
-    '0': 'SUN',
-    '7': 'SUN', // Sunday
-    '1': 'MON',
-    '2': 'TUE',
-    '3': 'WED',
-    '4': 'THU',
-    '5': 'FRI',
-    '6': 'SAT',
-  };
-  return dayMap[cronDay] || 'SUN';
-}
-
 export const projectsCommand = new Command('projects')
   .description('Manage projects for bragdoc')
   .addCommand(
