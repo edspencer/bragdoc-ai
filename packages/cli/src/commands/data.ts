@@ -33,7 +33,7 @@ async function fetchAllData() {
     if (error instanceof UnauthenticatedError) {
       console.log(chalk.yellow('⚠️  Not logged in.'));
       console.log(
-        chalk.blue('💡 Run `bragdoc login` to authenticate with the web app.')
+        chalk.blue('💡 Run `bragdoc login` to authenticate with the web app.'),
       );
       return;
     }
@@ -52,20 +52,20 @@ async function fetchCompaniesData() {
     await fetchCompanies({ force: true });
 
     console.log(
-      chalk.green('✓ Successfully fetched and cached companies data')
+      chalk.green('✓ Successfully fetched and cached companies data'),
     );
   } catch (error) {
     if (error instanceof UnauthenticatedError) {
       console.log(chalk.yellow('⚠️  Not logged in.'));
       console.log(
-        chalk.blue('💡 Run `bragdoc login` to authenticate with the web app.')
+        chalk.blue('💡 Run `bragdoc login` to authenticate with the web app.'),
       );
       return;
     }
     logger.error('Error fetching companies:', error);
     console.error(
       chalk.red('Failed to fetch companies:'),
-      (error as Error).message
+      (error as Error).message,
     );
   }
 }
@@ -84,14 +84,14 @@ async function fetchProjectsData() {
     if (error instanceof UnauthenticatedError) {
       console.log(chalk.yellow('⚠️  Not logged in.'));
       console.log(
-        chalk.blue('💡 Run `bragdoc login` to authenticate with the web app.')
+        chalk.blue('💡 Run `bragdoc login` to authenticate with the web app.'),
       );
       return;
     }
     logger.error('Error fetching projects:', error);
     console.error(
       chalk.red('Failed to fetch projects:'),
-      (error as Error).message
+      (error as Error).message,
     );
   }
 }
@@ -110,14 +110,14 @@ async function fetchStandupsData() {
     if (error instanceof UnauthenticatedError) {
       console.log(chalk.yellow('⚠️  Not logged in.'));
       console.log(
-        chalk.blue('💡 Run `bragdoc login` to authenticate with the web app.')
+        chalk.blue('💡 Run `bragdoc login` to authenticate with the web app.'),
       );
       return;
     }
     logger.error('Error fetching standups:', error);
     console.error(
       chalk.red('Failed to fetch standups:'),
-      (error as Error).message
+      (error as Error).message,
     );
   }
 }
@@ -152,7 +152,7 @@ async function clearDataCache() {
     logger.error('Error clearing data cache:', error);
     console.error(
       chalk.red('Failed to clear cache:'),
-      (error as Error).message
+      (error as Error).message,
     );
   }
 }
@@ -163,10 +163,10 @@ export const dataCommand = new Command('data')
   .addCommand(
     new Command('fetch')
       .description('Fetch all data from API')
-      .action(fetchAllData)
+      .action(fetchAllData),
   )
   .addCommand(
     new Command('clear')
       .description('Clear local data cache')
-      .action(clearDataCache)
+      .action(clearDataCache),
   );

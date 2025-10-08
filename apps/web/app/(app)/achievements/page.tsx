@@ -264,7 +264,7 @@ export default function AchievementsPage() {
         open={generateDialogOpen}
         onOpenChange={setGenerateDialogOpen}
         selectedAchievements={achievements.filter((a) =>
-          selectedAchievements.includes(a.id)
+          selectedAchievements.includes(a.id),
         )}
       />
     </AppPage>

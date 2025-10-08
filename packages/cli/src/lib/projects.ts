@@ -22,7 +22,7 @@ interface ApiProject {
  */
 export async function syncProjectWithApi(
   repoPath: string,
-  repoName: string
+  repoName: string,
 ): Promise<SyncResult> {
   try {
     // Get repository info

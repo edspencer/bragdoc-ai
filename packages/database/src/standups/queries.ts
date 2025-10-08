@@ -324,7 +324,10 @@ export async function getRecentAchievementsForStandup(
     // Filter by company or projects
     if (standupConfig.companyId) {
       conditions.push(eq(achievement.companyId, standupConfig.companyId));
-    } else if (standupConfig.projectIds && standupConfig.projectIds.length > 0) {
+    } else if (
+      standupConfig.projectIds &&
+      standupConfig.projectIds.length > 0
+    ) {
       // For project filtering, we need to use SQL's IN operator
       // This is a bit complex with drizzle, so we'll use a workaround
       // We'll fetch all and filter in memory (for now)

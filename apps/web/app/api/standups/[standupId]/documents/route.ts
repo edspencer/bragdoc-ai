@@ -1,10 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getAuthUser } from '@/lib/getAuthUser';
-import { getStandupById, getStandupDocumentsByStandupId } from '@bragdoc/database';
+import {
+  getStandupById,
+  getStandupDocumentsByStandupId,
+} from '@bragdoc/database';
 
 export async function GET(
   req: NextRequest,
-  props: { params: Promise<{ standupId: string }> }
+  props: { params: Promise<{ standupId: string }> },
 ) {
   const params = await props.params;
   const { standupId } = params;
@@ -35,7 +38,7 @@ export async function GET(
     console.error('Error fetching standup documents:', error);
     return NextResponse.json(
       { error: 'Failed to fetch documents' },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

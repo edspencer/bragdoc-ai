@@ -43,7 +43,7 @@ export function computeNextRunUTC(
     const bit = Weekday[key];
 
     // Check if this day is enabled and the time is in the future
-    if ((daysMask & bit) && (i > 0 || isAfter(candidate, local))) {
+    if (daysMask & bit && (i > 0 || isAfter(candidate, local))) {
       return fromZonedTime(candidate, tz);
     }
   }
@@ -109,7 +109,7 @@ export function computePreviousRunUTC(
     const bit = Weekday[key];
 
     // Check if this day is enabled and the time is in the past
-    if ((daysMask & bit) && (i > 0 || !isAfter(candidate, local))) {
+    if (daysMask & bit && (i > 0 || !isAfter(candidate, local))) {
       return fromZonedTime(candidate, tz);
     }
   }

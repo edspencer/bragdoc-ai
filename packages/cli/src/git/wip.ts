@@ -77,7 +77,7 @@ export function extractWip(repositoryPath = '.'): WipInfo {
 function generateSimpleSummary(
   modifiedFiles: string[],
   untrackedFiles: string[],
-  diff: string
+  diff: string,
 ): string {
   const parts: string[] = [];
 

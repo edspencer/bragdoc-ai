@@ -144,7 +144,7 @@ export const achievement = pgTable(
       .default('manual'),
     impact: integer('impact').default(2),
     impactSource: varchar('impact_source', { enum: ['user', 'llm'] }).default(
-      'llm'
+      'llm',
     ),
     impactUpdatedAt: timestamp('impact_updated_at').defaultNow(),
     createdAt: timestamp('created_at').notNull().defaultNow(),
@@ -161,7 +161,7 @@ export const achievement = pgTable(
         },
       },
     };
-  }
+  },
 );
 
 export type Achievement = InferSelectModel<typeof achievement>;
@@ -207,7 +207,7 @@ export const vote = pgTable(
     return {
       pk: primaryKey({ columns: [table.chatId, table.messageId] }),
     };
-  }
+  },
 );
 
 export type Vote = InferSelectModel<typeof vote>;
@@ -241,7 +241,7 @@ export const document = pgTable(
         },
       },
     };
-  }
+  },
 );
 
 export type Document = InferSelectModel<typeof document>;
@@ -267,7 +267,7 @@ export const suggestion = pgTable(
         columns: [table.id, table.documentId, table.documentCreatedAt],
       }),
     };
-  }
+  },
 );
 
 export type Suggestion = InferSelectModel<typeof suggestion>;
@@ -352,9 +352,9 @@ export const githubPullRequest = pgTable(
   (table) => ({
     repoAndPrUnique: uniqueIndex('repo_pr_unique').on(
       table.repositoryId,
-      table.prNumber
+      table.prNumber,
     ),
-  })
+  }),
 );
 
 export type GitHubPullRequest = InferSelectModel<typeof githubPullRequest>;
@@ -379,7 +379,7 @@ export const account = pgTable(
   },
   (table) => ({
     pk: primaryKey({ columns: [table.provider, table.providerAccountId] }),
-  })
+  }),
 );
 
 export const session = pgTable('Session', {
@@ -399,7 +399,7 @@ export const verificationToken = pgTable(
   },
   (table) => ({
     pk: primaryKey({ columns: [table.identifier, table.token] }),
-  })
+  }),
 );
 
 export type Account = InferSelectModel<typeof account>;

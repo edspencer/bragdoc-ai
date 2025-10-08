@@ -16,7 +16,7 @@ export interface TokenResponse {
 export async function startAuthServer(
   state: string,
   deviceName: string,
-  apiUrl: string
+  apiUrl: string,
 ): Promise<TokenResponse> {
   return new Promise((resolve, reject) => {
     logger.debug('Starting local server...');

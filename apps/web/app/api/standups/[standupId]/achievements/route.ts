@@ -1,10 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getAuthUser } from '@/lib/getAuthUser';
-import { getStandupById, getRecentAchievementsForStandup } from '@bragdoc/database';
+import {
+  getStandupById,
+  getRecentAchievementsForStandup,
+} from '@bragdoc/database';
 
 export async function GET(
   req: NextRequest,
-  props: { params: Promise<{ standupId: string }> }
+  props: { params: Promise<{ standupId: string }> },
 ) {
   const params = await props.params;
   const { standupId } = params;
@@ -32,17 +35,14 @@ export async function GET(
     since.setDate(since.getDate() - days);
 
     // Get achievements
-    const achievements = await getRecentAchievementsForStandup(
-      standup,
-      since
-    );
+    const achievements = await getRecentAchievementsForStandup(standup, since);
 
     return NextResponse.json(achievements);
   } catch (error) {
     console.error('Error fetching standup achievements:', error);
     return NextResponse.json(
       { error: 'Failed to fetch achievements' },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

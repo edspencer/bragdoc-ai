@@ -66,13 +66,18 @@ export function CompanyProjectSelector({
         return project?.name || 'All Projects';
       }
       // Multiple projects selected
-      const selectedProjects = projects.filter((p) => selectedProjectIds.includes(p.id));
+      const selectedProjects = projects.filter((p) =>
+        selectedProjectIds.includes(p.id),
+      );
       if (selectedProjects.length <= 3) {
         // Show all names if 3 or fewer
         return selectedProjects.map((p) => p.name).join(', ');
       }
       // Show first 2 names and count of remaining
-      const firstTwo = selectedProjects.slice(0, 2).map((p) => p.name).join(', ');
+      const firstTwo = selectedProjects
+        .slice(0, 2)
+        .map((p) => p.name)
+        .join(', ');
       const remaining = selectedProjects.length - 2;
       return `${firstTwo} and ${remaining} more Projects`;
     }
@@ -126,7 +131,9 @@ export function CompanyProjectSelector({
                       <div key={company.id} className="flex items-center gap-2">
                         <Checkbox
                           checked={selectedCompanyId === company.id}
-                          onCheckedChange={() => handleCompanyToggle(company.id)}
+                          onCheckedChange={() =>
+                            handleCompanyToggle(company.id)
+                          }
                         />
                         <label
                           className="text-sm cursor-pointer flex-1"
@@ -153,7 +160,9 @@ export function CompanyProjectSelector({
                       <div key={project.id} className="flex items-center gap-2">
                         <Checkbox
                           checked={selectedProjectIds.includes(project.id)}
-                          onCheckedChange={() => handleProjectToggle(project.id)}
+                          onCheckedChange={() =>
+                            handleProjectToggle(project.id)
+                          }
                         />
                         <label
                           className="text-sm cursor-pointer flex-1"

@@ -9,7 +9,7 @@ const execAsync = promisify(exec);
  */
 export function calculateStandupCronSchedule(
   meetingTime: string,
-  daysMask: number
+  daysMask: number,
 ): string {
   // Parse meeting time (HH:MM format)
   const [hoursStr, minsStr] = meetingTime.split(':');
@@ -102,7 +102,9 @@ export async function getCleanedCrontab(): Promise<string> {
 export async function checkExistingCrontab(): Promise<boolean> {
   try {
     const { stdout } = await execAsync('crontab -l 2>/dev/null || true');
-    return stdout.includes('bragdoc extract') || stdout.includes('bragdoc standup');
+    return (
+      stdout.includes('bragdoc extract') || stdout.includes('bragdoc standup')
+    );
   } catch {
     return false;
   }
@@ -150,12 +152,7 @@ export function convertCronToWindowsSchedule(cronSchedule: string): {
   }
 
   // Weekly schedule (if weekday is specified)
-  if (
-    day === '*' &&
-    month === '*' &&
-    weekday !== '*' &&
-    weekday !== '0-6'
-  ) {
+  if (day === '*' && month === '*' && weekday !== '*' && weekday !== '0-6') {
     // Convert comma-separated weekdays to Windows format
     const weekdaysList = weekday.split(',');
     const windowsDays = weekdaysList

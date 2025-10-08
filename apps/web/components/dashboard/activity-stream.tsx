@@ -91,7 +91,7 @@ export function ActivityStream({ achievements }: ActivityStreamProps) {
                             new Date(achievement.eventStart),
                             {
                               addSuffix: true,
-                            }
+                            },
                           )}
                         </div>
                       )}

@@ -17,7 +17,7 @@ import { createApiClient } from '../api/client';
  */
 export async function extractAchievementsFromProject(
   projectPath: string,
-  options?: { maxCommits?: number; dryRun?: boolean }
+  options?: { maxCommits?: number; dryRun?: boolean },
 ): Promise<{ success: boolean; count?: number; error?: Error }> {
   try {
     const config = await loadConfig();
@@ -30,7 +30,7 @@ export async function extractAchievementsFromProject(
     // Check token expiration
     if (config.auth.expiresAt && config.auth.expiresAt < Date.now()) {
       throw new Error(
-        'Authentication token has expired. Please run "bragdoc login" to get a new token.'
+        'Authentication token has expired. Please run "bragdoc login" to get a new token.',
       );
     }
 
@@ -45,7 +45,7 @@ export async function extractAchievementsFromProject(
       (p) =>
         p.path === projectPath ||
         p.path === repoInfo.path ||
-        repoInfo.path.startsWith(p.path)
+        repoInfo.path.startsWith(p.path),
     );
 
     if (!repoConfig?.id) {
@@ -111,7 +111,7 @@ export async function extractAchievementsFromProject(
       uncachedCommits,
       batchConfig,
       extractionContext,
-      apiClient
+      apiClient,
     )) {
       // Add successfully processed commits to cache
       const processedHashes = uncachedCommits

@@ -37,7 +37,7 @@ export function normalizeRepoPath(path: string): string {
  */
 async function syncProjectWithApi(
   repoPath: string,
-  repoName: string
+  repoName: string,
 ): Promise<string | undefined> {
   const result = await syncProjectWithApiLib(repoPath, repoName);
 
@@ -154,7 +154,7 @@ async function installSystemCrontab(): Promise<void> {
   try {
     const config = await loadConfig();
     const scheduledRepos = config.projects.filter(
-      (r) => r.enabled && r.cronSchedule
+      (r) => r.enabled && r.cronSchedule,
     );
 
     if (scheduledRepos.length === 0) {
@@ -184,21 +184,21 @@ async function installSystemCrontab(): Promise<void> {
     console.log(chalk.green('✓ System scheduling installed successfully!'));
     console.log(
       chalk.blue(
-        `📅 Added ${scheduledRepos.length} automatic extraction schedules.`
-      )
+        `📅 Added ${scheduledRepos.length} automatic extraction schedules.`,
+      ),
     );
     console.log(
-      chalk.blue('💡 Run `crontab -l` to view your installed schedules.')
+      chalk.blue('💡 Run `crontab -l` to view your installed schedules.'),
     );
   } catch (error: any) {
     console.error(
       chalk.red('Failed to install crontab entries:'),
-      error.message
+      error.message,
     );
     console.log(
       chalk.blue(
-        '💡 You can manually run `bragdoc install crontab` to try again.'
-      )
+        '💡 You can manually run `bragdoc install crontab` to try again.',
+      ),
     );
   }
 }
@@ -210,7 +210,7 @@ async function installWindowsScheduling(): Promise<void> {
   try {
     const config = await loadConfig();
     const scheduledRepos = config.projects.filter(
-      (r) => r.enabled && r.cronSchedule
+      (r) => r.enabled && r.cronSchedule,
     );
 
     if (scheduledRepos.length === 0) {
@@ -223,32 +223,34 @@ async function installWindowsScheduling(): Promise<void> {
 
     for (const [index, repo] of scheduledRepos.entries()) {
       try {
-        const { schedule, warning } = convertCronToWindowsSchedule(repo.cronSchedule!);
+        const { schedule, warning } = convertCronToWindowsSchedule(
+          repo.cronSchedule!,
+        );
         if (warning) {
           console.log(chalk.yellow(`⚠️  ${warning}`));
         }
         const taskName = `BragDoc-Extract-${index + 1}`;
 
         await execAsync(
-          `schtasks /delete /tn "${taskName}" /f 2>nul || exit 0`
+          `schtasks /delete /tn "${taskName}" /f 2>nul || exit 0`,
         );
 
         const command = `schtasks /create /tn "${taskName}" /tr "cmd /c if not exist \\"%USERPROFILE%\\.bragdoc\\logs\\" mkdir \\"%USERPROFILE%\\.bragdoc\\logs\\" && cd /d \\"${repo.path}\\" && node \\"${bragdocPath}\\" extract >> \\"${logFile}\\" 2>&1" ${schedule}`;
 
         await execAsync(command);
         console.log(
-          chalk.green(`✓ Created task: ${taskName} for ${repo.path}`)
+          chalk.green(`✓ Created task: ${taskName} for ${repo.path}`),
         );
       } catch (error: any) {
         console.error(
-          chalk.red(`Failed to create task for ${repo.path}:`, error.message)
+          chalk.red(`Failed to create task for ${repo.path}:`, error.message),
         );
       }
     }
 
     console.log(chalk.green('✓ Windows Task Scheduler setup completed!'));
     console.log(
-      chalk.blue('💡 Run `schtasks /query /tn BragDoc*` to view your tasks.')
+      chalk.blue('💡 Run `schtasks /query /tn BragDoc*` to view your tasks.'),
     );
   } catch (error: any) {
     console.error(chalk.red('Failed to install Windows tasks:'), error.message);

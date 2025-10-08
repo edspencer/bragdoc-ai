@@ -1,26 +1,37 @@
-"use client"
-import { IconCalendar, IconEye } from "@tabler/icons-react"
-import { format } from "date-fns"
+'use client';
+import { IconCalendar, IconEye } from '@tabler/icons-react';
+import { format } from 'date-fns';
 
-import { Button } from "components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle } from "components/ui/card"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "components/ui/table"
+import { Button } from 'components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from 'components/ui/card';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from 'components/ui/table';
 
 interface StandupDocument {
-  id: string
-  date: Date
-  quickSummary: string | null
-  achievementsSummary: string | null
-  wip: string | null
+  id: string;
+  date: Date;
+  quickSummary: string | null;
+  achievementsSummary: string | null;
+  wip: string | null;
 }
 
 interface RecentUpdatesTableProps {
-  documents: StandupDocument[]
-  onViewDocument: (document: StandupDocument) => void
-  isLoading?: boolean
+  documents: StandupDocument[];
+  onViewDocument: (document: StandupDocument) => void;
+  isLoading?: boolean;
 }
 
-export function RecentUpdatesTable({ documents, onViewDocument, isLoading = false }: RecentUpdatesTableProps) {
+export function RecentUpdatesTable({
+  documents,
+  onViewDocument,
+  isLoading = false,
+}: RecentUpdatesTableProps) {
   return (
     <Card>
       <CardHeader>
@@ -39,13 +50,19 @@ export function RecentUpdatesTable({ documents, onViewDocument, isLoading = fals
             <TableBody>
               {isLoading ? (
                 <TableRow>
-                  <TableCell colSpan={3} className="text-center text-muted-foreground py-8">
+                  <TableCell
+                    colSpan={3}
+                    className="text-center text-muted-foreground py-8"
+                  >
                     Loading updates...
                   </TableCell>
                 </TableRow>
               ) : documents.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={3} className="text-center text-muted-foreground py-8">
+                  <TableCell
+                    colSpan={3}
+                    className="text-center text-muted-foreground py-8"
+                  >
                     No standup updates yet
                   </TableCell>
                 </TableRow>
@@ -55,14 +72,22 @@ export function RecentUpdatesTable({ documents, onViewDocument, isLoading = fals
                     <TableCell>
                       <div className="flex items-center gap-2">
                         <IconCalendar className="size-4 text-muted-foreground" />
-                        <span className="text-sm font-medium">{format(doc.date, "MMM d, yyyy")}</span>
+                        <span className="text-sm font-medium">
+                          {format(doc.date, 'MMM d, yyyy')}
+                        </span>
                       </div>
                     </TableCell>
                     <TableCell>
-                      <div className="text-sm line-clamp-2">{doc.quickSummary || 'No summary'}</div>
+                      <div className="text-sm line-clamp-2">
+                        {doc.quickSummary || 'No summary'}
+                      </div>
                     </TableCell>
                     <TableCell>
-                      <Button variant="ghost" size="icon" onClick={() => onViewDocument(doc)}>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => onViewDocument(doc)}
+                      >
                         <IconEye className="size-4" />
                       </Button>
                     </TableCell>
@@ -74,5 +99,5 @@ export function RecentUpdatesTable({ documents, onViewDocument, isLoading = fals
         </div>
       </CardContent>
     </Card>
-  )
+  );
 }

@@ -29,7 +29,6 @@ interface Standup {
   enabled: boolean;
 }
 
-
 /**
  * Install or update system crontab entries (Unix/Linux/Mac)
  */
@@ -42,7 +41,7 @@ async function installSystemCrontab(): Promise<void> {
 
     // Generate repository extraction entries
     const scheduledRepos = config.projects.filter(
-      (r) => r.enabled && r.cronSchedule
+      (r) => r.enabled && r.cronSchedule,
     );
 
     const bragdocPath = process.argv[1];
@@ -63,7 +62,7 @@ async function installSystemCrontab(): Promise<void> {
     for (const standup of config.standups || []) {
       // Get all projects enrolled in this standup
       const enrolledProjects = config.projects.filter(
-        (p: Project) => p.standupId === standup.id
+        (p: Project) => p.standupId === standup.id,
       );
 
       // Only add cron entry if there are enrolled projects
@@ -89,15 +88,15 @@ async function installSystemCrontab(): Promise<void> {
     if (scheduledRepos.length > 0) {
       console.log(
         chalk.blue(
-          `📅 ${scheduledRepos.length} automatic extraction schedule(s) installed.`
-        )
+          `📅 ${scheduledRepos.length} automatic extraction schedule(s) installed.`,
+        ),
       );
     }
 
     // Count standups with enrolled projects
     const activeStandups = (config.standups || []).filter((s: any) => {
       const enrolledCount = config.projects.filter(
-        (p: Project) => p.standupId === s.id
+        (p: Project) => p.standupId === s.id,
       ).length;
       return enrolledCount > 0 && s.enabled && s.cronSchedule;
     });
@@ -105,23 +104,22 @@ async function installSystemCrontab(): Promise<void> {
     if (activeStandups.length > 0) {
       console.log(
         chalk.blue(
-          `📅 ${activeStandups.length} standup WIP extraction schedule(s) installed.`
-        )
+          `📅 ${activeStandups.length} standup WIP extraction schedule(s) installed.`,
+        ),
       );
     }
 
     console.log(
-      chalk.blue('💡 Run `crontab -l` to view your installed schedules.')
+      chalk.blue('💡 Run `crontab -l` to view your installed schedules.'),
     );
   } catch (error: any) {
     console.error(
       chalk.red('Failed to install crontab entries:'),
-      error.message
+      error.message,
     );
     throw error;
   }
 }
-
 
 /**
  * Install or update Windows Task Scheduler entries
@@ -134,30 +132,32 @@ async function installWindowsScheduling(): Promise<void> {
 
     // Install repository extraction tasks
     const scheduledRepos = config.projects.filter(
-      (r) => r.enabled && r.cronSchedule
+      (r) => r.enabled && r.cronSchedule,
     );
 
     for (const [index, repo] of scheduledRepos.entries()) {
       try {
-        const { schedule, warning } = convertCronToWindowsSchedule(repo.cronSchedule!);
+        const { schedule, warning } = convertCronToWindowsSchedule(
+          repo.cronSchedule!,
+        );
         if (warning) {
           console.log(chalk.yellow(`⚠️  ${warning}`));
         }
         const taskName = `BragDoc-Extract-${index + 1}`;
 
         await execAsync(
-          `schtasks /delete /tn "${taskName}" /f 2>nul || exit 0`
+          `schtasks /delete /tn "${taskName}" /f 2>nul || exit 0`,
         );
 
         const command = `schtasks /create /tn "${taskName}" /tr "cmd /c if not exist \\"%USERPROFILE%\\.bragdoc\\logs\\" mkdir \\"%USERPROFILE%\\.bragdoc\\logs\\" && cd /d \\"${repo.path}\\" && node \\"${bragdocPath}\\" extract >> \\"${logFile}\\" 2>&1" ${schedule}`;
 
         await execAsync(command);
         console.log(
-          chalk.green(`✓ Created task: ${taskName} for ${repo.path}`)
+          chalk.green(`✓ Created task: ${taskName} for ${repo.path}`),
         );
       } catch (error: any) {
         console.error(
-          chalk.red(`Failed to create task for ${repo.path}:`, error.message)
+          chalk.red(`Failed to create task for ${repo.path}:`, error.message),
         );
       }
     }
@@ -166,7 +166,7 @@ async function installWindowsScheduling(): Promise<void> {
     for (const [index, standup] of (config.standups || []).entries()) {
       // Get all projects enrolled in this standup
       const enrolledProjects = config.projects.filter(
-        (p: Project) => p.standupId === standup.id
+        (p: Project) => p.standupId === standup.id,
       );
 
       // Only add task if there are enrolled projects
@@ -176,7 +176,9 @@ async function installWindowsScheduling(): Promise<void> {
         standup.cronSchedule
       ) {
         try {
-          const { schedule, warning } = convertCronToWindowsSchedule(standup.cronSchedule);
+          const { schedule, warning } = convertCronToWindowsSchedule(
+            standup.cronSchedule,
+          );
           if (warning) {
             console.log(chalk.yellow(`⚠️  ${warning}`));
           }
@@ -185,7 +187,7 @@ async function installWindowsScheduling(): Promise<void> {
           }`;
 
           await execAsync(
-            `schtasks /delete /tn "${taskName}" /f 2>nul || exit 0`
+            `schtasks /delete /tn "${taskName}" /f 2>nul || exit 0`,
           );
 
           const command = `schtasks /create /tn "${taskName}" /tr "cmd /c if not exist \\"%USERPROFILE%\\.bragdoc\\logs\\" mkdir \\"%USERPROFILE%\\.bragdoc\\logs\\" && node \\"${bragdocPath}\\" standup wip --id ${standup.id} >> \\"${logFile}\\" 2>&1" ${schedule}`;
@@ -198,8 +200,8 @@ async function installWindowsScheduling(): Promise<void> {
               `Failed to create standup WIP task for ${
                 standup.name || standup.id
               }:`,
-              error.message
-            )
+              error.message,
+            ),
           );
         }
       }
@@ -207,7 +209,7 @@ async function installWindowsScheduling(): Promise<void> {
 
     console.log(chalk.green('✓ Windows Task Scheduler setup completed!'));
     console.log(
-      chalk.blue('💡 Run `schtasks /query /tn BragDoc*` to view your tasks.')
+      chalk.blue('💡 Run `schtasks /query /tn BragDoc*` to view your tasks.'),
     );
   } catch (error: any) {
     console.error(chalk.red('Failed to install Windows tasks:'), error.message);
@@ -221,7 +223,7 @@ async function installWindowsScheduling(): Promise<void> {
 async function enrollSingleProject(
   config: any,
   project: Project,
-  selectedStandup: Standup
+  selectedStandup: Standup,
 ): Promise<void> {
   // Check if project has no id field
   if (!project.id) {
@@ -233,7 +235,7 @@ async function enrollSingleProject(
   // Check if project already has this standupId
   if (project.standupId === selectedStandup.id) {
     console.log(
-      chalk.yellow('⚠️  This project is already enrolled in this standup')
+      chalk.yellow('⚠️  This project is already enrolled in this standup'),
     );
     const { reconfigure } = await inquirer.prompt([
       {
@@ -254,18 +256,18 @@ async function enrollSingleProject(
   // Calculate cron schedule
   const cronSchedule = calculateStandupCronSchedule(
     selectedStandup.meetingTime,
-    selectedStandup.daysMask
+    selectedStandup.daysMask,
   );
 
   console.log(
     chalk.blue(
-      `📅 WIP extraction will run ${describeCronSchedule(cronSchedule)}`
-    )
+      `📅 WIP extraction will run ${describeCronSchedule(cronSchedule)}`,
+    ),
   );
 
   // Check if standup config already exists
   let standupConfig = config.standups.find(
-    (s: any) => s.id === selectedStandup.id
+    (s: any) => s.id === selectedStandup.id,
   );
   if (!standupConfig) {
     standupConfig = {
@@ -295,7 +297,7 @@ async function enrollSingleProject(
   } catch (error: any) {
     console.error(
       chalk.red('Failed to set up automatic scheduling:'),
-      error.message
+      error.message,
     );
   }
 }
@@ -305,19 +307,19 @@ async function enrollSingleProject(
  */
 async function enrollMultipleProjects(
   config: any,
-  selectedStandup: Standup
+  selectedStandup: Standup,
 ): Promise<void> {
   // Get projects that could be enrolled
   const eligibleProjects = config.projects.filter(
-    (p: Project) => p.id && p.enabled
+    (p: Project) => p.id && p.enabled,
   );
 
   if (eligibleProjects.length === 0) {
     console.log(chalk.yellow('⚠️  No projects available to enroll'));
     console.log(
       chalk.blue(
-        '💡 Run `bragdoc projects add` in your project directories first'
-      )
+        '💡 Run `bragdoc projects add` in your project directories first',
+      ),
     );
     return;
   }
@@ -345,19 +347,19 @@ async function enrollMultipleProjects(
   // Calculate cron schedule
   const cronSchedule = calculateStandupCronSchedule(
     selectedStandup.meetingTime,
-    selectedStandup.daysMask
+    selectedStandup.daysMask,
   );
 
   console.log(
     chalk.blue(
-      `📅 WIP extraction will run ${describeCronSchedule(cronSchedule)}`
-    )
+      `📅 WIP extraction will run ${describeCronSchedule(cronSchedule)}`,
+    ),
   );
 
   // For each selected project path
   for (const projectPath of selectedProjects) {
     const project = config.projects.find(
-      (p: Project) => p.path === projectPath
+      (p: Project) => p.path === projectPath,
     );
     if (project) {
       project.standupId = selectedStandup.id;
@@ -366,7 +368,7 @@ async function enrollMultipleProjects(
 
   // Check if standup config exists, if not create it
   let standupConfig = config.standups.find(
-    (s: any) => s.id === selectedStandup.id
+    (s: any) => s.id === selectedStandup.id,
   );
   if (!standupConfig) {
     standupConfig = {
@@ -383,7 +385,7 @@ async function enrollMultipleProjects(
 
   await saveConfig(config);
   console.log(
-    chalk.green(`✓ Enrolled ${selectedProjects.length} project(s) in standup`)
+    chalk.green(`✓ Enrolled ${selectedProjects.length} project(s) in standup`),
   );
 
   // Install system scheduling
@@ -397,7 +399,7 @@ async function enrollMultipleProjects(
   } catch (error: any) {
     console.error(
       chalk.red('Failed to set up automatic scheduling:'),
-      error.message
+      error.message,
     );
   }
 }
@@ -422,17 +424,17 @@ async function enableStandup() {
       if (error instanceof UnauthenticatedError) {
         console.log(
           chalk.yellow(
-            '⚠️  Not authenticated. Please run `bragdoc login` first.'
-          )
+            '⚠️  Not authenticated. Please run `bragdoc login` first.',
+          ),
         );
         return;
       }
       console.error(
         chalk.red('Failed to fetch standups:'),
-        (error as Error).message
+        (error as Error).message,
       );
       console.log(
-        chalk.blue('💡 Check your internet connection and try again')
+        chalk.blue('💡 Check your internet connection and try again'),
       );
       return;
     }
@@ -441,8 +443,8 @@ async function enableStandup() {
       console.log(chalk.yellow('⚠️  No standups found in your account.'));
       console.log(
         chalk.blue(
-          '💡 Create a standup at https://app.bragdoc.ai/standups first (takes <30 seconds).'
-        )
+          '💡 Create a standup at https://app.bragdoc.ai/standups first (takes <30 seconds).',
+        ),
       );
       return;
     }
@@ -493,16 +495,14 @@ async function disableStandup() {
     console.log(chalk.red('⨯ Current directory is not a configured project'));
     console.log(
       chalk.blue(
-        '💡 Run this command from within a project directory, or use `bragdoc projects list` to see configured projects'
-      )
+        '💡 Run this command from within a project directory, or use `bragdoc projects list` to see configured projects',
+      ),
     );
     return;
   }
 
   if (!project.standupId) {
-    console.log(
-      chalk.yellow('⚠️  This project is not enrolled in any standup')
-    );
+    console.log(chalk.yellow('⚠️  This project is not enrolled in any standup'));
     return;
   }
 
@@ -513,13 +513,13 @@ async function disableStandup() {
 
   // Check if any other projects are still using this standup
   const stillUsed = config.projects.some(
-    (p: Project) => p.standupId === standupId
+    (p: Project) => p.standupId === standupId,
   );
 
   // If no other projects use this standup, optionally remove from config.standups
   if (!stillUsed) {
     const standupIndex = config.standups.findIndex(
-      (s: any) => s.id === standupId
+      (s: any) => s.id === standupId,
     );
     if (standupIndex !== -1) {
       config.standups.splice(standupIndex, 1);
@@ -542,7 +542,7 @@ async function disableStandup() {
   } catch (error: any) {
     console.error(
       chalk.red('Failed to update system scheduling:'),
-      error.message
+      error.message,
     );
   }
 }
@@ -558,8 +558,8 @@ async function showStatus() {
     console.log(chalk.yellow('No standups configured.'));
     console.log(
       chalk.blue(
-        '💡 Run `bragdoc standup enable` to set up standup WIP extraction.'
-      )
+        '💡 Run `bragdoc standup enable` to set up standup WIP extraction.',
+      ),
     );
     return;
   }
@@ -572,12 +572,12 @@ async function showStatus() {
       : chalk.red('Disabled');
     console.log(`  Status: ${status}`);
     console.log(
-      `  Schedule: ${describeCronSchedule(standup.cronSchedule || null)}`
+      `  Schedule: ${describeCronSchedule(standup.cronSchedule || null)}`,
     );
 
     // Get enrolled projects
     const enrolledProjects = config.projects.filter(
-      (p: Project) => p.standupId === standup.id
+      (p: Project) => p.standupId === standup.id,
     );
     console.log(`  Enrolled projects: ${enrolledProjects.length}`);
 
@@ -646,7 +646,7 @@ async function extractAndSubmitStandupWip(options: { id?: string } = {}) {
 
     // Get enrolled projects for this standup
     const enrolledProjects = config.projects.filter(
-      (p: Project) => p.standupId === standupId && p.enabled
+      (p: Project) => p.standupId === standupId && p.enabled,
     );
 
     if (enrolledProjects.length === 0) {
@@ -661,8 +661,8 @@ async function extractAndSubmitStandupWip(options: { id?: string } = {}) {
 
     console.log(
       chalk.blue(
-        `📊 Extracting achievements from ${enrolledProjects.length} enrolled project(s)...`
-      )
+        `📊 Extracting achievements from ${enrolledProjects.length} enrolled project(s)...`,
+      ),
     );
 
     // Dynamically import p-limit (ESM module)
@@ -676,7 +676,7 @@ async function extractAndSubmitStandupWip(options: { id?: string } = {}) {
       extractLimit(async () => {
         try {
           console.log(
-            chalk.dim(`  Extracting from ${project.name || project.path}...`)
+            chalk.dim(`  Extracting from ${project.name || project.path}...`),
           );
           const result = await extractAchievementsFromProject(project.path, {
             maxCommits: project.maxCommits,
@@ -684,33 +684,40 @@ async function extractAndSubmitStandupWip(options: { id?: string } = {}) {
           if (result.success && result.count && result.count > 0) {
             console.log(
               chalk.green(
-                `  ✓ ${project.name || project.path}: ${result.count} achievement(s)`
-              )
+                `  ✓ ${project.name || project.path}: ${result.count} achievement(s)`,
+              ),
             );
           }
-          return { success: result.success, project: project.name || project.path };
+          return {
+            success: result.success,
+            project: project.name || project.path,
+          };
         } catch (error: any) {
           console.error(
             chalk.red(
-              `  Failed to extract from ${project.name || project.path}: ${error.message}`
-            )
+              `  Failed to extract from ${project.name || project.path}: ${error.message}`,
+            ),
           );
-          return { success: false, project: project.name || project.path, error };
+          return {
+            success: false,
+            project: project.name || project.path,
+            error,
+          };
         }
-      })
+      }),
     );
 
     const extractResults = await Promise.all(extractPromises);
     const successfulExtracts = extractResults.filter((r) => r.success).length;
     console.log(
       chalk.green(
-        `✓ Completed achievement extraction (${successfulExtracts}/${enrolledProjects.length} successful)`
-      )
+        `✓ Completed achievement extraction (${successfulExtracts}/${enrolledProjects.length} successful)`,
+      ),
     );
 
     // Extract WIP from all enrolled projects
     console.log(
-      chalk.blue('📝 Extracting work-in-progress from enrolled projects...')
+      chalk.blue('📝 Extracting work-in-progress from enrolled projects...'),
     );
 
     const wipLimit = pLimit(maxConcurrentWips);
@@ -722,8 +729,8 @@ async function extractAndSubmitStandupWip(options: { id?: string } = {}) {
               chalk.yellow(
                 `  Skipping ${
                   project.name || project.path
-                } (not a git repository)`
-              )
+                } (not a git repository)`,
+              ),
             );
             return null;
           }
@@ -742,12 +749,12 @@ async function extractAndSubmitStandupWip(options: { id?: string } = {}) {
             chalk.red(
               `  Failed to extract WIP from ${project.name || project.path}: ${
                 error.message
-              }`
-            )
+              }`,
+            ),
           );
           return null;
         }
-      })
+      }),
     );
 
     const wipResults = await Promise.all(wipPromises);
@@ -766,7 +773,7 @@ async function extractAndSubmitStandupWip(options: { id?: string } = {}) {
       .join('\n\n---\n\n');
 
     console.log(
-      chalk.green(`✓ Found changes in ${validWips.length} project(s)`)
+      chalk.green(`✓ Found changes in ${validWips.length} project(s)`),
     );
 
     // Send combined WIP to API
@@ -774,10 +781,10 @@ async function extractAndSubmitStandupWip(options: { id?: string } = {}) {
 
     if (!apiClient.isAuthenticated()) {
       console.log(
-        chalk.yellow('⚠️  Not authenticated. Skipping API submission.')
+        chalk.yellow('⚠️  Not authenticated. Skipping API submission.'),
       );
       console.log(
-        chalk.blue('💡 Run `bragdoc login` to submit WIP to your standup.')
+        chalk.blue('💡 Run `bragdoc login` to submit WIP to your standup.'),
       );
       return;
     }
@@ -801,21 +808,21 @@ export const standupCommand = new Command('standup')
   .addCommand(
     new Command('enable')
       .description('Enable automatic WIP extraction before standup')
-      .action(enableStandup)
+      .action(enableStandup),
   )
   .addCommand(
     new Command('disable')
       .description('Disable automatic WIP extraction')
-      .action(disableStandup)
+      .action(disableStandup),
   )
   .addCommand(
     new Command('status')
       .description('Show standup configuration status')
-      .action(showStatus)
+      .action(showStatus),
   )
   .addCommand(
     new Command('wip')
       .description('Extract and submit current WIP')
       .option('--id <standupId>', 'Standup ID to extract WIP for')
-      .action(extractAndSubmitStandupWip)
+      .action(extractAndSubmitStandupWip),
   );

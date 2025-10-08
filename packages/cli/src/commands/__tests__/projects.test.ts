@@ -115,7 +115,10 @@ describe('Project Management', () => {
       });
       mockSaveConfig.mockResolvedValueOnce();
 
-      await addProject(TEST_PROJECT_PATH, { name: 'Test Project', maxCommits: 500 });
+      await addProject(TEST_PROJECT_PATH, {
+        name: 'Test Project',
+        maxCommits: 500,
+      });
 
       expect(mockSaveConfig).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -202,7 +205,10 @@ describe('Project Management', () => {
         ],
       });
 
-      await updateProject(TEST_PROJECT_PATH, { name: 'New Name', maxCommits: 1000 });
+      await updateProject(TEST_PROJECT_PATH, {
+        name: 'New Name',
+        maxCommits: 1000,
+      });
 
       expect(mockSaveConfig).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -298,9 +304,9 @@ describe('Project Management', () => {
         projects: [],
       });
 
-      await expect(toggleProject('/non/existent/project', true)).rejects.toThrow(
-        'Project not found',
-      );
+      await expect(
+        toggleProject('/non/existent/project', true),
+      ).rejects.toThrow('Project not found');
     });
   });
 });

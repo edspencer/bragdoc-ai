@@ -1,32 +1,47 @@
-"use client"
-import { IconStar, IconStarFilled, IconFolder, IconBuilding } from "@tabler/icons-react"
+'use client';
+import {
+  IconStar,
+  IconStarFilled,
+  IconFolder,
+  IconBuilding,
+} from '@tabler/icons-react';
 
-import { Badge } from "components/ui/badge"
-import { Button } from "components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle } from "components/ui/card"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "components/ui/table"
-import { Checkbox } from "components/ui/checkbox"
+import { Badge } from 'components/ui/badge';
+import { Button } from 'components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from 'components/ui/card';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from 'components/ui/table';
+import { Checkbox } from 'components/ui/checkbox';
 
 interface Achievement {
-  id: string
-  title: string
-  summary: string | null
-  impact: number
-  projectName: string | null
-  companyName: string | null
-  createdAt: Date
-  source: string
+  id: string;
+  title: string;
+  summary: string | null;
+  impact: number;
+  projectName: string | null;
+  companyName: string | null;
+  createdAt: Date;
+  source: string;
 }
 
 interface StandupAchievementsTableProps {
-  achievements: Achievement[]
-  selectedAchievements: string[]
-  onSelectionChange: (selectedIds: string[]) => void
-  onImpactChange: (id: string, impact: number) => void
-  isLoading?: boolean
+  achievements: Achievement[];
+  selectedAchievements: string[];
+  onSelectionChange: (selectedIds: string[]) => void;
+  onImpactChange: (id: string, impact: number) => void;
+  isLoading?: boolean;
 }
 
-function StarRating({ rating, onRatingChange }: { rating: number; onRatingChange: (rating: number) => void }) {
+function StarRating({
+  rating,
+  onRatingChange,
+}: { rating: number; onRatingChange: (rating: number) => void }) {
   return (
     <div className="flex gap-0.5">
       {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((star) => (
@@ -45,7 +60,7 @@ function StarRating({ rating, onRatingChange }: { rating: number; onRatingChange
         </Button>
       ))}
     </div>
-  )
+  );
 }
 
 export function StandupAchievementsTable({
@@ -57,21 +72,25 @@ export function StandupAchievementsTable({
 }: StandupAchievementsTableProps) {
   const handleSelectAll = (checked: boolean) => {
     if (checked) {
-      onSelectionChange(achievements.map((a) => a.id))
+      onSelectionChange(achievements.map((a) => a.id));
     } else {
-      onSelectionChange([])
+      onSelectionChange([]);
     }
-  }
+  };
 
   const handleSelectAchievement = (id: string, checked: boolean) => {
     if (checked) {
-      onSelectionChange([...selectedAchievements, id])
+      onSelectionChange([...selectedAchievements, id]);
     } else {
-      onSelectionChange(selectedAchievements.filter((selectedId) => selectedId !== id))
+      onSelectionChange(
+        selectedAchievements.filter((selectedId) => selectedId !== id),
+      );
     }
-  }
+  };
 
-  const allSelected = achievements.length > 0 && achievements.every((a) => selectedAchievements.includes(a.id))
+  const allSelected =
+    achievements.length > 0 &&
+    achievements.every((a) => selectedAchievements.includes(a.id));
 
   return (
     <Card>
@@ -97,13 +116,19 @@ export function StandupAchievementsTable({
             <TableBody>
               {isLoading ? (
                 <TableRow>
-                  <TableCell colSpan={3} className="text-center text-muted-foreground py-8">
+                  <TableCell
+                    colSpan={3}
+                    className="text-center text-muted-foreground py-8"
+                  >
                     Loading achievements...
                   </TableCell>
                 </TableRow>
               ) : achievements.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={3} className="text-center text-muted-foreground py-8">
+                  <TableCell
+                    colSpan={3}
+                    className="text-center text-muted-foreground py-8"
+                  >
                     No recent achievements found
                   </TableCell>
                 </TableRow>
@@ -113,7 +138,12 @@ export function StandupAchievementsTable({
                     <TableCell>
                       <Checkbox
                         checked={selectedAchievements.includes(achievement.id)}
-                        onCheckedChange={(checked) => handleSelectAchievement(achievement.id, checked as boolean)}
+                        onCheckedChange={(checked) =>
+                          handleSelectAchievement(
+                            achievement.id,
+                            checked as boolean,
+                          )
+                        }
                         aria-label={`Select ${achievement.title}`}
                       />
                     </TableCell>
@@ -121,7 +151,9 @@ export function StandupAchievementsTable({
                       <div className="flex flex-col gap-1.5">
                         <div className="font-medium">{achievement.title}</div>
                         {achievement.summary && (
-                          <div className="text-sm text-muted-foreground line-clamp-2">{achievement.summary}</div>
+                          <div className="text-sm text-muted-foreground line-clamp-2">
+                            {achievement.summary}
+                          </div>
                         )}
                         <div className="flex items-center gap-2 text-xs text-muted-foreground">
                           {achievement.projectName && (
@@ -145,7 +177,9 @@ export function StandupAchievementsTable({
                     <TableCell>
                       <StarRating
                         rating={achievement.impact}
-                        onRatingChange={(rating) => onImpactChange(achievement.id, rating)}
+                        onRatingChange={(rating) =>
+                          onImpactChange(achievement.id, rating)
+                        }
                       />
                     </TableCell>
                   </TableRow>
@@ -156,5 +190,5 @@ export function StandupAchievementsTable({
         </div>
       </CardContent>
     </Card>
-  )
+  );
 }

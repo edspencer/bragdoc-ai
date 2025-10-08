@@ -9,10 +9,7 @@ export const cacheCommand = new Command('cache')
   .addCommand(
     new Command('list')
       .description('List cached commits')
-      .option(
-        '--project <name>',
-        'Project name (defaults to current project)',
-      )
+      .option('--project <name>', 'Project name (defaults to current project)')
       .option('--stats', 'Show only statistics')
       .action(async (options) => {
         try {
@@ -53,10 +50,7 @@ export const cacheCommand = new Command('cache')
   .addCommand(
     new Command('clear')
       .description('Clear commit cache')
-      .option(
-        '--project <name>',
-        'Project name (defaults to current project)',
-      )
+      .option('--project <name>', 'Project name (defaults to current project)')
       .option('--all', 'Clear cache for all projects')
       .action(async (options) => {
         try {

@@ -70,7 +70,7 @@ function updateMetaTimestamp(key: 'companies' | 'projects' | 'standups'): void {
  */
 function isCacheValid(
   key: 'companies' | 'projects' | 'standups',
-  cacheTimeout: number
+  cacheTimeout: number,
 ): boolean {
   const meta = readMetaCache();
   const timestamp = meta.fetchedAt[key];
@@ -86,10 +86,13 @@ function isCacheValid(
 /**
  * Fetch companies from API or cache
  */
-export async function fetchCompanies(options: FetchOptions = {}): Promise<any[]> {
+export async function fetchCompanies(
+  options: FetchOptions = {},
+): Promise<any[]> {
   try {
     const config = await loadConfig();
-    const cacheTimeout = options.cacheTimeout ?? config.settings.dataCacheTimeout ?? 5;
+    const cacheTimeout =
+      options.cacheTimeout ?? config.settings.dataCacheTimeout ?? 5;
 
     // Check if cache is valid and force is not set
     if (!options.force && isCacheValid('companies', cacheTimeout)) {
@@ -124,10 +127,13 @@ export async function fetchCompanies(options: FetchOptions = {}): Promise<any[]>
 /**
  * Fetch projects from API or cache
  */
-export async function fetchProjects(options: FetchOptions = {}): Promise<any[]> {
+export async function fetchProjects(
+  options: FetchOptions = {},
+): Promise<any[]> {
   try {
     const config = await loadConfig();
-    const cacheTimeout = options.cacheTimeout ?? config.settings.dataCacheTimeout ?? 5;
+    const cacheTimeout =
+      options.cacheTimeout ?? config.settings.dataCacheTimeout ?? 5;
 
     // Check if cache is valid and force is not set
     if (!options.force && isCacheValid('projects', cacheTimeout)) {
@@ -162,10 +168,13 @@ export async function fetchProjects(options: FetchOptions = {}): Promise<any[]> 
 /**
  * Fetch standups from API or cache
  */
-export async function fetchStandups(options: FetchOptions = {}): Promise<any[]> {
+export async function fetchStandups(
+  options: FetchOptions = {},
+): Promise<any[]> {
   try {
     const config = await loadConfig();
-    const cacheTimeout = options.cacheTimeout ?? config.settings.dataCacheTimeout ?? 5;
+    const cacheTimeout =
+      options.cacheTimeout ?? config.settings.dataCacheTimeout ?? 5;
 
     // Check if cache is valid and force is not set
     if (!options.force && isCacheValid('standups', cacheTimeout)) {
