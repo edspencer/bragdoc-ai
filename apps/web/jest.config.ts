@@ -1,19 +1,24 @@
 require('dotenv').config({ path: '.env.test' });
 
-const esModules = ['.*\\.mjs$', 'bcrypt-ts', 'nanoid'].join('|');
+const esModules = ['.*\\.mjs$', 'bcrypt-ts', 'nanoid', '@neondatabase', 'postgres'].join('|');
 
 const config = {
   preset: 'ts-jest',
   testEnvironment: 'node',
   setupFilesAfterEnv: ['<rootDir>/jest.setup.ts'],
   moduleNameMapper: {
-    '^@/(.*)$': '<rootDir>/src/$1',
+    '^@/database/(.*)$': '<rootDir>/../../packages/database/src/$1',
+    '^@/config/(.*)$': '<rootDir>/../../packages/config/src/$1',
+    '^@/email/(.*)$': '<rootDir>/../../packages/email/src/$1',
+    '^app/(.*)$': '<rootDir>/app/$1',
+    '^lib/(.*)$': '<rootDir>/lib/$1',
+    '^components/(.*)$': '<rootDir>/components/$1',
+    '^@/(.*)$': '<rootDir>/$1',
     '\\.(css|less|sass|scss)$': 'identity-obj-proxy',
-    '^bcrypt-ts$': '<rootDir>/node_modules/bcrypt-ts',
     '^nanoid$': 'nanoid',
   },
-  moduleDirectories: ['node_modules', '<rootDir>/node_modules'],
-  testMatch: ['<rootDir>/src/**/*.(test|spec).ts', '<rootDir>/src/**/*.(test|spec).tsx'],
+  moduleDirectories: ['node_modules', '<rootDir>/node_modules', '<rootDir>/../../node_modules'],
+  testMatch: ['<rootDir>/test/**/*.(test|spec).ts', '<rootDir>/test/**/*.(test|spec).tsx'],
   transform: {
     '^.+\\.(t|j)sx?$': ['@swc/jest'],
   },

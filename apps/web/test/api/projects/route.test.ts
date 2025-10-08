@@ -10,8 +10,8 @@ import {
 import { eq } from 'drizzle-orm';
 
 // Mock auth
-jest.mock('@/app/(auth)/auth', () => ({
-  auth: jest.fn(),
+jest.mock('lib/getAuthUser', () => ({
+  getAuthUser: jest.fn(),
 }));
 
 describe('Project API Routes', () => {
@@ -76,11 +76,12 @@ describe('Project API Routes', () => {
 
   describe('GET /api/projects', () => {
     it('returns projects for authenticated user', async () => {
-      require('@/app/(auth)/auth').auth.mockResolvedValueOnce({
+      require('lib/getAuthUser').getAuthUser.mockResolvedValueOnce({
         user: { id: testUser.id },
+        source: 'session',
       });
 
-      const response = await GET();
+      const response = await GET(new Request('http://localhost/api/projects'));
       const data = await response.json();
 
       expect(response.status).toBe(200);
@@ -89,9 +90,9 @@ describe('Project API Routes', () => {
     });
 
     it('returns 401 for unauthenticated requests', async () => {
-      require('@/app/(auth)/auth').auth.mockResolvedValueOnce(null);
+      require('lib/getAuthUser').getAuthUser.mockResolvedValueOnce(null);
 
-      const response = await GET();
+      const response = await GET(new Request('http://localhost/api/projects'));
       const data = await response.json();
       expect(response.status).toBe(401);
       expect(data.error).toBe('Unauthorized');
@@ -108,8 +109,9 @@ describe('Project API Routes', () => {
         startDate: '2024-01-01',
       };
 
-      require('@/app/(auth)/auth').auth.mockResolvedValueOnce({
+      require('lib/getAuthUser').getAuthUser.mockResolvedValueOnce({
         user: { id: testUser.id },
+        source: 'session',
       });
 
       const response = await POST(
@@ -127,8 +129,9 @@ describe('Project API Routes', () => {
     });
 
     it('validates required fields', async () => {
-      require('@/app/(auth)/auth').auth.mockResolvedValueOnce({
+      require('lib/getAuthUser').getAuthUser.mockResolvedValueOnce({
         user: { id: testUser.id },
+        source: 'session',
       });
 
       const response = await POST(
@@ -150,8 +153,9 @@ describe('Project API Routes', () => {
 
   describe('GET /api/projects/[id]', () => {
     it('returns project for valid ID', async () => {
-      require('@/app/(auth)/auth').auth.mockResolvedValueOnce({
+      require('lib/getAuthUser').getAuthUser.mockResolvedValueOnce({
         user: { id: testUser.id },
+        source: 'session',
       });
 
       const response = await getProject(
@@ -165,8 +169,9 @@ describe('Project API Routes', () => {
     });
 
     it('returns 404 for invalid ID', async () => {
-      require('@/app/(auth)/auth').auth.mockResolvedValueOnce({
+      require('lib/getAuthUser').getAuthUser.mockResolvedValueOnce({
         user: { id: testUser.id },
+        source: 'session',
       });
 
       const response = await getProject(
@@ -187,8 +192,9 @@ describe('Project API Routes', () => {
         description: 'Updated description',
       };
 
-      require('@/app/(auth)/auth').auth.mockResolvedValueOnce({
+      require('lib/getAuthUser').getAuthUser.mockResolvedValueOnce({
         user: { id: testUser.id },
+        source: 'session',
       });
 
       const response = await updateProject(
@@ -207,8 +213,9 @@ describe('Project API Routes', () => {
     });
 
     it('returns 404 for invalid ID', async () => {
-      require('@/app/(auth)/auth').auth.mockResolvedValueOnce({
+      require('lib/getAuthUser').getAuthUser.mockResolvedValueOnce({
         user: { id: testUser.id },
+        source: 'session',
       });
 
       const response = await updateProject(
@@ -228,8 +235,9 @@ describe('Project API Routes', () => {
 
   describe('DELETE /api/projects/[id]', () => {
     it('deletes project', async () => {
-      require('@/app/(auth)/auth').auth.mockResolvedValueOnce({
+      require('lib/getAuthUser').getAuthUser.mockResolvedValueOnce({
         user: { id: testUser.id },
+        source: 'session',
       });
 
       const response = await deleteProject(
@@ -249,8 +257,9 @@ describe('Project API Routes', () => {
     });
 
     it('returns 404 for invalid ID', async () => {
-      require('@/app/(auth)/auth').auth.mockResolvedValueOnce({
+      require('lib/getAuthUser').getAuthUser.mockResolvedValueOnce({
         user: { id: testUser.id },
+        source: 'session',
       });
 
       const response = await deleteProject(
