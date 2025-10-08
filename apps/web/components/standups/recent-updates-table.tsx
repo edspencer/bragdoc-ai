@@ -44,7 +44,7 @@ export function RecentUpdatesTable({
               <TableRow>
                 <TableHead>Date</TableHead>
                 <TableHead>Summary</TableHead>
-                <TableHead className="w-12"></TableHead>
+                <TableHead className="w-12" />
               </TableRow>
             </TableHeader>
             <TableBody>

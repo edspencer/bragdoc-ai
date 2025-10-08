@@ -1,10 +1,8 @@
-import { and, desc, eq, gte, lte } from 'drizzle-orm';
+import { and, desc, eq, gte, } from 'drizzle-orm';
 import { db as defaultDb } from '../index';
 import {
   standup,
   standupDocument,
-  company,
-  project,
   type Standup,
   type StandupDocument,
   achievement,

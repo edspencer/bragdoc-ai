@@ -130,14 +130,15 @@ export function CompanyProjectSelector({
                     companies.map((company) => (
                       <div key={company.id} className="flex items-center gap-2">
                         <Checkbox
+                          id={`company-${company.id}`}
                           checked={selectedCompanyId === company.id}
                           onCheckedChange={() =>
                             handleCompanyToggle(company.id)
                           }
                         />
                         <label
+                          htmlFor={`company-${company.id}`}
                           className="text-sm cursor-pointer flex-1"
-                          onClick={() => handleCompanyToggle(company.id)}
                         >
                           {company.name}
                         </label>
@@ -159,14 +160,15 @@ export function CompanyProjectSelector({
                     projects.map((project) => (
                       <div key={project.id} className="flex items-center gap-2">
                         <Checkbox
+                          id={`project-${project.id}`}
                           checked={selectedProjectIds.includes(project.id)}
                           onCheckedChange={() =>
                             handleProjectToggle(project.id)
                           }
                         />
                         <label
+                          htmlFor={`project-${project.id}`}
                           className="text-sm cursor-pointer flex-1"
-                          onClick={() => handleProjectToggle(project.id)}
                         >
                           {project.name}
                         </label>

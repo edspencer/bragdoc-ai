@@ -1,6 +1,6 @@
 import { addDays, set, isAfter } from 'date-fns';
 import { toZonedTime, fromZonedTime } from 'date-fns-tz';
-import { Weekday, orderedDays, type WeekdayKey } from './weekdayMask';
+import { Weekday, orderedDays, } from './weekdayMask';
 
 /**
  * Compute the next scheduled run time in UTC
@@ -23,7 +23,7 @@ export function computeNextRunUTC(
     throw new Error(`Invalid time format: ${hhmm}. Expected HH:mm`);
   }
 
-  let local = toZonedTime(nowUtc, tz);
+  const local = toZonedTime(nowUtc, tz);
 
   // Helper to map JS getDay (0=Sun, 1=Mon, etc.) to our Mon=0..Sun=6 index
   const toIdx = (d: number): number => (d + 6) % 7;
@@ -89,7 +89,7 @@ export function computePreviousRunUTC(
     throw new Error(`Invalid time format: ${hhmm}. Expected HH:mm`);
   }
 
-  let local = toZonedTime(nowUtc, tz);
+  const local = toZonedTime(nowUtc, tz);
 
   // Helper to map JS getDay to our index
   const toIdx = (d: number): number => (d + 6) % 7;
