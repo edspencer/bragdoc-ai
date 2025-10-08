@@ -123,6 +123,94 @@ bragdoc wip --log
 
 **Note**: This command is useful for testing WIP extraction locally. For automated standup WIP extraction, use `bragdoc standup wip`.
 
+### Standup WIP Automation (`standup`)
+
+Automatically extract achievements and work-in-progress summaries before your daily standup meetings. The CLI can extract from multiple projects and submit to your standup in one command.
+
+#### Setup
+
+First, create a standup in the web app at https://app.bragdoc.ai/standups (takes <30 seconds). Then enroll your projects:
+
+```bash
+# From within a project directory - enroll single project
+cd /path/to/project
+bragdoc standup enable
+
+# From anywhere - enroll multiple projects
+bragdoc standup enable
+# You'll see a checkbox list to select multiple projects
+```
+
+When you enable a standup, the CLI will:
+1. Fetch your standups from the web app
+2. Let you select which standup to configure
+3. Automatically set up system scheduling (cron/Task Scheduler)
+4. Extract achievements and WIP 10 minutes before your standup time
+
+#### Commands
+
+```bash
+# Enable standup WIP extraction
+bragdoc standup enable
+
+# Check standup configuration
+bragdoc standup status
+
+# Manually extract and submit WIP for all enrolled projects
+bragdoc standup wip
+
+# Manually extract for specific standup (if you have multiple)
+bragdoc standup wip --id <standupId>
+
+# Disable standup for current project
+cd /path/to/project
+bragdoc standup disable
+```
+
+#### How It Works
+
+**Automatic Mode** (Scheduled):
+- 10 minutes before your standup time, the CLI automatically:
+  1. Extracts new achievements from git commits (all enrolled projects)
+  2. Extracts work-in-progress summaries from uncommitted changes (all enrolled projects)
+  3. Submits combined WIP to your standup in the web app
+
+**Manual Mode**:
+- Run `bragdoc standup wip` anytime to extract and submit immediately
+- Useful for testing or ad-hoc updates
+
+**Multi-Project Support**:
+- Enroll multiple projects in a single standup
+- WIP extraction runs concurrently across all projects
+- Combined summary includes all projects with clear headers
+
+#### Example Workflow
+
+```bash
+# 1. Set up your first project
+cd ~/work/frontend-app
+bragdoc init --name "Frontend App"
+bragdoc standup enable
+# Select your standup from the list
+
+# 2. Add more projects to the same standup
+cd ~/work/backend-api
+bragdoc init --name "Backend API"
+bragdoc standup enable
+# Select the same standup
+
+# 3. Check configuration
+bragdoc standup status
+# Shows:
+# - Standup name and schedule
+# - Number of enrolled projects
+# - List of project names
+
+# 4. Test manual extraction
+bragdoc standup wip
+# Extracts from both projects and submits to web app
+```
+
 ### Monitoring Your Schedules
 
 Check your automatic extractions using platform-specific tools:
