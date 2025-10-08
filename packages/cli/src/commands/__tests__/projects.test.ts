@@ -19,6 +19,17 @@ jest.mock('../../utils/git', () => ({
   validateRepository: jest.fn(),
 }));
 
+// Mock git operations
+jest.mock('../../git/operations', () => ({
+  getRepositoryInfo: jest.fn(),
+  getRepositoryName: jest.fn(),
+}));
+
+// Mock project sync
+jest.mock('../../lib/projects', () => ({
+  syncProjectWithApi: jest.fn(),
+}));
+
 // Mock inquirer to avoid interactive prompts in tests
 jest.mock('inquirer', () => ({
   prompt: jest.fn().mockResolvedValue({ frequency: 'no' }),
@@ -32,6 +43,8 @@ import {
   updateProject,
   toggleProject,
 } from '../projects';
+import { getRepositoryInfo, getRepositoryName } from '../../git/operations';
+import { syncProjectWithApi as syncProjectWithApiLib } from '../../lib/projects';
 
 describe('Project Management', () => {
   const mockFs = {
@@ -40,6 +53,9 @@ describe('Project Management', () => {
   const mockLoadConfig = jest.mocked(loadConfig);
   const mockSaveConfig = jest.mocked(saveConfig);
   const mockValidateRepository = jest.mocked(validateRepository);
+  const mockGetRepositoryInfo = jest.mocked(getRepositoryInfo);
+  const mockGetRepositoryName = jest.mocked(getRepositoryName);
+  const mockSyncProjectWithApi = jest.mocked(syncProjectWithApiLib);
 
   const TEST_PROJECT_PATH = '/test/project';
   const TEST_PROJECT2_PATH = '/test/project2';
@@ -55,6 +71,23 @@ describe('Project Management', () => {
         return;
       }
       throw new Error('Not a git repository');
+    });
+
+    // Mock git repository info
+    mockGetRepositoryInfo.mockReturnValue({
+      remoteUrl: 'https://github.com/test/repo.git',
+      currentBranch: 'main',
+      path: TEST_PROJECT_PATH,
+    });
+
+    mockGetRepositoryName.mockReturnValue('test-repo');
+
+    // Mock API sync - return undefined (not authenticated) by default
+    mockSyncProjectWithApi.mockResolvedValue({
+      type: 'warning',
+      message: 'Not authenticated',
+      success: false,
+      projectId: undefined,
     });
 
     // Mock successful access to git directories
@@ -137,7 +170,7 @@ describe('Project Management', () => {
       );
     });
 
-    it('prevents adding duplicate projects', async () => {
+    it('handles adding duplicate projects gracefully', async () => {
       mockLoadConfig.mockResolvedValueOnce({
         ...DEFAULT_CONFIG,
         projects: [
@@ -145,12 +178,18 @@ describe('Project Management', () => {
             path: TEST_PROJECT_PATH,
             name: 'Test Project',
             enabled: true,
+            id: 'existing-project-id',
           },
         ],
       });
 
-      await expect(addProject(TEST_PROJECT_PATH)).rejects.toThrow(
-        'Project already exists',
+      // Should not throw, just return early
+      await addProject(TEST_PROJECT_PATH);
+
+      // Should not save config (no changes)
+      expect(mockSaveConfig).not.toHaveBeenCalled();
+      expect(console.log).toHaveBeenCalledWith(
+        expect.stringContaining('already exists'),
       );
     });
   });

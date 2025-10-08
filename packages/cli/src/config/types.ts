@@ -45,9 +45,7 @@ export interface BragdocConfig {
   };
   projects: Project[];
   standups: StandupProjectConfig[];
-  // Legacy fields for backwards compatibility
   repositories?: Project[]; // Deprecated: use projects instead
-  standup?: StandupConfig; // Deprecated: use standups instead
   settings: {
     maxCommitsPerBatch: number;
     defaultMaxCommits: number;

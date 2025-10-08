@@ -43,8 +43,8 @@ export async function loadConfig(): Promise<BragdocConfig> {
     if (config.repositories && !config.projects) {
       console.log(
         chalk.yellow(
-          '⚠️  Using legacy "repositories" field. Please update your config to use "projects" instead.',
-        ),
+          '⚠️  Using legacy "repositories" field. Please update your config to use "projects" instead.'
+        )
       );
       config.projects = config.repositories;
     }
@@ -106,7 +106,6 @@ export async function saveConfig(config: BragdocConfig): Promise<void> {
 
   // Remove legacy fields
   configToSave.repositories = undefined;
-  configToSave.standup = undefined;
 
   // Ensure projects use `id` field (not `projectId`)
   if (configToSave.projects) {
@@ -121,7 +120,7 @@ export async function saveConfig(config: BragdocConfig): Promise<void> {
   if (configToSave.standups && configToSave.standups.length > 0) {
     configToSave.standups = configToSave.standups.filter((standup) => {
       const hasEnrolledProjects = configToSave.projects.some(
-        (project) => project.standupId === standup.id,
+        (project) => project.standupId === standup.id
       );
       return hasEnrolledProjects;
     });

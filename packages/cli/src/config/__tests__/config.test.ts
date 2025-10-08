@@ -62,7 +62,7 @@ describe('Config Management', () => {
   describe('loadConfig', () => {
     it('loads existing config and merges with defaults', async () => {
       const existingConfig = {
-        repositories: [
+        projects: [
           {
             path: '/test/repo',
             name: 'Test Repo',
@@ -118,7 +118,7 @@ describe('Config Management', () => {
     it('saves config with correct permissions', async () => {
       const config: BragdocConfig = {
         ...DEFAULT_CONFIG,
-        repositories: [
+        projects: [
           {
             path: '/test/repo',
             name: 'Test Repo',
