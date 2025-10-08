@@ -101,16 +101,26 @@ export async function saveConfig(config: BragdocConfig): Promise<void> {
   };
 
   // Remove legacy fields
-  delete configToSave.repositories;
-  delete configToSave.standup;
+  configToSave.repositories = undefined;
+  configToSave.standup = undefined;
 
   // Ensure projects use `id` field (not `projectId`)
   if (configToSave.projects) {
     for (const project of configToSave.projects) {
       if ('projectId' in project) {
-        delete (project as any).projectId;
+        (project as any).projectId = undefined;
       }
     }
+  }
+
+  // Clean up orphaned standup configs (standups with no enrolled projects)
+  if (configToSave.standups && configToSave.standups.length > 0) {
+    configToSave.standups = configToSave.standups.filter((standup) => {
+      const hasEnrolledProjects = configToSave.projects.some(
+        (project) => project.standupId === standup.id
+      );
+      return hasEnrolledProjects;
+    });
   }
 
   const yamlContent = stringify(configToSave);

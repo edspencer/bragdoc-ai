@@ -7,11 +7,10 @@ import { createApiClient, UnauthenticatedError } from '../api/client';
 import logger from '../utils/logger';
 import {
   describeCronSchedule,
-  type CronOptions,
-  convertToCronSchedule,
 } from '../utils/cron';
 import { fetchStandups } from '../utils/data';
 import { extractWip as extractGitWip, isGitRepository } from '../git/wip';
+import { extractAchievementsFromProject } from '../lib/extraction';
 import { exec } from 'node:child_process';
 import { promisify } from 'node:util';
 
@@ -803,10 +802,42 @@ async function extractAndSubmitStandupWip(options: { id?: string } = {}) {
     // Create concurrency limits
     const extractLimit = pLimit(maxConcurrentExtracts);
 
-    // For now, we'll skip the achievement extraction step as it requires
-    // refactoring the extract command. This is noted in the plan as needing
-    // to export a reusable function from extract.ts
-    // TODO: Implement extractAchievementsFromProject() in extract.ts and use it here
+    // Extract achievements from all enrolled projects
+    const extractPromises = enrolledProjects.map((project) =>
+      extractLimit(async () => {
+        try {
+          console.log(
+            chalk.dim(`  Extracting from ${project.name || project.path}...`)
+          );
+          const result = await extractAchievementsFromProject(project.path, {
+            maxCommits: project.maxCommits,
+          });
+          if (result.success && result.count && result.count > 0) {
+            console.log(
+              chalk.green(
+                `  ✓ ${project.name || project.path}: ${result.count} achievement(s)`
+              )
+            );
+          }
+          return { success: result.success, project: project.name || project.path };
+        } catch (error: any) {
+          console.error(
+            chalk.red(
+              `  Failed to extract from ${project.name || project.path}: ${error.message}`
+            )
+          );
+          return { success: false, project: project.name || project.path, error };
+        }
+      })
+    );
+
+    const extractResults = await Promise.all(extractPromises);
+    const successfulExtracts = extractResults.filter((r) => r.success).length;
+    console.log(
+      chalk.green(
+        `✓ Completed achievement extraction (${successfulExtracts}/${enrolledProjects.length} successful)`
+      )
+    );
 
     // Extract WIP from all enrolled projects
     console.log(

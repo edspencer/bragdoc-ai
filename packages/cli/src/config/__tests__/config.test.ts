@@ -70,7 +70,7 @@ describe('Config Management', () => {
           },
         ],
         settings: {
-          defaultTimeRange: '60d', // Override default
+          dataCacheTimeout: 10, // Override default
         },
       };
 

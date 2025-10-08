@@ -1,7 +1,6 @@
 import { Command } from 'commander';
 import chalk from 'chalk';
 import { extractWip as extractGitWip, isGitRepository } from '../git/wip';
-import logger from '../utils/logger';
 
 /**
  * Extract work-in-progress from the current repository

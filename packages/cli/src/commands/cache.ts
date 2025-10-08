@@ -10,13 +10,13 @@ export const cacheCommand = new Command('cache')
     new Command('list')
       .description('List cached commits')
       .option(
-        '--repo <name>',
-        'Repository name (defaults to current repository)',
+        '--project <name>',
+        'Project name (defaults to current project)',
       )
       .option('--stats', 'Show only statistics')
       .action(async (options) => {
         try {
-          const repoName = options.repo || (await getCurrentRepoName());
+          const repoName = options.project || (await getCurrentRepoName());
 
           if (options.stats) {
             const stats = await cache.getStats(repoName);
@@ -54,21 +54,21 @@ export const cacheCommand = new Command('cache')
     new Command('clear')
       .description('Clear commit cache')
       .option(
-        '--repo <name>',
-        'Repository name (defaults to current repository)',
+        '--project <name>',
+        'Project name (defaults to current project)',
       )
-      .option('--all', 'Clear cache for all repositories')
+      .option('--all', 'Clear cache for all projects')
       .action(async (options) => {
         try {
           if (options.all) {
             await cache.clear();
-            console.log('Cleared cache for all repositories');
+            console.log('Cleared cache for all projects');
             return;
           }
 
-          const repoName = options.repo || (await getCurrentRepoName());
+          const repoName = options.project || (await getCurrentRepoName());
           await cache.clear(repoName);
-          console.log(`Cleared cache for repository: ${repoName}`);
+          console.log(`Cleared cache for project: ${repoName}`);
         } catch (error: any) {
           console.error(
             'Failed to clear cache:',
