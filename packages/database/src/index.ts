@@ -98,6 +98,7 @@ export {
   createStandupDocument,
   updateStandupDocumentWip,
   updateStandupDocumentAchievementsSummary,
+  updateStandupDocumentSummary,
   getRecentAchievementsForStandup,
 } from './standups/queries';
 

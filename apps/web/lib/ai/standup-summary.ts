@@ -9,10 +9,10 @@ import type { Achievement, User } from '@bragdoc/database';
  * @param user Optional user object for LLM selection
  * @returns Generated summary text
  */
-export async function generateStandupSummary(
+export async function generateStandupAchievementsSummary(
   achievements: Achievement[],
   instructions?: string,
-  user?: User,
+  user?: User
 ): Promise<string> {
   if (achievements.length === 0) {
     return 'No new achievements to report since the last standup.';
@@ -22,7 +22,7 @@ export async function generateStandupSummary(
   const achievementsText = achievements
     .map(
       (achievement, index) =>
-        `${index + 1}. ${achievement.title}${achievement.summary ? `\n   ${achievement.summary}` : ''}${achievement.impact ? `\n   Impact: ${achievement.impact}/10` : ''}`,
+        `${index + 1}. ${achievement.title}${achievement.summary ? `\n   ${achievement.summary}` : ''}${achievement.impact ? `\n   Impact: ${achievement.impact}/10` : ''}`
     )
     .join('\n\n');
 
@@ -64,20 +64,31 @@ Create a concise summary (2-4 paragraphs) that:
 }
 
 /**
- * Generate a quick one-line summary from a longer summary
+ * Generate a short summary for a standup document
+ * Takes the achievements summary and WIP content and creates a one-line summary
  * Used for the document list view
  */
-export async function generateQuickSummary(
-  fullSummary: string,
-  user?: User,
+export async function generateStandupDocumentSummary(
+  document: Pick<import('@bragdoc/database').StandupDocument, 'achievementsSummary' | 'wip'>,
+  user?: User
 ): Promise<string> {
-  if (!fullSummary || fullSummary.length === 0) {
-    return 'No summary available';
+  const { achievementsSummary, wip } = document;
+
+  if (!achievementsSummary && !wip) {
+    return 'No content available';
   }
 
-  // If summary is already short, just return it
-  if (fullSummary.length < 100) {
-    return fullSummary;
+  // Build the content string
+  const content = [
+    achievementsSummary && `Achievements: ${achievementsSummary}`,
+    wip && `Work in Progress: ${wip}`,
+  ]
+    .filter(Boolean)
+    .join('\n\n');
+
+  // If content is already short, just return it
+  if (content.length < 100) {
+    return content;
   }
 
   try {
@@ -88,7 +99,7 @@ export async function generateQuickSummary(
       messages: [
         {
           role: 'user',
-          content: `Summarize this standup update in one short sentence (max 15 words):\n\n${fullSummary}`,
+          content: `Summarize this standup update in one short sentence (max 15 words):\n\n${content}`,
         },
       ],
       temperature: 0.5,
@@ -97,8 +108,8 @@ export async function generateQuickSummary(
 
     return text.trim();
   } catch (error) {
-    console.error('Error generating quick summary:', error);
-    // Fallback: just truncate the full summary
-    return `${fullSummary.substring(0, 97)}...`;
+    console.error('Error generating standup document summary:', error);
+    // Fallback: just truncate the content
+    return `${content.substring(0, 97)}...`;
   }
 }

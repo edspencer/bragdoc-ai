@@ -3,10 +3,14 @@ import {
   getCurrentStandupDocument,
   createStandupDocument,
   updateStandupDocumentAchievementsSummary,
+  updateStandupDocumentSummary,
   getRecentAchievementsForStandup,
 } from '@bragdoc/database';
 import { getStandupAchievementDateRange } from '../scheduling/nextRun';
-import { generateStandupSummary } from '../ai/standup-summary';
+import {
+  generateStandupAchievementsSummary,
+  generateStandupDocumentSummary,
+} from '../ai/standup-summary';
 
 /**
  * Create or update a standup document with AI-generated summary
@@ -23,7 +27,7 @@ export async function createOrUpdateStandupDocument(
   userId: string,
   standup: Standup,
   targetDate?: Date,
-  regenerate = false,
+  regenerate = false
 ): Promise<StandupDocument> {
   // Get or create document
   let document: StandupDocument | null = null;
@@ -51,27 +55,37 @@ export async function createOrUpdateStandupDocument(
       docDate,
       standup.timezone,
       standup.meetingTime,
-      standup.daysMask,
+      standup.daysMask
     );
 
     // Fetch achievements in the standup date range
     const achievements = await getRecentAchievementsForStandup(
       standup,
       startDate,
-      endDate,
+      endDate
     );
 
     // Generate summary using AI
-    const summary = await generateStandupSummary(
+    const summary = await generateStandupAchievementsSummary(
       achievements,
-      standup.instructions || undefined,
+      standup.instructions || undefined
     );
 
     // Update document with summary
     document = await updateStandupDocumentAchievementsSummary(
       document.id,
-      summary,
+      summary
     );
+  }
+
+  // Generate and save the short summary for list views
+  if (document.achievementsSummary || document.wip) {
+    const shortSummary = await generateStandupDocumentSummary({
+      achievementsSummary: document.achievementsSummary,
+      wip: document.wip,
+    });
+
+    document = await updateStandupDocumentSummary(document.id, shortSummary);
   }
 
   return document;

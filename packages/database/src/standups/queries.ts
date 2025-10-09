@@ -305,6 +305,35 @@ export async function updateStandupDocumentAchievementsSummary(
 }
 
 /**
+ * Update standup document summary
+ */
+export async function updateStandupDocumentSummary(
+  documentId: string,
+  summary: string,
+  dbInstance = defaultDb,
+): Promise<StandupDocument> {
+  try {
+    const [updated] = await dbInstance
+      .update(standupDocument)
+      .set({
+        summary,
+        updatedAt: new Date(),
+      })
+      .where(eq(standupDocument.id, documentId))
+      .returning();
+
+    if (!updated) {
+      throw new Error('Standup document not found');
+    }
+
+    return updated;
+  } catch (error) {
+    console.error('Error in updateStandupDocumentSummary:', error);
+    throw error;
+  }
+}
+
+/**
  * Get recent achievements for a standup based on its configuration
  * Filters by eventStart within the date range and by the standup's configured projects
  */

@@ -1,6 +1,7 @@
 'use client';
 import { IconCalendar, IconEye, IconSparkles } from '@tabler/icons-react';
 import { format } from 'date-fns';
+import type { StandupDocument } from '@bragdoc/database';
 
 import { Button } from 'components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from 'components/ui/card';
@@ -12,14 +13,6 @@ import {
   TableHeader,
   TableRow,
 } from 'components/ui/table';
-
-interface StandupDocument {
-  id: string;
-  date: Date;
-  quickSummary: string | null;
-  achievementsSummary: string | null;
-  wip: string | null;
-}
 
 interface RecentUpdatesTableProps {
   documents: StandupDocument[];
@@ -104,7 +97,7 @@ export function RecentUpdatesTable({
                       </TableCell>
                       <TableCell>
                         <div className="text-sm line-clamp-2">
-                          {doc.quickSummary || 'No summary'}
+                          {doc.summary || 'No summary'}
                         </div>
                       </TableCell>
                       <TableCell>
