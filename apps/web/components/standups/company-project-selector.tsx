@@ -7,6 +7,7 @@ import { Popover, PopoverContent, PopoverTrigger } from 'components/ui/popover';
 import { ChevronDown, Building2, FolderKanban } from 'lucide-react';
 import { ScrollArea } from 'components/ui/scroll-area';
 import type { Company, Project } from '@bragdoc/database';
+import { formatStandupScope } from '@/lib/standups/format-scope';
 
 interface CompanyProjectSelectorProps {
   selectedCompanyId: string | null;
@@ -55,34 +56,12 @@ export function CompanyProjectSelector({
     fetchData();
   }, []);
 
-  const getDisplayText = () => {
-    if (selectedCompanyId) {
-      const company = companies.find((c) => c.id === selectedCompanyId);
-      return company?.name ? `All ${company.name} Projects` : 'All Projects';
-    }
-    if (selectedProjectIds.length > 0) {
-      if (selectedProjectIds.length === 1) {
-        const project = projects.find((p) => p.id === selectedProjectIds[0]);
-        return project?.name || 'All Projects';
-      }
-      // Multiple projects selected
-      const selectedProjects = projects.filter((p) =>
-        selectedProjectIds.includes(p.id),
-      );
-      if (selectedProjects.length <= 3) {
-        // Show all names if 3 or fewer
-        return selectedProjects.map((p) => p.name).join(', ');
-      }
-      // Show first 2 names and count of remaining
-      const firstTwo = selectedProjects
-        .slice(0, 2)
-        .map((p) => p.name)
-        .join(', ');
-      const remaining = selectedProjects.length - 2;
-      return `${firstTwo} and ${remaining} more Projects`;
-    }
-    return 'All Projects';
-  };
+  const displayText = formatStandupScope(
+    selectedCompanyId,
+    selectedProjectIds,
+    companies,
+    projects,
+  );
 
   const handleCompanyToggle = (companyId: string) => {
     if (selectedCompanyId === companyId) {
@@ -106,7 +85,7 @@ export function CompanyProjectSelector({
           variant="outline"
           className="w-full justify-between bg-transparent"
         >
-          {getDisplayText()}
+          {displayText}
           <ChevronDown className="ml-2 size-4 opacity-50" />
         </Button>
       </PopoverTrigger>

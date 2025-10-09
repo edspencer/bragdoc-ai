@@ -35,7 +35,7 @@ export function RecentUpdatesTable({
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Recent Updates</CardTitle>
+        <CardTitle>Updates from Recent Standups</CardTitle>
       </CardHeader>
       <CardContent>
         <div className="overflow-hidden rounded-lg border">

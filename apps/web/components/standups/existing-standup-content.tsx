@@ -27,6 +27,9 @@ import { IconEdit, IconTrash } from '@tabler/icons-react';
 import { toast } from 'sonner';
 import { StandupAchievementsTable } from './standup-achievements-table';
 import { useAchievementMutations } from 'hooks/use-achievement-mutations';
+import { fromMask } from '@/lib/scheduling/weekdayMask';
+import { formatStandupScope } from '@/lib/standups/format-scope';
+import type { Company, Project } from '@bragdoc/database';
 
 interface Achievement {
   id: string;
@@ -62,6 +65,44 @@ interface ExistingStandupPageProps {
   standup: Standup;
 }
 
+/**
+ * Format the standup schedule as a readable string (e.g., "10am M-F")
+ */
+function formatStandupSchedule(meetingTime: string, daysMask: number): string {
+  // Format time (HH:mm -> 10am)
+  const timeParts = meetingTime.split(':').map(Number);
+  const hours = timeParts[0] ?? 0;
+  const minutes = timeParts[1] ?? 0;
+  const period = hours >= 12 ? 'pm' : 'am';
+  const displayHours = hours % 12 || 12;
+  const timeStr = minutes > 0
+    ? `${displayHours}:${minutes.toString().padStart(2, '0')}${period}`
+    : `${displayHours}${period}`;
+
+  // Format days
+  const days = fromMask(daysMask);
+  let daysStr: string;
+
+  // Check for common patterns
+  const weekdays = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'];
+  const isWeekdays = weekdays.every(day => days.includes(day as any)) && days.length === 5;
+
+  if (isWeekdays) {
+    daysStr = 'M-F';
+  } else if (days.length === 7) {
+    daysStr = 'Daily';
+  } else if (days.length === 1) {
+    daysStr = days[0] ?? 'Mon';
+  } else if (days.length > 0) {
+    // Show abbreviated days (e.g., "M W F")
+    daysStr = days.map(d => d.charAt(0)).join(' ');
+  } else {
+    daysStr = 'No days';
+  }
+
+  return `${timeStr} ${daysStr}`;
+}
+
 export function ExistingStandupContent({ standup }: ExistingStandupPageProps) {
   const router = useRouter();
   const [showEditDialog, setShowEditDialog] = useState(false);
@@ -75,6 +116,8 @@ export function ExistingStandupContent({ standup }: ExistingStandupPageProps) {
   const [documents, setDocuments] = useState<StandupDocument[]>([]);
   const [isLoadingAchievements, setIsLoadingAchievements] = useState(true);
   const [isLoadingDocuments, setIsLoadingDocuments] = useState(true);
+  const [companies, setCompanies] = useState<Company[]>([]);
+  const [projects, setProjects] = useState<Project[]>([]);
 
   const { updateAchievement } = useAchievementMutations();
 
@@ -117,6 +160,31 @@ export function ExistingStandupContent({ standup }: ExistingStandupPageProps) {
     }
     fetchDocuments();
   }, [standup.id]);
+
+  // Fetch companies and projects for scope display
+  useEffect(() => {
+    async function fetchCompaniesAndProjects() {
+      try {
+        const [companiesRes, projectsRes] = await Promise.all([
+          fetch('/api/companies'),
+          fetch('/api/projects'),
+        ]);
+
+        if (companiesRes.ok) {
+          const data = await companiesRes.json();
+          setCompanies(Array.isArray(data) ? data : []);
+        }
+
+        if (projectsRes.ok) {
+          const data = await projectsRes.json();
+          setProjects(Array.isArray(data) ? data : []);
+        }
+      } catch (error) {
+        console.error('Error fetching companies/projects:', error);
+      }
+    }
+    fetchCompaniesAndProjects();
+  }, []);
 
   const handleDelete = async () => {
     setIsDeleting(true);
@@ -176,22 +244,36 @@ export function ExistingStandupContent({ standup }: ExistingStandupPageProps) {
       <div className="border-b bg-background px-8 py-4">
         <div className="flex items-center justify-between">
           <h1 className="text-2xl font-bold">{standup.name}</h1>
-          <div className="flex gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setShowEditDialog(true)}
-            >
-              <IconEdit className="h-4 w-4 mr-2" />
-              Edit
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setShowDeleteDialog(true)}
-            >
-              <IconTrash className="h-4 w-4" />
-            </Button>
+          <div className="flex items-center gap-4">
+            <div className="text-sm text-muted-foreground">
+              <span className="font-medium">
+                {formatStandupScope(
+                  standup.companyId,
+                  standup.projectIds,
+                  companies,
+                  projects,
+                )}
+              </span>
+              <span className="mx-2">/</span>
+              <span>{formatStandupSchedule(standup.meetingTime, standup.daysMask)}</span>
+            </div>
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setShowEditDialog(true)}
+              >
+                <IconEdit className="h-4 w-4 mr-2" />
+                Edit
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setShowDeleteDialog(true)}
+              >
+                <IconTrash className="h-4 w-4" />
+              </Button>
+            </div>
           </div>
         </div>
       </div>
