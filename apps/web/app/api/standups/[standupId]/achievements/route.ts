@@ -1,4 +1,5 @@
 import { type NextRequest, NextResponse } from 'next/server';
+import { subDays } from 'date-fns';
 import { getAuthUser } from '@/lib/getAuthUser';
 import {
   getStandupById,
@@ -6,6 +7,12 @@ import {
 } from '@bragdoc/database';
 import { getStandupAchievementDateRange } from '@/lib/scheduling/nextRun';
 
+/**
+ * GET /api/standups/:standupId/achievements
+ * Get achievements for a standup based on its configuration
+ * Query params:
+ *   - range: 'since-last' (default) | 'last-7-days'
+ */
 export async function GET(
   req: NextRequest,
   props: { params: Promise<{ standupId: string }> },
@@ -26,14 +33,30 @@ export async function GET(
       return NextResponse.json({ error: 'Standup not found' }, { status: 404 });
     }
 
-    // Calculate date range based on standup schedule
-    const now = new Date();
-    const { startDate, endDate } = getStandupAchievementDateRange(
-      now,
-      standup.timezone,
-      standup.meetingTime,
-      standup.daysMask,
-    );
+    // Get range parameter
+    const { searchParams } = new URL(req.url);
+    const range = searchParams.get('range') || 'since-last';
+
+    let startDate: Date;
+    let endDate: Date;
+
+    if (range === 'last-7-days') {
+      // Last 7 days: from 7 days ago to now
+      const now = new Date();
+      startDate = subDays(now, 7);
+      endDate = now;
+    } else {
+      // Since last standup: default behavior
+      const now = new Date();
+      const dateRange = getStandupAchievementDateRange(
+        now,
+        standup.timezone,
+        standup.meetingTime,
+        standup.daysMask,
+      );
+      startDate = dateRange.startDate;
+      endDate = dateRange.endDate;
+    }
 
     // Get achievements
     const achievements = await getRecentAchievementsForStandup(

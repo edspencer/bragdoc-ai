@@ -1,15 +1,8 @@
 import { type NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { getAuthUser } from 'lib/getAuthUser';
-import {
-  getStandupById,
-  getCurrentStandupDocument,
-  createStandupDocument,
-  updateStandupDocumentAchievementsSummary,
-  getRecentAchievementsForStandup,
-} from '@bragdoc/database';
-import { computeNextRunUTC, getStandupAchievementDateRange } from 'lib/scheduling';
-import { generateStandupSummary } from 'lib/ai/standup-summary';
+import { getStandupById } from '@bragdoc/database';
+import { createOrUpdateStandupDocument } from 'lib/standups/create-standup-document';
 
 const summarySchema = z.object({
   achievementsSummary: z.string().optional(),
@@ -39,60 +32,16 @@ export async function POST(
 
     // Validate request body
     const body = await req.json();
-    const { achievementsSummary, regenerate } = summarySchema.parse(body);
+    const { regenerate } = summarySchema.parse(body);
 
-    // Get or create current standup document
-    let document = await getCurrentStandupDocument(params.standupId);
-    const nextRunDate = computeNextRunUTC(
-      new Date(),
-      standup.timezone,
-      standup.meetingTime,
-      standup.daysMask,
+    // Use shared function to create or update the standup document
+    const document = await createOrUpdateStandupDocument(
+      params.standupId,
+      auth.user.id,
+      standup,
+      undefined, // No target date - uses next scheduled date
+      regenerate || false,
     );
-
-    if (!document) {
-      // Create a new document
-      document = await createStandupDocument({
-        standupId: params.standupId,
-        userId: auth.user.id,
-        date: nextRunDate,
-      });
-    }
-
-    let summary = achievementsSummary;
-
-    // If regenerate is requested or no summary provided, generate from achievements
-    if (regenerate || !summary) {
-      // Calculate date range for relevant achievements
-      const now = new Date();
-      const { startDate, endDate } = getStandupAchievementDateRange(
-        now,
-        standup.timezone,
-        standup.meetingTime,
-        standup.daysMask,
-      );
-
-      // Fetch achievements in the standup date range
-      const achievements = await getRecentAchievementsForStandup(
-        standup,
-        startDate,
-        endDate,
-      );
-
-      // Generate summary using AI
-      summary = await generateStandupSummary(
-        achievements,
-        standup.instructions || undefined,
-      );
-    }
-
-    // Update document with summary
-    if (summary) {
-      document = await updateStandupDocumentAchievementsSummary(
-        document.id,
-        summary,
-      );
-    }
 
     return NextResponse.json({ document });
   } catch (error) {

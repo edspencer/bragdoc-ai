@@ -36,6 +36,8 @@ interface StandupAchievementsTableProps {
   onSelectionChange: (selectedIds: string[]) => void;
   onImpactChange: (id: string, impact: number) => void;
   isLoading?: boolean;
+  title?: string;
+  showCheckboxes?: boolean;
 }
 
 function StarRating({
@@ -69,6 +71,8 @@ export function StandupAchievementsTable({
   onSelectionChange,
   onImpactChange,
   isLoading = false,
+  title = 'Recent Achievements',
+  showCheckboxes = true,
 }: StandupAchievementsTableProps) {
   const handleSelectAll = (checked: boolean) => {
     if (checked) {
@@ -95,20 +99,22 @@ export function StandupAchievementsTable({
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Recent Achievements</CardTitle>
+        <CardTitle>{title}</CardTitle>
       </CardHeader>
       <CardContent>
         <div className="overflow-hidden rounded-lg border">
           <Table>
             <TableHeader className="bg-muted">
               <TableRow>
-                <TableHead className="w-12">
-                  <Checkbox
-                    checked={allSelected}
-                    onCheckedChange={handleSelectAll}
-                    aria-label="Select all achievements"
-                  />
-                </TableHead>
+                {showCheckboxes && (
+                  <TableHead className="w-12">
+                    <Checkbox
+                      checked={allSelected}
+                      onCheckedChange={handleSelectAll}
+                      aria-label="Select all achievements"
+                    />
+                  </TableHead>
+                )}
                 <TableHead>Achievement</TableHead>
                 <TableHead>Impact</TableHead>
               </TableRow>
@@ -117,7 +123,7 @@ export function StandupAchievementsTable({
               {isLoading ? (
                 <TableRow>
                   <TableCell
-                    colSpan={3}
+                    colSpan={showCheckboxes ? 3 : 2}
                     className="text-center text-muted-foreground py-8"
                   >
                     Loading achievements...
@@ -126,27 +132,29 @@ export function StandupAchievementsTable({
               ) : achievements.length === 0 ? (
                 <TableRow>
                   <TableCell
-                    colSpan={3}
+                    colSpan={showCheckboxes ? 3 : 2}
                     className="text-center text-muted-foreground py-8"
                   >
-                    No recent achievements found
+                    No achievements found
                   </TableCell>
                 </TableRow>
               ) : (
                 achievements.map((achievement) => (
                   <TableRow key={achievement.id}>
-                    <TableCell>
-                      <Checkbox
-                        checked={selectedAchievements.includes(achievement.id)}
-                        onCheckedChange={(checked) =>
-                          handleSelectAchievement(
-                            achievement.id,
-                            checked as boolean,
-                          )
-                        }
-                        aria-label={`Select ${achievement.title}`}
-                      />
-                    </TableCell>
+                    {showCheckboxes && (
+                      <TableCell>
+                        <Checkbox
+                          checked={selectedAchievements.includes(achievement.id)}
+                          onCheckedChange={(checked) =>
+                            handleSelectAchievement(
+                              achievement.id,
+                              checked as boolean,
+                            )
+                          }
+                          aria-label={`Select ${achievement.title}`}
+                        />
+                      </TableCell>
+                    )}
                     <TableCell>
                       <div className="flex flex-col gap-1.5">
                         <div className="font-medium">{achievement.title}</div>
