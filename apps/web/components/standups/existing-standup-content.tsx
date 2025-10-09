@@ -26,6 +26,7 @@ import { WipSection } from './wip-section';
 import { IconEdit, IconTrash } from '@tabler/icons-react';
 import { toast } from 'sonner';
 import { StandupAchievementsTable } from './standup-achievements-table';
+import { useAchievementMutations } from 'hooks/use-achievement-mutations';
 
 interface Achievement {
   id: string;
@@ -74,6 +75,8 @@ export function ExistingStandupContent({ standup }: ExistingStandupPageProps) {
   const [documents, setDocuments] = useState<StandupDocument[]>([]);
   const [isLoadingAchievements, setIsLoadingAchievements] = useState(true);
   const [isLoadingDocuments, setIsLoadingDocuments] = useState(true);
+
+  const { updateAchievement } = useAchievementMutations();
 
   // Fetch achievements
   useEffect(() => {
@@ -140,9 +143,26 @@ export function ExistingStandupContent({ standup }: ExistingStandupPageProps) {
     }
   };
 
-  const handleImpactChange = (id: string, impact: number) => {
-    // TODO: Update achievement impact in database
-    toast.success(`Impact updated to ${impact}`);
+  const handleImpactChange = async (id: string, impact: number) => {
+    try {
+      await updateAchievement(id, {
+        impact,
+        impactSource: 'user',
+        impactUpdatedAt: new Date(),
+      });
+
+      // Refetch achievements to show updated data
+      const response = await fetch(
+        `/api/standups/${standup.id}/achievements?days=7`,
+      );
+      if (response.ok) {
+        const data = await response.json();
+        setAchievements(data);
+      }
+    } catch (error) {
+      console.error('Error updating impact:', error);
+      toast.error('Failed to update impact');
+    }
   };
 
   const handleViewDocument = (doc: any) => {
