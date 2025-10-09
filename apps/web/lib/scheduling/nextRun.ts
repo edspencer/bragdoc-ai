@@ -1,4 +1,4 @@
-import { addDays, set, isAfter } from 'date-fns';
+import { addDays, set, isAfter, startOfDay, endOfDay } from 'date-fns';
 import { toZonedTime, fromZonedTime } from 'date-fns-tz';
 import { Weekday, orderedDays, } from './weekdayMask';
 
@@ -123,4 +123,40 @@ export function computePreviousRunUTC(
   });
 
   return fromZonedTime(prev, tz);
+}
+
+/**
+ * Calculate the date range for achievements relevant to a standup
+ * Returns from midnight at the start of the previous standup day
+ * to midnight at the end of the next standup day
+ *
+ * @param nowUtc Current time in UTC
+ * @param tz IANA timezone string
+ * @param hhmm Time string in HH:mm format
+ * @param daysMask Bitmask of enabled days
+ * @returns Object with startDate and endDate in UTC
+ */
+export function getStandupAchievementDateRange(
+  nowUtc: Date,
+  tz: string,
+  hhmm: string,
+  daysMask: number,
+): { startDate: Date; endDate: Date } {
+  // Get previous and next standup occurrences in UTC
+  const previousRunUtc = computePreviousRunUTC(nowUtc, tz, hhmm, daysMask);
+  const nextRunUtc = computeNextRunUTC(nowUtc, tz, hhmm, daysMask);
+
+  // Convert to timezone to get start/end of day in local time
+  const previousRunLocal = toZonedTime(previousRunUtc, tz);
+  const nextRunLocal = toZonedTime(nextRunUtc, tz);
+
+  // Get start of previous standup day and end of next standup day
+  const startLocal = startOfDay(previousRunLocal);
+  const endLocal = endOfDay(nextRunLocal);
+
+  // Convert back to UTC
+  return {
+    startDate: fromZonedTime(startLocal, tz),
+    endDate: fromZonedTime(endLocal, tz),
+  };
 }

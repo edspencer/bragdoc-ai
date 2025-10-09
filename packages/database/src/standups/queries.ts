@@ -1,4 +1,4 @@
-import { and, desc, eq, gte, } from 'drizzle-orm';
+import { and, desc, eq, gte, lte } from 'drizzle-orm';
 import { db as defaultDb } from '../index';
 import {
   standup,
@@ -306,17 +306,20 @@ export async function updateStandupDocumentAchievementsSummary(
 
 /**
  * Get recent achievements for a standup based on its configuration
+ * Filters by eventStart within the date range and by the standup's configured projects
  */
 export async function getRecentAchievementsForStandup(
   standupConfig: Standup,
-  since: Date,
+  startDate: Date,
+  endDate: Date,
   dbInstance = defaultDb,
 ): Promise<Achievement[]> {
   try {
     // Build where conditions based on standup config
     const conditions = [
       eq(achievement.userId, standupConfig.userId),
-      gte(achievement.createdAt, since),
+      gte(achievement.eventStart, startDate),
+      lte(achievement.eventStart, endDate),
     ];
 
     // Filter by company or projects
@@ -333,7 +336,7 @@ export async function getRecentAchievementsForStandup(
         .select()
         .from(achievement)
         .where(and(...conditions))
-        .orderBy(desc(achievement.createdAt));
+        .orderBy(desc(achievement.eventStart));
 
       return allAchievements.filter((a) =>
         standupConfig.projectIds?.includes(a.projectId || ''),
@@ -345,7 +348,7 @@ export async function getRecentAchievementsForStandup(
       .select()
       .from(achievement)
       .where(and(...conditions))
-      .orderBy(desc(achievement.createdAt));
+      .orderBy(desc(achievement.eventStart));
   } catch (error) {
     console.error('Error in getRecentAchievementsForStandup:', error);
     throw error;

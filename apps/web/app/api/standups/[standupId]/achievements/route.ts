@@ -4,6 +4,7 @@ import {
   getStandupById,
   getRecentAchievementsForStandup,
 } from '@bragdoc/database';
+import { getStandupAchievementDateRange } from '@/lib/scheduling/nextRun';
 
 export async function GET(
   req: NextRequest,
@@ -25,17 +26,21 @@ export async function GET(
       return NextResponse.json({ error: 'Standup not found' }, { status: 404 });
     }
 
-    // Get query params
-    const searchParams = req.nextUrl.searchParams;
-    const daysParam = searchParams.get('days');
-    const days = daysParam ? Number.parseInt(daysParam, 10) : 7;
-
-    // Calculate since date
-    const since = new Date();
-    since.setDate(since.getDate() - days);
+    // Calculate date range based on standup schedule
+    const now = new Date();
+    const { startDate, endDate } = getStandupAchievementDateRange(
+      now,
+      standup.timezone,
+      standup.meetingTime,
+      standup.daysMask,
+    );
 
     // Get achievements
-    const achievements = await getRecentAchievementsForStandup(standup, since);
+    const achievements = await getRecentAchievementsForStandup(
+      standup,
+      startDate,
+      endDate,
+    );
 
     return NextResponse.json(achievements);
   } catch (error) {

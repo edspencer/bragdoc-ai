@@ -8,7 +8,7 @@ import {
   updateStandupDocumentAchievementsSummary,
   getRecentAchievementsForStandup,
 } from '@bragdoc/database';
-import { computeNextRunUTC, computePreviousRunUTC } from 'lib/scheduling';
+import { computeNextRunUTC, getStandupAchievementDateRange } from 'lib/scheduling';
 import { generateStandupSummary } from 'lib/ai/standup-summary';
 
 const summarySchema = z.object({
@@ -63,18 +63,20 @@ export async function POST(
 
     // If regenerate is requested or no summary provided, generate from achievements
     if (regenerate || !summary) {
-      // Get the previous standup date to determine which achievements to include
-      const previousRunDate = computePreviousRunUTC(
-        new Date(),
+      // Calculate date range for relevant achievements
+      const now = new Date();
+      const { startDate, endDate } = getStandupAchievementDateRange(
+        now,
         standup.timezone,
         standup.meetingTime,
         standup.daysMask,
       );
 
-      // Fetch achievements since the previous standup
+      // Fetch achievements in the standup date range
       const achievements = await getRecentAchievementsForStandup(
         standup,
-        previousRunDate,
+        startDate,
+        endDate,
       );
 
       // Generate summary using AI

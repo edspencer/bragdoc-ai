@@ -83,7 +83,7 @@ export function ExistingStandupContent({ standup }: ExistingStandupPageProps) {
     async function fetchAchievements() {
       try {
         const response = await fetch(
-          `/api/standups/${standup.id}/achievements?days=7`,
+          `/api/standups/${standup.id}/achievements`,
         );
         if (response.ok) {
           const data = await response.json();
@@ -153,7 +153,7 @@ export function ExistingStandupContent({ standup }: ExistingStandupPageProps) {
 
       // Refetch achievements to show updated data
       const response = await fetch(
-        `/api/standups/${standup.id}/achievements?days=7`,
+        `/api/standups/${standup.id}/achievements`,
       );
       if (response.ok) {
         const data = await response.json();
