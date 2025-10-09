@@ -20,7 +20,7 @@ import {
   getCleanedCrontab,
   convertCronToWindowsSchedule,
 } from '../lib/scheduling';
-import { syncProjectWithApi as syncProjectWithApiLib } from '../lib/projects';
+import { syncProjectWithApi } from '../lib/projects';
 
 const execAsync = promisify(exec);
 
@@ -29,33 +29,6 @@ const execAsync = promisify(exec);
  */
 export function normalizeRepoPath(path: string): string {
   return resolve(path);
-}
-
-/**
- * Sync project with the API - find existing or create new project
- * Returns the projectId if successful, undefined if user not authenticated
- */
-async function syncProjectWithApi(
-  repoPath: string,
-  repoName: string,
-): Promise<string | undefined> {
-  const result = await syncProjectWithApiLib(repoPath, repoName);
-
-  // Display message based on result
-  if (result.type === 'warning') {
-    console.log(chalk.yellow(`⚠️  ${result.message}`));
-  } else if (result.type === 'error') {
-    console.error(chalk.red(result.message));
-  } else if (result.type === 'success') {
-    if (result.existed) {
-      console.log(chalk.green(`✓ ${result.message}`));
-    } else {
-      console.log(chalk.blue('Creating new project in the web app...'));
-      console.log(chalk.green(`✓ ${result.message}`));
-    }
-  }
-
-  return result.projectId;
 }
 
 /**
@@ -154,7 +127,7 @@ async function installSystemCrontab(): Promise<void> {
   try {
     const config = await loadConfig();
     const scheduledRepos = config.projects.filter(
-      (r) => r.enabled && r.cronSchedule,
+      (r) => r.enabled && r.cronSchedule
     );
 
     if (scheduledRepos.length === 0) {
@@ -184,21 +157,21 @@ async function installSystemCrontab(): Promise<void> {
     console.log(chalk.green('✓ System scheduling installed successfully!'));
     console.log(
       chalk.blue(
-        `📅 Added ${scheduledRepos.length} automatic extraction schedules.`,
-      ),
+        `📅 Added ${scheduledRepos.length} automatic extraction schedules.`
+      )
     );
     console.log(
-      chalk.blue('💡 Run `crontab -l` to view your installed schedules.'),
+      chalk.blue('💡 Run `crontab -l` to view your installed schedules.')
     );
   } catch (error: any) {
     console.error(
       chalk.red('Failed to install crontab entries:'),
-      error.message,
+      error.message
     );
     console.log(
       chalk.blue(
-        '💡 You can manually run `bragdoc install crontab` to try again.',
-      ),
+        '💡 You can manually run `bragdoc install crontab` to try again.'
+      )
     );
   }
 }
@@ -210,7 +183,7 @@ async function installWindowsScheduling(): Promise<void> {
   try {
     const config = await loadConfig();
     const scheduledRepos = config.projects.filter(
-      (r) => r.enabled && r.cronSchedule,
+      (r) => r.enabled && r.cronSchedule
     );
 
     if (scheduledRepos.length === 0) {
@@ -224,7 +197,7 @@ async function installWindowsScheduling(): Promise<void> {
     for (const [index, repo] of scheduledRepos.entries()) {
       try {
         const { schedule, warning } = convertCronToWindowsSchedule(
-          repo.cronSchedule!,
+          repo.cronSchedule!
         );
         if (warning) {
           console.log(chalk.yellow(`⚠️  ${warning}`));
@@ -232,25 +205,25 @@ async function installWindowsScheduling(): Promise<void> {
         const taskName = `BragDoc-Extract-${index + 1}`;
 
         await execAsync(
-          `schtasks /delete /tn "${taskName}" /f 2>nul || exit 0`,
+          `schtasks /delete /tn "${taskName}" /f 2>nul || exit 0`
         );
 
         const command = `schtasks /create /tn "${taskName}" /tr "cmd /c if not exist \\"%USERPROFILE%\\.bragdoc\\logs\\" mkdir \\"%USERPROFILE%\\.bragdoc\\logs\\" && cd /d \\"${repo.path}\\" && node \\"${bragdocPath}\\" extract >> \\"${logFile}\\" 2>&1" ${schedule}`;
 
         await execAsync(command);
         console.log(
-          chalk.green(`✓ Created task: ${taskName} for ${repo.path}`),
+          chalk.green(`✓ Created task: ${taskName} for ${repo.path}`)
         );
       } catch (error: any) {
         console.error(
-          chalk.red(`Failed to create task for ${repo.path}:`, error.message),
+          chalk.red(`Failed to create task for ${repo.path}:`, error.message)
         );
       }
     }
 
     console.log(chalk.green('✓ Windows Task Scheduler setup completed!'));
     console.log(
-      chalk.blue('💡 Run `schtasks /query /tn BragDoc*` to view your tasks.'),
+      chalk.blue('💡 Run `schtasks /query /tn BragDoc*` to view your tasks.')
     );
   } catch (error: any) {
     console.error(chalk.red('Failed to install Windows tasks:'), error.message);
@@ -267,7 +240,7 @@ async function ensureSystemScheduling(): Promise<void> {
 
     if (!hasExistingCron) {
       console.log(
-        chalk.blue('🔧 Setting up automatic extraction scheduling...'),
+        chalk.blue('🔧 Setting up automatic extraction scheduling...')
       );
 
       // Simple choice: crontab for Unix-like, Task Scheduler for Windows
@@ -311,7 +284,7 @@ async function ensureSystemScheduling(): Promise<void> {
   } catch (error) {
     console.log(chalk.yellow('⚠️  Could not set up automatic scheduling.'));
     console.log(
-      chalk.blue('💡 Run `bragdoc install crontab` manually when ready.'),
+      chalk.blue('💡 Run `bragdoc install crontab` manually when ready.')
     );
   }
 }
@@ -324,7 +297,7 @@ export const projectsCommand = new Command('projects')
   .addCommand(
     new Command('list')
       .description('List all configured projects')
-      .action(listProjects),
+      .action(listProjects)
   )
   .addCommand(
     new Command('add')
@@ -333,15 +306,15 @@ export const projectsCommand = new Command('projects')
       .option('-n, --name <name>', 'Friendly name for the repository')
       .option(
         '-m, --max-commits <number>',
-        'Maximum number of commits to extract',
+        'Maximum number of commits to extract'
       )
-      .action(addProject),
+      .action(addProject)
   )
   .addCommand(
     new Command('remove')
       .description('Remove a project from bragdoc')
       .argument('[path]', 'Path to repository (defaults to current directory)')
-      .action(removeProject),
+      .action(removeProject)
   )
   .addCommand(
     new Command('update')
@@ -350,19 +323,19 @@ export const projectsCommand = new Command('projects')
       .option('-n, --name <name>', 'Update friendly name')
       .option('-m, --max-commits <number>', 'Update maximum commits')
       .option('-s, --schedule', 'Update automatic extraction schedule')
-      .action(updateProject),
+      .action(updateProject)
   )
   .addCommand(
     new Command('enable')
       .description('Enable a project')
       .argument('[path]', 'Path to repository (defaults to current directory)')
-      .action((path) => toggleProject(path, true)),
+      .action((path) => toggleProject(path, true))
   )
   .addCommand(
     new Command('disable')
       .description('Disable a project')
       .argument('[path]', 'Path to repository (defaults to current directory)')
-      .action((path) => toggleProject(path, false)),
+      .action((path) => toggleProject(path, false))
   );
 
 /**
@@ -386,7 +359,7 @@ export async function listProjects() {
 
   if (config.projects.length === 0) {
     console.log(
-      'No projects configured. Add one with: bragdoc projects add <path>',
+      'No projects configured. Add one with: bragdoc projects add <path>'
     );
     return;
   }
@@ -402,7 +375,7 @@ export async function listProjects() {
  */
 export async function addProject(
   path: string = process.cwd(),
-  options: { name?: string; maxCommits?: number } = {},
+  options: { name?: string; maxCommits?: number } = {}
 ) {
   const config = await loadConfig();
   const absolutePath = normalizeRepoPath(path);
@@ -416,12 +389,12 @@ export async function addProject(
     // If project exists and doesn't have an id, try to sync it
     if (!existingProject.id) {
       console.log(
-        chalk.yellow('Project already exists. Syncing with web app...'),
+        chalk.yellow('Project already exists. Syncing with web app...')
       );
       const repoInfo = getRepositoryInfo(absolutePath);
       const repoName =
         existingProject.name || getRepositoryName(repoInfo.remoteUrl);
-      const projectId = await syncProjectWithApi(absolutePath, repoName);
+      const { projectId } = await syncProjectWithApi(absolutePath, repoName);
 
       if (projectId) {
         existingProject.id = projectId;
@@ -431,7 +404,7 @@ export async function addProject(
       }
     } else {
       console.log(
-        chalk.yellow('Project already exists and is synced with web app.'),
+        chalk.yellow('Project already exists and is synced with web app.')
       );
     }
     return;
@@ -442,7 +415,7 @@ export async function addProject(
   const repoName = options.name || getRepositoryName(repoInfo.remoteUrl);
 
   // Sync with API to get or create project
-  const projectId = await syncProjectWithApi(absolutePath, repoName);
+  const { projectId } = await syncProjectWithApi(absolutePath, repoName);
 
   // Always prompt for cron schedule
   const cronSchedule = await promptForCronSchedule();
@@ -467,9 +440,9 @@ export async function addProject(
     chalk.green(
       `✓ Added project: ${formatProject(
         newProject,
-        config.settings.defaultMaxCommits,
-      )}`,
-    ),
+        config.settings.defaultMaxCommits
+      )}`
+    )
   );
 
   // If this repo has a schedule, ensure system-level scheduling is set up
@@ -508,7 +481,7 @@ export async function removeProject(path: string = process.cwd()) {
     } catch (error: any) {
       console.error(
         chalk.red('Failed to update system scheduling:'),
-        error.message,
+        error.message
       );
     }
   }
@@ -519,7 +492,7 @@ export async function removeProject(path: string = process.cwd()) {
  */
 export async function updateProject(
   path: string = process.cwd(),
-  options: { name?: string; maxCommits?: number; schedule?: boolean } = {},
+  options: { name?: string; maxCommits?: number; schedule?: boolean } = {}
 ) {
   const config = await loadConfig();
   const absolutePath = normalizeRepoPath(path);
@@ -544,7 +517,10 @@ export async function updateProject(
 
   await saveConfig(config);
   console.log(
-    `Updated project: ${formatProject(project, config.settings.defaultMaxCommits)}`,
+    `Updated project: ${formatProject(
+      project,
+      config.settings.defaultMaxCommits
+    )}`
   );
 
   // If schedule was updated, automatically update system scheduling
@@ -560,10 +536,10 @@ export async function updateProject(
     } catch (error: any) {
       console.error(
         chalk.red('Failed to update system scheduling:'),
-        error.message,
+        error.message
       );
       console.log(
-        chalk.blue('💡 You can manually run the install command if needed.'),
+        chalk.blue('💡 You can manually run the install command if needed.')
       );
     }
   }
@@ -587,8 +563,8 @@ export async function toggleProject(path: string, enabled: boolean) {
   console.log(
     `${enabled ? 'Enabled' : 'Disabled'} project: ${formatProject(
       project,
-      config.settings.defaultMaxCommits,
-    )}`,
+      config.settings.defaultMaxCommits
+    )}`
   );
 }
 
