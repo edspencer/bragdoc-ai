@@ -91,7 +91,7 @@ export function RecentUpdatesTable({
                         <div className="flex items-center gap-2">
                           <IconCalendar className="size-4 text-muted-foreground" />
                           <span className="text-sm font-medium">
-                            {format(doc.date, 'MMM d, yyyy')}
+                            {format(doc.date, 'EEE, MMM d')}
                           </span>
                         </div>
                       </TableCell>
