@@ -29,7 +29,8 @@ import { StandupAchievementsTable } from './standup-achievements-table';
 import { useAchievementMutations } from 'hooks/use-achievement-mutations';
 import { fromMask } from '@/lib/scheduling/weekdayMask';
 import { formatStandupScope } from '@/lib/standups/format-scope';
-import type { Company, Project } from '@bragdoc/database';
+import type { Company, Project, StandupDocument, Standup } from '@bragdoc/database';
+import { NextStandupIndicator } from './next-standup-indicator';
 
 interface Achievement {
   id: string;
@@ -40,25 +41,6 @@ interface Achievement {
   companyName: string | null;
   createdAt: Date;
   source: string;
-}
-
-interface StandupDocument {
-  id: string;
-  date: Date;
-  quickSummary: string | null;
-  achievementsSummary: string | null;
-  wip: string | null;
-}
-
-interface Standup {
-  id: string;
-  name: string;
-  companyId: string | null;
-  projectIds: string[] | null;
-  daysMask: number;
-  meetingTime: string;
-  timezone: string;
-  instructions: string | null;
 }
 
 interface ExistingStandupPageProps {
@@ -325,7 +307,14 @@ export function ExistingStandupContent({ standup }: ExistingStandupPageProps) {
       {/* Header */}
       <div className="border-b bg-background px-8 py-4">
         <div className="flex items-center justify-between">
-          <h1 className="text-2xl font-bold">{standup.name}</h1>
+          <div>
+            <h1 className="text-2xl font-bold">{standup.name}</h1>
+            <NextStandupIndicator
+              meetingTime={standup.meetingTime}
+              daysMask={standup.daysMask}
+              timezone={standup.timezone}
+            />
+          </div>
           <div className="flex items-center gap-4">
             <div className="text-sm text-muted-foreground">
               <span className="font-medium">

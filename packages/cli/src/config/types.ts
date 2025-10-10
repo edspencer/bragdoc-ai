@@ -2,7 +2,7 @@
  * Types for project configuration
  */
 export interface Project {
-  path: string;
+  path: string; //local root path of the project
   name?: string;
   enabled: boolean;
   maxCommits?: number;

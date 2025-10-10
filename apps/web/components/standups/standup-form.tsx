@@ -33,7 +33,13 @@ const formSchema = z.object({
   daysMask: z.number().min(1).max(127),
   meetingTime: z
     .string()
-    .regex(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/, 'Invalid time format'),
+    .transform((val) => {
+      // Remove any am/pm suffix if present (preprocessing)
+      return val.toLowerCase().replace(/\s*(am|pm)\s*$/i, '');
+    })
+    .pipe(
+      z.string().regex(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/, 'Invalid time format (use HH:mm)')
+    ),
   timezone: z.string().min(1, 'Timezone is required'),
   instructions: z.string().optional(),
 });
@@ -73,7 +79,9 @@ export function StandupForm({
       companyId: initialData?.companyId || null,
       projectIds: initialData?.projectIds || [],
       daysMask: initialData?.daysMask || 31, // M-F default (1+2+4+8+16)
-      meetingTime: initialData?.meetingTime || '09:00',
+      meetingTime: initialData?.meetingTime
+        ? initialData.meetingTime.substring(0, 5) // Convert HH:mm:ss to HH:mm
+        : '09:00',
       timezone:
         initialData?.timezone ||
         Intl.DateTimeFormat().resolvedOptions().timeZone,
@@ -224,7 +232,16 @@ export function StandupForm({
             <FormItem>
               <FormLabel>Meeting Time</FormLabel>
               <FormControl>
-                <Input {...field} type="time" />
+                <Input
+                  {...field}
+                  type="time"
+                  onChange={(e) => {
+                    // Normalize to HH:mm format (strip seconds if present)
+                    const value = e.target.value;
+                    const normalized = value ? value.substring(0, 5) : value;
+                    field.onChange(normalized);
+                  }}
+                />
               </FormControl>
               <FormMessage />
             </FormItem>
