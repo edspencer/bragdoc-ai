@@ -4,11 +4,11 @@ import { wrapAISDKModel } from 'braintrust';
 
 import { customMiddleware } from './custom-middleware';
 
-export const defaultModel = 'gpt-4o';
+export const defaultModel = 'gpt-4o-mini';
 
 export const customModel = (
   apiIdentifier: string = defaultModel,
-  provider: any = openai,
+  provider: any = openai
 ) => {
   const wrappedModel = wrapLanguageModel({
     model: provider(apiIdentifier),
@@ -23,7 +23,7 @@ export const gpt4Model = customModel('gpt-4');
 export const gpt4oModel = customModel('gpt-4o');
 export const gpt4oMiniModel = customModel('gpt-4o-mini');
 
-export const extractAchievementsModel = gpt4oModel;
+export const extractAchievementsModel = gpt4oMiniModel;
 export const chatModel = gpt4oModel;
 export const findExistingProjectModel = gpt4oMiniModel;
 

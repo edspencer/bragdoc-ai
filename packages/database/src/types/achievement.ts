@@ -29,8 +29,10 @@ export type EventDuration = (typeof EventDuration)[keyof typeof EventDuration];
 // API request types
 export type CreateAchievementRequest = Omit<
   Achievement,
-  'id' | 'userId' | 'createdAt' | 'updatedAt'
->;
+  'id' | 'userId' | 'createdAt' | 'updatedAt' | 'standupDocumentId'
+> & {
+  standupDocumentId?: string | null;
+};
 export type UpdateAchievementRequest = Partial<CreateAchievementRequest>;
 
 // Form type

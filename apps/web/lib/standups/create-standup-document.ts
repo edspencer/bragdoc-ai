@@ -5,6 +5,7 @@ import {
   updateStandupDocumentAchievementsSummary,
   updateStandupDocumentSummary,
   getRecentAchievementsForStandup,
+  bulkUpdateAchievementStandupDocument,
 } from '@bragdoc/database';
 import { getStandupAchievementDateRange } from '../scheduling/nextRun';
 import {
@@ -76,6 +77,12 @@ export async function createOrUpdateStandupDocument(
       document.id,
       summary
     );
+
+    // Link achievements to this standup document
+    if (achievements.length > 0) {
+      const achievementIds = achievements.map(a => a.id);
+      await bulkUpdateAchievementStandupDocument(achievementIds, document.id);
+    }
   }
 
   // Generate and save the short summary for list views

@@ -129,6 +129,10 @@ export const achievement = pgTable(
       .references(() => user.id),
     companyId: uuid('company_id').references(() => company.id),
     projectId: uuid('project_id').references(() => project.id),
+    standupDocumentId: uuid('standup_document_id').references(
+      () => standupDocument.id,
+      { onDelete: 'set null' }
+    ),
     userMessageId: uuid('user_message_id').references(() => userMessage.id),
     title: varchar('title', { length: 256 }).notNull(),
     summary: text('summary'),

@@ -57,6 +57,8 @@ export {
   getAchievements,
   updateAchievement,
   deleteAchievement,
+  updateAchievementStandupDocument,
+  bulkUpdateAchievementStandupDocument,
   getCompaniesByUserId,
   getCompanyById,
   createCompany,
@@ -95,10 +97,12 @@ export {
   deleteStandup,
   getStandupDocumentsByStandupId,
   getCurrentStandupDocument,
+  getStandupDocumentByDate,
   createStandupDocument,
   updateStandupDocumentWip,
   updateStandupDocumentAchievementsSummary,
   updateStandupDocumentSummary,
+  deleteStandupDocument,
   getRecentAchievementsForStandup,
 } from './standups/queries';
 

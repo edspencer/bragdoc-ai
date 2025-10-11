@@ -1,6 +1,6 @@
 import { generateText } from 'ai';
 import { routerModel } from './index';
-import type { Achievement, User } from '@bragdoc/database';
+import type { Achievement, User, StandupDocument } from '@bragdoc/database';
 
 /**
  * Generate a standup summary from achievements
@@ -27,20 +27,25 @@ export async function generateStandupAchievementsSummary(
     .join('\n\n');
 
   // Build the prompt
-  const systemPrompt = `You are a helpful assistant that creates concise standup summaries from achievement data.
-Your goal is to summarize what the user accomplished in a clear, professional manner suitable for a team standup meeting.
+  const systemPrompt = `You are a helpful assistant that creates concise standup summaries from Achievement data.
+Achievements are specific accomplishments or impacts that the user (a software engineer) has achieved since the last standup.
+Your task is to create a complete but concise summary of the achievements listed below to aid the user in the deliver of
+their standup update.
+
+You are NOT writing a script for the user to read verbatim. Rather, you are creating a structured update that reminds the user
+about all of the Achievements they've made in the period since the last standup (all of these Achievements are listed below).
+
+Your audience is the user, a software engineer who is preparing to give a standup update to their team.
+
 Focus on the key accomplishments and their impact.
 ${instructions ? `\nAdditional instructions from user: ${instructions}` : ''}`;
 
-  const userPrompt = `Please create a standup summary from these achievements:
+  const userPrompt = `Here are the Achievements for this update:
 
 ${achievementsText}
 
-Create a concise summary (2-4 paragraphs) that:
-1. Highlights the most important accomplishments
-2. Mentions any significant impact or results
-3. Is suitable for sharing in a team standup meeting
-4. Uses a professional but friendly tone`;
+Please create your complete and concise summary of the achievements listed above, per the instructions you have been given.
+You are not writing in my voice, you are writing a summary for me.`;
 
   try {
     // Use the router model for generating summaries
@@ -69,7 +74,7 @@ Create a concise summary (2-4 paragraphs) that:
  * Used for the document list view
  */
 export async function generateStandupDocumentSummary(
-  document: Pick<import('@bragdoc/database').StandupDocument, 'achievementsSummary' | 'wip'>,
+  document: Pick<StandupDocument, 'achievementsSummary' | 'wip'>,
   user?: User
 ): Promise<string> {
   const { achievementsSummary, wip } = document;

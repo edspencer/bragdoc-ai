@@ -20,12 +20,11 @@ import {
   AlertDialogTitle,
 } from 'components/ui/alert-dialog';
 import { StandupForm } from './standup-form';
-import { RecentUpdatesTable } from './recent-updates-table';
+import { RecentAchievementsTable } from './recent-achievements-table';
 import { StandupUpdateSection } from './standup-update-section';
 import { WipSection } from './wip-section';
 import { IconEdit, IconTrash } from '@tabler/icons-react';
 import { toast } from 'sonner';
-import { StandupAchievementsTable } from './standup-achievements-table';
 import { useAchievementMutations } from 'hooks/use-achievement-mutations';
 import { fromMask } from '@/lib/scheduling/weekdayMask';
 import { formatStandupScope } from '@/lib/standups/format-scope';
@@ -89,83 +88,12 @@ export function ExistingStandupContent({ standup }: ExistingStandupPageProps) {
   const router = useRouter();
   const [showEditDialog, setShowEditDialog] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
-  const [selectedAchievements, setSelectedAchievements] = useState<string[]>(
-    [],
-  );
   const [isDeleting, setIsDeleting] = useState(false);
 
-  const [achievements, setAchievements] = useState<Achievement[]>([]);
-  const [achievements7Days, setAchievements7Days] = useState<Achievement[]>([]);
-  const [documents, setDocuments] = useState<StandupDocument[]>([]);
-  const [isLoadingAchievements, setIsLoadingAchievements] = useState(true);
-  const [isLoadingAchievements7Days, setIsLoadingAchievements7Days] = useState(true);
-  const [isLoadingDocuments, setIsLoadingDocuments] = useState(true);
   const [companies, setCompanies] = useState<Company[]>([]);
   const [projects, setProjects] = useState<Project[]>([]);
-  const [hasRecentAchievements, setHasRecentAchievements] = useState(false);
-  const [isGenerating, setIsGenerating] = useState(false);
 
   const { updateAchievement } = useAchievementMutations();
-
-  // Fetch achievements since last standup
-  useEffect(() => {
-    async function fetchAchievements() {
-      try {
-        const response = await fetch(
-          `/api/standups/${standup.id}/achievements?range=since-last`,
-        );
-        if (response.ok) {
-          const data = await response.json();
-          setAchievements(data);
-        }
-      } catch (error) {
-        console.error('Error fetching achievements:', error);
-      } finally {
-        setIsLoadingAchievements(false);
-      }
-    }
-    fetchAchievements();
-  }, [standup.id]);
-
-  // Fetch achievements from last 7 days
-  useEffect(() => {
-    async function fetchAchievements7Days() {
-      try {
-        const response = await fetch(
-          `/api/standups/${standup.id}/achievements?range=last-7-days`,
-        );
-        if (response.ok) {
-          const data = await response.json();
-          setAchievements7Days(data);
-        }
-      } catch (error) {
-        console.error('Error fetching 7-day achievements:', error);
-      } finally {
-        setIsLoadingAchievements7Days(false);
-      }
-    }
-    fetchAchievements7Days();
-  }, [standup.id]);
-
-  // Fetch documents
-  useEffect(() => {
-    async function fetchDocuments() {
-      try {
-        const response = await fetch(
-          `/api/standups/${standup.id}/documents?limit=10`,
-        );
-        if (response.ok) {
-          const data = await response.json();
-          setDocuments(data);
-        }
-      } catch (error) {
-        console.error('Error fetching documents:', error);
-      } finally {
-        setIsLoadingDocuments(false);
-      }
-    }
-    fetchDocuments();
-  }, [standup.id]);
 
   // Fetch companies and projects for scope display
   useEffect(() => {
@@ -191,14 +119,6 @@ export function ExistingStandupContent({ standup }: ExistingStandupPageProps) {
     }
     fetchCompaniesAndProjects();
   }, []);
-
-  // Check if recent achievements exist (for showing generate button)
-  useEffect(() => {
-    // Only check if we have no documents and finished loading
-    if (documents.length === 0 && !isLoadingDocuments) {
-      setHasRecentAchievements(achievements7Days.length > 0);
-    }
-  }, [documents.length, isLoadingDocuments, achievements7Days.length]);
 
   const handleDelete = async () => {
     setIsDeleting(true);
@@ -232,73 +152,10 @@ export function ExistingStandupContent({ standup }: ExistingStandupPageProps) {
         impactSource: 'user',
         impactUpdatedAt: new Date(),
       });
-
-      // Refetch both achievement lists to show updated data
-      const [responseSinceLast, response7Days] = await Promise.all([
-        fetch(`/api/standups/${standup.id}/achievements?range=since-last`),
-        fetch(`/api/standups/${standup.id}/achievements?range=last-7-days`),
-      ]);
-
-      if (responseSinceLast.ok) {
-        const data = await responseSinceLast.json();
-        setAchievements(data);
-      }
-
-      if (response7Days.ok) {
-        const data = await response7Days.json();
-        setAchievements7Days(data);
-      }
+      // Note: The RecentAchievementsTable component will handle its own data refetching
     } catch (error) {
       console.error('Error updating impact:', error);
       toast.error('Failed to update impact');
-    }
-  };
-
-  const handleViewDocument = (doc: any) => {
-    // TODO: Show document in a dialog or navigate to detail view
-    toast.info('Document viewer coming soon');
-  };
-
-  const handleGenerateDocuments = async () => {
-    setIsGenerating(true);
-    try {
-      const response = await fetch(
-        `/api/standups/${standup.id}/regenerate-standup-documents`,
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-        },
-      );
-
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || 'Failed to generate standup documents');
-      }
-
-      const result = await response.json();
-      toast.success(
-        `Generated ${result.documentsCreated} standup document${result.documentsCreated !== 1 ? 's' : ''}`,
-      );
-
-      // Refetch documents to show the newly generated ones
-      const documentsResponse = await fetch(
-        `/api/standups/${standup.id}/documents?limit=10`,
-      );
-      if (documentsResponse.ok) {
-        const data = await documentsResponse.json();
-        setDocuments(data);
-      }
-    } catch (error) {
-      console.error('Error generating standup documents:', error);
-      toast.error(
-        error instanceof Error
-          ? error.message
-          : 'Failed to generate standup documents',
-      );
-    } finally {
-      setIsGenerating(false);
     }
   };
 
@@ -353,30 +210,10 @@ export function ExistingStandupContent({ standup }: ExistingStandupPageProps) {
       <div className="flex-1 grid grid-cols-1 lg:grid-cols-2 gap-6 p-8">
         {/* Left column */}
         <div className="space-y-6">
-          <StandupAchievementsTable
-            achievements={achievements}
-            selectedAchievements={selectedAchievements}
-            onSelectionChange={setSelectedAchievements}
+          <RecentAchievementsTable
+            standupId={standup.id}
+            standup={standup}
             onImpactChange={handleImpactChange}
-            isLoading={isLoadingAchievements}
-            title="Achievements since last Standup"
-          />
-          <StandupAchievementsTable
-            achievements={achievements7Days}
-            selectedAchievements={[]}
-            onSelectionChange={() => {}}
-            onImpactChange={handleImpactChange}
-            isLoading={isLoadingAchievements7Days}
-            title="Achievements last 7 days"
-            showCheckboxes={false}
-          />
-          <RecentUpdatesTable
-            documents={documents}
-            onViewDocument={handleViewDocument}
-            isLoading={isLoadingDocuments}
-            hasRecentAchievements={hasRecentAchievements}
-            onGenerateDocuments={handleGenerateDocuments}
-            isGenerating={isGenerating}
           />
         </div>
 
@@ -384,7 +221,7 @@ export function ExistingStandupContent({ standup }: ExistingStandupPageProps) {
         <div className="space-y-6">
           <StandupUpdateSection
             standupId={standup.id}
-            selectedAchievements={selectedAchievements}
+            selectedAchievements={[]}
             standupInstructions={standup.instructions || ''}
           />
           <WipSection standupId={standup.id} />

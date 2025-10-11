@@ -118,6 +118,7 @@ export default function AchievementsPage() {
       eventDuration: 'day',
       source: 'manual',
       userMessageId: null,
+      standupDocumentId: null,
       isArchived: false,
       impactSource: 'user',
       impactUpdatedAt: new Date(),

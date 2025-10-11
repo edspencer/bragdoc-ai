@@ -30,8 +30,18 @@ export async function GET(
     const limitParam = searchParams.get('limit');
     const limit = limitParam ? Number.parseInt(limitParam, 10) : 10;
 
+    const startDateParam = searchParams.get('startDate');
+    const endDateParam = searchParams.get('endDate');
+    const startDate = startDateParam ? new Date(startDateParam) : undefined;
+    const endDate = endDateParam ? new Date(endDateParam) : undefined;
+
     // Get documents
-    const documents = await getStandupDocumentsByStandupId(standupId, limit);
+    const documents = await getStandupDocumentsByStandupId(
+      standupId,
+      limit,
+      startDate,
+      endDate,
+    );
 
     return NextResponse.json(documents);
   } catch (error) {

@@ -1,13 +1,21 @@
 import { type NextRequest, NextResponse } from 'next/server';
 import { subDays } from 'date-fns';
 import { getAuthUser } from 'lib/getAuthUser';
-import { getStandupById, getRecentAchievementsForStandup } from '@bragdoc/database';
+import {
+  getStandupById,
+  getRecentAchievementsForStandup,
+  getStandupDocumentByDate,
+} from '@bragdoc/database';
 import { calculateStandupOccurrences } from 'lib/standups/calculate-standup-occurrences';
 import { createOrUpdateStandupDocument } from 'lib/standups/create-standup-document';
+import { getStandupAchievementDateRange } from 'lib/scheduling/nextRun';
 
 /**
  * POST /api/standups/:standupId/regenerate-standup-documents
- * Generate standup documents for the last 7 days
+ * Generate standup documents for a specified date range or the last 7 days
+ * Query params:
+ *   - startDate: ISO date string (optional)
+ *   - endDate: ISO date string (optional)
  */
 export async function POST(
   req: NextRequest,
@@ -26,10 +34,22 @@ export async function POST(
       return NextResponse.json({ error: 'Standup not found' }, { status: 404 });
     }
 
-    // Calculate 7-day date range
-    const now = new Date();
-    const startDate = subDays(now, 7);
-    const endDate = now;
+    // Get date range from query params or default to last 7 days
+    const { searchParams } = new URL(req.url);
+    const startDateParam = searchParams.get('startDate');
+    const endDateParam = searchParams.get('endDate');
+
+    let startDate: Date;
+    let endDate: Date;
+
+    if (startDateParam && endDateParam) {
+      startDate = new Date(startDateParam);
+      endDate = new Date(endDateParam);
+    } else {
+      const now = new Date();
+      startDate = subDays(now, 7);
+      endDate = now;
+    }
 
     // Check if at least one achievement exists in the range
     const achievements = await getRecentAchievementsForStandup(
@@ -40,12 +60,12 @@ export async function POST(
 
     if (achievements.length === 0) {
       return NextResponse.json(
-        { error: 'No achievements found in the last 7 days' },
+        { error: 'No achievements found in the specified date range' },
         { status: 400 },
       );
     }
 
-    // Calculate all standup occurrences in the last 7 days
+    // Calculate all standup occurrences in the date range
     const allOccurrences = calculateStandupOccurrences(
       startDate,
       endDate,
@@ -55,21 +75,68 @@ export async function POST(
     );
 
     // Filter out future dates
+    const now = new Date();
     const pastOccurrences = allOccurrences.filter((date) => date <= now);
 
     if (pastOccurrences.length === 0) {
       return NextResponse.json(
-        { error: 'No past standup occurrences found in the last 7 days' },
+        { error: 'No past standup occurrences found in the specified date range' },
         { status: 400 },
       );
     }
 
     // Generate documents for each occurrence
     const createdDocuments = [];
+    const skippedDocuments = [];
     const errors = [];
 
     for (const occurrenceDate of pastOccurrences) {
       try {
+        // Check if document already exists for this date
+        const existingDocument = await getStandupDocumentByDate(
+          params.standupId,
+          occurrenceDate,
+        );
+
+        if (existingDocument) {
+          console.log(
+            `Skipping ${occurrenceDate.toISOString()} - document already exists`,
+          );
+          skippedDocuments.push({
+            date: occurrenceDate.toISOString(),
+            reason: 'Document already exists',
+          });
+          continue;
+        }
+
+        // Get the date range for this specific standup occurrence
+        const achievementDateRange = getStandupAchievementDateRange(
+          occurrenceDate,
+          standup.timezone,
+          standup.meetingTime,
+          standup.daysMask,
+        );
+
+        // Get achievements for this specific period
+        const periodAchievements = await getRecentAchievementsForStandup(
+          standup,
+          achievementDateRange.startDate,
+          achievementDateRange.endDate,
+        );
+
+        // Skip if no achievements for this period
+        if (periodAchievements.length === 0) {
+          console.log(
+            `Skipping ${occurrenceDate.toISOString()} - no achievements in period`,
+          );
+          skippedDocuments.push({
+            date: occurrenceDate.toISOString(),
+            reason: 'No achievements in period',
+          });
+          continue;
+        }
+
+        // Create the document
         const document = await createOrUpdateStandupDocument(
           params.standupId,
           auth.user.id,
@@ -94,7 +161,9 @@ export async function POST(
     return NextResponse.json({
       success: true,
       documentsCreated: createdDocuments.length,
+      documentsSkipped: skippedDocuments.length,
       documents: createdDocuments,
+      skipped: skippedDocuments.length > 0 ? skippedDocuments : undefined,
       errors: errors.length > 0 ? errors : undefined,
     });
   } catch (error) {

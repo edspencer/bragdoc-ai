@@ -136,6 +136,7 @@ export function AchievementDialog({
         details: data.details || null,
         eventStart: data.eventStart || null,
         eventEnd: data.eventEnd || null,
+        standupDocumentId: null,
       };
 
       if (mode === 'edit' && achievement) {

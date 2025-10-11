@@ -7,6 +7,7 @@ import {
   eq,
   gt,
   gte,
+  inArray,
   type InferSelectModel,
   lte,
   sql,
@@ -695,6 +696,48 @@ export async function deleteAchievement({
       .returning();
   } catch (error) {
     console.error('Error in deleteAchievement:', error);
+    throw error;
+  }
+}
+
+/**
+ * Update standupDocumentId for a single achievement
+ */
+export async function updateAchievementStandupDocument(
+  achievementId: string,
+  standupDocumentId: string,
+  dbInstance = defaultDb,
+): Promise<void> {
+  try {
+    await dbInstance
+      .update(achievement)
+      .set({ standupDocumentId })
+      .where(eq(achievement.id, achievementId));
+  } catch (error) {
+    console.error('Error in updateAchievementStandupDocument:', error);
+    throw error;
+  }
+}
+
+/**
+ * Bulk update standupDocumentId for multiple achievements
+ */
+export async function bulkUpdateAchievementStandupDocument(
+  achievementIds: string[],
+  standupDocumentId: string,
+  dbInstance = defaultDb,
+): Promise<void> {
+  try {
+    if (achievementIds.length === 0) {
+      return;
+    }
+
+    await dbInstance
+      .update(achievement)
+      .set({ standupDocumentId })
+      .where(inArray(achievement.id, achievementIds));
+  } catch (error) {
+    console.error('Error in bulkUpdateAchievementStandupDocument:', error);
     throw error;
   }
 }

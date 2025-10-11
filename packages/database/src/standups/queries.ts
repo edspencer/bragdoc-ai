@@ -167,13 +167,24 @@ export async function deleteStandup(
 export async function getStandupDocumentsByStandupId(
   standupId: string,
   limit = 10,
+  startDate?: Date,
+  endDate?: Date,
   dbInstance = defaultDb,
 ): Promise<StandupDocument[]> {
   try {
+    const conditions = [eq(standupDocument.standupId, standupId)];
+
+    if (startDate) {
+      conditions.push(gte(standupDocument.date, startDate));
+    }
+    if (endDate) {
+      conditions.push(lte(standupDocument.date, endDate));
+    }
+
     return await dbInstance
       .select()
       .from(standupDocument)
-      .where(eq(standupDocument.standupId, standupId))
+      .where(and(...conditions))
       .orderBy(desc(standupDocument.date))
       .limit(limit);
   } catch (error) {
@@ -206,6 +217,33 @@ export async function getCurrentStandupDocument(
     return docs[0] || null;
   } catch (error) {
     console.error('Error in getCurrentStandupDocument:', error);
+    throw error;
+  }
+}
+
+/**
+ * Get standup document by standup ID and specific date
+ */
+export async function getStandupDocumentByDate(
+  standupId: string,
+  date: Date,
+  dbInstance = defaultDb,
+): Promise<StandupDocument | null> {
+  try {
+    const docs = await dbInstance
+      .select()
+      .from(standupDocument)
+      .where(
+        and(
+          eq(standupDocument.standupId, standupId),
+          eq(standupDocument.date, date),
+        ),
+      )
+      .limit(1);
+
+    return docs[0] || null;
+  } catch (error) {
+    console.error('Error in getStandupDocumentByDate:', error);
     throw error;
   }
 }
@@ -329,6 +367,28 @@ export async function updateStandupDocumentSummary(
     return updated;
   } catch (error) {
     console.error('Error in updateStandupDocumentSummary:', error);
+    throw error;
+  }
+}
+
+/**
+ * Delete a standup document by ID
+ */
+export async function deleteStandupDocument(
+  documentId: string,
+  dbInstance = defaultDb,
+): Promise<void> {
+  try {
+    const result = await dbInstance
+      .delete(standupDocument)
+      .where(eq(standupDocument.id, documentId))
+      .returning();
+
+    if (result.length === 0) {
+      throw new Error('Standup document not found');
+    }
+  } catch (error) {
+    console.error('Error in deleteStandupDocument:', error);
     throw error;
   }
 }

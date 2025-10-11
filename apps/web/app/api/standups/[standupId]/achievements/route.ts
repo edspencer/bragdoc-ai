@@ -33,14 +33,20 @@ export async function GET(
       return NextResponse.json({ error: 'Standup not found' }, { status: 404 });
     }
 
-    // Get range parameter
+    // Get date range parameters
     const { searchParams } = new URL(req.url);
+    const startDateParam = searchParams.get('startDate');
+    const endDateParam = searchParams.get('endDate');
     const range = searchParams.get('range') || 'since-last';
 
     let startDate: Date;
     let endDate: Date;
 
-    if (range === 'last-7-days') {
+    if (startDateParam && endDateParam) {
+      // Use explicit date range if provided
+      startDate = new Date(startDateParam);
+      endDate = new Date(endDateParam);
+    } else if (range === 'last-7-days') {
       // Last 7 days: from 7 days ago to now
       const now = new Date();
       startDate = subDays(now, 7);
