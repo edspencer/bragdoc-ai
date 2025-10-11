@@ -15,6 +15,8 @@ import { loadConfig } from '../config';
 import { getApiBaseUrl } from '../config/paths';
 import logger from '../utils/logger';
 import { createApiClient } from '../api/client';
+import { getLLMDisplayName } from '../ai/providers';
+import { isLLMConfigured } from '../config/llm-setup';
 
 /**
  * Format a commit for display in dry-run mode
@@ -120,12 +122,6 @@ export const extractCommand = new Command('extract')
         process.exit(1);
       }
 
-      if (!process.env.OPENAI_API_KEY) {
-        logger.error('OPENAI_API_KEY environment variable is required.');
-        logger.info('Set it with: export OPENAI_API_KEY=your-api-key');
-        process.exit(1);
-      }
-
       logger.debug(`Using API base URL: ${apiUrl}`);
 
       const repoInfo = getRepositoryInfo(process.cwd());
@@ -199,6 +195,21 @@ export const extractCommand = new Command('extract')
 
       const apiClient = await createApiClient();
 
+      // Validate LLM configuration before starting extraction
+      if (!isLLMConfigured(config.llm)) {
+        logger.error('LLM provider is not configured.');
+        logger.info('Achievement extraction requires an LLM provider to analyze commits.');
+        logger.info('Run "bragdoc init" to configure your LLM provider.');
+        logger.info('Alternatively, set an environment variable:');
+        logger.info('  - OPENAI_API_KEY for OpenAI');
+        logger.info('  - ANTHROPIC_API_KEY for Anthropic');
+        logger.info('  - GOOGLE_GENERATIVE_AI_API_KEY for Google');
+        process.exit(1);
+      }
+
+      const llmName = getLLMDisplayName(config);
+      logger.debug(`Using LLM: ${llmName}`);
+
       logger.info('Fetching user context from API...');
       const [companies, projects, userProfile] = await Promise.all([
         apiClient.get<any[]>('/api/companies'),
@@ -225,42 +236,56 @@ export const extractCommand = new Command('extract')
       logger.info(`Processing ${commitsToProcess.length} commits...`);
 
       let processedSoFar = 0;
-      for await (const result of processInBatches(
-        repoInfo,
-        commitsToProcess,
-        batchConfig,
-        extractionContext,
-        apiClient,
-      )) {
-        // Add successfully processed commits to cache
-        if (cache) {
-          const processedHashes = commitsToProcess
-            .slice(processedSoFar, processedSoFar + result.processedCount)
-            .map((c) => c.hash);
-          processedSoFar += result.processedCount;
-          logger.debug(
-            `Adding ${processedHashes.length} commits to cache for repository ${repository}`,
-          );
-          logger.debug(`Commit hashes: ${processedHashes.join(', ')}`);
-          await cache.add(repository, processedHashes);
+      let successfulBatches = 0;
+
+      try {
+        for await (const result of processInBatches(
+          repoInfo,
+          commitsToProcess,
+          batchConfig,
+          extractionContext,
+          apiClient,
+        )) {
+          // Add successfully processed commits to cache
+          if (cache) {
+            const processedHashes = commitsToProcess
+              .slice(processedSoFar, processedSoFar + result.processedCount)
+              .map((c) => c.hash);
+            processedSoFar += result.processedCount;
+            logger.debug(
+              `Adding ${processedHashes.length} commits to cache for repository ${repository}`,
+            );
+            logger.debug(`Commit hashes: ${processedHashes.join(', ')}`);
+            await cache.add(repository, processedHashes);
+          }
+
+          successfulBatches++;
+
+          if (result.achievements.length > 0) {
+            logger.info('\nAchievements found:');
+            result.achievements.forEach((achievement) => {
+              logger.info(`- ${achievement.title}`);
+            });
+          }
+
+          if (result.errors?.length) {
+            logger.warn('\nErrors:');
+            result.errors.forEach((error) => {
+              logger.warn(`- ${error.commit}: ${error.error}`);
+            });
+          }
         }
 
-        if (result.achievements.length > 0) {
-          logger.info('\nAchievements found:');
-          result.achievements.forEach((achievement) => {
-            logger.info(`- ${achievement.title}`);
-          });
+        logger.info('Done!');
+      } catch (batchError: any) {
+        // If batch processing fails, log the error and exit
+        // Cache has only been updated for successfully completed batches
+        logger.error(`\nBatch processing failed: ${batchError.message}`);
+        if (successfulBatches > 0) {
+          logger.info(`Successfully processed ${successfulBatches} batch(es) before failure`);
         }
-
-        if (result.errors?.length) {
-          logger.warn('\nErrors:');
-          result.errors.forEach((error) => {
-            logger.warn(`- ${error.commit}: ${error.error}`);
-          });
-        }
+        throw batchError;
       }
-
-      logger.info('Done!');
     } catch (error: any) {
       logger.error('Error:', error.message);
       process.exit(1);

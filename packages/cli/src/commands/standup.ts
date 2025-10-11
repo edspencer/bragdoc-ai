@@ -16,6 +16,8 @@ import {
 } from '../lib/scheduling';
 import { exec } from 'node:child_process';
 import { promisify } from 'node:util';
+import { promptForLLMConfig, isLLMConfigured } from '../config/llm-setup';
+import { getLLMDisplayName } from '../ai/providers';
 
 const execAsync = promisify(exec);
 
@@ -465,6 +467,17 @@ async function enableStandup() {
     const selectedStandup = standups.find((s) => s.id === selectedStandupId);
     if (!selectedStandup) {
       throw new Error('Selected standup not found');
+    }
+
+    // Check if LLM is configured before setting up standup schedules
+    if (!isLLMConfigured(config.llm)) {
+      console.log(chalk.yellow('\n⚠️  LLM provider not configured'));
+      console.log(chalk.blue('Standup WIP extraction requires an LLM to analyze commits.\n'));
+      const llmConfig = await promptForLLMConfig();
+      config.llm = llmConfig;
+      await saveConfig(config);
+      const displayName = getLLMDisplayName(config);
+      console.log(chalk.green(`✓ LLM configured: ${displayName}\n`));
     }
 
     // Branch logic based on whether in project directory

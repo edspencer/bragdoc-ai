@@ -21,6 +21,8 @@ import {
   convertCronToWindowsSchedule,
 } from '../lib/scheduling';
 import { syncProjectWithApi } from '../lib/projects';
+import { promptForLLMConfig, isLLMConfigured } from '../config/llm-setup';
+import { getLLMDisplayName } from '../ai/providers';
 
 const execAsync = promisify(exec);
 
@@ -378,6 +380,18 @@ export async function addProject(
   options: { name?: string; maxCommits?: number } = {}
 ) {
   const config = await loadConfig();
+
+  // Check if LLM is configured - prompt if not
+  if (!isLLMConfigured(config.llm)) {
+    console.log('\n🤖 Setting up LLM provider for achievement extraction...\n');
+    const llmConfig = await promptForLLMConfig();
+    config.llm = llmConfig;
+    await saveConfig(config);
+
+    const displayName = getLLMDisplayName(config);
+    console.log(chalk.green(`✓ LLM configured: ${displayName}\n`));
+  }
+
   const absolutePath = normalizeRepoPath(path);
 
   // Validate repository
@@ -511,6 +525,17 @@ export async function updateProject(
   }
 
   if (options.schedule) {
+    // Check if LLM is configured before setting up schedule
+    if (!isLLMConfigured(config.llm)) {
+      console.log(chalk.yellow('\n⚠️  LLM provider not configured'));
+      console.log(chalk.blue('Scheduled extractions require an LLM to analyze commits.\n'));
+      const llmConfig = await promptForLLMConfig();
+      config.llm = llmConfig;
+      await saveConfig(config);
+      const displayName = getLLMDisplayName(config);
+      console.log(chalk.green(`✓ LLM configured: ${displayName}\n`));
+    }
+
     const cronSchedule = await promptForCronSchedule();
     project.cronSchedule = cronSchedule || undefined;
   }

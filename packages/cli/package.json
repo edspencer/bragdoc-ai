@@ -44,21 +44,24 @@
     "release": "pnpm build && changeset publish"
   },
   "dependencies": {
-    "@ai-sdk/openai": "1.0.6",
+    "@ai-sdk/anthropic": "^2.0.0",
+    "@ai-sdk/google": "^2.0.0",
+    "@ai-sdk/openai": "^2.0.0",
     "@bragdoc/config": "workspace:*",
     "@types/yaml": "^1.9.7",
-    "ai": "4.0.20",
+    "ai": "^5.0.0",
     "chalk": "^4.1.2",
     "commander": "^11.1.0",
     "inquirer": "^12.9.6",
     "mdx-prompt": "^0.4.1",
     "node-fetch": "^2.7.0",
+    "ollama-ai-provider-v2": "^1.0.0",
     "open": "^10.1.0",
     "p-limit": "^7.1.1",
     "react": ">=19",
     "winston": "^3.17.0",
     "yaml": "^2.7.0",
-    "zod": "^3.23.8"
+    "zod": "^4.1.8"
   },
   "devDependencies": {
     "@changesets/cli": "^2.27.11",

@@ -4,7 +4,7 @@ import {
   type ExtractedAchievement,
 } from './prompts/types';
 import { streamObject } from 'ai';
-import { extractAchievementsModel } from './llm';
+import { getExtractionModel } from './llm';
 import path from 'node:path';
 import { renderMDXPromptFile } from 'mdx-prompt';
 import * as components from './prompts/elements';
@@ -40,8 +40,10 @@ export async function render(
 export async function* executeStream(
   prompt: string,
 ): AsyncGenerator<ExtractedAchievement, void, unknown> {
+  const model = await getExtractionModel();
+
   const { elementStream } = streamObject({
-    model: extractAchievementsModel,
+    model,
     prompt,
     temperature: 0,
     output: 'array',

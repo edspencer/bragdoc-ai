@@ -36,6 +36,54 @@ export interface StandupProjectConfig {
 }
 
 /**
+ * LLM Provider types
+ */
+export type LLMProvider = 'openai' | 'anthropic' | 'google' | 'deepseek' | 'ollama' | 'openai-compatible';
+
+export interface OpenAIConfig {
+  apiKey?: string;
+  baseURL?: string;
+  model?: string; // Default: 'gpt-4o'
+}
+
+export interface AnthropicConfig {
+  apiKey?: string;
+  model?: string; // Default: 'claude-3-5-sonnet-20241022'
+}
+
+export interface GoogleConfig {
+  apiKey?: string;
+  model?: string; // Default: 'gemini-1.5-pro'
+}
+
+export interface DeepSeekConfig {
+  apiKey?: string;
+  baseURL?: string;
+  model?: string; // Default: 'deepseek-chat'
+}
+
+export interface OllamaConfig {
+  baseURL?: string; // Default: 'http://localhost:11434'
+  model: string; // Required: e.g., 'llama3.2', 'qwen2.5-coder'
+}
+
+export interface OpenAICompatibleConfig {
+  baseURL: string;
+  apiKey?: string;
+  model: string;
+}
+
+export interface LLMConfig {
+  provider: LLMProvider;
+  openai?: OpenAIConfig;
+  anthropic?: AnthropicConfig;
+  google?: GoogleConfig;
+  deepseek?: DeepSeekConfig;
+  ollama?: OllamaConfig;
+  openaiCompatible?: OpenAICompatibleConfig;
+}
+
+/**
  * Main configuration type
  */
 export interface BragdocConfig {
@@ -46,6 +94,7 @@ export interface BragdocConfig {
   projects: Project[];
   standups: StandupProjectConfig[];
   repositories?: Project[]; // Deprecated: use projects instead
+  llm?: LLMConfig;
   settings: {
     maxCommitsPerBatch: number;
     defaultMaxCommits: number;
@@ -61,6 +110,12 @@ export interface BragdocConfig {
 export const DEFAULT_CONFIG: BragdocConfig = {
   projects: [],
   standups: [],
+  llm: {
+    provider: 'openai',
+    openai: {
+      model: 'gpt-4o',
+    },
+  },
   settings: {
     maxCommitsPerBatch: 10,
     defaultMaxCommits: 300,

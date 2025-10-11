@@ -1,9 +1,30 @@
-import { openai } from '@ai-sdk/openai';
+import type { LanguageModel } from 'ai';
+import { loadConfig } from '../config';
+import { createLLMFromConfig } from './providers';
+
+let cachedModel: LanguageModel | null = null;
 
 /**
- * Configure the LLM for achievement extraction
- * Uses OpenAI's GPT-4o model for high-quality extraction
+ * Get the configured LLM for achievement extraction
+ * Caches the model instance for performance
  *
- * Note: Requires OPENAI_API_KEY environment variable to be set
+ * Note: Requires appropriate API key to be set in config or environment
  */
-export const extractAchievementsModel = openai('gpt-4o');
+export async function getExtractionModel(): Promise<LanguageModel> {
+  if (cachedModel) {
+    return cachedModel;
+  }
+
+  const config = await loadConfig();
+  cachedModel = createLLMFromConfig(config);
+
+  return cachedModel;
+}
+
+/**
+ * Clear the cached model instance
+ * Useful for testing or when config changes
+ */
+export function clearModelCache(): void {
+  cachedModel = null;
+}

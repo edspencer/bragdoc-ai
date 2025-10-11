@@ -7,12 +7,14 @@ The bragdoc CLI intelligently analyzes your Git repositories to extract and docu
 ## ✨ **Key Features**
 
 - **🤖 Intelligent Achievement Extraction**: Automatically identifies and scores meaningful work from Git commits
+- **🔌 Multi-Provider LLM Support**: Choose from OpenAI, Anthropic, Google, DeepSeek, Ollama, or any OpenAI-compatible API
 - **📅 Scheduled Automation**: Set up automatic extractions on any schedule (hourly, daily, custom)
 - **🔍 Multi-Project Support**: Track achievements across unlimited projects simultaneously
 - **⚡ Smart Caching**: Processes only new commits, avoiding duplicate work
 - **🌍 Cross-Platform Scheduling**: Native system integration (cron, Task Scheduler, systemd, LaunchAgent)
 - **📊 Achievement Scoring**: AI-powered analysis ranks the impact and importance of your work
 - **📝 Professional Summaries**: Generates polished descriptions of your contributions
+- **🔒 Privacy Options**: Run locally with Ollama - no data leaves your machine
 
 Perfect for developers who want to maintain an up-to-date record of their professional accomplishments without manual effort.
 
@@ -211,6 +213,32 @@ bragdoc standup wip
 # Extracts from both projects and submits to web app
 ```
 
+### LLM Configuration (`llm`)
+
+Manage your LLM provider configuration for achievement extraction.
+
+```bash
+# Show current LLM configuration
+bragdoc llm show
+
+# Configure or reconfigure LLM provider
+bragdoc llm set
+```
+
+The `llm set` command provides an interactive wizard that guides you through:
+- Selecting your LLM provider (OpenAI, Anthropic, Google, DeepSeek, Ollama, OpenAI-compatible)
+- Entering your API key (if required)
+- Choosing your model (with sensible defaults)
+- Configuring base URL (for Ollama and OpenAI-compatible providers)
+
+**When to use:**
+- After initial installation to set up your preferred LLM provider
+- To switch between providers (e.g., from cloud to local Ollama)
+- To update API keys or model versions
+- To check which provider is currently configured
+
+**Note:** You don't need to run this command manually if you're going through the normal flow - `bragdoc init`, `bragdoc extract`, and other commands will prompt you to configure the LLM provider if needed.
+
 ### Monitoring Your Schedules
 
 Check your automatic extractions using platform-specific tools:
@@ -277,8 +305,126 @@ The CLI stores configuration in `~/.bragdoc/config.yml`:
 
 - Authentication tokens
 - Project settings and schedules
+- LLM provider configuration
 - Commit cache locations
 - API configuration
+
+### LLM Provider Configuration
+
+The CLI uses AI to analyze your commits and extract achievements. It supports multiple LLM providers, giving you flexibility to choose based on cost, performance, or privacy requirements.
+
+#### Supported Providers
+
+The CLI supports the following LLM providers:
+
+1. **OpenAI** (GPT-4, GPT-4o)
+   - Requires: API key from https://platform.openai.com/api-keys
+   - Default model: `gpt-4o`
+
+2. **Anthropic** (Claude)
+   - Requires: API key from https://console.anthropic.com/settings/keys
+   - Default model: `claude-3-5-sonnet-20241022`
+
+3. **Google** (Gemini)
+   - Requires: API key from https://aistudio.google.com/app/apikey
+   - Default model: `gemini-1.5-pro`
+
+4. **DeepSeek**
+   - Requires: API key from https://platform.deepseek.com/api_keys
+   - Default model: `deepseek-chat`
+
+5. **Ollama** (Local LLMs)
+   - Requires: Ollama installed locally (https://ollama.com)
+   - Models: `llama3.2`, `qwen2.5-coder`, etc.
+   - No API key needed - runs entirely on your machine
+
+6. **OpenAI-Compatible** (LM Studio, LocalAI, etc.)
+   - Requires: Base URL and model name
+   - Example: LM Studio at `http://localhost:1234/v1`
+   - Optional API key depending on your setup
+
+#### How Configuration Works
+
+You can configure your LLM provider in two ways:
+
+**1. Interactive Setup (Recommended)**
+
+Run `bragdoc llm set` to launch an interactive wizard that guides you through provider selection and configuration.
+
+The CLI will also automatically prompt you to configure an LLM provider when you:
+- Run `bragdoc init` to add a new project
+- Run `bragdoc extract` without an LLM configured
+- Run `bragdoc projects update --schedule` to set up automatic extraction
+- Run `bragdoc standup enable` to enable standup WIP extraction
+
+You'll be guided through an interactive setup that asks for:
+- Which provider you want to use
+- API key (if required)
+- Model name (with sensible defaults)
+- Base URL (for Ollama and OpenAI-compatible providers)
+
+The configuration is saved to `~/.bragdoc/config.yml` with secure file permissions (0600).
+
+**2. Manual Configuration**
+
+You can manually edit `~/.bragdoc/config.yml` to configure your LLM provider. Here are examples for each provider:
+
+**OpenAI:**
+```yaml
+llm:
+  provider: openai
+  openai:
+    apiKey: sk-your-api-key-here
+    model: gpt-4o
+    baseURL: https://api.openai.com/v1  # optional
+```
+
+**Anthropic:**
+```yaml
+llm:
+  provider: anthropic
+  anthropic:
+    apiKey: sk-ant-your-api-key-here
+    model: claude-3-5-sonnet-20241022
+```
+
+**Google:**
+```yaml
+llm:
+  provider: google
+  google:
+    apiKey: your-google-api-key-here
+    model: gemini-1.5-pro
+```
+
+**DeepSeek:**
+```yaml
+llm:
+  provider: deepseek
+  deepseek:
+    apiKey: your-deepseek-api-key-here
+    model: deepseek-chat
+    baseURL: https://api.deepseek.com/v1  # optional
+```
+
+**Ollama:**
+```yaml
+llm:
+  provider: ollama
+  ollama:
+    model: llama3.2
+    baseURL: http://localhost:11434/api  # optional, defaults to this
+```
+
+**OpenAI-Compatible:**
+```yaml
+llm:
+  provider: openai-compatible
+  openaiCompatible:
+    baseURL: http://localhost:1234/v1
+    model: your-model-name
+    apiKey: optional-api-key  # only if your server requires it
+```
 
 ## Automated Workflow Example
 
@@ -379,6 +525,28 @@ The CLI provides detailed error messages and logging:
    - **Windows**: Run Command Prompt as Administrator for task creation
    - **macOS**: Check LaunchAgent with `launchctl list | grep bragdoc`
    - **Linux**: Verify systemd user services are enabled
+
+6. **LLM Configuration Issues**
+
+   - **"LLM provider is not configured" error**:
+     - Run `bragdoc llm set` to configure your LLM provider
+     - Or run `bragdoc init` to trigger the interactive LLM setup
+     - Or manually edit `~/.bragdoc/config.yml` to add your LLM configuration
+     - Verify your API key is correct and has sufficient credits/quota
+
+   - **Ollama "Not Found" (404) errors**:
+     - Ensure Ollama is running: `ollama serve`
+     - Verify the baseURL includes `/api`: `http://localhost:11434/api`
+     - Check that the model is pulled: `ollama pull llama3.2`
+
+   - **Scheduled extractions not using configured LLM**:
+     - Ensure LLM config is properly set in `~/.bragdoc/config.yml`
+     - Run `bragdoc extract` manually first to verify LLM configuration works
+
+   - **API rate limiting or quota errors**:
+     - Check your API provider's dashboard for usage limits
+     - Consider switching to a different provider or local Ollama
+     - Reduce extraction frequency in your schedule
 
 ## Contributing
 

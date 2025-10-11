@@ -8,6 +8,7 @@ import { authCommand, loginCommand, logoutCommand } from './commands/auth';
 import { cacheCommand } from './commands/cache';
 import { standupCommand } from './commands/standup';
 import { dataCommand } from './commands/data';
+import { llmCommand } from './commands/llm';
 
 // Create a Commander program for the CLI:
 const program = new Command();
@@ -28,6 +29,7 @@ program.addCommand(logoutCommand);
 program.addCommand(cacheCommand);
 program.addCommand(standupCommand);
 program.addCommand(dataCommand);
+program.addCommand(llmCommand);
 
 // Parse the command line args.
 program.parse(process.argv);
