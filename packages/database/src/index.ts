@@ -104,6 +104,7 @@ export {
   updateStandupDocumentSummary,
   deleteStandupDocument,
   getRecentAchievementsForStandup,
+  getUnassignedAchievementsForStandup,
 } from './standups/queries';
 
 // Re-export standup types

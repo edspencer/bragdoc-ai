@@ -71,6 +71,13 @@
       "when": 1760211212040,
       "tag": "0009_chief_norrin_radd",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1760276540663,
+      "tag": "0010_rare_mulholland_black",
+      "breakpoints": true
     }
   ]
 }

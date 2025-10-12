@@ -129,7 +129,7 @@ export function RecentAchievementsTable({
       endDate,
       standup.timezone,
       standup.meetingTime,
-      standup.daysMask,
+      standup.daysMask
     );
     // Only count past occurrences
     const now = new Date();
@@ -143,7 +143,7 @@ export function RecentAchievementsTable({
       now,
       standup.timezone,
       standup.meetingTime,
-      standup.daysMask,
+      standup.daysMask
     );
     return currentStandupRange.startDate;
   }, [standup.timezone, standup.meetingTime, standup.daysMask]);
@@ -151,7 +151,9 @@ export function RecentAchievementsTable({
   // Filter orphaned achievements to exclude those that belong to current standup
   const filteredOrphanedAchievements = useMemo(() => {
     return orphanedAchievements.filter((achievement) => {
-      const achievementDate = new Date(achievement.eventStart || achievement.createdAt);
+      const achievementDate = new Date(
+        achievement.eventStart || achievement.createdAt
+      );
       return achievementDate < currentStandupStartDate;
     });
   }, [orphanedAchievements, currentStandupStartDate]);
@@ -356,7 +358,8 @@ export function RecentAchievementsTable({
           <div className="text-center text-muted-foreground py-8">
             Loading achievements...
           </div>
-        ) : documents.length === 0 && filteredOrphanedAchievements.length === 0 ? (
+        ) : documents.length === 0 &&
+          filteredOrphanedAchievements.length === 0 ? (
           <div className="text-center text-muted-foreground py-8">
             No achievements recorded for this week
           </div>
@@ -382,7 +385,7 @@ export function RecentAchievementsTable({
                     }
                     setExpandedDocuments(newSet);
                   }}
-                  className="border rounded-lg relative"
+                  className="relative"
                   onMouseEnter={() => setHoveredDocumentId(doc.id)}
                   onMouseLeave={() => setHoveredDocumentId(null)}
                 >
@@ -395,7 +398,7 @@ export function RecentAchievementsTable({
                         setDocumentToDelete(doc);
                         setShowDeleteDialog(true);
                       }}
-                      className="absolute top-4 right-4 z-10 p-2 hover:bg-destructive/10 rounded-md transition-colors text-muted-foreground hover:text-destructive"
+                      className="absolute top-0 right-0 z-10 p-1 hover:bg-destructive/10 rounded-md transition-colors text-muted-foreground hover:text-destructive"
                       aria-label="Delete standup document"
                     >
                       <IconTrash className="size-4" />
@@ -403,7 +406,7 @@ export function RecentAchievementsTable({
                   )}
 
                   <CollapsibleTrigger className="w-full">
-                    <div className="flex items-start gap-3 p-4 pr-12 hover:bg-muted/50 transition-colors">
+                    <div className="flex items-start gap-3 hover:bg-muted/50 transition-colors">
                       <IconChevronDown
                         className={cn(
                           'size-5 mt-0.5 transition-transform duration-200 flex-shrink-0',
@@ -423,17 +426,17 @@ export function RecentAchievementsTable({
                             </span>
                           )}
                         </div>
-                        {doc.summary && (
-                          <p className="text-sm text-muted-foreground mt-1">
-                            {doc.summary}
-                          </p>
-                        )}
                       </div>
                     </div>
                   </CollapsibleTrigger>
-                  <CollapsibleContent className="px-4 pb-4">
-                    <div className="space-y-4 ml-8">
+                  <CollapsibleContent className="pb-4">
+                    <div className="space-y-4">
                       {/* Nested: Achievements Summary */}
+                      {doc.summary && (
+                        <p className="text-sm text-muted-foreground mt-1">
+                          {doc.summary}
+                        </p>
+                      )}
                       {doc.achievementsSummary && (
                         <Collapsible
                           open={isSummaryExpanded}
@@ -482,7 +485,10 @@ export function RecentAchievementsTable({
                                       key={i}
                                       type="button"
                                       onClick={() =>
-                                        handleImpactChange(achievement.id, i + 1)
+                                        handleImpactChange(
+                                          achievement.id,
+                                          i + 1
+                                        )
                                       }
                                       className="hover:scale-110 transition-transform"
                                     >
@@ -541,77 +547,81 @@ export function RecentAchievementsTable({
             {/* Show generate button if missing documents */}
             {shouldShowGenerateButton && (
               <div className="flex items-center justify-center py-8">
-              <Button
-                onClick={async () => {
-                  setIsGenerating(true);
-                  try {
-                    // Get the current week's date range
-                    const { startDate, endDate } = getWeekDateRange(weekOffset);
+                <Button
+                  onClick={async () => {
+                    setIsGenerating(true);
+                    try {
+                      // Get the current week's date range
+                      const { startDate, endDate } =
+                        getWeekDateRange(weekOffset);
 
-                    // Generate standup documents for the current week range
-                    const response = await fetch(
-                      `/api/standups/${standupId}/regenerate-standup-documents?startDate=${startDate.toISOString()}&endDate=${endDate.toISOString()}`,
-                      {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                      }
-                    );
-                    if (!response.ok) {
-                      throw new Error('Failed to generate standup documents');
-                    }
-                    // Refetch data
-                    const [documentsRes, achievementsRes] = await Promise.all([
-                      fetch(
-                        `/api/standups/${standupId}/documents?startDate=${startDate.toISOString()}&endDate=${endDate.toISOString()}`
-                      ),
-                      fetch(
-                        `/api/standups/${standupId}/achievements?startDate=${startDate.toISOString()}&endDate=${endDate.toISOString()}`
-                      ),
-                    ]);
-                    if (documentsRes.ok && achievementsRes.ok) {
-                      const documentsData = await documentsRes.json();
-                      const achievementsData = await achievementsRes.json();
-                      setDocuments(documentsData);
-                      // Regroup achievements
-                      const byDocument = new Map<string, Achievement[]>();
-                      const orphaned: Achievement[] = [];
-                      for (const achievement of achievementsData) {
-                        if (achievement.standupDocumentId) {
-                          const existing =
-                            byDocument.get(achievement.standupDocumentId) || [];
-                          existing.push(achievement);
-                          byDocument.set(
-                            achievement.standupDocumentId,
-                            existing
-                          );
-                        } else {
-                          orphaned.push(achievement);
+                      // Generate standup documents for the current week range
+                      const response = await fetch(
+                        `/api/standups/${standupId}/regenerate-standup-documents?startDate=${startDate.toISOString()}&endDate=${endDate.toISOString()}`,
+                        {
+                          method: 'POST',
+                          headers: { 'Content-Type': 'application/json' },
                         }
-                      }
-                      setAchievementsByDocument(byDocument);
-                      setOrphanedAchievements(orphaned);
-                      setExpandedDocuments(
-                        new Set(
-                          documentsData.map((doc: StandupDocument) => doc.id)
-                        )
                       );
+                      if (!response.ok) {
+                        throw new Error('Failed to generate standup documents');
+                      }
+                      // Refetch data
+                      const [documentsRes, achievementsRes] = await Promise.all(
+                        [
+                          fetch(
+                            `/api/standups/${standupId}/documents?startDate=${startDate.toISOString()}&endDate=${endDate.toISOString()}`
+                          ),
+                          fetch(
+                            `/api/standups/${standupId}/achievements?startDate=${startDate.toISOString()}&endDate=${endDate.toISOString()}`
+                          ),
+                        ]
+                      );
+                      if (documentsRes.ok && achievementsRes.ok) {
+                        const documentsData = await documentsRes.json();
+                        const achievementsData = await achievementsRes.json();
+                        setDocuments(documentsData);
+                        // Regroup achievements
+                        const byDocument = new Map<string, Achievement[]>();
+                        const orphaned: Achievement[] = [];
+                        for (const achievement of achievementsData) {
+                          if (achievement.standupDocumentId) {
+                            const existing =
+                              byDocument.get(achievement.standupDocumentId) ||
+                              [];
+                            existing.push(achievement);
+                            byDocument.set(
+                              achievement.standupDocumentId,
+                              existing
+                            );
+                          } else {
+                            orphaned.push(achievement);
+                          }
+                        }
+                        setAchievementsByDocument(byDocument);
+                        setOrphanedAchievements(orphaned);
+                        setExpandedDocuments(
+                          new Set(
+                            documentsData.map((doc: StandupDocument) => doc.id)
+                          )
+                        );
+                      }
+                    } catch (error) {
+                      console.error('Error generating standups:', error);
+                    } finally {
+                      setIsGenerating(false);
                     }
-                  } catch (error) {
-                    console.error('Error generating standups:', error);
-                  } finally {
-                    setIsGenerating(false);
-                  }
-                }}
-                disabled={isGenerating}
-                size="lg"
-                className="gap-2"
-              >
-                <IconSparkles className="size-5" />
-                {isGenerating
-                  ? 'Generating Standups...'
-                  : 'Generate Missing Standup Documents'}
-              </Button>
-            </div>
+                  }}
+                  disabled={isGenerating}
+                  size="lg"
+                  className="gap-2"
+                >
+                  <IconSparkles className="size-5" />
+                  {isGenerating
+                    ? 'Generating Standups...'
+                    : 'Generate Missing Standup Documents'}
+                </Button>
+              </div>
             )}
 
             {/* Orphaned Achievements Section */}

@@ -1,17 +1,28 @@
 import { type NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { getAuthUser } from 'lib/getAuthUser';
-import { getStandupById } from '@bragdoc/database';
+import {
+  getStandupById,
+  updateStandupDocumentAchievementsSummary,
+  createStandupDocument,
+} from '@bragdoc/database';
 import { createOrUpdateStandupDocument } from 'lib/standups/create-standup-document';
+import { computeNextRunUTC } from 'lib/scheduling';
 
 const summarySchema = z.object({
   achievementsSummary: z.string().optional(),
-  regenerate: z.boolean().optional(), // If true, generate from achievements
+  regenerate: z.boolean().optional(), // If true, generate from achievements (LLM)
+  source: z.enum(['manual', 'llm']).optional().default('manual'), // Track who created the content
+  documentId: z.string().optional(), // ID of document to update (if it exists)
 });
 
 /**
  * POST /api/standups/:standupId/achievements-summary
  * Update or generate the achievements summary for the current standup document
+ *
+ * Two modes:
+ * 1. Manual save: Pass achievementsSummary, source='manual', and optional documentId
+ * 2. Regenerate (LLM): Pass regenerate=true (uses existing createOrUpdateStandupDocument)
  */
 export async function POST(
   req: NextRequest,
@@ -32,16 +43,60 @@ export async function POST(
 
     // Validate request body
     const body = await req.json();
-    const { regenerate } = summarySchema.parse(body);
+    const { regenerate, achievementsSummary, source, documentId } =
+      summarySchema.parse(body);
 
-    // Use shared function to create or update the standup document
-    const document = await createOrUpdateStandupDocument(
-      params.standupId,
-      auth.user.id,
-      standup,
-      undefined, // No target date - uses next scheduled date
-      regenerate || false,
-    );
+    let document;
+
+    if (regenerate) {
+      // Mode 1: Regenerate from achievements using AI (source will be 'llm')
+      document = await createOrUpdateStandupDocument(
+        params.standupId,
+        auth.user.id,
+        standup,
+        undefined, // No target date - uses next scheduled date
+        true, // regenerate = true
+      );
+    } else {
+      // Mode 2: Direct save of user-provided text
+      if (achievementsSummary === undefined) {
+        return NextResponse.json(
+          { error: 'achievementsSummary is required when not regenerating' },
+          { status: 400 },
+        );
+      }
+
+      if (documentId) {
+        // Update existing document
+        document = await updateStandupDocumentAchievementsSummary(
+          documentId,
+          achievementsSummary,
+          source,
+        );
+      } else {
+        // Create new document if none exists - calculate next scheduled standup date
+        const nextStandupDate = computeNextRunUTC(
+          new Date(),
+          standup.timezone,
+          standup.meetingTime,
+          standup.daysMask,
+        );
+
+        const newDoc = await createStandupDocument({
+          standupId: params.standupId,
+          userId: auth.user.id,
+          date: nextStandupDate,
+          achievementsSummary,
+        });
+
+        // Update with proper source
+        document = await updateStandupDocumentAchievementsSummary(
+          newDoc.id,
+          achievementsSummary,
+          source,
+        );
+      }
+    }
 
     return NextResponse.json({ document });
   } catch (error) {
@@ -65,7 +120,7 @@ export async function POST(
  * OPTIONS /api/standups/:standupId/achievements-summary
  * CORS preflight handler
  */
-export async function OPTIONS(req: NextRequest) {
+export async function OPTIONS() {
   return new NextResponse(null, {
     status: 204,
     headers: {

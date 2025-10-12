@@ -21,26 +21,14 @@ import {
 } from 'components/ui/alert-dialog';
 import { StandupForm } from './standup-form';
 import { RecentAchievementsTable } from './recent-achievements-table';
-import { StandupUpdateSection } from './standup-update-section';
-import { WipSection } from './wip-section';
+import { CurrentStandupEditor } from './current-standup-editor';
 import { IconEdit, IconTrash } from '@tabler/icons-react';
 import { toast } from 'sonner';
 import { useAchievementMutations } from 'hooks/use-achievement-mutations';
 import { fromMask } from '@/lib/scheduling/weekdayMask';
 import { formatStandupScope } from '@/lib/standups/format-scope';
-import type { Company, Project, StandupDocument, Standup } from '@bragdoc/database';
+import type { Company, Project, Standup } from '@bragdoc/database';
 import { NextStandupIndicator } from './next-standup-indicator';
-
-interface Achievement {
-  id: string;
-  title: string;
-  summary: string | null;
-  impact: number;
-  projectName: string | null;
-  companyName: string | null;
-  createdAt: Date;
-  source: string;
-}
 
 interface ExistingStandupPageProps {
   standup: Standup;
@@ -56,9 +44,10 @@ function formatStandupSchedule(meetingTime: string, daysMask: number): string {
   const minutes = timeParts[1] ?? 0;
   const period = hours >= 12 ? 'pm' : 'am';
   const displayHours = hours % 12 || 12;
-  const timeStr = minutes > 0
-    ? `${displayHours}:${minutes.toString().padStart(2, '0')}${period}`
-    : `${displayHours}${period}`;
+  const timeStr =
+    minutes > 0
+      ? `${displayHours}:${minutes.toString().padStart(2, '0')}${period}`
+      : `${displayHours}${period}`;
 
   // Format days
   const days = fromMask(daysMask);
@@ -66,7 +55,8 @@ function formatStandupSchedule(meetingTime: string, daysMask: number): string {
 
   // Check for common patterns
   const weekdays = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'];
-  const isWeekdays = weekdays.every(day => days.includes(day as any)) && days.length === 5;
+  const isWeekdays =
+    weekdays.every((day) => days.includes(day as any)) && days.length === 5;
 
   if (isWeekdays) {
     daysStr = 'M-F';
@@ -76,7 +66,7 @@ function formatStandupSchedule(meetingTime: string, daysMask: number): string {
     daysStr = days[0] ?? 'Mon';
   } else if (days.length > 0) {
     // Show abbreviated days (e.g., "M W F")
-    daysStr = days.map(d => d.charAt(0)).join(' ');
+    daysStr = days.map((d) => d.charAt(0)).join(' ');
   } else {
     daysStr = 'No days';
   }
@@ -138,7 +128,7 @@ export function ExistingStandupContent({ standup }: ExistingStandupPageProps) {
     } catch (error) {
       console.error('Error deleting standup:', error);
       toast.error(
-        error instanceof Error ? error.message : 'Failed to delete standup',
+        error instanceof Error ? error.message : 'Failed to delete standup'
       );
     } finally {
       setIsDeleting(false);
@@ -179,11 +169,13 @@ export function ExistingStandupContent({ standup }: ExistingStandupPageProps) {
                   standup.companyId,
                   standup.projectIds,
                   companies,
-                  projects,
+                  projects
                 )}
               </span>
               <span className="mx-2">/</span>
-              <span>{formatStandupSchedule(standup.meetingTime, standup.daysMask)}</span>
+              <span>
+                {formatStandupSchedule(standup.meetingTime, standup.daysMask)}
+              </span>
             </div>
             <div className="flex gap-2">
               <Button
@@ -210,21 +202,20 @@ export function ExistingStandupContent({ standup }: ExistingStandupPageProps) {
       <div className="flex-1 grid grid-cols-1 lg:grid-cols-2 gap-6 p-8">
         {/* Left column */}
         <div className="space-y-6">
-          <RecentAchievementsTable
+          <CurrentStandupEditor
             standupId={standup.id}
             standup={standup}
-            onImpactChange={handleImpactChange}
+            onAchievementImpactChange={handleImpactChange}
           />
         </div>
 
         {/* Right column */}
         <div className="space-y-6">
-          <StandupUpdateSection
+          <RecentAchievementsTable
             standupId={standup.id}
-            selectedAchievements={[]}
-            standupInstructions={standup.instructions || ''}
+            standup={standup}
+            onImpactChange={handleImpactChange}
           />
-          <WipSection standupId={standup.id} />
         </div>
       </div>
 

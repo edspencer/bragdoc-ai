@@ -10,7 +10,9 @@ import {
 import { computeNextRunUTC } from 'lib/scheduling';
 
 const wipSchema = z.object({
-  wip: z.string().min(1, 'WIP content is required'),
+  wip: z.string(), // Allow empty strings to clear content
+  source: z.enum(['manual', 'llm']).optional().default('manual'), // Track who created the content
+  documentId: z.string().optional(), // ID of document to update (if it exists)
 });
 
 /**
@@ -36,29 +38,39 @@ export async function POST(
 
     // Validate request body
     const body = await req.json();
-    const { wip } = wipSchema.parse(body);
+    const { wip, source, documentId } = wipSchema.parse(body);
 
-    // Get or create current standup document
-    let document = await getCurrentStandupDocument(params.standupId);
+    let document;
 
-    if (!document) {
-      // Create a new document with the next scheduled date
-      const nextRunDate = computeNextRunUTC(
-        new Date(),
-        standup.timezone,
-        standup.meetingTime,
-        standup.daysMask,
-      );
-
-      document = await createStandupDocument({
-        standupId: params.standupId,
-        userId: auth.user.id,
-        date: nextRunDate,
-        wip,
-      });
+    if (documentId) {
+      // Update existing document by ID
+      document = await updateStandupDocumentWip(documentId, wip, source);
     } else {
-      // Update existing document
-      document = await updateStandupDocumentWip(document.id, wip);
+      // Get or create current standup document
+      document = await getCurrentStandupDocument(params.standupId);
+
+      if (!document) {
+        // Create a new document with the next scheduled date
+        const nextRunDate = computeNextRunUTC(
+          new Date(),
+          standup.timezone,
+          standup.meetingTime,
+          standup.daysMask,
+        );
+
+        document = await createStandupDocument({
+          standupId: params.standupId,
+          userId: auth.user.id,
+          date: nextRunDate,
+          wip,
+        });
+
+        // Update with proper source
+        document = await updateStandupDocumentWip(document.id, wip, source);
+      } else {
+        // Update existing document
+        document = await updateStandupDocumentWip(document.id, wip, source);
+      }
     }
 
     return NextResponse.json({ document });

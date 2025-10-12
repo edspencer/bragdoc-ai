@@ -72,10 +72,11 @@ export async function createOrUpdateStandupDocument(
       standup.instructions || undefined
     );
 
-    // Update document with summary
+    // Update document with summary (source: 'llm' since it's AI-generated)
     document = await updateStandupDocumentAchievementsSummary(
       document.id,
-      summary
+      summary,
+      'llm'
     );
 
     // Link achievements to this standup document

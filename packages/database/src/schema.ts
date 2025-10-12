@@ -318,6 +318,10 @@ export const standupDocument = pgTable('StandupDocument', {
   date: timestamp('date').notNull(),
   wip: text('wip'),
   achievementsSummary: text('achievements_summary'),
+  wipSource: varchar('wip_source', { enum: ['manual', 'llm'] }).default('llm'),
+  achievementsSummarySource: varchar('achievements_summary_source', {
+    enum: ['manual', 'llm'],
+  }).default('llm'),
 });
 
 export type StandupDocument = InferSelectModel<typeof standupDocument>;

@@ -1,4 +1,4 @@
-import { and, desc, eq, gte, lte } from 'drizzle-orm';
+import { and, asc, desc, eq, gte, lte, isNull } from 'drizzle-orm';
 import { db as defaultDb } from '../index';
 import {
   standup,
@@ -194,7 +194,7 @@ export async function getStandupDocumentsByStandupId(
 }
 
 /**
- * Get the most recent standup document for a standup
+ * Get the current (next upcoming) standup document for a standup
  */
 export async function getCurrentStandupDocument(
   standupId: string,
@@ -211,7 +211,7 @@ export async function getCurrentStandupDocument(
           gte(standupDocument.date, now),
         ),
       )
-      .orderBy(desc(standupDocument.date))
+      .orderBy(asc(standupDocument.date)) // Get nearest future document
       .limit(1);
 
     return docs[0] || null;
@@ -290,6 +290,7 @@ export async function createStandupDocument(
 export async function updateStandupDocumentWip(
   documentId: string,
   wip: string,
+  source: 'manual' | 'llm' = 'manual',
   dbInstance = defaultDb,
 ): Promise<StandupDocument> {
   try {
@@ -297,6 +298,7 @@ export async function updateStandupDocumentWip(
       .update(standupDocument)
       .set({
         wip,
+        wipSource: source,
         updatedAt: new Date(),
       })
       .where(eq(standupDocument.id, documentId))
@@ -319,6 +321,7 @@ export async function updateStandupDocumentWip(
 export async function updateStandupDocumentAchievementsSummary(
   documentId: string,
   achievementsSummary: string,
+  source: 'manual' | 'llm' = 'llm',
   dbInstance = defaultDb,
 ): Promise<StandupDocument> {
   try {
@@ -326,6 +329,7 @@ export async function updateStandupDocumentAchievementsSummary(
       .update(standupDocument)
       .set({
         achievementsSummary,
+        achievementsSummarySource: source,
         updatedAt: new Date(),
       })
       .where(eq(standupDocument.id, documentId))
@@ -440,6 +444,58 @@ export async function getRecentAchievementsForStandup(
       .orderBy(desc(achievement.eventStart));
   } catch (error) {
     console.error('Error in getRecentAchievementsForStandup:', error);
+    throw error;
+  }
+}
+
+/**
+ * Get unassigned achievements for a standup (not yet linked to any StandupDocument)
+ * Filters by eventStart (NOT createdAt) within the date range and by the standup's configured projects
+ * Only returns achievements where standupDocumentId IS NULL
+ */
+export async function getUnassignedAchievementsForStandup(
+  standupConfig: Standup,
+  startDate: Date,
+  endDate: Date,
+  dbInstance = defaultDb,
+): Promise<Achievement[]> {
+  try {
+    // IMPORTANT: Use eventStart for date filtering (when achievement happened),
+    // NOT createdAt (when it was recorded in the system)
+    const conditions = [
+      eq(achievement.userId, standupConfig.userId),
+      gte(achievement.eventStart, startDate), // <-- eventStart, not createdAt!
+      lte(achievement.eventStart, endDate),   // <-- eventStart, not createdAt!
+      isNull(achievement.standupDocumentId), // <-- KEY FILTER: only unassigned
+    ];
+
+    // Filter by company or projects
+    if (standupConfig.companyId) {
+      conditions.push(eq(achievement.companyId, standupConfig.companyId));
+    } else if (
+      standupConfig.projectIds &&
+      standupConfig.projectIds.length > 0
+    ) {
+      // Fetch all and filter in memory for project-based standups
+      const allAchievements = await dbInstance
+        .select()
+        .from(achievement)
+        .where(and(...conditions))
+        .orderBy(desc(achievement.eventStart));
+
+      return allAchievements.filter((a) =>
+        standupConfig.projectIds?.includes(a.projectId || ''),
+      );
+    }
+
+    // Fetch achievements
+    return await dbInstance
+      .select()
+      .from(achievement)
+      .where(and(...conditions))
+      .orderBy(desc(achievement.eventStart));
+  } catch (error) {
+    console.error('Error in getUnassignedAchievementsForStandup:', error);
     throw error;
   }
 }
