@@ -1,6 +1,5 @@
 import inquirer from 'inquirer';
 import type { LLMConfig, LLMProvider } from './types';
-import logger from '../utils/logger';
 
 interface ProviderOption {
   name: string;
@@ -180,7 +179,9 @@ export async function promptForLLMConfig(): Promise<LLMConfig> {
     }
 
     case 'openai-compatible': {
-      console.log('\n🔌 Examples: LM Studio (http://localhost:1234/v1), LocalAI\n');
+      console.log(
+        '\n🔌 Examples: LM Studio (http://localhost:1234/v1), LocalAI\n',
+      );
 
       const { baseURL, apiKey, model } = await inquirer.prompt([
         {
@@ -234,7 +235,9 @@ export function isLLMConfigured(config: LLMConfig | undefined): boolean {
     case 'ollama':
       return !!config.ollama?.model;
     case 'openai-compatible':
-      return !!(config.openaiCompatible?.baseURL && config.openaiCompatible?.model);
+      return !!(
+        config.openaiCompatible?.baseURL && config.openaiCompatible?.model
+      );
     default:
       return false;
   }

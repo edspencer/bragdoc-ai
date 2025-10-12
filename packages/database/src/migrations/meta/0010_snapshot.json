@@ -81,12 +81,8 @@
           "name": "Account_userId_User_id_fk",
           "tableFrom": "Account",
           "tableTo": "User",
-          "columnsFrom": [
-            "userId"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["userId"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -94,10 +90,7 @@
       "compositePrimaryKeys": {
         "Account_provider_providerAccountId_pk": {
           "name": "Account_provider_providerAccountId_pk",
-          "columns": [
-            "provider",
-            "providerAccountId"
-          ]
+          "columns": ["provider", "providerAccountId"]
         }
       },
       "uniqueConstraints": {}
@@ -235,12 +228,8 @@
           "name": "Achievement_user_id_User_id_fk",
           "tableFrom": "Achievement",
           "tableTo": "User",
-          "columnsFrom": [
-            "user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["user_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         },
@@ -248,12 +237,8 @@
           "name": "Achievement_company_id_Company_id_fk",
           "tableFrom": "Achievement",
           "tableTo": "Company",
-          "columnsFrom": [
-            "company_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["company_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         },
@@ -261,12 +246,8 @@
           "name": "Achievement_project_id_Project_id_fk",
           "tableFrom": "Achievement",
           "tableTo": "Project",
-          "columnsFrom": [
-            "project_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["project_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         },
@@ -274,12 +255,8 @@
           "name": "Achievement_standup_document_id_StandupDocument_id_fk",
           "tableFrom": "Achievement",
           "tableTo": "StandupDocument",
-          "columnsFrom": [
-            "standup_document_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["standup_document_id"],
+          "columnsTo": ["id"],
           "onDelete": "set null",
           "onUpdate": "no action"
         },
@@ -287,12 +264,8 @@
           "name": "Achievement_user_message_id_UserMessage_id_fk",
           "tableFrom": "Achievement",
           "tableTo": "UserMessage",
-          "columnsFrom": [
-            "user_message_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["user_message_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -343,12 +316,8 @@
           "name": "Chat_userId_User_id_fk",
           "tableFrom": "Chat",
           "tableTo": "User",
-          "columnsFrom": [
-            "userId"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["userId"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -410,12 +379,8 @@
           "name": "Company_user_id_User_id_fk",
           "tableFrom": "Company",
           "tableTo": "User",
-          "columnsFrom": [
-            "user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["user_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -490,12 +455,8 @@
           "name": "Document_userId_User_id_fk",
           "tableFrom": "Document",
           "tableTo": "User",
-          "columnsFrom": [
-            "userId"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["userId"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         },
@@ -503,12 +464,8 @@
           "name": "Document_company_id_Company_id_fk",
           "tableFrom": "Document",
           "tableTo": "Company",
-          "columnsFrom": [
-            "company_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["company_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -516,10 +473,7 @@
       "compositePrimaryKeys": {
         "Document_id_createdAt_pk": {
           "name": "Document_id_createdAt_pk",
-          "columns": [
-            "id",
-            "createdAt"
-          ]
+          "columns": ["id", "createdAt"]
         }
       },
       "uniqueConstraints": {}
@@ -574,12 +528,8 @@
           "name": "email_preferences_user_id_User_id_fk",
           "tableFrom": "email_preferences",
           "tableTo": "User",
-          "columnsFrom": [
-            "user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["user_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -683,12 +633,8 @@
           "name": "GitHubPullRequest_repository_id_GitHubRepository_id_fk",
           "tableFrom": "GitHubPullRequest",
           "tableTo": "GitHubRepository",
-          "columnsFrom": [
-            "repository_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["repository_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         },
@@ -696,12 +642,8 @@
           "name": "GitHubPullRequest_achievement_id_Achievement_id_fk",
           "tableFrom": "GitHubPullRequest",
           "tableTo": "Achievement",
-          "columnsFrom": [
-            "achievement_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["achievement_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -778,12 +720,8 @@
           "name": "GitHubRepository_user_id_User_id_fk",
           "tableFrom": "GitHubRepository",
           "tableTo": "User",
-          "columnsFrom": [
-            "user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["user_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -833,12 +771,8 @@
           "name": "Message_chatId_Chat_id_fk",
           "tableFrom": "Message",
           "tableTo": "Chat",
-          "columnsFrom": [
-            "chatId"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["chatId"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -934,12 +868,8 @@
           "name": "Project_user_id_User_id_fk",
           "tableFrom": "Project",
           "tableTo": "User",
-          "columnsFrom": [
-            "user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["user_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         },
@@ -947,12 +877,8 @@
           "name": "Project_company_id_Company_id_fk",
           "tableFrom": "Project",
           "tableTo": "Company",
-          "columnsFrom": [
-            "company_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["company_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -989,12 +915,8 @@
           "name": "Session_userId_User_id_fk",
           "tableFrom": "Session",
           "tableTo": "User",
-          "columnsFrom": [
-            "userId"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["userId"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -1102,12 +1024,8 @@
           "name": "Standup_userId_User_id_fk",
           "tableFrom": "Standup",
           "tableTo": "User",
-          "columnsFrom": [
-            "userId"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["userId"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         },
@@ -1115,12 +1033,8 @@
           "name": "Standup_companyId_Company_id_fk",
           "tableFrom": "Standup",
           "tableTo": "Company",
-          "columnsFrom": [
-            "companyId"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["companyId"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -1210,12 +1124,8 @@
           "name": "StandupDocument_standupId_Standup_id_fk",
           "tableFrom": "StandupDocument",
           "tableTo": "Standup",
-          "columnsFrom": [
-            "standupId"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["standupId"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         },
@@ -1223,12 +1133,8 @@
           "name": "StandupDocument_userId_User_id_fk",
           "tableFrom": "StandupDocument",
           "tableTo": "User",
-          "columnsFrom": [
-            "userId"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["userId"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -1303,12 +1209,8 @@
           "name": "Suggestion_userId_User_id_fk",
           "tableFrom": "Suggestion",
           "tableTo": "User",
-          "columnsFrom": [
-            "userId"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["userId"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -1316,11 +1218,7 @@
       "compositePrimaryKeys": {
         "Suggestion_id_documentId_documentCreatedAt_pk": {
           "name": "Suggestion_id_documentId_documentCreatedAt_pk",
-          "columns": [
-            "id",
-            "documentId",
-            "documentCreatedAt"
-          ]
+          "columns": ["id", "documentId", "documentCreatedAt"]
         }
       },
       "uniqueConstraints": {}
@@ -1486,12 +1384,8 @@
           "name": "UserMessage_userId_User_id_fk",
           "tableFrom": "UserMessage",
           "tableTo": "User",
-          "columnsFrom": [
-            "userId"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["userId"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -1527,10 +1421,7 @@
       "compositePrimaryKeys": {
         "VerificationToken_identifier_token_pk": {
           "name": "VerificationToken_identifier_token_pk",
-          "columns": [
-            "identifier",
-            "token"
-          ]
+          "columns": ["identifier", "token"]
         }
       },
       "uniqueConstraints": {}
@@ -1564,12 +1455,8 @@
           "name": "Vote_chatId_Chat_id_fk",
           "tableFrom": "Vote",
           "tableTo": "Chat",
-          "columnsFrom": [
-            "chatId"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["chatId"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         },
@@ -1577,12 +1464,8 @@
           "name": "Vote_messageId_Message_id_fk",
           "tableFrom": "Vote",
           "tableTo": "Message",
-          "columnsFrom": [
-            "messageId"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["messageId"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -1590,10 +1473,7 @@
       "compositePrimaryKeys": {
         "Vote_chatId_messageId_pk": {
           "name": "Vote_chatId_messageId_pk",
-          "columns": [
-            "chatId",
-            "messageId"
-          ]
+          "columns": ["chatId", "messageId"]
         }
       },
       "uniqueConstraints": {}
@@ -1603,28 +1483,17 @@
     "public.renewal_period": {
       "name": "renewal_period",
       "schema": "public",
-      "values": [
-        "monthly",
-        "yearly"
-      ]
+      "values": ["monthly", "yearly"]
     },
     "public.user_level": {
       "name": "user_level",
       "schema": "public",
-      "values": [
-        "free",
-        "basic",
-        "pro"
-      ]
+      "values": ["free", "basic", "pro"]
     },
     "public.user_status": {
       "name": "user_status",
       "schema": "public",
-      "values": [
-        "active",
-        "banned",
-        "deleted"
-      ]
+      "values": ["active", "banned", "deleted"]
     }
   },
   "schemas": {},

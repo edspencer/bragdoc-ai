@@ -8,6 +8,7 @@ import {
   updateStandupDocumentWip,
 } from '@bragdoc/database';
 import { computeNextRunUTC } from 'lib/scheduling';
+import type { StandupDocument } from '@bragdoc/database';
 
 const wipSchema = z.object({
   wip: z.string(), // Allow empty strings to clear content
@@ -21,7 +22,7 @@ const wipSchema = z.object({
  */
 export async function POST(
   req: NextRequest,
-  props: { params: Promise<{ standupId: string }> },
+  props: { params: Promise<{ standupId: string }> }
 ) {
   try {
     const params = await props.params;
@@ -40,7 +41,7 @@ export async function POST(
     const body = await req.json();
     const { wip, source, documentId } = wipSchema.parse(body);
 
-    let document;
+    let document: StandupDocument | null = null;
 
     if (documentId) {
       // Update existing document by ID
@@ -55,7 +56,7 @@ export async function POST(
           new Date(),
           standup.timezone,
           standup.meetingTime,
-          standup.daysMask,
+          standup.daysMask
         );
 
         document = await createStandupDocument({
@@ -80,13 +81,13 @@ export async function POST(
     if (error instanceof z.ZodError) {
       return NextResponse.json(
         { error: 'Validation error', details: error.errors },
-        { status: 400 },
+        { status: 400 }
       );
     }
 
     return NextResponse.json(
       { error: 'Failed to update WIP' },
-      { status: 500 },
+      { status: 500 }
     );
   }
 }

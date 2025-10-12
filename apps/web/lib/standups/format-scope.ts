@@ -28,9 +28,7 @@ export function formatStandupScope(
     }
 
     // Multiple projects selected
-    const selectedProjects = projects.filter((p) =>
-      projectIds.includes(p.id),
-    );
+    const selectedProjects = projects.filter((p) => projectIds.includes(p.id));
 
     if (selectedProjects.length <= 3) {
       // Show all names if 3 or fewer

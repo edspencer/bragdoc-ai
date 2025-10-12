@@ -493,7 +493,7 @@ export async function getUnassignedAchievementsForStandup(
     const conditions = [
       eq(achievement.userId, standupConfig.userId),
       gte(achievement.eventStart, startDate), // <-- eventStart, not createdAt!
-      lte(achievement.eventStart, endDate),   // <-- eventStart, not createdAt!
+      lte(achievement.eventStart, endDate), // <-- eventStart, not createdAt!
       isNull(achievement.standupDocumentId), // <-- KEY FILTER: only unassigned
     ];
 

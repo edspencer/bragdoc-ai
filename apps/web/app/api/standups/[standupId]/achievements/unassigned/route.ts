@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { type NextRequest, NextResponse } from 'next/server';
 import { getAuthUser } from '@/lib/getAuthUser';
 import {
   getStandupById,
@@ -24,7 +24,7 @@ import { subDays } from 'date-fns';
  */
 export async function GET(
   req: NextRequest,
-  props: { params: Promise<{ standupId: string }> }
+  props: { params: Promise<{ standupId: string }> },
 ) {
   const params = await props.params;
 
@@ -59,7 +59,7 @@ export async function GET(
     const achievements = await getUnassignedAchievementsForStandup(
       standup,
       startDate,
-      endDate
+      endDate,
     );
 
     return NextResponse.json({ achievements });
@@ -67,7 +67,7 @@ export async function GET(
     console.error('Error fetching unassigned achievements:', error);
     return NextResponse.json(
       { error: 'Internal Server Error' },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

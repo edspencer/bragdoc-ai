@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { type NextRequest, NextResponse } from 'next/server';
 import { and, asc, eq, gte } from 'drizzle-orm';
 import { getAuthUser } from '@/lib/getAuthUser';
 import { getStandupById } from '@bragdoc/database';
@@ -23,7 +23,7 @@ import { computeNextRunUTC } from '@/lib/scheduling/nextRun';
  */
 export async function GET(
   req: NextRequest,
-  props: { params: Promise<{ standupId: string }> }
+  props: { params: Promise<{ standupId: string }> },
 ) {
   const params = await props.params;
 
@@ -48,8 +48,8 @@ export async function GET(
       .where(
         and(
           eq(standupDocument.standupId, params.standupId),
-          gte(standupDocument.date, now)
-        )
+          gte(standupDocument.date, now),
+        ),
       )
       .orderBy(asc(standupDocument.date)) // IMPORTANT: asc() to get nearest future date first
       .limit(1);
@@ -61,7 +61,7 @@ export async function GET(
       now,
       standup.timezone,
       standup.meetingTime,
-      standup.daysMask
+      standup.daysMask,
     );
 
     return NextResponse.json({
@@ -72,7 +72,7 @@ export async function GET(
     console.error('Error fetching current standup document:', error);
     return NextResponse.json(
       { error: 'Internal Server Error' },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

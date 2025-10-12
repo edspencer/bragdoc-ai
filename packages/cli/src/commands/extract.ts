@@ -198,7 +198,9 @@ export const extractCommand = new Command('extract')
       // Validate LLM configuration before starting extraction
       if (!isLLMConfigured(config.llm)) {
         logger.error('LLM provider is not configured.');
-        logger.info('Achievement extraction requires an LLM provider to analyze commits.');
+        logger.info(
+          'Achievement extraction requires an LLM provider to analyze commits.',
+        );
         logger.info('Run "bragdoc init" to configure your LLM provider.');
         logger.info('Alternatively, set an environment variable:');
         logger.info('  - OPENAI_API_KEY for OpenAI');
@@ -282,7 +284,9 @@ export const extractCommand = new Command('extract')
         // Cache has only been updated for successfully completed batches
         logger.error(`\nBatch processing failed: ${batchError.message}`);
         if (successfulBatches > 0) {
-          logger.info(`Successfully processed ${successfulBatches} batch(es) before failure`);
+          logger.info(
+            `Successfully processed ${successfulBatches} batch(es) before failure`,
+          );
         }
         throw batchError;
       }

@@ -38,7 +38,12 @@ const formSchema = z.object({
       return val.toLowerCase().replace(/\s*(am|pm)\s*$/i, '');
     })
     .pipe(
-      z.string().regex(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/, 'Invalid time format (use HH:mm)')
+      z
+        .string()
+        .regex(
+          /^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/,
+          'Invalid time format (use HH:mm)',
+        ),
     ),
   timezone: z.string().min(1, 'Timezone is required'),
   instructions: z.string().optional(),

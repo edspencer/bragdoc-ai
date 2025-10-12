@@ -38,7 +38,13 @@ export interface StandupProjectConfig {
 /**
  * LLM Provider types
  */
-export type LLMProvider = 'openai' | 'anthropic' | 'google' | 'deepseek' | 'ollama' | 'openai-compatible';
+export type LLMProvider =
+  | 'openai'
+  | 'anthropic'
+  | 'google'
+  | 'deepseek'
+  | 'ollama'
+  | 'openai-compatible';
 
 export interface OpenAIConfig {
   apiKey?: string;

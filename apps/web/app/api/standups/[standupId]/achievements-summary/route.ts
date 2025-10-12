@@ -28,7 +28,7 @@ const summarySchema = z.object({
  */
 export async function POST(
   req: NextRequest,
-  props: { params: Promise<{ standupId: string }> }
+  props: { params: Promise<{ standupId: string }> },
 ) {
   try {
     const params = await props.params;
@@ -45,8 +45,13 @@ export async function POST(
 
     // Validate request body
     const body = await req.json();
-    const { regenerate, achievementsSummary, source, documentId, achievementIds } =
-      summarySchema.parse(body);
+    const {
+      regenerate,
+      achievementsSummary,
+      source,
+      documentId,
+      achievementIds,
+    } = summarySchema.parse(body);
 
     let document: StandupDocument;
 
@@ -58,14 +63,14 @@ export async function POST(
         standup,
         undefined, // No target date - uses next scheduled date
         true, // regenerate = true
-        achievementIds // Pass selected achievement IDs
+        achievementIds, // Pass selected achievement IDs
       );
     } else {
       // Mode 2: Direct save of user-provided text
       if (achievementsSummary === undefined) {
         return NextResponse.json(
           { error: 'achievementsSummary is required when not regenerating' },
-          { status: 400 }
+          { status: 400 },
         );
       }
 
@@ -74,7 +79,7 @@ export async function POST(
         document = await updateStandupDocumentAchievementsSummary(
           documentId,
           achievementsSummary,
-          source
+          source,
         );
       } else {
         // Create new document if none exists - calculate next scheduled standup date
@@ -82,7 +87,7 @@ export async function POST(
           new Date(),
           standup.timezone,
           standup.meetingTime,
-          standup.daysMask
+          standup.daysMask,
         );
 
         const newDoc = await createStandupDocument({
@@ -96,7 +101,7 @@ export async function POST(
         document = await updateStandupDocumentAchievementsSummary(
           newDoc.id,
           achievementsSummary,
-          source
+          source,
         );
       }
     }
@@ -108,13 +113,13 @@ export async function POST(
     if (error instanceof z.ZodError) {
       return NextResponse.json(
         { error: 'Validation error', details: error.errors },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
     return NextResponse.json(
       { error: 'Failed to update achievements summary' },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

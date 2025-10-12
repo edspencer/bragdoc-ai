@@ -472,7 +472,11 @@ async function enableStandup() {
     // Check if LLM is configured before setting up standup schedules
     if (!isLLMConfigured(config.llm)) {
       console.log(chalk.yellow('\n⚠️  LLM provider not configured'));
-      console.log(chalk.blue('Standup WIP extraction requires an LLM to analyze commits.\n'));
+      console.log(
+        chalk.blue(
+          'Standup WIP extraction requires an LLM to analyze commits.\n',
+        ),
+      );
       const llmConfig = await promptForLLMConfig();
       config.llm = llmConfig;
       await saveConfig(config);

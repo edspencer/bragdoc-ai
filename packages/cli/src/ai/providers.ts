@@ -23,7 +23,7 @@ export function createLLMFromConfig(config: BragdocConfig): LanguageModel {
         throw new Error(
           'OpenAI API key not found. Set it in config with:\n' +
             '  bragdoc init\n' +
-            'Or set OPENAI_API_KEY environment variable'
+            'Or set OPENAI_API_KEY environment variable',
         );
       }
 
@@ -45,7 +45,7 @@ export function createLLMFromConfig(config: BragdocConfig): LanguageModel {
         throw new Error(
           'Anthropic API key not found. Set it in config with:\n' +
             '  bragdoc init\n' +
-            'Or set ANTHROPIC_API_KEY environment variable'
+            'Or set ANTHROPIC_API_KEY environment variable',
         );
       }
 
@@ -61,7 +61,7 @@ export function createLLMFromConfig(config: BragdocConfig): LanguageModel {
         throw new Error(
           'Google API key not found. Set it in config with:\n' +
             '  bragdoc init\n' +
-            'Or set GOOGLE_GENERATIVE_AI_API_KEY environment variable'
+            'Or set GOOGLE_GENERATIVE_AI_API_KEY environment variable',
         );
       }
 
@@ -86,7 +86,7 @@ export function createLLMFromConfig(config: BragdocConfig): LanguageModel {
         throw new Error(
           'DeepSeek API key not found. Set it in config with:\n' +
             '  bragdoc init\n' +
-            'Or set DEEPSEEK_API_KEY environment variable'
+            'Or set DEEPSEEK_API_KEY environment variable',
         );
       }
 
@@ -108,7 +108,7 @@ export function createLLMFromConfig(config: BragdocConfig): LanguageModel {
           'Ollama model not specified. Configure it with:\n' +
             '  bragdoc init\n' +
             'Available models: llama3.2, qwen2.5-coder, etc.\n' +
-            'See: https://ollama.com/library'
+            'See: https://ollama.com/library',
         );
       }
 
@@ -126,7 +126,7 @@ export function createLLMFromConfig(config: BragdocConfig): LanguageModel {
         throw new Error(
           'OpenAI-compatible configuration incomplete. Required: baseURL and model\n' +
             'Configure it with: bragdoc init\n' +
-            'Example: LM Studio at http://localhost:1234/v1'
+            'Example: LM Studio at http://localhost:1234/v1',
         );
       }
 

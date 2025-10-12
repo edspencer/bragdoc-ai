@@ -52,9 +52,7 @@ async function showLLM() {
         break;
     }
 
-    console.log(
-      chalk.dim('\nConfiguration stored in: ~/.bragdoc/config.yml'),
-    );
+    console.log(chalk.dim('\nConfiguration stored in: ~/.bragdoc/config.yml'));
   } catch (error: any) {
     console.error(chalk.red('Error:'), error.message);
     process.exit(1);
@@ -98,9 +96,7 @@ async function setLLM() {
 
     const displayName = getLLMDisplayName(config);
     console.log(chalk.green(`\n✓ LLM provider configured: ${displayName}`));
-    console.log(
-      chalk.dim('Configuration saved to: ~/.bragdoc/config.yml\n'),
-    );
+    console.log(chalk.dim('Configuration saved to: ~/.bragdoc/config.yml\n'));
   } catch (error: any) {
     console.error(chalk.red('Error:'), error.message);
     process.exit(1);
@@ -115,7 +111,5 @@ export const llmCommand = new Command('llm')
       .action(showLLM),
   )
   .addCommand(
-    new Command('set')
-      .description('Configure LLM provider')
-      .action(setLLM),
+    new Command('set').description('Configure LLM provider').action(setLLM),
   );

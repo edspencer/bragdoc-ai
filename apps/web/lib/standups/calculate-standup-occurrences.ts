@@ -21,7 +21,12 @@ export function calculateStandupOccurrences(
   const occurrences: Date[] = [];
 
   // Start from the first occurrence on or after startDate
-  let currentDate = computeNextRunUTC(startDate, timezone, meetingTime, daysMask);
+  let currentDate = computeNextRunUTC(
+    startDate,
+    timezone,
+    meetingTime,
+    daysMask,
+  );
 
   // Keep finding next occurrences until we exceed endDate
   while (currentDate <= endDate) {

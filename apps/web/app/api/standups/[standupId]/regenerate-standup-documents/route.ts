@@ -80,7 +80,10 @@ export async function POST(
 
     if (pastOccurrences.length === 0) {
       return NextResponse.json(
-        { error: 'No past standup occurrences found in the specified date range' },
+        {
+          error:
+            'No past standup occurrences found in the specified date range',
+        },
         { status: 400 },
       );
     }

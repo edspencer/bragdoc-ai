@@ -92,17 +92,17 @@ export function RecentAchievementsTable({
     Achievement[]
   >([]);
   const [expandedDocuments, setExpandedDocuments] = useState<Set<string>>(
-    new Set()
+    new Set(),
   );
   const [expandedSummaries, setExpandedSummaries] = useState<Set<string>>(
-    new Set()
+    new Set(),
   );
   const [expandedWips, setExpandedWips] = useState<Set<string>>(new Set());
   const [isLoading, setIsLoading] = useState(true);
   const [hasRecentAchievements, setHasRecentAchievements] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
   const [hoveredDocumentId, setHoveredDocumentId] = useState<string | null>(
-    null
+    null,
   );
   const [documentToDelete, setDocumentToDelete] =
     useState<StandupDocument | null>(null);
@@ -129,7 +129,7 @@ export function RecentAchievementsTable({
       endDate,
       standup.timezone,
       standup.meetingTime,
-      standup.daysMask
+      standup.daysMask,
     );
     // Only count past occurrences
     const now = new Date();
@@ -143,7 +143,7 @@ export function RecentAchievementsTable({
       now,
       standup.timezone,
       standup.meetingTime,
-      standup.daysMask
+      standup.daysMask,
     );
     return currentStandupRange.startDate;
   }, [standup.timezone, standup.meetingTime, standup.daysMask]);
@@ -152,7 +152,7 @@ export function RecentAchievementsTable({
   const filteredOrphanedAchievements = useMemo(() => {
     return orphanedAchievements.filter((achievement) => {
       const achievementDate = new Date(
-        achievement.eventStart || achievement.createdAt
+        achievement.eventStart || achievement.createdAt,
       );
       return achievementDate < currentStandupStartDate;
     });
@@ -184,7 +184,7 @@ export function RecentAchievementsTable({
     const updatedByDocument = new Map(achievementsByDocument);
     for (const [docId, achievements] of updatedByDocument.entries()) {
       const updatedAchievements = achievements.map((a) =>
-        a.id === achievementId ? { ...a, impact } : a
+        a.id === achievementId ? { ...a, impact } : a,
       );
       updatedByDocument.set(docId, updatedAchievements);
     }
@@ -192,7 +192,7 @@ export function RecentAchievementsTable({
 
     // Update in orphanedAchievements
     setOrphanedAchievements((prev) =>
-      prev.map((a) => (a.id === achievementId ? { ...a, impact } : a))
+      prev.map((a) => (a.id === achievementId ? { ...a, impact } : a)),
     );
   };
 
@@ -206,7 +206,7 @@ export function RecentAchievementsTable({
         `/api/standups/${standupId}/documents/${documentToDelete.id}`,
         {
           method: 'DELETE',
-        }
+        },
       );
 
       if (!response.ok) {
@@ -219,10 +219,10 @@ export function RecentAchievementsTable({
       const { startDate, endDate } = getWeekDateRange(weekOffset);
       const [documentsRes, achievementsRes] = await Promise.all([
         fetch(
-          `/api/standups/${standupId}/documents?startDate=${startDate.toISOString()}&endDate=${endDate.toISOString()}`
+          `/api/standups/${standupId}/documents?startDate=${startDate.toISOString()}&endDate=${endDate.toISOString()}`,
         ),
         fetch(
-          `/api/standups/${standupId}/achievements?startDate=${startDate.toISOString()}&endDate=${endDate.toISOString()}`
+          `/api/standups/${standupId}/achievements?startDate=${startDate.toISOString()}&endDate=${endDate.toISOString()}`,
         ),
       ]);
 
@@ -247,7 +247,7 @@ export function RecentAchievementsTable({
         setAchievementsByDocument(byDocument);
         setOrphanedAchievements(orphaned);
         setExpandedDocuments(
-          new Set(documentsData.map((doc: StandupDocument) => doc.id))
+          new Set(documentsData.map((doc: StandupDocument) => doc.id)),
         );
       }
 
@@ -274,10 +274,10 @@ export function RecentAchievementsTable({
 
         const [documentsRes, achievementsRes] = await Promise.all([
           fetch(
-            `/api/standups/${standupId}/documents?startDate=${startDate.toISOString()}&endDate=${endDate.toISOString()}`
+            `/api/standups/${standupId}/documents?startDate=${startDate.toISOString()}&endDate=${endDate.toISOString()}`,
           ),
           fetch(
-            `/api/standups/${standupId}/achievements?startDate=${startDate.toISOString()}&endDate=${endDate.toISOString()}`
+            `/api/standups/${standupId}/achievements?startDate=${startDate.toISOString()}&endDate=${endDate.toISOString()}`,
           ),
         ]);
 
@@ -310,7 +310,7 @@ export function RecentAchievementsTable({
 
         // Initialize all documents as expanded
         setExpandedDocuments(
-          new Set(documentsData.map((doc: StandupDocument) => doc.id))
+          new Set(documentsData.map((doc: StandupDocument) => doc.id)),
         );
 
         // Check if we have achievements for the generate button
@@ -410,7 +410,7 @@ export function RecentAchievementsTable({
                       <IconChevronDown
                         className={cn(
                           'size-5 mt-0.5 transition-transform duration-200 flex-shrink-0',
-                          isExpanded ? 'rotate-0' : '-rotate-90'
+                          isExpanded ? 'rotate-0' : '-rotate-90',
                         )}
                       />
                       <div className="flex-1 text-left">
@@ -454,7 +454,7 @@ export function RecentAchievementsTable({
                             <IconChevronDown
                               className={cn(
                                 'size-4 transition-transform duration-200',
-                                isSummaryExpanded ? 'rotate-0' : '-rotate-90'
+                                isSummaryExpanded ? 'rotate-0' : '-rotate-90',
                               )}
                             />
                             Achievements Summary
@@ -487,7 +487,7 @@ export function RecentAchievementsTable({
                                       onClick={() =>
                                         handleImpactChange(
                                           achievement.id,
-                                          i + 1
+                                          i + 1,
                                         )
                                       }
                                       className="hover:scale-110 transition-transform"
@@ -528,7 +528,7 @@ export function RecentAchievementsTable({
                             <IconChevronDown
                               className={cn(
                                 'size-4 transition-transform duration-200',
-                                isWipExpanded ? 'rotate-0' : '-rotate-90'
+                                isWipExpanded ? 'rotate-0' : '-rotate-90',
                               )}
                             />
                             Work in Progress
@@ -561,7 +561,7 @@ export function RecentAchievementsTable({
                         {
                           method: 'POST',
                           headers: { 'Content-Type': 'application/json' },
-                        }
+                        },
                       );
                       if (!response.ok) {
                         throw new Error('Failed to generate standup documents');
@@ -570,12 +570,12 @@ export function RecentAchievementsTable({
                       const [documentsRes, achievementsRes] = await Promise.all(
                         [
                           fetch(
-                            `/api/standups/${standupId}/documents?startDate=${startDate.toISOString()}&endDate=${endDate.toISOString()}`
+                            `/api/standups/${standupId}/documents?startDate=${startDate.toISOString()}&endDate=${endDate.toISOString()}`,
                           ),
                           fetch(
-                            `/api/standups/${standupId}/achievements?startDate=${startDate.toISOString()}&endDate=${endDate.toISOString()}`
+                            `/api/standups/${standupId}/achievements?startDate=${startDate.toISOString()}&endDate=${endDate.toISOString()}`,
                           ),
-                        ]
+                        ],
                       );
                       if (documentsRes.ok && achievementsRes.ok) {
                         const documentsData = await documentsRes.json();
@@ -592,7 +592,7 @@ export function RecentAchievementsTable({
                             existing.push(achievement);
                             byDocument.set(
                               achievement.standupDocumentId,
-                              existing
+                              existing,
                             );
                           } else {
                             orphaned.push(achievement);
@@ -602,8 +602,8 @@ export function RecentAchievementsTable({
                         setOrphanedAchievements(orphaned);
                         setExpandedDocuments(
                           new Set(
-                            documentsData.map((doc: StandupDocument) => doc.id)
-                          )
+                            documentsData.map((doc: StandupDocument) => doc.id),
+                          ),
                         );
                       }
                     } catch (error) {

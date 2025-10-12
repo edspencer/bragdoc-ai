@@ -144,7 +144,9 @@ export function StandupAchievementsTable({
                     {showCheckboxes && (
                       <TableCell>
                         <Checkbox
-                          checked={selectedAchievements.includes(achievement.id)}
+                          checked={selectedAchievements.includes(
+                            achievement.id,
+                          )}
                           onCheckedChange={(checked) =>
                             handleSelectAchievement(
                               achievement.id,

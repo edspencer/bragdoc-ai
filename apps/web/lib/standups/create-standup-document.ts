@@ -33,7 +33,7 @@ export async function createOrUpdateStandupDocument(
   standup: Standup,
   targetDate?: Date,
   regenerate = false,
-  achievementIds?: string[]
+  achievementIds?: string[],
 ): Promise<StandupDocument> {
   // Get or create document
   let document: StandupDocument | null = null;
@@ -70,34 +70,37 @@ export async function createOrUpdateStandupDocument(
         docDate,
         standup.timezone,
         standup.meetingTime,
-        standup.daysMask
+        standup.daysMask,
       );
 
       // Fetch achievements in the standup date range
       achievements = await getRecentAchievementsForStandup(
         standup,
         startDate,
-        endDate
+        endDate,
       );
     }
 
     // Generate summary using AI
     const summary = await generateStandupAchievementsSummary(
       achievements,
-      standup.instructions || undefined
+      standup.instructions || undefined,
     );
 
     // Update document with summary (source: 'llm' since it's AI-generated)
     document = await updateStandupDocumentAchievementsSummary(
       document.id,
       summary,
-      'llm'
+      'llm',
     );
 
     // Link achievements to this standup document
     if (achievements.length > 0) {
-      const achievementIdsToLink = achievements.map(a => a.id);
-      await bulkUpdateAchievementStandupDocument(achievementIdsToLink, document.id);
+      const achievementIdsToLink = achievements.map((a) => a.id);
+      await bulkUpdateAchievementStandupDocument(
+        achievementIdsToLink,
+        document.id,
+      );
     }
   }
 

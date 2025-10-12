@@ -1,9 +1,6 @@
 import { type NextRequest, NextResponse } from 'next/server';
 import { getAuthUser } from '@/lib/getAuthUser';
-import {
-  getStandupById,
-  deleteStandupDocument,
-} from '@bragdoc/database';
+import { getStandupById, deleteStandupDocument } from '@bragdoc/database';
 
 /**
  * DELETE /api/standups/:standupId/documents/:documentId

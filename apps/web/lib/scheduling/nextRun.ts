@@ -1,6 +1,6 @@
 import { addDays, set, isAfter, startOfDay, endOfDay } from 'date-fns';
 import { toZonedTime, fromZonedTime } from 'date-fns-tz';
-import { Weekday, orderedDays, } from './weekdayMask';
+import { Weekday, orderedDays } from './weekdayMask';
 
 /**
  * Compute the next scheduled run time in UTC

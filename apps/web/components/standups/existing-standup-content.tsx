@@ -128,7 +128,7 @@ export function ExistingStandupContent({ standup }: ExistingStandupPageProps) {
     } catch (error) {
       console.error('Error deleting standup:', error);
       toast.error(
-        error instanceof Error ? error.message : 'Failed to delete standup'
+        error instanceof Error ? error.message : 'Failed to delete standup',
       );
     } finally {
       setIsDeleting(false);
@@ -169,7 +169,7 @@ export function ExistingStandupContent({ standup }: ExistingStandupPageProps) {
                   standup.companyId,
                   standup.projectIds,
                   companies,
-                  projects
+                  projects,
                 )}
               </span>
               <span className="mx-2">/</span>

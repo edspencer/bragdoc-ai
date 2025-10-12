@@ -6,7 +6,13 @@ import { Checkbox } from 'components/ui/checkbox';
 import { Card, CardContent, CardHeader, CardTitle } from 'components/ui/card';
 import { Badge } from 'components/ui/badge';
 import { Separator } from 'components/ui/separator';
-import { IconSparkles, IconCheck, IconX, IconStar, IconStarFilled } from '@tabler/icons-react';
+import {
+  IconSparkles,
+  IconCheck,
+  IconX,
+  IconStar,
+  IconStarFilled,
+} from '@tabler/icons-react';
 import { toast } from 'sonner';
 import { format, formatDistanceToNow } from 'date-fns';
 import type { Standup, StandupDocument } from '@bragdoc/database';
@@ -42,16 +48,19 @@ export function CurrentStandupEditor({
 
   // Achievements state
   const [achievements, setAchievements] = useState<Achievement[]>([]);
-  const [selectedAchievementIds, setSelectedAchievementIds] = useState<Set<string>>(
-    new Set()
-  );
+  const [selectedAchievementIds, setSelectedAchievementIds] = useState<
+    Set<string>
+  >(new Set());
   const [isLoadingAchievements, setIsLoadingAchievements] = useState(true);
 
   // Achievements Summary state
   const [achievementsSummaryDraft, setAchievementsSummaryDraft] = useState('');
-  const [achievementsSummaryOriginal, setAchievementsSummaryOriginal] = useState('');
-  const [isAchievementsSummaryFocused, setIsAchievementsSummaryFocused] = useState(false);
-  const [isSavingAchievementsSummary, setIsSavingAchievementsSummary] = useState(false);
+  const [achievementsSummaryOriginal, setAchievementsSummaryOriginal] =
+    useState('');
+  const [isAchievementsSummaryFocused, setIsAchievementsSummaryFocused] =
+    useState(false);
+  const [isSavingAchievementsSummary, setIsSavingAchievementsSummary] =
+    useState(false);
   const [isRegenerating, setIsRegenerating] = useState(false);
   const achievementsSummaryRef = useRef<HTMLTextAreaElement>(null);
 
@@ -63,7 +72,8 @@ export function CurrentStandupEditor({
   const wipRef = useRef<HTMLTextAreaElement>(null);
 
   // Check if content has been edited
-  const isAchievementsSummaryDirty = achievementsSummaryDraft !== achievementsSummaryOriginal;
+  const isAchievementsSummaryDirty =
+    achievementsSummaryDraft !== achievementsSummaryOriginal;
   const isWipDirty = wipDraft !== wipOriginal;
 
   // Fetch current document and achievements on mount
@@ -92,7 +102,8 @@ export function CurrentStandupEditor({
         setAchievements(achievementsData.achievements || []);
 
         // Initialize drafts and originals from document (or empty if document is null)
-        const initialAchievementsSummary = docData.document?.achievementsSummary || '';
+        const initialAchievementsSummary =
+          docData.document?.achievementsSummary || '';
         const initialWip = docData.document?.wip || '';
 
         setAchievementsSummaryDraft(initialAchievementsSummary);
@@ -128,7 +139,7 @@ export function CurrentStandupEditor({
   const handleImpactChange = async (achievementId: string, impact: number) => {
     // Optimistically update local state immediately
     setAchievements((prev) =>
-      prev.map((a) => (a.id === achievementId ? { ...a, impact } : a))
+      prev.map((a) => (a.id === achievementId ? { ...a, impact } : a)),
     );
 
     // Call parent handler (which handles the API call)
@@ -149,7 +160,7 @@ export function CurrentStandupEditor({
             source: 'manual',
             documentId: currentStandupDocument?.id,
           }),
-        }
+        },
       );
 
       if (!response.ok) {
@@ -195,7 +206,7 @@ export function CurrentStandupEditor({
             regenerate: true,
             achievementIds: Array.from(selectedAchievementIds),
           }),
-        }
+        },
       );
 
       if (!response.ok) {
@@ -259,7 +270,7 @@ export function CurrentStandupEditor({
   // Render source indicator
   const renderSourceIndicator = (
     source: 'manual' | 'llm' | null | undefined,
-    hasContent: boolean
+    hasContent: boolean,
   ) => {
     if (!hasContent) {
       return (
@@ -302,7 +313,7 @@ export function CurrentStandupEditor({
           <span>Current Standup</span>
           {nextStandupDate && (
             <span className="text-sm font-normal text-muted-foreground">
-              {format(nextStandupDate, 'EEE, MMM d \'at\' h:mm a')}
+              {format(nextStandupDate, "EEE, MMM d 'at' h:mm a")}
               {' · '}
               {formatDistanceToNow(nextStandupDate, { addSuffix: true })}
             </span>
@@ -397,7 +408,7 @@ export function CurrentStandupEditor({
             <h3 className="text-sm font-semibold">Achievements Summary</h3>
             {renderSourceIndicator(
               currentStandupDocument?.achievementsSummarySource,
-              !!achievementsSummaryOriginal
+              !!achievementsSummaryOriginal,
             )}
           </div>
           <textarea
@@ -408,13 +419,15 @@ export function CurrentStandupEditor({
             placeholder="Click to add what you accomplished this period"
             rows={6}
             className={`w-full resize-none rounded-md px-3 py-2 text-sm transition-all
-              ${isAchievementsSummaryFocused || achievementsSummaryDraft
-                ? 'border border-input bg-background'
-                : 'border-0 bg-transparent hover:bg-muted/50 cursor-text'
+              ${
+                isAchievementsSummaryFocused || achievementsSummaryDraft
+                  ? 'border border-input bg-background'
+                  : 'border-0 bg-transparent hover:bg-muted/50 cursor-text'
               }
-              ${!achievementsSummaryDraft && !isAchievementsSummaryFocused
-                ? 'text-muted-foreground italic'
-                : 'text-foreground'
+              ${
+                !achievementsSummaryDraft && !isAchievementsSummaryFocused
+                  ? 'text-muted-foreground italic'
+                  : 'text-foreground'
               }
               focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2
             `}
@@ -451,7 +464,7 @@ export function CurrentStandupEditor({
             <h3 className="text-sm font-semibold">Work In Progress</h3>
             {renderSourceIndicator(
               currentStandupDocument?.wipSource,
-              !!wipOriginal
+              !!wipOriginal,
             )}
           </div>
           <textarea
@@ -462,13 +475,15 @@ export function CurrentStandupEditor({
             placeholder="Click to add what you're working on"
             rows={6}
             className={`w-full resize-none rounded-md px-3 py-2 text-sm transition-all
-              ${isWipFocused || wipDraft
-                ? 'border border-input bg-background'
-                : 'border-0 bg-transparent hover:bg-muted/50 cursor-text'
+              ${
+                isWipFocused || wipDraft
+                  ? 'border border-input bg-background'
+                  : 'border-0 bg-transparent hover:bg-muted/50 cursor-text'
               }
-              ${!wipDraft && !isWipFocused
-                ? 'text-muted-foreground italic'
-                : 'text-foreground'
+              ${
+                !wipDraft && !isWipFocused
+                  ? 'text-muted-foreground italic'
+                  : 'text-foreground'
               }
               focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2
             `}

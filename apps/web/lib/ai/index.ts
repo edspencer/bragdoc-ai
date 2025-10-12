@@ -8,7 +8,7 @@ export const defaultModel = 'gpt-4o-mini';
 
 export const customModel = (
   apiIdentifier: string = defaultModel,
-  provider: any = openai
+  provider: any = openai,
 ) => {
   const wrappedModel = wrapLanguageModel({
     model: provider(apiIdentifier),
