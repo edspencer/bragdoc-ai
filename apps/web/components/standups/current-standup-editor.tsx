@@ -6,7 +6,7 @@ import { Checkbox } from 'components/ui/checkbox';
 import { Card, CardContent, CardHeader, CardTitle } from 'components/ui/card';
 import { Badge } from 'components/ui/badge';
 import { Separator } from 'components/ui/separator';
-import { IconSparkles, IconCheck, IconX, IconStar } from '@tabler/icons-react';
+import { IconSparkles, IconCheck, IconX, IconStar, IconStarFilled } from '@tabler/icons-react';
 import { toast } from 'sonner';
 import { format, formatDistanceToNow } from 'date-fns';
 import type { Standup, StandupDocument } from '@bragdoc/database';
@@ -124,6 +124,17 @@ export function CurrentStandupEditor({
     });
   };
 
+  // Handle impact change with optimistic updates
+  const handleImpactChange = async (achievementId: string, impact: number) => {
+    // Optimistically update local state immediately
+    setAchievements((prev) =>
+      prev.map((a) => (a.id === achievementId ? { ...a, impact } : a))
+    );
+
+    // Call parent handler (which handles the API call)
+    await onAchievementImpactChange(achievementId, impact);
+  };
+
   // Save achievements summary
   const handleSaveAchievementsSummary = async () => {
     setIsSavingAchievementsSummary(true);
@@ -182,6 +193,7 @@ export function CurrentStandupEditor({
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             regenerate: true,
+            achievementIds: Array.from(selectedAchievementIds),
           }),
         }
       );
@@ -329,7 +341,7 @@ export function CurrentStandupEditor({
               {achievements.map((achievement) => (
                 <div
                   key={achievement.id}
-                  className="flex items-start gap-3 p-3 rounded-lg border hover:bg-muted/50 transition-colors"
+                  className="flex items-center gap-3 p-3 rounded-lg border hover:bg-muted/50 transition-colors"
                 >
                   <Checkbox
                     checked={selectedAchievementIds.has(achievement.id)}
@@ -344,33 +356,32 @@ export function CurrentStandupEditor({
                         {achievement.summary}
                       </p>
                     )}
-                    <div className="flex items-center gap-2 mt-2">
-                      {achievement.projectName && (
-                        <Badge variant="outline" className="text-xs">
-                          {achievement.projectName}
-                        </Badge>
-                      )}
-                      <div className="flex items-center gap-1">
-                        {[1, 2, 3].map((star) => (
-                          <button
-                            key={star}
-                            type="button"
-                            onClick={() =>
-                              onAchievementImpactChange(achievement.id, star)
-                            }
-                            className="text-muted-foreground hover:text-foreground transition-colors"
-                          >
-                            <IconStar
-                              className={`size-3 ${
-                                achievement.impact >= star
-                                  ? 'fill-current'
-                                  : ''
-                              }`}
-                            />
-                          </button>
-                        ))}
-                      </div>
-                    </div>
+                    {achievement.projectName && (
+                      <Badge variant="outline" className="text-xs mt-2">
+                        {achievement.projectName}
+                      </Badge>
+                    )}
+                  </div>
+                  <div className="flex gap-0.5 flex-shrink-0">
+                    {[...Array(10)].map((_, i) => {
+                      const isSelected = i < (achievement.impact || 0);
+                      return (
+                        <button
+                          key={i}
+                          type="button"
+                          onClick={() =>
+                            handleImpactChange(achievement.id, i + 1)
+                          }
+                          className="hover:scale-110 transition-transform"
+                        >
+                          {isSelected ? (
+                            <IconStarFilled className="size-4 text-yellow-400" />
+                          ) : (
+                            <IconStar className="size-4 text-muted-foreground" />
+                          )}
+                        </button>
+                      );
+                    })}
                   </div>
                 </div>
               ))}

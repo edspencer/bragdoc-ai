@@ -222,6 +222,34 @@ export async function getCurrentStandupDocument(
 }
 
 /**
+ * Get the most recent past standup document (before current time)
+ */
+export async function getPreviousStandupDocument(
+  standupId: string,
+  dbInstance = defaultDb,
+): Promise<StandupDocument | null> {
+  try {
+    const now = new Date();
+    const docs = await dbInstance
+      .select()
+      .from(standupDocument)
+      .where(
+        and(
+          eq(standupDocument.standupId, standupId),
+          lte(standupDocument.date, now),
+        ),
+      )
+      .orderBy(desc(standupDocument.date)) // Get most recent past document
+      .limit(1);
+
+    return docs[0] || null;
+  } catch (error) {
+    console.error('Error in getPreviousStandupDocument:', error);
+    throw error;
+  }
+}
+
+/**
  * Get standup document by standup ID and specific date
  */
 export async function getStandupDocumentByDate(

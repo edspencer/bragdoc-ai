@@ -1,4 +1,4 @@
-import type { Standup, StandupDocument } from '@bragdoc/database';
+import type { Standup, StandupDocument, Achievement } from '@bragdoc/database';
 import {
   getCurrentStandupDocument,
   createStandupDocument,
@@ -6,7 +6,10 @@ import {
   updateStandupDocumentSummary,
   getRecentAchievementsForStandup,
   bulkUpdateAchievementStandupDocument,
+  db,
 } from '@bragdoc/database';
+import { achievement as achievementTable } from '@bragdoc/database/schema';
+import { inArray } from 'drizzle-orm';
 import { getStandupAchievementDateRange } from '../scheduling/nextRun';
 import {
   generateStandupAchievementsSummary,
@@ -21,6 +24,7 @@ import {
  * @param standup - Standup configuration
  * @param targetDate - Date for the standup document (defaults to next run date)
  * @param regenerate - If true, regenerate summary even if document exists
+ * @param achievementIds - Optional list of specific achievement IDs to include
  * @returns Created or updated standup document
  */
 export async function createOrUpdateStandupDocument(
@@ -28,7 +32,8 @@ export async function createOrUpdateStandupDocument(
   userId: string,
   standup: Standup,
   targetDate?: Date,
-  regenerate = false
+  regenerate = false,
+  achievementIds?: string[]
 ): Promise<StandupDocument> {
   // Get or create document
   let document: StandupDocument | null = null;
@@ -51,20 +56,30 @@ export async function createOrUpdateStandupDocument(
 
   // If regenerate is requested or no summary exists, generate from achievements
   if (regenerate || !document.achievementsSummary) {
-    // Calculate date range for relevant achievements
-    const { startDate, endDate } = getStandupAchievementDateRange(
-      docDate,
-      standup.timezone,
-      standup.meetingTime,
-      standup.daysMask
-    );
+    let achievements: Achievement[];
 
-    // Fetch achievements in the standup date range
-    const achievements = await getRecentAchievementsForStandup(
-      standup,
-      startDate,
-      endDate
-    );
+    if (achievementIds && achievementIds.length > 0) {
+      // Fetch specific achievements by IDs
+      achievements = await db
+        .select()
+        .from(achievementTable)
+        .where(inArray(achievementTable.id, achievementIds));
+    } else {
+      // Calculate date range for relevant achievements
+      const { startDate, endDate } = getStandupAchievementDateRange(
+        docDate,
+        standup.timezone,
+        standup.meetingTime,
+        standup.daysMask
+      );
+
+      // Fetch achievements in the standup date range
+      achievements = await getRecentAchievementsForStandup(
+        standup,
+        startDate,
+        endDate
+      );
+    }
 
     // Generate summary using AI
     const summary = await generateStandupAchievementsSummary(
@@ -81,8 +96,8 @@ export async function createOrUpdateStandupDocument(
 
     // Link achievements to this standup document
     if (achievements.length > 0) {
-      const achievementIds = achievements.map(a => a.id);
-      await bulkUpdateAchievementStandupDocument(achievementIds, document.id);
+      const achievementIdsToLink = achievements.map(a => a.id);
+      await bulkUpdateAchievementStandupDocument(achievementIdsToLink, document.id);
     }
   }
 

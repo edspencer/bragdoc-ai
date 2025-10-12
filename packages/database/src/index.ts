@@ -97,6 +97,7 @@ export {
   deleteStandup,
   getStandupDocumentsByStandupId,
   getCurrentStandupDocument,
+  getPreviousStandupDocument,
   getStandupDocumentByDate,
   createStandupDocument,
   updateStandupDocumentWip,

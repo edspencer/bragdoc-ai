@@ -45,7 +45,16 @@ ${instructions ? `\nAdditional instructions from user: ${instructions}` : ''}`;
 ${achievementsText}
 
 Please create your complete and concise summary of the achievements listed above, per the instructions you have been given.
-You are not writing in my voice, you are writing a summary for me.`;
+
+Instructions:
+
+- Write in plain text, not in markdown.
+- Do not write in my voice, you are writing a summary for me.
+- Do not write a script, but a business-like summary of the work done
+- Do not assess the value of the work done, just summarize it
+- If an Achievement has a very high impact score (6 or above), highlight it in the summary, otherwise do not mention the impact score
+- Group related Achievements together in a single paragraph
+- Use bullet points where appropriate`;
 
   try {
     // Use the router model for generating summaries
