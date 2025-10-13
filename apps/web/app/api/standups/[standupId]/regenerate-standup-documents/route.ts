@@ -8,7 +8,7 @@ import {
 } from '@bragdoc/database';
 import { calculateStandupOccurrences } from 'lib/standups/calculate-standup-occurrences';
 import { createOrUpdateStandupDocument } from 'lib/standups/create-standup-document';
-import { getStandupAchievementDateRange } from 'lib/scheduling/nextRun';
+import { getHistoricalStandupAchievementDateRange } from 'lib/scheduling/nextRun';
 
 /**
  * POST /api/standups/:standupId/regenerate-standup-documents
@@ -113,11 +113,19 @@ export async function POST(
         }
 
         // Get the date range for this specific standup occurrence
-        const achievementDateRange = getStandupAchievementDateRange(
+        // Use historical range to avoid overlap between consecutive standups
+        const achievementDateRange = getHistoricalStandupAchievementDateRange(
           occurrenceDate,
           standup.timezone,
           standup.meetingTime,
           standup.daysMask,
+        );
+
+        console.log(
+          `Date range for ${occurrenceDate.toISOString()}:`,
+          achievementDateRange.startDate.toISOString(),
+          'to',
+          achievementDateRange.endDate.toISOString(),
         );
 
         // Get achievements for this specific period
@@ -125,6 +133,10 @@ export async function POST(
           standup,
           achievementDateRange.startDate,
           achievementDateRange.endDate,
+        );
+
+        console.log(
+          `Found ${periodAchievements.length} achievements for ${occurrenceDate.toISOString()}`,
         );
 
         // Skip if no achievements for this period
@@ -185,7 +197,7 @@ export async function POST(
  * OPTIONS /api/standups/:standupId/regenerate-standup-documents
  * CORS preflight handler
  */
-export async function OPTIONS(req: NextRequest) {
+export async function OPTIONS() {
   return new NextResponse(null, {
     status: 204,
     headers: {

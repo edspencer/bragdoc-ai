@@ -22,7 +22,7 @@ const wipSchema = z.object({
  */
 export async function POST(
   req: NextRequest,
-  props: { params: Promise<{ standupId: string }> }
+  props: { params: Promise<{ standupId: string }> },
 ) {
   try {
     const params = await props.params;
@@ -56,7 +56,7 @@ export async function POST(
           new Date(),
           standup.timezone,
           standup.meetingTime,
-          standup.daysMask
+          standup.daysMask,
         );
 
         document = await createStandupDocument({
@@ -81,13 +81,13 @@ export async function POST(
     if (error instanceof z.ZodError) {
       return NextResponse.json(
         { error: 'Validation error', details: error.errors },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
     return NextResponse.json(
       { error: 'Failed to update WIP' },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

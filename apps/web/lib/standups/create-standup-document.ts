@@ -10,7 +10,10 @@ import {
 } from '@bragdoc/database';
 import { achievement as achievementTable } from '@bragdoc/database/schema';
 import { inArray } from 'drizzle-orm';
-import { getStandupAchievementDateRange } from '../scheduling/nextRun';
+import {
+  getStandupAchievementDateRange,
+  getHistoricalStandupAchievementDateRange,
+} from '../scheduling/nextRun';
 import {
   generateStandupAchievementsSummary,
   generateStandupDocumentSummary,
@@ -66,11 +69,29 @@ export async function createOrUpdateStandupDocument(
         .where(inArray(achievementTable.id, achievementIds));
     } else {
       // Calculate date range for relevant achievements
-      const { startDate, endDate } = getStandupAchievementDateRange(
-        docDate,
-        standup.timezone,
-        standup.meetingTime,
-        standup.daysMask,
+      // Use historical range for past dates to avoid overlap
+      const now = new Date();
+      const isHistorical = docDate < now;
+
+      const { startDate, endDate } = isHistorical
+        ? getHistoricalStandupAchievementDateRange(
+            docDate,
+            standup.timezone,
+            standup.meetingTime,
+            standup.daysMask,
+          )
+        : getStandupAchievementDateRange(
+            docDate,
+            standup.timezone,
+            standup.meetingTime,
+            standup.daysMask,
+          );
+
+      console.log(
+        `Date range for ${docDate.toISOString()} (${isHistorical ? 'historical' : 'current'}):`,
+        startDate.toISOString(),
+        'to',
+        endDate.toISOString(),
       );
 
       // Fetch achievements in the standup date range

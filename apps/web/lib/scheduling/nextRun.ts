@@ -160,3 +160,45 @@ export function getStandupAchievementDateRange(
     endDate: fromZonedTime(endLocal, tz),
   };
 }
+
+/**
+ * Calculate the date range for achievements relevant to a SPECIFIC historical standup
+ * Returns from midnight at the start of the previous standup day
+ * to the end of day of the CURRENT standup day (not the next one)
+ *
+ * This prevents overlap when generating multiple historical standup documents
+ *
+ * @param standupDateUtc The specific standup occurrence date in UTC
+ * @param tz IANA timezone string
+ * @param hhmm Time string in HH:mm format
+ * @param daysMask Bitmask of enabled days
+ * @returns Object with startDate and endDate in UTC
+ */
+export function getHistoricalStandupAchievementDateRange(
+  standupDateUtc: Date,
+  tz: string,
+  hhmm: string,
+  daysMask: number,
+): { startDate: Date; endDate: Date } {
+  // Get the previous standup occurrence in UTC
+  const previousRunUtc = computePreviousRunUTC(
+    standupDateUtc,
+    tz,
+    hhmm,
+    daysMask,
+  );
+
+  // Convert to timezone to get start/end of day in local time
+  const previousRunLocal = toZonedTime(previousRunUtc, tz);
+  const currentRunLocal = toZonedTime(standupDateUtc, tz);
+
+  // Get start of previous standup day and end of CURRENT standup day
+  const startLocal = startOfDay(previousRunLocal);
+  const endLocal = endOfDay(currentRunLocal);
+
+  // Convert back to UTC
+  return {
+    startDate: fromZonedTime(startLocal, tz),
+    endDate: fromZonedTime(endLocal, tz),
+  };
+}
