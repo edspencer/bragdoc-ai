@@ -380,24 +380,12 @@ export async function addProject(
   options: { name?: string; maxCommits?: number } = {},
 ) {
   const config = await loadConfig();
-
-  // Check if LLM is configured - prompt if not
-  if (!isLLMConfigured(config.llm)) {
-    console.log('\n🤖 Setting up LLM provider for achievement extraction...\n');
-    const llmConfig = await promptForLLMConfig();
-    config.llm = llmConfig;
-    await saveConfig(config);
-
-    const displayName = getLLMDisplayName(config);
-    console.log(chalk.green(`✓ LLM configured: ${displayName}\n`));
-  }
-
   const absolutePath = normalizeRepoPath(path);
 
   // Validate repository
   await validateRepository(absolutePath);
 
-  // Check for duplicates
+  // Check for duplicates first - no point configuring LLM if project already exists
   const existingProject = config.projects.find((p) => p.path === absolutePath);
   if (existingProject) {
     // If project exists and doesn't have an id, try to sync it
@@ -422,6 +410,17 @@ export async function addProject(
       );
     }
     return;
+  }
+
+  // Check if LLM is configured - prompt if not (only for new projects)
+  if (!isLLMConfigured(config.llm)) {
+    console.log('\n🤖 Setting up LLM provider for achievement extraction...\n');
+    const llmConfig = await promptForLLMConfig();
+    config.llm = llmConfig;
+    await saveConfig(config);
+
+    const displayName = getLLMDisplayName(config);
+    console.log(chalk.green(`✓ LLM configured: ${displayName}\n`));
   }
 
   // Get repository info for name and remote URL
