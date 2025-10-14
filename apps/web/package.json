@@ -23,8 +23,9 @@
     "cf-typegen": "wrangler types --env-interface CloudflareEnv cloudflare-env.d.ts"
   },
   "dependencies": {
-    "@ai-sdk/google": "^1.0.12",
-    "@ai-sdk/openai": "1.0.6",
+    "@ai-sdk/google": "^2.0.0",
+    "@ai-sdk/openai": "^2.0.0",
+    "@ai-sdk/rsc": "^1.0.71",
     "@bragdoc/config": "workspace:*",
     "@bragdoc/database": "workspace:*",
     "@bragdoc/email": "workspace:*",
@@ -61,7 +62,7 @@
     "@types/react-syntax-highlighter": "^15.5.13",
     "@vercel/analytics": "^1.3.1",
     "@vercel/blob": "^0.24.1",
-    "ai": "4.0.20",
+    "ai": "^5.0.0",
     "autoevals": "^0.0.110",
     "bright": "^1.0.0",
     "canvas-confetti": "^1.9.3",
@@ -110,7 +111,7 @@
     "unified": "^11.0.5",
     "usehooks-ts": "^3.1.0",
     "uuid": "^11.0.3",
-    "zod": "^3.23.8"
+    "zod": "^3.25.76"
   },
   "devDependencies": {
     "@opennextjs/cloudflare": "^1.9.1",

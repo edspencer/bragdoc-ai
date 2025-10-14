@@ -5,7 +5,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { IconFolderCode, IconCalendar } from '@tabler/icons-react';
 import { format } from 'date-fns';
 import { useForm } from 'react-hook-form';
-import { z } from 'zod';
+import { z } from 'zod/v3';
 
 import { Button } from '@/components/ui/button';
 import { Calendar } from '@/components/ui/calendar';

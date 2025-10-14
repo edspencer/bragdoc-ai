@@ -63,11 +63,17 @@ Instructions:
     const { text } = await generateText({
       model,
       messages: [
-        { role: 'system', content: systemPrompt },
-        { role: 'user', content: userPrompt },
+        {
+          role: 'system',
+          content: systemPrompt,
+        },
+        {
+          role: 'user',
+          content: userPrompt,
+        },
       ],
       temperature: 0.7,
-      maxTokens: 500,
+      maxOutputTokens: 500,
     });
 
     return text.trim();
@@ -117,7 +123,7 @@ export async function generateStandupDocumentSummary(
         },
       ],
       temperature: 0.5,
-      maxTokens: 50,
+      maxOutputTokens: 50,
     });
 
     return text.trim();

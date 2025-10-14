@@ -41,7 +41,7 @@ const callRouter = async (
     const { type } = delta;
 
     if (type === 'text-delta') {
-      const { textDelta } = delta;
+      const { text: textDelta } = delta;
 
       docText += textDelta;
     }
@@ -129,7 +129,7 @@ export const experimentData: Experiment[] = [
       toolCalls: [
         {
           toolName: 'createDocument',
-          args: {
+          input: {
             title: 'Weekly Summary for Bragdoc',
             days: 7,
             projectId: '5678',
@@ -158,7 +158,7 @@ export const experimentData: Experiment[] = [
       toolCalls: [
         {
           toolName: 'createDocument',
-          args: {
+          input: {
             title: 'Monthly Summary for Project X',
             days: 30,
             projectId: '1234',
@@ -188,7 +188,7 @@ export const experimentData: Experiment[] = [
       toolCalls: [
         {
           toolName: 'extractAchievements',
-          args: {},
+          input: {},
           type: 'tool-call',
           toolCallId: '123',
         },
@@ -219,7 +219,7 @@ export const experimentData: Experiment[] = [
                   type: 'tool-call',
                   toolCallId: 'call_4rrSuLQ5CoH6bhXw8vB3yx6N',
                   toolName: 'createDocument',
-                  args: {
+                  input: {
                     title: 'Bragdoc Work Report',
                     days: 90,
                     projectId: '0b0c4b53-b299-4f70-9e9a-8f16a508974a',
@@ -274,7 +274,7 @@ export const experimentData: Experiment[] = [
       toolCalls: [
         {
           toolName: 'updateDocument',
-          args: {
+          input: {
             id: 'document-12345',
             description: `Remove the Payment and Integration section`,
           },

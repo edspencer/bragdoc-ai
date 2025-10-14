@@ -1,4 +1,4 @@
-import { z } from 'zod';
+import { z } from 'zod/v3';
 
 // Schema for individual achievement in export/import
 export const exportAchievementSchema = z.object({

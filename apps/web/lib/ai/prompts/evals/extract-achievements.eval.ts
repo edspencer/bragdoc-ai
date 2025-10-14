@@ -18,7 +18,7 @@ async function wrappedExtractAchievements(
 const chatHistory = [
   {
     role: 'user' as const,
-    content: 'I fixed several UX bugs in the checkout flow on Bragdoc today',
+    parts: [{ type: 'text' as const, text: 'I fixed several UX bugs in the checkout flow on Bragdoc today' }],
     id: '1',
   },
 ];

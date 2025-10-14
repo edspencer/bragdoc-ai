@@ -38,7 +38,7 @@ export async function GET(request: Request, { params }: { params: Params }) {
           {
             id: '1',
             role: 'user',
-            content: 'This is a test message',
+            parts: [{ type: 'text', text: 'This is a test message' }],
           },
         ],
       });

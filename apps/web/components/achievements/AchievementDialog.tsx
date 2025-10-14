@@ -29,7 +29,7 @@ import {
   SelectValue,
 } from 'components/ui/select';
 import { ImpactRating } from 'components/ui/impact-rating';
-import { z } from 'zod';
+import { z } from 'zod/v3';
 import type { Achievement } from 'lib/types/achievement';
 import { useCompanies } from 'hooks/use-companies';
 import { useProjects } from 'hooks/useProjects';

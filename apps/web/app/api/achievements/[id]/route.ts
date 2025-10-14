@@ -1,6 +1,6 @@
 import { type NextRequest, NextResponse } from 'next/server';
 import { getAuthUser } from 'lib/getAuthUser';
-import { z } from 'zod';
+import { z } from 'zod/v3';
 import { updateAchievement, deleteAchievement } from '@/database/queries';
 
 type Params = { id: string };

@@ -2,7 +2,7 @@ import { auth } from 'app/(auth)/auth';
 import { db } from '@/database/index';
 import { document } from '@/database/schema';
 import { eq } from 'drizzle-orm';
-import { z } from 'zod';
+import { z } from 'zod/v3';
 
 const documentSchema = z.object({
   content: z.string(),

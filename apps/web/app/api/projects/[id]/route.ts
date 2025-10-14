@@ -4,7 +4,7 @@ import {
   updateProject,
   deleteProject,
 } from '@/database/projects/queries';
-import { z } from 'zod';
+import { z } from 'zod/v3';
 import { getAuthUser } from 'lib/getAuthUser';
 
 const updateProjectSchema = z.object({

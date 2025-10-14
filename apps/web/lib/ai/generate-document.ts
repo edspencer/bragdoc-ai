@@ -54,7 +54,9 @@ export async function fetch({
     if (projectId) {
       achievementQuery.projectId = projectId;
     }
-    achievementQuery.startDate = new Date(Date.now() - days * 24 * 60 * 60 * 1000);
+    achievementQuery.startDate = new Date(
+      Date.now() - days * 24 * 60 * 60 * 1000
+    );
   }
 
   const [project, company, achievementsResult] = await Promise.all([
@@ -66,15 +68,16 @@ export async function fetch({
   // Filter to specific achievement IDs if provided
   let achievements = achievementsResult.achievements;
   if (achievementIds && achievementIds.length > 0) {
-    achievements = achievements.filter((a) =>
-      achievementIds.includes(a.id),
-    );
+    achievements = achievements.filter((a) => achievementIds.includes(a.id));
   }
 
+  console.log(`Generating document with ${achievements.length} achievements`);
+
   // Use provided userInstructions, or fall back to user preferences
-  const instructions = userInstructions !== undefined
-    ? userInstructions
-    : (user.preferences.documentInstructions || '');
+  const instructions =
+    userInstructions !== undefined
+      ? userInstructions
+      : user.preferences.documentInstructions || '';
 
   return {
     docTitle: title,
@@ -97,7 +100,9 @@ export async function fetch({
  */
 export async function fetchRenderExecute(
   input: GenerateDocumentFetcherProps,
-  streamTextOptions?: Parameters<typeof streamText>[0],
+  streamTextOptions?: Partial<
+    Omit<Parameters<typeof streamText>[0], 'model' | 'prompt' | 'messages'>
+  >
 ) {
   const data = await fetch(input);
 
@@ -111,7 +116,7 @@ export async function fetchRenderExecute(
  * @returns Promise<string> - Rendered prompt string
  */
 export async function fetchRender(
-  input: GenerateDocumentFetcherProps,
+  input: GenerateDocumentFetcherProps
 ): Promise<string> {
   const data = await fetch(input);
   return await render(data);
@@ -126,7 +131,9 @@ export async function fetchRender(
  */
 export async function renderExecute(
   promptData: GenerateDocumentPromptProps,
-  streamTextOptions?: Parameters<typeof streamText>[0],
+  streamTextOptions?: Partial<
+    Omit<Parameters<typeof streamText>[0], 'model' | 'prompt' | 'messages'>
+  >
 ) {
   const prompt = await render(promptData);
 
@@ -142,7 +149,9 @@ export async function renderExecute(
  */
 export async function execute(
   prompt: string,
-  streamTextOptions?: Parameters<typeof streamText>[0],
+  streamTextOptions?: Partial<
+    Omit<Parameters<typeof streamText>[0], 'model' | 'prompt' | 'messages'>
+  >
 ) {
   return streamText({
     model: documentWritingModel,
@@ -158,7 +167,7 @@ export async function execute(
  * @returns Promise<string> - Rendered prompt string ready for execution
  */
 export async function render(
-  data: GenerateDocumentPromptProps,
+  data: GenerateDocumentPromptProps
 ): Promise<string> {
   return await renderMDXPromptFile({
     filePath: promptPath,

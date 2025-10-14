@@ -7,7 +7,7 @@ import {
   saveDocument,
 } from '@/database/queries';
 import type { User, Company, Project } from '@/database/schema';
-import { type JSONValue, streamText } from 'ai';
+import { type JSONValue, streamText, stepCountIs } from 'ai';
 import { documentWritingModel, routerModel } from '.';
 
 import path from 'node:path';
@@ -15,7 +15,7 @@ import path from 'node:path';
 const promptPath = path.resolve('./lib/ai/prompts/llm-router.mdx');
 import { renderMDXPromptFile } from 'mdx-prompt';
 import * as components from './prompts/elements';
-import { z } from 'zod';
+import { z } from 'zod/v3';
 
 import { streamFetchRenderExecute as streamFetchRenderExecuteAchievements } from 'lib/ai/extract-achievements';
 import { fetchRenderExecute as generateDocument } from 'lib/ai/generate-document';
@@ -75,7 +75,7 @@ export async function render(data: LlmRouterPromptProps) {
 }
 
 export type LlmRouterRenderExecuteProps = {
-  streamTextOptions?: Partial<Parameters<typeof streamText>[0]>;
+  streamTextOptions?: Partial<Omit<Parameters<typeof streamText>[0], 'model' | 'prompt' | 'messages' | 'tools' | 'stopWhen'>>;
   data: LlmRouterPromptProps;
   onEvent?: (item: JSONValue) => void;
 
@@ -164,7 +164,7 @@ export function execute({
       const { type } = delta;
 
       if (type === 'text-delta') {
-        const { textDelta } = delta;
+        const { text: textDelta } = delta;
         draftText += textDelta;
         eventCallback?.({
           type: 'text-delta',
@@ -223,7 +223,7 @@ export function execute({
       model: documentWritingModel,
       system:
         'You are a helpful writing assistant. Based on the description, please update the piece of writing.',
-      experimental_providerMetadata: {
+      providerOptions: {
         openai: {
           prediction: {
             type: 'content',
@@ -236,7 +236,10 @@ export function execute({
           role: 'user',
           content: description,
         },
-        { role: 'user', content: currentContent! },
+        {
+          role: 'user',
+          content: currentContent!,
+        },
       ],
     });
 
@@ -244,7 +247,7 @@ export function execute({
       const { type } = delta;
 
       if (type === 'text-delta') {
-        const { textDelta } = delta;
+        const { text: textDelta } = delta;
 
         draftText += textDelta;
         eventCallback?.({
@@ -365,20 +368,21 @@ export function execute({
 
   return streamText({
     prompt,
-    maxSteps: 10,
+    stopWhen: stepCountIs(10),
     ...streamTextOptions,
     model: routerModel,
+
     tools: {
       extractAchievements: {
         description:
           'Extract achievements from the chat to be saved to the database',
-        parameters: z.object({}),
+        inputSchema: z.object({}),
         execute: tools?.extractAchievements || extractAchievements,
       },
 
       createDocument: {
         description: "Create a document based on the User's achievements",
-        parameters: z.object({
+        inputSchema: z.object({
           title: z.string().describe('The title of the document'),
           days: z
             .number()
@@ -401,7 +405,7 @@ export function execute({
       },
       updateDocument: {
         description: 'Update a document with the given description',
-        parameters: z.object({
+        inputSchema: z.object({
           id: z.string().describe('The ID of the document to update'),
           description: z
             .string()
@@ -409,7 +413,7 @@ export function execute({
         }),
         execute: tools?.updateDocument || updateDocument,
       },
-    },
+    }
   });
 }
 
@@ -431,7 +435,7 @@ export async function renderExecute(props: LlmRouterRenderExecuteProps) {
 export interface LlmRouterFetchExecuteProps {
   input: LlmRouterFetchProps;
   onEvent?: (item: JSONValue) => void;
-  streamTextOptions?: Partial<Parameters<typeof streamText>[0]>;
+  streamTextOptions?: Partial<Omit<Parameters<typeof streamText>[0], 'model' | 'prompt' | 'messages' | 'tools' | 'stopWhen'>>;
 }
 
 /**

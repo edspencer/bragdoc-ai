@@ -2,7 +2,7 @@ import { auth } from 'app/(auth)/auth';
 import { db } from '@/database/index';
 import { document, user } from '@/database/schema';
 import { eq } from 'drizzle-orm';
-import { z } from 'zod';
+import { z } from 'zod/v3';
 import { fetchRenderExecute } from 'lib/ai/generate-document';
 
 const generateSchema = z.object({
@@ -32,16 +32,22 @@ export async function POST(request: Request) {
     if (!parsed.success) {
       return Response.json(
         { error: 'Invalid request', details: parsed.error },
-        { status: 400 },
+        { status: 400 }
       );
     }
 
-    const { achievementIds, type, title, userInstructions, defaultInstructions } = parsed.data;
+    const {
+      achievementIds,
+      type,
+      title,
+      userInstructions,
+      defaultInstructions,
+    } = parsed.data;
 
     if (achievementIds.length === 0) {
       return Response.json(
         { error: 'At least one achievement must be selected' },
-        { status: 400 },
+        { status: 400 }
       );
     }
 
@@ -71,16 +77,19 @@ export async function POST(request: Request) {
       userInstructions,
     });
 
-    // Stream the result and collect it
+    // In AI SDK v5, use the text promise to await the complete result
     let content = '';
-    for await (const chunk of result.textStream) {
-      content += chunk;
+    try {
+      content = await result.text;
+    } catch (streamError) {
+      console.error('Error generating text:', streamError);
+      throw new Error(`Failed to generate document: ${streamError}`);
     }
 
     if (!content) {
       return Response.json(
-        { error: 'Failed to generate document content' },
-        { status: 500 },
+        { error: 'Failed to generate document content - no text generated' },
+        { status: 500 }
       );
     }
 
@@ -102,7 +111,7 @@ export async function POST(request: Request) {
     console.error('Error generating document:', error);
     return Response.json(
       { error: 'Failed to generate document' },
-      { status: 500 },
+      { status: 500 }
     );
   }
 }

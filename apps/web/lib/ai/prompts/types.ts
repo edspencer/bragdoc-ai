@@ -1,6 +1,6 @@
-import { z } from 'zod';
+import { z } from 'zod/v3';
 import type { Achievement, Company, Project, User } from '@/database/schema';
-import type { Message } from 'ai';
+import type { UIMessage } from 'ai';
 
 //Schema we use to ask the LLM for a structured response using
 export const achievementResponseSchema = z.object({
@@ -82,7 +82,7 @@ export interface GenerateDocumentFetcherProps {
   companyId?: string;
   achievementIds?: string[];
   userInstructions?: string;
-  chatHistory?: Message[];
+  chatHistory?: UIMessage[];
 }
 
 export interface GenerateDocumentPromptProps {
@@ -93,7 +93,7 @@ export interface GenerateDocumentPromptProps {
   company?: Company;
   achievements: any[];
   userInstructions?: string;
-  chatHistory?: Message[];
+  chatHistory?: UIMessage[];
 }
 
 /**
@@ -103,7 +103,7 @@ export interface GenerateDocumentPromptProps {
 export interface ExtractAchievementsFetcherProps {
   user: User;
   message: string;
-  chatHistory: Message[];
+  chatHistory: UIMessage[];
 }
 
 //props required to render the Extract Achievements Prompt
@@ -111,7 +111,7 @@ export interface ExtractAchievementsPromptProps {
   companies: Company[];
   projects: Project[];
   message: string;
-  chatHistory: Message[];
+  chatHistory: UIMessage[];
   user: User;
 }
 

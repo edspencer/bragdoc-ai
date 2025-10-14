@@ -26,18 +26,17 @@ the BragDoc repo to make it easier for new developers to get up and running.
 const chatHistory = [
   {
     role: 'user' as const,
-    content: 'I fixed several UX bugs in the checkout flow on Bragdoc today',
+    parts: [{ type: 'text' as const, text: 'I fixed several UX bugs in the checkout flow on Bragdoc today' }],
     id: '1',
   },
   {
     role: 'assistant' as const,
-    content:
-      "Ok, I've recorded your process achievement. Would you like to add any additional context about the impact or process?",
+    parts: [{ type: 'text' as const, text: "Ok, I've recorded your process achievement. Would you like to add any additional context about the impact or process?" }],
     id: '2',
   },
   {
     role: 'user' as const,
-    content: followupBrag,
+    parts: [{ type: 'text' as const, text: followupBrag }],
     id: '3',
   },
 ];

@@ -5,7 +5,7 @@ import {
   updateCompany,
   deleteCompany,
 } from '@/database/queries';
-import { z } from 'zod';
+import { z } from 'zod/v3';
 import { db } from '@/database/index';
 
 // Validation schema for updating a company

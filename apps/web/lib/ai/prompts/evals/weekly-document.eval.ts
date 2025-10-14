@@ -10,7 +10,7 @@ const createDocument = async (input: any): Promise<string> => {
     const { type } = delta;
 
     if (type === 'text-delta') {
-      const { textDelta } = delta;
+      const { text: textDelta } = delta;
 
       docText += textDelta;
     }

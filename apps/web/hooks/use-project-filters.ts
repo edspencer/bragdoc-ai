@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import type { ProjectStatus } from '@/database/types';
-import { z } from 'zod';
+import { z } from 'zod/v3';
 
 export interface ProjectFilters {
   status: ProjectStatus | 'all';

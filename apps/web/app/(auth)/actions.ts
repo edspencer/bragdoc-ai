@@ -1,6 +1,6 @@
 'use server';
 
-import { z } from 'zod';
+import { z } from 'zod/v3';
 
 import { createUser, getUser } from '@/database/queries';
 import { sendWelcomeEmail } from '@/lib/email/sendWelcomeEmail';

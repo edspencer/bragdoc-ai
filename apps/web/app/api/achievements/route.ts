@@ -1,5 +1,5 @@
 import { type NextRequest, NextResponse } from 'next/server';
-import { z } from 'zod';
+import { z } from 'zod/v3';
 import { getAchievements } from '@/database/queries';
 import { createAchievement } from '@/database/achievements/utils';
 import { getAuthUser } from 'lib/getAuthUser';

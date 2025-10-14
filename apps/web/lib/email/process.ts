@@ -7,9 +7,9 @@ import {
 } from '@/database/queries';
 import { getProjectsByUserId } from '@/database/projects/queries';
 import { streamFetchRenderExecute } from '@/lib/ai/extract-achievements';
-import { generateText } from 'ai';
+import { generateText, stepCountIs } from 'ai';
 import { customModel } from '@/lib/ai';
-import { z } from 'zod';
+import { z } from 'zod/v3';
 import { v4 as uuidv4 } from 'uuid';
 
 export interface IncomingEmail {
@@ -87,16 +87,25 @@ ${achievements.map((a) => `- ${a.title}`).join('\n')}`;
     const { text } = await generateText({
       model: customModel('gpt-4o-mini'),
       system: systemPrompt,
+
       messages: [
-        { role: 'system', content: userContext },
-        { role: 'user', content: email.textContent },
+        {
+          role: 'system',
+          content: userContext,
+        },
+        {
+          role: 'user',
+          content: email.textContent,
+        },
       ],
-      maxSteps: 10,
+
+      stopWhen: stepCountIs(10),
+
       tools: {
         extractAchievements: {
           description:
             'Saves detected achievements to the database. Takes no parameters. Only call once.',
-          parameters: z.object({}),
+          inputSchema: z.object({}),
           execute: async () => {
             console.log(
               'Starting achievement extraction for email from:',
@@ -115,7 +124,7 @@ ${achievements.map((a) => `- ${a.title}`).join('\n')}`;
             const achievementsStream = streamFetchRenderExecute({
               message: email.textContent,
               chatHistory: [
-                { role: 'user', content: email.textContent, id: uuidv4() },
+                { role: 'user', parts: [{ type: 'text' as const, text: email.textContent }], id: uuidv4() },
               ],
               user,
             });
@@ -156,7 +165,7 @@ ${achievements.map((a) => `- ${a.title}`).join('\n')}`;
             return { success: true };
           },
         },
-      },
+      }
     });
 
     console.log('Processed email from:', senderEmail);

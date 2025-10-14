@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { z } from 'zod';
+import { z } from 'zod/v3';
 import { createAchievement } from '@/database/queries';
 import { ensureProject } from '@/database/projects/queries';
 import { fetchRenderExecute } from 'lib/ai/extract-commit-achievements';

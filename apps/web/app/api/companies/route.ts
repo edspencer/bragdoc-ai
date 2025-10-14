@@ -1,7 +1,7 @@
 import { type NextRequest, NextResponse } from 'next/server';
 import { getAuthUser } from 'lib/getAuthUser';
 import { getCompaniesByUserId, createCompany } from '@/database/queries';
-import { z } from 'zod';
+import { z } from 'zod/v3';
 import { db } from '@/database/index';
 
 // Validation schema for creating a company
