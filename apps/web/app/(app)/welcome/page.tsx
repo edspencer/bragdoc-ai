@@ -3,16 +3,9 @@
 import * as React from 'react';
 import { useRouter } from 'next/navigation';
 import { WelcomeCarousel } from 'components/welcome/carousel';
-import { ChatDemo } from 'components/welcome/chat-demo';
 import { useUser } from 'hooks/use-user';
 
 const WELCOME_CARDS = [
-  {
-    title: 'Track Your Achievements',
-    description:
-      "Simply tell me about your work, and I'll help you track your achievements. No more forgetting what you've accomplished!",
-    demo: <ChatDemo />,
-  },
   // {
   //   title: 'Organize Your Work',
   //   description:
