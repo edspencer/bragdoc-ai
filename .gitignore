@@ -38,7 +38,7 @@ yarn-error.log*
 .vscode
 .env*.local
 
-temp
+tmp
 
 .cache_ggshield
 packages/cli/dist
@@ -47,4 +47,3 @@ packages/cli/dist
 .open-next
 .wrangler
 .dev.vars
-temp-v0-app
