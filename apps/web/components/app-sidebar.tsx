@@ -8,6 +8,7 @@ import {
   IconSettings,
   IconStar,
   IconUsers,
+  IconUserCheck,
 } from '@tabler/icons-react';
 import { useSession } from 'next-auth/react';
 import { useDocuments } from '@/hooks/use-documents';
@@ -48,6 +49,11 @@ const staticData = {
       title: 'Companies',
       url: '/companies',
       icon: IconBuilding,
+    },
+    {
+      title: 'For my manager',
+      url: '/reports',
+      icon: IconUserCheck,
     },
     // {
     //   title: 'Analytics',

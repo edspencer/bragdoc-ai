@@ -1,214 +1,156 @@
-# Feature Configuration
 
-BragDoc supports flexible feature configuration to work in both open source and commercial environments.
+---
 
-## Payment Gating System
+## Reports & Documents ("For my manager")
 
-BragDoc uses the `PAYMENT_TOKEN_REQUIRED` environment variable to control feature availability:
+### Overview
 
-### Open Source Mode (Default)
-```bash
-PAYMENT_TOKEN_REQUIRED=false  # or unset
-```
-- **All features available** to all users
-- **No payment integration** required
-- Perfect for self-hosting and open source deployment
+The Reports feature allows users to generate AI-powered reports from their tracked achievements. These reports are designed to help users communicate their accomplishments to managers, during performance reviews, or for personal career documentation.
 
-### Commercial Mode
-```bash
-PAYMENT_TOKEN_REQUIRED=true
-```
-- **Feature gating** based on subscription levels
-- **Stripe integration** for payment processing
-- Requires additional Stripe environment variables
+### Report Types
 
-## Feature Gates
+BragDoc supports three types of reports, each designed for different use cases:
 
-When payment is required (`PAYMENT_TOKEN_REQUIRED=true`), features are gated by user subscription level:
+#### Weekly Reports
+- **Time Range:** Last 7 days of achievements
+- **Use Case:** Weekly check-ins, sprint retrospectives, status updates
+- **Default Prompt:** Focus on key accomplishments, progress on ongoing projects, blockers, and plans for next week
 
-### Free Tier Features
-- ✅ Basic achievement tracking
-- ✅ Manual achievement creation
-- ✅ Basic document export
-- ✅ Profile management
-- ❌ Limited to 10 achievements per month
+#### Monthly Reports
+- **Time Range:** Last 30 days of achievements  
+- **Use Case:** Monthly performance summaries, milestone tracking, progress reports
+- **Default Prompt:** Emphasize significant achievements, project completions, measurable impact, and growth areas
 
-### Basic Tier Features ($9/month)
-- ✅ **All Free Tier features**
-- ✅ **Unlimited achievements**
-- ✅ **Email integration** for automatic tracking
-- ✅ **GitHub integration** for commit tracking
-- ✅ **Document templates**
-- ✅ **Basic analytics**
+#### Custom Reports
+- **Time Range:** All achievements (user can filter manually)
+- **Use Case:** Performance reviews, promotion packets, portfolio updates, year-end summaries
+- **Default Prompt:** Comprehensive review highlighting career progression, major contributions, and professional development
 
-### Pro Tier Features ($19/month)
-- ✅ **All Basic Tier features**  
-- ✅ **AI-powered assistance** for achievement writing
-- ✅ **Advanced analytics** and insights
-- ✅ **Team collaboration** features
-- ✅ **API access** for integrations
-- ✅ **Priority support**
+### Key Features
 
-## Feature Implementation
+#### Achievement Selection
+- **Automatic filtering** by time range based on report type
+- **Manual filtering** by company and project
+- **Individual selection** of specific achievements to include
+- **Select all** toggle for convenience
+- **Visual indicators** showing achievement impact (star ratings)
 
-The payment gating system is implemented through the `@bragdoc/config` package:
+#### Customizable Generation
+- **Editable prompts** - Users can customize the AI generation instructions
+- **Smart defaults** - Type-specific prompts optimized for each report type
+- **Preference persistence** - Custom instructions are saved for future use
+- **Professional tone** - Generated reports maintain business-appropriate language
 
-```typescript
-// Check if payment is required globally
-import { isPaymentRequired } from '@bragdoc/config'
+#### Report Management
+- **List view** showing all generated reports
+- **Filter by type** - Weekly, monthly, or custom
+- **Filter by company** - See reports for specific companies
+- **Filter by time period** - Last 7 days, 30 days, 90 days, or all time
+- **Delete reports** with confirmation dialog
+- **Quick creation** - One-click buttons to start new reports
 
-if (isPaymentRequired()) {
-  // Commercial mode - check user subscription
-} else {
-  // Open source mode - all features available
-}
-```
+### User Flow
 
-```typescript  
-// Check specific feature access
-import { requiresPayment } from '@bragdoc/config'
+1. User navigates to **"For my manager"** from the sidebar
+2. User sees a list of previously generated reports (if any)
+3. User clicks a report type button (**Weekly**, **Monthly**, or **Custom**)
+4. System fetches relevant achievements based on the report type's time range
+5. User can filter achievements by company or project
+6. User selects specific achievements to include (or selects all)
+7. User can customize the AI generation prompt (optional)
+8. User clicks **"Generate Report"** to create the document
+9. AI generates the report content based on selected achievements and instructions
+10. User is redirected to the reports list to see the new document
 
-if (requiresPayment(user.level, 'ai_assistant')) {
-  // Show upgrade prompt
-} else {
-  // Feature available
-}
-```
+### Technical Implementation
 
-## Feature Flag Reference
+#### Frontend
+- **Server Components** for initial data fetching (reports list)
+- **Client Components** for interactivity (filters, selection, generation)
+- **Next.js 15 App Router** with dynamic routes `/reports/new/[type]`
+- **Responsive design** with Tailwind CSS and shadcn/ui components
 
-| Feature Gate | Free | Basic | Pro | Description |
-|--------------|------|-------|-----|-------------|
-| `unlimited_documents` | ❌ | ✅ | ✅ | Create unlimited achievements and documents |
-| `ai_assistant` | ❌ | ❌ | ✅ | AI-powered writing assistance |  
-| `advanced_analytics` | ❌ | ❌ | ✅ | Detailed insights and reporting |
-| `team_collaboration` | ❌ | ❌ | ✅ | Share and collaborate with team members |
-| `api_access` | ❌ | ❌ | ✅ | REST API for integrations |
-| `email_integration` | ❌ | ✅ | ✅ | Automatic achievement tracking via email |
-| `github_integration` | ❌ | ✅ | ✅ | Track achievements from Git commits |
+#### Backend
+- **RESTful API endpoints** for CRUD operations
+- **AI document generation** via OpenAI/DeepSeek/Google models
+- **Streaming responses** for better perceived performance
+- **Type-safe validation** with Zod schemas
+- **PostgreSQL storage** via Drizzle ORM
 
-## Self-Hosting Options
+#### API Endpoints
+- `GET /api/documents` - List all reports for authenticated user
+- `POST /api/documents/generate` - Generate new report from achievements
+- `DELETE /api/documents/[id]` - Delete a report
+- `GET /api/achievements` - Fetch achievements with filtering
+- `GET /api/projects` - List projects for filter dropdown
+- `GET /api/companies` - List companies for filter dropdown
 
-### Option 1: Full Open Source
-```bash  
-# No payment variables set
-PAYMENT_TOKEN_REQUIRED=false
-```
-- **Best for**: Personal use, internal teams, open source projects
-- **Features**: All features available to all users
-- **Payment**: No payment processing
+#### Database Schema
+Reports are stored in the `Document` table with the following key fields:
+- `id` - UUID primary key
+- `userId` - Foreign key to User (cascade delete)
+- `title` - Report title (e.g., "Weekly Report - Jan 15-21")
+- `content` - Generated markdown/text content
+- `type` - Report type enum (weekly_report, monthly_report, custom_report)
+- `companyId` - Optional foreign key to Company
+- `createdAt`, `updatedAt` - Timestamps
 
-### Option 2: Commercial Self-Hosted
-```bash
-PAYMENT_TOKEN_REQUIRED=true
-STRIPE_SECRET_KEY=sk_live_...
-STRIPE_PUBLISHABLE_KEY=pk_live_...
-```
-- **Best for**: Companies wanting to monetize their deployment
-- **Features**: Full subscription management with Stripe
-- **Payment**: Stripe integration required
+### AI Integration
 
-### Option 3: Hybrid Mode
-```bash
-PAYMENT_TOKEN_REQUIRED=true
-# Customize feature gates in @bragdoc/config
-```
-- **Best for**: Custom feature restrictions
-- **Features**: Define your own feature availability logic
-- **Payment**: Optional Stripe integration
+#### Generation Pipeline
+1. **Fetch** relevant achievements from database
+2. **Format** achievements as structured data (title, summary, impact, dates)
+3. **Render** MDX prompt template with user instructions and achievement data
+4. **Execute** LLM generation with streaming response
+5. **Collect** full response text
+6. **Save** generated document to database
 
-## Customizing Feature Gates
+#### Prompt Engineering
+- Uses **mdx-prompt** for structured, maintainable prompts
+- Supports **user instructions** passed from frontend
+- Falls back to **user preferences** if available
+- Includes **achievement context** (company, project, impact)
+- Optimized for **professional business writing**
 
-You can customize feature availability by modifying `packages/config/src/payment-gates.ts`:
+#### Model Selection
+Uses the `documentWritingModel` from the LLM router which selects the appropriate model based on:
+- User's subscription level
+- Task type (document generation)
+- Provider availability
+- Cost optimization
 
-```typescript
-export const featureGates: Record<FeatureGate, UserLevel[]> = {
-  unlimited_documents: ['basic', 'pro'],
-  ai_assistant: ['pro'],
-  // Add custom gates
-  custom_feature: ['free', 'basic', 'pro'], // Available to all
-  premium_feature: ['pro'], // Pro only
-}
-```
+### Security & Privacy
 
-## Middleware Protection
+- ✅ **Authentication required** - All endpoints verify user session/JWT
+- ✅ **User isolation** - All queries scoped to `userId`
+- ✅ **Input validation** - Zod schemas validate all request data
+- ✅ **No data leakage** - Users can only see their own reports
+- ✅ **Secure deletion** - Cascade deletes clean up related data
 
-The web app includes middleware that automatically protects routes based on feature gates:
+### Future Enhancements (Out of Current Scope)
 
-```typescript
-// In apps/web/src/middleware.ts
-const protectedRoutes: Record<string, string> = {
-  '/chat': 'unlimited_documents',
-  '/api/ai': 'ai_assistant', 
-  '/settings/integrations': 'api_access',
-}
-```
+The following features are planned for future releases:
 
-When `PAYMENT_TOKEN_REQUIRED=true`:
-- Users without access are redirected to upgrade page
-- Features are hidden in the UI
-- API endpoints return 403 for unauthorized features
+- **Document viewing/editing interface** - In-app editor for generated reports
+- **Export formats** - PDF, Word (.docx), plain text
+- **Sharing capabilities** - Generate shareable links with optional expiration
+- **Template customization** - User-defined report templates
+- **Scheduled generation** - Automated weekly/monthly report creation
+- **Version history** - Track changes to edited reports
+- **Bulk operations** - Generate multiple reports at once
+- **Email delivery** - Send reports directly to managers
 
-When `PAYMENT_TOKEN_REQUIRED=false`:
-- All routes are accessible
-- No payment checks performed
-- All features visible in UI
+### Payment Gating (Commercial Mode)
 
-## Component-Level Gates
+When `PAYMENT_TOKEN_REQUIRED=true`, report generation may be gated by subscription level:
 
-Use feature gates in React components:
+| Feature | Free | Basic | Pro |
+|---------|------|-------|-----|
+| Report Generation | Limited | ✅ Unlimited | ✅ Unlimited |
+| Custom Prompts | ❌ | ✅ | ✅ |
+| AI Quality | Standard | Standard | Premium |
+| Report History | Last 30 days | Last 90 days | Unlimited |
 
-```tsx
-import { requiresPayment } from '@bragdoc/config'
+In open source mode (`PAYMENT_TOKEN_REQUIRED=false`), all report features are available to all users without restriction.
 
-function AIAssistantButton({ user }) {
-  if (requiresPayment(user.level, 'ai_assistant')) {
-    return <UpgradePrompt feature="AI Assistant" />
-  }
-  
-  return <AIAssistantDialog />
-}
-```
-
-## Environment-Based Configuration
-
-Different environments can have different feature availability:
-
-```bash
-# Development - all features available
-PAYMENT_TOKEN_REQUIRED=false
-
-# Staging - test payment flows  
-PAYMENT_TOKEN_REQUIRED=true
-STRIPE_SECRET_KEY=sk_test_...
-
-# Production - live payments
-PAYMENT_TOKEN_REQUIRED=true
-STRIPE_SECRET_KEY=sk_live_...
-```
-
-## Migration Between Modes
-
-You can change between open source and commercial modes:
-
-### From Open Source to Commercial
-1. Set `PAYMENT_TOKEN_REQUIRED=true`
-2. Configure Stripe keys
-3. Existing users get "free" level by default
-4. Features become gated based on subscription
-
-### From Commercial to Open Source  
-1. Set `PAYMENT_TOKEN_REQUIRED=false`
-2. Remove Stripe configuration
-3. All features become available to all users
-4. Subscription data preserved but not enforced
-
-## Best Practices
-
-1. **Test both modes** during development
-2. **Document feature availability** for your users
-3. **Graceful degradation** when features are unavailable
-4. **Clear upgrade prompts** with feature benefits
-5. **Consistent UI/UX** across feature tiers
-
-This flexible system allows BragDoc to serve both open source communities and commercial deployments with the same codebase.
+---

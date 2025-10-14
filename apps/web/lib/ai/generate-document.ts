@@ -21,10 +21,12 @@ import * as components from './prompts/elements';
  *
  * @param props GenerateDocumentFetcherProps - Input parameters for document generation
  * @param props.title - Title of the document to generate
- * @param props.days - Number of days to look back for achievements (default: 7)
+ * @param props.days - Number of days to look back for achievements (default: 7, ignored if achievementIds provided)
  * @param props.user - User object from the session
  * @param props.projectId - Optional ID of project to filter achievements
  * @param props.companyId - Optional ID of company to filter achievements
+ * @param props.achievementIds - Optional array of specific achievement IDs to include (overrides date filtering)
+ * @param props.userInstructions - Optional custom instructions for document generation (overrides user.preferences.documentInstructions)
  * @param props.chatHistory - Chat history context
  * @returns Promise<GenerateDocumentPromptProps> - Data needed to generate the document
  */
@@ -34,22 +36,45 @@ export async function fetch({
   user,
   projectId,
   companyId,
+  achievementIds,
+  userInstructions,
   chatHistory,
 }: GenerateDocumentFetcherProps): Promise<GenerateDocumentPromptProps> {
   const userId = user.id;
 
-  const [project, company, achievements] = await Promise.all([
+  // Build achievement query parameters
+  const achievementQuery: any = {
+    userId,
+    limit: 200,
+  };
+
+  // If specific achievement IDs are provided, fetch all and filter client-side
+  // Otherwise use date-based and project filtering
+  if (!achievementIds) {
+    if (projectId) {
+      achievementQuery.projectId = projectId;
+    }
+    achievementQuery.startDate = new Date(Date.now() - days * 24 * 60 * 60 * 1000);
+  }
+
+  const [project, company, achievementsResult] = await Promise.all([
     projectId ? getProjectById(projectId, userId) : null,
     companyId ? getCompanyById({ id: companyId, userId }) : null,
-    getAchievements({
-      userId,
-      projectId,
-      startDate: new Date(Date.now() - days * 24 * 60 * 60 * 1000),
-      limit: 200,
-    }),
+    getAchievements(achievementQuery),
   ]);
 
-  const userInstructions = user.preferences.documentInstructions || '';
+  // Filter to specific achievement IDs if provided
+  let achievements = achievementsResult.achievements;
+  if (achievementIds && achievementIds.length > 0) {
+    achievements = achievements.filter((a) =>
+      achievementIds.includes(a.id),
+    );
+  }
+
+  // Use provided userInstructions, or fall back to user preferences
+  const instructions = userInstructions !== undefined
+    ? userInstructions
+    : (user.preferences.documentInstructions || '');
 
   return {
     docTitle: title,
@@ -57,8 +82,8 @@ export async function fetch({
     user,
     project: project || undefined,
     company: company || undefined,
-    achievements: achievements.achievements,
-    userInstructions,
+    achievements,
+    userInstructions: instructions,
     chatHistory,
   };
 }

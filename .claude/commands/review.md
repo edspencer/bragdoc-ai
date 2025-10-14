@@ -11,5 +11,7 @@ Your task is to review an implementation of a plan ($1). If you were additional 
 ## Instructions
 
 - Read the plan document carefully before starting to review the implementation
-- Look at the non-staged git changes to see what has been implemented
-- Please note any areas where the plan does not appear to have been implemented
+- Look at the staged git changes to see what has been implemented (if nothing is staged, look at unstaged instead)
+- Check each part of the plan to see if it has been implemented fully and correctly
+- Do not build the apps/web app - the developer already has a dev build running on port 3000 and running build interferes with this
+- If you find any areas where the plan does not appear to have been implemented fully or correctly, please note them in the REVIEW.md

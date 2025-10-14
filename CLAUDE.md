@@ -89,11 +89,17 @@ The main application built with Next.js 15 App Router.
 apps/web/
 ├── app/                    # Next.js App Router
 │   ├── (app)/             # Main app layout group
+│   │   ├── achievements/  # Achievements pages
+│   │   ├── projects/      # Projects pages
+│   │   ├── companies/     # Companies pages
+│   │   ├── reports/       # Reports pages ("For my manager")
+│   │   └── ...
 │   ├── (auth)/            # Auth layout group (login, register)
 │   ├── api/               # API routes
 │   │   ├── achievements/  # Achievement CRUD
 │   │   ├── projects/      # Project CRUD
 │   │   ├── companies/     # Company CRUD
+│   │   ├── documents/     # Document CRUD + AI generation
 │   │   ├── cli/           # CLI-specific endpoints
 │   │   ├── auth/          # NextAuth endpoints
 │   │   └── ...
@@ -389,6 +395,9 @@ All API routes in `apps/web/app/api/` follow RESTful conventions:
 /api/achievements/[id]  GET (read), PUT (update), DELETE (delete)
 /api/projects           GET (list), POST (create)
 /api/projects/[id]      GET (read), PUT (update), DELETE (delete)
+/api/documents          GET (list), POST (create)
+/api/documents/[id]     GET (read), PUT (update), DELETE (delete)
+/api/documents/generate POST (generate document from achievements via AI)
 ```
 
 ### Authentication
