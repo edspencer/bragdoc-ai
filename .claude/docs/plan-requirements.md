@@ -18,6 +18,8 @@ The plan document should be a markdown file named PLAN.md in the same directory 
 
 Every plan should have a final "Documentation" section, which should contain tasks to update our own internal documentation of the app. This should include a potential update to docs/FEATURES.md (if warranted) and updates to any other documents found in the docs/ directory. If we're adding a significant new piece of UI then we should have some document in that directory that describes the capabilities of that UI. There is a high chance this does not exist, so you should create it if not.
 
+Updates should also be considered for both the README.md and cli/README.md files. If it is clear that some or all of our planned changes should involve updates to either or both of these files, include specific tasks for this with specific the content to be added/removed/modified.
+
 ## Instructions section in the plan
 
 The plan document should itself contain an instructions section, much like this one. In that section should be at least the following instructions to the programmer performing the implementation:
