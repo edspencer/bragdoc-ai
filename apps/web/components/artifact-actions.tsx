@@ -8,20 +8,12 @@ import { Tooltip, TooltipContent, TooltipTrigger } from './ui/tooltip';
 
 type ArtifactActionsProps = {
   artifact: UIArtifact;
-  handleVersionChange: (type: 'next' | 'prev' | 'toggle' | 'latest') => void;
-  currentVersionIndex: number;
-  isCurrentVersion: boolean;
-  mode: 'edit' | 'diff';
   metadata: any;
   setMetadata: Dispatch<SetStateAction<any>>;
 };
 
 function PureArtifactActions({
   artifact,
-  handleVersionChange,
-  currentVersionIndex,
-  isCurrentVersion,
-  mode,
   metadata,
   setMetadata,
 }: ArtifactActionsProps) {
@@ -37,10 +29,6 @@ function PureArtifactActions({
 
   const actionContext: ArtifactActionContext = {
     content: artifact.content,
-    handleVersionChange,
-    currentVersionIndex,
-    isCurrentVersion,
-    mode,
     metadata,
     setMetadata,
   };
@@ -90,12 +78,6 @@ export const ArtifactActions = memo(
   PureArtifactActions,
   (prevProps, nextProps) => {
     if (prevProps.artifact.status !== nextProps.artifact.status) {
-      return false;
-    }
-    if (prevProps.currentVersionIndex !== nextProps.currentVersionIndex) {
-      return false;
-    }
-    if (prevProps.isCurrentVersion !== nextProps.isCurrentVersion) {
       return false;
     }
     if (prevProps.artifact.content !== nextProps.artifact.content) {

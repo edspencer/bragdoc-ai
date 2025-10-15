@@ -202,27 +202,10 @@ export async function saveDocument(
       type,
       companyId,
       chatId,
-      createdAt: new Date(),
-      updatedAt: new Date(),
+      // createdAt and updatedAt will be auto-generated
     });
   } catch (error) {
     console.error('Error in saveDocument:', error);
-    throw error;
-  }
-}
-
-export async function getDocumentsById(
-  { id }: { id: string },
-  dbInstance = defaultDb,
-) {
-  try {
-    return await dbInstance
-      .select()
-      .from(document)
-      .where(eq(document.id, id))
-      .orderBy(asc(document.createdAt));
-  } catch (error) {
-    console.error('Error in getDocumentsById:', error);
     throw error;
   }
 }
@@ -235,8 +218,7 @@ export async function getDocumentById(
     const [selectedDocument] = await dbInstance
       .select()
       .from(document)
-      .where(eq(document.id, id))
-      .orderBy(desc(document.createdAt));
+      .where(eq(document.id, id));
 
     return selectedDocument;
   } catch (error) {
@@ -294,20 +276,6 @@ export async function updateDocument(
     return updated;
   } catch (error) {
     console.error('Error in updateDocument:', error);
-    throw error;
-  }
-}
-
-export async function deleteDocumentsByIdAfterTimestamp(
-  { id, timestamp }: { id: string; timestamp: Date },
-  dbInstance = defaultDb,
-) {
-  try {
-    return await dbInstance
-      .delete(document)
-      .where(and(eq(document.id, id), gt(document.createdAt, timestamp)));
-  } catch (error) {
-    console.error('Error in deleteDocumentsByIdAfterTimestamp:', error);
     throw error;
   }
 }

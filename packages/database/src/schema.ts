@@ -207,41 +207,23 @@ export const message = pgTable('Message', {
 
 export type Message = InferSelectModel<typeof message>;
 
-export const document = pgTable(
-  'Document',
-  {
-    id: uuid('id').notNull().defaultRandom(),
-    createdAt: timestamp('createdAt').notNull(),
-    updatedAt: timestamp('updatedAt').notNull().defaultNow(),
-    title: text('title').notNull(),
-    content: text('content'),
-    kind: varchar('kind', { enum: ['text', 'code', 'image', 'sheet'] })
-      .notNull()
-      .default('text'),
-    userId: uuid('userId')
-      .notNull()
-      .references(() => user.id),
-    companyId: uuid('company_id').references(() => company.id),
-    type: varchar('type', { length: 32 }), // weekly_report, performance_review, etc.
-    shareToken: varchar('share_token', { length: 64 }), // null if not shared
-    chatId: uuid('chat_id').references(() => chat.id),
-  },
-  (table) => {
-    return {
-      pk: primaryKey({ columns: [table.id, table.createdAt] }),
-      relations: {
-        company: {
-          fields: [table.companyId],
-          references: [company.id],
-        },
-        user: {
-          fields: [table.userId],
-          references: [user.id],
-        },
-      },
-    };
-  },
-);
+export const document = pgTable('Document', {
+  id: uuid('id').primaryKey().notNull().defaultRandom(),
+  createdAt: timestamp('createdAt').notNull().defaultNow(),
+  updatedAt: timestamp('updatedAt').notNull().defaultNow(),
+  title: text('title').notNull(),
+  content: text('content'),
+  kind: varchar('kind', { enum: ['text', 'code', 'image', 'sheet'] })
+    .notNull()
+    .default('text'),
+  userId: uuid('userId')
+    .notNull()
+    .references(() => user.id),
+  companyId: uuid('company_id').references(() => company.id),
+  type: varchar('type', { length: 32 }), // weekly_report, performance_review, etc.
+  shareToken: varchar('share_token', { length: 64 }), // null if not shared
+  chatId: uuid('chat_id').references(() => chat.id),
+});
 
 export type Document = InferSelectModel<typeof document>;
 

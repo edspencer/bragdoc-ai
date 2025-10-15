@@ -1,6 +1,6 @@
 import type { UIMessageStreamWriter } from 'ai';
 import type { User, Document } from '@bragdoc/database';
-import { saveDocument } from '@bragdoc/database';
+import { saveDocument, updateDocument } from '@bragdoc/database';
 import { textDocumentHandler } from '@/artifacts/text/server';
 import type { ArtifactKind } from '@/components/artifact';
 import type { ChatMessage } from '@/lib/types';
@@ -70,12 +70,12 @@ export function createDocumentHandler<T extends ArtifactKind>(config: {
       });
 
       if (args.user?.id) {
-        await saveDocument({
+        await updateDocument({
           id: args.document.id,
-          title: args.document.title,
-          content: draftContent,
-          kind: config.kind,
           userId: args.user.id,
+          data: {
+            content: draftContent,
+          },
         });
       }
 

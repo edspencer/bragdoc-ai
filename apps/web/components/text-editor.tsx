@@ -20,8 +20,6 @@ type EditorProps = {
   content: string;
   onSaveContent: (updatedContent: string, debounce: boolean) => void;
   status: 'streaming' | 'idle';
-  isCurrentVersion: boolean;
-  currentVersionIndex: number;
   suggestions: any[]; // Empty array - suggestions removed
 };
 
@@ -122,8 +120,6 @@ function PureEditor({ content, onSaveContent, status }: EditorProps) {
 
 function areEqual(prevProps: EditorProps, nextProps: EditorProps) {
   return (
-    prevProps.currentVersionIndex === nextProps.currentVersionIndex &&
-    prevProps.isCurrentVersion === nextProps.isCurrentVersion &&
     !(prevProps.status === 'streaming' && nextProps.status === 'streaming') &&
     prevProps.content === nextProps.content &&
     prevProps.onSaveContent === nextProps.onSaveContent

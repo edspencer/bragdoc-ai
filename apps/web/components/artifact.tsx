@@ -23,7 +23,6 @@ import { ArtifactMessages } from './artifact-messages';
 import { MultimodalInput } from './multimodal-input';
 import { Toolbar } from './toolbar';
 import { useSidebar } from './ui/sidebar';
-import { VersionFooter } from './version-footer';
 
 export const artifactDefinitions = [textArtifact];
 export type ArtifactKind = (typeof artifactDefinitions)[number]['kind'];
@@ -80,63 +79,47 @@ function PureArtifact({
   // }
 
   const {
-    data: documents,
+    data: document,
     isLoading: isDocumentsFetching,
-    mutate: mutateDocuments,
-  } = useSWR<Document[]>(
+    mutate: mutateDocument,
+  } = useSWR<Document>(
     artifact.documentId !== 'init' && artifact.status !== 'streaming'
       ? `/api/documents/${artifact.documentId}/artifact?id=${artifact.documentId}`
       : null,
     fetcher
   );
 
-  const [mode, setMode] = useState<'edit' | 'diff'>('edit');
-  const [document, setDocument] = useState<Document | null>(null);
-  const [currentVersionIndex, setCurrentVersionIndex] = useState(-1);
-
   const { open: isSidebarOpen } = useSidebar();
 
   useEffect(() => {
-    console.log('Artifact documents effect running:', {
-      documents: documents?.length,
+    console.log('Artifact document effect running:', {
+      document: document?.id,
       artifactDocumentId: artifact.documentId,
     });
-    if (documents && documents.length > 0) {
-      const mostRecentDocument = documents.at(-1);
-
-      if (mostRecentDocument) {
-        console.log('Setting document from SWR fetch:', mostRecentDocument.id);
-        setDocument(mostRecentDocument);
-        setCurrentVersionIndex(documents.length - 1);
-        setArtifact((currentArtifact) => ({
-          ...currentArtifact,
-          content: mostRecentDocument.content ?? '',
-        }));
-      }
+    if (document) {
+      console.log('Setting artifact content from SWR fetch:', document.id);
+      setArtifact((currentArtifact) => ({
+        ...currentArtifact,
+        content: document.content ?? '',
+      }));
     }
-  }, [documents, setArtifact, artifact.documentId]);
+  }, [document, setArtifact, artifact.documentId]);
 
   const { mutate } = useSWRConfig();
   const [isContentDirty, setIsContentDirty] = useState(false);
 
   const handleContentChange = useCallback(
     (updatedContent: string) => {
-      if (!artifact) {
+      if (!artifact || !document) {
         return;
       }
 
-      mutate<Document[]>(
+      mutate<Document>(
         `/api/documents/${artifact.documentId}/artifact?id=${artifact.documentId}`,
-        async (currentDocuments) => {
-          if (!currentDocuments) {
-            return [];
-          }
-
-          const currentDocument = currentDocuments.at(-1);
-
+        async (currentDocument) => {
           if (!currentDocument || !currentDocument.content) {
             setIsContentDirty(false);
-            return currentDocuments;
+            return currentDocument;
           }
 
           if (currentDocument.content !== updatedContent) {
@@ -155,20 +138,18 @@ function PureArtifact({
 
             setIsContentDirty(false);
 
-            const newDocument = {
+            return {
               ...currentDocument,
               content: updatedContent,
-              createdAt: new Date(),
+              updatedAt: new Date(),
             };
-
-            return [...currentDocuments, newDocument];
           }
-          return currentDocuments;
+          return currentDocument;
         },
         { revalidate: false }
       );
     },
-    [artifact, mutate]
+    [artifact, document, mutate]
   );
 
   const debouncedHandleContentChange = useDebounceCallback(
@@ -191,51 +172,7 @@ function PureArtifact({
     [document, debouncedHandleContentChange, handleContentChange]
   );
 
-  function getDocumentContentById(index: number) {
-    if (!documents) {
-      return '';
-    }
-    if (!documents[index]) {
-      return '';
-    }
-    return documents[index].content ?? '';
-  }
-
-  const handleVersionChange = (type: 'next' | 'prev' | 'toggle' | 'latest') => {
-    if (!documents) {
-      return;
-    }
-
-    if (type === 'latest') {
-      setCurrentVersionIndex(documents.length - 1);
-      setMode('edit');
-    }
-
-    if (type === 'toggle') {
-      setMode((currentMode) => (currentMode === 'edit' ? 'diff' : 'edit'));
-    }
-
-    if (type === 'prev') {
-      if (currentVersionIndex > 0) {
-        setCurrentVersionIndex((index) => index - 1);
-      }
-    } else if (type === 'next' && currentVersionIndex < documents.length - 1) {
-      setCurrentVersionIndex((index) => index + 1);
-    }
-  };
-
   const [isToolbarVisible, setIsToolbarVisible] = useState(false);
-
-  /*
-   * NOTE: if there are no documents, or if
-   * the documents are being fetched, then
-   * we mark it as the current version.
-   */
-
-  const isCurrentVersion =
-    documents && documents.length > 0
-      ? currentVersionIndex === documents.length - 1
-      : true;
 
   const { width: windowWidth, height: windowHeight } = useWindowSize();
   const isMobile = windowWidth ? windowWidth < 768 : false;
@@ -304,17 +241,6 @@ function PureArtifact({
               }}
               initial={{ opacity: 0, x: 10, scale: 1 }}
             >
-              <AnimatePresence>
-                {!isCurrentVersion && (
-                  <motion.div
-                    animate={{ opacity: 1 }}
-                    className="absolute top-0 left-0 z-50 h-dvh w-[400px] bg-zinc-900/50"
-                    exit={{ opacity: 0 }}
-                    initial={{ opacity: 0 }}
-                  />
-                )}
-              </AnimatePresence>
-
               <div className="flex h-full flex-col items-center justify-between">
                 <ArtifactMessages
                   artifactStatus={artifact.status}
@@ -424,7 +350,7 @@ function PureArtifact({
                   ) : document ? (
                     <div className="text-muted-foreground text-sm">
                       {`Updated ${formatDistance(
-                        new Date(document.createdAt),
+                        new Date(document.updatedAt),
                         new Date(),
                         {
                           addSuffix: true,
@@ -439,29 +365,17 @@ function PureArtifact({
 
               <ArtifactActions
                 artifact={artifact}
-                currentVersionIndex={currentVersionIndex}
-                handleVersionChange={handleVersionChange}
-                isCurrentVersion={isCurrentVersion}
                 metadata={metadata}
-                mode={mode}
                 setMetadata={setMetadata}
               />
             </div>
 
             <div className="h-full max-w-full! items-center overflow-y-scroll bg-background dark:bg-muted">
               <artifactDefinition.content
-                content={
-                  isCurrentVersion
-                    ? artifact.content
-                    : getDocumentContentById(currentVersionIndex)
-                }
-                currentVersionIndex={currentVersionIndex}
-                getDocumentContentById={getDocumentContentById}
-                isCurrentVersion={isCurrentVersion}
+                content={artifact.content}
                 isInline={false}
                 isLoading={isDocumentsFetching && !artifact.content}
                 metadata={metadata}
-                mode={mode}
                 onSaveContent={saveContent}
                 setMetadata={setMetadata}
                 status={artifact.status}
@@ -470,29 +384,17 @@ function PureArtifact({
               />
 
               <AnimatePresence>
-                {isCurrentVersion && (
-                  <Toolbar
-                    artifactKind={artifact.kind}
-                    isToolbarVisible={isToolbarVisible}
-                    sendMessage={sendMessage}
-                    setIsToolbarVisible={setIsToolbarVisible}
-                    setMessages={setMessages}
-                    status={status}
-                    stop={stop}
-                  />
-                )}
+                <Toolbar
+                  artifactKind={artifact.kind}
+                  isToolbarVisible={isToolbarVisible}
+                  sendMessage={sendMessage}
+                  setIsToolbarVisible={setIsToolbarVisible}
+                  setMessages={setMessages}
+                  status={status}
+                  stop={stop}
+                />
               </AnimatePresence>
             </div>
-
-            <AnimatePresence>
-              {!isCurrentVersion && (
-                <VersionFooter
-                  currentVersionIndex={currentVersionIndex}
-                  documents={documents}
-                  handleVersionChange={handleVersionChange}
-                />
-              )}
-            </AnimatePresence>
           </motion.div>
         </motion.div>
       )}
