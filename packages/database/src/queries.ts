@@ -176,15 +176,19 @@ export async function saveDocument(
     title,
     content,
     userId,
+    kind,
     type,
     companyId,
+    chatId,
   }: {
     id: string;
     title: string;
     content: string;
     userId: string;
+    kind?: 'text' | 'code' | 'image' | 'sheet';
     type?: string;
     companyId?: string;
+    chatId?: string;
   },
   dbInstance = defaultDb,
 ) {
@@ -194,8 +198,10 @@ export async function saveDocument(
       title,
       content,
       userId,
+      kind: kind || 'text',
       type,
       companyId,
+      chatId,
       createdAt: new Date(),
       updatedAt: new Date(),
     });
@@ -351,6 +357,33 @@ export async function updateChatVisibilityById(
       .where(eq(chat.id, chatId));
   } catch (error) {
     console.error('Error in updateChatVisibilityById:', error);
+    throw error;
+  }
+}
+
+export async function updateChatLastContextById(
+  {
+    chatId,
+    context,
+  }: {
+    chatId: string;
+    context: {
+      promptTokens?: number;
+      completionTokens?: number;
+      totalTokens?: number;
+      cost?: number;
+      modelId?: string;
+    };
+  },
+  dbInstance = defaultDb,
+) {
+  try {
+    return await dbInstance
+      .update(chat)
+      .set({ lastContext: context as any })
+      .where(eq(chat.id, chatId));
+  } catch (error) {
+    console.error('Error in updateChatLastContextById:', error);
     throw error;
   }
 }

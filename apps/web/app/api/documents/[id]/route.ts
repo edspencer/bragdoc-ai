@@ -1,12 +1,12 @@
-import { auth } from 'app/(auth)/auth';
-import { db } from '@/database/index';
-import { document } from '@/database/schema';
-import { and, eq } from 'drizzle-orm';
-import { z } from 'zod/v3';
+import { auth } from '@/app/(auth)/auth';
+import { document } from '@bragdoc/database';
+import { db } from '@bragdoc/database';
+import { and, desc, eq } from 'drizzle-orm';
+import { z } from 'zod';
 
 const documentSchema = z.object({
-  content: z.string(),
-  title: z.string(),
+  content: z.string().optional(),
+  title: z.string().optional(),
   type: z
     .enum([
       'weekly_report',
@@ -16,7 +16,8 @@ const documentSchema = z.object({
       'custom',
     ])
     .optional(),
-  companyId: z.string().uuid().optional(),
+  companyId: z.string().uuid().optional().nullable(),
+  chatId: z.string().uuid().optional().nullable(),
 });
 
 export async function GET(
@@ -39,16 +40,18 @@ export async function GET(
   }
 
   try {
-    const [doc] = await db
+    const docs = await db
       .select()
       .from(document)
-      .where(and(eq(document.id, id), eq(document.userId, session.user.id)));
+      .where(and(eq(document.id, id), eq(document.userId, session.user.id)))
+      .orderBy(desc(document.createdAt));
 
-    if (!doc) {
+    if (!docs || docs.length === 0) {
       return Response.json({ error: 'Document not found' }, { status: 404 });
     }
 
-    return Response.json({ document: doc });
+    // Return the latest version (first one since ordered by desc)
+    return Response.json({ document: docs[0] });
   } catch (error) {
     console.error('Error fetching document:', error);
     return Response.json(
@@ -87,25 +90,33 @@ export async function PUT(
       );
     }
 
-    const { content, title, type, companyId } = parsed.data;
+    const { content, title, type, companyId, chatId } = parsed.data;
 
-    const [updated] = await db
+    // Build update object with only provided fields
+    const updateData: any = { updatedAt: new Date() };
+    if (content !== undefined) updateData.content = content;
+    if (title !== undefined) updateData.title = title;
+    if (type !== undefined) updateData.type = type;
+    if (companyId !== undefined) updateData.companyId = companyId;
+    if (chatId !== undefined) updateData.chatId = chatId;
+
+    // Update all versions of the document (important for versioned documents)
+    const updated = await db
       .update(document)
-      .set({
-        title,
-        content,
-        type,
-        companyId,
-        updatedAt: new Date(),
-      })
+      .set(updateData)
       .where(and(eq(document.id, id), eq(document.userId, session.user.id)))
       .returning();
 
-    if (!updated) {
+    if (!updated || updated.length === 0) {
       return Response.json({ error: 'Document not found' }, { status: 404 });
     }
 
-    return Response.json({ document: updated });
+    // Return the latest version
+    const latest = updated.sort((a, b) =>
+      b.createdAt.getTime() - a.createdAt.getTime()
+    )[0];
+
+    return Response.json({ document: latest });
   } catch (error) {
     console.error('Error updating document:', error);
     return Response.json(

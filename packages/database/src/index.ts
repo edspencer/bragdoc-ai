@@ -46,6 +46,7 @@ export {
   getMessageById,
   deleteMessagesByChatIdAfterTimestamp,
   updateChatVisibilityById,
+  updateChatLastContextById,
   createUserMessage,
   createAchievement,
   getAchievementsByUserId,

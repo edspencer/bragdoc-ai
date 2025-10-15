@@ -1,9 +1,10 @@
 import { auth } from 'app/(auth)/auth';
 import { db } from '@/database/index';
-import { document, user } from '@/database/schema';
+import { document, user, chat } from '@/database/schema';
 import { eq } from 'drizzle-orm';
 import { z } from 'zod/v3';
 import { fetchRenderExecute } from 'lib/ai/generate-document';
+import { generateUUID } from '@/lib/utils';
 
 const generateSchema = z.object({
   achievementIds: z.array(z.string().uuid()),
@@ -93,20 +94,46 @@ export async function POST(request: Request) {
       );
     }
 
-    // Save to database
-    const [newDocument] = await db
-      .insert(document)
-      .values({
-        title,
-        content,
-        type,
-        userId: session.user.id,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      })
-      .returning();
+    // Save to database with chat
+    // Note: Sequential operations since neon-http doesn't support transactions
+    const chatId = generateUUID();
+    const documentId = generateUUID();
 
-    return Response.json({ document: newDocument });
+    try {
+      // Create the chat first
+      await db.insert(chat).values({
+        id: chatId,
+        createdAt: new Date(),
+        userId: session.user.id,
+        title: `Chat for: ${title}`,
+      });
+
+      // Create the document with chatId reference
+      const [newDocument] = await db
+        .insert(document)
+        .values({
+          id: documentId,
+          title,
+          content,
+          type,
+          userId: session.user.id,
+          chatId: chatId,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        })
+        .returning();
+
+      return Response.json({ document: newDocument });
+    } catch (insertError) {
+      // If document insert fails, try to clean up the chat
+      console.error('Error inserting document, cleaning up chat:', insertError);
+      try {
+        await db.delete(chat).where(eq(chat.id, chatId));
+      } catch (cleanupError) {
+        console.error('Error cleaning up chat:', cleanupError);
+      }
+      throw insertError;
+    }
   } catch (error) {
     console.error('Error generating document:', error);
     return Response.json(

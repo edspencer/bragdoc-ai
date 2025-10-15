@@ -8,12 +8,15 @@ import {
   IconCalendar,
   IconBuilding,
   IconFileText,
+  IconEdit,
 } from '@tabler/icons-react';
 import { formatDistanceToNow } from 'date-fns';
 import { toast } from 'sonner';
 import { useRouter } from 'next/navigation';
 
 import { Button } from '@/components/ui/button';
+import { useArtifact } from '@/hooks/use-artifact';
+import { CreateDocumentDialog } from '@/components/reports/create-document-dialog';
 import {
   Card,
   CardContent,
@@ -53,6 +56,8 @@ interface Document {
   id: string;
   title: string;
   type: string | null;
+  kind: 'text' | 'code' | 'image' | 'sheet';
+  chatId: string | null;
   companyId: string | null;
   companyName: string | null;
   content: string | null;
@@ -95,7 +100,7 @@ function getDocumentTypeLabel(type: string | null): string {
 }
 
 function getDocumentTypeBadgeVariant(
-  type: string | null,
+  type: string | null
 ): 'default' | 'secondary' | 'outline' {
   if (!type) return 'outline';
   const variantMap: Record<string, 'default' | 'secondary' | 'outline'> = {
@@ -110,9 +115,19 @@ export function ReportsTable({
   initialDocuments,
   companies,
 }: ReportsTableProps) {
+  console.log('ReportsTable component mounting/rendering');
+
   const router = useRouter();
   const [documents, setDocuments] =
     React.useState<Document[]>(initialDocuments);
+  const { setArtifact } = useArtifact();
+
+  React.useEffect(() => {
+    console.log('ReportsTable mounted');
+    return () => {
+      console.log('ReportsTable unmounting!');
+    };
+  }, []);
 
   // Filters
   const [selectedType, setSelectedType] = React.useState<string>('all');
@@ -122,7 +137,7 @@ export function ReportsTable({
   // Delete dialog
   const [deleteDialogOpen, setDeleteDialogOpen] = React.useState(false);
   const [documentToDelete, setDocumentToDelete] = React.useState<string | null>(
-    null,
+    null
   );
   const [isDeleting, setIsDeleting] = React.useState(false);
 
@@ -151,7 +166,9 @@ export function ReportsTable({
           case 'last-30-days':
             return updatedAt >= new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
           case 'last-12-months':
-            return updatedAt >= new Date(Date.now() - 365 * 24 * 60 * 60 * 1000);
+            return (
+              updatedAt >= new Date(Date.now() - 365 * 24 * 60 * 60 * 1000)
+            );
           default:
             return true;
         }
@@ -160,7 +177,7 @@ export function ReportsTable({
 
     return filtered.sort(
       (a, b) =>
-        new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime(),
+        new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
     );
   }, [documents, selectedType, selectedCompany, timePeriod]);
 
@@ -196,6 +213,44 @@ export function ReportsTable({
     }
   };
 
+  const handleEditClick = async (id: string) => {
+    console.log('handleEditClick called with id:', id);
+    const doc = documents.find((d) => d.id === id);
+    if (!doc) {
+      console.error('Document not found:', id);
+      return;
+    }
+    console.log('Document found:', {
+      id: doc.id,
+      chatId: doc.chatId,
+      title: doc.title,
+      kind: doc.kind,
+    });
+
+    // All new documents should have a chatId
+    // Old documents without chatId are a migration issue
+    if (!doc.chatId) {
+      toast.error('This document is missing a chat. Please contact support.');
+      console.error('Document missing chatId:', {
+        id: doc.id,
+        title: doc.title,
+      });
+      return;
+    }
+
+    // Set artifact state with chatId - the global ArtifactCanvas will load messages automatically
+    setArtifact({
+      documentId: id,
+      chatId: doc.chatId,
+      kind: (doc.kind as 'text') || 'text',
+      title: doc.title,
+      content: doc.content || '',
+      isVisible: true,
+      status: 'idle',
+      boundingBox: { top: 0, left: 0, width: 100, height: 100 },
+    });
+  };
+
   return (
     <div className="flex flex-1 flex-col">
       <div className="@container/main flex flex-1 flex-col gap-2">
@@ -217,7 +272,8 @@ export function ReportsTable({
 
             {/* Toolbar buttons */}
             <div className="flex gap-2">
-              <Button asChild>
+              <CreateDocumentDialog onDocumentCreated={handleEditClick} />
+              <Button asChild variant="outline">
                 <Link href="/reports/new/weekly">
                   <IconPlus className="size-4" />
                   Weekly
@@ -301,7 +357,7 @@ export function ReportsTable({
                       <TableHead>Type</TableHead>
                       <TableHead>Company</TableHead>
                       <TableHead>Last Edited</TableHead>
-                      <TableHead className="w-12"></TableHead>
+                      <TableHead className="w-24" />
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -356,14 +412,25 @@ export function ReportsTable({
                             </div>
                           </TableCell>
                           <TableCell>
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              onClick={() => handleDeleteClick(doc.id)}
-                              className="text-destructive hover:text-destructive"
-                            >
-                              <IconTrash className="size-4" />
-                            </Button>
+                            <div className="flex gap-1">
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                onClick={() => handleEditClick(doc.id)}
+                                title="Open in canvas mode"
+                              >
+                                <IconEdit className="size-4" />
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                onClick={() => handleDeleteClick(doc.id)}
+                                className="text-destructive hover:text-destructive"
+                                title="Delete document"
+                              >
+                                <IconTrash className="size-4" />
+                              </Button>
+                            </div>
                           </TableCell>
                         </TableRow>
                       ))
@@ -398,6 +465,7 @@ export function ReportsTable({
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
     </div>
   );
 }

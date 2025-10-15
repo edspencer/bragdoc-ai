@@ -56,3 +56,15 @@ When the user asks you to generate a report, call the createDocument tool
 (you will be given the Achievements, Companies and Projects data that you need).`;
 
 export const systemPrompt = `${regularPrompt}\n\n${blocksPrompt}\n\n${achievementsPrompt}`;
+
+// Artifact-specific prompts (for canvas mode)
+export const updateDocumentPrompt = (
+  currentContent: string | null,
+  type: 'text' | 'code' | 'sheet' | 'image',
+) => {
+  const mediaType = type === 'text' ? 'document' : type;
+
+  return `Improve the following contents of the ${mediaType} based on the given prompt.
+
+${currentContent}`;
+};

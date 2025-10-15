@@ -8,6 +8,7 @@ import {
   uuid,
   text,
   primaryKey,
+  foreignKey,
   boolean,
   integer,
   uniqueIndex,
@@ -21,6 +22,14 @@ export interface UserPreferences {
   hasSeenWelcome: boolean;
   language: string;
   documentInstructions?: string;
+}
+
+export interface AppUsage {
+  promptTokens?: number;
+  completionTokens?: number;
+  totalTokens?: number;
+  cost?: number;
+  modelId?: string;
 }
 
 export const userLevelEnum = pgEnum('user_level', ['free', 'basic', 'pro']);
@@ -180,6 +189,7 @@ export const chat = pgTable('Chat', {
   visibility: varchar('visibility', { enum: ['public', 'private'] })
     .notNull()
     .default('private'),
+  lastContext: jsonb('lastContext').$type<AppUsage | null>(),
 });
 
 export type Chat = InferSelectModel<typeof chat>;
@@ -190,7 +200,8 @@ export const message = pgTable('Message', {
     .notNull()
     .references(() => chat.id),
   role: varchar('role').notNull(),
-  content: json('content').notNull(),
+  parts: json('parts').notNull(),
+  attachments: json('attachments').notNull(),
   createdAt: timestamp('createdAt').notNull(),
 });
 
@@ -204,12 +215,16 @@ export const document = pgTable(
     updatedAt: timestamp('updatedAt').notNull().defaultNow(),
     title: text('title').notNull(),
     content: text('content'),
+    kind: varchar('kind', { enum: ['text', 'code', 'image', 'sheet'] })
+      .notNull()
+      .default('text'),
     userId: uuid('userId')
       .notNull()
       .references(() => user.id),
     companyId: uuid('company_id').references(() => company.id),
     type: varchar('type', { length: 32 }), // weekly_report, performance_review, etc.
     shareToken: varchar('share_token', { length: 64 }), // null if not shared
+    chatId: uuid('chat_id').references(() => chat.id),
   },
   (table) => {
     return {
@@ -229,6 +244,24 @@ export const document = pgTable(
 );
 
 export type Document = InferSelectModel<typeof document>;
+
+export const stream = pgTable(
+  'Stream',
+  {
+    id: uuid('id').notNull().defaultRandom(),
+    chatId: uuid('chatId').notNull(),
+    createdAt: timestamp('createdAt').notNull(),
+  },
+  (table) => ({
+    pk: primaryKey({ columns: [table.id] }),
+    chatRef: foreignKey({
+      columns: [table.chatId],
+      foreignColumns: [chat.id],
+    }),
+  }),
+);
+
+export type Stream = InferSelectModel<typeof stream>;
 
 export const standup = pgTable('Standup', {
   id: uuid('id').primaryKey().notNull().defaultRandom(),

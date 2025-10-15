@@ -14,13 +14,15 @@ export default async function ReportsPage() {
     redirect('/login');
   }
 
-  // Fetch documents with company data
+  // Fetch documents with company data (get latest version of each document)
   const documentsData = await db
     .select({
       id: document.id,
       title: document.title,
       content: document.content,
       type: document.type,
+      kind: document.kind,
+      chatId: document.chatId,
       companyId: document.companyId,
       company: {
         id: company.id,
@@ -40,6 +42,8 @@ export default async function ReportsPage() {
     title: row.title,
     content: row.content,
     type: row.type,
+    kind: row.kind,
+    chatId: row.chatId,
     companyId: row.companyId,
     companyName: row.company?.name || null,
     createdAt: row.createdAt,

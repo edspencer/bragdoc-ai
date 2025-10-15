@@ -53,3 +53,30 @@ export function getDocumentTimestampByIndex(
 
   return documents[index]!.createdAt;
 }
+
+export function sanitizeText(text: string) {
+  return text.replaceAll('\\n', '\n');
+}
+
+export function sanitizeResponseMessages(messages: any[]) {
+  // Remove messages with incomplete tool calls (no result)
+  return messages.filter((message: any) => {
+    if (message.role === 'tool') {
+      // Only keep tool messages that have results
+      return message.content && message.content.length > 0;
+    }
+    return true;
+  });
+}
+
+export function getTextFromMessage(message: any): string {
+  if (!message?.parts) {
+    return '';
+  }
+
+  // Extract text from parts array
+  return message.parts
+    .filter((part: any) => part.type === 'text')
+    .map((part: any) => part.text)
+    .join(' ');
+}

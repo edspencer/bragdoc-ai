@@ -50,10 +50,15 @@ const renderAchievements = (achievements: Achievement[]) => {
 };
 
 const renderMessage = (message: Message) => {
+  // Extract text content from parts (AI SDK v5 format)
+  const parts = Array.isArray(message.parts) ? message.parts : [];
+  const textParts = parts.filter((part: any) => part.type === 'text');
+  const content = textParts.map((part: any) => part.text).join('\n');
+
   return `
   <message>
     <role>${message.role}</role>
-    <content>${message.content}</content>
+    <content>${content}</content>
   </message>
   `;
 };
