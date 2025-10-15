@@ -20,11 +20,8 @@ import {
   chat,
   type User,
   document,
-  type Suggestion,
-  suggestion,
   type Message,
   message,
-  vote,
   userMessage,
   achievement,
   type UserMessage as UserMessageType,
@@ -104,7 +101,6 @@ export async function deleteChatById(
   dbInstance = defaultDb,
 ) {
   try {
-    await dbInstance.delete(vote).where(eq(vote.chatId, id));
     await dbInstance.delete(message).where(eq(message.chatId, id));
 
     return await dbInstance.delete(chat).where(eq(chat.id, id));
@@ -170,53 +166,6 @@ export async function getMessagesByChatId(
       .orderBy(asc(message.createdAt));
   } catch (error) {
     console.error('Error in getMessagesByChatId:', error);
-    throw error;
-  }
-}
-
-export async function voteMessage(
-  {
-    chatId,
-    messageId,
-    type,
-  }: {
-    chatId: string;
-    messageId: string;
-    type: 'up' | 'down';
-  },
-  dbInstance = defaultDb,
-) {
-  try {
-    const [existingVote] = await dbInstance
-      .select()
-      .from(vote)
-      .where(and(eq(vote.messageId, messageId)));
-
-    if (existingVote) {
-      return await dbInstance
-        .update(vote)
-        .set({ isUpvoted: type === 'up' })
-        .where(and(eq(vote.messageId, messageId), eq(vote.chatId, chatId)));
-    }
-    return await dbInstance.insert(vote).values({
-      chatId,
-      messageId,
-      isUpvoted: type === 'up',
-    });
-  } catch (error) {
-    console.error('Error in voteMessage:', error);
-    throw error;
-  }
-}
-
-export async function getVotesByChatId(
-  { id }: { id: string },
-  dbInstance = defaultDb,
-) {
-  try {
-    return await dbInstance.select().from(vote).where(eq(vote.chatId, id));
-  } catch (error) {
-    console.error('Error in getVotesByChatId:', error);
     throw error;
   }
 }
@@ -348,47 +297,11 @@ export async function deleteDocumentsByIdAfterTimestamp(
   dbInstance = defaultDb,
 ) {
   try {
-    await dbInstance
-      .delete(suggestion)
-      .where(
-        and(
-          eq(suggestion.documentId, id),
-          gt(suggestion.documentCreatedAt, timestamp),
-        ),
-      );
-
     return await dbInstance
       .delete(document)
       .where(and(eq(document.id, id), gt(document.createdAt, timestamp)));
   } catch (error) {
     console.error('Error in deleteDocumentsByIdAfterTimestamp:', error);
-    throw error;
-  }
-}
-
-export async function saveSuggestions(
-  { suggestions }: { suggestions: Array<Suggestion> },
-  dbInstance = defaultDb,
-) {
-  try {
-    return await dbInstance.insert(suggestion).values(suggestions);
-  } catch (error) {
-    console.error('Error in saveSuggestions:', error);
-    throw error;
-  }
-}
-
-export async function getSuggestionsByDocumentId(
-  { documentId }: { documentId: string },
-  dbInstance = defaultDb,
-) {
-  try {
-    return await dbInstance
-      .select()
-      .from(suggestion)
-      .where(and(eq(suggestion.documentId, documentId)));
-  } catch (error) {
-    console.error('Error in getSuggestionsByDocumentId:', error);
     throw error;
   }
 }

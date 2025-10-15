@@ -12,94 +12,6 @@
     }
   ],
   "paths": {
-    "/api/vote": {
-      "get": {
-        "tags": ["Votes"],
-        "summary": "Get votes by chatId",
-        "description": "Retrieve votes associated with a given chat ID.",
-        "parameters": [
-          {
-            "name": "chatId",
-            "in": "query",
-            "description": "The chatId for which to retrieve votes",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "List of votes",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/Vote"
-                  }
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "chatId is required"
-          },
-          "401": {
-            "description": "Unauthorized"
-          }
-        },
-        "security": [
-          {
-            "bearerAuth": []
-          }
-        ]
-      },
-      "patch": {
-        "tags": ["Votes"],
-        "summary": "Vote a message",
-        "description": "Vote up or down a message in a given chat",
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "properties": {
-                  "chatId": {
-                    "type": "string"
-                  },
-                  "messageId": {
-                    "type": "string"
-                  },
-                  "type": {
-                    "type": "string",
-                    "enum": ["up", "down"]
-                  }
-                },
-                "required": ["chatId", "messageId", "type"]
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Message voted"
-          },
-          "400": {
-            "description": "messageId and type are required"
-          },
-          "401": {
-            "description": "Unauthorized"
-          }
-        },
-        "security": [
-          {
-            "bearerAuth": []
-          }
-        ]
-      }
-    },
     "/api/chat": {
       "post": {
         "tags": ["Chat"],
@@ -1044,46 +956,6 @@
         ]
       }
     },
-    "/api/suggestions": {
-      "get": {
-        "tags": ["Suggestions"],
-        "summary": "Get suggestions by documentId",
-        "description": "Retrieve suggestions for a given document ID.",
-        "parameters": [
-          {
-            "name": "documentId",
-            "in": "query",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "List of suggestions",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/Suggestion"
-                  }
-                }
-              }
-            }
-          },
-          "401": {
-            "description": "Unauthorized"
-          }
-        },
-        "security": [
-          {
-            "bearerAuth": []
-          }
-        ]
-      }
-    },
     "/api/history": {
       "get": {
         "tags": ["History"],
@@ -1124,21 +996,6 @@
       }
     },
     "schemas": {
-      "Vote": {
-        "type": "object",
-        "properties": {
-          "messageId": {
-            "type": "string"
-          },
-          "type": {
-            "type": "string",
-            "enum": ["up", "down"]
-          },
-          "userId": {
-            "type": "string"
-          }
-        }
-      },
       "Message": {
         "type": "object",
         "properties": {
@@ -1478,29 +1335,6 @@
             "type": "string",
             "format": "date-time",
             "nullable": true
-          }
-        }
-      },
-      "Suggestion": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "string"
-          },
-          "documentId": {
-            "type": "string"
-          },
-          "originalText": {
-            "type": "string"
-          },
-          "suggestedText": {
-            "type": "string"
-          },
-          "description": {
-            "type": "string"
-          },
-          "isResolved": {
-            "type": "boolean"
           }
         }
       },
