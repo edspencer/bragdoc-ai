@@ -71,7 +71,6 @@ function PureArtifact({
   const {
     data: document,
     isLoading: isDocumentsFetching,
-    mutate: mutateDocument,
   } = useSWR<Document>(
     artifact.documentId !== 'init' && artifact.status !== 'streaming'
       ? `/api/documents/${artifact.documentId}/artifact?id=${artifact.documentId}`
@@ -82,6 +81,15 @@ function PureArtifact({
   const { open: isSidebarOpen } = useSidebar();
   const { mutate } = useSWRConfig();
   const [isContentDirty, setIsContentDirty] = useState(false);
+
+  useEffect(() => {
+    if (document) {
+      setArtifact((currentArtifact) => ({
+        ...currentArtifact,
+        content: document.content ?? '',
+      }));
+    }
+  }, [document, setArtifact]);
 
   const handleContentChange = useCallback(
     (updatedContent: string) => {

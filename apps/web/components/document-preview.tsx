@@ -32,11 +32,12 @@ export function DocumentPreview({
 }: DocumentPreviewProps) {
   const { artifact, setArtifact } = useArtifact();
 
-  const { data: documents, isLoading: isDocumentsFetching } = useSWR<
-    Document[]
-  >(result ? `/api/document?id=${result.id}` : null, fetcher);
-
-  const previewDocument = useMemo(() => documents?.[0], [documents]);
+  const { data: previewDocument, isLoading: isDocumentsFetching } = useSWR<
+    Document
+  >(
+    result ? `/api/documents/${result.id}/artifact?id=${result.id}` : null,
+    fetcher
+  );
   const hitboxRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {

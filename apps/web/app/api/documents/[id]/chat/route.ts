@@ -3,9 +3,9 @@ import {
   getChatById,
   saveChat,
   saveMessages,
-  deleteChatById,
   getMessagesByChatId,
   updateChatLastContextById,
+  getDocumentById,
 } from "@bragdoc/database";
 import type { User, Message } from "@bragdoc/database";
 import { generateUUID } from "@/lib/utils";
@@ -22,6 +22,7 @@ import {
   JsonToSseTransformStream,
 } from "ai";
 import { routerModel } from "@/lib/ai";
+import { systemPrompt } from "@/lib/ai/prompts";
 
 export const maxDuration = 60;
 
@@ -33,9 +34,20 @@ function convertMessagesToChatMessages(messages: Message[]): ChatMessage[] {
   }));
 }
 
-export async function POST(request: Request) {
-  const { id, message }: { id: string; message: ChatMessage } =
-    await request.json();
+export async function POST(
+  request: Request,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  const { id: documentId } = await params;
+  const body = await request.json();
+  const chatId = body.id as string;
+
+  // Handle both formats: { message } from custom transport and { messages } from default transport
+  const message: ChatMessage = body.message || body.messages?.at(-1);
+
+  if (!message) {
+    return Response.json({ error: "No message provided" }, { status: 400 });
+  }
 
   const auth = await getAuthUser(request);
 
@@ -45,28 +57,46 @@ export async function POST(request: Request) {
 
   const user = auth.user as User;
 
+  // Fetch the document and verify ownership
+  let currentDocument = null;
+  try {
+    currentDocument = await getDocumentById({ id: documentId });
+    if (!currentDocument) {
+      return Response.json({ error: "Document not found" }, { status: 404 });
+    }
+    if (currentDocument.userId !== user.id) {
+      return Response.json({ error: "Forbidden" }, { status: 403 });
+    }
+  } catch (error) {
+    console.error('Error fetching document:', error);
+    return Response.json({ error: "Failed to fetch document" }, { status: 500 });
+  }
+
   // Check if chat exists
-  const chat = await getChatById({ id });
+  const chat = await getChatById({ id: chatId });
 
   if (!chat) {
     // Create new chat
     const title = await generateTitleFromUserMessage({ message });
-    await saveChat({ id, userId: user.id, title });
+    await saveChat({ id: chatId, userId: user.id, title });
   } else if (chat.userId !== user.id) {
     return Response.json({ error: "Forbidden" }, { status: 403 });
   }
 
   // Get existing messages and add new user message
-  const messagesFromDb = await getMessagesByChatId({ id });
+  const messagesFromDb = await getMessagesByChatId({ id: chatId });
   const chatMessages = convertMessagesToChatMessages(messagesFromDb);
   const uiMessages = [...chatMessages, message];
 
   // Save the new user message
+  // Ensure we have a valid UUID for the message ID
+  const messageId = message.id?.includes('-') ? message.id : generateUUID();
+
   await saveMessages({
     messages: [
       {
-        chatId: id,
-        id: message.id,
+        chatId: chatId,
+        id: messageId,
         role: "user",
         parts: message.parts as any,
         attachments: [],
@@ -77,11 +107,28 @@ export async function POST(request: Request) {
 
   let finalUsage: any;
 
+  // Build system prompt with document context
+  const contentPreview = currentDocument.content
+    ? currentDocument.content.length > 2000
+      ? `${currentDocument.content.substring(0, 2000)}...`
+      : currentDocument.content
+    : '';
+
+  const enhancedSystemPrompt = `${systemPrompt}
+
+Currently viewing document:
+- ID: ${currentDocument.id}
+- Title: ${currentDocument.title}
+- Content: ${contentPreview}
+
+When the user refers to "this document", "the document", or asks to modify/translate/update content, they are referring to this document. Use the updateDocument tool with ID "${currentDocument.id}" to make changes.`;
+
   // Create streaming response with document tools
   const stream = createUIMessageStream({
     execute: ({ writer: dataStream }) => {
       const result = streamText({
         model: routerModel,
+        system: enhancedSystemPrompt,
         messages: convertToModelMessages(uiMessages),
         stopWhen: stepCountIs(5),
         experimental_transform: smoothStream({ chunking: "word" }),
@@ -110,22 +157,26 @@ export async function POST(request: Request) {
     generateId: generateUUID,
     onFinish: async ({ messages }) => {
       // Save all assistant messages
+      // Ensure all message IDs are valid UUIDs
       await saveMessages({
-        messages: messages.map((currentMessage) => ({
-          id: currentMessage.id,
-          role: currentMessage.role,
-          parts: currentMessage.parts,
-          createdAt: new Date(),
-          attachments: [],
-          chatId: id,
-        })),
+        messages: messages.map((currentMessage) => {
+          const msgId = currentMessage.id?.includes('-') ? currentMessage.id : generateUUID();
+          return {
+            id: msgId,
+            role: currentMessage.role,
+            parts: currentMessage.parts,
+            createdAt: new Date(),
+            attachments: [],
+            chatId: chatId,
+          };
+        }),
       });
 
       // Update chat usage tracking
       if (finalUsage) {
         try {
           await updateChatLastContextById({
-            chatId: id,
+            chatId: chatId,
             context: {
               promptTokens: finalUsage.promptTokens,
               completionTokens: finalUsage.completionTokens,
@@ -133,7 +184,7 @@ export async function POST(request: Request) {
             },
           });
         } catch (err) {
-          console.warn("Unable to persist usage for chat", id, err);
+          console.warn("Unable to persist usage for chat", chatId, err);
         }
       }
     },
@@ -144,41 +195,4 @@ export async function POST(request: Request) {
 
   // Return streaming response with proper SSE transformation
   return new Response(stream.pipeThrough(new JsonToSseTransformStream()));
-}
-
-export async function DELETE(request: Request) {
-  const { searchParams } = new URL(request.url);
-  const id = searchParams.get("id");
-
-  if (!id) {
-    return Response.json({ error: "Not Found" }, { status: 404 });
-  }
-
-  const auth = await getAuthUser(request);
-
-  if (!auth?.user) {
-    return Response.json({ error: "Unauthorized" }, { status: 401 });
-  }
-
-  try {
-    const chat = await getChatById({ id });
-
-    if (!chat) {
-      return Response.json({ error: "Chat not found" }, { status: 404 });
-    }
-
-    if (chat.userId !== auth.user.id) {
-      return Response.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
-    await deleteChatById({ id });
-
-    return Response.json({ message: "Chat deleted" }, { status: 200 });
-  } catch (error) {
-    console.error("Error deleting chat:", error);
-    return Response.json(
-      { error: "An error occurred while processing your request" },
-      { status: 500 }
-    );
-  }
 }

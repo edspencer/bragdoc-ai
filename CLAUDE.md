@@ -39,6 +39,10 @@ The PLAN.md file is the plan for the task. It is typically written by the spec-p
 
 The LOG.md file is the log for the task. As the `implement` SlashCommand (as used by the `plan-executor` Claude Code agent) runs, it will update the LOG.md file with the progress of the task.
 
+## Dev server and logs
+
+The dev server is almost always running whenever you are working. The server runs on port 3000, and its logs are continually written to .next-dev.log in the root of the project. Scan this file for errors and warnings, and use it to debug issues.
+
 ## Project Architecture
 
 BragDoc is a full-stack TypeScript monorepo using:

@@ -97,8 +97,6 @@ function PureMultimodalInput({
   };
 
   const submitForm = useCallback(() => {
-    window.history.replaceState({}, "", `/chat/${chatId}`);
-
     sendMessage({
       role: "user",
       parts: [
@@ -122,7 +120,6 @@ function PureMultimodalInput({
     sendMessage,
     setLocalStorageInput,
     width,
-    chatId,
     resetHeight,
   ]);
 

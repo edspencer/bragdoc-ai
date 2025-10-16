@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "NEXT_DIST_DIR=.next-dev next dev",
+    "dev": "NEXT_DIST_DIR=.next-dev next dev 2>&1 | tee .next-dev.log",
     "build": "next build",
     "start": "next start",
     "lint": "next lint && biome lint --write --unsafe",

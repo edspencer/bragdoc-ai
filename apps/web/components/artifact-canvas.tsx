@@ -5,6 +5,7 @@ import { useChat } from '@ai-sdk/react';
 import { Artifact } from '@/components/artifact';
 import { useArtifact } from '@/hooks/use-artifact';
 import { useDataStream } from '@/components/data-stream-provider';
+import { DefaultChatTransport } from 'ai';
 
 /**
  * Global artifact canvas component that can be opened from anywhere in the app.
@@ -38,14 +39,23 @@ import { useDataStream } from '@/components/data-stream-provider';
 export function ArtifactCanvas() {
   const { artifact } = useArtifact();
   const [input, setInput] = React.useState('');
-  const [initialMessages, setInitialMessages] = React.useState<any[]>([]);
   const [isLoadingMessages, setIsLoadingMessages] = React.useState(false);
   const { setDataStream } = useDataStream();
+
+  const chat = useChat({
+    id: artifact.chatId || undefined,
+    transport: new DefaultChatTransport({
+      api: `/api/documents/${artifact.documentId}/chat`,
+    }),
+    onData: (dataPart) => {
+      setDataStream((ds) => (ds ? [...ds, dataPart as any] : []));
+    },
+  });
 
   // Load messages when chatId changes
   React.useEffect(() => {
     if (!artifact.chatId || artifact.documentId === 'init') {
-      setInitialMessages([]);
+      chat.setMessages([]);
       return;
     }
 
@@ -55,29 +65,28 @@ export function ArtifactCanvas() {
         const response = await fetch(`/api/messages?chatId=${artifact.chatId}`);
         if (response.ok) {
           const messages = await response.json();
-          setInitialMessages(messages);
+          console.log('Loaded messages from DB:', messages.length);
+          chat.setMessages(messages);
         }
       } catch (error) {
         console.error('Error loading messages:', error);
-        setInitialMessages([]);
+        chat.setMessages([]);
       } finally {
         setIsLoadingMessages(false);
       }
     }
 
     loadMessages();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [artifact.chatId, artifact.documentId]);
 
-  const chat = useChat({
-    id: artifact.chatId || undefined,
-    messages: initialMessages,
-    onData: (dataPart) => {
-      setDataStream((ds) => (ds ? [...ds, dataPart as any] : []));
-    },
-  });
-
-  // Only render if we have a chatId and messages are loaded
-  if (!artifact.chatId || isLoadingMessages) {
+  // Don't render if we don't have valid artifact data
+  if (
+    !artifact.chatId ||
+    !artifact.documentId ||
+    artifact.documentId === 'init' ||
+    isLoadingMessages
+  ) {
     return null;
   }
 
