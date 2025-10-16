@@ -13,5 +13,7 @@ You have been given a plan document to implement ($1). Your task is to fully rea
 - Read the plan document carefully before starting to implement it
 - Update the plan document as you go; each time you complete a task, mark it as done in the plan document using the checkbox
 - Keep a LOG.md file in the same directory as the plan document, and update it as you go. This should be a log of all key decisions you make, and any issues you encounter and how you resolved them, deviations from the plan, updated guidance from the user, and so on.
-- Do not run `npm build` for the `apps/web` project - the developer already has a dev build running on port 3000 and running build interferes with this
-- Do run `pnpm run test` at the project root when you think you are done with a phase or entire implementation, so we can catch any issues early
+- Do run a `pnpm run build` for the `apps/web` project when you think you are done with a phase or entire implementation, so we can catch any build failures early
+- Do run `pnpm run test` at the project root when you think you are done with a phase or entire implementation, so we can catch any test failures early
+- Do run `pnpm run format` at the project root when you think you are done with a phase or entire implementation, so we can catch any formatting issues early
+- Do run `pnpm run lint` at the project root when you think you are done with a phase or entire implementation, so we can catch any lint issues early. Fix any lint issues that affect files you have edited
