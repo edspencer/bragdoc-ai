@@ -68,16 +68,6 @@ function PureArtifact({
 }) {
   const { artifact, setArtifact, metadata, setMetadata } = useArtifact();
 
-  console.log('Artifact component rendering with:', {
-    artifactIsVisible: artifact.isVisible,
-    artifactDocumentId: artifact.documentId,
-    chatId,
-  });
-
-  // if (artifact.isVisible === false) {
-  //   debugger;
-  // }
-
   const {
     data: document,
     isLoading: isDocumentsFetching,
@@ -90,21 +80,6 @@ function PureArtifact({
   );
 
   const { open: isSidebarOpen } = useSidebar();
-
-  useEffect(() => {
-    console.log('Artifact document effect running:', {
-      document: document?.id,
-      artifactDocumentId: artifact.documentId,
-    });
-    if (document) {
-      console.log('Setting artifact content from SWR fetch:', document.id);
-      setArtifact((currentArtifact) => ({
-        ...currentArtifact,
-        content: document.content ?? '',
-      }));
-    }
-  }, [document, setArtifact, artifact.documentId]);
-
   const { mutate } = useSWRConfig();
   const [isContentDirty, setIsContentDirty] = useState(false);
 

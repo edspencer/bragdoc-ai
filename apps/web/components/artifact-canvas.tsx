@@ -42,12 +42,6 @@ export function ArtifactCanvas() {
   const [isLoadingMessages, setIsLoadingMessages] = React.useState(false);
   const { setDataStream } = useDataStream();
 
-  console.log('ArtifactCanvas rendering:', {
-    artifactVisible: artifact.isVisible,
-    chatId: artifact.chatId,
-    documentId: artifact.documentId,
-  });
-
   // Load messages when chatId changes
   React.useEffect(() => {
     if (!artifact.chatId || artifact.documentId === 'init') {
@@ -61,7 +55,6 @@ export function ArtifactCanvas() {
         const response = await fetch(`/api/messages?chatId=${artifact.chatId}`);
         if (response.ok) {
           const messages = await response.json();
-          console.log('ArtifactCanvas loaded messages:', messages.length);
           setInitialMessages(messages);
         }
       } catch (error) {
@@ -79,21 +72,9 @@ export function ArtifactCanvas() {
     id: artifact.chatId || undefined,
     messages: initialMessages,
     onData: (dataPart) => {
-      console.log('ArtifactCanvas onData:', dataPart);
       setDataStream((ds) => (ds ? [...ds, dataPart as any] : []));
     },
   });
-
-  React.useEffect(() => {
-    if (artifact.chatId) {
-      console.log('ArtifactCanvas mounted with chatId:', artifact.chatId);
-    }
-    return () => {
-      if (artifact.chatId) {
-        console.log('ArtifactCanvas unmounting! chatId was:', artifact.chatId);
-      }
-    };
-  }, [artifact.chatId]);
 
   // Only render if we have a chatId and messages are loaded
   if (!artifact.chatId || isLoadingMessages) {

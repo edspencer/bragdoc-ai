@@ -11,7 +11,6 @@ function PureArtifactCloseButton() {
       className="h-fit p-2 dark:hover:bg-zinc-700"
       data-testid="artifact-close-button"
       onClick={() => {
-        console.log('ArtifactCloseButton clicked!');
         setArtifact((currentArtifact) =>
           currentArtifact.status === 'streaming'
             ? {

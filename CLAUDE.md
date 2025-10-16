@@ -4,6 +4,7 @@ This document provides comprehensive guidance for developing BragDoc, an AI-powe
 
 ## Table of Contents
 
+- [Task Management](#task-management)
 - [Project Architecture](#project-architecture)
 - [Monorepo Structure](#monorepo-structure)
 - [Apps](#apps)
@@ -21,6 +22,22 @@ This document provides comprehensive guidance for developing BragDoc, an AI-powe
 - [Git Conventions](#git-conventions)
 
 ---
+
+## Task Management
+
+Some tasks are planned out in the ./tasks directory (this is currently in .gitignore). There are a variety of Claude Code Agents and SlashCommands that are used to specify, plan, implement and review tasks. Generally speaking, each such task gets the following files:
+
+./tasks/TASK-NAME/
+
+- SPEC.md
+- PLAN.md
+- LOG.md
+
+The SPEC.md file is the specification for the task. It should be written in markdown and should include a clear description of the task, the expected outcome, and any relevant context. It is generally expected to start with a clear "Task: <task name>" heading, and then fairly freeform description, though special attention is paid to level 2 markdown headings for Background Reading and Specific Requirements, so use those headings when possible.
+
+The PLAN.md file is the plan for the task. It is typically written by the spec-planner Claude Code agent, which in turn will delegate parts of the task to other SlashCommands or Agents.
+
+The LOG.md file is the log for the task. As the `implement` SlashCommand (as used by the `plan-executor` Claude Code agent) runs, it will update the LOG.md file with the progress of the task.
 
 ## Project Architecture
 
@@ -135,6 +152,7 @@ apps/web/
 #### Dependencies
 
 Key dependencies include:
+
 - `@bragdoc/database` - Database access
 - `@bragdoc/email` - Email templates
 - `ai` - Vercel AI SDK
@@ -180,16 +198,20 @@ packages/database/src/
 #### Schema Patterns
 
 All tables use:
+
 - **UUID primary keys**: `uuid('id').primaryKey().notNull().defaultRandom()`
 - **Timestamps**: `createdAt`, `updatedAt` with `.defaultNow()`
 - **Soft deletes**: Where applicable (e.g., `isArchived` flags)
 - **Foreign keys**: With cascade delete `{ onDelete: 'cascade' }`
 
 Example:
+
 ```typescript
 export const achievement = pgTable('Achievement', {
   id: uuid('id').primaryKey().notNull().defaultRandom(),
-  userId: uuid('user_id').notNull().references(() => user.id, { onDelete: 'cascade' }),
+  userId: uuid('user_id')
+    .notNull()
+    .references(() => user.id, { onDelete: 'cascade' }),
   title: varchar('title', { length: 256 }).notNull(),
   createdAt: timestamp('created_at').notNull().defaultNow(),
   updatedAt: timestamp('updated_at').notNull().defaultNow(),
@@ -205,18 +227,21 @@ export const achievement = pgTable('Achievement', {
 - **Export reusable query functions**
 
 Example:
+
 ```typescript
 export async function getProjectsByUserId(
   userId: string
 ): Promise<ProjectWithCompany[]> {
   const results = await db
-    .select({ /* ... */ })
+    .select({
+      /* ... */
+    })
     .from(project)
     .leftJoin(company, eq(project.companyId, company.id))
     .where(eq(project.userId, userId))
     .orderBy(desc(project.startDate));
 
-  return results.map(row => ({
+  return results.map((row) => ({
     ...row,
     company: row.company || null,
   }));
@@ -272,6 +297,7 @@ packages/cli/src/
 #### API Integration
 
 The CLI uses a unified API client that:
+
 - Authenticates via JWT tokens (stored in `~/.bragdoc/config.yml`)
 - Makes requests to `/api/*` endpoints
 - Handles authentication errors gracefully
@@ -303,6 +329,7 @@ Shared configuration types and utilities.
 **Location**: `packages/typescript-config/`
 
 Shared TypeScript configurations:
+
 - `base.json` - Base config
 - `nextjs.json` - Next.js specific
 - `react-library.json` - React library config
@@ -356,8 +383,12 @@ const stats = await db
 
 ```typescript
 await db.transaction(async (tx) => {
-  await tx.insert(project).values({ /* ... */ });
-  await tx.insert(achievement).values({ /* ... */ });
+  await tx.insert(project).values({
+    /* ... */
+  });
+  await tx.insert(achievement).values({
+    /* ... */
+  });
 });
 ```
 
@@ -369,6 +400,7 @@ await db.transaction(async (tx) => {
 - **Enums**: TypeScript enums exported alongside schema
 
 Example:
+
 ```typescript
 export enum ProjectStatus {
   Active = 'active',
@@ -419,6 +451,7 @@ export async function GET(request: Request) {
 ```
 
 This supports both:
+
 - **Browser sessions**: Via NextAuth cookies
 - **CLI requests**: Via JWT in `Authorization: Bearer <token>` header
 
@@ -569,7 +602,11 @@ export async function getAuthUser(request: Request) {
   const authHeader = request.headers.get('Authorization');
   if (authHeader?.startsWith('Bearer ')) {
     const token = authHeader.slice(7);
-    const decoded = await decode({ token, secret: process.env.AUTH_SECRET!, salt: '' });
+    const decoded = await decode({
+      token,
+      secret: process.env.AUTH_SECRET!,
+      salt: '',
+    });
     if (decoded?.id) {
       return { user: decoded as User, source: 'jwt' };
     }
@@ -706,7 +743,9 @@ Use **named exports** instead of default exports:
 export function AchievementCard({ achievement }: AchievementCardProps) {}
 
 // Avoid
-export default function AchievementCard({ achievement }: AchievementCardProps) {}
+export default function AchievementCard({
+  achievement,
+}: AchievementCardProps) {}
 ```
 
 ---
@@ -751,6 +790,7 @@ All UI components are from shadcn/ui, installed via CLI and customized locally.
 **Location**: `apps/web/components/ui/`
 
 Components include:
+
 - `button.tsx`, `input.tsx`, `label.tsx`
 - `dialog.tsx`, `popover.tsx`, `dropdown-menu.tsx`
 - `table.tsx`, `card.tsx`, `tabs.tsx`
@@ -760,6 +800,7 @@ Components include:
 
 1. **Use Tailwind utilities** over custom CSS
 2. **Use `cn()` helper** for conditional classes:
+
    ```typescript
    import { cn } from '@/lib/utils';
 
@@ -769,6 +810,7 @@ Components include:
      className
    )} />
    ```
+
 3. **Responsive design**: Mobile-first with Tailwind breakpoints
 4. **Dark mode**: Use `dark:` variant for dark mode styles
 5. **Spacing**: Use Tailwind's spacing scale (p-4, mt-2, etc.)
@@ -868,6 +910,7 @@ pnpm test:cli
 **Location**: `apps/web/lib/ai/llm-router.ts`
 
 Dynamically selects LLM provider based on:
+
 - Task type (extraction, generation, chat)
 - User's subscription level
 - Provider availability
@@ -889,6 +932,7 @@ Uses **mdx-prompt** for structured prompts:
 **Location**: `apps/web/lib/ai/prompts/*.prompt.mdx`
 
 Example:
+
 ```mdx
 ---
 model: gpt-4
@@ -903,6 +947,7 @@ Return as JSON array.
 ```
 
 Usage:
+
 ```typescript
 import { execute } from 'mdx-prompt';
 import extractPrompt from './prompts/extract.prompt.mdx';
@@ -947,6 +992,7 @@ return result.toDataStreamResponse();
 ### Architecture
 
 The CLI is a standalone Node.js application that:
+
 - Reads Git history locally
 - Communicates with web app via API
 - Stores configuration in `~/.bragdoc/config.yml`
@@ -958,21 +1004,21 @@ The CLI is a standalone Node.js application that:
 
 ```yaml
 auth:
-  token: "jwt-token-here"
+  token: 'jwt-token-here'
   expiresAt: 1234567890
 repositories:
   - path: /path/to/repo
     name: My Project
     enabled: true
     maxCommits: 300
-    cronSchedule: "0 18 * * *"
-    projectId: "uuid-from-web-app"
+    cronSchedule: '0 18 * * *'
+    projectId: 'uuid-from-web-app'
 settings:
-  defaultTimeRange: "30d"
+  defaultTimeRange: '30d'
   maxCommitsPerBatch: 10
   defaultMaxCommits: 300
   cacheEnabled: true
-  apiBaseUrl: "https://www.bragdoc.ai"
+  apiBaseUrl: 'https://www.bragdoc.ai'
 ```
 
 ### Command Structure
@@ -1011,11 +1057,15 @@ Wraps Git commands using `execSync`:
 export function getRepositoryInfo(path = '.'): RepositoryInfo {
   const remoteUrl = execSync('git config --get remote.origin.url', {
     cwd: path,
-  }).toString().trim();
+  })
+    .toString()
+    .trim();
 
   const currentBranch = execSync('git rev-parse --abbrev-ref HEAD', {
     cwd: path,
-  }).toString().trim();
+  })
+    .toString()
+    .trim();
 
   return { remoteUrl, currentBranch, path };
 }
@@ -1184,7 +1234,7 @@ interface ComponentProps {
 }
 
 // 4. Component/function
-export function Component({ }: ComponentProps) {
+export function Component({}: ComponentProps) {
   // ...
 }
 ```
@@ -1238,6 +1288,7 @@ Follow conventional commits:
 - `style:` - Code style changes (formatting)
 
 Examples:
+
 ```
 feat: add project color picker
 fix: resolve authentication redirect loop
@@ -1274,6 +1325,7 @@ pnpm changeset version  # Update versions
 ### Environment Variables
 
 Required:
+
 - `POSTGRES_URL` - Database connection string
 - `AUTH_SECRET` - NextAuth secret key
 - `NEXTAUTH_URL` - Application URL
@@ -1281,6 +1333,7 @@ Required:
 - `STRIPE_SECRET_KEY` - Stripe secret key (for payments)
 
 Optional:
+
 - `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` - Google OAuth
 - `GITHUB_CLIENT_ID` / `GITHUB_CLIENT_SECRET` - GitHub OAuth
 - `DEEPSEEK_API_KEY` - DeepSeek API key
@@ -1307,6 +1360,7 @@ pnpm --filter=@bragdoc/web deploy
 ## Summary
 
 This codebase follows modern full-stack TypeScript patterns with:
+
 - **Monorepo architecture** for code sharing
 - **Server Components** for optimal performance
 - **Type-safe database access** via Drizzle
@@ -1315,6 +1369,7 @@ This codebase follows modern full-stack TypeScript patterns with:
 - **Component-driven UI** with shadcn/ui + Tailwind
 
 When in doubt:
+
 1. Check existing patterns in similar features
 2. Prefer server-side logic over client-side
 3. Always validate user input

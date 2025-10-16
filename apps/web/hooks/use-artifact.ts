@@ -1,6 +1,12 @@
 'use client';
 
-import React, { createContext, useCallback, useContext, useMemo, useState } from 'react';
+import React, {
+  createContext,
+  useCallback,
+  useContext,
+  useMemo,
+  useState,
+} from 'react';
 import type { UIArtifact } from '@/components/artifact';
 
 export const initialArtifactData: UIArtifact = {
@@ -20,7 +26,9 @@ export const initialArtifactData: UIArtifact = {
 
 type ArtifactContextType = {
   artifact: UIArtifact;
-  setArtifact: (updater: UIArtifact | ((current: UIArtifact) => UIArtifact)) => void;
+  setArtifact: (
+    updater: UIArtifact | ((current: UIArtifact) => UIArtifact)
+  ) => void;
   metadata: any;
   setMetadata: (updater: any) => void;
 };
@@ -28,17 +36,15 @@ type ArtifactContextType = {
 const ArtifactContext = createContext<ArtifactContextType | null>(null);
 
 export function ArtifactProvider({ children }: { children: React.ReactNode }) {
-  const [artifact, setArtifactState] = useState<UIArtifact>(initialArtifactData);
+  const [artifact, setArtifactState] =
+    useState<UIArtifact>(initialArtifactData);
   const [metadata, setMetadata] = useState<any>(null);
 
   const setArtifact = useCallback(
     (updater: UIArtifact | ((current: UIArtifact) => UIArtifact)) => {
-      console.log('setArtifact called with:', typeof updater === 'function' ? 'function' : updater);
-      console.trace('setArtifact call stack');
-
       setArtifactState((current) => {
-        const result = typeof updater === 'function' ? updater(current) : updater;
-        console.log('setArtifact result:', result);
+        const result =
+          typeof updater === 'function' ? updater(current) : updater;
         return result;
       });
     },

@@ -115,19 +115,10 @@ export function ReportsTable({
   initialDocuments,
   companies,
 }: ReportsTableProps) {
-  console.log('ReportsTable component mounting/rendering');
-
   const router = useRouter();
   const [documents, setDocuments] =
     React.useState<Document[]>(initialDocuments);
   const { setArtifact } = useArtifact();
-
-  React.useEffect(() => {
-    console.log('ReportsTable mounted');
-    return () => {
-      console.log('ReportsTable unmounting!');
-    };
-  }, []);
 
   // Filters
   const [selectedType, setSelectedType] = React.useState<string>('all');
@@ -214,19 +205,11 @@ export function ReportsTable({
   };
 
   const handleEditClick = async (id: string) => {
-    console.log('handleEditClick called with id:', id);
     const doc = documents.find((d) => d.id === id);
     if (!doc) {
       console.error('Document not found:', id);
       return;
     }
-    console.log('Document found:', {
-      id: doc.id,
-      chatId: doc.chatId,
-      title: doc.title,
-      kind: doc.kind,
-    });
-
     // All new documents should have a chatId
     // Old documents without chatId are a migration issue
     if (!doc.chatId) {
@@ -465,7 +448,6 @@ export function ReportsTable({
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-
     </div>
   );
 }
