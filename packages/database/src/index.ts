@@ -59,6 +59,8 @@ export {
   createCompany,
   updateCompany,
   deleteCompany,
+  getCompanyRelatedDataCounts,
+  deleteCompanyWithCascade,
   getAchievementStats,
   getActiveProjectsCount,
 } from './queries';
@@ -81,7 +83,12 @@ export type {
 } from './projects/queries';
 
 // Re-export types
-export type { AchievementStats } from './queries';
+export type {
+  AchievementStats,
+  RelatedDataCounts,
+  CascadeDeleteOptions,
+  DeleteCompanyResult,
+} from './queries';
 
 // Re-export standup queries
 export {

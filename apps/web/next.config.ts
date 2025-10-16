@@ -6,6 +6,7 @@ const withMDXConfig = withMDX({
 });
 
 const baseConfig: NextConfig = {
+  distDir: process.env.NEXT_DIST_DIR || '.next',
   pageExtensions: ['ts', 'tsx', 'js', 'jsx', 'md', 'mdx'],
   serverExternalPackages: ['puppeteer-core', '@sparticuz/chromium'],
   images: {

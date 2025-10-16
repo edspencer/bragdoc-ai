@@ -28,6 +28,8 @@ import {
   type Achievement,
   company,
   project,
+  standup,
+  standupDocument,
 } from './schema';
 
 // Optionally, if not using email/pass login, you can
@@ -778,6 +780,181 @@ export async function deleteCompany({
     return deleted;
   } catch (error) {
     console.error('Error in deleteCompany:', error);
+    throw error;
+  }
+}
+
+// Company cascade delete types
+export interface RelatedDataCounts {
+  projects: number;
+  achievements: number;
+  documents: number;
+  standups: number;
+}
+
+export interface CascadeDeleteOptions {
+  deleteProjects: boolean;
+  deleteAchievements: boolean;
+  deleteDocuments: boolean;
+  deleteStandups: boolean;
+}
+
+export interface DeleteCompanyResult {
+  company: Company;
+  deletedCounts: {
+    projects: number;
+    achievements: number;
+    documents: number;
+    standups: number;
+  };
+}
+
+export async function getCompanyRelatedDataCounts({
+  companyId,
+  userId,
+  db = defaultDb,
+}: {
+  companyId: string;
+  userId: string;
+  db?: any;
+}): Promise<RelatedDataCounts> {
+  try {
+    // Verify company belongs to user
+    const companyData = await getCompanyById({ id: companyId, userId, db });
+    if (!companyData) {
+      throw new Error('Company not found');
+    }
+
+    // Count projects
+    const [projectCount] = await db
+      .select({ count: sql<number>`count(*)` })
+      .from(project)
+      .where(and(eq(project.companyId, companyId), eq(project.userId, userId)));
+
+    // Count achievements
+    const [achievementCount] = await db
+      .select({ count: sql<number>`count(*)` })
+      .from(achievement)
+      .where(and(eq(achievement.companyId, companyId), eq(achievement.userId, userId)));
+
+    // Count documents
+    const [documentCount] = await db
+      .select({ count: sql<number>`count(*)` })
+      .from(document)
+      .where(and(eq(document.companyId, companyId), eq(document.userId, userId)));
+
+    // Count standups
+    const [standupCount] = await db
+      .select({ count: sql<number>`count(*)` })
+      .from(standup)
+      .where(and(eq(standup.companyId, companyId), eq(standup.userId, userId)));
+
+    return {
+      projects: Number(projectCount?.count ?? 0),
+      achievements: Number(achievementCount?.count ?? 0),
+      documents: Number(documentCount?.count ?? 0),
+      standups: Number(standupCount?.count ?? 0),
+    };
+  } catch (error) {
+    console.error('Error in getCompanyRelatedDataCounts:', error);
+    throw error;
+  }
+}
+
+export async function deleteCompanyWithCascade({
+  id,
+  userId,
+  cascadeOptions,
+  db = defaultDb,
+}: {
+  id: string;
+  userId: string;
+  cascadeOptions: CascadeDeleteOptions;
+  db?: any;
+}): Promise<DeleteCompanyResult> {
+  try {
+    // Verify company exists and belongs to user
+    const companyData = await getCompanyById({ id, userId, db });
+    if (!companyData) {
+      throw new Error('Company not found');
+    }
+
+    const deletedCounts = {
+      projects: 0,
+      achievements: 0,
+      documents: 0,
+      standups: 0,
+    };
+
+    // Delete projects if requested
+    if (cascadeOptions.deleteProjects) {
+      const deletedProjects = await db
+        .delete(project)
+        .where(and(eq(project.companyId, id), eq(project.userId, userId)))
+        .returning();
+      deletedCounts.projects = deletedProjects.length;
+    }
+
+    // Delete achievements if requested
+    if (cascadeOptions.deleteAchievements) {
+      const deletedAchievements = await db
+        .delete(achievement)
+        .where(and(eq(achievement.companyId, id), eq(achievement.userId, userId)))
+        .returning();
+      deletedCounts.achievements = deletedAchievements.length;
+    }
+
+    // Delete documents if requested
+    if (cascadeOptions.deleteDocuments) {
+      const deletedDocuments = await db
+        .delete(document)
+        .where(and(eq(document.companyId, id), eq(document.userId, userId)))
+        .returning();
+      deletedCounts.documents = deletedDocuments.length;
+    }
+
+    // Delete standups if requested
+    // Note: Need to delete standup documents first due to foreign key
+    if (cascadeOptions.deleteStandups) {
+      // Get standup IDs first
+      const standups = await db
+        .select({ id: standup.id })
+        .from(standup)
+        .where(and(eq(standup.companyId, id), eq(standup.userId, userId)));
+
+      const standupIds = standups.map((s: any) => s.id);
+
+      // Delete standup documents first
+      if (standupIds.length > 0) {
+        await db
+          .delete(standupDocument)
+          .where(inArray(standupDocument.standupId, standupIds));
+      }
+
+      // Now delete the standups
+      const deletedStandups = await db
+        .delete(standup)
+        .where(and(eq(standup.companyId, id), eq(standup.userId, userId)))
+        .returning();
+      deletedCounts.standups = deletedStandups.length;
+    }
+
+    // Finally, delete the company
+    const [deletedCompany] = await db
+      .delete(company)
+      .where(and(eq(company.id, id), eq(company.userId, userId)))
+      .returning();
+
+    if (!deletedCompany) {
+      throw new Error('Failed to delete company');
+    }
+
+    return {
+      company: deletedCompany,
+      deletedCounts,
+    };
+  } catch (error) {
+    console.error('Error in deleteCompanyWithCascade:', error);
     throw error;
   }
 }

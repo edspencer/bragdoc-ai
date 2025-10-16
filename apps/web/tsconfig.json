@@ -3,11 +3,21 @@
   "compilerOptions": {
     "baseUrl": ".",
     "paths": {
-      "@/*": ["./*"],
-      "@/email/*": ["../../packages/email/src/*"],
-      "@/ui/*": ["../../packages/ui/src/*"],
-      "@/database/*": ["../../packages/database/src/*"],
-      "@/config/*": ["../../packages/config/src/*"]
+      "@/*": [
+        "./*"
+      ],
+      "@/email/*": [
+        "../../packages/email/src/*"
+      ],
+      "@/ui/*": [
+        "../../packages/ui/src/*"
+      ],
+      "@/database/*": [
+        "../../packages/database/src/*"
+      ],
+      "@/config/*": [
+        "../../packages/config/src/*"
+      ]
     },
     "plugins": [
       {
@@ -16,12 +26,15 @@
     ]
   },
   "include": [
-    "**/.well-known/**/*.ts",
-    "next-env.d.ts",
-    "next.config.ts",
     "**/*.ts",
     "**/*.tsx",
-    ".next/types/**/*.ts"
+    "**/.well-known/**/*.ts",
+    ".next/types/**/*.ts",
+    "next-env.d.ts",
+    "next.config.ts",
+    ".next-dev/types/**/*.ts"
   ],
-  "exclude": ["node_modules"]
+  "exclude": [
+    "node_modules"
+  ]
 }

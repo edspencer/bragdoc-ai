@@ -37,9 +37,17 @@ export default function CompaniesPage() {
     setDialogOpen(true);
   };
 
-  const handleDeleteCompany = async (id: string) => {
+  const handleDeleteCompany = async (
+    id: string,
+    cascadeOptions: {
+      deleteProjects: boolean;
+      deleteAchievements: boolean;
+      deleteDocuments: boolean;
+      deleteStandups: boolean;
+    },
+  ) => {
     try {
-      await deleteCompany(id);
+      await deleteCompany(id, cascadeOptions);
     } catch (error) {
       // Error is handled in the hook
       console.error('Failed to delete company:', error);

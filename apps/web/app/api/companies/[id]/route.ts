@@ -4,6 +4,7 @@ import {
   getCompanyById,
   updateCompany,
   deleteCompany,
+  deleteCompanyWithCascade,
 } from '@/database/queries';
 import { z } from 'zod/v3';
 import { db } from '@/database/index';
@@ -100,17 +101,46 @@ export async function DELETE(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const company = await deleteCompany({
-      id,
-      userId: auth.user.id,
-      db,
-    });
+    // Parse cascade options from query parameters
+    const searchParams = request.nextUrl.searchParams;
+    const cascadeOptions = {
+      deleteProjects: searchParams.get('deleteProjects') === 'true',
+      deleteAchievements: searchParams.get('deleteAchievements') === 'true',
+      deleteDocuments: searchParams.get('deleteDocuments') === 'true',
+      deleteStandups: searchParams.get('deleteStandups') === 'true',
+    };
 
-    if (!company) {
-      return new Response('Not Found', { status: 404 });
+    // Check if any cascade options are true
+    const hasCascadeOptions = Object.values(cascadeOptions).some(Boolean);
+
+    if (hasCascadeOptions) {
+      // Use cascade delete
+      const result = await deleteCompanyWithCascade({
+        id,
+        userId: auth.user.id,
+        cascadeOptions,
+        db,
+      });
+
+      // Return success with deletion summary
+      return NextResponse.json({
+        success: true,
+        deletedCounts: result.deletedCounts,
+      });
+    } else {
+      // Use simple delete (existing behavior)
+      const company = await deleteCompany({
+        id,
+        userId: auth.user.id,
+        db,
+      });
+
+      if (!company) {
+        return new Response('Not Found', { status: 404 });
+      }
+
+      return new Response(null, { status: 204 });
     }
-
-    return new Response(null, { status: 204 });
   } catch (error) {
     console.error('Error deleting company:', error);
     return NextResponse.json(

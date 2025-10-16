@@ -1,14 +1,7 @@
 'use client';
 
 import * as React from 'react';
-import {
-  IconBuilding,
-  IconCalendar,
-  IconDotsVertical,
-  IconEdit,
-  IconTrash,
-  IconWorld,
-} from '@tabler/icons-react';
+import { IconBuilding, IconCalendar, IconWorld } from '@tabler/icons-react';
 import {
   type ColumnDef,
   flexRender,
@@ -23,14 +16,6 @@ import {
 import { format } from 'date-fns';
 
 import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
 import { Input } from '@/components/ui/input';
 import {
   Table,
@@ -42,11 +27,21 @@ import {
 } from '@/components/ui/table';
 
 import type { Company } from '@/database/schema';
+import { CompanyActions } from '@/components/companies/company-actions';
+import { Button } from '@/components/ui/button';
 
 interface CompaniesTableProps {
   data: Company[];
   onEdit: (company: Company) => void;
-  onDelete: (id: string) => void;
+  onDelete: (
+    id: string,
+    cascadeOptions: {
+      deleteProjects: boolean;
+      deleteAchievements: boolean;
+      deleteDocuments: boolean;
+      deleteStandups: boolean;
+    }
+  ) => Promise<void>;
   isLoading?: boolean;
 }
 
@@ -58,7 +53,7 @@ export function CompaniesTable({
 }: CompaniesTableProps) {
   const [sorting, setSorting] = React.useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
-    [],
+    []
   );
   const [globalFilter, setGlobalFilter] = React.useState('');
 
@@ -127,32 +122,13 @@ export function CompaniesTable({
         const company = row.original;
 
         return (
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button
-                variant="ghost"
-                className="data-[state=open]:bg-muted text-muted-foreground size-8"
-                size="icon"
-              >
-                <IconDotsVertical className="size-4" />
-                <span className="sr-only">Open menu</span>
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-32">
-              <DropdownMenuItem onClick={() => onEdit(company)}>
-                <IconEdit className="size-4" />
-                Edit
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem
-                variant="destructive"
-                onClick={() => onDelete(company.id)}
-              >
-                <IconTrash className="size-4" />
-                Delete
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+          <CompanyActions
+            companyId={company.id}
+            companyName={company.name}
+            onEdit={() => onEdit(company)}
+            onDelete={(cascadeOptions) => onDelete(company.id, cascadeOptions)}
+            isLoading={isLoading}
+          />
         );
       },
     },
@@ -197,7 +173,7 @@ export function CompaniesTable({
                       ? null
                       : flexRender(
                           header.column.columnDef.header,
-                          header.getContext(),
+                          header.getContext()
                         )}
                   </TableHead>
                 ))}
@@ -212,7 +188,7 @@ export function CompaniesTable({
                     <TableCell key={cell.id}>
                       {flexRender(
                         cell.column.columnDef.cell,
-                        cell.getContext(),
+                        cell.getContext()
                       )}
                     </TableCell>
                   ))}

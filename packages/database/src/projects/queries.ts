@@ -57,7 +57,7 @@ export type CreateProjectInput = {
   status: 'active' | 'completed' | 'archived';
   startDate: Date;
   endDate?: Date | null;
-  repoRemoteUrl?: string;
+  repoRemoteUrl?: string | null;
   color?: string;
 };
 
@@ -69,7 +69,7 @@ export type ProjectWithImpact = ProjectWithCompany & {
 };
 
 export async function getProjectsByUserId(
-  userId: string,
+  userId: string
 ): Promise<ProjectWithCompany[]> {
   const results = await db
     .select({
@@ -100,7 +100,7 @@ export async function getProjectsByUserId(
 
 export async function getProjectById(
   id: string,
-  userId: string,
+  userId: string
 ): Promise<ProjectWithCompany | null> {
   const results = await db
     .select({
@@ -132,7 +132,7 @@ export async function getProjectById(
 
 export async function getProjectsByCompanyId(
   companyId: string,
-  userId: string,
+  userId: string
 ): Promise<ProjectWithCompany[]> {
   const results = await db
     .select({
@@ -162,7 +162,7 @@ export async function getProjectsByCompanyId(
 }
 
 export async function getActiveProjects(
-  userId: string,
+  userId: string
 ): Promise<ProjectWithCompany[]> {
   const results = await db
     .select({
@@ -186,8 +186,8 @@ export async function getActiveProjects(
       and(
         eq(project.userId, userId),
         eq(project.status, 'active'),
-        isNull(project.endDate),
-      ),
+        isNull(project.endDate)
+      )
     )
     .orderBy(desc(project.startDate));
 
@@ -198,7 +198,7 @@ export async function getActiveProjects(
 }
 
 export async function createProject(
-  input: CreateProjectInput,
+  input: CreateProjectInput
 ): Promise<Project> {
   // If no color is provided, use round-robin assignment
   const color = input.color || (await getNextProjectColor(input.userId));
@@ -218,7 +218,7 @@ export async function createProject(
 export async function updateProject(
   id: string,
   userId: string,
-  input: UpdateProjectInput,
+  input: UpdateProjectInput
 ): Promise<Project | null> {
   const results = await db
     .update(project)
@@ -233,7 +233,7 @@ export async function updateProject(
 
 export async function deleteProject(
   id: string,
-  userId: string,
+  userId: string
 ): Promise<Project | null> {
   // First delete all achievements associated with this project
   await db
@@ -267,7 +267,7 @@ export async function ensureProject({
     .select()
     .from(project)
     .where(
-      and(eq(project.userId, userId), eq(project.repoRemoteUrl, remoteUrl)),
+      and(eq(project.userId, userId), eq(project.repoRemoteUrl, remoteUrl))
     )
     .limit(1);
 
@@ -294,7 +294,7 @@ export async function ensureProject({
         .where(eq(project.id, matchingProjectId));
 
       console.log(
-        `Found matching project ${matchingProjectId}, set remote URL`,
+        `Found matching project ${matchingProjectId}, set remote URL`
       );
 
       return { projectId: matchingProjectId };
@@ -324,7 +324,7 @@ export async function ensureProject({
 
 export async function getTopProjectsByImpact(
   userId: string,
-  limit = 5,
+  limit = 5
 ): Promise<ProjectWithImpact[]> {
   const results = await db
     .select({
@@ -350,8 +350,8 @@ export async function getTopProjectsByImpact(
       achievement,
       and(
         eq(achievement.projectId, project.id),
-        eq(achievement.isArchived, false),
-      ),
+        eq(achievement.isArchived, false)
+      )
     )
     .where(eq(project.userId, userId))
     .groupBy(
@@ -373,11 +373,11 @@ export async function getTopProjectsByImpact(
       company.role,
       company.startDate,
       company.endDate,
-      company.userId,
+      company.userId
     )
     .orderBy(
       desc(sql`COALESCE(SUM(${achievement.impact}), 0)`),
-      desc(project.startDate),
+      desc(project.startDate)
     )
     .limit(limit);
 

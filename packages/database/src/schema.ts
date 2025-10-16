@@ -115,7 +115,9 @@ export const project = pgTable('Project', {
   userId: uuid('user_id')
     .notNull()
     .references(() => user.id),
-  companyId: uuid('company_id').references(() => company.id),
+  companyId: uuid('company_id').references(() => company.id, {
+    onDelete: 'set null',
+  }),
   name: varchar('name', { length: 256 }).notNull(),
   description: text('description'),
   status: varchar('status', { length: 32 }).notNull().default('active'),
@@ -136,7 +138,9 @@ export const achievement = pgTable(
     userId: uuid('user_id')
       .notNull()
       .references(() => user.id),
-    companyId: uuid('company_id').references(() => company.id),
+    companyId: uuid('company_id').references(() => company.id, {
+      onDelete: 'set null',
+    }),
     projectId: uuid('project_id').references(() => project.id),
     standupDocumentId: uuid('standup_document_id').references(
       () => standupDocument.id,
@@ -219,7 +223,9 @@ export const document = pgTable('Document', {
   userId: uuid('userId')
     .notNull()
     .references(() => user.id),
-  companyId: uuid('company_id').references(() => company.id),
+  companyId: uuid('company_id').references(() => company.id, {
+    onDelete: 'set null',
+  }),
   type: varchar('type', { length: 32 }), // weekly_report, performance_review, etc.
   shareToken: varchar('share_token', { length: 64 }), // null if not shared
   chatId: uuid('chat_id').references(() => chat.id),
@@ -251,7 +257,9 @@ export const standup = pgTable('Standup', {
   userId: uuid('userId')
     .notNull()
     .references(() => user.id),
-  companyId: uuid('companyId').references(() => company.id),
+  companyId: uuid('companyId').references(() => company.id, {
+    onDelete: 'set null',
+  }),
   projectIds: uuid('project_ids').array(),
 
   // Content

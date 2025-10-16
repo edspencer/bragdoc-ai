@@ -1,8 +1,18 @@
 import useSWR from 'swr';
 import { toast } from 'sonner';
 import { useConfetti } from 'hooks/useConfetti';
-import type { CompanyFormData } from 'components/companies/company-form';
+import * as z from 'zod/v3';
 import type { Company } from '@/database/schema';
+
+const formSchema = z.object({
+  name: z.string().min(1, 'Company name is required').max(256),
+  domain: z.string().max(256).optional(),
+  role: z.string().min(1, 'Role is required').max(256),
+  startDate: z.date({ required_error: 'Start date is required' }),
+  endDate: z.date().nullable().optional(),
+});
+
+export type CompanyFormData = z.infer<typeof formSchema>;
 
 const fetchCompanies = async (url: string) => {
   const res = await fetch(url);
@@ -35,7 +45,7 @@ const fetchCompany = async (url: string) => {
 export function useCompanies() {
   const { data, error, mutate } = useSWR<Company[]>(
     '/api/companies',
-    fetchCompanies,
+    fetchCompanies
   );
 
   return {
@@ -49,7 +59,7 @@ export function useCompanies() {
 export function useCompany(id: string) {
   const { data, error, mutate } = useSWR<Company>(
     `/api/companies/${id}`,
-    fetchCompany,
+    fetchCompany
   );
 
   return {
@@ -119,9 +129,33 @@ export function useUpdateCompany() {
 export function useDeleteCompany() {
   const { mutate: mutateList } = useCompanies();
 
-  const deleteCompany = async (id: string) => {
+  const deleteCompany = async (
+    id: string,
+    cascadeOptions?: {
+      deleteProjects: boolean;
+      deleteAchievements: boolean;
+      deleteDocuments: boolean;
+      deleteStandups: boolean;
+    }
+  ) => {
     try {
-      const res = await fetch(`/api/companies/${id}`, {
+      // Build query string if cascade options provided
+      const queryParams = new URLSearchParams();
+      if (cascadeOptions) {
+        if (cascadeOptions.deleteProjects)
+          queryParams.append('deleteProjects', 'true');
+        if (cascadeOptions.deleteAchievements)
+          queryParams.append('deleteAchievements', 'true');
+        if (cascadeOptions.deleteDocuments)
+          queryParams.append('deleteDocuments', 'true');
+        if (cascadeOptions.deleteStandups)
+          queryParams.append('deleteStandups', 'true');
+      }
+
+      const queryString = queryParams.toString();
+      const url = `/api/companies/${id}${queryString ? `?${queryString}` : ''}`;
+
+      const res = await fetch(url, {
         method: 'DELETE',
       });
 
@@ -129,8 +163,46 @@ export function useDeleteCompany() {
         throw new Error('Failed to delete company');
       }
 
+      // Check if we have a JSON response (cascade delete) or empty response
+      const contentType = res.headers.get('content-type');
+      let deletedCounts = null;
+      if (contentType?.includes('application/json')) {
+        const data = await res.json();
+        deletedCounts = data.deletedCounts;
+      }
+
       await mutateList();
-      toast.success('Company deleted successfully');
+
+      // Show detailed toast if cascade delete occurred
+      if (deletedCounts) {
+        const deletedItems = [];
+        if (deletedCounts.projects > 0)
+          deletedItems.push(
+            `${deletedCounts.projects} project${deletedCounts.projects > 1 ? 's' : ''}`
+          );
+        if (deletedCounts.achievements > 0)
+          deletedItems.push(
+            `${deletedCounts.achievements} achievement${deletedCounts.achievements > 1 ? 's' : ''}`
+          );
+        if (deletedCounts.documents > 0)
+          deletedItems.push(
+            `${deletedCounts.documents} document${deletedCounts.documents > 1 ? 's' : ''}`
+          );
+        if (deletedCounts.standups > 0)
+          deletedItems.push(
+            `${deletedCounts.standups} standup${deletedCounts.standups > 1 ? 's' : ''}`
+          );
+
+        if (deletedItems.length > 0) {
+          toast.success(
+            `Company deleted successfully. Also deleted: ${deletedItems.join(', ')}`
+          );
+        } else {
+          toast.success('Company deleted successfully');
+        }
+      } else {
+        toast.success('Company deleted successfully');
+      }
     } catch (error) {
       console.error('Error deleting company:', error);
       toast.error('Failed to delete company');
@@ -139,4 +211,26 @@ export function useDeleteCompany() {
   };
 
   return deleteCompany;
+}
+
+export function useCompanyRelatedCounts(id: string | null) {
+  const { data, error, mutate } = useSWR<{
+    projects: number;
+    achievements: number;
+    documents: number;
+    standups: number;
+  }>(id ? `/api/companies/${id}/related-counts` : null, async (url: string) => {
+    const res = await fetch(url);
+    if (!res.ok) {
+      throw new Error('Failed to fetch counts');
+    }
+    return res.json();
+  });
+
+  return {
+    counts: data,
+    isLoading: !error && !data,
+    isError: error,
+    mutate,
+  };
 }
