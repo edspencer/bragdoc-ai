@@ -21,20 +21,21 @@ export function DemoModeBanner() {
   }
 
   return (
-    <div className="sticky top-0 z-50 w-full bg-amber-500 text-amber-950 border-b border-amber-600">
-      <div className="container mx-auto px-4 py-2 flex items-center justify-between text-sm">
+    <div className="fixed top-0 inset-x-0 z-50 h-[40px] bg-amber-500 text-amber-950 border-b border-amber-600">
+      <div className="container mx-auto px-4 py-2 flex items-center justify-center text-sm h-full">
         <div className="flex items-center gap-2">
           <AlertCircle className="h-4 w-4" />
           <span className="font-medium">
             Demo Mode - Your data will be deleted when you log out
           </span>
+          <span className="text-amber-900">|</span>
+          <Link
+            href="/register"
+            className="text-amber-950 underline hover:no-underline font-medium"
+          >
+            Create Free Account
+          </Link>
         </div>
-        <Link
-          href="/register"
-          className="text-amber-950 underline hover:no-underline font-medium"
-        >
-          Create account to save your data
-        </Link>
       </div>
     </div>
   );

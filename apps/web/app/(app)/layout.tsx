@@ -5,6 +5,7 @@ import { ArtifactCanvas } from '@/components/artifact-canvas';
 import { SidebarProvider } from '@/components/ui/sidebar';
 import { AppSidebar } from '@/components/app-sidebar';
 import { DemoModeBanner } from '@/components/demo-mode-banner';
+import { DemoModeLayout } from '@/components/demo-mode-layout';
 
 export default function AppLayout({
   children,
@@ -14,20 +15,22 @@ export default function AppLayout({
   return (
     <ArtifactProvider>
       <DataStreamProvider>
-        <DemoModeBanner />
-        <SidebarProvider
-          style={
-            {
-              '--sidebar-width': 'calc(var(--spacing) * 72)',
-              '--header-height': 'calc(var(--spacing) * 12)',
-            } as React.CSSProperties
-          }
-        >
-          <AppSidebar variant="inset" />
-          {children}
-          <DataStreamHandler />
-          <ArtifactCanvas />
-        </SidebarProvider>
+        <DemoModeLayout>
+          <DemoModeBanner />
+          <SidebarProvider
+            style={
+              {
+                '--sidebar-width': 'calc(var(--spacing) * 72)',
+                '--header-height': 'calc(var(--spacing) * 12)',
+              } as React.CSSProperties
+            }
+          >
+            <AppSidebar variant="inset" />
+            {children}
+            <DataStreamHandler />
+            <ArtifactCanvas />
+          </SidebarProvider>
+        </DemoModeLayout>
       </DataStreamProvider>
     </ArtifactProvider>
   );
