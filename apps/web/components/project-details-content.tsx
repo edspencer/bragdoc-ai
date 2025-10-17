@@ -144,7 +144,8 @@ export function ProjectDetailsContent({ project }: ProjectDetailsContentProps) {
     try {
       setIsDeleting(true);
       await deleteProject(project.id);
-      router.push('/projects');
+      router.refresh();
+      router.push('/dashboard');
     } catch (error) {
       console.error('Failed to delete project:', error);
     } finally {
