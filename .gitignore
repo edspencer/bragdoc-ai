@@ -49,3 +49,4 @@ packages/cli/dist
 .open-next
 .wrangler
 .dev.vars
+.playwright-mcp
