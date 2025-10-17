@@ -112,8 +112,8 @@ export async function PUT(
     }
 
     // Return the latest version
-    const latest = updated.sort((a, b) =>
-      b.createdAt.getTime() - a.createdAt.getTime()
+    const latest = updated.sort(
+      (a, b) => b.createdAt.getTime() - a.createdAt.getTime(),
     )[0];
 
     return Response.json({ document: latest });

@@ -32,12 +32,11 @@ export function DocumentPreview({
 }: DocumentPreviewProps) {
   const { artifact, setArtifact } = useArtifact();
 
-  const { data: previewDocument, isLoading: isDocumentsFetching } = useSWR<
-    Document
-  >(
-    result ? `/api/documents/${result.id}/artifact?id=${result.id}` : null,
-    fetcher
-  );
+  const { data: previewDocument, isLoading: isDocumentsFetching } =
+    useSWR<Document>(
+      result ? `/api/documents/${result.id}/artifact?id=${result.id}` : null,
+      fetcher,
+    );
   const hitboxRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -148,7 +147,7 @@ const PureHitboxLayer = ({
   hitboxRef: React.RefObject<HTMLDivElement | null>;
   result: any;
   setArtifact: (
-    updaterFn: UIArtifact | ((currentArtifact: UIArtifact) => UIArtifact)
+    updaterFn: UIArtifact | ((currentArtifact: UIArtifact) => UIArtifact),
   ) => void;
 }) => {
   const handleClick = useCallback(
@@ -170,10 +169,10 @@ const PureHitboxLayer = ({
                 width: boundingBox.width,
                 height: boundingBox.height,
               },
-            }
+            },
       );
     },
-    [setArtifact, result]
+    [setArtifact, result],
   );
 
   return (
@@ -241,7 +240,7 @@ const DocumentContent = ({ document }: { document: Document }) => {
   const { artifact } = useArtifact();
 
   const containerClassName = cn(
-    'h-[257px] overflow-y-scroll rounded-b-2xl border border-t-0 p-4 sm:px-14 sm:py-16 dark:border-zinc-700 dark:bg-muted'
+    'h-[257px] overflow-y-scroll rounded-b-2xl border border-t-0 p-4 sm:px-14 sm:py-16 dark:border-zinc-700 dark:bg-muted',
   );
 
   const commonProps = {

@@ -835,13 +835,20 @@ export async function getCompanyRelatedDataCounts({
     const [achievementCount] = await db
       .select({ count: sql<number>`count(*)` })
       .from(achievement)
-      .where(and(eq(achievement.companyId, companyId), eq(achievement.userId, userId)));
+      .where(
+        and(
+          eq(achievement.companyId, companyId),
+          eq(achievement.userId, userId),
+        ),
+      );
 
     // Count documents
     const [documentCount] = await db
       .select({ count: sql<number>`count(*)` })
       .from(document)
-      .where(and(eq(document.companyId, companyId), eq(document.userId, userId)));
+      .where(
+        and(eq(document.companyId, companyId), eq(document.userId, userId)),
+      );
 
     // Count standups
     const [standupCount] = await db
@@ -899,7 +906,9 @@ export async function deleteCompanyWithCascade({
     if (cascadeOptions.deleteAchievements) {
       const deletedAchievements = await db
         .delete(achievement)
-        .where(and(eq(achievement.companyId, id), eq(achievement.userId, userId)))
+        .where(
+          and(eq(achievement.companyId, id), eq(achievement.userId, userId)),
+        )
         .returning();
       deletedCounts.achievements = deletedAchievements.length;
     }

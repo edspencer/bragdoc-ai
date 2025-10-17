@@ -1,17 +1,17 @@
-"use client";
+'use client';
 
-import type { ComponentProps } from "react";
+import type { ComponentProps } from 'react';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { Progress } from "@/components/ui/progress";
-import { Separator } from "@/components/ui/separator";
-import type { AppUsage } from "@bragdoc/database";
-import { cn } from "@/lib/utils";
+} from '@/components/ui/dropdown-menu';
+import { Progress } from '@/components/ui/progress';
+import { Separator } from '@/components/ui/separator';
+import type { AppUsage } from '@bragdoc/database';
+import { cn } from '@/lib/utils';
 
-export type ContextProps = ComponentProps<"button"> & {
+export type ContextProps = ComponentProps<'button'> & {
   /** Optional full usage payload to enable breakdown view */
   usage?: AppUsage;
 };
@@ -41,7 +41,7 @@ export const ContextIcon = ({ percent }: ContextIconProps) => {
       aria-label={`${percent.toFixed(2)}% of model context used`}
       height="28"
       role="img"
-      style={{ color: "currentcolor" }}
+      style={{ color: 'currentcolor' }}
       viewBox={`0 0 ${ICON_VIEWBOX} ${ICON_VIEWBOX}`}
       width="28"
     >
@@ -85,7 +85,7 @@ function InfoRow({
       <span className="text-muted-foreground">{label}</span>
       <div className="flex items-center gap-2 font-mono">
         <span className="min-w-[4ch] text-right">
-          {tokens === undefined ? "—" : tokens.toLocaleString()}
+          {tokens === undefined ? '—' : tokens.toLocaleString()}
         </span>
         {costText !== undefined &&
           costText !== null &&
@@ -107,16 +107,16 @@ export const Context = ({ className, usage, ...props }: ContextProps) => {
     usageWithContext?.context?.totalMax ??
     usageWithContext?.context?.combinedMax ??
     usageWithContext?.context?.inputMax;
-  const hasMax = typeof max === "number" && Number.isFinite(max) && max > 0;
+  const hasMax = typeof max === 'number' && Number.isFinite(max) && max > 0;
   const usedPercent = hasMax ? Math.min(100, (used / max) * 100) : 0;
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <button
           className={cn(
-            "inline-flex select-none items-center gap-1 rounded-md text-sm",
-            "cursor-pointer bg-background text-foreground",
-            className
+            'inline-flex select-none items-center gap-1 rounded-md text-sm',
+            'cursor-pointer bg-background text-foreground',
+            className,
           )}
           type="button"
           {...props}
@@ -139,13 +139,14 @@ export const Context = ({ className, usage, ...props }: ContextProps) => {
             <Progress className="h-2 bg-muted" value={usedPercent} />
           </div>
           <div className="mt-1 space-y-1">
-            {usageWithContext?.cachedInputTokens && usageWithContext.cachedInputTokens > 0 && (
-              <InfoRow
-                costText={usageWithContext?.costUSD?.cacheReadUSD?.toString()}
-                label="Cache Hits"
-                tokens={usageWithContext?.cachedInputTokens}
-              />
-            )}
+            {usageWithContext?.cachedInputTokens &&
+              usageWithContext.cachedInputTokens > 0 && (
+                <InfoRow
+                  costText={usageWithContext?.costUSD?.cacheReadUSD?.toString()}
+                  label="Cache Hits"
+                  tokens={usageWithContext?.cachedInputTokens}
+                />
+              )}
             <InfoRow
               costText={usageWithContext?.costUSD?.inputUSD?.toString()}
               label="Input"
@@ -160,7 +161,8 @@ export const Context = ({ className, usage, ...props }: ContextProps) => {
               costText={usageWithContext?.costUSD?.reasoningUSD?.toString()}
               label="Reasoning"
               tokens={
-                usageWithContext?.reasoningTokens && usageWithContext.reasoningTokens > 0
+                usageWithContext?.reasoningTokens &&
+                usageWithContext.reasoningTokens > 0
                   ? usageWithContext.reasoningTokens
                   : undefined
               }
@@ -174,9 +176,11 @@ export const Context = ({ className, usage, ...props }: ContextProps) => {
                     <span className="min-w-[4ch] text-right" />
                     <span>
                       {Number.isNaN(
-                        Number.parseFloat(usageWithContext.costUSD.totalUSD.toString())
+                        Number.parseFloat(
+                          usageWithContext.costUSD.totalUSD.toString(),
+                        ),
                       )
-                        ? "—"
+                        ? '—'
                         : `$${Number.parseFloat(usageWithContext.costUSD.totalUSD.toString()).toFixed(6)}`}
                     </span>
                   </div>

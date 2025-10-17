@@ -3,7 +3,10 @@
 import { generateText } from 'ai';
 import { routerModel } from '@/lib/ai';
 import type { ChatMessage } from '@/lib/types';
-import { deleteMessagesByChatIdAfterTimestamp, getMessageById } from '@bragdoc/database';
+import {
+  deleteMessagesByChatIdAfterTimestamp,
+  getMessageById,
+} from '@bragdoc/database';
 
 export async function generateTitleFromUserMessage({
   message,

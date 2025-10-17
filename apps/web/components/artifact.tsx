@@ -68,14 +68,11 @@ function PureArtifact({
 }) {
   const { artifact, setArtifact, metadata, setMetadata } = useArtifact();
 
-  const {
-    data: document,
-    isLoading: isDocumentsFetching,
-  } = useSWR<Document>(
+  const { data: document, isLoading: isDocumentsFetching } = useSWR<Document>(
     artifact.documentId !== 'init' && artifact.status !== 'streaming'
       ? `/api/documents/${artifact.documentId}/artifact?id=${artifact.documentId}`
       : null,
-    fetcher
+    fetcher,
   );
 
   const { open: isSidebarOpen } = useSidebar();
@@ -116,7 +113,7 @@ function PureArtifact({
                   content: updatedContent,
                   kind: artifact.kind,
                 }),
-              }
+              },
             );
 
             setIsContentDirty(false);
@@ -129,15 +126,15 @@ function PureArtifact({
           }
           return currentDocument;
         },
-        { revalidate: false }
+        { revalidate: false },
       );
     },
-    [artifact, document, mutate]
+    [artifact, document, mutate],
   );
 
   const debouncedHandleContentChange = useDebounceCallback(
     handleContentChange,
-    2000
+    2000,
   );
 
   const saveContent = useCallback(
@@ -152,7 +149,7 @@ function PureArtifact({
         }
       }
     },
-    [document, debouncedHandleContentChange, handleContentChange]
+    [document, debouncedHandleContentChange, handleContentChange],
   );
 
   const [isToolbarVisible, setIsToolbarVisible] = useState(false);
@@ -161,7 +158,7 @@ function PureArtifact({
   const isMobile = windowWidth ? windowWidth < 768 : false;
 
   const artifactDefinition = artifactDefinitions.find(
-    (definition) => definition.kind === artifact.kind
+    (definition) => definition.kind === artifact.kind,
   );
 
   if (!artifactDefinition) {
@@ -337,7 +334,7 @@ function PureArtifact({
                         new Date(),
                         {
                           addSuffix: true,
-                        }
+                        },
                       )}`}
                     </div>
                   ) : (

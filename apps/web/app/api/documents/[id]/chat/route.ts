@@ -1,4 +1,4 @@
-import { getAuthUser } from "@/lib/getAuthUser";
+import { getAuthUser } from '@/lib/getAuthUser';
 import {
   getChatById,
   saveChat,
@@ -6,13 +6,13 @@ import {
   getMessagesByChatId,
   updateChatLastContextById,
   getDocumentById,
-} from "@bragdoc/database";
-import type { User, Message } from "@bragdoc/database";
-import { generateUUID } from "@/lib/utils";
-import { generateTitleFromUserMessage } from "@/app/(app)/chat/actions";
-import { createDocument } from "@/lib/ai/tools/create-document";
-import { updateDocument } from "@/lib/ai/tools/update-document";
-import type { ChatMessage } from "@/lib/types";
+} from '@bragdoc/database';
+import type { User, Message } from '@bragdoc/database';
+import { generateUUID } from '@/lib/utils';
+import { generateTitleFromUserMessage } from '@/app/(app)/chat/actions';
+import { createDocument } from '@/lib/ai/tools/create-document';
+import { updateDocument } from '@/lib/ai/tools/update-document';
+import type { ChatMessage } from '@/lib/types';
 import {
   streamText,
   createUIMessageStream,
@@ -20,9 +20,9 @@ import {
   smoothStream,
   stepCountIs,
   JsonToSseTransformStream,
-} from "ai";
-import { routerModel } from "@/lib/ai";
-import { systemPrompt } from "@/lib/ai/prompts";
+} from 'ai';
+import { routerModel } from '@/lib/ai';
+import { systemPrompt } from '@/lib/ai/prompts';
 
 export const maxDuration = 60;
 
@@ -36,7 +36,7 @@ function convertMessagesToChatMessages(messages: Message[]): ChatMessage[] {
 
 export async function POST(
   request: Request,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ id: string }> },
 ) {
   const { id: documentId } = await params;
   const body = await request.json();
@@ -46,13 +46,13 @@ export async function POST(
   const message: ChatMessage = body.message || body.messages?.at(-1);
 
   if (!message) {
-    return Response.json({ error: "No message provided" }, { status: 400 });
+    return Response.json({ error: 'No message provided' }, { status: 400 });
   }
 
   const auth = await getAuthUser(request);
 
   if (!auth?.user?.id) {
-    return Response.json({ error: "Unauthorized" }, { status: 401 });
+    return Response.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
   const user = auth.user as User;
@@ -62,14 +62,17 @@ export async function POST(
   try {
     currentDocument = await getDocumentById({ id: documentId });
     if (!currentDocument) {
-      return Response.json({ error: "Document not found" }, { status: 404 });
+      return Response.json({ error: 'Document not found' }, { status: 404 });
     }
     if (currentDocument.userId !== user.id) {
-      return Response.json({ error: "Forbidden" }, { status: 403 });
+      return Response.json({ error: 'Forbidden' }, { status: 403 });
     }
   } catch (error) {
     console.error('Error fetching document:', error);
-    return Response.json({ error: "Failed to fetch document" }, { status: 500 });
+    return Response.json(
+      { error: 'Failed to fetch document' },
+      { status: 500 },
+    );
   }
 
   // Check if chat exists
@@ -80,7 +83,7 @@ export async function POST(
     const title = await generateTitleFromUserMessage({ message });
     await saveChat({ id: chatId, userId: user.id, title });
   } else if (chat.userId !== user.id) {
-    return Response.json({ error: "Forbidden" }, { status: 403 });
+    return Response.json({ error: 'Forbidden' }, { status: 403 });
   }
 
   // Get existing messages and add new user message
@@ -97,7 +100,7 @@ export async function POST(
       {
         chatId: chatId,
         id: messageId,
-        role: "user",
+        role: 'user',
         parts: message.parts as any,
         attachments: [],
         createdAt: new Date(),
@@ -131,18 +134,18 @@ When the user refers to "this document", "the document", or asks to modify/trans
         system: enhancedSystemPrompt,
         messages: convertToModelMessages(uiMessages),
         stopWhen: stepCountIs(5),
-        experimental_transform: smoothStream({ chunking: "word" }),
+        experimental_transform: smoothStream({ chunking: 'word' }),
         tools: {
           createDocument: createDocument({ user, dataStream }),
           updateDocument: updateDocument({ user, dataStream }),
         },
         experimental_telemetry: {
           isEnabled: true,
-          functionId: "stream-text",
+          functionId: 'stream-text',
         },
         onFinish: async ({ usage }) => {
           finalUsage = usage;
-          dataStream.write({ type: "data-usage", data: usage });
+          dataStream.write({ type: 'data-usage', data: usage });
         },
       });
 
@@ -151,7 +154,7 @@ When the user refers to "this document", "the document", or asks to modify/trans
       dataStream.merge(
         result.toUIMessageStream({
           sendReasoning: true,
-        })
+        }),
       );
     },
     generateId: generateUUID,
@@ -160,7 +163,9 @@ When the user refers to "this document", "the document", or asks to modify/trans
       // Ensure all message IDs are valid UUIDs
       await saveMessages({
         messages: messages.map((currentMessage) => {
-          const msgId = currentMessage.id?.includes('-') ? currentMessage.id : generateUUID();
+          const msgId = currentMessage.id?.includes('-')
+            ? currentMessage.id
+            : generateUUID();
           return {
             id: msgId,
             role: currentMessage.role,
@@ -184,12 +189,12 @@ When the user refers to "this document", "the document", or asks to modify/trans
             },
           });
         } catch (err) {
-          console.warn("Unable to persist usage for chat", chatId, err);
+          console.warn('Unable to persist usage for chat', chatId, err);
         }
       }
     },
     onError: () => {
-      return "Oops, an error occurred!";
+      return 'Oops, an error occurred!';
     },
   });
 

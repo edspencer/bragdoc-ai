@@ -67,10 +67,7 @@ export async function createDemoAccountAction(): Promise<CreateDemoActionState> 
     return { status: 'success' };
   } catch (error) {
     const errorDuration = performance.now() - startTime;
-    console.error(
-      `[Demo] Error after ${errorDuration.toFixed(0)}ms:`,
-      error,
-    );
+    console.error(`[Demo] Error after ${errorDuration.toFixed(0)}ms:`, error);
     return { status: 'failed', error: 'An error occurred' };
   }
 }

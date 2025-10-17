@@ -40,7 +40,7 @@ interface CompaniesTableProps {
       deleteAchievements: boolean;
       deleteDocuments: boolean;
       deleteStandups: boolean;
-    }
+    },
   ) => Promise<void>;
   isLoading?: boolean;
 }
@@ -53,7 +53,7 @@ export function CompaniesTable({
 }: CompaniesTableProps) {
   const [sorting, setSorting] = React.useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
-    []
+    [],
   );
   const [globalFilter, setGlobalFilter] = React.useState('');
 
@@ -173,7 +173,7 @@ export function CompaniesTable({
                       ? null
                       : flexRender(
                           header.column.columnDef.header,
-                          header.getContext()
+                          header.getContext(),
                         )}
                   </TableHead>
                 ))}
@@ -188,7 +188,7 @@ export function CompaniesTable({
                     <TableCell key={cell.id}>
                       {flexRender(
                         cell.column.columnDef.cell,
-                        cell.getContext()
+                        cell.getContext(),
                       )}
                     </TableCell>
                   ))}

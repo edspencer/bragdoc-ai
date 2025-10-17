@@ -17,7 +17,7 @@ export const fetcher = async (url: string) => {
 
   if (!res.ok) {
     const error = new Error(
-      'An error occurred while fetching the data.'
+      'An error occurred while fetching the data.',
     ) as ApplicationError;
 
     error.info = await res.json();
@@ -46,7 +46,7 @@ export function generateUUID(): string {
 
 export function getDocumentTimestampByIndex(
   documents: Array<Document>,
-  index: number
+  index: number,
 ) {
   if (!documents) return new Date();
   if (index > documents.length) return new Date();

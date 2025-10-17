@@ -16,7 +16,9 @@ import { revalidatePath } from 'next/cache';
  * @param title - The title of the document
  * @returns Object with documentId and chatId, or error
  */
-export async function createDocumentWithChat(title: string): Promise<
+export async function createDocumentWithChat(
+  title: string,
+): Promise<
   | { success: true; documentId: string; chatId: string }
   | { success: false; error: string }
 > {
@@ -131,7 +133,9 @@ export async function linkDocumentToChat(
     const result = await db
       .update(document)
       .set({ chatId, updatedAt: new Date() })
-      .where(and(eq(document.id, documentId), eq(document.userId, session.user.id)))
+      .where(
+        and(eq(document.id, documentId), eq(document.userId, session.user.id)),
+      )
       .returning();
 
     if (!result || result.length === 0) {

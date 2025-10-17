@@ -46,7 +46,7 @@ export async function GET(request: Request) {
     console.error('Error loading messages:', error);
     return Response.json(
       { error: 'An error occurred while loading messages' },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

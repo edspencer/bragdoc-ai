@@ -45,7 +45,7 @@ const fetchCompany = async (url: string) => {
 export function useCompanies() {
   const { data, error, mutate } = useSWR<Company[]>(
     '/api/companies',
-    fetchCompanies
+    fetchCompanies,
   );
 
   return {
@@ -59,7 +59,7 @@ export function useCompanies() {
 export function useCompany(id: string) {
   const { data, error, mutate } = useSWR<Company>(
     `/api/companies/${id}`,
-    fetchCompany
+    fetchCompany,
   );
 
   return {
@@ -136,7 +136,7 @@ export function useDeleteCompany() {
       deleteAchievements: boolean;
       deleteDocuments: boolean;
       deleteStandups: boolean;
-    }
+    },
   ) => {
     try {
       // Build query string if cascade options provided
@@ -178,24 +178,24 @@ export function useDeleteCompany() {
         const deletedItems = [];
         if (deletedCounts.projects > 0)
           deletedItems.push(
-            `${deletedCounts.projects} project${deletedCounts.projects > 1 ? 's' : ''}`
+            `${deletedCounts.projects} project${deletedCounts.projects > 1 ? 's' : ''}`,
           );
         if (deletedCounts.achievements > 0)
           deletedItems.push(
-            `${deletedCounts.achievements} achievement${deletedCounts.achievements > 1 ? 's' : ''}`
+            `${deletedCounts.achievements} achievement${deletedCounts.achievements > 1 ? 's' : ''}`,
           );
         if (deletedCounts.documents > 0)
           deletedItems.push(
-            `${deletedCounts.documents} document${deletedCounts.documents > 1 ? 's' : ''}`
+            `${deletedCounts.documents} document${deletedCounts.documents > 1 ? 's' : ''}`,
           );
         if (deletedCounts.standups > 0)
           deletedItems.push(
-            `${deletedCounts.standups} standup${deletedCounts.standups > 1 ? 's' : ''}`
+            `${deletedCounts.standups} standup${deletedCounts.standups > 1 ? 's' : ''}`,
           );
 
         if (deletedItems.length > 0) {
           toast.success(
-            `Company deleted successfully. Also deleted: ${deletedItems.join(', ')}`
+            `Company deleted successfully. Also deleted: ${deletedItems.join(', ')}`,
           );
         } else {
           toast.success('Company deleted successfully');

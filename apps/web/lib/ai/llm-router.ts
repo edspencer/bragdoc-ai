@@ -75,7 +75,12 @@ export async function render(data: LlmRouterPromptProps) {
 }
 
 export type LlmRouterRenderExecuteProps = {
-  streamTextOptions?: Partial<Omit<Parameters<typeof streamText>[0], 'model' | 'prompt' | 'messages' | 'tools' | 'stopWhen'>>;
+  streamTextOptions?: Partial<
+    Omit<
+      Parameters<typeof streamText>[0],
+      'model' | 'prompt' | 'messages' | 'tools' | 'stopWhen'
+    >
+  >;
   data: LlmRouterPromptProps;
   onEvent?: (item: JSONValue) => void;
 
@@ -413,7 +418,7 @@ export function execute({
         }),
         execute: tools?.updateDocument || updateDocument,
       },
-    }
+    },
   });
 }
 
@@ -435,7 +440,12 @@ export async function renderExecute(props: LlmRouterRenderExecuteProps) {
 export interface LlmRouterFetchExecuteProps {
   input: LlmRouterFetchProps;
   onEvent?: (item: JSONValue) => void;
-  streamTextOptions?: Partial<Omit<Parameters<typeof streamText>[0], 'model' | 'prompt' | 'messages' | 'tools' | 'stopWhen'>>;
+  streamTextOptions?: Partial<
+    Omit<
+      Parameters<typeof streamText>[0],
+      'model' | 'prompt' | 'messages' | 'tools' | 'stopWhen'
+    >
+  >;
 }
 
 /**

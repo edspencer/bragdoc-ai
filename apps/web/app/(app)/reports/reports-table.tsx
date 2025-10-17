@@ -100,7 +100,7 @@ function getDocumentTypeLabel(type: string | null): string {
 }
 
 function getDocumentTypeBadgeVariant(
-  type: string | null
+  type: string | null,
 ): 'default' | 'secondary' | 'outline' {
   if (!type) return 'outline';
   const variantMap: Record<string, 'default' | 'secondary' | 'outline'> = {
@@ -128,7 +128,7 @@ export function ReportsTable({
   // Delete dialog
   const [deleteDialogOpen, setDeleteDialogOpen] = React.useState(false);
   const [documentToDelete, setDocumentToDelete] = React.useState<string | null>(
-    null
+    null,
   );
   const [isDeleting, setIsDeleting] = React.useState(false);
 
@@ -168,7 +168,7 @@ export function ReportsTable({
 
     return filtered.sort(
       (a, b) =>
-        new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
+        new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime(),
     );
   }, [documents, selectedType, selectedCompany, timePeriod]);
 

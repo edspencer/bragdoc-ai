@@ -1,9 +1,9 @@
-"use client";
+'use client';
 
-import { useEffect, useRef } from "react";
-import { initialArtifactData, useArtifact } from "@/hooks/use-artifact";
-import { artifactDefinitions } from "./artifact";
-import { useDataStream } from "./data-stream-provider";
+import { useEffect, useRef } from 'react';
+import { initialArtifactData, useArtifact } from '@/hooks/use-artifact';
+import { artifactDefinitions } from './artifact';
+import { useDataStream } from './data-stream-provider';
 
 export function DataStreamHandler() {
   const { dataStream } = useDataStream();
@@ -28,7 +28,7 @@ export function DataStreamHandler() {
     for (const delta of newDeltas) {
       const artifactDefinition = artifactDefinitions.find(
         (currentArtifactDefinition) =>
-          currentArtifactDefinition.kind === artifactKindRef.current
+          currentArtifactDefinition.kind === artifactKindRef.current,
       );
 
       if (artifactDefinition?.onStreamPart) {
@@ -44,38 +44,38 @@ export function DataStreamHandler() {
         const currentArtifact = draftArtifact || initialArtifactData;
 
         switch (delta.type) {
-          case "data-id":
+          case 'data-id':
             return {
               ...currentArtifact,
               documentId: delta.data,
-              status: "streaming",
+              status: 'streaming',
             };
 
-          case "data-title":
+          case 'data-title':
             return {
               ...currentArtifact,
               title: delta.data,
-              status: "streaming",
+              status: 'streaming',
             };
 
-          case "data-kind":
+          case 'data-kind':
             return {
               ...currentArtifact,
               kind: delta.data,
-              status: "streaming",
+              status: 'streaming',
             };
 
-          case "data-clear":
+          case 'data-clear':
             return {
               ...currentArtifact,
-              content: "",
-              status: "streaming",
+              content: '',
+              status: 'streaming',
             };
 
-          case "data-finish":
+          case 'data-finish':
             return {
               ...currentArtifact,
-              status: "idle",
+              status: 'idle',
             };
 
           default:

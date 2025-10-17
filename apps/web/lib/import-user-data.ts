@@ -38,7 +38,7 @@ export interface ImportStats {
  * @returns Statistics about created and skipped items
  */
 export async function importUserData(
-  options: ImportOptions
+  options: ImportOptions,
 ): Promise<ImportStats> {
   const {
     userId,

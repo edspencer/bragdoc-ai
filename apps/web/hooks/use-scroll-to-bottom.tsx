@@ -88,7 +88,7 @@ export function useScrollToBottom() {
     (currentScrollBehavior: ScrollBehavior = 'smooth') => {
       setScrollBehavior(currentScrollBehavior);
     },
-    [setScrollBehavior]
+    [setScrollBehavior],
   );
 
   function onViewportEnter() {

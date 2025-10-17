@@ -27,7 +27,7 @@ export const initialArtifactData: UIArtifact = {
 type ArtifactContextType = {
   artifact: UIArtifact;
   setArtifact: (
-    updater: UIArtifact | ((current: UIArtifact) => UIArtifact)
+    updater: UIArtifact | ((current: UIArtifact) => UIArtifact),
   ) => void;
   metadata: any;
   setMetadata: (updater: any) => void;
@@ -48,7 +48,7 @@ export function ArtifactProvider({ children }: { children: React.ReactNode }) {
         return result;
       });
     },
-    []
+    [],
   );
 
   const value = useMemo(
@@ -58,7 +58,7 @@ export function ArtifactProvider({ children }: { children: React.ReactNode }) {
       metadata,
       setMetadata,
     }),
-    [artifact, setArtifact, metadata]
+    [artifact, setArtifact, metadata],
   );
 
   return React.createElement(ArtifactContext.Provider, { value }, children);

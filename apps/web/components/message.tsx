@@ -4,25 +4,25 @@ import equal from 'fast-deep-equal';
 import { motion } from 'framer-motion';
 import { memo, useState } from 'react';
 import type { ChatMessage } from '@/lib/types';
-import { cn, sanitizeText } from "@/lib/utils";
-import { useDataStream } from "./data-stream-provider";
-import { DocumentToolResult } from "./document";
-import { DocumentPreview } from "./document-preview";
-import { MessageContent } from "./elements/message";
-import { Response } from "./elements/response";
+import { cn, sanitizeText } from '@/lib/utils';
+import { useDataStream } from './data-stream-provider';
+import { DocumentToolResult } from './document';
+import { DocumentPreview } from './document-preview';
+import { MessageContent } from './elements/message';
+import { Response } from './elements/response';
 import {
   Tool,
   ToolContent,
   ToolHeader,
   ToolInput,
   ToolOutput,
-} from "./elements/tool";
-import { SparklesIcon } from "./icons";
-import { MessageActions } from "./message-actions";
-import { MessageEditor } from "./message-editor";
-import { MessageReasoning } from "./message-reasoning";
-import { PreviewAttachment } from "./preview-attachment";
-import { Weather } from "./weather";
+} from './elements/tool';
+import { SparklesIcon } from './icons';
+import { MessageActions } from './message-actions';
+import { MessageEditor } from './message-editor';
+import { MessageReasoning } from './message-reasoning';
+import { PreviewAttachment } from './preview-attachment';
+import { Weather } from './weather';
 
 const PurePreviewMessage = ({
   chatId,
@@ -41,10 +41,10 @@ const PurePreviewMessage = ({
   isReadonly: boolean;
   requiresScrollPadding: boolean;
 }) => {
-  const [mode, setMode] = useState<"view" | "edit">("view");
+  const [mode, setMode] = useState<'view' | 'edit'>('view');
 
   const attachmentsFromMessage = message.parts.filter(
-    (part) => part.type === "file"
+    (part) => part.type === 'file',
   );
 
   useDataStream();
@@ -58,42 +58,42 @@ const PurePreviewMessage = ({
       initial={{ opacity: 0 }}
     >
       <div
-        className={cn("flex w-full items-start gap-2 md:gap-3", {
-          "justify-end": message.role === "user" && mode !== "edit",
-          "justify-start": message.role === "assistant",
+        className={cn('flex w-full items-start gap-2 md:gap-3', {
+          'justify-end': message.role === 'user' && mode !== 'edit',
+          'justify-start': message.role === 'assistant',
         })}
       >
-        {message.role === "assistant" && (
+        {message.role === 'assistant' && (
           <div className="-mt-1 flex size-8 shrink-0 items-center justify-center rounded-full bg-background ring-1 ring-border">
             <SparklesIcon size={14} />
           </div>
         )}
 
         <div
-          className={cn("flex flex-col", {
-            "gap-2 md:gap-4": message.parts?.some(
-              (p) => p.type === "text" && p.text?.trim()
+          className={cn('flex flex-col', {
+            'gap-2 md:gap-4': message.parts?.some(
+              (p) => p.type === 'text' && p.text?.trim(),
             ),
-            "min-h-96": message.role === "assistant" && requiresScrollPadding,
-            "w-full":
-              (message.role === "assistant" &&
+            'min-h-96': message.role === 'assistant' && requiresScrollPadding,
+            'w-full':
+              (message.role === 'assistant' &&
                 message.parts?.some(
-                  (p) => p.type === "text" && p.text?.trim()
+                  (p) => p.type === 'text' && p.text?.trim(),
                 )) ||
-              mode === "edit",
-            "max-w-[calc(100%-2.5rem)] sm:max-w-[min(fit-content,80%)]":
-              message.role === "user" && mode !== "edit",
+              mode === 'edit',
+            'max-w-[calc(100%-2.5rem)] sm:max-w-[min(fit-content,80%)]':
+              message.role === 'user' && mode !== 'edit',
           })}
         >
           {attachmentsFromMessage.length > 0 && (
             <div
               className="flex flex-row justify-end gap-2"
-              data-testid={"message-attachments"}
+              data-testid={'message-attachments'}
             >
               {attachmentsFromMessage.map((attachment) => (
                 <PreviewAttachment
                   attachment={{
-                    name: attachment.filename ?? "file",
+                    name: attachment.filename ?? 'file',
                     contentType: attachment.mediaType,
                     url: attachment.url,
                   }}
@@ -107,7 +107,7 @@ const PurePreviewMessage = ({
             const { type } = part;
             const key = `message-${message.id}-part-${index}`;
 
-            if (type === "reasoning" && part.text?.trim().length > 0) {
+            if (type === 'reasoning' && part.text?.trim().length > 0) {
               return (
                 <MessageReasoning
                   isLoading={isLoading}
@@ -117,21 +117,21 @@ const PurePreviewMessage = ({
               );
             }
 
-            if (type === "text") {
-              if (mode === "view") {
+            if (type === 'text') {
+              if (mode === 'view') {
                 return (
                   <div key={key}>
                     <MessageContent
                       className={cn({
-                        "w-fit break-words rounded-2xl px-3 py-2 text-right text-white":
-                          message.role === "user",
-                        "bg-transparent px-0 py-0 text-left":
-                          message.role === "assistant",
+                        'w-fit break-words rounded-2xl px-3 py-2 text-right text-white':
+                          message.role === 'user',
+                        'bg-transparent px-0 py-0 text-left':
+                          message.role === 'assistant',
                       })}
                       data-testid="message-content"
                       style={
-                        message.role === "user"
-                          ? { backgroundColor: "#006cff" }
+                        message.role === 'user'
+                          ? { backgroundColor: '#006cff' }
                           : undefined
                       }
                     >
@@ -141,7 +141,7 @@ const PurePreviewMessage = ({
                 );
               }
 
-              if (mode === "edit") {
+              if (mode === 'edit') {
                 return (
                   <div
                     className="flex w-full flex-row items-start gap-3"
@@ -163,7 +163,7 @@ const PurePreviewMessage = ({
             }
 
             // @ts-ignore - Weather tool type not in main type union but may be used
-            if (type === "tool-getWeather") {
+            if (type === 'tool-getWeather') {
               const weatherPart = part as any;
               const { toolCallId, state } = weatherPart;
 
@@ -171,13 +171,15 @@ const PurePreviewMessage = ({
                 <Tool defaultOpen={true} key={toolCallId}>
                   <ToolHeader state={state} type="tool-getWeather" />
                   <ToolContent>
-                    {state === "input-available" && (
+                    {state === 'input-available' && (
                       <ToolInput input={weatherPart.input} />
                     )}
-                    {state === "output-available" && (
+                    {state === 'output-available' && (
                       <ToolOutput
                         errorText={undefined}
-                        output={<Weather weatherAtLocation={weatherPart.output} />}
+                        output={
+                          <Weather weatherAtLocation={weatherPart.output} />
+                        }
                       />
                     )}
                   </ToolContent>
@@ -185,10 +187,10 @@ const PurePreviewMessage = ({
               );
             }
 
-            if (type === "tool-createDocument") {
+            if (type === 'tool-createDocument') {
               const { toolCallId } = part;
 
-              if (part.output && "error" in part.output) {
+              if (part.output && 'error' in part.output) {
                 return (
                   <div
                     className="rounded-lg border border-red-200 bg-red-50 p-4 text-red-500 dark:bg-red-950/50"
@@ -208,10 +210,10 @@ const PurePreviewMessage = ({
               );
             }
 
-            if (type === "tool-updateDocument") {
+            if (type === 'tool-updateDocument') {
               const { toolCallId } = part;
 
-              if (part.output && "error" in part.output) {
+              if (part.output && 'error' in part.output) {
                 return (
                   <div
                     className="rounded-lg border border-red-200 bg-red-50 p-4 text-red-500 dark:bg-red-950/50"
@@ -234,7 +236,7 @@ const PurePreviewMessage = ({
             }
 
             // @ts-ignore - Suggestions tool type not in main type union (feature deferred)
-            if (type === "tool-requestSuggestions") {
+            if (type === 'tool-requestSuggestions') {
               const suggestionPart = part as any;
               const { toolCallId, state } = suggestionPart;
 
@@ -242,14 +244,14 @@ const PurePreviewMessage = ({
                 <Tool defaultOpen={true} key={toolCallId}>
                   <ToolHeader state={state} type="tool-requestSuggestions" />
                   <ToolContent>
-                    {state === "input-available" && (
+                    {state === 'input-available' && (
                       <ToolInput input={suggestionPart.input} />
                     )}
-                    {state === "output-available" && (
+                    {state === 'output-available' && (
                       <ToolOutput
                         errorText={undefined}
                         output={
-                          "error" in suggestionPart.output ? (
+                          'error' in suggestionPart.output ? (
                             <div className="rounded border p-2 text-red-500">
                               Error: {String(suggestionPart.output.error)}
                             </div>
@@ -257,7 +259,7 @@ const PurePreviewMessage = ({
                             <DocumentToolResult
                               isReadonly={isReadonly}
                               result={suggestionPart.output}
-                              type={"request-suggestions" as any}
+                              type={'request-suggestions' as any}
                             />
                           )
                         }
@@ -303,11 +305,11 @@ export const PreviewMessage = memo(
     }
 
     return false;
-  }
+  },
 );
 
 export const ThinkingMessage = () => {
-  const role = "assistant";
+  const role = 'assistant';
 
   return (
     <motion.div
@@ -325,12 +327,9 @@ export const ThinkingMessage = () => {
         </div>
 
         <div className="flex w-full flex-col gap-2 md:gap-4">
-          <div className="p-0 text-muted-foreground text-sm">
-            Thinking...
-          </div>
+          <div className="p-0 text-muted-foreground text-sm">Thinking...</div>
         </div>
       </div>
     </motion.div>
   );
 };
-

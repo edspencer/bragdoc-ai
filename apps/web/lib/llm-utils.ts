@@ -1,4 +1,8 @@
-import { createAI, createStreamableValue, type StreamableValue } from '@ai-sdk/rsc';
+import {
+  createAI,
+  createStreamableValue,
+  type StreamableValue,
+} from '@ai-sdk/rsc';
 import { z } from 'zod/v3';
 import {
   createAchievement,

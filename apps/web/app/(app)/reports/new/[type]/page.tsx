@@ -110,7 +110,10 @@ Use a professional tone and emphasize strategic contributions.`,
 };
 
 function getDefaultInstructionsForType(type: string): string {
-  return DEFAULT_INSTRUCTIONS[type as keyof typeof DEFAULT_INSTRUCTIONS] || DEFAULT_INSTRUCTIONS.custom;
+  return (
+    DEFAULT_INSTRUCTIONS[type as keyof typeof DEFAULT_INSTRUCTIONS] ||
+    DEFAULT_INSTRUCTIONS.custom
+  );
 }
 
 function getDateRangeForType(type: string): Date {
@@ -149,7 +152,7 @@ export default function NewReportPage() {
   const defaultInstructions = getDefaultInstructionsForType(type);
   const savedInstructions = session?.user?.preferences?.documentInstructions;
   const [userInstructions, setUserInstructions] = React.useState(
-    savedInstructions || defaultInstructions
+    savedInstructions || defaultInstructions,
   );
 
   // Update instructions when session loads or type changes
@@ -313,7 +316,8 @@ export default function NewReportPage() {
                       {getTitleForType(type)}
                     </h1>
                     <p className="text-muted-foreground text-sm">
-                      Customize instructions and select achievements for your report
+                      Customize instructions and select achievements for your
+                      report
                     </p>
                   </div>
                 </div>
@@ -330,7 +334,8 @@ export default function NewReportPage() {
                     <CardHeader>
                       <CardTitle>Generation Instructions</CardTitle>
                       <CardDescription>
-                        Customize how the AI should write your report. Changes will be saved for future reports.
+                        Customize how the AI should write your report. Changes
+                        will be saved for future reports.
                       </CardDescription>
                     </CardHeader>
                     <CardContent>
@@ -350,8 +355,8 @@ export default function NewReportPage() {
                         <div>
                           <CardTitle>Select Achievements</CardTitle>
                           <CardDescription>
-                            Choose which achievements to include in your report (
-                            {selectedAchievements.length} selected)
+                            Choose which achievements to include in your report
+                            ({selectedAchievements.length} selected)
                           </CardDescription>
                         </div>
                         <Button

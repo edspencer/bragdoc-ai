@@ -108,9 +108,9 @@ export function CompanyActions({
 
           <div className="space-y-4 py-4">
             <p className="text-sm text-muted-foreground">
-              By default, related projects, achievements, documents, and standups
-              will be preserved (their company association will be removed).
-              Optionally, you can choose to delete related data:
+              By default, related projects, achievements, documents, and
+              standups will be preserved (their company association will be
+              removed). Optionally, you can choose to delete related data:
             </p>
 
             {countsLoading ? (
@@ -150,7 +150,8 @@ export function CompanyActions({
                     htmlFor="delete-achievements"
                     className="text-sm font-normal cursor-pointer"
                   >
-                    Also delete {counts?.achievements ?? 0} associated achievement
+                    Also delete {counts?.achievements ?? 0} associated
+                    achievement
                     {counts?.achievements !== 1 ? 's' : ''}
                   </Label>
                 </div>

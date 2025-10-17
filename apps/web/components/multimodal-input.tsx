@@ -1,7 +1,7 @@
-"use client";
+'use client';
 
-import type { UseChatHelpers } from "@ai-sdk/react";
-import type { UIMessage } from "ai";
+import type { UseChatHelpers } from '@ai-sdk/react';
+import type { UIMessage } from 'ai';
 import {
   type Dispatch,
   memo,
@@ -10,22 +10,22 @@ import {
   useEffect,
   useMemo,
   useRef,
-} from "react";
-import { toast } from "sonner";
-import { useLocalStorage, useWindowSize } from "usehooks-ts";
-import type { ChatMessage } from "@/lib/types";
-import type { AppUsage } from "@bragdoc/database";
-import { cn } from "@/lib/utils";
-import { Context } from "./elements/context";
+} from 'react';
+import { toast } from 'sonner';
+import { useLocalStorage, useWindowSize } from 'usehooks-ts';
+import type { ChatMessage } from '@/lib/types';
+import type { AppUsage } from '@bragdoc/database';
+import { cn } from '@/lib/utils';
+import { Context } from './elements/context';
 import {
   PromptInput,
   PromptInputSubmit,
   PromptInputTextarea,
   PromptInputToolbar,
   PromptInputTools,
-} from "./elements/prompt-input";
-import { ArrowUpIcon, StopIcon } from "./icons";
-import { Button } from "./ui/button";
+} from './elements/prompt-input';
+import { ArrowUpIcon, StopIcon } from './icons';
+import { Button } from './ui/button';
 
 function PureMultimodalInput({
   chatId,
@@ -42,11 +42,11 @@ function PureMultimodalInput({
   chatId: string;
   input: string;
   setInput: Dispatch<SetStateAction<string>>;
-  status: UseChatHelpers<ChatMessage>["status"];
+  status: UseChatHelpers<ChatMessage>['status'];
   stop: () => void;
   messages: UIMessage[];
-  setMessages: UseChatHelpers<ChatMessage>["setMessages"];
-  sendMessage: UseChatHelpers<ChatMessage>["sendMessage"];
+  setMessages: UseChatHelpers<ChatMessage>['setMessages'];
+  sendMessage: UseChatHelpers<ChatMessage>['sendMessage'];
   className?: string;
   usage?: AppUsage;
 }) {
@@ -55,7 +55,7 @@ function PureMultimodalInput({
 
   const adjustHeight = useCallback(() => {
     if (textareaRef.current) {
-      textareaRef.current.style.height = "44px";
+      textareaRef.current.style.height = '44px';
     }
   }, []);
 
@@ -67,20 +67,20 @@ function PureMultimodalInput({
 
   const resetHeight = useCallback(() => {
     if (textareaRef.current) {
-      textareaRef.current.style.height = "44px";
+      textareaRef.current.style.height = '44px';
     }
   }, []);
 
   const [localStorageInput, setLocalStorageInput] = useLocalStorage(
-    "input",
-    ""
+    'input',
+    '',
   );
 
   useEffect(() => {
     if (textareaRef.current) {
       const domValue = textareaRef.current.value;
       // Prefer DOM value over localStorage to handle hydration
-      const finalValue = domValue || localStorageInput || "";
+      const finalValue = domValue || localStorageInput || '';
       setInput(finalValue);
       adjustHeight();
     }
@@ -98,46 +98,39 @@ function PureMultimodalInput({
 
   const submitForm = useCallback(() => {
     sendMessage({
-      role: "user",
+      role: 'user',
       parts: [
         {
-          type: "text",
+          type: 'text',
           text: input,
         },
       ],
     });
 
-    setLocalStorageInput("");
+    setLocalStorageInput('');
     resetHeight();
-    setInput("");
+    setInput('');
 
     if (width && width > 768) {
       textareaRef.current?.focus();
     }
-  }, [
-    input,
-    setInput,
-    sendMessage,
-    setLocalStorageInput,
-    width,
-    resetHeight,
-  ]);
+  }, [input, setInput, sendMessage, setLocalStorageInput, width, resetHeight]);
 
   const contextProps = useMemo(
     () => ({
       usage,
     }),
-    [usage]
+    [usage],
   );
 
   return (
-    <div className={cn("relative flex w-full flex-col gap-4", className)}>
+    <div className={cn('relative flex w-full flex-col gap-4', className)}>
       <PromptInput
         className="rounded-xl border border-border bg-background p-3 shadow-xs transition-all duration-200 focus-within:border-border hover:border-muted-foreground/50"
         onSubmit={(event: React.FormEvent) => {
           event.preventDefault();
-          if (status !== "ready") {
-            toast.error("Please wait for the model to finish its response!");
+          if (status !== 'ready') {
+            toast.error('Please wait for the model to finish its response!');
           } else {
             submitForm();
           }
@@ -156,7 +149,7 @@ function PureMultimodalInput({
             ref={textareaRef}
             rows={1}
             value={input}
-          />{" "}
+          />{' '}
           <Context {...contextProps} />
         </div>
         <PromptInputToolbar className="!border-top-0 border-t-0! p-0 shadow-none dark:border-0 dark:border-transparent!">
@@ -164,7 +157,7 @@ function PureMultimodalInput({
             {/* Model selection handled automatically by LLM router */}
           </PromptInputTools>
 
-          {status === "submitted" ? (
+          {status === 'submitted' ? (
             <StopButton setMessages={setMessages} stop={stop} />
           ) : (
             <PromptInputSubmit
@@ -192,7 +185,7 @@ export const MultimodalInput = memo(
     }
 
     return true;
-  }
+  },
 );
 
 function PureStopButton({
@@ -200,7 +193,7 @@ function PureStopButton({
   setMessages,
 }: {
   stop: () => void;
-  setMessages: UseChatHelpers<ChatMessage>["setMessages"];
+  setMessages: UseChatHelpers<ChatMessage>['setMessages'];
 }) {
   return (
     <Button

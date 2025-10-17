@@ -24,9 +24,9 @@ export function PureMessageActions({
   }
 
   const textFromParts = message.parts
-    ?.filter((part) => part.type === "text")
+    ?.filter((part) => part.type === 'text')
     .map((part) => part.text)
-    .join("\n")
+    .join('\n')
     .trim();
 
   const handleCopy = async () => {
@@ -36,18 +36,18 @@ export function PureMessageActions({
     }
 
     await copyToClipboard(textFromParts);
-    toast.success("Copied to clipboard!");
+    toast.success('Copied to clipboard!');
   };
 
   // User messages get edit (on hover) and copy actions
-  if (message.role === "user") {
+  if (message.role === 'user') {
     return (
       <Actions className="-mr-0.5 justify-end">
         <div className="relative">
           {setMode && (
             <Action
               className="-left-10 absolute top-0 opacity-0 transition-opacity group-hover/message:opacity-100"
-              onClick={() => setMode("edit")}
+              onClick={() => setMode('edit')}
               tooltip="Edit"
             >
               <PencilEditIcon />
@@ -79,5 +79,5 @@ export const MessageActions = memo(
     }
 
     return true;
-  }
+  },
 );

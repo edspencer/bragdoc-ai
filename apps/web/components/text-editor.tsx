@@ -79,7 +79,7 @@ function PureEditor({ content, onSaveContent, status }: EditorProps) {
   useEffect(() => {
     if (editorRef.current && content) {
       const currentContent = buildContentFromDocument(
-        editorRef.current.state.doc
+        editorRef.current.state.doc,
       );
 
       if (status === 'streaming') {
@@ -88,7 +88,7 @@ function PureEditor({ content, onSaveContent, status }: EditorProps) {
         const transaction = editorRef.current.state.tr.replaceWith(
           0,
           editorRef.current.state.doc.content.size,
-          newDocument.content
+          newDocument.content,
         );
 
         transaction.setMeta('no-save', true);
@@ -102,7 +102,7 @@ function PureEditor({ content, onSaveContent, status }: EditorProps) {
         const transaction = editorRef.current.state.tr.replaceWith(
           0,
           editorRef.current.state.doc.content.size,
-          newDocument.content
+          newDocument.content,
         );
 
         transaction.setMeta('no-save', true);

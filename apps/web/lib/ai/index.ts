@@ -8,7 +8,7 @@ export const defaultModel = 'gpt-4o-mini';
 
 export const customModel = (
   apiIdentifier: string = defaultModel,
-  provider: any = openai
+  provider: any = openai,
 ): LanguageModel => {
   // Temporarily bypass middleware and Braintrust for v5 compatibility
   return provider(apiIdentifier);

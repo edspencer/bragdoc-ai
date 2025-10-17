@@ -124,7 +124,11 @@ ${achievements.map((a) => `- ${a.title}`).join('\n')}`;
             const achievementsStream = streamFetchRenderExecute({
               message: email.textContent,
               chatHistory: [
-                { role: 'user', parts: [{ type: 'text' as const, text: email.textContent }], id: uuidv4() },
+                {
+                  role: 'user',
+                  parts: [{ type: 'text' as const, text: email.textContent }],
+                  id: uuidv4(),
+                },
               ],
               user,
             });
@@ -165,7 +169,7 @@ ${achievements.map((a) => `- ${a.title}`).join('\n')}`;
             return { success: true };
           },
         },
-      }
+      },
     });
 
     console.log('Processed email from:', senderEmail);

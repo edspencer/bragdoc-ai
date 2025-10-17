@@ -33,7 +33,7 @@ export async function POST(request: Request) {
     if (!parsed.success) {
       return Response.json(
         { error: 'Invalid request', details: parsed.error },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -48,7 +48,7 @@ export async function POST(request: Request) {
     if (achievementIds.length === 0) {
       return Response.json(
         { error: 'At least one achievement must be selected' },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -90,7 +90,7 @@ export async function POST(request: Request) {
     if (!content) {
       return Response.json(
         { error: 'Failed to generate document content - no text generated' },
-        { status: 500 }
+        { status: 500 },
       );
     }
 
@@ -138,7 +138,7 @@ export async function POST(request: Request) {
     console.error('Error generating document:', error);
     return Response.json(
       { error: 'Failed to generate document' },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
