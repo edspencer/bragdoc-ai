@@ -3,6 +3,7 @@
 ## Additional code style rules
 
 - Never use dynamic imports. If there is truly no other way, advise me and get my explicit permission before doing this
+- page.tsx files should never be "use client" client components, they should always be server-rendered React Server Components
 
 ## Databases
 
