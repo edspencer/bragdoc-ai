@@ -5,8 +5,8 @@
  * into a newly created demo user account.
  */
 
-import fs from 'fs';
-import path from 'path';
+import fs from 'node:fs';
+import path from 'node:path';
 import { exportDataSchema } from '@/lib/export-import-schema';
 import { importUserData, type ImportStats } from '@/lib/import-user-data';
 

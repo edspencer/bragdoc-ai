@@ -35,7 +35,7 @@ The component should use the same shadcn/ui sidebar components as other navigati
 
 ### Tasks
 
-- [ ] **1.1** Create `apps/web/components/nav-careers.tsx`
+- [x] **1.1** Create `apps/web/components/nav-careers.tsx`
   - Import necessary components from `@/components/ui/sidebar`:
     - `SidebarGroup`
     - `SidebarGroupLabel`
@@ -93,7 +93,7 @@ For the Workstreams page, reference the detailed specification at `tasks/workstr
 
 ### Tasks
 
-- [ ] **2.1** Create `apps/web/app/(app)/performance/page.tsx`
+- [x] **2.1** Create `apps/web/app/(app)/performance/page.tsx`
   - Import necessary components:
     ```tsx
     import { auth } from 'app/(auth)/auth';
@@ -133,7 +133,7 @@ For the Workstreams page, reference the detailed specification at `tasks/workstr
     </AppPage>
     ```
 
-- [ ] **2.2** Create `apps/web/app/(app)/workstreams/page.tsx`
+- [x] **2.2** Create `apps/web/app/(app)/workstreams/page.tsx`
   - Import the same components as Performance page
   - Export metadata:
     ```tsx
@@ -197,13 +197,13 @@ We need to:
 
 ### Tasks
 
-- [ ] **3.1** Update `apps/web/components/app-sidebar.tsx` - Remove Documents references
+- [x] **3.1** Update `apps/web/components/app-sidebar.tsx` - Remove Documents references
   - Remove the import: `import { useDocuments } from '@/hooks/use-documents';` (line 14)
   - Remove the import: `import { NavDocuments } from '@/components/nav-documents';` (line 16)
   - Remove the line: `const { documents } = useDocuments();` (line 85)
   - Remove the line: `<NavDocuments documents={documents} />` (line 118)
 
-- [ ] **3.2** Update `apps/web/components/app-sidebar.tsx` - Remove items from navMain
+- [x] **3.2** Update `apps/web/components/app-sidebar.tsx` - Remove items from navMain
   - Remove the Standup object from the `navMain` array (lines 38-42):
     ```tsx
     {
@@ -221,7 +221,7 @@ We need to:
     },
     ```
 
-- [ ] **3.3** Update `apps/web/components/app-sidebar.tsx` - Add NavCareers
+- [x] **3.3** Update `apps/web/components/app-sidebar.tsx` - Add NavCareers
   - Add import at top: `import { NavCareers } from '@/components/nav-careers';`
   - Add `<NavCareers />` in the `<SidebarContent>` section after `<NavProjects />` and before `<NavSecondary>`
   - The structure should be:
@@ -234,7 +234,7 @@ We need to:
     </SidebarContent>
     ```
 
-- [ ] **3.4** Update `apps/web/components/app-sidebar.tsx` - Clean up unused icon imports
+- [x] **3.4** Update `apps/web/components/app-sidebar.tsx` - Clean up unused icon imports
   - Remove `IconUsers` from the import (if not used elsewhere in staticData)
   - Remove `IconUserCheck` from the import (if not used elsewhere in staticData)
   - Verify the remaining icons in the import statement are all used
@@ -250,12 +250,12 @@ The `use-documents.ts` hook should NOT be deleted as it may still be used by the
 
 ### Tasks
 
-- [ ] **4.1** Delete `apps/web/components/nav-documents.tsx`
+- [x] **4.1** Delete `apps/web/components/nav-documents.tsx`
   - This file is no longer referenced anywhere after the sidebar changes
   - Verify it's not imported anywhere else with: `grep -r "nav-documents" apps/web/`
   - Delete the file
 
-- [ ] **4.2** Verify documents functionality still works
+- [x] **4.2** Verify documents functionality still works
   - The `/documents` page should still function correctly
   - The `use-documents` hook should remain in place as it's used by other parts of the app
   - Do NOT delete `apps/web/hooks/use-documents.ts`
@@ -269,7 +269,7 @@ This change affects the navigation structure of the application, which should be
 
 ### Tasks
 
-- [ ] **5.1** Review `docs/FEATURES.md` if it exists
+- [x] **5.1** Review `docs/FEATURES.md` if it exists
   - Check if this file exists at `/Users/ed/Code/brag-ai/docs/FEATURES.md`
   - If it exists and contains information about navigation structure or the Documents section, update it to:
     - Remove any mention of Documents in navigation
@@ -277,14 +277,14 @@ This change affects the navigation structure of the application, which should be
     - Document the four items in the Careers section
   - If the file doesn't exist, skip this task
 
-- [ ] **5.2** Consider updating README.md
+- [x] **5.2** Consider updating README.md
   - Check `/Users/ed/Code/brag-ai/README.md`
   - If it contains information about the navigation structure or application features, update it to reflect:
     - The new Careers section
     - The coming soon status of Performance Review and Workstreams
   - If navigation isn't documented in README, no changes needed
 
-- [ ] **5.3** Create or update navigation documentation
+- [x] **5.3** Create or update navigation documentation
   - Check if there's a navigation-specific document in the `docs/` directory
   - If not, consider creating `docs/navigation.md` to document:
     - The overall navigation structure
@@ -307,7 +307,7 @@ Relevant sections in CLAUDE.md that might need updates:
 
 ### Tasks
 
-- [ ] **6.1** Review and update CLAUDE.md navigation references
+- [x] **6.1** Review and update CLAUDE.md navigation references
   - Read through `/Users/ed/Code/brag-ai/CLAUDE.md`
   - Look for any references to:
     - Documents section in navigation
@@ -316,7 +316,7 @@ Relevant sections in CLAUDE.md that might need updates:
   - Update any such references to reflect the new Careers section
   - Add a note about NavCareers component if navigation components are documented
 
-- [ ] **6.2** Update component directory listings in CLAUDE.md
+- [x] **6.2** Update component directory listings in CLAUDE.md
   - If CLAUDE.md has a section listing navigation components, update it to:
     - Remove mention of nav-documents.tsx
     - Add mention of nav-careers.tsx

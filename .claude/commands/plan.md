@@ -51,6 +51,25 @@ Commit message instructions:
 - should call out any key dependencies or tools being added/removed
 - should call out any key data model changes
 - should call out any key environment variable changes
+- do not attempt to assess the value of the changes, e.g. don't say things like "This change improves the information architecture by separating document management from the primary navigation flow while keeping career-focused features prominently displayed and easily accessible."
+
+#### Example commit messages
+
+In this paragraph:
+
+```
+This change restructures the main sidebar navigation by removing the Documents section and introducing a new "Careers" section that consolidates career-related features. The Careers section groups together existing features (Standup and "For my manager") with two new coming-soon pages (Performance Review and Workstreams), creating a more intuitive organization for users focused on career advancement and documentation.
+```
+
+All was fine until the ", creating a more intuitive ..." stuff - just don't include value judgments like that, leave them out.
+
+Similarly, here, the final sentence is completely unnecessary and should not be present in a commit message:
+
+```
+The Documents section has been completely removed from the navigation sidebar, though the `/documents` page and its associated functionality remain accessible via direct URL. This change improves the information architecture by separating document management from the primary navigation flow while keeping career-focused features prominently displayed and easily accessible.
+```
+
+That was fine until the "direct URL.", which is where it should have ended.
 
 # Get started
 

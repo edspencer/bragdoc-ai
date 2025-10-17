@@ -1,4 +1,3 @@
-import equal from 'fast-deep-equal';
 import { memo } from 'react';
 import { toast } from 'sonner';
 import { useCopyToClipboard } from 'usehooks-ts';

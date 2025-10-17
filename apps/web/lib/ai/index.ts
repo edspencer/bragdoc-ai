@@ -1,8 +1,5 @@
 import { openai } from '@ai-sdk/openai';
-import { wrapLanguageModel, type LanguageModel } from 'ai';
-import { wrapAISDKModel } from 'braintrust';
-
-import { customMiddleware } from './custom-middleware';
+import type { LanguageModel } from 'ai';
 
 export const defaultModel = 'gpt-4o-mini';
 

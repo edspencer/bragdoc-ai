@@ -5,7 +5,7 @@
  * Can be called from both API routes and server actions.
  */
 
-import crypto from 'crypto';
+import crypto from 'node:crypto';
 import { genSaltSync, hashSync } from 'bcrypt-ts';
 import { generateDemoEmail } from './demo-mode-utils';
 import { importDemoData } from './demo-data-import';

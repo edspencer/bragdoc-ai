@@ -7,13 +7,10 @@ import {
   IconBuilding,
   IconSettings,
   IconStar,
-  IconUsers,
-  IconUserCheck,
 } from '@tabler/icons-react';
 import { useSession } from 'next-auth/react';
-import { useDocuments } from '@/hooks/use-documents';
 
-import { NavDocuments } from '@/components/nav-documents';
+import { NavCareers } from '@/components/nav-careers';
 import { NavMain } from '@/components/nav-main';
 import { NavProjects } from '@/components/nav-projects';
 import { NavSecondary } from '@/components/nav-secondary';
@@ -36,11 +33,6 @@ const staticData = {
       icon: IconDashboard,
     },
     {
-      title: 'Standup',
-      url: '/standup',
-      icon: IconUsers,
-    },
-    {
       title: 'Achievements',
       url: '/achievements',
       icon: IconTarget,
@@ -49,11 +41,6 @@ const staticData = {
       title: 'Companies',
       url: '/companies',
       icon: IconBuilding,
-    },
-    {
-      title: 'For my manager',
-      url: '/reports',
-      icon: IconUserCheck,
     },
     // {
     //   title: 'Analytics',
@@ -82,7 +69,6 @@ const staticData = {
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const { data: session, status } = useSession();
-  const { documents } = useDocuments();
 
   const user = {
     name: session?.user?.name || 'User',
@@ -115,7 +101,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       <SidebarContent>
         <NavMain items={staticData.navMain} />
         <NavProjects />
-        <NavDocuments documents={documents} />
+        <NavCareers />
         <NavSecondary items={staticData.navSecondary} className="mt-auto" />
       </SidebarContent>
       <SidebarFooter>

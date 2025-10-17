@@ -1,5 +1,4 @@
 import type { UseChatHelpers } from '@ai-sdk/react';
-import equal from 'fast-deep-equal';
 import { AnimatePresence, motion } from 'framer-motion';
 import { memo } from 'react';
 import { useMessages } from '@/hooks/use-messages';

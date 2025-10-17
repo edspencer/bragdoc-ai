@@ -25,7 +25,7 @@ This document provides comprehensive guidance for developing BragDoc, an AI-powe
 
 ## Task Management
 
-Some tasks are planned out in the ./tasks directory (this is currently in .gitignore). There are a variety of Claude Code Agents and SlashCommands that are used to specify, plan, implement and review tasks. Generally speaking, each such task gets the following files:
+Some tasks are planned out in the ./tasks directory (this is source controlled currently). There are a variety of Claude Code Agents and SlashCommands that are used to specify, plan, implement and review tasks. Generally speaking, each such task gets the following files:
 
 ./tasks/TASK-NAME/
 
@@ -41,7 +41,7 @@ The LOG.md file is the log for the task. As the `implement` SlashCommand (as use
 
 ## Dev server and logs
 
-The dev server is almost always running whenever you are working. The server runs on port 3000, and its logs are continually written to .next-dev.log in the root of the project. Scan this file for errors and warnings, and use it to debug issues.
+The dev server is almost always running whenever you are working. The server runs on port 3000, and its logs are continually written to ./apps/web/.next-dev.log in the root of the project. Scan this file for errors and warnings, and use it to debug issues.
 
 ## Project Architecture
 

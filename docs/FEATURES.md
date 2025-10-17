@@ -1,3 +1,17 @@
+---
+
+## Navigation Structure
+
+### Careers Section
+
+The sidebar navigation includes a **Careers** section that groups career-related features:
+
+- **Standup** (`/standup`) - Daily/weekly standup report generation
+- **For my manager** (`/reports`) - Generate reports from achievements for managers
+- **Performance Review** (`/performance`) - Coming soon: AI-powered performance review generation
+- **Workstreams** (`/workstreams`) - Coming soon: Automatic discovery of thematic patterns in work
+
+The Documents feature (`/documents`) remains accessible via direct URL but is no longer displayed in the sidebar navigation. Documents are accessible when generated through the "For my manager" reports flow.
 
 ---
 

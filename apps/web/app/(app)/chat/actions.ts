@@ -18,7 +18,7 @@ export async function generateTitleFromUserMessage({
     let messageText = '';
     for (const part of message.parts) {
       if (part.type === 'text' && 'text' in part) {
-        messageText += part.text + ' ';
+        messageText += `${part.text} `;
       }
     }
 

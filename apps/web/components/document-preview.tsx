@@ -1,14 +1,7 @@
 'use client';
 
 import equal from 'fast-deep-equal';
-import {
-  type MouseEvent,
-  memo,
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-} from 'react';
+import { type MouseEvent, memo, useCallback, useEffect, useRef } from 'react';
 import useSWR from 'swr';
 import { useArtifact } from '@/hooks/use-artifact';
 import type { Document } from '@bragdoc/database';

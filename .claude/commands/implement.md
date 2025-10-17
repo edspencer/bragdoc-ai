@@ -17,4 +17,4 @@ You have been given a plan document to implement ($1). Your task is to fully rea
 - Do run `pnpm run test` at the project root when you think you are done with a phase or entire implementation, so we can catch any test failures early
 - Do run `pnpm run format` at the project root when you think you are done with a phase or entire implementation, so we can catch any formatting issues early
 - Do run `pnpm run lint` at the project root when you think you are done with a phase or entire implementation, so we can catch any lint issues early. Fix any lint issues that affect files you have edited
-- The dev server is almost always running whenever you are working. The server runs on port 3000, and its logs are continually written to .next-dev.log in the root of the project. Scan this file for errors and warnings, and use it to debug issues.
+- The dev server is almost always running whenever you are working. The server runs on port 3000, and its logs are continually written to ./apps/web/.next-dev.log in the root of the project. Scan this file for errors and warnings, and use it to debug issues.

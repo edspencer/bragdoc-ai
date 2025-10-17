@@ -5,7 +5,6 @@ import {
   between,
   desc,
   eq,
-  gt,
   gte,
   inArray,
   type InferSelectModel,
