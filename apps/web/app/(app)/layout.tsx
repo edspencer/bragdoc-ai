@@ -4,6 +4,7 @@ import { ArtifactProvider } from '@/hooks/use-artifact';
 import { ArtifactCanvas } from '@/components/artifact-canvas';
 import { SidebarProvider } from '@/components/ui/sidebar';
 import { AppSidebar } from '@/components/app-sidebar';
+import { DemoModeBanner } from '@/components/demo-mode-banner';
 
 export default function AppLayout({
   children,
@@ -13,6 +14,7 @@ export default function AppLayout({
   return (
     <ArtifactProvider>
       <DataStreamProvider>
+        <DemoModeBanner />
         <SidebarProvider
           style={
             {

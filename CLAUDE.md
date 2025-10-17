@@ -1342,6 +1342,8 @@ Optional:
 - `GITHUB_CLIENT_ID` / `GITHUB_CLIENT_SECRET` - GitHub OAuth
 - `DEEPSEEK_API_KEY` - DeepSeek API key
 - `MAILGUN_API_KEY` - Mailgun for emails
+- `DEMO_MODE_ENABLED` - Set to 'true' to enable demo mode (allows users to try the app with pre-populated data) - controls backend API routes and server actions
+- `NEXT_PUBLIC_DEMO_MODE_ENABLED` - Set to 'true' to show demo mode UI prompts (frontend client components) - must match DEMO_MODE_ENABLED value
 
 ### Useful Commands
 

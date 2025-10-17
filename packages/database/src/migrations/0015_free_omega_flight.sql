@@ -1,0 +1,1 @@
+ALTER TYPE "user_level" ADD VALUE 'demo';

@@ -17,7 +17,9 @@ export const authConfig = {
       const isAuthPage =
         nextUrl.pathname.startsWith('/login') ||
         nextUrl.pathname.startsWith('/register') ||
+        nextUrl.pathname.startsWith('/demo') ||
         nextUrl.pathname.startsWith('/api/auth') ||
+        nextUrl.pathname.startsWith('/api/demo') ||
         nextUrl.pathname.startsWith('/cli-auth') ||
         nextUrl.pathname.startsWith('/unsubscribed') ||
         nextUrl.pathname.startsWith('/shared/');

@@ -8,6 +8,7 @@ import { toast } from 'sonner';
 import { AuthForm } from 'components/auth-form';
 import { SubmitButton } from 'components/submit-button';
 import { SocialAuthButtons } from 'components/social-auth-buttons';
+import { DemoModePrompt } from 'components/demo-mode-prompt';
 
 import { login, type LoginActionState } from '../actions';
 
@@ -67,6 +68,7 @@ export default function Page() {
               </Link>
               {' for free.'}
             </p>
+            <DemoModePrompt />
           </div>
         </div>
       </div>

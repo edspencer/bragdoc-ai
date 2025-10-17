@@ -26,6 +26,7 @@ import {
   type RenewalPeriod,
 } from '@/database/schema';
 import { sendWelcomeEmail } from '@/lib/email/sendWelcomeEmail';
+import { cleanupDemoAccountData } from '@/lib/demo-data-cleanup';
 
 declare module 'next-auth' {
   interface User {
@@ -195,6 +196,20 @@ export const {
         } catch (error) {
           console.error('Failed to send welcome email:', error);
           // Don't fail registration if email fails
+        }
+      }
+    },
+    async signOut(params) {
+      // Check if this is a demo account
+      // NextAuth can pass either token (for JWT strategy) or session
+      const token = 'token' in params ? params.token : null;
+
+      if (token?.id && token?.level === 'demo') {
+        try {
+          await cleanupDemoAccountData(token.id as string);
+        } catch (error) {
+          console.error('Failed to cleanup demo account data:', error);
+          // Don't fail the logout if cleanup fails
         }
       }
     },

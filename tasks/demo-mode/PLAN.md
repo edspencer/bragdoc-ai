@@ -12,7 +12,7 @@ This plan outlines the implementation of a demo login mode feature that allows u
 - Demo accounts have user level set to 'demo'
 - Demo account data is deleted on logout (user record preserved for analytics)
 - Demo accounts cannot be logged into again after logout
-- Add 'demo' to user level enum (converting to TypeScript enum to avoid future migrations)
+- Add 'demo' to existing user level pgEnum (safe, non-destructive migration)
 
 ## Technical Context
 
@@ -28,7 +28,7 @@ This plan outlines the implementation of a demo login mode feature that allows u
 
 1. **Demo User Email Format**: `demo{secondsSince2025}@bragdoc.ai` for uniqueness
 2. **Temporary Password Approach**: Demo accounts will have a randomly generated temporary password that is used once for auto-login via NextAuth credentials provider, then the account is deleted on logout
-3. **TypeScript Enum Migration**: Convert `userLevelEnum` from pgEnum to TypeScript enum to enable easy future changes without migrations
+3. **Enum Extension**: Add 'demo' to existing `userLevelEnum` pgEnum (safe, non-destructive operation)
 4. **Data Loading**: Reuse existing import logic but read from file system instead of request body
 5. **Auto-login**: Use NextAuth's `signIn()` after account creation to automatically log user in
 
@@ -54,41 +54,27 @@ This plan should be followed sequentially. As you implement:
 
 ## Phase 1: Database Schema Updates
 
-### Step 1.1: Update User Level Enum to TypeScript
+### Step 1.1: Add 'demo' to Existing User Level Enum
 
 **File**: `packages/database/src/schema.ts`
 
 **Changes**:
 
-- [ ] 1. Create TypeScript enum for user levels:
-
-  ```typescript
-  export enum UserLevel {
-    Free = 'free',
-    Basic = 'basic',
-    Pro = 'pro',
-    Demo = 'demo',
-  }
-  ```
-
-- [ ] 2. Replace the pgEnum definition with a varchar field that uses the TypeScript enum:
+- [x] Add 'demo' value to the existing pgEnum definition:
 
   ```typescript
   // Old:
   export const userLevelEnum = pgEnum('user_level', ['free', 'basic', 'pro']);
-  export type UserLevel = (typeof userLevelEnum.enumValues)[number];
 
   // New:
-  level: varchar('level', { length: 32 }).notNull().default('free');
+  export const userLevelEnum = pgEnum('user_level', ['free', 'basic', 'pro', 'demo']);
   ```
 
-- [ ] 3. Update type export to use the TypeScript enum
-
-**Rationale**: Converting to varchar with TypeScript enum allows adding new levels without database migrations. The 'demo' level can be added simply by updating the enum.
+**Rationale**: Adding a value to an existing PostgreSQL enum is a non-destructive operation. The database will execute `ALTER TYPE user_level ADD VALUE 'demo'` which preserves all existing data.
 
 ### Step 1.2: Generate and Apply Database Migration
 
-- [ ] **Commands**:
+- [x] **Commands**:
 
 ```bash
 cd packages/database
@@ -98,15 +84,16 @@ pnpm db:push
 
 **Verification**:
 
-- [ ] Check that migration file correctly converts enum column to varchar
-- [ ] Verify existing data is preserved
-- [ ] Test that default value 'free' still works
+- [x] Check that migration file adds 'demo' to the enum (ALTER TYPE command)
+- [x] Verify existing data is preserved
+- [x] Test that default value 'free' still works
+- [x] Verify 'demo' can be assigned to user.level field
 
 **Notes**:
 
-- The migration should handle conversion from enum to varchar
-- Existing user levels should be preserved
-- May need manual verification of migration SQL before applying
+- This is a safe, non-destructive migration
+- PostgreSQL will add the new enum value without data loss
+- Existing user records remain unchanged
 
 ---
 
@@ -116,11 +103,11 @@ pnpm db:push
 
 **File**: `apps/web/lib/demo-mode-utils.ts` (new file)
 
-- [ ] Create file with three utility functions
+- [x] Create file with three utility functions
 
 **Functions**:
 
-- [ ] 1. `generateDemoEmail(): string`
+- [x] 1. `generateDemoEmail(): string`
 
   - Calculates seconds since 2025-01-01
   - Returns `demo{seconds}@bragdoc.ai`
@@ -156,7 +143,7 @@ export function isDemoAccount(email: string): boolean {
 
 **File**: `apps/web/lib/import-user-data.ts` (new file)
 
-- [ ] Create shared import library with `importUserData()` function
+- [x] Create shared import library with `importUserData()` function
 
 **Purpose**: Extract the import logic from `/api/account/import/route.ts` into a reusable library that handles both regular imports and demo data imports.
 
@@ -358,8 +345,8 @@ export async function importUserData(
 
 **File**: `apps/web/lib/demo-data-import.ts` (new file)
 
-- [ ] Create demo data import service
-- [ ] Move `packages/database/demo-data.json` to `apps/web/lib/demo-data.json` before implementing
+- [x] Create demo data import service
+- [x] Move `packages/database/demo-data.json` to `apps/web/lib/demo-data.json` before implementing (Note: file already exists at `apps/web/lib/ai/demo-data.json`)
 
 **Function**: `importDemoData(userId: string): Promise<ImportStats>`
 
@@ -398,7 +385,7 @@ export async function importDemoData(userId: string): Promise<ImportStats> {
 
 **File**: `apps/web/app/api/account/import/route.ts` (modify)
 
-- [ ] Refactor to use shared `importUserData()` library
+- [x] Refactor to use shared `importUserData()` library
 
 **Purpose**: Update the existing import route to use the new shared `importUserData` library function.
 
@@ -464,7 +451,7 @@ export async function POST(req: NextRequest) {
 
 **File**: `apps/web/lib/create-demo-account.ts` (new file)
 
-- [ ] Create shared function for demo account creation logic
+- [x] Create shared function for demo account creation logic
 
 **Function**: `createDemoAccount(): Promise<CreateDemoAccountResult>`
 
@@ -492,7 +479,6 @@ import { generateDemoEmail } from './demo-mode-utils';
 import { importDemoData } from './demo-data-import';
 import { db } from '@/database/index';
 import { user } from '@/database/schema';
-import { UserLevel } from '@/database/schema';
 
 export async function createDemoAccount(): Promise<CreateDemoAccountResult> {
   try {
@@ -510,7 +496,7 @@ export async function createDemoAccount(): Promise<CreateDemoAccountResult> {
         email,
         password: hashedPassword,
         name: 'Demo User',
-        level: UserLevel.Demo,
+        level: 'demo',
         emailVerified: new Date(),
         provider: 'demo',
         preferences: {
@@ -544,7 +530,7 @@ export async function createDemoAccount(): Promise<CreateDemoAccountResult> {
 
 **File**: `apps/web/app/api/demo/create/route.ts` (new file)
 
-- [ ] Create API route that calls shared demo account creation function
+- [x] Create API route that calls shared demo account creation function
 
 **Endpoint**: `POST /api/demo/create`
 
@@ -963,7 +949,6 @@ import {
   company,
 } from '@/database/schema';
 import { eq } from 'drizzle-orm';
-import { UserLevel } from '@/database/schema';
 
 export async function cleanupDemoAccountData(userId: string): Promise<void> {
   // Verify user is a demo account
@@ -978,7 +963,7 @@ export async function cleanupDemoAccountData(userId: string): Promise<void> {
     return;
   }
 
-  if (demoUser.level !== UserLevel.Demo) {
+  if (demoUser.level !== 'demo') {
     console.warn(`User ${userId} is not a demo account, skipping cleanup`);
     return;
   }
@@ -1234,10 +1219,10 @@ Review and update the following sections based on this implementation:
   - Explain demo account lifecycle (create → populate → cleanup data on logout)
   - Document that `signOut` event handler cleans up demo data while preserving user record for analytics
 
-- [ ] **Database Layer section**: Document the UserLevel enum change
+- [ ] **Database Layer section**: Document the UserLevel enum extension
 
-  - Add note that UserLevel was converted from pgEnum to TypeScript enum + varchar
-  - Explain this avoids future migrations when adding new levels
+  - Add note that 'demo' value was added to the existing userLevelEnum pgEnum
+  - Explain this was a safe, non-destructive operation
   - Document the 'demo' level and its purpose
 
 - [ ] **API Conventions section**: Document the demo account creation endpoint
@@ -1278,16 +1263,16 @@ Ensure all functions have proper try-catch blocks and return appropriate error r
 
 ### Sprint 1: Database and Core Backend (Days 1-2)
 
-- [ ] 1. Phase 1: Database Schema Updates
-- [ ] 2. Phase 2.1: Demo Account Utilities
-- [ ] 3. Phase 2.2: Shared Import Library (extract from existing route)
-- [ ] 4. Phase 2.3: Demo Data Import Service
-- [ ] 5. Phase 2.4: Refactor Existing Import Route
+- [x] 1. Phase 1: Database Schema Updates
+- [x] 2. Phase 2.1: Demo Account Utilities
+- [x] 3. Phase 2.2: Shared Import Library (extract from existing route)
+- [x] 4. Phase 2.3: Demo Data Import Service
+- [x] 5. Phase 2.4: Refactor Existing Import Route
 
 ### Sprint 2: API and Authentication (Days 3-4)
 
-- [ ] 6. Phase 2.5: Shared Demo Account Creation Function
-- [ ] 7. Phase 2.6: Demo Account Creation API Route
+- [x] 6. Phase 2.5: Shared Demo Account Creation Function
+- [x] 7. Phase 2.6: Demo Account Creation API Route
 - [ ] 8. Phase 3.2: Demo Account Server Action
 - [ ] 9. Phase 4: Demo Account Cleanup on Logout
 
@@ -1478,7 +1463,7 @@ Ensure all functions have proper try-catch blocks and return appropriate error r
 
 ## Files to Modify
 
-1. `packages/database/src/schema.ts` - Update user level enum (pgEnum → TypeScript enum + varchar)
+1. `packages/database/src/schema.ts` - Add 'demo' to existing userLevelEnum pgEnum
 2. `apps/web/app/api/account/import/route.ts` - Refactor to use shared `importUserData` library
 3. `apps/web/app/(auth)/login/page.tsx` - Add demo mode prompt
 4. `apps/web/app/(auth)/auth.ts` - Add signOut event handler for demo account cleanup

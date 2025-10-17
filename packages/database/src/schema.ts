@@ -32,7 +32,12 @@ export interface AppUsage {
   modelId?: string;
 }
 
-export const userLevelEnum = pgEnum('user_level', ['free', 'basic', 'pro']);
+export const userLevelEnum = pgEnum('user_level', [
+  'free',
+  'basic',
+  'pro',
+  'demo',
+]);
 export type UserLevel = (typeof userLevelEnum.enumValues)[number];
 
 export const renewalPeriodEnum = pgEnum('renewal_period', [

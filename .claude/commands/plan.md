@@ -28,6 +28,14 @@ Your task is to use the details in the spec file, read and understand any conten
 
 IMPORTANT: Our PLAN.md documents follow very strict plan requirements, as detailed in .claude/docs/plan-requirements.md. Read that file very carefully and adhere strictly to its guidance.
 
+### Separate Test Plan Requirements
+
+Most plans you will be asked to make will involve some level of testing. You should create a separate TEST_PLAN.md file in the same directory as the spec file ($1). The TEST_PLAN.md file should contain a thorough plan for testing the specification, following any additional instructions outlined in the spec file.
+
+If the plan genuinely does not call for any testing, do not create a TEST_PLAN.md file.
+
+If you do create a TEST_PLAN.md file, refer to its existence in the main PLAN.md file, which should also contain a very high level summary of what the test plan calls for.
+
 # Get started
 
 Please start your plan and save it to PLAN.md
