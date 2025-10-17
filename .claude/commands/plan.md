@@ -36,6 +36,22 @@ If the plan genuinely does not call for any testing, do not create a TEST_PLAN.m
 
 If you do create a TEST_PLAN.md file, refer to its existence in the main PLAN.md file, which should also contain a very high level summary of what the test plan calls for.
 
+### Commit Message
+
+You should create a commit message for the changeset you propose in the PLAN.md. You should save this in a file called COMMIT_MESSAGE.md in the same directory as the spec file ($1). The commit message should correspond in detail to the changeset you propose in the PLAN.md, but at most should run to about 5-6 paragraphs. It should usually be 2-3 paragraphs unless the changeset are enormous.
+
+Commit message instructions:
+
+- should start with a 1-sentence summary on its own line
+- should briefly explain what we're doing any why
+- should not just summarize the changeset
+- should typically be 2-4 paragraphs long
+- should be shorter than this if only a small amount of code is being changed (e.g. if less than ~300LOC changed, a paragraph or two should suffice)
+- should call out any key architectural or API changes
+- should call out any key dependencies or tools being added/removed
+- should call out any key data model changes
+- should call out any key environment variable changes
+
 # Get started
 
 Please start your plan and save it to PLAN.md

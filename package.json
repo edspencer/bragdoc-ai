@@ -191,6 +191,6 @@
     }
   },
   "lint-staged": {
-    "*.{js,jsx,ts,tsx,json,md,mdx,css,yaml,yml}": "biome format --write"
+    "*.{js,jsx,ts,tsx,json,jsonc}": "biome format --write --files-ignore-unknown=true"
   }
 }
