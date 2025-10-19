@@ -463,15 +463,15 @@ These can be tracked in future tasks if prioritized.
 ## Implementation Checklist
 
 ### Pre-Implementation
-- [ ] Review SPEC.md and PLAN.md
-- [ ] Understand existing code structure
-- [ ] Verify Tailwind utilities available (`line-clamp`, `flex-wrap`)
+- [x] Review SPEC.md and PLAN.md
+- [x] Understand existing code structure
+- [x] Verify Tailwind utilities available (`line-clamp`, `flex-wrap`)
 - [ ] Set up testing environment (Playwright, mobile viewports)
 
 ### Implementation
-- [ ] **Phase 1.1**: Add `flex-wrap` to Reports page button container
+- [x] **Phase 1.1**: Add `flex-wrap` to Reports page button container
 - [ ] **Phase 1.2**: Test button layout at 320px, 393px, 768px viewports
-- [ ] **Phase 2.1**: Add `line-clamp-2` to Achievement title cell
+- [x] **Phase 2.1**: Add `line-clamp-2` to Achievement title cell
 - [ ] **Phase 2.2**: Test title wrapping with long/short titles
 - [ ] **Phase 2.3**: Verify cross-cell alignment
 

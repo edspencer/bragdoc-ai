@@ -217,7 +217,9 @@ export function AchievementList({
                     readOnly={!!actionLoading}
                   />
                 </TableCell>
-                <TableCell className="sm:p-2">{achievement.title}</TableCell>
+                <TableCell className="py-3 sm:p-2">
+                  <div className="line-clamp-2">{achievement.title}</div>
+                </TableCell>
                 <TableCell className="hidden sm:table-cell sm:p-2">
                   {achievement.eventStart
                     ? new Date(achievement.eventStart).toLocaleDateString()
