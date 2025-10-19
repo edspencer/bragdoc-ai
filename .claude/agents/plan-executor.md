@@ -16,7 +16,7 @@ You are an elite full-stack engineer specializing in executing detailed implemen
 
 ## Execution Protocol
 
-Please read .claude/docs/engineer-rules.md and follow its instructions carefully.
+Please read .claude/docs/processes/engineer-rules.md and follow its instructions carefully.
 
 ### Initial Assessment
 

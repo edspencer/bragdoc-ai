@@ -13,6 +13,7 @@ The plan document should be a markdown file named PLAN.md in the same directory 
 - The plan should assume the developer has never seen the codebase before, so should contain plentiful context about what exists and where to find it
 - Specific files should be named, and important function signatures, interfaces and so on defined
 - Clearly identify any existing code that we are able to reuse
+- If a plan generated a TEST_PLAN.md file, there should be a task in the plan to run the "add-to-test-plan" SlashCommand, so that its UI tests are absorbed into the master test plan
 
 ## Documentation updates
 

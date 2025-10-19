@@ -26,7 +26,7 @@ Your task is to use the details in the spec file, read and understand any conten
 
 ### Plan requirements
 
-IMPORTANT: Our PLAN.md documents follow very strict plan requirements, as detailed in .claude/docs/plan-requirements.md. Read that file very carefully and adhere strictly to its guidance.
+IMPORTANT: Our PLAN.md documents follow very strict plan requirements, as detailed in .claude/docs/processes/plan-requirements.md. Read that file very carefully and adhere strictly to its guidance.
 
 ### Separate Test Plan Requirements
 

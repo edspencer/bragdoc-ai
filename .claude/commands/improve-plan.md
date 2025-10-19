@@ -16,5 +16,5 @@ Return a comprehensive list of tasks to improve the plan document. Propose a set
 
 - Read the plan document carefully before starting to improve it
 - Compare the plan document against the spec document if provided, extract any ways in which the plan deviates from the spec
-- Compare the plan document against ./.claude/docs/plan-requirements.md, extract any ways in which the plan deviates from the plan requirements
+- Compare the plan document against ./.claude/docs/processes/plan-requirements.md, extract any ways in which the plan deviates from the plan requirements
 - Check to see if the plan calls for the creation of any functions or features that don't seem to be used or called for and highlight them

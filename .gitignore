@@ -50,3 +50,7 @@ packages/cli/dist
 .wrangler
 .dev.vars
 .playwright-mcp
+
+test/runs
+test/mobile
+scratch
