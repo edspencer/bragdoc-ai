@@ -1,0 +1,18 @@
+import type { NextRequest } from 'next/server';
+import { renderWelcomeEmail } from '@bragdoc/email';
+
+export async function GET(req: NextRequest) {
+  const searchParams = req.nextUrl.searchParams;
+  const username = searchParams.get('username') || 'User';
+
+  const html = await renderWelcomeEmail({
+    username,
+    loginUrl: 'https://bragdoc.ai/login',
+    unsubscribeUrl: 'https://bragdoc.ai/unsubscribed?preview=true',
+  });
+
+  return new Response(html, {
+    status: 200,
+    headers: { 'Content-Type': 'text/html; charset=utf-8' },
+  });
+}

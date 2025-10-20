@@ -1,0 +1,150 @@
+import { memo } from 'react';
+import { toast } from 'sonner';
+import { useArtifact } from '@/hooks/use-artifact';
+import type { ArtifactKind } from './artifact';
+import { FileIcon, LoaderIcon, PencilEditIcon } from './icons';
+
+const getActionText = (
+  type: 'create' | 'update',
+  tense: 'present' | 'past',
+) => {
+  switch (type) {
+    case 'create':
+      return tense === 'present' ? 'Creating' : 'Created';
+    case 'update':
+      return tense === 'present' ? 'Updating' : 'Updated';
+    default:
+      return null;
+  }
+};
+
+type DocumentToolResultProps = {
+  type: 'create' | 'update';
+  result: { id: string; title: string; kind: ArtifactKind };
+  isReadonly: boolean;
+};
+
+function PureDocumentToolResult({
+  type,
+  result,
+  isReadonly,
+}: DocumentToolResultProps) {
+  const { setArtifact } = useArtifact();
+
+  return (
+    <button
+      className="flex w-fit cursor-pointer flex-row items-start gap-3 rounded-xl border bg-background px-3 py-2"
+      onClick={(event) => {
+        if (isReadonly) {
+          toast.error(
+            'Viewing files in shared chats is currently not supported.',
+          );
+          return;
+        }
+
+        const rect = event.currentTarget.getBoundingClientRect();
+
+        const boundingBox = {
+          top: rect.top,
+          left: rect.left,
+          width: rect.width,
+          height: rect.height,
+        };
+
+        setArtifact({
+          documentId: result.id,
+          kind: result.kind,
+          content: '',
+          title: result.title,
+          isVisible: true,
+          status: 'idle',
+          boundingBox,
+        });
+      }}
+      type="button"
+    >
+      <div className="mt-1 text-muted-foreground">
+        {type === 'create' ? (
+          <FileIcon />
+        ) : type === 'update' ? (
+          <PencilEditIcon />
+        ) : null}
+      </div>
+      <div className="text-left">
+        {`${getActionText(type, 'past')} "${result.title}"`}
+      </div>
+    </button>
+  );
+}
+
+export const DocumentToolResult = memo(PureDocumentToolResult, () => true);
+
+type DocumentToolCallProps = {
+  type: 'create' | 'update';
+  args:
+    | { title: string; kind: ArtifactKind } // for create
+    | { id: string; description: string }; // for update
+  isReadonly: boolean;
+};
+
+function PureDocumentToolCall({
+  type,
+  args,
+  isReadonly,
+}: DocumentToolCallProps) {
+  const { setArtifact } = useArtifact();
+
+  return (
+    <button
+      className="cursor pointer flex w-fit flex-row items-start justify-between gap-3 rounded-xl border px-3 py-2"
+      onClick={(event) => {
+        if (isReadonly) {
+          toast.error(
+            'Viewing files in shared chats is currently not supported.',
+          );
+          return;
+        }
+
+        const rect = event.currentTarget.getBoundingClientRect();
+
+        const boundingBox = {
+          top: rect.top,
+          left: rect.left,
+          width: rect.width,
+          height: rect.height,
+        };
+
+        setArtifact((currentArtifact) => ({
+          ...currentArtifact,
+          isVisible: true,
+          boundingBox,
+        }));
+      }}
+      type="button"
+    >
+      <div className="flex flex-row items-start gap-3">
+        <div className="mt-1 text-zinc-500">
+          {type === 'create' ? (
+            <FileIcon />
+          ) : type === 'update' ? (
+            <PencilEditIcon />
+          ) : null}
+        </div>
+
+        <div className="text-left">
+          {`${getActionText(type, 'present')} ${
+            type === 'create' && 'title' in args && args.title
+              ? `"${args.title}"`
+              : type === 'update' && 'description' in args
+                ? `"${args.description}"`
+                : ''
+          }`}
+        </div>
+      </div>
+
+      <div className="mt-1 animate-spin">{<LoaderIcon />}</div>
+    </button>
+  );
+}
+
+export const DocumentToolCall = memo(PureDocumentToolCall, () => true);
