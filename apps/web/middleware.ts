@@ -1,21 +1,12 @@
-import { type NextRequest, NextResponse } from 'next/server'
-import { isPaymentRequired } from '@bragdoc/config'
+import NextAuth from 'next-auth';
+import { authConfig } from '@/app/(auth)/auth.config';
 
-export async function middleware(request: NextRequest) {
-  // Only enforce payment gates if PAYMENT_TOKEN_REQUIRED is true
-  if (!isPaymentRequired()) {
-    return NextResponse.next()
-  }
+import type { NextMiddleware } from 'next/server';
 
-  // For now, skip payment checks in middleware since they require database access
-  // Payment checks can be handled at the page/API route level instead
-  // TODO: Implement Edge Runtime compatible payment checks if needed
-  
-  return NextResponse.next()
-}
+const { auth } = NextAuth(authConfig);
+
+export default auth as NextMiddleware;
 
 export const config = {
-  matcher: [
-    '/((?!_next/static|_next/image|favicon.ico|api/auth).*)',
-  ],
-}
+  matcher: ['/((?!_next/static|_next/image|favicon.ico|api/auth).*)'],
+};
