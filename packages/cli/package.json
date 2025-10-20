@@ -1,15 +1,12 @@
 {
   "name": "@bragdoc/cli",
-  "version": "0.1.2",
+  "version": "1.0.0",
   "description": "CLI tool for managing your brag document",
   "main": "dist/index.js",
   "bin": {
     "bragdoc": "dist/index.js"
   },
-  "files": [
-    "dist",
-    "README.md"
-  ],
+  "files": ["dist", "README.md"],
   "publishConfig": {
     "access": "public",
     "registry": "https://registry.npmjs.org/",
@@ -20,12 +17,7 @@
     "url": "https://github.com/edspencer/bragdoc-ai.git",
     "directory": "cli"
   },
-  "keywords": [
-    "brag-document",
-    "cli",
-    "career",
-    "achievements"
-  ],
+  "keywords": ["brag-document", "cli", "career", "achievements"],
   "author": "Ed Spencer",
   "license": "MIT",
   "scripts": {
