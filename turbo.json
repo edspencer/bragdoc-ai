@@ -3,12 +3,33 @@
   "tasks": {
     "build": {
       "dependsOn": ["^build"],
-      "outputs": [".next/**", "!.next/cache/**", "dist/**", "build/**"]
+      "outputs": [".next/**", "!.next/cache/**", "dist/**", "build/**"],
+      "env": [
+        "POSTGRES_URL",
+        "AUTH_SECRET",
+        "NEXTAUTH_URL",
+        "AUTH_TRUST_HOST",
+        "OPENAI_API_KEY",
+        "GOOGLE_CLIENT_ID",
+        "GOOGLE_CLIENT_SECRET",
+        "GITHUB_CLIENT_ID",
+        "GITHUB_CLIENT_SECRET",
+        "STRIPE_SECRET_KEY",
+        "BLOB_READ_WRITE_TOKEN",
+        "MAILGUN_API_KEY",
+        "MAILGUN_DOMAIN"
+      ]
     },
     "dev": {
       "cache": false,
       "persistent": true,
-      "env": ["DATABASE_URL", "NEXTAUTH_SECRET", "PAYMENT_TOKEN_REQUIRED", "NEXT_PUBLIC_APP_URL", "NEXT_PUBLIC_MARKETING_URL"]
+      "env": [
+        "DATABASE_URL",
+        "NEXTAUTH_SECRET",
+        "PAYMENT_TOKEN_REQUIRED",
+        "NEXT_PUBLIC_APP_URL",
+        "NEXT_PUBLIC_MARKETING_URL"
+      ]
     },
     "lint": {
       "dependsOn": ["^build"]
