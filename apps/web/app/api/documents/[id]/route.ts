@@ -1,6 +1,5 @@
 import { auth } from '@/app/(auth)/auth';
-import { document } from '@bragdoc/database';
-import { db } from '@bragdoc/database';
+import { db, document } from '@bragdoc/database';
 import { and, desc, eq } from 'drizzle-orm';
 import { z } from 'zod';
 

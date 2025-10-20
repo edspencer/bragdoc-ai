@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import { useMemo, useState } from 'react';
 import Link from 'next/link';
 import { formatDistanceToNow } from 'date-fns';
 import { Trophy, Building2, FolderKanban, Clock } from 'lucide-react';
@@ -21,7 +21,7 @@ export function ActivityStream({ achievements }: ActivityStreamProps) {
   const { mutate } = useAchievements();
 
   // Get the 5 most recent achievements for the activity stream
-  const recentAchievements = React.useMemo(() => {
+  const recentAchievements = useMemo(() => {
     return [...achievements]
       .sort((a, b) => {
         const aDate = a.eventStart ? new Date(a.eventStart).getTime() : 0;

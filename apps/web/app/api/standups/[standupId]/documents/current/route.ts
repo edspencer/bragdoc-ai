@@ -1,8 +1,7 @@
 import { type NextRequest, NextResponse } from 'next/server';
 import { and, asc, eq, gte } from 'drizzle-orm';
 import { getAuthUser } from '@/lib/getAuthUser';
-import { getStandupById } from '@bragdoc/database';
-import { db } from '@bragdoc/database';
+import { db, getStandupById } from '@bragdoc/database';
 import { standupDocument } from '@bragdoc/database/schema';
 import { computeNextRunUTC } from '@/lib/scheduling/nextRun';
 

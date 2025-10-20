@@ -1,20 +1,16 @@
 import { toast } from 'sonner';
 import { Artifact } from '@/components/create-artifact';
 import { DocumentSkeleton } from '@/components/document-skeleton';
-import {
-  CopyIcon,
-  PenIcon,
-} from '@/components/icons';
+import { CopyIcon, PenIcon } from '@/components/icons';
 import { Editor } from '@/components/text-editor';
 
 // No suggestions metadata for now - deferred
-type TextArtifactMetadata = {
-  // Empty for now
-};
+type TextArtifactMetadata = Record<string, never>;
 
 export const textArtifact = new Artifact<'text', TextArtifactMetadata>({
   kind: 'text',
-  description: 'Useful for text content, like performance reviews and manager updates.',
+  description:
+    'Useful for text content, like performance reviews and manager updates.',
   initialize: async ({ documentId, setMetadata }) => {
     // No suggestions to load
     setMetadata({});
@@ -37,13 +33,7 @@ export const textArtifact = new Artifact<'text', TextArtifactMetadata>({
       });
     }
   },
-  content: ({
-    status,
-    content,
-    onSaveContent,
-    isLoading,
-    metadata,
-  }) => {
+  content: ({ status, content, onSaveContent, isLoading, metadata }) => {
     if (isLoading) {
       return <DocumentSkeleton artifactKind="text" />;
     }

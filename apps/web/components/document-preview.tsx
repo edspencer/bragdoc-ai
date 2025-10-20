@@ -173,6 +173,11 @@ const PureHitboxLayer = ({
       aria-hidden="true"
       className="absolute top-0 left-0 z-10 size-full rounded-xl"
       onClick={handleClick}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          handleClick(e as unknown as React.MouseEvent<HTMLDivElement>);
+        }
+      }}
       ref={hitboxRef}
       role="presentation"
     >

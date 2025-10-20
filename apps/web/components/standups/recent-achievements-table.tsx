@@ -471,7 +471,7 @@ export function RecentAchievementsTable({
                           {achievements.map((achievement) => (
                             <div
                               key={achievement.id}
-                              className="flex items-center justify-between py-2 hover:bg-muted/50 rounded px-2 -mx-2"
+                              className="flex items-center justify-between p-2 hover:bg-muted/50 rounded -mx-2"
                             >
                               <span className="text-sm flex-1">
                                 {achievement.title}
@@ -634,7 +634,7 @@ export function RecentAchievementsTable({
                   {filteredOrphanedAchievements.map((achievement) => (
                     <div
                       key={achievement.id}
-                      className="flex items-center justify-between py-2 hover:bg-muted/50 rounded px-2 -mx-2"
+                      className="flex items-center justify-between p-2 hover:bg-muted/50 rounded -mx-2"
                     >
                       <span className="text-sm flex-1">
                         {achievement.title}

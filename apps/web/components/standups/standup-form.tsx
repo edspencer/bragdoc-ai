@@ -261,7 +261,7 @@ export function StandupForm({
             >
               <span>Advanced</span>
               <IconChevronDown
-                className={`h-4 w-4 transition-transform ${isAdvancedOpen ? 'rotate-180' : ''}`}
+                className={`size-4 transition-transform ${isAdvancedOpen ? 'rotate-180' : ''}`}
               />
             </Button>
           </CollapsibleTrigger>

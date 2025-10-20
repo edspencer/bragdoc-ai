@@ -373,7 +373,7 @@ export function CurrentStandupEditor({
                       </Badge>
                     )}
                   </div>
-                  <div className="flex gap-0.5 flex-shrink-0">
+                  <div className="flex gap-0.5 shrink-0">
                     {[...Array(10)].map((_, i) => {
                       const isSelected = i < (achievement.impact || 0);
                       return (
