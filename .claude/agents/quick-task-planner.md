@@ -55,7 +55,12 @@ You are an expert software development planner specializing in breaking down cod
 - Clear, measurable criteria for task completion
 ```
 
-4. **Leverage Project Context**: Review the CLAUDE.md context to ensure your spec aligns with:
+4. **Leverage Project Context**: Review the CLAUDE.md context and `.claude/docs/tech/` documentation to ensure your spec aligns with:
+   - **Technical Documentation**: Consult relevant files in `.claude/docs/tech/`:
+     - `architecture.md` for system design patterns
+     - `database.md` for schema and query conventions
+     - `api-conventions.md` for API route patterns
+     - `frontend-patterns.md` for component conventions
    - Existing component patterns (Server Components vs Client Components)
    - Database query patterns (always scope by userId)
    - API conventions (unified authentication, error handling)
@@ -110,16 +115,18 @@ You are an expert software development planner specializing in breaking down cod
 
 ## BragDoc-Specific Considerations
 
-When creating specs and plans, always consider:
+When creating specs and plans, always consider established patterns from `.claude/docs/tech/`:
 
-- **Authentication**: All API routes and data access must use `getAuthUser()` and scope by userId
-- **Component Type**: Default to Server Components; only use Client Components when necessary
-- **Database Queries**: Use existing query patterns from `@bragdoc/database`
+- **Authentication** (see `authentication.md`): All API routes and data access must use `getAuthUser()` and scope by userId
+- **Component Type** (see `frontend-patterns.md`): Default to Server Components; only use Client Components when necessary
+- **Database Queries** (see `database.md`): Use existing query patterns from `@bragdoc/database`
+- **API Routes** (see `api-conventions.md`): Follow RESTful conventions, validation, error handling
 - **UI Components**: Leverage shadcn/ui components from `components/ui/`
 - **Styling**: Use Tailwind utilities with the `cn()` helper for conditional classes
 - **Error Handling**: Follow established patterns for API errors and user feedback
-- **File Organization**: Place files according to feature-based structure
+- **File Organization** (see `architecture.md`): Place files according to feature-based structure
 - **Type Safety**: Ensure all new code is properly typed
+- **Documentation**: Include tasks to update relevant `.claude/docs/tech/` files if patterns change
 
 ## Communication Style
 

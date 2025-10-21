@@ -17,7 +17,28 @@ The plan document should be a markdown file named PLAN.md in the same directory 
 
 ## Documentation updates
 
-Every plan should have a final "Documentation" section, which should contain tasks to update our own internal documentation of the app. This should include a potential update to docs/FEATURES.md (if warranted) and updates to any other documents found in the docs/ directory. If we're adding a significant new piece of UI then we should have some document in that directory that describes the capabilities of that UI. There is a high chance this does not exist, so you should create it if not.
+Every plan should have a final "Documentation" section, which should contain tasks to update our own internal documentation of the app. This section is MANDATORY and should include:
+
+### Technical Documentation (.claude/docs/tech/)
+
+**IMPORTANT:** All plans implementing significant features or architectural changes MUST include tasks to update the relevant technical documentation in `.claude/docs/tech/`. Review the following documents and determine which need updates:
+
+- **architecture.md** - Update for new architectural patterns, technology additions, or structural changes
+- **database.md** - Update for new tables, schema changes, or query patterns
+- **authentication.md** - Update for auth flow changes or new authentication methods
+- **api-conventions.md** - Update for new API routes or pattern changes
+- **ai-integration.md** - Update for new LLM providers, prompt changes, or AI features
+- **cli-architecture.md** - Update for new CLI commands or configuration changes
+- **frontend-patterns.md** - Update for new component patterns or UI conventions
+- **deployment.md** - Update for deployment process or environment variable changes
+
+**When to update:** If your implementation introduces new patterns, changes existing conventions, adds new configuration, or modifies core architecture, you MUST include specific tasks to update the appropriate technical documentation files.
+
+### Feature Documentation (docs/)
+
+This should include a potential update to docs/FEATURES.md (if warranted) and updates to any other documents found in the docs/ directory. If we're adding a significant new piece of UI then we should have some document in that directory that describes the capabilities of that UI. There is a high chance this does not exist, so you should create it if not.
+
+### README Updates
 
 Updates should also be considered for both the README.md and cli/README.md files. If it is clear that some or all of our planned changes should involve updates to either or both of these files, include specific tasks for this with specific the content to be added/removed/modified.
 
