@@ -96,6 +96,7 @@ The CLI automatically:
 - Syncs with your BragDoc web account
 - Caches processed commits to avoid duplicates
 - Supports scheduled automatic extractions
+- **Configurable extraction detail levels**: Choose between minimal (messages only), standard (messages + stats), detailed (limited diffs), or comprehensive (extensive diffs) to balance speed vs context richness
 
 ```bash
 # Initialize repository

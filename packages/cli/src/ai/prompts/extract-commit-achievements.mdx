@@ -55,6 +55,31 @@
   <Instruction>Each Achievement should be complete and self-contained.</Instruction>
   <Instruction>If multiple related commits form a single logical achievement, combine them.</Instruction>
   <Instruction>Focus on technical implementation details and concrete improvements rather than business metrics.</Instruction>
+
+  <Instruction>
+    When file statistics are provided within file-stats elements:
+    - Use them to understand the scale and scope of changes
+    - Consider the number of files modified as indicators of affected systems
+    - Large line changes (additions + deletions) may indicate significant refactoring or new features
+    - Pay attention to which files were modified together, as this may indicate related functionality
+  </Instruction>
+
+  <Instruction>
+    When code diffs are provided within file-diff elements:
+    - Analyze the actual code changes to understand technical implementation details
+    - Identify specific functions, classes, modules, or APIs that were added or modified
+    - Use technical details from the diffs to create more specific achievement descriptions
+    - Consider the complexity and sophistication of the code changes when assessing impact
+    - Note: diffs may be truncated for large changes - focus on the visible changes
+    - If a diff is marked as truncated, acknowledge that the full scope may be larger
+  </Instruction>
+
+  <Instruction>
+    When both stats and diffs are available:
+    - Use stats to understand overall scope (how many files, how many lines)
+    - Use diffs to understand specific technical changes
+    - Combine both to create comprehensive achievement descriptions
+  </Instruction>
 </Instructions>
 <InputFormat>
   <companies>

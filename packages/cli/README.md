@@ -299,6 +299,61 @@ The data cache is stored in `~/.bragdoc/cache/` and includes:
 - `standups.yml` - Your standups
 - `meta.yml` - Cache metadata and timestamps
 
+## Extraction Detail Levels
+
+BragDoc CLI supports configurable extraction detail levels to control how much data is collected from git commits. More detailed extraction provides the LLM with richer context for better achievement extraction, but uses more LLM tokens and takes longer to process.
+
+### Detail Levels
+
+- **minimal**: Commit messages only (fastest, least context)
+- **standard**: Messages + file statistics (recommended default)
+- **detailed**: Messages + stats + limited code diffs
+- **comprehensive**: Messages + stats + extensive code diffs (slowest, most context)
+
+### CLI Options
+
+```bash
+# Use a preset detail level
+bragdoc extract --detail-level detailed
+
+# Fine-grained control
+bragdoc extract --include-stats           # Add file statistics only
+bragdoc extract --include-stats --include-diff  # Add both stats and diffs
+```
+
+### Configuration File
+
+Set defaults in `~/.bragdoc/config.yml`:
+
+```yaml
+# Global default for all projects
+settings:
+  defaultExtraction:
+    detailLevel: standard
+
+# Project-specific configuration
+projects:
+  - path: /home/user/my-project
+    extraction:
+      detailLevel: detailed
+      # Or fine-grained control:
+      includeStats: true
+      includeDiff: true
+      maxDiffLinesPerCommit: 800
+      excludeDiffPatterns:
+        - "*.lock"
+        - "dist/**"
+```
+
+### Performance Considerations
+
+- **minimal**: Fastest, best for large commit batches
+- **standard**: Good balance of speed and context (recommended)
+- **detailed**: Slower, use for smaller batches or important projects
+- **comprehensive**: Slowest, only for critical extractions or small batches
+
+Diff extraction adds significant LLM context. Consider reducing `--batch-size` when using `detailed` or `comprehensive` levels.
+
 ## Configuration
 
 The CLI stores configuration in `~/.bragdoc/config.yml`:

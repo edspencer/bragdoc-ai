@@ -1,5 +1,9 @@
 import { execSync } from 'node:child_process';
-import { getRepositoryInfo, collectGitCommits } from '../operations';
+import {
+  getRepositoryInfo,
+  collectGitCommits,
+  parseNumstat,
+} from '../operations';
 import fs from 'node:fs';
 import { join } from 'node:path';
 import os from 'node:os';
@@ -197,6 +201,57 @@ describe('git operations', () => {
       expect(() => {
         collectGitCommits('main', 1, 'test-repo');
       }).toThrow('Failed to extract commits: Invalid git log entry format');
+    });
+  });
+
+  describe('parseNumstat', () => {
+    it('should parse standard numstat output', () => {
+      const output = `10\t5\tsrc/file1.ts
+20\t15\tsrc/file2.ts
+0\t10\tsrc/file3.ts`;
+
+      const stats = parseNumstat(output);
+
+      expect(stats).toHaveLength(3);
+      expect(stats[0]).toEqual({
+        path: 'src/file1.ts',
+        additions: 10,
+        deletions: 5,
+      });
+      expect(stats[1]).toEqual({
+        path: 'src/file2.ts',
+        additions: 20,
+        deletions: 15,
+      });
+      expect(stats[2]).toEqual({
+        path: 'src/file3.ts',
+        additions: 0,
+        deletions: 10,
+      });
+    });
+
+    it('should handle binary files', () => {
+      const output = `-\t-\timage.png
+10\t5\tsrc/file.ts`;
+
+      const stats = parseNumstat(output);
+
+      expect(stats).toHaveLength(2);
+      expect(stats[0]).toEqual({
+        path: 'image.png',
+        additions: 0,
+        deletions: 0,
+      });
+      expect(stats[1]).toEqual({
+        path: 'src/file.ts',
+        additions: 10,
+        deletions: 5,
+      });
+    });
+
+    it('should handle empty output', () => {
+      const stats = parseNumstat('');
+      expect(stats).toHaveLength(0);
     });
   });
 });

@@ -6,6 +6,10 @@ import type {
   Repository,
   Commit as RepositoryCommit,
 } from './types';
+import type {
+  FileStats as FileStatsType,
+  FileDiff as FileDiffType,
+} from '../../git/types';
 
 declare global {
   namespace JSX {
@@ -90,6 +94,42 @@ declare global {
         HTMLElement
       >;
       date: React.DetailedHTMLProps<
+        React.HTMLAttributes<HTMLElement>,
+        HTMLElement
+      >;
+
+      // File stats elements
+      'file-stats': React.DetailedHTMLProps<
+        React.HTMLAttributes<HTMLElement>,
+        HTMLElement
+      >;
+      'file-stat': React.DetailedHTMLProps<
+        React.HTMLAttributes<HTMLElement>,
+        HTMLElement
+      >;
+      path: React.DetailedHTMLProps<
+        React.HTMLAttributes<HTMLElement>,
+        HTMLElement
+      >;
+      additions: React.DetailedHTMLProps<
+        React.HTMLAttributes<HTMLElement>,
+        HTMLElement
+      >;
+      deletions: React.DetailedHTMLProps<
+        React.HTMLAttributes<HTMLElement>,
+        HTMLElement
+      >;
+
+      // Diff elements
+      'file-diff': React.DetailedHTMLProps<
+        React.HTMLAttributes<HTMLElement>,
+        HTMLElement
+      >;
+      'diff-content': React.DetailedHTMLProps<
+        React.HTMLAttributes<HTMLElement>,
+        HTMLElement
+      >;
+      note: React.DetailedHTMLProps<
         React.HTMLAttributes<HTMLElement>,
         HTMLElement
       >;
@@ -178,6 +218,10 @@ export function Commit({ commit }: { commit: RepositoryCommit }) {
         {commit?.author?.name} - {commit?.author?.email}
       </author>
       <date>{commit?.date}</date>
+      {commit?.stats && <FileStats stats={commit.stats} />}
+      {commit?.diff && (
+        <Diff diffs={commit.diff} truncated={commit.diffTruncated} />
+      )}
     </commit>
   );
 }
@@ -190,5 +234,49 @@ export function Repo({ repository }: { repository: Repository }) {
       <path>{repository?.path}</path>
       <remote-url>{repository?.remoteUrl}</remote-url>
     </repository>
+  );
+}
+
+export function FileStats({ stats }: { stats?: FileStatsType[] }) {
+  if (!stats || stats.length === 0) {
+    return null;
+  }
+
+  // @ts-ignore - Custom JSX elements for AI prompts
+  return (
+    <file-stats>
+      {stats.map((stat, index) => (
+        <file-stat key={index}>
+          <path>{stat.path}</path>
+          <additions>{stat.additions}</additions>
+          <deletions>{stat.deletions}</deletions>
+        </file-stat>
+      ))}
+    </file-stats>
+  );
+}
+
+export function Diff({
+  diffs,
+  truncated,
+}: { diffs?: FileDiffType[]; truncated?: boolean }) {
+  if (!diffs || diffs.length === 0) {
+    return null;
+  }
+
+  // @ts-ignore - Custom JSX elements for AI prompts
+  return (
+    <>
+      {diffs.map((fileDiff, index) => (
+        <file-diff key={index}>
+          <path>{fileDiff.path}</path>
+          <diff-content>{fileDiff.diff}</diff-content>
+          {fileDiff.isTruncated && (
+            <note>This diff was truncated due to size limits</note>
+          )}
+        </file-diff>
+      ))}
+      {truncated && <note>Some files were omitted due to size limits</note>}
+    </>
   );
 }

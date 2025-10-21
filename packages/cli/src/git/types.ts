@@ -1,4 +1,22 @@
 /**
+ * File change statistics from git --numstat
+ */
+export interface FileStats {
+  path: string;
+  additions: number;
+  deletions: number;
+}
+
+/**
+ * File diff information
+ */
+export interface FileDiff {
+  path: string;
+  diff: string; // The actual diff content
+  isTruncated: boolean; // Whether this diff was truncated due to size limits
+}
+
+/**
  * Type describing a single Git commit
  */
 export interface GitCommit {
@@ -8,6 +26,11 @@ export interface GitCommit {
   author: string;
   date: string;
   branch: string;
+
+  // Enhanced data (optional)
+  stats?: FileStats[]; // File change statistics (from --numstat)
+  diff?: FileDiff[]; // Code diffs (from -p)
+  diffTruncated?: boolean; // Whether diff was truncated due to limits
 }
 
 /**

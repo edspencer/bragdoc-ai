@@ -1164,6 +1164,31 @@ settings:
   apiBaseUrl: 'https://www.bragdoc.ai'
 ```
 
+#### Extraction Configuration
+
+Projects and global settings can specify extraction detail levels:
+
+```yaml
+settings:
+  defaultExtraction:
+    detailLevel: 'standard'  # minimal | standard | detailed | comprehensive
+
+projects:
+  - path: /path/to/repo
+    extraction:
+      includeStats: true
+      includeDiff: true
+      maxDiffLinesPerCommit: 1000
+      excludeDiffPatterns: ['*.lock', 'dist/**']
+      prioritizeDiffPatterns: ['src/**']
+```
+
+Detail levels:
+- **minimal**: Commit messages only
+- **standard**: Messages + file statistics (default)
+- **detailed**: Messages + stats + limited diffs
+- **comprehensive**: Messages + stats + extensive diffs
+
 ### Command Structure
 
 Each command is a separate module in `packages/cli/src/commands/`:
@@ -1213,6 +1238,21 @@ export function getRepositoryInfo(path = '.'): RepositoryInfo {
   return { remoteUrl, currentBranch, path };
 }
 ```
+
+#### Enhanced Collection
+
+```typescript
+import { collectGitCommitsEnhanced } from '../git/operations';
+
+const commits = collectGitCommitsEnhanced(
+  branch,
+  maxCommits,
+  repository,
+  extractionConfig  // Optional ExtractionConfig
+);
+```
+
+Supports optional file statistics and code diffs with intelligent size limiting.
 
 ---
 
