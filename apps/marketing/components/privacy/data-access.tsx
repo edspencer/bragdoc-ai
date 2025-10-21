@@ -26,13 +26,13 @@ export function DataAccess() {
             {/* What We DO Access */}
             <Card className="p-6 border-green-500/20 bg-green-500/5">
               <h3 className="text-xl font-semibold mb-6 flex items-center gap-2">
-                <Check className="h-5 w-5 text-green-500" />
+                <Check className="size-5 text-green-500" />
                 What We DO Access
               </h3>
               <ul className="space-y-3">
                 {doAccess.map((item, index) => (
                   <li key={index} className="flex items-start gap-3">
-                    <Check className="h-5 w-5 text-green-500 flex-shrink-0 mt-0.5" />
+                    <Check className="size-5 text-green-500 shrink-0 mt-0.5" />
                     <span className="text-sm">{item}</span>
                   </li>
                 ))}
@@ -42,13 +42,13 @@ export function DataAccess() {
             {/* What We NEVER See */}
             <Card className="p-6 border-red-500/20 bg-red-500/5">
               <h3 className="text-xl font-semibold mb-6 flex items-center gap-2">
-                <X className="h-5 w-5 text-red-500" />
+                <X className="size-5 text-red-500" />
                 What We NEVER See
               </h3>
               <ul className="space-y-3">
                 {neverSee.map((item, index) => (
                   <li key={index} className="flex items-start gap-3">
-                    <X className="h-5 w-5 text-red-500 flex-shrink-0 mt-0.5" />
+                    <X className="size-5 text-red-500 shrink-0 mt-0.5" />
                     <span className="text-sm">{item}</span>
                   </li>
                 ))}

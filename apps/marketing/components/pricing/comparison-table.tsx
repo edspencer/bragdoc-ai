@@ -31,40 +31,40 @@ export function ComparisonTable() {
                   Manual achievement entry
                 </TableCell>
                 <TableCell className="text-center">
-                  <Check className="h-5 w-5 text-green-600 dark:text-green-500 mx-auto" />
+                  <Check className="size-5 text-green-600 dark:text-green-500 mx-auto" />
                 </TableCell>
                 <TableCell className="text-center">
-                  <Check className="h-5 w-5 text-green-600 dark:text-green-500 mx-auto" />
+                  <Check className="size-5 text-green-600 dark:text-green-500 mx-auto" />
                 </TableCell>
                 <TableCell className="text-center">
-                  <Check className="h-5 w-5 text-green-600 dark:text-green-500 mx-auto" />
+                  <Check className="size-5 text-green-600 dark:text-green-500 mx-auto" />
                 </TableCell>
               </TableRow>
               <TableRow>
                 <TableCell className="font-medium">Web app access</TableCell>
                 <TableCell className="text-center">
                   <Minus
-                    className="h-5 w-5 text-muted-foreground mx-auto"
+                    className="size-5 text-muted-foreground mx-auto"
                     title="Self-hosted only"
                   />
                 </TableCell>
                 <TableCell className="text-center">
-                  <Check className="h-5 w-5 text-green-600 dark:text-green-500 mx-auto" />
+                  <Check className="size-5 text-green-600 dark:text-green-500 mx-auto" />
                 </TableCell>
                 <TableCell className="text-center">
-                  <Check className="h-5 w-5 text-green-600 dark:text-green-500 mx-auto" />
+                  <Check className="size-5 text-green-600 dark:text-green-500 mx-auto" />
                 </TableCell>
               </TableRow>
               <TableRow>
                 <TableCell className="font-medium">CLI tool</TableCell>
                 <TableCell className="text-center">
-                  <Check className="h-5 w-5 text-green-600 dark:text-green-500 mx-auto" />
+                  <Check className="size-5 text-green-600 dark:text-green-500 mx-auto" />
                 </TableCell>
                 <TableCell className="text-center">
-                  <Check className="h-5 w-5 text-green-600 dark:text-green-500 mx-auto" />
+                  <Check className="size-5 text-green-600 dark:text-green-500 mx-auto" />
                 </TableCell>
                 <TableCell className="text-center">
-                  <Check className="h-5 w-5 text-green-600 dark:text-green-500 mx-auto" />
+                  <Check className="size-5 text-green-600 dark:text-green-500 mx-auto" />
                 </TableCell>
               </TableRow>
               <TableRow>
@@ -72,13 +72,13 @@ export function ComparisonTable() {
                   Data export/import
                 </TableCell>
                 <TableCell className="text-center">
-                  <Check className="h-5 w-5 text-green-600 dark:text-green-500 mx-auto" />
+                  <Check className="size-5 text-green-600 dark:text-green-500 mx-auto" />
                 </TableCell>
                 <TableCell className="text-center">
-                  <Check className="h-5 w-5 text-green-600 dark:text-green-500 mx-auto" />
+                  <Check className="size-5 text-green-600 dark:text-green-500 mx-auto" />
                 </TableCell>
                 <TableCell className="text-center">
-                  <Check className="h-5 w-5 text-green-600 dark:text-green-500 mx-auto" />
+                  <Check className="size-5 text-green-600 dark:text-green-500 mx-auto" />
                 </TableCell>
               </TableRow>
               <TableRow>
@@ -86,16 +86,16 @@ export function ComparisonTable() {
                   AI achievement extraction
                 </TableCell>
                 <TableCell className="text-center">
-                  <Check className="h-5 w-5 text-green-600 dark:text-green-500 mx-auto" />
+                  <Check className="size-5 text-green-600 dark:text-green-500 mx-auto" />
                   <span className="text-xs text-muted-foreground block">
                     Your LLM
                   </span>
                 </TableCell>
                 <TableCell className="text-center">
-                  <X className="h-5 w-5 text-muted-foreground mx-auto" />
+                  <X className="size-5 text-muted-foreground mx-auto" />
                 </TableCell>
                 <TableCell className="text-center">
-                  <Check className="h-5 w-5 text-green-600 dark:text-green-500 mx-auto" />
+                  <Check className="size-5 text-green-600 dark:text-green-500 mx-auto" />
                   <span className="text-xs text-muted-foreground block">
                     Cloud AI
                   </span>
@@ -106,16 +106,16 @@ export function ComparisonTable() {
                   AI standup summaries
                 </TableCell>
                 <TableCell className="text-center">
-                  <Check className="h-5 w-5 text-green-600 dark:text-green-500 mx-auto" />
+                  <Check className="size-5 text-green-600 dark:text-green-500 mx-auto" />
                   <span className="text-xs text-muted-foreground block">
                     Your LLM
                   </span>
                 </TableCell>
                 <TableCell className="text-center">
-                  <X className="h-5 w-5 text-muted-foreground mx-auto" />
+                  <X className="size-5 text-muted-foreground mx-auto" />
                 </TableCell>
                 <TableCell className="text-center">
-                  <Check className="h-5 w-5 text-green-600 dark:text-green-500 mx-auto" />
+                  <Check className="size-5 text-green-600 dark:text-green-500 mx-auto" />
                   <span className="text-xs text-muted-foreground block">
                     Cloud AI
                   </span>
@@ -127,7 +127,7 @@ export function ComparisonTable() {
                 </TableCell>
                 <TableCell className="text-center">
                   <Minus
-                    className="h-5 w-5 text-muted-foreground mx-auto"
+                    className="size-5 text-muted-foreground mx-auto"
                     title="Requires setup"
                   />
                   <span className="text-xs text-muted-foreground block">
@@ -135,10 +135,10 @@ export function ComparisonTable() {
                   </span>
                 </TableCell>
                 <TableCell className="text-center">
-                  <X className="h-5 w-5 text-muted-foreground mx-auto" />
+                  <X className="size-5 text-muted-foreground mx-auto" />
                 </TableCell>
                 <TableCell className="text-center">
-                  <Check className="h-5 w-5 text-green-600 dark:text-green-500 mx-auto" />
+                  <Check className="size-5 text-green-600 dark:text-green-500 mx-auto" />
                   <span className="text-xs text-muted-foreground block">
                     Cloud AI
                   </span>
@@ -150,7 +150,7 @@ export function ComparisonTable() {
                 </TableCell>
                 <TableCell className="text-center">
                   <Minus
-                    className="h-5 w-5 text-muted-foreground mx-auto"
+                    className="size-5 text-muted-foreground mx-auto"
                     title="Requires setup"
                   />
                   <span className="text-xs text-muted-foreground block">
@@ -158,10 +158,10 @@ export function ComparisonTable() {
                   </span>
                 </TableCell>
                 <TableCell className="text-center">
-                  <X className="h-5 w-5 text-muted-foreground mx-auto" />
+                  <X className="size-5 text-muted-foreground mx-auto" />
                 </TableCell>
                 <TableCell className="text-center">
-                  <Check className="h-5 w-5 text-green-600 dark:text-green-500 mx-auto" />
+                  <Check className="size-5 text-green-600 dark:text-green-500 mx-auto" />
                   <span className="text-xs text-muted-foreground block">
                     Cloud AI
                   </span>
@@ -172,31 +172,31 @@ export function ComparisonTable() {
                   Hosted infrastructure
                 </TableCell>
                 <TableCell className="text-center">
-                  <X className="h-5 w-5 text-muted-foreground mx-auto" />
+                  <X className="size-5 text-muted-foreground mx-auto" />
                   <span className="text-xs text-muted-foreground block">
                     Self-host
                   </span>
                 </TableCell>
                 <TableCell className="text-center">
-                  <Check className="h-5 w-5 text-green-600 dark:text-green-500 mx-auto" />
+                  <Check className="size-5 text-green-600 dark:text-green-500 mx-auto" />
                 </TableCell>
                 <TableCell className="text-center">
-                  <Check className="h-5 w-5 text-green-600 dark:text-green-500 mx-auto" />
+                  <Check className="size-5 text-green-600 dark:text-green-500 mx-auto" />
                 </TableCell>
               </TableRow>
               <TableRow>
                 <TableCell className="font-medium">Priority support</TableCell>
                 <TableCell className="text-center">
-                  <X className="h-5 w-5 text-muted-foreground mx-auto" />
+                  <X className="size-5 text-muted-foreground mx-auto" />
                   <span className="text-xs text-muted-foreground block">
                     Community
                   </span>
                 </TableCell>
                 <TableCell className="text-center">
-                  <X className="h-5 w-5 text-muted-foreground mx-auto" />
+                  <X className="size-5 text-muted-foreground mx-auto" />
                 </TableCell>
                 <TableCell className="text-center">
-                  <Check className="h-5 w-5 text-green-600 dark:text-green-500 mx-auto" />
+                  <Check className="size-5 text-green-600 dark:text-green-500 mx-auto" />
                 </TableCell>
               </TableRow>
               <TableRow className="bg-muted/30">

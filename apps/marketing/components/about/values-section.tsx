@@ -31,7 +31,7 @@ export function ValuesSection() {
         <div className="space-y-6">
           {values.map((value, index) => (
             <div key={index} className="flex items-start gap-4">
-              <span className="text-3xl flex-shrink-0">{value.emoji}</span>
+              <span className="text-3xl shrink-0">{value.emoji}</span>
               <div>
                 <h3 className="text-xl font-semibold mb-1">{value.title}</h3>
                 <p className="text-muted-foreground leading-relaxed">

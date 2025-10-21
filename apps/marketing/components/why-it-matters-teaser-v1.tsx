@@ -9,7 +9,7 @@ export function WhyItMattersTeaserV1() {
       <div className="container mx-auto max-w-6xl">
         <div className="text-center mb-12">
           <div className="inline-flex items-center gap-2 bg-primary/10 text-primary px-4 py-2 rounded-full text-sm font-medium mb-4">
-            <AlertCircle className="h-4 w-4" />
+            <AlertCircle className="size-4" />
             Why This Matters
           </div>
           <h2 className="text-3xl sm:text-4xl font-bold mb-4">
@@ -26,8 +26,8 @@ export function WhyItMattersTeaserV1() {
           <Card className="border-2">
             <CardContent className="pt-6">
               <div className="flex items-start gap-3 mb-4">
-                <div className="flex-shrink-0 h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
-                  <Quote className="h-5 w-5 text-primary" />
+                <div className="shrink-0 size-10 rounded-full bg-primary/10 flex items-center justify-center">
+                  <Quote className="size-5 text-primary" />
                 </div>
                 <div>
                   <h3 className="font-semibold">Julia Evans</h3>
@@ -47,8 +47,8 @@ export function WhyItMattersTeaserV1() {
           <Card className="border-2">
             <CardContent className="pt-6">
               <div className="flex items-start gap-3 mb-4">
-                <div className="flex-shrink-0 h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
-                  <Quote className="h-5 w-5 text-primary" />
+                <div className="shrink-0 size-10 rounded-full bg-primary/10 flex items-center justify-center">
+                  <Quote className="size-5 text-primary" />
                 </div>
                 <div>
                   <h3 className="font-semibold">Jeff Morhous</h3>
@@ -69,7 +69,7 @@ export function WhyItMattersTeaserV1() {
           <Button size="lg" asChild>
             <Link href="/why-it-matters">
               Learn Why Brag Docs Are Essential
-              <ArrowRight className="ml-2 h-4 w-4" />
+              <ArrowRight className="ml-2 size-4" />
             </Link>
           </Button>
         </div>

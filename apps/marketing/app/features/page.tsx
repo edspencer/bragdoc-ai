@@ -155,10 +155,10 @@ export default function FeaturesPage() {
             <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
               <div className="flex items-start gap-4 p-6 rounded-lg border border-border bg-card">
                 <div
-                  className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg"
+                  className="flex size-12 shrink-0 items-center justify-center rounded-lg"
                   style={{ backgroundColor: 'var(--feature-accent)' }}
                 >
-                  <Terminal className="h-6 w-6 text-white" />
+                  <Terminal className="size-6 text-white" />
                 </div>
                 <div>
                   <h3 className="font-semibold text-lg mb-2">CLI Features</h3>
@@ -169,10 +169,10 @@ export default function FeaturesPage() {
               </div>
               <div className="flex items-start gap-4 p-6 rounded-lg border border-border bg-card">
                 <div
-                  className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg"
+                  className="flex size-12 shrink-0 items-center justify-center rounded-lg"
                   style={{ backgroundColor: 'var(--feature-accent)' }}
                 >
-                  <Globe className="h-6 w-6 text-white" />
+                  <Globe className="size-6 text-white" />
                 </div>
                 <div>
                   <h3 className="font-semibold text-lg mb-2">
@@ -204,10 +204,10 @@ export default function FeaturesPage() {
                     <div className={isEven ? 'md:order-1' : 'md:order-2'}>
                       <div className="flex items-center gap-3 mb-4">
                         <div
-                          className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg"
+                          className="flex size-10 shrink-0 items-center justify-center rounded-lg"
                           style={{ backgroundColor: 'var(--feature-accent)' }}
                         >
-                          <Icon className="h-5 w-5 text-white" />
+                          <Icon className="size-5 text-white" />
                         </div>
                         <h2 className="text-2xl sm:text-3xl font-bold">
                           {feature.heading}
@@ -223,7 +223,7 @@ export default function FeaturesPage() {
                             className="flex items-start gap-3"
                           >
                             <div
-                              className="h-1.5 w-1.5 rounded-full mt-2 shrink-0"
+                              className="size-1.5 rounded-full mt-2 shrink-0"
                               style={{
                                 backgroundColor: 'var(--feature-accent)',
                               }}

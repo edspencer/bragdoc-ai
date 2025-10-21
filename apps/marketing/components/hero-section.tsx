@@ -41,7 +41,14 @@ export function HeroSection() {
   return (
     <section className="relative pt-32 pb-20 px-4 sm:px-6 lg:px-8 overflow-hidden">
       <div className="absolute inset-0 -z-10">
-        <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:24px_24px]" />
+        <div
+          className="absolute inset-0"
+          style={{
+            backgroundImage:
+              'linear-gradient(to right, #80808012 1px, transparent 1px), linear-gradient(to bottom, #80808012 1px, transparent 1px)',
+            backgroundSize: '24px 24px',
+          }}
+        />
       </div>
 
       <div className="container mx-auto max-w-7xl">
@@ -127,11 +134,11 @@ export function HeroSection() {
 
               <div className="pt-4 border-t border-border flex items-center justify-between text-sm text-muted-foreground">
                 <div className="flex items-center gap-2">
-                  <GitCommit className="h-4 w-4" />
+                  <GitCommit className="size-4" />
                   <span>127 commits analyzed</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <Calendar className="h-4 w-4" />
+                  <Calendar className="size-4" />
                   <span>Last 30 days</span>
                 </div>
               </div>
@@ -161,7 +168,7 @@ function AvatarWithPopover({
     <Popover open={isOpen} onOpenChange={setIsOpen}>
       <PopoverTrigger asChild>
         <div
-          className="h-8 w-8 rounded-full bg-primary/10 border-2 border-background flex items-center justify-center text-xs font-semibold text-primary cursor-pointer hover:bg-primary/20 transition-colors"
+          className="size-8 rounded-full bg-primary/10 border-2 border-background flex items-center justify-center text-xs font-semibold text-primary cursor-pointer hover:bg-primary/20 transition-colors"
           onMouseEnter={() => setIsOpen(true)}
           onMouseLeave={() => setIsOpen(false)}
         >
@@ -171,7 +178,7 @@ function AvatarWithPopover({
       <PopoverContent className="w-[480px] p-4" side="bottom" align="center">
         <div className="space-y-3">
           <div className="flex items-center gap-1.5 text-xs text-green-600 dark:text-green-500 mb-2">
-            <Check className="h-3.5 w-3.5" />
+            <Check className="size-3.5" />
             <span className="font-medium">Captured automatically from Git</span>
           </div>
           <h4 className="font-semibold text-sm leading-snug">
@@ -185,7 +192,7 @@ function AvatarWithPopover({
               {achievement.description}
             </span>
             <div className="flex items-center gap-1">
-              <Star className="h-3 w-3 fill-yellow-500 text-yellow-500" />
+              <Star className="size-3 fill-yellow-500 text-yellow-500" />
               <span className="text-xs font-medium">
                 {achievement.rating}/10
               </span>
@@ -220,12 +227,12 @@ function AchievementItem({
               {Array.from({ length: 5 }).map((_, i) => (
                 <Star
                   key={i}
-                  className={`h-3 w-3 ${i < impact ? 'fill-yellow-500 text-yellow-500' : 'text-muted-foreground/30'}`}
+                  className={`size-3 ${i < impact ? 'fill-yellow-500 text-yellow-500' : 'text-muted-foreground/30'}`}
                 />
               ))}
             </div>
             <Badge variant="outline" className="text-xs">
-              <div className={`h-2 w-2 rounded-full ${projectColor} mr-1.5`} />
+              <div className={`size-2 rounded-full ${projectColor} mr-1.5`} />
               {project}
             </Badge>
           </div>

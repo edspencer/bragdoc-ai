@@ -25,7 +25,7 @@ export function PricingTiers() {
           {/* Full Account - Primary Offering */}
           <Card className="border-[oklch(0.65_0.25_262)] dark:border-[oklch(0.7_0.25_262)] shadow-xl shadow-[oklch(0.65_0.25_262)]/20 dark:shadow-[oklch(0.7_0.25_262)]/20 relative mb-8">
             <Badge className="absolute -top-3 left-1/2 -translate-x-1/2 bg-[oklch(0.65_0.25_262)] dark:bg-[oklch(0.7_0.25_262)] text-white">
-              <Sparkles className="h-3 w-3 mr-1" />
+              <Sparkles className="size-3 mr-1" />
               Full BragDoc Experience
             </Badge>
             <CardHeader className="text-center pb-8">
@@ -99,19 +99,19 @@ export function PricingTiers() {
                 </h4>
                 <ul className="space-y-3">
                   <li className="flex items-start gap-3">
-                    <Check className="h-5 w-5 text-green-600 dark:text-green-500 flex-shrink-0 mt-0.5" />
+                    <Check className="size-5 text-green-600 dark:text-green-500 shrink-0 mt-0.5" />
                     <span>AI achievement extraction from git commits</span>
                   </li>
                   <li className="flex items-start gap-3">
-                    <Check className="h-5 w-5 text-green-600 dark:text-green-500 flex-shrink-0 mt-0.5" />
+                    <Check className="size-5 text-green-600 dark:text-green-500 shrink-0 mt-0.5" />
                     <span>AI-generated standup summaries</span>
                   </li>
                   <li className="flex items-start gap-3">
-                    <Check className="h-5 w-5 text-green-600 dark:text-green-500 flex-shrink-0 mt-0.5" />
+                    <Check className="size-5 text-green-600 dark:text-green-500 shrink-0 mt-0.5" />
                     <span>AI-generated performance review documents</span>
                   </li>
                   <li className="flex items-start gap-3">
-                    <Check className="h-5 w-5 text-green-600 dark:text-green-500 flex-shrink-0 mt-0.5" />
+                    <Check className="size-5 text-green-600 dark:text-green-500 shrink-0 mt-0.5" />
                     <span>AI impact assessment and categorization</span>
                   </li>
                 </ul>
@@ -120,23 +120,23 @@ export function PricingTiers() {
                 <h4 className="font-semibold mb-3 text-lg">Core Features</h4>
                 <ul className="space-y-3">
                   <li className="flex items-start gap-3">
-                    <Check className="h-5 w-5 text-green-600 dark:text-green-500 flex-shrink-0 mt-0.5" />
+                    <Check className="size-5 text-green-600 dark:text-green-500 shrink-0 mt-0.5" />
                     <span>Unlimited achievements, projects, and companies</span>
                   </li>
                   <li className="flex items-start gap-3">
-                    <Check className="h-5 w-5 text-green-600 dark:text-green-500 flex-shrink-0 mt-0.5" />
+                    <Check className="size-5 text-green-600 dark:text-green-500 shrink-0 mt-0.5" />
                     <span>Web app with beautiful dashboard</span>
                   </li>
                   <li className="flex items-start gap-3">
-                    <Check className="h-5 w-5 text-green-600 dark:text-green-500 flex-shrink-0 mt-0.5" />
+                    <Check className="size-5 text-green-600 dark:text-green-500 shrink-0 mt-0.5" />
                     <span>CLI tool for local extraction</span>
                   </li>
                   <li className="flex items-start gap-3">
-                    <Check className="h-5 w-5 text-green-600 dark:text-green-500 flex-shrink-0 mt-0.5" />
+                    <Check className="size-5 text-green-600 dark:text-green-500 shrink-0 mt-0.5" />
                     <span>Data export and full portability</span>
                   </li>
                   <li className="flex items-start gap-3">
-                    <Check className="h-5 w-5 text-green-600 dark:text-green-500 flex-shrink-0 mt-0.5" />
+                    <Check className="size-5 text-green-600 dark:text-green-500 shrink-0 mt-0.5" />
                     <span>Priority support</span>
                   </li>
                 </ul>
@@ -170,15 +170,15 @@ export function PricingTiers() {
               </p>
               <ul className="space-y-2 text-sm">
                 <li className="flex items-start gap-2">
-                  <Check className="h-4 w-4 text-green-600 dark:text-green-500 flex-shrink-0 mt-0.5" />
+                  <Check className="size-4 text-green-600 dark:text-green-500 shrink-0 mt-0.5" />
                   <span>Manual achievement entry</span>
                 </li>
                 <li className="flex items-start gap-2">
-                  <Check className="h-4 w-4 text-green-600 dark:text-green-500 flex-shrink-0 mt-0.5" />
+                  <Check className="size-4 text-green-600 dark:text-green-500 shrink-0 mt-0.5" />
                   <span>Web app access</span>
                 </li>
                 <li className="flex items-start gap-2">
-                  <Check className="h-4 w-4 text-green-600 dark:text-green-500 flex-shrink-0 mt-0.5" />
+                  <Check className="size-4 text-green-600 dark:text-green-500 shrink-0 mt-0.5" />
                   <span>Data export</span>
                 </li>
               </ul>

@@ -23,8 +23,8 @@ export function SelfHostingVideo() {
               {/* Placeholder for YouTube video */}
               <div className="absolute inset-0 flex items-center justify-center">
                 <div className="text-center">
-                  <div className="inline-flex items-center justify-center h-20 w-20 rounded-full bg-primary/20 backdrop-blur-sm mb-4">
-                    <Play className="h-10 w-10 text-primary ml-1" />
+                  <div className="inline-flex items-center justify-center size-20 rounded-full bg-primary/20 backdrop-blur-sm mb-4">
+                    <Play className="size-10 text-primary ml-1" />
                   </div>
                   <p className="text-lg font-medium text-muted-foreground">
                     Self-hosting tutorial video coming soon

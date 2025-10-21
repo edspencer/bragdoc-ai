@@ -17,12 +17,12 @@ export function HowItWorksCTA() {
             <Button size="lg" asChild>
               <a href="https://app.bragdoc.ai/login">
                 Get Started Free
-                <ArrowRight className="ml-2 h-4 w-4" />
+                <ArrowRight className="ml-2 size-4" />
               </a>
             </Button>
             <Button size="lg" variant="outline" asChild>
               <Link href="/cli">
-                <Terminal className="mr-2 h-4 w-4" />
+                <Terminal className="mr-2 size-4" />
                 View CLI Documentation
               </Link>
             </Button>

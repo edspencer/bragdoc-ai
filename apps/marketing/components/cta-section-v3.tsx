@@ -19,8 +19,8 @@ export function CTASectionV3() {
         <div className="grid md:grid-cols-3 gap-6 mb-10">
           {/* Benefit cards */}
           <Card className="p-6 space-y-3 border-2 hover:border-primary/50 transition-colors">
-            <div className="h-12 w-12 rounded-xl bg-green-500/10 flex items-center justify-center">
-              <Check className="h-6 w-6 text-green-600" />
+            <div className="size-12 rounded-xl bg-green-500/10 flex items-center justify-center">
+              <Check className="size-6 text-green-600" />
             </div>
             <h3 className="font-semibold text-lg">Automatic Tracking</h3>
             <p className="text-sm text-muted-foreground leading-relaxed">
@@ -30,8 +30,8 @@ export function CTASectionV3() {
           </Card>
 
           <Card className="p-6 space-y-3 border-2 hover:border-primary/50 transition-colors">
-            <div className="h-12 w-12 rounded-xl bg-blue-500/10 flex items-center justify-center">
-              <TrendingUp className="h-6 w-6 text-blue-600" />
+            <div className="size-12 rounded-xl bg-blue-500/10 flex items-center justify-center">
+              <TrendingUp className="size-6 text-blue-600" />
             </div>
             <h3 className="font-semibold text-lg">Career Growth</h3>
             <p className="text-sm text-muted-foreground leading-relaxed">
@@ -41,8 +41,8 @@ export function CTASectionV3() {
           </Card>
 
           <Card className="p-6 space-y-3 border-2 hover:border-primary/50 transition-colors">
-            <div className="h-12 w-12 rounded-xl bg-purple-500/10 flex items-center justify-center">
-              <Terminal className="h-6 w-6 text-purple-600" />
+            <div className="size-12 rounded-xl bg-purple-500/10 flex items-center justify-center">
+              <Terminal className="size-6 text-purple-600" />
             </div>
             <h3 className="font-semibold text-lg">2-Minute Setup</h3>
             <p className="text-sm text-muted-foreground leading-relaxed">
@@ -74,7 +74,7 @@ export function CTASectionV3() {
         {/* Quick install */}
         <Card className="max-w-2xl mx-auto p-6 bg-muted/50">
           <div className="flex items-center gap-2 mb-3">
-            <Terminal className="h-5 w-5 text-muted-foreground" />
+            <Terminal className="size-5 text-muted-foreground" />
             <span className="font-semibold text-sm">Quick Install</span>
           </div>
           <div className="bg-background rounded-lg p-4 font-mono text-sm border">

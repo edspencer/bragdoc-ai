@@ -9,8 +9,8 @@ export function ProblemSolutionSection() {
         <div className="grid md:grid-cols-2 gap-8">
           <Card className="p-8 space-y-6 bg-card border-border">
             <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-destructive/10 text-destructive">
-                <AlertCircle className="h-5 w-5" />
+              <div className="flex size-10 items-center justify-center rounded-lg bg-destructive/10 text-destructive">
+                <AlertCircle className="size-5" />
               </div>
               <h2 className="text-2xl font-bold">The Problem</h2>
             </div>
@@ -29,8 +29,8 @@ export function ProblemSolutionSection() {
 
           <Card className="p-8 space-y-6 bg-card border-border">
             <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-green-500/10 text-green-500">
-                <CheckCircle2 className="h-5 w-5" />
+              <div className="flex size-10 items-center justify-center rounded-lg bg-green-500/10 text-green-500">
+                <CheckCircle2 className="size-5" />
               </div>
               <h2 className="text-2xl font-bold">The Solution</h2>
             </div>
@@ -41,12 +41,12 @@ export function ProblemSolutionSection() {
 
             <div className="space-y-6">
               <SolutionItem
-                icon={<Terminal className="h-5 w-5" />}
+                icon={<Terminal className="size-5" />}
                 title="CLI Tool"
                 description="Run bragdoc in your repo to analyze commits and extract achievements automatically"
               />
               <SolutionItem
-                icon={<Globe className="h-5 w-5" />}
+                icon={<Globe className="size-5" />}
                 title="Web Dashboard"
                 description="Review, edit, and organize your achievements in a beautiful interface"
               />
@@ -61,7 +61,7 @@ export function ProblemSolutionSection() {
 function ProblemItem({ text }: { text: string }) {
   return (
     <li className="flex items-start gap-3">
-      <div className="mt-0.5 h-1.5 w-1.5 rounded-full bg-destructive flex-shrink-0" />
+      <div className="mt-0.5 size-1.5 rounded-full bg-destructive shrink-0" />
       <span className="text-muted-foreground leading-relaxed">{text}</span>
     </li>
   );
@@ -78,7 +78,7 @@ function SolutionItem({
 }) {
   return (
     <div className="flex gap-4">
-      <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10 text-primary flex-shrink-0">
+      <div className="flex size-10 items-center justify-center rounded-lg bg-primary/10 text-primary shrink-0">
         {icon}
       </div>
       <div className="space-y-1">

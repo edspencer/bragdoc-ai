@@ -15,7 +15,7 @@ export function FaqCta() {
           <div className="flex flex-col sm:flex-row gap-4 justify-center pt-4">
             <Button size="lg" className="gap-2" asChild>
               <a href="mailto:support@bragdoc.ai">
-                <MessageCircle className="h-5 w-5" />
+                <MessageCircle className="size-5" />
                 Contact Support
               </a>
             </Button>
@@ -26,7 +26,7 @@ export function FaqCta() {
               asChild
             >
               <Link href="/cli">
-                <BookOpen className="h-5 w-5" />
+                <BookOpen className="size-5" />
                 Read Documentation
               </Link>
             </Button>

@@ -11,8 +11,8 @@ export function PrivacySection() {
         <Card className="p-12 space-y-8 bg-card border-2 border-primary/20">
           <div className="text-center space-y-4">
             <div className="flex justify-center">
-              <div className="flex h-16 w-16 items-center justify-center rounded-full bg-primary/10 text-primary">
-                <Shield className="h-8 w-8" />
+              <div className="flex size-16 items-center justify-center rounded-full bg-primary/10 text-primary">
+                <Shield className="size-8" />
               </div>
             </div>
             <h2 className="text-3xl sm:text-4xl font-bold text-balance">
@@ -27,17 +27,17 @@ export function PrivacySection() {
 
           <div className="grid sm:grid-cols-3 gap-6">
             <PrivacyFeature
-              icon={<Lock className="h-5 w-5" />}
+              icon={<Lock className="size-5" />}
               title="Local Processing"
               description="All analysis happens on your computer"
             />
             <PrivacyFeature
-              icon={<Eye className="h-5 w-5" />}
+              icon={<Eye className="size-5" />}
               title="You Control Data"
               description="Choose what to sync to the cloud"
             />
             <PrivacyFeature
-              icon={<Server className="h-5 w-5" />}
+              icon={<Server className="size-5" />}
               title="Encrypted Storage"
               description="End-to-end encryption for synced data"
             />
@@ -68,7 +68,7 @@ function PrivacyFeature({
   return (
     <div className="text-center space-y-2">
       <div className="flex justify-center">
-        <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10 text-primary">
+        <div className="flex size-10 items-center justify-center rounded-lg bg-primary/10 text-primary">
           {icon}
         </div>
       </div>

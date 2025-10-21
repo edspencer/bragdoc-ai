@@ -13,7 +13,7 @@ export function GetStartedHeader() {
             variant="secondary"
             className="mb-6 bg-primary/10 text-primary border-primary/20"
           >
-            <Sparkles className="h-3 w-3 mr-1.5" />
+            <Sparkles className="size-3 mr-1.5" />
             Quick Setup
           </Badge>
 

@@ -17,7 +17,7 @@ export function OfflineMode() {
         <div className="max-w-3xl mx-auto">
           <div className="text-center mb-8">
             <Badge variant="secondary" className="mb-4 gap-2">
-              <Shield className="h-3 w-3" />
+              <Shield className="size-3" />
               Maximum Privacy
             </Badge>
             <h2 className="text-2xl sm:text-3xl font-bold mb-4">
@@ -32,7 +32,7 @@ export function OfflineMode() {
             <ol className="space-y-4">
               {steps.map((step, index) => (
                 <li key={index} className="flex gap-4">
-                  <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground font-semibold">
+                  <div className="flex size-8 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground font-semibold">
                     {index + 1}
                   </div>
                   <p className="pt-1 text-sm">{step}</p>

@@ -18,7 +18,7 @@ export function PrivacyArchitectureV3() {
         <div className="max-w-4xl mx-auto">
           <div className="text-center mb-12">
             <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 text-primary mb-4 border border-primary/20">
-              <Lock className="h-4 w-4" />
+              <Lock className="size-4" />
               <span className="text-sm font-semibold">
                 Privacy Architecture
               </span>
@@ -37,10 +37,10 @@ export function PrivacyArchitectureV3() {
             <div className="relative">
               <Card className="border-2 border-green-500/40 bg-green-500/5 overflow-hidden">
                 <div className="absolute top-0 left-0 w-2 h-full bg-green-500" />
-                <CardContent className="pt-6 pb-6 pl-8">
+                <CardContent className="py-6 pl-8">
                   <div className="flex items-start gap-6">
-                    <div className="flex-shrink-0 h-14 w-14 rounded-xl bg-green-500/10 flex items-center justify-center border-2 border-green-500/30">
-                      <Laptop className="h-7 w-7 text-green-600 dark:text-green-400" />
+                    <div className="shrink-0 size-14 rounded-xl bg-green-500/10 flex items-center justify-center border-2 border-green-500/30">
+                      <Laptop className="size-7 text-green-600 dark:text-green-400" />
                     </div>
                     <div className="flex-1">
                       <div className="flex items-center gap-3 mb-2">
@@ -57,11 +57,11 @@ export function PrivacyArchitectureV3() {
                       </p>
                       <div className="grid sm:grid-cols-2 gap-3">
                         <div className="flex items-center gap-2 text-sm">
-                          <CheckCircle2 className="h-4 w-4 text-green-600 dark:text-green-400" />
+                          <CheckCircle2 className="size-4 text-green-600 dark:text-green-400" />
                           <span>Code stays local</span>
                         </div>
                         <div className="flex items-center gap-2 text-sm">
-                          <CheckCircle2 className="h-4 w-4 text-green-600 dark:text-green-400" />
+                          <CheckCircle2 className="size-4 text-green-600 dark:text-green-400" />
                           <span>Metadata extracted</span>
                         </div>
                       </div>
@@ -70,7 +70,7 @@ export function PrivacyArchitectureV3() {
                 </CardContent>
               </Card>
               <div className="flex justify-center py-3">
-                <ArrowDown className="h-6 w-6 text-muted-foreground animate-bounce" />
+                <ArrowDown className="size-6 text-muted-foreground animate-bounce" />
               </div>
             </div>
 
@@ -78,10 +78,10 @@ export function PrivacyArchitectureV3() {
             <div className="relative">
               <Card className="border-2 border-blue-500/40 bg-blue-500/5 overflow-hidden">
                 <div className="absolute top-0 left-0 w-2 h-full bg-blue-500" />
-                <CardContent className="pt-6 pb-6 pl-8">
+                <CardContent className="py-6 pl-8">
                   <div className="flex items-start gap-6">
-                    <div className="flex-shrink-0 h-14 w-14 rounded-xl bg-blue-500/10 flex items-center justify-center border-2 border-blue-500/30">
-                      <Zap className="h-7 w-7 text-blue-600 dark:text-blue-400" />
+                    <div className="shrink-0 size-14 rounded-xl bg-blue-500/10 flex items-center justify-center border-2 border-blue-500/30">
+                      <Zap className="size-7 text-blue-600 dark:text-blue-400" />
                     </div>
                     <div className="flex-1">
                       <div className="flex items-center gap-3 mb-2">
@@ -98,11 +98,11 @@ export function PrivacyArchitectureV3() {
                       </p>
                       <div className="grid sm:grid-cols-2 gap-3">
                         <div className="flex items-center gap-2 text-sm">
-                          <CheckCircle2 className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                          <CheckCircle2 className="size-4 text-blue-600 dark:text-blue-400" />
                           <span>Your API keys</span>
                         </div>
                         <div className="flex items-center gap-2 text-sm">
-                          <CheckCircle2 className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                          <CheckCircle2 className="size-4 text-blue-600 dark:text-blue-400" />
                           <span>Local Ollama option</span>
                         </div>
                       </div>
@@ -111,7 +111,7 @@ export function PrivacyArchitectureV3() {
                 </CardContent>
               </Card>
               <div className="flex justify-center py-3">
-                <ArrowDown className="h-6 w-6 text-muted-foreground animate-bounce" />
+                <ArrowDown className="size-6 text-muted-foreground animate-bounce" />
               </div>
             </div>
 
@@ -119,10 +119,10 @@ export function PrivacyArchitectureV3() {
             <div className="relative">
               <Card className="border-2 border-purple-500/40 bg-purple-500/5 overflow-hidden">
                 <div className="absolute top-0 left-0 w-2 h-full bg-purple-500" />
-                <CardContent className="pt-6 pb-6 pl-8">
+                <CardContent className="py-6 pl-8">
                   <div className="flex items-start gap-6">
-                    <div className="flex-shrink-0 h-14 w-14 rounded-xl bg-purple-500/10 flex items-center justify-center border-2 border-purple-500/30">
-                      <CloudCog className="h-7 w-7 text-purple-600 dark:text-purple-400" />
+                    <div className="shrink-0 size-14 rounded-xl bg-purple-500/10 flex items-center justify-center border-2 border-purple-500/30">
+                      <CloudCog className="size-7 text-purple-600 dark:text-purple-400" />
                     </div>
                     <div className="flex-1">
                       <div className="flex items-center gap-3 mb-2">
@@ -137,11 +137,11 @@ export function PrivacyArchitectureV3() {
                       </p>
                       <div className="grid sm:grid-cols-2 gap-3">
                         <div className="flex items-center gap-2 text-sm">
-                          <CheckCircle2 className="h-4 w-4 text-purple-600 dark:text-purple-400" />
+                          <CheckCircle2 className="size-4 text-purple-600 dark:text-purple-400" />
                           <span>Achievements only</span>
                         </div>
                         <div className="flex items-center gap-2 text-sm">
-                          <CheckCircle2 className="h-4 w-4 text-purple-600 dark:text-purple-400" />
+                          <CheckCircle2 className="size-4 text-purple-600 dark:text-purple-400" />
                           <span>Encrypted storage</span>
                         </div>
                       </div>
@@ -154,10 +154,10 @@ export function PrivacyArchitectureV3() {
 
           {/* Self-Hosted Alternative */}
           <Card className="border-2 border-primary bg-primary/5">
-            <CardContent className="pt-8 pb-8">
+            <CardContent className="py-8">
               <div className="text-center space-y-4">
-                <div className="inline-flex h-16 w-16 rounded-2xl bg-primary/10 items-center justify-center mb-2">
-                  <Shield className="h-8 w-8 text-primary" />
+                <div className="inline-flex size-16 rounded-2xl bg-primary/10 items-center justify-center mb-2">
+                  <Shield className="size-8 text-primary" />
                 </div>
                 <h3 className="text-2xl font-bold">Or Go Fully Self-Hosted</h3>
                 <p className="text-muted-foreground max-w-xl mx-auto">

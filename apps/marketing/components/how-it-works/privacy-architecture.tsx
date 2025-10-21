@@ -18,7 +18,7 @@ export function PrivacyArchitecture() {
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-12">
             <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-green-500/10 text-green-600 dark:text-green-400 mb-4">
-              <Lock className="h-4 w-4" />
+              <Lock className="size-4" />
               <span className="text-sm font-medium">
                 Privacy-First Architecture
               </span>
@@ -40,10 +40,10 @@ export function PrivacyArchitecture() {
                 {/* Step 1: Your Machine */}
                 <div className="relative">
                   <Card className="border-2 border-green-500/50 bg-green-500/5 hover:border-green-500 transition-colors">
-                    <CardContent className="pt-6 pb-6">
+                    <CardContent className="py-6">
                       <div className="flex flex-col items-center text-center space-y-4">
-                        <div className="h-20 w-20 rounded-2xl bg-green-500/10 flex items-center justify-center ring-4 ring-green-500/20">
-                          <Monitor className="h-10 w-10 text-green-600 dark:text-green-400" />
+                        <div className="size-20 rounded-2xl bg-green-500/10 flex items-center justify-center ring-4 ring-green-500/20">
+                          <Monitor className="size-10 text-green-600 dark:text-green-400" />
                         </div>
                         <div>
                           <h3 className="text-xl font-bold mb-2">
@@ -55,19 +55,19 @@ export function PrivacyArchitecture() {
                         </div>
                         <div className="w-full space-y-2 text-left">
                           <div className="flex items-start gap-2 text-sm">
-                            <CheckCircle2 className="h-4 w-4 text-green-600 dark:text-green-400 mt-0.5 flex-shrink-0" />
+                            <CheckCircle2 className="size-4 text-green-600 dark:text-green-400 mt-0.5 shrink-0" />
                             <span className="text-muted-foreground">
                               Code stays here
                             </span>
                           </div>
                           <div className="flex items-start gap-2 text-sm">
-                            <CheckCircle2 className="h-4 w-4 text-green-600 dark:text-green-400 mt-0.5 flex-shrink-0" />
+                            <CheckCircle2 className="size-4 text-green-600 dark:text-green-400 mt-0.5 shrink-0" />
                             <span className="text-muted-foreground">
                               CLI extracts metadata
                             </span>
                           </div>
                           <div className="flex items-start gap-2 text-sm">
-                            <CheckCircle2 className="h-4 w-4 text-green-600 dark:text-green-400 mt-0.5 flex-shrink-0" />
+                            <CheckCircle2 className="size-4 text-green-600 dark:text-green-400 mt-0.5 shrink-0" />
                             <span className="text-muted-foreground">
                               Never uploaded
                             </span>
@@ -77,18 +77,18 @@ export function PrivacyArchitecture() {
                     </CardContent>
                   </Card>
                   {/* Arrow */}
-                  <div className="hidden md:block absolute top-1/2 -right-4 transform -translate-y-1/2 z-10">
-                    <ArrowRight className="h-8 w-8 text-primary" />
+                  <div className="hidden md:block absolute top-1/2 -right-4 -translate-y-1/2 z-10">
+                    <ArrowRight className="size-8 text-primary" />
                   </div>
                 </div>
 
                 {/* Step 2: Your LLM */}
                 <div className="relative">
                   <Card className="border-2 border-blue-500/50 bg-blue-500/5 hover:border-blue-500 transition-colors">
-                    <CardContent className="pt-6 pb-6">
+                    <CardContent className="py-6">
                       <div className="flex flex-col items-center text-center space-y-4">
-                        <div className="h-20 w-20 rounded-2xl bg-blue-500/10 flex items-center justify-center ring-4 ring-blue-500/20">
-                          <Brain className="h-10 w-10 text-blue-600 dark:text-blue-400" />
+                        <div className="size-20 rounded-2xl bg-blue-500/10 flex items-center justify-center ring-4 ring-blue-500/20">
+                          <Brain className="size-10 text-blue-600 dark:text-blue-400" />
                         </div>
                         <div>
                           <h3 className="text-xl font-bold mb-2">Your LLM</h3>
@@ -98,19 +98,19 @@ export function PrivacyArchitecture() {
                         </div>
                         <div className="w-full space-y-2 text-left">
                           <div className="flex items-start gap-2 text-sm">
-                            <CheckCircle2 className="h-4 w-4 text-blue-600 dark:text-blue-400 mt-0.5 flex-shrink-0" />
+                            <CheckCircle2 className="size-4 text-blue-600 dark:text-blue-400 mt-0.5 shrink-0" />
                             <span className="text-muted-foreground">
                               You choose provider
                             </span>
                           </div>
                           <div className="flex items-start gap-2 text-sm">
-                            <CheckCircle2 className="h-4 w-4 text-blue-600 dark:text-blue-400 mt-0.5 flex-shrink-0" />
+                            <CheckCircle2 className="size-4 text-blue-600 dark:text-blue-400 mt-0.5 shrink-0" />
                             <span className="text-muted-foreground">
                               Your API key
                             </span>
                           </div>
                           <div className="flex items-start gap-2 text-sm">
-                            <CheckCircle2 className="h-4 w-4 text-blue-600 dark:text-blue-400 mt-0.5 flex-shrink-0" />
+                            <CheckCircle2 className="size-4 text-blue-600 dark:text-blue-400 mt-0.5 shrink-0" />
                             <span className="text-muted-foreground">
                               Or use local Ollama
                             </span>
@@ -120,18 +120,18 @@ export function PrivacyArchitecture() {
                     </CardContent>
                   </Card>
                   {/* Arrow */}
-                  <div className="hidden md:block absolute top-1/2 -right-4 transform -translate-y-1/2 z-10">
-                    <ArrowRight className="h-8 w-8 text-primary" />
+                  <div className="hidden md:block absolute top-1/2 -right-4 -translate-y-1/2 z-10">
+                    <ArrowRight className="size-8 text-primary" />
                   </div>
                 </div>
 
                 {/* Step 3: BragDoc Cloud */}
                 <div className="relative">
                   <Card className="border-2 border-purple-500/50 bg-purple-500/5 hover:border-purple-500 transition-colors">
-                    <CardContent className="pt-6 pb-6">
+                    <CardContent className="py-6">
                       <div className="flex flex-col items-center text-center space-y-4">
-                        <div className="h-20 w-20 rounded-2xl bg-purple-500/10 flex items-center justify-center ring-4 ring-purple-500/20">
-                          <Cloud className="h-10 w-10 text-purple-600 dark:text-purple-400" />
+                        <div className="size-20 rounded-2xl bg-purple-500/10 flex items-center justify-center ring-4 ring-purple-500/20">
+                          <Cloud className="size-10 text-purple-600 dark:text-purple-400" />
                         </div>
                         <div>
                           <h3 className="text-xl font-bold mb-2">
@@ -143,19 +143,19 @@ export function PrivacyArchitecture() {
                         </div>
                         <div className="w-full space-y-2 text-left">
                           <div className="flex items-start gap-2 text-sm">
-                            <CheckCircle2 className="h-4 w-4 text-purple-600 dark:text-purple-400 mt-0.5 flex-shrink-0" />
+                            <CheckCircle2 className="size-4 text-purple-600 dark:text-purple-400 mt-0.5 shrink-0" />
                             <span className="text-muted-foreground">
                               Only achievements
                             </span>
                           </div>
                           <div className="flex items-start gap-2 text-sm">
-                            <CheckCircle2 className="h-4 w-4 text-purple-600 dark:text-purple-400 mt-0.5 flex-shrink-0" />
+                            <CheckCircle2 className="size-4 text-purple-600 dark:text-purple-400 mt-0.5 shrink-0" />
                             <span className="text-muted-foreground">
                               Web app access
                             </span>
                           </div>
                           <div className="flex items-start gap-2 text-sm">
-                            <CheckCircle2 className="h-4 w-4 text-purple-600 dark:text-purple-400 mt-0.5 flex-shrink-0" />
+                            <CheckCircle2 className="size-4 text-purple-600 dark:text-purple-400 mt-0.5 shrink-0" />
                             <span className="text-muted-foreground">
                               Document generation
                             </span>
@@ -171,10 +171,10 @@ export function PrivacyArchitecture() {
 
           {/* Self-Hosted Option */}
           <Card className="border-2 border-primary bg-primary/5 shadow-lg">
-            <CardContent className="pt-8 pb-8">
+            <CardContent className="py-8">
               <div className="flex flex-col md:flex-row items-start md:items-center gap-6">
-                <div className="flex-shrink-0 h-16 w-16 rounded-2xl bg-primary/10 flex items-center justify-center ring-4 ring-primary/20">
-                  <Shield className="h-8 w-8 text-primary" />
+                <div className="shrink-0 size-16 rounded-2xl bg-primary/10 flex items-center justify-center ring-4 ring-primary/20">
+                  <Shield className="size-8 text-primary" />
                 </div>
                 <div className="flex-1">
                   <h3 className="text-2xl font-bold mb-2">
@@ -198,7 +198,7 @@ export function PrivacyArchitecture() {
                   <Button asChild variant="outline" className="bg-background">
                     <Link href="/self-hosting">
                       Learn About Self-Hosting
-                      <ArrowRight className="ml-2 h-4 w-4" />
+                      <ArrowRight className="ml-2 size-4" />
                     </Link>
                   </Button>
                 </div>

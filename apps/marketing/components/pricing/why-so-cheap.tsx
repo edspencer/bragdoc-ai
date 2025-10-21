@@ -10,8 +10,8 @@ export function WhySoCheap() {
         <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6 max-w-6xl mx-auto">
           <div className="text-center space-y-3">
             <div className="flex justify-center">
-              <div className="h-12 w-12 rounded-full bg-[oklch(0.65_0.25_262)]/10 dark:bg-[oklch(0.7_0.25_262)]/10 flex items-center justify-center">
-                <Calendar className="h-6 w-6 text-[oklch(0.65_0.25_262)] dark:text-[oklch(0.7_0.25_262)]" />
+              <div className="size-12 rounded-full bg-[oklch(0.65_0.25_262)]/10 dark:bg-[oklch(0.7_0.25_262)]/10 flex items-center justify-center">
+                <Calendar className="size-6 text-[oklch(0.65_0.25_262)] dark:text-[oklch(0.7_0.25_262)]" />
               </div>
             </div>
             <h3 className="font-semibold text-lg">Career-long tool</h3>
@@ -21,8 +21,8 @@ export function WhySoCheap() {
           </div>
           <div className="text-center space-y-3">
             <div className="flex justify-center">
-              <div className="h-12 w-12 rounded-full bg-[oklch(0.65_0.25_262)]/10 dark:bg-[oklch(0.7_0.25_262)]/10 flex items-center justify-center">
-                <Scale className="h-6 w-6 text-[oklch(0.65_0.25_262)] dark:text-[oklch(0.7_0.25_262)]" />
+              <div className="size-12 rounded-full bg-[oklch(0.65_0.25_262)]/10 dark:bg-[oklch(0.7_0.25_262)]/10 flex items-center justify-center">
+                <Scale className="size-6 text-[oklch(0.65_0.25_262)] dark:text-[oklch(0.7_0.25_262)]" />
               </div>
             </div>
             <h3 className="font-semibold text-lg">Fair pricing</h3>
@@ -32,8 +32,8 @@ export function WhySoCheap() {
           </div>
           <div className="text-center space-y-3">
             <div className="flex justify-center">
-              <div className="h-12 w-12 rounded-full bg-[oklch(0.65_0.25_262)]/10 dark:bg-[oklch(0.7_0.25_262)]/10 flex items-center justify-center">
-                <Lock className="h-6 w-6 text-[oklch(0.65_0.25_262)] dark:text-[oklch(0.7_0.25_262)]" />
+              <div className="size-12 rounded-full bg-[oklch(0.65_0.25_262)]/10 dark:bg-[oklch(0.7_0.25_262)]/10 flex items-center justify-center">
+                <Lock className="size-6 text-[oklch(0.65_0.25_262)] dark:text-[oklch(0.7_0.25_262)]" />
               </div>
             </div>
             <h3 className="font-semibold text-lg">Privacy-first</h3>
@@ -43,8 +43,8 @@ export function WhySoCheap() {
           </div>
           <div className="text-center space-y-3">
             <div className="flex justify-center">
-              <div className="h-12 w-12 rounded-full bg-[oklch(0.65_0.25_262)]/10 dark:bg-[oklch(0.7_0.25_262)]/10 flex items-center justify-center">
-                <Sprout className="h-6 w-6 text-[oklch(0.65_0.25_262)] dark:text-[oklch(0.7_0.25_262)]" />
+              <div className="size-12 rounded-full bg-[oklch(0.65_0.25_262)]/10 dark:bg-[oklch(0.7_0.25_262)]/10 flex items-center justify-center">
+                <Sprout className="size-6 text-[oklch(0.65_0.25_262)] dark:text-[oklch(0.7_0.25_262)]" />
               </div>
             </div>
             <h3 className="font-semibold text-lg">Sustainable</h3>

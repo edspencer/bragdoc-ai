@@ -27,8 +27,8 @@ export function ProblemSolutionV3() {
           {/* Problem Side */}
           <div className="mb-8">
             <div className="flex items-center gap-2 mb-6">
-              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-destructive/10 text-destructive">
-                <AlertTriangle className="h-4 w-4" />
+              <div className="flex size-8 items-center justify-center rounded-lg bg-destructive/10 text-destructive">
+                <AlertTriangle className="size-4" />
               </div>
               <h3 className="text-xl font-bold">Without BragDoc</h3>
             </div>
@@ -55,8 +55,8 @@ export function ProblemSolutionV3() {
           {/* Solution Side */}
           <div>
             <div className="flex items-center gap-2 mb-6">
-              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10 text-primary">
-                <CheckCircle2 className="h-4 w-4" />
+              <div className="flex size-8 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                <CheckCircle2 className="size-4" />
               </div>
               <h3 className="text-xl font-bold">With BragDoc</h3>
             </div>
@@ -64,13 +64,13 @@ export function ProblemSolutionV3() {
               <Card className="border-2 border-primary/20 bg-primary/5">
                 <CardContent className="pt-6">
                   <div className="flex items-start gap-4">
-                    <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10 text-primary flex-shrink-0">
-                      <Terminal className="h-6 w-6" />
+                    <div className="flex size-12 items-center justify-center rounded-xl bg-primary/10 text-primary shrink-0">
+                      <Terminal className="size-6" />
                     </div>
                     <div>
                       <h4 className="font-semibold mb-2 flex items-center gap-2">
                         Auto-Extract
-                        <Zap className="h-4 w-4 text-primary" />
+                        <Zap className="size-4 text-primary" />
                       </h4>
                       <p className="text-sm text-muted-foreground leading-relaxed">
                         CLI analyzes your commits and extracts achievements
@@ -84,13 +84,13 @@ export function ProblemSolutionV3() {
               <Card className="border-2 border-primary/20 bg-primary/5">
                 <CardContent className="pt-6">
                   <div className="flex items-start gap-4">
-                    <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10 text-primary flex-shrink-0">
-                      <Globe className="h-6 w-6" />
+                    <div className="flex size-12 items-center justify-center rounded-xl bg-primary/10 text-primary shrink-0">
+                      <Globe className="size-6" />
                     </div>
                     <div>
                       <h4 className="font-semibold mb-2 flex items-center gap-2">
                         Organize & Report
-                        <Zap className="h-4 w-4 text-primary" />
+                        <Zap className="size-4 text-primary" />
                       </h4>
                       <p className="text-sm text-muted-foreground leading-relaxed">
                         Web dashboard to review, tag, and generate reports for
@@ -112,7 +112,7 @@ function ProblemItem({ text }: { text: string }) {
   return (
     <Card className="p-4 border-destructive/20 bg-destructive/5">
       <div className="flex items-start gap-2">
-        <div className="mt-1 h-1.5 w-1.5 rounded-full bg-destructive flex-shrink-0" />
+        <div className="mt-1 size-1.5 rounded-full bg-destructive shrink-0" />
         <span className="text-sm text-muted-foreground leading-relaxed">
           {text}
         </span>

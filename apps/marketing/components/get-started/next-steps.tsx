@@ -26,11 +26,11 @@ export function NextSteps() {
               <Card className="h-full transition-all hover:shadow-lg hover:border-primary/50 hover:-translate-y-1">
                 <CardHeader>
                   <div className="p-2.5 rounded-lg bg-primary/10 w-fit mb-4">
-                    <Clock className="h-6 w-6 text-primary" />
+                    <Clock className="size-6 text-primary" />
                   </div>
                   <CardTitle className="group-hover:text-primary transition-colors flex items-center gap-2">
                     Set Up Standup Mode
-                    <ArrowRight className="h-4 w-4 opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all" />
+                    <ArrowRight className="size-4 opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all" />
                   </CardTitle>
                   <CardDescription className="leading-relaxed">
                     Configure automatic standup prep and never scramble for
@@ -44,11 +44,11 @@ export function NextSteps() {
               <Card className="h-full transition-all hover:shadow-lg hover:border-primary/50 hover:-translate-y-1">
                 <CardHeader>
                   <div className="p-2.5 rounded-lg bg-primary/10 w-fit mb-4">
-                    <Calendar className="h-6 w-6 text-primary" />
+                    <Calendar className="size-6 text-primary" />
                   </div>
                   <CardTitle className="group-hover:text-primary transition-colors flex items-center gap-2">
                     Configure Schedule
-                    <ArrowRight className="h-4 w-4 opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all" />
+                    <ArrowRight className="size-4 opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all" />
                   </CardTitle>
                   <CardDescription className="leading-relaxed">
                     Set automatic extraction times to build your achievement
@@ -62,11 +62,11 @@ export function NextSteps() {
               <Card className="h-full transition-all hover:shadow-lg hover:border-primary/50 hover:-translate-y-1">
                 <CardHeader>
                   <div className="p-2.5 rounded-lg bg-primary/10 w-fit mb-4">
-                    <FileText className="h-6 w-6 text-primary" />
+                    <FileText className="size-6 text-primary" />
                   </div>
                   <CardTitle className="group-hover:text-primary transition-colors flex items-center gap-2">
                     Explore Document Templates
-                    <ArrowRight className="h-4 w-4 opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all" />
+                    <ArrowRight className="size-4 opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all" />
                   </CardTitle>
                   <CardDescription className="leading-relaxed">
                     Generate your first performance review or promotion document
@@ -79,11 +79,11 @@ export function NextSteps() {
               <Card className="h-full transition-all hover:shadow-lg hover:border-primary/50 hover:-translate-y-1">
                 <CardHeader>
                   <div className="p-2.5 rounded-lg bg-primary/10 w-fit mb-4">
-                    <Download className="h-6 w-6 text-primary" />
+                    <Download className="size-6 text-primary" />
                   </div>
                   <CardTitle className="group-hover:text-primary transition-colors flex items-center gap-2">
                     Export Your Data
-                    <ArrowRight className="h-4 w-4 opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all" />
+                    <ArrowRight className="size-4 opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all" />
                   </CardTitle>
                   <CardDescription className="leading-relaxed">
                     Backup your achievements and maintain full control of your

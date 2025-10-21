@@ -20,7 +20,7 @@ export function SecurityMeasures() {
           <div className="grid sm:grid-cols-2 gap-4">
             {measures.map((measure) => (
               <div key={measure} className="flex items-start gap-3">
-                <Check className="h-5 w-5 text-green-500 flex-shrink-0 mt-0.5" />
+                <Check className="size-5 text-green-500 shrink-0 mt-0.5" />
                 <span className="text-sm">{measure}</span>
               </div>
             ))}

@@ -49,7 +49,7 @@ export default function BlogPage() {
                     <Card className="h-full hover:shadow-lg transition-shadow duration-300">
                       <CardHeader>
                         <div className="flex items-center gap-2 text-sm text-muted-foreground mb-2">
-                          <Calendar className="h-4 w-4" />
+                          <Calendar className="size-4" />
                           <time dateTime={post.date}>
                             {format(new Date(post.date), 'MMMM d, yyyy')}
                           </time>
@@ -64,7 +64,7 @@ export default function BlogPage() {
                       <CardContent>
                         {post.author && (
                           <div className="flex items-center gap-2 text-sm text-muted-foreground mb-3">
-                            <User className="h-4 w-4" />
+                            <User className="size-4" />
                             <span>{post.author}</span>
                           </div>
                         )}

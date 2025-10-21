@@ -9,7 +9,7 @@ export function Troubleshooting() {
         <div className="max-w-4xl mx-auto">
           <div className="flex items-center gap-3 mb-8">
             <div className="p-2 rounded-lg bg-primary/10">
-              <AlertCircle className="h-5 w-5 text-primary" />
+              <AlertCircle className="size-5 text-primary" />
             </div>
             <h2 className="text-2xl sm:text-3xl font-bold">Need Help?</h2>
           </div>
@@ -26,7 +26,7 @@ export function Troubleshooting() {
                       Installation troubleshooting guide
                     </span>
                   </div>
-                  <ArrowRight className="h-4 w-4 text-muted-foreground group-hover:text-primary group-hover:translate-x-1 transition-all flex-shrink-0 mt-0.5" />
+                  <ArrowRight className="size-4 text-muted-foreground group-hover:text-primary group-hover:translate-x-1 transition-all shrink-0 mt-0.5" />
                 </div>
               </Card>
             </Link>
@@ -42,7 +42,7 @@ export function Troubleshooting() {
                       Fix login and token issues
                     </span>
                   </div>
-                  <ArrowRight className="h-4 w-4 text-muted-foreground group-hover:text-primary group-hover:translate-x-1 transition-all flex-shrink-0 mt-0.5" />
+                  <ArrowRight className="size-4 text-muted-foreground group-hover:text-primary group-hover:translate-x-1 transition-all shrink-0 mt-0.5" />
                 </div>
               </Card>
             </Link>
@@ -58,7 +58,7 @@ export function Troubleshooting() {
                       Setup guides for all providers
                     </span>
                   </div>
-                  <ArrowRight className="h-4 w-4 text-muted-foreground group-hover:text-primary group-hover:translate-x-1 transition-all flex-shrink-0 mt-0.5" />
+                  <ArrowRight className="size-4 text-muted-foreground group-hover:text-primary group-hover:translate-x-1 transition-all shrink-0 mt-0.5" />
                 </div>
               </Card>
             </Link>
@@ -74,7 +74,7 @@ export function Troubleshooting() {
                       Sync and visibility solutions
                     </span>
                   </div>
-                  <ArrowRight className="h-4 w-4 text-muted-foreground group-hover:text-primary group-hover:translate-x-1 transition-all flex-shrink-0 mt-0.5" />
+                  <ArrowRight className="size-4 text-muted-foreground group-hover:text-primary group-hover:translate-x-1 transition-all shrink-0 mt-0.5" />
                 </div>
               </Card>
             </Link>

@@ -18,7 +18,7 @@ export function FeaturesSection() {
 
         <div className="grid md:grid-cols-3 gap-8">
           <FeatureCard
-            icon={<Sparkles className="h-6 w-6" />}
+            icon={<Sparkles className="size-6" />}
             title="Auto-Extract"
             description="Our CLI analyzes your git commits using AI to identify meaningful achievements and impact"
             features={[
@@ -30,7 +30,7 @@ export function FeaturesSection() {
           />
 
           <FeatureCard
-            icon={<FolderTree className="h-6 w-6" />}
+            icon={<FolderTree className="size-6" />}
             title="AI-Organize"
             description="Intelligent categorization groups your work by project, impact level, and achievement type"
             features={[
@@ -42,7 +42,7 @@ export function FeaturesSection() {
           />
 
           <FeatureCard
-            icon={<FileText className="h-6 w-6" />}
+            icon={<FileText className="size-6" />}
             title="AI-Document"
             description="Generate polished reports and summaries ready to share with your manager or use in reviews"
             features={[
@@ -71,7 +71,7 @@ function FeatureCard({
 }) {
   return (
     <Card className="p-8 space-y-6 bg-card border-border hover:border-primary/50 transition-colors">
-      <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-primary text-primary-foreground">
+      <div className="flex size-12 items-center justify-center rounded-lg bg-primary text-primary-foreground">
         {icon}
       </div>
 
@@ -83,7 +83,7 @@ function FeatureCard({
       <ul className="space-y-2 pt-4 border-t border-border">
         {features.map((feature, index) => (
           <li key={index} className="flex items-center gap-2 text-sm">
-            <div className="h-1.5 w-1.5 rounded-full bg-primary" />
+            <div className="size-1.5 rounded-full bg-primary" />
             <span>{feature}</span>
           </li>
         ))}

@@ -67,7 +67,7 @@ export function MiniFaqSection() {
           <Button variant="outline" size="lg" asChild>
             <Link href="/faq" className="gap-2">
               View All FAQs
-              <ArrowRight className="h-4 w-4" />
+              <ArrowRight className="size-4" />
             </Link>
           </Button>
         </div>

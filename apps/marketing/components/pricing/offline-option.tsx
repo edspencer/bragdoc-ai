@@ -16,8 +16,8 @@ export function OfflineOption() {
         <Card className="max-w-4xl mx-auto">
           <CardHeader className="text-center">
             <div className="flex justify-center mb-4">
-              <div className="h-12 w-12 rounded-full bg-green-500/10 flex items-center justify-center">
-                <Shield className="h-6 w-6 text-green-600 dark:text-green-500" />
+              <div className="size-12 rounded-full bg-green-500/10 flex items-center justify-center">
+                <Shield className="size-6 text-green-600 dark:text-green-500" />
               </div>
             </div>
             <CardTitle className="text-2xl sm:text-3xl">
@@ -30,7 +30,7 @@ export function OfflineOption() {
           <CardContent className="space-y-6">
             <ul className="space-y-3">
               <li className="flex items-start gap-3">
-                <div className="h-6 w-6 rounded-full bg-green-500/10 flex items-center justify-center flex-shrink-0 mt-0.5">
+                <div className="size-6 rounded-full bg-green-500/10 flex items-center justify-center shrink-0 mt-0.5">
                   <span className="text-xs font-bold text-green-600 dark:text-green-500">
                     1
                   </span>
@@ -45,7 +45,7 @@ export function OfflineOption() {
                 </div>
               </li>
               <li className="flex items-start gap-3">
-                <div className="h-6 w-6 rounded-full bg-green-500/10 flex items-center justify-center flex-shrink-0 mt-0.5">
+                <div className="size-6 rounded-full bg-green-500/10 flex items-center justify-center shrink-0 mt-0.5">
                   <span className="text-xs font-bold text-green-600 dark:text-green-500">
                     2
                   </span>
@@ -60,7 +60,7 @@ export function OfflineOption() {
                 </div>
               </li>
               <li className="flex items-start gap-3">
-                <div className="h-6 w-6 rounded-full bg-green-500/10 flex items-center justify-center flex-shrink-0 mt-0.5">
+                <div className="size-6 rounded-full bg-green-500/10 flex items-center justify-center shrink-0 mt-0.5">
                   <span className="text-xs font-bold text-green-600 dark:text-green-500">
                     3
                   </span>

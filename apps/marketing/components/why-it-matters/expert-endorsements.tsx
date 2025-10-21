@@ -21,8 +21,8 @@ export function ExpertEndorsements() {
           <Card className="border-2 hover:border-primary/50 transition-colors">
             <CardContent className="pt-6 space-y-4">
               <div className="flex items-start gap-4">
-                <div className="flex-shrink-0 h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center">
-                  <Quote className="h-6 w-6 text-primary" />
+                <div className="shrink-0 size-12 rounded-full bg-primary/10 flex items-center justify-center">
+                  <Quote className="size-6 text-primary" />
                 </div>
                 <div className="flex-1">
                   <h3 className="font-semibold text-lg mb-1">Julia Evans</h3>
@@ -46,7 +46,7 @@ export function ExpertEndorsements() {
                   rel="noopener noreferrer"
                 >
                   Read Julia's article on brag documents
-                  <ExternalLink className="ml-1 h-3 w-3" />
+                  <ExternalLink className="ml-1 size-3" />
                 </a>
               </Button>
             </CardContent>
@@ -56,8 +56,8 @@ export function ExpertEndorsements() {
           <Card className="border-2 hover:border-primary/50 transition-colors">
             <CardContent className="pt-6 space-y-4">
               <div className="flex items-start gap-4">
-                <div className="flex-shrink-0 h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center">
-                  <Quote className="h-6 w-6 text-primary" />
+                <div className="shrink-0 size-12 rounded-full bg-primary/10 flex items-center justify-center">
+                  <Quote className="size-6 text-primary" />
                 </div>
                 <div className="flex-1">
                   <h3 className="font-semibold text-lg mb-1">Jeff Morhous</h3>
@@ -81,7 +81,7 @@ export function ExpertEndorsements() {
                   rel="noopener noreferrer"
                 >
                   Read Jeff's article on brag docs
-                  <ExternalLink className="ml-1 h-3 w-3" />
+                  <ExternalLink className="ml-1 size-3" />
                 </a>
               </Button>
             </CardContent>

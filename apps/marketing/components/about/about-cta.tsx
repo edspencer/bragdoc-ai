@@ -13,7 +13,7 @@ export function AboutCTA() {
           <Button size="lg" className="text-base px-8" asChild>
             <a href="https://app.bragdoc.ai/login">
               Get Started Free
-              <ArrowRight className="ml-2 h-5 w-5" />
+              <ArrowRight className="ml-2 size-5" />
             </a>
           </Button>
           <Button

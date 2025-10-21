@@ -17,8 +17,8 @@ export function TheSolution() {
 
         <div className="grid md:grid-cols-2 gap-8 mb-12">
           <Card className="p-8 space-y-4 border-2 hover:border-primary/50 transition-colors">
-            <div className="h-14 w-14 rounded-2xl bg-primary/10 flex items-center justify-center">
-              <GitBranch className="h-7 w-7 text-primary" />
+            <div className="size-14 rounded-2xl bg-primary/10 flex items-center justify-center">
+              <GitBranch className="size-7 text-primary" />
             </div>
             <h3 className="font-semibold text-xl">
               Automatic Extraction from Git
@@ -31,8 +31,8 @@ export function TheSolution() {
           </Card>
 
           <Card className="p-8 space-y-4 border-2 hover:border-primary/50 transition-colors">
-            <div className="h-14 w-14 rounded-2xl bg-primary/10 flex items-center justify-center">
-              <Bot className="h-7 w-7 text-primary" />
+            <div className="size-14 rounded-2xl bg-primary/10 flex items-center justify-center">
+              <Bot className="size-7 text-primary" />
             </div>
             <h3 className="font-semibold text-xl">AI-Powered Insights</h3>
             <p className="text-muted-foreground leading-relaxed">
@@ -43,8 +43,8 @@ export function TheSolution() {
           </Card>
 
           <Card className="p-8 space-y-4 border-2 hover:border-primary/50 transition-colors">
-            <div className="h-14 w-14 rounded-2xl bg-primary/10 flex items-center justify-center">
-              <FileText className="h-7 w-7 text-primary" />
+            <div className="size-14 rounded-2xl bg-primary/10 flex items-center justify-center">
+              <FileText className="size-7 text-primary" />
             </div>
             <h3 className="font-semibold text-xl">Performance Review Ready</h3>
             <p className="text-muted-foreground leading-relaxed">
@@ -54,8 +54,8 @@ export function TheSolution() {
           </Card>
 
           <Card className="p-8 space-y-4 border-2 hover:border-primary/50 transition-colors">
-            <div className="h-14 w-14 rounded-2xl bg-primary/10 flex items-center justify-center">
-              <Sparkles className="h-7 w-7 text-primary" />
+            <div className="size-14 rounded-2xl bg-primary/10 flex items-center justify-center">
+              <Sparkles className="size-7 text-primary" />
             </div>
             <h3 className="font-semibold text-xl">Never Miss a Win</h3>
             <p className="text-muted-foreground leading-relaxed">

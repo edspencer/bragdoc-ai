@@ -14,8 +14,8 @@ export function HybridApproach() {
         <Card className="max-w-4xl mx-auto border-[oklch(0.65_0.25_262)] dark:border-[oklch(0.7_0.25_262)]">
           <CardHeader className="text-center">
             <div className="flex justify-center mb-4">
-              <div className="h-12 w-12 rounded-full bg-[oklch(0.65_0.25_262)]/10 dark:bg-[oklch(0.7_0.25_262)]/10 flex items-center justify-center">
-                <Layers className="h-6 w-6 text-[oklch(0.65_0.25_262)] dark:text-[oklch(0.7_0.25_262)]" />
+              <div className="size-12 rounded-full bg-[oklch(0.65_0.25_262)]/10 dark:bg-[oklch(0.7_0.25_262)]/10 flex items-center justify-center">
+                <Layers className="size-6 text-[oklch(0.65_0.25_262)] dark:text-[oklch(0.7_0.25_262)]" />
               </div>
             </div>
             <CardTitle className="text-2xl sm:text-3xl">

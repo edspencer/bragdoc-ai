@@ -11,7 +11,7 @@ export function WhyItMattersTeaserV2() {
           {/* Left: The Problem */}
           <div>
             <div className="inline-flex items-center gap-2 bg-destructive/10 text-destructive px-3 py-1 rounded-full text-sm font-medium mb-4">
-              <X className="h-4 w-4" />
+              <X className="size-4" />
               The Problem
             </div>
             <h2 className="text-3xl sm:text-4xl font-bold mb-6">
@@ -19,8 +19,8 @@ export function WhyItMattersTeaserV2() {
             </h2>
             <div className="space-y-4 mb-6">
               <div className="flex items-start gap-3">
-                <div className="flex-shrink-0 h-6 w-6 rounded-full bg-destructive/10 flex items-center justify-center mt-0.5">
-                  <X className="h-4 w-4 text-destructive" />
+                <div className="shrink-0 size-6 rounded-full bg-destructive/10 flex items-center justify-center mt-0.5">
+                  <X className="size-4 text-destructive" />
                 </div>
                 <p className="text-muted-foreground">
                   Performance review comes up and you can't remember what you
@@ -28,8 +28,8 @@ export function WhyItMattersTeaserV2() {
                 </p>
               </div>
               <div className="flex items-start gap-3">
-                <div className="flex-shrink-0 h-6 w-6 rounded-full bg-destructive/10 flex items-center justify-center mt-0.5">
-                  <X className="h-4 w-4 text-destructive" />
+                <div className="shrink-0 size-6 rounded-full bg-destructive/10 flex items-center justify-center mt-0.5">
+                  <X className="size-4 text-destructive" />
                 </div>
                 <p className="text-muted-foreground">
                   You meant to keep an achievements.txt file but forgot to
@@ -37,8 +37,8 @@ export function WhyItMattersTeaserV2() {
                 </p>
               </div>
               <div className="flex items-start gap-3">
-                <div className="flex-shrink-0 h-6 w-6 rounded-full bg-destructive/10 flex items-center justify-center mt-0.5">
-                  <X className="h-4 w-4 text-destructive" />
+                <div className="shrink-0 size-6 rounded-full bg-destructive/10 flex items-center justify-center mt-0.5">
+                  <X className="size-4 text-destructive" />
                 </div>
                 <p className="text-muted-foreground">
                   Your manager doesn't see your full impact because you can't
@@ -51,14 +51,14 @@ export function WhyItMattersTeaserV2() {
           {/* Right: The Solution */}
           <div>
             <div className="inline-flex items-center gap-2 bg-green-500/10 text-green-600 dark:text-green-400 px-3 py-1 rounded-full text-sm font-medium mb-4">
-              <Check className="h-4 w-4" />
+              <Check className="size-4" />
               The Solution
             </div>
             <Card className="border-2 border-primary bg-primary/5">
               <CardContent className="pt-6">
                 <div className="flex items-center gap-3 mb-4">
-                  <div className="h-12 w-12 rounded-xl bg-primary/10 flex items-center justify-center">
-                    <Sparkles className="h-6 w-6 text-primary" />
+                  <div className="size-12 rounded-xl bg-primary/10 flex items-center justify-center">
+                    <Sparkles className="size-6 text-primary" />
                   </div>
                   <h3 className="text-2xl font-bold">
                     BragDoc Does It For You
@@ -71,22 +71,22 @@ export function WhyItMattersTeaserV2() {
                 </p>
                 <div className="space-y-3 mb-6">
                   <div className="flex items-center gap-3">
-                    <div className="flex-shrink-0 h-5 w-5 rounded-full bg-green-500/10 flex items-center justify-center">
-                      <Check className="h-3 w-3 text-green-600 dark:text-green-400" />
+                    <div className="shrink-0 size-5 rounded-full bg-green-500/10 flex items-center justify-center">
+                      <Check className="size-3 text-green-600 dark:text-green-400" />
                     </div>
                     <p className="text-sm">
                       Automatic tracking from your Git commits
                     </p>
                   </div>
                   <div className="flex items-center gap-3">
-                    <div className="flex-shrink-0 h-5 w-5 rounded-full bg-green-500/10 flex items-center justify-center">
-                      <Check className="h-3 w-3 text-green-600 dark:text-green-400" />
+                    <div className="shrink-0 size-5 rounded-full bg-green-500/10 flex items-center justify-center">
+                      <Check className="size-3 text-green-600 dark:text-green-400" />
                     </div>
                     <p className="text-sm">AI-powered achievement summaries</p>
                   </div>
                   <div className="flex items-center gap-3">
-                    <div className="flex-shrink-0 h-5 w-5 rounded-full bg-green-500/10 flex items-center justify-center">
-                      <Check className="h-3 w-3 text-green-600 dark:text-green-400" />
+                    <div className="shrink-0 size-5 rounded-full bg-green-500/10 flex items-center justify-center">
+                      <Check className="size-3 text-green-600 dark:text-green-400" />
                     </div>
                     <p className="text-sm">
                       Ready for performance reviews anytime
@@ -96,7 +96,7 @@ export function WhyItMattersTeaserV2() {
                 <Button className="w-full" size="lg" asChild>
                   <Link href="/why-it-matters">
                     Discover Why This Matters
-                    <ArrowRight className="ml-2 h-4 w-4" />
+                    <ArrowRight className="ml-2 size-4" />
                   </Link>
                 </Button>
               </CardContent>

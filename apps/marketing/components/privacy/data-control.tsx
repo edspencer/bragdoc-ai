@@ -40,8 +40,8 @@ export function DataControl() {
                 key={control.title}
                 className="p-6 hover:border-primary transition-colors"
               >
-                <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10 text-primary mb-4">
-                  <control.icon className="h-6 w-6" />
+                <div className="flex size-12 items-center justify-center rounded-lg bg-primary/10 text-primary mb-4">
+                  <control.icon className="size-6" />
                 </div>
                 <h3 className="font-semibold mb-2">{control.title}</h3>
                 <p className="text-sm text-muted-foreground">

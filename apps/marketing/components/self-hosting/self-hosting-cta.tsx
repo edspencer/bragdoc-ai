@@ -22,13 +22,13 @@ export function SelfHostingCTA() {
                 target="_blank"
                 rel="noopener noreferrer"
               >
-                <Github className="mr-2 h-5 w-5" />
+                <Github className="mr-2 size-5" />
                 View on GitHub
               </a>
             </Button>
             <Button size="lg" variant="outline" asChild>
               <a href="mailto:support@bragdoc.ai">
-                <MessageCircle className="mr-2 h-5 w-5" />
+                <MessageCircle className="mr-2 size-5" />
                 Get Help
               </a>
             </Button>

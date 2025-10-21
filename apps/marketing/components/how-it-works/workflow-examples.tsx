@@ -62,8 +62,8 @@ export function WorkflowExamples() {
                 >
                   <CardContent className="pt-6">
                     <div className="flex items-start gap-4 mb-4">
-                      <div className="flex-shrink-0 h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center">
-                        <Icon className="h-6 w-6 text-primary" />
+                      <div className="shrink-0 size-12 rounded-full bg-primary/10 flex items-center justify-center">
+                        <Icon className="size-6 text-primary" />
                       </div>
                       <h3 className="text-xl font-bold pt-2">
                         {example.title}

@@ -13,8 +13,8 @@ export function ArchitectureDiagram() {
             {/* Layer 1 */}
             <Card className="p-6 relative">
               <div className="flex items-center gap-3 mb-4">
-                <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10 text-primary">
-                  <Lock className="h-6 w-6" />
+                <div className="flex size-12 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                  <Lock className="size-6" />
                 </div>
                 <div>
                   <h3 className="font-semibold text-lg">Your Machine</h3>
@@ -26,14 +26,14 @@ export function ArchitectureDiagram() {
                 <li>• CLI reads git metadata only</li>
                 <li>• Nothing sent without your permission</li>
               </ul>
-              <ArrowRight className="hidden md:block absolute -right-8 top-1/2 -translate-y-1/2 h-6 w-6 text-muted-foreground" />
+              <ArrowRight className="hidden md:block absolute -right-8 top-1/2 -translate-y-1/2 size-6 text-muted-foreground" />
             </Card>
 
             {/* Layer 2 */}
             <Card className="p-6 relative">
               <div className="flex items-center gap-3 mb-4">
-                <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10 text-primary">
-                  <Brain className="h-6 w-6" />
+                <div className="flex size-12 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                  <Brain className="size-6" />
                 </div>
                 <div>
                   <h3 className="font-semibold text-lg">Your LLM</h3>
@@ -45,14 +45,14 @@ export function ArchitectureDiagram() {
                 <li>• Git metadata analyzed here</li>
                 <li>• Returns achievements only</li>
               </ul>
-              <ArrowRight className="hidden md:block absolute -right-8 top-1/2 -translate-y-1/2 h-6 w-6 text-muted-foreground" />
+              <ArrowRight className="hidden md:block absolute -right-8 top-1/2 -translate-y-1/2 size-6 text-muted-foreground" />
             </Card>
 
             {/* Layer 3 */}
             <Card className="p-6">
               <div className="flex items-center gap-3 mb-4">
-                <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10 text-primary">
-                  <Cloud className="h-6 w-6" />
+                <div className="flex size-12 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                  <Cloud className="size-6" />
                 </div>
                 <div>
                   <h3 className="font-semibold text-lg">BragDoc Cloud</h3>

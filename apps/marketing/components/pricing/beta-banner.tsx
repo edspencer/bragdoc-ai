@@ -5,7 +5,7 @@ export function BetaBanner() {
     <div className="bg-gradient-to-r from-[oklch(0.65_0.25_262)] to-[oklch(0.7_0.25_280)] dark:from-[oklch(0.7_0.25_262)] dark:to-[oklch(0.75_0.25_280)] text-white py-4">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-center gap-3 text-center">
-          <Sparkles className="h-5 w-5 flex-shrink-0" />
+          <Sparkles className="size-5 shrink-0" />
           <div>
             <p className="font-semibold text-sm sm:text-base">
               Early Beta - All cloud AI features currently FREE

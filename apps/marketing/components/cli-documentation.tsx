@@ -70,9 +70,9 @@ export function CliDocumentation() {
           className="bg-background"
         >
           {mobileMenuOpen ? (
-            <X className="h-4 w-4" />
+            <X className="size-4" />
           ) : (
-            <Menu className="h-4 w-4" />
+            <Menu className="size-4" />
           )}
         </Button>
       </div>
@@ -96,7 +96,7 @@ export function CliDocumentation() {
                   : 'text-muted-foreground hover:text-foreground hover:bg-accent/50'
               }`}
             >
-              <ChevronRight className="h-3 w-3" />
+              <ChevronRight className="size-3" />
               {item.label}
             </button>
           ))}
@@ -108,7 +108,7 @@ export function CliDocumentation() {
         {/* Header */}
         <div className="mb-12">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[var(--feature-accent)]/10 text-[var(--feature-accent)] text-sm font-medium mb-4">
-            <Terminal className="h-4 w-4" />
+            <Terminal className="size-4" />
             Command Line Interface
           </div>
           <h1 className="text-4xl sm:text-5xl font-bold mb-4 text-balance">
@@ -131,7 +131,7 @@ export function CliDocumentation() {
             </p>
             <Card className="p-6 bg-muted/50 border-[var(--feature-accent)]/20">
               <div className="flex items-start gap-3">
-                <Shield className="h-5 w-5 text-[var(--feature-accent)] mt-0.5 flex-shrink-0" />
+                <Shield className="size-5 text-[var(--feature-accent)] mt-0.5 shrink-0" />
                 <div>
                   <h3 className="font-semibold mb-2">
                     Privacy-First Architecture
@@ -663,7 +663,7 @@ bragdoc extract`}
               </h3>
               <Card className="p-4">
                 <div className="flex items-center gap-2 text-sm">
-                  <Settings className="h-4 w-4 text-muted-foreground" />
+                  <Settings className="size-4 text-muted-foreground" />
                   <code className="font-mono">~/.bragdoc/config.yml</code>
                 </div>
                 <p className="text-sm text-muted-foreground mt-2">
@@ -846,7 +846,7 @@ settings:
           <div className="grid gap-4">
             <Card className="p-6">
               <div className="flex items-start gap-3">
-                <Lock className="h-5 w-5 text-[var(--feature-accent)] mt-0.5 flex-shrink-0" />
+                <Lock className="size-5 text-[var(--feature-accent)] mt-0.5 shrink-0" />
                 <div>
                   <p className="text-sm">
                     CLI reads only git metadata (commit messages, dates,
@@ -857,7 +857,7 @@ settings:
             </Card>
             <Card className="p-6">
               <div className="flex items-start gap-3">
-                <Shield className="h-5 w-5 text-[var(--feature-accent)] mt-0.5 flex-shrink-0" />
+                <Shield className="size-5 text-[var(--feature-accent)] mt-0.5 shrink-0" />
                 <div>
                   <p className="text-sm">Your code never leaves your machine</p>
                 </div>
@@ -865,7 +865,7 @@ settings:
             </Card>
             <Card className="p-6">
               <div className="flex items-start gap-3">
-                <Lock className="h-5 w-5 text-[var(--feature-accent)] mt-0.5 flex-shrink-0" />
+                <Lock className="size-5 text-[var(--feature-accent)] mt-0.5 shrink-0" />
                 <div>
                   <p className="text-sm">
                     Token stored securely with file permissions 600
@@ -875,7 +875,7 @@ settings:
             </Card>
             <Card className="p-6">
               <div className="flex items-start gap-3">
-                <Settings className="h-5 w-5 text-[var(--feature-accent)] mt-0.5 flex-shrink-0" />
+                <Settings className="size-5 text-[var(--feature-accent)] mt-0.5 shrink-0" />
                 <div>
                   <p className="text-sm">
                     You choose which LLM provider to use
@@ -885,7 +885,7 @@ settings:
             </Card>
             <Card className="p-6">
               <div className="flex items-start gap-3">
-                <Zap className="h-5 w-5 text-[var(--feature-accent)] mt-0.5 flex-shrink-0" />
+                <Zap className="size-5 text-[var(--feature-accent)] mt-0.5 shrink-0" />
                 <div>
                   <p className="text-sm">
                     Open source - audit the code yourself
@@ -966,7 +966,7 @@ settings:
           </Card>
           <Card className="p-4 mt-4 bg-muted/50">
             <div className="flex items-center gap-2 text-sm">
-              <AlertCircle className="h-4 w-4 text-muted-foreground" />
+              <AlertCircle className="size-4 text-muted-foreground" />
               <span className="text-muted-foreground">
                 Log location:{' '}
                 <code className="font-mono">~/.bragdoc/logs/combined.log</code>
@@ -985,7 +985,7 @@ settings:
               </Card>
               <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
                 <Button size="lg" className="min-w-[160px]">
-                  <Download className="h-4 w-4 mr-2" />
+                  <Download className="size-4 mr-2" />
                   Get Started
                 </Button>
                 <Button

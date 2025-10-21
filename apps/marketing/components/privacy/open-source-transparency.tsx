@@ -12,8 +12,8 @@ export function OpenSourceTransparency() {
           </h2>
           <Card className="p-8 text-center">
             <div className="flex justify-center mb-6">
-              <div className="flex h-16 w-16 items-center justify-center rounded-full bg-primary/10 text-primary">
-                <Github className="h-8 w-8" />
+              <div className="flex size-16 items-center justify-center rounded-full bg-primary/10 text-primary">
+                <Github className="size-8" />
               </div>
             </div>
             <h3 className="text-xl font-semibold mb-4">
@@ -30,7 +30,7 @@ export function OpenSourceTransparency() {
                 target="_blank"
                 rel="noopener noreferrer"
               >
-                <Github className="h-4 w-4 mr-2" />
+                <Github className="size-4 mr-2" />
                 View on GitHub
               </a>
             </Button>

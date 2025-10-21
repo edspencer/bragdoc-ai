@@ -126,12 +126,12 @@ export function WorkflowSteps() {
                   {/* Content Side */}
                   <div className="flex-1 w-full">
                     <div className="flex items-start gap-4 mb-4">
-                      <div className="flex-shrink-0 flex h-12 w-12 items-center justify-center rounded-full bg-primary text-primary-foreground text-2xl font-bold">
+                      <div className="shrink-0 flex size-12 items-center justify-center rounded-full bg-primary text-primary-foreground text-2xl font-bold">
                         {step.number}
                       </div>
                       <div className="flex-1">
                         <div className="flex items-center gap-3 mb-2">
-                          <Icon className="h-6 w-6 text-primary" />
+                          <Icon className="size-6 text-primary" />
                           <h3 className="text-2xl font-bold">{step.title}</h3>
                         </div>
                         <p className="text-sm text-muted-foreground">

@@ -23,8 +23,8 @@ export function VideoSection() {
               {/* Placeholder until video is uploaded */}
               <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-primary/10 to-primary/5">
                 <div className="text-center">
-                  <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-primary/20 mb-4">
-                    <Play className="w-10 h-10 text-primary ml-1" />
+                  <div className="inline-flex items-center justify-center size-20 rounded-full bg-primary/20 mb-4">
+                    <Play className="size-10 text-primary ml-1" />
                   </div>
                   <p className="text-sm text-muted-foreground">
                     Video coming soon

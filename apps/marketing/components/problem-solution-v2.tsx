@@ -42,8 +42,8 @@ export function ProblemSolutionV2() {
         <div className="flex justify-center mb-16">
           <div className="flex items-center gap-4">
             <div className="h-px w-16 bg-gradient-to-r from-transparent to-border" />
-            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary/10 text-primary">
-              <ArrowRight className="h-6 w-6" />
+            <div className="flex size-12 items-center justify-center rounded-full bg-primary/10 text-primary">
+              <ArrowRight className="size-6" />
             </div>
             <div className="h-px w-16 bg-gradient-to-l from-transparent to-border" />
           </div>
@@ -59,8 +59,8 @@ export function ProblemSolutionV2() {
           </h2>
           <div className="grid md:grid-cols-2 gap-6">
             <Card className="p-8 border-2 border-primary/20 bg-gradient-to-br from-primary/5 to-transparent hover:border-primary/40 transition-colors">
-              <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-primary/10 text-primary mb-6">
-                <Terminal className="h-7 w-7" />
+              <div className="flex size-14 items-center justify-center rounded-2xl bg-primary/10 text-primary mb-6">
+                <Terminal className="size-7" />
               </div>
               <h3 className="text-2xl font-bold mb-3">CLI Tool</h3>
               <p className="text-muted-foreground leading-relaxed mb-4">
@@ -79,8 +79,8 @@ export function ProblemSolutionV2() {
             </Card>
 
             <Card className="p-8 border-2 border-primary/20 bg-gradient-to-br from-primary/5 to-transparent hover:border-primary/40 transition-colors">
-              <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-primary/10 text-primary mb-6">
-                <Globe className="h-7 w-7" />
+              <div className="flex size-14 items-center justify-center rounded-2xl bg-primary/10 text-primary mb-6">
+                <Globe className="size-7" />
               </div>
               <h3 className="text-2xl font-bold mb-3">Web Dashboard</h3>
               <p className="text-muted-foreground leading-relaxed mb-4">
@@ -108,7 +108,7 @@ function ProblemCard({
   return (
     <Card className="p-6 border-destructive/20 bg-destructive/5 hover:border-destructive/40 transition-colors">
       <div className="flex items-start gap-3">
-        <XCircle className="h-5 w-5 text-destructive flex-shrink-0 mt-0.5" />
+        <XCircle className="size-5 text-destructive shrink-0 mt-0.5" />
         <div>
           <h3 className="font-semibold mb-1">{title}</h3>
           <p className="text-sm text-muted-foreground leading-relaxed">
@@ -123,7 +123,7 @@ function ProblemCard({
 function SolutionFeature({ text }: { text: string }) {
   return (
     <li className="flex items-center gap-2 text-sm">
-      <Sparkles className="h-4 w-4 text-primary flex-shrink-0" />
+      <Sparkles className="size-4 text-primary shrink-0" />
       <span className="text-muted-foreground">{text}</span>
     </li>
   );

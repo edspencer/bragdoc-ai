@@ -28,8 +28,8 @@ export function SelfHostingSteps() {
             <Card className="border-2">
               <CardContent className="pt-6">
                 <div className="flex items-start gap-4 mb-4">
-                  <div className="flex-shrink-0 h-12 w-12 rounded-xl bg-primary/10 flex items-center justify-center">
-                    <Github className="h-6 w-6 text-primary" />
+                  <div className="shrink-0 size-12 rounded-xl bg-primary/10 flex items-center justify-center">
+                    <Github className="size-6 text-primary" />
                   </div>
                   <div className="flex-1">
                     <div className="flex items-center gap-3 mb-2">
@@ -56,8 +56,8 @@ cd bragdoc`}
             <Card className="border-2">
               <CardContent className="pt-6">
                 <div className="flex items-start gap-4 mb-4">
-                  <div className="flex-shrink-0 h-12 w-12 rounded-xl bg-primary/10 flex items-center justify-center">
-                    <Terminal className="h-6 w-6 text-primary" />
+                  <div className="shrink-0 size-12 rounded-xl bg-primary/10 flex items-center justify-center">
+                    <Terminal className="size-6 text-primary" />
                   </div>
                   <div className="flex-1">
                     <div className="flex items-center gap-3 mb-2">
@@ -80,8 +80,8 @@ cd bragdoc`}
             <Card className="border-2">
               <CardContent className="pt-6">
                 <div className="flex items-start gap-4 mb-4">
-                  <div className="flex-shrink-0 h-12 w-12 rounded-xl bg-primary/10 flex items-center justify-center">
-                    <Database className="h-6 w-6 text-primary" />
+                  <div className="shrink-0 size-12 rounded-xl bg-primary/10 flex items-center justify-center">
+                    <Database className="size-6 text-primary" />
                   </div>
                   <div className="flex-1">
                     <div className="flex items-center gap-3 mb-2">
@@ -105,15 +105,15 @@ cd bragdoc`}
                     </p>
                     <div className="space-y-3">
                       <div className="flex items-start gap-2 text-sm">
-                        <CheckCircle2 className="h-5 w-5 text-green-600 dark:text-green-400 mt-0.5 flex-shrink-0" />
+                        <CheckCircle2 className="size-5 text-green-600 dark:text-green-400 mt-0.5 shrink-0" />
                         <span>Create a new Neon project</span>
                       </div>
                       <div className="flex items-start gap-2 text-sm">
-                        <CheckCircle2 className="h-5 w-5 text-green-600 dark:text-green-400 mt-0.5 flex-shrink-0" />
+                        <CheckCircle2 className="size-5 text-green-600 dark:text-green-400 mt-0.5 shrink-0" />
                         <span>Copy your connection string</span>
                       </div>
                       <div className="flex items-start gap-2 text-sm">
-                        <CheckCircle2 className="h-5 w-5 text-green-600 dark:text-green-400 mt-0.5 flex-shrink-0" />
+                        <CheckCircle2 className="size-5 text-green-600 dark:text-green-400 mt-0.5 shrink-0" />
                         <span>
                           Add it to your environment variables (see next step)
                         </span>
@@ -128,8 +128,8 @@ cd bragdoc`}
             <Card className="border-2">
               <CardContent className="pt-6">
                 <div className="flex items-start gap-4 mb-4">
-                  <div className="flex-shrink-0 h-12 w-12 rounded-xl bg-primary/10 flex items-center justify-center">
-                    <Key className="h-6 w-6 text-primary" />
+                  <div className="shrink-0 size-12 rounded-xl bg-primary/10 flex items-center justify-center">
+                    <Key className="size-6 text-primary" />
                   </div>
                   <div className="flex-1">
                     <div className="flex items-center gap-3 mb-2">
@@ -174,8 +174,8 @@ OPENAI_API_KEY="your-openai-api-key"
             <Card className="border-2">
               <CardContent className="pt-6">
                 <div className="flex items-start gap-4 mb-4">
-                  <div className="flex-shrink-0 h-12 w-12 rounded-xl bg-primary/10 flex items-center justify-center">
-                    <Shield className="h-6 w-6 text-primary" />
+                  <div className="shrink-0 size-12 rounded-xl bg-primary/10 flex items-center justify-center">
+                    <Shield className="size-6 text-primary" />
                   </div>
                   <div className="flex-1">
                     <div className="flex items-center gap-3 mb-2">
@@ -287,8 +287,8 @@ OPENAI_API_KEY="your-openai-api-key"
             <Card className="border-2">
               <CardContent className="pt-6">
                 <div className="flex items-start gap-4 mb-4">
-                  <div className="flex-shrink-0 h-12 w-12 rounded-xl bg-primary/10 flex items-center justify-center">
-                    <Database className="h-6 w-6 text-primary" />
+                  <div className="shrink-0 size-12 rounded-xl bg-primary/10 flex items-center justify-center">
+                    <Database className="size-6 text-primary" />
                   </div>
                   <div className="flex-1">
                     <div className="flex items-center gap-3 mb-2">
@@ -314,8 +314,8 @@ pnpm db:seed  # Optional: seed with sample data`}
             <Card className="border-2 border-green-500/50 bg-green-500/5">
               <CardContent className="pt-6">
                 <div className="flex items-start gap-4 mb-4">
-                  <div className="flex-shrink-0 h-12 w-12 rounded-xl bg-green-500/10 flex items-center justify-center">
-                    <CheckCircle2 className="h-6 w-6 text-green-600 dark:text-green-400" />
+                  <div className="shrink-0 size-12 rounded-xl bg-green-500/10 flex items-center justify-center">
+                    <CheckCircle2 className="size-6 text-green-600 dark:text-green-400" />
                   </div>
                   <div className="flex-1">
                     <div className="flex items-center gap-3 mb-2">
@@ -350,8 +350,8 @@ pnpm db:seed  # Optional: seed with sample data`}
             <Card className="border-2 border-green-500/50 bg-green-500/5">
               <CardContent className="pt-6">
                 <div className="flex items-start gap-4 mb-4">
-                  <div className="flex-shrink-0 h-12 w-12 rounded-xl bg-green-500/10 flex items-center justify-center">
-                    <Terminal className="h-6 w-6 text-green-600 dark:text-green-400" />
+                  <div className="shrink-0 size-12 rounded-xl bg-green-500/10 flex items-center justify-center">
+                    <Terminal className="size-6 text-green-600 dark:text-green-400" />
                   </div>
                   <div className="flex-1">
                     <div className="flex items-center gap-3 mb-2">
@@ -391,7 +391,7 @@ pnpm db:seed  # Optional: seed with sample data`}
                         </h4>
                         <ul className="space-y-2 text-sm">
                           <li className="flex items-start gap-2">
-                            <CheckCircle2 className="h-4 w-4 text-green-600 dark:text-green-400 mt-0.5 flex-shrink-0" />
+                            <CheckCircle2 className="size-4 text-green-600 dark:text-green-400 mt-0.5 shrink-0" />
                             <span>
                               <code className="px-1.5 py-0.5 rounded bg-background text-xs">
                                 apiBaseUrl
@@ -401,7 +401,7 @@ pnpm db:seed  # Optional: seed with sample data`}
                             </span>
                           </li>
                           <li className="flex items-start gap-2">
-                            <CheckCircle2 className="h-4 w-4 text-green-600 dark:text-green-400 mt-0.5 flex-shrink-0" />
+                            <CheckCircle2 className="size-4 text-green-600 dark:text-green-400 mt-0.5 shrink-0" />
                             <span>
                               <code className="px-1.5 py-0.5 rounded bg-background text-xs">
                                 maxCommitsPerBatch
@@ -410,7 +410,7 @@ pnpm db:seed  # Optional: seed with sample data`}
                             </span>
                           </li>
                           <li className="flex items-start gap-2">
-                            <CheckCircle2 className="h-4 w-4 text-green-600 dark:text-green-400 mt-0.5 flex-shrink-0" />
+                            <CheckCircle2 className="size-4 text-green-600 dark:text-green-400 mt-0.5 shrink-0" />
                             <span>
                               <code className="px-1.5 py-0.5 rounded bg-background text-xs">
                                 defaultMaxCommits

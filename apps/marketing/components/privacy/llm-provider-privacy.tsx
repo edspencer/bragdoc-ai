@@ -21,7 +21,7 @@ export function LlmProviderPrivacy() {
             {/* Cloud Providers */}
             <Card className="p-6">
               <div className="flex items-center gap-2 mb-4">
-                <Sparkles className="h-5 w-5 text-primary" />
+                <Sparkles className="size-5 text-primary" />
                 <h3 className="font-semibold text-lg">Cloud Providers</h3>
               </div>
               <ul className="space-y-3 mb-4">
@@ -34,7 +34,7 @@ export function LlmProviderPrivacy() {
                       className="text-sm text-primary hover:underline flex items-center gap-1"
                     >
                       {provider.name}
-                      <ExternalLink className="h-3 w-3" />
+                      <ExternalLink className="size-3" />
                     </a>
                   </li>
                 ))}
@@ -50,7 +50,7 @@ export function LlmProviderPrivacy() {
                 Recommended
               </Badge>
               <div className="flex items-center gap-2 mb-4">
-                <Server className="h-5 w-5 text-primary" />
+                <Server className="size-5 text-primary" />
                 <h3 className="font-semibold text-lg">Local Option</h3>
               </div>
               <div className="space-y-3 mb-4">
@@ -71,7 +71,7 @@ export function LlmProviderPrivacy() {
             {/* Custom Endpoints */}
             <Card className="p-6">
               <div className="flex items-center gap-2 mb-4">
-                <Server className="h-5 w-5 text-primary" />
+                <Server className="size-5 text-primary" />
                 <h3 className="font-semibold text-lg">Custom Endpoints</h3>
               </div>
               <ul className="space-y-2 text-sm text-muted-foreground mb-4">

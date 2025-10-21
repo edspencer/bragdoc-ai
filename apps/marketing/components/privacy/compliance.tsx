@@ -19,7 +19,7 @@ export function Compliance() {
           <div className="space-y-4">
             {items.map((item) => (
               <div key={item} className="flex items-center gap-3">
-                <Check className="h-5 w-5 text-green-500 flex-shrink-0" />
+                <Check className="size-5 text-green-500 shrink-0" />
                 <span>{item}</span>
               </div>
             ))}

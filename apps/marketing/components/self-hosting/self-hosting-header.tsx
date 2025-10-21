@@ -10,7 +10,7 @@ export function SelfHostingHeader() {
       <div className="container relative mx-auto px-4 sm:px-6 lg:px-8">
         <div className="max-w-4xl mx-auto text-center">
           <Badge variant="outline" className="mb-6 px-4 py-2">
-            <Shield className="h-4 w-4 mr-2" />
+            <Shield className="size-4 mr-2" />
             100% Self-Hosted
           </Badge>
 
@@ -26,14 +26,14 @@ export function SelfHostingHeader() {
 
           <div className="flex flex-wrap items-center justify-center gap-4 text-sm text-muted-foreground">
             <div className="flex items-center gap-2">
-              <Github className="h-5 w-5" />
+              <Github className="size-5" />
               <span>Open Source</span>
             </div>
-            <div className="h-1 w-1 rounded-full bg-muted-foreground/30" />
+            <div className="size-1 rounded-full bg-muted-foreground/30" />
             <span>Complete Privacy</span>
-            <div className="h-1 w-1 rounded-full bg-muted-foreground/30" />
+            <div className="size-1 rounded-full bg-muted-foreground/30" />
             <span>No Vendor Lock-in</span>
-            <div className="h-1 w-1 rounded-full bg-muted-foreground/30" />
+            <div className="size-1 rounded-full bg-muted-foreground/30" />
             <span>Free Forever</span>
           </div>
         </div>

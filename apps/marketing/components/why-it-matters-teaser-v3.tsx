@@ -18,12 +18,12 @@ export function WhyItMattersTeaserV3() {
         </div>
 
         <Card className="border-2 mb-8">
-          <CardContent className="pt-8 pb-8">
+          <CardContent className="py-8">
             <div className="grid md:grid-cols-3 gap-8">
               {/* Step 1 */}
               <div className="text-center">
-                <div className="h-16 w-16 rounded-2xl bg-destructive/10 flex items-center justify-center mx-auto mb-4">
-                  <FileText className="h-8 w-8 text-destructive" />
+                <div className="size-16 rounded-2xl bg-destructive/10 flex items-center justify-center mx-auto mb-4">
+                  <FileText className="size-8 text-destructive" />
                 </div>
                 <h3 className="font-semibold text-lg mb-2">The Advice</h3>
                 <p className="text-sm text-muted-foreground leading-relaxed">
@@ -34,8 +34,8 @@ export function WhyItMattersTeaserV3() {
 
               {/* Step 2 */}
               <div className="text-center">
-                <div className="h-16 w-16 rounded-2xl bg-orange-500/10 flex items-center justify-center mx-auto mb-4">
-                  <Brain className="h-8 w-8 text-orange-600 dark:text-orange-400" />
+                <div className="size-16 rounded-2xl bg-orange-500/10 flex items-center justify-center mx-auto mb-4">
+                  <Brain className="size-8 text-orange-600 dark:text-orange-400" />
                 </div>
                 <h3 className="font-semibold text-lg mb-2">The Reality</h3>
                 <p className="text-sm text-muted-foreground leading-relaxed">
@@ -46,8 +46,8 @@ export function WhyItMattersTeaserV3() {
 
               {/* Step 3 */}
               <div className="text-center">
-                <div className="h-16 w-16 rounded-2xl bg-primary/10 flex items-center justify-center mx-auto mb-4">
-                  <TrendingUp className="h-8 w-8 text-primary" />
+                <div className="size-16 rounded-2xl bg-primary/10 flex items-center justify-center mx-auto mb-4">
+                  <TrendingUp className="size-8 text-primary" />
                 </div>
                 <h3 className="font-semibold text-lg mb-2">The Solution</h3>
                 <p className="text-sm text-muted-foreground leading-relaxed">
@@ -68,7 +68,7 @@ export function WhyItMattersTeaserV3() {
           <Button size="lg" asChild>
             <Link href="/why-it-matters">
               Read the Full Story
-              <ArrowRight className="ml-2 h-4 w-4" />
+              <ArrowRight className="ml-2 size-4" />
             </Link>
           </Button>
         </div>

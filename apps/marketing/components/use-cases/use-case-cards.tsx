@@ -171,8 +171,8 @@ export function UseCaseCards() {
                 <CardHeader>
                   <div className="flex items-start justify-between gap-4">
                     <div className="flex items-center gap-3">
-                      <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10 text-primary">
-                        <Icon className="h-6 w-6" />
+                      <div className="flex size-12 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                        <Icon className="size-6" />
                       </div>
                       <CardTitle className="text-2xl">
                         {useCase.title}
@@ -180,7 +180,7 @@ export function UseCaseCards() {
                     </div>
                     <button
                       onClick={() => toggleCard(index)}
-                      className="md:hidden flex h-8 w-8 items-center justify-center rounded-lg hover:bg-muted transition-colors"
+                      className="md:hidden flex size-8 items-center justify-center rounded-lg hover:bg-muted transition-colors"
                       aria-label={isExpanded ? 'Collapse' : 'Expand'}
                     >
                       <ChevronDown
@@ -219,7 +219,7 @@ export function UseCaseCards() {
                     <ul className="space-y-2">
                       {useCase.helps.map((item, i) => (
                         <li key={i} className="text-sm flex items-start gap-2">
-                          <Check className="h-4 w-4 text-primary mt-0.5 shrink-0" />
+                          <Check className="size-4 text-primary mt-0.5 shrink-0" />
                           <span>{item}</span>
                         </li>
                       ))}
@@ -231,7 +231,7 @@ export function UseCaseCards() {
                     <ol className="space-y-2">
                       {useCase.workflow.map((item, i) => (
                         <li key={i} className="text-sm flex items-start gap-3">
-                          <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary text-xs font-semibold">
+                          <span className="flex size-6 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary text-xs font-semibold">
                             {i + 1}
                           </span>
                           <span className="pt-0.5">{item}</span>

@@ -23,10 +23,10 @@ export function CodeBlock({ code, language }: CodeBlockProps) {
       <Button
         variant="ghost"
         size="icon"
-        className="absolute top-2 right-2 h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity"
+        className="absolute top-2 right-2 size-8 opacity-0 group-hover:opacity-100 transition-opacity"
         onClick={copyToClipboard}
       >
-        {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+        {copied ? <Check className="size-4" /> : <Copy className="size-4" />}
       </Button>
       <pre className="bg-muted p-4 rounded-lg overflow-x-auto">
         <code className={`language-${language} text-sm font-mono`}>{code}</code>

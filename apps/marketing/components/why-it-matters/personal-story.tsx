@@ -20,8 +20,8 @@ export function PersonalStory() {
           <Card className="border-2 border-green-500/20 bg-green-500/5">
             <CardContent className="pt-6">
               <div className="flex items-start gap-4 mb-4">
-                <div className="flex-shrink-0 h-12 w-12 rounded-xl bg-green-500/10 flex items-center justify-center">
-                  <TrendingUp className="h-6 w-6 text-green-600" />
+                <div className="shrink-0 size-12 rounded-xl bg-green-500/10 flex items-center justify-center">
+                  <TrendingUp className="size-6 text-green-600" />
                 </div>
                 <div className="flex-1">
                   <h3 className="font-semibold text-lg mb-2">
@@ -43,8 +43,8 @@ export function PersonalStory() {
           <Card className="border-2 border-red-500/20 bg-red-500/5">
             <CardContent className="pt-6">
               <div className="flex items-start gap-4 mb-4">
-                <div className="flex-shrink-0 h-12 w-12 rounded-xl bg-red-500/10 flex items-center justify-center">
-                  <TrendingDown className="h-6 w-6 text-red-600" />
+                <div className="shrink-0 size-12 rounded-xl bg-red-500/10 flex items-center justify-center">
+                  <TrendingDown className="size-6 text-red-600" />
                 </div>
                 <div className="flex-1">
                   <h3 className="font-semibold text-lg mb-2">
@@ -67,8 +67,8 @@ export function PersonalStory() {
           <Card className="border-2 border-primary/30 bg-primary/5">
             <CardContent className="pt-6">
               <div className="flex items-start gap-4">
-                <div className="flex-shrink-0 h-12 w-12 rounded-xl bg-primary/10 flex items-center justify-center">
-                  <FileText className="h-6 w-6 text-primary" />
+                <div className="shrink-0 size-12 rounded-xl bg-primary/10 flex items-center justify-center">
+                  <FileText className="size-6 text-primary" />
                 </div>
                 <div className="flex-1">
                   <h3 className="font-semibold text-lg mb-2">The Lesson</h3>

@@ -22,8 +22,8 @@ export function QuickStartSection() {
             {/* Step 1: Install CLI */}
             <Card className="p-6">
               <div className="flex items-start gap-4 mb-4">
-                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary text-primary-foreground">
-                  <Terminal className="h-5 w-5" />
+                <div className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-primary text-primary-foreground">
+                  <Terminal className="size-5" />
                 </div>
                 <div>
                   <h3 className="font-semibold text-lg mb-2">
@@ -40,8 +40,8 @@ export function QuickStartSection() {
             {/* Step 2: Create Account */}
             <Card className="p-6">
               <div className="flex items-start gap-4 mb-4">
-                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary text-primary-foreground">
-                  <UserPlus className="h-5 w-5" />
+                <div className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-primary text-primary-foreground">
+                  <UserPlus className="size-5" />
                 </div>
                 <div>
                   <h3 className="font-semibold text-lg mb-2">
@@ -69,7 +69,7 @@ export function QuickStartSection() {
             <Button asChild variant="outline" size="lg">
               <Link href="/get-started">
                 View Full Setup Guide
-                <ArrowRight className="ml-2 h-4 w-4" />
+                <ArrowRight className="ml-2 size-4" />
               </Link>
             </Button>
           </div>

@@ -18,8 +18,8 @@ export function TheProblem() {
 
         <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
           <Card className="p-6 space-y-3 border-2">
-            <div className="h-12 w-12 rounded-xl bg-red-500/10 flex items-center justify-center">
-              <Clock className="h-6 w-6 text-red-600" />
+            <div className="size-12 rounded-xl bg-red-500/10 flex items-center justify-center">
+              <Clock className="size-6 text-red-600" />
             </div>
             <h3 className="font-semibold">No Time to Document</h3>
             <p className="text-sm text-muted-foreground leading-relaxed">
@@ -29,8 +29,8 @@ export function TheProblem() {
           </Card>
 
           <Card className="p-6 space-y-3 border-2">
-            <div className="h-12 w-12 rounded-xl bg-orange-500/10 flex items-center justify-center">
-              <AlertCircle className="h-6 w-6 text-orange-600" />
+            <div className="size-12 rounded-xl bg-orange-500/10 flex items-center justify-center">
+              <AlertCircle className="size-6 text-orange-600" />
             </div>
             <h3 className="font-semibold">Easy to Forget</h3>
             <p className="text-sm text-muted-foreground leading-relaxed">
@@ -40,8 +40,8 @@ export function TheProblem() {
           </Card>
 
           <Card className="p-6 space-y-3 border-2">
-            <div className="h-12 w-12 rounded-xl bg-yellow-500/10 flex items-center justify-center">
-              <Calendar className="h-6 w-6 text-yellow-600" />
+            <div className="size-12 rounded-xl bg-yellow-500/10 flex items-center justify-center">
+              <Calendar className="size-6 text-yellow-600" />
             </div>
             <h3 className="font-semibold">Performance Review Panic</h3>
             <p className="text-sm text-muted-foreground leading-relaxed">
@@ -51,8 +51,8 @@ export function TheProblem() {
           </Card>
 
           <Card className="p-6 space-y-3 border-2">
-            <div className="h-12 w-12 rounded-xl bg-purple-500/10 flex items-center justify-center">
-              <Frown className="h-6 w-6 text-purple-600" />
+            <div className="size-12 rounded-xl bg-purple-500/10 flex items-center justify-center">
+              <Frown className="size-6 text-purple-600" />
             </div>
             <h3 className="font-semibold">Missed Opportunities</h3>
             <p className="text-sm text-muted-foreground leading-relaxed">

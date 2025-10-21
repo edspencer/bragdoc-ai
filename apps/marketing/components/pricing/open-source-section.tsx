@@ -18,7 +18,7 @@ export function OpenSourceSection() {
         <div className="max-w-4xl mx-auto">
           <div className="text-center mb-8">
             <Badge className="mb-4 bg-[oklch(0.65_0.25_262)] dark:bg-[oklch(0.7_0.25_262)]">
-              <Github className="h-3 w-3 mr-1" />
+              <Github className="size-3 mr-1" />
               Open Source
             </Badge>
             <h2 className="text-3xl sm:text-4xl font-bold mb-4">
@@ -33,7 +33,7 @@ export function OpenSourceSection() {
           <Card className="border-2">
             <CardHeader>
               <CardTitle className="text-2xl flex items-center gap-2">
-                <Code className="h-6 w-6" />
+                <Code className="size-6" />
                 Open Source Self-Hosting
               </CardTitle>
               <CardDescription>
@@ -43,21 +43,21 @@ export function OpenSourceSection() {
             <CardContent className="space-y-6">
               <div className="grid sm:grid-cols-3 gap-4">
                 <div className="flex flex-col items-center text-center p-4 rounded-lg bg-muted/50">
-                  <Shield className="h-8 w-8 mb-2 text-[oklch(0.65_0.25_262)] dark:text-[oklch(0.7_0.25_262)]" />
+                  <Shield className="size-8 mb-2 text-[oklch(0.65_0.25_262)] dark:text-[oklch(0.7_0.25_262)]" />
                   <h4 className="font-semibold mb-1">100% Private</h4>
                   <p className="text-sm text-muted-foreground">
                     Your code never leaves your machine
                   </p>
                 </div>
                 <div className="flex flex-col items-center text-center p-4 rounded-lg bg-muted/50">
-                  <Zap className="h-8 w-8 mb-2 text-[oklch(0.65_0.25_262)] dark:text-[oklch(0.7_0.25_262)]" />
+                  <Zap className="size-8 mb-2 text-[oklch(0.65_0.25_262)] dark:text-[oklch(0.7_0.25_262)]" />
                   <h4 className="font-semibold mb-1">Use Any LLM</h4>
                   <p className="text-sm text-muted-foreground">
                     Ollama, OpenAI, Anthropic, or custom
                   </p>
                 </div>
                 <div className="flex flex-col items-center text-center p-4 rounded-lg bg-muted/50">
-                  <Github className="h-8 w-8 mb-2 text-[oklch(0.65_0.25_262)] dark:text-[oklch(0.7_0.25_262)]" />
+                  <Github className="size-8 mb-2 text-[oklch(0.65_0.25_262)] dark:text-[oklch(0.7_0.25_262)]" />
                   <h4 className="font-semibold mb-1">Fully Auditable</h4>
                   <p className="text-sm text-muted-foreground">
                     Inspect and modify the source code
@@ -121,7 +121,7 @@ export function OpenSourceSection() {
                   target="_blank"
                   rel="noopener noreferrer"
                 >
-                  <Github className="h-4 w-4 mr-2" />
+                  <Github className="size-4 mr-2" />
                   View on GitHub
                 </a>
               </Button>
@@ -131,7 +131,7 @@ export function OpenSourceSection() {
                 asChild
               >
                 <Link href="/self-hosting">
-                  <Code className="h-4 w-4 mr-2" />
+                  <Code className="size-4 mr-2" />
                   Self-Hosting Docs
                 </Link>
               </Button>

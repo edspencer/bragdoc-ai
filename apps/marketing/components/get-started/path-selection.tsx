@@ -28,7 +28,7 @@ export function PathSelection() {
                 <CardHeader className="pb-4">
                   <div className="flex items-start justify-between mb-3">
                     <div className="p-2.5 rounded-lg bg-primary/10">
-                      <Terminal className="h-6 w-6 text-primary" />
+                      <Terminal className="size-6 text-primary" />
                     </div>
                     <Badge className="bg-primary text-primary-foreground border-0">
                       Recommended
@@ -41,11 +41,11 @@ export function PathSelection() {
                 </CardHeader>
                 <CardContent className="space-y-3">
                   <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                    <Clock className="h-4 w-4" />
+                    <Clock className="size-4" />
                     <span>5 minutes setup</span>
                   </div>
                   <div className="flex items-start gap-2 text-xs text-muted-foreground">
-                    <Check className="h-3.5 w-3.5 mt-0.5 text-primary" />
+                    <Check className="size-3.5 mt-0.5 text-primary" />
                     <span>Best for daily use</span>
                   </div>
                 </CardContent>
@@ -60,7 +60,7 @@ export function PathSelection() {
                 <CardHeader className="pb-4">
                   <div className="flex items-start justify-between mb-3">
                     <div className="p-2.5 rounded-lg bg-primary/10">
-                      <Globe className="h-6 w-6 text-primary" />
+                      <Globe className="size-6 text-primary" />
                     </div>
                   </div>
                   <CardTitle className="text-lg mb-2">Web-Only Start</CardTitle>
@@ -70,11 +70,11 @@ export function PathSelection() {
                 </CardHeader>
                 <CardContent className="space-y-3">
                   <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                    <Clock className="h-4 w-4" />
+                    <Clock className="size-4" />
                     <span>3 minutes setup</span>
                   </div>
                   <div className="flex items-start gap-2 text-xs text-muted-foreground">
-                    <Check className="h-3.5 w-3.5 mt-0.5 text-primary" />
+                    <Check className="size-3.5 mt-0.5 text-primary" />
                     <span>No installation needed</span>
                   </div>
                 </CardContent>
@@ -89,7 +89,7 @@ export function PathSelection() {
                 <CardHeader className="pb-4">
                   <div className="flex items-start justify-between mb-3">
                     <div className="p-2.5 rounded-lg bg-primary/10">
-                      <Layers className="h-6 w-6 text-primary" />
+                      <Layers className="size-6 text-primary" />
                     </div>
                   </div>
                   <CardTitle className="text-lg mb-2">
@@ -101,11 +101,11 @@ export function PathSelection() {
                 </CardHeader>
                 <CardContent className="space-y-3">
                   <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                    <Clock className="h-4 w-4" />
+                    <Clock className="size-4" />
                     <span>Flexible timeline</span>
                   </div>
                   <div className="flex items-start gap-2 text-xs text-muted-foreground">
-                    <Check className="h-3.5 w-3.5 mt-0.5 text-primary" />
+                    <Check className="size-3.5 mt-0.5 text-primary" />
                     <span>Best long-term value</span>
                   </div>
                 </CardContent>

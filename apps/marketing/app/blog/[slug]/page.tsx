@@ -32,7 +32,7 @@ export default function BlogPostPage({ params }: { params: { slug: string } }) {
             {/* Back Button */}
             <Link href="/blog">
               <Button variant="ghost" className="mb-8">
-                <ArrowLeft className="mr-2 h-4 w-4" />
+                <ArrowLeft className="mr-2 size-4" />
                 Back to Blog
               </Button>
             </Link>
@@ -44,14 +44,14 @@ export default function BlogPostPage({ params }: { params: { slug: string } }) {
               </h1>
               <div className="flex flex-wrap items-center gap-4 text-muted-foreground mb-4">
                 <div className="flex items-center gap-2">
-                  <Calendar className="h-4 w-4" />
+                  <Calendar className="size-4" />
                   <time dateTime={post.date}>
                     {format(new Date(post.date), 'MMMM d, yyyy')}
                   </time>
                 </div>
                 {post.author && (
                   <div className="flex items-center gap-2">
-                    <User className="h-4 w-4" />
+                    <User className="size-4" />
                     <span>{post.author}</span>
                   </div>
                 )}

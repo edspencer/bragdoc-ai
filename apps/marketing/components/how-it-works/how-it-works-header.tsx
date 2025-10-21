@@ -20,17 +20,17 @@ export function HowItWorksHeader() {
             <div className="px-4 py-2 rounded-lg bg-muted font-medium">
               Git Commits
             </div>
-            <ArrowRight className="h-5 w-5 text-muted-foreground flex-shrink-0" />
+            <ArrowRight className="size-5 text-muted-foreground shrink-0" />
             <div className="px-4 py-2 rounded-lg bg-muted font-medium">CLI</div>
-            <ArrowRight className="h-5 w-5 text-muted-foreground flex-shrink-0" />
+            <ArrowRight className="size-5 text-muted-foreground shrink-0" />
             <div className="px-4 py-2 rounded-lg bg-primary/10 text-primary font-medium">
               AI
             </div>
-            <ArrowRight className="h-5 w-5 text-muted-foreground flex-shrink-0" />
+            <ArrowRight className="size-5 text-muted-foreground shrink-0" />
             <div className="px-4 py-2 rounded-lg bg-muted font-medium">
               Web App
             </div>
-            <ArrowRight className="h-5 w-5 text-muted-foreground flex-shrink-0" />
+            <ArrowRight className="size-5 text-muted-foreground shrink-0" />
             <div className="px-4 py-2 rounded-lg bg-muted font-medium">
               Documents
             </div>
