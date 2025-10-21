@@ -1,5 +1,12 @@
 import { execSync } from 'node:child_process';
-import type { GitCommit, RepositoryInfo } from './types';
+import type { GitCommit, RepositoryInfo, FileStats } from './types';
+import type { ExtractionConfig } from '../config/types';
+import { resolveExtractionConfig } from '../config/extraction-presets';
+import {
+  splitDiffByFile,
+  prioritizeDiffBlocks,
+  limitDiffSize,
+} from './diff-parsing';
 
 /**
  * Get information about the current git repository
@@ -40,6 +47,34 @@ export function getCurrentGitUser(): string {
   } catch (error: any) {
     throw new Error(`Failed to get git user name: ${error.message}`);
   }
+}
+
+/**
+ * Parse git --numstat output into FileStats array
+ * Format: "additions\tdeletions\tpath"
+ * Binary files show as "-\t-\tpath"
+ */
+export function parseNumstat(numstatOutput: string): FileStats[] {
+  const stats: FileStats[] = [];
+  const lines = numstatOutput
+    .trim()
+    .split('\n')
+    .filter((line) => line.trim());
+
+  for (const line of lines) {
+    const parts = line.split('\t');
+    if (parts.length < 3) continue;
+
+    const [addStr, delStr, path] = parts;
+
+    // Handle binary files (shown as "-")
+    const additions = addStr === '-' ? 0 : Number.parseInt(addStr, 10);
+    const deletions = delStr === '-' ? 0 : Number.parseInt(delStr, 10);
+
+    stats.push({ path, additions, deletions });
+  }
+
+  return stats;
 }
 
 /**
@@ -88,6 +123,85 @@ export function collectGitCommits(
   } catch (error: any) {
     throw new Error(`Failed to extract commits: ${error.message}`);
   }
+}
+
+/**
+ * Enhance commits with file statistics from --numstat
+ */
+function enhanceCommitsWithStats(commits: GitCommit[]): GitCommit[] {
+  return commits.map((commit) => {
+    try {
+      const numstatOutput = execSync(
+        `git show --numstat --format="" ${commit.hash}`,
+        { encoding: 'utf8' },
+      );
+
+      const stats = parseNumstat(numstatOutput);
+
+      return { ...commit, stats };
+    } catch (error: any) {
+      // If we can't get stats for a commit, just skip it
+      return commit;
+    }
+  });
+}
+
+/**
+ * Enhance commits with code diffs
+ */
+function enhanceCommitsWithDiffs(
+  commits: GitCommit[],
+  config: Required<Omit<ExtractionConfig, 'detailLevel'>>,
+): GitCommit[] {
+  return commits.map((commit) => {
+    try {
+      const diffOutput = execSync(`git show -p --format="" ${commit.hash}`, {
+        encoding: 'utf8',
+      });
+
+      // Parse and process diff
+      const blocks = splitDiffByFile(diffOutput);
+      const prioritized = prioritizeDiffBlocks(blocks, config);
+      const { diffs, truncated } = limitDiffSize(prioritized, config);
+
+      return {
+        ...commit,
+        diff: diffs,
+        diffTruncated: truncated,
+      };
+    } catch (error: any) {
+      // If we can't get diff for a commit, just skip it
+      return commit;
+    }
+  });
+}
+
+/**
+ * Collect Git commits with optional enhanced data (stats and/or diffs)
+ */
+export function collectGitCommitsEnhanced(
+  branch: string,
+  maxCommits: number,
+  repository: string,
+  extractionConfig?: ExtractionConfig,
+): GitCommit[] {
+  // Get base commits using existing function
+  let commits = collectGitCommits(branch, maxCommits, repository);
+
+  // Resolve configuration
+  const config = resolveExtractionConfig(extractionConfig);
+
+  // Enhance with stats if requested
+  if (config.includeStats) {
+    commits = enhanceCommitsWithStats(commits);
+  }
+
+  // Enhance with diffs if requested
+  if (config.includeDiff) {
+    commits = enhanceCommitsWithDiffs(commits, config);
+  }
+
+  return commits;
 }
 
 /**
