@@ -37,12 +37,12 @@
     "release": "pnpm build && changeset publish"
   },
   "dependencies": {
-    "@ai-sdk/anthropic": "^2.0.0",
-    "@ai-sdk/google": "^2.0.0",
-    "@ai-sdk/openai": "^2.0.0",
+    "@ai-sdk/anthropic": "^2.0.35",
+    "@ai-sdk/google": "^2.0.23",
+    "@ai-sdk/openai": "^2.0.53",
     "@bragdoc/config": "workspace:*",
     "@types/yaml": "^1.9.7",
-    "ai": "^5.0.0",
+    "ai": "^5.0.76",
     "chalk": "^4.1.2",
     "commander": "^11.1.0",
     "inquirer": "^12.9.6",
