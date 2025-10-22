@@ -31,7 +31,7 @@ jobs:
           scope: "@bragdoc"
 
       - name: Install Dependencies
-        run: cd packages/cli && pnpm install
+        run: pnpm install
 
       - name: Run Tests
         env:
@@ -42,8 +42,7 @@ jobs:
         id: changesets
         uses: changesets/action@v1
         with:
-          publish: pnpm release
-          cwd: ./packages/cli
+          publish: cd packages/cli && pnpm release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
