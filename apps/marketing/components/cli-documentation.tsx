@@ -88,6 +88,7 @@ export function CliDocumentation() {
         <nav className="p-6 space-y-1">
           {navigation.map((item) => (
             <button
+              type="button"
               key={item.id}
               onClick={() => scrollToSection(item.id)}
               className={`w-full text-left px-3 py-2 rounded-md text-sm transition-colors flex items-center gap-2 ${

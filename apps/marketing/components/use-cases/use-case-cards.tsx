@@ -179,6 +179,7 @@ export function UseCaseCards() {
                       </CardTitle>
                     </div>
                     <button
+                      type="button"
                       onClick={() => toggleCard(index)}
                       className="md:hidden flex size-8 items-center justify-center rounded-lg hover:bg-muted transition-colors"
                       aria-label={isExpanded ? 'Collapse' : 'Expand'}

@@ -168,6 +168,8 @@ function AvatarWithPopover({
     <Popover open={isOpen} onOpenChange={setIsOpen}>
       <PopoverTrigger asChild>
         <div
+          role="button"
+          tabIndex={0}
           className="size-8 rounded-full bg-primary/10 border-2 border-background flex items-center justify-center text-xs font-semibold text-primary cursor-pointer hover:bg-primary/20 transition-colors"
           onMouseEnter={() => setIsOpen(true)}
           onMouseLeave={() => setIsOpen(false)}

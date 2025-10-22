@@ -39,6 +39,7 @@ export function PricingTiers() {
               <div className="mt-6 flex justify-center">
                 <div className="relative inline-flex items-center gap-1 p-1 bg-muted rounded-lg">
                   <button
+                    type="button"
                     onClick={() => setBillingPeriod('monthly')}
                     className={`px-6 py-2 rounded-md text-sm font-medium transition-all ${
                       billingPeriod === 'monthly'
@@ -49,6 +50,7 @@ export function PricingTiers() {
                     Monthly
                   </button>
                   <button
+                    type="button"
                     onClick={() => setBillingPeriod('annual')}
                     className={`px-6 py-2 rounded-md text-sm font-medium transition-all relative ${
                       billingPeriod === 'annual'
