@@ -155,7 +155,7 @@
     "@types/d3-scale": "^4.0.8",
     "@types/jest": "^29.5.14",
     "@types/node": "^22.8.6",
-    "@types/pdf-parse": "^1.1.4",
+    "@types/pdf-parse": "^1.1.5",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "drizzle-kit": "^0.25.0",
