@@ -28,10 +28,10 @@
   "dependencies": {
     "drizzle-orm": "^0.44.6",
     "postgres": "^3.4.7",
-    "@neondatabase/serverless": "^0.10.4",
+    "@neondatabase/serverless": "^1.0.2",
     "@vercel/postgres": "^0.10.0",
     "nanoid": "^5.1.6",
-    "zod": "^3.25.76"
+    "zod": "^4.1.12"
   },
   "devDependencies": {
     "drizzle-kit": "^0.31.5",
