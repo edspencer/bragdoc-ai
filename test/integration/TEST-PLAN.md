@@ -151,9 +151,77 @@ This document contains the comprehensive UI test plan for the BragDoc applicatio
 
 ---
 
-### 4. Existing Navigation Items (Regression)
+### 4. Dashboard - Zero State for New Users
 
-#### 4.1 Main Navigation Links
+#### 4.1 Zero State Display
+- [ ] **Zero state appears** when user has no achievements
+- [ ] **Welcome message** "Welcome to BragDoc!" is displayed
+- [ ] **CLI instructions card** is visible with "Getting Started" heading
+- [ ] **All 4 CLI instruction steps** are present:
+  - [ ] Step 1: Install the CLI (`npm install -g @bragdoc/cli`)
+  - [ ] Step 2: Login (`bragdoc login`)
+  - [ ] Step 3: Initialize repository (`bragdoc init`)
+  - [ ] Step 4: Extract achievements (`bragdoc extract`)
+- [ ] **Check button** is visible and enabled with text "I've run the CLI - Check for achievements"
+- [ ] **Stats cards** show 0 values for all metrics
+- [ ] **Normal dashboard content** (charts, activity stream) is NOT visible in zero state
+
+#### 4.2 Button Interactions
+- [ ] **Button click shows loading state**:
+  - Button text changes to "Checking..."
+  - Button is disabled during refresh
+- [ ] **Feedback message appears** when still no achievements:
+  - Message displays after ~1 second
+  - Message says "No achievements yet. Did you run `bragdoc extract`?"
+  - Feedback message mentions `bragdoc extract` command
+- [ ] **Zero state remains visible** when no achievements found after refresh
+
+#### 4.3 Dashboard Transition
+- [ ] **Transitions to normal dashboard** when achievements are added:
+  - Zero state disappears after creating achievement
+  - Normal dashboard content (charts, activity) appears
+  - AchievementStats shows correct count (1+)
+  - Weekly Impact chart is visible
+  - Activity stream is visible
+  - No console errors during transition
+
+#### 4.4 Responsive Layout - Zero State
+- [ ] **Mobile viewport** (375px width):
+  - Zero state container is centered
+  - CLI instructions card fits viewport
+  - Code blocks don't overflow
+  - Button is appropriately sized and clickable
+  - Padding is appropriate for small screens
+- [ ] **Tablet viewport** (768px width):
+  - Zero state container is centered
+  - Layout uses max-width constraint
+  - Content is well-spaced and readable
+  - Button is centered below instructions
+- [ ] **Desktop viewport** (1920px width):
+  - Zero state has max-width constraint (~672px for max-w-2xl)
+  - Content is horizontally centered on large screens
+  - Vertical positioning is appropriate (not stuck at top)
+  - Stats cards display correctly above zero state
+  - Overall layout is visually balanced
+
+#### 4.5 Zero State Accessibility
+- [ ] **Keyboard navigation works**:
+  - Button is reachable via Tab key
+  - Button has visible focus indicator
+  - Enter key triggers button click
+  - Space key triggers button click
+  - Tab order is logical
+- [ ] **No console errors** during zero state usage:
+  - No JavaScript errors in console
+  - No page errors (uncaught exceptions)
+  - No React warnings (hydration mismatches)
+  - No network errors (failed requests)
+
+---
+
+### 5. Existing Navigation Items (Regression)
+
+#### 5.1 Main Navigation Links
 - [ ] **Dashboard** link still works correctly
 - [ ] **Achievements** link still works correctly
 - [ ] **Companies** link still works correctly
@@ -162,7 +230,7 @@ This document contains the comprehensive UI test plan for the BragDoc applicatio
 - [ ] **All existing icons** display correctly
 - [ ] **User profile section** at bottom of sidebar still works
 
-#### 4.2 Moved Items Still Function
+#### 5.2 Moved Items Still Function
 - [ ] **Standup functionality** unchanged after moving to Careers section:
   - Standup page loads correctly
   - Standup creation/editing works
@@ -173,7 +241,7 @@ This document contains the comprehensive UI test plan for the BragDoc applicatio
   - Document creation works
   - Document viewing/editing works
 
-#### 4.3 Documents Page Still Works
+#### 5.3 Documents Page Still Works
 - [ ] **Documents page** still accessible via direct URL (`/documents`)
 - [ ] **Documents list** still displays correctly
 - [ ] **Document creation** still works from Documents page
@@ -181,7 +249,7 @@ This document contains the comprehensive UI test plan for the BragDoc applicatio
 - [ ] **useDocuments hook** still functions correctly
 - [ ] **API calls** to `/api/documents` still work
 
-#### 4.4 Application Stability
+#### 5.4 Application Stability
 - [ ] **No console errors** appear after changes
 - [ ] **No console warnings** appear related to navigation
 - [ ] **Application builds successfully** (`pnpm build`)
@@ -191,15 +259,15 @@ This document contains the comprehensive UI test plan for the BragDoc applicatio
 
 ---
 
-### 5. Authentication and Authorization
+### 6. Authentication and Authorization
 
-#### 5.1 Unauthenticated Users
+#### 6.1 Unauthenticated Users
 - [ ] **Accessing /performance** when logged out → redirects to login
 - [ ] **Accessing /workstreams** when logged out → redirects to login
 - [ ] **Login redirect works** - after logging in, user can access the pages
 - [ ] **Sidebar doesn't appear** when not logged in
 
-#### 5.2 Authenticated Users
+#### 6.2 Authenticated Users
 - [ ] **All Careers items visible** to authenticated users
 - [ ] **All Careers pages accessible** to authenticated users
 - [ ] **No permission errors** when accessing any page
@@ -207,42 +275,42 @@ This document contains the comprehensive UI test plan for the BragDoc applicatio
 
 ---
 
-### 6. Cross-Browser Testing
+### 7. Cross-Browser Testing
 
 Test the navigation changes in multiple browsers:
 
-#### 6.1 Chrome/Edge (Chromium-based)
+#### 7.1 Chrome/Edge (Chromium-based)
 - [ ] **Sidebar renders correctly**
 - [ ] **Navigation works**
 - [ ] **No console errors**
 
-#### 6.2 Firefox
+#### 7.2 Firefox
 - [ ] **Sidebar renders correctly**
 - [ ] **Navigation works**
 - [ ] **No console errors**
 
-#### 6.3 Safari
+#### 7.3 Safari
 - [ ] **Sidebar renders correctly**
 - [ ] **Navigation works**
 - [ ] **No console errors**
 
 ---
 
-### 7. Accessibility Testing
+### 8. Accessibility Testing
 
-#### 7.1 Keyboard Navigation
+#### 8.1 Keyboard Navigation
 - [ ] **Tab key** navigates through Careers menu items in order
 - [ ] **Enter key** activates navigation links
 - [ ] **Focus indicators** are visible on keyboard navigation
 - [ ] **Skip to main content** works (if implemented)
 
-#### 7.2 Screen Reader Support
+#### 8.2 Screen Reader Support
 - [ ] **Section label "Careers"** is announced by screen reader
 - [ ] **Each menu item** is announced with its correct name
 - [ ] **Icons have appropriate alt text** or aria-labels if needed
 - [ ] **Navigation landmarks** are properly structured
 
-#### 7.3 Color Contrast
+#### 8.3 Color Contrast
 - [ ] **Text meets WCAG AA standards** for color contrast
 - [ ] **Active state** has sufficient contrast
 - [ ] **Icons are distinguishable** even without color
@@ -320,7 +388,7 @@ All tests must pass for the feature to be considered complete and ready for depl
 
 As new features are added, expand this test plan to include:
 
-- Dashboard widgets and charts
+- Dashboard widgets and charts (normal state with achievements)
 - Achievement creation, editing, and deletion workflows
 - Project management functionality
 - Company management functionality
@@ -332,3 +400,30 @@ As new features are added, expand this test plan to include:
 - Data import/export functionality
 - Email notifications
 - Stripe payment integration
+
+---
+
+## Playwright Automated Test Scenarios
+
+Detailed Playwright test scenarios with TypeScript code examples are available in feature-specific test plans:
+
+### Dashboard Zero State Tests
+
+See `tasks/dashboard-zero-state/TEST_PLAN.md` for 8 detailed Playwright test scenarios covering:
+
+1. **Zero State Display** (`dashboard-zero-state-displays`) - Verify zero state appears when user has no achievements
+2. **Button Loading State** (`dashboard-zero-state-button-loading`) - Test button shows loading state and triggers refresh
+3. **Feedback Message** (`dashboard-zero-state-feedback-message`) - Verify feedback message when still no achievements
+4. **Dashboard Transition** (`dashboard-zero-state-transition`) - Test transition from zero state to normal dashboard
+5. **Mobile Responsive** (`dashboard-zero-state-responsive-mobile`) - Verify mobile viewport layout (375px)
+6. **Desktop Responsive** (`dashboard-zero-state-responsive-desktop`) - Verify desktop viewport with max-width constraint (1920px)
+7. **Accessibility** (`dashboard-zero-state-accessibility`) - Test keyboard navigation and a11y compliance
+8. **Console Errors** (`dashboard-zero-state-no-console-errors`) - Verify no errors during interactions
+
+Each test includes:
+- Full TypeScript test code with Playwright syntax
+- Step-by-step test flow
+- Expected results
+- Prerequisites and setup requirements
+
+**Implementation Note**: These tests should be integrated into `__tests__/e2e/dashboard-zero-state.spec.ts` with appropriate helper functions for login, auth token retrieval, and accessibility testing.

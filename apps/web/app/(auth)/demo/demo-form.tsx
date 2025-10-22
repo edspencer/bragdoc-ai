@@ -12,15 +12,17 @@ import { createDemoAccountAction } from './actions';
  *
  * Displays a button that creates a demo account and redirects to dashboard on success.
  * Shows loading state during account creation.
+ *
+ * @param empty - If true, creates demo account without pre-populated data
  */
-export function DemoForm() {
+export function DemoForm({ empty = false }: { empty?: boolean }) {
   const router = useRouter();
   const [isCreating, setIsCreating] = useState(false);
 
   const handleCreateDemo = async () => {
     setIsCreating(true);
     try {
-      const result = await createDemoAccountAction();
+      const result = await createDemoAccountAction(empty);
 
       if (result.status === 'success') {
         toast.success('Demo account created! Redirecting...');
