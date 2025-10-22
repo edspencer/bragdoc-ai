@@ -46,7 +46,7 @@
     "chalk": "^4.1.2",
     "commander": "^11.1.0",
     "inquirer": "^12.9.6",
-    "mdx-prompt": "^0.4.1",
+    "mdx-prompt": "^0.4.2",
     "node-fetch": "^2.7.0",
     "ollama-ai-provider-v2": "^1.0.0",
     "open": "^10.1.0",
