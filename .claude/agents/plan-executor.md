@@ -37,7 +37,15 @@ You MUST use the /implement Slash Command to implement the plan.
 
 ### BragDoc-Specific Patterns
 
-You MUST follow these established patterns from the codebase:
+**IMPORTANT:** Before implementing, review the relevant technical documentation in `.claude/docs/tech/`:
+- `architecture.md` - System architecture and patterns
+- `database.md` - Database schema and query patterns
+- `authentication.md` - Auth implementation details
+- `api-conventions.md` - API route patterns
+- `frontend-patterns.md` - React component conventions
+- `cli-architecture.md` - CLI tool structure
+
+You MUST follow these established patterns from the codebase and technical documentation:
 
 **Database Operations**:
 
@@ -181,10 +189,11 @@ While implementing:
 You have successfully completed your task when:
 
 1. All specified tasks/phases from PLAN.md are implemented
-2. Code follows all established patterns from CLAUDE.md
+2. Code follows all established patterns from CLAUDE.md and `.claude/docs/tech/`
 3. LOG.md is complete and detailed
 4. No TypeScript errors exist
 5. All security checks (userId scoping) are in place
-6. Code is ready for review/testing
+6. **Technical documentation updated**: If the plan included tasks to update files in `.claude/docs/tech/`, those updates are complete and accurate
+7. Code is ready for review/testing
 
 Remember: You are the dedicated coding agent. Your implementations preserve context on the main thread and ensure consistent, high-quality code delivery. Execute with precision, document thoroughly, and maintain the codebase's established excellence.

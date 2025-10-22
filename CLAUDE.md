@@ -4,6 +4,7 @@ This document provides comprehensive guidance for developing BragDoc, an AI-powe
 
 ## Table of Contents
 
+- [Technical Documentation](#technical-documentation)
 - [Task Management](#task-management)
 - [Project Architecture](#project-architecture)
 - [Monorepo Structure](#monorepo-structure)
@@ -22,6 +23,25 @@ This document provides comprehensive guidance for developing BragDoc, an AI-powe
 - [Git Conventions](#git-conventions)
 
 ---
+
+## Technical Documentation
+
+**IMPORTANT:** Comprehensive technical documentation is maintained in `.claude/docs/tech/` for LLM consumption and reference.
+
+This documentation provides detailed information about:
+
+- **[architecture.md](/.claude/docs/tech/architecture.md)** - System architecture, technology stack, monorepo structure, and deployment
+- **[database.md](/.claude/docs/tech/database.md)** - Complete database schema, query patterns, and Drizzle ORM usage
+- **[authentication.md](/.claude/docs/tech/authentication.md)** - NextAuth configuration, OAuth providers, CLI auth flow
+- **[api-conventions.md](/.claude/docs/tech/api-conventions.md)** - RESTful API patterns, request/response formats, validation
+- **[ai-integration.md](/.claude/docs/tech/ai-integration.md)** - LLM providers, prompt engineering, AI SDK usage
+- **[cli-architecture.md](/.claude/docs/tech/cli-architecture.md)** - CLI tool structure, commands, Git operations
+- **[frontend-patterns.md](/.claude/docs/tech/frontend.md)** - React patterns, Server Components, Tailwind CSS
+- **[deployment.md](/.claude/docs/tech/deployment.md)** - Build process, deployment targets, environment setup
+
+**When implementing features:** Always review the relevant technical documentation before starting work, and update it after completing significant changes. Plans should include specific tasks to update technical documentation when patterns or architecture change.
+
+**When creating plans:** Reference these documents to understand existing patterns and ensure consistency with established conventions.
 
 ## Task Management
 
