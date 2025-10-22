@@ -12,6 +12,14 @@ const nextConfig = {
     unoptimized: true,
   },
   pageExtensions: ['js', 'jsx', 'md', 'mdx', 'ts', 'tsx'],
+  // Optimize for static site
+  output: 'standalone',
+  // Reduce trace collection overhead
+  experimental: {
+    outputFileTracingIncludes: {
+      '/': ['./public/**/*'],
+    },
+  },
 }
 
 const withMDX = createMDX({

@@ -1356,7 +1356,9 @@ pnpm changeset version  # Update versions
   - MDX packages
   - Vercel packages
   - ProseMirror
-- **Safety**: Major version updates for Next.js and React are ignored to prevent breaking changes
+- **Safety**: Major version updates are ignored for critical dependencies to prevent breaking changes:
+  - `next`, `@next/mdx`, `@next/third-parties` (Next.js ecosystem)
+  - `react`, `react-dom` (React)
 - **Review**: All Dependabot PRs should be reviewed and tested before merging
 
 When Dependabot creates PRs:
