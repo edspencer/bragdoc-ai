@@ -36,7 +36,7 @@
     "next-themes": "latest",
     "react": "19.2.0",
     "react-dom": "19.2.0",
-    "tailwind-merge": "^2.6.0"
+    "tailwind-merge": "^3.3.1"
   },
   "devDependencies": {
     "@opennextjs/cloudflare": "^1.11.0",
