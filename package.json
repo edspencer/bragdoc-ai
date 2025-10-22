@@ -60,7 +60,7 @@
     "next-auth": "5.0.0-beta.29",
     "next-mdx-remote": "^5.0.0",
     "postgres": "^3.4.7",
-    "react-day-picker": "8.10.1",
+    "react-day-picker": "9.11.1",
     "react-share": "^5.2.2",
     "vaul": "^1.1.2",
     "zod": "^3.25.76"
