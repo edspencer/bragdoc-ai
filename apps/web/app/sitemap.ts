@@ -1,74 +1,27 @@
 import type { MetadataRoute } from 'next';
-import Posts from 'lib/blog/Posts';
 
 const SITE = 'https://www.bragdoc.ai';
 
 export default function sitemap(): MetadataRoute.Sitemap {
-  try {
-    const publishedPosts = new Posts().publishedPosts;
+  const defaultDate = new Date().toISOString();
 
-    const postUrls: MetadataRoute.Sitemap = publishedPosts.map((post) => ({
-      url: post.link as string,
-      lastModified: toW3CDateForFlorida(post.date),
+  return [
+    {
+      url: `${SITE}/what`,
+      lastModified: toW3CDateForFlorida(defaultDate),
       changeFrequency: 'monthly',
-    }));
-
-    const defaultDate = new Date().toISOString();
-    const fallbackDate =
-      publishedPosts.length > 0 ? publishedPosts[0]!.date : defaultDate;
-
-    const pageUrls: MetadataRoute.Sitemap = [
-      {
-        url: `${SITE}/what`,
-        lastModified: toW3CDateForFlorida(fallbackDate),
-        changeFrequency: 'monthly',
-      },
-      {
-        url: `${SITE}/why`,
-        lastModified: toW3CDateForFlorida(fallbackDate),
-        changeFrequency: 'monthly',
-      },
-      {
-        url: `${SITE}/how`,
-        lastModified: toW3CDateForFlorida(fallbackDate),
-        changeFrequency: 'monthly',
-      },
-      {
-        url: `${SITE}/blog`,
-        lastModified: toW3CDateForFlorida(fallbackDate),
-        changeFrequency: 'weekly',
-      },
-    ];
-
-    return [...postUrls, ...pageUrls];
-  } catch (error) {
-    // Fallback if posts directory doesn't exist
-    console.warn('Posts directory not found, using fallback sitemap');
-    const defaultDate = new Date().toISOString();
-
-    return [
-      {
-        url: `${SITE}/what`,
-        lastModified: toW3CDateForFlorida(defaultDate),
-        changeFrequency: 'monthly',
-      },
-      {
-        url: `${SITE}/why`,
-        lastModified: toW3CDateForFlorida(defaultDate),
-        changeFrequency: 'monthly',
-      },
-      {
-        url: `${SITE}/how`,
-        lastModified: toW3CDateForFlorida(defaultDate),
-        changeFrequency: 'monthly',
-      },
-      {
-        url: `${SITE}/blog`,
-        lastModified: toW3CDateForFlorida(defaultDate),
-        changeFrequency: 'weekly',
-      },
-    ];
-  }
+    },
+    {
+      url: `${SITE}/why`,
+      lastModified: toW3CDateForFlorida(defaultDate),
+      changeFrequency: 'monthly',
+    },
+    {
+      url: `${SITE}/how`,
+      lastModified: toW3CDateForFlorida(defaultDate),
+      changeFrequency: 'monthly',
+    },
+  ];
 }
 
 function toW3CDateForFlorida(dateString: string) {
