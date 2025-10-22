@@ -5,7 +5,7 @@ settings:
   excludeLinksFromLockfile: false
 
 overrides:
-  estree-walker: 2.0.2
+  estree-walker: 3.0.3
 
 importers:
 
@@ -169,8 +169,8 @@ importers:
         specifier: ^5.5.4
         version: 5.5.4(eslint-config-prettier@9.1.2(eslint@8.57.1))(eslint@8.57.1)(prettier@3.6.2)
       estree-walker:
-        specifier: 2.0.2
-        version: 2.0.2
+        specifier: 3.0.3
+        version: 3.0.3
       husky:
         specifier: ^9.1.7
         version: 9.1.7
@@ -6857,8 +6857,8 @@ packages:
   estree-util-visit@2.0.0:
     resolution: {integrity: sha512-m5KgiH85xAhhW8Wta0vShLcUvOsh3LLPI2YVwcbio1l7E09NTLL1EyMZFM1OyWowoH0skScNbhOPl4kcBgzTww==}
 
-  estree-walker@2.0.2:
-    resolution: {integrity: sha512-Rfkk/Mp/DL7JVje3u18FxFujQlTNR2q6QfMSMB7AvCBx91NGj/ba3kCfza0f6dVDbw7YlRf/nDrn7pQrCCyQ/w==}
+  estree-walker@3.0.3:
+    resolution: {integrity: sha512-7RUKfXgSMMkzt6ZuXmqapOurLGPPfgj6l9uRZ7lRGolvk0y2yocc35LdcxKC5PQZdn2DMqioAQ2NoWcrTKmm6g==}
 
   esutils@2.0.3:
     resolution: {integrity: sha512-kVscqXk4OCp68SZ0dkgEKVi6/8ij300KBWTJq32P/dYeWTSwK41WyTxalN1eRmA5Z9UU/LX9D7FWSmV9SAYx6g==}
@@ -13940,7 +13940,7 @@ snapshots:
       devlop: 1.1.0
       estree-util-is-identifier-name: 3.0.0
       estree-util-scope: 1.0.0
-      estree-walker: 2.0.2
+      estree-walker: 3.0.3
       hast-util-to-jsx-runtime: 2.3.2
       markdown-extensions: 2.0.0
       recma-build-jsx: 1.0.0
@@ -16978,7 +16978,7 @@ snapshots:
       '@babel/parser': 7.28.4
       '@vue/shared': 3.5.13
       entities: 4.5.0
-      estree-walker: 2.0.2
+      estree-walker: 3.0.3
       source-map-js: 1.2.1
     optional: true
 
@@ -16995,7 +16995,7 @@ snapshots:
       '@vue/compiler-dom': 3.5.13
       '@vue/compiler-ssr': 3.5.13
       '@vue/shared': 3.5.13
-      estree-walker: 2.0.2
+      estree-walker: 3.0.3
       magic-string: 0.30.19
       postcss: 8.5.6
       source-map-js: 1.2.1
@@ -19100,7 +19100,7 @@ snapshots:
       '@types/estree-jsx': 1.0.5
       devlop: 1.1.0
       estree-util-is-identifier-name: 3.0.0
-      estree-walker: 2.0.2
+      estree-walker: 3.0.3
 
   estree-util-is-identifier-name@3.0.0: {}
 
@@ -19120,7 +19120,9 @@ snapshots:
       '@types/estree-jsx': 1.0.5
       '@types/unist': 3.0.3
 
-  estree-walker@2.0.2: {}
+  estree-walker@3.0.3:
+    dependencies:
+      '@types/estree': 1.0.8
 
   esutils@2.0.3: {}
 
