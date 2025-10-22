@@ -45,8 +45,8 @@ importers:
         specifier: ^5.0.3
         version: 5.0.3
       braintrust:
-        specifier: ^0.4.7
-        version: 0.4.7(@aws-sdk/credential-provider-web-identity@3.899.0)(zod@3.25.76)
+        specifier: ^0.4.8
+        version: 0.4.8(@aws-sdk/credential-provider-web-identity@3.899.0)(zod@3.25.76)
       bright:
         specifier: ^1.0.0
         version: 1.0.0(react@19.2.0)
@@ -200,7 +200,7 @@ importers:
         version: 1.0.22
       ts-jest:
         specifier: ^29.4.5
-        version: 29.4.5(@babel/core@7.26.7)(@jest/transform@29.7.0)(@jest/types@30.2.0)(babel-jest@29.7.0(@babel/core@7.26.7))(esbuild@0.25.4)(jest-util@30.2.0)(jest@29.7.0(@types/node@24.9.1)(ts-node@10.9.2(@swc/core@1.13.20)(@types/node@24.9.1)(typescript@5.9.3)))(typescript@5.9.3)
+        version: 29.4.5(@babel/core@7.26.7)(@jest/transform@29.7.0)(@jest/types@30.2.0)(babel-jest@29.7.0(@babel/core@7.26.7))(jest-util@30.2.0)(jest@29.7.0(@types/node@24.9.1)(ts-node@10.9.2(@swc/core@1.13.20)(@types/node@24.9.1)(typescript@5.9.3)))(typescript@5.9.3)
       ts-node:
         specifier: ^10.9.2
         version: 10.9.2(@swc/core@1.13.20)(@types/node@24.9.1)(typescript@5.9.3)
@@ -546,7 +546,7 @@ importers:
         version: 0.3.1
       mdx-prompt:
         specifier: ^0.4.2
-        version: 0.4.2(@babel/core@7.26.7)(@jest/transform@29.7.0)(@jest/types@30.2.0)(@swc/core@1.13.20)(@types/node@24.9.1)(@types/react@19.0.8)(babel-jest@29.7.0(@babel/core@7.26.7))(esbuild@0.25.4)(jest-util@30.2.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)(typescript@5.9.3)
+        version: 0.4.2(@babel/core@7.26.7)(@jest/transform@29.7.0)(@jest/types@30.2.0)(@swc/core@1.13.20)(@types/node@24.9.1)(@types/react@19.0.8)(babel-jest@29.7.0(@babel/core@7.26.7))(jest-util@30.2.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)(typescript@5.9.3)
       next:
         specifier: 15.5.6
         version: 15.5.6(@babel/core@7.26.7)(@opentelemetry/api@1.9.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
@@ -730,7 +730,7 @@ importers:
         version: 12.10.0(@types/node@24.9.1)
       mdx-prompt:
         specifier: ^0.4.2
-        version: 0.4.2(@babel/core@7.26.7)(@jest/transform@29.7.0)(@jest/types@30.2.0)(@swc/core@1.13.20)(@types/node@24.9.1)(@types/react@19.0.8)(babel-jest@29.7.0(@babel/core@7.26.7))(esbuild@0.25.4)(jest-util@30.2.0)(react-dom@19.2.0(react@19.2.0))(react@19.2.0)(typescript@5.9.3)
+        version: 0.4.2(@babel/core@7.26.7)(@jest/transform@29.7.0)(@jest/types@30.2.0)(@swc/core@1.13.20)(@types/node@24.9.1)(@types/react@19.0.8)(babel-jest@29.7.0(@babel/core@7.26.7))(jest-util@30.2.0)(react-dom@19.2.0(react@19.2.0))(react@19.2.0)(typescript@5.9.3)
       node-fetch:
         specifier: ^2.7.0
         version: 2.7.0
@@ -785,7 +785,7 @@ importers:
         version: 5.5.0
       ts-jest:
         specifier: ^29.4.5
-        version: 29.4.5(@babel/core@7.26.7)(@jest/transform@29.7.0)(@jest/types@30.2.0)(babel-jest@29.7.0(@babel/core@7.26.7))(esbuild@0.25.4)(jest-util@30.2.0)(jest@29.7.0(@types/node@24.9.1)(ts-node@10.9.2(@swc/core@1.13.20)(@types/node@24.9.1)(typescript@5.9.3)))(typescript@5.9.3)
+        version: 29.4.5(@babel/core@7.26.7)(@jest/transform@29.7.0)(@jest/types@30.2.0)(babel-jest@29.7.0(@babel/core@7.26.7))(jest-util@30.2.0)(jest@29.7.0(@types/node@24.9.1)(ts-node@10.9.2(@swc/core@1.13.20)(@types/node@24.9.1)(typescript@5.9.3)))(typescript@5.9.3)
       ts-node:
         specifier: ^10.9.2
         version: 10.9.2(@swc/core@1.13.20)(@types/node@24.9.1)(typescript@5.9.3)
@@ -852,13 +852,13 @@ importers:
         version: link:../database
       '@react-email/components':
         specifier: ^0.5.7
-        version: 0.5.7(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
+        version: 0.5.7(react-dom@19.2.0(react@19.2.0))(react@19.2.0)
       '@react-email/render':
         specifier: ^1.4.0
-        version: 1.4.0(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
+        version: 1.4.0(react-dom@19.2.0(react@19.2.0))(react@19.2.0)
       ai:
         specifier: 4.3.19
-        version: 4.3.19(react@19.1.0)(zod@3.25.76)
+        version: 4.3.19(react@19.2.0)(zod@3.25.76)
       form-data:
         specifier: ^4.0.4
         version: 4.0.4
@@ -867,10 +867,10 @@ importers:
         version: 10.4.0
       react:
         specifier: '>=19'
-        version: 19.1.0
+        version: 19.2.0
       react-dom:
         specifier: '>=19'
-        version: 19.1.0(react@19.1.0)
+        version: 19.2.0(react@19.2.0)
       uuid:
         specifier: ^13.0.0
         version: 13.0.0
@@ -3068,8 +3068,8 @@ packages:
   '@neondatabase/serverless@0.9.5':
     resolution: {integrity: sha512-siFas6gItqv6wD/pZnvdu34wEqgG3nSE6zWZdq5j2DEsa+VvX8i/5HXJOo06qrw5axPXn+lGCxeR+NLaSPIXug==}
 
-  '@next/env@14.2.23':
-    resolution: {integrity: sha512-CysUC9IO+2Bh0omJ3qrb47S8DtsTKbFidGm6ow4gXIG6reZybqxbkH2nhdEm1tC8SmgzDdpq3BIML0PWsmyUYA==}
+  '@next/env@14.2.33':
+    resolution: {integrity: sha512-CgVHNZ1fRIlxkLhIX22flAZI/HmpDaZ8vwyJ/B0SDPTBuLZ1PJ+DWMjCHhqnExfmSQzA/PbZi8OAc7PAq2w9IA==}
 
   '@next/env@15.5.6':
     resolution: {integrity: sha512-3qBGRW+sCGzgbpc5TS1a0p7eNxnOarGVQhZxfvTdnV0gFI61lX7QNtQ4V1TSREctXzYn5NetbUsLvyqwLFJM6Q==}
@@ -5569,15 +5569,15 @@ packages:
   brace-expansion@1.1.11:
     resolution: {integrity: sha512-iCuPHDFgrHX7H2vEI/5xpz07zSHB00TpugqhmYtVmMO6518mCuRMoOYFldEBl0g187ufozdaHgWKcYFb61qGiA==}
 
-  brace-expansion@2.0.1:
-    resolution: {integrity: sha512-XnAIvQ8eM+kC6aULx6wuQiwVsnzsi9d3WxzV3FpWTGA19F621kwdbsAcFKXgKUHZWsy+mY6iL1sHTxWEFCytDA==}
+  brace-expansion@2.0.2:
+    resolution: {integrity: sha512-Jt0vHyM+jmUBqojB7E1NIYadt0vI0Qxjxd2TErW94wDz+E2LAm5vKMXXwg6ZZBTHPuUlDgQHKXvjGBdfcF1ZDQ==}
 
   braces@3.0.3:
     resolution: {integrity: sha512-yQbXgO/OSZVD2IsiLlro+7Hf6Q18EJrKSEsdoMzKePKXct3gvD8oLcOQdIzGupr5Fj+EDe8gO/lxc1BzfMpxvA==}
     engines: {node: '>=8'}
 
-  braintrust@0.4.7:
-    resolution: {integrity: sha512-Yzfb5sD2PiG4Gz9Xsvt1+SFsldDARyfPIgxF/cC1S7LrF8ox6hUAEuY4xHoQs+07kx3r95FdwkeCZuBfp85Baw==}
+  braintrust@0.4.8:
+    resolution: {integrity: sha512-53e4lLKTr3cUqwNTNkbTmQVhXyFr79uCzx9GPpkL7hu+B8kqa/IV8UUkpCSvTM8ojN8A8F6BAbpysAYvzRtN5A==}
     hasBin: true
     peerDependencies:
       zod: ^3.25.34
@@ -5915,6 +5915,10 @@ packages:
 
   cookie@0.7.1:
     resolution: {integrity: sha512-6DnInpx7SJ2AK3+CTUE/ZM0vWTUboZCegxhC2xiIydHR9jNuTAASBrfEpHhiGOZw/nX51bHt6YQl8jsGo4y/0w==}
+    engines: {node: '>= 0.6'}
+
+  cookie@0.7.2:
+    resolution: {integrity: sha512-yki5XnKuf750l50uGTllt6kKILY4nQ1eNIQatoXEByZ5dWgnKqbnqmTrBE5B4N7lrMJKQ2ytWMiTO2o0v6Ew/w==}
     engines: {node: '>= 0.6'}
 
   cookie@1.0.2:
@@ -6955,6 +6959,10 @@ packages:
 
   express@5.0.1:
     resolution: {integrity: sha512-ORF7g6qGnD+YtUG9yx4DFoqCShNMmUKiXuT5oWMHiOvt/4WFbHC6yCwQMTSBMno7AqntNCAzzcnnjowRkTL9eQ==}
+    engines: {node: '>= 18'}
+
+  express@5.1.0:
+    resolution: {integrity: sha512-DT9ck5YIRU+8GYzzU5kT3eHGA5iL+1Zd0EutOmTE9Dtk+Tvuzd23VBU+ec7HPNSTxXYO55gPV/hq4pSBJDjFpA==}
     engines: {node: '>= 18'}
 
   exsolve@1.0.7:
@@ -9557,6 +9565,7 @@ packages:
   rclone.js@0.6.6:
     resolution: {integrity: sha512-Dxh34cab/fNjFq5SSm0fYLNkGzG2cQSBy782UW9WwxJCEiVO4cGXkvaXcNlgv817dK8K8PuQ+NHUqSAMMhWujQ==}
     engines: {node: '>=12'}
+    cpu: [arm, arm64, mips, mipsel, x32, x64]
     os: [darwin, freebsd, linux, openbsd, sunos, win32]
     hasBin: true
 
@@ -10043,8 +10052,8 @@ packages:
     resolution: {integrity: sha512-bzyZ1e88w9O1iNJbKnOlvYTrWPDl46O1bG0D3XInv+9tkPrxrN8jUUTiFlDkkmKWgn1M6CfIA13SuGqOa9Korw==}
     engines: {node: '>=14'}
 
-  simple-git@3.27.0:
-    resolution: {integrity: sha512-ivHoFS9Yi9GY49ogc6/YAi3Fl9ROnF4VyubNylgCkA+RVqLaKWnDSzXOVzya8csELIaWaYNutsEuAhZrtOjozA==}
+  simple-git@3.28.0:
+    resolution: {integrity: sha512-Rs/vQRwsn1ILH1oBUy8NucJlXmnnLeLCfcvbSehkPzbv3wwoFWIdtfd6Ndo6ZPhlPsCZ60CPI4rxurnwAa+a2w==}
 
   simple-swizzle@0.2.2:
     resolution: {integrity: sha512-JA//kQgZtbuY83m+xT+tXJkmJncGMTFT+C+g2h2R9uxkYIrE2yy9sgmcLhCnw57/WSD+Eh3J97FPEDFnbXnDUg==}
@@ -10099,6 +10108,10 @@ packages:
   source-map@0.7.4:
     resolution: {integrity: sha512-l3BikUxvPOcn5E74dZiq5BGsTb5yEwhaTSzccU6t4sDOH8NWJCstKO5QT2CvtFoK6F0saL7p9xHAqHOlCPJygA==}
     engines: {node: '>= 8'}
+
+  source-map@0.7.6:
+    resolution: {integrity: sha512-i5uvt8C3ikiWeNZSVZNWcfZPItFQOsYTUAOkcUPGd8DqDy1uOUikjt5dG+uRlwyvR108Fb9DOd4GvXfT0N2/uQ==}
+    engines: {node: '>= 12'}
 
   space-separated-tokens@1.1.5:
     resolution: {integrity: sha512-q/JSVd1Lptzhf5bkYm4ob4iWPjx0KiRe3sRFBNrVqbJkFaBm5vbbowy1mymoPNLRa52+oadOhJ+K49wsSeSjTA==}
@@ -11277,12 +11290,12 @@ snapshots:
     dependencies:
       json-schema: 0.4.0
 
-  '@ai-sdk/react@1.2.12(react@19.1.0)(zod@3.25.76)':
+  '@ai-sdk/react@1.2.12(react@19.2.0)(zod@3.25.76)':
     dependencies:
       '@ai-sdk/provider-utils': 2.2.8(zod@3.25.76)
       '@ai-sdk/ui-utils': 1.2.11(zod@3.25.76)
-      react: 19.1.0
-      swr: 2.3.6(react@19.1.0)
+      react: 19.2.0
+      swr: 2.3.6(react@19.2.0)
       throttleit: 2.1.0
     optionalDependencies:
       zod: 3.25.76
@@ -14047,8 +14060,8 @@ snapshots:
       cross-spawn: 7.0.6
       eventsource: 3.0.7
       eventsource-parser: 3.0.6
-      express: 5.0.1
-      express-rate-limit: 7.5.1(express@5.0.1)
+      express: 5.1.0
+      express-rate-limit: 7.5.1(express@5.1.0)
       pkce-challenge: 5.0.0
       raw-body: 3.0.1
       zod: 3.25.76
@@ -14080,7 +14093,7 @@ snapshots:
     dependencies:
       '@types/pg': 8.11.6
 
-  '@next/env@14.2.23': {}
+  '@next/env@14.2.33': {}
 
   '@next/env@15.5.6': {}
 
@@ -15425,73 +15438,26 @@ snapshots:
       react: 19.1.0
       react-dom: 19.1.0(react@19.1.0)
 
-  '@react-email/body@0.1.0(react@19.1.0)':
-    dependencies:
-      react: 19.1.0
-
   '@react-email/body@0.1.0(react@19.2.0)':
     dependencies:
       react: 19.2.0
 
-  '@react-email/button@0.2.0(react@19.1.0)':
-    dependencies:
-      react: 19.1.0
-
   '@react-email/button@0.2.0(react@19.2.0)':
     dependencies:
       react: 19.2.0
-
-  '@react-email/code-block@0.1.0(react@19.1.0)':
-    dependencies:
-      prismjs: 1.30.0
-      react: 19.1.0
 
   '@react-email/code-block@0.1.0(react@19.2.0)':
     dependencies:
       prismjs: 1.30.0
       react: 19.2.0
 
-  '@react-email/code-inline@0.0.5(react@19.1.0)':
-    dependencies:
-      react: 19.1.0
-
   '@react-email/code-inline@0.0.5(react@19.2.0)':
     dependencies:
       react: 19.2.0
 
-  '@react-email/column@0.0.13(react@19.1.0)':
-    dependencies:
-      react: 19.1.0
-
   '@react-email/column@0.0.13(react@19.2.0)':
     dependencies:
       react: 19.2.0
-
-  '@react-email/components@0.5.7(react-dom@19.1.0(react@19.1.0))(react@19.1.0)':
-    dependencies:
-      '@react-email/body': 0.1.0(react@19.1.0)
-      '@react-email/button': 0.2.0(react@19.1.0)
-      '@react-email/code-block': 0.1.0(react@19.1.0)
-      '@react-email/code-inline': 0.0.5(react@19.1.0)
-      '@react-email/column': 0.0.13(react@19.1.0)
-      '@react-email/container': 0.0.15(react@19.1.0)
-      '@react-email/font': 0.0.9(react@19.1.0)
-      '@react-email/head': 0.0.12(react@19.1.0)
-      '@react-email/heading': 0.0.15(react@19.1.0)
-      '@react-email/hr': 0.0.11(react@19.1.0)
-      '@react-email/html': 0.0.11(react@19.1.0)
-      '@react-email/img': 0.0.11(react@19.1.0)
-      '@react-email/link': 0.0.12(react@19.1.0)
-      '@react-email/markdown': 0.0.16(react@19.1.0)
-      '@react-email/preview': 0.0.13(react@19.1.0)
-      '@react-email/render': 1.4.0(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
-      '@react-email/row': 0.0.12(react@19.1.0)
-      '@react-email/section': 0.0.16(react@19.1.0)
-      '@react-email/tailwind': 1.2.2(react@19.1.0)
-      '@react-email/text': 0.1.5(react@19.1.0)
-      react: 19.1.0
-    transitivePeerDependencies:
-      - react-dom
 
   '@react-email/components@0.5.7(react-dom@19.2.0(react@19.2.0))(react@19.2.0)':
     dependencies:
@@ -15519,95 +15485,46 @@ snapshots:
     transitivePeerDependencies:
       - react-dom
 
-  '@react-email/container@0.0.15(react@19.1.0)':
-    dependencies:
-      react: 19.1.0
-
   '@react-email/container@0.0.15(react@19.2.0)':
     dependencies:
       react: 19.2.0
-
-  '@react-email/font@0.0.9(react@19.1.0)':
-    dependencies:
-      react: 19.1.0
 
   '@react-email/font@0.0.9(react@19.2.0)':
     dependencies:
       react: 19.2.0
 
-  '@react-email/head@0.0.12(react@19.1.0)':
-    dependencies:
-      react: 19.1.0
-
   '@react-email/head@0.0.12(react@19.2.0)':
     dependencies:
       react: 19.2.0
-
-  '@react-email/heading@0.0.15(react@19.1.0)':
-    dependencies:
-      react: 19.1.0
 
   '@react-email/heading@0.0.15(react@19.2.0)':
     dependencies:
       react: 19.2.0
 
-  '@react-email/hr@0.0.11(react@19.1.0)':
-    dependencies:
-      react: 19.1.0
-
   '@react-email/hr@0.0.11(react@19.2.0)':
     dependencies:
       react: 19.2.0
-
-  '@react-email/html@0.0.11(react@19.1.0)':
-    dependencies:
-      react: 19.1.0
 
   '@react-email/html@0.0.11(react@19.2.0)':
     dependencies:
       react: 19.2.0
 
-  '@react-email/img@0.0.11(react@19.1.0)':
-    dependencies:
-      react: 19.1.0
-
   '@react-email/img@0.0.11(react@19.2.0)':
     dependencies:
       react: 19.2.0
 
-  '@react-email/link@0.0.12(react@19.1.0)':
-    dependencies:
-      react: 19.1.0
-
   '@react-email/link@0.0.12(react@19.2.0)':
     dependencies:
       react: 19.2.0
-
-  '@react-email/markdown@0.0.16(react@19.1.0)':
-    dependencies:
-      marked: 15.0.12
-      react: 19.1.0
 
   '@react-email/markdown@0.0.16(react@19.2.0)':
     dependencies:
       marked: 15.0.12
       react: 19.2.0
 
-  '@react-email/preview@0.0.13(react@19.1.0)':
-    dependencies:
-      react: 19.1.0
-
   '@react-email/preview@0.0.13(react@19.2.0)':
     dependencies:
       react: 19.2.0
-
-  '@react-email/render@1.4.0(react-dom@19.1.0(react@19.1.0))(react@19.1.0)':
-    dependencies:
-      html-to-text: 9.0.5
-      prettier: 3.6.2
-      react: 19.1.0
-      react-dom: 19.1.0(react@19.1.0)
-      react-promise-suspense: 0.3.4
 
   '@react-email/render@1.4.0(react-dom@19.2.0(react@19.2.0))(react@19.2.0)':
     dependencies:
@@ -15617,33 +15534,17 @@ snapshots:
       react-dom: 19.2.0(react@19.2.0)
       react-promise-suspense: 0.3.4
 
-  '@react-email/row@0.0.12(react@19.1.0)':
-    dependencies:
-      react: 19.1.0
-
   '@react-email/row@0.0.12(react@19.2.0)':
     dependencies:
       react: 19.2.0
-
-  '@react-email/section@0.0.16(react@19.1.0)':
-    dependencies:
-      react: 19.1.0
 
   '@react-email/section@0.0.16(react@19.2.0)':
     dependencies:
       react: 19.2.0
 
-  '@react-email/tailwind@1.2.2(react@19.1.0)':
-    dependencies:
-      react: 19.1.0
-
   '@react-email/tailwind@1.2.2(react@19.2.0)':
     dependencies:
       react: 19.2.0
-
-  '@react-email/text@0.1.5(react@19.1.0)':
-    dependencies:
-      react: 19.1.0
 
   '@react-email/text@0.1.5(react@19.2.0)':
     dependencies:
@@ -17273,17 +17174,17 @@ snapshots:
     dependencies:
       humanize-ms: 1.2.1
 
-  ai@4.3.19(react@19.1.0)(zod@3.25.76):
+  ai@4.3.19(react@19.2.0)(zod@3.25.76):
     dependencies:
       '@ai-sdk/provider': 1.1.3
       '@ai-sdk/provider-utils': 2.2.8(zod@3.25.76)
-      '@ai-sdk/react': 1.2.12(react@19.1.0)(zod@3.25.76)
+      '@ai-sdk/react': 1.2.12(react@19.2.0)(zod@3.25.76)
       '@ai-sdk/ui-utils': 1.2.11(zod@3.25.76)
       '@opentelemetry/api': 1.9.0
       jsondiffpatch: 0.6.0
       zod: 3.25.76
     optionalDependencies:
-      react: 19.1.0
+      react: 19.2.0
 
   ai@5.0.76(zod@3.25.76):
     dependencies:
@@ -17663,7 +17564,7 @@ snapshots:
       balanced-match: 1.0.2
       concat-map: 0.0.1
 
-  brace-expansion@2.0.1:
+  brace-expansion@2.0.2:
     dependencies:
       balanced-match: 1.0.2
 
@@ -17671,10 +17572,10 @@ snapshots:
     dependencies:
       fill-range: 7.1.1
 
-  braintrust@0.4.7(@aws-sdk/credential-provider-web-identity@3.899.0)(zod@3.25.76):
+  braintrust@0.4.8(@aws-sdk/credential-provider-web-identity@3.899.0)(zod@3.25.76):
     dependencies:
       '@ai-sdk/provider': 1.1.3
-      '@next/env': 14.2.23
+      '@next/env': 14.2.33
       '@vercel/functions': 1.6.0(@aws-sdk/credential-provider-web-identity@3.899.0)
       argparse: 2.0.1
       chalk: 4.1.2
@@ -17689,12 +17590,12 @@ snapshots:
       minimatch: 9.0.5
       mustache: 4.2.0
       pluralize: 8.0.0
-      simple-git: 3.27.0
+      simple-git: 3.28.0
       slugify: 1.6.6
-      source-map: 0.7.4
+      source-map: 0.7.6
       uuid: 9.0.1
       zod: 3.25.76
-      zod-to-json-schema: 3.24.1(zod@3.25.76)
+      zod-to-json-schema: 3.24.6(zod@3.25.76)
     transitivePeerDependencies:
       - '@aws-sdk/credential-provider-web-identity'
       - supports-color
@@ -18009,6 +17910,8 @@ snapshots:
   cookie-signature@1.2.2: {}
 
   cookie@0.7.1: {}
+
+  cookie@0.7.2: {}
 
   cookie@1.0.2: {}
 
@@ -18902,7 +18805,7 @@ snapshots:
       eslint: 9.38.0(jiti@2.6.0)
       eslint-import-resolver-node: 0.3.9
       eslint-import-resolver-typescript: 3.10.1(eslint-plugin-import@2.32.0)(eslint@9.38.0(jiti@2.6.0))
-      eslint-plugin-import: 2.32.0(@typescript-eslint/parser@8.46.2(eslint@9.38.0(jiti@2.6.0))(typescript@5.7.3))(eslint-import-resolver-typescript@3.10.1)(eslint@9.38.0(jiti@2.6.0))
+      eslint-plugin-import: 2.32.0(@typescript-eslint/parser@8.46.2(eslint@9.38.0(jiti@2.6.0))(typescript@5.7.3))(eslint-import-resolver-typescript@3.10.1(eslint-plugin-import@2.32.0)(eslint@8.57.1))(eslint@9.38.0(jiti@2.6.0))
       eslint-plugin-jsx-a11y: 6.10.2(eslint@9.38.0(jiti@2.6.0))
       eslint-plugin-react: 7.37.5(eslint@9.38.0(jiti@2.6.0))
       eslint-plugin-react-hooks: 5.2.0(eslint@9.38.0(jiti@2.6.0))
@@ -18951,7 +18854,7 @@ snapshots:
       tinyglobby: 0.2.15
       unrs-resolver: 1.11.1
     optionalDependencies:
-      eslint-plugin-import: 2.32.0(@typescript-eslint/parser@8.46.2(eslint@9.38.0(jiti@2.6.0))(typescript@5.7.3))(eslint-import-resolver-typescript@3.10.1)(eslint@9.38.0(jiti@2.6.0))
+      eslint-plugin-import: 2.32.0(@typescript-eslint/parser@8.46.2(eslint@9.38.0(jiti@2.6.0))(typescript@5.7.3))(eslint-import-resolver-typescript@3.10.1(eslint-plugin-import@2.32.0)(eslint@8.57.1))(eslint@9.38.0(jiti@2.6.0))
     transitivePeerDependencies:
       - supports-color
 
@@ -18966,14 +18869,14 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  eslint-module-utils@2.12.1(@typescript-eslint/parser@8.46.2(eslint@9.38.0(jiti@2.6.0))(typescript@5.7.3))(eslint-import-resolver-node@0.3.9)(eslint-import-resolver-typescript@3.10.1(eslint-plugin-import@2.32.0)(eslint@9.38.0(jiti@2.6.0)))(eslint@9.38.0(jiti@2.6.0)):
+  eslint-module-utils@2.12.1(@typescript-eslint/parser@8.46.2(eslint@9.38.0(jiti@2.6.0))(typescript@5.7.3))(eslint-import-resolver-node@0.3.9)(eslint-import-resolver-typescript@3.10.1(eslint-plugin-import@2.32.0)(eslint@8.57.1))(eslint@9.38.0(jiti@2.6.0)):
     dependencies:
       debug: 3.2.7
     optionalDependencies:
       '@typescript-eslint/parser': 8.46.2(eslint@9.38.0(jiti@2.6.0))(typescript@5.7.3)
       eslint: 9.38.0(jiti@2.6.0)
       eslint-import-resolver-node: 0.3.9
-      eslint-import-resolver-typescript: 3.10.1(eslint-plugin-import@2.32.0)(eslint@9.38.0(jiti@2.6.0))
+      eslint-import-resolver-typescript: 3.10.1(eslint-plugin-import@2.32.0)(eslint@8.57.1)
     transitivePeerDependencies:
       - supports-color
 
@@ -19006,7 +18909,7 @@ snapshots:
       - eslint-import-resolver-webpack
       - supports-color
 
-  eslint-plugin-import@2.32.0(@typescript-eslint/parser@8.46.2(eslint@9.38.0(jiti@2.6.0))(typescript@5.7.3))(eslint-import-resolver-typescript@3.10.1)(eslint@9.38.0(jiti@2.6.0)):
+  eslint-plugin-import@2.32.0(@typescript-eslint/parser@8.46.2(eslint@9.38.0(jiti@2.6.0))(typescript@5.7.3))(eslint-import-resolver-typescript@3.10.1(eslint-plugin-import@2.32.0)(eslint@8.57.1))(eslint@9.38.0(jiti@2.6.0)):
     dependencies:
       '@rtsao/scc': 1.1.0
       array-includes: 3.1.9
@@ -19017,7 +18920,7 @@ snapshots:
       doctrine: 2.1.0
       eslint: 9.38.0(jiti@2.6.0)
       eslint-import-resolver-node: 0.3.9
-      eslint-module-utils: 2.12.1(@typescript-eslint/parser@8.46.2(eslint@9.38.0(jiti@2.6.0))(typescript@5.7.3))(eslint-import-resolver-node@0.3.9)(eslint-import-resolver-typescript@3.10.1(eslint-plugin-import@2.32.0)(eslint@9.38.0(jiti@2.6.0)))(eslint@9.38.0(jiti@2.6.0))
+      eslint-module-utils: 2.12.1(@typescript-eslint/parser@8.46.2(eslint@9.38.0(jiti@2.6.0))(typescript@5.7.3))(eslint-import-resolver-node@0.3.9)(eslint-import-resolver-typescript@3.10.1(eslint-plugin-import@2.32.0)(eslint@8.57.1))(eslint@9.38.0(jiti@2.6.0))
       hasown: 2.0.2
       is-core-module: 2.16.1
       is-glob: 4.0.3
@@ -19297,7 +19200,7 @@ snapshots:
     dependencies:
       '@types/estree-jsx': 1.0.5
       astring: 1.9.0
-      source-map: 0.7.4
+      source-map: 0.7.6
 
   estree-util-visit@2.0.0:
     dependencies:
@@ -19367,9 +19270,9 @@ snapshots:
       jest-mock: 30.2.0
       jest-util: 30.2.0
 
-  express-rate-limit@7.5.1(express@5.0.1):
+  express-rate-limit@7.5.1(express@5.1.0):
     dependencies:
-      express: 5.0.1
+      express: 5.1.0
 
   express@4.21.2:
     dependencies:
@@ -19440,6 +19343,38 @@ snapshots:
       statuses: 2.0.1
       type-is: 2.0.1
       utils-merge: 1.0.1
+      vary: 1.1.2
+    transitivePeerDependencies:
+      - supports-color
+
+  express@5.1.0:
+    dependencies:
+      accepts: 2.0.0
+      body-parser: 2.2.0
+      content-disposition: 1.0.0
+      content-type: 1.0.5
+      cookie: 0.7.2
+      cookie-signature: 1.2.2
+      debug: 4.4.3
+      encodeurl: 2.0.0
+      escape-html: 1.0.3
+      etag: 1.8.1
+      finalhandler: 2.1.0
+      fresh: 2.0.0
+      http-errors: 2.0.0
+      merge-descriptors: 2.0.0
+      mime-types: 3.0.1
+      on-finished: 2.4.1
+      once: 1.4.0
+      parseurl: 1.3.3
+      proxy-addr: 2.0.7
+      qs: 6.14.0
+      range-parser: 1.2.1
+      router: 2.2.0
+      send: 1.2.0
+      serve-static: 2.2.0
+      statuses: 2.0.2
+      type-is: 2.0.1
       vary: 1.1.2
     transitivePeerDependencies:
       - supports-color
@@ -19568,7 +19503,7 @@ snapshots:
       escape-html: 1.0.3
       on-finished: 2.4.1
       parseurl: 1.3.3
-      statuses: 2.0.1
+      statuses: 2.0.2
     transitivePeerDependencies:
       - supports-color
 
@@ -21531,7 +21466,7 @@ snapshots:
 
   mdurl@2.0.0: {}
 
-  mdx-prompt@0.4.2(@babel/core@7.26.7)(@jest/transform@29.7.0)(@jest/types@30.2.0)(@swc/core@1.13.20)(@types/node@24.9.1)(@types/react@19.0.8)(babel-jest@29.7.0(@babel/core@7.26.7))(esbuild@0.25.4)(jest-util@30.2.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)(typescript@5.9.3):
+  mdx-prompt@0.4.2(@babel/core@7.26.7)(@jest/transform@29.7.0)(@jest/types@30.2.0)(@swc/core@1.13.20)(@types/node@24.9.1)(@types/react@19.0.8)(babel-jest@29.7.0(@babel/core@7.26.7))(jest-util@30.2.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)(typescript@5.9.3):
     dependencies:
       '@swc/jest': 0.2.39(@swc/core@1.13.20)
       jest: 29.7.0(@types/node@24.9.1)(ts-node@10.9.2(@swc/core@1.13.20)(@types/node@24.9.1)(typescript@5.9.3))
@@ -21541,7 +21476,7 @@ snapshots:
       rehype-format: 5.0.1
       rehype-parse: 9.0.1
       rehype-stringify: 10.0.1
-      ts-jest: 29.4.5(@babel/core@7.26.7)(@jest/transform@29.7.0)(@jest/types@30.2.0)(babel-jest@29.7.0(@babel/core@7.26.7))(esbuild@0.25.4)(jest-util@30.2.0)(jest@29.7.0(@types/node@24.9.1)(ts-node@10.9.2(@swc/core@1.13.20)(@types/node@24.9.1)(typescript@5.9.3)))(typescript@5.9.3)
+      ts-jest: 29.4.5(@babel/core@7.26.7)(@jest/transform@29.7.0)(@jest/types@30.2.0)(babel-jest@29.7.0(@babel/core@7.26.7))(jest-util@30.2.0)(jest@29.7.0(@types/node@24.9.1)(ts-node@10.9.2(@swc/core@1.13.20)(@types/node@24.9.1)(typescript@5.9.3)))(typescript@5.9.3)
       ts-node: 10.9.2(@swc/core@1.13.20)(@types/node@24.9.1)(typescript@5.9.3)
       unified: 11.0.5
     transitivePeerDependencies:
@@ -21560,7 +21495,7 @@ snapshots:
       - supports-color
       - typescript
 
-  mdx-prompt@0.4.2(@babel/core@7.26.7)(@jest/transform@29.7.0)(@jest/types@30.2.0)(@swc/core@1.13.20)(@types/node@24.9.1)(@types/react@19.0.8)(babel-jest@29.7.0(@babel/core@7.26.7))(esbuild@0.25.4)(jest-util@30.2.0)(react-dom@19.2.0(react@19.2.0))(react@19.2.0)(typescript@5.9.3):
+  mdx-prompt@0.4.2(@babel/core@7.26.7)(@jest/transform@29.7.0)(@jest/types@30.2.0)(@swc/core@1.13.20)(@types/node@24.9.1)(@types/react@19.0.8)(babel-jest@29.7.0(@babel/core@7.26.7))(jest-util@30.2.0)(react-dom@19.2.0(react@19.2.0))(react@19.2.0)(typescript@5.9.3):
     dependencies:
       '@swc/jest': 0.2.39(@swc/core@1.13.20)
       jest: 29.7.0(@types/node@24.9.1)(ts-node@10.9.2(@swc/core@1.13.20)(@types/node@24.9.1)(typescript@5.9.3))
@@ -21570,7 +21505,7 @@ snapshots:
       rehype-format: 5.0.1
       rehype-parse: 9.0.1
       rehype-stringify: 10.0.1
-      ts-jest: 29.4.5(@babel/core@7.26.7)(@jest/transform@29.7.0)(@jest/types@30.2.0)(babel-jest@29.7.0(@babel/core@7.26.7))(esbuild@0.25.4)(jest-util@30.2.0)(jest@29.7.0(@types/node@24.9.1)(ts-node@10.9.2(@swc/core@1.13.20)(@types/node@24.9.1)(typescript@5.9.3)))(typescript@5.9.3)
+      ts-jest: 29.4.5(@babel/core@7.26.7)(@jest/transform@29.7.0)(@jest/types@30.2.0)(babel-jest@29.7.0(@babel/core@7.26.7))(jest-util@30.2.0)(jest@29.7.0(@types/node@24.9.1)(ts-node@10.9.2(@swc/core@1.13.20)(@types/node@24.9.1)(typescript@5.9.3)))(typescript@5.9.3)
       ts-node: 10.9.2(@swc/core@1.13.20)(@types/node@24.9.1)(typescript@5.9.3)
       unified: 11.0.5
     transitivePeerDependencies:
@@ -21979,15 +21914,15 @@ snapshots:
 
   minimatch@7.4.6:
     dependencies:
-      brace-expansion: 2.0.1
+      brace-expansion: 2.0.2
 
   minimatch@8.0.4:
     dependencies:
-      brace-expansion: 2.0.1
+      brace-expansion: 2.0.2
 
   minimatch@9.0.5:
     dependencies:
-      brace-expansion: 2.0.1
+      brace-expansion: 2.0.2
 
   minimist@1.2.8: {}
 
@@ -22397,7 +22332,7 @@ snapshots:
 
   ora@6.3.1:
     dependencies:
-      chalk: 5.4.1
+      chalk: 5.2.0
       cli-cursor: 4.0.0
       cli-spinners: 2.9.2
       is-interactive: 2.0.0
@@ -23530,7 +23465,7 @@ snapshots:
       ms: 2.1.3
       on-finished: 2.4.1
       range-parser: 1.2.1
-      statuses: 2.0.1
+      statuses: 2.0.2
     transitivePeerDependencies:
       - supports-color
 
@@ -23717,7 +23652,7 @@ snapshots:
 
   signal-exit@4.1.0: {}
 
-  simple-git@3.27.0:
+  simple-git@3.28.0:
     dependencies:
       '@kwsites/file-exists': 1.1.1
       '@kwsites/promise-deferred': 1.1.1
@@ -23775,6 +23710,8 @@ snapshots:
   source-map@0.6.1: {}
 
   source-map@0.7.4: {}
+
+  source-map@0.7.6: {}
 
   space-separated-tokens@1.1.5: {}
 
@@ -24057,6 +23994,12 @@ snapshots:
       react: 19.1.0
       use-sync-external-store: 1.6.0(react@19.1.0)
 
+  swr@2.3.6(react@19.2.0):
+    dependencies:
+      dequal: 2.0.3
+      react: 19.2.0
+      use-sync-external-store: 1.6.0(react@19.2.0)
+
   symbol-tree@3.2.4: {}
 
   synckit@0.11.11:
@@ -24203,7 +24146,7 @@ snapshots:
 
   ts-dedent@2.2.0: {}
 
-  ts-jest@29.4.5(@babel/core@7.26.7)(@jest/transform@29.7.0)(@jest/types@30.2.0)(babel-jest@29.7.0(@babel/core@7.26.7))(esbuild@0.25.4)(jest-util@30.2.0)(jest@29.7.0(@types/node@24.9.1)(ts-node@10.9.2(@swc/core@1.13.20)(@types/node@24.9.1)(typescript@5.9.3)))(typescript@5.9.3):
+  ts-jest@29.4.5(@babel/core@7.26.7)(@jest/transform@29.7.0)(@jest/types@30.2.0)(babel-jest@29.7.0(@babel/core@7.26.7))(jest-util@30.2.0)(jest@29.7.0(@types/node@24.9.1)(ts-node@10.9.2(@swc/core@1.13.20)(@types/node@24.9.1)(typescript@5.9.3)))(typescript@5.9.3):
     dependencies:
       bs-logger: 0.2.6
       fast-json-stable-stringify: 2.1.0
@@ -24221,7 +24164,6 @@ snapshots:
       '@jest/transform': 29.7.0
       '@jest/types': 30.2.0
       babel-jest: 29.7.0(@babel/core@7.26.7)
-      esbuild: 0.25.4
       jest-util: 30.2.0
 
   ts-morph@18.0.0:
@@ -24581,6 +24523,10 @@ snapshots:
   use-sync-external-store@1.6.0(react@19.1.0):
     dependencies:
       react: 19.1.0
+
+  use-sync-external-store@1.6.0(react@19.2.0):
+    dependencies:
+      react: 19.2.0
 
   usehooks-ts@3.1.1(react@19.1.0):
     dependencies:

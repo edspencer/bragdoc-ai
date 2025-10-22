@@ -43,7 +43,7 @@
     "@vercel/postgres": "^0.10.0",
     "autoevals": "^0.0.131",
     "bcrypt-ts": "^5.0.3",
-    "braintrust": "^0.4.7",
+    "braintrust": "^0.4.8",
     "bright": "^1.0.0",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
