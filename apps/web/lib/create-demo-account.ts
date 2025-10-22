@@ -23,17 +23,20 @@ export interface CreateDemoAccountResult {
 }
 
 /**
- * Creates a demo account with pre-populated sample data
+ * Creates a demo account with optional pre-populated sample data
  *
  * Steps:
  * 1. Generates unique demo email address
  * 2. Creates random temporary password for one-time auto-login
  * 3. Creates demo user with level='demo'
- * 4. Imports demo data (companies, projects, achievements, documents)
+ * 4. Optionally imports demo data (companies, projects, achievements, documents)
  *
+ * @param options.skipData - If true, skips importing demo data (for testing zero states)
  * @returns Result object with userId, email, temporary password, and import stats
  */
-export async function createDemoAccount(): Promise<CreateDemoAccountResult> {
+export async function createDemoAccount(options?: {
+  skipData?: boolean;
+}): Promise<CreateDemoAccountResult> {
   try {
     // Generate demo email
     const email = generateDemoEmail();
@@ -64,8 +67,11 @@ export async function createDemoAccount(): Promise<CreateDemoAccountResult> {
       throw new Error('Failed to create demo user');
     }
 
-    // Import demo data
-    const stats = await importDemoData(demoUser.id);
+    // Import demo data (unless skipData is true)
+    let stats: ImportStats | undefined;
+    if (!options?.skipData) {
+      stats = await importDemoData(demoUser.id);
+    }
 
     return {
       success: true,

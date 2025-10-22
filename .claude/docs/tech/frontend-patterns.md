@@ -370,8 +370,191 @@ function AchievementsSkeleton() {
 }
 ```
 
+## Zero State Patterns
+
+Zero states provide welcoming, helpful UIs when users have no data. They guide users through initial setup and explain what actions to take.
+
+### When to Use Zero States
+
+- **New user onboarding**: User has just signed up with no data yet
+- **Empty collections**: User has deleted or archived all items
+- **Filtered results**: Current filters return no matches (different from true empty state)
+
+### Zero State vs. Loading States
+
+- **Loading state**: Data is being fetched (use Skeleton components)
+- **Zero state**: Data has been fetched but is empty (guide the user)
+- **Error state**: Fetch failed (show error message with retry)
+
+### Conditional Rendering Pattern
+
+**File:** `apps/web/app/(app)/dashboard/page.tsx`
+
+```typescript
+export default async function DashboardPage() {
+  const session = await auth();
+
+  // IMPORTANT: Never use redirect() in Server Components
+  // It breaks Cloudflare Workers builds. Use fallback UI instead.
+  if (!session?.user?.id) {
+    return <div className="p-4">Please log in to view your dashboard.</div>;
+  }
+
+  const achievementStats = await getAchievementStats({ userId: session.user.id });
+  const hasNoAchievements = achievementStats.totalAchievements === 0;
+
+  return (
+    <AppPage>
+      <SidebarInset>
+        <SiteHeader />
+        <div className="flex flex-1 flex-col">
+          <div className="@container/main flex flex-1 flex-col gap-2">
+            <div className="flex flex-col gap-4 py-4 md:gap-6 md:py-6">
+              {/* Stats shown in both states */}
+              <AchievementStats />
+
+              {/* Conditional rendering based on data */}
+              {hasNoAchievements ? (
+                <DashboardZeroState />
+              ) : (
+                <ClientDashboardContent />
+              )}
+            </div>
+          </div>
+        </div>
+      </SidebarInset>
+    </AppPage>
+  );
+}
+```
+
+### Zero State Component Structure
+
+**File:** `apps/web/components/dashboard/dashboard-zero-state.tsx`
+
+```typescript
+'use client';
+
+import { useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { Button } from '@/components/ui/button';
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
+
+export function DashboardZeroState() {
+  const [isChecking, setIsChecking] = useState(false);
+  const [showFeedback, setShowFeedback] = useState(false);
+  const router = useRouter();
+
+  const handleCheckForAchievements = async () => {
+    setIsChecking(true);
+    setShowFeedback(false);
+
+    // Refresh server components to re-fetch data
+    router.refresh();
+
+    // Show feedback if still in zero state after refresh
+    setTimeout(() => {
+      setShowFeedback(true);
+      setIsChecking(false);
+    }, 1000);
+  };
+
+  return (
+    <div className="flex flex-1 flex-col items-center justify-center p-8">
+      <div className="max-w-2xl w-full space-y-6">
+        {/* Welcome message */}
+        <div className="text-center space-y-2">
+          <h1 className="text-3xl font-bold">Welcome to BragDoc!</h1>
+          <p className="text-lg text-muted-foreground">
+            Let's get started by extracting achievements from your Git repositories
+          </p>
+        </div>
+
+        {/* Instructions card */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Getting Started</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {/* Step-by-step CLI instructions */}
+          </CardContent>
+        </Card>
+
+        {/* Action button with feedback */}
+        <div className="flex flex-col items-center gap-2">
+          <Button
+            size="lg"
+            onClick={handleCheckForAchievements}
+            disabled={isChecking}
+          >
+            {isChecking ? 'Checking...' : "I've run the CLI - Check for achievements"}
+          </Button>
+
+          {showFeedback && (
+            <p className="text-sm text-muted-foreground text-center">
+              No achievements yet. Did you run <code>bragdoc extract</code>?
+            </p>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+```
+
+### Key Zero State Principles
+
+1. **Centered Layout**: Use `flex items-center justify-center` with `max-w-2xl` constraint
+2. **Clear Instructions**: Provide step-by-step guidance (numbered lists work well)
+3. **Call to Action**: Include an interactive button or link to next step
+4. **Helpful Feedback**: Show messages when user takes action but problem persists
+5. **Client Component**: Zero states typically need interactivity (`'use client'`)
+6. **Refresh Pattern**: Use `router.refresh()` to check for data updates
+
+### Cloudflare Workers Compatibility
+
+**CRITICAL**: Never use `redirect()` from `next/navigation` in Server Components. It causes build errors with Cloudflare Workers deployment.
+
+```typescript
+// ❌ WRONG - Breaks Cloudflare Workers build
+import { redirect } from 'next/navigation';
+
+export default async function Page() {
+  const session = await auth();
+  if (!session) {
+    redirect('/login'); // ❌ Fails at build time
+  }
+}
+
+// ✅ CORRECT - Use fallback UI
+export default async function Page() {
+  const session = await auth();
+  if (!session) {
+    return <div>Please log in.</div>; // ✅ Works in all environments
+  }
+}
+```
+
+**Why this matters**:
+- Cloudflare Workers use edge runtime which doesn't support `redirect()` during build
+- Middleware at `apps/web/middleware.ts` handles authentication redirects at route level
+- Fallback UI is rarely shown to users since middleware catches unauthorized requests
+- This pattern ensures compatibility with all deployment targets
+
+### Other Zero State Examples
+
+**Standup Zero State**: `apps/web/components/standups/standup-zero-state.tsx`
+- Similar centered layout pattern
+- Guides users to set up standups
+- Uses same shadcn/ui components (Card, Button)
+
+**Achievement Zero State**: Could be added to `/achievements` page
+- "No achievements yet" message
+- Link to dashboard or CLI instructions
+- Create first achievement button
+
 ---
 
-**Last Updated:** 2025-10-21
+**Last Updated:** 2025-10-22
 **Next.js:** 15.1.8
 **React:** 19.0.0

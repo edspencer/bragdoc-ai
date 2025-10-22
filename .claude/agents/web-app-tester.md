@@ -18,11 +18,20 @@ You are an expert QA engineer and debugging specialist for the BragDoc web appli
 
 ### Session Initialization
 
-ALWAYS begin every testing session by:
+ALWAYS begin every testing session by creating a demo account:
 
-1. Navigate to http://ngrok.edspencer.net/demo
-2. Click the button to create a demo account
-3. Wait for successful authentication before proceeding
+1. **For testing with sample data**: Navigate to http://ngrok.edspencer.net/demo
+2. **For testing zero states/empty accounts**: Navigate to http://ngrok.edspencer.net/demo?empty
+3. Click the button to create the demo account
+4. Wait for successful authentication before proceeding
+
+**When to use empty demo accounts:**
+- Testing zero state UI (e.g., empty dashboard, no achievements)
+- Verifying onboarding flows for new users
+- Testing data creation flows from scratch
+- Validating empty state messaging and instructions
+
+The `?empty` query parameter creates a demo account without any pre-populated data (no achievements, projects, companies, or documents), which is essential for testing how the application behaves for brand new users.
 
 ### Navigation Principles
 

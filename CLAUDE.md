@@ -683,6 +683,32 @@ export default async function AchievementsPage() {
 }
 ```
 
+**IMPORTANT**: Never use `redirect()` from `next/navigation` in Server Components. This breaks Cloudflare Workers builds. Use fallback UI instead:
+
+```typescript
+// ❌ WRONG - Breaks Cloudflare Workers build
+import { redirect } from 'next/navigation';
+
+export default async function Page() {
+  const session = await auth();
+  if (!session) {
+    redirect('/login'); // ❌ Build error
+  }
+  // ...
+}
+
+// ✅ CORRECT - Use fallback UI
+export default async function Page() {
+  const session = await auth();
+  if (!session) {
+    return <div className="p-4">Please log in.</div>; // ✅ Works
+  }
+  // ...
+}
+```
+
+The middleware at `apps/web/middleware.ts` handles authentication redirects at the route level, so this fallback UI is rarely shown to users.
+
 #### Client Components
 
 Use `'use client'` directive only when needed:
@@ -697,6 +723,69 @@ export function InteractiveComponent() {
   // ...
 }
 ```
+
+#### Zero State Components
+
+Zero states guide new users through initial setup when they have no data. Located in `components/[feature]/[feature]-zero-state.tsx`:
+
+```typescript
+'use client';
+
+import { useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { Button } from '@/components/ui/button';
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
+
+export function DashboardZeroState() {
+  const [isChecking, setIsChecking] = useState(false);
+  const router = useRouter();
+
+  const handleCheckForData = async () => {
+    setIsChecking(true);
+    router.refresh(); // Re-fetch server component data
+    setTimeout(() => setIsChecking(false), 1000);
+  };
+
+  return (
+    <div className="flex flex-1 flex-col items-center justify-center p-8">
+      <div className="max-w-2xl w-full space-y-6">
+        <h1 className="text-3xl font-bold text-center">Welcome!</h1>
+        {/* Setup instructions */}
+        <Button onClick={handleCheckForData} disabled={isChecking}>
+          {isChecking ? 'Checking...' : 'Check for data'}
+        </Button>
+      </div>
+    </div>
+  );
+}
+```
+
+**Zero State Pattern**:
+- Centered layout with `max-w-2xl` constraint
+- Step-by-step instructions for initial setup
+- Interactive button uses `router.refresh()` to re-check data
+- Conditionally rendered based on data availability
+
+**Example Usage in Server Component**:
+```typescript
+export default async function DashboardPage() {
+  const session = await auth();
+  if (!session?.user?.id) {
+    return <div>Please log in.</div>;
+  }
+
+  const stats = await getAchievementStats({ userId: session.user.id });
+  const hasNoData = stats.totalAchievements === 0;
+
+  return (
+    <div>
+      {hasNoData ? <DashboardZeroState /> : <DashboardContent />}
+    </div>
+  );
+}
+```
+
+See `.claude/docs/tech/frontend-patterns.md` for comprehensive zero state documentation.
 
 #### Server Actions
 

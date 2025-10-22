@@ -91,6 +91,7 @@ That's it! Your Git commits will now be automatically analyzed and converted int
 ### CLI Features
 
 The CLI automatically:
+
 - Extracts meaningful achievements from commit messages
 - Syncs with your BragDoc web account
 - Caches processed commits to avoid duplicates
@@ -128,22 +129,26 @@ Want to run your own instance? BragDoc is designed to be self-hosted.
 ### Quick Setup
 
 1. **Clone the repository**:
+
    ```bash
    git clone https://github.com/edspencer/bragdoc-ai.git
    cd bragdoc-ai
    ```
 
 2. **Install dependencies**:
+
    ```bash
    pnpm install
    ```
 
 3. **Set up environment variables**:
+
    ```bash
    cp .env.example .env
    ```
 
    Edit `.env` with your configuration:
+
    ```env
    # Database
    POSTGRES_URL="postgresql://..."
@@ -170,11 +175,13 @@ Want to run your own instance? BragDoc is designed to be self-hosted.
    ```
 
 4. **Set up the database**:
+
    ```bash
    pnpm db:push
    ```
 
 5. **Start the development server**:
+
    ```bash
    pnpm dev
    ```
@@ -192,6 +199,7 @@ pnpm --filter=@bragdoc/web deploy
 ```
 
 You can also deploy to:
+
 - **Vercel**: Standard Next.js deployment
 - **AWS**: Using OpenNext
 - **Any Node.js host**: Using `pnpm build && pnpm start`
@@ -215,13 +223,15 @@ BragDoc uses **Turborepo** for efficient builds and caching across multiple pack
 #### 1. Web Application (`apps/web`)
 
 Next.js 15 application with:
+
 - **App Router**: Modern routing with layouts and nested routes
 - **Server Components**: Optimal performance with React Server Components
 - **API Routes**: RESTful endpoints for all operations
 - **Canvas Mode**: Collaborative document editing with AI
 
 **Key Routes**:
-- `/` - Dashboard with achievement overview
+
+- `/` - Dashboard with achievement overview (includes welcoming zero state for new users)
 - `/achievements` - Achievement management
 - `/projects` - Project tracking
 - `/companies` - Company/employer management
@@ -231,6 +241,7 @@ Next.js 15 application with:
 #### 2. CLI Tool (`packages/cli`)
 
 Standalone Node.js application:
+
 - **Git Analysis**: Parses commit history locally
 - **API Client**: Syncs with web app via authenticated API
 - **Caching**: Avoids reprocessing commits
@@ -241,11 +252,13 @@ Standalone Node.js application:
 #### 3. Database Layer (`packages/database`)
 
 Centralized data access with **Drizzle ORM**:
+
 - **Schema**: PostgreSQL tables with TypeScript types
 - **Queries**: Reusable, type-safe query functions
 - **Migrations**: Version-controlled schema changes
 
 **Core Tables**:
+
 - `user` - User accounts and authentication
 - `achievement` - Individual achievements
 - `project` - Projects (linked to Git repos)
@@ -255,6 +268,7 @@ Centralized data access with **Drizzle ORM**:
 #### 4. Authentication
 
 **NextAuth.js** with JWT strategy:
+
 - **Providers**: Google, GitHub, Email/Password
 - **Unified Auth**: Same system for web and CLI
 - **CLI Auth Flow**: Browser-based OAuth with JWT token issuance
@@ -270,15 +284,16 @@ const achievements = await extractAchievements(commits, llm);
 ```
 
 **Prompt Engineering**:
+
 - MDX-based prompts for maintainability
 - Structured outputs with JSON schemas
 - Context-aware achievement extraction
 
 **Supported Providers**:
+
 - OpenAI (GPT-4, GPT-3.5)
 - DeepSeek
 - Google (Gemini)
-- OpenRouter (various models)
 
 ### Data Flow
 
@@ -420,16 +435,19 @@ See [CLAUDE.md](CLAUDE.md) for comprehensive development documentation.
 ## 💰 Pricing & Subscription Tiers
 
 ### Free
+
 - Basic achievement tracking
 - Limited LLM usage
 - Manual Git extraction only
 
 ### Basic Bragger ($3/month or $30/year)
+
 - One GitHub repository integration
 - Unlimited achievements and documents
 - Advanced LLM models
 
 ### Pro Bragger ($9/month or $90/year)
+
 - Unlimited GitHub repositories
 - Scheduled automated extractions
 - Publishing options (URL sharing, Google Docs, email)
@@ -473,6 +491,7 @@ MIT License - see [LICENSE](LICENSE) file for details.
 ## 🙏 Acknowledgments
 
 Built with:
+
 - [Next.js](https://nextjs.org)
 - [Vercel AI SDK](https://sdk.vercel.ai)
 - [shadcn/ui](https://ui.shadcn.com)

@@ -69,6 +69,20 @@ This document outlines the implemented features of BragDoc.ai, a chatbot that he
   - Links to Companies, Projects, and Achievements
   - Theme toggle functionality
 
+#### Dashboard
+- **Zero State for New Users**: When users have no achievements, the dashboard displays a welcoming zero state with:
+  - Clear welcome message explaining BragDoc's purpose
+  - Step-by-step CLI setup instructions (install, login, init, extract)
+  - Interactive "Check for achievements" button that refreshes server data
+  - Helpful feedback if still no achievements after checking
+  - Centered layout with `max-w-2xl` constraint for optimal readability
+  - Automatic transition to normal dashboard once achievements exist
+- **Normal Dashboard**: For users with achievements, displays:
+  - Achievement statistics (total count, impact points, weekly/monthly growth)
+  - Charts and visualizations
+  - Recent activity stream
+  - Quick actions and navigation
+
 #### Achievement Management
 - Complete CRUD operations for achievements
   - Create achievements with title, date, company, and project links

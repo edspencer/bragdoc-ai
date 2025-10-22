@@ -14,12 +14,15 @@ export interface CreateDemoActionState {
  *
  * Steps:
  * 1. Check if demo mode is enabled
- * 2. Create demo account with pre-populated data
+ * 2. Create demo account with optional pre-populated data
  * 3. Sign in with temporary password using NextAuth credentials provider
  *
+ * @param empty - If true, creates account without pre-populated data (for testing zero states)
  * @returns Status object with success/failure state
  */
-export async function createDemoAccountAction(): Promise<CreateDemoActionState> {
+export async function createDemoAccountAction(
+  empty = false,
+): Promise<CreateDemoActionState> {
   const startTime = performance.now();
 
   try {
@@ -28,11 +31,13 @@ export async function createDemoAccountAction(): Promise<CreateDemoActionState> 
       return { status: 'unavailable', error: 'Demo mode not available' };
     }
 
-    console.log('[Demo] Starting demo account creation...');
+    console.log(
+      `[Demo] Starting demo account creation (empty: ${empty ? 'yes' : 'no'})...`,
+    );
     const accountStartTime = performance.now();
 
     // Create demo account using shared function
-    const result = await createDemoAccount();
+    const result = await createDemoAccount({ skipData: empty });
 
     const accountDuration = performance.now() - accountStartTime;
     console.log(
