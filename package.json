@@ -92,7 +92,7 @@
     "jest-environment-jsdom": "^29.7.0",
     "lint-staged": "^16.2.5",
     "node-mocks-http": "^1.17.2",
-    "puppeteer": "^23.10.4",
+    "puppeteer": "^24.26.0",
     "server-cli-only": "^0.3.2",
     "shadcn": "^2.10.0",
     "tiktoken": "^1.0.22",
