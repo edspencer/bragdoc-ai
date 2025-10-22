@@ -1315,6 +1315,39 @@ pnpm changeset          # Create a changeset
 pnpm changeset version  # Update versions
 ```
 
+### Dependency Management
+
+**Dependabot** is configured to automatically monitor and update dependencies across the monorepo:
+
+- **Configuration**: `.github/dependabot.yml`
+- **Schedule**: Weekly updates on Mondays
+- **Scope**: Monitors all workspaces (root, apps/*, packages/*) and GitHub Actions
+- **Grouping**: Related dependencies are grouped together to reduce PR spam:
+  - Next.js ecosystem
+  - React and types
+  - Radix UI components
+  - AI SDK packages
+  - Auth (NextAuth, @auth/*)
+  - Database (Drizzle, Postgres)
+  - Stripe
+  - Testing libraries
+  - Linting tools
+  - Tailwind CSS
+  - MDX packages
+  - Vercel packages
+  - ProseMirror
+- **Safety**: Major version updates for Next.js and React are ignored to prevent breaking changes
+- **Review**: All Dependabot PRs should be reviewed and tested before merging
+
+When Dependabot creates PRs:
+
+1. Review the changelog/release notes for breaking changes
+2. Run tests locally: `pnpm test && pnpm build`
+3. Test critical functionality in the dev environment
+4. Merge if all checks pass and no regressions are found
+
+**Note**: The eval workflow is configured to skip Dependabot PRs since dependency updates don't affect AI prompt evaluations and to avoid exposing API secrets to automated PRs
+
 ---
 
 ## Additional Resources

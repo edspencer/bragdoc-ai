@@ -14,6 +14,8 @@ jobs:
   eval:
     name: Run evals
     runs-on: ubuntu-latest
+    # Skip evals for Dependabot PRs since secrets aren't available
+    if: github.actor != 'dependabot[bot]'
 
     env:
       OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
