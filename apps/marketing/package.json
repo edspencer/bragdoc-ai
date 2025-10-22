@@ -35,8 +35,8 @@
     "next": "15.5.4",
     "next-mdx-remote": "latest",
     "next-themes": "latest",
-    "react": "19.1.0",
-    "react-dom": "19.1.0",
+    "react": "19.2.0",
+    "react-dom": "19.2.0",
     "tailwind-merge": "^2.5.5"
   },
   "devDependencies": {
@@ -44,8 +44,8 @@
     "@tailwindcss/postcss": "^4.1.9",
     "@types/mdx": "^2.0.13",
     "@types/node": "^22",
-    "@types/react": "^18",
-    "@types/react-dom": "^18",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
     "@typescript-eslint/eslint-plugin": "^8.46.2",
     "@typescript-eslint/parser": "^8.46.2",
     "autoprefixer": "^10.4.21",
