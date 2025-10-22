@@ -43,7 +43,7 @@
     "@bragdoc/config": "workspace:*",
     "@types/yaml": "^1.9.7",
     "ai": "^5.0.76",
-    "chalk": "^4.1.2",
+    "chalk": "^5.6.2",
     "commander": "^11.1.0",
     "inquirer": "^12.10.0",
     "mdx-prompt": "^0.4.2",
