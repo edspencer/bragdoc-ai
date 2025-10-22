@@ -34,4 +34,5 @@ const baseConfig: NextConfig = {
   },
 };
 
-export default withMDXConfig(baseConfig);
+const config: NextConfig = withMDXConfig(baseConfig);
+export default config;

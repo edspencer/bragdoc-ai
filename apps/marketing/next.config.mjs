@@ -15,10 +15,8 @@ const nextConfig = {
   // Optimize for static site
   output: 'standalone',
   // Reduce trace collection overhead
-  experimental: {
-    outputFileTracingIncludes: {
-      '/': ['./public/**/*'],
-    },
+  outputFileTracingIncludes: {
+    '/': ['./public/**/*'],
   },
 }
 
