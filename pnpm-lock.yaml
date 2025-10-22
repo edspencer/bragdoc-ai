@@ -315,7 +315,7 @@ importers:
         version: 8.46.2(eslint@9.38.0(jiti@2.6.0))(typescript@5.7.3)
       autoprefixer:
         specifier: ^10.4.21
-        version: 10.4.21(postcss@8.5.1)
+        version: 10.4.21(postcss@8.5.6)
       eslint:
         specifier: ^9.38.0
         version: 9.38.0(jiti@2.6.0)
@@ -330,7 +330,7 @@ importers:
         version: 7.0.0(eslint@9.38.0(jiti@2.6.0))
       postcss:
         specifier: ^8.5
-        version: 8.5.1
+        version: 8.5.6
       tailwindcss:
         specifier: ^4.1.15
         version: 4.1.15
@@ -537,7 +537,7 @@ importers:
         version: 1.5.1(next@15.5.6(@babel/core@7.26.7)(@opentelemetry/api@1.9.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0))
       isomorphic-dompurify:
         specifier: ^2.30.1
-        version: 2.30.1(bufferutil@4.0.9)(postcss@8.5.1)
+        version: 2.30.1(bufferutil@4.0.9)(postcss@8.5.6)
       lucide-react:
         specifier: ^0.546.0
         version: 0.546.0(react@19.1.0)
@@ -679,13 +679,13 @@ importers:
         version: 19.0.3(@types/react@19.0.8)
       autoprefixer:
         specifier: ^10.4.21
-        version: 10.4.21(postcss@8.5.1)
+        version: 10.4.21(postcss@8.5.6)
       jest:
         specifier: ^29.7.0
         version: 29.7.0(@types/node@24.9.1)(ts-node@10.9.2(@swc/core@1.13.20)(@types/node@24.9.1)(typescript@5.9.3))
       postcss:
         specifier: ^8
-        version: 8.5.1
+        version: 8.5.6
       tailwindcss:
         specifier: 4.1.15
         version: 4.1.15
@@ -9310,10 +9310,6 @@ packages:
     resolution: {integrity: sha512-PS08Iboia9mts/2ygV3eLpY5ghnUcfLV/EXTOW1E2qYxJKGGBUtNjN76FYHnMs36RmARn41bC0AZmn+rR0OVpQ==}
     engines: {node: ^10 || ^12 || >=14}
 
-  postcss@8.5.1:
-    resolution: {integrity: sha512-6oz2beyjc5VMn/KV1pPw8fliQkhBXrVn1Z3TVyqZxU8kZpzEKhBdmCFqI6ZbmGtamQvQGuU1sgPTk8ZrXDD7jQ==}
-    engines: {node: ^10 || ^12 || >=14}
-
   postcss@8.5.6:
     resolution: {integrity: sha512-3Ybi1tAuwAP9s0r1UQ2J4n5Y0G05bJkpUIO0/bI9MhwmD70S5aTWbXGBwxHrelT+XM1k6dM0pk+SwNkpTRN7Pg==}
     engines: {node: ^10 || ^12 || >=14}
@@ -12865,9 +12861,9 @@ snapshots:
     dependencies:
       '@csstools/css-tokenizer': 3.0.4
 
-  '@csstools/css-syntax-patches-for-csstree@1.0.14(postcss@8.5.1)':
+  '@csstools/css-syntax-patches-for-csstree@1.0.14(postcss@8.5.6)':
     dependencies:
-      postcss: 8.5.1
+      postcss: 8.5.6
 
   '@csstools/css-tokenizer@3.0.3': {}
 
@@ -17297,14 +17293,14 @@ snapshots:
       - encoding
       - ws
 
-  autoprefixer@10.4.21(postcss@8.5.1):
+  autoprefixer@10.4.21(postcss@8.5.6):
     dependencies:
       browserslist: 4.24.4
       caniuse-lite: 1.0.30001737
       fraction.js: 4.3.7
       normalize-range: 0.1.2
       picocolors: 1.1.1
-      postcss: 8.5.1
+      postcss: 8.5.6
       postcss-value-parser: 4.2.0
 
   available-typed-arrays@1.0.7:
@@ -17918,10 +17914,10 @@ snapshots:
       '@asamuzakjp/css-color': 2.8.3
       rrweb-cssom: 0.8.0
 
-  cssstyle@5.3.1(postcss@8.5.1):
+  cssstyle@5.3.1(postcss@8.5.6):
     dependencies:
       '@asamuzakjp/css-color': 4.0.5
-      '@csstools/css-syntax-patches-for-csstree': 1.0.14(postcss@8.5.1)
+      '@csstools/css-syntax-patches-for-csstree': 1.0.14(postcss@8.5.6)
       css-tree: 3.1.0
     transitivePeerDependencies:
       - postcss
@@ -20304,10 +20300,10 @@ snapshots:
 
   isexe@3.1.1: {}
 
-  isomorphic-dompurify@2.30.1(bufferutil@4.0.9)(postcss@8.5.1):
+  isomorphic-dompurify@2.30.1(bufferutil@4.0.9)(postcss@8.5.6):
     dependencies:
       dompurify: 3.3.0
-      jsdom: 27.0.1(bufferutil@4.0.9)(postcss@8.5.1)
+      jsdom: 27.0.1(bufferutil@4.0.9)(postcss@8.5.6)
     transitivePeerDependencies:
       - bufferutil
       - canvas
@@ -20821,10 +20817,10 @@ snapshots:
       - supports-color
       - utf-8-validate
 
-  jsdom@27.0.1(bufferutil@4.0.9)(postcss@8.5.1):
+  jsdom@27.0.1(bufferutil@4.0.9)(postcss@8.5.6):
     dependencies:
       '@asamuzakjp/dom-selector': 6.7.2
-      cssstyle: 5.3.1(postcss@8.5.1)
+      cssstyle: 5.3.1(postcss@8.5.6)
       data-urls: 6.0.0
       decimal.js: 10.6.0
       html-encoding-sniffer: 4.0.0
@@ -22457,12 +22453,6 @@ snapshots:
   postcss-value-parser@4.2.0: {}
 
   postcss@8.4.31:
-    dependencies:
-      nanoid: 3.3.11
-      picocolors: 1.1.1
-      source-map-js: 1.2.1
-
-  postcss@8.5.1:
     dependencies:
       nanoid: 3.3.11
       picocolors: 1.1.1
