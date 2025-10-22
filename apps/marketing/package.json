@@ -5,7 +5,8 @@
   "scripts": {
     "dev": "next dev -p 3001",
     "start": "next start -p 3001",
-    "lint": "eslint .",
+    "lint": "next lint && biome lint --write --unsafe app/ components/ lib/ hooks/",
+    "format": "biome format --write app/ components/ lib/ hooks/",
     "build": "next build",
     "preview": "opennextjs-cloudflare build && opennextjs-cloudflare preview",
     "deploy": "opennextjs-cloudflare build && opennextjs-cloudflare deploy",
