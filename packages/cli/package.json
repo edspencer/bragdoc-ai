@@ -47,7 +47,7 @@
     "commander": "^11.1.0",
     "inquirer": "^12.10.0",
     "mdx-prompt": "^0.4.2",
-    "node-fetch": "^2.7.0",
+    "node-fetch": "^3.3.2",
     "ollama-ai-provider-v2": "^1.5.1",
     "open": "^10.2.0",
     "p-limit": "^7.2.0",
