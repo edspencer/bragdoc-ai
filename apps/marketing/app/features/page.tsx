@@ -1,4 +1,5 @@
-import type React from 'react';
+'use client';
+
 import { Header } from '@/components/header';
 import { Footer } from '@/components/footer';
 import {
@@ -10,17 +11,21 @@ import {
   TrendingUp,
   Download,
   Globe,
+  type LucideIcon,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import Image from 'next/image';
+import { useImageLightbox } from '@/hooks/use-image-lightbox';
+import { ImageLightbox } from '@/components/image-lightbox';
 
 interface Feature {
-  icon: React.ElementType;
+  icon: LucideIcon;
   heading: string;
   description: string;
   bullets: string[];
   screenshotAlt: string;
+  screenshot?: string;
 }
 
 const features: Feature[] = [
@@ -36,6 +41,7 @@ const features: Feature[] = [
       'Intelligent caching prevents reprocessing',
     ],
     screenshotAlt: 'CLI extraction output showing progress',
+    screenshot: '/screenshots/terminal/bragdoc-extract.png',
   },
   {
     icon: LayoutDashboard,
@@ -49,6 +55,7 @@ const features: Feature[] = [
       'Color-coded projects for easy identification',
     ],
     screenshotAlt: 'Achievements page with filters',
+    screenshot: '/screenshots/ui/dashboard.png',
   },
   {
     icon: FolderKanban,
@@ -62,6 +69,7 @@ const features: Feature[] = [
       'Visual color coding for quick identification',
     ],
     screenshotAlt: 'Projects page with multiple projects',
+    screenshot: '/screenshots/ui/projects.png',
   },
   {
     icon: Clock,
@@ -75,6 +83,7 @@ const features: Feature[] = [
       'Formatted for easy reading',
     ],
     screenshotAlt: 'Standup notes prepared',
+    screenshot: '/screenshots/ui/standup.png',
   },
   {
     icon: FileText,
@@ -88,6 +97,7 @@ const features: Feature[] = [
       'Editable and customizable to your needs',
     ],
     screenshotAlt: 'Generated manager report',
+    screenshot: '/screenshots/ui/reports.png',
   },
   {
     icon: TrendingUp,
@@ -101,6 +111,7 @@ const features: Feature[] = [
       'Timeline visualization of your work',
     ],
     screenshotAlt: 'Dashboard with impact charts',
+    screenshot: '/screenshots/ui/project-analytics.png',
   },
   {
     icon: Terminal,
@@ -114,6 +125,7 @@ const features: Feature[] = [
       'Offline-capable with Ollama',
     ],
     screenshotAlt: 'Terminal showing CLI commands',
+    screenshot: '/screenshots/terminal/bragdoc-llm-set.png',
   },
   {
     icon: Download,
@@ -127,10 +139,13 @@ const features: Feature[] = [
       'Backup anytime you want',
     ],
     screenshotAlt: 'Export interface',
+    screenshot: '/screenshots/ui/account.png',
   },
 ];
 
 export default function FeaturesPage() {
+  const { lightboxImage, openLightbox, closeLightbox } = useImageLightbox();
+
   return (
     <div className="min-h-screen">
       <Header />
@@ -236,20 +251,43 @@ export default function FeaturesPage() {
                       </ul>
                     </div>
 
-                    {/* Screenshot Placeholder */}
+                    {/* Screenshot */}
                     <div className={isEven ? 'md:order-2' : 'md:order-1'}>
                       <div className="relative aspect-video rounded-lg border-2 border-border bg-muted/30 overflow-hidden">
-                        <Image
-                          src={`/.jpg?height=400&width=600&query=${encodeURIComponent(feature.screenshotAlt)}`}
-                          alt={feature.screenshotAlt}
-                          fill
-                          className="object-cover"
-                        />
-                        <div className="absolute inset-0 flex items-center justify-center">
-                          <span className="text-sm text-muted-foreground bg-background/80 px-4 py-2 rounded-md">
-                            {feature.screenshotAlt}
-                          </span>
-                        </div>
+                        {feature.screenshot ? (
+                          <button
+                            type="button"
+                            onClick={() =>
+                              openLightbox(
+                                feature.screenshot!,
+                                feature.screenshotAlt,
+                              )
+                            }
+                            className="w-full h-full cursor-zoom-in transition-opacity hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 rounded-md"
+                            aria-label={`View larger: ${feature.screenshotAlt}`}
+                          >
+                            <Image
+                              src={feature.screenshot}
+                              alt={feature.screenshotAlt}
+                              fill
+                              className="object-cover"
+                            />
+                          </button>
+                        ) : (
+                          <>
+                            <Image
+                              src={`/.jpg?height=400&width=600&query=${encodeURIComponent(feature.screenshotAlt)}`}
+                              alt={feature.screenshotAlt}
+                              fill
+                              className="object-cover"
+                            />
+                            <div className="absolute inset-0 flex items-center justify-center">
+                              <span className="text-sm text-muted-foreground bg-background/80 px-4 py-2 rounded-md">
+                                {feature.screenshotAlt}
+                              </span>
+                            </div>
+                          </>
+                        )}
                       </div>
                     </div>
                   </article>
@@ -275,11 +313,16 @@ export default function FeaturesPage() {
                 size="lg"
                 variant="secondary"
                 className="bg-white text-foreground hover:bg-white/90"
+                asChild
               >
-                Get Started Free
+                <a
+                  href={`${process.env.NEXT_PUBLIC_APP_URL || 'https://app.bragdoc.ai'}/dashboard`}
+                >
+                  Get Started Free
+                </a>
               </Button>
               <Link
-                href="#docs"
+                href="/cli"
                 className="text-white hover:text-white/80 transition-colors underline underline-offset-4"
               >
                 View Documentation
@@ -289,6 +332,15 @@ export default function FeaturesPage() {
         </section>
       </main>
       <Footer />
+
+      {/* Lightbox Modal */}
+      {lightboxImage && (
+        <ImageLightbox
+          src={lightboxImage.src}
+          alt={lightboxImage.alt}
+          onClose={closeLightbox}
+        />
+      )}
     </div>
   );
 }
