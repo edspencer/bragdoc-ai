@@ -43,6 +43,8 @@ The theme toggle should be prominently accessible, likely in the header/navigati
 
 - https://www.notion.com/ - nice design, UI-screenshot heavy
 
+- https://lunabudgeting.com - beautiful typography and negative space, lots of nice UI images
+
 ### Screenshots
 
 The marketing site should include screenshots of the various features of the app. Once we've got a solid set of features, use the @agent-web-app-tester to take screenshots of the various features of the app. Just like in those inspiration site examples, we want to have lots of high quality screenshots (with captions as necessary).

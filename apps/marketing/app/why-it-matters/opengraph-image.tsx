@@ -1,6 +1,6 @@
 import { createOGImage, ogImageSize } from '@/lib/og-image';
 
-export const runtime = 'edge';
+export const runtime = 'nodejs';
 export const alt = 'Why Achievement Tracking Matters for Your Career - BragDoc';
 export const size = ogImageSize;
 export const contentType = 'image/png';
