@@ -25,7 +25,8 @@ const steps = [
       { code: 'npm install -g @bragdoc/cli', language: 'bash' },
       { code: 'bragdoc login', language: 'bash' },
     ],
-    screenshot: 'Terminal showing successful installation',
+    screenshot:
+      'Installing BragDoc CLI via npm for automated Git commit analysis',
     screenshotImage: '/screenshots/terminal/bragdoc-login.png',
   },
   {
@@ -37,7 +38,8 @@ const steps = [
     codeBlocks: [
       { code: 'cd ~/projects/my-app && bragdoc init', language: 'bash' },
     ],
-    screenshot: 'Terminal showing project initialization',
+    screenshot:
+      'Initializing BragDoc in a Git repository to start tracking achievements',
     screenshotImage: '/screenshots/terminal/bragdoc-init.png',
   },
   {
@@ -51,7 +53,8 @@ const steps = [
       'Your API key, your costs, your control',
     ],
     codeBlocks: [{ code: 'bragdoc llm set', language: 'bash' }],
-    screenshot: 'Terminal showing LLM configuration wizard',
+    screenshot:
+      'Configuring AI provider (OpenAI, Anthropic, or Ollama) for BragDoc achievement extraction',
     screenshotImage: '/screenshots/terminal/bragdoc-llm-set.png',
   },
   {
@@ -65,7 +68,8 @@ const steps = [
       'Smart caching prevents reprocessing',
     ],
     codeBlocks: [{ code: 'bragdoc extract', language: 'bash' }],
-    screenshot: 'CLI extraction showing progress and results',
+    screenshot:
+      'BragDoc CLI analyzing Git commits and extracting achievements using AI',
     screenshotImage: '/screenshots/terminal/bragdoc-extract.png',
   },
   {
@@ -80,7 +84,8 @@ const steps = [
       'Rate impact, link to projects',
     ],
     codeBlocks: [],
-    screenshot: 'Achievements list with recent extractions',
+    screenshot:
+      'BragDoc web app displaying AI-extracted achievements from Git commits ready for review',
     screenshotImage: '/screenshots/ui/dashboard.png',
   },
   {
@@ -94,7 +99,8 @@ const steps = [
       'Runs silently in background via cron/Task Scheduler',
     ],
     codeBlocks: [],
-    screenshot: 'Web app standup configuration',
+    screenshot:
+      'BragDoc standup automation settings for daily meeting preparation from recent work',
     screenshotImage: '/screenshots/ui/standup.png',
   },
   {
@@ -109,7 +115,8 @@ const steps = [
       'Edit and share',
     ],
     codeBlocks: [],
-    screenshot: 'Document generation interface',
+    screenshot:
+      'BragDoc AI document generator creating performance review reports from tracked achievements',
     screenshotImage: '/screenshots/ui/reports.png',
   },
 ];

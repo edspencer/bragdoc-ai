@@ -38,7 +38,8 @@ const features: Feature[] = [
       'Your code never leaves your machine',
       'Intelligent caching prevents reprocessing',
     ],
-    screenshotAlt: 'CLI extraction output showing progress',
+    screenshotAlt:
+      'BragDoc CLI extracting achievements from Git commits with AI-powered analysis',
     screenshot: '/screenshots/terminal/bragdoc-extract.png',
   },
   {
@@ -52,7 +53,8 @@ const features: Feature[] = [
       'Inline editing and rating',
       'Color-coded projects for easy identification',
     ],
-    screenshotAlt: 'Achievements page with filters',
+    screenshotAlt:
+      'BragDoc achievement dashboard showing filtered career accomplishments by project and date',
     screenshot: '/screenshots/ui/dashboard.png',
   },
   {
@@ -66,7 +68,8 @@ const features: Feature[] = [
       'GitHub integration for repositories',
       'Visual color coding for quick identification',
     ],
-    screenshotAlt: 'Projects page with multiple projects',
+    screenshotAlt:
+      'BragDoc project management interface with color-coded repositories and GitHub integration',
     screenshot: '/screenshots/ui/projects.png',
   },
   {
@@ -80,7 +83,8 @@ const features: Feature[] = [
       'Multi-repository aggregation',
       'Formatted for easy reading',
     ],
-    screenshotAlt: 'Standup notes prepared',
+    screenshotAlt:
+      'BragDoc standup mode automatically generating daily meeting notes from recent Git commits',
     screenshot: '/screenshots/ui/standup.png',
   },
   {
@@ -94,7 +98,8 @@ const features: Feature[] = [
       'Professional formatting ready to share',
       'Editable and customizable to your needs',
     ],
-    screenshotAlt: 'Generated manager report',
+    screenshotAlt:
+      'AI-generated performance review document created from tracked achievements in BragDoc',
     screenshot: '/screenshots/ui/reports.png',
   },
   {
@@ -108,7 +113,8 @@ const features: Feature[] = [
       'Project contribution breakdown',
       'Timeline visualization of your work',
     ],
-    screenshotAlt: 'Dashboard with impact charts',
+    screenshotAlt:
+      'BragDoc analytics dashboard displaying achievement impact trends and project contribution charts',
     screenshot: '/screenshots/ui/project-analytics.png',
   },
   {
@@ -122,7 +128,8 @@ const features: Feature[] = [
       'Multiple LLM providers supported',
       'Offline-capable with Ollama',
     ],
-    screenshotAlt: 'Terminal showing CLI commands',
+    screenshotAlt:
+      'BragDoc CLI power user commands for automated achievement tracking with multiple LLM providers',
     screenshot: '/screenshots/terminal/bragdoc-llm-set.png',
   },
   {
@@ -136,7 +143,8 @@ const features: Feature[] = [
       'No vendor lock-in',
       'Backup anytime you want',
     ],
-    screenshotAlt: 'Export interface',
+    screenshotAlt:
+      'BragDoc data export interface allowing JSON backup of all career achievements and projects',
     screenshot: '/screenshots/ui/account.png',
   },
 ];
