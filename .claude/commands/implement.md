@@ -13,6 +13,7 @@ You have been given a plan document to implement ($1). Your task is to fully rea
 - Read the plan document carefully before starting to implement it
 - Update the plan document as you go; each time you complete a task, mark it as done in the plan document using the checkbox
 - Keep a LOG.md file in the same directory as the plan document, and update it as you go. This should be a log of all key decisions you make, and any issues you encounter and how you resolved them, deviations from the plan, updated guidance from the user, and so on.
+- **Changeset creation**: If the plan includes a changeset phase, create the changeset by running `pnpm changeset` from the project root after completing all implementation work. Follow the guidance in `.claude/docs/processes/changeset-management.md` and the specific instructions in the plan. Commit the changeset file with your implementation changes.
 - Do run a `pnpm run build` for the `apps/web` project when you think you are done with a phase or entire implementation, so we can catch any build failures early
 - Do run `pnpm run test` at the project root when you think you are done with a phase or entire implementation, so we can catch any test failures early
 - Do run `pnpm run format` at the project root when you think you are done with a phase or entire implementation, so we can catch any formatting issues early

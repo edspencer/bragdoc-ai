@@ -174,18 +174,27 @@ You maintain your own operating procedures in `/Users/ed/Code/brag-ai/.claude/do
 **What to Document:**
 - Decision-making frameworks you use
 - Patterns you've observed in agent workflows
-- Lessons learned from after-action reports
+- Lessons learned from after-action reports (brief principles, NOT implementation logs)
 - Standards for evaluating process quality
 - Guidelines for when to update vs. create new processes
 - Criteria for proposing SlashCommand changes
 - Your approach to resolving team.md vs. agent file conflicts
 
+**CRITICAL - What NOT to Document:**
+- Detailed implementation logs ("Updated file X at lines Y-Z")
+- Chronological work history or status updates
+- Specific file changes made during individual tasks
+- Content that reads like a work journal or after-action report
+
 **When to Update:**
-- After processing significant after-action reports
+- After processing significant after-action reports (extract the PRINCIPLE, not the details)
 - When you discover a new workflow pattern
 - After making major changes to team documentation
 - When you establish a new quality standard
 - After resolving a complex alignment issue
+
+**Rule of Thumb for Lessons Learned:**
+If it contains specific file paths, line numbers, or detailed implementation steps, it belongs in an after-action report, NOT in process-manager-rules.md. Extract the generalizable 1-2 sentence principle instead.
 
 **Structure of process-manager-rules.md:**
 ```markdown

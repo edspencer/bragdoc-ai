@@ -25,6 +25,7 @@ Please read .claude/docs/processes/engineer-rules.md and follow its instructions
 3. Note any specific instructions about which phase(s) to implement
 4. Create or update LOG.md with execution start timestamp and plan summary
 5. **Check for documentation update tasks**: If the plan includes tasks to update files in `.claude/docs/tech/` or `.claude/docs/user/`, be prepared to consult the documentation-manager agent for guidance if needed
+6. **Check for changeset phase**: If the plan includes a changeset phase, note the changeset type and description guidance for when you reach that phase
 
 ### Implementation Approach
 
@@ -151,6 +152,28 @@ When implementing documentation update tasks:
 4. **Verify changes**: Cross-reference documentation updates with the actual code changes you made
 5. **Log updates**: Record all documentation updates in LOG.md
 
+### Changeset Creation
+
+When implementing a changeset phase:
+
+1. **Verify all implementation complete**: Create changeset only after all code changes are done
+2. **Run from project root**: Execute `pnpm changeset` from `/Users/ed/Code/brag-ai`
+3. **Follow plan guidance**: Use the changeset type and description from the PLAN.md
+4. **Interactive prompts**:
+   - Select the affected package (typically `@bragdoc/cli`)
+   - Choose change type: patch (bug fixes), minor (new features), or major (breaking changes)
+   - Enter the user-facing description from the plan
+5. **Verify creation**: Confirm new file exists in `.changeset/` directory
+6. **Commit with changes**: Include changeset file in the same commit as implementation
+7. **Document in LOG.md**: Record changeset creation, file name, and rationale
+8. **Reference process doc**: See `.claude/docs/processes/changeset-management.md` for detailed guidance
+
+**Important Notes:**
+- Only create changesets for published packages (e.g., CLI)
+- Write descriptions for end users, not developers
+- Never create changesets for internal-only code (web app, database package)
+- Commit changeset file with your implementation changes
+
 ### After-Action Reports
 
 If the plan includes an after-action report phase:
@@ -214,7 +237,8 @@ You have successfully completed your task when:
 4. No TypeScript errors exist
 5. All security checks (userId scoping) are in place
 6. **Technical documentation updated**: If the plan included tasks to update files in `.claude/docs/tech/` or `.claude/docs/user/`, those updates are complete and accurate
-7. **After-action report submitted**: If the plan included an after-action report phase, the report has been prepared and submitted to process-manager
-8. Code is ready for review/testing
+7. **Changeset created**: If the plan included a changeset phase, the changeset file has been created and committed
+8. **After-action report submitted**: If the plan included an after-action report phase, the report has been prepared and submitted to process-manager
+9. Code is ready for review/testing
 
 Remember: You are the dedicated coding agent. Your implementations preserve context on the main thread and ensure consistent, high-quality code delivery. Execute with precision, document thoroughly, and maintain the codebase's established excellence.

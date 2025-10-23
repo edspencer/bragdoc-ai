@@ -22,6 +22,24 @@ This document captures the decision-making frameworks, quality standards, and le
 - Introducing new delegation patterns
 - Changing "what" agents should do (vs. improving "how" they do it)
 
+### When to Update process-manager-rules.md
+
+**DO add to this file:**
+- Brief, generalizable principles (1-2 sentences)
+- Decision-making frameworks that apply to multiple situations
+- Quality standards for evaluating processes
+- Patterns observed across multiple after-action reports
+- Timeless insights that guide future work
+
+**DO NOT add to this file:**
+- Detailed implementation logs ("Updated file X to include Y at lines Z")
+- Chronological work history ("First we did A, then B, then C")
+- Specific file changes made during a single task
+- Detailed process integration points for one-time work
+- Content that reads like a work journal
+
+**Rule of thumb:** If it contains specific file paths, line numbers, or reads like a status update, it belongs in an after-action report, not here. Extract the generalizable principle instead.
+
 ### When to Create New vs. Update Existing
 
 **Create a new process document when:**
@@ -131,7 +149,11 @@ Evaluate SlashCommands against these criteria:
    - New documentation needs
 4. **Categorize by priority** (high/medium/low)
 5. **Implement or propose changes** based on severity
-6. **Update this file** with lessons learned
+6. **Update this file with lessons learned:**
+   - Extract the PRINCIPLE, not the implementation details
+   - Write 1-2 sentence insight that applies to future situations
+   - DO NOT copy the after-action report details into this file
+   - Focus on the "why" and "what to remember", not the "what we did"
 
 ### Agent-Team Alignment Check Pattern
 
@@ -176,31 +198,47 @@ Evaluate SlashCommands against these criteria:
 
 ## Lessons Learned
 
-### From Initial Setup (2025-10-23)
+**IMPORTANT:** This section contains brief, generalizable principles learned from after-action reports and workflow observations. It does NOT contain:
+- Detailed implementation logs
+- Specific file changes made during tasks
+- Work history or chronological records
+- Detailed process integration points
 
-**Context:** Process Manager agent created to formalize process improvement workflow.
+Those belong in after-action reports in `.claude/docs/after-action-reports/`. This section should read like canonical wisdom, not a work log.
 
-**Key Insights:**
-- Need for dedicated agent to maintain process quality
-- Importance of capturing after-action reports systematically
-- Value of separating "what agents should do" (team.md) from "how they do it" (agent files)
-- Critical role of self-documentation for process management
+### Process Documentation vs. After-Action Reports
 
-**Decisions Made:**
-- Process Manager owns `.claude/docs/team.md`, `.claude/docs/processes/`, and `.claude/commands/`
-- After-action reports stored in `.claude/docs/after-action-reports/`
-- Agent Maker owns `.claude/agents/` files but Process Manager ensures alignment with team.md
-- Process Manager maintains its own operating rules in this file
+**Canonical process documentation (this file) should contain:**
+- Timeless principles that apply to future situations
+- Decision-making frameworks that guide choices
+- Quality standards that define excellence
+- Patterns that recur across multiple scenarios
+- Brief, actionable insights (1-2 sentences)
 
-### Placeholder for Future Lessons
+**After-action reports should contain:**
+- Detailed implementation history
+- Specific files updated during a task
+- Chronological narratives of work completed
+- Detailed decisions made for specific situations
+- Process integration points for one-time work
 
-As after-action reports are processed and patterns emerge, document them here:
+**Example of appropriate content for this file:**
+> "When introducing new cross-cutting processes, ensure planning and implementation agents reference the process documentation at appropriate workflow stages."
 
-**[Date] - [Topic]**
-- **Context:** [What happened]
-- **Insight:** [What was learned]
-- **Action Taken:** [How documentation was updated]
-- **Pattern:** [Generalizable lesson for future situations]
+**Example of inappropriate content for this file (belongs in after-action report):**
+> "Updated spec-planner.md to include reference to changeset-management.md in the planning phase (lines 45-52). Created comprehensive process document at .claude/docs/processes/changeset-management.md with sections for when to use changesets, creating changesets, and versioning workflow."
+
+### Lessons
+
+**From Initial Setup (2025-10-23):**
+- Dedicated process ownership prevents documentation drift and maintains consistency
+- Separating "what agents should do" (team.md) from "how they do it" (agent files) clarifies responsibilities
+- Systematic after-action reports capture lessons that would otherwise be lost
+
+**From Changeset Integration Review (2025-10-23):**
+- Process documentation should contain canonical principles, not implementation logs
+- "Lessons Learned" sections document patterns, not chronological work history
+- When updating process files, extract the generalizable principle, not the specific implementation details
 
 ## Common Issues and Resolutions
 
