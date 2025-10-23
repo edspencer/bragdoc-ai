@@ -2,7 +2,7 @@ import { ImageResponse } from 'next/og';
 import { getPostBySlug } from '@/lib/blog';
 import { ogImageSize } from '@/lib/og-image';
 
-export const runtime = 'edge';
+export const runtime = 'nodejs';
 export const size = ogImageSize;
 export const contentType = 'image/png';
 
