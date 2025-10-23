@@ -152,7 +152,7 @@ export function FeaturesPageClient() {
           <div className="container mx-auto max-w-6xl">
             <div className="text-center mb-12">
               <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold mb-6 text-balance">
-                BragDoc Features
+                Achievement Tracking Features: Git-Powered & AI-Enhanced
               </h1>
               <p className="text-xl text-muted-foreground mb-12 text-balance max-w-3xl mx-auto">
                 Comprehensive Achievement Tracking

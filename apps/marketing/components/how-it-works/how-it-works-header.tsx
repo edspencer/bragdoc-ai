@@ -6,7 +6,7 @@ export function HowItWorksHeader() {
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="max-w-4xl mx-auto text-center">
           <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight text-balance mb-6">
-            How BragDoc Works
+            How BragDoc Works: Automated Achievement Tracking from Git
           </h1>
           <p className="text-xl sm:text-2xl text-muted-foreground text-balance mb-4">
             From Commits to Career Documents
