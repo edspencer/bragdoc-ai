@@ -1,3 +1,4 @@
+import type { Metadata } from 'next';
 import { Header } from '@/components/header';
 import { Footer } from '@/components/footer';
 import { PricingHeader } from '@/components/pricing/pricing-header';
@@ -6,6 +7,15 @@ import { ComparisonTable } from '@/components/pricing/comparison-table';
 import { PrivacyArchitecture } from '@/components/how-it-works/privacy-architecture';
 import { PricingFaq } from '@/components/pricing/pricing-faq';
 import { PricingCta } from '@/components/pricing/pricing-cta';
+
+export const metadata: Metadata = {
+  title:
+    'BragDoc Pricing: Free Achievement Tracking, Optional Cloud AI - $4.99/mo',
+  description:
+    'BragDoc is free to use with your own LLM. Optional cloud AI features are just $4.99/month. No contracts, cancel anytime. Compare free vs paid plans.',
+  keywords:
+    'bragdoc pricing, free achievement tracker, developer tool pricing, brag document cost',
+};
 
 export default function PricingPage() {
   return (

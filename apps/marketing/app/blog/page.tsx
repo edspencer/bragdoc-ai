@@ -1,3 +1,4 @@
+import type { Metadata } from 'next';
 import { Header } from '@/components/header';
 import { Footer } from '@/components/footer';
 import { getAllPosts } from '@/lib/blog';
@@ -12,6 +13,14 @@ import { Badge } from '@/components/ui/badge';
 import Link from 'next/link';
 import { Calendar, User } from 'lucide-react';
 import { format } from 'date-fns';
+
+export const metadata: Metadata = {
+  title: 'BragDoc Blog: Career Development Tips for Developers',
+  description:
+    'Expert advice on achievement tracking, performance reviews, career growth, and developer productivity. Learn how to advance your career with brag documents.',
+  keywords:
+    'career development blog, developer career tips, performance review advice, achievement tracking',
+};
 
 export default function BlogPage() {
   const posts = getAllPosts();
