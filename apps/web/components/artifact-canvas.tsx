@@ -77,7 +77,6 @@ export function ArtifactCanvas() {
     }
 
     loadMessages();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [artifact.chatId, artifact.documentId]);
 
   // Don't render if we don't have valid artifact data
