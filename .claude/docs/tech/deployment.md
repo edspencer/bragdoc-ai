@@ -22,6 +22,18 @@ pnpm dev:marketing    # Port varies
 
 ## Build Process
 
+### Next.js 16 Build System
+
+**Bundler**: Turbopack (default as of Next.js 16)
+- 2-5× faster builds compared to webpack
+- Incremental compilation
+- Improved Hot Module Replacement (HMR)
+
+**Opt-out to webpack** (if needed):
+```bash
+pnpm build --webpack
+```
+
 ### Turborepo Build Pipeline
 
 **File:** `turbo.json`
@@ -89,7 +101,7 @@ pnpm db:studio
    ```toml
    name = "bragdoc"
    compatibility_date = "2024-01-01"
-   
+
    [env.production]
    vars = { NODE_ENV = "production" }
    ```
@@ -99,10 +111,22 @@ pnpm db:studio
    pnpm --filter=@bragdoc/web build
    ```
 
+   **Note**: As of Next.js 16, Turbopack is the default bundler. The build now benefits from faster compilation times and improved compatibility with Cloudflare Workers edge runtime.
+
 4. **Deploy**
    ```bash
    pnpm --filter=@bragdoc/web deploy
    ```
+
+### Next.js 16 Compatibility
+
+**Proxy Middleware**: The upgrade to Next.js 16 includes renaming `middleware.ts` → `proxy.ts`, which improves Cloudflare Workers compatibility. Additionally, the removal of `redirect()` calls in Server Components (like in `cli-auth/page.tsx`) eliminates edge runtime build issues.
+
+**Key improvements**:
+- Proxy file (`apps/web/proxy.ts`) uses proper Next.js 16 patterns
+- No `redirect()` in Server Components (Cloudflare Workers compatible)
+- Turbopack bundler optimized for edge runtime
+- Image optimization defaults updated (minimumCacheTTL: 60s → 4 hours)
 
 ### Environment Variables (Cloudflare)
 
@@ -334,9 +358,10 @@ tail -f ~/.bragdoc/logs/bragdoc.log
 ### Build Optimization
 
 - Turborepo caching (local + remote)
+- Turbopack bundler (2-5× faster builds in Next.js 16)
 - Next.js automatic code splitting
 - Tree shaking
-- Image optimization
+- Image optimization (improved defaults in Next.js 16)
 
 ### Runtime Optimization
 
@@ -363,5 +388,6 @@ curl https://yourdomain.com/api/db-health
 
 ---
 
-**Last Updated:** 2025-10-21
+**Last Updated:** 2025-10-23 (Next.js 16 upgrade)
 **Deployment Targets:** Cloudflare Workers, Vercel, Docker
+**Build System:** Turbopack (default in Next.js 16)

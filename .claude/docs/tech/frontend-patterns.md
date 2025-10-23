@@ -2,7 +2,7 @@
 
 ## Overview
 
-BragDoc uses Next.js 15 App Router with React 19 Server Components, Tailwind CSS, and shadcn/ui for a modern, performant frontend.
+BragDoc uses Next.js 16 App Router with React 19 Server Components, Tailwind CSS, and shadcn/ui for a modern, performant frontend.
 
 ## Component Architecture
 
@@ -537,9 +537,11 @@ export default async function Page() {
 
 **Why this matters**:
 - Cloudflare Workers use edge runtime which doesn't support `redirect()` during build
-- Middleware at `apps/web/middleware.ts` handles authentication redirects at route level
-- Fallback UI is rarely shown to users since middleware catches unauthorized requests
+- Proxy middleware at `apps/web/proxy.ts` handles authentication redirects at route level
+- Fallback UI is rarely shown to users since proxy catches unauthorized requests
 - This pattern ensures compatibility with all deployment targets
+
+**Real-world example**: See `apps/web/app/cli-auth/page.tsx` for the canonical implementation of this pattern.
 
 ### Other Zero State Examples
 
@@ -553,8 +555,47 @@ export default async function Page() {
 - Link to dashboard or CLI instructions
 - Create first achievement button
 
+## Middleware/Proxy Pattern
+
+### Authentication Proxy
+
+**Location**: `apps/web/proxy.ts` (Next.js 16+)
+
+As of Next.js 16, the middleware file has been renamed to `proxy.ts`. The proxy handles authentication checks before requests reach pages or API routes.
+
+**Implementation**:
+
+```typescript
+import NextAuth from 'next-auth';
+import { authConfig } from '@/app/(auth)/auth.config';
+import type { NextMiddleware } from 'next/server';
+
+const { auth } = NextAuth(authConfig);
+
+export default auth as NextMiddleware;
+
+export const config = {
+  matcher: ['/((?!_next/static|_next/image|favicon.ico|api/auth).*)'],
+};
+```
+
+**Key Points**:
+- **File naming**: `proxy.ts` in Next.js 16+ (was `middleware.ts` in Next.js 15)
+- **Type annotation**: Use `NextMiddleware` type for proper type inference
+- **Matcher config**: Excludes static files, images, and auth endpoints
+- **Authentication**: NextAuth integration provides seamless session checks
+
+**How it works**:
+1. All requests matching the pattern go through the proxy first
+2. NextAuth checks for valid session (cookie-based) or JWT (header-based)
+3. Unauthorized requests to protected routes redirect to login
+4. Authorized requests proceed to the target route
+5. This allows Server Components to show fallback UI instead of using `redirect()`
+
+**Prior to Next.js 16**: This file was named `middleware.ts` with the same functionality.
+
 ---
 
-**Last Updated:** 2025-10-22
-**Next.js:** 15.1.8
-**React:** 19.0.0
+**Last Updated:** 2025-10-23 (Next.js 16 upgrade)
+**Next.js:** 16.0.0
+**React:** 19.2.0

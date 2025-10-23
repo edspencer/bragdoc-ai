@@ -67,7 +67,7 @@ The dev server is almost always running whenever you are working. The server run
 
 BragDoc is a full-stack TypeScript monorepo using:
 
-- **Framework**: Next.js 15 (App Router with React 19+ Server Components)
+- **Framework**: Next.js 16 (App Router with React 19+ Server Components)
 - **Monorepo**: Turborepo with pnpm workspaces
 - **Database**: PostgreSQL via Drizzle ORM
 - **Auth**: NextAuth.js with JWT strategy
@@ -122,7 +122,7 @@ All packages are managed via pnpm workspaces and orchestrated by Turborepo for o
 
 **Location**: `apps/web/`
 
-The main application built with Next.js 15 App Router.
+The main application built with Next.js 16 App Router.
 
 #### Directory Structure
 
@@ -642,16 +642,24 @@ export async function getAuthUser(request: Request) {
 
 ### Protected Routes
 
-Use middleware for page-level protection:
+Use proxy middleware for page-level protection:
 
 ```typescript
-// middleware.ts
-export { auth as middleware } from '@/app/(auth)/auth';
+// proxy.ts (Next.js 16+)
+import NextAuth from 'next-auth';
+import { authConfig } from '@/app/(auth)/auth.config';
+import type { NextMiddleware } from 'next/server';
+
+const { auth } = NextAuth(authConfig);
+
+export default auth as NextMiddleware;
 
 export const config = {
   matcher: ['/((?!api|_next/static|_next/image|favicon.ico).*)'],
 };
 ```
+
+**Note:** Prior to Next.js 16, this file was named `middleware.ts`.
 
 ---
 
@@ -707,7 +715,7 @@ export default async function Page() {
 }
 ```
 
-The middleware at `apps/web/middleware.ts` handles authentication redirects at the route level, so this fallback UI is rarely shown to users.
+The proxy middleware at `apps/web/proxy.ts` handles authentication redirects at the route level, so this fallback UI is rarely shown to users. See `apps/web/app/cli-auth/page.tsx` for a complete example.
 
 #### Client Components
 
@@ -1207,8 +1215,11 @@ pnpm db:studio      # Open Drizzle Studio
 ### Building
 
 ```bash
-# All packages and apps
+# All packages and apps (uses Turbopack bundler by default as of Next.js 16)
 pnpm build
+
+# Opt-out to webpack if needed
+pnpm build --webpack
 
 # Specific targets
 pnpm build:web
