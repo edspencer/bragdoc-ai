@@ -9,6 +9,7 @@ const baseConfig: NextConfig = {
   distDir: process.env.NEXT_DIST_DIR || '.next',
   pageExtensions: ['ts', 'tsx', 'js', 'jsx', 'md', 'mdx'],
   serverExternalPackages: ['puppeteer-core', '@sparticuz/chromium'],
+  allowedDevOrigins: ['ngrok.edspencer.net'],
   images: {
     remotePatterns: [
       {

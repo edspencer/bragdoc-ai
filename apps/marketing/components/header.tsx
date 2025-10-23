@@ -27,6 +27,12 @@ export function Header() {
               Get Started
             </Link>
             <Link
+              href="/features"
+              className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+            >
+              Features
+            </Link>
+            <Link
               href="/how-it-works"
               className="text-sm text-muted-foreground hover:text-foreground transition-colors"
             >
