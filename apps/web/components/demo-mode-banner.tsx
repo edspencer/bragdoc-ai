@@ -11,12 +11,16 @@ import { AlertCircle } from 'lucide-react';
  * Warns that data will be deleted on logout and provides link to create real account.
  *
  * Only shown when the logged-in user has level='demo'.
+ * Can be suppressed with NEXT_PUBLIC_SUPRESSED_DEMO_BANNER=true (useful for screenshots).
  */
 export function DemoModeBanner() {
   const { data: session } = useSession();
 
-  // Only show for demo users
-  if (session?.user?.level !== 'demo') {
+  // Check if banner should be suppressed (for screenshots, etc.)
+  const isSuppressed = process.env.NEXT_PUBLIC_SUPRESSED_DEMO_BANNER === 'true';
+
+  // Only show for demo users and if not suppressed
+  if (session?.user?.level !== 'demo' || isSuppressed) {
     return null;
   }
 
