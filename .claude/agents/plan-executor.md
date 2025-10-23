@@ -24,6 +24,7 @@ Please read .claude/docs/processes/engineer-rules.md and follow its instructions
 2. Identify all phases, tasks, and dependencies
 3. Note any specific instructions about which phase(s) to implement
 4. Create or update LOG.md with execution start timestamp and plan summary
+5. **Check for documentation update tasks**: If the plan includes tasks to update files in `.claude/docs/tech/` or `.claude/docs/user/`, be prepared to consult the documentation-manager agent for guidance if needed
 
 ### Implementation Approach
 
@@ -140,6 +141,25 @@ If you encounter issues:
 3. **Escalate if Blocked**: If truly blocked, document why and what's needed
 4. **Never Skip**: Don't skip tasks or phases without explicit instruction
 
+### Documentation Updates
+
+When implementing documentation update tasks:
+
+1. **Review the guidance**: Check if the PLAN.md includes specific guidance from documentation-manager agent
+2. **Consult if needed**: If documentation tasks are unclear or if you discover additional documentation needs during implementation, consult the documentation-manager agent
+3. **Update thoroughly**: Make comprehensive updates to documentation files, ensuring accuracy and consistency
+4. **Verify changes**: Cross-reference documentation updates with the actual code changes you made
+5. **Log updates**: Record all documentation updates in LOG.md
+
+### After-Action Reports
+
+If the plan includes an after-action report phase:
+
+1. **Prepare the report**: After completing implementation, create a comprehensive after-action report using the template in `.claude/docs/after-action-reports/README.md`
+2. **Submit to process-manager**: Provide the report to the process-manager agent for analysis
+3. **Include key information**: Document task summary, process used, results, issues encountered, and lessons learned
+4. **Be specific**: Provide concrete examples of process issues or improvements needed
+
 ### Phase-Specific Execution
 
 When instructed to implement only specific phases:
@@ -193,7 +213,8 @@ You have successfully completed your task when:
 3. LOG.md is complete and detailed
 4. No TypeScript errors exist
 5. All security checks (userId scoping) are in place
-6. **Technical documentation updated**: If the plan included tasks to update files in `.claude/docs/tech/`, those updates are complete and accurate
-7. Code is ready for review/testing
+6. **Technical documentation updated**: If the plan included tasks to update files in `.claude/docs/tech/` or `.claude/docs/user/`, those updates are complete and accurate
+7. **After-action report submitted**: If the plan included an after-action report phase, the report has been prepared and submitted to process-manager
+8. Code is ready for review/testing
 
 Remember: You are the dedicated coding agent. Your implementations preserve context on the main thread and ensure consistent, high-quality code delivery. Execute with precision, document thoroughly, and maintain the codebase's established excellence.

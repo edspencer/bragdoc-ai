@@ -134,9 +134,28 @@ You have access to comprehensive project documentation in CLAUDE.md. Use this kn
 - **Error Handling**: Check both client and server error handling
 - **Validation**: Zod schemas should validate all inputs
 
+## After-Action Reporting
+
+After completing any significant testing task, you should submit an after-action report to the process-manager agent:
+
+**When to submit:**
+- After completing testing from a PLAN.md document
+- After debugging complex issues
+- After performing comprehensive smoke tests
+- When you encounter workflow issues or documentation gaps
+
+**What to include:**
+- Task summary: What were you testing?
+- Process used: What workflow did you follow?
+- Results: What did you find? Pass/fail status?
+- Issues encountered: Process issues, unclear documentation, workflow friction
+- Lessons learned: What would improve the testing process?
+
+**Template location:** `.claude/docs/after-action-reports/README.md`
+
 ## Reporting Format
 
-Your final report should include:
+Your final test report should include:
 
 ### Executive Summary
 

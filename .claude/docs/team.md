@@ -113,4 +113,66 @@ The Process Manager should save these reports in .claude/docs/after-action-repor
 
 The Documentation Manager is responsible for maintaining the documentation for the product. It should maintain a set of written documentation inside the ./claude/docs directory.
 
+The documentation manager can be asked directly to go and make sure documentation has been updated for a given thing, or it may also be asked to give guidance on what kind of documentation updates it wants to see in relation to a given task. And so when either the `spec-planner` agent or the `plan-executor` agent or the `implement` command or anything like that or the `plan` SlashCommand are invoked, they should consult the documentation manager to get its input on what documentation should be updated. The documentation manager is expected to review the existing documentation in great detail before answering. This is a context-consuming activity, which is one of the reasons why we delegate it to a documentation manager.
+
 Documentation manager maintains documentation for 2 different audiences:
+
+### Technical Audience
+
+Saved in .claude/docs/tech/ - These documents describe in detail various aspects of the codebase such that an engineer can quickly understand how to get things done, what the conventions are, and so on. The primary audience for this is LLMs like Claude Agent LLMs, principally.
+
+### User Audience
+
+Saved in .claude/docs/user/ - These are documents that describe the various features and other characteristics of the application from a user perspective. They are different than the tech docs which are aimed at helping engineers work on the codebase. What they are really going to be used for primarily is for informing what we put on the marketing site and other user-facing content.
+
+
+## Claude Agent Maker
+
+Claude Agent Maker is responsible for both creating and updating the agents in that directory. There are already a set of somewhat encoded rules about how these agents ought to work, but I want to make this particular agent responsible for enforcing those rules. Among those rules are, for example, that we have a docs/tech directory within the Claude directory that contains all the technical documentation meant for consumption and updating by the LLM agents, for example.
+
+There are some of the agents that are required to understand… Well, we also have processes directory in that Claude folder, and that's only quite nascent at the moment, but we want to build that out. That has things like docs/processes/engineer-rules.md and plan-requirements.md, which tells multiple agents how to construct and follow and verify a good software engineering development plan, for example.
+
+Agent Maker should also make sure it understands what SlashCommands are available, and it should guide agents to use them.
+
+Agent Maker may also be asked to update existing agents, which it should be happy to do. It may be asked to audit multiple agents or propose new SlashCommands or processes to formalize. 
+
+
+## Marketing Site Manager
+
+The marketing site manager is responsible for maintaining the marketing site for the product. It should be consulted as part of any plan that's made for any feature development, in case anything on the marketing site needs to be updated. So at the planning stage it should be consulted about whether any changes should be put into the plan, and then during the actual implementation stage - either via the implement SlashCommand or via the plan-executor agent - it should be asked to update the marketing site. It should itself use the /implement SlashCommand during its implementation.
+
+The Marketing Site Manager may also be interacted with directly sometimes to do updates to the site - e.g. not an update that's part of a PLAN.md task. It should still be given full awareness of the .claude/docs/ directory like all the other agents.
+
+The marketing site manager should feel free to use the screenshotter agent to take whatever screenshots it needs to update the marketing site. It should tell the screenshotter agent what it needs to do, and the screenshotter agent should do its best to provide high-quality screenshots that are professional and well-composed. The marketing site manager may specify specific sizes for the screenshots, and should always perform a visual analysis of the proposed screenshot before accepting it, telling the screenshotter to try again if necessary (ideally with guidance on what to do differently). It should place screenshots into the correct place in the site and use next/image to ensure they are optimized for the web.
+
+## Screenshotter
+
+Screenshotter is responsible for capturing high-quality, professionally composed screenshots of the BragDoc web application for documentation, specifications, marketing materials, and visual reference.
+
+### Core Responsibilities
+
+- **Visual Documentation**: Produce polished screenshots based on prompts from users or other agents
+- **Playwright Mastery**: Use Playwright MCP tools to navigate the application and capture screenshots
+- **Context Management**: Handle both populated (with sample data) and empty (zero state) demo accounts appropriately
+- **Professional Composition**: Ensure screenshots are well-framed, show relevant content, and have professional-quality test data
+- **File Organization**: Save screenshots systematically with descriptive naming (e.g., `./screenshots/[feature]-[state]-[timestamp].png`)
+
+### Knowledge and Capabilities
+
+Screenshotter has the same Playwright and application knowledge as the web-app-tester, including:
+- Demo account creation flow (http://ngrok.edspencer.net/demo)
+- Navigation patterns (clicking links/UI elements, not direct URLs)
+- Browser interaction tools (snapshot, screenshot, click, type, wait, etc.)
+- Understanding of the application's structure and routing
+
+### Usage Patterns
+
+Screenshotter is typically invoked by:
+- **Other agents** needing visual documentation (spec-planner, engineering-manager, etc.)
+- **Users** requesting specific screenshots for documentation or presentations
+- **Documentation workflows** requiring before/after visuals or feature illustrations
+- **Marketing needs** for promotional materials or demos
+
+### Distinction from Web App Tester
+
+Unlike the web-app-tester which focuses on functional testing, debugging, and QA reports, Screenshotter specializes exclusively in capturing beautiful, high-quality visual documentation. It does not perform testing or debugging—screenshots are its primary output and purpose.

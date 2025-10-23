@@ -17,11 +17,23 @@ The plan document should be a markdown file named PLAN.md in the same directory 
 
 ## Documentation updates
 
-Every plan should have a final "Documentation" section, which should contain tasks to update our own internal documentation of the app. This section is MANDATORY and should include:
+Every plan should have a "Documentation" section, which should contain tasks to update our own internal documentation of the app. This section is MANDATORY and should include:
+
+### Consulting the Documentation Manager
+
+**CRITICAL PROCESS:** Planners (spec-planner, quick-task-planner) MUST consult the documentation-manager agent during plan creation to identify which documentation files need updates. Do not attempt to determine documentation needs independently - the documentation-manager has comprehensive context and understands documentation structure.
+
+**Consultation Process:**
+1. After drafting the initial plan but before using `/improve-plan`, consult the documentation-manager agent
+2. Provide them with details of the planned implementation changes
+3. Ask: "What documentation in `.claude/docs/tech/` and `.claude/docs/user/` needs updating for these changes?"
+4. Receive specific guidance on which files need updates and what sections should be modified
+5. Incorporate their detailed guidance into your plan's Documentation section
+6. Each documentation update task should reference the specific guidance from documentation-manager
 
 ### Technical Documentation (.claude/docs/tech/)
 
-**IMPORTANT:** All plans implementing significant features or architectural changes MUST include tasks to update the relevant technical documentation in `.claude/docs/tech/`. Review the following documents and determine which need updates:
+The documentation-manager will identify which technical documentation files need updates from the following list:
 
 - **architecture.md** - Update for new architectural patterns, technology additions, or structural changes
 - **database.md** - Update for new tables, schema changes, or query patterns
@@ -32,7 +44,7 @@ Every plan should have a final "Documentation" section, which should contain tas
 - **frontend-patterns.md** - Update for new component patterns or UI conventions
 - **deployment.md** - Update for deployment process or environment variable changes
 
-**When to update:** If your implementation introduces new patterns, changes existing conventions, adds new configuration, or modifies core architecture, you MUST include specific tasks to update the appropriate technical documentation files.
+**When to update:** The documentation-manager agent will determine which files need updates based on the planned changes. Trust their expertise and include all documentation tasks they recommend.
 
 ### Feature Documentation (docs/)
 
@@ -53,3 +65,37 @@ Add whatever other instructions you think are necessary, to help guide the progr
 ## CLAUDE.md updates section
 
 Re-read the CLAUDE.md file in the root of the project to understand if it needs to be updated as a result of this import. If so, add a task or tasks to update the CLAUDE.md file itself. Be specific about what needs to be updated. It's ok if there are no useful or meaningful updates to make.
+
+## After-Action Report Phase
+
+**MANDATORY REQUIREMENT:** Every plan MUST include a final phase for submitting an after-action report to the process-manager agent.
+
+### After-Action Report Phase Structure
+
+Add a final phase (or section if the plan is not broken into phases) titled "After-Action Report" with the following task:
+
+```markdown
+### Phase [N]: After-Action Report
+
+**Purpose:** Submit report to process-manager agent to capture lessons learned and identify process improvements.
+
+- [ ] Create after-action report using template in `.claude/docs/after-action-reports/README.md`
+- [ ] Include:
+  - Task summary and context
+  - Process/workflow followed
+  - Results and outcomes
+  - Issues encountered (documentation gaps, workflow friction, unclear instructions)
+  - Lessons learned and recommendations
+- [ ] Submit report to process-manager agent for analysis
+- [ ] Save report to `.claude/docs/after-action-reports/[YYYY-MM-DD]-[agent-name]-[brief-description].md`
+```
+
+### Why After-Action Reports Are Required
+
+After-action reports enable continuous improvement of:
+- Process documentation (`.claude/docs/processes/`)
+- SlashCommand definitions (`.claude/commands/`)
+- Agent coordination patterns (`.claude/docs/team.md`)
+- Technical documentation (`.claude/docs/tech/`)
+
+The process-manager agent analyzes these reports to identify patterns, workflow issues, and opportunities for systemic improvements. Without after-action reports, the team cannot learn from experience or evolve its processes.
