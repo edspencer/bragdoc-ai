@@ -8,11 +8,11 @@ import {
   Layout,
   Calendar,
   FileText,
-  X,
 } from 'lucide-react';
 import Image from 'next/image';
 import { CodeBlock } from '@/components/code-block';
-import { useState, useEffect } from 'react';
+import { useImageLightbox } from '@/hooks/use-image-lightbox';
+import { ImageLightbox } from '@/components/image-lightbox';
 
 const steps = [
   {
@@ -81,6 +81,7 @@ const steps = [
     ],
     codeBlocks: [],
     screenshot: 'Achievements list with recent extractions',
+    screenshotImage: '/screenshots/ui/dashboard.png',
   },
   {
     number: 6,
@@ -94,6 +95,7 @@ const steps = [
     ],
     codeBlocks: [],
     screenshot: 'Web app standup configuration',
+    screenshotImage: '/screenshots/ui/standup.png',
   },
   {
     number: 7,
@@ -108,42 +110,12 @@ const steps = [
     ],
     codeBlocks: [],
     screenshot: 'Document generation interface',
+    screenshotImage: '/screenshots/ui/reports.png',
   },
 ];
 
 export function WorkflowSteps() {
-  const [lightboxImage, setLightboxImage] = useState<{
-    src: string;
-    alt: string;
-  } | null>(null);
-
-  // Handle Escape key to close lightbox
-  useEffect(() => {
-    const handleEscape = (e: KeyboardEvent) => {
-      if (e.key === 'Escape' && lightboxImage) {
-        setLightboxImage(null);
-      }
-    };
-
-    if (lightboxImage) {
-      document.addEventListener('keydown', handleEscape);
-      // Prevent body scroll when lightbox is open
-      document.body.style.overflow = 'hidden';
-    }
-
-    return () => {
-      document.removeEventListener('keydown', handleEscape);
-      document.body.style.overflow = 'unset';
-    };
-  }, [lightboxImage]);
-
-  const openLightbox = (src: string, alt: string) => {
-    setLightboxImage({ src, alt });
-  };
-
-  const closeLightbox = () => {
-    setLightboxImage(null);
-  };
+  const { lightboxImage, openLightbox, closeLightbox } = useImageLightbox();
 
   return (
     <>
@@ -256,38 +228,11 @@ export function WorkflowSteps() {
 
       {/* Lightbox Modal */}
       {lightboxImage && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm animate-in fade-in duration-200"
-          onClick={closeLightbox}
-          onKeyDown={(e) => {
-            if (e.key === 'Enter' || e.key === ' ') {
-              closeLightbox();
-            }
-          }}
-          role="dialog"
-          aria-modal="true"
-          aria-label="Image lightbox"
-        >
-          {/* Close button */}
-          <button
-            type="button"
-            onClick={closeLightbox}
-            className="absolute top-4 right-4 z-10 p-2 rounded-full bg-white/10 hover:bg-white/20 transition-colors focus:outline-none focus:ring-2 focus:ring-white"
-            aria-label="Close lightbox"
-          >
-            <X className="size-6 text-white" />
-          </button>
-
-          {/* Image - clicking it also closes the lightbox */}
-          <Image
-            src={lightboxImage.src}
-            alt={lightboxImage.alt}
-            width={1920}
-            height={1080}
-            className="object-contain max-w-[95vw] max-h-[95vh] cursor-pointer animate-in zoom-in-95 fade-in duration-200"
-            priority
-          />
-        </div>
+        <ImageLightbox
+          src={lightboxImage.src}
+          alt={lightboxImage.alt}
+          onClose={closeLightbox}
+        />
       )}
     </>
   );
