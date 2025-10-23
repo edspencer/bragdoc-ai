@@ -23,6 +23,9 @@ export const metadata: Metadata = {
     'Automatically track your professional achievements from git commits. Build your brag document effortlessly with AI. Perfect for performance reviews, standups, and career growth.',
   keywords:
     'brag document, achievement tracking, performance review, developer tools, git commit tracker, career development',
+  alternates: {
+    canonical: '/',
+  },
   openGraph: {
     title: "BragDoc - Never Forget What You've Accomplished",
     description:

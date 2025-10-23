@@ -15,6 +15,9 @@ export const metadata: Metadata = {
     'Learn why tracking achievements is crucial for career growth, performance reviews, salary negotiations, and combating imposter syndrome. Expert insights and personal stories.',
   keywords:
     'why track achievements, importance of brag documents, career development, performance review preparation',
+  alternates: {
+    canonical: '/why-it-matters',
+  },
 };
 
 export default function WhyItMattersPage() {

@@ -7,6 +7,9 @@ export const metadata: Metadata = {
   title: 'CLI Documentation - BragDoc',
   description:
     'Complete command reference and configuration guide for the BragDoc CLI',
+  alternates: {
+    canonical: '/cli',
+  },
 };
 
 export default function CliPage() {

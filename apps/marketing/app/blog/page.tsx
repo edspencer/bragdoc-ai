@@ -20,6 +20,9 @@ export const metadata: Metadata = {
     'Expert advice on achievement tracking, performance reviews, career growth, and developer productivity. Learn how to advance your career with brag documents.',
   keywords:
     'career development blog, developer career tips, performance review advice, achievement tracking',
+  alternates: {
+    canonical: '/blog',
+  },
 };
 
 export default function BlogPage() {

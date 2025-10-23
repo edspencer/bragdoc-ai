@@ -14,6 +14,9 @@ export const metadata: Metadata = {
   title: "Why BragDoc Exists - The Problem We're Solving",
   description:
     'Built by a developer who lived this problem. Learn about the origin story and philosophy behind BragDoc.',
+  alternates: {
+    canonical: '/about',
+  },
 };
 
 export default function AboutPage() {

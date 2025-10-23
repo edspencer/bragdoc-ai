@@ -9,6 +9,9 @@ export const metadata: Metadata = {
     'Explore BragDoc features: automatic git commit extraction, AI-powered achievement tracking, standup mode, manager reports, and privacy-first architecture. Free CLI tools included.',
   keywords:
     'git achievement tracking, CLI achievement extraction, AI performance reports, standup automation, developer productivity',
+  alternates: {
+    canonical: '/features',
+  },
 };
 
 export default function FeaturesPage() {

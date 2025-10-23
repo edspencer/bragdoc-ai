@@ -9,6 +9,7 @@ import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { MDXRemote } from 'next-mdx-remote/rsc';
+import { BlogPostingSchema } from '@/components/structured-data/blog-posting-schema';
 
 export async function generateMetadata({
   params,
@@ -58,6 +59,7 @@ export default function BlogPostPage({ params }: { params: { slug: string } }) {
 
   return (
     <>
+      <BlogPostingSchema post={post} />
       <Header />
       <main className="min-h-screen">
         <article className="py-12 px-4">

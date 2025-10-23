@@ -14,6 +14,9 @@ export const metadata: Metadata = {
     'Answers to common questions about BragDoc: How does it work? Is it free? Is my code safe? Setup instructions, LLM configuration, privacy details, and more.',
   keywords:
     'bragdoc faq, bragdoc questions, how to use bragdoc, is bragdoc safe, bragdoc pricing',
+  alternates: {
+    canonical: '/faq',
+  },
 };
 
 export default function FaqPage() {

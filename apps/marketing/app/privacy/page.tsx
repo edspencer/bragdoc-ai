@@ -19,6 +19,9 @@ export const metadata: Metadata = {
     'BragDoc privacy-first architecture: Your code never leaves your machine, CLI runs locally, optional self-hosting, full data export anytime. Learn how we protect your data.',
   keywords:
     'bragdoc privacy, is bragdoc safe, local code analysis, privacy-first achievement tracking',
+  alternates: {
+    canonical: '/privacy',
+  },
 };
 
 export default function PrivacyPage() {

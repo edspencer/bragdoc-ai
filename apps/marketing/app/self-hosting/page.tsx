@@ -14,6 +14,9 @@ export const metadata: Metadata = {
     'Self-host BragDoc on your infrastructure for complete data privacy. Step-by-step deployment guide with Docker, Kubernetes, or VPS. 100% offline capable with Ollama.',
   keywords:
     'self-host bragdoc, private achievement tracking, docker deployment, on-premise bragdoc',
+  alternates: {
+    canonical: '/self-hosting',
+  },
 };
 
 export default function SelfHostingPage() {

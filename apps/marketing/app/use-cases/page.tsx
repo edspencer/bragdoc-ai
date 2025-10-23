@@ -13,6 +13,9 @@ export const metadata: Metadata = {
     'Discover how developers use BragDoc for performance reviews, resume building, 1-on-1 meetings, job interviews, promotion packets, and salary negotiations. Real use cases and examples.',
   keywords:
     'bragdoc use cases, performance review tool, interview preparation, salary negotiation tool, promotion packet',
+  alternates: {
+    canonical: '/use-cases',
+  },
 };
 
 export default function UseCasesPage() {
