@@ -1,12 +1,12 @@
 ---
 allowed-tools: Task
 argument-hint: [location] [options]
-description: Capture high-quality screenshots of the BragDoc application
+description: Capture high-quality screenshots of the BragDoc application or terminal/CLI commands
 ---
 
-# Capture Application Screenshots
+# Capture Application and Terminal Screenshots
 
-This command delegates to the Screenshotter agent to capture professional-quality screenshots of the BragDoc web application.
+This command delegates to the Screenshotter agent to capture professional-quality screenshots of the BragDoc web application or terminal/CLI commands.
 
 ## Usage
 
@@ -17,7 +17,9 @@ This command delegates to the Screenshotter agent to capture professional-qualit
 ### Parameters
 
 **$1 - Location/Feature** (required):
-The specific page, feature, or section to screenshot. Examples:
+The specific page, feature, section, or CLI command to screenshot. Examples:
+
+**Web Application:**
 - `dashboard` - Main dashboard page
 - `achievements` - Achievements list page
 - `projects` - Projects page
@@ -26,6 +28,15 @@ The specific page, feature, or section to screenshot. Examples:
 - `achievement-form` - Achievement creation form
 - `project-creation` - Project creation flow
 - `entire-app` - Multiple key pages across the app
+
+**Terminal/CLI:**
+- `terminal:bragdoc-login` - Terminal screenshot of `bragdoc login` command
+- `terminal:bragdoc-extract` - Terminal screenshot of `bragdoc extract` command
+- `terminal:bragdoc-repos-add` - Terminal screenshot of `bragdoc repos add` command
+- `terminal:npm-install` - Terminal screenshot of npm commands
+- `terminal:custom` - Custom terminal commands (specify exact output desired)
+
+**Note**: Terminal screenshots use the Write tool + `termshot --raw-read` pattern for precise control over output appearance.
 
 **$2 - Options** (optional):
 Configuration for the screenshot session. Can be one or more of:
@@ -57,6 +68,15 @@ Configuration for the screenshot session. Can be one or more of:
 
 # Multiple screenshots across the entire app
 /screenshot entire-app populated
+
+# Terminal screenshot of bragdoc login command
+/screenshot terminal:bragdoc-login
+
+# Terminal screenshot of bragdoc extract with output
+/screenshot terminal:bragdoc-extract
+
+# Custom terminal command
+/screenshot terminal:custom "Show npm run dev starting the server"
 ```
 
 ## What This Command Does
@@ -67,7 +87,7 @@ Configuration for the screenshot session. Can be one or more of:
 
 ## Screenshot Output
 
-Screenshots will be saved to:
+**Web Application Screenshots** will be saved to:
 ```
 ./screenshots/[feature]-[state]-[timestamp].png
 ```
@@ -76,6 +96,16 @@ Examples:
 - `./screenshots/dashboard-populated-2025-10-23-143022.png`
 - `./screenshots/achievements-empty-state-2025-10-23-143045.png`
 - `./screenshots/project-form-filled-2025-10-23-143102.png`
+
+**Terminal Screenshots** will be saved to:
+```
+./screenshots/terminal/[command-name].png
+```
+
+Examples:
+- `./screenshots/terminal/bragdoc-login.png`
+- `./screenshots/terminal/bragdoc-extract.png`
+- `./screenshots/terminal/bragdoc-repos-add.png`
 
 ## When to Use This Command
 
@@ -86,6 +116,9 @@ Examples:
 - Visual examples of UI states (zero state, error state, success state)
 - Reference images for documentation
 - Quick visual inspection of a feature
+- Terminal/CLI command examples for documentation
+- Beautiful terminal screenshots for marketing materials
+- CLI workflow demonstrations
 
 **Don't use `/screenshot` for:**
 - Functional testing (use `/run-integration-tests` instead)
@@ -98,11 +131,26 @@ This command constructs a detailed prompt for the Screenshotter agent based on y
 
 ## Tips for Best Results
 
+### Web Application Screenshots
+
 1. **Be specific**: Instead of "get some screenshots", say "dashboard empty" or "achievements populated"
 2. **Use options**: Specify empty vs populated to get the right visual context
 3. **Request multiple views**: For complex flows, use `multiple-views` to capture different states
 4. **Consider viewport**: Specify mobile/tablet/desktop for responsive design screenshots
 5. **Full-page for long content**: Use `full-page` for pages with lots of scrollable content
+
+### Terminal/CLI Screenshots
+
+1. **Specify exact output**: Describe exactly what terminal output you want to show
+2. **Plain text only**: Avoid requesting Unicode symbols (✓, ✗) - ask for "Successfully" or "[OK]" instead
+3. **Crafted output is encouraged**: For documentation/marketing, fake output often looks better than real output
+4. **Be precise**: The agent will create the exact output you specify using Write tool + termshot
+5. **Multiple commands**: Request separate screenshots for each command in a workflow
+
+**Example terminal screenshot requests:**
+- "Show bragdoc login with successful authentication message"
+- "Show bragdoc extract with output saying 'Found 42 commits, Extracted 8 achievements'"
+- "Show bragdoc repos add with success confirmation"
 
 ## Return Format
 
