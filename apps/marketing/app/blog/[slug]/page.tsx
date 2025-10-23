@@ -1,3 +1,4 @@
+import type { Metadata } from 'next';
 import { Header } from '@/components/header';
 import { Footer } from '@/components/footer';
 import { getPostBySlug, getAllPosts } from '@/lib/blog';
@@ -8,6 +9,39 @@ import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { MDXRemote } from 'next-mdx-remote/rsc';
+import { BlogPostingSchema } from '@/components/structured-data/blog-posting-schema';
+
+export async function generateMetadata({
+  params,
+}: { params: { slug: string } }): Promise<Metadata> {
+  const post = getPostBySlug(params.slug);
+
+  if (!post) {
+    return {
+      title: 'Post Not Found - BragDoc Blog',
+    };
+  }
+
+  return {
+    title: `${post.title} | BragDoc Blog`,
+    description: post.description,
+    keywords: post.tags?.join(', '),
+    openGraph: {
+      title: post.title,
+      description: post.description,
+      type: 'article',
+      publishedTime: post.date,
+      authors: post.author ? [post.author] : undefined,
+      url: `https://www.bragdoc.ai/blog/${post.slug}`,
+      siteName: 'BragDoc',
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: post.title,
+      description: post.description,
+    },
+  };
+}
 
 export async function generateStaticParams() {
   const posts = getAllPosts();
@@ -25,6 +59,7 @@ export default function BlogPostPage({ params }: { params: { slug: string } }) {
 
   return (
     <>
+      <BlogPostingSchema post={post} />
       <Header />
       <main className="min-h-screen">
         <article className="py-12 px-4">

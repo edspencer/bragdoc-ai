@@ -3,8 +3,7 @@ export function WhyItMattersHero() {
     <section className="py-20 px-4 sm:px-6 lg:px-8 bg-gradient-to-b from-primary/5 to-background">
       <div className="container mx-auto max-w-4xl text-center space-y-6">
         <h1 className="text-5xl sm:text-6xl font-bold text-balance leading-tight">
-          You've Heard It Before —{' '}
-          <span className="text-primary">"Keep a Brag Doc."</span>
+          Why Achievement Tracking Matters for Your Career
         </h1>
         <p className="text-xl sm:text-2xl text-muted-foreground leading-relaxed max-w-3xl mx-auto">
           Experts are right. But between deadlines, code reviews, and stand-ups,{' '}

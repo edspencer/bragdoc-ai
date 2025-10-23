@@ -1,3 +1,4 @@
+import type { Metadata } from 'next';
 import { Header } from '@/components/header';
 import { Footer } from '@/components/footer';
 import { PrivacyHeader } from '@/components/privacy/privacy-header';
@@ -11,6 +12,17 @@ import { SecurityMeasures } from '@/components/privacy/security-measures';
 import { OpenSourceTransparency } from '@/components/privacy/open-source-transparency';
 import { Compliance } from '@/components/privacy/compliance';
 import { PrivacyCta } from '@/components/privacy/privacy-cta';
+
+export const metadata: Metadata = {
+  title: 'BragDoc Privacy: Your Code Stays Local, Zero-Knowledge Architecture',
+  description:
+    'BragDoc privacy-first architecture: Your code never leaves your machine, CLI runs locally, optional self-hosting, full data export anytime. Learn how we protect your data.',
+  keywords:
+    'bragdoc privacy, is bragdoc safe, local code analysis, privacy-first achievement tracking',
+  alternates: {
+    canonical: '/privacy',
+  },
+};
 
 export default function PrivacyPage() {
   return (

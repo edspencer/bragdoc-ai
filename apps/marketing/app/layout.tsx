@@ -8,6 +8,7 @@ import './globals.css';
 const geist = Geist({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
+  metadataBase: new URL('https://www.bragdoc.ai'),
   title: "BragDoc - Never Forget What You've Accomplished",
   description:
     'Automatically track your work achievements from git commits. Always be ready for standups, 1-on-1s, and performance reviews.',

@@ -130,7 +130,16 @@ brag-ai/
 │   │   └── __tests__/   # Test files
 │   │
 │   ├── marketing/       # Marketing website (separate Next.js app)
-│   │   └── ...
+│   │   ├── app/         # App Router pages
+│   │   │   ├── sitemap.ts          # Dynamic sitemap generation
+│   │   │   └── [pages]/page.tsx    # Individual pages with metadata
+│   │   ├── components/
+│   │   │   └── structured-data/    # Schema.org JSON-LD components
+│   │   ├── lib/         # Utilities and content
+│   │   ├── public/
+│   │   │   └── robots.txt          # Search engine crawler directives
+│   │   └── docs/
+│   │       └── SEO.md               # SEO maintenance guide
 │   │
 │   └── marketing2/      # Marketing v2 (in development)
 │       └── ...

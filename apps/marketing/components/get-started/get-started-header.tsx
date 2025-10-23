@@ -18,8 +18,7 @@ export function GetStartedHeader() {
           </Badge>
 
           <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight text-balance mb-6">
-            Get Started with BragDoc{' '}
-            <span className="text-primary">in 5 Minutes</span>
+            Get Started with BragDoc: Track Achievements in Minutes
           </h1>
 
           <p className="text-lg sm:text-xl text-muted-foreground text-balance leading-relaxed">

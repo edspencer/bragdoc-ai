@@ -594,8 +594,12 @@ export const config = {
 
 **Prior to Next.js 16**: This file was named `middleware.ts` with the same functionality.
 
+## SEO Patterns (Marketing Site)
+
+For comprehensive SEO documentation including metadata patterns, schema.org structured data, sitemap configuration, image optimization, and testing procedures, see **[seo.md](./seo.md)**.
+
 ---
 
-**Last Updated:** 2025-10-23 (Next.js 16 upgrade)
+**Last Updated:** 2025-10-23 (Next.js 16 upgrade, SEO patterns moved to seo.md)
 **Next.js:** 16.0.0
 **React:** 19.2.0
