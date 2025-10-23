@@ -28,6 +28,10 @@ Your task is to use the details in the spec file, read and understand any conten
 
 IMPORTANT: Our PLAN.md documents follow very strict plan requirements, as detailed in .claude/docs/processes/plan-requirements.md. Read that file very carefully and adhere strictly to its guidance.
 
+**CRITICAL REQUIREMENTS FROM plan-requirements.md:**
+1. **Documentation Manager Consultation**: After drafting the initial plan but BEFORE using `/improve-plan`, you MUST consult the documentation-manager agent to identify which documentation files in `.claude/docs/tech/` and `.claude/docs/user/` need updates. Include their specific guidance in your plan's Documentation section.
+2. **After-Action Report Phase**: Every plan MUST include a final phase for submitting an after-action report to the process-manager agent. See plan-requirements.md for the exact structure required.
+
 ### Separate Test Plan Requirements
 
 Most plans you will be asked to make will involve some level of testing. You should create a separate TEST_PLAN.md file in the same directory as the spec file ($1). The TEST_PLAN.md file should contain a thorough plan for testing the specification, following any additional instructions outlined in the spec file.

@@ -139,8 +139,11 @@ Agent Maker may also be asked to update existing agents, which it should be happ
 
 ## Marketing Site Manager
 
-The marketing site manager is responsible for maintaining the marketing site for the product. 
+The marketing site manager is responsible for maintaining the marketing site for the product. It should be consulted as part of any plan that's made for any feature development, in case anything on the marketing site needs to be updated. So at the planning stage it should be consulted about whether any changes should be put into the plan, and then during the actual implementation stage - either via the implement SlashCommand or via the plan-executor agent - it should be asked to update the marketing site. It should itself use the /implement SlashCommand during its implementation.
 
+The Marketing Site Manager may also be interacted with directly sometimes to do updates to the site - e.g. not an update that's part of a PLAN.md task. It should still be given full awareness of the .claude/docs/ directory like all the other agents.
+
+The marketing site manager should feel free to use the screenshotter agent to take whatever screenshots it needs to update the marketing site. It should tell the screenshotter agent what it needs to do, and the screenshotter agent should do its best to provide high-quality screenshots that are professional and well-composed. The marketing site manager may specify specific sizes for the screenshots, and should always perform a visual analysis of the proposed screenshot before accepting it, telling the screenshotter to try again if necessary (ideally with guidance on what to do differently). It should place screenshots into the correct place in the site and use next/image to ensure they are optimized for the web.
 
 ## Screenshotter
 
