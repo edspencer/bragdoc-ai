@@ -49,7 +49,6 @@ export function WelcomeCard({
             <CardContent className="flex flex-col items-center justify-center gap-6">
               {image && (
                 <div className="w-full overflow-hidden rounded-lg aspect-video">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
                     src={image}
                     alt={title}
