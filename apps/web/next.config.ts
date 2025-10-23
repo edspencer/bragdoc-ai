@@ -9,6 +9,7 @@ const baseConfig: NextConfig = {
   distDir: process.env.NEXT_DIST_DIR || '.next',
   pageExtensions: ['ts', 'tsx', 'js', 'jsx', 'md', 'mdx'],
   serverExternalPackages: ['puppeteer-core', '@sparticuz/chromium'],
+  allowedDevOrigins: ['ngrok.edspencer.net'],
   images: {
     remotePatterns: [
       {
@@ -34,5 +35,5 @@ const baseConfig: NextConfig = {
   },
 };
 
-const config: NextConfig = withMDXConfig(baseConfig);
+const config = withMDXConfig(baseConfig as any) as NextConfig;
 export default config;

@@ -28,10 +28,11 @@ BragDoc is a full-stack TypeScript application built as a monorepo that combines
 
 ### Frontend/Web Framework
 ```
-Next.js 15.1.8
-├── React 19.0.0 (Server Components)
+Next.js 16.0.0
+├── React 19.2.0 (Server Components)
 ├── App Router (file-based routing)
 ├── Server Actions (mutations)
+├── Turbopack (default bundler)
 └── Edge Runtime compatible
 ```
 
@@ -211,8 +212,8 @@ packages/database
 ```json
 {
   "dependencies": {
-    "next": "15.1.8",
-    "react": "19.0.0",
+    "next": "16.0.0",
+    "react": "19.2.0",
     "next-auth": "5.0.0-beta.25",
     "ai": "5.0.0",
     "@ai-sdk/openai": "^1.0.10",
@@ -265,7 +266,7 @@ packages/database
 ```
 User Request
     ↓
-Next.js Middleware (auth check)
+Next.js Proxy (auth check)
     ↓
     ├─→ Server Component (data fetching)
     │       ↓
@@ -502,9 +503,10 @@ Vercel Edge Network
 
 ## Technology Decisions & Rationale
 
-### Why Next.js 15?
+### Why Next.js 16?
 - **Server Components**: Optimal performance, reduced bundle size
 - **App Router**: Modern file-based routing, layouts, nested routes
+- **Turbopack**: 2-5× faster builds as default bundler
 - **Edge Runtime**: Global low-latency via Cloudflare/Vercel
 - **Built-in API**: No need for separate backend framework
 
@@ -556,5 +558,5 @@ Vercel Edge Network
 
 ---
 
-**Last Updated**: 2025-10-21
+**Last Updated**: 2025-10-23 (Next.js 16 upgrade)
 **Next Review**: When major architectural changes are planned

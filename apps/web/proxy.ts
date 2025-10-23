@@ -1,6 +1,5 @@
 import NextAuth from 'next-auth';
 import { authConfig } from '@/app/(auth)/auth.config';
-
 import type { NextMiddleware } from 'next/server';
 
 const { auth } = NextAuth(authConfig);
