@@ -2,9 +2,13 @@
 
 import { signIn } from 'next-auth/react';
 import { Github } from 'lucide-react';
+import Link from 'next/link';
 import { Button } from './ui/button';
 
 export function SocialAuthButtons() {
+  const marketingSiteHost =
+    process.env.NEXT_PUBLIC_MARKETING_SITE_HOST || 'https://www.bragdoc.ai';
+
   return (
     <div className="flex flex-col gap-3 w-full">
       <div className="relative">
@@ -17,6 +21,27 @@ export function SocialAuthButtons() {
           </span>
         </div>
       </div>
+
+      <p className="text-sm text-center text-gray-600 dark:text-zinc-400 px-2 mt-4 mb-3">
+        By continuing with Google or GitHub, you agree to our{' '}
+        <Link
+          href={`${marketingSiteHost}/terms`}
+          className="text-gray-800 dark:text-zinc-200 underline"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          Terms of Service
+        </Link>{' '}
+        and{' '}
+        <Link
+          href={`${marketingSiteHost}/privacy-policy`}
+          className="text-gray-800 dark:text-zinc-200 underline"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          Privacy Policy
+        </Link>
+      </p>
 
       <div className="grid grid-cols-2 gap-3">
         <Button

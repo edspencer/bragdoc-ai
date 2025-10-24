@@ -555,6 +555,128 @@ export default async function Page() {
 - Link to dashboard or CLI instructions
 - Create first achievement button
 
+## Authentication Components
+
+### OAuth ToS Acceptance Pattern
+
+BragDoc displays Terms of Service acceptance text above OAuth buttons to inform users that signing in constitutes acceptance of the Terms of Service and Privacy Policy. This is the industry-standard "implicit acceptance" pattern used by major OAuth implementations.
+
+**File:** `apps/web/components/social-auth-buttons.tsx`
+
+```tsx
+'use client';
+
+import { signIn } from 'next-auth/react';
+import Link from 'next/link';
+import { Button } from '@/components/ui/button';
+
+export function SocialAuthButtons() {
+  const marketingSiteHost = process.env.NEXT_PUBLIC_MARKETING_SITE_HOST || 'https://www.bragdoc.ai';
+
+  return (
+    <div className="flex flex-col gap-3 w-full">
+      {/* Divider */}
+      <div className="relative">
+        <div className="absolute inset-0 flex items-center">
+          <span className="w-full border-t" />
+        </div>
+        <div className="relative flex justify-center text-xs uppercase">
+          <span className="bg-background px-2 text-muted-foreground">
+            Or continue with
+          </span>
+        </div>
+      </div>
+
+      {/* ToS acceptance text */}
+      <p className="text-sm text-center text-gray-600 dark:text-zinc-400 px-2">
+        By continuing with Google or GitHub, you agree to our{' '}
+        <Link
+          href={`${marketingSiteHost}/terms`}
+          className="text-gray-800 dark:text-zinc-200 underline"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          Terms of Service
+        </Link>{' '}
+        and{' '}
+        <Link
+          href={`${marketingSiteHost}/privacy-policy`}
+          className="text-gray-800 dark:text-zinc-200 underline"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          Privacy Policy
+        </Link>
+      </p>
+
+      {/* OAuth buttons */}
+      <div className="grid grid-cols-2 gap-3">
+        <Button
+          variant="outline"
+          onClick={() => signIn('google', { callbackUrl: '/dashboard' })}
+        >
+          <svg className="mr-2 h-4 w-4" viewBox="0 0 24 24">
+            {/* Google icon SVG */}
+          </svg>
+          Google
+        </Button>
+        <Button
+          variant="outline"
+          onClick={() => signIn('github', { callbackUrl: '/dashboard' })}
+        >
+          <svg className="mr-2 h-4 w-4" viewBox="0 0 24 24">
+            {/* GitHub icon SVG */}
+          </svg>
+          GitHub
+        </Button>
+      </div>
+    </div>
+  );
+}
+```
+
+**Key Features:**
+- **Client Component**: Uses `'use client'` directive for onClick handlers
+- **ToS Acceptance Text**: Displayed between divider and buttons with proper spacing
+- **Clickable Links**: Terms and Privacy Policy links open in new tabs
+- **Styling Conventions**:
+  - Text color: `text-gray-600 dark:text-zinc-400` for main text
+  - Link color: `text-gray-800 dark:text-zinc-200` with `underline`
+  - Centered: `text-center` with horizontal padding `px-2`
+  - Spacing: `mt-4 mb-3` separates from buttons
+- **Environment Variable**: Uses `NEXT_PUBLIC_MARKETING_SITE_HOST` for link base URL
+- **Accessibility**: `target="_blank"` with `rel="noopener noreferrer"` for security
+- **Dark Mode**: Supports both light and dark theme variants
+
+**Legal Text Styling Pattern:**
+
+When displaying legal text with links in components:
+1. Use muted text colors for main text (`text-gray-600 dark:text-zinc-400`)
+2. Use darker colors for links (`text-gray-800 dark:text-zinc-200`)
+3. Always include `underline` on links for visibility
+4. Always use `target="_blank"` and `rel="noopener noreferrer"` for external links
+5. Center text when it's a standalone legal notice
+6. Provide adequate spacing from interactive elements
+
+**Usage in Pages:**
+
+```tsx
+// apps/web/app/(auth)/login/page.tsx
+import { SocialAuthButtons } from '@/components/social-auth-buttons';
+
+export default function LoginPage() {
+  return (
+    <div>
+      {/* Email/password form */}
+
+      <SocialAuthButtons />
+    </div>
+  );
+}
+```
+
+This component is used on both `/login` and `/register` pages, ensuring consistent ToS acceptance messaging across all OAuth flows.
+
 ## Middleware/Proxy Pattern
 
 ### Authentication Proxy

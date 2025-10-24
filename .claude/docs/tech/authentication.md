@@ -494,8 +494,189 @@ const userId = session?.user?.id;
 const userLevel = session?.user?.level;
 ```
 
+## OAuth Terms of Service Compliance
+
+### Overview
+
+BragDoc implements Terms of Service compliance for OAuth-based signups using the **implicit acceptance pattern**, which is the industry standard approach used by major OAuth implementations (Google, Microsoft, Slack, Notion, Linear).
+
+### Implementation Approach
+
+**Implicit Acceptance Text:**
+- Users are presented with ToS acceptance text above OAuth buttons
+- By clicking the OAuth button, users take affirmative action after being informed of the terms
+- No extra pages or modals that disrupt the OAuth flow
+- Legal sufficiency: Users have been presented with terms and taken affirmative action
+
+**Text Display:**
+```
+By continuing with Google or GitHub, you agree to our Terms of Service and Privacy Policy
+```
+
+- Displayed prominently above OAuth buttons on both `/login` and `/register` pages
+- Links to Terms of Service and Privacy Policy open in new tabs
+- Visually distinct styling for easy readability
+- Supports both light and dark modes
+
+### Automatic ToS Acceptance
+
+#### createUser Event Handler
+
+OAuth signups (and all new user signups) automatically have their `tosAcceptedAt` timestamp set in the `createUser` event handler.
+
+**File:** `apps/web/app/(auth)/auth.ts`
+
+```typescript
+events: {
+  async createUser({ user }) {
+    const { email } = user;
+
+    if (email && user.id) {
+      console.log(`Sending welcome email to ${email}`);
+
+      // Track user registration (OAuth providers)
+      try {
+        captureServerEvent(user.id, 'user_registered', {
+          method: user.provider || 'unknown',
+          email: email,
+          user_id: user.id,
+        });
+
+        // Identify user in PostHog
+        identifyUser(user.id, {
+          email: email,
+          name: user.name || email.split('@')[0],
+        });
+
+        // Set tosAcceptedAt for all new signups
+        await db
+          .update(userTable)
+          .set({ tosAcceptedAt: new Date() })
+          .where(eq(userTable.id, user.id));
+
+        // Track ToS acceptance event
+        await captureServerEvent(user.id, 'tos_accepted', {
+          method: user.provider || 'credentials',
+          timestamp: new Date().toISOString(),
+        });
+
+      } catch (error) {
+        console.error('Failed to track registration event:', error);
+        // Don't fail registration if tracking fails
+      }
+
+      // Send welcome email
+      await sendWelcomeEmail({ to: email });
+    }
+  },
+}
+```
+
+**Key Points:**
+- The `createUser` event fires **only for new users**, regardless of signup method (OAuth or email/password)
+- This eliminates the need to check if a user is new or existing
+- Setting `tosAcceptedAt` happens after PostHog tracking/identification
+- Setting `tosAcceptedAt` happens before sending the welcome email
+- ToS acceptance is tracked in PostHog with `tos_accepted` event
+- Error handling ensures registration never fails due to ToS tracking issues
+
+### Database Field
+
+**Field:** `tosAcceptedAt` on `User` table
+- Type: `timestamp('tos_accepted_at')`
+- Nullable: Yes (NULL for users who signed up before this feature)
+- Set automatically for all new signups (OAuth and email/password)
+- Set manually via checkbox acceptance for email/password signups (backup mechanism)
+
+### ToS Text Component
+
+**File:** `apps/web/components/social-auth-buttons.tsx`
+
+```tsx
+export function SocialAuthButtons() {
+  const marketingSiteHost = process.env.NEXT_PUBLIC_MARKETING_SITE_HOST || 'https://www.bragdoc.ai';
+
+  return (
+    <div className="flex flex-col gap-3 w-full">
+      {/* Divider */}
+
+      {/* ToS acceptance text */}
+      <p className="text-sm text-center text-gray-600 dark:text-zinc-400 px-2">
+        By continuing with Google or GitHub, you agree to our{' '}
+        <Link
+          href={`${marketingSiteHost}/terms`}
+          className="text-gray-800 dark:text-zinc-200 underline"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          Terms of Service
+        </Link>{' '}
+        and{' '}
+        <Link
+          href={`${marketingSiteHost}/privacy-policy`}
+          className="text-gray-800 dark:text-zinc-200 underline"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          Privacy Policy
+        </Link>
+      </p>
+
+      {/* OAuth buttons */}
+    </div>
+  );
+}
+```
+
+### Analytics Tracking
+
+**Event:** `tos_accepted`
+
+**Properties:**
+- `method` - OAuth provider (`'google'`, `'github'`) or `'credentials'` for email/password
+- `timestamp` - ISO timestamp of acceptance
+
+**Usage:**
+```typescript
+await captureServerEvent(user.id, 'tos_accepted', {
+  method: user.provider || 'credentials',
+  timestamp: new Date().toISOString(),
+});
+```
+
+This event is tracked server-side in the `createUser` event handler, ensuring accurate capture of ToS acceptance.
+
+### Legal Compliance
+
+**Why This Approach is Legally Sufficient:**
+1. **Informed Consent**: Users see the ToS acceptance text before clicking OAuth button
+2. **Affirmative Action**: Clicking the OAuth button is an affirmative action
+3. **Industry Standard**: Pattern used by major companies (Google, Microsoft, Slack, Linear)
+4. **Timestamped**: `tosAcceptedAt` field provides audit trail
+5. **Link Access**: Users can review full terms before proceeding
+
+**Existing Users:**
+- Users who signed up before this feature have `tosAcceptedAt = NULL`
+- This is acceptable - they signed up under previous terms
+- Only new signups (after feature deployment) have `tosAcceptedAt` populated
+
+**Future Options:**
+If more explicit consent is needed in the future:
+- Post-OAuth acceptance page (redirect to ToS page after OAuth callback)
+- Modal on first login for existing users
+- Email campaign for retroactive acceptance
+- ToS version tracking for compliance auditing
+
+### Environment Variables
+
+```env
+NEXT_PUBLIC_MARKETING_SITE_HOST=https://www.bragdoc.ai
+```
+
+Used for linking to Terms of Service and Privacy Policy on the marketing site.
+
 ---
 
-**Last Updated:** 2025-10-21
+**Last Updated:** 2025-10-24 (OAuth ToS compliance implementation)
 **NextAuth Version:** 5.0.0-beta.25
 **JWT Expiration:** 30 days (CLI tokens)
