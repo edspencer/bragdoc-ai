@@ -3,6 +3,7 @@ import { getAuthUser } from 'lib/getAuthUser';
 import { getCompaniesByUserId, createCompany } from '@/database/queries';
 import { z } from 'zod/v3';
 import { db } from '@/database/index';
+import { captureServerEvent } from '@/lib/posthog-server';
 
 // Validation schema for creating a company
 const createCompanySchema = z.object({
@@ -54,6 +55,16 @@ export async function POST(request: NextRequest) {
       },
       db,
     );
+
+    // Track company creation
+    try {
+      await captureServerEvent(auth.user.id, 'company_created', {
+        user_id: auth.user.id,
+      });
+    } catch (error) {
+      console.error('Failed to track company creation:', error);
+      // Don't fail the request if tracking fails
+    }
 
     return NextResponse.json(company, { status: 201 });
   } catch (error) {

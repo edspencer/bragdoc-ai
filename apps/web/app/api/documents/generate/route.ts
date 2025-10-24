@@ -5,6 +5,7 @@ import { eq } from 'drizzle-orm';
 import { z } from 'zod/v3';
 import { fetchRenderExecute } from 'lib/ai/generate-document';
 import { generateUUID } from '@/lib/utils';
+import { captureServerEvent } from '@/lib/posthog-server';
 
 const generateSchema = z.object({
   achievementIds: z.array(z.string().uuid()),
@@ -122,6 +123,18 @@ export async function POST(request: Request) {
           updatedAt: new Date(),
         })
         .returning();
+
+      // Track document generation
+      try {
+        await captureServerEvent(session.user.id, 'document_generated', {
+          type,
+          achievement_count: achievementIds.length,
+          user_id: session.user.id,
+        });
+      } catch (error) {
+        console.error('Failed to track document generation:', error);
+        // Don't fail the request if tracking fails
+      }
 
       return Response.json({ document: newDocument });
     } catch (insertError) {

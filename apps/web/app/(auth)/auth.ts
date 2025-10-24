@@ -27,6 +27,7 @@ import {
 } from '@/database/schema';
 import { sendWelcomeEmail } from '@/lib/email/client';
 import { cleanupDemoAccountData } from '@/lib/demo-data-cleanup';
+import { captureServerEvent, identifyUser } from '@/lib/posthog-server';
 
 declare module 'next-auth' {
   interface User {
@@ -95,7 +96,6 @@ export const {
           provider: 'google',
           providerId: profile.sub,
           preferences: {
-            hasSeenWelcome: false,
             language: profile.locale || 'en',
           },
         };
@@ -113,7 +113,6 @@ export const {
           provider: 'github',
           providerId: profile.id.toString(),
           preferences: {
-            hasSeenWelcome: false,
             language: 'en', // GitHub API doesn't provide language preference
           },
         };
@@ -129,23 +128,32 @@ export const {
         return {
           ...users[0],
           provider: 'credentials',
-          preferences: {
-            hasSeenWelcome: false,
-            language: 'en',
-          },
         } as any;
       },
     }),
   ],
   callbacks: {
     async signIn({ user: authUser, account }) {
+      // Track login event
+      try {
+        if (authUser.id && account) {
+          await captureServerEvent(authUser.id, 'user_logged_in', {
+            method: account.provider,
+            email: authUser.email,
+            user_id: authUser.id,
+          });
+        }
+      } catch (error) {
+        console.error('Failed to track login event:', error);
+        // Don't fail login if tracking fails
+      }
+
       if (account?.provider === 'github' && account.access_token) {
         await db
           .update(user)
           .set({
             githubAccessToken: account.access_token,
             preferences: authUser.preferences || {
-              hasSeenWelcome: false,
               language: 'en',
             },
           })
@@ -182,8 +190,26 @@ export const {
     createUser({ user }) {
       const { email } = user;
 
-      if (email) {
+      if (email && user.id) {
         console.log(`Sending welcome email to ${email}`);
+
+        // Track user registration (OAuth providers)
+        try {
+          captureServerEvent(user.id, 'user_registered', {
+            method: user.provider || 'unknown',
+            email: email,
+            user_id: user.id,
+          });
+
+          // Identify user in PostHog
+          identifyUser(user.id, {
+            email: email,
+            name: user.name || email.split('@')[0],
+          });
+        } catch (error) {
+          console.error('Failed to track registration event:', error);
+          // Don't fail registration if tracking fails
+        }
 
         try {
           //this is an async call, but we don't want to block on it
@@ -200,10 +226,22 @@ export const {
       }
     },
     async signOut(params) {
-      // Check if this is a demo account
-      // NextAuth can pass either token (for JWT strategy) or session
+      // Track logout event
       const token = 'token' in params ? params.token : null;
 
+      if (token?.id) {
+        try {
+          await captureServerEvent(token.id as string, 'user_logged_out', {
+            user_id: token.id,
+          });
+        } catch (error) {
+          console.error('Failed to track logout event:', error);
+          // Don't fail logout if tracking fails
+        }
+      }
+
+      // Check if this is a demo account
+      // NextAuth can pass either token (for JWT strategy) or session
       if (token?.id && token?.level === 'demo') {
         try {
           await cleanupDemoAccountData(token.id as string);

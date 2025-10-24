@@ -57,7 +57,6 @@ export async function createDemoAccount(options?: {
         emailVerified: new Date(),
         provider: 'demo',
         preferences: {
-          hasSeenWelcome: false,
           language: 'en',
         },
       })

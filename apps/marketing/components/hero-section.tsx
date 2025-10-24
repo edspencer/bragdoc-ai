@@ -10,8 +10,11 @@ import {
   PopoverTrigger,
 } from '@/components/ui/popover';
 import { useState } from 'react';
+import { useTracking } from '@/hooks/use-posthog';
 
 export function HeroSection() {
+  const { trackCTAClick } = useTracking();
+
   const sampleAchievements = [
     {
       title: 'Implemented real-time collaboration features',
@@ -66,7 +69,18 @@ export function HeroSection() {
 
             <div className="flex flex-col sm:flex-row gap-4">
               <Button size="lg" className="text-base h-12 px-8" asChild>
-                <a href="https://app.bragdoc.ai/login">Start Tracking Free</a>
+                <a
+                  href="https://app.bragdoc.ai/login"
+                  onClick={() =>
+                    trackCTAClick(
+                      'homepage_hero',
+                      'Start Tracking Free',
+                      'https://app.bragdoc.ai/login',
+                    )
+                  }
+                >
+                  Start Tracking Free
+                </a>
               </Button>
               <Button
                 size="lg"
@@ -74,7 +88,18 @@ export function HeroSection() {
                 className="text-base h-12 px-8 bg-transparent"
                 asChild
               >
-                <a href="/how-it-works">See How It Works</a>
+                <a
+                  href="/how-it-works"
+                  onClick={() =>
+                    trackCTAClick(
+                      'homepage_hero',
+                      'See How It Works',
+                      '/how-it-works',
+                    )
+                  }
+                >
+                  See How It Works
+                </a>
               </Button>
             </div>
 

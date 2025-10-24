@@ -35,7 +35,6 @@ beforeAll(async () => {
         email: `test-user-with-instructions-${testSuiteId}@example.com`,
         provider: 'credentials',
         preferences: {
-          hasSeenWelcome: false,
           language: 'en',
           documentInstructions: 'Always include impact metrics',
         },
@@ -48,7 +47,6 @@ beforeAll(async () => {
         email: `test-user-without-instructions-${testSuiteId}@example.com`,
         provider: 'credentials',
         preferences: {
-          hasSeenWelcome: false,
           language: 'en',
         },
       })

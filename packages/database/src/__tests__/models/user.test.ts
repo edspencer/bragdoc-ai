@@ -12,7 +12,6 @@ describe('User Model', () => {
     renewalPeriod: 'monthly',
     status: 'active',
     preferences: {
-      hasSeenWelcome: false,
       language: 'en',
     },
     createdAt: new Date(),
@@ -24,6 +23,7 @@ describe('User Model', () => {
     image: null,
     password: null,
     stripeCustomerId: null,
+    tosAcceptedAt: null,
   };
 
   describe('isActiveSubscription', () => {

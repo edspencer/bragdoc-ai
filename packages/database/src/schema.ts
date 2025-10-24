@@ -19,7 +19,6 @@ import {
 } from 'drizzle-orm/pg-core';
 
 export interface UserPreferences {
-  hasSeenWelcome: boolean;
   language: string;
   documentInstructions?: string;
 }
@@ -64,7 +63,6 @@ export const user = pgTable('User', {
   providerId: varchar('provider_id', { length: 256 }),
   githubAccessToken: varchar('github_access_token', { length: 256 }),
   preferences: jsonb('preferences').$type<UserPreferences>().notNull().default({
-    hasSeenWelcome: false,
     language: 'en',
     documentInstructions: '',
   }),
@@ -80,6 +78,7 @@ export const user = pgTable('User', {
 
   status: userStatusEnum('status').notNull().default('active'),
   stripeCustomerId: varchar('stripe_customer_id', { length: 256 }),
+  tosAcceptedAt: timestamp('tos_accepted_at'),
 });
 
 export type User = InferSelectModel<typeof user>;

@@ -1,8 +1,8 @@
 import type React from 'react';
 import type { Metadata } from 'next';
 import { Geist } from 'next/font/google';
-import { Analytics } from '@vercel/analytics/next';
 import { ThemeProvider } from '@/components/theme-provider';
+import { PHProvider } from '@/components/posthog-provider';
 import './globals.css';
 
 const geist = Geist({ subsets: ['latin'] });
@@ -29,9 +29,8 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          {children}
+          <PHProvider>{children}</PHProvider>
         </ThemeProvider>
-        <Analytics />
       </body>
     </html>
   );
