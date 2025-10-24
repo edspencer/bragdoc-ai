@@ -195,7 +195,22 @@ Key dependencies include:
 
 **Location**: `apps/marketing/`
 
-Marketing and landing pages with similar Next.js structure but focused on public content.
+Marketing and landing pages built with Next.js 16 (upgraded from 15.5.6).
+
+**Key Differences from Main App:**
+- No authentication or middleware
+- No API routes or server actions
+- Pure static content (MDX blog posts, marketing pages)
+- Deployed to Cloudflare Workers via OpenNext
+- Turbopack bundler (default, 2-5× faster builds than webpack)
+- Simpler configuration (no middleware, no database)
+
+**Configuration:**
+- Uses `next.config.mjs` (JavaScript config)
+- MDX support via `@next/mdx`
+- Image optimization with AVIF and WebP formats
+- Output mode: `standalone` (for Cloudflare)
+- Build time: ~5s (much faster than web app)
 
 #### SEO Implementation
 

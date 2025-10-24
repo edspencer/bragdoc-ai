@@ -15,10 +15,12 @@ pnpm dev
 
 # Run specific app
 pnpm dev:web          # Port 3000
-pnpm dev:marketing    # Port varies
+pnpm dev:marketing    # Port 3001
 ```
 
-**Dev Server Logs:** `./apps/web/.next-dev.log`
+**Dev Server Logs:**
+- Web app: `./apps/web/.next-dev.log`
+- Marketing app: No persistent log file (uses stdio)
 
 ## Build Process
 
@@ -62,7 +64,12 @@ pnpm build
 
 # Build specific app
 pnpm --filter=@bragdoc/web build
+pnpm --filter=@bragdoc/marketing build
 pnpm --filter=@bragdoc/cli build
+
+# Convenient aliases
+pnpm build:web
+pnpm build:marketing
 
 # Type checking
 pnpm --filter=@bragdoc/web exec tsc --noEmit
@@ -90,7 +97,9 @@ pnpm db:studio
 
 ## Cloudflare Workers (Primary)
 
-### Setup
+### Web App Deployment
+
+#### Setup
 
 1. **Install Wrangler**
    ```bash
@@ -154,6 +163,49 @@ if (process.env.NODE_ENV === 'development') {
   setupDevPlatform();
 }
 ```
+
+### Marketing App Deployment
+
+The marketing app is also deployed to Cloudflare Workers but with a simpler configuration.
+
+**Key Differences from Web App:**
+- No authentication or middleware
+- No API routes or server actions
+- Pure static content generation
+- No database dependencies
+- Faster builds (~5s vs ~20s for web app)
+
+#### Build & Preview
+
+```bash
+cd apps/marketing
+
+# Build for Cloudflare
+pnpm build
+
+# Preview locally with Cloudflare Workers runtime
+pnpm preview
+```
+
+**Build Process:**
+1. Next.js 16 build with Turbopack (2-3s compilation)
+2. OpenNext Cloudflare adapter bundles for Workers
+3. Static assets and server functions packaged
+4. R2 cache populated (for local preview)
+
+**Performance:**
+- Build time: ~5s (much faster than web app due to simpler architecture)
+- 28 static/SSG routes generated
+- Turbopack: 2.6× faster than webpack in Next.js 15
+
+#### Deploy
+
+```bash
+cd apps/marketing
+pnpm deploy
+```
+
+**Note:** Marketing app uses `opennextjs-cloudflare` package for Cloudflare Workers compatibility with Next.js 16.
 
 ## Vercel Deployment
 

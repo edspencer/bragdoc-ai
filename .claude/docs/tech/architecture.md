@@ -36,11 +36,23 @@ Next.js 16.0.0
 └── Edge Runtime compatible
 ```
 
+**Applications:**
+- **apps/web**: Main application (Next.js 16.0.0)
+  - Full-featured app with authentication, API routes, database
+  - Deployed to Cloudflare Workers
+  - Middleware (proxy.ts) for auth
+
+- **apps/marketing**: Marketing website (Next.js 16.0.0)
+  - Static content site with MDX blog posts
+  - No authentication or API routes
+  - Deployed to Cloudflare Workers via OpenNext
+  - Simplified configuration (no middleware)
+
 **Key Features:**
 - Server Components by default (optimal performance)
 - Client Components only when interactivity needed
 - Streaming with Suspense boundaries
-- Built-in API routes
+- Built-in API routes (web app only)
 
 ### Backend/Runtime
 ```
