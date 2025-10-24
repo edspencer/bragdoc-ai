@@ -1216,6 +1216,217 @@ export function getRepositoryInfo(path = '.'): RepositoryInfo {
 
 ---
 
+## Analytics
+
+### PostHog Integration
+
+BragDoc uses PostHog for privacy-first product analytics with GDPR-compliant cookieless tracking.
+
+**Marketing Site (`apps/marketing`):**
+- **Cookieless mode**: `persistence: 'memory'` - no cookies or localStorage
+- **No consent banner required**: Fully GDPR compliant without user consent
+- **Session-only tracking**: Analytics data not persisted between visits
+- **Automatic pageviews**: Tracks page navigation
+
+**Web App (`apps/web`):**
+- **Conditional persistence**: Memory-only before authentication, `localStorage+cookie` after login
+- **User identification**: Automatic `identify()` call on authentication with email and name
+- **Session-aware**: Reacts to NextAuth session changes
+- **Cross-domain tracking**: Same PostHog key as marketing site enables session attribution
+
+### Client-Side Tracking
+
+**Marketing Site Pattern:**
+
+```typescript
+// hooks/use-posthog.ts
+'use client';
+
+import { usePostHog } from 'posthog-js/react';
+
+export function useTracking() {
+  const posthog = usePostHog();
+
+  const trackCTAClick = (location: string, ctaText: string, destinationUrl: string) => {
+    posthog?.capture('marketing_cta_clicked', {
+      location,
+      cta_text: ctaText,
+      destination_url: destinationUrl,
+    });
+  };
+
+  return { trackCTAClick };
+}
+```
+
+**Usage:**
+```typescript
+'use client';
+
+import { useTracking } from '@/hooks/use-posthog';
+
+export function HeroCTA() {
+  const { trackCTAClick } = useTracking();
+
+  return (
+    <Button
+      onClick={() => trackCTAClick('homepage_hero', 'Get Started Free', '/register')}
+    >
+      Get Started Free
+    </Button>
+  );
+}
+```
+
+**Web App Pattern:**
+
+```typescript
+'use client';
+
+import { usePostHog } from 'posthog-js/react';
+
+export function FeatureButton() {
+  const posthog = usePostHog();
+
+  const handleClick = () => {
+    posthog?.capture('feature_used', {
+      feature_name: 'achievement_export',
+      source: 'dashboard',
+    });
+    // ... feature logic
+  };
+
+  return <button onClick={handleClick}>Export</button>;
+}
+```
+
+### Server-Side Tracking
+
+**Location**: `apps/web/lib/posthog-server.ts`
+
+**HTTP API Approach** (optimized for Cloudflare Workers):
+
+```typescript
+export async function captureServerEvent(
+  userId: string,
+  event: string,
+  properties?: Record<string, any>
+) {
+  try {
+    await fetch(
+      `${process.env.NEXT_PUBLIC_POSTHOG_HOST}/capture/`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          api_key: process.env.NEXT_PUBLIC_POSTHOG_KEY,
+          event,
+          properties: {
+            ...properties,
+            distinct_id: userId,
+          },
+          timestamp: new Date().toISOString(),
+        }),
+      }
+    );
+  } catch (error) {
+    console.error('PostHog error:', error);
+  }
+}
+```
+
+**Usage in API Routes:**
+
+```typescript
+import { captureServerEvent } from '@/lib/posthog-server';
+
+export async function POST(request: Request) {
+  const auth = await getAuthUser(request);
+  // ... create achievement
+
+  // Track first achievement
+  const [{ count: achievementCount }] = await db
+    .select({ count: count() })
+    .from(achievement)
+    .where(eq(achievement.userId, auth.user.id));
+
+  if (achievementCount === 1) {
+    await captureServerEvent(auth.user.id, 'first_achievement_created', {
+      source: 'manual',
+    });
+  }
+
+  return NextResponse.json(newAchievement);
+}
+```
+
+### Event Naming Conventions
+
+**Marketing Events:**
+- `marketing_cta_clicked` - CTA button/link clicks
+- `feature_explored` - Feature page interactions
+- `plan_comparison_interacted` - Pricing page engagement
+
+**Authentication Events:**
+- `user_signed_up` - New user registration
+- `user_logged_in` - User login
+
+**Feature Adoption Events:**
+- `first_achievement_created` - First achievement (any source)
+- `first_project_created` - First project
+- `first_report_generated` - First document generation
+
+**CLI Events:**
+- `cli_installed` - CLI authentication completed
+- `cli_extract_completed` - Achievement extraction via CLI
+
+### Environment Variables
+
+```bash
+# PostHog Analytics (same project for cross-domain tracking)
+NEXT_PUBLIC_POSTHOG_KEY=phc_your_key_here
+NEXT_PUBLIC_POSTHOG_HOST=https://app.posthog.com
+```
+
+**Important**: Both apps must use the same `NEXT_PUBLIC_POSTHOG_KEY` for cross-domain tracking.
+
+### Privacy & Compliance
+
+**GDPR Compliance:**
+- Marketing site: Cookieless mode (no consent banner needed)
+- Web app: No tracking before authentication
+- IP anonymization: PostHog default
+- No PII in event properties: Never include passwords, achievement content, or document text
+
+**Legal Pages:**
+- Privacy Policy at `/privacy-policy` discloses PostHog usage
+- Terms of Service at `/terms` requires acceptance
+- ToS acceptance tracked with `tosAcceptedAt` timestamp in database
+
+### Testing Analytics
+
+**Development:**
+- PostHog automatically enables debug mode in development
+- Check browser console for PostHog initialization messages
+
+**Browser DevTools:**
+1. Open Network tab, filter by "posthog"
+2. See POST requests to `/capture/` endpoint
+3. Inspect request payload for event data
+
+**PostHog Dashboard:**
+1. Navigate to Live Events
+2. See events appear within 30 seconds
+3. Verify event properties are correct
+
+**Why HTTP API Instead of posthog-node:**
+- **Cloudflare Workers**: Stateless isolates with no persistent process
+- **Immediate delivery**: No batching or flush cycles needed
+- **No shutdown lifecycle**: Each request completes independently
+- **Simpler**: No singleton management or cleanup
+
+---
+
 ## Build Commands
 
 ### Development

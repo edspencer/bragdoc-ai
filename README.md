@@ -160,6 +160,10 @@ Want to run your own instance? BragDoc is designed to be self-hosted.
    # LLM Provider
    OPENAI_API_KEY="sk-..."
 
+   # Analytics (PostHog)
+   NEXT_PUBLIC_POSTHOG_KEY="phc_xxx"
+   NEXT_PUBLIC_POSTHOG_HOST="https://app.posthog.com"
+
    # Email (optional)
    MAILGUN_API_KEY="your-key"
    MAILGUN_DOMAIN="mg.yourdomain.com"

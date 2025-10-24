@@ -117,6 +117,21 @@ Tailwind CSS v4.1.9
 - Semantic color tokens
 - Accessibility-first (Radix primitives)
 
+### Analytics
+```
+PostHog
+├── Client-side tracking (posthog-js v1.280.1)
+├── Server-side tracking (HTTP API)
+├── Cookieless mode (marketing site)
+└── Conditional persistence (web app)
+```
+
+**GDPR-Compliant Configuration:**
+- **Marketing Site**: Cookieless mode (persistence: 'memory', no cookies/localStorage)
+- **Web App**: Memory-only before auth, localStorage+cookie after authentication
+- **Server-side**: HTTP API approach optimized for Cloudflare Workers (immediate delivery)
+- **Cross-domain**: Same PostHog key for both apps enables session attribution
+
 ## Monorepo Structure
 
 ```
@@ -234,11 +249,13 @@ packages/database
     "@react-email/components": "0.5.7",
     "@react-email/render": "1.4.0",
     "mailgun.js": "^10.4.0",
-    "form-data": "^4.0.4"
+    "form-data": "^4.0.4",
+    "posthog-js": "^1.280.1"
   },
   "devDependencies": {
     "react-email": "4.3.1",
-    "@react-email/preview-server": "4.3.1"
+    "@react-email/preview-server": "4.3.1",
+    "posthog-node": "^5.10.3"
   }
 }
 ```
@@ -446,6 +463,7 @@ Cloudflare Edge Network
 └── Database: Neon (serverless PostgreSQL)
 
 External Services
+├── PostHog (analytics - app.posthog.com)
 ├── Stripe (payments)
 ├── Mailgun (emails)
 ├── OAuth Providers (Google, GitHub)
@@ -500,6 +518,13 @@ Vercel Edge Network
 - **Environment Variables**: Secrets never committed
 - **Database Encryption**: At-rest encryption via Neon
 - **Share Tokens**: UUIDs for document sharing (unguessable)
+
+### Analytics & Privacy
+- **Cookieless Tracking**: Marketing site uses no cookies (GDPR-compliant)
+- **Conditional Storage**: Web app only stores analytics data after user authentication
+- **No PII in Events**: Analytics events never include sensitive user content
+- **Legal Compliance**: Privacy Policy and Terms of Service at /privacy-policy and /terms
+- **ToS Acceptance**: Required checkbox during signup with tosAcceptedAt timestamp
 
 ## Scalability Considerations
 
@@ -570,7 +595,52 @@ Vercel Edge Network
 - **Event-Driven**: Event bus for decoupled architecture
 - **Analytics**: Separate OLAP database for usage analytics
 
+## Environment Variables
+
+### Required Variables
+```bash
+# Database
+POSTGRES_URL=postgresql://...
+
+# Authentication
+AUTH_SECRET=random-secret-key
+NEXTAUTH_URL=https://your-domain.com
+
+# Analytics
+NEXT_PUBLIC_POSTHOG_KEY=phc_xxx  # Same for both apps (cross-domain tracking)
+NEXT_PUBLIC_POSTHOG_HOST=https://app.posthog.com
+
+# Email
+MAILGUN_API_KEY=xxx
+MAILGUN_DOMAIN=mg.your-domain.com
+
+# Payments
+STRIPE_SECRET_KEY=sk_xxx
+NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_xxx
+
+# AI/LLM
+OPENAI_API_KEY=sk-xxx
+DEEPSEEK_API_KEY=xxx  # Optional
+GOOGLE_GENERATIVE_AI_API_KEY=xxx  # Optional
+```
+
+### Optional Variables
+```bash
+# OAuth Providers
+GOOGLE_CLIENT_ID=xxx
+GOOGLE_CLIENT_SECRET=xxx
+GITHUB_CLIENT_ID=xxx
+GITHUB_CLIENT_SECRET=xxx
+
+# Marketing Site
+NEXT_PUBLIC_MARKETING_SITE_HOST=https://www.bragdoc.ai
+
+# Demo Mode (for testing)
+DEMO_MODE_ENABLED=true
+NEXT_PUBLIC_DEMO_MODE_ENABLED=true
+```
+
 ---
 
-**Last Updated**: 2025-10-23 (Next.js 16 upgrade)
+**Last Updated**: 2025-10-24 (PostHog analytics integration)
 **Next Review**: When major architectural changes are planned
