@@ -1,5 +1,5 @@
 import type { NextRequest } from 'next/server';
-import { renderWelcomeEmail } from '@bragdoc/email';
+import { renderWelcomeEmail } from '@/lib/email/client';
 
 export async function GET(req: NextRequest) {
   const searchParams = req.nextUrl.searchParams;

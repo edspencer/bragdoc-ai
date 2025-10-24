@@ -95,7 +95,6 @@ brag-ai/
 ├── packages/
 │   ├── database/      # Shared database schema, queries, migrations
 │   ├── cli/          # Command-line interface tool
-│   ├── email/        # Email templates (React Email)
 │   ├── config/       # Shared configuration
 │   └── typescript-config/ # Shared TypeScript configs
 ├── features/         # Feature documentation
@@ -153,12 +152,18 @@ apps/web/
 │   ├── companies/        # Company-specific components
 │   ├── dashboard/        # Dashboard components
 │   └── ...
+├── emails/               # React Email templates
+│   └── welcome.tsx      # Welcome email template
 ├── lib/                  # Utility functions
 │   ├── ai/              # AI/LLM utilities
 │   │   ├── prompts/     # MDX prompt files
 │   │   ├── llm-router.ts
 │   │   └── extract-achievements.ts
 │   ├── email/           # Email utilities
+│   │   ├── client.ts         # sendEmail, sendWelcomeEmail, renderWelcomeEmail
+│   │   ├── process-incoming.ts  # processIncomingEmail for achievement extraction
+│   │   ├── unsubscribe.ts    # Unsubscribe token management
+│   │   └── types.ts          # Email type definitions
 │   ├── stripe/          # Stripe integration
 │   └── getAuthUser.ts   # Unified authentication helper
 ├── hooks/               # Custom React hooks
@@ -178,7 +183,9 @@ apps/web/
 Key dependencies include:
 
 - `@bragdoc/database` - Database access
-- `@bragdoc/email` - Email templates
+- `@react-email/components` - React Email component primitives
+- `@react-email/render` - Server-side email rendering
+- `mailgun.js` - Mailgun email service client
 - `ai` - Vercel AI SDK
 - `next-auth` - Authentication
 - `stripe` - Payment processing
@@ -189,6 +196,36 @@ Key dependencies include:
 **Location**: `apps/marketing/`
 
 Marketing and landing pages with similar Next.js structure but focused on public content.
+
+#### SEO Implementation
+
+The marketing site implements comprehensive SEO optimizations:
+
+**Metadata Requirements:**
+- All pages must have unique `title`, `description`, and `keywords`
+- Include `alternates.canonical` to prevent duplicate content
+- Add Open Graph and Twitter Card tags for social sharing
+- See `.claude/docs/tech/frontend-patterns.md` for metadata pattern
+
+**Schema.org Structured Data:**
+- **Location**: `apps/marketing/components/structured-data/`
+- **Available schemas**: Organization, SoftwareApplication, FAQ, BlogPosting, HowTo, Offer
+- **Usage**: Import and render schema component at top of page
+- **Validation**: Test with https://search.google.com/test/rich-results
+
+**Sitemap & Robots:**
+- **Sitemap**: Auto-generated from `apps/marketing/app/sitemap.ts`
+- **robots.txt**: Static file at `apps/marketing/public/robots.txt`
+- **Adding pages**: Update `staticPages` array in `sitemap.ts`
+
+**Image Optimization:**
+- Enabled in `next.config.mjs` with AVIF and WebP formats
+- Always use Next.js `<Image>` component
+- Provide descriptive alt text with keywords
+
+**Maintenance Guide:**
+- Full documentation at `apps/marketing/docs/SEO.md`
+- Technical patterns in `.claude/docs/tech/frontend-patterns.md`
 
 ---
 
@@ -326,21 +363,6 @@ The CLI uses a unified API client that:
 - Makes requests to `/api/*` endpoints
 - Handles authentication errors gracefully
 - Syncs `projectId` between CLI and web app
-
-### @bragdoc/email
-
-**Location**: `packages/email/`
-
-Email templates using React Email.
-
-#### Usage
-
-```typescript
-import { WelcomeEmail } from '@bragdoc/email';
-import { render } from '@react-email/render';
-
-const html = render(<WelcomeEmail username="John" />);
-```
 
 ### @bragdoc/config
 
@@ -1266,6 +1288,19 @@ pnpm db:studio
 
 # Run migrations programmatically
 pnpm db:migrate
+```
+
+### Email Development
+
+```bash
+# Start React Email preview server (port 3002)
+pnpm --filter=@bragdoc/web email:dev
+
+# Email templates location
+# apps/web/emails/
+
+# Email utilities location
+# apps/web/lib/email/
 ```
 
 ---

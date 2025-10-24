@@ -4,6 +4,7 @@
   "name": "bragdoc-marketing",
   "compatibility_date": "2025-10-01",
   "compatibility_flags": ["nodejs_compat", "global_fetch_strictly_public"],
+  "preview_urls": true,
   "dev": {
     "port": 3001
   },

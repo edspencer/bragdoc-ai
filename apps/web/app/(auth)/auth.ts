@@ -25,7 +25,7 @@ import {
   type UserLevel,
   type RenewalPeriod,
 } from '@/database/schema';
-import { sendWelcomeEmail } from '@/lib/email/sendWelcomeEmail';
+import { sendWelcomeEmail } from '@/lib/email/client';
 import { cleanupDemoAccountData } from '@/lib/demo-data-cleanup';
 
 declare module 'next-auth' {

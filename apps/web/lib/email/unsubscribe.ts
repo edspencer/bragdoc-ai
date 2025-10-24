@@ -1,5 +1,5 @@
-import { db } from '@/database/index';
-import { emailPreferences } from '@/database/schema';
+import { db } from '@bragdoc/database';
+import { emailPreferences } from '@bragdoc/database/schema';
 import { eq } from 'drizzle-orm';
 import type { EmailType, UnsubscribeData } from './types';
 import { encode, decode } from 'next-auth/jwt';
