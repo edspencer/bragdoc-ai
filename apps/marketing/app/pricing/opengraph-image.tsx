@@ -1,6 +1,6 @@
 import { createOGImage, ogImageSize } from '@/lib/og-image';
 
-export const runtime = 'nodejs';
+export const runtime = 'edge';
 export const alt = 'BragDoc Pricing - Free & Cloud AI Plans';
 export const size = ogImageSize;
 export const contentType = 'image/png';
