@@ -26,6 +26,7 @@ Please read .claude/docs/processes/engineer-rules.md and follow its instructions
 4. Create or update LOG.md with execution start timestamp and plan summary
 5. **Check for documentation update tasks**: If the plan includes tasks to update files in `.claude/docs/tech/` or `.claude/docs/user/`, be prepared to consult the documentation-manager agent for guidance if needed
 6. **Check for changeset phase**: If the plan includes a changeset phase, note the changeset type and description guidance for when you reach that phase
+7. Check for Open Questions: if there are open questions in the plan, note this in the log and then ask the user to answer them, unless you've been specifically asked to go ahead regardless of open questions
 
 ### Implementation Approach
 
@@ -40,6 +41,7 @@ You MUST use the /implement Slash Command to implement the plan.
 ### BragDoc-Specific Patterns
 
 **IMPORTANT:** Before implementing, review the relevant technical documentation in `.claude/docs/tech/`:
+
 - `architecture.md` - System architecture and patterns
 - `database.md` - Database schema and query patterns
 - `authentication.md` - Auth implementation details
@@ -169,6 +171,7 @@ When implementing a changeset phase:
 8. **Reference process doc**: See `.claude/docs/processes/changeset-management.md` for detailed guidance
 
 **Important Notes:**
+
 - Only create changesets for published packages (e.g., CLI)
 - Write descriptions for end users, not developers
 - Never create changesets for internal-only code (web app, database package)
@@ -209,7 +212,7 @@ When creating new files:
 - Put shared utilities in appropriate lib/ directories
 - Add new database queries to packages/database/src/queries.ts or feature-specific query files
 
-### Migration Handling
+### Database Migration Handling
 
 For database changes:
 
