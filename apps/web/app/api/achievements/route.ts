@@ -24,6 +24,9 @@ const achievementSchema = z.object({
   impactSource: z.enum(['user', 'llm']).optional(),
   impactUpdatedAt: z.string().datetime().optional(),
   source: z.enum(['manual', 'llm']).optional(),
+  userMessageId: z.string().uuid().optional().nullable(),
+  standupDocumentId: z.string().uuid().optional().nullable(),
+  isArchived: z.boolean().optional(),
 });
 
 // GET /api/achievements
@@ -131,8 +134,9 @@ export async function POST(req: NextRequest) {
         ? new Date(result.data.impactUpdatedAt)
         : new Date(),
       source: result.data.source ?? 'manual',
-      isArchived: false,
-      userMessageId: null,
+      isArchived: result.data.isArchived ?? false,
+      userMessageId: result.data.userMessageId ?? null,
+      standupDocumentId: result.data.standupDocumentId ?? null,
       summary: result.data.summary ?? null,
       details: result.data.details ?? null,
       companyId: finalCompanyId ?? null,
