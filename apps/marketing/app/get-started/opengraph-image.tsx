@@ -1,6 +1,5 @@
 import { createOGImage, ogImageSize } from '@/lib/og-image';
 
-export const runtime = 'edge';
 export const alt = 'Get Started with BragDoc - Track Achievements in Minutes';
 export const size = ogImageSize;
 export const contentType = 'image/png';
