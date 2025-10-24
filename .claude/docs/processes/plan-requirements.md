@@ -23,7 +23,10 @@ Every plan should have a "Documentation" section, which should contain tasks to 
 
 **CRITICAL PROCESS:** Planners (spec-planner, quick-task-planner) MUST consult the documentation-manager agent during plan creation to identify which documentation files need updates. Do not attempt to determine documentation needs independently - the documentation-manager has comprehensive context and understands documentation structure.
 
+NOTE: This does not mean that "consult the documentation manager" should appear in the PLAN.md file. It almost certainly should not in most cases. What it means is that the planning agent itself should consult the documentation manager agent in the process of writing the documentation update tasks for the plan.
+
 **Consultation Process:**
+
 1. After drafting the initial plan but before using `/improve-plan`, consult the documentation-manager agent
 2. Provide them with details of the planned implementation changes
 3. Ask: "What documentation in `.claude/docs/tech/` and `.claude/docs/user/` needs updating for these changes?"
@@ -93,6 +96,7 @@ Add a final phase (or section if the plan is not broken into phases) titled "Aft
 ### Why After-Action Reports Are Required
 
 After-action reports enable continuous improvement of:
+
 - Process documentation (`.claude/docs/processes/`)
 - SlashCommand definitions (`.claude/commands/`)
 - Agent coordination patterns (`.claude/docs/team.md`)

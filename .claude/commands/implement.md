@@ -1,7 +1,7 @@
 ---
 allowed-tools: Bash, Edit, Grep, Read, WebSearch, WebFetch, Write
 argument-hint: [plan-file] [instructions]
-description: Implement a plan
+description: Implement part of a plan
 ---
 
 # Implement a plan document

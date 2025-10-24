@@ -168,3 +168,68 @@ When `PAYMENT_TOKEN_REQUIRED=true`, report generation may be gated by subscripti
 In open source mode (`PAYMENT_TOKEN_REQUIRED=false`), all report features are available to all users without restriction.
 
 ---
+
+## Authentication & Legal
+
+### OAuth Terms of Service Compliance
+
+**Implemented:** 2025-10-24
+
+BragDoc ensures legal compliance for OAuth-based signups (Google and GitHub) using the industry-standard implicit acceptance pattern.
+
+#### Overview
+
+When users sign up via OAuth providers (Google or GitHub), they see prominent Terms of Service acceptance text above the OAuth buttons. By clicking the OAuth button, users take affirmative action after being presented with the terms, constituting legal acceptance.
+
+#### Implementation
+
+**ToS Acceptance Text:**
+- Displayed on both `/login` and `/register` pages
+- Text: "By continuing with Google or GitHub, you agree to our Terms of Service and Privacy Policy"
+- Links to Terms and Privacy Policy open in new tabs
+- Supports light and dark mode themes
+
+**Automatic Timestamp:**
+- All new signups (OAuth and email/password) automatically have `tosAcceptedAt` timestamp set
+- Set via `createUser` event handler in NextAuth configuration
+- Event fires only for new users, eliminating need to check if user is existing
+
+**Analytics Tracking:**
+- `tos_accepted` event tracked in PostHog for all new signups
+- Includes provider method (google/github/credentials) and timestamp
+- Provides audit trail for compliance
+
+#### Technical Details
+
+**Component:** `apps/web/components/social-auth-buttons.tsx`
+- Displays ToS text above OAuth buttons
+- Uses `NEXT_PUBLIC_MARKETING_SITE_HOST` environment variable for links
+- Follows BragDoc styling conventions with proper dark mode support
+
+**Database Field:** `tosAcceptedAt` on User table
+- Type: `timestamp('tos_accepted_at')`
+- Nullable (NULL for users who signed up before this feature)
+- Set automatically for all new signups
+
+**Event Handler:** NextAuth `createUser` event
+- Sets `tosAcceptedAt` timestamp
+- Tracks `tos_accepted` event in PostHog
+- Fails gracefully (registration never blocked by ToS tracking errors)
+
+#### Legal Sufficiency
+
+This approach is legally sufficient because:
+1. **Informed Consent**: Users see ToS acceptance text before clicking OAuth button
+2. **Affirmative Action**: Clicking OAuth button is an affirmative action
+3. **Industry Standard**: Pattern used by major companies (Google, Microsoft, Slack, Linear, Notion)
+4. **Timestamped**: `tosAcceptedAt` provides audit trail
+5. **Link Access**: Users can review full terms before proceeding
+
+**Existing Users:**
+- Users who signed up before this feature have `tosAcceptedAt = NULL`
+- This is acceptable - they signed up under previous terms
+- Only new signups (after 2025-10-24) have timestamp populated
+
+See `.claude/docs/tech/authentication.md` for complete technical documentation.
+
+---
