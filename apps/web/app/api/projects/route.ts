@@ -5,6 +5,7 @@ import {
 } from '@/database/projects/queries';
 import { z } from 'zod/v3';
 import { getAuthUser } from 'lib/getAuthUser';
+import { captureServerEvent } from '@/lib/posthog-server';
 
 const createProjectSchema = z.object({
   name: z.string().min(1).max(256),
@@ -57,6 +58,17 @@ export async function POST(request: Request) {
       userId: auth.user.id,
       ...validatedData,
     });
+
+    // Track project creation
+    try {
+      await captureServerEvent(auth.user.id, 'project_created', {
+        has_company: !!validatedData.companyId,
+        user_id: auth.user.id,
+      });
+    } catch (error) {
+      console.error('Failed to track project creation:', error);
+      // Don't fail the request if tracking fails
+    }
 
     return NextResponse.json(project, { status: 201 });
   } catch (error) {

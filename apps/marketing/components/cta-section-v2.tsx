@@ -1,9 +1,13 @@
+'use client';
+
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { ArrowRight, Sparkles, Zap } from 'lucide-react';
 import Link from 'next/link';
+import { useTracking } from '@/hooks/use-posthog';
 
 export function CTASectionV2() {
+  const { trackCTAClick } = useTracking();
   return (
     <section className="py-20 px-4 sm:px-6 lg:px-8 bg-gradient-to-b from-background to-muted/30">
       <div className="container mx-auto max-w-6xl">
@@ -34,7 +38,16 @@ export function CTASectionV2() {
                     className="text-base h-14 px-8 font-semibold group"
                     asChild
                   >
-                    <a href="https://app.bragdoc.ai/login">
+                    <a
+                      href="https://app.bragdoc.ai/login"
+                      onClick={() =>
+                        trackCTAClick(
+                          'homepage_bottom_cta',
+                          'Start Tracking Free',
+                          'https://app.bragdoc.ai/login',
+                        )
+                      }
+                    >
                       Start Tracking Free
                       <ArrowRight className="ml-2 size-5 group-hover:translate-x-1 transition-transform" />
                     </a>
@@ -45,7 +58,18 @@ export function CTASectionV2() {
                     className="text-base h-14 px-8 bg-transparent border-2 border-primary-foreground/30 text-primary-foreground hover:bg-primary-foreground/10"
                     asChild
                   >
-                    <Link href="/how-it-works">See How It Works</Link>
+                    <Link
+                      href="/how-it-works"
+                      onClick={() =>
+                        trackCTAClick(
+                          'homepage_bottom_cta',
+                          'See How It Works',
+                          '/how-it-works',
+                        )
+                      }
+                    >
+                      See How It Works
+                    </Link>
                   </Button>
                 </div>
               </div>
@@ -103,7 +127,18 @@ export function CTASectionV2() {
                     className="h-auto p-0 text-primary-foreground/80 hover:text-primary-foreground underline text-sm"
                     asChild
                   >
-                    <Link href="/get-started">View detailed setup guide →</Link>
+                    <Link
+                      href="/get-started"
+                      onClick={() =>
+                        trackCTAClick(
+                          'homepage_bottom_cta',
+                          'View detailed setup guide',
+                          '/get-started',
+                        )
+                      }
+                    >
+                      View detailed setup guide →
+                    </Link>
                   </Button>
                 </Card>
               </div>

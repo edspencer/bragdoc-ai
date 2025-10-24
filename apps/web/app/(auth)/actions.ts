@@ -4,6 +4,7 @@ import { z } from 'zod/v3';
 
 import { createUser, getUser } from '@/database/queries';
 import { sendWelcomeEmail } from '@/lib/email/client';
+import { captureServerEvent, identifyUser } from '@/lib/posthog-server';
 
 import { signIn } from './auth';
 
@@ -57,6 +58,12 @@ export const register = async (
   formData: FormData,
 ): Promise<RegisterActionState> => {
   try {
+    // Validate ToS acceptance
+    const tosAccepted = formData.get('tosAccepted') === 'true';
+    if (!tosAccepted) {
+      return { status: 'invalid_data' };
+    }
+
     const validatedData = authFormSchema.parse({
       email: formData.get('email'),
       password: formData.get('password'),
@@ -71,6 +78,24 @@ export const register = async (
       validatedData.email,
       validatedData.password,
     );
+
+    // Track user registration
+    try {
+      await captureServerEvent(newUser.id, 'user_registered', {
+        method: 'email',
+        email: validatedData.email,
+        user_id: newUser.id,
+      });
+
+      // Identify user in PostHog
+      await identifyUser(newUser.id, {
+        email: validatedData.email,
+        name: validatedData.email.split('@')[0],
+      });
+    } catch (error) {
+      console.error('Failed to track registration event:', error);
+      // Don't fail registration if tracking fails
+    }
 
     // Send welcome email
     try {

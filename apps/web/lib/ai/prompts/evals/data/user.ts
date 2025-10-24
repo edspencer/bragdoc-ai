@@ -6,7 +6,6 @@ export const user: User = {
   preferences: {
     documentInstructions: `If I don't mention a specific project, I'm talking about Brag Doc.`,
     language: 'en',
-    hasSeenWelcome: true,
   },
   id: uuidv4(),
   email: 'Q3Sd2@example.com',

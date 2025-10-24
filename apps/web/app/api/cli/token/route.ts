@@ -2,6 +2,7 @@ import { auth } from 'app/(auth)/auth';
 import { NextResponse } from 'next/server';
 import { z } from 'zod/v3';
 import { encode } from 'next-auth/jwt';
+import { captureServerEvent } from '@/lib/posthog-server';
 
 const requestSchema = z.object({
   state: z.string(),
@@ -41,6 +42,17 @@ export async function POST(request: Request) {
       secret: process.env.AUTH_SECRET!,
       salt: '',
     });
+
+    // Track CLI connection
+    try {
+      await captureServerEvent(session.user.id, 'cli_connected', {
+        user_id: session.user.id,
+        device_name: deviceName,
+      });
+    } catch (error) {
+      console.error('Failed to track CLI connection:', error);
+      // Don't fail the request if tracking fails
+    }
 
     return NextResponse.json({
       token,

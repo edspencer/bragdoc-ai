@@ -305,7 +305,138 @@ export async function DELETE(
 }
 ```
 
+## Server-Side Analytics Tracking
+
+### PostHog Integration Pattern
+
+For tracking user events server-side (authentication, feature adoption, etc.):
+
+```typescript
+import { captureServerEvent } from '@/lib/posthog-server';
+import { getAuthUser } from '@/lib/getAuthUser';
+
+export async function POST(request: Request) {
+  const auth = await getAuthUser(request);
+  if (!auth?.user?.id) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+
+  // ... API logic (validation, database operations, etc.)
+
+  // Track event (non-blocking)
+  await captureServerEvent(auth.user.id, 'event_name', {
+    property_name: 'value',
+    source: 'api',
+  });
+
+  return NextResponse.json(result);
+}
+```
+
+### First-Time Feature Usage Pattern
+
+Track first-time usage by checking record counts before creating analytics events:
+
+```typescript
+import { captureServerEvent } from '@/lib/posthog-server';
+import { db } from '@bragdoc/database';
+import { achievement } from '@bragdoc/database/schema';
+import { eq, count } from 'drizzle-orm';
+
+export async function POST(request: Request) {
+  const auth = await getAuthUser(request);
+  if (!auth?.user?.id) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+
+  // Create achievement
+  const [newAchievement] = await db.insert(achievement).values({
+    userId: auth.user.id,
+    title: validated.title,
+    // ... other fields
+  });
+
+  // Check if this is first achievement
+  const [{ count: achievementCount }] = await db
+    .select({ count: count() })
+    .from(achievement)
+    .where(eq(achievement.userId, auth.user.id));
+
+  if (achievementCount === 1) {
+    // Track first achievement created
+    await captureServerEvent(auth.user.id, 'first_achievement_created', {
+      source: validated.source || 'manual',
+    });
+  }
+
+  return NextResponse.json(newAchievement, { status: 201 });
+}
+```
+
+### HTTP API Approach for Cloudflare Workers
+
+**File:** `apps/web/lib/posthog-server.ts`
+
+```typescript
+/**
+ * Server-side PostHog client optimized for Cloudflare Workers
+ * Uses HTTP API for immediate event delivery in stateless environment
+ */
+export async function captureServerEvent(
+  userId: string,
+  event: string,
+  properties?: Record<string, any>
+) {
+  try {
+    const response = await fetch(
+      `${process.env.NEXT_PUBLIC_POSTHOG_HOST || 'https://app.posthog.com'}/capture/`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          api_key: process.env.NEXT_PUBLIC_POSTHOG_KEY,
+          event,
+          properties: {
+            ...properties,
+            distinct_id: userId,
+          },
+          timestamp: new Date().toISOString(),
+        }),
+      }
+    );
+
+    if (!response.ok) {
+      console.error('PostHog capture failed:', await response.text());
+    }
+  } catch (error) {
+    // Analytics failures should never break user experience
+    console.error('PostHog error:', error);
+  }
+}
+```
+
+**Why HTTP API instead of posthog-node:**
+- **Cloudflare Workers**: Stateless isolates with no persistent process
+- **Immediate delivery**: No batching or flush cycles needed
+- **No shutdown lifecycle**: Each request completes independently
+- **Simpler**: No singleton management or cleanup
+
+### Analytics Best Practices
+
+**Always:**
+- Use `await` with `captureServerEvent()` to ensure delivery
+- Include contextual properties (source, type, etc.)
+- Never let analytics errors break API responses
+- Never include PII in event properties (passwords, private data)
+
+**Never:**
+- Track sensitive user content (achievement details, document text)
+- Block API response on analytics completion (it's already async)
+- Use analytics tracking as primary data source (use database)
+
 ---
 
-**Last Updated:** 2025-10-21
+**Last Updated:** 2025-10-24 (PostHog analytics tracking pattern)
 **API Version:** v1 (implicit)

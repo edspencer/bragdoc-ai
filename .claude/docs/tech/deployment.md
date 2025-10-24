@@ -270,6 +270,10 @@ POSTGRES_URL=postgresql://user:pass@host:5432/bragdoc
 AUTH_SECRET=<openssl-rand-hex-32>
 NEXTAUTH_URL=https://yourdomain.com
 
+# Analytics (PostHog)
+NEXT_PUBLIC_POSTHOG_KEY=phc_xxx  # Same for both apps (cross-domain tracking)
+NEXT_PUBLIC_POSTHOG_HOST=https://app.posthog.com
+
 # AI/LLM
 OPENAI_API_KEY=sk-...
 
@@ -386,8 +390,28 @@ curl https://yourdomain.com/api/db-health
 # Expected: {"status": "healthy"}
 ```
 
+## Analytics Deployment Checklist
+
+### PostHog Environment Variables
+
+**Both apps must use the same PostHog key for cross-domain tracking:**
+
+```bash
+# Set for web app (Cloudflare Workers)
+wrangler secret put NEXT_PUBLIC_POSTHOG_KEY
+wrangler secret put NEXT_PUBLIC_POSTHOG_HOST
+
+# Set for marketing site (same values)
+```
+
+**Verify:**
+- Marketing site uses cookieless mode (no cookies set)
+- Web app switches from memory to localStorage+cookie after authentication
+- Events appear in PostHog dashboard with correct properties
+- Cross-domain tracking works (same user ID across both domains)
+
 ---
 
-**Last Updated:** 2025-10-23 (Next.js 16 upgrade)
+**Last Updated:** 2025-10-24 (PostHog analytics environment variables)
 **Deployment Targets:** Cloudflare Workers, Vercel, Docker
 **Build System:** Turbopack (default in Next.js 16)

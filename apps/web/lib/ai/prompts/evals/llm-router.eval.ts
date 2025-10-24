@@ -104,7 +104,6 @@ export const user = {
   preferences: {
     documentInstructions: 'Always use the title "Weekly Summary"',
     language: 'en',
-    hasSeenWelcome: true,
   },
   id: '1234',
   email: 'Q3Sd2@example.com',

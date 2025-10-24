@@ -71,7 +71,11 @@ export async function createUser(
   try {
     const [newUser] = await dbInstance
       .insert(user)
-      .values({ email, password: hash })
+      .values({
+        email,
+        password: hash,
+        tosAcceptedAt: new Date(),
+      })
       .returning();
     return newUser!;
   } catch (error) {

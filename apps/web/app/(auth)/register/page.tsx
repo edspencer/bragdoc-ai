@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { useActionState, useEffect, useState } from 'react';
 import { toast } from 'sonner';
 
@@ -11,8 +12,10 @@ import { SocialAuthButtons } from 'components/social-auth-buttons';
 import { register, type RegisterActionState } from '../actions';
 
 export default function Page() {
+  const router = useRouter();
   const [email, setEmail] = useState('');
   const [isSuccessful, setIsSuccessful] = useState(false);
+  const [tosAccepted, setTosAccepted] = useState(false);
 
   const [state, formAction] = useActionState<RegisterActionState, FormData>(
     register,
@@ -31,12 +34,13 @@ export default function Page() {
     } else if (state.status === 'success') {
       toast.success('Account created successfully');
       setIsSuccessful(true);
-      window.location.href = '/welcome';
+      router.refresh();
     }
-  }, [state]);
+  }, [state, router]);
 
   const handleSubmit = (formData: FormData) => {
     setEmail(formData.get('email') as string);
+    formData.append('tosAccepted', tosAccepted.toString());
     formAction(formData);
   };
 
@@ -53,7 +57,40 @@ export default function Page() {
         </div>
         <div className="flex flex-col gap-6">
           <AuthForm action={handleSubmit} defaultEmail={email}>
-            <SubmitButton isSuccessful={isSuccessful}>Sign up</SubmitButton>
+            <div className="px-4 sm:px-16 mb-4">
+              <label className="flex items-start gap-2 text-sm">
+                <input
+                  type="checkbox"
+                  checked={tosAccepted}
+                  onChange={(e) => setTosAccepted(e.target.checked)}
+                  className="mt-1"
+                  required
+                />
+                <span className="text-gray-600 dark:text-zinc-400">
+                  I agree to the{' '}
+                  <Link
+                    href={`${process.env.NEXT_PUBLIC_MARKETING_SITE_HOST || 'https://www.bragdoc.ai'}/terms`}
+                    className="text-gray-800 dark:text-zinc-200 underline"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    Terms of Service
+                  </Link>{' '}
+                  and{' '}
+                  <Link
+                    href={`${process.env.NEXT_PUBLIC_MARKETING_SITE_HOST || 'https://www.bragdoc.ai'}/privacy-policy`}
+                    className="text-gray-800 dark:text-zinc-200 underline"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    Privacy Policy
+                  </Link>
+                </span>
+              </label>
+            </div>
+            <SubmitButton isSuccessful={isSuccessful} disabled={!tosAccepted}>
+              Sign up
+            </SubmitButton>
           </AuthForm>
           <div className="px-4 sm:px-16">
             <SocialAuthButtons />

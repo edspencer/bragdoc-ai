@@ -594,12 +594,474 @@ export const config = {
 
 **Prior to Next.js 16**: This file was named `middleware.ts` with the same functionality.
 
+## Analytics Integration
+
+### PostHog Setup
+
+BragDoc uses PostHog for privacy-first product analytics with different configurations for marketing and web app.
+
+#### Marketing Site (Cookieless Mode)
+
+**File:** `apps/marketing/components/posthog-provider.tsx`
+
+```typescript
+'use client';
+
+import posthog from 'posthog-js';
+import { PostHogProvider } from 'posthog-js/react';
+import { useEffect } from 'react';
+
+export function PHProvider({ children }: { children: React.ReactNode }) {
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      posthog.init(process.env.NEXT_PUBLIC_POSTHOG_KEY!, {
+        api_host: process.env.NEXT_PUBLIC_POSTHOG_HOST || 'https://app.posthog.com',
+        persistence: 'memory',  // Cookieless mode - GDPR compliant
+        disable_persistence: true,  // No cookies or localStorage
+        capture_pageview: true,
+        capture_pageleave: true,
+        loaded: (posthog) => {
+          if (process.env.NODE_ENV === 'development') posthog.debug();
+        },
+      });
+    }
+  }, []);
+
+  return <PostHogProvider client={posthog}>{children}</PostHogProvider>;
+}
+```
+
+**Integration in Layout:**
+```typescript
+// apps/marketing/app/layout.tsx
+import { PHProvider } from '@/components/posthog-provider';
+
+export default function RootLayout({ children }) {
+  return (
+    <html>
+      <body>
+        <ThemeProvider>
+          <PHProvider>
+            {children}
+          </PHProvider>
+        </ThemeProvider>
+      </body>
+    </html>
+  );
+}
+```
+
+**Key Features:**
+- **No cookies**: `persistence: 'memory'` - session-only tracking
+- **GDPR compliant**: No persistent storage before consent
+- **Automatic pageviews**: Tracks all page navigations
+- **Debug mode**: Enabled in development for testing
+
+#### Web App (Conditional Persistence)
+
+**File:** `apps/web/components/posthog-provider.tsx`
+
+```typescript
+'use client';
+
+import posthog from 'posthog-js';
+import { PostHogProvider } from 'posthog-js/react';
+import { useEffect } from 'react';
+import { useSession } from 'next-auth/react';
+
+export function PHProvider({ children }: { children: React.ReactNode }) {
+  const { data: session } = useSession();
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      posthog.init(process.env.NEXT_PUBLIC_POSTHOG_KEY!, {
+        api_host: process.env.NEXT_PUBLIC_POSTHOG_HOST || 'https://app.posthog.com',
+        persistence: session ? 'localStorage+cookie' : 'memory',  // Conditional
+        capture_pageview: true,
+        capture_pageleave: true,
+        loaded: (posthog) => {
+          if (process.env.NODE_ENV === 'development') posthog.debug();
+        },
+      });
+
+      // Identify user after authentication
+      if (session?.user?.id) {
+        posthog.identify(session.user.id, {
+          email: session.user.email,
+          name: session.user.name,
+        });
+      }
+    }
+  }, [session]);
+
+  return <PostHogProvider client={posthog}>{children}</PostHogProvider>;
+}
+```
+
+**Integration in Providers:**
+```typescript
+// apps/web/components/providers.tsx
+import { PHProvider } from '@/components/posthog-provider';
+
+export function Providers({ children }) {
+  return (
+    <SessionProvider>
+      <ThemeProvider>
+        <PHProvider>
+          <TooltipProvider>
+            {children}
+          </TooltipProvider>
+        </PHProvider>
+      </ThemeProvider>
+    </SessionProvider>
+  );
+}
+```
+
+**Key Features:**
+- **Conditional persistence**: Memory-only before auth, localStorage+cookie after
+- **User identification**: Automatic identify() call on authentication
+- **Session-aware**: Reacts to NextAuth session changes
+- **Cross-domain tracking**: Same PostHog key as marketing site
+
+### Client-Side Event Tracking
+
+#### Custom Tracking Hook (Marketing Site)
+
+**File:** `apps/marketing/hooks/use-posthog.ts`
+
+```typescript
+'use client';
+
+import { usePostHog } from 'posthog-js/react';
+
+export function useTracking() {
+  const posthog = usePostHog();
+
+  const trackCTAClick = (location: string, ctaText: string, destinationUrl: string) => {
+    posthog?.capture('marketing_cta_clicked', {
+      location,
+      cta_text: ctaText,
+      destination_url: destinationUrl,
+    });
+  };
+
+  const trackFeatureExplored = (featureName: string, page: string) => {
+    posthog?.capture('feature_explored', {
+      feature_name: featureName,
+      page,
+    });
+  };
+
+  const trackPricingInteraction = (planViewed: string) => {
+    posthog?.capture('plan_comparison_interacted', {
+      plan_viewed: planViewed,
+    });
+  };
+
+  return {
+    trackCTAClick,
+    trackFeatureExplored,
+    trackPricingInteraction,
+  };
+}
+```
+
+#### Usage in Components
+
+```typescript
+'use client';
+
+import { useTracking } from '@/hooks/use-posthog';
+import { Button } from '@/components/ui/button';
+
+export function HeroCTA() {
+  const { trackCTAClick } = useTracking();
+
+  return (
+    <Button
+      onClick={() => trackCTAClick('homepage_hero', 'Get Started Free', '/register')}
+      href="/register"
+    >
+      Get Started Free
+    </Button>
+  );
+}
+```
+
+**Pattern:**
+- Use `usePostHog()` hook from `posthog-js/react`
+- Always use optional chaining (`posthog?.capture()`) to prevent errors
+- Event names use snake_case
+- Property names use snake_case
+- Track before navigation (onClick handlers)
+
+#### Direct PostHog Hook (Web App)
+
+```typescript
+'use client';
+
+import { usePostHog } from 'posthog-js/react';
+
+export function FeatureButton() {
+  const posthog = usePostHog();
+
+  const handleClick = () => {
+    posthog?.capture('feature_used', {
+      feature_name: 'achievement_export',
+      source: 'dashboard',
+    });
+    // ... feature logic
+  };
+
+  return <button onClick={handleClick}>Export Achievements</button>;
+}
+```
+
+### Server-Side Event Tracking
+
+#### PostHog Server Client
+
+**File:** `apps/web/lib/posthog-server.ts`
+
+```typescript
+/**
+ * Server-side PostHog client optimized for Cloudflare Workers
+ * Uses HTTP API approach for immediate event delivery in stateless environment
+ */
+
+export async function captureServerEvent(
+  userId: string,
+  event: string,
+  properties?: Record<string, any>
+) {
+  try {
+    const response = await fetch(
+      `${process.env.NEXT_PUBLIC_POSTHOG_HOST || 'https://app.posthog.com'}/capture/`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          api_key: process.env.NEXT_PUBLIC_POSTHOG_KEY,
+          event,
+          properties: {
+            ...properties,
+            distinct_id: userId,
+          },
+          timestamp: new Date().toISOString(),
+        }),
+      }
+    );
+
+    if (!response.ok) {
+      console.error('PostHog capture failed:', await response.text());
+    }
+  } catch (error) {
+    // Analytics failures should never break user experience
+    console.error('PostHog error:', error);
+  }
+}
+
+export async function identifyUser(
+  userId: string,
+  properties: Record<string, any>
+) {
+  try {
+    await fetch(
+      `${process.env.NEXT_PUBLIC_POSTHOG_HOST || 'https://app.posthog.com'}/capture/`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          api_key: process.env.NEXT_PUBLIC_POSTHOG_KEY,
+          event: '$identify',
+          properties: {
+            ...properties,
+            distinct_id: userId,
+          },
+          timestamp: new Date().toISOString(),
+        }),
+      }
+    );
+  } catch (error) {
+    console.error('PostHog identify error:', error);
+  }
+}
+```
+
+**Why HTTP API Instead of posthog-node:**
+- **Cloudflare Workers**: Stateless isolates with no persistent process
+- **Immediate delivery**: No batching or flush cycles needed
+- **No shutdown lifecycle**: Each request completes independently
+- **Simpler**: No singleton management or cleanup
+
+#### Usage in API Routes
+
+```typescript
+// app/api/achievements/route.ts
+import { captureServerEvent } from '@/lib/posthog-server';
+import { getAuthUser } from '@/lib/getAuthUser';
+import { db } from '@bragdoc/database';
+import { achievement } from '@bragdoc/database/schema';
+import { eq, count } from 'drizzle-orm';
+
+export async function POST(request: Request) {
+  const auth = await getAuthUser(request);
+  if (!auth?.user?.id) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+
+  // ... validation and creation logic
+
+  // Check if this is first achievement
+  const [{ count: achievementCount }] = await db
+    .select({ count: count() })
+    .from(achievement)
+    .where(eq(achievement.userId, auth.user.id));
+
+  if (achievementCount === 1) {
+    await captureServerEvent(auth.user.id, 'first_achievement_created', {
+      source: 'manual',
+    });
+  }
+
+  return NextResponse.json(newAchievement);
+}
+```
+
+**Pattern:**
+- Always use `await` with `captureServerEvent()`
+- Track first-time feature usage by checking counts
+- Include contextual properties (source, type, etc.)
+- Never let analytics errors break the API response
+
+#### Usage in Server Actions
+
+```typescript
+// app/(auth)/actions.ts
+'use server';
+
+import { captureServerEvent, identifyUser } from '@/lib/posthog-server';
+
+export async function register(formData: FormData) {
+  // ... validation and user creation
+
+  const user = await db.insert(user).values({
+    email,
+    password: hashedPassword,
+    tosAcceptedAt: new Date(),
+  });
+
+  // Track signup and identify user
+  await captureServerEvent(user.id, 'user_signed_up', {
+    method: 'email',
+  });
+
+  await identifyUser(user.id, {
+    email: user.email,
+    name: user.name,
+  });
+
+  return { success: true };
+}
+```
+
+### Event Naming Conventions
+
+**Marketing Events:**
+- `marketing_cta_clicked` - CTA button/link clicks
+- `feature_explored` - Feature page interactions
+- `plan_comparison_interacted` - Pricing page engagement
+
+**Authentication Events:**
+- `user_signed_up` - New user registration
+- `user_logged_in` - User login
+
+**Feature Adoption Events:**
+- `first_achievement_created` - First achievement (any source)
+- `first_project_created` - First project
+- `first_report_generated` - First document generation
+
+**CLI Events:**
+- `cli_installed` - CLI authentication completed
+- `cli_extract_completed` - Achievement extraction via CLI
+
+**Engagement Events:**
+- `zero_state_cta_clicked` - Zero state interactions
+- `document_generated` - Document generation
+
+### Properties Best Practices
+
+**Always include:**
+- Contextual information (location, source, type)
+- User action details (what they clicked, selected, etc.)
+- Never include PII (passwords, achievement content, document text)
+
+**Property naming:**
+- Use snake_case for consistency
+- Be descriptive but concise
+- Use consistent values across events
+
+**Example:**
+```typescript
+posthog?.capture('marketing_cta_clicked', {
+  location: 'homepage_hero',        // Where on the page
+  cta_text: 'Get Started Free',     // What the button says
+  destination_url: '/register',     // Where it goes
+});
+```
+
+### Privacy & GDPR Compliance
+
+**Marketing Site:**
+- ✅ Cookieless mode (no consent banner needed)
+- ✅ No persistent storage
+- ✅ Session-only tracking
+- ✅ IP anonymization (PostHog default)
+
+**Web App:**
+- ✅ No tracking before authentication
+- ✅ Persistent storage only after login
+- ✅ User can delete account (removes all analytics data)
+- ✅ No PII in event properties
+
+**Legal:**
+- Privacy Policy at `/privacy-policy` discloses PostHog usage
+- Terms of Service at `/terms` requires acceptance
+- ToS acceptance tracked with `tosAcceptedAt` timestamp in database
+
+### Testing Analytics
+
+**Development:**
+```typescript
+// PostHog automatically enables debug mode in development
+posthog.init(key, {
+  loaded: (posthog) => {
+    if (process.env.NODE_ENV === 'development') posthog.debug();
+  },
+});
+```
+
+**Browser DevTools:**
+1. Open Network tab, filter by "posthog"
+2. See POST requests to `/capture/` endpoint
+3. Inspect request payload for event data
+
+**PostHog Dashboard:**
+1. Navigate to Live Events
+2. See events appear within 30 seconds
+3. Verify event properties are correct
+
 ## SEO Patterns (Marketing Site)
 
 For comprehensive SEO documentation including metadata patterns, schema.org structured data, sitemap configuration, image optimization, and testing procedures, see **[seo.md](./seo.md)**.
 
 ---
 
-**Last Updated:** 2025-10-23 (Next.js 16 upgrade, SEO patterns moved to seo.md)
+**Last Updated:** 2025-10-24 (PostHog analytics integration patterns)
 **Next.js:** 16.0.0
 **React:** 19.2.0

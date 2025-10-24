@@ -12,8 +12,10 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Check, Sparkles } from 'lucide-react';
 import { useState } from 'react';
+import { useTracking } from '@/hooks/use-posthog';
 
 export function PricingTiers() {
+  const { trackPricingInteraction, trackCTAClick } = useTracking();
   const [billingPeriod, setBillingPeriod] = useState<'monthly' | 'annual'>(
     'monthly',
   );
@@ -40,7 +42,10 @@ export function PricingTiers() {
                 <div className="relative inline-flex items-center gap-1 p-1 bg-muted rounded-lg">
                   <button
                     type="button"
-                    onClick={() => setBillingPeriod('monthly')}
+                    onClick={() => {
+                      setBillingPeriod('monthly');
+                      trackPricingInteraction('full_account_monthly');
+                    }}
                     className={`px-6 py-2 rounded-md text-sm font-medium transition-all ${
                       billingPeriod === 'monthly'
                         ? 'bg-background shadow-sm'
@@ -51,7 +56,10 @@ export function PricingTiers() {
                   </button>
                   <button
                     type="button"
-                    onClick={() => setBillingPeriod('annual')}
+                    onClick={() => {
+                      setBillingPeriod('annual');
+                      trackPricingInteraction('full_account_annual');
+                    }}
                     className={`px-6 py-2 rounded-md text-sm font-medium transition-all relative ${
                       billingPeriod === 'annual'
                         ? 'bg-background shadow-sm'
@@ -150,7 +158,18 @@ export function PricingTiers() {
                 className="w-full text-lg h-12 bg-[oklch(0.65_0.25_262)] hover:bg-[oklch(0.6_0.25_262)] dark:bg-[oklch(0.7_0.25_262)] dark:hover:bg-[oklch(0.65_0.25_262)]"
                 asChild
               >
-                <a href="https://app.bragdoc.ai/login">Get Started</a>
+                <a
+                  href="https://app.bragdoc.ai/login"
+                  onClick={() =>
+                    trackCTAClick(
+                      'pricing_page',
+                      'Get Started',
+                      'https://app.bragdoc.ai/login',
+                    )
+                  }
+                >
+                  Get Started
+                </a>
               </Button>
               <p className="text-sm text-muted-foreground text-center">
                 Start with a free account, upgrade anytime
@@ -194,7 +213,19 @@ export function PricingTiers() {
                 className="w-full bg-transparent"
                 asChild
               >
-                <a href="https://app.bragdoc.ai/login">Create Free Account</a>
+                <a
+                  href="https://app.bragdoc.ai/login"
+                  onClick={() => {
+                    trackPricingInteraction('free_account');
+                    trackCTAClick(
+                      'pricing_page',
+                      'Create Free Account',
+                      'https://app.bragdoc.ai/login',
+                    );
+                  }}
+                >
+                  Create Free Account
+                </a>
               </Button>
             </CardFooter>
           </Card>

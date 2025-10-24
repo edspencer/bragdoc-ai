@@ -16,6 +16,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { useImageLightbox } from '@/hooks/use-image-lightbox';
 import { ImageLightbox } from '@/components/image-lightbox';
+import { useTracking } from '@/hooks/use-posthog';
 
 interface Feature {
   icon: LucideIcon;
@@ -151,6 +152,7 @@ const features: Feature[] = [
 
 export function FeaturesPageClient() {
   const { lightboxImage, openLightbox, closeLightbox } = useImageLightbox();
+  const { trackFeatureExplored, trackCTAClick } = useTracking();
 
   return (
     <>
@@ -262,12 +264,16 @@ export function FeaturesPageClient() {
                         {feature.screenshot ? (
                           <button
                             type="button"
-                            onClick={() =>
+                            onClick={() => {
+                              trackFeatureExplored(
+                                feature.heading,
+                                'features_page',
+                              );
                               openLightbox(
                                 feature.screenshot!,
                                 feature.screenshotAlt,
-                              )
-                            }
+                              );
+                            }}
                             className="w-full h-full cursor-zoom-in transition-opacity hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 rounded-md"
                             aria-label={`View larger: ${feature.screenshotAlt}`}
                           >
@@ -322,6 +328,13 @@ export function FeaturesPageClient() {
               >
                 <a
                   href={`${process.env.NEXT_PUBLIC_APP_URL || 'https://app.bragdoc.ai'}/dashboard`}
+                  onClick={() =>
+                    trackCTAClick(
+                      'features_page_bottom',
+                      'Get Started Free',
+                      `${process.env.NEXT_PUBLIC_APP_URL || 'https://app.bragdoc.ai'}/dashboard`,
+                    )
+                  }
                 >
                   Get Started Free
                 </a>
@@ -329,6 +342,13 @@ export function FeaturesPageClient() {
               <Link
                 href="/cli"
                 className="text-white hover:text-white/80 transition-colors underline underline-offset-4"
+                onClick={() =>
+                  trackCTAClick(
+                    'features_page_bottom',
+                    'View Documentation',
+                    '/cli',
+                  )
+                }
               >
                 View Documentation
               </Link>

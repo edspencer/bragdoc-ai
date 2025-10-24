@@ -6,6 +6,7 @@ import { getAuthUser } from 'lib/getAuthUser';
 import { db } from '@/database/index';
 import { project } from '@/database/schema';
 import { eq, and } from 'drizzle-orm';
+import { captureServerEvent } from '@/lib/posthog-server';
 
 // Validation schema for achievement data
 const achievementSchema = z.object({
@@ -150,6 +151,19 @@ export async function POST(req: NextRequest) {
       data,
       data.source,
     );
+
+    // Track achievement creation
+    try {
+      await captureServerEvent(auth.user.id, 'achievement_created', {
+        source: data.source,
+        has_project: !!data.projectId,
+        has_company: !!finalCompanyId,
+      });
+    } catch (error) {
+      console.error('Failed to track achievement creation:', error);
+      // Don't fail the request if tracking fails
+    }
+
     return NextResponse.json(achievement);
   } catch (error) {
     console.error('Error creating achievement:', error);
