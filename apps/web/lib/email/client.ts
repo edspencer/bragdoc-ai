@@ -1,7 +1,7 @@
 import { render } from '@react-email/render';
 import formData from 'form-data';
 import Mailgun from 'mailgun.js';
-import { WelcomeEmail } from './templates/WelcomeEmail';
+import { WelcomeEmail } from '@/emails/welcome';
 import type { ComponentProps } from 'react';
 import type { EmailType } from './types';
 import { generateUnsubscribeUrl, isUnsubscribed } from './unsubscribe';

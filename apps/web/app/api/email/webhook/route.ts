@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { z } from 'zod/v3';
 import crypto from 'node:crypto';
-import { processIncomingEmail } from '@bragdoc/email';
+import { processIncomingEmail } from '@/lib/email/process-incoming';
 
 // Mailgun webhook payload schema based on their parsed message format
 const mailgunWebhookSchema = z.object({

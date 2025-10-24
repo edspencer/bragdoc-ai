@@ -126,6 +126,8 @@ brag-ai/
 │   │   ├── app/         # App Router pages and API routes
 │   │   ├── components/  # React components
 │   │   ├── lib/         # Utilities and AI logic
+│   │   │   └── email/   # Email utilities (sendEmail, unsubscribe, etc.)
+│   │   ├── emails/      # React Email templates
 │   │   ├── hooks/       # Custom React hooks
 │   │   └── __tests__/   # Test files
 │   │
@@ -163,10 +165,6 @@ brag-ai/
 │   │   │   └── utils/         # Utilities
 │   │   └── package.json       # Published to npm as @bragdoc/cli
 │   │
-│   ├── email/           # Email templates
-│   │   ├── components/  # React Email components
-│   │   └── package.json
-│   │
 │   ├── config/          # Shared configuration types
 │   │   └── src/
 │   │       └── types.ts
@@ -201,7 +199,6 @@ packages:
 ```
 apps/web
 ├── @bragdoc/database (workspace:*)
-├── @bragdoc/email (workspace:*)
 └── @bragdoc/config (workspace:*)
 
 apps/marketing
@@ -233,7 +230,15 @@ packages/database
     "zod": "^3.24.1",
     "stripe": "^17.5.0",
     "tailwindcss": "^4.1.9",
-    "mdx-prompt": "^0.4.1"
+    "mdx-prompt": "^0.4.1",
+    "@react-email/components": "0.5.7",
+    "@react-email/render": "1.4.0",
+    "mailgun.js": "^10.4.0",
+    "form-data": "^4.0.4"
+  },
+  "devDependencies": {
+    "react-email": "4.3.1",
+    "@react-email/preview-server": "4.3.1"
   }
 }
 ```

@@ -146,3 +146,6 @@ const footer = {
   lineHeight: '20px',
   margin: '32px 0 0',
 };
+
+// Default export for React Email preview
+export default WelcomeEmail;

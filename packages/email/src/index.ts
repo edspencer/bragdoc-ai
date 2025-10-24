@@ -1,5 +1,0 @@
-export * from './sendEmail';
-export * from './types';
-export * from './process';
-export * from './unsubscribe';
-export * from './templates/WelcomeEmail';

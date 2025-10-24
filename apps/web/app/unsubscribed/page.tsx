@@ -2,7 +2,7 @@ import { Container } from '@/components/container';
 import {
   verifyUnsubscribeToken,
   unsubscribeUser,
-} from '@bragdoc/email/unsubscribe';
+} from '@/lib/email/unsubscribe';
 
 type Params = Promise<{ token: string; salt: string }>;
 
