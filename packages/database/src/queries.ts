@@ -1,4 +1,3 @@
-import { genSaltSync, hashSync } from 'bcrypt-ts';
 import {
   and,
   asc,
@@ -31,9 +30,8 @@ import {
   standupDocument,
 } from './schema';
 
-// Optionally, if not using email/pass login, you can
-// use the Drizzle adapter for Auth.js / NextAuth
-// https://authjs.dev/reference/adapter/drizzle
+// Note: User creation is handled by NextAuth's Email provider via Drizzle adapter
+// No manual createUser function needed for magic link authentication
 
 export async function getUser(
   email: string,
@@ -56,30 +54,6 @@ export async function getUserById(
     return users[0] || null;
   } catch (error) {
     console.error('Error in getUserById:', error);
-    throw error;
-  }
-}
-
-export async function createUser(
-  email: string,
-  password: string,
-  dbInstance = defaultDb,
-): Promise<User> {
-  const salt = genSaltSync(10);
-  const hash = hashSync(password, salt);
-
-  try {
-    const [newUser] = await dbInstance
-      .insert(user)
-      .values({
-        email,
-        password: hash,
-        tosAcceptedAt: new Date(),
-      })
-      .returning();
-    return newUser!;
-  } catch (error) {
-    console.error('Error in createUser:', error);
     throw error;
   }
 }

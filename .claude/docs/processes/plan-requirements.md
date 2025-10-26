@@ -17,22 +17,7 @@ The plan document should be a markdown file named PLAN.md in the same directory 
 
 ## Documentation updates
 
-Every plan should have a "Documentation" section, which should contain tasks to update our own internal documentation of the app. This section is MANDATORY and should include:
-
-### Consulting the Documentation Manager
-
-**CRITICAL PROCESS:** Planners (spec-planner, quick-task-planner) MUST consult the documentation-manager agent during plan creation to identify which documentation files need updates. Do not attempt to determine documentation needs independently - the documentation-manager has comprehensive context and understands documentation structure.
-
-NOTE: This does not mean that "consult the documentation manager" should appear in the PLAN.md file. It almost certainly should not in most cases. What it means is that the planning agent itself should consult the documentation manager agent in the process of writing the documentation update tasks for the plan.
-
-**Consultation Process:**
-
-1. After drafting the initial plan but before using `/improve-plan`, consult the documentation-manager agent
-2. Provide them with details of the planned implementation changes
-3. Ask: "What documentation in `.claude/docs/tech/` and `.claude/docs/user/` needs updating for these changes?"
-4. Receive specific guidance on which files need updates and what sections should be modified
-5. Incorporate their detailed guidance into your plan's Documentation section
-6. Each documentation update task should reference the specific guidance from documentation-manager
+Every plan should have a "Documentation" section, which should contain tasks to update our own internal documentation of the app. This section is MANDATORY.
 
 ### Technical Documentation (.claude/docs/tech/)
 

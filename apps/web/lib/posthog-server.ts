@@ -76,3 +76,36 @@ export async function identifyUser(
     console.error('PostHog identify failed:', error);
   }
 }
+
+/**
+ * Alias an anonymous user ID to a known user ID
+ * This merges all events from the anonymous session with the authenticated user
+ */
+export async function aliasUser(userId: string, anonymousId: string) {
+  try {
+    const response = await fetch(
+      `${process.env.NEXT_PUBLIC_POSTHOG_HOST || 'https://app.posthog.com'}/capture/`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          api_key: process.env.NEXT_PUBLIC_POSTHOG_KEY,
+          event: '$create_alias',
+          properties: {
+            distinct_id: userId,
+            alias: anonymousId,
+          },
+          timestamp: new Date().toISOString(),
+        }),
+      },
+    );
+
+    if (!response.ok) {
+      console.error('PostHog alias failed:', await response.text());
+    }
+  } catch (error) {
+    console.error('PostHog alias failed:', error);
+  }
+}

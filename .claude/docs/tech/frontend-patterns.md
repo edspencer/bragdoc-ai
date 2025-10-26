@@ -557,6 +557,215 @@ export default async function Page() {
 
 ## Authentication Components
 
+### Magic Link Authentication Pattern
+
+BragDoc uses passwordless magic link authentication with a custom form component that provides two distinct states: email input form and "check your email" confirmation.
+
+**File:** `apps/web/components/magic-link-auth-form.tsx`
+
+```tsx
+'use client';
+
+import { useState } from 'react';
+import Form from 'next/form';
+import { Input } from './ui/input';
+import { Label } from './ui/label';
+import { Button } from './ui/button';
+import { Mail, Check } from 'lucide-react';
+
+interface MagicLinkAuthFormProps {
+  mode: 'login' | 'register';
+  tosAccepted?: boolean;
+  onTosChange?: (accepted: boolean) => void;
+  children?: React.ReactNode;
+}
+
+export function MagicLinkAuthForm({
+  mode,
+  tosAccepted,
+  onTosChange,
+  children,
+}: MagicLinkAuthFormProps) {
+  const [email, setEmail] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isEmailSent, setIsEmailSent] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const handleSubmit = async (formData: FormData) => {
+    setIsSubmitting(true);
+    setError(null);
+
+    const email = formData.get('email') as string;
+
+    try {
+      // Use NextAuth signIn with email provider
+      const { signIn } = await import('next-auth/react');
+      const result = await signIn('email', {
+        email,
+        redirect: false,
+        callbackUrl: '/dashboard',
+      });
+
+      if (result?.error) {
+        setError('Failed to send magic link. Please try again.');
+        setIsSubmitting(false);
+      } else {
+        setIsEmailSent(true);
+        setIsSubmitting(false);
+      }
+    } catch (err) {
+      setError('An unexpected error occurred. Please try again.');
+      setIsSubmitting(false);
+    }
+  };
+
+  if (isEmailSent) {
+    return (
+      <div className="px-4 sm:px-16 flex flex-col items-center gap-4">
+        <div className="w-12 h-12 rounded-full bg-green-100 dark:bg-green-900 flex items-center justify-center">
+          <Check className="w-6 h-6 text-green-600 dark:text-green-300" />
+        </div>
+        <div className="text-center space-y-2">
+          <h3 className="text-lg font-semibold">Check your email</h3>
+          <p className="text-sm text-gray-600 dark:text-zinc-400">
+            We've sent a magic link to <strong>{email}</strong>
+          </p>
+          <p className="text-sm text-gray-500 dark:text-zinc-500">
+            Click the link in the email to {mode === 'login' ? 'sign in' : 'complete your registration'}.
+          </p>
+        </div>
+        <Button
+          variant="ghost"
+          onClick={() => {
+            setIsEmailSent(false);
+            setEmail('');
+          }}
+          className="mt-4"
+        >
+          Use a different email
+        </Button>
+      </div>
+    );
+  }
+
+  return (
+    <Form action={handleSubmit} className="flex flex-col gap-4 px-4 sm:px-16">
+      <div className="flex flex-col gap-2">
+        <Label
+          htmlFor="email"
+          className="text-zinc-600 font-normal dark:text-zinc-400"
+        >
+          Email Address
+        </Label>
+
+        <Input
+          id="email"
+          name="email"
+          className="bg-muted text-md md:text-sm"
+          type="email"
+          placeholder="user@acme.com"
+          autoComplete="email"
+          required
+          autoFocus
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+        />
+      </div>
+
+      {error && (
+        <div className="text-sm text-red-600 dark:text-red-400">
+          {error}
+        </div>
+      )}
+
+      {children}
+
+      <Button type="submit" disabled={isSubmitting} className="w-full">
+        {isSubmitting ? (
+          <>
+            <Mail className="mr-2 h-4 w-4 animate-pulse" />
+            Sending magic link...
+          </>
+        ) : (
+          <>
+            <Mail className="mr-2 h-4 w-4" />
+            {mode === 'login' ? 'Send magic link' : 'Continue with email'}
+          </>
+        )}
+      </Button>
+    </Form>
+  );
+}
+```
+
+**Key Features:**
+- **Two-state UI**: Email input form and "check your email" confirmation
+- **Mode prop**: Different text for login vs. registration
+- **Loading states**: "Sending magic link..." with pulsing icon
+- **Error handling**: User-friendly error messages
+- **Success state**: Green checkmark with confirmation message
+- **Reset option**: "Use a different email" button
+- **Children prop**: Allows ToS checkbox to be passed in for registration
+- **Dynamic import**: NextAuth signIn imported only when needed
+
+**Form State:**
+```typescript
+<MagicLinkAuthForm mode="login" | "register">
+  {/* Optional: ToS checkbox for registration */}
+</MagicLinkAuthForm>
+```
+
+**Confirmation State:**
+After submitting email, the form displays:
+- Success icon (green checkmark in rounded circle)
+- Email address confirmation
+- Instructions to click the link
+- "Use a different email" option to restart
+
+**Implementation Details:**
+- Uses NextAuth's `signIn('email')` method
+- No password fields
+- Mobile-responsive (padding adjusts on sm screens)
+- Email input with validation (required, type="email")
+- Progressive enhancement with Next.js Form component
+
+**Usage in Pages:**
+
+```tsx
+// Registration page
+'use client';
+
+import { useState } from 'react';
+import { MagicLinkAuthForm } from '@/components/magic-link-auth-form';
+
+export default function RegisterPage() {
+  const [tosAccepted, setTosAccepted] = useState(false);
+
+  return (
+    <MagicLinkAuthForm mode="register">
+      <div className="mb-4">
+        <label className="flex items-start gap-2 text-sm">
+          <input
+            type="checkbox"
+            checked={tosAccepted}
+            onChange={(e) => setTosAccepted(e.target.checked)}
+            required
+          />
+          <span>I agree to the Terms of Service</span>
+        </label>
+      </div>
+    </MagicLinkAuthForm>
+  );
+}
+
+// Login page
+import { MagicLinkAuthForm } from '@/components/magic-link-auth-form';
+
+export default function LoginPage() {
+  return <MagicLinkAuthForm mode="login" />;
+}
+```
+
 ### OAuth ToS Acceptance Pattern
 
 BragDoc displays Terms of Service acceptance text above OAuth buttons to inform users that signing in constitutes acceptance of the Terms of Service and Privacy Policy. This is the industry-standard "implicit acceptance" pattern used by major OAuth implementations.

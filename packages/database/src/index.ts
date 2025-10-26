@@ -30,7 +30,6 @@ export * from './schema';
 export {
   getUser,
   getUserById,
-  createUser,
   saveChat,
   deleteChatById,
   getChatsByUserId,

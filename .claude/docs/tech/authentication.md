@@ -29,9 +29,7 @@ BragDoc uses NextAuth.js v5 (beta) with a JWT strategy to support dual authentic
          └───────────────┘
 ```
 
-##
-
- NextAuth Configuration
+## NextAuth Configuration
 
 ### File: `apps/web/app/(auth)/auth.ts`
 
@@ -49,7 +47,7 @@ export const { handlers: { GET, POST }, auth, signIn, signOut } = NextAuth({
   providers: [
     Google({ /* OAuth config */ }),
     GitHub({ /* OAuth config */ }),
-    Credentials({ /* Email/password */ }),
+    Email({ /* Magic link email */ }),
   ],
   callbacks: {
     async jwt({ token, user, account }) {
@@ -64,7 +62,76 @@ export const { handlers: { GET, POST }, auth, signIn, signOut } = NextAuth({
 
 ## Authentication Providers
 
-### 1. Google OAuth
+### 1. Magic Links (Email Provider)
+
+BragDoc uses passwordless magic link authentication as the primary email-based authentication method.
+
+**Flow:**
+1. User enters email address
+2. NextAuth generates unique token (24-hour expiry)
+3. Custom email sent via Mailgun with magic link
+4. User clicks link
+5. NextAuth validates token
+6. If valid:
+   - New user: Creates account, sends welcome email
+   - Existing user: Logs in to existing account
+7. Session created via JWT
+
+**Token Management:**
+- Tokens stored in `VerificationToken` table (via Drizzle adapter)
+- Single-use tokens (deleted after use)
+- 24-hour expiration
+- Email as identifier (can send new token to same email)
+
+**Email Customization:**
+- Template: `apps/web/emails/magic-link.tsx`
+- Personalized for new vs. existing users
+- Sent via Mailgun SMTP
+- Mobile-responsive React Email template
+
+**Implementation:**
+```typescript
+Email({
+  server: {
+    host: process.env.MAILGUN_SMTP_SERVER || 'smtp.mailgun.org',
+    port: 587,
+    auth: {
+      user: process.env.MAILGUN_SMTP_LOGIN!,
+      pass: process.env.MAILGUN_SMTP_PASSWORD!,
+    },
+  },
+  from: 'hello@bragdoc.ai',
+  sendVerificationRequest: async ({ identifier, url, provider }) => {
+    // Check if this is a new user or existing user
+    const existingUser = await db
+      .select()
+      .from(user)
+      .where(eq(user.email, identifier))
+      .limit(1);
+
+    const isNewUser = existingUser.length === 0;
+
+    try {
+      await sendMagicLinkEmail({
+        to: identifier,
+        magicLink: url,
+        isNewUser,
+      });
+    } catch (error) {
+      console.error('Failed to send magic link email:', error);
+      throw new Error('Failed to send verification email');
+    }
+  },
+  maxAge: 24 * 60 * 60, // 24 hours
+})
+```
+
+**Environment Variables:**
+- `MAILGUN_SMTP_SERVER` - SMTP server (smtp.mailgun.org)
+- `MAILGUN_SMTP_LOGIN` - SMTP username
+- `MAILGUN_SMTP_PASSWORD` - SMTP password
+
+### 2. Google OAuth
 ```typescript
 Google({
   clientId: process.env.GOOGLE_CLIENT_ID!,
@@ -112,26 +179,16 @@ GitHub({
 - `GITHUB_CLIENT_ID`
 - `GITHUB_CLIENT_SECRET`
 
-### 3. Credentials (Email/Password)
-```typescript
-Credentials({
-  credentials: { email: {}, password: {} },
-  authorize: async (credentials) => {
-    const [existingUser] = await getUser(credentials.email as string);
-    if (!existingUser) return null;
+### 3. ~~Credentials Provider~~ (Removed)
 
-    const passwordsMatch = await compare(
-      credentials.password as string,
-      existingUser.password!,
-    );
+Previously, BragDoc supported email/password authentication. This was removed in favor of passwordless magic links to:
+- Improve security (no passwords to leak)
+- Simplify architecture (unified auth flow)
+- Better user experience (no forgotten passwords)
+- Reduce code complexity
 
-    if (!passwordsMatch) return null;
-    return existingUser;
-  },
-})
-```
-
-**Password Hashing:** bcrypt with 10 salt rounds
+**Migration Date:** 2025-10-26
+**Replaced By:** Magic Links (Email provider)
 
 ## JWT Strategy
 
@@ -494,6 +551,107 @@ const userId = session?.user?.id;
 const userLevel = session?.user?.level;
 ```
 
+## PostHog Identity Aliasing
+
+### Overview
+
+BragDoc uses a unified cookie-based PostHog identity aliasing approach for all authentication providers (magic links, Google OAuth, GitHub OAuth). This ensures that anonymous browsing events are merged with the authenticated user's identity.
+
+### Implementation
+
+**Flow:**
+1. Anonymous user browses site → PostHog sets `ph_anonymous_id` cookie
+2. User signs up via ANY provider (magic link, Google, GitHub)
+3. NextAuth `createUser` event fires
+4. Server reads `ph_anonymous_id` cookie
+5. Server calls `aliasUser(userId, anonymousId)`
+6. PostHog merges anonymous events with user identity
+7. Server deletes `ph_anonymous_id` cookie
+
+**Location:** `apps/web/app/(auth)/auth.ts` - `events.createUser`
+
+**Code:**
+```typescript
+async createUser({ user }) {
+  const { email } = user;
+
+  if (email && user.id) {
+    console.log(`New user created: ${email}`);
+
+    // Track user registration
+    try {
+      await captureServerEvent(user.id, 'user_registered', {
+        method: user.provider || 'email',
+        email: email,
+        user_id: user.id,
+      });
+
+      // Identify user in PostHog
+      await identifyUser(user.id, {
+        email: email,
+        name: user.name || email.split('@')[0],
+      });
+
+      // Alias anonymous ID (unified for all providers)
+      const cookieStore = await cookies();
+      const anonymousId = cookieStore.get('ph_anonymous_id')?.value;
+      if (anonymousId && anonymousId !== user.id) {
+        await aliasUser(user.id, anonymousId);
+        cookieStore.delete('ph_anonymous_id');
+      }
+    } catch (error) {
+      console.error('Failed to track registration:', error);
+    }
+
+    // Send welcome email
+    try {
+      await sendWelcomeEmail({
+        to: email,
+        userId: user.id,
+        username: email.split('@')[0]!,
+        loginUrl: `${process.env.NEXTAUTH_URL}/login`,
+      });
+    } catch (error) {
+      console.error('Failed to send welcome email:', error);
+    }
+  }
+}
+```
+
+**Key Features:**
+- Single code path for all providers (no provider-specific logic)
+- Cookie-based approach works universally
+- Anonymous ID only aliased if it exists and differs from user ID
+- Cookie cleanup prevents duplicate aliasing
+- Error handling ensures registration never fails due to tracking issues
+
+**PostHog Functions:** `apps/web/lib/posthog-server.ts`
+
+```typescript
+export async function aliasUser(userId: string, anonymousId: string) {
+  try {
+    await fetch(
+      `${process.env.NEXT_PUBLIC_POSTHOG_HOST}/capture/`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          api_key: process.env.NEXT_PUBLIC_POSTHOG_KEY,
+          event: '$create_alias',
+          properties: {
+            distinct_id: userId,
+            alias: anonymousId,
+          },
+          timestamp: new Date().toISOString(),
+        }),
+      }
+    );
+  } catch (error) {
+    console.error('PostHog alias failed:', error);
+  }
+}
+```
+
 ## OAuth Terms of Service Compliance
 
 ### Overview
@@ -522,7 +680,7 @@ By continuing with Google or GitHub, you agree to our Terms of Service and Priva
 
 #### createUser Event Handler
 
-OAuth signups (and all new user signups) automatically have their `tosAcceptedAt` timestamp set in the `createUser` event handler.
+All new user signups (magic link, OAuth) automatically have their `tosAcceptedAt` timestamp set in the `createUser` event handler.
 
 **File:** `apps/web/app/(auth)/auth.ts`
 
