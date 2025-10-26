@@ -19,7 +19,7 @@ import type {
 import {
   account,
   session,
-  user,
+  user as userTable,
   verificationToken,
   type UserPreferences,
   type UserLevel,
@@ -74,7 +74,7 @@ export const {
   signOut: SignOutFunction;
 } = NextAuth({
   adapter: DrizzleAdapter(db, {
-    usersTable: user,
+    usersTable: userTable,
     accountsTable: account,
     sessionsTable: session,
     verificationTokensTable: verificationToken,
@@ -150,14 +150,14 @@ export const {
 
       if (account?.provider === 'github' && account.access_token) {
         await db
-          .update(user)
+          .update(userTable)
           .set({
             githubAccessToken: account.access_token,
             preferences: authUser.preferences || {
               language: 'en',
             },
           })
-          .where(eq(user.id, authUser.id as string));
+          .where(eq(userTable.id, authUser.id as string));
       }
       return true;
     },
@@ -187,7 +187,7 @@ export const {
     },
   },
   events: {
-    createUser({ user }) {
+    async createUser({ user }) {
       const { email } = user;
 
       if (email && user.id) {
@@ -205,6 +205,18 @@ export const {
           identifyUser(user.id, {
             email: email,
             name: user.name || email.split('@')[0],
+          });
+
+          // Set tosAcceptedAt for all new signups
+          await db
+            .update(userTable)
+            .set({ tosAcceptedAt: new Date() })
+            .where(eq(userTable.id, user.id));
+
+          // Track ToS acceptance event
+          await captureServerEvent(user.id, 'tos_accepted', {
+            method: user.provider || 'credentials',
+            timestamp: new Date().toISOString(),
           });
         } catch (error) {
           console.error('Failed to track registration event:', error);
