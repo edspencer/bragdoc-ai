@@ -25,7 +25,6 @@ export const EventDuration = {
   Week: 'week',
   Month: 'month',
   Quarter: 'quarter',
-  HalfYear: 'half year',
   Year: 'year',
 } as const;
 
