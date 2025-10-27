@@ -317,6 +317,150 @@ Test the navigation changes in multiple browsers:
 
 ---
 
+### 9. Generate Document Dialog
+
+#### 9.1 Dialog Opening and Display
+- [ ] **Dialog opens from Achievements page**:
+  - Select achievements with checkboxes
+  - Click "Generate Document" button
+  - Dialog appears with correct achievement count
+  - Dialog title is "Generate Document"
+  - Dialog description shows count: "Generate a document from X selected achievements"
+  - All 4 document types are displayed (Standup, Weekly Summary, Summary, Custom)
+  - No console errors on dialog open
+- [ ] **Dialog opens from Project Details page**:
+  - Navigate to a project page
+  - Select achievements from project
+  - Click "Generate Document" button
+  - Dialog behaves identically to Achievements page
+
+#### 9.2 Document Type Selection
+- [ ] **All document types displayed correctly**:
+  - Standup card with icon and description
+  - Weekly Summary card with icon and description
+  - Summary card with icon and description
+  - Custom card with icon and description
+- [ ] **Type selection behavior**:
+  - Clicking a type card selects it (blue ring appears)
+  - Only one type can be selected at a time
+  - Selected type can be changed before generation
+  - Generate button is disabled until a type is selected
+  - Generate button becomes enabled after type selection
+  - Type cards show hover effect when not generating
+
+#### 9.3 Prompt Editing
+- [ ] **Default prompt appears** when type is selected
+- [ ] **Prompt textarea is editable** before generation
+- [ ] **Prompt content is appropriate** for selected document type
+- [ ] **Prompt can be customized** and changes are saved
+- [ ] **Standup prompt format** includes "What I Did" and "Impact" sections
+- [ ] **Custom type** allows completely custom prompt
+
+#### 9.4 Generation Process
+- [ ] **Generate button behavior**:
+  - Disabled when no type selected
+  - Enabled when type selected
+  - Shows loading state during generation (spinner icon)
+  - Button text changes to "Generating..."
+  - Button is disabled during generation
+- [ ] **Loading state feedback**:
+  - Dialog description updates to progress message
+  - Progress message includes achievement count
+  - Progress message includes time estimate (10-30 seconds)
+  - Type selection cards show reduced opacity (50%)
+  - Type cards become non-interactive during generation
+  - Prompt textarea is disabled during generation
+  - Cancel button is disabled during generation
+- [ ] **Dialog interaction during generation**:
+  - ESC key does not close dialog
+  - Clicking outside dialog does not close it
+  - Dialog remains open until generation completes
+  - All controls return to normal after generation
+
+#### 9.5 API Integration
+- [ ] **Correct endpoint called**: `POST /api/documents/generate`
+- [ ] **Request payload format correct**:
+  - `achievementIds`: array of UUIDs
+  - `type`: backend enum value (weekly_report, monthly_report, custom_report)
+  - `title`: auto-generated title with date
+  - `userInstructions`: prompt from textarea
+- [ ] **Type mapping correct**:
+  - Frontend "standup" → Backend "weekly_report"
+  - Frontend "weekly" → Backend "weekly_report"
+  - Frontend "summary" → Backend "monthly_report"
+  - Frontend "custom" → Backend "custom_report"
+- [ ] **Response handling**:
+  - 200 response → success flow
+  - Document object includes id, title, content, type, createdAt
+  - Success toast appears with message
+  - Dialog closes automatically after success
+
+#### 9.6 Post-Generation Flow
+- [ ] **Automatic redirect** to `/reports` page after success
+- [ ] **New document appears** at top of reports list
+- [ ] **Document title format correct**: "[Type] - [Month DD, YYYY]"
+- [ ] **Document shows creation timestamp**
+- [ ] **Document is immediately accessible/viewable**
+- [ ] **Reports page loads without errors**
+
+#### 9.7 Error Handling
+- [ ] **Validation errors**:
+  - Toast appears if no type selected
+  - Toast message: "Please select a document type"
+  - Toast appears if prompt is empty
+  - Toast message: "Please provide a prompt"
+- [ ] **Network errors** (test with offline mode):
+  - Error toast appears
+  - Error message is user-friendly
+  - Dialog remains open for retry
+  - Generate button re-enabled after error
+- [ ] **Authentication errors** (401):
+  - Error message: "You must be logged in to generate documents"
+  - User prompted to log in
+- [ ] **Server errors** (500):
+  - Error message: "Failed to generate document"
+  - Dialog remains open for retry
+
+#### 9.8 Performance
+- [ ] **Dialog opens quickly** (< 100ms)
+- [ ] **Type selection is responsive** (< 50ms)
+- [ ] **Generation completes within expected time** (10-30 seconds)
+- [ ] **Redirect after generation is fast** (< 500ms)
+- [ ] **Reports page loads quickly** after redirect (< 1 second)
+- [ ] **No performance degradation** with many achievements selected
+
+#### 9.9 Browser Console
+- [ ] **No JavaScript errors** during dialog open
+- [ ] **No React warnings** during type selection
+- [ ] **No console errors** during generation
+- [ ] **API call visible** in Network tab with correct payload
+- [ ] **No memory leaks** after multiple generations
+
+#### 9.10 Accessibility - Generate Dialog
+- [ ] **Keyboard navigation works**:
+  - Tab key moves between type cards
+  - Enter key selects type
+  - Tab reaches textarea for prompt editing
+  - Tab reaches Cancel and Generate buttons
+  - Enter on Generate button starts generation
+  - All elements have visible focus indicators
+- [ ] **Screen reader support**:
+  - Dialog title announced
+  - Achievement count announced
+  - Type cards have descriptive labels
+  - Loading state changes announced
+  - Success/error messages announced
+
+#### 9.11 Edge Cases
+- [ ] **1 achievement selected** - Dialog handles singular correctly
+- [ ] **Many achievements selected** (50+) - Generation works
+- [ ] **Rapid clicking Generate button** - Prevented by disabled state
+- [ ] **Changing type during generation** - Prevented (cards disabled)
+- [ ] **Browser back button during generation** - Handled gracefully
+- [ ] **Page refresh during generation** - No corruption
+
+---
+
 ## Test Execution Checklist
 
 ### Before Testing
@@ -364,7 +508,37 @@ All tests must pass for the feature to be considered complete and ready for depl
 
 ## Test Results
 
-### Latest Test Run
+### Latest Test Run: Generate Document Dialog
+
+**Test Date**: 2025-10-27
+**Tested By**: web-app-tester agent (Automated Playwright)
+**Feature**: Generate Document Dialog Integration Fix
+**Environment**: Local development (http://localhost:3000)
+**Browser**: Chromium
+
+**Overall Result**: ✅ PASS - ALL TESTS PASSED
+
+**Summary**:
+- ✅ All 10 test categories passed (see section 9 above)
+- ✅ Correct API integration with `/api/documents/generate`
+- ✅ Proper request payload format matching backend schema
+- ✅ All document types selectable and functional
+- ✅ Loading states provide clear user feedback
+- ✅ Dialog interactions properly controlled during generation
+- ✅ Successful redirect to reports page after generation
+- ✅ No JavaScript errors or console warnings
+- ✅ Performance within expected ranges (generation: 10-20 seconds)
+- ✅ Works from both Achievements page and Project Details page
+
+**Issues Found**: None - No blocking issues
+
+**Details**: See `tasks/gen-document/TEST_RESULTS.md` for full test report with screenshots.
+
+**Production Status**: ✅ APPROVED FOR PRODUCTION
+
+---
+
+### Previous Test Run: Careers Section Navigation
 
 **Test Date**: 2025-10-17
 **Tested By**: Claude Code (QA Testing Agent)
@@ -392,7 +566,6 @@ As new features are added, expand this test plan to include:
 - Achievement creation, editing, and deletion workflows
 - Project management functionality
 - Company management functionality
-- Document generation with AI
 - Standup creation and editing
 - Performance review generation (when implemented)
 - Workstreams discovery (when implemented)
@@ -400,6 +573,8 @@ As new features are added, expand this test plan to include:
 - Data import/export functionality
 - Email notifications
 - Stripe payment integration
+- Document viewing and editing interface
+- Document sharing and export features
 
 ---
 
