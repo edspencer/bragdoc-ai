@@ -16,7 +16,6 @@ import { useRouter } from 'next/navigation';
 
 import { Button } from '@/components/ui/button';
 import { useArtifact } from '@/hooks/use-artifact';
-import { CreateDocumentDialog } from '@/components/reports/create-document-dialog';
 import {
   Card,
   CardContent,
@@ -51,6 +50,7 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import Link from 'next/link';
+import { BetaFeatureBanner } from '@/components/shared/beta-feature-banner';
 
 interface Document {
   id: string;
@@ -255,8 +255,7 @@ export function ReportsTable({
 
             {/* Toolbar buttons */}
             <div className="flex flex-wrap gap-2">
-              <CreateDocumentDialog onDocumentCreated={handleEditClick} />
-              <Button asChild variant="outline">
+              <Button asChild>
                 <Link href="/reports/new/weekly">
                   <IconPlus className="size-4" />
                   Weekly
@@ -276,6 +275,9 @@ export function ReportsTable({
               </Button>
             </div>
           </div>
+
+          {/* Beta Banner */}
+          <BetaFeatureBanner />
 
           {/* Documents Table */}
           <Card>

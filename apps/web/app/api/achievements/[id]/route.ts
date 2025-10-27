@@ -9,12 +9,12 @@ type Params = { id: string };
 const updateValidationSchema = z.object({
   title: z.string().min(1, 'Title is required').optional(),
   eventDuration: z
-    .enum(['day', 'week', 'month', 'quarter', 'half year', 'year'] as const)
+    .enum(['day', 'week', 'month', 'quarter', 'year'] as const)
     .optional(),
   eventStart: z.string().datetime().optional(),
   eventEnd: z.string().datetime().optional().nullable(),
-  summary: z.string().optional(),
-  details: z.string().optional(),
+  summary: z.string().nullable().optional(),
+  details: z.string().nullable().optional(),
   companyId: z.string().uuid().optional().nullable(),
   projectId: z.string().uuid().optional().nullable(),
   impact: z.number().int().min(1).max(10).optional(),

@@ -29,7 +29,7 @@ export function useAchievementMutations(options: UseMutationsOptions = {}) {
 
           if (!response.ok) {
             const error = await response.json();
-            throw new Error(error.message || 'Failed to create achievement');
+            throw new Error(error.error || 'Failed to create achievement');
           }
 
           // Invalidate achievements cache
@@ -59,7 +59,7 @@ export function useAchievementMutations(options: UseMutationsOptions = {}) {
 
           if (!response.ok) {
             const error = await response.json();
-            throw new Error(error.message || 'Failed to update achievement');
+            throw new Error(error.error || 'Failed to update achievement');
           }
 
           // Invalidate achievements cache
@@ -85,7 +85,7 @@ export function useAchievementMutations(options: UseMutationsOptions = {}) {
 
           if (!response.ok) {
             const error = await response.json();
-            throw new Error(error.message || 'Failed to delete achievement');
+            throw new Error(error.error || 'Failed to delete achievement');
           }
 
           // Invalidate achievements cache
