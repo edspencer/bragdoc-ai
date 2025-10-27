@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { Header } from '@/components/header';
 import { Footer } from '@/components/footer';
+import { BetaBanner } from '@/components/pricing/beta-banner';
 import { PricingHeader } from '@/components/pricing/pricing-header';
 import { PricingTiers } from '@/components/pricing/pricing-tiers';
 import { ComparisonTable } from '@/components/pricing/comparison-table';
@@ -10,12 +11,11 @@ import { PricingCta } from '@/components/pricing/pricing-cta';
 import { OfferSchema } from '@/components/structured-data/offer-schema';
 
 export const metadata: Metadata = {
-  title:
-    'BragDoc Pricing: Free Achievement Tracking, Optional Cloud AI - $4.99/mo',
+  title: 'BragDoc Pricing: Free Open Beta - One Year Free Offer',
   description:
-    'BragDoc is free to use with your own LLM. Optional cloud AI features are just $4.99/month. No contracts, cancel anytime. Compare free vs paid plans.',
+    'BragDoc is in open beta with all features FREE. Sign up now and get one year free when we launch at $4.99/month. No credit card required.',
   keywords:
-    'bragdoc pricing, free achievement tracker, developer tool pricing, brag document cost',
+    'bragdoc pricing, free achievement tracker, beta pricing, developer tool pricing, free open beta',
   alternates: {
     canonical: '/pricing',
   },
@@ -42,7 +42,10 @@ export default function PricingPage() {
     <div className="min-h-screen bg-background">
       <OfferSchema offers={pricingOffers} />
       <Header />
-      <main className="pt-16">
+      <div className="pt-16">
+        <BetaBanner />
+      </div>
+      <main>
         <PricingHeader />
         <PricingTiers />
         <PrivacyArchitecture />

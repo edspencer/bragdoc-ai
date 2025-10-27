@@ -211,14 +211,20 @@ export function ComparisonTable() {
                   Free
                 </TableCell>
                 <TableCell className="text-center font-semibold">
-                  $4.99/mo
-                  <span className="text-xs text-muted-foreground block font-normal">
-                    or $44.99/year
+                  <div className="text-green-600 dark:text-green-500 text-lg">
+                    FREE (Beta)
+                  </div>
+                  <span className="text-xs text-muted-foreground block line-through opacity-60">
+                    $4.99/mo or $44.99/year*
                   </span>
                 </TableCell>
               </TableRow>
             </TableBody>
           </Table>
+          <p className="text-sm text-muted-foreground mt-4 text-center">
+            * Future pricing after beta launch. All beta users get one year
+            free.
+          </p>
         </div>
       </div>
     </section>

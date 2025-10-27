@@ -6,8 +6,11 @@ export function PricingHeader() {
           BragDoc Pricing: Free & Cloud AI Plans
         </h1>
         <p className="text-lg sm:text-xl text-muted-foreground max-w-3xl mx-auto text-balance">
-          Get the full power of AI-driven achievement tracking for $4.99/month.
-          Try it free, or self-host the open source version.
+          <span className="font-semibold text-green-600 dark:text-green-500">
+            Currently in open beta - all features FREE.
+          </span>{' '}
+          Future pricing $4.99/month when we launch. Sign up now for one year
+          free!
         </p>
       </div>
     </section>

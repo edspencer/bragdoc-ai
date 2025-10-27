@@ -13,6 +13,24 @@ export function PricingFaq() {
           Pricing FAQ
         </h2>
         <Accordion type="single" collapsible className="max-w-3xl mx-auto">
+          <AccordionItem value="item-beta-1">
+            <AccordionTrigger>
+              Is BragDoc really free right now?
+            </AccordionTrigger>
+            <AccordionContent>
+              Yes! We're in open beta and all features are completely free.
+              Anyone who signs up during beta gets{' '}
+              <strong>one year free</strong> when we launch paid plans.
+            </AccordionContent>
+          </AccordionItem>
+          <AccordionItem value="item-beta-2">
+            <AccordionTrigger>What happens when beta ends?</AccordionTrigger>
+            <AccordionContent>
+              When we exit beta, pricing will be $4.99/month or $44.99/year. If
+              you signed up during beta, you'll automatically get one year free
+              before any charges begin.
+            </AccordionContent>
+          </AccordionItem>
           <AccordionItem value="item-1">
             <AccordionTrigger>
               What's the difference between Free and Full Account?
@@ -20,9 +38,10 @@ export function PricingFaq() {
             <AccordionContent>
               The free account lets you manually track achievements and explore
               BragDoc, but it doesn't include any AI features. The Full Account
-              ($4.99/month) gives you AI-powered achievement extraction from git
-              commits, AI-generated standup summaries, performance review
-              documents, and all the features that make BragDoc truly powerful.
+              (future pricing $4.99/month after beta) gives you AI-powered
+              achievement extraction from git commits, AI-generated standup
+              summaries, performance review documents, and all the features that
+              make BragDoc truly powerful. During beta, all features are free.
             </AccordionContent>
           </AccordionItem>
           <AccordionItem value="item-2">
@@ -52,11 +71,11 @@ export function PricingFaq() {
           <AccordionItem value="item-4">
             <AccordionTrigger>Is there a free trial?</AccordionTrigger>
             <AccordionContent>
-              The free account serves as your trial - you can explore BragDoc
-              and manually track achievements to see if it fits your workflow.
-              When you're ready for the AI features, upgrade to a Full Account.
-              We don't offer a time-limited trial because we want you to make an
-              informed decision without pressure.
+              Currently everything is FREE during open beta, so there's nothing
+              to commit to. Plus, beta users get one year free when we launch
+              paid features. After beta, the free account serves as your trial -
+              you can explore BragDoc and manually track achievements to see if
+              it fits your workflow.
             </AccordionContent>
           </AccordionItem>
           <AccordionItem value="item-5">
@@ -71,11 +90,12 @@ export function PricingFaq() {
           <AccordionItem value="item-6">
             <AccordionTrigger>How does billing work?</AccordionTrigger>
             <AccordionContent>
-              Billing is simple and you can cancel anytime. Choose monthly
-              billing at $4.99/month or annual billing at $44.99/year (save
-              25%). There are no hidden fees, no setup costs, and no long-term
-              commitments. You can cancel your subscription at any time and
-              continue using the free account.
+              During open beta, there's no billing - everything is free. After
+              beta launch, billing will be simple and you can cancel anytime.
+              Choose monthly billing at $4.99/month or annual billing at
+              $44.99/year (save 25%). There are no hidden fees, no setup costs,
+              and no long-term commitments. Beta users automatically get one
+              year free before any charges begin.
             </AccordionContent>
           </AccordionItem>
         </Accordion>

@@ -35,7 +35,8 @@ export function PricingTiers() {
                 Full Account
               </CardTitle>
               <CardDescription className="text-base">
-                Everything you need to track and showcase your achievements
+                Everything you need to track and showcase your achievements -
+                currently FREE during open beta
               </CardDescription>
 
               <div className="mt-6 flex justify-center">
@@ -75,28 +76,40 @@ export function PricingTiers() {
               </div>
 
               <div className="mt-6">
+                {/* Large "FREE" badge */}
+                <div className="text-center mb-4">
+                  <Badge className="text-2xl px-6 py-2 bg-green-600 dark:bg-green-500 text-white">
+                    FREE During Beta
+                  </Badge>
+                </div>
+
+                {/* Strikethrough future pricing */}
                 {billingPeriod === 'monthly' ? (
                   <div className="text-center">
-                    <div className="flex items-baseline justify-center gap-1">
-                      <span className="text-5xl font-bold">$4.99</span>
-                      <span className="text-muted-foreground text-lg">
+                    <div className="flex items-baseline justify-center gap-2 text-muted-foreground">
+                      <span className="text-3xl font-semibold line-through opacity-60">
+                        $4.99
+                      </span>
+                      <span className="text-base line-through opacity-60">
                         /month
                       </span>
                     </div>
-                    <p className="text-sm text-muted-foreground mt-2">
-                      Billed monthly
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Future price after beta
                     </p>
                   </div>
                 ) : (
                   <div className="text-center">
-                    <div className="flex items-baseline justify-center gap-1">
-                      <span className="text-5xl font-bold">$44.99</span>
-                      <span className="text-muted-foreground text-lg">
+                    <div className="flex items-baseline justify-center gap-2 text-muted-foreground">
+                      <span className="text-3xl font-semibold line-through opacity-60">
+                        $44.99
+                      </span>
+                      <span className="text-base line-through opacity-60">
                         /year
                       </span>
                     </div>
-                    <p className="text-sm text-muted-foreground mt-2">
-                      Billed annually
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Future price after beta
                     </p>
                   </div>
                 )}
@@ -153,6 +166,13 @@ export function PricingTiers() {
               </div>
             </CardContent>
             <CardFooter className="flex flex-col gap-3 pt-6">
+              {/* One-year-free callout */}
+              <div className="w-full p-3 rounded-lg bg-green-50 dark:bg-green-950/30 border border-green-200 dark:border-green-800">
+                <p className="text-sm font-medium text-green-700 dark:text-green-400 text-center">
+                  🎁 Sign up during beta → Get one year FREE when we launch
+                </p>
+              </div>
+
               <Button
                 size="lg"
                 className="w-full text-lg h-12 bg-[oklch(0.65_0.25_262)] hover:bg-[oklch(0.6_0.25_262)] dark:bg-[oklch(0.7_0.25_262)] dark:hover:bg-[oklch(0.65_0.25_262)]"
@@ -181,7 +201,9 @@ export function PricingTiers() {
           <Card className="bg-muted/30">
             <CardHeader>
               <CardTitle className="text-2xl">Free Account</CardTitle>
-              <CardDescription>Try BragDoc without AI features</CardDescription>
+              <CardDescription>
+                Try BragDoc without AI features - always free, even after beta
+              </CardDescription>
             </CardHeader>
             <CardContent>
               <p className="text-muted-foreground mb-4">
