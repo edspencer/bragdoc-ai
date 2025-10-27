@@ -900,7 +900,7 @@ if (
 **Plan:** Export reports to PDF, Word, plain text
 
 **Implementation approach:**
-- Backend: Use libraries like `puppeteer` (PDF), `docx` (Word)
+- Backend: Use libraries for document generation (PDF, Word)
 - API: `POST /api/documents/[id]/export?format=pdf`
 - Frontend: Download button with format selector
 
