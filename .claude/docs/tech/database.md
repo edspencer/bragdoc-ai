@@ -348,6 +348,55 @@ export const document = pgTable('Document', {
 - When set, document accessible at `/share/{shareToken}`
 - No authentication required for shared links
 
+**Type Definition with Company Join:**
+
+Similar to `ProjectWithCompany`, we have a type for documents with joined company data:
+
+```typescript
+// packages/database/src/schema.ts
+export type Document = InferSelectModel<typeof document>;
+
+export interface DocumentWithCompany extends Document {
+  companyName: string | null;
+}
+```
+
+**Usage Example:**
+
+```typescript
+// apps/web/app/(app)/reports/[id]/page.tsx
+import type { DocumentWithCompany } from '@bragdoc/database';
+
+// Query with left join to company table
+const documentData = await db
+  .select({
+    id: document.id,
+    title: document.title,
+    content: document.content,
+    type: document.type,
+    kind: document.kind,
+    chatId: document.chatId,
+    companyId: document.companyId,
+    userId: document.userId,
+    createdAt: document.createdAt,
+    updatedAt: document.updatedAt,
+    shareToken: document.shareToken,
+    company: {
+      id: company.id,
+      name: company.name,
+    },
+  })
+  .from(document)
+  .leftJoin(company, eq(document.companyId, company.id))
+  .where(and(eq(document.id, id), eq(document.userId, userId)));
+
+// Transform to DocumentWithCompany type
+const doc: DocumentWithCompany = {
+  ...documentData[0],
+  companyName: documentData[0].company?.name || null,
+};
+```
+
 ---
 
 ### Chat & Message Tables

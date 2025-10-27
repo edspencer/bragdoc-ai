@@ -237,6 +237,11 @@ export const document = pgTable('Document', {
 
 export type Document = InferSelectModel<typeof document>;
 
+// Document with joined company data
+export interface DocumentWithCompany extends Document {
+  companyName: string | null;
+}
+
 export const stream = pgTable(
   'Stream',
   {

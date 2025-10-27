@@ -360,10 +360,13 @@ export function ReportsTable({
                       filteredDocuments.map((doc) => (
                         <TableRow key={doc.id}>
                           <TableCell>
-                            <div className="flex items-center gap-2">
+                            <Link
+                              href={`/reports/${doc.id}`}
+                              className="flex items-center gap-2 hover:underline"
+                            >
                               <IconFileText className="size-4 text-muted-foreground" />
                               <span className="font-medium">{doc.title}</span>
-                            </div>
+                            </Link>
                           </TableCell>
                           <TableCell>
                             <Badge

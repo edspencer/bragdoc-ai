@@ -53,6 +53,115 @@ export function AchievementForm() {
 - React hooks (useState, useEffect)
 - Third-party libraries requiring browser
 
+### Detail Page Pattern
+
+**Purpose:** Display individual entity pages (e.g., `/reports/:id`, `/projects/:id`) with view, edit, and delete capabilities.
+
+**Architecture:** Split responsibility between Server Component (data) and Client Component (interactivity).
+
+**Server Component Responsibilities:**
+- Authenticate user via `auth()`
+- Fetch entity by ID with database joins (e.g., document + company)
+- Scope ALL queries by `userId` for security
+- Return 404 via `notFound()` if entity not found or unauthorized
+- Fetch supporting data (e.g., user's companies for edit dropdowns)
+- Pass typed data as props to client component
+
+**Client Component Responsibilities:**
+- Manage local state for optimistic updates
+- Handle user interactions (edit, delete, print)
+- Call API routes for persistence
+- Use `router.push()` or `router.refresh()` for navigation/revalidation
+
+**Key Principles:**
+- **Never use `redirect()` in server components** - breaks Cloudflare Workers builds
+- **Always scope by userId** - both in initial fetch and in API routes
+- **Use shared types** from `@bragdoc/database` (e.g., `DocumentWithCompany`)
+- **Optimistic updates** - update client state immediately, rollback on error
+
+**Example Implementation:** See `apps/web/app/(app)/reports/[id]/page.tsx` (server) and `report-detail-view.tsx` (client)
+
+### Canvas Editor Integration Pattern
+
+**Purpose:** Launch the inline canvas editor for document content editing from any view (detail pages, tables, etc.).
+
+**Mechanism:** Use the `useArtifact()` hook to set artifact state, which triggers the global `ArtifactCanvas` component to appear.
+
+**Critical Requirement:** Documents MUST have a `chatId` field to load the conversation context. Legacy documents without `chatId` cannot use the canvas editor.
+
+**Implementation Steps:**
+1. Import `useArtifact` hook and destructure `setArtifact`
+2. Validate `chatId` exists - show error toast and log if missing
+3. Call `setArtifact()` with required fields: `documentId`, `chatId`, `kind`, `title`, `content`, `isVisible: true`, `status: 'idle'`
+4. Global canvas renders automatically via shared layout
+
+**Error Handling:**
+- Always validate `chatId` exists before calling `setArtifact()`
+- Show user-friendly toast: "This document is missing a chat. Please contact support."
+- Log error details for debugging legacy data issues
+
+**Example Implementation:** See `apps/web/app/(app)/reports/[id]/report-detail-view.tsx` `handleContentClick` function
+
+### Print-Ready Content Rendering
+
+**Purpose:** Make document content print beautifully by hiding UI chrome and optimizing typography for paper.
+
+**Approach:** Use Tailwind's `print:` variant to conditionally apply styles only when printing.
+
+**Elements to Hide:**
+- Navigation (back links, breadcrumbs)
+- Action buttons (Edit, Delete, Print)
+- Dialogs and modals
+- Zero state messages
+- Hover effects and shadows
+
+**Elements to Keep:**
+- Main content with Markdown rendering
+- Document title and metadata
+- Company/date information (if relevant to printed document)
+
+**Print Button:** Add a button that calls `window.print()` to trigger browser print dialog. Hide this button in print with `print:hidden`.
+
+**Responsive Padding:** Use screen-size-aware padding (e.g., `p-4 sm:p-8 lg:p-12`) to ensure content looks good on screen AND when printed on letter/A4 paper.
+
+**Example Implementation:** See `apps/web/app/(app)/reports/[id]/report-detail-view.tsx`
+
+### Metadata Edit Dialog Pattern
+
+**Purpose:** Allow users to edit entity metadata (title, type, company, etc.) without full page reload, with immediate visual feedback.
+
+**Architecture:** Controlled dialog with callback-based optimistic updates.
+
+**Component Structure:**
+- **Dialog props**: `open`, `onOpenChange`, entity data, related data (e.g., companies dropdown)
+- **Callback prop**: `onUpdate(updates)` - parent calls this to update its local state optimistically
+- **Local state**: Form fields (title, type, etc.), loading state
+
+**Validation Flow:**
+1. Use Zod schema for client-side validation
+2. Validate on submit - show toast error if validation fails
+3. Only proceed to API call if validation passes
+
+**Optimistic Update Flow:**
+1. Call `onUpdate()` callback immediately with new values
+2. Parent updates its local state instantly (user sees change)
+3. Make API PUT request in background
+4. On success: close dialog, `router.refresh()` to sync server state
+5. On error: show toast, optionally rollback optimistic update
+
+**Loading States:**
+- Disable form fields during submission
+- Disable submit button with loading text ("Saving...")
+- Prevent dialog close during submission
+
+**Key UX Principles:**
+- Immediate visual feedback via optimistic updates
+- Clear validation errors via toast notifications
+- Loading states prevent double-submission
+- `router.refresh()` ensures server and client stay in sync
+
+**Example Implementation:** See `apps/web/components/reports/edit-report-metadata-dialog.tsx` and usage in `report-detail-view.tsx`
+
 ## Directory Structure
 
 ```
