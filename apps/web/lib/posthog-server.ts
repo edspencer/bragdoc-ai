@@ -13,6 +13,11 @@ export async function captureServerEvent(
   event: string,
   properties?: Record<string, any>,
 ) {
+  // Skip in development to avoid polluting analytics
+  if (process.env.NODE_ENV === 'development') {
+    return;
+  }
+
   try {
     const response = await fetch(
       `${process.env.NEXT_PUBLIC_POSTHOG_HOST || 'https://app.posthog.com'}/capture/`,
@@ -49,6 +54,11 @@ export async function identifyUser(
   userId: string,
   properties: Record<string, any>,
 ) {
+  // Skip in development to avoid polluting analytics
+  if (process.env.NODE_ENV === 'development') {
+    return;
+  }
+
   try {
     const response = await fetch(
       `${process.env.NEXT_PUBLIC_POSTHOG_HOST || 'https://app.posthog.com'}/capture/`,
@@ -82,6 +92,11 @@ export async function identifyUser(
  * This merges all events from the anonymous session with the authenticated user
  */
 export async function aliasUser(userId: string, anonymousId: string) {
+  // Skip in development to avoid polluting analytics
+  if (process.env.NODE_ENV === 'development') {
+    return;
+  }
+
   try {
     const response = await fetch(
       `${process.env.NEXT_PUBLIC_POSTHOG_HOST || 'https://app.posthog.com'}/capture/`,

@@ -17,6 +17,7 @@ export function PHProvider({ children }: { children: React.ReactNode }) {
         autocapture: false, // Disable automatic event capture
         disable_session_recording: true, // We're not using session recording
         advanced_disable_flags: true, // Disable feature flags and experiments
+        disabled: process.env.NODE_ENV === 'development', // Disable in development
         loaded: (posthog) => {
           if (process.env.NODE_ENV === 'development') posthog.debug();
         },
