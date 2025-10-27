@@ -9,6 +9,13 @@ import { cacheCommand } from './commands/cache';
 import { standupCommand } from './commands/standup';
 import { dataCommand } from './commands/data';
 import { llmCommand } from './commands/llm';
+import { readFileSync } from 'node:fs';
+import { join } from 'node:path';
+
+// Read version from package.json
+const packageJson = JSON.parse(
+  readFileSync(join(__dirname, '../package.json'), 'utf-8'),
+);
 
 // Create a Commander program for the CLI:
 const program = new Command();
@@ -16,7 +23,7 @@ const program = new Command();
 program
   .name('bragdoc')
   .description('CLI tool for managing your brag document')
-  .version('0.1.0');
+  .version(packageJson.version);
 
 // Add commands
 program.addCommand(projectsCommand);
