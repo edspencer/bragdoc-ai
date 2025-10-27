@@ -55,368 +55,112 @@ export function AchievementForm() {
 
 ### Detail Page Pattern
 
-For entity detail pages (e.g., `/reports/:id`), we use a split pattern: Server Component for data fetching + Client Component for interactivity.
+**Purpose:** Display individual entity pages (e.g., `/reports/:id`, `/projects/:id`) with view, edit, and delete capabilities.
 
-**Server Component (Data Fetching):**
+**Architecture:** Split responsibility between Server Component (data) and Client Component (interactivity).
 
-```typescript
-// app/(app)/reports/[id]/page.tsx
-import { auth } from 'app/(auth)/auth';
-import { db } from '@/database/index';
-import { document, company } from '@/database/schema';
-import type { DocumentWithCompany } from '@bragdoc/database';
-import { eq, and } from 'drizzle-orm';
-import { notFound } from 'next/navigation';
-import { ReportDetailView } from './report-detail-view';
+**Server Component Responsibilities:**
+- Authenticate user via `auth()`
+- Fetch entity by ID with database joins (e.g., document + company)
+- Scope ALL queries by `userId` for security
+- Return 404 via `notFound()` if entity not found or unauthorized
+- Fetch supporting data (e.g., user's companies for edit dropdowns)
+- Pass typed data as props to client component
 
-export default async function ReportDetailPage({
-  params,
-}: {
-  params: Promise<{ id: string }>;
-}) {
-  const { id } = await params;
+**Client Component Responsibilities:**
+- Manage local state for optimistic updates
+- Handle user interactions (edit, delete, print)
+- Call API routes for persistence
+- Use `router.push()` or `router.refresh()` for navigation/revalidation
 
-  // Authenticate
-  const session = await auth();
-  if (!session?.user?.id) {
-    return <div className="p-4">Please log in.</div>;
-  }
+**Key Principles:**
+- **Never use `redirect()` in server components** - breaks Cloudflare Workers builds
+- **Always scope by userId** - both in initial fetch and in API routes
+- **Use shared types** from `@bragdoc/database` (e.g., `DocumentWithCompany`)
+- **Optimistic updates** - update client state immediately, rollback on error
 
-  // Fetch entity with joined data
-  const documentData = await db
-    .select({
-      id: document.id,
-      title: document.title,
-      content: document.content,
-      // ... all fields
-      company: {
-        id: company.id,
-        name: company.name,
-      },
-    })
-    .from(document)
-    .leftJoin(company, eq(document.companyId, company.id))
-    .where(and(eq(document.id, id), eq(document.userId, session.user.id)))
-    .limit(1);
-
-  if (documentData.length === 0) {
-    notFound();
-  }
-
-  // Fetch related data for editing
-  const companies = await db
-    .select()
-    .from(company)
-    .where(eq(company.userId, session.user.id));
-
-  // Transform to typed object
-  const doc: DocumentWithCompany = {
-    ...documentData[0],
-    companyName: documentData[0].company?.name || null,
-  };
-
-  return <ReportDetailView initialDocument={doc} companies={companies} />;
-}
-```
-
-**Client Component (Interactivity):**
-
-```typescript
-// app/(app)/reports/[id]/report-detail-view.tsx
-'use client';
-
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
-import type { DocumentWithCompany, Company } from '@bragdoc/database';
-
-interface ReportDetailViewProps {
-  initialDocument: DocumentWithCompany;
-  companies: Company[];
-}
-
-export function ReportDetailView({
-  initialDocument,
-  companies,
-}: ReportDetailViewProps) {
-  const router = useRouter();
-  const [document, setDocument] = useState(initialDocument);
-
-  // Handlers for user interactions
-  const handleDelete = async () => {
-    await fetch(`/api/documents/${document.id}`, { method: 'DELETE' });
-    router.push('/reports');
-  };
-
-  const handleMetadataUpdate = (updates: Partial<DocumentWithCompany>) => {
-    setDocument({ ...document, ...updates }); // Optimistic update
-  };
-
-  return (
-    <div>
-      {/* Interactive UI */}
-    </div>
-  );
-}
-```
-
-**Pattern Benefits:**
-- **Server Component**: Zero JavaScript for data fetching, direct database access, userId scoping
-- **Client Component**: Full React interactivity, local state management, optimistic updates
-- **Type Safety**: Shared types from `@bragdoc/database` ensure consistency
-- **Security**: userId scoping in server component prevents unauthorized access
+**Example Implementation:** See `apps/web/app/(app)/reports/[id]/page.tsx` (server) and `report-detail-view.tsx` (client)
 
 ### Canvas Editor Integration Pattern
 
-The `useArtifact()` hook integrates the canvas editor for content editing. This pattern launches an inline editor when users click on rendered content.
+**Purpose:** Launch the inline canvas editor for document content editing from any view (detail pages, tables, etc.).
 
-**Implementation:**
+**Mechanism:** Use the `useArtifact()` hook to set artifact state, which triggers the global `ArtifactCanvas` component to appear.
 
-```typescript
-'use client';
+**Critical Requirement:** Documents MUST have a `chatId` field to load the conversation context. Legacy documents without `chatId` cannot use the canvas editor.
 
-import { useArtifact } from '@/hooks/use-artifact';
-import { toast } from 'sonner';
+**Implementation Steps:**
+1. Import `useArtifact` hook and destructure `setArtifact`
+2. Validate `chatId` exists - show error toast and log if missing
+3. Call `setArtifact()` with required fields: `documentId`, `chatId`, `kind`, `title`, `content`, `isVisible: true`, `status: 'idle'`
+4. Global canvas renders automatically via shared layout
 
-export function ReportDetailView({ initialDocument }: Props) {
-  const { setArtifact } = useArtifact();
+**Error Handling:**
+- Always validate `chatId` exists before calling `setArtifact()`
+- Show user-friendly toast: "This document is missing a chat. Please contact support."
+- Log error details for debugging legacy data issues
 
-  const handleContentClick = () => {
-    // Validate chatId exists (required for canvas editor)
-    if (!document.chatId) {
-      toast.error('This document is missing a chat. Please contact support.');
-      console.error('Document missing chatId:', {
-        id: document.id,
-        title: document.title,
-      });
-      return;
-    }
-
-    // Launch canvas editor with document context
-    setArtifact({
-      documentId: document.id,
-      chatId: document.chatId,
-      kind: (document.kind as 'text') || 'text',
-      title: document.title,
-      content: document.content || '',
-      isVisible: true,
-      status: 'idle',
-      boundingBox: { top: 0, left: 0, width: 100, height: 100 },
-    });
-  };
-
-  return (
-    <Card onClick={handleContentClick} className="cursor-pointer">
-      <CardContent>
-        <Markdown>{document.content}</Markdown>
-      </CardContent>
-    </Card>
-  );
-}
-```
-
-**Key Points:**
-- **chatId validation**: Always check for missing chatId before launching editor
-- **Error handling**: Show user-friendly toast and log details for debugging
-- **Required fields**: documentId, chatId, kind, title, content all required by setArtifact()
-- **Artifact state**: Sets isVisible=true to show editor, status='idle' for initial state
+**Example Implementation:** See `apps/web/app/(app)/reports/[id]/report-detail-view.tsx` `handleContentClick` function
 
 ### Print-Ready Content Rendering
 
-Display content in a print-optimized format with graceful degradation.
+**Purpose:** Make document content print beautifully by hiding UI chrome and optimizing typography for paper.
 
-**Pattern:**
+**Approach:** Use Tailwind's `print:` variant to conditionally apply styles only when printing.
 
-```typescript
-export function ReportDetailView({ initialDocument }: Props) {
-  return (
-    <div className="flex flex-1 flex-col">
-      {/* Interactive toolbar - hidden in print */}
-      <div className="print:hidden flex gap-2 p-4">
-        <Button onClick={() => window.print()}>
-          <IconPrinter />
-          Print
-        </Button>
-        <Button onClick={handleEdit}>Edit</Button>
-        <Button onClick={handleDelete}>Delete</Button>
-      </div>
+**Elements to Hide:**
+- Navigation (back links, breadcrumbs)
+- Action buttons (Edit, Delete, Print)
+- Dialogs and modals
+- Zero state messages
+- Hover effects and shadows
 
-      {/* Content card - visible and well-formatted in print */}
-      <Card
-        onClick={handleContentClick}
-        className="cursor-pointer transition-shadow hover:shadow-lg print:shadow-none"
-      >
-        <CardContent className="p-4 sm:p-8 lg:p-12">
-          {document.content ? (
-            <Markdown>{document.content}</Markdown>
-          ) : (
-            <div className="text-center text-muted-foreground py-12 print:hidden">
-              <p>This report has no content yet.</p>
-              <p className="text-sm mt-2">Click here to add content.</p>
-            </div>
-          )}
-        </CardContent>
-      </Card>
-    </div>
-  );
-}
-```
+**Elements to Keep:**
+- Main content with Markdown rendering
+- Document title and metadata
+- Company/date information (if relevant to printed document)
 
-**Print Optimization:**
-- `print:hidden` - Hide interactive elements (buttons, dialogs, navigation)
-- `print:shadow-none` - Remove decorative shadows
-- Responsive padding: `p-4 sm:p-8 lg:p-12` ensures proper spacing on all devices
-- Zero state hidden in print
-- Content card remains visible with clean formatting
+**Print Button:** Add a button that calls `window.print()` to trigger browser print dialog. Hide this button in print with `print:hidden`.
+
+**Responsive Padding:** Use screen-size-aware padding (e.g., `p-4 sm:p-8 lg:p-12`) to ensure content looks good on screen AND when printed on letter/A4 paper.
+
+**Example Implementation:** See `apps/web/app/(app)/reports/[id]/report-detail-view.tsx`
 
 ### Metadata Edit Dialog Pattern
 
-Form dialogs for editing entity metadata with optimistic updates and validation.
+**Purpose:** Allow users to edit entity metadata (title, type, company, etc.) without full page reload, with immediate visual feedback.
 
-**Implementation:**
+**Architecture:** Controlled dialog with callback-based optimistic updates.
 
-```typescript
-// components/reports/edit-report-metadata-dialog.tsx
-'use client';
+**Component Structure:**
+- **Dialog props**: `open`, `onOpenChange`, entity data, related data (e.g., companies dropdown)
+- **Callback prop**: `onUpdate(updates)` - parent calls this to update its local state optimistically
+- **Local state**: Form fields (title, type, etc.), loading state
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { toast } from 'sonner';
-import { z } from 'zod';
-import { Dialog, DialogContent, DialogFooter } from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Select } from '@/components/ui/select';
+**Validation Flow:**
+1. Use Zod schema for client-side validation
+2. Validate on submit - show toast error if validation fails
+3. Only proceed to API call if validation passes
 
-const editMetadataSchema = z.object({
-  title: z.string().min(1, 'Title is required').max(256, 'Title too long'),
-  type: z.enum(['weekly_report', 'monthly_report', 'custom_report']).nullable(),
-  companyId: z.string().uuid().nullable(),
-});
+**Optimistic Update Flow:**
+1. Call `onUpdate()` callback immediately with new values
+2. Parent updates its local state instantly (user sees change)
+3. Make API PUT request in background
+4. On success: close dialog, `router.refresh()` to sync server state
+5. On error: show toast, optionally rollback optimistic update
 
-interface EditReportMetadataDialogProps {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-  document: Pick<Document, 'id' | 'title' | 'type' | 'companyId'>;
-  companies: Company[];
-  onUpdate: (updates: Partial<Document>) => void; // Optimistic update callback
-}
+**Loading States:**
+- Disable form fields during submission
+- Disable submit button with loading text ("Saving...")
+- Prevent dialog close during submission
 
-export function EditReportMetadataDialog({
-  open,
-  onOpenChange,
-  document,
-  companies,
-  onUpdate,
-}: EditReportMetadataDialogProps) {
-  const router = useRouter();
-  const [isLoading, setIsLoading] = useState(false);
-  const [title, setTitle] = useState(document.title);
-  const [type, setType] = useState(document.type);
-  const [companyId, setCompanyId] = useState(document.companyId);
+**Key UX Principles:**
+- Immediate visual feedback via optimistic updates
+- Clear validation errors via toast notifications
+- Loading states prevent double-submission
+- `router.refresh()` ensures server and client stay in sync
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-
-    // Validate with Zod
-    const validation = editMetadataSchema.safeParse({ title, type, companyId });
-    if (!validation.success) {
-      toast.error(validation.error.errors[0]?.message || 'Validation failed');
-      return;
-    }
-
-    setIsLoading(true);
-
-    try {
-      // Optimistic update
-      onUpdate({ title, type, companyId });
-
-      // API call
-      const response = await fetch(`/api/documents/${document.id}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ title, type, companyId }),
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to update document');
-      }
-
-      toast.success('Report updated successfully');
-      onOpenChange(false);
-      router.refresh(); // Sync server state
-    } catch (error) {
-      console.error('Error updating document:', error);
-      toast.error('Failed to update report');
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent>
-        <form onSubmit={handleSubmit}>
-          {/* Form fields */}
-          <Input
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-            maxLength={256}
-            required
-          />
-          <Select value={type} onValueChange={setType}>
-            {/* Options */}
-          </Select>
-          <Select value={companyId} onValueChange={setCompanyId}>
-            {/* Companies */}
-          </Select>
-          <DialogFooter>
-            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
-              Cancel
-            </Button>
-            <Button type="submit" disabled={isLoading}>
-              {isLoading ? 'Saving...' : 'Save'}
-            </Button>
-          </DialogFooter>
-        </form>
-      </DialogContent>
-    </Dialog>
-  );
-}
-```
-
-**Pattern Features:**
-- **Zod validation**: Client-side validation with clear error messages
-- **Optimistic updates**: Callback updates parent state immediately for better UX
-- **API persistence**: Makes PUT request to persist changes
-- **router.refresh()**: Syncs server component state after successful update
-- **Error handling**: Toast notifications for all error states
-- **Loading states**: Disables buttons and shows loading text during submission
-
-**Usage in Parent Component:**
-
-```typescript
-export function ReportDetailView({ initialDocument }: Props) {
-  const [document, setDocument] = useState(initialDocument);
-  const [editDialogOpen, setEditDialogOpen] = useState(false);
-
-  const handleMetadataUpdate = (updates: Partial<Document>) => {
-    setDocument({ ...document, ...updates }); // Optimistic update
-  };
-
-  return (
-    <>
-      <Button onClick={() => setEditDialogOpen(true)}>Edit Details</Button>
-      <EditReportMetadataDialog
-        open={editDialogOpen}
-        onOpenChange={setEditDialogOpen}
-        document={document}
-        companies={companies}
-        onUpdate={handleMetadataUpdate}
-      />
-    </>
-  );
-}
-```
+**Example Implementation:** See `apps/web/components/reports/edit-report-metadata-dialog.tsx` and usage in `report-detail-view.tsx`
 
 ## Directory Structure
 
