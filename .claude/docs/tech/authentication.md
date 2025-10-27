@@ -190,6 +190,31 @@ Previously, BragDoc supported email/password authentication. This was removed in
 **Migration Date:** 2025-10-26
 **Replaced By:** Magic Links (Email provider)
 
+### 4. Demo Mode Authentication
+
+Demo accounts use session token-based authentication that bypasses the normal login flow.
+
+**Purpose:** Allow users to try BragDoc without signing up, using temporary demo accounts with pre-populated data.
+
+**Flow:**
+1. User clicks "Try Demo Mode" button
+2. Server creates demo user with `password: null` and `level: 'demo'`
+3. Server generates JWT token using NextAuth's `encode()` function
+4. Server sets session cookie directly via `cookies()` API
+5. User immediately authenticated (no login flow)
+6. Session expires after 4 hours via JWT `maxAge`
+
+**Implementation:** See `apps/web/lib/create-demo-account.ts`
+
+**Key Characteristics:**
+- No password required (`password: null`)
+- Pre-populated with sample data (companies, projects, achievements)
+- Session-only authentication (programmatic JWT + cookie)
+- Demo banner displays for user awareness
+- 4-hour session expiration
+
+**Server Action:** `apps/web/app/(auth)/demo/actions.ts` - `startDemo()` function
+
 ## JWT Strategy
 
 ### JWT Callback

@@ -87,6 +87,45 @@ export const {
   },
   ...authConfig,
   providers: [
+    // Demo-only credentials provider (no password required)
+    {
+      id: 'demo',
+      name: 'Demo',
+      type: 'credentials' as const,
+      credentials: {
+        email: { label: 'Email', type: 'text' },
+        isDemo: { label: 'Is Demo', type: 'text' },
+      },
+      async authorize(credentials) {
+        // Only allow if this is explicitly a demo request
+        if (credentials?.isDemo !== 'true') {
+          return null;
+        }
+
+        // Look up the demo user by email
+        const [demoUser] = await db
+          .select()
+          .from(userTable)
+          .where(eq(userTable.email, credentials.email as string))
+          .limit(1);
+
+        if (!demoUser || demoUser.level !== 'demo') {
+          return null;
+        }
+
+        return {
+          id: demoUser.id,
+          email: demoUser.email,
+          name: demoUser.name,
+          image: demoUser.image,
+          provider: demoUser.provider,
+          providerId: demoUser.providerId,
+          preferences: demoUser.preferences,
+          level: demoUser.level,
+          renewalPeriod: demoUser.renewalPeriod,
+        };
+      },
+    },
     Google({
       clientId: process.env.GOOGLE_CLIENT_ID!,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET!,

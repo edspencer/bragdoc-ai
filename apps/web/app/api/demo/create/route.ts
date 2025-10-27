@@ -35,9 +35,8 @@ export async function POST() {
 
     return NextResponse.json({
       success: true,
-      userId: result.userId,
-      email: result.email,
-      temporaryPassword: result.temporaryPassword,
+      userId: result.user?.id,
+      email: result.user?.email,
       stats: result.stats,
     });
   } else {
