@@ -22,4 +22,6 @@ sed -e 's/[0-9a-f]\{7\}\b/HASH/g' \
     -e 's/[0-9]\{1,2\}\/[0-9]\{1,2\}\/[0-9]\{4\}/DATE/g' \
     -e 's/[0-9]\{4\}-[0-9]\{2\}-[0-9]\{2\}/DATE/g' \
     -e 's/[0-9]\{2\}:[0-9]\{2\}:[0-9]\{2\}/TIME/g' \
-    -e "s|$REPO_PATH|REPO|g"
+    -e "s|$REPO_PATH|REPO|g" \
+    -e 's|/private/tmp|/tmp|g' \
+    -e 's|/tmp/[^ ]*|REPO|g'

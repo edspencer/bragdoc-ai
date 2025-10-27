@@ -14,7 +14,7 @@ mkdir -p "$REPO_DIR"
 cd "$REPO_DIR"
 
 # Initialize with deterministic config
-git init
+git init -b main
 git config user.name "Test User"
 git config user.email "test@bragdoc.ai"
 git config commit.gpgsign false
