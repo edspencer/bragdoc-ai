@@ -1,5 +1,15 @@
 # @bragdoc/cli
 
+## 1.1.0
+
+### Minor Changes
+
+- fbd85c7: Added configurable detail levels to bragdoc extract
+
+### Patch Changes
+
+- dbe02f6: Fix default API URL to point to https://app.bragdoc.ai instead of https://www.bragdoc.ai
+
 ## 1.0.0
 
 ### Major Changes
