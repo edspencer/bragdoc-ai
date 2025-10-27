@@ -19,7 +19,7 @@ fi
 
 # Apply all normalizations in order
 # Note: Path normalization must happen BEFORE specific repo path replacement
-sed -e 's/[0-9a-f]\{7\}\b/HASH/g' \
+sed -e 's/[0-9a-f]\{7\}/HASH/g' \
     -e 's/[0-9]\{1,2\}\/[0-9]\{1,2\}\/[0-9]\{4\}/DATE/g' \
     -e 's/[0-9]\{4\}-[0-9]\{2\}-[0-9]\{2\}/DATE/g' \
     -e 's/[0-9]\{2\}:[0-9]\{2\}:[0-9]\{2\}/TIME/g' \
