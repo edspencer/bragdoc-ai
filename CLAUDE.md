@@ -817,6 +817,36 @@ export default async function DashboardPage() {
 
 See `.claude/docs/tech/frontend-patterns.md` for comprehensive zero state documentation.
 
+#### Detail Page Pattern
+
+For entity detail pages (e.g., `/reports/:id`, `/projects/:id`), use a split pattern:
+
+- **Server Component**: Fetches entity data with joins, handles authentication, returns 404 if not found
+- **Client Component**: Manages interactivity, local state, optimistic updates
+
+```typescript
+// Server component (page.tsx)
+export default async function DetailPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
+  const session = await auth();
+  if (!session?.user?.id) return <div>Please log in.</div>;
+
+  const entity = await fetchEntityWithJoins(id, session.user.id);
+  if (!entity) notFound();
+
+  return <DetailView initialEntity={entity} />;
+}
+
+// Client component (detail-view.tsx)
+'use client';
+export function DetailView({ initialEntity }: Props) {
+  const [entity, setEntity] = useState(initialEntity);
+  // Handle user interactions, optimistic updates
+}
+```
+
+See `.claude/docs/tech/frontend-patterns.md` for comprehensive detail page patterns including canvas editor integration, print-ready rendering, and metadata edit dialogs.
+
 #### Server Actions
 
 For mutations, prefer server actions over API routes:
