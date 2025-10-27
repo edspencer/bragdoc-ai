@@ -65,7 +65,7 @@
     "zod": "^3.25.76"
   },
   "devDependencies": {
-    "@biomejs/biome": "1.9.4",
+    "@biomejs/biome": "2.3.1",
     "@changesets/cli": "^2.29.7",
     "@eslint/js": "^9.38.0",
     "@shadcn/ui": "^0.0.4",
@@ -75,10 +75,10 @@
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "drizzle-kit": "^0.31.5",
-    "eslint": "^8.57.1",
+    "eslint": "^9.38.0",
     "eslint-config-next": "^16.0.0",
-    "eslint-config-prettier": "^9.1.2",
-    "eslint-import-resolver-typescript": "^3.10.1",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-import-resolver-typescript": "^4.4.4",
     "eslint-plugin-import": "^2.32.0",
     "eslint-plugin-prettier": "^5.5.4",
     "estree-walker": "2.0.2",
