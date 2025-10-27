@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import type { FileStats, FileDiff } from '../../git/types';
 
 //Schema we use to ask the LLM for a structured response using
 export const achievementResponseSchema = z.object({
@@ -84,6 +85,11 @@ export interface Commit {
     description: string;
     number: number;
   };
+
+  // Enhanced data
+  stats?: FileStats[];
+  diff?: FileDiff[];
+  diffTruncated?: boolean;
 }
 
 export interface Repository {

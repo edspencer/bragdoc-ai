@@ -1,4 +1,4 @@
-import { Command } from 'commander';
+import { Command, Option } from 'commander';
 import chalk from 'chalk';
 import inquirer from 'inquirer';
 import { loadConfig, saveConfig } from '../config';
@@ -23,6 +23,7 @@ import {
 import { syncProjectWithApi } from '../lib/projects';
 import { promptForLLMConfig, isLLMConfigured } from '../config/llm-setup';
 import { getLLMDisplayName } from '../ai/providers';
+import type { ExtractionConfig, ExtractionDetailLevel } from '../config/types';
 
 const execAsync = promisify(exec);
 
@@ -120,6 +121,44 @@ export async function promptForCronSchedule(): Promise<string | null> {
   }
 
   return convertToCronSchedule(cronOptions);
+}
+
+/**
+ * Prompt user for extraction detail level configuration
+ */
+export async function promptForExtractionConfig(): Promise<ExtractionConfig | null> {
+  const answers = await inquirer.prompt([
+    {
+      type: 'list',
+      name: 'detailLevel',
+      message: 'How much detail should be extracted from commits?',
+      choices: [
+        {
+          name: 'Standard (recommended) - Commit messages + file statistics',
+          value: 'standard',
+        },
+        {
+          name: 'Minimal - Only commit messages (fastest, least context)',
+          value: 'minimal',
+        },
+        {
+          name: 'Detailed - Messages + stats + limited code diffs',
+          value: 'detailed',
+        },
+        {
+          name: 'Comprehensive - Messages + stats + extensive code diffs (slowest)',
+          value: 'comprehensive',
+        },
+      ],
+      default: 'standard',
+    },
+  ]);
+
+  const detailLevel: ExtractionDetailLevel = answers.detailLevel;
+
+  return {
+    detailLevel,
+  };
 }
 
 /**
@@ -377,7 +416,14 @@ export async function listProjects() {
  */
 export async function addProject(
   path: string = process.cwd(),
-  options: { name?: string; maxCommits?: number } = {},
+  options: {
+    name?: string;
+    maxCommits?: number;
+    schedule?: boolean; // Commander converts --no-schedule to schedule: false
+    skipLlmConfig?: boolean;
+    skipApiSync?: boolean;
+    detailLevel?: ExtractionDetailLevel;
+  } = {},
 ) {
   const config = await loadConfig();
   const absolutePath = normalizeRepoPath(path);
@@ -413,7 +459,7 @@ export async function addProject(
   }
 
   // Check if LLM is configured - prompt if not (only for new projects)
-  if (!isLLMConfigured(config.llm)) {
+  if (!options.skipLlmConfig && !isLLMConfigured(config.llm)) {
     console.log('\n🤖 Setting up LLM provider for achievement extraction...\n');
     const llmConfig = await promptForLLMConfig();
     config.llm = llmConfig;
@@ -421,17 +467,62 @@ export async function addProject(
 
     const displayName = getLLMDisplayName(config);
     console.log(chalk.green(`✓ LLM configured: ${displayName}\n`));
+  } else if (options.skipLlmConfig) {
+    console.log(
+      chalk.yellow(
+        '⚠️  Skipping LLM configuration (--skip-llm-config flag set)',
+      ),
+    );
+    console.log(chalk.blue('💡 LLM will be loaded from environment variables'));
   }
 
   // Get repository info for name and remote URL
   const repoInfo = getRepositoryInfo(absolutePath);
   const repoName = options.name || getRepositoryName(repoInfo.remoteUrl);
 
-  // Sync with API to get or create project
-  const { projectId } = await syncProjectWithApi(absolutePath, repoName);
+  let projectId: string | undefined;
 
-  // Always prompt for cron schedule
-  const cronSchedule = await promptForCronSchedule();
+  if (!options.skipApiSync) {
+    // Sync with API to get or create project
+    const syncResult = await syncProjectWithApi(absolutePath, repoName);
+    projectId = syncResult.projectId;
+  } else {
+    console.log(
+      chalk.yellow('⚠️  Skipping API sync (--skip-api-sync flag set)'),
+    );
+    console.log(chalk.blue('💡 Project will be local-only until synced'));
+    // Generate a temporary local ID for local-only projects
+    projectId = `local-${Date.now()}`;
+  }
+
+  let extractionConfig: ExtractionConfig | null;
+
+  if (options.detailLevel) {
+    // Use CLI-provided detail level
+    extractionConfig = { detailLevel: options.detailLevel };
+    console.log(
+      chalk.green(`✓ Using extraction detail level: ${options.detailLevel}`),
+    );
+  } else {
+    // Prompt for extraction detail level
+    console.log('\n📊 Configuring extraction detail level...\n');
+    extractionConfig = await promptForExtractionConfig();
+  }
+
+  let cronSchedule: string | null;
+
+  if (options.schedule === false) {
+    // --no-schedule flag was set
+    cronSchedule = null;
+    console.log(
+      chalk.yellow(
+        '⚠️  Skipping automatic extraction schedule (--no-schedule flag set)',
+      ),
+    );
+  } else {
+    // Always prompt for cron schedule (interactive mode)
+    cronSchedule = await promptForCronSchedule();
+  }
 
   // Add project
   const newProject: Project = {
@@ -442,6 +533,7 @@ export async function addProject(
       ? Number.parseInt(options.maxCommits.toString(), 10)
       : undefined,
     cronSchedule: cronSchedule || undefined,
+    extraction: extractionConfig || undefined,
     id: projectId,
     remote: repoInfo.remoteUrl,
   };
@@ -459,7 +551,7 @@ export async function addProject(
   );
 
   // If this repo has a schedule, ensure system-level scheduling is set up
-  if (cronSchedule) {
+  if (cronSchedule && options.schedule !== false) {
     await ensureSystemScheduling();
   }
 }
@@ -604,4 +696,18 @@ export const initCommand = new Command('init')
   .argument('[path]', 'Path to repository (defaults to current directory)')
   .option('-n, --name <name>', 'Friendly name for the repository')
   .option('-m, --max-commits <number>', 'Maximum number of commits to extract')
+  .option('--no-schedule', 'Skip automatic extraction schedule setup')
+  .option(
+    '--skip-llm-config',
+    'Skip LLM configuration (use environment variables)',
+  )
+  .option('--skip-api-sync', 'Skip syncing with API (local-only project)')
+  .addOption(
+    new Option('--detail-level <level>', 'Extraction detail level').choices([
+      'minimal',
+      'standard',
+      'detailed',
+      'comprehensive',
+    ]),
+  )
   .action(addProject);

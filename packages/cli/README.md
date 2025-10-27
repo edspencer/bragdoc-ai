@@ -299,6 +299,106 @@ The data cache is stored in `~/.bragdoc/cache/` and includes:
 - `standups.yml` - Your standups
 - `meta.yml` - Cache metadata and timestamps
 
+## Extraction Detail Levels
+
+BragDoc CLI supports configurable extraction detail levels to control how much data is collected from git commits. More detailed extraction provides the LLM with richer context for better achievement extraction, but uses more LLM tokens and takes longer to process.
+
+### Detail Levels
+
+- **minimal**: Commit messages only (fastest, least context)
+- **standard**: Messages + file statistics (recommended default)
+- **detailed**: Messages + stats + limited code diffs
+- **comprehensive**: Messages + stats + extensive code diffs (slowest, most context)
+
+### CLI Options
+
+```bash
+# Use a preset detail level
+bragdoc extract --detail-level detailed
+
+# Fine-grained control
+bragdoc extract --include-stats           # Add file statistics only
+bragdoc extract --include-stats --include-diff  # Add both stats and diffs
+```
+
+### Configuration File
+
+Set defaults in `~/.bragdoc/config.yml`:
+
+```yaml
+# Global default for all projects
+settings:
+  defaultExtraction:
+    detailLevel: standard
+
+# Project-specific configuration
+projects:
+  - path: /home/user/my-project
+    extraction:
+      detailLevel: detailed
+      # Or fine-grained control:
+      includeStats: true
+      includeDiff: true
+      maxDiffLinesPerCommit: 800
+      excludeDiffPatterns:
+        - "*.lock"
+        - "dist/**"
+```
+
+### Performance Considerations
+
+- **minimal**: Fastest, best for large commit batches
+- **standard**: Good balance of speed and context (recommended)
+- **detailed**: Slower, use for smaller batches or important projects
+- **comprehensive**: Slowest, only for critical extractions or small batches
+
+Diff extraction adds significant LLM context. Consider reducing `--batch-size` when using `detailed` or `comprehensive` levels.
+
+## Integration Tests
+
+The CLI includes integration tests that verify extraction functionality across all detail levels.
+
+### Running Integration Tests
+
+```bash
+# From CLI directory
+pnpm test:integration
+
+# From project root
+pnpm test:integration
+```
+
+### Updating Snapshots
+
+When extraction output changes intentionally (e.g., formatting improvements), update snapshots:
+
+```bash
+UPDATE_SNAPSHOTS=1 ./tests/integration/cli-extraction.sh
+```
+
+Review the updated snapshots before committing to ensure changes are correct.
+
+### Non-Interactive Mode
+
+The `bragdoc init` command supports non-interactive mode for testing and automation:
+
+```bash
+bragdoc init \
+  --name "My Project" \
+  --detail-level standard \
+  --no-schedule \
+  --skip-llm-config \
+  --skip-api-sync
+```
+
+**Flags:**
+- `--detail-level <level>`: Set extraction detail level (minimal, standard, detailed, comprehensive)
+- `--no-schedule`: Skip automatic extraction schedule setup
+- `--skip-llm-config`: Skip LLM configuration (uses environment variables)
+- `--skip-api-sync`: Skip API sync (creates local-only project)
+
+See [tests/integration/README.md](../../tests/integration/README.md) for detailed documentation on the integration test system.
+
 ## Configuration
 
 The CLI stores configuration in `~/.bragdoc/config.yml`:

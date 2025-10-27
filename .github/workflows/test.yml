@@ -103,3 +103,36 @@ jobs:
         run: |
           cd packages/cli
           pnpm test
+
+  cli-integration-test:
+    name: Run CLI Integration Tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9.5.0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: 20
+          cache: "pnpm"
+
+      - name: Install dependencies
+        run: pnpm install
+
+      - name: Build CLI package
+        run: |
+          cd packages/cli
+          pnpm build
+
+      - name: Run integration tests
+        run: ./tests/integration/cli-extraction.sh
+        env:
+          # Dummy API key for tests (not actually used due to --skip-api-sync)
+          OPENAI_API_KEY: "sk-test-dummy-key-for-ci"

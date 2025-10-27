@@ -1,10 +1,13 @@
-import { Command } from 'commander';
+import { Command, Option } from 'commander';
 import {
   collectGitCommits,
+  collectGitCommitsEnhanced,
   getRepositoryInfo,
   getRepositoryName,
 } from '../git/operations';
 import type { GitCommit, RepositoryInfo } from '../git/types';
+import type { ExtractionConfig } from '../config/types';
+import { resolveExtractionConfig } from '../config/extraction-presets';
 import {
   processInBatches,
   type BatchConfig,
@@ -26,17 +29,45 @@ function formatCommit(commit: GitCommit): string {
   const messageFirstLine = commit.message.split('\n')[0];
   const date = new Date(commit.date).toLocaleDateString();
 
-  return [
+  const parts = [
     `${hashShort} - ${date} - ${commit.author}`,
     `  ${messageFirstLine}`,
-    commit.message
-      .split('\n')
-      .slice(1)
-      .map((line) => `  ${line}`)
-      .join('\n'),
-  ]
-    .filter(Boolean)
+  ];
+
+  // Add message body if present
+  const messageBody = commit.message
+    .split('\n')
+    .slice(1)
+    .map((line) => `  ${line}`)
     .join('\n');
+  if (messageBody.trim()) {
+    parts.push(messageBody);
+  }
+
+  // Add stats if present
+  if (commit.stats && commit.stats.length > 0) {
+    parts.push('');
+    parts.push('  File Statistics:');
+    for (const stat of commit.stats) {
+      parts.push(`    ${stat.path}: +${stat.additions} -${stat.deletions}`);
+    }
+  }
+
+  // Add diff summary if present
+  if (commit.diff && commit.diff.length > 0) {
+    parts.push('');
+    parts.push('  Code Changes:');
+    for (const fileDiff of commit.diff) {
+      const lineCount = fileDiff.diff.split('\n').length;
+      const truncatedNote = fileDiff.isTruncated ? ' (truncated)' : '';
+      parts.push(`    ${fileDiff.path}: ${lineCount} lines${truncatedNote}`);
+    }
+    if (commit.diffTruncated) {
+      parts.push('    (some files omitted due to size limits)');
+    }
+  }
+
+  return parts.filter(Boolean).join('\n');
 }
 
 /**
@@ -75,6 +106,41 @@ function displayDryRun(repository: RepositoryInfo, commits: GitCommit[]): void {
   console.log('\nNo changes were sent to the API (dry-run mode)');
 }
 
+/**
+ * Resolve extraction configuration from CLI options, project config, and global defaults
+ * Priority: CLI options > Project config > Global defaults
+ */
+function getExtractionConfigForProject(
+  projectConfig: any,
+  globalConfig: any,
+  cliOptions: any,
+): ExtractionConfig {
+  const config: ExtractionConfig = {};
+
+  // Start with global defaults
+  if (globalConfig.settings?.defaultExtraction) {
+    Object.assign(config, globalConfig.settings.defaultExtraction);
+  }
+
+  // Override with project-specific config
+  if (projectConfig?.extraction) {
+    Object.assign(config, projectConfig.extraction);
+  }
+
+  // Override with CLI options (highest priority)
+  if (cliOptions.detailLevel) {
+    config.detailLevel = cliOptions.detailLevel;
+  }
+  if (cliOptions.includeStats !== undefined) {
+    config.includeStats = cliOptions.includeStats;
+  }
+  if (cliOptions.includeDiff !== undefined) {
+    config.includeDiff = cliOptions.includeDiff;
+  }
+
+  return config;
+}
+
 export const extractCommand = new Command('extract')
   .description('Extract commits from the current repository')
   .option('--branch <branch>', 'Git branch to read commits from')
@@ -92,6 +158,16 @@ export const extractCommand = new Command('extract')
     '10',
   )
   .option('--no-cache', 'Skip checking commit cache', false)
+  .addOption(
+    new Option('--detail-level <level>', 'Extraction detail level').choices([
+      'minimal',
+      'standard',
+      'detailed',
+      'comprehensive',
+    ]),
+  )
+  .option('--include-stats', 'Include file change statistics', false)
+  .option('--include-diff', 'Include code diffs', false)
   .action(async (options) => {
     const {
       branch,
@@ -101,6 +177,9 @@ export const extractCommand = new Command('extract')
       dryRun,
       batchSize,
       noCache,
+      detailLevel,
+      includeStats,
+      includeDiff,
     } = options;
 
     try {
@@ -146,15 +225,53 @@ export const extractCommand = new Command('extract')
       // Use provided repo name or extract from remote URL
       const repository = repo || getRepositoryName(repoInfo.remoteUrl);
 
+      // Resolve extraction configuration
+      // Only pass CLI options that were explicitly set (not default values)
+      const cliOptions: any = {};
+      if (detailLevel) cliOptions.detailLevel = detailLevel;
+      // Only override boolean flags if they're true (user explicitly set them)
+      if (includeStats) cliOptions.includeStats = includeStats;
+      if (includeDiff) cliOptions.includeDiff = includeDiff;
+
+      const extractionConfig = getExtractionConfigForProject(
+        repoConfig,
+        config,
+        cliOptions,
+      );
+
+      const resolved = resolveExtractionConfig(extractionConfig);
+      const useEnhanced = resolved.includeStats || resolved.includeDiff;
+
+      // Log extraction mode
+      logger.info(
+        `Extraction config: detailLevel=${extractionConfig.detailLevel || 'none'}, ` +
+          `stats=${resolved.includeStats}, diff=${resolved.includeDiff}`,
+      );
+      if (useEnhanced) {
+        if (resolved.includeDiff) {
+          logger.debug(
+            `Diff limits: ${resolved.maxDiffLinesPerCommit} lines/commit, ` +
+              `${resolved.maxDiffLinesPerFile} lines/file, ${resolved.maxFilesInDiff} files`,
+          );
+        }
+      }
+
       // Collect the Git commits
       logger.info(
         `Collecting commits from ${repository} (branch: ${branchToUse})...`,
       );
-      const commits = collectGitCommits(
-        branchToUse,
-        Number.parseInt(maxCommits, 10),
-        repository,
-      );
+      const commits = useEnhanced
+        ? collectGitCommitsEnhanced(
+            branchToUse,
+            Number.parseInt(maxCommits, 10),
+            repository,
+            extractionConfig,
+          )
+        : collectGitCommits(
+            branchToUse,
+            Number.parseInt(maxCommits, 10),
+            repository,
+          );
 
       if (commits.length === 0) {
         logger.info('No commits found.');
