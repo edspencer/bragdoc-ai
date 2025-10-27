@@ -83,7 +83,7 @@
     "estree-walker": "2.0.2",
     "husky": "^9.1.7",
     "lint-staged": "^16.2.5",
-    "puppeteer": "^23.10.4",
+    "node-mocks-http": "^1.17.2",
     "server-cli-only": "^0.3.2",
     "shadcn": "^2.10.0",
     "tiktoken": "^1.0.22",

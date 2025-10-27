@@ -203,4 +203,3 @@ Rules:
 - Screenshots are saved to `temp/[page-name]-light.png` and `temp/[page-name]-dark.png`
 - Use this utility when making significant UI changes, especially those affecting dark mode support
 - Compare screenshots before and after changes to ensure visual consistency
-- Screenshot utility uses Puppeteer to capture full-page screenshots in both light and dark modes
