@@ -19,6 +19,7 @@
     "test": "turbo test",
     "test:watch": "turbo test:watch",
     "test:cli": "turbo test:cli",
+    "test:integration": "./tests/integration/cli-extraction.sh",
     "eval": "npx braintrust eval ./evals/**/eval.ts",
     "lint": "turbo lint",
     "lint:fix": "turbo lint --filter=@bragdoc/web && turbo lint --filter=@bragdoc/marketing",

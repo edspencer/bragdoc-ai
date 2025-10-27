@@ -354,6 +354,51 @@ projects:
 
 Diff extraction adds significant LLM context. Consider reducing `--batch-size` when using `detailed` or `comprehensive` levels.
 
+## Integration Tests
+
+The CLI includes integration tests that verify extraction functionality across all detail levels.
+
+### Running Integration Tests
+
+```bash
+# From CLI directory
+pnpm test:integration
+
+# From project root
+pnpm test:integration
+```
+
+### Updating Snapshots
+
+When extraction output changes intentionally (e.g., formatting improvements), update snapshots:
+
+```bash
+UPDATE_SNAPSHOTS=1 ./tests/integration/cli-extraction.sh
+```
+
+Review the updated snapshots before committing to ensure changes are correct.
+
+### Non-Interactive Mode
+
+The `bragdoc init` command supports non-interactive mode for testing and automation:
+
+```bash
+bragdoc init \
+  --name "My Project" \
+  --detail-level standard \
+  --no-schedule \
+  --skip-llm-config \
+  --skip-api-sync
+```
+
+**Flags:**
+- `--detail-level <level>`: Set extraction detail level (minimal, standard, detailed, comprehensive)
+- `--no-schedule`: Skip automatic extraction schedule setup
+- `--skip-llm-config`: Skip LLM configuration (uses environment variables)
+- `--skip-api-sync`: Skip API sync (creates local-only project)
+
+See [tests/integration/README.md](../../tests/integration/README.md) for detailed documentation on the integration test system.
+
 ## Configuration
 
 The CLI stores configuration in `~/.bragdoc/config.yml`:

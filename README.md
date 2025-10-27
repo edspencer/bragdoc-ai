@@ -371,6 +371,7 @@ pnpm build:web        # Web app only
 pnpm test             # Run all tests
 pnpm test:watch       # Watch mode
 pnpm test:cli         # CLI tests only
+pnpm test:integration # CLI integration tests
 
 # Database
 pnpm db:generate      # Generate migration
@@ -382,6 +383,21 @@ pnpm lint             # Lint all packages
 pnpm lint:fix         # Lint and auto-fix
 pnpm format           # Format with Biome
 ```
+
+### Integration Tests
+
+CLI integration tests verify extraction functionality across all detail levels:
+
+```bash
+pnpm test:integration
+```
+
+These tests ensure that:
+- All extraction detail levels (minimal, standard, detailed, comprehensive) work correctly
+- Output format remains consistent across changes
+- File filtering and prioritization work as expected
+
+See [tests/integration/README.md](tests/integration/README.md) for detailed documentation.
 
 ### Project Structure
 
