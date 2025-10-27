@@ -26,7 +26,7 @@
     "test:push": "drizzle-kit push --config=drizzle.config.test.ts"
   },
   "dependencies": {
-    "drizzle-orm": "^0.44.6",
+    "drizzle-orm": "^0.44.7",
     "postgres": "^3.4.7",
     "@neondatabase/serverless": "^0.10.4",
     "@vercel/postgres": "^0.10.0",

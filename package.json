@@ -34,7 +34,7 @@
   "dependencies": {
     "@ai-sdk/deepseek": "^1.0.23",
     "@auth/core": "^0.41.0",
-    "@auth/drizzle-adapter": "^1.11.0",
+    "@auth/drizzle-adapter": "^1.11.1",
     "@react-email/components": "^0.5.7",
     "@react-email/render": "^1.4.0",
     "@repo/typescript-config": "workspace:*",
@@ -45,7 +45,7 @@
     "bright": "^1.0.0",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
-    "drizzle-orm": "^0.44.6",
+    "drizzle-orm": "^0.44.7",
     "embla-carousel-react": "^8.6.0",
     "feed": "^4.2.2",
     "form-data": "^4.0.4",
