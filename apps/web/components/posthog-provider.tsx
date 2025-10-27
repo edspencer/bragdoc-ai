@@ -10,7 +10,12 @@ export function PHProvider({ children }: { children: React.ReactNode }) {
 
   // Initialize PostHog once
   useEffect(() => {
-    if (typeof window !== 'undefined' && !posthog.__loaded) {
+    // Only initialize if explicitly enabled (opt-in for open source)
+    if (
+      typeof window !== 'undefined' &&
+      !posthog.__loaded &&
+      process.env.NEXT_PUBLIC_POSTHOG_ENABLED === 'true'
+    ) {
       posthog.init(process.env.NEXT_PUBLIC_POSTHOG_KEY!, {
         api_host:
           process.env.NEXT_PUBLIC_POSTHOG_HOST || 'https://app.posthog.com',
@@ -20,7 +25,6 @@ export function PHProvider({ children }: { children: React.ReactNode }) {
         autocapture: false, // Disable automatic event capture
         disable_session_recording: true, // We're not using session recording
         advanced_disable_flags: true, // Disable feature flags and experiments
-        disabled: process.env.NODE_ENV === 'development', // Disable in development
         loaded: (posthog) => {
           if (process.env.NODE_ENV === 'development') posthog.debug();
         },
