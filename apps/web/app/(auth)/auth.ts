@@ -119,7 +119,7 @@ export const {
           name: demoUser.name,
           image: demoUser.image,
           provider: demoUser.provider,
-          providerId: demoUser.providerId,
+          providerId: demoUser.providerId ?? undefined,
           preferences: demoUser.preferences,
           level: demoUser.level,
           renewalPeriod: demoUser.renewalPeriod,
