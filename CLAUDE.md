@@ -587,9 +587,9 @@ export async function OPTIONS(request: Request) {
 
 #### Providers
 
+- **Magic Links** (passwordless email authentication via NextAuth Email provider)
 - **Google OAuth**
 - **GitHub OAuth**
-- **Credentials** (email/password with bcrypt)
 
 #### Session Strategy
 

@@ -1,6 +1,4 @@
-'use client';
-
-import { useSession } from 'next-auth/react';
+import { auth } from '@/app/(auth)/auth';
 import Link from 'next/link';
 import { AlertCircle } from 'lucide-react';
 
@@ -12,9 +10,11 @@ import { AlertCircle } from 'lucide-react';
  *
  * Only shown when the logged-in user has level='demo'.
  * Can be suppressed with NEXT_PUBLIC_SUPRESSED_DEMO_BANNER=true (useful for screenshots).
+ *
+ * NOTE: This is a Server Component to ensure session is available immediately after redirect.
  */
-export function DemoModeBanner() {
-  const { data: session } = useSession();
+export async function DemoModeBanner() {
+  const session = await auth();
 
   // Check if banner should be suppressed (for screenshots, etc.)
   const isSuppressed = process.env.NEXT_PUBLIC_SUPRESSED_DEMO_BANNER === 'true';
@@ -23,7 +23,6 @@ export function DemoModeBanner() {
   if (session?.user?.level !== 'demo' || isSuppressed) {
     return null;
   }
-
   return (
     <div className="fixed top-0 inset-x-0 z-50 h-[40px] bg-amber-500 text-amber-950 border-b border-amber-600">
       <div className="container mx-auto px-4 py-2 flex items-center justify-center text-sm h-full">

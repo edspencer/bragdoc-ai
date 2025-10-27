@@ -1,78 +1,52 @@
 'use server';
 
-import { signIn } from '../auth';
+import { redirect } from 'next/navigation';
+import {
+  createDemoAccount,
+  createDemoSessionToken,
+  setDemoSessionCookie,
+} from '@/lib/create-demo-account';
+import { captureServerEvent } from '@/lib/posthog-server';
 import { isDemoModeEnabled } from '@/lib/demo-mode-utils';
-import { createDemoAccount } from '@/lib/create-demo-account';
-
-export interface CreateDemoActionState {
-  status: 'success' | 'failed' | 'unavailable';
-  error?: string;
-}
 
 /**
- * Server action to create a demo account and automatically sign in
- *
- * Steps:
- * 1. Check if demo mode is enabled
- * 2. Create demo account with optional pre-populated data
- * 3. Sign in with temporary password using NextAuth credentials provider
+ * Create demo account and authenticate via session token
  *
  * @param empty - If true, creates account without pre-populated data (for testing zero states)
- * @returns Status object with success/failure state
  */
-export async function createDemoAccountAction(
-  empty = false,
-): Promise<CreateDemoActionState> {
-  const startTime = performance.now();
+export async function startDemo(empty = false): Promise<never> {
+  // Check if demo mode enabled
+  if (!isDemoModeEnabled()) {
+    throw new Error('Demo mode not available');
+  }
+
+  // Create demo account with optional data
+  const result = await createDemoAccount({ skipData: empty });
+
+  if (!result.success || !result.user) {
+    throw new Error(result.error || 'Failed to create demo account');
+  }
+
+  const demoUser = result.user;
 
   try {
-    // Check if demo mode is enabled
-    if (!isDemoModeEnabled()) {
-      return { status: 'unavailable', error: 'Demo mode not available' };
-    }
+    // Generate and set session token
+    const token = await createDemoSessionToken(demoUser);
+    await setDemoSessionCookie(token);
 
-    console.log(
-      `[Demo] Starting demo account creation (empty: ${empty ? 'yes' : 'no'})...`,
-    );
-    const accountStartTime = performance.now();
-
-    // Create demo account using shared function
-    const result = await createDemoAccount({ skipData: empty });
-
-    const accountDuration = performance.now() - accountStartTime;
-    console.log(
-      `[Demo] Account creation took ${accountDuration.toFixed(0)}ms (imported ${
-        result.stats?.companies.created || 0
-      } companies, ${result.stats?.projects.created || 0} projects, ${
-        result.stats?.achievements.created || 0
-      } achievements, ${result.stats?.documents.created || 0} documents)`,
-    );
-
-    if (!result.success) {
-      return {
-        status: 'failed',
-        error: result.error || 'Failed to create demo account',
-      };
-    }
-
-    // Sign in with the demo account using temporary password
-    const signInStartTime = performance.now();
-    await signIn('credentials', {
-      email: result.email!,
-      password: result.temporaryPassword!,
-      redirect: false,
+    // Track demo start
+    await captureServerEvent(demoUser.id, 'demo_started', {
+      source: 'demo_page',
+      has_data: !empty,
+      companies_count: result.stats?.companies.created ?? 0,
+      projects_count: result.stats?.projects.created ?? 0,
+      achievements_count: result.stats?.achievements.created ?? 0,
     });
-
-    const signInDuration = performance.now() - signInStartTime;
-    console.log(`[Demo] Sign in took ${signInDuration.toFixed(0)}ms`);
-
-    const totalDuration = performance.now() - startTime;
-    console.log(`[Demo] Total duration: ${totalDuration.toFixed(0)}ms`);
-
-    return { status: 'success' };
   } catch (error) {
-    const errorDuration = performance.now() - startTime;
-    console.error(`[Demo] Error after ${errorDuration.toFixed(0)}ms:`, error);
-    return { status: 'failed', error: 'An error occurred' };
+    console.error('Error setting demo session:', error);
+    throw new Error('Failed to authenticate demo account');
   }
+
+  // Redirect to dashboard (user is now authenticated)
+  redirect('/dashboard');
 }

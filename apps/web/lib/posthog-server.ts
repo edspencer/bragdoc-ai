@@ -13,6 +13,11 @@ export async function captureServerEvent(
   event: string,
   properties?: Record<string, any>,
 ) {
+  // Skip if PostHog is not enabled (opt-in for open source)
+  if (process.env.NEXT_PUBLIC_POSTHOG_ENABLED !== 'true') {
+    return;
+  }
+
   try {
     const response = await fetch(
       `${process.env.NEXT_PUBLIC_POSTHOG_HOST || 'https://app.posthog.com'}/capture/`,
@@ -49,6 +54,11 @@ export async function identifyUser(
   userId: string,
   properties: Record<string, any>,
 ) {
+  // Skip if PostHog is not enabled (opt-in for open source)
+  if (process.env.NEXT_PUBLIC_POSTHOG_ENABLED !== 'true') {
+    return;
+  }
+
   try {
     const response = await fetch(
       `${process.env.NEXT_PUBLIC_POSTHOG_HOST || 'https://app.posthog.com'}/capture/`,
@@ -74,5 +84,43 @@ export async function identifyUser(
     }
   } catch (error) {
     console.error('PostHog identify failed:', error);
+  }
+}
+
+/**
+ * Alias an anonymous user ID to a known user ID
+ * This merges all events from the anonymous session with the authenticated user
+ */
+export async function aliasUser(userId: string, anonymousId: string) {
+  // Skip if PostHog is not enabled (opt-in for open source)
+  if (process.env.NEXT_PUBLIC_POSTHOG_ENABLED !== 'true') {
+    return;
+  }
+
+  try {
+    const response = await fetch(
+      `${process.env.NEXT_PUBLIC_POSTHOG_HOST || 'https://app.posthog.com'}/capture/`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          api_key: process.env.NEXT_PUBLIC_POSTHOG_KEY,
+          event: '$create_alias',
+          properties: {
+            distinct_id: userId,
+            alias: anonymousId,
+          },
+          timestamp: new Date().toISOString(),
+        }),
+      },
+    );
+
+    if (!response.ok) {
+      console.error('PostHog alias failed:', await response.text());
+    }
+  } catch (error) {
+    console.error('PostHog alias failed:', error);
   }
 }

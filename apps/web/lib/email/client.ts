@@ -2,6 +2,7 @@ import { render } from '@react-email/render';
 import formData from 'form-data';
 import Mailgun from 'mailgun.js';
 import { WelcomeEmail } from '@/emails/welcome';
+import { MagicLinkEmail } from '@/emails/magic-link';
 import type { ComponentProps } from 'react';
 import type { EmailType } from './types';
 import { generateUnsubscribeUrl, isUnsubscribed } from './unsubscribe';
@@ -87,6 +88,34 @@ export const sendWelcomeEmail = async ({
     userId,
     emailType: 'welcome',
     subject: 'Welcome to Bragdoc.ai! 🎉',
+    html,
+  });
+};
+
+interface SendMagicLinkEmailParams {
+  to: string;
+  magicLink: string;
+  isNewUser?: boolean;
+}
+
+export const renderMagicLinkEmail = async (
+  props: ComponentProps<typeof MagicLinkEmail>,
+): Promise<string> => {
+  return render(MagicLinkEmail(props));
+};
+
+export const sendMagicLinkEmail = async ({
+  to,
+  magicLink,
+  isNewUser = false,
+}: SendMagicLinkEmailParams) => {
+  const html = await renderMagicLinkEmail({ magicLink, isNewUser });
+
+  // Note: Magic link emails are transactional, no userId or unsubscribe needed
+  return client.messages.create(MAILGUN_DOMAIN, {
+    from: FROM_EMAIL,
+    to,
+    subject: isNewUser ? 'Welcome to BragDoc!' : 'Sign in to BragDoc',
     html,
   });
 };

@@ -1,58 +1,37 @@
 'use client';
 
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Loader2 } from 'lucide-react';
-import { createDemoAccountAction } from './actions';
 
 /**
  * Client component for demo account creation
  *
- * Displays a button that creates a demo account and redirects to dashboard on success.
- * Shows loading state during account creation.
+ * Uses a form submission to the API route which will set cookie and redirect.
  *
  * @param empty - If true, creates demo account without pre-populated data
  */
 export function DemoForm({ empty = false }: { empty?: boolean }) {
-  const router = useRouter();
   const [isCreating, setIsCreating] = useState(false);
 
-  const handleCreateDemo = async () => {
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     setIsCreating(true);
-    try {
-      const result = await createDemoAccountAction(empty);
-
-      if (result.status === 'success') {
-        toast.success('Demo account created! Redirecting...');
-        router.push('/dashboard');
-        router.refresh();
-      } else {
-        toast.error(result.error || 'Failed to create demo account');
-        setIsCreating(false);
-      }
-    } catch (error) {
-      toast.error('An error occurred');
-      setIsCreating(false);
-    }
+    // Form will submit naturally, triggering the API route
   };
 
   return (
-    <Button
-      onClick={handleCreateDemo}
-      disabled={isCreating}
-      className="w-full"
-      size="lg"
-    >
-      {isCreating ? (
-        <>
-          <Loader2 className="mr-2 size-4 animate-spin" />
-          Creating demo account...
-        </>
-      ) : (
-        'Try Demo Mode'
-      )}
-    </Button>
+    <form method="POST" action="/api/demo/start" onSubmit={handleSubmit}>
+      {empty && <input type="hidden" name="empty" value="true" />}
+      <Button type="submit" disabled={isCreating} className="w-full" size="lg">
+        {isCreating ? (
+          <>
+            <Loader2 className="mr-2 size-4 animate-spin" />
+            Creating demo account...
+          </>
+        ) : (
+          'Try Demo Mode'
+        )}
+      </Button>
+    </form>
   );
 }

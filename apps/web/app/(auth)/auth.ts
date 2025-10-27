@@ -1,12 +1,11 @@
-import { compare } from 'bcrypt-ts';
 import NextAuth from 'next-auth';
-import Credentials from 'next-auth/providers/credentials';
 import Google from 'next-auth/providers/google';
 import GitHub from 'next-auth/providers/github';
+import Email from 'next-auth/providers/email';
 import { DrizzleAdapter } from '@auth/drizzle-adapter';
 import { eq } from 'drizzle-orm';
+import { cookies } from 'next/headers';
 
-import { getUser } from '@/database/queries';
 import { db } from '@/database/index';
 
 import { authConfig } from './auth.config';
@@ -25,9 +24,13 @@ import {
   type UserLevel,
   type RenewalPeriod,
 } from '@/database/schema';
-import { sendWelcomeEmail } from '@/lib/email/client';
+import { sendWelcomeEmail, sendMagicLinkEmail } from '@/lib/email/client';
 import { cleanupDemoAccountData } from '@/lib/demo-data-cleanup';
-import { captureServerEvent, identifyUser } from '@/lib/posthog-server';
+import {
+  captureServerEvent,
+  identifyUser,
+  aliasUser,
+} from '@/lib/posthog-server';
 
 declare module 'next-auth' {
   interface User {
@@ -84,9 +87,49 @@ export const {
   },
   ...authConfig,
   providers: [
+    // Demo-only credentials provider (no password required)
+    {
+      id: 'demo',
+      name: 'Demo',
+      type: 'credentials' as const,
+      credentials: {
+        email: { label: 'Email', type: 'text' },
+        isDemo: { label: 'Is Demo', type: 'text' },
+      },
+      async authorize(credentials) {
+        // Only allow if this is explicitly a demo request
+        if (credentials?.isDemo !== 'true') {
+          return null;
+        }
+
+        // Look up the demo user by email
+        const [demoUser] = await db
+          .select()
+          .from(userTable)
+          .where(eq(userTable.email, credentials.email as string))
+          .limit(1);
+
+        if (!demoUser || demoUser.level !== 'demo') {
+          return null;
+        }
+
+        return {
+          id: demoUser.id,
+          email: demoUser.email,
+          name: demoUser.name,
+          image: demoUser.image,
+          provider: demoUser.provider,
+          providerId: demoUser.providerId ?? undefined,
+          preferences: demoUser.preferences,
+          level: demoUser.level,
+          renewalPeriod: demoUser.renewalPeriod,
+        };
+      },
+    },
     Google({
       clientId: process.env.GOOGLE_CLIENT_ID!,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
+      allowDangerousEmailAccountLinking: true,
       profile(profile) {
         return {
           id: profile.sub,
@@ -104,6 +147,7 @@ export const {
     GitHub({
       clientId: process.env.GITHUB_CLIENT_ID!,
       clientSecret: process.env.GITHUB_CLIENT_SECRET!,
+      allowDangerousEmailAccountLinking: true,
       profile(profile) {
         return {
           id: profile.id.toString(),
@@ -118,18 +162,48 @@ export const {
         };
       },
     }),
-    Credentials({
-      credentials: {},
-      async authorize({ email, password }: any) {
-        const users = await getUser(email);
-        if (users.length === 0) return null;
-        const passwordsMatch = await compare(password, users[0]!.password!);
-        if (!passwordsMatch) return null;
-        return {
-          ...users[0],
-          provider: 'credentials',
-        } as any;
+    Email({
+      server: {
+        host: process.env.MAILGUN_SMTP_SERVER || 'smtp.mailgun.org',
+        port: 587,
+        auth: {
+          user: process.env.MAILGUN_SMTP_LOGIN!,
+          pass: process.env.MAILGUN_SMTP_PASSWORD!,
+        },
       },
+      from: 'hello@bragdoc.ai',
+      // Custom email sending function
+      sendVerificationRequest: async ({ identifier, url, provider }) => {
+        // Check if this is a new user or existing user
+        const existingUser = await db
+          .select()
+          .from(userTable)
+          .where(eq(userTable.email, identifier))
+          .limit(1);
+
+        const isNewUser = existingUser.length === 0;
+
+        // Log magic link in development mode
+        if (process.env.NODE_ENV === 'development') {
+          console.log('\n🔗 Magic Link for', identifier);
+          console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+          console.log(url);
+          console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
+        }
+
+        try {
+          await sendMagicLinkEmail({
+            to: identifier,
+            magicLink: url,
+            isNewUser,
+          });
+        } catch (error) {
+          console.error('Failed to send magic link email:', error);
+          throw new Error('Failed to send verification email');
+        }
+      },
+      // Token expiry: 24 hours (default)
+      maxAge: 24 * 60 * 60,
     }),
   ],
   callbacks: {
@@ -191,21 +265,29 @@ export const {
       const { email } = user;
 
       if (email && user.id) {
-        console.log(`Sending welcome email to ${email}`);
+        console.log(`New user created: ${email}`);
 
-        // Track user registration (OAuth providers)
+        // Track user registration
         try {
-          captureServerEvent(user.id, 'user_registered', {
-            method: user.provider || 'unknown',
+          await captureServerEvent(user.id, 'user_registered', {
+            method: user.provider || 'email',
             email: email,
             user_id: user.id,
           });
 
           // Identify user in PostHog
-          identifyUser(user.id, {
+          await identifyUser(user.id, {
             email: email,
             name: user.name || email.split('@')[0],
           });
+
+          // Alias anonymous ID (unified for all providers)
+          const cookieStore = await cookies();
+          const anonymousId = cookieStore.get('ph_anonymous_id')?.value;
+          if (anonymousId && anonymousId !== user.id) {
+            await aliasUser(user.id, anonymousId);
+            cookieStore.delete('ph_anonymous_id');
+          }
 
           // Set tosAcceptedAt for all new signups
           await db
@@ -215,19 +297,19 @@ export const {
 
           // Track ToS acceptance event
           await captureServerEvent(user.id, 'tos_accepted', {
-            method: user.provider || 'credentials',
+            method: user.provider || 'email',
             timestamp: new Date().toISOString(),
           });
         } catch (error) {
-          console.error('Failed to track registration event:', error);
+          console.error('Failed to track registration:', error);
           // Don't fail registration if tracking fails
         }
 
+        // Send welcome email
         try {
-          //this is an async call, but we don't want to block on it
-          sendWelcomeEmail({
+          await sendWelcomeEmail({
             to: email,
-            userId: user.id!,
+            userId: user.id,
             username: email.split('@')[0]!,
             loginUrl: `${process.env.NEXTAUTH_URL}/login`,
           });
