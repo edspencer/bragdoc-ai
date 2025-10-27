@@ -7,7 +7,7 @@ Dry run mode - data that would be processed:
 Repository Information:
   Remote URL: https://github.com/test/test-repo.git
   Current Branch: main
-  Local Path: /privateREPO
+  Local Path: REPO
 
 Found 7 commits
 
