@@ -13,7 +13,7 @@ const updateProjectSchema = z.object({
     .string()
     .nullable()
     .optional()
-    .transform((val) => (!val ? null : val)),
+    .transform((val) => (!val ? undefined : val)),
   companyId: z.string().uuid().nullable().optional(),
   status: z.enum(['active', 'completed', 'archived']).optional(),
   color: z
