@@ -33,7 +33,7 @@
   },
   "dependencies": {
     "@ai-sdk/deepseek": "^1.0.23",
-    "@auth/core": "^0.41.0",
+    "@auth/core": "^0.41.1",
     "@auth/drizzle-adapter": "^1.11.0",
     "@react-email/components": "^0.5.7",
     "@react-email/render": "^1.4.0",
