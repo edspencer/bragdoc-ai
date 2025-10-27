@@ -51,6 +51,7 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import Link from 'next/link';
+import { BetaFeatureBanner } from '@/components/shared/beta-feature-banner';
 
 interface Document {
   id: string;
@@ -276,6 +277,9 @@ export function ReportsTable({
               </Button>
             </div>
           </div>
+
+          {/* Beta Banner */}
+          <BetaFeatureBanner />
 
           {/* Documents Table */}
           <Card>

@@ -29,6 +29,7 @@ import { fromMask } from '@/lib/scheduling/weekdayMask';
 import { formatStandupScope } from '@/lib/standups/format-scope';
 import type { Company, Project, Standup } from '@bragdoc/database';
 import { NextStandupIndicator } from './next-standup-indicator';
+import { BetaFeatureBanner } from '@/components/shared/beta-feature-banner';
 
 interface ExistingStandupPageProps {
   standup: Standup;
@@ -196,6 +197,11 @@ export function ExistingStandupContent({ standup }: ExistingStandupPageProps) {
             </div>
           </div>
         </div>
+      </div>
+
+      {/* Beta Banner */}
+      <div className="px-8 pt-6">
+        <BetaFeatureBanner />
       </div>
 
       {/* Two-column layout */}
