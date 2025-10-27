@@ -74,5 +74,5 @@ export function getConfigPath(): string {
  * Get the API base URL from config or use default
  */
 export function getApiBaseUrl(config: BragdocConfig): string {
-  return config.settings.apiBaseUrl || 'https://www.bragdoc.ai';
+  return config.settings.apiBaseUrl || 'https://app.bragdoc.ai';
 }
