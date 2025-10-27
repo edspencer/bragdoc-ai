@@ -23,6 +23,7 @@ import {
 import { syncProjectWithApi } from '../lib/projects';
 import { promptForLLMConfig, isLLMConfigured } from '../config/llm-setup';
 import { getLLMDisplayName } from '../ai/providers';
+import type { ExtractionConfig, ExtractionDetailLevel } from '../config/types';
 
 const execAsync = promisify(exec);
 
@@ -120,6 +121,44 @@ export async function promptForCronSchedule(): Promise<string | null> {
   }
 
   return convertToCronSchedule(cronOptions);
+}
+
+/**
+ * Prompt user for extraction detail level configuration
+ */
+export async function promptForExtractionConfig(): Promise<ExtractionConfig | null> {
+  const answers = await inquirer.prompt([
+    {
+      type: 'list',
+      name: 'detailLevel',
+      message: 'How much detail should be extracted from commits?',
+      choices: [
+        {
+          name: 'Standard (recommended) - Commit messages + file statistics',
+          value: 'standard',
+        },
+        {
+          name: 'Minimal - Only commit messages (fastest, least context)',
+          value: 'minimal',
+        },
+        {
+          name: 'Detailed - Messages + stats + limited code diffs',
+          value: 'detailed',
+        },
+        {
+          name: 'Comprehensive - Messages + stats + extensive code diffs (slowest)',
+          value: 'comprehensive',
+        },
+      ],
+      default: 'standard',
+    },
+  ]);
+
+  const detailLevel: ExtractionDetailLevel = answers.detailLevel;
+
+  return {
+    detailLevel,
+  };
 }
 
 /**
@@ -430,6 +469,10 @@ export async function addProject(
   // Sync with API to get or create project
   const { projectId } = await syncProjectWithApi(absolutePath, repoName);
 
+  // Prompt for extraction detail level
+  console.log('\n📊 Configuring extraction detail level...\n');
+  const extractionConfig = await promptForExtractionConfig();
+
   // Always prompt for cron schedule
   const cronSchedule = await promptForCronSchedule();
 
@@ -442,6 +485,7 @@ export async function addProject(
       ? Number.parseInt(options.maxCommits.toString(), 10)
       : undefined,
     cronSchedule: cronSchedule || undefined,
+    extraction: extractionConfig || undefined,
     id: projectId,
     remote: repoInfo.remoteUrl,
   };

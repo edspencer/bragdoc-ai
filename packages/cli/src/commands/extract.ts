@@ -226,20 +226,28 @@ export const extractCommand = new Command('extract')
       const repository = repo || getRepositoryName(repoInfo.remoteUrl);
 
       // Resolve extraction configuration
+      // Only pass CLI options that were explicitly set (not default values)
+      const cliOptions: any = {};
+      if (detailLevel) cliOptions.detailLevel = detailLevel;
+      // Only override boolean flags if they're true (user explicitly set them)
+      if (includeStats) cliOptions.includeStats = includeStats;
+      if (includeDiff) cliOptions.includeDiff = includeDiff;
+
       const extractionConfig = getExtractionConfigForProject(
         repoConfig,
         config,
-        { detailLevel, includeStats, includeDiff },
+        cliOptions,
       );
 
       const resolved = resolveExtractionConfig(extractionConfig);
       const useEnhanced = resolved.includeStats || resolved.includeDiff;
 
       // Log extraction mode
+      logger.info(
+        `Extraction config: detailLevel=${extractionConfig.detailLevel || 'none'}, ` +
+          `stats=${resolved.includeStats}, diff=${resolved.includeDiff}`,
+      );
       if (useEnhanced) {
-        logger.info(
-          `Using enhanced extraction: stats=${resolved.includeStats}, diff=${resolved.includeDiff}`,
-        );
         if (resolved.includeDiff) {
           logger.debug(
             `Diff limits: ${resolved.maxDiffLinesPerCommit} lines/commit, ` +
