@@ -30,6 +30,23 @@ The integration tests verify that:
 
 ## Running Tests
 
+### Important: Config Safety
+
+The test script will **refuse to run** if it finds an existing `~/.bragdoc/config.yml` file, to protect your personal configuration. This is intentional - the tests are designed to run in CI (where no config exists) or locally after moving your config aside.
+
+If you need to run tests locally:
+
+```bash
+# Move your config aside
+mv ~/.bragdoc/config.yml ~/.bragdoc/config.yml.bak
+
+# Run the tests
+./tests/integration/cli-extraction.sh
+
+# Restore your config
+mv ~/.bragdoc/config.yml.bak ~/.bragdoc/config.yml
+```
+
 ### Standard Test Run
 
 ```bash

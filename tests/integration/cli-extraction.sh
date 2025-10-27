@@ -24,11 +24,22 @@ YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
-# Store original bragdoc config if it exists
-BRAGDOC_CONFIG_BACKUP=""
-if [ -f "$HOME/.bragdoc/config.yml" ]; then
-  BRAGDOC_CONFIG_BACKUP=$(mktemp)
-  cp "$HOME/.bragdoc/config.yml" "$BRAGDOC_CONFIG_BACKUP"
+# Check if BragDoc config exists (should only run in CI or with config moved aside)
+BRAGDOC_CONFIG_PATH="$HOME/.bragdoc/config.yml"
+
+if [ -f "$BRAGDOC_CONFIG_PATH" ]; then
+  echo "❌ ERROR: Found existing BragDoc config at $BRAGDOC_CONFIG_PATH"
+  echo ""
+  echo "This integration test will overwrite your BragDoc configuration."
+  echo "To protect your config, please move it aside temporarily:"
+  echo ""
+  echo "  mv $BRAGDOC_CONFIG_PATH ${BRAGDOC_CONFIG_PATH}.bak"
+  echo ""
+  echo "Then run the test again. Restore it afterward with:"
+  echo ""
+  echo "  mv ${BRAGDOC_CONFIG_PATH}.bak $BRAGDOC_CONFIG_PATH"
+  echo ""
+  exit 1
 fi
 
 # Cleanup function
@@ -36,14 +47,8 @@ cleanup() {
   echo -e "${BLUE}Cleaning up test artifacts...${NC}"
   rm -rf "$TEST_REPO_DIR" "$OUTPUT_DIR"
 
-  # Restore original bragdoc config if it existed
-  if [ -n "$BRAGDOC_CONFIG_BACKUP" ] && [ -f "$BRAGDOC_CONFIG_BACKUP" ]; then
-    cp "$BRAGDOC_CONFIG_BACKUP" "$HOME/.bragdoc/config.yml"
-    rm "$BRAGDOC_CONFIG_BACKUP"
-  else
-    # Remove test config if no backup existed
-    rm -f "$HOME/.bragdoc/config.yml"
-  fi
+  # Remove test config (we verified no config existed before running)
+  rm -f "$BRAGDOC_CONFIG_PATH"
 }
 trap cleanup EXIT
 
