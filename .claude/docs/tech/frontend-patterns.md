@@ -1387,12 +1387,318 @@ posthog.init(key, {
 2. See events appear within 30 seconds
 3. Verify event properties are correct
 
+## Beta Messaging Patterns (Marketing Site)
+
+**Context:** These patterns were established during the marketing site beta banners implementation (October 2025) to communicate open beta status, free features, and future pricing clearly to users.
+
+### Beta Banner Pattern
+
+**Purpose:** Prominent full-width banner to announce beta status and special offers.
+
+**Location:** `apps/marketing/components/pricing/beta-banner.tsx`
+
+**Pattern:**
+```tsx
+import { Sparkles } from 'lucide-react';
+
+export function BetaBanner() {
+  return (
+    <div className="bg-gradient-to-r from-purple-600 to-purple-500 dark:from-purple-700 dark:to-purple-600 text-white py-4">
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex items-center justify-center gap-3 text-center">
+          <Sparkles className="size-5 shrink-0" />
+          <div>
+            <p className="font-bold text-base sm:text-lg">
+              OPEN BETA - All Features Currently{' '}
+              <span className="text-green-300">FREE</span>
+            </p>
+            <p className="text-sm sm:text-base opacity-95">
+              Sign up now and get <strong>one year free</strong> when we launch paid plans
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+```
+
+**Usage:**
+```tsx
+// In page.tsx
+import { BetaBanner } from '@/components/pricing/beta-banner';
+
+export default function PricingPage() {
+  return (
+    <>
+      <Header />
+      <BetaBanner />
+      <main>{/* ... */}</main>
+    </>
+  );
+}
+```
+
+**Design Guidelines:**
+- **Gradient background:** `from-purple-600 to-purple-500` (brand colors)
+- **White text** for high contrast
+- **Green emphasis** (`text-green-300`) for "FREE" keyword
+- **Bold text** for main message and key phrases
+- **Icon:** Sparkles icon to draw attention
+- **Responsive:** Smaller text on mobile, larger on desktop
+- **Centered:** Full-width container with centered content
+
+### Strikethrough Pricing Pattern
+
+**Purpose:** Display future pricing while emphasizing current free status.
+
+**Pattern:**
+```tsx
+<div className="text-center mb-4">
+  <Badge className="text-2xl px-6 py-2 bg-green-600 dark:bg-green-500 text-white">
+    FREE During Beta
+  </Badge>
+</div>
+
+<div className="text-center">
+  <div className="flex items-baseline justify-center gap-2 text-muted-foreground">
+    <span className="text-3xl font-semibold line-through opacity-60">$4.99</span>
+    <span className="text-base line-through opacity-60">/month</span>
+  </div>
+  <p className="text-xs text-muted-foreground mt-1">
+    Future price after beta
+  </p>
+</div>
+```
+
+**Design Guidelines:**
+- **Large "FREE" badge:** 2xl text size, green background
+- **Strikethrough pricing:** `line-through opacity-60` for muted appearance
+- **Muted text color:** `text-muted-foreground` to de-emphasize future pricing
+- **Label below:** "Future price after beta" to clarify pricing timeline
+- **Semantic hierarchy:** FREE > Strikethrough > Label (decreasing emphasis)
+
+### Beta Badge Pattern
+
+**Purpose:** Subtle indicator for features still in beta.
+
+**Location:** `apps/marketing/components/features-page-client.tsx`
+
+**Pattern:**
+```tsx
+import { Badge } from '@/components/ui/badge';
+
+interface Feature {
+  heading: string;
+  isBeta?: boolean;
+  // ... other props
+}
+
+export function FeatureCard({ feature }: { feature: Feature }) {
+  return (
+    <div>
+      <h2 className="text-2xl sm:text-3xl font-bold flex items-center gap-2 flex-wrap">
+        {feature.heading}
+        {feature.isBeta && (
+          <Badge variant="secondary" className="text-xs">
+            Beta
+          </Badge>
+        )}
+      </h2>
+      {/* ... */}
+    </div>
+  );
+}
+```
+
+**Design Guidelines:**
+- **Badge variant:** `secondary` for subtle, muted appearance
+- **Small size:** `text-xs` to avoid overwhelming the heading
+- **Inline placement:** Next to heading using flexbox
+- **Optional property:** `isBeta?: boolean` flag for maintainability
+- **Flex wrap:** Ensures badge wraps on mobile if needed
+- **When to use:** Only for actual beta features (not just new features)
+
+### Promotional Callout Pattern
+
+**Purpose:** Highlight special offers or benefits for beta users.
+
+**Pattern:**
+```tsx
+<div className="w-full p-3 rounded-lg bg-green-50 dark:bg-green-950/30 border border-green-200 dark:border-green-800">
+  <p className="text-sm font-medium text-green-700 dark:text-green-400 text-center">
+    🎁 Sign up during beta → Get one year FREE when we launch
+  </p>
+</div>
+```
+
+**Design Guidelines:**
+- **Green color scheme:** Positive, benefit-oriented messaging
+- **Light background:** `bg-green-50` in light mode, `bg-green-950/30` in dark
+- **Border:** Subtle green border for definition
+- **Emoji:** Gift emoji (🎁) adds visual interest
+- **Center alignment:** For promotional messaging
+- **Font weight:** Medium for emphasis without being bold
+- **Dark mode:** Lower opacity background to avoid overwhelming
+
+### Color Scheme Guidelines
+
+**Beta Messaging Colors:**
+
+| Context | Light Mode | Dark Mode | Purpose |
+|---------|-----------|-----------|---------|
+| FREE emphasis | `text-green-600` | `text-green-500` | Positive, current benefit |
+| Beta banner background | `from-purple-600 to-purple-500` | `from-purple-700 to-purple-600` | Brand colors, high visibility |
+| Strikethrough pricing | `text-muted-foreground line-through opacity-60` | Same | De-emphasized future pricing |
+| Promotional box | `bg-green-50 border-green-200` | `bg-green-950/30 border-green-800` | Special offer highlight |
+| Beta badge | `variant="secondary"` | Same | Subtle information badge |
+
+### Responsive Considerations
+
+**Mobile (375px - 767px):**
+- Beta banner text: `text-base` main, `text-sm` secondary
+- Flex wrap on headings with badges
+- Full-width promotional callouts
+- Stack pricing cards vertically
+
+**Tablet (768px - 1023px):**
+- Beta banner text: `sm:text-lg` main, `sm:text-base` secondary
+- Pricing cards may stack or show 2-up depending on content
+- Badges remain inline with headings
+
+**Desktop (1024px+):**
+- Full text sizes
+- Pricing cards show side-by-side
+- Maximum visual impact for beta messaging
+
+### When to Use These Patterns
+
+**Use Beta Banner when:**
+- Announcing product-wide beta status
+- Communicating time-limited offers
+- Driving action (sign-ups, early adoption)
+
+**Use Strikethrough Pricing when:**
+- Showing future pricing while emphasizing current free access
+- Providing price transparency during beta
+- Balancing "free now" with "paid later" messaging
+
+**Use Beta Badges when:**
+- Marking individual features as beta
+- Communicating feature stability/maturity
+- Setting expectations for feature completeness
+
+**Use Promotional Callouts when:**
+- Highlighting special beta user benefits
+- Emphasizing time-sensitive offers
+- Drawing attention to value propositions
+
+### Example: Full Pricing Page Integration
+
+```tsx
+import { BetaBanner } from '@/components/pricing/beta-banner';
+import { Badge } from '@/components/ui/badge';
+
+export default function PricingPage() {
+  return (
+    <>
+      <Header />
+      <BetaBanner />
+
+      <main className="pt-16">
+        <PricingHeader />
+
+        <div className="grid md:grid-cols-2 gap-8">
+          {/* Free Account */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Free Account</CardTitle>
+              <CardDescription>
+                Always free, even after beta
+              </CardDescription>
+            </CardHeader>
+            {/* ... */}
+          </Card>
+
+          {/* Full Account */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Full Account</CardTitle>
+              <CardDescription>
+                Everything you need - currently FREE during open beta
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              {/* Strikethrough Pricing Pattern */}
+              <div className="text-center mb-4">
+                <Badge className="text-2xl px-6 py-2 bg-green-600 text-white">
+                  FREE During Beta
+                </Badge>
+              </div>
+              <div className="text-center">
+                <div className="flex items-baseline justify-center gap-2 text-muted-foreground">
+                  <span className="text-3xl font-semibold line-through opacity-60">
+                    $4.99
+                  </span>
+                  <span className="text-base line-through opacity-60">/month</span>
+                </div>
+                <p className="text-xs text-muted-foreground mt-1">
+                  Future price after beta
+                </p>
+              </div>
+            </CardContent>
+            <CardFooter className="flex flex-col gap-3">
+              {/* Promotional Callout Pattern */}
+              <div className="w-full p-3 rounded-lg bg-green-50 dark:bg-green-950/30 border border-green-200 dark:border-green-800">
+                <p className="text-sm font-medium text-green-700 dark:text-green-400 text-center">
+                  🎁 Sign up during beta → Get one year FREE when we launch
+                </p>
+              </div>
+              <Button size="lg" className="w-full">
+                Get Started Free
+              </Button>
+            </CardFooter>
+          </Card>
+        </div>
+      </main>
+    </>
+  );
+}
+```
+
+### Accessibility Notes
+
+- **Color contrast:** All green text meets WCAG AA standards
+- **Strikethrough clarity:** Combined with "Future price" label for screen readers
+- **Badge semantics:** Uses proper Badge component with ARIA attributes
+- **Keyboard navigation:** All interactive elements remain accessible
+- **Screen reader testing:** Verify beta status is announced clearly
+
+### Maintenance Guidelines
+
+**When updating beta status:**
+1. Update BetaBanner component first (most visible)
+2. Update pricing tiers strikethrough/badges
+3. Update FAQ data to match messaging
+4. Update metadata (title, description) for SEO
+5. Test all viewports and both color modes
+
+**When transitioning out of beta:**
+1. Remove or hide BetaBanner component
+2. Remove "FREE During Beta" badges
+3. Remove strikethrough from pricing
+4. Update FAQ answers to remove beta references
+5. Update metadata to remove beta status
+6. Keep promotional callouts for early users (if applicable)
+
+---
+
 ## SEO Patterns (Marketing Site)
 
 For comprehensive SEO documentation including metadata patterns, schema.org structured data, sitemap configuration, image optimization, and testing procedures, see **[seo.md](./seo.md)**.
 
 ---
 
-**Last Updated:** 2025-10-24 (PostHog analytics integration patterns)
+**Last Updated:** 2025-10-27 (Beta messaging patterns, PostHog analytics integration patterns)
 **Next.js:** 16.0.0
 **React:** 19.2.0

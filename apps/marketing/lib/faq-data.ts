@@ -35,7 +35,7 @@ export const faqData: FAQCategory[] = [
       {
         question: 'Can I try it before committing?',
         answer:
-          'Yes! Everything is free to start. Optional paid features (cloud AI document generation) are only $4.99/month and you can try them risk-free.',
+          "Currently everything is FREE during open beta, so there's nothing to commit to. Plus, beta users get one year free when we launch paid features.",
       },
     ],
   },
@@ -119,12 +119,12 @@ export const faqData: FAQCategory[] = [
       {
         question: "What's actually free?",
         answer:
-          'Everything except cloud AI features. If you use your own LLM (like Ollama locally), BragDoc is completely free.',
+          'Currently in open beta, ALL features are free, including cloud AI. After beta, the free tier will exclude cloud AI features (future pricing $4.99/month). Beta users get one year free.',
       },
       {
         question: 'What do I pay for?',
         answer:
-          'Optional cloud AI document generation is $4.99/month. If you use your own LLM, you pay nothing.',
+          'During open beta, everything is free. After launch, optional cloud AI document generation will be $4.99/month. If you sign up during beta, you get one year free.',
       },
       {
         question: 'How much does LLM usage cost?',
@@ -133,15 +133,18 @@ export const faqData: FAQCategory[] = [
       },
       {
         question: 'Can I switch between free and paid?',
-        answer: 'Yes, anytime. No contracts or commitments.',
+        answer:
+          'Yes, anytime after beta ends. No contracts or commitments. During beta, everything is free for everyone.',
       },
       {
         question: 'What payment methods do you accept?',
-        answer: 'Credit card via Stripe. Cancel anytime with no penalties.',
+        answer:
+          'After beta ends, credit card via Stripe. Cancel anytime with no penalties. Currently, everything is free during open beta.',
       },
       {
         question: 'Can I get a refund?',
-        answer: "Yes, within 30 days if you're not satisfied.",
+        answer:
+          "Yes, within 30 days if you're not satisfied after beta ends and paid plans launch. During beta, everything is free so refunds don't apply.",
       },
       {
         question: 'Is there enterprise pricing?',

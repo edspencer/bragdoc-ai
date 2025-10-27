@@ -1,5 +1,6 @@
 import type React from 'react';
 import { Card } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 import { Sparkles, FolderTree, FileText } from 'lucide-react';
 
 export function FeaturesSection() {
@@ -51,6 +52,7 @@ export function FeaturesSection() {
               'Export to PDF/Markdown',
               'Highlight key wins',
             ]}
+            isBeta={true}
           />
         </div>
       </div>
@@ -63,11 +65,13 @@ function FeatureCard({
   title,
   description,
   features,
+  isBeta,
 }: {
   icon: React.ReactNode;
   title: string;
   description: string;
   features: string[];
+  isBeta?: boolean;
 }) {
   return (
     <Card className="p-8 space-y-6 bg-card border-border hover:border-primary/50 transition-colors">
@@ -76,7 +80,14 @@ function FeatureCard({
       </div>
 
       <div className="space-y-3">
-        <h3 className="text-2xl font-bold">{title}</h3>
+        <h3 className="text-2xl font-bold flex items-center gap-2 flex-wrap">
+          {title}
+          {isBeta && (
+            <Badge variant="secondary" className="text-xs">
+              Beta
+            </Badge>
+          )}
+        </h3>
         <p className="text-muted-foreground leading-relaxed">{description}</p>
       </div>
 

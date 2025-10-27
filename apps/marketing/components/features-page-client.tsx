@@ -12,6 +12,7 @@ import {
   type LucideIcon,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useImageLightbox } from '@/hooks/use-image-lightbox';
@@ -25,6 +26,7 @@ interface Feature {
   bullets: string[];
   screenshotAlt: string;
   screenshot?: string;
+  isBeta?: boolean;
 }
 
 const features: Feature[] = [
@@ -87,6 +89,7 @@ const features: Feature[] = [
     screenshotAlt:
       'BragDoc standup mode automatically generating daily meeting notes from recent Git commits',
     screenshot: '/screenshots/ui/standup.png',
+    isBeta: true,
   },
   {
     icon: FileText,
@@ -102,6 +105,7 @@ const features: Feature[] = [
     screenshotAlt:
       'AI-generated performance review document created from tracked achievements in BragDoc',
     screenshot: '/screenshots/ui/reports.png',
+    isBeta: true,
   },
   {
     icon: TrendingUp,
@@ -231,8 +235,13 @@ export function FeaturesPageClient() {
                         >
                           <Icon className="size-5 text-white" />
                         </div>
-                        <h2 className="text-2xl sm:text-3xl font-bold">
+                        <h2 className="text-2xl sm:text-3xl font-bold flex items-center gap-2 flex-wrap">
                           {feature.heading}
+                          {feature.isBeta && (
+                            <Badge variant="secondary" className="text-xs">
+                              Beta
+                            </Badge>
+                          )}
                         </h2>
                       </div>
                       <p className="text-muted-foreground mb-6 leading-relaxed">
