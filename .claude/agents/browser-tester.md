@@ -1,26 +1,6 @@
 ---
 name: browser-tester
-description: Use this agent for visual QA testing of the BragDoc web application on desktop browsers. This agent verifies implemented features work correctly, debugs UI issues, and performs smoke tests. Use this agent after completing development tasks to validate changes work as expected in the live application.\n\n**Examples:**\n\n<example>
-Context: User has just completed implementing a new feature for project creation and wants to verify it works.
-user: "I just finished implementing the project creation flow from ./tasks/add-project-form/PLAN.md. Can you test that it's working correctly?"
-assistant: "I'll use the browser-tester agent to verify the project creation implementation."
-<uses Task tool to launch browser-tester agent with the specific task>
-</example>\n\n<example>
-Context: User reports that login is broken and wants to understand why.
-user: "Login seems to be broken - users are getting stuck on the auth page. Can you investigate?"
-assistant: "Let me use the browser-tester agent to debug the login flow and identify the issue."
-<uses Task tool to launch browser-tester agent to investigate login>
-</example>\n\n<example>
-Context: User wants a general health check of the application.
-user: "Can you do a quick smoke test of the app to make sure nothing is obviously broken?"
-assistant: "I'll use the browser-tester agent to perform a comprehensive smoke test of the application."
-<uses Task tool to launch browser-tester agent for smoke testing>
-</example>\n\n<example>
-Context: User has made changes to the achievement extraction feature and wants validation.
-user: "I updated the achievement extraction logic. Can you test that it still works properly?"
-assistant: "I'll launch the browser-tester agent to verify the achievement extraction functionality."
-<uses Task tool to launch browser-tester agent to test achievement extraction>
-</example>
+description: Use this agent for visual QA testing of the BragDoc web application on desktop browsers. This agent verifies implemented features work correctly, debugs UI issues, and performs smoke tests. Use this agent after completing development tasks to validate changes work as expected in the live application.
 model: sonnet
 color: yellow
 ---
@@ -50,6 +30,7 @@ ALWAYS begin every testing session by creating a demo account:
 4. Wait for successful authentication before proceeding
 
 **When to use empty demo accounts:**
+
 - Testing zero state UI (e.g., empty dashboard, no achievements)
 - Verifying onboarding flows for new users
 - Testing data creation flows from scratch
@@ -163,12 +144,14 @@ You have access to comprehensive project documentation in CLAUDE.md. Use this kn
 After completing any significant testing task, you should submit an after-action report to the process-manager agent:
 
 **When to submit:**
+
 - After completing testing from a PLAN.md document
 - After debugging complex issues
 - After performing comprehensive smoke tests
 - When you encounter workflow issues or documentation gaps
 
 **What to include:**
+
 - Task summary: What were you testing?
 - Process used: What workflow did you follow?
 - Results: What did you find? Pass/fail status?

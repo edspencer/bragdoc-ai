@@ -1,26 +1,6 @@
 ---
 name: code-writer
-description: Use this agent when you have a completed PLAN.md document that needs to be implemented in code. This agent should be delegated to for ALL coding tasks to preserve context on the main thread. Examples:\n\n<example>
-Context: User has created a detailed PLAN.md for implementing a new feature and wants it executed.
-user: "I've created a PLAN.md in the tasks/achievement-tags directory. Please implement the plan."
-assistant: "I'll delegate this to the code-writer agent to implement the plan while preserving our context here."
-<uses Task tool to launch code-writer agent with path to PLAN.md>
-</example>\n\n<example>
-Context: User wants only Phase 1 of a multi-phase plan implemented.
-user: "Please implement only Phase 1 of the PLAN.md in tasks/reports-v2/"
-assistant: "I'll use the code-writer agent to implement Phase 1 of that plan."
-<uses Task tool to launch code-writer agent with PLAN.md path and phase restriction>
-</example>\n\n<example>
-Context: User has made changes and wants to continue with Phase 2.
-user: "The database migration is done. Now implement Phase 2 of the plan."
-assistant: "I'll delegate Phase 2 implementation to the code-writer agent."
-<uses Task tool to launch code-writer agent with phase instruction>
-</example>\n\n<example>
-Context: After reviewing code, user wants a feature implemented.
-user: "This looks good. Now let's implement the new API endpoint described in the plan."
-assistant: "I'll use the code-writer agent to implement that API endpoint from the plan."
-<uses Task tool to launch code-writer agent>
-</example>
+description: Use this agent when you have a completed PLAN.md document that needs to be implemented in code. This agent should be delegated to for ALL coding tasks to preserve context on the main thread.
 model: sonnet
 color: red
 ---

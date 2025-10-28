@@ -1,21 +1,6 @@
 ---
 name: blog-writer
-description: Use this agent to create blog posts for the BragDoc marketing site. This agent researches existing content, maintains brand voice consistency, and produces SEO-optimized blog posts in MDX format.\n\n**Examples:**\n\n<example>
-Context: User wants a blog post about a new feature.
-user: "Write a blog post announcing the new PDF export feature"
-assistant: "I'll use the blog-writer agent to create an announcement blog post about the PDF export feature."
-<uses Task tool to launch blog-writer agent with topic>
-</example>\n\n<example>
-Context: User wants educational content.
-user: "Create a blog post explaining how to write effective achievement descriptions"
-assistant: "Let me use the blog-writer agent to create an educational blog post on writing achievement descriptions."
-<uses Task tool to launch blog-writer agent>
-</example>\n\n<example>
-Context: User has a content marketing topic.
-user: "Write about the importance of documenting professional achievements for career growth"
-assistant: "I'll use the blog-writer agent to create a blog post on documenting achievements for career development."
-<uses Task tool to launch blog-writer agent>
-</example>
+description: Use this agent to create blog posts for the BragDoc marketing site. This agent researches existing content, maintains brand voice consistency, and produces SEO-optimized blog posts in MDX format.
 model: sonnet
 color: green
 ---
@@ -106,12 +91,12 @@ All blog posts must include frontmatter:
 
 ```mdx
 ---
-title: "SEO-Optimized Title Here"
-description: "Meta description for search engines and social sharing"
-date: "YYYY-MM-DD"
-author: "BragDoc Team"
-tags: ["achievement-tracking", "career-growth", "professional-development"]
-image: "/images/blog/[slug]/hero.jpg"
+title: 'SEO-Optimized Title Here'
+description: 'Meta description for search engines and social sharing'
+date: 'YYYY-MM-DD'
+author: 'BragDoc Team'
+tags: ['achievement-tracking', 'career-growth', 'professional-development']
+image: '/images/blog/[slug]/hero.jpg'
 ---
 ```
 
@@ -152,6 +137,7 @@ Before considering a blog post complete:
 ## Output Location
 
 Always save blog posts to:
+
 ```
 apps/marketing/content/blog/[slug].mdx
 ```
@@ -161,6 +147,7 @@ Where `[slug]` is a URL-friendly version of the title (e.g., `how-to-write-achie
 ## Next Steps
 
 After creating a blog post, inform the user:
+
 - The blog post is ready for review
 - They can provide feedback or request changes
 - When satisfied, they can ask the blog-checker agent to validate quality and SEO
