@@ -25,7 +25,10 @@ export async function POST(request: Request) {
     const expiresAt = now + 30 * 24 * 60 * 60;
 
     // Generate a JWT token using jose
-    const secret = new TextEncoder().encode(process.env.AUTH_SECRET!);
+    // Use BETTER_AUTH_SECRET with AUTH_SECRET fallback (matches getAuthUser verification)
+    const secret = new TextEncoder().encode(
+      process.env.BETTER_AUTH_SECRET || process.env.AUTH_SECRET!,
+    );
     const token = await new SignJWT({
       id: user.id,
       email: user.email,
