@@ -7,18 +7,21 @@ BragDoc is a full-stack TypeScript application built as a monorepo that combines
 ## Core Architectural Principles
 
 ### 1. Privacy-First Design
+
 - **Local Git Analysis**: CLI tool processes Git commits on user's machine
 - **Minimal Data Transmission**: Only extracted achievements sent to server
 - **Local LLM Support**: Optional Ollama integration for completely offline operation
 - **Data Ownership**: Export functionality and optional self-hosting
 
 ### 2. Type Safety Throughout
+
 - **Strict TypeScript**: All code uses TypeScript strict mode
 - **Database Type Safety**: Drizzle ORM provides end-to-end type safety
 - **Schema Validation**: Zod schemas at API boundaries
 - **Shared Types**: Common types defined in shared packages
 
 ### 3. Monorepo Architecture
+
 - **Code Sharing**: Database, config, and types shared across apps
 - **Independent Deployment**: Apps can be deployed separately
 - **Optimized Builds**: Turborepo caching and parallelization
@@ -27,6 +30,7 @@ BragDoc is a full-stack TypeScript application built as a monorepo that combines
 ## Technology Stack
 
 ### Frontend/Web Framework
+
 ```
 Next.js 16.0.0
 ├── React 19.2.0 (Server Components)
@@ -37,12 +41,14 @@ Next.js 16.0.0
 ```
 
 **Key Features:**
+
 - Server Components by default (optimal performance)
 - Client Components only when interactivity needed
 - Streaming with Suspense boundaries
 - Built-in API routes
 
 ### Backend/Runtime
+
 ```
 Node.js 18+
 ├── Next.js API Routes (RESTful endpoints)
@@ -52,12 +58,14 @@ Node.js 18+
 ```
 
 **Architecture Pattern:**
+
 - RESTful API for CLI and external integrations
 - Server Actions for form submissions and mutations
 - Server Components for data fetching
 - Edge Runtime for global low-latency
 
 ### Database Layer
+
 ```
 PostgreSQL
 ├── Drizzle ORM v0.34.1 (type-safe queries)
@@ -67,12 +75,14 @@ PostgreSQL
 ```
 
 **Design Decisions:**
+
 - **Drizzle over Prisma**: Better TypeScript inference, lighter weight
 - **Neon**: Serverless, edge-compatible, branching support
 - **UUID Primary Keys**: Better for distributed systems
 - **Soft Deletes**: `isArchived` flags preserve data integrity
 
 ### Authentication
+
 ```
 Better Auth v1.3.33
 ├── Database-backed sessions (with cookie caching)
@@ -83,10 +93,12 @@ Better Auth v1.3.33
 ```
 
 **Dual Authentication:**
+
 1. **Web Browser**: Session cookies via Better Auth (database-backed)
 2. **CLI Tool**: JWT tokens in Authorization header (backward compatible)
 
 ### AI/LLM Integration
+
 ```
 Vercel AI SDK v5.0.0
 ├── Multiple Providers (OpenAI, DeepSeek, Google, Anthropic)
@@ -97,12 +109,14 @@ Vercel AI SDK v5.0.0
 ```
 
 **Provider Selection:**
+
 - Web app uses LLM router for intelligent selection
 - CLI uses user-configured provider
 - Fallback chain for availability
 - Temperature tuning per task type
 
 ### Styling
+
 ```
 Tailwind CSS v4.1.9
 ├── Custom Theme (CSS variables)
@@ -113,12 +127,14 @@ Tailwind CSS v4.1.9
 ```
 
 **Design System:**
+
 - Mobile-first responsive design
 - Consistent spacing scale
 - Semantic color tokens
 - Accessibility-first (Radix primitives)
 
 ### Analytics
+
 ```
 PostHog
 ├── Client-side tracking (posthog-js v1.280.1)
@@ -128,6 +144,7 @@ PostHog
 ```
 
 **GDPR-Compliant Configuration:**
+
 - **Marketing Site**: Cookieless mode (persistence: 'memory', no cookies/localStorage)
 - **Web App**: Memory-only before auth, localStorage+cookie after authentication
 - **Server-side**: HTTP API approach optimized for Cloudflare Workers (immediate delivery)
@@ -204,6 +221,7 @@ brag-ai/
 ## Package Dependencies
 
 ### Workspace Configuration
+
 ```yaml
 # pnpm-workspace.yaml
 packages:
@@ -212,6 +230,7 @@ packages:
 ```
 
 **Dependency Flow:**
+
 ```
 apps/web
 ├── @bragdoc/database (workspace:*)
@@ -231,6 +250,7 @@ packages/database
 ### External Dependencies
 
 **Web App (`apps/web/package.json`):**
+
 ```json
 {
   "dependencies": {
@@ -240,7 +260,6 @@ packages/database
     "ai": "5.0.0",
     "@ai-sdk/openai": "^1.0.10",
     "@ai-sdk/google": "^1.0.15",
-    "@ai-sdk/deepseek": "^1.0.0",
     "drizzle-orm": "^0.34.1",
     "@neondatabase/serverless": "^0.10.5",
     "zod": "^3.24.1",
@@ -262,6 +281,7 @@ packages/database
 ```
 
 **CLI (`packages/cli/package.json`):**
+
 ```json
 {
   "dependencies": {
@@ -278,6 +298,7 @@ packages/database
 ```
 
 **Database (`packages/database/package.json`):**
+
 ```json
 {
   "dependencies": {
@@ -445,6 +466,7 @@ Update UI (web) or Console (CLI)
 ## Deployment Architecture
 
 ### Development Environment
+
 ```
 Developer Machine
 ├── pnpm dev (Turborepo)
@@ -455,6 +477,7 @@ Developer Machine
 ```
 
 ### Production Environment (Cloudflare Workers)
+
 ```
 Cloudflare Edge Network
 ├── Next.js via OpenNext adapter
@@ -472,6 +495,7 @@ External Services
 ```
 
 ### Alternative: Vercel Deployment
+
 ```
 Vercel Edge Network
 ├── Zero-config Next.js deployment
@@ -483,18 +507,21 @@ Vercel Edge Network
 ## Performance Considerations
 
 ### Build Optimization
+
 - **Turborepo Caching**: Remote and local caching of build artifacts
 - **Parallel Builds**: Independent packages build concurrently
 - **Incremental Builds**: Only changed packages rebuild
 - **Tree Shaking**: Unused code eliminated in production
 
 ### Runtime Optimization
+
 - **Server Components**: Reduced JavaScript bundle size
 - **Edge Runtime**: Low-latency global distribution
 - **Database Connection Pooling**: Neon serverless handles automatically
 - **Static Generation**: Marketing pages pre-rendered
 
 ### Database Optimization
+
 - **Indexed Queries**: Primary keys, foreign keys, and user scopes indexed
 - **Query Scoping**: All queries filtered by userId at database level
 - **Connection Management**: Serverless Neon handles pooling
@@ -503,24 +530,28 @@ Vercel Edge Network
 ## Security Architecture
 
 ### Authentication Security
+
 - **JWT Secret**: Strong random secret (AUTH_SECRET)
 - **Token Expiration**: 30-day CLI tokens, session-based web
 - **Password Hashing**: bcrypt with salt rounds
 - **OAuth**: Delegated authentication to trusted providers
 
 ### Authorization
+
 - **Row-Level Security**: All queries scoped by userId
 - **API Validation**: Zod schemas on all inputs
 - **CORS**: Restricted to necessary origins
 - **Rate Limiting**: (TODO: implement for production)
 
 ### Data Security
+
 - **HTTPS Only**: All production traffic encrypted
 - **Environment Variables**: Secrets never committed
 - **Database Encryption**: At-rest encryption via Neon
 - **Share Tokens**: UUIDs for document sharing (unguessable)
 
 ### Analytics & Privacy
+
 - **Cookieless Tracking**: Marketing site uses no cookies (GDPR-compliant)
 - **Conditional Storage**: Web app only stores analytics data after user authentication
 - **No PII in Events**: Analytics events never include sensitive user content
@@ -530,12 +561,14 @@ Vercel Edge Network
 ## Scalability Considerations
 
 ### Horizontal Scaling
+
 - **Stateless Design**: JWT-based auth, no server-side sessions
 - **Edge Distribution**: Cloudflare Workers globally distributed
 - **Database**: Neon autoscaling and branching
 - **Caching**: (TODO: Redis for API responses)
 
 ### Vertical Scaling
+
 - **Database Connections**: Serverless pooling handles concurrency
 - **LLM Rate Limits**: Multiple provider fallbacks
 - **File Processing**: Batch commits in chunks
@@ -544,6 +577,7 @@ Vercel Edge Network
 ## Technology Decisions & Rationale
 
 ### Why Next.js 16?
+
 - **Server Components**: Optimal performance, reduced bundle size
 - **App Router**: Modern file-based routing, layouts, nested routes
 - **Turbopack**: 2-5× faster builds as default bundler
@@ -551,12 +585,14 @@ Vercel Edge Network
 - **Built-in API**: No need for separate backend framework
 
 ### Why Drizzle ORM?
+
 - **Type Safety**: Superior TypeScript inference vs. Prisma
 - **Performance**: Lighter weight, closer to SQL
 - **Flexibility**: Raw SQL when needed
 - **Edge Compatible**: Works with serverless PostgreSQL
 
 ### Why Better Auth?
+
 - **TypeScript-first**: Native TypeScript support with excellent type inference
 - **Database Sessions**: More secure than JWT-only, with session revocation
 - **Cookie Caching**: Performance optimization (5-min cache reduces DB queries)
@@ -565,18 +601,21 @@ Vercel Edge Network
 - **Modern**: Active development with regular updates and good documentation
 
 ### Why Vercel AI SDK?
+
 - **Multi-Provider**: Unified interface for OpenAI, Google, Anthropic, etc.
 - **Streaming**: First-class streaming support
 - **Structured Output**: Zod schema validation
 - **Active Ecosystem**: Regular updates, good documentation
 
 ### Why Turborepo?
+
 - **Caching**: Massive speed improvements on rebuilds
 - **Parallelization**: Utilize all CPU cores
 - **Task Pipelines**: Define dependencies between tasks
 - **Remote Caching**: Share cache across team/CI
 
 ### Why pnpm?
+
 - **Disk Efficiency**: Content-addressable storage
 - **Speed**: Faster installs than npm/yarn
 - **Workspace Support**: Native monorepo support
@@ -585,6 +624,7 @@ Vercel Edge Network
 ## Future Architecture Considerations
 
 ### Planned Enhancements
+
 - **Queue System**: Background job processing (BullMQ, Inngest)
 - **Caching Layer**: Redis for API responses and session data
 - **Real-time Updates**: WebSocket or SSE for live collaboration
@@ -593,6 +633,7 @@ Vercel Edge Network
 - **Rate Limiting**: Upstash Redis for API rate limiting
 
 ### Scalability Roadmap
+
 - **Multi-tenant**: Database sharding by user/organization
 - **Microservices**: Extract heavy processing (LLM, PDF generation) to separate services
 - **Event-Driven**: Event bus for decoupled architecture
@@ -601,6 +642,7 @@ Vercel Edge Network
 ## Environment Variables
 
 ### Required Variables
+
 ```bash
 # Database
 POSTGRES_URL=postgresql://...
@@ -628,6 +670,7 @@ GOOGLE_GENERATIVE_AI_API_KEY=xxx  # Optional
 ```
 
 ### Optional Variables
+
 ```bash
 # OAuth Providers
 GOOGLE_CLIENT_ID=xxx
