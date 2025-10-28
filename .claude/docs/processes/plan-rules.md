@@ -21,7 +21,7 @@ Every plan should have a "Documentation" section, which should contain tasks to 
 
 ### Technical Documentation (.claude/docs/tech/)
 
-The documentation-manager will identify which technical documentation files need updates from the following list:
+The .claude/docs/tech/ directory contains all the technical documentation meant for consumption and updating by the LLM agents. Plans that affect the codebase should usually result in updates to this directory. In particular, plans affecting the following technical documents should specify updates to them:
 
 - **architecture.md** - Update for new architectural patterns, technology additions, or structural changes
 - **database.md** - Update for new tables, schema changes, or query patterns
@@ -31,8 +31,6 @@ The documentation-manager will identify which technical documentation files need
 - **cli-architecture.md** - Update for new CLI commands or configuration changes
 - **frontend-patterns.md** - Update for new component patterns or UI conventions
 - **deployment.md** - Update for deployment process or environment variable changes
-
-**When to update:** The documentation-manager agent will determine which files need updates based on the planned changes. Trust their expertise and include all documentation tasks they recommend.
 
 ### Feature Documentation (docs/)
 
