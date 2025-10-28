@@ -33,7 +33,6 @@
     "prepare": "husky"
   },
   "dependencies": {
-    "@ai-sdk/deepseek": "^1.0.23",
     "@react-email/components": "^0.5.7",
     "@react-email/render": "^1.4.0",
     "@repo/typescript-config": "workspace:*",
