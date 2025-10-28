@@ -150,7 +150,7 @@ Fixed authentication timeout issue when running CLI on slow connections (#127)
 
 ## Integration with Planning Workflow
 
-### For spec-planner Agent
+### For plan-writer Agent
 
 During plan creation:
 
@@ -159,15 +159,6 @@ During plan creation:
 3. **Include changeset phase if needed** - Add to plan before after-action report phase
 4. **Specify changeset type** - Based on the nature of changes (patch/minor/major)
 5. **Draft changeset description** - Write user-facing description of changes
-
-### For quick-task-planner Agent
-
-During quick task planning:
-
-1. **Check if CLI is affected** - Review task scope
-2. **Apply same decision framework** - Same rules as spec-planner
-3. **Include changeset in plan if needed** - Before after-action report
-4. **Keep description concise** - Quick tasks typically have focused changes
 
 ## Changeset Phase Structure in Plans
 
@@ -206,7 +197,7 @@ Phase 5: After-Action Report
 
 ## Integration with Implementation Workflow
 
-### For plan-executor Agent
+### For code-writer Agent
 
 When implementing a plan with a changeset phase:
 
@@ -395,8 +386,8 @@ Before marking changeset phase complete during implementation:
 
 ## Related Documentation
 
-- **For planners:** See `.claude/agents/spec-planner.md` and `.claude/agents/quick-task-planner.md`
-- **For implementers:** See `.claude/agents/plan-executor.md` and `.claude/docs/processes/engineer-rules.md`
+- **For planners:** See `.claude/agents/plan-writer.md`
+- **For implementers:** See `.claude/agents/code-writer.md` and `.claude/docs/processes/code-rules.md`
 - **Changesets tool:** See [https://github.com/changesets/changesets](https://github.com/changesets/changesets)
 - **BragDoc patterns:** See `CLAUDE.md` in project root
 

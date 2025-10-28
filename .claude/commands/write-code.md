@@ -1,12 +1,12 @@
 ---
 allowed-tools: Bash, Edit, Grep, Read, WebSearch, WebFetch, Write
 argument-hint: [plan-file] [instructions]
-description: Implement part of a plan
+description: Write code to implement part of a plan
 ---
 
-# Implement a plan document
+# Write code to implement a plan document
 
-You have been given a plan document to implement ($1). Your task is to fully read and understand the plan document, and then implement it. If you were additional instructions ($2), please pay attention to them.
+You have been given a plan document to implement ($1). Your task is to fully read and understand the plan document, and then write the code to implement it. If you were given additional instructions ($2), please pay attention to them.
 
 ## Instructions
 
