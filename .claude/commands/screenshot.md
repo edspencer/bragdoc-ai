@@ -122,7 +122,7 @@ Examples:
 
 **Don't use `/screenshot` for:**
 - Functional testing (use `/run-integration-tests` instead)
-- Debugging issues (invoke the web-app-tester agent directly)
+- Debugging issues (invoke the browser-tester agent directly)
 - Code analysis (use read/grep tools)
 
 ## Implementation

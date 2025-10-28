@@ -226,7 +226,7 @@ Those belong in after-action reports in `.claude/docs/after-action-reports/`. Th
 > "When introducing new cross-cutting processes, ensure planning and implementation agents reference the process documentation at appropriate workflow stages."
 
 **Example of inappropriate content for this file (belongs in after-action report):**
-> "Updated spec-planner.md to include reference to changeset-management.md in the planning phase (lines 45-52). Created comprehensive process document at .claude/docs/processes/changeset-management.md with sections for when to use changesets, creating changesets, and versioning workflow."
+> "Updated plan-writer.md to include reference to changeset-management.md in the planning phase. Created comprehensive process document at .claude/docs/processes/changeset-management.md with sections for when to use changesets, creating changesets, and versioning workflow."
 
 ### Lessons
 
@@ -430,23 +430,23 @@ For significant process updates, add a note:
 ### Relationship with Spec Planner
 
 **Spec Planner** creates implementation plans.
-**Process Manager** maintains plan-requirements.md that guides planning.
+**Process Manager** maintains plan-rules.md that guides planning.
 
 **Coordination pattern:**
-- Spec Planner follows plan-requirements.md
+- Spec Planner follows plan-rules.md
 - Spec Planner reports planning issues
-- Process Manager refines plan-requirements.md
+- Process Manager refines plan-rules.md
 - Spec Planner adopts improved planning standards
 
 ### Relationship with Plan Executor (Engineer)
 
 **Plan Executor** implements plans.
-**Process Manager** maintains engineer-rules.md that guides implementation.
+**Process Manager** maintains code-rules.md that guides implementation.
 
 **Coordination pattern:**
-- Plan Executor follows engineer-rules.md
+- Plan Executor follows code-rules.md
 - Plan Executor reports implementation issues
-- Process Manager refines engineer-rules.md
+- Process Manager refines code-rules.md
 - Plan Executor adopts improved implementation standards
 
 ## Future Improvements to Track

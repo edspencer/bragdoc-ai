@@ -26,12 +26,12 @@ Your task is to use the details in the spec file, read and understand any conten
 
 ### Plan requirements
 
-IMPORTANT: Our PLAN.md documents follow very strict plan requirements, as detailed in .claude/docs/processes/plan-requirements.md. Read that file very carefully and adhere strictly to its guidance.
+IMPORTANT: Our PLAN.md documents follow very strict plan requirements, as detailed in .claude/docs/processes/plan-rules.md. Read that file very carefully and adhere strictly to its guidance.
 
-**CRITICAL REQUIREMENTS FROM plan-requirements.md:**
-1. **Documentation Manager Consultation**: After drafting the initial plan but BEFORE using `/improve-plan`, you MUST consult the documentation-manager agent to identify which documentation files in `.claude/docs/tech/` and `.claude/docs/user/` need updates. Include their specific guidance in your plan's Documentation section.
+**CRITICAL REQUIREMENTS FROM plan-rules.md:**
+1. **Documentation Manager Consultation**: After drafting the initial plan but BEFORE using `/check-plan`, you MUST consult the documentation-manager agent to identify which documentation files in `.claude/docs/tech/` and `.claude/docs/user/` need updates. Include their specific guidance in your plan's Documentation section.
 2. **Changeset Evaluation**: Determine if a changeset phase is required using the decision framework in `.claude/docs/processes/changeset-management.md`. Include a changeset phase if the plan modifies published packages (e.g., CLI).
-3. **After-Action Report Phase**: Every plan MUST include a final phase for submitting an after-action report to the process-manager agent. See plan-requirements.md for the exact structure required.
+3. **After-Action Report Phase**: Every plan MUST include a final phase for submitting an after-action report to the process-manager agent. See plan-rules.md for the exact structure required.
 
 ### Separate Test Plan Requirements
 

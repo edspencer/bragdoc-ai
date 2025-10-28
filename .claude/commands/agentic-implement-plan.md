@@ -8,8 +8,8 @@ description: Fully implement a plan using sub agents
 
 You will make extensive use of the following sub-agents:
 
-@plan-executor - Use this agent to implement each phase of the plan
-@web-app-tester - Use this agent to test the web app using Playwright after each phase of the plan (if there were UI changes)
+@code-writer - Use this agent to implement each phase of the plan
+@browser-tester - Use this agent to test the web app using Playwright after each phase of the plan (if there were UI changes)
 
 The sub-agents have specialized knowledge and abilities, but also, delegating to them allows you to use less of your LLM context on solving issues, as you are playing an orchestrator role. Try to delegate to these sub-agents as much as possible.
 

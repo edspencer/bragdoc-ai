@@ -39,13 +39,13 @@ Your task is to use the details in the spec file, read and understand any conten
 
 ### Plan requirements
 
-IMPORTANT: Our PLAN.md documents follow very strict plan requirements, as detailed in ./docs/processes/plan-requirements.md. Read that file very carefully and adhere strictly to its guidance.
+IMPORTANT: Our PLAN.md documents follow very strict plan requirements, as detailed in .claude/docs/processes/plan-rules.md. Read that file very carefully and adhere strictly to its guidance.
 
 Beyond the normal plan requirements, the following additional requirements apply:
 
 - There should be tasks to copy the new pages into the main app, using the same directory structure
 
-Beyond the normal instructions listed in the "Instructions section in the plan" in the plan-requirements.md file, please include the following instructions in the plan document:
+Beyond the normal instructions listed in the "Instructions section in the plan" in the plan-rules.md file, please include the following instructions in the plan document:
 
 - IMPORTANT: I want you to use the exact UX from the tmp/v0-app pages, don't change it when you bring it in to apps/web.
 

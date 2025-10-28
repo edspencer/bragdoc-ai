@@ -6,6 +6,7 @@ This document provides comprehensive guidance for developing BragDoc, an AI-powe
 
 - [Technical Documentation](#technical-documentation)
 - [Task Management](#task-management)
+- [Standing Orders](#standing-orders)
 - [Project Architecture](#project-architecture)
 - [Monorepo Structure](#monorepo-structure)
 - [Apps](#apps)
@@ -58,6 +59,50 @@ The SPEC.md file is the specification for the task. It should be written in mark
 The PLAN.md file is the plan for the task. It is typically written by the spec-planner Claude Code agent, which in turn will delegate parts of the task to other SlashCommands or Agents.
 
 The LOG.md file is the log for the task. As the `implement` SlashCommand (as used by the `plan-executor` Claude Code agent) runs, it will update the LOG.md file with the progress of the task.
+
+### Agent System v2
+
+**Note:** On 2025-10-28, the BragDoc agent system underwent a major refactoring to establish the Writer/Checker pattern. This "Agent System v2" standardized naming conventions, introduced quality assurance workflows, and created a Standing Orders system for cross-cutting concerns.
+
+**Key Changes:**
+- All content types (Spec, Plan, Code, Blog) now have dedicated Writer and Checker agents
+- SlashCommands follow `/[action]-[content]` naming pattern (e.g., `/write-plan`, `/check-plan`)
+- Process documentation follows `[content]-rules.md` naming pattern
+- Four-tier agent hierarchy: Manager → Writer → Checker → QA
+- Standing Orders system provides cross-cutting concerns for all agents
+
+**Historical Names:** For reference, some agents were renamed:
+- `spec-planner` → `plan-writer`
+- `plan-executor` → `code-writer`
+- `web-app-tester` → `browser-tester`
+
+**Documentation:** See the complete after-action report at `.claude/docs/after-action-reports/2025-10-28-agent-alignment-refactoring.md` for details on the refactoring process, lessons learned, and recommendations for future improvements.
+
+## Standing Orders
+
+**All agents check `.claude/docs/standing-orders.md` before beginning work.** This document contains cross-cutting concerns and project-wide directives that apply to all agents, ensuring consistent behavior across the team.
+
+**Purpose:** Standing orders capture operational requirements that span multiple agents and would otherwise need to be duplicated across agent definitions. They serve as a single source of truth for:
+
+- Development environment monitoring (dev server logs, error checking)
+- Testing requirements (when to run tests, what must pass before completion)
+- Documentation maintenance (when and how to update docs)
+- Context window management (when to delegate vs. handle directly)
+- Error handling and recovery patterns
+- Quality assurance standards
+- Communication protocols
+
+**Location:** `/Users/ed/Code/brag-ai/.claude/docs/standing-orders.md`
+
+**Key Directives:**
+- Always check dev server logs at `apps/web/.next-dev.log` before and during implementation
+- Run tests before marking tasks complete (`pnpm test` and `pnpm build` must succeed)
+- Update relevant documentation after code changes (technical docs, user docs, CLAUDE.md)
+- Use strategic context window management (delegate when >75% full or when specialized expertise needed)
+- Follow systematic error handling (log, analyze root cause, check patterns, verify fix, document)
+- Complete pre-completion checklist (TypeScript errors, tests, patterns, security, docs, logs, verification)
+
+**Usage:** Agents automatically reference standing orders at startup. When creating or updating agents, the agent-maker ensures the standing orders check is present in the agent body structure.
 
 ## Dev server and logs
 
