@@ -7,18 +7,29 @@
  * - Server-side session validation
  * - Authentication hooks and lifecycle events
  *
- * Note: This instance is NOT yet active - Auth.js is still handling
- * authentication during Phase 3. This will be activated in Phase 5+.
+ * Active Features:
+ * - Magic link authentication
+ * - OAuth providers (Google, GitHub)
+ * - PostHog analytics integration
+ * - Welcome email automation
+ * - Demo account cleanup
  */
 
 import { betterAuth } from 'better-auth';
+import { createAuthMiddleware } from 'better-auth/api';
 import { magicLink } from 'better-auth/plugins/magic-link';
 
 import { betterAuthConfig } from './config';
-import { sendMagicLinkEmail } from '@/lib/email/client';
+import { sendMagicLinkEmail, sendWelcomeEmail } from '@/lib/email/client';
 import { db } from '@bragdoc/database';
 import { user as userTable } from '@bragdoc/database/schema';
 import { eq } from 'drizzle-orm';
+import {
+  captureServerEvent,
+  identifyUser,
+  aliasUser,
+} from '@/lib/posthog-server';
+import { cleanupDemoAccountData } from '@/lib/demo-data-cleanup';
 
 /**
  * Better Auth Server Instance
@@ -27,9 +38,9 @@ import { eq } from 'drizzle-orm';
  * - Core configuration from config.ts
  * - Magic link plugin for email authentication
  * - Social providers (Google, GitHub)
- * - Lifecycle hooks (will be added in Phase 6)
+ * - Lifecycle hooks for PostHog analytics and welcome emails
  */
-export const auth = betterAuth({
+export const auth: ReturnType<typeof betterAuth> = betterAuth({
   ...betterAuthConfig,
 
   plugins: [
@@ -73,339 +84,195 @@ export const auth = betterAuth({
       disableSignUp: false,
     }),
   ],
-} as any); // Temporary type assertion for hooks - Better Auth types may not fully support hooks yet
+
+  hooks: {
+    after: createAuthMiddleware(async (ctx) => {
+      try {
+        // Handle registration events
+        if (ctx.path === '/sign-up/email') {
+          const user = ctx.context.newSession?.user;
+          if (!user?.id || !user?.email) {
+            console.warn('PostHog: Missing user data in sign-up hook');
+            return;
+          }
+
+          // Track user registration event
+          await captureServerEvent(user.id, 'user_registered', {
+            method: 'email',
+            email: user.email,
+            user_id: user.id,
+          });
+
+          // Identify user in PostHog (sets person properties)
+          await identifyUser(user.id, {
+            email: user.email,
+            name: user.name || user.email.split('@')[0],
+          });
+
+          // Alias anonymous ID to merge pre-signup events
+          const anonymousId = ctx.headers?.get('x-anonymous-id');
+          if (anonymousId && anonymousId !== user.id) {
+            await aliasUser(user.id, anonymousId);
+          }
+
+          // Set ToS acceptance timestamp
+          await db
+            .update(userTable)
+            .set({ tosAcceptedAt: new Date() })
+            .where(eq(userTable.id, user.id));
+
+          // Track ToS acceptance event
+          await captureServerEvent(user.id, 'tos_accepted', {
+            method: 'email',
+            timestamp: new Date().toISOString(),
+          });
+
+          // Send welcome email
+          await sendWelcomeEmail({
+            to: user.email,
+            userId: user.id,
+            username: user.email.split('@')[0]!,
+            loginUrl: `${process.env.BETTER_AUTH_URL || process.env.NEXTAUTH_URL}/login`,
+          });
+        }
+
+        // Handle OAuth registration events
+        if (ctx.path.startsWith('/callback/')) {
+          const user = ctx.context.newSession?.user;
+          if (!user?.id || !user?.email) {
+            return;
+          }
+
+          // Check if this is a new user
+          const [existingUser] = await db
+            .select()
+            .from(userTable)
+            .where(eq(userTable.id, user.id))
+            .limit(1);
+
+          const isNewUser =
+            existingUser?.createdAt &&
+            Date.now() - existingUser.createdAt.getTime() < 5000;
+
+          const provider = ctx.path.includes('google')
+            ? 'google'
+            : ctx.path.includes('github')
+              ? 'github'
+              : 'oauth';
+
+          if (isNewUser) {
+            // Track user registration event
+            await captureServerEvent(user.id, 'user_registered', {
+              method: provider,
+              email: user.email,
+              user_id: user.id,
+            });
+
+            // Identify user in PostHog
+            await identifyUser(user.id, {
+              email: user.email,
+              name: user.name || user.email.split('@')[0],
+            });
+
+            // Alias anonymous ID
+            const anonymousId = ctx.headers?.get('x-anonymous-id');
+            if (anonymousId && anonymousId !== user.id) {
+              await aliasUser(user.id, anonymousId);
+            }
+
+            // Set ToS acceptance timestamp
+            await db
+              .update(userTable)
+              .set({ tosAcceptedAt: new Date() })
+              .where(eq(userTable.id, user.id));
+
+            // Track ToS acceptance event
+            await captureServerEvent(user.id, 'tos_accepted', {
+              method: provider,
+              timestamp: new Date().toISOString(),
+            });
+
+            // Send welcome email
+            await sendWelcomeEmail({
+              to: user.email,
+              userId: user.id,
+              username: user.email.split('@')[0]!,
+              loginUrl: `${process.env.BETTER_AUTH_URL || process.env.NEXTAUTH_URL}/login`,
+            });
+          } else {
+            // Existing user - track login
+            await captureServerEvent(user.id, 'user_logged_in', {
+              method: provider,
+              email: user.email,
+              user_id: user.id,
+            });
+          }
+        }
+
+        // Handle sign-in events (magic link login)
+        if (ctx.path === '/sign-in/email') {
+          const user = ctx.context.newSession?.user;
+          if (!user?.id || !user?.email) {
+            console.warn('PostHog: Missing user data in sign-in hook');
+            return;
+          }
+
+          // Track login event
+          await captureServerEvent(user.id, 'user_logged_in', {
+            method: 'email',
+            email: user.email,
+            user_id: user.id,
+          });
+        }
+
+        // Handle logout events
+        if (ctx.path === '/sign-out') {
+          const user = ctx.context.session?.user;
+          if (!user?.id) {
+            console.warn('PostHog: Missing user ID in sign-out hook');
+            return;
+          }
+
+          // Track logout event
+          await captureServerEvent(user.id, 'user_logged_out', {
+            user_id: user.id,
+          });
+
+          // Check if this is a demo account and cleanup data
+          const [demoUser] = await db
+            .select()
+            .from(userTable)
+            .where(eq(userTable.id, user.id))
+            .limit(1);
+
+          if (demoUser && demoUser.level === 'demo') {
+            await cleanupDemoAccountData(user.id);
+          }
+        }
+      } catch (error) {
+        console.error('PostHog hook error:', error);
+        // Don't fail authentication if tracking fails
+      }
+    }),
+  },
+});
 
 /**
- * Phase 6: PostHog Integration Hooks (READY - to be activated in Phase 7)
+ * PostHog Integration Hooks
  *
- * These hooks replicate the Auth.js events system for tracking user
- * registration, login, and logout events in PostHog.
+ * These hooks track user registration, login, and logout events in PostHog,
+ * replicating the Auth.js events system.
  *
- * Implementation Status:
- * - ✅ User registration tracking (email, Google, GitHub)
- * - ✅ User login tracking (email, OAuth)
- * - ✅ User logout tracking with demo cleanup
- * - ✅ PostHog identity aliasing (via X-Anonymous-Id header)
- * - ✅ ToS acceptance tracking
- * - ✅ Welcome email integration
+ * Features:
+ * - User registration tracking (email, Google, GitHub)
+ * - User login tracking (email, OAuth)
+ * - User logout tracking with demo account cleanup
+ * - PostHog identity aliasing (via X-Anonymous-Id header)
+ * - ToS acceptance tracking
+ * - Welcome email integration
  *
- * Note: Hooks are commented out due to TypeScript type incompatibility in Better Auth 1.3.33.
- * The implementation is complete and will be activated in Phase 7 when Better Auth routing is set up.
- *
- * TypeScript Issue: Better Auth hooks type doesn't match the documented structure.
- * Workaround: Will be added via custom middleware or plugin in Phase 7.
- *
- * Hooks Code (ready to activate):
- *
- * hooks: {
- *   after: [
- *       // User Registration Hook (Email Magic Links)
- *       {
- *         matcher: '/api/auth/sign-up/email',
- *         async handler(ctx) {
- *           try {
- *             const user = ctx.session?.user;
- *             if (!user?.id || !user?.email) {
- *               console.warn('PostHog: Missing user data in sign-up hook');
- *               return;
- *             }
- * 
- *             // Track user registration event
- *             await captureServerEvent(user.id, 'user_registered', {
- *               method: 'email',
- *               email: user.email,
- *               user_id: user.id,
- *             });
- * 
- *             // Identify user in PostHog (sets person properties)
- *             await identifyUser(user.id, {
- *               email: user.email,
- *               name: user.name || user.email.split('@')[0],
- *             });
- * 
- *             // Alias anonymous ID to merge pre-signup events
- *             // Note: Anonymous ID passed via X-Anonymous-Id header from client
- *             const anonymousId = ctx.headers.get('x-anonymous-id');
- *             if (anonymousId && anonymousId !== user.id) {
- *               await aliasUser(user.id, anonymousId);
- *             }
- * 
- *             // Set ToS acceptance timestamp
- *             await db
- *               .update(userTable)
- *               .set({ tosAcceptedAt: new Date() })
- *               .where(eq(userTable.id, user.id));
- * 
- *             // Track ToS acceptance event
- *             await captureServerEvent(user.id, 'tos_accepted', {
- *               method: 'email',
- *               timestamp: new Date().toISOString(),
- *             });
- * 
- *             // Send welcome email
- *             await sendWelcomeEmail({
- *               to: user.email,
- *               userId: user.id,
- *               username: user.email.split('@')[0]!,
- *               loginUrl: `${process.env.BETTER_AUTH_URL || process.env.NEXTAUTH_URL}/login`,
- *             });
- *           } catch (error) {
- *             console.error('Failed to track email registration:', error);
- *             // Don't fail registration if tracking fails
- *           }
- *         },
- *       },
- * 
- *       // User Registration Hook (Google OAuth)
- *       {
- *         matcher: '/api/auth/callback/google',
- *         async handler(ctx) {
- *           try {
- *             const user = ctx.session?.user;
- *             if (!user?.id || !user?.email) {
- *               return; // Not a sign-up, just a sign-in
- *             }
- * 
- *             // Check if this is a new user by looking for createdAt timestamp
- *             // If user was just created, createdAt will be very recent
- *             const [existingUser] = await db
- *               .select()
- *               .from(userTable)
- *               .where(eq(userTable.id, user.id))
- *               .limit(1);
- * 
- *             const isNewUser =
- *               existingUser &&
- *               existingUser.createdAt &&
- *               Date.now() - existingUser.createdAt.getTime() < 5000; // Within 5 seconds
- * 
- *             if (!isNewUser) {
- *               return; // Just a login, not a registration
- *             }
- * 
- *             // Track user registration event
- *             await captureServerEvent(user.id, 'user_registered', {
- *               method: 'google',
- *               email: user.email,
- *               user_id: user.id,
- *             });
- * 
- *             // Identify user in PostHog
- *             await identifyUser(user.id, {
- *               email: user.email,
- *               name: user.name || user.email.split('@')[0],
- *             });
- * 
- *             // Alias anonymous ID
- *             const anonymousId = ctx.headers.get('x-anonymous-id');
- *             if (anonymousId && anonymousId !== user.id) {
- *               await aliasUser(user.id, anonymousId);
- *             }
- * 
- *             // Set ToS acceptance timestamp
- *             await db
- *               .update(userTable)
- *               .set({ tosAcceptedAt: new Date() })
- *               .where(eq(userTable.id, user.id));
- * 
- *             // Track ToS acceptance event
- *             await captureServerEvent(user.id, 'tos_accepted', {
- *               method: 'google',
- *               timestamp: new Date().toISOString(),
- *             });
- * 
- *             // Send welcome email
- *             await sendWelcomeEmail({
- *               to: user.email,
- *               userId: user.id,
- *               username: user.email.split('@')[0]!,
- *               loginUrl: `${process.env.BETTER_AUTH_URL || process.env.NEXTAUTH_URL}/login`,
- *             });
- *           } catch (error) {
- *             console.error('Failed to track Google registration:', error);
- *             // Don't fail registration if tracking fails
- *           }
- *         },
- *       },
- * 
- *       // User Registration Hook (GitHub OAuth)
- *       {
- *         matcher: '/api/auth/callback/github',
- *         async handler(ctx) {
- *           try {
- *             const user = ctx.session?.user;
- *             if (!user?.id || !user?.email) {
- *               return; // Not a sign-up, just a sign-in
- *             }
- * 
- *             // Check if this is a new user
- *             const [existingUser] = await db
- *               .select()
- *               .from(userTable)
- *               .where(eq(userTable.id, user.id))
- *               .limit(1);
- * 
- *             const isNewUser =
- *               existingUser &&
- *               existingUser.createdAt &&
- *               Date.now() - existingUser.createdAt.getTime() < 5000; // Within 5 seconds
- * 
- *             if (!isNewUser) {
- *               return; // Just a login, not a registration
- *             }
- * 
- *             // Track user registration event
- *             await captureServerEvent(user.id, 'user_registered', {
- *               method: 'github',
- *               email: user.email,
- *               user_id: user.id,
- *             });
- * 
- *             // Identify user in PostHog
- *             await identifyUser(user.id, {
- *               email: user.email,
- *               name: user.name || user.email.split('@')[0],
- *             });
- * 
- *             // Alias anonymous ID
- *             const anonymousId = ctx.headers.get('x-anonymous-id');
- *             if (anonymousId && anonymousId !== user.id) {
- *               await aliasUser(user.id, anonymousId);
- *             }
- * 
- *             // Set ToS acceptance timestamp
- *             await db
- *               .update(userTable)
- *               .set({ tosAcceptedAt: new Date() })
- *               .where(eq(userTable.id, user.id));
- * 
- *             // Track ToS acceptance event
- *             await captureServerEvent(user.id, 'tos_accepted', {
- *               method: 'github',
- *               timestamp: new Date().toISOString(),
- *             });
- * 
- *             // Send welcome email
- *             await sendWelcomeEmail({
- *               to: user.email,
- *               userId: user.id,
- *               username: user.email.split('@')[0]!,
- *               loginUrl: `${process.env.BETTER_AUTH_URL || process.env.NEXTAUTH_URL}/login`,
- *             });
- *           } catch (error) {
- *             console.error('Failed to track GitHub registration:', error);
- *             // Don't fail registration if tracking fails
- *           }
- *         },
- *       },
- * 
- *       // User Login Hook (Email Magic Links)
- *       {
- *         matcher: '/api/auth/sign-in/email',
- *         async handler(ctx) {
- *           try {
- *             const user = ctx.session?.user;
- *             if (!user?.id || !user?.email) {
- *               console.warn('PostHog: Missing user data in sign-in hook');
- *               return;
- *             }
- * 
- *             // Track login event
- *             await captureServerEvent(user.id, 'user_logged_in', {
- *               method: 'email',
- *               email: user.email,
- *               user_id: user.id,
- *             });
- *           } catch (error) {
- *             console.error('Failed to track email login:', error);
- *             // Don't fail login if tracking fails
- *           }
- *         },
- *       },
- * 
- *       // User Login Hook (Social OAuth - Google/GitHub)
- *       // Note: This runs for BOTH registration and login, but we only track login
- *       {
- *         matcher: '/api/auth/callback/*',
- *         async handler(ctx) {
- *           try {
- *             const user = ctx.session?.user;
- *             if (!user?.id || !user?.email) {
- *               return;
- *             }
- * 
- *             // Check if this is a new user (already handled by registration hooks)
- *             const [existingUser] = await db
- *               .select()
- *               .from(userTable)
- *               .where(eq(userTable.id, user.id))
- *               .limit(1);
- * 
- *             const isNewUser =
- *               existingUser &&
- *               existingUser.createdAt &&
- *               Date.now() - existingUser.createdAt.getTime() < 5000; // Within 5 seconds
- * 
- *             if (isNewUser) {
- *               return; // Already tracked by registration hook
- *             }
- * 
- *             // Determine provider from path
- *             const provider = ctx.path.includes('google')
- *               ? 'google'
- *               : ctx.path.includes('github')
- *                 ? 'github'
- *                 : 'oauth';
- * 
- *             // Track login event
- *             await captureServerEvent(user.id, 'user_logged_in', {
- *               method: provider,
- *               email: user.email,
- *               user_id: user.id,
- *             });
- *           } catch (error) {
- *             console.error('Failed to track social login:', error);
- *             // Don't fail login if tracking fails
- *           }
- *         },
- *       },
- * 
- *       // User Logout Hook
- *       {
- *         matcher: '/api/auth/sign-out',
- *         async handler(ctx) {
- *           try {
- *             const user = ctx.session?.user;
- *             if (!user?.id) {
- *               console.warn('PostHog: Missing user ID in sign-out hook');
- *               return;
- *             }
- * 
- *             // Track logout event
- *             await captureServerEvent(user.id, 'user_logged_out', {
- *               user_id: user.id,
- *             });
- * 
- *             // Check if this is a demo account and cleanup data
- *             const [demoUser] = await db
- *               .select()
- *               .from(userTable)
- *               .where(eq(userTable.id, user.id))
- *               .limit(1);
- * 
- *             if (demoUser && demoUser.level === 'demo') {
- *               await cleanupDemoAccountData(user.id);
- *             }
- *           } catch (error) {
- *             console.error('Failed to track logout:', error);
- *             // Don't fail logout if tracking fails
- *           }
- *         },
- *       },
- *     ],
- *   },
- * });
- * 
+ * Note: Using type assertion (as any) due to Better Auth hooks type limitations.
+ */
 /**
  * Export auth API for use in route handlers
  *
