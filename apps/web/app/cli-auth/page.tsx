@@ -1,4 +1,5 @@
-import { auth } from '@/app/(auth)/auth';
+import { auth } from '@/lib/better-auth/server';
+import { headers } from 'next/headers';
 import { CLIAuthContent } from './CLIAuthContent';
 
 type Params = Promise<{ state?: string; port?: string }>;
@@ -8,7 +9,11 @@ export default async function CLIAuthPage({
 }: {
   searchParams: Params;
 }) {
-  const session = await auth();
+  // Get Better Auth session
+  const headersList = await headers();
+  const session = await auth.api.getSession({
+    headers: headersList,
+  });
 
   const { state, port } = await searchParams;
 

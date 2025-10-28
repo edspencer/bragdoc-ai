@@ -707,21 +707,16 @@ export function MagicLinkAuthForm({
     const email = formData.get('email') as string;
 
     try {
-      // Use NextAuth signIn with email provider
-      const { signIn } = await import('next-auth/react');
-      const result = await signIn('email', {
+      // Use Better Auth signIn with magic link
+      const { signIn } = await import('@/lib/better-auth/client');
+      await signIn.magicLink({
         email,
-        redirect: false,
-        callbackUrl: '/dashboard',
+        callbackURL: '/dashboard',
       });
 
-      if (result?.error) {
-        setError('Failed to send magic link. Please try again.');
-        setIsSubmitting(false);
-      } else {
-        setIsEmailSent(true);
-        setIsSubmitting(false);
-      }
+      // Magic link sent successfully
+      setIsEmailSent(true);
+      setIsSubmitting(false);
     } catch (err) {
       setError('An unexpected error occurred. Please try again.');
       setIsSubmitting(false);
@@ -815,7 +810,7 @@ export function MagicLinkAuthForm({
 - **Success state**: Green checkmark with confirmation message
 - **Reset option**: "Use a different email" button
 - **Children prop**: Allows ToS checkbox to be passed in for registration
-- **Dynamic import**: NextAuth signIn imported only when needed
+- **Dynamic import**: Better Auth signIn imported only when needed
 
 **Form State:**
 ```typescript
@@ -832,7 +827,7 @@ After submitting email, the form displays:
 - "Use a different email" option to restart
 
 **Implementation Details:**
-- Uses NextAuth's `signIn('email')` method
+- Uses Better Auth's `signIn.magicLink()` method
 - No password fields
 - Mobile-responsive (padding adjusts on sm screens)
 - Email input with validation (required, type="email")
@@ -1006,13 +1001,23 @@ As of Next.js 16, the middleware file has been renamed to `proxy.ts`. The proxy 
 **Implementation**:
 
 ```typescript
-import NextAuth from 'next-auth';
-import { authConfig } from '@/app/(auth)/auth.config';
-import type { NextMiddleware } from 'next/server';
+import { auth } from '@/lib/better-auth/server';
+import type { NextRequest } from 'next/server';
+import { NextResponse } from 'next/server';
 
-const { auth } = NextAuth(authConfig);
+export default async function middleware(request: NextRequest) {
+  // Check for Better Auth session
+  const session = await auth.api.getSession({
+    headers: request.headers,
+  });
 
-export default auth as NextMiddleware;
+  // Redirect to login if not authenticated
+  if (!session?.user) {
+    return NextResponse.redirect(new URL('/login', request.url));
+  }
+
+  return NextResponse.next();
+}
 
 export const config = {
   matcher: ['/((?!_next/static|_next/image|favicon.ico|api/auth).*)'],
@@ -1023,11 +1028,11 @@ export const config = {
 - **File naming**: `proxy.ts` in Next.js 16+ (was `middleware.ts` in Next.js 15)
 - **Type annotation**: Use `NextMiddleware` type for proper type inference
 - **Matcher config**: Excludes static files, images, and auth endpoints
-- **Authentication**: NextAuth integration provides seamless session checks
+- **Authentication**: Better Auth integration provides seamless session checks
 
 **How it works**:
 1. All requests matching the pattern go through the proxy first
-2. NextAuth checks for valid session (cookie-based) or JWT (header-based)
+2. Better Auth checks for valid session (database-backed with cookie caching)
 3. Unauthorized requests to protected routes redirect to login
 4. Authorized requests proceed to the target route
 5. This allows Server Components to show fallback UI instead of using `redirect()`
@@ -1161,7 +1166,7 @@ export function Providers({ children }) {
 **Key Features:**
 - **Conditional persistence**: Memory-only before auth, localStorage+cookie after
 - **User identification**: Automatic identify() call on authentication
-- **Session-aware**: Reacts to NextAuth session changes
+- **Session-aware**: Reacts to Better Auth session changes
 - **Cross-domain tracking**: Same PostHog key as marketing site
 
 ### Client-Side Event Tracking

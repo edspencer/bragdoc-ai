@@ -1,4 +1,5 @@
-import { auth } from 'app/(auth)/auth';
+import { auth } from '@/lib/better-auth/server';
+import { headers } from 'next/headers';
 import { DocumentList } from 'components/documents/document-list';
 import { redirect } from 'next/navigation';
 import { AppPage } from 'components/shared/app-page';
@@ -9,7 +10,9 @@ export const metadata = {
 };
 
 export default async function DocumentsPage() {
-  const session = await auth();
+  const session = await auth.api.getSession({
+    headers: await headers(),
+  });
 
   if (!session?.user) {
     redirect('/login');

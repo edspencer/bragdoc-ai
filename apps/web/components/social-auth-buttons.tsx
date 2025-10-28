@@ -1,6 +1,6 @@
 'use client';
 
-import { signIn } from 'next-auth/react';
+import { signIn } from '@/lib/better-auth/client';
 import { Github } from 'lucide-react';
 import Link from 'next/link';
 import { Button } from './ui/button';
@@ -46,7 +46,9 @@ export function SocialAuthButtons() {
       <div className="grid grid-cols-2 gap-3">
         <Button
           variant="outline"
-          onClick={() => signIn('google', { callbackUrl: '/dashboard' })}
+          onClick={() =>
+            signIn.social({ provider: 'google', callbackURL: '/dashboard' })
+          }
           className="w-full"
         >
           <svg
@@ -69,7 +71,9 @@ export function SocialAuthButtons() {
 
         <Button
           variant="outline"
-          onClick={() => signIn('github', { callbackUrl: '/dashboard' })}
+          onClick={() =>
+            signIn.social({ provider: 'github', callbackURL: '/dashboard' })
+          }
           className="w-full"
         >
           <Github className="mr-2 size-4" />

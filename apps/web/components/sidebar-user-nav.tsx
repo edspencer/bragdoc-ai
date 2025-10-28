@@ -1,8 +1,8 @@
 'use client';
 import { ChevronUp } from 'lucide-react';
 import Image from 'next/image';
-import type { User } from 'next-auth';
-import { signOut } from 'next-auth/react';
+import type { User } from '@bragdoc/database/schema';
+import { signOut } from '@/lib/better-auth/client';
 import { useTheme } from 'next-themes';
 
 import {
@@ -62,9 +62,13 @@ export function SidebarUserNav({ user }: { user: User }) {
               <button
                 type="button"
                 className="w-full cursor-pointer"
-                onClick={() => {
-                  signOut({
-                    redirectTo: '/',
+                onClick={async () => {
+                  await signOut({
+                    fetchOptions: {
+                      onSuccess: () => {
+                        window.location.href = '/';
+                      },
+                    },
                   });
                 }}
               >

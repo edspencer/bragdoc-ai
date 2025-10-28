@@ -1,19 +1,20 @@
 import { type NextRequest, NextResponse } from 'next/server';
-import { auth } from 'app/(auth)/auth';
+import { getAuthUser } from '@/lib/getAuthUser';
 import { getTopProjectsByImpact } from '@/database/projects/queries';
 
 export async function GET(req: NextRequest) {
   try {
-    const session = await auth();
-    if (!session?.user?.id) {
+    const authResult = await getAuthUser(req);
+    if (!authResult) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
+    const { user } = authResult;
 
     const url = new URL(req.url);
     const searchParams = url.searchParams;
     const limit = Number.parseInt(searchParams.get('limit') ?? '5');
 
-    const projects = await getTopProjectsByImpact(session.user.id, limit);
+    const projects = await getTopProjectsByImpact(user.id, limit);
 
     return NextResponse.json({ projects });
   } catch (error) {

@@ -1,21 +1,22 @@
 ---
 name: spec-writer
-description: Use this agent to create specification documents (SPEC.md) from user requirements, feature requests, or high-level descriptions. This agent gathers necessary details and produces structured specification documents that can be turned into implementation plans.\n\n**Examples:**\n\n<example>
-Context: User has a new feature idea but hasn't documented it yet.
-user: "I want to add a feature that lets users export their achievements as a PDF resume"
-assistant: "Let me use the spec-writer agent to create a specification document for this PDF export feature."
-<uses Task tool to launch spec-writer agent with topic>
-</example>\n\n<example>
-Context: User describes a complex requirement that needs to be structured.
-user: "We need to implement real-time collaboration on achievement documents, similar to Google Docs"
-assistant: "This is a complex feature that needs a detailed specification. I'll use the spec-writer agent to create a comprehensive SPEC.md document."
-<uses Task tool to launch spec-writer agent>
-</example>\n\n<example>
-Context: User mentions a feature from the roadmap that needs specification.
-user: "Can you create a spec for the achievement tagging system mentioned in TODO.md?"
-assistant: "I'll use the spec-writer agent to create a specification document for the achievement tagging system."
-<uses Task tool to launch spec-writer agent>
-</example>
+description: |
+  Use this agent to create specification documents (SPEC.md) from user requirements, feature requests, or high-level descriptions. This agent gathers necessary details and produces structured specification documents that can be turned into implementation plans.\n\n**Examples:**\n\n<example>
+  Context: User has a new feature idea but hasn't documented it yet.
+  user: "I want to add a feature that lets users export their achievements as a PDF resume"
+  assistant: "Let me use the spec-writer agent to create a specification document for this PDF export feature."
+  <uses Task tool to launch spec-writer agent with topic>
+  </example>\n\n<example>
+  Context: User describes a complex requirement that needs to be structured.
+  user: "We need to implement real-time collaboration on achievement documents, similar to Google Docs"
+  assistant: "This is a complex feature that needs a detailed specification. I'll use the spec-writer agent to create a comprehensive SPEC.md document."
+  <uses Task tool to launch spec-writer agent>
+  </example>\n\n<example>
+  Context: User mentions a feature from the roadmap that needs specification.
+  user: "Can you create a spec for the achievement tagging system mentioned in TODO.md?"
+  assistant: "I'll use the spec-writer agent to create a specification document for the achievement tagging system."
+  <uses Task tool to launch spec-writer agent>
+  </example>
 model: sonnet
 color: blue
 ---
@@ -122,6 +123,7 @@ Before considering a specification complete:
 ## Output Location
 
 Always save specifications to:
+
 ```
 ./tasks/[task-name]/SPEC.md
 ```
@@ -131,6 +133,7 @@ Where `[task-name]` is the lowercase-with-dashes task identifier you and the use
 ## Next Steps
 
 After creating a specification, inform the user:
+
 - The spec is ready for review
 - They can provide feedback or request changes
 - When satisfied, they can ask the plan-writer agent to create an implementation plan

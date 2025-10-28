@@ -1,4 +1,5 @@
-import { auth } from 'app/(auth)/auth';
+import { auth } from '@/lib/better-auth/server';
+import { headers } from 'next/headers';
 import { AppPage } from '@/components/shared/app-page';
 import { SidebarInset } from '@/components/ui/sidebar';
 import { SiteHeader } from '@/components/site-header';
@@ -8,7 +9,9 @@ export const metadata = {
 };
 
 export default async function PerformancePage() {
-  const session = await auth();
+  const session = await auth.api.getSession({
+    headers: await headers(),
+  });
 
   if (!session || !session.user || !session.user.id) {
     return null;

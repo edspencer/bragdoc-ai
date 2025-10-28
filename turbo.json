@@ -8,6 +8,8 @@
         "POSTGRES_URL",
         "AUTH_SECRET",
         "NEXTAUTH_URL",
+        "BETTER_AUTH_SECRET",
+        "BETTER_AUTH_URL",
         "AUTH_TRUST_HOST",
         "OPENAI_API_KEY",
         "GOOGLE_CLIENT_ID",

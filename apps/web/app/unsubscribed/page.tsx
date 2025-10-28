@@ -4,16 +4,16 @@ import {
   unsubscribeUser,
 } from '@/lib/email/unsubscribe';
 
-type Params = Promise<{ token: string; salt: string }>;
+type Params = Promise<{ token: string }>;
 
 export default async function UnsubscribedPage({
   searchParams,
 }: {
   searchParams: Params;
 }) {
-  const { token, salt } = await searchParams;
+  const { token } = await searchParams;
 
-  if (!token || !salt) {
+  if (!token) {
     return (
       <Container>
         <h1>Invalid Unsubscribe Link</h1>
@@ -26,7 +26,7 @@ export default async function UnsubscribedPage({
   }
 
   try {
-    const data = await verifyUnsubscribeToken(token, salt);
+    const data = await verifyUnsubscribeToken(token);
     await unsubscribeUser(data.userId, data.emailType);
 
     return (

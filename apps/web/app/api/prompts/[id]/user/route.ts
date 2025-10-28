@@ -3,6 +3,7 @@ export const runtime = 'nodejs';
 import { NextResponse } from 'next/server';
 import { fetchRender as fetchRenderExtractAchievements } from 'lib/ai/extract-achievements';
 import { fetchRender as fetchRenderExtractCommitAchievements } from 'lib/ai/extract-commit-achievements';
+import { getAuthUser } from '@/lib/getAuthUser';
 
 type Params = Promise<{
   id: string;
@@ -10,21 +11,19 @@ type Params = Promise<{
 
 import { repository, commits } from 'lib/ai/prompts/evals/data/user';
 
-import { auth } from 'app/(auth)/auth';
-
 // This is a Server Route, so no "use client" here
 export async function GET(request: Request, { params }: { params: Params }) {
   const { id } = await params;
 
-  const session = await auth();
+  const authResult = await getAuthUser(request);
 
-  if (!session) {
+  if (!authResult) {
     return new NextResponse('Not logged in, try the /mock endpoint instead', {
       status: 401,
     });
   }
 
-  const user = session.user;
+  const user = authResult.user;
 
   let prompt = '';
   let status = 200;

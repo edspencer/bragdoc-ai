@@ -1,14 +1,18 @@
 import { NextResponse } from 'next/server';
-import { createDemoAccount } from '@/lib/create-demo-account';
+import {
+  createDemoAccount,
+  DEMO_ACCOUNT_PASSWORD,
+} from '@/lib/create-demo-account';
 import { captureServerEvent } from '@/lib/posthog-server';
 import { isDemoModeEnabled } from '@/lib/demo-mode-utils';
-import { signIn } from '@/app/(auth)/auth';
+import { auth } from '@/lib/better-auth/server';
 
 /**
  * API Route: Start Demo Mode
  *
- * Creates a demo account and sets session cookie via response headers.
- * Uses API route instead of server action to ensure cookie is set before redirect.
+ * Creates a demo account and establishes a Better Auth session.
+ * Uses Better Auth's signInEmail API to properly authenticate and create a session.
+ * This ensures the session cookie is created using Better Auth's standard flow.
  */
 export async function POST(request: Request) {
   try {
@@ -44,8 +48,6 @@ export async function POST(request: Request) {
 
     const demoUser = result.user;
 
-    console.log('[API Demo] Demo user created:', demoUser.id);
-
     // Track demo start
     await captureServerEvent(demoUser.id, 'demo_started', {
       source: 'demo_page',
@@ -55,24 +57,43 @@ export async function POST(request: Request) {
       achievements_count: result.stats?.achievements.created ?? 0,
     });
 
-    // Use NextAuth's signIn to properly set session cookie
-    console.log('[API Demo] Calling signIn with demo provider');
-    await signIn('demo', {
-      email: demoUser.email,
-      isDemo: 'true',
-      redirect: false, // Don't redirect yet, we'll do it manually
+    // Sign in the demo user using Better Auth's API
+    // This creates a proper session and sets the session cookie
+    const signInResult = await auth.api.signInEmail({
+      body: {
+        email: demoUser.email,
+        password: DEMO_ACCOUNT_PASSWORD,
+      },
+      asResponse: true,
     });
 
-    console.log('[API Demo] signIn completed, redirecting to dashboard');
+    // Check if sign-in was successful
+    if (!signInResult.ok) {
+      return NextResponse.json(
+        { error: 'Failed to create demo session' },
+        { status: 500 },
+      );
+    }
 
-    // Now redirect
-    return NextResponse.redirect(
-      new URL(
-        '/dashboard',
-        process.env.NEXTAUTH_URL || 'http://localhost:3000',
-      ),
-      { status: 302 },
+    // Get the session cookie from the sign-in response
+    const sessionCookie = signInResult.headers.get('set-cookie');
+    if (!sessionCookie) {
+      return NextResponse.json(
+        { error: 'Failed to create demo session' },
+        { status: 500 },
+      );
+    }
+
+    // Create response with redirect and session cookie
+    const response = NextResponse.json(
+      { success: true, redirectTo: '/dashboard' },
+      { status: 200 },
     );
+
+    // Copy the session cookie from the sign-in response to our response
+    response.headers.set('set-cookie', sessionCookie);
+
+    return response;
   } catch (error) {
     console.error('Error starting demo:', error);
     return NextResponse.json(

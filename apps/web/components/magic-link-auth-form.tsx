@@ -6,6 +6,7 @@ import { Input } from './ui/input';
 import { Label } from './ui/label';
 import { Button } from './ui/button';
 import { Mail, Check } from 'lucide-react';
+import { signIn } from '@/lib/better-auth/client';
 
 interface MagicLinkAuthFormProps {
   mode: 'login' | 'register';
@@ -32,15 +33,13 @@ export function MagicLinkAuthForm({
     const email = formData.get('email') as string;
 
     try {
-      // Use NextAuth signIn with email provider
-      const { signIn } = await import('next-auth/react');
-      const result = await signIn('email', {
+      // Use Better Auth magic link sign in
+      const result = await signIn.magicLink({
         email,
-        redirect: false,
-        callbackUrl: '/dashboard',
+        callbackURL: '/dashboard',
       });
 
-      if (result?.error) {
+      if (result.error) {
         setError('Failed to send magic link. Please try again.');
         setIsSubmitting(false);
       } else {

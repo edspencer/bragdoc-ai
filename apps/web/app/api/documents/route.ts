@@ -1,4 +1,4 @@
-import { auth } from 'app/(auth)/auth';
+import { getAuthUser } from '@/lib/getAuthUser';
 import { db } from '@/database/index';
 import { document } from '@/database/schema';
 import { eq } from 'drizzle-orm';
@@ -20,9 +20,9 @@ const documentSchema = z.object({
 });
 
 export async function GET(request: Request) {
-  const session = await auth();
+  const authResult = await getAuthUser(request);
 
-  if (!session?.user?.id) {
+  if (!authResult) {
     return Response.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
@@ -30,7 +30,7 @@ export async function GET(request: Request) {
     const documents = await db
       .select()
       .from(document)
-      .where(eq(document.userId, session.user.id))
+      .where(eq(document.userId, authResult.user.id))
       .orderBy(document.createdAt);
 
     return Response.json({ documents });
@@ -44,9 +44,9 @@ export async function GET(request: Request) {
 }
 
 export async function POST(request: Request) {
-  const session = await auth();
+  const authResult = await getAuthUser(request);
 
-  if (!session?.user?.id) {
+  if (!authResult) {
     return Response.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
@@ -69,7 +69,7 @@ export async function POST(request: Request) {
         content,
         type,
         companyId,
-        userId: session.user.id,
+        userId: authResult.user.id,
         createdAt: new Date(),
         updatedAt: new Date(),
       })

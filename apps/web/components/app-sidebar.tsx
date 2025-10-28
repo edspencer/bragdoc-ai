@@ -8,7 +8,7 @@ import {
   IconSettings,
   IconStar,
 } from '@tabler/icons-react';
-import { useSession } from 'next-auth/react';
+import { useSession } from '@/lib/better-auth/client';
 
 import { NavCareers } from '@/components/nav-careers';
 import { NavMain } from '@/components/nav-main';
@@ -68,7 +68,7 @@ const staticData = {
 };
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
-  const { data: session, status } = useSession();
+  const { data: session, isPending } = useSession();
 
   const user = {
     name: session?.user?.name || 'User',
@@ -77,7 +77,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   };
 
   // Don't render until we have session data loaded
-  if (status === 'loading') {
+  if (isPending) {
     return null;
   }
 

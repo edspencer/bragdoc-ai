@@ -1,4 +1,4 @@
-import { auth } from 'app/(auth)/auth';
+import { getAuthUser } from '@/lib/getAuthUser';
 import { db } from '@/database/index';
 import { document } from '@/database/schema';
 import { and, eq } from 'drizzle-orm';
@@ -8,12 +8,13 @@ export async function POST(
   request: Request,
   { params }: { params: Promise<{ id: string }> },
 ) {
-  const session = await auth();
+  const authResult = await getAuthUser(request);
 
   try {
-    if (!session?.user?.id) {
+    if (!authResult) {
       return Response.json({ error: 'Unauthorized' }, { status: 401 });
     }
+    const { user } = authResult;
 
     const { id } = await params;
 
@@ -23,7 +24,7 @@ export async function POST(
     const [updated] = await db
       .update(document)
       .set({ shareToken })
-      .where(and(eq(document.id, id), eq(document.userId, session.user.id)))
+      .where(and(eq(document.id, id), eq(document.userId, user.id)))
       .returning();
 
     if (!updated) {
@@ -44,19 +45,20 @@ export async function DELETE(
   request: Request,
   { params }: { params: Promise<{ id: string }> },
 ) {
-  const session = await auth();
+  const authResult = await getAuthUser(request);
 
   try {
-    if (!session?.user?.id) {
+    if (!authResult) {
       return Response.json({ error: 'Unauthorized' }, { status: 401 });
     }
+    const { user } = authResult;
 
     const { id } = await params;
 
     const [updated] = await db
       .update(document)
       .set({ shareToken: null })
-      .where(and(eq(document.id, id), eq(document.userId, session.user.id)))
+      .where(and(eq(document.id, id), eq(document.userId, user.id)))
       .returning();
 
     if (!updated) {

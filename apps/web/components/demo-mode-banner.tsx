@@ -1,4 +1,5 @@
-import { auth } from '@/app/(auth)/auth';
+import { auth } from '@/lib/better-auth/server';
+import { headers } from 'next/headers';
 import Link from 'next/link';
 import { AlertCircle } from 'lucide-react';
 
@@ -14,13 +15,17 @@ import { AlertCircle } from 'lucide-react';
  * NOTE: This is a Server Component to ensure session is available immediately after redirect.
  */
 export async function DemoModeBanner() {
-  const session = await auth();
+  const session = await auth.api.getSession({
+    headers: await headers(),
+  });
 
   // Check if banner should be suppressed (for screenshots, etc.)
   const isSuppressed = process.env.NEXT_PUBLIC_SUPRESSED_DEMO_BANNER === 'true';
 
   // Only show for demo users and if not suppressed
-  if (session?.user?.level !== 'demo' || isSuppressed) {
+  // Better Auth stores custom fields as additionalFields on session.user
+  const userLevel = (session?.user as any)?.level;
+  if (userLevel !== 'demo' || isSuppressed) {
     return null;
   }
   return (

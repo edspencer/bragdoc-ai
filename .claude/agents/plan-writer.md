@@ -1,25 +1,26 @@
 ---
 name: plan-writer
-description: Use this agent when you have a specification (SPEC.md) that needs to be transformed into a detailed implementation plan (PLAN.md). This agent creates comprehensive, actionable plans that can be executed by the code-writer agent. Examples:\n\n<example>
-Context: User provides a new feature specification for the BragDoc application.
-user: "I need to add a feature that allows users to export their achievements as a PDF resume"
-assistant: "I'm going to use the plan-writer agent to create a detailed implementation plan for this PDF export feature."
-<Task tool call to plan-writer agent>
-</example>\n\n<example>
-Context: User describes a complex technical requirement.
-user: "We need to implement real-time collaboration on achievement documents, similar to Google Docs"
-assistant: "This is a complex specification that requires careful planning. Let me use the plan-writer agent to break this down into a comprehensive implementation plan."
-<Task tool call to plan-writer agent>
-</example>\n\n<example>
-Context: User asks for help implementing a feature from the TODO.md or feature documentation.
-user: "Can you help me implement the achievement tagging system mentioned in the roadmap?"
-assistant: "I'll use the plan-writer agent to create a detailed plan for implementing the achievement tagging system."
-<Task tool call to plan-writer agent>
-</example>\n\nDo NOT use this agent for:
-- Simple bug fixes or minor code changes
-- Questions about existing code
-- General discussions about the codebase
-- Code reviews
+description: |
+  Use this agent when you have a specification (SPEC.md) that needs to be transformed into a detailed implementation plan (PLAN.md). This agent creates comprehensive, actionable plans that can be executed by the code-writer agent. Examples:\n\n<example>
+  Context: User provides a new feature specification for the BragDoc application.
+  user: "I need to add a feature that allows users to export their achievements as a PDF resume"
+  assistant: "I'm going to use the plan-writer agent to create a detailed implementation plan for this PDF export feature."
+  <Task tool call to plan-writer agent>
+  </example>\n\n<example>
+  Context: User describes a complex technical requirement.
+  user: "We need to implement real-time collaboration on achievement documents, similar to Google Docs"
+  assistant: "This is a complex specification that requires careful planning. Let me use the plan-writer agent to break this down into a comprehensive implementation plan."
+  <Task tool call to plan-writer agent>
+  </example>\n\n<example>
+  Context: User asks for help implementing a feature from the TODO.md or feature documentation.
+  user: "Can you help me implement the achievement tagging system mentioned in the roadmap?"
+  assistant: "I'll use the plan-writer agent to create a detailed plan for implementing the achievement tagging system."
+  <Task tool call to plan-writer agent>
+  </example>\n\nDo NOT use this agent for:
+  - Simple bug fixes or minor code changes
+  - Questions about existing code
+  - General discussions about the codebase
+  - Code reviews
 model: sonnet
 color: blue
 ---

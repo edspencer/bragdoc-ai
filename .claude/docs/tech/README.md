@@ -37,7 +37,7 @@ These documents are maintained as living documentation that:
 1. **Web Application** (Next.js 15 + React 19)
    - Server Components with App Router
    - PostgreSQL via Drizzle ORM
-   - NextAuth.js authentication
+   - Better Auth authentication
    - AI-powered document generation
 
 2. **CLI Tool** (@bragdoc/cli)
@@ -56,7 +56,7 @@ These documents are maintained as living documentation that:
 - **Runtime**: Node.js 18+, Edge Runtime (Cloudflare Workers)
 - **Framework**: Next.js 15 with App Router
 - **Database**: PostgreSQL via Drizzle ORM (Neon serverless)
-- **Auth**: NextAuth.js v5 (JWT strategy)
+- **Auth**: Better Auth v1.3.33 (database-backed sessions with cookie caching)
 - **AI**: Vercel AI SDK v5 (OpenAI, DeepSeek, Google, Anthropic, Ollama)
 - **Styling**: Tailwind CSS v4 + shadcn/ui
 - **Monorepo**: Turborepo + pnpm workspaces

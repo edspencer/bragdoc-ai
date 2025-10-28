@@ -74,16 +74,17 @@ PostgreSQL
 
 ### Authentication
 ```
-NextAuth.js v5.0.0-beta.25
-├── JWT Strategy (stateless)
+Better Auth v1.3.33
+├── Database-backed sessions (with cookie caching)
 ├── OAuth Providers (Google, GitHub)
-├── Credentials Provider (email/password)
-└── CLI Token Generation
+├── Magic Links (passwordless email auth)
+├── Email/Password (for demo mode)
+└── CLI Token Generation (JWT)
 ```
 
 **Dual Authentication:**
-1. **Web Browser**: Session cookies via NextAuth
-2. **CLI Tool**: JWT tokens in Authorization header
+1. **Web Browser**: Session cookies via Better Auth (database-backed)
+2. **CLI Tool**: JWT tokens in Authorization header (backward compatible)
 
 ### AI/LLM Integration
 ```
@@ -397,8 +398,8 @@ Update UI (web) or Console (CLI)
 
 ```
 1. User Registration
-   ├── OAuth (Google/GitHub) or Email/Password
-   ├── NextAuth creates session
+   ├── OAuth (Google/GitHub) or Magic Links (email)
+   ├── Better Auth creates database session
    ├── User record in database
    └── Preferences initialized
 
@@ -555,11 +556,13 @@ Vercel Edge Network
 - **Flexibility**: Raw SQL when needed
 - **Edge Compatible**: Works with serverless PostgreSQL
 
-### Why NextAuth v5?
-- **JWT Strategy**: Stateless, edge-compatible
-- **Multiple Providers**: OAuth + credentials
-- **CLI Support**: Token generation for external clients
-- **Active Development**: Well-maintained, Next.js integration
+### Why Better Auth?
+- **TypeScript-first**: Native TypeScript support with excellent type inference
+- **Database Sessions**: More secure than JWT-only, with session revocation
+- **Cookie Caching**: Performance optimization (5-min cache reduces DB queries)
+- **Plugin Architecture**: Magic links, OAuth, and extensible for future needs
+- **CLI Support**: JWT token generation for external clients (backward compatible)
+- **Modern**: Active development with regular updates and good documentation
 
 ### Why Vercel AI SDK?
 - **Multi-Provider**: Unified interface for OpenAI, Google, Anthropic, etc.

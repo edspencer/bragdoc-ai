@@ -4,16 +4,13 @@ import {
   POST as createCompany,
 } from 'app/api/companies/route';
 import { company, user, project, achievement } from '@/database/schema';
-import { auth } from 'app/(auth)/auth';
+import { auth } from '@/lib/better-auth/server';
 import { eq } from 'drizzle-orm';
 import { NextRequest } from 'next/server';
 
 import { db } from '@/database/index';
 
-// Mock the auth module
-jest.mock('@/app/(auth)/auth', () => ({
-  auth: jest.fn(),
-}));
+// Better Auth is already mocked in jest.setup.ts
 
 describe('Companies API', () => {
   const mockUser = {
@@ -35,8 +32,9 @@ describe('Companies API', () => {
     // Insert the mock user before each test
     await db.insert(user).values(mockUser);
 
-    // Set up auth mock to return our test user
-    (auth as jest.Mock).mockResolvedValue({
+    // Set up Better Auth mock to return our test user
+    (auth.api.getSession as jest.Mock).mockResolvedValue({
+      session: { id: 'test-session' },
       user: mockUser,
     });
   });
@@ -51,7 +49,8 @@ describe('Companies API', () => {
 
   describe('GET /api/companies', () => {
     it('returns empty array when no companies exist', async () => {
-      const response = await getCompanies();
+      const request = new NextRequest('http://localhost/api/companies');
+      const response = await getCompanies(request);
       expect(response.status).toBe(200);
       expect(await response.json()).toEqual([]);
     });
@@ -67,7 +66,8 @@ describe('Companies API', () => {
       };
       await db.insert(company).values(testCompany);
 
-      const response = await getCompanies();
+      const request = new NextRequest('http://localhost/api/companies');
+      const response = await getCompanies(request);
       expect(response.status).toBe(200);
       const data = await response.json();
       expect(data).toHaveLength(1);
@@ -90,7 +90,7 @@ describe('Companies API', () => {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(newCompany),
-        })
+        }),
       );
 
       expect(response.status).toBe(201);
@@ -113,7 +113,7 @@ describe('Companies API', () => {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({}),
-        })
+        }),
       );
 
       expect(response.status).toBe(400);
@@ -139,9 +139,9 @@ describe('Companies API', () => {
 
       const response = await GET(
         new NextRequest(
-          new NextRequest(`http://localhost/api/companies/${created.id}`)
+          new NextRequest(`http://localhost/api/companies/${created.id}`),
         ),
-        { params: Promise.resolve({ id: created.id }) }
+        { params: Promise.resolve({ id: created.id }) },
       );
 
       expect(response.status).toBe(200);
@@ -153,14 +153,14 @@ describe('Companies API', () => {
       const response = await GET(
         new NextRequest(
           new NextRequest(
-            'http://localhost/api/companies/123e4567-e89b-12d3-a456-426614174001'
-          )
+            'http://localhost/api/companies/123e4567-e89b-12d3-a456-426614174001',
+          ),
         ),
         {
           params: Promise.resolve({
             id: '123e4567-e89b-12d3-a456-426614174001',
           }),
-        }
+        },
       );
 
       expect(response.status).toBe(404);
@@ -198,7 +198,7 @@ describe('Companies API', () => {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(updateData),
         }),
-        { params: Promise.resolve({ id: created.id }) }
+        { params: Promise.resolve({ id: created.id }) },
       );
 
       expect(response.status).toBe(200);
@@ -223,13 +223,13 @@ describe('Companies API', () => {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(updateData),
-          }
+          },
         ),
         {
           params: Promise.resolve({
             id: '123e4567-e89b-12d3-a456-426614174001',
           }),
-        }
+        },
       );
 
       expect(response.status).toBe(404);
@@ -255,7 +255,7 @@ describe('Companies API', () => {
         new NextRequest(`http://localhost/api/companies/${created.id}`, {
           method: 'DELETE',
         }),
-        { params: Promise.resolve({ id: created.id }) }
+        { params: Promise.resolve({ id: created.id }) },
       );
 
       expect(response.status).toBe(204);
@@ -274,13 +274,13 @@ describe('Companies API', () => {
           'http://localhost/api/companies/123e4567-e89b-12d3-a456-426614174002',
           {
             method: 'DELETE',
-          }
+          },
         ),
         {
           params: Promise.resolve({
             id: '123e4567-e89b-12d3-a456-426614174002',
           }),
-        }
+        },
       );
 
       expect(response.status).toBe(404);

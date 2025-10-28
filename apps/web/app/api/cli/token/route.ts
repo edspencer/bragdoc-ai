@@ -1,7 +1,7 @@
-import { auth } from 'app/(auth)/auth';
+import { getAuthUser } from '@/lib/getAuthUser';
 import { NextResponse } from 'next/server';
 import { z } from 'zod/v3';
-import { encode } from 'next-auth/jwt';
+import { SignJWT } from 'jose';
 import { captureServerEvent } from '@/lib/posthog-server';
 
 const requestSchema = z.object({
@@ -11,42 +11,43 @@ const requestSchema = z.object({
 
 export async function POST(request: Request) {
   try {
-    const session = await auth();
-    if (!session?.user?.id) {
+    const authResult = await getAuthUser(request);
+    if (!authResult) {
       return new NextResponse('Unauthorized', { status: 401 });
     }
+    const { user } = authResult;
 
     const body = await request.json();
     const { state, deviceName } = requestSchema.parse(body);
 
     // 30 days from now
-    const expiresAt = Math.floor(Date.now() / 1000) + 30 * 24 * 60 * 60;
+    const now = Math.floor(Date.now() / 1000);
+    const expiresAt = now + 30 * 24 * 60 * 60;
 
-    // Generate a NextAuth JWT token
-    const token = await encode({
-      token: {
-        id: session.user.id,
-        email: session.user.email,
-        name: session.user.name,
-        picture: session.user.image,
-        provider: session.user.provider,
-        providerId: session.user.providerId,
-        preferences: session.user.preferences,
-        githubAccessToken: session.user.githubAccessToken,
-        level: session.user.level,
-        renewalPeriod: session.user.renewalPeriod,
-        sub: session.user.id,
-        iat: Math.floor(Date.now() / 1000),
-        exp: expiresAt,
-      },
-      secret: process.env.AUTH_SECRET!,
-      salt: '',
-    });
+    // Generate a JWT token using jose
+    const secret = new TextEncoder().encode(process.env.AUTH_SECRET!);
+    const token = await new SignJWT({
+      id: user.id,
+      email: user.email,
+      name: user.name,
+      picture: user.image,
+      provider: user.provider,
+      providerId: user.providerId,
+      preferences: user.preferences,
+      githubAccessToken: user.githubAccessToken,
+      level: user.level,
+      renewalPeriod: user.renewalPeriod,
+    })
+      .setProtectedHeader({ alg: 'HS256' })
+      .setSubject(user.id)
+      .setIssuedAt(now)
+      .setExpirationTime(expiresAt)
+      .sign(secret);
 
     // Track CLI connection
     try {
-      await captureServerEvent(session.user.id, 'cli_connected', {
-        user_id: session.user.id,
+      await captureServerEvent(user.id, 'cli_connected', {
+        user_id: user.id,
         device_name: deviceName,
       });
     } catch (error) {

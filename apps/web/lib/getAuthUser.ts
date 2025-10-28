@@ -1,18 +1,59 @@
-import { auth } from 'app/(auth)/auth';
-import { decode } from 'next-auth/jwt';
+/**
+ * Unified Authentication Helper (Better Auth)
+ *
+ * This helper checks both Better Auth sessions (browser cookies) and JWT tokens
+ * (CLI Authorization headers), providing a unified interface for authentication.
+ *
+ * MIGRATION NOTE: This file now uses Better Auth instead of Auth.js.
+ * The interface remains unchanged for backward compatibility.
+ *
+ * Usage in API routes:
+ * ```typescript
+ * import { getAuthUser } from '@/lib/getAuthUser';
+ *
+ * export async function GET(request: Request) {
+ *   const auth = await getAuthUser(request);
+ *   if (!auth) return new Response('Unauthorized', { status: 401 });
+ *
+ *   const { user, source } = auth;
+ *   // ... use user data
+ * }
+ * ```
+ */
+
+import { auth } from '@/lib/better-auth/server';
+import { jwtVerify } from 'jose';
 import type { User } from '@/database/schema';
 
 /**
- * Unified authentication helper that checks both cookies (browser) and Authorization headers (CLI).
- * Use this in API routes to support both browser sessions and CLI JWT tokens.
+ * Unified authentication helper
+ *
+ * Checks both Better Auth sessions (browser) and JWT tokens (CLI).
+ * Returns user data and source of authentication.
+ *
+ * @param request - The incoming HTTP request
+ * @returns User data with authentication source, or null if not authenticated
  */
 export async function getAuthUser(
   request: Request,
 ): Promise<{ user: User; source: 'session' | 'jwt' } | null> {
-  // First, try to get user from session (cookie-based, for browser)
-  const session = await auth();
-  if (session?.user?.id) {
-    return { user: session.user as User, source: 'session' };
+  // First, try to get user from Better Auth session (cookie-based, for browser)
+  try {
+    const session = await auth.api.getSession({
+      headers: request.headers,
+    });
+
+    if (session?.user?.id) {
+      // Better Auth session user has core fields plus custom additionalFields
+      // Cast to User type which includes all custom fields
+      return {
+        user: session.user as unknown as User,
+        source: 'session',
+      };
+    }
+  } catch (error) {
+    // Session check failed, continue to JWT check
+    console.error('Error checking Better Auth session:', error);
   }
 
   // If no session, check Authorization header (for CLI)
@@ -24,35 +65,35 @@ export async function getAuthUser(
   const token = authHeader.slice(7); // Remove 'Bearer ' prefix
 
   try {
-    // Decode and verify the JWT
-    const decoded = await decode({
-      token,
-      secret: process.env.AUTH_SECRET!,
-      salt: '',
-    });
+    // Verify the JWT using Better Auth secret (with Auth.js fallback)
+    // Note: CLI tokens may still use AUTH_SECRET during migration
+    const secret = new TextEncoder().encode(
+      process.env.BETTER_AUTH_SECRET || process.env.AUTH_SECRET!,
+    );
+    const { payload } = await jwtVerify(token, secret);
 
-    if (!decoded?.id) {
+    if (!payload?.id) {
       return null;
     }
 
     // Return user data from JWT
     return {
       user: {
-        id: decoded.id as string,
-        email: decoded.email as string,
-        name: decoded.name as string,
-        image: decoded.picture as string,
-        provider: decoded.provider as string,
-        providerId: decoded.providerId as string,
-        preferences: decoded.preferences as any,
-        githubAccessToken: decoded.githubAccessToken as string,
-        level: decoded.level as any,
-        renewalPeriod: decoded.renewalPeriod as any,
+        id: payload.id as string,
+        email: payload.email as string,
+        name: payload.name as string,
+        image: payload.picture as string,
+        provider: payload.provider as string,
+        providerId: payload.providerId as string,
+        preferences: payload.preferences as any,
+        githubAccessToken: payload.githubAccessToken as string,
+        level: payload.level as any,
+        renewalPeriod: payload.renewalPeriod as any,
       } as User,
       source: 'jwt',
     };
   } catch (error) {
-    console.error('Error decoding JWT:', error);
+    console.error('Error verifying JWT:', error);
     return null;
   }
 }

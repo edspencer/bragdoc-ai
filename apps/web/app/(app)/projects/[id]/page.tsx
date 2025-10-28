@@ -1,6 +1,7 @@
 import type React from 'react';
 import { notFound } from 'next/navigation';
-import { auth } from 'app/(auth)/auth';
+import { auth } from '@/lib/better-auth/server';
+import { headers } from 'next/headers';
 import { getProjectById } from '@bragdoc/database';
 
 import { ProjectDetailsContent } from '@/components/project-details-content';
@@ -15,7 +16,9 @@ export default async function ProjectDetailsPage({
   params,
 }: ProjectDetailsPageProps) {
   const resolvedParams = await params;
-  const session = await auth();
+  const session = await auth.api.getSession({
+    headers: await headers(),
+  });
 
   if (!session?.user?.id) {
     return <div>Please log in to view project details</div>;

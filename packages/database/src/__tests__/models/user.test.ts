@@ -16,7 +16,7 @@ describe('User Model', () => {
     },
     createdAt: new Date(),
     updatedAt: new Date(),
-    emailVerified: new Date(),
+    emailVerified: true, // Boolean (changed for Better Auth migration)
     lastPayment: null,
     providerId: null,
     githubAccessToken: null,

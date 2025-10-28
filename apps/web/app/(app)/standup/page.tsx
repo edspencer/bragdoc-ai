@@ -1,4 +1,5 @@
-import { auth } from 'app/(auth)/auth';
+import { auth } from '@/lib/better-auth/server';
+import { headers } from 'next/headers';
 import { getStandupsByUserId } from '@bragdoc/database';
 import { StandupZeroState } from 'components/standups/standup-zero-state';
 import { ExistingStandupContent } from 'components/standups/existing-standup-content';
@@ -11,7 +12,9 @@ export const metadata = {
 };
 
 export default async function StandupPage() {
-  const session = await auth();
+  const session = await auth.api.getSession({
+    headers: await headers(),
+  });
 
   if (!session || !session.user || !session.user.id) {
     return null;

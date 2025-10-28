@@ -1,4 +1,5 @@
-import { auth } from 'app/(auth)/auth';
+import { auth } from '@/lib/better-auth/server';
+import { headers } from 'next/headers';
 import { db } from '@/database/index';
 import { document, company } from '@/database/schema';
 import type { DocumentWithCompany } from '@bragdoc/database';
@@ -17,7 +18,9 @@ export default async function ReportDetailPage({
   const { id } = await params;
 
   // Authenticate
-  const session = await auth();
+  const session = await auth.api.getSession({
+    headers: await headers(),
+  });
   if (!session?.user?.id) {
     return <div className="p-4">Please log in.</div>;
   }

@@ -54,7 +54,7 @@ export const userStatusEnum = pgEnum('user_status', [
 export const user = pgTable('User', {
   id: uuid('id').primaryKey().notNull().defaultRandom(),
   email: varchar('email', { length: 64 }).notNull(),
-  password: varchar('password', { length: 64 }),
+  password: varchar('password', { length: 255 }), // Increased for Better Auth bcrypt hashes
   name: varchar('name', { length: 256 }),
   image: varchar('image', { length: 512 }),
   provider: varchar('provider', { length: 32 })
@@ -68,7 +68,7 @@ export const user = pgTable('User', {
   }),
   createdAt: timestamp('created_at').notNull().defaultNow(),
   updatedAt: timestamp('updated_at').notNull().defaultNow(),
-  emailVerified: timestamp('email_verified').defaultNow(),
+  emailVerified: boolean('email_verified').notNull().default(false), // Changed to boolean for Better Auth
 
   level: userLevelEnum('level').notNull().default('free'),
   renewalPeriod: renewalPeriodEnum('renewal_period')
@@ -355,52 +355,56 @@ export const githubPullRequest = pgTable(
 
 export type GitHubPullRequest = InferSelectModel<typeof githubPullRequest>;
 
-// NextAuth.js required tables
-export const account = pgTable(
-  'Account',
-  {
-    userId: uuid('userId')
-      .notNull()
-      .references(() => user.id, { onDelete: 'cascade' }),
-    type: varchar('type', { length: 255 }).notNull(),
-    provider: varchar('provider', { length: 255 }).notNull(),
-    providerAccountId: varchar('providerAccountId', { length: 255 }).notNull(),
-    refresh_token: text('refresh_token'),
-    access_token: text('access_token'),
-    expires_at: integer('expires_at'),
-    token_type: varchar('token_type', { length: 255 }),
-    scope: varchar('scope', { length: 255 }),
-    id_token: text('id_token'),
-    session_state: varchar('session_state', { length: 255 }),
-  },
-  (table) => ({
-    pk: primaryKey({ columns: [table.provider, table.providerAccountId] }),
-  }),
-);
-
-export const session = pgTable('Session', {
-  sessionToken: varchar('sessionToken', { length: 255 }).primaryKey(),
+// Better Auth Account table
+export const account = pgTable('Account', {
+  id: uuid('id').primaryKey().notNull().defaultRandom(),
   userId: uuid('userId')
     .notNull()
     .references(() => user.id, { onDelete: 'cascade' }),
-  expires: timestamp('expires', { mode: 'date' }).notNull(),
+  accountId: varchar('accountId', { length: 255 }).notNull(),
+  providerId: varchar('providerId', { length: 255 }).notNull(),
+  refreshToken: text('refreshToken'),
+  accessToken: text('accessToken'),
+  accessTokenExpiresAt: timestamp('accessTokenExpiresAt'),
+  refreshTokenExpiresAt: timestamp('refreshTokenExpiresAt'),
+  scope: varchar('scope', { length: 255 }),
+  idToken: text('idToken'),
+  password: varchar('password', { length: 255 }),
+  createdAt: timestamp('createdAt').notNull().defaultNow(),
+  updatedAt: timestamp('updatedAt').notNull().defaultNow(),
 });
 
-export const verificationToken = pgTable(
-  'VerificationToken',
-  {
-    identifier: varchar('identifier', { length: 255 }).notNull(),
-    token: varchar('token', { length: 255 }).notNull(),
-    expires: timestamp('expires', { mode: 'date' }).notNull(),
-  },
-  (table) => ({
-    pk: primaryKey({ columns: [table.identifier, table.token] }),
-  }),
-);
+// Better Auth Session table
+export const session = pgTable('Session', {
+  id: uuid('id').primaryKey().notNull().defaultRandom(),
+  userId: uuid('userId')
+    .notNull()
+    .references(() => user.id, { onDelete: 'cascade' }),
+  token: varchar('token', { length: 255 }).notNull().unique(),
+  expiresAt: timestamp('expiresAt').notNull(),
+  ipAddress: varchar('ipAddress', { length: 45 }),
+  userAgent: text('userAgent'),
+  createdAt: timestamp('createdAt').notNull().defaultNow(),
+  updatedAt: timestamp('updatedAt').notNull().defaultNow(),
+});
 
+// Better Auth VerificationToken table
+export const verification = pgTable('verification', {
+  id: text('id')
+    .primaryKey()
+    .$defaultFn(() => crypto.randomUUID()),
+  identifier: text('identifier').notNull(),
+  value: text('value').notNull(),
+  expiresAt: timestamp('expires_at').notNull(),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at')
+    .defaultNow()
+    .$onUpdate(() => /* @__PURE__ */ new Date())
+    .notNull(),
+});
 export type Account = InferSelectModel<typeof account>;
 export type Session = InferSelectModel<typeof session>;
-export type VerificationToken = InferSelectModel<typeof verificationToken>;
+export type Verification = InferSelectModel<typeof verification>;
 
 export const emailPreferences = pgTable('email_preferences', {
   id: uuid('id').defaultRandom().primaryKey(),

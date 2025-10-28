@@ -1,4 +1,4 @@
-import { auth } from '@/app/(auth)/auth';
+import { getAuthUser } from '@/lib/getAuthUser';
 import { db, document } from '@bragdoc/database';
 import { and, desc, eq } from 'drizzle-orm';
 import { z } from 'zod';
@@ -23,11 +23,13 @@ export async function GET(
   request: Request,
   { params }: { params: Promise<{ id: string }> },
 ) {
-  const session = await auth();
+  const auth = await getAuthUser(request);
 
-  if (!session?.user?.id) {
+  if (!auth) {
     return Response.json({ error: 'Unauthorized' }, { status: 401 });
   }
+
+  const { user } = auth;
 
   const { id } = await params;
 
@@ -42,7 +44,7 @@ export async function GET(
     const docs = await db
       .select()
       .from(document)
-      .where(and(eq(document.id, id), eq(document.userId, session.user.id)))
+      .where(and(eq(document.id, id), eq(document.userId, user.id)))
       .orderBy(desc(document.createdAt));
 
     if (!docs || docs.length === 0) {
@@ -64,11 +66,12 @@ export async function PUT(
   request: Request,
   { params }: { params: Promise<{ id: string }> },
 ) {
-  const session = await auth();
+  const authResult = await getAuthUser(request);
 
-  if (!session?.user?.id) {
+  if (!authResult) {
     return Response.json({ error: 'Unauthorized' }, { status: 401 });
   }
+  const { user } = authResult;
 
   const { id } = await params;
 
@@ -103,7 +106,7 @@ export async function PUT(
     const updated = await db
       .update(document)
       .set(updateData)
-      .where(and(eq(document.id, id), eq(document.userId, session.user.id)))
+      .where(and(eq(document.id, id), eq(document.userId, user.id)))
       .returning();
 
     if (!updated || updated.length === 0) {
@@ -129,11 +132,12 @@ export async function PATCH(
   request: Request,
   { params }: { params: Promise<{ id: string }> },
 ) {
-  const session = await auth();
+  const authResult = await getAuthUser(request);
 
-  if (!session?.user?.id) {
+  if (!authResult) {
     return Response.json({ error: 'Unauthorized' }, { status: 401 });
   }
+  const { user } = authResult;
 
   const { id } = await params;
 
@@ -150,7 +154,7 @@ export async function PATCH(
     const [doc] = await db
       .select()
       .from(document)
-      .where(and(eq(document.id, id), eq(document.userId, session.user.id)));
+      .where(and(eq(document.id, id), eq(document.userId, user.id)));
 
     if (!doc) {
       return Response.json({ error: 'Document not found' }, { status: 404 });
@@ -158,7 +162,7 @@ export async function PATCH(
 
     await db
       .delete(document)
-      .where(and(eq(document.id, id), eq(document.userId, session.user.id)));
+      .where(and(eq(document.id, id), eq(document.userId, user.id)));
 
     return Response.json({ success: true });
   } catch (error) {
@@ -174,11 +178,12 @@ export async function DELETE(
   request: Request,
   { params }: { params: Promise<{ id: string }> },
 ) {
-  const session = await auth();
+  const authResult = await getAuthUser(request);
 
-  if (!session?.user?.id) {
+  if (!authResult) {
     return Response.json({ error: 'Unauthorized' }, { status: 401 });
   }
+  const { user } = authResult;
 
   const { id } = await params;
 
@@ -192,7 +197,7 @@ export async function DELETE(
   try {
     const [deleted] = await db
       .delete(document)
-      .where(and(eq(document.id, id), eq(document.userId, session.user.id)))
+      .where(and(eq(document.id, id), eq(document.userId, user.id)))
       .returning();
 
     if (!deleted) {

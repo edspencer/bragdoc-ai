@@ -3,7 +3,7 @@
 import posthog from 'posthog-js';
 import { PostHogProvider } from 'posthog-js/react';
 import { useEffect } from 'react';
-import { useSession } from 'next-auth/react';
+import { useSession } from '@/lib/better-auth/client';
 
 export function PHProvider({ children }: { children: React.ReactNode }) {
   const { data: session } = useSession();
@@ -37,8 +37,8 @@ export function PHProvider({ children }: { children: React.ReactNode }) {
     if (typeof window !== 'undefined' && posthog.__loaded) {
       if (session?.user?.id) {
         posthog.identify(session.user.id, {
-          email: session.user.email,
-          name: session.user.name,
+          email: session.user.email || undefined,
+          name: session.user.name || undefined,
         });
       }
     }

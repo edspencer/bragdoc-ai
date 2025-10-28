@@ -8,16 +8,16 @@ import {
   DELETE as unshareDocument,
 } from 'app/api/documents/[id]/share/route';
 import { document, user, company, project } from '@/database/schema';
-import { auth } from 'app/(auth)/auth';
+import { getAuthUser } from '@/lib/getAuthUser';
 import { eq } from 'drizzle-orm';
 import { NextRequest } from 'next/server';
 import { v4 as uuidv4 } from 'uuid';
 
 import { db } from '@/database/index';
 
-// Mock the auth module
-jest.mock('@/app/(auth)/auth', () => ({
-  auth: jest.fn(),
+// Mock the getAuthUser helper
+jest.mock('@/lib/getAuthUser', () => ({
+  getAuthUser: jest.fn(),
 }));
 
 describe('Documents API', () => {
@@ -52,9 +52,10 @@ describe('Documents API', () => {
     // Insert the mock company
     await db.insert(company).values(mockCompany);
 
-    // Mock auth to return our test user
-    (auth as jest.Mock).mockResolvedValue({
+    // Mock getAuthUser to return our test user
+    (getAuthUser as jest.Mock).mockResolvedValue({
       user: mockUser,
+      source: 'session' as const,
     });
   });
 
@@ -119,7 +120,7 @@ describe('Documents API', () => {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(newDoc),
-        })
+        }),
       );
 
       expect(response.status).toBe(200);
@@ -146,7 +147,7 @@ describe('Documents API', () => {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(invalidDoc),
-        })
+        }),
       );
 
       expect(response.status).toBe(400);
@@ -180,11 +181,6 @@ describe('Documents API', () => {
     });
 
     it('returns 404 for non-existent document', async () => {
-      // Mock auth to return our test user
-      (auth as jest.Mock).mockResolvedValueOnce({
-        user: mockUser,
-      });
-
       const nonExistentId = uuidv4();
       const url = new URL(`http://localhost/api/documents/${nonExistentId}`);
       const response = await GET(new NextRequest(url), {
@@ -222,7 +218,7 @@ describe('Documents API', () => {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(updates),
         }),
-        { params: Promise.resolve({ id: testDoc.id }) }
+        { params: Promise.resolve({ id: testDoc.id }) },
       );
 
       expect(response.status).toBe(200);

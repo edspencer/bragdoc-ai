@@ -1,6 +1,7 @@
 'use server';
 
-import { auth } from 'app/(auth)/auth';
+import { auth } from '@/lib/better-auth/server';
+import { headers } from 'next/headers';
 import { db } from '@/database/index';
 import { document, chat, message } from '@/database/schema';
 import { eq, and } from 'drizzle-orm';
@@ -23,7 +24,9 @@ export async function createDocumentWithChat(
   | { success: false; error: string }
 > {
   try {
-    const session = await auth();
+    const session = await auth.api.getSession({
+      headers: await headers(),
+    });
 
     if (!session?.user?.id) {
       return { success: false, error: 'Unauthorized' };
@@ -123,7 +126,9 @@ export async function linkDocumentToChat(
   chatId: string,
 ): Promise<{ success: true } | { success: false; error: string }> {
   try {
-    const session = await auth();
+    const session = await auth.api.getSession({
+      headers: await headers(),
+    });
 
     if (!session?.user?.id) {
       return { success: false, error: 'Unauthorized' };

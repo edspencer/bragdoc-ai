@@ -2,7 +2,21 @@
 
 ## Overview
 
-BragDoc uses NextAuth.js v5 (beta) with a JWT strategy to support dual authentication: browser sessions for the web app and JWT tokens for the CLI tool.
+BragDoc uses Better Auth v1.3.33 with a database-backed session strategy to support dual authentication: browser sessions for the web app and JWT tokens for the CLI tool.
+
+Better Auth is a modern, TypeScript-first authentication library that provides a flexible and secure authentication solution with native TypeScript support, extensive plugin ecosystem, and database-first architecture.
+
+## Migration Status
+
+**Migration Date:** 2025-10-28
+**Previous:** NextAuth.js v5 (beta) with JWT strategy
+**Current:** Better Auth v1.3.33 with database-backed sessions + cookie caching
+
+The migration to Better Auth was completed to:
+- Gain better TypeScript support and type safety
+- Use database-backed sessions for improved security and flexibility
+- Leverage modern authentication patterns with plugin architecture
+- Maintain backward compatibility with existing Auth.js JWT tokens for CLI
 
 ## Architecture
 
@@ -15,7 +29,7 @@ BragDoc uses NextAuth.js v5 (beta) with a JWT strategy to support dual authentic
        │                         │
        ▼                         ▼
 ┌────────────────────────────────────┐
-│     Next Auth.js Middleware        │
+│     Better Auth Middleware         │
 │  ┌──────────────────────────────┐  │
 │  │   getAuthUser() Helper       │  │
 │  │  1. Check session (cookie)   │  │
@@ -26,39 +40,170 @@ BragDoc uses NextAuth.js v5 (beta) with a JWT strategy to support dual authentic
                  ▼
          ┌───────────────┐
          │   Database    │
+         │  - User       │
+         │  - Session    │
+         │  - Account    │
+         │  - Verification│
          └───────────────┘
 ```
 
-## NextAuth Configuration
+## Better Auth Configuration
 
-### File: `apps/web/app/(auth)/auth.ts`
+### File: `apps/web/lib/better-auth/config.ts`
+
+Core configuration for Better Auth with custom field mappings and session management:
 
 ```typescript
-export const { handlers: { GET, POST }, auth, signIn, signOut } = NextAuth({
-  adapter: DrizzleAdapter(db, {
-    usersTable: user,
-    accountsTable: account,
-    sessionsTable: session,
-    verificationTokensTable: verificationToken,
+export const betterAuthConfig: Partial<BetterAuthOptions> = {
+  // Base URL for authentication endpoints
+  baseURL: process.env.BETTER_AUTH_URL || process.env.NEXTAUTH_URL || 'http://localhost:3000',
+
+  // Secret for signing cookies and tokens
+  secret: process.env.BETTER_AUTH_SECRET || process.env.AUTH_SECRET,
+
+  // Enable email and password authentication (for demo mode)
+  emailAndPassword: {
+    enabled: true,
+    requireEmailVerification: false,
+  },
+
+  // Database configuration with Drizzle adapter
+  database: drizzleAdapter(db, {
+    provider: 'pg',
+    schema: {
+      user: userTable,
+      session: sessionTable,
+      account: accountTable,
+      verification: verificationTable,
+    },
   }),
+
+  // Advanced database options
+  advanced: {
+    database: {
+      generateId: false, // Let database handle UUID generation
+    },
+    useSecureCookies: process.env.NODE_ENV === 'production',
+  },
+
+  // Session management
   session: {
-    strategy: 'jwt',  // Stateless JWT strategy
+    expiresIn: 60 * 60 * 24 * 30, // 30 days
+    updateAge: 60 * 60 * 24, // 1 day
+    freshAge: 60 * 60 * 24, // 1 day
+    cookieCache: {
+      enabled: true,
+      maxAge: 60 * 5, // 5 minutes
+    },
   },
-  providers: [
-    Google({ /* OAuth config */ }),
-    GitHub({ /* OAuth config */ }),
-    Email({ /* Magic link email */ }),
+
+  // Custom user fields
+  user: {
+    additionalFields: {
+      provider: { type: 'string', required: false, defaultValue: 'credentials' },
+      providerId: { type: 'string', required: false },
+      preferences: { type: 'json', required: false },
+      githubAccessToken: { type: 'string', required: false },
+      level: { type: 'string', required: true, defaultValue: 'free' },
+      renewalPeriod: { type: 'string', required: false },
+      lastPayment: { type: 'date', required: false },
+      status: { type: 'string', required: true, defaultValue: 'active' },
+      stripeCustomerId: { type: 'string', required: false },
+      tosAcceptedAt: { type: 'date', required: false },
+    },
+    fields: {
+      createdAt: 'created_at',
+    },
+  },
+
+  // Social providers
+  socialProviders: {
+    google: {
+      clientId: process.env.GOOGLE_CLIENT_ID!,
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
+      accessType: 'offline',
+      prompt: 'select_account consent',
+    },
+    github: {
+      clientId: process.env.GITHUB_CLIENT_ID!,
+      clientSecret: process.env.GITHUB_CLIENT_SECRET!,
+      scope: ['user:email'],
+    },
+  },
+};
+```
+
+**Key Configuration Points:**
+1. **generateId: false** - Preserves UUID generation by database (PostHog continuity requirement)
+2. **Session strategy** - Database-backed with 5-minute cookie caching for performance
+3. **JWT expiration** - 30 days (matches Auth.js JWT strategy for CLI compatibility)
+4. **Cookie security** - httpOnly, secure in production, sameSite: 'lax'
+5. **Field mappings** - Compatible with existing database schema
+
+### File: `apps/web/lib/better-auth/server.ts`
+
+Server-side Better Auth instance with magic link plugin:
+
+```typescript
+import { betterAuth } from 'better-auth';
+import { magicLink } from 'better-auth/plugins/magic-link';
+
+export const auth = betterAuth({
+  ...betterAuthConfig,
+  plugins: [
+    magicLink({
+      sendMagicLink: async ({ email, url, token }) => {
+        // Check if new or existing user
+        const existingUser = await db
+          .select()
+          .from(userTable)
+          .where(eq(userTable.email, email))
+          .limit(1);
+
+        const isNewUser = existingUser.length === 0;
+
+        // Send personalized email
+        await sendMagicLinkEmail({
+          to: email,
+          magicLink: url,
+          isNewUser,
+        });
+      },
+      expiresIn: 24 * 60 * 60, // 24 hours
+      disableSignUp: false,
+    }),
   ],
-  callbacks: {
-    async jwt({ token, user, account }) {
-      // Populate JWT with user data
-    },
-    async session({ session, token }) {
-      // Populate session from JWT
-    },
-  },
+});
+
+export const { handler } = auth;
+```
+
+**Magic Link Plugin Features:**
+- Custom email sending via Mailgun
+- Personalized templates for new vs. existing users
+- 24-hour token expiration
+- Development mode console logging
+- Auto-registration for new users
+
+### File: `apps/web/lib/better-auth/client.ts`
+
+Client-side React hooks for authentication:
+
+```typescript
+import { createAuthClient } from 'better-auth/react';
+import { magicLinkClient } from 'better-auth/client/plugins';
+
+export const { useSession, signIn, signOut, signUp, $Infer } = createAuthClient({
+  baseURL: process.env.NEXT_PUBLIC_APP_URL || window.location.origin,
+  plugins: [magicLinkClient()],
 });
 ```
+
+**Client Hooks:**
+- `useSession()` - Get current session state
+- `signIn.social({ provider: 'google' })` - Social OAuth
+- `signIn.magicLink({ email })` - Magic link authentication
+- `signOut()` - End session
 
 ## Authentication Providers
 
@@ -68,17 +213,17 @@ BragDoc uses passwordless magic link authentication as the primary email-based a
 
 **Flow:**
 1. User enters email address
-2. NextAuth generates unique token (24-hour expiry)
+2. Better Auth generates unique token (24-hour expiry)
 3. Custom email sent via Mailgun with magic link
-4. User clicks link
-5. NextAuth validates token
+4. User clicks link → redirected to `/api/auth/magic-link/verify`
+5. Better Auth validates token
 6. If valid:
    - New user: Creates account, sends welcome email
    - Existing user: Logs in to existing account
-7. Session created via JWT
+7. Database session created with 30-day expiry
 
 **Token Management:**
-- Tokens stored in `VerificationToken` table (via Drizzle adapter)
+- Tokens stored in `verification` table via magic-link plugin
 - Single-use tokens (deleted after use)
 - 24-hour expiration
 - Email as identifier (can send new token to same email)
@@ -86,199 +231,307 @@ BragDoc uses passwordless magic link authentication as the primary email-based a
 **Email Customization:**
 - Template: `apps/web/emails/magic-link.tsx`
 - Personalized for new vs. existing users
-- Sent via Mailgun SMTP
+- Sent via Mailgun (`apps/web/lib/email/client.ts`)
 - Mobile-responsive React Email template
 
 **Implementation:**
 ```typescript
-Email({
-  server: {
-    host: process.env.MAILGUN_SMTP_SERVER || 'smtp.mailgun.org',
-    port: 587,
-    auth: {
-      user: process.env.MAILGUN_SMTP_LOGIN!,
-      pass: process.env.MAILGUN_SMTP_PASSWORD!,
-    },
-  },
-  from: 'hello@bragdoc.ai',
-  sendVerificationRequest: async ({ identifier, url, provider }) => {
-    // Check if this is a new user or existing user
+magicLink({
+  sendMagicLink: async ({ email, url, token }) => {
     const existingUser = await db
       .select()
-      .from(user)
-      .where(eq(user.email, identifier))
+      .from(userTable)
+      .where(eq(userTable.email, email))
       .limit(1);
 
     const isNewUser = existingUser.length === 0;
 
-    try {
-      await sendMagicLinkEmail({
-        to: identifier,
-        magicLink: url,
-        isNewUser,
-      });
-    } catch (error) {
-      console.error('Failed to send magic link email:', error);
-      throw new Error('Failed to send verification email');
-    }
+    await sendMagicLinkEmail({
+      to: email,
+      magicLink: url,
+      isNewUser,
+    });
   },
-  maxAge: 24 * 60 * 60, // 24 hours
+  expiresIn: 24 * 60 * 60, // 24 hours
+  disableSignUp: false,
 })
 ```
 
 **Environment Variables:**
-- `MAILGUN_SMTP_SERVER` - SMTP server (smtp.mailgun.org)
-- `MAILGUN_SMTP_LOGIN` - SMTP username
-- `MAILGUN_SMTP_PASSWORD` - SMTP password
+- `MAILGUN_API_KEY` - Mailgun API key for email sending
 
 ### 2. Google OAuth
+
 ```typescript
-Google({
+google: {
   clientId: process.env.GOOGLE_CLIENT_ID!,
   clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
-  profile(profile) {
-    return {
-      id: profile.sub,
-      name: profile.name,
-      email: profile.email,
-      image: profile.picture,
-      provider: 'google',
-      providerId: profile.sub,
-    };
-  },
-})
+  accessType: 'offline',
+  prompt: 'select_account consent',
+  mapProfileToUser: (profile) => ({
+    id: profile.sub,
+    name: profile.name,
+    email: profile.email,
+    image: profile.picture,
+    provider: 'google',
+    providerId: profile.sub,
+    preferences: {
+      language: profile.locale || 'en',
+    },
+  }),
+}
 ```
 
 **Environment Variables:**
 - `GOOGLE_CLIENT_ID`
 - `GOOGLE_CLIENT_SECRET`
 
-### 2. GitHub OAuth
+**Features:**
+- Offline access (refresh tokens)
+- Account selection prompt
+- Locale preference mapping
+
+### 3. GitHub OAuth
+
 ```typescript
-GitHub({
+github: {
   clientId: process.env.GITHUB_CLIENT_ID!,
   clientSecret: process.env.GITHUB_CLIENT_SECRET!,
-  authorization: {
-    params: { scope: 'read:user user:email' },
-  },
-  profile(profile) {
-    return {
-      id: profile.id.toString(),
-      name: profile.name,
-      email: profile.email,
-      image: profile.avatar_url,
-      provider: 'github',
-      providerId: profile.id.toString(),
-      githubAccessToken: undefined, // Set in JWT callback
-    };
-  },
-})
+  scope: ['user:email'],
+  mapProfileToUser: (profile) => ({
+    id: profile.id,
+    name: profile.name || profile.login,
+    email: profile.email,
+    image: profile.avatar_url,
+    provider: 'github',
+    providerId: profile.id,
+    preferences: {
+      language: 'en',
+    },
+  }),
+}
 ```
 
 **Environment Variables:**
 - `GITHUB_CLIENT_ID`
 - `GITHUB_CLIENT_SECRET`
 
-### 3. ~~Credentials Provider~~ (Removed)
-
-Previously, BragDoc supported email/password authentication. This was removed in favor of passwordless magic links to:
-- Improve security (no passwords to leak)
-- Simplify architecture (unified auth flow)
-- Better user experience (no forgotten passwords)
-- Reduce code complexity
-
-**Migration Date:** 2025-10-26
-**Replaced By:** Magic Links (Email provider)
+**Features:**
+- User email access scope
+- Access token stored for GitHub API integration
+- Fallback to login if name not provided
 
 ### 4. Demo Mode Authentication
 
-Demo accounts use session token-based authentication that bypasses the normal login flow.
+Demo accounts use Better Auth's email/password authentication with programmatic sign-in.
 
 **Purpose:** Allow users to try BragDoc without signing up, using temporary demo accounts with pre-populated data.
 
 **Flow:**
 1. User clicks "Try Demo Mode" button
-2. Server creates demo user with `password: null` and `level: 'demo'`
-3. Server generates JWT token using NextAuth's `encode()` function
-4. Server sets session cookie directly via `cookies()` API
-5. User immediately authenticated (no login flow)
-6. Session expires after 4 hours via JWT `maxAge`
+2. Server creates demo user with hashed password and `level: 'demo'`
+3. Server creates credential account in Better Auth
+4. Server generates JWT token using NextAuth's `encode()` function (backward compatibility)
+5. Server sets session cookie directly via `cookies()` API
+6. User immediately authenticated (no login flow)
+7. Session expires after 4 hours via JWT `maxAge`
 
-**Implementation:** See `apps/web/lib/create-demo-account.ts`
+**Implementation:** `apps/web/lib/create-demo-account.ts`
 
 **Key Characteristics:**
-- No password required (`password: null`)
+- Fixed internal password (never exposed to users): `DEMO_ACCOUNT_PASSWORD`
+- Hashed using Better Auth's `hashPassword()` function
+- Provider set to `'credential'` (Better Auth convention)
 - Pre-populated with sample data (companies, projects, achievements)
 - Session-only authentication (programmatic JWT + cookie)
 - Demo banner displays for user awareness
 - 4-hour session expiration
+- Email format: `demo-{timestamp}@demo.bragdoc.ai`
+
+**Database Records:**
+```typescript
+// User record
+await db.insert(user).values({
+  email: 'demo-1234567890@demo.bragdoc.ai',
+  name: 'Demo User',
+  level: 'demo',
+  emailVerified: true, // Boolean for Better Auth
+  provider: 'credential',
+  preferences: { language: 'en' },
+});
+
+// Account record (required for Better Auth email/password)
+await db.insert(account).values({
+  userId: demoUser.id,
+  accountId: demoUser.email,
+  providerId: 'credential',
+  password: hashedPassword,
+});
+```
 
 **Server Action:** `apps/web/app/(auth)/demo/actions.ts` - `startDemo()` function
 
-## JWT Strategy
+## Database Schema
 
-### JWT Callback
-Runs when JWT is created or updated:
+Better Auth uses four main tables for authentication:
 
+### User Table
 ```typescript
-async jwt({ token, user, account }) {
-  if (user) {
-    token.id = user.id;
-    token.email = user.email;
-    token.name = user.name;
-    token.picture = user.image;
-    token.provider = user.provider;
-    token.providerId = user.providerId;
-    token.preferences = user.preferences;
-    token.githubAccessToken = user.githubAccessToken;
-    token.level = user.level;
-    token.renewalPeriod = user.renewalPeriod;
-  }
+export const user = pgTable('User', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  email: varchar('email', { length: 64 }).notNull(),
+  password: varchar('password', { length: 255 }), // Increased for bcrypt hashes
+  name: varchar('name', { length: 256 }),
+  image: varchar('image', { length: 512 }),
+  emailVerified: boolean('email_verified').notNull().default(false), // Boolean for Better Auth
 
-  // Store GitHub access token from OAuth
-  if (account?.provider === 'github' && account.access_token) {
-    token.githubAccessToken = account.access_token;
-  }
+  // BragDoc-specific fields
+  provider: varchar('provider', { length: 32 }).notNull().default('credentials'),
+  providerId: varchar('provider_id', { length: 256 }),
+  githubAccessToken: varchar('github_access_token', { length: 256 }),
+  preferences: jsonb('preferences').$type<UserPreferences>(),
+  level: userLevelEnum('level').notNull().default('free'),
+  renewalPeriod: renewalPeriodEnum('renewal_period').default('monthly'),
+  lastPayment: timestamp('last_payment'),
+  status: userStatusEnum('status').notNull().default('active'),
+  stripeCustomerId: varchar('stripe_customer_id', { length: 256 }),
+  tosAcceptedAt: timestamp('tos_accepted_at'),
 
-  return token;
+  createdAt: timestamp('created_at').notNull().defaultNow(),
+  updatedAt: timestamp('updated_at').notNull().defaultNow(),
+});
+```
+
+**Key Changes from Auth.js:**
+- `emailVerified` changed from `timestamp` to `boolean`
+- `password` field length increased to 255 for bcrypt hashes
+- Custom fields maintained for BragDoc-specific data
+
+### Session Table
+```typescript
+export const session = pgTable('Session', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  userId: uuid('userId').notNull().references(() => user.id, { onDelete: 'cascade' }),
+  token: varchar('token', { length: 255 }).notNull().unique(),
+  expiresAt: timestamp('expiresAt').notNull(),
+  ipAddress: varchar('ipAddress', { length: 45 }),
+  userAgent: text('userAgent'),
+  createdAt: timestamp('createdAt').notNull().defaultNow(),
+  updatedAt: timestamp('updatedAt').notNull().defaultNow(),
+});
+```
+
+**Session Strategy:**
+- Database-backed sessions for security
+- Cookie caching (5 minutes) for performance
+- 30-day session expiration
+- Sliding window: session refreshed after 1 day of activity
+- IP address and user agent tracking
+
+### Account Table
+```typescript
+export const account = pgTable('Account', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  userId: uuid('userId').notNull().references(() => user.id, { onDelete: 'cascade' }),
+  accountId: varchar('accountId', { length: 255 }).notNull(),
+  providerId: varchar('providerId', { length: 255 }).notNull(),
+  refreshToken: text('refreshToken'),
+  accessToken: text('accessToken'),
+  accessTokenExpiresAt: timestamp('accessTokenExpiresAt'),
+  refreshTokenExpiresAt: timestamp('refreshTokenExpiresAt'),
+  scope: varchar('scope', { length: 255 }),
+  idToken: text('idToken'),
+  password: varchar('password', { length: 255 }),
+  createdAt: timestamp('createdAt').notNull().defaultNow(),
+  updatedAt: timestamp('updatedAt').notNull().defaultNow(),
+});
+```
+
+**Account Linking:**
+- Better Auth automatically links accounts with the same email
+- OAuth tokens (access, refresh, ID) stored per provider
+- Password stored for credential provider (email/password)
+
+### Verification Table
+```typescript
+export const verification = pgTable('verification', {
+  id: text('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
+  identifier: text('identifier').notNull(),
+  value: text('value').notNull(),
+  expiresAt: timestamp('expires_at').notNull(),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().$onUpdate(() => new Date()).notNull(),
+});
+```
+
+**Verification Tokens:**
+- Used by magic-link plugin for email verification
+- Single-use tokens (deleted after verification)
+- 24-hour expiration
+- UUID identifier
+
+## Session Management
+
+### Database-Backed Sessions
+
+Better Auth uses database-backed sessions with cookie caching for optimal security and performance.
+
+**Session Flow:**
+1. User authenticates → session created in database
+2. Session token stored in httpOnly cookie
+3. Cookie cached for 5 minutes (reduces database queries)
+4. After 5 minutes → database queried to validate session
+5. After 1 day of activity → session expiry updated (sliding window)
+6. After 30 days of inactivity → session expires
+
+**Session Configuration:**
+```typescript
+session: {
+  expiresIn: 60 * 60 * 24 * 30,    // 30 days
+  updateAge: 60 * 60 * 24,         // Refresh after 1 day
+  freshAge: 60 * 60 * 24,          // Fresh for 1 day
+  cookieCache: {
+    enabled: true,
+    maxAge: 60 * 5,                // 5-minute cache
+  },
 }
 ```
 
-### Session Callback
-Runs when session is accessed:
+**Cookie Configuration:**
+- **httpOnly: true** - Prevents XSS attacks (cookie not accessible via JavaScript)
+- **secure: true** (production) - HTTPS only
+- **sameSite: 'lax'** - CSRF protection
+- **path: '/'** - Application-wide
+- **maxAge: 30 days** - Cookie expiration
 
-```typescript
-async session({ session, token }) {
-  if (token) {
-    session.user.id = token.id as string;
-    session.user.email = token.email as string;
-    session.user.name = token.name as string;
-    session.user.image = token.picture as string;
-    session.user.provider = token.provider as string;
-    session.user.providerId = token.providerId as string;
-    session.user.preferences = token.preferences as UserPreferences;
-    session.user.githubAccessToken = token.githubAccessToken as string;
-    session.user.level = token.level as UserLevel;
-    session.user.renewalPeriod = token.renewalPeriod as RenewalPeriod;
-  }
-  return session;
-}
-```
+### Cookie Naming
+- Development (HTTP): `next-auth.session-token`
+- Production (HTTPS): `__Secure-next-auth.session-token`
 
 ## Unified Auth Helper
 
 ### File: `apps/web/lib/getAuthUser.ts`
 
-Supports both browser sessions and CLI JWT tokens:
+Supports both Better Auth sessions (browser) and JWT tokens (CLI):
 
 ```typescript
 export async function getAuthUser(
   request: Request,
 ): Promise<{ user: User; source: 'session' | 'jwt' } | null> {
-  // 1. Try session (browser)
-  const session = await auth();
-  if (session?.user?.id) {
-    return { user: session.user as User, source: 'session' };
+  // 1. Try Better Auth session (browser)
+  try {
+    const session = await auth.api.getSession({
+      headers: request.headers,
+    });
+
+    if (session?.user?.id) {
+      return {
+        user: session.user as unknown as User,
+        source: 'session',
+      };
+    }
+  } catch (error) {
+    console.error('Error checking Better Auth session:', error);
   }
 
   // 2. Try JWT from Authorization header (CLI)
@@ -288,17 +541,45 @@ export async function getAuthUser(
   }
 
   const token = authHeader.slice(7);
-  const decoded = await decode({
-    token,
-    secret: process.env.AUTH_SECRET!,
-    salt: '',
-  });
 
-  if (!decoded?.id) return null;
+  try {
+    // Decode JWT using Better Auth secret (with Auth.js fallback)
+    const decoded = await decode({
+      token,
+      secret: process.env.BETTER_AUTH_SECRET || process.env.AUTH_SECRET!,
+      salt: '',
+    });
 
-  return { user: decoded as User, source: 'jwt' };
+    if (!decoded?.id) return null;
+
+    return {
+      user: {
+        id: decoded.id as string,
+        email: decoded.email as string,
+        name: decoded.name as string,
+        image: decoded.picture as string,
+        provider: decoded.provider as string,
+        providerId: decoded.providerId as string,
+        preferences: decoded.preferences as any,
+        githubAccessToken: decoded.githubAccessToken as string,
+        level: decoded.level as any,
+        renewalPeriod: decoded.renewalPeriod as any,
+      } as User,
+      source: 'jwt',
+    };
+  } catch (error) {
+    console.error('Error decoding JWT:', error);
+    return null;
+  }
 }
 ```
+
+**Key Features:**
+1. **Dual authentication** - Supports both session cookies and JWT tokens
+2. **Backward compatibility** - CLI tokens signed with AUTH_SECRET still work
+3. **Type safety** - Returns typed User object
+4. **Source tracking** - Identifies authentication source (session vs JWT)
+5. **Error handling** - Graceful fallback on authentication failures
 
 **Usage in API Routes:**
 ```typescript
@@ -344,8 +625,8 @@ export async function GET(request: Request) {
    ```
 
 5. **User authenticates in browser**
-   - User logs in via Google, GitHub, or email/password
-   - NextAuth session created
+   - User logs in via Google, GitHub, or magic link
+   - Better Auth session created
 
 6. **Web app generates JWT token**
    ```typescript
@@ -356,7 +637,7 @@ export async function GET(request: Request) {
        email: session.user.email,
        // ... all user fields
      },
-     secret: process.env.AUTH_SECRET!,
+     secret: process.env.BETTER_AUTH_SECRET || process.env.AUTH_SECRET!,
      maxAge: 30 * 24 * 60 * 60, // 30 days
      salt: '',
    });
@@ -415,28 +696,117 @@ const response = await fetch(url, {
 });
 ```
 
+### JWT Token Format
+
+CLI JWT tokens contain:
+- `id` - User ID
+- `email` - User email
+- `name` - User name
+- `picture` - User avatar URL
+- `provider` - Auth provider (google, github, email)
+- `providerId` - Provider-specific user ID
+- `preferences` - User preferences (language, document instructions)
+- `githubAccessToken` - GitHub access token (if authenticated via GitHub)
+- `level` - Subscription level (free, basic, pro, demo)
+- `renewalPeriod` - Billing cycle (monthly, yearly)
+- `exp` - Expiration timestamp (30 days)
+
 ## Protected Routes
 
 ### Middleware Protection
-**File:** `apps/web/middleware.ts`
+**File:** `apps/web/proxy.ts`
+
+Better Auth middleware is applied to protect authenticated routes:
 
 ```typescript
-export { auth as middleware } from '@/app/(auth)/auth';
+import { auth } from '@/lib/better-auth/server';
+import type { NextRequest } from 'next/server';
+import { NextResponse } from 'next/server';
+
+export default async function middleware(request: NextRequest) {
+  const { pathname, searchParams } = request.nextUrl;
+
+  // Allow auth-related pages and API routes
+  const isAuthPage =
+    pathname.startsWith('/login') ||
+    pathname.startsWith('/register') ||
+    pathname.startsWith('/demo') ||
+    pathname.startsWith('/api/auth') ||
+    pathname.startsWith('/api/demo') ||
+    pathname.startsWith('/cli-auth') ||
+    pathname.startsWith('/unsubscribed') ||
+    pathname.startsWith('/shared/');
+
+  // Check for Better Auth session
+  let isLoggedIn = false;
+  try {
+    const session = await auth.api.getSession({
+      headers: request.headers,
+    });
+    isLoggedIn = !!session?.user;
+  } catch (error) {
+    console.error('Error checking Better Auth session in middleware:', error);
+  }
+
+  // Handle CLI auth redirect
+  if (
+    (pathname.startsWith('/login') || pathname.startsWith('/register')) &&
+    searchParams.has('state') &&
+    searchParams.has('port')
+  ) {
+    const returnTo = new URL('/cli-auth', request.url);
+    returnTo.searchParams.set('state', searchParams.get('state')!);
+    returnTo.searchParams.set('port', searchParams.get('port')!);
+    return NextResponse.redirect(returnTo);
+  }
+
+  // Redirect logged-in users away from auth pages
+  if (
+    isLoggedIn &&
+    (pathname.startsWith('/login') || pathname.startsWith('/register')) &&
+    !searchParams.has('state')
+  ) {
+    return NextResponse.redirect(new URL('/dashboard', request.url));
+  }
+
+  // Allow access to auth pages
+  if (isAuthPage) {
+    return NextResponse.next();
+  }
+
+  // Require authentication for all other routes
+  if (!isLoggedIn) {
+    const loginUrl = new URL('/login', request.url);
+    loginUrl.searchParams.set('from', pathname);
+    return NextResponse.redirect(loginUrl);
+  }
+
+  return NextResponse.next();
+}
 
 export const config = {
-  matcher: ['/((?!api|_next/static|_next/image|favicon.ico|cli-auth|share).*)'],
+  matcher: ['/((?!_next/static|_next/image|favicon.ico|api).*)'],
 };
 ```
 
-**Excludes:**
-- `/api/*` - API routes handle auth independently
-- `/cli-auth` - CLI authentication page (public)
-- `/share/*` - Publicly shared documents
-- Static assets
+**Protected Routes:**
+- All routes except auth pages require authentication
+- Unauthenticated users redirected to `/login` with `?from=` parameter
+
+**Public Routes (excluded from middleware protection):**
+- `/login` - Login page
+- `/register` - Registration page
+- `/demo` - Demo mode pages
+- `/cli-auth` - CLI authentication page
+- `/shared/*` - Publicly shared documents
+- `/unsubscribed` - Email unsubscribe page
+- `/api/auth/*` - Better Auth API endpoints
+- `/api/demo/*` - Demo mode API endpoints
+- Static assets (`_next/static`, `_next/image`, `favicon.ico`, `/api`)
 
 ### API Route Protection
 ```typescript
-import { getAuthUser } from 'lib/getAuthUser';
+import { getAuthUser } from '@/lib/getAuthUser';
 
 export async function GET(request: Request) {
   const auth = await getAuthUser(request);
@@ -449,132 +819,84 @@ export async function GET(request: Request) {
 
 ### Server Component Protection
 ```typescript
-import { auth } from '@/app/(auth)/auth';
-import { redirect } from 'next/navigation';
+import { auth } from '@/lib/better-auth/server';
 
 export default async function ProtectedPage() {
-  const session = await auth();
+  const session = await auth.api.getSession({
+    headers: await headers(),
+  });
+
   if (!session?.user) {
-    redirect('/login');
+    return <div>Please log in to access this page.</div>;
   }
+
   // ... render page
 }
 ```
+
+**Important:** Never use `redirect()` in Server Components - it breaks Cloudflare Worker builds. Use fallback UI instead.
 
 ## Security Features
 
 ### CSRF Protection
 - State parameter in CLI auth flow (random 64-char hex)
 - SameSite cookie attribute for web sessions
+- Better Auth built-in CSRF token validation
 
 ### Password Security
-- bcrypt hashing with 10 salt rounds
-- Passwords never logged or exposed
+- bcrypt hashing with Better Auth's `hashPassword()` function
+- Passwords never logged or exposed in API responses
+- Demo account passwords fixed and internal-only
 
 ### Token Security
-- JWT signed with AUTH_SECRET
-- 30-day expiration
-- Stored in user-only readable file (~/.bragdoc/config.yml with 0600 permissions)
+- JWT signed with BETTER_AUTH_SECRET (or AUTH_SECRET for backward compatibility)
+- 30-day expiration for CLI tokens
+- Stored in user-only readable file (`~/.bragdoc/config.yml` with 0600 permissions)
+- Session tokens stored in database with expiry tracking
 
 ### Session Security
 - HTTPOnly cookies (not accessible via JavaScript)
 - Secure flag in production (HTTPS only)
 - SameSite=Lax (CSRF protection)
+- Database-backed sessions (can be revoked instantly)
+- Cookie caching reduces attack surface
+
+### Rate Limiting
+Better Auth provides built-in rate limiting for authentication endpoints to prevent brute force attacks.
 
 ## Environment Variables
 
 ```env
 # Required
-AUTH_SECRET=<generate-with-openssl-rand-hex-32>
-NEXTAUTH_URL=http://localhost:3000
+BETTER_AUTH_SECRET=<generate-with-openssl-rand-hex-32>
+BETTER_AUTH_URL=http://localhost:3000
+
+# Backward compatibility (will be deprecated)
+AUTH_SECRET=<same-as-better-auth-secret>
+NEXTAUTH_URL=<same-as-better-auth-url>
 
 # OAuth (Optional)
 GOOGLE_CLIENT_ID=...
 GOOGLE_CLIENT_SECRET=...
 GITHUB_CLIENT_ID=...
 GITHUB_CLIENT_SECRET=...
+
+# Email (Required for magic links)
+MAILGUN_API_KEY=...
+
+# Public URLs
+NEXT_PUBLIC_APP_URL=http://localhost:3000
 ```
 
-**Generate AUTH_SECRET:**
+**Generate BETTER_AUTH_SECRET:**
 ```bash
 openssl rand -hex 32
 ```
 
-## Type Definitions
-
-### Extended User Type
-```typescript
-declare module 'next-auth' {
-  interface User {
-    provider?: string;
-    providerId?: string;
-    preferences?: UserPreferences;
-    githubAccessToken?: string;
-    level?: UserLevel;
-    renewalPeriod?: RenewalPeriod;
-  }
-
-  interface Session {
-    user: User & {
-      provider?: string;
-      providerId?: string;
-      preferences?: UserPreferences;
-      githubAccessToken?: string;
-      level?: UserLevel;
-      renewalPeriod?: RenewalPeriod;
-    };
-  }
-}
-```
-
-### JWT Type
-```typescript
-declare module '@auth/core/jwt' {
-  interface JWT {
-    provider?: string;
-    providerId?: string;
-    preferences?: UserPreferences;
-    githubAccessToken?: string;
-    level?: UserLevel;
-    renewalPeriod?: RenewalPeriod;
-  }
-}
-```
-
-## Common Patterns
-
-### Check Auth in Server Component
-```typescript
-const session = await auth();
-if (!session?.user?.id) {
-  redirect('/login');
-}
-```
-
-### Check Auth in API Route
-```typescript
-const auth = await getAuthUser(request);
-if (!auth?.user?.id) {
-  return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-}
-```
-
-### Check Auth Source
-```typescript
-const auth = await getAuthUser(request);
-if (auth?.source === 'jwt') {
-  // Request from CLI
-} else {
-  // Request from browser
-}
-```
-
-### Get Current User
-```typescript
-const session = await auth();
-const userId = session?.user?.id;
-const userLevel = session?.user?.level;
-```
+**Environment Variable Priority:**
+- Better Auth checks `BETTER_AUTH_SECRET` first, falls back to `AUTH_SECRET`
+- Better Auth checks `BETTER_AUTH_URL` first, falls back to `NEXTAUTH_URL`
+- This ensures backward compatibility during migration
 
 ## PostHog Identity Aliasing
 
@@ -582,100 +904,28 @@ const userLevel = session?.user?.level;
 
 BragDoc uses a unified cookie-based PostHog identity aliasing approach for all authentication providers (magic links, Google OAuth, GitHub OAuth). This ensures that anonymous browsing events are merged with the authenticated user's identity.
 
-### Implementation
+**Note:** PostHog integration hooks are prepared but not yet active in Better Auth server instance. Will be activated in future phase when Better Auth hooks TypeScript types are stabilized.
+
+### Planned Implementation
 
 **Flow:**
 1. Anonymous user browses site → PostHog sets `ph_anonymous_id` cookie
 2. User signs up via ANY provider (magic link, Google, GitHub)
-3. NextAuth `createUser` event fires
-4. Server reads `ph_anonymous_id` cookie
+3. Better Auth lifecycle hook fires
+4. Server reads `ph_anonymous_id` cookie (or X-Anonymous-Id header)
 5. Server calls `aliasUser(userId, anonymousId)`
 6. PostHog merges anonymous events with user identity
 7. Server deletes `ph_anonymous_id` cookie
 
-**Location:** `apps/web/app/(auth)/auth.ts` - `events.createUser`
+**Prepared Hooks (commented in server.ts):**
+- User registration tracking (email, Google, GitHub)
+- User login tracking (email, OAuth)
+- User logout tracking with demo cleanup
+- PostHog identity aliasing via X-Anonymous-Id header
+- ToS acceptance tracking
+- Welcome email integration
 
-**Code:**
-```typescript
-async createUser({ user }) {
-  const { email } = user;
-
-  if (email && user.id) {
-    console.log(`New user created: ${email}`);
-
-    // Track user registration
-    try {
-      await captureServerEvent(user.id, 'user_registered', {
-        method: user.provider || 'email',
-        email: email,
-        user_id: user.id,
-      });
-
-      // Identify user in PostHog
-      await identifyUser(user.id, {
-        email: email,
-        name: user.name || email.split('@')[0],
-      });
-
-      // Alias anonymous ID (unified for all providers)
-      const cookieStore = await cookies();
-      const anonymousId = cookieStore.get('ph_anonymous_id')?.value;
-      if (anonymousId && anonymousId !== user.id) {
-        await aliasUser(user.id, anonymousId);
-        cookieStore.delete('ph_anonymous_id');
-      }
-    } catch (error) {
-      console.error('Failed to track registration:', error);
-    }
-
-    // Send welcome email
-    try {
-      await sendWelcomeEmail({
-        to: email,
-        userId: user.id,
-        username: email.split('@')[0]!,
-        loginUrl: `${process.env.NEXTAUTH_URL}/login`,
-      });
-    } catch (error) {
-      console.error('Failed to send welcome email:', error);
-    }
-  }
-}
-```
-
-**Key Features:**
-- Single code path for all providers (no provider-specific logic)
-- Cookie-based approach works universally
-- Anonymous ID only aliased if it exists and differs from user ID
-- Cookie cleanup prevents duplicate aliasing
-- Error handling ensures registration never fails due to tracking issues
-
-**PostHog Functions:** `apps/web/lib/posthog-server.ts`
-
-```typescript
-export async function aliasUser(userId: string, anonymousId: string) {
-  try {
-    await fetch(
-      `${process.env.NEXT_PUBLIC_POSTHOG_HOST}/capture/`,
-      {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          api_key: process.env.NEXT_PUBLIC_POSTHOG_KEY,
-          event: '$create_alias',
-          properties: {
-            distinct_id: userId,
-            alias: anonymousId,
-          },
-          timestamp: new Date().toISOString(),
-        }),
-      }
-    );
-  } catch (error) {
-    console.error('PostHog alias failed:', error);
-  }
-}
-```
+**Location:** `apps/web/lib/better-auth/server.ts` (commented hooks section)
 
 ## OAuth Terms of Service Compliance
 
@@ -703,112 +953,44 @@ By continuing with Google or GitHub, you agree to our Terms of Service and Priva
 
 ### Automatic ToS Acceptance
 
-#### createUser Event Handler
-
-All new user signups (magic link, OAuth) automatically have their `tosAcceptedAt` timestamp set in the `createUser` event handler.
-
-**File:** `apps/web/app/(auth)/auth.ts`
+ToS acceptance will be automatically tracked via Better Auth lifecycle hooks when activated:
 
 ```typescript
-events: {
-  async createUser({ user }) {
-    const { email } = user;
+// Set ToS acceptance timestamp
+await db
+  .update(userTable)
+  .set({ tosAcceptedAt: new Date() })
+  .where(eq(userTable.id, user.id));
 
-    if (email && user.id) {
-      console.log(`Sending welcome email to ${email}`);
-
-      // Track user registration (OAuth providers)
-      try {
-        captureServerEvent(user.id, 'user_registered', {
-          method: user.provider || 'unknown',
-          email: email,
-          user_id: user.id,
-        });
-
-        // Identify user in PostHog
-        identifyUser(user.id, {
-          email: email,
-          name: user.name || email.split('@')[0],
-        });
-
-        // Set tosAcceptedAt for all new signups
-        await db
-          .update(userTable)
-          .set({ tosAcceptedAt: new Date() })
-          .where(eq(userTable.id, user.id));
-
-        // Track ToS acceptance event
-        await captureServerEvent(user.id, 'tos_accepted', {
-          method: user.provider || 'credentials',
-          timestamp: new Date().toISOString(),
-        });
-
-      } catch (error) {
-        console.error('Failed to track registration event:', error);
-        // Don't fail registration if tracking fails
-      }
-
-      // Send welcome email
-      await sendWelcomeEmail({ to: email });
-    }
-  },
-}
+// Track ToS acceptance event
+await captureServerEvent(user.id, 'tos_accepted', {
+  method: user.provider || 'email',
+  timestamp: new Date().toISOString(),
+});
 ```
-
-**Key Points:**
-- The `createUser` event fires **only for new users**, regardless of signup method (OAuth or email/password)
-- This eliminates the need to check if a user is new or existing
-- Setting `tosAcceptedAt` happens after PostHog tracking/identification
-- Setting `tosAcceptedAt` happens before sending the welcome email
-- ToS acceptance is tracked in PostHog with `tos_accepted` event
-- Error handling ensures registration never fails due to ToS tracking issues
 
 ### Database Field
 
 **Field:** `tosAcceptedAt` on `User` table
 - Type: `timestamp('tos_accepted_at')`
 - Nullable: Yes (NULL for users who signed up before this feature)
-- Set automatically for all new signups (OAuth and email/password)
-- Set manually via checkbox acceptance for email/password signups (backup mechanism)
+- Set automatically for all new signups (OAuth and magic links)
 
 ### ToS Text Component
 
 **File:** `apps/web/components/social-auth-buttons.tsx`
 
 ```tsx
-export function SocialAuthButtons() {
-  const marketingSiteHost = process.env.NEXT_PUBLIC_MARKETING_SITE_HOST || 'https://www.bragdoc.ai';
-
-  return (
-    <div className="flex flex-col gap-3 w-full">
-      {/* Divider */}
-
-      {/* ToS acceptance text */}
-      <p className="text-sm text-center text-gray-600 dark:text-zinc-400 px-2">
-        By continuing with Google or GitHub, you agree to our{' '}
-        <Link
-          href={`${marketingSiteHost}/terms`}
-          className="text-gray-800 dark:text-zinc-200 underline"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Terms of Service
-        </Link>{' '}
-        and{' '}
-        <Link
-          href={`${marketingSiteHost}/privacy-policy`}
-          className="text-gray-800 dark:text-zinc-200 underline"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Privacy Policy
-        </Link>
-      </p>
-
-      {/* OAuth buttons */}
-    </div>
-  );
-}
+<p className="text-sm text-center text-gray-600 dark:text-zinc-400 px-2">
+  By continuing with Google or GitHub, you agree to our{' '}
+  <Link href={`${marketingSiteHost}/terms`} target="_blank" rel="noopener noreferrer">
+    Terms of Service
+  </Link>
+  {' '}and{' '}
+  <Link href={`${marketingSiteHost}/privacy-policy`} target="_blank" rel="noopener noreferrer">
+    Privacy Policy
+  </Link>
+</p>
 ```
 
 ### Analytics Tracking
@@ -816,18 +998,18 @@ export function SocialAuthButtons() {
 **Event:** `tos_accepted`
 
 **Properties:**
-- `method` - OAuth provider (`'google'`, `'github'`) or `'credentials'` for email/password
+- `method` - Auth provider (`'google'`, `'github'`, `'email'`)
 - `timestamp` - ISO timestamp of acceptance
 
 **Usage:**
 ```typescript
 await captureServerEvent(user.id, 'tos_accepted', {
-  method: user.provider || 'credentials',
+  method: user.provider || 'email',
   timestamp: new Date().toISOString(),
 });
 ```
 
-This event is tracked server-side in the `createUser` event handler, ensuring accurate capture of ToS acceptance.
+This event will be tracked server-side via Better Auth lifecycle hooks when activated.
 
 ### Legal Compliance
 
@@ -843,13 +1025,6 @@ This event is tracked server-side in the `createUser` event handler, ensuring ac
 - This is acceptable - they signed up under previous terms
 - Only new signups (after feature deployment) have `tosAcceptedAt` populated
 
-**Future Options:**
-If more explicit consent is needed in the future:
-- Post-OAuth acceptance page (redirect to ToS page after OAuth callback)
-- Modal on first login for existing users
-- Email campaign for retroactive acceptance
-- ToS version tracking for compliance auditing
-
 ### Environment Variables
 
 ```env
@@ -858,8 +1033,104 @@ NEXT_PUBLIC_MARKETING_SITE_HOST=https://www.bragdoc.ai
 
 Used for linking to Terms of Service and Privacy Policy on the marketing site.
 
+## Common Patterns
+
+### Check Auth in Server Component
+```typescript
+import { auth } from '@/lib/better-auth/server';
+import { headers } from 'next/headers';
+
+const session = await auth.api.getSession({
+  headers: await headers(),
+});
+
+if (!session?.user?.id) {
+  return <div>Please log in</div>;
+}
+```
+
+### Check Auth in API Route
+```typescript
+import { getAuthUser } from '@/lib/getAuthUser';
+
+const auth = await getAuthUser(request);
+if (!auth?.user?.id) {
+  return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+}
+```
+
+### Check Auth Source
+```typescript
+const auth = await getAuthUser(request);
+if (auth?.source === 'jwt') {
+  // Request from CLI
+} else {
+  // Request from browser
+}
+```
+
+### Get Current User
+```typescript
+const session = await auth.api.getSession({ headers: await headers() });
+const userId = session?.user?.id;
+const userLevel = session?.user?.level;
+```
+
+### Sign In with Social OAuth
+```typescript
+import { signIn } from '@/lib/better-auth/client';
+
+<button onClick={() => signIn.social({ provider: 'google' })}>
+  Sign in with Google
+</button>
+```
+
+### Sign In with Magic Link
+```typescript
+import { signIn } from '@/lib/better-auth/client';
+
+const handleMagicLink = async (email: string) => {
+  await signIn.magicLink({ email });
+  // Magic link email sent
+};
+```
+
+### Sign Out
+```typescript
+import { signOut } from '@/lib/better-auth/client';
+
+<button onClick={() => signOut()}>
+  Sign Out
+</button>
+```
+
+## Migration Notes
+
+### Breaking Changes from Auth.js
+
+1. **emailVerified field**: Changed from `timestamp` to `boolean`
+2. **Session strategy**: Changed from JWT-only to database-backed with cookie caching
+3. **API structure**: Better Auth uses `auth.api.*` methods instead of NextAuth's `auth()` function
+4. **Type definitions**: Better Auth has native TypeScript support, no need for module augmentation
+
+### Backward Compatibility
+
+1. **CLI JWT tokens**: Still use NextAuth's `encode()`/`decode()` functions for backward compatibility
+2. **Environment variables**: Falls back to `AUTH_SECRET` and `NEXTAUTH_URL` if Better Auth vars not set
+3. **Cookie naming**: Maintains NextAuth cookie names for seamless migration
+4. **Unified auth helper**: `getAuthUser()` supports both Better Auth sessions and legacy JWT tokens
+
+### Future Deprecations
+
+These will be removed in future releases:
+- `AUTH_SECRET` environment variable (use `BETTER_AUTH_SECRET`)
+- `NEXTAUTH_URL` environment variable (use `BETTER_AUTH_URL`)
+- NextAuth JWT encode/decode for demo mode (migrate to Better Auth programmatic sign-in)
+
 ---
 
-**Last Updated:** 2025-10-24 (OAuth ToS compliance implementation)
-**NextAuth Version:** 5.0.0-beta.25
+**Last Updated:** 2025-10-28 (Better Auth migration)
+**Better Auth Version:** 1.3.33
+**Session Strategy:** Database-backed with cookie caching
 **JWT Expiration:** 30 days (CLI tokens)
+**Session Expiration:** 30 days (web sessions)

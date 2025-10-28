@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { Spinner } from '@/components/spinner';
 import { CheckCircle2 } from 'lucide-react';
-import { useSession } from 'next-auth/react';
+import { useSession } from '@/lib/better-auth/client';
 
 interface CLIAuthContentProps {
   state?: string;
