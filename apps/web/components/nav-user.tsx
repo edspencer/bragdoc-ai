@@ -10,7 +10,7 @@ import {
   IconDeviceDesktop,
   IconUserCircle,
 } from '@tabler/icons-react';
-import { signOut } from 'next-auth/react';
+import { signOut } from '@/lib/better-auth/client';
 import { useTheme } from 'next-themes';
 
 import Link from 'next/link';
@@ -121,9 +121,13 @@ export function NavUser({
             <DropdownMenuSeparator />
             <DropdownMenuItem
               className="cursor-pointer"
-              onClick={() => {
-                signOut({
-                  redirectTo: '/',
+              onClick={async () => {
+                await signOut({
+                  fetchOptions: {
+                    onSuccess: () => {
+                      window.location.href = '/';
+                    },
+                  },
                 });
               }}
             >

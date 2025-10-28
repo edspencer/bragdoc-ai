@@ -5,13 +5,21 @@
  * Can be called from both API routes and server actions.
  */
 
-import { encode } from 'next-auth/jwt';
+import { SignJWT } from 'jose';
 import { cookies } from 'next/headers';
+import { hashPassword } from 'better-auth/crypto';
 import { generateDemoEmail } from './demo-mode-utils';
 import { importDemoData } from './demo-data-import';
 import { db } from '@/database/index';
-import { user, type User } from '@/database/schema';
+import { user, account, type User } from '@/database/schema';
 import type { ImportStats } from './import-user-data';
+
+/**
+ * Fixed password for demo accounts
+ * Used internally by Better Auth for programmatic sign-in
+ * Users never see or use this password
+ */
+export const DEMO_ACCOUNT_PASSWORD = 'demo-password-12345';
 
 export interface CreateDemoAccountResult {
   success: boolean;
@@ -27,43 +35,36 @@ async function createDemoSessionToken(user: User): Promise<string> {
   const now = Math.floor(Date.now() / 1000);
   const expiresAt = now + 4 * 60 * 60; // 4 hours from now
 
-  // In NextAuth v5, the salt must be the cookie name for proper encryption/decryption
-  const isSecure =
-    process.env.NODE_ENV === 'production' ||
-    process.env.NEXTAUTH_URL?.startsWith('https://');
-  const cookieName = isSecure
-    ? '__Secure-next-auth.session-token'
-    : 'next-auth.session-token';
+  const secret = new TextEncoder().encode(process.env.AUTH_SECRET!);
 
-  return await encode({
-    token: {
-      // Standard JWT claims
-      sub: user.id,
-      iat: now,
-      exp: expiresAt,
+  return await new SignJWT({
+    // Standard JWT claims
+    sub: user.id,
+    iat: now,
+    exp: expiresAt,
 
-      // NextAuth session claims
-      email: user.email,
-      name: user.name,
-      picture: user.image,
+    // NextAuth session claims
+    email: user.email,
+    name: user.name,
+    picture: user.image,
 
-      // BragDoc-specific fields (from auth.ts JWT callback pattern)
-      id: user.id,
-      provider: user.provider,
-      providerId: user.providerId,
-      preferences: user.preferences,
-      githubAccessToken: user.githubAccessToken,
-      level: user.level,
-      renewalPeriod: user.renewalPeriod,
+    // BragDoc-specific fields (from auth.ts JWT callback pattern)
+    id: user.id,
+    provider: user.provider,
+    providerId: user.providerId,
+    preferences: user.preferences,
+    githubAccessToken: user.githubAccessToken,
+    level: user.level,
+    renewalPeriod: user.renewalPeriod,
 
-      // Demo metadata
-      isDemo: true,
-      demoCreatedAt: Date.now(),
-    },
-    secret: process.env.AUTH_SECRET!,
-    salt: cookieName, // Must match the cookie name in NextAuth v5!
-    maxAge: 4 * 60 * 60, // 4 hours
-  });
+    // Demo metadata
+    isDemo: true,
+    demoCreatedAt: Date.now(),
+  })
+    .setProtectedHeader({ alg: 'HS256' })
+    .setIssuedAt(now)
+    .setExpirationTime(expiresAt)
+    .sign(secret);
 }
 
 /**
@@ -110,16 +111,18 @@ export async function createDemoAccount(options?: {
     // Generate demo email
     const email = generateDemoEmail();
 
+    // Hash the demo password
+    const hashedPassword = await hashPassword(DEMO_ACCOUNT_PASSWORD);
+
     // Create demo user
     const [demoUser] = await db
       .insert(user)
       .values({
         email,
-        password: null,
         name: 'Demo User',
         level: 'demo',
-        emailVerified: new Date(),
-        provider: 'email',
+        emailVerified: true, // Boolean, not Date (changed for Better Auth)
+        provider: 'credential', // Better Auth uses 'credential' for email/password
         preferences: {
           language: 'en',
         },
@@ -129,6 +132,15 @@ export async function createDemoAccount(options?: {
     if (!demoUser) {
       throw new Error('Failed to create demo user');
     }
+
+    // Create credential account for Better Auth email/password authentication
+    // Better Auth requires an Account record with provider='credential'
+    await db.insert(account).values({
+      userId: demoUser.id,
+      accountId: demoUser.email, // Use email as accountId for credential provider
+      providerId: 'credential', // Provider is 'credential' for email/password
+      password: hashedPassword,
+    });
 
     // Import demo data (unless skipData is true)
     let stats: ImportStats | undefined;

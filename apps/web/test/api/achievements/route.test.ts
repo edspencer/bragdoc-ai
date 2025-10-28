@@ -16,10 +16,9 @@ import { eq } from 'drizzle-orm';
 import type { EventDuration } from 'lib/types/achievement';
 import { NextRequest } from 'next/server';
 
-// Mock auth
-jest.mock('@/app/(auth)/auth', () => ({
-  auth: jest.fn(),
-}));
+import { auth } from '@/lib/better-auth/server';
+
+// Better Auth is already mocked in jest.setup.ts
 
 describe('Achievement API Routes', () => {
   const testUser = {
@@ -95,8 +94,9 @@ describe('Achievement API Routes', () => {
 
   describe('GET /api/achievements', () => {
     it('returns achievements for authenticated user', async () => {
-      require('@/app/(auth)/auth').auth.mockResolvedValueOnce({
-        user: { id: testUser.id },
+      (auth.api.getSession as jest.Mock).mockResolvedValueOnce({
+        session: { id: 'test-session' },
+        user: testUser,
       });
 
       const url = new URL('http://localhost/api/achievements');
@@ -109,8 +109,9 @@ describe('Achievement API Routes', () => {
     });
 
     it('returns filtered achievements based on query parameters', async () => {
-      require('@/app/(auth)/auth').auth.mockResolvedValueOnce({
-        user: { id: testUser.id },
+      (auth.api.getSession as jest.Mock).mockResolvedValueOnce({
+        session: { id: 'test-session' },
+        user: testUser,
       });
 
       const url = new URL('http://localhost/api/achievements');
@@ -128,8 +129,9 @@ describe('Achievement API Routes', () => {
     });
 
     it('returns paginated achievements', async () => {
-      require('@/app/(auth)/auth').auth.mockResolvedValueOnce({
-        user: { id: testUser.id },
+      (auth.api.getSession as jest.Mock).mockResolvedValueOnce({
+        session: { id: 'test-session' },
+        user: testUser,
       });
 
       // Insert additional achievements
@@ -163,13 +165,14 @@ describe('Achievement API Routes', () => {
           limit: 10,
           total: 16, // 15 new + 1 original
           totalPages: 2,
-        })
+        }),
       );
     });
 
     it('filters achievements by source', async () => {
-      require('@/app/(auth)/auth').auth.mockResolvedValueOnce({
-        user: { id: testUser.id },
+      (auth.api.getSession as jest.Mock).mockResolvedValueOnce({
+        session: { id: 'test-session' },
+        user: testUser,
       });
 
       // Insert an LLM-sourced achievement
@@ -200,8 +203,9 @@ describe('Achievement API Routes', () => {
     });
 
     it('filters achievements by date range', async () => {
-      require('@/app/(auth)/auth').auth.mockResolvedValueOnce({
-        user: { id: testUser.id },
+      (auth.api.getSession as jest.Mock).mockResolvedValueOnce({
+        session: { id: 'test-session' },
+        user: testUser,
       });
 
       const startDate = '2023-01-01';
@@ -219,8 +223,9 @@ describe('Achievement API Routes', () => {
     });
 
     it('ignores invalid date parameters', async () => {
-      require('@/app/(auth)/auth').auth.mockResolvedValueOnce({
-        user: { id: testUser.id },
+      (auth.api.getSession as jest.Mock).mockResolvedValueOnce({
+        session: { id: 'test-session' },
+        user: testUser,
       });
 
       const url = new URL('http://localhost/api/achievements');
@@ -234,7 +239,10 @@ describe('Achievement API Routes', () => {
     });
 
     it('returns 401 for unauthenticated requests', async () => {
-      require('@/app/(auth)/auth').auth.mockResolvedValueOnce(null);
+      (auth.api.getSession as jest.Mock).mockResolvedValueOnce({
+        session: null,
+        user: null,
+      });
 
       const url = new URL('http://localhost/api/achievements');
       const response = await GET(new NextRequest(url));
@@ -245,8 +253,9 @@ describe('Achievement API Routes', () => {
     });
 
     it('returns empty results when no achievements match filters', async () => {
-      require('@/app/(auth)/auth').auth.mockResolvedValueOnce({
-        user: { id: testUser.id },
+      (auth.api.getSession as jest.Mock).mockResolvedValueOnce({
+        session: { id: 'test-session' },
+        user: testUser,
       });
 
       const url = new URL('http://localhost/api/achievements');
@@ -263,8 +272,9 @@ describe('Achievement API Routes', () => {
     });
 
     it('handles multiple filters simultaneously', async () => {
-      require('@/app/(auth)/auth').auth.mockResolvedValueOnce({
-        user: { id: testUser.id },
+      (auth.api.getSession as jest.Mock).mockResolvedValueOnce({
+        session: { id: 'test-session' },
+        user: testUser,
       });
 
       const url = new URL('http://localhost/api/achievements');
@@ -284,13 +294,14 @@ describe('Achievement API Routes', () => {
           projectId: testProject.id,
           source: 'manual',
           isArchived: false,
-        })
+        }),
       );
     });
 
     it('handles invalid UUID format for companyId/projectId', async () => {
-      require('@/app/(auth)/auth').auth.mockResolvedValueOnce({
-        user: { id: testUser.id },
+      (auth.api.getSession as jest.Mock).mockResolvedValueOnce({
+        session: { id: 'test-session' },
+        user: testUser,
       });
 
       const url = new URL('http://localhost/api/achievements');
@@ -320,8 +331,9 @@ describe('Achievement API Routes', () => {
         impactUpdatedAt: new Date().toISOString(),
       };
 
-      require('@/app/(auth)/auth').auth.mockResolvedValueOnce({
-        user: { id: testUser.id },
+      (auth.api.getSession as jest.Mock).mockResolvedValueOnce({
+        session: { id: 'test-session' },
+        user: testUser,
       });
 
       const response = await POST(
@@ -329,7 +341,7 @@ describe('Achievement API Routes', () => {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(newAchievement),
-        })
+        }),
       );
 
       const data = await response.json();
@@ -344,8 +356,9 @@ describe('Achievement API Routes', () => {
         summary: 'Invalid achievement',
       };
 
-      require('@/app/(auth)/auth').auth.mockResolvedValueOnce({
-        user: { id: testUser.id },
+      (auth.api.getSession as jest.Mock).mockResolvedValueOnce({
+        session: { id: 'test-session' },
+        user: testUser,
       });
 
       const response = await POST(
@@ -353,7 +366,7 @@ describe('Achievement API Routes', () => {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(invalidAchievement),
-        })
+        }),
       );
 
       const data = await response.json();
@@ -362,14 +375,17 @@ describe('Achievement API Routes', () => {
     });
 
     it('returns 401 for unauthenticated requests', async () => {
-      require('@/app/(auth)/auth').auth.mockResolvedValueOnce(null);
+      (auth.api.getSession as jest.Mock).mockResolvedValueOnce({
+        session: null,
+        user: null,
+      });
 
       const response = await POST(
         new NextRequest('http://localhost/api/achievements', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({}),
-        })
+        }),
       );
 
       const data = await response.json();
@@ -378,8 +394,9 @@ describe('Achievement API Routes', () => {
     });
 
     it('validates required fields', async () => {
-      require('@/app/(auth)/auth').auth.mockResolvedValueOnce({
-        user: { id: testUser.id },
+      (auth.api.getSession as jest.Mock).mockResolvedValueOnce({
+        session: { id: 'test-session' },
+        user: testUser,
       });
 
       const invalidAchievement = {
@@ -391,7 +408,7 @@ describe('Achievement API Routes', () => {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(invalidAchievement),
-        })
+        }),
       );
 
       expect(response.status).toBe(400);
@@ -401,13 +418,14 @@ describe('Achievement API Routes', () => {
         expect.arrayContaining([
           expect.objectContaining({ path: ['title'] }),
           expect.objectContaining({ path: ['eventDuration'] }),
-        ])
+        ]),
       );
     });
 
     it('validates field constraints', async () => {
-      require('@/app/(auth)/auth').auth.mockResolvedValueOnce({
-        user: { id: testUser.id },
+      (auth.api.getSession as jest.Mock).mockResolvedValueOnce({
+        session: { id: 'test-session' },
+        user: testUser,
       });
 
       const invalidAchievement = {
@@ -420,7 +438,7 @@ describe('Achievement API Routes', () => {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(invalidAchievement),
-        })
+        }),
       );
 
       expect(response.status).toBe(400);
@@ -430,13 +448,14 @@ describe('Achievement API Routes', () => {
         expect.arrayContaining([
           expect.objectContaining({ path: ['title'] }),
           expect.objectContaining({ path: ['eventDuration'] }),
-        ])
+        ]),
       );
     });
 
     it('handles optional fields correctly', async () => {
-      require('@/app/(auth)/auth').auth.mockResolvedValueOnce({
-        user: { id: testUser.id },
+      (auth.api.getSession as jest.Mock).mockResolvedValueOnce({
+        session: { id: 'test-session' },
+        user: testUser,
       });
 
       const minimalAchievement = {
@@ -449,7 +468,7 @@ describe('Achievement API Routes', () => {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(minimalAchievement),
-        })
+        }),
       );
 
       expect(response.status).toBe(200);
@@ -462,7 +481,7 @@ describe('Achievement API Routes', () => {
           details: null,
           companyId: null,
           projectId: null,
-        })
+        }),
       );
     });
   });
@@ -474,8 +493,9 @@ describe('Achievement API Routes', () => {
         summary: 'Updated summary',
       };
 
-      require('@/app/(auth)/auth').auth.mockResolvedValueOnce({
-        user: { id: testUser.id },
+      (auth.api.getSession as jest.Mock).mockResolvedValueOnce({
+        session: { id: 'test-session' },
+        user: testUser,
       });
 
       const response = await updateAchievement(
@@ -485,9 +505,9 @@ describe('Achievement API Routes', () => {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(update),
-          }
+          },
         ),
-        { params: Promise.resolve({ id: testAchievement.id }) }
+        { params: Promise.resolve({ id: testAchievement.id }) },
       );
 
       const data = await response.json();
@@ -499,8 +519,9 @@ describe('Achievement API Routes', () => {
     it('returns 404 for non-existent achievement', async () => {
       const nonExistentId = uuidv4();
 
-      require('@/app/(auth)/auth').auth.mockResolvedValueOnce({
-        user: { id: testUser.id },
+      (auth.api.getSession as jest.Mock).mockResolvedValueOnce({
+        session: { id: 'test-session' },
+        user: testUser,
       });
 
       const response = await updateAchievement(
@@ -509,7 +530,7 @@ describe('Achievement API Routes', () => {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ title: 'Updated Achievement' }),
         }),
-        { params: Promise.resolve({ id: nonExistentId }) }
+        { params: Promise.resolve({ id: nonExistentId }) },
       );
 
       const data = await response.json();
@@ -518,8 +539,9 @@ describe('Achievement API Routes', () => {
     });
 
     it('validates partial updates correctly', async () => {
-      require('@/app/(auth)/auth').auth.mockResolvedValueOnce({
-        user: { id: testUser.id },
+      (auth.api.getSession as jest.Mock).mockResolvedValueOnce({
+        session: { id: 'test-session' },
+        user: testUser,
       });
 
       const update = {
@@ -533,9 +555,9 @@ describe('Achievement API Routes', () => {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(update),
-          }
+          },
         ),
-        { params: Promise.resolve({ id: testAchievement.id }) }
+        { params: Promise.resolve({ id: testAchievement.id }) },
       );
 
       expect(response.status).toBe(200);
@@ -546,13 +568,14 @@ describe('Achievement API Routes', () => {
           eventDuration: 'month',
           // Other fields should remain unchanged
           title: testAchievement.title,
-        })
+        }),
       );
     });
 
     it('validates field constraints in updates', async () => {
-      require('@/app/(auth)/auth').auth.mockResolvedValueOnce({
-        user: { id: testUser.id },
+      (auth.api.getSession as jest.Mock).mockResolvedValueOnce({
+        session: { id: 'test-session' },
+        user: testUser,
       });
 
       const update = {
@@ -567,9 +590,9 @@ describe('Achievement API Routes', () => {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(update),
-          }
+          },
         ),
-        { params: Promise.resolve({ id: testAchievement.id }) }
+        { params: Promise.resolve({ id: testAchievement.id }) },
       );
 
       expect(response.status).toBe(400);
@@ -579,15 +602,16 @@ describe('Achievement API Routes', () => {
         expect.arrayContaining([
           expect.objectContaining({ path: ['title'] }),
           expect.objectContaining({ path: ['eventDuration'] }),
-        ])
+        ]),
       );
     });
   });
 
   describe('DELETE /api/achievements/[id]', () => {
     it('deletes existing achievement', async () => {
-      require('@/app/(auth)/auth').auth.mockResolvedValueOnce({
-        user: { id: testUser.id },
+      (auth.api.getSession as jest.Mock).mockResolvedValueOnce({
+        session: { id: 'test-session' },
+        user: testUser,
       });
 
       const response = await deleteAchievement(
@@ -595,9 +619,9 @@ describe('Achievement API Routes', () => {
           `http://localhost/api/achievements/${testAchievement.id}`,
           {
             method: 'DELETE',
-          }
+          },
         ),
-        { params: Promise.resolve({ id: testAchievement.id }) }
+        { params: Promise.resolve({ id: testAchievement.id }) },
       );
 
       const data = await response.json();
@@ -615,15 +639,16 @@ describe('Achievement API Routes', () => {
     it('returns 404 for non-existent achievement', async () => {
       const nonExistentId = uuidv4();
 
-      require('@/app/(auth)/auth').auth.mockResolvedValueOnce({
-        user: { id: testUser.id },
+      (auth.api.getSession as jest.Mock).mockResolvedValueOnce({
+        session: { id: 'test-session' },
+        user: testUser,
       });
 
       const response = await deleteAchievement(
         new NextRequest(`http://localhost/api/achievements/${nonExistentId}`, {
           method: 'DELETE',
         }),
-        { params: Promise.resolve({ id: nonExistentId }) }
+        { params: Promise.resolve({ id: nonExistentId }) },
       );
 
       const data = await response.json();
@@ -632,15 +657,16 @@ describe('Achievement API Routes', () => {
     });
 
     it('prevents deleting achievements of other users', async () => {
-      require('@/app/(auth)/auth').auth.mockResolvedValueOnce({
+      (auth.api.getSession as jest.Mock).mockResolvedValueOnce({
+        session: { id: 'test-session' },
         user: { id: uuidv4() },
       });
 
       const response = await deleteAchievement(
         new NextRequest(
-          `http://localhost/api/achievements/${testAchievement.id}`
+          `http://localhost/api/achievements/${testAchievement.id}`,
         ),
-        { params: Promise.resolve({ id: testAchievement.id }) }
+        { params: Promise.resolve({ id: testAchievement.id }) },
       );
 
       expect(response.status).toBe(404); // Should return 404 to not leak info about existence
@@ -656,15 +682,16 @@ describe('Achievement API Routes', () => {
     });
 
     it('handles malformed achievement ID', async () => {
-      require('@/app/(auth)/auth').auth.mockResolvedValueOnce({
-        user: { id: testUser.id },
+      (auth.api.getSession as jest.Mock).mockResolvedValueOnce({
+        session: { id: 'test-session' },
+        user: testUser,
       });
 
       const response = await deleteAchievement(
         new NextRequest('http://localhost/api/achievements/invalid-id', {
           method: 'DELETE',
         }),
-        { params: Promise.resolve({ id: 'invalid-id' }) }
+        { params: Promise.resolve({ id: 'invalid-id' }) },
       );
 
       expect(response.status).toBe(404);

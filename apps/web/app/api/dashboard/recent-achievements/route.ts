@@ -1,21 +1,22 @@
 import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
-import { auth } from 'app/(auth)/auth';
+import { getAuthUser } from '@/lib/getAuthUser';
 import { db } from '@/database/index';
 import { achievement, project, company } from '@/database/schema';
 import { eq, desc } from 'drizzle-orm';
 
 export async function GET(request: NextRequest) {
   try {
-    const session = await auth();
-    if (!session?.user?.id) {
+    const authResult = await getAuthUser(request);
+    if (!authResult) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
+    const { user } = authResult;
 
     const searchParams = request.nextUrl.searchParams;
     const userId = searchParams.get('userId');
 
-    if (!userId || userId !== session.user.id) {
+    if (!userId || userId !== user.id) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 

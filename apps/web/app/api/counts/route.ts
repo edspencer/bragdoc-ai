@@ -1,16 +1,16 @@
-import { auth } from 'app/(auth)/auth';
+import { getAuthUser } from '@/lib/getAuthUser';
 import { db } from '@/database/index';
 import { company, project, achievement, document } from '@/database/schema';
 import { eq, sql } from 'drizzle-orm';
 
-export async function GET() {
-  const session = await auth();
+export async function GET(request: Request) {
+  const authResult = await getAuthUser(request);
 
-  if (!session?.user?.id) {
+  if (!authResult) {
     return Response.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
-  const userId = session.user.id;
+  const userId = authResult.user.id;
 
   try {
     const [companies] = await db

@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import type { User } from '@/database/schema';
-import { useSession } from 'next-auth/react';
+import { useSession } from '@/lib/better-auth/client';
 
 interface UseUserResponse {
   user: User | null;

@@ -1,4 +1,5 @@
-import { auth } from 'app/(auth)/auth';
+import { auth } from '@/lib/better-auth/server';
+import { headers } from 'next/headers';
 import { redirect } from 'next/navigation';
 import { db } from '@/database/index';
 import { document, company } from '@/database/schema';
@@ -8,7 +9,9 @@ import { SidebarInset } from '@/components/ui/sidebar';
 import { AppPage } from 'components/shared/app-page';
 
 export default async function ReportsPage() {
-  const session = await auth();
+  const session = await auth.api.getSession({
+    headers: await headers(),
+  });
 
   if (!session?.user) {
     redirect('/login');

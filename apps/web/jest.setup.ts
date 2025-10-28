@@ -26,6 +26,10 @@ jest.mock('next/navigation', () => ({
   usePathname: () => '/',
 }));
 
+// Mock Better Auth to avoid initialization issues in Jest
+jest.mock('@/lib/better-auth/server');
+jest.mock('@/lib/better-auth/client');
+
 // Clear all mocks after each test
 afterEach(() => {
   jest.clearAllMocks();

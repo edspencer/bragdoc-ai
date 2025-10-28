@@ -1,4 +1,4 @@
-import { auth } from 'app/(auth)/auth';
+import { getAuthUser } from '@/lib/getAuthUser';
 import { db } from '@/database/index';
 import { document, user, chat } from '@/database/schema';
 import { eq } from 'drizzle-orm';
@@ -22,11 +22,12 @@ const generateSchema = z.object({
 });
 
 export async function POST(request: Request) {
-  const session = await auth();
+  const authResult = await getAuthUser(request);
 
-  if (!session?.user?.id) {
+  if (!authResult) {
     return Response.json({ error: 'Unauthorized' }, { status: 401 });
   }
+  const { user: authUser } = authResult;
 
   try {
     const json = await request.json();
@@ -58,23 +59,23 @@ export async function POST(request: Request) {
       userInstructions !== undefined &&
       defaultInstructions !== undefined &&
       userInstructions !== defaultInstructions &&
-      userInstructions !== session.user.preferences?.documentInstructions
+      userInstructions !== authUser.preferences?.documentInstructions
     ) {
       await db
         .update(user)
         .set({
           preferences: {
-            ...session.user.preferences,
+            ...authUser.preferences,
             documentInstructions: userInstructions,
           },
         })
-        .where(eq(user.id, session.user.id));
+        .where(eq(user.id, authUser.id));
     }
 
     // Generate the document using the full pipeline
     const result = await fetchRenderExecute({
       title,
-      user: session.user,
+      user: authUser,
       achievementIds,
       userInstructions,
     });
@@ -105,7 +106,7 @@ export async function POST(request: Request) {
       await db.insert(chat).values({
         id: chatId,
         createdAt: new Date(),
-        userId: session.user.id,
+        userId: authUser.id,
         title: `Chat for: ${title}`,
       });
 
@@ -117,7 +118,7 @@ export async function POST(request: Request) {
           title,
           content,
           type,
-          userId: session.user.id,
+          userId: authUser.id,
           chatId: chatId,
           createdAt: new Date(),
           updatedAt: new Date(),
@@ -126,10 +127,10 @@ export async function POST(request: Request) {
 
       // Track document generation
       try {
-        await captureServerEvent(session.user.id, 'document_generated', {
+        await captureServerEvent(authUser.id, 'document_generated', {
           type,
           achievement_count: achievementIds.length,
-          user_id: session.user.id,
+          user_id: authUser.id,
         });
       } catch (error) {
         console.error('Failed to track document generation:', error);

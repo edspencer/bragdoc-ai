@@ -4,12 +4,15 @@ import { ClientDashboardContent } from '@/components/client-dashboard-content';
 import { SiteHeader } from '@/components/site-header';
 import { SidebarInset } from '@/components/ui/sidebar';
 import { AppPage } from '@/components/shared/app-page';
-import { auth } from 'app/(auth)/auth';
+import { auth } from '@/lib/better-auth/server';
+import { headers } from 'next/headers';
 import { getAchievementStats } from '@bragdoc/database';
 import { DashboardZeroState } from '@/components/dashboard/dashboard-zero-state';
 
 export default async function Page() {
-  const session = await auth();
+  const session = await auth.api.getSession({
+    headers: await headers(),
+  });
 
   if (!session?.user?.id) {
     // DO NOT use redirect() in Server Components - it breaks the build

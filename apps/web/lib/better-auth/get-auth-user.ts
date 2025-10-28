@@ -1,15 +1,14 @@
 /**
- * Unified Authentication Helper (Better Auth)
+ * Unified Authentication Helper (Better Auth Version)
  *
  * This helper checks both Better Auth sessions (browser cookies) and JWT tokens
  * (CLI Authorization headers), providing a unified interface for authentication.
  *
- * MIGRATION NOTE: This file now uses Better Auth instead of Auth.js.
- * The interface remains unchanged for backward compatibility.
+ * This is the Better Auth equivalent of `lib/getAuthUser.ts` which uses Auth.js.
  *
  * Usage in API routes:
  * ```typescript
- * import { getAuthUser } from '@/lib/getAuthUser';
+ * import { getAuthUser } from '@/lib/better-auth/get-auth-user';
  *
  * export async function GET(request: Request) {
  *   const auth = await getAuthUser(request);
@@ -21,9 +20,9 @@
  * ```
  */
 
-import { auth } from '@/lib/better-auth/server';
+import { auth } from './server';
 import { jwtVerify } from 'jose';
-import type { User } from '@/database/schema';
+import type { User } from '@bragdoc/database/schema';
 
 /**
  * Unified authentication helper
@@ -65,10 +64,10 @@ export async function getAuthUser(
   const token = authHeader.slice(7); // Remove 'Bearer ' prefix
 
   try {
-    // Verify the JWT using Better Auth secret (with Auth.js fallback)
-    // Note: CLI tokens may still use AUTH_SECRET during migration
+    // Verify the JWT using Better Auth secret (with Auth.js fallback for backward compatibility)
+    // Note: In Phase 7, CLI will generate tokens using BETTER_AUTH_SECRET
     const secret = new TextEncoder().encode(
-      process.env.BETTER_AUTH_SECRET || process.env.AUTH_SECRET!,
+      process.env.AUTH_SECRET || process.env.BETTER_AUTH_SECRET!,
     );
     const { payload } = await jwtVerify(token, secret);
 
@@ -96,4 +95,28 @@ export async function getAuthUser(
     console.error('Error verifying JWT:', error);
     return null;
   }
+}
+
+/**
+ * Type guard to check if user is authenticated
+ *
+ * @param auth - Authentication result from getAuthUser
+ * @returns True if user is authenticated
+ */
+export function isAuthenticated(
+  auth: Awaited<ReturnType<typeof getAuthUser>>,
+): auth is { user: User; source: 'session' | 'jwt' } {
+  return auth !== null && !!auth.user?.id;
+}
+
+/**
+ * Extract user ID from authentication result
+ *
+ * @param auth - Authentication result from getAuthUser
+ * @returns User ID or null if not authenticated
+ */
+export function getUserId(
+  auth: Awaited<ReturnType<typeof getAuthUser>>,
+): string | null {
+  return auth?.user?.id || null;
 }

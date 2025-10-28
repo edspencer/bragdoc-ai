@@ -1,6 +1,7 @@
 import { IconTrendingUp, IconTarget, IconCalendar } from '@tabler/icons-react';
 import Link from 'next/link';
-import { auth } from 'app/(auth)/auth';
+import { auth } from '@/lib/better-auth/server';
+import { headers } from 'next/headers';
 
 import { Badge } from '@/components/ui/badge';
 import {
@@ -14,7 +15,9 @@ import {
 import { getAchievementStats, getActiveProjectsCount } from '@bragdoc/database';
 
 export async function AchievementStats() {
-  const session = await auth();
+  const session = await auth.api.getSession({
+    headers: await headers(),
+  });
 
   if (!session?.user?.id) {
     return <div>Please log in to view stats</div>;

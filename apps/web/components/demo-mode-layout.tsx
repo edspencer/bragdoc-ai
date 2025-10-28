@@ -1,6 +1,6 @@
 'use client';
 
-import { useSession } from 'next-auth/react';
+import { useSession } from '@/lib/better-auth/client';
 import { useEffect } from 'react';
 
 /**
@@ -11,7 +11,9 @@ import { useEffect } from 'react';
  */
 export function DemoModeLayout({ children }: { children: React.ReactNode }) {
   const { data: session } = useSession();
-  const isDemoUser = session?.user?.level === 'demo';
+
+  // Type cast to access custom Better Auth field (level is an additionalField in config)
+  const isDemoUser = (session?.user as { level?: string })?.level === 'demo';
 
   // The demo banner height
   const bannerHeight = isDemoUser ? '40px' : '0px';

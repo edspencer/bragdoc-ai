@@ -28,7 +28,7 @@ This document provides high-level guidance for developing BragDoc, an AI-powered
 
 - **[architecture.md](/.claude/docs/tech/architecture.md)** - System architecture, technology stack, monorepo structure, deployment, and analytics
 - **[database.md](/.claude/docs/tech/database.md)** - Complete database schema, query patterns, Drizzle ORM usage, migrations
-- **[authentication.md](/.claude/docs/tech/authentication.md)** - NextAuth configuration, OAuth providers, CLI auth flow, unified auth helper
+- **[authentication.md](/.claude/docs/tech/authentication.md)** - Better Auth configuration, OAuth providers, CLI auth flow, unified auth helper
 - **[api-conventions.md](/.claude/docs/tech/api-conventions.md)** - RESTful API patterns, request/response formats, validation, CORS
 - **[ai-integration.md](/.claude/docs/tech/ai-integration.md)** - LLM providers, prompt engineering, AI SDK usage, streaming
 - **[cli-architecture.md](/.claude/docs/tech/cli-architecture.md)** - CLI tool structure, commands, Git operations, configuration
@@ -138,7 +138,7 @@ BragDoc is a **TypeScript monorepo** using:
 - **Framework:** Next.js 16 (App Router with React 19+ Server Components)
 - **Monorepo:** Turborepo with pnpm workspaces
 - **Database:** PostgreSQL via Drizzle ORM
-- **Auth:** NextAuth.js with JWT strategy
+- **Auth:** Better Auth v1.3.33 with database-backed sessions
 - **AI:** Vercel AI SDK with multiple LLM providers (OpenAI, Anthropic, Google, DeepSeek, Ollama)
 - **Styling:** Tailwind CSS + shadcn/ui components
 - **Deployment:** Cloudflare Workers (via OpenNext)
@@ -148,7 +148,7 @@ BragDoc is a **TypeScript monorepo** using:
 - Server Components by default (zero JS unless needed)
 - Type safety throughout (strict TypeScript)
 - All queries scoped by `userId` for security
-- Unified auth helper supports both web and CLI
+- Unified auth helper supports both web sessions and CLI JWT tokens
 - **Never use `redirect()` in Server Components** (breaks Cloudflare builds, use fallback UI)
 
 ➡️ **See [architecture.md](/.claude/docs/tech/architecture.md) for complete architecture details, technology stack, and deployment info**
@@ -539,8 +539,8 @@ pnpm changeset version  # Update versions
 
 **Required:**
 - `POSTGRES_URL` - Database connection string
-- `AUTH_SECRET` - NextAuth secret key
-- `NEXTAUTH_URL` - Application URL
+- `BETTER_AUTH_SECRET` - Better Auth secret key (or `AUTH_SECRET` for backward compatibility)
+- `BETTER_AUTH_URL` - Application URL (or `NEXTAUTH_URL` for backward compatibility)
 - `OPENAI_API_KEY` - OpenAI API key (for LLM)
 - `STRIPE_SECRET_KEY` - Stripe secret key
 

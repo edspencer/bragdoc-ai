@@ -14,14 +14,36 @@ import { Loader2 } from 'lucide-react';
 export function DemoForm({ empty = false }: { empty?: boolean }) {
   const [isCreating, setIsCreating] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
     setIsCreating(true);
-    // Form will submit naturally, triggering the API route
+
+    try {
+      // Call API route with fetch to handle JSON response
+      const response = await fetch('/api/demo/start', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ empty }),
+        credentials: 'include', // Required to receive and store cookies
+      });
+
+      const data = await response.json();
+
+      if (data.success && data.redirectTo) {
+        // Cookie is now set, redirect to dashboard
+        window.location.href = data.redirectTo;
+      } else {
+        console.error('Demo creation failed:', data.error);
+        setIsCreating(false);
+      }
+    } catch (error) {
+      console.error('Error creating demo:', error);
+      setIsCreating(false);
+    }
   };
 
   return (
-    <form method="POST" action="/api/demo/start" onSubmit={handleSubmit}>
-      {empty && <input type="hidden" name="empty" value="true" />}
+    <form onSubmit={handleSubmit}>
       <Button type="submit" disabled={isCreating} className="w-full" size="lg">
         {isCreating ? (
           <>

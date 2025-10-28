@@ -1,6 +1,6 @@
 import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
-import { auth } from 'app/(auth)/auth';
+import { getAuthUser } from '@/lib/getAuthUser';
 import { updateAchievement } from '@/database/queries';
 
 interface RouteParams {
@@ -9,10 +9,11 @@ interface RouteParams {
 
 export async function PATCH(request: NextRequest, { params }: RouteParams) {
   try {
-    const session = await auth();
-    if (!session?.user?.id) {
+    const authResult = await getAuthUser(request);
+    if (!authResult) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
+    const { user } = authResult;
 
     const { id } = await params;
     const body = await request.json();
@@ -27,7 +28,7 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
 
     const [updatedAchievement] = await updateAchievement({
       id,
-      userId: session.user.id,
+      userId: user.id,
       data: {
         impact,
         impactSource: 'user' as const,

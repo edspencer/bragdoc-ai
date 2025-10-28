@@ -2,8 +2,7 @@ import { db } from '@bragdoc/database';
 import { emailPreferences } from '@bragdoc/database/schema';
 import { eq } from 'drizzle-orm';
 import type { EmailType, UnsubscribeData } from './types';
-import { encode, decode } from 'next-auth/jwt';
-import { randomBytes } from 'node:crypto';
+import { SignJWT, jwtVerify } from 'jose';
 
 const SECRET = process.env.AUTH_SECRET!;
 
@@ -11,16 +10,15 @@ export async function generateUnsubscribeUrl(
   userId: string,
   emailType?: EmailType,
 ): Promise<string> {
-  const salt = randomBytes(16).toString('hex');
-  const token = await encode({
-    token: { userId, emailType },
-    secret: SECRET,
-    salt,
-    maxAge: 365 * 24 * 60 * 60, // 1 year
-  });
+  const secret = new TextEncoder().encode(SECRET);
+  const token = await new SignJWT({ userId, emailType })
+    .setProtectedHeader({ alg: 'HS256' })
+    .setIssuedAt()
+    .setExpirationTime('1y') // 1 year
+    .sign(secret);
 
   const baseUrl = process.env.NEXTAUTH_URL;
-  const params = new URLSearchParams({ token, salt });
+  const params = new URLSearchParams({ token });
   if (emailType) params.append('type', emailType);
 
   return `${baseUrl}api/email/unsubscribe?${params.toString()}`;
@@ -28,20 +26,16 @@ export async function generateUnsubscribeUrl(
 
 export async function verifyUnsubscribeToken(
   token: string,
-  salt: string,
 ): Promise<UnsubscribeData> {
   try {
-    const decoded = await decode({
-      token,
-      secret: SECRET,
-      salt,
-    });
+    const secret = new TextEncoder().encode(SECRET);
+    const { payload } = await jwtVerify(token, secret);
 
-    if (!decoded?.userId) {
+    if (!payload?.userId) {
       throw new Error('Invalid token payload');
     }
 
-    return decoded as unknown as UnsubscribeData;
+    return payload as unknown as UnsubscribeData;
   } catch (error) {
     throw new Error('Invalid or expired unsubscribe token');
   }

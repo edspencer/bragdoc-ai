@@ -13,7 +13,7 @@ import {
   IconLoader2,
 } from '@tabler/icons-react';
 import { toast } from 'sonner';
-import { useSession } from 'next-auth/react';
+import { useSession } from '@/lib/better-auth/client';
 
 import { Button } from '@/components/ui/button';
 import {
@@ -150,7 +150,10 @@ export default function NewReportPage() {
 
   // User instructions - start with saved preference or default
   const defaultInstructions = getDefaultInstructionsForType(type);
-  const savedInstructions = session?.user?.preferences?.documentInstructions;
+  // Type cast to access custom Better Auth fields (preferences is an additionalField in config)
+  const savedInstructions = (
+    session?.user as { preferences?: { documentInstructions?: string } }
+  )?.preferences?.documentInstructions;
   const [userInstructions, setUserInstructions] = React.useState(
     savedInstructions || defaultInstructions,
   );
