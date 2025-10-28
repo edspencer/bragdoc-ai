@@ -4,7 +4,8 @@ import { eq } from 'drizzle-orm';
 import type { EmailType, UnsubscribeData } from './types';
 import { SignJWT, jwtVerify } from 'jose';
 
-const SECRET = process.env.AUTH_SECRET!;
+// Use BETTER_AUTH_SECRET with AUTH_SECRET fallback for backward compatibility
+const SECRET = process.env.BETTER_AUTH_SECRET || process.env.AUTH_SECRET!;
 
 export async function generateUnsubscribeUrl(
   userId: string,

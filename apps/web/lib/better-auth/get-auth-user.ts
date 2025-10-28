@@ -65,9 +65,8 @@ export async function getAuthUser(
 
   try {
     // Verify the JWT using Better Auth secret (with Auth.js fallback for backward compatibility)
-    // Note: In Phase 7, CLI will generate tokens using BETTER_AUTH_SECRET
     const secret = new TextEncoder().encode(
-      process.env.AUTH_SECRET || process.env.BETTER_AUTH_SECRET!,
+      process.env.BETTER_AUTH_SECRET || process.env.AUTH_SECRET!,
     );
     const { payload } = await jwtVerify(token, secret);
 

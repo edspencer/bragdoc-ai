@@ -35,7 +35,10 @@ async function createDemoSessionToken(user: User): Promise<string> {
   const now = Math.floor(Date.now() / 1000);
   const expiresAt = now + 4 * 60 * 60; // 4 hours from now
 
-  const secret = new TextEncoder().encode(process.env.AUTH_SECRET!);
+  // Use BETTER_AUTH_SECRET with AUTH_SECRET fallback for backward compatibility
+  const secret = new TextEncoder().encode(
+    process.env.BETTER_AUTH_SECRET || process.env.AUTH_SECRET!,
+  );
 
   return await new SignJWT({
     // Standard JWT claims
