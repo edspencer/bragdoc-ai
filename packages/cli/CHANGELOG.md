@@ -1,5 +1,12 @@
 # @bragdoc/cli
 
+## 1.1.3
+
+### Patch Changes
+
+- 4cabb4f: moved the welcome message to be on first-run instead of attempting a postinstall
+- 4cabb4f: When auto-detecting project names, don't use the github username, just the project name
+
 ## 1.1.2
 
 ### Patch Changes
