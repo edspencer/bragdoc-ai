@@ -1,9 +1,10 @@
 #!/usr/bin/env node
 
-const chalk = require('chalk');
-const boxen = require('boxen').default || require('boxen');
+(async () => {
+  const chalk = (await import('chalk')).default;
+  const boxen = (await import('boxen')).default;
 
-const message = `
+  const message = `
 ${chalk.green('Get started:')}
   ${chalk.cyan('bragdoc login')}    - Authenticate with BragDoc
   ${chalk.cyan('bragdoc init')}     - Initialize your repo
@@ -12,13 +13,14 @@ ${chalk.green('Get started:')}
 ${chalk.dim('Learn more: https://bragdoc.ai/cli')}
 `;
 
-console.log(
-  boxen(message, {
-    padding: 1,
-    margin: 1,
-    borderStyle: 'round',
-    borderColor: 'cyan',
-    title: '🎉 BragDoc CLI installed!',
-    titleAlignment: 'center',
-  }),
-);
+  console.log(
+    boxen(message, {
+      padding: 1,
+      margin: 1,
+      borderStyle: 'round',
+      borderColor: 'cyan',
+      title: '🎉 BragDoc CLI installed!',
+      titleAlignment: 'center',
+    }),
+  );
+})();
