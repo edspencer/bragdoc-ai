@@ -1,5 +1,5 @@
 [32mExtraction config: detailLevel=comprehensive, stats=true, diff=true[39m
-[32mCollecting commits from test/test-repo (branch: main)...[39m
+[32mCollecting commits from test-repo (branch: main)...[39m
 [32mFound 7 commits.[39m
 
 Dry run mode - data that would be processed:
