@@ -12,6 +12,7 @@ export async function captureServerEvent(
   userId: string,
   event: string,
   properties?: Record<string, any>,
+  userIp?: string,
 ) {
   // Skip if PostHog is not enabled (opt-in for open source)
   if (process.env.NEXT_PUBLIC_POSTHOG_ENABLED !== 'true') {
@@ -19,6 +20,16 @@ export async function captureServerEvent(
   }
 
   try {
+    const eventProperties: Record<string, any> = {
+      ...properties,
+      distinct_id: userId,
+    };
+
+    // Include user's IP address for GeoIP lookup if provided
+    if (userIp) {
+      eventProperties.$ip = userIp;
+    }
+
     const response = await fetch(
       `${process.env.NEXT_PUBLIC_POSTHOG_HOST || 'https://app.posthog.com'}/capture/`,
       {
@@ -29,10 +40,7 @@ export async function captureServerEvent(
         body: JSON.stringify({
           api_key: process.env.NEXT_PUBLIC_POSTHOG_KEY,
           event,
-          properties: {
-            ...properties,
-            distinct_id: userId,
-          },
+          properties: eventProperties,
           timestamp: new Date().toISOString(),
         }),
       },
@@ -53,6 +61,7 @@ export async function captureServerEvent(
 export async function identifyUser(
   userId: string,
   properties: Record<string, any>,
+  userIp?: string,
 ) {
   // Skip if PostHog is not enabled (opt-in for open source)
   if (process.env.NEXT_PUBLIC_POSTHOG_ENABLED !== 'true') {
@@ -60,6 +69,16 @@ export async function identifyUser(
   }
 
   try {
+    const eventProperties: Record<string, any> = {
+      distinct_id: userId,
+      $set: properties,
+    };
+
+    // Include user's IP address for GeoIP lookup if provided
+    if (userIp) {
+      eventProperties.$ip = userIp;
+    }
+
     const response = await fetch(
       `${process.env.NEXT_PUBLIC_POSTHOG_HOST || 'https://app.posthog.com'}/capture/`,
       {
@@ -70,10 +89,7 @@ export async function identifyUser(
         body: JSON.stringify({
           api_key: process.env.NEXT_PUBLIC_POSTHOG_KEY,
           event: '$identify',
-          properties: {
-            distinct_id: userId,
-            $set: properties,
-          },
+          properties: eventProperties,
           timestamp: new Date().toISOString(),
         }),
       },

@@ -43,6 +43,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
+import { AchievementItem } from '@/components/achievements/achievement-item';
 import type { AchievementWithRelations } from '@/lib/types/achievement';
 
 interface AchievementsTableProps {
@@ -239,6 +240,7 @@ export function AchievementsTable({
               <Button
                 onClick={onGenerateDocument}
                 disabled={selectedAchievements.length === 0}
+                className="hidden md:flex"
               >
                 <IconFileText className="size-4" />
                 Generate Document
@@ -315,7 +317,8 @@ export function AchievementsTable({
         </div>
       </CardHeader>
       <CardContent>
-        <div className="overflow-hidden rounded-lg border">
+        {/* Desktop Table View */}
+        <div className="hidden md:block overflow-hidden rounded-lg border">
           <Table>
             <TableHeader className="bg-muted">
               <TableRow>
@@ -418,6 +421,24 @@ export function AchievementsTable({
               ))}
             </TableBody>
           </Table>
+        </div>
+
+        {/* Mobile List View */}
+        <div className="md:hidden space-y-4">
+          {displayedAchievements.map((achievement) => (
+            <div
+              key={achievement.id}
+              className="border-b border-border pb-4 last:border-b-0"
+            >
+              <AchievementItem
+                achievement={achievement}
+                onImpactChange={onImpactChange}
+                readOnly={false}
+                showSourceBadge={true}
+                linkToAchievements={false}
+              />
+            </div>
+          ))}
         </div>
 
         {hasMore && (

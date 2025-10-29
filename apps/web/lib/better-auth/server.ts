@@ -88,6 +88,12 @@ export const auth: ReturnType<typeof betterAuth> = betterAuth({
   hooks: {
     after: createAuthMiddleware(async (ctx) => {
       try {
+        // Extract user's real IP address for PostHog GeoIP
+        const userIp =
+          ctx.headers?.get('cf-connecting-ip') || // Cloudflare
+          ctx.headers?.get('x-forwarded-for')?.split(',')[0] || // Proxy
+          ctx.headers?.get('x-real-ip') || // Nginx
+          undefined;
         // Handle registration events
         if (ctx.path === '/sign-up/email') {
           const user = ctx.context.newSession?.user;
@@ -97,17 +103,26 @@ export const auth: ReturnType<typeof betterAuth> = betterAuth({
           }
 
           // Track user registration event
-          await captureServerEvent(user.id, 'user_registered', {
-            method: 'email',
-            email: user.email,
-            user_id: user.id,
-          });
+          await captureServerEvent(
+            user.id,
+            'user_registered',
+            {
+              method: 'email',
+              email: user.email,
+              user_id: user.id,
+            },
+            userIp,
+          );
 
           // Identify user in PostHog (sets person properties)
-          await identifyUser(user.id, {
-            email: user.email,
-            name: user.name || user.email.split('@')[0],
-          });
+          await identifyUser(
+            user.id,
+            {
+              email: user.email,
+              name: user.name || user.email.split('@')[0],
+            },
+            userIp,
+          );
 
           // Alias anonymous ID to merge pre-signup events
           const anonymousId = ctx.headers?.get('x-anonymous-id');
@@ -122,10 +137,15 @@ export const auth: ReturnType<typeof betterAuth> = betterAuth({
             .where(eq(userTable.id, user.id));
 
           // Track ToS acceptance event
-          await captureServerEvent(user.id, 'tos_accepted', {
-            method: 'email',
-            timestamp: new Date().toISOString(),
-          });
+          await captureServerEvent(
+            user.id,
+            'tos_accepted',
+            {
+              method: 'email',
+              timestamp: new Date().toISOString(),
+            },
+            userIp,
+          );
 
           // Send welcome email
           await sendWelcomeEmail({
@@ -162,17 +182,26 @@ export const auth: ReturnType<typeof betterAuth> = betterAuth({
 
           if (isNewUser) {
             // Track user registration event
-            await captureServerEvent(user.id, 'user_registered', {
-              method: provider,
-              email: user.email,
-              user_id: user.id,
-            });
+            await captureServerEvent(
+              user.id,
+              'user_registered',
+              {
+                method: provider,
+                email: user.email,
+                user_id: user.id,
+              },
+              userIp,
+            );
 
             // Identify user in PostHog
-            await identifyUser(user.id, {
-              email: user.email,
-              name: user.name || user.email.split('@')[0],
-            });
+            await identifyUser(
+              user.id,
+              {
+                email: user.email,
+                name: user.name || user.email.split('@')[0],
+              },
+              userIp,
+            );
 
             // Alias anonymous ID
             const anonymousId = ctx.headers?.get('x-anonymous-id');
@@ -187,10 +216,15 @@ export const auth: ReturnType<typeof betterAuth> = betterAuth({
               .where(eq(userTable.id, user.id));
 
             // Track ToS acceptance event
-            await captureServerEvent(user.id, 'tos_accepted', {
-              method: provider,
-              timestamp: new Date().toISOString(),
-            });
+            await captureServerEvent(
+              user.id,
+              'tos_accepted',
+              {
+                method: provider,
+                timestamp: new Date().toISOString(),
+              },
+              userIp,
+            );
 
             // Send welcome email
             await sendWelcomeEmail({
@@ -201,11 +235,26 @@ export const auth: ReturnType<typeof betterAuth> = betterAuth({
             });
           } else {
             // Existing user - track login
-            await captureServerEvent(user.id, 'user_logged_in', {
-              method: provider,
-              email: user.email,
-              user_id: user.id,
-            });
+            await captureServerEvent(
+              user.id,
+              'user_logged_in',
+              {
+                method: provider,
+                email: user.email,
+                user_id: user.id,
+              },
+              userIp,
+            );
+
+            // Identify user to ensure PostHog has latest email
+            await identifyUser(
+              user.id,
+              {
+                email: user.email,
+                name: user.name || user.email.split('@')[0],
+              },
+              userIp,
+            );
           }
         }
 
@@ -218,11 +267,26 @@ export const auth: ReturnType<typeof betterAuth> = betterAuth({
           }
 
           // Track login event
-          await captureServerEvent(user.id, 'user_logged_in', {
-            method: 'email',
-            email: user.email,
-            user_id: user.id,
-          });
+          await captureServerEvent(
+            user.id,
+            'user_logged_in',
+            {
+              method: 'email',
+              email: user.email,
+              user_id: user.id,
+            },
+            userIp,
+          );
+
+          // Identify user to ensure PostHog has latest email
+          await identifyUser(
+            user.id,
+            {
+              email: user.email,
+              name: user.name || user.email.split('@')[0],
+            },
+            userIp,
+          );
         }
 
         // Handle logout events
@@ -234,9 +298,14 @@ export const auth: ReturnType<typeof betterAuth> = betterAuth({
           }
 
           // Track logout event
-          await captureServerEvent(user.id, 'user_logged_out', {
-            user_id: user.id,
-          });
+          await captureServerEvent(
+            user.id,
+            'user_logged_out',
+            {
+              user_id: user.id,
+            },
+            userIp,
+          );
 
           // Check if this is a demo account and cleanup data
           const [demoUser] = await db
