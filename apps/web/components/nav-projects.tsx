@@ -11,6 +11,7 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
+  useSidebar,
 } from '@/components/ui/sidebar';
 import { useTopProjects } from '@/hooks/use-top-projects';
 import { cn } from '@/lib/utils';
@@ -18,6 +19,13 @@ import { cn } from '@/lib/utils';
 export function NavProjects() {
   const { projects, isLoading } = useTopProjects(5);
   const pathname = usePathname();
+  const { isMobile, setOpenMobile } = useSidebar();
+
+  const handleLinkClick = () => {
+    if (isMobile) {
+      setOpenMobile(false);
+    }
+  };
 
   return (
     <SidebarGroup>
@@ -46,7 +54,10 @@ export function NavProjects() {
                           'bg-primary text-primary-foreground hover:bg-primary/90 hover:text-primary-foreground active:bg-primary/90 active:text-primary-foreground font-medium',
                       )}
                     >
-                      <Link href={`/projects/${project.id}`}>
+                      <Link
+                        href={`/projects/${project.id}`}
+                        onClick={handleLinkClick}
+                      >
                         <IconFolder
                           className="size-4"
                           style={{ color: project.color || '#6b7280' }}
@@ -68,7 +79,7 @@ export function NavProjects() {
                   'bg-primary text-primary-foreground hover:bg-primary/90 hover:text-primary-foreground active:bg-primary/90 active:text-primary-foreground font-medium',
               )}
             >
-              <Link href="/projects">
+              <Link href="/projects" onClick={handleLinkClick}>
                 <IconDots className="size-4" />
                 <span>More Projects</span>
               </Link>

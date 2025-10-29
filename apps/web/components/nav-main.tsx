@@ -10,6 +10,7 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
+  useSidebar,
 } from '@/components/ui/sidebar';
 import { cn } from '@/lib/utils';
 
@@ -23,6 +24,14 @@ export function NavMain({
   }[];
 }) {
   const pathname = usePathname();
+  const { isMobile, setOpenMobile } = useSidebar();
+
+  const handleLinkClick = () => {
+    if (isMobile) {
+      setOpenMobile(false);
+    }
+  };
+
   return (
     <SidebarGroup>
       <SidebarGroupContent>
@@ -39,7 +48,7 @@ export function NavMain({
                       'bg-primary text-primary-foreground hover:bg-primary/90 hover:text-primary-foreground active:bg-primary/90 active:text-primary-foreground font-medium',
                   )}
                 >
-                  <Link href={item.url}>
+                  <Link href={item.url} onClick={handleLinkClick}>
                     {item.icon && <item.icon />}
                     <span>{item.title}</span>
                   </Link>

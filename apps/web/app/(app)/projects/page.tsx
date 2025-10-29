@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { ProjectsTable } from '@/components/projects-table';
 import { ProjectDialog } from '@/components/project-dialog';
 import { SidebarInset } from '@/components/ui/sidebar';
+import { SiteHeader } from '@/components/site-header';
 import {
   useProjects,
   useCreateProject,
@@ -65,6 +66,7 @@ export default function ProjectsPage() {
   return (
     <AppPage>
       <SidebarInset>
+        <SiteHeader title="Projects" />
         <div className="flex flex-1 flex-col">
           <div className="@container/main flex flex-1 flex-col gap-2">
             <div className="flex flex-col gap-6 p-6">
@@ -73,12 +75,9 @@ export default function ProjectsPage() {
                   <div className="flex size-10 items-center justify-center rounded-lg bg-primary/10">
                     <IconFolderCode className="size-5 text-primary" />
                   </div>
-                  <div>
-                    <h1 className="text-2xl font-semibold">Projects</h1>
-                    <p className="text-muted-foreground text-sm">
-                      Manage your projects and track your work
-                    </p>
-                  </div>
+                  <p className="text-muted-foreground text-sm">
+                    Manage your projects and track your work
+                  </p>
                 </div>
                 <Button onClick={handleAddProject}>
                   <IconPlus className="size-4" />

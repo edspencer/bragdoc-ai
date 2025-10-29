@@ -162,6 +162,102 @@ export function AchievementForm() {
 
 **Example Implementation:** See `apps/web/components/reports/edit-report-metadata-dialog.tsx` and usage in `report-detail-view.tsx`
 
+## Mobile Navigation Pattern
+
+### SiteHeader Requirement
+
+All pages in the authenticated app (`(app)` route group) MUST include the `SiteHeader` component to ensure mobile users can access navigation. The `SiteHeader` component provides:
+
+- Sidebar toggle button (hamburger menu) for mobile navigation
+- Consistent page title display
+- GitHub link (desktop only)
+
+**Critical:** Without `SiteHeader`, mobile users have NO way to access the sidebar navigation since it's hidden by default on mobile screens.
+
+### Standard Page Structure
+
+```tsx
+import { AppPage } from '@/components/shared/app-page';
+import { SidebarInset } from '@/components/ui/sidebar';
+import { SiteHeader } from '@/components/site-header';
+
+export default function YourPage() {
+  return (
+    <AppPage>
+      <SidebarInset>
+        <SiteHeader title="Your Page Title" />
+        <div className="flex flex-1 flex-col">
+          {/* Page content */}
+        </div>
+      </SidebarInset>
+    </AppPage>
+  );
+}
+```
+
+### Key Principles
+
+- **Always include SiteHeader**: Every app page needs it for mobile navigation
+- **Pass explicit title**: Don't rely on the default "Achievement Dashboard" title
+- **Position first**: `SiteHeader` should be the first child of `SidebarInset`
+- **Avoid redundant headers**: Don't duplicate the page title in the content area
+
+### Component Props
+
+```typescript
+interface SiteHeaderProps {
+  title?: string; // Default: "Achievement Dashboard"
+}
+```
+
+### Example: Removing Redundant Headers
+
+When adding `SiteHeader` to an existing page with a custom header:
+
+**Before:**
+```tsx
+<SidebarInset>
+  <div className="flex flex-col gap-6 p-6">
+    <div className="flex items-center gap-3">
+      <div className="flex size-10 items-center justify-center rounded-lg bg-primary/10">
+        <IconBuilding className="size-5 text-primary" />
+      </div>
+      <div>
+        <h1 className="text-2xl font-semibold">Companies</h1>
+        <p className="text-muted-foreground text-sm">Manage companies</p>
+      </div>
+    </div>
+    {/* Content */}
+  </div>
+</SidebarInset>
+```
+
+**After:**
+```tsx
+<SidebarInset>
+  <SiteHeader title="Companies" />
+  <div className="flex flex-col gap-6 p-6">
+    {/* Icon and description retained if needed for visual consistency */}
+    <div className="flex items-center justify-between">
+      <div className="flex items-center gap-3">
+        <div className="flex size-10 items-center justify-center rounded-lg bg-primary/10">
+          <IconBuilding className="size-5 text-primary" />
+        </div>
+        <p className="text-muted-foreground text-sm">Manage companies</p>
+      </div>
+      {/* Action buttons if needed */}
+    </div>
+    {/* Content */}
+  </div>
+</SidebarInset>
+```
+
+**Guidelines for Redundant Headers:**
+- Remove the duplicate `<h1>` title (now provided by `SiteHeader`)
+- Keep icons if they provide visual consistency
+- Keep description text if it provides useful context
+- Always keep action buttons (e.g., "Add Company", "Add Project")
+
 ## Directory Structure
 
 ```

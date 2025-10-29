@@ -29,6 +29,7 @@ import { WeeklyImpactChart } from '@/components/weekly-impact-chart';
 import { AchievementsTable } from '@/components/achievements-table';
 import { GenerateDocumentDialog } from '@/components/generate-document-dialog';
 import { SidebarInset } from '@/components/ui/sidebar';
+import { SiteHeader } from '@/components/site-header';
 import { useCompanies } from '@/hooks/use-companies';
 import { useProjects } from '@/hooks/useProjects';
 import { useAchievementMutations } from '@/hooks/use-achievement-mutations';
@@ -168,22 +169,10 @@ export default function AchievementsPage() {
   return (
     <AppPage>
       <SidebarInset>
+        <SiteHeader title="Achievements" />
         <div className="flex flex-1 flex-col">
           <div className="@container/main flex flex-1 flex-col gap-2">
             <div className="flex flex-col gap-6 p-6">
-              {/* Header */}
-              <div className="flex items-center gap-3">
-                <div className="flex size-10 items-center justify-center rounded-lg bg-primary/10">
-                  <IconTarget className="size-5 text-primary" />
-                </div>
-                <div>
-                  <h1 className="text-2xl font-semibold">Achievements</h1>
-                  <p className="text-muted-foreground text-sm">
-                    Track your accomplishments and their impact
-                  </p>
-                </div>
-              </div>
-
               <Card>
                 <CardHeader>
                   <CardTitle>Quick Add Achievement</CardTitle>

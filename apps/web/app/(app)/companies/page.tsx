@@ -7,6 +7,7 @@ import type { Company } from '@/database/schema';
 import { Button } from 'components/ui/button';
 import { CompaniesTable } from '@/components/companies-table';
 import { SidebarInset } from '@/components/ui/sidebar';
+import { SiteHeader } from '@/components/site-header';
 import { CompanyDialog } from '@/components/company-dialog';
 import {
   useCompanies,
@@ -72,6 +73,7 @@ export default function CompaniesPage() {
   return (
     <AppPage>
       <SidebarInset>
+        <SiteHeader title="Companies" />
         <div className="flex flex-1 flex-col">
           <div className="@container/main flex flex-1 flex-col gap-2">
             <div className="flex flex-col gap-6 p-6">
@@ -80,12 +82,9 @@ export default function CompaniesPage() {
                   <div className="flex size-10 items-center justify-center rounded-lg bg-primary/10">
                     <IconBuilding className="size-5 text-primary" />
                   </div>
-                  <div>
-                    <h1 className="text-2xl font-semibold">Companies</h1>
-                    <p className="text-muted-foreground text-sm">
-                      Manage the companies you&apos;ve worked for
-                    </p>
-                  </div>
+                  <p className="text-muted-foreground text-sm">
+                    Manage the companies you&apos;ve worked for
+                  </p>
                 </div>
                 <Button onClick={handleAddCompany}>
                   <IconPlus className="size-4" />

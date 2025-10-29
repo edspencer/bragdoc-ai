@@ -69,8 +69,8 @@ export default async function BlogPostPage({
     <>
       <BlogPostingSchema post={post} />
       <Header />
-      <main className="min-h-screen">
-        <article className="py-12 px-4">
+      <main className="min-h-screen pt-24 pb-12">
+        <article className="px-4">
           <div className="container mx-auto max-w-3xl">
             {/* Back Button */}
             <Link href="/blog">

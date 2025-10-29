@@ -31,9 +31,9 @@ export default function BlogPage() {
   return (
     <>
       <Header />
-      <main className="min-h-screen">
+      <main className="min-h-screen pt-24 pb-0">
         {/* Header Section */}
-        <section className="py-20 px-4">
+        <section className="pb-20 px-4">
           <div className="container mx-auto max-w-4xl text-center">
             <h1 className="text-4xl md:text-5xl font-bold mb-4 text-balance">
               BragDoc Blog
