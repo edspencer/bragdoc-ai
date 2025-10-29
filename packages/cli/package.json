@@ -6,7 +6,7 @@
   "bin": {
     "bragdoc": "dist/index.js"
   },
-  "files": ["dist", "scripts", "README.md"],
+  "files": ["dist", "README.md"],
   "publishConfig": {
     "access": "public",
     "registry": "https://registry.npmjs.org/",
@@ -21,7 +21,6 @@
   "author": "Ed Spencer",
   "license": "MIT",
   "scripts": {
-    "postinstall": "node scripts/postinstall.js",
     "build": "tsc && pnpm build:copy-assets && pnpm build:chmod",
     "build:watch": "tsc -w && pnpm build:copy-assets",
     "build:copy-assets": "copyfiles -u 1 'src/**/*.mdx' dist",
@@ -44,7 +43,7 @@
     "@ai-sdk/openai": "^2.0.53",
     "@types/yaml": "^1.9.7",
     "ai": "^5.0.76",
-    "boxen": "^7.0.0",
+    "boxen": "^8.0.1",
     "chalk": "^4.1.2",
     "commander": "^11.1.0",
     "inquirer": "^12.10.0",

@@ -213,7 +213,7 @@ export function getRepositoryName(remoteUrl: string): string {
     if (remoteUrl.startsWith('git@')) {
       const match = remoteUrl.match(/git@[^:]+:([^\/]+)\/([^\.]+)(\.git)?$/);
       if (match) {
-        return `${match[1]}/${match[2]}`;
+        return match[2];
       }
     }
 
@@ -223,7 +223,7 @@ export function getRepositoryName(remoteUrl: string): string {
         /https?:\/\/[^\/]+\/([^\/]+)\/([^\.]+)(\.git)?$/,
       );
       if (match) {
-        return `${match[1]}/${match[2]}`;
+        return match[2];
       }
     }
 
