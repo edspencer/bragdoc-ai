@@ -2,8 +2,10 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { ArrowRight, Terminal } from 'lucide-react';
 import Link from 'next/link';
+import { loginPath } from '@/lib/utils';
 
 export function WhyItMattersCTA() {
+  const loginUrl = loginPath();
   return (
     <section className="py-20 px-4 sm:px-6 lg:px-8">
       <div className="container mx-auto max-w-4xl">
@@ -25,7 +27,7 @@ export function WhyItMattersCTA() {
               className="text-base h-14 px-8 font-semibold group"
               asChild
             >
-              <a href="https://app.bragdoc.ai/login">
+              <a href={loginUrl}>
                 Start Tracking Free
                 <ArrowRight className="ml-2 size-5 group-hover:translate-x-1 transition-transform" />
               </a>

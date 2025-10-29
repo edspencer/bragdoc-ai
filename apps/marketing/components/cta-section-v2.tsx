@@ -5,9 +5,11 @@ import { Card } from '@/components/ui/card';
 import { ArrowRight, Sparkles, Zap } from 'lucide-react';
 import Link from 'next/link';
 import { useTracking } from '@/hooks/use-posthog';
+import { loginPath } from '@/lib/utils';
 
 export function CTASectionV2() {
   const { trackCTAClick } = useTracking();
+  const loginUrl = loginPath();
   return (
     <section className="py-20 px-4 sm:px-6 lg:px-8 bg-gradient-to-b from-background to-muted/30">
       <div className="container mx-auto max-w-6xl">
@@ -39,12 +41,12 @@ export function CTASectionV2() {
                     asChild
                   >
                     <a
-                      href="https://app.bragdoc.ai/login"
+                      href={loginUrl}
                       onClick={() =>
                         trackCTAClick(
                           'homepage_bottom_cta',
                           'Start Tracking Free',
-                          'https://app.bragdoc.ai/login',
+                          loginUrl,
                         )
                       }
                     >

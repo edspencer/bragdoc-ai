@@ -1,0 +1,133 @@
+---
+title: "BragDoc V2 Beta: Privacy-centric AI career assistant"
+date: "2025-10-29"
+description: "Introducing BragDoc V2 beta - now with background achievement extraction, any LLM support, enhanced privacy controls, and a completely redesigned modern interface. Join the beta for free."
+author: "BragDoc Team"
+tags: ["announcement", "v2", "beta", "achievement-tracking"]
+---
+
+<DemoCTA />
+
+# BragDoc V2: Privacy and Convenience
+
+Today we're excited to announce the beta launch of BragDoc V2. This release represents a complete evolution of the platform, with major improvements to automation, privacy, flexibility, and user experience.
+
+Version 2 is essentially a complete rewrite of most of the platform, featuring a brand new UI and a greatly expanded CLI. The CLI now automatically tracks your achievements in the background as you work, and the UI has been completely redesigned to marry the AI-powered achievement tracking with a modern, responsive, and intuitive user interface.
+
+
+Over the coming weeks we will release deeper dives into some of these changes, but for now here's the coolest of the cool new stuff...
+
+## Background Achievement Extraction
+
+The biggest change in V2 is how achievement extraction works. Previously, you had to manually run `bragdoc extract` whenever you wanted to capture your work. Now, it happens automatically.
+
+When you run `bragdoc init` in your repository, BragDoc offers to start running on a schedule, in the background, while you work. No more remembering to run commands. No more lost achievements. Just code, commit, and let BragDoc do the rest.
+
+![BragDoc Init Terminal Command](/screenshots/terminal/bragdoc-init.png)
+
+Bragdoc can be configured with as many repos as you like, each of them being tracked continuously in the background. Having up-to-date achievements unlocks the new Standup feature, about which more later!
+
+## Any LLM You Like
+
+V2 removes the constraint of using specific LLM providers. Want to use OpenAI? Great. Prefer Anthropic Claude? No problem. Running a local Ollama model? Perfect.
+
+Achievement extraction now works with any LLM you choose, including completely local options. This means you can use the model that best fits your needs, budget, and privacy requirements.
+
+![Dashboard showing achievement tracking](/screenshots/ui/dashboard.png)
+
+We'll be publishing a comprehensive guide to LLM options and how to configure them for optimal achievement extraction.
+
+## Privacy and Security by Design
+
+Privacy has always been core to BragDoc, but V2 takes it further with fine-grained control over your data.
+
+You can now decide:
+- Which LLM processes your code (or keep it completely local)
+- What data gets sent to the cloud (if any)
+- When extraction happens and what it analyzes
+
+Your source code never leaves your machine. Only AI-generated achievement summaries are stored in the cloud, and even that is optional. You have complete control.
+
+Learn more about our privacy approach on our [privacy page](/privacy).
+
+## Open Source, Built in Public
+
+BragDoc remains completely open source. You can review every line of code, contribute improvements, or self-host the entire platform for free. We're building in public and will be posting regular updates here as well as on our [Chief Scientist's blog](https://www.edspencer.net).
+
+For those who prefer a hosted solution, we're keeping it affordable. Once we launch paid plans, the hosted version will be just $3.75 per month, when paid annually. That's less than a coffee, for a tool that can help you land promotions and negotiate raises.
+
+We have a [comprehensive self-hosting guide](/self-hosting) for developers who want full control over their data.
+
+## Modern Architecture for the Future
+
+Under the hood, V2 is a complete rewrite built on Next.js 16, migrated to a Turborepo monorepo, and modernized throughout. This puts BragDoc on a strong technical foundation for years to come.
+
+The new architecture enables:
+- Faster performance
+- Better reliability
+- Easier contributions from the open source community
+- More features shipping faster
+
+## Redesigned User Interface
+
+V2 is no longer an experiment wrapped around a chat interface. It's a fully-fledged application with a beautiful, modern, responsive design built for real-world use.
+
+![Projects overview interface](/screenshots/ui/projects.png)
+
+The new interface makes it easy to:
+- Review achievements across projects
+- Generate reports for performance reviews
+- Prepare for standups and 1-on-1s
+- Track your career growth over time
+
+Every screen has been designed with usability in mind, from the dashboard to the analytics views.
+
+![Project analytics showing achievement trends](/screenshots/ui/project-analytics.png)
+
+## Built with Claude Code Agents
+
+One of the most exciting aspects of V2's development has been our investment in Claude Code Agents. We've built an extensive agent system that helps us plan, implement, test, and deploy features far more rapidly than our sole engineer could on his own.
+
+This isn't just about using AI for code completion. We've created specialized agents for specification writing, implementation planning, code review, testing, and even blog writing. The system you're reading this post through was partially created by these agents (though it likes to be boastful so I still had to come fix a few things!).
+
+We'll be sharing much more about our agent system in future posts - it's a fascinating topic that we think will interest many developers.
+
+## Beta Testing and Special Offer
+
+BragDoc V2 is in beta, which means we're actively gathering feedback and refining the experience. This is your chance to shape the future of the platform.
+
+**Beta Offer**: Any user who creates an account during this beta testing phase will receive 1 year completely free once we launch paid plans. That's a $45 value, free for early adopters who help us improve the product.
+
+During the beta period, BragDoc is free for all users anyway, so there's no risk in getting started today.
+
+## What's Coming Next
+
+This is just the beginning. In the coming weeks, we'll be publishing detailed posts about:
+
+- How background achievement extraction works under the hood
+- Choosing and configuring the right LLM for your needs
+- Privacy and security best practices with BragDoc
+- Deep dive into our Claude Code Agent system
+- Advanced tips for tracking and leveraging your achievements
+
+Each of these topics deserves its own exploration, and we're excited to share what we've learned.
+
+## Get Started Today
+
+Ready to experience BragDoc V2?
+
+1. **Create your account** at [app.bragdoc.ai](https://app.bragdoc.ai/login)
+2. **Install the CLI**: `npm install -g @bragdoc/cli`
+3. **Initialize your first project**: `bragdoc init`
+
+That's it. BragDoc will handle the rest, tracking your achievements automatically as you work.
+
+Check out our [getting started guide](/get-started) for detailed setup instructions, or dive into the [documentation](https://docs.bragdoc.ai) to explore all the features.
+
+If that sounds like too much bother, try out our instant demo instead:
+
+<DemoCTA />
+
+---
+
+Have feedback on the beta? We'd love to hear from you at support@bragdoc.ai.

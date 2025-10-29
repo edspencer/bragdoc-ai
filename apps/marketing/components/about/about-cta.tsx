@@ -1,8 +1,10 @@
 import { Button } from '@/components/ui/button';
 import { ArrowRight } from 'lucide-react';
 import Link from 'next/link';
+import { loginPath } from '@/lib/utils';
 
 export function AboutCTA() {
+  const loginUrl = loginPath();
   return (
     <section className="py-20 px-4 sm:px-6 lg:px-8 bg-muted/30">
       <div className="container mx-auto max-w-3xl text-center">
@@ -11,7 +13,7 @@ export function AboutCTA() {
         </h2>
         <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
           <Button size="lg" className="text-base px-8" asChild>
-            <a href="https://app.bragdoc.ai/login">
+            <a href={loginUrl}>
               Get Started Free
               <ArrowRight className="ml-2 size-5" />
             </a>

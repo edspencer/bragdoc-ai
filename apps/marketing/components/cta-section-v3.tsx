@@ -2,8 +2,10 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Check, Terminal, TrendingUp } from 'lucide-react';
 import Link from 'next/link';
+import { loginPath } from '@/lib/utils';
 
 export function CTASectionV3() {
+  const loginUrl = loginPath();
   return (
     <section className="py-20 px-4 sm:px-6 lg:px-8">
       <div className="container mx-auto max-w-5xl">
@@ -59,7 +61,7 @@ export function CTASectionV3() {
             className="text-base h-14 px-10 font-semibold"
             asChild
           >
-            <a href="https://app.bragdoc.ai/login">Start Tracking Free</a>
+            <a href={loginUrl}>Start Tracking Free</a>
           </Button>
           <Button
             size="lg"

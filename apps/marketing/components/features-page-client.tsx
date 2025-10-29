@@ -18,6 +18,7 @@ import Image from 'next/image';
 import { useImageLightbox } from '@/hooks/use-image-lightbox';
 import { ImageLightbox } from '@/components/image-lightbox';
 import { useTracking } from '@/hooks/use-posthog';
+import { appPath } from '@/lib/utils';
 
 interface Feature {
   icon: LucideIcon;
@@ -157,6 +158,7 @@ const features: Feature[] = [
 export function FeaturesPageClient() {
   const { lightboxImage, openLightbox, closeLightbox } = useImageLightbox();
   const { trackFeatureExplored, trackCTAClick } = useTracking();
+  const dashboardUrl = appPath('/dashboard');
 
   return (
     <>
@@ -336,12 +338,12 @@ export function FeaturesPageClient() {
                 asChild
               >
                 <a
-                  href={`${process.env.NEXT_PUBLIC_APP_URL || 'https://app.bragdoc.ai'}/dashboard`}
+                  href={dashboardUrl}
                   onClick={() =>
                     trackCTAClick(
                       'features_page_bottom',
                       'Get Started Free',
-                      `${process.env.NEXT_PUBLIC_APP_URL || 'https://app.bragdoc.ai'}/dashboard`,
+                      dashboardUrl,
                     )
                   }
                 >

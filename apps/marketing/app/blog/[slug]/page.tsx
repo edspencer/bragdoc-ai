@@ -10,6 +10,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { MDXRemote } from 'next-mdx-remote/rsc';
 import { BlogPostingSchema } from '@/components/structured-data/blog-posting-schema';
+import { DemoCTA } from '@/components/demo-cta';
 
 export async function generateMetadata({
   params,
@@ -115,7 +116,7 @@ export default async function BlogPostPage({
 
             {/* Post Content */}
             <div className="prose prose-lg dark:prose-invert max-w-none">
-              <MDXRemote source={post.content} />
+              <MDXRemote source={post.content} components={{ DemoCTA }} />
             </div>
           </div>
         </article>
