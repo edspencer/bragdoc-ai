@@ -125,7 +125,7 @@ export async function createDemoAccount(options?: {
         name: 'Demo User',
         level: 'demo',
         emailVerified: true, // Boolean, not Date (changed for Better Auth)
-        provider: 'credentials', // Better Auth uses 'credentials' for email/password
+        provider: 'credential', // Better Auth uses 'credential' for email/password
         preferences: {
           language: 'en',
         },
@@ -137,11 +137,11 @@ export async function createDemoAccount(options?: {
     }
 
     // Create credential account for Better Auth email/password authentication
-    // Better Auth requires an Account record with provider='credentials'
+    // Better Auth requires an Account record with provider='credential'
     await db.insert(account).values({
       userId: demoUser.id,
-      accountId: demoUser.email, // Use email as accountId for credentials provider
-      providerId: 'credentials', // Provider is 'credentials' for email/password
+      accountId: demoUser.email, // Use email as accountId for credential provider
+      providerId: 'credential', // Provider is 'credential' for email/password
       password: hashedPassword,
     });
 
