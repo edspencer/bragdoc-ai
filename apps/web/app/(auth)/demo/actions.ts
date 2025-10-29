@@ -6,7 +6,7 @@ import {
   createDemoSessionToken,
   setDemoSessionCookie,
 } from '@/lib/create-demo-account';
-import { captureServerEvent } from '@/lib/posthog-server';
+import { captureServerEvent, identifyUser } from '@/lib/posthog-server';
 import { isDemoModeEnabled } from '@/lib/demo-mode-utils';
 
 /**
@@ -33,6 +33,11 @@ export async function startDemo(empty = false): Promise<never> {
     // Generate and set session token
     const token = await createDemoSessionToken(demoUser);
     await setDemoSessionCookie(token);
+
+    await identifyUser(demoUser.id, {
+      email: demoUser.email,
+      name: demoUser.name || demoUser.email.split('@')[0],
+    });
 
     // Track demo start
     await captureServerEvent(demoUser.id, 'demo_started', {

@@ -3,7 +3,7 @@ import {
   createDemoAccount,
   DEMO_ACCOUNT_PASSWORD,
 } from '@/lib/create-demo-account';
-import { captureServerEvent } from '@/lib/posthog-server';
+import { captureServerEvent, identifyUser } from '@/lib/posthog-server';
 import { isDemoModeEnabled } from '@/lib/demo-mode-utils';
 import { auth } from '@/lib/better-auth/server';
 
@@ -48,7 +48,11 @@ export async function POST(request: Request) {
 
     const demoUser = result.user;
 
-    // Track demo start
+    await identifyUser(demoUser.id, {
+      email: demoUser.email,
+      name: demoUser.name || demoUser.email.split('@')[0],
+    });
+
     await captureServerEvent(demoUser.id, 'demo_started', {
       source: 'demo_page',
       has_data: !empty,

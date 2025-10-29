@@ -235,6 +235,15 @@ export const auth: ReturnType<typeof betterAuth> = betterAuth({
             });
           } else {
             // Existing user - track login
+            await identifyUser(
+              user.id,
+              {
+                email: user.email,
+                name: user.name || user.email.split('@')[0],
+              },
+              userIp,
+            );
+
             await captureServerEvent(
               user.id,
               'user_logged_in',
@@ -242,16 +251,6 @@ export const auth: ReturnType<typeof betterAuth> = betterAuth({
                 method: provider,
                 email: user.email,
                 user_id: user.id,
-              },
-              userIp,
-            );
-
-            // Identify user to ensure PostHog has latest email
-            await identifyUser(
-              user.id,
-              {
-                email: user.email,
-                name: user.name || user.email.split('@')[0],
               },
               userIp,
             );
@@ -267,6 +266,15 @@ export const auth: ReturnType<typeof betterAuth> = betterAuth({
           }
 
           // Track login event
+          await identifyUser(
+            user.id,
+            {
+              email: user.email,
+              name: user.name || user.email.split('@')[0],
+            },
+            userIp,
+          );
+
           await captureServerEvent(
             user.id,
             'user_logged_in',
@@ -274,16 +282,6 @@ export const auth: ReturnType<typeof betterAuth> = betterAuth({
               method: 'email',
               email: user.email,
               user_id: user.id,
-            },
-            userIp,
-          );
-
-          // Identify user to ensure PostHog has latest email
-          await identifyUser(
-            user.id,
-            {
-              email: user.email,
-              name: user.name || user.email.split('@')[0],
             },
             userIp,
           );
