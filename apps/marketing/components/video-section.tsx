@@ -21,7 +21,7 @@ export function VideoSection() {
           <div className="relative w-full rounded-lg overflow-hidden shadow-2xl bg-muted border border-border">
             <div className="relative pb-[56.25%]">
               {/* Placeholder until video is uploaded */}
-              <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-primary/10 to-primary/5">
+              <div className="absolute inset-0 flex items-center justify-center bg-linear-to-br from-primary/10 to-primary/5">
                 <div className="text-center">
                   <div className="inline-flex items-center justify-center size-20 rounded-full bg-primary/20 mb-4">
                     <Play className="size-10 text-primary ml-1" />
