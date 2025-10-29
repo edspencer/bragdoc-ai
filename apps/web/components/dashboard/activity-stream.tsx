@@ -70,7 +70,7 @@ export function ActivityStream({ achievements }: ActivityStreamProps) {
                 key={achievement.id}
                 className="space-y-2 border-b border-border pb-4 last:border-b-0"
               >
-                <div className="flex items-start justify-between">
+                <div className="flex items-stretch flex-col lg:flex-row gap-2">
                   <div className="space-y-1 flex-1">
                     <Link
                       href="/achievements"
@@ -110,14 +110,14 @@ export function ActivityStream({ achievements }: ActivityStreamProps) {
                         </div>
                       )}
                       {achievement.company && (
-                        <div className="flex items-center gap-1">
+                        <div className="items-center gap-1 hidden lg:flex">
                           <Building2 className="size-3" />
                           {achievement.company.name}
                         </div>
                       )}
                     </div>
                   </div>
-                  <div className="ml-4 flex flex-col items-end gap-1">
+                  <div className="flex lg:flex-col lg:items-end justify-between gap-1">
                     <ImpactRating
                       value={achievement.impact || 0}
                       source={achievement.impactSource || 'llm'}
