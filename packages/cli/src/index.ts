@@ -11,6 +11,7 @@ import { dataCommand } from './commands/data';
 import { llmCommand } from './commands/llm';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
+import { checkAndShowWelcome } from './utils/welcome';
 
 // Read version from package.json
 const packageJson = JSON.parse(
@@ -38,5 +39,11 @@ program.addCommand(standupCommand);
 program.addCommand(dataCommand);
 program.addCommand(llmCommand);
 
-// Parse the command line args.
-program.parse(process.argv);
+// Main async function to handle first-run check and command parsing
+(async () => {
+  // Check if this is the first run and show welcome message
+  await checkAndShowWelcome();
+
+  // Parse the command line args.
+  program.parse(process.argv);
+})();

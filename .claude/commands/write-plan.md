@@ -29,6 +29,7 @@ Your task is to use the details in the spec file, read and understand any conten
 IMPORTANT: Our PLAN.md documents follow very strict plan requirements, as detailed in .claude/docs/processes/plan-rules.md. Read that file very carefully and adhere strictly to its guidance.
 
 **CRITICAL REQUIREMENTS FROM plan-rules.md:**
+
 1. **Documentation Manager Consultation**: After drafting the initial plan but BEFORE using `/check-plan`, you MUST consult the documentation-manager agent to identify which documentation files in `.claude/docs/tech/` and `.claude/docs/user/` need updates. Include their specific guidance in your plan's Documentation section.
 2. **Changeset Evaluation**: Determine if a changeset phase is required using the decision framework in `.claude/docs/processes/changeset-management.md`. Include a changeset phase if the plan modifies published packages (e.g., CLI).
 3. **After-Action Report Phase**: Every plan MUST include a final phase for submitting an after-action report to the process-manager agent. See plan-rules.md for the exact structure required.
@@ -63,7 +64,7 @@ Commit message instructions:
 In this paragraph:
 
 ```
-This change restructures the main sidebar navigation by removing the Documents section and introducing a new "Careers" section that consolidates career-related features. The Careers section groups together existing features (Standup and "For my manager") with two new coming-soon pages (Performance Review and Workstreams), creating a more intuitive organization for users focused on career advancement and documentation.
+This change restructures the main sidebar navigation by removing the Documents section and introducing a new "Careers" section that consolidates career-related features. The Careers section groups together existing features (Standup and "Reports") with two new coming-soon pages (Performance Review and Workstreams), creating a more intuitive organization for users focused on career advancement and documentation.
 ```
 
 All was fine until the ", creating a more intuitive ..." stuff - just don't include value judgments like that, leave them out.

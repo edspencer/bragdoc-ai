@@ -7,15 +7,15 @@
 The sidebar navigation includes a **Careers** section that groups career-related features:
 
 - **Standup** (`/standup`) - Daily/weekly standup report generation
-- **For my manager** (`/reports`) - Generate reports from achievements for managers
+- **Reports** (`/reports`) - Generate reports from achievements for managers
 - **Performance Review** (`/performance`) - Coming soon: AI-powered performance review generation
 - **Workstreams** (`/workstreams`) - Coming soon: Automatic discovery of thematic patterns in work
 
-The Documents feature (`/documents`) remains accessible via direct URL but is no longer displayed in the sidebar navigation. Documents are accessible when generated through the "For my manager" reports flow.
+The Documents feature (`/documents`) remains accessible via direct URL but is no longer displayed in the sidebar navigation. Documents are accessible when generated through the Reports flow.
 
 ---
 
-## Reports & Documents ("For my manager")
+## Reports & Documents
 
 ### Overview
 
@@ -26,16 +26,19 @@ The Reports feature allows users to generate AI-powered reports from their track
 BragDoc supports three types of reports, each designed for different use cases:
 
 #### Weekly Reports
+
 - **Time Range:** Last 7 days of achievements
 - **Use Case:** Weekly check-ins, sprint retrospectives, status updates
 - **Default Prompt:** Focus on key accomplishments, progress on ongoing projects, blockers, and plans for next week
 
 #### Monthly Reports
-- **Time Range:** Last 30 days of achievements  
+
+- **Time Range:** Last 30 days of achievements
 - **Use Case:** Monthly performance summaries, milestone tracking, progress reports
 - **Default Prompt:** Emphasize significant achievements, project completions, measurable impact, and growth areas
 
 #### Custom Reports
+
 - **Time Range:** All achievements (user can filter manually)
 - **Use Case:** Performance reviews, promotion packets, portfolio updates, year-end summaries
 - **Default Prompt:** Comprehensive review highlighting career progression, major contributions, and professional development
@@ -43,6 +46,7 @@ BragDoc supports three types of reports, each designed for different use cases:
 ### Key Features
 
 #### Achievement Selection
+
 - **Automatic filtering** by time range based on report type
 - **Manual filtering** by company and project
 - **Individual selection** of specific achievements to include
@@ -50,12 +54,14 @@ BragDoc supports three types of reports, each designed for different use cases:
 - **Visual indicators** showing achievement impact (star ratings)
 
 #### Customizable Generation
+
 - **Editable prompts** - Users can customize the AI generation instructions
 - **Smart defaults** - Type-specific prompts optimized for each report type
 - **Preference persistence** - Custom instructions are saved for future use
 - **Professional tone** - Generated reports maintain business-appropriate language
 
 #### Report Management
+
 - **List view** showing all generated reports
 - **Filter by type** - Weekly, monthly, or custom
 - **Filter by company** - See reports for specific companies
@@ -65,7 +71,7 @@ BragDoc supports three types of reports, each designed for different use cases:
 
 ### User Flow
 
-1. User navigates to **"For my manager"** from the sidebar
+1. User navigates to **"Reports"** from the sidebar
 2. User sees a list of previously generated reports (if any)
 3. User clicks a report type button (**Weekly**, **Monthly**, or **Custom**)
 4. System fetches relevant achievements based on the report type's time range
@@ -79,12 +85,14 @@ BragDoc supports three types of reports, each designed for different use cases:
 ### Technical Implementation
 
 #### Frontend
+
 - **Server Components** for initial data fetching (reports list)
 - **Client Components** for interactivity (filters, selection, generation)
 - **Next.js 15 App Router** with dynamic routes `/reports/new/[type]`
 - **Responsive design** with Tailwind CSS and shadcn/ui components
 
 #### Backend
+
 - **RESTful API endpoints** for CRUD operations
 - **AI document generation** via OpenAI/DeepSeek/Google models
 - **Streaming responses** for better perceived performance
@@ -92,6 +100,7 @@ BragDoc supports three types of reports, each designed for different use cases:
 - **PostgreSQL storage** via Drizzle ORM
 
 #### API Endpoints
+
 - `GET /api/documents` - List all reports for authenticated user
 - `POST /api/documents/generate` - Generate new report from achievements
 - `DELETE /api/documents/[id]` - Delete a report
@@ -100,7 +109,9 @@ BragDoc supports three types of reports, each designed for different use cases:
 - `GET /api/companies` - List companies for filter dropdown
 
 #### Database Schema
+
 Reports are stored in the `Document` table with the following key fields:
+
 - `id` - UUID primary key
 - `userId` - Foreign key to User (cascade delete)
 - `title` - Report title (e.g., "Weekly Report - Jan 15-21")
@@ -112,6 +123,7 @@ Reports are stored in the `Document` table with the following key fields:
 ### AI Integration
 
 #### Generation Pipeline
+
 1. **Fetch** relevant achievements from database
 2. **Format** achievements as structured data (title, summary, impact, dates)
 3. **Render** MDX prompt template with user instructions and achievement data
@@ -120,6 +132,7 @@ Reports are stored in the `Document` table with the following key fields:
 6. **Save** generated document to database
 
 #### Prompt Engineering
+
 - Uses **mdx-prompt** for structured, maintainable prompts
 - Supports **user instructions** passed from frontend
 - Falls back to **user preferences** if available
@@ -127,7 +140,9 @@ Reports are stored in the `Document` table with the following key fields:
 - Optimized for **professional business writing**
 
 #### Model Selection
+
 Uses the `documentWritingModel` from the LLM router which selects the appropriate model based on:
+
 - User's subscription level
 - Task type (document generation)
 - Provider availability
@@ -158,12 +173,12 @@ The following features are planned for future releases:
 
 When `PAYMENT_TOKEN_REQUIRED=true`, report generation may be gated by subscription level:
 
-| Feature | Free | Basic | Pro |
-|---------|------|-------|-----|
-| Report Generation | Limited | ✅ Unlimited | ✅ Unlimited |
-| Custom Prompts | ❌ | ✅ | ✅ |
-| AI Quality | Standard | Standard | Premium |
-| Report History | Last 30 days | Last 90 days | Unlimited |
+| Feature           | Free         | Basic        | Pro          |
+| ----------------- | ------------ | ------------ | ------------ |
+| Report Generation | Limited      | ✅ Unlimited | ✅ Unlimited |
+| Custom Prompts    | ❌           | ✅           | ✅           |
+| AI Quality        | Standard     | Standard     | Premium      |
+| Report History    | Last 30 days | Last 90 days | Unlimited    |
 
 In open source mode (`PAYMENT_TOKEN_REQUIRED=false`), all report features are available to all users without restriction.
 
@@ -184,17 +199,20 @@ When users sign up via OAuth providers (Google or GitHub), they see prominent Te
 #### Implementation
 
 **ToS Acceptance Text:**
+
 - Displayed on both `/login` and `/register` pages
 - Text: "By continuing with Google or GitHub, you agree to our Terms of Service and Privacy Policy"
 - Links to Terms and Privacy Policy open in new tabs
 - Supports light and dark mode themes
 
 **Automatic Timestamp:**
+
 - All new signups (OAuth and email/password) automatically have `tosAcceptedAt` timestamp set
 - Set via `createUser` event handler in NextAuth configuration
 - Event fires only for new users, eliminating need to check if user is existing
 
 **Analytics Tracking:**
+
 - `tos_accepted` event tracked in PostHog for all new signups
 - Includes provider method (google/github/credentials) and timestamp
 - Provides audit trail for compliance
@@ -202,16 +220,19 @@ When users sign up via OAuth providers (Google or GitHub), they see prominent Te
 #### Technical Details
 
 **Component:** `apps/web/components/social-auth-buttons.tsx`
+
 - Displays ToS text above OAuth buttons
 - Uses `NEXT_PUBLIC_MARKETING_SITE_HOST` environment variable for links
 - Follows BragDoc styling conventions with proper dark mode support
 
 **Database Field:** `tosAcceptedAt` on User table
+
 - Type: `timestamp('tos_accepted_at')`
 - Nullable (NULL for users who signed up before this feature)
 - Set automatically for all new signups
 
 **Event Handler:** NextAuth `createUser` event
+
 - Sets `tosAcceptedAt` timestamp
 - Tracks `tos_accepted` event in PostHog
 - Fails gracefully (registration never blocked by ToS tracking errors)
@@ -219,6 +240,7 @@ When users sign up via OAuth providers (Google or GitHub), they see prominent Te
 #### Legal Sufficiency
 
 This approach is legally sufficient because:
+
 1. **Informed Consent**: Users see ToS acceptance text before clicking OAuth button
 2. **Affirmative Action**: Clicking OAuth button is an affirmative action
 3. **Industry Standard**: Pattern used by major companies (Google, Microsoft, Slack, Linear, Notion)
@@ -226,6 +248,7 @@ This approach is legally sufficient because:
 5. **Link Access**: Users can review full terms before proceeding
 
 **Existing Users:**
+
 - Users who signed up before this feature have `tosAcceptedAt = NULL`
 - This is acceptable - they signed up under previous terms
 - Only new signups (after 2025-10-24) have timestamp populated

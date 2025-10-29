@@ -288,8 +288,11 @@ export default function NewReportPage() {
         throw new Error('Failed to generate document');
       }
 
+      const data = await response.json();
+      const documentId = data.document.id;
+
       toast.success('Document generated successfully');
-      router.push('/reports');
+      router.push(`/reports/${documentId}`);
     } catch (error) {
       console.error('Error generating document:', error);
       toast.error('Failed to generate document');

@@ -524,7 +524,7 @@ Based on BragDoc's technical architecture:
 - **/achievements** - List and manage achievements
 - **/projects** - Project management
 - **/companies** - Company/employer tracking
-- **/reports** - "For my manager" document generation
+- **/reports** - "Reports" document generation
 - **/settings** - User preferences and account settings
 
 **Authentication** (`(auth)` route group):

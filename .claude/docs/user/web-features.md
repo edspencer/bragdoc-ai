@@ -39,21 +39,25 @@ This zero state helps you get started quickly and understand the most powerful w
 Once you have achievements tracked, the dashboard displays:
 
 #### Achievement Statistics
+
 - **Total Achievements**: Count of all tracked achievements
 - **Recent Activity**: Achievements added this week/month
 - **Growth Trends**: Charts showing your tracking progress over time
 
 #### Quick Actions
+
 - **Add Achievement**: Button to manually log a new achievement
 - **View All**: Link to your complete achievement list
 - **Generate Document**: Quick access to document creation
 
 #### Recent Achievements
+
 - List of your most recently added achievements
 - Quick preview of titles and dates
 - Links to view or edit each achievement
 
 #### Activity Feed
+
 - Timeline of recent activity
 - Achievements added via CLI, email, or manual entry
 - Updates to projects and companies
@@ -67,6 +71,7 @@ The Achievements page is where you view, search, filter, and manage all your tra
 The main achievements page displays all your achievements in a sortable, filterable table:
 
 #### Table Columns
+
 - **Title**: The main description of the achievement
 - **Summary**: Brief overview (if provided)
 - **Date**: When the achievement occurred (event start date)
@@ -76,7 +81,9 @@ The main achievements page displays all your achievements in a sortable, filtera
 - **Actions**: Edit and delete buttons
 
 #### Sorting
+
 Click any column header to sort:
+
 - Title (alphabetical)
 - Date (chronological)
 - Duration (shortest to longest)
@@ -86,11 +93,13 @@ Click any column header to sort:
 ### Search & Filters
 
 #### Search
+
 - **Text Search**: Search across titles, summaries, and details
 - **Real-time Results**: Updates as you type
 - **Clear Button**: Quickly reset search
 
 #### Filters
+
 - **Date Range**: Filter by event start/end dates
   - Last week, last month, last quarter, last year
   - Custom date range
@@ -100,7 +109,9 @@ Click any column header to sort:
 - **Archived Status**: Include or exclude archived achievements
 
 #### Filter Combinations
+
 Combine multiple filters to narrow results:
+
 - Example: "Show all achievements for Company XYZ in Q4 2024"
 - Example: "Show week-long achievements in the Backend API project"
 
@@ -133,9 +144,11 @@ Combine multiple filters to narrow results:
 4. Achievement appears in your list immediately
 
 #### From CLI
+
 Achievements are automatically created when you run `bragdoc extract`. See the **[CLI Guide](./cli-guide.md)** for details.
 
 #### From Email
+
 Forward emails to your BragDoc email address to automatically extract achievements. See **[Email Integration](#email-integration)** for details.
 
 ### Editing Achievements
@@ -146,6 +159,7 @@ Forward emails to your BragDoc email address to automatically extract achievemen
 4. Click **"Save Changes"**
 
 **Tips:**
+
 - Add more details after initial extraction
 - Link to companies and projects for better organization
 - Update dates if the initial extraction was incorrect
@@ -168,6 +182,7 @@ Archive achievements you want to keep but hide from active views:
 3. Save changes
 
 **Archived achievements:**
+
 - Hidden from default views
 - Can be shown by enabling "Show Archived" filter
 - Still included in date-filtered reports if within range
@@ -180,6 +195,7 @@ Projects help you organize achievements by the specific initiatives or work stre
 ### Projects List View
 
 Navigate to **Projects** in the sidebar to see:
+
 - All your projects in a table
 - Project name, company association, and dates
 - Start and end dates for each project
@@ -234,6 +250,7 @@ Companies help you organize achievements by employer or client.
 ### Companies List View
 
 Navigate to **Companies** in the sidebar to see:
+
 - All your companies in a table
 - Company name and date range
 - Number of associated projects and achievements
@@ -267,6 +284,7 @@ Navigate to **Companies** in the sidebar to see:
 ### Company Hierarchy
 
 BragDoc organizes your work hierarchically:
+
 ```
 Company
 └── Projects
@@ -274,6 +292,7 @@ Company
 ```
 
 This structure helps you:
+
 - See all work for a specific employer
 - Filter achievements by company
 - Generate company-specific reports
@@ -286,6 +305,7 @@ Documents are generated reports and updates created from your achievements.
 ### Documents List View
 
 Navigate to **Documents** in the sidebar to see:
+
 - All your generated documents
 - Document title, type, and creation date
 - Company association (if applicable)
@@ -297,7 +317,7 @@ Navigate to **Documents** in the sidebar to see:
 BragDoc supports several document types:
 
 - **Performance Review**: Comprehensive review document for annual/semi-annual reviews
-- **Weekly Report**: Summary of the week's achievements (also called "Weekly Update" or "For My Manager")
+- **Weekly Report**: Summary of the week's achievements (also called "Weekly Update")
 - **Monthly Report**: Summary of the month's achievements
 - **Manager Update**: Status update for your manager
 - **Project Summary**: Overview of achievements for a specific project
@@ -333,6 +353,7 @@ Documents support rich text editing:
 - **Structure**: Organize with sections and paragraphs
 
 To edit a document:
+
 1. Click **"Edit"** on the document
 2. Use the rich text editor to modify content
 3. Click **"Save"** when done
@@ -347,6 +368,7 @@ Share documents securely without requiring recipients to sign up:
 4. Share link via email, Slack, etc.
 
 **Shared documents:**
+
 - Have a unique, anonymous URL
 - Are read-only for recipients
 - Include the document title and content
@@ -386,6 +408,7 @@ The Standup feature helps you prepare for daily standup meetings and maintain on
 ### What is the Standup Feature?
 
 Standup is a dedicated space for capturing and tracking your daily updates. It's perfect for:
+
 - Preparing for daily standup meetings
 - Documenting what you're working on
 - Tracking blockers and challenges
@@ -394,6 +417,7 @@ Standup is a dedicated space for capturing and tracking your daily updates. It's
 ### Zero State (New Users)
 
 If you haven't created a standup yet, you'll see a welcoming zero state that:
+
 - Explains the purpose of the standup feature
 - Provides guidance on how to get started
 - Offers a button to create your first standup
@@ -425,16 +449,19 @@ Navigate to **Standup** in the sidebar to access your daily update workspace:
 ### Standup Best Practices
 
 **Update Regularly:**
+
 - Fill in your standup at the end of each day
 - Or prepare it right before your daily standup meeting
 - Keep entries concise and focused
 
 **Be Specific:**
+
 - Mention specific features, bugs, or tasks
 - Include relevant ticket numbers or PR links
 - Note any significant decisions made
 
 **Track Progress:**
+
 - Review previous standup entries to see patterns
 - Identify recurring blockers
 - Celebrate wins and completed work
@@ -448,6 +475,7 @@ Workstreams is an upcoming feature that will automatically organize your achieve
 Workstreams will be automatically-generated collections of semantically related achievements that may span multiple projects. Unlike projects (which are organizational units you define), workstreams represent thematic work patterns discovered through machine learning.
 
 **Example Workstreams:**
+
 - "API Performance Optimization" - achievements from multiple projects focused on backend performance
 - "User Authentication & Security" - authentication work across frontend, backend, and mobile projects
 - "Design System Implementation" - UI component work spanning multiple product areas
@@ -464,6 +492,7 @@ Workstreams will be automatically-generated collections of semantically related 
 ### Requirements
 
 To use workstreams (when available):
+
 - You'll need at least **20 achievements** for initial generation
 - The AI will analyze your achievement descriptions, titles, and details
 - Workstreams will update automatically as you add new achievements
@@ -539,6 +568,7 @@ Send achievements directly to BragDoc via email. BragDoc has robust inbound emai
 ### Current Email Capabilities
 
 **Inbound Email Processing** (Fully Implemented):
+
 - Forward emails to BragDoc to capture achievements
 - AI automatically extracts achievement information from email content
 - Supports both plain text and HTML email formats
@@ -548,6 +578,7 @@ Send achievements directly to BragDoc via email. BragDoc has robust inbound emai
 
 **Outbound Emails** (Infrastructure in Place):
 The email infrastructure for sending summaries and notifications is built, but automatic outbound features are still being finalized:
+
 - Weekly/monthly achievement summaries (coming soon)
 - Performance review reminders (coming soon)
 - Manager update emails (planned)
@@ -561,6 +592,7 @@ Each user has a unique BragDoc email address for receiving achievements:
 Format: Varies by deployment, typically linked to your account
 
 Find your email address:
+
 1. Navigate to **Settings** > **Email Integration**
 2. Your unique BragDoc email address is displayed
 3. Click to copy to clipboard
@@ -570,6 +602,7 @@ Find your email address:
 Forward or compose emails to your BragDoc address:
 
 **Email Format:**
+
 ```
 To: your-unique-address@bragdoc.ai
 Subject: Completed new feature rollout
@@ -584,6 +617,7 @@ engagement by 25%.
 ```
 
 **What happens:**
+
 1. BragDoc receives your email
 2. AI analyzes the content
 3. Extracts achievement information:
@@ -606,21 +640,25 @@ BragDoc's AI understands various email formats:
 ### Tips for Email Achievements
 
 **Be Specific:**
+
 - Include clear achievement descriptions
 - Mention outcomes and impact
 - Provide context and metrics
 
 **Include Dates:**
+
 - Reference when work was completed
 - Mention project timelines
 - Use phrases like "last week" or "in Q4"
 
 **Reference Projects/Companies:**
+
 - Mention project names
 - Include company references
 - BragDoc will attempt to link automatically
 
 **Example Email:**
+
 ```
 Subject: Q4 2024 Backend API Refactoring Complete
 
@@ -653,6 +691,7 @@ Configure email settings:
 ### Unsubscribing
 
 Unsubscribe from BragDoc emails:
+
 - Click "Unsubscribe" link in any email
 - Or manage preferences in **Settings** > **Email Integration**
 
@@ -709,15 +748,18 @@ Manage connected services:
 ### Security
 
 #### Password Management
+
 - **Change Password**: Update your password
 - **Password Requirements**: Minimum 8 characters, must include numbers and symbols
 
 #### Two-Factor Authentication
+
 - **Enable 2FA**: Add extra security to your account
 - **Backup Codes**: Generate codes for account recovery
 - **Authenticator Apps**: Use Google Authenticator, Authy, etc.
 
 #### Active Sessions
+
 - **View Sessions**: See all logged-in devices
 - **Revoke Sessions**: Sign out of specific devices
 - **CLI Tokens**: Manage CLI authentication tokens
@@ -725,36 +767,44 @@ Manage connected services:
 ### Billing & Subscription
 
 #### Plan Information
+
 - **Current Plan**: Free, Pro, or Enterprise
 - **Usage**: Achievement count, document generations, storage
 - **Billing Cycle**: Monthly or annual
 
 #### Upgrade/Downgrade
+
 - **Change Plans**: Upgrade or downgrade your subscription
 - **Payment Method**: Update credit card information
 - **Billing History**: View past invoices
 
 #### Cancellation
+
 - **Cancel Subscription**: Downgrade to free plan
 - **Retention**: Your data remains accessible on free plan (with limits)
 
 ### Data Management
 
 #### Export Data
+
 Export all your data in JSON format:
+
 1. Go to **Settings** > **Data & Privacy**
 2. Click **"Export Data"**
 3. Receive download link via email
 4. Download ZIP file with all your data
 
 **Included in export:**
+
 - All achievements
 - Projects and companies
 - Documents
 - Configuration settings
 
 #### Delete Account
+
 Permanently delete your account and all data:
+
 1. Go to **Settings** > **Data & Privacy**
 2. Click **"Delete Account"**
 3. Confirm with password
@@ -767,6 +817,7 @@ Permanently delete your account and all data:
 Speed up your workflow with keyboard shortcuts:
 
 ### Global Shortcuts
+
 - `?` - Show keyboard shortcuts help
 - `/` - Focus search bar
 - `n` - Create new achievement
@@ -777,6 +828,7 @@ Speed up your workflow with keyboard shortcuts:
 - `g o` - Go to documents
 
 ### Achievement List
+
 - `j` - Select next achievement
 - `k` - Select previous achievement
 - `Enter` - Open selected achievement
@@ -784,6 +836,7 @@ Speed up your workflow with keyboard shortcuts:
 - `Delete` - Delete selected achievement
 
 ### Document Editor
+
 - `Cmd/Ctrl + S` - Save document
 - `Cmd/Ctrl + B` - Bold text
 - `Cmd/Ctrl + I` - Italic text

@@ -20,16 +20,18 @@ This command delegates to the Screenshotter agent to capture professional-qualit
 The specific page, feature, section, or CLI command to screenshot. Examples:
 
 **Web Application:**
+
 - `dashboard` - Main dashboard page
 - `achievements` - Achievements list page
 - `projects` - Projects page
-- `reports` - Reports/For My Manager page
+- `reports` - Reports page
 - `companies` - Companies page
 - `achievement-form` - Achievement creation form
 - `project-creation` - Project creation flow
 - `entire-app` - Multiple key pages across the app
 
 **Terminal/CLI:**
+
 - `terminal:bragdoc-login` - Terminal screenshot of `bragdoc login` command
 - `terminal:bragdoc-extract` - Terminal screenshot of `bragdoc extract` command
 - `terminal:bragdoc-repos-add` - Terminal screenshot of `bragdoc repos add` command
@@ -40,6 +42,7 @@ The specific page, feature, section, or CLI command to screenshot. Examples:
 
 **$2 - Options** (optional):
 Configuration for the screenshot session. Can be one or more of:
+
 - `empty` - Use empty demo account (zero state UI)
 - `populated` - Use populated demo account with sample data (default)
 - `multiple-views` - Capture multiple angles/states of the same feature
@@ -88,21 +91,25 @@ Configuration for the screenshot session. Can be one or more of:
 ## Screenshot Output
 
 **Web Application Screenshots** will be saved to:
+
 ```
 ./screenshots/[feature]-[state]-[timestamp].png
 ```
 
 Examples:
+
 - `./screenshots/dashboard-populated-2025-10-23-143022.png`
 - `./screenshots/achievements-empty-state-2025-10-23-143045.png`
 - `./screenshots/project-form-filled-2025-10-23-143102.png`
 
 **Terminal Screenshots** will be saved to:
+
 ```
 ./screenshots/terminal/[command-name].png
 ```
 
 Examples:
+
 - `./screenshots/terminal/bragdoc-login.png`
 - `./screenshots/terminal/bragdoc-extract.png`
 - `./screenshots/terminal/bragdoc-repos-add.png`
@@ -110,6 +117,7 @@ Examples:
 ## When to Use This Command
 
 **Use `/screenshot` when you need:**
+
 - Visual documentation for specs or plans
 - Screenshots for marketing or presentations
 - Before/after comparison images
@@ -121,6 +129,7 @@ Examples:
 - CLI workflow demonstrations
 
 **Don't use `/screenshot` for:**
+
 - Functional testing (use `/run-integration-tests` instead)
 - Debugging issues (invoke the browser-tester agent directly)
 - Code analysis (use read/grep tools)
@@ -148,6 +157,7 @@ This command constructs a detailed prompt for the Screenshotter agent based on y
 5. **Multiple commands**: Request separate screenshots for each command in a workflow
 
 **Example terminal screenshot requests:**
+
 - "Show bragdoc login with successful authentication message"
 - "Show bragdoc extract with output saying 'Found 42 commits, Extracted 8 achievements'"
 - "Show bragdoc repos add with success confirmation"
@@ -155,6 +165,7 @@ This command constructs a detailed prompt for the Screenshotter agent based on y
 ## Return Format
 
 After completion, you'll receive:
+
 - List of screenshot file paths
 - Brief description of what was captured
 - Any notable observations (e.g., UI issues spotted)
