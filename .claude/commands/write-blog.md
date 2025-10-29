@@ -13,10 +13,15 @@ Your task is to create a blog post on the given topic following blog-rules.md gu
 ### Topic (argument 1)
 
 The topic argument ($1) provides the blog post subject. This may include:
+
 - Topic or theme
 - Target audience
 - Key points to cover
 - Any specific requirements or constraints
+
+## Technical Docs
+
+All technical docs are in `.claude/docs/tech/`. You are expected to be an expert with all aspects of the product and the codebase. Any time you write about a given topic, you should first check to see if it is covered in the technical docs. If it is, you should use the technical docs as the source of truth.
 
 ## Your Task
 
@@ -27,6 +32,7 @@ Create a comprehensive blog post in `apps/marketing/content/blog/[slug].mdx` tha
 IMPORTANT: All blog posts must follow the guidelines in `.claude/docs/processes/blog-rules.md`. Read that file carefully.
 
 **Key Requirements:**
+
 1. **Tone**: Proud but not boastful, happy but not hard-sell, humble and service-focused
 2. **Style**: No emojis
 3. **Format**: MDX format with proper frontmatter
@@ -35,6 +41,7 @@ IMPORTANT: All blog posts must follow the guidelines in `.claude/docs/processes/
 ### Research Phase
 
 Before writing:
+
 1. Research existing blog content in `apps/marketing/content/blog/` for consistency
 2. Review similar topics we've covered
 3. Understand our brand voice from existing posts
@@ -43,6 +50,7 @@ Before writing:
 ### Content Structure
 
 Create blog posts with:
+
 - **Frontmatter**: title, description, date, author, tags
 - **Introduction**: Hook readers and set context
 - **Body**: Well-organized sections with clear headings
@@ -60,6 +68,7 @@ Create blog posts with:
 ### Slug Generation
 
 Create URL-friendly slugs:
+
 - Use lowercase with hyphens
 - Keep it concise (3-6 words ideal)
 - Include primary keyword
@@ -68,6 +77,7 @@ Create URL-friendly slugs:
 ## Gather Requirements
 
 If the topic ($1) needs clarification:
+
 - Ask about target audience
 - Understand key messages to convey
 - Identify any technical features to highlight

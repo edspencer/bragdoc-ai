@@ -145,26 +145,61 @@ cd bragdoc`}
                       </code>{' '}
                       file in the root directory with the following variables:
                     </p>
-                    <CodeBlock
-                      language="bash"
-                      code={`# Database
-DATABASE_URL="postgresql://user:password@host/database"
+                    <div className="space-y-4">
+                      <div>
+                        <h4 className="text-sm font-semibold mb-2">
+                          Required Variables
+                        </h4>
+                        <CodeBlock
+                          language="bash"
+                          code={`# Database
+POSTGRES_URL="postgresql://user:password@localhost:5432/bragdoc"
 
 # Authentication (see step 5)
-AUTH_SECRET="your-random-secret-key"
+BETTER_AUTH_SECRET="your-secret-key-here"
+BETTER_AUTH_URL="http://localhost:3000"
+
+# OAuth Providers (at least one required - see step 5)
 GOOGLE_CLIENT_ID="your-google-client-id"
 GOOGLE_CLIENT_SECRET="your-google-client-secret"
 # OR for GitHub auth:
 GITHUB_CLIENT_ID="your-github-client-id"
 GITHUB_CLIENT_SECRET="your-github-client-secret"
 
-# App Configuration
-NEXT_PUBLIC_APP_URL="http://localhost:3000"
+# Payment Integration (Open Source Mode)
+PAYMENT_TOKEN_REQUIRED="false"
 
-# Optional: LLM Configuration (for AI features)
-OPENAI_API_KEY="your-openai-api-key"
-# OR use local Ollama (no API key needed)`}
-                    />
+# App URLs
+NEXT_PUBLIC_APP_URL="http://localhost:3000"
+NEXT_PUBLIC_MARKETING_URL="http://localhost:3001"
+
+# AI Provider (at least one required for AI features)
+OPENAI_API_KEY="sk-..."`}
+                        />
+                      </div>
+
+                      <div>
+                        <h4 className="text-sm font-semibold mb-2">
+                          Optional Variables
+                        </h4>
+                        <CodeBlock
+                          language="bash"
+                          code={`# Demo Mode (for testing)
+DEMO_MODE_ENABLED="false"
+NEXT_PUBLIC_DEMO_MODE_ENABLED="false"`}
+                        />
+                      </div>
+
+                      <div className="p-4 rounded-lg bg-muted/50 border">
+                        <p className="text-sm text-muted-foreground">
+                          <strong>Note:</strong> For a minimal self-hosted
+                          setup, you only need the database, authentication, one
+                          OAuth provider, and one AI provider configured. All
+                          other variables are optional and can be added as
+                          needed.
+                        </p>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </CardContent>
@@ -269,12 +304,12 @@ OPENAI_API_KEY="your-openai-api-key"
                       <p className="text-sm text-muted-foreground">
                         For more details, see the{' '}
                         <a
-                          href="https://authjs.dev/getting-started/providers/oauth-tutorial"
+                          href="https://www.better-auth.com/docs/authentication/oauth"
                           target="_blank"
                           rel="noopener noreferrer"
                           className="text-primary hover:underline"
                         >
-                          Auth.js OAuth documentation
+                          Better Auth OAuth documentation
                         </a>
                       </p>
                     </div>
