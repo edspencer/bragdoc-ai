@@ -29,7 +29,7 @@
         "DATABASE_URL",
         "NEXTAUTH_SECRET",
         "PAYMENT_TOKEN_REQUIRED",
-        "APP_HOST",
+        "NEXT_PUBLIC_APP_HOST",
         "NEXT_PUBLIC_MARKETING_URL"
       ]
     },

@@ -22,7 +22,7 @@
     "binding": "ASSETS"
   },
   "vars": {
-    "APP_HOST": "https://app.bragdoc.ai",
+    "NEXT_PUBLIC_APP_HOST": "https://app.bragdoc.ai",
     "NEXT_PUBLIC_POSTHOG_ENABLED": "true",
     "NEXT_PUBLIC_POSTHOG_KEY": "phc_wbXgKzcMk9yFAwua34UXirXlGrkOIrdsfqJExTEOUYk",
     "NEXT_PUBLIC_POSTHOG_HOST": "https://us.i.posthog.com"

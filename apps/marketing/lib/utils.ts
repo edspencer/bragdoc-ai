@@ -11,7 +11,7 @@ export function cn(...inputs: ClassValue[]) {
  * @returns Full URL to the app (e.g., "https://app.bragdoc.ai/login")
  */
 export function appPath(path: string): string {
-  const host = process.env.APP_HOST || 'app.bragdoc.ai';
+  const host = process.env.NEXT_PUBLIC_APP_HOST || 'app.bragdoc.ai';
   // Ensure we have https:// prefix
   const baseUrl = host.startsWith('http') ? host : `https://${host}`;
   // Remove trailing slash from base and leading slash from path to avoid double slashes
