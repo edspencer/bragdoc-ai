@@ -6,9 +6,9 @@ import {
   IconDashboard,
   IconBuilding,
   IconSettings,
-  IconStar,
 } from '@tabler/icons-react';
 import { useSession } from '@/lib/better-auth/client';
+import Image from 'next/image';
 
 import { NavCareers } from '@/components/nav-careers';
 import { NavMain } from '@/components/nav-main';
@@ -99,7 +99,13 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
               className="data-[slot=sidebar-menu-button]:!p-1.5"
             >
               <a href="/dashboard" onClick={handleLogoClick}>
-                <IconStar className="!size-5 fill-primary text-primary" />
+                <Image
+                  src="/icon.svg"
+                  alt="BragDoc"
+                  width={20}
+                  height={20}
+                  className="!size-5"
+                />
                 <span className="text-base font-semibold">BragDoc</span>
               </a>
             </SidebarMenuButton>

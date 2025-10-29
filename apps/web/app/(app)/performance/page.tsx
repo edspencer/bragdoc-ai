@@ -20,7 +20,7 @@ export default async function PerformancePage() {
   return (
     <AppPage>
       <SidebarInset>
-        <SiteHeader />
+        <SiteHeader title="Performance Review" />
         <div className="flex flex-1 flex-col gap-4 p-4 md:p-6">
           <div className="flex items-center justify-center min-h-[400px]">
             <div className="text-center max-w-md space-y-4">

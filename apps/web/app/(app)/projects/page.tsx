@@ -1,7 +1,7 @@
 'use client';
 
 import * as React from 'react';
-import { IconFolderCode, IconPlus } from '@tabler/icons-react';
+import { IconPlus } from '@tabler/icons-react';
 
 import { Button } from '@/components/ui/button';
 import { ProjectsTable } from '@/components/projects-table';
@@ -17,6 +17,7 @@ import {
 import { useCompanies } from '@/hooks/use-companies';
 import type { ProjectWithCompany } from '@/database/projects/queries';
 import { AppPage } from '@/components/shared/app-page';
+import { AppContent } from '@/components/shared/app-content';
 
 export default function ProjectsPage() {
   const { projects, isLoading: projectsLoading } = useProjects();
@@ -66,34 +67,20 @@ export default function ProjectsPage() {
   return (
     <AppPage>
       <SidebarInset>
-        <SiteHeader title="Projects" />
-        <div className="flex flex-1 flex-col">
-          <div className="@container/main flex flex-1 flex-col gap-2">
-            <div className="flex flex-col gap-6 p-6">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="flex size-10 items-center justify-center rounded-lg bg-primary/10">
-                    <IconFolderCode className="size-5 text-primary" />
-                  </div>
-                  <p className="text-muted-foreground text-sm">
-                    Manage your projects and track your work
-                  </p>
-                </div>
-                <Button onClick={handleAddProject}>
-                  <IconPlus className="size-4" />
-                  Add Project
-                </Button>
-              </div>
-
-              <ProjectsTable
-                data={projects}
-                onEdit={handleEditProject}
-                onDelete={handleDeleteProject}
-                isLoading={projectsLoading}
-              />
-            </div>
-          </div>
-        </div>
+        <SiteHeader title="Projects">
+          <Button onClick={handleAddProject}>
+            <IconPlus className="size-4" />
+            <span className="hidden lg:inline">Add Project</span>
+          </Button>
+        </SiteHeader>
+        <AppContent>
+          <ProjectsTable
+            data={projects}
+            onEdit={handleEditProject}
+            onDelete={handleDeleteProject}
+            isLoading={projectsLoading}
+          />
+        </AppContent>
       </SidebarInset>
 
       <ProjectDialog

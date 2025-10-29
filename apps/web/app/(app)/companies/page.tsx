@@ -1,7 +1,7 @@
 'use client';
 
 import * as React from 'react';
-import { IconBuilding, IconPlus } from '@tabler/icons-react';
+import { IconPlus } from '@tabler/icons-react';
 import type { Company } from '@/database/schema';
 
 import { Button } from 'components/ui/button';
@@ -16,6 +16,7 @@ import {
   useDeleteCompany,
 } from '@/hooks/use-companies';
 import { AppPage } from '@/components/shared/app-page';
+import { AppContent } from '@/components/shared/app-content';
 
 export default function CompaniesPage() {
   const { companies, isLoading } = useCompanies();
@@ -73,34 +74,20 @@ export default function CompaniesPage() {
   return (
     <AppPage>
       <SidebarInset>
-        <SiteHeader title="Companies" />
-        <div className="flex flex-1 flex-col">
-          <div className="@container/main flex flex-1 flex-col gap-2">
-            <div className="flex flex-col gap-6 p-6">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="flex size-10 items-center justify-center rounded-lg bg-primary/10">
-                    <IconBuilding className="size-5 text-primary" />
-                  </div>
-                  <p className="text-muted-foreground text-sm">
-                    Manage the companies you&apos;ve worked for
-                  </p>
-                </div>
-                <Button onClick={handleAddCompany}>
-                  <IconPlus className="size-4" />
-                  Add Company
-                </Button>
-              </div>
-
-              <CompaniesTable
-                data={companies || []}
-                onEdit={handleEditCompany}
-                onDelete={handleDeleteCompany}
-                isLoading={isLoading}
-              />
-            </div>
-          </div>
-        </div>
+        <SiteHeader title="Companies">
+          <Button onClick={handleAddCompany}>
+            <IconPlus className="size-4" />
+            <span className="hidden lg:inline">Add Company</span>
+          </Button>
+        </SiteHeader>
+        <AppContent>
+          <CompaniesTable
+            data={companies || []}
+            onEdit={handleEditCompany}
+            onDelete={handleDeleteCompany}
+            isLoading={isLoading}
+          />
+        </AppContent>
       </SidebarInset>
       <CompanyDialog
         open={dialogOpen}

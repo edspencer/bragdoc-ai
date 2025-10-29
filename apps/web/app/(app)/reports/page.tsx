@@ -7,6 +7,9 @@ import { eq, desc } from 'drizzle-orm';
 import { ReportsTable } from './reports-table';
 import { SidebarInset } from '@/components/ui/sidebar';
 import { AppPage } from 'components/shared/app-page';
+import { SiteHeader } from '@/components/site-header';
+import { AppContent } from '@/components/shared/app-content';
+import { ReportActions } from './report-actions';
 
 export default async function ReportsPage() {
   const session = await auth.api.getSession({
@@ -62,7 +65,12 @@ export default async function ReportsPage() {
   return (
     <AppPage>
       <SidebarInset>
-        <ReportsTable initialDocuments={documents} companies={companies} />
+        <SiteHeader title="For My Manager">
+          <ReportActions />
+        </SiteHeader>
+        <AppContent>
+          <ReportsTable initialDocuments={documents} companies={companies} />
+        </AppContent>
       </SidebarInset>
     </AppPage>
   );
