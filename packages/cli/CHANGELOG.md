@@ -1,5 +1,11 @@
 # @bragdoc/cli
 
+## 1.1.1
+
+### Patch Changes
+
+- e534144: Fix CLI build error
+
 ## 1.1.0
 
 ### Minor Changes
