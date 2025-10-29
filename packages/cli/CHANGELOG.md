@@ -1,5 +1,11 @@
 # @bragdoc/cli
 
+## 1.1.2
+
+### Patch Changes
+
+- e9b2f4b: Postinstall message
+
 ## 1.1.1
 
 ### Patch Changes
