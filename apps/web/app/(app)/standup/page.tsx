@@ -28,7 +28,7 @@ export default async function StandupPage() {
   return (
     <AppPage>
       <SidebarInset>
-        <SiteHeader />
+        <SiteHeader title="Stand Up" />
         {!standup ? (
           <StandupZeroState />
         ) : (

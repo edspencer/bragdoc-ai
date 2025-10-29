@@ -162,6 +162,401 @@ export function AchievementForm() {
 
 **Example Implementation:** See `apps/web/components/reports/edit-report-metadata-dialog.tsx` and usage in `report-detail-view.tsx`
 
+## Mobile Navigation Pattern
+
+### SiteHeader Requirement
+
+All pages in the authenticated app (`(app)` route group) MUST include the `SiteHeader` component to ensure mobile users can access navigation. The `SiteHeader` component provides:
+
+- Sidebar toggle button (hamburger menu) for mobile navigation
+- Consistent page title display
+- GitHub link (desktop only)
+
+**Critical:** Without `SiteHeader`, mobile users have NO way to access the sidebar navigation since it's hidden by default on mobile screens.
+
+### Standard Page Structure
+
+All authenticated app pages follow this structure using the `AppContent` wrapper component for consistent spacing:
+
+```tsx
+import { AppPage } from '@/components/shared/app-page';
+import { SidebarInset } from '@/components/ui/sidebar';
+import { SiteHeader } from '@/components/site-header';
+import { AppContent } from '@/components/shared/app-content';
+
+export default function YourPage() {
+  return (
+    <AppPage>
+      <SidebarInset>
+        <SiteHeader title="Your Page Title" />
+        <AppContent>
+          {/* Page content with automatic responsive spacing */}
+        </AppContent>
+      </SidebarInset>
+    </AppPage>
+  );
+}
+```
+
+**AppContent Component:**
+- **Location:** `apps/web/components/shared/app-content.tsx`
+- **Purpose:** Provides consistent responsive padding and gap spacing for page content
+- **Mobile spacing:** `p-2` and `gap-2` (< lg breakpoint)
+- **Desktop spacing:** `p-6` and `gap-6` (lg+ breakpoint)
+- **Structure:** Wraps content with flex layout and container queries
+
+### Key Principles
+
+- **Always include SiteHeader**: Every app page needs it for mobile navigation
+- **Pass explicit title**: Don't rely on the default "Achievement Dashboard" title
+- **Position first**: `SiteHeader` should be the first child of `SidebarInset`
+- **Avoid redundant headers**: Don't duplicate the page title in the content area
+
+### Component Props
+
+```typescript
+interface SiteHeaderProps {
+  title?: string; // Default: "Achievement Dashboard"
+}
+```
+
+### Example: Standard Page with Actions
+
+When adding `SiteHeader` with action buttons:
+
+```tsx
+<SidebarInset>
+  <SiteHeader title="Companies">
+    <Button onClick={handleAddCompany}>
+      <IconPlus className="size-4" />
+      <span className="hidden lg:inline">Add Company</span>
+    </Button>
+  </SiteHeader>
+  <AppContent>
+    <CompaniesTable data={companies} />
+  </AppContent>
+</SidebarInset>
+```
+
+**Guidelines:**
+- Remove any duplicate `<h1>` titles (provided by `SiteHeader`)
+- Use `AppContent` wrapper for consistent responsive spacing (no need for manual `p-6 gap-6`)
+- Pass action buttons as children to `SiteHeader`
+- Follow responsive button patterns for mobile vs. desktop display (see below)
+
+## Responsive Spacing Convention
+
+BragDoc uses a mobile-first responsive spacing convention throughout the app:
+
+### Spacing Standards
+
+- **Mobile (< lg breakpoint):** Use `p-2` and `gap-2` for padding and gaps
+- **Desktop (lg+ breakpoint):** Use `p-6` and `gap-6` for padding and gaps
+- **Tailwind classes:** `p-2 lg:p-6` and `gap-2 lg:gap-6`
+
+### AppContent Implementation
+
+The `AppContent` component automatically handles page-level spacing:
+
+```tsx
+// apps/web/components/shared/app-content.tsx
+export function AppContent({ children, className }: { children: React.ReactNode; className?: string }) {
+  return (
+    <div className="flex flex-1 flex-col">
+      <div className="@container/main flex flex-1 flex-col gap-2">
+        <div className={cn('flex flex-col gap-2 p-2 md:p-6 md:gap-6', className)}>
+          {children}
+        </div>
+      </div>
+    </div>
+  );
+}
+```
+
+**Note:** `AppContent` uses `md:` breakpoint for padding to provide intermediate tablet sizing, but `gap-2` remains until `md:gap-6` for consistency.
+
+### Component-Level Responsive Spacing
+
+For components that need custom responsive spacing (not using `AppContent`):
+
+```tsx
+// Manual responsive spacing in components
+<div className="flex flex-col gap-2 p-2 lg:gap-6 lg:p-6">
+  {/* Component content */}
+</div>
+
+// Responsive grid gaps
+<div className="grid grid-cols-1 md:grid-cols-2 gap-2 lg:gap-6">
+  {/* Grid items */}
+</div>
+```
+
+### When to Use Manual Spacing
+
+Use manual responsive spacing when:
+- Building reusable components with internal spacing
+- Creating layouts within dialogs or cards
+- Implementing custom grid layouts
+- Overriding default `AppContent` spacing (pass custom `className`)
+
+**Always prefer `AppContent` for page-level content** to maintain consistency.
+
+## Responsive Button Patterns
+
+Action buttons in page headers (passed as `SiteHeader` children) follow responsive patterns for optimal mobile experience.
+
+### Pattern 1: Icon-Only on Mobile, Full Button on Desktop
+
+For single action buttons:
+
+```tsx
+<SiteHeader title="Companies">
+  <Button onClick={handleAddCompany}>
+    <IconPlus className="size-4" />
+    <span className="hidden lg:inline">Add Company</span>
+  </Button>
+</SiteHeader>
+```
+
+**Behavior:**
+- **Mobile (< lg):** Shows icon only
+- **Desktop (lg+):** Shows icon + "Add Company" text
+
+### Pattern 2: Dropdown Menu on Mobile, Multiple Buttons on Desktop
+
+For multiple action buttons:
+
+```tsx
+<SiteHeader title="Reports">
+  <ReportActions />
+</SiteHeader>
+
+// apps/web/app/(app)/reports/report-actions.tsx
+export function ReportActions() {
+  return (
+    <>
+      {/* Desktop: Show all buttons */}
+      <div className="hidden lg:flex gap-2">
+        <Button asChild>
+          <Link href="/reports/new/weekly">
+            <IconPlus className="size-4" />
+            Weekly
+          </Link>
+        </Button>
+        <Button asChild variant="outline">
+          <Link href="/reports/new/monthly">
+            <IconPlus className="size-4" />
+            Monthly
+          </Link>
+        </Button>
+        <Button asChild variant="outline">
+          <Link href="/reports/new/custom">
+            <IconPlus className="size-4" />
+            Custom
+          </Link>
+        </Button>
+      </div>
+
+      {/* Mobile: Show dropdown */}
+      <div className="lg:hidden">
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button size="icon">
+              <IconPlus className="size-4" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuItem asChild>
+              <Link href="/reports/new/weekly">Weekly Report</Link>
+            </DropdownMenuItem>
+            <DropdownMenuItem asChild>
+              <Link href="/reports/new/monthly">Monthly Report</Link>
+            </DropdownMenuItem>
+            <DropdownMenuItem asChild>
+              <Link href="/reports/new/custom">Custom Report</Link>
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </div>
+    </>
+  );
+}
+```
+
+**Behavior:**
+- **Mobile (< lg):** Shows single icon button that opens dropdown menu
+- **Desktop (lg+):** Shows all three buttons side-by-side
+
+### Pattern 3: Icon-Only for Secondary Actions
+
+For detail page secondary actions:
+
+```tsx
+<SiteHeader title={project.name}>
+  {/* Desktop: full button */}
+  <Button className="hidden lg:flex" onClick={handleEdit}>
+    <IconEdit className="size-4" />
+    Edit Project
+  </Button>
+
+  {/* Mobile: icon only */}
+  <Button size="icon" className="lg:hidden" onClick={handleEdit}>
+    <IconEdit className="size-4" />
+  </Button>
+</SiteHeader>
+```
+
+**Behavior:**
+- **Mobile (< lg):** Shows icon-only button
+- **Desktop (lg+):** Shows full button with text
+
+### Guidelines
+
+- **Use `lg` breakpoint** for button text visibility (1024px+)
+- **Icon size:** Always use `size-4` for consistency
+- **Button variants:** Primary action uses default, secondary uses `outline`
+- **Dropdown alignment:** Use `align="end"` to align with trigger button
+- **Multiple actions:** Use dropdown menu on mobile when > 2 actions
+- **Single action:** Use text hide/show pattern for single buttons
+
+## Stat Component Pattern
+
+The `Stat` component provides a reusable card format for displaying statistical information with consistent styling.
+
+### Component Location
+
+**File:** `apps/web/components/shared/stat.tsx`
+
+### Usage
+
+```tsx
+import { Stat } from '@/components/shared/stat';
+import { IconTarget } from '@tabler/icons-react';
+
+<Stat
+  label="Total Achievements"
+  value={84}
+  badge={{
+    icon: <IconTarget className="size-3" />,
+    label: 'All Time',
+  }}
+  footerHeading={{
+    text: 'Your career highlights',
+    icon: <IconTarget className="size-4" />,
+  }}
+  footerDescription="Click to view all achievements"
+  clickable
+/>
+```
+
+### Props
+
+```typescript
+interface StatProps {
+  /** The label/description shown above the value */
+  label: string;
+  /** The main stat value to display */
+  value: string | number;
+  /** Badge content (icon + text) - hidden on mobile (< md) */
+  badge?: {
+    icon: React.ReactNode;
+    label: string;
+  };
+  /** Footer heading with optional icon */
+  footerHeading?: {
+    text: string;
+    icon?: React.ReactNode;
+  };
+  /** Footer description text */
+  footerDescription?: string;
+  /** Additional className for the card */
+  className?: string;
+  /** If true, adds hover effects for clickable stats */
+  clickable?: boolean;
+}
+```
+
+### Features
+
+- **Built-in styling:** Gradient background (`from-primary/5 to-card`) and shadow
+- **Responsive typography:** Value scales from `text-2xl` to `text-3xl` at 250px container width
+- **Mobile-responsive badges:** Hidden on `< md` breakpoint to save space
+- **Clickable variant:** Optional hover effects with `cursor-pointer transition-colors hover:bg-muted/50`
+- **Container queries:** Uses `@container/card` for responsive sizing
+- **Optional sections:** Badge, footer heading, and footer description are all optional
+
+### Usage Examples
+
+#### Basic Stat
+
+```tsx
+<Stat
+  label="Total Projects"
+  value={12}
+/>
+```
+
+#### Clickable Stat with Link
+
+```tsx
+<Link href="/achievements">
+  <Stat
+    label="Total Achievements"
+    value={84}
+    clickable
+  />
+</Link>
+```
+
+#### Stat with All Features
+
+```tsx
+<Stat
+  label="Achievements This Month"
+  value={15}
+  badge={{
+    icon: <IconTrendingUp className="size-3" />,
+    label: '+20%',
+  }}
+  footerHeading={{
+    text: 'Great progress',
+    icon: <IconSparkles className="size-4" />,
+  }}
+  footerDescription="Keep up the momentum"
+/>
+```
+
+#### Stat Grid Layout
+
+```tsx
+<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2 lg:gap-6">
+  <Link href="/achievements">
+    <Stat label="Total Achievements" value={achievements.total} clickable />
+  </Link>
+  <Link href="/projects">
+    <Stat label="Active Projects" value={projects.active} clickable />
+  </Link>
+  <Link href="/reports">
+    <Stat label="Reports Generated" value={reports.count} clickable />
+  </Link>
+</div>
+```
+
+### Design Guidelines
+
+- **Use for dashboard metrics:** Achievement counts, project stats, document counts
+- **Use for detail page stats:** Project achievement count, date ranges, status info
+- **Wrap with Link:** Make stats clickable navigation elements when appropriate
+- **Grid layouts:** Use responsive grid with matching gap spacing (gap-2 lg:gap-6)
+- **Badge icons:** Use size-3 for badge icons, size-4 for footer heading icons
+- **Value formatting:** Use numbers for counts, strings for formatted values (e.g., "$1,234")
+
+### Current Usage
+
+- **Dashboard page:** Achievement stats via `AchievementStats` component
+- **Project details page:** Project-specific achievement statistics
+- **Potential usage:** Companies page, reports page, any page with metrics
+
 ## Directory Structure
 
 ```
@@ -389,15 +784,45 @@ export function AchievementCard({ achievement, project }: AchievementCardProps) 
 
 ## Responsive Design
 
+BragDoc follows mobile-first responsive patterns with consistent spacing conventions (see Responsive Spacing Convention section).
+
+### Grid Layouts
+
 ```tsx
-<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-  {/* Cards */}
+// Responsive grid with consistent gap spacing
+<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2 lg:gap-6">
+  <Stat label="Total" value={100} />
+  <Stat label="Active" value={45} />
+  <Stat label="Completed" value={55} />
 </div>
 
-<div className="flex flex-col md:flex-row gap-4">
-  {/* Sidebar + Content */}
+// Two-column responsive grid
+<div className="grid grid-cols-1 md:grid-cols-2 gap-2 lg:gap-6">
+  {/* Cards */}
 </div>
 ```
+
+### Flex Layouts
+
+```tsx
+// Vertical to horizontal responsive layout
+<div className="flex flex-col md:flex-row gap-2 lg:gap-6">
+  {/* Sidebar + Content */}
+</div>
+
+// Responsive wrapping with consistent gaps
+<div className="flex flex-wrap gap-2 lg:gap-4">
+  {/* Items */}
+</div>
+```
+
+### Breakpoint Usage
+
+- **Mobile-first:** Default styles target mobile, use responsive variants to adapt upward
+- **Key breakpoints:**
+  - `md:` (768px) - Tablet layout changes
+  - `lg:` (1024px) - Desktop layout and spacing increases
+- **Spacing convention:** `gap-2 lg:gap-6` and `p-2 lg:p-6` (or `md:p-6` for padding)
 
 ## Dark Mode
 
@@ -1813,6 +2238,6 @@ For comprehensive SEO documentation including metadata patterns, schema.org stru
 
 ---
 
-**Last Updated:** 2025-10-27 (Beta messaging patterns, PostHog analytics integration patterns)
+**Last Updated:** 2025-10-29 (AppContent wrapper pattern, responsive spacing conventions, Stat component, responsive button patterns)
 **Next.js:** 16.0.0
 **React:** 19.2.0

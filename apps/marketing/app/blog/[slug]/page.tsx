@@ -13,8 +13,11 @@ import { BlogPostingSchema } from '@/components/structured-data/blog-posting-sch
 
 export async function generateMetadata({
   params,
-}: { params: { slug: string } }): Promise<Metadata> {
-  const post = getPostBySlug(params.slug);
+}: {
+  params: Promise<{ slug: string }>;
+}): Promise<Metadata> {
+  const { slug } = await params;
+  const post = getPostBySlug(slug);
 
   if (!post) {
     return {
@@ -50,8 +53,13 @@ export async function generateStaticParams() {
   }));
 }
 
-export default function BlogPostPage({ params }: { params: { slug: string } }) {
-  const post = getPostBySlug(params.slug);
+export default async function BlogPostPage({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
+}) {
+  const { slug } = await params;
+  const post = getPostBySlug(slug);
 
   if (!post) {
     notFound();
@@ -61,8 +69,8 @@ export default function BlogPostPage({ params }: { params: { slug: string } }) {
     <>
       <BlogPostingSchema post={post} />
       <Header />
-      <main className="min-h-screen">
-        <article className="py-12 px-4">
+      <main className="min-h-screen pt-24 pb-12">
+        <article className="px-4">
           <div className="container mx-auto max-w-3xl">
             {/* Back Button */}
             <Link href="/blog">

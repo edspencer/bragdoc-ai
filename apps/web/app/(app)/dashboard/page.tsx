@@ -4,6 +4,7 @@ import { ClientDashboardContent } from '@/components/client-dashboard-content';
 import { SiteHeader } from '@/components/site-header';
 import { SidebarInset } from '@/components/ui/sidebar';
 import { AppPage } from '@/components/shared/app-page';
+import { AppContent } from '@/components/shared/app-content';
 import { auth } from '@/lib/better-auth/server';
 import { headers } from 'next/headers';
 import { getAchievementStats } from '@bragdoc/database';
@@ -29,18 +30,14 @@ export default async function Page() {
     <AppPage>
       <SidebarInset>
         <SiteHeader />
-        <div className="flex flex-1 flex-col">
-          <div className="@container/main flex flex-1 flex-col gap-2">
-            {hasNoAchievements ? (
-              <DashboardZeroState />
-            ) : (
-              <div className="flex flex-col gap-4 py-4 md:gap-6 md:py-6">
-                <AchievementStats />
-                <ClientDashboardContent />
-              </div>
-            )}
-          </div>
-        </div>
+        {hasNoAchievements ? (
+          <DashboardZeroState />
+        ) : (
+          <AppContent>
+            <AchievementStats />
+            <ClientDashboardContent />
+          </AppContent>
+        )}
       </SidebarInset>
     </AppPage>
   );

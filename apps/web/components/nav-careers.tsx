@@ -14,16 +14,25 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
+  useSidebar,
 } from '@/components/ui/sidebar';
 
 export function NavCareers() {
+  const { isMobile, setOpenMobile } = useSidebar();
+
+  const handleLinkClick = () => {
+    if (isMobile) {
+      setOpenMobile(false);
+    }
+  };
+
   return (
     <SidebarGroup className="group-data-[collapsible=icon]:hidden">
       <SidebarGroupLabel>Careers</SidebarGroupLabel>
       <SidebarMenu>
         <SidebarMenuItem>
           <SidebarMenuButton asChild>
-            <Link href="/standup">
+            <Link href="/standup" onClick={handleLinkClick}>
               <IconUsers />
               <span>Standup</span>
             </Link>
@@ -31,7 +40,7 @@ export function NavCareers() {
         </SidebarMenuItem>
         <SidebarMenuItem>
           <SidebarMenuButton asChild>
-            <Link href="/reports">
+            <Link href="/reports" onClick={handleLinkClick}>
               <IconUserCheck />
               <span>For my manager</span>
             </Link>
@@ -39,7 +48,7 @@ export function NavCareers() {
         </SidebarMenuItem>
         <SidebarMenuItem>
           <SidebarMenuButton asChild>
-            <Link href="/performance">
+            <Link href="/performance" onClick={handleLinkClick}>
               <IconTrophy />
               <span>Performance Review</span>
             </Link>
@@ -47,7 +56,7 @@ export function NavCareers() {
         </SidebarMenuItem>
         <SidebarMenuItem>
           <SidebarMenuButton asChild>
-            <Link href="/workstreams">
+            <Link href="/workstreams" onClick={handleLinkClick}>
               <IconNetwork />
               <span>Workstreams</span>
             </Link>

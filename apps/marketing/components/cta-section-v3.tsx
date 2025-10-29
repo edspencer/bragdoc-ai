@@ -78,7 +78,7 @@ export function CTASectionV3() {
             <span className="font-semibold text-sm">Quick Install</span>
           </div>
           <div className="bg-background rounded-lg p-4 font-mono text-sm border">
-            <code>npm install -g bragdoc-cli</code>
+            <code>npm install -g @bragdoc/cli</code>
           </div>
           <p className="text-sm text-muted-foreground text-center mt-3">
             Or{' '}

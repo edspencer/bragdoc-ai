@@ -42,6 +42,7 @@ import {
 import { Checkbox } from '@/components/ui/checkbox';
 import { SidebarInset } from '@/components/ui/sidebar';
 import { AppPage } from 'components/shared/app-page';
+import { AppContent } from '@/components/shared/app-content';
 import Link from 'next/link';
 
 interface Achievement {
@@ -300,231 +301,226 @@ export default function NewReportPage() {
   return (
     <AppPage>
       <SidebarInset>
-        <div className="flex flex-1 flex-col">
-          <div className="@container/main flex flex-1 flex-col gap-2">
-            <div className="flex flex-col gap-6 p-6">
-              {/* Header */}
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <Button variant="ghost" size="icon" asChild>
-                    <Link href="/reports">
-                      <IconArrowLeft className="size-5" />
-                    </Link>
-                  </Button>
-                  <div className="flex size-10 items-center justify-center rounded-lg bg-primary/10">
-                    <IconUserCheck className="size-5 text-primary" />
-                  </div>
-                  <div>
-                    <h1 className="text-2xl font-semibold">
-                      {getTitleForType(type)}
-                    </h1>
-                    <p className="text-muted-foreground text-sm">
-                      Customize instructions and select achievements for your
-                      report
-                    </p>
-                  </div>
-                </div>
+        <AppContent>
+          {/* Header */}
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <Button variant="ghost" size="icon" asChild>
+                <Link href="/reports">
+                  <IconArrowLeft className="size-5" />
+                </Link>
+              </Button>
+              <div className="flex size-10 items-center justify-center rounded-lg bg-primary/10">
+                <IconUserCheck className="size-5 text-primary" />
               </div>
-
-              {isLoading ? (
-                <div className="flex items-center justify-center py-12">
-                  <IconLoader2 className="size-8 animate-spin text-muted-foreground" />
-                </div>
-              ) : (
-                <>
-                  {/* Instructions Editor */}
-                  <Card>
-                    <CardHeader>
-                      <CardTitle>Generation Instructions</CardTitle>
-                      <CardDescription>
-                        Customize how the AI should write your report. Changes
-                        will be saved for future reports.
-                      </CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                      <Textarea
-                        value={userInstructions}
-                        onChange={(e) => setUserInstructions(e.target.value)}
-                        className="min-h-[120px]"
-                        placeholder="Enter instructions for the AI..."
-                      />
-                    </CardContent>
-                  </Card>
-
-                  {/* Achievements Selection */}
-                  <Card>
-                    <CardHeader>
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <CardTitle>Select Achievements</CardTitle>
-                          <CardDescription>
-                            Choose which achievements to include in your report
-                            ({selectedAchievements.length} selected)
-                          </CardDescription>
-                        </div>
-                        <Button
-                          onClick={handleGenerate}
-                          disabled={
-                            isGenerating || selectedAchievements.length === 0
-                          }
-                        >
-                          {isGenerating ? (
-                            <>
-                              <IconLoader2 className="size-4 animate-spin" />
-                              Generating...
-                            </>
-                          ) : (
-                            <>
-                              <IconSparkles className="size-4" />
-                              Generate Report
-                            </>
-                          )}
-                        </Button>
-                      </div>
-
-                      {/* Filters */}
-                      <div className="flex flex-wrap gap-4 pt-4">
-                        <Select
-                          value={selectedProject}
-                          onValueChange={setSelectedProject}
-                        >
-                          <SelectTrigger className="w-[180px]">
-                            <SelectValue placeholder="All Projects" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="all">All Projects</SelectItem>
-                            {projects.map((project) => (
-                              <SelectItem key={project.id} value={project.id}>
-                                {project.name}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-
-                        <Select
-                          value={selectedCompany}
-                          onValueChange={setSelectedCompany}
-                        >
-                          <SelectTrigger className="w-[180px]">
-                            <SelectValue placeholder="All Companies" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="all">All Companies</SelectItem>
-                            {companies.map((company) => (
-                              <SelectItem key={company.id} value={company.id}>
-                                {company.name}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </div>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="overflow-hidden rounded-lg border">
-                        <Table>
-                          <TableHeader className="bg-muted">
-                            <TableRow>
-                              <TableHead className="w-12">
-                                <Checkbox
-                                  checked={allSelected}
-                                  onCheckedChange={handleSelectAll}
-                                  aria-label="Select all achievements"
-                                />
-                              </TableHead>
-                              <TableHead>Achievement</TableHead>
-                              <TableHead>Project</TableHead>
-                              <TableHead>Company</TableHead>
-                              <TableHead>Impact</TableHead>
-                            </TableRow>
-                          </TableHeader>
-                          <TableBody>
-                            {filteredAchievements.length === 0 ? (
-                              <TableRow>
-                                <TableCell
-                                  colSpan={5}
-                                  className="text-center text-muted-foreground py-8"
-                                >
-                                  No achievements found for this time period
-                                </TableCell>
-                              </TableRow>
-                            ) : (
-                              filteredAchievements.map((achievement) => (
-                                <TableRow key={achievement.id}>
-                                  <TableCell>
-                                    <Checkbox
-                                      checked={selectedAchievements.includes(
-                                        achievement.id,
-                                      )}
-                                      onCheckedChange={(checked) =>
-                                        handleSelectAchievement(
-                                          achievement.id,
-                                          checked as boolean,
-                                        )
-                                      }
-                                      aria-label={`Select ${achievement.title}`}
-                                    />
-                                  </TableCell>
-                                  <TableCell className="max-w-xs">
-                                    <div className="flex flex-col gap-1">
-                                      <div className="font-medium line-clamp-2">
-                                        {achievement.title}
-                                      </div>
-                                      {achievement.summary && (
-                                        <div className="text-sm text-muted-foreground line-clamp-1">
-                                          {achievement.summary}
-                                        </div>
-                                      )}
-                                    </div>
-                                  </TableCell>
-                                  <TableCell>
-                                    {achievement.project ? (
-                                      <div className="flex items-center gap-2">
-                                        <IconFolder className="size-4 text-muted-foreground" />
-                                        <span className="text-sm">
-                                          {achievement.project.name}
-                                        </span>
-                                      </div>
-                                    ) : (
-                                      <span className="text-sm text-muted-foreground">
-                                        No project
-                                      </span>
-                                    )}
-                                  </TableCell>
-                                  <TableCell>
-                                    {achievement.company ? (
-                                      <div className="flex items-center gap-2">
-                                        <IconBuilding className="size-4 text-muted-foreground" />
-                                        <span className="text-sm">
-                                          {achievement.company.name}
-                                        </span>
-                                      </div>
-                                    ) : (
-                                      <span className="text-sm text-muted-foreground">
-                                        No company
-                                      </span>
-                                    )}
-                                  </TableCell>
-                                  <TableCell>
-                                    <div className="flex items-center gap-2">
-                                      <StarRating rating={achievement.impact} />
-                                      <span className="text-sm text-muted-foreground">
-                                        {achievement.impact}/10
-                                      </span>
-                                    </div>
-                                  </TableCell>
-                                </TableRow>
-                              ))
-                            )}
-                          </TableBody>
-                        </Table>
-                      </div>
-                    </CardContent>
-                  </Card>
-                </>
-              )}
+              <div>
+                <h1 className="text-2xl font-semibold">
+                  {getTitleForType(type)}
+                </h1>
+                <p className="text-muted-foreground text-sm">
+                  Customize instructions and select achievements for your report
+                </p>
+              </div>
             </div>
           </div>
-        </div>
+
+          {isLoading ? (
+            <div className="flex items-center justify-center py-12">
+              <IconLoader2 className="size-8 animate-spin text-muted-foreground" />
+            </div>
+          ) : (
+            <>
+              {/* Instructions Editor */}
+              <Card>
+                <CardHeader>
+                  <CardTitle>Generation Instructions</CardTitle>
+                  <CardDescription>
+                    Customize how the AI should write your report. Changes will
+                    be saved for future reports.
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <Textarea
+                    value={userInstructions}
+                    onChange={(e) => setUserInstructions(e.target.value)}
+                    className="min-h-[120px]"
+                    placeholder="Enter instructions for the AI..."
+                  />
+                </CardContent>
+              </Card>
+
+              {/* Achievements Selection */}
+              <Card>
+                <CardHeader>
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <CardTitle>Select Achievements</CardTitle>
+                      <CardDescription>
+                        Choose which achievements to include in your report (
+                        {selectedAchievements.length} selected)
+                      </CardDescription>
+                    </div>
+                    <Button
+                      onClick={handleGenerate}
+                      disabled={
+                        isGenerating || selectedAchievements.length === 0
+                      }
+                    >
+                      {isGenerating ? (
+                        <>
+                          <IconLoader2 className="size-4 animate-spin" />
+                          Generating...
+                        </>
+                      ) : (
+                        <>
+                          <IconSparkles className="size-4" />
+                          Generate Report
+                        </>
+                      )}
+                    </Button>
+                  </div>
+
+                  {/* Filters */}
+                  <div className="flex flex-wrap gap-4 pt-4">
+                    <Select
+                      value={selectedProject}
+                      onValueChange={setSelectedProject}
+                    >
+                      <SelectTrigger className="w-[180px]">
+                        <SelectValue placeholder="All Projects" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">All Projects</SelectItem>
+                        {projects.map((project) => (
+                          <SelectItem key={project.id} value={project.id}>
+                            {project.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+
+                    <Select
+                      value={selectedCompany}
+                      onValueChange={setSelectedCompany}
+                    >
+                      <SelectTrigger className="w-[180px]">
+                        <SelectValue placeholder="All Companies" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">All Companies</SelectItem>
+                        {companies.map((company) => (
+                          <SelectItem key={company.id} value={company.id}>
+                            {company.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <div className="overflow-hidden rounded-lg border">
+                    <Table>
+                      <TableHeader className="bg-muted">
+                        <TableRow>
+                          <TableHead className="w-12">
+                            <Checkbox
+                              checked={allSelected}
+                              onCheckedChange={handleSelectAll}
+                              aria-label="Select all achievements"
+                            />
+                          </TableHead>
+                          <TableHead>Achievement</TableHead>
+                          <TableHead>Project</TableHead>
+                          <TableHead>Company</TableHead>
+                          <TableHead>Impact</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {filteredAchievements.length === 0 ? (
+                          <TableRow>
+                            <TableCell
+                              colSpan={5}
+                              className="text-center text-muted-foreground py-8"
+                            >
+                              No achievements found for this time period
+                            </TableCell>
+                          </TableRow>
+                        ) : (
+                          filteredAchievements.map((achievement) => (
+                            <TableRow key={achievement.id}>
+                              <TableCell>
+                                <Checkbox
+                                  checked={selectedAchievements.includes(
+                                    achievement.id,
+                                  )}
+                                  onCheckedChange={(checked) =>
+                                    handleSelectAchievement(
+                                      achievement.id,
+                                      checked as boolean,
+                                    )
+                                  }
+                                  aria-label={`Select ${achievement.title}`}
+                                />
+                              </TableCell>
+                              <TableCell className="max-w-xs">
+                                <div className="flex flex-col gap-1">
+                                  <div className="font-medium line-clamp-2">
+                                    {achievement.title}
+                                  </div>
+                                  {achievement.summary && (
+                                    <div className="text-sm text-muted-foreground line-clamp-1">
+                                      {achievement.summary}
+                                    </div>
+                                  )}
+                                </div>
+                              </TableCell>
+                              <TableCell>
+                                {achievement.project ? (
+                                  <div className="flex items-center gap-2">
+                                    <IconFolder className="size-4 text-muted-foreground" />
+                                    <span className="text-sm">
+                                      {achievement.project.name}
+                                    </span>
+                                  </div>
+                                ) : (
+                                  <span className="text-sm text-muted-foreground">
+                                    No project
+                                  </span>
+                                )}
+                              </TableCell>
+                              <TableCell>
+                                {achievement.company ? (
+                                  <div className="flex items-center gap-2">
+                                    <IconBuilding className="size-4 text-muted-foreground" />
+                                    <span className="text-sm">
+                                      {achievement.company.name}
+                                    </span>
+                                  </div>
+                                ) : (
+                                  <span className="text-sm text-muted-foreground">
+                                    No company
+                                  </span>
+                                )}
+                              </TableCell>
+                              <TableCell>
+                                <div className="flex items-center gap-2">
+                                  <StarRating rating={achievement.impact} />
+                                  <span className="text-sm text-muted-foreground">
+                                    {achievement.impact}/10
+                                  </span>
+                                </div>
+                              </TableCell>
+                            </TableRow>
+                          ))
+                        )}
+                      </TableBody>
+                    </Table>
+                  </div>
+                </CardContent>
+              </Card>
+            </>
+          )}
+        </AppContent>
       </SidebarInset>
     </AppPage>
   );

@@ -18,6 +18,7 @@ import type { DocumentWithCompany, Company } from '@bragdoc/database';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { AppContent } from '@/components/shared/app-content';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -145,91 +146,85 @@ export function ReportDetailView({
   };
 
   return (
-    <div className="flex flex-1 flex-col">
-      <div className="@container/main flex flex-1 flex-col gap-2">
-        <div className="flex flex-col gap-6 p-4 sm:p-6">
-          {/* Back link */}
-          <Link
-            href="/reports"
-            className="print:hidden flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
-          >
-            <IconArrowLeft className="size-4" />
-            Back to Reports
-          </Link>
+    <AppContent className="p-4 sm:p-6">
+      {/* Back link */}
+      <Link
+        href="/reports"
+        className="print:hidden flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
+      >
+        <IconArrowLeft className="size-4" />
+        Back to Reports
+      </Link>
 
-          {/* Metadata section */}
-          <div className="space-y-4">
-            {/* Title */}
-            <h1 className="text-2xl sm:text-3xl font-semibold">
-              {document.title}
-            </h1>
+      {/* Metadata section */}
+      <div className="space-y-4">
+        {/* Title */}
+        <h1 className="text-2xl sm:text-3xl font-semibold">{document.title}</h1>
 
-            {/* Metadata row */}
-            <div className="flex flex-wrap items-center gap-3 sm:gap-4 text-sm">
-              {/* Type badge */}
-              <Badge variant={getDocumentTypeBadgeVariant(document.type)}>
-                {getDocumentTypeLabel(document.type)}
-              </Badge>
+        {/* Metadata row */}
+        <div className="flex flex-wrap items-center gap-3 sm:gap-4 text-sm">
+          {/* Type badge */}
+          <Badge variant={getDocumentTypeBadgeVariant(document.type)}>
+            {getDocumentTypeLabel(document.type)}
+          </Badge>
 
-              {/* Company */}
-              {document.companyName && (
-                <div className="flex items-center gap-2 text-muted-foreground">
-                  <IconBuilding className="size-4" />
-                  <span>{document.companyName}</span>
-                </div>
-              )}
-
-              {/* Last updated */}
-              <div className="flex items-center gap-2 text-muted-foreground">
-                <IconCalendar className="size-4" />
-                <span>
-                  Updated{' '}
-                  {formatDistanceToNow(new Date(document.updatedAt), {
-                    addSuffix: true,
-                  })}
-                </span>
-              </div>
+          {/* Company */}
+          {document.companyName && (
+            <div className="flex items-center gap-2 text-muted-foreground">
+              <IconBuilding className="size-4" />
+              <span>{document.companyName}</span>
             </div>
+          )}
 
-            {/* Action buttons */}
-            <div className="print:hidden flex flex-wrap gap-2">
-              <Button variant="outline" onClick={() => setEditDialogOpen(true)}>
-                <IconEdit className="size-4" />
-                Edit Details
-              </Button>
-              <Button variant="outline" onClick={handlePrint}>
-                <IconPrinter className="size-4" />
-                Print
-              </Button>
-              <Button
-                variant="ghost"
-                className="text-destructive hover:text-destructive"
-                onClick={() => setDeleteDialogOpen(true)}
-              >
-                <IconTrash className="size-4" />
-                Delete
-              </Button>
-            </div>
+          {/* Last updated */}
+          <div className="flex items-center gap-2 text-muted-foreground">
+            <IconCalendar className="size-4" />
+            <span>
+              Updated{' '}
+              {formatDistanceToNow(new Date(document.updatedAt), {
+                addSuffix: true,
+              })}
+            </span>
           </div>
+        </div>
 
-          {/* Report content */}
-          <Card
-            className="cursor-pointer transition-shadow hover:shadow-lg"
-            onClick={handleContentClick}
+        {/* Action buttons */}
+        <div className="print:hidden flex flex-wrap gap-2">
+          <Button variant="outline" onClick={() => setEditDialogOpen(true)}>
+            <IconEdit className="size-4" />
+            Edit Details
+          </Button>
+          <Button variant="outline" onClick={handlePrint}>
+            <IconPrinter className="size-4" />
+            Print
+          </Button>
+          <Button
+            variant="ghost"
+            className="text-destructive hover:text-destructive"
+            onClick={() => setDeleteDialogOpen(true)}
           >
-            <CardContent className="p-4 sm:p-8 lg:p-12">
-              {document.content ? (
-                <Markdown>{document.content}</Markdown>
-              ) : (
-                <div className="text-center text-muted-foreground py-12">
-                  <p>This report has no content yet.</p>
-                  <p className="text-sm mt-2">Click here to add content.</p>
-                </div>
-              )}
-            </CardContent>
-          </Card>
+            <IconTrash className="size-4" />
+            Delete
+          </Button>
         </div>
       </div>
+
+      {/* Report content */}
+      <Card
+        className="cursor-pointer transition-shadow hover:shadow-lg"
+        onClick={handleContentClick}
+      >
+        <CardContent className="p-4 sm:p-8 lg:p-12">
+          {document.content ? (
+            <Markdown>{document.content}</Markdown>
+          ) : (
+            <div className="text-center text-muted-foreground py-12">
+              <p>This report has no content yet.</p>
+              <p className="text-sm mt-2">Click here to add content.</p>
+            </div>
+          )}
+        </CardContent>
+      </Card>
 
       {/* Edit metadata dialog */}
       <div className="print:hidden">
@@ -268,6 +263,6 @@ export function ReportDetailView({
           </AlertDialogContent>
         </AlertDialog>
       </div>
-    </div>
+    </AppContent>
   );
 }

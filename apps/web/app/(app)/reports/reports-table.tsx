@@ -2,8 +2,6 @@
 
 import * as React from 'react';
 import {
-  IconUserCheck,
-  IconPlus,
   IconTrash,
   IconCalendar,
   IconBuilding,
@@ -235,201 +233,152 @@ export function ReportsTable({
   };
 
   return (
-    <div className="flex flex-1 flex-col">
-      <div className="@container/main flex flex-1 flex-col gap-2">
-        <div className="flex flex-col gap-6 p-6">
-          {/* Header */}
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="flex size-10 items-center justify-center rounded-lg bg-primary/10">
-                <IconUserCheck className="size-5 text-primary" />
-              </div>
-              <div>
-                <h1 className="text-2xl font-semibold">For my manager</h1>
-                <p className="text-muted-foreground text-sm">
-                  Create and manage documents for your manager based on your
-                  achievements
-                </p>
-              </div>
-            </div>
+    <>
+      {/* Beta Banner */}
+      <BetaFeatureBanner />
 
-            {/* Toolbar buttons */}
-            <div className="flex flex-wrap gap-2">
-              <Button asChild>
-                <Link href="/reports/new/weekly">
-                  <IconPlus className="size-4" />
-                  Weekly
-                </Link>
-              </Button>
-              <Button asChild variant="outline">
-                <Link href="/reports/new/monthly">
-                  <IconPlus className="size-4" />
-                  Monthly
-                </Link>
-              </Button>
-              <Button asChild variant="outline">
-                <Link href="/reports/new/custom">
-                  <IconPlus className="size-4" />
-                  Custom
-                </Link>
-              </Button>
-            </div>
+      {/* Documents Table */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Your Reports</CardTitle>
+          <CardDescription>
+            Documents generated from your achievements
+          </CardDescription>
+
+          {/* Filters */}
+          <div className="flex flex-wrap gap-2 pt-2 lg:gap-4 lg:pt-4">
+            <Select value={selectedType} onValueChange={setSelectedType}>
+              <SelectTrigger className="w-full lg:w-[180px]">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {DOCUMENT_TYPES.map((type) => (
+                  <SelectItem key={type.value} value={type.value}>
+                    {type.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+
+            <Select value={selectedCompany} onValueChange={setSelectedCompany}>
+              <SelectTrigger className="w-full lg:w-[180px]">
+                <SelectValue placeholder="All Companies" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Companies</SelectItem>
+                {companies.map((company) => (
+                  <SelectItem key={company.id} value={company.id}>
+                    {company.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+
+            <Select value={timePeriod} onValueChange={setTimePeriod}>
+              <SelectTrigger className="w-full lg:w-[180px]">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {TIME_PERIODS.map((period) => (
+                  <SelectItem key={period.value} value={period.value}>
+                    {period.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
-
-          {/* Beta Banner */}
-          <BetaFeatureBanner />
-
-          {/* Documents Table */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Your Reports</CardTitle>
-              <CardDescription>
-                Documents generated from your achievements
-              </CardDescription>
-
-              {/* Filters */}
-              <div className="flex flex-wrap gap-4 pt-4">
-                <Select value={selectedType} onValueChange={setSelectedType}>
-                  <SelectTrigger className="w-[180px]">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {DOCUMENT_TYPES.map((type) => (
-                      <SelectItem key={type.value} value={type.value}>
-                        {type.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-
-                <Select
-                  value={selectedCompany}
-                  onValueChange={setSelectedCompany}
-                >
-                  <SelectTrigger className="w-[180px]">
-                    <SelectValue placeholder="All Companies" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Companies</SelectItem>
-                    {companies.map((company) => (
-                      <SelectItem key={company.id} value={company.id}>
-                        {company.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-
-                <Select value={timePeriod} onValueChange={setTimePeriod}>
-                  <SelectTrigger className="w-[180px]">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {TIME_PERIODS.map((period) => (
-                      <SelectItem key={period.value} value={period.value}>
-                        {period.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            </CardHeader>
-            <CardContent>
-              <div className="overflow-hidden rounded-lg border">
-                <Table>
-                  <TableHeader className="bg-muted">
-                    <TableRow>
-                      <TableHead>Title</TableHead>
-                      <TableHead>Type</TableHead>
-                      <TableHead>Company</TableHead>
-                      <TableHead>Last Edited</TableHead>
-                      <TableHead className="w-24" />
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {filteredDocuments.length === 0 ? (
-                      <TableRow>
-                        <TableCell
-                          colSpan={5}
-                          className="text-center text-muted-foreground py-8"
+        </CardHeader>
+        <CardContent>
+          <div className="overflow-hidden rounded-lg border">
+            <Table>
+              <TableHeader className="bg-muted">
+                <TableRow>
+                  <TableHead>Title</TableHead>
+                  <TableHead>Type</TableHead>
+                  <TableHead>Company</TableHead>
+                  <TableHead>Last Edited</TableHead>
+                  <TableHead className="w-24" />
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {filteredDocuments.length === 0 ? (
+                  <TableRow>
+                    <TableCell
+                      colSpan={5}
+                      className="text-center text-muted-foreground py-8"
+                    >
+                      No documents found. Create your first report using the
+                      buttons above.
+                    </TableCell>
+                  </TableRow>
+                ) : (
+                  filteredDocuments.map((doc) => (
+                    <TableRow key={doc.id}>
+                      <TableCell>
+                        <Link
+                          href={`/reports/${doc.id}`}
+                          className="flex items-center gap-2 hover:underline"
                         >
-                          No documents found. Create your first report using the
-                          buttons above.
-                        </TableCell>
-                      </TableRow>
-                    ) : (
-                      filteredDocuments.map((doc) => (
-                        <TableRow key={doc.id}>
-                          <TableCell>
-                            <Link
-                              href={`/reports/${doc.id}`}
-                              className="flex items-center gap-2 hover:underline"
-                            >
-                              <IconFileText className="size-4 text-muted-foreground" />
-                              <span className="font-medium">{doc.title}</span>
-                            </Link>
-                          </TableCell>
-                          <TableCell>
-                            <Badge
-                              variant={getDocumentTypeBadgeVariant(doc.type)}
-                            >
-                              {getDocumentTypeLabel(doc.type)}
-                            </Badge>
-                          </TableCell>
-                          <TableCell>
-                            {doc.companyName ? (
-                              <div className="flex items-center gap-2">
-                                <IconBuilding className="size-4 text-muted-foreground" />
-                                <span className="text-sm">
-                                  {doc.companyName}
-                                </span>
-                              </div>
-                            ) : (
-                              <span className="text-sm text-muted-foreground">
-                                No company
-                              </span>
-                            )}
-                          </TableCell>
-                          <TableCell>
-                            <div className="flex items-center gap-2">
-                              <IconCalendar className="size-4 text-muted-foreground" />
-                              <span className="text-sm">
-                                {formatDistanceToNow(new Date(doc.updatedAt), {
-                                  addSuffix: true,
-                                })}
-                              </span>
-                            </div>
-                          </TableCell>
-                          <TableCell>
-                            <div className="flex gap-1">
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                onClick={() => handleEditClick(doc.id)}
-                                title="Open in canvas mode"
-                              >
-                                <IconEdit className="size-4" />
-                              </Button>
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                onClick={() => handleDeleteClick(doc.id)}
-                                className="text-destructive hover:text-destructive"
-                                title="Delete document"
-                              >
-                                <IconTrash className="size-4" />
-                              </Button>
-                            </div>
-                          </TableCell>
-                        </TableRow>
-                      ))
-                    )}
-                  </TableBody>
-                </Table>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-      </div>
+                          <IconFileText className="size-4 text-muted-foreground" />
+                          <span className="font-medium">{doc.title}</span>
+                        </Link>
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant={getDocumentTypeBadgeVariant(doc.type)}>
+                          {getDocumentTypeLabel(doc.type)}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        {doc.companyName ? (
+                          <div className="flex items-center gap-2">
+                            <IconBuilding className="size-4 text-muted-foreground" />
+                            <span className="text-sm">{doc.companyName}</span>
+                          </div>
+                        ) : (
+                          <span className="text-sm text-muted-foreground">
+                            No company
+                          </span>
+                        )}
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex items-center gap-2">
+                          <IconCalendar className="size-4 text-muted-foreground" />
+                          <span className="text-sm">
+                            {formatDistanceToNow(new Date(doc.updatedAt), {
+                              addSuffix: true,
+                            })}
+                          </span>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex gap-1">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => handleEditClick(doc.id)}
+                            title="Open in canvas mode"
+                          >
+                            <IconEdit className="size-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => handleDeleteClick(doc.id)}
+                            className="text-destructive hover:text-destructive"
+                            title="Delete document"
+                          >
+                            <IconTrash className="size-4" />
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))
+                )}
+              </TableBody>
+            </Table>
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Delete confirmation dialog */}
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
@@ -453,6 +402,6 @@ export function ReportsTable({
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </div>
+    </>
   );
 }

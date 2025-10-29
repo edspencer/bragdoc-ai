@@ -48,7 +48,7 @@ export function WhyItMattersCTA() {
               </div>
               <div className="bg-primary-foreground/10 rounded-lg p-4 font-mono text-sm max-w-md mx-auto">
                 <code className="text-primary-foreground">
-                  npm install -g bragdoc-cli
+                  npm install -g @bragdoc/cli
                 </code>
               </div>
             </div>

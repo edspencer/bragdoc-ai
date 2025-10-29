@@ -6,9 +6,9 @@ import {
   IconDashboard,
   IconBuilding,
   IconSettings,
-  IconStar,
 } from '@tabler/icons-react';
 import { useSession } from '@/lib/better-auth/client';
+import Image from 'next/image';
 
 import { NavCareers } from '@/components/nav-careers';
 import { NavMain } from '@/components/nav-main';
@@ -23,6 +23,7 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
+  useSidebar,
 } from '@/components/ui/sidebar';
 
 const staticData = {
@@ -69,11 +70,18 @@ const staticData = {
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const { data: session, isPending } = useSession();
+  const { isMobile, setOpenMobile } = useSidebar();
 
   const user = {
     name: session?.user?.name || 'User',
     email: session?.user?.email || '',
     avatar: session?.user?.image || '/avatars/user.jpg',
+  };
+
+  const handleLogoClick = () => {
+    if (isMobile) {
+      setOpenMobile(false);
+    }
   };
 
   // Don't render until we have session data loaded
@@ -90,8 +98,14 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
               asChild
               className="data-[slot=sidebar-menu-button]:!p-1.5"
             >
-              <a href="/dashboard">
-                <IconStar className="!size-5 fill-primary text-primary" />
+              <a href="/dashboard" onClick={handleLogoClick}>
+                <Image
+                  src="/icon.svg"
+                  alt="BragDoc"
+                  width={20}
+                  height={20}
+                  className="!size-5"
+                />
                 <span className="text-base font-semibold">BragDoc</span>
               </a>
             </SidebarMenuButton>

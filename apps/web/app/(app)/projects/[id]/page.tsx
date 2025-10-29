@@ -4,9 +4,9 @@ import { auth } from '@/lib/better-auth/server';
 import { headers } from 'next/headers';
 import { getProjectById } from '@bragdoc/database';
 
-import { ProjectDetailsContent } from '@/components/project-details-content';
 import { SidebarInset } from '@/components/ui/sidebar';
 import { AppPage } from '@/components/shared/app-page';
+import { ProjectDetailsWrapper } from './project-details-wrapper';
 
 interface ProjectDetailsPageProps {
   params: Promise<{ id: string }>;
@@ -34,11 +34,7 @@ export default async function ProjectDetailsPage({
   return (
     <AppPage>
       <SidebarInset>
-        <div className="flex flex-1 flex-col">
-          <div className="@container/main flex flex-1 flex-col gap-2">
-            <ProjectDetailsContent project={project} />
-          </div>
-        </div>
+        <ProjectDetailsWrapper project={project} />
       </SidebarInset>
     </AppPage>
   );

@@ -20,7 +20,7 @@ export default async function WorkstreamsPage() {
   return (
     <AppPage>
       <SidebarInset>
-        <SiteHeader />
+        <SiteHeader title="Workstreams" />
         <div className="flex flex-1 flex-col gap-4 p-4 md:p-6">
           <div className="flex items-center justify-center min-h-[400px]">
             <div className="text-center max-w-2xl space-y-4">

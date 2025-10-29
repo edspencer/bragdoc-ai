@@ -93,17 +93,25 @@ export function TopProjects() {
                       className="space-y-2 border-b border-border pb-4 last:border-b-0"
                     >
                       <div className="flex items-start justify-between">
-                        <div className="space-y-1 flex-1">
-                          <div className="flex items-center gap-2">
-                            <span className="text-xs text-muted-foreground font-mono">
-                              #{index + 1}
-                            </span>
-                            <Link
-                              href={`/projects/${project.id}`}
-                              className="text-sm font-medium hover:underline"
+                        <div className="space-y-1 flex-1 items-stretch">
+                          <div className="flex justify-between">
+                            <div className="gap-2 flex items-center">
+                              <span className="text-xs text-muted-foreground font-mono">
+                                #{index + 1}
+                              </span>
+                              <Link
+                                href={`/projects/${project.id}`}
+                                className="text-sm font-medium hover:underline"
+                              >
+                                {project.name}
+                              </Link>
+                            </div>
+                            <Badge
+                              variant="outline"
+                              className={`${statusColors[project.status as keyof typeof statusColors]} text-xs`}
                             >
-                              {project.name}
-                            </Link>
+                              {project.status}
+                            </Badge>
                           </div>
                           {project.description && (
                             <p className="text-sm text-muted-foreground line-clamp-2">
@@ -120,7 +128,7 @@ export function TopProjects() {
                               {project.achievementCount} achievements)
                             </div>
                             {project.company && (
-                              <div className="flex items-center gap-1">
+                              <div className="hidden lg:flex items-center gap-1">
                                 <Building2 className="size-3" />
                                 {project.company.name}
                               </div>
@@ -131,12 +139,6 @@ export function TopProjects() {
                             </div>
                           </div>
                         </div>
-                        <Badge
-                          variant="outline"
-                          className={`${statusColors[project.status as keyof typeof statusColors]} text-xs`}
-                        >
-                          {project.status}
-                        </Badge>
                       </div>
                     </div>
                   ))}
