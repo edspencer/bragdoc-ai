@@ -65,7 +65,7 @@ export default async function ReportsPage() {
   return (
     <AppPage>
       <SidebarInset>
-        <SiteHeader title="For My Manager">
+        <SiteHeader title="Reports">
           <ReportActions />
         </SiteHeader>
         <AppContent>

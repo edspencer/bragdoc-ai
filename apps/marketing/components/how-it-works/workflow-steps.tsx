@@ -109,7 +109,7 @@ const steps = [
     time: 'Instant',
     icon: FileText,
     description: [
-      "Click 'For My Manager'",
+      "Click 'Reports'",
       'Select time range (week, month, quarter)',
       'AI generates polished report',
       'Edit and share',

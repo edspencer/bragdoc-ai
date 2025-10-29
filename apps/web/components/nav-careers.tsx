@@ -42,7 +42,7 @@ export function NavCareers() {
           <SidebarMenuButton asChild>
             <Link href="/reports" onClick={handleLinkClick}>
               <IconUserCheck />
-              <span>For my manager</span>
+              <span>Reports</span>
             </Link>
           </SidebarMenuButton>
         </SidebarMenuItem>

@@ -2,7 +2,7 @@
 
 ## Overview
 
-The Reports feature ("For my manager") provides a comprehensive interface for generating AI-powered reports from tracked achievements. This document describes the technical implementation, architecture, and patterns used.
+The Reports feature provides a comprehensive interface for generating AI-powered reports from tracked achievements. This document describes the technical implementation, architecture, and patterns used.
 
 ---
 
@@ -60,7 +60,7 @@ apps/web/
 │           └── generate/
 │               └── route.ts                # POST /api/documents/generate
 ├── components/
-│   ├── app-sidebar.tsx                     # Navigation (includes "For my manager")
+│   ├── app-sidebar.tsx                     # Navigation (includes "Reports")
 │   └── nav-main.tsx                        # Main nav items (enhanced active state)
 └── lib/
     └── ai/
@@ -77,7 +77,7 @@ apps/web/
 ### Viewing Reports List
 
 ```
-1. User clicks "For my manager" in sidebar
+1. User clicks "Reports" in sidebar
 2. Browser navigates to /reports
 3. Server Component:
    - Authenticates user (auth())
@@ -143,9 +143,11 @@ apps/web/
 **Authentication:** Required (session or JWT)
 
 **Query Parameters:**
+
 - `type` (optional) - Filter by document type
 
 **Response:**
+
 ```json
 {
   "documents": [
@@ -167,6 +169,7 @@ apps/web/
 ```
 
 **Error Responses:**
+
 - `401 Unauthorized` - User not authenticated
 - `500 Internal Server Error` - Database error
 
@@ -179,6 +182,7 @@ apps/web/
 **Authentication:** Required (session or JWT)
 
 **Request Body:**
+
 ```json
 {
   "achievementIds": ["uuid1", "uuid2", "uuid3"],
@@ -190,6 +194,7 @@ apps/web/
 ```
 
 **Validation Schema (Zod):**
+
 ```typescript
 const generateSchema = z.object({
   achievementIds: z.array(z.string().uuid()),
@@ -207,6 +212,7 @@ const generateSchema = z.object({
 ```
 
 **Processing Steps:**
+
 1. Validate request body with Zod
 2. Check at least one achievement selected
 3. Save custom instructions to user preferences (if different from defaults)
@@ -216,6 +222,7 @@ const generateSchema = z.object({
 7. Return document
 
 **Response:**
+
 ```json
 {
   "document": {
@@ -231,6 +238,7 @@ const generateSchema = z.object({
 ```
 
 **Error Responses:**
+
 - `400 Bad Request` - Validation error or no achievements selected
 - `401 Unauthorized` - User not authenticated
 - `500 Internal Server Error` - AI generation or database error
@@ -246,6 +254,7 @@ const generateSchema = z.object({
 **Authorization:** User must own the document
 
 **Response:**
+
 ```json
 {
   "success": true
@@ -253,6 +262,7 @@ const generateSchema = z.object({
 ```
 
 **Error Responses:**
+
 - `401 Unauthorized` - User not authenticated
 - `404 Not Found` - Document doesn't exist or user doesn't own it
 - `500 Internal Server Error` - Database error
@@ -304,6 +314,7 @@ export const document = pgTable('Document', {
 ### Query Examples
 
 **Fetch documents with company:**
+
 ```typescript
 const documents = await db
   .select({
@@ -324,6 +335,7 @@ const documents = await db
 ```
 
 **Insert new document:**
+
 ```typescript
 const [newDocument] = await db
   .insert(document)
@@ -339,6 +351,7 @@ const [newDocument] = await db
 ```
 
 **Delete document:**
+
 ```typescript
 await db
   .delete(document)
@@ -356,12 +369,14 @@ await db
 **Type:** Server Component
 
 **Responsibilities:**
+
 - Authenticate user
 - Fetch documents from database
 - Join with company table
 - Pass data to Client Component
 
 **Key Code:**
+
 ```typescript
 export default async function ReportsPage() {
   const session = await auth();
@@ -393,6 +408,7 @@ export default async function ReportsPage() {
 **Type:** Client Component (`'use client'`)
 
 **Props:**
+
 ```typescript
 interface ReportsTableProps {
   initialDocuments: DocumentWithCompany[];
@@ -401,6 +417,7 @@ interface ReportsTableProps {
 ```
 
 **State Management:**
+
 ```typescript
 const [documents, setDocuments] = useState(initialDocuments);
 const [typeFilter, setTypeFilter] = useState<string>('all');
@@ -411,6 +428,7 @@ const [isDeleting, setIsDeleting] = useState(false);
 ```
 
 **Filtering Logic (useMemo):**
+
 ```typescript
 const filteredDocuments = React.useMemo(() => {
   return documents.filter((doc) => {
@@ -418,13 +436,16 @@ const filteredDocuments = React.useMemo(() => {
     if (typeFilter !== 'all' && doc.type !== typeFilter) return false;
 
     // Company filter
-    if (companyFilter !== 'all' && doc.companyId !== companyFilter) return false;
+    if (companyFilter !== 'all' && doc.companyId !== companyFilter)
+      return false;
 
     // Time period filter
     if (timePeriodFilter !== 'all') {
       const docDate = new Date(doc.updatedAt);
       const now = new Date();
-      const daysDiff = Math.floor((now.getTime() - docDate.getTime()) / (1000 * 60 * 60 * 24));
+      const daysDiff = Math.floor(
+        (now.getTime() - docDate.getTime()) / (1000 * 60 * 60 * 24)
+      );
 
       if (timePeriodFilter === '7d' && daysDiff > 7) return false;
       if (timePeriodFilter === '30d' && daysDiff > 30) return false;
@@ -447,6 +468,7 @@ const filteredDocuments = React.useMemo(() => {
 **Dynamic Route:** `/reports/new/[type]` where type is `weekly`, `monthly`, or `custom`
 
 **State Management:**
+
 ```typescript
 const [achievements, setAchievements] = useState<Achievement[]>([]);
 const [projects, setProjects] = useState<Project[]>([]);
@@ -459,6 +481,7 @@ const [isGenerating, setIsGenerating] = useState(false);
 ```
 
 **Data Fetching (useEffect):**
+
 ```typescript
 React.useEffect(() => {
   async function fetchData() {
@@ -466,7 +489,9 @@ React.useEffect(() => {
     const now = new Date();
 
     const [achievementsRes, projectsRes, companiesRes] = await Promise.all([
-      fetch(`/api/achievements?startDate=${dateThreshold.toISOString()}&endDate=${now.toISOString()}&limit=200`),
+      fetch(
+        `/api/achievements?startDate=${dateThreshold.toISOString()}&endDate=${now.toISOString()}&limit=200`
+      ),
       fetch('/api/projects'),
       fetch('/api/companies'),
     ]);
@@ -480,7 +505,7 @@ React.useEffect(() => {
     setCompanies(companiesData || []); // API returns array directly
 
     // Select all by default
-    setSelectedAchievements(achievementsData.achievements.map(a => a.id));
+    setSelectedAchievements(achievementsData.achievements.map((a) => a.id));
   }
 
   fetchData();
@@ -488,6 +513,7 @@ React.useEffect(() => {
 ```
 
 **Generation Handler:**
+
 ```typescript
 const handleGenerate = async () => {
   if (selectedAchievements.length === 0) {
@@ -535,15 +561,16 @@ The Reports feature uses the existing `generate-document.ts` pipeline with exten
 **Purpose:** Complete pipeline from data fetching to AI execution
 
 **Parameters:**
+
 ```typescript
 interface GenerateDocumentFetcherProps {
   title: string;
-  days?: number;                  // Default: 7 (ignored if achievementIds provided)
+  days?: number; // Default: 7 (ignored if achievementIds provided)
   user: User;
   projectId?: string;
   companyId?: string;
-  achievementIds?: string[];      // NEW: Filter to specific achievements
-  userInstructions?: string;      // NEW: Custom generation instructions
+  achievementIds?: string[]; // NEW: Filter to specific achievements
+  userInstructions?: string; // NEW: Custom generation instructions
   chatHistory?: Message[];
 }
 ```
@@ -568,6 +595,7 @@ interface GenerateDocumentFetcherProps {
    - Returns async iterable
 
 **Usage in API endpoint:**
+
 ```typescript
 const result = await fetchRenderExecute({
   title,
@@ -603,6 +631,7 @@ The prompt template uses MDX for structured, maintainable prompts. It receives:
 - `userInstructions` - Custom instructions from user
 
 **Template Structure:**
+
 ```mdx
 ---
 model: gpt-4
@@ -616,13 +645,14 @@ You are a professional career coach helping {user.name} write a {docTitle}.
 ## Achievements
 
 {achievements.map(a => (
-  <Achievement>
-    <Title>{a.title}</Title>
-    <Summary>{a.summary}</Summary>
-    <Impact>{a.impact}/10</Impact>
-    <Project>{a.project?.name}</Project>
-    <Company>{a.company?.name}</Company>
-  </Achievement>
+
+<Achievement>
+  <Title>{a.title}</Title>
+  <Summary>{a.summary}</Summary>
+  <Impact>{a.impact}/10</Impact>
+  <Project>{a.project?.name}</Project>
+  <Company>{a.company?.name}</Company>
+</Achievement>
 ))}
 
 Generate a professional document that highlights these achievements...
@@ -647,6 +677,7 @@ export const documentWritingModel = createLLMRouter({
 ```
 
 Model selection considers:
+
 - User's subscription level
 - Cost optimization
 - Provider availability
@@ -673,6 +704,7 @@ export default async function ReportsPage() {
 ```
 
 **Benefits:**
+
 - Better performance (no client-side fetching)
 - SEO-friendly
 - Reduces JavaScript bundle size
@@ -694,6 +726,7 @@ export function ReportsTable({ initialData }) {
 ```
 
 **Use when:**
+
 - Component needs state (`useState`, `useReducer`)
 - Component needs effects (`useEffect`)
 - Component uses browser APIs
@@ -741,7 +774,6 @@ try {
 
   const data = await response.json();
   toast.success('Success!');
-
 } catch (error) {
   console.error('Operation failed:', error);
   toast.error('Failed to complete operation');
@@ -759,6 +791,7 @@ See `tasks/import-reports/REVIEW.md` for comprehensive manual testing checklist.
 ### Automated Testing (Future)
 
 **API Route Tests:**
+
 ```typescript
 describe('POST /api/documents/generate', () => {
   it('requires authentication', async () => {
@@ -781,6 +814,7 @@ describe('POST /api/documents/generate', () => {
 ```
 
 **Component Tests:**
+
 ```typescript
 describe('ReportsTable', () => {
   it('filters documents by type', () => {
@@ -803,6 +837,7 @@ describe('ReportsTable', () => {
 **Cause:** API response structure mismatch
 
 **Solution:**
+
 - Achievements API returns `{ achievements: [...], pagination: {...} }`
 - Projects API returns array directly `[...]`
 - Companies API returns array directly `[...]`
@@ -823,13 +858,16 @@ setCompanies(companiesData || []); // Not companiesData.companies
 **Cause:** Missing `endDate` parameter
 
 **Solution:**
+
 ```typescript
 // WRONG - only startDate
-fetch(`/api/achievements?startDate=${date.toISOString()}`)
+fetch(`/api/achievements?startDate=${date.toISOString()}`);
 
 // CORRECT - both startDate and endDate
 const now = new Date();
-fetch(`/api/achievements?startDate=${date.toISOString()}&endDate=${now.toISOString()}`)
+fetch(
+  `/api/achievements?startDate=${date.toISOString()}&endDate=${now.toISOString()}`
+);
 ```
 
 The `getAchievements()` query uses `between(achievement.eventStart, startDate, endDate)` which requires BOTH parameters.
@@ -838,11 +876,12 @@ The `getAchievements()` query uses `between(achievement.eventStart, startDate, e
 
 ### Issue: Sidebar not showing active for nested routes
 
-**Symptoms:** "For my manager" not highlighted when on `/reports/new/weekly`
+**Symptoms:** "Reports" not highlighted when on `/reports/new/weekly`
 
 **Cause:** Exact pathname matching
 
 **Solution:**
+
 ```typescript
 // WRONG - exact match
 const isActive = pathname === item.url;
@@ -888,6 +927,7 @@ if (
 **Plan:** In-app document viewer/editor with markdown rendering
 
 **Implementation approach:**
+
 - Route: `/reports/[id]`
 - Component: Rich text editor (e.g., Tiptap, Lexical)
 - Save drafts to database
@@ -900,6 +940,7 @@ if (
 **Plan:** Export reports to PDF, Word, plain text
 
 **Implementation approach:**
+
 - Backend: Use libraries for document generation (PDF, Word)
 - API: `POST /api/documents/[id]/export?format=pdf`
 - Frontend: Download button with format selector
@@ -911,6 +952,7 @@ if (
 **Plan:** Generate shareable public links for documents
 
 **Implementation approach:**
+
 - Add `shareToken` field (already in schema)
 - Route: `/share/[token]`
 - Public endpoint: `GET /api/documents/share/[token]`
@@ -923,6 +965,7 @@ if (
 **Plan:** Automated weekly/monthly report generation
 
 **Implementation approach:**
+
 - Background job system (e.g., cron, BullMQ)
 - User preferences for schedule
 - Email delivery integration
