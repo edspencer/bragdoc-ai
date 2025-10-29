@@ -34,7 +34,7 @@ export function QuickStartSection() {
                   </p>
                 </div>
               </div>
-              <CodeBlock code="npm install -g bragdoc" language="bash" />
+              <CodeBlock code="npm install -g @bragdoc/cli" language="bash" />
             </Card>
 
             {/* Step 2: Create Account */}

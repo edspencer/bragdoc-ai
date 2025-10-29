@@ -93,7 +93,7 @@ export function CTASectionV2() {
                         </p>
                         <div className="mt-2 bg-primary-foreground/10 rounded-lg p-3 font-mono text-xs">
                           <code className="text-primary-foreground">
-                            npm install -g bragdoc-cli
+                            npm install -g @bragdoc/cli
                           </code>
                         </div>
                       </div>

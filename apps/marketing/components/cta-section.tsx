@@ -45,7 +45,7 @@ export function CTASection() {
               </div>
               <div className="bg-primary-foreground/10 rounded-lg p-4 font-mono text-sm">
                 <code className="text-primary-foreground">
-                  npm install -g bragdoc-cli
+                  npm install -g @bragdoc/cli
                 </code>
               </div>
               <p className="text-sm text-primary-foreground/60 text-center">
