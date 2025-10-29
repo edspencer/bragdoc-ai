@@ -3,8 +3,10 @@ import { Terminal, UserPlus, ArrowRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { CodeBlock } from '@/components/code-block';
+import { loginPath } from '@/lib/utils';
 
 export function QuickStartSection() {
+  const loginUrl = loginPath();
   return (
     <section className="py-24 bg-muted/30">
       <div className="container mx-auto px-4">
@@ -54,11 +56,7 @@ export function QuickStartSection() {
                 </div>
               </div>
               <Button asChild className="w-full">
-                <a
-                  href="https://app.bragdoc.ai/login"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
+                <a href={loginUrl} target="_blank" rel="noopener noreferrer">
                   Create Account
                 </a>
               </Button>

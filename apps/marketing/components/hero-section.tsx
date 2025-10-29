@@ -11,9 +11,11 @@ import {
 } from '@/components/ui/popover';
 import { useState } from 'react';
 import { useTracking } from '@/hooks/use-posthog';
+import { loginPath } from '@/lib/utils';
 
 export function HeroSection() {
   const { trackCTAClick } = useTracking();
+  const loginUrl = loginPath();
 
   const sampleAchievements = [
     {
@@ -70,12 +72,12 @@ export function HeroSection() {
             <div className="flex flex-col sm:flex-row gap-4">
               <Button size="lg" className="text-base h-12 px-8" asChild>
                 <a
-                  href="https://app.bragdoc.ai/login"
+                  href={loginUrl}
                   onClick={() =>
                     trackCTAClick(
                       'homepage_hero',
                       'Start Tracking Free',
-                      'https://app.bragdoc.ai/login',
+                      loginUrl,
                     )
                   }
                 >

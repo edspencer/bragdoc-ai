@@ -1,6 +1,8 @@
 import { Button } from '@/components/ui/button';
+import { loginPath } from '@/lib/utils';
 
 export function PricingCta() {
+  const loginUrl = loginPath();
   return (
     <section className="py-16 sm:py-20 bg-gradient-to-r from-[oklch(0.65_0.25_262)] to-[oklch(0.7_0.25_280)] dark:from-[oklch(0.7_0.25_262)] dark:to-[oklch(0.75_0.25_280)] text-white">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 text-center">
@@ -16,7 +18,7 @@ export function PricingCta() {
           className="text-lg px-8 py-6 h-auto"
           asChild
         >
-          <a href="https://app.bragdoc.ai/login">Get Started</a>
+          <a href={loginUrl}>Get Started</a>
         </Button>
       </div>
     </section>

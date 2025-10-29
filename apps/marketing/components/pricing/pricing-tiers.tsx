@@ -13,9 +13,11 @@ import { Badge } from '@/components/ui/badge';
 import { Check, Sparkles } from 'lucide-react';
 import { useState } from 'react';
 import { useTracking } from '@/hooks/use-posthog';
+import { loginPath } from '@/lib/utils';
 
 export function PricingTiers() {
   const { trackPricingInteraction, trackCTAClick } = useTracking();
+  const loginUrl = loginPath();
   const [billingPeriod, setBillingPeriod] = useState<'monthly' | 'annual'>(
     'monthly',
   );
@@ -179,13 +181,9 @@ export function PricingTiers() {
                 asChild
               >
                 <a
-                  href="https://app.bragdoc.ai/login"
+                  href={loginUrl}
                   onClick={() =>
-                    trackCTAClick(
-                      'pricing_page',
-                      'Get Started',
-                      'https://app.bragdoc.ai/login',
-                    )
+                    trackCTAClick('pricing_page', 'Get Started', loginUrl)
                   }
                 >
                   Get Started
@@ -236,13 +234,13 @@ export function PricingTiers() {
                 asChild
               >
                 <a
-                  href="https://app.bragdoc.ai/login"
+                  href={loginUrl}
                   onClick={() => {
                     trackPricingInteraction('free_account');
                     trackCTAClick(
                       'pricing_page',
                       'Create Free Account',
-                      'https://app.bragdoc.ai/login',
+                      loginUrl,
                     );
                   }}
                 >

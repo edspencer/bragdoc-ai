@@ -5,10 +5,12 @@ import { Button } from '@/components/ui/button';
 import { Moon, Sun } from 'lucide-react';
 import { useTheme } from 'next-themes';
 import { useTracking } from '@/hooks/use-posthog';
+import { loginPath } from '@/lib/utils';
 
 export function Header() {
   const { theme, setTheme } = useTheme();
   const { trackCTAClick } = useTracking();
+  const loginUrl = loginPath();
 
   return (
     <header className="fixed top-0 inset-x-0 z-50 border-b border-border bg-background/80 backdrop-blur-sm">
@@ -84,28 +86,16 @@ export function Header() {
               asChild
             >
               <a
-                href="https://app.bragdoc.ai/login"
-                onClick={() =>
-                  trackCTAClick(
-                    'navbar',
-                    'Sign In',
-                    'https://app.bragdoc.ai/login',
-                  )
-                }
+                href={loginUrl}
+                onClick={() => trackCTAClick('navbar', 'Sign In', loginUrl)}
               >
                 Sign In
               </a>
             </Button>
             <Button size="sm" asChild>
               <a
-                href="https://app.bragdoc.ai/login"
-                onClick={() =>
-                  trackCTAClick(
-                    'navbar',
-                    'Get Started',
-                    'https://app.bragdoc.ai/login',
-                  )
-                }
+                href={loginUrl}
+                onClick={() => trackCTAClick('navbar', 'Get Started', loginUrl)}
               >
                 Get Started
               </a>
