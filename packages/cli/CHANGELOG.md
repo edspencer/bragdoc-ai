@@ -1,5 +1,11 @@
 # @bragdoc/cli
 
+## 1.2.0
+
+### Minor Changes
+
+- 0538992: Bumped mdx-prompt dependency
+
 ## 1.1.3
 
 ### Patch Changes
