@@ -1,5 +1,4 @@
 import type { Metadata } from 'next';
-import { GoogleAnalytics } from '@next/third-parties/google';
 
 import { Providers } from 'components/providers';
 
@@ -69,7 +68,6 @@ export default async function RootLayout({
       </head>
       <body className="antialiased">
         <Providers>{children}</Providers>
-        <GoogleAnalytics gaId="G-ZM1CT7E42H" />
       </body>
     </html>
   );
