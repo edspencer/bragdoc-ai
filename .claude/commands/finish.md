@@ -21,4 +21,51 @@ Give your final thoughts on the implementation. If you find any issues, please n
 
 If everything looks like it was completely successful, archive this task by moving it from ./tasks/TASK-NAME to ./tasks/archive/TASK-NAME (use git mv for this)
 
-Finally, propose a git commit message for what was done in the plan. Your git commit message should be a sentence or two if only a file or two were changed, many paragraphs if dozens of files were changed, and anything in between. Keep it factual and not boastful. Don't stage anything or commit anything, just propose a git commit message now:
+## Creating the Final Commit Message
+
+Follow these steps to create the final commit message:
+
+1. **Check for COMMIT_MESSAGE.md**: Look for a COMMIT_MESSAGE.md file in the task directory
+2. **If COMMIT_MESSAGE.md exists:**
+   - Read the draft commit message that was created during planning
+   - Verify it still accurately reflects what was actually implemented
+   - If the implementation deviated significantly from the original plan (e.g., additional features added, approaches changed, scope adjusted):
+     - Update COMMIT_MESSAGE.md to reflect the actual implementation
+     - Ensure it mentions any major deviations or additions
+   - Use the (possibly updated) COMMIT_MESSAGE.md as the basis for your final commit message
+3. **If COMMIT_MESSAGE.md does not exist:**
+   - Create a commit message from scratch based on the actual changes made
+   - Follow the commit message guidelines below
+
+### Commit Message Guidelines
+
+Your git commit message should:
+- Start with a 1-sentence summary on its own line
+- Be a sentence or two if only a file or two were changed, many paragraphs if dozens of files were changed, and anything in between
+- Keep it factual and not boastful
+- Briefly explain what we're doing and why
+- Not just summarize the changes
+- Typically be 2-4 paragraphs long (shorter for small changes, ~1-2 paragraphs for <300 LOC)
+- Call out any key architectural or API changes
+- Call out any key dependencies or tools being added/removed
+- Call out any key data model changes
+- Call out any key environment variable changes
+- Avoid value judgments (e.g., don't say "improves" or "better")
+
+## Syncing Task Files to GitHub
+
+Before archiving the task, sync all task files to the GitHub issue as the final step:
+
+1. **Determine the issue number**: Extract it from the task directory name (format: `tasks/{issue-number}-{task-name}/`)
+2. **Sync all files**: Run the push.sh skill to upload SPEC.md, PLAN.md, TEST_PLAN.md, and COMMIT_MESSAGE.md to the issue
+   ```bash
+   /Users/ed/Code/brag-ai/.claude/skills/github-task-sync/push.sh <issue-number> <task-directory>
+   ```
+3. **Verify**: Confirm all files appear on the GitHub issue as collapsible comments
+4. **Archive task**: After syncing, move the task directory to ./tasks/archive/ using `git mv`
+
+This ensures all documentation is centralized on the GitHub issue before the task is archived.
+
+---
+
+Don't stage anything or commit anything, just propose the final git commit message now:

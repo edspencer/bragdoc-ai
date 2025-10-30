@@ -50,4 +50,40 @@ A typical full agentic implementation might look like this, for a PLAN.md contai
 10. You asked the plan executor agent to implement phase 4
 11. You check what the plan executor agent did in its phase 4 implementation and decided it was correct
 
-At this point, you stop and give a full report back to the user, along with a suggested git commit message for the work.
+At this point, you should prepare your final report:
+
+## Creating the Final Commit Message
+
+Before reporting back to the user, create a commit message for the completed work:
+
+1. **Check for COMMIT_MESSAGE.md**: Look for a COMMIT_MESSAGE.md file in the task directory
+2. **If COMMIT_MESSAGE.md exists:**
+   - Read the draft commit message that was created during planning
+   - Verify it still accurately reflects what was actually implemented across all phases
+   - If the implementation deviated significantly from the original plan (e.g., additional features added, approaches changed, scope adjusted):
+     - Update COMMIT_MESSAGE.md to reflect the actual implementation
+     - Ensure it mentions any major deviations or additions
+   - Use the (possibly updated) COMMIT_MESSAGE.md as the basis for your suggested commit message
+3. **If COMMIT_MESSAGE.md does not exist:**
+   - Create a commit message from scratch based on the actual changes made across all phases
+   - Follow the commit message guidelines below
+
+### Commit Message Guidelines
+
+The commit message should:
+- Start with a 1-sentence summary on its own line
+- Briefly explain what was done and why
+- Typically be 2-4 paragraphs long (shorter for small changes, ~1-2 paragraphs for <300 LOC)
+- Call out any key architectural or API changes
+- Call out any key dependencies or tools being added/removed
+- Call out any key data model changes
+- Call out any key environment variable changes
+- Avoid value judgments (e.g., don't say "improves" or "better")
+- Keep it factual and not boastful
+
+## Final Report
+
+Give a full report back to the user, including:
+- Summary of all phases completed
+- Any issues encountered and how they were resolved
+- The suggested git commit message (based on COMMIT_MESSAGE.md if it existed)

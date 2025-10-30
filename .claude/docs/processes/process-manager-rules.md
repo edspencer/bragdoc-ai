@@ -240,6 +240,10 @@ Those belong in after-action reports in `.claude/docs/after-action-reports/`. Th
 - "Lessons Learned" sections document patterns, not chronological work history
 - When updating process files, extract the generalizable principle, not the specific implementation details
 
+**From GitHub Task Sync Integration (2025-10-30):**
+- When documenting new cross-cutting tools or workflows, update multiple layers: high-level coordination (team.md), specific processes (spec-rules.md, plan-rules.md), commands that implement workflows (/write-spec, /write-plan, /check-spec, /check-plan, /finish), and operational directives (standing-orders.md)
+- Skills that provide bidirectional sync should be referenced at natural workflow touchpoints, not just described in isolation
+
 ## Common Issues and Resolutions
 
 ### Issue: Agent Confusion About Responsibilities

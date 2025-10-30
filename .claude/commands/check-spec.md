@@ -43,7 +43,30 @@ Check the following aspects:
 
 ## Output Format
 
-Provide a structured feedback report:
+Provide a structured feedback report with two parts:
+
+### Part 1: Content Summary (For GitHub Comments)
+
+Create a file called `SPEC-STATUS.md` containing a 2-paragraph content overview that someone can read to understand what the specification covers. This should answer: "What requirements does this specification define? What is the scope and key goals?"
+
+Format:
+- **First paragraph:** High-level overview of what the spec calls for
+- **Second paragraph:** Key requirements, scope, and important constraints
+- **Optional bullet points:** 3-5 bullet points highlighting the most important requirements
+
+Example:
+```
+This specification outlines requirements for implementing user account deletion functionality. The feature must allow users to permanently delete their accounts and associated data while maintaining system integrity and compliance with data protection regulations.
+
+Key requirements include: database cleanup of all user records, notification of deletion to third-party services, verification steps to prevent accidental deletion, and audit logging of all deletions. The implementation must support gradual data removal to avoid performance impact on the production system.
+
+- Permanent and irreversible account deletion with full data cleanup
+- Compliance with GDPR and data protection requirements
+- Deletion verification workflow to prevent accidents
+- Audit trail for compliance and security
+```
+
+### Part 2: Validation Feedback Report
 
 ### Validation Summary
 - Overall assessment (Pass / Pass with suggestions / Needs revision)
@@ -58,6 +81,18 @@ List improvements that would enhance the spec quality.
 
 ### Positive Observations
 Note what the spec does well.
+
+## Syncing Status to GitHub
+
+After generating SPEC-STATUS.md and your validation feedback, sync the status to the GitHub issue:
+
+1. **Determine issue number**: Extract from task directory name (format: `tasks/{issue-number}-{task-name}/`)
+2. **Push status to GitHub**: Use the `github-task-sync/push-file.sh` script to update the SPEC comment with status summary
+   ```bash
+   /Users/ed/Code/brag-ai/.claude/skills/github-task-sync/push-file.sh <issue-number> SPEC SPEC-STATUS.md SPEC.md
+   ```
+
+This keeps the GitHub issue updated with the current spec validation status. The SPEC-STATUS.md file provides the 2-paragraph summary that appears at the top of the collapsible SPEC comment on GitHub.
 
 ## Next Steps
 

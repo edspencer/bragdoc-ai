@@ -55,5 +55,6 @@ packages/cli/dist
 test/runs
 test/mobile
 scratch
+tasks
 
 .claude/docs/after-action-reports
