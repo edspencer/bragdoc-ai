@@ -56,6 +56,21 @@ Choose a clear, descriptive task name for the directory:
 - Keep it concise but meaningful
 - Ensure it matches the task heading
 
+### GitHub Issue Creation
+
+If the user explicitly requests that a GitHub issue be created, or if this is a significant feature requiring tracking:
+
+1. **Ask the user** if a GitHub issue should be created for this task
+2. **If yes**, use the github-task-sync skill's `create-issue.sh` script to create the issue and initialize the task directory:
+   ```bash
+   /Users/ed/Code/brag-ai/.claude/skills/github-task-sync/create-issue.sh "<task-title>" "<brief-description>"
+   ```
+3. **Directory naming**: The script automatically creates a directory named `{issue-number}-{task-slug}/`
+4. **Work locally**: Create SPEC.md in the task directory as usual
+5. **Sync to GitHub**: After creating SPEC.md, the file can be synced to the GitHub issue using `push-file.sh` from the github-task-sync skill
+
+**Note:** GitHub issues serve as the source of truth for task documentation. Local task files are a working cache that agents can edit easily.
+
 # Get started
 
 Please gather requirements and create the SPEC.md file.

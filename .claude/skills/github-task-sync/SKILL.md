@@ -1,42 +1,112 @@
 ---
 name: github-task-sync
-description: Upload and read task documentation (SPEC, PLAN, TEST_PLAN, COMMIT_MESSAGE) from GitHub issues
+description: Manage task documentation by syncing between local task directories and GitHub issues
 ---
 
 # GitHub Task Sync Skill
 
-Manage task documentation files directly on GitHub issues instead of storing them in the filesystem. This skill provides two complementary tools:
+Seamlessly manage task documentation by syncing between local task directories and GitHub issues. All task documentation (SPEC, PLAN, TEST_PLAN, COMMIT_MESSAGE) lives both locally and on GitHub, with easy push/pull synchronization.
 
-## sync-to-github.sh
+## Overview
 
-Upload task documentation files to a GitHub issue as collapsible comments.
+This skill provides a complete workflow for managing tasks:
+
+1. **Create** a new GitHub issue with `create-issue.sh`
+2. **Push** local task files to GitHub with `push.sh` or `push-file.sh`
+3. **Pull** task files from GitHub with `pull.sh` or `pull-file.sh`
+4. **Read** task files from GitHub to stdout with `read-issue-file.sh`
+
+## Quick Start
+
+```bash
+# Create a new GitHub issue and task directory
+./create-issue.sh "Add dark mode toggle" "Implement dark/light theme switcher"
+
+# Work on files locally (SPEC.md, PLAN.md, etc.)
+
+# Push all files to GitHub
+./push.sh 188 ./tasks/188-add-dark-mode-toggle
+
+# Or pull the latest from GitHub
+./pull.sh 188 ./tasks/188-add-dark-mode-toggle
+```
+
+## Scripts
+
+### create-issue.sh
+
+Create a new GitHub issue and initialize a task directory. Can also convert existing task directories to GitHub issues.
 
 **Usage:**
 ```bash
-./sync-to-github.sh <issue-url-or-number> [task-directory]
+./create-issue.sh <title> [description] [existing-task-dir]
 ```
 
 **Arguments:**
-- `issue-url-or-number` - Full GitHub URL (e.g., `https://github.com/owner/repo/issues/188`) or just the issue number (e.g., `188`)
-- `task-directory` - Directory containing SPEC.md, PLAN.md, TEST_PLAN.md, COMMIT_MESSAGE.md (optional, defaults to current directory)
+- `title` - GitHub issue title
+- `description` - Issue description (optional)
+- `existing-task-dir` - Path to existing task directory to convert (optional)
 
 **Examples:**
 ```bash
-# Using full URL
-./sync-to-github.sh https://github.com/edspencer/bragdoc-ai/issues/188 ./tasks/account-deletion
+# Create new issue with title only
+./create-issue.sh "Add dark mode toggle"
 
-# Using just the issue number
-./sync-to-github.sh 188 ./tasks/account-deletion
+# Create new issue with title and description
+./create-issue.sh "Add dark mode toggle" "Implement dark/light theme switcher in settings"
 
-# Using current directory
-./sync-to-github.sh 188
+# Convert existing task directory to GitHub issue
+./create-issue.sh "Add dark mode toggle" "" ./tasks/dark-mode
 ```
 
 **What it does:**
-- Uploads SPEC.md, PLAN.md, TEST_PLAN.md, and COMMIT_MESSAGE.md as separate collapsible comments on the issue
+1. Creates a new GitHub issue with the provided title and description
+2. Creates local task directory named `{issue-number}-{title-slug}/`
+3. If task files exist, automatically syncs them to GitHub
+4. Outputs issue URL and task directory path
+
+**Output:**
+```
+Creating GitHub issue...
+✓ GitHub issue created: https://github.com/edspencer/bragdoc-ai/issues/189
+✓ Created task directory: tasks/189-add-dark-mode-toggle
+
+✅ Task setup complete!
+Issue: https://github.com/edspencer/bragdoc-ai/issues/189
+Task Directory: tasks/189-add-dark-mode-toggle
+Task Number: 189
+```
+
+### push.sh
+
+Push all task documentation files (SPEC.md, PLAN.md, TEST_PLAN.md, COMMIT_MESSAGE.md) to a GitHub issue as collapsible comments.
+
+**Usage:**
+```bash
+./push.sh <issue-url-or-number> [task-directory]
+```
+
+**Arguments:**
+- `issue-url-or-number` - Full GitHub URL or just the issue number
+- `task-directory` - Directory containing task files (optional, defaults to current directory)
+
+**Examples:**
+```bash
+# Using issue number
+./push.sh 188 ./tasks/188-account-deletion
+
+# Using full URL
+./push.sh https://github.com/edspencer/bragdoc-ai/issues/188 ./tasks/188-account-deletion
+
+# Using current directory
+./push.sh 188
+```
+
+**What it does:**
+- Uploads all four task file types as separate collapsible comments
 - Each file type gets a unique marker so it can be updated independently
-- If a comment for that file type already exists, it updates it instead of creating a duplicate
-- Each file is wrapped in a `<details>` section that starts collapsed
+- Creates new comments or updates existing ones
+- Each file wrapped in `<details>` section that starts collapsed
 
 **Output:**
 ```
@@ -55,9 +125,136 @@ Processing PLAN.md...
 View the issue: https://github.com/edspencer/bragdoc-ai/issues/188
 ```
 
-## read-issue-file.sh
+### push-file.sh
 
-Read a task documentation file from a GitHub issue and output it to stdout.
+Update a single task file comment on a GitHub issue with a status summary and file content.
+
+**Usage:**
+```bash
+./push-file.sh <issue-url-or-number> <file-type> <status-file> <content-file>
+```
+
+**Arguments:**
+- `issue-url-or-number` - GitHub issue URL or issue number
+- `file-type` - One of: `SPEC`, `PLAN`, `TEST_PLAN`, `COMMIT_MESSAGE`
+- `status-file` - File containing status summary (2 paragraphs + optional bullets)
+- `content-file` - File containing the full file content
+
+**Examples:**
+```bash
+# Update SPEC with status and content
+./push-file.sh 188 SPEC SPEC-STATUS.md SPEC.md
+
+# Update PLAN after review
+./push-file.sh 188 PLAN plan-status.txt PLAN.md
+```
+
+**Status File Format:**
+The status file should contain a 2-paragraph summary describing the document state:
+
+```markdown
+**Status:** [Draft | Complete | Review Needed | etc.]
+
+This is the first paragraph explaining the current state of the document.
+It should describe what has been completed, what's pending, or any key status information.
+
+This is the second paragraph providing additional context or details about the document state.
+
+- Key point 1 (optional)
+- Key point 2 (optional)
+```
+
+**What it does:**
+- Creates or updates a single comment for the specified file type
+- Combines the status summary with the file content in a collapsible section
+- Each file type has a unique marker for independent updates
+
+**Output:**
+```
+↻ Updating SPEC comment on issue #188 (ID: 123456789)...
+✓ Updated successfully
+
+View the issue: https://github.com/edspencer/bragdoc-ai/issues/188
+```
+
+### pull.sh
+
+Pull all task documentation files from a GitHub issue to a local task directory.
+
+**Usage:**
+```bash
+./pull.sh <issue-url-or-number> [task-directory]
+```
+
+**Arguments:**
+- `issue-url-or-number` - GitHub issue URL or issue number
+- `task-directory` - Directory to write files to (optional, defaults to current directory)
+
+**Examples:**
+```bash
+# Pull to current directory
+./pull.sh 188
+
+# Pull to specific task directory
+./pull.sh 188 ./tasks/188-account-deletion
+
+# Pull using full URL
+./pull.sh https://github.com/edspencer/bragdoc-ai/issues/188 ./tasks/188-account-deletion
+```
+
+**What it does:**
+1. Fetches all four task files from GitHub issue comments
+2. Extracts content from collapsible sections
+3. Writes each to local file (SPEC.md, PLAN.md, etc.)
+4. Creates task directory if it doesn't exist
+
+**Output:**
+```
+📥 Pulling task files from GitHub issue #188 in edspencer/bragdoc-ai
+
+Pulling SPEC.md...
+  ✓ Pulled to SPEC.md
+
+Pulling PLAN.md...
+  ✓ Pulled to PLAN.md
+
+...
+✅ Pull complete!
+Task directory: ./tasks/188-account-deletion
+```
+
+### pull-file.sh
+
+Pull a single task file from a GitHub issue to a local file.
+
+**Usage:**
+```bash
+./pull-file.sh <issue-url-or-number> <file-type> [output-file]
+```
+
+**Arguments:**
+- `issue-url-or-number` - GitHub issue URL or issue number
+- `file-type` - One of: `SPEC`, `PLAN`, `TEST_PLAN`, `COMMIT_MESSAGE`
+- `output-file` - File to write to (default: `{file-type}.md` in current directory)
+
+**Examples:**
+```bash
+# Pull SPEC to SPEC.md
+./pull-file.sh 188 SPEC
+
+# Pull PLAN to specific file
+./pull-file.sh 188 PLAN ./my-plan.md
+
+# Pull and pipe to stdout
+./pull-file.sh 188 SPEC | head -20
+```
+
+**Output:**
+Pure file content (great for piping or redirecting)
+
+### read-issue-file.sh
+
+Read a task file from a GitHub issue and output to stdout. Useful for debugging, piping, or quick content inspection.
 
 **Usage:**
 ```bash
@@ -65,79 +262,145 @@ Read a task documentation file from a GitHub issue and output it to stdout.
 ```
 
 **Arguments:**
-- `issue-url-or-number` - Full GitHub URL or just the issue number
+- `issue-url-or-number` - GitHub issue URL or issue number
 - `file-type` - One of: `SPEC`, `PLAN`, `TEST_PLAN`, `COMMIT_MESSAGE`
 
 **Examples:**
 ```bash
-# Using full URL
-./read-issue-file.sh https://github.com/edspencer/bragdoc-ai/issues/188 SPEC
+# Read SPEC to stdout
+./read-issue-file.sh 188 SPEC
 
-# Using just the issue number
-./read-issue-file.sh 188 PLAN
+# Pipe to file
+./read-issue-file.sh 188 PLAN > my-plan.md
 
-# Piping to a file
-./read-issue-file.sh 188 TEST_PLAN > my-test-plan.md
-
-# Using with other tools
+# View first 20 lines
 ./read-issue-file.sh 188 SPEC | head -20
 ```
 
 **Output:**
-Pure file content sent to stdout (great for piping or redirecting)
+Pure file content sent to stdout
+
+## Task Directory Structure
+
+When using `create-issue.sh`, directories are automatically named with the issue number:
+
+```
+tasks/
+├── 188-account-deletion/
+│   ├── SPEC.md                   (Specification)
+│   ├── PLAN.md                   (Implementation plan)
+│   ├── TEST_PLAN.md              (Test scenarios)
+│   └── COMMIT_MESSAGE.md         (Git commit message)
+├── 189-add-dark-mode/
+│   └── [similar structure]
+└── archive/
+    └── [completed tasks]
+```
+
+**Naming Convention:** `{issue-number}-{task-name-slug}`
+
+The issue number in the directory name provides direct reference to the GitHub issue.
 
 ## Workflow
 
-1. **Create/update task files** (SPEC.md, PLAN.md, TEST_PLAN.md, COMMIT_MESSAGE.md) in your task directory
-2. **Sync to GitHub** - Run `sync-to-github.sh` to upload them to an issue
-3. **Read back anytime** - Use `read-issue-file.sh` to retrieve files from the issue
-4. **Update on GitHub** - Files stay as the source of truth on the issue, not in your filesystem
+### Creating a New Task
 
-## Benefits
-
-- ✅ Keeps filesystem clean (no huge markdown files checked into git)
-- ✅ Centralized documentation on the GitHub issue
-- ✅ Easy to update - just rerun `sync-to-github.sh`
-- ✅ Retrieve files anytime with `read-issue-file.sh`
-- ✅ Each file type has its own comment (can be updated independently)
-- ✅ Collapsible sections keep large files organized
-
-## Setup
-
-The scripts are located at:
-- `.claude/skills/github-task-sync/sync-to-github.sh`
-- `.claude/skills/github-task-sync/read-issue-file.sh`
-
-**Option 1: Use with full path**
 ```bash
-/Users/ed/Code/brag-ai/.claude/skills/github-task-sync/sync-to-github.sh 188 ./tasks/account-deletion
+# 1. Create GitHub issue and task directory
+./create-issue.sh "Add authentication" "Implement magic link authentication"
+
+# 2. Work on files locally
+# - Create SPEC.md
+# - Create PLAN.md
+# - Create TEST_PLAN.md
+# - Create COMMIT_MESSAGE.md
+
+# 3. Push files to GitHub
+./push.sh 190 ./tasks/190-add-authentication
+
+# 4. Continue development...
+# When you update files, push again
+./push.sh 190 ./tasks/190-add-authentication
 ```
 
-**Option 2: Add to PATH** (add to your `.bashrc` or `.zshrc`)
+### Converting Existing Tasks to GitHub Issues
+
+If you have an existing task directory without a GitHub issue:
+
 ```bash
-export PATH="$PATH:/Users/ed/Code/brag-ai/.claude/skills/github-task-sync"
+# 1. Create GitHub issue from existing directory
+./create-issue.sh "My feature" "Description" ./tasks/my-feature
+
+# 2. Files are automatically synced to GitHub
+# Task directory renamed to: tasks/191-my-feature
 ```
 
-Then use directly:
+### Syncing During Work
+
+**Push workflow** (local → GitHub):
 ```bash
-sync-to-github.sh 188 ./tasks/account-deletion
-read-issue-file.sh 188 SPEC
+# Update single file on GitHub with status
+./push-file.sh 188 SPEC SPEC-STATUS.md SPEC.md
+
+# Update all files on GitHub
+./push.sh 188 ./tasks/188-account-deletion
 ```
 
-**Option 3: Create aliases** (add to your `.bashrc` or `.zshrc`)
+**Pull workflow** (GitHub → local):
 ```bash
-alias sync-issue="/Users/ed/Code/brag-ai/.claude/skills/github-task-sync/sync-to-github.sh"
-alias read-issue="/Users/ed/Code/brag-ai/.claude/skills/github-task-sync/read-issue-file.sh"
+# Pull all files from GitHub
+./pull.sh 188 ./tasks/188-account-deletion
+
+# Pull single file from GitHub
+./pull-file.sh 188 PLAN
 ```
 
-Then use:
-```bash
-sync-issue 188 ./tasks/account-deletion
-read-issue 188 SPEC
-```
+### Task Completion
+
+When finishing a task (via `/finish` command):
+
+1. All work is complete and tested
+2. Run `push.sh` one final time to sync latest versions
+3. Task directory is archived from `tasks/` to `tasks/archive/`
+4. GitHub issue remains as permanent record
+
+## Key Features
+
+- ✅ **Bidirectional sync** - Push changes to GitHub or pull from GitHub
+- ✅ **Selective updates** - Push/pull individual files or all at once
+- ✅ **Status tracking** - Each file can have a 2-paragraph status summary
+- ✅ **Collapsible display** - Large files stay organized on GitHub
+- ✅ **Issue creation** - Automatically initialize task structure
+- ✅ **Directory conversion** - Convert existing tasks to GitHub issues
+- ✅ **No git commits** - Task files never committed (in `.gitignore`)
+- ✅ **GitHub-centric** - Documentation source of truth lives on GitHub
 
 ## Requirements
 
 - `gh` CLI installed and authenticated
 - Bash shell
 - Read/write access to the GitHub repository
+
+## Integration with Other Commands
+
+**With `/write-spec`:**
+- Creates SPEC.md locally
+- Agent calls `push-file.sh` to sync status + content to GitHub
+
+**With `/write-plan`:**
+- Creates PLAN.md locally
+- Agent calls `push-file.sh` to sync to GitHub
+
+**With `/finish`:**
+- Calls `push.sh` to sync all files to GitHub as final step
+- Task archived and GitHub issue contains complete documentation
+
+## Setup & Configuration
+
+All scripts reference the default repository `edspencer/bragdoc-ai`. To use with a different repository, modify the `OWNER` and `REPO` variables in the scripts or pass full GitHub URLs.
+
+**Using with different repository:**
+```bash
+# Use full URL instead of issue number
+./push.sh "https://github.com/myorg/myrepo/issues/42" ./tasks/42-myfeature
+```

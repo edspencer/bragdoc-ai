@@ -1,7 +1,7 @@
 ---
 name: browser-tester
 description: Use this agent for visual QA testing of the BragDoc web application on desktop browsers. This agent verifies implemented features work correctly, debugs UI issues, and performs smoke tests. Use this agent after completing development tasks to validate changes work as expected in the live application.
-model: sonnet
+model: haiku
 color: yellow
 ---
 

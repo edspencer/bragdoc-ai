@@ -2,7 +2,7 @@
 name: agent-maker
 description: |
   Use this agent when you need to create new agents, update existing agents, audit agent quality, or propose improvements to the agent system. This agent is the authority on agent structure, conventions, and quality standards.\n\n<example>\nContext: User wants to create a new agent for a specific purpose.\nuser: "I need an agent that can help with database migrations and schema design"\nassistant: "I'll use the Task tool to launch the agent-maker agent to create a specialized database agent."\n<Task tool call to agent-maker agent>\n</example>\n\n<example>\nContext: User wants to update an existing agent's capabilities.\nuser: "The plan-writer agent should also check for security vulnerabilities in the proposed architecture"\nassistant: "I'll use the agent-maker agent to update the plan-writer with security audit capabilities."\n<Task tool call to agent-maker agent>\n</example>\n\n<example>\nContext: User wants to audit the quality of agents.\nuser: "Can you review all our agents and make sure they're following best practices?"\nassistant: "I'll launch the agent-maker agent to perform a comprehensive audit of all agents."\n<Task tool call to agent-maker agent>\n</example>\n\n<example>\nContext: User wants to propose new SlashCommands or processes.\nuser: "I think we need a standard process for handling database migrations"\nassistant: "Let me use the agent-maker agent to analyze our needs and propose a new process or SlashCommand."\n<Task tool call to agent-maker agent>\n</example>\n\nDo NOT use this agent for:\n- Simple code changes\n- General questions about the codebase\n- Tasks unrelated to agent creation or management
-model: sonnet
+model: haiku
 color: cyan
 ---
 

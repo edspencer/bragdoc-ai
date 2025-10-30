@@ -62,22 +62,48 @@ This document provides high-level guidance for developing BragDoc, an AI-powered
 
 ## Task Management
 
-Tasks are planned in the `./tasks` directory (source controlled). Each task uses Claude Code Agents and SlashCommands for specification, planning, implementation, and review.
+Tasks are managed through GitHub issues and synced locally via the GitHub Task Sync skill. Each task uses Claude Code Agents and SlashCommands for specification, planning, implementation, and review.
 
 ### Task Structure
 
 ```
-./tasks/TASK-NAME/
-├── SPEC.md   # Task specification
-├── PLAN.md   # Implementation plan
-└── LOG.md    # Implementation log
+./tasks/{issue-number}-{task-name}/
+├── SPEC.md              # Task specification
+├── PLAN.md              # Implementation plan
+├── TEST_PLAN.md         # Manual testing procedures
+└── COMMIT_MESSAGE.md    # Git commit message template
 ```
 
-**SPEC.md:** Task description, expected outcome, context. Should start with "Task: \<task name\>" heading. Use level 2 headings for "Background Reading" and "Specific Requirements" when applicable.
+**Directory Naming:** Tasks are named `{issue-number}-{task-slug}` to directly reference the GitHub issue. For example: `tasks/188-account-deletion/`
 
-**PLAN.md:** Implementation plan written by the `plan-writer` agent, delegates to other SlashCommands/Agents.
+**SPEC.md:** Task description, expected outcome, and requirements. Should start with "Task: <task name>" heading. Use level 2 headings for "Background Reading" and "Specific Requirements" when applicable.
 
-**LOG.md:** Implementation progress log updated by the `code-writer` agent via `/write-code` SlashCommand.
+**PLAN.md:** Implementation plan with phased approach, task breakdown, and dependencies. Created by the `plan-writer` agent with full specification coverage.
+
+**TEST_PLAN.md:** Manual testing procedures and acceptance criteria. Integrated with the master test plan via `/add-to-test-plan` SlashCommand.
+
+**COMMIT_MESSAGE.md:** Git commit message template (2-4 paragraphs) describing the changes, created during planning phase.
+
+### GitHub Task Sync Skill
+
+All task files live both locally and on GitHub issues, synchronized via the `github-task-sync` skill. Task files are NOT source-controlled (in `.gitignore`), with GitHub issues as the source of truth.
+
+**Quick Commands:**
+```bash
+# Create new GitHub issue and task directory
+./.claude/skills/github-task-sync/create-issue.sh "Feature title" "Description"
+
+# Push task files to GitHub
+./.claude/skills/github-task-sync/push.sh 188 ./tasks/188-account-deletion
+
+# Pull task files from GitHub
+./.claude/skills/github-task-sync/pull.sh 188 ./tasks/188-account-deletion
+
+# Read a single file from GitHub
+./.claude/skills/github-task-sync/read-issue-file.sh 188 SPEC
+```
+
+See `.claude/skills/github-task-sync/SKILL.md` for complete documentation and all available scripts.
 
 ### Agent System v2
 

@@ -83,17 +83,18 @@ The Engineering Manager is responsible for orchestrating the engineering workflo
 - **Delegation**: Coordinates spec-writer, plan-writer, code-writer, spec-checker, plan-checker, code-checker, and browser-tester agents
 - **Quality Assurance**: Ensures all artifacts (specs, plans, code) are validated before proceeding to next phase
 - **Bug Triage**: Receives reports from QA agents and decides whether to create tickets in Notion
+- **Task Management**: Ensures GitHub issues are created for trackable tasks and kept in sync with local work
 
 ### Typical Workflow
 
-1. User requests a feature → Delegate to **spec-writer** to create SPEC.md
-2. SPEC.md created → Delegate to **spec-checker** to validate
+1. User requests a feature → Delegate to **spec-writer** to create SPEC.md (may create GitHub issue if requested)
+2. SPEC.md created → Delegate to **spec-checker** to validate (syncs status to GitHub)
 3. SPEC validated → Delegate to **plan-writer** to create PLAN.md
-4. PLAN.md created → Delegate to **plan-checker** to validate
+4. PLAN.md created → Delegate to **plan-checker** to validate (syncs status to GitHub)
 5. PLAN validated → Delegate to **code-writer** to implement
 6. Code implemented → Delegate to **code-checker** to validate
 7. Code validated → Delegate to **browser-tester** to perform QA
-8. QA passed → Task complete
+8. QA passed → Use `/finish` to archive task and sync final files to GitHub
 
 ### Integration with Other Agents
 
@@ -102,6 +103,10 @@ The Engineering Manager is responsible for orchestrating the engineering workflo
 - **Plan Writer**: Delegates plan creation from validated specs
 - **Code Writer**: Delegates implementation from validated plans
 - **All Checkers**: Uses to validate work at each phase before proceeding
+
+### GitHub Task Sync
+
+Engineering Manager ensures tasks are properly tracked on GitHub when appropriate. For significant features or multi-phase work, GitHub issues should be created using the github-task-sync skill's `create-issue.sh` script. Task files (SPEC, PLAN, TEST_PLAN, COMMIT_MESSAGE) are kept synchronized between local directories and GitHub issues, with GitHub serving as the source of truth.
 
 ## Code Writer
 
@@ -140,6 +145,7 @@ The Plan Writer agent (formerly Planner/spec-planner) is responsible for creatin
 - **Delegation**: Thin wrapper - delegates detailed planning logic to `/write-plan` SlashCommand
 - **Review**: Reviews SlashCommand output before finalizing
 - **Summary**: Provides high-level summary of plan to user
+- **GitHub Sync**: Ensures task files are synced to GitHub issues using github-task-sync skill
 
 ### General Rules and Processes
 
@@ -149,6 +155,7 @@ The Plan Writer always abides by `.claude/docs/processes/plan-rules.md` (formerl
 - Documentation update tasks
 - Validation criteria
 - Clear task descriptions
+- GitHub task sync integration
 
 ### Workflow
 
@@ -156,7 +163,12 @@ The Plan Writer always abides by `.claude/docs/processes/plan-rules.md` (formerl
 2. Invokes `/write-plan` SlashCommand with spec context
 3. Reviews generated plan for completeness
 4. Summarizes plan at senior engineer level
-5. Reports completion back to engineering-manager
+5. Syncs task files to GitHub using github-task-sync skill if applicable
+6. Reports completion back to engineering-manager
+
+### GitHub Task Sync
+
+Plans should include references to syncing task files to GitHub at appropriate points. The github-task-sync skill (`.claude/skills/github-task-sync/`) provides scripts for bidirectional sync between local task directories and GitHub issues. See plan-rules.md section "GitHub Task Sync Integration" for detailed workflow requirements.
 
 ## Writer/Checker Agents
 
@@ -165,12 +177,12 @@ The agent system follows the Writer/Checker pattern for all content types:
 ### Spec Writer & Spec Checker
 
 - **Spec Writer**: Creates SPEC.md files using `/write-spec`, follows spec-rules.md
-- **Spec Checker**: Validates SPEC.md files using `/check-spec`, provides structured feedback
+- **Spec Checker**: Validates SPEC.md files using `/check-spec`, provides structured feedback, syncs validation status to GitHub
 
 ### Plan Writer & Plan Checker
 
-- **Plan Writer**: Creates PLAN.md files using `/write-plan`, follows plan-rules.md
-- **Plan Checker**: Validates PLAN.md files using `/check-plan`, ensures spec coverage
+- **Plan Writer**: Creates PLAN.md files using `/write-plan`, follows plan-rules.md, references github-task-sync skill
+- **Plan Checker**: Validates PLAN.md files using `/check-plan`, ensures spec coverage, syncs validation status to GitHub
 
 ### Code Writer & Code Checker
 
@@ -184,6 +196,8 @@ The agent system follows the Writer/Checker pattern for all content types:
 
 All Writer agents use `model: sonnet` for content creation capability.
 All Checker agents use `model: haiku` for fast validation.
+
+**GitHub Task Sync Integration:** Spec and Plan checkers use the github-task-sync skill to push validation status updates to GitHub issues, keeping task documentation centralized and current.
 
 ## Process Manager
 

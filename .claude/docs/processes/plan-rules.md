@@ -98,6 +98,48 @@ The commit message should:
 
 This workflow ensures consistency between what was planned and what gets committed, while allowing flexibility to adjust the message if implementation details changed.
 
+## GitHub Task Sync Integration
+
+**CONTEXT:** All task files (SPEC.md, PLAN.md, TEST_PLAN.md, COMMIT_MESSAGE.md) are managed using the `github-task-sync` skill, which maintains bidirectional sync between local task directories and GitHub issues. GitHub issues are the source of truth for task documentation.
+
+### GitHub Issue Creation
+
+When creating a GitHub issue is explicitly requested:
+
+- Use the `create-issue.sh` script from the github-task-sync skill
+- The script creates a new GitHub issue and initializes a task directory named `{issue-number}-{task-name}/`
+- Task files are automatically synced to GitHub as collapsible comments
+- Each file type (SPEC, PLAN, TEST_PLAN, COMMIT_MESSAGE) has a unique marker for independent updates
+
+### Working with GitHub Task Sync
+
+**Before beginning work:**
+- Pull latest task files from GitHub using `pull.sh` or `pull-file.sh`
+- This ensures you're working with the current source of truth
+- Local task files are a working cache; GitHub is authoritative
+
+**During work:**
+- Create and edit task files locally as usual
+- Push updates to GitHub periodically using `push-file.sh` for individual files
+- Include status summaries when pushing individual files (2-paragraph overview)
+
+**After completing a phase or significant update:**
+- Use `push.sh` to sync all task files to GitHub at once
+- This keeps the GitHub issue updated as work progresses
+
+**Reference:** See `.claude/skills/github-task-sync/SKILL.md` for complete documentation of all available scripts and workflows.
+
+### Plans Must Reference GitHub Sync
+
+Plans should include tasks in relevant phases to sync work to GitHub:
+
+```markdown
+#### Sync to GitHub
+- [ ] Push updated task files to GitHub issue using `github-task-sync/push.sh`
+```
+
+This ensures task documentation stays synchronized throughout the implementation process, not just at completion.
+
 ## After-Action Report Phase
 
 **MANDATORY REQUIREMENT:** Every plan MUST include a final phase for submitting an after-action report to the process-manager agent.

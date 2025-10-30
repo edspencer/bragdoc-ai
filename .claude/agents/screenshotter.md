@@ -48,7 +48,7 @@ description: |
   - Making code changes or modifications
   - Performance analysis or load testing
   - Writing tests or test plans
-model: sonnet
+model: haiku
 color: magenta
 ---
 

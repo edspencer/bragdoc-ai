@@ -46,6 +46,20 @@ pnpm build
 - **CLAUDE.md**: Update when project structure or conventions change
 - **Process docs** (`.claude/docs/processes/`): Update when development processes change
 
+### GitHub Task Sync
+
+**Keep GitHub issues synchronized with local task work:**
+
+- **Source of truth**: GitHub issues are the authoritative source for task documentation
+- **Local cache**: Task files in `./tasks/` are working copies for agents to edit
+- **Sync workflow**: Use the `github-task-sync` skill to push/pull task files (SPEC.md, PLAN.md, TEST_PLAN.md, COMMIT_MESSAGE.md)
+- **When to sync**:
+  - Pull from GitHub before starting work on a task
+  - Push after major updates (spec validation, plan validation, implementation completion)
+  - Final sync via `/finish` SlashCommand before archiving
+
+**Reference:** See `.claude/skills/github-task-sync/SKILL.md` for complete documentation.
+
 ### Cross-Reference Validation
 
 When updating files, check for cross-references that may need updating:

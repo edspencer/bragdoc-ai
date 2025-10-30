@@ -52,4 +52,20 @@ Your git commit message should:
 - Call out any key environment variable changes
 - Avoid value judgments (e.g., don't say "improves" or "better")
 
+## Syncing Task Files to GitHub
+
+Before archiving the task, sync all task files to the GitHub issue as the final step:
+
+1. **Determine the issue number**: Extract it from the task directory name (format: `tasks/{issue-number}-{task-name}/`)
+2. **Sync all files**: Run the push.sh skill to upload SPEC.md, PLAN.md, TEST_PLAN.md, and COMMIT_MESSAGE.md to the issue
+   ```bash
+   /Users/ed/Code/brag-ai/.claude/skills/github-task-sync/push.sh <issue-number> <task-directory>
+   ```
+3. **Verify**: Confirm all files appear on the GitHub issue as collapsible comments
+4. **Archive task**: After syncing, move the task directory to ./tasks/archive/ using `git mv`
+
+This ensures all documentation is centralized on the GitHub issue before the task is archived.
+
+---
+
 Don't stage anything or commit anything, just propose the final git commit message now:
