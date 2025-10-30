@@ -18,8 +18,32 @@ export function LlmProviderPrivacy() {
             LLM Provider Privacy
           </h2>
           <div className="grid md:grid-cols-3 gap-6">
-            {/* Cloud Providers */}
+            {/* Local Option */}
             <Card className="p-6">
+              <div className="flex items-center gap-2 mb-4">
+                <Server className="size-5 text-primary" />
+                <h3 className="font-semibold text-lg">Local Option</h3>
+              </div>
+              <div className="space-y-3 mb-4">
+                <div>
+                  <p className="font-medium text-sm mb-1">Ollama</p>
+                  <p className="text-xs text-muted-foreground">
+                    100% local processing
+                  </p>
+                </div>
+              </div>
+              <ul className="space-y-2 text-xs text-muted-foreground">
+                <li>• Nothing leaves your machine</li>
+                <li>• Completely free</li>
+                <li>• Full privacy</li>
+              </ul>
+            </Card>
+
+            {/* Cloud Providers - Highlighted as Default */}
+            <Card className="p-6 border-primary bg-primary/5 relative">
+              <Badge className="absolute -top-3 left-1/2 -translate-x-1/2">
+                Default
+              </Badge>
               <div className="flex items-center gap-2 mb-4">
                 <Sparkles className="size-5 text-primary" />
                 <h3 className="font-semibold text-lg">Cloud Providers</h3>
@@ -42,30 +66,6 @@ export function LlmProviderPrivacy() {
               <p className="text-xs text-muted-foreground">
                 Subject to their privacy policies. You control which to use.
               </p>
-            </Card>
-
-            {/* Local Option - Highlighted */}
-            <Card className="p-6 border-primary bg-primary/5 relative">
-              <Badge className="absolute -top-3 left-1/2 -translate-x-1/2">
-                Recommended
-              </Badge>
-              <div className="flex items-center gap-2 mb-4">
-                <Server className="size-5 text-primary" />
-                <h3 className="font-semibold text-lg">Local Option</h3>
-              </div>
-              <div className="space-y-3 mb-4">
-                <div>
-                  <p className="font-medium text-sm mb-1">Ollama</p>
-                  <p className="text-xs text-muted-foreground">
-                    100% local processing
-                  </p>
-                </div>
-              </div>
-              <ul className="space-y-2 text-xs text-muted-foreground">
-                <li>• Nothing leaves your machine</li>
-                <li>• Completely free</li>
-                <li>• Full privacy</li>
-              </ul>
             </Card>
 
             {/* Custom Endpoints */}

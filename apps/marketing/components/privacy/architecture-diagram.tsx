@@ -66,6 +66,26 @@ export function ArchitectureDiagram() {
               </ul>
             </Card>
           </div>
+
+          {/* Privacy Architecture Visual Diagram */}
+          <div className="mt-16">
+            <h3 className="text-xl sm:text-2xl font-semibold text-center mb-8">
+              How It Works: Privacy-First Architecture
+            </h3>
+            <div className="rounded-lg border border-border bg-background p-4 sm:p-6 lg:p-8">
+              <img
+                src="/privacy-architecture.svg"
+                alt="BragDoc privacy architecture diagram showing the CLI tool on your laptop extracting commits from git projects, using an AI provider like OpenAI to scan work for achievements, and then sending only achievements to bragdoc.ai. Importantly, git data never goes to the cloud - there is a clear separation between your laptop/git and cloud services."
+                className="w-full h-auto"
+              />
+            </div>
+            <p className="text-sm text-muted-foreground text-center mt-4 max-w-3xl mx-auto">
+              Your code and git history never leave your machine. The CLI
+              extracts commit metadata locally, sends it to your chosen AI
+              provider for analysis, and only the resulting achievements are
+              sent to BragDoc's cloud storage.
+            </p>
+          </div>
         </div>
       </div>
     </section>
