@@ -1,10 +1,11 @@
 import {
-  Server,
-  Cpu,
-  Database,
+  Monitor,
+  Brain,
+  Cloud,
   Shield,
   ArrowRight,
   Lock,
+  CheckCircle2,
   Sparkles,
 } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
@@ -20,129 +21,150 @@ export function PrivacyArchitectureV2() {
           <div className="text-center mb-12">
             <Badge className="mb-4 bg-green-500/10 text-green-600 dark:text-green-400 border-green-500/20">
               <Lock className="size-3 mr-1" />
-              Privacy-First Design
+              Privacy-First Architecture
             </Badge>
             <h2 className="text-3xl sm:text-4xl font-bold mb-4">
               Three-Layer Privacy Architecture
             </h2>
             <p className="text-lg text-muted-foreground text-balance max-w-2xl mx-auto">
-              A clear separation between your code, AI processing, and cloud
-              storage.
+              Your code stays on your machine. Only achievements are stored in
+              the cloud.
             </p>
           </div>
 
-          {/* Horizontal Timeline Style */}
-          <div className="relative mb-16">
-            {/* Connection Line */}
-            <div className="hidden md:block absolute top-24 inset-x-0 h-1 bg-gradient-to-r from-green-500 via-blue-500 to-purple-500 opacity-20" />
-
-            <div className="grid md:grid-cols-3 gap-8 relative">
-              {/* Layer 1 */}
-              <div className="relative">
-                <div className="absolute -top-4 left-1/2 -translate-x-1/2 z-10">
-                  <div className="size-8 rounded-full bg-green-500 flex items-center justify-center text-white font-bold text-sm shadow-lg">
-                    1
+          {/* Visual Flow Diagram */}
+          <div className="mb-16">
+            <div className="relative">
+              {/* Flow Diagram */}
+              <div className="grid md:grid-cols-3 gap-4 md:gap-8 items-center">
+                {/* Step 1: Your Machine */}
+                <div className="relative">
+                  <Card className="border-2 border-green-500/50 bg-green-500/5 hover:border-green-500 transition-colors">
+                    <CardContent className="py-6">
+                      <div className="flex flex-col items-center text-center space-y-4">
+                        <div className="size-20 rounded-2xl bg-green-500/10 flex items-center justify-center ring-4 ring-green-500/20">
+                          <Monitor className="size-10 text-green-600 dark:text-green-400" />
+                        </div>
+                        <div>
+                          <h3 className="text-xl font-bold mb-2">
+                            Your Machine
+                          </h3>
+                          <p className="text-sm text-muted-foreground mb-4">
+                            Git repositories analyzed locally
+                          </p>
+                        </div>
+                        <div className="w-full space-y-2 text-left">
+                          <div className="flex items-start gap-2 text-sm">
+                            <CheckCircle2 className="size-4 text-green-600 dark:text-green-400 mt-0.5 shrink-0" />
+                            <span className="text-muted-foreground">
+                              Code stays here
+                            </span>
+                          </div>
+                          <div className="flex items-start gap-2 text-sm">
+                            <CheckCircle2 className="size-4 text-green-600 dark:text-green-400 mt-0.5 shrink-0" />
+                            <span className="text-muted-foreground">
+                              CLI extracts metadata
+                            </span>
+                          </div>
+                          <div className="flex items-start gap-2 text-sm">
+                            <CheckCircle2 className="size-4 text-green-600 dark:text-green-400 mt-0.5 shrink-0" />
+                            <span className="text-muted-foreground">
+                              Never uploaded
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                  {/* Arrow */}
+                  <div className="hidden md:block absolute top-1/2 -right-4 -translate-y-1/2 z-10">
+                    <ArrowRight className="size-8 text-primary" />
                   </div>
                 </div>
-                <Card className="border-2 border-green-500/30 bg-gradient-to-br from-green-500/5 to-transparent hover:border-green-500/50 transition-all hover:shadow-lg hover:shadow-green-500/10">
-                  <CardContent className="pt-12 pb-6">
-                    <div className="text-center space-y-4">
-                      <div className="inline-flex size-16 rounded-xl bg-green-500/10 items-center justify-center mb-2">
-                        <Server className="size-8 text-green-600 dark:text-green-400" />
-                      </div>
-                      <h3 className="text-xl font-bold">Local Machine</h3>
-                      <p className="text-sm text-muted-foreground">
-                        Your code repository
-                      </p>
-                      <div className="pt-4 space-y-2 text-left">
-                        <div className="flex items-center gap-2 text-sm">
-                          <div className="size-1.5 rounded-full bg-green-500" />
-                          <span>Git commits analyzed</span>
-                        </div>
-                        <div className="flex items-center gap-2 text-sm">
-                          <div className="size-1.5 rounded-full bg-green-500" />
-                          <span>Code never leaves</span>
-                        </div>
-                        <div className="flex items-center gap-2 text-sm">
-                          <div className="size-1.5 rounded-full bg-green-500" />
-                          <span>CLI extracts metadata</span>
-                        </div>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              </div>
 
-              {/* Layer 2 */}
-              <div className="relative">
-                <div className="absolute -top-4 left-1/2 -translate-x-1/2 z-10">
-                  <div className="size-8 rounded-full bg-blue-500 flex items-center justify-center text-white font-bold text-sm shadow-lg">
-                    2
+                {/* Step 2: Your LLM */}
+                <div className="relative">
+                  <Card className="border-2 border-blue-500/50 bg-blue-500/5 hover:border-blue-500 transition-colors">
+                    <CardContent className="py-6">
+                      <div className="flex flex-col items-center text-center space-y-4">
+                        <div className="size-20 rounded-2xl bg-blue-500/10 flex items-center justify-center ring-4 ring-blue-500/20">
+                          <Brain className="size-10 text-blue-600 dark:text-blue-400" />
+                        </div>
+                        <div>
+                          <h3 className="text-xl font-bold mb-2">Your LLM</h3>
+                          <p className="text-sm text-muted-foreground mb-4">
+                            AI analyzes commit messages
+                          </p>
+                        </div>
+                        <div className="w-full space-y-2 text-left">
+                          <div className="flex items-start gap-2 text-sm">
+                            <CheckCircle2 className="size-4 text-blue-600 dark:text-blue-400 mt-0.5 shrink-0" />
+                            <span className="text-muted-foreground">
+                              You choose provider
+                            </span>
+                          </div>
+                          <div className="flex items-start gap-2 text-sm">
+                            <CheckCircle2 className="size-4 text-blue-600 dark:text-blue-400 mt-0.5 shrink-0" />
+                            <span className="text-muted-foreground">
+                              Your API key
+                            </span>
+                          </div>
+                          <div className="flex items-start gap-2 text-sm">
+                            <CheckCircle2 className="size-4 text-blue-600 dark:text-blue-400 mt-0.5 shrink-0" />
+                            <span className="text-muted-foreground">
+                              Or use local Ollama
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                  {/* Arrow */}
+                  <div className="hidden md:block absolute top-1/2 -right-4 -translate-y-1/2 z-10">
+                    <ArrowRight className="size-8 text-primary" />
                   </div>
                 </div>
-                <Card className="border-2 border-blue-500/30 bg-gradient-to-br from-blue-500/5 to-transparent hover:border-blue-500/50 transition-all hover:shadow-lg hover:shadow-blue-500/10">
-                  <CardContent className="pt-12 pb-6">
-                    <div className="text-center space-y-4">
-                      <div className="inline-flex size-16 rounded-xl bg-blue-500/10 items-center justify-center mb-2">
-                        <Cpu className="size-8 text-blue-600 dark:text-blue-400" />
-                      </div>
-                      <h3 className="text-xl font-bold">AI Processing</h3>
-                      <p className="text-sm text-muted-foreground">
-                        Your chosen LLM provider
-                      </p>
-                      <div className="pt-4 space-y-2 text-left">
-                        <div className="flex items-center gap-2 text-sm">
-                          <div className="size-1.5 rounded-full bg-blue-500" />
-                          <span>OpenAI, Anthropic, etc.</span>
-                        </div>
-                        <div className="flex items-center gap-2 text-sm">
-                          <div className="size-1.5 rounded-full bg-blue-500" />
-                          <span>Or local Ollama</span>
-                        </div>
-                        <div className="flex items-center gap-2 text-sm">
-                          <div className="size-1.5 rounded-full bg-blue-500" />
-                          <span>Your API keys</span>
-                        </div>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              </div>
 
-              {/* Layer 3 */}
-              <div className="relative">
-                <div className="absolute -top-4 left-1/2 -translate-x-1/2 z-10">
-                  <div className="size-8 rounded-full bg-purple-500 flex items-center justify-center text-white font-bold text-sm shadow-lg">
-                    3
-                  </div>
+                {/* Step 3: BragDoc Cloud */}
+                <div className="relative">
+                  <Card className="border-2 border-purple-500/50 bg-purple-500/5 hover:border-purple-500 transition-colors">
+                    <CardContent className="py-6">
+                      <div className="flex flex-col items-center text-center space-y-4">
+                        <div className="size-20 rounded-2xl bg-purple-500/10 flex items-center justify-center ring-4 ring-purple-500/20">
+                          <Cloud className="size-10 text-purple-600 dark:text-purple-400" />
+                        </div>
+                        <div>
+                          <h3 className="text-xl font-bold mb-2">
+                            BragDoc Cloud
+                          </h3>
+                          <p className="text-sm text-muted-foreground mb-4">
+                            Achievements stored securely
+                          </p>
+                        </div>
+                        <div className="w-full space-y-2 text-left">
+                          <div className="flex items-start gap-2 text-sm">
+                            <CheckCircle2 className="size-4 text-purple-600 dark:text-purple-400 mt-0.5 shrink-0" />
+                            <span className="text-muted-foreground">
+                              Only achievements
+                            </span>
+                          </div>
+                          <div className="flex items-start gap-2 text-sm">
+                            <CheckCircle2 className="size-4 text-purple-600 dark:text-purple-400 mt-0.5 shrink-0" />
+                            <span className="text-muted-foreground">
+                              Web app access
+                            </span>
+                          </div>
+                          <div className="flex items-start gap-2 text-sm">
+                            <CheckCircle2 className="size-4 text-purple-600 dark:text-purple-400 mt-0.5 shrink-0" />
+                            <span className="text-muted-foreground">
+                              Document generation
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
                 </div>
-                <Card className="border-2 border-purple-500/30 bg-gradient-to-br from-purple-500/5 to-transparent hover:border-purple-500/50 transition-all hover:shadow-lg hover:shadow-purple-500/10">
-                  <CardContent className="pt-12 pb-6">
-                    <div className="text-center space-y-4">
-                      <div className="inline-flex size-16 rounded-xl bg-purple-500/10 items-center justify-center mb-2">
-                        <Database className="size-8 text-purple-600 dark:text-purple-400" />
-                      </div>
-                      <h3 className="text-xl font-bold">Cloud Storage</h3>
-                      <p className="text-sm text-muted-foreground">
-                        BragDoc secure database
-                      </p>
-                      <div className="pt-4 space-y-2 text-left">
-                        <div className="flex items-center gap-2 text-sm">
-                          <div className="size-1.5 rounded-full bg-purple-500" />
-                          <span>Achievements only</span>
-                        </div>
-                        <div className="flex items-center gap-2 text-sm">
-                          <div className="size-1.5 rounded-full bg-purple-500" />
-                          <span>No source code</span>
-                        </div>
-                        <div className="flex items-center gap-2 text-sm">
-                          <div className="size-1.5 rounded-full bg-purple-500" />
-                          <span>Encrypted at rest</span>
-                        </div>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
               </div>
             </div>
           </div>
