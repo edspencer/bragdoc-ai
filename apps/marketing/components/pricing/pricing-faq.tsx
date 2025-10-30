@@ -36,12 +36,14 @@ export function PricingFaq() {
               What's the difference between Free and Full Account?
             </AccordionTrigger>
             <AccordionContent>
-              The free account lets you manually track achievements and explore
-              BragDoc, but it doesn't include any AI features. The Full Account
-              (future pricing $4.99/month after beta) gives you AI-powered
-              achievement extraction from git commits, AI-generated standup
-              summaries, performance review documents, and all the features that
-              make BragDoc truly powerful. During beta, all features are free.
+              The free account includes manual achievement tracking and
+              AI-powered achievement extraction via the CLI - you just need to
+              provide your own LLM API keys (OpenAI, Anthropic, Google,
+              DeepSeek, or free local Ollama). The Full Account (future pricing
+              $4.99/month after beta) gives you cloud-based AI features without
+              needing your own API keys, plus AI-generated standup summaries,
+              performance review documents, and all the features that make
+              BragDoc truly powerful. During beta, all features are free.
             </AccordionContent>
           </AccordionItem>
           <AccordionItem value="item-2">
@@ -74,17 +76,22 @@ export function PricingFaq() {
               Currently everything is FREE during open beta, so there's nothing
               to commit to. Plus, beta users get one year free when we launch
               paid features. After beta, the free account serves as your trial -
-              you can explore BragDoc and manually track achievements to see if
-              it fits your workflow.
+              you can explore BragDoc, manually track achievements, and use
+              AI-powered extraction via the CLI (with your own LLM) to see if it
+              fits your workflow.
             </AccordionContent>
           </AccordionItem>
           <AccordionItem value="item-5">
             <AccordionTrigger>What about enterprise pricing?</AccordionTrigger>
             <AccordionContent>
-              We offer volume discounts for teams and enterprises. Contact us
-              for custom pricing if you need more than 10 seats. We also provide
-              dedicated support, custom integrations, and on-premise deployment
-              options for enterprise customers.
+              BragDoc doesn't offer enterprise pricing because we're designed
+              for individual software professionals, not organizations. We're a
+              tool for employees to advocate for themselves and document their
+              own achievements. There are other tools for enterprises to monitor
+              employee productivity, but that's not what BragDoc does. We
+              believe professionals should own and control their career
+              documentation. If your organization wants to support employees
+              using BragDoc, we're open source and can be self-hosted.
             </AccordionContent>
           </AccordionItem>
           <AccordionItem value="item-6">
