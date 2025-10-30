@@ -1,1 +1,0 @@
-ALTER TABLE "User" ALTER COLUMN "preferences" SET DEFAULT '{"hasSeenWelcome":false,"language":"en","documentInstructions":""}'::jsonb;

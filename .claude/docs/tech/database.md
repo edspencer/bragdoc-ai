@@ -834,77 +834,231 @@ const results = await db
 
 ## Migrations
 
-### Workflow
+BragDoc uses a **migration-based workflow** with Drizzle ORM for safe, version-controlled database schema changes.
 
-1. **Modify Schema**
+### Migration Architecture
+
+**Key Components:**
+
+1. **Schema Definition**: `packages/database/src/schema.ts` (single source of truth)
+2. **Migration Files**: `packages/database/src/migrations/*.sql` (version-controlled SQL)
+3. **Migration Metadata**: `packages/database/src/migrations/meta/_journal.json` (Drizzle tracking)
+4. **Migration Runner**: `packages/database/src/migrate.ts` (automated execution)
+5. **Tracking Table**: `drizzle.__drizzle_migrations` (applied migrations log)
+
+**Automated Deployment**: Migrations run automatically during Vercel builds via `vercel-build` script hook.
+
+### Migration Workflow
+
+**1. Modify Schema**
    ```typescript
    // packages/database/src/schema.ts
    export const newTable = pgTable('NewTable', {
      id: uuid('id').primaryKey().defaultRandom(),
-     // ... fields
+     userId: uuid('user_id').notNull().references(() => user.id, { onDelete: 'cascade' }),
+     name: varchar('name', { length: 256 }).notNull(),
+     createdAt: timestamp('created_at').notNull().defaultNow(),
    });
    ```
 
-2. **Generate Migration**
+**2. Generate Migration**
    ```bash
-   cd /Users/ed/Code/brag-ai
    pnpm db:generate
    ```
 
-   This creates a new file in `packages/database/src/migrations/`:
+   This creates a new numbered migration file:
    ```
-   0010_new_feature.sql
+   packages/database/src/migrations/0001_feature_name.sql
    ```
 
-3. **Review Migration**
+**3. Review Migration SQL**
    ```sql
-   -- packages/database/src/migrations/0010_new_feature.sql
+   -- packages/database/src/migrations/0001_add_new_table.sql
    CREATE TABLE "NewTable" (
      "id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
-     ...
+     "user_id" uuid NOT NULL REFERENCES "User"("id") ON DELETE CASCADE,
+     "name" varchar(256) NOT NULL,
+     "created_at" timestamp DEFAULT now() NOT NULL
    );
+
+   CREATE INDEX "new_table_user_idx" ON "NewTable"("user_id");
    ```
 
-4. **Apply Migration**
-   ```bash
-   pnpm db:push
-   ```
+   **Always review the generated SQL** to ensure it matches your intent and doesn't contain destructive changes.
 
-   Or programmatically:
+**4. Test Migration Locally**
    ```bash
    pnpm db:migrate
    ```
 
-5. **Commit to Version Control**
+   This runs `packages/database/src/migrate.ts` which:
+   - Connects to your local database using `POSTGRES_URL`
+   - Applies any pending migrations in order
+   - Updates `drizzle.__drizzle_migrations` tracking table
+
+**5. Commit Migration Files**
    ```bash
+   git add packages/database/src/schema.ts
    git add packages/database/src/migrations/
-   git commit -m "feat: add NewTable migration"
+   git commit -m "feat(db): add NewTable for feature X"
    ```
+
+   **Critical**: Always commit both schema changes and generated migration files together.
+
+**6. Deploy**
+   Push to GitHub, and Vercel automatically:
+   - Runs `vercel-build` script (includes `pnpm db:migrate`)
+   - Applies pending migrations before building app
+   - Deploys updated code with migrated schema
+
+### Database Commands
+
+```bash
+# Generate migration from schema changes
+pnpm db:generate
+
+# Run migrations programmatically (recommended for production)
+pnpm db:migrate
+
+# Open Drizzle Studio (database GUI)
+pnpm db:studio
+
+# Push schema directly (DEVELOPMENT ONLY - see warning below)
+pnpm db:push
+```
+
+### ⚠️ Critical Warning: db:push vs db:migrate
+
+**NEVER use `db:push` with production credentials.**
+
+| Command | Use Case | Safety | Production |
+|---------|----------|--------|------------|
+| `pnpm db:migrate` | Apply version-controlled migrations | ✅ Safe | ✅ Use this |
+| `pnpm db:push` | Sync schema directly (bypasses migrations) | ⚠️ Dangerous | ❌ NEVER |
+
+**Why `db:push` is dangerous:**
+- Bypasses migration history (no rollback)
+- Can cause data loss (drops columns immediately)
+- No version control or audit trail
+- Breaks deployment automation
+
+**When to use `db:push`:**
+- ✅ Local development prototyping (with local database)
+- ✅ Quick schema experimentation (disposable data)
+- ❌ NEVER with production database
+- ❌ NEVER with preview/staging databases
+
+### Baseline Migration Reset
+
+**Context**: If you have an existing database with the complete schema but no migration history, you need to mark the baseline migration as applied without re-running it.
+
+**When needed:**
+- Existing production database before migration system implementation
+- Database created with `db:push` before switching to migrations
+
+**Procedure** (see `packages/database/MIGRATION-RESET.md` for complete guide):
+
+```sql
+-- 1. Check migration tracking table exists
+SELECT EXISTS (
+  SELECT FROM information_schema.tables
+  WHERE table_schema = 'drizzle' AND table_name = '__drizzle_migrations'
+);
+
+-- 2. Get baseline migration hash from meta/_journal.json
+-- (Replace HASH_VALUE with actual hash from _journal.json)
+
+-- 3. Mark baseline as applied
+INSERT INTO drizzle.__drizzle_migrations (hash, created_at)
+VALUES ('HASH_VALUE', EXTRACT(EPOCH FROM NOW()) * 1000);
+
+-- 4. Verify
+SELECT * FROM drizzle.__drizzle_migrations ORDER BY created_at;
+```
+
+**Important**: This is a one-time operation. Future migrations will run normally via `pnpm db:migrate`.
 
 ### Migration Best Practices
 
-- **Never edit existing migrations** after they've been applied
-- **Always review generated SQL** before applying
-- **Use transactions** for multi-step migrations
+#### Schema Changes
+- **Never edit existing migrations** after they've been applied to any database
+- **Always review generated SQL** before committing
+- **Test migrations locally** before deploying
+- **Use transactions** for multi-step data migrations
 - **Add indexes** for frequently queried columns
-- **Test migrations** on dev database first
-- **Backup production** before applying migrations
+- **Use descriptive migration names** (Drizzle generates from schema changes)
+
+#### Data Migrations
+- **Separate DDL and DML**: Create table first, then populate data in separate migration
+- **Handle NULL values**: Set defaults or update existing rows before adding NOT NULL constraint
+- **Batch large updates**: For performance on large tables
+- **Test rollback**: Ensure you can revert if needed
+
+#### Deployment
+- **Migrations run before build**: Vercel executes migrations during build phase
+- **POSTGRES_URL required at build time**: Set as Vercel environment variable (both Build + Runtime)
+- **Monitor build logs**: Check migration execution in Vercel deployment logs
+- **Database backups**: Always backup before major schema changes
+
+#### Rollback
+If a migration fails or causes issues:
+1. **Revert code**: Deploy previous working version
+2. **Create reverse migration**: Generate new migration to undo changes
+3. **Manual intervention**: Last resort - requires database access and SQL expertise
 
 ### Example Migration File
+
 ```sql
--- 0010_add_github_integration.sql
+-- 0001_add_github_integration.sql
+CREATE TYPE "pr_state" AS ENUM ('open', 'closed', 'merged');
+
 CREATE TABLE "GitHubRepository" (
   "id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
   "user_id" uuid NOT NULL REFERENCES "User"("id") ON DELETE CASCADE,
   "name" varchar(256) NOT NULL,
   "full_name" varchar(512) NOT NULL,
   "private" boolean DEFAULT false NOT NULL,
+  "last_synced" timestamp,
+  "created_at" timestamp DEFAULT now() NOT NULL,
+  "updated_at" timestamp DEFAULT now() NOT NULL
+);
+
+CREATE TABLE "GitHubPullRequest" (
+  "id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
+  "repository_id" uuid NOT NULL REFERENCES "GitHubRepository"("id") ON DELETE CASCADE,
+  "pr_number" integer NOT NULL,
+  "title" varchar(512) NOT NULL,
+  "state" "pr_state" NOT NULL,
+  "merged_at" timestamp,
   "created_at" timestamp DEFAULT now() NOT NULL
 );
 
+-- Indexes for performance
 CREATE INDEX "github_repo_user_idx" ON "GitHubRepository"("user_id");
 CREATE INDEX "github_repo_full_name_idx" ON "GitHubRepository"("full_name");
+CREATE INDEX "github_pr_repo_idx" ON "GitHubPullRequest"("repository_id");
+CREATE UNIQUE INDEX "github_pr_repo_number_idx" ON "GitHubPullRequest"("repository_id", "pr_number");
 ```
+
+### Troubleshooting
+
+**Migration fails with "relation already exists":**
+- Schema exists but not tracked in migration history
+- Solution: Use baseline migration reset procedure (see above)
+
+**Migration fails with "column does not exist":**
+- Migration order issue or partial migration application
+- Solution: Check `drizzle.__drizzle_migrations` to see which migrations have been applied
+
+**Vercel build fails during migration:**
+- Check `POSTGRES_URL` is set as build-time environment variable
+- Review Vercel build logs for specific SQL error
+- Verify migration SQL is valid
+
+**See Also:**
+- Complete migration guide: `docs/DATABASE-MIGRATIONS.md`
+- Reset procedure: `packages/database/MIGRATION-RESET.md`
+- Deployment integration: `.claude/docs/tech/deployment.md`
 
 ---
 

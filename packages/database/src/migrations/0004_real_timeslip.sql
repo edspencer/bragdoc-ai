@@ -1,1 +1,0 @@
-ALTER TABLE "Project" ADD COLUMN "color" varchar(7) DEFAULT '#3B82F6' NOT NULL;

@@ -19,7 +19,7 @@
     "lint": "biome lint --write --unsafe ./src/",
     "format": "biome format --write ./src/",
     "db:generate": "drizzle-kit generate",
-    "db:push": "drizzle-kit push",
+    "db:push": "echo '\n⚠️  WARNING: db:push is for LOCAL DEVELOPMENT ONLY!\n⚠️  NEVER use db:push with production database credentials.\n⚠️  For production, always use the migration workflow (db:generate → db:migrate).\n⚠️  See docs/DATABASE-MIGRATIONS.md for proper workflow.\n' && drizzle-kit push",
     "db:studio": "drizzle-kit studio",
     "db:migrate": "npx tsx ./src/migrate.ts",
     "test:setup": "tsx src/test-setup.ts && drizzle-kit push --config=drizzle.config.test.ts",
