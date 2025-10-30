@@ -52,6 +52,52 @@ Add whatever other instructions you think are necessary, to help guide the progr
 
 Re-read the CLAUDE.md file in the root of the project to understand if it needs to be updated as a result of this import. If so, add a task or tasks to update the CLAUDE.md file itself. Be specific about what needs to be updated. It's ok if there are no useful or meaningful updates to make.
 
+## Commit Message File (COMMIT_MESSAGE.md)
+
+**MANDATORY REQUIREMENT:** Every plan creation process via `/write-plan` MUST produce a `COMMIT_MESSAGE.md` file alongside `PLAN.md` and `TEST_PLAN.md`.
+
+### Purpose of COMMIT_MESSAGE.md
+
+The `COMMIT_MESSAGE.md` file serves as a **draft commit message** for the changes proposed in the plan. It is created during the planning phase and used as the basis for the actual git commit when the implementation is complete.
+
+### When COMMIT_MESSAGE.md is Created
+
+- **Creation:** During planning via the `/write-plan` SlashCommand
+- **Location:** Same directory as SPEC.md, PLAN.md, and TEST_PLAN.md (the task directory)
+- **Creator:** The plan-writer agent (which wraps `/write-plan`)
+
+### Content Guidelines for COMMIT_MESSAGE.md
+
+The commit message should:
+- Start with a 1-sentence summary on its own line
+- Briefly explain what we're doing and why
+- Not just summarize the changeset
+- Typically be 2-4 paragraphs long
+- Be shorter if only a small amount of code is being changed (e.g., if less than ~300LOC changed, 1-2 paragraphs should suffice)
+- Call out any key architectural or API changes
+- Call out any key dependencies or tools being added/removed
+- Call out any key data model changes
+- Call out any key environment variable changes
+- Avoid value judgments (e.g., don't say "improves" or "better")
+- Keep it factual and not boastful
+
+### How COMMIT_MESSAGE.md is Used During Implementation
+
+1. **During Implementation:** The file exists as a reference for what the implementation aims to accomplish
+2. **At Completion:** Implementation agents (via `/finish` or `/agentic-implement-plan` SlashCommands) will:
+   - Read COMMIT_MESSAGE.md
+   - Verify it still accurately reflects what was actually implemented
+   - Update it if the implementation deviated significantly from the original plan
+   - Use it as the basis for the actual git commit message
+
+### Related SlashCommands
+
+- **`/write-plan`** - Creates COMMIT_MESSAGE.md during planning
+- **`/finish`** - Uses COMMIT_MESSAGE.md to create the final commit message
+- **`/agentic-implement-plan`** - Uses COMMIT_MESSAGE.md to suggest the final commit message
+
+This workflow ensures consistency between what was planned and what gets committed, while allowing flexibility to adjust the message if implementation details changed.
+
 ## After-Action Report Phase
 
 **MANDATORY REQUIREMENT:** Every plan MUST include a final phase for submitting an after-action report to the process-manager agent.
