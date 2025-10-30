@@ -200,19 +200,33 @@ export function PricingTiers() {
             <CardHeader>
               <CardTitle className="text-2xl">Free Account</CardTitle>
               <CardDescription>
-                Try BragDoc without AI features - always free, even after beta
+                Full CLI features with your own LLM - always free, even after
+                beta
               </CardDescription>
             </CardHeader>
             <CardContent>
               <p className="text-muted-foreground mb-4">
-                The free account lets you explore BragDoc and manually track
-                achievements, but doesn't include the AI-powered features that
-                make BragDoc truly powerful.
+                The free account includes manual achievement tracking{' '}
+                <strong>
+                  and AI-powered achievement extraction via the CLI
+                </strong>{' '}
+                - you just need to provide your own LLM API keys or use free
+                local Ollama.
               </p>
               <ul className="space-y-2 text-sm">
                 <li className="flex items-start gap-2">
                   <Check className="size-4 text-green-600 dark:text-green-500 shrink-0 mt-0.5" />
                   <span>Manual achievement entry</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <Check className="size-4 text-green-600 dark:text-green-500 shrink-0 mt-0.5" />
+                  <span>
+                    <strong>AI-powered achievement extraction via CLI</strong>
+                  </span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <Check className="size-4 text-green-600 dark:text-green-500 shrink-0 mt-0.5" />
+                  <span>CLI tool with Git commit analysis</span>
                 </li>
                 <li className="flex items-start gap-2">
                   <Check className="size-4 text-green-600 dark:text-green-500 shrink-0 mt-0.5" />
@@ -224,7 +238,9 @@ export function PricingTiers() {
                 </li>
               </ul>
               <p className="text-sm text-muted-foreground mt-4 italic">
-                No AI extraction, no document generation, no standup summaries
+                Requires your own LLM API keys (OpenAI, Anthropic, Google,
+                DeepSeek) or free local Ollama. No cloud AI features like
+                standup summaries or document generation.
               </p>
             </CardContent>
             <CardFooter>

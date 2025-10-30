@@ -88,17 +88,17 @@ export function ComparisonTable() {
                 <TableCell className="text-center">
                   <Check className="size-5 text-green-600 dark:text-green-500 mx-auto" />
                   <span className="text-xs text-muted-foreground block">
-                    Your LLM
+                    Self-host
                   </span>
-                </TableCell>
-                <TableCell className="text-center">
-                  <X className="size-5 text-muted-foreground mx-auto" />
                 </TableCell>
                 <TableCell className="text-center">
                   <Check className="size-5 text-green-600 dark:text-green-500 mx-auto" />
                   <span className="text-xs text-muted-foreground block">
-                    Cloud AI
+                    Your LLM
                   </span>
+                </TableCell>
+                <TableCell className="text-center">
+                  <Check className="size-5 text-green-600 dark:text-green-500 mx-auto" />
                 </TableCell>
               </TableRow>
               <TableRow>
@@ -108,7 +108,7 @@ export function ComparisonTable() {
                 <TableCell className="text-center">
                   <Check className="size-5 text-green-600 dark:text-green-500 mx-auto" />
                   <span className="text-xs text-muted-foreground block">
-                    Your LLM
+                    Self-host
                   </span>
                 </TableCell>
                 <TableCell className="text-center">
@@ -126,12 +126,9 @@ export function ComparisonTable() {
                   AI document generation
                 </TableCell>
                 <TableCell className="text-center">
-                  <Minus
-                    className="size-5 text-muted-foreground mx-auto"
-                    title="Requires setup"
-                  />
+                  <Check className="size-5 text-green-600 dark:text-green-500 mx-auto" />
                   <span className="text-xs text-muted-foreground block">
-                    Setup required
+                    Your LLM
                   </span>
                 </TableCell>
                 <TableCell className="text-center">
@@ -149,12 +146,9 @@ export function ComparisonTable() {
                   AI performance reviews
                 </TableCell>
                 <TableCell className="text-center">
-                  <Minus
-                    className="size-5 text-muted-foreground mx-auto"
-                    title="Requires setup"
-                  />
+                  <Check className="size-5 text-green-600 dark:text-green-500 mx-auto" />
                   <span className="text-xs text-muted-foreground block">
-                    Setup required
+                    Your LLM
                   </span>
                 </TableCell>
                 <TableCell className="text-center">
