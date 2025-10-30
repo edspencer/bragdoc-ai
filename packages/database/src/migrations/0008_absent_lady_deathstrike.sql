@@ -1,1 +1,0 @@
-ALTER TABLE "StandupDocument" ADD COLUMN "summary" text;

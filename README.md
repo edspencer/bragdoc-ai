@@ -182,8 +182,11 @@ Want to run your own instance? BragDoc is designed to be self-hosted.
 4. **Set up the database**:
 
    ```bash
-   pnpm db:push
+   # Run migrations to create database schema
+   pnpm db:migrate
    ```
+
+   **Note**: Use `pnpm db:migrate` (not `pnpm db:push`) for production-safe schema setup. See [Database Migrations](docs/DATABASE-MIGRATIONS.md) for complete guide.
 
 5. **Start the development server**:
 
@@ -374,9 +377,10 @@ pnpm test:cli         # CLI tests only
 pnpm test:integration # CLI integration tests
 
 # Database
-pnpm db:generate      # Generate migration
-pnpm db:push          # Apply migration
+pnpm db:generate      # Generate migration from schema changes
+pnpm db:migrate       # Run migrations (production workflow)
 pnpm db:studio        # Open Drizzle Studio
+pnpm db:push          # Push schema directly (DEVELOPMENT ONLY)
 
 # Linting
 pnpm lint             # Lint all packages

@@ -354,10 +354,14 @@ pnpm format             # Format all
 
 ```bash
 pnpm db:generate        # Generate migration from schema changes
-pnpm db:push            # Push migration to database
+pnpm db:migrate         # Run migrations programmatically (production workflow)
 pnpm db:studio          # Open Drizzle Studio (GUI)
-pnpm db:migrate         # Run migrations programmatically
+pnpm db:push            # Push schema directly (DEVELOPMENT ONLY - never use with production)
 ```
+
+**Important:** Always use the migration-based workflow (`db:generate` → `db:migrate`) for production. The `db:push` command bypasses migrations and should only be used for local development.
+
+See [docs/DATABASE-MIGRATIONS.md](docs/DATABASE-MIGRATIONS.md) for complete migration workflow documentation.
 
 ### Email Development
 

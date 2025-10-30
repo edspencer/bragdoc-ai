@@ -1,1 +1,0 @@
-ALTER TABLE "User" ADD COLUMN "tos_accepted_at" timestamp;

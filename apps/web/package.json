@@ -5,6 +5,7 @@
   "scripts": {
     "dev": "NEXT_DIST_DIR=.next-dev next dev 2>&1 | tee .next-dev.log",
     "build": "next build",
+    "vercel-build": "pnpm --filter=@bragdoc/database db:migrate && pnpm build",
     "email:dev": "email dev --dir ./emails --port 3002",
     "start": "next start",
     "lint": "eslint . && biome lint --write --unsafe",
