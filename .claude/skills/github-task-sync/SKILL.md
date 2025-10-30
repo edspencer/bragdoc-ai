@@ -15,6 +15,7 @@ This skill provides a complete workflow for managing tasks:
 2. **Push** local task files to GitHub with `push.sh` or `push-file.sh`
 3. **Pull** task files from GitHub with `pull.sh` or `pull-file.sh`
 4. **Read** task files from GitHub to stdout with `read-issue-file.sh`
+5. **Log** work progress with `log-entry.sh` (creates AI Work Log comment with timestamped entries)
 
 ## Quick Start
 
@@ -32,6 +33,16 @@ This skill provides a complete workflow for managing tasks:
 ```
 
 ## Scripts
+
+There are 7 scripts in this skill:
+
+1. **create-issue.sh** - Create GitHub issue and initialize task directory
+2. **push.sh** - Push all task files to GitHub
+3. **push-file.sh** - Push single task file with status summary
+4. **pull.sh** - Pull all task files from GitHub
+5. **pull-file.sh** - Pull single task file from GitHub
+6. **read-issue-file.sh** - Read task file from GitHub to stdout
+7. **log-entry.sh** - Add timestamped entry to AI Work Log
 
 ### create-issue.sh
 
@@ -280,6 +291,45 @@ Read a task file from a GitHub issue and output to stdout. Useful for debugging,
 **Output:**
 Pure file content sent to stdout
 
+### log-entry.sh
+
+Add timestamped entries to a task's AI Work Log on a GitHub issue. Creates or updates a running log of work progress throughout the task lifecycle.
+
+**Usage:**
+```bash
+./log-entry.sh <issue-url-or-number> <entry-text>
+```
+
+**Arguments:**
+- `issue-url-or-number` - GitHub issue URL or issue number
+- `entry-text` - Description of work being done (e.g., "Started writing spec")
+
+**Examples:**
+```bash
+# Log that spec writing started
+./log-entry.sh 188 "Started writing spec"
+
+# Log that plan writing finished
+./log-entry.sh 188 "Finished writing plan"
+
+# Use full URL
+./log-entry.sh https://github.com/edspencer/bragdoc-ai/issues/190 "Started implementation"
+```
+
+**What it does:**
+- Creates a new "AI Work Log" comment on the issue if it doesn't exist
+- Appends timestamped entries to the work log (one per line with format: `- YYYY-MM-DD HH:MM:SS: entry-text`)
+- Each entry is timestamped and represents a work milestone
+- Useful for tracking progress through spec writing, planning, implementation, testing, and completion
+
+**Output:**
+```
+↻ Adding entry to work log on issue #188...
+✓ Entry added
+
+View the issue: https://github.com/edspencer/bragdoc-ai/issues/188
+```
+
 ## Task Directory Structure
 
 When using `create-issue.sh`, directories are automatically named with the issue number:
@@ -309,18 +359,27 @@ The issue number in the directory name provides direct reference to the GitHub i
 # 1. Create GitHub issue and task directory
 ./create-issue.sh "Add authentication" "Implement magic link authentication"
 
-# 2. Work on files locally
+# 2. Log that work is starting
+./log-entry.sh 190 "Started writing spec"
+
+# 3. Work on files locally
 # - Create SPEC.md
 # - Create PLAN.md
 # - Create TEST_PLAN.md
 # - Create COMMIT_MESSAGE.md
 
-# 3. Push files to GitHub
+# 4. Push files to GitHub
 ./push.sh 190 ./tasks/190-add-authentication
 
-# 4. Continue development...
+# 5. Log work progress
+./log-entry.sh 190 "Finished writing spec"
+./log-entry.sh 190 "Started writing plan"
+
+# 6. Continue development...
 # When you update files, push again
 ./push.sh 190 ./tasks/190-add-authentication
+./log-entry.sh 190 "Finished writing plan"
+./log-entry.sh 190 "Started implementation"
 ```
 
 ### Converting Existing Tasks to GitHub Issues
@@ -339,11 +398,17 @@ If you have an existing task directory without a GitHub issue:
 
 **Push workflow** (local → GitHub):
 ```bash
+# Log that you're starting work
+./log-entry.sh 188 "Started writing code"
+
 # Update single file on GitHub with status
 ./push-file.sh 188 SPEC SPEC-STATUS.md SPEC.md
 
 # Update all files on GitHub
 ./push.sh 188 ./tasks/188-account-deletion
+
+# Log when work is complete
+./log-entry.sh 188 "Finished writing code"
 ```
 
 **Pull workflow** (GitHub → local):
@@ -353,6 +418,9 @@ If you have an existing task directory without a GitHub issue:
 
 # Pull single file from GitHub
 ./pull-file.sh 188 PLAN
+
+# Log that you pulled latest
+./log-entry.sh 188 "Pulled latest files from GitHub"
 ```
 
 ### Task Completion
@@ -370,6 +438,7 @@ When finishing a task (via `/finish` command):
 - ✅ **Selective updates** - Push/pull individual files or all at once
 - ✅ **Status tracking** - Each file can have a 2-paragraph status summary
 - ✅ **Collapsible display** - Large files stay organized on GitHub
+- ✅ **AI Work Log** - Timestamped activity log tracking progress (spec writing, planning, implementation, etc.)
 - ✅ **Issue creation** - Automatically initialize task structure
 - ✅ **Directory conversion** - Convert existing tasks to GitHub issues
 - ✅ **No git commits** - Task files never committed (in `.gitignore`)
