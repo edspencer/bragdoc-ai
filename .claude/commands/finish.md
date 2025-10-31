@@ -29,12 +29,19 @@ Follow these steps to create the final commit message:
 2. **If COMMIT_MESSAGE.md exists:**
    - Read the draft commit message that was created during planning
    - Verify it still accurately reflects what was actually implemented
+   - **Verify GitHub closing syntax** (if applicable): If the task directory follows `tasks/{issue-number}-{task-name}/` pattern:
+     - Check that the commit message includes the GitHub issue closing syntax at the end
+     - For bug fixes: Should end with `Fixes #{issue-number}`
+     - For features/other tasks: Should end with `Closes #{issue-number}`
+     - If missing, add the appropriate closing line before finalizing
    - If the implementation deviated significantly from the original plan (e.g., additional features added, approaches changed, scope adjusted):
      - Update COMMIT_MESSAGE.md to reflect the actual implementation
      - Ensure it mentions any major deviations or additions
+     - Verify the GitHub closing syntax is still appropriate and present
    - Use the (possibly updated) COMMIT_MESSAGE.md as the basis for your final commit message
 3. **If COMMIT_MESSAGE.md does not exist:**
    - Create a commit message from scratch based on the actual changes made
+   - If the task directory follows `tasks/{issue-number}-{task-name}/` pattern, include the appropriate GitHub closing syntax (Fixes or Closes followed by the issue number)
    - Follow the commit message guidelines below
 
 ### Commit Message Guidelines

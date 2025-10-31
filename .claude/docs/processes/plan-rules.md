@@ -96,18 +96,42 @@ The commit message should:
 - Avoid value judgments (e.g., don't say "improves" or "better")
 - Keep it factual and not boastful
 
+### GitHub Issue Closing Syntax
+
+**MANDATORY FOR TASK-TRACKED ISSUES:** If the task directory follows the pattern `tasks/{issue-number}-{task-name}/`, the commit message MUST include GitHub's automatic issue closing syntax at the end:
+
+1. **Extract the issue number** from the directory name (e.g., `tasks/213-project-list-refresh/` → issue #213)
+2. **Choose the closing keyword** based on the issue type:
+   - For bug fixes: Use `Fixes #{issue-number}` (check SPEC.md labels)
+   - For features and other tasks: Use `Closes #{issue-number}`
+3. **Add as a separate line** at the end of the commit message body
+
+GitHub automatically closes the associated issue when the commit is merged to main.
+
+**Example:**
+```
+fix: invalidate top projects cache when creating projects
+
+When users create a project via the dashboard, TopProjects and NavProjects sidebar components don't refresh because they use `/api/projects/top?limit=5` cache key, separate from the general projects cache that gets invalidated.
+
+This fix adds dual cache invalidation to useCreateProject(), ensuring both general and top projects caches are updated after creation.
+
+Fixes #213
+```
+
 ### How COMMIT_MESSAGE.md is Used During Implementation
 
 1. **During Implementation:** The file exists as a reference for what the implementation aims to accomplish
 2. **At Completion:** Implementation agents (via `/finish` or `/agentic-implement-plan` SlashCommands) will:
    - Read COMMIT_MESSAGE.md
    - Verify it still accurately reflects what was actually implemented
+   - Verify the GitHub closing syntax is present (if applicable)
    - Update it if the implementation deviated significantly from the original plan
    - Use it as the basis for the actual git commit message
 
 ### Related SlashCommands
 
-- **`/write-plan`** - Creates COMMIT_MESSAGE.md during planning
+- **`/write-plan`** - Creates COMMIT_MESSAGE.md during planning (with closing syntax if applicable)
 - **`/finish`** - Uses COMMIT_MESSAGE.md to create the final commit message
 - **`/agentic-implement-plan`** - Uses COMMIT_MESSAGE.md to suggest the final commit message
 

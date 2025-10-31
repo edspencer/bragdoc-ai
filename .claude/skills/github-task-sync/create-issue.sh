@@ -4,27 +4,32 @@ set -euo pipefail
 
 # Script to create a GitHub issue and initialize a task directory
 # Can also convert an existing task directory to a GitHub issue
-# Usage: ./create-issue.sh <title> [description] [existing-task-dir]
+# Usage: ./create-issue.sh <title> [description] [existing-task-dir] [labels]
 # If existing-task-dir is provided, converts that directory to a GitHub issue
+# Labels should be comma-separated (e.g., "UI,bug" or "CLI,feature")
 
 if [ $# -lt 1 ]; then
-  echo "Usage: $0 <title> [description] [existing-task-dir]"
+  echo "Usage: $0 <title> [description] [existing-task-dir] [labels]"
   echo ""
   echo "Arguments:"
   echo "  title                Issue title"
   echo "  description          Issue description (optional)"
   echo "  existing-task-dir    Path to existing task directory to convert (optional)"
+  echo "  labels               Comma-separated labels to apply (optional)"
+  echo ""
+  echo "Available labels: UI, CLI, bug, feature"
   echo ""
   echo "Examples:"
   echo "  $0 'Add dark mode toggle'"
-  echo "  $0 'Add dark mode toggle' 'Implement dark/light theme switcher' ./tasks/dark-mode"
-  echo "  $0 'Fix authentication bug' '' ./tasks/existing-task"
+  echo "  $0 'Add dark mode toggle' 'Implement dark/light theme switcher' '' 'UI,feature'"
+  echo "  $0 'Fix authentication bug' '' ./tasks/existing-task 'bug'"
   exit 1
 fi
 
 TITLE="$1"
 DESCRIPTION="${2:-}"
 EXISTING_TASK_DIR="${3:-}"
+LABELS="${4:-}"
 
 # Default repository (can be overridden)
 OWNER="edspencer"
@@ -32,18 +37,20 @@ REPO="bragdoc-ai"
 REPO_FULL="$OWNER/$REPO"
 
 echo "Creating GitHub issue..."
+[ -n "$LABELS" ] && echo "Applying labels: $LABELS"
 
-# Build gh issue create command
+# Build gh issue create command with optional labels
+GH_ARGS=("issue" "create" "--repo" "$REPO_FULL" "--title" "$TITLE")
+
 if [ -n "$DESCRIPTION" ]; then
-  ISSUE_URL=$(gh issue create \
-    --repo "$REPO_FULL" \
-    --title "$TITLE" \
-    --body "$DESCRIPTION" 2>/dev/null)
-else
-  ISSUE_URL=$(gh issue create \
-    --repo "$REPO_FULL" \
-    --title "$TITLE" 2>/dev/null)
+  GH_ARGS+=("--body" "$DESCRIPTION")
 fi
+
+if [ -n "$LABELS" ]; then
+  GH_ARGS+=("--label" "$LABELS")
+fi
+
+ISSUE_URL=$(gh "${GH_ARGS[@]}" 2>/dev/null)
 
 if [ -z "$ISSUE_URL" ]; then
   echo "Error: Failed to create GitHub issue"

@@ -160,7 +160,7 @@ export function GenerateDocumentDialog({
     }
 
     const prompt = selectedType === 'custom' ? customPrompt : editablePrompt;
-    if (!prompt.trim()) {
+    if (selectedType !== 'custom' && !prompt.trim()) {
       toast({
         title: 'Please provide a prompt',
         variant: 'destructive',
@@ -218,17 +218,18 @@ export function GenerateDocumentDialog({
 
       // Parse successful response
       const data: GenerateDocumentResponse = await response.json();
+      const documentId = data.document.id;
 
       toast({
         title: 'Document generated successfully',
         description: 'Redirecting to your reports...',
       });
 
-      // Close dialog and redirect to reports page
+      // Close dialog and redirect to new document detail page
       handleClose();
 
-      // Navigate to reports page using Next.js router
-      router.push('/reports');
+      // Navigate to the newly created document
+      router.push(`/reports/${documentId}`);
     } catch (error) {
       console.error('Error generating document:', error);
       toast({
@@ -308,7 +309,7 @@ export function GenerateDocumentDialog({
             <div className="space-y-3">
               <Label className="text-base font-medium">
                 {selectedType === 'custom'
-                  ? 'Custom Prompt'
+                  ? 'Custom Prompt (Optional)'
                   : 'Edit Prompt (Optional)'}
               </Label>
               <Textarea
