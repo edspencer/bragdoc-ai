@@ -45,7 +45,7 @@ export function ComparisonTable() {
                 <TableCell className="text-center">
                   <Minus
                     className="size-5 text-muted-foreground mx-auto"
-                    title="Self-hosted only"
+                    aria-label="Self-hosted only"
                   />
                 </TableCell>
                 <TableCell className="text-center">

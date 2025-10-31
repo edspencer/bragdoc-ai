@@ -1,9 +1,10 @@
-name: Lint
+name: Lint & Typecheck
 on:
   push:
+  pull_request:
 
 jobs:
-  build:
+  lint-and-typecheck:
     runs-on: ubuntu-22.04
     strategy:
       matrix:
@@ -21,5 +22,7 @@ jobs:
           cache: "pnpm"
       - name: Install dependencies
         run: pnpm install
+      - name: Run typecheck
+        run: pnpm typecheck
       - name: Run lint
         run: pnpm lint
