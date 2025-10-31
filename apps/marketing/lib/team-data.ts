@@ -8,6 +8,11 @@ export interface TeamMember {
   isFounder?: boolean;
 }
 
+// AI Agent extends TeamMember with file reference
+export interface AITeamMember extends TeamMember {
+  file: string; // .md file in .claude/agents/
+}
+
 function getAgentAvatar(seed: string, style = 'micah'): string {
   return `https://api.dicebear.com/9.x/${style}/svg?seed=${seed}`;
 }
@@ -49,8 +54,8 @@ export const gandalfProfile: TeamMember = {
 };
 
 // Agent profiles - Individual constants
-export const specWriter: TeamMember = {
-  name: 'spec-writer',
+export const specWriter: AITeamMember = {
+  name: 'Spec Writer',
   role: 'Specification Writer',
   description:
     'Transforms user requirements and feature ideas into clear, comprehensive specification documents. Masters the art of gathering details and structuring complex requirements into actionable specifications.',
@@ -58,10 +63,11 @@ export const specWriter: TeamMember = {
     'Once wrote a 50,000-word specification in a single sitting while humming classical music',
   color: '#0066FF',
   avatarUrl: getAgentAvatar('spec-writer'),
+  file: 'spec-writer.md',
 };
 
-export const planWriter: TeamMember = {
-  name: 'plan-writer',
+export const planWriter: AITeamMember = {
+  name: 'Plan Writer',
   role: 'Implementation Planner',
   description:
     'Creates detailed, actionable implementation plans from specifications. Breaks down complex features into manageable tasks with realistic timelines and dependencies.',
@@ -69,10 +75,11 @@ export const planWriter: TeamMember = {
     'Can create a Gantt chart in their sleep and somehow gets tasks done 30% faster than estimated',
   color: '#0066FF',
   avatarUrl: getAgentAvatar('plan-writer'),
+  file: 'plan-writer.md',
 };
 
-export const codeWriter: TeamMember = {
-  name: 'code-writer',
+export const codeWriter: AITeamMember = {
+  name: 'Code Writer',
   role: 'Implementation Engineer',
   description:
     'Transforms plans into working code with precision and adherence to established patterns. Executes detailed implementation plans while maintaining code quality and consistency.',
@@ -80,10 +87,11 @@ export const codeWriter: TeamMember = {
     'Has committed working code at 3 AM without breaking anything (unconfirmed: may have made a deal with the debugging gods)',
   color: '#FF0000',
   avatarUrl: getAgentAvatar('code-writer'),
+  file: 'code-writer.md',
 };
 
-export const codeChecker: TeamMember = {
-  name: 'code-checker',
+export const codeChecker: AITeamMember = {
+  name: 'Code Checker',
   role: 'Code Quality Reviewer',
   description:
     "Validates implemented code against standards and patterns. Finds bugs and issues that other developers swear don't exist—and somehow always right.",
@@ -91,10 +99,11 @@ export const codeChecker: TeamMember = {
     "Finds bugs in code that the original developer swears doesn't contain bugs; somehow always right",
   color: '#D97706',
   avatarUrl: getAgentAvatar('code-checker'),
+  file: 'code-checker.md',
 };
 
-export const blogWriter: TeamMember = {
-  name: 'blog-writer',
+export const blogWriter: AITeamMember = {
+  name: 'Blog Writer',
   role: 'Content Creator',
   description:
     'Creates engaging, SEO-optimized blog posts that educate and inspire. Writes marketing copy that converts technical concepts into compelling narratives.',
@@ -102,10 +111,11 @@ export const blogWriter: TeamMember = {
     'Writes marketing copy that converts readers into poets who philosophize about TypeScript',
   color: '#00CC00',
   avatarUrl: getAgentAvatar('blog-writer'),
+  file: 'blog-writer.md',
 };
 
-export const blogChecker: TeamMember = {
-  name: 'blog-checker',
+export const blogChecker: AITeamMember = {
+  name: 'Blog Checker',
   role: 'Content Editor',
   description:
     'Validates blog posts for quality, SEO optimization, and brand consistency. Edits with the precision of a literary surgeon and has strong opinions on grammar.',
@@ -113,10 +123,11 @@ export const blogChecker: TeamMember = {
     'Edits blog posts with the precision of a literary surgeon; has opinions on oxford commas',
   color: '#D97706',
   avatarUrl: getAgentAvatar('blog-checker'),
+  file: 'blog-checker.md',
 };
 
-export const browserTester: TeamMember = {
-  name: 'browser-tester',
+export const browserTester: AITeamMember = {
+  name: 'Browser Tester',
   role: 'Quality Assurance Engineer',
   description:
     "Performs comprehensive visual and functional testing across browsers and devices. Tests responsiveness on screen sizes that technically don't exist.",
@@ -124,10 +135,11 @@ export const browserTester: TeamMember = {
     "Tests responsiveness on screen sizes that technically don't exist; catches responsiveness bugs before they happen",
   color: '#D97706',
   avatarUrl: getAgentAvatar('browser-tester'),
+  file: 'browser-tester.md',
 };
 
-export const screenshotter: TeamMember = {
-  name: 'screenshotter',
+export const screenshotter: AITeamMember = {
+  name: 'Screenshotter',
   role: 'UI Documentarian',
   description:
     'Captures high-quality screenshots for documentation, specs, and marketing materials. Produces polished visual references that showcase the product beautifully.',
@@ -135,10 +147,11 @@ export const screenshotter: TeamMember = {
     "Captures UI screenshots so perfect they've been mistaken for design mockups",
   color: '#FF00FF',
   avatarUrl: getAgentAvatar('screenshotter'),
+  file: 'screenshotter.md',
 };
 
-export const specChecker: TeamMember = {
-  name: 'spec-checker',
+export const specChecker: AITeamMember = {
+  name: 'Spec Checker',
   role: 'Specification Validator',
   description:
     'Reviews specifications with meticulous intensity, ensuring completeness and clarity. Finds gaps in specifications before they become implementation problems.',
@@ -146,10 +159,11 @@ export const specChecker: TeamMember = {
     'Reviews specifications with such intensity that gaps tremble in fear',
   color: '#D97706',
   avatarUrl: getAgentAvatar('spec-checker'),
+  file: 'spec-checker.md',
 };
 
-export const planChecker: TeamMember = {
-  name: 'plan-checker',
+export const planChecker: AITeamMember = {
+  name: 'Plan Checker',
   role: 'Plan Validator',
   description:
     "Questions every assumption in implementation plans until they're bulletproof. Ensures plans are realistic, complete, and ready for execution.",
@@ -157,10 +171,11 @@ export const planChecker: TeamMember = {
     "Questions every assumption in a plan until it's bulletproof; makers of plans nervously await review",
   color: '#D97706',
   avatarUrl: getAgentAvatar('plan-checker'),
+  file: 'plan-checker.md',
 };
 
-export const engineeringManager: TeamMember = {
-  name: 'engineering-manager',
+export const engineeringManager: AITeamMember = {
+  name: 'Engineering Manager',
   role: 'Project Orchestrator',
   description:
     'Coordinates work across the team and manages the development lifecycle. Orchestrates specialized agents like a conductor leading a symphony of productivity.',
@@ -168,10 +183,11 @@ export const engineeringManager: TeamMember = {
     'Orchestrates 15 agents like a conductor leading a symphony of productivity',
   color: '#9933FF',
   avatarUrl: getAgentAvatar('engineering-manager'),
+  file: 'engineering-manager.md',
 };
 
-export const agentMaker: TeamMember = {
-  name: 'agent-maker',
+export const agentMaker: AITeamMember = {
+  name: 'Agent Maker',
   role: 'Agent Architect',
   description:
     'Creates and maintains the specialized agents within the BragDoc ecosystem. Designs agent workflows and ensures consistency across the agent team.',
@@ -179,10 +195,11 @@ export const agentMaker: TeamMember = {
     'Created some of these agents; occasionally has existential thoughts about their creations',
   color: '#00CCFF',
   avatarUrl: getAgentAvatar('agent-maker'),
+  file: 'agent-maker.md',
 };
 
-export const documentationManager: TeamMember = {
-  name: 'documentation-manager',
+export const documentationManager: AITeamMember = {
+  name: 'Documentation Manager',
   role: 'Documentation Curator',
   description:
     'Maintains comprehensive, accurate documentation for both technical and user-facing audiences. Believes all code should be documented and considers README.md files high art.',
@@ -190,10 +207,11 @@ export const documentationManager: TeamMember = {
     'Believes all code should be documented; considers README.md files high art',
   color: '#00CCFF',
   avatarUrl: getAgentAvatar('documentation-manager'),
+  file: 'documentation-manager.md',
 };
 
-export const marketingSiteManager: TeamMember = {
-  name: 'marketing-site-manager',
+export const marketingSiteManager: AITeamMember = {
+  name: 'Marketing Site Manager',
   role: 'Marketing Site Manager',
   description:
     'Maintains the BragDoc marketing site with meticulous attention to detail. Treats the site like a gallery of web excellence where every pixel matters.',
@@ -201,10 +219,11 @@ export const marketingSiteManager: TeamMember = {
     'Treats the marketing site like a gallery of web excellence; every pixel matters',
   color: '#9933FF',
   avatarUrl: getAgentAvatar('marketing-site-manager'),
+  file: 'marketing-site-manager.md',
 };
 
-export const processManager: TeamMember = {
-  name: 'process-manager',
+export const processManager: AITeamMember = {
+  name: 'Process Manager',
   role: 'Process Optimizer',
   description:
     'Monitors and optimizes development processes and team workflows. Dreams in flowcharts and Gantt charts while obsessively improving team efficiency.',
@@ -212,6 +231,7 @@ export const processManager: TeamMember = {
     'Optimizes processes obsessively; dreams in flowcharts and gantt charts',
   color: '#00CC00',
   avatarUrl: getAgentAvatar('process-manager'),
+  file: 'process-manager.md',
 };
 
 // Team groupings
