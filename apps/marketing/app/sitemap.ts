@@ -18,6 +18,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: '/use-cases', priority: 0.8, changeFrequency: 'weekly' as const },
     { url: '/get-started', priority: 0.9, changeFrequency: 'weekly' as const },
     { url: '/about', priority: 0.7, changeFrequency: 'monthly' as const },
+    { url: '/team', priority: 0.8, changeFrequency: 'monthly' as const },
     { url: '/cli', priority: 0.8, changeFrequency: 'weekly' as const },
     { url: '/faq', priority: 0.9, changeFrequency: 'weekly' as const },
     { url: '/privacy', priority: 0.6, changeFrequency: 'monthly' as const },
