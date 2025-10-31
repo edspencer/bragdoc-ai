@@ -36,6 +36,13 @@ export const betterAuthConfig: Partial<BetterAuthOptions> = {
   // Secret for signing cookies and tokens
   secret: process.env.BETTER_AUTH_SECRET!,
 
+  // Trusted origins for CORS (allows Vercel preview deployments)
+  trustedOrigins: [
+    'http://localhost:3000',
+    'https://bragdoc.ai',
+    'https://*.vercel.app', // Allow all Vercel preview deployments
+  ],
+
   // Enable email and password authentication
   // Required for programmatic sign-in (e.g., demo mode)
   emailAndPassword: {
