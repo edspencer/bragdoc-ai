@@ -1,5 +1,11 @@
 # @bragdoc/cli
 
+## 1.2.1
+
+### Patch Changes
+
+- 52f5092: fixed a bug where commits would be marked processed even when the extraction failed
+
 ## 1.2.0
 
 ### Minor Changes
