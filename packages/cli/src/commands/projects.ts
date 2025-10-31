@@ -570,15 +570,21 @@ export async function addProject(
   // Handle branch whitelist
   let branchWhitelist: string[] | undefined;
 
-  if (options.branchWhitelist) {
+  if (options.branchWhitelist !== undefined) {
     // Parse comma-separated CLI option
     branchWhitelist = options.branchWhitelist
       .split(',')
       .map((b) => b.trim())
       .filter((b) => b.length > 0);
-    console.log(
-      chalk.green(`✓ Using branch whitelist: ${branchWhitelist.join(', ')}`),
-    );
+
+    if (branchWhitelist.length > 0) {
+      console.log(
+        chalk.green(`✓ Using branch whitelist: ${branchWhitelist.join(', ')}`),
+      );
+    } else {
+      console.log(chalk.green('✓ All branches allowed for extraction'));
+      branchWhitelist = undefined; // Empty string means no whitelist
+    }
   } else {
     // Interactive prompt for branch whitelist
     console.log('\n🌿 Configuring allowed branches for extraction...\n');
