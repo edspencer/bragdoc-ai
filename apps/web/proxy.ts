@@ -2,7 +2,6 @@
  * Better Auth Middleware
  *
  * Route protection middleware using Better Auth for session validation.
- * This replaces the Auth.js middleware with Better Auth.
  *
  * Protected routes:
  * - All routes except auth pages (/login, /register, /api/auth/*)
@@ -12,8 +11,6 @@
  * CLI Authentication:
  * - /cli-auth route is public (handles CLI auth flow)
  * - CLI API requests use Authorization header (handled by getAuthUser helper)
- *
- * MIGRATION NOTE: This file now uses Better Auth instead of Auth.js.
  */
 
 import { auth } from '@/lib/better-auth/server';

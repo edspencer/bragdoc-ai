@@ -4,8 +4,7 @@ import { eq } from 'drizzle-orm';
 import type { EmailType, UnsubscribeData } from './types';
 import { SignJWT, jwtVerify } from 'jose';
 
-// Use BETTER_AUTH_SECRET with AUTH_SECRET fallback for backward compatibility
-const SECRET = process.env.BETTER_AUTH_SECRET || process.env.AUTH_SECRET!;
+const SECRET = process.env.BETTER_AUTH_SECRET!;
 
 export async function generateUnsubscribeUrl(
   userId: string,
@@ -18,11 +17,11 @@ export async function generateUnsubscribeUrl(
     .setExpirationTime('1y') // 1 year
     .sign(secret);
 
-  const baseUrl = process.env.NEXTAUTH_URL;
+  const baseUrl = process.env.BETTER_AUTH_URL!;
   const params = new URLSearchParams({ token });
   if (emailType) params.append('type', emailType);
 
-  return `${baseUrl}api/email/unsubscribe?${params.toString()}`;
+  return `${baseUrl}/api/email/unsubscribe?${params.toString()}`;
 }
 
 export async function verifyUnsubscribeToken(
