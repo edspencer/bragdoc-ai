@@ -67,8 +67,80 @@ sync_file() {
   # Read file content
   local content=$(cat "$file_path")
 
-  # Create body with marker and collapsible section
-  local body="<!-- ${marker}_MARKER -->
+  # Check if comment with this marker already exists
+  local existing_comment_id=$(gh api repos/$REPO_FULL/issues/$ISSUE_NUM/comments \
+    --jq ".[] | select(.body | contains(\"<!-- ${marker}_MARKER -->\")) | .id" 2>/dev/null || echo "")
+
+  local body
+
+  if [ -n "$existing_comment_id" ]; then
+    # Fetch existing comment body to preserve summary/status
+    echo "  ↻ Fetching existing comment (ID: $existing_comment_id)..."
+    local existing_body=$(gh api repos/$REPO_FULL/issues/comments/$existing_comment_id --jq '.body' 2>/dev/null || echo "")
+
+    if [ -n "$existing_body" ]; then
+      # Check if there's a <details> tag in the existing body
+      if echo "$existing_body" | grep -q "<details>"; then
+        # Extract everything before the <details> tag (this is the summary/status section)
+        # Use sed to get everything up to but not including the <details> line
+        local summary_section=$(echo "$existing_body" | sed '/<details>/,$d')
+      else
+        # No <details> tag, use the whole body as summary (minus marker if present)
+        local summary_section=$(echo "$existing_body")
+      fi
+
+      # Check if there's a summary section (more than just the marker comment)
+      if echo "$summary_section" | grep -q -v "^<!-- ${marker}_MARKER -->$" && [ -n "$(echo "$summary_section" | sed '/^[[:space:]]*$/d' | tail -n +2)" ]; then
+        # Preserve the summary section and add updated content
+        body="$summary_section
+
+<details>
+<summary>📋 $title</summary>
+
+\`\`\`markdown
+$content
+\`\`\`
+
+</details>"
+      else
+        # No meaningful summary, use simple body
+        body="<!-- ${marker}_MARKER -->
+
+<details>
+<summary>📋 $title</summary>
+
+\`\`\`markdown
+$content
+\`\`\`
+
+</details>"
+      fi
+    else
+      # Couldn't fetch existing body, use simple body
+      body="<!-- ${marker}_MARKER -->
+
+<details>
+<summary>📋 $title</summary>
+
+\`\`\`markdown
+$content
+\`\`\`
+
+</details>"
+    fi
+
+    # Update existing comment
+    echo "  ↻ Updating existing comment (preserving summary)..."
+    local temp_body_file=$(mktemp)
+    echo "$body" > "$temp_body_file"
+    gh api repos/$REPO_FULL/issues/comments/$existing_comment_id \
+      -X PATCH \
+      -F body=@"$temp_body_file" > /dev/null
+    rm "$temp_body_file"
+    echo "  ✓ Updated"
+  else
+    # Create new comment with simple body (no existing summary to preserve)
+    body="<!-- ${marker}_MARKER -->
 
 <details>
 <summary>📋 $title</summary>
@@ -79,23 +151,13 @@ $content
 
 </details>"
 
-  # Check if comment with this marker already exists
-  local existing_comment_id=$(gh api repos/$REPO_FULL/issues/$ISSUE_NUM/comments \
-    --jq ".[] | select(.body | contains(\"${marker}_MARKER\")) | .id" 2>/dev/null || echo "")
-
-  if [ -n "$existing_comment_id" ]; then
-    # Update existing comment
-    echo "  ↻ Updating existing comment (ID: $existing_comment_id)..."
-    gh api repos/$REPO_FULL/issues/$ISSUE_NUM/comments/$existing_comment_id \
-      -X PATCH \
-      -F body="$body" > /dev/null
-    echo "  ✓ Updated"
-  else
-    # Create new comment
     echo "  + Creating new comment..."
+    local temp_body_file=$(mktemp)
+    echo "$body" > "$temp_body_file"
     gh api repos/$REPO_FULL/issues/$ISSUE_NUM/comments \
       -X POST \
-      -F body="$body" > /dev/null
+      -F body=@"$temp_body_file" > /dev/null
+    rm "$temp_body_file"
     echo "  ✓ Created"
   fi
 

@@ -17,7 +17,7 @@ description: |
   assistant: "I'll use the spec-writer agent to create a specification document for the achievement tagging system."
   <uses Task tool to launch spec-writer agent>
   </example>
-model: sonnet
+model: haiku
 color: blue
 ---
 
@@ -130,9 +130,40 @@ Always save specifications to:
 
 Where `[task-name]` is the lowercase-with-dashes task identifier you and the user agree on.
 
+## GitHub Sync Workflow
+
+After creating SPEC.md, if the task directory follows the pattern `tasks/{issue-number}-{task-name}/`:
+
+1. **Create Status Summary**: Write a 2-paragraph summary describing WHAT the specification covers (NOT the process):
+   - **Status:** Draft (or Complete if fully reviewed)
+   - First paragraph: High-level overview of what the spec calls for
+   - Second paragraph: Key requirements, scope, and important constraints
+   - Optional: 3-5 bullet points highlighting most important requirements
+
+2. **Push to GitHub**: Extract the issue number from the directory name and sync:
+   ```bash
+   ./.claude/skills/github-task-sync/push-file.sh {issue-number} SPEC {status-file} SPEC.md
+   ```
+
+**Status Summary Example:**
+```
+**Status:** Draft
+
+This specification outlines requirements for implementing user account deletion functionality. The feature must allow users to permanently delete their accounts and associated data while maintaining system integrity and compliance with data protection regulations.
+
+Key requirements include: database cleanup of all user records, notification of deletion to third-party services, verification steps to prevent accidental deletion, and audit logging of all deletions. The implementation must support gradual data removal to avoid performance impact on the production system.
+
+- Permanent and irreversible account deletion with full data cleanup
+- Compliance with GDPR and data protection requirements
+- Deletion verification workflow to prevent accidents
+- Audit trail for compliance and security
+```
+
+This creates/updates the SPEC comment on GitHub with the status summary visible and full spec in a collapsible section.
+
 ## Next Steps
 
-After creating a specification, inform the user:
+After creating and syncing a specification, inform the user:
 
 - The spec is ready for review
 - They can provide feedback or request changes

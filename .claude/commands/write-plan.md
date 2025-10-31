@@ -42,6 +42,22 @@ Before beginning work, check if a GitHub issue exists for this task:
 - Include sync tasks in the plan for pushing updates after completing major phases
 - The `/finish` SlashCommand will handle final sync to GitHub before archiving
 
+After creating the plan files, sync them to GitHub:
+
+1. **Create Status Summary**: Write a 2-paragraph summary describing WHAT the plan will implement (NOT the process):
+   - **Status:** Draft
+   - First paragraph: High-level overview of implementation approach and phases
+   - Second paragraph: Key phases/components and major deliverables
+   - Optional: 3-5 bullet points highlighting most important phases
+
+2. **Push to GitHub**: Extract the issue number from the directory name and sync:
+   ```bash
+   ./.claude/skills/github-task-sync/push-file.sh {issue-number} PLAN {status-file} PLAN.md
+   ./.claude/skills/github-task-sync/push.sh {issue-number} {task-directory}
+   ```
+
+This creates/updates the PLAN comment with status summary visible and full plan in collapsible section, plus syncs TEST_PLAN.md and COMMIT_MESSAGE.md.
+
 ### Separate Test Plan Requirements
 
 Most plans you will be asked to make will involve some level of testing. You should create a separate TEST_PLAN.md file in the same directory as the spec file ($1). The TEST_PLAN.md file should contain a thorough plan for testing the specification, following any additional instructions outlined in the spec file.

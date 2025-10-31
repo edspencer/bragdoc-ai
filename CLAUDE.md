@@ -596,9 +596,14 @@ rm -rf node_modules .turbo .next && pnpm install
 # Check for issues
 pnpm lint && pnpm test && pnpm build
 
+# Prepare demo data from user export
+pnpm prepare-demo-data path/to/exported-data.json
+
 # Deploy web app
 pnpm --filter=@bragdoc/web deploy
 ```
+
+The `prepare-demo-data` script automates the preparation of demo data by filtering projects to a whitelist, consolidating all companies into "Cyberdyne", updating all entity references, and validating the output against the export schema.
 
 ---
 

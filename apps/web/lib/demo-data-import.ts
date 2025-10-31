@@ -14,52 +14,75 @@ import {
 import { importUserData, type ImportStats } from '@/lib/import-user-data';
 
 /**
- * Transforms achievement dates to spread evenly across the last 270 days (9 months)
+ * Shifts achievement dates forward to keep demo data fresh
  *
- * This keeps demo data fresh by distributing achievements evenly from 270 days ago
- * to the present, regardless of their original dates. All date-related fields are
- * transformed while preserving all other properties.
+ * Since prepare-demo-data distributes achievements relative to when it runs,
+ * we need to shift them forward when importing to keep them current.
+ * This finds the newest achievement and calculates how many days have passed
+ * since the script was run, then applies that shift to all achievements.
  *
- * @param achievements - Array of achievements from demo data with original dates
- * @returns Array of achievements with transformed dates spanning 270 days
+ * @param achievements - Array of achievements to shift
+ * @returns Array of achievements with dates shifted to present day
  */
-function transformAchievementDates(
+function shiftAchievementDatesToPresent(
   achievements: ExportAchievement[],
 ): ExportAchievement[] {
-  // Sort achievements by original createdAt date (ascending - earliest first)
-  const sorted = [...achievements].sort((a, b) => {
-    return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
-  });
+  if (achievements.length === 0) {
+    return achievements;
+  }
 
-  // Calculate date range: 270 days from present back to 270 days ago
+  // Find the newest achievement by eventStart date
+  let newestDate: Date | null = null;
+  for (const achievement of achievements) {
+    if (achievement.eventStart) {
+      const date = new Date(achievement.eventStart);
+      if (!newestDate || date > newestDate) {
+        newestDate = date;
+      }
+    }
+  }
+
+  // If no achievements have eventStart dates, return as-is
+  if (!newestDate) {
+    return achievements;
+  }
+
+  // Calculate how many days have passed since the newest achievement
   const now = new Date();
-  const startDate = new Date(now.getTime() - 270 * 24 * 60 * 60 * 1000); // 270 days ago
-  const totalDays = 270;
+  const daysPassedMs = now.getTime() - newestDate.getTime();
+  const daysPassed = Math.floor(daysPassedMs / (24 * 60 * 60 * 1000));
 
-  // Calculate even spacing between achievements
-  // For 292 achievements over 270 days: spacing ≈ 0.924 days per achievement
-  const spacing = totalDays / sorted.length; // Days between each achievement
-  const spacingMs = spacing * 24 * 60 * 60 * 1000; // Convert to milliseconds
+  // If less than 1 day has passed, no shift needed
+  if (daysPassed <= 0) {
+    return achievements;
+  }
 
-  // Transform each achievement's dates
-  return sorted.map((achievement, index) => {
-    // Calculate new date for this achievement
-    // Achievement 0: 270 days ago (startDate)
-    // Achievement N: progressively closer to present
-    // Achievement last: very recent (≈0 days ago)
-    const newDate = new Date(startDate.getTime() + index * spacingMs);
-    const newDateString = newDate.toISOString();
-
-    // Transform all date fields to the new calculated date
-    return {
-      ...achievement,
-      createdAt: newDateString,
-      eventStart: achievement.eventStart ? newDateString : null,
-      eventEnd: achievement.eventEnd ? newDateString : null,
-      updatedAt: newDateString,
-      impactUpdatedAt: achievement.impactUpdatedAt ? newDateString : null,
-    };
-  });
+  // Shift all achievement dates forward
+  const shiftMs = daysPassed * 24 * 60 * 60 * 1000;
+  return achievements.map((achievement) => ({
+    ...achievement,
+    eventStart: achievement.eventStart
+      ? new Date(
+          new Date(achievement.eventStart).getTime() + shiftMs,
+        ).toISOString()
+      : achievement.eventStart,
+    eventEnd: achievement.eventEnd
+      ? new Date(
+          new Date(achievement.eventEnd).getTime() + shiftMs,
+        ).toISOString()
+      : achievement.eventEnd,
+    createdAt: new Date(
+      new Date(achievement.createdAt).getTime() + shiftMs,
+    ).toISOString(),
+    updatedAt: new Date(
+      new Date(achievement.updatedAt).getTime() + shiftMs,
+    ).toISOString(),
+    impactUpdatedAt: achievement.impactUpdatedAt
+      ? new Date(
+          new Date(achievement.impactUpdatedAt).getTime() + shiftMs,
+        ).toISOString()
+      : achievement.impactUpdatedAt,
+  }));
 }
 
 /**
@@ -92,13 +115,13 @@ export async function importDemoData(userId: string): Promise<ImportStats> {
     );
   }
 
-  // Transform achievement dates to spread evenly over 270 days
-  // This keeps demo data fresh without manual updates
-  result.data.achievements = transformAchievementDates(
+  // Shift achievement dates forward to keep demo data fresh
+  result.data.achievements = shiftAchievementDatesToPresent(
     result.data.achievements,
   );
 
   // Use shared import function with new ID generation
+  // Achievement dates are pre-configured by prepare-demo-data script with per-project spread/shift
   // Generate new IDs to avoid collisions with previous demo accounts
   return importUserData({
     userId,

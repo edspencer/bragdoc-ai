@@ -31,7 +31,8 @@
     "db:pull": "drizzle-kit pull",
     "db:check": "drizzle-kit check",
     "db:up": "drizzle-kit up",
-    "prepare": "husky"
+    "prepare": "husky",
+    "prepare-demo-data": "tsx scripts/prepare-demo-data.ts"
   },
   "dependencies": {
     "@react-email/components": "^0.5.7",
