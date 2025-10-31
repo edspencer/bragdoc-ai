@@ -15,6 +15,8 @@
     "build": "turbo build",
     "build:web": "turbo build --filter=@bragdoc/web",
     "build:marketing": "turbo build --filter=@bragdoc/marketing",
+    "typecheck": "turbo typecheck",
+    "typecheck:web": "turbo typecheck --filter=@bragdoc/web",
     "test:setup": "pnpm --filter=@bragdoc/database test:setup",
     "test": "turbo test",
     "test:watch": "turbo test:watch",

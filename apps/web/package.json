@@ -8,6 +8,7 @@
     "vercel-build": "pnpm --filter=@bragdoc/database db:migrate && pnpm build",
     "email:dev": "email dev --dir ./emails --port 3002",
     "start": "next start",
+    "typecheck": "tsc --noEmit",
     "lint": "eslint . && biome lint --write --unsafe",
     "lint:fix": "eslint --fix . && biome lint --write --unsafe",
     "format": "biome format --write app/ components/ lib/ hooks/",
