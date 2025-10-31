@@ -3,24 +3,26 @@
 set -euo pipefail
 
 # Script to pull task documentation files from a GitHub issue to local task directory
-# Usage: ./pull.sh <issue-url-or-number> [task-directory]
+# Usage: ./pull.sh <issue-url-or-number>
 # Pulls SPEC.md, PLAN.md, TEST_PLAN.md, COMMIT_MESSAGE.md from issue comments
+# Automatically creates directory as tasks/{issue-number}-{title-slug}
 
 if [ $# -lt 1 ]; then
-  echo "Usage: $0 <issue-url-or-number> [task-directory]"
+  echo "Usage: $0 <issue-url-or-number>"
   echo ""
   echo "Arguments:"
   echo "  issue-url-or-number  GitHub issue URL or issue number"
-  echo "  task-directory       Directory to write files to (default: current directory)"
   echo ""
   echo "Examples:"
   echo "  $0 188"
-  echo "  $0 https://github.com/edspencer/bragdoc-ai/issues/188 ./tasks/188-account-deletion"
+  echo "  $0 https://github.com/edspencer/bragdoc-ai/issues/188"
+  echo ""
+  echo "The script will automatically create a directory named:"
+  echo "  tasks/{issue-number}-{title-slug}"
   exit 1
 fi
 
 ISSUE_INPUT="$1"
-TASK_DIR="${2:-.}"
 
 # Normalize the issue URL/number
 if [[ $ISSUE_INPUT =~ ^https?://github\.com/ ]]; then
@@ -42,10 +44,28 @@ fi
 
 REPO_FULL="$OWNER/$REPO"
 
-# Create task directory if it doesn't exist
+# Fetch the issue title from GitHub
+echo "📥 Fetching issue #$ISSUE_NUM from $REPO_FULL..."
+ISSUE_TITLE=$(gh api repos/$REPO_FULL/issues/$ISSUE_NUM --jq '.title')
+
+if [ -z "$ISSUE_TITLE" ]; then
+  echo "Error: Could not fetch issue title"
+  exit 1
+fi
+
+# Convert title to URL-safe slug
+# - Convert to lowercase
+# - Replace spaces and special characters with dashes
+# - Remove consecutive dashes
+# - Trim leading/trailing dashes
+SLUG=$(echo "$ISSUE_TITLE" | tr '[:upper:]' '[:lower:]' | sed 's/[^a-z0-9]/-/g' | sed 's/--*/-/g' | sed 's/^-//' | sed 's/-$//')
+
+# Create task directory as tasks/{issue-number}-{slug}
+TASK_DIR="tasks/$ISSUE_NUM-$SLUG"
 mkdir -p "$TASK_DIR"
 
-echo "📥 Pulling task files from GitHub issue #$ISSUE_NUM in $REPO_FULL"
+echo "📥 Pulling task files from GitHub issue #$ISSUE_NUM: \"$ISSUE_TITLE\""
+echo "📁 Task directory: $TASK_DIR"
 echo ""
 
 # Function to pull a file from GitHub

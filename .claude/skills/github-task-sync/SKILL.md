@@ -28,8 +28,8 @@ This skill provides a complete workflow for managing tasks:
 # Push all files to GitHub
 ./push.sh 188 ./tasks/188-add-dark-mode-toggle
 
-# Or pull the latest from GitHub
-./pull.sh 188 ./tasks/188-add-dark-mode-toggle
+# Or pull the latest from GitHub (automatically creates task directory from issue title)
+./pull.sh 188
 ```
 
 ## Scripts
@@ -190,38 +190,38 @@ View the issue: https://github.com/edspencer/bragdoc-ai/issues/188
 
 ### pull.sh
 
-Pull all task documentation files from a GitHub issue to a local task directory.
+Pull all task documentation files from a GitHub issue to a local task directory. **Automatically determines the task directory name** from the issue title.
 
 **Usage:**
 ```bash
-./pull.sh <issue-url-or-number> [task-directory]
+./pull.sh <issue-url-or-number>
 ```
 
 **Arguments:**
 - `issue-url-or-number` - GitHub issue URL or issue number
-- `task-directory` - Directory to write files to (optional, defaults to current directory)
 
 **Examples:**
 ```bash
-# Pull to current directory
+# Pull using issue number
 ./pull.sh 188
 
-# Pull to specific task directory
-./pull.sh 188 ./tasks/188-account-deletion
-
 # Pull using full URL
-./pull.sh https://github.com/edspencer/bragdoc-ai/issues/188 ./tasks/188-account-deletion
+./pull.sh https://github.com/edspencer/bragdoc-ai/issues/188
 ```
 
 **What it does:**
-1. Fetches all four task files from GitHub issue comments
-2. Extracts content from collapsible sections
-3. Writes each to local file (SPEC.md, PLAN.md, etc.)
-4. Creates task directory if it doesn't exist
+1. Fetches the issue title from GitHub
+2. Converts the title to a URL-safe slug
+3. Creates task directory as `tasks/{issue-number}-{title-slug}/`
+4. Fetches all four task files from GitHub issue comments
+5. Extracts content from collapsible sections
+6. Writes each to local file (SPEC.md, PLAN.md, etc.)
 
 **Output:**
 ```
-📥 Pulling task files from GitHub issue #188 in edspencer/bragdoc-ai
+📥 Fetching issue #188 from edspencer/bragdoc-ai...
+📥 Pulling task files from GitHub issue #188: "Account deletion and data export"
+📁 Task directory: tasks/188-account-deletion-and-data-export
 
 Pulling SPEC.md...
   ✓ Pulled to SPEC.md
@@ -231,7 +231,7 @@ Pulling PLAN.md...
 
 ...
 ✅ Pull complete!
-Task directory: ./tasks/188-account-deletion
+Task directory: tasks/188-account-deletion-and-data-export
 ```
 
 ### pull-file.sh
