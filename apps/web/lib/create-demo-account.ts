@@ -2,11 +2,9 @@
  * Create Demo Account
  *
  * Centralized logic for creating demo accounts with pre-populated data.
- * Can be called from both API routes and server actions.
+ * Used by the API route to create demo users with Better Auth authentication.
  */
 
-import { SignJWT } from 'jose';
-import { cookies } from 'next/headers';
 import { hashPassword } from 'better-auth/crypto';
 import { generateDemoEmail } from './demo-mode-utils';
 import { importDemoData } from './demo-data-import';
@@ -27,72 +25,6 @@ export interface CreateDemoAccountResult {
   stats?: ImportStats;
   error?: string;
 }
-
-/**
- * Generate JWT session token for demo user
- */
-async function createDemoSessionToken(user: User): Promise<string> {
-  const now = Math.floor(Date.now() / 1000);
-  const expiresAt = now + 4 * 60 * 60; // 4 hours from now
-
-  // Use BETTER_AUTH_SECRET with AUTH_SECRET fallback for backward compatibility
-  const secret = new TextEncoder().encode(
-    process.env.BETTER_AUTH_SECRET || process.env.AUTH_SECRET!,
-  );
-
-  return await new SignJWT({
-    // Standard JWT claims
-    sub: user.id,
-    iat: now,
-    exp: expiresAt,
-
-    // NextAuth session claims
-    email: user.email,
-    name: user.name,
-    picture: user.image,
-
-    // BragDoc-specific fields (from auth.ts JWT callback pattern)
-    id: user.id,
-    provider: user.provider,
-    providerId: user.providerId,
-    preferences: user.preferences,
-    githubAccessToken: user.githubAccessToken,
-    level: user.level,
-    renewalPeriod: user.renewalPeriod,
-
-    // Demo metadata
-    isDemo: true,
-    demoCreatedAt: Date.now(),
-  })
-    .setProtectedHeader({ alg: 'HS256' })
-    .setIssuedAt(now)
-    .setExpirationTime(expiresAt)
-    .sign(secret);
-}
-
-/**
- * Set NextAuth session cookie
- */
-async function setDemoSessionCookie(token: string): Promise<void> {
-  const cookieStore = await cookies();
-
-  // NextAuth cookie name differs by environment
-  const cookieName =
-    process.env.NODE_ENV === 'production'
-      ? '__Secure-next-auth.session-token'
-      : 'next-auth.session-token';
-
-  cookieStore.set(cookieName, token, {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
-    sameSite: 'lax',
-    path: '/',
-    maxAge: 4 * 60 * 60,
-  });
-}
-
-// Export for use in server actions
-export { createDemoSessionToken, setDemoSessionCookie };
 
 /**
  * Creates a demo account with optional pre-populated sample data

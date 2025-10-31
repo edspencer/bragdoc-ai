@@ -1,11 +1,8 @@
 /**
- * Unified Authentication Helper (Better Auth)
+ * Unified Authentication Helper
  *
  * This helper checks both Better Auth sessions (browser cookies) and JWT tokens
  * (CLI Authorization headers), providing a unified interface for authentication.
- *
- * MIGRATION NOTE: This file now uses Better Auth instead of Auth.js.
- * The interface remains unchanged for backward compatibility.
  *
  * Usage in API routes:
  * ```typescript
@@ -65,11 +62,8 @@ export async function getAuthUser(
   const token = authHeader.slice(7); // Remove 'Bearer ' prefix
 
   try {
-    // Verify the JWT using Better Auth secret (with Auth.js fallback)
-    // Note: CLI tokens may still use AUTH_SECRET during migration
-    const secret = new TextEncoder().encode(
-      process.env.BETTER_AUTH_SECRET || process.env.AUTH_SECRET!,
-    );
+    // Verify the JWT using Better Auth secret
+    const secret = new TextEncoder().encode(process.env.BETTER_AUTH_SECRET!);
     const { payload } = await jwtVerify(token, secret);
 
     if (!payload?.id) {

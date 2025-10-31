@@ -77,7 +77,7 @@ export const auth: ReturnType<typeof betterAuth> = betterAuth({
         }
       },
 
-      // Token expiry: 24 hours (matches Auth.js behavior)
+      // Token expiry: 24 hours
       expiresIn: 24 * 60 * 60, // 24 hours in seconds
 
       // Allow new user registration via magic links
@@ -152,7 +152,7 @@ export const auth: ReturnType<typeof betterAuth> = betterAuth({
             to: user.email,
             userId: user.id,
             username: user.email.split('@')[0]!,
-            loginUrl: `${process.env.BETTER_AUTH_URL || process.env.NEXTAUTH_URL}/login`,
+            loginUrl: `${process.env.BETTER_AUTH_URL}/login`,
           });
         }
 
@@ -231,7 +231,7 @@ export const auth: ReturnType<typeof betterAuth> = betterAuth({
               to: user.email,
               userId: user.id,
               username: user.email.split('@')[0]!,
-              loginUrl: `${process.env.BETTER_AUTH_URL || process.env.NEXTAUTH_URL}/login`,
+              loginUrl: `${process.env.BETTER_AUTH_URL}/login`,
             });
           } else {
             // Existing user - track login
@@ -325,22 +325,6 @@ export const auth: ReturnType<typeof betterAuth> = betterAuth({
 });
 
 /**
- * PostHog Integration Hooks
- *
- * These hooks track user registration, login, and logout events in PostHog,
- * replicating the Auth.js events system.
- *
- * Features:
- * - User registration tracking (email, Google, GitHub)
- * - User login tracking (email, OAuth)
- * - User logout tracking with demo account cleanup
- * - PostHog identity aliasing (via X-Anonymous-Id header)
- * - ToS acceptance tracking
- * - Welcome email integration
- *
- * Note: Using type assertion (as any) due to Better Auth hooks type limitations.
- */
-/**
  * Export auth API for use in route handlers
  *
  * Usage in API routes:
@@ -353,8 +337,6 @@ export const auth: ReturnType<typeof betterAuth> = betterAuth({
 export const { handler } = auth;
 
 /**
- * Type-safe session helpers
- *
- * Will be used to replace Auth.js session helpers in Phase 7.
+ * Type-safe session types
  */
 export type { Session } from 'better-auth/types';

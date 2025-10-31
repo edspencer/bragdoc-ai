@@ -6,10 +6,7 @@
  * - Database connection and adapter
  * - Session management strategy
  * - Custom user fields (level, preferences, etc.)
- * - Field mappings for Auth.js schema compatibility
- *
- * Note: During migration (Phases 3-9), this config maps to Auth.js schema.
- * After Phase 10, it will use native Better Auth schema.
+ * - Field mappings for database schema
  */
 
 import { drizzleAdapter } from 'better-auth/adapters/drizzle';
@@ -30,18 +27,14 @@ import type { BetterAuthOptions } from 'better-auth';
  * 1. Database adapter uses existing Drizzle instance from @bragdoc/database
  * 2. generateId: false - Preserves UUID generation by database (PostHog continuity requirement)
  * 3. Session strategy: Database-backed with 5-minute cookie caching for performance
- * 4. JWT expiration: 30 days (matches Auth.js JWT strategy for CLI compatibility)
- * 5. Field mappings: Compatible with Auth.js schema during migration
+ * 4. Session expiration: 30 days for CLI compatibility
  */
 export const betterAuthConfig: Partial<BetterAuthOptions> = {
   // Base URL for authentication endpoints
-  baseURL:
-    process.env.BETTER_AUTH_URL ||
-    process.env.NEXTAUTH_URL ||
-    'http://localhost:3000',
+  baseURL: process.env.BETTER_AUTH_URL || 'http://localhost:3000',
 
   // Secret for signing cookies and tokens
-  secret: process.env.BETTER_AUTH_SECRET || process.env.AUTH_SECRET,
+  secret: process.env.BETTER_AUTH_SECRET!,
 
   // Enable email and password authentication
   // Required for programmatic sign-in (e.g., demo mode)
@@ -71,10 +64,7 @@ export const betterAuthConfig: Partial<BetterAuthOptions> = {
     // This prevents the __Secure- prefix which requires HTTPS
     useSecureCookies:
       process.env.NODE_ENV === 'production' &&
-      !(
-        process.env.BETTER_AUTH_URL?.includes('localhost') ||
-        process.env.NEXTAUTH_URL?.includes('localhost')
-      ),
+      !process.env.BETTER_AUTH_URL?.includes('localhost'),
   },
 
   // User model configuration
@@ -162,7 +152,7 @@ export const betterAuthConfig: Partial<BetterAuthOptions> = {
 
   // Account model configuration
   account: {
-    // Field name mappings for Better Auth schema (after migration)
+    // Field name mappings for database schema
     fields: {
       accountId: 'accountId',
       providerId: 'providerId',
@@ -176,7 +166,7 @@ export const betterAuthConfig: Partial<BetterAuthOptions> = {
 
   // Session model configuration and management
   session: {
-    // Session expiry: 30 days (matches Auth.js JWT for CLI compatibility)
+    // Session expiry: 30 days for CLI compatibility
     expiresIn: 60 * 60 * 24 * 30, // 30 days in seconds
 
     // Update session expiry after 1 day of activity (sliding window)
@@ -191,7 +181,7 @@ export const betterAuthConfig: Partial<BetterAuthOptions> = {
       maxAge: 60 * 5, // 5 minutes before database refresh
     },
 
-    // Field mappings for Better Auth schema (after migration)
+    // Field mappings for database schema
     fields: {
       token: 'token',
       expiresAt: 'expiresAt',
@@ -271,12 +261,6 @@ export const betterAuthConfig: Partial<BetterAuthOptions> = {
       }),
     },
   },
-
-  // Lifecycle hooks (will be added in Phase 6 for PostHog integration)
-  // hooks: {
-  //   before: [],
-  //   after: [],
-  // },
 };
 
 /**
@@ -286,13 +270,9 @@ export const betterAuthConfig: Partial<BetterAuthOptions> = {
  * Throws clear errors during build if missing.
  */
 if (!betterAuthConfig.secret) {
-  throw new Error(
-    'Missing required environment variable: BETTER_AUTH_SECRET or AUTH_SECRET',
-  );
+  throw new Error('Missing required environment variable: BETTER_AUTH_SECRET');
 }
 
 if (!betterAuthConfig.baseURL) {
-  throw new Error(
-    'Missing required environment variable: BETTER_AUTH_URL or NEXTAUTH_URL',
-  );
+  throw new Error('Missing required environment variable: BETTER_AUTH_URL');
 }
