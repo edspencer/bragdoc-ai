@@ -132,6 +132,11 @@ node "$CLI_PATH" init \
   --skip-api-sync \
   --branch-whitelist "" > /dev/null 2>&1
 
+# Debug: Show config after init
+echo "DEBUG: Config after init:"
+cat "$BRAGDOC_CONFIG_HOME/config.yml"
+echo "END DEBUG"
+
 print_success "Project initialized"
 
 # Step 5: Run extractions with different detail levels
