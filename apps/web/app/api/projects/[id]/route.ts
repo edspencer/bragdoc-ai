@@ -30,6 +30,12 @@ const updateProjectSchema = z.object({
     .nullable()
     .transform((str) => (str ? new Date(str) : undefined))
     .optional(),
+  repoRemoteUrl: z
+    .string()
+    .url('Must be a valid URL')
+    .nullable()
+    .optional()
+    .or(z.literal('')),
 });
 
 type Params = Promise<{ id: string }>;
