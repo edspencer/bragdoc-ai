@@ -46,39 +46,51 @@ There are 7 scripts in this skill:
 
 ### create-issue.sh
 
-Create a new GitHub issue and initialize a task directory. Can also convert existing task directories to GitHub issues.
+Create a new GitHub issue and initialize a task directory. Can also convert existing task directories to GitHub issues. Automatically applies GitHub labels based on issue context.
 
 **Usage:**
 ```bash
-./create-issue.sh <title> [description] [existing-task-dir]
+./create-issue.sh <title> [description] [existing-task-dir] [labels]
 ```
 
 **Arguments:**
 - `title` - GitHub issue title
 - `description` - Issue description (optional)
 - `existing-task-dir` - Path to existing task directory to convert (optional)
+- `labels` - Comma-separated labels to apply (optional, e.g., "UI,bug" or "CLI,feature")
+
+**Available labels:**
+- `UI` - User interface related issues
+- `CLI` - Command-line interface related issues
+- `bug` - Bug fixes and issue resolutions
+- `feature` - New features and enhancements
 
 **Examples:**
 ```bash
 # Create new issue with title only
 ./create-issue.sh "Add dark mode toggle"
 
-# Create new issue with title and description
-./create-issue.sh "Add dark mode toggle" "Implement dark/light theme switcher in settings"
+# Create new issue with title, description, and labels
+./create-issue.sh "Add dark mode toggle" "Implement dark/light theme switcher in settings" "" "UI,feature"
 
-# Convert existing task directory to GitHub issue
-./create-issue.sh "Add dark mode toggle" "" ./tasks/dark-mode
+# Convert existing task directory to GitHub issue with labels
+./create-issue.sh "Fix login button styling" "" ./tasks/login-styling "UI,bug"
+
+# Create issue with description and labels (no existing task dir)
+./create-issue.sh "Add date filter to extract" "Filter commits by date range" "" "CLI,feature"
 ```
 
 **What it does:**
-1. Creates a new GitHub issue with the provided title and description
-2. Creates local task directory named `{issue-number}-{title-slug}/`
-3. If task files exist, automatically syncs them to GitHub
-4. Outputs issue URL and task directory path
+1. Analyzes issue content to determine appropriate labels (optional)
+2. Creates a new GitHub issue with the provided title, description, and labels
+3. Creates local task directory named `{issue-number}-{title-slug}/`
+4. If task files exist, automatically syncs them to GitHub
+5. Outputs issue URL and task directory path
 
 **Output:**
 ```
 Creating GitHub issue...
+Applying labels: UI,feature
 ✓ GitHub issue created: https://github.com/edspencer/bragdoc-ai/issues/189
 ✓ Created task directory: tasks/189-add-dark-mode-toggle
 
