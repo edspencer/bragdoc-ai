@@ -83,7 +83,30 @@ Commit message instructions:
 - should call out any key environment variable changes
 - do not attempt to assess the value of the changes, e.g. don't say things like "This change improves the information architecture by separating document management from the primary navigation flow while keeping career-focused features prominently displayed and easily accessible."
 
-#### Example commit messages
+#### GitHub Issue Closing Syntax
+
+If the task directory follows the pattern `tasks/{issue-number}-{task-name}/`, the commit message MUST include GitHub's issue closing syntax at the end:
+
+- Extract the issue number from the directory name
+- For bug fixes (check SPEC.md labels): Use `Fixes #{issue-number}`
+- For features and other tasks: Use `Closes #{issue-number}`
+- Add this as a separate line at the end of the commit message body
+
+GitHub will automatically close the associated issue when the commit is merged.
+
+**Example with closing syntax:**
+
+```
+fix: invalidate top projects cache when creating projects
+
+When users create a project via the dashboard, the TopProjects component and NavProjects sidebar don't refresh to show the new project until they manually refresh the page. This occurs because useCreateProject() only invalidates the `/api/projects` SWR cache key, while TopProjects and NavProjects use the `/api/projects/top?limit=5` cache key.
+
+This fix adds useTopProjects() to useCreateProject() and calls mutate() on both cache keys after successful creation, ensuring all components receive updated data immediately.
+
+Closes #213
+```
+
+#### Example commit messages (without closing syntax for context)
 
 In this paragraph:
 
