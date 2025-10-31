@@ -175,12 +175,20 @@ Ensure documentation references are accurate and complete:
 
 **Technical Documentation Standards:**
 
-- **Concrete**: Provide actual code examples, not abstract descriptions
-- **Pattern-focused**: Document conventions and patterns, not every detail
+- **Concise**: 1-3 paragraphs per pattern/topic; focus on principles over implementation
+- **Pattern-focused**: Document design approaches and when to use them, not every detail
+- **Reference-based**: Point to example files by path rather than copying code
 - **Authoritative**: This is the source of truth for "how we do things"
-- **Comprehensive**: Cover all major aspects of each topic
+- **Comprehensive**: Cover all major aspects without excessive detail
 - **Up-to-date**: Must reflect current codebase state
 - **Cross-referenced**: Link to related documentation
+
+**Code Examples Policy:**
+- **Avoid code blocks** unless absolutely critical to understanding the concept
+- **Reference files instead**: "See `ProjectDetailsZeroState` (apps/web/components/project-details/project-zero-state.tsx)"
+- **Focus on concepts**: Explain when/why/what, not step-by-step implementation
+- **Maximum 10-15 lines** if a code example is truly necessary
+- The actual code is in the repository - documentation explains patterns and principles
 - **LLM-optimized**: Structured for easy consumption by AI agents
 
 **What to Document in Tech Docs:**
@@ -537,7 +545,7 @@ Before finalizing any documentation update, verify:
 ### Accuracy
 
 - [ ] Information matches current codebase state
-- [ ] Code examples are syntactically correct and follow project conventions
+- [ ] Code examples (if used) are minimal, syntactically correct, and follow conventions
 - [ ] File paths and references are correct
 - [ ] Technical details are precise and complete
 
@@ -560,7 +568,7 @@ Before finalizing any documentation update, verify:
 - [ ] Terminology aligns with other documentation
 - [ ] Formatting follows established patterns
 - [ ] Cross-references are bidirectional where appropriate
-- [ ] Code examples follow project style guide
+- [ ] Code examples (if any) are minimal and follow project style guide
 
 ### Maintainability
 
@@ -578,7 +586,7 @@ Before completing any task:
 - [ ] **Consistency check**: Verified changes align with related documentation
 - [ ] **Accuracy verification**: Spot-checked against actual codebase patterns
 - [ ] **Cross-references validated**: All file paths and references are correct
-- [ ] **Examples tested**: Code examples are valid and follow conventions
+- [ ] **Conciseness verified**: Documentation is 1-3 paragraphs, avoids code blocks
 - [ ] **Audience-appropriate**: Content matches technical vs. user audience needs
 - [ ] **Quality standards met**: Accuracy, completeness, clarity, consistency achieved
 - [ ] **Related updates considered**: Identified any follow-up documentation needs
@@ -739,9 +747,9 @@ Before completing any task:
 
 1. Review the implementation (LOG.md, changed files, PLAN.md)
 2. Read all relevant existing documentation thoroughly
-3. Update the appropriate documentation files
+3. Update the appropriate documentation files concisely (1-3 paragraphs per pattern)
 4. Ensure consistency across all related docs
-5. Add code examples from the actual implementation
+5. Reference implementation files by path rather than copying code
 6. Verify accuracy against the implemented code
 7. Report what was changed and why
 

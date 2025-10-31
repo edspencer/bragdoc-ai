@@ -14,6 +14,7 @@ import { ProjectDialog } from '@/components/project-dialog';
 import { WeeklyImpactChart } from '@/components/weekly-impact-chart';
 import { AchievementsTable } from '@/components/achievements-table';
 import { GenerateDocumentDialog } from '@/components/generate-document-dialog';
+import { ProjectDetailsZeroState } from '@/components/project-details/project-zero-state';
 import { Stat } from '@/components/shared/stat';
 import { useAchievements } from '@/hooks/use-achievements';
 import { useCompanies } from '@/hooks/use-companies';
@@ -201,94 +202,102 @@ export function ProjectDetailsContent({
           </div>
         </div>
 
-        {/* Project Stats */}
-        <div className="grid grid-cols-2 gap-2 lg:gap-6 @xl/main:grid-cols-2 @5xl/main:grid-cols-4">
-          <Stat
-            label="Project Achievements"
-            value={projectStats.totalAchievements}
-            badge={{
-              icon: <IconTarget className="size-3" />,
-              label: 'Total',
-            }}
-            footerHeading={{
-              text: 'Project contributions',
-              icon: <IconTarget className="size-4" />,
-            }}
-            footerDescription="All achievements for this project"
-          />
+        {/* Conditional: Zero state OR full content */}
+        {projectAchievements.length === 0 ? (
+          <ProjectDetailsZeroState projectName={project.name} />
+        ) : (
+          <>
+            {/* Project Stats */}
+            <div className="grid grid-cols-2 gap-2 lg:gap-6 @xl/main:grid-cols-2 @5xl/main:grid-cols-4">
+              <Stat
+                label="Project Achievements"
+                value={projectStats.totalAchievements}
+                badge={{
+                  icon: <IconTarget className="size-3" />,
+                  label: 'Total',
+                }}
+                footerHeading={{
+                  text: 'Project contributions',
+                  icon: <IconTarget className="size-4" />,
+                }}
+                footerDescription="All achievements for this project"
+              />
 
-          <Stat
-            label="Total Impact Points"
-            value={projectStats.totalImpactPoints}
-            badge={{
-              icon: <IconTrendingUp className="size-3" />,
-              label: 'Project Total',
-            }}
-            footerHeading={{
-              text: 'Project impact score',
-              icon: <IconTrendingUp className="size-4" />,
-            }}
-            footerDescription={`Average ${projectStats.avgImpactPerAchievement} points per achievement`}
-          />
+              <Stat
+                label="Total Impact Points"
+                value={projectStats.totalImpactPoints}
+                badge={{
+                  icon: <IconTrendingUp className="size-3" />,
+                  label: 'Project Total',
+                }}
+                footerHeading={{
+                  text: 'Project impact score',
+                  icon: <IconTrendingUp className="size-4" />,
+                }}
+                footerDescription={`Average ${projectStats.avgImpactPerAchievement} points per achievement`}
+              />
 
-          <Stat
-            label="This Week's Impact"
-            value={projectStats.thisWeekImpact}
-            badge={{
-              icon: <IconTrendingUp className="size-3" />,
-              label: 'Week',
-            }}
-            footerHeading={{
-              text: 'Recent project activity',
-              icon: <IconTrendingUp className="size-4" />,
-            }}
-            footerDescription="Last 7 days"
-          />
+              <Stat
+                label="This Week's Impact"
+                value={projectStats.thisWeekImpact}
+                badge={{
+                  icon: <IconTrendingUp className="size-3" />,
+                  label: 'Week',
+                }}
+                footerHeading={{
+                  text: 'Recent project activity',
+                  icon: <IconTrendingUp className="size-4" />,
+                }}
+                footerDescription="Last 7 days"
+              />
 
-          <Stat
-            label="Project Duration"
-            value={
-              project.endDate
-                ? Math.ceil(
-                    (project.endDate.getTime() - project.startDate.getTime()) /
-                      (1000 * 60 * 60 * 24 * 30),
-                  )
-                : Math.ceil(
-                    (Date.now() - project.startDate.getTime()) /
-                      (1000 * 60 * 60 * 24 * 30),
-                  )
-            }
-            badge={{
-              icon: <IconCalendar className="size-3" />,
-              label: 'Months',
-            }}
-            footerHeading={{
-              text:
-                project.status === 'active'
-                  ? 'Ongoing project'
-                  : 'Completed project',
-              icon: <IconCalendar className="size-4" />,
-            }}
-            footerDescription={
-              project.status === 'active'
-                ? 'Since start date'
-                : 'Total duration'
-            }
-          />
-        </div>
+              <Stat
+                label="Project Duration"
+                value={
+                  project.endDate
+                    ? Math.ceil(
+                        (project.endDate.getTime() -
+                          project.startDate.getTime()) /
+                          (1000 * 60 * 60 * 24 * 30),
+                      )
+                    : Math.ceil(
+                        (Date.now() - project.startDate.getTime()) /
+                          (1000 * 60 * 60 * 24 * 30),
+                      )
+                }
+                badge={{
+                  icon: <IconCalendar className="size-3" />,
+                  label: 'Months',
+                }}
+                footerHeading={{
+                  text:
+                    project.status === 'active'
+                      ? 'Ongoing project'
+                      : 'Completed project',
+                  icon: <IconCalendar className="size-4" />,
+                }}
+                footerDescription={
+                  project.status === 'active'
+                    ? 'Since start date'
+                    : 'Total duration'
+                }
+              />
+            </div>
 
-        <WeeklyImpactChart achievements={projectAchievements} />
+            <WeeklyImpactChart achievements={projectAchievements} />
 
-        <AchievementsTable
-          achievements={projectAchievements}
-          projects={allProjects}
-          companies={allCompanies}
-          onImpactChange={handleImpactChange}
-          onSelectionChange={setSelectedAchievements}
-          selectedAchievements={selectedAchievements}
-          onGenerateDocument={handleGenerateDocument}
-          projectId={project.id}
-        />
+            <AchievementsTable
+              achievements={projectAchievements}
+              projects={allProjects}
+              companies={allCompanies}
+              onImpactChange={handleImpactChange}
+              onSelectionChange={setSelectedAchievements}
+              selectedAchievements={selectedAchievements}
+              onGenerateDocument={handleGenerateDocument}
+              projectId={project.id}
+            />
+          </>
+        )}
       </div>
 
       <ProjectDialog

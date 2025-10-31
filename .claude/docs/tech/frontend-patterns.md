@@ -1077,6 +1077,14 @@ export default async function Page() {
 
 **Real-world example**: See `apps/web/app/cli-auth/page.tsx` for the canonical implementation of this pattern.
 
+### Zero State Pattern in Detail Pages
+
+Detail pages can display zero states when associated collections are empty (e.g., a project with no achievements). Unlike dashboard zero states, detail page zero states preserve the entity header (name, description) and swap out only the content area. Use conditional rendering: check if collection is empty, then show zero state OR full content.
+
+Place zero state components in feature-specific subdirectories following the pattern `components/[feature]/[feature]-zero-state.tsx`. Components should use the same refresh pattern as dashboard zero states (router.refresh() with setTimeout for feedback) and maintain consistent styling (centered flex layout, max-w-2xl, shadcn/ui Card and Button components).
+
+**Examples:** `ProjectDetailsZeroState` (apps/web/components/project-details/project-zero-state.tsx), `DashboardZeroState` (apps/web/components/dashboard/dashboard-zero-state.tsx)
+
 ### Other Zero State Examples
 
 **Standup Zero State**: `apps/web/components/standups/standup-zero-state.tsx`

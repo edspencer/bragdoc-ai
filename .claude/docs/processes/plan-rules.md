@@ -32,6 +32,21 @@ The .claude/docs/tech/ directory contains all the technical documentation meant 
 - **frontend-patterns.md** - Update for new component patterns or UI conventions
 - **deployment.md** - Update for deployment process or environment variable changes
 
+**Documentation Style Guidelines:**
+
+Technical documentation updates should be **concise and principle-focused**:
+- **NO code examples** unless absolutely critical to understanding the pattern
+- Focus on **design principles, architectural approaches, and reusable capabilities**
+- Typically **1-3 paragraphs maximum** per pattern/topic
+- Reference example files by path rather than including code blocks
+- Emphasize **when to use** a pattern and **key concepts**, not implementation details
+
+Example of good concise documentation:
+> "Detail pages can display zero states when associated collections are empty. Unlike dashboard zero states, detail page zero states preserve the entity header and swap out only the content area. Use conditional rendering, place components in feature-specific subdirectories (`components/[feature]/[feature]-zero-state.tsx`), and maintain consistent styling. **Examples:** ProjectDetailsZeroState, DashboardZeroState."
+
+Example of overly verbose documentation to **avoid**:
+> Including 100+ lines of TypeScript code examples, full component implementations, or step-by-step tutorials. The actual code is in the repository - documentation should focus on concepts and patterns.
+
 ### Feature Documentation (docs/)
 
 This should include a potential update to docs/FEATURES.md (if warranted) and updates to any other documents found in the docs/ directory. If we're adding a significant new piece of UI then we should have some document in that directory that describes the capabilities of that UI. There is a high chance this does not exist, so you should create it if not.
