@@ -103,7 +103,7 @@ The left sidebar provides access to:
 - **Projects**: Manage your projects
 - **Companies**: Track companies you've worked for
 - **Documents**: Generated reports and documents
-- **Settings**: Account preferences and integrations
+- **Account**: Account preferences, data export/import, and account deletion
 
 ## Your First Achievement
 
@@ -351,7 +351,7 @@ bragdoc cache clear              # Clear cache
 - **Search**: Use the search bar on the Achievements page
 - **Filter**: Click filter icons to narrow down your list
 - **Generate Document**: Navigate to Documents > Generate
-- **Settings**: Access via your profile icon in the top-right
+- **Account**: Access via the Account link in the sidebar
 
 ---
 

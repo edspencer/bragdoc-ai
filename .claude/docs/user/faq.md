@@ -102,31 +102,33 @@ See the **[Getting Started Guide](./getting-started.md)** for detailed instructi
 ### How do I change my email address?
 
 1. Log in to BragDoc
-2. Go to **Settings** > **Profile**
+2. Go to **Account** (via sidebar)
 3. Update your email address
 4. Verify your new email address
 
 ### How do I cancel my subscription?
 
-1. Go to **Settings** > **Billing**
-2. Click "Cancel Subscription"
-3. Confirm cancellation
-4. You'll be downgraded to the free plan at the end of your billing period
+1. Go to **Account** (via sidebar)
+2. Scroll to the Billing section
+3. Click "Cancel Subscription"
+4. Confirm cancellation
+5. You'll be downgraded to the free plan at the end of your billing period
 
 Your data remains accessible on the free plan (with usage limits).
 
 ### How do I delete my account?
 
-1. Go to **Settings** > **Data & Privacy**
-2. Click "Delete Account"
-3. Confirm with your password
-4. All data is permanently deleted
+1. Go to **Account** (via sidebar)
+2. Scroll to the Danger Zone section at the bottom
+3. Click "Delete Account"
+4. Confirm with your password
+5. All data is permanently deleted
 
 **Warning**: This action cannot be undone. Consider exporting your data first.
 
 ### Can I export my data?
 
-Yes! Go to **Settings** > **Data & Privacy** > **Export Data**. You'll receive a download link with all your achievements, projects, companies, and documents in JSON format.
+Yes! Go to **Account** (via sidebar) > **Export Data**. You'll receive a download link with all your achievements, projects, companies, and documents in JSON format.
 
 ## CLI Tool Issues
 
@@ -377,7 +379,7 @@ bragdoc extract --time-range 2023-01-01:2023-12-31
 **Solutions:**
 
 **Enable pagination:**
-- Go to **Settings** > **Display Preferences**
+- Go to **Account** (via sidebar) > **Display Preferences**
 - Set "Achievements per page" to 25 or 50
 
 **Clear browser cache:**
@@ -478,7 +480,7 @@ bragdoc extract --time-range 2023-01-01:2023-12-31
 **Solutions:**
 
 **Reconnect GitHub:**
-1. Go to **Settings** > **Integrations**
+1. Go to **Account** (via sidebar) > **Integrations**
 2. Click "Disconnect GitHub"
 3. Click "Connect GitHub" again
 4. Re-authorize BragDoc
@@ -489,7 +491,7 @@ bragdoc extract --time-range 2023-01-01:2023-12-31
 - Grant access to desired repositories
 
 **Manual sync:**
-1. Go to **Settings** > **GitHub Repositories**
+1. Go to **Account** (via sidebar) > **GitHub Repositories**
 2. Click "Sync" next to each repository
 
 ### Email integration is not capturing achievements
@@ -505,7 +507,7 @@ bragdoc extract --time-range 2023-01-01:2023-12-31
 
 **Verify sender:**
 - Send from the email address associated with your account
-- Check Settings > Email Integration for your BragDoc email address
+- Check Account > Email Integration for your BragDoc email address
 
 **Use clear format:**
 ```
