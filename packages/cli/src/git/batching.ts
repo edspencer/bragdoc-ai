@@ -54,6 +54,7 @@ export async function* processInBatches(
 
     let lastError: Error | null = null;
     let attempt = 0;
+    let succeeded = false;
 
     while (attempt < maxRetries) {
       try {
@@ -140,6 +141,7 @@ export async function* processInBatches(
             `${result.errors?.length || 0} errors`,
         );
 
+        succeeded = true;
         yield result;
         // Success, break the retry loop
         break;
@@ -147,7 +149,7 @@ export async function* processInBatches(
         lastError = error;
         attempt++;
 
-        if (attempt === maxRetries) {
+        if (attempt >= maxRetries) {
           logger.error(
             `Failed to process batch ${batchNum + 1}/${totalBatches} after ${maxRetries} attempts: ${error.message}`,
           );
@@ -160,6 +162,16 @@ export async function* processInBatches(
           );
         }
       }
+    }
+
+    // If the retry loop completes without success, throw an error
+    if (!succeeded) {
+      logger.error(
+        `Failed to process batch ${batchNum + 1}/${totalBatches} after ${maxRetries} attempts: ${lastError?.message || 'Unknown error'}`,
+      );
+      throw new Error(
+        `Maximum retries (${maxRetries}) exceeded for batch ${batchNum + 1}. Last error: ${lastError?.message || 'Unknown error'}`,
+      );
     }
   }
 }
