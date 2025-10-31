@@ -113,7 +113,7 @@ Remove your authentication token:
 bragdoc logout
 ```
 
-This removes the token from your configuration file. You can also revoke CLI access from the BragDoc web interface under Settings > Security.
+This removes the token from your configuration file. You can also revoke CLI access from the BragDoc web interface under Account.
 
 ## Repository Management
 

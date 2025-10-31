@@ -7,6 +7,7 @@ import { IconDownload, IconUpload } from '@tabler/icons-react';
 import { useToast } from '@/hooks/use-toast';
 import { SiteHeader } from '@/components/site-header';
 import { SidebarInset } from '@/components/ui/sidebar';
+import { DeleteAccountDialog } from '@/components/delete-account-dialog';
 
 export default function AccountPage() {
   const [isExporting, setIsExporting] = useState(false);
@@ -150,6 +151,23 @@ export default function AccountPage() {
                 </label>
               </Button>
             </div>
+          </div>
+
+          {/* Divider */}
+          <div className="border-border border-t" />
+
+          {/* Danger Zone */}
+          <div className="space-y-4 rounded-lg border-2 border-red-200 bg-red-50 p-6">
+            <div>
+              <h2 className="text-lg font-semibold text-red-900">
+                Danger Zone
+              </h2>
+              <p className="text-red-700 text-sm">
+                Deleting your account is permanent and cannot be undone. All
+                your data will be permanently removed.
+              </p>
+            </div>
+            <DeleteAccountDialog />
           </div>
         </div>
       </SidebarInset>

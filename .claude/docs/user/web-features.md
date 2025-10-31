@@ -518,7 +518,7 @@ Connect your GitHub account to automatically sync repositories and pull requests
 
 GitHub OAuth integration is fully functional and allows you to authenticate with your GitHub account and sync repositories:
 
-1. Navigate to **Settings** > **Integrations**
+1. Navigate to **Account** (via sidebar) > **Integrations**
 2. Click **"Connect GitHub"**
 3. Authorize BragDoc to access your GitHub account
 4. Grant repository access (all or selected repositories)
@@ -537,7 +537,7 @@ Once connected, BragDoc can sync:
 
 ### Syncing Repositories
 
-1. Navigate to **Settings** > **GitHub Repositories**
+1. Navigate to **Account** (via sidebar) > **GitHub Repositories**
 2. See list of your repositories
 3. Click **"Sync"** next to a repository to update
 4. Last synced timestamp updates
@@ -547,7 +547,7 @@ Once connected, BragDoc can sync:
 
 Enable automatic background syncing:
 
-1. Go to **Settings** > **Integrations** > **GitHub**
+1. Go to **Account** (via sidebar) > **Integrations** > **GitHub**
 2. Toggle **"Auto-sync repositories"**
 3. Choose sync frequency:
    - Every 6 hours
@@ -593,7 +593,7 @@ Format: Varies by deployment, typically linked to your account
 
 Find your email address:
 
-1. Navigate to **Settings** > **Email Integration**
+1. Navigate to **Account** (via sidebar) > **Email Integration**
 2. Your unique BragDoc email address is displayed
 3. Click to copy to clipboard
 
@@ -682,7 +682,7 @@ tickets and improved developer experience.
 
 Configure email settings:
 
-1. Go to **Settings** > **Email Integration**
+1. Go to **Account** (via sidebar) > **Email Integration**
 2. Configure:
    - **Confirmation Emails**: Get notified when achievements are extracted
    - **Email Frequency**: How often you want summary emails
@@ -693,11 +693,11 @@ Configure email settings:
 Unsubscribe from BragDoc emails:
 
 - Click "Unsubscribe" link in any email
-- Or manage preferences in **Settings** > **Email Integration**
+- Or manage preferences in **Account** > **Email Integration**
 
-## Settings & Preferences
+## Account Settings & Preferences
 
-Customize your BragDoc experience in Settings.
+Customize your BragDoc experience on the Account page (accessible via sidebar).
 
 ### Profile Settings
 
@@ -789,7 +789,7 @@ Manage connected services:
 
 Export all your data in JSON format:
 
-1. Go to **Settings** > **Data & Privacy**
+1. Go to **Account** (via sidebar) > **Data Export & Import**
 2. Click **"Export Data"**
 3. Receive download link via email
 4. Download ZIP file with all your data
@@ -805,10 +805,11 @@ Export all your data in JSON format:
 
 Permanently delete your account and all data:
 
-1. Go to **Settings** > **Data & Privacy**
-2. Click **"Delete Account"**
-3. Confirm with password
-4. All data is permanently deleted
+1. Go to **Account** (via sidebar)
+2. Scroll to the **Danger Zone** section at the bottom
+3. Click **"Delete Account"**
+4. Confirm with password
+5. All data is permanently deleted
 
 **Warning**: This action cannot be undone.
 
