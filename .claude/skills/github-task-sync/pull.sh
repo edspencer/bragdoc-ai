@@ -57,8 +57,9 @@ pull_file() {
   echo "Pulling $file..."
 
   # Fetch the comment with the matching marker and extract the content
+  # Use startswith to match the exact marker (not substrings like PLAN_MARKER vs TEST_PLAN_MARKER)
   comment_body=$(gh api repos/$REPO_FULL/issues/$ISSUE_NUM/comments \
-    --jq ".[] | select(.body | contains(\"$marker\")) | .body" 2>/dev/null || echo "")
+    --jq ".[] | select(.body | startswith(\"<!-- $marker -->\")) | .body" 2>/dev/null || echo "")
 
   if [ -z "$comment_body" ]; then
     echo "  ⏭️  Skipping $file (not found on issue)"
@@ -66,7 +67,16 @@ pull_file() {
   fi
 
   # Extract the content between the markdown code fences
-  extracted=$(echo "$comment_body" | sed -n '/```markdown/,/```/p' | sed '1d;$d')
+  # Handle both plain markdown blocks and those wrapped in <details> tags
+  if echo "$comment_body" | grep -q '<details>'; then
+    # For content in <details>, extract from ```markdown to </details>, then remove first line and last 2 lines
+    extracted=$(echo "$comment_body" | sed -n '/```markdown/,/<\/details>/p' | sed '1d' | sed '$d' | sed '$d')
+  else
+    # For unwrapped content, extract between ```markdown and the LAST ``` (to handle nested code blocks)
+    # This is trickier - we need to find the matching closing fence
+    # For now, use a simple approach: extract from ```markdown to end, then find the last ``` and trim from there
+    extracted=$(echo "$comment_body" | awk '/```markdown/{flag=1; next} /^```$/ && flag{exit} flag')
+  fi
 
   if [ -z "$extracted" ]; then
     echo "  ⚠️  Warning: Could not extract content from $file comment"
