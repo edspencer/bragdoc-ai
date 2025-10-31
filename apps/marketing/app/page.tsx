@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { Header } from '@/components/header';
 import { HeroSection } from '@/components/hero-section';
 import { VideoSection } from '@/components/video-section';
+import { MeetTheTeamIntro } from '@/components/meet-the-team-intro';
 import { ProblemSolutionV2 } from '@/components/problem-solution-v2';
 import { FeaturesSection } from '@/components/features-section';
 import { PrivacySection } from '@/components/privacy-section';
@@ -50,6 +51,7 @@ export default function Home() {
       <main>
         <HeroSection />
         <VideoSection />
+        <MeetTheTeamIntro />
         <ProblemSolutionV2 />
         <FeaturesSection />
         <PrivacySection />
