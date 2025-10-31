@@ -129,7 +129,8 @@ node "$CLI_PATH" init \
   --detail-level standard \
   --no-schedule \
   --skip-llm-config \
-  --skip-api-sync > /dev/null 2>&1
+  --skip-api-sync \
+  --branch-whitelist "" > /dev/null 2>&1
 
 print_success "Project initialized"
 

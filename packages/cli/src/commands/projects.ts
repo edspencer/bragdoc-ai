@@ -162,6 +162,36 @@ export async function promptForExtractionConfig(): Promise<ExtractionConfig | nu
 }
 
 /**
+ * Prompt user for branch whitelist configuration
+ */
+export async function promptForBranchWhitelist(): Promise<string[] | null> {
+  const answers = await inquirer.prompt([
+    {
+      type: 'input',
+      name: 'branches',
+      message:
+        'Which branches should be allowed for extraction? (comma-separated, leave blank to allow all)',
+      default: '',
+      validate: (input: string) => {
+        // Accept any input (including empty)
+        return true;
+      },
+    },
+  ]);
+
+  const branchesInput = answers.branches.trim();
+  if (!branchesInput) {
+    return null; // No whitelist
+  }
+
+  // Parse comma-separated list and trim whitespace
+  return branchesInput
+    .split(',')
+    .map((b: string) => b.trim())
+    .filter((b: string) => b.length > 0);
+}
+
+/**
  * Install system-level crontab entries (project extractions only)
  */
 async function installSystemCrontab(): Promise<void> {
@@ -349,6 +379,10 @@ export const projectsCommand = new Command('projects')
         '-m, --max-commits <number>',
         'Maximum number of commits to extract',
       )
+      .option(
+        '--branch-whitelist <branches>',
+        'Comma-separated list of allowed branches for extraction',
+      )
       .action(addProject),
   )
   .addCommand(
@@ -364,6 +398,10 @@ export const projectsCommand = new Command('projects')
       .option('-n, --name <name>', 'Update friendly name')
       .option('-m, --max-commits <number>', 'Update maximum commits')
       .option('-s, --schedule', 'Update automatic extraction schedule')
+      .option(
+        '--branch-whitelist <branches>',
+        'Update comma-separated list of allowed branches for extraction',
+      )
       .action(updateProject),
   )
   .addCommand(
@@ -388,8 +426,12 @@ function formatProject(project: Project, defaultMaxCommits: number): string {
   const maxCommits = project.maxCommits || defaultMaxCommits;
   const disabled = !project.enabled ? ' [disabled]' : '';
   const schedule = describeCronSchedule(project.cronSchedule || null);
+  const branches =
+    project.branchWhitelist && project.branchWhitelist.length > 0
+      ? `[branches: ${project.branchWhitelist.join(', ')}]`
+      : '[branches: all]';
 
-  return `${status} ${name}(${project.path}) [max: ${maxCommits}] [schedule: ${schedule}]${disabled}`;
+  return `${status} ${name}(${project.path}) [max: ${maxCommits}] [schedule: ${schedule}] ${branches}${disabled}`;
 }
 
 /**
@@ -423,6 +465,7 @@ export async function addProject(
     skipLlmConfig?: boolean;
     skipApiSync?: boolean;
     detailLevel?: ExtractionDetailLevel;
+    branchWhitelist?: string; // Comma-separated from CLI
   } = {},
 ) {
   const config = await loadConfig();
@@ -524,6 +567,40 @@ export async function addProject(
     cronSchedule = await promptForCronSchedule();
   }
 
+  // Handle branch whitelist
+  let branchWhitelist: string[] | undefined;
+
+  if (options.branchWhitelist !== undefined) {
+    // Parse comma-separated CLI option
+    branchWhitelist = options.branchWhitelist
+      .split(',')
+      .map((b) => b.trim())
+      .filter((b) => b.length > 0);
+
+    if (branchWhitelist.length > 0) {
+      console.log(
+        chalk.green(`✓ Using branch whitelist: ${branchWhitelist.join(', ')}`),
+      );
+    } else {
+      console.log(chalk.green('✓ All branches allowed for extraction'));
+      branchWhitelist = undefined; // Empty string means no whitelist
+    }
+  } else {
+    // Interactive prompt for branch whitelist
+    console.log('\n🌿 Configuring allowed branches for extraction...\n');
+    const whitelist = await promptForBranchWhitelist();
+    branchWhitelist = whitelist || undefined;
+    if (branchWhitelist) {
+      console.log(
+        chalk.green(
+          `✓ Branch whitelist configured: ${branchWhitelist.join(', ')}`,
+        ),
+      );
+    } else {
+      console.log(chalk.green('✓ All branches allowed for extraction'));
+    }
+  }
+
   // Add project
   const newProject: Project = {
     path: absolutePath,
@@ -534,6 +611,7 @@ export async function addProject(
       : undefined,
     cronSchedule: cronSchedule || undefined,
     extraction: extractionConfig || undefined,
+    branchWhitelist: branchWhitelist,
     id: projectId,
     remote: repoInfo.remoteUrl,
   };
@@ -597,7 +675,12 @@ export async function removeProject(path: string = process.cwd()) {
  */
 export async function updateProject(
   path: string = process.cwd(),
-  options: { name?: string; maxCommits?: number; schedule?: boolean } = {},
+  options: {
+    name?: string;
+    maxCommits?: number;
+    schedule?: boolean;
+    branchWhitelist?: string; // Comma-separated from CLI
+  } = {},
 ) {
   const config = await loadConfig();
   const absolutePath = normalizeRepoPath(path);
@@ -633,6 +716,14 @@ export async function updateProject(
 
     const cronSchedule = await promptForCronSchedule();
     project.cronSchedule = cronSchedule || undefined;
+  }
+
+  if (options.branchWhitelist !== undefined) {
+    const whitelist = options.branchWhitelist
+      .split(',')
+      .map((b) => b.trim())
+      .filter((b) => b.length > 0);
+    project.branchWhitelist = whitelist.length > 0 ? whitelist : undefined;
   }
 
   await saveConfig(config);
@@ -702,6 +793,10 @@ export const initCommand = new Command('init')
     'Skip LLM configuration (use environment variables)',
   )
   .option('--skip-api-sync', 'Skip syncing with API (local-only project)')
+  .option(
+    '--branch-whitelist <branches>',
+    'Comma-separated list of allowed branches for extraction',
+  )
   .addOption(
     new Option('--detail-level <level>', 'Extraction detail level').choices([
       'minimal',

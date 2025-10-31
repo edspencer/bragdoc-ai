@@ -141,6 +141,45 @@ function getExtractionConfigForProject(
   return config;
 }
 
+/**
+ * Validate that the current branch is in the configured whitelist
+ * Returns true if valid, false if validation failed (error already logged)
+ */
+function validateBranchWhitelist(
+  branchToUse: string,
+  repoConfig: any,
+  logger: any,
+): boolean {
+  // If no whitelist configured, all branches are allowed
+  if (!repoConfig.branchWhitelist || repoConfig.branchWhitelist.length === 0) {
+    logger.debug(
+      'No branch whitelist configured for this project (all branches allowed)',
+    );
+    return true;
+  }
+
+  // Check if current branch is in whitelist
+  if (repoConfig.branchWhitelist.includes(branchToUse)) {
+    logger.debug(
+      `Branch whitelist check passed: ${branchToUse} is in configured whitelist`,
+    );
+    return true;
+  }
+
+  // Branch not in whitelist - log error and instructions
+  logger.error('Error: Current branch is not allowed for extraction.');
+  logger.error(`Current branch: ${branchToUse}`);
+  logger.error(`Allowed branches: ${repoConfig.branchWhitelist.join(', ')}`);
+  logger.error('');
+  logger.error(
+    'Please switch to an allowed branch or reconfigure the whitelist.',
+  );
+  logger.error(
+    `To update allowed branches, run: bragdoc projects update <path> --branch-whitelist <branches>`,
+  );
+  return false;
+}
+
 export const extractCommand = new Command('extract')
   .description('Extract commits from the current repository')
   .option('--branch <branch>', 'Git branch to read commits from')
@@ -221,6 +260,11 @@ export const extractCommand = new Command('extract')
 
       // Use current branch if none specified
       const branchToUse = branch || repoInfo.currentBranch;
+
+      // Validate branch against whitelist if configured
+      if (!validateBranchWhitelist(branchToUse, repoConfig, logger)) {
+        process.exit(1);
+      }
 
       // Use provided repo name or extract from remote URL
       const repository = repo || getRepositoryName(repoInfo.remoteUrl);

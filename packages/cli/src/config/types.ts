@@ -41,6 +41,7 @@ export interface Project {
   remote?: string; // Git remote URL
   standupId?: string; // UUID of the standup this project is enrolled in (if any)
   extraction?: ExtractionConfig; // Extraction configuration for this project
+  branchWhitelist?: string[]; // Branches allowed for extraction (empty or absent = all branches allowed)
 }
 
 /**

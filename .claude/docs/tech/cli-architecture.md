@@ -43,13 +43,16 @@ auth:
   token: 'eyJhbGciOiJIUzI1NiJ9...'
   expiresAt: 1735689600000
 
-repositories:
+projects:
   - path: /Users/ed/Code/my-project
     name: My Project
     enabled: true
+    branchWhitelist:  # Optional: specify branches to extract from
+      - main
+      - develop
     maxCommits: 300
     cronSchedule: '0 18 * * *'
-    projectId: 'uuid-from-web-app'
+    id: 'uuid-from-web-app'
     standupId: 'uuid'
 
 standups:
@@ -95,6 +98,42 @@ bragdoc projects enable <path>    # Enable extraction for project
 bragdoc projects disable <path>   # Disable extraction for project
 bragdoc projects remove <path>    # Remove project from config
 ```
+
+#### Branch Whitelist Configuration
+
+Control which Git branches are processed during extraction by configuring a branch whitelist per project:
+
+```bash
+# Configure whitelist when adding a project
+bragdoc projects add --branch-whitelist "main,develop"
+
+# Update whitelist for existing project
+bragdoc projects update /path/to/project --branch-whitelist "main,production"
+
+# Clear whitelist to allow all branches
+bragdoc projects update /path/to/project --branch-whitelist ""
+```
+
+**Branch Whitelist Validation Behavior:**
+
+- **No whitelist configured:** All branches are allowed (default behavior)
+- **Whitelist configured:** Only commits from specified branches are extracted
+- **Branch not in whitelist:** Extraction fails with clear error message and remediation steps
+- **Empty whitelist:** Clears the restriction and allows all branches again
+
+Example behavior during extraction:
+
+```
+$ bragdoc extract --max 10
+
+Checking branch: feature-xyz
+Error: Branch 'feature-xyz' is not in the whitelist for this project
+Configured whitelist: main, develop
+To extract from other branches, update the whitelist:
+  bragdoc projects update . --branch-whitelist "main,develop,feature-xyz"
+```
+
+The whitelist is stored in the configuration file and applies only to the specific project it's configured for.
 
 ### Achievement Extraction
 ```bash
