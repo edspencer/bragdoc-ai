@@ -94,7 +94,44 @@ Request mentions or implies:
 
 ## Web Application Screenshot Workflow
 
-### 1. Session Initialization
+### 1. Environment Setup
+
+**CRITICAL: Before taking any UI screenshots, ensure the browser window is sized correctly and the demo banner is hidden.**
+
+**Browser Window Size:**
+
+All UI screenshots for marketing and documentation MUST use a consistent browser window size of **1280x960**. This ensures consistency across all marketing materials.
+
+Use `mcp__playwright__browser_resize` immediately after starting:
+
+```json
+{
+  "width": 1280,
+  "height": 960
+}
+```
+
+**Hide Demo Mode Banner:**
+
+The demo mode banner appears at the top of all pages when using demo accounts. For clean marketing screenshots, this MUST be suppressed.
+
+Before taking screenshots, use `browser_evaluate` to set the environment variable:
+
+```javascript
+// Suppress demo banner for clean screenshots
+window.localStorage.setItem('NEXT_PUBLIC_SUPRESSED_DEMO_BANNER', 'true');
+```
+
+**Note:** This is different from the server-side environment variable. The banner component checks `process.env.NEXT_PUBLIC_SUPRESSED_DEMO_BANNER`, but for browser-based screenshots, we can simulate this by setting a localStorage flag that the screenshotter can check. However, the **better approach** is to ensure `NEXT_PUBLIC_SUPRESSED_DEMO_BANNER=true` is set in the `.env.local` file before starting the dev server.
+
+**Recommended Workflow:**
+
+1. Verify `.env.local` contains `NEXT_PUBLIC_SUPRESSED_DEMO_BANNER=true`
+2. Ensure dev server is running with this environment variable
+3. Resize browser to 1280x960
+4. Proceed with demo account creation and screenshot capture
+
+### 2. Session Initialization
 
 ALWAYS begin by creating a demo account:
 
@@ -557,7 +594,7 @@ Based on BragDoc's technical architecture:
 2. **Clear focus**: The primary subject should be obvious and well-framed
 3. **Complete information**: Don't cut off important text, buttons, or labels
 4. **Professional data**: If showing populated states, use realistic, professional-looking content
-5. **Consistent viewport**: Use standard desktop viewport (1280x720 or similar) unless requested otherwise
+5. **Consistent viewport**: **ALWAYS use 1280x960 browser window size** for all marketing/documentation screenshots
 
 ### When to Take Multiple Screenshots
 
@@ -717,12 +754,15 @@ For each screenshot, briefly describe:
 
 **For Web Application Screenshots:**
 
+- [ ] Browser window resized to 1280x960 (CRITICAL for marketing screenshots)
+- [ ] Demo banner suppressed (NEXT_PUBLIC_SUPRESSED_DEMO_BANNER=true in .env.local OR via browser_evaluate)
 - [ ] Demo account created successfully
 - [ ] Navigated to correct location via UI
 - [ ] Visual state is as requested (empty/populated/interaction)
 - [ ] Scrollbars hidden using browser_evaluate before screenshot
 - [ ] Screenshot is clear and well-composed
 - [ ] No scrollbars visible in the captured image
+- [ ] No demo banner visible in the captured image
 - [ ] File saved with descriptive name in ./screenshots/
 - [ ] Absolute file path provided in output
 - [ ] Brief description of what's captured included
