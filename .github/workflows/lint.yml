@@ -4,7 +4,7 @@ on:
   pull_request:
 
 jobs:
-  lint-and-typecheck:
+  typecheck:
     runs-on: ubuntu-22.04
     strategy:
       matrix:
@@ -24,5 +24,24 @@ jobs:
         run: pnpm install
       - name: Run typecheck
         run: pnpm typecheck
+
+  lint:
+    runs-on: ubuntu-22.04
+    strategy:
+      matrix:
+        node-version: [20]
+    steps:
+      - uses: actions/checkout@v5
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9.5.0
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v6
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: "pnpm"
+      - name: Install dependencies
+        run: pnpm install
       - name: Run lint
         run: pnpm lint
