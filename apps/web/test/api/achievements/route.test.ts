@@ -19,6 +19,7 @@ import { NextRequest } from 'next/server';
 import { auth } from '@/lib/better-auth/server';
 
 // Better Auth is already mocked in jest.setup.ts
+const mockGetSession = auth.api.getSession as unknown as jest.Mock;
 
 describe('Achievement API Routes', () => {
   const testUser = {
@@ -94,7 +95,7 @@ describe('Achievement API Routes', () => {
 
   describe('GET /api/achievements', () => {
     it('returns achievements for authenticated user', async () => {
-      (auth.api.getSession as jest.Mock).mockResolvedValueOnce({
+      mockGetSession.mockResolvedValueOnce({
         session: { id: 'test-session' },
         user: testUser,
       });
@@ -109,7 +110,7 @@ describe('Achievement API Routes', () => {
     });
 
     it('returns filtered achievements based on query parameters', async () => {
-      (auth.api.getSession as jest.Mock).mockResolvedValueOnce({
+      mockGetSession.mockResolvedValueOnce({
         session: { id: 'test-session' },
         user: testUser,
       });
@@ -129,7 +130,7 @@ describe('Achievement API Routes', () => {
     });
 
     it('returns paginated achievements', async () => {
-      (auth.api.getSession as jest.Mock).mockResolvedValueOnce({
+      mockGetSession.mockResolvedValueOnce({
         session: { id: 'test-session' },
         user: testUser,
       });
@@ -170,7 +171,7 @@ describe('Achievement API Routes', () => {
     });
 
     it('filters achievements by source', async () => {
-      (auth.api.getSession as jest.Mock).mockResolvedValueOnce({
+      mockGetSession.mockResolvedValueOnce({
         session: { id: 'test-session' },
         user: testUser,
       });
@@ -203,7 +204,7 @@ describe('Achievement API Routes', () => {
     });
 
     it('filters achievements by date range', async () => {
-      (auth.api.getSession as jest.Mock).mockResolvedValueOnce({
+      mockGetSession.mockResolvedValueOnce({
         session: { id: 'test-session' },
         user: testUser,
       });
@@ -223,7 +224,7 @@ describe('Achievement API Routes', () => {
     });
 
     it('ignores invalid date parameters', async () => {
-      (auth.api.getSession as jest.Mock).mockResolvedValueOnce({
+      mockGetSession.mockResolvedValueOnce({
         session: { id: 'test-session' },
         user: testUser,
       });
@@ -239,7 +240,7 @@ describe('Achievement API Routes', () => {
     });
 
     it('returns 401 for unauthenticated requests', async () => {
-      (auth.api.getSession as jest.Mock).mockResolvedValueOnce({
+      mockGetSession.mockResolvedValueOnce({
         session: null,
         user: null,
       });
@@ -253,7 +254,7 @@ describe('Achievement API Routes', () => {
     });
 
     it('returns empty results when no achievements match filters', async () => {
-      (auth.api.getSession as jest.Mock).mockResolvedValueOnce({
+      mockGetSession.mockResolvedValueOnce({
         session: { id: 'test-session' },
         user: testUser,
       });
@@ -272,7 +273,7 @@ describe('Achievement API Routes', () => {
     });
 
     it('handles multiple filters simultaneously', async () => {
-      (auth.api.getSession as jest.Mock).mockResolvedValueOnce({
+      mockGetSession.mockResolvedValueOnce({
         session: { id: 'test-session' },
         user: testUser,
       });
@@ -299,7 +300,7 @@ describe('Achievement API Routes', () => {
     });
 
     it('handles invalid UUID format for companyId/projectId', async () => {
-      (auth.api.getSession as jest.Mock).mockResolvedValueOnce({
+      mockGetSession.mockResolvedValueOnce({
         session: { id: 'test-session' },
         user: testUser,
       });
@@ -331,7 +332,7 @@ describe('Achievement API Routes', () => {
         impactUpdatedAt: new Date().toISOString(),
       };
 
-      (auth.api.getSession as jest.Mock).mockResolvedValueOnce({
+      mockGetSession.mockResolvedValueOnce({
         session: { id: 'test-session' },
         user: testUser,
       });
@@ -356,7 +357,7 @@ describe('Achievement API Routes', () => {
         summary: 'Invalid achievement',
       };
 
-      (auth.api.getSession as jest.Mock).mockResolvedValueOnce({
+      mockGetSession.mockResolvedValueOnce({
         session: { id: 'test-session' },
         user: testUser,
       });
@@ -375,7 +376,7 @@ describe('Achievement API Routes', () => {
     });
 
     it('returns 401 for unauthenticated requests', async () => {
-      (auth.api.getSession as jest.Mock).mockResolvedValueOnce({
+      mockGetSession.mockResolvedValueOnce({
         session: null,
         user: null,
       });
@@ -394,7 +395,7 @@ describe('Achievement API Routes', () => {
     });
 
     it('validates required fields', async () => {
-      (auth.api.getSession as jest.Mock).mockResolvedValueOnce({
+      mockGetSession.mockResolvedValueOnce({
         session: { id: 'test-session' },
         user: testUser,
       });
@@ -423,7 +424,7 @@ describe('Achievement API Routes', () => {
     });
 
     it('validates field constraints', async () => {
-      (auth.api.getSession as jest.Mock).mockResolvedValueOnce({
+      mockGetSession.mockResolvedValueOnce({
         session: { id: 'test-session' },
         user: testUser,
       });
@@ -453,7 +454,7 @@ describe('Achievement API Routes', () => {
     });
 
     it('handles optional fields correctly', async () => {
-      (auth.api.getSession as jest.Mock).mockResolvedValueOnce({
+      mockGetSession.mockResolvedValueOnce({
         session: { id: 'test-session' },
         user: testUser,
       });
@@ -493,7 +494,7 @@ describe('Achievement API Routes', () => {
         summary: 'Updated summary',
       };
 
-      (auth.api.getSession as jest.Mock).mockResolvedValueOnce({
+      mockGetSession.mockResolvedValueOnce({
         session: { id: 'test-session' },
         user: testUser,
       });
@@ -519,7 +520,7 @@ describe('Achievement API Routes', () => {
     it('returns 404 for non-existent achievement', async () => {
       const nonExistentId = uuidv4();
 
-      (auth.api.getSession as jest.Mock).mockResolvedValueOnce({
+      mockGetSession.mockResolvedValueOnce({
         session: { id: 'test-session' },
         user: testUser,
       });
@@ -539,7 +540,7 @@ describe('Achievement API Routes', () => {
     });
 
     it('validates partial updates correctly', async () => {
-      (auth.api.getSession as jest.Mock).mockResolvedValueOnce({
+      mockGetSession.mockResolvedValueOnce({
         session: { id: 'test-session' },
         user: testUser,
       });
@@ -573,7 +574,7 @@ describe('Achievement API Routes', () => {
     });
 
     it('validates field constraints in updates', async () => {
-      (auth.api.getSession as jest.Mock).mockResolvedValueOnce({
+      mockGetSession.mockResolvedValueOnce({
         session: { id: 'test-session' },
         user: testUser,
       });
@@ -609,7 +610,7 @@ describe('Achievement API Routes', () => {
 
   describe('DELETE /api/achievements/[id]', () => {
     it('deletes existing achievement', async () => {
-      (auth.api.getSession as jest.Mock).mockResolvedValueOnce({
+      mockGetSession.mockResolvedValueOnce({
         session: { id: 'test-session' },
         user: testUser,
       });
@@ -639,7 +640,7 @@ describe('Achievement API Routes', () => {
     it('returns 404 for non-existent achievement', async () => {
       const nonExistentId = uuidv4();
 
-      (auth.api.getSession as jest.Mock).mockResolvedValueOnce({
+      mockGetSession.mockResolvedValueOnce({
         session: { id: 'test-session' },
         user: testUser,
       });
@@ -657,7 +658,7 @@ describe('Achievement API Routes', () => {
     });
 
     it('prevents deleting achievements of other users', async () => {
-      (auth.api.getSession as jest.Mock).mockResolvedValueOnce({
+      mockGetSession.mockResolvedValueOnce({
         session: { id: 'test-session' },
         user: { id: uuidv4() },
       });
@@ -682,7 +683,7 @@ describe('Achievement API Routes', () => {
     });
 
     it('handles malformed achievement ID', async () => {
-      (auth.api.getSession as jest.Mock).mockResolvedValueOnce({
+      mockGetSession.mockResolvedValueOnce({
         session: { id: 'test-session' },
         user: testUser,
       });

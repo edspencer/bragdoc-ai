@@ -25,6 +25,7 @@
     "build:watch": "tsc -w && pnpm build:copy-assets",
     "build:copy-assets": "copyfiles -u 1 'src/**/*.mdx' dist",
     "build:chmod": "chmod +x dist/index.js",
+    "typecheck": "tsc --noEmit",
     "start": "node dist/index.js",
     "test": "jest",
     "test:watch": "jest --watch",

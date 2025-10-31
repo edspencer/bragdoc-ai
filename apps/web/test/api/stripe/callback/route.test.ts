@@ -33,7 +33,7 @@ describe('Stripe Webhook Handler', () => {
     jest.clearAllMocks();
 
     // Create test users with Stripe customer IDs
-    checkoutUser = await db
+    const checkoutUsers = await db
       .insert(user)
       .values({
         email: 'checkout@test.com',
@@ -42,10 +42,10 @@ describe('Stripe Webhook Handler', () => {
         level: 'free',
         renewalPeriod: 'monthly',
       })
-      .returning()
-      .then((users) => users[0]);
+      .returning();
+    checkoutUser = checkoutUsers[0]!;
 
-    paymentUser = await db
+    const paymentUsers = await db
       .insert(user)
       .values({
         email: 'payment@test.com',
@@ -54,10 +54,10 @@ describe('Stripe Webhook Handler', () => {
         level: 'free',
         renewalPeriod: 'monthly',
       })
-      .returning()
-      .then((users) => users[0]);
+      .returning();
+    paymentUser = paymentUsers[0]!;
 
-    subscriptionUser = await db
+    const subscriptionUsers = await db
       .insert(user)
       .values({
         email: 'subscription@test.com',
@@ -67,8 +67,8 @@ describe('Stripe Webhook Handler', () => {
         renewalPeriod: 'monthly',
         lastPayment: new Date(),
       })
-      .returning()
-      .then((users) => users[0]);
+      .returning();
+    subscriptionUser = subscriptionUsers[0]!;
   });
 
   afterEach(async () => {
@@ -115,7 +115,7 @@ describe('Stripe Webhook Handler', () => {
 
     (stripe.webhooks.constructEvent as jest.Mock).mockReturnValue(mockEvent);
     (stripe.checkout.sessions.retrieve as jest.Mock).mockResolvedValue(
-      mockExpandedSession
+      mockExpandedSession,
     );
 
     const req = new NextRequest('https://bragdoc.ai/api/stripe/callback', {
@@ -134,19 +134,20 @@ describe('Stripe Webhook Handler', () => {
       'cs_test123',
       {
         expand: ['line_items.data.price'],
-      }
+      },
     );
 
     // Verify user subscription was updated
-    const updatedUser = await db
+    const updatedUsers = await db
       .select()
       .from(user)
-      .where(eq(user.email, checkoutUser.email))
-      .then((users) => users[0]);
+      .where(eq(user.email, checkoutUser.email));
+    const updatedUser = updatedUsers[0];
 
-    expect(updatedUser.level).toBe('basic');
-    expect(updatedUser.renewalPeriod).toBe('monthly');
-    expect(updatedUser.stripeCustomerId).toBe(checkoutUser.stripeCustomerId);
+    expect(updatedUser).toBeDefined();
+    expect(updatedUser!.level).toBe('basic');
+    expect(updatedUser!.renewalPeriod).toBe('monthly');
+    expect(updatedUser!.stripeCustomerId).toBe(checkoutUser.stripeCustomerId);
   });
 
   it('should handle payment_intent.succeeded event', async () => {
@@ -216,20 +217,21 @@ describe('Stripe Webhook Handler', () => {
     // Verify the stripe API calls
     expect(stripe.webhooks.constructEvent).toHaveBeenCalled();
     expect(stripe.customers.retrieve).toHaveBeenCalledWith(
-      paymentUser.stripeCustomerId
+      paymentUser.stripeCustomerId,
     );
 
     // Verify database was updated correctly
-    const updatedUser = await db
+    const updatedUsers = await db
       .select()
       .from(user)
-      .where(eq(user.email, paymentUser.email))
-      .then((users) => users[0]);
+      .where(eq(user.email, paymentUser.email));
+    const updatedUser = updatedUsers[0];
 
-    expect(updatedUser.level).toBe('basic');
-    expect(updatedUser.renewalPeriod).toBe('monthly');
-    expect(updatedUser.stripeCustomerId).toBe(paymentUser.stripeCustomerId);
-    expect(updatedUser.lastPayment).toBeTruthy();
+    expect(updatedUser).toBeDefined();
+    expect(updatedUser!.level).toBe('basic');
+    expect(updatedUser!.renewalPeriod).toBe('monthly');
+    expect(updatedUser!.stripeCustomerId).toBe(paymentUser.stripeCustomerId);
+    expect(updatedUser!.lastPayment).toBeTruthy();
   });
 
   it('should handle customer.subscription.deleted event', async () => {
@@ -264,13 +266,15 @@ describe('Stripe Webhook Handler', () => {
     expect(response.status).toBe(200);
 
     // Verify database was updated correctly
-    const updatedUser = await db
+    const updatedUsers = await db
       .select()
       .from(user)
-      .where(eq(user.id, subscriptionUser.id))
-      .then((users) => users[0]);
-    expect(updatedUser.level).toBe('free');
-    expect(updatedUser.lastPayment).toBeNull();
+      .where(eq(user.id, subscriptionUser.id));
+    const updatedUser = updatedUsers[0];
+
+    expect(updatedUser).toBeDefined();
+    expect(updatedUser!.level).toBe('free');
+    expect(updatedUser!.lastPayment).toBeNull();
   });
 
   it('should handle invalid webhook signatures', async () => {
@@ -289,12 +293,14 @@ describe('Stripe Webhook Handler', () => {
     expect(response.status).toBe(400);
 
     // Verify no database changes occurred
-    const unchangedUser = await db
+    const unchangedUsers = await db
       .select()
       .from(user)
-      .where(eq(user.id, checkoutUser.id))
-      .then((users) => users[0]);
-    expect(unchangedUser.level).toBe('free');
+      .where(eq(user.id, checkoutUser.id));
+    const unchangedUser = unchangedUsers[0];
+
+    expect(unchangedUser).toBeDefined();
+    expect(unchangedUser!.level).toBe('free');
   });
 
   it('should ignore unsupported event types', async () => {
@@ -325,11 +331,13 @@ describe('Stripe Webhook Handler', () => {
     expect(response.status).toBe(200); // Still return 200 to acknowledge receipt
 
     // Verify no database changes occurred
-    const unchangedUser = await db
+    const unchangedUsers = await db
       .select()
       .from(user)
-      .where(eq(user.id, checkoutUser.id))
-      .then((users) => users[0]);
-    expect(unchangedUser.level).toBe('free');
+      .where(eq(user.id, checkoutUser.id));
+    const unchangedUser = unchangedUsers[0];
+
+    expect(unchangedUser).toBeDefined();
+    expect(unchangedUser!.level).toBe('free');
   });
 });

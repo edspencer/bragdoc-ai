@@ -33,6 +33,10 @@
         "NEXT_PUBLIC_MARKETING_URL"
       ]
     },
+    "typecheck": {
+      "dependsOn": ["^build"],
+      "outputs": []
+    },
     "lint": {
       "dependsOn": ["^build"]
     },

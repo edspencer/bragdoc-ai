@@ -33,7 +33,7 @@ describe('Companies API', () => {
     await db.insert(user).values(mockUser);
 
     // Set up Better Auth mock to return our test user
-    (auth.api.getSession as jest.Mock).mockResolvedValue({
+    (auth.api.getSession as unknown as jest.Mock).mockResolvedValue({
       session: { id: 'test-session' },
       user: mockUser,
     });
@@ -104,7 +104,7 @@ describe('Companies API', () => {
         .from(company)
         .where(eq(company.userId, mockUser.id));
       expect(companies).toHaveLength(1);
-      expect(companies[0].name).toBe(newCompany.name);
+      expect(companies[0]?.name).toBe(newCompany.name);
     });
 
     it('validates company data', async () => {
@@ -136,6 +136,10 @@ describe('Companies API', () => {
         .insert(company)
         .values(testCompany)
         .returning();
+
+      if (!created) {
+        throw new Error('Failed to create test company');
+      }
 
       const response = await GET(
         new NextRequest(
@@ -183,6 +187,10 @@ describe('Companies API', () => {
         .insert(company)
         .values(testCompany)
         .returning();
+
+      if (!created) {
+        throw new Error('Failed to create test company');
+      }
 
       const updateData = {
         name: 'Updated Company',
@@ -250,6 +258,10 @@ describe('Companies API', () => {
         .insert(company)
         .values(testCompany)
         .returning();
+
+      if (!created) {
+        throw new Error('Failed to create test company');
+      }
 
       const response = await DELETE(
         new NextRequest(`http://localhost/api/companies/${created.id}`, {

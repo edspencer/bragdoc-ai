@@ -53,12 +53,12 @@ beforeAll(async () => {
       .returning(),
   ]);
 
-  testData.users.withInstructions = userWithInstructions[0];
-  testData.users.withoutInstructions = userWithoutInstructions[0];
+  testData.users.withInstructions = userWithInstructions[0]!;
+  testData.users.withoutInstructions = userWithoutInstructions[0]!;
 
   // Insert test company using createCompany
   const techCorp = await createCompany({
-    userId: testData.users.withInstructions.id,
+    userId: testData.users.withInstructions!.id,
     name: `TechCorp-${testSuiteId}`,
     role: 'Senior Engineer',
     domain: 'techcorp.com',
@@ -71,7 +71,7 @@ beforeAll(async () => {
   // Insert test projects using createProject with unique names
   const [mainProject, secondaryProject, tertiaryProject] = await Promise.all([
     createProject({
-      userId: testData.users.withInstructions?.id,
+      userId: testData.users.withInstructions!.id,
       name: `Core Platform-${testSuiteId}`,
       description: 'Main platform development',
       companyId: testData.company,
@@ -79,7 +79,7 @@ beforeAll(async () => {
       status: 'active',
     }),
     createProject({
-      userId: testData.users.withInstructions?.id,
+      userId: testData.users.withInstructions!.id,
       name: `Mobile App-${testSuiteId}`,
       description: 'Mobile app development',
       companyId: testData.company,
@@ -87,7 +87,7 @@ beforeAll(async () => {
       status: 'active',
     }),
     createProject({
-      userId: testData.users.withInstructions?.id,
+      userId: testData.users.withInstructions!.id,
       name: `Analytics-${testSuiteId}`,
       description: 'Analytics platform',
       companyId: testData.company,
@@ -111,7 +111,7 @@ beforeAll(async () => {
       // i=0 is 30 days ago, i=19 is 11 days ago
       const daysAgo = 30 - i;
       return createAchievement({
-        userId: testData.users.withInstructions?.id!,
+        userId: testData.users.withInstructions!.id,
         projectId: testData.projects.main,
         title: `Achievement ${i + 1}`,
         summary: `Summary for achievement ${i + 1}`,
@@ -128,7 +128,7 @@ beforeAll(async () => {
       // i=0 is 15 days ago, i=4 is 11 days ago
       const daysAgo = 15 - i;
       return createAchievement({
-        userId: testData.users.withInstructions?.id!,
+        userId: testData.users.withInstructions!.id,
         projectId: testData.projects.secondary,
         title: `Secondary Achievement ${i + 1}`,
         summary: `Summary for secondary achievement ${i + 1}`,
@@ -145,7 +145,7 @@ beforeAll(async () => {
       // i=0 is 10 days ago, i=4 is 6 days ago
       const daysAgo = 10 - i;
       return createAchievement({
-        userId: testData.users.withInstructions?.id!,
+        userId: testData.users.withInstructions!.id,
         projectId: testData.projects.tertiary,
         title: `Tertiary Achievement ${i + 1}`,
         summary: `Summary for tertiary achievement ${i + 1}`,
@@ -169,14 +169,16 @@ describe('preparePromptData', () => {
         {
           id: uuidv4(),
           role: 'user',
-          content: 'Can you help me write a weekly report?',
-          createdAt: new Date(),
+          parts: [
+            { type: 'text', text: 'Can you help me write a weekly report?' },
+          ],
         },
         {
           id: uuidv4(),
           role: 'assistant',
-          content: 'I will help you generate a weekly report.',
-          createdAt: new Date(),
+          parts: [
+            { type: 'text', text: 'I will help you generate a weekly report.' },
+          ],
         },
       ],
     });
@@ -219,14 +221,16 @@ describe('preparePromptData', () => {
         {
           id: uuidv4(),
           role: 'user',
-          content: 'Can you help me write a weekly report?',
-          createdAt: new Date(),
+          parts: [
+            { type: 'text', text: 'Can you help me write a weekly report?' },
+          ],
         },
         {
           id: uuidv4(),
           role: 'assistant',
-          content: 'I will help you generate a weekly report.',
-          createdAt: new Date(),
+          parts: [
+            { type: 'text', text: 'I will help you generate a weekly report.' },
+          ],
         },
       ],
     });
@@ -245,14 +249,16 @@ describe('preparePromptData', () => {
         {
           id: uuidv4(),
           role: 'user',
-          content: 'Can you help me write a weekly report?',
-          createdAt: new Date(),
+          parts: [
+            { type: 'text', text: 'Can you help me write a weekly report?' },
+          ],
         },
         {
           id: uuidv4(),
           role: 'assistant',
-          content: 'I will help you generate a weekly report.',
-          createdAt: new Date(),
+          parts: [
+            { type: 'text', text: 'I will help you generate a weekly report.' },
+          ],
         },
       ],
     });
@@ -271,14 +277,16 @@ describe('preparePromptData', () => {
         {
           id: uuidv4(),
           role: 'user',
-          content: 'Can you help me write a weekly report?',
-          createdAt: new Date(),
+          parts: [
+            { type: 'text', text: 'Can you help me write a weekly report?' },
+          ],
         },
         {
           id: uuidv4(),
           role: 'assistant',
-          content: 'I will help you generate a weekly report.',
-          createdAt: new Date(),
+          parts: [
+            { type: 'text', text: 'I will help you generate a weekly report.' },
+          ],
         },
       ],
     });
@@ -298,14 +306,19 @@ describe('preparePromptData', () => {
         {
           id: uuidv4(),
           role: 'user',
-          content: 'Can you help me write a bi-weekly report?',
-          createdAt: new Date(),
+          parts: [
+            { type: 'text', text: 'Can you help me write a bi-weekly report?' },
+          ],
         },
         {
           id: uuidv4(),
           role: 'assistant',
-          content: 'I will help you generate a bi-weekly report.',
-          createdAt: new Date(),
+          parts: [
+            {
+              type: 'text',
+              text: 'I will help you generate a bi-weekly report.',
+            },
+          ],
         },
       ],
     });
@@ -326,7 +339,7 @@ describe('preparePromptData', () => {
     const extraAchievements = await Promise.all(
       Array.from({ length: 210 }, (_, i) => {
         return createAchievement({
-          userId: testData.users.withInstructions?.id!,
+          userId: testData.users.withInstructions!.id,
           projectId: testData.projects.main,
           title: `Extra Achievement ${i + 1}`,
           summary: `Summary for extra achievement ${i + 1}`,
@@ -347,14 +360,19 @@ describe('preparePromptData', () => {
         {
           id: uuidv4(),
           role: 'user',
-          content: 'Can you help me write a monthly report?',
-          createdAt: new Date(),
+          parts: [
+            { type: 'text', text: 'Can you help me write a monthly report?' },
+          ],
         },
         {
           id: uuidv4(),
           role: 'assistant',
-          content: 'I will help you generate a monthly report.',
-          createdAt: new Date(),
+          parts: [
+            {
+              type: 'text',
+              text: 'I will help you generate a monthly report.',
+            },
+          ],
         },
       ],
     });
@@ -375,14 +393,16 @@ describe('renderPrompt', () => {
         {
           id: uuidv4(),
           role: 'user',
-          content: 'Can you help me write a weekly report?',
-          createdAt: new Date(),
+          parts: [
+            { type: 'text', text: 'Can you help me write a weekly report?' },
+          ],
         },
         {
           id: uuidv4(),
           role: 'assistant',
-          content: 'I will help you generate a weekly report.',
-          createdAt: new Date(),
+          parts: [
+            { type: 'text', text: 'I will help you generate a weekly report.' },
+          ],
         },
       ],
     });
@@ -411,14 +431,16 @@ describe('renderPrompt', () => {
         {
           id: uuidv4(),
           role: 'user',
-          content: 'Can you help me write a weekly report?',
-          createdAt: new Date(),
+          parts: [
+            { type: 'text', text: 'Can you help me write a weekly report?' },
+          ],
         },
         {
           id: uuidv4(),
           role: 'assistant',
-          content: 'I will help you generate a weekly report.',
-          createdAt: new Date(),
+          parts: [
+            { type: 'text', text: 'I will help you generate a weekly report.' },
+          ],
         },
       ],
     });
@@ -438,14 +460,16 @@ describe('renderPrompt', () => {
         {
           id: uuidv4(),
           role: 'user',
-          content: 'Can you help me write a weekly report?',
-          createdAt: new Date(),
+          parts: [
+            { type: 'text', text: 'Can you help me write a weekly report?' },
+          ],
         },
         {
           id: uuidv4(),
           role: 'assistant',
-          content: 'I will help you generate a weekly report.',
-          createdAt: new Date(),
+          parts: [
+            { type: 'text', text: 'I will help you generate a weekly report.' },
+          ],
         },
       ],
     });
@@ -465,14 +489,16 @@ describe('renderPrompt', () => {
         {
           id: uuidv4(),
           role: 'user',
-          content: 'Can you help me write a weekly report?',
-          createdAt: new Date(),
+          parts: [
+            { type: 'text', text: 'Can you help me write a weekly report?' },
+          ],
         },
         {
           id: uuidv4(),
           role: 'assistant',
-          content: 'I will help you generate a weekly report.',
-          createdAt: new Date(),
+          parts: [
+            { type: 'text', text: 'I will help you generate a weekly report.' },
+          ],
         },
       ],
     });
@@ -492,14 +518,16 @@ describe('renderPrompt', () => {
         {
           id: uuidv4(),
           role: 'user',
-          content: 'Can you help me write a weekly report?',
-          createdAt: new Date(),
+          parts: [
+            { type: 'text', text: 'Can you help me write a weekly report?' },
+          ],
         },
         {
           id: uuidv4(),
           role: 'assistant',
-          content: 'I will help you generate a weekly report.',
-          createdAt: new Date(),
+          parts: [
+            { type: 'text', text: 'I will help you generate a weekly report.' },
+          ],
         },
       ],
     });
@@ -519,14 +547,16 @@ describe('renderPrompt', () => {
         {
           id: uuidv4(),
           role: 'user',
-          content: 'Can you help me write a weekly report?',
-          createdAt: new Date(),
+          parts: [
+            { type: 'text', text: 'Can you help me write a weekly report?' },
+          ],
         },
         {
           id: uuidv4(),
           role: 'assistant',
-          content: 'I will help you generate a weekly report.',
-          createdAt: new Date(),
+          parts: [
+            { type: 'text', text: 'I will help you generate a weekly report.' },
+          ],
         },
       ],
     });
@@ -542,15 +572,13 @@ describe('renderPrompt', () => {
     const chatHistory = [
       {
         id: uuidv4(),
-        role: 'user' as any,
-        content: 'Test message 1',
-        createdAt: new Date(),
+        role: 'user' as const,
+        parts: [{ type: 'text' as const, text: 'Test message 1' }],
       },
       {
         id: uuidv4(),
-        role: 'assistant' as any,
-        content: 'Test response 1',
-        createdAt: new Date(),
+        role: 'assistant' as const,
+        parts: [{ type: 'text' as const, text: 'Test response 1' }],
       },
     ];
 
@@ -565,7 +593,10 @@ describe('renderPrompt', () => {
 
     const prompt = await render(promptData);
     chatHistory.forEach((message) => {
-      expect(prompt).toContain(message.content);
+      const textPart = message.parts.find((p) => p.type === 'text');
+      if (textPart && 'text' in textPart) {
+        expect(prompt).toContain(textPart.text);
+      }
     });
   });
 });

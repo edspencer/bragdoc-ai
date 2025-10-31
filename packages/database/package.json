@@ -16,6 +16,7 @@
   },
   "scripts": {
     "build": "tsc --noEmit",
+    "typecheck": "tsc --noEmit",
     "lint": "biome lint --write --unsafe ./src/",
     "format": "biome format --write ./src/",
     "db:generate": "drizzle-kit generate",
