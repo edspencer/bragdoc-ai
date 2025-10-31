@@ -69,6 +69,14 @@ export function Footer() {
               </li>
               <li>
                 <Link
+                  href="/team"
+                  className="text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  Team
+                </Link>
+              </li>
+              <li>
+                <Link
                   href="/cli"
                   className="text-muted-foreground hover:text-foreground transition-colors"
                 >
