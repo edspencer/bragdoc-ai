@@ -578,6 +578,101 @@ As new features are added, expand this test plan to include:
 
 ---
 
+### 10. Project Details - Zero State for Empty Projects
+
+#### 10.1 Zero State Display
+- [ ] **Zero state appears** when project has no achievements
+- [ ] **Project header remains visible** (name, description, company, dates)
+- [ ] **Zero state headline** references the project name (e.g., "No achievements yet for [ProjectName]")
+- [ ] **CLI instructions card** is visible with "Extracting Achievements" heading
+- [ ] **All 4 CLI instruction steps** are present:
+  - [ ] Step 1: Install the CLI (`npm install -g @bragdoc/cli`)
+  - [ ] Step 2: Login (`bragdoc login`)
+  - [ ] Step 3: Initialize project (`bragdoc init`)
+  - [ ] Step 4: Extract achievements (`bragdoc extract`)
+- [ ] **Check button** is visible and enabled with text "Check for achievements"
+- [ ] **Stats grid** is NOT visible in zero state
+- [ ] **Weekly Impact Chart** is NOT visible in zero state
+- [ ] **Achievements Table** is NOT visible in zero state
+
+#### 10.2 Button Interactions
+- [ ] **Button click shows loading state**:
+  - Button text changes to "Checking..."
+  - Button is disabled during refresh
+- [ ] **Feedback message appears** when still no achievements:
+  - Message displays after ~1 second
+  - Message says "No achievements found for [ProjectName]. Did you run `bragdoc extract` in this project's Git repository?"
+  - Feedback message includes backtick-styled `bragdoc extract` command
+- [ ] **Zero state remains visible** when no achievements found after refresh
+
+#### 10.3 Project Transition
+- [ ] **Transitions to normal project view** when achievements are added:
+  - Zero state disappears after achievements are added via CLI
+  - Stats grid shows correct metrics
+  - Weekly Impact chart appears
+  - Achievements table displays with achievement rows
+  - No console errors during transition
+
+#### 10.4 Responsive Layout - Project Zero State
+- [ ] **Mobile viewport** (375px width):
+  - Zero state container is centered
+  - CLI instructions card fits viewport
+  - Code blocks don't overflow
+  - Button is appropriately sized and clickable
+  - Padding is appropriate for small screens
+- [ ] **Tablet viewport** (768px width):
+  - Zero state container is centered
+  - Layout uses max-width constraint
+  - Content is well-spaced and readable
+  - Button is centered below instructions
+- [ ] **Desktop viewport** (1920px width):
+  - Zero state has max-width constraint (~672px for max-w-2xl)
+  - Content is horizontally centered on large screens
+  - Project header and zero state properly positioned
+  - Overall layout is visually balanced
+
+#### 10.5 Zero State Accessibility
+- [ ] **Keyboard navigation works**:
+  - Button is reachable via Tab key
+  - Button has visible focus indicator
+  - Enter key triggers button click
+  - Space key triggers button click
+  - Tab order is logical
+- [ ] **No console errors** during zero state usage:
+  - No JavaScript errors in console
+  - No page errors (uncaught exceptions)
+  - No React warnings (hydration mismatches)
+  - No network errors (failed requests)
+
+#### 10.6 Comparison with Projects Having Achievements
+- [ ] **Projects WITH achievements show normal layout** (no zero state):
+  - Zero state is NOT displayed
+  - Project header is visible
+  - Stats grid displays with correct metrics
+  - Weekly Impact Chart displays data
+  - Achievements Table displays achievement rows
+  - All interactive elements (edit, generate document) work
+
+#### 10.7 Visual Consistency
+- [ ] **Styling matches DashboardZeroState pattern**:
+  - Same centered flex layout
+  - Same card styling and spacing
+  - Same button styling and hover states
+  - Same text colors and typography
+  - Same code block styling
+  - Feedback message styling matches pattern
+
+#### 10.8 Dialog Interactions (Edit Project, Generate Document)
+- [ ] **Edit Project dialog still works** while in zero state:
+  - Dialog opens and displays correctly
+  - Project information can be edited
+  - Changes are saved
+- [ ] **Generate Document dialog still works** while in zero state (if available):
+  - Cannot generate documents without achievements (expected behavior)
+  - Dialog shows appropriate messaging
+
+---
+
 ## Playwright Automated Test Scenarios
 
 Detailed Playwright test scenarios with TypeScript code examples are available in feature-specific test plans:
@@ -602,3 +697,26 @@ Each test includes:
 - Prerequisites and setup requirements
 
 **Implementation Note**: These tests should be integrated into `__tests__/e2e/dashboard-zero-state.spec.ts` with appropriate helper functions for login, auth token retrieval, and accessibility testing.
+
+### Project Details Zero State Tests
+
+See `tasks/214-add-zero-state-to-project-details-page/TEST_PLAN.md` for 10 detailed manual testing scenarios covering:
+
+1. **Zero State Display** - Verify zero state appears when project has no achievements
+2. **Zero State Content Verification** - Verify messaging and instructions are project-specific
+3. **Check for Achievements Button** - Test button loading state, refresh, and feedback message
+4. **Zero State Transitions to Content** - Verify transition when achievements are added
+5. **Comparison with Non-Empty Project** - Confirm normal layout for projects with achievements
+6. **Visual Consistency and Styling** - Verify matching DashboardZeroState pattern
+7. **TypeScript and Build Verification** - Ensure compilation without errors
+8. **Page Refresh and Data Re-fetching** - Verify router.refresh() functionality
+9. **Mobile Responsiveness** - Test on mobile, tablet, and desktop viewports
+10. **Accessibility and Keyboard Navigation** - Verify keyboard access and screen reader support
+
+Each test includes:
+- Detailed step-by-step procedures
+- Specific expected results
+- Failure criteria for clear pass/fail determination
+- Acceptance criteria checklist
+
+**Implementation Note**: These tests should be manually verified during QA phase. The component integrates with the existing ProjectDetailsContent page at `/projects/[id]`.
