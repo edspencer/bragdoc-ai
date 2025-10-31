@@ -124,20 +124,13 @@ CLI_PATH="$PROJECT_ROOT/packages/cli/dist/index.js"
 export OPENAI_API_KEY="sk-test-dummy-key-for-integration-tests"
 
 # Initialize with non-interactive flags
-echo "Running init command..."
 node "$CLI_PATH" init \
   --name "Test Repo" \
   --detail-level standard \
   --no-schedule \
   --skip-llm-config \
   --skip-api-sync \
-  --branch-whitelist ""
-echo "Init command completed with exit code: $?"
-
-# Debug: Show config after init
-echo "DEBUG: Config after init:"
-cat "$BRAGDOC_CONFIG_HOME/config.yml"
-echo "END DEBUG"
+  --branch-whitelist "" > /dev/null 2>&1
 
 print_success "Project initialized"
 
