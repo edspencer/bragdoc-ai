@@ -762,6 +762,14 @@ export function AchievementsClient() {
 }
 ```
 
+### SWR Multi-Hook Cache Synchronization
+
+When a single user action affects multiple SWR cache keys (different API endpoints), ensure all affected caches are invalidated to keep the UI synchronized. This pattern prevents stale data when components fetch from different endpoints but display related information. For example, creating a project must invalidate both `/api/projects` (general list) and `/api/projects/top?limit=5` (top projects list) to ensure dashboard and sidebar components refresh immediately.
+
+**Implementation:** Import all related SWR hooks in the mutation hook and call each `mutate()` function after the operation completes. This ensures components using different hooks stay synchronized without requiring manual page refreshes. See `apps/web/hooks/useProjects.ts` for the canonical implementation where `useCreateProject()`, `useUpdateProject()`, and `useDeleteProject()` all mutate both the general projects cache and the top projects cache.
+
+**Why this matters:** SWR maintains independent caches for each unique cache key. Mutating only one cache leaves other components showing stale data until their cache expires or the user manually refreshes. Multi-hook mutation ensures immediate consistency across the entire UI, critical for operations that affect rankings, filtered lists, or multiple views of the same data.
+
 ## Type Safety
 
 ```typescript
