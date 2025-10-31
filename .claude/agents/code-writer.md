@@ -1,7 +1,7 @@
 ---
 name: code-writer
 description: Use this agent when you have a completed PLAN.md document that needs to be implemented in code. This agent should be delegated to for ALL coding tasks to preserve context on the main thread.
-model: sonnet
+model: haiku
 color: red
 ---
 

@@ -18,3 +18,12 @@ This SlashCommand is just a wrapper around the /agentic-create-spec and /agentic
 
 - If, during investigation and creation of the plan, it becomes clear that the specification was not possible, immediately stop what you're doing and ask the user for how to proceed.
 - You may be given a reference to a github issue or other ticket; if so, attempt to read the issue/ticket yourself first to make sure you have a clear understanding of the task at hand. Use that information to aid in your prompting of the sub agents via the slash commands.
+
+## GitHub Sync
+
+**Note:** If working with a GitHub issue, the `/agentic-create-spec` and `/agentic-create-plan` SlashCommands will automatically sync task files to GitHub:
+
+- After spec creation: SPEC.md will be pushed to GitHub issue
+- After plan creation: PLAN.md, TEST_PLAN.md, and COMMIT_MESSAGE.md will be pushed to GitHub issue
+
+This ensures the GitHub issue stays synchronized throughout the specification and planning process.

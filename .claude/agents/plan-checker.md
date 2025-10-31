@@ -194,9 +194,40 @@ Provide a clear validation report that:
 - Verifies spec coverage (if SPEC.md available)
 - Gives clear ready/not ready recommendation
 
+## GitHub Sync Workflow
+
+After validation and any refinements, if the task directory follows the pattern `tasks/{issue-number}-{task-name}/`:
+
+1. **Create/Update Status Summary**: Write a 2-paragraph summary describing WHAT the plan will implement:
+   - **Status:** Complete (or "Review Needed" if critical issues found, or "Pass with Suggestions")
+   - First paragraph: High-level overview of implementation approach, phases, and methodology
+   - Second paragraph: Key phases/components, timeline structure, and major deliverables
+   - Optional: 3-5 bullet points highlighting most important implementation phases
+
+2. **Push Updated Version**: Extract the issue number from directory name and sync:
+   ```bash
+   ./.claude/skills/github-task-sync/push-file.sh {issue-number} PLAN {status-file} PLAN.md
+   ```
+
+**Status Summary Example:**
+```
+**Status:** Complete
+
+The implementation plan uses a phased approach to build the team page feature. It begins with component structure and data organization, progresses through avatar integration and responsive layout, and concludes with SEO optimization and testing.
+
+Key phases include: (1) Creating page structure and data layer with DiceBear avatar integration, (2) Building responsive grid layout with team member cards, (3) Implementing SEO metadata and sitemap integration, and (4) Testing across breakpoints and validating Lighthouse scores. Each phase includes specific file paths and success criteria.
+
+- Phased implementation with clear component structure
+- Robot-themed avatars via DiceBear API integration
+- Full SEO implementation with metadata and sitemap
+- Comprehensive responsive design testing
+```
+
+This ensures GitHub has the latest validated version with current status.
+
 ## Next Steps
 
-After validation, inform the user:
+After validation and GitHub sync, inform the user:
 
 - Whether the plan is ready for implementation
 - What changes are needed (if any)

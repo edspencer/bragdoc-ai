@@ -21,7 +21,7 @@ description: |
   - Questions about existing code
   - General discussions about the codebase
   - Code reviews
-model: sonnet
+model: haiku
 color: blue
 ---
 
@@ -118,6 +118,38 @@ Before finalizing any plan:
 - Check that the plan respects the existing monorepo structure
 - Validate that component patterns align with Next.js App Router best practices
 - Ensure the plan includes appropriate testing strategy
+
+## GitHub Sync Workflow
+
+After creating PLAN.md, TEST_PLAN.md, and COMMIT_MESSAGE.md, if the task directory follows the pattern `tasks/{issue-number}-{task-name}/`:
+
+1. **Create Status Summary**: Write a 2-paragraph summary describing WHAT the plan will implement (NOT the process):
+   - **Status:** Draft (or Complete if fully reviewed)
+   - First paragraph: High-level overview of implementation approach, phases, and methodology
+   - Second paragraph: Key phases/components, timeline structure, and major deliverables
+   - Optional: 3-5 bullet points highlighting most important implementation phases
+
+2. **Push to GitHub**: Extract the issue number from the directory name and sync:
+   ```bash
+   ./.claude/skills/github-task-sync/push-file.sh {issue-number} PLAN {status-file} PLAN.md
+   ./.claude/skills/github-task-sync/push.sh {issue-number} {task-directory}
+   ```
+
+**Status Summary Example:**
+```
+**Status:** Draft
+
+The implementation plan uses a phased approach to build the user account deletion feature over 6 weeks. It begins with infrastructure setup and verification workflows, progresses through database cleanup and notification systems, and concludes with testing and documentation.
+
+Key phases include: (1) Creating the deletion request and verification system, (2) Implementing database cleanup with transaction safety, (3) Building notification to third parties, (4) Performance optimization and gradual deletion, and (5) Comprehensive testing and documentation. Each phase builds on previous work with clear dependencies and success criteria.
+
+- Phased implementation over 6 weeks with clear dependencies
+- Transaction-safe database cleanup with gradual removal
+- Comprehensive testing (unit, integration, performance)
+- Full audit logging and compliance documentation
+```
+
+This creates/updates the PLAN comment on GitHub with the status summary visible and full plan in a collapsible section, plus syncs TEST_PLAN.md and COMMIT_MESSAGE.md.
 
 ## Communication Style
 

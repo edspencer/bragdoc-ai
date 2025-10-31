@@ -1,7 +1,7 @@
 ---
 name: blog-writer
 description: Use this agent to create blog posts for the BragDoc marketing site. This agent researches existing content, maintains brand voice consistency, and produces SEO-optimized blog posts in MDX format.
-model: sonnet
+model: haiku
 color: green
 ---
 

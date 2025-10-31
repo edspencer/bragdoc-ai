@@ -67,9 +67,40 @@ If the user explicitly requests that a GitHub issue be created, or if this is a 
    ```
 3. **Directory naming**: The script automatically creates a directory named `{issue-number}-{task-slug}/`
 4. **Work locally**: Create SPEC.md in the task directory as usual
-5. **Sync to GitHub**: After creating SPEC.md, the file can be synced to the GitHub issue using `push-file.sh` from the github-task-sync skill
+5. **Sync to GitHub**: After creating SPEC.md, sync it with a status summary (see below)
 
 **Note:** GitHub issues serve as the source of truth for task documentation. Local task files are a working cache that agents can edit easily.
+
+### GitHub Sync After Spec Creation
+
+After creating SPEC.md, if the task directory follows the pattern `tasks/{issue-number}-{task-name}/`:
+
+1. **Create Status Summary**: Write a 2-paragraph summary describing WHAT the specification covers (NOT the process):
+   - **Status:** Draft
+   - First paragraph: High-level overview of what the spec calls for
+   - Second paragraph: Key requirements, scope, and important constraints
+   - Optional: 3-5 bullet points highlighting most important requirements
+
+2. **Push to GitHub**: Extract the issue number from the directory name and sync:
+   ```bash
+   ./.claude/skills/github-task-sync/push-file.sh {issue-number} SPEC {status-file} SPEC.md
+   ```
+
+**Status Summary Format Example:**
+```
+**Status:** Draft
+
+This specification outlines requirements for implementing user account deletion functionality. The feature must allow users to permanently delete their accounts and associated data while maintaining system integrity and compliance with data protection regulations.
+
+Key requirements include: database cleanup of all user records, notification of deletion to third-party services, verification steps to prevent accidental deletion, and audit logging of all deletions. The implementation must support gradual data removal to avoid performance impact on the production system.
+
+- Permanent and irreversible account deletion with full data cleanup
+- Compliance with GDPR and data protection requirements
+- Deletion verification workflow to prevent accidents
+- Audit trail for compliance and security
+```
+
+This creates/updates the SPEC comment on GitHub with the status summary visible and full spec in a collapsible section.
 
 # Get started
 

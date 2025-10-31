@@ -156,9 +156,40 @@ Provide a clear validation report that:
 - Notes what's done well
 - Gives clear pass/fail recommendation
 
+## GitHub Sync Workflow
+
+After validation and any refinements, if the task directory follows the pattern `tasks/{issue-number}-{task-name}/`:
+
+1. **Create/Update Status Summary**: Write a 2-paragraph summary describing WHAT the spec covers:
+   - **Status:** Complete (or "Review Needed" if critical issues found, or "Pass with Suggestions")
+   - First paragraph: High-level overview of what the spec calls for
+   - Second paragraph: Key requirements, scope, and important constraints
+   - Optional: 3-5 bullet points highlighting most important requirements
+
+2. **Push Updated Version**: Extract the issue number from directory name and sync:
+   ```bash
+   ./.claude/skills/github-task-sync/push-file.sh {issue-number} SPEC {status-file} SPEC.md
+   ```
+
+**Status Summary Example:**
+```
+**Status:** Complete
+
+This specification outlines requirements for creating a team page on the marketing site featuring all Claude agents and Ed. The page will showcase BragDoc's agent system by treating agents as team members with robot-themed avatars, role descriptions, and personality details.
+
+Key requirements include: DiceBear robot avatar generation, responsive grid layout for 15+ team members, SEO optimization with full metadata, and integration with existing marketing site patterns. Each agent entry includes a summary paragraph, quirky fact, and profile image.
+
+- Robot-themed avatars for 15 Claude agents using DiceBear
+- Responsive grid layout with proper breakpoints
+- Full SEO implementation with metadata and sitemap
+- Professional yet personable content for each team member
+```
+
+This ensures GitHub has the latest validated version with current status.
+
 ## Next Steps
 
-After validation, inform the user:
+After validation and GitHub sync, inform the user:
 
 - Whether the spec is ready for planning
 - What changes are needed (if any)

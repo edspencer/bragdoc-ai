@@ -124,7 +124,7 @@ if [ -n "$existing_comment_id" ]; then
   # Use a temporary file to avoid shell escaping issues with large bodies
   temp_body_file=$(mktemp)
   echo "$body" > "$temp_body_file"
-  gh api repos/$REPO_FULL/issues/$ISSUE_NUM/comments/$existing_comment_id \
+  gh api repos/$REPO_FULL/issues/comments/$existing_comment_id \
     -X PATCH \
     -F body=@"$temp_body_file" > /dev/null
   rm "$temp_body_file"
