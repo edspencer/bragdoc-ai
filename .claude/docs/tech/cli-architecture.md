@@ -143,6 +143,21 @@ bragdoc extract --max 50          # Limit to 50 commits
 bragdoc extract --all             # Extract all commits (ignore cache)
 ```
 
+**Achievement Source Classification:**
+
+When the CLI extracts achievements from Git commits, they are saved with:
+- `source='commit'`: Indicates the achievement came from Git commit extraction
+- `impactSource='llm'`: Indicates the impact/significance score was estimated by the LLM during extraction
+
+The distinction between `source` and `impactSource`:
+- **source**: Where the achievement came from (extraction method: 'commit', 'manual', or 'llm')
+- **impactSource**: How the impact score was calculated ('user' if manually set, 'llm' if AI-estimated)
+
+This allows the system to:
+- Track which achievements came from actual commits vs. manual entry
+- Filter achievements by their source in the UI and analytics
+- Preserve information about impact estimation method separately from achievement creation method
+
 ### Standup Automation
 ```bash
 bragdoc standup enable            # Enable standup automation

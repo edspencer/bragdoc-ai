@@ -20,7 +20,7 @@ const updateValidationSchema = z.object({
   impact: z.number().int().min(1).max(10).optional(),
   impactSource: z.enum(['user', 'llm']).optional(),
   impactUpdatedAt: z.string().datetime().optional(),
-  source: z.enum(['manual', 'llm']).optional(),
+  source: z.enum(['manual', 'llm', 'commit']).optional(),
 });
 
 // Utility to validate UUID format

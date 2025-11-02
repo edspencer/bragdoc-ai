@@ -154,7 +154,7 @@ export class ApiClient {
       companyId?: string | null;
       impact?: number;
       impactSource?: 'llm' | 'user';
-      source?: 'llm' | 'manual';
+      source?: 'llm' | 'manual' | 'commit';
     }>,
   ): Promise<any[]> {
     const results = [];
@@ -164,7 +164,7 @@ export class ApiClient {
         eventStart: achievement.eventStart?.toISOString(),
         eventEnd: achievement.eventEnd?.toISOString(),
         impactUpdatedAt: new Date().toISOString(),
-        source: achievement.source || 'llm',
+        source: achievement.source || 'commit',
         impactSource: achievement.impactSource || 'llm',
       });
       results.push(result);

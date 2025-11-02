@@ -1,11 +1,6 @@
 import { v4 as uuidv4 } from 'uuid';
 import { db } from '@/database/index';
-import {
-  user,
-  company,
-  project,
-  achievement,
-} from '@/database/schema';
+import { user, company, project, achievement } from '@/database/schema';
 import { POST } from 'app/api/cli/commits/route';
 import { NextRequest } from 'next/server';
 import type { EventDuration } from 'lib/types/achievement';
@@ -109,7 +104,7 @@ describe('CLI Commits API Route', () => {
         summary: 'Added a significant feature with tests',
         eventStart: new Date(),
         eventDuration: 'week' as EventDuration,
-        source: 'llm' as const,
+        source: 'commit' as const,
         impact: 2,
         impactSource: 'llm' as const,
       };
@@ -117,7 +112,7 @@ describe('CLI Commits API Route', () => {
       require('@/lib/ai/extract-commit-achievements').fetchRenderExecute.mockImplementation(
         async () => {
           return [mockAchievement];
-        }
+        },
       );
 
       const response = await POST(
@@ -128,7 +123,7 @@ describe('CLI Commits API Route', () => {
             Authorization: 'Bearer valid-jwt-token',
           },
           body: JSON.stringify(testCommits),
-        })
+        }),
       );
 
       const data = await response.json();
@@ -149,7 +144,7 @@ describe('CLI Commits API Route', () => {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(testCommits),
-        })
+        }),
       );
 
       const data = await response.json();
@@ -169,7 +164,7 @@ describe('CLI Commits API Route', () => {
             Authorization: 'Bearer invalid-token',
           },
           body: JSON.stringify(testCommits),
-        })
+        }),
       );
 
       const data = await response.json();
@@ -189,7 +184,7 @@ describe('CLI Commits API Route', () => {
             Authorization: 'Bearer expired-token',
           },
           body: JSON.stringify(testCommits),
-        })
+        }),
       );
 
       const data = await response.json();
@@ -217,14 +212,14 @@ describe('CLI Commits API Route', () => {
             Authorization: 'Bearer valid-jwt-token',
           },
           body: JSON.stringify(tooManyCommits),
-        })
+        }),
       );
 
       const data = await response.json();
       expect(response.status).toBe(400);
       expect(data.error).toBe('Invalid request');
       expect(data.details.commits._errors).toContain(
-        'Maximum 100 commits per request'
+        'Maximum 100 commits per request',
       );
     });
 
@@ -254,7 +249,7 @@ describe('CLI Commits API Route', () => {
             Authorization: 'Bearer valid-jwt-token',
           },
           body: JSON.stringify(invalidCommits),
-        })
+        }),
       );
 
       const data = await response.json();
@@ -272,7 +267,7 @@ describe('CLI Commits API Route', () => {
       require('@/lib/ai/extract-commit-achievements').fetchRenderExecute.mockImplementation(
         () => {
           throw new Error('Extraction failed');
-        }
+        },
       );
 
       const response = await POST(
@@ -283,7 +278,7 @@ describe('CLI Commits API Route', () => {
             Authorization: 'Bearer valid-jwt-token',
           },
           body: JSON.stringify(testCommits),
-        })
+        }),
       );
 
       const data = await response.json();

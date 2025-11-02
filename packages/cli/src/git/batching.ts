@@ -115,7 +115,7 @@ export async function* processInBatches(
             companyId: achievement.companyId,
             impact: achievement.impact,
             impactSource: 'llm' as const,
-            source: 'llm' as const,
+            source: 'commit' as const,
           })),
         );
 

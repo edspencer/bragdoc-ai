@@ -95,7 +95,7 @@ export async function POST(req: Request) {
         eventEnd: achievement.eventEnd || null,
         companyId: achievement.companyId,
         projectId: achievement.projectId,
-        source: 'llm',
+        source: 'commit',
         impact: achievement.impact,
         impactSource: 'llm',
       });

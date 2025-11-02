@@ -305,6 +305,65 @@ export async function DELETE(
 }
 ```
 
+### POST /api/cli/commits
+
+This endpoint is used by the CLI tool to submit achievements extracted from Git commits. It differs from standard achievement creation in that it handles batch submission and preserves source classification.
+
+**Request Format:**
+```typescript
+// Array of achievements extracted from commits
+[
+  {
+    title: string;
+    summary?: string;
+    details?: string;
+    eventStart?: Date;
+    eventEnd?: Date;
+    eventDuration?: string;
+    companyId?: string;
+    projectId?: string;
+    impact?: number;
+    impactSource?: 'llm' | 'user';
+    source: 'commit';  // Achievement came from Git commit extraction
+  },
+  // ... more achievements
+]
+```
+
+**Response Format:**
+```typescript
+[
+  {
+    id: string;
+    title: string;
+    summary?: string;
+    details?: string;
+    source: 'commit';  // Confirmed achievement source
+    impact?: number;
+    impactSource?: 'llm' | 'user';
+    createdAt: string;
+    // ... other achievement fields
+  },
+  // ... more created achievements
+]
+```
+
+**Achievement Source Classification:**
+
+When the CLI submits achievements extracted from Git commits:
+- The endpoint expects `source='commit'` (indicating Git commit extraction)
+- The endpoint saves `impactSource='llm'` (indicating LLM-based impact estimation during extraction)
+- These values are stored in the database for tracking and filtering
+
+**Key Distinction:**
+- **source**: Where the achievement came from (should be 'commit' for CLI extraction)
+- **impactSource**: How the impact score was calculated (typically 'llm' for CLI-extracted achievements)
+
+This allows the system to accurately distinguish between:
+- Achievements from actual Git commits (source='commit')
+- Achievements manually created by users (source='manual')
+- And their respective impact estimation methods
+
 ## Server-Side Analytics Tracking
 
 ### PostHog Integration Pattern
