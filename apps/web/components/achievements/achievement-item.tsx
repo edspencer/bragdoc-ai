@@ -22,7 +22,7 @@ export function AchievementItem({
 }: AchievementItemProps) {
   return (
     <div className="space-y-2">
-      <div className="flex items-stretch flex-col lg:flex-row gap-2">
+      <div className="flex items-stretch flex-col gap-2">
         <div className="space-y-1 flex-1">
           {linkToAchievements ? (
             <Link
@@ -70,7 +70,7 @@ export function AchievementItem({
             )}
           </div>
         </div>
-        <div className="flex lg:flex-col lg:items-end justify-between gap-1">
+        <div className="flex items-start justify-between gap-1">
           <ImpactRating
             value={achievement.impact || 0}
             source={achievement.impactSource || 'llm'}
@@ -84,7 +84,7 @@ export function AchievementItem({
           />
           {showSourceBadge && (
             <Badge variant="outline" className="text-xs">
-              {achievement.source}
+              {achievement.impactSource}
             </Badge>
           )}
         </div>
