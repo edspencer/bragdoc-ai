@@ -24,7 +24,7 @@ const achievementSchema = z.object({
   impact: z.number().int().min(1).max(10).optional(),
   impactSource: z.enum(['user', 'llm']).optional(),
   impactUpdatedAt: z.string().datetime().optional(),
-  source: z.enum(['manual', 'llm']).optional(),
+  source: z.enum(['manual', 'llm', 'commit']).optional(),
   userMessageId: z.string().uuid().optional().nullable(),
   standupDocumentId: z.string().uuid().optional().nullable(),
   isArchived: z.boolean().optional(),
@@ -44,7 +44,11 @@ export async function GET(req: NextRequest) {
     const limit = Number.parseInt(searchParams.get('limit') ?? '10');
     const companyId = searchParams.get('companyId');
     const projectId = searchParams.get('projectId');
-    const source = searchParams.get('source') as 'llm' | 'manual' | null;
+    const source = searchParams.get('source') as
+      | 'llm'
+      | 'manual'
+      | 'commit'
+      | null;
     const isArchived = searchParams.get('isArchived');
     const startDate = searchParams.get('startDate');
     const endDate = searchParams.get('endDate');

@@ -442,7 +442,7 @@ export async function getAchievements({
   userId: string;
   companyId?: string | null;
   projectId?: string | null;
-  source?: 'llm' | 'manual';
+  source?: 'llm' | 'manual' | 'commit';
   isArchived?: boolean;
   startDate?: Date;
   endDate?: Date;

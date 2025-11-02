@@ -126,7 +126,7 @@ describe('Batching Logic', () => {
         id: 'achievement-1',
         title: 'Achievement 1',
         createdAt: new Date().toISOString(),
-        source: 'llm',
+        source: 'commit',
       },
     ]);
 
@@ -180,7 +180,7 @@ describe('Batching Logic', () => {
         id: 'achievement-1',
         title: 'Achievement 1',
         createdAt: new Date().toISOString(),
-        source: 'llm',
+        source: 'commit',
       },
     ]);
 

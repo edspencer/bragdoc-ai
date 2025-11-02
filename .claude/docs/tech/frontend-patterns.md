@@ -557,6 +557,140 @@ interface StatProps {
 - **Project details page:** Project-specific achievement statistics
 - **Potential usage:** Companies page, reports page, any page with metrics
 
+### Achievement Editing Pattern
+
+Achievement editing uses a parent-managed dialog with callback-based mode switching. Child components (AchievementsTable, AchievementItem) expose `onEdit` callbacks that parent components handle by opening AchievementDialog in edit mode with the pre-selected achievement. The pattern mirrors the impact rating inline editing callback approach.
+
+**Key components:**
+- Parent page manages dialog state (open/closed, mode, selected achievement)
+- Child components call `onEdit(achievement)` when edit button clicked
+- AchievementDialog supports `mode` prop ('create' | 'edit')
+- On save, parent calls appropriate mutation (create or update) and refreshes list
+
+This pattern enables editing from multiple view contexts (table, list, card) without duplicating dialog logic.
+
+## Achievement Display Patterns
+
+BragDoc displays achievements in different formats depending on the context: full table views on desktop, compact list views on mobile/narrow columns, and detailed card views for focus.
+
+### AchievementItem Component
+
+The `AchievementItem` component provides a reusable, mobile-friendly layout for displaying achievements in list views and narrow columns.
+
+**Location:** `apps/web/components/achievements/achievement-item.tsx`
+
+**When to use:**
+- Mobile views of achievement lists
+- Dashboard or detail page achievement displays
+- Narrow column layouts (e.g., stand-ups page half-width columns)
+- Any context where a compact, card-like layout is preferred over a full table
+
+**Key features:**
+- Displays `eventStart` date using relative time format (e.g., "3 days ago")
+- Shows impact rating via `ImpactRating` component with optional `onChange` callback for editing
+- Displays project name with color coding and optional source badge
+- Responsive layout (company hidden on mobile via `hidden lg:flex`)
+- Handles null `eventStart` gracefully by only rendering the date if present
+
+**Component Interface:**
+```typescript
+interface AchievementItemProps {
+  achievement: AchievementWithRelations;
+  onImpactChange?: (id: string, impact: number) => void;
+  readOnly?: boolean;
+  showSourceBadge?: boolean;
+  linkToAchievements?: boolean;
+}
+```
+
+**Current Usage:**
+- Achievements table (mobile view) - `apps/web/components/achievements-table.tsx`
+- Project details page - `apps/web/app/(app)/projects/[id]/page.tsx`
+- Stand-ups page - `apps/web/components/standups/recent-achievements-table.tsx` (both assigned and orphaned achievements)
+
+**Example:**
+```tsx
+import { AchievementItem } from '@/components/achievements/achievement-item';
+
+<div className="space-y-4">
+  {achievements.map((achievement) => (
+    <div key={achievement.id} className="border-b border-border pb-4 last:border-b-0">
+      <AchievementItem
+        achievement={achievement}
+        onImpactChange={handleImpactChange}
+        readOnly={false}
+        showSourceBadge={true}
+        linkToAchievements={false}
+      />
+    </div>
+  ))}
+</div>
+```
+
+**Styling pattern:** Use `border-b border-border pb-4 last:border-b-0` to separate achievement items with bottom borders, removing the border on the last item.
+
+### AchievementsTable Component
+
+The `AchievementsTable` component provides a full-featured table view for desktop and automatically switches to `AchievementItem` cards on mobile.
+
+**Location:** `apps/web/components/achievements-table.tsx`
+
+**Key features:**
+- Time period filtering (this-week, this-month, last-30-days, etc.) based on `eventStart` dates
+- Sorting by `eventStart` (descending) with `createdAt` as tiebreaker
+- Project and company filtering
+- Search across title, summary, and details
+- Responsive: table view on desktop, card view on mobile
+- Selection checkboxes for bulk operations
+
+**Filtering Logic:**
+All time period filters apply to `eventStart` (when the achievement occurred) rather than `createdAt` (when it was recorded). This ensures users see achievements from the time period they expect, especially important for historical repositories and bulk imports.
+
+**Sorting Logic:**
+Achievements are sorted by `eventStart` (most recent first) with `createdAt` as a tiebreaker for achievements with the same event date. Achievements with null `eventStart` fall back to `createdAt` for sorting.
+
+### When to Use Each Pattern
+
+**Use `AchievementItem` when:**
+- Displaying achievements on mobile or in narrow columns
+- Context requires a compact, scannable list
+- Want to show event dates prominently
+- Need consistent styling across different page contexts
+
+**Use `AchievementsTable` when:**
+- Full-featured table view is appropriate (desktop with wide space)
+- Need advanced filtering, sorting, and search
+- Bulk operations (selection) are required
+- Maximum information density is desired
+
+### Achievement Sorting and Filtering
+
+**Critical Pattern:** Always use `eventStart` for sorting and filtering achievements, not `createdAt`.
+
+**Why:** Users importing historical repositories or bulk-adding achievements will have a significant mismatch between `eventStart` (when the achievement occurred) and `createdAt` (when it was recorded in BragDoc). Sorting or filtering by `createdAt` produces counterintuitive results where old achievements appear first if recently imported.
+
+**Implementation:**
+```typescript
+// Sort by eventStart (descending), with createdAt as tiebreaker
+const sorted = achievements.sort((a, b) => {
+  const aDate = a.eventStart?.getTime() ?? a.createdAt.getTime();
+  const bDate = b.eventStart?.getTime() ?? b.createdAt.getTime();
+  if (aDate !== bDate) {
+    return bDate - aDate; // Most recent first
+  }
+  return b.createdAt.getTime() - a.createdAt.getTime(); // Tiebreaker
+});
+
+// Filter by eventStart (with fallback to createdAt for null values)
+const filtered = achievements.filter((achievement) => {
+  const eventDate = achievement.eventStart ?? achievement.createdAt;
+  // Apply date range filter to eventDate, not createdAt
+  return eventDate >= startDate && eventDate <= endDate;
+});
+```
+
+**Null Handling:** Always provide a fallback to `createdAt` when `eventStart` is null to ensure all achievements appear in filters and sorting.
+
 ## Directory Structure
 
 ```
@@ -568,6 +702,7 @@ apps/web/components/
 │   └── ...
 ├── achievements/          # Feature-specific
 │   ├── achievement-card.tsx
+│   ├── achievement-item.tsx  # Mobile-friendly achievement display
 │   ├── achievement-form.tsx
 │   └── achievements-table.tsx
 ├── projects/

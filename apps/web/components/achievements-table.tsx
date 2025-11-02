@@ -43,8 +43,15 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { AchievementItem } from '@/components/achievements/achievement-item';
 import type { AchievementWithRelations } from '@/lib/types/achievement';
+import { MoreHorizontal } from 'lucide-react';
 
 interface AchievementsTableProps {
   achievements: AchievementWithRelations[];
@@ -55,6 +62,7 @@ interface AchievementsTableProps {
   selectedAchievements: string[];
   onGenerateDocument: () => void; // Added onGenerateDocument prop
   projectId?: string; // Optional project ID to filter and hide project/company filters
+  onEdit?: (achievement: AchievementWithRelations) => void; // Added onEdit callback
 }
 
 function StarRating({
@@ -104,6 +112,7 @@ export function AchievementsTable({
   selectedAchievements,
   onGenerateDocument, // Added onGenerateDocument prop
   projectId, // Optional project ID to filter and hide project/company filters
+  onEdit, // Added onEdit prop
 }: AchievementsTableProps) {
   const [searchTerm, setSearchTerm] = React.useState('');
   const [selectedProject, setSelectedProject] = React.useState<string>('all');
@@ -152,15 +161,16 @@ export function AchievementsTable({
       const startOfYear = new Date(now.getFullYear(), 0, 1);
 
       filtered = filtered.filter((achievement) => {
-        const createdAt = achievement.createdAt;
+        // Use eventStart if available, fall back to createdAt for legacy achievements without event dates
+        const eventDate = achievement.eventStart ?? achievement.createdAt;
 
         switch (timePeriod) {
           case 'this-week':
-            return createdAt >= startOfWeek;
+            return eventDate >= startOfWeek;
           case 'this-month':
-            return createdAt >= startOfMonth;
+            return eventDate >= startOfMonth;
           case 'last-30-days':
-            return createdAt >= new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+            return eventDate >= new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
           case 'last-month': {
             const lastMonth = new Date(
               now.getFullYear(),
@@ -172,14 +182,14 @@ export function AchievementsTable({
               now.getMonth(),
               0,
             );
-            return createdAt >= lastMonth && createdAt <= endOfLastMonth;
+            return eventDate >= lastMonth && eventDate <= endOfLastMonth;
           }
           case 'this-year':
-            return createdAt >= startOfYear;
+            return eventDate >= startOfYear;
           case 'last-year': {
             const lastYear = new Date(now.getFullYear() - 1, 0, 1);
             const endOfLastYear = new Date(now.getFullYear() - 1, 11, 31);
-            return createdAt >= lastYear && createdAt <= endOfLastYear;
+            return eventDate >= lastYear && eventDate <= endOfLastYear;
           }
           default:
             return true;
@@ -187,9 +197,15 @@ export function AchievementsTable({
       });
     }
 
-    return filtered.sort(
-      (a, b) => b.createdAt.getTime() - a.createdAt.getTime(),
-    );
+    return filtered.sort((a, b) => {
+      // Sort by eventStart (when achievement occurred), with createdAt as tiebreaker
+      const aDate = a.eventStart?.getTime() ?? a.createdAt.getTime();
+      const bDate = b.eventStart?.getTime() ?? b.createdAt.getTime();
+      if (aDate !== bDate) {
+        return bDate - aDate; // Sort by eventStart (most recent first)
+      }
+      return b.createdAt.getTime() - a.createdAt.getTime(); // Tiebreaker by createdAt
+    });
   }, [
     achievements,
     searchTerm,
@@ -334,6 +350,7 @@ export function AchievementsTable({
                 <TableHead>Company</TableHead>
                 <TableHead>Impact Rating</TableHead>
                 <TableHead>Date</TableHead>
+                <TableHead className="w-12">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -417,6 +434,27 @@ export function AchievementsTable({
                       </span>
                     </div>
                   </TableCell>
+                  <TableCell>
+                    {onEdit && (
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="size-8"
+                          >
+                            <MoreHorizontal className="size-4" />
+                            <span className="sr-only">Open menu</span>
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem onClick={() => onEdit(achievement)}>
+                            Edit
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    )}
+                  </TableCell>
                 </TableRow>
               ))}
             </TableBody>
@@ -433,6 +471,7 @@ export function AchievementsTable({
               <AchievementItem
                 achievement={achievement}
                 onImpactChange={onImpactChange}
+                onEdit={onEdit}
                 readOnly={false}
                 showSourceBadge={true}
                 linkToAchievements={false}

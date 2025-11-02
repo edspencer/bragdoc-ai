@@ -6,6 +6,7 @@ import { addDays, startOfDay, endOfDay, format } from 'date-fns';
 import type { Standup, StandupDocument, Achievement } from '@bragdoc/database';
 import { Card, CardContent, CardHeader, CardTitle } from 'components/ui/card';
 import { Button } from 'components/ui/button';
+import { AchievementItem } from '@/components/achievements/achievement-item';
 import { calculateStandupOccurrences } from '@/lib/standups/calculate-standup-occurrences';
 import { getStandupAchievementDateRange } from '@/lib/scheduling/nextRun';
 import {
@@ -28,8 +29,6 @@ import {
   IconChevronRight,
   IconChevronDown,
   IconSparkles,
-  IconStar,
-  IconStarFilled,
   IconTrash,
 } from '@tabler/icons-react';
 import { cn } from '@/lib/utils';
@@ -467,40 +466,19 @@ export function RecentAchievementsTable({
 
                       {/* Achievement List */}
                       {achievements.length > 0 ? (
-                        <div className="space-y-2">
+                        <div className="space-y-0">
                           {achievements.map((achievement) => (
                             <div
                               key={achievement.id}
-                              className="flex items-center justify-between p-2 hover:bg-muted/50 rounded -mx-2"
+                              className="border-b border-border pb-4 last:border-b-0"
                             >
-                              <span className="text-sm flex-1">
-                                {achievement.title}
-                              </span>
-                              <div className="flex gap-0.5">
-                                {[...Array(10)].map((_, i) => {
-                                  const isSelected =
-                                    i < (achievement.impact || 0);
-                                  return (
-                                    <button
-                                      key={i}
-                                      type="button"
-                                      onClick={() =>
-                                        handleImpactChange(
-                                          achievement.id,
-                                          i + 1,
-                                        )
-                                      }
-                                      className="hover:scale-110 transition-transform"
-                                    >
-                                      {isSelected ? (
-                                        <IconStarFilled className="size-4 text-yellow-400" />
-                                      ) : (
-                                        <IconStar className="size-4 text-muted-foreground" />
-                                      )}
-                                    </button>
-                                  );
-                                })}
-                              </div>
+                              <AchievementItem
+                                achievement={achievement as any}
+                                onImpactChange={handleImpactChange}
+                                readOnly={false}
+                                showSourceBadge={true}
+                                linkToAchievements={false}
+                              />
                             </div>
                           ))}
                         </div>
@@ -630,36 +608,19 @@ export function RecentAchievementsTable({
                 <h3 className="font-semibold text-sm mb-3">
                   Other Achievements (not assigned to standup)
                 </h3>
-                <div className="space-y-2">
+                <div className="space-y-0">
                   {filteredOrphanedAchievements.map((achievement) => (
                     <div
                       key={achievement.id}
-                      className="flex items-center justify-between p-2 hover:bg-muted/50 rounded -mx-2"
+                      className="border-b border-border pb-4 last:border-b-0"
                     >
-                      <span className="text-sm flex-1">
-                        {achievement.title}
-                      </span>
-                      <div className="flex gap-0.5">
-                        {[...Array(10)].map((_, i) => {
-                          const isSelected = i < (achievement.impact || 0);
-                          return (
-                            <button
-                              key={i}
-                              type="button"
-                              onClick={() =>
-                                handleImpactChange(achievement.id, i + 1)
-                              }
-                              className="hover:scale-110 transition-transform"
-                            >
-                              {isSelected ? (
-                                <IconStarFilled className="size-4 text-yellow-400" />
-                              ) : (
-                                <IconStar className="size-4 text-muted-foreground" />
-                              )}
-                            </button>
-                          );
-                        })}
-                      </div>
+                      <AchievementItem
+                        achievement={achievement as any}
+                        onImpactChange={handleImpactChange}
+                        readOnly={false}
+                        showSourceBadge={true}
+                        linkToAchievements={false}
+                      />
                     </div>
                   ))}
                 </div>
