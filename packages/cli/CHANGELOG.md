@@ -1,5 +1,11 @@
 # @bragdoc/cli
 
+## 1.3.1
+
+### Patch Changes
+
+- 488ca25: Fix achievement source classification for commit-extracted achievements. Previously, achievements extracted from Git commits were incorrectly saved with source='llm' instead of source='commit'. This fix ensures correct source classification, enabling proper filtering and analytics based on achievement origin.
+
 ## 1.3.0
 
 ### Minor Changes
