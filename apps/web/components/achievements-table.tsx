@@ -152,15 +152,16 @@ export function AchievementsTable({
       const startOfYear = new Date(now.getFullYear(), 0, 1);
 
       filtered = filtered.filter((achievement) => {
-        const createdAt = achievement.createdAt;
+        // Use eventStart if available, fall back to createdAt for legacy achievements without event dates
+        const eventDate = achievement.eventStart ?? achievement.createdAt;
 
         switch (timePeriod) {
           case 'this-week':
-            return createdAt >= startOfWeek;
+            return eventDate >= startOfWeek;
           case 'this-month':
-            return createdAt >= startOfMonth;
+            return eventDate >= startOfMonth;
           case 'last-30-days':
-            return createdAt >= new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+            return eventDate >= new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
           case 'last-month': {
             const lastMonth = new Date(
               now.getFullYear(),
@@ -172,14 +173,14 @@ export function AchievementsTable({
               now.getMonth(),
               0,
             );
-            return createdAt >= lastMonth && createdAt <= endOfLastMonth;
+            return eventDate >= lastMonth && eventDate <= endOfLastMonth;
           }
           case 'this-year':
-            return createdAt >= startOfYear;
+            return eventDate >= startOfYear;
           case 'last-year': {
             const lastYear = new Date(now.getFullYear() - 1, 0, 1);
             const endOfLastYear = new Date(now.getFullYear() - 1, 11, 31);
-            return createdAt >= lastYear && createdAt <= endOfLastYear;
+            return eventDate >= lastYear && eventDate <= endOfLastYear;
           }
           default:
             return true;
@@ -187,9 +188,15 @@ export function AchievementsTable({
       });
     }
 
-    return filtered.sort(
-      (a, b) => b.createdAt.getTime() - a.createdAt.getTime(),
-    );
+    return filtered.sort((a, b) => {
+      // Sort by eventStart (when achievement occurred), with createdAt as tiebreaker
+      const aDate = a.eventStart?.getTime() ?? a.createdAt.getTime();
+      const bDate = b.eventStart?.getTime() ?? b.createdAt.getTime();
+      if (aDate !== bDate) {
+        return bDate - aDate; // Sort by eventStart (most recent first)
+      }
+      return b.createdAt.getTime() - a.createdAt.getTime(); // Tiebreaker by createdAt
+    });
   }, [
     achievements,
     searchTerm,
