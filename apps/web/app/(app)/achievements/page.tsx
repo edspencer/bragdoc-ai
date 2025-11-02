@@ -7,6 +7,7 @@ import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { WeeklyImpactChart } from '@/components/weekly-impact-chart';
 import { AchievementsTable } from '@/components/achievements-table';
+import { AchievementDialog } from '@/components/achievements/AchievementDialog';
 import { GenerateDocumentDialog } from '@/components/generate-document-dialog';
 import { QuickAddAchievementDialog } from '@/components/quick-add-achievement-dialog';
 import { SidebarInset } from '@/components/ui/sidebar';
@@ -15,7 +16,10 @@ import { useCompanies } from '@/hooks/use-companies';
 import { useProjects } from '@/hooks/useProjects';
 import { useAchievementMutations } from '@/hooks/use-achievement-mutations';
 import { useAchievements } from '@/hooks/use-achievements';
-import type { CreateAchievementRequest } from '@/lib/types/achievement';
+import type {
+  CreateAchievementRequest,
+  AchievementWithRelations,
+} from '@/lib/types/achievement';
 import { AppPage } from '@/components/shared/app-page';
 import { AppContent } from '@/components/shared/app-content';
 
@@ -31,6 +35,10 @@ export default function AchievementsPage() {
   // Dialog state
   const [quickAddDialogOpen, setQuickAddDialogOpen] = React.useState(false);
   const [generateDialogOpen, setGenerateDialogOpen] = React.useState(false);
+  const [editDialogOpen, setEditDialogOpen] = React.useState(false);
+  const [editMode, setEditMode] = React.useState<'create' | 'edit'>('create');
+  const [selectedAchievementForEdit, setSelectedAchievementForEdit] =
+    React.useState<AchievementWithRelations | null>(null);
 
   // Table state
   const [selectedAchievements, setSelectedAchievements] = React.useState<
@@ -103,6 +111,29 @@ export default function AchievementsPage() {
     setGenerateDialogOpen(true);
   };
 
+  const handleEditClick = (achievement: AchievementWithRelations) => {
+    setSelectedAchievementForEdit(achievement);
+    setEditMode('edit');
+    setEditDialogOpen(true);
+  };
+
+  const handleAchievementSubmit = async (data: any) => {
+    try {
+      if (editMode === 'create') {
+        await createAchievement(data);
+      } else if (editMode === 'edit' && selectedAchievementForEdit) {
+        await updateAchievement(selectedAchievementForEdit.id, data);
+      }
+      mutateAchievements(); // Refresh the list
+      setEditDialogOpen(false); // Close dialog
+      setSelectedAchievementForEdit(null); // Reset selection
+      setEditMode('create'); // Reset mode
+    } catch (error) {
+      // Error handling is already done in hooks (shows toast)
+      console.error('Failed to save achievement:', error);
+    }
+  };
+
   return (
     <AppPage>
       <SidebarInset>
@@ -129,6 +160,7 @@ export default function AchievementsPage() {
             onSelectionChange={handleSelectionChange}
             selectedAchievements={selectedAchievements}
             onGenerateDocument={handleGenerateDocument}
+            onEdit={handleEditClick}
           />
 
           <WeeklyImpactChart achievements={achievements} />
@@ -141,6 +173,19 @@ export default function AchievementsPage() {
         selectedAchievements={achievements.filter((a) =>
           selectedAchievements.includes(a.id),
         )}
+      />
+      <AchievementDialog
+        mode={editMode}
+        open={editDialogOpen}
+        onOpenChange={(open) => {
+          setEditDialogOpen(open);
+          if (!open) {
+            setSelectedAchievementForEdit(null);
+            setEditMode('create');
+          }
+        }}
+        achievement={selectedAchievementForEdit || undefined}
+        onSubmit={handleAchievementSubmit}
       />
       <QuickAddAchievementDialog
         open={quickAddDialogOpen}

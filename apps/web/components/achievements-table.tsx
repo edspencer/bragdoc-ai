@@ -43,8 +43,15 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { AchievementItem } from '@/components/achievements/achievement-item';
 import type { AchievementWithRelations } from '@/lib/types/achievement';
+import { MoreHorizontal } from 'lucide-react';
 
 interface AchievementsTableProps {
   achievements: AchievementWithRelations[];
@@ -55,6 +62,7 @@ interface AchievementsTableProps {
   selectedAchievements: string[];
   onGenerateDocument: () => void; // Added onGenerateDocument prop
   projectId?: string; // Optional project ID to filter and hide project/company filters
+  onEdit?: (achievement: AchievementWithRelations) => void; // Added onEdit callback
 }
 
 function StarRating({
@@ -104,6 +112,7 @@ export function AchievementsTable({
   selectedAchievements,
   onGenerateDocument, // Added onGenerateDocument prop
   projectId, // Optional project ID to filter and hide project/company filters
+  onEdit, // Added onEdit prop
 }: AchievementsTableProps) {
   const [searchTerm, setSearchTerm] = React.useState('');
   const [selectedProject, setSelectedProject] = React.useState<string>('all');
@@ -341,6 +350,7 @@ export function AchievementsTable({
                 <TableHead>Company</TableHead>
                 <TableHead>Impact Rating</TableHead>
                 <TableHead>Date</TableHead>
+                <TableHead className="w-12">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -424,6 +434,27 @@ export function AchievementsTable({
                       </span>
                     </div>
                   </TableCell>
+                  <TableCell>
+                    {onEdit && (
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="size-8"
+                          >
+                            <MoreHorizontal className="size-4" />
+                            <span className="sr-only">Open menu</span>
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem onClick={() => onEdit(achievement)}>
+                            Edit
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    )}
+                  </TableCell>
                 </TableRow>
               ))}
             </TableBody>
@@ -440,6 +471,7 @@ export function AchievementsTable({
               <AchievementItem
                 achievement={achievement}
                 onImpactChange={onImpactChange}
+                onEdit={onEdit}
                 readOnly={false}
                 showSourceBadge={true}
                 linkToAchievements={false}

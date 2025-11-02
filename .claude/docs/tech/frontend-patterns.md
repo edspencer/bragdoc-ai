@@ -557,6 +557,18 @@ interface StatProps {
 - **Project details page:** Project-specific achievement statistics
 - **Potential usage:** Companies page, reports page, any page with metrics
 
+### Achievement Editing Pattern
+
+Achievement editing uses a parent-managed dialog with callback-based mode switching. Child components (AchievementsTable, AchievementItem) expose `onEdit` callbacks that parent components handle by opening AchievementDialog in edit mode with the pre-selected achievement. The pattern mirrors the impact rating inline editing callback approach.
+
+**Key components:**
+- Parent page manages dialog state (open/closed, mode, selected achievement)
+- Child components call `onEdit(achievement)` when edit button clicked
+- AchievementDialog supports `mode` prop ('create' | 'edit')
+- On save, parent calls appropriate mutation (create or update) and refreshes list
+
+This pattern enables editing from multiple view contexts (table, list, card) without duplicating dialog logic.
+
 ## Achievement Display Patterns
 
 BragDoc displays achievements in different formats depending on the context: full table views on desktop, compact list views on mobile/narrow columns, and detailed card views for focus.
