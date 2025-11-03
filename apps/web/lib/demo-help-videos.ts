@@ -1,10 +1,9 @@
 /**
  * Demo Help Video Configuration
  *
- * Provides video IDs for each demo help page.
- * Can be overridden via environment variables:
- * - NEXT_PUBLIC_DEMO_HELP_DASHBOARD_VIDEO_ID
- * - NEXT_PUBLIC_DEMO_HELP_REPORTS_VIDEO_ID
+ * Provides a single video for demo help.
+ * Can be overridden via environment variable:
+ * - NEXT_PUBLIC_DEMO_HELP_VIDEO_ID
  */
 
 interface DemoHelpVideo {
@@ -13,39 +12,27 @@ interface DemoHelpVideo {
   description?: string;
 }
 
-// Default placeholder video IDs (can be updated with real IDs later)
-const DEFAULT_VIDEOS: Record<'dashboard' | 'reports', DemoHelpVideo> = {
-  dashboard: {
-    youtubeId: 'dQw4w9WgXcQ', // Placeholder
-    title: 'Getting Started with BragDoc Dashboard',
-    description:
-      'Learn how to navigate the dashboard and view your achievements',
-  },
-  reports: {
-    youtubeId: 'dQw4w9WgXcQ', // Placeholder
-    title: 'Reports Overview',
-    description: 'Learn how to create and manage achievement reports',
-  },
+// Default placeholder video (can be updated with real ID later)
+const DEFAULT_VIDEO: DemoHelpVideo = {
+  youtubeId: 'dQw4w9WgXcQ', // Placeholder
+  title: 'Getting Started with BragDoc',
+  description: 'Learn how to use BragDoc in demo mode',
 };
 
 /**
- * Get video configuration for a demo help page
- * @param page - Page identifier ('dashboard' | 'reports')
+ * Get video configuration for demo help
  * @returns Video configuration with YouTube ID
  */
-export function getDemoHelpVideo(page: 'dashboard' | 'reports'): DemoHelpVideo {
-  // Check for environment variable overrides
-  const envVarKey = `NEXT_PUBLIC_DEMO_HELP_${page.toUpperCase()}_VIDEO_ID`;
-  const envVideoId = process.env[envVarKey];
-
-  const defaultVideo = DEFAULT_VIDEOS[page];
+export function getDemoHelpVideo(): DemoHelpVideo {
+  // Check for environment variable override
+  const envVideoId = process.env.NEXT_PUBLIC_DEMO_HELP_VIDEO_ID;
 
   if (envVideoId) {
     return {
-      ...defaultVideo,
+      ...DEFAULT_VIDEO,
       youtubeId: envVideoId,
     };
   }
 
-  return defaultVideo;
+  return DEFAULT_VIDEO;
 }

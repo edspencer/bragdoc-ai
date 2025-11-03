@@ -55,7 +55,7 @@ interface DemoHelpDialogProps {
  * ```
  */
 export function DemoHelpDialog({ open, onOpenChange }: DemoHelpDialogProps) {
-  const video = getDemoHelpVideo('dashboard'); // Use dashboard video as default
+  const video = getDemoHelpVideo();
   const content = DIALOG_CONTENT;
 
   const handleClose = () => {

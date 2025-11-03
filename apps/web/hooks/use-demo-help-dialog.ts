@@ -51,7 +51,7 @@ interface UseDemoHelpDialogReturn {
  */
 export function useDemoHelpDialog(
   isDemoMode: boolean,
-  autoOpen: boolean = true,
+  autoOpen = true,
 ): UseDemoHelpDialogReturn {
   const [isOpen, setIsOpen] = useState(false);
 
