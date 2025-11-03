@@ -24,6 +24,7 @@ describe('DeleteAchievementDialog Component Tests', () => {
       summary: 'Test summary',
       details: 'Test details',
       eventStart: new Date('2024-01-01'),
+      eventEnd: null,
       eventDuration: 'week' as const,
       source: 'manual' as const,
       impact: 2,
@@ -31,7 +32,11 @@ describe('DeleteAchievementDialog Component Tests', () => {
       impactUpdatedAt: new Date(),
       isArchived: false,
       createdAt: new Date(),
+      repoRemoteUrl: null,
       updatedAt: new Date(),
+      standupDocumentId: null,
+      userMessageId: null,
+      userMessage: null,
       company: {
         id: uuidv4(),
         userId: uuidv4(),
@@ -39,8 +44,7 @@ describe('DeleteAchievementDialog Component Tests', () => {
         domain: 'test.com',
         role: 'Engineer',
         startDate: new Date(),
-        createdAt: new Date(),
-        updatedAt: new Date(),
+        endDate: null,
       },
       project: {
         id: uuidv4(),
@@ -54,6 +58,7 @@ describe('DeleteAchievementDialog Component Tests', () => {
         endDate: null,
         isArchived: false,
         createdAt: new Date(),
+        repoRemoteUrl: null,
         updatedAt: new Date(),
       },
       ...overrides,
@@ -369,8 +374,8 @@ describe('DeleteAchievementDialog Component Tests', () => {
     });
 
     it('should handle null achievement gracefully', () => {
-      const achievement = null;
-      const displayText = achievement?.title || 'Unknown';
+      const achievement: AchievementWithRelations | null = null;
+      const displayText = (achievement as any)?.title || 'Unknown';
 
       expect(displayText).toBe('Unknown');
     });

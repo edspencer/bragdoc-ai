@@ -16,10 +16,13 @@ import { AchievementsTable } from '@/components/achievements-table';
 import { GenerateDocumentDialog } from '@/components/generate-document-dialog';
 import { ProjectDetailsZeroState } from '@/components/project-details/project-zero-state';
 import { Stat } from '@/components/shared/stat';
+import { AchievementDialog } from '@/components/achievements/AchievementDialog';
+import { DeleteAchievementDialog } from '@/components/achievements/delete-achievement-dialog';
 import { useAchievements } from '@/hooks/use-achievements';
 import { useCompanies } from '@/hooks/use-companies';
 import { useUpdateProject } from '@/hooks/useProjects';
 import { useAchievementMutations } from '@/hooks/use-achievement-mutations';
+import { useAchievementActions } from '@/hooks/use-achievement-actions';
 import type { ProjectWithCompany } from '@/database/projects/queries';
 
 interface ProjectDetailsContentProps {
@@ -46,6 +49,25 @@ export function ProjectDetailsContent({
   const { companies } = useCompanies();
   const updateProject = useUpdateProject();
   const { updateAchievement } = useAchievementMutations();
+
+  // Achievement edit/delete actions
+  const {
+    editDialogOpen: achievementEditDialogOpen,
+    setEditDialogOpen: setAchievementEditDialogOpen,
+    achievementToEdit,
+    handleEditClick,
+    handleEditSubmit,
+    deleteDialogOpen: achievementDeleteDialogOpen,
+    setDeleteDialogOpen: setAchievementDeleteDialogOpen,
+    achievementToDelete,
+    handleDeleteClick,
+    handleDeleteConfirm,
+    isDeletingAchievement,
+  } = useAchievementActions({
+    onRefresh: async () => {
+      await mutateAchievements();
+    },
+  });
 
   // Filter achievements for this project
   const projectAchievements = React.useMemo(() => {
@@ -295,6 +317,8 @@ export function ProjectDetailsContent({
               selectedAchievements={selectedAchievements}
               onGenerateDocument={handleGenerateDocument}
               projectId={project.id}
+              onEdit={handleEditClick}
+              onDelete={handleDeleteClick}
             />
           </>
         )}
@@ -315,6 +339,24 @@ export function ProjectDetailsContent({
         selectedAchievements={projectAchievements.filter((a) =>
           selectedAchievements.includes(a.id),
         )}
+      />
+
+      {/* Achievement Edit Dialog */}
+      <AchievementDialog
+        mode="edit"
+        open={achievementEditDialogOpen}
+        onOpenChange={setAchievementEditDialogOpen}
+        achievement={achievementToEdit || undefined}
+        onSubmit={handleEditSubmit}
+      />
+
+      {/* Achievement Delete Dialog */}
+      <DeleteAchievementDialog
+        open={achievementDeleteDialogOpen}
+        onOpenChange={setAchievementDeleteDialogOpen}
+        achievement={achievementToDelete}
+        onConfirm={handleDeleteConfirm}
+        isDeleting={isDeletingAchievement}
       />
     </>
   );
