@@ -285,7 +285,7 @@ export function AchievementsTable({
 
           {!projectId && (
             <Select value={selectedProject} onValueChange={setSelectedProject}>
-              <SelectTrigger className="w-[180px]">
+              <SelectTrigger className="sm:w-[180px]">
                 <SelectValue placeholder="All Projects" />
               </SelectTrigger>
               <SelectContent>
@@ -301,7 +301,7 @@ export function AchievementsTable({
 
           {!projectId && (
             <Select value={selectedCompany} onValueChange={setSelectedCompany}>
-              <SelectTrigger className="w-[180px]">
+              <SelectTrigger className="sm:w-[180px]">
                 <SelectValue placeholder="All Companies" />
               </SelectTrigger>
               <SelectContent>
@@ -316,7 +316,7 @@ export function AchievementsTable({
           )}
 
           <Select value={timePeriod} onValueChange={setTimePeriod}>
-            <SelectTrigger className="w-[150px]">
+            <SelectTrigger className="sm:w-[150px]">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>

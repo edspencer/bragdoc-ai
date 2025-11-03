@@ -4,6 +4,7 @@ import { useMemo, useState } from 'react';
 import { Trophy } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from 'components/ui/card';
 import { AchievementItem } from 'components/achievements/achievement-item';
+import { AchievementDialog } from 'components/achievements/AchievementDialog';
 import { useAchievementMutations } from '@/hooks/use-achievement-mutations';
 import { useAchievements } from '@/hooks/use-achievements';
 import type { AchievementWithRelations } from 'lib/types/achievement';
@@ -14,7 +15,9 @@ interface ActivityStreamProps {
 
 export function ActivityStream({ achievements }: ActivityStreamProps) {
   const [actionLoading, setActionLoading] = useState<string | null>(null);
-  const { updateAchievement } = useAchievementMutations();
+  const [editingAchievement, setEditingAchievement] =
+    useState<AchievementWithRelations | null>(null);
+  const { updateAchievement, deleteAchievement } = useAchievementMutations();
   const { mutate } = useAchievements();
 
   // Get the 5 most recent achievements for the activity stream
@@ -47,6 +50,33 @@ export function ActivityStream({ achievements }: ActivityStreamProps) {
     }
   };
 
+  const handleEdit = (achievement: AchievementWithRelations) => {
+    setEditingAchievement(achievement);
+  };
+
+  const handleUpdate = async (data: any) => {
+    if (!editingAchievement) return;
+
+    setActionLoading(`update-${editingAchievement.id}`);
+    try {
+      await updateAchievement(editingAchievement.id, data);
+      mutate();
+      setEditingAchievement(null);
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
+  const handleDelete = async (achievement: AchievementWithRelations) => {
+    setActionLoading(`delete-${achievement.id}`);
+    try {
+      await deleteAchievement(achievement.id);
+      mutate();
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
   return (
     <Card>
       <CardHeader>
@@ -70,6 +100,8 @@ export function ActivityStream({ achievements }: ActivityStreamProps) {
                 <AchievementItem
                   achievement={achievement}
                   onImpactChange={handleImpactChange}
+                  onEdit={handleEdit}
+                  onDelete={handleDelete}
                   readOnly={!!actionLoading}
                   showSourceBadge={true}
                   linkToAchievements={true}
@@ -79,6 +111,13 @@ export function ActivityStream({ achievements }: ActivityStreamProps) {
           </div>
         )}
       </CardContent>
+      <AchievementDialog
+        mode="edit"
+        achievement={editingAchievement || undefined}
+        open={!!editingAchievement}
+        onOpenChange={(open) => !open && setEditingAchievement(null)}
+        onSubmit={handleUpdate}
+      />
     </Card>
   );
 }
