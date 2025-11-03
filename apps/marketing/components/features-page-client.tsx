@@ -19,6 +19,7 @@ import { useImageLightbox } from '@/hooks/use-image-lightbox';
 import { ImageLightbox } from '@/components/image-lightbox';
 import { useTracking } from '@/hooks/use-posthog';
 import { appPath } from '@/lib/utils';
+import { DemoCTA } from '@/components/demo-cta';
 
 interface Feature {
   icon: LucideIcon;
@@ -319,8 +320,15 @@ export function FeaturesPageClient() {
           </div>
         </section>
 
+        {/* Demo CTA */}
+        <section className="px-4 sm:px-6 lg:px-8 py-8">
+          <div className="container mx-auto max-w-4xl [&>div]:my-0 [&>div]:max-w-none">
+            <DemoCTA />
+          </div>
+        </section>
+
         {/* Bottom CTA */}
-        <section className="py-20 px-4 sm:px-6 lg:px-8 mt-12">
+        <section className="py-8 px-4 sm:px-6 lg:px-8">
           <div
             className="container mx-auto max-w-4xl rounded-2xl p-12 text-center"
             style={{

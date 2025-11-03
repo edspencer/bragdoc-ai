@@ -12,6 +12,7 @@ import {
 import { useState } from 'react';
 import { useTracking } from '@/hooks/use-posthog';
 import { loginPath } from '@/lib/utils';
+import { DemoCTA } from '@/components/demo-cta';
 
 export function HeroSection() {
   const { trackCTAClick } = useTracking();
@@ -119,6 +120,8 @@ export function HeroSection() {
                 <span>10,000+ achievements tracked</span>
               </div>
             </div>
+
+            <DemoCTA />
           </div>
 
           <div className="relative">
