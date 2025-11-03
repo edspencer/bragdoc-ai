@@ -34,3 +34,11 @@ export function isDemoModeEnabled(): boolean {
 export function isDemoAccount(email: string): boolean {
   return email.startsWith('demo') && email.endsWith('@bragdoc.ai');
 }
+
+/**
+ * Checks if demo help dialogs are enabled via environment variable
+ * @returns true if NEXT_PUBLIC_DEMO_HELP_ENABLED is set to 'true'
+ */
+export function isDemoHelpEnabled(): boolean {
+  return process.env.NEXT_PUBLIC_DEMO_HELP_ENABLED === 'true';
+}

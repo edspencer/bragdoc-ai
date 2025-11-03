@@ -301,7 +301,19 @@ ANTHROPIC_API_KEY=...
 # Demo Mode
 DEMO_MODE_ENABLED=true
 NEXT_PUBLIC_DEMO_MODE_ENABLED=true
+
+# Demo Help Dialogs
+NEXT_PUBLIC_DEMO_HELP_ENABLED=true
+NEXT_PUBLIC_DEMO_HELP_DASHBOARD_VIDEO_ID=...  # YouTube video ID (optional)
+NEXT_PUBLIC_DEMO_HELP_REPORTS_VIDEO_ID=...    # YouTube video ID (optional)
 ```
+
+**Demo Help Configuration Details:**
+- `NEXT_PUBLIC_DEMO_HELP_ENABLED` - Controls whether help dialogs appear for demo users (set to `'true'` to enable). Defaults to disabled for open-source deployments.
+- `NEXT_PUBLIC_DEMO_HELP_DASHBOARD_VIDEO_ID` - Optional YouTube video ID override for dashboard tutorial. If not set, uses placeholder ID (can be updated later).
+- `NEXT_PUBLIC_DEMO_HELP_REPORTS_VIDEO_ID` - Optional YouTube video ID override for reports tutorial. If not set, uses placeholder ID (can be updated later).
+
+Note: These variables only have effect when `NEXT_PUBLIC_DEMO_MODE_ENABLED=true`. The feature is disabled by default for open-source deployments to reduce support burden for self-hosted instances.
 
 ## Database Setup
 
@@ -412,6 +424,6 @@ wrangler secret put NEXT_PUBLIC_POSTHOG_HOST
 
 ---
 
-**Last Updated:** 2025-10-24 (PostHog analytics environment variables)
+**Last Updated:** 2025-11-02 (Added Demo Help Dialogs environment variables)
 **Deployment Targets:** Cloudflare Workers, Vercel, Docker
 **Build System:** Turbopack (default in Next.js 16)
