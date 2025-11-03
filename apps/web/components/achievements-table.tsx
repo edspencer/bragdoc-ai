@@ -9,6 +9,8 @@ import {
   IconCalendar,
   IconSearch,
   IconFileText,
+  IconEdit,
+  IconTrash,
 } from '@tabler/icons-react';
 import { format } from 'date-fns';
 
@@ -43,15 +45,8 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
 import { AchievementItem } from '@/components/achievements/achievement-item';
 import type { AchievementWithRelations } from '@/lib/types/achievement';
-import { MoreHorizontal } from 'lucide-react';
 
 interface AchievementsTableProps {
   achievements: AchievementWithRelations[];
@@ -63,6 +58,7 @@ interface AchievementsTableProps {
   onGenerateDocument: () => void; // Added onGenerateDocument prop
   projectId?: string; // Optional project ID to filter and hide project/company filters
   onEdit?: (achievement: AchievementWithRelations) => void; // Added onEdit callback
+  onDelete?: (achievement: AchievementWithRelations) => void; // Added onDelete callback
 }
 
 function StarRating({
@@ -113,6 +109,7 @@ export function AchievementsTable({
   onGenerateDocument, // Added onGenerateDocument prop
   projectId, // Optional project ID to filter and hide project/company filters
   onEdit, // Added onEdit prop
+  onDelete, // Added onDelete prop
 }: AchievementsTableProps) {
   const [searchTerm, setSearchTerm] = React.useState('');
   const [selectedProject, setSelectedProject] = React.useState<string>('all');
@@ -435,25 +432,30 @@ export function AchievementsTable({
                     </div>
                   </TableCell>
                   <TableCell>
-                    {onEdit && (
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="size-8"
-                          >
-                            <MoreHorizontal className="size-4" />
-                            <span className="sr-only">Open menu</span>
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuItem onClick={() => onEdit(achievement)}>
-                            Edit
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    )}
+                    <div className="flex gap-2">
+                      {onEdit && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => onEdit(achievement)}
+                          aria-label="Edit achievement"
+                          className="h-8 w-8 p-0"
+                        >
+                          <IconEdit className="size-4" />
+                        </Button>
+                      )}
+                      {onDelete && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => onDelete(achievement)}
+                          aria-label="Delete achievement"
+                          className="h-8 w-8 p-0 text-destructive hover:text-destructive"
+                        >
+                          <IconTrash className="size-4" />
+                        </Button>
+                      )}
+                    </div>
                   </TableCell>
                 </TableRow>
               ))}
@@ -472,6 +474,7 @@ export function AchievementsTable({
                 achievement={achievement}
                 onImpactChange={onImpactChange}
                 onEdit={onEdit}
+                onDelete={onDelete}
                 readOnly={false}
                 showSourceBadge={true}
                 linkToAchievements={false}

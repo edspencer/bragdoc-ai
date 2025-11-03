@@ -1,21 +1,27 @@
 import Link from 'next/link';
 import { formatDistanceToNow } from 'date-fns';
-import { Building2, FolderKanban, Clock, MoreHorizontal } from 'lucide-react';
+import { Building2, FolderKanban, Clock, Edit2, Trash2 } from 'lucide-react';
 import { Badge } from 'components/ui/badge';
 import { Button } from 'components/ui/button';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from 'components/ui/dropdown-menu';
 import { ImpactRating } from 'components/ui/impact-rating';
 import type { AchievementWithRelations } from 'lib/types/achievement';
 
+/**
+ * AchievementItem - Displays a single achievement with impact rating and optional edit/delete actions
+ *
+ * @param achievement - The achievement to display
+ * @param onImpactChange - Optional callback when impact rating changes
+ * @param onEdit - Optional callback when edit button is clicked
+ * @param onDelete - Optional callback when delete button is clicked
+ * @param readOnly - Whether to disable impact rating changes
+ * @param showSourceBadge - Whether to show the impact source badge
+ * @param linkToAchievements - Whether achievement title links to achievements page
+ */
 interface AchievementItemProps {
   achievement: AchievementWithRelations;
   onImpactChange?: (id: string, impact: number) => void;
   onEdit?: (achievement: AchievementWithRelations) => void;
+  onDelete?: (achievement: AchievementWithRelations) => void;
   readOnly?: boolean;
   showSourceBadge?: boolean;
   linkToAchievements?: boolean;
@@ -25,6 +31,7 @@ export function AchievementItem({
   achievement,
   onImpactChange,
   onEdit,
+  onDelete,
   readOnly = false,
   showSourceBadge = true,
   linkToAchievements = true,
@@ -79,7 +86,7 @@ export function AchievementItem({
             )}
           </div>
         </div>
-        <div className="flex items-start justify-between gap-1">
+        <div className="flex items-center justify-between gap-2">
           <div className="flex items-start gap-1">
             <ImpactRating
               value={achievement.impact || 0}
@@ -98,21 +105,31 @@ export function AchievementItem({
               </Badge>
             )}
           </div>
-          {onEdit && (
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon" className="size-6">
-                  <MoreHorizontal className="size-4" />
-                  <span className="sr-only">Open menu</span>
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuItem onClick={() => onEdit(achievement)}>
-                  Edit
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          )}
+          {/* Action buttons: Edit and Delete */}
+          <div className="flex items-center gap-1">
+            {onEdit && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => onEdit(achievement)}
+                aria-label="Edit achievement"
+                className="h-9 w-9 p-0 md:px-2 md:w-auto"
+              >
+                <Edit2 className="size-4" />
+              </Button>
+            )}
+            {onDelete && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => onDelete(achievement)}
+                aria-label="Delete achievement"
+                className="h-9 w-9 p-0 md:px-2 md:w-auto text-destructive hover:text-destructive hover:bg-destructive/10"
+              >
+                <Trash2 className="size-4" />
+              </Button>
+            )}
+          </div>
         </div>
       </div>
     </div>

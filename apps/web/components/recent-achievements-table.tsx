@@ -7,10 +7,13 @@ import {
   IconBuilding,
   IconFolder,
   IconCalendar,
+  IconEdit,
+  IconTrash,
 } from '@tabler/icons-react';
 import { format } from 'date-fns';
 
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import {
   Card,
   CardContent,
@@ -27,14 +30,33 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import type { AchievementWithRelations } from '@/lib/types/achievement';
+import { AchievementDialog } from '@/components/achievements/AchievementDialog';
+import { DeleteAchievementDialog } from '@/components/achievements/delete-achievement-dialog';
+import { useAchievementActions } from '@/hooks/use-achievement-actions';
 
 interface RecentAchievementsTableProps {
   achievements: AchievementWithRelations[];
+  onRefresh?: () => Promise<void>;
 }
 
 export function RecentAchievementsTable({
   achievements,
+  onRefresh,
 }: RecentAchievementsTableProps) {
+  const {
+    editDialogOpen,
+    setEditDialogOpen,
+    achievementToEdit,
+    handleEditClick,
+    handleEditSubmit,
+    deleteDialogOpen,
+    setDeleteDialogOpen,
+    achievementToDelete,
+    handleDeleteClick,
+    handleDeleteConfirm,
+    isDeletingAchievement,
+  } = useAchievementActions({ onRefresh });
+
   // Get the 10 most recent achievements
   const recentAchievements = React.useMemo(() => {
     return [...achievements]
@@ -63,6 +85,7 @@ export function RecentAchievementsTable({
                 <TableHead>Company</TableHead>
                 <TableHead>Impact Rating</TableHead>
                 <TableHead>When</TableHead>
+                <TableHead className="w-24">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -135,12 +158,52 @@ export function RecentAchievementsTable({
                       </span>
                     </div>
                   </TableCell>
+                  <TableCell>
+                    <div className="flex gap-2">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleEditClick(achievement)}
+                        aria-label="Edit achievement"
+                        className="h-8 w-8 p-0"
+                      >
+                        <IconEdit className="size-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleDeleteClick(achievement)}
+                        aria-label="Delete achievement"
+                        className="h-8 w-8 p-0 text-destructive hover:text-destructive"
+                      >
+                        <IconTrash className="size-4" />
+                      </Button>
+                    </div>
+                  </TableCell>
                 </TableRow>
               ))}
             </TableBody>
           </Table>
         </div>
       </CardContent>
+
+      {/* Achievement Edit Dialog */}
+      <AchievementDialog
+        mode="edit"
+        open={editDialogOpen}
+        onOpenChange={setEditDialogOpen}
+        achievement={achievementToEdit || undefined}
+        onSubmit={handleEditSubmit}
+      />
+
+      {/* Achievement Delete Dialog */}
+      <DeleteAchievementDialog
+        open={deleteDialogOpen}
+        onOpenChange={setDeleteDialogOpen}
+        achievement={achievementToDelete}
+        onConfirm={handleDeleteConfirm}
+        isDeleting={isDeletingAchievement}
+      />
     </Card>
   );
 }

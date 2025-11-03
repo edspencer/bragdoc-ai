@@ -2,27 +2,15 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { Button } from 'components/ui/button';
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
 } from 'components/ui/dialog';
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from 'components/ui/alert-dialog';
 import { StandupForm } from './standup-form';
 import { RecentAchievementsTable } from './recent-achievements-table';
 import { CurrentStandupEditor } from './current-standup-editor';
-import { IconEdit, IconTrash } from '@tabler/icons-react';
 import { toast } from 'sonner';
 import { useAchievementMutations } from 'hooks/use-achievement-mutations';
 import { fromMask } from '@/lib/scheduling/weekdayMask';
@@ -31,8 +19,11 @@ import type { Company, Project, Standup } from '@bragdoc/database';
 import { NextStandupIndicator } from './next-standup-indicator';
 import { BetaFeatureBanner } from '@/components/shared/beta-feature-banner';
 
-interface ExistingStandupPageProps {
+interface ExistingStandupContentProps {
   standup: Standup;
+  onEditClick?: () => void;
+  showEditDialog?: boolean;
+  onEditDialogChange?: (open: boolean) => void;
 }
 
 /**
@@ -75,14 +66,23 @@ function formatStandupSchedule(meetingTime: string, daysMask: number): string {
   return `${timeStr} ${daysStr}`;
 }
 
-export function ExistingStandupContent({ standup }: ExistingStandupPageProps) {
+export function ExistingStandupContent({
+  standup,
+  showEditDialog: externalShowEditDialog,
+  onEditDialogChange,
+}: ExistingStandupContentProps) {
   const router = useRouter();
-  const [showEditDialog, setShowEditDialog] = useState(false);
-  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
-  const [isDeleting, setIsDeleting] = useState(false);
+  const [internalShowEditDialog, setInternalShowEditDialog] = useState(false);
+
+  // Use external state if provided, otherwise use internal state
+  const showEditDialog = externalShowEditDialog ?? internalShowEditDialog;
+  const setShowEditDialog = onEditDialogChange ?? setInternalShowEditDialog;
 
   const [companies, setCompanies] = useState<Company[]>([]);
   const [projects, setProjects] = useState<Project[]>([]);
+
+  // Refresh key used by both child components to trigger data refetch when achievements change
+  const [refreshKey, setRefreshKey] = useState(0);
 
   const { updateAchievement } = useAchievementMutations();
 
@@ -111,31 +111,6 @@ export function ExistingStandupContent({ standup }: ExistingStandupPageProps) {
     fetchCompaniesAndProjects();
   }, []);
 
-  const handleDelete = async () => {
-    setIsDeleting(true);
-    try {
-      const response = await fetch(`/api/standups/${standup.id}`, {
-        method: 'DELETE',
-      });
-
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || 'Failed to delete standup');
-      }
-
-      toast.success('Standup deleted successfully');
-      setShowDeleteDialog(false);
-      router.refresh();
-    } catch (error) {
-      console.error('Error deleting standup:', error);
-      toast.error(
-        error instanceof Error ? error.message : 'Failed to delete standup',
-      );
-    } finally {
-      setIsDeleting(false);
-    }
-  };
-
   const handleImpactChange = async (id: string, impact: number) => {
     try {
       await updateAchievement(id, {
@@ -143,84 +118,73 @@ export function ExistingStandupContent({ standup }: ExistingStandupPageProps) {
         impactSource: 'user',
         impactUpdatedAt: new Date(),
       });
-      // Note: The RecentAchievementsTable component will handle its own data refetching
+      // Trigger refresh in both child components
+      triggerRefresh();
     } catch (error) {
       console.error('Error updating impact:', error);
       toast.error('Failed to update impact');
     }
   };
 
+  const triggerRefresh = () => {
+    setRefreshKey((prev) => prev + 1);
+  };
+
   return (
     <div className="flex flex-1 flex-col">
-      {/* Header */}
+      {/* Info section below SiteHeader */}
       <div className="border-b bg-background px-8 py-4">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold">{standup.name}</h1>
             <NextStandupIndicator
               meetingTime={standup.meetingTime}
               daysMask={standup.daysMask}
               timezone={standup.timezone}
             />
           </div>
-          <div className="flex items-center gap-4">
-            <div className="text-sm text-muted-foreground">
-              <span className="font-medium">
-                {formatStandupScope(
-                  standup.companyId,
-                  standup.projectIds,
-                  companies,
-                  projects,
-                )}
-              </span>
-              <span className="mx-2">/</span>
-              <span>
-                {formatStandupSchedule(standup.meetingTime, standup.daysMask)}
-              </span>
-            </div>
-            <div className="flex gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setShowEditDialog(true)}
-              >
-                <IconEdit className="size-4 mr-2" />
-                Edit
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setShowDeleteDialog(true)}
-              >
-                <IconTrash className="size-4" />
-              </Button>
-            </div>
+          <div className="text-sm text-muted-foreground">
+            <span className="font-medium">
+              {formatStandupScope(
+                standup.companyId,
+                standup.projectIds,
+                companies,
+                projects,
+              )}
+            </span>
+            <span className="mx-2">/</span>
+            <span>
+              {formatStandupSchedule(standup.meetingTime, standup.daysMask)}
+            </span>
           </div>
         </div>
       </div>
 
       {/* Beta Banner */}
-      <div className="px-8 pt-6">
+      <div className="px-2 lg:px-8 pt-2 lg:pt-6">
         <BetaFeatureBanner />
       </div>
 
       {/* Two-column layout */}
-      <div className="flex-1 grid grid-cols-1 lg:grid-cols-2 gap-6 p-8">
+      <div className="flex-1 grid grid-cols-1 lg:grid-cols-2 gap-6 lg:p-8 p-2">
         {/* Left column */}
         <div className="space-y-6">
           <CurrentStandupEditor
+            key={`current-${refreshKey}`}
             standupId={standup.id}
             standup={standup}
             onAchievementImpactChange={handleImpactChange}
+            onRefresh={triggerRefresh}
           />
         </div>
 
         {/* Right column */}
         <div className="space-y-6">
           <RecentAchievementsTable
+            key={`recent-${refreshKey}`}
             standupId={standup.id}
             standup={standup}
             onImpactChange={handleImpactChange}
+            onRefresh={triggerRefresh}
           />
         </div>
       </div>
@@ -246,29 +210,6 @@ export function ExistingStandupContent({ standup }: ExistingStandupPageProps) {
           />
         </DialogContent>
       </Dialog>
-
-      {/* Delete Confirmation Dialog */}
-      <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-            <AlertDialogDescription>
-              This will permanently delete your standup and all associated
-              updates. This action cannot be undone.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel disabled={isDeleting}>Cancel</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={handleDelete}
-              disabled={isDeleting}
-              className="bg-destructive text-destructive-foreground"
-            >
-              {isDeleting ? 'Deleting...' : 'Delete'}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
     </div>
   );
 }

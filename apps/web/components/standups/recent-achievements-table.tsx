@@ -7,6 +7,8 @@ import type { Standup, StandupDocument, Achievement } from '@bragdoc/database';
 import { Card, CardContent, CardHeader, CardTitle } from 'components/ui/card';
 import { Button } from 'components/ui/button';
 import { AchievementItem } from '@/components/achievements/achievement-item';
+import { AchievementDialog } from '@/components/achievements/AchievementDialog';
+import { DeleteAchievementDialog } from '@/components/achievements/delete-achievement-dialog';
 import { calculateStandupOccurrences } from '@/lib/standups/calculate-standup-occurrences';
 import { getStandupAchievementDateRange } from '@/lib/scheduling/nextRun';
 import {
@@ -38,6 +40,7 @@ interface RecentAchievementsTableProps {
   standupId: string;
   standup: Standup;
   onImpactChange: (achievementId: string, impact: number) => void;
+  onRefresh?: () => void;
 }
 
 /**
@@ -78,6 +81,7 @@ export function RecentAchievementsTable({
   standupId,
   standup,
   onImpactChange,
+  onRefresh,
 }: RecentAchievementsTableProps) {
   const router = useRouter();
 
@@ -107,6 +111,15 @@ export function RecentAchievementsTable({
     useState<StandupDocument | null>(null);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [achievementToDelete, setAchievementToDelete] =
+    useState<Achievement | null>(null);
+  const [showAchievementDeleteDialog, setShowAchievementDeleteDialog] =
+    useState(false);
+  const [isDeletingAchievement, setIsDeletingAchievement] = useState(false);
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [achievementToEdit, setAchievementToEdit] =
+    useState<Achievement | null>(null);
+  const [isEditingAchievement, setIsEditingAchievement] = useState(false);
 
   // Navigation handlers
   const handlePrevWeek = () => {
@@ -195,7 +208,71 @@ export function RecentAchievementsTable({
     );
   };
 
-  // Delete handler
+  // Edit handler for achievements
+  const handleEditAchievement = (achievement: Achievement) => {
+    setAchievementToEdit(achievement);
+    setEditDialogOpen(true);
+  };
+
+  const handleEditSubmit = async (data: any) => {
+    if (!achievementToEdit) return;
+
+    setIsEditingAchievement(true);
+    try {
+      const response = await fetch(
+        `/api/achievements/${achievementToEdit.id}`,
+        {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(data),
+        },
+      );
+
+      if (!response.ok) {
+        throw new Error('Failed to update achievement');
+      }
+
+      // Refetch data to update UI
+      const { startDate, endDate } = getWeekDateRange(weekOffset);
+      const achievementsRes = await fetch(
+        `/api/standups/${standupId}/achievements?startDate=${startDate.toISOString()}&endDate=${endDate.toISOString()}`,
+      );
+
+      if (achievementsRes.ok) {
+        const achievementsData = await achievementsRes.json();
+
+        // Regroup achievements
+        const byDocument = new Map<string, Achievement[]>();
+        const orphaned: Achievement[] = [];
+        for (const achievement of achievementsData) {
+          if (achievement.standupDocumentId) {
+            const existing =
+              byDocument.get(achievement.standupDocumentId) || [];
+            existing.push(achievement);
+            byDocument.set(achievement.standupDocumentId, existing);
+          } else {
+            orphaned.push(achievement);
+          }
+        }
+        setAchievementsByDocument(byDocument);
+        setOrphanedAchievements(orphaned);
+      }
+
+      // Close dialog and reset state
+      setEditDialogOpen(false);
+      setAchievementToEdit(null);
+      toast.success('Achievement updated successfully');
+      // Notify parent to refresh the other column as well
+      onRefresh?.();
+    } catch (error) {
+      console.error('Error updating achievement:', error);
+      toast.error('Failed to update achievement');
+    } finally {
+      setIsEditingAchievement(false);
+    }
+  };
+
+  // Delete handler for documents
   const handleDeleteDocument = async () => {
     if (!documentToDelete) return;
 
@@ -261,6 +338,65 @@ export function RecentAchievementsTable({
       toast.error('Failed to delete standup document');
     } finally {
       setIsDeleting(false);
+    }
+  };
+
+  // Delete handler for achievements
+  const handleDeleteAchievement = async () => {
+    if (!achievementToDelete) return;
+
+    setIsDeletingAchievement(true);
+    try {
+      const response = await fetch(
+        `/api/achievements/${achievementToDelete.id}`,
+        {
+          method: 'DELETE',
+        },
+      );
+
+      if (!response.ok) {
+        throw new Error('Failed to delete achievement');
+      }
+
+      // Refetch data to update UI
+      const { startDate, endDate } = getWeekDateRange(weekOffset);
+      const achievementsRes = await fetch(
+        `/api/standups/${standupId}/achievements?startDate=${startDate.toISOString()}&endDate=${endDate.toISOString()}`,
+      );
+
+      if (achievementsRes.ok) {
+        const achievementsData = await achievementsRes.json();
+
+        // Regroup achievements
+        const byDocument = new Map<string, Achievement[]>();
+        const orphaned: Achievement[] = [];
+        for (const achievement of achievementsData) {
+          if (achievement.standupDocumentId) {
+            const existing =
+              byDocument.get(achievement.standupDocumentId) || [];
+            existing.push(achievement);
+            byDocument.set(achievement.standupDocumentId, existing);
+          } else {
+            orphaned.push(achievement);
+          }
+        }
+        setAchievementsByDocument(byDocument);
+        setOrphanedAchievements(orphaned);
+      }
+
+      // Refresh the page to ensure all data is up to date
+      router.refresh();
+
+      // Close dialog and reset state
+      setShowAchievementDeleteDialog(false);
+      setAchievementToDelete(null);
+      // Notify parent to refresh the other column as well
+      onRefresh?.();
+    } catch (error) {
+      console.error('Error deleting achievement:', error);
+      throw error; // Re-throw for DeleteAchievementDialog to handle
+    } finally {
+      setIsDeletingAchievement(false);
     }
   };
 
@@ -475,6 +611,11 @@ export function RecentAchievementsTable({
                               <AchievementItem
                                 achievement={achievement as any}
                                 onImpactChange={handleImpactChange}
+                                onEdit={handleEditAchievement}
+                                onDelete={(ach) => {
+                                  setAchievementToDelete(ach as Achievement);
+                                  setShowAchievementDeleteDialog(true);
+                                }}
                                 readOnly={false}
                                 showSourceBadge={true}
                                 linkToAchievements={false}
@@ -617,6 +758,11 @@ export function RecentAchievementsTable({
                       <AchievementItem
                         achievement={achievement as any}
                         onImpactChange={handleImpactChange}
+                        onEdit={handleEditAchievement}
+                        onDelete={(ach) => {
+                          setAchievementToDelete(ach as Achievement);
+                          setShowAchievementDeleteDialog(true);
+                        }}
                         readOnly={false}
                         showSourceBadge={true}
                         linkToAchievements={false}
@@ -630,7 +776,7 @@ export function RecentAchievementsTable({
         )}
       </CardContent>
 
-      {/* Delete Confirmation Dialog */}
+      {/* Delete Confirmation Dialog for Standup Documents */}
       <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
         <AlertDialogContent>
           <AlertDialogHeader>
@@ -655,6 +801,29 @@ export function RecentAchievementsTable({
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Delete Confirmation Dialog for Achievements */}
+      <DeleteAchievementDialog
+        open={showAchievementDeleteDialog}
+        onOpenChange={setShowAchievementDeleteDialog}
+        achievement={achievementToDelete as any}
+        onConfirm={handleDeleteAchievement}
+        isDeleting={isDeletingAchievement}
+      />
+
+      {/* Edit Achievement Dialog */}
+      <AchievementDialog
+        mode="edit"
+        open={editDialogOpen}
+        onOpenChange={(open) => {
+          setEditDialogOpen(open);
+          if (!open) {
+            setAchievementToEdit(null);
+          }
+        }}
+        achievement={achievementToEdit as any}
+        onSubmit={handleEditSubmit}
+      />
     </Card>
   );
 }
