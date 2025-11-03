@@ -8,6 +8,7 @@ import { PrivacyDiagram } from '@/components/how-it-works/privacy-diagram';
 import { WorkflowExamples } from '@/components/how-it-works/workflow-examples';
 import { HowItWorksCTA } from '@/components/how-it-works/how-it-works-cta';
 import { HowToSchema } from '@/components/structured-data/how-to-schema';
+import { DemoCTA } from '@/components/demo-cta';
 
 export const metadata: Metadata = {
   title: 'How BragDoc Works: Automatic Achievement Tracking from Git Commits',
@@ -55,6 +56,11 @@ export default function HowItWorksPage() {
       <main className="pt-16">
         <HowItWorksHeader />
         <WorkflowSteps />
+        <section className="px-4 sm:px-6 lg:px-8 py-12 bg-muted/30">
+          <div className="container mx-auto max-w-2xl">
+            <DemoCTA />
+          </div>
+        </section>
         <PrivacyArchitectureV2 />
         <PrivacyDiagram />
         <WorkflowExamples />
