@@ -11,6 +11,7 @@ import { Badge } from '@/components/ui/badge';
 import { MDXRemote } from 'next-mdx-remote/rsc';
 import { BlogPostingSchema } from '@/components/structured-data/blog-posting-schema';
 import { DemoCTA } from '@/components/demo-cta';
+import { YouTubeEmbed } from '@/components/youtube-embed';
 
 export async function generateMetadata({
   params,
@@ -116,7 +117,10 @@ export default async function BlogPostPage({
 
             {/* Post Content */}
             <div className="prose prose-lg dark:prose-invert max-w-none">
-              <MDXRemote source={post.content} components={{ DemoCTA }} />
+              <MDXRemote
+                source={post.content}
+                components={{ DemoCTA, YouTubeEmbed }}
+              />
             </div>
           </div>
         </article>
