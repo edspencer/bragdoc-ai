@@ -14,7 +14,7 @@ interface DemoHelpVideo {
 
 // Default placeholder video (can be updated with real ID later)
 const DEFAULT_VIDEO: DemoHelpVideo = {
-  youtubeId: 'dQw4w9WgXcQ', // Placeholder
+  youtubeId: '-AS45-hLDe0',
   title: 'Getting Started with BragDoc',
   description: 'Learn how to use BragDoc in demo mode',
 };

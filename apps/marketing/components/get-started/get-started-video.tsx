@@ -1,6 +1,6 @@
 'use client';
 
-import { Play } from 'lucide-react';
+import { YouTubeEmbed } from '../youtube-embed';
 
 export function GetStartedVideo() {
   return (
@@ -17,32 +17,11 @@ export function GetStartedVideo() {
         </div>
 
         <div className="max-w-4xl mx-auto">
-          {/* YouTube embed container with 16:9 aspect ratio */}
-          <div className="relative w-full rounded-lg overflow-hidden shadow-xl bg-muted border border-border">
-            <div className="relative pb-[56.25%]">
-              {/* Placeholder until video is uploaded */}
-              <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-primary/10 to-primary/5">
-                <div className="text-center">
-                  <div className="inline-flex items-center justify-center size-20 rounded-full bg-primary/20 mb-4">
-                    <Play className="size-10 text-primary ml-1" />
-                  </div>
-                  <p className="text-sm text-muted-foreground">
-                    Getting Started video coming soon
-                  </p>
-                </div>
-              </div>
-
-              {/* Replace the placeholder div above with this iframe when video is ready:
-              <iframe
-                className="absolute inset-0 w-full h-full"
-                src="https://www.youtube.com/embed/YOUR_VIDEO_ID"
-                title="Getting Started with BragDoc"
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                allowFullScreen
-              />
-              */}
-            </div>
-          </div>
+          <YouTubeEmbed
+            videoId="-AS45-hLDe0"
+            title="Getting Started with BragDoc"
+            className="shadow-xl"
+          />
 
           <p className="text-center text-sm text-muted-foreground mt-6">
             Follow along as we walk through installation, configuration, and

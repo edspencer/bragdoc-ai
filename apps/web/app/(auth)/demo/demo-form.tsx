@@ -30,6 +30,14 @@ export function DemoForm({ empty = false }: { empty?: boolean }) {
       const data = await response.json();
 
       if (data.success && data.redirectTo) {
+        // Clear demo help localStorage flag for fresh start
+        try {
+          localStorage.removeItem('demo-help-seen');
+        } catch (error) {
+          // Ignore localStorage errors (private browsing, etc.)
+          console.warn('Failed to clear demo help flag:', error);
+        }
+
         // Cookie is now set, redirect to dashboard
         window.location.href = data.redirectTo;
       } else {

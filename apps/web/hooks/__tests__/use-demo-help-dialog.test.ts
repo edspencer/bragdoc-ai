@@ -14,10 +14,10 @@ describe('useDemoHelpDialog', () => {
     jest.clearAllMocks();
   });
 
-  it('should initialize with dialog closed', () => {
+  it('should initialize with dialog closed when demo mode is disabled', () => {
     (isDemoHelpEnabled as jest.Mock).mockReturnValue(false);
 
-    const { result } = renderHook(() => useDemoHelpDialog('dashboard', false));
+    const { result } = renderHook(() => useDemoHelpDialog(false));
 
     expect(result.current.isOpen).toBe(false);
   });
@@ -25,7 +25,7 @@ describe('useDemoHelpDialog', () => {
   it('should open dialog on first view when demo mode enabled', () => {
     (isDemoHelpEnabled as jest.Mock).mockReturnValue(true);
 
-    const { result } = renderHook(() => useDemoHelpDialog('dashboard', true));
+    const { result } = renderHook(() => useDemoHelpDialog(true));
 
     expect(result.current.isOpen).toBe(true);
   });
@@ -33,7 +33,7 @@ describe('useDemoHelpDialog', () => {
   it('should not open dialog if feature is disabled', () => {
     (isDemoHelpEnabled as jest.Mock).mockReturnValue(false);
 
-    const { result } = renderHook(() => useDemoHelpDialog('dashboard', true));
+    const { result } = renderHook(() => useDemoHelpDialog(true));
 
     expect(result.current.isOpen).toBe(false);
   });
@@ -41,7 +41,7 @@ describe('useDemoHelpDialog', () => {
   it('should not open dialog if user is not in demo mode', () => {
     (isDemoHelpEnabled as jest.Mock).mockReturnValue(true);
 
-    const { result } = renderHook(() => useDemoHelpDialog('dashboard', false));
+    const { result } = renderHook(() => useDemoHelpDialog(false));
 
     expect(result.current.isOpen).toBe(false);
   });
@@ -49,7 +49,7 @@ describe('useDemoHelpDialog', () => {
   it('should save to localStorage when dialog closes', () => {
     (isDemoHelpEnabled as jest.Mock).mockReturnValue(true);
 
-    const { result } = renderHook(() => useDemoHelpDialog('dashboard', true));
+    const { result } = renderHook(() => useDemoHelpDialog(true));
 
     expect(result.current.isOpen).toBe(true);
 
@@ -59,35 +59,31 @@ describe('useDemoHelpDialog', () => {
     });
 
     expect(result.current.isOpen).toBe(false);
-    expect(localStorage.getItem('demo-help-seen-dashboard')).toBe('true');
+    expect(localStorage.getItem('demo-help-seen')).toBe('true');
   });
 
   it('should not open dialog if already seen (localStorage set)', () => {
     (isDemoHelpEnabled as jest.Mock).mockReturnValue(true);
-    localStorage.setItem('demo-help-seen-dashboard', 'true');
+    localStorage.setItem('demo-help-seen', 'true');
 
-    const { result } = renderHook(() => useDemoHelpDialog('dashboard', true));
+    const { result } = renderHook(() => useDemoHelpDialog(true));
 
     expect(result.current.isOpen).toBe(false);
   });
 
-  it('should track different pages independently', () => {
+  it('should not auto-open when autoOpen is false', () => {
     (isDemoHelpEnabled as jest.Mock).mockReturnValue(true);
-    localStorage.setItem('demo-help-seen-dashboard', 'true');
 
-    const { result: reportResult } = renderHook(() =>
-      useDemoHelpDialog('reports', true),
-    );
+    const { result } = renderHook(() => useDemoHelpDialog(true, false));
 
-    // Reports page should still open even though dashboard was seen
-    expect(reportResult.current.isOpen).toBe(true);
+    expect(result.current.isOpen).toBe(false);
   });
 
   it('should allow dialog to reopen via setIsOpen regardless of localStorage', () => {
     (isDemoHelpEnabled as jest.Mock).mockReturnValue(true);
-    localStorage.setItem('demo-help-seen-dashboard', 'true');
+    localStorage.setItem('demo-help-seen', 'true');
 
-    const { result } = renderHook(() => useDemoHelpDialog('dashboard', true));
+    const { result } = renderHook(() => useDemoHelpDialog(true));
 
     expect(result.current.isOpen).toBe(false);
 
