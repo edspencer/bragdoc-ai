@@ -2,7 +2,7 @@ import { auth } from '@/lib/better-auth/server';
 import { headers } from 'next/headers';
 import { getStandupsByUserId } from '@bragdoc/database';
 import { StandupZeroState } from 'components/standups/standup-zero-state';
-import { ExistingStandupContent } from 'components/standups/existing-standup-content';
+import { StandupDetailsWrapper } from './standup-details-wrapper';
 import { AppPage } from '@/components/shared/app-page';
 import { SidebarInset } from '@/components/ui/sidebar';
 import { SiteHeader } from '@/components/site-header';
@@ -28,11 +28,13 @@ export default async function StandupPage() {
   return (
     <AppPage>
       <SidebarInset>
-        <SiteHeader title="Stand Up" />
         {!standup ? (
-          <StandupZeroState />
+          <>
+            <SiteHeader title="Stand Up" />
+            <StandupZeroState />
+          </>
         ) : (
-          <ExistingStandupContent standup={standup} />
+          <StandupDetailsWrapper standup={standup} />
         )}
       </SidebarInset>
     </AppPage>

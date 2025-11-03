@@ -1,21 +1,20 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
+import { useRouter } from 'next/navigation';
 import { Button } from 'components/ui/button';
 import { Checkbox } from 'components/ui/checkbox';
 import { Card, CardContent, CardHeader, CardTitle } from 'components/ui/card';
 import { Badge } from 'components/ui/badge';
 import { Separator } from 'components/ui/separator';
-import {
-  IconSparkles,
-  IconCheck,
-  IconX,
-  IconStar,
-  IconStarFilled,
-} from '@tabler/icons-react';
+import { IconSparkles, IconCheck, IconX } from '@tabler/icons-react';
 import { toast } from 'sonner';
 import { format, formatDistanceToNow } from 'date-fns';
 import type { Standup, StandupDocument } from '@bragdoc/database';
+import { AchievementItem } from '@/components/achievements/achievement-item';
+import { AchievementDialog } from '@/components/achievements/AchievementDialog';
+import { DeleteAchievementDialog } from '@/components/achievements/delete-achievement-dialog';
+import { useAchievementActions } from '@/hooks/use-achievement-actions';
 
 interface Achievement {
   id: string;
@@ -33,13 +32,17 @@ interface CurrentStandupEditorProps {
   standupId: string;
   standup: Standup;
   onAchievementImpactChange: (achievementId: string, impact: number) => void;
+  onRefresh?: () => void;
 }
 
 export function CurrentStandupEditor({
   standupId,
   standup,
   onAchievementImpactChange,
+  onRefresh,
 }: CurrentStandupEditorProps) {
+  const router = useRouter();
+
   // Document state
   const [currentStandupDocument, setCurrentStandupDocument] =
     useState<StandupDocument | null>(null);
@@ -52,6 +55,38 @@ export function CurrentStandupEditor({
     Set<string>
   >(new Set());
   const [isLoadingAchievements, setIsLoadingAchievements] = useState(true);
+
+  // Achievement edit/delete actions hook with custom onRefresh for this component
+  const {
+    editDialogOpen,
+    setEditDialogOpen,
+    achievementToEdit,
+    handleEditClick,
+    handleEditSubmit,
+    deleteDialogOpen,
+    setDeleteDialogOpen,
+    achievementToDelete,
+    handleDeleteClick,
+    handleDeleteConfirm,
+    isDeletingAchievement,
+  } = useAchievementActions({
+    onRefresh: async () => {
+      const achievementsRes = await fetch(
+        `/api/standups/${standupId}/achievements/unassigned`,
+      );
+      if (achievementsRes.ok) {
+        const achievementsData = await achievementsRes.json();
+        const loadedAchievements = achievementsData.achievements || [];
+        setAchievements(loadedAchievements);
+        // Select all achievements by default after refresh
+        setSelectedAchievementIds(
+          new Set(loadedAchievements.map((a: Achievement) => a.id)),
+        );
+      }
+      // Notify parent to refresh the other column as well
+      onRefresh?.();
+    },
+  });
 
   // Achievements Summary state
   const [achievementsSummaryDraft, setAchievementsSummaryDraft] = useState('');
@@ -99,7 +134,13 @@ export function CurrentStandupEditor({
         // Handle null document gracefully
         setCurrentStandupDocument(docData.document);
         setNextStandupDate(new Date(docData.nextStandupDate));
-        setAchievements(achievementsData.achievements || []);
+        const loadedAchievements = achievementsData.achievements || [];
+        setAchievements(loadedAchievements);
+
+        // Select all achievements by default
+        setSelectedAchievementIds(
+          new Set(loadedAchievements.map((a: Achievement) => a.id)),
+        );
 
         // Initialize drafts and originals from document (or empty if document is null)
         const initialAchievementsSummary =
@@ -348,51 +389,29 @@ export function CurrentStandupEditor({
               No unassigned achievements for this period
             </p>
           ) : (
-            <div className="space-y-2">
+            <div className="space-y-0">
               {achievements.map((achievement) => (
                 <div
                   key={achievement.id}
-                  className="flex items-center gap-3 p-3 rounded-lg border hover:bg-muted/50 transition-colors"
+                  className="border-b border-border pb-4 last:border-b-0 flex items-start gap-3 mb-4"
                 >
                   <Checkbox
                     checked={selectedAchievementIds.has(achievement.id)}
                     onCheckedChange={() =>
                       toggleAchievementSelection(achievement.id)
                     }
+                    className="mt-1 shrink-0"
                   />
                   <div className="flex-1 min-w-0">
-                    <h4 className="text-sm font-medium">{achievement.title}</h4>
-                    {achievement.summary && (
-                      <p className="text-xs text-muted-foreground mt-1">
-                        {achievement.summary}
-                      </p>
-                    )}
-                    {achievement.projectName && (
-                      <Badge variant="outline" className="text-xs mt-2">
-                        {achievement.projectName}
-                      </Badge>
-                    )}
-                  </div>
-                  <div className="flex gap-0.5 shrink-0">
-                    {[...Array(10)].map((_, i) => {
-                      const isSelected = i < (achievement.impact || 0);
-                      return (
-                        <button
-                          key={i}
-                          type="button"
-                          onClick={() =>
-                            handleImpactChange(achievement.id, i + 1)
-                          }
-                          className="hover:scale-110 transition-transform"
-                        >
-                          {isSelected ? (
-                            <IconStarFilled className="size-4 text-yellow-400" />
-                          ) : (
-                            <IconStar className="size-4 text-muted-foreground" />
-                          )}
-                        </button>
-                      );
-                    })}
+                    <AchievementItem
+                      achievement={achievement as any}
+                      onImpactChange={handleImpactChange}
+                      onEdit={(ach) => handleEditClick(ach as any)}
+                      onDelete={(ach) => handleDeleteClick(ach as any)}
+                      readOnly={false}
+                      showSourceBadge={true}
+                      linkToAchievements={false}
+                    />
                   </div>
                 </div>
               ))}
@@ -417,7 +436,7 @@ export function CurrentStandupEditor({
             onChange={(e) => setAchievementsSummaryDraft(e.target.value)}
             onFocus={() => setIsAchievementsSummaryFocused(true)}
             placeholder="Click to add what you accomplished this period"
-            rows={6}
+            rows={7}
             className={`w-full resize-none rounded-md px-3 py-2 text-sm transition-all
               ${
                 isAchievementsSummaryFocused || achievementsSummaryDraft
@@ -512,6 +531,24 @@ export function CurrentStandupEditor({
           )}
         </div>
       </CardContent>
+
+      {/* Achievement Edit Dialog */}
+      <AchievementDialog
+        mode="edit"
+        open={editDialogOpen}
+        onOpenChange={setEditDialogOpen}
+        achievement={achievementToEdit as any}
+        onSubmit={handleEditSubmit}
+      />
+
+      {/* Achievement Delete Dialog */}
+      <DeleteAchievementDialog
+        open={deleteDialogOpen}
+        onOpenChange={setDeleteDialogOpen}
+        achievement={achievementToDelete as any}
+        onConfirm={handleDeleteConfirm}
+        isDeleting={isDeletingAchievement}
+      />
     </Card>
   );
 }

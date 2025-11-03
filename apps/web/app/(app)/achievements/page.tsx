@@ -2,12 +2,14 @@
 
 import * as React from 'react';
 import { IconPlus } from '@tabler/icons-react';
+import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 
 import { Button } from '@/components/ui/button';
 import { WeeklyImpactChart } from '@/components/weekly-impact-chart';
 import { AchievementsTable } from '@/components/achievements-table';
 import { AchievementDialog } from '@/components/achievements/AchievementDialog';
+import { DeleteAchievementDialog } from '@/components/achievements/delete-achievement-dialog';
 import { GenerateDocumentDialog } from '@/components/generate-document-dialog';
 import { QuickAddAchievementDialog } from '@/components/quick-add-achievement-dialog';
 import { SidebarInset } from '@/components/ui/sidebar';
@@ -25,6 +27,7 @@ import { AppContent } from '@/components/shared/app-content';
 
 export default function AchievementsPage() {
   // Data fetching hooks
+  const router = useRouter();
   const { companies } = useCompanies();
   const { projects } = useProjects();
   const { createAchievement, updateAchievement } = useAchievementMutations();
@@ -39,6 +42,10 @@ export default function AchievementsPage() {
   const [editMode, setEditMode] = React.useState<'create' | 'edit'>('create');
   const [selectedAchievementForEdit, setSelectedAchievementForEdit] =
     React.useState<AchievementWithRelations | null>(null);
+  const [deleteDialogOpen, setDeleteDialogOpen] = React.useState(false);
+  const [selectedAchievementForDelete, setSelectedAchievementForDelete] =
+    React.useState<AchievementWithRelations | null>(null);
+  const [isDeleting, setIsDeleting] = React.useState(false);
 
   // Table state
   const [selectedAchievements, setSelectedAchievements] = React.useState<
@@ -117,6 +124,40 @@ export default function AchievementsPage() {
     setEditDialogOpen(true);
   };
 
+  const handleDeleteClick = (achievement: AchievementWithRelations) => {
+    setSelectedAchievementForDelete(achievement);
+    setDeleteDialogOpen(true);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!selectedAchievementForDelete) return;
+
+    setIsDeleting(true);
+    try {
+      const response = await fetch(
+        `/api/achievements/${selectedAchievementForDelete.id}`,
+        {
+          method: 'DELETE',
+        },
+      );
+
+      if (!response.ok) {
+        throw new Error('Delete failed');
+      }
+
+      await mutateAchievements(); // Refresh the list
+      setDeleteDialogOpen(false);
+      setSelectedAchievementForDelete(null);
+      toast.success('Achievement deleted successfully');
+    } catch (error) {
+      console.error('Error deleting achievement:', error);
+      toast.error('Failed to delete achievement');
+      throw error; // Re-throw for dialog to handle
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
   const handleAchievementSubmit = async (data: any) => {
     try {
       if (editMode === 'create') {
@@ -161,6 +202,7 @@ export default function AchievementsPage() {
             selectedAchievements={selectedAchievements}
             onGenerateDocument={handleGenerateDocument}
             onEdit={handleEditClick}
+            onDelete={handleDeleteClick}
           />
 
           <WeeklyImpactChart achievements={achievements} />
@@ -186,6 +228,13 @@ export default function AchievementsPage() {
         }}
         achievement={selectedAchievementForEdit || undefined}
         onSubmit={handleAchievementSubmit}
+      />
+      <DeleteAchievementDialog
+        open={deleteDialogOpen}
+        onOpenChange={setDeleteDialogOpen}
+        achievement={selectedAchievementForDelete}
+        onConfirm={handleConfirmDelete}
+        isDeleting={isDeleting}
       />
       <QuickAddAchievementDialog
         open={quickAddDialogOpen}
