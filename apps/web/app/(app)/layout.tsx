@@ -4,19 +4,28 @@ import { ArtifactProvider } from '@/hooks/use-artifact';
 import { ArtifactCanvas } from '@/components/artifact-canvas';
 import { SidebarProvider } from '@/components/ui/sidebar';
 import { AppSidebar } from '@/components/app-sidebar';
-import { DemoModeBanner } from '@/components/demo-mode-banner';
+import { DemoModeBannerWrapper } from '@/components/demo-mode-banner-wrapper';
 import { DemoModeLayout } from '@/components/demo-mode-layout';
+import { auth } from '@/lib/better-auth/server';
+import { headers } from 'next/headers';
 
-export default function AppLayout({
+export default async function AppLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const session = await auth.api.getSession({
+    headers: await headers(),
+  });
+
+  // Derive isDemoMode from session
+  const isDemoMode = (session?.user as any)?.level === 'demo';
+
   return (
     <ArtifactProvider>
       <DataStreamProvider>
         <DemoModeLayout>
-          <DemoModeBanner />
+          <DemoModeBannerWrapper isDemoMode={isDemoMode} />
           <SidebarProvider
             style={
               {

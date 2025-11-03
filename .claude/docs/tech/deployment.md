@@ -25,11 +25,13 @@ pnpm dev:marketing    # Port varies
 ### Next.js 16 Build System
 
 **Bundler**: Turbopack (default as of Next.js 16)
+
 - 2-5× faster builds compared to webpack
 - Incremental compilation
 - Improved Hot Module Replacement (HMR)
 
 **Opt-out to webpack** (if needed):
+
 ```bash
 pnpm build --webpack
 ```
@@ -93,11 +95,13 @@ pnpm db:studio
 ### Setup
 
 1. **Install Wrangler**
+
    ```bash
    pnpm add -D wrangler
    ```
 
 2. **Configure wrangler.toml**
+
    ```toml
    name = "bragdoc"
    compatibility_date = "2024-01-01"
@@ -107,6 +111,7 @@ pnpm db:studio
    ```
 
 3. **Build for Cloudflare**
+
    ```bash
    pnpm --filter=@bragdoc/web build
    ```
@@ -123,6 +128,7 @@ pnpm db:studio
 **Proxy Middleware**: The upgrade to Next.js 16 includes renaming `middleware.ts` → `proxy.ts`, which improves Cloudflare Workers compatibility. Additionally, the removal of `redirect()` calls in Server Components (like in `cli-auth/page.tsx`) eliminates edge runtime build issues.
 
 **Key improvements**:
+
 - Proxy file (`apps/web/proxy.ts`) uses proper Next.js 16 patterns
 - No `redirect()` in Server Components (Cloudflare Workers compatible)
 - Turbopack bundler optimized for edge runtime
@@ -164,6 +170,7 @@ if (process.env.NODE_ENV === 'development') {
    - Select `apps/web` as root directory
 
 2. **Configure Environment Variables**
+
    ```
    POSTGRES_URL
    AUTH_SECRET
@@ -231,7 +238,7 @@ services:
   web:
     build: .
     ports:
-      - "3000:3000"
+      - '3000:3000'
     environment:
       - POSTGRES_URL=${POSTGRES_URL}
       - AUTH_SECRET=${AUTH_SECRET}
@@ -301,7 +308,18 @@ ANTHROPIC_API_KEY=...
 # Demo Mode
 DEMO_MODE_ENABLED=true
 NEXT_PUBLIC_DEMO_MODE_ENABLED=true
+
+# Demo Help Dialogs
+NEXT_PUBLIC_DEMO_HELP_ENABLED=true
+NEXT_PUBLIC_DEMO_HELP_VIDEO_ID=...  # YouTube video ID (optional)
 ```
+
+**Demo Help Configuration Details:**
+
+- `NEXT_PUBLIC_DEMO_HELP_ENABLED` - Controls whether help dialogs appear for demo users (set to `'true'` to enable). Defaults to disabled for open-source deployments.
+- `NEXT_PUBLIC_DEMO_HELP_VIDEO_ID` - Optional YouTube video ID override for dashboard tutorial. If not set, uses placeholder ID (can be updated later).
+
+Note: These variables only have effect when `NEXT_PUBLIC_DEMO_MODE_ENABLED=true`. The feature is disabled by default for open-source deployments to reduce support burden for self-hosted instances.
 
 ## Database Setup
 
@@ -405,6 +423,7 @@ wrangler secret put NEXT_PUBLIC_POSTHOG_HOST
 ```
 
 **Verify:**
+
 - Marketing site uses cookieless mode (no cookies set)
 - Web app switches from memory to localStorage+cookie after authentication
 - Events appear in PostHog dashboard with correct properties
@@ -412,6 +431,6 @@ wrangler secret put NEXT_PUBLIC_POSTHOG_HOST
 
 ---
 
-**Last Updated:** 2025-10-24 (PostHog analytics environment variables)
+**Last Updated:** 2025-11-02 (Added Demo Help Dialogs environment variables)
 **Deployment Targets:** Cloudflare Workers, Vercel, Docker
 **Build System:** Turbopack (default in Next.js 16)
