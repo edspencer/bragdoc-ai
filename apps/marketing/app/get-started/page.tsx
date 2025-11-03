@@ -11,9 +11,9 @@ import { HowToSchema } from '@/components/structured-data/how-to-schema';
 
 export const metadata: Metadata = {
   title:
-    'Get Started with BragDoc: 5-Minute Setup Guide for Automatic Achievement Tracking',
+    'Get Started with BragDoc: 6-Minute Setup Guide for Automatic Achievement Tracking',
   description:
-    'Quick start guide: Install BragDoc CLI, configure your LLM, extract achievements from git commits. Video tutorial and step-by-step instructions included.',
+    'Quick start guide: Install BragDoc CLI, configure your LLM, create your account, and extract achievements from git commits. Video tutorial and step-by-step instructions included.',
   keywords:
     'get started bragdoc, bragdoc tutorial, setup achievement tracking, install bragdoc cli',
   alternates: {
@@ -27,16 +27,20 @@ const getStartedSteps = [
     text: 'Run npm install -g @bragdoc/cli to install the command-line tool globally.',
   },
   {
+    name: 'Create Account',
+    text: 'Set up your free account.',
+  },
+  {
     name: 'Login to BragDoc',
     text: 'Run bragdoc login to authenticate with your account.',
   },
   {
-    name: 'Initialize Repository',
-    text: 'Navigate to your git repository and run bragdoc init to connect it to BragDoc.',
-  },
-  {
     name: 'Configure LLM',
     text: 'Set up your preferred LLM provider (OpenAI, Anthropic, or local Ollama).',
+  },
+  {
+    name: 'Initialize Repository',
+    text: 'Navigate to your git repository and run bragdoc init to connect it to BragDoc.',
   },
   {
     name: 'Extract Achievements',

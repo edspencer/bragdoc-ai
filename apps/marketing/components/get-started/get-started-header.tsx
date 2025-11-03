@@ -22,8 +22,8 @@ export function GetStartedHeader() {
           </h1>
 
           <p className="text-lg sm:text-xl text-muted-foreground text-balance leading-relaxed">
-            Choose the path that works best for you. All paths lead to the same
-            powerful achievement tracking.
+            Get started with BragDoc in 5 simple steps using the CLI and local
+            AI configuration
           </p>
         </div>
       </div>

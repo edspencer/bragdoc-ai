@@ -1,5 +1,7 @@
 import type React from 'react';
+import Link from 'next/link';
 import { Card, CardContent } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 import { CodeBlock } from '@/components/code-block';
 
 export function PathASteps() {
@@ -22,6 +24,21 @@ bragdoc --version`}
 
           <StepItem
             number={2}
+            title="Create Account"
+            time="1 minute"
+            description="Set up your free account"
+          >
+            <div className="flex justify-center my-4">
+              <Link href="/register">
+                <Button size="lg" className="text-lg px-8 py-6">
+                  Create Account
+                </Button>
+              </Link>
+            </div>
+          </StepItem>
+
+          <StepItem
+            number={3}
             title="Authenticate"
             time="1 minute"
             description="Connect your CLI to your BragDoc account"
@@ -34,21 +51,21 @@ bragdoc --version`}
           </StepItem>
 
           <StepItem
-            number={3}
+            number={4}
             title="Configure LLM"
             time="2 minutes"
-            description="Set up your preferred AI provider (we recommend Ollama for free/local)"
+            description="Choose Ollama for free local AI configuration"
           >
             <CodeBlock
               language="bash"
               code={`bragdoc llm set
-# Choose provider (recommend Ollama for free/local)
+# Select Ollama for free, local AI
 # Enter API key (if cloud provider)`}
             />
           </StepItem>
 
           <StepItem
-            number={4}
+            number={5}
             title="Initialize First Project"
             time="1 minute"
             description="Set up BragDoc in your project directory"
@@ -62,7 +79,7 @@ bragdoc init
           </StepItem>
 
           <StepItem
-            number={5}
+            number={6}
             title="Extract Achievements"
             time="1 minute"
             description="Run your first extraction and see your achievements"
