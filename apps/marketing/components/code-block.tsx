@@ -28,8 +28,12 @@ export function CodeBlock({ code, language }: CodeBlockProps) {
       >
         {copied ? <Check className="size-4" /> : <Copy className="size-4" />}
       </Button>
-      <pre className="bg-muted p-4 rounded-lg overflow-x-auto">
-        <code className={`language-${language} text-sm font-mono`}>{code}</code>
+      <pre className="bg-zinc-900 border border-zinc-800 p-4 rounded-lg overflow-x-auto">
+        <code
+          className={`language-${language} text-sm font-mono text-zinc-100`}
+        >
+          {code}
+        </code>
       </pre>
     </div>
   );
