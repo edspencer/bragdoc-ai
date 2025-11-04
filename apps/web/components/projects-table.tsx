@@ -34,7 +34,6 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { Input } from '@/components/ui/input';
 import {
   Table,
   TableBody,
@@ -51,6 +50,7 @@ interface ProjectsTableProps {
   onDelete: (id: string) => void;
   onView?: (project: ProjectWithCompany) => void;
   isLoading?: boolean;
+  globalFilter?: string;
 }
 
 const statusConfig = {
@@ -64,12 +64,18 @@ export function ProjectsTable({
   onEdit,
   onDelete,
   isLoading = false,
+  globalFilter: externalGlobalFilter = '',
 }: ProjectsTableProps) {
   const [sorting, setSorting] = React.useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
     [],
   );
   const [globalFilter, setGlobalFilter] = React.useState('');
+
+  // Sync external globalFilter with internal state
+  React.useEffect(() => {
+    setGlobalFilter(externalGlobalFilter);
+  }, [externalGlobalFilter]);
 
   const columns: ColumnDef<ProjectWithCompany>[] = [
     {
@@ -241,15 +247,6 @@ export function ProjectsTable({
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center gap-2">
-        <Input
-          placeholder="Search projects..."
-          value={globalFilter}
-          onChange={(e) => setGlobalFilter(e.target.value)}
-          className="max-w-sm"
-        />
-      </div>
-
       <div className="overflow-hidden rounded-lg border">
         <Table>
           <TableHeader className="bg-muted">
