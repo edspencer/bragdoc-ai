@@ -27,7 +27,7 @@ const steps = [
     ],
     screenshot:
       'Installing BragDoc CLI via npm for automated Git commit analysis',
-    screenshotImage: '/screenshots/terminal/bragdoc-login.png',
+    screenshotImage: '/screenshots/terminal/bragdoc-install-login.png',
   },
   {
     number: 2,

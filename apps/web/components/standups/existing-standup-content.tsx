@@ -133,8 +133,8 @@ export function ExistingStandupContent({
   return (
     <div className="flex flex-1 flex-col">
       {/* Info section below SiteHeader */}
-      <div className="border-b bg-background px-8 py-4">
-        <div className="flex items-center justify-between">
+      <div className="border-b bg-background sm:px-8 sm:py-4 p-2">
+        <div className="flex-col flex sm:flex-row gap-2 items-start sm:items-center justify-between">
           <div>
             <NextStandupIndicator
               meetingTime={standup.meetingTime}
