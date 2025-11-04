@@ -16,8 +16,6 @@ import {
   chat,
   standup,
   standupDocument,
-  githubRepository,
-  githubPullRequest,
   emailPreferences,
   session,
 } from '@/database/schema';
@@ -35,8 +33,6 @@ import { eq } from 'drizzle-orm';
  *
  * Tables deleted:
  * - emailPreferences
- * - githubPullRequest (depends on githubRepository)
- * - githubRepository
  * - standupDocument (depends on standup)
  * - standup
  * - document
@@ -54,7 +50,6 @@ import { eq } from 'drizzle-orm';
  * - image: null
  * - emailVerified: false
  * - providerId: null
- * - githubAccessToken: null
  * - status: 'deleted'
  *
  * @param userId - The UUID of the user account to delete
@@ -81,25 +76,6 @@ export async function deleteAccountData(userId: string): Promise<void> {
     await db
       .delete(emailPreferences)
       .where(eq(emailPreferences.userId, userId));
-
-    // GitHub pull requests (depend on repositories)
-    // Note: githubPullRequest references githubRepository, not user directly
-    // So we need to delete PR for this user's repositories
-    const userRepos = await db
-      .select({ id: githubRepository.id })
-      .from(githubRepository)
-      .where(eq(githubRepository.userId, userId));
-
-    for (const repo of userRepos) {
-      await db
-        .delete(githubPullRequest)
-        .where(eq(githubPullRequest.repositoryId, repo.id));
-    }
-
-    // GitHub repositories
-    await db
-      .delete(githubRepository)
-      .where(eq(githubRepository.userId, userId));
 
     // Standup documents (depend on standups)
     await db.delete(standupDocument).where(eq(standupDocument.userId, userId));
@@ -130,7 +106,7 @@ export async function deleteAccountData(userId: string): Promise<void> {
 
     // Anonymize and update user record
     // Keep: createdAt, level (subscriptionLevel), stripeCustomerId
-    // Anonymize: email, name, password, image, emailVerified, providerId, githubAccessToken
+    // Anonymize: email, name, password, image, emailVerified, providerId
     // Set: status = 'deleted'
     await db
       .update(user)
@@ -141,7 +117,6 @@ export async function deleteAccountData(userId: string): Promise<void> {
         image: null,
         emailVerified: false,
         providerId: null,
-        githubAccessToken: null,
         status: 'deleted',
         updatedAt: new Date(),
       })

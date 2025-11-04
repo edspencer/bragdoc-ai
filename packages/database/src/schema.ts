@@ -11,7 +11,6 @@ import {
   foreignKey,
   boolean,
   integer,
-  uniqueIndex,
   pgEnum,
   time,
   date,
@@ -61,7 +60,6 @@ export const user = pgTable('User', {
     .notNull()
     .default('credentials'),
   providerId: varchar('provider_id', { length: 256 }),
-  githubAccessToken: varchar('github_access_token', { length: 256 }),
   preferences: jsonb('preferences').$type<UserPreferences>().notNull().default({
     language: 'en',
     documentInstructions: '',
@@ -311,49 +309,6 @@ export const standupDocument = pgTable('StandupDocument', {
 });
 
 export type StandupDocument = InferSelectModel<typeof standupDocument>;
-
-// GitHub Integration Tables
-export const githubRepository = pgTable('GitHubRepository', {
-  id: uuid('id').primaryKey().notNull().defaultRandom(),
-  userId: uuid('user_id')
-    .notNull()
-    .references(() => user.id),
-  name: varchar('name', { length: 256 }).notNull(),
-  fullName: varchar('full_name', { length: 512 }).notNull(),
-  description: text('description'),
-  private: boolean('private').notNull().default(false),
-  lastSynced: timestamp('last_synced'),
-  createdAt: timestamp('created_at').notNull().defaultNow(),
-  updatedAt: timestamp('updated_at').notNull().defaultNow(),
-});
-
-export type GitHubRepository = InferSelectModel<typeof githubRepository>;
-
-export const githubPullRequest = pgTable(
-  'GitHubPullRequest',
-  {
-    id: uuid('id').primaryKey().notNull().defaultRandom(),
-    repositoryId: uuid('repository_id')
-      .notNull()
-      .references(() => githubRepository.id),
-    prNumber: integer('pr_number').notNull(),
-    title: varchar('title', { length: 512 }).notNull(),
-    description: text('description'),
-    state: varchar('state', { length: 32 }).notNull(),
-    createdAt: timestamp('created_at').notNull().defaultNow(),
-    updatedAt: timestamp('updated_at').notNull().defaultNow(),
-    mergedAt: timestamp('merged_at'),
-    achievementId: uuid('achievement_id').references(() => achievement.id),
-  },
-  (table) => ({
-    repoAndPrUnique: uniqueIndex('repo_pr_unique').on(
-      table.repositoryId,
-      table.prNumber,
-    ),
-  }),
-);
-
-export type GitHubPullRequest = InferSelectModel<typeof githubPullRequest>;
 
 // Better Auth Account table
 export const account = pgTable('Account', {

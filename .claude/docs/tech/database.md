@@ -65,7 +65,6 @@ export const user = pgTable('User', {
     .notNull()
     .default('credentials'),
   providerId: varchar('provider_id', { length: 256 }),   // OAuth provider user ID
-  githubAccessToken: varchar('github_access_token', { length: 256 }),
   preferences: jsonb('preferences')                       // UserPreferences type
     .$type<UserPreferences>()
     .notNull()
@@ -509,51 +508,6 @@ export const verificationToken = pgTable('VerificationToken', {
   expires: timestamp('expires', { mode: 'date' }).notNull(),
 }, (table) => ({
   pk: primaryKey({ columns: [table.identifier, table.token] }),
-}));
-```
-
----
-
-## GitHub Integration Tables (Future)
-
-### GitHubRepository Table
-```typescript
-export const githubRepository = pgTable('GitHubRepository', {
-  id: uuid('id').primaryKey().notNull().defaultRandom(),
-  userId: uuid('user_id')
-    .notNull()
-    .references(() => user.id),
-  name: varchar('name', { length: 256 }).notNull(),
-  fullName: varchar('full_name', { length: 512 }).notNull(),
-  description: text('description'),
-  private: boolean('private').notNull().default(false),
-  lastSynced: timestamp('last_synced'),
-  createdAt: timestamp('created_at').notNull().defaultNow(),
-  updatedAt: timestamp('updated_at').notNull().defaultNow(),
-});
-```
-
-### GitHubPullRequest Table
-```typescript
-export const githubPullRequest = pgTable('GitHubPullRequest', {
-  id: uuid('id').primaryKey().notNull().defaultRandom(),
-  repositoryId: uuid('repository_id')
-    .notNull()
-    .references(() => githubRepository.id),
-  prNumber: integer('pr_number').notNull(),
-  title: varchar('title', { length: 512 }).notNull(),
-  description: text('description'),
-  state: varchar('state', { length: 32 }).notNull(),
-  createdAt: timestamp('created_at').notNull().defaultNow(),
-  updatedAt: timestamp('updated_at').notNull().defaultNow(),
-  mergedAt: timestamp('merged_at'),
-  achievementId: uuid('achievement_id')
-    .references(() => achievement.id),
-}, (table) => ({
-  repoAndPrUnique: uniqueIndex('repo_pr_unique').on(
-    table.repositoryId,
-    table.prNumber,
-  ),
 }));
 ```
 
@@ -1014,35 +968,15 @@ If a migration fails or causes issues:
 ### Example Migration File
 
 ```sql
--- 0001_add_github_integration.sql
-CREATE TYPE "pr_state" AS ENUM ('open', 'closed', 'merged');
-
-CREATE TABLE "GitHubRepository" (
+-- 0001_add_new_table.sql
+CREATE TABLE "NewTable" (
   "id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
   "user_id" uuid NOT NULL REFERENCES "User"("id") ON DELETE CASCADE,
   "name" varchar(256) NOT NULL,
-  "full_name" varchar(512) NOT NULL,
-  "private" boolean DEFAULT false NOT NULL,
-  "last_synced" timestamp,
-  "created_at" timestamp DEFAULT now() NOT NULL,
-  "updated_at" timestamp DEFAULT now() NOT NULL
-);
-
-CREATE TABLE "GitHubPullRequest" (
-  "id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
-  "repository_id" uuid NOT NULL REFERENCES "GitHubRepository"("id") ON DELETE CASCADE,
-  "pr_number" integer NOT NULL,
-  "title" varchar(512) NOT NULL,
-  "state" "pr_state" NOT NULL,
-  "merged_at" timestamp,
   "created_at" timestamp DEFAULT now() NOT NULL
 );
 
--- Indexes for performance
-CREATE INDEX "github_repo_user_idx" ON "GitHubRepository"("user_id");
-CREATE INDEX "github_repo_full_name_idx" ON "GitHubRepository"("full_name");
-CREATE INDEX "github_pr_repo_idx" ON "GitHubPullRequest"("repository_id");
-CREATE UNIQUE INDEX "github_pr_repo_number_idx" ON "GitHubPullRequest"("repository_id", "pr_number");
+CREATE INDEX "new_table_user_idx" ON "NewTable"("user_id");
 ```
 
 ### Troubleshooting

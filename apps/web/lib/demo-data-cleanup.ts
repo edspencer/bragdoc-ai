@@ -16,8 +16,6 @@ import {
   chat,
   standup,
   standupDocument,
-  githubRepository,
-  githubPullRequest,
   emailPreferences,
   session,
 } from '@/database/schema';
@@ -33,8 +31,6 @@ import { eq } from 'drizzle-orm';
  *
  * Tables cleaned up:
  * - emailPreferences
- * - githubPullRequest (depends on githubRepository)
- * - githubRepository
  * - standupDocument (depends on standup)
  * - standup
  * - document
@@ -74,25 +70,6 @@ export async function cleanupDemoAccountData(userId: string): Promise<void> {
     await db
       .delete(emailPreferences)
       .where(eq(emailPreferences.userId, userId));
-
-    // GitHub pull requests (depend on repositories)
-    // Note: githubPullRequest references githubRepository, not user directly
-    // So we need to delete PR for this user's repositories
-    const userRepos = await db
-      .select({ id: githubRepository.id })
-      .from(githubRepository)
-      .where(eq(githubRepository.userId, userId));
-
-    for (const repo of userRepos) {
-      await db
-        .delete(githubPullRequest)
-        .where(eq(githubPullRequest.repositoryId, repo.id));
-    }
-
-    // GitHub repositories
-    await db
-      .delete(githubRepository)
-      .where(eq(githubRepository.userId, userId));
 
     // Standup documents (depend on standups)
     await db.delete(standupDocument).where(eq(standupDocument.userId, userId));

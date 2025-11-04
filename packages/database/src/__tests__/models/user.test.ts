@@ -19,7 +19,6 @@ describe('User Model', () => {
     emailVerified: true, // Boolean (changed for Better Auth migration)
     lastPayment: null,
     providerId: null,
-    githubAccessToken: null,
     image: null,
     password: null,
     stripeCustomerId: null,
