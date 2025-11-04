@@ -103,7 +103,6 @@ export const betterAuthConfig: Partial<BetterAuthOptions> = {
       provider: { type: 'string', required: false, defaultValue: 'credentials' },
       providerId: { type: 'string', required: false },
       preferences: { type: 'json', required: false },
-      githubAccessToken: { type: 'string', required: false },
       level: { type: 'string', required: true, defaultValue: 'free' },
       renewalPeriod: { type: 'string', required: false },
       lastPayment: { type: 'date', required: false },
@@ -293,6 +292,8 @@ google: {
 
 ### 3. GitHub OAuth
 
+GitHub OAuth is provided for **user authentication and sign-in only**. OAuth tokens are automatically stored by Better Auth in the `account` table for potential future use, but are not used for any API integration features.
+
 ```typescript
 github: {
   clientId: process.env.GITHUB_CLIENT_ID!,
@@ -317,9 +318,10 @@ github: {
 - `GITHUB_CLIENT_SECRET`
 
 **Features:**
-- User email access scope
-- Access token stored for GitHub API integration
+- User email access scope for sign-in
+- OAuth tokens stored by Better Auth in the `account` table
 - Fallback to login if name not provided
+- No API integration features (GitHub API integration feature was removed)
 
 ### 4. Demo Mode Authentication
 
@@ -388,7 +390,6 @@ export const user = pgTable('User', {
   // BragDoc-specific fields
   provider: varchar('provider', { length: 32 }).notNull().default('credentials'),
   providerId: varchar('provider_id', { length: 256 }),
-  githubAccessToken: varchar('github_access_token', { length: 256 }),
   preferences: jsonb('preferences').$type<UserPreferences>(),
   level: userLevelEnum('level').notNull().default('free'),
   renewalPeriod: renewalPeriodEnum('renewal_period').default('monthly'),
@@ -561,7 +562,6 @@ export async function getAuthUser(
         provider: decoded.provider as string,
         providerId: decoded.providerId as string,
         preferences: decoded.preferences as any,
-        githubAccessToken: decoded.githubAccessToken as string,
         level: decoded.level as any,
         renewalPeriod: decoded.renewalPeriod as any,
       } as User,
@@ -706,7 +706,6 @@ CLI JWT tokens contain:
 - `provider` - Auth provider (google, github, email)
 - `providerId` - Provider-specific user ID
 - `preferences` - User preferences (language, document instructions)
-- `githubAccessToken` - GitHub access token (if authenticated via GitHub)
 - `level` - Subscription level (free, basic, pro, demo)
 - `renewalPeriod` - Billing cycle (monthly, yearly)
 - `exp` - Expiration timestamp (30 days)

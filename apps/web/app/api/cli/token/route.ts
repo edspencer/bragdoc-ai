@@ -34,7 +34,6 @@ export async function POST(request: Request) {
       provider: user.provider,
       providerId: user.providerId,
       preferences: user.preferences,
-      githubAccessToken: user.githubAccessToken,
       level: user.level,
       renewalPeriod: user.renewalPeriod,
     })

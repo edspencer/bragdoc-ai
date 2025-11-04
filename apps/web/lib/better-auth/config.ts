@@ -97,12 +97,6 @@ export const betterAuthConfig: Partial<BetterAuthOptions> = {
         required: false,
       },
 
-      // GitHub access token (for GitHub integration)
-      githubAccessToken: {
-        type: 'string',
-        required: false,
-      },
-
       // Subscription level
       level: {
         type: 'string',
