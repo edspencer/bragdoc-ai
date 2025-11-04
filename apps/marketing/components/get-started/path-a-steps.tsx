@@ -2,7 +2,7 @@ import type React from 'react';
 import Link from 'next/link';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { CodeBlock } from '@/components/code-block';
+import { TerminalScreenshot } from '@/components/terminal-screenshot';
 
 export function PathASteps() {
   return (
@@ -15,10 +15,11 @@ export function PathASteps() {
             time="1 minute"
             description="Install the BragDoc CLI globally using npm"
           >
-            <CodeBlock
-              language="bash"
-              code={`npm install -g @bragdoc/cli
-bragdoc --version`}
+            <TerminalScreenshot
+              src="/screenshots/terminal/npm-install-bragdoc-cli.png"
+              alt="Terminal showing npm install -g @bragdoc/cli command and version check"
+              width={1200}
+              height={800}
             />
           </StepItem>
 
@@ -43,53 +44,70 @@ bragdoc --version`}
             time="1 minute"
             description="Connect your CLI to your BragDoc account"
           >
-            <CodeBlock
-              language="bash"
-              code={`bragdoc login
-# Opens browser, redirects back to CLI`}
+            <TerminalScreenshot
+              src="/screenshots/terminal/bragdoc-login.png"
+              alt="Terminal showing bragdoc login command with browser authentication flow"
+              width={1200}
+              height={800}
             />
           </StepItem>
 
           <StepItem
             number={4}
-            title="Configure LLM"
-            time="2 minutes"
-            description="Choose Ollama for free local AI configuration"
+            title="Initialize First Project"
+            time="1 minute"
+            description="Set up BragDoc in your project directory"
           >
-            <CodeBlock
-              language="bash"
-              code={`bragdoc llm set
-# Select Ollama for free, local AI
-# Enter API key (if cloud provider)`}
+            <TerminalScreenshot
+              src="/screenshots/terminal/bragdoc-init.png"
+              alt="Terminal showing bragdoc init command with repository setup and scheduling"
+              width={1200}
+              height={800}
             />
           </StepItem>
 
           <StepItem
             number={5}
-            title="Initialize First Project"
+            title="Extract Achievements"
             time="1 minute"
-            description="Set up BragDoc in your project directory"
+            description="Run your first extraction and see your achievements"
           >
-            <CodeBlock
-              language="bash"
-              code={`cd ~/projects/my-app
-bragdoc init
-# Confirm automatic extraction schedule`}
+            <TerminalScreenshot
+              src="/screenshots/terminal/bragdoc-extract.png"
+              alt="Terminal showing bragdoc extract command with achievement extraction results"
+              width={1200}
+              height={800}
             />
           </StepItem>
 
           <StepItem
             number={6}
-            title="Extract Achievements"
-            time="1 minute"
-            description="Run your first extraction and see your achievements"
+            title="See Your Impact"
+            time="Ongoing"
+            description="Log in to the web app to view, organize, and share your achievements"
           >
-            <CodeBlock
-              language="bash"
-              code={`bragdoc extract
-# See achievements extracted in terminal
-# Check web app: app.bragdoc.ai/achievements`}
-            />
+            <div className="space-y-4">
+              <div className="flex justify-center">
+                <Link href="https://app.bragdoc.com/dashboard">
+                  <Button size="lg" className="text-lg px-8 py-6">
+                    Go to Dashboard
+                  </Button>
+                </Link>
+              </div>
+              <div className="flex justify-center">
+                <Link
+                  href="https://app.bragdoc.com/dashboard"
+                  className="block rounded-lg overflow-hidden border border-border hover:border-primary transition-colors max-w-[650px]"
+                >
+                  <TerminalScreenshot
+                    src="/screenshots/ui/hero.png"
+                    alt="BragDoc dashboard showing achievements and projects"
+                    width={1200}
+                    height={800}
+                  />
+                </Link>
+              </div>
+            </div>
           </StepItem>
         </div>
       </CardContent>
