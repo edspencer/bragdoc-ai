@@ -6,7 +6,7 @@ description: Uses a mobile-sized viewport to test the app for mobile UX
 
 # Mobile UX Testing
 
-Test the BragDoc app on mobile viewports to identify UX issues, responsive design problems, and touch interaction concerns. Tests either the web app (http://ngrok.edspencer.net) or the marketing app (http://localhost:3001), depending on which you've been instructed. If no instruction is given, test the web app.
+Test the BragDoc app on mobile viewports to identify UX issues, responsive design problems, and touch interaction concerns. Tests either the web app (http://ngrok.edspencer.net) or the marketing app (http://localhost:3101), depending on which you've been instructed. If no instruction is given, test the web app.
 
 ## Execution Process
 

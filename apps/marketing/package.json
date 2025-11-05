@@ -3,8 +3,8 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "NEXT_DIST_DIR=.next-dev next dev -p 3001",
-    "start": "next start -p 3001",
+    "dev": "NEXT_DIST_DIR=.next-dev next dev -p 3101",
+    "start": "next start -p 3101",
     "typecheck": "tsc --noEmit",
     "lint": "eslint . && biome lint --write --unsafe app/ components/ lib/ hooks/",
     "lint:fix": "eslint --fix . && biome lint --write --unsafe app/ components/ lib/ hooks/",

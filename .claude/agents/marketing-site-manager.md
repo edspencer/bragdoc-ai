@@ -121,7 +121,7 @@ apps/marketing/
 - **Components**: shadcn/ui (Radix UI)
 - **Content**: MDX via next-mdx-remote
 - **Deployment**: Cloudflare Workers (via OpenNext)
-- **Dev Server**: Port 3001 (not 3000)
+- **Dev Server**: Port 3101 (not 3000)
 
 ### Technical Patterns
 

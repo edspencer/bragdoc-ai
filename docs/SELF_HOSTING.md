@@ -34,7 +34,7 @@ BragDoc is designed to be easily self-hosted with full control over your data an
 Your applications will be available at:
 
 - **Web app**: http://localhost:3000
-- **Marketing site**: http://localhost:3001
+- **Marketing site**: http://localhost:3101
 
 ## Environment Variables
 
@@ -89,7 +89,7 @@ pnpm build
 # Start web app (port 3000)
 cd apps/web && pnpm start &
 
-# Start marketing site (port 3001)
+# Start marketing site (port 3101)
 cd apps/marketing && pnpm start &
 ```
 
@@ -214,7 +214,7 @@ pnpm db:studio
 
 ### Port Already in Use
 
-If ports 3000 or 3001 are in use, modify the port in the respective app's package.json:
+If ports 3000 or 3101 are in use, modify the port in the respective app's package.json:
 
 ```json
 {
