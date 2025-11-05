@@ -4,7 +4,7 @@
 echo "🚀 Starting BragDoc development environment..."
 echo ""
 echo "📱 Web app:       http://localhost:3000"
-echo "🌐 Marketing:     http://localhost:3001"
+echo "🌐 Marketing:     http://localhost:3101"
 echo ""
 echo "Press Ctrl+C to stop all services"
 echo ""

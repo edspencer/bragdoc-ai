@@ -171,7 +171,7 @@ PAYMENT_TOKEN_REQUIRED="false"
 
 # App URLs
 NEXT_PUBLIC_APP_URL="http://localhost:3000"
-NEXT_PUBLIC_MARKETING_URL="http://localhost:3001"
+NEXT_PUBLIC_MARKETING_URL="http://localhost:3101"
 
 # AI Provider (at least one required for AI features)
 OPENAI_API_KEY="sk-..."`}
