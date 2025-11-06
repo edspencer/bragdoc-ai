@@ -29,3 +29,23 @@ export const findExistingProjectModel = gpt4oMiniModel;
 
 export const documentWritingModel: LanguageModel = gpt4oModel;
 export const routerModel: LanguageModel = gpt4oMiniModel;
+
+/**
+ * Get appropriate LLM for a specific task
+ * @param taskType - Type of task: 'extraction', 'generation', or 'chat'
+ * @returns Selected language model
+ */
+export function getLLM(
+  taskType: 'extraction' | 'generation' | 'chat' = 'generation',
+): LanguageModel {
+  switch (taskType) {
+    case 'extraction':
+      return extractAchievementsModel;
+    case 'generation':
+      return documentWritingModel;
+    case 'chat':
+      return chatModel;
+    default:
+      return documentWritingModel;
+  }
+}

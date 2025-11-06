@@ -33,8 +33,22 @@ export type EventDuration = (typeof EventDuration)[keyof typeof EventDuration];
 // API request types
 export type CreateAchievementRequest = Omit<
   Achievement,
-  'id' | 'userId' | 'createdAt' | 'updatedAt'
->;
+  | 'id'
+  | 'userId'
+  | 'createdAt'
+  | 'updatedAt'
+  | 'workstreamId'
+  | 'workstreamSource'
+  | 'embedding'
+  | 'embeddingModel'
+  | 'embeddingGeneratedAt'
+> & {
+  workstreamId?: string | null;
+  workstreamSource?: string | null;
+  embedding?: number[] | null;
+  embeddingModel?: string | null;
+  embeddingGeneratedAt?: Date | null;
+};
 export type UpdateAchievementRequest = Partial<CreateAchievementRequest>;
 
 // Form type

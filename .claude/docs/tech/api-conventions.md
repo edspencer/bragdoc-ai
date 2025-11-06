@@ -364,6 +364,36 @@ This allows the system to accurately distinguish between:
 - Achievements manually created by users (source='manual')
 - And their respective impact estimation methods
 
+### Workstreams Endpoints
+
+**POST /api/workstreams/generate**
+Triggers workstream generation or update. Handles both full re-clustering and incremental assignment based on heuristics.
+
+- Generates missing embeddings for achievements
+- Requires minimum 20 achievements with embeddings
+- Returns strategy used (full/incremental) and statistics
+
+**GET /api/workstreams**
+Lists user's active workstreams with metadata.
+
+- Returns workstreams ordered by achievement count
+- Includes unassigned achievement count
+- Excludes archived workstreams by default
+
+**GET/PUT/DELETE /api/workstreams/[id]**
+CRUD operations for individual workstreams.
+
+- GET: Retrieve single workstream with ownership verification
+- PUT: Update name, description, or color with Zod validation
+- DELETE: Archive workstream and unassign all achievements
+
+**POST /api/workstreams/assign**
+Manually assign achievement to workstream.
+
+- Sets `workstreamSource='user'` to preserve manual assignments
+- Updates workstream centroids after assignment
+- Supports null workstreamId for unassignment
+
 ## Server-Side Analytics Tracking
 
 ### PostHog Integration Pattern

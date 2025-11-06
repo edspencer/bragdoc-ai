@@ -116,3 +116,16 @@ export type {
   StandupDocumentWithDetails,
   StandupDocumentUpdate,
 } from './standups/types';
+
+// Re-export workstreams queries
+export {
+  getWorkstreamsByUserId,
+  getWorkstreamById,
+  getAchievementsByWorkstreamId,
+  getUnassignedAchievements,
+  getWorkstreamMetadata,
+  updateWorkstream,
+  archiveWorkstream,
+  getAchievementCountWithEmbeddings,
+  unassignAchievementsFromWorkstream,
+} from './workstreams/queries';

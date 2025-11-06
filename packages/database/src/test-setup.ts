@@ -19,6 +19,15 @@ async function main() {
   } finally {
     await rootClient.end();
   }
+
+  // Connect to the new test database and enable pgvector extension
+  const testClient = postgres(`postgres://localhost:5432/${TEST_DB_NAME}`);
+  try {
+    await testClient.unsafe(`CREATE EXTENSION IF NOT EXISTS vector`);
+    console.log(`✓ pgvector extension enabled in test database`);
+  } finally {
+    await testClient.end();
+  }
 }
 
 main().catch(console.error);

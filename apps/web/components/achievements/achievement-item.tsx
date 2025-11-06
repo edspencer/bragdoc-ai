@@ -4,7 +4,9 @@ import { Building2, FolderKanban, Clock, Edit2, Trash2 } from 'lucide-react';
 import { Badge } from 'components/ui/badge';
 import { Button } from 'components/ui/button';
 import { ImpactRating } from 'components/ui/impact-rating';
+import { WorkstreamBadge } from 'components/workstreams/workstream-badge';
 import type { AchievementWithRelations } from 'lib/types/achievement';
+import type { Workstream } from '@bragdoc/database';
 
 /**
  * AchievementItem - Displays a single achievement with impact rating and optional edit/delete actions
@@ -16,6 +18,8 @@ import type { AchievementWithRelations } from 'lib/types/achievement';
  * @param readOnly - Whether to disable impact rating changes
  * @param showSourceBadge - Whether to show the impact source badge
  * @param linkToAchievements - Whether achievement title links to achievements page
+ * @param workstream - Optional workstream this achievement is assigned to
+ * @param onWorkstreamChange - Optional callback when workstream badge is clicked
  */
 interface AchievementItemProps {
   achievement: AchievementWithRelations;
@@ -25,6 +29,8 @@ interface AchievementItemProps {
   readOnly?: boolean;
   showSourceBadge?: boolean;
   linkToAchievements?: boolean;
+  workstream?: Workstream | null;
+  onWorkstreamChange?: () => void;
 }
 
 export function AchievementItem({
@@ -35,6 +41,8 @@ export function AchievementItem({
   readOnly = false,
   showSourceBadge = true,
   linkToAchievements = true,
+  workstream,
+  onWorkstreamChange,
 }: AchievementItemProps) {
   return (
     <div className="space-y-2">
@@ -54,6 +62,14 @@ export function AchievementItem({
             <p className="text-sm text-muted-foreground line-clamp-2">
               {achievement.summary}
             </p>
+          )}
+          {workstream && (
+            <div className="mt-2">
+              <WorkstreamBadge
+                workstream={workstream}
+                onRemove={onWorkstreamChange}
+              />
+            </div>
           )}
           <div className="flex items-center gap-4 text-xs text-muted-foreground">
             {achievement.eventStart && (

@@ -52,6 +52,7 @@ interface AchievementsTableProps {
   achievements: AchievementWithRelations[];
   projects: Array<{ id: string; name: string; companyName: string | null }>;
   companies: Array<{ id: string; name: string }>;
+  workstreams?: Array<{ id: string; name: string; color: string }>;
   onImpactChange: (id: string, impact: number) => void;
   onSelectionChange: (selectedIds: string[]) => void;
   selectedAchievements: string[];
@@ -103,6 +104,7 @@ export function AchievementsTable({
   achievements,
   projects,
   companies,
+  workstreams = [],
   onImpactChange,
   onSelectionChange,
   selectedAchievements,
@@ -114,6 +116,8 @@ export function AchievementsTable({
   const [searchTerm, setSearchTerm] = React.useState('');
   const [selectedProject, setSelectedProject] = React.useState<string>('all');
   const [selectedCompany, setSelectedCompany] = React.useState<string>('all');
+  const [selectedWorkstream, setSelectedWorkstream] =
+    React.useState<string>('all');
   const [timePeriod, setTimePeriod] = React.useState<string>('all');
   const [displayCount, setDisplayCount] = React.useState(20);
 
@@ -148,6 +152,17 @@ export function AchievementsTable({
       filtered = filtered.filter(
         (achievement) => achievement.company?.id === selectedCompany,
       );
+    }
+
+    // Workstream filter
+    if (selectedWorkstream !== 'all') {
+      if (selectedWorkstream === 'unassigned') {
+        filtered = filtered.filter((achievement) => !achievement.workstreamId);
+      } else {
+        filtered = filtered.filter(
+          (achievement) => achievement.workstreamId === selectedWorkstream,
+        );
+      }
     }
 
     // Time period filter
@@ -208,6 +223,7 @@ export function AchievementsTable({
     searchTerm,
     effectiveSelectedProject,
     selectedCompany,
+    selectedWorkstream,
     timePeriod,
   ]);
 
@@ -309,6 +325,26 @@ export function AchievementsTable({
                 {companies.map((company) => (
                   <SelectItem key={company.id} value={company.id}>
                     {company.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          )}
+
+          {workstreams.length > 0 && (
+            <Select
+              value={selectedWorkstream}
+              onValueChange={setSelectedWorkstream}
+            >
+              <SelectTrigger className="sm:w-[180px]">
+                <SelectValue placeholder="All Workstreams" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Workstreams</SelectItem>
+                <SelectItem value="unassigned">Unassigned</SelectItem>
+                {workstreams.map((ws) => (
+                  <SelectItem key={ws.id} value={ws.id}>
+                    {ws.name}
                   </SelectItem>
                 ))}
               </SelectContent>

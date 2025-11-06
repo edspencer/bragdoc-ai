@@ -1,58 +1,45 @@
-import { auth } from '@/lib/better-auth/server';
-import { headers } from 'next/headers';
-import { AppPage } from '@/components/shared/app-page';
-import { SidebarInset } from '@/components/ui/sidebar';
+'use client';
 import { SiteHeader } from '@/components/site-header';
+import { SidebarInset } from '@/components/ui/sidebar';
+import { WorkstreamStatus } from '@/components/workstreams/workstream-status';
+import { WorkstreamList } from '@/components/workstreams/workstream-list';
+import { WorkstreamsZeroState } from '@/components/workstreams/workstreams-zero-state';
+import { useWorkstreams } from '@/hooks/use-workstreams';
+import { AppPage } from '@/components/shared/app-page';
+import { AppContent } from '@/components/shared/app-content';
 
-export const metadata = {
-  title: 'Workstreams',
-};
+export default function WorkstreamsPage() {
+  const { workstreams, isLoading, achievementCount, generateWorkstreams } =
+    useWorkstreams();
 
-export default async function WorkstreamsPage() {
-  const session = await auth.api.getSession({
-    headers: await headers(),
-  });
-
-  if (!session || !session.user || !session.user.id) {
-    return null;
-  }
+  // Only show zero state if we have loaded the data and have no workstreams
+  const showZeroState = !isLoading && workstreams.length === 0;
 
   return (
     <AppPage>
       <SidebarInset>
         <SiteHeader title="Workstreams" />
-        <div className="flex flex-1 flex-col gap-4 p-4 md:p-6">
-          <div className="flex items-center justify-center min-h-[400px]">
-            <div className="text-center max-w-2xl space-y-4">
-              <h1 className="text-3xl font-bold">Workstreams</h1>
-              <p className="text-muted-foreground text-lg">
-                Coming soon: Automatically discover thematic patterns in your
-                work.
-              </p>
-              <div className="text-left space-y-3 text-sm text-muted-foreground">
-                <p>
-                  Workstreams will use AI to automatically group your
-                  achievements into semantic categories that span multiple
-                  projects:
-                </p>
-                <ul className="list-disc list-inside space-y-2 ml-4">
-                  <li>
-                    Discover patterns like &ldquo;API Performance
-                    Optimization&rdquo; or &ldquo;User Authentication &
-                    Security&rdquo;
-                  </li>
-                  <li>See how your work themes evolve over time</li>
-                  <li>Group related achievements across different projects</li>
-                  <li>Build a clearer picture of your areas of expertise</li>
-                </ul>
-                <p className="pt-2">
-                  This feature will require at least 20 achievements to generate
-                  meaningful workstreams.
+        <AppContent>
+          {showZeroState ? (
+            <WorkstreamsZeroState
+              achievementCount={achievementCount}
+              onGenerate={generateWorkstreams}
+            />
+          ) : (
+            <div className="space-y-8">
+              <div>
+                <h1 className="text-3xl font-bold">Workstreams</h1>
+                <p className="text-muted-foreground mt-2">
+                  Discover thematic patterns in your achievements
                 </p>
               </div>
+
+              <WorkstreamStatus />
+
+              <WorkstreamList />
             </div>
-          </div>
-        </div>
+          )}
+        </AppContent>
       </SidebarInset>
     </AppPage>
   );

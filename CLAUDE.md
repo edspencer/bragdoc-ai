@@ -291,6 +291,53 @@ Shared TypeScript configurations: `base.json`, `nextjs.json`, `react-library.jso
 
 ---
 
+## Workstreams Feature
+
+### Overview
+
+Workstreams provide automatic semantic clustering of achievements across projects to identify work patterns and themes. The feature uses machine learning to group related achievements, helping users understand their professional development.
+
+### Architecture
+
+- **ML Pipeline:** OpenAI embeddings → DBSCAN clustering → LLM naming
+- **Database:** pgvector extension for 1536-dimensional embedding storage
+- **API:** RESTful endpoints for generation, CRUD, and manual assignment
+- **UI:** Dashboard widget, dedicated page, achievement integration
+
+### Key Components
+
+**Database Tables:**
+- `Achievement` - Extended with embedding vectors and workstream assignments
+- `Workstream` - Stores clusters with cached centroids
+- `WorkstreamMetadata` - Tracks clustering history
+
+**API Endpoints:**
+- `POST /api/workstreams/generate` - Trigger clustering
+- `GET /api/workstreams` - List workstreams
+- `GET/PUT/DELETE /api/workstreams/[id]` - CRUD operations
+- `POST /api/workstreams/assign` - Manual assignment
+
+**UI Components:**
+- `WorkstreamBadge` - Display assignment on achievements
+- `WorkstreamCard` - Summary display
+- `WorkstreamStatus` - Dashboard widget
+- `useWorkstreams` - Data fetching hook
+
+### Implementation Details
+
+- **Minimum Requirements:** 20 achievements to enable feature
+- **Clustering Algorithm:** DBSCAN with adaptive parameters
+- **Cost Model:** ~$2/year per active user
+- **Performance:** <500ms for typical datasets (<1000 achievements)
+
+For detailed technical documentation, see:
+- Database schema: `.claude/docs/tech/database.md`
+- ML implementation: `.claude/docs/tech/ai-integration.md`
+- API patterns: `.claude/docs/tech/api-conventions.md`
+- UI components: `.claude/docs/tech/frontend-patterns.md`
+
+---
+
 ## Testing
 
 ### Testing Setup
