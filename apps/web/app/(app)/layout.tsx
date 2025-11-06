@@ -8,6 +8,8 @@ import { DemoModeBannerWrapper } from '@/components/demo-mode-banner-wrapper';
 import { DemoModeLayout } from '@/components/demo-mode-layout';
 import { auth } from '@/lib/better-auth/server';
 import { headers } from 'next/headers';
+import { FeedbackWidget } from '@wishnova/react';
+import '@wishnova/react/styles';
 
 export default async function AppLayout({
   children,
@@ -36,6 +38,12 @@ export default async function AppLayout({
           >
             <AppSidebar variant="inset" />
             {children}
+            <FeedbackWidget
+              projectId="e16fdb14-7c88-4f49-a269-8fe124270a48"
+              position="bottom-right"
+              collectSentiment={true}
+              offerEmailFollowup={true}
+            />
             <DataStreamHandler />
             <ArtifactCanvas />
           </SidebarProvider>
