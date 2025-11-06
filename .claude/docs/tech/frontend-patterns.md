@@ -2383,6 +2383,63 @@ export default function PricingPage() {
 
 ---
 
+## Workstreams Components
+
+### Component Architecture
+
+**WorkstreamBadge** (`apps/web/components/workstreams/workstream-badge.tsx`)
+- Client component displaying workstream as colored badge
+- Uses shadcn/ui Badge with custom border/text color styling
+- Optional remove button for interactive contexts
+- Handles nullable color field with fallback to default blue
+
+**WorkstreamCard** (`apps/web/components/workstreams/workstream-card.tsx`)
+- Client component for workstream summary display
+- Shows colored indicator, name, description, achievement count
+- Optional edit/delete actions
+- Wrappable with Link for navigation to detail pages
+
+**WorkstreamList** (`apps/web/components/workstreams/workstream-list.tsx`)
+- Grid layout with responsive columns (md:2, lg:3)
+- Loading state with spinner
+- Empty state messaging
+- Uses useWorkstreams hook for data fetching
+
+**WorkstreamStatus** (`apps/web/components/workstreams/workstream-status.tsx`)
+- Dashboard widget showing generation status
+- Three states: insufficient achievements, ready to generate, generated
+- Shows unassigned achievement count when relevant
+- Action buttons for generation and viewing all
+
+**AssignmentDialog** (`apps/web/components/workstreams/assignment-dialog.tsx`)
+- Modal for manually assigning achievements to workstreams
+- Shows current assignment with highlighting
+- Supports unassignment (null workstreamId)
+- Async assignment with loading states
+
+### Data Hook
+
+**useWorkstreams** (`apps/web/hooks/use-workstreams.ts`)
+- SWR-based data fetching and caching
+- Returns workstreams, counts, and metadata
+- Provides generateWorkstreams() and assignWorkstream() methods
+- Auto-refreshes after mutations
+- Handles loading and error states
+
+### Integration Patterns
+
+**Achievement Cards:** Display workstream badge using conditional rendering based on workstreamId
+
+**Achievements Table:** Add workstream filter dropdown that includes "Unassigned" option
+
+**Dashboard:** Integrate WorkstreamStatus widget into dashboard grid layout
+
+**Navigation:** Add /workstreams route to sidebar navigation with TrendingUp icon
+
+**Detail Pages:** Server component fetching workstream and related achievements with ownership verification
+
+---
+
 ## SEO Patterns (Marketing Site)
 
 For comprehensive SEO documentation including metadata patterns, schema.org structured data, sitemap configuration, image optimization, and testing procedures, see **[seo.md](./seo.md)**.

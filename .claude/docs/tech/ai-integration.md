@@ -243,7 +243,51 @@ export interface AppUsage {
 }
 ```
 
+## Workstream Clustering
+
+### Embedding Generation
+
+**Model:** OpenAI text-embedding-3-small (1536 dimensions)
+
+Embeddings are generated for each achievement by combining title, summary, and short details:
+
+**Files:** `apps/web/lib/ai/embeddings.ts`
+
+- Text preprocessing combines achievement fields
+- Batch generation for efficiency
+- Stored in Achievement table using pgvector
+- Cost: ~$0.02 per 1M tokens (~$0.002 per 1000 achievements)
+
+### DBSCAN Clustering
+
+**Files:** `apps/web/lib/ai/clustering.ts`
+
+Density-based clustering for automatic workstream discovery:
+
+- **Algorithm:** DBSCAN (density-clustering npm package)
+- **Distance Metric:** Cosine distance between embeddings
+- **Parameters:** Adaptive based on dataset size (minPts: 3-5, outlierThreshold: 0.65-0.70)
+- **Epsilon Selection:** K-distance plot elbow detection
+
+### Workstream Naming
+
+LLM generates descriptive names and summaries for clusters:
+
+**Files:** `apps/web/lib/ai/workstreams.ts`
+
+- Samples up to 15 representative achievements
+- Generates 2-5 word names and 1-sentence descriptions
+- Falls back to regex extraction on JSON parse errors
+
+### Incremental Assignment
+
+For efficiency, new achievements are assigned to existing workstreams without full re-clustering:
+
+- Compare embedding to cached centroids using cosine similarity
+- Assign if confidence exceeds threshold (0.65-0.70)
+- Update centroids after assignments
+
 ---
 
-**Last Updated:** 2025-10-21
+**Last Updated:** 2025-11-06
 **Vercel AI SDK:** v5.0.0

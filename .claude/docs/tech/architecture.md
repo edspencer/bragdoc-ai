@@ -621,6 +621,40 @@ Vercel Edge Network
 - **Workspace Support**: Native monorepo support
 - **Strict**: Prevents phantom dependencies
 
+## Workstreams Architecture
+
+### Overview
+
+Workstreams provide automatic semantic clustering of achievements across projects to identify work patterns and themes. The feature uses machine learning to group related achievements, helping users understand their professional development trajectory.
+
+### Technical Architecture
+
+**ML Pipeline:**
+1. **Embedding Generation**: OpenAI text-embedding-3-small (1536 dimensions) for each achievement
+2. **Clustering**: DBSCAN algorithm for automatic cluster discovery without predefined k
+3. **Naming**: LLM-based descriptive naming of discovered clusters
+4. **Assignment**: Cosine similarity for incremental achievement assignment
+
+**Update Strategies:**
+- **Full Re-clustering**: When significant changes detected (>10% new achievements, >30 days, etc.)
+- **Incremental Assignment**: For small changes, assign to existing workstreams using centroid matching
+
+**Performance Optimizations:**
+- **Centroid Caching**: Pre-computed cluster centroids for O(1) assignment
+- **Synchronous Processing**: <1000 achievements process in ~500ms
+- **Batch Operations**: Parallel embedding generation for efficiency
+
+**Cost Model:**
+- Embeddings: ~$0.002 per 1000 achievements
+- LLM Naming: ~$0.01 per workstream
+- Estimated: ~$2/year per active user
+
+**Database Design:**
+- `Achievement` table extended with embedding vectors and workstream assignments
+- `Workstream` table stores clusters with cached centroids
+- `WorkstreamMetadata` tracks clustering history and parameters
+- pgvector extension enables efficient vector operations
+
 ## Future Architecture Considerations
 
 ### Planned Enhancements
