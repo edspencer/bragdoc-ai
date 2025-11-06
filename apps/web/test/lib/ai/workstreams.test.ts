@@ -13,20 +13,26 @@ import {
   project,
 } from '@/database/schema';
 import { db } from '@/database/index';
-import { eq } from 'drizzle-orm';
-import {
-  createMockUser,
-  createMockProject,
-  createMockAchievement,
-  createMockWorkstream,
-} from '../../helpers';
 
 jest.mock('ai', () => ({
   embed: jest.fn(),
 }));
 
-const mockUser = createMockUser();
-const mockProject = createMockProject(mockUser.id);
+const mockUser = {
+  id: '123e4567-e89b-12d3-a456-426614174000',
+  email: 'test@example.com',
+  provider: 'credentials',
+};
+
+const mockProject = {
+  id: '123e4567-e89b-12d3-a456-426614174100',
+  userId: mockUser.id,
+  title: 'Test Project',
+  description: 'Test Description',
+  startDate: new Date('2025-01-01'),
+  endDate: null,
+  company: 'Test Company',
+};
 
 describe('Workstream Orchestration', () => {
   beforeEach(async () => {
@@ -138,21 +144,42 @@ describe('Workstream Orchestration', () => {
   describe('incrementalAssignment', () => {
     it('assigns high-confidence matches', async () => {
       // Create a workstream with centroid
-      const ws = createMockWorkstream(mockUser.id, {
+      const ws = {
         id: 'ws-1',
+        userId: mockUser.id,
+        name: 'Test Workstream',
+        description: null,
+        color: '#3B82F6',
         centroidEmbedding: Array(1536)
           .fill(0)
           .map(() => Math.random()),
         centroidUpdatedAt: new Date(),
         achievementCount: 5,
-      });
+        isArchived: false,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      };
 
       // Create unassigned achievement with similar embedding
-      const ach = createMockAchievement(mockUser.id, mockProject.id, {
+      const ach = {
         id: 'ach-1',
+        userId: mockUser.id,
+        projectId: mockProject.id,
         title: 'New Achievement',
+        summary: 'Summary',
+        details: null,
+        impact: 'Impact',
+        eventStart: new Date(),
+        eventEnd: null,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        isArchived: false,
+        workstreamId: null,
+        workstreamSource: null,
         embedding: ws.centroidEmbedding,
-      });
+        embeddingModel: 'text-embedding-3-small',
+        embeddingGeneratedAt: new Date(),
+      };
 
       await db.insert(workstream).values(ws);
       await db.insert(achievement).values(ach);
@@ -168,19 +195,40 @@ describe('Workstream Orchestration', () => {
     });
 
     it('leaves low-confidence unassigned', async () => {
-      const ws = createMockWorkstream(mockUser.id, {
+      const ws = {
         id: 'ws-1',
+        userId: mockUser.id,
+        name: 'Test Workstream',
+        description: null,
+        color: '#3B82F6',
         centroidEmbedding: Array(1536).fill(1),
         centroidUpdatedAt: new Date(),
         achievementCount: 5,
-      });
+        isArchived: false,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      };
 
       // Create unassigned achievement with very different embedding
-      const ach = createMockAchievement(mockUser.id, mockProject.id, {
+      const ach = {
         id: 'ach-1',
+        userId: mockUser.id,
+        projectId: mockProject.id,
         title: 'New Achievement',
+        summary: 'Summary',
+        details: null,
+        impact: 'Impact',
+        eventStart: new Date(),
+        eventEnd: null,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        isArchived: false,
+        workstreamId: null,
+        workstreamSource: null,
         embedding: Array(1536).fill(0),
-      });
+        embeddingModel: 'text-embedding-3-small',
+        embeddingGeneratedAt: new Date(),
+      };
 
       await db.insert(workstream).values(ws);
       await db.insert(achievement).values(ach);
@@ -197,11 +245,25 @@ describe('Workstream Orchestration', () => {
 
     it('handles no workstreams gracefully', async () => {
       // No workstreams exist
-      const ach = createMockAchievement(mockUser.id, mockProject.id, {
+      const ach = {
         id: 'ach-1',
+        userId: mockUser.id,
+        projectId: mockProject.id,
         title: 'Achievement',
+        summary: 'Summary',
+        details: null,
+        impact: 'Impact',
+        eventStart: new Date(),
+        eventEnd: null,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        isArchived: false,
+        workstreamId: null,
+        workstreamSource: null,
         embedding: Array(1536).fill(0),
-      });
+        embeddingModel: 'text-embedding-3-small',
+        embeddingGeneratedAt: new Date(),
+      };
 
       await db.insert(achievement).values(ach);
 
@@ -216,18 +278,39 @@ describe('Workstream Orchestration', () => {
     });
 
     it('returns assignments map', async () => {
-      const ws = createMockWorkstream(mockUser.id, {
+      const ws = {
         id: 'ws-1',
+        userId: mockUser.id,
+        name: 'Test',
+        description: null,
+        color: '#3B82F6',
         centroidEmbedding: Array(1536).fill(0),
         centroidUpdatedAt: new Date(),
         achievementCount: 0,
-      });
+        isArchived: false,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      };
 
-      const ach = createMockAchievement(mockUser.id, mockProject.id, {
+      const ach = {
         id: 'ach-1',
+        userId: mockUser.id,
+        projectId: mockProject.id,
         title: 'Achievement',
+        summary: 'Summary',
+        details: null,
+        impact: 'Impact',
+        eventStart: new Date(),
+        eventEnd: null,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        isArchived: false,
+        workstreamId: null,
+        workstreamSource: null,
         embedding: Array(1536).fill(0),
-      });
+        embeddingModel: 'text-embedding-3-small',
+        embeddingGeneratedAt: new Date(),
+      };
 
       await db.insert(workstream).values(ws);
       await db.insert(achievement).values(ach);
@@ -244,66 +327,100 @@ describe('Workstream Orchestration', () => {
 
   describe('fullReclustering', () => {
     it('archives old workstreams', async () => {
-      const oldWs = createMockWorkstream(mockUser.id, {
+      const oldWs = {
         id: 'old-ws',
+        userId: mockUser.id,
         name: 'Old Workstream',
-        achievementCount: 5,
+        description: null,
+        color: '#3B82F6',
         centroidEmbedding: null,
         centroidUpdatedAt: null,
-      });
+        achievementCount: 5,
+        isArchived: false,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      };
 
       await db.insert(workstream).values(oldWs);
 
       // Add achievements for clustering
       for (let i = 0; i < 25; i++) {
-        await db.insert(achievement).values(
-          createMockAchievement(mockUser.id, mockProject.id, {
-            id: `ach-${i}`,
-            title: `Achievement ${i}`,
-            embedding: Array(1536)
-              .fill(0)
-              .map(() => Math.random()),
-          }),
-        );
+        await db.insert(achievement).values({
+          id: `ach-${i}`,
+          userId: mockUser.id,
+          projectId: mockProject.id,
+          title: `Achievement ${i}`,
+          summary: 'Summary',
+          details: null,
+          impact: 'Impact',
+          eventStart: new Date(),
+          eventEnd: null,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+          isArchived: false,
+          workstreamId: null,
+          workstreamSource: null,
+          embedding: Array(1536)
+            .fill(0)
+            .map(() => Math.random()),
+          embeddingModel: 'text-embedding-3-small',
+          embeddingGeneratedAt: new Date(),
+        });
       }
 
-      await fullReclustering(mockUser.id, mockUser as any);
+      const result = await fullReclustering(mockUser.id, mockUser as any);
 
       // Old workstream should be archived
       const archived = await db
         .select()
         .from(workstream)
-        .where(eq(workstream.id, 'old-ws'));
+        .where((w) => w.id === 'old-ws');
       expect(archived[0]?.isArchived).toBe(true);
     });
 
     it('clears old assignments', async () => {
-      const ws = createMockWorkstream(mockUser.id, {
+      const ws = {
         id: 'old-ws',
+        userId: mockUser.id,
         name: 'Old',
+        description: null,
+        color: '#3B82F6',
         centroidEmbedding: null,
         centroidUpdatedAt: null,
         achievementCount: 5,
-      });
+        isArchived: false,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      };
 
       await db.insert(workstream).values(ws);
 
       // Add achievements assigned to old workstream
       for (let i = 0; i < 25; i++) {
-        await db.insert(achievement).values(
-          createMockAchievement(mockUser.id, mockProject.id, {
-            id: `ach-${i}`,
-            title: `Achievement ${i}`,
-            workstreamId: i < 5 ? 'old-ws' : null,
-            workstreamSource: i < 5 ? 'ai' : null,
-            embedding: Array(1536)
-              .fill(0)
-              .map(() => Math.random()),
-          }),
-        );
+        await db.insert(achievement).values({
+          id: `ach-${i}`,
+          userId: mockUser.id,
+          projectId: mockProject.id,
+          title: `Achievement ${i}`,
+          summary: 'Summary',
+          details: null,
+          impact: 'Impact',
+          eventStart: new Date(),
+          eventEnd: null,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+          isArchived: false,
+          workstreamId: i < 5 ? 'old-ws' : null,
+          workstreamSource: i < 5 ? 'ai' : null,
+          embedding: Array(1536)
+            .fill(0)
+            .map(() => Math.random()),
+          embeddingModel: 'text-embedding-3-small',
+          embeddingGeneratedAt: new Date(),
+        });
       }
 
-      await fullReclustering(mockUser.id, mockUser as any);
+      const result = await fullReclustering(mockUser.id, mockUser as any);
 
       // Old assignments should be cleared for non-user-assigned achievements
       const achs = await db.select().from(achievement);
@@ -312,52 +429,80 @@ describe('Workstream Orchestration', () => {
     });
 
     it('respects user assignments', async () => {
-      const ws = createMockWorkstream(mockUser.id, {
+      const ws = {
         id: 'user-ws',
+        userId: mockUser.id,
         name: 'User Assigned',
+        description: null,
+        color: '#3B82F6',
         centroidEmbedding: null,
         centroidUpdatedAt: null,
         achievementCount: 5,
-      });
+        isArchived: false,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      };
 
       await db.insert(workstream).values(ws);
 
       // Add achievements, some user-assigned
       for (let i = 0; i < 25; i++) {
-        await db.insert(achievement).values(
-          createMockAchievement(mockUser.id, mockProject.id, {
-            id: `ach-${i}`,
-            title: `Achievement ${i}`,
-            workstreamId: i === 0 ? 'user-ws' : null,
-            workstreamSource: i === 0 ? 'user' : null,
-            embedding: Array(1536)
-              .fill(0)
-              .map(() => Math.random()),
-          }),
-        );
+        await db.insert(achievement).values({
+          id: `ach-${i}`,
+          userId: mockUser.id,
+          projectId: mockProject.id,
+          title: `Achievement ${i}`,
+          summary: 'Summary',
+          details: null,
+          impact: 'Impact',
+          eventStart: new Date(),
+          eventEnd: null,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+          isArchived: false,
+          workstreamId: i === 0 ? 'user-ws' : null,
+          workstreamSource: i === 0 ? 'user' : null,
+          embedding: Array(1536)
+            .fill(0)
+            .map(() => Math.random()),
+          embeddingModel: 'text-embedding-3-small',
+          embeddingGeneratedAt: new Date(),
+        });
       }
 
-      await fullReclustering(mockUser.id, mockUser as any);
+      const result = await fullReclustering(mockUser.id, mockUser as any);
 
       // User-assigned achievement should not be cleared
       const userAssigned = await db
         .select()
         .from(achievement)
-        .where(eq(achievement.id, 'ach-0'));
+        .where((a) => a.id === 'ach-0');
       expect(userAssigned[0]?.workstreamId).toBe('user-ws');
     });
 
     it('saves metadata', async () => {
       for (let i = 0; i < 25; i++) {
-        await db.insert(achievement).values(
-          createMockAchievement(mockUser.id, mockProject.id, {
-            id: `ach-${i}`,
-            title: `Achievement ${i}`,
-            embedding: Array(1536)
-              .fill(0)
-              .map(() => Math.random()),
-          }),
-        );
+        await db.insert(achievement).values({
+          id: `ach-${i}`,
+          userId: mockUser.id,
+          projectId: mockProject.id,
+          title: `Achievement ${i}`,
+          summary: 'Summary',
+          details: null,
+          impact: 'Impact',
+          eventStart: new Date(),
+          eventEnd: null,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+          isArchived: false,
+          workstreamId: null,
+          workstreamSource: null,
+          embedding: Array(1536)
+            .fill(0)
+            .map(() => Math.random()),
+          embeddingModel: 'text-embedding-3-small',
+          embeddingGeneratedAt: new Date(),
+        });
       }
 
       const result = await fullReclustering(mockUser.id, mockUser as any);
@@ -370,12 +515,19 @@ describe('Workstream Orchestration', () => {
 
   describe('updateWorkstreamCentroid', () => {
     it('recalculates centroid correctly', async () => {
-      const ws = createMockWorkstream(mockUser.id, {
+      const ws = {
         id: 'ws-1',
+        userId: mockUser.id,
+        name: 'Test',
+        description: null,
+        color: '#3B82F6',
         centroidEmbedding: null,
         centroidUpdatedAt: null,
         achievementCount: 2,
-      });
+        isArchived: false,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      };
 
       await db.insert(workstream).values(ws);
 
@@ -384,15 +536,25 @@ describe('Workstream Orchestration', () => {
       const embedding2 = Array(1536).fill(3);
 
       for (let i = 0; i < 2; i++) {
-        await db.insert(achievement).values(
-          createMockAchievement(mockUser.id, mockProject.id, {
-            id: `ach-${i}`,
-            title: `Achievement ${i}`,
-            workstreamId: 'ws-1',
-            workstreamSource: 'ai',
-            embedding: i === 0 ? embedding1 : embedding2,
-          }),
-        );
+        await db.insert(achievement).values({
+          id: `ach-${i}`,
+          userId: mockUser.id,
+          projectId: mockProject.id,
+          title: `Achievement ${i}`,
+          summary: 'Summary',
+          details: null,
+          impact: 'Impact',
+          eventStart: new Date(),
+          eventEnd: null,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+          isArchived: false,
+          workstreamId: 'ws-1',
+          workstreamSource: 'ai',
+          embedding: i === 0 ? embedding1 : embedding2,
+          embeddingModel: 'text-embedding-3-small',
+          embeddingGeneratedAt: new Date(),
+        });
       }
 
       await updateWorkstreamCentroid('ws-1');
@@ -400,19 +562,25 @@ describe('Workstream Orchestration', () => {
       const updated = await db
         .select()
         .from(workstream)
-        .where(eq(workstream.id, 'ws-1'));
+        .where((w) => w.id === 'ws-1');
       expect(updated[0].centroidEmbedding).not.toBeNull();
       expect(updated[0].centroidUpdatedAt).not.toBeNull();
     });
 
     it('archives workstream if no achievements', async () => {
-      const ws = createMockWorkstream(mockUser.id, {
+      const ws = {
         id: 'ws-1',
+        userId: mockUser.id,
         name: 'Empty',
+        description: null,
+        color: '#3B82F6',
         centroidEmbedding: Array(1536).fill(0),
         centroidUpdatedAt: new Date(),
         achievementCount: 0,
-      });
+        isArchived: false,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      };
 
       await db.insert(workstream).values(ws);
 
@@ -421,39 +589,63 @@ describe('Workstream Orchestration', () => {
       const updated = await db
         .select()
         .from(workstream)
-        .where(eq(workstream.id, 'ws-1'));
+        .where((w) => w.id === 'ws-1');
       expect(updated[0].isArchived).toBe(true);
     });
   });
 
   describe('onAchievementWorkstreamChange', () => {
     it('updates centroids for old and new workstreams', async () => {
-      const oldWs = createMockWorkstream(mockUser.id, {
+      const oldWs = {
         id: 'old-ws',
+        userId: mockUser.id,
         name: 'Old',
+        description: null,
+        color: '#3B82F6',
         centroidEmbedding: Array(1536).fill(0),
         centroidUpdatedAt: new Date(),
         achievementCount: 1,
-      });
+        isArchived: false,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      };
 
-      const newWs = createMockWorkstream(mockUser.id, {
+      const newWs = {
         id: 'new-ws',
+        userId: mockUser.id,
         name: 'New',
+        description: null,
+        color: '#3B82F6',
         centroidEmbedding: null,
         centroidUpdatedAt: null,
         achievementCount: 0,
-      });
+        isArchived: false,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      };
 
       await db.insert(workstream).values(oldWs);
       await db.insert(workstream).values(newWs);
 
-      const ach = createMockAchievement(mockUser.id, mockProject.id, {
+      const ach = {
         id: 'ach-1',
+        userId: mockUser.id,
+        projectId: mockProject.id,
         title: 'Achievement',
+        summary: 'Summary',
+        details: null,
+        impact: 'Impact',
+        eventStart: new Date(),
+        eventEnd: null,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        isArchived: false,
         workstreamId: 'old-ws',
         workstreamSource: 'ai',
         embedding: Array(1536).fill(1),
-      });
+        embeddingModel: 'text-embedding-3-small',
+        embeddingGeneratedAt: new Date(),
+      };
 
       await db.insert(achievement).values(ach);
 
@@ -463,11 +655,11 @@ describe('Workstream Orchestration', () => {
       const oldWsUpdated = await db
         .select()
         .from(workstream)
-        .where(eq(workstream.id, 'old-ws'));
+        .where((w) => w.id === 'old-ws');
       const newWsUpdated = await db
         .select()
         .from(workstream)
-        .where(eq(workstream.id, 'new-ws'));
+        .where((w) => w.id === 'new-ws');
 
       expect(oldWsUpdated[0].centroidUpdatedAt).not.toBeNull();
       expect(newWsUpdated[0].centroidUpdatedAt).not.toBeNull();

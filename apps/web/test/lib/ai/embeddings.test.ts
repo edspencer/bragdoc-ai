@@ -4,42 +4,44 @@ import {
   generateEmbeddingsBatch,
   generateMissingEmbeddings,
 } from 'lib/ai/embeddings';
-import { achievement, user, project } from '@/database/schema';
+import { achievement } from '@/database/schema';
 import { db } from '@/database/index';
 import { eq } from 'drizzle-orm';
-import {
-  createMockUser,
-  createMockProject,
-  createMockAchievement,
-} from '../../helpers';
 
 // Mock the OpenAI API
 jest.mock('ai', () => ({
   embed: jest.fn(),
 }));
 
-const mockUser = createMockUser();
-const mockProject = createMockProject(mockUser.id);
-const mockAchievementData = createMockAchievement(mockUser.id, mockProject.id);
+const mockAchievementData = {
+  id: '123e4567-e89b-12d3-a456-426614174001',
+  userId: '123e4567-e89b-12d3-a456-426614174002',
+  projectId: '123e4567-e89b-12d3-a456-426614174003',
+  title: 'Test Achievement',
+  summary: 'A brief summary',
+  details: 'Some additional details that are helpful',
+  impact: 'Positive impact',
+  eventStart: new Date('2025-01-01'),
+  eventEnd: null,
+  createdAt: new Date(),
+  updatedAt: new Date(),
+  isArchived: false,
+  workstreamId: null,
+  workstreamSource: null,
+  embedding: null,
+  embeddingModel: null,
+  embeddingGeneratedAt: null,
+};
 
 describe('Embeddings Module', () => {
   beforeEach(async () => {
-    jest.clearAllMocks();
     // Clean up database
     await db.delete(achievement);
-    await db.delete(project);
-    await db.delete(user);
-
-    // Insert test user and project
-    await db.insert(user).values(mockUser);
-    await db.insert(project).values(mockProject);
   });
 
   afterEach(async () => {
     // Clean up after tests
     await db.delete(achievement);
-    await db.delete(project);
-    await db.delete(user);
     jest.clearAllMocks();
   });
 

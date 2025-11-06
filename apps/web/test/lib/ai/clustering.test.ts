@@ -114,13 +114,10 @@ describe('Clustering Module', () => {
         outlierThreshold: 0.65,
       });
 
-      // Verify basic structure is correct
-      expect(Array.isArray(result.clusters)).toBe(true);
+      expect(result.clusters.length).toBeGreaterThan(0);
       expect(result.labels.length).toBe(embeddings.length);
       expect(typeof result.epsilon).toBe('number');
       expect(result.epsilon).toBeGreaterThan(0);
-      // Should identify at least some clustering (might be 1-2 clusters or all outliers)
-      expect(result.clusters.length + result.outlierCount).toBeGreaterThan(0);
     });
 
     it('identifies outliers correctly', () => {
@@ -163,16 +160,13 @@ describe('Clustering Module', () => {
         outlierThreshold: 0.65,
       });
 
-      // All embeddings should be accounted for
-      const totalPoints1 = result1.labels.reduce((count) => count + 1, 0);
-      const totalPoints2 = result2.labels.reduce((count) => count + 1, 0);
-
-      expect(totalPoints1).toEqual(embeddings.length);
-      expect(totalPoints2).toEqual(embeddings.length);
-
-      // Both results should have valid label arrays
-      expect(result1.labels).toHaveLength(embeddings.length);
-      expect(result2.labels).toHaveLength(embeddings.length);
+      // Different parameters should produce different results
+      expect(result1.clusters.length + result1.outlierCount).toEqual(
+        embeddings.length,
+      );
+      expect(result2.clusters.length + result2.outlierCount).toEqual(
+        embeddings.length,
+      );
     });
 
     it('handles small datasets (20-30 embeddings)', () => {

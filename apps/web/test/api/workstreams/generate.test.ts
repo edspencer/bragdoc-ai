@@ -3,18 +3,26 @@ import { achievement, user, workstream, project } from '@/database/schema';
 import { db } from '@/database/index';
 import { auth } from '@/lib/better-auth/server';
 import { NextRequest } from 'next/server';
-import {
-  createMockUser,
-  createMockProject,
-  createMockAchievement,
-} from '../../helpers';
 
 jest.mock('ai', () => ({
   embed: jest.fn(),
 }));
 
-const mockUser = createMockUser();
-const mockProject = createMockProject(mockUser.id);
+const mockUser = {
+  id: '123e4567-e89b-12d3-a456-426614174000',
+  email: 'test@example.com',
+  provider: 'credentials',
+};
+
+const mockProject = {
+  id: '123e4567-e89b-12d3-a456-426614174100',
+  userId: mockUser.id,
+  title: 'Test Project',
+  description: 'Test Description',
+  startDate: new Date('2025-01-01'),
+  endDate: null,
+  company: 'Test Company',
+};
 
 describe('POST /api/workstreams/generate', () => {
   beforeEach(async () => {
@@ -57,13 +65,23 @@ describe('POST /api/workstreams/generate', () => {
   it('returns 400 for less than 20 achievements', async () => {
     // Add only 15 achievements
     for (let i = 0; i < 15; i++) {
-      await db.insert(achievement).values(
-        createMockAchievement(mockUser.id, mockProject.id, {
-          id: `ach-${i}`,
-          title: `Achievement ${i}`,
-          embedding: Array(1536).fill(0),
-        }),
-      );
+      await db.insert(achievement).values({
+        id: `ach-${i}`,
+        userId: mockUser.id,
+        projectId: mockProject.id,
+        title: `Achievement ${i}`,
+        summary: 'Summary',
+        details: null,
+        impact: 'Impact',
+        eventStart: new Date(),
+        eventEnd: null,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        isArchived: false,
+        embedding: Array(1536).fill(0),
+        embeddingModel: 'text-embedding-3-small',
+        embeddingGeneratedAt: new Date(),
+      });
     }
 
     const request = new NextRequest(
@@ -82,15 +100,25 @@ describe('POST /api/workstreams/generate', () => {
   it('performs full clustering on first run', async () => {
     // Add 30 achievements
     for (let i = 0; i < 30; i++) {
-      await db.insert(achievement).values(
-        createMockAchievement(mockUser.id, mockProject.id, {
-          id: `ach-${i}`,
-          title: `Achievement ${i}`,
-          embedding: Array(1536)
-            .fill(0)
-            .map(() => Math.random()),
-        }),
-      );
+      await db.insert(achievement).values({
+        id: `ach-${i}`,
+        userId: mockUser.id,
+        projectId: mockProject.id,
+        title: `Achievement ${i}`,
+        summary: 'Summary',
+        details: null,
+        impact: 'Impact',
+        eventStart: new Date(),
+        eventEnd: null,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        isArchived: false,
+        embedding: Array(1536)
+          .fill(0)
+          .map(() => Math.random()),
+        embeddingModel: 'text-embedding-3-small',
+        embeddingGeneratedAt: new Date(),
+      });
     }
 
     const request = new NextRequest(
@@ -112,20 +140,28 @@ describe('POST /api/workstreams/generate', () => {
   it('generates embeddings for missing achievements', async () => {
     // Add 25 achievements, some without embeddings
     for (let i = 0; i < 25; i++) {
-      await db.insert(achievement).values(
-        createMockAchievement(mockUser.id, mockProject.id, {
-          id: `ach-${i}`,
-          title: `Achievement ${i}`,
-          embedding:
-            i < 20
-              ? Array(1536)
-                  .fill(0)
-                  .map(() => Math.random())
-              : null,
-          embeddingModel: i < 20 ? 'text-embedding-3-small' : null,
-          embeddingGeneratedAt: i < 20 ? new Date() : null,
-        }),
-      );
+      await db.insert(achievement).values({
+        id: `ach-${i}`,
+        userId: mockUser.id,
+        projectId: mockProject.id,
+        title: `Achievement ${i}`,
+        summary: 'Summary',
+        details: null,
+        impact: 'Impact',
+        eventStart: new Date(),
+        eventEnd: null,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        isArchived: false,
+        embedding:
+          i < 20
+            ? Array(1536)
+                .fill(0)
+                .map(() => Math.random())
+            : null,
+        embeddingModel: i < 20 ? 'text-embedding-3-small' : null,
+        embeddingGeneratedAt: i < 20 ? new Date() : null,
+      });
     }
 
     const { embed } = require('ai');
@@ -152,15 +188,25 @@ describe('POST /api/workstreams/generate', () => {
   it('returns correct response structure', async () => {
     // Add 20 achievements
     for (let i = 0; i < 20; i++) {
-      await db.insert(achievement).values(
-        createMockAchievement(mockUser.id, mockProject.id, {
-          id: `ach-${i}`,
-          title: `Achievement ${i}`,
-          embedding: Array(1536)
-            .fill(0)
-            .map(() => Math.random()),
-        }),
-      );
+      await db.insert(achievement).values({
+        id: `ach-${i}`,
+        userId: mockUser.id,
+        projectId: mockProject.id,
+        title: `Achievement ${i}`,
+        summary: 'Summary',
+        details: null,
+        impact: 'Impact',
+        eventStart: new Date(),
+        eventEnd: null,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        isArchived: false,
+        embedding: Array(1536)
+          .fill(0)
+          .map(() => Math.random()),
+        embeddingModel: 'text-embedding-3-small',
+        embeddingGeneratedAt: new Date(),
+      });
     }
 
     const request = new NextRequest(

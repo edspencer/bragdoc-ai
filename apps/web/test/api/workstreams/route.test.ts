@@ -3,10 +3,22 @@ import { achievement, user, workstream, project } from '@/database/schema';
 import { db } from '@/database/index';
 import { auth } from '@/lib/better-auth/server';
 import { NextRequest } from 'next/server';
-import { createMockUser, createMockProject } from '../../helpers';
 
-const mockUser = createMockUser();
-const mockProject = createMockProject(mockUser.id);
+const mockUser = {
+  id: '123e4567-e89b-12d3-a456-426614174000',
+  email: 'test@example.com',
+  provider: 'credentials',
+};
+
+const mockProject = {
+  id: '123e4567-e89b-12d3-a456-426614174100',
+  userId: mockUser.id,
+  title: 'Test Project',
+  description: 'Test Description',
+  startDate: new Date('2025-01-01'),
+  endDate: null,
+  company: 'Test Company',
+};
 
 describe('GET /api/workstreams', () => {
   beforeEach(async () => {

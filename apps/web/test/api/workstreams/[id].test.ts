@@ -3,17 +3,22 @@ import { achievement, user, workstream, project } from '@/database/schema';
 import { db } from '@/database/index';
 import { auth } from '@/lib/better-auth/server';
 import { NextRequest } from 'next/server';
-import { v4 as uuidv4 } from 'uuid';
-import { eq } from 'drizzle-orm';
-import {
-  createMockUser,
-  createMockProject,
-  createMockAchievement,
-  createMockWorkstream,
-} from '../../helpers';
 
-const mockUser = createMockUser();
-const mockProject = createMockProject(mockUser.id);
+const mockUser = {
+  id: '123e4567-e89b-12d3-a456-426614174000',
+  email: 'test@example.com',
+  provider: 'credentials',
+};
+
+const mockProject = {
+  id: '123e4567-e89b-12d3-a456-426614174100',
+  userId: mockUser.id,
+  title: 'Test Project',
+  description: 'Test Description',
+  startDate: new Date('2025-01-01'),
+  endDate: null,
+  company: 'Test Company',
+};
 
 describe('GET /api/workstreams/[id]', () => {
   beforeEach(async () => {
@@ -40,53 +45,68 @@ describe('GET /api/workstreams/[id]', () => {
   });
 
   it('returns 404 for non-existent workstream', async () => {
-    const fakeId = uuidv4();
     const request = new NextRequest(
-      `http://localhost/api/workstreams/${fakeId}`,
+      'http://localhost/api/workstreams/non-existent',
     );
     const response = await GET(request, {
-      params: Promise.resolve({ id: fakeId }),
+      params: Promise.resolve({ id: 'non-existent' }),
     });
     expect(response.status).toBe(404);
   });
 
   it('returns 404 for other user workstream', async () => {
-    const otherUser = createMockUser({ id: uuidv4() });
+    const otherUser = {
+      id: '223e4567-e89b-12d3-a456-426614174000',
+      email: 'other@example.com',
+      provider: 'credentials',
+    };
     await db.insert(user).values(otherUser);
 
-    const ws = createMockWorkstream(otherUser.id, {
-      id: uuidv4(),
+    const ws = {
+      id: 'ws-1',
+      userId: otherUser.id,
       name: 'Other User WS',
-    });
+      description: null,
+      color: '#3B82F6',
+      centroidEmbedding: null,
+      centroidUpdatedAt: null,
+      achievementCount: 0,
+      isArchived: false,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
     await db.insert(workstream).values(ws);
 
-    const request = new NextRequest(
-      `http://localhost/api/workstreams/${ws.id}`,
-    );
+    const request = new NextRequest('http://localhost/api/workstreams/ws-1');
     const response = await GET(request, {
-      params: Promise.resolve({ id: ws.id }),
+      params: Promise.resolve({ id: 'ws-1' }),
     });
     expect(response.status).toBe(404);
   });
 
   it('returns workstream for owner', async () => {
-    const ws = createMockWorkstream(mockUser.id, {
-      id: uuidv4(),
+    const ws = {
+      id: 'ws-1',
+      userId: mockUser.id,
       name: 'My Workstream',
       description: 'Description',
+      color: '#3B82F6',
+      centroidEmbedding: null,
+      centroidUpdatedAt: null,
       achievementCount: 5,
-    });
+      isArchived: false,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
     await db.insert(workstream).values(ws);
 
-    const request = new NextRequest(
-      `http://localhost/api/workstreams/${ws.id}`,
-    );
+    const request = new NextRequest('http://localhost/api/workstreams/ws-1');
     const response = await GET(request, {
-      params: Promise.resolve({ id: ws.id }),
+      params: Promise.resolve({ id: 'ws-1' }),
     });
     expect(response.status).toBe(200);
     const data = await response.json();
-    expect(data.id).toBe(ws.id);
+    expect(data.id).toBe('ws-1');
     expect(data.name).toBe('My Workstream');
   });
 });
@@ -116,24 +136,29 @@ describe('PUT /api/workstreams/[id]', () => {
   });
 
   it('updates workstream name', async () => {
-    const wsId = uuidv4();
-    const ws = createMockWorkstream(mockUser.id, {
-      id: wsId,
+    const ws = {
+      id: 'ws-1',
+      userId: mockUser.id,
       name: 'Original Name',
-    });
+      description: null,
+      color: '#3B82F6',
+      centroidEmbedding: null,
+      centroidUpdatedAt: null,
+      achievementCount: 0,
+      isArchived: false,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
     await db.insert(workstream).values(ws);
 
-    const request = new NextRequest(
-      `http://localhost/api/workstreams/${wsId}`,
-      {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name: 'New Name' }),
-      },
-    );
+    const request = new NextRequest('http://localhost/api/workstreams/ws-1', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name: 'New Name' }),
+    });
 
     const response = await PUT(request, {
-      params: Promise.resolve({ id: wsId }),
+      params: Promise.resolve({ id: 'ws-1' }),
     });
     expect(response.status).toBe(200);
     const data = await response.json();
@@ -141,47 +166,57 @@ describe('PUT /api/workstreams/[id]', () => {
   });
 
   it('validates color format (hex code)', async () => {
-    const wsId = uuidv4();
-    const ws = createMockWorkstream(mockUser.id, {
-      id: wsId,
+    const ws = {
+      id: 'ws-1',
+      userId: mockUser.id,
       name: 'Test',
-    });
+      description: null,
+      color: '#3B82F6',
+      centroidEmbedding: null,
+      centroidUpdatedAt: null,
+      achievementCount: 0,
+      isArchived: false,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
     await db.insert(workstream).values(ws);
 
-    const request = new NextRequest(
-      `http://localhost/api/workstreams/${wsId}`,
-      {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ color: 'invalid-color' }),
-      },
-    );
+    const request = new NextRequest('http://localhost/api/workstreams/ws-1', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ color: 'invalid-color' }),
+    });
 
     const response = await PUT(request, {
-      params: Promise.resolve({ id: wsId }),
+      params: Promise.resolve({ id: 'ws-1' }),
     });
     expect(response.status).toBe(400);
   });
 
   it('accepts valid hex color code', async () => {
-    const wsId = uuidv4();
-    const ws = createMockWorkstream(mockUser.id, {
-      id: wsId,
+    const ws = {
+      id: 'ws-1',
+      userId: mockUser.id,
       name: 'Test',
-    });
+      description: null,
+      color: '#3B82F6',
+      centroidEmbedding: null,
+      centroidUpdatedAt: null,
+      achievementCount: 0,
+      isArchived: false,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
     await db.insert(workstream).values(ws);
 
-    const request = new NextRequest(
-      `http://localhost/api/workstreams/${wsId}`,
-      {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ color: '#FF0000' }),
-      },
-    );
+    const request = new NextRequest('http://localhost/api/workstreams/ws-1', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ color: '#FF0000' }),
+    });
 
     const response = await PUT(request, {
-      params: Promise.resolve({ id: wsId }),
+      params: Promise.resolve({ id: 'ws-1' }),
     });
     expect(response.status).toBe(200);
     const data = await response.json();
@@ -189,27 +224,36 @@ describe('PUT /api/workstreams/[id]', () => {
   });
 
   it('returns 404 for other user workstream', async () => {
-    const otherUser = createMockUser({ id: uuidv4() });
+    const otherUser = {
+      id: '223e4567-e89b-12d3-a456-426614174000',
+      email: 'other@example.com',
+      provider: 'credentials',
+    };
     await db.insert(user).values(otherUser);
 
-    const wsId = uuidv4();
-    const ws = createMockWorkstream(otherUser.id, {
-      id: wsId,
+    const ws = {
+      id: 'ws-1',
+      userId: otherUser.id,
       name: 'Other WS',
-    });
+      description: null,
+      color: '#3B82F6',
+      centroidEmbedding: null,
+      centroidUpdatedAt: null,
+      achievementCount: 0,
+      isArchived: false,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
     await db.insert(workstream).values(ws);
 
-    const request = new NextRequest(
-      `http://localhost/api/workstreams/${wsId}`,
-      {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name: 'Hack Attempt' }),
-      },
-    );
+    const request = new NextRequest('http://localhost/api/workstreams/ws-1', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name: 'Hack Attempt' }),
+    });
 
     const response = await PUT(request, {
-      params: Promise.resolve({ id: wsId }),
+      params: Promise.resolve({ id: 'ws-1' }),
     });
     expect(response.status).toBe(404);
   });
@@ -240,22 +284,27 @@ describe('DELETE /api/workstreams/[id]', () => {
   });
 
   it('archives workstream', async () => {
-    const wsId = uuidv4();
-    const ws = createMockWorkstream(mockUser.id, {
-      id: wsId,
+    const ws = {
+      id: 'ws-1',
+      userId: mockUser.id,
       name: 'Test',
-    });
+      description: null,
+      color: '#3B82F6',
+      centroidEmbedding: null,
+      centroidUpdatedAt: null,
+      achievementCount: 0,
+      isArchived: false,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
     await db.insert(workstream).values(ws);
 
-    const request = new NextRequest(
-      `http://localhost/api/workstreams/${wsId}`,
-      {
-        method: 'DELETE',
-      },
-    );
+    const request = new NextRequest('http://localhost/api/workstreams/ws-1', {
+      method: 'DELETE',
+    });
 
     const response = await DELETE(request, {
-      params: Promise.resolve({ id: wsId }),
+      params: Promise.resolve({ id: 'ws-1' }),
     });
     expect(response.status).toBe(200);
 
@@ -263,40 +312,55 @@ describe('DELETE /api/workstreams/[id]', () => {
     const archived = await db
       .select()
       .from(workstream)
-      .where(eq(workstream.id, wsId));
+      .where((w) => w.id === 'ws-1');
     expect(archived[0]?.isArchived).toBe(true);
   });
 
   it('unassigns all achievements', async () => {
-    const wsId = uuidv4();
-    const ws = createMockWorkstream(mockUser.id, {
-      id: wsId,
+    const ws = {
+      id: 'ws-1',
+      userId: mockUser.id,
       name: 'Test',
+      description: null,
+      color: '#3B82F6',
+      centroidEmbedding: null,
+      centroidUpdatedAt: null,
       achievementCount: 2,
-    });
+      isArchived: false,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
     await db.insert(workstream).values(ws);
 
     // Insert achievements assigned to this workstream
     for (let i = 0; i < 2; i++) {
-      await db.insert(achievement).values(
-        createMockAchievement(mockUser.id, mockProject.id, {
-          id: uuidv4(),
-          title: `Achievement ${i}`,
-          workstreamId: wsId,
-          workstreamSource: 'ai',
-        }),
-      );
+      await db.insert(achievement).values({
+        id: `ach-${i}`,
+        userId: mockUser.id,
+        projectId: mockProject.id,
+        title: `Achievement ${i}`,
+        summary: 'Summary',
+        details: null,
+        impact: 'Impact',
+        eventStart: new Date(),
+        eventEnd: null,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        isArchived: false,
+        workstreamId: 'ws-1',
+        workstreamSource: 'ai',
+        embedding: null,
+        embeddingModel: null,
+        embeddingGeneratedAt: null,
+      });
     }
 
-    const request = new NextRequest(
-      `http://localhost/api/workstreams/${wsId}`,
-      {
-        method: 'DELETE',
-      },
-    );
+    const request = new NextRequest('http://localhost/api/workstreams/ws-1', {
+      method: 'DELETE',
+    });
 
     const response = await DELETE(request, {
-      params: Promise.resolve({ id: wsId }),
+      params: Promise.resolve({ id: 'ws-1' }),
     });
     expect(response.status).toBe(200);
 
@@ -306,25 +370,34 @@ describe('DELETE /api/workstreams/[id]', () => {
   });
 
   it('returns 404 for other user workstream', async () => {
-    const otherUser = createMockUser({ id: uuidv4() });
+    const otherUser = {
+      id: '223e4567-e89b-12d3-a456-426614174000',
+      email: 'other@example.com',
+      provider: 'credentials',
+    };
     await db.insert(user).values(otherUser);
 
-    const wsId = uuidv4();
-    const ws = createMockWorkstream(otherUser.id, {
-      id: wsId,
+    const ws = {
+      id: 'ws-1',
+      userId: otherUser.id,
       name: 'Other WS',
-    });
+      description: null,
+      color: '#3B82F6',
+      centroidEmbedding: null,
+      centroidUpdatedAt: null,
+      achievementCount: 0,
+      isArchived: false,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
     await db.insert(workstream).values(ws);
 
-    const request = new NextRequest(
-      `http://localhost/api/workstreams/${wsId}`,
-      {
-        method: 'DELETE',
-      },
-    );
+    const request = new NextRequest('http://localhost/api/workstreams/ws-1', {
+      method: 'DELETE',
+    });
 
     const response = await DELETE(request, {
-      params: Promise.resolve({ id: wsId }),
+      params: Promise.resolve({ id: 'ws-1' }),
     });
     expect(response.status).toBe(404);
   });
