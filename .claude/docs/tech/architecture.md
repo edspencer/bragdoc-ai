@@ -621,39 +621,124 @@ Vercel Edge Network
 - **Workspace Support**: Native monorepo support
 - **Strict**: Prevents phantom dependencies
 
-## Workstreams Architecture
+## Workstreams Feature
 
 ### Overview
 
-Workstreams provide automatic semantic clustering of achievements across projects to identify work patterns and themes. The feature uses machine learning to group related achievements, helping users understand their professional development trajectory.
+Workstreams is an AI-powered semantic clustering feature that automatically discovers and groups related achievements across projects. The feature helps users identify thematic patterns in their professional work, enabling better portfolio building and career reflection.
 
-### Technical Architecture
+**Key Design Decisions:**
 
-**ML Pipeline:**
-1. **Embedding Generation**: OpenAI text-embedding-3-small (1536 dimensions) for each achievement
-2. **Clustering**: DBSCAN algorithm for automatic cluster discovery without predefined k
-3. **Naming**: LLM-based descriptive naming of discovered clusters
-4. **Assignment**: Cosine similarity for incremental achievement assignment
+- **Clustering Algorithm**: DBSCAN for unsupervised clustering (no predefined k value)
+- **Embeddings**: OpenAI `text-embedding-3-small` for cost-efficient semantic understanding
+- **Cost Model**: ~$2/year per active user (embeddings + LLM naming)
+- **Performance**: Synchronous clustering for <1000 achievements (~500ms)
+- **Update Strategy**: Intelligent decision between full re-clustering vs incremental assignment
 
-**Update Strategies:**
-- **Full Re-clustering**: When significant changes detected (>10% new achievements, >30 days, etc.)
-- **Incremental Assignment**: For small changes, assign to existing workstreams using centroid matching
+### Database Layer
 
-**Performance Optimizations:**
-- **Centroid Caching**: Pre-computed cluster centroids for O(1) assignment
-- **Synchronous Processing**: <1000 achievements process in ~500ms
-- **Batch Operations**: Parallel embedding generation for efficiency
+**New Tables:**
 
-**Cost Model:**
-- Embeddings: ~$0.002 per 1000 achievements
-- LLM Naming: ~$0.01 per workstream
-- Estimated: ~$2/year per active user
+1. **Workstream** - Stores semantic clusters
+   - `id`, `userId`, `name`, `description`, `color`
+   - `centroidEmbedding` - Cached vector for fast similarity matching
+   - `centroidUpdatedAt` - Cache invalidation timestamp
+   - `achievementCount` - Denormalized for quick UI rendering
+   - `isArchived` - Soft deletion support
 
-**Database Design:**
-- `Achievement` table extended with embedding vectors and workstream assignments
-- `Workstream` table stores clusters with cached centroids
-- `WorkstreamMetadata` tracks clustering history and parameters
-- pgvector extension enables efficient vector operations
+2. **WorkstreamMetadata** - Clustering history per user
+   - `lastFullClusteringAt` - Timestamp of last full clustering
+   - `achievementCountAtLastClustering` - Achievement count at that time
+   - `epsilon`, `minPts` - Clustering parameters used
+   - `workstreamCount`, `outlierCount` - Statistics
+
+3. **Achievement** - Enhanced with embedding and assignment fields
+   - `embedding` - vector(1536) for OpenAI embeddings
+   - `embeddingModel` - Model used for consistency
+   - `embeddingGeneratedAt` - Timestamp for cache invalidation
+   - `workstreamId` - FK to Workstream (nullable)
+   - `workstreamSource` - 'ai' | 'user' to track assignment origin
+
+**pgvector Requirement**: PostgreSQL must have pgvector extension enabled for vector operations.
+
+### Clustering Strategy
+
+**Full Re-clustering Triggers:**
+
+- Initial clustering (no previous metadata)
+- +10% new achievements since last clustering
+- +50 new achievements (absolute threshold)
+- >30 days since last clustering (time-based decay)
+
+**Incremental Assignment:**
+
+For new achievements with embeddings, the system:
+1. Calculates cosine distance to each workstream's cached centroid
+2. Assigns to nearest cluster if confidence ≥ outlierThreshold
+3. Leaves low-confidence matches as unassigned (for manual review)
+4. Updates centroid and achievement counts
+
+**Parameter Tuning:**
+
+- **Small datasets (20-99 achievements)**: Relaxed parameters (minPts=3, threshold=0.70)
+- **Large datasets (100+)**: Stricter parameters (minPts=5, threshold=0.65)
+- K-distance plot method used to find optimal epsilon dynamically
+
+### Centroid Caching
+
+Workstreams cache the mean embedding of all assigned achievements:
+
+1. **Updated when:**
+   - New achievement assigned to workstream
+   - Achievement unassigned or moved to different workstream
+   - Full re-clustering completes
+
+2. **Used for:**
+   - Fast similarity matching during incremental assignment
+   - Detecting potential workstream merges (future enhancement)
+   - Weighted sampling for LLM-based naming
+
+### User Assignment Preservation
+
+The system respects user overrides:
+
+- Assignments with `workstreamSource = 'user'` are NOT changed during re-clustering
+- Only `workstreamSource = 'ai'` assignments are cleared and re-computed
+- This ensures users can refine clusters without losing their work
+
+### Cost Analysis
+
+**Per-User Annual Cost:**
+
+- Embeddings: ~50 API calls (initial 50 achievements) + 10 new/month = ~170 calls/year × $0.00002 = $0.003
+- LLM Naming: ~8 clusters × 1 call each = 8 calls × $0.0001 = $0.0008
+- **Total**: ~$0.004/user/year (or ~$2 per 500 active users)
+
+**Optimization Strategies:**
+
+- Cache embeddings to avoid regeneration
+- Batch embedding generation for new achievements
+- Reuse centroid embeddings for similarity matching
+- Limit LLM naming calls (only on full re-clustering)
+
+### Scaling Considerations
+
+**Performance Characteristics:**
+
+- <100 achievements: <100ms clustering time
+- 100-500 achievements: 200-500ms clustering time
+- 500-1000 achievements: 500-2000ms clustering time
+- >1000 achievements: Consider background job processing
+
+**Future Enhancements:**
+
+- Background job queue for large dataset clustering
+- Incremental DBSCAN for streaming achievement insertion
+- Workstream merge suggestions based on centroid similarity
+- Custom clustering parameters per user (advanced settings)
+- Bulk embedding generation with rate limiting
+
+---
 
 ## Future Architecture Considerations
 

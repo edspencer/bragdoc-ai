@@ -163,7 +163,7 @@ BragDoc is a **TypeScript monorepo** using:
 
 - **Framework:** Next.js 16 (App Router with React 19+ Server Components)
 - **Monorepo:** Turborepo with pnpm workspaces
-- **Database:** PostgreSQL via Drizzle ORM
+- **Database:** PostgreSQL via Drizzle ORM (pgvector extension for semantic clustering)
 - **Auth:** Better Auth v1.3.33 with database-backed sessions
 - **AI:** Vercel AI SDK with multiple LLM providers (OpenAI, Anthropic, Google, DeepSeek, Ollama)
 - **Styling:** Tailwind CSS + shadcn/ui components
@@ -295,46 +295,130 @@ Shared TypeScript configurations: `base.json`, `nextjs.json`, `react-library.jso
 
 ### Overview
 
-Workstreams provide automatic semantic clustering of achievements across projects to identify work patterns and themes. The feature uses machine learning to group related achievements, helping users understand their professional development.
+Workstreams is an AI-powered semantic clustering feature that automatically discovers and groups related achievements across projects. The feature helps users identify thematic patterns in their professional work.
 
-### Architecture
+**Key Characteristics:**
+- **AI-Powered**: Uses OpenAI embeddings (text-embedding-3-small) for semantic understanding
+- **Unsupervised Clustering**: DBSCAN algorithm discovers patterns without predefined cluster count
+- **User-Respectable**: Manual assignments are preserved during re-clustering
+- **Cost-Efficient**: ~$2/year per active user (embeddings + LLM naming)
+- **Minimum Requirement**: Users need ≥20 achievements to generate workstreams
 
-- **ML Pipeline:** OpenAI embeddings → DBSCAN clustering → LLM naming
-- **Database:** pgvector extension for 1536-dimensional embedding storage
-- **API:** RESTful endpoints for generation, CRUD, and manual assignment
-- **UI:** Dashboard widget, dedicated page, achievement integration
+### Database
 
-### Key Components
+**New Tables:**
+1. **Workstream** - Stores semantic clusters
+   - `id`, `userId`, `name`, `description`, `color`
+   - `centroidEmbedding` - Cached vector for fast similarity matching
+   - `achievementCount` - Denormalized count for quick rendering
+   - `isArchived` - Soft deletion support
 
-**Database Tables:**
-- `Achievement` - Extended with embedding vectors and workstream assignments
-- `Workstream` - Stores clusters with cached centroids
-- `WorkstreamMetadata` - Tracks clustering history
+2. **WorkstreamMetadata** - Clustering history per user
+   - `lastFullClusteringAt` - Timestamp of last clustering
+   - `achievementCountAtLastClustering` - Count at clustering time
+   - `epsilon`, `minPts` - Clustering parameters used
+   - `workstreamCount`, `outlierCount` - Statistics
 
-**API Endpoints:**
-- `POST /api/workstreams/generate` - Trigger clustering
-- `GET /api/workstreams` - List workstreams
-- `GET/PUT/DELETE /api/workstreams/[id]` - CRUD operations
-- `POST /api/workstreams/assign` - Manual assignment
+3. **Achievement** - Enhanced with embedding and assignment fields
+   - `embedding` - vector(1536) for OpenAI embeddings
+   - `embeddingModel` - Model used for consistency
+   - `workstreamId` - FK to Workstream (nullable)
+   - `workstreamSource` - 'ai' | 'user' to track assignment origin
 
-**UI Components:**
-- `WorkstreamBadge` - Display assignment on achievements
-- `WorkstreamCard` - Summary display
-- `WorkstreamStatus` - Dashboard widget
-- `useWorkstreams` - Data fetching hook
+**Requirements:**
+- PostgreSQL with pgvector extension enabled (Neon provides this by default)
 
-### Implementation Details
+➡️ **See [database.md](/.claude/docs/tech/database.md) for complete schema, query patterns, and performance tips**
 
-- **Minimum Requirements:** 20 achievements to enable feature
-- **Clustering Algorithm:** DBSCAN with adaptive parameters
-- **Cost Model:** ~$2/year per active user
-- **Performance:** <500ms for typical datasets (<1000 achievements)
+### API Endpoints
 
-For detailed technical documentation, see:
-- Database schema: `.claude/docs/tech/database.md`
-- ML implementation: `.claude/docs/tech/ai-integration.md`
-- API patterns: `.claude/docs/tech/api-conventions.md`
-- UI components: `.claude/docs/tech/frontend-patterns.md`
+**RESTful API Suite** (`/api/workstreams/*`):
+
+1. **POST /api/workstreams/generate** - Generate or update workstreams
+   - Generates missing embeddings
+   - Decides between full re-clustering or incremental assignment
+   - Returns statistics and metadata
+
+2. **GET /api/workstreams** - List user's workstreams
+   - Returns workstreams, metadata, and statistics
+   - Includes unassigned achievement count
+
+3. **GET /api/workstreams/[id]** - Fetch single workstream
+   - Returns workstream details
+   - Verifies user ownership
+
+4. **PUT /api/workstreams/[id]** - Update workstream
+   - Allows updating name, description, color
+   - Validates color format (hex code)
+
+5. **DELETE /api/workstreams/[id]** - Archive workstream
+   - Soft deletes workstream
+   - Unassigns all achievements
+
+6. **POST /api/workstreams/assign** - Manual assignment
+   - Assigns achievement to workstream
+   - Sets `workstreamSource = 'user'` to preserve on re-clustering
+   - Supports null workstreamId for unassignment
+
+➡️ **See [api-conventions.md](/.claude/docs/tech/api-conventions.md) for complete endpoint documentation**
+
+### UI Components
+
+**Core Components** (in `apps/web/components/workstreams/`):
+
+1. **WorkstreamBadge** - Colored badge for displaying workstream name
+2. **WorkstreamCard** - Card showing workstream details with action buttons
+3. **WorkstreamList** - Grid of workstream cards with loading/empty states
+4. **WorkstreamStatus** - Dashboard widget showing generation status
+5. **AssignmentDialog** - Dialog for manually assigning achievements
+6. **WorkstreamsZeroState** - Empty state with feature explanation
+
+**React Hook:**
+- **useWorkstreams** - SWR-based hook for managing workstream data and operations
+
+➡️ **See [frontend-patterns.md](/.claude/docs/tech/frontend-patterns.md) for component usage, patterns, and integration examples**
+
+### AI/ML Components
+
+**Modules** (in `apps/web/lib/ai/`):
+
+1. **clustering.ts** - DBSCAN clustering algorithms
+   - `cosineDistance()` - Vector similarity
+   - `clusterEmbeddings()` - Run DBSCAN clustering
+   - `calculateCentroid()` - Mean embedding calculation
+   - `getClusteringParameters()` - Parameter selection based on dataset size
+
+2. **embeddings.ts** - OpenAI embedding integration
+   - `generateAchievementEmbedding()` - Generate and save embedding
+   - `generateEmbeddingsBatch()` - Batch parallel processing
+   - `generateMissingEmbeddings()` - Find and generate missing embeddings
+
+3. **workstreams.ts** - Orchestration and business logic
+   - `decideShouldReCluster()` - Determine update strategy
+   - `incrementalAssignment()` - Assign new achievements to existing workstreams
+   - `fullReclustering()` - Complete re-analysis and LLM naming
+   - `nameWorkstream()` - LLM-based workstream naming
+
+**Database Queries** (in `packages/database/src/workstreams/queries.ts`):
+- Reusable query functions following existing patterns
+- All queries properly scoped by userId
+
+➡️ **See [ai-integration.md](/.claude/docs/tech/ai-integration.md) for embedding, clustering, and cost analysis details**
+
+### Key Design Decisions
+
+1. **DBSCAN over K-means**: Automatically discovers cluster count, handles outliers naturally
+2. **Centroid Caching**: Cached mean embeddings enable fast incremental assignment
+3. **User Assignment Preservation**: `workstreamSource` field respects user overrides
+4. **Parameter Tuning**: Different parameters for small (20-99) vs large (100+) datasets
+5. **Non-blocking Embedding**: Auto-embedding on achievement creation doesn't block response
+
+### Cost Model
+
+**Annual Cost per User** (typical 100 achievements):
+- Embeddings: ~170 API calls/year × $0.00002 = $0.003
+- LLM Naming: ~8 clusters × 1 call = $0.0008
+- **Total**: ~$0.004/user/year (or ~$2 per 500 active users)
 
 ---
 

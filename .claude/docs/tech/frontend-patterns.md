@@ -2383,60 +2383,278 @@ export default function PricingPage() {
 
 ---
 
-## Workstreams Components
+## Workstreams Components and Patterns
 
-### Component Architecture
+### WorkstreamBadge Component
 
-**WorkstreamBadge** (`apps/web/components/workstreams/workstream-badge.tsx`)
-- Client component displaying workstream as colored badge
-- Uses shadcn/ui Badge with custom border/text color styling
-- Optional remove button for interactive contexts
-- Handles nullable color field with fallback to default blue
+**File**: `apps/web/components/workstreams/workstream-badge.tsx`
 
-**WorkstreamCard** (`apps/web/components/workstreams/workstream-card.tsx`)
-- Client component for workstream summary display
-- Shows colored indicator, name, description, achievement count
-- Optional edit/delete actions
-- Wrappable with Link for navigation to detail pages
+Client component for displaying workstream as a colored badge.
 
-**WorkstreamList** (`apps/web/components/workstreams/workstream-list.tsx`)
-- Grid layout with responsive columns (md:2, lg:3)
-- Loading state with spinner
-- Empty state messaging
-- Uses useWorkstreams hook for data fetching
+**Usage:**
 
-**WorkstreamStatus** (`apps/web/components/workstreams/workstream-status.tsx`)
-- Dashboard widget showing generation status
-- Three states: insufficient achievements, ready to generate, generated
-- Shows unassigned achievement count when relevant
-- Action buttons for generation and viewing all
+```typescript
+import { WorkstreamBadge } from '@/components/workstreams/workstream-badge';
+import type { Workstream } from '@bragdoc/database';
 
-**AssignmentDialog** (`apps/web/components/workstreams/assignment-dialog.tsx`)
-- Modal for manually assigning achievements to workstreams
-- Shows current assignment with highlighting
-- Supports unassignment (null workstreamId)
-- Async assignment with loading states
+interface Props {
+  workstream: Workstream;
+  onRemove?: () => void;
+}
 
-### Data Hook
+export function Component({ workstream, onRemove }: Props) {
+  return (
+    <WorkstreamBadge
+      workstream={workstream}
+      onRemove={onRemove}
+    />
+  );
+}
+```
 
-**useWorkstreams** (`apps/web/hooks/use-workstreams.ts`)
-- SWR-based data fetching and caching
-- Returns workstreams, counts, and metadata
-- Provides generateWorkstreams() and assignWorkstream() methods
-- Auto-refreshes after mutations
-- Handles loading and error states
+**Features:**
+- Displays workstream name with custom border and text color
+- Optional remove button (×) for interactive contexts
+- Safely handles nullable color field with fallback to blue (#3B82F6)
+- Client component (use 'use client' directive)
 
-### Integration Patterns
+### WorkstreamCard Component
 
-**Achievement Cards:** Display workstream badge using conditional rendering based on workstreamId
+**File**: `apps/web/components/workstreams/workstream-card.tsx`
 
-**Achievements Table:** Add workstream filter dropdown that includes "Unassigned" option
+Client component for displaying workstream details as a card.
 
-**Dashboard:** Integrate WorkstreamStatus widget into dashboard grid layout
+**Usage:**
 
-**Navigation:** Add /workstreams route to sidebar navigation with TrendingUp icon
+```typescript
+import { WorkstreamCard } from '@/components/workstreams/workstream-card';
+import type { Workstream } from '@bragdoc/database';
 
-**Detail Pages:** Server component fetching workstream and related achievements with ownership verification
+interface Props {
+  workstream: Workstream;
+  onEdit?: (id: string) => void;
+  onDelete?: (id: string) => void;
+}
+
+export function MyComponent({ workstream }: Props) {
+  return (
+    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+      <WorkstreamCard
+        workstream={workstream}
+        onEdit={(id) => console.log('Edit', id)}
+        onDelete={(id) => console.log('Delete', id)}
+      />
+    </div>
+  );
+}
+```
+
+**Features:**
+- Shows colored indicator dot, name, description
+- Displays achievement count
+- Optional action buttons for edit/delete
+- Responsive card layout using shadcn/ui Card
+
+**Integration Pattern:**
+Cards can be wrapped with Next.js Link for navigation:
+
+```typescript
+import Link from 'next/link';
+
+export function WorkstreamCardWithLink({ workstream }: Props) {
+  return (
+    <Link href={`/workstreams/${workstream.id}`}>
+      <WorkstreamCard workstream={workstream} />
+    </Link>
+  );
+}
+```
+
+### useWorkstreams Hook
+
+**File**: `apps/web/hooks/use-workstreams.ts`
+
+React hook for managing workstream data and operations.
+
+**Usage:**
+
+```typescript
+'use client';
+
+import { useWorkstreams } from '@/hooks/use-workstreams';
+
+export function WorkstreamManager() {
+  const {
+    workstreams,      // Workstream[]
+    metadata,         // WorkstreamMetadata
+    unassignedCount,  // number
+    achievementCount, // number
+    isLoading,        // boolean
+    error,            // Error | undefined
+    generateWorkstreams,   // () => Promise<void>
+    isGenerating,     // boolean
+    assignWorkstream,  // (achievementId, workstreamId) => Promise<void>
+  } = useWorkstreams();
+
+  if (isLoading) return <LoadingSpinner />;
+
+  return (
+    <div>
+      <p>Workstreams: {workstreams.length}</p>
+      <p>Unassigned: {unassignedCount}</p>
+      <button onClick={generateWorkstreams} disabled={isGenerating}>
+        {isGenerating ? 'Generating...' : 'Generate Workstreams'}
+      </button>
+    </div>
+  );
+}
+```
+
+**API:**
+
+- `workstreams`: Array of Workstream objects
+- `metadata`: Clustering history (lastFullClusteringAt, statistics)
+- `unassignedCount`: Count of achievements without workstream
+- `achievementCount`: Total count of achievements with embeddings
+- `isLoading`: True while fetching initial data
+- `error`: Error object if data fetch failed
+- `generateWorkstreams()`: Trigger clustering/incremental assignment
+- `isGenerating`: True while generation is in progress
+- `assignWorkstream(achievementId, workstreamId)`: Manually assign achievement
+
+**Data Flow:**
+- Hook uses SWR for client-side fetching
+- Automatically refreshes after mutations
+- Cached by default, can be invalidated
+
+### Zero State Pattern
+
+**File**: `apps/web/components/workstreams/workstreams-zero-state.tsx`
+
+Component for empty state when no workstreams exist.
+
+**Usage:**
+
+```typescript
+import { WorkstreamsZeroState } from '@/components/workstreams/workstreams-zero-state';
+
+export function WorkstreamsPage() {
+  const { workstreams, achievementCount, generateWorkstreams, isGenerating } = useWorkstreams();
+
+  if (workstreams.length === 0) {
+    return (
+      <WorkstreamsZeroState
+        achievementCount={achievementCount}
+        onGenerate={generateWorkstreams}
+      />
+    );
+  }
+
+  return <WorkstreamList />;
+}
+```
+
+**States Handled:**
+1. **Insufficient achievements** (<20): Shows requirements and button to add more
+2. **Ready to generate** (≥20, no workstreams): Shows "How it Works" and generate button
+3. **Generating in progress**: Shows loading state during generation
+
+### Manual Assignment Dialog
+
+**File**: `apps/web/components/workstreams/assignment-dialog.tsx`
+
+Dialog for manually assigning achievements to workstreams.
+
+**Usage:**
+
+```typescript
+'use client';
+
+import { useState } from 'react';
+import { AssignmentDialog } from '@/components/workstreams/assignment-dialog';
+import type { Workstream } from '@bragdoc/database';
+
+export function AchievementActions({ achievementId, workstreams }: Props) {
+  const [isOpen, setIsOpen] = useState(false);
+
+  return (
+    <>
+      <button onClick={() => setIsOpen(true)}>Edit Workstream</button>
+
+      <AssignmentDialog
+        open={isOpen}
+        onOpenChange={setIsOpen}
+        achievementId={achievementId}
+        workstreams={workstreams}
+        onAssign={async (achievementId, workstreamId) => {
+          await fetch('/api/workstreams/assign', {
+            method: 'POST',
+            body: JSON.stringify({ achievementId, workstreamId }),
+          });
+        }}
+      />
+    </>
+  );
+}
+```
+
+**Features:**
+- Lists all workstreams as selectable buttons
+- "None" option to unassign from workstream
+- Shows currently selected workstream
+- Async assignment with loading state
+- Closes dialog after successful assignment
+
+### Integration with Achievement Cards
+
+**Pattern**: Display workstream badge on achievement cards
+
+```typescript
+// apps/web/components/achievements/achievement-item.tsx
+
+'use client';
+
+import { WorkstreamBadge } from '@/components/workstreams/workstream-badge';
+import type { Workstream } from '@bragdoc/database';
+
+interface Props {
+  achievement: Achievement;
+  workstream?: Workstream;
+  onWorkstreamChange?: () => void;
+}
+
+export function AchievementItem({ achievement, workstream, onWorkstreamChange }: Props) {
+  return (
+    <div>
+      <h3>{achievement.title}</h3>
+      <p>{achievement.summary}</p>
+
+      {/* Display workstream badge */}
+      {workstream && (
+        <div className="mt-2">
+          <WorkstreamBadge workstream={workstream} />
+        </div>
+      )}
+    </div>
+  );
+}
+```
+
+### Workstream Status Dashboard Widget
+
+**File**: `apps/web/components/workstreams/workstream-status.tsx`
+
+Dashboard widget showing generation status and statistics.
+
+**Features:**
+- Three distinct states: insufficient, ready, generated
+- Shows unassigned achievement count
+- Buttons for generation and updates
+- Quick summary of workstream statistics
+
+**Used in:**
+- Dashboard page
+- Workstreams landing page
 
 ---
 
@@ -2446,6 +2664,6 @@ For comprehensive SEO documentation including metadata patterns, schema.org stru
 
 ---
 
-**Last Updated:** 2025-10-29 (AppContent wrapper pattern, responsive spacing conventions, Stat component, responsive button patterns)
+**Last Updated:** 2025-11-06 (Workstreams UI components and patterns)
 **Next.js:** 16.0.0
 **React:** 19.2.0
