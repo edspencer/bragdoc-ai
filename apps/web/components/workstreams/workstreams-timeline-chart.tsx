@@ -135,7 +135,10 @@ export function WorkstreamsTimelineChart({
   // Format month for display
   const formatMonth = (monthKey: string) => {
     const [year, month] = monthKey.split('-');
-    const date = new Date(parseInt(year), parseInt(month) - 1);
+    const date = new Date(
+      Number.parseInt(year || '0'),
+      Number.parseInt(month || '1') - 1,
+    );
     return date.toLocaleDateString('en-US', {
       month: 'short',
       year: 'numeric',
@@ -225,7 +228,7 @@ export function WorkstreamsTimelineChart({
                           height: `${(monthData.uncategorized / maxValue) * 100}%`,
                           minHeight: '2px',
                         }}
-                        title={`Uncategorized: ${monthData.uncategorized} ${metric === 'count' ? 'achievement' + (monthData.uncategorized === 1 ? '' : 's') : 'impact points'}`}
+                        title={`Uncategorized: ${monthData.uncategorized} ${metric === 'count' ? `achievement${monthData.uncategorized === 1 ? '' : 's'}` : 'impact points'}`}
                       >
                         {(monthData.uncategorized / maxValue) * 100 > 8 && (
                           <span className="text-xs font-medium text-gray-700 dark:text-gray-300 px-1">

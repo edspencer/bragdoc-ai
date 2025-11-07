@@ -56,16 +56,23 @@ export function WorkstreamsGanttChart({
         }))
         .sort((a, b) => a.date.getTime() - b.date.getTime());
 
+      // This should never happen due to the length check above, but TypeScript needs it
+      if (sortedAchievements.length === 0) return;
+
       // Group into segments (split when gap > 1 month)
       const segments: TimeSegment[] = [];
-      let currentSegmentStart = sortedAchievements[0].date;
-      let currentSegmentEnd = sortedAchievements[0].date;
+      const firstAchievement = sortedAchievements[0]!; // Safe due to check above
+      let currentSegmentStart = firstAchievement.date;
+      let currentSegmentEnd = firstAchievement.date;
       let currentSegmentCount = 1;
-      let currentSegmentImpact = sortedAchievements[0].impact || 0;
+      let currentSegmentImpact = firstAchievement.impact || 0;
 
       for (let i = 1; i < sortedAchievements.length; i++) {
-        const prevDate = sortedAchievements[i - 1].date;
-        const currDate = sortedAchievements[i].date;
+        // Safe array access within loop bounds
+        const prevAchievement = sortedAchievements[i - 1]!;
+        const currAchievement = sortedAchievements[i]!;
+        const prevDate = prevAchievement.date;
+        const currDate = currAchievement.date;
 
         // Calculate month difference
         const monthsDiff =
@@ -95,12 +102,12 @@ export function WorkstreamsGanttChart({
           currentSegmentStart = currDate;
           currentSegmentEnd = currDate;
           currentSegmentCount = 1;
-          currentSegmentImpact = sortedAchievements[i].impact || 0;
+          currentSegmentImpact = currAchievement.impact || 0;
         } else {
           // Continue current segment
           currentSegmentEnd = currDate;
           currentSegmentCount++;
-          currentSegmentImpact += sortedAchievements[i].impact || 0;
+          currentSegmentImpact += currAchievement.impact || 0;
         }
       }
 
@@ -221,20 +228,22 @@ export function WorkstreamsGanttChart({
     // Use 90th percentile as reference to handle outliers
     // Clamp density to reference value (outliers get max opacity)
     // Use logarithmic scale for better distribution
-    // Use a range from 0.3 to 1.0 to ensure low-impact segments are still visible
+    // Map to 0.0-0.4 range, then add 0.6 base opacity (final range: 0.6-1.0)
     const clampedDensity = Math.min(
       segment.impactDensity,
       referenceImpactDensity,
     );
     const densityRatio =
       Math.log(clampedDensity + 1) / Math.log(referenceImpactDensity + 1);
-    const opacity = 0.3 + densityRatio * 0.7; // Maps 0→0.3, reference→1.0
+    const opacity = 0.6 + densityRatio * 0.4; // Maps 0→0.6, reference→1.0
 
     return {
       left: `${leftPercent}%`,
       width: `${widthPercent}%`,
       backgroundColor: color || '#3B82F6',
       opacity: opacity,
+      // Store calculated opacity for tooltip display
+      _calculatedOpacity: opacity,
     };
   };
 
@@ -315,46 +324,56 @@ export function WorkstreamsGanttChart({
                     </div>
 
                     {/* Workstream bars (one per segment) */}
-                    {wsData.segments.map((segment, segIdx) => (
-                      <Tooltip key={segIdx}>
-                        <TooltipTrigger asChild>
-                          <div
-                            className="absolute top-1 h-6 rounded transition-all hover:opacity-100 cursor-pointer"
-                            style={getBarStyle(
-                              segment,
-                              wsData.workstream.color || '#3B82F6',
-                            )}
-                          >
-                            <div className="h-full flex items-center justify-center">
-                              <span className="text-xs font-medium text-white px-2 truncate">
-                                {segment.achievementCount}
-                              </span>
-                            </div>
-                          </div>
-                        </TooltipTrigger>
-                        <TooltipContent side="top" className="max-w-xs">
-                          <div className="space-y-1">
-                            <div className="font-semibold">
-                              {wsData.workstream.name}
-                            </div>
-                            <div className="text-xs opacity-90">
-                              {formatDateRange(segment)}
-                            </div>
-                            <div className="text-xs space-y-0.5 pt-1">
-                              <div>
-                                {segment.achievementCount} achievement
-                                {segment.achievementCount === 1 ? '' : 's'}
-                              </div>
-                              <div>Total impact: {segment.totalImpact}</div>
-                              <div>
-                                Impact density:{' '}
-                                {segment.impactDensity.toFixed(2)} per day
+                    {wsData.segments.map((segment, segIdx) => {
+                      const barStyle = getBarStyle(
+                        segment,
+                        wsData.workstream.color || '#3B82F6',
+                      );
+                      return (
+                        <Tooltip key={segIdx}>
+                          <TooltipTrigger asChild>
+                            <div
+                              className="absolute top-1 h-6 rounded transition-all hover:opacity-100 cursor-pointer"
+                              style={barStyle}
+                            >
+                              <div className="h-full flex items-center justify-center">
+                                <span className="text-xs font-medium text-white px-2 truncate">
+                                  {segment.achievementCount}
+                                </span>
                               </div>
                             </div>
-                          </div>
-                        </TooltipContent>
-                      </Tooltip>
-                    ))}
+                          </TooltipTrigger>
+                          <TooltipContent side="top" className="max-w-xs">
+                            <div className="space-y-1">
+                              <div className="font-semibold">
+                                {wsData.workstream.name}
+                              </div>
+                              <div className="text-xs opacity-90">
+                                {formatDateRange(segment)}
+                              </div>
+                              <div className="text-xs space-y-0.5 pt-1">
+                                <div>
+                                  {segment.achievementCount} achievement
+                                  {segment.achievementCount === 1 ? '' : 's'}
+                                </div>
+                                <div>Total impact: {segment.totalImpact}</div>
+                                <div>
+                                  Impact density:{' '}
+                                  {segment.impactDensity.toFixed(2)} per day
+                                </div>
+                                <div className="opacity-70 pt-0.5 border-t border-white/20 mt-1">
+                                  Opacity:{' '}
+                                  {(
+                                    (barStyle._calculatedOpacity || 1) * 100
+                                  ).toFixed(0)}
+                                  %
+                                </div>
+                              </div>
+                            </div>
+                          </TooltipContent>
+                        </Tooltip>
+                      );
+                    })}
                   </div>
                 </div>
               ))}
