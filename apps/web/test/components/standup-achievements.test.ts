@@ -571,10 +571,12 @@ describe('Standup Page Achievements Tests', () => {
 
     it('should handle deletion from large list', () => {
       let achievements = Array.from({ length: 50 }, (_, i) =>
-        createTestAchievement({ id: `ach-${i}` }),
+        createTestAchievement({ id: uuidv4() }),
       );
 
-      achievements = achievements.filter((a) => a.id !== 'ach-25');
+      // Get the ID of one achievement to delete
+      const idToDelete = achievements[25].id;
+      achievements = achievements.filter((a) => a.id !== idToDelete);
 
       expect(achievements).toHaveLength(49);
     });

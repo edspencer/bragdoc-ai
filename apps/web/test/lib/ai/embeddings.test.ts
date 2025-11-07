@@ -4,13 +4,18 @@ import {
   generateEmbeddingsBatch,
   generateMissingEmbeddings,
 } from 'lib/ai/embeddings';
-import { achievement } from '@/database/schema';
+import { achievement, user, project } from '@/database/schema';
 import { db } from '@/database/index';
 import { eq } from 'drizzle-orm';
+import { v4 as uuidv4 } from 'uuid';
 
-// Mock the OpenAI API
-jest.mock('ai', () => ({
-  embed: jest.fn(),
+// Mock the OpenAI provider
+jest.mock('@ai-sdk/openai', () => ({
+  openai: {
+    embedding: jest.fn(() => ({
+      doEmbed: jest.fn(),
+    })),
+  },
 }));
 
 const mockAchievementData = {
@@ -20,9 +25,11 @@ const mockAchievementData = {
   title: 'Test Achievement',
   summary: 'A brief summary',
   details: 'Some additional details that are helpful',
-  impact: 'Positive impact',
+  impact: 2,
+  source: 'manual' as const,
   eventStart: new Date('2025-01-01'),
   eventEnd: null,
+  eventDuration: 'week' as const,
   createdAt: new Date(),
   updatedAt: new Date(),
   isArchived: false,
@@ -37,11 +44,28 @@ describe('Embeddings Module', () => {
   beforeEach(async () => {
     // Clean up database
     await db.delete(achievement);
+    await db.delete(project);
+    await db.delete(user);
+
+    // Insert test user and project
+    await db.insert(user).values({
+      id: mockAchievementData.userId,
+      email: 'test@example.com',
+      provider: 'credentials',
+    });
+    await db.insert(project).values({
+      id: mockAchievementData.projectId,
+      userId: mockAchievementData.userId,
+      name: 'Test Project',
+      startDate: new Date('2025-01-01'),
+    });
   });
 
   afterEach(async () => {
     // Clean up after tests
     await db.delete(achievement);
+    await db.delete(project);
+    await db.delete(user);
     jest.clearAllMocks();
   });
 
@@ -117,12 +141,17 @@ describe('Embeddings Module', () => {
       const testAch = { ...mockAchievementData };
       await db.insert(achievement).values(testAch);
 
-      // Mock the embed function
-      const { embed } = require('ai');
+      // Mock the OpenAI embedding function
+      const { openai } = require('@ai-sdk/openai');
       const mockEmbedding = Array(1536)
         .fill(0)
         .map(() => Math.random());
-      embed.mockResolvedValue({ embedding: mockEmbedding });
+      const mockDoEmbed = jest.fn().mockResolvedValue({
+        embeddings: [mockEmbedding],
+      });
+      openai.embedding.mockReturnValue({
+        doEmbed: mockDoEmbed,
+      });
 
       // Generate embedding
       const result = await generateAchievementEmbedding(testAch.id);
@@ -144,11 +173,16 @@ describe('Embeddings Module', () => {
     });
 
     it('throws error for non-existent achievement', async () => {
-      const { embed } = require('ai');
+      const { openai } = require('@ai-sdk/openai');
       const mockEmbedding = Array(1536)
         .fill(0)
         .map(() => Math.random());
-      embed.mockResolvedValue({ embedding: mockEmbedding });
+      const mockDoEmbed = jest.fn().mockResolvedValue({
+        embeddings: [mockEmbedding],
+      });
+      openai.embedding.mockReturnValue({
+        doEmbed: mockDoEmbed,
+      });
 
       await expect(
         generateAchievementEmbedding('non-existent-id'),
@@ -159,11 +193,16 @@ describe('Embeddings Module', () => {
       const testAch = { ...mockAchievementData };
       await db.insert(achievement).values(testAch);
 
-      const { embed } = require('ai');
+      const { openai } = require('@ai-sdk/openai');
       const mockEmbedding = Array(1536)
         .fill(0)
         .map(() => Math.random());
-      embed.mockResolvedValue({ embedding: mockEmbedding });
+      const mockDoEmbed = jest.fn().mockResolvedValue({
+        embeddings: [mockEmbedding],
+      });
+      openai.embedding.mockReturnValue({
+        doEmbed: mockDoEmbed,
+      });
 
       const beforeTime = new Date();
       await generateAchievementEmbedding(testAch.id);
@@ -188,7 +227,11 @@ describe('Embeddings Module', () => {
   describe('generateEmbeddingsBatch', () => {
     it('processes multiple achievements in parallel', async () => {
       // Insert multiple achievements
-      const ids = ['id-1', 'id-2', 'id-3'];
+      const ids = [
+        '523e4567-e89b-12d3-a456-426614174001',
+        '523e4567-e89b-12d3-a456-426614174002',
+        '523e4567-e89b-12d3-a456-426614174003',
+      ];
       for (const id of ids) {
         await db.insert(achievement).values({
           ...mockAchievementData,
@@ -196,11 +239,16 @@ describe('Embeddings Module', () => {
         });
       }
 
-      const { embed } = require('ai');
+      const { openai } = require('@ai-sdk/openai');
       const mockEmbedding = Array(1536)
         .fill(0)
         .map(() => Math.random());
-      embed.mockResolvedValue({ embedding: mockEmbedding });
+      const mockDoEmbed = jest.fn().mockResolvedValue({
+        embeddings: [mockEmbedding],
+      });
+      openai.embedding.mockReturnValue({
+        doEmbed: mockDoEmbed,
+      });
 
       // Generate embeddings
       const result = await generateEmbeddingsBatch(ids);
@@ -220,7 +268,11 @@ describe('Embeddings Module', () => {
     });
 
     it('handles partial failures gracefully', async () => {
-      const ids = ['id-1', 'id-2', 'id-3'];
+      const ids = [
+        '523e4567-e89b-12d3-a456-426614174001',
+        '523e4567-e89b-12d3-a456-426614174002',
+        '523e4567-e89b-12d3-a456-426614174003',
+      ];
       // Only insert first two
       for (const id of ids.slice(0, 2)) {
         await db.insert(achievement).values({
@@ -229,11 +281,16 @@ describe('Embeddings Module', () => {
         });
       }
 
-      const { embed } = require('ai');
+      const { openai } = require('@ai-sdk/openai');
       const mockEmbedding = Array(1536)
         .fill(0)
         .map(() => Math.random());
-      embed.mockResolvedValue({ embedding: mockEmbedding });
+      const mockDoEmbed = jest.fn().mockResolvedValue({
+        embeddings: [mockEmbedding],
+      });
+      openai.embedding.mockReturnValue({
+        doEmbed: mockDoEmbed,
+      });
 
       // Generate embeddings (one will fail)
       const result = await generateEmbeddingsBatch(ids);
@@ -245,7 +302,10 @@ describe('Embeddings Module', () => {
     });
 
     it('returns map of achievementId -> embedding', async () => {
-      const ids = ['id-1', 'id-2'];
+      const ids = [
+        '523e4567-e89b-12d3-a456-426614174001',
+        '523e4567-e89b-12d3-a456-426614174002',
+      ];
       for (const id of ids) {
         await db.insert(achievement).values({
           ...mockAchievementData,
@@ -253,11 +313,16 @@ describe('Embeddings Module', () => {
         });
       }
 
-      const { embed } = require('ai');
+      const { openai } = require('@ai-sdk/openai');
       const mockEmbedding = Array(1536)
         .fill(0)
         .map(() => Math.random());
-      embed.mockResolvedValue({ embedding: mockEmbedding });
+      const mockDoEmbed = jest.fn().mockResolvedValue({
+        embeddings: [mockEmbedding],
+      });
+      openai.embedding.mockReturnValue({
+        doEmbed: mockDoEmbed,
+      });
 
       const result = await generateEmbeddingsBatch(ids);
 
@@ -277,23 +342,28 @@ describe('Embeddings Module', () => {
       // Insert mix of achievements with and without embeddings
       const withEmbedding = {
         ...mockAchievementData,
-        id: 'with-embedding',
+        id: '623e4567-e89b-12d3-a456-426614174001',
         embedding: Array(1536).fill(0),
       };
       const withoutEmbedding = {
         ...mockAchievementData,
-        id: 'without-embedding',
+        id: '623e4567-e89b-12d3-a456-426614174002',
         embedding: null,
       };
 
       await db.insert(achievement).values(withEmbedding);
       await db.insert(achievement).values(withoutEmbedding);
 
-      const { embed } = require('ai');
+      const { openai } = require('@ai-sdk/openai');
       const mockEmbedding = Array(1536)
         .fill(0)
         .map(() => Math.random());
-      embed.mockResolvedValue({ embedding: mockEmbedding });
+      const mockDoEmbed = jest.fn().mockResolvedValue({
+        embeddings: [mockEmbedding],
+      });
+      openai.embedding.mockReturnValue({
+        doEmbed: mockDoEmbed,
+      });
 
       const count = await generateMissingEmbeddings(userId);
 
@@ -308,16 +378,21 @@ describe('Embeddings Module', () => {
       for (let i = 0; i < 3; i++) {
         await db.insert(achievement).values({
           ...mockAchievementData,
-          id: `missing-${i}`,
+          id: uuidv4(),
           embedding: null,
         });
       }
 
-      const { embed } = require('ai');
+      const { openai } = require('@ai-sdk/openai');
       const mockEmbedding = Array(1536)
         .fill(0)
         .map(() => Math.random());
-      embed.mockResolvedValue({ embedding: mockEmbedding });
+      const mockDoEmbed = jest.fn().mockResolvedValue({
+        embeddings: [mockEmbedding],
+      });
+      openai.embedding.mockReturnValue({
+        doEmbed: mockDoEmbed,
+      });
 
       const count = await generateMissingEmbeddings(userId);
 
@@ -332,15 +407,20 @@ describe('Embeddings Module', () => {
       // Insert achievements
       await db.insert(achievement).values({
         ...mockAchievementData,
-        id: 'test-1',
+        id: '823e4567-e89b-12d3-a456-426614174001',
         embedding: null,
       });
 
-      const { embed } = require('ai');
+      const { openai } = require('@ai-sdk/openai');
       const mockEmbedding = Array(1536)
         .fill(0)
         .map(() => Math.random());
-      embed.mockResolvedValue({ embedding: mockEmbedding });
+      const mockDoEmbed = jest.fn().mockResolvedValue({
+        embeddings: [mockEmbedding],
+      });
+      openai.embedding.mockReturnValue({
+        doEmbed: mockDoEmbed,
+      });
 
       const count = await generateMissingEmbeddings(userId);
 

@@ -21,6 +21,15 @@ const updateSchema = z.object({
 type UpdateRequest = z.infer<typeof updateSchema>;
 
 /**
+ * Validates if a string is a valid UUID v4
+ */
+function isValidUUID(str: string): boolean {
+  const uuidRegex =
+    /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+  return uuidRegex.test(str);
+}
+
+/**
  * GET /api/workstreams/[id]
  *
  * Retrieves a single workstream by ID.
@@ -40,6 +49,14 @@ export async function GET(
     const { id: workstreamId } = await params;
     const userId = auth.user.id;
 
+    // Validate UUID format
+    if (!isValidUUID(workstreamId)) {
+      return NextResponse.json(
+        { error: 'Workstream not found' },
+        { status: 404 },
+      );
+    }
+
     // Fetch workstream
     const workstream = await getWorkstreamById(workstreamId);
 
@@ -55,8 +72,8 @@ export async function GET(
   } catch (error) {
     console.error('Error fetching workstream:', error);
     return NextResponse.json(
-      { error: 'Failed to fetch workstream' },
-      { status: 500 },
+      { error: 'Workstream not found' },
+      { status: 404 },
     );
   }
 }

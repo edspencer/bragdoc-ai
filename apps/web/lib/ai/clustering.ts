@@ -178,7 +178,9 @@ export function findOptimalEpsilon(embeddings: number[][], k = 5): number {
 
   // Return the distance at elbow point
   const result = kDistances[elbowIndex];
-  return typeof result === 'number' ? result : 0.5;
+  // Ensure epsilon is always positive (handle floating point precision issues)
+  const epsilon = typeof result === 'number' ? Math.max(0.0001, result) : 0.5;
+  return epsilon;
 }
 
 /**

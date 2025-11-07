@@ -1,8 +1,13 @@
 import { GET, PUT, DELETE } from 'app/api/workstreams/[id]/route';
 import { achievement, user, workstream, project } from '@/database/schema';
 import { db } from '@/database/index';
-import { auth } from '@/lib/better-auth/server';
+import { getAuthUser } from '@/lib/getAuthUser';
 import { NextRequest } from 'next/server';
+import { v4 as uuidv4 } from 'uuid';
+
+jest.mock('@/lib/getAuthUser', () => ({
+  getAuthUser: jest.fn(),
+}));
 
 const mockUser = {
   id: '123e4567-e89b-12d3-a456-426614174000',
@@ -13,11 +18,16 @@ const mockUser = {
 const mockProject = {
   id: '123e4567-e89b-12d3-a456-426614174100',
   userId: mockUser.id,
-  title: 'Test Project',
+  name: 'Test Project',
   description: 'Test Description',
   startDate: new Date('2025-01-01'),
   endDate: null,
   company: 'Test Company',
+  repoUrl: null,
+  repoRemoteUrl: null,
+  isDeleted: false,
+  createdAt: new Date(),
+  updatedAt: new Date(),
 };
 
 describe('GET /api/workstreams/[id]', () => {
@@ -31,9 +41,9 @@ describe('GET /api/workstreams/[id]', () => {
     await db.insert(user).values(mockUser);
     await db.insert(project).values(mockProject);
 
-    (auth.api.getSession as unknown as jest.Mock).mockResolvedValue({
-      session: { id: 'test-session' },
+    (getAuthUser as jest.Mock).mockResolvedValue({
       user: mockUser,
+      source: 'session' as const,
     });
   });
 
@@ -63,7 +73,7 @@ describe('GET /api/workstreams/[id]', () => {
     await db.insert(user).values(otherUser);
 
     const ws = {
-      id: 'ws-1',
+      id: '323e4567-e89b-12d3-a456-426614174001',
       userId: otherUser.id,
       name: 'Other User WS',
       description: null,
@@ -79,14 +89,14 @@ describe('GET /api/workstreams/[id]', () => {
 
     const request = new NextRequest('http://localhost/api/workstreams/ws-1');
     const response = await GET(request, {
-      params: Promise.resolve({ id: 'ws-1' }),
+      params: Promise.resolve({ id: '323e4567-e89b-12d3-a456-426614174001' }),
     });
     expect(response.status).toBe(404);
   });
 
   it('returns workstream for owner', async () => {
     const ws = {
-      id: 'ws-1',
+      id: '323e4567-e89b-12d3-a456-426614174001',
       userId: mockUser.id,
       name: 'My Workstream',
       description: 'Description',
@@ -102,11 +112,11 @@ describe('GET /api/workstreams/[id]', () => {
 
     const request = new NextRequest('http://localhost/api/workstreams/ws-1');
     const response = await GET(request, {
-      params: Promise.resolve({ id: 'ws-1' }),
+      params: Promise.resolve({ id: '323e4567-e89b-12d3-a456-426614174001' }),
     });
     expect(response.status).toBe(200);
     const data = await response.json();
-    expect(data.id).toBe('ws-1');
+    expect(data.id).toBe('323e4567-e89b-12d3-a456-426614174001');
     expect(data.name).toBe('My Workstream');
   });
 });
@@ -122,9 +132,9 @@ describe('PUT /api/workstreams/[id]', () => {
     await db.insert(user).values(mockUser);
     await db.insert(project).values(mockProject);
 
-    (auth.api.getSession as unknown as jest.Mock).mockResolvedValue({
-      session: { id: 'test-session' },
+    (getAuthUser as jest.Mock).mockResolvedValue({
       user: mockUser,
+      source: 'session' as const,
     });
   });
 
@@ -137,7 +147,7 @@ describe('PUT /api/workstreams/[id]', () => {
 
   it('updates workstream name', async () => {
     const ws = {
-      id: 'ws-1',
+      id: '323e4567-e89b-12d3-a456-426614174001',
       userId: mockUser.id,
       name: 'Original Name',
       description: null,
@@ -158,7 +168,7 @@ describe('PUT /api/workstreams/[id]', () => {
     });
 
     const response = await PUT(request, {
-      params: Promise.resolve({ id: 'ws-1' }),
+      params: Promise.resolve({ id: '323e4567-e89b-12d3-a456-426614174001' }),
     });
     expect(response.status).toBe(200);
     const data = await response.json();
@@ -167,7 +177,7 @@ describe('PUT /api/workstreams/[id]', () => {
 
   it('validates color format (hex code)', async () => {
     const ws = {
-      id: 'ws-1',
+      id: '323e4567-e89b-12d3-a456-426614174001',
       userId: mockUser.id,
       name: 'Test',
       description: null,
@@ -188,14 +198,14 @@ describe('PUT /api/workstreams/[id]', () => {
     });
 
     const response = await PUT(request, {
-      params: Promise.resolve({ id: 'ws-1' }),
+      params: Promise.resolve({ id: '323e4567-e89b-12d3-a456-426614174001' }),
     });
     expect(response.status).toBe(400);
   });
 
   it('accepts valid hex color code', async () => {
     const ws = {
-      id: 'ws-1',
+      id: '323e4567-e89b-12d3-a456-426614174001',
       userId: mockUser.id,
       name: 'Test',
       description: null,
@@ -216,7 +226,7 @@ describe('PUT /api/workstreams/[id]', () => {
     });
 
     const response = await PUT(request, {
-      params: Promise.resolve({ id: 'ws-1' }),
+      params: Promise.resolve({ id: '323e4567-e89b-12d3-a456-426614174001' }),
     });
     expect(response.status).toBe(200);
     const data = await response.json();
@@ -232,7 +242,7 @@ describe('PUT /api/workstreams/[id]', () => {
     await db.insert(user).values(otherUser);
 
     const ws = {
-      id: 'ws-1',
+      id: '323e4567-e89b-12d3-a456-426614174001',
       userId: otherUser.id,
       name: 'Other WS',
       description: null,
@@ -253,7 +263,7 @@ describe('PUT /api/workstreams/[id]', () => {
     });
 
     const response = await PUT(request, {
-      params: Promise.resolve({ id: 'ws-1' }),
+      params: Promise.resolve({ id: '323e4567-e89b-12d3-a456-426614174001' }),
     });
     expect(response.status).toBe(404);
   });
@@ -270,9 +280,9 @@ describe('DELETE /api/workstreams/[id]', () => {
     await db.insert(user).values(mockUser);
     await db.insert(project).values(mockProject);
 
-    (auth.api.getSession as unknown as jest.Mock).mockResolvedValue({
-      session: { id: 'test-session' },
+    (getAuthUser as jest.Mock).mockResolvedValue({
       user: mockUser,
+      source: 'session' as const,
     });
   });
 
@@ -285,7 +295,7 @@ describe('DELETE /api/workstreams/[id]', () => {
 
   it('archives workstream', async () => {
     const ws = {
-      id: 'ws-1',
+      id: '323e4567-e89b-12d3-a456-426614174001',
       userId: mockUser.id,
       name: 'Test',
       description: null,
@@ -304,7 +314,7 @@ describe('DELETE /api/workstreams/[id]', () => {
     });
 
     const response = await DELETE(request, {
-      params: Promise.resolve({ id: 'ws-1' }),
+      params: Promise.resolve({ id: '323e4567-e89b-12d3-a456-426614174001' }),
     });
     expect(response.status).toBe(200);
 
@@ -312,13 +322,13 @@ describe('DELETE /api/workstreams/[id]', () => {
     const archived = await db
       .select()
       .from(workstream)
-      .where((w) => w.id === 'ws-1');
+      .where((w) => w.id === '323e4567-e89b-12d3-a456-426614174001');
     expect(archived[0]?.isArchived).toBe(true);
   });
 
   it('unassigns all achievements', async () => {
     const ws = {
-      id: 'ws-1',
+      id: '323e4567-e89b-12d3-a456-426614174001',
       userId: mockUser.id,
       name: 'Test',
       description: null,
@@ -335,19 +345,21 @@ describe('DELETE /api/workstreams/[id]', () => {
     // Insert achievements assigned to this workstream
     for (let i = 0; i < 2; i++) {
       await db.insert(achievement).values({
-        id: `ach-${i}`,
+        id: uuidv4(),
         userId: mockUser.id,
         projectId: mockProject.id,
         title: `Achievement ${i}`,
         summary: 'Summary',
         details: null,
-        impact: 'Impact',
+        impact: 2,
+        source: 'manual' as const,
+        eventDuration: 'week' as const,
         eventStart: new Date(),
         eventEnd: null,
         createdAt: new Date(),
         updatedAt: new Date(),
         isArchived: false,
-        workstreamId: 'ws-1',
+        workstreamId: '323e4567-e89b-12d3-a456-426614174001',
         workstreamSource: 'ai',
         embedding: null,
         embeddingModel: null,
@@ -360,7 +372,7 @@ describe('DELETE /api/workstreams/[id]', () => {
     });
 
     const response = await DELETE(request, {
-      params: Promise.resolve({ id: 'ws-1' }),
+      params: Promise.resolve({ id: '323e4567-e89b-12d3-a456-426614174001' }),
     });
     expect(response.status).toBe(200);
 
@@ -378,7 +390,7 @@ describe('DELETE /api/workstreams/[id]', () => {
     await db.insert(user).values(otherUser);
 
     const ws = {
-      id: 'ws-1',
+      id: '323e4567-e89b-12d3-a456-426614174001',
       userId: otherUser.id,
       name: 'Other WS',
       description: null,
@@ -397,7 +409,7 @@ describe('DELETE /api/workstreams/[id]', () => {
     });
 
     const response = await DELETE(request, {
-      params: Promise.resolve({ id: 'ws-1' }),
+      params: Promise.resolve({ id: '323e4567-e89b-12d3-a456-426614174001' }),
     });
     expect(response.status).toBe(404);
   });

@@ -1,8 +1,12 @@
 import { GET } from 'app/api/workstreams/route';
 import { achievement, user, workstream, project } from '@/database/schema';
 import { db } from '@/database/index';
-import { auth } from '@/lib/better-auth/server';
+import { getAuthUser } from '@/lib/getAuthUser';
 import { NextRequest } from 'next/server';
+
+jest.mock('@/lib/getAuthUser', () => ({
+  getAuthUser: jest.fn(),
+}));
 
 const mockUser = {
   id: '123e4567-e89b-12d3-a456-426614174000',
@@ -13,11 +17,16 @@ const mockUser = {
 const mockProject = {
   id: '123e4567-e89b-12d3-a456-426614174100',
   userId: mockUser.id,
-  title: 'Test Project',
+  name: 'Test Project',
   description: 'Test Description',
   startDate: new Date('2025-01-01'),
   endDate: null,
   company: 'Test Company',
+  repoUrl: null,
+  repoRemoteUrl: null,
+  isDeleted: false,
+  createdAt: new Date(),
+  updatedAt: new Date(),
 };
 
 describe('GET /api/workstreams', () => {
@@ -31,9 +40,9 @@ describe('GET /api/workstreams', () => {
     await db.insert(user).values(mockUser);
     await db.insert(project).values(mockProject);
 
-    (auth.api.getSession as unknown as jest.Mock).mockResolvedValue({
-      session: { id: 'test-session' },
+    (getAuthUser as jest.Mock).mockResolvedValue({
       user: mockUser,
+      source: 'session' as const,
     });
   });
 
@@ -45,7 +54,7 @@ describe('GET /api/workstreams', () => {
   });
 
   it('returns 401 for unauthenticated request', async () => {
-    (auth.api.getSession as unknown as jest.Mock).mockResolvedValue(null);
+    (getAuthUser as jest.Mock).mockResolvedValue(null);
 
     const request = new NextRequest('http://localhost/api/workstreams');
     const response = await GET(request);
@@ -70,7 +79,7 @@ describe('GET /api/workstreams', () => {
 
     // Create workstreams for both users
     const ws1 = {
-      id: 'ws-1',
+      id: '323e4567-e89b-12d3-a456-426614174001',
       userId: mockUser.id,
       name: 'My Workstream',
       description: 'Mine',
@@ -84,7 +93,7 @@ describe('GET /api/workstreams', () => {
     };
 
     const ws2 = {
-      id: 'ws-2',
+      id: '323e4567-e89b-12d3-a456-426614174002',
       userId: otherUser.id,
       name: 'Other Workstream',
       description: 'Not mine',
@@ -106,13 +115,13 @@ describe('GET /api/workstreams', () => {
     const data = await response.json();
 
     expect(data.workstreams).toHaveLength(1);
-    expect(data.workstreams[0].id).toBe('ws-1');
+    expect(data.workstreams[0].id).toBe('323e4567-e89b-12d3-a456-426614174001');
     expect(data.workstreams[0].userId).toBe(mockUser.id);
   });
 
   it('excludes archived workstreams by default', async () => {
     const ws1 = {
-      id: 'ws-1',
+      id: '323e4567-e89b-12d3-a456-426614174001',
       userId: mockUser.id,
       name: 'Active',
       description: null,
@@ -126,7 +135,7 @@ describe('GET /api/workstreams', () => {
     };
 
     const ws2 = {
-      id: 'ws-2',
+      id: '323e4567-e89b-12d3-a456-426614174002',
       userId: mockUser.id,
       name: 'Archived',
       description: null,
@@ -153,7 +162,7 @@ describe('GET /api/workstreams', () => {
 
   it('returns workstreams ordered by achievement count descending', async () => {
     const ws1 = {
-      id: 'ws-1',
+      id: '323e4567-e89b-12d3-a456-426614174001',
       userId: mockUser.id,
       name: 'High Count',
       description: null,
@@ -167,7 +176,7 @@ describe('GET /api/workstreams', () => {
     };
 
     const ws2 = {
-      id: 'ws-2',
+      id: '323e4567-e89b-12d3-a456-426614174002',
       userId: mockUser.id,
       name: 'Low Count',
       description: null,
@@ -193,7 +202,7 @@ describe('GET /api/workstreams', () => {
 
   it('returns response with workstreams and metadata', async () => {
     const ws = {
-      id: 'ws-1',
+      id: '323e4567-e89b-12d3-a456-426614174001',
       userId: mockUser.id,
       name: 'Test WS',
       description: 'Test',

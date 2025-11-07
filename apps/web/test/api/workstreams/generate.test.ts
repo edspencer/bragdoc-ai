@@ -1,8 +1,13 @@
 import { POST } from 'app/api/workstreams/generate/route';
 import { achievement, user, workstream, project } from '@/database/schema';
 import { db } from '@/database/index';
-import { auth } from '@/lib/better-auth/server';
+import { getAuthUser } from '@/lib/getAuthUser';
 import { NextRequest } from 'next/server';
+import { v4 as uuidv4 } from 'uuid';
+
+jest.mock('@/lib/getAuthUser', () => ({
+  getAuthUser: jest.fn(),
+}));
 
 jest.mock('ai', () => ({
   embed: jest.fn(),
@@ -17,11 +22,16 @@ const mockUser = {
 const mockProject = {
   id: '123e4567-e89b-12d3-a456-426614174100',
   userId: mockUser.id,
-  title: 'Test Project',
+  name: 'Test Project',
   description: 'Test Description',
   startDate: new Date('2025-01-01'),
   endDate: null,
   company: 'Test Company',
+  repoUrl: null,
+  repoRemoteUrl: null,
+  isDeleted: false,
+  createdAt: new Date(),
+  updatedAt: new Date(),
 };
 
 describe('POST /api/workstreams/generate', () => {
@@ -35,9 +45,9 @@ describe('POST /api/workstreams/generate', () => {
     await db.insert(user).values(mockUser);
     await db.insert(project).values(mockProject);
 
-    (auth.api.getSession as unknown as jest.Mock).mockResolvedValue({
-      session: { id: 'test-session' },
+    (getAuthUser as jest.Mock).mockResolvedValue({
       user: mockUser,
+      source: 'session' as const,
     });
   });
 
@@ -49,7 +59,7 @@ describe('POST /api/workstreams/generate', () => {
   });
 
   it('returns 401 for unauthenticated request', async () => {
-    (auth.api.getSession as unknown as jest.Mock).mockResolvedValue(null);
+    (getAuthUser as jest.Mock).mockResolvedValue(null);
 
     const request = new NextRequest(
       'http://localhost/api/workstreams/generate',
@@ -66,13 +76,15 @@ describe('POST /api/workstreams/generate', () => {
     // Add only 15 achievements
     for (let i = 0; i < 15; i++) {
       await db.insert(achievement).values({
-        id: `ach-${i}`,
+        id: uuidv4(),
         userId: mockUser.id,
         projectId: mockProject.id,
         title: `Achievement ${i}`,
         summary: 'Summary',
         details: null,
-        impact: 'Impact',
+        impact: 2,
+        source: 'manual' as const,
+        eventDuration: 'week' as const,
         eventStart: new Date(),
         eventEnd: null,
         createdAt: new Date(),
@@ -101,13 +113,15 @@ describe('POST /api/workstreams/generate', () => {
     // Add 30 achievements
     for (let i = 0; i < 30; i++) {
       await db.insert(achievement).values({
-        id: `ach-${i}`,
+        id: uuidv4(),
         userId: mockUser.id,
         projectId: mockProject.id,
         title: `Achievement ${i}`,
         summary: 'Summary',
         details: null,
-        impact: 'Impact',
+        impact: 2,
+        source: 'manual' as const,
+        eventDuration: 'week' as const,
         eventStart: new Date(),
         eventEnd: null,
         createdAt: new Date(),
@@ -141,13 +155,15 @@ describe('POST /api/workstreams/generate', () => {
     // Add 25 achievements, some without embeddings
     for (let i = 0; i < 25; i++) {
       await db.insert(achievement).values({
-        id: `ach-${i}`,
+        id: uuidv4(),
         userId: mockUser.id,
         projectId: mockProject.id,
         title: `Achievement ${i}`,
         summary: 'Summary',
         details: null,
-        impact: 'Impact',
+        impact: 2,
+        source: 'manual' as const,
+        eventDuration: 'week' as const,
         eventStart: new Date(),
         eventEnd: null,
         createdAt: new Date(),
@@ -189,13 +205,15 @@ describe('POST /api/workstreams/generate', () => {
     // Add 20 achievements
     for (let i = 0; i < 20; i++) {
       await db.insert(achievement).values({
-        id: `ach-${i}`,
+        id: uuidv4(),
         userId: mockUser.id,
         projectId: mockProject.id,
         title: `Achievement ${i}`,
         summary: 'Summary',
         details: null,
-        impact: 'Impact',
+        impact: 2,
+        source: 'manual' as const,
+        eventDuration: 'week' as const,
         eventStart: new Date(),
         eventEnd: null,
         createdAt: new Date(),

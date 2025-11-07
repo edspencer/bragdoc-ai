@@ -1,8 +1,12 @@
 import { POST } from 'app/api/workstreams/assign/route';
 import { achievement, user, workstream, project } from '@/database/schema';
 import { db } from '@/database/index';
-import { auth } from '@/lib/better-auth/server';
+import { getAuthUser } from '@/lib/getAuthUser';
 import { NextRequest } from 'next/server';
+
+jest.mock('@/lib/getAuthUser', () => ({
+  getAuthUser: jest.fn(),
+}));
 
 const mockUser = {
   id: '123e4567-e89b-12d3-a456-426614174000',
@@ -13,11 +17,16 @@ const mockUser = {
 const mockProject = {
   id: '123e4567-e89b-12d3-a456-426614174100',
   userId: mockUser.id,
-  title: 'Test Project',
+  name: 'Test Project',
   description: 'Test Description',
   startDate: new Date('2025-01-01'),
   endDate: null,
   company: 'Test Company',
+  repoUrl: null,
+  repoRemoteUrl: null,
+  isDeleted: false,
+  createdAt: new Date(),
+  updatedAt: new Date(),
 };
 
 describe('POST /api/workstreams/assign', () => {
@@ -31,9 +40,9 @@ describe('POST /api/workstreams/assign', () => {
     await db.insert(user).values(mockUser);
     await db.insert(project).values(mockProject);
 
-    (auth.api.getSession as unknown as jest.Mock).mockResolvedValue({
-      session: { id: 'test-session' },
+    (getAuthUser as jest.Mock).mockResolvedValue({
       user: mockUser,
+      source: 'session' as const,
     });
   });
 
@@ -45,14 +54,14 @@ describe('POST /api/workstreams/assign', () => {
   });
 
   it('returns 401 for unauthenticated request', async () => {
-    (auth.api.getSession as unknown as jest.Mock).mockResolvedValue(null);
+    (getAuthUser as jest.Mock).mockResolvedValue(null);
 
     const request = new NextRequest('http://localhost/api/workstreams/assign', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        achievementId: 'ach-1',
-        workstreamId: 'ws-1',
+        achievementId: '423e4567-e89b-12d3-a456-426614174001',
+        workstreamId: '323e4567-e89b-12d3-a456-426614174001',
       }),
     });
 
@@ -62,15 +71,17 @@ describe('POST /api/workstreams/assign', () => {
 
   it('assigns achievement to workstream', async () => {
     const ach = {
-      id: 'ach-1',
+      id: '423e4567-e89b-12d3-a456-426614174001',
       userId: mockUser.id,
       projectId: mockProject.id,
       title: 'Test Achievement',
       summary: 'Summary',
       details: null,
-      impact: 'Impact',
+      impact: 2,
+      source: 'manual' as const,
       eventStart: new Date(),
       eventEnd: null,
+      eventDuration: 'week' as const,
       createdAt: new Date(),
       updatedAt: new Date(),
       isArchived: false,
@@ -82,7 +93,7 @@ describe('POST /api/workstreams/assign', () => {
     };
 
     const ws = {
-      id: 'ws-1',
+      id: '323e4567-e89b-12d3-a456-426614174001',
       userId: mockUser.id,
       name: 'Test Workstream',
       description: null,
@@ -102,8 +113,8 @@ describe('POST /api/workstreams/assign', () => {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        achievementId: 'ach-1',
-        workstreamId: 'ws-1',
+        achievementId: '423e4567-e89b-12d3-a456-426614174001',
+        workstreamId: '323e4567-e89b-12d3-a456-426614174001',
       }),
     });
 
@@ -114,19 +125,22 @@ describe('POST /api/workstreams/assign', () => {
     const assigned = await db
       .select()
       .from(achievement)
-      .where((a) => a.id === 'ach-1');
-    expect(assigned[0].workstreamId).toBe('ws-1');
+      .where((a) => a.id === '423e4567-e89b-12d3-a456-426614174001');
+    expect(assigned[0].workstreamId).toBe(
+      '323e4567-e89b-12d3-a456-426614174001',
+    );
   });
 
   it('sets workstreamSource to user', async () => {
     const ach = {
-      id: 'ach-1',
+      id: '423e4567-e89b-12d3-a456-426614174001',
       userId: mockUser.id,
       projectId: mockProject.id,
       title: 'Test',
       summary: 'Summary',
       details: null,
-      impact: 'Impact',
+      impact: 2,
+      eventDuration: 'week' as const,
       eventStart: new Date(),
       eventEnd: null,
       createdAt: new Date(),
@@ -140,7 +154,7 @@ describe('POST /api/workstreams/assign', () => {
     };
 
     const ws = {
-      id: 'ws-1',
+      id: '323e4567-e89b-12d3-a456-426614174001',
       userId: mockUser.id,
       name: 'Test',
       description: null,
@@ -160,8 +174,8 @@ describe('POST /api/workstreams/assign', () => {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        achievementId: 'ach-1',
-        workstreamId: 'ws-1',
+        achievementId: '423e4567-e89b-12d3-a456-426614174001',
+        workstreamId: '323e4567-e89b-12d3-a456-426614174001',
       }),
     });
 
@@ -171,38 +185,57 @@ describe('POST /api/workstreams/assign', () => {
     const assigned = await db
       .select()
       .from(achievement)
-      .where((a) => a.id === 'ach-1');
+      .where((a) => a.id === '423e4567-e89b-12d3-a456-426614174001');
     expect(assigned[0].workstreamSource).toBe('user');
   });
 
   it('allows null workstreamId (unassign)', async () => {
+    const wsId = '323e4567-e89b-12d3-a456-426614174001';
+
+    const ws = {
+      id: wsId,
+      userId: mockUser.id,
+      name: 'Test Workstream',
+      description: null,
+      color: '#3B82F6',
+      centroidEmbedding: null,
+      centroidUpdatedAt: null,
+      achievementCount: 1,
+      isArchived: false,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+
     const ach = {
-      id: 'ach-1',
+      id: '423e4567-e89b-12d3-a456-426614174001',
       userId: mockUser.id,
       projectId: mockProject.id,
       title: 'Test',
       summary: 'Summary',
       details: null,
-      impact: 'Impact',
+      impact: 2,
+      source: 'manual' as const,
       eventStart: new Date(),
       eventEnd: null,
+      eventDuration: 'week' as const,
       createdAt: new Date(),
       updatedAt: new Date(),
       isArchived: false,
-      workstreamId: 'ws-1',
+      workstreamId: wsId,
       workstreamSource: 'ai',
       embedding: null,
       embeddingModel: null,
       embeddingGeneratedAt: null,
     };
 
+    await db.insert(workstream).values(ws);
     await db.insert(achievement).values(ach);
 
     const request = new NextRequest('http://localhost/api/workstreams/assign', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        achievementId: 'ach-1',
+        achievementId: '423e4567-e89b-12d3-a456-426614174001',
         workstreamId: null,
       }),
     });
@@ -213,7 +246,7 @@ describe('POST /api/workstreams/assign', () => {
     const unassigned = await db
       .select()
       .from(achievement)
-      .where((a) => a.id === 'ach-1');
+      .where((a) => a.id === '423e4567-e89b-12d3-a456-426614174001');
     expect(unassigned[0].workstreamId).toBeNull();
   });
 
@@ -226,13 +259,14 @@ describe('POST /api/workstreams/assign', () => {
     await db.insert(user).values(otherUser);
 
     const ach = {
-      id: 'ach-1',
+      id: '423e4567-e89b-12d3-a456-426614174001',
       userId: otherUser.id,
       projectId: mockProject.id,
       title: 'Other User Achievement',
       summary: 'Summary',
       details: null,
-      impact: 'Impact',
+      impact: 2,
+      eventDuration: 'week' as const,
       eventStart: new Date(),
       eventEnd: null,
       createdAt: new Date(),
@@ -246,7 +280,7 @@ describe('POST /api/workstreams/assign', () => {
     };
 
     const ws = {
-      id: 'ws-1',
+      id: '323e4567-e89b-12d3-a456-426614174001',
       userId: mockUser.id,
       name: 'Test',
       description: null,
@@ -266,8 +300,8 @@ describe('POST /api/workstreams/assign', () => {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        achievementId: 'ach-1',
-        workstreamId: 'ws-1',
+        achievementId: '423e4567-e89b-12d3-a456-426614174001',
+        workstreamId: '323e4567-e89b-12d3-a456-426614174001',
       }),
     });
 
@@ -277,13 +311,14 @@ describe('POST /api/workstreams/assign', () => {
 
   it('returns success response', async () => {
     const ach = {
-      id: 'ach-1',
+      id: '423e4567-e89b-12d3-a456-426614174001',
       userId: mockUser.id,
       projectId: mockProject.id,
       title: 'Test',
       summary: 'Summary',
       details: null,
-      impact: 'Impact',
+      impact: 2,
+      eventDuration: 'week' as const,
       eventStart: new Date(),
       eventEnd: null,
       createdAt: new Date(),
@@ -297,7 +332,7 @@ describe('POST /api/workstreams/assign', () => {
     };
 
     const ws = {
-      id: 'ws-1',
+      id: '323e4567-e89b-12d3-a456-426614174001',
       userId: mockUser.id,
       name: 'Test',
       description: null,
@@ -317,8 +352,8 @@ describe('POST /api/workstreams/assign', () => {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        achievementId: 'ach-1',
-        workstreamId: 'ws-1',
+        achievementId: '423e4567-e89b-12d3-a456-426614174001',
+        workstreamId: '323e4567-e89b-12d3-a456-426614174001',
       }),
     });
 
