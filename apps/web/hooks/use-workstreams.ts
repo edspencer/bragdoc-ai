@@ -34,8 +34,12 @@ export function useWorkstreams() {
         throw new Error(errorData.message || 'Failed to generate workstreams');
       }
 
+      const result = await res.json();
+
       // Refresh workstreams
       await mutate('/api/workstreams');
+
+      return result;
     } catch (error) {
       console.error('Failed to generate workstreams:', error);
       throw error;

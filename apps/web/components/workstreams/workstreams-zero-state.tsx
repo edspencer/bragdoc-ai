@@ -8,7 +8,7 @@ import { useState } from 'react';
 
 interface WorkstreamsZeroStateProps {
   achievementCount: number;
-  onGenerate?: () => Promise<void>;
+  onGenerate?: () => Promise<any>;
 }
 
 export function WorkstreamsZeroState({
@@ -16,13 +16,19 @@ export function WorkstreamsZeroState({
   onGenerate,
 }: WorkstreamsZeroStateProps) {
   const [isGenerating, setIsGenerating] = useState(false);
+  const [noWorkstreamsFound, setNoWorkstreamsFound] = useState(false);
   const canGenerate = achievementCount >= 20;
 
   const handleGenerate = async () => {
     if (!onGenerate) return;
     setIsGenerating(true);
+    setNoWorkstreamsFound(false);
     try {
-      await onGenerate();
+      const result = await onGenerate();
+      // Check if clustering found no workstreams
+      if (result && result.workstreamsCreated === 0 && result.outliers > 0) {
+        setNoWorkstreamsFound(true);
+      }
     } catch (error) {
       console.error('Failed to generate workstreams:', error);
     } finally {
@@ -71,20 +77,55 @@ export function WorkstreamsZeroState({
         </Card>
 
         {canGenerate ? (
-          <div className="text-center">
-            <p className="text-sm text-muted-foreground mb-4">
-              You have {achievementCount} achievements ready to analyze
-            </p>
-            <Button size="lg" onClick={handleGenerate} disabled={isGenerating}>
-              {isGenerating ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Generating...
-                </>
-              ) : (
-                'Generate Workstreams'
-              )}
-            </Button>
+          <div className="text-center space-y-4">
+            {noWorkstreamsFound && (
+              <Card className="bg-yellow-50 border-yellow-200 dark:bg-yellow-950 dark:border-yellow-800">
+                <CardContent className="pt-6">
+                  <p className="font-semibold text-yellow-900 dark:text-yellow-100">
+                    No clear patterns found
+                  </p>
+                  <p className="text-sm text-yellow-800 dark:text-yellow-200 mt-2">
+                    Your achievements are quite diverse! Our AI couldn't
+                    identify distinct thematic groups. This might mean:
+                  </p>
+                  <ul className="text-sm text-yellow-800 dark:text-yellow-200 mt-2 space-y-1 text-left list-disc list-inside">
+                    <li>
+                      You work across many different areas (which is great!)
+                    </li>
+                    <li>Your achievements span different technical domains</li>
+                    <li>
+                      More achievements might help reveal patterns over time
+                    </li>
+                  </ul>
+                </CardContent>
+              </Card>
+            )}
+            <div className="space-y-2">
+              <p className="text-sm text-muted-foreground">
+                You have {achievementCount} achievements ready to analyze
+              </p>
+              <p className="text-xs text-muted-foreground">
+                We'll analyze your achievements using AI to identify patterns
+                and themes
+              </p>
+              <Button
+                size="lg"
+                onClick={handleGenerate}
+                disabled={isGenerating}
+                className="mt-4"
+              >
+                {isGenerating ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Analyzing achievements...
+                  </>
+                ) : noWorkstreamsFound ? (
+                  'Try Again'
+                ) : (
+                  'Generate Workstreams'
+                )}
+              </Button>
+            </div>
           </div>
         ) : (
           <Card className="bg-muted">

@@ -171,11 +171,13 @@ export async function archiveWorkstream(workstreamId: string): Promise<void> {
 }
 
 /**
- * Get count of achievements for a user with embeddings
+ * Get count of all achievements for a user (regardless of embeddings)
  * Used to determine if clustering is possible
  *
+ * Note: Embeddings will be generated automatically during clustering if missing
+ *
  * @param userId - User ID
- * @returns Count of achievements with embeddings
+ * @returns Count of all achievements
  */
 export async function getAchievementCountWithEmbeddings(
   userId: string,
@@ -185,8 +187,8 @@ export async function getAchievementCountWithEmbeddings(
     .from(achievement)
     .where(eq(achievement.userId, userId));
 
-  // Filter in application as vector type null check may not work
-  return results.filter((ach) => ach.embedding).length;
+  // Return total count - embeddings will be generated during workstream generation
+  return results.length;
 }
 
 /**

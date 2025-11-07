@@ -80,6 +80,15 @@ export function decideShouldReCluster(
     };
   }
 
+  // Previous clustering found no workstreams (all outliers)
+  // This means we should try different parameters
+  if (metadata.workstreamCount === 0) {
+    return {
+      strategy: 'full',
+      reason: 'No workstreams found in previous clustering',
+    };
+  }
+
   // Calculate if we have 10% more achievements
   const achievementGrowthPercent =
     (currentAchievementCount - metadata.achievementCountAtLastClustering) /

@@ -6,21 +6,34 @@
  */
 
 import { openai } from '@ai-sdk/openai';
-import { db, achievement, type Achievement } from '@bragdoc/database';
+import { db, achievement, project, type Achievement } from '@bragdoc/database';
 import { eq } from 'drizzle-orm';
 
 const EMBEDDING_MODEL = 'text-embedding-3-small';
+const EMBEDDING_MODEL_VERSION = 'v2-with-project-context'; // Version tracking for embedding format changes
 const EMBEDDING_DIMENSIONS = 1536;
 
 /**
  * Format achievement data for embedding generation
- * Combines title, summary, and optional details into a single text
+ * Combines title, summary, optional details, and project context into a single text
+ *
+ * Note: This format is optimized for semantic similarity matching.
+ * Project context helps cluster related achievements together.
  *
  * @param ach - Achievement to format
+ * @param projectName - Optional project name for context
  * @returns Formatted text for embedding
  */
-export function formatAchievementForEmbedding(ach: Achievement): string {
+export function formatAchievementForEmbedding(
+  ach: Achievement,
+  projectName?: string | null,
+): string {
   const parts: string[] = [];
+
+  // Include project context first (helps with clustering)
+  if (projectName) {
+    parts.push(`Project: ${projectName}`);
+  }
 
   // Always include title
   if (ach.title) {
@@ -33,11 +46,13 @@ export function formatAchievementForEmbedding(ach: Achievement): string {
   }
 
   // Include details only if relatively short (< 500 chars)
+  // Longer details add noise and exceed optimal embedding length
   if (ach.details && ach.details.length < 500) {
     parts.push(ach.details);
   }
 
-  return parts.join(' ').trim();
+  // Use proper separators to maintain semantic boundaries
+  return parts.join('. ').trim();
 }
 
 /**
@@ -52,31 +67,44 @@ export function formatAchievementForEmbedding(ach: Achievement): string {
 export async function generateAchievementEmbedding(
   achievementId: string,
 ): Promise<number[]> {
-  // Fetch achievement from database
-  const achs = await db
-    .select()
+  // Fetch achievement with project context using LEFT JOIN
+  const results = await db
+    .select({
+      achievement: achievement,
+      projectName: project.name,
+    })
     .from(achievement)
+    .leftJoin(project, eq(achievement.projectId, project.id))
     .where(eq(achievement.id, achievementId));
 
-  const ach = achs[0];
-  if (!ach) {
+  const result = results[0];
+  if (!result) {
     throw new Error(`Achievement not found: ${achievementId}`);
   }
 
-  // Format text for embedding
-  const text = formatAchievementForEmbedding(ach);
+  const ach = result.achievement;
+  const projectName = result.projectName;
+
+  // Format text for embedding with project context
+  const text = formatAchievementForEmbedding(ach, projectName);
 
   if (!text) {
     throw new Error(`Achievement has no text content: ${achievementId}`);
   }
 
+  // Debug: log first few achievement texts to see what we're embedding
+  if (Math.random() < 0.05) {
+    // Log ~5% of achievements
+    console.log('[Embedding Debug] Sample text:', text.substring(0, 200));
+  }
+
   // Generate embedding using OpenAI
   const embeddingModel = openai.embedding(EMBEDDING_MODEL);
-  const result = await embeddingModel.doEmbed({
+  const embeddingResult = await embeddingModel.doEmbed({
     values: [text],
   });
 
-  const embeddingObj = result.embeddings[0];
+  const embeddingObj = embeddingResult.embeddings[0];
 
   if (!embeddingObj) {
     throw new Error('Failed to generate embedding: no result returned');
@@ -100,7 +128,7 @@ export async function generateAchievementEmbedding(
     .update(achievement)
     .set({
       embedding: embeddingVector as unknown as any,
-      embeddingModel: EMBEDDING_MODEL,
+      embeddingModel: EMBEDDING_MODEL_VERSION, // Store version instead of raw model name
       embeddingGeneratedAt: now,
       updatedAt: now,
     })
@@ -141,8 +169,8 @@ export async function generateEmbeddingsBatch(
 }
 
 /**
- * Generate embeddings for all achievements without them
- * Finds achievements with missing embeddings and generates them
+ * Generate embeddings for all achievements without them or with outdated versions
+ * Finds achievements with missing/outdated embeddings and regenerates them
  *
  * @param userId - User ID to scope query
  * @returns Number of embeddings generated
@@ -150,26 +178,26 @@ export async function generateEmbeddingsBatch(
 export async function generateMissingEmbeddings(
   userId: string,
 ): Promise<number> {
-  // Find achievements without embeddings
-  const achievementsWithoutEmbeddings = await db
+  // Find all achievements for user
+  const allAchievements = await db
     .select()
     .from(achievement)
-    .where(
-      // This uses Drizzle's filter for null embeddings
-      // We need to use raw SQL or multiple conditions
-      eq(achievement.userId, userId),
-      // Note: isNull(achievement.embedding) would be ideal but embeddings are stored as vector type
-      // Drizzle may not properly support isNull for vector type, so we'll fetch all and filter
-    );
+    .where(eq(achievement.userId, userId));
 
-  // Filter in application layer (as vector type may not be properly nullable in Drizzle)
-  const needsEmbedding = achievementsWithoutEmbeddings.filter(
-    (ach) => !ach.embedding,
+  // Filter for achievements needing embeddings:
+  // 1. No embedding at all, OR
+  // 2. Embedding with old version (different from current EMBEDDING_MODEL_VERSION)
+  const needsEmbedding = allAchievements.filter(
+    (ach) => !ach.embedding || ach.embeddingModel !== EMBEDDING_MODEL_VERSION,
   );
 
   if (needsEmbedding.length === 0) {
     return 0;
   }
+
+  console.log(
+    `[Embeddings] Regenerating ${needsEmbedding.length} embeddings with new format (v2-with-project-context)`,
+  );
 
   // Generate embeddings for all
   const ids = needsEmbedding.map((ach) => ach.id);

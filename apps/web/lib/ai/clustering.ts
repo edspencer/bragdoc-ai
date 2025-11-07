@@ -205,7 +205,19 @@ export function clusterEmbeddings(
   }
 
   // Find optimal epsilon
-  const epsilon = findOptimalEpsilon(embeddings, params.minPts);
+  const calculatedEpsilon = findOptimalEpsilon(embeddings, params.minPts);
+
+  // For initial clustering with project context, use a more lenient epsilon
+  // Cosine distance of 0.7 allows for reasonably diverse content within same project
+  const epsilon = Math.max(calculatedEpsilon, 0.7);
+
+  console.log(
+    '[Clustering] Using epsilon:',
+    epsilon,
+    '(calculated:',
+    calculatedEpsilon,
+    ')',
+  );
 
   // Create distance matrix using cosine distance
   const distanceMatrix: number[][] = [];
@@ -294,6 +306,15 @@ export function getClusteringParameters(
       minPts: 3,
       minClusterSize: 3,
       outlierThreshold: 0.7,
+    };
+  }
+
+  // Medium datasets - very lenient for better initial clustering
+  if (achievementCount < 300) {
+    return {
+      minPts: 3,
+      minClusterSize: 3,
+      outlierThreshold: 0.75,
     };
   }
 

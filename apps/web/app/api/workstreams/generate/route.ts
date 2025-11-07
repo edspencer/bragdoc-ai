@@ -31,8 +31,14 @@ export async function POST(request: NextRequest) {
 
     const userId = auth.user.id;
 
+    console.log('[Workstreams Generate] Starting generation for user:', userId);
+
     // Generate missing embeddings for this user's achievements
     const embeddingsGenerated = await generateMissingEmbeddings(userId);
+    console.log(
+      '[Workstreams Generate] Embeddings generated:',
+      embeddingsGenerated,
+    );
 
     // Count achievements with embeddings
     const achievementCountResult = await db
@@ -43,6 +49,10 @@ export async function POST(request: NextRequest) {
       );
 
     const achievementCount = achievementCountResult[0]?.count || 0;
+    console.log(
+      '[Workstreams Generate] Achievement count with embeddings:',
+      achievementCount,
+    );
 
     // Validate minimum achievements
     if (achievementCount < MINIMUM_ACHIEVEMENTS) {
@@ -57,9 +67,11 @@ export async function POST(request: NextRequest) {
 
     // Get existing metadata (if any)
     const metadata = await getWorkstreamMetadata(userId);
+    console.log('[Workstreams Generate] Existing metadata:', metadata);
 
     // Decide whether to do full clustering or incremental assignment
     const decision = decideShouldReCluster(achievementCount, metadata);
+    console.log('[Workstreams Generate] Decision:', decision);
 
     type ResponseData =
       | {
@@ -111,6 +123,10 @@ export async function POST(request: NextRequest) {
       };
     }
 
+    console.log(
+      '[Workstreams Generate] Result:',
+      JSON.stringify(result, null, 2),
+    );
     return NextResponse.json(result, { status: 200 });
   } catch (error) {
     console.error('Error generating workstreams:', error);
