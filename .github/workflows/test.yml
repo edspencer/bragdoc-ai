@@ -25,12 +25,29 @@ jobs:
       - name: Install dependencies
         run: pnpm install
 
+      - name: Create Neon test branch
+        id: create-branch
+        run: |
+          BRANCH_NAME="test-${{ github.run_id }}-${{ github.run_attempt }}"
+
+          RESPONSE=$(curl -s -X POST "https://console.neon.tech/api/v2/projects/${{ secrets.NEON_PROJECT_ID }}/branches" \
+            -H "Authorization: Bearer ${{ secrets.NEON_API_KEY }}" \
+            -H "Content-Type: application/json" \
+            -d "{\"branch\": {\"name\": \"$BRANCH_NAME\"}}")
+
+          BRANCH_ID=$(echo $RESPONSE | jq -r '.branch.id')
+          CONNECTION_STRING=$(echo $RESPONSE | jq -r '.connection_uris[0].connection_uri')
+
+          echo "branch_id=$BRANCH_ID" >> $GITHUB_OUTPUT
+          echo "connection_string=$CONNECTION_STRING" >> $GITHUB_OUTPUT
+          echo "Created branch: $BRANCH_NAME (ID: $BRANCH_ID)"
+
       - name: Run database migrations
         run: |
           cd packages/database
           pnpm db:migrate
         env:
-          POSTGRES_URL: ${{ secrets.CI_POSTGRES_URL }}
+          POSTGRES_URL: ${{ steps.create-branch.outputs.connection_string }}
 
       - name: Run tests
         run: |
@@ -38,13 +55,20 @@ jobs:
           pnpm test
         env:
           NODE_ENV: test
-          POSTGRES_URL: ${{ secrets.CI_POSTGRES_URL }}
+          POSTGRES_URL: ${{ steps.create-branch.outputs.connection_string }}
           AUTH_SECRET: test-secret-at-least-32-characters-long
           NEXTAUTH_URL: http://localhost:3000
           MAILGUN_API_KEY: test-mailgun-key
           MAILGUN_DOMAIN: test.mailgun.org
           NEXT_PUBLIC_APP_URL: http://localhost:3000
           STRIPE_SECRET_KEY: sk_test_fake
+
+      - name: Delete Neon test branch
+        if: always()
+        run: |
+          curl -X DELETE "https://console.neon.tech/api/v2/projects/${{ secrets.NEON_PROJECT_ID }}/branches/${{ steps.create-branch.outputs.branch_id }}" \
+            -H "Authorization: Bearer ${{ secrets.NEON_API_KEY }}"
+          echo "Deleted test branch"
 
   cli-test:
     name: Run CLI Tests
