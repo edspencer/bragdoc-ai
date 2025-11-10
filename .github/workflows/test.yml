@@ -27,80 +27,15 @@ jobs:
 
       - name: Create Neon test branch
         id: create-branch
-        run: |
-          BRANCH_NAME="test-${{ github.run_id }}-${{ github.run_attempt }}"
-
-          # Create schema-only branch (no data from parent)
-          echo "Creating schema-only branch: $BRANCH_NAME"
-          RESPONSE=$(curl -s -X POST "https://console.neon.tech/api/v2/projects/${{ secrets.NEON_PROJECT_ID }}/branches" \
-            -H "Authorization: Bearer ${{ secrets.NEON_API_KEY }}" \
-            -H "Content-Type: application/json" \
-            -d "{\"branch\": {\"name\": \"$BRANCH_NAME\", \"init_source\": \"schema-only\"}, \"endpoints\": [{\"type\": \"read_write\"}]}")
-
-          BRANCH_ID=$(echo $RESPONSE | jq -r '.branch.id')
-
-          if [ "$BRANCH_ID" == "null" ]; then
-            echo "ERROR: Failed to create branch"
-            echo "$RESPONSE" | jq '.'
-            exit 1
-          fi
-
-          echo "Branch created: $BRANCH_ID"
-
-          # Wait for endpoint to be ready (max 60 seconds)
-          for i in {1..60}; do
-            sleep 2
-
-            # Get connection string
-            CONNECTION_RESPONSE=$(curl -s "https://console.neon.tech/api/v2/projects/${{ secrets.NEON_PROJECT_ID }}/connection_uri?branch_id=$BRANCH_ID&role_name=default&database_name=verceldb" \
-              -H "Authorization: Bearer ${{ secrets.NEON_API_KEY }}")
-
-            CONNECTION_STRING=$(echo $CONNECTION_RESPONSE | jq -r '.uri')
-
-            if [ "$CONNECTION_STRING" != "null" ] && [ -n "$CONNECTION_STRING" ]; then
-              echo "Endpoint is ready"
-              break
-            fi
-            echo "Waiting for endpoint to be ready... ($i/60)"
-          done
-
-          if [ "$CONNECTION_STRING" == "null" ] || [ -z "$CONNECTION_STRING" ]; then
-            echo "ERROR: Failed to get connection string"
-            echo "$CONNECTION_RESPONSE" | jq '.'
-            exit 1
-          fi
-
-          echo "branch_id=$BRANCH_ID" >> $GITHUB_OUTPUT
-          echo "connection_string=$CONNECTION_STRING" >> $GITHUB_OUTPUT
-          echo "Successfully created test database with schema only"
+        run: ./scripts/create-neon-test-branch.sh
+        env:
+          NEON_API_KEY: ${{ secrets.NEON_API_KEY }}
+          NEON_PROJECT_ID: ${{ secrets.NEON_PROJECT_ID }}
 
       - name: Mark baseline migrations as applied
-        run: |
-          # Since we're using a schema-only Neon branch, the schema exists but the
-          # __drizzle_migrations table is empty. We need to mark the baseline migrations
-          # (0000 and 0001) as already applied so Drizzle only runs new migrations.
-
-          CONNECTION_STRING="${{ steps.create-branch.outputs.connection_string }}"
-
-          # Extract connection details for psql
-          PGPASSWORD=$(echo $CONNECTION_STRING | sed -n 's/.*:\/\/[^:]*:\([^@]*\)@.*/\1/p')
-          PGHOST=$(echo $CONNECTION_STRING | sed -n 's/.*@\([^:]*\):.*/\1/p')
-          PGPORT=$(echo $CONNECTION_STRING | sed -n 's/.*:\([0-9]*\)\/.*/\1/p')
-          PGDATABASE=$(echo $CONNECTION_STRING | sed -n 's/.*\/\([^?]*\).*/\1/p')
-          PGUSER=$(echo $CONNECTION_STRING | sed -n 's/.*:\/\/\([^:]*\):.*/\1/p')
-
-          export PGPASSWORD PGHOST PGPORT PGDATABASE PGUSER
-
-          # Mark baseline migrations as applied
-          psql "$CONNECTION_STRING" <<EOF
-          INSERT INTO drizzle.__drizzle_migrations (hash, created_at)
-          VALUES
-            ('0000_initial_baseline', 1761782229316),
-            ('0001_fancy_infant_terrible', 1762259704528)
-          ON CONFLICT DO NOTHING;
-          EOF
-
-          echo "Marked baseline migrations as applied"
+        run: packages/database/scripts/mark-baseline-migrations.sh
+        env:
+          POSTGRES_URL: ${{ steps.create-branch.outputs.connection_string }}
 
       - name: Run database migrations
         run: |
@@ -125,10 +60,10 @@ jobs:
 
       - name: Delete Neon test branch
         if: always()
-        run: |
-          curl -X DELETE "https://console.neon.tech/api/v2/projects/${{ secrets.NEON_PROJECT_ID }}/branches/${{ steps.create-branch.outputs.branch_id }}" \
-            -H "Authorization: Bearer ${{ secrets.NEON_API_KEY }}"
-          echo "Deleted test branch"
+        run: ./scripts/delete-neon-test-branch.sh ${{ steps.create-branch.outputs.branch_id }}
+        env:
+          NEON_API_KEY: ${{ secrets.NEON_API_KEY }}
+          NEON_PROJECT_ID: ${{ secrets.NEON_PROJECT_ID }}
 
   cli-test:
     name: Run CLI Tests
