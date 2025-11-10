@@ -309,10 +309,18 @@ export const auth: ReturnType<typeof betterAuth> = betterAuth({
         }
 
         // Handle sign-in events (magic link login)
-        if (ctx.path === '/sign-in/email') {
+        // Note: /magic-link/verify is when user clicks the link and creates session
+        // /sign-in/email would be for password-based login (not used with magic links)
+        if (
+          ctx.path === '/magic-link/verify' ||
+          ctx.path === '/sign-in/email'
+        ) {
           const user = ctx.context.newSession?.user;
           if (!user?.id || !user?.email) {
-            console.warn('PostHog: Missing user data in sign-in hook');
+            console.warn(
+              'PostHog: Missing user data in sign-in hook',
+              ctx.path,
+            );
             return;
           }
 
