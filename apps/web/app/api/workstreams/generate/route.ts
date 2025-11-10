@@ -7,6 +7,9 @@ import {
   decideShouldReCluster,
   incrementalAssignment,
   fullReclustering,
+  getAchievementSummaries,
+  buildAssignmentBreakdown,
+  buildWorkstreamBreakdown,
 } from '@/lib/ai/workstreams';
 import { getClusteringParameters } from '@/lib/ai/clustering';
 
@@ -82,6 +85,35 @@ export async function POST(request: NextRequest) {
           achievementsAssigned: number;
           outliers: number;
           metadata: any;
+          // New fields for detailed breakdown
+          workstreamDetails: Array<{
+            workstreamId: string;
+            workstreamName: string;
+            workstreamColor: string | null;
+            isNew: boolean;
+            achievements: Array<{
+              id: string;
+              title: string;
+              eventStart: Date | null;
+              impact: number | null;
+              summary: string | null;
+              projectId: string | null;
+              projectName: string | null;
+              companyId: string | null;
+              companyName: string | null;
+            }>;
+          }>;
+          outlierAchievements: Array<{
+            id: string;
+            title: string;
+            eventStart: Date | null;
+            impact: number | null;
+            summary: string | null;
+            projectId: string | null;
+            projectName: string | null;
+            companyId: string | null;
+            companyName: string | null;
+          }>;
         }
       | {
           strategy: 'incremental';
@@ -89,6 +121,34 @@ export async function POST(request: NextRequest) {
           embeddingsGenerated: number;
           assigned: number;
           unassigned: number;
+          // New fields for detailed breakdown
+          assignmentsByWorkstream: Array<{
+            workstreamId: string;
+            workstreamName: string;
+            workstreamColor: string | null;
+            achievements: Array<{
+              id: string;
+              title: string;
+              eventStart: Date | null;
+              impact: number | null;
+              summary: string | null;
+              projectId: string | null;
+              projectName: string | null;
+              companyId: string | null;
+              companyName: string | null;
+            }>;
+          }>;
+          unassignedAchievements: Array<{
+            id: string;
+            title: string;
+            eventStart: Date | null;
+            impact: number | null;
+            summary: string | null;
+            projectId: string | null;
+            projectName: string | null;
+            companyId: string | null;
+            companyName: string | null;
+          }>;
         };
 
     let result: ResponseData;
@@ -96,6 +156,22 @@ export async function POST(request: NextRequest) {
     if (decision.strategy === 'full') {
       // Perform full re-clustering
       const clusteringResult = await fullReclustering(userId, auth.user);
+
+      // Build workstream breakdown with achievement details
+      const workstreamDetails = await buildWorkstreamBreakdown(
+        clusteringResult.workstreams || [],
+        userId,
+      );
+
+      // Get outlier achievements
+      const outlierIds = (clusteringResult.outlierAchievements || []).map(
+        (a) => a.id,
+      );
+      const outlierAchievements = await getAchievementSummaries(
+        outlierIds,
+        userId,
+      );
+
       result = {
         strategy: 'full' as const,
         reason: decision.reason,
@@ -104,6 +180,8 @@ export async function POST(request: NextRequest) {
         achievementsAssigned: clusteringResult.achievementsAssigned,
         outliers: clusteringResult.outliers,
         metadata: clusteringResult.metadata,
+        workstreamDetails,
+        outlierAchievements,
       };
     } else {
       // Perform incremental assignment
@@ -114,18 +192,39 @@ export async function POST(request: NextRequest) {
 
       const assignmentResult = await incrementalAssignment(userId, params);
 
+      // Build assignment breakdown with achievement details
+      const assignmentsByWorkstream = await buildAssignmentBreakdown(
+        assignmentResult.assignments,
+        userId,
+      );
+
+      // Get unassigned achievement summaries
+      const unassignedSummaries = await getAchievementSummaries(
+        assignmentResult.unassigned,
+        userId,
+      );
+
       result = {
         strategy: 'incremental' as const,
         reason: decision.reason,
         embeddingsGenerated,
         assigned: assignmentResult.assigned.length,
         unassigned: assignmentResult.unassigned.length,
+        assignmentsByWorkstream,
+        unassignedAchievements: unassignedSummaries,
       };
     }
 
     console.log(
-      '[Workstreams Generate] Result:',
-      JSON.stringify(result, null, 2),
+      '[Workstreams Generate] Result - Strategy:',
+      result.strategy,
+      'Reason:',
+      result.reason,
+      'Embeddings:',
+      embeddingsGenerated,
+      result.strategy === 'full'
+        ? `Workstreams: ${result.workstreamsCreated}, Achievements: ${result.achievementsAssigned}, Outliers: ${result.outliers}`
+        : `Assigned: ${result.assigned}, Unassigned: ${result.unassigned}`,
     );
     return NextResponse.json(result, { status: 200 });
   } catch (error) {

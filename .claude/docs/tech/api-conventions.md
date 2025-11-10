@@ -367,11 +367,90 @@ This allows the system to accurately distinguish between:
 ### Workstreams Endpoints
 
 **POST /api/workstreams/generate**
+
 Triggers workstream generation or update. Handles both full re-clustering and incremental assignment based on heuristics.
 
-- Generates missing embeddings for achievements
+**Features:**
+- Generates missing embeddings for achievements (OpenAI text-embedding-3-small, 1536 dimensions)
 - Requires minimum 20 achievements with embeddings
-- Returns strategy used (full/incremental) and statistics
+- Returns strategy used (full/incremental) and detailed achievement breakdowns
+- Backward compatible with existing toast notification implementations
+
+**Request:**
+No request body required. Endpoint determines strategy automatically based on heuristics.
+
+**Response: Full Clustering Strategy**
+
+```typescript
+{
+  strategy: 'full';
+  reason: string;
+  embeddingsGenerated: number;
+  workstreamsCreated: number;
+  achievementsAssigned: number;
+  outliers: number;
+  metadata: WorkstreamMetadata;
+  // Detailed breakdown
+  workstreamDetails: Array<{
+    workstreamId: string;
+    workstreamName: string;
+    workstreamColor: string;
+    isNew: boolean;
+    achievements: AchievementSummary[];
+  }>;
+  outlierAchievements: AchievementSummary[];
+}
+```
+
+**Response: Incremental Strategy**
+
+```typescript
+{
+  strategy: 'incremental';
+  reason: string;
+  embeddingsGenerated: number;
+  assigned: number;
+  unassigned: number;
+  // Detailed breakdown
+  assignmentsByWorkstream: Array<{
+    workstreamId: string;
+    workstreamName: string;
+    workstreamColor: string;
+    achievements: AchievementSummary[];
+  }>;
+  unassignedAchievements: AchievementSummary[];
+}
+```
+
+**AchievementSummary Type**
+
+Lightweight achievement summary with project/company context:
+
+```typescript
+type AchievementSummary = {
+  id: string;
+  title: string;
+  eventStart: Date | null;
+  impact: number | null;
+  summary: string | null;
+  projectId: string | null;
+  projectName: string | null;
+  companyId: string | null;
+  companyName: string | null;
+};
+```
+
+**Why Detailed Responses?**
+
+The endpoint returns detailed achievement breakdowns for several reasons:
+1. **Future UI Components**: Upcoming components will display exactly what happened during clustering
+2. **Data Transparency**: Users can see which achievements were assigned to which workstreams
+3. **Debugging**: Detailed information helps diagnose unexpected clustering behavior
+4. **Backward Compatibility**: Count fields (assigned, unassigned, outliers) are preserved for existing toast notifications
+
+All achievement queries are scoped by userId for security (no cross-user data leakage).
+
+---
 
 **GET /api/workstreams**
 Lists user's active workstreams with metadata.

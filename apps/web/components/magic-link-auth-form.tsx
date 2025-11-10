@@ -1,7 +1,6 @@
 'use client';
 
 import { useState } from 'react';
-import Form from 'next/form';
 import { Input } from './ui/input';
 import { Label } from './ui/label';
 import { Button } from './ui/button';
@@ -26,10 +25,12 @@ export function MagicLinkAuthForm({
   const [isEmailSent, setIsEmailSent] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const handleSubmit = async (formData: FormData) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
     setIsSubmitting(true);
     setError(null);
 
+    const formData = new FormData(e.currentTarget);
     const email = formData.get('email') as string;
 
     try {
@@ -83,7 +84,7 @@ export function MagicLinkAuthForm({
   }
 
   return (
-    <Form action={handleSubmit} className="flex flex-col gap-4 px-4 sm:px-16">
+    <form onSubmit={handleSubmit} className="flex flex-col gap-4 px-4 sm:px-16">
       <div className="flex flex-col gap-2">
         <Label
           htmlFor="email"
@@ -125,6 +126,6 @@ export function MagicLinkAuthForm({
           </>
         )}
       </Button>
-    </Form>
+    </form>
   );
 }

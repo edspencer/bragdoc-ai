@@ -327,13 +327,19 @@ Workstreams provide automatic semantic clustering of achievements across project
 
 - **Minimum Requirements:** 20 achievements to enable feature
 - **Clustering Algorithm:** DBSCAN with adaptive parameters
+- **Data Enrichment:** Helper functions fetch detailed achievement summaries with project/company context
 - **Cost Model:** ~$2/year per active user
-- **Performance:** <500ms for typical datasets (<1000 achievements)
+- **Performance:** <500ms for typical datasets (<1000 achievements), ~50-100ms additional for data enrichment
+
+**Helper Functions:**
+- `getAchievementSummaries()` - Fetch achievements with project/company context using LEFT JOINs
+- `buildAssignmentBreakdown()` - Group achievements by workstream for incremental responses
+- `buildWorkstreamBreakdown()` - Format workstream details for full clustering responses
 
 For detailed technical documentation, see:
 - Database schema: `.claude/docs/tech/database.md`
 - ML implementation: `.claude/docs/tech/ai-integration.md`
-- API patterns: `.claude/docs/tech/api-conventions.md`
+- API patterns: `.claude/docs/tech/api-conventions.md` (includes detailed POST /api/workstreams/generate response structures)
 - UI components: `.claude/docs/tech/frontend-patterns.md`
 
 ---

@@ -10,7 +10,7 @@ import { db, achievement, project, type Achievement } from '@bragdoc/database';
 import { eq } from 'drizzle-orm';
 
 const EMBEDDING_MODEL = 'text-embedding-3-small';
-const EMBEDDING_MODEL_VERSION = 'v2-with-project-context'; // Version tracking for embedding format changes
+const EMBEDDING_MODEL_VERSION = 'text-embedding-3-small'; // Version tracking for embedding format changes
 const EMBEDDING_DIMENSIONS = 1536;
 
 /**
@@ -196,7 +196,7 @@ export async function generateMissingEmbeddings(
   }
 
   console.log(
-    `[Embeddings] Regenerating ${needsEmbedding.length} embeddings with new format (v2-with-project-context)`,
+    `[Embeddings] Regenerating ${needsEmbedding.length} embeddings with model ${EMBEDDING_MODEL_VERSION}`,
   );
 
   // Generate embeddings for all

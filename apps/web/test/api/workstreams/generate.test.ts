@@ -1,5 +1,11 @@
 import { POST } from 'app/api/workstreams/generate/route';
-import { achievement, user, workstream, project } from '@/database/schema';
+import {
+  achievement,
+  user,
+  workstream,
+  project,
+  company,
+} from '@/database/schema';
 import { db } from '@/database/index';
 import { getAuthUser } from '@/lib/getAuthUser';
 import { NextRequest } from 'next/server';
@@ -241,5 +247,318 @@ describe('POST /api/workstreams/generate', () => {
     expect(data).toHaveProperty('strategy');
     expect(data).toHaveProperty('reason');
     expect(['full', 'incremental']).toContain(data.strategy);
+  });
+
+  describe('Full Clustering Response Structure (Phase 2)', () => {
+    it('returns workstreamDetails and outlierAchievements for full clustering', async () => {
+      // Add 30 achievements with varied embeddings
+      for (let i = 0; i < 30; i++) {
+        await db.insert(achievement).values({
+          id: uuidv4(),
+          userId: mockUser.id,
+          projectId: mockProject.id,
+          title: `Achievement ${i}`,
+          summary: 'Summary',
+          details: null,
+          impact: Math.floor(Math.random() * 5) + 1,
+          source: 'manual' as const,
+          eventDuration: 'week' as const,
+          eventStart: new Date(),
+          eventEnd: null,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+          isArchived: false,
+          embedding: Array(1536)
+            .fill(0)
+            .map(() => Math.random()),
+          embeddingModel: 'text-embedding-3-small',
+          embeddingGeneratedAt: new Date(),
+        });
+      }
+
+      const request = new NextRequest(
+        'http://localhost/api/workstreams/generate',
+        {
+          method: 'POST',
+        },
+      );
+
+      const response = await POST(request);
+      expect(response.status).toBe(200);
+      const data = await response.json();
+
+      // Verify strategy is 'full'
+      expect(data.strategy).toBe('full');
+
+      // Verify new fields exist
+      expect(data).toHaveProperty('workstreamDetails');
+      expect(data).toHaveProperty('outlierAchievements');
+
+      // Verify workstreamDetails is array
+      expect(Array.isArray(data.workstreamDetails)).toBe(true);
+
+      // Verify outlierAchievements is array
+      expect(Array.isArray(data.outlierAchievements)).toBe(true);
+
+      // If workstreams were created, verify structure
+      if (data.workstreamDetails.length > 0) {
+        const workstream = data.workstreamDetails[0];
+        expect(workstream).toHaveProperty('workstreamId');
+        expect(workstream).toHaveProperty('workstreamName');
+        expect(workstream).toHaveProperty('workstreamColor');
+        expect(workstream).toHaveProperty('isNew');
+        expect(workstream).toHaveProperty('achievements');
+        expect(workstream.isNew).toBe(true);
+        expect(Array.isArray(workstream.achievements)).toBe(true);
+      }
+
+      // Verify backward compatibility - old count fields present
+      expect(data).toHaveProperty('workstreamsCreated');
+      expect(data).toHaveProperty('achievementsAssigned');
+      expect(data).toHaveProperty('outliers');
+      expect(typeof data.workstreamsCreated).toBe('number');
+      expect(typeof data.achievementsAssigned).toBe('number');
+      expect(typeof data.outliers).toBe('number');
+    });
+
+    it('includes achievement summaries with project/company context', async () => {
+      // Create a company
+      await db.insert(company).values({
+        id: uuidv4(),
+        userId: mockUser.id,
+        name: 'Test Company',
+        domain: 'test.com',
+        role: 'Engineer',
+        startDate: new Date(),
+      });
+
+      // Add 25 achievements
+      for (let i = 0; i < 25; i++) {
+        await db.insert(achievement).values({
+          id: uuidv4(),
+          userId: mockUser.id,
+          projectId: mockProject.id,
+          title: `Achievement ${i}`,
+          summary: `Summary for achievement ${i}`,
+          details: null,
+          impact: 2,
+          source: 'manual' as const,
+          eventDuration: 'week' as const,
+          eventStart: new Date(),
+          eventEnd: null,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+          isArchived: false,
+          embedding: Array(1536)
+            .fill(0)
+            .map(() => Math.random()),
+          embeddingModel: 'text-embedding-3-small',
+          embeddingGeneratedAt: new Date(),
+        });
+      }
+
+      const request = new NextRequest(
+        'http://localhost/api/workstreams/generate',
+        {
+          method: 'POST',
+        },
+      );
+
+      const response = await POST(request);
+      expect(response.status).toBe(200);
+      const data = await response.json();
+
+      // Check outlier achievements
+      if (data.outlierAchievements.length > 0) {
+        const achievement = data.outlierAchievements[0];
+        expect(achievement).toHaveProperty('id');
+        expect(achievement).toHaveProperty('title');
+        expect(achievement).toHaveProperty('eventStart');
+        expect(achievement).toHaveProperty('impact');
+        expect(achievement).toHaveProperty('summary');
+        expect(achievement).toHaveProperty('projectId');
+        expect(achievement).toHaveProperty('projectName');
+        expect(achievement).toHaveProperty('companyId');
+        expect(achievement).toHaveProperty('companyName');
+      }
+
+      // Check workstream achievements
+      if (data.workstreamDetails.length > 0) {
+        const ws = data.workstreamDetails[0];
+        if (ws.achievements.length > 0) {
+          const ach = ws.achievements[0];
+          expect(ach).toHaveProperty('id');
+          expect(ach).toHaveProperty('title');
+          expect(ach).toHaveProperty('eventStart');
+          expect(ach).toHaveProperty('impact');
+          expect(ach).toHaveProperty('summary');
+          expect(ach).toHaveProperty('projectId');
+          expect(ach).toHaveProperty('projectName');
+          expect(ach).toHaveProperty('companyId');
+          expect(ach).toHaveProperty('companyName');
+        }
+      }
+    });
+  });
+
+  describe('Incremental Response Structure (Phase 2)', () => {
+    it('returns assignmentsByWorkstream and unassignedAchievements for incremental', async () => {
+      // First do a full clustering to create workstreams
+      for (let i = 0; i < 30; i++) {
+        await db.insert(achievement).values({
+          id: uuidv4(),
+          userId: mockUser.id,
+          projectId: mockProject.id,
+          title: `Achievement ${i}`,
+          summary: 'Summary',
+          details: null,
+          impact: 2,
+          source: 'manual' as const,
+          eventDuration: 'week' as const,
+          eventStart: new Date(),
+          eventEnd: null,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+          isArchived: false,
+          embedding: Array(1536)
+            .fill(0)
+            .map(() => Math.random()),
+          embeddingModel: 'text-embedding-3-small',
+          embeddingGeneratedAt: new Date(),
+        });
+      }
+
+      const request1 = new NextRequest(
+        'http://localhost/api/workstreams/generate',
+        {
+          method: 'POST',
+        },
+      );
+
+      const response1 = await POST(request1);
+      expect(response1.status).toBe(200);
+
+      // Add a few more achievements to trigger incremental
+      for (let i = 0; i < 5; i++) {
+        await db.insert(achievement).values({
+          id: uuidv4(),
+          userId: mockUser.id,
+          projectId: mockProject.id,
+          title: `New Achievement ${i}`,
+          summary: 'New Summary',
+          details: null,
+          impact: 3,
+          source: 'manual' as const,
+          eventDuration: 'week' as const,
+          eventStart: new Date(),
+          eventEnd: null,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+          isArchived: false,
+          embedding: Array(1536)
+            .fill(0)
+            .map(() => Math.random()),
+          embeddingModel: 'text-embedding-3-small',
+          embeddingGeneratedAt: new Date(),
+        });
+      }
+
+      const request2 = new NextRequest(
+        'http://localhost/api/workstreams/generate',
+        {
+          method: 'POST',
+        },
+      );
+
+      const response2 = await POST(request2);
+      expect(response2.status).toBe(200);
+      const data = await response2.json();
+
+      // This should likely be incremental, but could be full depending on clustering decision
+      // If it is incremental, verify structure
+      if (data.strategy === 'incremental') {
+        expect(data).toHaveProperty('assignmentsByWorkstream');
+        expect(data).toHaveProperty('unassignedAchievements');
+        expect(Array.isArray(data.assignmentsByWorkstream)).toBe(true);
+        expect(Array.isArray(data.unassignedAchievements)).toBe(true);
+
+        // Verify backward compatibility
+        expect(data).toHaveProperty('assigned');
+        expect(data).toHaveProperty('unassigned');
+        expect(typeof data.assigned).toBe('number');
+        expect(typeof data.unassigned).toBe('number');
+
+        // Verify workstream structure in assignments
+        if (data.assignmentsByWorkstream.length > 0) {
+          const ws = data.assignmentsByWorkstream[0];
+          expect(ws).toHaveProperty('workstreamId');
+          expect(ws).toHaveProperty('workstreamName');
+          expect(ws).toHaveProperty('workstreamColor');
+          expect(ws).toHaveProperty('achievements');
+          expect(Array.isArray(ws.achievements)).toBe(true);
+        }
+      }
+    });
+  });
+
+  describe('Backward Compatibility (Phase 2)', () => {
+    it('preserves count fields for toast notifications', async () => {
+      // Add 20 achievements
+      for (let i = 0; i < 20; i++) {
+        await db.insert(achievement).values({
+          id: uuidv4(),
+          userId: mockUser.id,
+          projectId: mockProject.id,
+          title: `Achievement ${i}`,
+          summary: 'Summary',
+          details: null,
+          impact: 2,
+          source: 'manual' as const,
+          eventDuration: 'week' as const,
+          eventStart: new Date(),
+          eventEnd: null,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+          isArchived: false,
+          embedding: Array(1536)
+            .fill(0)
+            .map(() => Math.random()),
+          embeddingModel: 'text-embedding-3-small',
+          embeddingGeneratedAt: new Date(),
+        });
+      }
+
+      const request = new NextRequest(
+        'http://localhost/api/workstreams/generate',
+        {
+          method: 'POST',
+        },
+      );
+
+      const response = await POST(request);
+      expect(response.status).toBe(200);
+      const data = await response.json();
+
+      if (data.strategy === 'full') {
+        // Full clustering must have these fields
+        expect(data).toHaveProperty('workstreamsCreated');
+        expect(data).toHaveProperty('achievementsAssigned');
+        expect(data).toHaveProperty('outliers');
+        expect(typeof data.workstreamsCreated).toBe('number');
+        expect(typeof data.achievementsAssigned).toBe('number');
+        expect(typeof data.outliers).toBe('number');
+      } else if (data.strategy === 'incremental') {
+        // Incremental must have these fields
+        expect(data).toHaveProperty('assigned');
+        expect(data).toHaveProperty('unassigned');
+        expect(typeof data.assigned).toBe('number');
+        expect(typeof data.unassigned).toBe('number');
+      }
+
+      // Both must have these
+      expect(data).toHaveProperty('strategy');
+      expect(data).toHaveProperty('reason');
+      expect(data).toHaveProperty('embeddingsGenerated');
+    });
   });
 });

@@ -16,6 +16,43 @@ interface WorkstreamsResponse {
   achievementCount?: number;
 }
 
+/**
+ * Lightweight achievement summary for API responses
+ * Includes only fields needed for UI display with project/company context
+ */
+type AchievementSummary = {
+  id: string;
+  title: string;
+  eventStart: Date | null;
+  impact: number | null;
+  summary: string | null;
+  projectId: string | null;
+  projectName: string | null;
+  companyId: string | null;
+  companyName: string | null;
+};
+
+/**
+ * Achievement assignments grouped by workstream for incremental response
+ */
+type AssignmentByWorkstream = {
+  workstreamId: string;
+  workstreamName: string;
+  workstreamColor: string;
+  achievements: AchievementSummary[];
+};
+
+/**
+ * Workstream details with achievements for full clustering response
+ */
+type WorkstreamDetail = {
+  workstreamId: string;
+  workstreamName: string;
+  workstreamColor: string;
+  isNew: boolean;
+  achievements: AchievementSummary[];
+};
+
 type GenerateResultFull = {
   strategy: 'full';
   reason: string;
@@ -24,6 +61,9 @@ type GenerateResultFull = {
   achievementsAssigned: number;
   outliers: number;
   metadata: any;
+  // New fields for detailed breakdown
+  workstreamDetails: WorkstreamDetail[];
+  outlierAchievements: AchievementSummary[];
 };
 
 type GenerateResultIncremental = {
@@ -32,6 +72,9 @@ type GenerateResultIncremental = {
   embeddingsGenerated: number;
   assigned: number;
   unassigned: number;
+  // New fields for detailed breakdown
+  assignmentsByWorkstream: AssignmentByWorkstream[];
+  unassignedAchievements: AchievementSummary[];
 };
 
 type GenerateResult = GenerateResultFull | GenerateResultIncremental;
@@ -130,3 +173,13 @@ export function useWorkstreams() {
     assignWorkstream,
   };
 }
+
+// Export types for use in UI components
+export type {
+  AchievementSummary,
+  AssignmentByWorkstream,
+  WorkstreamDetail,
+  GenerateResultIncremental,
+  GenerateResultFull,
+  GenerateResult,
+};

@@ -1,4 +1,4 @@
-import { User, Project, Achievement, Workstream } from '@/database/schema';
+import type { User, Project, Achievement, Workstream } from '@/database/schema';
 
 export function createMockUser(overrides: Partial<User> = {}): User {
   return {

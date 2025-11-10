@@ -211,7 +211,7 @@ export function WorkstreamsTimelineChart({
                             minHeight: heightPercent > 0 ? '2px' : '0',
                             backgroundColor: ws.color || '#3B82F6',
                           }}
-                          title={`${ws.name}: ${value} ${metric === 'count' ? 'achievement' + (value === 1 ? '' : 's') : 'impact points'}`}
+                          title={`${ws.name}: ${value} ${metric === 'count' ? `achievement${value === 1 ? '' : 's'}` : 'impact points'}`}
                         >
                           {showLabel && (
                             <span className="text-xs font-medium text-white px-1 truncate max-w-full">

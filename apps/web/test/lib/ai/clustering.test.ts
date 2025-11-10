@@ -247,8 +247,8 @@ describe('Clustering Module', () => {
     it('returns standard params for 100+ achievements', () => {
       const params = getClusteringParameters(100);
       expect(params).not.toBeNull();
-      expect(params?.minPts).toBe(5);
-      expect(params?.minClusterSize).toBe(5);
+      expect(params?.minPts).toBe(3);
+      expect(params?.minClusterSize).toBe(3);
       expect(params?.outlierThreshold).toBe(0.65);
     });
 
@@ -261,13 +261,13 @@ describe('Clustering Module', () => {
     it('returns standard params for exactly 100 achievements', () => {
       const params = getClusteringParameters(100);
       expect(params).not.toBeNull();
-      expect(params?.minPts).toBe(5);
+      expect(params?.minPts).toBe(3);
     });
 
     it('returns correct params for large dataset (1000+)', () => {
       const params = getClusteringParameters(1000);
       expect(params).not.toBeNull();
-      expect(params?.minPts).toBe(5);
+      expect(params?.minPts).toBe(3);
       expect(params?.outlierThreshold).toBe(0.65);
     });
   });

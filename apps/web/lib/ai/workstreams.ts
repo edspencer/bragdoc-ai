@@ -10,14 +10,17 @@ import {
   achievement,
   workstream,
   workstreamMetadata,
+  project,
+  company,
   type Achievement,
   type User,
   type Workstream,
   type WorkstreamMetadata,
 } from '@bragdoc/database';
-import { and, eq, isNull, inArray } from 'drizzle-orm';
+import { and, eq, isNull, isNotNull, inArray } from 'drizzle-orm';
 import { v4 as uuidv4 } from 'uuid';
-import { generateText } from 'ai';
+import { generateText, generateObject } from 'ai';
+import { z } from 'zod';
 import { getLLM } from './index';
 import {
   clusterEmbeddings,
@@ -32,6 +35,22 @@ const SMALL_DATASET = 100;
 const RECLUSTER_PERCENTAGE_THRESHOLD = 0.1; // 10%
 const RECLUSTER_ABSOLUTE_THRESHOLD = 50; // 50 achievements
 const RECLUSTER_TIME_THRESHOLD_DAYS = 30;
+
+/**
+ * Lightweight achievement summary for API responses
+ * Includes only fields needed for UI display with project/company context
+ */
+export interface AchievementSummary {
+  id: string;
+  title: string;
+  eventStart: Date | null;
+  impact: number | null;
+  summary: string | null;
+  projectId: string | null;
+  projectName: string | null;
+  companyId: string | null;
+  companyName: string | null;
+}
 
 /**
  * Decision on whether to do incremental assignment or full re-clustering
@@ -52,12 +71,162 @@ export interface AssignmentResult {
 
 /**
  * Result of full re-clustering operation
+ * Includes optional fields for enhanced API responses with detailed achievement data
  */
 export interface FullClusteringResult {
   workstreamsCreated: number;
   achievementsAssigned: number;
   outliers: number;
   metadata: WorkstreamMetadata;
+  // Optional fields for enhanced API responses
+  workstreams?: Workstream[];
+  achievementsWithAssignments?: Achievement[];
+  outlierAchievements?: Achievement[];
+}
+
+/**
+ * Fetch achievement summaries with project/company context using LEFT JOINs
+ * Filters to only requested achievement IDs
+ *
+ * @param achievementIds - Array of achievement IDs to fetch
+ * @param userId - User ID to scope query for security
+ * @returns Array of AchievementSummary objects
+ */
+export async function getAchievementSummaries(
+  achievementIds: string[],
+  userId: string,
+): Promise<AchievementSummary[]> {
+  if (achievementIds.length === 0) {
+    return [];
+  }
+
+  const results = await db
+    .select({
+      id: achievement.id,
+      title: achievement.title,
+      eventStart: achievement.eventStart,
+      impact: achievement.impact,
+      summary: achievement.summary,
+      projectId: achievement.projectId,
+      projectName: project.name,
+      companyId: achievement.companyId,
+      companyName: company.name,
+    })
+    .from(achievement)
+    .leftJoin(project, eq(achievement.projectId, project.id))
+    .leftJoin(company, eq(achievement.companyId, company.id))
+    .where(
+      and(
+        eq(achievement.userId, userId),
+        inArray(achievement.id, achievementIds),
+      ),
+    );
+
+  return results as AchievementSummary[];
+}
+
+/**
+ * Build assignment breakdown for incremental strategy response
+ * Groups achievements by workstream and fetches workstream details
+ *
+ * @param assignments - Map of achievementId -> workstreamId from incrementalAssignment
+ * @param userId - User ID to scope query
+ * @returns Array of assignment groups sorted by achievement count (descending)
+ */
+export async function buildAssignmentBreakdown(
+  assignments: Map<string, string>,
+  userId: string,
+): Promise<
+  Array<{
+    workstreamId: string;
+    workstreamName: string;
+    workstreamColor: string | null;
+    achievements: AchievementSummary[];
+  }>
+> {
+  // Group achievement IDs by workstream
+  const achievementsByWorkstream = new Map<string, string[]>();
+
+  for (const [achId, wsId] of assignments) {
+    if (!achievementsByWorkstream.has(wsId)) {
+      achievementsByWorkstream.set(wsId, []);
+    }
+    achievementsByWorkstream.get(wsId)!.push(achId);
+  }
+
+  // Fetch workstream details
+  const workstreamIds = Array.from(achievementsByWorkstream.keys());
+  const workstreams = await db
+    .select()
+    .from(workstream)
+    .where(inArray(workstream.id, workstreamIds));
+
+  // Build result array with achievement summaries for each workstream
+  const result = [];
+
+  for (const ws of workstreams) {
+    const achIds = achievementsByWorkstream.get(ws.id) || [];
+    const achievements = await getAchievementSummaries(achIds, userId);
+
+    result.push({
+      workstreamId: ws.id,
+      workstreamName: ws.name,
+      workstreamColor: ws.color,
+      achievements,
+    });
+  }
+
+  // Sort by achievement count (descending)
+  result.sort((a, b) => b.achievements.length - a.achievements.length);
+
+  return result;
+}
+
+/**
+ * Build workstream breakdown for full clustering strategy response
+ * Takes newly created workstreams and formats with their achievements
+ *
+ * @param createdWorkstreams - Array of newly created Workstream records
+ * @param userId - User ID to scope query
+ * @returns Array of workstream details sorted by achievement count (descending)
+ */
+export async function buildWorkstreamBreakdown(
+  createdWorkstreams: Workstream[],
+  userId: string,
+): Promise<
+  Array<{
+    workstreamId: string;
+    workstreamName: string;
+    workstreamColor: string | null;
+    isNew: boolean;
+    achievements: AchievementSummary[];
+  }>
+> {
+  const result = [];
+
+  // For each workstream, fetch its achievements
+  for (const ws of createdWorkstreams) {
+    const achievements = await db
+      .select()
+      .from(achievement)
+      .where(eq(achievement.workstreamId, ws.id));
+
+    const achIds = achievements.map((a) => a.id);
+    const summaries = await getAchievementSummaries(achIds, userId);
+
+    result.push({
+      workstreamId: ws.id,
+      workstreamName: ws.name,
+      workstreamColor: ws.color,
+      isNew: true, // Always true for full clustering (all workstreams are new)
+      achievements: summaries,
+    });
+  }
+
+  // Sort by achievement count (descending)
+  result.sort((a, b) => b.achievements.length - a.achievements.length);
+
+  return result;
 }
 
 /**
@@ -318,6 +487,139 @@ Ensure the response is valid JSON only.`,
 }
 
 /**
+ * Generate names and descriptions for multiple workstreams in a single LLM call
+ * This is much more efficient than calling nameWorkstream() sequentially
+ *
+ * @param clusters - Array of achievement arrays (one per cluster)
+ * @param _user - User object (not currently used)
+ * @returns Array of objects with name and description (same order as input clusters)
+ */
+export async function nameWorkstreamsBatch(
+  clusters: Achievement[][],
+  _user: User,
+): Promise<Array<{ name: string; description: string }>> {
+  const functionStartTime = Date.now();
+  console.log(
+    `[Workstreams Batch] Starting batch naming for ${clusters.length} clusters`,
+  );
+
+  if (clusters.length === 0) {
+    return [];
+  }
+
+  // Use fast model for naming - this is a simple task, doesn't need gpt-4o
+  const llm = getLLM('extraction'); // gpt-4o-mini
+
+  // Build single prompt with all clusters
+  const promptBuildStart = Date.now();
+  const clustersText = clusters
+    .map((achievements, idx) => {
+      const sample = achievements.slice(0, 15);
+      const achievementText = sample
+        .map((ach) => `  - ${ach.title}: ${ach.summary}`)
+        .join('\n');
+
+      return `Cluster ${idx + 1} (${achievements.length} achievements):
+${achievementText}`;
+    })
+    .join('\n\n');
+  const promptBuildDuration = Date.now() - promptBuildStart;
+  console.log(`[Workstreams Batch] Prompt built in ${promptBuildDuration}ms`);
+
+  // Define schema for structured output
+  const workstreamSchema = z.object({
+    workstreams: z
+      .array(
+        z.object({
+          name: z
+            .string()
+            .max(256)
+            .describe('2-5 word workstream name summarizing the theme'),
+          description: z
+            .string()
+            .max(1000)
+            .describe('1-2 sentence description of this workstream theme'),
+        }),
+      )
+      .length(clusters.length),
+  });
+
+  const fullPrompt = `Analyze these achievement clusters and generate a workstream name and description for each.
+
+${clustersText}
+
+IMPORTANT: Generate exactly ${clusters.length} workstreams in the same order as the clusters above.
+Each workstream name should be 2-5 words that capture the theme.
+Each description should be 1-2 sentences explaining what this workstream represents.`;
+
+  try {
+    console.log(
+      `[Workstreams Batch] Calling generateObject with ${fullPrompt.length} chars prompt, model: gpt-4o-mini`,
+    );
+
+    const llmCallStart = Date.now();
+    const { object } = await generateObject({
+      model: llm,
+      schema: workstreamSchema,
+      prompt: fullPrompt,
+      temperature: 0.7,
+    });
+    const llmCallDuration = Date.now() - llmCallStart;
+
+    console.log(
+      `[Workstreams Batch] LLM call completed in ${llmCallDuration}ms, generated ${object.workstreams.length} workstreams`,
+    );
+
+    // Ensure we got the right number of results
+    if (object.workstreams.length === clusters.length) {
+      const totalDuration = Date.now() - functionStartTime;
+      console.log(
+        `[Workstreams Batch] Success! Total function time: ${totalDuration}ms`,
+      );
+      return object.workstreams.map((ws) => ({
+        name: ws.name.slice(0, 256),
+        description: ws.description.slice(0, 1000),
+      }));
+    } else {
+      console.warn(
+        `[Workstreams Batch] Returned ${object.workstreams.length} results, expected ${clusters.length}`,
+      );
+    }
+  } catch (error) {
+    const errorDuration = Date.now() - functionStartTime;
+    console.error(
+      `[Workstreams Batch] LLM call failed after ${errorDuration}ms:`,
+      error,
+    );
+  }
+
+  // Fallback: generate generic names for all clusters
+  const fallbackStart = Date.now();
+  console.log(
+    '[Workstreams Batch] Using fallback naming for all clusters due to LLM failure',
+  );
+  const fallbackNames = clusters.map((achievements, idx) => {
+    const titles = achievements
+      .slice(0, 15)
+      .map((ach) => ach.title)
+      .join(' ');
+    const commonWords = extractCommonWords(titles);
+    const name = commonWords.slice(0, 3).join(' ') || `Workstream ${idx + 1}`;
+
+    return {
+      name: name.slice(0, 256),
+      description: `Workstream with ${achievements.length} achievements`,
+    };
+  });
+  const fallbackDuration = Date.now() - fallbackStart;
+  const totalDuration = Date.now() - functionStartTime;
+  console.log(
+    `[Workstreams Batch] Fallback completed in ${fallbackDuration}ms, total: ${totalDuration}ms`,
+  );
+  return fallbackNames;
+}
+
+/**
  * Extract common words from text (simple heuristic)
  */
 function extractCommonWords(text: string): string[] {
@@ -409,8 +711,7 @@ export async function fullReclustering(
       ),
     );
 
-  // Create new workstreams for each cluster
-  const createdWorkstreams: Workstream[] = [];
+  // Prepare cluster data for batch processing
   const workstreamColors = [
     '#3B82F6',
     '#10B981',
@@ -423,29 +724,57 @@ export async function fullReclustering(
     '#EC4899',
   ];
 
-  for (let i = 0; i < clusteringResult.clusters.length; i++) {
-    const clusterIndices = clusteringResult.clusters[i];
-    if (!clusterIndices) continue;
-    const clusterAchievements = clusterIndices
-      .map((idx) => achievementsWithEmbeddings[idx])
-      .filter((ach): ach is Achievement => ach !== undefined);
+  // Extract cluster achievements and calculate centroids
+  const clusterData = clusteringResult.clusters
+    .map((clusterIndices, i) => {
+      if (!clusterIndices) return null;
 
-    // Calculate centroid for this cluster
-    const clusterEmbeddings = clusterIndices
-      .map((idx) => embeddings[idx])
-      .filter((emb): emb is number[] => emb !== undefined);
-    const centroid = calculateCentroid(clusterEmbeddings);
+      const clusterAchievements = clusterIndices
+        .map((idx) => achievementsWithEmbeddings[idx])
+        .filter((ach): ach is Achievement => ach !== undefined);
 
-    // Generate name and description
-    const { name, description } = await nameWorkstream(
-      clusterAchievements,
-      user,
-    );
+      const clusterEmbeddings = clusterIndices
+        .map((idx) => embeddings[idx])
+        .filter((emb): emb is number[] => emb !== undefined);
+
+      const centroid = calculateCentroid(clusterEmbeddings);
+
+      return {
+        index: i,
+        achievements: clusterAchievements,
+        centroid,
+      };
+    })
+    .filter((cluster) => cluster !== null);
+
+  console.log(
+    `[Workstreams] Generating names for ${clusterData.length} clusters in batch`,
+  );
+
+  // Generate all workstream names in a single LLM call (MAJOR OPTIMIZATION)
+  const namingStartTime = Date.now();
+  const names = await nameWorkstreamsBatch(
+    clusterData.map((c) => c.achievements),
+    user,
+  );
+  const namingDuration = Date.now() - namingStartTime;
+
+  console.log(
+    `[Workstreams] Batch naming complete in ${namingDuration}ms, creating workstreams in parallel`,
+  );
+
+  // Create all workstreams and assign achievements in parallel (PARALLEL DB OPS)
+  const workstreamPromises = clusterData.map(async (cluster, idx) => {
+    // Get name/description with fallback if batch naming had issues
+    const nameData = names[idx] || {
+      name: `Workstream ${idx + 1}`,
+      description: `Workstream with ${cluster.achievements.length} achievements`,
+    };
+    const { name, description } = nameData;
+    const wsId = uuidv4();
+    const color = workstreamColors[cluster.index % workstreamColors.length];
 
     // Create workstream record
-    const wsId = uuidv4();
-    const color = workstreamColors[i % workstreamColors.length];
-
     const newWs = await db
       .insert(workstream)
       .values({
@@ -454,21 +783,22 @@ export async function fullReclustering(
         name,
         description,
         color,
-        centroidEmbedding: centroid as unknown as any,
+        centroidEmbedding: cluster.centroid as unknown as any,
         centroidUpdatedAt: now,
-        achievementCount: clusterAchievements.length,
+        achievementCount: cluster.achievements.length,
         isArchived: false,
         createdAt: now,
         updatedAt: now,
       })
       .returning();
 
-    if (newWs[0]) {
-      createdWorkstreams.push(newWs[0]);
-    }
-
     // Assign achievements to this workstream
-    const achIds = clusterAchievements.map((ach) => ach.id);
+    // BUT: exclude user-assigned achievements (workstreamSource='user')
+    // We only want to assign achievements that are either unassigned or AI-assigned
+    const achIds = cluster.achievements
+      .filter((ach) => ach.workstreamSource !== 'user')
+      .map((ach) => ach.id);
+
     if (achIds.length > 0) {
       await db
         .update(achievement)
@@ -479,6 +809,44 @@ export async function fullReclustering(
         })
         .where(inArray(achievement.id, achIds));
     }
+
+    return newWs[0];
+  });
+
+  const createdWorkstreams = (await Promise.all(workstreamPromises)).filter(
+    (ws): ws is Workstream => ws !== undefined,
+  );
+
+  console.log(
+    `[Workstreams] Created ${createdWorkstreams.length} workstreams in parallel`,
+  );
+
+  // Automatically assign outliers to nearest workstreams (improves coverage)
+  // This combines the benefits of conservative clustering (quality workstreams)
+  // with permissive assignment (high coverage)
+  // Re-fetch achievements to get updated workstreamId values
+  const achievementsAfterClustering = await db
+    .select({
+      id: achievement.id,
+      workstreamId: achievement.workstreamId,
+    })
+    .from(achievement)
+    .where(
+      and(eq(achievement.userId, userId), isNotNull(achievement.embedding)),
+    );
+
+  const outlierIds = achievementsAfterClustering
+    .filter((ach) => !ach.workstreamId)
+    .map((ach) => ach.id);
+
+  if (outlierIds.length > 0 && createdWorkstreams.length > 0) {
+    console.log(
+      `[Workstreams] Auto-assigning ${outlierIds.length} outliers to nearest workstreams`,
+    );
+    const assignmentResult = await incrementalAssignment(userId, params);
+    console.log(
+      `[Workstreams] Auto-assigned ${assignmentResult.assigned.length} achievements, ${assignmentResult.unassigned.length} remain unassigned`,
+    );
   }
 
   // Create or update metadata
@@ -510,12 +878,24 @@ export async function fullReclustering(
     await db.insert(workstreamMetadata).values(metadata);
   }
 
+  // Get outlier achievements (those with embeddings that weren't assigned to any cluster)
+  // Note: Only achievementsWithEmbeddings are processed by clustering
+  // Achievements without embeddings are never included in the process
+  const outlierAchievements = achievementsWithEmbeddings.filter(
+    (ach) => ach.workstreamId === null,
+  );
+
   return {
     workstreamsCreated: createdWorkstreams.length,
     achievementsAssigned:
       achievementsWithEmbeddings.length - clusteringResult.outlierCount,
     outliers: clusteringResult.outlierCount,
     metadata: metadata as unknown as WorkstreamMetadata,
+    workstreams: createdWorkstreams,
+    achievementsWithAssignments: achievementsWithEmbeddings.filter(
+      (ach) => ach.workstreamId !== null,
+    ),
+    outlierAchievements,
   };
 }
 
