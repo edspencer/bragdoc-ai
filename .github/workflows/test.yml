@@ -7,21 +7,6 @@ jobs:
     name: Run App Tests
     runs-on: ubuntu-latest
 
-    services:
-      postgres:
-        image: postgres:15
-        env:
-          POSTGRES_USER: postgres
-          POSTGRES_PASSWORD: postgres
-          POSTGRES_DB: bragai-test
-        ports:
-          - 5432:5432
-        options: >-
-          --health-cmd pg_isready
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-
     steps:
       - name: Checkout
         uses: actions/checkout@v5
@@ -45,12 +30,7 @@ jobs:
           cd apps/web
           pnpm test:setup
         env:
-          PGHOST: localhost
-          PGPORT: 5432
-          PGUSER: postgres
-          PGPASSWORD: postgres
-          PGDATABASE: bragai-test
-          POSTGRES_URL: postgresql://postgres:postgres@localhost:5432/bragai-test
+          POSTGRES_URL: ${{ secrets.CI_POSTGRES_URL }}
 
       - name: Run tests
         run: |
@@ -58,12 +38,7 @@ jobs:
           pnpm test
         env:
           NODE_ENV: test
-          PGHOST: localhost
-          PGPORT: 5432
-          PGUSER: postgres
-          PGPASSWORD: postgres
-          PGDATABASE: bragai-test
-          POSTGRES_URL: postgresql://postgres:postgres@localhost:5432/bragai-test
+          POSTGRES_URL: ${{ secrets.CI_POSTGRES_URL }}
           AUTH_SECRET: test-secret-at-least-32-characters-long
           NEXTAUTH_URL: http://localhost:3000
           MAILGUN_API_KEY: test-mailgun-key
