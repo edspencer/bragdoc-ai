@@ -25,10 +25,10 @@ jobs:
       - name: Install dependencies
         run: pnpm install
 
-      - name: Run test setup
+      - name: Run database migrations
         run: |
-          cd apps/web
-          pnpm test:setup
+          cd packages/database
+          pnpm db:migrate
         env:
           POSTGRES_URL: ${{ secrets.CI_POSTGRES_URL }}
 
