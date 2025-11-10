@@ -98,19 +98,24 @@ export const auth: ReturnType<typeof betterAuth> = betterAuth({
           undefined;
 
         // Handle logout events - MUST be in before hook to access session
-        if (ctx.path === '/sign-out') {
-          const user = ctx.context.session?.user;
-          if (!user?.id) {
+        if (ctx.path === '/sign-out' && ctx.headers) {
+          // In before hook, we need to manually get the session from the request
+          // ctx.context.session is not available yet
+          const session = await auth.api.getSession({
+            headers: ctx.headers,
+          });
+
+          if (!session?.user?.id) {
             console.warn('PostHog: Missing user ID in sign-out hook');
             return;
           }
 
           // Track logout event
           await captureServerEvent(
-            user.id,
+            session.user.id,
             'user_logged_out',
             {
-              user_id: user.id,
+              user_id: session.user.id,
             },
             userIp,
           );
@@ -119,11 +124,11 @@ export const auth: ReturnType<typeof betterAuth> = betterAuth({
           const [demoUser] = await db
             .select()
             .from(userTable)
-            .where(eq(userTable.id, user.id))
+            .where(eq(userTable.id, session.user.id))
             .limit(1);
 
           if (demoUser && demoUser.level === 'demo') {
-            await cleanupDemoAccountData(user.id);
+            await cleanupDemoAccountData(session.user.id);
           }
         }
       } catch (error) {
