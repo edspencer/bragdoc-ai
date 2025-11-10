@@ -30,12 +30,12 @@ jobs:
         run: |
           BRANCH_NAME="test-${{ github.run_id }}-${{ github.run_attempt }}"
 
-          # Create branch
-          echo "Creating branch: $BRANCH_NAME"
+          # Create schema-only branch (no data from parent)
+          echo "Creating schema-only branch: $BRANCH_NAME"
           RESPONSE=$(curl -s -X POST "https://console.neon.tech/api/v2/projects/${{ secrets.NEON_PROJECT_ID }}/branches" \
             -H "Authorization: Bearer ${{ secrets.NEON_API_KEY }}" \
             -H "Content-Type: application/json" \
-            -d "{\"branch\": {\"name\": \"$BRANCH_NAME\"}}")
+            -d "{\"branch\": {\"name\": \"$BRANCH_NAME\", \"init_source\": \"schema-only\"}, \"endpoints\": [{\"type\": \"read_write\"}]}")
 
           BRANCH_ID=$(echo $RESPONSE | jq -r '.branch.id')
 
@@ -47,33 +47,22 @@ jobs:
 
           echo "Branch created: $BRANCH_ID"
 
-          # Wait for branch to be ready (max 30 seconds)
-          for i in {1..30}; do
-            sleep 1
-            STATUS=$(curl -s "https://console.neon.tech/api/v2/projects/${{ secrets.NEON_PROJECT_ID }}/branches/$BRANCH_ID" \
-              -H "Authorization: Bearer ${{ secrets.NEON_API_KEY }}" | jq -r '.branch.current_state')
+          # Wait for endpoint to be ready (max 60 seconds)
+          for i in {1..60}; do
+            sleep 2
 
-            if [ "$STATUS" == "ready" ]; then
-              echo "Branch is ready"
+            # Get connection string
+            CONNECTION_RESPONSE=$(curl -s "https://console.neon.tech/api/v2/projects/${{ secrets.NEON_PROJECT_ID }}/connection_uri?branch_id=$BRANCH_ID&role_name=default&database_name=verceldb" \
+              -H "Authorization: Bearer ${{ secrets.NEON_API_KEY }}")
+
+            CONNECTION_STRING=$(echo $CONNECTION_RESPONSE | jq -r '.uri')
+
+            if [ "$CONNECTION_STRING" != "null" ] && [ -n "$CONNECTION_STRING" ]; then
+              echo "Endpoint is ready"
               break
             fi
-            echo "Waiting for branch to be ready... ($i/30)"
+            echo "Waiting for endpoint to be ready... ($i/60)"
           done
-
-          # Create compute endpoint
-          echo "Creating compute endpoint..."
-          ENDPOINT_RESPONSE=$(curl -s -X POST "https://console.neon.tech/api/v2/projects/${{ secrets.NEON_PROJECT_ID }}/endpoints" \
-            -H "Authorization: Bearer ${{ secrets.NEON_API_KEY }}" \
-            -H "Content-Type: application/json" \
-            -d "{\"endpoint\": {\"branch_id\": \"$BRANCH_ID\", \"type\": \"read_write\"}}")
-
-          ENDPOINT_ID=$(echo $ENDPOINT_RESPONSE | jq -r '.endpoint.id')
-
-          # Get connection string
-          CONNECTION_RESPONSE=$(curl -s "https://console.neon.tech/api/v2/projects/${{ secrets.NEON_PROJECT_ID }}/connection_uri?branch_id=$BRANCH_ID&role_name=default&database_name=verceldb" \
-            -H "Authorization: Bearer ${{ secrets.NEON_API_KEY }}")
-
-          CONNECTION_STRING=$(echo $CONNECTION_RESPONSE | jq -r '.uri')
 
           if [ "$CONNECTION_STRING" == "null" ] || [ -z "$CONNECTION_STRING" ]; then
             echo "ERROR: Failed to get connection string"
@@ -82,9 +71,8 @@ jobs:
           fi
 
           echo "branch_id=$BRANCH_ID" >> $GITHUB_OUTPUT
-          echo "endpoint_id=$ENDPOINT_ID" >> $GITHUB_OUTPUT
           echo "connection_string=$CONNECTION_STRING" >> $GITHUB_OUTPUT
-          echo "Successfully created test database"
+          echo "Successfully created test database with schema only"
 
       - name: Run database migrations
         run: |
