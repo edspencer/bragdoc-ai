@@ -18,8 +18,9 @@ Sentry.init({
   // Enable logs to be sent to Sentry
   enableLogs: true,
 
-  // Enable sending user info (email, ID) with errors for better debugging
-  sendDefaultPii: true,
+  // SECURITY: Disable automatic PII collection in edge runtime
+  // Edge functions handle authentication and sensitive headers/cookies
+  sendDefaultPii: false,
 
   // Ignore common/expected errors
   ignoreErrors: [
@@ -33,4 +34,35 @@ Sentry.init({
     // Cloudflare issues
     'The operation was aborted',
   ],
+
+  // Filter sensitive authentication data from error reports
+  beforeSend(event) {
+    // Sensitive headers to filter out
+    const sensitiveHeaders = [
+      'authorization',
+      'cookie',
+      'x-auth-token',
+      'x-api-key',
+    ];
+
+    // Remove sensitive headers that may contain tokens/credentials
+    if (event.request?.headers) {
+      const filteredHeaders: Record<string, string> = {};
+      for (const [key, value] of Object.entries(event.request.headers)) {
+        if (!sensitiveHeaders.includes(key.toLowerCase())) {
+          filteredHeaders[key] = value;
+        }
+      }
+      event.request.headers = filteredHeaders;
+    }
+
+    // Remove cookies from request data
+    if (event.request?.cookies) {
+      event.request.cookies = {};
+    }
+
+    // Still include user ID for debugging (but not tokens)
+    // User ID is set by Sentry.setUser() which is safe
+    return event;
+  },
 });
