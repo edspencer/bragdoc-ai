@@ -40,6 +40,7 @@ yarn-error.log*
 .vercel
 .vscode
 .env*.local
+.env.sentry-build-plugin
 
 tmp
 
