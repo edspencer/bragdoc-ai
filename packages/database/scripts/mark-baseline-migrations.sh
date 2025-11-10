@@ -28,15 +28,28 @@ fi
 # Find the merge base with main branch (or origin/main if local main doesn't exist)
 MAIN_BRANCH="main"
 if git show-ref --verify --quiet refs/heads/main; then
+  echo "Using refs/heads/main"
   MERGE_BASE=$(git merge-base HEAD main)
+  MAIN_REF="main"
 elif git show-ref --verify --quiet refs/remotes/origin/main; then
+  echo "Using refs/remotes/origin/main"
   MERGE_BASE=$(git merge-base HEAD origin/main)
+  MAIN_REF="origin/main"
 else
-  echo "Warning: Could not find main branch, assuming all migrations are baseline"
-  MERGE_BASE=$(git rev-list --max-parents=0 HEAD)
+  echo "Error: Could not find main branch (neither refs/heads/main nor refs/remotes/origin/main exist)"
+  echo "Available branches:"
+  git branch -a
+  exit 1
 fi
 
-echo "Merge base with main: $MERGE_BASE"
+echo "Merge base with $MAIN_REF: $MERGE_BASE"
+echo "Current HEAD: $(git rev-parse HEAD)"
+
+# Check if we're on main (merge base equals HEAD)
+if [ "$MERGE_BASE" == "$(git rev-parse HEAD)" ]; then
+  echo "Currently on main branch - no new migrations to run"
+  # Still mark all migrations as baseline since schema exists
+fi
 
 # Get the journal file content at the merge base
 BASELINE_JOURNAL=$(git show "$MERGE_BASE:packages/database/src/migrations/meta/_journal.json" 2>/dev/null || echo '{"entries":[]}')

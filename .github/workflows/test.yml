@@ -10,6 +10,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v5
+        with:
+          fetch-depth: 0  # Fetch full history for git operations
 
       - name: Install pnpm
         uses: pnpm/action-setup@v4
