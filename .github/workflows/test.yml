@@ -35,8 +35,17 @@ jobs:
             -H "Content-Type: application/json" \
             -d "{\"branch\": {\"name\": \"$BRANCH_NAME\"}}")
 
+          echo "API Response:"
+          echo "$RESPONSE" | jq '.'
+
           BRANCH_ID=$(echo $RESPONSE | jq -r '.branch.id')
           CONNECTION_STRING=$(echo $RESPONSE | jq -r '.connection_uris[0].connection_uri')
+
+          if [ "$CONNECTION_STRING" == "null" ] || [ -z "$CONNECTION_STRING" ]; then
+            echo "ERROR: Failed to get connection string from Neon API"
+            echo "Full response: $RESPONSE"
+            exit 1
+          fi
 
           echo "branch_id=$BRANCH_ID" >> $GITHUB_OUTPUT
           echo "connection_string=$CONNECTION_STRING" >> $GITHUB_OUTPUT
