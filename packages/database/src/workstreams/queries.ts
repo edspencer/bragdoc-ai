@@ -293,14 +293,15 @@ export async function getWorkstreamCountsWithDateFilter(
 }
 
 /**
- * Get workstreams for a user that have achievements in the specified date range
- * Returns only workstreams with at least one achievement in the range
+ * Get workstreams for a user, optionally filtered by date range
+ * When no dates provided, returns all workstreams (backward compatible)
+ * When dates provided, returns only workstreams with achievements in the range
  *
  * @param userId - User ID to scope query
  * @param startDate - Start date for filtering (inclusive), optional
  * @param endDate - End date for filtering (inclusive), optional
  * @param includeArchived - Whether to include archived workstreams (default: false)
- * @returns Array of workstreams with achievements in date range
+ * @returns Array of workstreams, optionally filtered by date range
  */
 export async function getWorkstreamsByUserIdWithDateFilter(
   userId: string,
@@ -308,6 +309,11 @@ export async function getWorkstreamsByUserIdWithDateFilter(
   endDate?: Date,
   includeArchived = false,
 ): Promise<Workstream[]> {
+  // If no dates provided, return all workstreams (backward compatible)
+  if (!startDate && !endDate) {
+    return getWorkstreamsByUserId(userId, includeArchived);
+  }
+
   // Get filtered workstream IDs and counts
   const { workstreamIds } = await getWorkstreamCountsWithDateFilter(
     userId,
