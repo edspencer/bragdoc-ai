@@ -143,12 +143,11 @@ export const betterAuthConfig: Partial<BetterAuthOptions> = {
     },
 
     // Field name mappings (database uses snake_case)
-    fields: {
-      // Note: emailVerified and updatedAt not mapped
-      // This prevents Better Auth from trying to auto-update them after OAuth login
-      // which causes empty UPDATE queries with the Drizzle adapter (known bug)
-      createdAt: 'created_at',
-    },
+    // Note: No field mappings needed - Drizzle adapter handles the mapping
+    // between Drizzle schema field names (camelCase) and database column names (snake_case)
+    // Mapping here would cause Better Auth to look for the database column name
+    // in the Drizzle schema, which doesn't exist
+    fields: {},
   },
 
   // Account model configuration

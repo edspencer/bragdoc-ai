@@ -86,6 +86,57 @@ export const auth: ReturnType<typeof betterAuth> = betterAuth({
   ],
 
   hooks: {
+    // Before hook - runs before endpoint execution
+    // Used for sign-out to access session before it's destroyed
+    before: createAuthMiddleware(async (ctx) => {
+      try {
+        // Extract user's real IP address for PostHog GeoIP
+        const userIp =
+          ctx.headers?.get('cf-connecting-ip') || // Cloudflare
+          ctx.headers?.get('x-forwarded-for')?.split(',')[0] || // Proxy
+          ctx.headers?.get('x-real-ip') || // Nginx
+          undefined;
+
+        // Handle logout events - MUST be in before hook to access session
+        if (ctx.path === '/sign-out' && ctx.headers) {
+          // In before hook, we need to manually get the session from the request
+          // ctx.context.session is not available yet
+          const session = await auth.api.getSession({
+            headers: ctx.headers,
+          });
+
+          if (!session?.user?.id) {
+            console.warn('PostHog: Missing user ID in sign-out hook');
+            return;
+          }
+
+          // Track logout event
+          await captureServerEvent(
+            session.user.id,
+            'user_logged_out',
+            {
+              user_id: session.user.id,
+            },
+            userIp,
+          );
+
+          // Check if this is a demo account and cleanup data
+          const [demoUser] = await db
+            .select()
+            .from(userTable)
+            .where(eq(userTable.id, session.user.id))
+            .limit(1);
+
+          if (demoUser && demoUser.level === 'demo') {
+            await cleanupDemoAccountData(session.user.id);
+          }
+        }
+      } catch (error) {
+        console.error('PostHog before hook error:', error);
+        // Don't fail authentication if tracking fails
+      }
+    }),
+
     after: createAuthMiddleware(async (ctx) => {
       try {
         // Extract user's real IP address for PostHog GeoIP
@@ -258,10 +309,18 @@ export const auth: ReturnType<typeof betterAuth> = betterAuth({
         }
 
         // Handle sign-in events (magic link login)
-        if (ctx.path === '/sign-in/email') {
+        // Note: /magic-link/verify is when user clicks the link and creates session
+        // /sign-in/email would be for password-based login (not used with magic links)
+        if (
+          ctx.path === '/magic-link/verify' ||
+          ctx.path === '/sign-in/email'
+        ) {
           const user = ctx.context.newSession?.user;
           if (!user?.id || !user?.email) {
-            console.warn('PostHog: Missing user data in sign-in hook');
+            console.warn(
+              'PostHog: Missing user data in sign-in hook',
+              ctx.path,
+            );
             return;
           }
 
@@ -286,38 +345,8 @@ export const auth: ReturnType<typeof betterAuth> = betterAuth({
             userIp,
           );
         }
-
-        // Handle logout events
-        if (ctx.path === '/sign-out') {
-          const user = ctx.context.session?.user;
-          if (!user?.id) {
-            console.warn('PostHog: Missing user ID in sign-out hook');
-            return;
-          }
-
-          // Track logout event
-          await captureServerEvent(
-            user.id,
-            'user_logged_out',
-            {
-              user_id: user.id,
-            },
-            userIp,
-          );
-
-          // Check if this is a demo account and cleanup data
-          const [demoUser] = await db
-            .select()
-            .from(userTable)
-            .where(eq(userTable.id, user.id))
-            .limit(1);
-
-          if (demoUser && demoUser.level === 'demo') {
-            await cleanupDemoAccountData(user.id);
-          }
-        }
       } catch (error) {
-        console.error('PostHog hook error:', error);
+        console.error('PostHog after hook error:', error);
         // Don't fail authentication if tracking fails
       }
     }),
