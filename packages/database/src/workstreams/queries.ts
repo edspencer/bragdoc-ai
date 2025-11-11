@@ -9,6 +9,7 @@ import {
   desc,
   eq,
   isNull,
+  isNotNull,
   gte,
   lte,
   inArray,
@@ -273,6 +274,7 @@ export async function getAchievementCounts(
 /**
  * Calculate counts for achievements in a date range
  * Returns total count, unassigned count, and workstream IDs with achievements in range
+ * Uses SQL COUNT and selectDistinct for optimal performance
  *
  * @param userId - User ID to scope query
  * @param startDate - Start date for filtering (inclusive), optional
@@ -288,33 +290,42 @@ export async function getWorkstreamCountsWithDateFilter(
   unassignedCount: number;
   workstreamIds: string[];
 }> {
-  // Fetch achievements in date range using the helper function
-  const achievementsInRange = await getAchievementsByUserIdWithDates(
-    userId,
-    startDate,
-    endDate,
-  );
+  const conditions = [eq(achievement.userId, userId)];
 
-  // Count achievements with embeddings
-  const achievementCount = achievementsInRange.length;
+  // Add date filtering if provided
+  if (startDate) {
+    conditions.push(gte(achievement.eventStart, startDate));
+  }
+  if (endDate) {
+    conditions.push(lte(achievement.eventStart, endDate));
+  }
 
-  // Count unassigned achievements (where workstreamId is null)
-  const unassignedCount = achievementsInRange.filter(
-    (ach) => ach.workstreamId === null,
-  ).length;
+  // Run both queries in parallel for optimal performance
+  const [countsResult, workstreamIdsResult] = await Promise.all([
+    // Query 1: Get counts using SQL COUNT
+    db
+      .select({
+        total: count(),
+        unassigned: sql<number>`count(*) filter (where ${achievement.workstreamId} is null)`,
+      })
+      .from(achievement)
+      .where(and(...conditions)),
 
-  // Collect unique workstream IDs from achievements that have them
-  const workstreamIds = Array.from(
-    new Set(
-      achievementsInRange
-        .filter((ach) => ach.workstreamId !== null)
-        .map((ach) => ach.workstreamId as string),
-    ),
-  );
+    // Query 2: Get distinct workstream IDs (only non-null)
+    db
+      .selectDistinct({ id: achievement.workstreamId })
+      .from(achievement)
+      .where(and(...conditions, isNotNull(achievement.workstreamId))),
+  ]);
+
+  // Extract workstream IDs, filtering out any nulls
+  const workstreamIds = workstreamIdsResult
+    .map((r) => r.id)
+    .filter((id): id is string => id !== null);
 
   return {
-    achievementCount,
-    unassignedCount,
+    achievementCount: countsResult[0]?.total ?? 0,
+    unassignedCount: countsResult[0]?.unassigned ?? 0,
     workstreamIds,
   };
 }

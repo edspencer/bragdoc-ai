@@ -7,14 +7,7 @@ import { AppPage } from '@/components/shared/app-page';
 import { AppContent } from '@/components/shared/app-content';
 import { WorkstreamsClient } from '@/components/workstreams/workstreams-client';
 import { auth } from '@/lib/better-auth/server';
-import {
-  db,
-  workstream,
-  achievement,
-  company,
-  project,
-  userMessage,
-} from '@bragdoc/database';
+import { db, workstream, achievement, project } from '@bragdoc/database';
 import { eq, and, gte, lte, count } from 'drizzle-orm';
 import { subMonths, startOfDay, endOfDay } from 'date-fns';
 import { headers } from 'next/headers';
@@ -92,22 +85,45 @@ export default async function WorkstreamsPage({
   const [userWorkstreams, achievementResults] = await Promise.all([
     db.select().from(workstream).where(eq(workstream.userId, userId)),
     db
-      .select()
+      .select({
+        // Achievement fields - exclude heavy/unused fields
+        id: achievement.id,
+        workstreamId: achievement.workstreamId,
+        title: achievement.title,
+        summary: achievement.summary,
+        eventStart: achievement.eventStart,
+        createdAt: achievement.createdAt,
+        impact: achievement.impact,
+        impactSource: achievement.impactSource,
+        // Excluded: userId, companyId, projectId, standupDocumentId, userMessageId,
+        // details, eventEnd, eventDuration, isArchived, source, impactUpdatedAt,
+        // updatedAt, workstreamSource, embedding (1536 dimensions!), embeddingModel,
+        // embeddingGeneratedAt
+
+        // Project fields - only what we need for display
+        project: {
+          id: project.id,
+          name: project.name,
+          color: project.color,
+        },
+      })
       .from(achievement)
-      .leftJoin(company, eq(achievement.companyId, company.id))
       .leftJoin(project, eq(achievement.projectId, project.id))
-      .leftJoin(userMessage, eq(achievement.userMessageId, userMessage.id))
       .where(and(...achievementConditions)),
   ]);
 
   // Transform to AchievementWithRelations type
+  // Note: We're setting company and userMessage to null since we don't fetch them
+  // We cast to any first to work around the type mismatch from partial selection
   const allAchievements: AchievementWithRelations[] = achievementResults.map(
-    (row) => ({
-      ...row.Achievement,
-      company: row.Company,
-      project: row.Project,
-      userMessage: row.UserMessage,
-    }),
+    (row) =>
+      ({
+        ...row,
+        company: null,
+        userMessage: null,
+        // Handle nullable project from LEFT JOIN
+        project: row.project?.id ? row.project : null,
+      }) as AchievementWithRelations,
   );
 
   const showZeroState = userWorkstreams.length === 0;
