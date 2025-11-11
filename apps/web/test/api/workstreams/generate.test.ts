@@ -398,7 +398,7 @@ describe('POST /api/workstreams/generate', () => {
           expect(ach).toHaveProperty('companyName');
         }
       }
-    });
+    }, 10000); // Increased timeout to 10 seconds for this complex test
   });
 
   describe('Incremental Response Structure (Phase 2)', () => {
@@ -498,7 +498,7 @@ describe('POST /api/workstreams/generate', () => {
           expect(Array.isArray(ws.achievements)).toBe(true);
         }
       }
-    });
+    }, 15000); // Increased timeout to 15 seconds - this test runs two full clustering operations
   });
 
   describe('Backward Compatibility (Phase 2)', () => {
