@@ -1,6 +1,7 @@
 'use client';
 
 import type * as React from 'react';
+import type { ProjectWithImpact } from '@bragdoc/database';
 import {
   IconTarget,
   IconDashboard,
@@ -8,7 +9,6 @@ import {
   IconSettings,
   IconTrendingUp,
 } from '@tabler/icons-react';
-import { useSession } from '@/lib/better-auth/client';
 import Image from 'next/image';
 
 import { NavCareers } from '@/components/nav-careers';
@@ -75,14 +75,31 @@ const staticData = {
   ],
 };
 
-export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
-  const { data: session, isPending } = useSession();
+interface AppSidebarProps extends React.ComponentProps<typeof Sidebar> {
+  user:
+    | {
+        id: string;
+        name?: string;
+        email?: string;
+        image?: string;
+      }
+    | undefined;
+  isDemoMode: boolean;
+  topProjects: ProjectWithImpact[];
+}
+
+export function AppSidebar({
+  user,
+  isDemoMode,
+  topProjects,
+  ...props
+}: AppSidebarProps) {
   const { isMobile, setOpenMobile } = useSidebar();
 
-  const user = {
-    name: session?.user?.name || 'User',
-    email: session?.user?.email || '',
-    avatar: session?.user?.image || '/avatars/user.jpg',
+  const navUserData = {
+    name: user?.name || 'User',
+    email: user?.email || '',
+    avatar: user?.image || '/avatars/user.jpg',
   };
 
   const handleLogoClick = () => {
@@ -90,11 +107,6 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       setOpenMobile(false);
     }
   };
-
-  // Don't render until we have session data loaded
-  if (isPending) {
-    return null;
-  }
 
   return (
     <Sidebar collapsible="offcanvas" {...props}>
@@ -121,12 +133,12 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       </SidebarHeader>
       <SidebarContent>
         <NavMain items={staticData.navMain} />
-        <NavProjects />
+        <NavProjects projects={topProjects} />
         <NavCareers />
         <NavSecondary items={staticData.navSecondary} className="mt-auto" />
       </SidebarContent>
       <SidebarFooter>
-        <NavUser user={user} />
+        <NavUser user={navUserData} />
       </SidebarFooter>
     </Sidebar>
   );

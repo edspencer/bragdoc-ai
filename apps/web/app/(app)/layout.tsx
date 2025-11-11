@@ -7,6 +7,7 @@ import { AppSidebar } from '@/components/app-sidebar';
 import { DemoModeBannerWrapper } from '@/components/demo-mode-banner-wrapper';
 import { DemoModeLayout } from '@/components/demo-mode-layout';
 import { auth } from '@/lib/better-auth/server';
+import { getTopProjectsByImpact } from '@/database/projects/queries';
 import { headers } from 'next/headers';
 import { FeedbackWidget } from '@wishnova/react';
 import '@wishnova/react/styles';
@@ -23,6 +24,21 @@ export default async function AppLayout({
   // Derive isDemoMode from session
   const isDemoMode = (session?.user as any)?.level === 'demo';
 
+  // Fetch top projects server-side (only for authenticated users)
+  const topProjects = session?.user
+    ? await getTopProjectsByImpact(session.user.id, 5).catch(() => [])
+    : [];
+
+  // Transform user object for AppSidebar component
+  const sidebarUser = session?.user
+    ? {
+        id: session.user.id,
+        name: session.user.name || undefined,
+        email: session.user.email || undefined,
+        image: session.user.image || undefined,
+      }
+    : undefined;
+
   return (
     <ArtifactProvider>
       <DataStreamProvider>
@@ -36,7 +52,12 @@ export default async function AppLayout({
               } as React.CSSProperties
             }
           >
-            <AppSidebar variant="inset" />
+            <AppSidebar
+              variant="inset"
+              user={sidebarUser}
+              isDemoMode={isDemoMode}
+              topProjects={topProjects}
+            />
             {children}
             <FeedbackWidget
               projectId="e16fdb14-7c88-4f49-a269-8fe124270a48"
