@@ -90,10 +90,10 @@ export function getNextProjectColor(existingProjectCount: number): {
  */
 export const WORKSTREAM_COLORS = [
   '#16A34A', // green-600
-  '#F97316', // orange-500 (lighter orange variant)
+  '#475569', // slate-600
   '#0284C7', // sky-600
   '#9333EA', // purple-600
-  '#E11D48', // rose-500 (new color family!)
+  '#E11D48', // rose-500
   '#0D9488', // teal-600
   '#4F46E5', // indigo-600
   '#DB2777', // pink-600
@@ -112,7 +112,7 @@ export const WORKSTREAM_COLORS = [
  */
 export const WORKSTREAM_COLOR_NAMES = [
   'Green',
-  'Coral',
+  'Slate',
   'Sky',
   'Purple',
   'Rose',

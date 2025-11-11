@@ -28,6 +28,11 @@ jest.mock('@/lib/ai/workstreams', () => {
   };
 });
 
+// Mock embedding generation to avoid actual API calls
+jest.mock('@/lib/ai/embeddings', () => ({
+  generateMissingEmbeddings: jest.fn().mockResolvedValue(0),
+}));
+
 // Helper function to parse SSE response
 async function parseSSEResponse(response: Response) {
   const reader = response.body?.getReader();
