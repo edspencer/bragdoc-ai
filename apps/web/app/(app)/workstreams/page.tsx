@@ -150,13 +150,6 @@ export default async function WorkstreamsPage({
             />
           ) : (
             <div className="space-y-8">
-              <div className="space-y-4">
-                <h1 className="text-3xl font-bold">Workstreams</h1>
-                <p className="text-muted-foreground">
-                  Discover thematic patterns in your achievements
-                </p>
-              </div>
-
               <WorkstreamStats
                 workstreamCount={userWorkstreams.length}
                 assignedCount={achievementCount - unassignedCount}
