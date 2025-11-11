@@ -680,6 +680,12 @@ describe('Workstream Orchestration', () => {
 
       await db.insert(achievement).values(ach);
 
+      // Move the achievement to the new workstream
+      await db
+        .update(achievement)
+        .set({ workstreamId: newWsId })
+        .where(eq(achievement.id, achId));
+
       await onAchievementWorkstreamChange(achId, oldWsId, newWsId);
 
       // Both workstreams should have updated centroids
