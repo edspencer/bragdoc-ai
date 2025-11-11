@@ -4,7 +4,7 @@ import {
   fullReclustering,
   updateWorkstreamCentroid,
   onAchievementWorkstreamChange,
-} from 'lib/ai/workstreams';
+} from '@/lib/ai/workstreams';
 import {
   achievement,
   user,
@@ -18,8 +18,8 @@ import { eq } from 'drizzle-orm';
 import { v4 as uuidv4 } from 'uuid';
 
 // Mock the LLM naming function to avoid actual API calls in tests
-jest.mock('lib/ai/workstreams', () => {
-  const actual = jest.requireActual('lib/ai/workstreams');
+jest.mock('@/lib/ai/workstreams', () => {
+  const actual = jest.requireActual('@/lib/ai/workstreams');
   return {
     ...actual,
     nameWorkstreamsBatch: jest.fn(),
@@ -46,7 +46,7 @@ describe('Workstream Orchestration', () => {
     jest.clearAllMocks();
 
     // Mock nameWorkstreamsBatch to return dummy names without calling LLM
-    const { nameWorkstreamsBatch } = require('lib/ai/workstreams');
+    const { nameWorkstreamsBatch } = require('@/lib/ai/workstreams');
     (nameWorkstreamsBatch as jest.Mock).mockImplementation(
       async (clusters: any[][]) => {
         // Return a name and description for each cluster

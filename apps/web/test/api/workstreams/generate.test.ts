@@ -19,6 +19,15 @@ jest.mock('ai', () => ({
   embed: jest.fn(),
 }));
 
+// Mock the LLM naming function to avoid actual API calls in tests
+jest.mock('@/lib/ai/workstreams', () => {
+  const actual = jest.requireActual('@/lib/ai/workstreams');
+  return {
+    ...actual,
+    nameWorkstreamsBatch: jest.fn(),
+  };
+});
+
 // Helper function to parse SSE response
 async function parseSSEResponse(response: Response) {
   const reader = response.body?.getReader();
@@ -87,6 +96,18 @@ describe('POST /api/workstreams/generate', () => {
       user: mockUser,
       source: 'session' as const,
     });
+
+    // Mock nameWorkstreamsBatch to return dummy names without calling LLM
+    const { nameWorkstreamsBatch } = require('@/lib/ai/workstreams');
+    (nameWorkstreamsBatch as jest.Mock).mockImplementation(
+      async (clusters: any[][]) => {
+        // Return a name and description for each cluster
+        return clusters.map((_, idx) => ({
+          name: `Test Workstream ${idx + 1}`,
+          description: `Description for test workstream ${idx + 1}`,
+        }));
+      },
+    );
   });
 
   afterEach(async () => {
