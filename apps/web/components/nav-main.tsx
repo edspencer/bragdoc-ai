@@ -53,7 +53,7 @@ export function NavMain({
                     {item.icon && <item.icon />}
                     <span>{item.title}</span>
                     {item.badge && (
-                      <span className="ml-auto rounded border border-muted-foreground/30 bg-muted/70 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground/90">
+                      <span className="ml-auto rounded border border-yellow-600/60 bg-yellow-50 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-yellow-700">
                         {item.badge}
                       </span>
                     )}

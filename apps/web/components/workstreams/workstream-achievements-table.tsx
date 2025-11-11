@@ -1,12 +1,12 @@
 'use client';
 
 import * as React from 'react';
-import { IconFolder, IconBuilding, IconCalendar } from '@tabler/icons-react';
+import { IconFolder, IconCalendar } from '@tabler/icons-react';
 import { format } from 'date-fns';
 import { Loader2 } from 'lucide-react';
 
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { ImpactRating } from '@/components/ui/impact-rating';
 import {
   Card,
   CardContent,
@@ -159,16 +159,19 @@ export function WorkstreamAchievementsTable({
               {achievement.summary}
             </div>
           )}
-          <Badge variant="secondary" className="w-fit text-xs">
-            {achievement.source}
-          </Badge>
         </div>
       </TableCell>
       <TableCell>
         {achievement.project ? (
           <div className="flex items-center gap-2">
-            <IconFolder className="size-4 text-muted-foreground" />
-            <span className={`text-sm ${isOlder ? 'italic' : ''}`}>
+            <IconFolder
+              className="size-4"
+              style={{ color: achievement.project.color }}
+            />
+            <span
+              className={`text-sm font-medium ${isOlder ? 'italic' : ''}`}
+              style={{ color: achievement.project.color }}
+            >
               {achievement.project.name}
             </span>
           </div>
@@ -181,35 +184,21 @@ export function WorkstreamAchievementsTable({
         )}
       </TableCell>
       <TableCell>
-        {achievement.company ? (
-          <div className="flex items-center gap-2">
-            <IconBuilding className="size-4 text-muted-foreground" />
-            <span className={`text-sm ${isOlder ? 'italic' : ''}`}>
-              {achievement.company.name}
-            </span>
-          </div>
-        ) : (
-          <span
-            className={`text-sm text-muted-foreground ${isOlder ? 'italic' : ''}`}
-          >
-            No company
-          </span>
-        )}
-      </TableCell>
-      <TableCell>
         <div className="flex items-center gap-2">
           <IconCalendar className="size-4 text-muted-foreground" />
           <span className={`text-sm ${isOlder ? 'italic' : ''}`}>
             {achievement.eventStart
-              ? format(achievement.eventStart, 'MMM d, yyyy')
-              : format(achievement.createdAt, 'MMM d, yyyy')}
+              ? format(achievement.eventStart, 'MMM d')
+              : format(achievement.createdAt, 'MMM d')}
           </span>
         </div>
       </TableCell>
-      <TableCell className="text-right">
-        <span className={`text-sm font-medium ${isOlder ? 'italic' : ''}`}>
-          {achievement.impact || 0}/10
-        </span>
+      <TableCell>
+        <ImpactRating
+          value={achievement.impact || 2}
+          source={achievement.impactSource}
+          readOnly={true}
+        />
       </TableCell>
     </TableRow>
   );
@@ -235,24 +224,19 @@ export function WorkstreamAchievementsTable({
               {achievement.summary}
             </div>
           )}
-          <Badge variant="secondary" className="w-fit text-xs">
-            {achievement.source}
-          </Badge>
         </div>
         <div className="text-sm space-y-1 text-muted-foreground">
           {achievement.project && (
             <div className="flex items-center gap-2">
-              <IconFolder className="size-4" />
-              <span className={isOlder ? 'italic' : ''}>
+              <IconFolder
+                className="size-4"
+                style={{ color: achievement.project.color }}
+              />
+              <span
+                className={`font-medium ${isOlder ? 'italic' : ''}`}
+                style={{ color: achievement.project.color }}
+              >
                 {achievement.project.name}
-              </span>
-            </div>
-          )}
-          {achievement.company && (
-            <div className="flex items-center gap-2">
-              <IconBuilding className="size-4" />
-              <span className={isOlder ? 'italic' : ''}>
-                {achievement.company.name}
               </span>
             </div>
           )}
@@ -260,13 +244,17 @@ export function WorkstreamAchievementsTable({
             <IconCalendar className="size-4" />
             <span className={isOlder ? 'italic' : ''}>
               {achievement.eventStart
-                ? format(achievement.eventStart, 'MMM d, yyyy')
-                : format(achievement.createdAt, 'MMM d, yyyy')}
+                ? format(achievement.eventStart, 'MMM d')
+                : format(achievement.createdAt, 'MMM d')}
             </span>
           </div>
         </div>
-        <div className={`text-sm font-medium pt-1 ${isOlder ? 'italic' : ''}`}>
-          Impact: {achievement.impact || 0}/10
+        <div className="pt-1">
+          <ImpactRating
+            value={achievement.impact || 2}
+            source={achievement.impactSource}
+            readOnly={true}
+          />
         </div>
       </div>
     </div>
@@ -332,9 +320,8 @@ export function WorkstreamAchievementsTable({
                     <TableRow>
                       <TableHead>Achievement</TableHead>
                       <TableHead>Project</TableHead>
-                      <TableHead>Company</TableHead>
                       <TableHead>Date</TableHead>
-                      <TableHead className="text-right">Impact</TableHead>
+                      <TableHead>Impact</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
