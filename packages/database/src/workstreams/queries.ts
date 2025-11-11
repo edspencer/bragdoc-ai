@@ -4,7 +4,7 @@
  * Reusable query functions for workstream and achievement management.
  */
 
-import { and, desc, eq, isNull } from 'drizzle-orm';
+import { and, desc, eq, isNull, gte, isNotNull } from 'drizzle-orm';
 import { db } from '../index';
 import {
   workstream,
@@ -182,12 +182,21 @@ export async function archiveWorkstream(workstreamId: string): Promise<void> {
 export async function getAchievementCountWithEmbeddings(
   userId: string,
 ): Promise<number> {
+  // Calculate 12 months ago
+  const twelveMonthsAgo = new Date();
+  twelveMonthsAgo.setFullYear(twelveMonthsAgo.getFullYear() - 1);
+
   const results = await db
     .select()
     .from(achievement)
-    .where(eq(achievement.userId, userId));
+    .where(
+      and(
+        eq(achievement.userId, userId),
+        isNotNull(achievement.embedding),
+        gte(achievement.eventStart, twelveMonthsAgo),
+      ),
+    );
 
-  // Return total count - embeddings will be generated during workstream generation
   return results.length;
 }
 

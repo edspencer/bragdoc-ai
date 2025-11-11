@@ -37,10 +37,12 @@ export function WorkstreamStatus() {
       <CardContent>
         {!canGenerate ? (
           <div className="text-sm text-muted-foreground">
-            <p>You have {achievementCount} achievements.</p>
             <p>
-              Log at least 20 achievements to use automatic workstream
-              generation.
+              You have {achievementCount} achievements in the last 12 months.
+            </p>
+            <p>
+              Log at least 20 achievements in the last 12 months to use
+              automatic workstream generation.
             </p>
           </div>
         ) : workstreams.length === 0 ? (

@@ -131,10 +131,11 @@ export function WorkstreamsZeroState({
           <Card className="bg-muted">
             <CardContent className="pt-6 text-center">
               <p className="font-semibold">
-                You need at least 20 achievements to generate workstreams
+                You need at least 20 achievements in the last 12 months to
+                generate workstreams
               </p>
               <p className="text-sm text-muted-foreground mt-2">
-                Current: {achievementCount} / 20
+                Current: {achievementCount} / 20 (last 12 months)
               </p>
               <Button
                 variant="outline"

@@ -1,7 +1,7 @@
 import { type NextRequest, NextResponse } from 'next/server';
 import { getAuthUser } from '@/lib/getAuthUser';
 import { db, achievement, getWorkstreamMetadata } from '@bragdoc/database';
-import { eq, isNotNull, count, and } from 'drizzle-orm';
+import { eq, isNotNull, count, and, gte } from 'drizzle-orm';
 import { generateMissingEmbeddings } from '@/lib/ai/embeddings';
 import {
   decideShouldReCluster,
@@ -43,17 +43,25 @@ export async function POST(request: NextRequest) {
       embeddingsGenerated,
     );
 
-    // Count achievements with embeddings
+    // Calculate 12 months ago
+    const twelveMonthsAgo = new Date();
+    twelveMonthsAgo.setFullYear(twelveMonthsAgo.getFullYear() - 1);
+
+    // Count achievements with embeddings in last 12 months
     const achievementCountResult = await db
       .select({ count: count() })
       .from(achievement)
       .where(
-        and(eq(achievement.userId, userId), isNotNull(achievement.embedding)),
+        and(
+          eq(achievement.userId, userId),
+          isNotNull(achievement.embedding),
+          gte(achievement.eventStart, twelveMonthsAgo),
+        ),
       );
 
     const achievementCount = achievementCountResult[0]?.count || 0;
     console.log(
-      '[Workstreams Generate] Achievement count with embeddings:',
+      '[Workstreams Generate] Achievement count with embeddings in last 12 months:',
       achievementCount,
     );
 
@@ -62,7 +70,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         {
           error: 'Insufficient achievements',
-          message: `You need at least ${MINIMUM_ACHIEVEMENTS} achievements to generate workstreams. You currently have ${achievementCount}.`,
+          message: `You need at least ${MINIMUM_ACHIEVEMENTS} achievements in the last 12 months to generate workstreams. You currently have ${achievementCount}.`,
         },
         { status: 400 },
       );

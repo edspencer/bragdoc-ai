@@ -656,6 +656,10 @@ export async function fullReclustering(
   userId: string,
   user: User,
 ): Promise<FullClusteringResult> {
+  // Calculate 12 months ago
+  const twelveMonthsAgo = new Date();
+  twelveMonthsAgo.setFullYear(twelveMonthsAgo.getFullYear() - 1);
+
   // Get all achievements with embeddings
   const allAchievements = await db
     .select()
@@ -666,20 +670,25 @@ export async function fullReclustering(
     (ach) => ach.embedding,
   );
 
-  // Validate minimum count
-  if (achievementsWithEmbeddings.length < MINIMUM_ACHIEVEMENTS) {
+  // Filter to last 12 months only
+  const recentAchievements = achievementsWithEmbeddings.filter(
+    (ach) => ach.eventStart && ach.eventStart >= twelveMonthsAgo,
+  );
+
+  // Validate minimum count (checking last 12 months only)
+  if (recentAchievements.length < MINIMUM_ACHIEVEMENTS) {
     throw new Error(
-      `Insufficient achievements: need ${MINIMUM_ACHIEVEMENTS}, have ${achievementsWithEmbeddings.length}`,
+      `Insufficient achievements in last 12 months: need ${MINIMUM_ACHIEVEMENTS}, have ${recentAchievements.length}`,
     );
   }
 
   // Extract embeddings as vectors
-  const embeddings = achievementsWithEmbeddings.map(
+  const embeddings = recentAchievements.map(
     (ach) => ach.embedding as unknown as number[],
   );
 
   // Get clustering parameters based on dataset size
-  const params = getClusteringParameters(achievementsWithEmbeddings.length);
+  const params = getClusteringParameters(recentAchievements.length);
   if (!params) {
     throw new Error('Insufficient achievements for clustering');
   }
@@ -730,7 +739,7 @@ export async function fullReclustering(
       if (!clusterIndices) return null;
 
       const clusterAchievements = clusterIndices
-        .map((idx) => achievementsWithEmbeddings[idx])
+        .map((idx) => recentAchievements[idx])
         .filter((ach): ach is Achievement => ach !== undefined);
 
       const clusterEmbeddings = clusterIndices
@@ -854,7 +863,7 @@ export async function fullReclustering(
     id: uuidv4(),
     userId,
     lastFullClusteringAt: now,
-    achievementCountAtLastClustering: achievementsWithEmbeddings.length,
+    achievementCountAtLastClustering: recentAchievements.length,
     epsilon: clusteringResult.epsilon,
     minPts: params.minPts,
     workstreamCount: clusteringResult.clusters.length,
@@ -879,20 +888,20 @@ export async function fullReclustering(
   }
 
   // Get outlier achievements (those with embeddings that weren't assigned to any cluster)
-  // Note: Only achievementsWithEmbeddings are processed by clustering
+  // Note: Only recentAchievements are processed by clustering
   // Achievements without embeddings are never included in the process
-  const outlierAchievements = achievementsWithEmbeddings.filter(
+  const outlierAchievements = recentAchievements.filter(
     (ach) => ach.workstreamId === null,
   );
 
   return {
     workstreamsCreated: createdWorkstreams.length,
     achievementsAssigned:
-      achievementsWithEmbeddings.length - clusteringResult.outlierCount,
+      recentAchievements.length - clusteringResult.outlierCount,
     outliers: clusteringResult.outlierCount,
     metadata: metadata as unknown as WorkstreamMetadata,
     workstreams: createdWorkstreams,
-    achievementsWithAssignments: achievementsWithEmbeddings.filter(
+    achievementsWithAssignments: recentAchievements.filter(
       (ach) => ach.workstreamId !== null,
     ),
     outlierAchievements,
