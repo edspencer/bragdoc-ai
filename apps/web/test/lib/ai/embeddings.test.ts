@@ -9,6 +9,9 @@ import { db } from '@/database/index';
 import { eq } from 'drizzle-orm';
 import { v4 as uuidv4 } from 'uuid';
 
+// Unmock the embeddings module to test the real implementation
+jest.unmock('@/lib/ai/embeddings');
+
 // Mock the OpenAI provider
 jest.mock('@ai-sdk/openai', () => ({
   openai: {
