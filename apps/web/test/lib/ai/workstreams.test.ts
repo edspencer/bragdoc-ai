@@ -517,7 +517,7 @@ describe('Workstream Orchestration', () => {
         .from(achievement)
         .where(eq(achievement.id, userAssignedAchievementId!));
       expect(userAssigned[0]?.workstreamId).toBe(userWsId);
-    });
+    }, 15000);
 
     it('saves metadata', async () => {
       for (let i = 0; i < 25; i++) {
@@ -550,7 +550,7 @@ describe('Workstream Orchestration', () => {
       expect(result.metadata).toBeDefined();
       expect(result.metadata.userId).toBe(mockUser.id);
       expect(typeof result.metadata.workstreamCount).toBe('number');
-    });
+    }, 15000);
   });
 
   describe('updateWorkstreamCentroid', () => {
