@@ -1,16 +1,36 @@
 import { type NextRequest, NextResponse } from 'next/server';
+import { z } from 'zod';
 import { getAuthUser } from '@/lib/getAuthUser';
 import {
-  getWorkstreamsByUserId,
   getUnassignedAchievements,
   getAchievementCountWithEmbeddings,
+  getWorkstreamsByUserIdWithDateFilter,
+  getAchievementsByUserIdWithDates,
 } from '@bragdoc/database';
+
+// Validation schema for date range query parameters
+const dateFilterSchema = z.object({
+  startDate: z
+    .string()
+    .regex(/^\d{4}-\d{2}-\d{2}$/)
+    .optional(),
+  endDate: z
+    .string()
+    .regex(/^\d{4}-\d{2}-\d{2}$/)
+    .optional(),
+});
 
 /**
  * GET /api/workstreams
  *
- * Fetches all workstreams for the authenticated user.
+ * Fetches workstreams for the authenticated user.
+ * Supports optional date range filtering via startDate and endDate query parameters.
  * Returns list of active (non-archived) workstreams along with achievement counts.
+ * Counts reflect only achievements within the specified date range.
+ *
+ * Query Parameters:
+ * - startDate: Optional ISO 8601 date string (YYYY-MM-DD) for start of range (inclusive)
+ * - endDate: Optional ISO 8601 date string (YYYY-MM-DD) for end of range (inclusive)
  */
 export async function GET(request: NextRequest) {
   try {
@@ -22,15 +42,92 @@ export async function GET(request: NextRequest) {
 
     const userId = auth.user.id;
 
-    // Fetch user's workstreams (excluding archived by default)
-    const workstreams = await getWorkstreamsByUserId(userId, false);
+    // Extract and validate date parameters
+    const startDateStr = request.nextUrl.searchParams.get('startDate');
+    const endDateStr = request.nextUrl.searchParams.get('endDate');
 
-    // Get unassigned achievements count
-    const unassignedAchievements = await getUnassignedAchievements(userId);
-    const unassignedCount = unassignedAchievements.length;
+    const dateValidation = dateFilterSchema.safeParse({
+      startDate: startDateStr || undefined,
+      endDate: endDateStr || undefined,
+    });
 
-    // Get total achievement count with embeddings
-    const achievementCount = await getAchievementCountWithEmbeddings(userId);
+    if (!dateValidation.success) {
+      return NextResponse.json(
+        { error: 'Invalid date format. Use ISO 8601 format (YYYY-MM-DD)' },
+        { status: 400 },
+      );
+    }
+
+    // Convert validated strings to Date objects
+    let startDate: Date | undefined;
+    let endDate: Date | undefined;
+
+    if (dateValidation.data.startDate) {
+      startDate = new Date(dateValidation.data.startDate);
+      // Ensure it's a valid date
+      if (Number.isNaN(startDate.getTime())) {
+        return NextResponse.json(
+          { error: 'Invalid date format. Use ISO 8601 format (YYYY-MM-DD)' },
+          { status: 400 },
+        );
+      }
+    }
+
+    if (dateValidation.data.endDate) {
+      endDate = new Date(dateValidation.data.endDate);
+      // Ensure it's a valid date and add one day to make it inclusive of the end date
+      if (Number.isNaN(endDate.getTime())) {
+        return NextResponse.json(
+          { error: 'Invalid date format. Use ISO 8601 format (YYYY-MM-DD)' },
+          { status: 400 },
+        );
+      }
+      // Move end date to end of day for inclusive filtering
+      endDate.setUTCHours(23, 59, 59, 999);
+    }
+
+    // Validate that startDate <= endDate if both provided
+    if (startDate && endDate && startDate > endDate) {
+      return NextResponse.json(
+        { error: 'startDate must be less than or equal to endDate' },
+        { status: 400 },
+      );
+    }
+
+    // Fetch user's workstreams with optional date filtering
+    const workstreams = await getWorkstreamsByUserIdWithDateFilter(
+      userId,
+      startDate,
+      endDate,
+      false,
+    );
+
+    // Get counts with date filtering
+    let unassignedCount = 0;
+    let achievementCount = 0;
+
+    if (startDate || endDate) {
+      // Use date-filtered achievements for counts
+      const achievements = await getAchievementsByUserIdWithDates(
+        userId,
+        startDate,
+        endDate,
+      );
+      // Count only achievements with embeddings
+      const achievementsWithEmbeddings = achievements.filter(
+        (a) => a.embedding,
+      );
+      achievementCount = achievementsWithEmbeddings.length;
+      // Count unassigned achievements (no workstream assignment)
+      unassignedCount = achievementsWithEmbeddings.filter(
+        (a) => !a.workstreamId,
+      ).length;
+    } else {
+      // Use existing functions for all-time counts
+      const unassignedAchievements = await getUnassignedAchievements(userId);
+      unassignedCount = unassignedAchievements.length;
+      achievementCount = await getAchievementCountWithEmbeddings(userId);
+    }
 
     return NextResponse.json({
       workstreams,

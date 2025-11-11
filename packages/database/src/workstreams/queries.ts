@@ -4,7 +4,16 @@
  * Reusable query functions for workstream and achievement management.
  */
 
-import { and, desc, eq, isNull, gte, isNotNull } from 'drizzle-orm';
+import {
+  and,
+  desc,
+  eq,
+  isNull,
+  gte,
+  isNotNull,
+  lte,
+  inArray,
+} from 'drizzle-orm';
 import { db } from '../index';
 import {
   workstream,
@@ -198,6 +207,136 @@ export async function getAchievementCountWithEmbeddings(
     );
 
   return results.length;
+}
+
+/**
+ * Get achievements for a user filtered by date range
+ * Includes all achievements with embeddings in the specified date range
+ *
+ * @param userId - User ID to scope query
+ * @param startDate - Start date for filtering (inclusive), optional
+ * @param endDate - End date for filtering (inclusive), optional
+ * @returns Array of achievements in date range, ordered by eventStart descending
+ */
+export async function getAchievementsByUserIdWithDates(
+  userId: string,
+  startDate?: Date,
+  endDate?: Date,
+): Promise<Achievement[]> {
+  const conditions = [eq(achievement.userId, userId)];
+
+  // Add date filtering if provided
+  if (startDate) {
+    conditions.push(gte(achievement.eventStart, startDate));
+  }
+  if (endDate) {
+    conditions.push(lte(achievement.eventStart, endDate));
+  }
+
+  const results = await db
+    .select()
+    .from(achievement)
+    .where(and(...conditions))
+    .orderBy(desc(achievement.eventStart));
+
+  // Filter in application layer to ensure only achievements with embeddings are returned
+  return results.filter((ach) => ach.embedding);
+}
+
+/**
+ * Calculate counts for achievements in a date range
+ * Returns total count, unassigned count, and workstream IDs with achievements in range
+ *
+ * @param userId - User ID to scope query
+ * @param startDate - Start date for filtering (inclusive), optional
+ * @param endDate - End date for filtering (inclusive), optional
+ * @returns Object with achievementCount, unassignedCount, and workstreamIds array
+ */
+export async function getWorkstreamCountsWithDateFilter(
+  userId: string,
+  startDate?: Date,
+  endDate?: Date,
+): Promise<{
+  achievementCount: number;
+  unassignedCount: number;
+  workstreamIds: string[];
+}> {
+  // Fetch achievements in date range using the helper function
+  const achievementsInRange = await getAchievementsByUserIdWithDates(
+    userId,
+    startDate,
+    endDate,
+  );
+
+  // Count achievements with embeddings
+  const achievementCount = achievementsInRange.length;
+
+  // Count unassigned achievements (where workstreamId is null)
+  const unassignedCount = achievementsInRange.filter(
+    (ach) => ach.workstreamId === null,
+  ).length;
+
+  // Collect unique workstream IDs from achievements that have them
+  const workstreamIds = Array.from(
+    new Set(
+      achievementsInRange
+        .filter((ach) => ach.workstreamId !== null)
+        .map((ach) => ach.workstreamId as string),
+    ),
+  );
+
+  return {
+    achievementCount,
+    unassignedCount,
+    workstreamIds,
+  };
+}
+
+/**
+ * Get workstreams for a user that have achievements in the specified date range
+ * Returns only workstreams with at least one achievement in the range
+ *
+ * @param userId - User ID to scope query
+ * @param startDate - Start date for filtering (inclusive), optional
+ * @param endDate - End date for filtering (inclusive), optional
+ * @param includeArchived - Whether to include archived workstreams (default: false)
+ * @returns Array of workstreams with achievements in date range
+ */
+export async function getWorkstreamsByUserIdWithDateFilter(
+  userId: string,
+  startDate?: Date,
+  endDate?: Date,
+  includeArchived = false,
+): Promise<Workstream[]> {
+  // Get filtered workstream IDs and counts
+  const { workstreamIds } = await getWorkstreamCountsWithDateFilter(
+    userId,
+    startDate,
+    endDate,
+  );
+
+  // If no workstreams have achievements in range, return empty array
+  if (workstreamIds.length === 0) {
+    return [];
+  }
+
+  // Fetch workstreams matching the IDs
+  const conditions = [
+    eq(workstream.userId, userId),
+    inArray(workstream.id, workstreamIds),
+  ];
+
+  if (!includeArchived) {
+    conditions.push(eq(workstream.isArchived, false));
+  }
+
+  const results = await db
+    .select()
+    .from(workstream)
+    .where(and(...conditions))
+    .orderBy(desc(workstream.achievementCount));
+
+  return results;
 }
 
 /**

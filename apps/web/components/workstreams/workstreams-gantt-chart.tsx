@@ -9,6 +9,7 @@ import {
 } from '@/components/ui/tooltip';
 import type { Workstream } from '@bragdoc/database';
 import { useMemo } from 'react';
+import { startOfMonth, endOfMonth, subMonths } from 'date-fns';
 
 interface WorkstreamsGanttChartProps {
   workstreams: Workstream[];
@@ -20,6 +21,8 @@ interface WorkstreamsGanttChartProps {
   }>;
   selectedWorkstreamId?: string | null;
   onSelectWorkstream?: (workstreamId: string | null) => void;
+  startDate?: Date;
+  endDate?: Date;
 }
 
 interface TimeSegment {
@@ -40,15 +43,32 @@ export function WorkstreamsGanttChart({
   achievements,
   selectedWorkstreamId,
   onSelectWorkstream,
+  startDate,
+  endDate,
 }: WorkstreamsGanttChartProps) {
   // Calculate time ranges for each workstream (split into segments if gap > 1 month)
   const workstreamData = useMemo(() => {
     const data: WorkstreamWithSegments[] = [];
 
     workstreams.forEach((ws) => {
-      const wsAchievements = achievements.filter(
-        (ach) => ach.workstreamId === ws.id && ach.eventStart,
-      );
+      // Filter achievements for this workstream and within date range
+      const wsAchievements = achievements.filter((ach) => {
+        if (
+          !ach.workstreamId ||
+          ach.workstreamId !== ws.id ||
+          !ach.eventStart
+        ) {
+          return false;
+        }
+
+        // If date range is specified, filter by it
+        if (startDate && endDate) {
+          const achDate = new Date(ach.eventStart);
+          return achDate >= startDate && achDate <= endDate;
+        }
+
+        return true;
+      });
 
       if (wsAchievements.length === 0) return;
 
@@ -143,30 +163,31 @@ export function WorkstreamsGanttChart({
     return data.sort((a, b) =>
       a.workstream.name.localeCompare(b.workstream.name),
     );
-  }, [workstreams, achievements]);
+  }, [workstreams, achievements, startDate, endDate]);
 
-  // Calculate overall time range (last 12 complete calendar months)
+  // Calculate overall time range based on date props or default to 12 months
   const timeRange = useMemo(() => {
-    const now = new Date();
+    let rangeStart: Date;
+    let rangeEnd: Date;
 
-    // Start at the 1st of the month, 12 months ago
-    const twelveMonthsAgo = new Date(now.getFullYear(), now.getMonth() - 12, 1);
-
-    // End at the last day of the current month
-    const endOfCurrentMonth = new Date(
-      now.getFullYear(),
-      now.getMonth() + 1,
-      0,
-    );
+    if (startDate && endDate) {
+      // Use provided date range, rounded to complete months
+      rangeStart = startOfMonth(startDate);
+      rangeEnd = endOfMonth(endDate);
+    } else {
+      // Default to 12 months from today
+      const now = new Date();
+      rangeStart = startOfMonth(subMonths(now, 12));
+      rangeEnd = endOfMonth(now);
+    }
 
     return {
-      start: twelveMonthsAgo,
-      end: endOfCurrentMonth,
+      start: rangeStart,
+      end: rangeEnd,
       totalDays:
-        (endOfCurrentMonth.getTime() - twelveMonthsAgo.getTime()) /
-        (1000 * 60 * 60 * 24),
+        (rangeEnd.getTime() - rangeStart.getTime()) / (1000 * 60 * 60 * 24),
     };
-  }, []);
+  }, [startDate, endDate]);
 
   // Calculate reference impact density using 90th percentile to handle outliers
   // This prevents a single high-density segment from washing out all others
@@ -339,6 +360,8 @@ export function WorkstreamsGanttChart({
                         <Tooltip key={segIdx}>
                           <TooltipTrigger asChild>
                             <div
+                              role="button"
+                              tabIndex={0}
                               className={`absolute top-1 h-6 rounded transition-all hover:opacity-100 cursor-pointer ${
                                 isSelected
                                   ? 'ring-2 ring-offset-1 ring-yellow-400 shadow-lg'
@@ -350,6 +373,14 @@ export function WorkstreamsGanttChart({
                                   isSelected ? null : wsData.workstream.id,
                                 )
                               }
+                              onKeyDown={(e) => {
+                                if (e.key === 'Enter' || e.key === ' ') {
+                                  e.preventDefault();
+                                  onSelectWorkstream?.(
+                                    isSelected ? null : wsData.workstream.id,
+                                  );
+                                }
+                              }}
                             >
                               <div className="h-full flex items-center justify-center">
                                 <span className="text-xs font-medium text-white px-2 truncate">

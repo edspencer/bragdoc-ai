@@ -128,4 +128,7 @@ export {
   archiveWorkstream,
   getAchievementCountWithEmbeddings,
   unassignAchievementsFromWorkstream,
+  getAchievementsByUserIdWithDates,
+  getWorkstreamCountsWithDateFilter,
+  getWorkstreamsByUserIdWithDateFilter,
 } from './workstreams/queries';

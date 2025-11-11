@@ -79,11 +79,39 @@ type GenerateResultIncremental = {
 
 type GenerateResult = GenerateResultFull | GenerateResultIncremental;
 
-export function useWorkstreams() {
-  const { data, error, isLoading } = useSWR<WorkstreamsResponse>(
-    '/api/workstreams',
-    fetcher,
-  );
+/**
+ * Builds a workstreams API URL with optional date range parameters
+ * @param startDate - Optional start date for filtering achievements
+ * @param endDate - Optional end date for filtering achievements
+ * @returns URL string for the API endpoint with query parameters
+ */
+function buildWorkstreamsUrl(startDate?: Date, endDate?: Date): string {
+  const baseUrl = '/api/workstreams';
+
+  if (!startDate && !endDate) {
+    return baseUrl;
+  }
+
+  const params = new URLSearchParams();
+
+  if (startDate) {
+    // Convert Date to ISO string and extract YYYY-MM-DD format
+    const dateStr = startDate.toISOString().split('T')[0];
+    if (dateStr) params.append('startDate', dateStr);
+  }
+
+  if (endDate) {
+    // Convert Date to ISO string and extract YYYY-MM-DD format
+    const dateStr = endDate.toISOString().split('T')[0];
+    if (dateStr) params.append('endDate', dateStr);
+  }
+
+  return `${baseUrl}?${params.toString()}`;
+}
+
+export function useWorkstreams(startDate?: Date, endDate?: Date) {
+  const url = buildWorkstreamsUrl(startDate, endDate);
+  const { data, error, isLoading } = useSWR<WorkstreamsResponse>(url, fetcher);
   const [isGenerating, setIsGenerating] = useState(false);
 
   const generateWorkstreams = async (): Promise<GenerateResult> => {
@@ -125,8 +153,8 @@ export function useWorkstreams() {
         }
       }
 
-      // Refresh workstreams
-      await mutate('/api/workstreams');
+      // Refresh workstreams with the current URL (including date filters if present)
+      await mutate(url);
 
       return result;
     } catch (error) {
@@ -157,8 +185,8 @@ export function useWorkstreams() {
       throw new Error('Failed to assign workstream');
     }
 
-    // Refresh workstreams to update counts
-    await mutate('/api/workstreams');
+    // Refresh workstreams to update counts with the current URL (including date filters if present)
+    await mutate(url);
   };
 
   return {

@@ -6,6 +6,7 @@ import { DemoModeHelpButton } from './demo-mode-help-button';
 import { DemoHelpDialog } from './demo-help-dialog';
 import { useDemoHelpDialog } from '@/hooks/use-demo-help-dialog';
 import { signOut } from '@/lib/better-auth/client';
+import { Tooltip, TooltipTrigger, TooltipContent } from './ui/tooltip';
 
 /**
  * Props for DemoModeBanner component
@@ -88,13 +89,21 @@ export function DemoModeBanner({
               Demo Mode - Your data will be deleted when you log out
             </span>
             <span className="text-amber-900">|</span>
-            <button
-              type="button"
-              onClick={handleCreateAccount}
-              className="text-amber-950 underline hover:no-underline font-medium"
-            >
-              Create Free Account
-            </button>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <button
+                  type="button"
+                  onClick={handleCreateAccount}
+                  className="text-amber-950 underline hover:no-underline font-medium"
+                >
+                  Create Free Account
+                </button>
+              </TooltipTrigger>
+              <TooltipContent side="bottom" className="max-w-xs">
+                Start fresh with a new account. Your demo data will be cleared
+                and you'll begin with a blank slate.
+              </TooltipContent>
+            </Tooltip>
           </div>
 
           {/* Right: help button */}

@@ -3,8 +3,10 @@
 import * as React from 'react';
 import { IconFolder, IconBuilding, IconCalendar } from '@tabler/icons-react';
 import { format } from 'date-fns';
+import { Loader2 } from 'lucide-react';
 
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import {
   Card,
   CardContent,
@@ -27,12 +29,16 @@ interface WorkstreamAchievementsTableProps {
   achievements: AchievementWithRelations[];
   workstreams: Workstream[];
   selectedWorkstreamId: string | null;
+  onGenerateWorkstreams?: () => void;
+  isGenerating?: boolean;
 }
 
 export function WorkstreamAchievementsTable({
   achievements,
   workstreams,
   selectedWorkstreamId,
+  onGenerateWorkstreams,
+  isGenerating,
 }: WorkstreamAchievementsTableProps) {
   // Filter achievements based on selection
   const filteredAchievements = React.useMemo(() => {
@@ -78,11 +84,59 @@ export function WorkstreamAchievementsTable({
     return `Showing ${filteredAchievements.length} unassigned achievement${filteredAchievements.length === 1 ? '' : 's'}`;
   };
 
+  // Get workstream color for styling
+  const selectedWorkstream = selectedWorkstreamId
+    ? workstreams.find((ws) => ws.id === selectedWorkstreamId)
+    : null;
+
+  // Build dynamic styles for the card
+  const cardStyle: React.CSSProperties = selectedWorkstream
+    ? {
+        borderColor: selectedWorkstream.color || undefined,
+        backgroundColor: `${selectedWorkstream.color}08`, // 3% opacity (08 in hex)
+      }
+    : {};
+
   return (
-    <Card>
+    <Card style={cardStyle} className={selectedWorkstream ? 'border-2' : ''}>
       <CardHeader>
-        <CardTitle>{getTitle()}</CardTitle>
-        <CardDescription>{getDescription()}</CardDescription>
+        <div className="flex items-start justify-between gap-4">
+          <div className="flex-1 space-y-1.5">
+            <CardTitle className="flex items-center gap-2 text-xl">
+              {selectedWorkstream && selectedWorkstream.color && (
+                <div
+                  className="size-3 rounded-full flex-shrink-0"
+                  style={{ backgroundColor: selectedWorkstream.color }}
+                />
+              )}
+              {getTitle()}
+            </CardTitle>
+            {selectedWorkstream?.description && (
+              <div className="text-sm text-muted-foreground">
+                {selectedWorkstream.description}
+              </div>
+            )}
+            <CardDescription>{getDescription()}</CardDescription>
+          </div>
+          {!selectedWorkstreamId &&
+            filteredAchievements.length > 0 &&
+            onGenerateWorkstreams && (
+              <Button
+                size="sm"
+                onClick={onGenerateWorkstreams}
+                disabled={isGenerating}
+              >
+                {isGenerating ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Assigning...
+                  </>
+                ) : (
+                  'Assign to Workstreams'
+                )}
+              </Button>
+            )}
+        </div>
       </CardHeader>
       <CardContent>
         {filteredAchievements.length === 0 ? (
