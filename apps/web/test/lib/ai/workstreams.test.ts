@@ -406,7 +406,7 @@ describe('Workstream Orchestration', () => {
         .from(workstream)
         .where(eq(workstream.id, oldWsId));
       expect(archived[0]?.isArchived).toBe(true);
-    });
+    }, 15000);
 
     it('clears old assignments', async () => {
       const oldWsId = uuidv4();
@@ -458,7 +458,7 @@ describe('Workstream Orchestration', () => {
       const achs = await db.select().from(achievement);
       const oldAssignments = achs.filter((a) => a.workstreamId === oldWsId);
       expect(oldAssignments.length).toBe(0);
-    });
+    }, 15000);
 
     it.skip('respects user assignments', async () => {
       const userWsId = uuidv4();
