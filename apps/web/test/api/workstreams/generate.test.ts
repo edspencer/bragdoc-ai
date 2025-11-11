@@ -28,10 +28,8 @@ jest.mock('@/lib/ai/workstreams', () => {
   };
 });
 
-// Mock embedding generation to avoid actual API calls
-jest.mock('@/lib/ai/embeddings', () => ({
-  generateMissingEmbeddings: jest.fn().mockResolvedValue(0),
-}));
+// Note: Embeddings are already mocked globally in jest.setup.ts
+// We don't need to re-mock them here
 
 // Helper function to parse SSE response
 async function parseSSEResponse(response: Response) {
