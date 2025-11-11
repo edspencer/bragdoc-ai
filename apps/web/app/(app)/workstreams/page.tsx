@@ -15,7 +15,7 @@ import {
   project,
   userMessage,
 } from '@bragdoc/database';
-import { eq, and, gte, lte } from 'drizzle-orm';
+import { eq, and, gte, lte, count } from 'drizzle-orm';
 import { subMonths, startOfDay, endOfDay } from 'date-fns';
 import { headers } from 'next/headers';
 import type { AchievementWithRelations } from '@/lib/types/achievement';
@@ -116,12 +116,12 @@ export default async function WorkstreamsPage({
   const achievementCount = allAchievements.length;
   const unassignedCount = allAchievements.filter((a) => !a.workstreamId).length;
 
-  // For zero state, fetch 12-month achievement count separately
+  // For zero state, fetch 12-month achievement count separately using SQL COUNT
   let twelveMonthAchievementCount = 0;
   if (showZeroState) {
     const twelveMonthsAgo = subMonths(new Date(), 12);
-    const twelveMonthResults = await db
-      .select()
+    const result = await db
+      .select({ count: count() })
       .from(achievement)
       .where(
         and(
@@ -129,7 +129,7 @@ export default async function WorkstreamsPage({
           gte(achievement.eventStart, twelveMonthsAgo),
         ),
       );
-    twelveMonthAchievementCount = twelveMonthResults.length;
+    twelveMonthAchievementCount = result[0]?.count ?? 0;
   }
 
   return (

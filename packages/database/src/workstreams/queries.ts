@@ -4,7 +4,17 @@
  * Reusable query functions for workstream and achievement management.
  */
 
-import { and, desc, eq, isNull, gte, lte, inArray } from 'drizzle-orm';
+import {
+  and,
+  desc,
+  eq,
+  isNull,
+  gte,
+  lte,
+  inArray,
+  count,
+  sql,
+} from 'drizzle-orm';
 import { db } from '../index';
 import {
   workstream,
@@ -216,6 +226,48 @@ export async function getAchievementsByUserIdWithDates(
 
   // Return all achievements - embeddings will be generated when needed
   return results;
+}
+
+/**
+ * Get achievement counts for a user with optional date filtering
+ * Uses SQL COUNT for performance - returns only counts, not full records
+ *
+ * @param userId - User ID to scope query
+ * @param startDate - Start date for filtering (inclusive), optional
+ * @param endDate - End date for filtering (inclusive), optional
+ * @returns Object with total count and unassigned count
+ */
+export async function getAchievementCounts(
+  userId: string,
+  startDate?: Date,
+  endDate?: Date,
+): Promise<{
+  total: number;
+  unassigned: number;
+}> {
+  const conditions = [eq(achievement.userId, userId)];
+
+  // Add date filtering if provided
+  if (startDate) {
+    conditions.push(gte(achievement.eventStart, startDate));
+  }
+  if (endDate) {
+    conditions.push(lte(achievement.eventStart, endDate));
+  }
+
+  // Single SQL query to get both counts efficiently
+  const result = await db
+    .select({
+      total: count(),
+      unassigned: sql<number>`count(*) filter (where ${achievement.workstreamId} is null)`,
+    })
+    .from(achievement)
+    .where(and(...conditions));
+
+  return {
+    total: result[0]?.total ?? 0,
+    unassigned: result[0]?.unassigned ?? 0,
+  };
 }
 
 /**

@@ -2,10 +2,8 @@ import { type NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { getAuthUser } from '@/lib/getAuthUser';
 import {
-  getUnassignedAchievements,
-  getTotalAchievementCount,
   getWorkstreamsByUserIdWithDateFilter,
-  getAchievementsByUserIdWithDates,
+  getAchievementCounts,
 } from '@bragdoc/database';
 
 // Validation schema for date range query parameters
@@ -94,40 +92,16 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // Fetch user's workstreams with optional date filtering
-    const workstreams = await getWorkstreamsByUserIdWithDateFilter(
-      userId,
-      startDate,
-      endDate,
-      false,
-    );
-
-    // Get counts with date filtering
-    let unassignedCount = 0;
-    let achievementCount = 0;
-
-    if (startDate || endDate) {
-      // Use date-filtered achievements for counts
-      const achievements = await getAchievementsByUserIdWithDates(
-        userId,
-        startDate,
-        endDate,
-      );
-      // For zero state, count ALL achievements (embeddings will be generated on demand)
-      achievementCount = achievements.length;
-      // Count unassigned achievements (no workstream assignment)
-      unassignedCount = achievements.filter((a) => !a.workstreamId).length;
-    } else {
-      // Use existing functions for all-time counts
-      const unassignedAchievements = await getUnassignedAchievements(userId);
-      unassignedCount = unassignedAchievements.length;
-      achievementCount = await getTotalAchievementCount(userId);
-    }
+    // Fetch workstreams and counts in parallel using optimized SQL COUNT
+    const [workstreams, counts] = await Promise.all([
+      getWorkstreamsByUserIdWithDateFilter(userId, startDate, endDate, false),
+      getAchievementCounts(userId, startDate, endDate),
+    ]);
 
     return NextResponse.json({
       workstreams,
-      unassignedCount,
-      achievementCount,
+      unassignedCount: counts.unassigned,
+      achievementCount: counts.total,
     });
   } catch (error) {
     console.error('Error fetching workstreams:', error);
