@@ -1,40 +1,50 @@
 'use client';
 
-import { Workflow, AlertCircle } from 'lucide-react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Workflow, AlertCircle, CheckCircle2 } from 'lucide-react';
+import { Stat } from '@/components/shared/stat';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Card, CardContent, CardHeader } from '@/components/ui/card';
 
 interface WorkstreamStatsProps {
   workstreamCount: number;
+  assignedCount: number;
   unassignedCount: number;
   isLoading?: boolean;
 }
 
 const statCards = [
   {
-    title: 'Active Workstreams',
+    label: 'Active Workstreams',
     icon: Workflow,
     color: 'text-purple-600',
-    bgColor: 'bg-purple-50',
+    description: 'Thematic patterns',
     key: 'workstreams',
   },
   {
-    title: 'Unassigned',
+    label: 'Assigned',
+    icon: CheckCircle2,
+    color: 'text-green-600',
+    description: 'In workstreams',
+    key: 'assigned',
+  },
+  {
+    label: 'Unassigned',
     icon: AlertCircle,
     color: 'text-orange-600',
-    bgColor: 'bg-orange-50',
+    description: 'Achievements to assign',
     key: 'unassigned',
   },
 ];
 
 export function WorkstreamStats({
   workstreamCount,
+  assignedCount,
   unassignedCount,
   isLoading,
 }: WorkstreamStatsProps) {
   if (isLoading) {
     return (
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         {statCards.map((_, index) => (
           <Card key={index}>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -51,35 +61,33 @@ export function WorkstreamStats({
     );
   }
 
-  const statsWithCounts = statCards.map((stat) => ({
-    ...stat,
-    count: stat.key === 'workstreams' ? workstreamCount : unassignedCount,
-  }));
+  const statsWithCounts = statCards.map((stat) => {
+    let count = 0;
+    if (stat.key === 'workstreams') {
+      count = workstreamCount;
+    } else if (stat.key === 'assigned') {
+      count = assignedCount;
+    } else if (stat.key === 'unassigned') {
+      count = unassignedCount;
+    }
+    return { ...stat, count };
+  });
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
       {statsWithCounts.map((stat) => {
         const Icon = stat.icon;
 
         return (
-          <Card key={stat.title}>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">
-                {stat.title}
-              </CardTitle>
-              <div className={`p-2 rounded ${stat.bgColor}`}>
-                <Icon className={`size-4 ${stat.color}`} />
-              </div>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{stat.count}</div>
-              <p className="text-xs text-muted-foreground">
-                {stat.key === 'workstreams'
-                  ? 'Thematic patterns'
-                  : 'Achievements to assign'}
-              </p>
-            </CardContent>
-          </Card>
+          <Stat
+            key={stat.label}
+            label={stat.label}
+            value={stat.count}
+            badge={{
+              icon: <Icon className={`size-3 ${stat.color}`} />,
+              label: stat.description,
+            }}
+          />
         );
       })}
     </div>

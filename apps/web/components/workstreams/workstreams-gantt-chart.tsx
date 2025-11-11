@@ -7,6 +7,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
+import { Skeleton } from '@/components/ui/skeleton';
 import type { Workstream } from '@bragdoc/database';
 import { useMemo } from 'react';
 import { startOfMonth, endOfMonth, subMonths } from 'date-fns';
@@ -23,6 +24,7 @@ interface WorkstreamsGanttChartProps {
   onSelectWorkstream?: (workstreamId: string | null) => void;
   startDate?: Date;
   endDate?: Date;
+  isLoading?: boolean;
 }
 
 interface TimeSegment {
@@ -45,7 +47,30 @@ export function WorkstreamsGanttChart({
   onSelectWorkstream,
   startDate,
   endDate,
+  isLoading,
 }: WorkstreamsGanttChartProps) {
+  // Show loading skeleton while data is being fetched
+  if (isLoading) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle>Timeline</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {/* Skeleton for 8 workstream rows */}
+          {[1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
+            <div key={i} className="space-y-2">
+              <div className="flex items-center gap-3">
+                <Skeleton className="h-4 w-32" />
+                <Skeleton className="h-6 flex-1" />
+              </div>
+            </div>
+          ))}
+        </CardContent>
+      </Card>
+    );
+  }
+
   // Calculate time ranges for each workstream (split into segments if gap > 1 month)
   const workstreamData = useMemo(() => {
     const data: WorkstreamWithSegments[] = [];

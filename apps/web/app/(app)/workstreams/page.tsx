@@ -132,6 +132,7 @@ export default function WorkstreamsPage() {
 
               <WorkstreamStats
                 workstreamCount={workstreams.length}
+                assignedCount={achievementCount - unassignedCount}
                 unassignedCount={unassignedCount}
                 isLoading={isLoading}
               />
@@ -143,6 +144,7 @@ export default function WorkstreamsPage() {
                 onSelectWorkstream={setSelectedWorkstreamId}
                 startDate={startDate}
                 endDate={endDate}
+                isLoading={isLoading}
               />
 
               <WorkstreamAchievementsTable
@@ -151,6 +153,8 @@ export default function WorkstreamsPage() {
                 selectedWorkstreamId={selectedWorkstreamId}
                 onGenerateWorkstreams={generateWorkstreams}
                 isGenerating={isGenerating}
+                startDate={startDate}
+                endDate={endDate}
               />
             </div>
           )}

@@ -31,6 +31,8 @@ interface WorkstreamAchievementsTableProps {
   selectedWorkstreamId: string | null;
   onGenerateWorkstreams?: () => void;
   isGenerating?: boolean;
+  startDate?: Date;
+  endDate?: Date;
 }
 
 export function WorkstreamAchievementsTable({
@@ -39,9 +41,14 @@ export function WorkstreamAchievementsTable({
   selectedWorkstreamId,
   onGenerateWorkstreams,
   isGenerating,
+  startDate,
+  endDate,
 }: WorkstreamAchievementsTableProps) {
-  // Filter achievements based on selection
-  const filteredAchievements = React.useMemo(() => {
+  const [showOlderAchievements, setShowOlderAchievements] =
+    React.useState(false);
+
+  // Filter achievements based on selection and date range
+  const { inRangeAchievements, olderAchievements } = React.useMemo(() => {
     let filtered = achievements;
 
     if (selectedWorkstreamId) {
@@ -55,7 +62,7 @@ export function WorkstreamAchievementsTable({
     }
 
     // Sort by date (most recent first)
-    return filtered.sort((a, b) => {
+    const sorted = filtered.sort((a, b) => {
       const aDate = a.eventStart
         ? new Date(a.eventStart).getTime()
         : new Date(a.createdAt).getTime();
@@ -64,7 +71,33 @@ export function WorkstreamAchievementsTable({
         : new Date(b.createdAt).getTime();
       return bDate - aDate;
     });
-  }, [achievements, selectedWorkstreamId]);
+
+    // Split into in-range and older achievements if date range is specified
+    if (startDate) {
+      const startTime = startDate.getTime();
+      const inRange: AchievementWithRelations[] = [];
+      const older: AchievementWithRelations[] = [];
+
+      for (const achievement of sorted) {
+        const achievementDate = achievement.eventStart
+          ? new Date(achievement.eventStart).getTime()
+          : new Date(achievement.createdAt).getTime();
+
+        if (achievementDate >= startTime) {
+          inRange.push(achievement);
+        } else {
+          older.push(achievement);
+        }
+      }
+
+      return { inRangeAchievements: inRange, olderAchievements: older };
+    }
+
+    // No date filtering - all achievements are in range
+    return { inRangeAchievements: sorted, olderAchievements: [] };
+  }, [achievements, selectedWorkstreamId, startDate]);
+
+  const filteredAchievements = inRangeAchievements;
 
   // Get title based on selection
   const getTitle = () => {
@@ -78,10 +111,17 @@ export function WorkstreamAchievementsTable({
   };
 
   const getDescription = () => {
+    const totalCount = filteredAchievements.length + olderAchievements.length;
+    const hasOlder = olderAchievements.length > 0;
+
     if (selectedWorkstreamId) {
-      return `Showing ${filteredAchievements.length} achievement${filteredAchievements.length === 1 ? '' : 's'} in this workstream`;
+      return hasOlder
+        ? `Showing ${filteredAchievements.length} of ${totalCount} achievement${totalCount === 1 ? '' : 's'} in this workstream`
+        : `Showing ${filteredAchievements.length} achievement${filteredAchievements.length === 1 ? '' : 's'} in this workstream`;
     }
-    return `Showing ${filteredAchievements.length} unassigned achievement${filteredAchievements.length === 1 ? '' : 's'}`;
+    return hasOlder
+      ? `Showing ${filteredAchievements.length} of ${totalCount} unassigned achievement${totalCount === 1 ? '' : 's'}`
+      : `Showing ${filteredAchievements.length} unassigned achievement${filteredAchievements.length === 1 ? '' : 's'}`;
   };
 
   // Get workstream color for styling
@@ -97,13 +137,146 @@ export function WorkstreamAchievementsTable({
       }
     : {};
 
+  // Helper to render achievement row (desktop)
+  const renderAchievementRow = (
+    achievement: AchievementWithRelations,
+    isOlder = false,
+  ) => (
+    <TableRow key={achievement.id} className={isOlder ? 'opacity-50' : ''}>
+      <TableCell className="max-w-sm">
+        <div className="flex flex-col gap-1">
+          <div
+            className={`font-medium line-clamp-2 ${isOlder ? 'italic' : ''}`}
+          >
+            {achievement.title}
+          </div>
+          {achievement.summary && (
+            <div
+              className={`text-sm text-muted-foreground line-clamp-1 ${isOlder ? 'italic' : ''}`}
+            >
+              {achievement.summary}
+            </div>
+          )}
+          <Badge variant="secondary" className="w-fit text-xs">
+            {achievement.source}
+          </Badge>
+        </div>
+      </TableCell>
+      <TableCell>
+        {achievement.project ? (
+          <div className="flex items-center gap-2">
+            <IconFolder className="size-4 text-muted-foreground" />
+            <span className={`text-sm ${isOlder ? 'italic' : ''}`}>
+              {achievement.project.name}
+            </span>
+          </div>
+        ) : (
+          <span
+            className={`text-sm text-muted-foreground ${isOlder ? 'italic' : ''}`}
+          >
+            No project
+          </span>
+        )}
+      </TableCell>
+      <TableCell>
+        {achievement.company ? (
+          <div className="flex items-center gap-2">
+            <IconBuilding className="size-4 text-muted-foreground" />
+            <span className={`text-sm ${isOlder ? 'italic' : ''}`}>
+              {achievement.company.name}
+            </span>
+          </div>
+        ) : (
+          <span
+            className={`text-sm text-muted-foreground ${isOlder ? 'italic' : ''}`}
+          >
+            No company
+          </span>
+        )}
+      </TableCell>
+      <TableCell>
+        <div className="flex items-center gap-2">
+          <IconCalendar className="size-4 text-muted-foreground" />
+          <span className={`text-sm ${isOlder ? 'italic' : ''}`}>
+            {achievement.eventStart
+              ? format(achievement.eventStart, 'MMM d, yyyy')
+              : format(achievement.createdAt, 'MMM d, yyyy')}
+          </span>
+        </div>
+      </TableCell>
+      <TableCell className="text-right">
+        <span className={`text-sm font-medium ${isOlder ? 'italic' : ''}`}>
+          {achievement.impact || 0}/10
+        </span>
+      </TableCell>
+    </TableRow>
+  );
+
+  // Helper to render achievement card (mobile)
+  const renderAchievementCard = (
+    achievement: AchievementWithRelations,
+    isOlder = false,
+  ) => (
+    <div
+      key={achievement.id}
+      className={`border-b border-border pb-4 last:border-b-0 ${isOlder ? 'opacity-50' : ''}`}
+    >
+      <div className="space-y-2">
+        <div className="flex flex-col gap-1">
+          <div className={`font-medium ${isOlder ? 'italic' : ''}`}>
+            {achievement.title}
+          </div>
+          {achievement.summary && (
+            <div
+              className={`text-sm text-muted-foreground ${isOlder ? 'italic' : ''}`}
+            >
+              {achievement.summary}
+            </div>
+          )}
+          <Badge variant="secondary" className="w-fit text-xs">
+            {achievement.source}
+          </Badge>
+        </div>
+        <div className="text-sm space-y-1 text-muted-foreground">
+          {achievement.project && (
+            <div className="flex items-center gap-2">
+              <IconFolder className="size-4" />
+              <span className={isOlder ? 'italic' : ''}>
+                {achievement.project.name}
+              </span>
+            </div>
+          )}
+          {achievement.company && (
+            <div className="flex items-center gap-2">
+              <IconBuilding className="size-4" />
+              <span className={isOlder ? 'italic' : ''}>
+                {achievement.company.name}
+              </span>
+            </div>
+          )}
+          <div className="flex items-center gap-2">
+            <IconCalendar className="size-4" />
+            <span className={isOlder ? 'italic' : ''}>
+              {achievement.eventStart
+                ? format(achievement.eventStart, 'MMM d, yyyy')
+                : format(achievement.createdAt, 'MMM d, yyyy')}
+            </span>
+          </div>
+        </div>
+        <div className={`text-sm font-medium pt-1 ${isOlder ? 'italic' : ''}`}>
+          Impact: {achievement.impact || 0}/10
+        </div>
+      </div>
+    </div>
+  );
+
   return (
     <Card style={cardStyle} className={selectedWorkstream ? 'border-2' : ''}>
       <CardHeader>
         <div className="flex items-start justify-between gap-4">
           <div className="flex-1 space-y-1.5">
             <CardTitle className="flex items-center gap-2 text-xl">
-              {selectedWorkstream && selectedWorkstream.color && (
+              {selectedWorkstream?.color && (
                 <div
                   className="size-3 rounded-full flex-shrink-0"
                   style={{ backgroundColor: selectedWorkstream.color }}
@@ -148,134 +321,80 @@ export function WorkstreamAchievementsTable({
             </p>
           </div>
         ) : (
-          <div className="hidden md:block overflow-hidden rounded-lg border">
-            <Table>
-              <TableHeader className="bg-muted">
-                <TableRow>
-                  <TableHead>Achievement</TableHead>
-                  <TableHead>Project</TableHead>
-                  <TableHead>Company</TableHead>
-                  <TableHead>Date</TableHead>
-                  <TableHead className="text-right">Impact</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filteredAchievements.map((achievement) => (
-                  <TableRow key={achievement.id}>
-                    <TableCell className="max-w-sm">
-                      <div className="flex flex-col gap-1">
-                        <div className="font-medium line-clamp-2">
-                          {achievement.title}
-                        </div>
-                        {achievement.summary && (
-                          <div className="text-sm text-muted-foreground line-clamp-1">
-                            {achievement.summary}
-                          </div>
-                        )}
-                        <Badge variant="secondary" className="w-fit text-xs">
-                          {achievement.source}
-                        </Badge>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      {achievement.project ? (
-                        <div className="flex items-center gap-2">
-                          <IconFolder className="size-4 text-muted-foreground" />
-                          <span className="text-sm">
-                            {achievement.project.name}
-                          </span>
-                        </div>
-                      ) : (
-                        <span className="text-sm text-muted-foreground">
-                          No project
-                        </span>
+          <>
+            {/* Desktop Table View */}
+            <div className="hidden md:block space-y-4">
+              <div className="overflow-hidden rounded-lg border">
+                <Table>
+                  <TableHeader className="bg-muted">
+                    <TableRow>
+                      <TableHead>Achievement</TableHead>
+                      <TableHead>Project</TableHead>
+                      <TableHead>Company</TableHead>
+                      <TableHead>Date</TableHead>
+                      <TableHead className="text-right">Impact</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {filteredAchievements.map((achievement) =>
+                      renderAchievementRow(achievement),
+                    )}
+                    {showOlderAchievements &&
+                      olderAchievements.map((achievement) =>
+                        renderAchievementRow(achievement, true),
                       )}
-                    </TableCell>
-                    <TableCell>
-                      {achievement.company ? (
-                        <div className="flex items-center gap-2">
-                          <IconBuilding className="size-4 text-muted-foreground" />
-                          <span className="text-sm">
-                            {achievement.company.name}
-                          </span>
-                        </div>
-                      ) : (
-                        <span className="text-sm text-muted-foreground">
-                          No company
-                        </span>
-                      )}
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex items-center gap-2">
-                        <IconCalendar className="size-4 text-muted-foreground" />
-                        <span className="text-sm">
-                          {achievement.eventStart
-                            ? format(achievement.eventStart, 'MMM d, yyyy')
-                            : format(achievement.createdAt, 'MMM d, yyyy')}
-                        </span>
-                      </div>
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <span className="text-sm font-medium">
-                        {achievement.impact || 0}/10
-                      </span>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </div>
-        )}
-
-        {/* Mobile List View */}
-        {filteredAchievements.length > 0 && (
-          <div className="md:hidden space-y-4">
-            {filteredAchievements.map((achievement) => (
-              <div
-                key={achievement.id}
-                className="border-b border-border pb-4 last:border-b-0"
-              >
-                <div className="space-y-2">
-                  <div className="flex flex-col gap-1">
-                    <div className="font-medium">{achievement.title}</div>
-                    {achievement.summary && (
-                      <div className="text-sm text-muted-foreground">
-                        {achievement.summary}
-                      </div>
-                    )}
-                    <Badge variant="secondary" className="w-fit text-xs">
-                      {achievement.source}
-                    </Badge>
-                  </div>
-                  <div className="text-sm space-y-1 text-muted-foreground">
-                    {achievement.project && (
-                      <div className="flex items-center gap-2">
-                        <IconFolder className="size-4" />
-                        <span>{achievement.project.name}</span>
-                      </div>
-                    )}
-                    {achievement.company && (
-                      <div className="flex items-center gap-2">
-                        <IconBuilding className="size-4" />
-                        <span>{achievement.company.name}</span>
-                      </div>
-                    )}
-                    <div className="flex items-center gap-2">
-                      <IconCalendar className="size-4" />
-                      <span>
-                        {achievement.eventStart
-                          ? format(achievement.eventStart, 'MMM d, yyyy')
-                          : format(achievement.createdAt, 'MMM d, yyyy')}
-                      </span>
-                    </div>
-                  </div>
-                  <div className="text-sm font-medium pt-1">
-                    Impact: {achievement.impact || 0}/10
-                  </div>
-                </div>
+                  </TableBody>
+                </Table>
               </div>
-            ))}
-          </div>
+
+              {/* Toggle Button for Older Achievements (Desktop) */}
+              {olderAchievements.length > 0 && (
+                <div className="flex justify-center">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() =>
+                      setShowOlderAchievements(!showOlderAchievements)
+                    }
+                  >
+                    {showOlderAchievements
+                      ? 'Hide older achievements'
+                      : `${olderAchievements.length} older achievement${olderAchievements.length === 1 ? '' : 's'} hidden`}
+                  </Button>
+                </div>
+              )}
+            </div>
+
+            {/* Mobile List View */}
+            <div className="md:hidden space-y-4">
+              <div className="space-y-4">
+                {filteredAchievements.map((achievement) =>
+                  renderAchievementCard(achievement),
+                )}
+                {showOlderAchievements &&
+                  olderAchievements.map((achievement) =>
+                    renderAchievementCard(achievement, true),
+                  )}
+              </div>
+
+              {/* Toggle Button for Older Achievements (Mobile) */}
+              {olderAchievements.length > 0 && (
+                <div className="flex justify-center pt-4">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() =>
+                      setShowOlderAchievements(!showOlderAchievements)
+                    }
+                  >
+                    {showOlderAchievements
+                      ? 'Hide older achievements'
+                      : `${olderAchievements.length} older achievement${olderAchievements.length === 1 ? '' : 's'} hidden`}
+                  </Button>
+                </div>
+              )}
+            </div>
+          </>
         )}
       </CardContent>
     </Card>
