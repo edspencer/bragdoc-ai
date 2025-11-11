@@ -1,8 +1,9 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { WorkstreamsGanttChart } from './workstreams-gantt-chart';
 import { WorkstreamAchievementsTable } from './workstream-achievements-table';
+import { WorkstreamSelectionZeroState } from './workstream-selection-zero-state';
 import { useWorkstreams } from '@/hooks/use-workstreams';
 import { subMonths, startOfDay, endOfDay } from 'date-fns';
 import type { Workstream } from '@bragdoc/database';
@@ -57,15 +58,43 @@ export function WorkstreamsClient({
   achievements,
   initialPreset,
 }: WorkstreamsClientProps) {
+  // Track selection: null = zero state, 'unassigned' = show unassigned, string ID = selected workstream
   const [selectedWorkstreamId, setSelectedWorkstreamId] = useState<
     string | null
   >(null);
+  const [showUnassigned, setShowUnassigned] = useState(false);
 
   const { startDate, endDate } = calculateDateRange(initialPreset);
 
   // Use the hook for generation capabilities
   const { generateWorkstreams, isGenerating, generationStatus } =
     useWorkstreams(startDate, endDate);
+
+  // Calculate unassigned count
+  const unassignedCount = useMemo(() => {
+    return achievements.filter((a) => !a.workstreamId).length;
+  }, [achievements]);
+
+  // Handle workstream selection from Gantt chart
+  const handleSelectWorkstream = (workstreamId: string | null) => {
+    setSelectedWorkstreamId(workstreamId);
+    setShowUnassigned(false);
+  };
+
+  // Handle "show unassigned" button click
+  const handleShowUnassigned = () => {
+    setShowUnassigned(true);
+    setSelectedWorkstreamId(null);
+  };
+
+  // Handle closing the unassigned view
+  const handleCloseUnassigned = () => {
+    setShowUnassigned(false);
+    setSelectedWorkstreamId(null);
+  };
+
+  // Determine what to show in the bottom section
+  const showZeroState = !selectedWorkstreamId && !showUnassigned;
 
   return (
     <>
@@ -74,23 +103,31 @@ export function WorkstreamsClient({
         workstreams={workstreams}
         achievements={achievements}
         selectedWorkstreamId={selectedWorkstreamId}
-        onSelectWorkstream={setSelectedWorkstreamId}
+        onSelectWorkstream={handleSelectWorkstream}
         startDate={startDate}
         endDate={endDate}
         isLoading={false}
       />
 
-      {/* Achievements Table */}
-      <WorkstreamAchievementsTable
-        achievements={achievements}
-        workstreams={workstreams}
-        selectedWorkstreamId={selectedWorkstreamId}
-        onGenerateWorkstreams={generateWorkstreams}
-        isGenerating={isGenerating}
-        generationStatus={generationStatus}
-        startDate={startDate}
-        endDate={endDate}
-      />
+      {/* Zero State or Achievements Table */}
+      {showZeroState ? (
+        <WorkstreamSelectionZeroState
+          unassignedCount={unassignedCount}
+          onShowUnassigned={handleShowUnassigned}
+        />
+      ) : (
+        <WorkstreamAchievementsTable
+          achievements={achievements}
+          workstreams={workstreams}
+          selectedWorkstreamId={showUnassigned ? null : selectedWorkstreamId}
+          onGenerateWorkstreams={generateWorkstreams}
+          onClose={showUnassigned ? handleCloseUnassigned : undefined}
+          isGenerating={isGenerating}
+          generationStatus={generationStatus}
+          startDate={startDate}
+          endDate={endDate}
+        />
+      )}
     </>
   );
 }

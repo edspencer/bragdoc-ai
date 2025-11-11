@@ -4,7 +4,18 @@
  * Reusable query functions for workstream and achievement management.
  */
 
-import { and, desc, eq, isNull, gte, lte, inArray } from 'drizzle-orm';
+import {
+  and,
+  desc,
+  eq,
+  isNull,
+  isNotNull,
+  gte,
+  lte,
+  inArray,
+  count,
+  sql,
+} from 'drizzle-orm';
 import { db } from '../index';
 import {
   workstream,
@@ -219,8 +230,51 @@ export async function getAchievementsByUserIdWithDates(
 }
 
 /**
+ * Get achievement counts for a user with optional date filtering
+ * Uses SQL COUNT for performance - returns only counts, not full records
+ *
+ * @param userId - User ID to scope query
+ * @param startDate - Start date for filtering (inclusive), optional
+ * @param endDate - End date for filtering (inclusive), optional
+ * @returns Object with total count and unassigned count
+ */
+export async function getAchievementCounts(
+  userId: string,
+  startDate?: Date,
+  endDate?: Date,
+): Promise<{
+  total: number;
+  unassigned: number;
+}> {
+  const conditions = [eq(achievement.userId, userId)];
+
+  // Add date filtering if provided
+  if (startDate) {
+    conditions.push(gte(achievement.eventStart, startDate));
+  }
+  if (endDate) {
+    conditions.push(lte(achievement.eventStart, endDate));
+  }
+
+  // Single SQL query to get both counts efficiently
+  const result = await db
+    .select({
+      total: count(),
+      unassigned: sql<number>`count(*) filter (where ${achievement.workstreamId} is null)`,
+    })
+    .from(achievement)
+    .where(and(...conditions));
+
+  return {
+    total: result[0]?.total ?? 0,
+    unassigned: result[0]?.unassigned ?? 0,
+  };
+}
+
+/**
  * Calculate counts for achievements in a date range
  * Returns total count, unassigned count, and workstream IDs with achievements in range
+ * Uses SQL COUNT and selectDistinct for optimal performance
  *
  * @param userId - User ID to scope query
  * @param startDate - Start date for filtering (inclusive), optional
@@ -236,33 +290,42 @@ export async function getWorkstreamCountsWithDateFilter(
   unassignedCount: number;
   workstreamIds: string[];
 }> {
-  // Fetch achievements in date range using the helper function
-  const achievementsInRange = await getAchievementsByUserIdWithDates(
-    userId,
-    startDate,
-    endDate,
-  );
+  const conditions = [eq(achievement.userId, userId)];
 
-  // Count achievements with embeddings
-  const achievementCount = achievementsInRange.length;
+  // Add date filtering if provided
+  if (startDate) {
+    conditions.push(gte(achievement.eventStart, startDate));
+  }
+  if (endDate) {
+    conditions.push(lte(achievement.eventStart, endDate));
+  }
 
-  // Count unassigned achievements (where workstreamId is null)
-  const unassignedCount = achievementsInRange.filter(
-    (ach) => ach.workstreamId === null,
-  ).length;
+  // Run both queries in parallel for optimal performance
+  const [countsResult, workstreamIdsResult] = await Promise.all([
+    // Query 1: Get counts using SQL COUNT
+    db
+      .select({
+        total: count(),
+        unassigned: sql<number>`count(*) filter (where ${achievement.workstreamId} is null)`,
+      })
+      .from(achievement)
+      .where(and(...conditions)),
 
-  // Collect unique workstream IDs from achievements that have them
-  const workstreamIds = Array.from(
-    new Set(
-      achievementsInRange
-        .filter((ach) => ach.workstreamId !== null)
-        .map((ach) => ach.workstreamId as string),
-    ),
-  );
+    // Query 2: Get distinct workstream IDs (only non-null)
+    db
+      .selectDistinct({ id: achievement.workstreamId })
+      .from(achievement)
+      .where(and(...conditions, isNotNull(achievement.workstreamId))),
+  ]);
+
+  // Extract workstream IDs, filtering out any nulls
+  const workstreamIds = workstreamIdsResult
+    .map((r) => r.id)
+    .filter((id): id is string => id !== null);
 
   return {
-    achievementCount,
-    unassignedCount,
+    achievementCount: countsResult[0]?.total ?? 0,
+    unassignedCount: countsResult[0]?.unassigned ?? 0,
     workstreamIds,
   };
 }

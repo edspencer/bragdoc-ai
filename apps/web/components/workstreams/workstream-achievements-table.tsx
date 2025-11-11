@@ -30,6 +30,7 @@ interface WorkstreamAchievementsTableProps {
   workstreams: Workstream[];
   selectedWorkstreamId: string | null;
   onGenerateWorkstreams?: () => void;
+  onClose?: () => void;
   isGenerating?: boolean;
   generationStatus?: string;
   startDate?: Date;
@@ -41,6 +42,7 @@ export function WorkstreamAchievementsTable({
   workstreams,
   selectedWorkstreamId,
   onGenerateWorkstreams,
+  onClose,
   isGenerating,
   generationStatus,
   startDate,
@@ -283,21 +285,30 @@ export function WorkstreamAchievementsTable({
           </div>
           {!selectedWorkstreamId &&
             filteredAchievements.length > 0 &&
-            onGenerateWorkstreams && (
-              <Button
-                size="sm"
-                onClick={onGenerateWorkstreams}
-                disabled={isGenerating}
-              >
-                {isGenerating ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    {generationStatus || 'Assigning...'}
-                  </>
-                ) : (
-                  'Assign to Workstreams'
+            (onGenerateWorkstreams || onClose) && (
+              <div className="flex gap-2">
+                {onGenerateWorkstreams && (
+                  <Button
+                    size="sm"
+                    onClick={onGenerateWorkstreams}
+                    disabled={isGenerating}
+                  >
+                    {isGenerating ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        {generationStatus || 'Auto-assigning...'}
+                      </>
+                    ) : (
+                      'Auto-assign to Workstreams'
+                    )}
+                  </Button>
                 )}
-              </Button>
+                {onClose && (
+                  <Button size="sm" variant="outline" onClick={onClose}>
+                    Close
+                  </Button>
+                )}
+              </div>
             )}
         </div>
       </CardHeader>

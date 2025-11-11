@@ -129,6 +129,7 @@ export {
   getTotalAchievementCount,
   unassignAchievementsFromWorkstream,
   getAchievementsByUserIdWithDates,
+  getAchievementCounts,
   getWorkstreamCountsWithDateFilter,
   getWorkstreamsByUserIdWithDateFilter,
 } from './workstreams/queries';

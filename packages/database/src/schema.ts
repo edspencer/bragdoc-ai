@@ -17,6 +17,7 @@ import {
   smallint,
   vector,
   real,
+  index,
 } from 'drizzle-orm/pg-core';
 
 export interface UserPreferences {
@@ -184,45 +185,62 @@ export const achievement = pgTable(
     ),
     embeddingGeneratedAt: timestamp('embedding_generated_at'),
   },
-  (table) => {
-    return {
-      relations: {
-        company: { fields: [table.companyId], references: [company.id] },
-        project: { fields: [table.projectId], references: [project.id] },
-        userMessage: {
-          fields: [table.userMessageId],
-          references: [userMessage.id],
-        },
-      },
-    };
-  },
+  (table) => ({
+    // Performance indexes for workstreams feature
+    // Composite index for common query pattern: userId + eventStart filtering
+    userEventStartIdx: index('achievement_user_event_start_idx').on(
+      table.userId,
+      table.eventStart,
+    ),
+    // Index for workstream filtering and joins
+    workstreamIdIdx: index('achievement_workstream_id_idx').on(
+      table.workstreamId,
+    ),
+    // Individual index for user-scoped queries
+    userIdIdx: index('achievement_user_id_idx').on(table.userId),
+    // Index for date range queries
+    eventStartIdx: index('achievement_event_start_idx').on(table.eventStart),
+  }),
 );
 
 export type Achievement = InferSelectModel<typeof achievement>;
 
-export const workstream = pgTable('Workstream', {
-  id: uuid('id').primaryKey().notNull().defaultRandom(),
-  userId: uuid('user_id')
-    .notNull()
-    .references(() => user.id, { onDelete: 'cascade' }),
+export const workstream = pgTable(
+  'Workstream',
+  {
+    id: uuid('id').primaryKey().notNull().defaultRandom(),
+    userId: uuid('user_id')
+      .notNull()
+      .references(() => user.id, { onDelete: 'cascade' }),
 
-  // Core fields
-  name: varchar('name', { length: 256 }).notNull(),
-  description: text('description'),
-  color: varchar('color', { length: 7 }).default('#3B82F6'),
+    // Core fields
+    name: varchar('name', { length: 256 }).notNull(),
+    description: text('description'),
+    color: varchar('color', { length: 7 }).default('#3B82F6'),
 
-  // Centroid caching for fast incremental assignment
-  centroidEmbedding: vector('centroid_embedding', { dimensions: 1536 }),
-  centroidUpdatedAt: timestamp('centroid_updated_at'),
+    // Centroid caching for fast incremental assignment
+    centroidEmbedding: vector('centroid_embedding', { dimensions: 1536 }),
+    centroidUpdatedAt: timestamp('centroid_updated_at'),
 
-  // Metadata
-  achievementCount: integer('achievement_count').default(0),
-  isArchived: boolean('is_archived').default(false),
+    // Metadata
+    achievementCount: integer('achievement_count').default(0),
+    isArchived: boolean('is_archived').default(false),
 
-  // Auditing
-  createdAt: timestamp('created_at').notNull().defaultNow(),
-  updatedAt: timestamp('updated_at').notNull().defaultNow(),
-});
+    // Auditing
+    createdAt: timestamp('created_at').notNull().defaultNow(),
+    updatedAt: timestamp('updated_at').notNull().defaultNow(),
+  },
+  (table) => ({
+    // Performance indexes for workstreams queries
+    // Individual index for user-scoped queries
+    userIdIdx: index('workstream_user_id_idx').on(table.userId),
+    // Composite index for filtering active/archived workstreams by user
+    userArchivedIdx: index('workstream_user_archived_idx').on(
+      table.userId,
+      table.isArchived,
+    ),
+  }),
+);
 
 export type Workstream = InferSelectModel<typeof workstream>;
 
