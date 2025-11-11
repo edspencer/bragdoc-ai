@@ -341,113 +341,143 @@ export function WorkstreamsGanttChart({
 
             {/* Gantt rows */}
             <div className="space-y-2">
-              {workstreamData.map((wsData) => (
-                <div
-                  key={wsData.workstream.id}
-                  className="flex items-center gap-4"
-                >
-                  {/* Workstream name */}
-                  <div className="w-64 flex-shrink-0">
-                    <div className="flex items-center gap-2">
+              {workstreamData.map((wsData) => {
+                const isSelected =
+                  selectedWorkstreamId === wsData.workstream.id;
+                const color = wsData.workstream.color || '#3B82F6';
+                return (
+                  <div
+                    key={wsData.workstream.id}
+                    className="flex items-center gap-4"
+                  >
+                    {/* Workstream name */}
+                    <div className="w-64 flex-shrink-0">
                       <div
-                        className="w-3 h-3 rounded-sm flex-shrink-0"
-                        style={{
-                          backgroundColor: wsData.workstream.color || '#3B82F6',
+                        role="button"
+                        tabIndex={0}
+                        className="flex items-center gap-2 cursor-pointer"
+                        onClick={() =>
+                          onSelectWorkstream?.(
+                            isSelected ? null : wsData.workstream.id,
+                          )
+                        }
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter' || e.key === ' ') {
+                            e.preventDefault();
+                            onSelectWorkstream?.(
+                              isSelected ? null : wsData.workstream.id,
+                            );
+                          }
                         }}
-                      />
-                      <span className="text-sm font-medium truncate">
-                        {wsData.workstream.name}
-                      </span>
-                    </div>
-                  </div>
-
-                  {/* Timeline */}
-                  <div className="flex-1 relative h-8">
-                    {/* Month grid lines */}
-                    <div className="absolute inset-0 flex">
-                      {months.map((_, idx) => (
+                      >
                         <div
-                          key={idx}
-                          className="flex-1 border-l first:border-l-0 border-gray-200 dark:border-gray-700"
+                          className="w-3 h-3 rounded-sm flex-shrink-0 transition-all"
+                          style={{
+                            backgroundColor: color,
+                            boxShadow: isSelected
+                              ? `0 0 0 2px ${color}40, 0 0 8px 2px ${color}60`
+                              : undefined,
+                          }}
                         />
-                      ))}
+                        <span
+                          className={`text-sm truncate transition-all ${
+                            isSelected ? 'font-bold' : 'font-medium'
+                          }`}
+                        >
+                          {wsData.workstream.name}
+                        </span>
+                      </div>
                     </div>
 
-                    {/* Workstream bars (one per segment) */}
-                    {wsData.segments.map((segment, segIdx) => {
-                      const barStyle = getBarStyle(
-                        segment,
-                        wsData.workstream.color || '#3B82F6',
-                      );
-                      const isSelected =
-                        selectedWorkstreamId === wsData.workstream.id;
-                      return (
-                        <Tooltip key={segIdx}>
-                          <TooltipTrigger asChild>
-                            <div
-                              role="button"
-                              tabIndex={0}
-                              className={`absolute top-1 h-6 rounded transition-all hover:opacity-100 cursor-pointer ${
-                                isSelected
-                                  ? 'ring-2 ring-offset-1 ring-yellow-400 shadow-lg'
-                                  : ''
-                              }`}
-                              style={barStyle}
-                              onClick={() =>
-                                onSelectWorkstream?.(
-                                  isSelected ? null : wsData.workstream.id,
-                                )
-                              }
-                              onKeyDown={(e) => {
-                                if (e.key === 'Enter' || e.key === ' ') {
-                                  e.preventDefault();
+                    {/* Timeline */}
+                    <div className="flex-1 relative h-8">
+                      {/* Month grid lines */}
+                      <div className="absolute inset-0 flex">
+                        {months.map((_, idx) => (
+                          <div
+                            key={idx}
+                            className="flex-1 border-l first:border-l-0 border-gray-200 dark:border-gray-700"
+                          />
+                        ))}
+                      </div>
+
+                      {/* Workstream bars (one per segment) */}
+                      {wsData.segments.map((segment, segIdx) => {
+                        const barStyle = getBarStyle(
+                          segment,
+                          wsData.workstream.color || '#3B82F6',
+                        );
+                        const isSelected =
+                          selectedWorkstreamId === wsData.workstream.id;
+                        return (
+                          <Tooltip key={segIdx}>
+                            <TooltipTrigger asChild>
+                              <div
+                                role="button"
+                                tabIndex={0}
+                                className="absolute top-1 h-6 rounded transition-all hover:opacity-100 cursor-pointer"
+                                style={{
+                                  ...barStyle,
+                                  boxShadow: isSelected
+                                    ? `0 0 0 1px white, 0 0 0 3px ${color}, 0 4px 6px -1px rgba(0, 0, 0, 0.1)`
+                                    : undefined,
+                                }}
+                                onClick={() =>
                                   onSelectWorkstream?.(
                                     isSelected ? null : wsData.workstream.id,
-                                  );
+                                  )
                                 }
-                              }}
-                            >
-                              <div className="h-full flex items-center justify-center">
-                                <span className="text-xs font-medium text-white px-2 truncate">
-                                  {segment.achievementCount}
-                                </span>
-                              </div>
-                            </div>
-                          </TooltipTrigger>
-                          <TooltipContent side="top" className="max-w-xs">
-                            <div className="space-y-1">
-                              <div className="font-semibold">
-                                {wsData.workstream.name}
-                              </div>
-                              <div className="text-xs opacity-90">
-                                {formatDateRange(segment)}
-                              </div>
-                              <div className="text-xs space-y-0.5 pt-1">
-                                <div>
-                                  {segment.achievementCount} achievement
-                                  {segment.achievementCount === 1 ? '' : 's'}
-                                </div>
-                                <div>Total impact: {segment.totalImpact}</div>
-                                <div>
-                                  Impact density:{' '}
-                                  {segment.impactDensity.toFixed(2)} per day
-                                </div>
-                                <div className="opacity-70 pt-0.5 border-t border-white/20 mt-1">
-                                  Opacity:{' '}
-                                  {(
-                                    (barStyle._calculatedOpacity || 1) * 100
-                                  ).toFixed(0)}
-                                  %
+                                onKeyDown={(e) => {
+                                  if (e.key === 'Enter' || e.key === ' ') {
+                                    e.preventDefault();
+                                    onSelectWorkstream?.(
+                                      isSelected ? null : wsData.workstream.id,
+                                    );
+                                  }
+                                }}
+                              >
+                                <div className="h-full flex items-center justify-center">
+                                  <span className="text-xs font-medium text-white px-2 truncate">
+                                    {segment.achievementCount}
+                                  </span>
                                 </div>
                               </div>
-                            </div>
-                          </TooltipContent>
-                        </Tooltip>
-                      );
-                    })}
+                            </TooltipTrigger>
+                            <TooltipContent side="top" className="max-w-xs">
+                              <div className="space-y-1">
+                                <div className="font-semibold">
+                                  {wsData.workstream.name}
+                                </div>
+                                <div className="text-xs opacity-90">
+                                  {formatDateRange(segment)}
+                                </div>
+                                <div className="text-xs space-y-0.5 pt-1">
+                                  <div>
+                                    {segment.achievementCount} achievement
+                                    {segment.achievementCount === 1 ? '' : 's'}
+                                  </div>
+                                  <div>Total impact: {segment.totalImpact}</div>
+                                  <div>
+                                    Impact density:{' '}
+                                    {segment.impactDensity.toFixed(2)} per day
+                                  </div>
+                                  <div className="opacity-70 pt-0.5 border-t border-white/20 mt-1">
+                                    Opacity:{' '}
+                                    {(
+                                      (barStyle._calculatedOpacity || 1) * 100
+                                    ).toFixed(0)}
+                                    %
+                                  </div>
+                                </div>
+                              </div>
+                            </TooltipContent>
+                          </Tooltip>
+                        );
+                      })}
+                    </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </div>
         </TooltipProvider>
