@@ -19,6 +19,38 @@ jest.mock('ai', () => ({
   embed: jest.fn(),
 }));
 
+// Helper function to parse SSE response
+async function parseSSEResponse(response: Response) {
+  const reader = response.body?.getReader();
+  if (!reader) throw new Error('No response body');
+
+  const decoder = new TextDecoder();
+  let buffer = '';
+  let result = null;
+
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+
+    buffer += decoder.decode(value, { stream: true });
+    const lines = buffer.split('\n');
+    buffer = lines.pop() || '';
+
+    for (const line of lines) {
+      if (line.startsWith('data: ')) {
+        const data = JSON.parse(line.slice(6));
+        if (data.type === 'complete') {
+          result = data.result;
+        } else if (data.type === 'error') {
+          throw new Error(data.message);
+        }
+      }
+    }
+  }
+
+  return result;
+}
+
 const mockUser = {
   id: '123e4567-e89b-12d3-a456-426614174000',
   email: 'test@example.com',
@@ -75,7 +107,10 @@ describe('POST /api/workstreams/generate', () => {
     );
 
     const response = await POST(request);
+    // Auth check happens before SSE stream, so this still returns JSON
     expect(response.status).toBe(401);
+    const data = await response.json();
+    expect(data.error).toBe('Unauthorized');
   });
 
   it('returns 400 for less than 20 achievements', async () => {
@@ -110,9 +145,17 @@ describe('POST /api/workstreams/generate', () => {
     );
 
     const response = await POST(request);
-    expect(response.status).toBe(400);
-    const data = await response.json();
-    expect(data.error).toBe('Insufficient achievements');
+    expect(response.status).toBe(200); // SSE always returns 200
+    expect(response.headers.get('content-type')).toBe('text/event-stream');
+
+    // Parse SSE error
+    try {
+      await parseSSEResponse(response);
+      fail('Should have thrown an error');
+    } catch (error) {
+      expect(error).toBeInstanceOf(Error);
+      expect((error as Error).message).toContain('20 achievements');
+    }
   });
 
   it('performs full clustering on first run', async () => {
@@ -150,7 +193,10 @@ describe('POST /api/workstreams/generate', () => {
 
     const response = await POST(request);
     expect(response.status).toBe(200);
-    const data = await response.json();
+    expect(response.headers.get('content-type')).toBe('text/event-stream');
+
+    const data = await parseSSEResponse(response);
+    expect(data).toBeDefined();
     expect(data.strategy).toBe('full');
     expect(data.reason).toBeDefined();
     expect(typeof data.workstreamsCreated).toBe('number');
@@ -202,7 +248,8 @@ describe('POST /api/workstreams/generate', () => {
 
     const response = await POST(request);
     expect(response.status).toBe(200);
-    const data = await response.json();
+    const data = await parseSSEResponse(response);
+    expect(data).toBeDefined();
     expect(typeof data.embeddingsGenerated).toBe('number');
     expect(data.embeddingsGenerated).toBeGreaterThanOrEqual(0);
   });
@@ -242,7 +289,8 @@ describe('POST /api/workstreams/generate', () => {
 
     const response = await POST(request);
     expect(response.status).toBe(200);
-    const data = await response.json();
+    const data = await parseSSEResponse(response);
+    expect(data).toBeDefined();
 
     expect(data).toHaveProperty('strategy');
     expect(data).toHaveProperty('reason');
@@ -285,7 +333,8 @@ describe('POST /api/workstreams/generate', () => {
 
       const response = await POST(request);
       expect(response.status).toBe(200);
-      const data = await response.json();
+      const data = await parseSSEResponse(response);
+      expect(data).toBeDefined();
 
       // Verify strategy is 'full'
       expect(data.strategy).toBe('full');
@@ -366,7 +415,8 @@ describe('POST /api/workstreams/generate', () => {
 
       const response = await POST(request);
       expect(response.status).toBe(200);
-      const data = await response.json();
+      const data = await parseSSEResponse(response);
+      expect(data).toBeDefined();
 
       // Check outlier achievements
       if (data.outlierAchievements.length > 0) {
@@ -437,6 +487,7 @@ describe('POST /api/workstreams/generate', () => {
 
       const response1 = await POST(request1);
       expect(response1.status).toBe(200);
+      await parseSSEResponse(response1); // Consume the response
 
       // Add a few more achievements to trigger incremental
       for (let i = 0; i < 5; i++) {
@@ -472,7 +523,8 @@ describe('POST /api/workstreams/generate', () => {
 
       const response2 = await POST(request2);
       expect(response2.status).toBe(200);
-      const data = await response2.json();
+      const data = await parseSSEResponse(response2);
+      expect(data).toBeDefined();
 
       // This should likely be incremental, but could be full depending on clustering decision
       // If it is incremental, verify structure
@@ -537,7 +589,8 @@ describe('POST /api/workstreams/generate', () => {
 
       const response = await POST(request);
       expect(response.status).toBe(200);
-      const data = await response.json();
+      const data = await parseSSEResponse(response);
+      expect(data).toBeDefined();
 
       if (data.strategy === 'full') {
         // Full clustering must have these fields
