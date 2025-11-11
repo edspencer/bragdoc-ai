@@ -59,3 +59,4 @@ scratch
 tasks
 
 .claude/docs/after-action-reports
+.env.sentry-build-plugin

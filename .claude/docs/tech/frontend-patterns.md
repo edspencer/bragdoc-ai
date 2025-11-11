@@ -24,6 +24,7 @@ export default async function AchievementsPage() {
 ```
 
 **Benefits:**
+
 - Zero JavaScript sent to client
 - Direct database access
 - SEO-friendly
@@ -48,6 +49,7 @@ export function AchievementForm() {
 ```
 
 **When to use:**
+
 - User interactivity (state, events)
 - Browser APIs (localStorage, etc.)
 - React hooks (useState, useEffect)
@@ -60,6 +62,7 @@ export function AchievementForm() {
 **Architecture:** Split responsibility between Server Component (data) and Client Component (interactivity).
 
 **Server Component Responsibilities:**
+
 - Authenticate user via `auth()`
 - Fetch entity by ID with database joins (e.g., document + company)
 - Scope ALL queries by `userId` for security
@@ -68,12 +71,14 @@ export function AchievementForm() {
 - Pass typed data as props to client component
 
 **Client Component Responsibilities:**
+
 - Manage local state for optimistic updates
 - Handle user interactions (edit, delete, print)
 - Call API routes for persistence
 - Use `router.push()` or `router.refresh()` for navigation/revalidation
 
 **Key Principles:**
+
 - **Never use `redirect()` in server components** - breaks Cloudflare Workers builds
 - **Always scope by userId** - both in initial fetch and in API routes
 - **Use shared types** from `@bragdoc/database` (e.g., `DocumentWithCompany`)
@@ -90,12 +95,14 @@ export function AchievementForm() {
 **Critical Requirement:** Documents MUST have a `chatId` field to load the conversation context. Legacy documents without `chatId` cannot use the canvas editor.
 
 **Implementation Steps:**
+
 1. Import `useArtifact` hook and destructure `setArtifact`
 2. Validate `chatId` exists - show error toast and log if missing
 3. Call `setArtifact()` with required fields: `documentId`, `chatId`, `kind`, `title`, `content`, `isVisible: true`, `status: 'idle'`
 4. Global canvas renders automatically via shared layout
 
 **Error Handling:**
+
 - Always validate `chatId` exists before calling `setArtifact()`
 - Show user-friendly toast: "This document is missing a chat. Please contact support."
 - Log error details for debugging legacy data issues
@@ -109,6 +116,7 @@ export function AchievementForm() {
 **Approach:** Use Tailwind's `print:` variant to conditionally apply styles only when printing.
 
 **Elements to Hide:**
+
 - Navigation (back links, breadcrumbs)
 - Action buttons (Edit, Delete, Print)
 - Dialogs and modals
@@ -116,6 +124,7 @@ export function AchievementForm() {
 - Hover effects and shadows
 
 **Elements to Keep:**
+
 - Main content with Markdown rendering
 - Document title and metadata
 - Company/date information (if relevant to printed document)
@@ -133,16 +142,19 @@ export function AchievementForm() {
 **Architecture:** Controlled dialog with callback-based optimistic updates.
 
 **Component Structure:**
+
 - **Dialog props**: `open`, `onOpenChange`, entity data, related data (e.g., companies dropdown)
 - **Callback prop**: `onUpdate(updates)` - parent calls this to update its local state optimistically
 - **Local state**: Form fields (title, type, etc.), loading state
 
 **Validation Flow:**
+
 1. Use Zod schema for client-side validation
 2. Validate on submit - show toast error if validation fails
 3. Only proceed to API call if validation passes
 
 **Optimistic Update Flow:**
+
 1. Call `onUpdate()` callback immediately with new values
 2. Parent updates its local state instantly (user sees change)
 3. Make API PUT request in background
@@ -150,11 +162,13 @@ export function AchievementForm() {
 5. On error: show toast, optionally rollback optimistic update
 
 **Loading States:**
+
 - Disable form fields during submission
 - Disable submit button with loading text ("Saving...")
 - Prevent dialog close during submission
 
 **Key UX Principles:**
+
 - Immediate visual feedback via optimistic updates
 - Clear validation errors via toast notifications
 - Loading states prevent double-submission
@@ -199,6 +213,7 @@ export default function YourPage() {
 ```
 
 **AppContent Component:**
+
 - **Location:** `apps/web/components/shared/app-content.tsx`
 - **Purpose:** Provides consistent responsive padding and gap spacing for page content
 - **Mobile spacing:** `p-2` and `gap-2` (< lg breakpoint)
@@ -239,6 +254,7 @@ When adding `SiteHeader` with action buttons:
 ```
 
 **Guidelines:**
+
 - Remove any duplicate `<h1>` titles (provided by `SiteHeader`)
 - Use `AppContent` wrapper for consistent responsive spacing (no need for manual `p-6 gap-6`)
 - Pass action buttons as children to `SiteHeader`
@@ -260,11 +276,19 @@ The `AppContent` component automatically handles page-level spacing:
 
 ```tsx
 // apps/web/components/shared/app-content.tsx
-export function AppContent({ children, className }: { children: React.ReactNode; className?: string }) {
+export function AppContent({
+  children,
+  className,
+}: {
+  children: React.ReactNode;
+  className?: string;
+}) {
   return (
     <div className="flex flex-1 flex-col">
       <div className="@container/main flex flex-1 flex-col gap-2">
-        <div className={cn('flex flex-col gap-2 p-2 md:p-6 md:gap-6', className)}>
+        <div
+          className={cn('flex flex-col gap-2 p-2 md:p-6 md:gap-6', className)}
+        >
           {children}
         </div>
       </div>
@@ -294,6 +318,7 @@ For components that need custom responsive spacing (not using `AppContent`):
 ### When to Use Manual Spacing
 
 Use manual responsive spacing when:
+
 - Building reusable components with internal spacing
 - Creating layouts within dialogs or cards
 - Implementing custom grid layouts
@@ -319,6 +344,7 @@ For single action buttons:
 ```
 
 **Behavior:**
+
 - **Mobile (< lg):** Shows icon only
 - **Desktop (lg+):** Shows icon + "Add Company" text
 
@@ -329,7 +355,7 @@ For multiple action buttons:
 ```tsx
 <SiteHeader title="Reports">
   <ReportActions />
-</SiteHeader>
+</SiteHeader>;
 
 // apps/web/app/(app)/reports/report-actions.tsx
 export function ReportActions() {
@@ -384,6 +410,7 @@ export function ReportActions() {
 ```
 
 **Behavior:**
+
 - **Mobile (< lg):** Shows single icon button that opens dropdown menu
 - **Desktop (lg+):** Shows all three buttons side-by-side
 
@@ -407,6 +434,7 @@ For detail page secondary actions:
 ```
 
 **Behavior:**
+
 - **Mobile (< lg):** Shows icon-only button
 - **Desktop (lg+):** Shows full button with text
 
@@ -446,7 +474,7 @@ import { IconTarget } from '@tabler/icons-react';
   }}
   footerDescription="Click to view all achievements"
   clickable
-/>
+/>;
 ```
 
 ### Props
@@ -490,21 +518,14 @@ interface StatProps {
 #### Basic Stat
 
 ```tsx
-<Stat
-  label="Total Projects"
-  value={12}
-/>
+<Stat label="Total Projects" value={12} />
 ```
 
 #### Clickable Stat with Link
 
 ```tsx
 <Link href="/achievements">
-  <Stat
-    label="Total Achievements"
-    value={84}
-    clickable
-  />
+  <Stat label="Total Achievements" value={84} clickable />
 </Link>
 ```
 
@@ -562,6 +583,7 @@ interface StatProps {
 Achievement editing uses a parent-managed dialog with callback-based mode switching. Child components (AchievementsTable, AchievementItem) expose `onEdit` callbacks that parent components handle by opening AchievementDialog in edit mode with the pre-selected achievement. The pattern mirrors the impact rating inline editing callback approach.
 
 **Key components:**
+
 - Parent page manages dialog state (open/closed, mode, selected achievement)
 - Child components call `onEdit(achievement)` when edit button clicked
 - AchievementDialog supports `mode` prop ('create' | 'edit')
@@ -580,12 +602,14 @@ The `AchievementItem` component provides a reusable, mobile-friendly layout for 
 **Location:** `apps/web/components/achievements/achievement-item.tsx`
 
 **When to use:**
+
 - Mobile views of achievement lists
 - Dashboard or detail page achievement displays
 - Narrow column layouts (e.g., stand-ups page half-width columns)
 - Any context where a compact, card-like layout is preferred over a full table
 
 **Key features:**
+
 - Displays `eventStart` date using relative time format (e.g., "3 days ago")
 - Shows impact rating via `ImpactRating` component with optional `onChange` callback for editing
 - Displays project name with color coding and optional source badge
@@ -593,6 +617,7 @@ The `AchievementItem` component provides a reusable, mobile-friendly layout for 
 - Handles null `eventStart` gracefully by only rendering the date if present
 
 **Component Interface:**
+
 ```typescript
 interface AchievementItemProps {
   achievement: AchievementWithRelations;
@@ -604,17 +629,22 @@ interface AchievementItemProps {
 ```
 
 **Current Usage:**
+
 - Achievements table (mobile view) - `apps/web/components/achievements-table.tsx`
 - Project details page - `apps/web/app/(app)/projects/[id]/page.tsx`
 - Stand-ups page - `apps/web/components/standups/recent-achievements-table.tsx` (both assigned and orphaned achievements)
 
 **Example:**
+
 ```tsx
 import { AchievementItem } from '@/components/achievements/achievement-item';
 
 <div className="space-y-4">
   {achievements.map((achievement) => (
-    <div key={achievement.id} className="border-b border-border pb-4 last:border-b-0">
+    <div
+      key={achievement.id}
+      className="border-b border-border pb-4 last:border-b-0"
+    >
       <AchievementItem
         achievement={achievement}
         onImpactChange={handleImpactChange}
@@ -624,7 +654,7 @@ import { AchievementItem } from '@/components/achievements/achievement-item';
       />
     </div>
   ))}
-</div>
+</div>;
 ```
 
 **Styling pattern:** Use `border-b border-border pb-4 last:border-b-0` to separate achievement items with bottom borders, removing the border on the last item.
@@ -636,6 +666,7 @@ The `AchievementsTable` component provides a full-featured table view for deskto
 **Location:** `apps/web/components/achievements-table.tsx`
 
 **Key features:**
+
 - Time period filtering (this-week, this-month, last-30-days, etc.) based on `eventStart` dates
 - Sorting by `eventStart` (descending) with `createdAt` as tiebreaker
 - Project and company filtering
@@ -652,12 +683,14 @@ Achievements are sorted by `eventStart` (most recent first) with `createdAt` as 
 ### When to Use Each Pattern
 
 **Use `AchievementItem` when:**
+
 - Displaying achievements on mobile or in narrow columns
 - Context requires a compact, scannable list
 - Want to show event dates prominently
 - Need consistent styling across different page contexts
 
 **Use `AchievementsTable` when:**
+
 - Full-featured table view is appropriate (desktop with wide space)
 - Need advanced filtering, sorting, and search
 - Bulk operations (selection) are required
@@ -670,6 +703,7 @@ Achievements are sorted by `eventStart` (most recent first) with `createdAt` as 
 **Why:** Users importing historical repositories or bulk-adding achievements will have a significant mismatch between `eventStart` (when the achievement occurred) and `createdAt` (when it was recorded in BragDoc). Sorting or filtering by `createdAt` produces counterintuitive results where old achievements appear first if recently imported.
 
 **Implementation:**
+
 ```typescript
 // Sort by eventStart (descending), with createdAt as tiebreaker
 const sorted = achievements.sort((a, b) => {
@@ -779,6 +813,7 @@ import { cn } from '@/lib/utils';
 **Location:** `apps/web/components/ui/`
 
 ### Common Components
+
 - Button, Input, Label, Textarea
 - Dialog, Popover, DropdownMenu
 - Table, Card, Tabs
@@ -1213,6 +1248,7 @@ export default async function Page() {
 ```
 
 **Why this matters**:
+
 - Cloudflare Workers use edge runtime which doesn't support `redirect()` during build
 - Proxy middleware at `apps/web/proxy.ts` handles authentication redirects at route level
 - Fallback UI is rarely shown to users since proxy catches unauthorized requests
@@ -1231,11 +1267,13 @@ Place zero state components in feature-specific subdirectories following the pat
 ### Other Zero State Examples
 
 **Standup Zero State**: `apps/web/components/standups/standup-zero-state.tsx`
+
 - Similar centered layout pattern
 - Guides users to set up standups
 - Uses same shadcn/ui components (Card, Button)
 
 **Achievement Zero State**: Could be added to `/achievements` page
+
 - "No achievements yet" message
 - Link to dashboard or CLI instructions
 - Create first achievement button
@@ -1311,7 +1349,8 @@ export function MagicLinkAuthForm({
             We've sent a magic link to <strong>{email}</strong>
           </p>
           <p className="text-sm text-gray-500 dark:text-zinc-500">
-            Click the link in the email to {mode === 'login' ? 'sign in' : 'complete your registration'}.
+            Click the link in the email to{' '}
+            {mode === 'login' ? 'sign in' : 'complete your registration'}.
           </p>
         </div>
         <Button
@@ -1353,9 +1392,7 @@ export function MagicLinkAuthForm({
       </div>
 
       {error && (
-        <div className="text-sm text-red-600 dark:text-red-400">
-          {error}
-        </div>
+        <div className="text-sm text-red-600 dark:text-red-400">{error}</div>
       )}
 
       {children}
@@ -1379,6 +1416,7 @@ export function MagicLinkAuthForm({
 ```
 
 **Key Features:**
+
 - **Two-state UI**: Email input form and "check your email" confirmation
 - **Mode prop**: Different text for login vs. registration
 - **Loading states**: "Sending magic link..." with pulsing icon
@@ -1389,6 +1427,7 @@ export function MagicLinkAuthForm({
 - **Dynamic import**: Better Auth signIn imported only when needed
 
 **Form State:**
+
 ```typescript
 <MagicLinkAuthForm mode="login" | "register">
   {/* Optional: ToS checkbox for registration */}
@@ -1397,12 +1436,14 @@ export function MagicLinkAuthForm({
 
 **Confirmation State:**
 After submitting email, the form displays:
+
 - Success icon (green checkmark in rounded circle)
 - Email address confirmation
 - Instructions to click the link
 - "Use a different email" option to restart
 
 **Implementation Details:**
+
 - Uses Better Auth's `signIn.magicLink()` method
 - No password fields
 - Mobile-responsive (padding adjusts on sm screens)
@@ -1460,7 +1501,8 @@ import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 
 export function SocialAuthButtons() {
-  const marketingSiteHost = process.env.NEXT_PUBLIC_MARKETING_SITE_HOST || 'https://www.bragdoc.ai';
+  const marketingSiteHost =
+    process.env.NEXT_PUBLIC_MARKETING_SITE_HOST || 'https://www.bragdoc.ai';
 
   return (
     <div className="flex flex-col gap-3 w-full">
@@ -1525,6 +1567,7 @@ export function SocialAuthButtons() {
 ```
 
 **Key Features:**
+
 - **Client Component**: Uses `'use client'` directive for onClick handlers
 - **ToS Acceptance Text**: Displayed between divider and buttons with proper spacing
 - **Clickable Links**: Terms and Privacy Policy links open in new tabs
@@ -1540,6 +1583,7 @@ export function SocialAuthButtons() {
 **Legal Text Styling Pattern:**
 
 When displaying legal text with links in components:
+
 1. Use muted text colors for main text (`text-gray-600 dark:text-zinc-400`)
 2. Use darker colors for links (`text-gray-800 dark:text-zinc-200`)
 3. Always include `underline` on links for visibility
@@ -1601,12 +1645,14 @@ export const config = {
 ```
 
 **Key Points**:
+
 - **File naming**: `proxy.ts` in Next.js 16+ (was `middleware.ts` in Next.js 15)
 - **Type annotation**: Use `NextMiddleware` type for proper type inference
 - **Matcher config**: Excludes static files, images, and auth endpoints
 - **Authentication**: Better Auth integration provides seamless session checks
 
 **How it works**:
+
 1. All requests matching the pattern go through the proxy first
 2. Better Auth checks for valid session (database-backed with cookie caching)
 3. Unauthorized requests to protected routes redirect to login
@@ -1653,6 +1699,7 @@ export function PHProvider({ children }: { children: React.ReactNode }) {
 ```
 
 **Integration in Layout:**
+
 ```typescript
 // apps/marketing/app/layout.tsx
 import { PHProvider } from '@/components/posthog-provider';
@@ -1673,6 +1720,7 @@ export default function RootLayout({ children }) {
 ```
 
 **Key Features:**
+
 - **No cookies**: `persistence: 'memory'` - session-only tracking
 - **GDPR compliant**: No persistent storage before consent
 - **Automatic pageviews**: Tracks all page navigations
@@ -1720,6 +1768,7 @@ export function PHProvider({ children }: { children: React.ReactNode }) {
 ```
 
 **Integration in Providers:**
+
 ```typescript
 // apps/web/components/providers.tsx
 import { PHProvider } from '@/components/posthog-provider';
@@ -1740,6 +1789,7 @@ export function Providers({ children }) {
 ```
 
 **Key Features:**
+
 - **Conditional persistence**: Memory-only before auth, localStorage+cookie after
 - **User identification**: Automatic identify() call on authentication
 - **Session-aware**: Reacts to Better Auth session changes
@@ -1759,7 +1809,11 @@ import { usePostHog } from 'posthog-js/react';
 export function useTracking() {
   const posthog = usePostHog();
 
-  const trackCTAClick = (location: string, ctaText: string, destinationUrl: string) => {
+  const trackCTAClick = (
+    location: string,
+    ctaText: string,
+    destinationUrl: string
+  ) => {
     posthog?.capture('marketing_cta_clicked', {
       location,
       cta_text: ctaText,
@@ -1811,6 +1865,7 @@ export function HeroCTA() {
 ```
 
 **Pattern:**
+
 - Use `usePostHog()` hook from `posthog-js/react`
 - Always use optional chaining (`posthog?.capture()`) to prevent errors
 - Event names use snake_case
@@ -1915,6 +1970,7 @@ export async function identifyUser(
 ```
 
 **Why HTTP API Instead of posthog-node:**
+
 - **Cloudflare Workers**: Stateless isolates with no persistent process
 - **Immediate delivery**: No batching or flush cycles needed
 - **No shutdown lifecycle**: Each request completes independently
@@ -1955,6 +2011,7 @@ export async function POST(request: Request) {
 ```
 
 **Pattern:**
+
 - Always use `await` with `captureServerEvent()`
 - Track first-time feature usage by checking counts
 - Include contextual properties (source, type, etc.)
@@ -1994,63 +2051,74 @@ export async function register(formData: FormData) {
 ### Event Naming Conventions
 
 **Marketing Events:**
+
 - `marketing_cta_clicked` - CTA button/link clicks
 - `feature_explored` - Feature page interactions
 - `plan_comparison_interacted` - Pricing page engagement
 
 **Authentication Events:**
+
 - `user_signed_up` - New user registration
 - `user_logged_in` - User login
 
 **Feature Adoption Events:**
+
 - `first_achievement_created` - First achievement (any source)
 - `first_project_created` - First project
 - `first_report_generated` - First document generation
 
 **CLI Events:**
+
 - `cli_installed` - CLI authentication completed
 - `cli_extract_completed` - Achievement extraction via CLI
 
 **Engagement Events:**
+
 - `zero_state_cta_clicked` - Zero state interactions
 - `document_generated` - Document generation
 
 ### Properties Best Practices
 
 **Always include:**
+
 - Contextual information (location, source, type)
 - User action details (what they clicked, selected, etc.)
 - Never include PII (passwords, achievement content, document text)
 
 **Property naming:**
+
 - Use snake_case for consistency
 - Be descriptive but concise
 - Use consistent values across events
 
 **Example:**
+
 ```typescript
 posthog?.capture('marketing_cta_clicked', {
-  location: 'homepage_hero',        // Where on the page
-  cta_text: 'Get Started Free',     // What the button says
-  destination_url: '/register',     // Where it goes
+  location: 'homepage_hero', // Where on the page
+  cta_text: 'Get Started Free', // What the button says
+  destination_url: '/register', // Where it goes
 });
 ```
 
 ### Privacy & GDPR Compliance
 
 **Marketing Site:**
+
 - ✅ Cookieless mode (no consent banner needed)
 - ✅ No persistent storage
 - ✅ Session-only tracking
 - ✅ IP anonymization (PostHog default)
 
 **Web App:**
+
 - ✅ No tracking before authentication
 - ✅ Persistent storage only after login
 - ✅ User can delete account (removes all analytics data)
 - ✅ No PII in event properties
 
 **Legal:**
+
 - Privacy Policy at `/privacy-policy` discloses PostHog usage
 - Terms of Service at `/terms` requires acceptance
 - ToS acceptance tracked with `tosAcceptedAt` timestamp in database
@@ -2058,6 +2126,7 @@ posthog?.capture('marketing_cta_clicked', {
 ### Testing Analytics
 
 **Development:**
+
 ```typescript
 // PostHog automatically enables debug mode in development
 posthog.init(key, {
@@ -2068,11 +2137,13 @@ posthog.init(key, {
 ```
 
 **Browser DevTools:**
+
 1. Open Network tab, filter by "posthog"
 2. See POST requests to `/capture/` endpoint
 3. Inspect request payload for event data
 
 **PostHog Dashboard:**
+
 1. Navigate to Live Events
 2. See events appear within 30 seconds
 3. Verify event properties are correct
@@ -2088,6 +2159,7 @@ posthog.init(key, {
 **Location:** `apps/marketing/components/pricing/beta-banner.tsx`
 
 **Pattern:**
+
 ```tsx
 import { Sparkles } from 'lucide-react';
 
@@ -2103,7 +2175,8 @@ export function BetaBanner() {
               <span className="text-green-300">FREE</span>
             </p>
             <p className="text-sm sm:text-base opacity-95">
-              Sign up now and get <strong>one year free</strong> when we launch paid plans
+              Sign up now and get <strong>one year free</strong> when we launch
+              paid plans
             </p>
           </div>
         </div>
@@ -2114,6 +2187,7 @@ export function BetaBanner() {
 ```
 
 **Usage:**
+
 ```tsx
 // In page.tsx
 import { BetaBanner } from '@/components/pricing/beta-banner';
@@ -2130,6 +2204,7 @@ export default function PricingPage() {
 ```
 
 **Design Guidelines:**
+
 - **Gradient background:** `from-purple-600 to-purple-500` (brand colors)
 - **White text** for high contrast
 - **Green emphasis** (`text-green-300`) for "FREE" keyword
@@ -2143,6 +2218,7 @@ export default function PricingPage() {
 **Purpose:** Display future pricing while emphasizing current free status.
 
 **Pattern:**
+
 ```tsx
 <div className="text-center mb-4">
   <Badge className="text-2xl px-6 py-2 bg-green-600 dark:bg-green-500 text-white">
@@ -2162,6 +2238,7 @@ export default function PricingPage() {
 ```
 
 **Design Guidelines:**
+
 - **Large "FREE" badge:** 2xl text size, green background
 - **Strikethrough pricing:** `line-through opacity-60` for muted appearance
 - **Muted text color:** `text-muted-foreground` to de-emphasize future pricing
@@ -2175,6 +2252,7 @@ export default function PricingPage() {
 **Location:** `apps/marketing/components/features-page-client.tsx`
 
 **Pattern:**
+
 ```tsx
 import { Badge } from '@/components/ui/badge';
 
@@ -2202,6 +2280,7 @@ export function FeatureCard({ feature }: { feature: Feature }) {
 ```
 
 **Design Guidelines:**
+
 - **Badge variant:** `secondary` for subtle, muted appearance
 - **Small size:** `text-xs` to avoid overwhelming the heading
 - **Inline placement:** Next to heading using flexbox
@@ -2214,6 +2293,7 @@ export function FeatureCard({ feature }: { feature: Feature }) {
 **Purpose:** Highlight special offers or benefits for beta users.
 
 **Pattern:**
+
 ```tsx
 <div className="w-full p-3 rounded-lg bg-green-50 dark:bg-green-950/30 border border-green-200 dark:border-green-800">
   <p className="text-sm font-medium text-green-700 dark:text-green-400 text-center">
@@ -2223,6 +2303,7 @@ export function FeatureCard({ feature }: { feature: Feature }) {
 ```
 
 **Design Guidelines:**
+
 - **Green color scheme:** Positive, benefit-oriented messaging
 - **Light background:** `bg-green-50` in light mode, `bg-green-950/30` in dark
 - **Border:** Subtle green border for definition
@@ -2235,28 +2316,31 @@ export function FeatureCard({ feature }: { feature: Feature }) {
 
 **Beta Messaging Colors:**
 
-| Context | Light Mode | Dark Mode | Purpose |
-|---------|-----------|-----------|---------|
-| FREE emphasis | `text-green-600` | `text-green-500` | Positive, current benefit |
-| Beta banner background | `from-purple-600 to-purple-500` | `from-purple-700 to-purple-600` | Brand colors, high visibility |
-| Strikethrough pricing | `text-muted-foreground line-through opacity-60` | Same | De-emphasized future pricing |
-| Promotional box | `bg-green-50 border-green-200` | `bg-green-950/30 border-green-800` | Special offer highlight |
-| Beta badge | `variant="secondary"` | Same | Subtle information badge |
+| Context                | Light Mode                                      | Dark Mode                          | Purpose                       |
+| ---------------------- | ----------------------------------------------- | ---------------------------------- | ----------------------------- |
+| FREE emphasis          | `text-green-600`                                | `text-green-500`                   | Positive, current benefit     |
+| Beta banner background | `from-purple-600 to-purple-500`                 | `from-purple-700 to-purple-600`    | Brand colors, high visibility |
+| Strikethrough pricing  | `text-muted-foreground line-through opacity-60` | Same                               | De-emphasized future pricing  |
+| Promotional box        | `bg-green-50 border-green-200`                  | `bg-green-950/30 border-green-800` | Special offer highlight       |
+| Beta badge             | `variant="secondary"`                           | Same                               | Subtle information badge      |
 
 ### Responsive Considerations
 
 **Mobile (375px - 767px):**
+
 - Beta banner text: `text-base` main, `text-sm` secondary
 - Flex wrap on headings with badges
 - Full-width promotional callouts
 - Stack pricing cards vertically
 
 **Tablet (768px - 1023px):**
+
 - Beta banner text: `sm:text-lg` main, `sm:text-base` secondary
 - Pricing cards may stack or show 2-up depending on content
 - Badges remain inline with headings
 
 **Desktop (1024px+):**
+
 - Full text sizes
 - Pricing cards show side-by-side
 - Maximum visual impact for beta messaging
@@ -2264,21 +2348,25 @@ export function FeatureCard({ feature }: { feature: Feature }) {
 ### When to Use These Patterns
 
 **Use Beta Banner when:**
+
 - Announcing product-wide beta status
 - Communicating time-limited offers
 - Driving action (sign-ups, early adoption)
 
 **Use Strikethrough Pricing when:**
+
 - Showing future pricing while emphasizing current free access
 - Providing price transparency during beta
 - Balancing "free now" with "paid later" messaging
 
 **Use Beta Badges when:**
+
 - Marking individual features as beta
 - Communicating feature stability/maturity
 - Setting expectations for feature completeness
 
 **Use Promotional Callouts when:**
+
 - Highlighting special beta user benefits
 - Emphasizing time-sensitive offers
 - Drawing attention to value propositions
@@ -2303,9 +2391,7 @@ export default function PricingPage() {
           <Card>
             <CardHeader>
               <CardTitle>Free Account</CardTitle>
-              <CardDescription>
-                Always free, even after beta
-              </CardDescription>
+              <CardDescription>Always free, even after beta</CardDescription>
             </CardHeader>
             {/* ... */}
           </Card>
@@ -2330,7 +2416,9 @@ export default function PricingPage() {
                   <span className="text-3xl font-semibold line-through opacity-60">
                     $4.99
                   </span>
-                  <span className="text-base line-through opacity-60">/month</span>
+                  <span className="text-base line-through opacity-60">
+                    /month
+                  </span>
                 </div>
                 <p className="text-xs text-muted-foreground mt-1">
                   Future price after beta
@@ -2367,6 +2455,7 @@ export default function PricingPage() {
 ### Maintenance Guidelines
 
 **When updating beta status:**
+
 1. Update BetaBanner component first (most visible)
 2. Update pricing tiers strikethrough/badges
 3. Update FAQ data to match messaging
@@ -2374,12 +2463,69 @@ export default function PricingPage() {
 5. Test all viewports and both color modes
 
 **When transitioning out of beta:**
+
 1. Remove or hide BetaBanner component
 2. Remove "FREE During Beta" badges
 3. Remove strikethrough from pricing
 4. Update FAQ answers to remove beta references
 5. Update metadata to remove beta status
 6. Keep promotional callouts for early users (if applicable)
+
+---
+
+## Workstreams Components
+
+### Component Architecture
+
+**WorkstreamBadge** (`apps/web/components/workstreams/workstream-badge.tsx`)
+
+- Client component displaying workstream as colored badge
+- Uses shadcn/ui Badge with custom border/text color styling
+- Optional remove button for interactive contexts
+- Handles nullable color field with fallback to default blue
+
+**WorkstreamCard** (`apps/web/components/workstreams/workstream-card.tsx`)
+
+- Client component for workstream summary display
+- Shows colored indicator, name, description, achievement count
+- Optional edit/delete actions
+- Wrappable with Link for navigation to detail pages
+
+**WorkstreamList** (`apps/web/components/workstreams/workstream-list.tsx`)
+
+- Grid layout with responsive columns (md:2, lg:3)
+- Loading state with spinner
+- Empty state messaging
+- Uses useWorkstreams hook for data fetching
+
+**AssignmentDialog** (`apps/web/components/workstreams/assignment-dialog.tsx`)
+
+- Modal for manually assigning achievements to workstreams
+- Shows current assignment with highlighting
+- Supports unassignment (null workstreamId)
+- Async assignment with loading states
+
+### Data Hook
+
+**useWorkstreams** (`apps/web/hooks/use-workstreams.ts`)
+
+- SWR-based data fetching and caching
+- Returns workstreams, counts, and metadata
+- Provides generateWorkstreams() and assignWorkstream() methods
+- Auto-refreshes after mutations
+- Handles loading and error states
+
+### Integration Patterns
+
+**Achievement Cards:** Display workstream badge using conditional rendering based on workstreamId
+
+**Achievements Table:** Add workstream filter dropdown that includes "Unassigned" option
+
+**Dashboard:** Integrate WorkstreamStatus widget into dashboard grid layout
+
+**Navigation:** Add /workstreams route to sidebar navigation with TrendingUp icon
+
+**Detail Pages:** Server component fetching workstream and related achievements with ownership verification
 
 ---
 

@@ -15,6 +15,8 @@ import {
   time,
   date,
   smallint,
+  vector,
+  real,
 } from 'drizzle-orm/pg-core';
 
 export interface UserPreferences {
@@ -168,6 +170,19 @@ export const achievement = pgTable(
     impactUpdatedAt: timestamp('impact_updated_at').defaultNow(),
     createdAt: timestamp('created_at').notNull().defaultNow(),
     updatedAt: timestamp('updated_at').notNull().defaultNow(),
+
+    // Workstream assignment
+    workstreamId: uuid('workstream_id').references(() => workstream.id, {
+      onDelete: 'set null',
+    }),
+    workstreamSource: varchar('workstream_source', { length: 16 }), // 'ai' | 'user'
+
+    // Embedding storage
+    embedding: vector('embedding', { dimensions: 1536 }),
+    embeddingModel: varchar('embedding_model', { length: 64 }).default(
+      'text-embedding-3-small',
+    ),
+    embeddingGeneratedAt: timestamp('embedding_generated_at'),
   },
   (table) => {
     return {
@@ -184,6 +199,60 @@ export const achievement = pgTable(
 );
 
 export type Achievement = InferSelectModel<typeof achievement>;
+
+export const workstream = pgTable('Workstream', {
+  id: uuid('id').primaryKey().notNull().defaultRandom(),
+  userId: uuid('user_id')
+    .notNull()
+    .references(() => user.id, { onDelete: 'cascade' }),
+
+  // Core fields
+  name: varchar('name', { length: 256 }).notNull(),
+  description: text('description'),
+  color: varchar('color', { length: 7 }).default('#3B82F6'),
+
+  // Centroid caching for fast incremental assignment
+  centroidEmbedding: vector('centroid_embedding', { dimensions: 1536 }),
+  centroidUpdatedAt: timestamp('centroid_updated_at'),
+
+  // Metadata
+  achievementCount: integer('achievement_count').default(0),
+  isArchived: boolean('is_archived').default(false),
+
+  // Auditing
+  createdAt: timestamp('created_at').notNull().defaultNow(),
+  updatedAt: timestamp('updated_at').notNull().defaultNow(),
+});
+
+export type Workstream = InferSelectModel<typeof workstream>;
+
+export const workstreamMetadata = pgTable('WorkstreamMetadata', {
+  id: uuid('id').primaryKey().notNull().defaultRandom(),
+  userId: uuid('user_id')
+    .notNull()
+    .references(() => user.id, { onDelete: 'cascade' })
+    .unique(), // One metadata record per user
+
+  // Clustering history
+  lastFullClusteringAt: timestamp('last_full_clustering_at').notNull(),
+  achievementCountAtLastClustering: integer(
+    'achievement_count_at_last_clustering',
+  ).notNull(),
+
+  // Clustering parameters used
+  epsilon: real('epsilon').notNull(),
+  minPts: integer('min_pts').notNull(),
+
+  // Statistics
+  workstreamCount: integer('workstream_count').default(0),
+  outlierCount: integer('outlier_count').default(0),
+
+  // Auditing
+  createdAt: timestamp('created_at').notNull().defaultNow(),
+  updatedAt: timestamp('updated_at').notNull().defaultNow(),
+});
+
+export type WorkstreamMetadata = InferSelectModel<typeof workstreamMetadata>;
 
 export const chat = pgTable('Chat', {
   id: uuid('id').primaryKey().notNull().defaultRandom(),

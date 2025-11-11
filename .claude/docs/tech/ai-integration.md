@@ -243,7 +243,134 @@ export interface AppUsage {
 }
 ```
 
+## Workstream Clustering
+
+### Embedding Generation
+
+**Model:** OpenAI text-embedding-3-small (1536 dimensions)
+
+Embeddings are generated for each achievement by combining title, summary, and short details:
+
+**Files:** `apps/web/lib/ai/embeddings.ts`
+
+- Text preprocessing combines achievement fields
+- Batch generation for efficiency
+- Stored in Achievement table using pgvector
+- Cost: ~$0.02 per 1M tokens (~$0.002 per 1000 achievements)
+
+### DBSCAN Clustering
+
+**Files:** `apps/web/lib/ai/clustering.ts`
+
+Density-based clustering for automatic workstream discovery:
+
+- **Algorithm:** DBSCAN (density-clustering npm package)
+- **Distance Metric:** Cosine distance between embeddings
+- **Parameters:** Adaptive based on dataset size (minPts: 3-5, outlierThreshold: 0.65-0.70)
+- **Epsilon Selection:** K-distance plot elbow detection
+
+### Workstream Naming
+
+LLM generates descriptive names and summaries for clusters:
+
+**Files:** `apps/web/lib/ai/workstreams.ts`
+
+- Samples up to 15 representative achievements
+- Generates 2-5 word names and 1-sentence descriptions
+- Falls back to regex extraction on JSON parse errors
+
+### Incremental Assignment
+
+For efficiency, new achievements are assigned to existing workstreams without full re-clustering:
+
+- Compare embedding to cached centroids using cosine similarity
+- Assign if confidence exceeds threshold (0.65-0.70)
+- Update centroids after assignments
+
+### Data Enrichment Helper Functions
+
+After clustering operations complete, helper functions fetch detailed achievement data to enrich API responses. This enables future UI components to display exactly what happened during workstream generation.
+
+**Files:** `apps/web/lib/ai/workstreams.ts`
+
+#### getAchievementSummaries
+
+Fetches achievements with project/company context using efficient LEFT JOINs:
+
+```typescript
+export async function getAchievementSummaries(
+  achievementIds: string[],
+  userId: string,
+): Promise<AchievementSummary[]>;
+```
+
+- **Input:** Array of achievement IDs to fetch
+- **Output:** AchievementSummary objects with title, date, impact, and context fields
+- **Optimization:** Uses inArray filter and LEFT JOINs to fetch all data in single query
+- **Security:** Scoped by userId (no cross-user data)
+- **Performance:** <50ms for typical datasets (1000 achievements)
+
+#### buildAssignmentBreakdown
+
+Groups achievements by workstream for incremental clustering responses:
+
+```typescript
+export async function buildAssignmentBreakdown(
+  assignments: Map<string, string>,
+  userId: string,
+): Promise<AssignmentByWorkstream[]>;
+```
+
+- **Input:** Map<achievementId, workstreamId> from incremental assignment
+- **Output:** Array of workstream groups with their assigned achievements
+- **Process:** Groups IDs → fetches workstream details → fetches achievement summaries
+- **Sorting:** By achievement count (descending)
+- **Performance:** ~50-100ms additional time for typical datasets
+
+#### buildWorkstreamBreakdown
+
+Formats newly created workstreams with their achievements for full clustering responses:
+
+```typescript
+export async function buildWorkstreamBreakdown(
+  createdWorkstreams: Workstream[],
+  userId: string,
+): Promise<WorkstreamDetail[]>;
+```
+
+- **Input:** Array of newly created Workstream records
+- **Output:** Array of workstream details with all assigned achievements
+- **Process:** For each workstream, fetch achievements → convert to summaries
+- **Sorting:** By achievement count (descending)
+- **Performance:** ~50-100ms additional time for typical datasets
+
+### Data Enrichment Pattern
+
+The API response workflow follows this pattern:
+
+1. **Clustering** (full or incremental) - DBSCAN or centroid assignment
+2. **Data Capture** - Clustering function returns IDs of affected achievements
+3. **Enrichment** - Helper functions fetch full achievement data with context
+4. **Response** - API route returns clustered workstreams with detailed breakdowns
+
+This design provides several benefits:
+- **Separation of Concerns**: Clustering logic separate from data fetching
+- **Reusability**: Helper functions can be called from different endpoints
+- **Efficiency**: Uses LEFT JOINs to avoid N+1 queries
+- **Future Extensibility**: Easy to add new response formats
+
+### Performance Characteristics
+
+For typical users with <1000 achievements:
+
+- **Embedding Generation**: ~1-2 seconds for batch processing
+- **Clustering**: <100ms with DBSCAN
+- **Data Enrichment**: ~50-100ms with optimized queries
+- **Total API Response**: <2 seconds for first generation, <500ms for incremental
+
+All queries use indexes on userId, workstreamId, and projectId for optimal performance.
+
 ---
 
-**Last Updated:** 2025-10-21
+**Last Updated:** 2025-11-07
 **Vercel AI SDK:** v5.0.0

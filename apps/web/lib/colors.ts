@@ -82,3 +82,90 @@ export function getNextProjectColor(existingProjectCount: number): {
     name: PROJECT_COLOR_NAMES[index]!,
   };
 }
+
+/**
+ * Workstream color palette - 16 colors using mostly -600 shades for richer, deeper tones
+ * Reversed order from PROJECT_COLORS to avoid visual alignment
+ * Visually distinct from PROJECT_COLORS while maintaining similar vibrancy
+ */
+export const WORKSTREAM_COLORS = [
+  '#16A34A', // green-600
+  '#475569', // slate-600
+  '#0284C7', // sky-600
+  '#9333EA', // purple-600
+  '#E11D48', // rose-500
+  '#0D9488', // teal-600
+  '#4F46E5', // indigo-600
+  '#DB2777', // pink-600
+  '#65A30D', // lime-600
+  '#EA580C', // orange-600
+  '#0891B2', // cyan-600
+  '#7C3AED', // violet-600
+  '#DC2626', // red-600
+  '#D97706', // amber-600
+  '#059669', // emerald-600
+  '#2563EB', // blue-600
+] as const;
+
+/**
+ * Color names corresponding to the WORKSTREAM_COLORS array
+ */
+export const WORKSTREAM_COLOR_NAMES = [
+  'Green',
+  'Slate',
+  'Sky',
+  'Purple',
+  'Rose',
+  'Teal',
+  'Indigo',
+  'Pink',
+  'Lime',
+  'Orange',
+  'Cyan',
+  'Violet',
+  'Red',
+  'Amber',
+  'Emerald',
+  'Blue',
+] as const;
+
+/**
+ * Get the workstream color hex value by index
+ */
+export function getWorkstreamColor(colorIndex: number): string {
+  return WORKSTREAM_COLORS[colorIndex % WORKSTREAM_COLORS.length]!;
+}
+
+/**
+ * Get the workstream color name by index
+ */
+export function getWorkstreamColorName(colorIndex: number): string {
+  return WORKSTREAM_COLOR_NAMES[colorIndex % WORKSTREAM_COLOR_NAMES.length]!;
+}
+
+/**
+ * Get the workstream color index from hex value
+ */
+export function getWorkstreamColorIndex(hexColor: string): number {
+  const index = WORKSTREAM_COLORS.indexOf(
+    hexColor as (typeof WORKSTREAM_COLORS)[number],
+  );
+  return index === -1 ? 0 : index;
+}
+
+/**
+ * Get the next available color for a user's workstreams
+ * Used for round-robin color assignment
+ */
+export function getNextWorkstreamColor(existingWorkstreamCount: number): {
+  hex: string;
+  index: number;
+  name: string;
+} {
+  const index = existingWorkstreamCount % WORKSTREAM_COLORS.length;
+  return {
+    hex: WORKSTREAM_COLORS[index]!,
+    index,
+    name: WORKSTREAM_COLOR_NAMES[index]!,
+  };
+}

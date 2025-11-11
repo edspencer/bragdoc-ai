@@ -5,64 +5,72 @@
 
 import * as Sentry from '@sentry/nextjs';
 
-Sentry.init({
-  dsn: 'https://0337f9c49b2d9d00f3308e137d2bd3e3@o4510341241110528.ingest.us.sentry.io/4510341243404288',
+// Only initialize Sentry in production and preview (not local development)
+// VERCEL_ENV is set by Vercel to 'production', 'preview', or 'development'
+const shouldInitializeSentry =
+  process.env.VERCEL_ENV === 'production' ||
+  process.env.VERCEL_ENV === 'preview' ||
+  (process.env.NODE_ENV === 'production' && !process.env.VERCEL_ENV);
 
-  // Sample rate for performance monitoring
-  // 100% in dev, 10% in production to manage quota
-  tracesSampleRate: process.env.NODE_ENV === 'production' ? 0.1 : 1.0,
+if (shouldInitializeSentry) {
+  Sentry.init({
+    dsn: 'https://0337f9c49b2d9d00f3308e137d2bd3e3@o4510341241110528.ingest.us.sentry.io/4510341243404288',
 
-  // Environment tag for filtering issues
-  environment: process.env.NODE_ENV || 'development',
+    // Sample rate for performance monitoring
+    tracesSampleRate: 0.1,
 
-  // Enable logs to be sent to Sentry
-  enableLogs: true,
+    // Environment tag for filtering issues
+    environment: process.env.VERCEL_ENV || 'production',
 
-  // SECURITY: Disable automatic PII collection in edge runtime
-  // Edge functions handle authentication and sensitive headers/cookies
-  sendDefaultPii: false,
+    // Enable logs to be sent to Sentry
+    enableLogs: true,
 
-  // Ignore common/expected errors
-  ignoreErrors: [
-    // Browser extensions
-    'ResizeObserver loop limit exceeded',
-    'Non-Error promise rejection captured',
-    // Network errors
-    'NetworkError',
-    'Failed to fetch',
-    'Load failed',
-    // Cloudflare issues
-    'The operation was aborted',
-  ],
+    // SECURITY: Disable automatic PII collection in edge runtime
+    // Edge functions handle authentication and sensitive headers/cookies
+    sendDefaultPii: false,
 
-  // Filter sensitive authentication data from error reports
-  beforeSend(event) {
-    // Sensitive headers to filter out
-    const sensitiveHeaders = [
-      'authorization',
-      'cookie',
-      'x-auth-token',
-      'x-api-key',
-    ];
+    // Ignore common/expected errors
+    ignoreErrors: [
+      // Browser extensions
+      'ResizeObserver loop limit exceeded',
+      'Non-Error promise rejection captured',
+      // Network errors
+      'NetworkError',
+      'Failed to fetch',
+      'Load failed',
+      // Cloudflare issues
+      'The operation was aborted',
+    ],
 
-    // Remove sensitive headers that may contain tokens/credentials
-    if (event.request?.headers) {
-      const filteredHeaders: Record<string, string> = {};
-      for (const [key, value] of Object.entries(event.request.headers)) {
-        if (!sensitiveHeaders.includes(key.toLowerCase())) {
-          filteredHeaders[key] = value;
+    // Filter sensitive authentication data from error reports
+    beforeSend(event) {
+      // Sensitive headers to filter out
+      const sensitiveHeaders = [
+        'authorization',
+        'cookie',
+        'x-auth-token',
+        'x-api-key',
+      ];
+
+      // Remove sensitive headers that may contain tokens/credentials
+      if (event.request?.headers) {
+        const filteredHeaders: Record<string, string> = {};
+        for (const [key, value] of Object.entries(event.request.headers)) {
+          if (!sensitiveHeaders.includes(key.toLowerCase())) {
+            filteredHeaders[key] = value;
+          }
         }
+        event.request.headers = filteredHeaders;
       }
-      event.request.headers = filteredHeaders;
-    }
 
-    // Remove cookies from request data
-    if (event.request?.cookies) {
-      event.request.cookies = {};
-    }
+      // Remove cookies from request data
+      if (event.request?.cookies) {
+        event.request.cookies = {};
+      }
 
-    // Still include user ID for debugging (but not tokens)
-    // User ID is set by Sentry.setUser() which is safe
-    return event;
-  },
-});
+      // Still include user ID for debugging (but not tokens)
+      // User ID is set by Sentry.setUser() which is safe
+      return event;
+    },
+  });
+}

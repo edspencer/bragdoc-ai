@@ -1,19 +1,19 @@
 import { config } from 'dotenv';
-import { drizzle } from 'drizzle-orm/neon-http';
-import { migrate } from 'drizzle-orm/neon-http/migrator';
-import { neon } from '@neondatabase/serverless';
-import { dbUrl } from './index';
+import { drizzle } from 'drizzle-orm/postgres-js';
+import { migrate } from 'drizzle-orm/postgres-js/migrator';
+import postgres from 'postgres';
 import path from 'node:path';
 
-config({
-  path: '../.env',
-});
+// Load environment variables based on NODE_ENV
+if (process.env.NODE_ENV === 'test') {
+  config({ path: '../../apps/web/.env.test', override: true });
+} else {
+  config({ path: '../.env' });
 
-// Also try .env.local if .env doesn't have what we need
-if (!process.env.POSTGRES_URL) {
-  config({
-    path: '../.env.local',
-  });
+  // Also try .env.local if .env doesn't have what we need
+  if (!process.env.POSTGRES_URL) {
+    config({ path: '../.env.local' });
+  }
 }
 
 const runMigrate = async () => {
@@ -21,11 +21,13 @@ const runMigrate = async () => {
     throw new Error('POSTGRES_URL is not defined');
   }
 
+  const dbUrl = process.env.POSTGRES_URL;
+
   // Sanitize URL for logging (hide password)
-  const sanitizedUrl = process.env.POSTGRES_URL.replace(/:[^:@]+@/, ':****@');
+  const sanitizedUrl = dbUrl.replace(/:[^:@]+@/, ':****@');
   console.log('🔗 Database:', sanitizedUrl);
 
-  const connection = neon(dbUrl);
+  const connection = postgres(dbUrl, { max: 1 });
   const db = drizzle(connection);
 
   console.log('⏳ Running migrations...');

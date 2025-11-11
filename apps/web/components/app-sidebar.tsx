@@ -6,6 +6,7 @@ import {
   IconDashboard,
   IconBuilding,
   IconSettings,
+  IconTrendingUp,
 } from '@tabler/icons-react';
 import { useSession } from '@/lib/better-auth/client';
 import Image from 'next/image';
@@ -37,6 +38,12 @@ const staticData = {
       title: 'Achievements',
       url: '/achievements',
       icon: IconTarget,
+    },
+    {
+      title: 'Workstreams',
+      url: '/workstreams',
+      icon: IconTrendingUp,
+      badge: 'NEW',
     },
     {
       title: 'Companies',

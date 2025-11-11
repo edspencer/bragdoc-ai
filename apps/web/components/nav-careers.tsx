@@ -1,12 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import {
-  IconUsers,
-  IconUserCheck,
-  IconTrophy,
-  IconNetwork,
-} from '@tabler/icons-react';
+import { IconUsers, IconUserCheck, IconTrophy } from '@tabler/icons-react';
 
 import {
   SidebarGroup,
@@ -51,14 +46,6 @@ export function NavCareers() {
             <Link href="/performance" onClick={handleLinkClick}>
               <IconTrophy />
               <span>Performance Review</span>
-            </Link>
-          </SidebarMenuButton>
-        </SidebarMenuItem>
-        <SidebarMenuItem>
-          <SidebarMenuButton asChild>
-            <Link href="/workstreams" onClick={handleLinkClick}>
-              <IconNetwork />
-              <span>Workstreams</span>
             </Link>
           </SidebarMenuButton>
         </SidebarMenuItem>

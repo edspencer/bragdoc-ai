@@ -7,6 +7,10 @@ import { db } from '@/database/index';
 import { project } from '@/database/schema';
 import { eq, and } from 'drizzle-orm';
 import { captureServerEvent } from '@/lib/posthog-server';
+import { generateAchievementEmbedding } from '@/lib/ai/embeddings';
+import { getClusteringParameters } from '@/lib/ai/clustering';
+import { incrementalAssignment } from '@/lib/ai/workstreams';
+import { getTotalAchievementCount } from '@bragdoc/database';
 
 // Validation schema for achievement data
 const achievementSchema = z.object({
@@ -166,6 +170,29 @@ export async function POST(req: NextRequest) {
     } catch (error) {
       console.error('Failed to track achievement creation:', error);
       // Don't fail the request if tracking fails
+    }
+
+    // Task 5.6: Auto-generate embedding for the new achievement (non-blocking)
+    if (achievement) {
+      try {
+        await generateAchievementEmbedding(achievement.id);
+      } catch (error) {
+        console.error('Failed to generate embedding:', error);
+        // Non-critical error, don't fail the request - embeddings will be generated later
+      }
+
+      // Task 5.7: Auto-assign achievement to workstream (non-blocking)
+      try {
+        const achievementCount = await getTotalAchievementCount(auth.user.id);
+        const params = getClusteringParameters(achievementCount);
+
+        if (params) {
+          await incrementalAssignment(auth.user.id, params);
+        }
+      } catch (error) {
+        console.error('Failed to auto-assign workstream:', error);
+        // Non-critical error, don't fail the request
+      }
     }
 
     return NextResponse.json(achievement);

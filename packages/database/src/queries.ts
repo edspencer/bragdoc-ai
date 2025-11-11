@@ -475,6 +475,7 @@ export async function getAchievements({
         userId: achievement.userId,
         companyId: achievement.companyId,
         projectId: achievement.projectId,
+        workstreamId: achievement.workstreamId,
         title: achievement.title,
         summary: achievement.summary,
         details: achievement.details,

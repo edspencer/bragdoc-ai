@@ -4,50 +4,59 @@
 
 import * as Sentry from '@sentry/nextjs';
 
-Sentry.init({
-  dsn: 'https://0337f9c49b2d9d00f3308e137d2bd3e3@o4510341241110528.ingest.us.sentry.io/4510341243404288',
+// Only initialize Sentry in production and preview (not local development)
+// NEXT_PUBLIC_VERCEL_ENV is available on the client and set to 'production', 'preview', or 'development'
+const shouldInitializeSentry =
+  process.env.NEXT_PUBLIC_VERCEL_ENV === 'production' ||
+  process.env.NEXT_PUBLIC_VERCEL_ENV === 'preview' ||
+  (process.env.NODE_ENV === 'production' &&
+    !process.env.NEXT_PUBLIC_VERCEL_ENV);
 
-  // Session Replay integration - captures video-like recordings of errors
-  integrations: [
-    Sentry.replayIntegration({
-      // Mask all text and input content for privacy
-      maskAllText: true,
-      blockAllMedia: true,
-    }),
-  ],
+if (shouldInitializeSentry) {
+  Sentry.init({
+    dsn: 'https://0337f9c49b2d9d00f3308e137d2bd3e3@o4510341241110528.ingest.us.sentry.io/4510341243404288',
 
-  // Sample rate for performance monitoring
-  // 100% in dev, 10% in production to manage quota
-  tracesSampleRate: process.env.NODE_ENV === 'production' ? 0.1 : 1.0,
+    // Session Replay integration - captures video-like recordings of errors
+    integrations: [
+      Sentry.replayIntegration({
+        // Mask all text and input content for privacy
+        maskAllText: true,
+        blockAllMedia: true,
+      }),
+    ],
 
-  // Environment tag for filtering issues
-  environment: process.env.NODE_ENV || 'development',
+    // Sample rate for performance monitoring
+    tracesSampleRate: 0.1,
 
-  // Enable logs to be sent to Sentry
-  enableLogs: true,
+    // Environment tag for filtering issues
+    environment: process.env.NEXT_PUBLIC_VERCEL_ENV || 'production',
 
-  // Session Replay sampling rates
-  // Record 10% of normal sessions
-  replaysSessionSampleRate: process.env.NODE_ENV === 'production' ? 0.1 : 0.0,
+    // Enable logs to be sent to Sentry
+    enableLogs: true,
 
-  // Always record sessions with errors
-  replaysOnErrorSampleRate: 1.0,
+    // Session Replay sampling rates
+    // Record 10% of normal sessions
+    replaysSessionSampleRate: 0.1,
 
-  // Enable sending user info (email, ID) with errors for better debugging
-  sendDefaultPii: true,
+    // Always record sessions with errors
+    replaysOnErrorSampleRate: 1.0,
 
-  // Ignore common/expected errors
-  ignoreErrors: [
-    // Browser extensions
-    'ResizeObserver loop limit exceeded',
-    'Non-Error promise rejection captured',
-    // Network errors
-    'NetworkError',
-    'Failed to fetch',
-    'Load failed',
-    // Cloudflare issues
-    'The operation was aborted',
-  ],
-});
+    // Enable sending user info (email, ID) with errors for better debugging
+    sendDefaultPii: true,
+
+    // Ignore common/expected errors
+    ignoreErrors: [
+      // Browser extensions
+      'ResizeObserver loop limit exceeded',
+      'Non-Error promise rejection captured',
+      // Network errors
+      'NetworkError',
+      'Failed to fetch',
+      'Load failed',
+      // Cloudflare issues
+      'The operation was aborted',
+    ],
+  });
+}
 
 export const onRouterTransitionStart = Sentry.captureRouterTransitionStart;

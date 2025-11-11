@@ -21,6 +21,7 @@ export function NavMain({
     title: string;
     url: string;
     icon?: Icon;
+    badge?: string;
   }[];
 }) {
   const pathname = usePathname();
@@ -51,6 +52,11 @@ export function NavMain({
                   <Link href={item.url} onClick={handleLinkClick}>
                     {item.icon && <item.icon />}
                     <span>{item.title}</span>
+                    {item.badge && (
+                      <span className="ml-auto rounded border border-yellow-600/60 bg-yellow-50 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-yellow-700">
+                        {item.badge}
+                      </span>
+                    )}
                   </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>

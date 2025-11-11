@@ -17,16 +17,16 @@ The sub-agents have specialized knowledge and abilities, but also, delegating to
 
 Read the entire PLAN.md file you are given.
 
-Starting with Phase 1, delegate the implementation of the phase to the plan executor agent. The plan executor agent will have minimal context so you will have to give it the information it needs, which should include a reference to the PLAN.md file, which phase the agent should work on, any relevant context about the implementation so far, and so on. The plan executor agent does have general context about this application, and understands how to look up technical docs.
+Starting with Phase 1, delegate the implementation of the phase to the code writer agent. The code writer agent will have minimal context so you will have to give it the information it needs, which should include a reference to the PLAN.md file, which phase the agent should work on, any relevant context about the implementation so far, and so on. The code writer agent does have general context about this application, and understands how to look up technical docs.
 
-After the plan executor agent finishes a batch of work and you check it: if it got something wrong that you can easily fix, fix it. If it got something wrong that needs extensive correction, stop and ask me for help
+After the code writer agent finishes a batch of work and you check it: if it got something wrong that you can easily fix, fix it. If it got something wrong that needs extensive correction, stop and ask me for help
 
 ### Process for each phase
 
 The process for each phase is as follows (in order):
 
-1. Ask the plan executor agent to implement the phase
-2. Check the plan executor agent's implementation
+1. Ask the code writer agent to implement the phase
+2. Check the code writer agent's implementation
 3. If it got something wrong that you can easily fix, fix it, else escalate to me
 4. Run the `lint`, `format`, `test`, and `build` commands at the project root to catch any issues early
 5. If the phase contains UI changes, ask the web app tester agent to test the web app using Playwright after the phase
@@ -39,16 +39,16 @@ If all of those checks pass, then the phase is complete and you can move on to t
 A typical full agentic implementation might look like this, for a PLAN.md containing 4 stages, where stages 2 and 3 contain UI changes that should be checked:
 
 1. You read the PLAN.md file
-2. You asked the plan executor agent to implement phase 1
-3. You check what the plan executor agent did in its phase 1 implementation and decided it was correct
-4. You asked the plan executor agent to implement phase 2 (which contains UI changes)
-5. You check what the plan executor agent did in its phase 2 implementation and decided it was correct
+2. You asked the code writer agent to implement phase 1
+3. You check what the code writer agent did in its phase 1 implementation and decided it was correct
+4. You asked the code writer agent to implement phase 2 (which contains UI changes)
+5. You check what the code writer agent did in its phase 2 implementation and decided it was correct
 6. You asked the web app tester agent to test the web app using Playwright after phase 2, because it contains UI changes
-7. You asked the plan executor agent to implement phase 3 (which contains UI changes)
-8. You check what the plan executor agent did in its phase 3 implementation and decided it was correct
+7. You asked the code writer agent to implement phase 3 (which contains UI changes)
+8. You check what the code writer agent did in its phase 3 implementation and decided it was correct
 9. You asked the web app tester agent to test the web app using Playwright after phase 3, because it contains UI changes
-10. You asked the plan executor agent to implement phase 4
-11. You check what the plan executor agent did in its phase 4 implementation and decided it was correct
+10. You asked the code writer agent to implement phase 4
+11. You check what the code writer agent did in its phase 4 implementation and decided it was correct
 
 At this point, you should prepare your final report:
 
@@ -71,6 +71,7 @@ Before reporting back to the user, create a commit message for the completed wor
 ### Commit Message Guidelines
 
 The commit message should:
+
 - Start with a 1-sentence summary on its own line
 - Briefly explain what was done and why
 - Typically be 2-4 paragraphs long (shorter for small changes, ~1-2 paragraphs for <300 LOC)
@@ -84,6 +85,7 @@ The commit message should:
 ## Final Report
 
 Give a full report back to the user, including:
+
 - Summary of all phases completed
 - Any issues encountered and how they were resolved
 - The suggested git commit message (based on COMMIT_MESSAGE.md if it existed)

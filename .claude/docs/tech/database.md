@@ -6,8 +6,9 @@ BragDoc uses PostgreSQL with Drizzle ORM for type-safe database access. The data
 
 ## Database Stack
 
-- **Database**: PostgreSQL 14+
+- **Database**: PostgreSQL 14+ with pgvector extension
 - **ORM**: Drizzle ORM v0.34.1
+- **Vector Storage**: pgvector for embedding storage (1536-dimensional vectors)
 - **Connection**: Neon Serverless (@neondatabase/serverless) or Vercel Postgres
 - **Migrations**: SQL-based migrations via Drizzle Kit
 - **Type Safety**: InferSelectModel for compile-time type checking
@@ -217,6 +218,17 @@ export const achievement = pgTable('Achievement', {
   impactSource: varchar('impact_source', { enum: ['user', 'llm'] })
     .default('llm'),
   impactUpdatedAt: timestamp('impact_updated_at').defaultNow(),
+
+  // Workstream fields
+  workstreamId: uuid('workstream_id')
+    .references(() => workstream.id, { onDelete: 'set null' }),
+  workstreamSource: varchar('workstream_source', { length: 16 }), // 'ai' | 'user'
+
+  // Embedding fields for AI workstream clustering
+  embedding: vector('embedding', { dimensions: 1536 }),     // OpenAI text-embedding-3-small
+  embeddingModel: varchar('embedding_model', { length: 64 })
+    .default('text-embedding-3-small'),
+  embeddingGeneratedAt: timestamp('embedding_generated_at'),
 
   createdAt: timestamp('created_at').notNull().defaultNow(),
   updatedAt: timestamp('updated_at').notNull().defaultNow(),
@@ -488,6 +500,76 @@ export const account = pgTable('Account', {
   pk: primaryKey({ columns: [table.provider, table.providerAccountId] }),
 }));
 ```
+
+---
+
+### Workstream Table
+**Purpose**: Semantic groupings of related achievements across projects
+
+```typescript
+export const workstream = pgTable('Workstream', {
+  id: uuid('id').primaryKey().notNull().defaultRandom(),
+  userId: uuid('user_id')
+    .notNull()
+    .references(() => user.id, { onDelete: 'cascade' }),
+
+  // Core fields
+  name: varchar('name', { length: 256 }).notNull(),          // LLM-generated descriptive name
+  description: text('description'),                           // LLM-generated summary
+  color: varchar('color', { length: 7 }).default('#3B82F6'), // Hex color for UI
+
+  // Centroid caching for fast incremental assignment
+  centroidEmbedding: vector('centroid_embedding', { dimensions: 1536 }),
+  centroidUpdatedAt: timestamp('centroid_updated_at'),
+
+  // Metadata
+  achievementCount: integer('achievement_count').default(0),
+  isArchived: boolean('is_archived').default(false),
+
+  createdAt: timestamp('created_at').notNull().defaultNow(),
+  updatedAt: timestamp('updated_at').notNull().defaultNow(),
+});
+```
+
+**Purpose**: Workstreams automatically group semantically related achievements using ML clustering. They help users identify patterns and themes in their work across different projects and time periods.
+
+---
+
+### WorkstreamMetadata Table
+**Purpose**: Clustering history and parameters for workstream generation
+
+```typescript
+export const workstreamMetadata = pgTable('WorkstreamMetadata', {
+  id: uuid('id').primaryKey().notNull().defaultRandom(),
+  userId: uuid('user_id')
+    .notNull()
+    .references(() => user.id, { onDelete: 'cascade' })
+    .unique(),  // One metadata record per user
+
+  // Clustering history
+  lastFullClusteringAt: timestamp('last_full_clustering_at').notNull(),
+  achievementCountAtLastClustering: integer('achievement_count_at_last_clustering').notNull(),
+
+  // Clustering parameters used
+  epsilon: real('epsilon').notNull(),          // DBSCAN distance threshold
+  minPts: integer('min_pts').notNull(),        // DBSCAN minimum points
+
+  // Statistics
+  workstreamCount: integer('workstream_count').default(0),
+  outlierCount: integer('outlier_count').default(0),
+
+  createdAt: timestamp('created_at').notNull().defaultNow(),
+  updatedAt: timestamp('updated_at').notNull().defaultNow(),
+});
+```
+
+**Re-clustering Triggers**: Full re-clustering occurs when:
+- Never clustered before (no metadata record)
+- Achievement count increased by 10% since last clustering
+- Achievement count increased by 50+ since last clustering
+- More than 30 days since last clustering
+
+---
 
 ### Session Table
 ```typescript
