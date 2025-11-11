@@ -10,7 +10,7 @@ import { captureServerEvent } from '@/lib/posthog-server';
 import { generateAchievementEmbedding } from '@/lib/ai/embeddings';
 import { getClusteringParameters } from '@/lib/ai/clustering';
 import { incrementalAssignment } from '@/lib/ai/workstreams';
-import { getAchievementCountWithEmbeddings } from '@bragdoc/database';
+import { getTotalAchievementCount } from '@bragdoc/database';
 
 // Validation schema for achievement data
 const achievementSchema = z.object({
@@ -183,9 +183,7 @@ export async function POST(req: NextRequest) {
 
       // Task 5.7: Auto-assign achievement to workstream (non-blocking)
       try {
-        const achievementCount = await getAchievementCountWithEmbeddings(
-          auth.user.id,
-        );
+        const achievementCount = await getTotalAchievementCount(auth.user.id);
         const params = getClusteringParameters(achievementCount);
 
         if (params) {

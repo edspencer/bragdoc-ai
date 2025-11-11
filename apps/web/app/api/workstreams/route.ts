@@ -3,7 +3,7 @@ import { z } from 'zod';
 import { getAuthUser } from '@/lib/getAuthUser';
 import {
   getUnassignedAchievements,
-  getAchievementCountWithEmbeddings,
+  getTotalAchievementCount,
   getWorkstreamsByUserIdWithDateFilter,
   getAchievementsByUserIdWithDates,
 } from '@bragdoc/database';
@@ -113,20 +113,15 @@ export async function GET(request: NextRequest) {
         startDate,
         endDate,
       );
-      // Count only achievements with embeddings
-      const achievementsWithEmbeddings = achievements.filter(
-        (a) => a.embedding,
-      );
-      achievementCount = achievementsWithEmbeddings.length;
+      // For zero state, count ALL achievements (embeddings will be generated on demand)
+      achievementCount = achievements.length;
       // Count unassigned achievements (no workstream assignment)
-      unassignedCount = achievementsWithEmbeddings.filter(
-        (a) => !a.workstreamId,
-      ).length;
+      unassignedCount = achievements.filter((a) => !a.workstreamId).length;
     } else {
       // Use existing functions for all-time counts
       const unassignedAchievements = await getUnassignedAchievements(userId);
       unassignedCount = unassignedAchievements.length;
-      achievementCount = await getAchievementCountWithEmbeddings(userId);
+      achievementCount = await getTotalAchievementCount(userId);
     }
 
     return NextResponse.json({

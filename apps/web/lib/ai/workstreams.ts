@@ -722,15 +722,22 @@ export async function fullReclustering(
 
   // Prepare cluster data for batch processing
   const workstreamColors = [
-    '#3B82F6',
-    '#10B981',
-    '#F59E0B',
-    '#EF4444',
-    '#8B5CF6',
-    '#06B6D4',
-    '#F97316',
-    '#84CC16',
-    '#EC4899',
+    '#16A34A', // green-600
+    '#F97316', // orange-500
+    '#0284C7', // sky-600
+    '#9333EA', // purple-600
+    '#E11D48', // rose-500
+    '#0D9488', // teal-600
+    '#4F46E5', // indigo-600
+    '#DB2777', // pink-600
+    '#65A30D', // lime-600
+    '#EA580C', // orange-600
+    '#0891B2', // cyan-600
+    '#7C3AED', // violet-600
+    '#DC2626', // red-600
+    '#D97706', // amber-600
+    '#059669', // emerald-600
+    '#2563EB', // blue-600
   ];
 
   // Extract cluster achievements and calculate centroids

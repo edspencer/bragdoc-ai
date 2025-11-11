@@ -75,9 +75,22 @@ export default function WorkstreamsPage() {
     isGenerating,
   } = useWorkstreams(startDate, endDate);
 
+  // Only show zero state if we have loaded the data and have no workstreams
+  const showZeroState = !isLoading && workstreams.length === 0;
+
+  // Always fetch 12-month count for zero state (since generation always uses 12 months)
+  const twelveMonthsAgo = new Date();
+  twelveMonthsAgo.setFullYear(twelveMonthsAgo.getFullYear() - 1);
+  const { data: twelveMonthData } = useSWR(
+    `/api/workstreams?startDate=${twelveMonthsAgo.toISOString().split('T')[0]}`,
+    fetcher,
+  );
+  const twelveMonthAchievementCount = twelveMonthData?.achievementCount || 0;
+
   // Fetch all achievements for timeline (fetch large limit to get all)
-  const { data: achievementsData } = useSWR(
-    '/api/achievements?limit=1000',
+  // Only fetch when we have workstreams to display
+  const { data: achievementsData, isLoading: achievementsLoading } = useSWR(
+    showZeroState ? null : '/api/achievements?limit=1000',
     fetcher,
   );
   const achievements = achievementsData?.achievements || [];
@@ -86,9 +99,6 @@ export default function WorkstreamsPage() {
   const [selectedWorkstreamId, setSelectedWorkstreamId] = useState<
     string | null
   >(null);
-
-  // Only show zero state if we have loaded the data and have no workstreams
-  const showZeroState = !isLoading && workstreams.length === 0;
 
   const presets = [
     { value: '3m', label: 'Last 3 months' },
@@ -102,23 +112,25 @@ export default function WorkstreamsPage() {
     <AppPage>
       <SidebarInset>
         <SiteHeader title="Workstreams">
-          <Select value={datePreset} onValueChange={setDatePreset}>
-            <SelectTrigger className="w-40">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent align="end">
-              {presets.map((preset) => (
-                <SelectItem key={preset.value} value={preset.value}>
-                  {preset.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          {!showZeroState && (
+            <Select value={datePreset} onValueChange={setDatePreset}>
+              <SelectTrigger className="w-40">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent align="end">
+                {presets.map((preset) => (
+                  <SelectItem key={preset.value} value={preset.value}>
+                    {preset.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          )}
         </SiteHeader>
         <AppContent>
           {showZeroState ? (
             <WorkstreamsZeroState
-              achievementCount={achievementCount}
+              achievementCount={twelveMonthAchievementCount}
               onGenerate={generateWorkstreams}
             />
           ) : (
@@ -144,7 +156,7 @@ export default function WorkstreamsPage() {
                 onSelectWorkstream={setSelectedWorkstreamId}
                 startDate={startDate}
                 endDate={endDate}
-                isLoading={isLoading}
+                isLoading={isLoading || achievementsLoading}
               />
 
               <WorkstreamAchievementsTable

@@ -4,16 +4,7 @@
  * Reusable query functions for workstream and achievement management.
  */
 
-import {
-  and,
-  desc,
-  eq,
-  isNull,
-  gte,
-  isNotNull,
-  lte,
-  inArray,
-} from 'drizzle-orm';
+import { and, desc, eq, isNull, gte, lte, inArray } from 'drizzle-orm';
 import { db } from '../index';
 import {
   workstream,
@@ -89,10 +80,9 @@ export async function getAchievementsByWorkstreamId(
 
 /**
  * Get achievements that haven't been assigned to any workstream
- * Must have embeddings to be eligible
  *
  * @param userId - User ID to scope query
- * @returns Array of unassigned achievements with embeddings
+ * @returns Array of unassigned achievements (embeddings will be generated on demand)
  */
 export async function getUnassignedAchievements(
   userId: string,
@@ -101,17 +91,12 @@ export async function getUnassignedAchievements(
     .select()
     .from(achievement)
     .where(
-      and(
-        eq(achievement.userId, userId),
-        isNull(achievement.workstreamId),
-        // Note: isNull for vector type may not work properly in all Drizzle versions
-        // The calling code should filter for embeddings in application layer
-      ),
+      and(eq(achievement.userId, userId), isNull(achievement.workstreamId)),
     )
     .orderBy(desc(achievement.eventStart));
 
-  // Filter in application to ensure we only get achievements with embeddings
-  return results.filter((ach) => ach.embedding);
+  // Return all unassigned achievements - embeddings will be generated when needed
+  return results;
 }
 
 /**
@@ -180,38 +165,28 @@ export async function archiveWorkstream(workstreamId: string): Promise<void> {
 }
 
 /**
- * Get count of all achievements for a user (regardless of embeddings)
+ * Get total count of all achievements for a user
  * Used to determine if clustering is possible
  *
  * Note: Embeddings will be generated automatically during clustering if missing
  *
  * @param userId - User ID
- * @returns Count of all achievements
+ * @returns Count of all achievements (embeddings will be generated on demand)
  */
-export async function getAchievementCountWithEmbeddings(
+export async function getTotalAchievementCount(
   userId: string,
 ): Promise<number> {
-  // Calculate 12 months ago
-  const twelveMonthsAgo = new Date();
-  twelveMonthsAgo.setFullYear(twelveMonthsAgo.getFullYear() - 1);
-
   const results = await db
     .select()
     .from(achievement)
-    .where(
-      and(
-        eq(achievement.userId, userId),
-        isNotNull(achievement.embedding),
-        gte(achievement.eventStart, twelveMonthsAgo),
-      ),
-    );
+    .where(eq(achievement.userId, userId));
 
   return results.length;
 }
 
 /**
  * Get achievements for a user filtered by date range
- * Includes all achievements with embeddings in the specified date range
+ * Returns all achievements in the specified date range (embeddings will be generated on demand)
  *
  * @param userId - User ID to scope query
  * @param startDate - Start date for filtering (inclusive), optional
@@ -239,8 +214,8 @@ export async function getAchievementsByUserIdWithDates(
     .where(and(...conditions))
     .orderBy(desc(achievement.eventStart));
 
-  // Filter in application layer to ensure only achievements with embeddings are returned
-  return results.filter((ach) => ach.embedding);
+  // Return all achievements - embeddings will be generated when needed
+  return results;
 }
 
 /**

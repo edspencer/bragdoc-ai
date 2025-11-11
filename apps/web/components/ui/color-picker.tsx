@@ -5,22 +5,37 @@ import { cn } from '@/lib/utils';
 import {
   PROJECT_COLORS,
   PROJECT_COLOR_NAMES,
+  WORKSTREAM_COLORS,
+  WORKSTREAM_COLOR_NAMES,
   getColorIndex,
+  getWorkstreamColorIndex,
 } from '@/lib/colors';
 
 interface ColorPickerProps {
   value?: string;
   onChange?: (color: string) => void;
   className?: string;
+  variant?: 'project' | 'workstream';
 }
 
-export function ColorPicker({ value, onChange, className }: ColorPickerProps) {
-  const selectedIndex = value ? getColorIndex(value) : 0;
+export function ColorPicker({
+  value,
+  onChange,
+  className,
+  variant = 'project',
+}: ColorPickerProps) {
+  const colors = variant === 'workstream' ? WORKSTREAM_COLORS : PROJECT_COLORS;
+  const colorNames =
+    variant === 'workstream' ? WORKSTREAM_COLOR_NAMES : PROJECT_COLOR_NAMES;
+  const getIndexFn =
+    variant === 'workstream' ? getWorkstreamColorIndex : getColorIndex;
+
+  const selectedIndex = value ? getIndexFn(value) : 0;
 
   return (
     <div className={cn('space-y-2', className)}>
       <div className="grid grid-cols-8 gap-2">
-        {PROJECT_COLORS.map((color, index) => (
+        {colors.map((color, index) => (
           <button
             key={color}
             type="button"
@@ -32,8 +47,8 @@ export function ColorPicker({ value, onChange, className }: ColorPickerProps) {
                 : 'border-border hover:border-foreground/50',
             )}
             style={{ backgroundColor: color }}
-            title={PROJECT_COLOR_NAMES[index]}
-            aria-label={`Select ${PROJECT_COLOR_NAMES[index]} color`}
+            title={colorNames[index]}
+            aria-label={`Select ${colorNames[index]} color`}
           >
             {selectedIndex === index && (
               <div className="absolute inset-0 flex items-center justify-center">
@@ -45,7 +60,7 @@ export function ColorPicker({ value, onChange, className }: ColorPickerProps) {
       </div>
       {value && (
         <div className="text-xs text-muted-foreground">
-          Selected: {PROJECT_COLOR_NAMES[getColorIndex(value)]}
+          Selected: {colorNames[getIndexFn(value)]}
         </div>
       )}
     </div>

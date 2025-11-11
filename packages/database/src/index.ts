@@ -126,7 +126,7 @@ export {
   getWorkstreamMetadata,
   updateWorkstream,
   archiveWorkstream,
-  getAchievementCountWithEmbeddings,
+  getTotalAchievementCount,
   unassignAchievementsFromWorkstream,
   getAchievementsByUserIdWithDates,
   getWorkstreamCountsWithDateFilter,
