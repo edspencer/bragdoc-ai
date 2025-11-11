@@ -18,6 +18,8 @@ interface WorkstreamsGanttChartProps {
     eventStart: Date | null;
     impact: number | null;
   }>;
+  selectedWorkstreamId?: string | null;
+  onSelectWorkstream?: (workstreamId: string | null) => void;
 }
 
 interface TimeSegment {
@@ -36,6 +38,8 @@ interface WorkstreamWithSegments {
 export function WorkstreamsGanttChart({
   workstreams,
   achievements,
+  selectedWorkstreamId,
+  onSelectWorkstream,
 }: WorkstreamsGanttChartProps) {
   // Calculate time ranges for each workstream (split into segments if gap > 1 month)
   const workstreamData = useMemo(() => {
@@ -329,12 +333,23 @@ export function WorkstreamsGanttChart({
                         segment,
                         wsData.workstream.color || '#3B82F6',
                       );
+                      const isSelected =
+                        selectedWorkstreamId === wsData.workstream.id;
                       return (
                         <Tooltip key={segIdx}>
                           <TooltipTrigger asChild>
                             <div
-                              className="absolute top-1 h-6 rounded transition-all hover:opacity-100 cursor-pointer"
+                              className={`absolute top-1 h-6 rounded transition-all hover:opacity-100 cursor-pointer ${
+                                isSelected
+                                  ? 'ring-2 ring-offset-1 ring-yellow-400 shadow-lg'
+                                  : ''
+                              }`}
                               style={barStyle}
+                              onClick={() =>
+                                onSelectWorkstream?.(
+                                  isSelected ? null : wsData.workstream.id,
+                                )
+                              }
                             >
                               <div className="h-full flex items-center justify-center">
                                 <span className="text-xs font-medium text-white px-2 truncate">

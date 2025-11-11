@@ -7,10 +7,12 @@ import { WorkstreamsZeroState } from '@/components/workstreams/workstreams-zero-
 import { WorkstreamsChart } from '@/components/workstreams/workstreams-chart';
 import { WorkstreamsTimelineChart } from '@/components/workstreams/workstreams-timeline-chart';
 import { WorkstreamsGanttChart } from '@/components/workstreams/workstreams-gantt-chart';
+import { WorkstreamAchievementsTable } from '@/components/workstreams/workstream-achievements-table';
 import { useWorkstreams } from '@/hooks/use-workstreams';
 import { AppPage } from '@/components/shared/app-page';
 import { AppContent } from '@/components/shared/app-content';
 import useSWR from 'swr';
+import { useState } from 'react';
 
 const fetcher = (url: string) => fetch(url).then((res) => res.json());
 
@@ -29,6 +31,11 @@ export default function WorkstreamsPage() {
     fetcher,
   );
   const achievements = achievementsData?.achievements || [];
+
+  // State for tracking selected workstream in Gantt chart
+  const [selectedWorkstreamId, setSelectedWorkstreamId] = useState<
+    string | null
+  >(null);
 
   // Only show zero state if we have loaded the data and have no workstreams
   const showZeroState = !isLoading && workstreams.length === 0;
@@ -52,6 +59,19 @@ export default function WorkstreamsPage() {
                 </p>
               </div>
 
+              <WorkstreamsGanttChart
+                workstreams={workstreams}
+                achievements={achievements}
+                selectedWorkstreamId={selectedWorkstreamId}
+                onSelectWorkstream={setSelectedWorkstreamId}
+              />
+
+              <WorkstreamAchievementsTable
+                achievements={achievements}
+                workstreams={workstreams}
+                selectedWorkstreamId={selectedWorkstreamId}
+              />
+
               <WorkstreamsChart
                 workstreams={workstreams}
                 unassignedCount={unassignedCount}
@@ -59,11 +79,6 @@ export default function WorkstreamsPage() {
               />
 
               <WorkstreamsTimelineChart
-                workstreams={workstreams}
-                achievements={achievements}
-              />
-
-              <WorkstreamsGanttChart
                 workstreams={workstreams}
                 achievements={achievements}
               />
