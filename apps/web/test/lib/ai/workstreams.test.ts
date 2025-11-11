@@ -17,9 +17,14 @@ import { db } from '@/database/index';
 import { eq } from 'drizzle-orm';
 import { v4 as uuidv4 } from 'uuid';
 
-jest.mock('ai', () => ({
-  embed: jest.fn(),
-}));
+// Mock the LLM naming function to avoid actual API calls in tests
+jest.mock('lib/ai/workstreams', () => {
+  const actual = jest.requireActual('lib/ai/workstreams');
+  return {
+    ...actual,
+    nameWorkstreamsBatch: jest.fn(),
+  };
+});
 
 const mockUser = {
   id: '123e4567-e89b-12d3-a456-426614174000',
@@ -39,6 +44,19 @@ const mockProject = {
 describe('Workstream Orchestration', () => {
   beforeEach(async () => {
     jest.clearAllMocks();
+
+    // Mock nameWorkstreamsBatch to return dummy names without calling LLM
+    const { nameWorkstreamsBatch } = require('lib/ai/workstreams');
+    (nameWorkstreamsBatch as jest.Mock).mockImplementation(
+      async (clusters: any[][]) => {
+        // Return a name and description for each cluster
+        return clusters.map((_, idx) => ({
+          name: `Test Workstream ${idx + 1}`,
+          description: `Description for test workstream ${idx + 1}`,
+        }));
+      },
+    );
+
     await db.delete(achievement);
     await db.delete(project);
     await db.delete(workstream);

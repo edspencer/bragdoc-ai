@@ -19,7 +19,7 @@ import {
 } from '@bragdoc/database';
 import { and, eq, isNull, isNotNull, inArray, count } from 'drizzle-orm';
 import { v4 as uuidv4 } from 'uuid';
-import { generateText, generateObject } from 'ai';
+import { generateObject } from 'ai';
 import { z } from 'zod';
 import { getLLM } from './index';
 import {
@@ -433,76 +433,8 @@ export async function incrementalAssignment(
 }
 
 /**
- * Generate a name and description for a workstream based on its achievements
- * Uses LLM to analyze sampled achievements and generate descriptive text
- *
- * @param achievements - Achievements in this workstream
- * @param _user - User object (not currently used)
- * @returns Object with name and description
- */
-export async function nameWorkstream(
-  achievements: Achievement[],
-  _user: User,
-): Promise<{ name: string; description: string }> {
-  // Sample up to 15 achievements
-  const sampleSize = Math.min(15, achievements.length);
-  const sample = achievements.slice(0, sampleSize);
-
-  // Create prompt with achievement titles and summaries
-  const achievementText = sample
-    .map((ach) => `- ${ach.title}: ${ach.summary}`)
-    .join('\n');
-
-  // Use LLM to generate name and description
-  const llm = getLLM('generation');
-
-  try {
-    const { text } = await generateText({
-      model: llm,
-      prompt: `Analyze these achievements and generate a workstream name and description.
-
-Achievements:
-${achievementText}
-
-Respond with JSON in this exact format:
-{
-  "name": "2-5 word workstream name",
-  "description": "1-2 sentence description of this workstream theme"
-}
-
-Ensure the response is valid JSON only.`,
-      temperature: 0.7,
-    });
-
-    // Parse JSON response
-    const jsonMatch = text.match(/\{[\s\S]*\}/);
-    if (jsonMatch) {
-      const parsed = JSON.parse(jsonMatch[0]);
-      if (parsed.name && parsed.description) {
-        return {
-          name: parsed.name.slice(0, 256), // Enforce max length
-          description: parsed.description.slice(0, 1000),
-        };
-      }
-    }
-  } catch (error) {
-    console.error('Failed to generate workstream name with LLM:', error);
-  }
-
-  // Fallback: extract common words from titles
-  const titles = sample.map((ach) => ach.title).join(' ');
-  const commonWords = extractCommonWords(titles);
-  const name = commonWords.slice(0, 3).join(' ') || 'Unnamed Workstream';
-
-  return {
-    name: name.slice(0, 256),
-    description: `Workstream with ${achievements.length} achievements`,
-  };
-}
-
-/**
  * Generate names and descriptions for multiple workstreams in a single LLM call
- * This is much more efficient than calling nameWorkstream() sequentially
+ * Uses structured output (generateObject) to ensure consistent formatting
  *
  * @param clusters - Array of achievement arrays (one per cluster)
  * @param _user - User object (not currently used)

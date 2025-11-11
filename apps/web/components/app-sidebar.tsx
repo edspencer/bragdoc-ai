@@ -43,6 +43,7 @@ const staticData = {
       title: 'Workstreams',
       url: '/workstreams',
       icon: IconTrendingUp,
+      badge: 'NEW',
     },
     {
       title: 'Companies',
