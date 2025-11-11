@@ -15,7 +15,7 @@ import {
   project,
   userMessage,
 } from '@bragdoc/database';
-import { eq } from 'drizzle-orm';
+import { eq, and, gte, lte } from 'drizzle-orm';
 import { subMonths, startOfDay, endOfDay } from 'date-fns';
 import { headers } from 'next/headers';
 import type { AchievementWithRelations } from '@/lib/types/achievement';
@@ -77,7 +77,18 @@ export default async function WorkstreamsPage({
   const datePreset = params.preset || '6m';
   const { startDate, endDate } = calculateDateRange(datePreset);
 
-  // Fetch workstreams and all achievements with relations in parallel
+  // Build WHERE conditions for achievements query
+  const achievementConditions = [eq(achievement.userId, userId)];
+
+  // Add date filtering to SQL query instead of JavaScript
+  if (startDate) {
+    achievementConditions.push(gte(achievement.eventStart, startDate));
+  }
+  if (endDate) {
+    achievementConditions.push(lte(achievement.eventStart, endDate));
+  }
+
+  // Fetch workstreams and filtered achievements with relations in parallel
   const [userWorkstreams, achievementResults] = await Promise.all([
     db.select().from(workstream).where(eq(workstream.userId, userId)),
     db
@@ -86,7 +97,7 @@ export default async function WorkstreamsPage({
       .leftJoin(company, eq(achievement.companyId, company.id))
       .leftJoin(project, eq(achievement.projectId, project.id))
       .leftJoin(userMessage, eq(achievement.userMessageId, userMessage.id))
-      .where(eq(achievement.userId, userId)),
+      .where(and(...achievementConditions)),
   ]);
 
   // Transform to AchievementWithRelations type
@@ -101,38 +112,24 @@ export default async function WorkstreamsPage({
 
   const showZeroState = userWorkstreams.length === 0;
 
-  // Calculate counts from the single achievement query
-  let achievementCount = allAchievements.length;
-  let unassignedCount = allAchievements.filter((a) => !a.workstreamId).length;
+  // Calculate counts - data is already filtered by SQL, so just count directly
+  const achievementCount = allAchievements.length;
+  const unassignedCount = allAchievements.filter((a) => !a.workstreamId).length;
+
+  // For zero state, fetch 12-month achievement count separately
   let twelveMonthAchievementCount = 0;
-
-  // Only calculate filtered counts if we have a date filter and workstreams exist
-  if (!showZeroState && (startDate || endDate)) {
-    achievementCount = allAchievements.filter((a) => {
-      if (!a.eventStart) return false;
-      const eventDate = new Date(a.eventStart);
-      if (startDate && eventDate < startDate) return false;
-      if (endDate && eventDate > endDate) return false;
-      return true;
-    }).length;
-
-    unassignedCount = allAchievements.filter((a) => {
-      if (a.workstreamId) return false;
-      if (!a.eventStart) return false;
-      const eventDate = new Date(a.eventStart);
-      if (startDate && eventDate < startDate) return false;
-      if (endDate && eventDate > endDate) return false;
-      return true;
-    }).length;
-  }
-
-  // Only calculate 12-month count if showing zero state
   if (showZeroState) {
     const twelveMonthsAgo = subMonths(new Date(), 12);
-    twelveMonthAchievementCount = allAchievements.filter((a) => {
-      if (!a.eventStart) return false;
-      return new Date(a.eventStart) >= twelveMonthsAgo;
-    }).length;
+    const twelveMonthResults = await db
+      .select()
+      .from(achievement)
+      .where(
+        and(
+          eq(achievement.userId, userId),
+          gte(achievement.eventStart, twelveMonthsAgo),
+        ),
+      );
+    twelveMonthAchievementCount = twelveMonthResults.length;
   }
 
   return (
