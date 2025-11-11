@@ -31,6 +31,7 @@ interface WorkstreamAchievementsTableProps {
   selectedWorkstreamId: string | null;
   onGenerateWorkstreams?: () => void;
   isGenerating?: boolean;
+  generationStatus?: string;
   startDate?: Date;
   endDate?: Date;
 }
@@ -41,6 +42,7 @@ export function WorkstreamAchievementsTable({
   selectedWorkstreamId,
   onGenerateWorkstreams,
   isGenerating,
+  generationStatus,
   startDate,
   endDate,
 }: WorkstreamAchievementsTableProps) {
@@ -302,7 +304,7 @@ export function WorkstreamAchievementsTable({
                 {isGenerating ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Assigning...
+                    {generationStatus || 'Assigning...'}
                   </>
                 ) : (
                   'Assign to Workstreams'

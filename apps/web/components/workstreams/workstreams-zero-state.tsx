@@ -9,19 +9,30 @@ import { useState } from 'react';
 interface WorkstreamsZeroStateProps {
   achievementCount: number;
   onGenerate?: () => Promise<any>;
+  generationStatus?: string;
+  isGenerating?: boolean;
 }
 
 export function WorkstreamsZeroState({
   achievementCount,
   onGenerate,
+  generationStatus,
+  isGenerating: isGeneratingProp,
 }: WorkstreamsZeroStateProps) {
-  const [isGenerating, setIsGenerating] = useState(false);
+  const [localIsGenerating, setLocalIsGenerating] = useState(false);
   const [noWorkstreamsFound, setNoWorkstreamsFound] = useState(false);
   const canGenerate = achievementCount >= 20;
 
+  // Use prop if provided, otherwise use local state
+  const isGenerating =
+    isGeneratingProp !== undefined ? isGeneratingProp : localIsGenerating;
+
   const handleGenerate = async () => {
     if (!onGenerate) return;
-    setIsGenerating(true);
+    // Only manage local state if not controlled by prop
+    if (isGeneratingProp === undefined) {
+      setLocalIsGenerating(true);
+    }
     setNoWorkstreamsFound(false);
     try {
       const result = await onGenerate();
@@ -32,7 +43,9 @@ export function WorkstreamsZeroState({
     } catch (error) {
       console.error('Failed to generate workstreams:', error);
     } finally {
-      setIsGenerating(false);
+      if (isGeneratingProp === undefined) {
+        setLocalIsGenerating(false);
+      }
     }
   };
 
@@ -117,7 +130,7 @@ export function WorkstreamsZeroState({
                 {isGenerating ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Analyzing achievements...
+                    {generationStatus || 'Analyzing achievements...'}
                   </>
                 ) : noWorkstreamsFound ? (
                   'Try Again'

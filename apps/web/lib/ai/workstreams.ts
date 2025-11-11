@@ -17,7 +17,7 @@ import {
   type Workstream,
   type WorkstreamMetadata,
 } from '@bragdoc/database';
-import { and, eq, isNull, isNotNull, inArray } from 'drizzle-orm';
+import { and, eq, isNull, isNotNull, inArray, count } from 'drizzle-orm';
 import { v4 as uuidv4 } from 'uuid';
 import { generateText, generateObject } from 'ai';
 import { z } from 'zod';
@@ -35,6 +35,20 @@ const SMALL_DATASET = 100;
 const RECLUSTER_PERCENTAGE_THRESHOLD = 0.1; // 10%
 const RECLUSTER_ABSOLUTE_THRESHOLD = 50; // 50 achievements
 const RECLUSTER_TIME_THRESHOLD_DAYS = 30;
+
+/**
+ * Progress callback for streaming updates during workstream generation
+ */
+export type ProgressCallback = (event: {
+  type: 'progress' | 'complete' | 'error';
+  phase?:
+    | 'workstreams_created'
+    | 'achievements_assigned'
+    | 'generating_names'
+    | 'refreshing';
+  message: string;
+  data?: any;
+}) => void;
 
 /**
  * Lightweight achievement summary for API responses
@@ -650,11 +664,13 @@ function extractCommonWords(text: string): string[] {
  *
  * @param userId - User ID to scope operation
  * @param user - User object for LLM selection in naming
+ * @param onProgress - Optional callback for progress updates
  * @returns Clustering statistics and metadata
  */
 export async function fullReclustering(
   userId: string,
   user: User,
+  onProgress?: ProgressCallback,
 ): Promise<FullClusteringResult> {
   // Calculate 12 months ago
   const twelveMonthsAgo = new Date();
@@ -763,41 +779,24 @@ export async function fullReclustering(
     })
     .filter((cluster) => cluster !== null);
 
+  // PHASE 1: Create workstreams with temporary names (no LLM call yet)
   console.log(
-    `[Workstreams] Generating names for ${clusterData.length} clusters in batch`,
+    `[Workstreams] Creating ${clusterData.length} workstreams with temporary names`,
   );
 
-  // Generate all workstream names in a single LLM call (MAJOR OPTIMIZATION)
-  const namingStartTime = Date.now();
-  const names = await nameWorkstreamsBatch(
-    clusterData.map((c) => c.achievements),
-    user,
-  );
-  const namingDuration = Date.now() - namingStartTime;
-
-  console.log(
-    `[Workstreams] Batch naming complete in ${namingDuration}ms, creating workstreams in parallel`,
-  );
-
-  // Create all workstreams and assign achievements in parallel (PARALLEL DB OPS)
+  // Create all workstreams and assign initial achievements in parallel
   const workstreamPromises = clusterData.map(async (cluster, idx) => {
-    // Get name/description with fallback if batch naming had issues
-    const nameData = names[idx] || {
-      name: `Workstream ${idx + 1}`,
-      description: `Workstream with ${cluster.achievements.length} achievements`,
-    };
-    const { name, description } = nameData;
     const wsId = uuidv4();
     const color = workstreamColors[cluster.index % workstreamColors.length];
 
-    // Create workstream record
+    // Create workstream record with temporary name
     const newWs = await db
       .insert(workstream)
       .values({
         id: wsId,
         userId,
-        name,
-        description,
+        name: `Workstream ${idx + 1}`, // Temporary name
+        description: `Temporary workstream`, // Temporary description
         color,
         centroidEmbedding: cluster.centroid as unknown as any,
         centroidUpdatedAt: now,
@@ -834,10 +833,18 @@ export async function fullReclustering(
   );
 
   console.log(
-    `[Workstreams] Created ${createdWorkstreams.length} workstreams in parallel`,
+    `[Workstreams] Created ${createdWorkstreams.length} workstreams with temporary names`,
   );
 
-  // Automatically assign outliers to nearest workstreams (improves coverage)
+  // Emit progress for Phase 1 completion
+  onProgress?.({
+    type: 'progress',
+    phase: 'workstreams_created',
+    message: `Created ${createdWorkstreams.length} workstreams`,
+    data: { workstreamsCount: createdWorkstreams.length },
+  });
+
+  // PHASE 2: Automatically assign outliers to nearest workstreams (improves coverage)
   // This combines the benefits of conservative clustering (quality workstreams)
   // with permissive assignment (high coverage)
   // Re-fetch achievements to get updated workstreamId values
@@ -857,13 +864,110 @@ export async function fullReclustering(
 
   if (outlierIds.length > 0 && createdWorkstreams.length > 0) {
     console.log(
-      `[Workstreams] Auto-assigning ${outlierIds.length} outliers to nearest workstreams`,
+      `[Workstreams] Phase 2: Auto-assigning ${outlierIds.length} outliers to nearest workstreams`,
     );
     const assignmentResult = await incrementalAssignment(userId, params);
     console.log(
       `[Workstreams] Auto-assigned ${assignmentResult.assigned.length} achievements, ${assignmentResult.unassigned.length} remain unassigned`,
     );
   }
+
+  // Get total assigned achievements count for progress update
+  const totalAssignedCount = await db
+    .select({ count: count() })
+    .from(achievement)
+    .where(
+      and(eq(achievement.userId, userId), isNotNull(achievement.workstreamId)),
+    );
+  const totalAssigned = totalAssignedCount[0]?.count || 0;
+
+  // Emit progress for Phase 2 completion
+  onProgress?.({
+    type: 'progress',
+    phase: 'achievements_assigned',
+    message: `Assigned ${totalAssigned} achievements`,
+    data: {
+      totalAssigned,
+      unassigned:
+        outlierIds.length > 0
+          ? outlierIds.length -
+            (totalAssigned - clusteringResult.clusters.flat().length)
+          : 0,
+    },
+  });
+
+  // PHASE 3: Generate names based on COMPLETE workstream content (after outlier assignment)
+  console.log(
+    `[Workstreams] Phase 3: Generating names for ${createdWorkstreams.length} workstreams based on complete achievement sets`,
+  );
+
+  // Emit progress for Phase 3 start
+  onProgress?.({
+    type: 'progress',
+    phase: 'generating_names',
+    message: 'Generating names...',
+    data: {},
+  });
+
+  // Fetch all achievements for each workstream (including newly assigned outliers)
+  const workstreamAchievements = await Promise.all(
+    createdWorkstreams.map(async (ws) => {
+      const achievements = await db
+        .select()
+        .from(achievement)
+        .where(eq(achievement.workstreamId, ws.id));
+      return { workstream: ws, achievements };
+    }),
+  );
+
+  // Generate names in batch for all workstreams with their complete achievement sets
+  const namingStartTime = Date.now();
+  const names = await nameWorkstreamsBatch(
+    workstreamAchievements.map((wa) => wa.achievements),
+    user,
+  );
+  const namingDuration = Date.now() - namingStartTime;
+
+  console.log(
+    `[Workstreams] Batch naming complete in ${namingDuration}ms, updating workstream names`,
+  );
+
+  // Update workstreams with proper names and updated centroids
+  const updatePromises = workstreamAchievements.map(async (wa, idx) => {
+    const nameData = names[idx] || {
+      name: `Workstream ${idx + 1}`,
+      description: `Workstream with ${wa.achievements.length} achievements`,
+    };
+
+    // Recalculate centroid with all achievements (including outliers)
+    const achievementEmbeddings = wa.achievements
+      .filter((ach) => ach.embedding)
+      .map((ach) => ach.embedding as unknown as number[]);
+
+    const updatedCentroid =
+      achievementEmbeddings.length > 0
+        ? calculateCentroid(achievementEmbeddings)
+        : wa.workstream.centroidEmbedding;
+
+    // Update workstream with proper name and updated centroid
+    await db
+      .update(workstream)
+      .set({
+        name: nameData.name,
+        description: nameData.description,
+        centroidEmbedding: updatedCentroid as unknown as any,
+        centroidUpdatedAt: now,
+        achievementCount: wa.achievements.length,
+        updatedAt: now,
+      })
+      .where(eq(workstream.id, wa.workstream.id));
+  });
+
+  await Promise.all(updatePromises);
+
+  console.log(
+    `[Workstreams] Updated ${createdWorkstreams.length} workstreams with proper names and centroids`,
+  );
 
   // Create or update metadata
   const metadata = {

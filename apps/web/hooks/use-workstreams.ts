@@ -1,7 +1,26 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import useSWR, { mutate } from 'swr';
 import type { Workstream } from '@bragdoc/database';
 import { toast } from 'sonner';
+
+// Encouraging messages to show when processing takes a while
+const ENCOURAGING_MESSAGES = [
+  'Almost there...',
+  'Still working...',
+  'Processing...',
+  'Just a moment...',
+  'Working on it...',
+  'Nearly done...',
+  'Hang tight...',
+  'Making progress...',
+  'Crunching the numbers...',
+  'Analyzing patterns...',
+  'Fine-tuning results...',
+  'Putting it together...',
+  'One moment please...',
+  'Getting there...',
+  'Wrapping up...',
+];
 
 async function fetcher(url: string) {
   const res = await fetch(url);
@@ -113,20 +132,110 @@ export function useWorkstreams(startDate?: Date, endDate?: Date) {
   const url = buildWorkstreamsUrl(startDate, endDate);
   const { data, error, isLoading } = useSWR<WorkstreamsResponse>(url, fetcher);
   const [isGenerating, setIsGenerating] = useState(false);
+  const [generationStatus, setGenerationStatus] = useState<string>('');
+  const statusTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Simple effect: every time generationStatus changes, reset the 4-second timer
+  useEffect(() => {
+    // Clear any existing timeout
+    if (statusTimeoutRef.current) {
+      clearTimeout(statusTimeoutRef.current);
+      statusTimeoutRef.current = null;
+    }
+
+    // Set a new timeout if we're generating and have a status
+    if (isGenerating && generationStatus) {
+      statusTimeoutRef.current = setTimeout(() => {
+        // After 4 seconds of no change, show a random encouraging message
+        const randomIndex = Math.floor(
+          Math.random() * ENCOURAGING_MESSAGES.length,
+        );
+        const randomMessage =
+          ENCOURAGING_MESSAGES[randomIndex] || 'Processing...';
+        setGenerationStatus(randomMessage);
+      }, 4000);
+    }
+
+    // Cleanup on unmount or before next effect
+    return () => {
+      if (statusTimeoutRef.current) {
+        clearTimeout(statusTimeoutRef.current);
+      }
+    };
+  }, [generationStatus, isGenerating]);
 
   const generateWorkstreams = async (): Promise<GenerateResult> => {
     setIsGenerating(true);
+    setGenerationStatus('Analyzing achievements...');
+
     try {
-      const res = await fetch('/api/workstreams/generate', {
+      const response = await fetch('/api/workstreams/generate', {
         method: 'POST',
       });
 
-      if (!res.ok) {
-        const errorData = await res.json();
-        throw new Error(errorData.message || 'Failed to generate workstreams');
+      if (!response.ok) {
+        throw new Error('Failed to generate workstreams');
       }
 
-      const result = (await res.json()) as GenerateResult;
+      // Handle SSE stream
+      const reader = response.body?.getReader();
+      const decoder = new TextDecoder();
+
+      if (!reader) {
+        throw new Error('No response body');
+      }
+
+      let buffer = '';
+      let result: GenerateResult | null = null;
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        // Decode the chunk and add to buffer
+        buffer += decoder.decode(value, { stream: true });
+
+        // Process complete SSE messages
+        const lines = buffer.split('\n');
+        buffer = lines.pop() || ''; // Keep incomplete line in buffer
+
+        for (const line of lines) {
+          if (line.startsWith('data: ')) {
+            try {
+              const data = JSON.parse(line.slice(6));
+
+              if (data.type === 'progress') {
+                // Update status based on phase
+                let newStatus = '';
+                if (data.phase === 'workstreams_created') {
+                  newStatus = data.message;
+                } else if (data.phase === 'achievements_assigned') {
+                  newStatus = data.message;
+                } else if (data.phase === 'generating_names') {
+                  newStatus = data.message;
+                } else if (data.phase === 'refreshing') {
+                  newStatus = 'Refreshing...';
+                }
+
+                if (newStatus) {
+                  setGenerationStatus(newStatus);
+                }
+              } else if (data.type === 'complete') {
+                result = data.result as GenerateResult;
+                setGenerationStatus('Refreshing...');
+              } else if (data.type === 'error') {
+                throw new Error(data.message);
+              }
+            } catch (e) {
+              console.error('Failed to parse SSE message:', e);
+            }
+          }
+        }
+      }
+
+      if (!result) {
+        throw new Error('No result received from server');
+      }
 
       // Show appropriate toast based on strategy
       if (result.strategy === 'full') {
@@ -168,6 +277,12 @@ export function useWorkstreams(startDate?: Date, endDate?: Date) {
       throw error;
     } finally {
       setIsGenerating(false);
+      setGenerationStatus('');
+      // Clear any remaining timeout
+      if (statusTimeoutRef.current) {
+        clearTimeout(statusTimeoutRef.current);
+        statusTimeoutRef.current = null;
+      }
     }
   };
 
@@ -198,6 +313,7 @@ export function useWorkstreams(startDate?: Date, endDate?: Date) {
     error,
     generateWorkstreams,
     isGenerating,
+    generationStatus,
     assignWorkstream,
   };
 }

@@ -73,6 +73,7 @@ export default function WorkstreamsPage() {
     unassignedCount,
     generateWorkstreams,
     isGenerating,
+    generationStatus,
   } = useWorkstreams(startDate, endDate);
 
   // Only show zero state if we have loaded the data and have no workstreams
@@ -132,6 +133,8 @@ export default function WorkstreamsPage() {
             <WorkstreamsZeroState
               achievementCount={twelveMonthAchievementCount}
               onGenerate={generateWorkstreams}
+              generationStatus={generationStatus}
+              isGenerating={isGenerating}
             />
           ) : (
             <div className="space-y-8">
@@ -165,6 +168,7 @@ export default function WorkstreamsPage() {
                 selectedWorkstreamId={selectedWorkstreamId}
                 onGenerateWorkstreams={generateWorkstreams}
                 isGenerating={isGenerating}
+                generationStatus={generationStatus}
                 startDate={startDate}
                 endDate={endDate}
               />
