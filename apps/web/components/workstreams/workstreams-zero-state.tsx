@@ -5,47 +5,42 @@ import { Button } from '@/components/ui/button';
 import { TrendingUp } from 'lucide-react';
 import { Loader2 } from 'lucide-react';
 import { useState } from 'react';
+import { useWorkstreams } from '@/hooks/use-workstreams';
+import { useRouter } from 'next/navigation';
 
 interface WorkstreamsZeroStateProps {
   achievementCount: number;
-  onGenerate?: () => Promise<any>;
-  generationStatus?: string;
-  isGenerating?: boolean;
 }
 
 export function WorkstreamsZeroState({
   achievementCount,
-  onGenerate,
-  generationStatus,
-  isGenerating: isGeneratingProp,
 }: WorkstreamsZeroStateProps) {
-  const [localIsGenerating, setLocalIsGenerating] = useState(false);
+  const router = useRouter();
   const [noWorkstreamsFound, setNoWorkstreamsFound] = useState(false);
   const canGenerate = achievementCount >= 20;
 
-  // Use prop if provided, otherwise use local state
-  const isGenerating =
-    isGeneratingProp !== undefined ? isGeneratingProp : localIsGenerating;
+  // Use the hook for generation capabilities
+  const { generateWorkstreams, isGenerating, generationStatus } =
+    useWorkstreams();
 
   const handleGenerate = async () => {
-    if (!onGenerate) return;
-    // Only manage local state if not controlled by prop
-    if (isGeneratingProp === undefined) {
-      setLocalIsGenerating(true);
-    }
     setNoWorkstreamsFound(false);
     try {
-      const result = await onGenerate();
-      // Check if clustering found no workstreams
-      if (result && result.workstreamsCreated === 0 && result.outliers > 0) {
+      const result = await generateWorkstreams();
+      // Check if clustering found no workstreams (full clustering only)
+      if (
+        result &&
+        result.strategy === 'full' &&
+        result.workstreamsCreated === 0 &&
+        result.outliers > 0
+      ) {
         setNoWorkstreamsFound(true);
+      } else {
+        // Refresh the page to show the new workstreams
+        router.refresh();
       }
     } catch (error) {
       console.error('Failed to generate workstreams:', error);
-    } finally {
-      if (isGeneratingProp === undefined) {
-        setLocalIsGenerating(false);
-      }
     }
   };
 

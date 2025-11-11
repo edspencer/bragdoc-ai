@@ -1,25 +1,24 @@
-'use client';
 import { SiteHeader } from '@/components/site-header';
 import { SidebarInset } from '@/components/ui/sidebar';
 import { WorkstreamsZeroState } from '@/components/workstreams/workstreams-zero-state';
 import { WorkstreamStats } from '@/components/workstreams/workstream-stats';
-import { WorkstreamsGanttChart } from '@/components/workstreams/workstreams-gantt-chart';
-import { WorkstreamAchievementsTable } from '@/components/workstreams/workstream-achievements-table';
-import { useWorkstreams } from '@/hooks/use-workstreams';
+import { WorkstreamDateFilter } from '@/components/workstreams/workstream-date-filter';
 import { AppPage } from '@/components/shared/app-page';
 import { AppContent } from '@/components/shared/app-content';
+import { WorkstreamsClient } from '@/components/workstreams/workstreams-client';
+import { auth } from '@/lib/better-auth/server';
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
-import useSWR from 'swr';
-import { useState } from 'react';
+  db,
+  workstream,
+  achievement,
+  company,
+  project,
+  userMessage,
+} from '@bragdoc/database';
+import { eq } from 'drizzle-orm';
 import { subMonths, startOfDay, endOfDay } from 'date-fns';
-
-const fetcher = (url: string) => fetch(url).then((res) => res.json());
+import { headers } from 'next/headers';
+import type { AchievementWithRelations } from '@/lib/types/achievement';
 
 /**
  * Convert preset string to absolute dates
@@ -59,82 +58,95 @@ function calculateDateRange(preset: string): {
   }
 }
 
-export default function WorkstreamsPage() {
-  // State for date preset selection (default: '6m' for Last 6 months)
-  const [datePreset, setDatePreset] = useState('6m');
+export default async function WorkstreamsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ preset?: string }>;
+}) {
+  const headersList = await headers();
+  const session = await auth.api.getSession({
+    headers: headersList,
+  });
 
-  // Calculate absolute dates from preset
+  if (!session?.user?.id) {
+    return null;
+  }
+
+  const userId = session.user.id;
+  const params = await searchParams;
+  const datePreset = params.preset || '6m';
   const { startDate, endDate } = calculateDateRange(datePreset);
 
-  const {
-    workstreams,
-    isLoading,
-    achievementCount,
-    unassignedCount,
-    generateWorkstreams,
-    isGenerating,
-    generationStatus,
-  } = useWorkstreams(startDate, endDate);
+  // Fetch workstreams and all achievements with relations in parallel
+  const [userWorkstreams, achievementResults] = await Promise.all([
+    db.select().from(workstream).where(eq(workstream.userId, userId)),
+    db
+      .select()
+      .from(achievement)
+      .leftJoin(company, eq(achievement.companyId, company.id))
+      .leftJoin(project, eq(achievement.projectId, project.id))
+      .leftJoin(userMessage, eq(achievement.userMessageId, userMessage.id))
+      .where(eq(achievement.userId, userId)),
+  ]);
 
-  // Only show zero state if we have loaded the data and have no workstreams
-  const showZeroState = !isLoading && workstreams.length === 0;
-
-  // Always fetch 12-month count for zero state (since generation always uses 12 months)
-  const twelveMonthsAgo = new Date();
-  twelveMonthsAgo.setFullYear(twelveMonthsAgo.getFullYear() - 1);
-  const { data: twelveMonthData } = useSWR(
-    `/api/workstreams?startDate=${twelveMonthsAgo.toISOString().split('T')[0]}`,
-    fetcher,
+  // Transform to AchievementWithRelations type
+  const allAchievements: AchievementWithRelations[] = achievementResults.map(
+    (row) => ({
+      ...row.Achievement,
+      company: row.Company,
+      project: row.Project,
+      userMessage: row.UserMessage,
+    }),
   );
-  const twelveMonthAchievementCount = twelveMonthData?.achievementCount || 0;
 
-  // Fetch all achievements for timeline (fetch large limit to get all)
-  // Only fetch when we have workstreams to display
-  const { data: achievementsData, isLoading: achievementsLoading } = useSWR(
-    showZeroState ? null : '/api/achievements?limit=1000',
-    fetcher,
-  );
-  const achievements = achievementsData?.achievements || [];
+  const showZeroState = userWorkstreams.length === 0;
 
-  // State for tracking selected workstream in Gantt chart
-  const [selectedWorkstreamId, setSelectedWorkstreamId] = useState<
-    string | null
-  >(null);
+  // Calculate counts from the single achievement query
+  let achievementCount = allAchievements.length;
+  let unassignedCount = allAchievements.filter((a) => !a.workstreamId).length;
+  let twelveMonthAchievementCount = 0;
 
-  const presets = [
-    { value: '3m', label: 'Last 3 months' },
-    { value: '6m', label: 'Last 6 months' },
-    { value: '12m', label: 'Last 12 months' },
-    { value: '24m', label: 'Last 24 months' },
-    { value: 'all', label: 'All time' },
-  ];
+  // Only calculate filtered counts if we have a date filter and workstreams exist
+  if (!showZeroState && (startDate || endDate)) {
+    achievementCount = allAchievements.filter((a) => {
+      if (!a.eventStart) return false;
+      const eventDate = new Date(a.eventStart);
+      if (startDate && eventDate < startDate) return false;
+      if (endDate && eventDate > endDate) return false;
+      return true;
+    }).length;
+
+    unassignedCount = allAchievements.filter((a) => {
+      if (a.workstreamId) return false;
+      if (!a.eventStart) return false;
+      const eventDate = new Date(a.eventStart);
+      if (startDate && eventDate < startDate) return false;
+      if (endDate && eventDate > endDate) return false;
+      return true;
+    }).length;
+  }
+
+  // Only calculate 12-month count if showing zero state
+  if (showZeroState) {
+    const twelveMonthsAgo = subMonths(new Date(), 12);
+    twelveMonthAchievementCount = allAchievements.filter((a) => {
+      if (!a.eventStart) return false;
+      return new Date(a.eventStart) >= twelveMonthsAgo;
+    }).length;
+  }
 
   return (
     <AppPage>
       <SidebarInset>
         <SiteHeader title="Workstreams">
           {!showZeroState && (
-            <Select value={datePreset} onValueChange={setDatePreset}>
-              <SelectTrigger className="w-40">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent align="end">
-                {presets.map((preset) => (
-                  <SelectItem key={preset.value} value={preset.value}>
-                    {preset.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <WorkstreamDateFilter initialPreset={datePreset} />
           )}
         </SiteHeader>
         <AppContent>
           {showZeroState ? (
             <WorkstreamsZeroState
               achievementCount={twelveMonthAchievementCount}
-              onGenerate={generateWorkstreams}
-              generationStatus={generationStatus}
-              isGenerating={isGenerating}
             />
           ) : (
             <div className="space-y-8">
@@ -146,31 +158,15 @@ export default function WorkstreamsPage() {
               </div>
 
               <WorkstreamStats
-                workstreamCount={workstreams.length}
+                workstreamCount={userWorkstreams.length}
                 assignedCount={achievementCount - unassignedCount}
                 unassignedCount={unassignedCount}
-                isLoading={isLoading}
               />
 
-              <WorkstreamsGanttChart
-                workstreams={workstreams}
-                achievements={achievements}
-                selectedWorkstreamId={selectedWorkstreamId}
-                onSelectWorkstream={setSelectedWorkstreamId}
-                startDate={startDate}
-                endDate={endDate}
-                isLoading={isLoading || achievementsLoading}
-              />
-
-              <WorkstreamAchievementsTable
-                achievements={achievements}
-                workstreams={workstreams}
-                selectedWorkstreamId={selectedWorkstreamId}
-                onGenerateWorkstreams={generateWorkstreams}
-                isGenerating={isGenerating}
-                generationStatus={generationStatus}
-                startDate={startDate}
-                endDate={endDate}
+              <WorkstreamsClient
+                workstreams={userWorkstreams}
+                achievements={allAchievements}
+                initialPreset={datePreset}
               />
             </div>
           )}
