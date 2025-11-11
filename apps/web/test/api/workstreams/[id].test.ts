@@ -1,6 +1,7 @@
 import { GET, PUT, DELETE } from 'app/api/workstreams/[id]/route';
 import { achievement, user, workstream, project } from '@/database/schema';
 import { db } from '@/database/index';
+import { eq } from 'drizzle-orm';
 import { getAuthUser } from '@/lib/getAuthUser';
 import { NextRequest } from 'next/server';
 import { v4 as uuidv4 } from 'uuid';
@@ -322,7 +323,7 @@ describe('DELETE /api/workstreams/[id]', () => {
     const archived = await db
       .select()
       .from(workstream)
-      .where((w) => w.id === '323e4567-e89b-12d3-a456-426614174001');
+      .where(eq(workstream.id, '323e4567-e89b-12d3-a456-426614174001'));
     expect(archived[0]?.isArchived).toBe(true);
   });
 

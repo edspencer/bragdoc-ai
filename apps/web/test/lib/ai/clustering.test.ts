@@ -43,7 +43,7 @@ describe('Clustering Module', () => {
         .map(() => Math.random());
       const embedding2 = Array(1536)
         .fill(0)
-        .map((_, i) => embedding1[i] + 0.01);
+        .map((_, i) => (embedding1[i] ?? 0) + 0.01);
 
       const distance = cosineDistance(embedding1, embedding2);
       expect(distance).toBeGreaterThan(0);

@@ -14,6 +14,7 @@ import {
   company,
 } from '@/database/schema';
 import { db } from '@/database/index';
+import { eq } from 'drizzle-orm';
 import { v4 as uuidv4 } from 'uuid';
 
 jest.mock('ai', () => ({
@@ -385,7 +386,7 @@ describe('Workstream Orchestration', () => {
       const archived = await db
         .select()
         .from(workstream)
-        .where((w) => w.id === oldWsId);
+        .where(eq(workstream.id, oldWsId));
       expect(archived[0]?.isArchived).toBe(true);
     });
 
@@ -496,7 +497,7 @@ describe('Workstream Orchestration', () => {
       const userAssigned = await db
         .select()
         .from(achievement)
-        .where((a) => a.id === userAssignedAchievementId!);
+        .where(eq(achievement.id, userAssignedAchievementId!));
       expect(userAssigned[0]?.workstreamId).toBe(userWsId);
     });
 
@@ -585,9 +586,9 @@ describe('Workstream Orchestration', () => {
       const updated = await db
         .select()
         .from(workstream)
-        .where((w) => w.id === wsId);
-      expect(updated[0].centroidEmbedding).not.toBeNull();
-      expect(updated[0].centroidUpdatedAt).not.toBeNull();
+        .where(eq(workstream.id, wsId));
+      expect(updated[0]?.centroidEmbedding).not.toBeNull();
+      expect(updated[0]?.centroidUpdatedAt).not.toBeNull();
     });
 
     it('archives workstream if no achievements', async () => {
@@ -613,8 +614,8 @@ describe('Workstream Orchestration', () => {
       const updated = await db
         .select()
         .from(workstream)
-        .where((w) => w.id === wsId);
-      expect(updated[0].isArchived).toBe(true);
+        .where(eq(workstream.id, wsId));
+      expect(updated[0]?.isArchived).toBe(true);
     });
   });
 
@@ -685,14 +686,14 @@ describe('Workstream Orchestration', () => {
       const oldWsUpdated = await db
         .select()
         .from(workstream)
-        .where((w) => w.id === oldWsId);
+        .where(eq(workstream.id, oldWsId));
       const newWsUpdated = await db
         .select()
         .from(workstream)
-        .where((w) => w.id === newWsId);
+        .where(eq(workstream.id, newWsId));
 
-      expect(oldWsUpdated[0].centroidUpdatedAt).not.toBeNull();
-      expect(newWsUpdated[0].centroidUpdatedAt).not.toBeNull();
+      expect(oldWsUpdated[0]?.centroidUpdatedAt).not.toBeNull();
+      expect(newWsUpdated[0]?.centroidUpdatedAt).not.toBeNull();
     });
   });
 });
@@ -897,7 +898,9 @@ describe('Helper Functions: getAchievementSummaries, buildAssignmentBreakdown, b
 
       const result = await getAchievementSummaries(ids, mockUser.id);
       expect(result).toHaveLength(5);
-      expect(result.map((r) => r.id)).toEqual(expect.arrayContaining(ids));
+      expect(result.map((r: { id: string }) => r.id)).toEqual(
+        expect.arrayContaining(ids),
+      );
     });
   });
 

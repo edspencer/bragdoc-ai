@@ -1,6 +1,7 @@
 import { POST } from 'app/api/workstreams/assign/route';
 import { achievement, user, workstream, project } from '@/database/schema';
 import { db } from '@/database/index';
+import { eq } from 'drizzle-orm';
 import { getAuthUser } from '@/lib/getAuthUser';
 import { NextRequest } from 'next/server';
 
@@ -125,8 +126,8 @@ describe('POST /api/workstreams/assign', () => {
     const assigned = await db
       .select()
       .from(achievement)
-      .where((a) => a.id === '423e4567-e89b-12d3-a456-426614174001');
-    expect(assigned[0].workstreamId).toBe(
+      .where(eq(achievement.id, '423e4567-e89b-12d3-a456-426614174001'));
+    expect(assigned[0]?.workstreamId).toBe(
       '323e4567-e89b-12d3-a456-426614174001',
     );
   });
@@ -185,8 +186,8 @@ describe('POST /api/workstreams/assign', () => {
     const assigned = await db
       .select()
       .from(achievement)
-      .where((a) => a.id === '423e4567-e89b-12d3-a456-426614174001');
-    expect(assigned[0].workstreamSource).toBe('user');
+      .where(eq(achievement.id, '423e4567-e89b-12d3-a456-426614174001'));
+    expect(assigned[0]?.workstreamSource).toBe('user');
   });
 
   it('allows null workstreamId (unassign)', async () => {
@@ -246,8 +247,8 @@ describe('POST /api/workstreams/assign', () => {
     const unassigned = await db
       .select()
       .from(achievement)
-      .where((a) => a.id === '423e4567-e89b-12d3-a456-426614174001');
-    expect(unassigned[0].workstreamId).toBeNull();
+      .where(eq(achievement.id, '423e4567-e89b-12d3-a456-426614174001'));
+    expect(unassigned[0]?.workstreamId).toBeNull();
   });
 
   it('returns 404 for other user achievement', async () => {

@@ -86,10 +86,13 @@ function AgentAvatar({ agent, size, index }: AgentAvatarProps) {
         left: position.left,
         animationDelay: `${index * 0.3}s`,
       }}
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
     >
-      <Link href="/team" className="relative block">
+      <Link
+        href="/team"
+        className="relative block"
+        onMouseEnter={() => setIsHovered(true)}
+        onMouseLeave={() => setIsHovered(false)}
+      >
         <div
           className="rounded-full overflow-hidden border-4 border-white/20 shadow-xl transition-all duration-300 backdrop-blur-sm bg-white/30"
           style={{ width: size, height: size }}

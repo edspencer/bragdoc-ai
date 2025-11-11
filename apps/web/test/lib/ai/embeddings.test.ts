@@ -167,9 +167,9 @@ describe('Embeddings Module', () => {
         .where(eq(achievement.id, testAch.id));
 
       expect(saved).toHaveLength(1);
-      expect(saved[0].embedding).not.toBeNull();
-      expect(saved[0].embeddingModel).toBe('text-embedding-3-small');
-      expect(saved[0].embeddingGeneratedAt).not.toBeNull();
+      expect(saved[0]?.embedding).not.toBeNull();
+      expect(saved[0]?.embeddingModel).toBe('text-embedding-3-small');
+      expect(saved[0]?.embeddingGeneratedAt).not.toBeNull();
     });
 
     it('throws error for non-existent achievement', async () => {
@@ -213,12 +213,12 @@ describe('Embeddings Module', () => {
         .from(achievement)
         .where(eq(achievement.id, testAch.id));
 
-      expect(saved[0].embeddingModel).toBe('text-embedding-3-small');
-      expect(saved[0].embeddingGeneratedAt).not.toBeNull();
-      expect(saved[0].embeddingGeneratedAt!.getTime()).toBeGreaterThanOrEqual(
+      expect(saved[0]?.embeddingModel).toBe('text-embedding-3-small');
+      expect(saved[0]?.embeddingGeneratedAt).not.toBeNull();
+      expect(saved[0]?.embeddingGeneratedAt?.getTime()).toBeGreaterThanOrEqual(
         beforeTime.getTime(),
       );
-      expect(saved[0].embeddingGeneratedAt!.getTime()).toBeLessThanOrEqual(
+      expect(saved[0]?.embeddingGeneratedAt?.getTime()).toBeLessThanOrEqual(
         afterTime.getTime(),
       );
     });

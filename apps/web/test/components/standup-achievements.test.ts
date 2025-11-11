@@ -36,6 +36,11 @@ describe('Standup Page Achievements Tests', () => {
       standupDocumentId: null,
       userMessageId: null,
       userMessage: null,
+      workstreamId: null,
+      workstreamSource: null,
+      embedding: null,
+      embeddingModel: null,
+      embeddingGeneratedAt: null,
       company: {
         id: uuidv4(),
         userId: uuidv4(),
@@ -575,7 +580,10 @@ describe('Standup Page Achievements Tests', () => {
       );
 
       // Get the ID of one achievement to delete
-      const idToDelete = achievements[25].id;
+      const idToDelete = achievements[25]?.id;
+      if (!idToDelete) {
+        throw new Error('Test setup failed: could not get achievement ID');
+      }
       achievements = achievements.filter((a) => a.id !== idToDelete);
 
       expect(achievements).toHaveLength(49);

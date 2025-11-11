@@ -36,6 +36,11 @@ describe('AchievementItem Component Tests', () => {
       standupDocumentId: null,
       userMessageId: null,
       userMessage: null,
+      workstreamId: null,
+      workstreamSource: null,
+      embedding: null,
+      embeddingModel: null,
+      embeddingGeneratedAt: null,
       company: {
         id: uuidv4(),
         userId: uuidv4(),
