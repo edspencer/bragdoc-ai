@@ -72,6 +72,7 @@ export {
   updateProject,
   deleteProject,
   ensureProject,
+  getTopProjectsByImpact,
 } from './projects/queries';
 
 // Re-export project types
@@ -79,6 +80,7 @@ export type {
   ProjectWithCompany,
   CreateProjectInput,
   UpdateProjectInput,
+  ProjectWithImpact,
 } from './projects/queries';
 
 // Re-export types

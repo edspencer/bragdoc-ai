@@ -86,6 +86,149 @@ export function AchievementForm() {
 
 **Example Implementation:** See `apps/web/app/(app)/reports/[id]/page.tsx` (server) and `report-detail-view.tsx` (client)
 
+### Server/Client Data Fetching Pattern
+
+When building components that need both server-side data and client-side interactivity, use this pattern to avoid client-side data fetching overhead and loading skeletons.
+
+**Pattern: Server-Fetched Props with Client Interactivity**
+
+The AppSidebar demonstrates this pattern:
+- Layout fetches data server-side (`auth.api.getSession()`, `getTopProjectsByImpact()`)
+- Data passed to client component as props
+- Client component handles interactivity (mobile toggle, active state, user dropdown)
+
+**Implementation:**
+
+```typescript
+// Server Component (app/(app)/layout.tsx)
+import { auth } from '@/lib/better-auth/server';
+import { getTopProjectsByImpact } from '@/database/projects/queries';
+import { headers } from 'next/headers';
+
+export default async function AppLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  // Fetch session server-side
+  const session = await auth.api.getSession({
+    headers: await headers(),
+  });
+
+  // Fetch top projects server-side
+  const topProjects = session?.user
+    ? await getTopProjectsByImpact(session.user.id, 5).catch(() => [])
+    : [];
+
+  // Transform user object for AppSidebar component
+  const sidebarUser = session?.user
+    ? {
+        id: session.user.id,
+        name: session.user.name || undefined,
+        email: session.user.email || undefined,
+        image: session.user.image || undefined,
+      }
+    : undefined;
+
+  return (
+    <AppSidebar
+      variant="inset"
+      user={sidebarUser}
+      topProjects={topProjects}
+    />
+  );
+}
+
+// Client Component (app-sidebar.tsx)
+'use client';
+
+import type { ProjectWithImpact } from '@bragdoc/database';
+import { useSidebar } from '@/components/ui/sidebar';
+
+interface AppSidebarProps {
+  user: {
+    id: string;
+    name?: string;
+    email?: string;
+    image?: string;
+  } | undefined;
+  topProjects: ProjectWithImpact[];
+}
+
+export function AppSidebar({ user, topProjects }: AppSidebarProps) {
+  // Use client hooks for interactivity only (no data fetching)
+  const { isMobile, setOpenMobile } = useSidebar();
+
+  // Render with server-provided data
+  return (
+    <Sidebar>
+      {/* Render sidebar with user and topProjects */}
+    </Sidebar>
+  );
+}
+
+// Child Client Component (nav-projects.tsx)
+'use client';
+
+import type { ProjectWithImpact } from '@bragdoc/database';
+import { usePathname } from 'next/navigation';
+import { useSidebar } from '@/components/ui/sidebar';
+
+interface NavProjectsProps {
+  projects?: ProjectWithImpact[];
+}
+
+export function NavProjects({ projects = [] }: NavProjectsProps) {
+  // Use client hooks for interactivity only (no data fetching)
+  const pathname = usePathname();
+  const { isMobile, setOpenMobile } = useSidebar();
+
+  return (
+    <SidebarGroup>
+      {/* Render projects received as props */}
+    </SidebarGroup>
+  );
+}
+```
+
+**Benefits:**
+
+- **Zero client-side data fetching**: No loading states or skeleton screens
+- **Faster initial render**: Data fetched server-side in parallel with component rendering
+- **Smaller JavaScript bundle**: No data fetching code shipped to browser
+- **No waterfall requests**: Parallel server fetches vs. sequential client fetches
+- **Better SEO**: Server-rendered content immediately available
+- **Simpler client components**: Only handle interactivity, not data management
+
+**When to Use This Pattern:**
+
+- Data needed for initial render (dashboards, layouts, sidebar navigation)
+- Hierarchical data fetching (parent layout fetches for child components)
+- Components that are primarily interactive UI, not data-driven
+- Performance-critical pages (reduce JS bundle size and network requests)
+
+**When NOT to Use This Pattern:**
+
+- Data that changes frequently client-side (use useState + API calls)
+- User-initiated data fetching (search, filtering, pagination)
+- Data dependent on client state (theme, user preferences stored in localStorage)
+- Real-time data (use WebSocket or polling instead)
+
+**Key Principles:**
+
+- **Pass data as props from server to client**, not via React Context
+- **Keep server components for data fetching**, client components for interactivity
+- **Client components can receive server-rendered props** - no `use client` restriction
+- **Always scope data by userId** in server components for security
+- **Transform data at server layer** (shape for component consumption)
+- **Prefer error boundaries** for error handling over try-catch in individual components
+
+**Files:**
+
+- `apps/web/app/(app)/layout.tsx` - Server-side data fetching and component composition
+- `apps/web/components/app-sidebar.tsx` - Client component with props interface
+- `apps/web/components/nav-projects.tsx` - Child client component using props
+
 ### Canvas Editor Integration Pattern
 
 **Purpose:** Launch the inline canvas editor for document content editing from any view (detail pages, tables, etc.).

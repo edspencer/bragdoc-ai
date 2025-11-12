@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { TrendingUp } from 'lucide-react';
 import { Loader2 } from 'lucide-react';
 import { useState } from 'react';
-import { useWorkstreams } from '@/hooks/use-workstreams';
+import { useWorkstreamsActions } from '@/hooks/use-workstreams';
 import { useRouter } from 'next/navigation';
 
 interface WorkstreamsZeroStateProps {
@@ -19,9 +19,9 @@ export function WorkstreamsZeroState({
   const [noWorkstreamsFound, setNoWorkstreamsFound] = useState(false);
   const canGenerate = achievementCount >= 20;
 
-  // Use the hook for generation capabilities
+  // Use the hook for generation capabilities only (no data fetching needed)
   const { generateWorkstreams, isGenerating, generationStatus } =
-    useWorkstreams();
+    useWorkstreamsActions();
 
   const handleGenerate = async () => {
     setNoWorkstreamsFound(false);

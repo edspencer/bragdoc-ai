@@ -1,5 +1,4 @@
 import type { Metadata } from 'next';
-import { Suspense } from 'react';
 
 import { Providers } from 'components/providers';
 
@@ -68,9 +67,7 @@ export default async function RootLayout({
         />
       </head>
       <body className="antialiased">
-        <Providers>
-          <Suspense fallback={<div>Loading...</div>}>{children}</Suspense>
-        </Providers>
+        <Providers>{children}</Providers>
       </body>
     </html>
   );

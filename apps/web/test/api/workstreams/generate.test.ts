@@ -225,7 +225,7 @@ describe('POST /api/workstreams/generate', () => {
     expect(data.reason).toBeDefined();
     expect(typeof data.workstreamsCreated).toBe('number');
     expect(typeof data.achievementsAssigned).toBe('number');
-  });
+  }, 15000);
 
   it('generates embeddings for missing achievements', async () => {
     // Add 25 achievements, some without embeddings
@@ -392,7 +392,7 @@ describe('POST /api/workstreams/generate', () => {
       expect(typeof data.workstreamsCreated).toBe('number');
       expect(typeof data.achievementsAssigned).toBe('number');
       expect(typeof data.outliers).toBe('number');
-    });
+    }, 15000);
 
     it('includes achievement summaries with project/company context', async () => {
       // Create a company

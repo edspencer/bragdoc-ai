@@ -1,5 +1,6 @@
 import useSWR from 'swr';
 import { toast } from 'sonner';
+import { useRouter } from 'next/navigation';
 import { useConfetti } from 'hooks/useConfetti';
 import type { ProjectFormData } from 'components/projects/project-form';
 import type { ProjectWithCompany } from '@/database/projects/queries';
@@ -56,6 +57,7 @@ export function useCreateProject() {
   const { mutate: mutateList } = useProjects();
   const { mutate: mutateTopProjects } = useTopProjects();
   const { fire: fireConfetti } = useConfetti();
+  const router = useRouter();
 
   const createProject = async (data: ProjectFormData) => {
     try {
@@ -71,6 +73,7 @@ export function useCreateProject() {
 
       await mutateList();
       await mutateTopProjects();
+      router.refresh(); // Refresh server components to update sidebar
       toast.success('Project created successfully');
       fireConfetti();
     } catch (error) {
@@ -86,6 +89,7 @@ export function useCreateProject() {
 export function useUpdateProject() {
   const { mutate: mutateList } = useProjects();
   const { mutate: mutateTopProjects } = useTopProjects();
+  const router = useRouter();
 
   const updateProject = async (id: string, data: ProjectFormData) => {
     try {
@@ -101,6 +105,7 @@ export function useUpdateProject() {
 
       await mutateList();
       await mutateTopProjects();
+      router.refresh(); // Refresh server components to update sidebar
       toast.success('Project updated successfully');
     } catch (error) {
       console.error('Error updating project:', error);
@@ -115,6 +120,7 @@ export function useUpdateProject() {
 export function useDeleteProject() {
   const { mutate: mutateList } = useProjects();
   const { mutate: mutateTopProjects } = useTopProjects();
+  const router = useRouter();
 
   const deleteProject = async (id: string) => {
     try {
@@ -128,6 +134,7 @@ export function useDeleteProject() {
 
       await mutateList();
       await mutateTopProjects();
+      router.refresh(); // Refresh server components to update sidebar
       toast.success('Project deleted successfully');
     } catch (error) {
       console.error('Error deleting project:', error);
