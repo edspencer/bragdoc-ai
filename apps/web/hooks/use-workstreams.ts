@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
-import useSWR, { mutate } from 'swr';
+import useSWR from 'swr';
+import { useRouter } from 'next/navigation';
 import type { Workstream } from '@bragdoc/database';
 import { toast } from 'sonner';
 
@@ -128,12 +129,15 @@ function buildWorkstreamsUrl(startDate?: Date, endDate?: Date): string {
   return `${baseUrl}?${params.toString()}`;
 }
 
-export function useWorkstreams(startDate?: Date, endDate?: Date) {
-  const url = buildWorkstreamsUrl(startDate, endDate);
-  const { data, error, isLoading } = useSWR<WorkstreamsResponse>(url, fetcher);
+/**
+ * Hook for workstream generation and assignment actions only (no data fetching)
+ * Use this when you already have workstreams data from server-side rendering
+ */
+export function useWorkstreamsActions() {
   const [isGenerating, setIsGenerating] = useState(false);
   const [generationStatus, setGenerationStatus] = useState<string>('');
   const statusTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const router = useRouter();
 
   // Simple effect: every time generationStatus changes, reset the 4-second timer
   useEffect(() => {
@@ -262,8 +266,8 @@ export function useWorkstreams(startDate?: Date, endDate?: Date) {
         }
       }
 
-      // Refresh workstreams with the current URL (including date filters if present)
-      await mutate(url);
+      // Refresh server components to update workstreams data
+      router.refresh();
 
       return result;
     } catch (error) {
@@ -300,9 +304,26 @@ export function useWorkstreams(startDate?: Date, endDate?: Date) {
       throw new Error('Failed to assign workstream');
     }
 
-    // Refresh workstreams to update counts with the current URL (including date filters if present)
-    await mutate(url);
+    // Refresh server components to update workstreams data
+    router.refresh();
   };
+
+  return {
+    generateWorkstreams,
+    isGenerating,
+    generationStatus,
+    assignWorkstream,
+  };
+}
+
+/**
+ * Hook for workstreams data fetching with SWR
+ * Use this when you need client-side data fetching (e.g., in pages that aren't server-rendered)
+ */
+export function useWorkstreams(startDate?: Date, endDate?: Date) {
+  const url = buildWorkstreamsUrl(startDate, endDate);
+  const { data, error, isLoading } = useSWR<WorkstreamsResponse>(url, fetcher);
+  const actions = useWorkstreamsActions();
 
   return {
     workstreams: data?.workstreams || [],
@@ -311,10 +332,7 @@ export function useWorkstreams(startDate?: Date, endDate?: Date) {
     achievementCount: data?.achievementCount || 0,
     isLoading,
     error,
-    generateWorkstreams,
-    isGenerating,
-    generationStatus,
-    assignWorkstream,
+    ...actions,
   };
 }
 

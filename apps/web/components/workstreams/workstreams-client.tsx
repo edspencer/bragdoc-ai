@@ -4,7 +4,7 @@ import { useState, useMemo } from 'react';
 import { WorkstreamsGanttChart } from './workstreams-gantt-chart';
 import { WorkstreamAchievementsTable } from './workstream-achievements-table';
 import { WorkstreamSelectionZeroState } from './workstream-selection-zero-state';
-import { useWorkstreams } from '@/hooks/use-workstreams';
+import { useWorkstreamsActions } from '@/hooks/use-workstreams';
 import { subMonths, startOfDay, endOfDay } from 'date-fns';
 import type { Workstream } from '@bragdoc/database';
 import type { AchievementWithRelations } from '@/lib/types/achievement';
@@ -66,9 +66,9 @@ export function WorkstreamsClient({
 
   const { startDate, endDate } = calculateDateRange(initialPreset);
 
-  // Use the hook for generation capabilities
+  // Use the hook for generation capabilities only (data comes from server props)
   const { generateWorkstreams, isGenerating, generationStatus } =
-    useWorkstreams(startDate, endDate);
+    useWorkstreamsActions();
 
   // Calculate unassigned count
   const unassignedCount = useMemo(() => {
