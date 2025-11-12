@@ -3,11 +3,17 @@
 import posthog from 'posthog-js';
 import { PostHogProvider } from 'posthog-js/react';
 import { useEffect } from 'react';
-import { useSession } from '@/lib/better-auth/client';
 
-export function PHProvider({ children }: { children: React.ReactNode }) {
-  const { data: session } = useSession();
+interface PHProviderProps {
+  children: React.ReactNode;
+  user?: {
+    id: string;
+    email?: string;
+    name?: string;
+  };
+}
 
+export function PHProvider({ children, user }: PHProviderProps) {
   // Initialize PostHog once
   useEffect(() => {
     // Only initialize if explicitly enabled (opt-in for open source)
@@ -19,7 +25,7 @@ export function PHProvider({ children }: { children: React.ReactNode }) {
       posthog.init(process.env.NEXT_PUBLIC_POSTHOG_KEY!, {
         api_host:
           process.env.NEXT_PUBLIC_POSTHOG_HOST || 'https://app.posthog.com',
-        persistence: session ? 'localStorage+cookie' : 'memory',
+        persistence: user ? 'localStorage+cookie' : 'memory',
         capture_pageview: true,
         capture_pageleave: true,
         autocapture: false, // Disable automatic event capture
@@ -35,14 +41,14 @@ export function PHProvider({ children }: { children: React.ReactNode }) {
   // Handle user identification separately
   useEffect(() => {
     if (typeof window !== 'undefined' && posthog.__loaded) {
-      if (session?.user?.id) {
-        posthog.identify(session.user.id, {
-          email: session.user.email || undefined,
-          name: session.user.name || undefined,
+      if (user?.id) {
+        posthog.identify(user.id, {
+          email: user.email || undefined,
+          name: user.name || undefined,
         });
       }
     }
-  }, [session]);
+  }, [user]);
 
   return <PostHogProvider client={posthog}>{children}</PostHogProvider>;
 }

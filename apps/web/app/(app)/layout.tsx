@@ -6,6 +6,7 @@ import { SidebarProvider } from '@/components/ui/sidebar';
 import { AppSidebar } from '@/components/app-sidebar';
 import { DemoModeBannerWrapper } from '@/components/demo-mode-banner-wrapper';
 import { DemoModeLayout } from '@/components/demo-mode-layout';
+import { PHProvider } from '@/components/posthog-provider';
 import { auth } from '@/lib/better-auth/server';
 import { getTopProjectsByImpact } from '@/database/projects/queries';
 import { headers } from 'next/headers';
@@ -40,36 +41,38 @@ export default async function AppLayout({
     : undefined;
 
   return (
-    <ArtifactProvider>
-      <DataStreamProvider>
-        <DemoModeLayout>
-          <DemoModeBannerWrapper isDemoMode={isDemoMode} />
-          <SidebarProvider
-            style={
-              {
-                '--sidebar-width': 'calc(var(--spacing) * 72)',
-                '--header-height': 'calc(var(--spacing) * 12)',
-              } as React.CSSProperties
-            }
-          >
-            <AppSidebar
-              variant="inset"
-              user={sidebarUser}
-              isDemoMode={isDemoMode}
-              topProjects={topProjects}
-            />
-            {children}
-            <FeedbackWidget
-              projectId="e16fdb14-7c88-4f49-a269-8fe124270a48"
-              position="bottom-right"
-              collectSentiment={true}
-              offerEmailFollowup={true}
-            />
-            <DataStreamHandler />
-            <ArtifactCanvas />
-          </SidebarProvider>
-        </DemoModeLayout>
-      </DataStreamProvider>
-    </ArtifactProvider>
+    <PHProvider user={sidebarUser}>
+      <ArtifactProvider>
+        <DataStreamProvider>
+          <DemoModeLayout isDemoMode={isDemoMode}>
+            <DemoModeBannerWrapper isDemoMode={isDemoMode} />
+            <SidebarProvider
+              style={
+                {
+                  '--sidebar-width': 'calc(var(--spacing) * 72)',
+                  '--header-height': 'calc(var(--spacing) * 12)',
+                } as React.CSSProperties
+              }
+            >
+              <AppSidebar
+                variant="inset"
+                user={sidebarUser}
+                isDemoMode={isDemoMode}
+                topProjects={topProjects}
+              />
+              {children}
+              <FeedbackWidget
+                projectId="e16fdb14-7c88-4f49-a269-8fe124270a48"
+                position="bottom-right"
+                collectSentiment={true}
+                offerEmailFollowup={true}
+              />
+              <DataStreamHandler />
+              <ArtifactCanvas />
+            </SidebarProvider>
+          </DemoModeLayout>
+        </DataStreamProvider>
+      </ArtifactProvider>
+    </PHProvider>
   );
 }
