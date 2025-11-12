@@ -134,19 +134,7 @@ export const betterAuthConfig: Partial<BetterAuthOptions> = {
         type: 'date',
         required: false,
       },
-
-      // Unused password field (kept for schema compatibility)
-      password: {
-        type: 'string',
-        required: false,
-      },
     },
-
-    // Field name mappings (database uses snake_case)
-    // Note: No field mappings needed - Drizzle adapter handles the mapping
-    // between Drizzle schema field names (camelCase) and database column names (snake_case)
-    // Mapping here would cause Better Auth to look for the database column name
-    // in the Drizzle schema, which doesn't exist
     fields: {},
   },
 
