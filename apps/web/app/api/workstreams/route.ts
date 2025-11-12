@@ -98,8 +98,13 @@ export async function GET(request: NextRequest) {
       getAchievementCounts(userId, startDate, endDate),
     ]);
 
+    // Exclude centroidEmbedding from response (only used server-side for incremental assignment)
+    const workstreamsWithoutEmbeddings = workstreams.map(
+      ({ centroidEmbedding, ...ws }) => ws,
+    );
+
     return NextResponse.json({
-      workstreams,
+      workstreams: workstreamsWithoutEmbeddings,
       unassignedCount: counts.unassigned,
       achievementCount: counts.total,
     });
