@@ -27,6 +27,10 @@ export const exportAchievementSchema = z.object({
   impactUpdatedAt: z.string().datetime().nullable(),
   createdAt: z.string().datetime(),
   updatedAt: z.string().datetime(),
+  // Optional embedding fields for pre-computed embeddings (demo data)
+  embedding: z.array(z.number()).optional(),
+  embeddingModel: z.string().optional(),
+  embeddingGeneratedAt: z.string().datetime().optional(),
 });
 
 // Schema for individual company in export/import
