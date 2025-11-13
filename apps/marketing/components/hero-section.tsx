@@ -62,11 +62,15 @@ export function HeroSection() {
           <div className="space-y-8">
             <div className="space-y-4">
               <h1 className="text-5xl sm:text-6xl lg:text-7xl font-bold tracking-tight text-balance">
-                Never Forget What You've Accomplished
+                Career Copilot for Software Professionals
               </h1>
               <p className="text-xl text-muted-foreground leading-relaxed text-pretty">
-                Automatically track your work achievements from git commits.
-                Always be ready for standups, 1-on-1s, and performance reviews.
+                BragDoc turns your git{' '}
+                <span className="text-blue-500">Commits</span> into{' '}
+                <span className="text-purple-500">Achievements</span> assigned
+                to <span className="text-indigo-500">Workstreams</span>, then
+                creates beautiful{' '}
+                <span className="text-green-500">Documents</span> for your boss
               </p>
             </div>
 
