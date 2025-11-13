@@ -11,6 +11,13 @@ import { Badge } from '@/components/ui/badge';
 import { MDXRemote } from 'next-mdx-remote/rsc';
 import { BlogPostingSchema } from '@/components/structured-data/blog-posting-schema';
 import { DemoCTA } from '@/components/demo-cta';
+import {
+  SignUpCTA,
+  SignUpCTAUrgency,
+  SignUpCTAValue,
+  SignUpCTAPersonal,
+  SignUpCTACompact,
+} from '@/components/sign-up-cta';
 import { YouTubeEmbed } from '@/components/youtube-embed';
 import { ImageGallery } from '@/components/image-gallery';
 
@@ -120,7 +127,16 @@ export default async function BlogPostPage({
             <div className="prose prose-lg dark:prose-invert max-w-none">
               <MDXRemote
                 source={post.content}
-                components={{ DemoCTA, YouTubeEmbed, ImageGallery }}
+                components={{
+                  DemoCTA,
+                  SignUpCTA,
+                  SignUpCTAUrgency,
+                  SignUpCTAValue,
+                  SignUpCTAPersonal,
+                  SignUpCTACompact,
+                  YouTubeEmbed,
+                  ImageGallery,
+                }}
               />
             </div>
           </div>
