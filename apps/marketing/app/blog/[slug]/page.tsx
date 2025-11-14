@@ -20,6 +20,7 @@ import {
 } from '@/components/sign-up-cta';
 import { YouTubeEmbed } from '@/components/youtube-embed';
 import { ImageGallery } from '@/components/image-gallery';
+import { generateFrameItUrl } from '@/lib/frameit';
 
 export async function generateMetadata({
   params,
@@ -35,6 +36,15 @@ export async function generateMetadata({
     };
   }
 
+  // Generate Open Graph image URL using FrameIt.dev
+  const ogImageUrl = generateFrameItUrl({
+    title: post.title,
+    subtitle: 'BragDoc Blog',
+    layout: 'open-graph',
+    background: 'purple-pink',
+    format: 'png',
+  });
+
   return {
     title: `${post.title} | BragDoc Blog`,
     description: post.description,
@@ -47,11 +57,20 @@ export async function generateMetadata({
       authors: post.author ? [post.author] : undefined,
       url: `https://www.bragdoc.ai/blog/${post.slug}`,
       siteName: 'BragDoc',
+      images: [
+        {
+          url: ogImageUrl,
+          width: 1200,
+          height: 630,
+          alt: post.title,
+        },
+      ],
     },
     twitter: {
       card: 'summary_large_image',
       title: post.title,
       description: post.description,
+      images: [ogImageUrl],
     },
   };
 }
