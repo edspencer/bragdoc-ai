@@ -1,7 +1,7 @@
 'use client';
 
-import { motion, AnimatePresence, useInView } from 'framer-motion';
-import { useState, useEffect, useRef } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { useState, useEffect } from 'react';
 import { loginPath } from '@/lib/utils';
 
 // Array of commit messages for animation (aligned with workstreams)
@@ -245,7 +245,6 @@ interface AnimatedCommitsProps {
   topY: number;
   maxVisible?: number;
   onStarted?: () => void;
-  shouldStart?: boolean;
 }
 
 interface AnimatedAchievementsProps {
@@ -263,7 +262,6 @@ function AnimatedCommits({
   topY,
   maxVisible = 10,
   onStarted,
-  shouldStart = true,
 }: AnimatedCommitsProps) {
   const [visibleCommits, setVisibleCommits] = useState<number[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -323,17 +321,15 @@ function AnimatedCommits({
     return () => clearTimeout(timeout);
   }, [currentIndex, hasStarted, maxVisible]);
 
-  // Start animation after delay, only when shouldStart is true
+  // Start animation after delay
   useEffect(() => {
-    if (!shouldStart) return;
-
     const timer = setTimeout(() => {
       setHasStarted(true);
       onStarted?.();
     }, startDelay);
 
     return () => clearTimeout(timer);
-  }, [startDelay, onStarted, shouldStart]);
+  }, [startDelay, onStarted]);
 
   return (
     <motion.g>
@@ -634,7 +630,7 @@ function AnimatedWorkstreams({
   );
 }
 
-function FunnelSVG({ inView }: { inView: boolean }) {
+function FunnelSVG() {
   const [commitsStarted, setCommitsStarted] = useState(false);
 
   return (
@@ -757,7 +753,6 @@ function FunnelSVG({ inView }: { inView: boolean }) {
                 topY={topY}
                 maxVisible={10}
                 onStarted={() => setCommitsStarted(true)}
-                shouldStart={inView}
               />
             ) : stage.id === 'achievements' ? (
               // Animated achievements for achievements section
@@ -778,14 +773,8 @@ function FunnelSVG({ inView }: { inView: boolean }) {
 }
 
 export function TransformationFunnel() {
-  const ref = useRef(null);
-  const isInView = useInView(ref, {
-    once: true,
-    amount: 0.3, // Trigger when 30% of the component is visible (roughly 200px of a ~600px funnel)
-  });
-
   return (
-    <div className="py-20 bg-gradient-to-b from-gray-50 to-white" ref={ref}>
+    <div className="py-20 bg-gradient-to-b from-gray-50 to-white">
       <div className="container mx-auto px-3 md:px-6">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -808,16 +797,15 @@ export function TransformationFunnel() {
           <div className="hidden md:flex items-stretch gap-0">
             {/* SVG Funnel */}
             <div className="flex-3 relative flex">
-              <FunnelSVG inView={isInView} />
+              <FunnelSVG />
             </div>
 
             {/* Right-side descriptions */}
             <div className="flex-2 flex flex-col">
               <motion.div
                 initial={{ opacity: 0, x: 20 }}
-                whileInView={{ opacity: 1, x: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.5, delay: 0 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.5, delay: 0.3 }}
                 className="flex-1 flex items-center justify-center text-center"
               >
                 <p className="text-3xl font-medium text-gray-700 whitespace-nowrap">
@@ -827,9 +815,8 @@ export function TransformationFunnel() {
 
               <motion.div
                 initial={{ opacity: 0, x: 20 }}
-                whileInView={{ opacity: 1, x: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.5, delay: 2 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.5, delay: 2.3 }}
                 className="flex-1 flex items-center justify-center text-center"
                 style={{ marginLeft: '-10%' }}
               >
@@ -841,9 +828,8 @@ export function TransformationFunnel() {
 
               <motion.div
                 initial={{ opacity: 0, x: 20 }}
-                whileInView={{ opacity: 1, x: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.5, delay: 4 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.5, delay: 4.3 }}
                 className="flex-1 flex items-center justify-center text-center"
                 style={{ marginLeft: '-20%' }}
               >
@@ -855,9 +841,8 @@ export function TransformationFunnel() {
 
               <motion.div
                 initial={{ opacity: 0, x: 20 }}
-                whileInView={{ opacity: 1, x: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.5, delay: 6 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.5, delay: 6.3 }}
                 className="flex-1 flex items-center justify-center text-center"
                 style={{ marginLeft: '-30%' }}
               >
@@ -873,7 +858,7 @@ export function TransformationFunnel() {
           {/* Mobile layout (below md) */}
           <div className="md:hidden">
             <div className="w-full">
-              <FunnelSVG inView={isInView} />
+              <FunnelSVG />
             </div>
 
             {/* Mobile text descriptions below funnel */}
