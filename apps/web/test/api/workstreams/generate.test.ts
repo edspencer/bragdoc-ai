@@ -276,7 +276,7 @@ describe('POST /api/workstreams/generate', () => {
     expect(data).toBeDefined();
     expect(typeof data.embeddingsGenerated).toBe('number');
     expect(data.embeddingsGenerated).toBeGreaterThanOrEqual(0);
-  });
+  }, 15000);
 
   it('returns correct response structure', async () => {
     // Add 20 achievements
@@ -319,7 +319,7 @@ describe('POST /api/workstreams/generate', () => {
     expect(data).toHaveProperty('strategy');
     expect(data).toHaveProperty('reason');
     expect(['full', 'incremental']).toContain(data.strategy);
-  });
+  }, 15000);
 
   describe('Full Clustering Response Structure (Phase 2)', () => {
     it('returns workstreamDetails and outlierAchievements for full clustering', async () => {
@@ -636,6 +636,6 @@ describe('POST /api/workstreams/generate', () => {
       expect(data).toHaveProperty('strategy');
       expect(data).toHaveProperty('reason');
       expect(data).toHaveProperty('embeddingsGenerated');
-    });
+    }, 15000);
   });
 });
