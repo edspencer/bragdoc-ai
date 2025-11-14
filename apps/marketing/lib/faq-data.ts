@@ -78,6 +78,16 @@ export const faqData: FAQCategory[] = [
     category: 'Features & Usage',
     questions: [
       {
+        question: 'When to Use BragDoc?',
+        answer:
+          '✅ Performance review season (self-assessment time)\n✅ Promotion prep (document your impact)\n✅ Weekly 1:1s with manager (what did I accomplish?)\n✅ Job hunting (update resume with recent work)',
+      },
+      {
+        question: 'How much time does BragDoc save?',
+        answer:
+          "Most developers spend 5-10 hours per year either maintaining a manual brag doc or scrambling through Git history before reviews. With BragDoc, you'll spend about 15 minutes reviewing auto-generated achievements. That's roughly 5-10 hours saved annually—time you can spend coding or literally anything else.",
+      },
+      {
         question: 'How does achievement extraction work?',
         answer:
           'The CLI runs `git log`, sends commit messages to your configured LLM, the AI extracts achievements, and saves them to the web app for your review.',

@@ -4,6 +4,7 @@ import { HeroSection } from '@/components/hero-section';
 import { VideoSection } from '@/components/video-section';
 import { MeetTheTeamIntro } from '@/components/meet-the-team-intro';
 import { ProblemSolutionV2 } from '@/components/problem-solution-v2';
+import { TransformationFunnel } from '@/components/transformation-funnel';
 import { FeaturesSection } from '@/components/features-section';
 import { PrivacySection } from '@/components/privacy-section';
 import { QuickStartSection } from '@/components/quick-start-section';
@@ -50,6 +51,7 @@ export default function Home() {
       <Header />
       <main>
         <HeroSection />
+        <TransformationFunnel />
         <VideoSection />
         <MeetTheTeamIntro />
         <ProblemSolutionV2 />
