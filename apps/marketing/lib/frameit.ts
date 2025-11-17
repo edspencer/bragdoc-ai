@@ -13,12 +13,7 @@ export interface FrameItParams {
   /** Specific layout variant */
   layoutId?: 'classic' | 'minimal' | 'photo-essay';
   /** Gradient preset */
-  background?:
-    | 'default'
-    | 'sunset'
-    | 'ocean-blue'
-    | 'forest-green'
-    | 'purple-pink';
+  background?: 'default' | 'sunset' | 'ocean-blue' | 'forest-green' | 'purple';
   /** Output format */
   format?: 'png' | 'webp';
   /** Hex color for title text (without #) */
