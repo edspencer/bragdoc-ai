@@ -44,6 +44,7 @@ export async function generateMetadata({
     background: 'purple',
     format: 'png',
     logoUrl: 'https://www.bragdoc.ai/bragdoc-logo.png',
+    logoOpacity: 1,
   });
 
   return {
