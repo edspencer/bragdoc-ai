@@ -12,5 +12,7 @@ export function GET() {
   throw new SentryExampleAPIError(
     'This error is raised on the backend called by the example page.',
   );
+
+  // biome-ignore lint/correctness/noUnreachable: Sentry example route intentionally throws
   return NextResponse.json({ data: 'Testing Sentry Error...' });
 }
