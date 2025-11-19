@@ -16,7 +16,6 @@ export function PHProvider({ children }: { children: React.ReactNode }) {
         api_host:
           process.env.NEXT_PUBLIC_POSTHOG_HOST || 'https://app.posthog.com',
         persistence: 'memory', // Cookieless mode
-        disable_persistence: true, // No cookies or localStorage
         capture_pageview: true,
         capture_pageleave: true,
         autocapture: false, // Disable automatic event capture

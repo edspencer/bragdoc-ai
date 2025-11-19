@@ -26,7 +26,7 @@ export function PHProvider({ children, user }: PHProviderProps) {
         api_host:
           process.env.NEXT_PUBLIC_POSTHOG_HOST || 'https://app.posthog.com',
         persistence: user ? 'localStorage+cookie' : 'memory',
-        capture_pageview: true,
+        capture_pageview: 'history_change', // Capture SPA navigation via History API
         capture_pageleave: true,
         autocapture: false, // Disable automatic event capture
         disable_session_recording: true, // We're not using session recording
