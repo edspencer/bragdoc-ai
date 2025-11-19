@@ -252,6 +252,14 @@ export async function importUserData(
             : new Date(),
           createdAt: new Date(achievementData.createdAt),
           updatedAt: new Date(achievementData.updatedAt),
+          // Include pre-computed embeddings if present (demo data optimization)
+          ...(achievementData.embedding && {
+            embedding: achievementData.embedding as unknown as any,
+            embeddingModel: achievementData.embeddingModel,
+            embeddingGeneratedAt: achievementData.embeddingGeneratedAt
+              ? new Date(achievementData.embeddingGeneratedAt)
+              : null,
+          }),
         };
       },
     );
@@ -317,6 +325,14 @@ export async function importUserData(
           : new Date(),
         createdAt: new Date(achievementData.createdAt),
         updatedAt: new Date(achievementData.updatedAt),
+        // Include pre-computed embeddings if present (demo data optimization)
+        ...(achievementData.embedding && {
+          embedding: achievementData.embedding as unknown as any,
+          embeddingModel: achievementData.embeddingModel,
+          embeddingGeneratedAt: achievementData.embeddingGeneratedAt
+            ? new Date(achievementData.embeddingGeneratedAt)
+            : null,
+        }),
       });
       stats.achievements.created++;
     }

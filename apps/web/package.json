@@ -17,6 +17,7 @@
     "test:ci": "pnpm test:setup && jest",
     "test:watch": "jest --watch",
     "eval": "npx braintrust eval lib/ai/prompts/evals/*eval.ts",
+    "generate-demo-embeddings": "npx tsx scripts/generate-demo-embeddings.ts",
     "db:generate": "drizzle-kit generate",
     "db:push": "drizzle-kit push",
     "db:studio": "drizzle-kit studio",
