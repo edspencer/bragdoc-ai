@@ -5,72 +5,16 @@
 
 import * as Sentry from '@sentry/nextjs';
 
-// Only initialize Sentry in production and preview (not local development)
-// VERCEL_ENV is set by Vercel to 'production', 'preview', or 'development'
-const shouldInitializeSentry =
-  process.env.VERCEL_ENV === 'production' ||
-  process.env.VERCEL_ENV === 'preview' ||
-  (process.env.NODE_ENV === 'production' && !process.env.VERCEL_ENV);
+Sentry.init({
+  dsn: 'https://0337f9c49b2d9d00f3308e137d2bd3e3@o4510341241110528.ingest.us.sentry.io/4510341243404288',
 
-if (shouldInitializeSentry) {
-  Sentry.init({
-    dsn: 'https://0337f9c49b2d9d00f3308e137d2bd3e3@o4510341241110528.ingest.us.sentry.io/4510341243404288',
+  // Define how likely traces are sampled. Adjust this value in production, or use tracesSampler for greater control.
+  tracesSampleRate: 1,
 
-    // Sample rate for performance monitoring
-    tracesSampleRate: 0.1,
+  // Enable logs to be sent to Sentry
+  enableLogs: true,
 
-    // Environment tag for filtering issues
-    environment: process.env.VERCEL_ENV || 'production',
-
-    // Enable logs to be sent to Sentry
-    enableLogs: true,
-
-    // SECURITY: Disable automatic PII collection in edge runtime
-    // Edge functions handle authentication and sensitive headers/cookies
-    sendDefaultPii: false,
-
-    // Ignore common/expected errors
-    ignoreErrors: [
-      // Browser extensions
-      'ResizeObserver loop limit exceeded',
-      'Non-Error promise rejection captured',
-      // Network errors
-      'NetworkError',
-      'Failed to fetch',
-      'Load failed',
-      // Cloudflare issues
-      'The operation was aborted',
-    ],
-
-    // Filter sensitive authentication data from error reports
-    beforeSend(event) {
-      // Sensitive headers to filter out
-      const sensitiveHeaders = [
-        'authorization',
-        'cookie',
-        'x-auth-token',
-        'x-api-key',
-      ];
-
-      // Remove sensitive headers that may contain tokens/credentials
-      if (event.request?.headers) {
-        const filteredHeaders: Record<string, string> = {};
-        for (const [key, value] of Object.entries(event.request.headers)) {
-          if (!sensitiveHeaders.includes(key.toLowerCase())) {
-            filteredHeaders[key] = value;
-          }
-        }
-        event.request.headers = filteredHeaders;
-      }
-
-      // Remove cookies from request data
-      if (event.request?.cookies) {
-        event.request.cookies = {};
-      }
-
-      // Still include user ID for debugging (but not tokens)
-      // User ID is set by Sentry.setUser() which is safe
-      return event;
-    },
-  });
-}
+  // Enable sending user PII (Personally Identifiable Information)
+  // https://docs.sentry.io/platforms/javascript/guides/nextjs/configuration/options/#sendDefaultPii
+  sendDefaultPii: true,
+});

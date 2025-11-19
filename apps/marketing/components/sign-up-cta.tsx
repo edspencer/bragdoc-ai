@@ -3,14 +3,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { Button } from './ui/button';
-import {
-  Zap,
-  Trophy,
-  ArrowRight,
-  Rocket,
-  Shield,
-  CheckCircle2,
-} from 'lucide-react';
+import { Zap, Trophy, ArrowRight, Rocket, Shield } from 'lucide-react';
 import { appPath } from '@/lib/utils';
 
 type CTAVariant = 'urgency' | 'value' | 'personal';
