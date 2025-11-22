@@ -10,8 +10,8 @@ import { PHProvider } from '@/components/posthog-provider';
 import { auth } from '@/lib/better-auth/server';
 import { getTopProjectsByImpact } from '@/database/projects/queries';
 import { headers } from 'next/headers';
-import { FeedbackWidget } from '@wishnova/react';
-import '@wishnova/react/styles';
+import { FeedbackWidget } from '@goodideadev/react';
+import '@goodideadev/react/styles';
 
 export default async function AppLayout({
   children,

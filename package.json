@@ -35,7 +35,7 @@
     "db:up": "drizzle-kit up",
     "prepare": "husky",
     "prepare-demo-data": "tsx scripts/prepare-demo-data.ts",
-    "update:wishnova": "pnpm update @wishnova/react --filter @bragdoc/web --latest"
+    "update:goodidea": "pnpm update @goodideadev/react --filter @bragdoc/web --latest"
   },
   "dependencies": {
     "@react-email/components": "^0.5.7",
