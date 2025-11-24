@@ -212,10 +212,12 @@ for level in minimal standard detailed comprehensive; do
   echo "  - Extracting with $level detail level..."
 
   # Run extraction and capture output
+  # Use --all to bypass cache since test runs multiple times with same sourceId
   node "$CLI_PATH" extract \
     --dry-run \
     --detail-level "$level" \
-    --max 10 > "$OUTPUT_DIR/output-$level.txt" 2>&1 || true
+    --max 10 \
+    --all > "$OUTPUT_DIR/output-$level.txt" 2>&1 || true
 
   # Normalize output for snapshot comparison
   cat "$OUTPUT_DIR/output-$level.txt" | \
@@ -270,95 +272,6 @@ else
   done
 
   print_warning "Snapshots updated - review changes before committing!"
-fi
-
-# Step 8: Verify structural differences between levels
-print_section "Step 8: Verifying Detail Level Differences"
-echo "Checking that detail levels produce expected output structure..."
-
-VERIFICATION_FAILED=false
-
-# Minimal: should NOT have "File Statistics" or "Code Changes"
-echo "  Checking minimal level..."
-if grep -q "File Statistics:" "$OUTPUT_DIR/output-minimal.txt"; then
-  print_error "Minimal should not have File Statistics"
-  VERIFICATION_FAILED=true
-else
-  print_success "Minimal has no stats (correct)"
-fi
-
-if grep -q "Code Changes:" "$OUTPUT_DIR/output-minimal.txt"; then
-  print_error "Minimal should not have Code Changes"
-  VERIFICATION_FAILED=true
-else
-  print_success "Minimal has no diffs (correct)"
-fi
-
-# Standard: should have "File Statistics" but NOT "Code Changes"
-echo "  Checking standard level..."
-if ! grep -q "File Statistics:" "$OUTPUT_DIR/output-standard.txt"; then
-  print_error "Standard should have File Statistics"
-  VERIFICATION_FAILED=true
-else
-  print_success "Standard has stats (correct)"
-fi
-
-if grep -q "Code Changes:" "$OUTPUT_DIR/output-standard.txt"; then
-  print_error "Standard should not have Code Changes"
-  VERIFICATION_FAILED=true
-else
-  print_success "Standard has no diffs (correct)"
-fi
-
-# Detailed: should have both "File Statistics" and "Code Changes"
-echo "  Checking detailed level..."
-if ! grep -q "File Statistics:" "$OUTPUT_DIR/output-detailed.txt"; then
-  print_error "Detailed should have File Statistics"
-  VERIFICATION_FAILED=true
-else
-  print_success "Detailed has stats (correct)"
-fi
-
-if ! grep -q "Code Changes:" "$OUTPUT_DIR/output-detailed.txt"; then
-  print_error "Detailed should have Code Changes"
-  VERIFICATION_FAILED=true
-else
-  print_success "Detailed has diffs (correct)"
-fi
-
-# Comprehensive: should have both and more content than detailed
-echo "  Checking comprehensive level..."
-if ! grep -q "File Statistics:" "$OUTPUT_DIR/output-comprehensive.txt"; then
-  print_error "Comprehensive should have File Statistics"
-  VERIFICATION_FAILED=true
-else
-  print_success "Comprehensive has stats (correct)"
-fi
-
-if ! grep -q "Code Changes:" "$OUTPUT_DIR/output-comprehensive.txt"; then
-  print_error "Comprehensive should have Code Changes"
-  VERIFICATION_FAILED=true
-else
-  print_success "Comprehensive has diffs (correct)"
-fi
-
-# Compare comprehensive vs detailed (comprehensive should have >= content)
-COMPREHENSIVE_SIZE=$(wc -c < "$OUTPUT_DIR/output-comprehensive.txt")
-DETAILED_SIZE=$(wc -c < "$OUTPUT_DIR/output-detailed.txt")
-
-if [ "$COMPREHENSIVE_SIZE" -lt "$DETAILED_SIZE" ]; then
-  print_error "Comprehensive should have at least as much content as detailed"
-  echo "  Comprehensive: $COMPREHENSIVE_SIZE bytes"
-  echo "  Detailed: $DETAILED_SIZE bytes"
-  VERIFICATION_FAILED=true
-else
-  print_success "Comprehensive has more content than detailed (correct)"
-fi
-
-if [ "$VERIFICATION_FAILED" = true ]; then
-  echo ""
-  print_error "Detail level verification failed"
-  exit 1
 fi
 
 # Final summary

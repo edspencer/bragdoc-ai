@@ -14,7 +14,11 @@
 
 import { CommitCache } from '../cache/commits';
 import type { Connector, ConnectorConfig, ConnectorData } from './types';
-import { getRepositoryInfo } from '../git/operations';
+import {
+  getRepositoryInfo,
+  collectGitCommitsEnhanced,
+} from '../git/operations';
+import type { GitCommit } from '../git/types';
 import logger from '../utils/logger';
 
 /**
@@ -95,9 +99,6 @@ export class GitConnector implements Connector {
    * date range and branch whitelist. Uses cache to avoid re-processing
    * previously seen commits.
    *
-   * Phase 1 Note: Full implementation deferred to Phase 2 when cache
-   * refactoring is complete. Currently returns empty array with TODO.
-   *
    * @param options - Fetch options for filtering and control
    * @param options.since - Fetch commits after this date
    * @param options.until - Fetch commits before this date
@@ -128,32 +129,119 @@ export class GitConnector implements Connector {
     }
 
     try {
-      // TODO: Phase 2 - Full implementation with cache integration
-      // This is a stub that will be completed when CommitCache is updated to use sourceId keys
-      //
-      // Implementation plan:
-      // 1. Call collectGitCommits with gitPath and branch whitelist
-      // 2. Transform commits to ConnectorData format:
-      //    - id: commit hash
-      //    - title: first line of message
-      //    - description: full commit message
-      //    - author: author name
-      //    - timestamp: commit date
-      //    - raw: full commit object
-      // 3. Filter by date range (since/until)
-      // 4. Apply limit if provided
-      // 5. Check cache for already-processed commits
-      // 6. Add new commits to cache
-      // 7. Return ConnectorData[] array
-
       logger.debug(`GitConnector.fetch() called for ${this.config.gitPath}`);
       logger.debug(
         `Options: since=${options?.since?.toISOString()}, limit=${options?.limit}, skipCache=${options?.skipCache}`,
       );
 
-      // Temporary: return empty array as stub
-      // This will be replaced with full implementation in Phase 2
-      return [];
+      // Get repository info to determine current branch
+      const repoInfo = getRepositoryInfo(this.config.gitPath);
+      const currentBranch = repoInfo.currentBranch;
+
+      // Check branch whitelist if configured
+      const branchWhitelist = this.config.branchWhitelist || [];
+      if (
+        branchWhitelist.length > 0 &&
+        !branchWhitelist.includes(currentBranch)
+      ) {
+        logger.debug(
+          `Current branch '${currentBranch}' not in whitelist: ${branchWhitelist.join(', ')}`,
+        );
+        return [];
+      }
+
+      // Determine max commits to fetch
+      const maxCommits = options?.limit || 300;
+
+      // Extract commits using existing git operations
+      // Use collectGitCommitsEnhanced to get stats and diffs based on extraction config
+      const gitCommits = collectGitCommitsEnhanced(
+        currentBranch,
+        maxCommits,
+        this.config.gitPath,
+        // Extract config will be resolved by collectGitCommitsEnhanced
+        undefined,
+      );
+
+      logger.debug(
+        `Extracted ${gitCommits.length} commits from ${this.config.gitPath}`,
+      );
+
+      // Transform GitCommit objects to ConnectorData format
+      let connectorData: ConnectorData[] = gitCommits.map(
+        (commit: GitCommit) => {
+          // Parse commit date
+          const timestamp = new Date(commit.date);
+
+          // Extract title (first line) and description (full message)
+          const lines = commit.message.split('\n');
+          const title = lines[0] || 'No commit message';
+          const description = commit.message;
+
+          return {
+            id: commit.hash,
+            title,
+            description,
+            author: commit.author,
+            timestamp,
+            raw: {
+              ...commit,
+            },
+            isCached: false,
+          };
+        },
+      );
+
+      // Apply date filters if provided
+      if (options?.since) {
+        connectorData = connectorData.filter(
+          (item) => item.timestamp >= options.since!,
+        );
+        logger.debug(
+          `Filtered to ${connectorData.length} commits after ${options.since.toISOString()}`,
+        );
+      }
+
+      if (options?.until) {
+        connectorData = connectorData.filter(
+          (item) => item.timestamp <= options.until!,
+        );
+        logger.debug(
+          `Filtered to ${connectorData.length} commits before ${options.until.toISOString()}`,
+        );
+      }
+
+      // Check cache and mark cached items (unless skipCache is true)
+      if (!options?.skipCache && this.cache) {
+        const cachedHashes = await this.cache.list(this.sourceId);
+        const cachedSet = new Set(cachedHashes);
+
+        connectorData = connectorData.map((item) => ({
+          ...item,
+          isCached: cachedSet.has(item.id),
+        }));
+
+        // Filter out cached items
+        const uncachedData = connectorData.filter((item) => !item.isCached);
+        logger.debug(
+          `${cachedHashes.length} commits already cached, ${uncachedData.length} new commits`,
+        );
+
+        // Add new commit hashes to cache
+        if (uncachedData.length > 0) {
+          const newHashes = uncachedData.map((item) => item.id);
+          await this.cache.add(this.sourceId, newHashes);
+          logger.debug(`Added ${newHashes.length} new commits to cache`);
+        }
+
+        // Return only uncached commits
+        connectorData = uncachedData;
+      }
+
+      logger.debug(
+        `Returning ${connectorData.length} commits from GitConnector`,
+      );
+      return connectorData;
     } catch (error) {
       throw new Error(
         `Failed to fetch commits from ${this.config.gitPath}: ${error instanceof Error ? error.message : String(error)}`,

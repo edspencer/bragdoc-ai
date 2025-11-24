@@ -4,5 +4,13 @@
 [32mProcessing project: Test Repo[39m
 [32mFound 1 source(s) for this project[39m
 [32m  Extracting from source: Test Git Source (git)[39m
-[32mNo data extracted from any source for project Test Repo[39m
+[32mCollected 7 items from all sources[39m
+[32m[39m
+[32mDry run mode - would process 7 items:[39m
+[32m  - Initial commit[39m
+[32m  - Add hello function[39m
+[32m  - Add utility modules[39m
+[32m  - Add 25 React components[39m
+[32m  - Add package-lock.json[39m
+[32m  ... and 2 more[39m
 [32mNo items found to process.[39m
