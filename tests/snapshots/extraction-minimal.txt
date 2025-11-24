@@ -1,38 +1,8 @@
-[32mExtraction config: detailLevel=minimal, stats=false, diff=false[39m
-[32mCollecting commits from test-repo (branch: main)...[39m
-[32mFound 7 commits.[39m
-
-Dry run mode - data that would be processed:
-============================================
-Repository Information:
-  Remote URL: https://github.com/test/test-repo.git
-  Current Branch: main
-  Local Path: REPO
-
-Found 7 commits
-
-HASH - DATE - Test User
-  Initial commit
-
-HASH - DATE - Test User
-  Add hello function
-
-HASH - DATE - Test User
-  Add utility modules
-  
-  This commit adds 5 utility modules for various functions.
-  Each module provides a simple function.
-
-HASH - DATE - Test User
-  Add 25 React components
-
-HASH - DATE - Test User
-  Add package-lock.json
-
-HASH - DATE - Test User
-  Add compiled bundle
-
-HASH - DATE - Test User
-  Enhance hello function and add goodbye
-
-No changes were sent to the API (dry-run mode)
+[32mFetching sources from API...[39m
+[32mFetching user context from API...[39m
+[32m[39m
+[32mProcessing project: Test Repo[39m
+[32mFound 1 source(s) for this project[39m
+[32m  Extracting from source: Test Git Source (git)[39m
+[32mNo data extracted from any source for project Test Repo[39m
+[32mNo items found to process.[39m

@@ -267,15 +267,25 @@ const data = await db
 
 **Location:** `packages/cli/`
 
-Command-line tool for local Git repository analysis and achievement extraction.
+Command-line tool for analyzing local repositories and extracting achievements from multiple data sources using a pluggable connector architecture.
+
+**Features:**
+- Multi-source support: Git, GitHub, Jira (via pluggable connectors)
+- Pluggable connector architecture for extensibility
+- Local caching to optimize extraction performance
+- OAuth authentication with JWT token storage
+- Configuration management for projects and integrations
 
 **Commands:**
 - `bragdoc login` - Authenticate with web app
 - `bragdoc init` - Initialize repository
-- `bragdoc extract` - Extract achievements from commits
+- `bragdoc extract` - Extract achievements from configured sources
 - `bragdoc cache clear` - Clear commit cache
 
-➡️ **See [cli-architecture.md](/.claude/docs/tech/cli-architecture.md) for CLI structure, commands, configuration, and Git operations**
+**Key Architecture:**
+The CLI uses a pluggable connector pattern where each data source (Git, GitHub, Jira, etc.) implements a standardized `Connector` interface. The `ConnectorRegistry` manages connector discovery. This enables adding new sources without modifying core CLI logic.
+
+➡️ **See [cli-architecture.md](/.claude/docs/tech/cli-architecture.md) for detailed CLI architecture, connector pattern, commands, and configuration**
 
 ### @bragdoc/config
 
