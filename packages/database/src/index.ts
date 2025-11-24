@@ -62,6 +62,13 @@ export {
   deleteCompanyWithCascade,
   getAchievementStats,
   getActiveProjectsCount,
+  getSourcesByUserId,
+  getSourceById,
+  createSource,
+  updateSource,
+  archiveSource,
+  getAchievementsBySourceId,
+  findAchievementByUniqueSourceId,
 } from './queries';
 
 // Re-export project queries

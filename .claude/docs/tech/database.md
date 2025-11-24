@@ -179,6 +179,56 @@ Projects are linked to CLI config via `repoRemoteUrl`. When CLI extracts achieve
 
 ---
 
+### Source Table
+**Purpose**: Track integration instances (Git, GitHub, Jira) configured by users
+
+```typescript
+export const sourceTypeEnum = pgEnum('source_type', ['git', 'github', 'jira']);
+export type SourceType = (typeof sourceTypeEnum.enumValues)[number];
+
+export const source = pgTable('Source', {
+  id: uuid('id').primaryKey().notNull().defaultRandom(),
+  userId: uuid('user_id')
+    .notNull()
+    .references(() => user.id, { onDelete: 'cascade' }),
+  name: varchar('name', { length: 256 }).notNull(),         // Display name (e.g., 'Personal Repo')
+  type: sourceTypeEnum('type').notNull(),                   // 'git', 'github', or 'jira'
+  config: jsonb('config').$type<Record<string, any>>(),     // Source-type-specific config
+  isArchived: boolean('is_archived').default(false),        // Soft delete
+  createdAt: timestamp('created_at').notNull().defaultNow(),
+  updatedAt: timestamp('updated_at').notNull().defaultNow(),
+}, (table) => ({
+  userIdIdx: index('source_user_id_idx').on(table.userId),
+  userIdArchivedIdx: index('source_user_id_archived_idx').on(table.userId, table.isArchived),
+}));
+
+export type Source = InferSelectModel<typeof source>;
+```
+
+**Type Definition:**
+```typescript
+export type Source = {
+  id: string;
+  userId: string;
+  name: string;
+  type: SourceType;
+  config: Record<string, any> | null;
+  isArchived: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+};
+```
+
+**Use Case:**
+Sources enable multi-integration support. For example, a user might configure:
+- One Git source for a local repository
+- One GitHub source for a GitHub organization
+- One Jira source for issue tracking
+
+When the CLI or integrations extract achievements, they link them to the appropriate Source via the foreign key in the Achievement table, enabling idempotent import and preventing duplicates.
+
+---
+
 ### Achievement Table
 **Purpose**: Individual accomplishments
 
@@ -192,6 +242,8 @@ export const achievement = pgTable('Achievement', {
     .references(() => company.id, { onDelete: 'set null' }),
   projectId: uuid('project_id')
     .references(() => project.id),                          // No cascade (preserve data)
+  sourceId: uuid('source_id')
+    .references(() => source.id, { onDelete: 'set null' }), // Multi-source support
   standupDocumentId: uuid('standup_document_id')
     .references(() => standupDocument.id, { onDelete: 'set null' }),
   userMessageId: uuid('user_message_id')
@@ -218,6 +270,7 @@ export const achievement = pgTable('Achievement', {
   impactSource: varchar('impact_source', { enum: ['user', 'llm'] })
     .default('llm'),
   impactUpdatedAt: timestamp('impact_updated_at').defaultNow(),
+  uniqueSourceId: varchar('unique_source_id', { length: 512 }), // Idempotent deduplication
 
   // Workstream fields
   workstreamId: uuid('workstream_id')
@@ -232,7 +285,38 @@ export const achievement = pgTable('Achievement', {
 
   createdAt: timestamp('created_at').notNull().defaultNow(),
   updatedAt: timestamp('updated_at').notNull().defaultNow(),
-});
+}, (table) => ({
+  userSourceIdx: index('achievement_user_source_idx').on(table.userId, table.sourceId),
+  userSourceUniqueIdx: index('achievement_user_source_unique_idx').on(
+    table.userId,
+    table.sourceId,
+    table.uniqueSourceId
+  ),
+}));
+```
+
+**Source Tracking Fields:**
+- **sourceId**: Foreign key linking achievement to its source. Set to `null` when source is archived to preserve the achievement.
+- **uniqueSourceId**: Source-specific identifier (e.g., Git commit hash, GitHub issue URL) enabling idempotent imports. Prevents duplicates when re-importing from the same source with the same reference.
+
+**Source Linking Examples:**
+```typescript
+// Find all achievements from a specific source
+const { achievements, total } = await getAchievementsBySourceId(
+  userId,
+  sourceId,
+  { limit: 50 }
+);
+
+// Check if achievement was already imported (idempotent)
+const existing = await findAchievementByUniqueSourceId(
+  userId,
+  sourceId,
+  'git:abc123def456' // Source-specific ID
+);
+if (!existing) {
+  // Safe to create new achievement
+}
 ```
 
 **Achievement Source** (how the achievement was created):

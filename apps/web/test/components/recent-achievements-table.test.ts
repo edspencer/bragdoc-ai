@@ -28,6 +28,8 @@ describe('Recent Achievements Table (Dashboard) Tests', () => {
       eventEnd: null,
       eventDuration: 'week' as const,
       source: 'manual' as const,
+      sourceId: null,
+      uniqueSourceId: null,
       impact: 2,
       impactSource: 'user' as const,
       impactUpdatedAt: new Date(),

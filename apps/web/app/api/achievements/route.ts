@@ -32,6 +32,8 @@ const achievementSchema = z.object({
   userMessageId: z.string().uuid().optional().nullable(),
   standupDocumentId: z.string().uuid().optional().nullable(),
   isArchived: z.boolean().optional(),
+  sourceId: z.string().uuid().optional().nullable(),
+  uniqueSourceId: z.string().optional().nullable(),
 });
 
 // GET /api/achievements
@@ -152,6 +154,8 @@ export async function POST(req: NextRequest) {
       projectId: result.data.projectId ?? null,
       impact: result.data.impact ?? null,
       impactSource: result.data.impactSource ?? 'user',
+      sourceId: result.data.sourceId ?? null,
+      uniqueSourceId: result.data.uniqueSourceId ?? null,
     };
 
     const achievement = await createAchievement(
