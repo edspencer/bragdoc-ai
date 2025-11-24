@@ -170,6 +170,9 @@ export const source = pgTable(
     userId: uuid('user_id')
       .notNull()
       .references(() => user.id, { onDelete: 'cascade' }),
+    projectId: uuid('project_id')
+      .notNull()
+      .references(() => project.id, { onDelete: 'cascade' }),
     name: varchar('name', { length: 256 }).notNull(),
     type: sourceTypeEnum('type').notNull(),
     config: jsonb('config').$type<Record<string, any>>(),
@@ -179,6 +182,11 @@ export const source = pgTable(
   },
   (table) => ({
     userIdIdx: index('source_user_id_idx').on(table.userId),
+    projectIdIdx: index('source_project_id_idx').on(table.projectId),
+    userProjectIdIdx: index('source_user_project_id_idx').on(
+      table.userId,
+      table.projectId,
+    ),
     userIdArchivedIdx: index('source_user_id_archived_idx').on(
       table.userId,
       table.isArchived,
