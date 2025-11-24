@@ -23,7 +23,7 @@ export function NavCareers() {
 
   return (
     <SidebarGroup className="group-data-[collapsible=icon]:hidden">
-      <SidebarGroupLabel>Careers</SidebarGroupLabel>
+      <SidebarGroupLabel>Career</SidebarGroupLabel>
       <SidebarMenu>
         <SidebarMenuItem>
           <SidebarMenuButton asChild>
