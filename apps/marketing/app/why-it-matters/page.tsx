@@ -7,6 +7,7 @@ import { PersonalStory } from '@/components/why-it-matters/personal-story';
 import { TheProblem } from '@/components/why-it-matters/the-problem';
 import { TheSolution } from '@/components/why-it-matters/the-solution';
 import { WhyItMattersCTA } from '@/components/why-it-matters/cta';
+import { TimeSavedComparison } from '@/components/time-saved/time-saved-comparison';
 
 export const metadata: Metadata = {
   title:
@@ -27,6 +28,7 @@ export default function WhyItMattersPage() {
       <main className="pt-16">
         <WhyItMattersHero />
         <ExpertEndorsements />
+        <TimeSavedComparison />
         <TheProblem />
         <PersonalStory />
         <TheSolution />
