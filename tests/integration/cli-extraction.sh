@@ -174,14 +174,21 @@ echo "$TEST_REPO_DIR" > /tmp/bragdoc-test-repo-path.txt
 
 # Read the current config and add LLM API key
 # We use sed to insert the apiKey line after the model line in the openai section
+# Note: Use different sed syntax for macOS vs Linux
+if [[ "$OSTYPE" == "darwin"* ]]; then
+  SED_INPLACE="sed -i ''"
+else
+  SED_INPLACE="sed -i"
+fi
+
 if grep -q "openai:" "$BRAGDOC_CONFIG_PATH"; then
   # Add apiKey after the model line
-  sed -i '' '/model: gpt-4o/a\
+  $SED_INPLACE '/model: gpt-4o/a\
     apiKey: sk-test-dummy-key
 ' "$BRAGDOC_CONFIG_PATH"
 else
   # If no openai section, add it under llm section
-  sed -i '' '/llm:/a\
+  $SED_INPLACE '/llm:/a\
   provider: openai\
   openai:\
     model: gpt-4o\
@@ -190,7 +197,7 @@ else
 fi
 
 # Update API base URL to point to mock server
-sed -i '' "s|apiBaseUrl:.*|apiBaseUrl: http://localhost:$MOCK_API_PORT|" "$BRAGDOC_CONFIG_PATH"
+$SED_INPLACE "s|apiBaseUrl:.*|apiBaseUrl: http://localhost:$MOCK_API_PORT|" "$BRAGDOC_CONFIG_PATH"
 
 print_success "Project initialized"
 
