@@ -227,13 +227,6 @@ export class GitConnector implements Connector {
           `${cachedHashes.length} commits already cached, ${uncachedData.length} new commits`,
         );
 
-        // Add new commit hashes to cache
-        if (uncachedData.length > 0) {
-          const newHashes = uncachedData.map((item) => item.id);
-          await this.cache.add(this.sourceId, newHashes);
-          logger.debug(`Added ${newHashes.length} new commits to cache`);
-        }
-
         // Return only uncached commits
         connectorData = uncachedData;
       }

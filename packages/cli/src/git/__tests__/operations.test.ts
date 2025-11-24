@@ -106,10 +106,13 @@ describe('git operations', () => {
       const commits = collectGitCommits('main', 2, 'test-repo');
 
       // Verify the git commands
-      expect(mockExecSync).toHaveBeenNthCalledWith(1, 'git config user.name');
+      expect(mockExecSync).toHaveBeenNthCalledWith(1, 'git config user.name', {
+        cwd: 'test-repo',
+      });
       expect(mockExecSync).toHaveBeenNthCalledWith(
         2,
         'git log main --reverse --author="John Doe" --pretty=format:"%H%x1f%B%x1f%an%x1f%ai%x00" --max-count=2',
+        { cwd: 'test-repo' },
       );
 
       // Verify parsed commits

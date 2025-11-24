@@ -31,6 +31,7 @@ export interface GitCommit {
   stats?: FileStats[]; // File change statistics (from --numstat)
   diff?: FileDiff[]; // Code diffs (from -p)
   diffTruncated?: boolean; // Whether diff was truncated due to limits
+  sourceId?: string; // Source ID from which this commit was fetched (for multi-source support)
 }
 
 /**

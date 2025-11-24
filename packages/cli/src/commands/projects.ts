@@ -20,7 +20,7 @@ import {
   getCleanedCrontab,
   convertCronToWindowsSchedule,
 } from '../lib/scheduling';
-import { syncProjectWithApi } from '../lib/projects';
+import { syncProjectWithApi, syncSourceWithApi } from '../lib/projects';
 import { promptForLLMConfig, isLLMConfigured } from '../config/llm-setup';
 import { getLLMDisplayName } from '../ai/providers';
 import type { ExtractionConfig, ExtractionDetailLevel } from '../config/types';
@@ -529,6 +529,45 @@ export async function addProject(
     // Sync with API to get or create project
     const syncResult = await syncProjectWithApi(absolutePath, repoName);
     projectId = syncResult.projectId;
+
+    // Create a default Git source for this project
+    if (projectId) {
+      console.log('\n🔗 Setting up Git source for extraction...\n');
+      const sourceSyncResult = await syncSourceWithApi(
+        projectId,
+        `${repoName} (Git)`,
+        absolutePath,
+      );
+
+      if (sourceSyncResult.success && sourceSyncResult.sourceId) {
+        if (sourceSyncResult.existed) {
+          console.log(
+            chalk.blue(
+              `ℹ️  Using existing Git source (${sourceSyncResult.sourceId})`,
+            ),
+          );
+        } else {
+          console.log(
+            chalk.green(
+              `✓ Created Git source for extraction (${sourceSyncResult.sourceId})`,
+            ),
+          );
+        }
+      } else if (sourceSyncResult.type === 'warning') {
+        console.log(chalk.yellow(`⚠️  ${sourceSyncResult.message}`));
+      } else {
+        console.log(
+          chalk.yellow(
+            `⚠️  Could not create Git source: ${sourceSyncResult.message}`,
+          ),
+        );
+        console.log(
+          chalk.blue(
+            '💡 You can configure sources manually via the web app at https://bragdoc.ai',
+          ),
+        );
+      }
+    }
   } else {
     console.log(
       chalk.yellow('⚠️  Skipping API sync (--skip-api-sync flag set)'),
@@ -604,7 +643,7 @@ export async function addProject(
   // Add project
   const newProject: Project = {
     path: absolutePath,
-    name: options.name,
+    name: options.name || repoName,
     enabled: true,
     maxCommits: options.maxCommits
       ? Number.parseInt(options.maxCommits.toString(), 10)

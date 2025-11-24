@@ -40,9 +40,13 @@ export function getRepositoryInfo(path = '.'): RepositoryInfo {
 /**
  * Get the current git user's name
  */
-export function getCurrentGitUser(): string {
+export function getCurrentGitUser(repositoryPath?: string): string {
   try {
-    const userName = execSync('git config user.name').toString().trim();
+    const userName = execSync('git config user.name', {
+      cwd: repositoryPath || process.cwd(),
+    })
+      .toString()
+      .trim();
     return userName;
   } catch (error: any) {
     throw new Error(`Failed to get git user name: ${error.message}`);
@@ -88,13 +92,13 @@ export function collectGitCommits(
 ): GitCommit[] {
   try {
     // Get the current git user to filter commits
-    const currentUser = getCurrentGitUser();
+    const currentUser = getCurrentGitUser(repository);
 
     // Get commit hash and full message (title + body).
     // Use %x00 as a commit separator and %x1f as a field separator
     // Filter by current user with --author flag
     const logCommand = `git log ${branch} --reverse --author="${currentUser}" --pretty=format:"%H%x1f%B%x1f%an%x1f%ai%x00" --max-count=${maxCommits}`;
-    const output = execSync(logCommand).toString();
+    const output = execSync(logCommand, { cwd: repository }).toString();
 
     // Split the output by null character to get individual commits
     const commits = output
@@ -133,7 +137,7 @@ function enhanceCommitsWithStats(commits: GitCommit[]): GitCommit[] {
     try {
       const numstatOutput = execSync(
         `git show --numstat --format="" ${commit.hash}`,
-        { encoding: 'utf8' },
+        { encoding: 'utf8', cwd: commit.repository },
       );
 
       const stats = parseNumstat(numstatOutput);
@@ -157,6 +161,7 @@ function enhanceCommitsWithDiffs(
     try {
       const diffOutput = execSync(`git show -p --format="" ${commit.hash}`, {
         encoding: 'utf8',
+        cwd: commit.repository,
       });
 
       // Parse and process diff

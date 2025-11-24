@@ -102,6 +102,9 @@ export async function* processInBatches(
           `Extracted ${extractedAchievements.length} achievements, sending to API...`,
         );
 
+        // Get sourceId from batch commits (should be the same for all commits in batch)
+        const batchSourceId = batchCommits[0]?.sourceId || null;
+
         // Send extracted achievements to API for saving
         const savedAchievements = await apiClient.createAchievements(
           extractedAchievements.map((achievement) => ({
@@ -116,6 +119,8 @@ export async function* processInBatches(
             impact: achievement.impact,
             impactSource: 'llm' as const,
             source: 'commit' as const,
+            uniqueSourceId: achievement.commitHash || null,
+            sourceId: batchSourceId,
           })),
         );
 

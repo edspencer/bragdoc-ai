@@ -368,6 +368,7 @@ export const extractCommand = new Command('extract')
           stats: item.raw.stats,
           diff: item.raw.diff,
           diffTruncated: item.raw.diffTruncated,
+          sourceId: item.sourceId, // Pass through sourceId for API
         }));
 
         // Batch process

@@ -167,13 +167,19 @@ export class SourcesCache {
 
       try {
         const response = await apiClient.get<{
-          sources: CachedSource[];
+          data: CachedSource[];
+          pagination?: {
+            page: number;
+            limit: number;
+            total: number;
+            totalPages: number;
+          };
         }>('/api/sources');
 
-        if (response?.sources) {
+        if (response?.data) {
           // Update in-memory cache with fresh data
           this.sources.clear();
-          for (const source of response.sources) {
+          for (const source of response.data) {
             this.sources.set(source.id, source);
           }
 
