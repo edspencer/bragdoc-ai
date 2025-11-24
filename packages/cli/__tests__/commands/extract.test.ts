@@ -2,16 +2,22 @@ import { extractCommand } from '../../src/commands/extract';
 import * as configModule from '../../src/config';
 import * as gitOpsModule from '../../src/git/operations';
 import * as apiClientModule from '../../src/api/client';
+import * as sourcesCacheModule from '../../src/cache/sources';
+import * as connectorRegistryModule from '../../src/connectors/registry';
 import logger from '../../src/utils/logger';
 
 // Mock modules
 jest.mock('../../src/config');
 jest.mock('../../src/git/operations');
 jest.mock('../../src/api/client');
+jest.mock('../../src/cache/sources');
+jest.mock('../../src/connectors/registry');
 jest.mock('../../src/utils/logger');
 
 describe('Extract Command - Branch Whitelist Validation', () => {
   let mockLogger: any;
+  let mockApiClient: any;
+  let mockSourcesCache: any;
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -25,6 +31,45 @@ describe('Extract Command - Branch Whitelist Validation', () => {
     };
 
     (logger as any) = mockLogger;
+
+    // Setup mock API client
+    mockApiClient = {
+      get: jest.fn(),
+      post: jest.fn(),
+      put: jest.fn(),
+      delete: jest.fn(),
+      isAuthenticated: jest.fn().mockReturnValue(true),
+    };
+
+    (apiClientModule.createApiClient as jest.Mock).mockResolvedValue(
+      mockApiClient,
+    );
+
+    // Setup mock SourcesCache
+    mockSourcesCache = {
+      sync: jest.fn().mockResolvedValue(undefined),
+      getByProjectId: jest.fn().mockReturnValue([]),
+      getById: jest.fn().mockReturnValue(null),
+      load: jest.fn().mockResolvedValue(undefined),
+      save: jest.fn().mockResolvedValue(undefined),
+      getAll: jest.fn().mockReturnValue([]),
+      count: jest.fn().mockReturnValue(0),
+      getLastSynced: jest.fn().mockReturnValue(null),
+    };
+
+    (sourcesCacheModule.SourcesCache as jest.Mock).mockImplementation(
+      () => mockSourcesCache,
+    );
+
+    // Mock createApiClient to return our mock client
+    jest
+      .spyOn(apiClientModule, 'createApiClient')
+      .mockResolvedValue(mockApiClient);
+
+    // Mock connector registry initialization
+    (
+      connectorRegistryModule.initializeConnectors as jest.Mock
+    ).mockImplementation(() => undefined);
   });
 
   test('allows extraction when no branch whitelist configured', async () => {

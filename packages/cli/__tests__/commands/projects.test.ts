@@ -328,4 +328,149 @@ describe('Projects Command - Branch Whitelist Management', () => {
     // Assert: Whitespace should be trimmed
     expect(result).toEqual(['main', 'develop', 'release-1.0']);
   });
+
+  test('creates a Git source when adding a project with API sync', async () => {
+    // Setup: Mock successful project and source sync
+    const mockProjectId = 'project-123';
+    const mockSourceId = 'source-456';
+
+    (projectsLibModule.syncProjectWithApi as jest.Mock).mockResolvedValue({
+      projectId: mockProjectId,
+      success: true,
+      existed: false,
+      message: 'Created project',
+      type: 'success',
+    });
+
+    (projectsLibModule.syncSourceWithApi as jest.Mock).mockResolvedValue({
+      sourceId: mockSourceId,
+      success: true,
+      existed: false,
+      message: 'Created Git source',
+      type: 'success',
+    });
+
+    const options = {
+      skipLlmConfig: true,
+      schedule: false,
+    };
+
+    (inquirer.prompt as any).mockImplementation(async (questions: any) => {
+      if (questions[0]?.name === 'detailLevel') {
+        return { detailLevel: 'standard' };
+      }
+      if (questions[0]?.name === 'frequency') {
+        return { frequency: 'no' };
+      }
+      if (questions[0]?.name === 'branches') {
+        return { branches: '' };
+      }
+      return {};
+    });
+
+    // Execute: Add project with API sync
+    await addProject('/test/repo', options);
+
+    // Assert: Both project and source sync should be called
+    expect(projectsLibModule.syncProjectWithApi).toHaveBeenCalledWith(
+      '/test/repo',
+      'test-repo',
+    );
+    expect(projectsLibModule.syncSourceWithApi).toHaveBeenCalledWith(
+      mockProjectId,
+      'test-repo (Git)',
+      '/test/repo',
+    );
+
+    // Assert: Project should be saved with the correct projectId
+    expect(mockSaveConfig).toHaveBeenCalled();
+    const savedConfig = mockSaveConfig.mock.calls[0][0];
+    const addedProject = savedConfig.projects[0];
+    expect(addedProject.id).toBe(mockProjectId);
+  });
+
+  test('does not create source when API sync is skipped', async () => {
+    // Setup: Skip API sync
+    const options = {
+      skipLlmConfig: true,
+      skipApiSync: true,
+      schedule: false,
+    };
+
+    (inquirer.prompt as any).mockImplementation(async (questions: any) => {
+      if (questions[0]?.name === 'detailLevel') {
+        return { detailLevel: 'standard' };
+      }
+      if (questions[0]?.name === 'frequency') {
+        return { frequency: 'no' };
+      }
+      if (questions[0]?.name === 'branches') {
+        return { branches: '' };
+      }
+      return {};
+    });
+
+    // Execute: Add project without API sync
+    await addProject('/test/repo', options);
+
+    // Assert: Source sync should NOT be called
+    expect(projectsLibModule.syncSourceWithApi).not.toHaveBeenCalled();
+
+    // Assert: Project should still be added with a local ID
+    expect(mockSaveConfig).toHaveBeenCalled();
+    const savedConfig = mockSaveConfig.mock.calls[0][0];
+    const addedProject = savedConfig.projects[0];
+    expect(addedProject.id).toMatch(/^local-\d+$/);
+  });
+
+  test('handles existing Git source gracefully', async () => {
+    // Setup: Mock existing source
+    const mockProjectId = 'project-123';
+    const mockSourceId = 'existing-source-789';
+
+    (projectsLibModule.syncProjectWithApi as jest.Mock).mockResolvedValue({
+      projectId: mockProjectId,
+      success: true,
+      existed: true,
+      message: 'Found existing project',
+      type: 'success',
+    });
+
+    (projectsLibModule.syncSourceWithApi as jest.Mock).mockResolvedValue({
+      sourceId: mockSourceId,
+      success: true,
+      existed: true,
+      message: 'Found existing Git source',
+      type: 'success',
+    });
+
+    const options = {
+      skipLlmConfig: true,
+      schedule: false,
+    };
+
+    (inquirer.prompt as any).mockImplementation(async (questions: any) => {
+      if (questions[0]?.name === 'detailLevel') {
+        return { detailLevel: 'standard' };
+      }
+      if (questions[0]?.name === 'frequency') {
+        return { frequency: 'no' };
+      }
+      if (questions[0]?.name === 'branches') {
+        return { branches: '' };
+      }
+      return {};
+    });
+
+    const consoleSpy = jest.spyOn(console, 'log');
+
+    // Execute: Add project with existing source
+    await addProject('/test/repo', options);
+
+    // Assert: Should find and use existing source
+    expect(projectsLibModule.syncSourceWithApi).toHaveBeenCalled();
+    expect(consoleSpy).toHaveBeenCalled();
+    const output = consoleSpy.mock.calls.map((call: any) => call[0]).join('\n');
+    expect(output).toContain('existing');
+  });
 });

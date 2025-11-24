@@ -180,7 +180,7 @@ Projects are linked to CLI config via `repoRemoteUrl`. When CLI extracts achieve
 ---
 
 ### Source Table
-**Purpose**: Track integration instances (Git, GitHub, Jira) configured by users
+**Purpose**: Track integration instances (Git, GitHub, Jira) configured by users, associated with specific projects
 
 ```typescript
 export const sourceTypeEnum = pgEnum('source_type', ['git', 'github', 'jira']);
@@ -191,6 +191,9 @@ export const source = pgTable('Source', {
   userId: uuid('user_id')
     .notNull()
     .references(() => user.id, { onDelete: 'cascade' }),
+  projectId: uuid('project_id')
+    .notNull()
+    .references(() => project.id, { onDelete: 'cascade' }),  // Associate source with project
   name: varchar('name', { length: 256 }).notNull(),         // Display name (e.g., 'Personal Repo')
   type: sourceTypeEnum('type').notNull(),                   // 'git', 'github', or 'jira'
   config: jsonb('config').$type<Record<string, any>>(),     // Source-type-specific config
@@ -199,6 +202,8 @@ export const source = pgTable('Source', {
   updatedAt: timestamp('updated_at').notNull().defaultNow(),
 }, (table) => ({
   userIdIdx: index('source_user_id_idx').on(table.userId),
+  projectIdIdx: index('source_project_id_idx').on(table.projectId),
+  userProjectIdIdx: index('source_user_project_id_idx').on(table.userId, table.projectId),
   userIdArchivedIdx: index('source_user_id_archived_idx').on(table.userId, table.isArchived),
 }));
 
@@ -210,6 +215,7 @@ export type Source = InferSelectModel<typeof source>;
 export type Source = {
   id: string;
   userId: string;
+  projectId: string;  // New: Links source to specific project
   name: string;
   type: SourceType;
   config: Record<string, any> | null;
@@ -219,13 +225,33 @@ export type Source = {
 };
 ```
 
-**Use Case:**
-Sources enable multi-integration support. For example, a user might configure:
-- One Git source for a local repository
-- One GitHub source for a GitHub organization
-- One Jira source for issue tracking
+**Field Documentation:**
+- **projectId**: UUID foreign key to Project table with CASCADE delete. Every source must belong to exactly one project. When a project is deleted, all its sources are deleted.
+- **Indexes**:
+  - `source_project_id_idx`: Single column index on projectId for fast filtering by project
+  - `source_user_project_id_idx`: Composite index on (userId, projectId) for security-scoped project queries
+  - `source_user_id_archived_idx`: Composite index on (userId, isArchived) for listing active sources
 
-When the CLI or integrations extract achievements, they link them to the appropriate Source via the foreign key in the Achievement table, enabling idempotent import and preventing duplicates.
+**Use Case:**
+Sources enable multi-integration support within a project. For example, for a single project, a user might configure:
+- One Git source for a local repository
+- One GitHub source for the same repository on GitHub
+- One Jira source for related issue tracking
+
+Sources are always scoped to both userId (security) and projectId (organization). When the CLI extracts achievements, it fetches sources for a specific project, initializes the appropriate connector for each source, and combines data from all sources before creating achievements.
+
+**Query Pattern:**
+```typescript
+// Get all sources for a project
+const sources = await db
+  .select()
+  .from(source)
+  .where(and(
+    eq(source.userId, userId),      // Security scope
+    eq(source.projectId, projectId), // Project scope
+    eq(source.isArchived, false)     // Exclude archived
+  ));
+```
 
 ---
 

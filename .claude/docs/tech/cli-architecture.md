@@ -135,6 +135,211 @@ To extract from other branches, update the whitelist:
 
 The whitelist is stored in the configuration file and applies only to the specific project it's configured for.
 
+## Connector Architecture
+
+The CLI uses a pluggable connector architecture to support multiple data sources (Git, GitHub, Jira, etc.) without modifying core CLI logic. This enables extensibility while maintaining clean separation of concerns.
+
+### Overview
+
+A **connector** is a standardized interface for extracting achievement data from a source system. Each connector implementation handles the specifics of its source (Git operations, API calls, data transformation) and returns data in a unified format.
+
+**Key Benefits:**
+- **Pluggable Design**: Add new sources without modifying core CLI
+- **Type Safety**: TypeScript ensures all connectors implement required interface
+- **Unified Data Format**: All sources produce ConnectorData with consistent fields
+- **Multi-Source Support**: Extract from multiple sources per project
+- **Isolated Caching**: Each source manages its own cache independently
+
+### Connector Interface
+
+**File:** `packages/cli/src/connectors/types.ts`
+
+```typescript
+// Configuration passed to initialize a connector
+interface ConnectorConfig {
+  type: 'git' | 'github' | 'jira';  // Connector type
+  sourceId: string;                  // Unique source identifier (UUID)
+  projectId: string;                 // Associated project
+  gitPath?: string;                  // For Git: path to repository
+  branchWhitelist?: string[];        // For Git: branches to extract from
+  [key: string]: any;               // Type-specific config
+}
+
+// Unified data format from any source
+interface ConnectorData {
+  id: string;                        // Source-specific unique ID
+  title: string;                     // Achievement title
+  description?: string;              // Optional description
+  author?: string;                   // Who made this contribution
+  timestamp: Date;                   // When it happened
+  raw: any;                          // Original source data
+  isCached?: boolean;               // Whether from cache
+}
+
+// Connector data with CLI context
+interface ConnectorItem extends ConnectorData {
+  sourceId: string;                  // Links to source
+  projectId: string;                 // Links to project
+  type: string;                      // Connector type ('git', etc.)
+}
+
+// Main connector interface
+interface Connector {
+  type: string;                      // Getter returning connector type
+  initialize(config: ConnectorConfig): Promise<void>;  // Setup
+  fetch(options?: {                  // Fetch data
+    since?: Date;
+    until?: Date;
+    limit?: number;
+    skipCache?: boolean;
+  }): Promise<ConnectorData[]>;
+  validate(): Promise<boolean>;      // Verify source exists/accessible
+  clearCache(): Promise<void>;       // Clear source-specific cache
+}
+```
+
+### GitConnector Implementation
+
+**File:** `packages/cli/src/connectors/git-connector.ts`
+
+The GitConnector wraps existing Git operations and maintains all current functionality:
+
+```typescript
+class GitConnector implements Connector {
+  private config: ConnectorConfig | null = null;
+  private cache: CommitCache | null = null;
+
+  get type(): string {
+    return 'git';
+  }
+
+  async initialize(config: ConnectorConfig): Promise<void> {
+    // Validate type is 'git'
+    // Store config and sourceId
+    // Initialize CommitCache with sourceId
+  }
+
+  async fetch(options?: FetchOptions): Promise<ConnectorData[]> {
+    // Call existing git operations
+    // Transform commits to ConnectorData format
+    // Apply branch whitelisting
+    // Return unified data array
+  }
+
+  async validate(): Promise<boolean> {
+    // Check repository exists at gitPath
+    // Verify accessible
+  }
+
+  async clearCache(): Promise<void> {
+    // Call cache.clear(sourceId)
+  }
+}
+```
+
+**Key Points:**
+- Maintains 100% backward compatibility with existing Git extraction
+- Uses CommitCache with sourceId-based keys
+- Supports branch whitelisting from source config
+- Integrates with batch processing pipeline
+
+### ConnectorRegistry
+
+**File:** `packages/cli/src/connectors/registry.ts`
+
+The registry provides pluggable discovery and initialization of connectors:
+
+```typescript
+class ConnectorRegistry {
+  private connectors: Map<string, Connector> = new Map();
+
+  register(type: string, connector: Connector): void {
+    // Store connector by type
+  }
+
+  get(type: string): Connector {
+    // Retrieve connector, throw if not registered
+  }
+
+  has(type: string): boolean {
+    // Check if type registered
+  }
+
+  types(): string[] {
+    // Return all registered types
+  }
+}
+
+// Singleton instance
+export const connectorRegistry = new ConnectorRegistry();
+
+// Initialize all connectors on startup
+export function initializeConnectors(): void {
+  connectorRegistry.register('git', new GitConnector());
+  // Future: register GitHub, Jira connectors
+}
+```
+
+### How to Implement a New Connector
+
+To add a new data source (e.g., GitHub):
+
+1. **Create connector class** implementing `Connector` interface
+   ```typescript
+   // packages/cli/src/connectors/github-connector.ts
+   export class GitHubConnector implements Connector {
+     get type(): string { return 'github'; }
+     async initialize(config: ConnectorConfig): Promise<void> { /* ... */ }
+     async fetch(options?: FetchOptions): Promise<ConnectorData[]> { /* ... */ }
+     async validate(): Promise<boolean> { /* ... */ }
+     async clearCache(): Promise<void> { /* ... */ }
+   }
+   ```
+
+2. **Register in ConnectorRegistry**
+   ```typescript
+   // In initializeConnectors()
+   connectorRegistry.register('github', new GitHubConnector());
+   ```
+
+3. **Test connector** with unit tests and integration tests
+
+4. **Document configuration** in CLI setup guides
+
+The extract command automatically discovers and uses the connector via the registry.
+
+## Source Synchronization
+
+The CLI maintains a local cache of sources fetched from the API.
+
+### SourcesCache
+
+**File:** `packages/cli/src/cache/sources.ts`
+
+Caches source definitions locally to avoid repeated API calls:
+
+```yaml
+# ~/.bragdoc/cache/data/sources.yml
+version: 1
+lastSynced: '2025-01-15T10:30:00Z'
+sources:
+  - id: 'uuid-1'
+    userId: 'user-uuid'
+    projectId: 'project-uuid'
+    name: 'My Git Repo'
+    type: 'git'
+    config:
+      gitPath: /Users/ed/projects/my-repo
+      branchWhitelist: ['main']
+    isArchived: false
+```
+
+**Synchronization Strategy:**
+- On each extract: Sync sources from `GET /api/sources?projectId=xxx`
+- If API unavailable: Use cached sources with staleness warning
+- If cache > 7 days old: Log warning about potential stale data
+- Auto-rebuilt: Cache is repopulated on next successful sync
+
 ### Achievement Extraction
 ```bash
 bragdoc extract                   # Extract from all enabled projects
@@ -277,19 +482,46 @@ schtasks /create /tn "BragDoc Extract - My Project" /tr "bragdoc extract" /sc da
 
 ## Caching
 
-**Location:** `~/.bragdoc/cache/commits/<project-id>.json`
+### CommitCache
 
-```json
-{
-  "lastSync": 1735689600000,
-  "commits": {
-    "abc123...": true,
-    "def456...": true
-  }
-}
+**Location:** `~/.bragdoc/cache/commits/{sourceId}.txt`
+
+The commit cache tracks which commits have been processed to avoid redundant extraction:
+
+```
+abc123def456789
+def456ghi789012
+ghi789jkl012345
 ```
 
-Prevents reprocessing of already-extracted commits.
+**Key Features:**
+- **Source-scoped**: One cache file per source (using sourceId UUID)
+- **Simple format**: One commit hash per line for easy inspection
+- **Fast lookup**: Boolean check for cached commits
+- **Per-source isolation**: Multiple sources don't interfere with each other
+- **Automatic rebuild**: Old repo-name format files ignored, cache rebuilt on first extract
+
+**Usage:**
+```typescript
+const cache = new CommitCache();
+await cache.add(sourceId, [commitHash1, commitHash2]);
+
+if (await cache.has(sourceId, commitHash1)) {
+  // Already processed
+}
+
+const all = await cache.list(sourceId);
+await cache.clear(sourceId);  // Clear specific source
+await cache.clear();          // Clear all sources
+```
+
+### SourcesCache
+
+**Location:** `~/.bragdoc/cache/data/sources.yml`
+
+Caches source definitions from API to avoid repeated calls. See Source Synchronization section above.
+
+**Migration Note:** The cache format changed from repo-name based (`my-project.json`) to sourceId based (`{uuid}.txt`). Old cache files are ignored, and the cache is automatically rebuilt on the next extract.
 
 ## Logging
 

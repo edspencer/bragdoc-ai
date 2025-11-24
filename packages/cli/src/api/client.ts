@@ -155,6 +155,7 @@ export class ApiClient {
       impact?: number;
       impactSource?: 'llm' | 'user';
       source?: 'llm' | 'manual' | 'commit';
+      uniqueSourceId?: string | null;
     }>,
   ): Promise<any[]> {
     const results = [];

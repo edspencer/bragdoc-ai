@@ -16,6 +16,26 @@ interface ApiProject {
   repoRemoteUrl?: string | null;
 }
 
+interface ApiSource {
+  id: string;
+  userId: string;
+  projectId: string;
+  name: string;
+  type: 'git' | 'github' | 'jira';
+  config: Record<string, any>;
+  isArchived: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface SourceSyncResult {
+  sourceId?: string;
+  success: boolean;
+  message: string;
+  type: 'success' | 'warning' | 'error';
+  existed?: boolean;
+}
+
 /**
  * Sync project with the API - find existing or create new project
  * Returns result with projectId if successful
@@ -88,6 +108,82 @@ export async function syncProjectWithApi(
     return {
       success: false,
       message: `Failed to sync with API: ${error.message}`,
+      type: 'error',
+    };
+  }
+}
+
+/**
+ * Sync source with the API - find existing or create new Git source for a project
+ * Returns result with sourceId if successful
+ */
+export async function syncSourceWithApi(
+  projectId: string,
+  sourceName: string,
+  repoPath: string,
+): Promise<SourceSyncResult> {
+  try {
+    // Create API client
+    const apiClient = await createApiClient();
+
+    if (!apiClient.isAuthenticated()) {
+      logger.debug('User not authenticated, skipping source sync');
+      return {
+        success: true,
+        message: 'Not logged in. Run `bragdoc login` to sync sources.',
+        type: 'warning',
+      };
+    }
+
+    // Get all sources for this project
+    logger.debug('Fetching sources from API...');
+    const response = await apiClient.get<{
+      data: ApiSource[];
+    }>(`/api/sources?projectId=${projectId}`);
+
+    const sources = response.data || [];
+
+    // Find existing Git source for this project
+    const existingSource = sources.find(
+      (s) => s.type === 'git' && s.projectId === projectId && !s.isArchived,
+    );
+
+    if (existingSource) {
+      logger.debug('Found existing Git source:', existingSource.id);
+      return {
+        sourceId: existingSource.id,
+        success: true,
+        existed: true,
+        message: `Found existing Git source: ${existingSource.name} (${existingSource.id})`,
+        type: 'success',
+      };
+    }
+
+    // Create new Git source
+    logger.debug('Creating new Git source...');
+
+    const newSource = await apiClient.post<ApiSource>('/api/sources', {
+      projectId,
+      name: sourceName,
+      type: 'git',
+      config: {
+        gitPath: repoPath,
+      },
+    });
+
+    logger.debug('Created Git source:', newSource.id);
+    return {
+      sourceId: newSource.id,
+      success: true,
+      existed: false,
+      message: `Created Git source: ${newSource.name} (${newSource.id})`,
+      type: 'success',
+    };
+  } catch (error: any) {
+    logger.error('Failed to sync source with API:', error);
+    return {
+      success: false,
+      message: `Failed to sync source with API: ${error.message}`,
       type: 'error',
     };
   }

@@ -48,6 +48,12 @@ export const achievementResponseSchema = z.object({
     .max(10)
     .describe('Impact level of the achievement (1: Low, 2: Medium, 3: High)')
     .default(2),
+  commitHash: z
+    .string()
+    .describe(
+      'The git commit SHA that this achievement was extracted from. If multiple commits contributed, use the primary or most representative commit hash.',
+    )
+    .optional(),
 });
 
 // The type that we get back from the LLM
@@ -66,6 +72,7 @@ export type ExtractedAchievement = {
   impact: number;
   impactSource: 'llm' | 'user';
   impactUpdatedAt: Date;
+  commitHash?: string;
 };
 
 /**

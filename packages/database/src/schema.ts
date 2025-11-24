@@ -18,7 +18,9 @@ import {
   vector,
   real,
   index,
+  uniqueIndex,
 } from 'drizzle-orm/pg-core';
+import { sql } from 'drizzle-orm';
 
 export interface UserPreferences {
   language: string;
@@ -170,6 +172,9 @@ export const source = pgTable(
     userId: uuid('user_id')
       .notNull()
       .references(() => user.id, { onDelete: 'cascade' }),
+    projectId: uuid('project_id')
+      .notNull()
+      .references(() => project.id, { onDelete: 'cascade' }),
     name: varchar('name', { length: 256 }).notNull(),
     type: sourceTypeEnum('type').notNull(),
     config: jsonb('config').$type<Record<string, any>>(),
@@ -179,6 +184,11 @@ export const source = pgTable(
   },
   (table) => ({
     userIdIdx: index('source_user_id_idx').on(table.userId),
+    projectIdIdx: index('source_project_id_idx').on(table.projectId),
+    userProjectIdIdx: index('source_user_project_id_idx').on(
+      table.userId,
+      table.projectId,
+    ),
     userIdArchivedIdx: index('source_user_id_archived_idx').on(
       table.userId,
       table.isArchived,
@@ -266,6 +276,16 @@ export const achievement = pgTable(
       table.sourceId,
       table.uniqueSourceId,
     ),
+    // Partial unique constraint to prevent duplicate achievements within a project
+    // Only applies when both projectId and uniqueSourceId are NOT NULL
+    // This allows manual achievements without these fields to coexist
+    achievementProjectSourceUnique: uniqueIndex(
+      'achievement_project_source_unique',
+    )
+      .on(table.projectId, table.uniqueSourceId)
+      .where(
+        sql`${table.projectId} IS NOT NULL AND ${table.uniqueSourceId} IS NOT NULL`,
+      ),
   }),
 );
 

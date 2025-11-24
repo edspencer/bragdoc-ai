@@ -153,6 +153,103 @@ export async function OPTIONS(request: Request) {
 }
 ```
 
+## Idempotent Resource Creation
+
+### Overview
+
+Resource creation endpoints should support **idempotent submission**: clients can safely retry creation requests without side effects or errors.
+
+### Pattern: HTTP 200 for Both New and Duplicate
+
+When a resource already exists (detected via unique constraint violation), return HTTP 200 with the existing resource instead of throwing an error. The caller cannot distinguish between creation and duplicate detection—both receive the same response.
+
+**Key Benefits:**
+- **CLI Reliability**: External tools (CLI, webhooks, integrations) can retry safely on network failures
+- **Simplified Error Handling**: Caller treats both cases the same
+- **Non-Breaking**: No error thrown, no HTTP 409 (Conflict) confusing the caller
+- **Data Integrity**: Database constraint prevents actual duplicates
+
+### Example: POST /api/achievements
+
+```typescript
+const achievementSchema = z.object({
+  title: z.string().min(1),
+  projectId: z.string().uuid().optional().nullable(),
+  uniqueSourceId: z.string().optional().nullable(),
+  // ... other fields
+});
+
+export async function POST(request: Request) {
+  const auth = await getAuthUser(request);
+  if (!auth?.user?.id) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+
+  const body = await request.json();
+  const validated = achievementSchema.parse(body);
+
+  // Create achievement with automatic duplicate detection
+  // If (projectId, uniqueSourceId) already exists, returns existing achievement
+  // This enables safe retries from CLI and external integrations
+  const achievement = await createAchievement(
+    auth.user.id,
+    validated,
+    validated.source,
+  );
+
+  // HTTP 200 for both new and duplicate submissions
+  // Caller cannot distinguish between the two cases
+  return NextResponse.json(achievement);
+}
+```
+
+### Idempotency Requirements
+
+For this pattern to work safely, the creation function must:
+
+1. **Detect Duplicates Gracefully**: Catch constraint violations without throwing
+2. **Query for Existing**: When violation detected, fetch and return the existing record
+3. **Scope by User**: Always include userId in the duplicate query for security
+4. **Log at INFO Level**: Document duplicate attempts for debugging
+
+### Logging Pattern
+
+```typescript
+console.log(
+  `Duplicate achievement detected for user ${userId} in project ${projectId} with uniqueSourceId ${uniqueSourceId}`,
+);
+```
+
+**Why INFO vs ERROR:**
+- Duplicate detection is expected behavior, not an error
+- Helps distinguish from actual database errors in logs
+- Enables debugging of retries without noise
+
+### When NOT to Use This Pattern
+
+This pattern is appropriate for resources that:
+- Have a **unique identifier** (projectId + uniqueSourceId, email, API token, etc.)
+- Are **idempotent to create multiple times** (no side effects from re-creation)
+- Have **safe duplicate detection logic** (query correctly scoped by userId)
+
+**Do NOT use for:**
+- Resources without a unique identifier
+- Resources where duplication has side effects (payment processing, notifications)
+- Resources that need explicit user feedback about duplicates
+
+### Related: Data-Level Constraints
+
+Idempotent creation relies on database-level constraints to prevent actual duplicates:
+
+```sql
+-- Partial unique constraint on achievement(projectId, uniqueSourceId)
+-- Only applies when both fields are NOT NULL
+CREATE UNIQUE INDEX "achievement_project_source_unique" ON "Achievement"("projectId", "unique_source_id")
+WHERE "projectId" IS NOT NULL AND "unique_source_id" IS NOT NULL;
+```
+
+See [database.md: Duplicate Prevention Pattern](./database.md#duplicate-prevention-partial-unique-constraint-pattern) for complete details on partial constraints.
+
 ## Pagination
 
 ```typescript

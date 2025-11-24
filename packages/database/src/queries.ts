@@ -487,6 +487,8 @@ export async function getAchievements({
         eventDuration: achievement.eventDuration,
         isArchived: achievement.isArchived,
         source: achievement.source,
+        sourceId: achievement.sourceId,
+        uniqueSourceId: achievement.uniqueSourceId,
         impact: achievement.impact,
         impactSource: achievement.impactSource,
         impactUpdatedAt: achievement.impactUpdatedAt,
@@ -1145,9 +1147,35 @@ export async function getSourceById(
   }
 }
 
+export async function getSourcesByProjectId(
+  projectId: string,
+  userId: string,
+  options?: { includeArchived?: boolean },
+  db = defaultDb,
+): Promise<Source[]> {
+  try {
+    const conditions = [
+      eq(source.projectId, projectId),
+      eq(source.userId, userId),
+    ];
+    if (!options?.includeArchived) {
+      conditions.push(eq(source.isArchived, false));
+    }
+    return await db
+      .select()
+      .from(source)
+      .where(and(...conditions))
+      .orderBy(asc(source.createdAt));
+  } catch (error) {
+    console.error('Error in getSourcesByProjectId:', error);
+    throw error;
+  }
+}
+
 export async function createSource(
   data: {
     userId: string;
+    projectId: string;
     name: string;
     type: SourceType;
     config?: Record<string, any>;
@@ -1160,6 +1188,7 @@ export async function createSource(
       .values({
         id: sql`gen_random_uuid()`,
         userId: data.userId,
+        projectId: data.projectId,
         name: data.name,
         type: data.type,
         config: data.config || null,

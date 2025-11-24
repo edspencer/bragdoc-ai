@@ -485,6 +485,307 @@ describe('Achievement API Routes', () => {
         }),
       );
     });
+
+    describe('Duplicate Prevention (Phase 4)', () => {
+      it('should return existing achievement on duplicate submission', async () => {
+        // Task 4.3: Test duplicate submission returns existing
+        const duplicateAchievement = {
+          title: 'Duplicate Test Achievement',
+          eventDuration: 'week' as EventDuration,
+          projectId: testProject.id,
+          uniqueSourceId: 'github-pr-123',
+          source: 'commit' as const,
+        };
+
+        mockGetSession.mockResolvedValueOnce({
+          session: { id: 'test-session' },
+          user: testUser,
+        });
+
+        // First submission
+        const response1 = await POST(
+          new NextRequest('http://localhost/api/achievements', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(duplicateAchievement),
+          }),
+        );
+
+        expect(response1.status).toBe(200);
+        const achievement1 = await response1.json();
+        expect(achievement1.id).toBeDefined();
+
+        // Reset mock for second call
+        mockGetSession.mockResolvedValueOnce({
+          session: { id: 'test-session' },
+          user: testUser,
+        });
+
+        // Second submission (duplicate)
+        const response2 = await POST(
+          new NextRequest('http://localhost/api/achievements', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(duplicateAchievement),
+          }),
+        );
+
+        expect(response2.status).toBe(200);
+        const achievement2 = await response2.json();
+        // Should return same achievement ID
+        expect(achievement2.id).toBe(achievement1.id);
+        // Should have same content
+        expect(achievement2.title).toBe(achievement1.title);
+        expect(achievement2.uniqueSourceId).toBe(achievement1.uniqueSourceId);
+      });
+
+      it('should handle rapid duplicate submissions correctly', async () => {
+        // Task 4.4: Test multiple rapid duplicates
+        const duplicateAchievement = {
+          title: 'Rapid Duplicate Test',
+          eventDuration: 'week' as EventDuration,
+          projectId: testProject.id,
+          uniqueSourceId: 'github-issue-456',
+          source: 'commit' as const,
+        };
+
+        // Submit same achievement 3 times
+        const responses = await Promise.all([
+          (async () => {
+            mockGetSession.mockResolvedValueOnce({
+              session: { id: 'test-session' },
+              user: testUser,
+            });
+            return await POST(
+              new NextRequest('http://localhost/api/achievements', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(duplicateAchievement),
+              }),
+            );
+          })(),
+          (async () => {
+            mockGetSession.mockResolvedValueOnce({
+              session: { id: 'test-session' },
+              user: testUser,
+            });
+            return await POST(
+              new NextRequest('http://localhost/api/achievements', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(duplicateAchievement),
+              }),
+            );
+          })(),
+          (async () => {
+            mockGetSession.mockResolvedValueOnce({
+              session: { id: 'test-session' },
+              user: testUser,
+            });
+            return await POST(
+              new NextRequest('http://localhost/api/achievements', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(duplicateAchievement),
+              }),
+            );
+          })(),
+        ]);
+
+        // All should succeed
+        const achievements = await Promise.all(responses.map((r) => r.json()));
+        const achievementIds = achievements.map((a) => a.id);
+
+        // All should have HTTP 200
+        responses.forEach((r) => {
+          expect(r.status).toBe(200);
+        });
+
+        // All should return same achievement ID
+        expect(achievementIds[1]).toBe(achievementIds[0]);
+        expect(achievementIds[2]).toBe(achievementIds[0]);
+
+        // Database should have only one achievement record
+        const url = new URL('http://localhost/api/achievements');
+        url.searchParams.set('projectId', testProject.id);
+        mockGetSession.mockResolvedValueOnce({
+          session: { id: 'test-session' },
+          user: testUser,
+        });
+
+        const getResponse = await GET(new NextRequest(url));
+        const { achievements: queryAchievements } = await getResponse.json();
+        // Filter to only our rapid duplicates
+        const rapidDuplicates = queryAchievements.filter(
+          (a: any) => a.uniqueSourceId === 'github-issue-456',
+        );
+        expect(rapidDuplicates).toHaveLength(1);
+      });
+
+      it('should allow multiple achievements without projectId', async () => {
+        // Task 4.5: Test achievements without projectId - constraint should not apply
+        const achievement1 = {
+          title: 'No Project Achievement 1',
+          eventDuration: 'week' as EventDuration,
+          uniqueSourceId: 'commit-123',
+          source: 'commit' as const,
+          // projectId is intentionally omitted
+        };
+
+        const achievement2 = {
+          title: 'No Project Achievement 2',
+          eventDuration: 'week' as EventDuration,
+          uniqueSourceId: 'commit-123', // Same uniqueSourceId
+          source: 'commit' as const,
+          // projectId is intentionally omitted
+        };
+
+        // First submission
+        mockGetSession.mockResolvedValueOnce({
+          session: { id: 'test-session' },
+          user: testUser,
+        });
+
+        const response1 = await POST(
+          new NextRequest('http://localhost/api/achievements', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(achievement1),
+          }),
+        );
+
+        expect(response1.status).toBe(200);
+        const result1 = await response1.json();
+
+        // Second submission (same uniqueSourceId but different projectId)
+        mockGetSession.mockResolvedValueOnce({
+          session: { id: 'test-session' },
+          user: testUser,
+        });
+
+        const response2 = await POST(
+          new NextRequest('http://localhost/api/achievements', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(achievement2),
+          }),
+        );
+
+        expect(response2.status).toBe(200);
+        const result2 = await response2.json();
+
+        // Should be different achievements since constraint only applies when both projectId AND uniqueSourceId exist
+        expect(result2.id).not.toBe(result1.id);
+      });
+
+      it('should allow multiple achievements without uniqueSourceId', async () => {
+        // Task 4.6: Test achievements without uniqueSourceId - constraint should not apply
+        const achievement1 = {
+          title: 'No Source ID Achievement 1',
+          eventDuration: 'week' as EventDuration,
+          projectId: testProject.id,
+          source: 'manual' as const,
+          // uniqueSourceId is intentionally omitted
+        };
+
+        const achievement2 = {
+          title: 'No Source ID Achievement 2',
+          eventDuration: 'week' as EventDuration,
+          projectId: testProject.id, // Same projectId
+          source: 'manual' as const,
+          // uniqueSourceId is intentionally omitted
+        };
+
+        // First submission
+        mockGetSession.mockResolvedValueOnce({
+          session: { id: 'test-session' },
+          user: testUser,
+        });
+
+        const response1 = await POST(
+          new NextRequest('http://localhost/api/achievements', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(achievement1),
+          }),
+        );
+
+        expect(response1.status).toBe(200);
+        const result1 = await response1.json();
+
+        // Second submission (same projectId but different uniqueSourceId)
+        mockGetSession.mockResolvedValueOnce({
+          session: { id: 'test-session' },
+          user: testUser,
+        });
+
+        const response2 = await POST(
+          new NextRequest('http://localhost/api/achievements', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(achievement2),
+          }),
+        );
+
+        expect(response2.status).toBe(200);
+        const result2 = await response2.json();
+
+        // Should be different achievements since constraint only applies when both projectId AND uniqueSourceId exist
+        expect(result2.id).not.toBe(result1.id);
+      });
+
+      it('should log duplicate achievements at INFO level', async () => {
+        // Task 4.9: Test duplicate logging
+        const logSpy = jest.spyOn(console, 'log');
+
+        const duplicateAchievement = {
+          title: 'Logged Duplicate',
+          eventDuration: 'week' as EventDuration,
+          projectId: testProject.id,
+          uniqueSourceId: 'log-test-789',
+          source: 'commit' as const,
+        };
+
+        // First submission
+        mockGetSession.mockResolvedValueOnce({
+          session: { id: 'test-session' },
+          user: testUser,
+        });
+
+        await POST(
+          new NextRequest('http://localhost/api/achievements', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(duplicateAchievement),
+          }),
+        );
+
+        // Clear the first creation log
+        logSpy.mockClear();
+
+        // Second submission (duplicate)
+        mockGetSession.mockResolvedValueOnce({
+          session: { id: 'test-session' },
+          user: testUser,
+        });
+
+        await POST(
+          new NextRequest('http://localhost/api/achievements', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(duplicateAchievement),
+          }),
+        );
+
+        // Should have logged the duplicate detection at utility level
+        const duplicateLog = logSpy.mock.calls.find((call) =>
+          call[0]?.includes?.('Duplicate achievement detected'),
+        );
+        expect(duplicateLog).toBeDefined();
+
+        logSpy.mockRestore();
+      });
+    });
   });
 
   describe('PUT /api/achievements/[id]', () => {

@@ -63,6 +63,7 @@ export {
   getAchievementStats,
   getActiveProjectsCount,
   getSourcesByUserId,
+  getSourcesByProjectId,
   getSourceById,
   createSource,
   updateSource,

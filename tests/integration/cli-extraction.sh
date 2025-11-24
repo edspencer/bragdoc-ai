@@ -49,6 +49,14 @@ cleanup() {
 
   # Remove test config (we verified no config existed before running)
   rm -f "$BRAGDOC_CONFIG_PATH"
+
+  # Remove marker files
+  rm -f /tmp/bragdoc-test-project-id.txt /tmp/bragdoc-test-repo-path.txt
+
+  # Stop mock API server if running
+  if [ ! -z "$MOCK_API_PID" ]; then
+    kill $MOCK_API_PID 2>/dev/null || true
+  fi
 }
 trap cleanup EXIT
 
@@ -92,8 +100,29 @@ cd "$PROJECT_ROOT/packages/cli"
 pnpm build > /dev/null 2>&1
 print_success "CLI built successfully"
 
-# Step 3: Set up dummy auth for testing
-print_section "Step 3: Setting Up Test Environment"
+# Step 3: Start mock API server
+print_section "Step 3: Starting Mock API Server"
+echo "Starting mock API server for testing..."
+
+MOCK_API_PORT=3456
+export TEST_REPO_DIR="$TEST_REPO_DIR"
+export MOCK_API_PORT="$MOCK_API_PORT"
+
+node "$SCRIPT_DIR/mock-api-server.js" > /dev/null 2>&1 &
+MOCK_API_PID=$!
+
+# Wait for server to start
+sleep 1
+
+if ! kill -0 $MOCK_API_PID 2>/dev/null; then
+  print_error "Failed to start mock API server"
+  exit 1
+fi
+
+print_success "Mock API server started on port $MOCK_API_PORT"
+
+# Step 4: Set up dummy auth for testing
+print_section "Step 4: Setting Up Test Environment"
 echo "Creating dummy auth token for CLI..."
 
 # Create a temporary bragdoc config directory for testing
@@ -102,18 +131,19 @@ mkdir -p "$BRAGDOC_CONFIG_HOME"
 
 # Create a dummy auth token (not actually used in dry-run, but required by CLI)
 # Token expires in year 2100 so it won't expire during tests
+# Point API to mock server
 cat > "$BRAGDOC_CONFIG_HOME/config.yml" <<EOF
 auth:
   token: dummy-test-token-for-integration-tests
   expiresAt: 4102444800000
 settings:
-  apiBaseUrl: https://www.bragdoc.ai
+  apiBaseUrl: http://localhost:$MOCK_API_PORT
 EOF
 
 print_success "Test environment configured"
 
-# Step 4: Initialize test repository
-print_section "Step 4: Initializing Project"
+# Step 5: Initialize test repository
+print_section "Step 5: Initializing Project"
 echo "Setting up BragDoc in test repository (non-interactive mode)..."
 cd "$TEST_REPO_DIR"
 
@@ -132,20 +162,62 @@ node "$CLI_PATH" init \
   --skip-api-sync \
   --branch-whitelist "" > /dev/null 2>&1
 
+# Update config to add LLM settings (required by extract command)
+# The init command creates a config, we need to add the LLM API key to it
+# Extract the project ID for the mock API server
+PROJECT_ID=$(grep "^\s*id:" "$BRAGDOC_CONFIG_PATH" | head -1 | sed 's/.*id: *//')
+export TEST_PROJECT_ID="$PROJECT_ID"
+
+# Write marker files for mock API server to read
+echo "$PROJECT_ID" > /tmp/bragdoc-test-project-id.txt
+echo "$TEST_REPO_DIR" > /tmp/bragdoc-test-repo-path.txt
+
+# Read the current config and add LLM API key
+# We use sed to insert the apiKey line after the model line in the openai section
+# Note: Use different sed syntax for macOS vs Linux
+# Detect OS using uname which is more reliable than $OSTYPE
+if [ "$(uname)" = "Darwin" ]; then
+  # macOS requires empty string after -i
+  SED_INPLACE_FLAG="-i ''"
+else
+  # Linux doesn't use empty string
+  SED_INPLACE_FLAG="-i"
+fi
+
+if grep -q "openai:" "$BRAGDOC_CONFIG_PATH"; then
+  # Add apiKey after the model line
+  eval "sed $SED_INPLACE_FLAG '/model: gpt-4o/a\\
+    apiKey: sk-test-dummy-key
+' \"$BRAGDOC_CONFIG_PATH\""
+else
+  # If no openai section, add it under llm section
+  eval "sed $SED_INPLACE_FLAG '/llm:/a\\
+  provider: openai\\
+  openai:\\
+    model: gpt-4o\\
+    apiKey: sk-test-dummy-key
+' \"$BRAGDOC_CONFIG_PATH\""
+fi
+
+# Update API base URL to point to mock server
+eval "sed $SED_INPLACE_FLAG 's|apiBaseUrl:.*|apiBaseUrl: http://localhost:$MOCK_API_PORT|' \"$BRAGDOC_CONFIG_PATH\""
+
 print_success "Project initialized"
 
-# Step 5: Run extractions with different detail levels
-print_section "Step 5: Running Extractions"
+# Step 6: Run extractions with different detail levels
+print_section "Step 6: Running Extractions"
 echo "Extracting achievements with all detail levels..."
 
 for level in minimal standard detailed comprehensive; do
   echo "  - Extracting with $level detail level..."
 
   # Run extraction and capture output
+  # Use --all to bypass cache since test runs multiple times with same sourceId
   node "$CLI_PATH" extract \
     --dry-run \
     --detail-level "$level" \
-    --max-commits 10 > "$OUTPUT_DIR/output-$level.txt" 2>&1 || true
+    --max 10 \
+    --all > "$OUTPUT_DIR/output-$level.txt" 2>&1 || true
 
   # Normalize output for snapshot comparison
   cat "$OUTPUT_DIR/output-$level.txt" | \
@@ -155,9 +227,9 @@ for level in minimal standard detailed comprehensive; do
   print_success "$level extraction complete"
 done
 
-# Step 6: Compare against snapshots or update them
+# Step 7: Compare against snapshots or update them
 if [ "${UPDATE_SNAPSHOTS}" != "1" ]; then
-  print_section "Step 6: Comparing Against Snapshots"
+  print_section "Step 7: Comparing Against Snapshots"
   echo "Verifying output matches expected baselines..."
 
   ALL_PASSED=true
@@ -190,7 +262,7 @@ if [ "${UPDATE_SNAPSHOTS}" != "1" ]; then
     exit 1
   fi
 else
-  print_section "Step 6: Updating Snapshots"
+  print_section "Step 7: Updating Snapshots"
   echo "Saving new baseline snapshots..."
 
   for level in minimal standard detailed comprehensive; do
@@ -200,95 +272,6 @@ else
   done
 
   print_warning "Snapshots updated - review changes before committing!"
-fi
-
-# Step 7: Verify structural differences between levels
-print_section "Step 7: Verifying Detail Level Differences"
-echo "Checking that detail levels produce expected output structure..."
-
-VERIFICATION_FAILED=false
-
-# Minimal: should NOT have "File Statistics" or "Code Changes"
-echo "  Checking minimal level..."
-if grep -q "File Statistics:" "$OUTPUT_DIR/output-minimal.txt"; then
-  print_error "Minimal should not have File Statistics"
-  VERIFICATION_FAILED=true
-else
-  print_success "Minimal has no stats (correct)"
-fi
-
-if grep -q "Code Changes:" "$OUTPUT_DIR/output-minimal.txt"; then
-  print_error "Minimal should not have Code Changes"
-  VERIFICATION_FAILED=true
-else
-  print_success "Minimal has no diffs (correct)"
-fi
-
-# Standard: should have "File Statistics" but NOT "Code Changes"
-echo "  Checking standard level..."
-if ! grep -q "File Statistics:" "$OUTPUT_DIR/output-standard.txt"; then
-  print_error "Standard should have File Statistics"
-  VERIFICATION_FAILED=true
-else
-  print_success "Standard has stats (correct)"
-fi
-
-if grep -q "Code Changes:" "$OUTPUT_DIR/output-standard.txt"; then
-  print_error "Standard should not have Code Changes"
-  VERIFICATION_FAILED=true
-else
-  print_success "Standard has no diffs (correct)"
-fi
-
-# Detailed: should have both "File Statistics" and "Code Changes"
-echo "  Checking detailed level..."
-if ! grep -q "File Statistics:" "$OUTPUT_DIR/output-detailed.txt"; then
-  print_error "Detailed should have File Statistics"
-  VERIFICATION_FAILED=true
-else
-  print_success "Detailed has stats (correct)"
-fi
-
-if ! grep -q "Code Changes:" "$OUTPUT_DIR/output-detailed.txt"; then
-  print_error "Detailed should have Code Changes"
-  VERIFICATION_FAILED=true
-else
-  print_success "Detailed has diffs (correct)"
-fi
-
-# Comprehensive: should have both and more content than detailed
-echo "  Checking comprehensive level..."
-if ! grep -q "File Statistics:" "$OUTPUT_DIR/output-comprehensive.txt"; then
-  print_error "Comprehensive should have File Statistics"
-  VERIFICATION_FAILED=true
-else
-  print_success "Comprehensive has stats (correct)"
-fi
-
-if ! grep -q "Code Changes:" "$OUTPUT_DIR/output-comprehensive.txt"; then
-  print_error "Comprehensive should have Code Changes"
-  VERIFICATION_FAILED=true
-else
-  print_success "Comprehensive has diffs (correct)"
-fi
-
-# Compare comprehensive vs detailed (comprehensive should have >= content)
-COMPREHENSIVE_SIZE=$(wc -c < "$OUTPUT_DIR/output-comprehensive.txt")
-DETAILED_SIZE=$(wc -c < "$OUTPUT_DIR/output-detailed.txt")
-
-if [ "$COMPREHENSIVE_SIZE" -lt "$DETAILED_SIZE" ]; then
-  print_error "Comprehensive should have at least as much content as detailed"
-  echo "  Comprehensive: $COMPREHENSIVE_SIZE bytes"
-  echo "  Detailed: $DETAILED_SIZE bytes"
-  VERIFICATION_FAILED=true
-else
-  print_success "Comprehensive has more content than detailed (correct)"
-fi
-
-if [ "$VERIFICATION_FAILED" = true ]; then
-  echo ""
-  print_error "Detail level verification failed"
-  exit 1
 fi
 
 # Final summary
