@@ -42,12 +42,16 @@ export type CreateAchievementRequest = Omit<
   | 'embedding'
   | 'embeddingModel'
   | 'embeddingGeneratedAt'
+  | 'sourceId'
+  | 'uniqueSourceId'
 > & {
   workstreamId?: string | null;
   workstreamSource?: string | null;
   embedding?: number[] | null;
   embeddingModel?: string | null;
   embeddingGeneratedAt?: Date | null;
+  sourceId?: string | null;
+  uniqueSourceId?: string | null;
 };
 export type UpdateAchievementRequest = Partial<CreateAchievementRequest>;
 

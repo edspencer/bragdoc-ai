@@ -53,6 +53,9 @@ export const userStatusEnum = pgEnum('user_status', [
   'deleted',
 ]);
 
+export const sourceTypeEnum = pgEnum('source_type', ['git', 'github', 'jira']);
+export type SourceType = (typeof sourceTypeEnum.enumValues)[number];
+
 export const user = pgTable(
   'User',
   {
@@ -160,6 +163,31 @@ export const project = pgTable(
 
 export type Project = InferSelectModel<typeof project>;
 
+export const source = pgTable(
+  'Source',
+  {
+    id: uuid('id').primaryKey().notNull().defaultRandom(),
+    userId: uuid('user_id')
+      .notNull()
+      .references(() => user.id, { onDelete: 'cascade' }),
+    name: varchar('name', { length: 256 }).notNull(),
+    type: sourceTypeEnum('type').notNull(),
+    config: jsonb('config').$type<Record<string, any>>(),
+    isArchived: boolean('is_archived').default(false),
+    createdAt: timestamp('created_at').notNull().defaultNow(),
+    updatedAt: timestamp('updated_at').notNull().defaultNow(),
+  },
+  (table) => ({
+    userIdIdx: index('source_user_id_idx').on(table.userId),
+    userIdArchivedIdx: index('source_user_id_archived_idx').on(
+      table.userId,
+      table.isArchived,
+    ),
+  }),
+);
+
+export type Source = InferSelectModel<typeof source>;
+
 export const achievement = pgTable(
   'Achievement',
   {
@@ -171,6 +199,10 @@ export const achievement = pgTable(
       onDelete: 'set null',
     }),
     projectId: uuid('project_id').references(() => project.id),
+    sourceId: uuid('source_id').references(() => source.id, {
+      onDelete: 'set null',
+    }),
+    uniqueSourceId: varchar('unique_source_id', { length: 512 }),
     standupDocumentId: uuid('standup_document_id').references(
       () => standupDocument.id,
       { onDelete: 'set null' },
@@ -224,6 +256,16 @@ export const achievement = pgTable(
     userIdIdx: index('achievement_user_id_idx').on(table.userId),
     // Index for date range queries
     eventStartIdx: index('achievement_event_start_idx').on(table.eventStart),
+    // Indexes for source-based queries
+    userSourceIdx: index('achievement_user_source_idx').on(
+      table.userId,
+      table.sourceId,
+    ),
+    userSourceUniqueIdx: index('achievement_user_source_unique_idx').on(
+      table.userId,
+      table.sourceId,
+      table.uniqueSourceId,
+    ),
   }),
 );
 

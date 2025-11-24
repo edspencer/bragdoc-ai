@@ -28,6 +28,9 @@ import {
   project,
   standup,
   standupDocument,
+  source,
+  type Source,
+  type SourceType,
 } from './schema';
 
 // Note: User creation is handled by NextAuth's Email provider via Drizzle adapter
@@ -1098,6 +1101,200 @@ export async function getActiveProjectsCount({
     return Number(result?.count ?? 0);
   } catch (error) {
     console.error('Error in getActiveProjectsCount:', error);
+    throw error;
+  }
+}
+
+// Source CRUD Query Functions
+
+export async function getSourcesByUserId(
+  userId: string,
+  options?: { includeArchived?: boolean },
+  db = defaultDb,
+): Promise<Source[]> {
+  try {
+    const conditions = [eq(source.userId, userId)];
+    if (!options?.includeArchived) {
+      conditions.push(eq(source.isArchived, false));
+    }
+    return await db
+      .select()
+      .from(source)
+      .where(and(...conditions))
+      .orderBy(asc(source.createdAt));
+  } catch (error) {
+    console.error('Error in getSourcesByUserId:', error);
+    throw error;
+  }
+}
+
+export async function getSourceById(
+  id: string,
+  userId: string,
+  db = defaultDb,
+): Promise<Source | null> {
+  try {
+    const [result] = await db
+      .select()
+      .from(source)
+      .where(and(eq(source.id, id), eq(source.userId, userId)));
+    return result || null;
+  } catch (error) {
+    console.error('Error in getSourceById:', error);
+    throw error;
+  }
+}
+
+export async function createSource(
+  data: {
+    userId: string;
+    name: string;
+    type: SourceType;
+    config?: Record<string, any>;
+  },
+  db = defaultDb,
+): Promise<Source[]> {
+  try {
+    return await db
+      .insert(source)
+      .values({
+        id: sql`gen_random_uuid()`,
+        userId: data.userId,
+        name: data.name,
+        type: data.type,
+        config: data.config || null,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      })
+      .returning();
+  } catch (error) {
+    console.error('Error in createSource:', error);
+    throw error;
+  }
+}
+
+export async function updateSource(
+  id: string,
+  userId: string,
+  data: Partial<Omit<Source, 'id' | 'userId' | 'createdAt'>>,
+  db = defaultDb,
+): Promise<Source[]> {
+  try {
+    const updateData = Object.fromEntries(
+      Object.entries(data).filter(([_, value]) => value !== undefined),
+    );
+    return await db
+      .update(source)
+      .set({
+        ...updateData,
+        updatedAt: new Date(),
+      })
+      .where(and(eq(source.id, id), eq(source.userId, userId)))
+      .returning();
+  } catch (error) {
+    console.error('Error in updateSource:', error);
+    throw error;
+  }
+}
+
+export async function archiveSource(
+  id: string,
+  userId: string,
+  db = defaultDb,
+): Promise<Source[]> {
+  try {
+    // First orphan all achievements associated with this source
+    await orphanAchievements(id, userId, db);
+
+    // Then archive the source
+    return await db
+      .update(source)
+      .set({ isArchived: true, updatedAt: new Date() })
+      .where(and(eq(source.id, id), eq(source.userId, userId)))
+      .returning();
+  } catch (error) {
+    console.error('Error in archiveSource:', error);
+    throw error;
+  }
+}
+
+async function orphanAchievements(
+  sourceId: string,
+  userId: string,
+  db = defaultDb,
+): Promise<void> {
+  try {
+    await db
+      .update(achievement)
+      .set({ sourceId: null, updatedAt: new Date() })
+      .where(
+        and(eq(achievement.sourceId, sourceId), eq(achievement.userId, userId)),
+      );
+  } catch (error) {
+    console.error('Error in orphanAchievements:', error);
+    throw error;
+  }
+}
+
+export async function getAchievementsBySourceId(
+  userId: string,
+  sourceId: string,
+  options?: { limit?: number; offset?: number },
+  db = defaultDb,
+): Promise<{ achievements: Achievement[]; total: number }> {
+  try {
+    const limit = options?.limit || 50;
+    const offset = options?.offset || 0;
+
+    const countResult = await db
+      .select({ count: sql<number>`count(*)` })
+      .from(achievement)
+      .where(
+        and(eq(achievement.userId, userId), eq(achievement.sourceId, sourceId)),
+      );
+
+    const totalCount = countResult[0]?.count || 0;
+
+    const achievements = await db
+      .select()
+      .from(achievement)
+      .where(
+        and(eq(achievement.userId, userId), eq(achievement.sourceId, sourceId)),
+      )
+      .orderBy(desc(achievement.createdAt))
+      .limit(limit)
+      .offset(offset);
+
+    return {
+      achievements,
+      total: Number(totalCount),
+    };
+  } catch (error) {
+    console.error('Error in getAchievementsBySourceId:', error);
+    throw error;
+  }
+}
+
+export async function findAchievementByUniqueSourceId(
+  userId: string,
+  sourceId: string,
+  uniqueSourceId: string,
+  db = defaultDb,
+): Promise<Achievement | null> {
+  try {
+    const [result] = await db
+      .select()
+      .from(achievement)
+      .where(
+        and(
+          eq(achievement.userId, userId),
+          eq(achievement.sourceId, sourceId),
+          eq(achievement.uniqueSourceId, uniqueSourceId),
+        ),
+      );
+    return result || null;
+  } catch (error) {
+    console.error('Error in findAchievementByUniqueSourceId:', error);
     throw error;
   }
 }

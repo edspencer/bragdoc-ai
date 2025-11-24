@@ -415,6 +415,17 @@ Update UI (web) or Console (CLI)
 
 ## Data Flow Architecture
 
+### Multi-Source Achievement Support
+
+**Architecture Shift**: BragDoc now supports multi-source achievement tracking via the Source table. This infrastructure enables:
+
+- **Multiple Integrations**: Users can configure multiple sources (Git, GitHub, Jira, etc.)
+- **Idempotent Imports**: The `uniqueSourceId` field prevents duplicates when re-importing from the same source
+- **Flexible Configuration**: JSONB config field stores source-type-specific settings without schema changes
+- **Soft Deletes**: Archiving a source preserves achievements while breaking the source reference
+
+This enables future expansion to multiple integration types while maintaining backward compatibility (all new fields on Achievement are nullable).
+
 ### User Data Lifecycle
 
 ```
@@ -430,23 +441,30 @@ Update UI (web) or Console (CLI)
    ├── JWT token generated (30-day expiry)
    └── Token saved to ~/.bragdoc/config.yml
 
-3. Project Setup
+3. Source Configuration (Multi-Source Support)
+   ├── User creates Source via /api/sources
+   ├── Specifies type (git, github, jira) and optional config
+   ├── Source stored with userId scope
+   └── Future integrations link achievements to specific source
+
+4. Project Setup
    ├── CLI: `bragdoc init` in Git repo
    ├── Extract repo metadata
    ├── POST /api/projects (creates Project + Company)
    ├── Store projectId in config.yml
    └── Sync enabled
 
-4. Achievement Extraction
+5. Achievement Extraction
    ├── CLI: `bragdoc extract` (manual or scheduled)
    ├── Read Git commits since last extraction
    ├── Send to LLM (batched)
    ├── Stream achievements back
    ├── POST /api/achievements (batch)
+   │  └── **Multi-Source Support**: Achievements linked to Source table for idempotent imports
    ├── Update commit cache
    └── Achievements visible in web app
 
-5. Document Generation
+6. Document Generation
    ├── User selects achievements in web app
    ├── Choose document type (standup, review, etc.)
    ├── POST /api/documents/generate
@@ -454,7 +472,7 @@ Update UI (web) or Console (CLI)
    ├── Stream response to client
    └── Document saved with shareToken
 
-6. Standup Automation
+7. Standup Automation
    ├── CLI: `bragdoc standup enable`
    ├── Configure schedule (cron)
    ├── Install system scheduler (crontab/Task Scheduler)
