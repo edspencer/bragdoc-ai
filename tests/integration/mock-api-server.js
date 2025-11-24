@@ -64,12 +64,12 @@ const server = http.createServer((req, res) => {
       ];
 
       res.writeHead(200, { 'Content-Type': 'application/json' });
-      res.end(JSON.stringify({ sources }));
+      res.end(JSON.stringify({ data: sources }));
     } catch (error) {
-      // If marker files don't exist, return empty sources object
+      // If marker files don't exist, return empty data array
       console.error('Error reading marker files:', error.message);
       res.writeHead(200, { 'Content-Type': 'application/json' });
-      res.end(JSON.stringify({ sources: [] }));
+      res.end(JSON.stringify({ data: [] }));
     }
     return;
   }
