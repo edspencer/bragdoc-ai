@@ -310,8 +310,7 @@ export class GitConnector implements Connector {
     }
 
     try {
-      // TODO: Phase 2 - Update to use sourceId parameter
-      // await this.cache.clear(this.sourceId);
+      await this.cache.clear(this.sourceId);
       logger.debug(`Cache cleared for source ${this.sourceId}`);
     } catch (error) {
       throw new Error(

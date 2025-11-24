@@ -176,6 +176,7 @@ BragDoc is a **TypeScript monorepo** using:
 - All queries scoped by `userId` for security
 - Unified auth helper supports both web sessions and CLI JWT tokens
 - **Never use `redirect()` in Server Components** (breaks Cloudflare builds, use fallback UI)
+- **Idempotent achievement creation**: Submitting the same (projectId, uniqueSourceId) pair returns existing achievement without error, enabling safe CLI retries
 
 ➡️ **See [architecture.md](/.claude/docs/tech/architecture.md) for complete architecture details, technology stack, and deployment info**
 

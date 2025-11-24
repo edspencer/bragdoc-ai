@@ -60,6 +60,9 @@ export function formatAchievementForEmbedding(
  * Fetches from database, generates embedding using OpenAI,
  * saves back to database, and returns the embedding
  *
+ * Idempotent: If embedding already exists, skips regeneration and returns cached embedding.
+ * This prevents unnecessary API calls for duplicate achievements.
+ *
  * @param achievementId - ID of achievement to generate embedding for
  * @returns The generated embedding vector
  * @throws Error if achievement not found or API fails
@@ -84,6 +87,14 @@ export async function generateAchievementEmbedding(
 
   const ach = result.achievement;
   const projectName = result.projectName;
+
+  // Skip embedding generation if already exists - prevents unnecessary API calls
+  if (ach.embeddingGeneratedAt) {
+    console.log(
+      `Embedding already exists for achievement ${achievementId}, skipping regeneration`,
+    );
+    return ach.embedding as number[];
+  }
 
   // Format text for embedding with project context
   const text = formatAchievementForEmbedding(ach, projectName);

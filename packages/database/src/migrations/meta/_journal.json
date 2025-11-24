@@ -50,6 +50,13 @@
       "when": 1764003496207,
       "tag": "0006_wet_pixie",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1764009757077,
+      "tag": "0007_yellow_nomad",
+      "breakpoints": true
     }
   ]
 }

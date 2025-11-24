@@ -18,7 +18,9 @@ import {
   vector,
   real,
   index,
+  uniqueIndex,
 } from 'drizzle-orm/pg-core';
+import { sql } from 'drizzle-orm';
 
 export interface UserPreferences {
   language: string;
@@ -274,6 +276,16 @@ export const achievement = pgTable(
       table.sourceId,
       table.uniqueSourceId,
     ),
+    // Partial unique constraint to prevent duplicate achievements within a project
+    // Only applies when both projectId and uniqueSourceId are NOT NULL
+    // This allows manual achievements without these fields to coexist
+    achievementProjectSourceUnique: uniqueIndex(
+      'achievement_project_source_unique',
+    )
+      .on(table.projectId, table.uniqueSourceId)
+      .where(
+        sql`${table.projectId} IS NOT NULL AND ${table.uniqueSourceId} IS NOT NULL`,
+      ),
   }),
 );
 

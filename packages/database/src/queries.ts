@@ -487,6 +487,8 @@ export async function getAchievements({
         eventDuration: achievement.eventDuration,
         isArchived: achievement.isArchived,
         source: achievement.source,
+        sourceId: achievement.sourceId,
+        uniqueSourceId: achievement.uniqueSourceId,
         impact: achievement.impact,
         impactSource: achievement.impactSource,
         impactUpdatedAt: achievement.impactUpdatedAt,

@@ -1,6 +1,4 @@
 import { Command, Option } from 'commander';
-import { getRepositoryInfo } from '../git/operations';
-import type { GitCommit, RepositoryInfo } from '../git/types';
 import type { ExtractionConfig } from '../config/types';
 import { resolveExtractionConfig } from '../config/extraction-presets';
 import {
@@ -20,91 +18,6 @@ import {
   initializeConnectors,
 } from '../connectors/registry';
 import type { ConnectorItem } from '../connectors/types';
-
-/**
- * Format a commit for display in dry-run mode
- */
-function formatCommit(commit: GitCommit): string {
-  const hashShort = commit.hash.slice(0, 7);
-  const messageFirstLine = commit.message.split('\n')[0];
-  const date = new Date(commit.date).toLocaleDateString();
-
-  const parts = [
-    `${hashShort} - ${date} - ${commit.author}`,
-    `  ${messageFirstLine}`,
-  ];
-
-  // Add message body if present
-  const messageBody = commit.message
-    .split('\n')
-    .slice(1)
-    .map((line) => `  ${line}`)
-    .join('\n');
-  if (messageBody.trim()) {
-    parts.push(messageBody);
-  }
-
-  // Add stats if present
-  if (commit.stats && commit.stats.length > 0) {
-    parts.push('');
-    parts.push('  File Statistics:');
-    for (const stat of commit.stats) {
-      parts.push(`    ${stat.path}: +${stat.additions} -${stat.deletions}`);
-    }
-  }
-
-  // Add diff summary if present
-  if (commit.diff && commit.diff.length > 0) {
-    parts.push('');
-    parts.push('  Code Changes:');
-    for (const fileDiff of commit.diff) {
-      const lineCount = fileDiff.diff.split('\n').length;
-      const truncatedNote = fileDiff.isTruncated ? ' (truncated)' : '';
-      parts.push(`    ${fileDiff.path}: ${lineCount} lines${truncatedNote}`);
-    }
-    if (commit.diffTruncated) {
-      parts.push('    (some files omitted due to size limits)');
-    }
-  }
-
-  return parts.filter(Boolean).join('\n');
-}
-
-/**
- * Format repository info for display in dry-run mode
- */
-function formatRepoInfo(info: RepositoryInfo): string {
-  return [
-    'Repository Information:',
-    `  Remote URL: ${info.remoteUrl}`,
-    `  Current Branch: ${info.currentBranch}`,
-    `  Local Path: ${info.path}`,
-    '',
-  ].join('\n');
-}
-
-/**
- * Display commits that would be sent to the API
- */
-function displayDryRun(repository: RepositoryInfo, commits: GitCommit[]): void {
-  console.log('\nDry run mode - data that would be processed:');
-  console.log('============================================');
-
-  // Display repository info
-  console.log(formatRepoInfo(repository));
-
-  // Display commits
-  console.log(`Found ${commits.length} commits\n`);
-
-  commits.forEach((commit, index) => {
-    console.log(formatCommit(commit));
-    if (index < commits.length - 1) {
-      console.log(''); // Add blank line between commits
-    }
-  });
-
-  console.log('\nNo changes were sent to the API (dry-run mode)');
-}
 
 /**
  * Resolve extraction configuration from CLI options, project config, and global defaults
@@ -327,8 +240,8 @@ export const extractCommand = new Command('extract')
 
         logger.info(`Found ${sources.length} source(s) for this project`);
 
-        // Phase 2: Collect data from all sources
-        const allData: (ConnectorItem | GitCommit)[] = [];
+        // Collect data from all sources
+        const allData: ConnectorItem[] = [];
 
         for (const source of sources) {
           try {
@@ -396,161 +309,149 @@ export const extractCommand = new Command('extract')
           continue;
         }
 
-        // Handle legacy Git commits vs. ConnectorItem
-        // For backward compatibility, convert Git commits to ConnectorItem format
-        const legacyGitCommits: GitCommit[] = [];
-        const connectorItems: ConnectorItem[] = [];
+        // Filter out cached items if cache enabled
+        let itemsToProcess = allData;
+        const cache = !noCache ? new CommitCache() : null;
 
-        for (const item of allData) {
-          if ('hash' in item && 'diff' in item) {
-            // This is a GitCommit
-            legacyGitCommits.push(item as GitCommit);
-          } else if ('sourceId' in item) {
-            // This is a ConnectorItem
-            connectorItems.push(item as ConnectorItem);
+        if (cache) {
+          await cache.init();
+          const uncachedItems = [];
+
+          for (const item of allData) {
+            if (!(await cache.has(item.sourceId, item.id))) {
+              uncachedItems.push(item);
+            }
+          }
+
+          itemsToProcess = uncachedItems;
+          if (allData.length > itemsToProcess.length) {
+            logger.info(
+              `${allData.length - itemsToProcess.length} items already processed, skipping...`,
+            );
           }
         }
 
-        // For now, process legacy Git commits as before
-        // TODO: Phase 3 - Update batch processing to handle ConnectorItem
-        if (legacyGitCommits.length === 0 && connectorItems.length > 0) {
-          logger.warn(
-            'Connector data format not yet fully integrated. Please use Git sources for now.',
-          );
+        if (itemsToProcess.length === 0) {
+          logger.info('All items have already been processed.');
           continue;
         }
 
-        // Legacy flow for Git commits
-        if (legacyGitCommits.length > 0) {
-          // Get git repository info for batch processing context
-          let repoInfo: RepositoryInfo;
-          try {
-            repoInfo = getRepositoryInfo(process.cwd());
-          } catch (error: any) {
-            logger.error(
-              `Unable to get repository information: ${error.message}`,
-            );
-            continue;
-          }
+        // Resolve extraction configuration
+        const cliOptions: any = {};
+        if (detailLevel) cliOptions.detailLevel = detailLevel;
+        if (includeStats) cliOptions.includeStats = includeStats;
+        if (includeDiff) cliOptions.includeDiff = includeDiff;
 
-          // Filter out cached commits if cache enabled
-          let commitsToProcess = legacyGitCommits;
-          const cache = !noCache ? new CommitCache() : null;
+        const extractionConfig = getExtractionConfigForProject(
+          projectConfig,
+          config,
+          cliOptions,
+        );
 
-          if (cache) {
-            // For legacy git flow, use first source's ID as key
-            // TODO: Phase 3 - Handle multiple sources properly in cache
-            const firstGitSource = sources.find((s) => s.type === 'git');
-            if (firstGitSource) {
-              const uncachedCommits = [];
-              for (const commit of legacyGitCommits) {
-                if (!(await cache.has(firstGitSource.id, commit.hash))) {
-                  uncachedCommits.push(commit);
-                }
-              }
-              commitsToProcess = uncachedCommits;
-              if (legacyGitCommits.length > commitsToProcess.length) {
-                logger.info(
-                  `${
-                    legacyGitCommits.length - commitsToProcess.length
-                  } items already processed, skipping...`,
-                );
-              }
-            }
-          }
+        const resolved = resolveExtractionConfig(extractionConfig);
 
-          if (commitsToProcess.length === 0) {
-            logger.info('All items have already been processed.');
-            continue;
-          }
+        // Log extraction mode
+        logger.info(
+          `Extraction config: detailLevel=${extractionConfig.detailLevel || 'none'}, ` +
+            `stats=${resolved.includeStats}, diff=${resolved.includeDiff}`,
+        );
 
-          // Resolve extraction configuration
-          const cliOptions: any = {};
-          if (detailLevel) cliOptions.detailLevel = detailLevel;
-          if (includeStats) cliOptions.includeStats = includeStats;
-          if (includeDiff) cliOptions.includeDiff = includeDiff;
+        // Transform ConnectorItems to format expected by processInBatches
+        // Extract GitCommit data from the raw field since batch processing expects GitCommit format
+        const itemsForBatching = itemsToProcess.map((item) => ({
+          hash: item.id,
+          message: item.description,
+          author: item.author,
+          date: item.timestamp.toISOString(),
+          branch: '', // Not applicable for multi-source
+          repository: projectConfig.name || 'Unknown Project',
+          stats: item.raw.stats,
+          diff: item.raw.diff,
+          diffTruncated: item.raw.diffTruncated,
+        }));
 
-          const extractionConfig = getExtractionConfigForProject(
-            projectConfig,
-            config,
-            cliOptions,
-          );
+        // Batch process
+        const batchConfig: BatchConfig = {
+          maxCommitsPerBatch: Number.parseInt(batchSize, 10),
+        };
 
-          const resolved = resolveExtractionConfig(extractionConfig);
+        const extractionContext: ExtractionContext = {
+          projectId: projectConfig.id ?? '',
+          companies,
+          projects,
+          user: userProfile,
+        };
 
-          // Log extraction mode
-          logger.info(
-            `Extraction config: detailLevel=${extractionConfig.detailLevel || 'none'}, ` +
-              `stats=${resolved.includeStats}, diff=${resolved.includeDiff}`,
-          );
+        logger.info(`Processing ${itemsToProcess.length} items...`);
 
-          // Batch process
-          const batchConfig: BatchConfig = {
-            maxCommitsPerBatch: Number.parseInt(batchSize, 10),
+        let processedSoFar = 0;
+
+        try {
+          // Create a minimal repository info object for batch processing
+          const repoInfo = {
+            remoteUrl: '', // Not applicable for multi-source
+            currentBranch: '', // Not applicable for multi-source
+            path: process.cwd(),
           };
 
-          const extractionContext: ExtractionContext = {
-            projectId: projectConfig.id ?? '',
-            companies,
-            projects,
-            user: userProfile,
-          };
-
-          logger.info(`Processing ${commitsToProcess.length} items...`);
-
-          let processedSoFar = 0;
-
-          try {
-            for await (const result of processInBatches(
-              repoInfo,
-              commitsToProcess,
-              batchConfig,
-              extractionContext,
-              apiClient,
-            )) {
-              // Add successfully processed commits to cache
-              if (cache) {
-                const processedHashes = commitsToProcess
-                  .slice(processedSoFar, processedSoFar + result.processedCount)
-                  .map((c) => c.hash);
-                processedSoFar += result.processedCount;
-
-                const firstGitSource = sources.find((s) => s.type === 'git');
-                if (firstGitSource) {
-                  logger.debug(
-                    `Adding ${processedHashes.length} items to cache for source ${firstGitSource.id}`,
-                  );
-                  await cache.add(firstGitSource.id, processedHashes);
-                }
-              }
-
-              totalSuccessfulBatches++;
-
-              if (result.achievements.length > 0) {
-                logger.info('\nAchievements found:');
-                result.achievements.forEach((achievement) => {
-                  logger.info(`  - ${achievement.title}`);
-                });
-              }
-
-              if (result.errors?.length) {
-                logger.warn('\nProcessing errors:');
-                result.errors.forEach((error) => {
-                  logger.warn(`  - ${error.commit}: ${error.error}`);
-                });
-              }
-            }
-
-            totalProcessed += commitsToProcess.length;
-          } catch (batchError: any) {
-            logger.error(`Batch processing failed: ${batchError.message}`);
-            if (totalSuccessfulBatches > 0) {
-              logger.info(
-                `Successfully processed ${totalSuccessfulBatches} batch(es) before failure`,
+          for await (const result of processInBatches(
+            repoInfo,
+            itemsForBatching,
+            batchConfig,
+            extractionContext,
+            apiClient,
+          )) {
+            // Add successfully processed items to cache
+            if (cache) {
+              const processedItems = itemsToProcess.slice(
+                processedSoFar,
+                processedSoFar + result.processedCount,
               );
+              processedSoFar += result.processedCount;
+
+              // Group by sourceId and cache each source's items
+              const itemsBySource = new Map<string, string[]>();
+              for (const item of processedItems) {
+                if (!itemsBySource.has(item.sourceId)) {
+                  itemsBySource.set(item.sourceId, []);
+                }
+                itemsBySource.get(item.sourceId)!.push(item.id);
+              }
+
+              for (const [sourceId, ids] of itemsBySource.entries()) {
+                logger.debug(
+                  `Adding ${ids.length} items to cache for source ${sourceId}`,
+                );
+                await cache.add(sourceId, ids);
+              }
             }
-            throw batchError;
+
+            totalSuccessfulBatches++;
+
+            if (result.achievements.length > 0) {
+              logger.info('\nAchievements found:');
+              result.achievements.forEach((achievement) => {
+                logger.info(`  - ${achievement.title}`);
+              });
+            }
+
+            if (result.errors?.length) {
+              logger.warn('\nProcessing errors:');
+              result.errors.forEach((error) => {
+                logger.warn(`  - ${error.commit}: ${error.error}`);
+              });
+            }
           }
+
+          totalProcessed += itemsToProcess.length;
+        } catch (batchError: any) {
+          logger.error(`Batch processing failed: ${batchError.message}`);
+          if (totalSuccessfulBatches > 0) {
+            logger.info(
+              `Successfully processed ${totalSuccessfulBatches} batch(es) before failure`,
+            );
+          }
+          throw batchError;
         }
       }
 

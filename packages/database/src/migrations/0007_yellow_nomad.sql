@@ -1,0 +1,1 @@
+CREATE UNIQUE INDEX "achievement_project_source_unique" ON "Achievement" USING btree ("project_id","unique_source_id") WHERE "Achievement"."project_id" IS NOT NULL AND "Achievement"."unique_source_id" IS NOT NULL;
