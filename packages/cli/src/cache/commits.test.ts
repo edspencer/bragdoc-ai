@@ -205,9 +205,9 @@ describe('CommitCache', () => {
 
       const stats = await cache.getStats(repoName);
       expect(stats).toEqual({
-        repositories: 1,
+        sources: 1,
         commits: hashes.length,
-        repoStats: {
+        sourceStats: {
           [repoName]: hashes.length,
         },
       });
@@ -231,9 +231,9 @@ describe('CommitCache', () => {
 
       const stats = await cache.getStats();
       expect(stats).toEqual({
-        repositories: 2,
+        sources: 2,
         commits: 5,
-        repoStats: {
+        sourceStats: {
           repo1: 2,
           repo2: 3,
         },
@@ -245,9 +245,9 @@ describe('CommitCache', () => {
 
       const stats = await cache.getStats();
       expect(stats).toEqual({
-        repositories: 0,
+        sources: 0,
         commits: 0,
-        repoStats: {},
+        sourceStats: {},
       });
     });
   });

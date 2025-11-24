@@ -64,6 +64,13 @@ export function getMetaCachePath(): string {
 }
 
 /**
+ * Get the path to the sources cache file
+ */
+export function getSourcesCachePath(): string {
+  return join(getDataCacheDir(), 'sources.yml');
+}
+
+/**
  * Get the path to the config file
  */
 export function getConfigPath(): string {

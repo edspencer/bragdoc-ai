@@ -18,12 +18,12 @@ export const cacheCommand = new Command('cache')
           if (options.stats) {
             const stats = await cache.getStats(repoName);
             console.log('Cache Statistics:');
-            console.log(`Repositories: ${stats.repositories}`);
+            console.log(`Sources: ${stats.sources}`);
             console.log(`Total Commits: ${stats.commits}`);
-            if (stats.repoStats) {
-              console.log('\nPer Repository:');
-              Object.entries(stats.repoStats).forEach(([repo, count]) => {
-                console.log(`${repo}: ${count} commits`);
+            if (stats.sourceStats) {
+              console.log('\nPer Source:');
+              Object.entries(stats.sourceStats).forEach(([source, count]) => {
+                console.log(`${source}: ${count} commits`);
               });
             }
             return;
