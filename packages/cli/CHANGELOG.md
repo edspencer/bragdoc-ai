@@ -1,5 +1,11 @@
 # @bragdoc/cli
 
+## 1.4.0
+
+### Minor Changes
+
+- 6f8091e: Added Source concept, fetching and caching. Prepares the field for non-git connectors
+
 ## 1.3.1
 
 ### Patch Changes
