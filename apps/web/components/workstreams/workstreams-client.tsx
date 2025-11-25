@@ -1,11 +1,13 @@
 'use client';
 
 import { useState, useMemo } from 'react';
+import { toast } from 'sonner';
 import { WorkstreamsGanttChart } from './workstreams-gantt-chart';
 import { WorkstreamAchievementsTable } from './workstream-achievements-table';
 import { WorkstreamSelectionZeroState } from './workstream-selection-zero-state';
+import { WorkstreamDialog } from './workstream-dialog';
 import { useWorkstreamsActions } from '@/hooks/use-workstreams';
-import { subMonths, startOfDay, endOfDay } from 'date-fns';
+import { startOfDay, endOfDay, subMonths } from 'date-fns';
 import type { Workstream } from '@bragdoc/database';
 import type { AchievementWithRelations } from '@/lib/types/achievement';
 
@@ -64,11 +66,21 @@ export function WorkstreamsClient({
   >(null);
   const [showUnassigned, setShowUnassigned] = useState(false);
 
+  // Edit dialog state
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [editingWorkstream, setEditingWorkstream] = useState<Workstream | null>(
+    null,
+  );
+
   const { startDate, endDate } = calculateDateRange(initialPreset);
 
   // Use the hook for generation capabilities only (data comes from server props)
-  const { generateWorkstreams, isGenerating, generationStatus } =
-    useWorkstreamsActions();
+  const {
+    autoAssignWorkstreams,
+    isGenerating,
+    generationStatus,
+    updateWorkstream,
+  } = useWorkstreamsActions();
 
   // Calculate unassigned count
   const unassignedCount = useMemo(() => {
@@ -91,6 +103,39 @@ export function WorkstreamsClient({
   const handleCloseUnassigned = () => {
     setShowUnassigned(false);
     setSelectedWorkstreamId(null);
+  };
+
+  // Handle edit workstream from achievement table
+  const handleEditWorkstream = (workstream: Workstream) => {
+    setEditingWorkstream(workstream);
+    setEditDialogOpen(true);
+  };
+
+  // Handle edit dialog submission
+  const handleEditDialogSubmit = async (data: {
+    name: string;
+    description?: string;
+    color: string;
+    selectedAchievementIds?: string[];
+  }) => {
+    if (!editingWorkstream) return;
+
+    try {
+      await updateWorkstream(editingWorkstream.id, {
+        name: data.name,
+        description: data.description,
+        color: data.color,
+      });
+
+      toast.success('Workstream updated');
+      setEditDialogOpen(false);
+      setEditingWorkstream(null);
+    } catch (error) {
+      const errorMessage =
+        error instanceof Error ? error.message : 'Unknown error';
+      toast.error(`Failed to update workstream: ${errorMessage}`);
+      console.error(error);
+    }
   };
 
   // Determine what to show in the bottom section
@@ -116,17 +161,30 @@ export function WorkstreamsClient({
           onShowUnassigned={handleShowUnassigned}
         />
       ) : (
-        <WorkstreamAchievementsTable
-          achievements={achievements}
-          workstreams={workstreams}
-          selectedWorkstreamId={showUnassigned ? null : selectedWorkstreamId}
-          onGenerateWorkstreams={generateWorkstreams}
-          onClose={showUnassigned ? handleCloseUnassigned : undefined}
-          isGenerating={isGenerating}
-          generationStatus={generationStatus}
-          startDate={startDate}
-          endDate={endDate}
-        />
+        <>
+          <WorkstreamAchievementsTable
+            achievements={achievements}
+            workstreams={workstreams}
+            selectedWorkstreamId={showUnassigned ? null : selectedWorkstreamId}
+            onGenerateWorkstreams={() => autoAssignWorkstreams()}
+            onClose={showUnassigned ? handleCloseUnassigned : undefined}
+            isGenerating={isGenerating}
+            generationStatus={generationStatus}
+            startDate={startDate}
+            endDate={endDate}
+            onEditWorkstream={handleEditWorkstream}
+          />
+
+          {/* Edit Workstream Dialog */}
+          <WorkstreamDialog
+            mode="edit"
+            open={editDialogOpen}
+            onOpenChange={setEditDialogOpen}
+            workstream={editingWorkstream}
+            achievements={[]}
+            onSubmit={handleEditDialogSubmit}
+          />
+        </>
       )}
     </>
   );

@@ -1,7 +1,7 @@
 'use client';
 
 import * as React from 'react';
-import { IconFolder, IconCalendar } from '@tabler/icons-react';
+import { IconFolder, IconCalendar, IconPencil } from '@tabler/icons-react';
 import { format } from 'date-fns';
 import { Loader2 } from 'lucide-react';
 
@@ -35,6 +35,7 @@ interface WorkstreamAchievementsTableProps {
   generationStatus?: string;
   startDate?: Date;
   endDate?: Date;
+  onEditWorkstream?: (workstream: Workstream) => void;
 }
 
 export function WorkstreamAchievementsTable({
@@ -47,6 +48,7 @@ export function WorkstreamAchievementsTable({
   generationStatus,
   startDate,
   endDate,
+  onEditWorkstream,
 }: WorkstreamAchievementsTableProps) {
   const [showOlderAchievements, setShowOlderAchievements] =
     React.useState(false);
@@ -283,33 +285,55 @@ export function WorkstreamAchievementsTable({
             )}
             <CardDescription>{getDescription()}</CardDescription>
           </div>
-          {!selectedWorkstreamId &&
-            filteredAchievements.length > 0 &&
-            (onGenerateWorkstreams || onClose) && (
-              <div className="flex gap-2">
-                {onGenerateWorkstreams && (
-                  <Button
-                    size="sm"
-                    onClick={onGenerateWorkstreams}
-                    disabled={isGenerating}
-                  >
-                    {isGenerating ? (
-                      <>
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        {generationStatus || 'Auto-assigning...'}
-                      </>
-                    ) : (
-                      'Auto-assign to Workstreams'
-                    )}
-                  </Button>
-                )}
-                {onClose && (
-                  <Button size="sm" variant="outline" onClick={onClose}>
-                    Close
-                  </Button>
-                )}
-              </div>
+          <div className="flex gap-2">
+            {/* Edit button - only show when workstream selected */}
+            {selectedWorkstreamId && onEditWorkstream && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  const workstream = workstreams.find(
+                    (w) => w.id === selectedWorkstreamId,
+                  );
+                  if (workstream) {
+                    onEditWorkstream(workstream);
+                  }
+                }}
+                title="Edit workstream"
+              >
+                <IconPencil className="size-4" />
+                <span className="hidden sm:inline ml-2">Edit</span>
+              </Button>
             )}
+            {/* Auto-assign and Close buttons - only show when viewing unassigned */}
+            {!selectedWorkstreamId &&
+              filteredAchievements.length > 0 &&
+              (onGenerateWorkstreams || onClose) && (
+                <>
+                  {onGenerateWorkstreams && (
+                    <Button
+                      size="sm"
+                      onClick={onGenerateWorkstreams}
+                      disabled={isGenerating}
+                    >
+                      {isGenerating ? (
+                        <>
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          {generationStatus || 'Auto-assigning...'}
+                        </>
+                      ) : (
+                        'Auto-assign to Workstreams'
+                      )}
+                    </Button>
+                  )}
+                  {onClose && (
+                    <Button size="sm" variant="outline" onClick={onClose}>
+                      Close
+                    </Button>
+                  )}
+                </>
+              )}
+          </div>
         </div>
       </CardHeader>
       <CardContent>

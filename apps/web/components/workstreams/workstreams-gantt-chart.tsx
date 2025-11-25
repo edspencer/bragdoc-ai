@@ -263,16 +263,21 @@ export function WorkstreamsGanttChart({
       (segment.endDate.getTime() - segment.startDate.getTime()) /
       (1000 * 60 * 60 * 24);
 
-    const leftPercent = (startOffset / timeRange.totalDays) * 100;
+    // Round to 2 decimal places to avoid hydration mismatch between server and client
+    const leftPercent =
+      Math.round((startOffset / timeRange.totalDays) * 100 * 100) / 100;
 
     // Calculate width based on duration, but ensure minimum visibility
     // If duration is very short (< 7 days), use a minimum percentage based on the time range
     const minWidthDays = 7; // Show at least a week's worth of width
     const effectiveDuration = Math.max(duration, minWidthDays);
-    const widthPercent = Math.max(
-      (effectiveDuration / timeRange.totalDays) * 100,
-      1.0, // Minimum 1% width for visibility
-    );
+    const widthPercent =
+      Math.round(
+        Math.max(
+          (effectiveDuration / timeRange.totalDays) * 100,
+          1.0, // Minimum 1% width for visibility
+        ) * 100,
+      ) / 100;
 
     // Calculate opacity based on relative impact density (impact per day)
     // Use 90th percentile as reference to handle outliers
@@ -285,7 +290,8 @@ export function WorkstreamsGanttChart({
     );
     const densityRatio =
       Math.log(clampedDensity + 1) / Math.log(referenceImpactDensity + 1);
-    const opacity = 0.6 + densityRatio * 0.4; // Maps 0→0.6, reference→1.0
+    // Round opacity to 2 decimal places to avoid hydration mismatch
+    const opacity = Math.round((0.6 + densityRatio * 0.4) * 100) / 100;
 
     return {
       left: `${leftPercent}%`,
