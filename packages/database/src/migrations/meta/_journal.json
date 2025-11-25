@@ -57,6 +57,13 @@
       "when": 1764009757077,
       "tag": "0007_yellow_nomad",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1764081167651,
+      "tag": "0008_heavy_mysterio",
+      "breakpoints": true
     }
   ]
 }

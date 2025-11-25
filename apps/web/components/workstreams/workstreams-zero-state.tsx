@@ -2,31 +2,150 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { TrendingUp } from 'lucide-react';
-import { Loader2 } from 'lucide-react';
-import { useState } from 'react';
+import { Label } from '@/components/ui/label';
+import { Checkbox } from '@/components/ui/checkbox';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { TrendingUp, Loader2 } from 'lucide-react';
+import { useState, useMemo, useEffect, useCallback } from 'react';
 import { useWorkstreamsActions } from '@/hooks/use-workstreams';
+import { useProjects } from '@/hooks/useProjects';
 import { useRouter } from 'next/navigation';
 
 interface WorkstreamsZeroStateProps {
   achievementCount: number;
 }
 
+const timePresets = [
+  { value: '6m', label: 'Last 6 months' },
+  { value: '12m', label: 'Last 12 months' },
+  { value: '18m', label: 'Last 18 months' },
+  { value: '24m', label: 'Last 24 months' },
+];
+
+function getDateRangeFromPreset(preset: string): {
+  startDate: Date;
+  endDate: Date;
+} {
+  const endDate = new Date();
+  const startDate = new Date();
+
+  const months = Number.parseInt(preset.replace('m', ''), 10);
+  startDate.setMonth(startDate.getMonth() - months);
+
+  return { startDate, endDate };
+}
+
 export function WorkstreamsZeroState({
-  achievementCount,
+  achievementCount: initialAchievementCount,
 }: WorkstreamsZeroStateProps) {
   const router = useRouter();
   const [noWorkstreamsFound, setNoWorkstreamsFound] = useState(false);
+  const [timePreset, setTimePreset] = useState('12m');
+  const [selectedProjectIds, setSelectedProjectIds] = useState<string[]>([]);
+  const [filteredCount, setFilteredCount] = useState<number | null>(null);
+  const [isLoadingCount, setIsLoadingCount] = useState(false);
+
+  const { projects, isLoading: projectsLoading } = useProjects();
+
+  // Use filtered count if available, otherwise fall back to initial count
+  const achievementCount = filteredCount ?? initialAchievementCount;
   const canGenerate = achievementCount >= 20;
+
+  // Fetch filtered achievement count when filters change
+  const fetchFilteredCount = useCallback(async () => {
+    setIsLoadingCount(true);
+    try {
+      const { startDate, endDate } = getDateRangeFromPreset(timePreset);
+      const params = new URLSearchParams({
+        startDate: startDate.toISOString(),
+        endDate: endDate.toISOString(),
+      });
+
+      // Only include projectIds if some (but not all) are selected
+      if (
+        selectedProjectIds.length > 0 &&
+        selectedProjectIds.length < projects.length
+      ) {
+        params.set('projectIds', selectedProjectIds.join(','));
+      }
+
+      const response = await fetch(
+        `/api/achievements/count?${params.toString()}`,
+      );
+      if (response.ok) {
+        const data = await response.json();
+        setFilteredCount(data.count);
+      }
+    } catch (error) {
+      console.error('Failed to fetch filtered count:', error);
+    } finally {
+      setIsLoadingCount(false);
+    }
+  }, [timePreset, selectedProjectIds, projects.length]);
+
+  // Fetch count when filters change (debounced via effect)
+  useEffect(() => {
+    // Don't fetch until projects are loaded
+    if (projectsLoading) return;
+
+    fetchFilteredCount();
+  }, [fetchFilteredCount, projectsLoading]);
 
   // Use the hook for generation capabilities only (no data fetching needed)
   const { generateWorkstreams, isGenerating, generationStatus } =
     useWorkstreamsActions();
 
+  // Sort projects alphabetically
+  const sortedProjects = useMemo(() => {
+    return [...projects].sort((a, b) => a.name.localeCompare(b.name));
+  }, [projects]);
+
+  const handleProjectToggle = (projectId: string, checked: boolean) => {
+    if (checked) {
+      setSelectedProjectIds((prev) => [...prev, projectId]);
+    } else {
+      setSelectedProjectIds((prev) => prev.filter((id) => id !== projectId));
+    }
+  };
+
+  const handleSelectAll = () => {
+    if (selectedProjectIds.length === projects.length) {
+      setSelectedProjectIds([]);
+    } else {
+      setSelectedProjectIds(projects.map((p) => p.id));
+    }
+  };
+
   const handleGenerate = async () => {
     setNoWorkstreamsFound(false);
     try {
-      const result = await generateWorkstreams();
+      // Build filters from form state
+      const { startDate, endDate } = getDateRangeFromPreset(timePreset);
+      const filters: {
+        timeRange?: { startDate: string; endDate: string };
+        projectIds?: string[];
+      } = {
+        timeRange: {
+          startDate: startDate.toISOString().split('T')[0] as string,
+          endDate: endDate.toISOString().split('T')[0] as string,
+        },
+      };
+
+      // Only include projectIds if some (but not all) are selected
+      if (
+        selectedProjectIds.length > 0 &&
+        selectedProjectIds.length < projects.length
+      ) {
+        filters.projectIds = selectedProjectIds;
+      }
+
+      const result = await generateWorkstreams(filters);
       // Check if clustering found no workstreams (full clustering only)
       if (
         result &&
@@ -60,25 +179,98 @@ export function WorkstreamsZeroState({
 
         <Card>
           <CardHeader>
-            <CardTitle>How it Works</CardTitle>
+            <CardTitle>Generation Options</CardTitle>
           </CardHeader>
-          <CardContent className="space-y-3">
-            <div>
-              <h3 className="font-semibold">1. AI Analysis</h3>
-              <p className="text-sm text-muted-foreground">
-                We use advanced ML to analyze your achievements semantically
+          <CardContent className="space-y-6">
+            {/* Time Range Selection */}
+            <div className="space-y-2">
+              <Label htmlFor="time-range">Time Range</Label>
+              <Select value={timePreset} onValueChange={setTimePreset}>
+                <SelectTrigger id="time-range" className="w-full">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {timePresets.map((preset) => (
+                    <SelectItem key={preset.value} value={preset.value}>
+                      {preset.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <p className="text-xs text-muted-foreground">
+                Only achievements within this time range will be used for
+                clustering
               </p>
             </div>
-            <div>
-              <h3 className="font-semibold">2. Automatic Grouping</h3>
-              <p className="text-sm text-muted-foreground">
-                Related achievements are clustered into thematic workstreams
-              </p>
-            </div>
-            <div>
-              <h3 className="font-semibold">3. Continuous Updates</h3>
-              <p className="text-sm text-muted-foreground">
-                New achievements are automatically assigned as you add them
+
+            {/* Project Selection */}
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <Label>Projects</Label>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={handleSelectAll}
+                  className="h-auto py-1 px-2 text-xs"
+                >
+                  {selectedProjectIds.length === projects.length
+                    ? 'Deselect all'
+                    : 'Select all'}
+                </Button>
+              </div>
+              {projectsLoading ? (
+                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  Loading projects...
+                </div>
+              ) : projects.length === 0 ? (
+                <p className="text-sm text-muted-foreground">
+                  No projects found
+                </p>
+              ) : (
+                <div className="grid grid-cols-2 gap-2 max-h-48 overflow-y-auto border rounded-md p-3">
+                  {sortedProjects.map((project) => (
+                    <div
+                      key={project.id}
+                      className="flex items-center gap-2 cursor-pointer hover:bg-muted/50 rounded px-1 py-0.5"
+                      onClick={() =>
+                        handleProjectToggle(
+                          project.id,
+                          !selectedProjectIds.includes(project.id),
+                        )
+                      }
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                          e.preventDefault();
+                          handleProjectToggle(
+                            project.id,
+                            !selectedProjectIds.includes(project.id),
+                          );
+                        }
+                      }}
+                      tabIndex={0}
+                      role="checkbox"
+                      aria-checked={selectedProjectIds.includes(project.id)}
+                    >
+                      <Checkbox
+                        checked={selectedProjectIds.includes(project.id)}
+                        onCheckedChange={(checked) =>
+                          handleProjectToggle(project.id, checked === true)
+                        }
+                        tabIndex={-1}
+                      />
+                      <span className="text-sm truncate" title={project.name}>
+                        {project.name}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              )}
+              <p className="text-xs text-muted-foreground">
+                {selectedProjectIds.length === 0 ||
+                selectedProjectIds.length === projects.length
+                  ? 'All projects will be included'
+                  : `${selectedProjectIds.length} project${selectedProjectIds.length === 1 ? '' : 's'} selected`}
               </p>
             </div>
           </CardContent>
@@ -110,7 +302,18 @@ export function WorkstreamsZeroState({
             )}
             <div className="space-y-2">
               <p className="text-sm text-muted-foreground">
-                You have {achievementCount} achievements ready to analyze
+                {isLoadingCount ? (
+                  <span className="inline-flex items-center gap-1">
+                    <Loader2 className="h-3 w-3 animate-spin" />
+                    Counting achievements...
+                  </span>
+                ) : (
+                  <>
+                    You have{' '}
+                    <span className="font-semibold">{achievementCount}</span>{' '}
+                    achievements ready to analyze
+                  </>
+                )}
               </p>
               <p className="text-xs text-muted-foreground">
                 We'll analyze your achievements using AI to identify patterns
@@ -119,7 +322,7 @@ export function WorkstreamsZeroState({
               <Button
                 size="lg"
                 onClick={handleGenerate}
-                disabled={isGenerating}
+                disabled={isGenerating || isLoadingCount}
                 className="mt-4"
               >
                 {isGenerating ? (
@@ -139,11 +342,21 @@ export function WorkstreamsZeroState({
           <Card className="bg-muted">
             <CardContent className="pt-6 text-center">
               <p className="font-semibold">
-                You need at least 20 achievements in the last 12 months to
-                generate workstreams
+                You need at least 20 achievements to generate workstreams
               </p>
               <p className="text-sm text-muted-foreground mt-2">
-                Current: {achievementCount} / 20 (last 12 months)
+                {isLoadingCount ? (
+                  <span className="inline-flex items-center justify-center gap-1">
+                    <Loader2 className="h-3 w-3 animate-spin" />
+                    Counting...
+                  </span>
+                ) : (
+                  <>
+                    Current:{' '}
+                    <span className="font-semibold">{achievementCount}</span> /
+                    20
+                  </>
+                )}
               </p>
               <Button
                 variant="outline"
