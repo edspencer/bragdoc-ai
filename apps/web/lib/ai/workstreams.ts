@@ -92,10 +92,16 @@ export interface FullClusteringResult {
   achievementsAssigned: number;
   outliers: number;
   metadata: WorkstreamMetadata;
+  autoAssignedOutsideFilters?: number;
   // Optional fields for enhanced API responses
   workstreams?: Workstream[];
   achievementsWithAssignments?: Achievement[];
   outlierAchievements?: Achievement[];
+  appliedFilters?: {
+    timeRange?: { startDate: string; endDate: string };
+    projectIds?: string[];
+  };
+  filteredAchievementCount?: number;
 }
 
 /**
@@ -245,15 +251,30 @@ export async function buildWorkstreamBreakdown(
 
 /**
  * Decide whether to do incremental assignment or full re-clustering
- * Returns 'full' if: never clustered, +10% achievements, +50 achievements, or >30 days
+ * Uses multiple factors to determine the best strategy:
+ * - Detects filter changes from previous clustering (triggers full re-clustering)
+ * - Checks growth thresholds (10% growth OR 50+ new achievements in filtered set)
+ * - Checks time-based threshold (30+ days since last clustering)
+ * - Defaults to incremental assignment for small, frequent updates
  *
- * @param currentAchievementCount - Current number of achievements with embeddings
+ * Filter change detection: Compares current filter parameters against stored generation params.
+ * Growth calculations use filtered achievement counts, not total counts, enabling optimal clustering
+ * for user-selected subsets.
+ *
+ * @param currentFilteredCount - Current number of achievements in the filtered set with embeddings
  * @param metadata - Previous clustering metadata, or null if never clustered
- * @returns Decision with strategy and reason
+ * @param currentFilters - Current filter parameters for change detection:
+ *   - timeRange: Use Date objects (JS native). Compared against stored generation params.
+ *   - projectIds: Array of project UUIDs. Compared against stored generation params.
+ * @returns UpdateDecision with strategy ('full' or 'incremental') and human-readable reason
  */
 export function decideShouldReCluster(
-  currentAchievementCount: number,
+  currentFilteredCount: number,
   metadata: WorkstreamMetadata | null,
+  currentFilters?: {
+    timeRange?: { startDate: Date; endDate: Date };
+    projectIds?: string[];
+  },
 ): UpdateDecision {
   // Never clustered before
   if (!metadata) {
@@ -261,6 +282,37 @@ export function decideShouldReCluster(
       strategy: 'full',
       reason: 'Initial clustering',
     };
+  }
+
+  // Check if filters changed from previous clustering
+  if (metadata && currentFilters) {
+    const previousFilters = metadata.generationParams || {};
+
+    // Compare timeRange
+    const currentStartDate = currentFilters.timeRange?.startDate
+      ?.toISOString()
+      .split('T')[0];
+    const currentEndDate = currentFilters.timeRange?.endDate
+      ?.toISOString()
+      .split('T')[0];
+    const previousStartDate = previousFilters.timeRange?.startDate;
+    const previousEndDate = previousFilters.timeRange?.endDate;
+
+    const timeRangeChanged =
+      previousStartDate !== currentStartDate ||
+      previousEndDate !== currentEndDate;
+
+    // Compare projectIds
+    const projectIdsChanged =
+      JSON.stringify((previousFilters.projectIds || []).sort()) !==
+      JSON.stringify((currentFilters.projectIds || []).sort());
+
+    if (timeRangeChanged || projectIdsChanged) {
+      return {
+        strategy: 'full',
+        reason: 'Filter parameters changed from previous clustering',
+      };
+    }
   }
 
   // Previous clustering found no workstreams (all outliers)
@@ -272,10 +324,16 @@ export function decideShouldReCluster(
     };
   }
 
-  // Calculate if we have 10% more achievements
+  // Calculate if we have 10% more achievements in the filtered set
+  // Use filteredAchievementCount for comparison, with backward compatibility
+  const previousCount =
+    metadata.filteredAchievementCount ||
+    metadata.achievementCountAtLastClustering ||
+    0;
   const achievementGrowthPercent =
-    (currentAchievementCount - metadata.achievementCountAtLastClustering) /
-    metadata.achievementCountAtLastClustering;
+    previousCount > 0
+      ? (currentFilteredCount - previousCount) / previousCount
+      : 0;
 
   if (achievementGrowthPercent >= RECLUSTER_PERCENTAGE_THRESHOLD) {
     return {
@@ -284,9 +342,9 @@ export function decideShouldReCluster(
     };
   }
 
-  // Check if we have 50+ new achievements
-  const newAchievementCount =
-    currentAchievementCount - metadata.achievementCountAtLastClustering;
+  // Calculate if we have 50+ more achievements in the filtered set
+  // Use filteredAchievementCount for comparison, with backward compatibility
+  const newAchievementCount = currentFilteredCount - previousCount;
 
   if (newAchievementCount >= RECLUSTER_ABSOLUTE_THRESHOLD) {
     return {
@@ -316,15 +374,25 @@ export function decideShouldReCluster(
 
 /**
  * Assign unassigned achievements to existing workstreams
- * Finds best matching workstream for each achievement using centroid similarity
+ * Finds best matching workstream for each achievement using centroid similarity.
+ * Only unassigned achievements matching the current filters are assigned.
+ * Achievements outside the current filters are excluded from assignment.
  *
  * @param userId - User ID to scope operation
- * @param params - Clustering parameters with confidence threshold
- * @returns Assignment result with assigned/unassigned IDs
+ * @param params - Clustering parameters with confidence threshold for assignment
+ * @param filters - Optional filter parameters for assignment:
+ *   - timeRange: Use Date objects (JS native). Only achievements in this range are assigned.
+ *     If omitted, all time periods are included (no filtering).
+ *   - projectIds: Array of project UUIDs to include. If omitted, all projects are included.
+ * @returns AssignmentResult with arrays of assigned and unassigned achievement IDs
  */
 export async function incrementalAssignment(
   userId: string,
   params: ClusteringParams,
+  filters?: {
+    timeRange?: { startDate: Date; endDate: Date };
+    projectIds?: string[];
+  },
 ): Promise<AssignmentResult> {
   // Get unassigned achievements with embeddings
   const unassignedAchs = await db
@@ -335,7 +403,23 @@ export async function incrementalAssignment(
     );
 
   // Filter to only those with embeddings
-  const achievementsToAssign = unassignedAchs.filter((ach) => ach.embedding);
+  let achievementsToAssign = unassignedAchs.filter((ach) => ach.embedding);
+
+  // Apply filters if provided
+  if (filters?.timeRange) {
+    achievementsToAssign = achievementsToAssign.filter(
+      (ach) =>
+        ach.eventStart &&
+        ach.eventStart >= filters.timeRange!.startDate &&
+        ach.eventStart <= filters.timeRange!.endDate,
+    );
+  }
+
+  if (filters?.projectIds && filters.projectIds.length > 0) {
+    achievementsToAssign = achievementsToAssign.filter((ach) =>
+      filters.projectIds!.includes(ach.projectId || ''),
+    );
+  }
 
   if (achievementsToAssign.length === 0) {
     return {
@@ -591,23 +675,29 @@ function extractCommonWords(text: string): string[] {
 }
 
 /**
- * Perform full re-clustering of all achievements
- * Archives old workstreams, clears assignments, and creates new clusters
+ * Perform full re-clustering of achievements
+ * Archives old workstreams, clears assignments, and creates new clusters from filtered achievements.
+ * Embeddings are generated for ALL achievements (cost optimization), but only filtered achievements
+ * are used for clustering. Achievements outside the current filters are auto-assigned to nearest workstreams.
  *
  * @param userId - User ID to scope operation
  * @param user - User object for LLM selection in naming
  * @param onProgress - Optional callback for progress updates
- * @returns Clustering statistics and metadata
+ * @param filters - Optional filter parameters for clustering:
+ *   - timeRange: Use Date objects (JS native). startDate and endDate define the range (inclusive).
+ *     If omitted, defaults to last 12 months. Must not exceed 24 months.
+ *   - projectIds: Array of project UUIDs to include. If omitted, all projects are included.
+ * @returns FullClusteringResult with clustering statistics, metadata, and applied filter info
  */
 export async function fullReclustering(
   userId: string,
   user: User,
   onProgress?: ProgressCallback,
+  filters?: {
+    timeRange?: { startDate: Date; endDate: Date };
+    projectIds?: string[];
+  },
 ): Promise<FullClusteringResult> {
-  // Calculate 12 months ago
-  const twelveMonthsAgo = new Date();
-  twelveMonthsAgo.setFullYear(twelveMonthsAgo.getFullYear() - 1);
-
   // Get all achievements with embeddings
   const allAchievements = await db
     .select()
@@ -618,25 +708,42 @@ export async function fullReclustering(
     (ach) => ach.embedding,
   );
 
-  // Filter to last 12 months only
-  const recentAchievements = achievementsWithEmbeddings.filter(
-    (ach) => ach.eventStart && ach.eventStart >= twelveMonthsAgo,
+  // Default to 12 months if no timeRange provided (backward compatible)
+  const effectiveTimeRange = filters?.timeRange || {
+    startDate: new Date(Date.now() - 365 * 24 * 60 * 60 * 1000),
+    endDate: new Date(),
+  };
+
+  let filteredAchievements = achievementsWithEmbeddings.filter(
+    (ach) =>
+      ach.eventStart &&
+      ach.eventStart >= effectiveTimeRange.startDate &&
+      ach.eventStart <= effectiveTimeRange.endDate,
   );
 
-  // Validate minimum count (checking last 12 months only)
-  if (recentAchievements.length < MINIMUM_ACHIEVEMENTS) {
-    throw new Error(
-      `Insufficient achievements in last 12 months: need ${MINIMUM_ACHIEVEMENTS}, have ${recentAchievements.length}`,
+  if (filters?.projectIds && filters.projectIds.length > 0) {
+    filteredAchievements = filteredAchievements.filter((ach) =>
+      filters.projectIds!.includes(ach.projectId || ''),
     );
   }
 
-  // Extract embeddings as vectors
-  const embeddings = recentAchievements.map(
+  // Validate minimum count based on filtered achievements
+  if (filteredAchievements.length < MINIMUM_ACHIEVEMENTS) {
+    const filterDescription = filters?.timeRange
+      ? 'selected time range'
+      : 'last 12 months';
+    throw new Error(
+      `Insufficient achievements in ${filterDescription}: need ${MINIMUM_ACHIEVEMENTS}, have ${filteredAchievements.length}`,
+    );
+  }
+
+  // Extract embeddings as vectors from filtered achievements
+  const embeddings = filteredAchievements.map(
     (ach) => ach.embedding as unknown as number[],
   );
 
-  // Get clustering parameters based on dataset size
-  const params = getClusteringParameters(recentAchievements.length);
+  // Get clustering parameters based on filtered dataset size
+  const params = getClusteringParameters(filteredAchievements.length);
   if (!params) {
     throw new Error('Insufficient achievements for clustering');
   }
@@ -694,7 +801,7 @@ export async function fullReclustering(
       if (!clusterIndices) return null;
 
       const clusterAchievements = clusterIndices
-        .map((idx) => recentAchievements[idx])
+        .map((idx) => filteredAchievements[idx])
         .filter((ach): ach is Achievement => ach !== undefined);
 
       const clusterEmbeddings = clusterIndices
@@ -901,16 +1008,87 @@ export async function fullReclustering(
     `[Workstreams] Updated ${createdWorkstreams.length} workstreams with proper names and centroids`,
   );
 
+  // Auto-assign excluded achievements (those outside current filters)
+  // Achievements in achievementsWithEmbeddings but NOT in filteredAchievements
+  const excludedAchievements = achievementsWithEmbeddings.filter(
+    (ach) => !filteredAchievements.some((fa) => fa.id === ach.id),
+  );
+
+  let autoAssignedOutsideFilters = 0;
+  if (excludedAchievements.length > 0 && createdWorkstreams.length > 0) {
+    console.log(
+      `[Workstreams] Auto-assigning ${excludedAchievements.length} achievements outside current filters`,
+    );
+
+    for (const ach of excludedAchievements) {
+      if (!ach.embedding) continue;
+
+      let bestWorkstreamId: string | null = null;
+      let bestDistance = Number.POSITIVE_INFINITY;
+      const achEmbedding = ach.embedding as unknown as number[];
+
+      // Find nearest workstream centroid
+      for (const ws of createdWorkstreams) {
+        if (!ws.centroidEmbedding) continue;
+        const centroid = ws.centroidEmbedding as unknown as number[];
+        const distance = cosineDistance(achEmbedding, centroid);
+
+        if (distance < bestDistance) {
+          bestDistance = distance;
+          bestWorkstreamId = ws.id;
+        }
+      }
+
+      // Assign if confidence is high enough (low distance)
+      // Use same threshold as incremental assignment
+      if (bestWorkstreamId && bestDistance < 1 - params.outlierThreshold) {
+        const achNow = new Date();
+        await db
+          .update(achievement)
+          .set({
+            workstreamId: bestWorkstreamId,
+            workstreamSource: 'ai',
+            updatedAt: achNow,
+          })
+          .where(eq(achievement.id, ach.id));
+        autoAssignedOutsideFilters++;
+      }
+    }
+    console.log(
+      `[Workstreams] Auto-assigned ${autoAssignedOutsideFilters} achievements outside filters`,
+    );
+  }
+
   // Create or update metadata
+  // Build generationParams with proper typing
+  type GenerationParams = {
+    timeRange?: { startDate: string; endDate: string };
+    projectIds?: string[];
+  };
+
+  const generationParams: GenerationParams = {};
+  if (filters?.timeRange) {
+    const startDate = filters.timeRange.startDate.toISOString().split('T')[0];
+    const endDate = filters.timeRange.endDate.toISOString().split('T')[0];
+    if (startDate && endDate) {
+      generationParams.timeRange = { startDate, endDate };
+    }
+  }
+  if (filters?.projectIds) {
+    generationParams.projectIds = filters.projectIds;
+  }
+
   const metadata = {
     id: uuidv4(),
     userId,
     lastFullClusteringAt: now,
-    achievementCountAtLastClustering: recentAchievements.length,
+    achievementCountAtLastClustering: filteredAchievements.length,
     epsilon: clusteringResult.epsilon,
     minPts: params.minPts,
     workstreamCount: clusteringResult.clusters.length,
     outlierCount: clusteringResult.outlierCount,
+    generationParams,
+    filteredAchievementCount: filteredAchievements.length,
     createdAt: now,
     updatedAt: now,
   };
@@ -931,23 +1109,38 @@ export async function fullReclustering(
   }
 
   // Get outlier achievements (those with embeddings that weren't assigned to any cluster)
-  // Note: Only recentAchievements are processed by clustering
+  // Note: Only filteredAchievements are processed by clustering
   // Achievements without embeddings are never included in the process
-  const outlierAchievements = recentAchievements.filter(
+  const outlierAchievements = filteredAchievements.filter(
     (ach) => ach.workstreamId === null,
   );
 
   return {
     workstreamsCreated: createdWorkstreams.length,
     achievementsAssigned:
-      recentAchievements.length - clusteringResult.outlierCount,
+      filteredAchievements.length - clusteringResult.outlierCount,
     outliers: clusteringResult.outlierCount,
     metadata: metadata as unknown as WorkstreamMetadata,
     workstreams: createdWorkstreams,
-    achievementsWithAssignments: recentAchievements.filter(
+    achievementsWithAssignments: filteredAchievements.filter(
       (ach) => ach.workstreamId !== null,
     ),
     outlierAchievements,
+    autoAssignedOutsideFilters,
+    appliedFilters: filters?.timeRange
+      ? {
+          timeRange: {
+            startDate: filters.timeRange.startDate
+              .toISOString()
+              .split('T')[0] as string,
+            endDate: filters.timeRange.endDate
+              .toISOString()
+              .split('T')[0] as string,
+          },
+          projectIds: filters.projectIds,
+        }
+      : undefined,
+    filteredAchievementCount: filteredAchievements.length,
   };
 }
 

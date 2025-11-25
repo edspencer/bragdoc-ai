@@ -1,7 +1,13 @@
 import { type NextRequest, NextResponse } from 'next/server';
+import { z } from 'zod';
 import { getAuthUser } from '@/lib/getAuthUser';
-import { db, achievement, getWorkstreamMetadata } from '@bragdoc/database';
-import { eq, isNotNull, count, and, gte } from 'drizzle-orm';
+import {
+  db,
+  achievement,
+  getWorkstreamMetadata,
+  getProjectsByUserId,
+} from '@bragdoc/database';
+import { eq, isNotNull, count, and, gte, lte } from 'drizzle-orm';
 import { generateMissingEmbeddings } from '@/lib/ai/embeddings';
 import {
   decideShouldReCluster,
@@ -17,13 +23,141 @@ import { getClusteringParameters } from '@/lib/ai/clustering';
 const MINIMUM_ACHIEVEMENTS = 20;
 
 /**
+ * Zod schema for validating workstreams generation request body
+ * Validates optional filter parameters:
+ * - timeRange: startDate and endDate (ISO 8601 or YYYY-MM-DD format)
+ * - projectIds: array of project UUIDs
+ *
+ * Ensures:
+ * - Both timeRange properties present together (or neither)
+ * - startDate ≤ endDate
+ * - Time range does not exceed 24 months
+ */
+const generateWithFiltersSchema = z
+  .object({
+    filters: z.optional(
+      z.object({
+        timeRange: z.optional(
+          z.object({
+            startDate: z
+              .string()
+              .datetime()
+              .or(z.string().regex(/^\d{4}-\d{2}-\d{2}$/)),
+            endDate: z
+              .string()
+              .datetime()
+              .or(z.string().regex(/^\d{4}-\d{2}-\d{2}$/)),
+          }),
+        ),
+        projectIds: z.optional(z.array(z.string().uuid())),
+      }),
+    ),
+  })
+  .refine(
+    (data) => {
+      // Require both timeRange properties together or neither
+      if (data.filters?.timeRange) {
+        return (
+          data.filters.timeRange.startDate && data.filters.timeRange.endDate
+        );
+      }
+      return true;
+    },
+    {
+      message:
+        'Both startDate and endDate must be provided together for timeRange',
+      path: ['filters', 'timeRange'],
+    },
+  )
+  .refine(
+    (data) => {
+      // Validate startDate ≤ endDate
+      if (
+        data.filters?.timeRange?.startDate &&
+        data.filters.timeRange.endDate
+      ) {
+        const startDate = new Date(data.filters.timeRange.startDate);
+        const endDate = new Date(data.filters.timeRange.endDate);
+        return startDate <= endDate;
+      }
+      return true;
+    },
+    {
+      message: 'startDate must be less than or equal to endDate',
+      path: ['filters', 'timeRange'],
+    },
+  )
+  .refine(
+    (data) => {
+      // Validate time range does not exceed 24 months
+      if (
+        data.filters?.timeRange?.startDate &&
+        data.filters.timeRange.endDate
+      ) {
+        const startDate = new Date(data.filters.timeRange.startDate);
+        const endDate = new Date(data.filters.timeRange.endDate);
+        const monthsDiff =
+          (endDate.getFullYear() - startDate.getFullYear()) * 12 +
+          (endDate.getMonth() - startDate.getMonth());
+        return monthsDiff <= 24;
+      }
+      return true;
+    },
+    {
+      message: 'Time range cannot exceed 24 months',
+      path: ['filters', 'timeRange'],
+    },
+  );
+
+/**
+ * Helper function to validate and parse date range
+ * Converts ISO 8601 or YYYY-MM-DD strings to Date objects
+ */
+function validateDateRange(timeRange?: { startDate: string; endDate: string }) {
+  if (!timeRange) {
+    return undefined;
+  }
+
+  const startDate = new Date(timeRange.startDate);
+  const endDate = new Date(timeRange.endDate);
+
+  if (Number.isNaN(startDate.getTime())) {
+    throw new Error(`Invalid startDate: ${timeRange.startDate}`);
+  }
+  if (Number.isNaN(endDate.getTime())) {
+    throw new Error(`Invalid endDate: ${timeRange.endDate}`);
+  }
+
+  if (startDate > endDate) {
+    throw new Error('startDate must be less than or equal to endDate');
+  }
+
+  return { startDate, endDate };
+}
+
+/**
  * POST /api/workstreams/generate
  *
  * Generates or updates workstreams for a user.
+ * - Parses and validates filter parameters from request body
+ * - Validates project ownership
  * - Generates missing embeddings
  * - Validates minimum achievement count
  * - Decides between full clustering or incremental assignment
  * - Streams progress updates via Server-Sent Events
+ *
+ * Request body (optional):
+ * ```json
+ * {
+ *   "filters": {
+ *     "timeRange": {
+ *       "startDate": "2025-05-10",
+ *       "endDate": "2025-11-10"
+ *     },
+ *     "projectIds": ["project-id-1", "project-id-2"]
+ *   }
+ * }
+ * ```
  */
 export async function POST(request: NextRequest) {
   // Authenticate user
@@ -50,18 +184,94 @@ export async function POST(request: NextRequest) {
           userId,
         );
 
+        // Parse and validate request body
+        let filters: {
+          timeRange?: { startDate: Date; endDate: Date };
+          projectIds?: string[];
+        };
+
+        try {
+          const body = await request.json().catch(() => ({}));
+          const validated = generateWithFiltersSchema.parse(body);
+
+          // Extract and convert filters from validated body
+          const timeRange = validated.filters?.timeRange
+            ? validateDateRange(validated.filters.timeRange)
+            : undefined;
+
+          filters = {
+            timeRange,
+            projectIds: validated.filters?.projectIds,
+          };
+        } catch (error) {
+          if (error instanceof z.ZodError) {
+            sendEvent({
+              type: 'error',
+              message: 'Invalid request parameters',
+              details: error.errors,
+            });
+          } else {
+            sendEvent({
+              type: 'error',
+              message:
+                error instanceof Error
+                  ? error.message
+                  : 'Failed to parse request',
+            });
+          }
+          controller.close();
+          return;
+        }
+
+        // Validate project ownership if projectIds provided
+        if (filters.projectIds && filters.projectIds.length > 0) {
+          try {
+            const userProjects = await getProjectsByUserId(userId);
+            const userProjectIds = new Set(userProjects.map((p) => p.id));
+
+            const invalidProjectIds = filters.projectIds.filter(
+              (id) => !userProjectIds.has(id),
+            );
+
+            if (invalidProjectIds.length > 0) {
+              sendEvent({
+                type: 'error',
+                message: 'Invalid project selection',
+                details: `Projects not found or not owned by user: ${invalidProjectIds.join(', ')}`,
+              });
+              controller.close();
+              return;
+            }
+          } catch (error) {
+            console.error(
+              '[Workstreams Generate] Error validating projects:',
+              error,
+            );
+            sendEvent({
+              type: 'error',
+              message: 'Failed to validate project ownership',
+            });
+            controller.close();
+            return;
+          }
+        }
+
         // Generate missing embeddings for this user's achievements
+        // NOTE: Filters are validated but not yet used for embedding generation (Phase 3)
+        // Embeddings are generated for ALL achievements to optimize cost
         const embeddingsGenerated = await generateMissingEmbeddings(userId);
         console.log(
           '[Workstreams Generate] Embeddings generated:',
           embeddingsGenerated,
         );
 
-        // Calculate 12 months ago
-        const twelveMonthsAgo = new Date();
-        twelveMonthsAgo.setFullYear(twelveMonthsAgo.getFullYear() - 1);
+        // Default to 12 months if no timeRange provided (backward compatible)
+        const effectiveTimeRange = filters?.timeRange || {
+          startDate: new Date(Date.now() - 365 * 24 * 60 * 60 * 1000),
+          endDate: new Date(),
+        };
 
-        // Count achievements with embeddings in last 12 months
+        // Count achievements with embeddings in effective time range
         const achievementCountResult = await db
           .select({ count: count() })
           .from(achievement)
@@ -69,13 +279,17 @@ export async function POST(request: NextRequest) {
             and(
               eq(achievement.userId, userId),
               isNotNull(achievement.embedding),
-              gte(achievement.eventStart, twelveMonthsAgo),
+              gte(achievement.eventStart, effectiveTimeRange.startDate),
+              lte(achievement.eventStart, effectiveTimeRange.endDate),
             ),
           );
 
         const achievementCount = achievementCountResult[0]?.count || 0;
+        const filterDescription = filters?.timeRange
+          ? 'selected time range'
+          : 'last 12 months';
         console.log(
-          '[Workstreams Generate] Achievement count with embeddings in last 12 months:',
+          `[Workstreams Generate] Achievement count with embeddings in ${filterDescription}:`,
           achievementCount,
         );
 
@@ -83,7 +297,7 @@ export async function POST(request: NextRequest) {
         if (achievementCount < MINIMUM_ACHIEVEMENTS) {
           sendEvent({
             type: 'error',
-            message: `You need at least ${MINIMUM_ACHIEVEMENTS} achievements in the last 12 months to generate workstreams. You currently have ${achievementCount}.`,
+            message: `You need at least ${MINIMUM_ACHIEVEMENTS} achievements in the ${filterDescription} to generate workstreams. You currently have ${achievementCount}.`,
           });
           controller.close();
           return;
@@ -94,7 +308,12 @@ export async function POST(request: NextRequest) {
         console.log('[Workstreams Generate] Existing metadata:', metadata);
 
         // Decide whether to do full clustering or incremental assignment
-        const decision = decideShouldReCluster(achievementCount, metadata);
+        // Pass filters to detect filter changes
+        const decision = decideShouldReCluster(
+          achievementCount,
+          metadata,
+          filters,
+        );
         console.log('[Workstreams Generate] Decision:', decision);
 
         type ResponseData =
@@ -106,6 +325,12 @@ export async function POST(request: NextRequest) {
               achievementsAssigned: number;
               outliers: number;
               metadata: any;
+              appliedFilters?: {
+                timeRange?: { startDate: string; endDate: string };
+                projectIds?: string[];
+              };
+              filteredAchievementCount?: number;
+              autoAssignedOutsideFilters?: number;
               // New fields for detailed breakdown
               workstreamDetails: Array<{
                 workstreamId: string;
@@ -142,6 +367,12 @@ export async function POST(request: NextRequest) {
               embeddingsGenerated: number;
               assigned: number;
               unassigned: number;
+              appliedFilters?: {
+                timeRange?: { startDate: string; endDate: string };
+                projectIds?: string[];
+              };
+              filteredAchievementCount?: number;
+              autoAssignedOutsideFilters?: number;
               // New fields for detailed breakdown
               assignmentsByWorkstream: Array<{
                 workstreamId: string;
@@ -185,6 +416,7 @@ export async function POST(request: NextRequest) {
             userId,
             auth.user,
             progressCallback,
+            filters,
           );
 
           // Build workstream breakdown with achievement details
@@ -210,6 +442,10 @@ export async function POST(request: NextRequest) {
             achievementsAssigned: clusteringResult.achievementsAssigned,
             outliers: clusteringResult.outliers,
             metadata: clusteringResult.metadata,
+            appliedFilters: clusteringResult.appliedFilters,
+            filteredAchievementCount: clusteringResult.filteredAchievementCount,
+            autoAssignedOutsideFilters:
+              clusteringResult.autoAssignedOutsideFilters,
             workstreamDetails,
             outlierAchievements,
           };
@@ -227,7 +463,11 @@ export async function POST(request: NextRequest) {
             data: {},
           });
 
-          const assignmentResult = await incrementalAssignment(userId, params);
+          const assignmentResult = await incrementalAssignment(
+            userId,
+            params,
+            filters,
+          );
 
           // Build assignment breakdown with achievement details
           const assignmentsByWorkstream = await buildAssignmentBreakdown(
@@ -247,6 +487,21 @@ export async function POST(request: NextRequest) {
             embeddingsGenerated,
             assigned: assignmentResult.assigned.length,
             unassigned: assignmentResult.unassigned.length,
+            appliedFilters: filters?.timeRange
+              ? {
+                  timeRange: {
+                    startDate: filters.timeRange.startDate
+                      .toISOString()
+                      .split('T')[0] as string,
+                    endDate: filters.timeRange.endDate
+                      .toISOString()
+                      .split('T')[0] as string,
+                  },
+                  projectIds: filters.projectIds,
+                }
+              : undefined,
+            filteredAchievementCount: achievementCount,
+            autoAssignedOutsideFilters: 0,
             assignmentsByWorkstream,
             unassignedAchievements: unassignedSummaries,
           };

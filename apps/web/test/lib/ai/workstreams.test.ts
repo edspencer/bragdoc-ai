@@ -92,6 +92,8 @@ describe('Workstream Orchestration', () => {
         minPts: 5,
         workstreamCount: 8,
         outlierCount: 5,
+        generationParams: {},
+        filteredAchievementCount: 100,
         createdAt: new Date(),
         updatedAt: new Date(),
       };
@@ -110,6 +112,8 @@ describe('Workstream Orchestration', () => {
         minPts: 5,
         workstreamCount: 8,
         outlierCount: 5,
+        generationParams: {},
+        filteredAchievementCount: 100,
         createdAt: new Date(),
         updatedAt: new Date(),
       };
@@ -131,6 +135,8 @@ describe('Workstream Orchestration', () => {
         minPts: 5,
         workstreamCount: 8,
         outlierCount: 5,
+        generationParams: {},
+        filteredAchievementCount: 100,
         createdAt: new Date(),
         updatedAt: new Date(),
       };
@@ -152,12 +158,251 @@ describe('Workstream Orchestration', () => {
         minPts: 5,
         workstreamCount: 8,
         outlierCount: 5,
+        generationParams: {},
+        filteredAchievementCount: 100,
         createdAt: new Date(),
         updatedAt: new Date(),
       };
 
       const decision = decideShouldReCluster(105, metadata);
       expect(decision.strategy).toBe('incremental');
+    });
+
+    // Task 6.2: Filter change detection tests
+    describe('Filter change detection (Task 6.2)', () => {
+      it('returns full when timeRange changed from previous clustering', () => {
+        const recentDate = new Date();
+        recentDate.setDate(recentDate.getDate() - 10);
+
+        const metadata = {
+          id: 'meta-1',
+          userId: mockUser.id,
+          lastFullClusteringAt: recentDate,
+          achievementCountAtLastClustering: 100,
+          epsilon: 0.5,
+          minPts: 5,
+          workstreamCount: 8,
+          outlierCount: 5,
+          generationParams: {
+            timeRange: {
+              startDate: '2025-05-10',
+              endDate: '2025-11-10',
+            },
+          },
+          filteredAchievementCount: 100,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        };
+
+        const currentFilters = {
+          timeRange: {
+            startDate: new Date('2025-01-10'),
+            endDate: new Date('2025-11-10'),
+          },
+        };
+
+        const decision = decideShouldReCluster(100, metadata, currentFilters);
+        expect(decision.strategy).toBe('full');
+        expect(decision.reason).toContain('Filter parameters changed');
+      });
+
+      it('returns full when projectIds changed from previous clustering', () => {
+        const recentDate = new Date();
+        recentDate.setDate(recentDate.getDate() - 10);
+
+        const metadata = {
+          id: 'meta-1',
+          userId: mockUser.id,
+          lastFullClusteringAt: recentDate,
+          achievementCountAtLastClustering: 100,
+          epsilon: 0.5,
+          minPts: 5,
+          workstreamCount: 8,
+          outlierCount: 5,
+          generationParams: {
+            projectIds: ['project-1', 'project-2'],
+          },
+          filteredAchievementCount: 100,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        };
+
+        const currentFilters = {
+          projectIds: ['project-1', 'project-3'],
+        };
+
+        const decision = decideShouldReCluster(100, metadata, currentFilters);
+        expect(decision.strategy).toBe('full');
+        expect(decision.reason).toContain('Filter parameters changed');
+      });
+
+      it('returns full when both timeRange and projectIds changed', () => {
+        const recentDate = new Date();
+        recentDate.setDate(recentDate.getDate() - 10);
+
+        const metadata = {
+          id: 'meta-1',
+          userId: mockUser.id,
+          lastFullClusteringAt: recentDate,
+          achievementCountAtLastClustering: 100,
+          epsilon: 0.5,
+          minPts: 5,
+          workstreamCount: 8,
+          outlierCount: 5,
+          generationParams: {
+            timeRange: {
+              startDate: '2025-05-10',
+              endDate: '2025-11-10',
+            },
+            projectIds: ['project-1'],
+          },
+          filteredAchievementCount: 100,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        };
+
+        const currentFilters = {
+          timeRange: {
+            startDate: new Date('2025-01-10'),
+            endDate: new Date('2025-11-10'),
+          },
+          projectIds: ['project-2'],
+        };
+
+        const decision = decideShouldReCluster(100, metadata, currentFilters);
+        expect(decision.strategy).toBe('full');
+        expect(decision.reason).toContain('Filter parameters changed');
+      });
+
+      it('returns full when filters removed after previous filter-based clustering', () => {
+        const recentDate = new Date();
+        recentDate.setDate(recentDate.getDate() - 10);
+
+        const metadata = {
+          id: 'meta-1',
+          userId: mockUser.id,
+          lastFullClusteringAt: recentDate,
+          achievementCountAtLastClustering: 100,
+          epsilon: 0.5,
+          minPts: 5,
+          workstreamCount: 8,
+          outlierCount: 5,
+          generationParams: {
+            timeRange: {
+              startDate: '2025-05-10',
+              endDate: '2025-11-10',
+            },
+            projectIds: ['project-1'],
+          },
+          filteredAchievementCount: 100,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        };
+
+        // Now requesting without filters
+        const currentFilters = {};
+
+        const decision = decideShouldReCluster(150, metadata, currentFilters);
+        expect(decision.strategy).toBe('full');
+        expect(decision.reason).toContain('Filter parameters changed');
+      });
+
+      it('returns incremental when filter parameters identical to previous', () => {
+        const recentDate = new Date();
+        recentDate.setDate(recentDate.getDate() - 10);
+
+        const metadata = {
+          id: 'meta-1',
+          userId: mockUser.id,
+          lastFullClusteringAt: recentDate,
+          achievementCountAtLastClustering: 100,
+          epsilon: 0.5,
+          minPts: 5,
+          workstreamCount: 8,
+          outlierCount: 5,
+          generationParams: {
+            timeRange: {
+              startDate: '2025-05-10',
+              endDate: '2025-11-10',
+            },
+            projectIds: ['project-1'],
+          },
+          filteredAchievementCount: 100,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        };
+
+        const currentFilters = {
+          timeRange: {
+            startDate: new Date('2025-05-10'),
+            endDate: new Date('2025-11-10'),
+          },
+          projectIds: ['project-1'],
+        };
+
+        const decision = decideShouldReCluster(105, metadata, currentFilters);
+        expect(decision.strategy).toBe('incremental');
+      });
+
+      it('returns incremental when projectIds order differs but content is same', () => {
+        const recentDate = new Date();
+        recentDate.setDate(recentDate.getDate() - 10);
+
+        const metadata = {
+          id: 'meta-1',
+          userId: mockUser.id,
+          lastFullClusteringAt: recentDate,
+          achievementCountAtLastClustering: 100,
+          epsilon: 0.5,
+          minPts: 5,
+          workstreamCount: 8,
+          outlierCount: 5,
+          generationParams: {
+            projectIds: ['project-1', 'project-2', 'project-3'],
+          },
+          filteredAchievementCount: 100,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        };
+
+        const currentFilters = {
+          projectIds: ['project-3', 'project-1', 'project-2'], // Same projects, different order
+        };
+
+        const decision = decideShouldReCluster(105, metadata, currentFilters);
+        expect(decision.strategy).toBe('incremental');
+      });
+
+      it('returns full when new filters applied after no-filter clustering', () => {
+        const recentDate = new Date();
+        recentDate.setDate(recentDate.getDate() - 10);
+
+        const metadata = {
+          id: 'meta-1',
+          userId: mockUser.id,
+          lastFullClusteringAt: recentDate,
+          achievementCountAtLastClustering: 100,
+          epsilon: 0.5,
+          minPts: 5,
+          workstreamCount: 8,
+          outlierCount: 5,
+          generationParams: {}, // No previous filters
+          filteredAchievementCount: 100,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        };
+
+        const currentFilters = {
+          timeRange: {
+            startDate: new Date('2025-05-10'),
+            endDate: new Date('2025-11-10'),
+          },
+        };
+
+        const decision = decideShouldReCluster(100, metadata, currentFilters);
+        expect(decision.strategy).toBe('full');
+        expect(decision.reason).toContain('Filter parameters changed');
+      });
     });
   });
 

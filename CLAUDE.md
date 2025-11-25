@@ -306,7 +306,7 @@ Shared TypeScript configurations: `base.json`, `nextjs.json`, `react-library.jso
 
 ### Overview
 
-Workstreams provide automatic semantic clustering of achievements across projects to identify work patterns and themes. The feature uses machine learning to group related achievements, helping users understand their professional development.
+Workstreams provide automatic semantic clustering of achievements across projects to identify work patterns and themes. The feature uses machine learning to group related achievements, helping users understand their professional development. Users can optionally filter by time period and/or projects when generating workstreams.
 
 ### Architecture
 
@@ -314,16 +314,17 @@ Workstreams provide automatic semantic clustering of achievements across project
 - **Database:** pgvector extension for 1536-dimensional embedding storage
 - **API:** RESTful endpoints for generation, CRUD, and manual assignment
 - **UI:** Dashboard widget, dedicated page, achievement integration
+- **Filtering:** Optional time range and project filters for focused clustering
 
 ### Key Components
 
 **Database Tables:**
 - `Achievement` - Extended with embedding vectors and workstream assignments
 - `Workstream` - Stores clusters with cached centroids
-- `WorkstreamMetadata` - Tracks clustering history
+- `WorkstreamMetadata` - Tracks clustering history and generation parameters
 
 **API Endpoints:**
-- `POST /api/workstreams/generate` - Trigger clustering
+- `POST /api/workstreams/generate` - Trigger clustering (supports optional filters)
 - `GET /api/workstreams` - List workstreams
 - `GET/PUT/DELETE /api/workstreams/[id]` - CRUD operations
 - `POST /api/workstreams/assign` - Manual assignment
@@ -333,6 +334,22 @@ Workstreams provide automatic semantic clustering of achievements across project
 - `WorkstreamCard` - Summary display
 - `WorkstreamStatus` - Dashboard widget
 - `useWorkstreams` - Data fetching hook
+
+### Filtering for Clustering
+
+Users can optionally specify filters when generating workstreams to focus clustering on specific time periods and/or projects:
+
+**Filter Parameters:**
+- `timeRange`: Optional start and end dates (ISO 8601 format, max 24 months)
+- `projectIds`: Optional array of project UUIDs to include
+
+**Behavior:**
+- All filter parameters are optional
+- When no filter provided, defaults to last 12 months (backward compatible)
+- Filters apply only to clustering operation (not embedding generation)
+- Embeddings are generated for all achievements (cost optimization)
+- Filter changes automatically trigger full re-clustering for accuracy
+- Achievements outside current filters are auto-assigned to nearest workstreams
 
 ### Implementation Details
 
@@ -348,9 +365,9 @@ Workstreams provide automatic semantic clustering of achievements across project
 - `buildWorkstreamBreakdown()` - Format workstream details for full clustering responses
 
 For detailed technical documentation, see:
-- Database schema: `.claude/docs/tech/database.md`
-- ML implementation: `.claude/docs/tech/ai-integration.md`
-- API patterns: `.claude/docs/tech/api-conventions.md` (includes detailed POST /api/workstreams/generate response structures)
+- Database schema: `.claude/docs/tech/database.md` (includes generationParams and filteredAchievementCount)
+- ML implementation: `.claude/docs/tech/ai-integration.md` (includes filtering strategy section)
+- API patterns: `.claude/docs/tech/api-conventions.md` (includes detailed POST /api/workstreams/generate request/response with filters)
 - UI components: `.claude/docs/tech/frontend-patterns.md`
 
 ---

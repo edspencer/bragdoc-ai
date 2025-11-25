@@ -474,7 +474,28 @@ Triggers workstream generation or update. Handles both full re-clustering and in
 - Backward compatible with existing toast notification implementations
 
 **Request:**
-No request body required. Endpoint determines strategy automatically based on heuristics.
+Optional request body with filter parameters:
+
+```typescript
+{
+  filters?: {
+    timeRange?: {
+      startDate: string;  // ISO 8601 date format (YYYY-MM-DD)
+      endDate: string;    // ISO 8601 date format (YYYY-MM-DD)
+    };
+    projectIds?: string[];  // Array of project UUIDs to include
+  }
+}
+```
+
+**Filter Parameters:**
+- All filter parameters are optional
+- `timeRange`: When provided, both `startDate` and `endDate` must be specified
+- `startDate` must be ≤ `endDate`
+- Time range must not exceed 24 months
+- `projectIds`: Array of project IDs user owns; invalid projects return 400 error
+- When no filter provided, defaults to last 12 months of achievements
+- Filters only apply to clustering operation; embeddings are generated for all achievements (cost optimization)
 
 **Response: Full Clustering Strategy**
 
@@ -487,6 +508,12 @@ No request body required. Endpoint determines strategy automatically based on he
   achievementsAssigned: number;
   outliers: number;
   metadata: WorkstreamMetadata;
+  appliedFilters?: {
+    timeRange?: { startDate: string; endDate: string };
+    projectIds?: string[];
+  };
+  filteredAchievementCount?: number;
+  autoAssignedOutsideFilters?: number;
   // Detailed breakdown
   workstreamDetails: Array<{
     workstreamId: string;
@@ -508,6 +535,12 @@ No request body required. Endpoint determines strategy automatically based on he
   embeddingsGenerated: number;
   assigned: number;
   unassigned: number;
+  appliedFilters?: {
+    timeRange?: { startDate: string; endDate: string };
+    projectIds?: string[];
+  };
+  filteredAchievementCount?: number;
+  autoAssignedOutsideFilters?: number;
   // Detailed breakdown
   assignmentsByWorkstream: Array<{
     workstreamId: string;
@@ -518,6 +551,11 @@ No request body required. Endpoint determines strategy automatically based on he
   unassignedAchievements: AchievementSummary[];
 }
 ```
+
+**Response Fields:**
+- `appliedFilters`: Shows which filters were applied to this clustering operation (useful for understanding what data was clustered)
+- `filteredAchievementCount`: Number of achievements in the filtered set that were used for clustering
+- `autoAssignedOutsideFilters`: Count of achievements outside current filters that were auto-assigned to nearest workstreams (only in full clustering with filters)
 
 **AchievementSummary Type**
 

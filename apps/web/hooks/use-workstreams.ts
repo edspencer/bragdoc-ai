@@ -37,6 +37,20 @@ interface WorkstreamsResponse {
 }
 
 /**
+ * Request body for POST /api/workstreams/generate
+ * Includes optional filter parameters for clustering
+ */
+interface GenerateWorkstreamsRequest {
+  filters?: {
+    timeRange?: {
+      startDate: string; // ISO 8601 date (YYYY-MM-DD)
+      endDate: string; // ISO 8601 date (YYYY-MM-DD)
+    };
+    projectIds?: string[];
+  };
+}
+
+/**
  * Lightweight achievement summary for API responses
  * Includes only fields needed for UI display with project/company context
  */
@@ -168,13 +182,24 @@ export function useWorkstreamsActions() {
     };
   }, [generationStatus, isGenerating]);
 
-  const generateWorkstreams = async (): Promise<GenerateResult> => {
+  const generateWorkstreams = async (
+    filters?: GenerateWorkstreamsRequest['filters'],
+  ): Promise<GenerateResult> => {
     setIsGenerating(true);
     setGenerationStatus('Analyzing achievements...');
 
     try {
+      const requestBody: GenerateWorkstreamsRequest = {};
+      if (filters) {
+        requestBody.filters = filters;
+      }
+
       const response = await fetch('/api/workstreams/generate', {
         method: 'POST',
+        headers: requestBody.filters
+          ? { 'Content-Type': 'application/json' }
+          : undefined,
+        body: requestBody.filters ? JSON.stringify(requestBody) : undefined,
       });
 
       if (!response.ok) {

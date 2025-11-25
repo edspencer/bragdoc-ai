@@ -664,6 +664,18 @@ export const workstreamMetadata = pgTable('WorkstreamMetadata', {
   epsilon: real('epsilon').notNull(),          // DBSCAN distance threshold
   minPts: integer('min_pts').notNull(),        // DBSCAN minimum points
 
+  // Generation parameters and filtering (NEW)
+  generationParams: jsonb('generation_params')  // Stores filter parameters from clustering
+    .$type<{
+      timeRange?: { startDate: string; endDate: string };
+      projectIds?: string[];
+    }>()
+    .notNull()
+    .default({}),
+  filteredAchievementCount: integer('filtered_achievement_count') // Count of achievements in filtered set
+    .notNull()
+    .default(0),
+
   // Statistics
   workstreamCount: integer('workstream_count').default(0),
   outlierCount: integer('outlier_count').default(0),
@@ -673,10 +685,15 @@ export const workstreamMetadata = pgTable('WorkstreamMetadata', {
 });
 ```
 
+**Field Documentation:**
+- **generationParams**: JSON object storing filter parameters (timeRange and projectIds) used during clustering. Enables intelligent re-clustering detection when filters change from previous clustering operations.
+- **filteredAchievementCount**: Integer count of achievements in the filtered set at time of last clustering. Used for growth calculations in re-clustering decision logic instead of total achievement count (more accurate when users apply filters).
+
 **Re-clustering Triggers**: Full re-clustering occurs when:
 - Never clustered before (no metadata record)
-- Achievement count increased by 10% since last clustering
-- Achievement count increased by 50+ since last clustering
+- Filter parameters changed from previous clustering (timeRange or projectIds differ)
+- Achievement count in filtered set increased by 10% since last clustering
+- Achievement count in filtered set increased by 50+ since last clustering
 - More than 30 days since last clustering
 
 ---

@@ -351,6 +351,20 @@ export const workstreamMetadata = pgTable('WorkstreamMetadata', {
   workstreamCount: integer('workstream_count').default(0),
   outlierCount: integer('outlier_count').default(0),
 
+  // Filter parameters from last clustering
+  generationParams: jsonb('generation_params')
+    .$type<{
+      timeRange?: { startDate: string; endDate: string };
+      projectIds?: string[];
+    }>()
+    .notNull()
+    .default({}),
+
+  // Count of achievements in filtered set at time of clustering
+  filteredAchievementCount: integer('filtered_achievement_count')
+    .notNull()
+    .default(0),
+
   // Auditing
   createdAt: timestamp('created_at').notNull().defaultNow(),
   updatedAt: timestamp('updated_at').notNull().defaultNow(),
