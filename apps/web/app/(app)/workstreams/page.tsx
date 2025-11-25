@@ -164,6 +164,13 @@ export default async function WorkstreamsPage({
   const achievementCount = allAchievements.length;
   const unassignedCount = allAchievements.filter((a) => !a.workstreamId).length;
 
+  // Calculate active workstream count - only workstreams that have achievements in the current date range
+  // This matches what the Gantt chart displays
+  const activeWorkstreamIds = new Set(
+    allAchievements.filter((a) => a.workstreamId).map((a) => a.workstreamId),
+  );
+  const activeWorkstreamCount = activeWorkstreamIds.size;
+
   // For zero state, fetch 12-month achievement count separately using SQL COUNT
   let twelveMonthAchievementCount = 0;
   if (showZeroState) {
@@ -189,8 +196,9 @@ export default async function WorkstreamsPage({
               showFilters={!showZeroState}
               storedProjectIds={storedProjectIds}
               storedTimeRange={storedTimeRange}
+              workstreams={userWorkstreams}
               filterDisplay={
-                <div className="flex items-center gap-4">
+                <>
                   {/* Show active filter info when stored generation params are applied */}
                   {(storedProjectIds || storedTimeRange) && (
                     <span className="text-sm text-muted-foreground">
@@ -220,7 +228,7 @@ export default async function WorkstreamsPage({
                     </span>
                   )}
                   <WorkstreamDateFilter initialPreset={datePreset} />
-                </div>
+                </>
               }
             />
           )}
@@ -233,7 +241,7 @@ export default async function WorkstreamsPage({
           ) : (
             <div className="space-y-8">
               <WorkstreamStats
-                workstreamCount={userWorkstreams.length}
+                workstreamCount={activeWorkstreamCount}
                 assignedCount={achievementCount - unassignedCount}
                 unassignedCount={unassignedCount}
               />

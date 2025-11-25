@@ -144,6 +144,17 @@ function buildWorkstreamsUrl(startDate?: Date, endDate?: Date): string {
 }
 
 /**
+ * Achievement data shape for selection in dialogs
+ * Contains only fields needed for selection UI
+ */
+export interface AchievementForSelection {
+  id: string;
+  title: string;
+  impact: number | null;
+  summary: string | null;
+}
+
+/**
  * Hook for workstream generation and assignment actions only (no data fetching)
  * Use this when you already have workstreams data from server-side rendering
  */
@@ -333,11 +344,231 @@ export function useWorkstreamsActions() {
     router.refresh();
   };
 
+  /**
+   * Create a new empty workstream with the given name, description, and color
+   * After creation, achievements can be assigned separately via assignWorkstream
+   */
+  const createWorkstream = async (data: {
+    name: string;
+    description?: string;
+    color?: string;
+  }): Promise<Workstream> => {
+    const res = await fetch('/api/workstreams', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
+    });
+
+    if (!res.ok) {
+      const errorData = await res.json();
+      throw new Error(errorData.error || 'Failed to create workstream');
+    }
+
+    const newWorkstream = await res.json();
+    // Use router.refresh() for Server Component pattern
+    router.refresh();
+    return newWorkstream;
+  };
+
+  /**
+   * Update an existing workstream with new name, description, and/or color
+   */
+  const updateWorkstream = async (
+    workstreamId: string,
+    data: {
+      name?: string;
+      description?: string;
+      color?: string;
+    },
+  ): Promise<Workstream> => {
+    const res = await fetch(`/api/workstreams/${workstreamId}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
+    });
+
+    if (!res.ok) {
+      const errorData = await res.json();
+      throw new Error(errorData.error || 'Failed to update workstream');
+    }
+
+    const updatedWorkstream = await res.json();
+    router.refresh();
+    return updatedWorkstream;
+  };
+
+  /**
+   * Fetch unassigned achievements for the current user, optionally filtered
+   * by workstream metadata filters (projectIds, timeRange).
+   * Returns achievements that don't have a workstream assignment and match the filters.
+   */
+  const getUnassignedAchievements = async (filters?: {
+    projectIds?: string[];
+    timeRange?: { startDate: string; endDate: string };
+  }): Promise<AchievementForSelection[]> => {
+    // Build query params - use date filters if provided
+    const params = new URLSearchParams({ limit: '1000' });
+    if (filters?.timeRange?.startDate) {
+      params.append('startDate', filters.timeRange.startDate);
+    }
+    if (filters?.timeRange?.endDate) {
+      params.append('endDate', filters.timeRange.endDate);
+    }
+
+    const res = await fetch(`/api/achievements?${params.toString()}`);
+    if (!res.ok) {
+      throw new Error('Failed to fetch unassigned achievements');
+    }
+    const data = await res.json();
+
+    // Filter to only unassigned achievements (workstreamId is null)
+    // and apply projectIds filter if provided (API only supports single projectId)
+    const projectIdSet = filters?.projectIds?.length
+      ? new Set(filters.projectIds)
+      : null;
+
+    return data.achievements
+      .filter((a: any) => {
+        // Must be unassigned
+        if (a.workstreamId !== null && a.workstreamId !== undefined) {
+          return false;
+        }
+        // If projectIds filter is set, achievement must be in one of those projects
+        if (projectIdSet && !projectIdSet.has(a.projectId)) {
+          return false;
+        }
+        return true;
+      })
+      .map((a: any) => ({
+        id: a.id,
+        title: a.title,
+        impact: a.impact ?? null,
+        summary: a.summary ?? null,
+      }));
+  };
+
+  /**
+   * Auto-assign unassigned achievements to existing workstreams.
+   * This function ONLY does incremental assignment - it will NEVER create new workstreams
+   * or perform full reclustering. Use this when you want to assign unassigned achievements
+   * to existing workstreams without modifying the workstream structure.
+   */
+  const autoAssignWorkstreams =
+    async (): Promise<GenerateResultIncremental> => {
+      setIsGenerating(true);
+      setGenerationStatus('Preparing achievements...');
+
+      try {
+        const response = await fetch('/api/workstreams/auto-assign', {
+          method: 'POST',
+        });
+
+        if (!response.ok) {
+          throw new Error('Failed to auto-assign workstreams');
+        }
+
+        // Handle SSE stream
+        const reader = response.body?.getReader();
+        const decoder = new TextDecoder();
+
+        if (!reader) {
+          throw new Error('No response body');
+        }
+
+        let buffer = '';
+        let result: GenerateResultIncremental | null = null;
+
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+
+          // Decode the chunk and add to buffer
+          buffer += decoder.decode(value, { stream: true });
+
+          // Process complete SSE messages
+          const lines = buffer.split('\n');
+          buffer = lines.pop() || ''; // Keep incomplete line in buffer
+
+          for (const line of lines) {
+            if (line.startsWith('data: ')) {
+              try {
+                const data = JSON.parse(line.slice(6));
+
+                if (data.type === 'progress') {
+                  // Update status based on phase
+                  if (data.message) {
+                    setGenerationStatus(data.message);
+                  }
+                } else if (data.type === 'complete') {
+                  result = data.result as GenerateResultIncremental;
+                  setGenerationStatus('Refreshing...');
+                } else if (data.type === 'error') {
+                  throw new Error(data.message);
+                }
+              } catch (e) {
+                if (
+                  e instanceof Error &&
+                  e.message !== 'Failed to parse SSE message:'
+                ) {
+                  throw e;
+                }
+                console.error('Failed to parse SSE message:', e);
+              }
+            }
+          }
+        }
+
+        if (!result) {
+          throw new Error('No result received from server');
+        }
+
+        // Show appropriate toast
+        if (result.assigned === 0) {
+          toast.info('No assignments made', {
+            description:
+              result.unassigned > 0
+                ? `${result.unassigned} achievement${result.unassigned === 1 ? '' : 's'} didn't match existing workstreams closely enough`
+                : 'No unassigned achievements to process',
+          });
+        } else {
+          toast.success('Achievements assigned', {
+            description: `Assigned ${result.assigned} achievement${result.assigned === 1 ? '' : 's'} to existing workstreams`,
+          });
+        }
+
+        // Refresh server components to update workstreams data
+        router.refresh();
+
+        return result;
+      } catch (error) {
+        console.error('Failed to auto-assign workstreams:', error);
+        toast.error('Failed to auto-assign workstreams', {
+          description:
+            error instanceof Error
+              ? error.message
+              : 'An unexpected error occurred',
+        });
+        throw error;
+      } finally {
+        setIsGenerating(false);
+        setGenerationStatus('');
+        // Clear any remaining timeout
+        if (statusTimeoutRef.current) {
+          clearTimeout(statusTimeoutRef.current);
+          statusTimeoutRef.current = null;
+        }
+      }
+    };
+
   return {
     generateWorkstreams,
+    autoAssignWorkstreams,
     isGenerating,
     generationStatus,
     assignWorkstream,
+    createWorkstream,
+    updateWorkstream,
+    getUnassignedAchievements,
   };
 }
 
