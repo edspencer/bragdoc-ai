@@ -1,5 +1,11 @@
 # @bragdoc/cli
 
+## 1.5.0
+
+### Minor Changes
+
+- e4a0a14: Added GitHub Connector
+
 ## 1.4.0
 
 ### Minor Changes
