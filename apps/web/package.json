@@ -38,7 +38,7 @@
     "@dnd-kit/modifiers": "^9.0.0",
     "@dnd-kit/sortable": "^10.0.0",
     "@dnd-kit/utilities": "^3.2.2",
-    "@goodideadev/react": "^1.0.2",
+    "@goodideadev/react": "^2.0.0",
     "@headlessui/react": "^2.2.9",
     "@hookform/resolvers": "^3.10.0",
     "@mdx-js/loader": "^3.1.1",
