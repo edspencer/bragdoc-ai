@@ -24,6 +24,7 @@ import { syncProjectWithApi, syncSourceWithApi } from '../lib/projects';
 import { promptForLLMConfig, isLLMConfigured } from '../config/llm-setup';
 import { getLLMDisplayName } from '../ai/providers';
 import type { ExtractionConfig, ExtractionDetailLevel } from '../config/types';
+import { parseGitHubRepo, isGitHubCliAvailable } from '../lib/github';
 
 const execAsync = promisify(exec);
 
@@ -158,6 +159,80 @@ export async function promptForExtractionConfig(): Promise<ExtractionConfig | nu
 
   return {
     detailLevel,
+  };
+}
+
+/**
+ * GitHub source configuration options
+ */
+interface GitHubSourceConfig {
+  repo: string;
+  includeCommits: boolean;
+  includePRs: boolean;
+  includeIssues: boolean;
+  commitStats: boolean;
+}
+
+/**
+ * Prompt user for GitHub source configuration
+ *
+ * @param inferredRepo - Repository inferred from git remote (owner/repo format)
+ * @returns Configuration options for GitHub source
+ */
+async function promptForGitHubConfig(
+  inferredRepo: string | null,
+): Promise<GitHubSourceConfig> {
+  // First ask about repo and what to include
+  const baseAnswers = await inquirer.prompt([
+    {
+      type: 'input',
+      name: 'repo',
+      message: 'GitHub repository (owner/repo):',
+      default: inferredRepo,
+      validate: (input: string) =>
+        /^[\w.-]+\/[\w.-]+$/.test(input) || 'Format: owner/repo',
+    },
+    {
+      type: 'confirm',
+      name: 'includeCommits',
+      message: 'Extract commits?',
+      default: true,
+    },
+    {
+      type: 'confirm',
+      name: 'includePRs',
+      message: 'Extract merged pull requests?',
+      default: true,
+    },
+    {
+      type: 'confirm',
+      name: 'includeIssues',
+      message: 'Extract closed issues you authored?',
+      default: false,
+    },
+  ]);
+
+  // Only ask about commit stats if commits are enabled
+  let commitStats = true;
+  if (baseAnswers.includeCommits) {
+    const statsAnswer = await inquirer.prompt([
+      {
+        type: 'confirm',
+        name: 'commitStats',
+        message:
+          'Include file-level stats for commits? (slower but more detailed)',
+        default: true,
+      },
+    ]);
+    commitStats = statsAnswer.commitStats;
+  }
+
+  return {
+    repo: baseAnswers.repo,
+    includeCommits: baseAnswers.includeCommits,
+    includePRs: baseAnswers.includePRs,
+    includeIssues: baseAnswers.includeIssues,
+    commitStats,
   };
 }
 
@@ -530,42 +605,133 @@ export async function addProject(
     const syncResult = await syncProjectWithApi(absolutePath, repoName);
     projectId = syncResult.projectId;
 
-    // Create a default Git source for this project
+    // Determine source type based on repo and gh CLI availability
     if (projectId) {
-      console.log('\n🔗 Setting up Git source for extraction...\n');
-      const sourceSyncResult = await syncSourceWithApi(
-        projectId,
-        `${repoName} (Git)`,
-        absolutePath,
-      );
+      const inferredRepo = parseGitHubRepo(repoInfo.remoteUrl);
+      const isGitHubRepo = inferredRepo !== null;
+      const ghStatus = await isGitHubCliAvailable();
 
-      if (sourceSyncResult.success && sourceSyncResult.sourceId) {
-        if (sourceSyncResult.existed) {
-          console.log(
-            chalk.blue(
-              `ℹ️  Using existing Git source (${sourceSyncResult.sourceId})`,
-            ),
-          );
+      let sourceType: 'git' | 'github' = 'git';
+
+      if (isGitHubRepo && ghStatus.available && ghStatus.authenticated) {
+        // Offer choice between GitHub and Git extraction
+        const { selectedSource } = await inquirer.prompt([
+          {
+            type: 'list',
+            name: 'selectedSource',
+            message: 'How would you like to extract achievements?',
+            choices: [
+              {
+                name: 'GitHub (commits, PRs, issues via gh CLI - no local clone needed)',
+                value: 'github',
+              },
+              {
+                name: 'Git (commits from local repository - supports full diffs)',
+                value: 'git',
+              },
+            ],
+            default: 'github',
+          },
+        ]);
+        sourceType = selectedSource;
+      } else if (
+        isGitHubRepo &&
+        ghStatus.available &&
+        !ghStatus.authenticated
+      ) {
+        // gh CLI available but not authenticated - show tip
+        console.log(
+          chalk.yellow(
+            'Tip: Run "gh auth login" to enable GitHub extraction (PRs, issues, remote commits).',
+          ),
+        );
+      }
+
+      // Configure source based on type
+      if (sourceType === 'github') {
+        const githubConfig = await promptForGitHubConfig(inferredRepo);
+
+        console.log('\n🔗 Setting up GitHub source for extraction...\n');
+        const sourceSyncResult = await syncSourceWithApi(
+          projectId,
+          `${repoName} (GitHub)`,
+          {
+            sourceType: 'github',
+            sourceConfig: {
+              repo: githubConfig.repo,
+              includeCommits: githubConfig.includeCommits,
+              includePRs: githubConfig.includePRs,
+              includeIssues: githubConfig.includeIssues,
+              commitStats: githubConfig.commitStats,
+            },
+          },
+        );
+
+        if (sourceSyncResult.success && sourceSyncResult.sourceId) {
+          if (sourceSyncResult.existed) {
+            console.log(
+              chalk.blue(
+                `Using existing GitHub source (${sourceSyncResult.sourceId})`,
+              ),
+            );
+          } else {
+            console.log(
+              chalk.green(
+                `Created GitHub source for extraction (${sourceSyncResult.sourceId})`,
+              ),
+            );
+          }
+        } else if (sourceSyncResult.type === 'warning') {
+          console.log(chalk.yellow(`${sourceSyncResult.message}`));
         } else {
           console.log(
-            chalk.green(
-              `✓ Created Git source for extraction (${sourceSyncResult.sourceId})`,
+            chalk.yellow(
+              `Could not create GitHub source: ${sourceSyncResult.message}`,
+            ),
+          );
+          console.log(
+            chalk.blue(
+              'You can configure sources manually via the web app at https://bragdoc.ai',
             ),
           );
         }
-      } else if (sourceSyncResult.type === 'warning') {
-        console.log(chalk.yellow(`⚠️  ${sourceSyncResult.message}`));
       } else {
-        console.log(
-          chalk.yellow(
-            `⚠️  Could not create Git source: ${sourceSyncResult.message}`,
-          ),
+        // Git source (original behavior)
+        console.log('\n🔗 Setting up Git source for extraction...\n');
+        const sourceSyncResult = await syncSourceWithApi(
+          projectId,
+          `${repoName} (Git)`,
+          absolutePath,
         );
-        console.log(
-          chalk.blue(
-            '💡 You can configure sources manually via the web app at https://bragdoc.ai',
-          ),
-        );
+
+        if (sourceSyncResult.success && sourceSyncResult.sourceId) {
+          if (sourceSyncResult.existed) {
+            console.log(
+              chalk.blue(
+                `Using existing Git source (${sourceSyncResult.sourceId})`,
+              ),
+            );
+          } else {
+            console.log(
+              chalk.green(
+                `Created Git source for extraction (${sourceSyncResult.sourceId})`,
+              ),
+            );
+          }
+        } else if (sourceSyncResult.type === 'warning') {
+          console.log(chalk.yellow(`${sourceSyncResult.message}`));
+        } else {
+          console.log(
+            chalk.yellow(
+              `Could not create Git source: ${sourceSyncResult.message}`,
+            ),
+          );
+          console.log(
+            chalk.blue(
+              'You can configure sources manually via the web app at https://bragdoc.ai',
+            ),
+          );
+        }
       }
     }
   } else {

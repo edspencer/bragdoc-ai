@@ -283,6 +283,9 @@ Command-line tool for analyzing local repositories and extracting achievements f
 - `bragdoc extract` - Extract achievements from configured sources
 - `bragdoc cache clear` - Clear commit cache
 
+**Optional Dependencies:**
+- **GitHub CLI (`gh`)**: Required for GitHub connector to extract PRs, issues, and remote commits. Install from https://cli.github.com/ and authenticate with `gh auth login`. Without `gh`, the CLI falls back to the Git connector for local repository extraction only.
+
 **Key Architecture:**
 The CLI uses a pluggable connector pattern where each data source (Git, GitHub, Jira, etc.) implements a standardized `Connector` interface. The `ConnectorRegistry` manages connector discovery. This enables adding new sources without modifying core CLI logic.
 

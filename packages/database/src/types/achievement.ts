@@ -39,6 +39,7 @@ export type CreateAchievementRequest = Omit<
   | 'embedding'
   | 'embeddingModel'
   | 'embeddingGeneratedAt'
+  | 'sourceItemType'
 > & {
   standupDocumentId?: string | null;
   workstreamId?: string | null;
@@ -46,6 +47,7 @@ export type CreateAchievementRequest = Omit<
   embedding?: number[] | null;
   embeddingModel?: string | null;
   embeddingGeneratedAt?: Date | null;
+  sourceItemType?: 'commit' | 'pr' | 'issue' | 'pr_comment' | null;
 };
 export type UpdateAchievementRequest = Partial<CreateAchievementRequest>;
 

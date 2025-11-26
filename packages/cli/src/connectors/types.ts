@@ -45,6 +45,30 @@ export interface ConnectorConfig {
   /** Git-specific: Branches to include in extraction (empty = all) */
   branchWhitelist?: string[];
 
+  /** GitHub-specific: Repository in "owner/repo" format */
+  repo?: string;
+
+  /** GitHub-specific: Include commits in extraction (default: true) */
+  includeCommits?: boolean;
+
+  /** GitHub-specific: Include merged PRs in extraction (default: true) */
+  includePRs?: boolean;
+
+  /** GitHub-specific: Include closed issues in extraction (default: false) */
+  includeIssues?: boolean;
+
+  /** GitHub-specific: Include PR review comments (default: false, P3 feature) */
+  includePRComments?: boolean;
+
+  /** GitHub-specific: Include per-commit file stats (default: true) */
+  commitStats?: boolean;
+
+  /** GitHub-specific: Filter by author (default: "@me" for authenticated user) */
+  author?: string;
+
+  /** GitHub-specific: Filter by branch (default: repo's default branch) */
+  branch?: string;
+
   /** Generic fallback for source-specific configuration fields */
   [key: string]: any;
 }

@@ -156,6 +156,7 @@ export class ApiClient {
       impactSource?: 'llm' | 'user';
       source?: 'llm' | 'manual' | 'commit';
       uniqueSourceId?: string | null;
+      sourceItemType?: 'commit' | 'pr' | 'issue' | 'pr_comment' | null;
     }>,
   ): Promise<any[]> {
     const results = [];
@@ -167,6 +168,7 @@ export class ApiClient {
         impactUpdatedAt: new Date().toISOString(),
         source: achievement.source || 'commit',
         impactSource: achievement.impactSource || 'llm',
+        sourceItemType: achievement.sourceItemType || null,
       });
       results.push(result);
     }

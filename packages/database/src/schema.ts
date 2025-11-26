@@ -58,6 +58,14 @@ export const userStatusEnum = pgEnum('user_status', [
 export const sourceTypeEnum = pgEnum('source_type', ['git', 'github', 'jira']);
 export type SourceType = (typeof sourceTypeEnum.enumValues)[number];
 
+export const sourceItemTypeEnum = pgEnum('source_item_type', [
+  'commit', // Git commit or GitHub commit
+  'pr', // GitHub pull request
+  'issue', // GitHub issue
+  'pr_comment', // GitHub PR review comment (P3)
+]);
+export type SourceItemType = (typeof sourceItemTypeEnum.enumValues)[number];
+
 export const user = pgTable(
   'User',
   {
@@ -213,6 +221,7 @@ export const achievement = pgTable(
       onDelete: 'set null',
     }),
     uniqueSourceId: varchar('unique_source_id', { length: 512 }),
+    sourceItemType: sourceItemTypeEnum('source_item_type'),
     standupDocumentId: uuid('standup_document_id').references(
       () => standupDocument.id,
       { onDelete: 'set null' },
@@ -277,14 +286,15 @@ export const achievement = pgTable(
       table.uniqueSourceId,
     ),
     // Partial unique constraint to prevent duplicate achievements within a project
-    // Only applies when both projectId and uniqueSourceId are NOT NULL
+    // Only applies when projectId, sourceItemType, and uniqueSourceId are all NOT NULL
     // This allows manual achievements without these fields to coexist
+    // The sourceItemType differentiates commits, PRs, issues, and PR comments
     achievementProjectSourceUnique: uniqueIndex(
       'achievement_project_source_unique',
     )
-      .on(table.projectId, table.uniqueSourceId)
+      .on(table.projectId, table.sourceItemType, table.uniqueSourceId)
       .where(
-        sql`${table.projectId} IS NOT NULL AND ${table.uniqueSourceId} IS NOT NULL`,
+        sql`${table.projectId} IS NOT NULL AND ${table.sourceItemType} IS NOT NULL AND ${table.uniqueSourceId} IS NOT NULL`,
       ),
   }),
 );

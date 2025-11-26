@@ -243,6 +243,35 @@ class GitConnector implements Connector {
 - Supports branch whitelisting from source config
 - Integrates with batch processing pipeline
 
+### GitHubConnector Implementation
+
+**File:** `packages/cli/src/connectors/github-connector.ts`
+
+The GitHubConnector extracts achievements from GitHub repositories via the `gh` CLI. It is an alternative to GitConnector for GitHub-hosted repositories, offering richer data (PRs, issues) without requiring a local clone.
+
+**Key Benefits:**
+- No local clone required - extract from any repository you have access to
+- Rich PR data with descriptions, additions/deletions, and branch context
+- Multiple data types from single source (commits, PRs, issues)
+- Per-file statistics included for detailed analysis
+
+**Key Points:**
+- Requires `gh` CLI installed and authenticated (`gh auth login`)
+- Uses CommitCache with sourceId-based keys
+- Cache keys formatted as `{type}-{id}` (e.g., `commit-abc123`, `pr-456`)
+- Supports filtering by author (`@me` default) and date range
+- Validates repository access before extraction
+
+**Git vs GitHub Connector Choice:**
+
+| Scenario | Recommended Connector |
+|----------|----------------------|
+| GitHub repo, want PRs + commits | **GitHub Connector** |
+| GitHub repo, need full diffs | **Git Connector** |
+| Non-GitHub repo (GitLab, Bitbucket) | **Git Connector** |
+| No local clone available | **GitHub Connector** |
+| Offline development | **Git Connector** |
+
 ### ConnectorRegistry
 
 **File:** `packages/cli/src/connectors/registry.ts`
@@ -282,13 +311,13 @@ export function initializeConnectors(): void {
 
 ### How to Implement a New Connector
 
-To add a new data source (e.g., GitHub):
+To add a new data source (e.g., Jira), follow the pattern established by GitHubConnector:
 
 1. **Create connector class** implementing `Connector` interface
    ```typescript
-   // packages/cli/src/connectors/github-connector.ts
-   export class GitHubConnector implements Connector {
-     get type(): string { return 'github'; }
+   // packages/cli/src/connectors/jira-connector.ts
+   export class JiraConnector implements Connector {
+     get type(): string { return 'jira'; }
      async initialize(config: ConnectorConfig): Promise<void> { /* ... */ }
      async fetch(options?: FetchOptions): Promise<ConnectorData[]> { /* ... */ }
      async validate(): Promise<boolean> { /* ... */ }
@@ -299,14 +328,17 @@ To add a new data source (e.g., GitHub):
 2. **Register in ConnectorRegistry**
    ```typescript
    // In initializeConnectors()
-   connectorRegistry.register('github', new GitHubConnector());
+   connectorRegistry.register('jira', new JiraConnector());
    ```
 
 3. **Test connector** with unit tests and integration tests
+   - See `packages/cli/src/connectors/__tests__/github-connector.test.ts` for reference
 
 4. **Document configuration** in CLI setup guides
 
 The extract command automatically discovers and uses the connector via the registry.
+
+**Reference Implementation:** See `GitHubConnector` in `packages/cli/src/connectors/github-connector.ts` for a complete example of connector implementation including helper functions, validation, caching, and data transformation.
 
 ## Source Synchronization
 
@@ -547,6 +579,6 @@ export const logger = winston.createLogger({
 
 ---
 
-**Last Updated:** 2025-10-21
+**Last Updated:** 2025-11-26
 **Package Version:** See packages/cli/package.json
 **npm Package:** @bragdoc/cli

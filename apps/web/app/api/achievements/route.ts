@@ -34,6 +34,10 @@ const achievementSchema = z.object({
   isArchived: z.boolean().optional(),
   sourceId: z.string().uuid().optional().nullable(),
   uniqueSourceId: z.string().optional().nullable(),
+  sourceItemType: z
+    .enum(['commit', 'pr', 'issue', 'pr_comment'])
+    .optional()
+    .nullable(),
 });
 
 // GET /api/achievements
@@ -156,6 +160,7 @@ export async function POST(req: NextRequest) {
       impactSource: result.data.impactSource ?? 'user',
       sourceId: result.data.sourceId ?? null,
       uniqueSourceId: result.data.uniqueSourceId ?? null,
+      sourceItemType: result.data.sourceItemType ?? null,
     };
 
     const achievement = await createAchievement(

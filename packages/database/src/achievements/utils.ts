@@ -54,15 +54,15 @@ export async function createSystemUserMessage(
 /**
  * Creates a new achievement, or returns existing achievement if duplicate.
  *
- * Supports idempotent creation: submitting the same (projectId, uniqueSourceId) pair
- * multiple times will return the existing achievement instead of throwing an error.
+ * Supports idempotent creation: submitting the same (projectId, sourceItemType, uniqueSourceId)
+ * triple multiple times will return the existing achievement instead of throwing an error.
  * This is essential for CLI tools that may retry or replay achievement creation.
  *
- * Only applies partial unique constraint when both projectId and uniqueSourceId
- * are provided. Manual achievements without these fields can be created multiple times.
+ * Only applies partial unique constraint when projectId, sourceItemType, and uniqueSourceId
+ * are all provided. Manual achievements without these fields can be created multiple times.
  *
  * @param userId - User who owns the achievement (always scoped for security)
- * @param data - Achievement creation data (may include projectId, uniqueSourceId)
+ * @param data - Achievement creation data (may include projectId, sourceItemType, uniqueSourceId)
  * @param source - Achievement source ('manual', 'commit', 'llm')
  * @param userMessageId - Optional reference to original user message
  * @returns Achievement record (newly created or existing if duplicate)
@@ -100,10 +100,10 @@ export async function createAchievement(
       .returning()
       .then((rows) => rows[0]);
   } catch (error: any) {
-    // Check if this is a unique constraint violation on (projectId, uniqueSourceId)
+    // Check if this is a unique constraint violation on (projectId, sourceItemType, uniqueSourceId)
     if (isUniqueConstraintViolation(error)) {
-      // Only handle if we have both projectId and uniqueSourceId
-      if (data.projectId && data.uniqueSourceId) {
+      // Only handle if we have projectId, sourceItemType, and uniqueSourceId
+      if (data.projectId && data.sourceItemType && data.uniqueSourceId) {
         // Query for the existing achievement
         const existing = await db
           .select()
@@ -112,6 +112,7 @@ export async function createAchievement(
             and(
               eq(achievement.userId, userId),
               eq(achievement.projectId, data.projectId),
+              eq(achievement.sourceItemType, data.sourceItemType),
               eq(achievement.uniqueSourceId, data.uniqueSourceId),
             ),
           )
@@ -121,7 +122,7 @@ export async function createAchievement(
         if (existing) {
           // Log the duplicate attempt
           console.log(
-            `Duplicate achievement detected for user ${userId} in project ${data.projectId} with uniqueSourceId ${data.uniqueSourceId}`,
+            `Duplicate achievement detected for user ${userId} in project ${data.projectId} with sourceItemType ${data.sourceItemType} and uniqueSourceId ${data.uniqueSourceId}`,
           );
           return existing;
         }

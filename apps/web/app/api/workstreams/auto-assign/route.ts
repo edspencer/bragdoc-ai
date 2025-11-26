@@ -1,11 +1,6 @@
 import { type NextRequest, NextResponse } from 'next/server';
 import { getAuthUser } from '@/lib/getAuthUser';
-import {
-  db,
-  achievement,
-  workstream,
-  getWorkstreamMetadata,
-} from '@bragdoc/database';
+import { db, achievement, workstream } from '@bragdoc/database';
 import { eq, isNotNull, isNull, and, count } from 'drizzle-orm';
 import { generateMissingEmbeddings } from '@/lib/ai/embeddings';
 import {
