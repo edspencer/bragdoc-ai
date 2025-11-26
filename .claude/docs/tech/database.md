@@ -186,6 +186,14 @@ Projects are linked to CLI config via `repoRemoteUrl`. When CLI extracts achieve
 export const sourceTypeEnum = pgEnum('source_type', ['git', 'github', 'jira']);
 export type SourceType = (typeof sourceTypeEnum.enumValues)[number];
 
+export const sourceItemTypeEnum = pgEnum('source_item_type', [
+  'commit',      // Git commit or GitHub commit
+  'pr',          // GitHub pull request
+  'issue',       // GitHub issue
+  'pr_comment',  // GitHub PR review comment (future)
+]);
+export type SourceItemType = (typeof sourceItemTypeEnum.enumValues)[number];
+
 export const source = pgTable('Source', {
   id: uuid('id').primaryKey().notNull().defaultRandom(),
   userId: uuid('user_id')
@@ -297,6 +305,7 @@ export const achievement = pgTable('Achievement', {
     .default('llm'),
   impactUpdatedAt: timestamp('impact_updated_at').defaultNow(),
   uniqueSourceId: varchar('unique_source_id', { length: 512 }), // Idempotent deduplication
+  sourceItemType: sourceItemTypeEnum('source_item_type'),       // Type of source item (commit, pr, issue)
 
   // Workstream fields
   workstreamId: uuid('workstream_id')
@@ -318,12 +327,17 @@ export const achievement = pgTable('Achievement', {
     table.sourceId,
     table.uniqueSourceId
   ),
+  // Partial unique index: prevents duplicate imports of same item type from same project
+  achievementProjectSourceUnique: uniqueIndex('achievement_project_source_unique')
+    .on(table.projectId, table.sourceItemType, table.uniqueSourceId)
+    .where(sql`project_id IS NOT NULL AND source_item_type IS NOT NULL AND unique_source_id IS NOT NULL`),
 }));
 ```
 
 **Source Tracking Fields:**
 - **sourceId**: Foreign key linking achievement to its source. Set to `null` when source is archived to preserve the achievement.
-- **uniqueSourceId**: Source-specific identifier (e.g., Git commit hash, GitHub issue URL) enabling idempotent imports. Prevents duplicates when re-importing from the same source with the same reference.
+- **uniqueSourceId**: Source-specific identifier (e.g., Git commit hash `abc123def...`, PR number `456`, issue number `789`) enabling idempotent imports. Prevents duplicates when re-importing from the same source with the same reference.
+- **sourceItemType**: Distinguishes the type of source item (`commit`, `pr`, `issue`, `pr_comment`). Works with the unique constraint to allow the same ID number to exist for different item types (e.g., PR #123 and Issue #123 are distinct).
 
 **Source Linking Examples:**
 ```typescript
@@ -1409,6 +1423,6 @@ const achievements = await db
 
 ---
 
-**Last Updated**: 2025-10-21
+**Last Updated**: 2025-11-26
 **Schema Version**: See latest migration number
 **Drizzle Version**: 0.34.1

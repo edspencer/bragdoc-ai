@@ -1,5 +1,65 @@
 ---
 
+## CLI GitHub Connector
+
+### Overview
+
+The GitHub Connector enables the BragDoc CLI to extract achievements directly from GitHub repositories without requiring a local clone. Using the GitHub CLI (`gh`), it fetches commits, merged pull requests, and closed issues, providing richer context for achievement extraction.
+
+### When to Use GitHub vs Git Connector
+
+| Scenario | Recommended |
+|----------|-------------|
+| Want PRs and issues, not just commits | **GitHub Connector** |
+| Need full code diffs for analysis | **Git Connector** |
+| No local clone of the repository | **GitHub Connector** |
+| Working offline | **Git Connector** |
+| Non-GitHub repo (GitLab, Bitbucket) | **Git Connector** |
+
+### Setup Requirements
+
+1. **Install GitHub CLI**: Download from https://cli.github.com/
+2. **Authenticate**: Run `gh auth login` and follow the prompts
+3. **Initialize project**: Run `bragdoc init` and select "GitHub" when prompted
+
+### Configuration Options
+
+When initializing a project with the GitHub connector, you can configure:
+
+- **Repository** (`owner/repo`): The GitHub repository to extract from
+- **Include Commits**: Extract achievements from commits (default: yes)
+- **Include PRs**: Extract achievements from merged pull requests (default: yes)
+- **Include Issues**: Extract achievements from closed issues you authored (default: no)
+- **Commit Stats**: Include file-level statistics for commits (default: yes, but slower)
+
+### Data Extracted
+
+**From Commits:**
+- Commit message (title and body)
+- Author information
+- Timestamp
+- File statistics (additions, deletions, files changed)
+
+**From Pull Requests:**
+- PR title and description
+- Merge date
+- Code changes summary (additions, deletions, files changed)
+- Source and target branches
+
+**From Issues:**
+- Issue title and body
+- Close date
+- Labels
+
+### Technical Details
+
+- Uses `gh` CLI commands under the hood (not direct API calls)
+- Caches processed items to avoid duplicates
+- Cache keys formatted as `{type}-{id}` (e.g., `commit-abc123`, `pr-456`)
+- Automatically detects GitHub URLs from local Git remotes
+
+---
+
 ## Navigation Structure
 
 ### Careers Section

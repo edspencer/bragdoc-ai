@@ -1,8 +1,31 @@
-import type { GitCommit, RepositoryInfo } from './types';
+import type { GitCommit, RepositoryInfo, SourceItemType } from './types';
 import logger from '../utils/logger';
 import { renderExecute } from '../ai/extract-commit-achievements';
 import type { Company, Project, User } from '../ai/prompts/types';
 import type { ApiClient } from '../api/client';
+
+/**
+ * Derive sourceItemType from the raw type string
+ *
+ * Maps connector raw types to the database sourceItemType enum values.
+ * Defaults to 'commit' for unknown types or missing rawType.
+ *
+ * @param rawType - Raw type string from connector (e.g., 'pr', 'issue', 'commit', 'pr_comment')
+ * @returns The corresponding sourceItemType enum value
+ */
+function deriveSourceItemType(rawType: string | undefined): SourceItemType {
+  switch (rawType) {
+    case 'pr':
+      return 'pr';
+    case 'issue':
+      return 'issue';
+    case 'pr_comment':
+      return 'pr_comment';
+    case 'commit':
+    default:
+      return 'commit';
+  }
+}
 
 export interface BatchConfig {
   maxCommitsPerBatch: number; // Default: 10
@@ -105,23 +128,39 @@ export async function* processInBatches(
         // Get sourceId from batch commits (should be the same for all commits in batch)
         const batchSourceId = batchCommits[0]?.sourceId || null;
 
+        // Build a map from item hash to rawType for sourceItemType derivation
+        // This allows us to look up the correct type when creating achievements
+        const hashToRawType = new Map<string, string | undefined>();
+        for (const commit of batchCommits) {
+          hashToRawType.set(commit.hash, commit.rawType);
+        }
+
         // Send extracted achievements to API for saving
         const savedAchievements = await apiClient.createAchievements(
-          extractedAchievements.map((achievement) => ({
-            title: achievement.title,
-            summary: achievement.summary,
-            details: achievement.details,
-            eventDuration: achievement.eventDuration,
-            eventStart: achievement.eventStart,
-            eventEnd: achievement.eventEnd,
-            projectId: extractionContext.projectId,
-            companyId: achievement.companyId,
-            impact: achievement.impact,
-            impactSource: 'llm' as const,
-            source: 'commit' as const,
-            uniqueSourceId: achievement.commitHash || null,
-            sourceId: batchSourceId,
-          })),
+          extractedAchievements.map((achievement) => {
+            // Look up the rawType for this achievement's source item
+            const rawType = achievement.commitHash
+              ? hashToRawType.get(achievement.commitHash)
+              : undefined;
+            const sourceItemType = deriveSourceItemType(rawType);
+
+            return {
+              title: achievement.title,
+              summary: achievement.summary,
+              details: achievement.details,
+              eventDuration: achievement.eventDuration,
+              eventStart: achievement.eventStart,
+              eventEnd: achievement.eventEnd,
+              projectId: extractionContext.projectId,
+              companyId: achievement.companyId,
+              impact: achievement.impact,
+              impactSource: 'llm' as const,
+              source: 'commit' as const,
+              uniqueSourceId: achievement.commitHash || null,
+              sourceId: batchSourceId,
+              sourceItemType,
+            };
+          }),
         );
 
         const result: BatchResult = {

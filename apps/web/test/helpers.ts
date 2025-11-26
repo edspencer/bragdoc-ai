@@ -76,6 +76,7 @@ export function createMockAchievement(
     embeddingGeneratedAt: null,
     sourceId: null,
     uniqueSourceId: null,
+    sourceItemType: null,
     ...overrides,
   };
 }

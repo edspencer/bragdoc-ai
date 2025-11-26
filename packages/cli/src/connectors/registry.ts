@@ -11,6 +11,7 @@
 
 import type { Connector } from './types';
 import { GitConnector } from './git-connector';
+import { GitHubConnector } from './github-connector';
 import logger from '../utils/logger';
 
 /**
@@ -154,8 +155,10 @@ export function initializeConnectors(): void {
   // Register Git connector
   connectorRegistry.register('git', new GitConnector());
 
+  // Register GitHub connector
+  connectorRegistry.register('github', new GitHubConnector());
+
   // Future registrations:
-  // connectorRegistry.register('github', new GitHubConnector());
   // connectorRegistry.register('jira', new JiraConnector());
 
   logger.debug(

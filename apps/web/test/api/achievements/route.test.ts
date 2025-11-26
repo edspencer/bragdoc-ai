@@ -495,6 +495,7 @@ describe('Achievement API Routes', () => {
           projectId: testProject.id,
           uniqueSourceId: 'github-pr-123',
           source: 'commit' as const,
+          sourceItemType: 'commit' as const,
         };
 
         mockGetSession.mockResolvedValueOnce({
@@ -547,6 +548,7 @@ describe('Achievement API Routes', () => {
           projectId: testProject.id,
           uniqueSourceId: 'github-issue-456',
           source: 'commit' as const,
+          sourceItemType: 'commit' as const,
         };
 
         // Submit same achievement 3 times
@@ -744,6 +746,7 @@ describe('Achievement API Routes', () => {
           projectId: testProject.id,
           uniqueSourceId: 'log-test-789',
           source: 'commit' as const,
+          sourceItemType: 'commit' as const,
         };
 
         // First submission

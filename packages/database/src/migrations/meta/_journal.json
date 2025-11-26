@@ -64,6 +64,13 @@
       "when": 1764081167651,
       "tag": "0008_heavy_mysterio",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1764167670799,
+      "tag": "0009_empty_enchantress",
+      "breakpoints": true
     }
   ]
 }

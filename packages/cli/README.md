@@ -24,6 +24,29 @@ Perfect for developers who want to maintain an up-to-date record of their profes
 npm install -g @bragdoc/cli
 ```
 
+### Optional: GitHub CLI
+
+For enhanced GitHub integration (PRs, issues, remote commits), install the GitHub CLI:
+
+```bash
+# macOS
+brew install gh
+
+# Windows
+winget install --id GitHub.cli
+
+# Linux (Debian/Ubuntu)
+sudo apt install gh
+```
+
+Then authenticate:
+
+```bash
+gh auth login
+```
+
+Without `gh`, the CLI uses the Git connector for local repository extraction only.
+
 ## Quick Start
 
 1. Authenticate with bragdoc:
@@ -93,9 +116,35 @@ bragdoc projects enable [path]
 bragdoc projects disable [path]
 ```
 
+### GitHub Source Configuration
+
+When you have the GitHub CLI (`gh`) installed and authenticated, `bragdoc init` offers the option to use the GitHub connector for richer extraction:
+
+```bash
+cd /path/to/repo
+bragdoc init
+# Select "GitHub" when prompted for extraction method
+# Configure which data types to extract:
+#   - Commits (default: yes)
+#   - Merged PRs (default: yes)
+#   - Closed issues (default: no)
+#   - File-level stats (default: yes)
+```
+
+**GitHub vs Git Connector:**
+
+| Feature | Git Connector | GitHub Connector |
+|---------|--------------|------------------|
+| Commits | Yes | Yes |
+| Pull Requests | No | Yes |
+| Issues | No | Yes |
+| Full diffs | Yes | No |
+| Local clone required | Yes | No |
+| Offline support | Yes | No |
+
 ### Achievement Extraction (`extract`)
 
-Extract achievements from Git commits.
+Extract achievements from configured sources (Git or GitHub).
 
 ```bash
 # Extract from current project
@@ -626,7 +675,28 @@ The CLI provides detailed error messages and logging:
    - **macOS**: Check LaunchAgent with `launchctl list | grep bragdoc`
    - **Linux**: Verify systemd user services are enabled
 
-6. **LLM Configuration Issues**
+6. **GitHub Connector Issues**
+
+   - **"GitHub CLI (gh) is not installed" error**:
+     - Install gh from https://cli.github.com/
+     - Verify installation: `gh --version`
+
+   - **"GitHub CLI is not authenticated" error**:
+     - Run `gh auth login` to authenticate
+     - Follow the prompts to complete OAuth flow
+     - Verify with `gh auth status`
+
+   - **"Cannot access repository" error**:
+     - Verify the repository format is correct: `owner/repo`
+     - Check you have access to the repository: `gh repo view owner/repo`
+     - For private repos, ensure your gh token has appropriate scopes
+
+   - **Rate limiting errors**:
+     - GitHub API has rate limits; wait and try again
+     - Consider reducing extraction frequency
+     - Check your rate limit: `gh api rate_limit`
+
+7. **LLM Configuration Issues**
 
    - **"LLM provider is not configured" error**:
      - Run `bragdoc llm set` to configure your LLM provider

@@ -369,6 +369,8 @@ export const extractCommand = new Command('extract')
           diff: item.raw.diff,
           diffTruncated: item.raw.diffTruncated,
           sourceId: item.sourceId, // Pass through sourceId for API
+          // Pass through raw type for sourceItemType derivation (pr, issue, commit, pr_comment)
+          rawType: item.raw.type as string | undefined,
         }));
 
         // Batch process
