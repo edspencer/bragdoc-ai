@@ -28,6 +28,7 @@ describe('AchievementItem Component Tests', () => {
       source: 'manual' as const,
       sourceId: null,
       uniqueSourceId: null,
+      sourceItemType: null,
       impact: 2,
       impactSource: 'user' as const,
       impactUpdatedAt: new Date(),
