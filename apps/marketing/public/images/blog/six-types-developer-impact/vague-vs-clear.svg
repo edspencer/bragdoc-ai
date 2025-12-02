@@ -1,0 +1,75 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 380" width="800" height="380">
+  <defs>
+    <linearGradient id="bgGrad3" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#fefefe;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#f8f9fa;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+
+  <!-- Background -->
+  <rect width="800" height="380" fill="url(#bgGrad3)" rx="12"/>
+
+  <!-- Title -->
+  <text x="400" y="38" font-family="system-ui, -apple-system, sans-serif" font-size="22" font-weight="700" fill="#1a1a1a" text-anchor="middle">Vague vs Clear: How to Document Impact</text>
+
+  <!-- Left Column Header - Vague -->
+  <g transform="translate(40, 60)">
+    <rect width="350" height="36" rx="8" fill="#fef2f2"/>
+    <circle cx="24" cy="18" r="14" fill="#ef4444"/>
+    <text x="24" y="23" font-family="system-ui, -apple-system, sans-serif" font-size="14" font-weight="700" fill="#fff" text-anchor="middle">X</text>
+    <text x="55" y="24" font-family="system-ui, -apple-system, sans-serif" font-size="15" font-weight="600" fill="#dc2626">Vague (Forgettable)</text>
+  </g>
+
+  <!-- Right Column Header - Clear -->
+  <g transform="translate(410, 60)">
+    <rect width="350" height="36" rx="8" fill="#ecfdf5"/>
+    <circle cx="24" cy="18" r="14" fill="#10b981"/>
+    <text x="24" y="23" font-family="system-ui, -apple-system, sans-serif" font-size="16" font-weight="700" fill="#fff" text-anchor="middle">&#10003;</text>
+    <text x="55" y="24" font-family="system-ui, -apple-system, sans-serif" font-size="15" font-weight="600" fill="#059669">Clear (Memorable)</text>
+  </g>
+
+  <!-- Example 1 -->
+  <g transform="translate(40, 110)">
+    <rect width="350" height="70" rx="8" fill="#fff" stroke="#fecaca" stroke-width="1"/>
+    <text x="16" y="25" font-family="system-ui, -apple-system, sans-serif" font-size="12" font-weight="600" fill="#6b7280">CODE</text>
+    <text x="16" y="48" font-family="system-ui, -apple-system, sans-serif" font-size="13" fill="#374151">"Built user dashboard"</text>
+  </g>
+  <g transform="translate(410, 110)">
+    <rect width="350" height="70" rx="8" fill="#fff" stroke="#a7f3d0" stroke-width="1"/>
+    <text x="16" y="25" font-family="system-ui, -apple-system, sans-serif" font-size="12" font-weight="600" fill="#6b7280">CODE</text>
+    <text x="16" y="45" font-family="system-ui, -apple-system, sans-serif" font-size="12" fill="#374151">"Built analytics dashboard that product</text>
+    <text x="16" y="60" font-family="system-ui, -apple-system, sans-serif" font-size="12" fill="#374151">uses daily, reducing decision time by 80%"</text>
+  </g>
+
+  <!-- Example 2 -->
+  <g transform="translate(40, 190)">
+    <rect width="350" height="70" rx="8" fill="#fff" stroke="#fecaca" stroke-width="1"/>
+    <text x="16" y="25" font-family="system-ui, -apple-system, sans-serif" font-size="12" font-weight="600" fill="#6b7280">MENTORING</text>
+    <text x="16" y="48" font-family="system-ui, -apple-system, sans-serif" font-size="13" fill="#374151">"Mentored junior developers"</text>
+  </g>
+  <g transform="translate(410, 190)">
+    <rect width="350" height="70" rx="8" fill="#fff" stroke="#a7f3d0" stroke-width="1"/>
+    <text x="16" y="25" font-family="system-ui, -apple-system, sans-serif" font-size="12" font-weight="600" fill="#6b7280">MENTORING</text>
+    <text x="16" y="45" font-family="system-ui, -apple-system, sans-serif" font-size="12" fill="#374151">"Mentored 2 engineers through first prod</text>
+    <text x="16" y="60" font-family="system-ui, -apple-system, sans-serif" font-size="12" fill="#374151">features, 5hrs/week. Both now independent."</text>
+  </g>
+
+  <!-- Example 3 -->
+  <g transform="translate(40, 270)">
+    <rect width="350" height="70" rx="8" fill="#fff" stroke="#fecaca" stroke-width="1"/>
+    <text x="16" y="25" font-family="system-ui, -apple-system, sans-serif" font-size="12" font-weight="600" fill="#6b7280">PROCESS</text>
+    <text x="16" y="48" font-family="system-ui, -apple-system, sans-serif" font-size="13" fill="#374151">"Improved CI/CD pipeline"</text>
+  </g>
+  <g transform="translate(410, 270)">
+    <rect width="350" height="70" rx="8" fill="#fff" stroke="#a7f3d0" stroke-width="1"/>
+    <text x="16" y="25" font-family="system-ui, -apple-system, sans-serif" font-size="12" font-weight="600" fill="#6b7280">PROCESS</text>
+    <text x="16" y="45" font-family="system-ui, -apple-system, sans-serif" font-size="12" fill="#374151">"Cut CI build time from 25 to 8 min, saving</text>
+    <text x="16" y="60" font-family="system-ui, -apple-system, sans-serif" font-size="12" fill="#374151">~300 engineering hours/month across team"</text>
+  </g>
+
+  <!-- Footer -->
+  <g transform="translate(340, 355)">
+    <rect width="120" height="22" rx="6" fill="#f97316"/>
+    <text x="60" y="15" font-family="system-ui, -apple-system, sans-serif" font-size="11" font-weight="600" fill="#fff" text-anchor="middle">bragdoc.ai</text>
+  </g>
+</svg>
