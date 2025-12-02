@@ -1,0 +1,76 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 700 400" width="700" height="400">
+  <defs>
+    <linearGradient id="bgGrad2" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#fefefe;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#f8f9fa;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+
+  <!-- Background -->
+  <rect width="700" height="400" fill="url(#bgGrad2)" rx="12"/>
+
+  <!-- Title -->
+  <text x="350" y="40" font-family="system-ui, -apple-system, sans-serif" font-size="22" font-weight="700" fill="#1a1a1a" text-anchor="middle">Where Senior Developers Actually Spend Their Time</text>
+  <text x="350" y="62" font-family="system-ui, -apple-system, sans-serif" font-size="13" fill="#6b7280" text-anchor="middle">Coding is only part of the picture</text>
+
+  <!-- Bar Chart -->
+  <!-- Code & Features - 30% -->
+  <g transform="translate(50, 95)">
+    <text x="0" y="14" font-family="system-ui, -apple-system, sans-serif" font-size="13" font-weight="500" fill="#1a1a1a">Code &amp; Features</text>
+    <rect x="140" y="0" width="300" height="24" rx="4" fill="#f97316"/>
+    <text x="450" y="16" font-family="system-ui, -apple-system, sans-serif" font-size="14" font-weight="600" fill="#1a1a1a">30%</text>
+  </g>
+
+  <!-- Mentoring - 20% -->
+  <g transform="translate(50, 135)">
+    <text x="0" y="14" font-family="system-ui, -apple-system, sans-serif" font-size="13" font-weight="500" fill="#1a1a1a">Mentoring</text>
+    <rect x="140" y="0" width="200" height="24" rx="4" fill="#8b5cf6"/>
+    <text x="350" y="16" font-family="system-ui, -apple-system, sans-serif" font-size="14" font-weight="600" fill="#1a1a1a">20%</text>
+  </g>
+
+  <!-- Architecture - 15% -->
+  <g transform="translate(50, 175)">
+    <text x="0" y="14" font-family="system-ui, -apple-system, sans-serif" font-size="13" font-weight="500" fill="#1a1a1a">Architecture</text>
+    <rect x="140" y="0" width="150" height="24" rx="4" fill="#06b6d4"/>
+    <text x="300" y="16" font-family="system-ui, -apple-system, sans-serif" font-size="14" font-weight="600" fill="#1a1a1a">15%</text>
+  </g>
+
+  <!-- Process - 15% -->
+  <g transform="translate(50, 215)">
+    <text x="0" y="14" font-family="system-ui, -apple-system, sans-serif" font-size="13" font-weight="500" fill="#1a1a1a">Process</text>
+    <rect x="140" y="0" width="150" height="24" rx="4" fill="#10b981"/>
+    <text x="300" y="16" font-family="system-ui, -apple-system, sans-serif" font-size="14" font-weight="600" fill="#1a1a1a">15%</text>
+  </g>
+
+  <!-- Reliability - 10% -->
+  <g transform="translate(50, 255)">
+    <text x="0" y="14" font-family="system-ui, -apple-system, sans-serif" font-size="13" font-weight="500" fill="#1a1a1a">Reliability</text>
+    <rect x="140" y="0" width="100" height="24" rx="4" fill="#ef4444"/>
+    <text x="250" y="16" font-family="system-ui, -apple-system, sans-serif" font-size="14" font-weight="600" fill="#1a1a1a">10%</text>
+  </g>
+
+  <!-- Collaboration - 10% -->
+  <g transform="translate(50, 295)">
+    <text x="0" y="14" font-family="system-ui, -apple-system, sans-serif" font-size="13" font-weight="500" fill="#1a1a1a">Collaboration</text>
+    <rect x="140" y="0" width="100" height="24" rx="4" fill="#3b82f6"/>
+    <text x="250" y="16" font-family="system-ui, -apple-system, sans-serif" font-size="14" font-weight="600" fill="#1a1a1a">10%</text>
+  </g>
+
+  <!-- Callout box -->
+  <g transform="translate(500, 130)">
+    <rect width="170" height="100" rx="8" fill="#fef3c7" stroke="#f59e0b" stroke-width="1"/>
+    <text x="85" y="30" font-family="system-ui, -apple-system, sans-serif" font-size="32" font-weight="700" fill="#b45309" text-anchor="middle">70%</text>
+    <text x="85" y="52" font-family="system-ui, -apple-system, sans-serif" font-size="12" fill="#92400e" text-anchor="middle">of senior dev work</text>
+    <text x="85" y="68" font-family="system-ui, -apple-system, sans-serif" font-size="12" fill="#92400e" text-anchor="middle">is NOT writing code</text>
+    <text x="85" y="88" font-family="system-ui, -apple-system, sans-serif" font-size="10" fill="#b45309" text-anchor="middle">Are you documenting it?</text>
+  </g>
+
+  <!-- Footer -->
+  <text x="350" y="355" font-family="system-ui, -apple-system, sans-serif" font-size="11" fill="#9ca3af" text-anchor="middle">Based on industry surveys of senior and staff engineers</text>
+
+  <!-- BragDoc branding -->
+  <g transform="translate(290, 368)">
+    <rect width="120" height="24" rx="6" fill="#f97316"/>
+    <text x="60" y="16" font-family="system-ui, -apple-system, sans-serif" font-size="12" font-weight="600" fill="#fff" text-anchor="middle">bragdoc.ai</text>
+  </g>
+</svg>

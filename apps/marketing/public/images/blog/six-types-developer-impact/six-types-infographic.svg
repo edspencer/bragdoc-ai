@@ -1,0 +1,91 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 500" width="800" height="500">
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#fefefe;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#f8f9fa;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+
+  <!-- Background -->
+  <rect width="800" height="500" fill="url(#bgGrad)" rx="12"/>
+
+  <!-- Title -->
+  <text x="400" y="45" font-family="system-ui, -apple-system, sans-serif" font-size="24" font-weight="700" fill="#1a1a1a" text-anchor="middle">The 6 Types of Developer Impact</text>
+
+  <!-- Row 1 -->
+  <!-- Card 1: Code & Features -->
+  <g transform="translate(45, 75)">
+    <rect width="230" height="120" rx="10" fill="#fff" stroke="#e5e7eb" stroke-width="1"/>
+    <rect width="230" height="4" rx="2" fill="#f97316"/>
+    <circle cx="40" cy="50" r="24" fill="#fff7ed"/>
+    <text x="40" y="56" font-size="24" text-anchor="middle">💻</text>
+    <text x="80" y="48" font-family="system-ui, -apple-system, sans-serif" font-size="15" font-weight="600" fill="#1a1a1a">Code &amp; Features</text>
+    <text x="80" y="68" font-family="system-ui, -apple-system, sans-serif" font-size="12" fill="#6b7280">Shipping functionality</text>
+    <text x="40" y="100" font-family="system-ui, -apple-system, sans-serif" font-size="11" fill="#9ca3af">Features, bugs, production code</text>
+  </g>
+
+  <!-- Card 2: Mentoring -->
+  <g transform="translate(285, 75)">
+    <rect width="230" height="120" rx="10" fill="#fff" stroke="#e5e7eb" stroke-width="1"/>
+    <rect width="230" height="4" rx="2" fill="#8b5cf6"/>
+    <circle cx="40" cy="50" r="24" fill="#f5f3ff"/>
+    <text x="40" y="56" font-size="24" text-anchor="middle">🎓</text>
+    <text x="80" y="48" font-family="system-ui, -apple-system, sans-serif" font-size="15" font-weight="600" fill="#1a1a1a">Mentoring</text>
+    <text x="80" y="68" font-family="system-ui, -apple-system, sans-serif" font-size="12" fill="#6b7280">Teaching others</text>
+    <text x="40" y="100" font-family="system-ui, -apple-system, sans-serif" font-size="11" fill="#9ca3af">Code reviews, pairing, docs</text>
+  </g>
+
+  <!-- Card 3: Architecture -->
+  <g transform="translate(525, 75)">
+    <rect width="230" height="120" rx="10" fill="#fff" stroke="#e5e7eb" stroke-width="1"/>
+    <rect width="230" height="4" rx="2" fill="#06b6d4"/>
+    <circle cx="40" cy="50" r="24" fill="#ecfeff"/>
+    <text x="40" y="56" font-size="24" text-anchor="middle">🏗️</text>
+    <text x="80" y="48" font-family="system-ui, -apple-system, sans-serif" font-size="15" font-weight="600" fill="#1a1a1a">Architecture</text>
+    <text x="80" y="68" font-family="system-ui, -apple-system, sans-serif" font-size="12" fill="#6b7280">Shaping the system</text>
+    <text x="40" y="100" font-family="system-ui, -apple-system, sans-serif" font-size="11" fill="#9ca3af">Design, tech decisions, strategy</text>
+  </g>
+
+  <!-- Row 2 -->
+  <!-- Card 4: Process -->
+  <g transform="translate(45, 210)">
+    <rect width="230" height="120" rx="10" fill="#fff" stroke="#e5e7eb" stroke-width="1"/>
+    <rect width="230" height="4" rx="2" fill="#10b981"/>
+    <circle cx="40" cy="50" r="24" fill="#ecfdf5"/>
+    <text x="40" y="56" font-size="24" text-anchor="middle">⚙️</text>
+    <text x="80" y="48" font-family="system-ui, -apple-system, sans-serif" font-size="15" font-weight="600" fill="#1a1a1a">Process</text>
+    <text x="80" y="68" font-family="system-ui, -apple-system, sans-serif" font-size="12" fill="#6b7280">Reducing friction</text>
+    <text x="40" y="100" font-family="system-ui, -apple-system, sans-serif" font-size="11" fill="#9ca3af">CI/CD, tooling, automation</text>
+  </g>
+
+  <!-- Card 5: Reliability -->
+  <g transform="translate(285, 210)">
+    <rect width="230" height="120" rx="10" fill="#fff" stroke="#e5e7eb" stroke-width="1"/>
+    <rect width="230" height="4" rx="2" fill="#ef4444"/>
+    <circle cx="40" cy="50" r="24" fill="#fef2f2"/>
+    <text x="40" y="56" font-size="24" text-anchor="middle">🔥</text>
+    <text x="80" y="48" font-family="system-ui, -apple-system, sans-serif" font-size="15" font-weight="600" fill="#1a1a1a">Reliability</text>
+    <text x="80" y="68" font-family="system-ui, -apple-system, sans-serif" font-size="12" fill="#6b7280">Keeping things running</text>
+    <text x="40" y="100" font-family="system-ui, -apple-system, sans-serif" font-size="11" fill="#9ca3af">Incidents, on-call, monitoring</text>
+  </g>
+
+  <!-- Card 6: Collaboration -->
+  <g transform="translate(525, 210)">
+    <rect width="230" height="120" rx="10" fill="#fff" stroke="#e5e7eb" stroke-width="1"/>
+    <rect width="230" height="4" rx="2" fill="#3b82f6"/>
+    <circle cx="40" cy="50" r="24" fill="#eff6ff"/>
+    <text x="40" y="56" font-size="24" text-anchor="middle">🤝</text>
+    <text x="80" y="48" font-family="system-ui, -apple-system, sans-serif" font-size="15" font-weight="600" fill="#1a1a1a">Collaboration</text>
+    <text x="80" y="68" font-family="system-ui, -apple-system, sans-serif" font-size="11" fill="#6b7280">Beyond engineering</text>
+    <text x="40" y="100" font-family="system-ui, -apple-system, sans-serif" font-size="11" fill="#9ca3af">Product, design, sales</text>
+  </g>
+
+  <!-- Footer -->
+  <text x="400" y="370" font-family="system-ui, -apple-system, sans-serif" font-size="13" fill="#9ca3af" text-anchor="middle">Document all six types to showcase your full impact</text>
+
+  <!-- BragDoc branding -->
+  <g transform="translate(340, 390)">
+    <rect width="120" height="28" rx="6" fill="#f97316"/>
+    <text x="60" y="19" font-family="system-ui, -apple-system, sans-serif" font-size="13" font-weight="600" fill="#fff" text-anchor="middle">bragdoc.ai</text>
+  </g>
+</svg>
