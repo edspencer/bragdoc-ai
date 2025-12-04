@@ -315,7 +315,7 @@ describe('Standup Page Achievements Tests', () => {
 
       try {
         await refetch();
-      } catch (error) {
+      } catch (_error) {
         // Error caught
       }
 
@@ -516,7 +516,7 @@ describe('Standup Page Achievements Tests', () => {
     });
 
     it('should handle complete deletion flow from orphaned section', async () => {
-      const orphanedAchievements = [
+      const _orphanedAchievements = [
         createTestAchievement({ id: 'orphan-1', projectId: null }),
       ];
 
@@ -537,7 +537,7 @@ describe('Standup Page Achievements Tests', () => {
     });
 
     it('should handle error recovery during deletion', async () => {
-      const achievements = [
+      const _achievements = [
         createTestAchievement({ id: 'ach-1' }),
         createTestAchievement({ id: 'ach-2' }),
       ];
@@ -552,7 +552,7 @@ describe('Standup Page Achievements Tests', () => {
       // First attempt fails
       try {
         await deleteAPI('/api/achievements/ach-1');
-      } catch (error) {
+      } catch (_error) {
         showToast({ type: 'error', message: 'Failed to delete' });
       }
 
@@ -578,7 +578,7 @@ describe('Standup Page Achievements Tests', () => {
     });
 
     it('should handle deletion from large list', () => {
-      let achievements = Array.from({ length: 50 }, (_, i) =>
+      let achievements = Array.from({ length: 50 }, (_, _i) =>
         createTestAchievement({ id: uuidv4() }),
       );
 

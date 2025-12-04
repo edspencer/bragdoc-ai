@@ -233,7 +233,7 @@ describe('Batching Logic', () => {
     );
 
     await expect(async () => {
-      for await (const result of generator) {
+      for await (const _result of generator) {
         // Should throw before yielding any results
       }
     }).rejects.toThrow('Maximum retries (3) exceeded for batch 1');
@@ -283,7 +283,7 @@ describe('Batching Logic', () => {
     );
 
     await expect(async () => {
-      for await (const result of generator) {
+      for await (const _result of generator) {
         // Should throw before yielding any results
       }
     }).rejects.toThrow('Maximum retries (3) exceeded for batch 1');
@@ -301,7 +301,7 @@ describe('Batching Logic', () => {
       mockApiClient,
     );
 
-    for await (const result of generator) {
+    for await (const _result of generator) {
       // Process results
     }
 

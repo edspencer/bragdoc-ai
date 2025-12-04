@@ -12,7 +12,7 @@ export async function GET(req: NextRequest) {
 
     const url = new URL(req.url);
     const searchParams = url.searchParams;
-    const limit = Number.parseInt(searchParams.get('limit') ?? '5');
+    const limit = Number.parseInt(searchParams.get('limit') ?? '5', 10);
 
     const projects = await getTopProjectsByImpact(user.id, limit);
 

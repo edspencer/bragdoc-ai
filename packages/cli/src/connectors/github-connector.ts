@@ -298,7 +298,7 @@ export class GitHubConnector implements Connector {
       });
       logger.debug(`Repository ${this.config.repo} is accessible`);
       return true;
-    } catch (error) {
+    } catch (_error) {
       logger.error(
         `Cannot access repository ${this.config.repo}. Check permissions and repository name.`,
       );

@@ -41,7 +41,7 @@ export function CurrentStandupEditor({
   onAchievementImpactChange,
   onRefresh,
 }: CurrentStandupEditorProps) {
-  const router = useRouter();
+  const _router = useRouter();
 
   // Document state
   const [currentStandupDocument, setCurrentStandupDocument] =

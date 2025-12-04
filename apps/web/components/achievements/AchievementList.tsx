@@ -98,7 +98,7 @@ export function AchievementList({
     }
   };
 
-  const handleArchive = async (id: string, isArchived: boolean) => {
+  const _handleArchive = async (id: string, isArchived: boolean) => {
     setActionLoading(`archive-${id}`);
     try {
       await updateAchievement(id, { isArchived: !isArchived });

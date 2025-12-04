@@ -72,7 +72,7 @@ export async function POST(req: Request) {
         hash: commit.hash,
         message: commit.message,
         author: {
-          name: commit?.author?.split('<')[0]!.trim(),
+          name: commit?.author?.split('<')[0]?.trim() ?? '',
           email: commit?.author?.match(/<(.+?)>/)?.[1] || '',
         },
         date: commit?.date,

@@ -42,7 +42,7 @@ function parseURLParams(searchParams: URLSearchParams): ProjectFilters {
   if (statusParam) {
     try {
       status = statusSchema.parse(statusParam);
-    } catch (error) {
+    } catch (_error) {
       console.warn(`Invalid status parameter: ${statusParam}`);
     }
   }
@@ -54,7 +54,7 @@ function parseURLParams(searchParams: URLSearchParams): ProjectFilters {
     try {
       companyIdSchema.parse(companyParam);
       companyId = companyParam;
-    } catch (error) {
+    } catch (_error) {
       console.warn(`Invalid company parameter: ${companyParam}`);
     }
   }
@@ -65,7 +65,7 @@ function parseURLParams(searchParams: URLSearchParams): ProjectFilters {
   if (searchParam) {
     try {
       search = searchSchema.parse(searchParam);
-    } catch (error) {
+    } catch (_error) {
       console.warn(`Invalid search parameter: ${searchParam}`);
     }
   }
@@ -83,7 +83,7 @@ function sanitizeFilters(filters: Partial<ProjectFilters>): ProjectFilters {
   if (filters.status) {
     try {
       sanitized.status = statusSchema.parse(filters.status);
-    } catch (error) {
+    } catch (_error) {
       console.warn(`Invalid status value: ${filters.status}`);
     }
   }
@@ -93,7 +93,7 @@ function sanitizeFilters(filters: Partial<ProjectFilters>): ProjectFilters {
     try {
       companyIdSchema.parse(filters.companyId);
       sanitized.companyId = filters.companyId;
-    } catch (error) {
+    } catch (_error) {
       console.warn(`Invalid company ID: ${filters.companyId}`);
     }
   }
@@ -102,7 +102,7 @@ function sanitizeFilters(filters: Partial<ProjectFilters>): ProjectFilters {
   if (filters.search) {
     try {
       sanitized.search = searchSchema.parse(filters.search);
-    } catch (error) {
+    } catch (_error) {
       // For search, we'll truncate instead of rejecting
       sanitized.search = filters.search.slice(0, 100);
     }
@@ -183,7 +183,7 @@ export function useProjectFilters() {
         const newFilters = { ...filters, status: validStatus };
         setFilters(newFilters);
         await updateURL(newFilters, 'status');
-      } catch (error) {
+      } catch (_error) {
         console.warn(`Invalid status: ${status}`);
         setLoading((prev) => ({ ...prev, status: false }));
       }
@@ -212,7 +212,7 @@ export function useProjectFilters() {
         const newFilters = { ...filters, search: validSearch };
         setFilters(newFilters);
         await updateURL(newFilters, 'search');
-      } catch (error) {
+      } catch (_error) {
         // For search, we'll truncate instead of rejecting
         const truncated = search.slice(0, 100);
         const newFilters = { ...filters, search: truncated };

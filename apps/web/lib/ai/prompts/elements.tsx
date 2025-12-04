@@ -133,7 +133,7 @@ export function Company({ company }: { company?: CompanyType }) {
     return null;
   }
 
-  // @ts-ignore - Custom JSX elements for AI prompts
+  // @ts-expect-error - Custom JSX elements for AI prompts
   return (
     <company key={company.id}>
       <id>{company.id}</id>
@@ -146,7 +146,7 @@ export function Company({ company }: { company?: CompanyType }) {
 }
 
 export function Companies({ companies }: { companies: CompanyType[] }) {
-  // @ts-ignore - Custom JSX elements for AI prompts
+  // @ts-expect-error - Custom JSX elements for AI prompts
   return (
     <companies>
       {companies?.map((company) => (
@@ -161,7 +161,7 @@ export function Project({ project }: { project?: ProjectType }) {
     return null;
   }
 
-  // @ts-ignore - Custom JSX elements for AI prompts
+  // @ts-expect-error - Custom JSX elements for AI prompts
   return (
     <project>
       <id>{project.id}</id>
@@ -177,7 +177,7 @@ export function Project({ project }: { project?: ProjectType }) {
 }
 
 export function Projects({ projects }: { projects: ProjectType[] }) {
-  // @ts-ignore - Custom JSX elements for AI prompts
+  // @ts-expect-error - Custom JSX elements for AI prompts
   return (
     <projects>
       {projects?.map((project) => (
@@ -188,7 +188,7 @@ export function Projects({ projects }: { projects: ProjectType[] }) {
 }
 
 export function Achievement({ achievement }: { achievement: AchievementType }) {
-  // @ts-ignore - Custom JSX elements for AI prompts
+  // @ts-expect-error - Custom JSX elements for AI prompts
   return (
     <achievement>
       <id>{achievement.id}</id>
@@ -208,7 +208,7 @@ export function Achievements({
 }: {
   achievements: AchievementType[];
 }) {
-  // @ts-ignore - Custom JSX elements for AI prompts
+  // @ts-expect-error - Custom JSX elements for AI prompts
   return (
     <achievements>
       {achievements?.map((achievement) => (
@@ -219,7 +219,7 @@ export function Achievements({
 }
 
 export function Commit({ commit }: { commit: RepositoryCommit }) {
-  // @ts-ignore - Custom JSX elements for AI prompts
+  // @ts-expect-error - Custom JSX elements for AI prompts
   return (
     <commit>
       <message>{commit?.message}</message>
@@ -233,7 +233,7 @@ export function Commit({ commit }: { commit: RepositoryCommit }) {
 }
 
 export function Repo({ repository }: { repository: Repository }) {
-  // @ts-ignore - Custom JSX elements for AI prompts
+  // @ts-expect-error - Custom JSX elements for AI prompts
   return (
     <repository>
       <name>{repository?.name}</name>

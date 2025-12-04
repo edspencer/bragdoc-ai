@@ -27,7 +27,7 @@ import { AppContent } from '@/components/shared/app-content';
 
 export default function AchievementsPage() {
   // Data fetching hooks
-  const router = useRouter();
+  const _router = useRouter();
   const { companies } = useCompanies();
   const { projects } = useProjects();
   const { createAchievement, updateAchievement } = useAchievementMutations();

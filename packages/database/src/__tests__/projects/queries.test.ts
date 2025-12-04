@@ -47,20 +47,20 @@ describe('Project Queries', () => {
 
   beforeEach(async () => {
     // Create test user first
-    const [createdUser] = await db.insert(user).values(testUser).returning();
+    const [_createdUser] = await db.insert(user).values(testUser).returning();
 
     // Clean up existing data for this user
     await db.delete(project).where(eq(project.userId, testUser.id)).execute();
     await db.delete(company).where(eq(company.userId, testUser.id)).execute();
 
     // Create test company
-    const [createdCompany] = await db
+    const [_createdCompany] = await db
       .insert(company)
       .values(testCompany)
       .returning();
 
     // Create test project
-    const [createdProject] = await db
+    const [_createdProject] = await db
       .insert(project)
       .values(testProject)
       .returning();

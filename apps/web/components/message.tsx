@@ -139,7 +139,7 @@ const PurePreviewMessage = ({
               }
             }
 
-            // @ts-ignore - Weather tool type not in main type union but may be used
+            // @ts-expect-error - Weather tool type not in main type union but may be used
             if (type === 'tool-getWeather') {
               const weatherPart = part as any;
               const { toolCallId, state } = weatherPart;
@@ -212,7 +212,7 @@ const PurePreviewMessage = ({
               );
             }
 
-            // @ts-ignore - Suggestions tool type not in main type union (feature deferred)
+            // @ts-expect-error - Suggestions tool type not in main type union (feature deferred)
             if (type === 'tool-requestSuggestions') {
               const suggestionPart = part as any;
               const { toolCallId, state } = suggestionPart;

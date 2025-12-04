@@ -31,7 +31,7 @@ import {
 } from './clustering';
 
 const MINIMUM_ACHIEVEMENTS = 20;
-const SMALL_DATASET = 100;
+const _SMALL_DATASET = 100;
 const RECLUSTER_PERCENTAGE_THRESHOLD = 0.1; // 10%
 const RECLUSTER_ABSOLUTE_THRESHOLD = 50; // 50 achievements
 const RECLUSTER_TIME_THRESHOLD_DAYS = 30;
@@ -1202,7 +1202,7 @@ export async function updateWorkstreamCentroid(
  * @param newWorkstreamId - New workstream ID (null if unassigned)
  */
 export async function onAchievementWorkstreamChange(
-  achievementId: string,
+  _achievementId: string,
   oldWorkstreamId: string | null,
   newWorkstreamId: string | null,
 ): Promise<void> {

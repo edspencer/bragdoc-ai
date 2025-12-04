@@ -247,7 +247,7 @@ export async function promptForBranchWhitelist(): Promise<string[] | null> {
       message:
         'Which branches should be allowed for extraction? (comma-separated, leave blank to allow all)',
       default: '',
-      validate: (input: string) => {
+      validate: (_input: string) => {
         // Accept any input (including empty)
         return true;
       },
@@ -427,7 +427,7 @@ async function ensureSystemScheduling(): Promise<void> {
     } else {
       console.log(chalk.green('✓ System scheduling already configured.'));
     }
-  } catch (error) {
+  } catch (_error) {
     console.log(chalk.yellow('⚠️  Could not set up automatic scheduling.'));
     console.log(
       chalk.blue('💡 Run `bragdoc install crontab` manually when ready.'),

@@ -55,7 +55,7 @@ export function AchievementsContent() {
         mode="create"
         open={dialogOpen}
         onOpenChange={setDialogOpen}
-        onSubmit={async (data) => {
+        onSubmit={async (_data) => {
           // Handle achievement creation
           setDialogOpen(false);
         }}

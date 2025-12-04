@@ -105,7 +105,7 @@ beforeAll(async () => {
   testData.baseTime = now;
 
   // Generate achievements for the main project using createAchievement
-  const mainProjectAchievements = await Promise.all(
+  const _mainProjectAchievements = await Promise.all(
     Array.from({ length: 20 }, (_, i) => {
       // Create achievements with dates relative to now
       // i=0 is 30 days ago, i=19 is 11 days ago
@@ -123,7 +123,7 @@ beforeAll(async () => {
   );
 
   // Generate achievements for secondary project
-  const secondaryProjectAchievements = await Promise.all(
+  const _secondaryProjectAchievements = await Promise.all(
     Array.from({ length: 5 }, (_, i) => {
       // i=0 is 15 days ago, i=4 is 11 days ago
       const daysAgo = 15 - i;
@@ -140,7 +140,7 @@ beforeAll(async () => {
   );
 
   // Generate achievements for tertiary project
-  const tertiaryProjectAchievements = await Promise.all(
+  const _tertiaryProjectAchievements = await Promise.all(
     Array.from({ length: 5 }, (_, i) => {
       // i=0 is 10 days ago, i=4 is 6 days ago
       const daysAgo = 10 - i;
@@ -203,7 +203,7 @@ describe('preparePromptData', () => {
 
     // Verify we have achievements and they're all within range
     expect(result.achievements.length).toBeGreaterThan(0);
-    const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+    const _sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
     result.achievements.forEach((achievement: any) => {
       expect(new Date(achievement.eventStart)).toBeInstanceOf(Date);
       expect(achievement.eventStart).toBeDefined();
@@ -336,7 +336,7 @@ describe('preparePromptData', () => {
   test('respects achievement limit of 200', async () => {
     const now = new Date();
     // Insert more than 200 achievements
-    const extraAchievements = await Promise.all(
+    const _extraAchievements = await Promise.all(
       Array.from({ length: 210 }, (_, i) => {
         return createAchievement({
           userId: testData.users.withInstructions!.id,

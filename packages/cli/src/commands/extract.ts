@@ -58,7 +58,7 @@ function getExtractionConfigForProject(
  * Validate that the current branch is in the configured whitelist
  * Returns true if valid, false if validation failed (error already logged)
  */
-function validateBranchWhitelist(
+function _validateBranchWhitelist(
   branchToUse: string,
   repoConfig: any,
   logger: any,

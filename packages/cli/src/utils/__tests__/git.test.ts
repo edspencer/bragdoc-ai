@@ -29,7 +29,7 @@ describe('Git Utilities', () => {
       mockAccess.mockResolvedValueOnce(undefined);
 
       // Mock successful git status
-      mockExec.mockImplementationOnce((cmd, opts, callback) => {
+      mockExec.mockImplementationOnce((_cmd, _opts, callback) => {
         callback?.(null, Buffer.from(''), Buffer.from(''));
         return undefined as any;
       });
@@ -60,7 +60,7 @@ describe('Git Utilities', () => {
       mockAccess.mockResolvedValueOnce(undefined);
 
       // but git status fails
-      mockExec.mockImplementationOnce((cmd, opts, callback) => {
+      mockExec.mockImplementationOnce((_cmd, _opts, callback) => {
         callback?.(
           new Error('not a git repository'),
           Buffer.from(''),
@@ -83,7 +83,7 @@ describe('Git Utilities', () => {
       mockAccess.mockResolvedValueOnce(undefined);
 
       // git status succeeds
-      mockExec.mockImplementationOnce((cmd, opts, callback) => {
+      mockExec.mockImplementationOnce((_cmd, _opts, callback) => {
         callback?.(null, Buffer.from(''), Buffer.from(''));
         return undefined as any;
       });
@@ -119,7 +119,7 @@ describe('Git Utilities', () => {
       mockAccess.mockResolvedValueOnce(undefined);
 
       // But git status fails
-      mockExec.mockImplementationOnce((cmd, opts, callback) => {
+      mockExec.mockImplementationOnce((_cmd, _opts, callback) => {
         callback?.(
           new Error('not a git repository'),
           Buffer.from(''),
