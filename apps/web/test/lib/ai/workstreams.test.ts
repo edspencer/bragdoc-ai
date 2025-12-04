@@ -988,7 +988,6 @@ describe('Helper Functions: getAchievementSummaries, buildAssignmentBreakdown, b
 
     await db.insert(user).values(mockUser);
     await db.insert(project).values(mockProject);
-    // @ts-expect-error
     await db.insert(company).values(mockCompany);
   });
 
@@ -997,7 +996,6 @@ describe('Helper Functions: getAchievementSummaries, buildAssignmentBreakdown, b
     await db.delete(project);
     await db.delete(workstream);
     await db.delete(workstreamMetadata);
-    // @ts-expect-error
     await db.delete(company);
     await db.delete(user);
   });
