@@ -303,7 +303,7 @@ describe('AchievementItem Component Tests', () => {
   describe('Props Combinations', () => {
     it('should handle component without onDelete prop', () => {
       const onEdit = jest.fn();
-      const onImpactChange = jest.fn();
+      const _onImpactChange = jest.fn();
       const achievement = createTestAchievement();
 
       // Simulate component behavior without onDelete
@@ -328,7 +328,7 @@ describe('AchievementItem Component Tests', () => {
 
     it('should handle component with readOnly flag', () => {
       const onEdit = jest.fn();
-      const onDelete = jest.fn();
+      const _onDelete = jest.fn();
       const achievement = createTestAchievement();
       const readOnly = true;
 

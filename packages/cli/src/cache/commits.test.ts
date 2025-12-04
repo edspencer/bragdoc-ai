@@ -75,7 +75,7 @@ describe('CommitCache', () => {
 
     it('should only add new unique hashes', async () => {
       const repoName = 'test-repo';
-      const existingHashes = ['hash1', 'hash2'];
+      const _existingHashes = ['hash1', 'hash2'];
       const newHashes = ['hash2', 'hash3'];
       const cachePath = join(
         TEST_CACHE_DIR,
@@ -225,7 +225,7 @@ describe('CommitCache', () => {
         repo2: ['hash3', 'hash4', 'hash5'],
       };
 
-      for (const [name, hashes] of Object.entries(repos)) {
+      for (const [_name, hashes] of Object.entries(repos)) {
         mockFs.readFile.mockResolvedValueOnce(hashes.join('\n'));
       }
 

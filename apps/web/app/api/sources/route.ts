@@ -34,8 +34,8 @@ export async function GET(request: Request) {
 
     // Parse query parameters
     const url = new URL(request.url);
-    const page = Number.parseInt(url.searchParams.get('page') || '1');
-    const limit = Number.parseInt(url.searchParams.get('limit') || '10');
+    const page = Number.parseInt(url.searchParams.get('page') || '1', 10);
+    const limit = Number.parseInt(url.searchParams.get('limit') || '10', 10);
     const includeArchived = url.searchParams.get('includeArchived') === 'true';
     const projectId = url.searchParams.get('projectId');
 

@@ -102,7 +102,7 @@ export function RecentAchievementsTable({
   );
   const [expandedWips, setExpandedWips] = useState<Set<string>>(new Set());
   const [isLoading, setIsLoading] = useState(true);
-  const [hasRecentAchievements, setHasRecentAchievements] = useState(false);
+  const [_hasRecentAchievements, setHasRecentAchievements] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
   const [hoveredDocumentId, setHoveredDocumentId] = useState<string | null>(
     null,
@@ -119,7 +119,7 @@ export function RecentAchievementsTable({
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [achievementToEdit, setAchievementToEdit] =
     useState<Achievement | null>(null);
-  const [isEditingAchievement, setIsEditingAchievement] = useState(false);
+  const [_isEditingAchievement, setIsEditingAchievement] = useState(false);
 
   // Navigation handlers
   const handlePrevWeek = () => {

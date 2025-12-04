@@ -148,7 +148,7 @@ export function Company({ company }: { company?: CompanyType }) {
     return date.toLocaleDateString();
   };
 
-  // @ts-ignore - Custom JSX elements for AI prompts
+  // @ts-expect-error - Custom JSX elements for AI prompts
   return (
     <company key={company.id}>
       <id>{company.id}</id>
@@ -161,7 +161,7 @@ export function Company({ company }: { company?: CompanyType }) {
 }
 
 export function Companies({ companies }: { companies: CompanyType[] }) {
-  // @ts-ignore - Custom JSX elements for AI prompts
+  // @ts-expect-error - Custom JSX elements for AI prompts
   return (
     <companies>
       {companies?.map((company) => (
@@ -182,7 +182,7 @@ export function Project({ project }: { project?: ProjectType }) {
     return date.toLocaleDateString();
   };
 
-  // @ts-ignore - Custom JSX elements for AI prompts
+  // @ts-expect-error - Custom JSX elements for AI prompts
   return (
     <project>
       <id>{project.id}</id>
@@ -198,7 +198,7 @@ export function Project({ project }: { project?: ProjectType }) {
 }
 
 export function Projects({ projects }: { projects: ProjectType[] }) {
-  // @ts-ignore - Custom JSX elements for AI prompts
+  // @ts-expect-error - Custom JSX elements for AI prompts
   return (
     <projects>
       {projects?.map((project) => (
@@ -209,7 +209,7 @@ export function Projects({ projects }: { projects: ProjectType[] }) {
 }
 
 export function Commit({ commit }: { commit: RepositoryCommit }) {
-  // @ts-ignore - Custom JSX elements for AI prompts
+  // @ts-expect-error - Custom JSX elements for AI prompts
   return (
     <commit>
       <message>{commit?.message}</message>
@@ -227,7 +227,7 @@ export function Commit({ commit }: { commit: RepositoryCommit }) {
 }
 
 export function Repo({ repository }: { repository: Repository }) {
-  // @ts-ignore - Custom JSX elements for AI prompts
+  // @ts-expect-error - Custom JSX elements for AI prompts
   return (
     <repository>
       <name>{repository?.name}</name>
@@ -242,7 +242,7 @@ export function FileStats({ stats }: { stats?: FileStatsType[] }) {
     return null;
   }
 
-  // @ts-ignore - Custom JSX elements for AI prompts
+  // @ts-expect-error - Custom JSX elements for AI prompts
   return (
     <file-stats>
       {stats.map((stat, index) => (
@@ -259,12 +259,15 @@ export function FileStats({ stats }: { stats?: FileStatsType[] }) {
 export function Diff({
   diffs,
   truncated,
-}: { diffs?: FileDiffType[]; truncated?: boolean }) {
+}: {
+  diffs?: FileDiffType[];
+  truncated?: boolean;
+}) {
   if (!diffs || diffs.length === 0) {
     return null;
   }
 
-  // @ts-ignore - Custom JSX elements for AI prompts
+  // @ts-expect-error - Custom JSX elements for AI prompts
   return (
     <>
       {diffs.map((fileDiff, index) => (

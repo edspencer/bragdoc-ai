@@ -36,7 +36,7 @@ export async function verifyUnsubscribeToken(
     }
 
     return payload as unknown as UnsubscribeData;
-  } catch (error) {
+  } catch (_error) {
     throw new Error('Invalid or expired unsubscribe token');
   }
 }

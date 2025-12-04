@@ -96,7 +96,7 @@ export async function POST(
  * OPTIONS /api/standups/:standupId/wip
  * CORS preflight handler
  */
-export async function OPTIONS(req: NextRequest) {
+export async function OPTIONS(_req: NextRequest) {
   return new NextResponse(null, {
     status: 204,
     headers: {

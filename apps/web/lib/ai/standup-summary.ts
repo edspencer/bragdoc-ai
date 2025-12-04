@@ -12,7 +12,7 @@ import type { Achievement, User, StandupDocument } from '@bragdoc/database';
 export async function generateStandupAchievementsSummary(
   achievements: Achievement[],
   instructions?: string,
-  user?: User,
+  _user?: User,
 ): Promise<string> {
   if (achievements.length === 0) {
     return 'No new achievements to report since the last standup.';
@@ -90,7 +90,7 @@ Instructions:
  */
 export async function generateStandupDocumentSummary(
   document: Pick<StandupDocument, 'achievementsSummary' | 'wip'>,
-  user?: User,
+  _user?: User,
 ): Promise<string> {
   const { achievementsSummary, wip } = document;
 

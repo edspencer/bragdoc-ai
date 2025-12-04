@@ -93,7 +93,7 @@ export function WorkstreamConfigDialog({
   onOpenChange,
   currentFilters,
 }: WorkstreamConfigDialogProps) {
-  const router = useRouter();
+  const _router = useRouter();
   const [timePreset, setTimePreset] = useState('12m');
   const [selectedProjectIds, setSelectedProjectIds] = useState<string[]>([]);
   const [filteredCount, setFilteredCount] = useState<number | null>(null);

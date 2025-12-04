@@ -496,7 +496,7 @@ function AnimatedAchievements({
                 <tspan dx="4" className="fill-yellow-500">
                   {Array.from(
                     { length: achievement.impact },
-                    (_, i) => '★',
+                    (_, _i) => '★',
                   ).join('')}
                 </tspan>
               </motion.text>
@@ -631,7 +631,7 @@ function AnimatedWorkstreams({
 }
 
 function FunnelSVG() {
-  const [commitsStarted, setCommitsStarted] = useState(false);
+  const [_commitsStarted, setCommitsStarted] = useState(false);
 
   return (
     <svg

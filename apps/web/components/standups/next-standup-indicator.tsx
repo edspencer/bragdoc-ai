@@ -42,7 +42,7 @@ export function NextStandupIndicator({
   }
 
   // Format the time in the standup's timezone
-  const nextStandupInTz = toZonedTime(nextStandup, timezone);
+  const _nextStandupInTz = toZonedTime(nextStandup, timezone);
   const timeParts = meetingTime.split(':').map(Number);
   const hours = timeParts[0] ?? 0;
   const minutes = timeParts[1] ?? 0;
@@ -55,7 +55,7 @@ export function NextStandupIndicator({
 
   // Determine day label
   let dayLabel = '';
-  const now = new Date();
+  const _now = new Date();
   const nextStandupLocal = toZonedTime(nextStandup, timezone);
 
   if (isToday(nextStandupLocal)) {

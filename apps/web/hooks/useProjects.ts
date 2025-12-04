@@ -6,7 +6,7 @@ import type { ProjectFormData } from 'components/projects/project-form';
 import type { ProjectWithCompany } from '@/database/projects/queries';
 import { useTopProjects } from './use-top-projects';
 
-const fetcher = async (url: string) => {
+const _fetcher = async (url: string) => {
   const response = await fetch(url);
   if (!response.ok) {
     throw new Error(`Failed to fetch: ${url}`);

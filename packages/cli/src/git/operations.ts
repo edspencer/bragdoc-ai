@@ -143,7 +143,7 @@ function enhanceCommitsWithStats(commits: GitCommit[]): GitCommit[] {
       const stats = parseNumstat(numstatOutput);
 
       return { ...commit, stats };
-    } catch (error: any) {
+    } catch (_error: any) {
       // If we can't get stats for a commit, just skip it
       return commit;
     }
@@ -174,7 +174,7 @@ function enhanceCommitsWithDiffs(
         diff: diffs,
         diffTruncated: truncated,
       };
-    } catch (error: any) {
+    } catch (_error: any) {
       // If we can't get diff for a commit, just skip it
       return commit;
     }
@@ -216,7 +216,7 @@ export function getRepositoryName(remoteUrl: string): string {
   try {
     // Handle SSH URLs (git@github.com:user/repo.git)
     if (remoteUrl.startsWith('git@')) {
-      const match = remoteUrl.match(/git@[^:]+:([^\/]+)\/([^\.]+)(\.git)?$/);
+      const match = remoteUrl.match(/git@[^:]+:([^/]+)\/([^.]+)(\.git)?$/);
       if (match) {
         return match[2];
       }
@@ -225,7 +225,7 @@ export function getRepositoryName(remoteUrl: string): string {
     // Handle HTTPS URLs (https://github.com/user/repo.git)
     if (remoteUrl.startsWith('http')) {
       const match = remoteUrl.match(
-        /https?:\/\/[^\/]+\/([^\/]+)\/([^\.]+)(\.git)?$/,
+        /https?:\/\/[^/]+\/([^/]+)\/([^.]+)(\.git)?$/,
       );
       if (match) {
         return match[2];
@@ -234,7 +234,7 @@ export function getRepositoryName(remoteUrl: string): string {
 
     // If we can't parse the URL, use it as is (sanitized)
     return remoteUrl.replace(/[^a-zA-Z0-9-]/g, '_');
-  } catch (error) {
+  } catch (_error) {
     // If anything goes wrong, return a sanitized version of the URL
     return remoteUrl.replace(/[^a-zA-Z0-9-]/g, '_');
   }
@@ -247,7 +247,7 @@ export async function getCurrentRepoName(): Promise<string> {
   try {
     const repoInfo = getRepositoryInfo();
     return getRepositoryName(repoInfo.remoteUrl);
-  } catch (error) {
+  } catch (_error) {
     // If we can't get the repository info, use the current directory name
     return process.cwd().split('/').pop() || '';
   }

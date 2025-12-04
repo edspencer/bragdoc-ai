@@ -67,7 +67,9 @@ export class CommitCache {
 
       // Update in-memory cache
       const sourceHashes = this.cachedHashes.get(sourceId) || new Set();
-      newHashes.forEach((hash) => sourceHashes.add(hash));
+      for (const hash of newHashes) {
+        sourceHashes.add(hash);
+      }
       this.cachedHashes.set(sourceId, sourceHashes);
 
       logger.debug(`Cache path: ${cachePath}`);

@@ -50,8 +50,8 @@ export async function GET(req: NextRequest) {
 
     const url = new URL(req.url);
     const searchParams = url.searchParams;
-    const page = Number.parseInt(searchParams.get('page') ?? '1');
-    const limit = Number.parseInt(searchParams.get('limit') ?? '10');
+    const page = Number.parseInt(searchParams.get('page') ?? '1', 10);
+    const limit = Number.parseInt(searchParams.get('limit') ?? '10', 10);
     const companyId = searchParams.get('companyId');
     const projectId = searchParams.get('projectId');
     const source = searchParams.get('source') as

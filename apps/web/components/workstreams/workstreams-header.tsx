@@ -71,7 +71,7 @@ export function WorkstreamsHeader({
     }
   };
 
-  const handleEditWorkstream = (workstream: Workstream) => {
+  const _handleEditWorkstream = (workstream: Workstream) => {
     setEditingWorkstream(workstream);
     setWorkstreamDialogMode('edit');
     setAchievementsForCreation([]);

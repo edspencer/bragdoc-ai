@@ -315,7 +315,7 @@ describe('Recent Achievements Table (Dashboard) Tests', () => {
 
       try {
         await deleteAPI('id-1');
-      } catch (error) {
+      } catch (_error) {
         // Error caught
       }
 
@@ -348,7 +348,7 @@ describe('Recent Achievements Table (Dashboard) Tests', () => {
     });
 
     it('should update table with fresh data after refetch', async () => {
-      const oldAchievement = createTestAchievement({
+      const _oldAchievement = createTestAchievement({
         title: 'Old Achievement',
       });
       const newAchievement = createTestAchievement({

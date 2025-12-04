@@ -3,7 +3,7 @@ import { document } from '@/database/schema';
 import { eq } from 'drizzle-orm';
 
 export async function GET(
-  request: Request,
+  _request: Request,
   { params }: { params: Promise<{ token: string }> },
 ) {
   try {

@@ -108,7 +108,7 @@ describe('GitHubConnector', () => {
     });
 
     it('returns false if gh is not installed', async () => {
-      mockExecSync.mockImplementation((cmd: any, options?: any) => {
+      mockExecSync.mockImplementation((cmd: any, _options?: any) => {
         const cmdStr = String(cmd);
         if (cmdStr.startsWith('gh --version')) {
           throw new Error('command not found');

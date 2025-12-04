@@ -643,7 +643,7 @@ describe('Workstream Orchestration', () => {
         });
       }
 
-      const result = await fullReclustering(mockUser.id, mockUser as any);
+      const _result = await fullReclustering(mockUser.id, mockUser as any);
 
       // Old workstream should be archived
       const archived = await db
@@ -697,7 +697,7 @@ describe('Workstream Orchestration', () => {
         });
       }
 
-      const result = await fullReclustering(mockUser.id, mockUser as any);
+      const _result = await fullReclustering(mockUser.id, mockUser as any);
 
       // Old assignments should be cleared for non-user-assigned achievements
       const achs = await db.select().from(achievement);
@@ -754,7 +754,7 @@ describe('Workstream Orchestration', () => {
         });
       }
 
-      const result = await fullReclustering(mockUser.id, mockUser as any);
+      const _result = await fullReclustering(mockUser.id, mockUser as any);
 
       // User-assigned achievement should not be cleared
       const userAssigned = await db
@@ -988,7 +988,7 @@ describe('Helper Functions: getAchievementSummaries, buildAssignmentBreakdown, b
 
     await db.insert(user).values(mockUser);
     await db.insert(project).values(mockProject);
-    // @ts-ignore
+    // @ts-expect-error
     await db.insert(company).values(mockCompany);
   });
 
@@ -997,7 +997,7 @@ describe('Helper Functions: getAchievementSummaries, buildAssignmentBreakdown, b
     await db.delete(project);
     await db.delete(workstream);
     await db.delete(workstreamMetadata);
-    // @ts-ignore
+    // @ts-expect-error
     await db.delete(company);
     await db.delete(user);
   });

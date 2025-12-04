@@ -36,7 +36,9 @@ export const cacheCommand = new Command('cache')
           }
 
           console.log(`Cached commits for ${repoName}:`);
-          commits.forEach((hash) => console.log(hash));
+          for (const hash of commits) {
+            console.log(hash);
+          }
           console.log(`\nTotal: ${commits.length} commits`);
         } catch (error: any) {
           console.error(

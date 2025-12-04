@@ -38,7 +38,7 @@ export default async function UnsubscribedPage({
         </p>
       </Container>
     );
-  } catch (error) {
+  } catch (_error) {
     return (
       <Container>
         <h1>Invalid or Expired Link</h1>

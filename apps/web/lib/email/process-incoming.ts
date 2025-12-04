@@ -19,7 +19,7 @@ function extractEmailFromSender(from: string): string {
   return from;
 }
 
-const systemPrompt = `
+const _systemPrompt = `
 You are BragDoc AI, an AI assistant that helps users track their professional achievements.
 You are given the contents of all emails that are sent to hello@bragdoc.ai.
 If the message came from an active user, you will be told about the user.
@@ -62,7 +62,7 @@ export async function processIncomingEmail(
     console.log('Asking the LLM about what kind of email this is...');
 
     // Build context for the LLM
-    const userContext = `
+    const _userContext = `
 User Information:
 - Name: ${user.name || 'Unknown'}
 - Email: ${user.email}

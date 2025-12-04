@@ -45,7 +45,7 @@ async function fetchAllData() {
 /**
  * Fetch companies data from API
  */
-async function fetchCompaniesData() {
+async function _fetchCompaniesData() {
   try {
     console.log(chalk.blue('🏢 Fetching companies from API...'));
 
@@ -73,7 +73,7 @@ async function fetchCompaniesData() {
 /**
  * Fetch projects data from API
  */
-async function fetchProjectsData() {
+async function _fetchProjectsData() {
   try {
     console.log(chalk.blue('📁 Fetching projects from API...'));
 
@@ -99,7 +99,7 @@ async function fetchProjectsData() {
 /**
  * Fetch standups data from API
  */
-async function fetchStandupsData() {
+async function _fetchStandupsData() {
   try {
     console.log(chalk.blue('👥 Fetching standups from API...'));
 

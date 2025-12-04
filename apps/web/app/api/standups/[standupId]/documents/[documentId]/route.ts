@@ -46,7 +46,7 @@ export async function DELETE(
  * OPTIONS /api/standups/:standupId/documents/:documentId
  * CORS preflight handler
  */
-export async function OPTIONS(req: NextRequest) {
+export async function OPTIONS(_req: NextRequest) {
   return new NextResponse(null, {
     status: 204,
     headers: {

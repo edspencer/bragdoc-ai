@@ -101,7 +101,7 @@ describe('DeleteAchievementDialog Component Tests', () => {
 
   describe('Dialog State Management', () => {
     it('should open dialog when open prop is true', () => {
-      const onOpenChange = jest.fn();
+      const _onOpenChange = jest.fn();
       const achievement = createTestAchievement();
       const open = true;
 
@@ -111,7 +111,7 @@ describe('DeleteAchievementDialog Component Tests', () => {
     });
 
     it('should close dialog when open prop is false', () => {
-      const onOpenChange = jest.fn();
+      const _onOpenChange = jest.fn();
       const open = false;
 
       // When open=false, dialog should not be displayed
@@ -174,7 +174,7 @@ describe('DeleteAchievementDialog Component Tests', () => {
   describe('Delete Button Behavior', () => {
     it('should call onConfirm when delete button clicked', async () => {
       const onConfirm = jest.fn().mockResolvedValue(undefined);
-      const achievement = createTestAchievement();
+      const _achievement = createTestAchievement();
 
       // Simulate delete button click
       await onConfirm();
@@ -213,7 +213,7 @@ describe('DeleteAchievementDialog Component Tests', () => {
       try {
         await onConfirm();
         onOpenChange(false); // Close on success
-      } catch (error) {
+      } catch (_error) {
         // Error handling
       }
 
@@ -229,7 +229,7 @@ describe('DeleteAchievementDialog Component Tests', () => {
       try {
         await onConfirm();
         onOpenChange(false);
-      } catch (error) {
+      } catch (_error) {
         fail('Should not throw error');
       }
 
@@ -245,7 +245,7 @@ describe('DeleteAchievementDialog Component Tests', () => {
 
       try {
         await onConfirm();
-      } catch (error) {
+      } catch (_error) {
         errorThrown = true;
       }
 
@@ -261,7 +261,7 @@ describe('DeleteAchievementDialog Component Tests', () => {
 
       try {
         await onConfirm();
-      } catch (error) {
+      } catch (_error) {
         // Error is caught
       }
 
@@ -294,7 +294,7 @@ describe('DeleteAchievementDialog Component Tests', () => {
       // First attempt fails
       try {
         await onConfirm();
-      } catch (error) {
+      } catch (_error) {
         // Error caught
       }
 
@@ -305,7 +305,7 @@ describe('DeleteAchievementDialog Component Tests', () => {
       try {
         await onConfirm();
         onOpenChange(false);
-      } catch (error) {
+      } catch (_error) {
         fail('Second attempt should succeed');
       }
 
@@ -464,7 +464,7 @@ describe('DeleteAchievementDialog Component Tests', () => {
       // 1. First delete attempt fails
       try {
         await onConfirm();
-      } catch (error) {
+      } catch (_error) {
         // Error shown to user
       }
 

@@ -24,7 +24,7 @@ import {
 import { existingAchievements } from 'lib/ai/prompts/evals/data/weekly-document-achievements';
 
 // This is a Server Route, so no "use client" here
-export async function GET(request: Request, { params }: { params: Params }) {
+export async function GET(_request: Request, { params }: { params: Params }) {
   const { id } = await params;
 
   let input: any;

@@ -140,7 +140,7 @@ async function createProductsAndPrices() {
   }
 }
 
-async function deleteProducts() {
+async function _deleteProducts() {
   for (const product of products) {
     await deleteProduct(product.id);
   }

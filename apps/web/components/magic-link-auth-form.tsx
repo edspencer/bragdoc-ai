@@ -47,7 +47,7 @@ export function MagicLinkAuthForm({
         setIsEmailSent(true);
         setIsSubmitting(false);
       }
-    } catch (err) {
+    } catch (_err) {
       setError('An unexpected error occurred. Please try again.');
       setIsSubmitting(false);
     }
