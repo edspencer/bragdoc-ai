@@ -1,0 +1,59 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 500">
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#fef3c7"/>
+      <stop offset="100%" style="stop-color:#fde68a"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Background -->
+  <rect width="800" height="500" fill="url(#bgGrad)" rx="16"/>
+
+  <!-- Title -->
+  <text x="400" y="50" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="28" font-weight="700" fill="#1f2937">What Managers Actually Evaluate</text>
+
+  <!-- 4 Cards in 2x2 grid -->
+
+  <!-- Card 1: Evidence of Impact -->
+  <rect x="40" y="85" width="350" height="175" rx="12" fill="white" stroke="#e5e7eb" stroke-width="1"/>
+  <circle cx="80" cy="125" r="24" fill="#f97316"/>
+  <text x="80" y="132" text-anchor="middle" font-family="system-ui, sans-serif" font-size="24" fill="white">1</text>
+  <text x="120" y="130" font-family="system-ui, -apple-system, sans-serif" font-size="20" font-weight="600" fill="#1f2937">Evidence of Impact</text>
+  <text x="60" y="165" font-family="system-ui, -apple-system, sans-serif" font-size="14" fill="#4b5563">Business, team, and user outcomes</text>
+  <text x="60" y="190" font-family="system-ui, -apple-system, sans-serif" font-size="13" fill="#6b7280">Not effort or hours worked</text>
+  <text x="60" y="215" font-family="system-ui, -apple-system, sans-serif" font-size="13" fill="#6b7280">Context + Action + Result</text>
+  <text x="60" y="240" font-family="system-ui, -apple-system, sans-serif" font-size="13" fill="#6b7280">Quantified when possible</text>
+
+  <!-- Card 2: Evidence of Growth -->
+  <rect x="410" y="85" width="350" height="175" rx="12" fill="white" stroke="#e5e7eb" stroke-width="1"/>
+  <circle cx="450" cy="125" r="24" fill="#f97316"/>
+  <text x="450" y="132" text-anchor="middle" font-family="system-ui, sans-serif" font-size="24" fill="white">2</text>
+  <text x="490" y="130" font-family="system-ui, -apple-system, sans-serif" font-size="20" font-weight="600" fill="#1f2937">Evidence of Growth</text>
+  <text x="430" y="165" font-family="system-ui, -apple-system, sans-serif" font-size="14" fill="#4b5563">New skills and stretch projects</text>
+  <text x="430" y="190" font-family="system-ui, -apple-system, sans-serif" font-size="13" fill="#6b7280">Acting on feedback</text>
+  <text x="430" y="215" font-family="system-ui, -apple-system, sans-serif" font-size="13" fill="#6b7280">Career trajectory signals</text>
+  <text x="430" y="240" font-family="system-ui, -apple-system, sans-serif" font-size="13" fill="#6b7280">Self-awareness and ambition</text>
+
+  <!-- Card 3: Quality of Judgment -->
+  <rect x="40" y="280" width="350" height="175" rx="12" fill="white" stroke="#e5e7eb" stroke-width="1"/>
+  <circle cx="80" cy="320" r="24" fill="#f97316"/>
+  <text x="80" y="327" text-anchor="middle" font-family="system-ui, sans-serif" font-size="24" fill="white">3</text>
+  <text x="120" y="325" font-family="system-ui, -apple-system, sans-serif" font-size="20" font-weight="600" fill="#1f2937">Quality of Judgment</text>
+  <text x="60" y="360" font-family="system-ui, -apple-system, sans-serif" font-size="14" fill="#4b5563">Technical decision-making</text>
+  <text x="60" y="385" font-family="system-ui, -apple-system, sans-serif" font-size="13" fill="#6b7280">Thinking about tradeoffs</text>
+  <text x="60" y="410" font-family="system-ui, -apple-system, sans-serif" font-size="13" fill="#6b7280">Defending technical choices</text>
+  <text x="60" y="435" font-family="system-ui, -apple-system, sans-serif" font-size="13" fill="#6b7280">Honesty about challenges</text>
+
+  <!-- Card 4: Collaboration -->
+  <rect x="410" y="280" width="350" height="175" rx="12" fill="white" stroke="#e5e7eb" stroke-width="1"/>
+  <circle cx="450" cy="320" r="24" fill="#f97316"/>
+  <text x="450" y="327" text-anchor="middle" font-family="system-ui, sans-serif" font-size="24" fill="white">4</text>
+  <text x="490" y="325" font-family="system-ui, -apple-system, sans-serif" font-size="20" font-weight="600" fill="#1f2937">Collaboration</text>
+  <text x="430" y="360" font-family="system-ui, -apple-system, sans-serif" font-size="14" fill="#4b5563">Working well with others</text>
+  <text x="430" y="385" font-family="system-ui, -apple-system, sans-serif" font-size="13" fill="#6b7280">Helping teammates</text>
+  <text x="430" y="410" font-family="system-ui, -apple-system, sans-serif" font-size="13" fill="#6b7280">Sharing knowledge</text>
+  <text x="430" y="435" font-family="system-ui, -apple-system, sans-serif" font-size="13" fill="#6b7280">Receptive to feedback</text>
+
+  <!-- Footer -->
+  <text x="400" y="480" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="12" fill="#9ca3af">bragdoc.ai</text>
+</svg>

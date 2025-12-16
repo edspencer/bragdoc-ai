@@ -1,0 +1,55 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 320">
+  <defs>
+    <linearGradient id="bgGrad3" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#fef3c7"/>
+      <stop offset="100%" style="stop-color:#fde68a"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Background -->
+  <rect width="800" height="320" fill="url(#bgGrad3)" rx="16"/>
+
+  <!-- Title -->
+  <text x="400" y="45" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="24" font-weight="700" fill="#1f2937">What Managers Don't Care About</text>
+
+  <!-- 4 items in a row -->
+
+  <!-- Item 1: Busyness -->
+  <rect x="30" y="75" width="175" height="210" rx="12" fill="white" stroke="#e5e7eb" stroke-width="1"/>
+  <circle cx="117" cy="115" r="28" fill="#fef2f2" stroke="#ef4444" stroke-width="2"/>
+  <text x="117" y="123" text-anchor="middle" font-family="system-ui, sans-serif" font-size="24" fill="#ef4444">✗</text>
+  <text x="117" y="165" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="16" font-weight="600" fill="#1f2937">Busyness</text>
+  <text x="117" y="190" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="12" fill="#6b7280">"I was really busy"</text>
+  <text x="117" y="210" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="12" fill="#6b7280">doesn't mean you</text>
+  <text x="117" y="230" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="12" fill="#6b7280">created value</text>
+
+  <!-- Item 2: Code Quantity -->
+  <rect x="220" y="75" width="175" height="210" rx="12" fill="white" stroke="#e5e7eb" stroke-width="1"/>
+  <circle cx="307" cy="115" r="28" fill="#fef2f2" stroke="#ef4444" stroke-width="2"/>
+  <text x="307" y="123" text-anchor="middle" font-family="system-ui, sans-serif" font-size="24" fill="#ef4444">✗</text>
+  <text x="307" y="165" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="16" font-weight="600" fill="#1f2937">Code Quantity</text>
+  <text x="307" y="190" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="12" fill="#6b7280">Lines of code, PRs,</text>
+  <text x="307" y="210" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="12" fill="#6b7280">commits are vanity</text>
+  <text x="307" y="230" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="12" fill="#6b7280">metrics</text>
+
+  <!-- Item 3: Being Smartest -->
+  <rect x="410" y="75" width="175" height="210" rx="12" fill="white" stroke="#e5e7eb" stroke-width="1"/>
+  <circle cx="497" cy="115" r="28" fill="#fef2f2" stroke="#ef4444" stroke-width="2"/>
+  <text x="497" y="123" text-anchor="middle" font-family="system-ui, sans-serif" font-size="24" fill="#ef4444">✗</text>
+  <text x="497" y="165" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="16" font-weight="600" fill="#1f2937">Being Smartest</text>
+  <text x="497" y="190" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="12" fill="#6b7280">Intelligence is</text>
+  <text x="497" y="210" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="12" fill="#6b7280">assumed. What did</text>
+  <text x="497" y="230" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="12" fill="#6b7280">you do with it?</text>
+
+  <!-- Item 4: Above & Beyond -->
+  <rect x="600" y="75" width="175" height="210" rx="12" fill="white" stroke="#e5e7eb" stroke-width="1"/>
+  <circle cx="687" cy="115" r="28" fill="#fef2f2" stroke="#ef4444" stroke-width="2"/>
+  <text x="687" y="123" text-anchor="middle" font-family="system-ui, sans-serif" font-size="24" fill="#ef4444">✗</text>
+  <text x="687" y="165" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="16" font-weight="600" fill="#1f2937">Above &amp; Beyond</text>
+  <text x="687" y="190" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="12" fill="#6b7280">On everything?</text>
+  <text x="687" y="210" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="12" fill="#6b7280">That's unsustainable</text>
+  <text x="687" y="230" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="12" fill="#6b7280">or poor prioritization</text>
+
+  <!-- Footer -->
+  <text x="400" y="305" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="12" fill="#9ca3af">bragdoc.ai</text>
+</svg>
