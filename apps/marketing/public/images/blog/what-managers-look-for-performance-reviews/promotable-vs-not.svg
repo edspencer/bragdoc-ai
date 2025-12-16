@@ -1,0 +1,54 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 400">
+  <defs>
+    <linearGradient id="bgGrad2" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#fef3c7"/>
+      <stop offset="100%" style="stop-color:#fde68a"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Background -->
+  <rect width="800" height="400" fill="url(#bgGrad2)" rx="16"/>
+
+  <!-- Title -->
+  <text x="400" y="45" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="24" font-weight="700" fill="#1f2937">The Same Work, Two Different Outcomes</text>
+
+  <!-- Not Promotable Card -->
+  <rect x="40" y="75" width="350" height="280" rx="12" fill="white" stroke="#ef4444" stroke-width="2"/>
+  <rect x="40" y="75" width="350" height="50" rx="12" fill="#fef2f2"/>
+  <rect x="40" y="113" width="350" height="12" fill="#fef2f2"/>
+  <circle cx="70" cy="100" r="16" fill="#ef4444"/>
+  <text x="70" y="106" text-anchor="middle" font-family="system-ui, sans-serif" font-size="20" fill="white">✗</text>
+  <text x="100" y="106" font-family="system-ui, -apple-system, sans-serif" font-size="18" font-weight="600" fill="#991b1b">Not Promotable</text>
+
+  <text x="60" y="155" font-family="system-ui, -apple-system, sans-serif" font-size="14" fill="#6b7280" font-style="italic">"Sarah did good work on the API team."</text>
+
+  <text x="60" y="195" font-family="system-ui, -apple-system, sans-serif" font-size="13" fill="#4b5563">What the manager can say:</text>
+  <text x="60" y="220" font-family="system-ui, -apple-system, sans-serif" font-size="12" fill="#6b7280">• She worked on APIs</text>
+  <text x="60" y="242" font-family="system-ui, -apple-system, sans-serif" font-size="12" fill="#6b7280">• She seemed busy</text>
+  <text x="60" y="264" font-family="system-ui, -apple-system, sans-serif" font-size="12" fill="#6b7280">• No complaints from the team</text>
+
+  <text x="60" y="305" font-family="system-ui, -apple-system, sans-serif" font-size="12" fill="#991b1b" font-weight="500">Result: No evidence for promotion committee</text>
+  <text x="60" y="330" font-family="system-ui, -apple-system, sans-serif" font-size="12" fill="#991b1b" font-weight="500">Rating: Meets expectations</text>
+
+  <!-- Promotable Card -->
+  <rect x="410" y="75" width="350" height="280" rx="12" fill="white" stroke="#22c55e" stroke-width="2"/>
+  <rect x="410" y="75" width="350" height="50" rx="12" fill="#f0fdf4"/>
+  <rect x="410" y="113" width="350" height="12" fill="#f0fdf4"/>
+  <circle cx="440" cy="100" r="16" fill="#22c55e"/>
+  <text x="440" y="106" text-anchor="middle" font-family="system-ui, sans-serif" font-size="20" fill="white">✓</text>
+  <text x="470" y="106" font-family="system-ui, -apple-system, sans-serif" font-size="18" font-weight="600" fill="#166534">Promotable</text>
+
+  <text x="430" y="150" font-family="system-ui, -apple-system, sans-serif" font-size="13" fill="#6b7280" font-style="italic">"Sarah owned the API redesign. She made</text>
+  <text x="430" y="168" font-family="system-ui, -apple-system, sans-serif" font-size="13" fill="#6b7280" font-style="italic">strategic decisions, led 3 engineers, reduced</text>
+  <text x="430" y="186" font-family="system-ui, -apple-system, sans-serif" font-size="13" fill="#6b7280" font-style="italic">latency 50%, and mentored 2 juniors."</text>
+
+  <text x="430" y="220" font-family="system-ui, -apple-system, sans-serif" font-size="13" fill="#4b5563">What the manager can say:</text>
+  <text x="430" y="245" font-family="system-ui, -apple-system, sans-serif" font-size="12" fill="#6b7280">• Led cross-functional project</text>
+  <text x="430" y="267" font-family="system-ui, -apple-system, sans-serif" font-size="12" fill="#6b7280">• Quantified business impact</text>
+  <text x="430" y="289" font-family="system-ui, -apple-system, sans-serif" font-size="12" fill="#6b7280">• Demonstrated leadership</text>
+
+  <text x="430" y="330" font-family="system-ui, -apple-system, sans-serif" font-size="12" fill="#166534" font-weight="500">Result: Clear case for promotion</text>
+
+  <!-- Footer -->
+  <text x="400" y="385" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="12" fill="#9ca3af">The difference is documentation, not the work itself</text>
+</svg>
