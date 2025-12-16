@@ -1,0 +1,49 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 300" width="800" height="300">
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#fef3c7"/>
+      <stop offset="100%" style="stop-color:#fde68a"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Background -->
+  <rect width="800" height="300" fill="url(#bgGrad)" rx="16"/>
+
+  <!-- Title -->
+  <text x="400" y="40" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="20" font-weight="700" fill="#1f2937">Memory Fades Fast: Document Now</text>
+
+  <!-- Timeline -->
+  <line x1="100" y1="140" x2="700" y2="140" stroke="#d1d5db" stroke-width="4" stroke-linecap="round"/>
+
+  <!-- December (NOW) -->
+  <circle cx="150" cy="140" r="20" fill="#10b981" stroke="white" stroke-width="3"/>
+  <text x="150" y="145" text-anchor="middle" font-family="system-ui, sans-serif" font-size="12" font-weight="700" fill="white">NOW</text>
+  <text x="150" y="180" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="14" font-weight="600" fill="#1f2937">December</text>
+  <text x="150" y="200" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="12" fill="#10b981">100% recall</text>
+  <rect x="90" y="215" width="120" height="50" rx="8" fill="#ecfdf5" stroke="#10b981" stroke-width="1"/>
+  <text x="150" y="238" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="11" fill="#065f46">Context fresh</text>
+  <text x="150" y="254" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="11" fill="#065f46">Details clear</text>
+
+  <!-- January -->
+  <circle cx="350" cy="140" r="16" fill="#f59e0b"/>
+  <text x="350" y="180" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="14" font-weight="600" fill="#1f2937">January</text>
+  <text x="350" y="200" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="12" fill="#f59e0b">~70% recall</text>
+  <rect x="290" y="215" width="120" height="50" rx="8" fill="#fef3c7" stroke="#f59e0b" stroke-width="1"/>
+  <text x="350" y="238" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="11" fill="#92400e">Holiday blur</text>
+  <text x="350" y="254" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="11" fill="#92400e">Details fading</text>
+
+  <!-- March -->
+  <circle cx="550" cy="140" r="16" fill="#ef4444"/>
+  <text x="550" y="180" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="14" font-weight="600" fill="#1f2937">March</text>
+  <text x="550" y="200" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="12" fill="#ef4444">~40% recall</text>
+  <rect x="490" y="215" width="120" height="50" rx="8" fill="#fef2f2" stroke="#ef4444" stroke-width="1"/>
+  <text x="550" y="238" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="11" fill="#991b1b">Review season</text>
+  <text x="550" y="254" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="11" fill="#991b1b">Scrambling</text>
+
+  <!-- Arrow showing decline -->
+  <path d="M180,120 Q350,80 530,120" stroke="#9ca3af" stroke-width="2" fill="none" stroke-dasharray="5,5"/>
+  <text x="350" y="75" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="11" fill="#6b7280">Memory decay</text>
+
+  <!-- BragDoc branding -->
+  <text x="720" y="285" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="11" fill="#9ca3af">bragdoc.ai</text>
+</svg>
