@@ -43,7 +43,10 @@ interface StandupAchievementsTableProps {
 function StarRating({
   rating,
   onRatingChange,
-}: { rating: number; onRatingChange: (rating: number) => void }) {
+}: {
+  rating: number;
+  onRatingChange: (rating: number) => void;
+}) {
   return (
     <div className="flex gap-0.5">
       {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((star) => (
