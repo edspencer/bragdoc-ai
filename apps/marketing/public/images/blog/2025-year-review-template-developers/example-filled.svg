@@ -1,0 +1,54 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 380">
+  <defs>
+    <filter id="shadow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="2" stdDeviation="4" flood-opacity="0.1"/>
+    </filter>
+  </defs>
+
+  <!-- Background -->
+  <rect width="800" height="380" fill="#f8fafc"/>
+
+  <!-- Header -->
+  <text x="400" y="35" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="18" font-weight="600" fill="#1e293b">Example: Filled-Out Template Entry</text>
+
+  <!-- Card -->
+  <rect x="40" y="55" width="720" height="305" rx="12" fill="white" filter="url(#shadow)" stroke="#e2e8f0" stroke-width="1"/>
+
+  <!-- Section Header -->
+  <text x="60" y="90" font-family="system-ui, -apple-system, sans-serif" font-size="14" font-weight="600" fill="#475569">Major Projects</text>
+
+  <!-- Entries -->
+  <text x="60" y="125" font-family="system-ui, -apple-system, sans-serif" font-size="13" fill="#1e293b">
+    <tspan font-weight="600" fill="#0f172a">Project:</tspan>
+    <tspan fill="#334155"> Payment Processing Redesign</tspan>
+  </text>
+
+  <text x="60" y="155" font-family="system-ui, -apple-system, sans-serif" font-size="13" fill="#1e293b">
+    <tspan font-weight="600" fill="#0f172a">When:</tspan>
+    <tspan fill="#334155"> March - June 2025</tspan>
+  </text>
+
+  <text x="60" y="185" font-family="system-ui, -apple-system, sans-serif" font-size="13" fill="#1e293b">
+    <tspan font-weight="600" fill="#0f172a">What you did:</tspan>
+    <tspan fill="#334155"> Led 3-person team. Designed new architecture, wrote core payment</tspan>
+  </text>
+  <text x="60" y="203" font-family="system-ui, -apple-system, sans-serif" font-size="13" fill="#334155">gateway integration, reviewed all PRs, coordinated with compliance team.</text>
+
+  <text x="60" y="233" font-family="system-ui, -apple-system, sans-serif" font-size="13" fill="#1e293b">
+    <tspan font-weight="600" fill="#0f172a">Business context:</tspan>
+    <tspan fill="#334155"> Old system had 3% transaction failure rate, costing ~$50K/month</tspan>
+  </text>
+  <text x="60" y="251" font-family="system-ui, -apple-system, sans-serif" font-size="13" fill="#334155">in lost revenue and support tickets.</text>
+
+  <text x="60" y="281" font-family="system-ui, -apple-system, sans-serif" font-size="13" fill="#1e293b">
+    <tspan font-weight="600" fill="#0f172a">Measurable impact:</tspan>
+    <tspan fill="#334155"> Reduced failure rate to 0.4%. Saved ~$45K/month. Processing</tspan>
+  </text>
+  <text x="60" y="299" font-family="system-ui, -apple-system, sans-serif" font-size="13" fill="#334155">time dropped from 2.3s to 340ms. Zero downtime during migration.</text>
+
+  <text x="60" y="329" font-family="system-ui, -apple-system, sans-serif" font-size="13" fill="#1e293b">
+    <tspan font-weight="600" fill="#0f172a">Evidence:</tspan>
+    <tspan fill="#3b82f6"> github.com/company/payments/pull/847</tspan>
+    <tspan fill="#334155">, Datadog dashboard, Q2 retro doc</tspan>
+  </text>
+</svg>
