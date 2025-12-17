@@ -104,7 +104,10 @@ export function ProblemSolutionV2() {
 function ProblemCard({
   title,
   description,
-}: { title: string; description: string }) {
+}: {
+  title: string;
+  description: string;
+}) {
   return (
     <Card className="p-6 border-destructive/20 bg-destructive/5 hover:border-destructive/40 transition-colors">
       <div className="flex items-start gap-3">

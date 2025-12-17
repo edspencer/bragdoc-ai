@@ -6,7 +6,9 @@
 
 export async function getArtifactMetadata({
   documentId,
-}: { documentId: string }) {
+}: {
+  documentId: string;
+}) {
   // Future: Add any server-side metadata fetching here
   return {};
 }
