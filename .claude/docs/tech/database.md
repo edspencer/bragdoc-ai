@@ -890,6 +890,8 @@ export async function getAchievementStats({ userId, db = defaultDb }) {
 }
 ```
 
+**Month-over-Month Proration:** The `getAchievementStats` function prorates current month impact for fair comparison against previous full months. The formula projects current pace across the full month: `thisMonthImpact * (totalDaysInMonth / currentDayOfMonth)`. On day 1, actual values are used to avoid extreme 28-31x projections. This ensures growth percentages accurately reflect user performance rather than penalizing users for incomplete months.
+
 ### Date Range Queries
 ```typescript
 export async function generatePeriodSummary({
