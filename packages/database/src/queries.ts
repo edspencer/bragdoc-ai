@@ -1066,9 +1066,25 @@ export async function getAchievementStats({
 
     const thisMonthImpact = Number(thisMonthResult?.thisMonthImpact ?? 0);
     const lastMonthImpact = Number(lastMonthResult?.lastMonthImpact ?? 0);
+
+    // Calculate proration factor for fair month-over-month comparison
+    const currentDayOfMonth = now.getDate();
+    const totalDaysInMonth = new Date(
+      now.getFullYear(),
+      now.getMonth() + 1,
+      0,
+    ).getDate();
+
+    // On day 1, use actual value to avoid extreme projections (28-31x)
+    // On day 2+, apply standard proration
+    const proratedThisMonthImpact =
+      currentDayOfMonth === 1
+        ? thisMonthImpact
+        : thisMonthImpact * (totalDaysInMonth / currentDayOfMonth);
+
     const monthlyGrowth =
       lastMonthImpact > 0
-        ? ((thisMonthImpact - lastMonthImpact) / lastMonthImpact) * 100
+        ? ((proratedThisMonthImpact - lastMonthImpact) / lastMonthImpact) * 100
         : 0;
 
     return {

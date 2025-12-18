@@ -1,10 +1,46 @@
-import { IconTrendingUp, IconTarget, IconCalendar } from '@tabler/icons-react';
+import {
+  IconTrendingUp,
+  IconTrendingDown,
+  IconTarget,
+  IconCalendar,
+} from '@tabler/icons-react';
 import Link from 'next/link';
 import { auth } from '@/lib/better-auth/server';
 import { headers } from 'next/headers';
 
 import { getAchievementStats, getActiveProjectsCount } from '@bragdoc/database';
 import { Stat } from '@/components/shared/stat';
+
+function getGrowthIcon(growth: number, size: 'small' | 'large' = 'small') {
+  const className = size === 'small' ? 'size-3' : 'size-4';
+  return growth >= 0 ? (
+    <IconTrendingUp className={className} />
+  ) : (
+    <IconTrendingDown className={className} />
+  );
+}
+
+function getMonthlyGrowthText(monthlyGrowth: number): string {
+  if (monthlyGrowth > 10) return 'Strong growth this month';
+  if (monthlyGrowth > 0) return 'Growing impact this month';
+  if (monthlyGrowth === 0) return 'Steady impact this month';
+  if (monthlyGrowth > -10) return 'Slight dip this month';
+  return 'Impact declining this month';
+}
+
+function getWeeklyGrowthText(weeklyGrowth: number): string {
+  if (weeklyGrowth > 10) return 'Excellent weekly performance';
+  if (weeklyGrowth > 0) return 'Strong weekly performance';
+  if (weeklyGrowth === 0) return 'Consistent weekly output';
+  if (weeklyGrowth > -10) return 'Slower week than usual';
+  return 'Quiet week';
+}
+
+function getWeeklyFooterDescription(weeklyGrowth: number): string {
+  return weeklyGrowth >= 0
+    ? 'Keep up the momentum!'
+    : 'Every week is a fresh start';
+}
 
 export async function AchievementStats() {
   const session = await auth.api.getSession({
@@ -50,12 +86,12 @@ export async function AchievementStats() {
         label="Total Impact Points"
         value={displayStats.totalImpactPoints}
         badge={{
-          icon: <IconTrendingUp className="size-3" />,
+          icon: getGrowthIcon(displayStats.monthlyGrowth, 'small'),
           label: `${displayStats.monthlyGrowth > 0 ? '+' : ''}${displayStats.monthlyGrowth}%`,
         }}
         footerHeading={{
-          text: 'Growing impact this month',
-          icon: <IconTrendingUp className="size-4" />,
+          text: getMonthlyGrowthText(displayStats.monthlyGrowth),
+          icon: getGrowthIcon(displayStats.monthlyGrowth, 'large'),
         }}
         footerDescription={`Average ${displayStats.avgImpactPerAchievement} points per achievement`}
       />
@@ -64,14 +100,16 @@ export async function AchievementStats() {
         label="This Week's Impact"
         value={displayStats.thisWeekImpact}
         badge={{
-          icon: <IconTrendingUp className="size-3" />,
+          icon: getGrowthIcon(displayStats.weeklyGrowth, 'small'),
           label: `${displayStats.weeklyGrowth > 0 ? '+' : ''}${displayStats.weeklyGrowth}%`,
         }}
         footerHeading={{
-          text: 'Strong weekly performance',
-          icon: <IconTrendingUp className="size-4" />,
+          text: getWeeklyGrowthText(displayStats.weeklyGrowth),
+          icon: getGrowthIcon(displayStats.weeklyGrowth, 'large'),
         }}
-        footerDescription="Keep up the momentum!"
+        footerDescription={getWeeklyFooterDescription(
+          displayStats.weeklyGrowth,
+        )}
       />
 
       <Link href="/projects">

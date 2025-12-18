@@ -721,6 +721,41 @@ interface StatProps {
 - **Project details page:** Project-specific achievement statistics
 - **Potential usage:** Companies page, reports page, any page with metrics
 
+### Growth Indicator Patterns
+
+Dashboard stat widgets use helper functions to dynamically render arrow icons and motivational text based on growth values. This ensures the UI accurately reflects whether metrics are trending up or down.
+
+**Icon Selection:**
+
+- `getGrowthIcon(growth, size)` - Returns `IconTrendingUp` (>= 0) or `IconTrendingDown` (< 0)
+- Size parameter: `'small'` (size-3) or `'large'` (size-4)
+
+**Motivational Text (Monthly):**
+
+`getMonthlyGrowthText(monthlyGrowth)` returns tier-based text:
+- `> 10%`: "Strong growth this month"
+- `> 0%`: "Growing impact this month"
+- `= 0%`: "Steady impact this month"
+- `> -10%`: "Slight dip this month"
+- `<= -10%`: "Impact declining this month"
+
+**Motivational Text (Weekly):**
+
+`getWeeklyGrowthText(weeklyGrowth)` returns tier-based text:
+- `> 10%`: "Excellent weekly performance"
+- `> 0%`: "Strong weekly performance"
+- `= 0%`: "Consistent weekly output"
+- `> -10%`: "Slower week than usual"
+- `<= -10%`: "Quiet week"
+
+**Footer Description (Weekly):**
+
+`getWeeklyFooterDescription(weeklyGrowth)` returns:
+- `>= 0%`: "Keep up the momentum!"
+- `< 0%`: "Every week is a fresh start"
+
+**Example Implementation:** See `apps/web/components/achievement-stats.tsx`
+
 ### Achievement Editing Pattern
 
 Achievement editing uses a parent-managed dialog with callback-based mode switching. Child components (AchievementsTable, AchievementItem) expose `onEdit` callbacks that parent components handle by opening AchievementDialog in edit mode with the pre-selected achievement. The pattern mirrors the impact rating inline editing callback approach.
