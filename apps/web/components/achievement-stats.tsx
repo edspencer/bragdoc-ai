@@ -96,21 +96,23 @@ export async function AchievementStats() {
         footerDescription={`Average ${displayStats.avgImpactPerAchievement} points per achievement`}
       />
 
-      <Stat
-        label="This Week's Impact"
-        value={displayStats.thisWeekImpact}
-        badge={{
-          icon: getGrowthIcon(displayStats.weeklyGrowth, 'small'),
-          label: `${displayStats.weeklyGrowth > 0 ? '+' : ''}${displayStats.weeklyGrowth}%`,
-        }}
-        footerHeading={{
-          text: getWeeklyGrowthText(displayStats.weeklyGrowth),
-          icon: getGrowthIcon(displayStats.weeklyGrowth, 'large'),
-        }}
-        footerDescription={getWeeklyFooterDescription(
-          displayStats.weeklyGrowth,
-        )}
-      />
+      <div id="tour-weekly-impact">
+        <Stat
+          label="This Week's Impact"
+          value={displayStats.thisWeekImpact}
+          badge={{
+            icon: getGrowthIcon(displayStats.weeklyGrowth, 'small'),
+            label: `${displayStats.weeklyGrowth > 0 ? '+' : ''}${displayStats.weeklyGrowth}%`,
+          }}
+          footerHeading={{
+            text: getWeeklyGrowthText(displayStats.weeklyGrowth),
+            icon: getGrowthIcon(displayStats.weeklyGrowth, 'large'),
+          }}
+          footerDescription={getWeeklyFooterDescription(
+            displayStats.weeklyGrowth,
+          )}
+        />
+      </div>
 
       <Link href="/projects">
         <Stat

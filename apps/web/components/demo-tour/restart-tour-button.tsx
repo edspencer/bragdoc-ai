@@ -13,6 +13,7 @@ import { useTourContext } from './demo-tour-provider';
 export function RestartTourButton() {
   const { startTour } = useTourContext();
 
+  // Hide on mobile - tour doesn't work well on small screens
   return (
     <TooltipProvider>
       <Tooltip>
@@ -21,7 +22,7 @@ export function RestartTourButton() {
             variant="ghost"
             size="sm"
             onClick={startTour}
-            className="h-8 w-8 p-0"
+            className="hidden h-8 w-8 p-0 md:flex"
             aria-label="Restart guided tour"
           >
             <Compass className="size-4" />

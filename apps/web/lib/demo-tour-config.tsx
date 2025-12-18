@@ -50,11 +50,11 @@ export const DEMO_TOUR_STEPS: TourStep[] = [
         </p>
         <p className="mt-2">
           A small bug fix might be 2 points, while a major feature could be 8-10
-          points. This chart shows your impact trends over time.
+          points.
         </p>
       </>
     ),
-    selector: '#tour-impact-chart',
+    selector: '#tour-weekly-impact',
     side: 'bottom',
     showControls: true,
     pointerPadding: 10,

@@ -6,6 +6,7 @@ import {
   useContext,
   useEffect,
   useMemo,
+  useState,
 } from 'react';
 import { Onborda, OnbordaProvider, useOnborda } from 'onborda';
 import type { CardComponentProps } from 'onborda';
@@ -34,15 +35,30 @@ interface TourProviderProps {
   children: React.ReactNode;
 }
 
+// Minimum viewport width for showing the tour (matches Tailwind's md breakpoint)
+const MIN_TOUR_WIDTH = 768;
+
 // Inner component that uses the Onborda context
 function TourContent({ children }: TourProviderProps) {
   const pathname = usePathname();
   const { showTour, isTourCompleted, startTour, completeTour } = useDemoTour();
   const { startOnborda, closeOnborda } = useOnborda();
+  const [isDesktop, setIsDesktop] = useState(false);
 
-  // Only show tour on dashboard
+  // Check viewport width - disable tour on mobile
+  useEffect(() => {
+    const checkViewport = () => {
+      setIsDesktop(window.innerWidth >= MIN_TOUR_WIDTH);
+    };
+
+    checkViewport();
+    window.addEventListener('resize', checkViewport);
+    return () => window.removeEventListener('resize', checkViewport);
+  }, []);
+
+  // Only show tour on dashboard and desktop viewports
   const isOnDashboard = pathname === '/dashboard';
-  const shouldShowTour = showTour && isOnDashboard;
+  const shouldShowTour = showTour && isOnDashboard && isDesktop;
 
   // Start or close tour based on state
   useEffect(() => {
