@@ -88,22 +88,25 @@ Tasks are managed through GitHub issues and synced locally via the GitHub Task S
 
 All task files live both locally and on GitHub issues, synchronized via the `github-task-sync` skill. Task files are NOT source-controlled (in `.gitignore`), with GitHub issues as the source of truth.
 
-**Quick Commands:**
-```bash
-# Create new GitHub issue and task directory
-./.claude/skills/github-task-sync/create-issue.sh "Feature title" "Description"
+**Invoking the Skill:**
 
-# Push task files to GitHub
-./.claude/skills/github-task-sync/push.sh 188 ./tasks/188-account-deletion
+The github-task-sync skill is provided by the `product-team` plugin. Use the Skill tool or slash commands:
 
-# Pull task files from GitHub
-./.claude/skills/github-task-sync/pull.sh 188 ./tasks/188-account-deletion
+```
+# Via Skill tool
+Skill(product-team:github-task-sync)
 
-# Read a single file from GitHub
-./.claude/skills/github-task-sync/read-issue-file.sh 188 SPEC
+# Via slash command to create a new issue
+/product-team:create-issue "Feature title"
 ```
 
-See `.claude/skills/github-task-sync/SKILL.md` for complete documentation and all available scripts.
+**Available Operations:**
+- Create new GitHub issue and task directory
+- Push task files (SPEC, PLAN, TEST_PLAN, COMMIT_MESSAGE) to GitHub
+- Pull task files from GitHub to local directory
+- Read task files directly from GitHub
+
+See the plugin documentation at `plugins/product-team/skills/github-task-sync/SKILL.md` for complete documentation and all available scripts.
 
 ### Agent System v2
 
