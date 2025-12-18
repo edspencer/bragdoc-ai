@@ -229,7 +229,7 @@ export function WeeklyImpactChart({ achievements }: WeeklyImpactChartProps) {
   }, [isMobile]);
 
   return (
-    <Card className="@container/card">
+    <Card className="@container/card" id="tour-impact-chart">
       <CardHeader>
         <CardTitle>Weekly Impact Trend</CardTitle>
         <CardDescription>

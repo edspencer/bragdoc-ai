@@ -9,6 +9,7 @@ import { auth } from '@/lib/better-auth/server';
 import { headers } from 'next/headers';
 import { getAchievementStats } from '@bragdoc/database';
 import { DashboardZeroState } from '@/components/dashboard/dashboard-zero-state';
+import { RestartTourButton } from '@/components/demo-tour';
 
 export default async function Page() {
   const session = await auth.api.getSession({
@@ -29,7 +30,9 @@ export default async function Page() {
   return (
     <AppPage>
       <SidebarInset>
-        <SiteHeader />
+        <SiteHeader>
+          <RestartTourButton />
+        </SiteHeader>
         {hasNoAchievements ? (
           <DashboardZeroState />
         ) : (

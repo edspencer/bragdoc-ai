@@ -37,7 +37,7 @@ export function TopProjects() {
 
   if (isLoading) {
     return (
-      <Card>
+      <Card id="tour-top-projects">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <FolderKanban className="size-5" />
@@ -60,7 +60,7 @@ export function TopProjects() {
 
   return (
     <>
-      <Card>
+      <Card id="tour-top-projects">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <FolderKanban className="size-5" />

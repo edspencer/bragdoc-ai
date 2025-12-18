@@ -65,7 +65,7 @@ export async function AchievementStats() {
   };
   return (
     <div className="grid grid-cols-2 gap-2 lg:gap-6 @xl/main:grid-cols-2 @5xl/main:grid-cols-4">
-      <Link href="/achievements">
+      <Link href="/achievements" id="tour-achievements-stat">
         <Stat
           label="Total Achievements"
           value={displayStats.totalAchievements}
