@@ -31,6 +31,7 @@ interface AchievementItemProps {
   linkToAchievements?: boolean;
   workstream?: Workstream | null;
   onWorkstreamChange?: () => void;
+  impactRatingId?: string;
 }
 
 export function AchievementItem({
@@ -43,6 +44,7 @@ export function AchievementItem({
   linkToAchievements = true,
   workstream,
   onWorkstreamChange,
+  impactRatingId,
 }: AchievementItemProps) {
   return (
     <div className="space-y-2">
@@ -104,17 +106,19 @@ export function AchievementItem({
         </div>
         <div className="flex items-center justify-between gap-1">
           <div className="flex items-center gap-4">
-            <ImpactRating
-              value={achievement.impact || 0}
-              source={achievement.impactSource || 'llm'}
-              updatedAt={achievement.impactUpdatedAt}
-              onChange={
-                onImpactChange
-                  ? (value) => onImpactChange(achievement.id, value)
-                  : undefined
-              }
-              readOnly={readOnly}
-            />
+            <div id={impactRatingId}>
+              <ImpactRating
+                value={achievement.impact || 0}
+                source={achievement.impactSource || 'llm'}
+                updatedAt={achievement.impactUpdatedAt}
+                onChange={
+                  onImpactChange
+                    ? (value) => onImpactChange(achievement.id, value)
+                    : undefined
+                }
+                readOnly={readOnly}
+              />
+            </div>
             {showSourceBadge && (
               <Badge variant="outline" className="text-xs">
                 {achievement.impactSource}

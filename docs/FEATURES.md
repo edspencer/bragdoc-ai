@@ -316,3 +316,93 @@ This approach is legally sufficient because:
 See `.claude/docs/tech/authentication.md` for complete technical documentation.
 
 ---
+
+## Guided Demo Tour
+
+### Overview
+
+**Implemented:** 2025-12-18
+
+BragDoc includes a guided product tour for demo mode users that introduces key dashboard features. The tour automatically appears on first visit and walks users through the main UI elements with educational content and a CLI installation call-to-action.
+
+### Target Audience
+
+The demo tour is specifically designed for:
+
+- **Demo mode visitors** exploring BragDoc functionality
+- **First-time users** who need orientation to the dashboard
+- **Evaluators** assessing BragDoc before signing up
+
+The tour is **not shown** to:
+
+- Regular authenticated users (non-demo mode)
+- Users who have already completed or skipped the tour
+- Users on pages other than the dashboard
+
+### Tour Experience
+
+The tour consists of 4 steps highlighting key dashboard elements:
+
+1. **Your Achievements** - Introduces achievements as career building blocks, explains CLI extraction and manual entry options
+2. **Track Your Impact Over Time** - Explains the impact point system (1-10 scale) and trend visualization
+3. **Organize by Project** - Shows project organization and includes CLI installation commands
+4. **Rate Your Impact** - Demonstrates the interactive star rating system
+
+### User Interactions
+
+**Navigation:**
+
+- **Next/Back buttons** - Step through the tour
+- **Skip button (X)** - Close tour and mark as completed
+- **Finish button** - Complete tour on final step
+- **Escape key** - Close tour at any time
+
+**Persistence:**
+
+- Tour completion is stored in localStorage (`demo-tour-completed`)
+- Once completed or skipped, the tour does not appear again in that browser
+- Clearing localStorage will reset the tour state
+
+### Auto-Start Behavior
+
+The tour automatically starts when all conditions are met:
+
+1. User is in demo mode (`isDemoMode === true`)
+2. User is on the dashboard page (`/dashboard`)
+3. Tour has not been completed (`localStorage` check)
+4. Dashboard elements have rendered (500ms delay)
+
+### Technical Implementation
+
+**Library:** [Onborda](https://www.onborda.dev/) - Next.js product tour library
+
+**Key Files:**
+
+| File | Purpose |
+|------|---------|
+| `apps/web/lib/demo-tour-config.tsx` | Step definitions and constants |
+| `apps/web/components/demo-tour/demo-tour-provider.tsx` | Onborda wrapper and lifecycle |
+| `apps/web/components/demo-tour/tour-card.tsx` | Custom styled tour card |
+| `apps/web/hooks/use-demo-tour.ts` | State management with localStorage |
+
+**Integration Point:** `apps/web/app/(app)/layout.tsx` wraps content with `DemoTourProvider`
+
+### Accessibility
+
+- **Keyboard navigation:** Full keyboard support for tour controls
+- **Escape key:** Closes tour immediately
+- **ARIA attributes:** Dialog role and labels on tour card
+- **Focus management:** Handled by Onborda library
+
+### Future Enhancements
+
+Potential future improvements (not currently implemented):
+
+- Restart tour button in settings or demo banner
+- Additional tours for specific features (workstreams, reports, etc.)
+- Tours for newly launched features
+- Admin-configurable tour content
+
+See `.claude/docs/tech/frontend-patterns.md` for complete technical documentation and patterns.
+
+---

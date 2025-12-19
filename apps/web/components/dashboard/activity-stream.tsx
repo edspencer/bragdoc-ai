@@ -92,7 +92,7 @@ export function ActivityStream({ achievements }: ActivityStreamProps) {
           </p>
         ) : (
           <div className="space-y-4">
-            {recentAchievements.map((achievement) => (
+            {recentAchievements.map((achievement, index) => (
               <div
                 key={achievement.id}
                 className="border-b border-border pb-4 last:border-b-0"
@@ -105,6 +105,9 @@ export function ActivityStream({ achievements }: ActivityStreamProps) {
                   readOnly={!!actionLoading}
                   showSourceBadge={true}
                   linkToAchievements={true}
+                  impactRatingId={
+                    index === 0 ? 'tour-impact-rating' : undefined
+                  }
                 />
               </div>
             ))}

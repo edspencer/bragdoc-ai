@@ -2651,6 +2651,237 @@ export default function PricingPage() {
 
 ---
 
+## Product Tours
+
+### Overview
+
+BragDoc uses the [Onborda](https://www.onborda.dev/) library for guided product tours. Tours are currently implemented for demo mode users to introduce key dashboard features on first visit.
+
+### Architecture
+
+**Components:**
+
+- **DemoTourProvider** (`apps/web/components/demo-tour/demo-tour-provider.tsx`) - Wraps app content with Onborda provider, manages tour lifecycle
+- **TourCard** (`apps/web/components/demo-tour/tour-card.tsx`) - Custom card component matching BragDoc design system
+- **Tour Configuration** (`apps/web/lib/demo-tour-config.tsx`) - Step definitions with content, selectors, and positioning
+
+**Hook:**
+
+- **useDemoTour** (`apps/web/hooks/use-demo-tour.ts`) - Manages tour state with localStorage persistence
+
+### Tour Configuration Pattern
+
+Define tour steps in a configuration file with typed step objects:
+
+```typescript
+// apps/web/lib/demo-tour-config.tsx
+import type { ReactNode } from 'react';
+import { IconTarget } from '@tabler/icons-react';
+
+export interface TourStep {
+  icon: ReactNode;
+  title: string;
+  content: ReactNode;
+  selector: string;  // CSS selector for target element (e.g., '#tour-achievements-stat')
+  side: 'top' | 'bottom' | 'left' | 'right';
+  showControls: boolean;
+  pointerPadding: number;
+  pointerRadius: number;
+}
+
+export const DEMO_TOUR_STEPS: TourStep[] = [
+  {
+    icon: <IconTarget className="size-5" />,
+    title: 'Your Achievements',
+    content: (
+      <>
+        <p>Achievements are the building blocks of your career story.</p>
+        <p className="mt-2">Each achievement represents something meaningful.</p>
+      </>
+    ),
+    selector: '#tour-achievements-stat',
+    side: 'bottom',
+    showControls: true,
+    pointerPadding: 10,
+    pointerRadius: 10,
+  },
+  // ... more steps
+];
+
+export const TOUR_ID = 'demo-tour';
+export const TOUR_STORAGE_KEY = 'demo-tour-completed';
+```
+
+### Adding Target IDs to Components
+
+Tour steps target elements via CSS selectors. Add IDs to components you want to highlight:
+
+```tsx
+// In dashboard component
+<Link href="/achievements" id="tour-achievements-stat">
+  <Stat label="Total Achievements" value={total} />
+</Link>
+
+// In chart component
+<Card id="tour-impact-chart">
+  <WeeklyImpactChart />
+</Card>
+```
+
+For nested components where you need to target a specific child element, pass an optional ID prop:
+
+```tsx
+// Parent component
+<AchievementItem
+  achievement={achievement}
+  impactRatingId={index === 0 ? 'tour-impact-rating' : undefined}
+/>
+
+// Child component
+interface AchievementItemProps {
+  // ... other props
+  impactRatingId?: string;  // Optional ID for tour targeting
+}
+
+export function AchievementItem({ impactRatingId, ...props }: AchievementItemProps) {
+  return (
+    <div id={impactRatingId}>
+      <ImpactRating {...props} />
+    </div>
+  );
+}
+```
+
+### DemoTourProvider Integration
+
+Wrap app content with `DemoTourProvider` in the layout, passing `isDemoMode` prop:
+
+```tsx
+// apps/web/app/(app)/layout.tsx
+import { DemoTourProvider } from '@/components/demo-tour';
+
+export default async function AppLayout({ children }: { children: React.ReactNode }) {
+  const isDemoMode = process.env.NEXT_PUBLIC_DEMO_MODE_ENABLED === 'true';
+
+  return (
+    <DemoModeLayout isDemoMode={isDemoMode}>
+      <DemoTourProvider isDemoMode={isDemoMode}>
+        <SidebarProvider>
+          {children}
+        </SidebarProvider>
+      </DemoTourProvider>
+    </DemoModeLayout>
+  );
+}
+```
+
+The provider:
+- Only renders Onborda components when `isDemoMode` is true
+- Auto-starts tour on dashboard for users who haven't completed it
+- Persists completion state to localStorage
+
+### useDemoTour Hook
+
+The hook manages tour state with localStorage persistence:
+
+```typescript
+const { showTour, isTourCompleted, startTour, completeTour } = useDemoTour(isDemoMode);
+```
+
+**Returns:**
+
+- `showTour: boolean` - Whether tour should currently be shown
+- `isTourCompleted: boolean` - Whether user has finished/skipped tour
+- `startTour: () => void` - Restart tour (clears localStorage)
+- `completeTour: () => void` - Mark tour as finished (sets localStorage)
+
+**Auto-start behavior:**
+
+- Checks localStorage on mount for completion status
+- If demo mode and not completed, shows tour after 500ms delay
+- Delay ensures dashboard elements are rendered before targeting
+
+### Custom Tour Card
+
+The `TourCard` component uses shadcn/ui components and Framer Motion for animations:
+
+```tsx
+// apps/web/components/demo-tour/tour-card.tsx
+export function TourCard({
+  step,
+  currentStep,
+  totalSteps,
+  nextStep,
+  prevStep,
+  arrow,
+  onSkip,
+}: TourCardProps) {
+  // Handle Escape key to close tour
+  useEffect(() => {
+    const handleEscapeKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onSkip();
+    };
+    document.addEventListener('keydown', handleEscapeKey);
+    return () => document.removeEventListener('keydown', handleEscapeKey);
+  }, [onSkip]);
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, scale: 0.95 }}
+      animate={{ opacity: 1, scale: 1 }}
+      role="dialog"
+      aria-label="Product tour"
+    >
+      {arrow}
+      <Card className="w-[320px] shadow-lg">
+        <CardHeader>
+          <div className="flex items-center gap-2">
+            <span className="text-primary">{step.icon}</span>
+            <CardTitle className="text-base">{step.title}</CardTitle>
+          </div>
+          <div className="text-xs text-muted-foreground">
+            Step {currentStep + 1} of {totalSteps}
+          </div>
+        </CardHeader>
+        <CardContent>
+          <div className="text-sm text-muted-foreground">{step.content}</div>
+          {/* Navigation buttons */}
+        </CardContent>
+      </Card>
+    </motion.div>
+  );
+}
+```
+
+### Accessibility
+
+- **Escape key:** Closes tour via event listener
+- **ARIA attributes:** `role="dialog"` and `aria-label` on card container
+- **Button labels:** Clear aria-labels on navigation buttons
+- **Focus management:** Onborda library handles focus trapping within overlay
+
+### Creating Additional Tours
+
+To add a new tour:
+
+1. **Create configuration file** in `lib/` with step definitions
+2. **Add target IDs** to components you want to highlight
+3. **Create provider component** (or extend existing) with tour-specific logic
+4. **Integrate in layout** where tour should appear
+5. **Add localStorage key** for persistence
+
+### Files
+
+| File | Purpose |
+|------|---------|
+| `apps/web/lib/demo-tour-config.tsx` | Tour step definitions and constants |
+| `apps/web/components/demo-tour/demo-tour-provider.tsx` | Onborda wrapper with lifecycle management |
+| `apps/web/components/demo-tour/tour-card.tsx` | Custom styled tour card |
+| `apps/web/components/demo-tour/index.ts` | Component exports |
+| `apps/web/hooks/use-demo-tour.ts` | Tour state management hook |
+
+---
+
 ## Workstreams Components
 
 ### Component Architecture
