@@ -51,8 +51,8 @@ export function TourCard({
       aria-label="Product tour"
     >
       {arrow}
-      <Card className="w-[320px] shadow-lg z-9999 relative">
-        <CardHeader className="pb-2">
+      <Card className="w-[320px] shadow-lg z-9999 relative gap-2">
+        <CardHeader className="pb-0">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <span className="text-primary">{step.icon}</span>
