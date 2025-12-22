@@ -30,7 +30,7 @@ function setNestedValue(
   const result = JSON.parse(JSON.stringify(obj)) as WorksheetFormData;
 
   // Navigate to the nested object and set the value
-  let current: Record<string, unknown> = result;
+  let current: any = result;
   for (let i = 0; i < keys.length - 1; i++) {
     current = current[keys[i]];
   }

@@ -415,7 +415,7 @@ export async function generateWorksheetPdf(
       yPosition -= 18;
 
       // Get values for this group
-      const sectionData = formData[section.key] as Record<
+      const sectionData = formData[section.key] as unknown as Record<
         string,
         Record<string, string>
       >;
@@ -481,7 +481,7 @@ export async function generateWorksheetPdf(
  * Download the PDF file to the user's device
  */
 export function downloadPdf(pdfBytes: Uint8Array, filename: string): void {
-  const blob = new Blob([pdfBytes], { type: 'application/pdf' });
+  const blob = new Blob([pdfBytes as BlobPart], { type: 'application/pdf' });
   const url = URL.createObjectURL(blob);
 
   const link = document.createElement('a');
