@@ -30,8 +30,7 @@ function setNestedValue(
   const result = JSON.parse(JSON.stringify(obj)) as WorksheetFormData;
 
   // Navigate to the nested object and set the value
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  let current: any = result;
+  let current: Record<string, unknown> = result;
   for (let i = 0; i < keys.length - 1; i++) {
     current = current[keys[i]];
   }
