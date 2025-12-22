@@ -36,6 +36,7 @@
     "next": "15.5.9",
     "next-mdx-remote": "latest",
     "next-themes": "latest",
+    "pdf-lib": "^1.17.1",
     "posthog-js": "^1.280.1",
     "react": "19.2.0",
     "react-dom": "19.2.0",
