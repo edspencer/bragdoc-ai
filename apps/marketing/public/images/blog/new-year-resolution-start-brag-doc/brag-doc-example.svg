@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 340">
+  <defs>
+    <filter id="shadow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="2" stdDeviation="4" flood-opacity="0.1"/>
+    </filter>
+  </defs>
+
+  <!-- Background -->
+  <rect width="600" height="340" fill="#fef9c3"/>
+
+  <!-- Document -->
+  <rect x="50" y="30" width="500" height="280" rx="8" fill="white" filter="url(#shadow)" stroke="#e2e8f0" stroke-width="1"/>
+
+  <!-- Header -->
+  <text x="75" y="65" font-family="system-ui, -apple-system, sans-serif" font-size="18" font-weight="600" fill="#1e293b">2025 Wins</text>
+
+  <!-- Divider -->
+  <line x1="75" y1="80" x2="525" y2="80" stroke="#e2e8f0" stroke-width="1"/>
+
+  <!-- Entries -->
+  <circle cx="85" cy="110" r="4" fill="#3b82f6"/>
+  <text x="100" y="115" font-family="system-ui, -apple-system, sans-serif" font-size="14" fill="#334155">Fixed the N+1 query bug in the dashboard API</text>
+
+  <circle cx="85" cy="150" r="4" fill="#3b82f6"/>
+  <text x="100" y="155" font-family="system-ui, -apple-system, sans-serif" font-size="14" fill="#334155">Mentored Alex through their first major feature</text>
+
+  <circle cx="85" cy="190" r="4" fill="#3b82f6"/>
+  <text x="100" y="195" font-family="system-ui, -apple-system, sans-serif" font-size="14" fill="#334155">Reduced build time from 22 minutes to 8 minutes</text>
+
+  <circle cx="85" cy="230" r="4" fill="#3b82f6"/>
+  <text x="100" y="235" font-family="system-ui, -apple-system, sans-serif" font-size="14" fill="#334155">Led the on-call rotation for Q4</text>
+
+  <circle cx="85" cy="270" r="4" fill="#3b82f6"/>
+  <text x="100" y="275" font-family="system-ui, -apple-system, sans-serif" font-size="14" fill="#334155">Shipped new authentication flow - 40% faster login</text>
+
+</svg>
