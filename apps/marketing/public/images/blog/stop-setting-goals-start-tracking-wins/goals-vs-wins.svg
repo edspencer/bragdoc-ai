@@ -1,0 +1,73 @@
+<svg width="800" height="400" viewBox="0 0 800 400" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background -->
+  <rect width="800" height="400" fill="#fafafa"/>
+
+  <!-- Left Panel - Goals -->
+  <rect x="40" y="40" width="340" height="320" rx="12" fill="#fff" stroke="#e5e5e5" stroke-width="1"/>
+
+  <!-- Goals Header -->
+  <text x="210" y="85" font-family="system-ui, -apple-system, sans-serif" font-size="24" font-weight="600" fill="#a3a3a3" text-anchor="middle">GOALS</text>
+  <text x="210" y="105" font-family="system-ui, -apple-system, sans-serif" font-size="12" fill="#d4d4d4" text-anchor="middle">January 1st</text>
+
+  <!-- Goal Items (faded, crossed out) -->
+  <g opacity="0.5">
+    <!-- Goal 1 -->
+    <rect x="70" y="130" width="20" height="20" rx="4" stroke="#d4d4d4" stroke-width="2" fill="none"/>
+    <text x="100" y="146" font-family="system-ui, -apple-system, sans-serif" font-size="15" fill="#a3a3a3" text-decoration="line-through">Learn Rust this year</text>
+
+    <!-- Goal 2 -->
+    <rect x="70" y="170" width="20" height="20" rx="4" stroke="#d4d4d4" stroke-width="2" fill="none"/>
+    <text x="100" y="186" font-family="system-ui, -apple-system, sans-serif" font-size="15" fill="#a3a3a3" text-decoration="line-through">Read 12 technical books</text>
+
+    <!-- Goal 3 -->
+    <rect x="70" y="210" width="20" height="20" rx="4" stroke="#d4d4d4" stroke-width="2" fill="none"/>
+    <text x="100" y="226" font-family="system-ui, -apple-system, sans-serif" font-size="15" fill="#a3a3a3" text-decoration="line-through">Get promoted to senior</text>
+
+    <!-- Goal 4 -->
+    <rect x="70" y="250" width="20" height="20" rx="4" stroke="#d4d4d4" stroke-width="2" fill="none"/>
+    <text x="100" y="266" font-family="system-ui, -apple-system, sans-serif" font-size="15" fill="#a3a3a3" text-decoration="line-through">Launch side project</text>
+
+    <!-- Goal 5 -->
+    <rect x="70" y="290" width="20" height="20" rx="4" stroke="#d4d4d4" stroke-width="2" fill="none"/>
+    <text x="100" y="306" font-family="system-ui, -apple-system, sans-serif" font-size="15" fill="#a3a3a3" text-decoration="line-through">Contribute to open source</text>
+  </g>
+
+  <!-- Abandoned label -->
+  <text x="210" y="345" font-family="system-ui, -apple-system, sans-serif" font-size="13" fill="#d4d4d4" text-anchor="middle" font-style="italic">Abandoned by February</text>
+
+  <!-- Right Panel - Wins -->
+  <rect x="420" y="40" width="340" height="320" rx="12" fill="#fff" stroke="#22c55e" stroke-width="2"/>
+
+  <!-- Wins Header -->
+  <text x="590" y="85" font-family="system-ui, -apple-system, sans-serif" font-size="24" font-weight="600" fill="#16a34a" text-anchor="middle">WINS</text>
+  <text x="590" y="105" font-family="system-ui, -apple-system, sans-serif" font-size="12" fill="#86efac" text-anchor="middle">Documented all year</text>
+
+  <!-- Win Items (solid, checked) -->
+  <!-- Win 1 -->
+  <rect x="450" y="130" width="20" height="20" rx="4" fill="#22c55e"/>
+  <path d="M455 140 L459 144 L469 134" stroke="white" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+  <text x="480" y="146" font-family="system-ui, -apple-system, sans-serif" font-size="15" fill="#374151">Shipped auth feature</text>
+
+  <!-- Win 2 -->
+  <rect x="450" y="170" width="20" height="20" rx="4" fill="#22c55e"/>
+  <path d="M455 180 L459 184 L469 174" stroke="white" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+  <text x="480" y="186" font-family="system-ui, -apple-system, sans-serif" font-size="15" fill="#374151">Fixed critical payment bug</text>
+
+  <!-- Win 3 -->
+  <rect x="450" y="210" width="20" height="20" rx="4" fill="#22c55e"/>
+  <path d="M455 220 L459 224 L469 214" stroke="white" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+  <text x="480" y="226" font-family="system-ui, -apple-system, sans-serif" font-size="15" fill="#374151">Mentored 2 junior devs</text>
+
+  <!-- Win 4 -->
+  <rect x="450" y="250" width="20" height="20" rx="4" fill="#22c55e"/>
+  <path d="M455 260 L459 264 L469 254" stroke="white" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+  <text x="480" y="266" font-family="system-ui, -apple-system, sans-serif" font-size="15" fill="#374151">Reduced build time 40%</text>
+
+  <!-- Win 5 -->
+  <rect x="450" y="290" width="20" height="20" rx="4" fill="#22c55e"/>
+  <path d="M455 300 L459 304 L469 294" stroke="white" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+  <text x="480" y="306" font-family="system-ui, -apple-system, sans-serif" font-size="15" fill="#374151">Led architecture review</text>
+
+  <!-- Compounding label -->
+  <text x="590" y="345" font-family="system-ui, -apple-system, sans-serif" font-size="13" fill="#16a34a" text-anchor="middle" font-weight="500">Compounds over time</text>
+</svg>
