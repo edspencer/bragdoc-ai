@@ -1,0 +1,143 @@
+---
+title: "Brag Docs for Developers Who Ship"
+date: "2026-01-04"
+description: "Track your full impact: Git commits, GitHub PRs, Jira tickets, and Google Calendar. Built for developers with a CLI-first workflow."
+author: "BragDoc Team"
+tags: ["cli", "git", "developer-tools", "performance-reviews", "career-growth"]
+image: "/screenshots/terminal/bragdoc-extract.png"
+published: true
+canonical_url: "https://www.bragdoc.ai/blog/brag-docs-for-developers-who-ship"
+---
+
+Your impact as a developer is scattered across a dozen systems. Commits in Git. PRs and code reviews on GitHub. Tickets in Jira. Architecture discussions in meetings. Mentoring in 1:1s. No single tool captures all of it.
+
+Keeping a [work log](https://blog.pragmaticengineer.com/work-log-template-for-software-engineers/) is one of the best habits for software engineers. But doing it manually is tedious, and most people give up after a few weeks.
+
+BragDoc automates it. We pull from your Git history, your GitHub activity, your Jira tickets, and your Google Calendar. Everything that represents your work, captured automatically.
+
+But here's what makes us different: we built this for developers, not for everyone.
+
+<ImageGallery
+  images={[
+    {
+      src: "/screenshots/terminal/bragdoc-extract.png",
+      alt: "BragDoc CLI extracting achievements from Git commits"
+    }
+  ]}
+  fullWidth={true}
+/>
+
+## Built for the Terminal
+
+Most productivity tools assume you live in a browser. They want you to click through dashboards, drag cards around, and manually enter your accomplishments. That workflow makes sense for project managers. It doesn't make sense for developers.
+
+BragDoc starts in your terminal. Install the CLI, authenticate once, and you're done:
+
+```bash
+npm install -g @bragdoc/cli
+bragdoc login
+bragdoc init
+```
+
+That's it. Three commands and your repository is configured. No web forms. No onboarding wizards. No fifteen-minute setup tutorials.
+
+When you want to extract achievements from your recent work:
+
+```bash
+bragdoc extract --since 7d
+```
+
+Your commits get analyzed, grouped by theme, and turned into achievement statements. The whole process takes seconds.
+
+<ImageGallery
+  images={[
+    {
+      src: "/screenshots/terminal/bragdoc-init.png",
+      alt: "BragDoc CLI initialization in terminal"
+    },
+    {
+      src: "/screenshots/terminal/bragdoc-login.png",
+      alt: "BragDoc authentication flow"
+    }
+  ]}
+  height={300}
+/>
+
+## Your Git History Is Your Brag Doc
+
+Every commit you make is already documentation. The timestamp shows when you did the work. The message explains why. The diff shows what changed. This is more accurate than anything you could write from memory three months later.
+
+The problem isn't that your work isn't documented. The problem is that git log output isn't formatted for [performance reviews](/use-cases).
+
+BragDoc bridges that gap. It reads your commit history, understands the context, and generates achievement statements that make sense to managers. You keep writing commits the way you always have. BragDoc handles the translation.
+
+## Every Source, One Workflow
+
+Real developer work spans multiple systems. You commit code locally. You open PRs and review code on GitHub. You close tickets in Jira. You lead architecture discussions and mentor teammates in meetings. A complete brag doc needs to capture all of it.
+
+BragDoc uses a [pluggable connector architecture](/features) that pulls from wherever your work happens:
+
+- **Git**: Local commits, branches, full diff context. Works offline.
+- **GitHub**: PRs, issues, code reviews, commits, and discussions.
+- **Jira**: Tickets, story points, sprint contributions.
+- **Google Calendar**: Meetings, 1:1s, architecture sessions, planning.
+
+You configure which sources matter for each project through the web app or API. The CLI pulls from all your configured sources automatically:
+
+```bash
+bragdoc extract                   # All configured sources
+bragdoc extract --project myapp   # Specific project only
+bragdoc extract --since 30d       # Last 30 days
+```
+
+## Branch Control
+
+Not every branch matters for your brag doc. Experimental work, abandoned features, and one-off debugging branches probably shouldn't appear in your performance review.
+
+BragDoc lets you whitelist branches per project:
+
+```bash
+bragdoc projects add --branch-whitelist "main,develop,release/*"
+```
+
+Only commits from those branches get extracted. Everything else is ignored. This keeps your achievement list focused on work that actually shipped.
+
+## Privacy by Default
+
+Your source code is sensitive. You don't want it uploaded to some cloud service where it might be used to train AI models or leaked in a data breach.
+
+BragDoc processes your code locally. The CLI runs on your machine. Your diffs never leave your computer. Only the generated achievement summaries sync to the server, and even that's optional.
+
+If you want complete control, you can run the entire system locally with [Ollama](https://ollama.ai):
+
+```bash
+bragdoc llm set ollama llama3.2
+```
+
+Now your commits are analyzed by a local model. Nothing touches the internet. Your code stays yours.
+
+<ImageGallery
+  images={[
+    {
+      src: "/screenshots/terminal/bragdoc-llm-set.png",
+      alt: "Configuring BragDoc to use local Ollama LLM"
+    }
+  ]}
+  height={300}
+/>
+
+## The Full Picture of Developer Impact
+
+Great developers do more than commit code. You lead architecture discussions. You mentor teammates. You coordinate across teams. You make decisions in meetings that shape the direction of projects. All of that is impact.
+
+Most tools force you to choose: track your code OR track your meetings. BragDoc tracks both. Your commits and your calendar. Your PRs and your 1:1s. The technical work and the leadership work.
+
+The difference is how we do it. We built BragDoc for developers, with a CLI that fits your workflow, integrations that go deep into your tools, and AI that understands technical context. [Learn more about the different types of developer impact](/blog/six-types-developer-impact) and how to document each one.
+
+## For Developers Who Ship
+
+BragDoc is built for developers who ship. If you write code, review PRs, close tickets, and push to production, this is your tool. The CLI fits your workflow. The integrations pull from where your work actually happens. The output reflects your technical contributions.
+
+[Give BragDoc a try](/get-started). Install the CLI, point it at your repositories, and let it capture what you build. Your commits already tell the story of your work. It's time your brag doc did too.
+
+<DemoCTA />
