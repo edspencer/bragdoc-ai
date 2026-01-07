@@ -29,7 +29,6 @@ import {
   fakeProjects,
   fakeWorkstreams,
   fakeDocumentContent,
-  fakeChatMessages,
   INSTRUCTIONS_KEY,
   SAVE_INSTRUCTIONS_KEY,
 } from '@/lib/performance-review-fake-data';
@@ -198,7 +197,7 @@ export function PerformanceReviewEdit() {
             document={document}
             onDocumentChange={handleDocumentChange}
             onGenerate={handleGenerate}
-            chatMessages={fakeChatMessages}
+            generationInstructions={instructions}
           />
         </CollapsibleSection>
       </div>

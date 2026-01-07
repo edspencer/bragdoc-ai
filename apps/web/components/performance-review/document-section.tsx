@@ -1,24 +1,37 @@
 'use client';
 
+import { useState } from 'react';
+import { useChat } from '@ai-sdk/react';
 import { IconSparkles } from '@tabler/icons-react';
+import { DefaultChatTransport } from 'ai';
 import { Button } from '@/components/ui/button';
 import { DocumentEditor } from './document-editor';
 import { ChatInterface } from './chat-interface';
-import type { FakeChatMessage } from '@/lib/performance-review-fake-data';
 
 interface DocumentSectionProps {
   document: string | null;
   onDocumentChange: (content: string) => void;
   onGenerate: () => void;
-  chatMessages: FakeChatMessage[];
+  generationInstructions: string;
 }
 
 export function DocumentSection({
   document,
   onDocumentChange,
   onGenerate,
-  chatMessages,
+  generationInstructions,
 }: DocumentSectionProps) {
+  const [input, setInput] = useState('');
+
+  const { messages, status, error, sendMessage } = useChat({
+    transport: new DefaultChatTransport({
+      api: '/api/performance-review/chat',
+      body: {
+        generationInstructions,
+      },
+    }),
+  });
+
   // Zero state - no document generated yet
   if (!document) {
     return (
@@ -50,7 +63,14 @@ export function DocumentSection({
 
       {/* Chat panel - 1/3 width on desktop */}
       <div className="lg:w-1/3">
-        <ChatInterface messages={chatMessages} />
+        <ChatInterface
+          messages={messages}
+          input={input}
+          setInput={setInput}
+          sendMessage={sendMessage}
+          status={status}
+          error={error}
+        />
       </div>
     </div>
   );

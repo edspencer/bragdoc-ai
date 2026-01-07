@@ -1,17 +1,52 @@
 'use client';
 
-import { IconSend } from '@tabler/icons-react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
+import type { Dispatch, SetStateAction } from 'react';
+import type { UIMessage, UseChatHelpers } from '@ai-sdk/react';
+import type { ChatStatus } from 'ai';
+import ReactMarkdown from 'react-markdown';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
+import {
+  PromptInput,
+  PromptInputTextarea,
+  PromptInputToolbar,
+  PromptInputSubmit,
+} from '@/components/elements/prompt-input';
 import { cn } from '@/lib/utils';
-import type { FakeChatMessage } from '@/lib/performance-review-fake-data';
 
 interface ChatInterfaceProps {
-  messages: FakeChatMessage[];
+  messages: UIMessage[];
+  input: string;
+  setInput: Dispatch<SetStateAction<string>>;
+  sendMessage: UseChatHelpers<UIMessage>['sendMessage'];
+  status: ChatStatus;
+  error?: Error;
 }
 
-export function ChatInterface({ messages }: ChatInterfaceProps) {
+export function ChatInterface({
+  messages,
+  input,
+  setInput,
+  sendMessage,
+  status,
+  error,
+}: ChatInterfaceProps) {
+  const isLoading = status === 'submitted' || status === 'streaming';
+
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    if (!input.trim() || isLoading) return;
+
+    sendMessage({
+      role: 'user',
+      parts: [{ type: 'text', text: input }],
+    });
+    setInput('');
+  };
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    setInput(e.target.value);
+  };
+
   return (
     <Card className="flex h-full flex-col">
       <CardHeader className="pb-2">
@@ -20,40 +55,74 @@ export function ChatInterface({ messages }: ChatInterfaceProps) {
 
       <CardContent className="flex flex-1 flex-col gap-4">
         {/* Messages container */}
-        <div className="flex-1 space-y-4 overflow-y-auto">
+        <div className="flex-1 space-y-4 overflow-y-auto" role="list">
           {messages.length === 0 ? (
             <p className="text-center text-sm text-muted-foreground">
               No messages yet. Ask AI to refine your document.
             </p>
           ) : (
-            messages.map((message, index) => (
-              <ChatMessage key={index} message={message} />
+            messages.map((message) => (
+              <ChatMessage key={message.id} message={message} />
             ))
+          )}
+          {isLoading && messages[messages.length - 1]?.role === 'user' && (
+            <div className="flex justify-start">
+              <div className="max-w-[85%] rounded-lg bg-muted px-3 py-2 text-sm text-foreground">
+                <span className="animate-pulse">Thinking...</span>
+              </div>
+            </div>
           )}
         </div>
 
-        {/* Input field */}
-        <div className="flex gap-2">
-          <Input
+        {/* Error display */}
+        {error && (
+          <div className="rounded-lg border border-destructive bg-destructive/10 p-3 text-sm text-destructive">
+            {error.message || 'An error occurred. Please try again.'}
+          </div>
+        )}
+
+        {/* Input field using PromptInput components */}
+        <PromptInput onSubmit={handleSubmit}>
+          <PromptInputTextarea
+            value={input}
+            onChange={handleInputChange}
             placeholder="Ask AI to refine your document..."
-            disabled
-            aria-label="Chat message input"
+            disabled={isLoading}
+            minHeight={40}
+            maxHeight={120}
           />
-          <Button size="icon" disabled aria-label="Send message">
-            <IconSend className="size-4" />
-          </Button>
-        </div>
+          <PromptInputToolbar className="justify-end">
+            <PromptInputSubmit
+              status={status}
+              disabled={isLoading || !input.trim()}
+              aria-label="Send message"
+            />
+          </PromptInputToolbar>
+        </PromptInput>
       </CardContent>
     </Card>
   );
 }
 
 interface ChatMessageProps {
-  message: FakeChatMessage;
+  message: UIMessage;
+}
+
+function getTextFromMessage(message: UIMessage): string {
+  if (!message?.parts) {
+    return '';
+  }
+  return message.parts
+    .filter(
+      (part): part is { type: 'text'; text: string } => part.type === 'text',
+    )
+    .map((part) => part.text)
+    .join(' ');
 }
 
 function ChatMessage({ message }: ChatMessageProps) {
   const isUser = message.role === 'user';
+  const content = getTextFromMessage(message);
 
   return (
     <div
@@ -68,7 +137,13 @@ function ChatMessage({ message }: ChatMessageProps) {
             : 'bg-muted text-foreground',
         )}
       >
-        {message.content}
+        {isUser ? (
+          content
+        ) : (
+          <div className="prose prose-sm dark:prose-invert prose-p:my-1 prose-ul:my-1 prose-ol:my-1">
+            <ReactMarkdown>{content}</ReactMarkdown>
+          </div>
+        )}
       </div>
     </div>
   );

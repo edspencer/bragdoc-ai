@@ -743,5 +743,67 @@ export async function captureServerEvent(
 
 ---
 
-**Last Updated:** 2025-10-24 (PostHog analytics tracking pattern)
+## Performance Review Chat Endpoint
+
+### POST /api/performance-review/chat
+
+Streaming chat endpoint for refining performance review documents. Uses `useChat` hook on the frontend with AI SDK v5 patterns.
+
+**Authentication:** Required (supports both session and JWT)
+
+**Request Format:**
+
+```typescript
+{
+  messages: UIMessage[];  // AI SDK v5 UIMessage format with parts array
+  generationInstructions?: string;  // Optional user instructions for document generation
+}
+```
+
+**UIMessage Structure:**
+
+```typescript
+interface UIMessage {
+  id: string;
+  role: 'user' | 'assistant';
+  parts: Array<{
+    type: 'text';
+    text: string;
+  }>;
+}
+```
+
+**Response:** Streaming response using `toUIMessageStreamResponse()` compatible with `useChat` hook.
+
+**Error Responses:**
+
+- `401 Unauthorized` - User not authenticated
+- `400 Bad Request` - Messages array missing or empty
+- `500 Internal Server Error` - Server-side processing error
+
+**Example Usage (Frontend):**
+
+```typescript
+import { useChat } from '@ai-sdk/react';
+import { DefaultChatTransport } from 'ai';
+
+const { messages, sendMessage, status, error } = useChat({
+  transport: new DefaultChatTransport({
+    api: '/api/performance-review/chat',
+    body: {
+      generationInstructions: 'Focus on technical achievements',
+    },
+  }),
+});
+
+// Send message using UIMessage format
+sendMessage({
+  role: 'user',
+  parts: [{ type: 'text', text: 'Help me improve the impact section' }],
+});
+```
+
+---
+
+**Last Updated:** 2026-01-06 (Performance Review Chat endpoint)
 **API Version:** v1 (implicit)
