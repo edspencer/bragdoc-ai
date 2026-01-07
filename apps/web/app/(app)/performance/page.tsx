@@ -1,42 +1,37 @@
 import { auth } from '@/lib/better-auth/server';
 import { headers } from 'next/headers';
+import { getPerformanceReviewsByUserId } from '@bragdoc/database';
 import { AppPage } from '@/components/shared/app-page';
 import { SidebarInset } from '@/components/ui/sidebar';
 import { SiteHeader } from '@/components/site-header';
+import { AppContent } from '@/components/shared/app-content';
+import { PerformanceReviewsTable } from '@/components/performance-review/performance-reviews-table';
+import { PerformanceReviewActions } from '@/components/performance-review/performance-review-actions';
 
 export const metadata = {
-  title: 'Performance Review',
+  title: 'Performance Reviews',
 };
 
-export default async function PerformancePage() {
+export default async function PerformanceReviewsPage() {
   const session = await auth.api.getSession({
     headers: await headers(),
   });
 
-  if (!session || !session.user || !session.user.id) {
+  if (!session?.user) {
     return null;
   }
+
+  const reviews = await getPerformanceReviewsByUserId(session.user.id);
 
   return (
     <AppPage>
       <SidebarInset>
-        <SiteHeader title="Performance Review" />
-        <div className="flex flex-1 flex-col gap-4 p-4 md:p-6">
-          <div className="flex items-center justify-center min-h-[400px]">
-            <div className="text-center max-w-md space-y-4">
-              <h1 className="text-3xl font-bold">Performance Review</h1>
-              <p className="text-muted-foreground">
-                Coming soon: AI-powered performance review generation based on
-                your achievements.
-              </p>
-              <p className="text-sm text-muted-foreground">
-                This feature will help you compile your accomplishments into
-                comprehensive performance review documents, highlighting your
-                impact and growth.
-              </p>
-            </div>
-          </div>
-        </div>
+        <SiteHeader title="Performance Reviews">
+          <PerformanceReviewActions />
+        </SiteHeader>
+        <AppContent>
+          <PerformanceReviewsTable initialReviews={reviews} />
+        </AppContent>
       </SidebarInset>
     </AppPage>
   );

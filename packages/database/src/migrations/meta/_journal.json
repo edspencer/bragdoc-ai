@@ -71,6 +71,13 @@
       "when": 1764167670799,
       "tag": "0009_empty_enchantress",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1767743019198,
+      "tag": "0010_bizarre_spencer_smythe",
+      "breakpoints": true
     }
   ]
 }

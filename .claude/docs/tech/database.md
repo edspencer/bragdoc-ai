@@ -539,6 +539,17 @@ const doc: DocumentWithCompany = {
 
 ---
 
+### PerformanceReview Table
+**Purpose**: Persistent performance review configurations with date ranges and custom instructions
+
+The `PerformanceReview` table stores user-defined review periods for generating performance review documents. Each review has a name, date range (`startDate`, `endDate`), and optional custom instructions for AI generation. The generated document is linked via `documentId` (nullable, set to null on document deletion) allowing the review to persist independently.
+
+**Key Fields:** `id` (UUID), `userId` (FK with cascade delete), `name`, `startDate`, `endDate`, `instructions` (nullable), `documentId` (FK to Document, set null on delete), timestamps. Indexed on `userId`.
+
+**Query Functions:** `getPerformanceReviewsByUserId()`, `getPerformanceReviewById()`, `createPerformanceReview()`, `updatePerformanceReview()`, `deletePerformanceReview()` - all in `packages/database/src/performance-reviews/queries.ts`.
+
+---
+
 ### Chat & Message Tables
 **Purpose**: Chat history for AI assistant
 

@@ -143,3 +143,19 @@ export {
   getWorkstreamCountsWithDateFilter,
   getWorkstreamsByUserIdWithDateFilter,
 } from './workstreams/queries';
+
+// Re-export performance review queries
+export {
+  getPerformanceReviewsByUserId,
+  getPerformanceReviewById,
+  createPerformanceReview,
+  updatePerformanceReview,
+  deletePerformanceReview,
+} from './performance-reviews/queries';
+
+// Re-export performance review types
+export type {
+  CreatePerformanceReviewInput,
+  UpdatePerformanceReviewInput,
+  PerformanceReviewWithDocument,
+} from './performance-reviews/queries';

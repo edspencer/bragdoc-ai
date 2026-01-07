@@ -23,6 +23,8 @@ BragDoc follows RESTful conventions for all API routes, with consistent patterns
 /api/user                 GET (profile), PUT (update preferences)
 /api/counts               GET (dashboard statistics)
 /api/cli/token            POST (generate CLI JWT token)
+/api/performance-reviews            GET (list), POST (create)
+/api/performance-reviews/[id]       GET (read), PUT (update), DELETE (delete)
 ```
 
 ## Authentication Pattern
