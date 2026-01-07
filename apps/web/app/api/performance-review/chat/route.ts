@@ -2,7 +2,10 @@ import { getAuthUser } from '@/lib/getAuthUser';
 import { streamText, convertToModelMessages } from 'ai';
 import type { UIMessage } from 'ai';
 import { routerModel } from '@/lib/ai';
-import { fakeWorkstreams } from '@/lib/performance-review-fake-data';
+import {
+  getPerformanceReviewById,
+  getWorkstreamsByUserIdWithDateFilter,
+} from '@bragdoc/database';
 import { format } from 'date-fns';
 
 export const maxDuration = 60;
@@ -10,6 +13,7 @@ export const maxDuration = 60;
 interface RequestBody {
   messages: UIMessage[];
   generationInstructions?: string;
+  performanceReviewId: string;
 }
 
 export async function POST(request: Request) {
@@ -23,7 +27,15 @@ export async function POST(request: Request) {
 
     // Parse request body
     const body = (await request.json()) as RequestBody;
-    const { messages, generationInstructions } = body;
+    const { messages, generationInstructions, performanceReviewId } = body;
+
+    // Validate performanceReviewId
+    if (!performanceReviewId) {
+      return Response.json(
+        { error: 'performanceReviewId is required' },
+        { status: 400 },
+      );
+    }
 
     // Validate messages
     if (!messages || !Array.isArray(messages) || messages.length === 0) {
@@ -33,17 +45,41 @@ export async function POST(request: Request) {
       );
     }
 
+    // Fetch the performance review to get the date range
+    const performanceReview = await getPerformanceReviewById(
+      performanceReviewId,
+      auth.user.id,
+    );
+
+    if (!performanceReview) {
+      return Response.json(
+        { error: 'Performance review not found' },
+        { status: 404 },
+      );
+    }
+
+    // Fetch real workstreams for the performance review's date range
+    const workstreams = await getWorkstreamsByUserIdWithDateFilter(
+      auth.user.id,
+      performanceReview.startDate,
+      performanceReview.endDate,
+    );
+
     // Build system prompt with workstreams context
-    const workstreamsContext = fakeWorkstreams
-      .map(
-        (ws) =>
-          `- ${ws.name}: ${ws.achievementCount} achievements from ${format(ws.startDate, 'MMM yyyy')} to ${format(ws.endDate, 'MMM yyyy')}`,
-      )
-      .join('\n');
+    const workstreamsContext =
+      workstreams.length > 0
+        ? workstreams
+            .map(
+              (ws) => `- ${ws.name}: ${ws.achievementCount ?? 0} achievements`,
+            )
+            .join('\n')
+        : 'No workstreams found for this review period.';
 
     const systemPrompt = `You are an AI assistant helping users generate and refine performance review documents.
 
-The user is creating a performance review document based on their work achievements. Their work has been organized into the following workstreams:
+The user is creating a performance review document for the period ${format(performanceReview.startDate, 'MMMM d, yyyy')} to ${format(performanceReview.endDate, 'MMMM d, yyyy')}.
+
+Their work has been organized into the following workstreams:
 
 ${workstreamsContext}
 

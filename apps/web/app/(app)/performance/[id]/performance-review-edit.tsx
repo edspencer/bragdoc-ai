@@ -25,21 +25,32 @@ import { InstructionsSection } from '@/components/performance-review/instruction
 import { DocumentSection } from '@/components/performance-review/document-section';
 
 import {
-  fakePerformanceReview,
   fakeProjects,
-  fakeWorkstreams,
   fakeDocumentContent,
   INSTRUCTIONS_KEY,
   SAVE_INSTRUCTIONS_KEY,
 } from '@/lib/performance-review-fake-data';
 
-export function PerformanceReviewEdit() {
+import type {
+  Workstream,
+  PerformanceReviewWithDocument,
+} from '@bragdoc/database';
+
+interface PerformanceReviewEditProps {
+  performanceReview: PerformanceReviewWithDocument;
+  workstreams: Workstream[];
+}
+
+export function PerformanceReviewEdit({
+  performanceReview,
+  workstreams,
+}: PerformanceReviewEditProps) {
   const router = useRouter();
 
   // Performance review state
-  const [name, setName] = useState(fakePerformanceReview.name);
-  const [startDate, setStartDate] = useState(fakePerformanceReview.startDate);
-  const [endDate, setEndDate] = useState(fakePerformanceReview.endDate);
+  const [name, setName] = useState(performanceReview.name);
+  const [startDate, setStartDate] = useState(performanceReview.startDate);
+  const [endDate, setEndDate] = useState(performanceReview.endDate);
   const [selectedProjectIds, setSelectedProjectIds] = useState<string[]>(
     fakeProjects.map((p) => p.id),
   );
@@ -169,7 +180,7 @@ export function PerformanceReviewEdit() {
           subtitle="Your work themes during this review period"
         >
           <WorkstreamsSection
-            workstreams={fakeWorkstreams}
+            workstreams={workstreams}
             startDate={startDate}
             endDate={endDate}
           />
@@ -198,6 +209,7 @@ export function PerformanceReviewEdit() {
             onDocumentChange={handleDocumentChange}
             onGenerate={handleGenerate}
             generationInstructions={instructions}
+            performanceReviewId={performanceReview.id}
           />
         </CollapsibleSection>
       </div>

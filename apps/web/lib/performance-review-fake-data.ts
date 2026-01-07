@@ -10,52 +10,15 @@
 // Type Definitions
 // =============================================================================
 
-export interface FakePerformanceReview {
-  id: string;
-  name: string;
-  startDate: Date;
-  endDate: Date;
-  projectIds: string[];
-  document: string | null;
-  createdAt: Date;
-  updatedAt: Date;
-}
-
 export interface FakeProject {
   id: string;
   name: string;
   color: string;
 }
 
-export interface FakeWorkstream {
-  id: string;
-  name: string;
-  color: string;
-  achievementCount: number;
-  startDate: Date;
-  endDate: Date;
-}
-
 export interface FakeChatMessage {
   role: 'user' | 'assistant';
   content: string;
-}
-
-// =============================================================================
-// Helper Functions
-// =============================================================================
-
-/**
- * Calculate a date relative to today.
- * @param monthsAgo Number of months in the past (positive) or future (negative)
- * @param daysOffset Additional days offset within that month
- */
-function getRelativeDate(monthsAgo: number, daysOffset: number = 0): Date {
-  const date = new Date();
-  date.setMonth(date.getMonth() - monthsAgo);
-  date.setDate(date.getDate() + daysOffset);
-  date.setHours(0, 0, 0, 0);
-  return date;
 }
 
 // =============================================================================
@@ -87,68 +50,6 @@ export const fakeProjects: FakeProject[] = [
     id: 'proj-documentation',
     name: 'Documentation',
     color: '#8B5CF6', // Purple
-  },
-];
-
-// =============================================================================
-// Fake Performance Review
-// =============================================================================
-
-export const fakePerformanceReview: FakePerformanceReview = {
-  id: 'review-q4-2024',
-  name: 'Q4 2024 Performance Review',
-  startDate: getRelativeDate(6), // 6 months ago
-  endDate: new Date(), // Today
-  projectIds: fakeProjects.map((p) => p.id),
-  document: null, // Start with no document (zero state)
-  createdAt: getRelativeDate(0, -7), // Created a week ago
-  updatedAt: new Date(),
-};
-
-// =============================================================================
-// Fake Workstreams
-// =============================================================================
-
-export const fakeWorkstreams: FakeWorkstream[] = [
-  {
-    id: 'ws-api-redesign',
-    name: 'API Redesign Initiative',
-    color: '#3B82F6', // Blue
-    achievementCount: 12,
-    startDate: getRelativeDate(6),
-    endDate: getRelativeDate(3),
-  },
-  {
-    id: 'ws-performance-optimization',
-    name: 'Performance Optimization',
-    color: '#10B981', // Green
-    achievementCount: 8,
-    startDate: getRelativeDate(5),
-    endDate: getRelativeDate(2),
-  },
-  {
-    id: 'ws-mobile-launch',
-    name: 'Mobile App Launch',
-    color: '#F59E0B', // Amber
-    achievementCount: 15,
-    startDate: getRelativeDate(4),
-    endDate: getRelativeDate(1),
-  },
-  {
-    id: 'ws-security-audit',
-    name: 'Security Audit & Compliance',
-    color: '#EF4444', // Red
-    achievementCount: 6,
-    startDate: getRelativeDate(3),
-    endDate: getRelativeDate(1, -15),
-  },
-  {
-    id: 'ws-team-mentorship',
-    name: 'Team Mentorship Program',
-    color: '#8B5CF6', // Purple
-    achievementCount: 9,
-    startDate: getRelativeDate(6),
-    endDate: new Date(),
   },
 ];
 

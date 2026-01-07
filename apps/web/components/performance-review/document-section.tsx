@@ -13,6 +13,7 @@ interface DocumentSectionProps {
   onDocumentChange: (content: string) => void;
   onGenerate: () => void;
   generationInstructions: string;
+  performanceReviewId: string;
 }
 
 export function DocumentSection({
@@ -20,6 +21,7 @@ export function DocumentSection({
   onDocumentChange,
   onGenerate,
   generationInstructions,
+  performanceReviewId,
 }: DocumentSectionProps) {
   const [input, setInput] = useState('');
 
@@ -28,6 +30,7 @@ export function DocumentSection({
       api: '/api/performance-review/chat',
       body: {
         generationInstructions,
+        performanceReviewId,
       },
     }),
   });
