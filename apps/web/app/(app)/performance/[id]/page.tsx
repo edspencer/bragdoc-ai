@@ -7,6 +7,7 @@ import {
   getPerformanceReviewById,
   getWorkstreamsByUserIdWithDateFilter,
 } from '@bragdoc/database';
+import { getAchievements } from '@/database/queries';
 
 export default async function PerformanceReviewEditPage({
   params,
@@ -33,12 +34,23 @@ export default async function PerformanceReviewEditPage({
     return <div className="p-4">Performance review not found.</div>;
   }
 
-  // Fetch workstreams for the performance review's date range
-  const workstreams = await getWorkstreamsByUserIdWithDateFilter(
-    session.user.id,
-    performanceReview.startDate,
-    performanceReview.endDate,
-  );
+  // Fetch workstreams and achievements for the performance review's date range
+  // Use getAchievements to get achievements with relations (company, project, userMessage)
+  const [workstreams, achievementsResult] = await Promise.all([
+    getWorkstreamsByUserIdWithDateFilter(
+      session.user.id,
+      performanceReview.startDate,
+      performanceReview.endDate,
+    ),
+    getAchievements({
+      userId: session.user.id,
+      startDate: performanceReview.startDate,
+      endDate: performanceReview.endDate,
+      limit: 1000, // High limit to get all achievements in range
+    }),
+  ]);
+
+  const achievements = achievementsResult.achievements;
 
   return (
     <AppPage>
@@ -46,6 +58,7 @@ export default async function PerformanceReviewEditPage({
         <PerformanceReviewEdit
           performanceReview={performanceReview}
           workstreams={workstreams}
+          achievements={achievements}
         />
       </SidebarInset>
     </AppPage>

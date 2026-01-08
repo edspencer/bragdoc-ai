@@ -20,8 +20,9 @@ import {
 import { CollapsibleSection } from '@/components/performance-review/collapsible-section';
 import { DateRangePicker } from '@/components/performance-review/date-range-picker';
 import { ProjectFilter } from '@/components/performance-review/project-filter';
-import { WorkstreamsSection } from '@/components/performance-review/workstreams-section';
+import { WorkstreamsTimeline } from '@/components/performance-review/workstreams-timeline';
 import { DocumentSection } from '@/components/performance-review/document-section';
+import { PerformanceReviewAchievementsTable } from '@/components/performance-review/performance-review-achievements-table';
 
 import {
   fakeProjects,
@@ -33,15 +34,18 @@ import type {
   Workstream,
   PerformanceReviewWithDocument,
 } from '@bragdoc/database';
+import type { AchievementWithRelations } from 'lib/types/achievement';
 
 interface PerformanceReviewEditProps {
   performanceReview: PerformanceReviewWithDocument;
   workstreams: Workstream[];
+  achievements: AchievementWithRelations[];
 }
 
 export function PerformanceReviewEdit({
   performanceReview,
   workstreams,
+  achievements,
 }: PerformanceReviewEditProps) {
   const router = useRouter();
 
@@ -174,10 +178,22 @@ export function PerformanceReviewEdit({
           title="Workstreams"
           subtitle="Your work themes during this review period"
         >
-          <WorkstreamsSection
+          <WorkstreamsTimeline
             workstreams={workstreams}
+            achievements={achievements}
             startDate={startDate}
             endDate={endDate}
+          />
+        </CollapsibleSection>
+
+        {/* Achievements Section */}
+        <CollapsibleSection
+          title="Achievements"
+          subtitle="All achievements during this review period"
+        >
+          <PerformanceReviewAchievementsTable
+            achievements={achievements}
+            workstreams={workstreams}
           />
         </CollapsibleSection>
 
