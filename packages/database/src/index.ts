@@ -151,6 +151,7 @@ export {
   createPerformanceReview,
   updatePerformanceReview,
   deletePerformanceReview,
+  getAchievementsByDateRange,
 } from './performance-reviews/queries';
 
 // Re-export performance review types
@@ -158,4 +159,5 @@ export type {
   CreatePerformanceReviewInput,
   UpdatePerformanceReviewInput,
   PerformanceReviewWithDocument,
+  AchievementWithContext,
 } from './performance-reviews/queries';

@@ -923,6 +923,20 @@ export async function generatePeriodSummary({
 }
 ```
 
+### Achievement Date Range Query
+
+For fetching achievements within a specific date range with project/company context:
+
+```typescript
+const achievements = await getAchievementsByDateRange(
+  userId,
+  startDate,
+  endDate,
+);
+```
+
+Returns achievements ordered chronologically with `projectName` and `companyName` via LEFT JOINs. Used for performance review generation to provide context-rich achievement data.
+
 ### Cascade Delete with Custom Logic
 ```typescript
 export async function deleteCompanyWithCascade({

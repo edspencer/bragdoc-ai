@@ -1,10 +1,15 @@
 'use client';
 
 import { IconClipboardCheck, IconPlus } from '@tabler/icons-react';
-import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 
-export function PerformanceReviewsZeroState() {
+interface PerformanceReviewsZeroStateProps {
+  onCreateClick: () => void;
+}
+
+export function PerformanceReviewsZeroState({
+  onCreateClick,
+}: PerformanceReviewsZeroStateProps) {
   return (
     <div className="flex flex-1 flex-col items-center justify-center p-8">
       <div className="max-w-md w-full space-y-6 text-center">
@@ -19,11 +24,9 @@ export function PerformanceReviewsZeroState() {
             let AI help you highlight your impact and growth.
           </p>
         </div>
-        <Button asChild size="lg">
-          <Link href="/performance/new">
-            <IconPlus className="size-4 mr-2" />
-            Create Your First Review
-          </Link>
+        <Button onClick={onCreateClick} size="lg">
+          <IconPlus className="size-4 mr-2" />
+          Create Your First Review
         </Button>
       </div>
     </div>

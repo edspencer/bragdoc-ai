@@ -1,6 +1,13 @@
-import { and, desc, eq } from 'drizzle-orm';
+import { and, asc, desc, eq, gte, lte } from 'drizzle-orm';
 import { db } from '../index';
-import { performanceReview, document, type PerformanceReview } from '../schema';
+import {
+  performanceReview,
+  document,
+  achievement,
+  project,
+  company,
+  type PerformanceReview,
+} from '../schema';
 
 export type CreatePerformanceReviewInput = {
   userId: string;
@@ -12,10 +19,23 @@ export type CreatePerformanceReviewInput = {
 
 export type UpdatePerformanceReviewInput = Partial<
   Omit<CreatePerformanceReviewInput, 'userId'>
->;
+> & {
+  documentId?: string | null;
+};
 
 export type PerformanceReviewWithDocument = PerformanceReview & {
-  document: { id: string; title: string } | null;
+  document: { id: string; title: string; content: string | null } | null;
+};
+
+export type AchievementWithContext = {
+  id: string;
+  title: string;
+  summary: string | null;
+  details: string | null;
+  impact: number | null;
+  eventStart: Date | null;
+  projectName: string | null;
+  companyName: string | null;
 };
 
 /**
@@ -39,6 +59,7 @@ export async function getPerformanceReviewsByUserId(
       document: {
         id: document.id,
         title: document.title,
+        content: document.content,
       },
     })
     .from(performanceReview)
@@ -82,6 +103,7 @@ export async function getPerformanceReviewById(
       document: {
         id: document.id,
         title: document.title,
+        content: document.content,
       },
     })
     .from(performanceReview)
@@ -170,4 +192,40 @@ export async function deletePerformanceReview(
     .returning();
 
   return results[0] || null;
+}
+
+/**
+ * Get achievements within a date range with project and company context.
+ * Used for performance review generation to provide context-rich achievement data.
+ * Returns achievements ordered chronologically (ascending by eventStart).
+ */
+export async function getAchievementsByDateRange(
+  userId: string,
+  startDate: Date,
+  endDate: Date,
+): Promise<AchievementWithContext[]> {
+  const results = await db
+    .select({
+      id: achievement.id,
+      title: achievement.title,
+      summary: achievement.summary,
+      details: achievement.details,
+      impact: achievement.impact,
+      eventStart: achievement.eventStart,
+      projectName: project.name,
+      companyName: company.name,
+    })
+    .from(achievement)
+    .leftJoin(project, eq(achievement.projectId, project.id))
+    .leftJoin(company, eq(achievement.companyId, company.id))
+    .where(
+      and(
+        eq(achievement.userId, userId),
+        gte(achievement.eventStart, startDate),
+        lte(achievement.eventStart, endDate),
+      ),
+    )
+    .orderBy(asc(achievement.eventStart));
+
+  return results;
 }

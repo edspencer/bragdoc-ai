@@ -26,7 +26,6 @@ import { DocumentSection } from '@/components/performance-review/document-sectio
 
 import {
   fakeProjects,
-  fakeDocumentContent,
   INSTRUCTIONS_KEY,
   SAVE_INSTRUCTIONS_KEY,
 } from '@/lib/performance-review-fake-data';
@@ -58,7 +57,9 @@ export function PerformanceReviewEdit({
   // Section states
   const [instructions, setInstructions] = useState('');
   const [saveInstructions, setSaveInstructions] = useState(false);
-  const [document, setDocument] = useState<string | null>(null);
+  const [document, setDocument] = useState<string | null>(
+    performanceReview.document?.content ?? null,
+  );
 
   // UI states
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -87,11 +88,6 @@ export function PerformanceReviewEdit({
       localStorage.setItem(SAVE_INSTRUCTIONS_KEY, 'false');
     }
   }, [instructions, saveInstructions]);
-
-  // Handle document generation (fake - just sets the fake content)
-  const handleGenerate = () => {
-    setDocument(fakeDocumentContent);
-  };
 
   // Handle document content change
   const handleDocumentChange = (content: string) => {
@@ -207,7 +203,6 @@ export function PerformanceReviewEdit({
           <DocumentSection
             document={document}
             onDocumentChange={handleDocumentChange}
-            onGenerate={handleGenerate}
             generationInstructions={instructions}
             performanceReviewId={performanceReview.id}
           />

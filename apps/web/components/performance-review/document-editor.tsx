@@ -1,5 +1,6 @@
 'use client';
 
+import { useState, useEffect } from 'react';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent } from '@/components/ui/card';
@@ -8,16 +9,32 @@ import { Markdown } from '@/components/markdown';
 interface DocumentEditorProps {
   content: string;
   onChange: (content: string) => void;
+  isGenerating?: boolean;
 }
 
-export function DocumentEditor({ content, onChange }: DocumentEditorProps) {
+export function DocumentEditor({
+  content,
+  onChange,
+  isGenerating = false,
+}: DocumentEditorProps) {
+  const [activeTab, setActiveTab] = useState('preview');
+
+  // Force preview mode while generating
+  useEffect(() => {
+    if (isGenerating) {
+      setActiveTab('preview');
+    }
+  }, [isGenerating]);
+
   return (
     <Card>
       <CardContent className="pt-4 lg:pt-6">
-        <Tabs defaultValue="preview" className="w-full">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <TabsList>
             <TabsTrigger value="preview">Preview</TabsTrigger>
-            <TabsTrigger value="edit">Edit</TabsTrigger>
+            <TabsTrigger value="edit" disabled={isGenerating}>
+              Edit
+            </TabsTrigger>
           </TabsList>
 
           <TabsContent value="preview" className="mt-4">

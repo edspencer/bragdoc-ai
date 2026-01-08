@@ -805,5 +805,58 @@ sendMessage({
 
 ---
 
-**Last Updated:** 2026-01-06 (Performance Review Chat endpoint)
+### POST /api/performance-review/generate
+
+Streaming endpoint for generating performance review documents from achievements and workstreams.
+
+**Authentication:** Required (supports both session and JWT)
+
+**Request Format:**
+
+```typescript
+{
+  performanceReviewId: string;  // UUID
+  generationInstructions?: string;  // Optional custom instructions
+}
+```
+
+**Response:** Streaming text response using `toTextStreamResponse()`.
+
+**Side Effects:**
+- Creates Document record with `type: 'performance_review'`
+- Updates PerformanceReview.documentId to link records
+
+**Error Responses:**
+
+- `401 Unauthorized` - User not authenticated
+- `400 Bad Request` - Invalid or missing performanceReviewId
+- `404 Not Found` - Performance review not found or doesn't belong to user
+- `500 Internal Server Error` - Generation failure
+
+**Example Usage (Frontend):**
+
+```typescript
+const response = await fetch('/api/performance-review/generate', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({
+    performanceReviewId: 'uuid-here',
+    generationInstructions: 'Focus on technical achievements',
+  }),
+});
+
+const reader = response.body.getReader();
+const decoder = new TextDecoder();
+
+while (true) {
+  const { done, value } = await reader.read();
+  if (done) break;
+  const chunk = decoder.decode(value, { stream: true });
+  // Append chunk to document content
+}
+```
+
+---
+
+**Last Updated:** 2026-01-08 (Performance Review Generate endpoint)
 **API Version:** v1 (implicit)

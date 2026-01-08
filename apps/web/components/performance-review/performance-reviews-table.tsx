@@ -34,6 +34,7 @@ import {
 } from '@/components/ui/alert-dialog';
 import { useDeletePerformanceReview } from '@/hooks/use-performance-reviews';
 import { PerformanceReviewsZeroState } from './performance-reviews-zero-state';
+import { CreatePerformanceReviewDialog } from './create-performance-review-dialog';
 import type { PerformanceReviewWithDocument } from '@bragdoc/database';
 
 interface PerformanceReviewsTableProps {
@@ -57,6 +58,9 @@ export function PerformanceReviewsTable({
   const [reviews, setReviews] =
     React.useState<PerformanceReviewWithDocument[]>(initialReviews);
   const deletePerformanceReview = useDeletePerformanceReview();
+
+  // Create dialog state
+  const [createDialogOpen, setCreateDialogOpen] = React.useState(false);
 
   // Delete dialog state
   const [deleteDialogOpen, setDeleteDialogOpen] = React.useState(false);
@@ -89,7 +93,17 @@ export function PerformanceReviewsTable({
   };
 
   if (reviews.length === 0) {
-    return <PerformanceReviewsZeroState />;
+    return (
+      <>
+        <PerformanceReviewsZeroState
+          onCreateClick={() => setCreateDialogOpen(true)}
+        />
+        <CreatePerformanceReviewDialog
+          open={createDialogOpen}
+          onOpenChange={setCreateDialogOpen}
+        />
+      </>
+    );
   }
 
   return (

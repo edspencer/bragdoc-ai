@@ -1,16 +1,23 @@
 'use client';
 
+import { useState } from 'react';
 import { IconPlus } from '@tabler/icons-react';
-import Link from 'next/link';
 import { Button } from '@/components/ui/button';
+import { CreatePerformanceReviewDialog } from './create-performance-review-dialog';
 
 export function PerformanceReviewActions() {
+  const [dialogOpen, setDialogOpen] = useState(false);
+
   return (
-    <Button asChild>
-      <Link href="/performance/new">
+    <>
+      <Button onClick={() => setDialogOpen(true)}>
         <IconPlus className="size-4" />
         New Review
-      </Link>
-    </Button>
+      </Button>
+      <CreatePerformanceReviewDialog
+        open={dialogOpen}
+        onOpenChange={setDialogOpen}
+      />
+    </>
   );
 }
