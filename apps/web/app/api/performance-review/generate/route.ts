@@ -128,9 +128,6 @@ ${achievementsContext}
 ## Workstreams (${workstreams.length} total)
 ${workstreamsContext}
 
-## User Instructions
-${generationInstructions || 'No specific instructions provided.'}
-
 ## Output Requirements
 Generate a professional performance review document in markdown format with the following structure:
 
@@ -160,7 +157,9 @@ Generate a professional performance review document in markdown format with the 
 - Keep the document concise but comprehensive (aim for 500-1000 words)
 - Use bullet points for lists and clear headings for sections
 - Write in first person where appropriate for self-assessments
-- Output valid markdown with proper headings (##, ###), bullet points, and formatting`;
+- Output valid markdown with proper headings (##, ###), bullet points, and formatting
+- But do not start with \`\`\`markdown\`\`\` or \`\`\`md\`\`\` or \`\`\`markdown\`\`\`\n - the entire document should be valid markdown
+${generationInstructions ? `\n## IMPORTANT: User's Custom Instructions\nThe user has provided the following instructions that MUST be followed. These take priority over the default guidelines above:\n\n${generationInstructions}` : ''}`;
 
     // Generate a UUID for the document before streaming starts
     const documentId = generateUUID();

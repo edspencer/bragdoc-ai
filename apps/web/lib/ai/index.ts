@@ -22,12 +22,13 @@ export const gpt35TurboModel = customModel('gpt-3.5-turbo');
 export const gpt4Model = customModel('gpt-4');
 export const gpt4oModel: LanguageModel = openai('gpt-4o');
 export const gpt4oMiniModel = customModel('gpt-4o-mini');
+export const gpt41MiniModel: LanguageModel = openai('gpt-4.1-mini');
 
 export const extractAchievementsModel = gpt4oMiniModel;
 export const chatModel: LanguageModel = gpt4oModel;
 export const findExistingProjectModel = gpt4oMiniModel;
 
-export const documentWritingModel: LanguageModel = gpt4oModel;
+export const documentWritingModel: LanguageModel = gpt41MiniModel;
 export const routerModel: LanguageModel = gpt4oMiniModel;
 
 /**

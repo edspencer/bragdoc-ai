@@ -7,11 +7,15 @@ import { DefaultChatTransport } from 'ai';
 import { Button } from '@/components/ui/button';
 import { DocumentEditor } from './document-editor';
 import { ChatInterface } from './chat-interface';
+import { InstructionsSection } from './instructions-section';
 
 interface DocumentSectionProps {
   document: string | null;
   onDocumentChange: (content: string) => void;
   generationInstructions: string;
+  onInstructionsChange: (value: string) => void;
+  saveInstructionsToLocalStorage: boolean;
+  onSaveInstructionsToggle: (save: boolean) => void;
   performanceReviewId: string;
 }
 
@@ -19,6 +23,9 @@ export function DocumentSection({
   document,
   onDocumentChange,
   generationInstructions,
+  onInstructionsChange,
+  saveInstructionsToLocalStorage,
+  onSaveInstructionsToggle,
   performanceReviewId,
 }: DocumentSectionProps) {
   const [input, setInput] = useState('');
@@ -86,32 +93,35 @@ export function DocumentSection({
   // Zero state - no document generated yet
   if (!document) {
     return (
-      <div className="flex min-h-[300px] flex-col items-center justify-center gap-4 rounded-lg border border-dashed bg-muted/30 p-8">
-        <div className="text-center">
-          <h3 className="mb-2 text-lg font-medium">
-            Ready to generate your review
-          </h3>
+      <div className="flex min-h-[300px] flex-col items-center justify-center rounded-lg border border-dashed bg-muted/30 p-8">
+        <div className="flex w-full max-w-2xl flex-col gap-4">
           <p className="text-sm text-muted-foreground">
-            Click the button below to generate your performance review document
-            based on your achievements and workstreams.
+            Optional document generation guidance.
           </p>
+
+          <InstructionsSection
+            value={generationInstructions}
+            onChange={onInstructionsChange}
+            saveToLocalStorage={saveInstructionsToLocalStorage}
+            onSaveToggle={onSaveInstructionsToggle}
+          />
+
+          {error && <div className="text-sm text-destructive">{error}</div>}
+
+          <Button onClick={handleGenerate} size="lg" disabled={isGenerating}>
+            {isGenerating ? (
+              <>
+                <IconLoader2 className="size-5 animate-spin" />
+                Generating...
+              </>
+            ) : (
+              <>
+                <IconSparkles className="size-5" />
+                Generate Document
+              </>
+            )}
+          </Button>
         </div>
-
-        {error && <div className="text-sm text-destructive">{error}</div>}
-
-        <Button onClick={handleGenerate} size="lg" disabled={isGenerating}>
-          {isGenerating ? (
-            <>
-              <IconLoader2 className="size-5 animate-spin" />
-              Generating...
-            </>
-          ) : (
-            <>
-              <IconSparkles className="size-5" />
-              Generate Document
-            </>
-          )}
-        </Button>
       </div>
     );
   }

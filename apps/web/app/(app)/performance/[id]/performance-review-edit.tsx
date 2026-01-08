@@ -21,7 +21,6 @@ import { CollapsibleSection } from '@/components/performance-review/collapsible-
 import { DateRangePicker } from '@/components/performance-review/date-range-picker';
 import { ProjectFilter } from '@/components/performance-review/project-filter';
 import { WorkstreamsSection } from '@/components/performance-review/workstreams-section';
-import { InstructionsSection } from '@/components/performance-review/instructions-section';
 import { DocumentSection } from '@/components/performance-review/document-section';
 
 import {
@@ -182,20 +181,7 @@ export function PerformanceReviewEdit({
           />
         </CollapsibleSection>
 
-        {/* Instructions Section */}
-        <CollapsibleSection
-          title="Generation Instructions"
-          subtitle="Customize how your performance review is generated"
-        >
-          <InstructionsSection
-            value={instructions}
-            onChange={setInstructions}
-            saveToLocalStorage={saveInstructions}
-            onSaveToggle={setSaveInstructions}
-          />
-        </CollapsibleSection>
-
-        {/* Document Section */}
+        {/* Document Section - includes generation instructions inside */}
         <CollapsibleSection
           title="Performance Review Document"
           subtitle="Your generated performance review"
@@ -204,6 +190,9 @@ export function PerformanceReviewEdit({
             document={document}
             onDocumentChange={handleDocumentChange}
             generationInstructions={instructions}
+            onInstructionsChange={setInstructions}
+            saveInstructionsToLocalStorage={saveInstructions}
+            onSaveInstructionsToggle={setSaveInstructions}
             performanceReviewId={performanceReview.id}
           />
         </CollapsibleSection>
