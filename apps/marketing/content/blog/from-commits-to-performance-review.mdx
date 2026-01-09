@@ -1,6 +1,6 @@
 ---
 title: "How BragDoc Turns Git History into Performance Reviews"
-description: "A look inside how BragDoc automates performance review documentation. CLI extraction, AI clustering, and document generation—from commits to review-ready docs."
+description: "BragDoc's Performance Review feature is shipping now. Generate review-ready documents from your Git history—with AI clustering, streaming generation, and chat refinement."
 date: "2026-01-10"
 author: "BragDoc Team"
 tags: ["engineering", "performance-reviews", "architecture", "building-in-public", "workstreams"]
@@ -10,144 +10,116 @@ published: false
 canonical_url: "https://www.bragdoc.ai/blog/from-commits-to-performance-review"
 ---
 
-Performance review season is approaching. You have six months of commits, PRs, and closed tickets scattered across systems. Somewhere in that pile is the story of what you actually accomplished—but extracting it feels like archaeology.
+**We're shipping Performance Review document generation.** Starting today, you can select a date range, click generate, and get a review-ready document built from your actual work history.
 
-We're building BragDoc to solve this. The goal: turn your Git history into a performance review document with minimal manual effort. This post walks through how the pipeline works, what we've shipped, and what we're building next.
+No more scrolling through six months of commits trying to reconstruct what you did. No more staring at a blank self-evaluation form. Your Git history becomes a polished document you can edit, refine, and submit.
 
-## The Problem We're Solving
+Here's what changed, what's available now, and how the system works.
 
-Most developers track their work in at least four places: Git commits, GitHub PRs, issue trackers, and calendars. When review time comes, you're left reconstructing the narrative manually. You scroll through months of history, trying to remember which commits mattered and which were just noise.
+## What You Can Do Now
 
-The information exists. It's just not in a usable format.
+The Performance Review feature turns months of scattered achievements into a structured document. Here's the workflow:
 
-Our approach: extract achievements automatically, group them into coherent themes, and generate a document you can actually submit. Here's how each stage works.
+1. **Select a date range** for your review period (Q4 2024, last 6 months, etc.)
+2. **Add optional instructions** ("Focus on leadership impact" or "Emphasize technical depth")
+3. **Click generate** and watch your document stream in
+4. **Edit and refine** through a chat interface—ask the AI to expand sections, add metrics, or adjust tone
 
-## Stage 1: Extraction via CLI
+The document pulls from your achievements and workstreams automatically. If you've been extracting commits with the CLI, you already have the raw material. The Performance Review feature assembles it into something you can actually use.
 
-Everything starts with the [BragDoc CLI](/features). It runs locally on your machine, which means your source code never leaves your computer.
+**This is shipping now.** The core generation and editing flow is stable and ready for your next review cycle.
 
-```bash
-npm install -g @bragdoc/cli
-bragdoc login
-bragdoc init
-bragdoc extract --since 30d
-```
+## How the Pipeline Works
 
-The CLI uses a pluggable connector architecture. Each data source—Git, GitHub, Jira—implements the same interface, so adding new sources doesn't require changing core logic.
+Three stages turn your Git history into a performance review document. Each stage builds on the previous one.
 
-For Git extraction, the CLI:
-1. Reads your commit history within the specified date range
-2. Applies branch whitelisting (so experimental branches don't pollute your achievements)
-3. Sends commit messages and diffs to an LLM for analysis
-4. Returns structured achievement objects with title, summary, and impact score
+### Stage 1: Extraction (Stable)
 
-The LLM runs locally if you prefer. We support <a href="https://ollama.ai" target="_blank" rel="noopener noreferrer">Ollama</a> for fully offline extraction:
+The [BragDoc CLI](/features) extracts achievements from your local repositories. Your source code never leaves your machine.
 
 ```bash
-bragdoc llm set ollama llama3.2
+bragdoc extract --since 6m
 ```
 
-Your diffs stay on your machine. Only the generated achievement summaries sync to the server.
+The CLI reads your commit history, analyzes changes with an LLM, and returns structured achievements with titles, summaries, and impact scores. You can run extraction fully offline using <a href="https://ollama.ai" target="_blank" rel="noopener noreferrer">Ollama</a>.
 
-## Stage 2: Workstreams (Automatic Clustering)
+**What this enables:** You stop losing track of what you shipped. Every meaningful commit becomes a documented achievement you can reference later.
 
-Raw achievements are useful, but they don't tell a story. A six-month review period might produce 50+ achievements across different projects. Presenting that as a flat list isn't helpful.
+### Stage 2: Workstreams (Stable)
 
-This is where workstreams come in. They're automatically generated clusters of related achievements—themes that emerge from your work.
+Raw achievements get clustered into themes automatically. We use <a href="https://en.wikipedia.org/wiki/DBSCAN" target="_blank" rel="noopener noreferrer">DBSCAN clustering</a> on semantic embeddings to find natural groupings in your work.
 
-The clustering pipeline:
+Your 50+ achievements become 5-8 named workstreams like "Payment System Refactor" or "API Performance Optimization." Each workstream groups related work across the review period.
 
-**Embedding generation**: Each achievement gets converted to a 1536-dimensional vector using OpenAI's text-embedding-3-small model. The embedding captures semantic meaning, so similar achievements end up close together in vector space.
+**What this enables:** You stop presenting flat lists of accomplishments. Your work gets organized into coherent themes that tell a story.
 
-**DBSCAN clustering**: We use <a href="https://en.wikipedia.org/wiki/DBSCAN" target="_blank" rel="noopener noreferrer">density-based clustering (DBSCAN)</a> rather than k-means because we don't know how many clusters exist beforehand. DBSCAN finds natural groupings and handles outliers gracefully. Parameters adapt based on dataset size.
+### Stage 3: Performance Review Document (Shipping Now)
 
-**Workstream naming**: An LLM generates a 2-5 word name and one-sentence description for each cluster based on its achievements. "Payment System Refactor" rather than "Cluster 7."
+This is the new feature. Select a date range, and the system loads your achievements and workstreams from that period. Add optional instructions, click generate, and the document streams in.
 
-The result: your 50 achievements become 5-8 workstreams with descriptive names. Each workstream groups related work, making it easier to explain what you actually accomplished.
+Say you have achievements like "Reduced API latency by 35%," "Implemented Redis caching layer," and "Optimized database queries." The system recognizes these as related—they live in your "Performance Optimization" workstream—and weaves them into a narrative rather than listing them as isolated bullet points.
 
-You can filter workstreams by date range and project. If you're preparing a Q4 review, you see only Q4 workstreams. The clustering runs on your filtered subset.
+After generation, you edit through a chat interface. Ask the AI to expand a section, add quantitative impact, or match your company's review format. The document updates in real-time.
 
-## Stage 3: Performance Review Document (Shipping Now)
+**What this enables:** You stop writing performance reviews from scratch. You generate a first draft from real data, then refine it to match your voice and your company's expectations.
 
-This is what we're actively building. The performance review feature takes your achievements and workstreams and generates an actual document.
+## What's Available Now vs Coming Soon
 
-The flow:
-1. Create a new performance review with a date range (e.g., "Q4 2024")
-2. The system loads all achievements and workstreams from that period
-3. You provide optional instructions for the AI ("Focus on leadership impact" or "Emphasize technical depth")
-4. Click generate, and the document streams in
+| Feature | Status |
+|---------|--------|
+| CLI extraction (Git, GitHub) | **Stable** |
+| Workstream clustering | **Stable** |
+| Performance Review generation | **Shipping now** |
+| Document editing via chat | **Shipping now** |
+| Jira integration | In development |
+| Google Calendar integration | On roadmap |
 
-Say you have achievements like "Reduced API latency by 35%," "Implemented Redis caching layer," and "Optimized database queries for the checkout flow." The system recognizes these as related—they all live in a workstream called "Performance Optimization"—and weaves them into a coherent narrative rather than listing them as isolated bullet points.
+The extraction and clustering infrastructure has been stable for months. The Performance Review feature is new—we're releasing it now for review season. Jira and Calendar integrations will expand what gets captured, but the core pipeline is ready to use today.
 
-The generated document is editable. After the initial generation, you can refine it through a chat interface—ask the AI to expand a section, add metrics, or adjust tone. The document updates in real-time.
+## How the Pieces Connect
 
-We use OpenAI's latest models for document generation because the quality difference matters for something you'll submit to your manager. Extraction can run on smaller models; the final document benefits from a more capable one.
-
-## The Architecture
-
-Here's how the pieces connect:
+For those who want the technical details:
 
 ```
 CLI (local)           Web App              Database
     │                    │                    │
-    ├─► Git extraction   │                    │
-    │   via connectors   │                    │
+    ├─► Extract commits  │                    │
+    │   (your machine)   │                    │
     │                    │                    │
-    └─► POST /api/achievements ──────────────►│
+    └─► POST achievements ─────────────────►│
                          │                    │
                          ├─► Generate embeddings
                          │   (OpenAI API)     │
                          │                    │
-                         ├─► DBSCAN clustering
-                         │   (in-memory)      │
+                         ├─► Cluster into     │
+                         │   workstreams      │
                          │                    │
-                         ├─► Create workstreams ────►│
+                         ├─► [NEW] Generate   │
+                         │   performance review
+                         │   (streaming)      │
                          │                    │
-                         ├─► Performance Review      │
-                         │   document generation     │
-                         │   (streaming, OpenAI)     │
-                         │                    │
-                         └─► Chat refinement  │
-                             (streaming)      │
+                         └─► [NEW] Chat       │
+                             refinement       │
 ```
 
-The CLI handles extraction. The web app handles clustering and document generation. Everything is scoped by user—your data stays yours.
+The CLI handles extraction locally—your diffs never leave your machine. The web app handles clustering and document generation. The new Performance Review feature sits at the end of this pipeline, consuming all the data you've already captured.
 
-## What's Shipping Next
+## Try Performance Review Generation
 
-We're expanding the connector architecture to pull from more sources:
+If you're preparing for a review cycle, here's how to get started:
 
-**Jira integration**: Extract achievements from closed tickets. Story points, sprint contributions, and ticket descriptions become part of your achievement record.
+1. **[Install the CLI](/get-started)** and run `bragdoc extract --since 6m` on your repositories
+2. **Open the web app** and navigate to Performance Reviews
+3. **Create a new review** with your date range
+4. **Generate your document** and refine it until it's ready to submit
 
-**Google Calendar integration**: Meetings represent invisible work. Architecture discussions, 1:1 mentoring, planning sessions—these matter for reviews but don't show up in Git. Calendar integration captures them.
-
-Both will work through the existing CLI. You'll configure sources per project, and `bragdoc extract` will pull from all of them.
-
-## Why We're Building This Way
-
-A few design decisions worth explaining:
-
-**Local-first extraction**: Your code is sensitive. We don't want it on our servers, and you probably don't either. Running extraction locally means your diffs never leave your machine. Only the summaries sync.
-
-**Pluggable connectors**: Different teams use different tools. The connector architecture lets us add sources without touching core logic. Want to extract from GitLab instead of GitHub? Same interface, different implementation.
-
-**Semantic clustering over manual organization**: You could manually tag achievements into categories. Most people won't. Automatic clustering means you get organized output without extra work.
-
-**Streaming document generation**: Performance review documents are long. Waiting for a full document to generate is frustrating. Streaming shows progress immediately and lets you start reading before generation completes.
-
-## Try It
-
-If you're preparing for a performance review, the pipeline is ready to use:
-
-1. [Install the CLI](/get-started) and extract your recent commits
-2. Generate workstreams from your achievements
-3. Create a performance review and generate your document
-
-The whole process takes minutes instead of hours. Your Git history already contains the raw material—we just make it usable.
-
-We're building this in public because we think the approach matters as much as the product. If you have questions about the architecture or want to see specific features, [let us know](mailto:hello@bragdoc.ai).
+The first draft takes seconds. Refinement takes as long as you need. Either way, you're starting from your actual work history instead of a blank page.
 
 ---
+
+**This is what we're putting in your hands now.** Performance Review document generation is built for engineers facing review season, promo packets, or compensation conversations. Your Git history already contains the evidence of what you accomplished—we're making it usable.
+
+Questions about the feature or feedback on the generation? [Let us know](mailto:hello@bragdoc.ai).
 
 **Related**: [Why Developers Need Automated Brag Docs](/blog/why-developers-need-automated-brag-docs) explains the problem in more depth. [Six Types of Developer Impact](/blog/six-types-developer-impact) covers what to include beyond code.
 
