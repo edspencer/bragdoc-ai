@@ -1,6 +1,6 @@
 ---
-title: "From Commits to Performance Review: The Pipeline"
-description: "A look inside how BragDoc turns Git history into performance review documentation. CLI extraction, AI clustering, and document generation."
+title: "How BragDoc Turns Git History into Performance Reviews"
+description: "A look inside how BragDoc automates performance review documentation. CLI extraction, AI clustering, and document generation—from commits to review-ready docs."
 date: "2026-01-10"
 author: "BragDoc Team"
 tags: ["engineering", "performance-reviews", "architecture", "building-in-public", "workstreams"]
@@ -41,7 +41,7 @@ For Git extraction, the CLI:
 3. Sends commit messages and diffs to an LLM for analysis
 4. Returns structured achievement objects with title, summary, and impact score
 
-The LLM runs locally if you prefer. We support Ollama for fully offline extraction:
+The LLM runs locally if you prefer. We support <a href="https://ollama.ai" target="_blank" rel="noopener noreferrer">Ollama</a> for fully offline extraction:
 
 ```bash
 bragdoc llm set ollama llama3.2
@@ -59,7 +59,7 @@ The clustering pipeline:
 
 **Embedding generation**: Each achievement gets converted to a 1536-dimensional vector using OpenAI's text-embedding-3-small model. The embedding captures semantic meaning, so similar achievements end up close together in vector space.
 
-**DBSCAN clustering**: We use density-based clustering (DBSCAN) rather than k-means because we don't know how many clusters exist beforehand. DBSCAN finds natural groupings and handles outliers gracefully. Parameters adapt based on dataset size.
+**DBSCAN clustering**: We use <a href="https://en.wikipedia.org/wiki/DBSCAN" target="_blank" rel="noopener noreferrer">density-based clustering (DBSCAN)</a> rather than k-means because we don't know how many clusters exist beforehand. DBSCAN finds natural groupings and handles outliers gracefully. Parameters adapt based on dataset size.
 
 **Workstream naming**: An LLM generates a 2-5 word name and one-sentence description for each cluster based on its achievements. "Payment System Refactor" rather than "Cluster 7."
 
@@ -76,6 +76,8 @@ The flow:
 2. The system loads all achievements and workstreams from that period
 3. You provide optional instructions for the AI ("Focus on leadership impact" or "Emphasize technical depth")
 4. Click generate, and the document streams in
+
+Say you have achievements like "Reduced API latency by 35%," "Implemented Redis caching layer," and "Optimized database queries for the checkout flow." The system recognizes these as related—they all live in a workstream called "Performance Optimization"—and weaves them into a coherent narrative rather than listing them as isolated bullet points.
 
 The generated document is editable. After the initial generation, you can refine it through a chat interface—ask the AI to expand a section, add metrics, or adjust tone. The document updates in real-time.
 
@@ -103,7 +105,7 @@ CLI (local)           Web App              Database
                          │                    │
                          ├─► Performance Review      │
                          │   document generation     │
-                         │   (streaming, GPT-4o)     │
+                         │   (streaming, OpenAI)     │
                          │                    │
                          └─► Chat refinement  │
                              (streaming)      │
