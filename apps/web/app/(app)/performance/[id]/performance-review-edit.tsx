@@ -2,9 +2,18 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { IconTrash } from '@tabler/icons-react';
+import {
+  IconTrash,
+  IconTrophy,
+  IconLayersSubtract,
+  IconFileText,
+} from '@tabler/icons-react';
+import { SiteHeader } from '@/components/site-header';
+import { AppContent } from '@/components/shared/app-content';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Badge } from '@/components/ui/badge';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -17,18 +26,17 @@ import {
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
 
-import { CollapsibleSection } from '@/components/performance-review/collapsible-section';
 import { DateRangePicker } from '@/components/performance-review/date-range-picker';
-import { ProjectFilter } from '@/components/performance-review/project-filter';
 import { WorkstreamsTimeline } from '@/components/performance-review/workstreams-timeline';
 import { DocumentSection } from '@/components/performance-review/document-section';
 import { PerformanceReviewAchievementsTable } from '@/components/performance-review/performance-review-achievements-table';
 
 import {
-  fakeProjects,
   INSTRUCTIONS_KEY,
   SAVE_INSTRUCTIONS_KEY,
 } from '@/lib/performance-review-fake-data';
+
+const PERFORMANCE_REVIEW_TAB_KEY = 'performance-review-tab';
 
 import type {
   Workstream,
@@ -53,9 +61,6 @@ export function PerformanceReviewEdit({
   const [name, setName] = useState(performanceReview.name);
   const [startDate, setStartDate] = useState(performanceReview.startDate);
   const [endDate, setEndDate] = useState(performanceReview.endDate);
-  const [selectedProjectIds, setSelectedProjectIds] = useState<string[]>(
-    fakeProjects.map((p) => p.id),
-  );
 
   // Section states
   const [instructions, setInstructions] = useState('');
@@ -66,6 +71,7 @@ export function PerformanceReviewEdit({
 
   // UI states
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [selectedTab, setSelectedTab] = useState('review');
 
   // On mount - restore saved preference and instructions if available
   useEffect(() => {
@@ -76,6 +82,16 @@ export function PerformanceReviewEdit({
       if (savedInstructions) {
         setInstructions(savedInstructions);
       }
+    }
+
+    // Restore saved tab selection
+    const savedTab = localStorage.getItem(PERFORMANCE_REVIEW_TAB_KEY);
+    if (
+      savedTab === 'review' ||
+      savedTab === 'achievements' ||
+      savedTab === 'workstreams'
+    ) {
+      setSelectedTab(savedTab);
     }
   }, []);
 
@@ -97,6 +113,12 @@ export function PerformanceReviewEdit({
     setDocument(content);
   };
 
+  // Handle tab change and persist to localStorage
+  const handleTabChange = (value: string) => {
+    setSelectedTab(value);
+    localStorage.setItem(PERFORMANCE_REVIEW_TAB_KEY, value);
+  };
+
   // Handle delete confirmation
   const handleDelete = () => {
     setDeleteDialogOpen(false);
@@ -104,115 +126,124 @@ export function PerformanceReviewEdit({
   };
 
   return (
-    <div className="flex h-full flex-col">
-      {/* Fixed header section */}
-      <header className="sticky top-0 z-10 border-b bg-background">
-        <div className="flex flex-col gap-4 p-2 lg:flex-row lg:items-center lg:justify-between lg:p-4">
-          {/* Name + Delete */}
-          <div className="flex items-center gap-2">
-            {/* Inline editable name - input styled to look like text until focused */}
+    <>
+      <SiteHeader title="Performance Review">
+        {/* Delete button with AlertDialog */}
+        <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+          <AlertDialogTrigger asChild>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="text-red-600 hover:text-red-700 dark:text-red-500 dark:hover:text-red-600"
+              aria-label="Delete performance review"
+            >
+              <IconTrash className="size-4" />
+            </Button>
+          </AlertDialogTrigger>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Delete Performance Review</AlertDialogTitle>
+              <AlertDialogDescription>
+                Are you sure you want to delete this performance review? This
+                action cannot be undone.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogAction
+                onClick={handleDelete}
+                className="bg-red-600 text-white hover:bg-red-700 dark:bg-red-900 dark:text-red-100 dark:hover:bg-red-800"
+              >
+                Delete
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+      </SiteHeader>
+
+      <AppContent className="space-y-4 lg:space-y-6">
+        {/* Hero/Summary Section */}
+        <div className="flex flex-col gap-4 lg:flex-row lg:items-end">
+          {/* Performance Review Name - Editable */}
+          <div>
             <Input
               value={name}
               onChange={(e) => setName(e.target.value)}
-              className="h-auto border-transparent bg-transparent px-2 py-1 text-lg font-semibold hover:border-input focus:border-input"
+              className="h-auto border-transparent bg-transparent px-0 py-1 text-2xl font-semibold hover:border-input focus:border-input lg:text-3xl"
               aria-label="Performance review name"
             />
-
-            {/* Delete button with AlertDialog */}
-            <AlertDialog
-              open={deleteDialogOpen}
-              onOpenChange={setDeleteDialogOpen}
-            >
-              <AlertDialogTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="text-muted-foreground hover:text-destructive"
-                  aria-label="Delete performance review"
-                >
-                  <IconTrash className="size-4" />
-                </Button>
-              </AlertDialogTrigger>
-              <AlertDialogContent>
-                <AlertDialogHeader>
-                  <AlertDialogTitle>Delete Performance Review</AlertDialogTitle>
-                  <AlertDialogDescription>
-                    Are you sure you want to delete this performance review?
-                    This action cannot be undone.
-                  </AlertDialogDescription>
-                </AlertDialogHeader>
-                <AlertDialogFooter>
-                  <AlertDialogCancel>Cancel</AlertDialogCancel>
-                  <AlertDialogAction
-                    onClick={handleDelete}
-                    className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                  >
-                    Delete
-                  </AlertDialogAction>
-                </AlertDialogFooter>
-              </AlertDialogContent>
-            </AlertDialog>
           </div>
 
-          {/* Date range + Project filter */}
-          <div className="flex items-center gap-2">
+          {/* Date Range - Editable */}
+          <div>
             <DateRangePicker
               startDate={startDate}
               endDate={endDate}
               onStartDateChange={setStartDate}
               onEndDateChange={setEndDate}
-            />
-            <ProjectFilter
-              projects={fakeProjects}
-              selectedProjectIds={selectedProjectIds}
-              onSelectionChange={setSelectedProjectIds}
+              className="border-transparent text-2xl font-semibold lg:text-3xl"
             />
           </div>
         </div>
-      </header>
 
-      {/* Scrollable content area */}
-      <div className="flex-1 space-y-4 overflow-y-auto p-2 lg:space-y-6 lg:p-6">
-        {/* Workstreams Section */}
-        <CollapsibleSection
-          title="Workstreams"
-          subtitle="Your work themes during this review period"
-        >
-          <WorkstreamsTimeline
-            workstreams={workstreams}
-            achievements={achievements}
-            startDate={startDate}
-            endDate={endDate}
-          />
-        </CollapsibleSection>
+        {/* Performance Review Tabs */}
+        <Tabs value={selectedTab} onValueChange={handleTabChange}>
+          <TabsList>
+            <TabsTrigger value="review" className="gap-2">
+              <IconFileText className="size-4 text-green-600" />
+              Review
+            </TabsTrigger>
+            <TabsTrigger value="achievements" className="gap-2">
+              <IconTrophy className="size-4 text-yellow-600" />
+              Achievements
+              <Badge className="ml-1 bg-yellow-100 text-yellow-800 hover:bg-yellow-100 dark:bg-yellow-900 dark:text-yellow-200">
+                {achievements.length}
+              </Badge>
+            </TabsTrigger>
+            <TabsTrigger value="workstreams" className="gap-2">
+              <IconLayersSubtract className="size-4 text-purple-600" />
+              Workstreams
+              <Badge className="ml-1 bg-purple-100 text-purple-800 hover:bg-purple-100 dark:bg-purple-900 dark:text-purple-200">
+                {workstreams.length}
+              </Badge>
+            </TabsTrigger>
+          </TabsList>
 
-        {/* Achievements Section */}
-        <CollapsibleSection
-          title="Achievements"
-          subtitle="All achievements during this review period"
-        >
-          <PerformanceReviewAchievementsTable
-            achievements={achievements}
-            workstreams={workstreams}
-          />
-        </CollapsibleSection>
+          <TabsContent value="review">
+            <div className="rounded-lg border-2 border-green-200 dark:border-green-800">
+              <DocumentSection
+                document={document}
+                onDocumentChange={handleDocumentChange}
+                generationInstructions={instructions}
+                onInstructionsChange={setInstructions}
+                saveInstructionsToLocalStorage={saveInstructions}
+                onSaveInstructionsToggle={setSaveInstructions}
+                performanceReviewId={performanceReview.id}
+              />
+            </div>
+          </TabsContent>
 
-        {/* Document Section - includes generation instructions inside */}
-        <CollapsibleSection
-          title="Performance Review Document"
-          subtitle="Your generated performance review"
-        >
-          <DocumentSection
-            document={document}
-            onDocumentChange={handleDocumentChange}
-            generationInstructions={instructions}
-            onInstructionsChange={setInstructions}
-            saveInstructionsToLocalStorage={saveInstructions}
-            onSaveInstructionsToggle={setSaveInstructions}
-            performanceReviewId={performanceReview.id}
-          />
-        </CollapsibleSection>
-      </div>
-    </div>
+          <TabsContent value="achievements">
+            <div className="rounded-lg border-2 border-yellow-200 dark:border-yellow-800">
+              <PerformanceReviewAchievementsTable
+                achievements={achievements}
+                workstreams={workstreams}
+              />
+            </div>
+          </TabsContent>
+
+          <TabsContent value="workstreams">
+            <div className="rounded-lg border-2 border-purple-200 dark:border-purple-800">
+              <WorkstreamsTimeline
+                workstreams={workstreams}
+                achievements={achievements}
+                startDate={startDate}
+                endDate={endDate}
+              />
+            </div>
+          </TabsContent>
+        </Tabs>
+      </AppContent>
+    </>
   );
 }

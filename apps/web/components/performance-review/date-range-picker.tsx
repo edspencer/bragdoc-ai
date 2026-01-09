@@ -17,6 +17,7 @@ interface DateRangePickerProps {
   endDate: Date;
   onStartDateChange: (date: Date) => void;
   onEndDateChange: (date: Date) => void;
+  className?: string;
 }
 
 export function DateRangePicker({
@@ -24,6 +25,7 @@ export function DateRangePicker({
   endDate,
   onStartDateChange,
   onEndDateChange,
+  className,
 }: DateRangePickerProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [selectingEnd, setSelectingEnd] = useState(false);
@@ -69,6 +71,7 @@ export function DateRangePicker({
           className={cn(
             'justify-start text-left font-normal',
             !startDate && !endDate && 'text-muted-foreground',
+            className,
           )}
           aria-label="Select date range"
         >
