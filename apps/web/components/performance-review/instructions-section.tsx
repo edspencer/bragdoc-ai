@@ -22,7 +22,7 @@ export function InstructionsSection({
       <Textarea
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        placeholder="Add specific instructions for generating your performance review. For example: 'Focus on leadership contributions' or 'Highlight cross-team collaboration'"
+        placeholder="Optional specific instructions for generating your performance review. For example: 'Focus on leadership contributions' or 'Highlight cross-team collaboration'"
         className="min-h-[150px] resize-y"
         aria-label="Review generation instructions"
       />

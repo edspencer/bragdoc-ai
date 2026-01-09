@@ -1,10 +1,27 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
-import { Textarea } from '@/components/ui/textarea';
+import { useRef, useEffect } from 'react';
+import dynamic from 'next/dynamic';
 import { Card, CardContent } from '@/components/ui/card';
-import { Markdown } from '@/components/markdown';
+import { Skeleton } from '@/components/ui/skeleton';
+import type { MDXEditorMethods } from '@mdxeditor/editor';
+
+// Dynamic import with SSR disabled - MDXEditor requires client-side only rendering
+const MDXEditorWrapper = dynamic(
+  () =>
+    import('./mdx-editor-wrapper').then((mod) => ({
+      default: mod.MDXEditorWrapper,
+    })),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="space-y-4 p-4">
+        <Skeleton className="h-10 w-full" />
+        <Skeleton className="h-[400px] w-full" />
+      </div>
+    ),
+  },
+);
 
 interface DocumentEditorProps {
   content: string;
@@ -17,42 +34,25 @@ export function DocumentEditor({
   onChange,
   isGenerating = false,
 }: DocumentEditorProps) {
-  const [activeTab, setActiveTab] = useState('preview');
+  const editorRef = useRef<MDXEditorMethods>(null);
 
-  // Force preview mode while generating
+  // Update editor content when streaming new content during generation
   useEffect(() => {
-    if (isGenerating) {
-      setActiveTab('preview');
+    if (isGenerating && editorRef.current) {
+      editorRef.current.setMarkdown(content);
     }
-  }, [isGenerating]);
+  }, [content, isGenerating]);
 
   return (
     <Card>
       <CardContent className="pt-4 lg:pt-6">
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList>
-            <TabsTrigger value="preview">Preview</TabsTrigger>
-            <TabsTrigger value="edit" disabled={isGenerating}>
-              Edit
-            </TabsTrigger>
-          </TabsList>
-
-          <TabsContent value="preview" className="mt-4">
-            <div className="prose prose-sm dark:prose-invert max-w-none">
-              <Markdown>{content}</Markdown>
-            </div>
-          </TabsContent>
-
-          <TabsContent value="edit" className="mt-4">
-            <Textarea
-              value={content}
-              onChange={(e) => onChange(e.target.value)}
-              className="min-h-[500px] resize-y font-mono text-sm"
-              placeholder="Write your performance review in markdown..."
-              aria-label="Performance review document editor"
-            />
-          </TabsContent>
-        </Tabs>
+        <MDXEditorWrapper
+          ref={editorRef}
+          markdown={content}
+          onChange={onChange}
+          readOnly={isGenerating}
+          className="mdx-editor-container"
+        />
       </CardContent>
     </Card>
   );

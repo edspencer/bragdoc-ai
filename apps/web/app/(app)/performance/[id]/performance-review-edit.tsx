@@ -2,7 +2,10 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { format } from 'date-fns';
 import {
+  IconCalendar,
+  IconEdit,
   IconTrash,
   IconTrophy,
   IconLayersSubtract,
@@ -11,8 +14,8 @@ import {
 import { SiteHeader } from '@/components/site-header';
 import { AppContent } from '@/components/shared/app-content';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
+import { Separator } from '@/components/ui/separator';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import {
   AlertDialog,
@@ -25,8 +28,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
-
-import { DateRangePicker } from '@/components/performance-review/date-range-picker';
+import { EditPerformanceReviewDialog } from '@/components/performance-review/edit-performance-review-dialog';
 import { WorkstreamsTimeline } from '@/components/performance-review/workstreams-timeline';
 import { DocumentSection } from '@/components/performance-review/document-section';
 import { PerformanceReviewAchievementsTable } from '@/components/performance-review/performance-review-achievements-table';
@@ -70,6 +72,7 @@ export function PerformanceReviewEdit({
   );
 
   // UI states
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [selectedTab, setSelectedTab] = useState('review');
 
@@ -109,7 +112,7 @@ export function PerformanceReviewEdit({
   }, [instructions, saveInstructions]);
 
   // Handle document content change
-  const handleDocumentChange = (content: string) => {
+  const handleDocumentChange = (content: string | null) => {
     setDocument(content);
   };
 
@@ -119,15 +122,55 @@ export function PerformanceReviewEdit({
     localStorage.setItem(PERFORMANCE_REVIEW_TAB_KEY, value);
   };
 
+  // Handle edit update
+  const handleUpdate = (data: {
+    name: string;
+    startDate: Date;
+    endDate: Date;
+  }) => {
+    setName(data.name);
+    setStartDate(data.startDate);
+    setEndDate(data.endDate);
+  };
+
   // Handle delete confirmation
   const handleDelete = () => {
     setDeleteDialogOpen(false);
     router.push('/performance');
   };
 
+  // Format date range for display
+  const formatDateRange = () => {
+    const startYear = startDate.getFullYear();
+    const endYear = endDate.getFullYear();
+
+    if (startYear === endYear) {
+      return `${format(startDate, 'MMM d')} - ${format(endDate, 'MMM d, yyyy')}`;
+    }
+    return `${format(startDate, 'MMM d, yyyy')} - ${format(endDate, 'MMM d, yyyy')}`;
+  };
+
   return (
     <>
-      <SiteHeader title="Performance Review">
+      <SiteHeader title={name}>
+        {/* Date range display */}
+        <div className="hidden items-center gap-1 text-sm text-muted-foreground sm:flex">
+          <IconCalendar className="size-4" />
+          <span>{formatDateRange()}</span>
+        </div>
+
+        <Separator orientation="vertical" className="hidden h-4 sm:block" />
+
+        {/* Edit button */}
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={() => setEditDialogOpen(true)}
+          aria-label="Edit performance review"
+        >
+          <IconEdit className="size-4" />
+        </Button>
+
         {/* Delete button with AlertDialog */}
         <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
           <AlertDialogTrigger asChild>
@@ -161,31 +204,20 @@ export function PerformanceReviewEdit({
         </AlertDialog>
       </SiteHeader>
 
+      {/* Edit performance review dialog */}
+      <EditPerformanceReviewDialog
+        open={editDialogOpen}
+        onOpenChange={setEditDialogOpen}
+        performanceReviewId={performanceReview.id}
+        initialData={{
+          name,
+          startDate,
+          endDate,
+        }}
+        onUpdate={handleUpdate}
+      />
+
       <AppContent className="space-y-4 lg:space-y-6">
-        {/* Hero/Summary Section */}
-        <div className="flex flex-col gap-4 lg:flex-row lg:items-end">
-          {/* Performance Review Name - Editable */}
-          <div>
-            <Input
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              className="h-auto border-transparent bg-transparent px-0 py-1 text-2xl font-semibold hover:border-input focus:border-input lg:text-3xl"
-              aria-label="Performance review name"
-            />
-          </div>
-
-          {/* Date Range - Editable */}
-          <div>
-            <DateRangePicker
-              startDate={startDate}
-              endDate={endDate}
-              onStartDateChange={setStartDate}
-              onEndDateChange={setEndDate}
-              className="border-transparent text-2xl font-semibold lg:text-3xl"
-            />
-          </div>
-        </div>
-
         {/* Performance Review Tabs */}
         <Tabs value={selectedTab} onValueChange={handleTabChange}>
           <TabsList>
@@ -219,6 +251,13 @@ export function PerformanceReviewEdit({
                 saveInstructionsToLocalStorage={saveInstructions}
                 onSaveInstructionsToggle={setSaveInstructions}
                 performanceReviewId={performanceReview.id}
+                achievementCount={achievements.length}
+                workstreamCount={workstreams.length}
+                totalImpact={achievements.reduce(
+                  (sum, a) => sum + (a.impact ?? 0),
+                  0,
+                )}
+                onTabChange={handleTabChange}
               />
             </div>
           </TabsContent>

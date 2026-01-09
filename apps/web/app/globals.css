@@ -229,3 +229,77 @@
   scrollbar-width: thin;
   scrollbar-color: var(--border) transparent;
 }
+
+/* MDXEditor styling */
+.mdx-editor-container {
+  @apply rounded-lg border border-border;
+}
+
+.mdx-editor-container .mdxeditor {
+  @apply bg-background;
+}
+
+.mdx-editor-container .mdxeditor-toolbar {
+  @apply bg-muted border-b border-border rounded-t-lg;
+}
+
+.mdx-editor-container .mdxeditor-root-contenteditable {
+  @apply p-4;
+}
+
+/* Dark mode support for MDXEditor */
+.dark .mdx-editor-container .mdxeditor {
+  @apply bg-background;
+  --accentBase: var(--primary);
+  --accentBgSubtle: var(--muted);
+  --accentBg: var(--secondary);
+  --accentBgHover: var(--accent);
+  --accentBgActive: var(--accent);
+  --accentLine: var(--border);
+  --accentBorder: var(--border);
+  --accentBorderHover: var(--ring);
+  --accentSolid: var(--primary);
+  --accentSolidHover: var(--primary);
+  --accentText: var(--primary-foreground);
+  --accentTextContrast: var(--foreground);
+
+  --baseBase: var(--background);
+  --baseBgSubtle: var(--muted);
+  --baseBg: var(--card);
+  --baseBgHover: var(--accent);
+  --baseBgActive: var(--accent);
+  --baseLine: var(--border);
+  --baseBorder: var(--border);
+  --baseBorderHover: var(--ring);
+  --baseSolid: var(--muted-foreground);
+  --baseSolidHover: var(--foreground);
+  --baseText: var(--foreground);
+  --baseTextContrast: var(--foreground);
+}
+
+.dark .mdx-editor-container .mdxeditor-toolbar {
+  @apply bg-muted;
+}
+
+/* MDXEditor toolbar button styling */
+.mdx-editor-container [data-toolbar-item] {
+  @apply text-foreground hover:bg-accent rounded;
+}
+
+.mdx-editor-container [data-toolbar-item][data-active="true"] {
+  @apply bg-accent;
+}
+
+/* MDXEditor select styling */
+.mdx-editor-container [data-radix-select-viewport] {
+  @apply bg-popover border border-border rounded-md shadow-lg;
+}
+
+.mdx-editor-container [data-radix-select-item] {
+  @apply text-popover-foreground hover:bg-accent cursor-pointer;
+}
+
+/* MDXEditor dialog styling */
+.mdx-editor-container [role="dialog"] {
+  @apply bg-popover border border-border rounded-lg shadow-lg;
+}

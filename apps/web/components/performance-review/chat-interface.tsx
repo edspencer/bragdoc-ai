@@ -1,10 +1,13 @@
 'use client';
 
+import { useState } from 'react';
 import type { Dispatch, SetStateAction } from 'react';
 import type { UIMessage, UseChatHelpers } from '@ai-sdk/react';
 import type { ChatStatus } from 'ai';
 import ReactMarkdown from 'react-markdown';
+import { IconChevronLeft, IconChevronRight } from '@tabler/icons-react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 import {
   PromptInput,
   PromptInputTextarea,
@@ -30,6 +33,7 @@ export function ChatInterface({
   status,
   error,
 }: ChatInterfaceProps) {
+  const [isCollapsed, setIsCollapsed] = useState(false);
   const isLoading = status === 'submitted' || status === 'streaming';
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
@@ -47,10 +51,36 @@ export function ChatInterface({
     setInput(e.target.value);
   };
 
+  // Collapsed state - narrow bar with rotated title
+  if (isCollapsed) {
+    return (
+      <Card
+        className="flex h-full w-14 cursor-pointer items-center justify-center"
+        onClick={() => setIsCollapsed(false)}
+      >
+        <span className="-rotate-90 whitespace-nowrap text-base font-semibold">
+          Refine with AI
+        </span>
+      </Card>
+    );
+  }
+
+  // Expanded state
   return (
     <Card className="flex h-full flex-col">
       <CardHeader className="pb-2">
-        <CardTitle className="text-base">Refine with AI</CardTitle>
+        <div className="flex items-center justify-between">
+          <CardTitle className="text-base">Refine with AI</CardTitle>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-6 w-6"
+            onClick={() => setIsCollapsed(true)}
+            aria-label="Collapse chat panel"
+          >
+            <IconChevronRight className="h-4 w-4" />
+          </Button>
+        </div>
       </CardHeader>
 
       <CardContent className="flex flex-1 flex-col gap-4">

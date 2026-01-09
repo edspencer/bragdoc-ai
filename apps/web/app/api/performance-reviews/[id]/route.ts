@@ -13,6 +13,7 @@ const updateSchema = z
     startDate: z.coerce.date().optional(),
     endDate: z.coerce.date().optional(),
     instructions: z.string().nullable().optional(),
+    documentId: z.string().uuid().nullable().optional(),
   })
   .refine(
     (data) => {
