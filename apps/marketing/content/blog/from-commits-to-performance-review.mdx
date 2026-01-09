@@ -27,21 +27,19 @@ The Performance Review feature turns months of scattered achievements into a str
 
 The document pulls from your achievements and workstreams automatically. If you've been extracting commits with the CLI, you already have the raw material. The Performance Review feature assembles it into something you can actually use.
 
-**This is shipping now.** The core generation and editing flow is stable and ready for your next review cycle.
-
 ## How the Pipeline Works
 
 Three stages turn your Git history into a performance review document. Each stage builds on the previous one.
 
 ### Stage 1: Extraction (Stable)
 
-The [BragDoc CLI](/features) extracts achievements from your local repositories. Your source code never leaves your machine.
+The [BragDoc CLI](/features) extracts achievements from your local Git repositories. Your source code never leaves your machine.
 
 ```bash
 bragdoc extract --since 6m
 ```
 
-The CLI reads your commit history, analyzes changes with an LLM, and returns structured achievements with titles, summaries, and impact scores. You can run extraction fully offline using <a href="https://ollama.ai" target="_blank" rel="noopener noreferrer">Ollama</a>.
+The CLI reads your local commit history, analyzes changes with an LLM, and returns structured achievements with titles, summaries, and impact scores. For teams using GitHub, the CLI can also pull PR metadata and code review activity through a separate connector. You can run extraction fully offline using <a href="https://ollama.ai" target="_blank" rel="noopener noreferrer">Ollama</a>.
 
 **What this enables:** You stop losing track of what you shipped. Every meaningful commit becomes a documented achievement you can reference later.
 
@@ -66,12 +64,12 @@ After generation, you edit through a chat interface. Ask the AI to expand a sect
 ## What's Available Now vs Coming Soon
 
 **Stable:**
-- CLI extraction (Git, GitHub)
+- CLI extraction (local Git + GitHub connector)
 - Workstream clustering
 
 **Shipping now:**
-- Performance Review generation
-- Document editing via chat
+- Performance Review document generation
+- Chat-based document editing
 
 **Coming soon:**
 - Jira integration (in development)
@@ -105,7 +103,7 @@ CLI (local)           Web App              Database
                              refinement       │
 ```
 
-The CLI handles extraction locally—your diffs never leave your machine. The web app handles clustering and document generation. The new Performance Review feature sits at the end of this pipeline, consuming all the data you've already captured.
+The CLI handles extraction locally—your diffs never leave your machine. Only the generated achievement summaries sync to the server. When we generate embeddings for clustering, we're embedding those summaries, not your source code. The web app handles clustering and document generation. The new Performance Review feature sits at the end of this pipeline, consuming all the data you've already captured.
 
 ## Try Performance Review Generation
 
@@ -116,13 +114,15 @@ If you're preparing for a review cycle, here's how to get started:
 3. **Create a new review** with your date range
 4. **Generate your document** and refine it until it's ready to submit
 
+You'll end up with a review draft organized by workstreams, ready to copy into your company's review form or export as-is.
+
 The first draft takes seconds. Refinement takes as long as you need. Either way, you're starting from your actual work history instead of a blank page.
 
 ---
 
 **This is what we're putting in your hands now.** Performance Review document generation is built for engineers facing review season, promo packets, or compensation conversations. Your Git history already contains the evidence of what you accomplished—we're making it usable.
 
-Questions about the feature or feedback on the generation? [Let us know](mailto:hello@bragdoc.ai).
+Questions or feedback? <a href="https://github.com/edspencer/bragdoc-ai/issues" target="_blank" rel="noopener noreferrer">Open an issue on GitHub</a> or email us at hello@bragdoc.ai.
 
 **Related**: [Why Developers Need Automated Brag Docs](/blog/why-developers-need-automated-brag-docs) explains the problem in more depth. [Six Types of Developer Impact](/blog/six-types-developer-impact) covers what to include beyond code.
 
