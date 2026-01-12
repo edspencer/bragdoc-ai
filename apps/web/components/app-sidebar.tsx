@@ -8,6 +8,7 @@ import {
   IconBuilding,
   IconSettings,
   IconTrendingUp,
+  IconFileText,
 } from '@tabler/icons-react';
 import Image from 'next/image';
 
@@ -43,6 +44,12 @@ const staticData = {
       title: 'Workstreams',
       url: '/workstreams',
       icon: IconTrendingUp,
+      badge: 'NEW',
+    },
+    {
+      title: 'Performance Review',
+      url: '/performance',
+      icon: IconFileText,
       badge: 'NEW',
     },
     {

@@ -590,6 +590,52 @@ For detail page secondary actions:
 - **Multiple actions:** Use dropdown menu on mobile when > 2 actions
 - **Single action:** Use text hide/show pattern for single buttons
 
+### HeaderAddButton Component
+
+For standardized "Add [item]" buttons in page headers, use the `HeaderAddButton` component.
+
+**File:** `apps/web/components/shared/header-add-button.tsx`
+
+**Purpose:** Ensures consistent sizing, styling, and behavior for all "Add" buttons across the app.
+
+```tsx
+import { HeaderAddButton } from '@/components/shared/header-add-button';
+
+// Basic usage
+<SiteHeader title="Achievements">
+  <HeaderAddButton
+    label="Add Achievement"
+    onClick={handleOpenDialog}
+  />
+</SiteHeader>
+
+// With loading state
+<SiteHeader title="Workstreams">
+  <HeaderAddButton
+    label="Add Workstream"
+    onClick={handleAddWorkstream}
+    isLoading={isLoadingAchievements}
+  />
+</SiteHeader>
+```
+
+**Props:**
+- `label` (required): Button text (e.g., "Add Achievement", "Add Workstream")
+- `onClick` (required): Click handler function
+- `isLoading` (optional): Shows spinner when true
+- `disabled` (optional): Disables the button
+- `title` (optional): Tooltip text (defaults to label)
+
+**Features:**
+- Consistent 36px height (default Button size)
+- Plus icon with loading spinner support
+- Label hidden on mobile (< lg), visible on desktop
+- Works correctly in both light and dark modes
+
+**Label Convention:** Use "Add [singular noun]" pattern:
+- ✅ "Add Achievement", "Add Workstream", "Add Company", "Add Review"
+- ❌ "Quick Add", "New Review", "Create Achievement"
+
 ## Stat Component Pattern
 
 The `Stat` component provides a reusable card format for displaying statistical information with consistent styling.

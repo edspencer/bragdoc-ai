@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { IconUsers, IconUserCheck, IconTrophy } from '@tabler/icons-react';
+import { IconUsers, IconUserCheck } from '@tabler/icons-react';
 import type { Icon } from '@tabler/icons-react';
 
 import {
@@ -26,11 +26,6 @@ const careerItems: { title: string; url: string; icon: Icon }[] = [
     url: '/reports',
     icon: IconUserCheck,
   },
-  {
-    title: 'Performance Review',
-    url: '/performance',
-    icon: IconTrophy,
-  },
 ];
 
 export function NavCareers() {
@@ -45,7 +40,7 @@ export function NavCareers() {
 
   return (
     <SidebarGroup className="group-data-[collapsible=icon]:hidden">
-      <SidebarGroupLabel>Career</SidebarGroupLabel>
+      <SidebarGroupLabel>Beta</SidebarGroupLabel>
       <SidebarMenu>
         {careerItems.map((item) => {
           const isActive = pathname.startsWith(item.url);
