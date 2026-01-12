@@ -1,10 +1,12 @@
 'use client';
 
 import { useState } from 'react';
-import { Button } from 'components/ui/button';
-import { StandupForm } from './standup-form';
 import { useRouter } from 'next/navigation';
+import { IconUsers, IconPlus } from '@tabler/icons-react';
 import { AnimatePresence, motion } from 'framer-motion';
+import { Button } from '@/components/ui/button';
+import { PageZeroState } from '@/components/shared/page-zero-state';
+import { StandupForm } from './standup-form';
 
 export function StandupZeroState() {
   const [showForm, setShowForm] = useState(false);
@@ -24,7 +26,7 @@ export function StandupZeroState() {
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: -10 }}
           transition={{ duration: 0.1 }}
-          className="flex flex-1 flex-col p-4 md:p-6 justify-center"
+          className="flex flex-1 flex-col p-4 md:p-6"
         >
           <div className="max-w-3xl mx-auto w-full space-y-6">
             <div>
@@ -46,18 +48,22 @@ export function StandupZeroState() {
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: -10 }}
           transition={{ duration: 0.1 }}
-          className="flex flex-1 flex-col items-center justify-center p-8"
         >
-          <div className="max-w-2xl text-center space-y-6">
-            <h1 className="text-3xl font-bold">Daily Standup Updates</h1>
-            <p className="text-lg text-muted-foreground">
-              Prepares your standup update for you based on what you&apos;ve got
-              done and what&apos;s in progress
+          <PageZeroState
+            icon={<IconUsers className="h-6 w-6 text-primary" />}
+            title="Daily Standup Updates"
+          >
+            <p className="text-muted-foreground text-center">
+              Automatically prepares your standup update based on what
+              you&apos;ve accomplished and what&apos;s in progress.
             </p>
-            <Button size="lg" onClick={() => setShowForm(true)}>
-              Get Started
-            </Button>
-          </div>
+            <div className="text-center">
+              <Button size="lg" onClick={() => setShowForm(true)}>
+                <IconPlus className="size-4 mr-2" />
+                Get Started
+              </Button>
+            </div>
+          </PageZeroState>
         </motion.div>
       )}
     </AnimatePresence>
