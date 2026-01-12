@@ -2,7 +2,6 @@
 
 import { useRef, useEffect } from 'react';
 import dynamic from 'next/dynamic';
-import { Card, CardContent } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import type { MDXEditorMethods } from '@mdxeditor/editor';
 
@@ -44,16 +43,14 @@ export function DocumentEditor({
   }, [content, isGenerating]);
 
   return (
-    <Card>
-      <CardContent className="pt-4 lg:pt-6">
-        <MDXEditorWrapper
-          ref={editorRef}
-          markdown={content}
-          onChange={onChange}
-          readOnly={isGenerating}
-          className="mdx-editor-container"
-        />
-      </CardContent>
-    </Card>
+    <div className="h-full overflow-hidden flex flex-col">
+      <MDXEditorWrapper
+        ref={editorRef}
+        markdown={content}
+        onChange={onChange}
+        readOnly={isGenerating}
+        className="mdx-editor-container"
+      />
+    </div>
   );
 }

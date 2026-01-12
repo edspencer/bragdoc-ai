@@ -232,19 +232,19 @@
 
 /* MDXEditor styling */
 .mdx-editor-container {
-  @apply rounded-lg border border-border;
+  @apply rounded-lg border border-border h-full flex flex-col overflow-hidden;
 }
 
 .mdx-editor-container .mdxeditor {
-  @apply bg-background;
+  @apply bg-background h-full flex flex-col overflow-hidden;
 }
 
 .mdx-editor-container .mdxeditor-toolbar {
-  @apply bg-muted border-b border-border rounded-t-lg;
+  @apply bg-muted border-b border-border rounded-t-lg shrink-0;
 }
 
 .mdx-editor-container .mdxeditor-root-contenteditable {
-  @apply p-4;
+  @apply p-4 flex-1 overflow-y-auto;
 }
 
 /* Dark mode support for MDXEditor */

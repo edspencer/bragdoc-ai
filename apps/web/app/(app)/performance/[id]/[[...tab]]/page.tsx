@@ -2,7 +2,7 @@ import { auth } from '@/lib/better-auth/server';
 import { headers } from 'next/headers';
 import { AppPage } from 'components/shared/app-page';
 import { SidebarInset } from '@/components/ui/sidebar';
-import { PerformanceReviewEdit } from './performance-review-edit';
+import { PerformanceReviewEdit } from '../performance-review-edit';
 import {
   getPerformanceReviewById,
   getWorkstreamsByUserIdWithDateFilter,
@@ -12,10 +12,17 @@ import { getAchievements } from '@/database/queries';
 export default async function PerformanceReviewEditPage({
   params,
 }: {
-  params: Promise<{ id: string }>;
+  params: Promise<{ id: string; tab?: string[] }>;
 }) {
   // Await params (Next.js 16 async params)
-  const { id } = await params;
+  const { id, tab } = await params;
+
+  // Extract and validate tab segment from URL
+  const tabSegment = tab?.[0];
+  const validTabs = ['review', 'achievements', 'workstreams'];
+  const initialTab = validTabs.includes(tabSegment ?? '')
+    ? tabSegment!
+    : 'review';
 
   // Authenticate - return fallback UI if not authenticated (never use redirect())
   const session = await auth.api.getSession({
@@ -59,6 +66,8 @@ export default async function PerformanceReviewEditPage({
           performanceReview={performanceReview}
           workstreams={workstreams}
           achievements={achievements}
+          initialTab={initialTab}
+          performanceReviewId={id}
         />
       </SidebarInset>
     </AppPage>

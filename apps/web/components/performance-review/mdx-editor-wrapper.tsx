@@ -38,7 +38,7 @@ export const MDXEditorWrapper = forwardRef<
       onChange={onChange}
       readOnly={readOnly}
       className={className}
-      contentEditableClassName="prose prose-sm dark:prose-invert max-w-none min-h-[400px] focus:outline-none"
+      contentEditableClassName="prose prose-sm dark:prose-invert max-w-none focus:outline-none"
       plugins={[
         headingsPlugin(),
         listsPlugin(),

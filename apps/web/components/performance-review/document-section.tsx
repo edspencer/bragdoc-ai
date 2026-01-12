@@ -25,6 +25,7 @@ import { DocumentEditor } from './document-editor';
 import { ChatInterface } from './chat-interface';
 import { InstructionsSection } from './instructions-section';
 import { PerformanceReviewSummary } from './performance-review-summary';
+import { cn } from '@/lib/utils';
 
 interface DocumentSectionProps {
   document: string | null;
@@ -58,6 +59,7 @@ export function DocumentSection({
   const [isGenerating, setIsGenerating] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [isCollapsed, setIsCollapsed] = useState(false);
 
   const {
     messages,
@@ -148,7 +150,7 @@ export function DocumentSection({
   // Zero state - no document generated yet (null means not started, empty string means user chose to write)
   if (document === null) {
     return (
-      <div className="space-y-6 p-6">
+      <div className="space-y-6 p-2 lg:p-6">
         {/* Summary section */}
         <PerformanceReviewSummary
           achievementCount={achievementCount}
@@ -204,9 +206,9 @@ export function DocumentSection({
 
   // Generated state - split layout with document and chat
   return (
-    <div className="space-y-4 p-6">
+    <div className="h-full flex flex-col p-2 lg:p-6">
       {/* Toolbar */}
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-2 pb-4">
         <h1 className="text-xl font-semibold">Performance Review Document</h1>
         <AlertDialog>
           <AlertDialogTrigger asChild>
@@ -242,9 +244,14 @@ export function DocumentSection({
       </div>
 
       {/* Document and Chat layout */}
-      <div className="flex flex-col gap-4 lg:flex-row lg:gap-6">
-        {/* Document panel - 2/3 width on desktop */}
-        <div className="flex-1 lg:w-2/3">
+      <div className="flex flex-1 min-h-0 flex-col gap-4 lg:flex-row lg:gap-6">
+        {/* Document panel - expands when chat collapsed */}
+        <div
+          className={cn(
+            'flex-1 min-h-0 transition-all duration-200',
+            !isCollapsed && 'lg:w-2/3',
+          )}
+        >
           <DocumentEditor
             content={document}
             onChange={onDocumentChange}
@@ -252,8 +259,13 @@ export function DocumentSection({
           />
         </div>
 
-        {/* Chat panel - 1/3 width on desktop */}
-        <div className="relative lg:w-1/3">
+        {/* Chat panel - narrow when collapsed */}
+        <div
+          className={cn(
+            'relative min-h-0 transition-all duration-200',
+            isCollapsed ? 'lg:w-14' : 'lg:w-1/3',
+          )}
+        >
           <ChatInterface
             messages={messages}
             input={input}
@@ -261,6 +273,8 @@ export function DocumentSection({
             sendMessage={sendMessage}
             status={status}
             error={chatError}
+            isCollapsed={isCollapsed}
+            onCollapseToggle={setIsCollapsed}
           />
           {/* Frosted overlay while generating */}
           {isGenerating && (

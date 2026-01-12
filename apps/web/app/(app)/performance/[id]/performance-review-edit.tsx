@@ -1,7 +1,7 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState, useEffect, useRef } from 'react';
+import { useRouter, usePathname } from 'next/navigation';
 import { format } from 'date-fns';
 import {
   IconCalendar,
@@ -17,6 +17,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
+import { cn } from '@/lib/utils';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -38,8 +39,6 @@ import {
   SAVE_INSTRUCTIONS_KEY,
 } from '@/lib/performance-review-fake-data';
 
-const PERFORMANCE_REVIEW_TAB_KEY = 'performance-review-tab';
-
 import type {
   Workstream,
   PerformanceReviewWithDocument,
@@ -50,14 +49,19 @@ interface PerformanceReviewEditProps {
   performanceReview: PerformanceReviewWithDocument;
   workstreams: Workstream[];
   achievements: AchievementWithRelations[];
+  initialTab: string;
+  performanceReviewId: string;
 }
 
 export function PerformanceReviewEdit({
   performanceReview,
   workstreams,
   achievements,
+  initialTab,
+  performanceReviewId,
 }: PerformanceReviewEditProps) {
   const router = useRouter();
+  const pathname = usePathname();
 
   // Performance review state
   const [name, setName] = useState(performanceReview.name);
@@ -74,7 +78,16 @@ export function PerformanceReviewEdit({
   // UI states
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [selectedTab, setSelectedTab] = useState('review');
+  const [selectedTab, setSelectedTab] = useState(initialTab);
+
+  // Track if component is mounted (to prevent state updates during render)
+  const isMounted = useRef(false);
+  useEffect(() => {
+    isMounted.current = true;
+    return () => {
+      isMounted.current = false;
+    };
+  }, []);
 
   // On mount - restore saved preference and instructions if available
   useEffect(() => {
@@ -85,16 +98,6 @@ export function PerformanceReviewEdit({
       if (savedInstructions) {
         setInstructions(savedInstructions);
       }
-    }
-
-    // Restore saved tab selection
-    const savedTab = localStorage.getItem(PERFORMANCE_REVIEW_TAB_KEY);
-    if (
-      savedTab === 'review' ||
-      savedTab === 'achievements' ||
-      savedTab === 'workstreams'
-    ) {
-      setSelectedTab(savedTab);
     }
   }, []);
 
@@ -111,15 +114,34 @@ export function PerformanceReviewEdit({
     }
   }, [instructions, saveInstructions]);
 
-  // Handle document content change
+  // Sync tab state with URL changes (browser back/forward navigation)
+  useEffect(() => {
+    const segments = pathname.split('/');
+    const lastSegment = segments[segments.length - 1] ?? '';
+    const validTabs = ['review', 'achievements', 'workstreams'];
+
+    if (validTabs.includes(lastSegment) && lastSegment !== selectedTab) {
+      setSelectedTab(lastSegment);
+    } else if (!validTabs.includes(lastSegment) && selectedTab !== 'review') {
+      // URL is /performance/[id] without tab segment - default to 'review'
+      setSelectedTab('review');
+    }
+  }, [pathname, selectedTab]);
+
+  // Handle document content change (guard against updates before mount)
   const handleDocumentChange = (content: string | null) => {
-    setDocument(content);
+    if (isMounted.current) {
+      setDocument(content);
+    }
   };
 
-  // Handle tab change and persist to localStorage
+  // Handle tab change and update URL
   const handleTabChange = (value: string) => {
     setSelectedTab(value);
-    localStorage.setItem(PERFORMANCE_REVIEW_TAB_KEY, value);
+    // Navigate to new URL, adding to browser history
+    const basePath = `/performance/${performanceReviewId}`;
+    const newPath = value === 'review' ? basePath : `${basePath}/${value}`;
+    router.push(newPath);
   };
 
   // Handle edit update
@@ -217,23 +239,51 @@ export function PerformanceReviewEdit({
         onUpdate={handleUpdate}
       />
 
-      <AppContent className="space-y-4 lg:space-y-6">
+      <AppContent className="sm:h-[calc(100dvh-var(--header-height))] sm:overflow-hidden">
         {/* Performance Review Tabs */}
-        <Tabs value={selectedTab} onValueChange={handleTabChange}>
-          <TabsList>
-            <TabsTrigger value="review" className="gap-2">
-              <IconFileText className="size-4 text-green-600" />
+        <Tabs
+          value={selectedTab}
+          onValueChange={handleTabChange}
+          className="flex h-full flex-col gap-0"
+        >
+          <TabsList className="lg:ml-4 gap-0 h-16 overflow-visible">
+            <TabsTrigger
+              value="review"
+              className={cn(
+                'relative gap-2 rounded-b-none border-2 border-b-0 -mb-[2px] px-1 lg:px-4 py-2 pb-[6px] text-base lg:text-2xl cursor-pointer',
+                selectedTab === 'review'
+                  ? 'border-green-200 bg-background z-10 dark:border-green-800'
+                  : 'border-transparent bg-transparent hover:bg-gray-100 dark:hover:bg-gray-800',
+              )}
+            >
+              <IconFileText className="size-5 lg:size-8  text-green-600" />
               Review
             </TabsTrigger>
-            <TabsTrigger value="achievements" className="gap-2">
-              <IconTrophy className="size-4 text-yellow-600" />
+            <TabsTrigger
+              value="achievements"
+              className={cn(
+                'relative gap-2 rounded-b-none border-2 border-b-0 -mb-[2px] px-1 lg:px-4 py-2 pb-[6px] text-base lg:text-2xl cursor-pointer',
+                selectedTab === 'achievements'
+                  ? 'border-yellow-200 bg-background z-10 dark:border-yellow-800'
+                  : 'border-transparent bg-transparent hover:bg-gray-100 dark:hover:bg-gray-800',
+              )}
+            >
+              <IconTrophy className="size-5 lg:size-8 text-yellow-600" />
               Achievements
               <Badge className="ml-1 bg-yellow-100 text-yellow-800 hover:bg-yellow-100 dark:bg-yellow-900 dark:text-yellow-200">
                 {achievements.length}
               </Badge>
             </TabsTrigger>
-            <TabsTrigger value="workstreams" className="gap-2">
-              <IconLayersSubtract className="size-4 text-purple-600" />
+            <TabsTrigger
+              value="workstreams"
+              className={cn(
+                'relative gap-2 rounded-b-none border-2 border-b-0 -mb-[2px] px-1 lg:px-4 py-2 pb-[6px] text-base lg:text-2xl cursor-pointer',
+                selectedTab === 'workstreams'
+                  ? 'border-purple-200 bg-background z-10 dark:border-purple-800'
+                  : 'border-transparent bg-transparent hover:bg-gray-100 dark:hover:bg-gray-800',
+              )}
+            >
+              <IconLayersSubtract className="size-5 lg:size-8 text-purple-600" />
               Workstreams
               <Badge className="ml-1 bg-purple-100 text-purple-800 hover:bg-purple-100 dark:bg-purple-900 dark:text-purple-200">
                 {workstreams.length}
@@ -241,8 +291,11 @@ export function PerformanceReviewEdit({
             </TabsTrigger>
           </TabsList>
 
-          <TabsContent value="review">
-            <div className="rounded-lg border-2 border-green-200 dark:border-green-800">
+          <TabsContent
+            value="review"
+            className="mt-0 sm:flex-1 sm:min-h-0 sm:overflow-hidden"
+          >
+            <div className="h-full rounded-lg border-2 border-green-200 dark:border-green-800">
               <DocumentSection
                 document={document}
                 onDocumentChange={handleDocumentChange}
@@ -262,8 +315,11 @@ export function PerformanceReviewEdit({
             </div>
           </TabsContent>
 
-          <TabsContent value="achievements">
-            <div className="rounded-lg border-2 border-yellow-200 dark:border-yellow-800">
+          <TabsContent
+            value="achievements"
+            className="mt-0 sm:flex-1 sm:min-h-0 sm:overflow-hidden"
+          >
+            <div className="h-full rounded-lg border-2 border-yellow-200 dark:border-yellow-800">
               <PerformanceReviewAchievementsTable
                 achievements={achievements}
                 workstreams={workstreams}
@@ -271,8 +327,11 @@ export function PerformanceReviewEdit({
             </div>
           </TabsContent>
 
-          <TabsContent value="workstreams">
-            <div className="rounded-lg border-2 border-purple-200 dark:border-purple-800">
+          <TabsContent
+            value="workstreams"
+            className="mt-0 sm:flex-1 sm:min-h-0 sm:overflow-hidden"
+          >
+            <div className="h-full rounded-lg border-2 border-purple-200 dark:border-purple-800">
               <WorkstreamsTimeline
                 workstreams={workstreams}
                 achievements={achievements}

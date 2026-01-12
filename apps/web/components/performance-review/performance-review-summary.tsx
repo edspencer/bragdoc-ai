@@ -1,7 +1,5 @@
 'use client';
 
-import { IconSparkles } from '@tabler/icons-react';
-
 interface PerformanceReviewSummaryProps {
   achievementCount: number;
   workstreamCount: number;

@@ -111,7 +111,9 @@ export function PerformanceReviewAchievementsTable({
   // Create a map of workstreams by ID for quick lookup
   const workstreamMap = React.useMemo(() => {
     const map = new Map<string, Workstream>();
-    workstreams.forEach((ws) => map.set(ws.id, ws));
+    workstreams.forEach((ws) => {
+      map.set(ws.id, ws);
+    });
     return map;
   }, [workstreams]);
 

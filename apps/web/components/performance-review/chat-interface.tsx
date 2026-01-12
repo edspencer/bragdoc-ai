@@ -1,6 +1,5 @@
 'use client';
 
-import { useState } from 'react';
 import type { Dispatch, SetStateAction } from 'react';
 import type { UIMessage, UseChatHelpers } from '@ai-sdk/react';
 import type { ChatStatus } from 'ai';
@@ -23,6 +22,8 @@ interface ChatInterfaceProps {
   sendMessage: UseChatHelpers<UIMessage>['sendMessage'];
   status: ChatStatus;
   error?: Error;
+  isCollapsed: boolean;
+  onCollapseToggle: (collapsed: boolean) => void;
 }
 
 export function ChatInterface({
@@ -32,8 +33,9 @@ export function ChatInterface({
   sendMessage,
   status,
   error,
+  isCollapsed,
+  onCollapseToggle,
 }: ChatInterfaceProps) {
-  const [isCollapsed, setIsCollapsed] = useState(false);
   const isLoading = status === 'submitted' || status === 'streaming';
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
@@ -55,10 +57,11 @@ export function ChatInterface({
   if (isCollapsed) {
     return (
       <Card
-        className="flex h-full w-14 cursor-pointer items-center justify-center"
-        onClick={() => setIsCollapsed(false)}
+        className="flex h-full w-14 cursor-pointer flex-col items-center pt-2"
+        onClick={() => onCollapseToggle(false)}
       >
-        <span className="-rotate-90 whitespace-nowrap text-base font-semibold">
+        <IconChevronLeft className="h-4 w-4 text-muted-foreground" />
+        <span className="mt-8 -rotate-90 whitespace-nowrap text-base font-semibold">
           Refine with AI
         </span>
       </Card>
@@ -75,7 +78,7 @@ export function ChatInterface({
             variant="ghost"
             size="icon"
             className="h-6 w-6"
-            onClick={() => setIsCollapsed(true)}
+            onClick={() => onCollapseToggle(true)}
             aria-label="Collapse chat panel"
           >
             <IconChevronRight className="h-4 w-4" />
@@ -83,9 +86,9 @@ export function ChatInterface({
         </div>
       </CardHeader>
 
-      <CardContent className="flex flex-1 flex-col gap-4">
-        {/* Messages container */}
-        <div className="flex-1 space-y-4 overflow-y-auto" role="list">
+      <CardContent className="flex flex-1 flex-col overflow-hidden p-0">
+        {/* Messages container - scrollable */}
+        <div className="flex-1 space-y-4 overflow-y-auto px-6 pt-4" role="list">
           {messages.length === 0 ? (
             <p className="text-center text-sm text-muted-foreground">
               No messages yet. Ask AI to refine your document.
@@ -104,31 +107,33 @@ export function ChatInterface({
           )}
         </div>
 
-        {/* Error display */}
+        {/* Error display - if present */}
         {error && (
-          <div className="rounded-lg border border-destructive bg-destructive/10 p-3 text-sm text-destructive">
+          <div className="mx-6 rounded-lg border border-destructive bg-destructive/10 p-3 text-sm text-destructive">
             {error.message || 'An error occurred. Please try again.'}
           </div>
         )}
 
-        {/* Input field using PromptInput components */}
-        <PromptInput onSubmit={handleSubmit}>
-          <PromptInputTextarea
-            value={input}
-            onChange={handleInputChange}
-            placeholder="Ask AI to refine your document..."
-            disabled={isLoading}
-            minHeight={40}
-            maxHeight={120}
-          />
-          <PromptInputToolbar className="justify-end">
-            <PromptInputSubmit
-              status={status}
-              disabled={isLoading || !input.trim()}
-              aria-label="Send message"
+        {/* Input container - sticky at bottom */}
+        <div className="sticky bottom-0 border-t bg-card px-6 pb-4 pt-3 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)]">
+          <PromptInput onSubmit={handleSubmit}>
+            <PromptInputTextarea
+              value={input}
+              onChange={handleInputChange}
+              placeholder="Ask AI to refine your document..."
+              disabled={isLoading}
+              minHeight={40}
+              maxHeight={120}
             />
-          </PromptInputToolbar>
-        </PromptInput>
+            <PromptInputToolbar className="justify-end">
+              <PromptInputSubmit
+                status={status}
+                disabled={isLoading || !input.trim()}
+                aria-label="Send message"
+              />
+            </PromptInputToolbar>
+          </PromptInput>
+        </div>
       </CardContent>
     </Card>
   );
