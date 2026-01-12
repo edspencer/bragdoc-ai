@@ -460,6 +460,30 @@ export interface DocumentWithCompany extends Document {
   companyName: string | null;
 }
 
+export const performanceReview = pgTable(
+  'PerformanceReview',
+  {
+    id: uuid('id').primaryKey().notNull().defaultRandom(),
+    userId: uuid('user_id')
+      .notNull()
+      .references(() => user.id, { onDelete: 'cascade' }),
+    name: varchar('name', { length: 256 }).notNull(),
+    startDate: timestamp('start_date').notNull(),
+    endDate: timestamp('end_date').notNull(),
+    instructions: text('instructions'),
+    documentId: uuid('document_id').references(() => document.id, {
+      onDelete: 'set null',
+    }),
+    createdAt: timestamp('created_at').notNull().defaultNow(),
+    updatedAt: timestamp('updated_at').notNull().defaultNow(),
+  },
+  (table) => ({
+    userIdIdx: index('performance_review_user_id_idx').on(table.userId),
+  }),
+);
+
+export type PerformanceReview = InferSelectModel<typeof performanceReview>;
+
 export const stream = pgTable(
   'Stream',
   {

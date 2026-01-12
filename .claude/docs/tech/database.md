@@ -539,6 +539,17 @@ const doc: DocumentWithCompany = {
 
 ---
 
+### PerformanceReview Table
+**Purpose**: Persistent performance review configurations with date ranges and custom instructions
+
+The `PerformanceReview` table stores user-defined review periods for generating performance review documents. Each review has a name, date range (`startDate`, `endDate`), and optional custom instructions for AI generation. The generated document is linked via `documentId` (nullable, set to null on document deletion) allowing the review to persist independently.
+
+**Key Fields:** `id` (UUID), `userId` (FK with cascade delete), `name`, `startDate`, `endDate`, `instructions` (nullable), `documentId` (FK to Document, set null on delete), timestamps. Indexed on `userId`.
+
+**Query Functions:** `getPerformanceReviewsByUserId()`, `getPerformanceReviewById()`, `createPerformanceReview()`, `updatePerformanceReview()`, `deletePerformanceReview()` - all in `packages/database/src/performance-reviews/queries.ts`.
+
+---
+
 ### Chat & Message Tables
 **Purpose**: Chat history for AI assistant
 
@@ -911,6 +922,20 @@ export async function generatePeriodSummary({
     .orderBy(asc(achievement.eventStart));
 }
 ```
+
+### Achievement Date Range Query
+
+For fetching achievements within a specific date range with project/company context:
+
+```typescript
+const achievements = await getAchievementsByDateRange(
+  userId,
+  startDate,
+  endDate,
+);
+```
+
+Returns achievements ordered chronologically with `projectName` and `companyName` via LEFT JOINs. Used for performance review generation to provide context-rich achievement data.
 
 ### Cascade Delete with Custom Logic
 ```typescript

@@ -590,6 +590,52 @@ For detail page secondary actions:
 - **Multiple actions:** Use dropdown menu on mobile when > 2 actions
 - **Single action:** Use text hide/show pattern for single buttons
 
+### HeaderAddButton Component
+
+For standardized "Add [item]" buttons in page headers, use the `HeaderAddButton` component.
+
+**File:** `apps/web/components/shared/header-add-button.tsx`
+
+**Purpose:** Ensures consistent sizing, styling, and behavior for all "Add" buttons across the app.
+
+```tsx
+import { HeaderAddButton } from '@/components/shared/header-add-button';
+
+// Basic usage
+<SiteHeader title="Achievements">
+  <HeaderAddButton
+    label="Add Achievement"
+    onClick={handleOpenDialog}
+  />
+</SiteHeader>
+
+// With loading state
+<SiteHeader title="Workstreams">
+  <HeaderAddButton
+    label="Add Workstream"
+    onClick={handleAddWorkstream}
+    isLoading={isLoadingAchievements}
+  />
+</SiteHeader>
+```
+
+**Props:**
+- `label` (required): Button text (e.g., "Add Achievement", "Add Workstream")
+- `onClick` (required): Click handler function
+- `isLoading` (optional): Shows spinner when true
+- `disabled` (optional): Disables the button
+- `title` (optional): Tooltip text (defaults to label)
+
+**Features:**
+- Consistent 36px height (default Button size)
+- Plus icon with loading spinner support
+- Label hidden on mobile (< lg), visible on desktop
+- Works correctly in both light and dark modes
+
+**Label Convention:** Use "Add [singular noun]" pattern:
+- ✅ "Add Achievement", "Add Workstream", "Add Company", "Add Review"
+- ❌ "Quick Add", "New Review", "Create Achievement"
+
 ## Stat Component Pattern
 
 The `Stat` component provides a reusable card format for displaying statistical information with consistent styling.
@@ -2938,12 +2984,385 @@ To add a new tour:
 
 ---
 
+## CollapsibleSection Component Pattern
+
+**Purpose:** Create expandable/collapsible content sections with animated chevron icons, commonly used for form sections, configuration panels, and content organization.
+
+**Location:** `apps/web/components/performance-review/collapsible-section.tsx`
+
+**Component Props:**
+
+```typescript
+interface CollapsibleSectionProps {
+  title: string;
+  subtitle?: string;
+  defaultOpen?: boolean;  // Defaults to true
+  children: React.ReactNode;
+}
+```
+
+**Implementation:**
+
+```tsx
+'use client';
+
+import { useState } from 'react';
+import { IconChevronDown } from '@tabler/icons-react';
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
+import {
+  Collapsible,
+  CollapsibleTrigger,
+  CollapsibleContent,
+} from '@/components/ui/collapsible';
+import { cn } from '@/lib/utils';
+
+export function CollapsibleSection({
+  title,
+  subtitle,
+  defaultOpen = true,
+  children,
+}: CollapsibleSectionProps) {
+  const [isOpen, setIsOpen] = useState(defaultOpen);
+
+  return (
+    <Card>
+      <Collapsible open={isOpen} onOpenChange={setIsOpen}>
+        <CardHeader className="pb-0">
+          <CollapsibleTrigger className="flex w-full items-center justify-between text-left">
+            <div className="flex flex-col gap-1">
+              <CardTitle>{title}</CardTitle>
+              {subtitle && (
+                <p className="text-sm text-muted-foreground">{subtitle}</p>
+              )}
+            </div>
+            <IconChevronDown
+              className={cn(
+                'size-5 text-muted-foreground transition-transform duration-200',
+                isOpen && 'rotate-180',
+              )}
+              aria-hidden="true"
+            />
+          </CollapsibleTrigger>
+        </CardHeader>
+        <CollapsibleContent>
+          <CardContent className="pt-4">{children}</CardContent>
+        </CollapsibleContent>
+      </Collapsible>
+    </Card>
+  );
+}
+```
+
+**Key Features:**
+
+- **Animated chevron:** Rotates 180 degrees when open via `transition-transform duration-200`
+- **Card wrapper:** Uses shadcn/ui Card components for consistent styling
+- **Optional subtitle:** Displayed below title in muted text
+- **Controlled state:** Uses useState for open/closed state management
+- **Accessible:** Uses Radix Collapsible primitives with proper ARIA attributes
+
+**Usage:**
+
+```tsx
+<CollapsibleSection
+  title="Instructions"
+  subtitle="Customize generation settings"
+  defaultOpen={true}
+>
+  <Textarea placeholder="Enter instructions..." />
+</CollapsibleSection>
+```
+
+---
+
+## DateRangePicker Component Pattern
+
+**Purpose:** Two-date range picker with dual calendars for selecting start and end dates, commonly used for filtering data by time periods.
+
+**Location:** `apps/web/components/performance-review/date-range-picker.tsx`
+
+**Note:** This is a NEW component, not an extension of the existing single-date picker at `/components/ui/date-picker.tsx`.
+
+**Component Props:**
+
+```typescript
+interface DateRangePickerProps {
+  startDate: Date;
+  endDate: Date;
+  onStartDateChange: (date: Date) => void;
+  onEndDateChange: (date: Date) => void;
+}
+```
+
+**Implementation:**
+
+```tsx
+'use client';
+
+import { useState } from 'react';
+import { format } from 'date-fns';
+import { IconCalendar } from '@tabler/icons-react';
+import { Button } from '@/components/ui/button';
+import { Calendar } from '@/components/ui/calendar';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { cn } from '@/lib/utils';
+
+export function DateRangePicker({
+  startDate,
+  endDate,
+  onStartDateChange,
+  onEndDateChange,
+}: DateRangePickerProps) {
+  const [isOpen, setIsOpen] = useState(false);
+  const [selectingEnd, setSelectingEnd] = useState(false);
+
+  const startYear = startDate.getFullYear();
+  const endYear = endDate.getFullYear();
+
+  // Format the display text based on whether dates are in the same year
+  const formatDateRange = () => {
+    if (startYear === endYear) {
+      return `${format(startDate, 'MMM d')} - ${format(endDate, 'MMM d, yyyy')}`;
+    }
+    return `${format(startDate, 'MMM d, yyyy')} - ${format(endDate, 'MMM d, yyyy')}`;
+  };
+
+  const handleStartDateSelect = (date: Date | undefined) => {
+    if (date) {
+      onStartDateChange(date);
+      setSelectingEnd(true);  // Move focus to end date calendar
+    }
+  };
+
+  const handleEndDateSelect = (date: Date | undefined) => {
+    if (date) {
+      onEndDateChange(date);
+      setIsOpen(false);       // Close popover after end date selection
+      setSelectingEnd(false);
+    }
+  };
+
+  return (
+    <Popover open={isOpen} onOpenChange={setIsOpen}>
+      <PopoverTrigger asChild>
+        <Button variant="outline" className="justify-start text-left font-normal">
+          <IconCalendar className="mr-2 size-4" />
+          {formatDateRange()}
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent className="w-auto p-0" align="start">
+        <div className="flex flex-col gap-4 p-4 sm:flex-row">
+          {/* Start Date Calendar */}
+          <div className="flex flex-col gap-2">
+            <p className={cn('text-sm font-medium', !selectingEnd && 'text-primary')}>
+              Start Date
+            </p>
+            <Calendar
+              mode="single"
+              selected={startDate}
+              onSelect={handleStartDateSelect}
+              defaultMonth={startDate}
+              disabled={(date) => date > endDate}
+            />
+          </div>
+          {/* End Date Calendar */}
+          <div className="flex flex-col gap-2">
+            <p className={cn('text-sm font-medium', selectingEnd && 'text-primary')}>
+              End Date
+            </p>
+            <Calendar
+              mode="single"
+              selected={endDate}
+              onSelect={handleEndDateSelect}
+              defaultMonth={endDate}
+              disabled={(date) => date < startDate}
+            />
+          </div>
+        </div>
+      </PopoverContent>
+    </Popover>
+  );
+}
+```
+
+**Key Features:**
+
+- **Dual calendars:** Side-by-side on desktop, stacked on mobile (responsive)
+- **Visual focus indicator:** Active calendar label highlighted with `text-primary`
+- **Smart date format:** Shows year only once if both dates in same year
+- **Auto-close:** Popover closes after end date selection
+- **Date constraints:** Start date cannot be after end date, end date cannot be before start date
+- **Sequential selection:** After selecting start date, focus moves to end date calendar
+
+**Usage:**
+
+```tsx
+const [startDate, setStartDate] = useState(new Date());
+const [endDate, setEndDate] = useState(new Date());
+
+<DateRangePicker
+  startDate={startDate}
+  endDate={endDate}
+  onStartDateChange={setStartDate}
+  onEndDateChange={setEndDate}
+/>
+```
+
+---
+
+## Inline-Editable Name Pattern
+
+**Purpose:** Display a name/title that appears as text but becomes editable when focused, using a styled Input that blends with the surrounding content until interaction.
+
+**Implementation:**
+
+```tsx
+<Input
+  value={name}
+  onChange={(e) => setName(e.target.value)}
+  className="h-auto border-transparent bg-transparent px-2 py-1 text-lg font-semibold hover:border-input focus:border-input"
+  aria-label="Performance review name"
+/>
+```
+
+**Key Styling Classes:**
+
+- `border-transparent` - Hide border by default
+- `bg-transparent` - Transparent background to blend with card/header
+- `hover:border-input` - Show border on hover to indicate editability
+- `focus:border-input` - Show border when focused for editing
+- `h-auto` - Remove fixed height to allow text to determine size
+- `text-lg font-semibold` - Match heading typography
+
+**Usage Context:**
+
+This pattern is ideal for:
+- Page headers where the title is user-editable
+- Card titles that can be renamed inline
+- Any text that should appear as a label but allow direct editing
+
+**Example in Header:**
+
+```tsx
+<header className="sticky top-0 z-10 border-b bg-background">
+  <div className="flex items-center gap-2 p-4">
+    <Input
+      value={name}
+      onChange={(e) => setName(e.target.value)}
+      className="h-auto border-transparent bg-transparent px-2 py-1 text-lg font-semibold hover:border-input focus:border-input"
+      aria-label="Document name"
+    />
+    <Button variant="ghost" size="icon">
+      <IconTrash className="size-4" />
+    </Button>
+  </div>
+</header>
+```
+
+---
+
+## localStorage Persistence Pattern for User Preferences
+
+**Purpose:** Persist user preference checkboxes (like "save for future use") along with associated data to localStorage, with proper initialization and update behavior.
+
+**localStorage Keys Convention:**
+
+```typescript
+const CONTENT_KEY = 'feature-name-content';           // The actual data
+const SAVE_PREFERENCE_KEY = 'feature-name-save-preference';  // Boolean flag
+```
+
+**Example:** Performance Review Instructions
+
+```typescript
+const INSTRUCTIONS_KEY = 'performance-review-instructions';
+const SAVE_INSTRUCTIONS_KEY = 'performance-review-save-instructions';
+```
+
+**Implementation Pattern:**
+
+```tsx
+'use client';
+
+import { useState, useEffect } from 'react';
+
+const INSTRUCTIONS_KEY = 'performance-review-instructions';
+const SAVE_INSTRUCTIONS_KEY = 'performance-review-save-instructions';
+
+export function MyComponent() {
+  const [instructions, setInstructions] = useState('');
+  const [saveInstructions, setSaveInstructions] = useState(false);
+
+  // On mount - restore saved preference and content if available
+  useEffect(() => {
+    const savedPreference = localStorage.getItem(SAVE_INSTRUCTIONS_KEY);
+    if (savedPreference === 'true') {
+      setSaveInstructions(true);
+      const savedContent = localStorage.getItem(INSTRUCTIONS_KEY);
+      if (savedContent) {
+        setInstructions(savedContent);
+      }
+    }
+  }, []);
+
+  // On content/preference change - update localStorage based on save preference
+  useEffect(() => {
+    if (saveInstructions) {
+      // Save preference is true: persist both content and preference flag
+      localStorage.setItem(INSTRUCTIONS_KEY, instructions);
+      localStorage.setItem(SAVE_INSTRUCTIONS_KEY, 'true');
+    } else {
+      // Save preference is false: only update preference flag
+      // Note: Unchecking does NOT clear stored content (user may re-enable)
+      localStorage.setItem(SAVE_INSTRUCTIONS_KEY, 'false');
+    }
+  }, [instructions, saveInstructions]);
+
+  return (
+    <div>
+      <Textarea
+        value={instructions}
+        onChange={(e) => setInstructions(e.target.value)}
+        placeholder="Enter instructions..."
+      />
+      <div className="flex items-center gap-2">
+        <Checkbox
+          id="save-instructions"
+          checked={saveInstructions}
+          onCheckedChange={(checked) => setSaveInstructions(checked === true)}
+        />
+        <Label htmlFor="save-instructions">
+          Save these instructions for future use
+        </Label>
+      </div>
+    </div>
+  );
+}
+```
+
+**Behavior Notes:**
+
+- **Checkbox checked:** Both content and preference flag saved to localStorage
+- **Checkbox unchecked:** Preference flag updated but stored content retained (allows re-enabling)
+- **On page refresh with preference unchecked:** Textarea shows empty (not restored from localStorage)
+- **On page refresh with preference checked:** Content restored from localStorage
+
+**Key Principles:**
+
+1. **Two separate keys:** One for the actual data, one for the save preference
+2. **Non-destructive unchecking:** Unchecking the save preference does NOT delete stored data
+3. **Conditional restoration:** Only restore content if preference is explicitly 'true'
+4. **String comparison:** localStorage values are strings, compare with `=== 'true'`
+5. **Effect dependencies:** Include both content and preference in the save effect's dependency array
+
+---
+
 ## SEO Patterns (Marketing Site)
 
 For comprehensive SEO documentation including metadata patterns, schema.org structured data, sitemap configuration, image optimization, and testing procedures, see **[seo.md](./seo.md)**.
 
 ---
 
-**Last Updated:** 2025-10-29 (AppContent wrapper pattern, responsive spacing conventions, Stat component, responsive button patterns)
+**Last Updated:** 2026-01-06 (CollapsibleSection pattern, DateRangePicker pattern, inline-editable name pattern, localStorage persistence pattern)
 **Next.js:** 16.0.0
 **React:** 19.2.0

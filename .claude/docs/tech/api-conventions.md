@@ -23,6 +23,8 @@ BragDoc follows RESTful conventions for all API routes, with consistent patterns
 /api/user                 GET (profile), PUT (update preferences)
 /api/counts               GET (dashboard statistics)
 /api/cli/token            POST (generate CLI JWT token)
+/api/performance-reviews            GET (list), POST (create)
+/api/performance-reviews/[id]       GET (read), PUT (update), DELETE (delete)
 ```
 
 ## Authentication Pattern
@@ -741,5 +743,120 @@ export async function captureServerEvent(
 
 ---
 
-**Last Updated:** 2025-10-24 (PostHog analytics tracking pattern)
+## Performance Review Chat Endpoint
+
+### POST /api/performance-review/chat
+
+Streaming chat endpoint for refining performance review documents. Uses `useChat` hook on the frontend with AI SDK v5 patterns.
+
+**Authentication:** Required (supports both session and JWT)
+
+**Request Format:**
+
+```typescript
+{
+  messages: UIMessage[];  // AI SDK v5 UIMessage format with parts array
+  generationInstructions?: string;  // Optional user instructions for document generation
+}
+```
+
+**UIMessage Structure:**
+
+```typescript
+interface UIMessage {
+  id: string;
+  role: 'user' | 'assistant';
+  parts: Array<{
+    type: 'text';
+    text: string;
+  }>;
+}
+```
+
+**Response:** Streaming response using `toUIMessageStreamResponse()` compatible with `useChat` hook.
+
+**Error Responses:**
+
+- `401 Unauthorized` - User not authenticated
+- `400 Bad Request` - Messages array missing or empty
+- `500 Internal Server Error` - Server-side processing error
+
+**Example Usage (Frontend):**
+
+```typescript
+import { useChat } from '@ai-sdk/react';
+import { DefaultChatTransport } from 'ai';
+
+const { messages, sendMessage, status, error } = useChat({
+  transport: new DefaultChatTransport({
+    api: '/api/performance-review/chat',
+    body: {
+      generationInstructions: 'Focus on technical achievements',
+    },
+  }),
+});
+
+// Send message using UIMessage format
+sendMessage({
+  role: 'user',
+  parts: [{ type: 'text', text: 'Help me improve the impact section' }],
+});
+```
+
+---
+
+### POST /api/performance-review/generate
+
+Streaming endpoint for generating performance review documents from achievements and workstreams.
+
+**Authentication:** Required (supports both session and JWT)
+
+**Request Format:**
+
+```typescript
+{
+  performanceReviewId: string;  // UUID
+  generationInstructions?: string;  // Optional custom instructions
+}
+```
+
+**Response:** Streaming text response using `toTextStreamResponse()`.
+
+**Side Effects:**
+- Creates Document record with `type: 'performance_review'`
+- Updates PerformanceReview.documentId to link records
+
+**Error Responses:**
+
+- `401 Unauthorized` - User not authenticated
+- `400 Bad Request` - Invalid or missing performanceReviewId
+- `404 Not Found` - Performance review not found or doesn't belong to user
+- `500 Internal Server Error` - Generation failure
+
+**Example Usage (Frontend):**
+
+```typescript
+const response = await fetch('/api/performance-review/generate', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({
+    performanceReviewId: 'uuid-here',
+    generationInstructions: 'Focus on technical achievements',
+  }),
+});
+
+const reader = response.body.getReader();
+const decoder = new TextDecoder();
+
+while (true) {
+  const { done, value } = await reader.read();
+  if (done) break;
+  const chunk = decoder.decode(value, { stream: true });
+  // Append chunk to document content
+}
+```
+
+---
+
+**Last Updated:** 2026-01-08 (Performance Review Generate endpoint)
 **API Version:** v1 (implicit)

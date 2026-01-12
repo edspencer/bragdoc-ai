@@ -1,11 +1,10 @@
 'use client';
 
 import * as React from 'react';
-import { IconPlus } from '@tabler/icons-react';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 
-import { Button } from '@/components/ui/button';
+import { HeaderAddButton } from '@/components/shared/header-add-button';
 import { WeeklyImpactChart } from '@/components/weekly-impact-chart';
 import { AchievementsTable } from '@/components/achievements-table';
 import { AchievementDialog } from '@/components/achievements/AchievementDialog';
@@ -179,10 +178,10 @@ export default function AchievementsPage() {
     <AppPage>
       <SidebarInset>
         <SiteHeader title="Achievements">
-          <Button onClick={handleOpenQuickAdd}>
-            <IconPlus className="size-4" />
-            <span className="hidden lg:inline">Quick Add</span>
-          </Button>
+          <HeaderAddButton
+            label="Add Achievement"
+            onClick={handleOpenQuickAdd}
+          />
         </SiteHeader>
         <AppContent>
           {/* Achievements Table */}

@@ -2,9 +2,9 @@
 
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Settings2, Loader2 } from 'lucide-react';
-import { IconPlus } from '@tabler/icons-react';
+import { Settings2 } from 'lucide-react';
 import { toast } from 'sonner';
+import { HeaderAddButton } from '@/components/shared/header-add-button';
 import type { Workstream } from '@bragdoc/database';
 import {
   useWorkstreamsActions,
@@ -139,20 +139,12 @@ export function WorkstreamsHeader({
   return (
     <div className="flex items-center gap-4">
       {filterDisplay}
-      <Button
-        variant="outline"
-        size="sm"
+      <HeaderAddButton
+        label="Add Workstream"
         onClick={handleAddWorkstream}
+        isLoading={isLoadingAchievements}
         disabled={isLoadingAchievements}
-        title="Add new workstream"
-      >
-        {isLoadingAchievements ? (
-          <Loader2 className="h-4 w-4 animate-spin" />
-        ) : (
-          <IconPlus className="h-4 w-4" />
-        )}
-        <span className="hidden lg:inline ml-2">Add Workstream</span>
-      </Button>
+      />
       <Button
         variant="ghost"
         size="sm"
