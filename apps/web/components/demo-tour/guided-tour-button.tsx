@@ -9,18 +9,22 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip';
 import { useTourContext } from './demo-tour-provider';
-import { DASHBOARD_TOUR_CONFIG } from '@/lib/tours';
 
-interface RestartTourButtonProps {
-  tourId?: string;
+interface GuidedTourButtonProps {
+  tourId: string;
+  disabled?: boolean;
 }
 
-export function RestartTourButton({
-  tourId = DASHBOARD_TOUR_CONFIG.id,
-}: RestartTourButtonProps) {
+export function GuidedTourButton({
+  tourId,
+  disabled = false,
+}: GuidedTourButtonProps) {
   const { startTour } = useTourContext();
 
-  // Hide on mobile - tour doesn't work well on small screens
+  if (disabled) {
+    return null;
+  }
+
   return (
     <TooltipProvider>
       <Tooltip>
@@ -30,13 +34,13 @@ export function RestartTourButton({
             size="sm"
             onClick={() => startTour(tourId)}
             className="hidden h-8 w-8 p-0 md:flex"
-            aria-label="Restart guided tour"
+            aria-label="Start guided tour"
           >
             <HelpCircle className="size-4" />
           </Button>
         </TooltipTrigger>
         <TooltipContent>
-          <p>Restart guided tour</p>
+          <p>Start guided tour</p>
         </TooltipContent>
       </Tooltip>
     </TooltipProvider>

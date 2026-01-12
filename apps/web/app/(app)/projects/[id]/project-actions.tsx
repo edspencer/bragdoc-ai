@@ -29,7 +29,12 @@ export function ProjectActions({
 }: ProjectActionsProps) {
   return (
     <div className="flex items-center gap-2">
-      <Button onClick={onEdit} size="sm" className="hidden lg:flex">
+      <Button
+        id="tour-edit-project"
+        onClick={onEdit}
+        size="sm"
+        className="hidden lg:flex"
+      >
         <IconEdit className="size-4" />
         Edit Project
       </Button>

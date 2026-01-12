@@ -320,7 +320,7 @@ export function WorkstreamsGanttChart({
   }
 
   return (
-    <Card>
+    <Card id="tour-workstreams-gantt">
       <CardHeader>
         <CardTitle>Workstream Timeline</CardTitle>
       </CardHeader>

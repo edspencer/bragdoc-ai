@@ -31,6 +31,8 @@ interface StatProps {
   className?: string;
   /** If true, adds hover effects for clickable stats */
   clickable?: boolean;
+  /** Optional id attribute for the card element (e.g., for guided tours) */
+  id?: string;
 }
 
 export function Stat({
@@ -41,9 +43,11 @@ export function Stat({
   footerDescription,
   className,
   clickable = false,
+  id,
 }: StatProps) {
   return (
     <Card
+      id={id}
       className={cn(
         '@container/card',
         'from-primary/5 to-card bg-linear-to-t shadow-xs',

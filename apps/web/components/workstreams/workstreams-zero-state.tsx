@@ -12,6 +12,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { TrendingUp, Loader2 } from 'lucide-react';
+import { PageZeroState } from '@/components/shared/page-zero-state';
 import { useState, useMemo, useEffect, useCallback } from 'react';
 import { useWorkstreamsActions } from '@/hooks/use-workstreams';
 import { useProjects } from '@/hooks/useProjects';
@@ -164,213 +165,205 @@ export function WorkstreamsZeroState({
   };
 
   return (
-    <div className="flex flex-1 flex-col items-center justify-center p-8">
-      <div className="max-w-2xl w-full space-y-6">
-        <div className="text-center">
-          <div className="mx-auto w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mb-4">
-            <TrendingUp className="h-6 w-6 text-primary" />
+    <PageZeroState
+      icon={<TrendingUp className="h-6 w-6 text-primary" />}
+      title="Discover Your Workstreams"
+    >
+      <p className="text-muted-foreground text-center">
+        Workstreams automatically group related achievements across projects,
+        helping you identify patterns and themes in your work.
+      </p>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Generation Options</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          {/* Time Range Selection */}
+          <div className="space-y-2">
+            <Label htmlFor="time-range">Time Range</Label>
+            <Select value={timePreset} onValueChange={setTimePreset}>
+              <SelectTrigger id="time-range" className="w-full">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {timePresets.map((preset) => (
+                  <SelectItem key={preset.value} value={preset.value}>
+                    {preset.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <p className="text-xs text-muted-foreground">
+              Only achievements within this time range will be used for
+              clustering
+            </p>
           </div>
-          <h1 className="text-3xl font-bold">Discover Your Workstreams</h1>
-          <p className="text-muted-foreground mt-2">
-            Workstreams automatically group related achievements across
-            projects, helping you identify patterns and themes in your work.
-          </p>
-        </div>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Generation Options</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            {/* Time Range Selection */}
-            <div className="space-y-2">
-              <Label htmlFor="time-range">Time Range</Label>
-              <Select value={timePreset} onValueChange={setTimePreset}>
-                <SelectTrigger id="time-range" className="w-full">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {timePresets.map((preset) => (
-                    <SelectItem key={preset.value} value={preset.value}>
-                      {preset.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <p className="text-xs text-muted-foreground">
-                Only achievements within this time range will be used for
-                clustering
-              </p>
+          {/* Project Selection */}
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <Label>Projects</Label>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleSelectAll}
+                className="h-auto py-1 px-2 text-xs"
+              >
+                {selectedProjectIds.length === projects.length
+                  ? 'Deselect all'
+                  : 'Select all'}
+              </Button>
             </div>
-
-            {/* Project Selection */}
-            <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <Label>Projects</Label>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={handleSelectAll}
-                  className="h-auto py-1 px-2 text-xs"
-                >
-                  {selectedProjectIds.length === projects.length
-                    ? 'Deselect all'
-                    : 'Select all'}
-                </Button>
+            {projectsLoading ? (
+              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                <Loader2 className="h-4 w-4 animate-spin" />
+                Loading projects...
               </div>
-              {projectsLoading ? (
-                <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                  Loading projects...
-                </div>
-              ) : projects.length === 0 ? (
-                <p className="text-sm text-muted-foreground">
-                  No projects found
-                </p>
-              ) : (
-                <div className="grid grid-cols-2 gap-2 max-h-48 overflow-y-auto border rounded-md p-3">
-                  {sortedProjects.map((project) => (
-                    <div
-                      key={project.id}
-                      className="flex items-center gap-2 cursor-pointer hover:bg-muted/50 rounded px-1 py-0.5"
-                      onClick={() =>
+            ) : projects.length === 0 ? (
+              <p className="text-sm text-muted-foreground">No projects found</p>
+            ) : (
+              <div className="grid grid-cols-2 gap-2 max-h-48 overflow-y-auto border rounded-md p-3">
+                {sortedProjects.map((project) => (
+                  <div
+                    key={project.id}
+                    className="flex items-center gap-2 cursor-pointer hover:bg-muted/50 rounded px-1 py-0.5"
+                    onClick={() =>
+                      handleProjectToggle(
+                        project.id,
+                        !selectedProjectIds.includes(project.id),
+                      )
+                    }
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
                         handleProjectToggle(
                           project.id,
                           !selectedProjectIds.includes(project.id),
-                        )
+                        );
                       }
-                      onKeyDown={(e) => {
-                        if (e.key === 'Enter' || e.key === ' ') {
-                          e.preventDefault();
-                          handleProjectToggle(
-                            project.id,
-                            !selectedProjectIds.includes(project.id),
-                          );
-                        }
-                      }}
-                      tabIndex={0}
-                      role="checkbox"
-                      aria-checked={selectedProjectIds.includes(project.id)}
-                    >
-                      <Checkbox
-                        checked={selectedProjectIds.includes(project.id)}
-                        onCheckedChange={(checked) =>
-                          handleProjectToggle(project.id, checked === true)
-                        }
-                        tabIndex={-1}
-                      />
-                      <span className="text-sm truncate" title={project.name}>
-                        {project.name}
-                      </span>
-                    </div>
-                  ))}
-                </div>
+                    }}
+                    tabIndex={0}
+                    role="checkbox"
+                    aria-checked={selectedProjectIds.includes(project.id)}
+                  >
+                    <Checkbox
+                      checked={selectedProjectIds.includes(project.id)}
+                      onCheckedChange={(checked) =>
+                        handleProjectToggle(project.id, checked === true)
+                      }
+                      tabIndex={-1}
+                    />
+                    <span className="text-sm truncate" title={project.name}>
+                      {project.name}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            )}
+            <p className="text-xs text-muted-foreground">
+              {selectedProjectIds.length === 0 ||
+              selectedProjectIds.length === projects.length
+                ? 'All projects will be included'
+                : `${selectedProjectIds.length} project${selectedProjectIds.length === 1 ? '' : 's'} selected`}
+            </p>
+          </div>
+        </CardContent>
+      </Card>
+
+      {canGenerate ? (
+        <div className="text-center space-y-4">
+          {noWorkstreamsFound && (
+            <Card className="bg-yellow-50 border-yellow-200 dark:bg-yellow-950 dark:border-yellow-800">
+              <CardContent className="pt-6">
+                <p className="font-semibold text-yellow-900 dark:text-yellow-100">
+                  No clear patterns found
+                </p>
+                <p className="text-sm text-yellow-800 dark:text-yellow-200 mt-2">
+                  Your achievements are quite diverse! Our AI couldn't identify
+                  distinct thematic groups. This might mean:
+                </p>
+                <ul className="text-sm text-yellow-800 dark:text-yellow-200 mt-2 space-y-1 text-left list-disc list-inside">
+                  <li>
+                    You work across many different areas (which is great!)
+                  </li>
+                  <li>Your achievements span different technical domains</li>
+                  <li>
+                    More achievements might help reveal patterns over time
+                  </li>
+                </ul>
+              </CardContent>
+            </Card>
+          )}
+          <div className="space-y-2">
+            <p className="text-sm text-muted-foreground">
+              {isLoadingCount ? (
+                <span className="inline-flex items-center gap-1">
+                  <Loader2 className="h-3 w-3 animate-spin" />
+                  Counting achievements...
+                </span>
+              ) : (
+                <>
+                  You have{' '}
+                  <span className="font-semibold">{achievementCount}</span>{' '}
+                  achievements ready to analyze
+                </>
               )}
-              <p className="text-xs text-muted-foreground">
-                {selectedProjectIds.length === 0 ||
-                selectedProjectIds.length === projects.length
-                  ? 'All projects will be included'
-                  : `${selectedProjectIds.length} project${selectedProjectIds.length === 1 ? '' : 's'} selected`}
-              </p>
-            </div>
+            </p>
+            <p className="text-xs text-muted-foreground">
+              We'll analyze your achievements using AI to identify patterns and
+              themes
+            </p>
+            <Button
+              size="lg"
+              onClick={handleGenerate}
+              disabled={isGenerating || isLoadingCount}
+              className="mt-4"
+            >
+              {isGenerating ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  {generationStatus || 'Analyzing achievements...'}
+                </>
+              ) : noWorkstreamsFound ? (
+                'Try Again'
+              ) : (
+                'Generate Workstreams'
+              )}
+            </Button>
+          </div>
+        </div>
+      ) : (
+        <Card className="bg-muted">
+          <CardContent className="pt-6 text-center">
+            <p className="font-semibold">
+              You need at least 20 achievements to generate workstreams
+            </p>
+            <p className="text-sm text-muted-foreground mt-2">
+              {isLoadingCount ? (
+                <span className="inline-flex items-center justify-center gap-1">
+                  <Loader2 className="h-3 w-3 animate-spin" />
+                  Counting...
+                </span>
+              ) : (
+                <>
+                  Current:{' '}
+                  <span className="font-semibold">{achievementCount}</span> / 20
+                </>
+              )}
+            </p>
+            <Button
+              variant="outline"
+              className="mt-4"
+              onClick={() => {
+                window.location.href = '/achievements';
+              }}
+            >
+              Add More Achievements
+            </Button>
           </CardContent>
         </Card>
-
-        {canGenerate ? (
-          <div className="text-center space-y-4">
-            {noWorkstreamsFound && (
-              <Card className="bg-yellow-50 border-yellow-200 dark:bg-yellow-950 dark:border-yellow-800">
-                <CardContent className="pt-6">
-                  <p className="font-semibold text-yellow-900 dark:text-yellow-100">
-                    No clear patterns found
-                  </p>
-                  <p className="text-sm text-yellow-800 dark:text-yellow-200 mt-2">
-                    Your achievements are quite diverse! Our AI couldn't
-                    identify distinct thematic groups. This might mean:
-                  </p>
-                  <ul className="text-sm text-yellow-800 dark:text-yellow-200 mt-2 space-y-1 text-left list-disc list-inside">
-                    <li>
-                      You work across many different areas (which is great!)
-                    </li>
-                    <li>Your achievements span different technical domains</li>
-                    <li>
-                      More achievements might help reveal patterns over time
-                    </li>
-                  </ul>
-                </CardContent>
-              </Card>
-            )}
-            <div className="space-y-2">
-              <p className="text-sm text-muted-foreground">
-                {isLoadingCount ? (
-                  <span className="inline-flex items-center gap-1">
-                    <Loader2 className="h-3 w-3 animate-spin" />
-                    Counting achievements...
-                  </span>
-                ) : (
-                  <>
-                    You have{' '}
-                    <span className="font-semibold">{achievementCount}</span>{' '}
-                    achievements ready to analyze
-                  </>
-                )}
-              </p>
-              <p className="text-xs text-muted-foreground">
-                We'll analyze your achievements using AI to identify patterns
-                and themes
-              </p>
-              <Button
-                size="lg"
-                onClick={handleGenerate}
-                disabled={isGenerating || isLoadingCount}
-                className="mt-4"
-              >
-                {isGenerating ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    {generationStatus || 'Analyzing achievements...'}
-                  </>
-                ) : noWorkstreamsFound ? (
-                  'Try Again'
-                ) : (
-                  'Generate Workstreams'
-                )}
-              </Button>
-            </div>
-          </div>
-        ) : (
-          <Card className="bg-muted">
-            <CardContent className="pt-6 text-center">
-              <p className="font-semibold">
-                You need at least 20 achievements to generate workstreams
-              </p>
-              <p className="text-sm text-muted-foreground mt-2">
-                {isLoadingCount ? (
-                  <span className="inline-flex items-center justify-center gap-1">
-                    <Loader2 className="h-3 w-3 animate-spin" />
-                    Counting...
-                  </span>
-                ) : (
-                  <>
-                    Current:{' '}
-                    <span className="font-semibold">{achievementCount}</span> /
-                    20
-                  </>
-                )}
-              </p>
-              <Button
-                variant="outline"
-                className="mt-4"
-                onClick={() => {
-                  window.location.href = '/achievements';
-                }}
-              >
-                Add More Achievements
-              </Button>
-            </CardContent>
-          </Card>
-        )}
-      </div>
-    </div>
+      )}
+    </PageZeroState>
   );
 }

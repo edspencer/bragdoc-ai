@@ -6,6 +6,7 @@ import { SiteHeader } from '@/components/site-header';
 import { AppContent } from '@/components/shared/app-content';
 import { ProjectDetailsContent } from '@/components/project-details-content';
 import { ProjectActions } from './project-actions';
+import { GuidedTourButton } from '@/components/demo-tour';
 import { useDeleteProject } from '@/hooks/useProjects';
 import type { ProjectWithCompany } from '@/database/projects/queries';
 
@@ -16,6 +17,7 @@ interface ProjectDetailsWrapperProps {
 export function ProjectDetailsWrapper({ project }: ProjectDetailsWrapperProps) {
   const [editDialogOpen, setEditDialogOpen] = React.useState(false);
   const [isDeleting, setIsDeleting] = React.useState(false);
+  const [hasAchievements, setHasAchievements] = React.useState(true);
   const router = useRouter();
   const deleteProject = useDeleteProject();
 
@@ -44,6 +46,10 @@ export function ProjectDetailsWrapper({ project }: ProjectDetailsWrapperProps) {
           onDelete={handleDeleteProject}
           isDeleting={isDeleting}
         />
+        <GuidedTourButton
+          tourId="tour-project-details"
+          disabled={!hasAchievements}
+        />
       </SiteHeader>
       <AppContent>
         <ProjectDetailsContent
@@ -51,6 +57,7 @@ export function ProjectDetailsWrapper({ project }: ProjectDetailsWrapperProps) {
           editDialogOpen={editDialogOpen}
           onEditDialogChange={setEditDialogOpen}
           isDeleting={isDeleting}
+          onHasAchievementsChange={setHasAchievements}
         />
       </AppContent>
     </>

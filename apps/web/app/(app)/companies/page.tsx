@@ -7,6 +7,7 @@ import type { Company } from '@/database/schema';
 import { Button } from 'components/ui/button';
 import { CompaniesTable } from '@/components/companies-table';
 import { CompaniesList } from '@/components/companies/companies-list';
+import { CompaniesZeroState } from '@/components/companies/companies-zero-state';
 import { SidebarInset } from '@/components/ui/sidebar';
 import { SiteHeader } from '@/components/site-header';
 import { CompanyDialog } from '@/components/company-dialog';
@@ -82,25 +83,31 @@ export default function CompaniesPage() {
           </Button>
         </SiteHeader>
         <AppContent>
-          {/* Desktop view: table layout */}
-          <div className="hidden lg:block">
-            <CompaniesTable
-              data={companies || []}
-              onEdit={handleEditCompany}
-              onDelete={handleDeleteCompany}
-              isLoading={isLoading}
-            />
-          </div>
+          {!isLoading && companies?.length === 0 ? (
+            <CompaniesZeroState onAddClick={handleAddCompany} />
+          ) : (
+            <>
+              {/* Desktop view: table layout */}
+              <div className="hidden lg:block">
+                <CompaniesTable
+                  data={companies || []}
+                  onEdit={handleEditCompany}
+                  onDelete={handleDeleteCompany}
+                  isLoading={isLoading}
+                />
+              </div>
 
-          {/* Mobile view: list layout */}
-          <div className="block lg:hidden">
-            <CompaniesList
-              companies={companies || []}
-              onEdit={handleEditCompany}
-              onDelete={handleDeleteCompany}
-              isLoading={isLoading}
-            />
-          </div>
+              {/* Mobile view: list layout */}
+              <div className="block lg:hidden">
+                <CompaniesList
+                  companies={companies || []}
+                  onEdit={handleEditCompany}
+                  onDelete={handleDeleteCompany}
+                  isLoading={isLoading}
+                />
+              </div>
+            </>
+          )}
         </AppContent>
       </SidebarInset>
       <CompanyDialog

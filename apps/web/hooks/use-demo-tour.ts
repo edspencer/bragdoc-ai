@@ -27,7 +27,7 @@ interface UseDemoTourReturn {
 
 /**
  * Manages tour state with localStorage persistence.
- * Tour auto-starts for users who haven't completed it.
+ * Tours must be manually started by the user via the GuidedTourButton.
  *
  * @returns Tour state and control functions
  */
@@ -42,15 +42,6 @@ export function useDemoTour(): UseDemoTourReturn {
     try {
       const completed = localStorage.getItem(TOUR_STORAGE_KEY) === 'true';
       setIsTourCompleted(completed);
-
-      // Auto-start tour if not completed
-      if (!completed) {
-        // Small delay to ensure dashboard elements are rendered
-        const timer = setTimeout(() => {
-          setShowTour(true);
-        }, 500);
-        return () => clearTimeout(timer);
-      }
     } catch (error) {
       console.warn('Failed to read tour completion status:', error);
     }

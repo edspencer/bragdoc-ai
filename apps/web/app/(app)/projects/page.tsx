@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ProjectsTable } from '@/components/projects-table';
 import { ProjectsList } from '@/components/projects/projects-list';
+import { ProjectsZeroState } from '@/components/projects/projects-zero-state';
 import { ProjectDialog } from '@/components/project-dialog';
 import { SidebarInset } from '@/components/ui/sidebar';
 import { SiteHeader } from '@/components/site-header';
@@ -77,37 +78,43 @@ export default function ProjectsPage() {
           </Button>
         </SiteHeader>
         <AppContent>
-          {/* Search Input - Shared between table and list views */}
-          <div className="flex items-center gap-2 mb-4">
-            <Input
-              placeholder="Search projects..."
-              value={globalFilter}
-              onChange={(e) => setGlobalFilter(e.target.value)}
-              className="max-w-sm"
-            />
-          </div>
+          {!projectsLoading && projects?.length === 0 ? (
+            <ProjectsZeroState onAddClick={handleAddProject} />
+          ) : (
+            <>
+              {/* Search Input - Shared between table and list views */}
+              <div className="flex items-center gap-2 mb-4">
+                <Input
+                  placeholder="Search projects..."
+                  value={globalFilter}
+                  onChange={(e) => setGlobalFilter(e.target.value)}
+                  className="max-w-sm"
+                />
+              </div>
 
-          {/* Desktop View - Table (lg and above) */}
-          <div className="hidden lg:block">
-            <ProjectsTable
-              data={projects}
-              onEdit={handleEditProject}
-              onDelete={handleDeleteProject}
-              isLoading={projectsLoading}
-              globalFilter={globalFilter}
-            />
-          </div>
+              {/* Desktop View - Table (lg and above) */}
+              <div className="hidden lg:block">
+                <ProjectsTable
+                  data={projects}
+                  onEdit={handleEditProject}
+                  onDelete={handleDeleteProject}
+                  isLoading={projectsLoading}
+                  globalFilter={globalFilter}
+                />
+              </div>
 
-          {/* Mobile View - List (below lg) */}
-          <div className="block lg:hidden">
-            <ProjectsList
-              projects={projects}
-              onEdit={handleEditProject}
-              onDelete={handleDeleteProject}
-              globalFilter={globalFilter}
-              isLoading={projectsLoading}
-            />
-          </div>
+              {/* Mobile View - List (below lg) */}
+              <div className="block lg:hidden">
+                <ProjectsList
+                  projects={projects}
+                  onEdit={handleEditProject}
+                  onDelete={handleDeleteProject}
+                  globalFilter={globalFilter}
+                  isLoading={projectsLoading}
+                />
+              </div>
+            </>
+          )}
         </AppContent>
       </SidebarInset>
 

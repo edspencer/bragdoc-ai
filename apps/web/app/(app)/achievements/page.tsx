@@ -8,6 +8,7 @@ import { HeaderAddButton } from '@/components/shared/header-add-button';
 import { WeeklyImpactChart } from '@/components/weekly-impact-chart';
 import { AchievementsTable } from '@/components/achievements-table';
 import { AchievementDialog } from '@/components/achievements/AchievementDialog';
+import { AchievementsZeroState } from '@/components/achievements/achievements-zero-state';
 import { DeleteAchievementDialog } from '@/components/achievements/delete-achievement-dialog';
 import { GenerateDocumentDialog } from '@/components/generate-document-dialog';
 import { QuickAddAchievementDialog } from '@/components/quick-add-achievement-dialog';
@@ -23,6 +24,7 @@ import type {
 } from '@/lib/types/achievement';
 import { AppPage } from '@/components/shared/app-page';
 import { AppContent } from '@/components/shared/app-content';
+import { GuidedTourButton } from '@/components/demo-tour';
 
 export default function AchievementsPage() {
   // Data fetching hooks
@@ -30,7 +32,11 @@ export default function AchievementsPage() {
   const { companies } = useCompanies();
   const { projects } = useProjects();
   const { createAchievement, updateAchievement } = useAchievementMutations();
-  const { achievements, mutate: mutateAchievements } = useAchievements({
+  const {
+    achievements,
+    mutate: mutateAchievements,
+    isLoading: achievementsLoading,
+  } = useAchievements({
     limit: 1000,
   });
 
@@ -179,32 +185,47 @@ export default function AchievementsPage() {
       <SidebarInset>
         <SiteHeader title="Achievements">
           <HeaderAddButton
+            id="tour-add-achievement"
             label="Add Achievement"
             onClick={handleOpenQuickAdd}
           />
+          <GuidedTourButton
+            tourId="tour-achievements"
+            disabled={achievements.length === 0}
+          />
         </SiteHeader>
         <AppContent>
-          {/* Achievements Table */}
-          <AchievementsTable
-            achievements={achievements}
-            projects={(projects || []).map((p) => ({
-              id: p.id,
-              name: p.name,
-              companyName: p.company?.name || null,
-            }))}
-            companies={(companies || []).map((c) => ({
-              id: c.id,
-              name: c.name,
-            }))}
-            onImpactChange={handleImpactChange}
-            onSelectionChange={handleSelectionChange}
-            selectedAchievements={selectedAchievements}
-            onGenerateDocument={handleGenerateDocument}
-            onEdit={handleEditClick}
-            onDelete={handleDeleteClick}
-          />
+          {!achievementsLoading && achievements.length === 0 ? (
+            <AchievementsZeroState onAddClick={handleOpenQuickAdd} />
+          ) : (
+            <>
+              {/* Achievements Table */}
+              <AchievementsTable
+                achievements={achievements}
+                projects={(projects || []).map((p) => ({
+                  id: p.id,
+                  name: p.name,
+                  companyName: p.company?.name || null,
+                }))}
+                companies={(companies || []).map((c) => ({
+                  id: c.id,
+                  name: c.name,
+                }))}
+                onImpactChange={handleImpactChange}
+                onSelectionChange={handleSelectionChange}
+                selectedAchievements={selectedAchievements}
+                onGenerateDocument={handleGenerateDocument}
+                onEdit={handleEditClick}
+                onDelete={handleDeleteClick}
+              />
 
-          <WeeklyImpactChart achievements={achievements} />
+              {achievements.length >= 3 && (
+                <div id="tour-weekly-impact">
+                  <WeeklyImpactChart achievements={achievements} />
+                </div>
+              )}
+            </>
+          )}
         </AppContent>
       </SidebarInset>
 
