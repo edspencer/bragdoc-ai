@@ -65,12 +65,14 @@ interface AchievementsTableProps {
 function StarRating({
   rating,
   onRatingChange,
+  id,
 }: {
   rating: number;
   onRatingChange: (rating: number) => void;
+  id?: string;
 }) {
   return (
-    <div className="flex gap-1">
+    <div id={id} className="flex gap-1">
       {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((star) => (
         <Button
           key={star}
@@ -255,7 +257,7 @@ export function AchievementsTable({
     );
 
   return (
-    <Card>
+    <Card id="tour-achievements-table">
       <CardHeader>
         <div className="flex items-start justify-between">
           <div>
@@ -387,7 +389,7 @@ export function AchievementsTable({
               </TableRow>
             </TableHeader>
             <TableBody>
-              {displayedAchievements.map((achievement) => (
+              {displayedAchievements.map((achievement, index) => (
                 <TableRow key={achievement.id}>
                   <TableCell>
                     <Checkbox
@@ -451,6 +453,7 @@ export function AchievementsTable({
                         onRatingChange={(rating) =>
                           onImpactChange(achievement.id, rating)
                         }
+                        id={index === 0 ? 'tour-impact-rating' : undefined}
                       />
                       <span className="text-sm text-muted-foreground">
                         {achievement.impact}/10

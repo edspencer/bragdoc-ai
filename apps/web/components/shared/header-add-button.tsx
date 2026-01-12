@@ -16,6 +16,8 @@ interface HeaderAddButtonProps {
   disabled?: boolean;
   /** Optional tooltip/title text */
   title?: string;
+  /** Optional id attribute for the button element (e.g., for guided tours) */
+  id?: string;
 }
 
 /**
@@ -43,10 +45,11 @@ interface HeaderAddButtonProps {
 export const HeaderAddButton = forwardRef<
   HTMLButtonElement,
   HeaderAddButtonProps
->(({ label, onClick, isLoading = false, disabled = false, title }, ref) => {
+>(({ label, onClick, isLoading = false, disabled = false, title, id }, ref) => {
   return (
     <Button
       ref={ref}
+      id={id}
       onClick={onClick}
       disabled={disabled || isLoading}
       title={title || label}

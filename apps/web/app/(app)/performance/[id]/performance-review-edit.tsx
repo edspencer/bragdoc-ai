@@ -33,6 +33,7 @@ import { EditPerformanceReviewDialog } from '@/components/performance-review/edi
 import { WorkstreamsTimeline } from '@/components/performance-review/workstreams-timeline';
 import { DocumentSection } from '@/components/performance-review/document-section';
 import { PerformanceReviewAchievementsTable } from '@/components/performance-review/performance-review-achievements-table';
+import { GuidedTourButton } from '@/components/demo-tour';
 
 import {
   INSTRUCTIONS_KEY,
@@ -185,6 +186,7 @@ export function PerformanceReviewEdit({
 
         {/* Edit button */}
         <Button
+          id="tour-perf-review-edit"
           variant="ghost"
           size="icon"
           onClick={() => setEditDialogOpen(true)}
@@ -224,6 +226,7 @@ export function PerformanceReviewEdit({
             </AlertDialogFooter>
           </AlertDialogContent>
         </AlertDialog>
+        <GuidedTourButton tourId="tour-performance-review" />
       </SiteHeader>
 
       {/* Edit performance review dialog */}
@@ -246,7 +249,10 @@ export function PerformanceReviewEdit({
           onValueChange={handleTabChange}
           className="flex h-full flex-col gap-0"
         >
-          <TabsList className="lg:ml-4 gap-0 h-16 overflow-visible">
+          <TabsList
+            id="tour-perf-review-tabs"
+            className="lg:ml-4 gap-0 h-16 overflow-visible"
+          >
             <TabsTrigger
               value="review"
               className={cn(

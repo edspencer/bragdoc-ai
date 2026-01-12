@@ -5,3 +5,4 @@ export {
 } from './demo-tour-provider';
 export { TourCard } from './tour-card';
 export { RestartTourButton } from './restart-tour-button';
+export { GuidedTourButton } from './guided-tour-button';

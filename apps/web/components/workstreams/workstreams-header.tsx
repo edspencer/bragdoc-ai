@@ -140,6 +140,7 @@ export function WorkstreamsHeader({
     <div className="flex items-center gap-4">
       {filterDisplay}
       <HeaderAddButton
+        id="tour-add-workstream"
         label="Add Workstream"
         onClick={handleAddWorkstream}
         isLoading={isLoadingAchievements}

@@ -24,6 +24,7 @@ import type {
 } from '@/lib/types/achievement';
 import { AppPage } from '@/components/shared/app-page';
 import { AppContent } from '@/components/shared/app-content';
+import { GuidedTourButton } from '@/components/demo-tour';
 
 export default function AchievementsPage() {
   // Data fetching hooks
@@ -184,8 +185,13 @@ export default function AchievementsPage() {
       <SidebarInset>
         <SiteHeader title="Achievements">
           <HeaderAddButton
+            id="tour-add-achievement"
             label="Add Achievement"
             onClick={handleOpenQuickAdd}
+          />
+          <GuidedTourButton
+            tourId="tour-achievements"
+            disabled={achievements.length === 0}
           />
         </SiteHeader>
         <AppContent>
@@ -214,7 +220,9 @@ export default function AchievementsPage() {
               />
 
               {achievements.length >= 3 && (
-                <WeeklyImpactChart achievements={achievements} />
+                <div id="tour-weekly-impact">
+                  <WeeklyImpactChart achievements={achievements} />
+                </div>
               )}
             </>
           )}

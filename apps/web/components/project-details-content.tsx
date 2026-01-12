@@ -30,6 +30,7 @@ interface ProjectDetailsContentProps {
   editDialogOpen: boolean;
   onEditDialogChange: (open: boolean) => void;
   isDeleting: boolean;
+  onHasAchievementsChange?: (hasAchievements: boolean) => void;
 }
 
 export function ProjectDetailsContent({
@@ -37,6 +38,7 @@ export function ProjectDetailsContent({
   editDialogOpen,
   onEditDialogChange,
   isDeleting,
+  onHasAchievementsChange,
 }: ProjectDetailsContentProps) {
   const [generateDialogOpen, setGenerateDialogOpen] = React.useState(false);
   const [selectedAchievements, setSelectedAchievements] = React.useState<
@@ -75,6 +77,11 @@ export function ProjectDetailsContent({
       (achievement) => achievement.project?.id === project.id,
     );
   }, [achievements, project.id]);
+
+  // Notify parent of achievements state changes
+  React.useEffect(() => {
+    onHasAchievementsChange?.(projectAchievements.length > 0);
+  }, [projectAchievements, onHasAchievementsChange]);
 
   // Calculate project stats
   const projectStats = React.useMemo(() => {
@@ -232,6 +239,7 @@ export function ProjectDetailsContent({
             {/* Project Stats */}
             <div className="grid grid-cols-2 gap-2 lg:gap-6 @xl/main:grid-cols-2 @5xl/main:grid-cols-4">
               <Stat
+                id="tour-project-achievements-stat"
                 label="Project Achievements"
                 value={projectStats.totalAchievements}
                 badge={{
@@ -306,7 +314,9 @@ export function ProjectDetailsContent({
               />
             </div>
 
-            <WeeklyImpactChart achievements={projectAchievements} />
+            <div id="tour-project-impact-chart">
+              <WeeklyImpactChart achievements={projectAchievements} />
+            </div>
 
             <AchievementsTable
               achievements={projectAchievements}

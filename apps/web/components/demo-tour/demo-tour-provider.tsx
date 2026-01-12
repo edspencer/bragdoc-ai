@@ -10,14 +10,13 @@ import {
 } from 'react';
 import { Onborda, OnbordaProvider, useOnborda } from 'onborda';
 import type { CardComponentProps } from 'onborda';
-import { usePathname } from 'next/navigation';
 import { useDemoTour } from '@/hooks/use-demo-tour';
 import { TourCard } from './tour-card';
-import { DEMO_TOUR_STEPS, TOUR_ID } from '@/lib/demo-tour-config';
+import { TOUR_CONFIGS } from '@/lib/tours';
 
 // Context for sharing tour controls with other components
 interface TourContextType {
-  startTour: () => void;
+  startTour: (tourId: string) => void;
   isTourCompleted: boolean;
 }
 
@@ -40,10 +39,10 @@ const MIN_TOUR_WIDTH = 768;
 
 // Inner component that uses the Onborda context
 function TourContent({ children }: TourProviderProps) {
-  const pathname = usePathname();
   const { showTour, isTourCompleted, startTour, completeTour } = useDemoTour();
   const { startOnborda, closeOnborda } = useOnborda();
   const [isDesktop, setIsDesktop] = useState(false);
+  const [activeTourId, setActiveTourId] = useState<string | null>(null);
 
   // Check viewport width - disable tour on mobile
   useEffect(() => {
@@ -56,33 +55,31 @@ function TourContent({ children }: TourProviderProps) {
     return () => window.removeEventListener('resize', checkViewport);
   }, []);
 
-  // Only show tour on dashboard and desktop viewports
-  const isOnDashboard = pathname === '/dashboard';
-  const shouldShowTour = showTour && isOnDashboard && isDesktop;
+  // Only show tour on desktop viewports when showTour is true
+  const shouldShowTour = showTour && isDesktop && activeTourId !== null;
 
   // Start or close tour based on state
   useEffect(() => {
-    if (shouldShowTour) {
+    if (shouldShowTour && activeTourId) {
       // Small delay to ensure DOM elements are rendered
       const timer = setTimeout(() => {
-        startOnborda(TOUR_ID);
+        startOnborda(activeTourId);
       }, 100);
       return () => clearTimeout(timer);
     }
-  }, [shouldShowTour, startOnborda]);
+  }, [shouldShowTour, activeTourId, startOnborda]);
 
-  // Create step objects compatible with Onborda
+  // Create step objects compatible with Onborda for all tours
   const tourSteps = useMemo(
-    () => [
-      {
-        tour: TOUR_ID,
-        steps: DEMO_TOUR_STEPS.map((step, index) => ({
+    () =>
+      Object.values(TOUR_CONFIGS).map((config) => ({
+        tour: config.id,
+        steps: config.steps.map((step, index) => ({
           ...step,
           // Onborda expects step index
           stepIndex: index,
         })),
-      },
-    ],
+      })),
     [],
   );
 
@@ -90,13 +87,17 @@ function TourContent({ children }: TourProviderProps) {
   const handleCompleteTour = useCallback(() => {
     closeOnborda();
     completeTour();
+    setActiveTourId(null);
   }, [closeOnborda, completeTour]);
 
-  // Handle starting tour - also needs to call startOnborda
-  const handleStartTour = useCallback(() => {
-    startTour();
-    // The useEffect above will call startOnborda when showTour becomes true
-  }, [startTour]);
+  // Handle starting tour - accepts a tourId parameter
+  const handleStartTour = useCallback(
+    (tourId: string) => {
+      setActiveTourId(tourId);
+      startTour();
+    },
+    [startTour],
+  );
 
   // Custom card renderer that wraps our TourCard
   const CustomCard = useCallback(

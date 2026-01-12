@@ -13,7 +13,7 @@ export function ProjectsZeroState({ onAddClick }: ProjectsZeroStateProps) {
   return (
     <PageZeroState
       icon={<IconFolder className="h-6 w-6 text-primary" />}
-      title="No Projects Yet"
+      title="Add Your First Project"
     >
       <p className="text-muted-foreground text-center">
         Most achievements are linked to a project. You can have any number of

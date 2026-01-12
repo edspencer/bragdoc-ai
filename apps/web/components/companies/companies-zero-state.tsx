@@ -12,7 +12,7 @@ export function CompaniesZeroState({ onAddClick }: CompaniesZeroStateProps) {
   return (
     <PageZeroState
       icon={<IconBuilding className="h-6 w-6 text-primary" />}
-      title="No Companies Yet"
+      title="Add Your Company"
     >
       <p className="text-muted-foreground text-center">
         Companies help you organize your projects. Link multiple projects to a

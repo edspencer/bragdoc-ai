@@ -30,9 +30,7 @@ export default async function Page() {
   return (
     <AppPage>
       <SidebarInset>
-        <SiteHeader>
-          <RestartTourButton />
-        </SiteHeader>
+        <SiteHeader>{!hasNoAchievements && <RestartTourButton />}</SiteHeader>
         {hasNoAchievements ? (
           <DashboardZeroState />
         ) : (

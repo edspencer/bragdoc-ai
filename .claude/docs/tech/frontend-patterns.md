@@ -2701,61 +2701,83 @@ export default function PricingPage() {
 
 ### Overview
 
-BragDoc uses the [Onborda](https://www.onborda.dev/) library for guided product tours. Tours are currently implemented for demo mode users to introduce key dashboard features on first visit.
+BragDoc uses the [Onborda](https://www.onborda.dev/) library for guided product tours. Tours are implemented on key pages to help users understand available features. Users trigger tours manually via a "Guided Tour" button in page headers.
 
 ### Architecture
 
+**Tour Configurations:**
+
+- Tour configurations live in `apps/web/lib/tours/` with one file per page
+- Each tour has a unique ID (e.g., `tour-dashboard`, `tour-achievements`)
+- Single global completion tracking via localStorage (`demo-tour-completed` key)
+
 **Components:**
 
-- **DemoTourProvider** (`apps/web/components/demo-tour/demo-tour-provider.tsx`) - Wraps app content with Onborda provider, manages tour lifecycle
+- **TourProvider** (`apps/web/components/demo-tour/demo-tour-provider.tsx`) - Context provider wrapping the app with Onborda, manages all page tours
+- **GuidedTourButton** (`apps/web/components/demo-tour/guided-tour-button.tsx`) - Reusable button to trigger page-specific tours
 - **TourCard** (`apps/web/components/demo-tour/tour-card.tsx`) - Custom card component matching BragDoc design system
-- **Tour Configuration** (`apps/web/lib/demo-tour-config.tsx`) - Step definitions with content, selectors, and positioning
 
 **Hook:**
 
-- **useDemoTour** (`apps/web/hooks/use-demo-tour.ts`) - Manages tour state with localStorage persistence
+- **useDemoTour** (`apps/web/hooks/use-demo-tour.ts`) - Manages tour completion state with localStorage persistence
 
 ### Tour Configuration Pattern
 
-Define tour steps in a configuration file with typed step objects:
+Define tour steps in page-specific configuration files:
 
 ```typescript
-// apps/web/lib/demo-tour-config.tsx
-import type { ReactNode } from 'react';
-import { IconTarget } from '@tabler/icons-react';
+// apps/web/lib/tours/achievements.tsx
+import { IconTable, IconPlus, IconStar, IconChartBar } from '@tabler/icons-react';
+import type { TourConfig } from './types';
 
+export const ACHIEVEMENTS_TOUR_CONFIG: TourConfig = {
+  id: 'tour-achievements',
+  steps: [
+    {
+      icon: <IconTable className="size-5" />,
+      title: 'Your Achievements',
+      content: 'This table shows all your recorded achievements. Use filters to narrow by project, company, or time period.',
+      selector: '#tour-achievements-table',
+      side: 'bottom',
+      showControls: true,
+      pointerPadding: 10,
+      pointerRadius: 10,
+    },
+    // ... more steps
+  ],
+};
+```
+
+**Type definitions** in `apps/web/lib/tours/types.ts`:
+
+```typescript
 export interface TourStep {
   icon: ReactNode;
   title: string;
   content: ReactNode;
-  selector: string;  // CSS selector for target element (e.g., '#tour-achievements-stat')
+  selector: string;  // CSS selector for target element (e.g., '#tour-achievements-table')
   side: 'top' | 'bottom' | 'left' | 'right';
   showControls: boolean;
   pointerPadding: number;
   pointerRadius: number;
 }
 
-export const DEMO_TOUR_STEPS: TourStep[] = [
-  {
-    icon: <IconTarget className="size-5" />,
-    title: 'Your Achievements',
-    content: (
-      <>
-        <p>Achievements are the building blocks of your career story.</p>
-        <p className="mt-2">Each achievement represents something meaningful.</p>
-      </>
-    ),
-    selector: '#tour-achievements-stat',
-    side: 'bottom',
-    showControls: true,
-    pointerPadding: 10,
-    pointerRadius: 10,
-  },
-  // ... more steps
-];
+export interface TourConfig {
+  id: string;
+  steps: TourStep[];
+}
 
-export const TOUR_ID = 'demo-tour';
 export const TOUR_STORAGE_KEY = 'demo-tour-completed';
+```
+
+**Index file** (`apps/web/lib/tours/index.ts`) exports all tours and provides a lookup map:
+
+```typescript
+export const TOUR_CONFIGS: Record<string, TourConfig> = {
+  [DASHBOARD_TOUR_CONFIG.id]: DASHBOARD_TOUR_CONFIG,
+  [ACHIEVEMENTS_TOUR_CONFIG.id]: ACHIEVEMENTS_TOUR_CONFIG,
+  // ... all tours
+};
 ```
 
 ### Adding Target IDs to Components
@@ -2763,89 +2785,99 @@ export const TOUR_STORAGE_KEY = 'demo-tour-completed';
 Tour steps target elements via CSS selectors. Add IDs to components you want to highlight:
 
 ```tsx
-// In dashboard component
-<Link href="/achievements" id="tour-achievements-stat">
-  <Stat label="Total Achievements" value={total} />
-</Link>
-
-// In chart component
-<Card id="tour-impact-chart">
-  <WeeklyImpactChart />
+// In page component
+<Card id="tour-achievements-table">
+  <AchievementsTable data={achievements} />
 </Card>
+
+// In header
+<HeaderAddButton
+  id="tour-add-achievement"
+  label="Add Achievement"
+  onClick={handleAdd}
+/>
 ```
 
-For nested components where you need to target a specific child element, pass an optional ID prop:
+### GuidedTourButton Component
+
+Use `GuidedTourButton` in page headers to trigger tours:
 
 ```tsx
-// Parent component
-<AchievementItem
-  achievement={achievement}
-  impactRatingId={index === 0 ? 'tour-impact-rating' : undefined}
-/>
+import { GuidedTourButton } from '@/components/demo-tour';
 
-// Child component
-interface AchievementItemProps {
-  // ... other props
-  impactRatingId?: string;  // Optional ID for tour targeting
-}
-
-export function AchievementItem({ impactRatingId, ...props }: AchievementItemProps) {
-  return (
-    <div id={impactRatingId}>
-      <ImpactRating {...props} />
-    </div>
-  );
-}
+<SiteHeader title="Achievements">
+  <GuidedTourButton
+    tourId="tour-achievements"
+    disabled={achievements.length === 0}
+  />
+  <HeaderAddButton label="Add Achievement" onClick={handleAdd} />
+</SiteHeader>
 ```
 
-### DemoTourProvider Integration
+**Props:**
 
-Wrap app content with `DemoTourProvider` in the layout, passing `isDemoMode` prop:
+- `tourId: string` - Which tour to start (must match a tour config ID)
+- `disabled?: boolean` - When true, hides the button (for zero-state pages)
+
+**Features:**
+
+- Hidden on mobile viewports (`hidden md:flex`)
+- Ghost button with compass icon
+- Tooltip on hover
+
+### Zero-State Convention
+
+Hide tour buttons when pages have no data to display:
+
+```tsx
+// Pass disabled={true} when page is in zero state
+<GuidedTourButton
+  tourId="tour-achievements"
+  disabled={achievements.length === 0}
+/>
+```
+
+### Adding a New Tour
+
+1. **Create tour config** in `apps/web/lib/tours/{page-name}.tsx` with `TourConfig` type
+2. **Add config to `TOUR_CONFIGS` map** in `apps/web/lib/tours/index.ts`
+3. **Add `id` attributes** to target DOM elements
+4. **Add `GuidedTourButton`** to page header with `tourId` prop
+5. **Handle zero-state**: Pass `disabled={true}` when page has no data
+
+### Existing Tours
+
+| Tour ID | Page | Steps |
+|---------|------|-------|
+| `tour-dashboard` | Dashboard | 4 steps (achievements stat, workstreams, projects, impact chart) |
+| `tour-achievements` | Achievements | 4 steps (table, add button, impact rating, weekly chart) |
+| `tour-workstreams` | Workstreams | 3 steps (gantt chart, add button, unassigned section) |
+| `tour-performance-review` | Performance Review Details | 2 steps (tabs, edit button) |
+| `tour-project-details` | Project Details | 3 steps (achievements stat, impact chart, edit button) |
+
+### TourProvider Integration
+
+The provider is integrated in the app layout:
 
 ```tsx
 // apps/web/app/(app)/layout.tsx
-import { DemoTourProvider } from '@/components/demo-tour';
+import { TourProvider } from '@/components/demo-tour';
 
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
-  const isDemoMode = process.env.NEXT_PUBLIC_DEMO_MODE_ENABLED === 'true';
-
   return (
-    <DemoModeLayout isDemoMode={isDemoMode}>
-      <DemoTourProvider isDemoMode={isDemoMode}>
-        <SidebarProvider>
-          {children}
-        </SidebarProvider>
-      </DemoTourProvider>
-    </DemoModeLayout>
+    <TourProvider>
+      <SidebarProvider>
+        {children}
+      </SidebarProvider>
+    </TourProvider>
   );
 }
 ```
 
 The provider:
-- Only renders Onborda components when `isDemoMode` is true
-- Auto-starts tour on dashboard for users who haven't completed it
+- Loads all tour configurations via `TOUR_CONFIGS`
+- Provides `startTour(tourId)` function via context
 - Persists completion state to localStorage
-
-### useDemoTour Hook
-
-The hook manages tour state with localStorage persistence:
-
-```typescript
-const { showTour, isTourCompleted, startTour, completeTour } = useDemoTour(isDemoMode);
-```
-
-**Returns:**
-
-- `showTour: boolean` - Whether tour should currently be shown
-- `isTourCompleted: boolean` - Whether user has finished/skipped tour
-- `startTour: () => void` - Restart tour (clears localStorage)
-- `completeTour: () => void` - Mark tour as finished (sets localStorage)
-
-**Auto-start behavior:**
-
-- Checks localStorage on mount for completion status
-- If demo mode and not completed, shows tour after 500ms delay
-- Delay ensures dashboard elements are rendered before targeting
 
 ### Custom Tour Card
 
@@ -2906,25 +2938,23 @@ export function TourCard({
 - **Button labels:** Clear aria-labels on navigation buttons
 - **Focus management:** Onborda library handles focus trapping within overlay
 
-### Creating Additional Tours
-
-To add a new tour:
-
-1. **Create configuration file** in `lib/` with step definitions
-2. **Add target IDs** to components you want to highlight
-3. **Create provider component** (or extend existing) with tour-specific logic
-4. **Integrate in layout** where tour should appear
-5. **Add localStorage key** for persistence
-
 ### Files
 
 | File | Purpose |
 |------|---------|
-| `apps/web/lib/demo-tour-config.tsx` | Tour step definitions and constants |
-| `apps/web/components/demo-tour/demo-tour-provider.tsx` | Onborda wrapper with lifecycle management |
+| `apps/web/lib/tours/types.ts` | Type definitions and storage key constant |
+| `apps/web/lib/tours/dashboard.tsx` | Dashboard tour config |
+| `apps/web/lib/tours/achievements.tsx` | Achievements page tour config |
+| `apps/web/lib/tours/workstreams.tsx` | Workstreams page tour config |
+| `apps/web/lib/tours/performance-review.tsx` | Performance review tour config |
+| `apps/web/lib/tours/project-details.tsx` | Project details tour config |
+| `apps/web/lib/tours/index.ts` | Tour exports and TOUR_CONFIGS map |
+| `apps/web/components/demo-tour/demo-tour-provider.tsx` | Onborda wrapper with multi-tour support |
+| `apps/web/components/demo-tour/guided-tour-button.tsx` | Reusable tour trigger button |
 | `apps/web/components/demo-tour/tour-card.tsx` | Custom styled tour card |
 | `apps/web/components/demo-tour/index.ts` | Component exports |
-| `apps/web/hooks/use-demo-tour.ts` | Tour state management hook |
+| `apps/web/hooks/use-demo-tour.ts` | Tour completion state hook |
+| `apps/web/lib/demo-tour-config.tsx` | Deprecated - re-exports from tours/ |
 
 ---
 

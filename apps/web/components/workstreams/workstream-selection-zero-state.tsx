@@ -13,7 +13,7 @@ export function WorkstreamSelectionZeroState({
   onShowUnassigned,
 }: WorkstreamSelectionZeroStateProps) {
   return (
-    <Card>
+    <Card id="tour-unassigned-workstreams">
       <CardContent className="flex flex-col items-center justify-center py-12 space-y-4">
         <div className="text-center space-y-4">
           <p className="text-muted-foreground text-lg">

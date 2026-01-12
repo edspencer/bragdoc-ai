@@ -6,6 +6,7 @@ import { WorkstreamDateFilter } from '@/components/workstreams/workstream-date-f
 import { WorkstreamsHeader } from '@/components/workstreams/workstreams-header';
 import { AppPage } from '@/components/shared/app-page';
 import { AppContent } from '@/components/shared/app-content';
+import { GuidedTourButton } from '@/components/demo-tour';
 import { WorkstreamsClient } from '@/components/workstreams/workstreams-client';
 import { auth } from '@/lib/better-auth/server';
 import {
@@ -192,45 +193,48 @@ export default async function WorkstreamsPage({
       <SidebarInset>
         <SiteHeader title="Workstreams">
           {!showZeroState && (
-            <WorkstreamsHeader
-              showFilters={!showZeroState}
-              storedProjectIds={storedProjectIds}
-              storedTimeRange={storedTimeRange}
-              workstreams={userWorkstreams}
-              filterDisplay={
-                <>
-                  {/* Show active filter info when stored generation params are applied */}
-                  {(storedProjectIds || storedTimeRange) && (
-                    <span className="text-sm text-muted-foreground">
-                      <span className="font-medium text-foreground">
-                        Filtered:{' '}
+            <>
+              <WorkstreamsHeader
+                showFilters={!showZeroState}
+                storedProjectIds={storedProjectIds}
+                storedTimeRange={storedTimeRange}
+                workstreams={userWorkstreams}
+                filterDisplay={
+                  <>
+                    {/* Show active filter info when stored generation params are applied */}
+                    {(storedProjectIds || storedTimeRange) && (
+                      <span className="text-sm text-muted-foreground">
+                        <span className="font-medium text-foreground">
+                          Filtered:{' '}
+                        </span>
+                        {storedTimeRange && (
+                          <span>
+                            {new Date(
+                              storedTimeRange.startDate,
+                            ).toLocaleDateString()}{' '}
+                            -{' '}
+                            {new Date(
+                              storedTimeRange.endDate,
+                            ).toLocaleDateString()}
+                          </span>
+                        )}
+                        {storedTimeRange && storedProjectIds && (
+                          <span className="mx-1">•</span>
+                        )}
+                        {storedProjectIds && (
+                          <span>
+                            {storedProjectIds.length} project
+                            {storedProjectIds.length === 1 ? '' : 's'}
+                          </span>
+                        )}
                       </span>
-                      {storedTimeRange && (
-                        <span>
-                          {new Date(
-                            storedTimeRange.startDate,
-                          ).toLocaleDateString()}{' '}
-                          -{' '}
-                          {new Date(
-                            storedTimeRange.endDate,
-                          ).toLocaleDateString()}
-                        </span>
-                      )}
-                      {storedTimeRange && storedProjectIds && (
-                        <span className="mx-1">•</span>
-                      )}
-                      {storedProjectIds && (
-                        <span>
-                          {storedProjectIds.length} project
-                          {storedProjectIds.length === 1 ? '' : 's'}
-                        </span>
-                      )}
-                    </span>
-                  )}
-                  <WorkstreamDateFilter initialPreset={datePreset} />
-                </>
-              }
-            />
+                    )}
+                    <WorkstreamDateFilter initialPreset={datePreset} />
+                  </>
+                }
+              />
+              <GuidedTourButton tourId="tour-workstreams" />
+            </>
           )}
         </SiteHeader>
         <AppContent>
