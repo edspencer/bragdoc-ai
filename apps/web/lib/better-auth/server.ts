@@ -12,7 +12,6 @@
  * - OAuth providers (Google, GitHub)
  * - PostHog analytics integration
  * - Welcome email automation
- * - Demo account cleanup
  */
 
 import { betterAuth } from 'better-auth';
@@ -29,7 +28,6 @@ import {
   identifyUser,
   aliasUser,
 } from '@/lib/posthog-server';
-import { cleanupDemoAccountData } from '@/lib/demo-data-cleanup';
 
 /**
  * Better Auth Server Instance
@@ -73,7 +71,13 @@ export const auth: ReturnType<typeof betterAuth> = betterAuth({
           });
         } catch (error) {
           console.error('Failed to send magic link email:', error);
-          throw new Error('Failed to send verification email');
+          // In development, don't fail if email sending fails - the link is logged above
+          if (process.env.NODE_ENV !== 'development') {
+            throw new Error('Failed to send verification email');
+          }
+          console.log(
+            '📧 Email send failed, but you can use the magic link from the console above',
+          );
         }
       },
 
@@ -119,17 +123,6 @@ export const auth: ReturnType<typeof betterAuth> = betterAuth({
             },
             userIp,
           );
-
-          // Check if this is a demo account and cleanup data
-          const [demoUser] = await db
-            .select()
-            .from(userTable)
-            .where(eq(userTable.id, session.user.id))
-            .limit(1);
-
-          if (demoUser && demoUser.level === 'demo') {
-            await cleanupDemoAccountData(session.user.id);
-          }
         }
       } catch (error) {
         console.error('PostHog before hook error:', error);

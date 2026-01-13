@@ -1,6 +1,7 @@
 import type * as React from 'react';
 import { Separator } from '@/components/ui/separator';
 import { SidebarTrigger } from '@/components/ui/sidebar';
+import { DemoToggleWrapper } from '@/components/demo-toggle-wrapper';
 import { cn } from '@/lib/utils';
 
 export function SiteHeader({
@@ -27,6 +28,7 @@ export function SiteHeader({
             className,
           )}
         >
+          <DemoToggleWrapper />
           {children}
         </div>
       </div>

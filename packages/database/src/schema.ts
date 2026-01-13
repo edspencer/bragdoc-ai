@@ -98,10 +98,19 @@ export const user = pgTable(
     status: userStatusEnum('status').notNull().default('active'),
     stripeCustomerId: varchar('stripe_customer_id', { length: 256 }),
     tosAcceptedAt: timestamp('tos_accepted_at'),
+
+    // Demo mode fields
+    demoUserId: uuid('demo_user_id'), // Self-referential FK added separately
+    isDemo: boolean('is_demo').notNull().default(false),
   },
   (table) => ({
     // Critical for login/registration queries
     emailIdx: index('user_email_idx').on(table.email),
+    // Self-referential foreign key for demo user linking
+    demoUserFk: foreignKey({
+      columns: [table.demoUserId],
+      foreignColumns: [table.id],
+    }).onDelete('set null'),
   }),
 );
 
@@ -617,6 +626,11 @@ export const session = pgTable(
     userAgent: text('userAgent'),
     createdAt: timestamp('createdAt').notNull().defaultNow(),
     updatedAt: timestamp('updatedAt').notNull().defaultNow(),
+
+    // Demo mode: tracks if this session is impersonating a shadow user
+    impersonatedBy: uuid('impersonated_by').references(() => user.id, {
+      onDelete: 'cascade',
+    }),
   },
   (table) => ({
     // Critical index for session validation on every authenticated request

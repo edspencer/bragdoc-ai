@@ -22,17 +22,15 @@ import { eq } from 'drizzle-orm';
  * - Returns 401 if not authenticated
  *
  * Authorization:
- * - Returns 403 if user is demo account (cannot delete demo accounts)
  * - Returns 400 if account is already deleted
  *
  * Behavior:
  * 1. Verifies user is authenticated
- * 2. Checks user is not demo account
- * 3. Checks user account is not already deleted
- * 4. Captures analytics event with account metadata
- * 5. Calls deleteAccountData() to remove all user data
- * 6. Invalidates all user sessions
- * 7. Returns 200 success response
+ * 2. Checks user account is not already deleted
+ * 3. Captures analytics event with account metadata
+ * 4. Calls deleteAccountData() to remove all user data
+ * 5. Invalidates all user sessions
+ * 6. Returns 200 success response
  *
  * Error Handling:
  * - Try-catch wraps all operations
@@ -67,15 +65,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
 
-    // 3. Check if user is demo account (cannot delete demo accounts)
-    if (userData.level === 'demo') {
-      return NextResponse.json(
-        { error: 'Cannot delete demo accounts' },
-        { status: 403 },
-      );
-    }
-
-    // 4. Check if user is already deleted
+    // 3. Check if user is already deleted
     if (userData.status === 'deleted') {
       return NextResponse.json(
         { error: 'Account is already deleted' },
@@ -83,7 +73,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // 5. Capture analytics before deletion
+    // 4. Capture analytics before deletion
     // Calculate account age in days
     const accountAgeMs = Date.now() - userData.createdAt.getTime();
     const accountAgeDays = Math.floor(accountAgeMs / (1000 * 60 * 60 * 24));
@@ -113,11 +103,11 @@ export async function POST(request: NextRequest) {
       userIp,
     );
 
-    // 6. Delete all user data
+    // 5. Delete all user data
     // This also deletes all sessions associated with the user
     await deleteAccountData(userId);
 
-    // 7. Return success response
+    // 6. Return success response
     // Sessions are automatically cleared on the client side since the session
     // record no longer exists in the database
     return NextResponse.json(

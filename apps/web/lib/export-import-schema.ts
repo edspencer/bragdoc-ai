@@ -73,6 +73,19 @@ export const exportDocumentSchema = z.object({
   shareToken: z.string().nullable(),
 });
 
+// Schema for individual performance review in export/import
+export const exportPerformanceReviewSchema = z.object({
+  id: z.string().uuid(),
+  userId: z.string().uuid(),
+  name: z.string(),
+  startDate: z.string().datetime(),
+  endDate: z.string().datetime(),
+  instructions: z.string().nullable(),
+  documentId: z.string().uuid().nullable(),
+  createdAt: z.string().datetime(),
+  updatedAt: z.string().datetime(),
+});
+
 // Main export data schema
 export const exportDataSchema = z.object({
   version: z.literal('1.0'),
@@ -82,6 +95,7 @@ export const exportDataSchema = z.object({
   projects: z.array(exportProjectSchema),
   achievements: z.array(exportAchievementSchema),
   documents: z.array(exportDocumentSchema),
+  performanceReviews: z.array(exportPerformanceReviewSchema).optional(),
 });
 
 // Type inference
@@ -90,3 +104,6 @@ export type ExportAchievement = z.infer<typeof exportAchievementSchema>;
 export type ExportCompany = z.infer<typeof exportCompanySchema>;
 export type ExportProject = z.infer<typeof exportProjectSchema>;
 export type ExportDocument = z.infer<typeof exportDocumentSchema>;
+export type ExportPerformanceReview = z.infer<
+  typeof exportPerformanceReviewSchema
+>;

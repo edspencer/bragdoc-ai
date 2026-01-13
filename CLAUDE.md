@@ -666,8 +666,8 @@ pnpm changeset version  # Update versions
 - `GITHUB_CLIENT_ID` / `GITHUB_CLIENT_SECRET` - GitHub OAuth
 - `DEEPSEEK_API_KEY` - DeepSeek API key
 - `MAILGUN_API_KEY` - Mailgun for emails
-- `DEMO_MODE_ENABLED` - Enable demo mode backend
-- `NEXT_PUBLIC_DEMO_MODE_ENABLED` - Enable demo mode UI (must match backend)
+- `NEXT_PUBLIC_DEMO_MODE_ENABLED` - Enable demo mode toggle button in sidebar
+- `NEXT_PUBLIC_DEMO_HELP_ENABLED` - Enable demo help dialogs
 - `NEXT_PUBLIC_POSTHOG_KEY` - PostHog analytics key
 - `NEXT_PUBLIC_POSTHOG_HOST` - PostHog host URL
 

@@ -4,11 +4,14 @@ import { ArtifactProvider } from '@/hooks/use-artifact';
 import { ArtifactCanvas } from '@/components/artifact-canvas';
 import { SidebarProvider } from '@/components/ui/sidebar';
 import { AppSidebar } from '@/components/app-sidebar';
-import { DemoModeBannerWrapper } from '@/components/demo-mode-banner-wrapper';
+import { DemoIntentHandler } from '@/components/demo-intent-handler';
 import { DemoModeLayout } from '@/components/demo-mode-layout';
+import { DemoModeProvider } from '@/components/demo-mode-provider';
+import { PerUserDemoBanner } from '@/components/per-user-demo-banner';
 import { TourProvider } from '@/components/demo-tour';
 import { PHProvider } from '@/components/posthog-provider';
 import { auth } from '@/lib/better-auth/server';
+import { getFullSessionById } from '@/lib/demo-mode';
 import { getTopProjectsByImpact } from '@/database/projects/queries';
 import { headers } from 'next/headers';
 import { FeedbackWidget } from '@goodideadev/react';
@@ -23,8 +26,16 @@ export default async function AppLayout({
     headers: await headers(),
   });
 
-  // Derive isDemoMode from session
-  const isDemoMode = (session?.user as any)?.level === 'demo';
+  // Check for per-user demo mode by querying session's impersonatedBy field
+  // This indicates the user is viewing their shadow demo user's data
+  let isPerUserDemoMode = false;
+  if (session?.session?.id) {
+    const fullSession = await getFullSessionById(session.session.id);
+    isPerUserDemoMode = fullSession?.impersonatedBy != null;
+  }
+
+  // isDemoMode is now only per-user demo mode (standalone demo mode has been removed)
+  const isDemoMode = isPerUserDemoMode;
 
   // Fetch top projects server-side (only for authenticated users)
   const topProjects = session?.user
@@ -45,35 +56,38 @@ export default async function AppLayout({
     <PHProvider user={sidebarUser}>
       <ArtifactProvider>
         <DataStreamProvider>
-          <DemoModeLayout isDemoMode={isDemoMode}>
-            <DemoModeBannerWrapper isDemoMode={isDemoMode} />
-            <TourProvider>
-              <SidebarProvider
-                style={
-                  {
-                    '--sidebar-width': 'calc(var(--spacing) * 72)',
-                    '--header-height': 'calc(var(--spacing) * 12)',
-                  } as React.CSSProperties
-                }
-              >
-                <AppSidebar
-                  variant="inset"
-                  user={sidebarUser}
-                  isDemoMode={isDemoMode}
-                  topProjects={topProjects}
-                />
-                {children}
-                <FeedbackWidget
-                  projectId="e16fdb14-7c88-4f49-a269-8fe124270a48"
-                  position="bottom-right"
-                  collectSentiment={true}
-                  offerEmailFollowup={true}
-                />
-                <DataStreamHandler />
-                <ArtifactCanvas />
-              </SidebarProvider>
-            </TourProvider>
-          </DemoModeLayout>
+          <DemoModeProvider initialDemoMode={isPerUserDemoMode}>
+            <DemoIntentHandler isDemoMode={isPerUserDemoMode} />
+            <DemoModeLayout isDemoMode={isDemoMode}>
+              <PerUserDemoBanner />
+              <TourProvider>
+                <SidebarProvider
+                  style={
+                    {
+                      '--sidebar-width': 'calc(var(--spacing) * 72)',
+                      '--header-height': 'calc(var(--spacing) * 12)',
+                    } as React.CSSProperties
+                  }
+                >
+                  <AppSidebar
+                    variant="inset"
+                    user={sidebarUser}
+                    isDemoMode={isDemoMode}
+                    topProjects={topProjects}
+                  />
+                  {children}
+                  <FeedbackWidget
+                    projectId="e16fdb14-7c88-4f49-a269-8fe124270a48"
+                    position="bottom-right"
+                    collectSentiment={true}
+                    offerEmailFollowup={true}
+                  />
+                  <DataStreamHandler />
+                  <ArtifactCanvas />
+                </SidebarProvider>
+              </TourProvider>
+            </DemoModeLayout>
+          </DemoModeProvider>
         </DataStreamProvider>
       </ArtifactProvider>
     </PHProvider>

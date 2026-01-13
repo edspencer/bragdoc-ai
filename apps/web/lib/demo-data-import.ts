@@ -10,6 +10,8 @@ import path from 'node:path';
 import {
   exportDataSchema,
   type ExportAchievement,
+  type ExportDocument,
+  type ExportPerformanceReview,
 } from '@/lib/export-import-schema';
 import { importUserData, type ImportStats } from '@/lib/import-user-data';
 
@@ -86,6 +88,104 @@ function shiftAchievementDatesToPresent(
 }
 
 /**
+ * Shifts document dates forward by the specified amount
+ *
+ * @param documents - Array of documents to shift
+ * @param shiftMs - Milliseconds to shift dates forward
+ * @returns Array of documents with dates shifted
+ */
+function shiftDocumentDates(
+  documents: ExportDocument[],
+  shiftMs: number,
+): ExportDocument[] {
+  if (shiftMs <= 0) {
+    return documents;
+  }
+
+  return documents.map((doc) => ({
+    ...doc,
+    createdAt: new Date(
+      new Date(doc.createdAt).getTime() + shiftMs,
+    ).toISOString(),
+    updatedAt: new Date(
+      new Date(doc.updatedAt).getTime() + shiftMs,
+    ).toISOString(),
+  }));
+}
+
+/**
+ * Shifts performance review dates forward by the specified amount
+ *
+ * @param reviews - Array of performance reviews to shift
+ * @param shiftMs - Milliseconds to shift dates forward
+ * @returns Array of performance reviews with dates shifted
+ */
+function shiftPerformanceReviewDates(
+  reviews: ExportPerformanceReview[],
+  shiftMs: number,
+): ExportPerformanceReview[] {
+  if (shiftMs <= 0) {
+    return reviews;
+  }
+
+  return reviews.map((review) => ({
+    ...review,
+    startDate: new Date(
+      new Date(review.startDate).getTime() + shiftMs,
+    ).toISOString(),
+    endDate: new Date(
+      new Date(review.endDate).getTime() + shiftMs,
+    ).toISOString(),
+    createdAt: new Date(
+      new Date(review.createdAt).getTime() + shiftMs,
+    ).toISOString(),
+    updatedAt: new Date(
+      new Date(review.updatedAt).getTime() + shiftMs,
+    ).toISOString(),
+  }));
+}
+
+/**
+ * Calculates the date shift needed based on the newest achievement date
+ *
+ * @param achievements - Array of achievements to analyze
+ * @returns Milliseconds to shift dates forward (0 if no shift needed)
+ */
+function calculateDateShift(achievements: ExportAchievement[]): number {
+  if (achievements.length === 0) {
+    return 0;
+  }
+
+  // Find the newest achievement by eventStart date
+  let newestDate: Date | null = null;
+  for (const achievement of achievements) {
+    if (achievement.eventStart) {
+      const date = new Date(achievement.eventStart);
+      if (!newestDate || date > newestDate) {
+        newestDate = date;
+      }
+    }
+  }
+
+  // If no achievements have eventStart dates, no shift needed
+  if (!newestDate) {
+    return 0;
+  }
+
+  // Calculate how many days have passed since the newest achievement
+  const now = new Date();
+  const daysPassedMs = now.getTime() - newestDate.getTime();
+  const daysPassed = Math.floor(daysPassedMs / (24 * 60 * 60 * 1000));
+
+  // If less than 1 day has passed, no shift needed
+  if (daysPassed <= 0) {
+    return 0;
+  }
+
+  return daysPassed * 24 * 60 * 60 * 1000;
+}
+
+/**
  * Imports demo data from the bundled demo-data.json file into a demo user account
  *
  * @param userId - The UUID of the demo user account to populate
@@ -115,10 +215,20 @@ export async function importDemoData(userId: string): Promise<ImportStats> {
     );
   }
 
-  // Shift achievement dates forward to keep demo data fresh
+  // Calculate date shift based on achievement dates
+  const shiftMs = calculateDateShift(result.data.achievements);
+
+  // Shift all date-based data forward to keep demo data fresh
   result.data.achievements = shiftAchievementDatesToPresent(
     result.data.achievements,
   );
+  result.data.documents = shiftDocumentDates(result.data.documents, shiftMs);
+  if (result.data.performanceReviews) {
+    result.data.performanceReviews = shiftPerformanceReviewDates(
+      result.data.performanceReviews,
+      shiftMs,
+    );
+  }
 
   // Use shared import function with new ID generation
   // Achievement dates are pre-configured by prepare-demo-data script with per-project spread/shift

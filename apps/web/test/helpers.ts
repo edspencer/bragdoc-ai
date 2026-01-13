@@ -19,6 +19,8 @@ export function createMockUser(overrides: Partial<User> = {}): User {
     status: 'active',
     stripeCustomerId: null,
     tosAcceptedAt: null,
+    demoUserId: null,
+    isDemo: false,
     ...overrides,
   };
 }

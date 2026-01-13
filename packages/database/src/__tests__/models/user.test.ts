@@ -23,6 +23,8 @@ describe('User Model', () => {
     password: null,
     stripeCustomerId: null,
     tosAcceptedAt: null,
+    demoUserId: null,
+    isDemo: false,
   };
 
   describe('isActiveSubscription', () => {

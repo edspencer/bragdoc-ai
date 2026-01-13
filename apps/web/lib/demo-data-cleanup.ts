@@ -1,8 +1,9 @@
 /**
  * Demo Account Data Cleanup
  *
- * Handles deletion of all data associated with a demo account on logout.
- * Preserves the user record for analytics tracking.
+ * Handles deletion of all data associated with a per-user demo shadow account.
+ * Used when resetting demo data (POST /api/demo-mode/reset).
+ * Note: Standalone demo mode has been removed - this only handles per-user demo.
  */
 
 import { db } from '@/database/index';
@@ -18,33 +19,54 @@ import {
   standupDocument,
   emailPreferences,
   session,
+  performanceReview,
+  workstream,
+  workstreamMetadata,
 } from '@/database/schema';
-import { eq } from 'drizzle-orm';
+import { eq, and, ne } from 'drizzle-orm';
 
 /**
- * Cleans up all data associated with a demo account while preserving the user record
+ * Options for cleaning up demo account data
+ */
+interface CleanupOptions {
+  /**
+   * If provided, this session token will be preserved (not deleted).
+   * Use this when resetting demo data to keep the user logged in.
+   */
+  preserveSessionToken?: string;
+}
+
+/**
+ * Cleans up all data associated with a per-user demo shadow account while preserving the user record
  *
  * This function:
- * 1. Verifies the user is a demo account (level === 'demo')
+ * 1. Verifies the user is a per-user demo shadow account (isDemo === true)
  * 2. Deletes all related data in proper order to respect foreign key constraints
- * 3. Preserves the user record for analytics (email, createdAt, level)
+ * 3. Preserves the user record for analytics (email, createdAt, isDemo)
  *
  * Tables cleaned up:
  * - emailPreferences
  * - standupDocument (depends on standup)
  * - standup
  * - document
+ * - performanceReview
+ * - workstreamMetadata
+ * - workstream
  * - achievement
  * - project
  * - company
  * - userMessage
  * - chat
- * - session (NextAuth sessions)
+ * - session (Better Auth sessions) - optionally preserves current session
  *
  * @param userId - The UUID of the user account to clean up
+ * @param options - Optional settings for cleanup behavior
  * @throws Does not throw - logs warnings for errors
  */
-export async function cleanupDemoAccountData(userId: string): Promise<void> {
+export async function cleanupDemoAccountData(
+  userId: string,
+  options: CleanupOptions = {},
+): Promise<void> {
   try {
     // Verify user is a demo account
     const [demoUser] = await db
@@ -58,8 +80,12 @@ export async function cleanupDemoAccountData(userId: string): Promise<void> {
       return;
     }
 
-    if (demoUser.level !== 'demo') {
-      console.warn(`User ${userId} is not a demo account, skipping cleanup`);
+    // Check if user is a per-user demo shadow account
+    // Note: Standalone demo mode (level='demo') has been removed
+    if (!demoUser.isDemo) {
+      console.warn(
+        `User ${userId} is not a demo shadow account, skipping cleanup`,
+      );
       return;
     }
 
@@ -80,7 +106,20 @@ export async function cleanupDemoAccountData(userId: string): Promise<void> {
     // Documents
     await db.delete(document).where(eq(document.userId, userId));
 
-    // Achievements
+    // Performance Reviews
+    await db
+      .delete(performanceReview)
+      .where(eq(performanceReview.userId, userId));
+
+    // Workstream Metadata (depends on workstreams, but also independent user reference)
+    await db
+      .delete(workstreamMetadata)
+      .where(eq(workstreamMetadata.userId, userId));
+
+    // Workstreams
+    await db.delete(workstream).where(eq(workstream.userId, userId));
+
+    // Achievements (must be after workstreams since achievements reference workstreams)
     await db.delete(achievement).where(eq(achievement.userId, userId));
 
     // Projects
@@ -95,8 +134,20 @@ export async function cleanupDemoAccountData(userId: string): Promise<void> {
     // Chats (and their messages will be cascade deleted if foreign keys are set up)
     await db.delete(chat).where(eq(chat.userId, userId));
 
-    // Sessions (NextAuth sessions)
-    await db.delete(session).where(eq(session.userId, userId));
+    // Sessions (Better Auth sessions)
+    // If preserveSessionToken is provided, keep the current session so user stays logged in
+    if (options.preserveSessionToken) {
+      await db
+        .delete(session)
+        .where(
+          and(
+            eq(session.userId, userId),
+            ne(session.token, options.preserveSessionToken),
+          ),
+        );
+    } else {
+      await db.delete(session).where(eq(session.userId, userId));
+    }
 
     // User record is preserved for analytics (email, createdAt, level='demo')
     console.log(`Successfully cleaned up demo account data for user ${userId}`);

@@ -7,9 +7,12 @@
  * - Session management strategy
  * - Custom user fields (level, preferences, etc.)
  * - Field mappings for database schema
+ * - Security hooks (shadow user login blocking)
  */
 
 import { drizzleAdapter } from 'better-auth/adapters/drizzle';
+import { createAuthMiddleware, APIError } from 'better-auth/api';
+import { eq } from 'drizzle-orm';
 import {
   db,
   user as userTable,
@@ -248,6 +251,44 @@ export const betterAuthConfig: Partial<BetterAuthOptions> = {
         },
       }),
     },
+  },
+
+  // Security hooks
+  // Block shadow demo users from logging in directly
+  hooks: {
+    before: createAuthMiddleware(async (ctx) => {
+      // Check sign-in attempts (email/password and OAuth callbacks)
+      const isSignInAttempt =
+        ctx.path === '/sign-in/email' ||
+        ctx.path === '/sign-in/social' ||
+        ctx.path.startsWith('/callback/');
+
+      if (isSignInAttempt && ctx.body?.email) {
+        // Check if user exists and is a shadow demo user
+        const existingUser = await db
+          .select({ isDemo: userTable.isDemo })
+          .from(userTable)
+          .where(eq(userTable.email, ctx.body.email as string))
+          .limit(1);
+
+        if (existingUser[0]?.isDemo) {
+          throw new APIError('FORBIDDEN', {
+            message: 'Demo accounts cannot log in directly',
+          });
+        }
+      }
+
+      // Also block by email pattern as a safety measure
+      // Shadow users have emails like shadow-{uuid}@demo.bragdoc.ai
+      if (ctx.body?.email) {
+        const email = ctx.body.email as string;
+        if (email.startsWith('shadow-') && email.endsWith('@demo.bragdoc.ai')) {
+          throw new APIError('FORBIDDEN', {
+            message: 'Demo accounts cannot log in directly',
+          });
+        }
+      }
+    }),
   },
 };
 
