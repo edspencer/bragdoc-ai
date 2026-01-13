@@ -1,0 +1,107 @@
+BRAGDOC EMAIL TEMPLATES
+=======================
+
+================================================================================
+EMAIL 1: WELCOME
+Trigger: Day 0 (immediate after signup)
+================================================================================
+
+Subject: You're in. Here's how to get started.
+
+---
+
+Hey,
+
+Thanks for signing up for BragDoc.
+
+The fastest way to get value: install the CLI and run your first extraction. Takes about 2 minutes.
+
+npm install -g @bragdoc/cli
+bragdoc login
+bragdoc extract --since 3m
+
+That pulls the last 3 months of your Git history and turns it into documented achievements. Your code stays local - only the summaries sync.
+
+Once you've extracted, you can see your achievements in the dashboard, watch them cluster into workstreams, and eventually generate performance review docs from them.
+
+Questions? Just reply to this email.
+
+- The BragDoc team
+
+
+================================================================================
+EMAIL 2: THE PROBLEM
+Trigger: Day 3
+================================================================================
+
+Subject: The thing about performance reviews
+
+---
+
+Quick story.
+
+Every review cycle, engineers scramble to remember what they did. They scroll through 6 months of commits, skim old PRs, and try to reconstruct their impact from memory.
+
+The result? They undersell themselves. They forget the hard stuff. They write vague bullet points like "contributed to several projects" and hope their manager fills in the gaps.
+
+Managers don't fill in the gaps. They're busy. They have 8 other people to review. They rely on what you tell them.
+
+This is the visibility gap - and it's why engineers who document well get promoted faster than engineers who just do good work.
+
+BragDoc fixes this by capturing your work as it happens. Your Git history already contains the evidence. We just make it usable.
+
+If you haven't run your first extraction yet:
+
+bragdoc extract --since 6m
+
+Takes 2 minutes. You'll have 6 months of achievements documented before your next meeting.
+
+- BragDoc
+
+
+================================================================================
+EMAIL 3: QUICK WIN
+Trigger: Day 7
+================================================================================
+
+Subject: One thing you can do today
+
+---
+
+If you've already extracted your achievements - nice. You're ahead of most engineers.
+
+Here's what to do next: look at your workstreams.
+
+BragDoc automatically groups your achievements into themes. So instead of a flat list of 50 things you did, you get 5-8 named workstreams like "Payment System Refactor" or "API Performance."
+
+This matters because review conversations aren't about individual commits. They're about patterns. "I led three major infrastructure initiatives this year" lands better than "I made 200 commits."
+
+Check your workstreams in the dashboard. If they don't look right, you can rename or reorganize them.
+
+And if you haven't extracted yet - now's a good time. Review season is coming.
+
+bragdoc extract --since 6m
+
+- BragDoc
+
+
+================================================================================
+EMAIL 4: CHECK-IN
+Trigger: Day 14
+================================================================================
+
+Subject: Quick question
+
+---
+
+Hey,
+
+Noticed you signed up a couple weeks ago. Just wanted to check in.
+
+Did you get a chance to run an extraction? If something didn't work or wasn't clear, I'd like to know.
+
+If you're waiting for a better time - review season is coming up fast. Most engineers wish they'd started documenting earlier. Now's a good window.
+
+Either way, no pressure. Just reply if you have questions.
+
+- Natalia
