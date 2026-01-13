@@ -73,7 +73,13 @@ export const auth: ReturnType<typeof betterAuth> = betterAuth({
           });
         } catch (error) {
           console.error('Failed to send magic link email:', error);
-          throw new Error('Failed to send verification email');
+          // In development, don't fail if email sending fails - the link is logged above
+          if (process.env.NODE_ENV !== 'development') {
+            throw new Error('Failed to send verification email');
+          }
+          console.log(
+            '📧 Email send failed, but you can use the magic link from the console above',
+          );
         }
       },
 

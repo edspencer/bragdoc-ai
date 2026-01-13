@@ -1128,8 +1128,182 @@ These will be removed in future releases:
 
 ---
 
-**Last Updated:** 2025-10-28 (Better Auth migration)
+## Per-User Demo Mode (Session-Swap Architecture)
+
+### Overview
+
+BragDoc supports per-user demo mode, allowing authenticated users to toggle into a sandbox environment with sample data without affecting their real data. This feature uses a **session-swap architecture** where toggling demo mode creates a new session pointing to a shadow user.
+
+### Key Architecture Decision
+
+Instead of adding demo mode checks to every API route (42+ routes), the session-swap approach centralizes complexity in a single toggle endpoint. When `getAuthUser()` is called, it returns the demo user automatically if in demo mode, making the feature transparent to all existing API routes.
+
+### Shadow Users
+
+Shadow users are special accounts created to hold demo data for authenticated users:
+
+**Characteristics:**
+- Email pattern: `shadow-{realUserId}@demo.bragdoc.ai`
+- `isDemo: true` flag set on User table
+- `level: 'demo'` subscription level
+- Linked to real user via `User.demoUserId` field
+- Created lazily on first demo mode toggle
+
+**Creation Flow:**
+1. User toggles demo mode for the first time
+2. System checks if user already has a linked shadow user (`User.demoUserId`)
+3. If not, creates new shadow user with demo email pattern
+4. Links shadow user to real user via `demoUserId` update
+5. Seeds demo data using `importDemoData()` function
+
+### Session Swapping
+
+The `impersonatedBy` field on the Session table enables demo mode without modifying API routes:
+
+**Schema:**
+```typescript
+export const session = pgTable('Session', {
+  // ... standard fields ...
+  impersonatedBy: uuid('impersonated_by').references(() => user.id, {
+    onDelete: 'cascade',
+  }),
+});
+```
+
+**Session States:**
+| State | userId | impersonatedBy | Description |
+|-------|--------|----------------|-------------|
+| Normal | realUser | null | Standard authenticated session |
+| Demo Mode | shadowUser | realUser | Session points to shadow user, tracks real user |
+
+**Toggle Flow (Enter Demo Mode):**
+1. User calls `POST /api/demo-mode/toggle`
+2. System gets or creates shadow user for real user
+3. Current session is deleted
+4. New session created: `userId=shadowUser, impersonatedBy=realUser`
+5. Session cookie set in response
+6. Page reloads to pick up new session
+
+**Toggle Flow (Exit Demo Mode):**
+1. User calls `POST /api/demo-mode/toggle`
+2. System reads `impersonatedBy` to identify real user
+3. Demo session is deleted
+4. New session created: `userId=realUser, impersonatedBy=null`
+5. Session cookie set in response
+6. Page reloads to return to real data
+
+### API Endpoints
+
+**POST /api/demo-mode/toggle**
+Toggles between demo mode and normal mode. Creates session cookie in response.
+
+```typescript
+// Response when entering demo mode
+{ "success": true, "mode": "demo", "message": "Demo mode enabled" }
+
+// Response when exiting demo mode
+{ "success": true, "mode": "normal", "message": "Demo mode disabled" }
+```
+
+**POST /api/demo-mode/reset**
+Resets demo data (only works when in demo mode).
+
+```typescript
+// Request: No body required
+
+// Response
+{ "success": true, "message": "Demo data reset successfully", "stats": {...} }
+
+// Error (not in demo mode)
+{ "error": "Not in demo mode" } // 400 status
+```
+
+**GET /api/demo-mode/status**
+Returns current demo mode status.
+
+```typescript
+// In demo mode
+{ "isDemoMode": true, "realUserId": "uuid-of-real-user" }
+
+// Not in demo mode
+{ "isDemoMode": false }
+```
+
+### Security Measures
+
+**Shadow User Login Prevention:**
+Shadow users cannot authenticate directly. Better Auth hooks block:
+1. Email/password login for users with `isDemo: true`
+2. Any email matching pattern `shadow-*@demo.bragdoc.ai`
+3. OAuth attempts for shadow user emails
+
+```typescript
+// In Better Auth config (hooks.before)
+if (existingUser[0]?.isDemo) {
+  throw new APIError('FORBIDDEN', {
+    message: 'Demo accounts cannot log in directly',
+  });
+}
+```
+
+**Session Isolation:**
+- Demo sessions have `impersonatedBy` set, normal sessions have it null
+- Session expiration: 4 hours for demo, 30 days for normal
+- Deleting real user cascades to shadow user (via `demoUserId` FK)
+
+### Client-Side Integration
+
+**DemoModeProvider Context:**
+```typescript
+interface DemoModeContextType {
+  isDemoMode: boolean;        // Is per-user demo mode active
+  isLoading: boolean;         // Async operation in progress
+  isStandaloneDemoUser: boolean; // Is standalone demo account
+  toggleDemoMode(): Promise<void>;
+  resetDemoData(): Promise<void>;
+}
+```
+
+**Components:**
+- `DemoToggleButton` - Header button to toggle demo mode
+- `PerUserDemoBanner` - Fixed banner showing "You're viewing demo data"
+- `DemoToggleWrapper` - Conditional wrapper (hides for standalone demo users)
+
+**Detection:**
+```typescript
+// Server-side (in layout.tsx)
+const fullSession = await getFullSessionById(session.session.id);
+const isPerUserDemoMode = fullSession?.impersonatedBy != null;
+
+// Client-side (via context)
+const { isDemoMode } = useDemoMode();
+```
+
+### Comparison: Per-User vs Standalone Demo Mode
+
+| Feature | Standalone Demo | Per-User Demo |
+|---------|-----------------|---------------|
+| User account | Temporary demo account | Regular authenticated user |
+| User level | `level: 'demo'` | Original level (free/basic/pro) |
+| Session tracking | Normal session | `impersonatedBy` set |
+| Data persistence | Deleted on logout | Preserved in shadow user |
+| Banner | "Create Free Account" link | "Reset Demo" / "Exit" buttons |
+| Access | `/demo` signup flow | Header toggle button |
+
+### Environment Variables
+
+```env
+# Enable demo mode feature (both standalone and per-user)
+DEMO_MODE_ENABLED=true
+NEXT_PUBLIC_DEMO_MODE_ENABLED=true
+```
+
+Both variables must be set to `true` for the demo toggle button to appear.
+
+---
+
+**Last Updated:** 2026-01-13 (Per-user demo mode)
 **Better Auth Version:** 1.3.33
 **Session Strategy:** Database-backed with cookie caching
 **JWT Expiration:** 30 days (CLI tokens)
-**Session Expiration:** 30 days (web sessions)
+**Session Expiration:** 30 days (web sessions), 4 hours (demo sessions)

@@ -7,7 +7,13 @@
 
 import crypto from 'node:crypto';
 import { db } from '@/database/index';
-import { achievement, company, project, document } from '@/database/schema';
+import {
+  achievement,
+  company,
+  project,
+  document,
+  performanceReview,
+} from '@/database/schema';
 import { eq, and } from 'drizzle-orm';
 import type { z } from 'zod';
 import type { exportDataSchema } from './export-import-schema';
@@ -24,15 +30,17 @@ export interface ImportStats {
   projects: { created: number; skipped: number };
   achievements: { created: number; skipped: number };
   documents: { created: number; skipped: number };
+  performanceReviews: { created: number; skipped: number };
 }
 
 /**
- * Imports user data (companies, projects, achievements, documents)
+ * Imports user data (companies, projects, achievements, documents, performance reviews)
  * Order matters due to foreign key relationships:
  * 1. Companies (no dependencies)
  * 2. Projects (depend on companies)
  * 3. Achievements (depend on companies and projects)
  * 4. Documents (depend on companies)
+ * 5. Performance Reviews (depend on documents)
  *
  * @param options - Import configuration including userId, data, and duplicate checking
  * @returns Statistics about created and skipped items
@@ -52,11 +60,13 @@ export async function importUserData(
     projects: { created: 0, skipped: 0 },
     achievements: { created: 0, skipped: 0 },
     documents: { created: 0, skipped: 0 },
+    performanceReviews: { created: 0, skipped: 0 },
   };
 
   // ID mappings for foreign key updates when generating new IDs
   const companyIdMap = new Map<string, string>();
   const projectIdMap = new Map<string, string>();
+  const documentIdMap = new Map<string, string>();
 
   // IMPORTANT: Order matters due to foreign key relationships
   // 1. Companies (no dependencies)
@@ -350,6 +360,11 @@ export async function importUserData(
           ? companyIdMap.get(documentData.companyId) || documentData.companyId
           : documentData.companyId;
 
+      // Store ID mapping for foreign key updates (performance reviews reference documents)
+      if (generateNewIds) {
+        documentIdMap.set(documentData.id, newDocumentId);
+      }
+
       return {
         id: newDocumentId,
         userId,
@@ -390,6 +405,11 @@ export async function importUserData(
         continue;
       }
 
+      // Store ID mapping for foreign key updates (performance reviews reference documents)
+      if (generateNewIds) {
+        documentIdMap.set(documentData.id, newDocumentId);
+      }
+
       await db.insert(document).values({
         id: newDocumentId,
         userId,
@@ -402,6 +422,74 @@ export async function importUserData(
         updatedAt: new Date(documentData.updatedAt),
       });
       stats.documents.created++;
+    }
+  }
+
+  // Import performance reviews (depend on documents)
+  const performanceReviewsData = importData.performanceReviews ?? [];
+
+  if (!checkDuplicates) {
+    // Batch insert for demo mode
+    const reviewsToInsert = performanceReviewsData.map((reviewData) => {
+      const newReviewId = generateNewIds ? crypto.randomUUID() : reviewData.id;
+      const newDocumentId =
+        generateNewIds && reviewData.documentId
+          ? documentIdMap.get(reviewData.documentId) || reviewData.documentId
+          : reviewData.documentId;
+
+      return {
+        id: newReviewId,
+        userId,
+        name: reviewData.name,
+        startDate: new Date(reviewData.startDate),
+        endDate: new Date(reviewData.endDate),
+        instructions: reviewData.instructions,
+        documentId: newDocumentId,
+        createdAt: new Date(reviewData.createdAt),
+        updatedAt: new Date(reviewData.updatedAt),
+      };
+    });
+
+    if (reviewsToInsert.length > 0) {
+      await db.insert(performanceReview).values(reviewsToInsert);
+      stats.performanceReviews.created = reviewsToInsert.length;
+    }
+  } else {
+    // Sequential insert with duplicate checking
+    for (const reviewData of performanceReviewsData) {
+      const newReviewId = generateNewIds ? crypto.randomUUID() : reviewData.id;
+      const newDocumentId =
+        generateNewIds && reviewData.documentId
+          ? documentIdMap.get(reviewData.documentId) || reviewData.documentId
+          : reviewData.documentId;
+
+      const existing = await db
+        .select()
+        .from(performanceReview)
+        .where(
+          and(
+            eq(performanceReview.id, newReviewId),
+            eq(performanceReview.userId, userId),
+          ),
+        );
+
+      if (existing.length > 0) {
+        stats.performanceReviews.skipped++;
+        continue;
+      }
+
+      await db.insert(performanceReview).values({
+        id: newReviewId,
+        userId,
+        name: reviewData.name,
+        startDate: new Date(reviewData.startDate),
+        endDate: new Date(reviewData.endDate),
+        instructions: reviewData.instructions,
+        documentId: newDocumentId,
+        createdAt: new Date(reviewData.createdAt),
+        updatedAt: new Date(reviewData.updatedAt),
+      });
+      stats.performanceReviews.created++;
     }
   }
 
