@@ -323,55 +323,46 @@ github: {
 - Fallback to login if name not provided
 - No API integration features (GitHub API integration feature was removed)
 
-### 4. Demo Mode Authentication
+### 4. Demo Intent Flow (Auto-Enter Demo Mode)
 
-Demo accounts use Better Auth's email/password authentication with programmatic sign-in.
+BragDoc provides a streamlined demo experience where users can sign up and automatically enter demo mode with sample data.
 
-**Purpose:** Allow users to try BragDoc without signing up, using temporary demo accounts with pre-populated data.
+**Purpose:** Allow users to explore BragDoc with sample data immediately after registration, combining signup with demo mode entry for a frictionless experience.
 
 **Flow:**
-1. User clicks "Try Demo Mode" button
-2. Server creates demo user with hashed password and `level: 'demo'`
-3. Server creates credential account in Better Auth
-4. Server generates JWT token using NextAuth's `encode()` function (backward compatibility)
-5. Server sets session cookie directly via `cookies()` API
-6. User immediately authenticated (no login flow)
-7. Session expires after 4 hours via JWT `maxAge`
+1. User clicks "Try Demo" CTA on marketing site or `/register?demo=true` link
+2. Server component detects `?demo=true` query parameter
+3. Server sets `bragdoc_demo_intent` cookie (1-hour expiry, non-httpOnly for client access)
+4. User completes registration (magic link, Google, or GitHub OAuth)
+5. After successful authentication, `DemoIntentHandler` component detects cookie
+6. Component calls `/api/demo-mode/toggle` to enter per-user demo mode
+7. Cookie is cleared and page reloads with demo data
 
-**Implementation:** `apps/web/lib/create-demo-account.ts`
+**Demo Intent Cookie Configuration:**
+- Name: `bragdoc_demo_intent`
+- Value: `'true'`
+- HttpOnly: `false` (needs client-side access for handler)
+- SameSite: `Lax` (allows cookie on OAuth redirects)
+- Secure: `true` in production
+- Path: `/`
+- Max-Age: `3600` (1 hour)
+
+**Implementation Files:**
+- `apps/web/lib/demo-intent.ts` - Cookie management utilities
+- `apps/web/components/demo-intent-handler.tsx` - Auto-enter demo mode on mount
+- `apps/web/app/(auth)/register/page.tsx` - Server component sets cookie
+- `apps/web/app/(auth)/login/page.tsx` - Server component sets cookie
+
+**UI Indicators:**
+- Demo intent banner on login/register pages: "After signing up, you'll enter demo mode with sample data to explore"
+- Login page "Sign up" link preserves `?demo=true` parameter
 
 **Key Characteristics:**
-- Fixed internal password (never exposed to users): `DEMO_ACCOUNT_PASSWORD`
-- Hashed using Better Auth's `hashPassword()` function
-- Provider set to `'credential'` (Better Auth convention)
-- Pre-populated with sample data (companies, projects, achievements)
-- Session-only authentication (programmatic JWT + cookie)
-- Demo banner displays for user awareness
-- 4-hour session expiration
-- Email format: `demo-{timestamp}@demo.bragdoc.ai`
-
-**Database Records:**
-```typescript
-// User record
-await db.insert(user).values({
-  email: 'demo-1234567890@demo.bragdoc.ai',
-  name: 'Demo User',
-  level: 'demo',
-  emailVerified: true, // Boolean for Better Auth
-  provider: 'credential',
-  preferences: { language: 'en' },
-});
-
-// Account record (required for Better Auth email/password)
-await db.insert(account).values({
-  userId: demoUser.id,
-  accountId: demoUser.email,
-  providerId: 'credential',
-  password: hashedPassword,
-});
-```
-
-**Server Action:** `apps/web/app/(auth)/demo/actions.ts` - `startDemo()` function
+- Cookie survives OAuth redirects (SameSite: Lax)
+- Works with all auth methods (magic link, Google, GitHub)
+- Single entry point via per-user demo mode
+- No standalone demo accounts created
+- User gets real account with demo data overlay
 
 ## Database Schema
 
@@ -729,9 +720,8 @@ export default async function middleware(request: NextRequest) {
   const isAuthPage =
     pathname.startsWith('/login') ||
     pathname.startsWith('/register') ||
-    pathname.startsWith('/demo') ||
     pathname.startsWith('/api/auth') ||
-    pathname.startsWith('/api/demo') ||
+    pathname.startsWith('/api/demo-mode') ||
     pathname.startsWith('/cli-auth') ||
     pathname.startsWith('/unsubscribed') ||
     pathname.startsWith('/shared/');
@@ -795,12 +785,11 @@ export const config = {
 **Public Routes (excluded from middleware protection):**
 - `/login` - Login page
 - `/register` - Registration page
-- `/demo` - Demo mode pages
 - `/cli-auth` - CLI authentication page
 - `/shared/*` - Publicly shared documents
 - `/unsubscribed` - Email unsubscribe page
 - `/api/auth/*` - Better Auth API endpoints
-- `/api/demo/*` - Demo mode API endpoints
+- `/api/demo-mode/*` - Per-user demo mode API endpoints
 - Static assets (`_next/static`, `_next/image`, `favicon.ico`, `/api`)
 
 ### API Route Protection
@@ -1132,7 +1121,9 @@ These will be removed in future releases:
 
 ### Overview
 
-BragDoc supports per-user demo mode, allowing authenticated users to toggle into a sandbox environment with sample data without affecting their real data. This feature uses a **session-swap architecture** where toggling demo mode creates a new session pointing to a shadow user.
+BragDoc's demo mode allows authenticated users to toggle into a sandbox environment with sample data without affecting their real data. This feature uses a **session-swap architecture** where toggling demo mode creates a new session pointing to a shadow user.
+
+**Note:** This is the only demo mode implementation. Standalone demo mode (temporary `level='demo'` accounts) has been removed.
 
 ### Key Architecture Decision
 
@@ -1145,7 +1136,6 @@ Shadow users are special accounts created to hold demo data for authenticated us
 **Characteristics:**
 - Email pattern: `shadow-{realUserId}@demo.bragdoc.ai`
 - `isDemo: true` flag set on User table
-- `level: 'demo'` subscription level
 - Linked to real user via `User.demoUserId` field
 - Created lazily on first demo mode toggle
 
@@ -1258,7 +1248,6 @@ if (existingUser[0]?.isDemo) {
 interface DemoModeContextType {
   isDemoMode: boolean;        // Is per-user demo mode active
   isLoading: boolean;         // Async operation in progress
-  isStandaloneDemoUser: boolean; // Is standalone demo account
   toggleDemoMode(): Promise<void>;
   resetDemoData(): Promise<void>;
 }
@@ -1267,7 +1256,8 @@ interface DemoModeContextType {
 **Components:**
 - `DemoToggleButton` - Header button to toggle demo mode
 - `PerUserDemoBanner` - Fixed banner showing "You're viewing demo data"
-- `DemoToggleWrapper` - Conditional wrapper (hides for standalone demo users)
+- `DemoToggleWrapper` - Conditional wrapper (hidden when demo mode disabled)
+- `DemoIntentHandler` - Auto-enters demo mode when intent cookie present
 
 **Detection:**
 ```typescript
@@ -1279,26 +1269,26 @@ const isPerUserDemoMode = fullSession?.impersonatedBy != null;
 const { isDemoMode } = useDemoMode();
 ```
 
-### Comparison: Per-User vs Standalone Demo Mode
+### Demo Mode Entry Points
 
-| Feature | Standalone Demo | Per-User Demo |
-|---------|-----------------|---------------|
-| User account | Temporary demo account | Regular authenticated user |
-| User level | `level: 'demo'` | Original level (free/basic/pro) |
-| Session tracking | Normal session | `impersonatedBy` set |
-| Data persistence | Deleted on logout | Preserved in shadow user |
-| Banner | "Create Free Account" link | "Reset Demo" / "Exit" buttons |
-| Access | `/demo` signup flow | Header toggle button |
+Users can enter demo mode in two ways:
+
+| Entry Point | Description | Implementation |
+|-------------|-------------|----------------|
+| Header toggle | Authenticated users click toggle button | `DemoToggleButton` component |
+| Registration with intent | New users via `/register?demo=true` | `DemoIntentHandler` auto-enter |
 
 ### Environment Variables
 
 ```env
-# Enable demo mode feature (both standalone and per-user)
-DEMO_MODE_ENABLED=true
+# Show demo toggle button in sidebar (per-user demo mode)
 NEXT_PUBLIC_DEMO_MODE_ENABLED=true
+
+# Enable demo help dialogs
+NEXT_PUBLIC_DEMO_HELP_ENABLED=true
 ```
 
-Both variables must be set to `true` for the demo toggle button to appear.
+Set `NEXT_PUBLIC_DEMO_MODE_ENABLED=true` for the demo toggle button to appear in the sidebar.
 
 ---
 

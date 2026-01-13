@@ -4,7 +4,7 @@ import { ArtifactProvider } from '@/hooks/use-artifact';
 import { ArtifactCanvas } from '@/components/artifact-canvas';
 import { SidebarProvider } from '@/components/ui/sidebar';
 import { AppSidebar } from '@/components/app-sidebar';
-import { DemoModeBannerWrapper } from '@/components/demo-mode-banner-wrapper';
+import { DemoIntentHandler } from '@/components/demo-intent-handler';
 import { DemoModeLayout } from '@/components/demo-mode-layout';
 import { DemoModeProvider } from '@/components/demo-mode-provider';
 import { PerUserDemoBanner } from '@/components/per-user-demo-banner';
@@ -34,11 +34,8 @@ export default async function AppLayout({
     isPerUserDemoMode = fullSession?.impersonatedBy != null;
   }
 
-  // Derive isDemoMode from session (supports both standalone demo accounts and per-user demo mode)
-  // Standalone demo: user.level === 'demo'
-  // Per-user demo: session.impersonatedBy is set
-  const isStandaloneDemoMode = (session?.user as any)?.level === 'demo';
-  const isDemoMode = isStandaloneDemoMode || isPerUserDemoMode;
+  // isDemoMode is now only per-user demo mode (standalone demo mode has been removed)
+  const isDemoMode = isPerUserDemoMode;
 
   // Fetch top projects server-side (only for authenticated users)
   const topProjects = session?.user
@@ -59,12 +56,9 @@ export default async function AppLayout({
     <PHProvider user={sidebarUser}>
       <ArtifactProvider>
         <DataStreamProvider>
-          <DemoModeProvider
-            initialDemoMode={isPerUserDemoMode}
-            isStandaloneDemoUser={isStandaloneDemoMode}
-          >
+          <DemoModeProvider initialDemoMode={isPerUserDemoMode}>
+            <DemoIntentHandler isDemoMode={isPerUserDemoMode} />
             <DemoModeLayout isDemoMode={isDemoMode}>
-              <DemoModeBannerWrapper isDemoMode={isDemoMode} />
               <PerUserDemoBanner />
               <TourProvider>
                 <SidebarProvider

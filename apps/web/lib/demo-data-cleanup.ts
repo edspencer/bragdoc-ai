@@ -1,8 +1,9 @@
 /**
  * Demo Account Data Cleanup
  *
- * Handles deletion of all data associated with a demo account on logout.
- * Preserves the user record for analytics tracking.
+ * Handles deletion of all data associated with a per-user demo shadow account.
+ * Used when resetting demo data (POST /api/demo-mode/reset).
+ * Note: Standalone demo mode has been removed - this only handles per-user demo.
  */
 
 import { db } from '@/database/index';
@@ -36,12 +37,12 @@ interface CleanupOptions {
 }
 
 /**
- * Cleans up all data associated with a demo account while preserving the user record
+ * Cleans up all data associated with a per-user demo shadow account while preserving the user record
  *
  * This function:
- * 1. Verifies the user is a demo account (level === 'demo' or isDemo === true)
+ * 1. Verifies the user is a per-user demo shadow account (isDemo === true)
  * 2. Deletes all related data in proper order to respect foreign key constraints
- * 3. Preserves the user record for analytics (email, createdAt, level)
+ * 3. Preserves the user record for analytics (email, createdAt, isDemo)
  *
  * Tables cleaned up:
  * - emailPreferences
@@ -79,9 +80,12 @@ export async function cleanupDemoAccountData(
       return;
     }
 
-    // Check if user is a demo account (either by level or isDemo flag)
-    if (demoUser.level !== 'demo' && !demoUser.isDemo) {
-      console.warn(`User ${userId} is not a demo account, skipping cleanup`);
+    // Check if user is a per-user demo shadow account
+    // Note: Standalone demo mode (level='demo') has been removed
+    if (!demoUser.isDemo) {
+      console.warn(
+        `User ${userId} is not a demo shadow account, skipping cleanup`,
+      );
       return;
     }
 

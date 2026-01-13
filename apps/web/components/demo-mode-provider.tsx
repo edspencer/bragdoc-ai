@@ -17,12 +17,6 @@ interface DemoModeContextType {
   isDemoMode: boolean;
 
   /**
-   * Whether the user is a standalone demo account (user.level === 'demo')
-   * These users cannot toggle demo mode as they don't have a "real" account
-   */
-  isStandaloneDemoUser: boolean;
-
-  /**
    * Whether an async operation is in progress
    */
   isLoading: boolean;
@@ -55,11 +49,6 @@ interface DemoModeProviderProps {
    * Determined by checking session.impersonatedBy on the server
    */
   initialDemoMode: boolean;
-  /**
-   * Whether the user is a standalone demo account (user.level === 'demo')
-   * These users cannot toggle demo mode
-   */
-  isStandaloneDemoUser?: boolean;
 }
 
 /**
@@ -84,7 +73,6 @@ interface DemoModeProviderProps {
 export function DemoModeProvider({
   children,
   initialDemoMode,
-  isStandaloneDemoUser = false,
 }: DemoModeProviderProps) {
   const [isDemoMode, _setIsDemoMode] = useState(initialDemoMode);
   const [isLoading, setIsLoading] = useState(false);
@@ -137,7 +125,6 @@ export function DemoModeProvider({
     <DemoModeContext.Provider
       value={{
         isDemoMode,
-        isStandaloneDemoUser,
         isLoading,
         toggleDemoMode,
         resetDemoData,

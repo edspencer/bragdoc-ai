@@ -4,7 +4,7 @@ import { Sparkles } from 'lucide-react';
 import { appPath } from '@/lib/utils';
 
 export function DemoCTA() {
-  const demoUrl = appPath('/demo');
+  const demoUrl = appPath('/register?demo=true');
 
   return (
     <div className="not-prose my-8 max-w-xl mx-auto">
@@ -15,16 +15,15 @@ export function DemoCTA() {
               <div className="flex items-center gap-2">
                 <Sparkles className="h-5 w-5 text-violet-500" />
                 <h4 className="font-semibold text-lg bg-gradient-to-r from-violet-600 to-fuchsia-600 bg-clip-text text-transparent">
-                  Try Demo Mode
+                  Try BragDoc Free
                 </h4>
                 <Sparkles className="h-5 w-5 text-fuchsia-500" />
               </div>
               <p className="text-sm text-muted-foreground max-w-sm">
-                Instantly explore BragDoc with demo data. No sign-up, no credit
-                card, no email address
+                Create a free account and explore BragDoc with sample data
               </p>
               <Button className="w-full bg-gradient-to-r from-violet-500 to-fuchsia-500 hover:from-violet-600 hover:to-fuchsia-600 text-white border-0 shadow-md group-hover:shadow-lg transition-all">
-                Start Exploring
+                Get Started Free
               </Button>
             </div>
           </div>
