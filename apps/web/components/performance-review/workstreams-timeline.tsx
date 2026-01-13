@@ -1,6 +1,9 @@
 'use client';
 
 import { useState, useMemo } from 'react';
+import Link from 'next/link';
+import { TrendingUp } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 import { WorkstreamsGanttChart } from '@/components/workstreams/workstreams-gantt-chart';
 import { WorkstreamAchievementsTable } from '@/components/workstreams/workstream-achievements-table';
 import { WorkstreamSelectionZeroState } from '@/components/workstreams/workstream-selection-zero-state';
@@ -68,9 +71,26 @@ export function WorkstreamsTimeline({
 
   if (workstreams.length === 0 || !hasWorkstreamsWithAchievements) {
     return (
-      <p className="text-sm text-muted-foreground">
-        No workstreams found for this review period.
-      </p>
+      <div className="flex flex-1 flex-col items-center p-8 pt-16">
+        <div className="max-w-2xl w-full space-y-6">
+          <div className="text-center">
+            <div className="mx-auto w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mb-4">
+              <TrendingUp className="h-6 w-6 text-primary" />
+            </div>
+            <h2 className="text-3xl font-bold">Workstreams</h2>
+          </div>
+          <p className="text-muted-foreground text-center">
+            No workstreams were found for this review period. Workstreams are
+            collections of related achievements that make performance review
+            document writing easier.
+          </p>
+          <div className="flex justify-center">
+            <Button asChild size="lg">
+              <Link href="/workstreams">Create Workstreams</Link>
+            </Button>
+          </div>
+        </div>
+      </div>
     );
   }
 
