@@ -8,6 +8,8 @@ import {
   IconLoader2,
   IconUser,
   IconTrash,
+  IconDeviceFloppy,
+  IconCheck,
 } from '@tabler/icons-react';
 import { DefaultChatTransport } from 'ai';
 import { Button } from '@/components/ui/button';
@@ -31,6 +33,7 @@ import { cn } from '@/lib/utils';
 interface DocumentSectionProps {
   document: string | null;
   onDocumentChange: (content: string | null) => void;
+  documentId: string | null;
   generationInstructions: string;
   onInstructionsChange: (value: string) => void;
   saveInstructionsToLocalStorage: boolean;
@@ -48,6 +51,7 @@ interface DocumentSectionProps {
 export function DocumentSection({
   document,
   onDocumentChange,
+  documentId,
   generationInstructions,
   onInstructionsChange,
   saveInstructionsToLocalStorage,
@@ -71,8 +75,67 @@ export function DocumentSection({
   const [isUpdating, setIsUpdating] = useState(false);
   const [streamedContent, setStreamedContent] = useState<string>('');
 
+  // State for auto-save indicator
+  const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved'>(
+    'idle',
+  );
+
   // Ref to accumulate content during streaming (avoids stale closure issues)
   const streamedContentRef = useRef<string>('');
+
+  // Ref to track the last saved content to avoid unnecessary saves
+  const lastSavedContentRef = useRef<string | null>(null);
+
+  // Initialize lastSavedContentRef with the initial document content
+  useEffect(() => {
+    if (document !== null && lastSavedContentRef.current === null) {
+      lastSavedContentRef.current = document;
+    }
+  }, [document]);
+
+  // Debounced auto-save for manual edits
+  useEffect(() => {
+    // Don't save if:
+    // - No documentId (document not created yet)
+    // - Document is null or empty string (zero state or "write myself" state)
+    // - Currently generating or updating via AI
+    // - Content hasn't changed from last save
+    if (
+      !documentId ||
+      document === null ||
+      isGenerating ||
+      isUpdating ||
+      document === lastSavedContentRef.current
+    ) {
+      return;
+    }
+
+    const timeoutId = setTimeout(async () => {
+      setSaveStatus('saving');
+      try {
+        const response = await fetch(`/api/documents/${documentId}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ content: document }),
+        });
+
+        if (response.ok) {
+          lastSavedContentRef.current = document;
+          setSaveStatus('saved');
+          // Hide "Saved" indicator after 1500ms
+          setTimeout(() => setSaveStatus('idle'), 1500);
+        } else {
+          console.error('Failed to auto-save document');
+          setSaveStatus('idle');
+        }
+      } catch (err) {
+        console.error('Error auto-saving document:', err);
+        setSaveStatus('idle');
+      }
+    }, 1000); // Debounce: save 1 second after user stops typing
+
+    return () => clearTimeout(timeoutId);
+  }, [document, documentId, isGenerating, isUpdating]);
 
   // Handle data stream events from the chat for document updates
   const handleData = useCallback(
@@ -96,6 +159,8 @@ export function DocumentSection({
       } else if (part.type === 'data-finish') {
         // Document update complete - persist to parent state
         onDocumentChange(streamedContentRef.current);
+        // Update lastSavedContentRef so we don't re-save what AI just saved
+        lastSavedContentRef.current = streamedContentRef.current;
         setIsUpdating(false);
       }
       // Note: errors are handled via chatError from useChat, not via data stream
@@ -183,6 +248,9 @@ export function DocumentSection({
         accumulatedContent += chunk;
         onDocumentChange(accumulatedContent);
       }
+
+      // Update lastSavedContentRef so we don't re-save what was just generated
+      lastSavedContentRef.current = accumulatedContent;
 
       // After generation completes, fetch the performance review to get the chatId
       try {
@@ -329,6 +397,23 @@ export function DocumentSection({
             </AlertDialogFooter>
           </AlertDialogContent>
         </AlertDialog>
+
+        {/* Auto-save indicator */}
+        {saveStatus !== 'idle' && (
+          <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
+            {saveStatus === 'saving' ? (
+              <>
+                <IconDeviceFloppy className="size-4 animate-pulse" />
+                <span>Saving...</span>
+              </>
+            ) : (
+              <>
+                <IconCheck className="size-4 text-green-600" />
+                <span>Saved</span>
+              </>
+            )}
+          </div>
+        )}
       </div>
 
       {/* Document and Chat layout */}

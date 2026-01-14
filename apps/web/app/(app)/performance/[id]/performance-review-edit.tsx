@@ -308,6 +308,7 @@ export function PerformanceReviewEdit({
               <DocumentSection
                 document={document}
                 onDocumentChange={handleDocumentChange}
+                documentId={performanceReview.document?.id ?? null}
                 generationInstructions={instructions}
                 onInstructionsChange={setInstructions}
                 saveInstructionsToLocalStorage={saveInstructions}
