@@ -3,6 +3,7 @@
 import {
   Terminal,
   LayoutDashboard,
+  Sparkles,
   FolderKanban,
   Clock,
   FileText,
@@ -61,6 +62,21 @@ const features: Feature[] = [
     screenshotAlt:
       'BragDoc achievement dashboard showing filtered career accomplishments by project and date',
     screenshot: '/screenshots/ui/dashboard.png',
+  },
+  {
+    icon: Sparkles,
+    heading: 'Workstreams: AI Pattern Recognition',
+    description:
+      'Automatically discover themes and patterns across your achievements using machine learning. Understand your career trajectory at a glance.',
+    bullets: [
+      'Machine learning groups related achievements',
+      'Identifies skill areas and growth patterns',
+      'AI-generated cluster names for themes',
+      'Reveals your professional development story',
+    ],
+    screenshotAlt:
+      'BragDoc Workstreams dashboard showing achievement clusters organized by theme',
+    screenshot: '/screenshots/ui/workstreams-dashboard.png',
   },
   {
     icon: FolderKanban,
