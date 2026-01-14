@@ -24,7 +24,12 @@ export type UpdatePerformanceReviewInput = Partial<
 };
 
 export type PerformanceReviewWithDocument = PerformanceReview & {
-  document: { id: string; title: string; content: string | null } | null;
+  document: {
+    id: string;
+    title: string;
+    content: string | null;
+    chatId: string | null;
+  } | null;
 };
 
 export type AchievementWithContext = {
@@ -60,6 +65,7 @@ export async function getPerformanceReviewsByUserId(
         id: document.id,
         title: document.title,
         content: document.content,
+        chatId: document.chatId,
       },
     })
     .from(performanceReview)
@@ -104,6 +110,7 @@ export async function getPerformanceReviewById(
         id: document.id,
         title: document.title,
         content: document.content,
+        chatId: document.chatId,
       },
     })
     .from(performanceReview)

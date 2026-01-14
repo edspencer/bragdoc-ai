@@ -75,6 +75,9 @@ export function PerformanceReviewEdit({
   const [document, setDocument] = useState<string | null>(
     performanceReview.document?.content ?? null,
   );
+  const [chatId, setChatId] = useState<string | null>(
+    performanceReview.document?.chatId ?? null,
+  );
 
   // UI states
   const [editDialogOpen, setEditDialogOpen] = useState(false);
@@ -310,6 +313,8 @@ export function PerformanceReviewEdit({
                 saveInstructionsToLocalStorage={saveInstructions}
                 onSaveInstructionsToggle={setSaveInstructions}
                 performanceReviewId={performanceReview.id}
+                chatId={chatId}
+                onChatIdChange={setChatId}
                 achievementCount={achievements.length}
                 workstreamCount={workstreams.length}
                 totalImpact={achievements.reduce(

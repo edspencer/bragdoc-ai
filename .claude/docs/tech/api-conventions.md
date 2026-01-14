@@ -747,7 +747,7 @@ export async function captureServerEvent(
 
 ### POST /api/performance-review/chat
 
-Streaming chat endpoint for refining performance review documents. Uses `useChat` hook on the frontend with AI SDK v5 patterns.
+Streaming chat endpoint for refining performance review documents. Uses `useChat` hook on the frontend with AI SDK v5 patterns. Supports tool-based document updates with real-time streaming to the editor.
 
 **Authentication:** Required (supports both session and JWT)
 
@@ -755,8 +755,10 @@ Streaming chat endpoint for refining performance review documents. Uses `useChat
 
 ```typescript
 {
-  messages: UIMessage[];  // AI SDK v5 UIMessage format with parts array
+  messages?: UIMessage[];  // AI SDK v5 UIMessage format with parts array
+  message?: ChatMessage;   // Single message from custom transport (alternative)
   generationInstructions?: string;  // Optional user instructions for document generation
+  performanceReviewId: string;  // Required: ID of the performance review
 }
 ```
 
@@ -773,7 +775,68 @@ interface UIMessage {
 }
 ```
 
-**Response:** Streaming response using `toUIMessageStreamResponse()` compatible with `useChat` hook.
+**Response:** Streaming SSE response using `createUIMessageStream` with `JsonToSseTransformStream`. Compatible with `useChat` hook.
+
+**Tool Registration:**
+
+The endpoint registers the `updatePerformanceReviewDocument` tool which enables the AI to stream document updates directly to the editor:
+
+```typescript
+const stream = createUIMessageStream({
+  execute: ({ writer: dataStream }) => {
+    const result = streamText({
+      model: routerModel,
+      system: enhancedSystemPrompt,
+      messages: convertToModelMessages(uiMessages),
+      tools: {
+        updatePerformanceReviewDocument: updatePerformanceReviewDocument({
+          user: user as User,
+          dataStream,
+        }),
+      },
+    });
+    result.consumeStream();
+    dataStream.merge(result.toUIMessageStream({ sendReasoning: true }));
+  },
+});
+```
+
+**Data Stream Events:**
+
+The tool emits custom data stream events for real-time document updates:
+
+| Event Type | Description | Payload |
+|------------|-------------|---------|
+| `data-clear` | Clears editor content before streaming | `null` |
+| `data-textDelta` | Streams text chunk to editor | `string` (text content) |
+| `data-finish` | Signals update completion | `null` |
+
+All data stream events use `transient: true` flag, meaning they are not persisted in chat history.
+
+**Frontend Handling:**
+
+```typescript
+const { messages, sendMessage, status } = useChat({
+  transport: new DefaultChatTransport({
+    api: '/api/performance-review/chat',
+    body: {
+      generationInstructions,
+      performanceReviewId,
+    },
+  }),
+  onData: (part) => {
+    if (part.type === 'data-clear') {
+      setIsUpdating(true);
+      setStreamedContent('');
+    } else if (part.type === 'data-textDelta') {
+      setStreamedContent((prev) => prev + (part.data as string));
+    } else if (part.type === 'data-finish') {
+      onDocumentChange(streamedContent);
+      setIsUpdating(false);
+    }
+  },
+});
+```
 
 **Error Responses:**
 
@@ -792,6 +855,7 @@ const { messages, sendMessage, status, error } = useChat({
     api: '/api/performance-review/chat',
     body: {
       generationInstructions: 'Focus on technical achievements',
+      performanceReviewId: 'uuid-here',
     },
   }),
 });
@@ -858,5 +922,5 @@ while (true) {
 
 ---
 
-**Last Updated:** 2026-01-08 (Performance Review Generate endpoint)
+**Last Updated:** 2026-01-13 (Performance Review Chat with document update tool)
 **API Version:** v1 (implicit)

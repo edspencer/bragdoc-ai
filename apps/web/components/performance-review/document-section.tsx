@@ -1,7 +1,8 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef, useCallback, useEffect } from 'react';
 import { useChat } from '@ai-sdk/react';
+import type { ChatMessage } from '@/lib/types';
 import {
   IconSparkles,
   IconLoader2,
@@ -35,6 +36,8 @@ interface DocumentSectionProps {
   saveInstructionsToLocalStorage: boolean;
   onSaveInstructionsToggle: (save: boolean) => void;
   performanceReviewId: string;
+  chatId: string | null;
+  onChatIdChange: (chatId: string | null) => void;
   // Summary props for zero state
   achievementCount: number;
   workstreamCount: number;
@@ -50,6 +53,8 @@ export function DocumentSection({
   saveInstructionsToLocalStorage,
   onSaveInstructionsToggle,
   performanceReviewId,
+  chatId,
+  onChatIdChange,
   achievementCount,
   workstreamCount,
   totalImpact,
@@ -60,13 +65,52 @@ export function DocumentSection({
   const [isDeleting, setIsDeleting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isCollapsed, setIsCollapsed] = useState(false);
+  const [isLoadingMessages, setIsLoadingMessages] = useState(false);
+
+  // State for streaming document updates from chat
+  const [isUpdating, setIsUpdating] = useState(false);
+  const [streamedContent, setStreamedContent] = useState<string>('');
+
+  // Ref to accumulate content during streaming (avoids stale closure issues)
+  const streamedContentRef = useRef<string>('');
+
+  // Handle data stream events from the chat for document updates
+  const handleData = useCallback(
+    (part: { type: string; data: unknown }) => {
+      if (part.type === 'data-chatId') {
+        // Chat created - update the chatId so messages can be loaded
+        const newChatId = part.data as string;
+        if (newChatId && newChatId !== chatId) {
+          onChatIdChange(newChatId);
+        }
+      } else if (part.type === 'data-clear') {
+        // Start of document update - clear content and set updating state
+        setIsUpdating(true);
+        setStreamedContent('');
+        streamedContentRef.current = '';
+      } else if (part.type === 'data-textDelta') {
+        // Append text delta to streamed content
+        const text = part.data as string;
+        streamedContentRef.current += text;
+        setStreamedContent(streamedContentRef.current);
+      } else if (part.type === 'data-finish') {
+        // Document update complete - persist to parent state
+        onDocumentChange(streamedContentRef.current);
+        setIsUpdating(false);
+      }
+      // Note: errors are handled via chatError from useChat, not via data stream
+    },
+    [onDocumentChange, chatId, onChatIdChange],
+  );
 
   const {
     messages,
+    setMessages,
     status,
     error: chatError,
     sendMessage,
   } = useChat({
+    id: chatId || undefined,
     transport: new DefaultChatTransport({
       api: '/api/performance-review/chat',
       body: {
@@ -74,7 +118,34 @@ export function DocumentSection({
         performanceReviewId,
       },
     }),
+    onData: handleData,
   });
+
+  // Load messages when chatId changes
+  useEffect(() => {
+    if (!chatId) {
+      setMessages([]);
+      return;
+    }
+
+    async function loadMessages() {
+      setIsLoadingMessages(true);
+      try {
+        const response = await fetch(`/api/messages?chatId=${chatId}`);
+        if (response.ok) {
+          const loadedMessages = (await response.json()) as ChatMessage[];
+          setMessages(loadedMessages as any);
+        }
+      } catch (err) {
+        console.error('Error loading messages:', err);
+        setMessages([]);
+      } finally {
+        setIsLoadingMessages(false);
+      }
+    }
+
+    loadMessages();
+  }, [chatId, setMessages]);
 
   const handleGenerate = async () => {
     setIsGenerating(true);
@@ -111,6 +182,21 @@ export function DocumentSection({
         const chunk = decoder.decode(value, { stream: true });
         accumulatedContent += chunk;
         onDocumentChange(accumulatedContent);
+      }
+
+      // After generation completes, fetch the performance review to get the chatId
+      try {
+        const prResponse = await fetch(
+          `/api/performance-reviews/${performanceReviewId}`,
+        );
+        if (prResponse.ok) {
+          const prData = await prResponse.json();
+          if (prData.document?.chatId) {
+            onChatIdChange(prData.document.chatId);
+          }
+        }
+      } catch (fetchErr) {
+        console.error('Error fetching chatId after generation:', fetchErr);
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred');
@@ -253,9 +339,9 @@ export function DocumentSection({
           )}
         >
           <DocumentEditor
-            content={document}
+            content={isUpdating ? streamedContent : document}
             onChange={onDocumentChange}
-            isGenerating={isGenerating}
+            isGenerating={isGenerating || isUpdating}
           />
         </div>
 
@@ -275,8 +361,9 @@ export function DocumentSection({
             error={chatError}
             isCollapsed={isCollapsed}
             onCollapseToggle={setIsCollapsed}
+            isUpdating={isUpdating}
           />
-          {/* Frosted overlay while generating */}
+          {/* Frosted overlay while generating (initial generation only, not tool-based updates) */}
           {isGenerating && (
             <div className="absolute inset-0 z-10 flex items-center justify-center rounded-lg bg-background/60 backdrop-blur-sm">
               <span className="animate-pulse text-sm font-medium text-muted-foreground">

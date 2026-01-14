@@ -64,7 +64,19 @@ export const updateDocumentPrompt = (
 ) => {
   const mediaType = type === 'text' ? 'document' : type;
 
-  return `Improve the following contents of the ${mediaType} based on the given prompt.
+  return `You are updating an existing ${mediaType}. Your task is to make the requested changes while preserving everything else.
 
-${currentContent}`;
+CRITICAL INSTRUCTIONS:
+1. You MUST output the COMPLETE updated ${mediaType} - not just the changed parts
+2. Make ONLY the changes described in the user's request
+3. Preserve ALL other content exactly as it appears in the current ${mediaType}
+4. Maintain the original structure, formatting, and sections
+5. If the user asks to modify a specific section, change only that section and keep all others intact
+
+Current ${mediaType} content:
+---
+${currentContent}
+---
+
+Apply the requested changes to the ${mediaType} above. Remember: output the ENTIRE ${mediaType} with your changes incorporated, not just the modified section.`;
 };
