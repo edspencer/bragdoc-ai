@@ -30,6 +30,7 @@ interface Feature {
   screenshotAlt: string;
   screenshot?: string;
   isBeta?: boolean;
+  link?: string;
 }
 
 const features: Feature[] = [
@@ -72,11 +73,11 @@ const features: Feature[] = [
       'Machine learning groups related achievements',
       'Identifies skill areas and growth patterns',
       'AI-generated cluster names for themes',
-      'Reveals your professional development story',
     ],
     screenshotAlt:
       'BragDoc Workstreams dashboard showing achievement clusters organized by theme',
     screenshot: '/screenshots/ui/workstreams-dashboard.png',
+    link: '/features/workstreams',
   },
   {
     icon: FolderKanban,
@@ -284,6 +285,15 @@ export function FeaturesPageClient() {
                           </li>
                         ))}
                       </ul>
+                      {feature.link && (
+                        <div className="mt-6">
+                          <Button variant="default" size="sm" asChild>
+                            <Link href={feature.link}>
+                              Learn more about {feature.heading.split(':')[0]}
+                            </Link>
+                          </Button>
+                        </div>
+                      )}
                     </div>
 
                     {/* Screenshot */}

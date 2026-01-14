@@ -39,6 +39,14 @@ export function Footer() {
               </li>
               <li>
                 <Link
+                  href="/features/workstreams"
+                  className="text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  Workstreams
+                </Link>
+              </li>
+              <li>
+                <Link
                   href="/use-cases"
                   className="text-muted-foreground hover:text-foreground transition-colors"
                 >
