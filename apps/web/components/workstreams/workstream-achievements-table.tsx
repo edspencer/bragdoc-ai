@@ -7,6 +7,7 @@ import { Loader2 } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 import { ImpactRating } from '@/components/ui/impact-rating';
+import { useAchievementMutations } from '@/hooks/use-achievement-mutations';
 import {
   Card,
   CardContent,
@@ -52,6 +53,39 @@ export function WorkstreamAchievementsTable({
 }: WorkstreamAchievementsTableProps) {
   const [showOlderAchievements, setShowOlderAchievements] =
     React.useState(false);
+
+  // Track optimistic impact updates locally
+  const [impactOverrides, setImpactOverrides] = React.useState<
+    Record<string, number>
+  >({});
+
+  const { updateAchievement } = useAchievementMutations();
+
+  const handleImpactChange = async (id: string, newImpact: number) => {
+    // Optimistically update local state immediately
+    setImpactOverrides((prev) => ({ ...prev, [id]: newImpact }));
+
+    try {
+      await updateAchievement(id, {
+        impact: newImpact,
+        impactSource: 'user',
+        impactUpdatedAt: new Date(),
+      });
+    } catch (error) {
+      // Revert on error
+      setImpactOverrides((prev) => {
+        const next = { ...prev };
+        delete next[id];
+        return next;
+      });
+      console.error('Failed to update impact:', error);
+    }
+  };
+
+  // Helper to get the current impact value (local override or original)
+  const getImpact = (achievement: AchievementWithRelations) => {
+    return impactOverrides[achievement.id] ?? achievement.impact ?? 2;
+  };
 
   // Filter achievements based on selection and date range
   const { inRangeAchievements, olderAchievements } = React.useMemo(() => {
@@ -199,9 +233,10 @@ export function WorkstreamAchievementsTable({
       </TableCell>
       <TableCell>
         <ImpactRating
-          value={achievement.impact || 2}
+          value={getImpact(achievement)}
           source={achievement.impactSource}
-          readOnly={true}
+          onChange={(value) => handleImpactChange(achievement.id, value)}
+          tooltipDelayDuration={500}
         />
       </TableCell>
     </TableRow>
@@ -255,9 +290,10 @@ export function WorkstreamAchievementsTable({
         </div>
         <div className="pt-1">
           <ImpactRating
-            value={achievement.impact || 2}
+            value={getImpact(achievement)}
             source={achievement.impactSource}
-            readOnly={true}
+            onChange={(value) => handleImpactChange(achievement.id, value)}
+            tooltipDelayDuration={500}
           />
         </div>
       </div>

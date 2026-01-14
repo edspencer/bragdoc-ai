@@ -158,6 +158,8 @@ export function WorkstreamsZeroState({
       } else {
         // Refresh the page to show the new workstreams
         router.refresh();
+        // Scroll to top so user sees the Gantt chart from the beginning
+        window.scrollTo({ top: 0, behavior: 'instant' });
       }
     } catch (error) {
       console.error('Failed to generate workstreams:', error);
