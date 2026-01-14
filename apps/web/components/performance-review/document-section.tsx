@@ -223,6 +223,8 @@ export function DocumentSection({
 
       // Clear local state to return to zero state
       onDocumentChange(null);
+      onChatIdChange(null);
+      setMessages([]);
     } catch (err) {
       console.error('Error deleting document:', err);
       setError(

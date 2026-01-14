@@ -1,6 +1,12 @@
 'use client';
 
-import type { Dispatch, SetStateAction } from 'react';
+import {
+  useRef,
+  useEffect,
+  useCallback,
+  type Dispatch,
+  type SetStateAction,
+} from 'react';
 import type { UIMessage, UseChatHelpers } from '@ai-sdk/react';
 import type { ChatStatus } from 'ai';
 import ReactMarkdown from 'react-markdown';
@@ -46,6 +52,36 @@ export function ChatInterface({
   const isLoading = status === 'submitted' || status === 'streaming';
   const isDisabled = isLoading || isUpdating;
 
+  // Refs for auto-scroll behavior
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const isAtBottomRef = useRef(true);
+
+  // Check if scrolled to bottom (with small threshold for floating point errors)
+  const checkIfAtBottom = useCallback(() => {
+    const container = scrollContainerRef.current;
+    if (!container) return true;
+    const threshold = 10;
+    return (
+      container.scrollHeight - container.scrollTop - container.clientHeight <
+      threshold
+    );
+  }, []);
+
+  // Handle scroll to update isAtBottom state
+  const handleScroll = useCallback(() => {
+    isAtBottomRef.current = checkIfAtBottom();
+  }, [checkIfAtBottom]);
+
+  // Auto-scroll to bottom when messages change, but only if already at bottom
+  useEffect(() => {
+    const container = scrollContainerRef.current;
+    if (!container) return;
+
+    if (isAtBottomRef.current) {
+      container.scrollTop = container.scrollHeight;
+    }
+  }, [messages, isLoading, isUpdating]);
+
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!input.trim() || isDisabled) return;
@@ -78,8 +114,8 @@ export function ChatInterface({
 
   // Expanded state
   return (
-    <Card className="flex h-full flex-col">
-      <CardHeader className="pb-2">
+    <Card className="flex h-full flex-col lg:py-4">
+      <CardHeader className="pb-2 lg:px-4 px-4">
         <div className="flex items-center justify-between">
           <CardTitle className="text-base">Refine with AI</CardTitle>
           <Button
@@ -94,9 +130,14 @@ export function ChatInterface({
         </div>
       </CardHeader>
 
-      <CardContent className="flex flex-1 flex-col overflow-hidden p-0">
+      <CardContent className="flex flex-1 flex-col overflow-hidden p-0 lg:px-4 px-4">
         {/* Messages container - scrollable */}
-        <div className="flex-1 space-y-4 overflow-y-auto px-6 pt-4" role="list">
+        <div
+          ref={scrollContainerRef}
+          onScroll={handleScroll}
+          className="flex-1 space-y-4 overflow-y-auto px-6 pb-4 pt-4"
+          role="list"
+        >
           {messages.length === 0 ? (
             <p className="text-center text-sm text-muted-foreground">
               No messages yet. Ask AI to refine your document.
@@ -126,7 +167,7 @@ export function ChatInterface({
         )}
 
         {/* Input container - sticky at bottom */}
-        <div className="sticky bottom-0 border-t bg-card px-6 pb-4 pt-3 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)]">
+        <div className="sticky bottom-0 border-t bg-card pt-1 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)]">
           <PromptInput onSubmit={handleSubmit}>
             <PromptInputTextarea
               value={input}
