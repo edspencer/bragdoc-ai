@@ -6,6 +6,7 @@ import {
   getWorkstreamsByUserIdWithDateFilter,
   getAchievementsByDateRange,
   saveDocument,
+  saveChat,
   updatePerformanceReview,
 } from '@bragdoc/database';
 import { z } from 'zod/v3';
@@ -161,7 +162,8 @@ Generate a professional performance review document in markdown format with the 
 - But do not start with \`\`\`markdown\`\`\` or \`\`\`md\`\`\` or \`\`\`markdown\`\`\`\n - the entire document should be valid markdown
 ${generationInstructions ? `\n## IMPORTANT: User's Custom Instructions\nThe user has provided the following instructions that MUST be followed. These take priority over the default guidelines above:\n\n${generationInstructions}` : ''}`;
 
-    // Generate a UUID for the document before streaming starts
+    // Generate UUIDs for both chat and document before streaming starts
+    const chatId = generateUUID();
     const documentId = generateUUID();
 
     // Stream the response using the document writing model (GPT-4o)
@@ -170,13 +172,21 @@ ${generationInstructions ? `\n## IMPORTANT: User's Custom Instructions\nThe user
       prompt: systemPrompt,
       onFinish: async ({ text }) => {
         try {
-          // Save the generated document to the database
+          // Create the chat first
+          await saveChat({
+            id: chatId,
+            userId: auth.user.id,
+            title: `Chat for: ${performanceReview.name}`,
+          });
+
+          // Save the generated document to the database with chatId
           await saveDocument({
             id: documentId,
             title: performanceReview.name,
             content: text,
             userId: auth.user.id,
             type: 'performance_review',
+            chatId,
           });
 
           // Update the performance review with the documentId link

@@ -3,6 +3,7 @@ import {
   getPerformanceReviewById,
   updatePerformanceReview,
   deletePerformanceReview,
+  deleteChatById,
 } from '@bragdoc/database';
 import { z } from 'zod/v3';
 import { getAuthUser } from 'lib/getAuthUser';
@@ -64,6 +65,19 @@ export async function PUT(request: Request, { params }: { params: Params }) {
 
     const body = await request.json();
     const validatedData = updateSchema.parse(body);
+
+    // If documentId is being set to null (document deletion), also delete the associated chat
+    if (validatedData.documentId === null) {
+      const existingReview = await getPerformanceReviewById(id, auth.user.id);
+      if (existingReview?.document?.chatId) {
+        try {
+          await deleteChatById({ id: existingReview.document.chatId });
+        } catch (chatError) {
+          console.error('Error deleting chat:', chatError);
+          // Continue with document deletion even if chat deletion fails
+        }
+      }
+    }
 
     const review = await updatePerformanceReview(
       id,

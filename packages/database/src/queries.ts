@@ -241,6 +241,7 @@ export async function updateDocument(
       type?: string;
       companyId?: string | null;
       shareToken?: string | null;
+      chatId?: string | null;
     };
   },
   dbInstance = defaultDb,

@@ -1,12 +1,15 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef, useCallback, useEffect } from 'react';
 import { useChat } from '@ai-sdk/react';
+import type { ChatMessage } from '@/lib/types';
 import {
   IconSparkles,
   IconLoader2,
   IconUser,
   IconTrash,
+  IconDeviceFloppy,
+  IconCheck,
 } from '@tabler/icons-react';
 import { DefaultChatTransport } from 'ai';
 import { Button } from '@/components/ui/button';
@@ -30,11 +33,14 @@ import { cn } from '@/lib/utils';
 interface DocumentSectionProps {
   document: string | null;
   onDocumentChange: (content: string | null) => void;
+  documentId: string | null;
   generationInstructions: string;
   onInstructionsChange: (value: string) => void;
   saveInstructionsToLocalStorage: boolean;
   onSaveInstructionsToggle: (save: boolean) => void;
   performanceReviewId: string;
+  chatId: string | null;
+  onChatIdChange: (chatId: string | null) => void;
   // Summary props for zero state
   achievementCount: number;
   workstreamCount: number;
@@ -45,11 +51,14 @@ interface DocumentSectionProps {
 export function DocumentSection({
   document,
   onDocumentChange,
+  documentId,
   generationInstructions,
   onInstructionsChange,
   saveInstructionsToLocalStorage,
   onSaveInstructionsToggle,
   performanceReviewId,
+  chatId,
+  onChatIdChange,
   achievementCount,
   workstreamCount,
   totalImpact,
@@ -60,13 +69,113 @@ export function DocumentSection({
   const [isDeleting, setIsDeleting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isCollapsed, setIsCollapsed] = useState(false);
+  const [isLoadingMessages, setIsLoadingMessages] = useState(false);
+
+  // State for streaming document updates from chat
+  const [isUpdating, setIsUpdating] = useState(false);
+  const [streamedContent, setStreamedContent] = useState<string>('');
+
+  // State for auto-save indicator
+  const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved'>(
+    'idle',
+  );
+
+  // Ref to accumulate content during streaming (avoids stale closure issues)
+  const streamedContentRef = useRef<string>('');
+
+  // Ref to track the last saved content to avoid unnecessary saves
+  const lastSavedContentRef = useRef<string | null>(null);
+
+  // Initialize lastSavedContentRef with the initial document content
+  useEffect(() => {
+    if (document !== null && lastSavedContentRef.current === null) {
+      lastSavedContentRef.current = document;
+    }
+  }, [document]);
+
+  // Debounced auto-save for manual edits
+  useEffect(() => {
+    // Don't save if:
+    // - No documentId (document not created yet)
+    // - Document is null or empty string (zero state or "write myself" state)
+    // - Currently generating or updating via AI
+    // - Content hasn't changed from last save
+    if (
+      !documentId ||
+      document === null ||
+      isGenerating ||
+      isUpdating ||
+      document === lastSavedContentRef.current
+    ) {
+      return;
+    }
+
+    const timeoutId = setTimeout(async () => {
+      setSaveStatus('saving');
+      try {
+        const response = await fetch(`/api/documents/${documentId}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ content: document }),
+        });
+
+        if (response.ok) {
+          lastSavedContentRef.current = document;
+          setSaveStatus('saved');
+          // Hide "Saved" indicator after 1500ms
+          setTimeout(() => setSaveStatus('idle'), 1500);
+        } else {
+          console.error('Failed to auto-save document');
+          setSaveStatus('idle');
+        }
+      } catch (err) {
+        console.error('Error auto-saving document:', err);
+        setSaveStatus('idle');
+      }
+    }, 1000); // Debounce: save 1 second after user stops typing
+
+    return () => clearTimeout(timeoutId);
+  }, [document, documentId, isGenerating, isUpdating]);
+
+  // Handle data stream events from the chat for document updates
+  const handleData = useCallback(
+    (part: { type: string; data: unknown }) => {
+      if (part.type === 'data-chatId') {
+        // Chat created - update the chatId so messages can be loaded
+        const newChatId = part.data as string;
+        if (newChatId && newChatId !== chatId) {
+          onChatIdChange(newChatId);
+        }
+      } else if (part.type === 'data-clear') {
+        // Start of document update - clear content and set updating state
+        setIsUpdating(true);
+        setStreamedContent('');
+        streamedContentRef.current = '';
+      } else if (part.type === 'data-textDelta') {
+        // Append text delta to streamed content
+        const text = part.data as string;
+        streamedContentRef.current += text;
+        setStreamedContent(streamedContentRef.current);
+      } else if (part.type === 'data-finish') {
+        // Document update complete - persist to parent state
+        onDocumentChange(streamedContentRef.current);
+        // Update lastSavedContentRef so we don't re-save what AI just saved
+        lastSavedContentRef.current = streamedContentRef.current;
+        setIsUpdating(false);
+      }
+      // Note: errors are handled via chatError from useChat, not via data stream
+    },
+    [onDocumentChange, chatId, onChatIdChange],
+  );
 
   const {
     messages,
+    setMessages,
     status,
     error: chatError,
     sendMessage,
   } = useChat({
+    id: chatId || undefined,
     transport: new DefaultChatTransport({
       api: '/api/performance-review/chat',
       body: {
@@ -74,7 +183,34 @@ export function DocumentSection({
         performanceReviewId,
       },
     }),
+    onData: handleData,
   });
+
+  // Load messages when chatId changes
+  useEffect(() => {
+    if (!chatId) {
+      setMessages([]);
+      return;
+    }
+
+    async function loadMessages() {
+      setIsLoadingMessages(true);
+      try {
+        const response = await fetch(`/api/messages?chatId=${chatId}`);
+        if (response.ok) {
+          const loadedMessages = (await response.json()) as ChatMessage[];
+          setMessages(loadedMessages as any);
+        }
+      } catch (err) {
+        console.error('Error loading messages:', err);
+        setMessages([]);
+      } finally {
+        setIsLoadingMessages(false);
+      }
+    }
+
+    loadMessages();
+  }, [chatId, setMessages]);
 
   const handleGenerate = async () => {
     setIsGenerating(true);
@@ -112,6 +248,24 @@ export function DocumentSection({
         accumulatedContent += chunk;
         onDocumentChange(accumulatedContent);
       }
+
+      // Update lastSavedContentRef so we don't re-save what was just generated
+      lastSavedContentRef.current = accumulatedContent;
+
+      // After generation completes, fetch the performance review to get the chatId
+      try {
+        const prResponse = await fetch(
+          `/api/performance-reviews/${performanceReviewId}`,
+        );
+        if (prResponse.ok) {
+          const prData = await prResponse.json();
+          if (prData.document?.chatId) {
+            onChatIdChange(prData.document.chatId);
+          }
+        }
+      } catch (fetchErr) {
+        console.error('Error fetching chatId after generation:', fetchErr);
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred');
     } finally {
@@ -137,6 +291,8 @@ export function DocumentSection({
 
       // Clear local state to return to zero state
       onDocumentChange(null);
+      onChatIdChange(null);
+      setMessages([]);
     } catch (err) {
       console.error('Error deleting document:', err);
       setError(
@@ -241,6 +397,23 @@ export function DocumentSection({
             </AlertDialogFooter>
           </AlertDialogContent>
         </AlertDialog>
+
+        {/* Auto-save indicator */}
+        {saveStatus !== 'idle' && (
+          <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
+            {saveStatus === 'saving' ? (
+              <>
+                <IconDeviceFloppy className="size-4 animate-pulse" />
+                <span>Saving...</span>
+              </>
+            ) : (
+              <>
+                <IconCheck className="size-4 text-green-600" />
+                <span>Saved</span>
+              </>
+            )}
+          </div>
+        )}
       </div>
 
       {/* Document and Chat layout */}
@@ -253,9 +426,9 @@ export function DocumentSection({
           )}
         >
           <DocumentEditor
-            content={document}
+            content={isUpdating ? streamedContent : document}
             onChange={onDocumentChange}
-            isGenerating={isGenerating}
+            isGenerating={isGenerating || isUpdating}
           />
         </div>
 
@@ -275,8 +448,9 @@ export function DocumentSection({
             error={chatError}
             isCollapsed={isCollapsed}
             onCollapseToggle={setIsCollapsed}
+            isUpdating={isUpdating}
           />
-          {/* Frosted overlay while generating */}
+          {/* Frosted overlay while generating (initial generation only, not tool-based updates) */}
           {isGenerating && (
             <div className="absolute inset-0 z-10 flex items-center justify-center rounded-lg bg-background/60 backdrop-blur-sm">
               <span className="animate-pulse text-sm font-medium text-muted-foreground">

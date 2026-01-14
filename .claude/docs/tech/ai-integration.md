@@ -372,5 +372,186 @@ All queries use indexes on userId, workstreamId, and projectId for optimal perfo
 
 ---
 
-**Last Updated:** 2025-11-07
+## Document Update Tools Pattern
+
+### Overview
+
+Document update tools enable real-time streaming updates from chat to document editors. The pattern uses the Vercel AI SDK v5's `createUIMessageStream` with custom data stream events to coordinate between the chat backend and the document editor frontend.
+
+### Key Components
+
+**Tool Factory Function:**
+
+Tools are created as factory functions that receive `user` and `dataStream` parameters:
+
+```typescript
+import { tool, type UIMessageStreamWriter } from 'ai';
+import type { User } from '@bragdoc/database';
+
+type UpdateDocumentToolProps = {
+  user: User;
+  dataStream: UIMessageStreamWriter;
+};
+
+export const updatePerformanceReviewDocument = ({ user, dataStream }: UpdateDocumentToolProps) =>
+  tool({
+    description: 'Update the performance review document with the given changes.',
+    inputSchema: z.object({
+      performanceReviewId: z.string().describe('The ID of the performance review'),
+      description: z.string().describe('Description of the changes to make'),
+    }),
+    execute: async ({ performanceReviewId, description }) => {
+      // Implementation
+    },
+  });
+```
+
+### Data Stream Events
+
+The tool communicates with the frontend via custom data stream events:
+
+| Event | Purpose | Usage |
+|-------|---------|-------|
+| `data-clear` | Clear editor before streaming | `dataStream.write({ type: 'data-clear', data: null, transient: true })` |
+| `data-textDelta` | Stream text chunk | `dataStream.write({ type: 'data-textDelta', data: text, transient: true })` |
+| `data-finish` | Signal completion | `dataStream.write({ type: 'data-finish', data: null, transient: true })` |
+
+### Transient Flag
+
+The `transient: true` flag is critical:
+
+```typescript
+dataStream.write({ type: 'data-clear', data: null, transient: true });
+```
+
+**Why `transient: true`?**
+- Data stream writes are NOT persisted in chat message history
+- Prevents document content from bloating saved messages
+- Events are ephemeral - only for real-time UI updates
+- Chat continues to function normally with conversational messages only
+
+### Implementation Example
+
+**File:** `apps/web/lib/ai/tools/update-performance-review-document.ts`
+
+```typescript
+export const updatePerformanceReviewDocument = ({ user, dataStream }: UpdatePerformanceReviewDocumentProps) =>
+  tool({
+    description: 'Update the performance review document with the given changes.',
+    inputSchema: z.object({
+      performanceReviewId: z.string(),
+      description: z.string(),
+    }),
+    execute: async ({ performanceReviewId, description }) => {
+      // 1. Fetch and validate the document
+      const performanceReview = await getPerformanceReviewById(performanceReviewId, user.id);
+      if (!performanceReview?.document) {
+        return { error: 'No document found. Please generate a document first.' };
+      }
+
+      const document = performanceReview.document;
+
+      // 2. Signal clear to frontend
+      dataStream.write({ type: 'data-clear', data: null, transient: true });
+
+      // 3. Stream updated content
+      let draftContent = '';
+      const { fullStream } = streamText({
+        model: documentWritingModel,
+        system: updateDocumentPrompt(document.content, 'text'),
+        experimental_transform: smoothStream({ chunking: 'word' }),
+        prompt: description,
+      });
+
+      for await (const delta of fullStream) {
+        if (delta.type === 'text-delta') {
+          draftContent += delta.text;
+          dataStream.write({ type: 'data-textDelta', data: delta.text, transient: true });
+        }
+      }
+
+      // 4. Persist to database
+      await updateDocument({
+        id: document.id,
+        userId: user.id,
+        data: { content: draftContent },
+      });
+
+      // 5. Signal completion
+      dataStream.write({ type: 'data-finish', data: null, transient: true });
+
+      return { documentId: document.id, message: 'Document updated successfully.' };
+    },
+  });
+```
+
+### Chat Route Integration
+
+The tool is registered in the chat route using `createUIMessageStream`:
+
+```typescript
+const stream = createUIMessageStream({
+  execute: ({ writer: dataStream }) => {
+    const result = streamText({
+      model: routerModel,
+      system: systemPrompt,
+      messages: convertToModelMessages(uiMessages),
+      tools: {
+        updatePerformanceReviewDocument: updatePerformanceReviewDocument({
+          user: user as User,
+          dataStream,
+        }),
+      },
+    });
+
+    result.consumeStream();
+    dataStream.merge(result.toUIMessageStream({ sendReasoning: true }));
+  },
+  onError: () => 'An error occurred while processing your request.',
+});
+
+return new Response(stream.pipeThrough(new JsonToSseTransformStream()));
+```
+
+### Frontend Integration
+
+The frontend handles data stream events via the `onData` callback:
+
+```typescript
+const { messages, sendMessage, status } = useChat({
+  transport: new DefaultChatTransport({ api, body }),
+  onData: (part) => {
+    if (part.type === 'data-clear') {
+      setIsUpdating(true);
+      setStreamedContent('');
+    } else if (part.type === 'data-textDelta') {
+      setStreamedContent((prev) => prev + (part.data as string));
+    } else if (part.type === 'data-finish') {
+      onDocumentChange(streamedContent);
+      setIsUpdating(false);
+    }
+  },
+});
+```
+
+### Best Practices
+
+1. **Always use `transient: true`**: Prevents data stream content from persisting in chat history
+2. **Validate document exists**: Return friendly error if no document to update
+3. **Persist after streaming**: Only save to database after full content is streamed
+4. **Include document context**: Add document content to system prompt so AI knows current state
+5. **Handle loading states**: Disable input and show progress during updates
+6. **Use refs for streaming accumulation**: Avoid stale closure issues in event handlers
+
+### Related Files
+
+- **Tool implementation:** `apps/web/lib/ai/tools/update-performance-review-document.ts`
+- **Chat route:** `apps/web/app/api/performance-review/chat/route.ts`
+- **Document section:** `apps/web/components/performance-review/document-section.tsx`
+- **Chat interface:** `apps/web/components/performance-review/chat-interface.tsx`
+- **Reference pattern:** `apps/web/lib/ai/tools/update-document.ts` (Canvas/Artifact pattern)
+
+---
+
+**Last Updated:** 2026-01-13
 **Vercel AI SDK:** v5.0.0
