@@ -3,6 +3,7 @@
 import {
   Terminal,
   LayoutDashboard,
+  Sparkles,
   FolderKanban,
   Clock,
   FileText,
@@ -29,6 +30,7 @@ interface Feature {
   screenshotAlt: string;
   screenshot?: string;
   isBeta?: boolean;
+  link?: string;
 }
 
 const features: Feature[] = [
@@ -61,6 +63,21 @@ const features: Feature[] = [
     screenshotAlt:
       'BragDoc achievement dashboard showing filtered career accomplishments by project and date',
     screenshot: '/screenshots/ui/dashboard.png',
+  },
+  {
+    icon: Sparkles,
+    heading: 'Workstreams: AI Pattern Recognition',
+    description:
+      'Automatically discover themes and patterns across your achievements using machine learning. Understand your career trajectory at a glance.',
+    bullets: [
+      'Machine learning groups related achievements',
+      'Identifies skill areas and growth patterns',
+      'AI-generated cluster names for themes',
+    ],
+    screenshotAlt:
+      'BragDoc Workstreams dashboard showing achievement clusters organized by theme',
+    screenshot: '/screenshots/ui/workstreams-dashboard.png',
+    link: '/features/workstreams',
   },
   {
     icon: FolderKanban,
@@ -268,6 +285,15 @@ export function FeaturesPageClient() {
                           </li>
                         ))}
                       </ul>
+                      {feature.link && (
+                        <div className="mt-6">
+                          <Button variant="default" size="sm" asChild>
+                            <Link href={feature.link}>
+                              Learn more about {feature.heading.split(':')[0]}
+                            </Link>
+                          </Button>
+                        </div>
+                      )}
                     </div>
 
                     {/* Screenshot */}

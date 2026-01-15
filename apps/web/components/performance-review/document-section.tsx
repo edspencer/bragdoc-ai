@@ -69,7 +69,7 @@ export function DocumentSection({
   const [isDeleting, setIsDeleting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isCollapsed, setIsCollapsed] = useState(false);
-  const [isLoadingMessages, setIsLoadingMessages] = useState(false);
+  const [_isLoadingMessages, setIsLoadingMessages] = useState(false);
 
   // State for streaming document updates from chat
   const [isUpdating, setIsUpdating] = useState(false);

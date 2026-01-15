@@ -3,16 +3,10 @@ import { Header } from '@/components/header';
 import { Footer } from '@/components/footer';
 import { getAllPosts } from '@/lib/blog';
 import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import Link from 'next/link';
-import { Calendar, User } from 'lucide-react';
-import { format } from 'date-fns';
+  FeaturedPostCard,
+  RecentPostCard,
+  CompactPostCard,
+} from '@/components/blog';
 
 export const metadata: Metadata = {
   title: 'BragDoc Blog: Career Development Tips for Developers',
@@ -25,15 +19,28 @@ export const metadata: Metadata = {
   },
 };
 
+const FEATURED_SLUG = 'introducing-workstreams';
+const RECENT_COUNT = 3;
+
 export default function BlogPage() {
-  const posts = getAllPosts();
+  const allPosts = getAllPosts();
+
+  // Find the featured post
+  const featuredPost = allPosts.find((post) => post.slug === FEATURED_SLUG);
+
+  // Filter out the featured post from the remaining posts
+  const remainingPosts = allPosts.filter((post) => post.slug !== FEATURED_SLUG);
+
+  // Split into recent and older posts
+  const recentPosts = remainingPosts.slice(0, RECENT_COUNT);
+  const olderPosts = remainingPosts.slice(RECENT_COUNT);
 
   return (
     <>
       <Header />
       <main className="min-h-screen pt-24 pb-0">
         {/* Header Section */}
-        <section className="pb-20 px-4">
+        <section className="pb-12 px-4">
           <div className="container mx-auto max-w-4xl text-center">
             <h1 className="text-4xl md:text-5xl font-bold mb-4 text-balance">
               BragDoc Blog
@@ -45,58 +52,54 @@ export default function BlogPage() {
           </div>
         </section>
 
-        {/* Blog Posts Grid */}
-        <section className="py-12 px-4">
-          <div className="container mx-auto max-w-6xl">
-            {posts.length === 0 ? (
-              <div className="text-center py-12">
-                <p className="text-muted-foreground text-lg">
-                  No blog posts yet. Check back soon!
-                </p>
-              </div>
-            ) : (
-              <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
-                {posts.map((post) => (
-                  <Link key={post.slug} href={`/blog/${post.slug}`}>
-                    <Card className="h-full hover:shadow-lg transition-shadow duration-300">
-                      <CardHeader>
-                        <div className="flex items-center gap-2 text-sm text-muted-foreground mb-2">
-                          <Calendar className="size-4" />
-                          <time dateTime={post.date}>
-                            {format(new Date(post.date), 'MMMM d, yyyy')}
-                          </time>
-                        </div>
-                        <CardTitle className="text-xl hover:text-primary transition-colors">
-                          {post.title}
-                        </CardTitle>
-                        <CardDescription className="line-clamp-3">
-                          {post.description}
-                        </CardDescription>
-                      </CardHeader>
-                      <CardContent>
-                        {post.author && (
-                          <div className="flex items-center gap-2 text-sm text-muted-foreground mb-3">
-                            <User className="size-4" />
-                            <span>{post.author}</span>
-                          </div>
-                        )}
-                        {post.tags && post.tags.length > 0 && (
-                          <div className="flex flex-wrap gap-2">
-                            {post.tags.map((tag) => (
-                              <Badge key={tag} variant="secondary">
-                                {tag}
-                              </Badge>
-                            ))}
-                          </div>
-                        )}
-                      </CardContent>
-                    </Card>
-                  </Link>
-                ))}
-              </div>
+        {allPosts.length === 0 ? (
+          <section className="py-12 px-4">
+            <div className="container mx-auto max-w-6xl text-center">
+              <p className="text-muted-foreground text-lg">
+                No blog posts yet. Check back soon!
+              </p>
+            </div>
+          </section>
+        ) : (
+          <>
+            {/* Featured Post Section */}
+            {featuredPost && (
+              <section className="pb-12 px-4">
+                <div className="container mx-auto max-w-6xl">
+                  <FeaturedPostCard post={featuredPost} />
+                </div>
+              </section>
             )}
-          </div>
-        </section>
+
+            {/* Recent Posts Section */}
+            {recentPosts.length > 0 && (
+              <section className="py-12 px-4">
+                <div className="container mx-auto max-w-6xl">
+                  <h2 className="text-2xl font-bold mb-8">Recent Posts</h2>
+                  <div className="flex flex-col gap-6">
+                    {recentPosts.map((post) => (
+                      <RecentPostCard key={post.slug} post={post} />
+                    ))}
+                  </div>
+                </div>
+              </section>
+            )}
+
+            {/* Older Posts Grid Section */}
+            {olderPosts.length > 0 && (
+              <section className="py-12 px-4">
+                <div className="container mx-auto max-w-6xl">
+                  <h2 className="text-2xl font-bold mb-8">More Articles</h2>
+                  <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
+                    {olderPosts.map((post) => (
+                      <CompactPostCard key={post.slug} post={post} />
+                    ))}
+                  </div>
+                </div>
+              </section>
+            )}
+          </>
+        )}
       </main>
       <Footer />
     </>

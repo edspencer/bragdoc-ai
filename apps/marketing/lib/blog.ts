@@ -10,6 +10,67 @@ export interface BlogPost {
   author?: string;
   tags?: string[];
   content: string;
+  image?: string;
+  excerpt?: string;
+}
+
+/**
+ * Extract the first paragraph from MDX content, stripping MDX syntax
+ */
+function extractExcerpt(content: string): string {
+  // Remove frontmatter if present (shouldn't be, but just in case)
+  let text = content.replace(/^---[\s\S]*?---\s*/m, '');
+
+  // Remove MDX components (e.g., <DemoCTA />, <ImageGallery ... />)
+  text = text.replace(/<[A-Z][a-zA-Z]*[^>]*\/>/g, '');
+  text = text.replace(/<[A-Z][a-zA-Z]*[^>]*>[\s\S]*?<\/[A-Z][a-zA-Z]*>/g, '');
+
+  // Remove headings (lines starting with #)
+  text = text.replace(/^#+\s+.*$/gm, '');
+
+  // Remove images ![alt](src)
+  text = text.replace(/!\[.*?\]\(.*?\)/g, '');
+
+  // Remove links but keep text [text](url) -> text
+  text = text.replace(/\[([^\]]+)\]\([^)]+\)/g, '$1');
+
+  // Remove bold/italic markers
+  text = text.replace(/\*\*([^*]+)\*\*/g, '$1');
+  text = text.replace(/\*([^*]+)\*/g, '$1');
+  text = text.replace(/__([^_]+)__/g, '$1');
+  text = text.replace(/_([^_]+)_/g, '$1');
+
+  // Remove code blocks
+  text = text.replace(/```[\s\S]*?```/g, '');
+  text = text.replace(/`[^`]+`/g, '');
+
+  // Remove HTML/JSX style tags
+  text = text.replace(/<[^>]+>/g, '');
+
+  // Split into paragraphs (non-empty lines separated by blank lines)
+  const paragraphs = text
+    .split(/\n\s*\n/)
+    .map((p) => p.trim())
+    .filter((p) => p.length > 0 && !p.startsWith('---'));
+
+  // Get first 1-2 paragraphs, up to ~300 characters
+  let excerpt = '';
+  for (const para of paragraphs) {
+    if (excerpt.length === 0) {
+      excerpt = para;
+    } else if (excerpt.length < 200) {
+      excerpt += ' ' + para;
+    } else {
+      break;
+    }
+  }
+
+  // Trim to max length and add ellipsis if needed
+  if (excerpt.length > 350) {
+    excerpt = excerpt.slice(0, 347).trim() + '...';
+  }
+
+  return excerpt;
 }
 
 const postsDirectory = path.join(process.cwd(), 'content/blog');
@@ -39,6 +100,8 @@ export function getAllPosts(): BlogPost[] {
         author: data.author,
         tags: data.tags,
         content,
+        image: data.image,
+        excerpt: extractExcerpt(content),
       } as BlogPost;
     });
 
@@ -68,6 +131,8 @@ export function getPostBySlug(slug: string): BlogPost | null {
       author: data.author,
       tags: data.tags,
       content,
+      image: data.image,
+      excerpt: extractExcerpt(content),
     } as BlogPost;
   } catch (_error) {
     return null;
