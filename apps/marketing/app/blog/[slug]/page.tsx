@@ -36,16 +36,18 @@ export async function generateMetadata({
     };
   }
 
-  // Generate Open Graph image URL using FrameIt.dev
-  const ogImageUrl = generateFrameItUrl({
-    title: post.title,
-    subtitle: 'BragDoc Blog',
-    layout: 'open-graph',
-    background: 'purple',
-    format: 'png',
-    logoUrl: 'https://www.bragdoc.ai/bragdoc-logo.png',
-    logoOpacity: 1,
-  });
+  // Use custom image from frontmatter if available, otherwise generate via FrameIt.dev
+  const ogImageUrl = post.image
+    ? `https://www.bragdoc.ai${post.image}`
+    : generateFrameItUrl({
+        title: post.title,
+        subtitle: 'BragDoc Blog',
+        layout: 'open-graph',
+        background: 'purple',
+        format: 'png',
+        logoUrl: 'https://www.bragdoc.ai/bragdoc-logo.png',
+        logoOpacity: 1,
+      });
 
   return {
     title: `${post.title} | BragDoc Blog`,
