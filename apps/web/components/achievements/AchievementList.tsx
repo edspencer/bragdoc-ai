@@ -6,7 +6,7 @@ import { AchievementDialog } from './AchievementDialog';
 import { AchievementActions } from './achievement-actions';
 import { AchievementListSkeleton } from './achievement-list-skeleton';
 import type {
-  AchievementWithRelations as Achievement,
+  AchievementWithRelationsUI as Achievement,
   AchievementFilters as AchievementFiltersType,
 } from 'lib/types/achievement';
 import { useAchievements } from 'hooks/use-achievements';

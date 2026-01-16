@@ -16,7 +16,7 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent } from '@/components/ui/card';
 import { FileText, Calendar, BarChart3, Edit3, Loader2 } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
-import type { AchievementWithRelations } from '@/lib/types/achievement';
+import type { AchievementWithRelationsUI } from '@/lib/types/achievement';
 
 // Backend API types
 type DocumentType =
@@ -94,7 +94,7 @@ function generateDocumentTitle(frontendType: string): string {
 interface GenerateDocumentDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  selectedAchievements: AchievementWithRelations[];
+  selectedAchievements: AchievementWithRelationsUI[];
 }
 
 const documentTypes = [

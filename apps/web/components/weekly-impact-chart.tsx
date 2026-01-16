@@ -11,7 +11,7 @@ import {
 } from 'date-fns';
 
 import { useIsMobile } from '@/hooks/use-mobile';
-import type { AchievementWithRelations } from '@/lib/types/achievement';
+import type { AchievementWithRelationsUI } from '@/lib/types/achievement';
 import {
   Card,
   CardAction,
@@ -38,7 +38,7 @@ import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 // Dynamic chart config will be computed from projects
 
 interface WeeklyImpactChartProps {
-  achievements: AchievementWithRelations[];
+  achievements: AchievementWithRelationsUI[];
 }
 
 export function WeeklyImpactChart({ achievements }: WeeklyImpactChartProps) {

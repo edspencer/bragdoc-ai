@@ -57,7 +57,12 @@ export default async function PerformanceReviewEditPage({
     }),
   ]);
 
-  const achievements = achievementsResult.achievements;
+  // Strip embedding vectors from achievements before passing to client component
+  // Embeddings are only used server-side for ML clustering, not needed in UI
+  const achievements = achievementsResult.achievements.map(
+    ({ embedding, embeddingModel, embeddingGeneratedAt, ...achievement }) =>
+      achievement,
+  );
 
   return (
     <AppPage>

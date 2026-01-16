@@ -9,11 +9,11 @@ import { WorkstreamDialog } from './workstream-dialog';
 import { useWorkstreamsActions } from '@/hooks/use-workstreams';
 import { startOfDay, endOfDay, subMonths } from 'date-fns';
 import type { Workstream } from '@bragdoc/database';
-import type { AchievementWithRelations } from '@/lib/types/achievement';
+import type { AchievementWithRelationsUI } from '@/lib/types/achievement';
 
 interface WorkstreamsClientProps {
   workstreams: Workstream[];
-  achievements: AchievementWithRelations[];
+  achievements: AchievementWithRelationsUI[];
   initialPreset: string;
 }
 

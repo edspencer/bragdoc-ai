@@ -10,11 +10,11 @@ import { WorkstreamSelectionZeroState } from '@/components/workstreams/workstrea
 import { WorkstreamDialog } from '@/components/workstreams/workstream-dialog';
 import { useWorkstreamsActions } from '@/hooks/use-workstreams';
 import type { Workstream } from '@bragdoc/database';
-import type { AchievementWithRelations } from '@/lib/types/achievement';
+import type { AchievementWithRelationsUI } from '@/lib/types/achievement';
 
 interface WorkstreamsTimelineProps {
   workstreams: Workstream[];
-  achievements: AchievementWithRelations[];
+  achievements: AchievementWithRelationsUI[];
   startDate: Date;
   endDate: Date;
 }

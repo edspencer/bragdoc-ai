@@ -43,12 +43,11 @@ import { AchievementDialog } from '@/components/achievements/AchievementDialog';
 import { DeleteAchievementDialog } from '@/components/achievements/delete-achievement-dialog';
 import { WorkstreamBadge } from '@/components/workstreams/workstream-badge';
 import { useAchievementMutations } from '@/hooks/use-achievement-mutations';
-import { useAchievements } from '@/hooks/use-achievements';
-import type { AchievementWithRelations } from '@/lib/types/achievement';
+import type { AchievementWithRelationsUI } from '@/lib/types/achievement';
 import type { Workstream } from '@bragdoc/database';
 
 interface PerformanceReviewAchievementsTableProps {
-  achievements: AchievementWithRelations[];
+  achievements: AchievementWithRelationsUI[];
   workstreams?: Workstream[];
 }
 
@@ -101,12 +100,12 @@ export function PerformanceReviewAchievementsTable({
   const [displayCount, setDisplayCount] = React.useState(20);
   const [actionLoading, setActionLoading] = React.useState<string | null>(null);
   const [editingAchievement, setEditingAchievement] =
-    React.useState<AchievementWithRelations | null>(null);
+    React.useState<AchievementWithRelationsUI | null>(null);
   const [deletingAchievement, setDeletingAchievement] =
-    React.useState<AchievementWithRelations | null>(null);
+    React.useState<AchievementWithRelationsUI | null>(null);
 
+  // useAchievementMutations handles cache invalidation automatically
   const { updateAchievement, deleteAchievement } = useAchievementMutations();
-  const { mutate } = useAchievements();
 
   // Create a map of workstreams by ID for quick lookup
   const workstreamMap = React.useMemo(() => {
@@ -167,9 +166,6 @@ export function PerformanceReviewAchievementsTable({
         impactSource: 'user',
         impactUpdatedAt: new Date(),
       });
-
-      // Refresh achievements data
-      mutate();
     } catch (error) {
       console.error('Error updating impact:', error);
     } finally {
@@ -177,7 +173,7 @@ export function PerformanceReviewAchievementsTable({
     }
   };
 
-  const handleEdit = (achievement: AchievementWithRelations) => {
+  const handleEdit = (achievement: AchievementWithRelationsUI) => {
     setEditingAchievement(achievement);
   };
 
@@ -187,14 +183,13 @@ export function PerformanceReviewAchievementsTable({
     setActionLoading(`update-${editingAchievement.id}`);
     try {
       await updateAchievement(editingAchievement.id, data);
-      mutate();
       setEditingAchievement(null);
     } finally {
       setActionLoading(null);
     }
   };
 
-  const handleDelete = (achievement: AchievementWithRelations) => {
+  const handleDelete = (achievement: AchievementWithRelationsUI) => {
     setDeletingAchievement(achievement);
   };
 
@@ -204,7 +199,6 @@ export function PerformanceReviewAchievementsTable({
     setActionLoading(`delete-${deletingAchievement.id}`);
     try {
       await deleteAchievement(deletingAchievement.id);
-      mutate();
       setDeletingAchievement(null);
     } finally {
       setActionLoading(null);

@@ -46,10 +46,10 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip';
 import { AchievementItem } from '@/components/achievements/achievement-item';
-import type { AchievementWithRelations } from '@/lib/types/achievement';
+import type { AchievementWithRelationsUI } from '@/lib/types/achievement';
 
 interface AchievementsTableProps {
-  achievements: AchievementWithRelations[];
+  achievements: AchievementWithRelationsUI[];
   projects: Array<{ id: string; name: string; companyName: string | null }>;
   companies: Array<{ id: string; name: string }>;
   workstreams?: Array<{ id: string; name: string; color: string }>;
@@ -58,8 +58,8 @@ interface AchievementsTableProps {
   selectedAchievements: string[];
   onGenerateDocument: () => void; // Added onGenerateDocument prop
   projectId?: string; // Optional project ID to filter and hide project/company filters
-  onEdit?: (achievement: AchievementWithRelations) => void; // Added onEdit callback
-  onDelete?: (achievement: AchievementWithRelations) => void; // Added onDelete callback
+  onEdit?: (achievement: AchievementWithRelationsUI) => void; // Added onEdit callback
+  onDelete?: (achievement: AchievementWithRelationsUI) => void; // Added onDelete callback
 }
 
 function StarRating({

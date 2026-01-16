@@ -5,7 +5,7 @@ import { Badge } from 'components/ui/badge';
 import { Button } from 'components/ui/button';
 import { ImpactRating } from 'components/ui/impact-rating';
 import { WorkstreamBadge } from 'components/workstreams/workstream-badge';
-import type { AchievementWithRelations } from 'lib/types/achievement';
+import type { AchievementWithRelationsUI } from 'lib/types/achievement';
 import type { Workstream } from '@bragdoc/database';
 
 /**
@@ -13,8 +13,8 @@ import type { Workstream } from '@bragdoc/database';
  *
  * @param achievement - The achievement to display
  * @param onImpactChange - Optional callback when impact rating changes
- * @param onEdit - Optional callback when edit button is clicked
- * @param onDelete - Optional callback when delete button is clicked
+ * @param onEdit - Optional callback when edit button is clicked (accepts any achievement-like object)
+ * @param onDelete - Optional callback when delete button is clicked (accepts any achievement-like object)
  * @param readOnly - Whether to disable impact rating changes
  * @param showSourceBadge - Whether to show the impact source badge
  * @param linkToAchievements - Whether achievement title links to achievements page
@@ -22,10 +22,12 @@ import type { Workstream } from '@bragdoc/database';
  * @param onWorkstreamChange - Optional callback when workstream badge is clicked
  */
 interface AchievementItemProps {
-  achievement: AchievementWithRelations;
+  achievement: AchievementWithRelationsUI;
   onImpactChange?: (id: string, impact: number) => void;
-  onEdit?: (achievement: AchievementWithRelations) => void;
-  onDelete?: (achievement: AchievementWithRelations) => void;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  onEdit?: (achievement: any) => void;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  onDelete?: (achievement: any) => void;
   readOnly?: boolean;
   showSourceBadge?: boolean;
   linkToAchievements?: boolean;

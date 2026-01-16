@@ -30,7 +30,7 @@ import {
 } from 'components/ui/select';
 import { ImpactRating } from 'components/ui/impact-rating';
 import { z } from 'zod/v3';
-import type { Achievement } from 'lib/types/achievement';
+import type { AchievementUI } from 'lib/types/achievement';
 import { useCompanies } from 'hooks/use-companies';
 import { useProjects } from 'hooks/useProjects';
 import { useAchievements } from 'hooks/use-achievements';
@@ -66,7 +66,7 @@ interface AchievementDialogProps {
   mode: DialogMode;
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  achievement?: Achievement;
+  achievement?: AchievementUI;
   onSubmit?: (data: FormValues) => void;
 }
 

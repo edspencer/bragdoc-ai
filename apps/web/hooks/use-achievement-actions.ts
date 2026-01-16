@@ -11,7 +11,7 @@ import { toast } from 'sonner';
  * deleting achievements across components. Use with AchievementDialog and
  * DeleteAchievementDialog components to create fully functional edit/delete flows.
  *
- * Works with both AchievementWithRelations and partial achievement types.
+ * Works with both AchievementWithRelationsUI and partial achievement types.
  *
  * @param options - Hook configuration options
  * @param options.onRefresh - Optional callback to refresh achievements list after successful edits/deletes
@@ -67,12 +67,12 @@ export function useAchievementActions(options?: {
 }) {
   const router = useRouter();
 
-  // Edit dialog state - use any to support both AchievementWithRelations and partial types
+  // Edit dialog state - use any to support both AchievementWithRelationsUI and partial types
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [achievementToEdit, setAchievementToEdit] = useState<any>(null);
   const [isEditingAchievement, setIsEditingAchievement] = useState(false);
 
-  // Delete dialog state - use any to support both AchievementWithRelations and partial types
+  // Delete dialog state - use any to support both AchievementWithRelationsUI and partial types
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [achievementToDelete, setAchievementToDelete] = useState<any>(null);
   const [isDeletingAchievement, setIsDeletingAchievement] = useState(false);
