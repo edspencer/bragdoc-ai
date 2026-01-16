@@ -93,7 +93,11 @@ export async function PUT(
       );
     }
 
-    return NextResponse.json(updated);
+    // Strip embedding vectors from response - they're only used server-side for ML clustering
+    const { embedding, embeddingModel, embeddingGeneratedAt, ...achievement } =
+      updated;
+
+    return NextResponse.json(achievement);
   } catch (error) {
     console.error('Error updating achievement:', error);
     return NextResponse.json(
