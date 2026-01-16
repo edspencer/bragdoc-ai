@@ -1,8 +1,8 @@
 import * as React from 'react';
 import { cn } from 'lib/utils';
 import { Star } from 'lucide-react';
+import * as TooltipPrimitive from '@radix-ui/react-tooltip';
 import {
-  Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
@@ -42,6 +42,8 @@ export interface ImpactRatingProps
   readOnly?: boolean;
   updatedAt?: Date | null;
   showLabel?: boolean;
+  /** Delay in ms before showing tooltip (default: 0) */
+  tooltipDelayDuration?: number;
 }
 
 export function ImpactRating({
@@ -52,6 +54,7 @@ export function ImpactRating({
   updatedAt,
   className,
   showLabel = false,
+  tooltipDelayDuration = 0,
   ...props
 }: ImpactRatingProps) {
   const [hoveredValue, setHoveredValue] = React.useState<number | null>(null);
@@ -100,22 +103,20 @@ export function ImpactRating({
     );
 
     return (
-      <TooltipProvider key={starValue}>
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Star
-              className={starClass}
-              onMouseEnter={() => handleMouseEnter(starValue)}
-              onMouseLeave={handleMouseLeave}
-              onClick={() => handleClick(starValue)}
-              data-testid={`impact-star-${starValue}`}
-              role="button"
-              aria-label={`Rate impact ${starValue} out of 10 stars`}
-            />
-          </TooltipTrigger>
-          <TooltipContent>{tooltipContent}</TooltipContent>
-        </Tooltip>
-      </TooltipProvider>
+      <TooltipPrimitive.Root key={starValue}>
+        <TooltipTrigger asChild>
+          <Star
+            className={starClass}
+            onMouseEnter={() => handleMouseEnter(starValue)}
+            onMouseLeave={handleMouseLeave}
+            onClick={() => handleClick(starValue)}
+            data-testid={`impact-star-${starValue}`}
+            role="button"
+            aria-label={`Rate impact ${starValue} out of 10 stars`}
+          />
+        </TooltipTrigger>
+        <TooltipContent>{tooltipContent}</TooltipContent>
+      </TooltipPrimitive.Root>
     );
   };
 
@@ -124,21 +125,23 @@ export function ImpactRating({
   };
 
   return (
-    <div className="flex items-center gap-4 md:gap-8">
-      <div
-        className={cn('flex items-center gap-1', className)}
-        onMouseLeave={handleMouseLeave}
-        tabIndex={0}
-        role="button"
-        {...props}
-      >
-        {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(renderStar)}
+    <TooltipProvider delayDuration={tooltipDelayDuration}>
+      <div className="flex items-center gap-4 md:gap-8">
+        <div
+          className={cn('flex items-center gap-1', className)}
+          onMouseLeave={handleMouseLeave}
+          tabIndex={0}
+          role="button"
+          {...props}
+        >
+          {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(renderStar)}
+        </div>
+        {showLabel ? (
+          <span className="text-sm text-muted-foreground italic pt-2">
+            {getImpactLabel(hoveredValue ?? value ?? 2)}
+          </span>
+        ) : null}
       </div>
-      {showLabel ? (
-        <span className="text-sm text-muted-foreground italic pt-2">
-          {getImpactLabel(hoveredValue ?? value ?? 2)}
-        </span>
-      ) : null}
-    </div>
+    </TooltipProvider>
   );
 }

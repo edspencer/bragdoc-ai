@@ -7,6 +7,8 @@ import { Button } from '@/components/ui/button';
 import { WorkstreamsGanttChart } from '@/components/workstreams/workstreams-gantt-chart';
 import { WorkstreamAchievementsTable } from '@/components/workstreams/workstream-achievements-table';
 import { WorkstreamSelectionZeroState } from '@/components/workstreams/workstream-selection-zero-state';
+import { WorkstreamDialog } from '@/components/workstreams/workstream-dialog';
+import { useWorkstreamsActions } from '@/hooks/use-workstreams';
 import type { Workstream } from '@bragdoc/database';
 import type { AchievementWithRelations } from '@/lib/types/achievement';
 
@@ -36,6 +38,14 @@ export function WorkstreamsTimeline({
   >(null);
   const [showUnassigned, setShowUnassigned] = useState(false);
 
+  // Edit dialog state
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [editingWorkstream, setEditingWorkstream] = useState<Workstream | null>(
+    null,
+  );
+
+  const { updateWorkstream } = useWorkstreamsActions();
+
   // Calculate unassigned count
   const unassignedCount = useMemo(() => {
     return achievements.filter((a) => !a.workstreamId).length;
@@ -57,6 +67,27 @@ export function WorkstreamsTimeline({
   const handleCloseUnassigned = () => {
     setShowUnassigned(false);
     setSelectedWorkstreamId(null);
+  };
+
+  // Handle edit workstream from achievement table
+  const handleEditWorkstream = (workstream: Workstream) => {
+    setEditingWorkstream(workstream);
+    setEditDialogOpen(true);
+  };
+
+  // Handle edit dialog submission
+  const handleEditDialogSubmit = async (data: {
+    name: string;
+    description?: string;
+    color: string;
+  }) => {
+    if (!editingWorkstream) return;
+    await updateWorkstream(editingWorkstream.id, {
+      name: data.name,
+      description: data.description,
+      color: data.color,
+    });
+    setEditDialogOpen(false);
   };
 
   // Determine what to show in the bottom section
@@ -121,8 +152,19 @@ export function WorkstreamsTimeline({
           onClose={showUnassigned ? handleCloseUnassigned : undefined}
           startDate={startDate}
           endDate={endDate}
+          onEditWorkstream={handleEditWorkstream}
         />
       )}
+
+      {/* Edit Workstream Dialog */}
+      <WorkstreamDialog
+        mode="edit"
+        open={editDialogOpen}
+        onOpenChange={setEditDialogOpen}
+        workstream={editingWorkstream}
+        achievements={[]}
+        onSubmit={handleEditDialogSubmit}
+      />
     </div>
   );
 }

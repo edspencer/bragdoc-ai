@@ -30,6 +30,7 @@ import {
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
 import { EditPerformanceReviewDialog } from '@/components/performance-review/edit-performance-review-dialog';
+import { useDeletePerformanceReview } from '@/hooks/use-performance-reviews';
 import { WorkstreamsTimeline } from '@/components/performance-review/workstreams-timeline';
 import { DocumentSection } from '@/components/performance-review/document-section';
 import { PerformanceReviewAchievementsTable } from '@/components/performance-review/performance-review-achievements-table';
@@ -82,7 +83,11 @@ export function PerformanceReviewEdit({
   // UI states
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
   const [selectedTab, setSelectedTab] = useState(initialTab);
+
+  // Hooks
+  const deletePerformanceReview = useDeletePerformanceReview();
 
   // Track if component is mounted (to prevent state updates during render)
   const isMounted = useRef(false);
@@ -160,9 +165,16 @@ export function PerformanceReviewEdit({
   };
 
   // Handle delete confirmation
-  const handleDelete = () => {
-    setDeleteDialogOpen(false);
-    router.push('/performance');
+  const handleDelete = async () => {
+    setIsDeleting(true);
+    try {
+      await deletePerformanceReview(performanceReview.id);
+      setDeleteDialogOpen(false);
+      router.push('/performance');
+    } catch (error) {
+      console.error('Error deleting performance review:', error);
+      setIsDeleting(false);
+    }
   };
 
   // Format date range for display
@@ -219,12 +231,15 @@ export function PerformanceReviewEdit({
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
-              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogCancel disabled={isDeleting}>
+                Cancel
+              </AlertDialogCancel>
               <AlertDialogAction
                 onClick={handleDelete}
+                disabled={isDeleting}
                 className="bg-red-600 text-white hover:bg-red-700 dark:bg-red-900 dark:text-red-100 dark:hover:bg-red-800"
               >
-                Delete
+                {isDeleting ? 'Deleting...' : 'Delete'}
               </AlertDialogAction>
             </AlertDialogFooter>
           </AlertDialogContent>
@@ -245,7 +260,12 @@ export function PerformanceReviewEdit({
         onUpdate={handleUpdate}
       />
 
-      <AppContent className="sm:h-[calc(100dvh-var(--header-height))] sm:overflow-hidden">
+      <AppContent
+        className={cn(
+          selectedTab === 'review' &&
+            'sm:h-[calc(100dvh-var(--header-height))] sm:overflow-hidden',
+        )}
+      >
         {/* Performance Review Tabs */}
         <Tabs
           value={selectedTab}
@@ -327,11 +347,8 @@ export function PerformanceReviewEdit({
             </div>
           </TabsContent>
 
-          <TabsContent
-            value="achievements"
-            className="mt-0 sm:flex-1 sm:min-h-0 sm:overflow-hidden"
-          >
-            <div className="h-full rounded-lg border-2 border-yellow-200 dark:border-yellow-800">
+          <TabsContent value="achievements" className="mt-0">
+            <div className="rounded-lg border-2 border-yellow-200 dark:border-yellow-800">
               <PerformanceReviewAchievementsTable
                 achievements={achievements}
                 workstreams={workstreams}
@@ -339,11 +356,8 @@ export function PerformanceReviewEdit({
             </div>
           </TabsContent>
 
-          <TabsContent
-            value="workstreams"
-            className="mt-0 sm:flex-1 sm:min-h-0 sm:overflow-hidden"
-          >
-            <div className="h-full rounded-lg border-2 border-purple-200 dark:border-purple-800">
+          <TabsContent value="workstreams" className="mt-0">
+            <div className="rounded-lg border-2 border-purple-200 dark:border-purple-800">
               <WorkstreamsTimeline
                 workstreams={workstreams}
                 achievements={achievements}
