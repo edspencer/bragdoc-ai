@@ -78,7 +78,7 @@ export default async function AppLayout({
                   {children}
                   <FeedbackWidget
                     projectId="e16fdb14-7c88-4f49-a269-8fe124270a48"
-                    position="top-left"
+                    position="bottom-right"
                     collectSentiment={true}
                     offerEmailFollowup={true}
                   />

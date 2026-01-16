@@ -201,14 +201,19 @@ export async function formatSessionCookie(
   // Format: value.signature, then URL encode
   const signedValue = encodeURIComponent(`${token}.${signature}`);
 
-  const secure = process.env.NODE_ENV === 'production' ? '; Secure' : '';
+  // Better Auth uses __Secure- prefix in production when useSecureCookies is true
+  const isProduction =
+    process.env.NODE_ENV === 'production' &&
+    !process.env.BETTER_AUTH_URL?.includes('localhost');
+  const secure = isProduction ? '; Secure' : '';
+  const cookiePrefix = isProduction ? '__Secure-' : '';
 
   // Main session token cookie
-  const sessionTokenCookie = `better-auth.session_token=${signedValue}; HttpOnly; Path=/; SameSite=Lax${secure}; Expires=${expiresAt.toUTCString()}`;
+  const sessionTokenCookie = `${cookiePrefix}better-auth.session_token=${signedValue}; HttpOnly; Path=/; SameSite=Lax${secure}; Expires=${expiresAt.toUTCString()}`;
 
   // Clear the session_data cache cookie to force a fresh database lookup
   // This is important because it may contain the old user's cached data
-  const sessionDataClearCookie = `better-auth.session_data=; HttpOnly; Path=/; SameSite=Lax${secure}; Max-Age=0`;
+  const sessionDataClearCookie = `${cookiePrefix}better-auth.session_data=; HttpOnly; Path=/; SameSite=Lax${secure}; Max-Age=0`;
 
   return [sessionTokenCookie, sessionDataClearCookie];
 }
@@ -239,8 +244,11 @@ export async function getFullSession(request: Request): Promise<{
   if (!cookieHeader) return null;
 
   // Parse cookies to find the session token
+  // Better Auth uses __Secure- prefix in production when useSecureCookies is true
   const cookies = parseCookies(cookieHeader);
-  const rawSessionToken = cookies['better-auth.session_token'];
+  const rawSessionToken =
+    cookies['__Secure-better-auth.session_token'] ||
+    cookies['better-auth.session_token'];
 
   if (!rawSessionToken) return null;
 
