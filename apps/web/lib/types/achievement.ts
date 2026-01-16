@@ -12,12 +12,24 @@ export type Company = InferSelectModel<typeof company>;
 export type Project = InferSelectModel<typeof project>;
 export type UserMessage = InferSelectModel<typeof userMessage>;
 
+// Base achievement type for UI - excludes embedding vectors (only used server-side for ML)
+export type AchievementUI = Omit<
+  Achievement,
+  'embedding' | 'embeddingModel' | 'embeddingGeneratedAt'
+>;
+
 // Type with resolved relations
 export type AchievementWithRelations = Achievement & {
   company: Company | null;
   project: Project | null;
   userMessage: UserMessage | null;
 };
+
+// Type for UI components - excludes embedding vectors (only used server-side for ML)
+export type AchievementWithRelationsUI = Omit<
+  AchievementWithRelations,
+  'embedding' | 'embeddingModel' | 'embeddingGeneratedAt'
+>;
 
 // Duration enum matching the database schema
 export const EventDuration = {

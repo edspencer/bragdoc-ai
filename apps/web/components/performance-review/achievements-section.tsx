@@ -7,11 +7,11 @@ import { AchievementDialog } from 'components/achievements/AchievementDialog';
 import { DeleteAchievementDialog } from 'components/achievements/delete-achievement-dialog';
 import { useAchievementMutations } from '@/hooks/use-achievement-mutations';
 import { useAchievements } from '@/hooks/use-achievements';
-import type { AchievementWithRelations } from 'lib/types/achievement';
+import type { AchievementWithRelationsUI } from 'lib/types/achievement';
 import type { Workstream } from '@bragdoc/database';
 
 interface AchievementsSectionProps {
-  achievements: AchievementWithRelations[];
+  achievements: AchievementWithRelationsUI[];
   workstreams?: Workstream[];
 }
 
@@ -30,9 +30,9 @@ export function AchievementsSection({
 }: AchievementsSectionProps) {
   const [actionLoading, setActionLoading] = useState<string | null>(null);
   const [editingAchievement, setEditingAchievement] =
-    useState<AchievementWithRelations | null>(null);
+    useState<AchievementWithRelationsUI | null>(null);
   const [deletingAchievement, setDeletingAchievement] =
-    useState<AchievementWithRelations | null>(null);
+    useState<AchievementWithRelationsUI | null>(null);
   const { updateAchievement, deleteAchievement } = useAchievementMutations();
   const { mutate } = useAchievements();
 
@@ -73,7 +73,7 @@ export function AchievementsSection({
     }
   };
 
-  const handleEdit = (achievement: AchievementWithRelations) => {
+  const handleEdit = (achievement: AchievementWithRelationsUI) => {
     setEditingAchievement(achievement);
   };
 
@@ -90,7 +90,7 @@ export function AchievementsSection({
     }
   };
 
-  const handleDelete = (achievement: AchievementWithRelations) => {
+  const handleDelete = (achievement: AchievementWithRelationsUI) => {
     setDeletingAchievement(achievement);
   };
 

@@ -7,16 +7,16 @@ import { AchievementItem } from 'components/achievements/achievement-item';
 import { AchievementDialog } from 'components/achievements/AchievementDialog';
 import { useAchievementMutations } from '@/hooks/use-achievement-mutations';
 import { useAchievements } from '@/hooks/use-achievements';
-import type { AchievementWithRelations } from 'lib/types/achievement';
+import type { AchievementWithRelationsUI } from 'lib/types/achievement';
 
 interface ActivityStreamProps {
-  achievements: AchievementWithRelations[];
+  achievements: AchievementWithRelationsUI[];
 }
 
 export function ActivityStream({ achievements }: ActivityStreamProps) {
   const [actionLoading, setActionLoading] = useState<string | null>(null);
   const [editingAchievement, setEditingAchievement] =
-    useState<AchievementWithRelations | null>(null);
+    useState<AchievementWithRelationsUI | null>(null);
   const { updateAchievement, deleteAchievement } = useAchievementMutations();
   const { mutate } = useAchievements();
 
@@ -50,7 +50,7 @@ export function ActivityStream({ achievements }: ActivityStreamProps) {
     }
   };
 
-  const handleEdit = (achievement: AchievementWithRelations) => {
+  const handleEdit = (achievement: AchievementWithRelationsUI) => {
     setEditingAchievement(achievement);
   };
 
@@ -67,7 +67,7 @@ export function ActivityStream({ achievements }: ActivityStreamProps) {
     }
   };
 
-  const handleDelete = async (achievement: AchievementWithRelations) => {
+  const handleDelete = async (achievement: AchievementWithRelationsUI) => {
     setActionLoading(`delete-${achievement.id}`);
     try {
       await deleteAchievement(achievement.id);

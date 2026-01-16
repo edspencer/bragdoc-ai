@@ -23,11 +23,11 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import type { AchievementWithRelations } from '@/lib/types/achievement';
+import type { AchievementWithRelationsUI } from '@/lib/types/achievement';
 import type { Workstream } from '@bragdoc/database';
 
 interface WorkstreamAchievementsTableProps {
-  achievements: AchievementWithRelations[];
+  achievements: AchievementWithRelationsUI[];
   workstreams: Workstream[];
   selectedWorkstreamId: string | null;
   onGenerateWorkstreams?: () => void;
@@ -83,7 +83,7 @@ export function WorkstreamAchievementsTable({
   };
 
   // Helper to get the current impact value (local override or original)
-  const getImpact = (achievement: AchievementWithRelations) => {
+  const getImpact = (achievement: AchievementWithRelationsUI) => {
     return impactOverrides[achievement.id] ?? achievement.impact ?? 2;
   };
 
@@ -115,8 +115,8 @@ export function WorkstreamAchievementsTable({
     // Split into in-range and older achievements if date range is specified
     if (startDate) {
       const startTime = startDate.getTime();
-      const inRange: AchievementWithRelations[] = [];
-      const older: AchievementWithRelations[] = [];
+      const inRange: AchievementWithRelationsUI[] = [];
+      const older: AchievementWithRelationsUI[] = [];
 
       for (const achievement of sorted) {
         const achievementDate = achievement.eventStart
@@ -179,7 +179,7 @@ export function WorkstreamAchievementsTable({
 
   // Helper to render achievement row (desktop)
   const renderAchievementRow = (
-    achievement: AchievementWithRelations,
+    achievement: AchievementWithRelationsUI,
     isOlder = false,
   ) => (
     <TableRow key={achievement.id} className={isOlder ? 'opacity-50' : ''}>
@@ -244,7 +244,7 @@ export function WorkstreamAchievementsTable({
 
   // Helper to render achievement card (mobile)
   const renderAchievementCard = (
-    achievement: AchievementWithRelations,
+    achievement: AchievementWithRelationsUI,
     isOlder = false,
   ) => (
     <div

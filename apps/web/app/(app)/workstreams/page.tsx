@@ -19,7 +19,7 @@ import {
 import { eq, and, gte, lte, count, inArray } from 'drizzle-orm';
 import { subMonths, startOfDay, endOfDay } from 'date-fns';
 import { headers } from 'next/headers';
-import type { AchievementWithRelations } from '@/lib/types/achievement';
+import type { AchievementWithRelationsUI } from '@/lib/types/achievement';
 
 /**
  * Convert preset string to absolute dates
@@ -145,10 +145,10 @@ export default async function WorkstreamsPage({
     .leftJoin(project, eq(achievement.projectId, project.id))
     .where(and(...achievementConditions));
 
-  // Transform to AchievementWithRelations type
+  // Transform to AchievementWithRelationsUI type
   // Note: We're setting company and userMessage to null since we don't fetch them
   // We cast to any first to work around the type mismatch from partial selection
-  const allAchievements: AchievementWithRelations[] = achievementResults.map(
+  const allAchievements: AchievementWithRelationsUI[] = achievementResults.map(
     (row) =>
       ({
         ...row,
@@ -156,7 +156,7 @@ export default async function WorkstreamsPage({
         userMessage: null,
         // Handle nullable project from LEFT JOIN
         project: row.project?.id ? row.project : null,
-      }) as AchievementWithRelations,
+      }) as AchievementWithRelationsUI,
   );
 
   const showZeroState = userWorkstreams.length === 0;

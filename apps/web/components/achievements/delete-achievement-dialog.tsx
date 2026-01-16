@@ -12,7 +12,7 @@ import {
   AlertDialogTitle,
 } from 'components/ui/alert-dialog';
 import { toast } from 'sonner';
-import type { AchievementWithRelations } from 'lib/types/achievement';
+import type { AchievementWithRelationsUI } from 'lib/types/achievement';
 
 /**
  * DeleteAchievementDialog - Confirmation dialog for deleting an achievement
@@ -29,7 +29,7 @@ import type { AchievementWithRelations } from 'lib/types/achievement';
 interface DeleteAchievementDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  achievement: AchievementWithRelations | null;
+  achievement: AchievementWithRelationsUI | null;
   onConfirm: () => Promise<void>;
   isDeleting?: boolean;
 }

@@ -20,7 +20,7 @@ import { useAchievementMutations } from '@/hooks/use-achievement-mutations';
 import { useAchievements } from '@/hooks/use-achievements';
 import type {
   CreateAchievementRequest,
-  AchievementWithRelations,
+  AchievementWithRelationsUI,
 } from '@/lib/types/achievement';
 import { AppPage } from '@/components/shared/app-page';
 import { AppContent } from '@/components/shared/app-content';
@@ -46,10 +46,10 @@ export default function AchievementsPage() {
   const [editDialogOpen, setEditDialogOpen] = React.useState(false);
   const [editMode, setEditMode] = React.useState<'create' | 'edit'>('create');
   const [selectedAchievementForEdit, setSelectedAchievementForEdit] =
-    React.useState<AchievementWithRelations | null>(null);
+    React.useState<AchievementWithRelationsUI | null>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = React.useState(false);
   const [selectedAchievementForDelete, setSelectedAchievementForDelete] =
-    React.useState<AchievementWithRelations | null>(null);
+    React.useState<AchievementWithRelationsUI | null>(null);
   const [isDeleting, setIsDeleting] = React.useState(false);
 
   // Table state
@@ -123,13 +123,13 @@ export default function AchievementsPage() {
     setGenerateDialogOpen(true);
   };
 
-  const handleEditClick = (achievement: AchievementWithRelations) => {
+  const handleEditClick = (achievement: AchievementWithRelationsUI) => {
     setSelectedAchievementForEdit(achievement);
     setEditMode('edit');
     setEditDialogOpen(true);
   };
 
-  const handleDeleteClick = (achievement: AchievementWithRelations) => {
+  const handleDeleteClick = (achievement: AchievementWithRelationsUI) => {
     setSelectedAchievementForDelete(achievement);
     setDeleteDialogOpen(true);
   };

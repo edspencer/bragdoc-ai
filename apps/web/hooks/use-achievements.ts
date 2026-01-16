@@ -1,7 +1,7 @@
 import { useCallback } from 'react';
 import useSWR from 'swr';
 import type {
-  AchievementWithRelations,
+  AchievementWithRelationsUI,
   CreateAchievementRequest,
 } from 'lib/types/achievement';
 
@@ -22,7 +22,7 @@ interface UseAchievementsOptions {
 }
 
 interface AchievementsResponse {
-  achievements: AchievementWithRelations[];
+  achievements: AchievementWithRelationsUI[];
   pagination: {
     total: number;
     page: number;

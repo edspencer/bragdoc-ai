@@ -29,13 +29,13 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import type { AchievementWithRelations } from '@/lib/types/achievement';
+import type { AchievementWithRelationsUI } from '@/lib/types/achievement';
 import { AchievementDialog } from '@/components/achievements/AchievementDialog';
 import { DeleteAchievementDialog } from '@/components/achievements/delete-achievement-dialog';
 import { useAchievementActions } from '@/hooks/use-achievement-actions';
 
 interface RecentAchievementsTableProps {
-  achievements: AchievementWithRelations[];
+  achievements: AchievementWithRelationsUI[];
   onRefresh?: () => Promise<void>;
 }
 

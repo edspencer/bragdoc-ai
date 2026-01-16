@@ -45,12 +45,12 @@ import type {
   Workstream,
   PerformanceReviewWithDocument,
 } from '@bragdoc/database';
-import type { AchievementWithRelations } from 'lib/types/achievement';
+import type { AchievementWithRelationsUI } from 'lib/types/achievement';
 
 interface PerformanceReviewEditProps {
   performanceReview: PerformanceReviewWithDocument;
   workstreams: Workstream[];
-  achievements: AchievementWithRelations[];
+  achievements: AchievementWithRelationsUI[];
   initialTab: string;
   performanceReviewId: string;
 }
