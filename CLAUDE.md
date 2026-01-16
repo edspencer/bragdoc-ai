@@ -421,6 +421,10 @@ describe('GET /api/achievements', () => {
 });
 ```
 
+### Production Smoke Tests
+
+Automated Playwright-based tests validate critical production user flows (magic link signup, demo mode, dashboard, achievement creation, logout). Located at `scripts/smoke-test/` and invoked via `/smoke-test` Claude Code skill. See `scripts/smoke-test/README.md` for setup and configuration.
+
 ---
 
 ## Build Commands
