@@ -364,6 +364,73 @@ BragDoc provides a streamlined demo experience where users can sign up and autom
 - No standalone demo accounts created
 - User gets real account with demo data overlay
 
+### Unified AuthForm Component
+
+BragDoc uses a unified `AuthForm` component to handle all authentication page variants, reducing code duplication while maintaining distinct user experiences.
+
+**File:** `apps/web/components/auth-form.tsx`
+
+**Supported Modes:**
+
+| Mode | Page | Purpose | ToS Checkbox | Demo Banner |
+|------|------|---------|--------------|-------------|
+| `login` | `/login` | Returning users | No | Only with `?demo=true` |
+| `register` | `/register` | New users | Yes | Only with `?demo=true` |
+| `demo` | `/demo` | Demo entry point | Yes | Always |
+
+**Component Interface:**
+
+```typescript
+type AuthMode = 'login' | 'register' | 'demo';
+
+interface AuthFormProps {
+  mode: AuthMode;
+  isDemoFlow?: boolean; // Backward compat with ?demo=true query param
+}
+```
+
+**The `isDemoFlow` Prop:**
+
+For backward compatibility, the login and register pages detect `?demo=true` query parameters and pass `isDemoFlow={true}` to the AuthForm. This:
+- Shows the demo banner explaining demo mode entry
+- Sets the demo intent cookie automatically
+- Adjusts alternate links (e.g., login links to `/demo` instead of `/register`)
+
+**Layout Order:**
+
+The AuthForm renders elements in this order:
+1. Title and subtitle (mode-specific)
+2. Demo banner (when `isDemoFlow` or mode is `demo`)
+3. Social auth buttons (Google, GitHub - full-width vertical layout)
+4. ToS notice for social auth (implicit acceptance)
+5. "Or continue with email" divider
+6. Magic link form with optional ToS checkbox
+7. Alternate page link
+
+**Mode Configuration:**
+
+Each mode has its own configuration for:
+- `title` - Page heading
+- `subtitle` - Descriptive text
+- `showTosCheckbox` - Whether email signup requires explicit ToS consent
+- `demoBannerText` - Banner message explaining demo mode
+- `altLinkText` / `altLinkAction` - Navigation to alternate auth page
+- `getAltLinkHref(isDemoFlow)` - Dynamic href based on demo flow state
+
+**Adding New Auth Modes:**
+
+To add a new authentication mode:
+1. Add the mode to the `AuthMode` type union
+2. Add configuration to the `config` object with all required fields
+3. Create the new page route using `<AuthForm mode="newMode" />`
+
+**Related Components:**
+
+- `SocialAuthButtons` - OAuth provider buttons with layout options
+- `SocialAuthDivider` - Horizontal divider with customizable text
+- `SocialAuthTosNotice` - Implicit ToS acceptance notice
+- `MagicLinkAuthForm` - Email-based passwordless authentication
+
 ## Database Schema
 
 Better Auth uses four main tables for authentication:

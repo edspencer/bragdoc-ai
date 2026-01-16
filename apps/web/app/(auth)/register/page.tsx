@@ -1,4 +1,4 @@
-import { RegisterForm } from './register-form';
+import { AuthForm } from '@/components/auth-form';
 
 export default async function RegisterPage({
   searchParams,
@@ -8,5 +8,5 @@ export default async function RegisterPage({
   const params = await searchParams;
   const isDemoFlow = params.demo === 'true';
 
-  return <RegisterForm isDemoFlow={isDemoFlow} />;
+  return <AuthForm mode="register" isDemoFlow={isDemoFlow} />;
 }

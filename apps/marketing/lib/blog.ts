@@ -59,7 +59,7 @@ function extractExcerpt(content: string): string {
     if (excerpt.length === 0) {
       excerpt = para;
     } else if (excerpt.length < 200) {
-      excerpt += ' ' + para;
+      excerpt += ` ${para}`;
     } else {
       break;
     }
@@ -67,7 +67,7 @@ function extractExcerpt(content: string): string {
 
   // Trim to max length and add ellipsis if needed
   if (excerpt.length > 350) {
-    excerpt = excerpt.slice(0, 347).trim() + '...';
+    excerpt = `${excerpt.slice(0, 347).trim()}...`;
   }
 
   return excerpt;

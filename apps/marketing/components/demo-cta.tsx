@@ -4,7 +4,7 @@ import { Sparkles } from 'lucide-react';
 import { appPath } from '@/lib/utils';
 
 export function DemoCTA() {
-  const demoUrl = appPath('/register?demo=true');
+  const demoUrl = appPath('/demo');
 
   return (
     <div className="not-prose my-8 max-w-xl mx-auto">
