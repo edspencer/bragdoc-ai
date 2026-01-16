@@ -605,6 +605,9 @@ importers:
       react-markdown:
         specifier: ^9.1.0
         version: 9.1.0(@types/react@19.2.3)(react@19.2.0)
+      react-social-login-buttons:
+        specifier: ^4.1.1
+        version: 4.1.1(react@19.2.0)
       react-syntax-highlighter:
         specifier: ^15.6.6
         version: 15.6.6(react@19.2.0)
@@ -11462,6 +11465,11 @@ packages:
     resolution: {integrity: sha512-z0nbOX6X6vHHWAvXduNkYeJUKTKNpKM5Xpmc5a2BxjJhUWl+sE7AsSEMmYEUj2DuDjZr5m7KFIGF0sQPKcUN6w==}
     peerDependencies:
       react: ^17 || ^18 || ^19
+
+  react-social-login-buttons@4.1.1:
+    resolution: {integrity: sha512-GEFP+QmW9y9wSfEVrlvKDtfh1mMI4Nj1XO+Di727ND22h1+g1tYbQSydz26nNq6IKnHqe7bJiJ10sqBKm39DQg==}
+    peerDependencies:
+      react: ^16.0.0 || ^17.x || ^18.x || ^19.x
 
   react-style-singleton@2.2.3:
     resolution: {integrity: sha512-b6jSvxvVnyptAiLjbkWLE/lOnR4lfTtDAl+eUC7RZy+QQWc6wRzIV2CE6xBuMmDxc2qIihtDCZD5NPOFl7fRBQ==}
@@ -27130,6 +27138,10 @@ snapshots:
       react: 19.2.0
     transitivePeerDependencies:
       - supports-color
+
+  react-social-login-buttons@4.1.1(react@19.2.0):
+    dependencies:
+      react: 19.2.0
 
   react-style-singleton@2.2.3(@types/react@19.0.10)(react@19.0.0):
     dependencies:

@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { Sparkles } from 'lucide-react';
 import { MagicLinkAuthForm } from './magic-link-auth-form';
 import {
   SocialAuthButtons,
@@ -26,8 +27,6 @@ const config = {
     title: 'Welcome back',
     subtitle: 'Sign in to your account - no password needed',
     showTosCheckbox: false,
-    demoBannerText:
-      "After signing in, you'll enter demo mode with sample data to explore",
     altLinkText: "Don't have an account?",
     altLinkAction: 'Sign up',
     getAltLinkHref: (isDemoFlow: boolean) =>
@@ -37,20 +36,16 @@ const config = {
     title: 'Create an account',
     subtitle: 'Get started for free - no password needed',
     showTosCheckbox: true,
-    demoBannerText:
-      "After signing up, you'll enter demo mode with sample data to explore",
     altLinkText: 'Already have an account?',
     altLinkAction: 'Sign in',
     getAltLinkHref: (isDemoFlow: boolean) =>
       isDemoFlow ? '/login?demo=true' : '/login',
   },
   demo: {
-    title: 'Try the Demo',
+    title: 'Entering Demo Mode',
     subtitle:
-      'Try BragDoc with sample data. Sign in to explore the full experience, then exit demo mode to start fresh with your own achievements.',
+      "You'll be signed in with sample data to explore the full BragDoc experience. Exit demo mode anytime to start fresh with your own achievements.",
     showTosCheckbox: true,
-    demoBannerText:
-      "After signing in, you'll enter demo mode with sample data to explore",
     altLinkText: 'Already have an account?',
     altLinkAction: 'Sign in to access your data',
     getAltLinkHref: () => '/login',
@@ -122,7 +117,6 @@ export function AuthForm({ mode, isDemoFlow = false }: AuthFormProps) {
 
   const modeConfig = config[mode];
   const showTosCheckbox = modeConfig.showTosCheckbox;
-  const showDemoBanner = mode === 'demo' || isDemoFlow;
 
   // Set demo intent cookie when in demo mode or demo flow
   useEffect(() => {
@@ -136,25 +130,33 @@ export function AuthForm({ mode, isDemoFlow = false }: AuthFormProps) {
     <div className="flex h-dvh w-screen items-start pt-12 md:pt-0 md:items-center justify-center bg-background">
       <div className="w-full max-w-2xl rounded-2xl flex flex-col gap-8 2xl:gap-12">
         {/* Form content - constrained to narrower width */}
-        <div className="w-full max-w-md mx-auto flex flex-col gap-8">
-          {/* Title and subtitle (appears FIRST, before demo banner) */}
-          <div className="flex flex-col items-center justify-center gap-2 px-4 text-center sm:px-16">
-            <h3 className="text-xl font-semibold dark:text-zinc-50">
-              {modeConfig.title}
-            </h3>
-            <p className="text-sm text-gray-500 dark:text-zinc-400">
-              {modeConfig.subtitle}
-            </p>
-          </div>
-
-          {/* Demo banner - shown when in demo flow or on demo page */}
-          {showDemoBanner && (
-            <div className="px-4 sm:px-8 lg:px-16 pt-2">
-              <div className="text-center">
-                <p className="text-sm text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-950 py-2 px-4 rounded-lg">
-                  {modeConfig.demoBannerText}
-                </p>
+        <div className="w-full max-w-lg mx-auto flex flex-col gap-8">
+          {/* Title and subtitle - highlighted box for demo mode */}
+          {mode === 'demo' ? (
+            <div className="overflow-hidden rounded-xl bg-gradient-to-br from-violet-500 via-purple-500 to-fuchsia-500 p-[2px] shadow-lg">
+              <div className="relative bg-background rounded-[10px] py-6 px-16">
+                <div className="flex flex-col items-center gap-3 text-center mx-auto">
+                  <div className="flex items-center gap-2">
+                    <Sparkles className="h-5 w-5 text-violet-500" />
+                    <h3 className="text-xl font-semibold bg-gradient-to-r from-violet-600 to-fuchsia-600 bg-clip-text text-transparent">
+                      {modeConfig.title}
+                    </h3>
+                    <Sparkles className="h-5 w-5 text-fuchsia-500" />
+                  </div>
+                  <p className="text-sm text-gray-500 dark:text-zinc-400">
+                    {modeConfig.subtitle}
+                  </p>
+                </div>
               </div>
+            </div>
+          ) : (
+            <div className="flex flex-col items-center justify-center gap-2 px-4 text-center sm:px-16">
+              <h3 className="text-xl font-semibold dark:text-zinc-50">
+                {modeConfig.title}
+              </h3>
+              <p className="text-sm text-gray-500 dark:text-zinc-400">
+                {modeConfig.subtitle}
+              </p>
             </div>
           )}
 
