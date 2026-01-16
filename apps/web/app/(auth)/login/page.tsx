@@ -1,4 +1,4 @@
-import { LoginForm } from './login-form';
+import { AuthForm } from '@/components/auth-form';
 
 export default async function LoginPage({
   searchParams,
@@ -8,5 +8,5 @@ export default async function LoginPage({
   const params = await searchParams;
   const isDemoFlow = params.demo === 'true';
 
-  return <LoginForm isDemoFlow={isDemoFlow} />;
+  return <AuthForm mode="login" isDemoFlow={isDemoFlow} />;
 }

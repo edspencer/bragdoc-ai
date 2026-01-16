@@ -1504,6 +1504,182 @@ Place zero state components in feature-specific subdirectories following the pat
 
 ## Authentication Components
 
+### Unified AuthForm Component
+
+BragDoc uses a unified `AuthForm` component that handles all authentication page variants (login, register, demo) with a single codebase, reducing duplication while maintaining distinct user experiences.
+
+**File:** `apps/web/components/auth-form.tsx`
+
+**Supported Modes:**
+
+| Mode | Route | ToS Checkbox | Demo Banner | Use Case |
+|------|-------|--------------|-------------|----------|
+| `login` | `/login` | No | Only with `?demo=true` | Returning users |
+| `register` | `/register` | Yes | Only with `?demo=true` | New user signups |
+| `demo` | `/demo` | Yes | Always | Demo entry point |
+
+**Layout Order (Top to Bottom):**
+
+1. Title and subtitle (mode-specific)
+2. Demo banner (when applicable)
+3. Social auth buttons (Google, GitHub - full-width, vertical)
+4. ToS notice for social auth (implicit acceptance text)
+5. "Or continue with email" divider
+6. Magic link form with optional ToS checkbox
+7. Alternate page link (e.g., "Already have an account? Sign in")
+
+**Component Interface:**
+
+```typescript
+type AuthMode = 'login' | 'register' | 'demo';
+
+interface AuthFormProps {
+  mode: AuthMode;
+  isDemoFlow?: boolean; // Backward compat with ?demo=true query param
+}
+
+export function AuthForm({ mode, isDemoFlow = false }: AuthFormProps) {
+  // ...
+}
+```
+
+**The `isDemoFlow` Prop:**
+
+For backward compatibility, the login and register pages detect `?demo=true` query parameters and pass `isDemoFlow={true}` to AuthForm:
+
+```typescript
+// apps/web/app/(auth)/login/page.tsx
+export default async function LoginPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ demo?: string }>;
+}) {
+  const params = await searchParams;
+  const isDemoFlow = params.demo === 'true';
+
+  return <AuthForm mode="login" isDemoFlow={isDemoFlow} />;
+}
+```
+
+When `isDemoFlow` is true:
+- Demo banner appears with explanation text
+- Demo intent cookie is automatically set
+- Alternate links adjusted (e.g., "Sign up" links to `/demo` instead of `/register`)
+
+**Mode Configuration Pattern:**
+
+Each mode has configuration defined in a central config object:
+
+```typescript
+const config = {
+  login: {
+    title: 'Welcome back',
+    subtitle: 'Sign in to your account - no password needed',
+    showTosCheckbox: false,
+    demoBannerText: "After signing in, you'll enter demo mode...",
+    altLinkText: "Don't have an account?",
+    altLinkAction: 'Sign up',
+    getAltLinkHref: (isDemoFlow: boolean) => isDemoFlow ? '/demo' : '/register',
+  },
+  register: { /* ... */ },
+  demo: { /* ... */ },
+};
+```
+
+**Adding New Auth Modes:**
+
+To add a new authentication mode (e.g., `enterprise`):
+
+1. Add the mode to the `AuthMode` type union:
+   ```typescript
+   type AuthMode = 'login' | 'register' | 'demo' | 'enterprise';
+   ```
+
+2. Add configuration to the `config` object:
+   ```typescript
+   enterprise: {
+     title: 'Enterprise Login',
+     subtitle: 'Sign in with your corporate credentials',
+     showTosCheckbox: false,
+     demoBannerText: '',
+     altLinkText: 'Not enterprise?',
+     altLinkAction: 'Regular sign in',
+     getAltLinkHref: () => '/login',
+   },
+   ```
+
+3. Create the page route:
+   ```typescript
+   // apps/web/app/(auth)/enterprise/page.tsx
+   import { AuthForm } from '@/components/auth-form';
+
+   export default function EnterprisePage() {
+     return <AuthForm mode="enterprise" />;
+   }
+   ```
+
+**Related Components:**
+
+- `SocialAuthButtons` - OAuth provider buttons (see below)
+- `SocialAuthDivider` - Horizontal divider with customizable text
+- `SocialAuthTosNotice` - Implicit ToS acceptance notice
+- `MagicLinkAuthForm` - Email-based passwordless form (see below)
+
+---
+
+### SocialAuthButtons Component
+
+Renders OAuth provider buttons (Google, GitHub) with configurable layout and optional divider/ToS notice.
+
+**File:** `apps/web/components/social-auth-buttons.tsx`
+
+```typescript
+interface SocialAuthButtonsProps {
+  layout?: 'grid' | 'vertical';  // Default: 'grid'
+  showDivider?: boolean;         // Default: true
+  showTosNotice?: boolean;       // Default: true
+}
+
+export function SocialAuthButtons({
+  layout = 'grid',
+  showDivider = true,
+  showTosNotice = true,
+}: SocialAuthButtonsProps) {
+  // ...
+}
+```
+
+**Layout Options:**
+
+- `grid` - Side-by-side 2-column layout (original design)
+- `vertical` - Full-width stacked buttons (used by AuthForm)
+
+**Composition Pattern:**
+
+For flexible composition, the component also exports standalone components:
+
+```typescript
+// Standalone divider with customizable text
+export function SocialAuthDivider({ text = 'Or continue with email' }: { text?: string })
+
+// Standalone ToS notice
+export function SocialAuthTosNotice()
+```
+
+**Usage Examples:**
+
+```tsx
+// Default: grid layout with divider and ToS notice
+<SocialAuthButtons />
+
+// Vertical layout, no divider, no ToS (compose separately)
+<SocialAuthButtons layout="vertical" showDivider={false} showTosNotice={false} />
+<SocialAuthTosNotice />
+<SocialAuthDivider text="Or continue with email" />
+```
+
+---
+
 ### Magic Link Authentication Pattern
 
 BragDoc uses passwordless magic link authentication with a custom form component that provides two distinct states: email input form and "check your email" confirmation.
@@ -1676,130 +1852,48 @@ After submitting email, the form displays:
 
 **Usage in Pages:**
 
+The `MagicLinkAuthForm` is typically used within the unified `AuthForm` component (see above), but can be used standalone:
+
 ```tsx
-// Registration page
-'use client';
-
-import { useState } from 'react';
+// Standalone usage (rare - prefer AuthForm)
 import { MagicLinkAuthForm } from '@/components/magic-link-auth-form';
 
-export default function RegisterPage() {
-  const [tosAccepted, setTosAccepted] = useState(false);
-
-  return (
-    <MagicLinkAuthForm mode="register">
-      <div className="mb-4">
-        <label className="flex items-start gap-2 text-sm">
-          <input
-            type="checkbox"
-            checked={tosAccepted}
-            onChange={(e) => setTosAccepted(e.target.checked)}
-            required
-          />
-          <span>I agree to the Terms of Service</span>
-        </label>
-      </div>
-    </MagicLinkAuthForm>
-  );
-}
-
-// Login page
-import { MagicLinkAuthForm } from '@/components/magic-link-auth-form';
-
-export default function LoginPage() {
+export default function CustomLoginPage() {
   return <MagicLinkAuthForm mode="login" />;
 }
 ```
 
+**Note:** For standard authentication pages (`/login`, `/register`, `/demo`), use the unified `AuthForm` component instead, which composes `MagicLinkAuthForm` with social auth buttons and proper ToS handling.
+
+---
+
 ### OAuth ToS Acceptance Pattern
 
-BragDoc displays Terms of Service acceptance text above OAuth buttons to inform users that signing in constitutes acceptance of the Terms of Service and Privacy Policy. This is the industry-standard "implicit acceptance" pattern used by major OAuth implementations.
+BragDoc displays Terms of Service acceptance text to inform users that signing in via OAuth constitutes acceptance of the Terms of Service and Privacy Policy. This is the industry-standard "implicit acceptance" pattern used by major OAuth implementations.
 
-**File:** `apps/web/components/social-auth-buttons.tsx`
+**Implementation:** The `SocialAuthTosNotice` component (exported from `social-auth-buttons.tsx`) provides this notice.
 
 ```tsx
-'use client';
-
-import { signIn } from 'next-auth/react';
-import Link from 'next/link';
-import { Button } from '@/components/ui/button';
-
-export function SocialAuthButtons() {
+// apps/web/components/social-auth-buttons.tsx
+export function SocialAuthTosNotice() {
   const marketingSiteHost =
     process.env.NEXT_PUBLIC_MARKETING_SITE_HOST || 'https://www.bragdoc.ai';
 
   return (
-    <div className="flex flex-col gap-3 w-full">
-      {/* Divider */}
-      <div className="relative">
-        <div className="absolute inset-0 flex items-center">
-          <span className="w-full border-t" />
-        </div>
-        <div className="relative flex justify-center text-xs uppercase">
-          <span className="bg-background px-2 text-muted-foreground">
-            Or continue with
-          </span>
-        </div>
-      </div>
-
-      {/* ToS acceptance text */}
-      <p className="text-sm text-center text-gray-600 dark:text-zinc-400 px-2">
-        By continuing with Google or GitHub, you agree to our{' '}
-        <Link
-          href={`${marketingSiteHost}/terms`}
-          className="text-gray-800 dark:text-zinc-200 underline"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Terms of Service
-        </Link>{' '}
-        and{' '}
-        <Link
-          href={`${marketingSiteHost}/privacy-policy`}
-          className="text-gray-800 dark:text-zinc-200 underline"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Privacy Policy
-        </Link>
-      </p>
-
-      {/* OAuth buttons */}
-      <div className="grid grid-cols-2 gap-3">
-        <Button
-          variant="outline"
-          onClick={() => signIn('google', { callbackUrl: '/dashboard' })}
-        >
-          <svg className="mr-2 h-4 w-4" viewBox="0 0 24 24">
-            {/* Google icon SVG */}
-          </svg>
-          Google
-        </Button>
-        <Button
-          variant="outline"
-          onClick={() => signIn('github', { callbackUrl: '/dashboard' })}
-        >
-          <svg className="mr-2 h-4 w-4" viewBox="0 0 24 24">
-            {/* GitHub icon SVG */}
-          </svg>
-          GitHub
-        </Button>
-      </div>
-    </div>
+    <p className="text-sm text-center text-gray-600 dark:text-zinc-400 px-2">
+      By continuing with Google or GitHub, you agree to our{' '}
+      <Link href={`${marketingSiteHost}/terms`} ...>Terms of Service</Link>{' '}
+      and{' '}
+      <Link href={`${marketingSiteHost}/privacy-policy`} ...>Privacy Policy</Link>
+    </p>
   );
 }
 ```
 
 **Key Features:**
 
-- **Client Component**: Uses `'use client'` directive for onClick handlers
-- **ToS Acceptance Text**: Displayed between divider and buttons with proper spacing
+- **Standalone Component**: `SocialAuthTosNotice` can be composed independently
 - **Clickable Links**: Terms and Privacy Policy links open in new tabs
-- **Styling Conventions**:
-  - Text color: `text-gray-600 dark:text-zinc-400` for main text
-  - Link color: `text-gray-800 dark:text-zinc-200` with `underline`
-  - Centered: `text-center` with horizontal padding `px-2`
-  - Spacing: `mt-4 mb-3` separates from buttons
 - **Environment Variable**: Uses `NEXT_PUBLIC_MARKETING_SITE_HOST` for link base URL
 - **Accessibility**: `target="_blank"` with `rel="noopener noreferrer"` for security
 - **Dark Mode**: Supports both light and dark theme variants
@@ -1815,11 +1909,15 @@ When displaying legal text with links in components:
 5. Center text when it's a standalone legal notice
 6. Provide adequate spacing from interactive elements
 
-**Usage in Pages:**
+**Usage in Auth Pages:**
+
+The unified `AuthForm` component (see above) handles ToS display automatically. It:
+1. Shows `SocialAuthTosNotice` below social auth buttons (implicit acceptance for OAuth)
+2. Shows explicit ToS checkbox in magic link form for register/demo modes
 
 ```tsx
 // apps/web/app/(auth)/login/page.tsx
-import { SocialAuthButtons } from '@/components/social-auth-buttons';
+import { AuthForm } from '@/components/auth-form';
 
 export default function LoginPage() {
   return (

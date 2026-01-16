@@ -186,7 +186,7 @@ const useCases = [
 
 export default function WorkstreamsPage() {
   const dashboardUrl = appPath('/dashboard');
-  const registerUrl = appPath('/register?demo=true');
+  const demoUrl = appPath('/demo');
 
   return (
     <div className="min-h-screen">
@@ -217,7 +217,7 @@ export default function WorkstreamsPage() {
                   <a href={dashboardUrl}>Get Started Free</a>
                 </Button>
                 <Button size="lg" variant="outline" asChild>
-                  <a href={registerUrl}>View Demo</a>
+                  <a href={demoUrl}>View Demo</a>
                 </Button>
               </div>
             </div>
@@ -590,7 +590,7 @@ export default function WorkstreamsPage() {
                 className="border-white text-white hover:bg-white/10"
                 asChild
               >
-                <a href={registerUrl}>View Demo</a>
+                <a href={demoUrl}>View Demo</a>
               </Button>
             </div>
             <div className="mt-8">

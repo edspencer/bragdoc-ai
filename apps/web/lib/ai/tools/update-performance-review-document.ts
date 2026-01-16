@@ -28,7 +28,7 @@ export const updatePerformanceReviewDocument = ({
     execute: async ({ description }) => {
       console.log('[updatePerformanceReviewDocument] Tool called with:', {
         performanceReviewId,
-        description: description?.substring(0, 100) + '...',
+        description: `${description?.substring(0, 100)}...`,
         userId: user.id,
       });
 
