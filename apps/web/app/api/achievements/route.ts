@@ -75,8 +75,14 @@ export async function GET(req: NextRequest) {
       offset: (page - 1) * limit,
     });
 
+    // Strip embedding vectors from response - they're only used server-side for ML clustering
+    const achievementsWithoutEmbeddings = achievements.map(
+      ({ embedding, embeddingModel, embeddingGeneratedAt, ...achievement }) =>
+        achievement,
+    );
+
     return NextResponse.json({
-      achievements,
+      achievements: achievementsWithoutEmbeddings,
       pagination: {
         total,
         page,
