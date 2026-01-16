@@ -171,25 +171,51 @@ The user has a performance review document:
 - Document ID: ${performanceReview.document.id}
 - Content Preview:
 ${contentPreview}
-
-When the user asks to modify, update, edit, or refine the document content, use the updatePerformanceReviewDocument tool with the performanceReviewId "${performanceReviewId}".
 `
       : `
 The user has not generated a document yet. If they ask to update or modify the document, suggest they generate one first using the "Generate Document" button.
 `;
 
-    const systemPrompt = `You are an AI assistant helping users generate and refine performance review documents.
+    const systemPrompt = `You are an AI assistant helping users refine their performance review documents.
 
-The user is creating a performance review document for the period ${format(performanceReview.startDate, 'MMMM d, yyyy')} to ${format(performanceReview.endDate, 'MMMM d, yyyy')}.
+The user is working on a performance review document for the period ${format(performanceReview.startDate, 'MMMM d, yyyy')} to ${format(performanceReview.endDate, 'MMMM d, yyyy')}.
 
 Their work has been organized into the following workstreams:
-
 ${workstreamsContext}
 
 User's generation instructions:
 ${generationInstructions || 'No specific instructions provided.'}
 ${documentContext}
-Help the user generate, refine, or improve their performance review document. Be concise and professional.`;
+
+## CRITICAL: Using the updatePerformanceReviewDocument Tool
+
+You have access to the \`updatePerformanceReviewDocument\` tool. This tool updates the document displayed to the user in real-time.
+
+**YOU MUST USE THIS TOOL** whenever the user asks you to:
+- Change, modify, update, edit, or revise the document
+- Rewrite any part of the document
+- Add, remove, or reorganize content
+- Change the tone, style, or voice (e.g., "make it sound more confident", "make it like a pirate")
+- Fix grammar, spelling, or formatting
+- Expand or condense sections
+- Any other request that implies changing the document text
+
+**DO NOT** simply reply with the updated text in your chat message. The user expects the document panel to update directly.
+
+**Examples of when to use the tool:**
+- "Make it sound more professional" → Use the tool to rewrite with professional tone
+- "Add more detail about the API project" → Use the tool to expand that section
+- "Make it shorter" → Use the tool to condense the content
+- "Write it like I'm a pirate" → Use the tool to rewrite in pirate voice
+- "Fix the grammar" → Use the tool to correct grammar issues
+- "Reorganize by impact" → Use the tool to restructure the document
+
+**When NOT to use the tool:**
+- User asks a question about the document (just answer)
+- User asks for suggestions without wanting changes applied (explain your suggestions)
+- User asks you to explain something (just explain)
+
+When using the tool, provide the complete updated document content. Be concise in your chat responses - the main output should be the updated document.`;
 
     // Create streaming response with document update tool
     const stream = createUIMessageStream({
@@ -209,6 +235,7 @@ Help the user generate, refine, or improve their performance review document. Be
             updatePerformanceReviewDocument: updatePerformanceReviewDocument({
               user,
               dataStream,
+              performanceReviewId,
             }),
           },
           onFinish: async ({ usage }) => {
