@@ -522,6 +522,16 @@ Vercel Edge Network
 └── Environment variables via dashboard
 ```
 
+### Production Smoke Tests
+
+Automated smoke tests verify critical production user flows:
+- Located at `scripts/smoke-test/`
+- Tests: magic link signup, demo mode, dashboard, achievement creation, logout
+- Uses read-only database access for token retrieval
+- Invoked via `/smoke-test` Claude Code skill
+- Outputs JSON report for parsing
+- Daily execution via Chronicle cron job
+
 ## Performance Considerations
 
 ### Build Optimization
