@@ -60,3 +60,7 @@ tasks
 
 .claude/docs/after-action-reports
 .env.sentry-build-plugin
+
+# smoke test screenshots (keep .gitkeep)
+scripts/smoke-test/screenshots/*
+!scripts/smoke-test/screenshots/.gitkeep
