@@ -1,0 +1,7 @@
+{
+  "$schema": "./manifest.schema.json",
+  "version": "1.0.0",
+  "description": "BragDoc corpus testing manifest",
+  "snapshots": [],
+  "reports": []
+}
