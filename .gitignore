@@ -64,3 +64,10 @@ tasks
 # smoke test screenshots (keep .gitkeep)
 scripts/smoke-test/screenshots/*
 !scripts/smoke-test/screenshots/.gitkeep
+
+
+companies
+
+# corpus testing cache
+.corpus-cache/
+.ralph-tui/

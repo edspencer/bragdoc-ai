@@ -1,0 +1,1147 @@
+{
+  "version": "1.0",
+  "generatedAt": "2025-01-20T00:00:00Z",
+  "description": "BragDoc corpus test repositories - diverse OSS projects for testing achievement extraction quality",
+  "categories": {
+    "monorepos": {
+      "description": "Large repositories with multiple projects/packages managed together using workspaces",
+      "repos": [
+        {
+          "url": "https://github.com/facebook/react",
+          "slug": "facebook-react",
+          "language": "JavaScript",
+          "stars": 242400,
+          "mergeStrategy": "squash",
+          "commitFrequency": "high",
+          "contributorCount": 1700,
+          "testAuthor": "gaearon",
+          "notes": "Major React monorepo with packages/ structure (react, react-dom, scheduler)"
+        },
+        {
+          "url": "https://github.com/vercel/next.js",
+          "slug": "vercel-nextjs",
+          "language": "JavaScript",
+          "stars": 137237,
+          "mergeStrategy": "squash",
+          "commitFrequency": "high",
+          "contributorCount": 3100,
+          "testAuthor": "timneutkens",
+          "notes": "Next.js monorepo with packages/ for turbopack, create-next-app, etc."
+        },
+        {
+          "url": "https://github.com/babel/babel",
+          "slug": "babel-babel",
+          "language": "TypeScript",
+          "stars": 43866,
+          "mergeStrategy": "squash",
+          "commitFrequency": "medium",
+          "contributorCount": 900,
+          "testAuthor": "nicolo-ribaudo",
+          "notes": "Babel compiler monorepo with packages/ for parser, traverse, generator"
+        },
+        {
+          "url": "https://github.com/nrwl/nx",
+          "slug": "nrwl-nx",
+          "language": "TypeScript",
+          "stars": 27955,
+          "mergeStrategy": "squash",
+          "commitFrequency": "high",
+          "contributorCount": 800,
+          "testAuthor": "jaysoo",
+          "notes": "Nx monorepo tool, itself organized as monorepo with packages/"
+        },
+        {
+          "url": "https://github.com/vercel/turborepo",
+          "slug": "vercel-turborepo",
+          "language": "Rust",
+          "stars": 29578,
+          "mergeStrategy": "squash",
+          "commitFrequency": "high",
+          "contributorCount": 400,
+          "testAuthor": "gsoltis",
+          "notes": "Turborepo build system, monorepo with crates/ for Rust packages"
+        },
+        {
+          "url": "https://github.com/lerna/lerna",
+          "slug": "lerna-lerna",
+          "language": "TypeScript",
+          "stars": 36062,
+          "mergeStrategy": "squash",
+          "commitFrequency": "medium",
+          "contributorCount": 400,
+          "testAuthor": "JamesHenry",
+          "notes": "Lerna monorepo manager, itself a monorepo"
+        },
+        {
+          "url": "https://github.com/pnpm/pnpm",
+          "slug": "pnpm-pnpm",
+          "language": "TypeScript",
+          "stars": 33744,
+          "mergeStrategy": "squash",
+          "commitFrequency": "high",
+          "contributorCount": 500,
+          "testAuthor": "zkochan",
+          "notes": "pnpm package manager monorepo with packages/"
+        },
+        {
+          "url": "https://github.com/jestjs/jest",
+          "slug": "jestjs-jest",
+          "language": "TypeScript",
+          "stars": 45269,
+          "mergeStrategy": "squash",
+          "commitFrequency": "medium",
+          "contributorCount": 1500,
+          "testAuthor": "SimenB",
+          "notes": "Jest testing framework monorepo with packages/"
+        },
+        {
+          "url": "https://github.com/TanStack/query",
+          "slug": "tanstack-query",
+          "language": "TypeScript",
+          "stars": 48214,
+          "mergeStrategy": "squash",
+          "commitFrequency": "high",
+          "contributorCount": 800,
+          "testAuthor": "TkDodo",
+          "notes": "TanStack Query monorepo with packages/ for React, Vue, Solid, etc."
+        },
+        {
+          "url": "https://github.com/Effect-TS/effect",
+          "slug": "effect-ts-effect",
+          "language": "TypeScript",
+          "stars": 12937,
+          "mergeStrategy": "squash",
+          "commitFrequency": "high",
+          "contributorCount": 200,
+          "testAuthor": "mikearnaldi",
+          "notes": "Effect TypeScript library monorepo with packages/"
+        },
+        {
+          "url": "https://github.com/drizzle-team/drizzle-orm",
+          "slug": "drizzle-team-drizzle-orm",
+          "language": "TypeScript",
+          "stars": 32389,
+          "mergeStrategy": "squash",
+          "commitFrequency": "high",
+          "contributorCount": 400,
+          "testAuthor": "AndriiSherman",
+          "notes": "Drizzle ORM monorepo with drizzle-orm, drizzle-kit packages"
+        },
+        {
+          "url": "https://github.com/prisma/prisma",
+          "slug": "prisma-prisma",
+          "language": "TypeScript",
+          "stars": 45104,
+          "mergeStrategy": "squash",
+          "commitFrequency": "high",
+          "contributorCount": 900,
+          "testAuthor": "janpio",
+          "notes": "Prisma ORM monorepo with packages/ for client, migrate, studio"
+        },
+        {
+          "url": "https://github.com/trpc/trpc",
+          "slug": "trpc-trpc",
+          "language": "TypeScript",
+          "stars": 39385,
+          "mergeStrategy": "squash",
+          "commitFrequency": "high",
+          "contributorCount": 300,
+          "testAuthor": "KATT",
+          "notes": "tRPC monorepo with packages/ for server, client, react-query"
+        },
+        {
+          "url": "https://github.com/supabase/supabase",
+          "slug": "supabase-supabase",
+          "language": "TypeScript",
+          "stars": 96484,
+          "mergeStrategy": "squash",
+          "commitFrequency": "high",
+          "contributorCount": 1100,
+          "testAuthor": "alaister",
+          "notes": "Supabase monorepo with apps/ and packages/"
+        },
+        {
+          "url": "https://github.com/strapi/strapi",
+          "slug": "strapi-strapi",
+          "language": "TypeScript",
+          "stars": 71022,
+          "mergeStrategy": "squash",
+          "commitFrequency": "high",
+          "contributorCount": 900,
+          "testAuthor": "Convly",
+          "notes": "Strapi CMS monorepo with packages/"
+        },
+        {
+          "url": "https://github.com/n8n-io/n8n",
+          "slug": "n8n-io-n8n",
+          "language": "TypeScript",
+          "stars": 170255,
+          "mergeStrategy": "squash",
+          "commitFrequency": "high",
+          "contributorCount": 600,
+          "testAuthor": "netroy",
+          "notes": "n8n workflow automation monorepo with packages/"
+        },
+        {
+          "url": "https://github.com/nocodb/nocodb",
+          "slug": "nocodb-nocodb",
+          "language": "TypeScript",
+          "stars": 61593,
+          "mergeStrategy": "squash",
+          "commitFrequency": "high",
+          "contributorCount": 300,
+          "testAuthor": "pranavxc",
+          "notes": "NocoDB monorepo with packages/ for nc-gui, nocodb-sdk"
+        },
+        {
+          "url": "https://github.com/grafana/grafana",
+          "slug": "grafana-grafana",
+          "language": "TypeScript",
+          "stars": 71791,
+          "mergeStrategy": "squash",
+          "commitFrequency": "high",
+          "contributorCount": 2800,
+          "testAuthor": "ryantxu",
+          "notes": "Grafana observability platform, large monorepo"
+        },
+        {
+          "url": "https://github.com/changesets/changesets",
+          "slug": "changesets-changesets",
+          "language": "TypeScript",
+          "stars": 11266,
+          "mergeStrategy": "squash",
+          "commitFrequency": "medium",
+          "contributorCount": 200,
+          "testAuthor": "Noviny",
+          "notes": "Changesets monorepo versioning tool"
+        },
+        {
+          "url": "https://github.com/yarnpkg/berry",
+          "slug": "yarnpkg-berry",
+          "language": "TypeScript",
+          "stars": 7960,
+          "mergeStrategy": "squash",
+          "commitFrequency": "medium",
+          "contributorCount": 400,
+          "testAuthor": "arcanis",
+          "notes": "Yarn v2+ monorepo with packages/"
+        }
+      ]
+    },
+    "squash-merge": {
+      "description": "Repositories that predominantly use squash merging for clean linear history",
+      "repos": [
+        {
+          "url": "https://github.com/rust-lang/rust",
+          "slug": "rust-lang-rust",
+          "language": "Rust",
+          "stars": 109553,
+          "mergeStrategy": "squash",
+          "commitFrequency": "high",
+          "contributorCount": 5000,
+          "testAuthor": "matthiaskrgr",
+          "notes": "Rust compiler uses bors for squash merging, very clean history"
+        },
+        {
+          "url": "https://github.com/kubernetes/kubernetes",
+          "slug": "kubernetes-kubernetes",
+          "language": "Go",
+          "stars": 119956,
+          "mergeStrategy": "squash",
+          "commitFrequency": "high",
+          "contributorCount": 3700,
+          "testAuthor": "liggitt",
+          "notes": "Kubernetes uses tide bot for squash merging"
+        },
+        {
+          "url": "https://github.com/golang/go",
+          "slug": "golang-go",
+          "language": "Go",
+          "stars": 132036,
+          "mergeStrategy": "squash",
+          "commitFrequency": "high",
+          "contributorCount": 2200,
+          "testAuthor": "rsc",
+          "notes": "Go language repo with strict squash merge policy via Gerrit"
+        },
+        {
+          "url": "https://github.com/microsoft/TypeScript",
+          "slug": "microsoft-typescript",
+          "language": "TypeScript",
+          "stars": 107498,
+          "mergeStrategy": "squash",
+          "commitFrequency": "high",
+          "contributorCount": 800,
+          "testAuthor": "DanielRosenwasser",
+          "notes": "TypeScript uses squash merging for all PRs"
+        },
+        {
+          "url": "https://github.com/denoland/deno",
+          "slug": "denoland-deno",
+          "language": "Rust",
+          "stars": 105900,
+          "mergeStrategy": "squash",
+          "commitFrequency": "high",
+          "contributorCount": 800,
+          "testAuthor": "bartlomieju",
+          "notes": "Deno runtime uses squash merge exclusively"
+        },
+        {
+          "url": "https://github.com/astral-sh/ruff",
+          "slug": "astral-sh-ruff",
+          "language": "Rust",
+          "stars": 45252,
+          "mergeStrategy": "squash",
+          "commitFrequency": "high",
+          "contributorCount": 600,
+          "testAuthor": "charliermarsh",
+          "notes": "Ruff Python linter uses squash merging"
+        },
+        {
+          "url": "https://github.com/tokio-rs/tokio",
+          "slug": "tokio-rs-tokio",
+          "language": "Rust",
+          "stars": 30807,
+          "mergeStrategy": "squash",
+          "commitFrequency": "high",
+          "contributorCount": 700,
+          "testAuthor": "carllerche",
+          "notes": "Tokio async runtime uses squash merging"
+        },
+        {
+          "url": "https://github.com/tauri-apps/tauri",
+          "slug": "tauri-apps-tauri",
+          "language": "Rust",
+          "stars": 101606,
+          "mergeStrategy": "squash",
+          "commitFrequency": "high",
+          "contributorCount": 400,
+          "testAuthor": "lucasfernog",
+          "notes": "Tauri desktop framework uses squash merging"
+        },
+        {
+          "url": "https://github.com/oven-sh/bun",
+          "slug": "oven-sh-bun",
+          "language": "Zig",
+          "stars": 86502,
+          "mergeStrategy": "squash",
+          "commitFrequency": "high",
+          "contributorCount": 500,
+          "testAuthor": "Jarred-Sumner",
+          "notes": "Bun runtime uses squash merging"
+        },
+        {
+          "url": "https://github.com/biomejs/biome",
+          "slug": "biomejs-biome",
+          "language": "Rust",
+          "stars": 23227,
+          "mergeStrategy": "squash",
+          "commitFrequency": "high",
+          "contributorCount": 400,
+          "testAuthor": "ematipico",
+          "notes": "Biome linter/formatter uses squash merging"
+        },
+        {
+          "url": "https://github.com/hashicorp/terraform",
+          "slug": "hashicorp-terraform",
+          "language": "Go",
+          "stars": 47481,
+          "mergeStrategy": "squash",
+          "commitFrequency": "high",
+          "contributorCount": 1900,
+          "testAuthor": "apparentlymart",
+          "notes": "Terraform uses squash merging for clean history"
+        },
+        {
+          "url": "https://github.com/docker/compose",
+          "slug": "docker-compose",
+          "language": "Go",
+          "stars": 36864,
+          "mergeStrategy": "squash",
+          "commitFrequency": "medium",
+          "contributorCount": 500,
+          "testAuthor": "ndeloof",
+          "notes": "Docker Compose uses squash merging"
+        },
+        {
+          "url": "https://github.com/prometheus/prometheus",
+          "slug": "prometheus-prometheus",
+          "language": "Go",
+          "stars": 62302,
+          "mergeStrategy": "squash",
+          "commitFrequency": "high",
+          "contributorCount": 900,
+          "testAuthor": "bboreham",
+          "notes": "Prometheus monitoring uses squash merging"
+        },
+        {
+          "url": "https://github.com/etcd-io/etcd",
+          "slug": "etcd-io-etcd",
+          "language": "Go",
+          "stars": 51370,
+          "mergeStrategy": "squash",
+          "commitFrequency": "medium",
+          "contributorCount": 600,
+          "testAuthor": "serathius",
+          "notes": "etcd distributed KV store uses squash merging"
+        },
+        {
+          "url": "https://github.com/helm/helm",
+          "slug": "helm-helm",
+          "language": "Go",
+          "stars": 29315,
+          "mergeStrategy": "squash",
+          "commitFrequency": "medium",
+          "contributorCount": 1100,
+          "testAuthor": "mattfarina",
+          "notes": "Helm package manager uses squash merging"
+        },
+        {
+          "url": "https://github.com/containerd/containerd",
+          "slug": "containerd-containerd",
+          "language": "Go",
+          "stars": 20131,
+          "mergeStrategy": "squash",
+          "commitFrequency": "high",
+          "contributorCount": 600,
+          "testAuthor": "AkihiroSuda",
+          "notes": "containerd uses squash merging"
+        },
+        {
+          "url": "https://github.com/minio/minio",
+          "slug": "minio-minio",
+          "language": "Go",
+          "stars": 59835,
+          "mergeStrategy": "squash",
+          "commitFrequency": "high",
+          "contributorCount": 500,
+          "testAuthor": "harshavardhana",
+          "notes": "MinIO object storage uses squash merging"
+        },
+        {
+          "url": "https://github.com/cockroachdb/cockroach",
+          "slug": "cockroachdb-cockroach",
+          "language": "Go",
+          "stars": 31753,
+          "mergeStrategy": "squash",
+          "commitFrequency": "high",
+          "contributorCount": 600,
+          "testAuthor": "knz",
+          "notes": "CockroachDB uses squash merging"
+        },
+        {
+          "url": "https://github.com/pingcap/tidb",
+          "slug": "pingcap-tidb",
+          "language": "Go",
+          "stars": 39611,
+          "mergeStrategy": "squash",
+          "commitFrequency": "high",
+          "contributorCount": 800,
+          "testAuthor": "tiancaiamao",
+          "notes": "TiDB distributed SQL uses squash merging"
+        },
+        {
+          "url": "https://github.com/istio/istio",
+          "slug": "istio-istio",
+          "language": "Go",
+          "stars": 37845,
+          "mergeStrategy": "squash",
+          "commitFrequency": "high",
+          "contributorCount": 800,
+          "testAuthor": "howardjohn",
+          "notes": "Istio service mesh uses squash merging"
+        }
+      ]
+    },
+    "conventional-commits": {
+      "description": "Repositories strictly following Conventional Commits specification for structured commit messages",
+      "repos": [
+        {
+          "url": "https://github.com/angular/angular",
+          "slug": "angular-angular",
+          "language": "TypeScript",
+          "stars": 99711,
+          "mergeStrategy": "squash",
+          "commitFrequency": "high",
+          "contributorCount": 2000,
+          "testAuthor": "gkalpak",
+          "notes": "Angular originated conventional commits, strict adherence"
+        },
+        {
+          "url": "https://github.com/vuejs/core",
+          "slug": "vuejs-core",
+          "language": "TypeScript",
+          "stars": 52763,
+          "mergeStrategy": "squash",
+          "commitFrequency": "high",
+          "contributorCount": 400,
+          "testAuthor": "yyx990803",
+          "notes": "Vue.js core uses conventional commits"
+        },
+        {
+          "url": "https://github.com/vitejs/vite",
+          "slug": "vitejs-vite",
+          "language": "TypeScript",
+          "stars": 77662,
+          "mergeStrategy": "squash",
+          "commitFrequency": "high",
+          "contributorCount": 1100,
+          "testAuthor": "sapphi-red",
+          "notes": "Vite build tool uses conventional commits"
+        },
+        {
+          "url": "https://github.com/conventional-changelog/commitlint",
+          "slug": "conventional-changelog-commitlint",
+          "language": "TypeScript",
+          "stars": 18257,
+          "mergeStrategy": "squash",
+          "commitFrequency": "medium",
+          "contributorCount": 300,
+          "testAuthor": "escapedcat",
+          "notes": "commitlint itself uses conventional commits"
+        },
+        {
+          "url": "https://github.com/semantic-release/semantic-release",
+          "slug": "semantic-release-semantic-release",
+          "language": "JavaScript",
+          "stars": 23202,
+          "mergeStrategy": "squash",
+          "commitFrequency": "medium",
+          "contributorCount": 300,
+          "testAuthor": "pvdlg",
+          "notes": "semantic-release uses conventional commits for auto-versioning"
+        },
+        {
+          "url": "https://github.com/conventional-changelog/conventional-changelog",
+          "slug": "conventional-changelog-conventional-changelog",
+          "language": "TypeScript",
+          "stars": 8361,
+          "mergeStrategy": "squash",
+          "commitFrequency": "low",
+          "contributorCount": 200,
+          "testAuthor": "bcoe",
+          "notes": "conventional-changelog generator uses conventional commits"
+        },
+        {
+          "url": "https://github.com/nestjs/nest",
+          "slug": "nestjs-nest",
+          "language": "TypeScript",
+          "stars": 74293,
+          "mergeStrategy": "squash",
+          "commitFrequency": "high",
+          "contributorCount": 500,
+          "testAuthor": "kamilmysliwiec",
+          "notes": "NestJS framework uses conventional commits"
+        },
+        {
+          "url": "https://github.com/remix-run/remix",
+          "slug": "remix-run-remix",
+          "language": "TypeScript",
+          "stars": 32116,
+          "mergeStrategy": "squash",
+          "commitFrequency": "high",
+          "contributorCount": 900,
+          "testAuthor": "ryanflorence",
+          "notes": "Remix framework uses conventional commits"
+        },
+        {
+          "url": "https://github.com/sveltejs/svelte",
+          "slug": "sveltejs-svelte",
+          "language": "JavaScript",
+          "stars": 85508,
+          "mergeStrategy": "squash",
+          "commitFrequency": "high",
+          "contributorCount": 700,
+          "testAuthor": "Rich-Harris",
+          "notes": "Svelte uses conventional commits"
+        },
+        {
+          "url": "https://github.com/solidjs/solid",
+          "slug": "solidjs-solid",
+          "language": "TypeScript",
+          "stars": 34945,
+          "mergeStrategy": "squash",
+          "commitFrequency": "medium",
+          "contributorCount": 200,
+          "testAuthor": "ryansolid",
+          "notes": "SolidJS uses conventional commits"
+        },
+        {
+          "url": "https://github.com/QwikDev/qwik",
+          "slug": "qwikdev-qwik",
+          "language": "TypeScript",
+          "stars": 21883,
+          "mergeStrategy": "squash",
+          "commitFrequency": "high",
+          "contributorCount": 500,
+          "testAuthor": "mhevery",
+          "notes": "Qwik framework uses conventional commits"
+        },
+        {
+          "url": "https://github.com/lit/lit",
+          "slug": "lit-lit",
+          "language": "TypeScript",
+          "stars": 21115,
+          "mergeStrategy": "squash",
+          "commitFrequency": "medium",
+          "contributorCount": 200,
+          "testAuthor": "justinfagnani",
+          "notes": "Lit web components uses conventional commits"
+        },
+        {
+          "url": "https://github.com/preactjs/preact",
+          "slug": "preactjs-preact",
+          "language": "JavaScript",
+          "stars": 38312,
+          "mergeStrategy": "squash",
+          "commitFrequency": "medium",
+          "contributorCount": 300,
+          "testAuthor": "developit",
+          "notes": "Preact uses conventional commits"
+        },
+        {
+          "url": "https://github.com/reduxjs/redux",
+          "slug": "reduxjs-redux",
+          "language": "TypeScript",
+          "stars": 61449,
+          "mergeStrategy": "squash",
+          "commitFrequency": "low",
+          "contributorCount": 900,
+          "testAuthor": "markerikson",
+          "notes": "Redux state management uses conventional commits"
+        },
+        {
+          "url": "https://github.com/pmndrs/zustand",
+          "slug": "pmndrs-zustand",
+          "language": "TypeScript",
+          "stars": 56637,
+          "mergeStrategy": "squash",
+          "commitFrequency": "medium",
+          "contributorCount": 300,
+          "testAuthor": "dai-shi",
+          "notes": "Zustand state management uses conventional commits"
+        },
+        {
+          "url": "https://github.com/eslint/eslint",
+          "slug": "eslint-eslint",
+          "language": "JavaScript",
+          "stars": 26812,
+          "mergeStrategy": "squash",
+          "commitFrequency": "medium",
+          "contributorCount": 300,
+          "testAuthor": "nzakas",
+          "notes": "ESLint uses conventional commits"
+        },
+        {
+          "url": "https://github.com/prettier/prettier",
+          "slug": "prettier-prettier",
+          "language": "JavaScript",
+          "stars": 51446,
+          "mergeStrategy": "squash",
+          "commitFrequency": "medium",
+          "contributorCount": 600,
+          "testAuthor": "thorn0",
+          "notes": "Prettier formatter uses conventional commits"
+        },
+        {
+          "url": "https://github.com/apollographql/apollo-client",
+          "slug": "apollographql-apollo-client",
+          "language": "TypeScript",
+          "stars": 19712,
+          "mergeStrategy": "squash",
+          "commitFrequency": "medium",
+          "contributorCount": 800,
+          "testAuthor": "benjamn",
+          "notes": "Apollo Client uses conventional commits"
+        },
+        {
+          "url": "https://github.com/rollup/rollup",
+          "slug": "rollup-rollup",
+          "language": "JavaScript",
+          "stars": 26204,
+          "mergeStrategy": "squash",
+          "commitFrequency": "medium",
+          "contributorCount": 400,
+          "testAuthor": "lukastaegert",
+          "notes": "Rollup bundler uses conventional commits"
+        },
+        {
+          "url": "https://github.com/webpack/webpack",
+          "slug": "webpack-webpack",
+          "language": "JavaScript",
+          "stars": 65915,
+          "mergeStrategy": "squash",
+          "commitFrequency": "medium",
+          "contributorCount": 700,
+          "testAuthor": "sokra",
+          "notes": "Webpack uses conventional commits style"
+        }
+      ]
+    },
+    "high-activity": {
+      "description": "Repositories with frequent commits from many contributors (50+ commits/week)",
+      "repos": [
+        {
+          "url": "https://github.com/torvalds/linux",
+          "slug": "torvalds-linux",
+          "language": "C",
+          "stars": 214763,
+          "mergeStrategy": "merge",
+          "commitFrequency": "high",
+          "contributorCount": 10000,
+          "testAuthor": "torvalds",
+          "notes": "Linux kernel - highest activity OSS project"
+        },
+        {
+          "url": "https://github.com/tensorflow/tensorflow",
+          "slug": "tensorflow-tensorflow",
+          "language": "C++",
+          "stars": 193415,
+          "mergeStrategy": "squash",
+          "commitFrequency": "high",
+          "contributorCount": 3500,
+          "testAuthor": "tensorflower-gardener",
+          "notes": "TensorFlow ML framework - very high commit frequency"
+        },
+        {
+          "url": "https://github.com/huggingface/transformers",
+          "slug": "huggingface-transformers",
+          "language": "Python",
+          "stars": 155450,
+          "mergeStrategy": "squash",
+          "commitFrequency": "high",
+          "contributorCount": 2500,
+          "testAuthor": "sgugger",
+          "notes": "Transformers library - rapid development pace"
+        },
+        {
+          "url": "https://github.com/langchain-ai/langchain",
+          "slug": "langchain-ai-langchain",
+          "language": "Python",
+          "stars": 124666,
+          "mergeStrategy": "squash",
+          "commitFrequency": "high",
+          "contributorCount": 2500,
+          "testAuthor": "baskaryan",
+          "notes": "LangChain - extremely high activity AI project"
+        },
+        {
+          "url": "https://github.com/electron/electron",
+          "slug": "electron-electron",
+          "language": "C++",
+          "stars": 119831,
+          "mergeStrategy": "squash",
+          "commitFrequency": "high",
+          "contributorCount": 1200,
+          "testAuthor": "codebytere",
+          "notes": "Electron desktop framework - high commit volume"
+        },
+        {
+          "url": "https://github.com/elastic/elasticsearch",
+          "slug": "elastic-elasticsearch",
+          "language": "Java",
+          "stars": 75916,
+          "mergeStrategy": "squash",
+          "commitFrequency": "high",
+          "contributorCount": 2000,
+          "testAuthor": "nik9000",
+          "notes": "Elasticsearch - enterprise-scale development"
+        },
+        {
+          "url": "https://github.com/spring-projects/spring-boot",
+          "slug": "spring-projects-spring-boot",
+          "language": "Java",
+          "stars": 79723,
+          "mergeStrategy": "squash",
+          "commitFrequency": "high",
+          "contributorCount": 1100,
+          "testAuthor": "wilkinsona",
+          "notes": "Spring Boot - active enterprise Java development"
+        },
+        {
+          "url": "https://github.com/django/django",
+          "slug": "django-django",
+          "language": "Python",
+          "stars": 86524,
+          "mergeStrategy": "squash",
+          "commitFrequency": "high",
+          "contributorCount": 2500,
+          "testAuthor": "carltongibson",
+          "notes": "Django web framework - long history, high activity"
+        },
+        {
+          "url": "https://github.com/fastapi/fastapi",
+          "slug": "fastapi-fastapi",
+          "language": "Python",
+          "stars": 94280,
+          "mergeStrategy": "squash",
+          "commitFrequency": "high",
+          "contributorCount": 700,
+          "testAuthor": "tiangolo",
+          "notes": "FastAPI - rapid growth and high activity"
+        },
+        {
+          "url": "https://github.com/shadcn-ui/ui",
+          "slug": "shadcn-ui-ui",
+          "language": "TypeScript",
+          "stars": 105186,
+          "mergeStrategy": "squash",
+          "commitFrequency": "high",
+          "contributorCount": 600,
+          "testAuthor": "shadcn",
+          "notes": "shadcn/ui - explosive growth, high activity"
+        },
+        {
+          "url": "https://github.com/getsentry/sentry",
+          "slug": "getsentry-sentry",
+          "language": "Python",
+          "stars": 42948,
+          "mergeStrategy": "squash",
+          "commitFrequency": "high",
+          "contributorCount": 900,
+          "testAuthor": "untitaker",
+          "notes": "Sentry error tracking - enterprise development pace"
+        },
+        {
+          "url": "https://github.com/PostHog/posthog",
+          "slug": "posthog-posthog",
+          "language": "Python",
+          "stars": 30895,
+          "mergeStrategy": "squash",
+          "commitFrequency": "high",
+          "contributorCount": 400,
+          "testAuthor": "macobo",
+          "notes": "PostHog analytics - very high activity"
+        },
+        {
+          "url": "https://github.com/appwrite/appwrite",
+          "slug": "appwrite-appwrite",
+          "language": "TypeScript",
+          "stars": 54479,
+          "mergeStrategy": "squash",
+          "commitFrequency": "high",
+          "contributorCount": 700,
+          "testAuthor": "eldadfux",
+          "notes": "Appwrite backend platform - high activity"
+        },
+        {
+          "url": "https://github.com/redis/redis",
+          "slug": "redis-redis",
+          "language": "C",
+          "stars": 72595,
+          "mergeStrategy": "merge",
+          "commitFrequency": "high",
+          "contributorCount": 700,
+          "testAuthor": "antirez",
+          "notes": "Redis database - consistent high activity"
+        },
+        {
+          "url": "https://github.com/hasura/graphql-engine",
+          "slug": "hasura-graphql-engine",
+          "language": "TypeScript",
+          "stars": 31868,
+          "mergeStrategy": "squash",
+          "commitFrequency": "high",
+          "contributorCount": 400,
+          "testAuthor": "0x777",
+          "notes": "Hasura GraphQL - high development pace"
+        },
+        {
+          "url": "https://github.com/argoproj/argo-cd",
+          "slug": "argoproj-argo-cd",
+          "language": "Go",
+          "stars": 21774,
+          "mergeStrategy": "squash",
+          "commitFrequency": "high",
+          "contributorCount": 900,
+          "testAuthor": "alexmt",
+          "notes": "ArgoCD GitOps - very active CNCF project"
+        },
+        {
+          "url": "https://github.com/axios/axios",
+          "slug": "axios-axios",
+          "language": "JavaScript",
+          "stars": 108517,
+          "mergeStrategy": "squash",
+          "commitFrequency": "medium",
+          "contributorCount": 500,
+          "testAuthor": "DigitalBrainJS",
+          "notes": "Axios HTTP client - widely used, active maintenance"
+        },
+        {
+          "url": "https://github.com/socketio/socket.io",
+          "slug": "socketio-socket-io",
+          "language": "TypeScript",
+          "stars": 62808,
+          "mergeStrategy": "squash",
+          "commitFrequency": "medium",
+          "contributorCount": 300,
+          "testAuthor": "darrachequesne",
+          "notes": "Socket.IO realtime framework - consistent activity"
+        },
+        {
+          "url": "https://github.com/pallets/flask",
+          "slug": "pallets-flask",
+          "language": "Python",
+          "stars": 71067,
+          "mergeStrategy": "squash",
+          "commitFrequency": "medium",
+          "contributorCount": 700,
+          "testAuthor": "davidism",
+          "notes": "Flask web framework - mature but active"
+        },
+        {
+          "url": "https://github.com/expressjs/express",
+          "slug": "expressjs-express",
+          "language": "JavaScript",
+          "stars": 68599,
+          "mergeStrategy": "squash",
+          "commitFrequency": "medium",
+          "contributorCount": 300,
+          "testAuthor": "dougwilson",
+          "notes": "Express.js - foundational web framework, active maintenance"
+        }
+      ]
+    },
+    "small-team": {
+      "description": "Quality repositories maintained by 1-5 developers with 90%+ of commits",
+      "repos": [
+        {
+          "url": "https://github.com/sindresorhus/got",
+          "slug": "sindresorhus-got",
+          "language": "TypeScript",
+          "stars": 14857,
+          "mergeStrategy": "squash",
+          "commitFrequency": "low",
+          "contributorCount": 200,
+          "testAuthor": "sindresorhus",
+          "notes": "Got HTTP client - sindresorhus maintains 90%+ of commits"
+        },
+        {
+          "url": "https://github.com/sindresorhus/execa",
+          "slug": "sindresorhus-execa",
+          "language": "JavaScript",
+          "stars": 7404,
+          "mergeStrategy": "squash",
+          "commitFrequency": "low",
+          "contributorCount": 100,
+          "testAuthor": "sindresorhus",
+          "notes": "Execa process execution - single maintainer"
+        },
+        {
+          "url": "https://github.com/tj/commander.js",
+          "slug": "tj-commander-js",
+          "language": "JavaScript",
+          "stars": 27895,
+          "mergeStrategy": "squash",
+          "commitFrequency": "low",
+          "contributorCount": 200,
+          "testAuthor": "shadowspawn",
+          "notes": "Commander.js CLI - small core team"
+        },
+        {
+          "url": "https://github.com/chalk/chalk",
+          "slug": "chalk-chalk",
+          "language": "JavaScript",
+          "stars": 22911,
+          "mergeStrategy": "squash",
+          "commitFrequency": "low",
+          "contributorCount": 100,
+          "testAuthor": "sindresorhus",
+          "notes": "Chalk terminal styling - sindresorhus small team"
+        },
+        {
+          "url": "https://github.com/colinhacks/zod",
+          "slug": "colinhacks-zod",
+          "language": "TypeScript",
+          "stars": 41528,
+          "mergeStrategy": "squash",
+          "commitFrequency": "medium",
+          "contributorCount": 300,
+          "testAuthor": "colinhacks",
+          "notes": "Zod validation - colinhacks does 90%+ of core work"
+        },
+        {
+          "url": "https://github.com/typicode/husky",
+          "slug": "typicode-husky",
+          "language": "JavaScript",
+          "stars": 34676,
+          "mergeStrategy": "squash",
+          "commitFrequency": "low",
+          "contributorCount": 100,
+          "testAuthor": "typicode",
+          "notes": "Husky git hooks - typicode single maintainer"
+        },
+        {
+          "url": "https://github.com/evanw/esbuild",
+          "slug": "evanw-esbuild",
+          "language": "Go",
+          "stars": 39638,
+          "mergeStrategy": "squash",
+          "commitFrequency": "medium",
+          "contributorCount": 100,
+          "testAuthor": "evanw",
+          "notes": "esbuild bundler - evanw single maintainer (99%+ commits)"
+        },
+        {
+          "url": "https://github.com/charmbracelet/bubbletea",
+          "slug": "charmbracelet-bubbletea",
+          "language": "Go",
+          "stars": 38449,
+          "mergeStrategy": "squash",
+          "commitFrequency": "medium",
+          "contributorCount": 200,
+          "testAuthor": "meowgorithm",
+          "notes": "Bubbletea TUI - small Charm team"
+        },
+        {
+          "url": "https://github.com/charmbracelet/gum",
+          "slug": "charmbracelet-gum",
+          "language": "Go",
+          "stars": 22335,
+          "mergeStrategy": "squash",
+          "commitFrequency": "low",
+          "contributorCount": 100,
+          "testAuthor": "maaslalani",
+          "notes": "Gum shell scripting - small Charm team"
+        },
+        {
+          "url": "https://github.com/mochajs/mocha",
+          "slug": "mochajs-mocha",
+          "language": "JavaScript",
+          "stars": 22870,
+          "mergeStrategy": "squash",
+          "commitFrequency": "low",
+          "contributorCount": 400,
+          "testAuthor": "boneskull",
+          "notes": "Mocha test framework - small core maintainer team"
+        },
+        {
+          "url": "https://github.com/date-fns/date-fns",
+          "slug": "date-fns-date-fns",
+          "language": "TypeScript",
+          "stars": 36412,
+          "mergeStrategy": "squash",
+          "commitFrequency": "low",
+          "contributorCount": 400,
+          "testAuthor": "kossnocorp",
+          "notes": "date-fns library - kossnocorp primary maintainer"
+        },
+        {
+          "url": "https://github.com/lodash/lodash",
+          "slug": "lodash-lodash",
+          "language": "JavaScript",
+          "stars": 61590,
+          "mergeStrategy": "squash",
+          "commitFrequency": "low",
+          "contributorCount": 300,
+          "testAuthor": "jdalton",
+          "notes": "Lodash utility library - jdalton primary maintainer"
+        },
+        {
+          "url": "https://github.com/react-hook-form/react-hook-form",
+          "slug": "react-hook-form-react-hook-form",
+          "language": "TypeScript",
+          "stars": 44425,
+          "mergeStrategy": "squash",
+          "commitFrequency": "medium",
+          "contributorCount": 300,
+          "testAuthor": "bluebill1049",
+          "notes": "React Hook Form - bluebill1049 primary maintainer"
+        },
+        {
+          "url": "https://github.com/typeorm/typeorm",
+          "slug": "typeorm-typeorm",
+          "language": "TypeScript",
+          "stars": 36254,
+          "mergeStrategy": "squash",
+          "commitFrequency": "medium",
+          "contributorCount": 600,
+          "testAuthor": "pleerock",
+          "notes": "TypeORM - small core team"
+        },
+        {
+          "url": "https://github.com/sequelize/sequelize",
+          "slug": "sequelize-sequelize",
+          "language": "TypeScript",
+          "stars": 30331,
+          "mergeStrategy": "squash",
+          "commitFrequency": "medium",
+          "contributorCount": 400,
+          "testAuthor": "ephys",
+          "notes": "Sequelize ORM - small core maintainer team"
+        },
+        {
+          "url": "https://github.com/Automattic/mongoose",
+          "slug": "automattic-mongoose",
+          "language": "JavaScript",
+          "stars": 27447,
+          "mergeStrategy": "squash",
+          "commitFrequency": "medium",
+          "contributorCount": 400,
+          "testAuthor": "vkarpov15",
+          "notes": "Mongoose ODM - vkarpov15 primary maintainer"
+        },
+        {
+          "url": "https://github.com/gin-gonic/gin",
+          "slug": "gin-gonic-gin",
+          "language": "Go",
+          "stars": 87742,
+          "mergeStrategy": "squash",
+          "commitFrequency": "low",
+          "contributorCount": 400,
+          "testAuthor": "appleboy",
+          "notes": "Gin web framework - small maintainer team"
+        },
+        {
+          "url": "https://github.com/gofiber/fiber",
+          "slug": "gofiber-fiber",
+          "language": "Go",
+          "stars": 39005,
+          "mergeStrategy": "squash",
+          "commitFrequency": "medium",
+          "contributorCount": 400,
+          "testAuthor": "Fenny",
+          "notes": "Fiber web framework - small core team"
+        },
+        {
+          "url": "https://github.com/labstack/echo",
+          "slug": "labstack-echo",
+          "language": "Go",
+          "stars": 32062,
+          "mergeStrategy": "squash",
+          "commitFrequency": "low",
+          "contributorCount": 300,
+          "testAuthor": "vishr",
+          "notes": "Echo web framework - small maintainer team"
+        },
+        {
+          "url": "https://github.com/graphql/graphql-js",
+          "slug": "graphql-graphql-js",
+          "language": "TypeScript",
+          "stars": 20314,
+          "mergeStrategy": "squash",
+          "commitFrequency": "low",
+          "contributorCount": 200,
+          "testAuthor": "IvanGoncharov",
+          "notes": "GraphQL.js reference impl - small core team"
+        }
+      ]
+    }
+  },
+  "statistics": {
+    "totalRepos": 100,
+    "reposPerCategory": 20,
+    "languageDistribution": {
+      "TypeScript": 38,
+      "JavaScript": 18,
+      "Go": 20,
+      "Rust": 8,
+      "Python": 8,
+      "C": 2,
+      "C++": 3,
+      "Java": 2,
+      "Zig": 1
+    }
+  }
+}
