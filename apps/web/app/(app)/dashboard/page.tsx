@@ -7,8 +7,12 @@ import { AppPage } from '@/components/shared/app-page';
 import { AppContent } from '@/components/shared/app-content';
 import { auth } from '@/lib/better-auth/server';
 import { headers } from 'next/headers';
-import { getAchievementStats } from '@bragdoc/database';
-import { DashboardZeroState } from '@/components/dashboard/dashboard-zero-state';
+import {
+  getAchievementStats,
+  getCompaniesCount,
+  getProjectsCount,
+} from '@bragdoc/database';
+import { GettingStartedBanner } from '@/components/dashboard/getting-started-banner';
 import { RestartTourButton } from '@/components/demo-tour';
 
 export default async function Page() {
@@ -22,23 +26,29 @@ export default async function Page() {
     return <div className="p-4">Please log in to view your dashboard.</div>;
   }
 
-  const achievementStats = await getAchievementStats({
-    userId: session.user.id,
-  });
-  const hasNoAchievements = achievementStats.totalAchievements === 0;
+  // Fetch all counts in parallel
+  const [achievementStats, companiesCount, projectsCount] = await Promise.all([
+    getAchievementStats({ userId: session.user.id }),
+    getCompaniesCount({ userId: session.user.id }),
+    getProjectsCount({ userId: session.user.id }),
+  ]);
 
   return (
     <AppPage>
       <SidebarInset>
-        <SiteHeader>{!hasNoAchievements && <RestartTourButton />}</SiteHeader>
-        {hasNoAchievements ? (
-          <DashboardZeroState />
-        ) : (
-          <AppContent>
-            <AchievementStats />
-            <ClientDashboardContent />
-          </AppContent>
-        )}
+        <SiteHeader>
+          {achievementStats.totalAchievements > 0 && <RestartTourButton />}
+        </SiteHeader>
+        {/* Banner handles its own visibility via localStorage */}
+        <GettingStartedBanner
+          companiesCount={companiesCount}
+          projectsCount={projectsCount}
+          achievementsCount={achievementStats.totalAchievements}
+        />
+        <AppContent>
+          <AchievementStats />
+          <ClientDashboardContent />
+        </AppContent>
       </SidebarInset>
     </AppPage>
   );

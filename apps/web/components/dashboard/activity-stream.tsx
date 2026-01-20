@@ -87,9 +87,15 @@ export function ActivityStream({ achievements }: ActivityStreamProps) {
       </CardHeader>
       <CardContent>
         {recentAchievements.length === 0 ? (
-          <p className="text-sm text-muted-foreground">
-            No recent achievements to show.
-          </p>
+          <div className="flex flex-col items-center justify-center py-8 text-center">
+            <Trophy className="size-10 text-muted-foreground/50 mb-4" />
+            <p className="text-muted-foreground font-medium">
+              No recent achievements
+            </p>
+            <p className="text-sm text-muted-foreground mt-1">
+              Add an achievement or run the CLI to extract from Git
+            </p>
+          </div>
         ) : (
           <div className="space-y-4">
             {recentAchievements.map((achievement, index) => (

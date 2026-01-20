@@ -1,5 +1,14 @@
 'use client';
 
+/**
+ * @deprecated This component is deprecated in favor of the new GettingStartedBanner approach.
+ * The dashboard now always displays content with a dismissible banner at the top for onboarding.
+ * See `apps/web/components/dashboard/getting-started-banner.tsx` for the new implementation.
+ *
+ * This file is kept for reference but is no longer used in the dashboard page.
+ * Consider removing in a future cleanup.
+ */
+
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';

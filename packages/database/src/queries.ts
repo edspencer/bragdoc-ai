@@ -1355,3 +1355,47 @@ export async function findAchievementByUniqueSourceId(
     throw error;
   }
 }
+
+/**
+ * Get total count of companies for a user
+ */
+export async function getCompaniesCount({
+  userId,
+  db = defaultDb,
+}: {
+  userId: string;
+  db?: typeof defaultDb;
+}): Promise<number> {
+  try {
+    const result = await db
+      .select({ count: sql<number>`count(*)::int` })
+      .from(company)
+      .where(eq(company.userId, userId));
+    return result[0]?.count ?? 0;
+  } catch (error) {
+    console.error('Error in getCompaniesCount:', error);
+    throw error;
+  }
+}
+
+/**
+ * Get total count of projects for a user
+ */
+export async function getProjectsCount({
+  userId,
+  db = defaultDb,
+}: {
+  userId: string;
+  db?: typeof defaultDb;
+}): Promise<number> {
+  try {
+    const result = await db
+      .select({ count: sql<number>`count(*)::int` })
+      .from(project)
+      .where(eq(project.userId, userId));
+    return result[0]?.count ?? 0;
+  } catch (error) {
+    console.error('Error in getProjectsCount:', error);
+    throw error;
+  }
+}

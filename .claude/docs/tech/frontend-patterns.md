@@ -1310,6 +1310,22 @@ function AchievementsSkeleton() {
 
 Zero states provide welcoming, helpful UIs when users have no data. They guide users through initial setup and explain what actions to take.
 
+### Dashboard Zero State Approach
+
+**Current Pattern (as of 2025-01):** The dashboard uses a **dismissible onboarding banner** combined with **component-level contextual zero states** instead of a full-page zero state.
+
+**Why this approach:**
+- New users see dashboard structure immediately, understanding what the app does
+- Onboarding guidance is always accessible but non-blocking
+- Individual components show relevant empty states with contextual CTAs
+- Users can dismiss the banner once familiar, without losing component-level guidance
+
+**Key Components:**
+- `GettingStartedBanner` - Dismissible 3-column onboarding banner (see Onboarding Banner Pattern below)
+- `WeeklyImpactChart` - Shows "No impact data yet" with icon when empty
+- `ActivityStream` - Shows "No recent achievements" with helpful message
+- `TopProjects` - Shows "No projects yet" with "Create Project" CTA
+
 ### When to Use Zero States
 
 - **New user onboarding**: User has just signed up with no data yet
@@ -1322,130 +1338,56 @@ Zero states provide welcoming, helpful UIs when users have no data. They guide u
 - **Zero state**: Data has been fetched but is empty (guide the user)
 - **Error state**: Fetch failed (show error message with retry)
 
-### Conditional Rendering Pattern
+### Component-Level Zero State Pattern
 
-**File:** `apps/web/app/(app)/dashboard/page.tsx`
+Individual dashboard components handle their own empty states with contextual messaging and relevant CTAs.
+
+**Example: WeeklyImpactChart**
 
 ```typescript
-export default async function DashboardPage() {
-  const session = await auth();
-
-  // IMPORTANT: Never use redirect() in Server Components
-  // It breaks Cloudflare Workers builds. Use fallback UI instead.
-  if (!session?.user?.id) {
-    return <div className="p-4">Please log in to view your dashboard.</div>;
-  }
-
-  const achievementStats = await getAchievementStats({ userId: session.user.id });
-  const hasNoAchievements = achievementStats.totalAchievements === 0;
-
+if (achievements.length === 0) {
   return (
-    <AppPage>
-      <SidebarInset>
-        <SiteHeader />
-        <div className="flex flex-1 flex-col">
-          <div className="@container/main flex flex-1 flex-col gap-2">
-            <div className="flex flex-col gap-4 py-4 md:gap-6 md:py-6">
-              {/* Stats shown in both states */}
-              <AchievementStats />
-
-              {/* Conditional rendering based on data */}
-              {hasNoAchievements ? (
-                <DashboardZeroState />
-              ) : (
-                <ClientDashboardContent />
-              )}
-            </div>
-          </div>
-        </div>
-      </SidebarInset>
-    </AppPage>
+    <Card className="@container/card">
+      <CardHeader>
+        <CardTitle>Weekly Impact Trend</CardTitle>
+        <CardDescription>Impact points earned over time</CardDescription>
+      </CardHeader>
+      <CardContent className="flex flex-col items-center justify-center py-12 text-center">
+        <BarChart3 className="size-12 text-muted-foreground/50 mb-4" />
+        <p className="text-muted-foreground">No impact data yet</p>
+        <p className="text-sm text-muted-foreground mt-1">
+          Add your first achievement to see your impact over time
+        </p>
+      </CardContent>
+    </Card>
   );
 }
 ```
 
-### Zero State Component Structure
-
-**File:** `apps/web/components/dashboard/dashboard-zero-state.tsx`
+**Example: ActivityStream**
 
 ```typescript
-'use client';
-
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { Button } from '@/components/ui/button';
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
-
-export function DashboardZeroState() {
-  const [isChecking, setIsChecking] = useState(false);
-  const [showFeedback, setShowFeedback] = useState(false);
-  const router = useRouter();
-
-  const handleCheckForAchievements = async () => {
-    setIsChecking(true);
-    setShowFeedback(false);
-
-    // Refresh server components to re-fetch data
-    router.refresh();
-
-    // Show feedback if still in zero state after refresh
-    setTimeout(() => {
-      setShowFeedback(true);
-      setIsChecking(false);
-    }, 1000);
-  };
-
-  return (
-    <div className="flex flex-1 flex-col items-center justify-center p-8">
-      <div className="max-w-2xl w-full space-y-6">
-        {/* Welcome message */}
-        <div className="text-center space-y-2">
-          <h1 className="text-3xl font-bold">Welcome to BragDoc!</h1>
-          <p className="text-lg text-muted-foreground">
-            Let's get started by extracting achievements from your Git repositories
-          </p>
-        </div>
-
-        {/* Instructions card */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Getting Started</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            {/* Step-by-step CLI instructions */}
-          </CardContent>
-        </Card>
-
-        {/* Action button with feedback */}
-        <div className="flex flex-col items-center gap-2">
-          <Button
-            size="lg"
-            onClick={handleCheckForAchievements}
-            disabled={isChecking}
-          >
-            {isChecking ? 'Checking...' : "I've run the CLI - Check for achievements"}
-          </Button>
-
-          {showFeedback && (
-            <p className="text-sm text-muted-foreground text-center">
-              No achievements yet. Did you run <code>bragdoc extract</code>?
-            </p>
-          )}
-        </div>
-      </div>
-    </div>
-  );
-}
+{recentAchievements.length === 0 ? (
+  <div className="flex flex-col items-center justify-center py-8 text-center">
+    <Trophy className="size-10 text-muted-foreground/50 mb-4" />
+    <p className="text-muted-foreground font-medium">No recent achievements</p>
+    <p className="text-sm text-muted-foreground mt-1">
+      Add an achievement or run the CLI to extract from Git
+    </p>
+  </div>
+) : (
+  // existing content
+)}
 ```
 
 ### Key Zero State Principles
 
-1. **Centered Layout**: Use `flex items-center justify-center` with `max-w-2xl` constraint
-2. **Clear Instructions**: Provide step-by-step guidance (numbered lists work well)
-3. **Call to Action**: Include an interactive button or link to next step
-4. **Helpful Feedback**: Show messages when user takes action but problem persists
-5. **Client Component**: Zero states typically need interactivity (`'use client'`)
-6. **Refresh Pattern**: Use `router.refresh()` to check for data updates
+1. **Contextual Messaging**: Each component explains what it shows and why it's empty
+2. **Relevant Icons**: Use icons that match the component's purpose (BarChart3 for charts, Trophy for achievements)
+3. **Helpful Suggestions**: Tell users what action to take ("Add an achievement" or "run the CLI")
+4. **Maintain Structure**: Keep card headers/titles visible so users understand the component
+5. **Consistent Styling**: Use `text-muted-foreground` for messages, centered flex layouts
+6. **Appropriate Size**: Use `py-8` to `py-12` padding to give breathing room without overwhelming
 
 ### Cloudflare Workers Compatibility
 
@@ -1501,6 +1443,157 @@ Place zero state components in feature-specific subdirectories following the pat
 - "No achievements yet" message
 - Link to dashboard or CLI instructions
 - Create first achievement button
+
+## Onboarding Banner Pattern
+
+The dashboard uses a dismissible onboarding banner to welcome new users and guide them through initial setup, while always showing the regular dashboard content underneath.
+
+### Overview
+
+**Files:**
+- `apps/web/components/dashboard/getting-started-banner.tsx` - Main banner component
+- `apps/web/hooks/use-getting-started.ts` - State management hook with localStorage persistence
+
+**Key Features:**
+- **Responsive 3-column grid**: Welcome checklist, CLI setup, and learning resources
+- **localStorage-based dismissal**: Banner stays dismissed across page refreshes
+- **Dynamic checklist**: Items auto-complete based on user data (companies, projects, achievements)
+- **Interactive CTAs**: Clicking incomplete checklist items opens relevant dialogs
+
+### Component Structure
+
+```typescript
+interface GettingStartedBannerProps {
+  companiesCount: number;
+  projectsCount: number;
+  achievementsCount: number;
+}
+
+export function GettingStartedBanner({
+  companiesCount,
+  projectsCount,
+  achievementsCount,
+}: GettingStartedBannerProps) {
+  const { isDismissed, dismiss, checklistItems, completedCount, totalCount } =
+    useGettingStarted({ companiesCount, projectsCount, achievementsCount });
+
+  // Don't render if dismissed
+  if (isDismissed) {
+    return null;
+  }
+
+  return (
+    <div className="px-4 lg:px-6 pt-4">
+      <Card className="relative">
+        {/* Dismiss button in top-right */}
+        <Button variant="ghost" size="icon" className="absolute right-2 top-2" onClick={dismiss}>
+          <X className="size-4" />
+        </Button>
+        <CardContent className="pt-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {/* Column 1: Welcome Checklist */}
+            {/* Column 2: CLI Setup */}
+            {/* Column 3: Learn & Improve */}
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
+```
+
+### useGettingStarted Hook
+
+Manages banner visibility and checklist state with localStorage persistence.
+
+```typescript
+const GETTING_STARTED_STORAGE_KEY = 'getting-started-dismissed';
+
+interface UseGettingStartedReturn {
+  isDismissed: boolean;      // Whether banner has been dismissed
+  dismiss: () => void;       // Dismiss and persist to localStorage
+  reset: () => void;         // Reset dismissal state (for testing)
+  checklistItems: ChecklistItem[];  // Items with completion status
+  completedCount: number;    // Number of completed items
+  totalCount: number;        // Total items (4)
+}
+```
+
+**Checklist Items:**
+1. "Create an account" - Always complete (user is logged in)
+2. "Add a company" - Complete when `companiesCount > 0`
+3. "Add a project" - Complete when `projectsCount > 0`
+4. "Add an achievement" - Complete when `achievementsCount > 0`
+
+### Responsive Grid Layout
+
+```typescript
+<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+  {/* 3 columns on desktop, 2 on tablet (3rd wraps), 1 on mobile (stacked) */}
+</div>
+```
+
+**Breakpoints:**
+- Mobile (< 768px): Single column, all 3 sections stacked vertically
+- Tablet (768px - 1024px): 2 columns, third section wraps below
+- Desktop (> 1024px): 3 columns side by side
+
+### Dashboard Integration
+
+The banner is rendered **outside** the `<AppContent>` wrapper, positioned between `<SiteHeader>` and the main content:
+
+```typescript
+return (
+  <AppPage>
+    <SidebarInset>
+      <SiteHeader />
+      <GettingStartedBanner
+        companiesCount={companiesCount}
+        projectsCount={projectsCount}
+        achievementsCount={achievementStats.totalAchievements}
+      />
+      <AppContent>
+        <AchievementStats />
+        <ClientDashboardContent />
+      </AppContent>
+    </SidebarInset>
+  </AppPage>
+);
+```
+
+**Why this positioning:**
+- Banner has its own horizontal padding (`px-4 lg:px-6`)
+- Maintains visual separation from main dashboard content
+- Consistent with the page layout pattern
+
+### Checklist Item Click Handlers
+
+Clicking incomplete checklist items opens the relevant creation dialog:
+
+```typescript
+const handleChecklistItemClick = (itemId: string) => {
+  switch (itemId) {
+    case 'company':
+      setCompanyDialogOpen(true);
+      break;
+    case 'project':
+      setProjectDialogOpen(true);
+      break;
+    case 'achievement':
+      setAchievementDialogOpen(true);
+      break;
+  }
+};
+```
+
+### Key Design Principles
+
+1. **Non-blocking**: Dashboard content always visible, banner is supplemental
+2. **Progressive disclosure**: CLI instructions in a dialog, not cluttering the banner
+3. **Dynamic completion**: Checklist updates automatically as user adds data
+4. **Persistent dismissal**: localStorage ensures banner stays dismissed
+5. **Graceful degradation**: If localStorage fails, banner still shows (won't crash)
+6. **Flash prevention**: Initialize `isDismissed` to `true` to prevent flash on hydration
 
 ## Authentication Components
 

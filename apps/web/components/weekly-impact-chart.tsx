@@ -9,6 +9,7 @@ import {
   isSameWeek,
   isSameMonth,
 } from 'date-fns';
+import { BarChart3 } from 'lucide-react';
 
 import { useIsMobile } from '@/hooks/use-mobile';
 import type { AchievementWithRelationsUI } from '@/lib/types/achievement';
@@ -227,6 +228,25 @@ export function WeeklyImpactChart({ achievements }: WeeklyImpactChartProps) {
       setTimeRange('12w');
     }
   }, [isMobile]);
+
+  // Zero state when no achievements exist
+  if (achievements.length === 0) {
+    return (
+      <Card className="@container/card" id="tour-impact-chart">
+        <CardHeader>
+          <CardTitle>Weekly Impact Trend</CardTitle>
+          <CardDescription>Impact points earned over time</CardDescription>
+        </CardHeader>
+        <CardContent className="flex flex-col items-center justify-center py-12 text-center">
+          <BarChart3 className="size-12 text-muted-foreground/50 mb-4" />
+          <p className="text-muted-foreground">No impact data yet</p>
+          <p className="text-sm text-muted-foreground mt-1">
+            Add your first achievement to see your impact over time
+          </p>
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
     <Card className="@container/card" id="tour-impact-chart">
