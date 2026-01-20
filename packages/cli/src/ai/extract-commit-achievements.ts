@@ -3,7 +3,7 @@ import {
   type ExtractCommitAchievementsPromptProps,
   type ExtractedAchievement,
 } from './prompts/types';
-import { streamObject } from 'ai';
+import { streamObject, type LanguageModel } from 'ai';
 import { getExtractionModel } from './llm';
 import path from 'node:path';
 import { renderMDXPromptFile } from 'mdx-prompt';
@@ -14,6 +14,14 @@ const promptPath = path.resolve(
   __dirname,
   './prompts/extract-commit-achievements.mdx',
 );
+
+/**
+ * Options for extraction execution
+ */
+export interface ExecuteOptions {
+  /** Optional custom model to use. If not provided, uses getExtractionModel() */
+  model?: LanguageModel;
+}
 
 /**
  * Renders the prompt that extracts achievements from commit messages
@@ -36,11 +44,13 @@ export async function render(
  * an ExtractedAchievement object for each achievement in the prompt.
  *
  * @param prompt The prompt to extract achievements from
+ * @param options Optional execution options including custom model
  */
 export async function* executeStream(
   prompt: string,
+  options?: ExecuteOptions,
 ): AsyncGenerator<ExtractedAchievement, void, unknown> {
-  const model = await getExtractionModel();
+  const model = options?.model ?? (await getExtractionModel());
 
   const { elementStream } = streamObject({
     model,
@@ -67,11 +77,15 @@ export async function* executeStream(
  * Executes a pre-rendered prompt string and returns an array of ExtractedAchievement objects
  *
  * @param prompt The prompt to extract achievements from
+ * @param options Optional execution options including custom model
  */
-export async function execute(prompt: string): Promise<ExtractedAchievement[]> {
+export async function execute(
+  prompt: string,
+  options?: ExecuteOptions,
+): Promise<ExtractedAchievement[]> {
   const achievements: ExtractedAchievement[] = [];
 
-  for await (const achievement of executeStream(prompt)) {
+  for await (const achievement of executeStream(prompt, options)) {
     achievements.push(achievement);
   }
 
@@ -83,10 +97,12 @@ export async function execute(prompt: string): Promise<ExtractedAchievement[]> {
  * the prompt, returning the array of ExtractedAchievement objects.
  *
  * @param data The data to render the prompt with
+ * @param options Optional execution options including custom model
  * @returns ExtractedAchievement[]
  */
 export async function renderExecute(
   data: ExtractCommitAchievementsPromptProps,
+  options?: ExecuteOptions,
 ): Promise<ExtractedAchievement[]> {
-  return await execute(await render(data));
+  return await execute(await render(data), options);
 }

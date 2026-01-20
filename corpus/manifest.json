@@ -2,6 +2,34 @@
   "$schema": "./manifest.schema.json",
   "version": "1.0.0",
   "description": "BragDoc corpus testing manifest",
-  "snapshots": [],
+  "snapshots": [
+    {
+      "id": "colinhacks-zod-2026-01-20T20-34-23Z",
+      "repo": "colinhacks-zod",
+      "category": "small-team",
+      "snapshotPath": "snapshots/small-team/colinhacks-zod/2026-01-20T20-34-23Z.json",
+      "extractedAt": "2026-01-20T20:34:23Z",
+      "commitCount": 500,
+      "achievementCount": 0
+    },
+    {
+      "id": "colinhacks-zod-2026-01-20T21-23-38Z",
+      "repo": "colinhacks-zod",
+      "category": "small-team",
+      "snapshotPath": "snapshots/small-team/colinhacks-zod/2026-01-20T21-23-38Z.json",
+      "extractedAt": "2026-01-20T21:23:51Z",
+      "commitCount": 10,
+      "achievementCount": 4
+    },
+    {
+      "id": "colinhacks-zod-2026-01-20T21-37-07Z",
+      "repo": "colinhacks-zod",
+      "category": "small-team",
+      "snapshotPath": "snapshots/small-team/colinhacks-zod/2026-01-20T21-37-07Z.json",
+      "extractedAt": "2026-01-20T21:37:12Z",
+      "commitCount": 3,
+      "achievementCount": 1
+    }
+  ],
   "reports": []
 }
