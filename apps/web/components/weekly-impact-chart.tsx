@@ -9,8 +9,11 @@ import {
   isSameWeek,
   isSameMonth,
 } from 'date-fns';
+import { BarChart3, Plus } from 'lucide-react';
 
 import { useIsMobile } from '@/hooks/use-mobile';
+import { Button } from '@/components/ui/button';
+import { AchievementDialog } from '@/components/achievements/AchievementDialog';
 import type { AchievementWithRelationsUI } from '@/lib/types/achievement';
 import {
   Card,
@@ -44,6 +47,8 @@ interface WeeklyImpactChartProps {
 export function WeeklyImpactChart({ achievements }: WeeklyImpactChartProps) {
   const isMobile = useIsMobile();
   const [timeRange, setTimeRange] = React.useState('all');
+  const [achievementDialogOpen, setAchievementDialogOpen] =
+    React.useState(false);
 
   // Get unique projects with colors
   const projectsWithColors = React.useMemo(() => {
@@ -227,6 +232,38 @@ export function WeeklyImpactChart({ achievements }: WeeklyImpactChartProps) {
       setTimeRange('12w');
     }
   }, [isMobile]);
+
+  // Zero state when no achievements exist
+  if (achievements.length === 0) {
+    return (
+      <>
+        <Card className="@container/card" id="tour-impact-chart">
+          <CardHeader>
+            <CardTitle>Weekly Impact Trend</CardTitle>
+            <CardDescription>Impact points earned over time</CardDescription>
+          </CardHeader>
+          <CardContent className="flex flex-col items-center justify-center py-12 text-center">
+            <BarChart3 className="size-12 text-muted-foreground/50 mb-4" />
+            <p className="text-sm text-muted-foreground mb-4">
+              Add your first achievement to see your impact over time
+            </p>
+            <Button
+              onClick={() => setAchievementDialogOpen(true)}
+              className="gap-2"
+            >
+              <Plus className="size-4" />
+              Add Achievement
+            </Button>
+          </CardContent>
+        </Card>
+        <AchievementDialog
+          mode="create"
+          open={achievementDialogOpen}
+          onOpenChange={setAchievementDialogOpen}
+        />
+      </>
+    );
+  }
 
   return (
     <Card className="@container/card" id="tour-impact-chart">

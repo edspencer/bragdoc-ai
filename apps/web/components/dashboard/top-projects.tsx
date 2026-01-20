@@ -69,17 +69,17 @@ export function TopProjects() {
         </CardHeader>
         <CardContent>
           {projects.length === 0 ? (
-            <div className="text-center py-6">
+            <div className="flex flex-col items-center justify-center py-8 text-center">
+              <FolderKanban className="size-10 text-muted-foreground/50 mb-4" />
               <p className="text-sm text-muted-foreground mb-4">
-                No projects yet. Create your first project to start tracking
-                achievements.
+                Create your first project to start tracking achievements
               </p>
               <Button
                 onClick={() => setCreateDialogOpen(true)}
                 className="gap-2"
               >
                 <Plus className="size-4" />
-                Create Project
+                Add Project
               </Button>
             </div>
           ) : (
@@ -152,7 +152,7 @@ export function TopProjects() {
                     className="w-full gap-2"
                   >
                     <Plus className="size-4" />
-                    Create Project
+                    Add Project
                   </Button>
                 </div>
               )}

@@ -406,3 +406,117 @@ Potential future improvements (not currently implemented):
 See `.claude/docs/tech/frontend-patterns.md` for complete technical documentation and patterns.
 
 ---
+
+## Dashboard Getting Started Experience
+
+### Overview
+
+**Implemented:** 2025-01
+
+BragDoc includes a dismissible "Getting Started" banner on the dashboard that helps new users set up their account. Unlike the Guided Demo Tour (which is for demo mode users), the Getting Started banner appears for all authenticated users until they dismiss it.
+
+### Target Audience
+
+The Getting Started banner is designed for:
+
+- **New users** who just signed up and have no data
+- **All authenticated users** (until dismissed)
+- **Users returning to an empty dashboard**
+
+The banner is **not shown** to:
+
+- Users who have dismissed it (stored in localStorage)
+- Demo mode users still have access, but may also see the Demo Tour
+
+### Banner Structure
+
+The banner uses a responsive 3-column layout:
+
+#### Column 1: Welcome Checklist
+
+A step-by-step checklist that tracks onboarding progress:
+
+1. **Create an account** - Always checked (user is logged in)
+2. **Add a company** - Checked when user has companies
+3. **Add a project** - Checked when user has projects
+4. **Add an achievement** - Checked when user has achievements
+
+Clicking incomplete items opens the relevant creation dialog (CompanyDialog, ProjectDialog, or AchievementDialog).
+
+#### Column 2: CLI Setup
+
+Quick access to CLI installation instructions:
+
+- Button opens a dialog with the CliInstructions component
+- Explains how to extract achievements automatically from Git repositories
+
+#### Column 3: Learn & Improve
+
+Links to educational blog posts:
+
+- "The 6 Types of Developer Impact"
+- "Why Developers Need Automated Brag Docs"
+- "Performance Review Preparation Guide"
+
+All links open in new tabs.
+
+### User Interactions
+
+**Dismiss Banner:**
+
+- Click the X button in the top-right corner
+- Dismissal persists in localStorage (`getting-started-dismissed`)
+- Banner will not reappear after dismissal
+
+**Checklist Actions:**
+
+- Click incomplete items to open creation dialogs
+- Checklist auto-updates as user adds data
+- Visual feedback with checkmarks and strikethrough text
+
+**CLI Instructions:**
+
+- Click "Setup CLI Instructions" button
+- Dialog opens with step-by-step CLI setup guide
+- Close dialog with X or by clicking outside
+
+### Key Design Decisions
+
+1. **Non-blocking**: Dashboard content always visible underneath the banner
+2. **Component-level zero states**: Individual dashboard widgets show their own empty states (e.g., "No impact data yet" in the chart)
+3. **Progressive disclosure**: CLI instructions in dialog rather than inline
+4. **localStorage persistence**: Simple, client-side dismissal tracking
+
+### Technical Implementation
+
+**Key Files:**
+
+| File | Purpose |
+|------|---------|
+| `apps/web/components/dashboard/getting-started-banner.tsx` | Main banner component |
+| `apps/web/hooks/use-getting-started.ts` | State management with localStorage |
+| `apps/web/app/(app)/dashboard/page.tsx` | Dashboard page integration |
+
+**Database Queries:**
+
+- `getCompaniesCount()` - Count user's companies
+- `getProjectsCount()` - Count user's projects
+- `getAchievementStats()` - Get achievement count (from existing stats query)
+
+### Relationship to Demo Tour
+
+The Getting Started banner and Demo Tour serve complementary purposes:
+
+| Feature | Getting Started Banner | Demo Tour |
+|---------|----------------------|-----------|
+| Audience | All users | Demo mode only |
+| Content | Setup checklist, CLI, resources | Feature highlights |
+| Dismissal | Manual X button | Complete or skip |
+| Persistence | localStorage | localStorage |
+| Reappears | Never (once dismissed) | Never (once completed) |
+
+Both features can appear simultaneously for demo users, providing both onboarding guidance and feature education.
+
+See `.claude/docs/tech/frontend-patterns.md` for the Onboarding Banner Pattern documentation.
+
+---

@@ -62,6 +62,8 @@ export {
   deleteCompanyWithCascade,
   getAchievementStats,
   getActiveProjectsCount,
+  getCompaniesCount,
+  getProjectsCount,
   getSourcesByUserId,
   getSourcesByProjectId,
   getSourceById,
