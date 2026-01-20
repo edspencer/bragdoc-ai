@@ -1,0 +1,104 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 500" fill="none">
+  <!-- Background -->
+  <rect width="1200" height="500" fill="#FAFBFC"/>
+
+  <!-- Title -->
+  <text x="600" y="50" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="28" font-weight="600" fill="#1E293B">What Your Manager Remembers</text>
+
+  <!-- Timeline base -->
+  <line x1="100" y1="280" x2="1100" y2="280" stroke="#CBD5E1" stroke-width="3" stroke-linecap="round"/>
+
+  <!-- Month labels -->
+  <text x="100" y="320" text-anchor="middle" font-family="system-ui, sans-serif" font-size="14" fill="#64748B">Jan</text>
+  <text x="200" y="320" text-anchor="middle" font-family="system-ui, sans-serif" font-size="14" fill="#64748B">Feb</text>
+  <text x="300" y="320" text-anchor="middle" font-family="system-ui, sans-serif" font-size="14" fill="#64748B">Mar</text>
+  <text x="400" y="320" text-anchor="middle" font-family="system-ui, sans-serif" font-size="14" fill="#64748B">Apr</text>
+  <text x="500" y="320" text-anchor="middle" font-family="system-ui, sans-serif" font-size="14" fill="#64748B">May</text>
+  <text x="600" y="320" text-anchor="middle" font-family="system-ui, sans-serif" font-size="14" fill="#64748B">Jun</text>
+  <text x="700" y="320" text-anchor="middle" font-family="system-ui, sans-serif" font-size="14" fill="#64748B">Jul</text>
+  <text x="800" y="320" text-anchor="middle" font-family="system-ui, sans-serif" font-size="14" fill="#64748B">Aug</text>
+  <text x="900" y="320" text-anchor="middle" font-family="system-ui, sans-serif" font-size="14" fill="#64748B">Sep</text>
+  <text x="1000" y="320" text-anchor="middle" font-family="system-ui, sans-serif" font-size="14" fill="#64748B">Oct</text>
+  <text x="1100" y="320" text-anchor="middle" font-family="system-ui, sans-serif" font-size="14" fill="#64748B">Nov</text>
+
+  <!-- Timeline dots -->
+  <circle cx="100" cy="280" r="6" fill="#CBD5E1"/>
+  <circle cx="200" cy="280" r="6" fill="#CBD5E1"/>
+  <circle cx="300" cy="280" r="6" fill="#CBD5E1"/>
+  <circle cx="400" cy="280" r="6" fill="#CBD5E1"/>
+  <circle cx="500" cy="280" r="6" fill="#CBD5E1"/>
+  <circle cx="600" cy="280" r="6" fill="#CBD5E1"/>
+  <circle cx="700" cy="280" r="6" fill="#CBD5E1"/>
+  <circle cx="800" cy="280" r="6" fill="#CBD5E1"/>
+  <circle cx="900" cy="280" r="6" fill="#CBD5E1"/>
+  <circle cx="1000" cy="280" r="6" fill="#CBD5E1"/>
+  <circle cx="1100" cy="280" r="6" fill="#3B82F6"/>
+
+  <!-- Achievement cards - fading from left (old) to right (recent) -->
+  
+  <!-- January - Very faded -->
+  <g opacity="0.15">
+    <rect x="60" y="140" width="120" height="70" rx="8" fill="white" stroke="#3B82F6" stroke-width="2"/>
+    <text x="120" y="168" text-anchor="middle" font-family="system-ui, sans-serif" font-size="11" font-weight="600" fill="#1E293B">Major API</text>
+    <text x="120" y="183" text-anchor="middle" font-family="system-ui, sans-serif" font-size="11" font-weight="600" fill="#1E293B">Migration</text>
+    <text x="120" y="200" text-anchor="middle" font-family="system-ui, sans-serif" font-size="10" fill="#64748B">-40% latency</text>
+    <line x1="120" y1="210" x2="120" y2="280" stroke="#3B82F6" stroke-width="2" stroke-dasharray="4,4"/>
+  </g>
+
+  <!-- March - Faded -->
+  <g opacity="0.25">
+    <rect x="260" y="350" width="120" height="70" rx="8" fill="white" stroke="#8B5CF6" stroke-width="2"/>
+    <text x="320" y="378" text-anchor="middle" font-family="system-ui, sans-serif" font-size="11" font-weight="600" fill="#1E293B">Mentored</text>
+    <text x="320" y="393" text-anchor="middle" font-family="system-ui, sans-serif" font-size="11" font-weight="600" fill="#1E293B">2 Engineers</text>
+    <text x="320" y="410" text-anchor="middle" font-family="system-ui, sans-serif" font-size="10" fill="#64748B">Both promoted</text>
+    <line x1="320" y1="280" x2="320" y2="350" stroke="#8B5CF6" stroke-width="2" stroke-dasharray="4,4"/>
+  </g>
+
+  <!-- May - Somewhat faded -->
+  <g opacity="0.4">
+    <rect x="460" y="130" width="120" height="70" rx="8" fill="white" stroke="#22C55E" stroke-width="2"/>
+    <text x="520" y="158" text-anchor="middle" font-family="system-ui, sans-serif" font-size="11" font-weight="600" fill="#1E293B">Fixed Critical</text>
+    <text x="520" y="173" text-anchor="middle" font-family="system-ui, sans-serif" font-size="11" font-weight="600" fill="#1E293B">Production Bug</text>
+    <text x="520" y="190" text-anchor="middle" font-family="system-ui, sans-serif" font-size="10" fill="#64748B">Saved $50K</text>
+    <line x1="520" y1="200" x2="520" y2="280" stroke="#22C55E" stroke-width="2" stroke-dasharray="4,4"/>
+  </g>
+
+  <!-- July - Less faded -->
+  <g opacity="0.55">
+    <rect x="660" y="350" width="120" height="70" rx="8" fill="white" stroke="#F59E0B" stroke-width="2"/>
+    <text x="720" y="378" text-anchor="middle" font-family="system-ui, sans-serif" font-size="11" font-weight="600" fill="#1E293B">New Auth</text>
+    <text x="720" y="393" text-anchor="middle" font-family="system-ui, sans-serif" font-size="11" font-weight="600" fill="#1E293B">System</text>
+    <text x="720" y="410" text-anchor="middle" font-family="system-ui, sans-serif" font-size="10" fill="#64748B">10K users</text>
+    <line x1="720" y1="280" x2="720" y2="350" stroke="#F59E0B" stroke-width="2" stroke-dasharray="4,4"/>
+  </g>
+
+  <!-- September - Visible -->
+  <g opacity="0.75">
+    <rect x="860" y="130" width="120" height="70" rx="8" fill="white" stroke="#EC4899" stroke-width="2"/>
+    <text x="920" y="158" text-anchor="middle" font-family="system-ui, sans-serif" font-size="11" font-weight="600" fill="#1E293B">Dashboard</text>
+    <text x="920" y="173" text-anchor="middle" font-family="system-ui, sans-serif" font-size="11" font-weight="600" fill="#1E293B">Redesign</text>
+    <text x="920" y="190" text-anchor="middle" font-family="system-ui, sans-serif" font-size="10" fill="#64748B">+25% engagement</text>
+    <line x1="920" y1="200" x2="920" y2="280" stroke="#EC4899" stroke-width="2" stroke-dasharray="4,4"/>
+  </g>
+
+  <!-- November - Fully visible (recent) -->
+  <g opacity="1">
+    <rect x="1040" y="350" width="120" height="70" rx="8" fill="white" stroke="#3B82F6" stroke-width="2" filter="drop-shadow(0 4px 6px rgba(0,0,0,0.1))"/>
+    <text x="1100" y="378" text-anchor="middle" font-family="system-ui, sans-serif" font-size="11" font-weight="600" fill="#1E293B">Fixed Typo</text>
+    <text x="1100" y="393" text-anchor="middle" font-family="system-ui, sans-serif" font-size="11" font-weight="600" fill="#1E293B">in Docs</text>
+    <text x="1100" y="410" text-anchor="middle" font-family="system-ui, sans-serif" font-size="10" fill="#64748B">5 min task</text>
+    <line x1="1100" y1="280" x2="1100" y2="350" stroke="#3B82F6" stroke-width="2"/>
+  </g>
+
+  <!-- Gradient overlay to emphasize fading -->
+  <defs>
+    <linearGradient id="fadeGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#FAFBFC;stop-opacity:0.7"/>
+      <stop offset="60%" style="stop-color:#FAFBFC;stop-opacity:0"/>
+    </linearGradient>
+  </defs>
+  <rect x="0" y="100" width="600" height="350" fill="url(#fadeGradient)" pointer-events="none"/>
+
+  <!-- Bottom caption -->
+  <text x="600" y="465" text-anchor="middle" font-family="system-ui, sans-serif" font-size="16" fill="#64748B">Without documentation, your biggest wins fade while small recent tasks stay vivid.</text>
+</svg>
