@@ -46,7 +46,7 @@ export default async function Page() {
           achievementsCount={achievementStats.totalAchievements}
         />
         <AppContent>
-          <AchievementStats />
+          {achievementStats.totalAchievements > 0 && <AchievementStats />}
           <ClientDashboardContent />
         </AppContent>
       </SidebarInset>

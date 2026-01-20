@@ -11,7 +11,6 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import {
-  X,
   CheckCircle2,
   Circle,
   Terminal,
@@ -87,7 +86,9 @@ function ChecklistItem({ item, onItemClick }: ChecklistItemProps) {
       ) : (
         <Circle className="size-4" />
       )}
-      <span className={item.isComplete ? 'line-through' : ''}>
+      <span
+        className={cn(item.isComplete ? 'line-through' : 'hover:underline')}
+      >
         {item.label}
       </span>
     </li>
@@ -153,94 +154,99 @@ export function GettingStartedBanner({
   }
 
   return (
-    <div className="px-4 lg:px-6 pt-4">
-      <Card className="relative">
-        {/* Dismiss button */}
+    <div className="px-4 lg:px-6 pt-4 space-y-4">
+      {/* Header row */}
+      <div className="flex items-center justify-between">
+        <h2 className="text-lg font-semibold">Getting Started</h2>
         <Button
-          variant="ghost"
-          size="icon"
-          className="absolute right-2 top-2"
+          variant="outline"
+          size="sm"
           onClick={dismiss}
-          aria-label="Dismiss getting started guide"
+          aria-label="Hide getting started guide"
         >
-          <X className="size-4" />
+          Hide this
         </Button>
+      </div>
 
-        <CardContent className="pt-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {/* Column 1: Welcome Checklist */}
-            <div className="space-y-4">
-              <div>
-                <h3 className="font-semibold text-lg">Welcome to BragDoc</h3>
-                <p className="text-sm text-muted-foreground">
-                  Let&apos;s get your career documentation started
-                </p>
-              </div>
-              <div className="text-sm text-muted-foreground">
-                {completedCount} of {totalCount} complete
-              </div>
-              <ul className="space-y-2">
-                {checklistItems.map((item) => (
-                  <ChecklistItem
-                    key={item.id}
-                    item={item}
-                    onItemClick={handleChecklistItemClick}
-                  />
-                ))}
-              </ul>
+      {/* Three cards in a grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        {/* Card 1: Welcome Checklist */}
+        <Card>
+          <CardContent className="space-y-4">
+            <div>
+              <h3 className="font-semibold text-lg">Welcome to BragDoc</h3>
+              <p className="text-sm text-muted-foreground">
+                Let&apos;s get your career documentation started
+              </p>
             </div>
+            <div className="text-sm text-muted-foreground">
+              {completedCount} of {totalCount} complete
+            </div>
+            <ul className="space-y-2">
+              {checklistItems.map((item) => (
+                <ChecklistItem
+                  key={item.id}
+                  item={item}
+                  onItemClick={handleChecklistItemClick}
+                />
+              ))}
+            </ul>
+          </CardContent>
+        </Card>
 
-            {/* Column 2: CLI Setup */}
-            <div className="space-y-4">
-              <div>
-                <h3 className="font-semibold text-lg flex items-center gap-2">
-                  <Terminal className="size-5" />
-                  Get Started with the CLI
-                </h3>
-                <p className="text-sm text-muted-foreground">
-                  Extract achievements automatically from Git
-                </p>
-              </div>
-              <Button
-                variant="outline"
-                className="w-full justify-between"
-                onClick={() => setCliDialogOpen(true)}
-              >
-                <span>Setup CLI Instructions</span>
-                <ChevronRight className="size-4" />
-              </Button>
+        {/* Card 2: CLI Setup */}
+        <Card>
+          <CardContent className="space-y-4">
+            <div>
+              <h3 className="font-semibold text-lg flex items-center gap-2">
+                <Terminal className="size-5" />
+                Get Started with the CLI
+              </h3>
+              <p className="text-sm text-muted-foreground">
+                Extract achievements automatically from Git
+              </p>
             </div>
+            <Button
+              variant="outline"
+              className="w-full justify-between"
+              onClick={() => setCliDialogOpen(true)}
+            >
+              <span>Setup CLI Instructions</span>
+              <ChevronRight className="size-4" />
+            </Button>
+          </CardContent>
+        </Card>
 
-            {/* Column 3: Learn & Improve */}
-            <div className="space-y-4">
-              <div>
-                <h3 className="font-semibold text-lg flex items-center gap-2">
-                  <BookOpen className="size-5" />
-                  Learn &amp; Improve
-                </h3>
-                <p className="text-sm text-muted-foreground">
-                  Resources to maximize your impact
-                </p>
-              </div>
-              <ul className="space-y-2">
-                {LEARN_RESOURCES.map((resource) => (
-                  <li key={resource.href}>
-                    <a
-                      href={resource.href}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="flex items-center justify-between text-sm hover:text-primary transition-colors"
-                    >
-                      <span>{resource.title}</span>
-                      <ExternalLink className="size-4" />
-                    </a>
-                  </li>
-                ))}
-              </ul>
+        {/* Card 3: Learn & Improve */}
+        <Card>
+          <CardContent className="space-y-4">
+            <div>
+              <h3 className="font-semibold text-lg flex items-center gap-2">
+                <BookOpen className="size-5" />
+                Learn &amp; Improve
+              </h3>
+              <p className="text-sm text-muted-foreground">
+                Resources to maximize your impact
+              </p>
             </div>
-          </div>
-        </CardContent>
-      </Card>
+            <ul className="space-y-2">
+              {LEARN_RESOURCES.map((resource) => (
+                <li key={resource.href}>
+                  <a
+                    href={resource.href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center justify-between text-sm hover:text-primary transition-colors"
+                  >
+                    <span>{resource.title}</span>
+                    <ExternalLink className="size-4" />
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </CardContent>
+        </Card>
+      </div>
 
       {/* Dialogs - rendered as portals */}
       <CompanyDialog

@@ -1,10 +1,11 @@
 'use client';
 
 import { useMemo, useState } from 'react';
-import { Trophy } from 'lucide-react';
+import { Trophy, Plus } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from 'components/ui/card';
 import { AchievementItem } from 'components/achievements/achievement-item';
 import { AchievementDialog } from 'components/achievements/AchievementDialog';
+import { Button } from '@/components/ui/button';
 import { useAchievementMutations } from '@/hooks/use-achievement-mutations';
 import { useAchievements } from '@/hooks/use-achievements';
 import type { AchievementWithRelationsUI } from 'lib/types/achievement';
@@ -17,6 +18,7 @@ export function ActivityStream({ achievements }: ActivityStreamProps) {
   const [actionLoading, setActionLoading] = useState<string | null>(null);
   const [editingAchievement, setEditingAchievement] =
     useState<AchievementWithRelationsUI | null>(null);
+  const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const { updateAchievement, deleteAchievement } = useAchievementMutations();
   const { mutate } = useAchievements();
 
@@ -89,12 +91,13 @@ export function ActivityStream({ achievements }: ActivityStreamProps) {
         {recentAchievements.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-8 text-center">
             <Trophy className="size-10 text-muted-foreground/50 mb-4" />
-            <p className="text-muted-foreground font-medium">
-              No recent achievements
-            </p>
-            <p className="text-sm text-muted-foreground mt-1">
+            <p className="text-sm text-muted-foreground mb-4">
               Add an achievement or run the CLI to extract from Git
             </p>
+            <Button onClick={() => setCreateDialogOpen(true)} className="gap-2">
+              <Plus className="size-4" />
+              Add Achievement
+            </Button>
           </div>
         ) : (
           <div className="space-y-4">
@@ -126,6 +129,11 @@ export function ActivityStream({ achievements }: ActivityStreamProps) {
         open={!!editingAchievement}
         onOpenChange={(open) => !open && setEditingAchievement(null)}
         onSubmit={handleUpdate}
+      />
+      <AchievementDialog
+        mode="create"
+        open={createDialogOpen}
+        onOpenChange={setCreateDialogOpen}
       />
     </Card>
   );
