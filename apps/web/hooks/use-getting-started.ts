@@ -130,8 +130,12 @@ export function useGettingStarted({
 
   const totalCount = checklistItems.length;
 
+  // Auto-hide when onboarding is complete (has company, project, and achievement)
+  const isOnboardingComplete =
+    companiesCount > 0 && projectsCount > 0 && achievementsCount > 0;
+
   return {
-    isDismissed,
+    isDismissed: isDismissed || isOnboardingComplete,
     dismiss,
     reset,
     checklistItems,

@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Card, CardContent } from '@/components/ui/card';
+import { Card, CardContent, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -14,9 +14,9 @@ import {
   CheckCircle2,
   Circle,
   Terminal,
-  BookOpen,
+  FlaskConical,
   ChevronRight,
-  ExternalLink,
+  Loader2,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import {
@@ -29,22 +29,8 @@ import { AchievementDialog } from '@/components/achievements/AchievementDialog';
 import { CliInstructions } from '@/components/shared/cli-instructions';
 import { useCreateCompany, useCompanies } from '@/hooks/use-companies';
 import { useCreateProject, useProjects } from '@/hooks/useProjects';
+import { useDemoMode } from '@/components/demo-mode-provider';
 import type { Company } from '@/database/schema';
-
-const LEARN_RESOURCES = [
-  {
-    title: 'The 6 Types of Developer Impact',
-    href: 'https://bragdoc.ai/blog/six-types-developer-impact',
-  },
-  {
-    title: 'Why Developers Need Automated Brag Docs',
-    href: 'https://bragdoc.ai/blog/why-developers-need-automated-brag-docs',
-  },
-  {
-    title: 'Performance Review Preparation Guide',
-    href: 'https://bragdoc.ai/blog/complete-developer-performance-review-guide',
-  },
-];
 
 interface GettingStartedBannerProps {
   companiesCount: number;
@@ -118,6 +104,7 @@ export function GettingStartedBanner({
   const { projects } = useProjects();
   const createCompany = useCreateCompany();
   const createProject = useCreateProject();
+  const { isLoading: isDemoLoading, toggleDemoMode } = useDemoMode();
 
   const handleChecklistItemClick = (itemId: string) => {
     switch (itemId) {
@@ -217,34 +204,38 @@ export function GettingStartedBanner({
           </CardContent>
         </Card>
 
-        {/* Card 3: Learn & Improve */}
-        <Card>
-          <CardContent className="space-y-4">
+        {/* Card 3: Try Demo Mode */}
+        <Card className="flex flex-col">
+          <CardContent className="space-y-4 flex-1">
             <div>
               <h3 className="font-semibold text-lg flex items-center gap-2">
-                <BookOpen className="size-5" />
-                Learn &amp; Improve
+                <FlaskConical className="size-5" />
+                Try Demo Mode
               </h3>
               <p className="text-sm text-muted-foreground">
-                Resources to maximize your impact
+                Play with demo data without affecting your account
               </p>
             </div>
-            <ul className="space-y-2">
-              {LEARN_RESOURCES.map((resource) => (
-                <li key={resource.href}>
-                  <a
-                    href={resource.href}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex items-center justify-between text-sm hover:text-primary transition-colors"
-                  >
-                    <span>{resource.title}</span>
-                    <ExternalLink className="size-4" />
-                  </a>
-                </li>
-              ))}
-            </ul>
+            <p className="text-sm text-muted-foreground">
+              Enter demo mode anytime to play with a pre-populated account. You
+              can edit data, delete stuff, reset it, whatever you want, and then
+              return to your own account any time.
+            </p>
           </CardContent>
+          <CardFooter>
+            <Button
+              onClick={toggleDemoMode}
+              disabled={isDemoLoading}
+              className="gap-2"
+            >
+              {isDemoLoading ? (
+                <Loader2 className="size-4 animate-spin" />
+              ) : (
+                <FlaskConical className="size-4" />
+              )}
+              Try Demo Mode
+            </Button>
+          </CardFooter>
         </Card>
       </div>
 
