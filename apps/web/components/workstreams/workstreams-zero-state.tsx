@@ -92,10 +92,8 @@ export function WorkstreamsZeroState({
         endDate: endDate.toISOString(),
       });
 
-      // Include projectIds if not all projects are selected
-      if (selectedProjectIds.length < projects.length) {
-        params.set('projectIds', selectedProjectIds.join(','));
-      }
+      // Always include projectIds to filter by selected projects
+      params.set('projectIds', selectedProjectIds.join(','));
 
       const response = await fetch(
         `/api/achievements/count?${params.toString()}`,
@@ -109,7 +107,7 @@ export function WorkstreamsZeroState({
     } finally {
       setIsLoadingCount(false);
     }
-  }, [timePreset, selectedProjectIds, projects.length]);
+  }, [timePreset, selectedProjectIds]);
 
   // Fetch count when filters change (debounced via effect)
   useEffect(() => {
@@ -159,13 +157,8 @@ export function WorkstreamsZeroState({
         },
       };
 
-      // Only include projectIds if some (but not all) are selected
-      if (
-        selectedProjectIds.length > 0 &&
-        selectedProjectIds.length < projects.length
-      ) {
-        filters.projectIds = selectedProjectIds;
-      }
+      // Always include projectIds explicitly
+      filters.projectIds = selectedProjectIds;
 
       const result = await generateWorkstreams(filters);
       // Check if clustering found no workstreams (full clustering only)

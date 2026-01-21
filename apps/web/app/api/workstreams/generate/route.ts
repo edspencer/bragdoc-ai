@@ -7,7 +7,7 @@ import {
   getWorkstreamMetadata,
   getProjectsByUserId,
 } from '@bragdoc/database';
-import { eq, isNotNull, count, and, gte, lte } from 'drizzle-orm';
+import { eq, isNotNull, count, and, gte, lte, inArray } from 'drizzle-orm';
 import { generateMissingEmbeddings } from '@/lib/ai/embeddings';
 import {
   decideShouldReCluster,
@@ -271,23 +271,33 @@ export async function POST(request: NextRequest) {
           endDate: new Date(),
         };
 
-        // Count achievements with embeddings in effective time range
+        // Build count query conditions
+        const countConditions = [
+          eq(achievement.userId, userId),
+          isNotNull(achievement.embedding),
+          gte(achievement.eventStart, effectiveTimeRange.startDate),
+          lte(achievement.eventStart, effectiveTimeRange.endDate),
+        ];
+
+        // Add project filter if specified
+        if (filters?.projectIds && filters.projectIds.length > 0) {
+          countConditions.push(
+            inArray(achievement.projectId, filters.projectIds),
+          );
+        }
+
+        // Count achievements with embeddings matching filters
         const achievementCountResult = await db
           .select({ count: count() })
           .from(achievement)
-          .where(
-            and(
-              eq(achievement.userId, userId),
-              isNotNull(achievement.embedding),
-              gte(achievement.eventStart, effectiveTimeRange.startDate),
-              lte(achievement.eventStart, effectiveTimeRange.endDate),
-            ),
-          );
+          .where(and(...countConditions));
 
         const achievementCount = achievementCountResult[0]?.count || 0;
-        const filterDescription = filters?.timeRange
-          ? 'selected time range'
-          : 'last 12 months';
+        const filterDescription = filters?.projectIds
+          ? 'selected projects and time range'
+          : filters?.timeRange
+            ? 'selected time range'
+            : 'last 12 months';
         console.log(
           `[Workstreams Generate] Achievement count with embeddings in ${filterDescription}:`,
           achievementCount,
