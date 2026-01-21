@@ -255,6 +255,9 @@ export function CreatePerformanceReviewDialog({
                       placeholder="e.g., Q1 2024 Performance Review"
                       {...field}
                       onChange={(e) => handleNameChange(e.target.value)}
+                      autoComplete="off"
+                      data-1p-ignore
+                      data-lpignore="true"
                     />
                   </FormControl>
                   <FormMessage />

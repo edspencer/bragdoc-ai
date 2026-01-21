@@ -303,3 +303,9 @@
 .mdx-editor-container [role="dialog"] {
   @apply bg-popover border border-border rounded-lg shadow-lg;
 }
+
+/* Ensure goodideadev feedback widget is always on top of overlays */
+.goodidea-feedback-widget,
+.goodidea-feedback-trigger {
+  z-index: 9999 !important;
+}

@@ -249,6 +249,9 @@ export function EditPerformanceReviewDialog({
                     <Input
                       placeholder="e.g., Q1 2024 Performance Review"
                       {...field}
+                      autoComplete="off"
+                      data-1p-ignore
+                      data-lpignore="true"
                     />
                   </FormControl>
                   <FormMessage />
