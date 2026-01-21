@@ -3,7 +3,10 @@
   "version": "0.1.0",
   "private": true,
   "packageManager": "pnpm@9.5.0",
-  "workspaces": ["apps/*", "packages/*"],
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
   "scripts": {
     "setup": "pnpm install && pnpm db:generate && pnpm db:push",
     "dev": "turbo dev",
@@ -35,7 +38,11 @@
     "db:up": "drizzle-kit up",
     "prepare": "husky",
     "prepare-demo-data": "tsx scripts/prepare-demo-data.ts",
-    "update:goodidea": "pnpm update @goodideadev/react --filter @bragdoc/web --latest"
+    "update:goodidea": "pnpm update @goodideadev/react --filter @bragdoc/web --latest",
+    "seo:generate-keywords": "tsx scripts/generate-seo-keywords.ts",
+    "seo:fetch-volumes": "tsx scripts/fetch-keyword-volumes.ts",
+    "seo:summarize": "tsx scripts/summarize-keyword-volumes.ts",
+    "seo:research": "tsx scripts/seo-research.ts"
   },
   "dependencies": {
     "@react-email/components": "^0.5.7",
