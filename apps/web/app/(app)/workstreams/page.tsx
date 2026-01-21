@@ -199,6 +199,7 @@ export default async function WorkstreamsPage({
                 storedProjectIds={storedProjectIds}
                 storedTimeRange={storedTimeRange}
                 workstreams={userWorkstreams}
+                achievements={allAchievements}
                 filterDisplay={
                   <>
                     {/* Show active filter info when stored generation params are applied */}

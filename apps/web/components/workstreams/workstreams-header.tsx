@@ -19,6 +19,13 @@ interface WorkstreamsHeaderProps {
   storedTimeRange?: { startDate: string; endDate: string };
   filterDisplay?: React.ReactNode;
   workstreams?: Workstream[];
+  achievements?: Array<{
+    id: string;
+    workstreamId: string | null;
+    title: string;
+    summary: string | null;
+    impact: number | null;
+  }>;
   onEditWorkstream?: (workstream: Workstream) => void;
 }
 
@@ -28,6 +35,7 @@ export function WorkstreamsHeader({
   storedTimeRange,
   filterDisplay,
   workstreams = [],
+  achievements = [],
   onEditWorkstream,
 }: WorkstreamsHeaderProps) {
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -38,43 +46,28 @@ export function WorkstreamsHeader({
   const [editingWorkstream, setEditingWorkstream] = useState<Workstream | null>(
     null,
   );
-  const [achievementsForCreation, setAchievementsForCreation] = useState<
-    AchievementForSelection[]
-  >([]);
-  const [isLoadingAchievements, setIsLoadingAchievements] = useState(false);
+  const { createWorkstream, updateWorkstream, assignWorkstream } =
+    useWorkstreamsActions();
 
-  const {
-    createWorkstream,
-    updateWorkstream,
-    assignWorkstream,
-    getUnassignedAchievements,
-  } = useWorkstreamsActions();
+  // Filter to unassigned achievements from the pre-loaded data
+  const unassignedAchievements: AchievementForSelection[] = achievements
+    .filter((a) => !a.workstreamId)
+    .map((a) => ({
+      id: a.id,
+      title: a.title,
+      summary: a.summary,
+      impact: a.impact,
+    }));
 
-  const handleAddWorkstream = async () => {
+  const handleAddWorkstream = () => {
     setWorkstreamDialogMode('create');
     setEditingWorkstream(null);
-    setIsLoadingAchievements(true);
-    try {
-      // Pass workstream metadata filters to only show unassigned achievements
-      // that match the configured project/time filters
-      const achievements = await getUnassignedAchievements({
-        projectIds: storedProjectIds,
-        timeRange: storedTimeRange,
-      });
-      setAchievementsForCreation(achievements);
-    } catch (error) {
-      toast.error('Failed to load achievements');
-      console.error(error);
-    } finally {
-      setIsLoadingAchievements(false);
-      setWorkstreamDialogOpen(true);
-    }
+    setWorkstreamDialogOpen(true);
   };
 
   const _handleEditWorkstream = (workstream: Workstream) => {
     setEditingWorkstream(workstream);
     setWorkstreamDialogMode('edit');
-    setAchievementsForCreation([]);
     setWorkstreamDialogOpen(true);
   };
 
@@ -143,8 +136,6 @@ export function WorkstreamsHeader({
         id="tour-add-workstream"
         label="Add Workstream"
         onClick={handleAddWorkstream}
-        isLoading={isLoadingAchievements}
-        disabled={isLoadingAchievements}
       />
       <Button
         variant="ghost"
@@ -173,7 +164,9 @@ export function WorkstreamsHeader({
         open={workstreamDialogOpen}
         onOpenChange={setWorkstreamDialogOpen}
         workstream={editingWorkstream}
-        achievements={achievementsForCreation}
+        achievements={
+          workstreamDialogMode === 'create' ? unassignedAchievements : []
+        }
         onSubmit={handleDialogSubmit}
       />
     </div>
