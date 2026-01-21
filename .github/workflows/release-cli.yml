@@ -30,10 +30,13 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v6
         with:
-          node-version: "22" # Node 22 includes npm 11.x needed for OIDC trusted publishing
+          node-version: "22"
           cache: "pnpm"
           registry-url: "https://registry.npmjs.org"
           scope: "@bragdoc"
+
+      - name: Install npm # Should not need this from node 24 onwards
+        run: npm install -g npm@latest
 
       - name: Install Dependencies
         run: pnpm install
