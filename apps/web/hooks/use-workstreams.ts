@@ -398,6 +398,22 @@ export function useWorkstreamsActions() {
   };
 
   /**
+   * Delete (archive) a workstream and unassign all its achievements
+   */
+  const deleteWorkstream = async (workstreamId: string): Promise<void> => {
+    const res = await fetch(`/api/workstreams/${workstreamId}`, {
+      method: 'DELETE',
+    });
+
+    if (!res.ok) {
+      const errorData = await res.json();
+      throw new Error(errorData.error || 'Failed to delete workstream');
+    }
+
+    router.refresh();
+  };
+
+  /**
    * Fetch unassigned achievements for the current user, optionally filtered
    * by workstream metadata filters (projectIds, timeRange).
    * Returns achievements that don't have a workstream assignment and match the filters.
@@ -568,6 +584,7 @@ export function useWorkstreamsActions() {
     assignWorkstream,
     createWorkstream,
     updateWorkstream,
+    deleteWorkstream,
     getUnassignedAchievements,
   };
 }

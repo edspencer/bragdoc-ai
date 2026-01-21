@@ -1,7 +1,12 @@
 'use client';
 
 import * as React from 'react';
-import { IconFolder, IconCalendar, IconPencil } from '@tabler/icons-react';
+import {
+  IconFolder,
+  IconCalendar,
+  IconPencil,
+  IconTrash,
+} from '@tabler/icons-react';
 import { format } from 'date-fns';
 import { Loader2 } from 'lucide-react';
 
@@ -37,6 +42,7 @@ interface WorkstreamAchievementsTableProps {
   startDate?: Date;
   endDate?: Date;
   onEditWorkstream?: (workstream: Workstream) => void;
+  onDeleteWorkstream?: (workstream: Workstream) => void;
 }
 
 export function WorkstreamAchievementsTable({
@@ -50,6 +56,7 @@ export function WorkstreamAchievementsTable({
   startDate,
   endDate,
   onEditWorkstream,
+  onDeleteWorkstream,
 }: WorkstreamAchievementsTableProps) {
   const [showOlderAchievements, setShowOlderAchievements] =
     React.useState(false);
@@ -322,7 +329,7 @@ export function WorkstreamAchievementsTable({
             <CardDescription>{getDescription()}</CardDescription>
           </div>
           <div className="flex gap-2">
-            {/* Edit button - only show when workstream selected */}
+            {/* Edit and Delete buttons - only show when workstream selected */}
             {selectedWorkstreamId && onEditWorkstream && (
               <Button
                 variant="outline"
@@ -339,6 +346,24 @@ export function WorkstreamAchievementsTable({
               >
                 <IconPencil className="size-4" />
                 <span className="hidden sm:inline ml-2">Edit</span>
+              </Button>
+            )}
+            {selectedWorkstreamId && onDeleteWorkstream && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  const workstream = workstreams.find(
+                    (w) => w.id === selectedWorkstreamId,
+                  );
+                  if (workstream) {
+                    onDeleteWorkstream(workstream);
+                  }
+                }}
+                title="Delete workstream"
+                className="px-2 text-destructive hover:text-destructive hover:bg-destructive/10"
+              >
+                <IconTrash className="size-4" />
               </Button>
             )}
             {/* Auto-assign and Close buttons - only show when viewing unassigned */}

@@ -21,6 +21,7 @@ import { and, eq, isNull, isNotNull, inArray, count } from 'drizzle-orm';
 import { v4 as uuidv4 } from 'uuid';
 import { generateObject } from 'ai';
 import { z } from 'zod';
+import pLimit from 'p-limit';
 import { getLLM } from './index';
 import {
   clusterEmbeddings,
@@ -96,7 +97,7 @@ export interface FullClusteringResult {
   // Optional fields for enhanced API responses
   workstreams?: Workstream[];
   achievementsWithAssignments?: Achievement[];
-  outlierAchievements?: Achievement[];
+  outlierAchievements?: { id: string }[];
   appliedFilters?: {
     timeRange?: { startDate: string; endDate: string };
     projectIds?: string[];
@@ -516,48 +517,16 @@ export async function incrementalAssignment(
   };
 }
 
+// Number of workstreams to name per LLM request
+const NAMING_BATCH_SIZE = 3;
+// Maximum concurrent LLM requests for naming workstreams
+const NAMING_CONCURRENCY_LIMIT = 5;
+
 /**
- * Generate names and descriptions for multiple workstreams in a single LLM call
- * Uses structured output (generateObject) to ensure consistent formatting
- *
- * @param clusters - Array of achievement arrays (one per cluster)
- * @param _user - User object (not currently used)
- * @returns Array of objects with name and description (same order as input clusters)
+ * Schema for naming multiple workstreams in a single LLM call
  */
-export async function nameWorkstreamsBatch(
-  clusters: Achievement[][],
-  _user: User,
-): Promise<Array<{ name: string; description: string }>> {
-  const functionStartTime = Date.now();
-  console.log(
-    `[Workstreams Batch] Starting batch naming for ${clusters.length} clusters`,
-  );
-
-  if (clusters.length === 0) {
-    return [];
-  }
-
-  // Use fast model for naming - this is a simple task, doesn't need gpt-4o
-  const llm = getLLM('extraction'); // gpt-4o-mini
-
-  // Build single prompt with all clusters
-  const promptBuildStart = Date.now();
-  const clustersText = clusters
-    .map((achievements, idx) => {
-      const sample = achievements.slice(0, 15);
-      const achievementText = sample
-        .map((ach) => `  - ${ach.title}: ${ach.summary}`)
-        .join('\n');
-
-      return `Cluster ${idx + 1} (${achievements.length} achievements):
-${achievementText}`;
-    })
-    .join('\n\n');
-  const promptBuildDuration = Date.now() - promptBuildStart;
-  console.log(`[Workstreams Batch] Prompt built in ${promptBuildDuration}ms`);
-
-  // Define schema for structured output
-  const workstreamSchema = z.object({
+function createBatchSchema(count: number) {
+  return z.object({
     workstreams: z
       .array(
         z.object({
@@ -571,82 +540,154 @@ ${achievementText}`;
             .describe('1-2 sentence description of this workstream theme'),
         }),
       )
-      .length(clusters.length),
+      .length(count),
   });
+}
 
-  const fullPrompt = `Analyze these achievement clusters and generate a workstream name and description for each.
+/**
+ * Generate names and descriptions for a batch of workstream clusters in a single LLM call
+ *
+ * @param clusterBatch - Array of achievement arrays (batch of clusters to name together)
+ * @param startIndex - Starting index for logging purposes
+ * @returns Array of objects with name and description (same order as input)
+ */
+async function nameWorkstreamBatch(
+  clusterBatch: Achievement[][],
+  startIndex: number,
+): Promise<Array<{ name: string; description: string }>> {
+  const startTime = Date.now();
+  const llm = getLLM('extraction'); // gpt-4o-mini
+  const batchSize = clusterBatch.length;
+
+  // Build prompt for this batch of clusters
+  const clustersText = clusterBatch
+    .map((achievements, idx) => {
+      const sample = achievements.slice(0, 15);
+      const achievementText = sample
+        .map((ach) => `  - ${ach.title}: ${ach.summary}`)
+        .join('\n');
+
+      return `Cluster ${idx + 1} (${achievements.length} achievements):
+${achievementText}`;
+    })
+    .join('\n\n');
+
+  const prompt = `Analyze these achievement clusters and generate a workstream name and description for each.
 
 ${clustersText}
 
-IMPORTANT: Generate exactly ${clusters.length} workstreams in the same order as the clusters above.
+IMPORTANT: Generate exactly ${batchSize} workstreams in the same order as the clusters above.
 Each workstream name should be 2-5 words that capture the theme.
 Each description should be 1-2 sentences explaining what this workstream represents.`;
 
   try {
-    console.log(
-      `[Workstreams Batch] Calling generateObject with ${fullPrompt.length} chars prompt, model: gpt-4o-mini`,
-    );
-
-    const llmCallStart = Date.now();
     const { object } = await generateObject({
       model: llm,
-      schema: workstreamSchema,
-      prompt: fullPrompt,
+      schema: createBatchSchema(batchSize),
+      prompt,
       temperature: 0.7,
     });
-    const llmCallDuration = Date.now() - llmCallStart;
 
+    const duration = Date.now() - startTime;
+    const clusterRange = `${startIndex + 1}-${startIndex + batchSize}`;
+    const names = object.workstreams.map((ws) => `"${ws.name}"`).join(', ');
     console.log(
-      `[Workstreams Batch] LLM call completed in ${llmCallDuration}ms, generated ${object.workstreams.length} workstreams`,
+      `[Workstreams Batch] Clusters ${clusterRange} named in ${duration}ms: ${names}`,
     );
 
-    // Ensure we got the right number of results
-    if (object.workstreams.length === clusters.length) {
-      const totalDuration = Date.now() - functionStartTime;
-      console.log(
-        `[Workstreams Batch] Success! Total function time: ${totalDuration}ms`,
-      );
+    // Validate we got the right number of results
+    if (object.workstreams.length === batchSize) {
       return object.workstreams.map((ws) => ({
         name: ws.name.slice(0, 256),
         description: ws.description.slice(0, 1000),
       }));
-    } else {
-      console.warn(
-        `[Workstreams Batch] Returned ${object.workstreams.length} results, expected ${clusters.length}`,
-      );
     }
+
+    console.warn(
+      `[Workstreams Batch] Expected ${batchSize} results, got ${object.workstreams.length}`,
+    );
   } catch (error) {
-    const errorDuration = Date.now() - functionStartTime;
+    const duration = Date.now() - startTime;
     console.error(
-      `[Workstreams Batch] LLM call failed after ${errorDuration}ms:`,
+      `[Workstreams Batch] Clusters ${startIndex + 1}-${startIndex + batchSize} naming failed after ${duration}ms:`,
       error,
     );
   }
 
-  // Fallback: generate generic names for all clusters
-  const fallbackStart = Date.now();
-  console.log(
-    '[Workstreams Batch] Using fallback naming for all clusters due to LLM failure',
-  );
-  const fallbackNames = clusters.map((achievements, idx) => {
+  // Fallback: generate generic names for this batch
+  return clusterBatch.map((achievements, idx) => {
     const titles = achievements
       .slice(0, 15)
       .map((ach) => ach.title)
       .join(' ');
     const commonWords = extractCommonWords(titles);
-    const name = commonWords.slice(0, 3).join(' ') || `Workstream ${idx + 1}`;
+    const name =
+      commonWords.slice(0, 3).join(' ') || `Workstream ${startIndex + idx + 1}`;
 
     return {
       name: name.slice(0, 256),
       description: `Workstream with ${achievements.length} achievements`,
     };
   });
-  const fallbackDuration = Date.now() - fallbackStart;
+}
+
+/**
+ * Split an array into chunks of a specified size
+ */
+function chunkArray<T>(array: T[], chunkSize: number): T[][] {
+  const chunks: T[][] = [];
+  for (let i = 0; i < array.length; i += chunkSize) {
+    chunks.push(array.slice(i, i + chunkSize));
+  }
+  return chunks;
+}
+
+/**
+ * Generate names and descriptions for multiple workstreams in parallel batches
+ * Uses batching (multiple workstreams per LLM call) and p-limit for concurrency control
+ *
+ * @param clusters - Array of achievement arrays (one per cluster)
+ * @param _user - User object (not currently used)
+ * @returns Array of objects with name and description (same order as input clusters)
+ */
+export async function nameWorkstreamsBatch(
+  clusters: Achievement[][],
+  _user: User,
+): Promise<Array<{ name: string; description: string }>> {
+  const functionStartTime = Date.now();
+  const numBatches = Math.ceil(clusters.length / NAMING_BATCH_SIZE);
+  console.log(
+    `[Workstreams Batch] Starting naming for ${clusters.length} clusters in ${numBatches} batches (batch size: ${NAMING_BATCH_SIZE}, concurrency: ${NAMING_CONCURRENCY_LIMIT})`,
+  );
+
+  if (clusters.length === 0) {
+    return [];
+  }
+
+  // Split clusters into batches
+  const clusterBatches = chunkArray(clusters, NAMING_BATCH_SIZE);
+
+  // Create concurrency limiter
+  const limit = pLimit(NAMING_CONCURRENCY_LIMIT);
+
+  // Create naming tasks for each batch with concurrency limit
+  const namingTasks = clusterBatches.map((batch, batchIdx) => {
+    const startIndex = batchIdx * NAMING_BATCH_SIZE;
+    return limit(() => nameWorkstreamBatch(batch, startIndex));
+  });
+
+  // Run all batch tasks in parallel (limited by p-limit)
+  const batchResults = await Promise.all(namingTasks);
+
+  // Flatten results back into single array
+  const results = batchResults.flat();
+
   const totalDuration = Date.now() - functionStartTime;
   console.log(
-    `[Workstreams Batch] Fallback completed in ${fallbackDuration}ms, total: ${totalDuration}ms`,
+    `[Workstreams Batch] All ${clusters.length} clusters named in ${totalDuration}ms (${numBatches} LLM calls, ${Math.round(totalDuration / clusters.length)}ms avg per cluster)`,
   );
-  return fallbackNames;
+
+  return results;
 }
 
 /**
@@ -1108,18 +1149,32 @@ export async function fullReclustering(
     await db.insert(workstreamMetadata).values(metadata);
   }
 
-  // Get outlier achievements (those with embeddings that weren't assigned to any cluster)
-  // Note: Only filteredAchievements are processed by clustering
-  // Achievements without embeddings are never included in the process
-  const outlierAchievements = filteredAchievements.filter(
-    (ach) => ach.workstreamId === null,
-  );
+  // Get final counts from database (after all phases including auto-assignment)
+  // The in-memory filteredAchievements array is stale after Phase 2 updates the DB
+  const finalAssignedCount = await db
+    .select({ count: count() })
+    .from(achievement)
+    .where(
+      and(eq(achievement.userId, userId), isNotNull(achievement.workstreamId)),
+    );
+  const finalAssigned = finalAssignedCount[0]?.count || 0;
+
+  // Get outlier achievement IDs fresh from database (only IDs needed - API fetches full summaries separately)
+  const outlierAchievements = await db
+    .select({ id: achievement.id })
+    .from(achievement)
+    .where(
+      and(
+        eq(achievement.userId, userId),
+        isNotNull(achievement.embedding),
+        isNull(achievement.workstreamId),
+      ),
+    );
 
   return {
     workstreamsCreated: createdWorkstreams.length,
-    achievementsAssigned:
-      filteredAchievements.length - clusteringResult.outlierCount,
-    outliers: clusteringResult.outlierCount,
+    achievementsAssigned: finalAssigned,
+    outliers: outlierAchievements.length,
     metadata: metadata as unknown as WorkstreamMetadata,
     workstreams: createdWorkstreams,
     achievementsWithAssignments: filteredAchievements.filter(

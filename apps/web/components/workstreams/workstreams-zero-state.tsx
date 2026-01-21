@@ -13,7 +13,7 @@ import {
 } from '@/components/ui/select';
 import { TrendingUp, Loader2 } from 'lucide-react';
 import { PageZeroState } from '@/components/shared/page-zero-state';
-import { useState, useMemo, useEffect, useCallback } from 'react';
+import { useState, useMemo, useEffect, useCallback, useRef } from 'react';
 import { useWorkstreamsActions } from '@/hooks/use-workstreams';
 import { useProjects } from '@/hooks/useProjects';
 import { useRouter } from 'next/navigation';
@@ -54,23 +54,36 @@ export function WorkstreamsZeroState({
 
   const { projects, isLoading: projectsLoading } = useProjects();
 
-  // Initialize all projects as selected once they load
+  // Track whether we've done the initial selection
+  const hasInitializedProjects = useRef(false);
+
+  // Initialize all projects as selected once they load (only once)
   useEffect(() => {
     if (
       !projectsLoading &&
       projects.length > 0 &&
-      selectedProjectIds.length === 0
+      !hasInitializedProjects.current
     ) {
       setSelectedProjectIds(projects.map((p) => p.id));
+      hasInitializedProjects.current = true;
     }
-  }, [projects, projectsLoading, selectedProjectIds.length]);
+  }, [projects, projectsLoading]);
 
   // Use filtered count if available, otherwise fall back to initial count
   const achievementCount = filteredCount ?? initialAchievementCount;
-  const canGenerate = achievementCount >= 20;
+  const hasProjectsSelected = selectedProjectIds.length > 0;
+  // Show generate UI optimistically while loading (avoids jarring flash to "need 20" state)
+  const canGenerate =
+    hasProjectsSelected && (isLoadingCount || achievementCount >= 20);
 
   // Fetch filtered achievement count when filters change
   const fetchFilteredCount = useCallback(async () => {
+    // If no projects selected, count is 0
+    if (selectedProjectIds.length === 0) {
+      setFilteredCount(0);
+      return;
+    }
+
     setIsLoadingCount(true);
     try {
       const { startDate, endDate } = getDateRangeFromPreset(timePreset);
@@ -79,13 +92,8 @@ export function WorkstreamsZeroState({
         endDate: endDate.toISOString(),
       });
 
-      // Only include projectIds if some (but not all) are selected
-      if (
-        selectedProjectIds.length > 0 &&
-        selectedProjectIds.length < projects.length
-      ) {
-        params.set('projectIds', selectedProjectIds.join(','));
-      }
+      // Always include projectIds to filter by selected projects
+      params.set('projectIds', selectedProjectIds.join(','));
 
       const response = await fetch(
         `/api/achievements/count?${params.toString()}`,
@@ -99,7 +107,7 @@ export function WorkstreamsZeroState({
     } finally {
       setIsLoadingCount(false);
     }
-  }, [timePreset, selectedProjectIds, projects.length]);
+  }, [timePreset, selectedProjectIds]);
 
   // Fetch count when filters change (debounced via effect)
   useEffect(() => {
@@ -149,13 +157,8 @@ export function WorkstreamsZeroState({
         },
       };
 
-      // Only include projectIds if some (but not all) are selected
-      if (
-        selectedProjectIds.length > 0 &&
-        selectedProjectIds.length < projects.length
-      ) {
-        filters.projectIds = selectedProjectIds;
-      }
+      // Always include projectIds explicitly
+      filters.projectIds = selectedProjectIds;
 
       const result = await generateWorkstreams(filters);
       // Check if clustering found no workstreams (full clustering only)
@@ -274,12 +277,13 @@ export function WorkstreamsZeroState({
                 ))}
               </div>
             )}
-            <p className="text-xs text-muted-foreground">
-              {selectedProjectIds.length === 0 ||
-              selectedProjectIds.length === projects.length
-                ? 'All projects will be included'
-                : `${selectedProjectIds.length} project${selectedProjectIds.length === 1 ? '' : 's'} selected`}
-            </p>
+            {selectedProjectIds.length > 0 &&
+              selectedProjectIds.length < projects.length && (
+                <p className="text-xs text-muted-foreground">
+                  {selectedProjectIds.length} project
+                  {selectedProjectIds.length === 1 ? '' : 's'} selected
+                </p>
+              )}
           </div>
         </CardContent>
       </Card>
@@ -348,32 +352,44 @@ export function WorkstreamsZeroState({
         </div>
       ) : (
         <Card className="bg-muted">
-          <CardContent className="pt-6 text-center">
-            <p className="font-semibold">
-              You need at least 20 achievements to generate workstreams
-            </p>
-            <p className="text-sm text-muted-foreground mt-2">
-              {isLoadingCount ? (
-                <span className="inline-flex items-center justify-center gap-1">
-                  <Loader2 className="h-3 w-3 animate-spin" />
-                  Counting...
-                </span>
-              ) : (
-                <>
-                  Current:{' '}
-                  <span className="font-semibold">{achievementCount}</span> / 20
-                </>
-              )}
-            </p>
-            <Button
-              variant="outline"
-              className="mt-4"
-              onClick={() => {
-                window.location.href = '/achievements';
-              }}
-            >
-              Add More Achievements
-            </Button>
+          <CardContent className="py-6 text-center">
+            {!hasProjectsSelected ? (
+              <>
+                <p className="font-semibold">Select at least one project</p>
+                <p className="text-sm text-muted-foreground mt-2">
+                  Choose which projects to include in workstream generation
+                </p>
+              </>
+            ) : (
+              <>
+                <p className="font-semibold">
+                  You need at least 20 achievements to generate workstreams
+                </p>
+                <p className="text-sm text-muted-foreground mt-2">
+                  {isLoadingCount ? (
+                    <span className="inline-flex items-center justify-center gap-1">
+                      <Loader2 className="h-3 w-3 animate-spin" />
+                      Counting...
+                    </span>
+                  ) : (
+                    <>
+                      Current:{' '}
+                      <span className="font-semibold">{achievementCount}</span>{' '}
+                      / 20
+                    </>
+                  )}
+                </p>
+                <Button
+                  variant="outline"
+                  className="mt-4"
+                  onClick={() => {
+                    window.location.href = '/achievements';
+                  }}
+                >
+                  Add More Achievements
+                </Button>
+              </>
+            )}
           </CardContent>
         </Card>
       )}

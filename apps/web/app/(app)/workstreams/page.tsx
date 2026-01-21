@@ -75,7 +75,7 @@ export default async function WorkstreamsPage({
 
   const userId = session.user.id;
   const params = await searchParams;
-  const datePreset = params.preset || '6m';
+  const datePreset = params.preset || '12m';
   const { startDate, endDate } = calculateDateRange(datePreset);
 
   // Fetch workstreams and metadata in parallel first

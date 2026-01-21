@@ -6,6 +6,7 @@ import { WorkstreamsGanttChart } from './workstreams-gantt-chart';
 import { WorkstreamAchievementsTable } from './workstream-achievements-table';
 import { WorkstreamSelectionZeroState } from './workstream-selection-zero-state';
 import { WorkstreamDialog } from './workstream-dialog';
+import { DeleteWorkstreamDialog } from './delete-workstream-dialog';
 import { useWorkstreamsActions } from '@/hooks/use-workstreams';
 import { startOfDay, endOfDay, subMonths } from 'date-fns';
 import type { Workstream } from '@bragdoc/database';
@@ -72,6 +73,11 @@ export function WorkstreamsClient({
     null,
   );
 
+  // Delete dialog state
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [deletingWorkstream, setDeletingWorkstream] =
+    useState<Workstream | null>(null);
+
   const { startDate, endDate } = calculateDateRange(initialPreset);
 
   // Use the hook for generation capabilities only (data comes from server props)
@@ -80,6 +86,7 @@ export function WorkstreamsClient({
     isGenerating,
     generationStatus,
     updateWorkstream,
+    deleteWorkstream,
   } = useWorkstreamsActions();
 
   // Calculate unassigned count
@@ -138,6 +145,23 @@ export function WorkstreamsClient({
     }
   };
 
+  // Handle delete workstream from achievement table
+  const handleDeleteWorkstream = (workstream: Workstream) => {
+    setDeletingWorkstream(workstream);
+    setDeleteDialogOpen(true);
+  };
+
+  // Handle delete dialog confirmation
+  const handleDeleteDialogConfirm = async () => {
+    if (!deletingWorkstream) return;
+
+    await deleteWorkstream(deletingWorkstream.id);
+    // Clear selection since the workstream was deleted
+    setSelectedWorkstreamId(null);
+    setDeleteDialogOpen(false);
+    setDeletingWorkstream(null);
+  };
+
   // Determine what to show in the bottom section
   const showZeroState = !selectedWorkstreamId && !showUnassigned;
 
@@ -173,6 +197,7 @@ export function WorkstreamsClient({
             startDate={startDate}
             endDate={endDate}
             onEditWorkstream={handleEditWorkstream}
+            onDeleteWorkstream={handleDeleteWorkstream}
           />
 
           {/* Edit Workstream Dialog */}
@@ -183,6 +208,14 @@ export function WorkstreamsClient({
             workstream={editingWorkstream}
             achievements={[]}
             onSubmit={handleEditDialogSubmit}
+          />
+
+          {/* Delete Workstream Dialog */}
+          <DeleteWorkstreamDialog
+            open={deleteDialogOpen}
+            onOpenChange={setDeleteDialogOpen}
+            workstream={deletingWorkstream}
+            onConfirm={handleDeleteDialogConfirm}
           />
         </>
       )}
