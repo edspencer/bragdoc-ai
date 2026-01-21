@@ -71,3 +71,6 @@ companies
 # corpus testing cache
 .corpus-cache/
 .ralph-tui/
+
+# SEO keyword research data (generated, not source controlled)
+scripts/seo-data/*.json
