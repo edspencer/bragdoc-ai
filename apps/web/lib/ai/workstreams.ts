@@ -97,7 +97,7 @@ export interface FullClusteringResult {
   // Optional fields for enhanced API responses
   workstreams?: Workstream[];
   achievementsWithAssignments?: Achievement[];
-  outlierAchievements?: Achievement[];
+  outlierAchievements?: { id: string }[];
   appliedFilters?: {
     timeRange?: { startDate: string; endDate: string };
     projectIds?: string[];
@@ -1149,18 +1149,32 @@ export async function fullReclustering(
     await db.insert(workstreamMetadata).values(metadata);
   }
 
-  // Get outlier achievements (those with embeddings that weren't assigned to any cluster)
-  // Note: Only filteredAchievements are processed by clustering
-  // Achievements without embeddings are never included in the process
-  const outlierAchievements = filteredAchievements.filter(
-    (ach) => ach.workstreamId === null,
-  );
+  // Get final counts from database (after all phases including auto-assignment)
+  // The in-memory filteredAchievements array is stale after Phase 2 updates the DB
+  const finalAssignedCount = await db
+    .select({ count: count() })
+    .from(achievement)
+    .where(
+      and(eq(achievement.userId, userId), isNotNull(achievement.workstreamId)),
+    );
+  const finalAssigned = finalAssignedCount[0]?.count || 0;
+
+  // Get outlier achievement IDs fresh from database (only IDs needed - API fetches full summaries separately)
+  const outlierAchievements = await db
+    .select({ id: achievement.id })
+    .from(achievement)
+    .where(
+      and(
+        eq(achievement.userId, userId),
+        isNotNull(achievement.embedding),
+        isNull(achievement.workstreamId),
+      ),
+    );
 
   return {
     workstreamsCreated: createdWorkstreams.length,
-    achievementsAssigned:
-      filteredAchievements.length - clusteringResult.outlierCount,
-    outliers: clusteringResult.outlierCount,
+    achievementsAssigned: finalAssigned,
+    outliers: outlierAchievements.length,
     metadata: metadata as unknown as WorkstreamMetadata,
     workstreams: createdWorkstreams,
     achievementsWithAssignments: filteredAchievements.filter(
