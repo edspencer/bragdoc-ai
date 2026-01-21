@@ -54,6 +54,17 @@ export function WorkstreamsZeroState({
 
   const { projects, isLoading: projectsLoading } = useProjects();
 
+  // Initialize all projects as selected once they load
+  useEffect(() => {
+    if (
+      !projectsLoading &&
+      projects.length > 0 &&
+      selectedProjectIds.length === 0
+    ) {
+      setSelectedProjectIds(projects.map((p) => p.id));
+    }
+  }, [projects, projectsLoading, selectedProjectIds.length]);
+
   // Use filtered count if available, otherwise fall back to initial count
   const achievementCount = filteredCount ?? initialAchievementCount;
   const canGenerate = achievementCount >= 20;
