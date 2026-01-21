@@ -172,7 +172,12 @@ export function StandupForm({
             <FormItem>
               <FormLabel>Name</FormLabel>
               <FormControl>
-                <Input {...field} placeholder="Daily Standup" />
+                <Input
+                  {...field}
+                  placeholder="Daily Standup"
+                  autoComplete="off"
+                  data-1p-ignore
+                />
               </FormControl>
               <FormMessage />
             </FormItem>

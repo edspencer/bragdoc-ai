@@ -194,7 +194,12 @@ export function ProjectDialog({
                 <FormItem>
                   <FormLabel>Project Name</FormLabel>
                   <FormControl>
-                    <Input placeholder="e.g. E-commerce Platform" {...field} />
+                    <Input
+                      placeholder="e.g. E-commerce Platform"
+                      {...field}
+                      autoComplete="off"
+                      data-1p-ignore
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>

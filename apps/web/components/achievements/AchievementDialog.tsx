@@ -201,6 +201,8 @@ export function AchievementDialog({
                       placeholder="What did you achieve?"
                       {...field}
                       disabled={isViewMode}
+                      autoComplete="off"
+                      data-1p-ignore
                     />
                   </FormControl>
                   <FormMessage />
