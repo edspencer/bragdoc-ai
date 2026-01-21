@@ -10,8 +10,9 @@ concurrency:
   cancel-in-progress: true
 
 permissions:
-  id-token: write
-  contents: read
+  id-token: write # Required for npm OIDC trusted publishing
+  contents: write # Required for changesets to create release PRs
+  pull-requests: write # Required for changesets to create/update PRs
 
 jobs:
   release:
@@ -29,7 +30,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v6
         with:
-          node-version: "20"
+          node-version: "22" # Node 22 includes npm 11.x needed for OIDC trusted publishing
           cache: "pnpm"
           registry-url: "https://registry.npmjs.org"
           scope: "@bragdoc"
@@ -49,5 +50,3 @@ jobs:
           publish: pnpm --filter=@bragdoc/cli run release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
