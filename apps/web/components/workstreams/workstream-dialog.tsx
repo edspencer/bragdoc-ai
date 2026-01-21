@@ -167,6 +167,8 @@ export function WorkstreamDialog({
                       placeholder="e.g., Performance Improvements"
                       {...field}
                       disabled={isLoading}
+                      autoComplete="off"
+                      data-1p-ignore
                     />
                   </FormControl>
                   <FormMessage />

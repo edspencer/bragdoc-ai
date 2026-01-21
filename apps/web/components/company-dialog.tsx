@@ -148,7 +148,12 @@ export function CompanyDialog({
                 <FormItem>
                   <FormLabel>Company Name</FormLabel>
                   <FormControl>
-                    <Input placeholder="e.g. Acme Corp" {...field} />
+                    <Input
+                      placeholder="e.g. Acme Corp"
+                      {...field}
+                      autoComplete="off"
+                      data-1p-ignore
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>

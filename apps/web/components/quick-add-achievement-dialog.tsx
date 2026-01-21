@@ -144,6 +144,8 @@ export function QuickAddAchievementDialog({
                       placeholder="Describe your achievement..."
                       className="min-h-[80px]"
                       {...field}
+                      autoComplete="off"
+                      data-1p-ignore
                     />
                   </FormControl>
                   <FormMessage />

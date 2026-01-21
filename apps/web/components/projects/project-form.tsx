@@ -103,7 +103,12 @@ export function ProjectForm({
             <FormItem>
               <FormLabel>Project Name</FormLabel>
               <FormControl>
-                <Input placeholder="Enter project name" {...field} />
+                <Input
+                  placeholder="Enter project name"
+                  {...field}
+                  autoComplete="off"
+                  data-1p-ignore
+                />
               </FormControl>
               <FormMessage />
             </FormItem>
