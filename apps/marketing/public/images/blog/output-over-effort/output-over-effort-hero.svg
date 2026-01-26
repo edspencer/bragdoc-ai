@@ -1,0 +1,79 @@
+<svg width="1200" height="630" viewBox="0 0 1200 630" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background gradient -->
+  <defs>
+    <linearGradient id="bgGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#f8fafc;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#e2e8f0;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="630" fill="url(#bgGradient)"/>
+
+  <!-- Decorative circles -->
+  <circle cx="100" cy="100" r="200" fill="#dbeafe" opacity="0.3"/>
+  <circle cx="1100" cy="530" r="250" fill="#dcfce7" opacity="0.3"/>
+
+  <!-- Title -->
+  <text x="600" y="80" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="42" font-weight="700" fill="#111827">Output Over Effort</text>
+  <text x="600" y="120" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="18" fill="#6b7280">The new standard for performance reviews at Meta, Amazon, and X</text>
+
+  <!-- Left Card - Effort Based (Crossed out) -->
+  <rect x="100" y="170" width="450" height="380" rx="16" fill="white" stroke="#e5e7eb" stroke-width="2"/>
+  <rect x="100" y="170" width="450" height="60" rx="16" fill="#fee2e2"/>
+  <rect x="100" y="214" width="450" height="16" fill="#fee2e2"/>
+  <text x="325" y="210" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="20" font-weight="600" fill="#dc2626">Effort-Based</text>
+  <text x="325" y="235" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="12" fill="#dc2626">THE OLD WAY</text>
+
+  <!-- Effort-based examples with strikethrough effect -->
+  <g opacity="0.6">
+    <text x="130" y="290" font-family="system-ui, -apple-system, sans-serif" font-size="14" fill="#6b7280">"Worked on the payment system"</text>
+    <line x1="125" y1="287" x2="365" y2="287" stroke="#dc2626" stroke-width="2"/>
+
+    <text x="130" y="340" font-family="system-ui, -apple-system, sans-serif" font-size="14" fill="#6b7280">"Helped with the migration"</text>
+    <line x1="125" y1="337" x2="335" y2="337" stroke="#dc2626" stroke-width="2"/>
+
+    <text x="130" y="390" font-family="system-ui, -apple-system, sans-serif" font-size="14" fill="#6b7280">"Participated in code reviews"</text>
+    <line x1="125" y1="387" x2="350" y2="387" stroke="#dc2626" stroke-width="2"/>
+
+    <text x="130" y="440" font-family="system-ui, -apple-system, sans-serif" font-size="14" fill="#6b7280">"Contributed to team projects"</text>
+    <line x1="125" y1="437" x2="350" y2="437" stroke="#dc2626" stroke-width="2"/>
+
+    <text x="130" y="490" font-family="system-ui, -apple-system, sans-serif" font-size="14" fill="#6b7280">"Was involved in the feature"</text>
+    <line x1="125" y1="487" x2="335" y2="487" stroke="#dc2626" stroke-width="2"/>
+  </g>
+
+  <!-- X mark -->
+  <circle cx="510" cy="470" r="30" fill="#fee2e2" stroke="#dc2626" stroke-width="2"/>
+  <line x1="495" y1="455" x2="525" y2="485" stroke="#dc2626" stroke-width="4" stroke-linecap="round"/>
+  <line x1="525" y1="455" x2="495" y2="485" stroke="#dc2626" stroke-width="4" stroke-linecap="round"/>
+
+  <!-- Arrow -->
+  <path d="M575 350 L625 350" stroke="#111827" stroke-width="3" stroke-linecap="round"/>
+  <path d="M615 340 L625 350 L615 360" stroke="#111827" stroke-width="3" stroke-linecap="round" fill="none"/>
+
+  <!-- Right Card - Output Based (Highlighted) -->
+  <rect x="650" y="170" width="450" height="380" rx="16" fill="white" stroke="#22c55e" stroke-width="2"/>
+  <rect x="650" y="170" width="450" height="60" rx="16" fill="#dcfce7"/>
+  <rect x="650" y="214" width="450" height="16" fill="#dcfce7"/>
+  <text x="875" y="210" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="20" font-weight="600" fill="#166534">Output-Based</text>
+  <text x="875" y="235" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="12" fill="#166534">THE NEW STANDARD</text>
+
+  <!-- Output-based examples -->
+  <text x="680" y="285" font-family="system-ui, -apple-system, sans-serif" font-size="13" font-weight="500" fill="#111827">"Shipped payment retry logic,</text>
+  <text x="680" y="305" font-family="system-ui, -apple-system, sans-serif" font-size="13" font-weight="600" fill="#166534">reducing failed transactions by 12%"</text>
+
+  <text x="680" y="355" font-family="system-ui, -apple-system, sans-serif" font-size="13" font-weight="500" fill="#111827">"Led database migration affecting 2M records</text>
+  <text x="680" y="375" font-family="system-ui, -apple-system, sans-serif" font-size="13" font-weight="600" fill="#166534">with zero downtime"</text>
+
+  <text x="680" y="425" font-family="system-ui, -apple-system, sans-serif" font-size="13" font-weight="500" fill="#111827">"Reviewed 47 PRs, catching</text>
+  <text x="680" y="445" font-family="system-ui, -apple-system, sans-serif" font-size="13" font-weight="600" fill="#166534">3 critical security issues before production"</text>
+
+  <text x="680" y="495" font-family="system-ui, -apple-system, sans-serif" font-size="13" font-weight="500" fill="#111827">"Fixed race condition protecting</text>
+  <text x="680" y="515" font-family="system-ui, -apple-system, sans-serif" font-size="13" font-weight="600" fill="#166534">$50K/month in revenue"</text>
+
+  <!-- Checkmark -->
+  <circle cx="1060" cy="470" r="30" fill="#dcfce7" stroke="#22c55e" stroke-width="2"/>
+  <path d="M1045 470 L1055 480 L1075 455" stroke="#22c55e" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+
+  <!-- Bottom tagline -->
+  <text x="600" y="590" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="16" font-weight="500" fill="#6b7280">Your effort matters. But only your documented output will be rewarded.</text>
+</svg>

@@ -1,0 +1,92 @@
+<svg width="1100" height="600" viewBox="0 0 1100 600" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background -->
+  <rect width="1100" height="600" fill="#f9fafb"/>
+
+  <!-- Sidebar -->
+  <rect x="0" y="0" width="220" height="600" fill="white" stroke="#e5e7eb" stroke-width="1"/>
+
+  <!-- Logo -->
+  <rect x="20" y="20" width="32" height="32" rx="8" fill="#111827"/>
+  <text x="28" y="42" font-family="system-ui, -apple-system, sans-serif" font-size="18" font-weight="700" fill="white">B</text>
+  <text x="62" y="42" font-family="system-ui, -apple-system, sans-serif" font-size="16" font-weight="600" fill="#111827">BragDoc</text>
+
+  <!-- Nav Items -->
+  <rect x="12" y="75" width="196" height="36" rx="8" fill="#f3f4f6"/>
+  <text x="44" y="98" font-family="system-ui, -apple-system, sans-serif" font-size="14" font-weight="500" fill="#111827">Dashboard</text>
+
+  <text x="44" y="138" font-family="system-ui, -apple-system, sans-serif" font-size="14" fill="#6b7280">Achievements</text>
+  <text x="44" y="174" font-family="system-ui, -apple-system, sans-serif" font-size="14" fill="#6b7280">Projects</text>
+  <text x="44" y="210" font-family="system-ui, -apple-system, sans-serif" font-size="14" fill="#6b7280">Documents</text>
+  <text x="44" y="246" font-family="system-ui, -apple-system, sans-serif" font-size="14" fill="#6b7280">Workstreams</text>
+
+  <!-- Main Content Area -->
+  <rect x="240" y="20" width="840" height="560" rx="12" fill="white" stroke="#e5e7eb" stroke-width="1"/>
+
+  <!-- Header -->
+  <text x="270" y="58" font-family="system-ui, -apple-system, sans-serif" font-size="22" font-weight="600" fill="#111827">This Week's Impact</text>
+  <text x="270" y="80" font-family="system-ui, -apple-system, sans-serif" font-size="13" fill="#6b7280">Jan 20 - Jan 26, 2026</text>
+
+  <!-- Week selector -->
+  <rect x="920" y="40" width="140" height="36" rx="8" fill="white" stroke="#e5e7eb" stroke-width="1"/>
+  <text x="940" y="63" font-family="system-ui, -apple-system, sans-serif" font-size="13" fill="#374151">This Week</text>
+  <text x="1040" y="63" font-family="system-ui" font-size="12" fill="#9ca3af">▼</text>
+
+  <!-- Stats Cards Row -->
+  <!-- Card 1: Achievements -->
+  <rect x="270" y="100" width="185" height="90" rx="10" fill="#f0fdf4" stroke="#bbf7d0" stroke-width="1"/>
+  <text x="290" y="130" font-family="system-ui, -apple-system, sans-serif" font-size="12" font-weight="500" fill="#166534">ACHIEVEMENTS</text>
+  <text x="290" y="165" font-family="system-ui, -apple-system, sans-serif" font-size="32" font-weight="700" fill="#166534">7</text>
+  <text x="330" y="165" font-family="system-ui, -apple-system, sans-serif" font-size="13" fill="#166534">this week</text>
+
+  <!-- Card 2: Avg Impact -->
+  <rect x="475" y="100" width="185" height="90" rx="10" fill="#fef3c7" stroke="#fde68a" stroke-width="1"/>
+  <text x="495" y="130" font-family="system-ui, -apple-system, sans-serif" font-size="12" font-weight="500" fill="#92400e">AVG IMPACT</text>
+  <text x="495" y="165" font-family="system-ui, -apple-system, sans-serif" font-size="32" font-weight="700" fill="#92400e">8.2</text>
+  <text x="555" y="165" font-family="system-ui, -apple-system, sans-serif" font-size="13" fill="#92400e">/ 10</text>
+
+  <!-- Card 3: Commits Analyzed -->
+  <rect x="680" y="100" width="185" height="90" rx="10" fill="#eff6ff" stroke="#bfdbfe" stroke-width="1"/>
+  <text x="700" y="130" font-family="system-ui, -apple-system, sans-serif" font-size="12" font-weight="500" fill="#1e40af">COMMITS ANALYZED</text>
+  <text x="700" y="165" font-family="system-ui, -apple-system, sans-serif" font-size="32" font-weight="700" fill="#1e40af">23</text>
+  <text x="750" y="165" font-family="system-ui, -apple-system, sans-serif" font-size="13" fill="#1e40af">from Git</text>
+
+  <!-- Recent Achievements Section -->
+  <text x="270" y="225" font-family="system-ui, -apple-system, sans-serif" font-size="16" font-weight="600" fill="#111827">Recent Achievements</text>
+  <text x="270" y="245" font-family="system-ui, -apple-system, sans-serif" font-size="12" fill="#6b7280">Automatically extracted from your commits</text>
+
+  <!-- Achievement Card 1 -->
+  <rect x="270" y="265" width="790" height="70" rx="8" fill="white" stroke="#e5e7eb" stroke-width="1"/>
+  <rect x="280" y="275" width="4" height="50" rx="2" fill="#22c55e"/>
+  <text x="300" y="297" font-family="system-ui, -apple-system, sans-serif" font-size="14" font-weight="500" fill="#111827">Implemented rate limiting, preventing $50K/month in potential abuse</text>
+  <text x="300" y="317" font-family="system-ui, -apple-system, sans-serif" font-size="12" fill="#6b7280">Added request throttling to public API endpoints, blocking 15K malicious requests daily</text>
+  <rect x="920" y="285" width="70" height="24" rx="12" fill="#dcfce7"/>
+  <text x="935" y="302" font-family="system-ui, -apple-system, sans-serif" font-size="11" font-weight="500" fill="#166534">9/10</text>
+  <text x="1000" y="300" font-family="system-ui, -apple-system, sans-serif" font-size="11" fill="#9ca3af">Today</text>
+
+  <!-- Achievement Card 2 -->
+  <rect x="270" y="345" width="790" height="70" rx="8" fill="white" stroke="#e5e7eb" stroke-width="1"/>
+  <rect x="280" y="355" width="4" height="50" rx="2" fill="#3b82f6"/>
+  <text x="300" y="377" font-family="system-ui, -apple-system, sans-serif" font-size="14" font-weight="500" fill="#111827">Reduced CI build time from 18 min to 6 min (67% improvement)</text>
+  <text x="300" y="397" font-family="system-ui, -apple-system, sans-serif" font-size="12" fill="#6b7280">Parallelized test suites and optimized Docker layer caching, saving 2 hours dev time daily</text>
+  <rect x="920" y="365" width="70" height="24" rx="12" fill="#dbeafe"/>
+  <text x="935" y="382" font-family="system-ui, -apple-system, sans-serif" font-size="11" font-weight="500" fill="#1d4ed8">8/10</text>
+  <text x="1000" y="380" font-family="system-ui, -apple-system, sans-serif" font-size="11" fill="#9ca3af">Yesterday</text>
+
+  <!-- Achievement Card 3 -->
+  <rect x="270" y="425" width="790" height="70" rx="8" fill="white" stroke="#e5e7eb" stroke-width="1"/>
+  <rect x="280" y="435" width="4" height="50" rx="2" fill="#f59e0b"/>
+  <text x="300" y="457" font-family="system-ui, -apple-system, sans-serif" font-size="14" font-weight="500" fill="#111827">Fixed memory leak causing 3% of sessions to crash after 2 hours</text>
+  <text x="300" y="477" font-family="system-ui, -apple-system, sans-serif" font-size="12" fill="#6b7280">Identified and patched event listener cleanup issue, improving session stability for 50K users</text>
+  <rect x="920" y="445" width="70" height="24" rx="12" fill="#fef3c7"/>
+  <text x="935" y="462" font-family="system-ui, -apple-system, sans-serif" font-size="11" font-weight="500" fill="#92400e">8/10</text>
+  <text x="1000" y="460" font-family="system-ui, -apple-system, sans-serif" font-size="11" fill="#9ca3af">2 days ago</text>
+
+  <!-- View All Link -->
+  <text x="270" y="530" font-family="system-ui, -apple-system, sans-serif" font-size="13" font-weight="500" fill="#3b82f6">View all 7 achievements →</text>
+
+  <!-- Extraction indicator -->
+  <rect x="750" y="510" width="300" height="50" rx="8" fill="#f0fdf4" stroke="#bbf7d0" stroke-width="1"/>
+  <circle cx="775" cy="535" r="6" fill="#22c55e"/>
+  <text x="790" y="530" font-family="system-ui, -apple-system, sans-serif" font-size="12" font-weight="500" fill="#166534">Auto-extraction enabled</text>
+  <text x="790" y="548" font-family="system-ui, -apple-system, sans-serif" font-size="11" fill="#6b7280">Last sync: 5 minutes ago</text>
+</svg>

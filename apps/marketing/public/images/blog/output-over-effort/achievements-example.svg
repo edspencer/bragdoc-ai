@@ -1,0 +1,84 @@
+<svg width="1100" height="520" viewBox="0 0 1100 520" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background -->
+  <rect width="1100" height="520" fill="#f9fafb"/>
+
+  <!-- Main Card -->
+  <rect x="30" y="20" width="1040" height="480" rx="12" fill="white" stroke="#e5e7eb" stroke-width="1"/>
+
+  <!-- Header -->
+  <text x="55" y="58" font-family="system-ui, -apple-system, sans-serif" font-size="20" font-weight="600" fill="#111827">Achievements</text>
+  <text x="55" y="78" font-family="system-ui, -apple-system, sans-serif" font-size="13" fill="#6b7280">Output-based accomplishments with measurable impact</text>
+
+  <!-- Generate Document Button -->
+  <rect x="880" y="45" width="180" height="36" rx="8" fill="#111827"/>
+  <rect x="898" y="53" width="13" height="16" rx="2" stroke="white" stroke-width="1.5" fill="none"/>
+  <line x1="901" y1="59" x2="908" y2="59" stroke="white" stroke-width="1.2"/>
+  <line x1="901" y1="63" x2="908" y2="63" stroke="white" stroke-width="1.2"/>
+  <text x="920" y="68" font-family="system-ui, -apple-system, sans-serif" font-size="12" font-weight="500" fill="white">Generate Document</text>
+
+  <!-- Table Header -->
+  <rect x="45" y="100" width="1015" height="38" fill="#f9fafb" rx="6"/>
+  <text x="70" y="124" font-family="system-ui, -apple-system, sans-serif" font-size="12" font-weight="500" fill="#6b7280">Achievement</text>
+  <text x="560" y="124" font-family="system-ui, -apple-system, sans-serif" font-size="12" font-weight="500" fill="#6b7280">Project</text>
+  <text x="700" y="124" font-family="system-ui, -apple-system, sans-serif" font-size="12" font-weight="500" fill="#6b7280">Impact</text>
+  <text x="850" y="124" font-family="system-ui, -apple-system, sans-serif" font-size="12" font-weight="500" fill="#6b7280">Date</text>
+
+  <!-- Achievement Row 1 - Payment retry logic -->
+  <line x1="45" y1="148" x2="1050" y2="148" stroke="#f3f4f6" stroke-width="1"/>
+  <text x="70" y="178" font-family="system-ui, -apple-system, sans-serif" font-size="14" font-weight="500" fill="#111827">Shipped payment retry logic, reducing failed transactions by 12%</text>
+  <text x="70" y="198" font-family="system-ui, -apple-system, sans-serif" font-size="12" fill="#6b7280">Implemented exponential backoff for transient payment failures, improving checkout completion rate</text>
+  <!-- Project badge -->
+  <rect x="560" y="177" width="85" height="24" rx="12" fill="#dbeafe"/>
+  <text x="575" y="194" font-family="system-ui, -apple-system, sans-serif" font-size="11" font-weight="500" fill="#1d4ed8">Payments</text>
+  <!-- Impact stars 9/10 -->
+  <text x="700" y="192" font-family="system-ui" font-size="13" fill="#f59e0b">★★★★★★★★★</text>
+  <text x="817" y="192" font-family="system-ui" font-size="13" fill="#d1d5db">★</text>
+  <text x="850" y="190" font-family="system-ui, -apple-system, sans-serif" font-size="12" fill="#6b7280">Jan 15, 2026</text>
+
+  <!-- Achievement Row 2 - Database migration -->
+  <line x1="45" y1="220" x2="1050" y2="220" stroke="#f3f4f6" stroke-width="1"/>
+  <text x="70" y="250" font-family="system-ui, -apple-system, sans-serif" font-size="14" font-weight="500" fill="#111827">Led database migration affecting 2M records with zero downtime</text>
+  <text x="70" y="270" font-family="system-ui, -apple-system, sans-serif" font-size="12" fill="#6b7280">Coordinated cross-team migration from MySQL to PostgreSQL, completed 2 weeks ahead of schedule</text>
+  <!-- Project badge -->
+  <rect x="560" y="249" width="105" height="24" rx="12" fill="#dcfce7"/>
+  <text x="575" y="266" font-family="system-ui, -apple-system, sans-serif" font-size="11" font-weight="500" fill="#166534">Infrastructure</text>
+  <!-- Impact stars 10/10 -->
+  <text x="700" y="264" font-family="system-ui" font-size="13" fill="#f59e0b">★★★★★★★★★★</text>
+  <text x="850" y="262" font-family="system-ui, -apple-system, sans-serif" font-size="12" fill="#6b7280">Jan 8, 2026</text>
+
+  <!-- Achievement Row 3 - Code reviews -->
+  <line x1="45" y1="292" x2="1050" y2="292" stroke="#f3f4f6" stroke-width="1"/>
+  <text x="70" y="322" font-family="system-ui, -apple-system, sans-serif" font-size="14" font-weight="500" fill="#111827">Reviewed 47 PRs, catching 3 critical security issues before production</text>
+  <text x="70" y="342" font-family="system-ui, -apple-system, sans-serif" font-size="12" fill="#6b7280">Identified SQL injection vulnerability and two auth bypass issues during team code reviews</text>
+  <!-- Project badge -->
+  <rect x="560" y="321" width="80" height="24" rx="12" fill="#fef3c7"/>
+  <text x="575" y="338" font-family="system-ui, -apple-system, sans-serif" font-size="11" font-weight="500" fill="#92400e">Security</text>
+  <!-- Impact stars 8/10 -->
+  <text x="700" y="336" font-family="system-ui" font-size="13" fill="#f59e0b">★★★★★★★★</text>
+  <text x="804" y="336" font-family="system-ui" font-size="13" fill="#d1d5db">★★</text>
+  <text x="850" y="334" font-family="system-ui, -apple-system, sans-serif" font-size="12" fill="#6b7280">Jan 5, 2026</text>
+
+  <!-- Achievement Row 4 - Authentication system -->
+  <line x1="45" y1="364" x2="1050" y2="364" stroke="#f3f4f6" stroke-width="1"/>
+  <text x="70" y="394" font-family="system-ui, -apple-system, sans-serif" font-size="14" font-weight="500" fill="#111827">Shipped new authentication system, reducing login failures by 60%</text>
+  <text x="70" y="414" font-family="system-ui, -apple-system, sans-serif" font-size="12" fill="#6b7280">Implemented OAuth2 with Google/GitHub, eliminating 200 support tickets per month</text>
+  <!-- Project badge -->
+  <rect x="560" y="393" width="95" height="24" rx="12" fill="#f3e8ff"/>
+  <text x="575" y="410" font-family="system-ui, -apple-system, sans-serif" font-size="11" font-weight="500" fill="#7c3aed">Auth Service</text>
+  <!-- Impact stars 9/10 -->
+  <text x="700" y="408" font-family="system-ui" font-size="13" fill="#f59e0b">★★★★★★★★★</text>
+  <text x="817" y="408" font-family="system-ui" font-size="13" fill="#d1d5db">★</text>
+  <text x="850" y="406" font-family="system-ui, -apple-system, sans-serif" font-size="12" fill="#6b7280">Dec 18, 2025</text>
+
+  <!-- Achievement Row 5 - API optimization -->
+  <line x1="45" y1="436" x2="1050" y2="436" stroke="#f3f4f6" stroke-width="1"/>
+  <text x="70" y="466" font-family="system-ui, -apple-system, sans-serif" font-size="14" font-weight="500" fill="#111827">Optimized API endpoints, improving response time by 40%</text>
+  <text x="70" y="486" font-family="system-ui, -apple-system, sans-serif" font-size="12" fill="#6b7280">Added Redis caching layer and optimized N+1 queries across 12 endpoints</text>
+  <!-- Project badge -->
+  <rect x="560" y="465" width="95" height="24" rx="12" fill="#dbeafe"/>
+  <text x="575" y="482" font-family="system-ui, -apple-system, sans-serif" font-size="11" font-weight="500" fill="#1d4ed8">Backend API</text>
+  <!-- Impact stars 7/10 -->
+  <text x="700" y="480" font-family="system-ui" font-size="13" fill="#f59e0b">★★★★★★★</text>
+  <text x="791" y="480" font-family="system-ui" font-size="13" fill="#d1d5db">★★★</text>
+  <text x="850" y="478" font-family="system-ui, -apple-system, sans-serif" font-size="12" fill="#6b7280">Dec 10, 2025</text>
+</svg>
