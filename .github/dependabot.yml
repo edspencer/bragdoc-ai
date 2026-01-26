@@ -75,6 +75,11 @@ updates:
       prosemirror:
         patterns:
           - "prosemirror-*"
+      analytics:
+        patterns:
+          - "posthog-js"
+          - "posthog-node"
+          - "@posthog/*"
     ignore:
       # Ignore major version updates for critical dependencies
       - dependency-name: "next"
