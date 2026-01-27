@@ -20,7 +20,7 @@ import { OrganizationSchema } from '@/components/structured-data/organization-sc
 import { SoftwareApplicationSchema } from '@/components/structured-data/software-application-schema';
 
 export const metadata: Metadata = {
-  title: 'BragDoc - AI-Powered Achievement Tracking for Developers',
+  title: 'BragDoc - Your Work Deserves to Be Remembered',
   description:
     'Automatically track your professional achievements from git commits. Build your brag document effortlessly with AI. Perfect for performance reviews, standups, and career growth.',
   keywords:
@@ -29,7 +29,7 @@ export const metadata: Metadata = {
     canonical: '/',
   },
   openGraph: {
-    title: "BragDoc - Never Forget What You've Accomplished",
+    title: 'BragDoc - Your Work Deserves to Be Remembered',
     description:
       'Automatically track work achievements from git commits. Always be ready for performance reviews.',
     type: 'website',
@@ -38,7 +38,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'BragDoc - AI Achievement Tracking',
+    title: 'BragDoc - Your Work Deserves to Be Remembered',
     description: 'Automatically track achievements from git commits',
   },
 };
