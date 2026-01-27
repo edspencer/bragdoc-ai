@@ -68,7 +68,7 @@ export const WelcomeEmail = ({
           </Text>
 
           <Text style={footer}>
-            Bragdoc.ai - Your Professional Achievement Tracker
+            Bragdoc.ai - Your work deserves to be remembered
             {unsubscribeUrl && (
               <>
                 <br />

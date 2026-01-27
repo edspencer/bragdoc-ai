@@ -7,7 +7,7 @@ import './globals.css';
 export const metadata: Metadata = {
   metadataBase: new URL('https://app.bragdoc.ai'),
   title: {
-    default: 'BragDoc - Your Achievement Tracker',
+    default: 'BragDoc - Your Work Deserves to Be Remembered',
     template: '%s | BragDoc',
   },
   description:
@@ -18,13 +18,14 @@ export const metadata: Metadata = {
     },
   ],
   openGraph: {
-    title: 'BragDoc - Your Achievement Tracker',
-    description: 'Track your achievements effortlessly',
+    title: 'BragDoc - Your Work Deserves to Be Remembered',
+    description:
+      'Your work deserves to be remembered. Track your achievements effortlessly.',
     url: 'https://app.bragdoc.ai',
     siteName: 'BragDoc',
   },
   twitter: {
-    title: 'BragDoc - Your Achievement Tracker',
+    title: 'BragDoc - Your Work Deserves to Be Remembered',
   },
 };
 
