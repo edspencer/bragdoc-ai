@@ -56,7 +56,7 @@ export const MagicLinkEmail = ({
           </Text>
 
           <Text style={footer}>
-            BragDoc - Your Professional Achievement Tracker
+            BragDoc - Your work deserves to be remembered
           </Text>
         </Container>
       </Body>
