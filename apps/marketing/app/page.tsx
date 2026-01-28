@@ -29,7 +29,7 @@ export const metadata: Metadata = {
     canonical: '/',
   },
   openGraph: {
-    title: "BragDoc - Never Forget What You've Accomplished",
+    title: 'BragDoc - Your Work Deserves to Be Remembered',
     description:
       'Automatically track work achievements from git commits. Always be ready for performance reviews.',
     type: 'website',
