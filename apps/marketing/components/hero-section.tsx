@@ -62,7 +62,7 @@ export function HeroSection() {
           <div className="space-y-8">
             <div className="space-y-4">
               <h1 className="text-5xl sm:text-6xl lg:text-7xl font-bold tracking-tight text-balance">
-                Career Copilot for Software Professionals
+                Your Work Deserves to Be Remembered
               </h1>
               <p className="text-xl text-muted-foreground leading-relaxed text-pretty">
                 BragDoc turns your git{' '}
