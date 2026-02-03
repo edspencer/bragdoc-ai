@@ -50,7 +50,7 @@ Not all long-term work looks the same. Each type requires a different documentat
 
 This is work that improves the system itself: refactoring legacy code, modernizing architecture, paying down technical debt, implementing better testing infrastructure, improving deployment pipelines.
 
-The impact shows up as second-order effects: faster development velocity, fewer production incidents, easier onboarding, reduced maintenance burden.
+The impact shows up as second-order effects: faster development velocity, fewer production incidents, easier onboarding, reduced maintenance burden. Our co-founder Ed is a huge fan of this kind of work, but we fear that in output-based review systems it's harder than it used to be for a manager to perceive and attribute the value of this kind of work.
 
 **The documentation challenge:** You can't point to a feature and say "I built this." The value is distributed across everything that came after.
 
@@ -73,11 +73,13 @@ Notice what this does:
 
 "Migrated CI/CD pipeline from Jenkins to GitHub Actions after repeated failures were slowing deployments. Before: builds took 25 minutes, failed 15% of the time, required manual intervention 2-3 times per week. After: builds take 8 minutes, fail rate under 2%, zero manual intervention in 3 months. Team deploys 40% more frequently and engineering time saved: ~12 hours per week across the team."
 
-The pattern: document the old state, the new state, and the measurable difference.
+The pattern: document the old state, the new state, and the measurable difference. The work you've done there is hugely valuable, but you need to help your manager to see it and understand its impact.
 
 ![Before and after metrics template showing how to document infrastructure improvements with concrete numbers](/images/blog/long-term-impact/before-after-metrics.svg)
 
-**Important caveat:** Not every refactoring produces spectacular results. Sometimes you invest six months in modernizing a system and velocity improves by 15% instead of 70%. Sometimes the metrics are harder to quantify. Document what you can measure, be honest about what you can't, and explain why the work still mattered. "We reduced technical complexity and made the codebase more maintainable, though velocity improvements were modest (15%). However, this work prevented the system from becoming a complete blocker as we scale to new markets next year." Realistic documentation is more credible than inflated claims.
+**Important caveat:** Not every refactoring produces spectacular results. Sometimes you invest six months in modernizing a system and velocity improves by 15% instead of 70%. Sometimes the metrics are harder to quantify. Document what you can measure, be honest about what you can't, and explain why the work still mattered. "We reduced technical complexity and made the codebase more maintainable, though velocity improvements were modest (15%). However, this work prevented the system from becoming a complete blocker as we scale to new markets next year."
+
+Realistic documentation is more credible than inflated claims.
 
 ### 2. Mentoring and Knowledge Transfer
 
@@ -102,6 +104,8 @@ Notice what this captures:
 - Progression milestones (from mentored to independent)
 - Concrete outputs (specific projects they led)
 - Team impact (velocity improvement)
+
+Note that in impact-based review systems, you get no credit for saying "invested 5-6 hours per week on X", but it's still worth documenting to make sure you have alignment with your manager (who may want you spending more/less time doing this).
 
 **Another example:**
 
@@ -136,7 +140,7 @@ Notice the structure:
 
 "Advocated for adopting TypeScript across frontend codebase despite initial team resistance. Built proof-of-concept showing 40% reduction in runtime errors in converted modules. Presented cost-benefit analysis to engineering leadership. Led gradual migration over 4 months. Results after 1 year: runtime errors down 60%, onboarding time for new engineers reduced (type system makes codebase self-documenting), refactoring confidence increased (type checking catches breaking changes)."
 
-The pattern: context, advocacy, adoption, long-term results.
+The pattern: context, advocacy, adoption, long-term results. But this is also work, and it's hard to farm that kind of work out to AI. You just have to do it yourself, or gamble that your manager will figure it out for themselves. Nobody's coming to do it for you.
 
 ## When to Document Long-Term Work
 
@@ -175,7 +179,7 @@ Don't rely on memory. When you start a major refactoring, mentoring relationship
 - What's your time investment?
 - What milestones matter?
 
-Update it monthly. By the time the work pays off, you'll have a complete narrative.
+Update it monthly. By the time the work pays off, you'll have a complete narrative. Make a private github repo for it so you don't lose it, and hook up Claude Code or similar if you think you can benefit from an agentic partner.
 
 **2. Quantify the multiplier effect**
 
@@ -207,7 +211,7 @@ Let's be honest: even with perfect documentation, output-based review systems wi
 
 The system isn't perfect. But documentation improves your odds.
 
-Without documentation, your long-term work is invisible. With documentation, it's at least in the conversation. [Your manager](/blog/what-managers-look-for-performance-reviews) might not be able to give you full credit for work that took a year to pay off—but they can't advocate for you at all if they don't know what you did or why it mattered.
+Without documentation, your long-term work is invisible. With documentation, it's at least in the conversation. Your manager [might not be able to give you full credit](/blog/what-managers-look-for-performance-reviews)  for work that took a year to pay off—but they can't advocate for you at all if they don't know what you did or why it mattered.
 
 The goal isn't to game the system. It's to make sure your actual contributions are visible within an imperfect system.
 
@@ -225,8 +229,6 @@ Documentation helps—but it's not magic. There are situations where even perfec
 
 If you're documenting thoroughly and still being consistently undervalued, that's a signal. Sometimes the right answer isn't better documentation—it's a different team or a different company. Documentation should make good work visible. If your workplace can't or won't see good work even when it's documented clearly, that tells you something important about the workplace.
 
-**A note on pragmatism:** Teaching engineers to document their work within output-based systems isn't an endorsement of those systems. They have real problems—they undervalue certain types of work, they can be gamed, they often fail to capture what actually matters. But those systems exist at major tech companies and aren't going away soon. This guide is pragmatic, not idealistic: while advocating for better review systems is worthwhile, most engineers also need to navigate the current reality of their performance reviews. Documentation doesn't fix broken systems, but it does improve your position within them.
-
 ## Start This Week
 
 Pick one long-term project you're working on right now—a refactoring, a mentoring relationship, an architectural initiative.
@@ -238,7 +240,7 @@ Create a simple document with four sections:
 3. **Time investment:** How much effort is this taking?
 4. **Success metrics:** What will improve when this is done?
 
-This takes 10 minutes to set up and 5 minutes per month to maintain. That's 70 minutes over a year—far less time than you'll spend scrambling before your next review.
+This takes 10 minutes to set up and 5 minutes per month to maintain. That's 70 minutes over a year—far less time than you'll spend scrambling before your next review. Throw it into a private github repo so you don't lose it.
 
 Yes, this requires time you might not feel you have. If you're underwater with deadlines, taking 5 minutes per month to document might feel impossible. But consider the alternative: spending hours before review time trying to reconstruct what you did months ago, with half the details forgotten and none of the metrics available.
 
