@@ -1,0 +1,257 @@
+---
+title: "The Long Game: How to Document Impact That Takes Years"
+description: "Output-based reviews reward quick wins. But refactoring, mentoring, and paying down tech debt take years. Learn how to document long-term engineering impact effectively."
+date: "2026-02-02"
+author: "BragDoc Team"
+tags: ["performance-reviews", "career-growth", "technical-leadership", "mentoring", "technical-debt", "documentation"]
+image: "/images/blog/long-term-impact/long-term-impact-hero.svg"
+imageAlt: "Timeline comparing short-term feature work versus long-term foundational engineering impact"
+published: true
+canonical_url: "https://www.bragdoc.ai/blog/documenting-long-term-engineering-impact"
+---
+
+Engineer A shipped 47 features this year. Got promoted.
+
+Engineer B refactored the payment system, reducing technical debt that had been slowing the team down for 18 months. No promotion.
+
+Engineer C mentored three junior developers who went on to become productive contributors. Performance review said "needs more visible impact."
+
+These aren't hypothetical scenarios. They're patterns we've seen repeatedly in performance review cycles at tech companies. The names are changed, but the problem is real.
+
+This is the problem with [output-based performance reviews](/blog/output-over-effort-changes-everything). The system rewards what's easy to measure—features shipped, tickets closed, lines of code committed. It struggles with what actually matters most: the foundational work that takes months or years to show results.
+
+As one thoughtful engineer recently pointed out in response to our LinkedIn post on output-based reviews: "This incentivizes short-term wins over long-term investments. Attribution is hard for foundational work that only comes to fruition after a long baketime."
+
+He's right. And he's not alone in noticing this. A [recent analysis](https://medium.com/data-science-collective/big-tech-performance-review-01fff2c5924d) of big tech performance systems concluded they are "neither fair, nor meritocratic, nor humane"—and one major reason is that they fail to properly attribute work that takes time to show impact.
+
+The question isn't whether output-based reviews are perfect. They're not. But Meta, Amazon, and others have adopted them anyway. So the real question becomes: how do you document long-term impact in a way that's legible to this system—without it feeling like politics?
+
+## The Attribution Problem
+
+Long-term engineering work creates a specific kind of documentation challenge: the impact is real, but it's disconnected from the work by months or years.
+
+When you ship a feature, the timeline is compressed. You write code, it goes to production, metrics improve, you document the win. The cause-effect relationship is immediate and obvious.
+
+When you refactor a core system, the timeline expands. You spend six months modernizing the codebase. Three months later, the team's velocity improves because new features are easier to build. Six months after that, a major incident is avoided because the system is more maintainable. A year out, engineers still benefit from better architecture.
+
+The impact is real and substantial. But at review time, when your manager asks "what did you ship?", the answer is complicated. You didn't ship features that users saw. You created conditions that made future work better. That's harder to quantify and even harder to remember.
+
+Here's what makes it worse: the people who benefit most from your long-term work often don't know you did it. The junior engineer you mentored six months ago is now independently shipping features—but when they get praised for their work, the connection to your mentorship has faded. The technical debt you paid down prevented three incidents—but those incidents never happened, so no one noticed.
+
+Good work becomes invisible precisely because it succeeded.
+
+![Timeline visualization showing how short-term feature work has immediate measurable impact while long-term foundational work compounds over months and years](/images/blog/long-term-impact/impact-timeline-comparison.svg)
+
+## Three Types of Long-Term Impact
+
+Not all long-term work looks the same. Each type requires a different documentation strategy. (For a broader view of all developer contributions, see our guide on [the 6 types of developer impact](/blog/six-types-developer-impact).)
+
+### 1. Infrastructure and Technical Foundations
+
+This is work that improves the system itself: refactoring legacy code, modernizing architecture, paying down technical debt, implementing better testing infrastructure, improving deployment pipelines.
+
+The impact shows up as second-order effects: faster development velocity, fewer production incidents, easier onboarding, reduced maintenance burden. Our co-founder Ed is a huge fan of this kind of work, but we fear that in output-based review systems it's harder than it used to be for a manager to perceive and attribute the value of this kind of work.
+
+**The documentation challenge:** You can't point to a feature and say "I built this." The value is distributed across everything that came after.
+
+**How to document it:**
+
+Capture before/after metrics. The key is measuring the second-order effects rather than the work itself. [Research on measuring technical debt](https://getdx.com/blog/technical-debt-ratio/) shows that while you can't directly measure "units of debt," you can track its impact on business metrics.
+
+**Example:**
+
+"Refactored authentication system to eliminate 3-year-old legacy codebase that was blocking feature development. Before: new auth features took 2-3 weeks and required working around limitations in multiple places. After: new auth features take 2-3 days. This unblocked 5 engineers who were spending 30% of their time on workarounds. Tracked via team velocity metrics—auth-related stories now close 70% faster."
+
+Notice what this does:
+
+- Quantifies the problem (3 years old, blocking work)
+- Measures the improvement (weeks to days, 70% faster)
+- Shows the multiplier effect (5 engineers, 30% of time)
+- Ties to trackable metrics (team velocity)
+
+**Another example:**
+
+"Migrated CI/CD pipeline from Jenkins to GitHub Actions after repeated failures were slowing deployments. Before: builds took 25 minutes, failed 15% of the time, required manual intervention 2-3 times per week. After: builds take 8 minutes, fail rate under 2%, zero manual intervention in 3 months. Team deploys 40% more frequently and engineering time saved: ~12 hours per week across the team."
+
+The pattern: document the old state, the new state, and the measurable difference. The work you've done there is hugely valuable, but you need to help your manager to see it and understand its impact.
+
+![Before and after metrics template showing how to document infrastructure improvements with concrete numbers](/images/blog/long-term-impact/before-after-metrics.svg)
+
+**Important caveat:** Not every refactoring produces spectacular results. Sometimes you invest six months in modernizing a system and velocity improves by 15% instead of 70%. Sometimes the metrics are harder to quantify. Document what you can measure, be honest about what you can't, and explain why the work still mattered. "We reduced technical complexity and made the codebase more maintainable, though velocity improvements were modest (15%). However, this work prevented the system from becoming a complete blocker as we scale to new markets next year."
+
+Realistic documentation is more credible than inflated claims.
+
+### 2. Mentoring and Knowledge Transfer
+
+This is work that multiplies the effectiveness of other engineers: mentoring junior developers, onboarding new team members, conducting thoughtful code reviews, creating documentation, running internal workshops.
+
+The impact shows up when the people you helped start contributing independently. But by then, the connection to your mentoring has faded from memory.
+
+**The documentation challenge:** Your contribution is indirect. The person you mentored ships features—but they get credit for the output, and your role in enabling that output is invisible.
+
+**How to document it:**
+
+Track the progression of the people you help. [Research on effective mentoring](https://medium.com/tech-at-core/mentoring-junior-developers-proven-practices-to-build-skills-confidence-culture-b08177d82170) emphasizes documenting progress through specific milestones and skill development over time.
+
+**Example:**
+
+"Mentored two junior engineers (Sarah and James) through their first 6 months. Time investment: 5-6 hours per week on code reviews, pair programming, and technical guidance. Progress tracked: both completed their first production features independently by month 4, now handling increasingly complex work. Sarah led the dashboard redesign project. James resolved a critical production incident that previously would have required senior engineer intervention. Team velocity improved as they became independent contributors."
+
+Notice what this captures:
+
+- Specific names (makes it concrete, not vague)
+- Time invested (shows commitment)
+- Progression milestones (from mentored to independent)
+- Concrete outputs (specific projects they led)
+- Team impact (velocity improvement)
+
+Note that in impact-based review systems, you get no credit for saying "invested 5-6 hours per week on X", but it's still worth documenting to make sure you have alignment with your manager (who may want you spending more/less time doing this).
+
+**Another example:**
+
+"Created comprehensive onboarding documentation for our GraphQL API after observing new engineers spent 2-3 days ramping up. Documentation includes architecture overview, common patterns, troubleshooting guide, and example implementations. Result: new team members now productive in under a day. Documentation referenced 50+ times per month by broader engineering team. Three engineers have contributed updates, making it a living resource."
+
+The pattern: identify the problem, document what you created, measure the improvement, track ongoing impact.
+
+### 3. Architecture and Strategic Decisions
+
+This is work that shapes how the system evolves: making technology choices, defining technical strategy, writing RFCs, establishing coding standards, preventing bad decisions.
+
+The impact shows up when future work becomes easier because of the foundation you established. But at the time you made the decision, nothing shipped to production.
+
+**The documentation challenge:** Good architecture prevents problems that never happen. You can't show an incident that didn't occur or a wrong path that wasn't taken.
+
+**How to document it:**
+
+Explain the decision context, the options considered, and the long-term consequences. Make the counterfactual visible.
+
+**Example:**
+
+"Proposed and led migration from monolithic API to microservices architecture after identifying scalability bottlenecks. Context: monolith was limiting deployment frequency (could only deploy twice per week) and preventing team autonomy (changes required coordination across 4 teams). Led technical design discussions over 6 weeks, evaluated trade-offs, built consensus. Migration launched in Q3. Results after 6 months: deployment frequency increased from 2x per week to 15x per week. Teams now deploy independently. System handled 3x traffic growth during Black Friday with no architecture changes needed."
+
+Notice the structure:
+
+- Problem context (why this mattered)
+- Decision process (how you led it)
+- Options considered (shows judgment)
+- Long-term results (the payoff)
+
+**Another example:**
+
+"Advocated for adopting TypeScript across frontend codebase despite initial team resistance. Built proof-of-concept showing 40% reduction in runtime errors in converted modules. Presented cost-benefit analysis to engineering leadership. Led gradual migration over 4 months. Results after 1 year: runtime errors down 60%, onboarding time for new engineers reduced (type system makes codebase self-documenting), refactoring confidence increased (type checking catches breaking changes)."
+
+The pattern: context, advocacy, adoption, long-term results. But this is also work, and it's hard to farm that kind of work out to AI. You just have to do it yourself, or gamble that your manager will figure it out for themselves. Nobody's coming to do it for you.
+
+## When to Document Long-Term Work
+
+The worst time to document long-term impact is at review time. By then, you've forgotten the details, the metrics are stale, and the connection between your work and the outcomes has faded.
+
+Here's when to actually capture it:
+
+**At the start:** Document the problem state. What's broken? What's the cost? What metrics matter?
+
+Before you refactor the authentication system, note how long auth features currently take and how many workarounds exist. Before you mentor a junior engineer, note their current skill level and what they can't do independently yet. This gives you a clear baseline.
+
+**During the work:** Track your time investment and major milestones.
+
+For long-term projects, note how much time you're spending weekly. When significant progress happens, write it down. This isn't busy work—it's building the narrative of what you're doing and why it matters.
+
+**When early results appear:** Document the first signs of impact.
+
+The first time a junior engineer ships something independently, note it. The first week where the refactored system enables faster development, capture the metrics. These early wins build the case for long-term value.
+
+**Quarterly:** Review and update the story.
+
+Set a calendar reminder to revisit your long-term projects every quarter. How has the impact evolved? What new benefits have emerged? This turns a one-time event (the work) into an ongoing narrative (the compounding impact).
+
+## Making Long-Term Impact Visible
+
+The engineers who get credit for foundational work aren't necessarily doing better work. They're documenting it better.
+
+Here's the framework:
+
+**1. Create a tracking document for long-term projects**
+
+Don't rely on memory. When you start a major refactoring, mentoring relationship, or architectural initiative, create a simple document:
+
+- What's the problem you're solving?
+- What metrics define success?
+- What's your time investment?
+- What milestones matter?
+
+Update it monthly. By the time the work pays off, you'll have a complete narrative. Make a private github repo for it so you don't lose it, and hook up Claude Code or similar if you think you can benefit from an agentic partner.
+
+**2. Quantify the multiplier effect**
+
+Long-term work is valuable because it helps multiple people or prevents multiple problems. Make that visible.
+
+Instead of: "Mentored junior engineers"
+
+Write: "Mentored 2 engineers, investing 5 hours per week over 6 months. Both now contribute independently, recovering ~200 hours of senior engineer time previously spent on guidance. Team velocity increased 15%."
+
+**3. Connect your work to later outcomes**
+
+When something good happens because of your earlier work, draw the line explicitly.
+
+"New authentication feature shipped in 3 days—this was only possible because of the auth system refactoring completed in Q2. Previous similar features took 2-3 weeks."
+
+[Your manager](/blog/manager-ammunition-documentation) won't make these connections automatically. You have to show them.
+
+**4. Use your 1:1s strategically**
+
+Don't wait for formal reviews. In monthly 1:1s with your manager, share updates on long-term work:
+
+"Quick update on the API refactoring: we're now seeing velocity improvements. Auth features that used to take weeks are now taking days. This is already paying off."
+
+This keeps the narrative alive in your manager's mind and provides regular evidence of progress.
+
+## The Reality Check
+
+Let's be honest: even with perfect documentation, output-based review systems will still undervalue some long-term work. A junior engineer who ships 50 small features will often get rated higher than a senior engineer who refactored a critical system—even if the refactoring created more value.
+
+The system isn't perfect. But documentation improves your odds.
+
+Without documentation, your long-term work is invisible. With documentation, it's at least in the conversation. Your manager [might not be able to give you full credit](/blog/what-managers-look-for-performance-reviews)  for work that took a year to pay off—but they can't advocate for you at all if they don't know what you did or why it mattered.
+
+The goal isn't to game the system. It's to make sure your actual contributions are visible within an imperfect system.
+
+## When Documentation Isn't Enough
+
+Documentation helps—but it's not magic. There are situations where even perfect documentation won't change the outcome:
+
+**Forced ranking systems:** If your company uses stack ranking that requires a certain percentage of engineers to receive low ratings, someone has to get cut regardless of performance. Documentation can help you avoid being that person, but it can't eliminate the system's built-in quota.
+
+**Biased managers:** If your manager doesn't value the type of work you're doing, or has already decided on ratings before reading documentation, no amount of evidence will change their mind. In these cases, the problem isn't your documentation—it's your manager or your company culture.
+
+**Toxic environments:** Some workplaces systematically devalue certain types of work or certain types of people. If refactoring and mentoring are consistently dismissed as "not real engineering," that's a cultural problem that individual documentation can't solve.
+
+**The wrong level of work:** If you're a senior engineer spending all your time on junior-level tasks (even well-documented ones), that's a scope problem. Documentation shows what you did, but promotion committees want to see you operating at the next level.
+
+If you're documenting thoroughly and still being consistently undervalued, that's a signal. Sometimes the right answer isn't better documentation—it's a different team or a different company. Documentation should make good work visible. If your workplace can't or won't see good work even when it's documented clearly, that tells you something important about the workplace.
+
+## Start This Week
+
+Pick one long-term project you're working on right now—a refactoring, a mentoring relationship, an architectural initiative.
+
+Create a simple document with four sections:
+
+1. **Problem:** What's broken or inefficient right now?
+2. **Your work:** What are you doing to fix it?
+3. **Time investment:** How much effort is this taking?
+4. **Success metrics:** What will improve when this is done?
+
+This takes 10 minutes to set up and 5 minutes per month to maintain. That's 70 minutes over a year—far less time than you'll spend scrambling before your next review. Throw it into a private github repo so you don't lose it.
+
+Yes, this requires time you might not feel you have. If you're underwater with deadlines, taking 5 minutes per month to document might feel impossible. But consider the alternative: spending hours before review time trying to reconstruct what you did months ago, with half the details forgotten and none of the metrics available.
+
+Update it monthly. By the time the impact shows up, you'll have the full story ready for your next review.
+
+The engineers who advance fastest aren't necessarily the ones doing the most impactful work. They're the ones who document their impact most effectively—including the kind that takes years to show results.
+
+---
+
+**Start documenting this week.** The simplest approach: create a running document and capture the problem state before you start long-term work. Note your time investment monthly. When results appear, connect them back to the earlier work.
+
+If you want something that automates the short-term documentation (features, commits, PRs), that's what we built [BragDoc](/) to do. It extracts your achievements from GitHub automatically. For the long-term work—the refactoring, the mentoring, the architecture—you'll still need to tell that story yourself. But at least you won't be scrambling to remember what you shipped in March.
+
+<SignUpCTA />

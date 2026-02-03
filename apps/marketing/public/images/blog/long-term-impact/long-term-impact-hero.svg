@@ -1,0 +1,100 @@
+<svg width="1200" height="630" viewBox="0 0 1200 630" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background -->
+  <rect width="1200" height="630" fill="#0F172A"/>
+
+  <!-- Grid pattern -->
+  <defs>
+    <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+      <path d="M 40 0 L 0 0 0 40" fill="none" stroke="#1E293B" stroke-width="1"/>
+    </pattern>
+  </defs>
+  <rect width="1200" height="630" fill="url(#grid)" opacity="0.5"/>
+
+  <!-- Title -->
+  <text x="600" y="80" font-family="system-ui, -apple-system, sans-serif" font-size="48" font-weight="700" fill="#F1F5F9" text-anchor="middle">
+    The Long Game
+  </text>
+  <text x="600" y="130" font-family="system-ui, -apple-system, sans-serif" font-size="28" fill="#94A3B8" text-anchor="middle">
+    Documenting Impact That Takes Years
+  </text>
+
+  <!-- Short-term work timeline -->
+  <g transform="translate(150, 220)">
+    <text x="0" y="-15" font-family="system-ui, -apple-system, sans-serif" font-size="18" font-weight="600" fill="#3B82F6">
+      Short-term Work
+    </text>
+
+    <!-- Timeline line -->
+    <line x1="0" y1="30" x2="400" y2="30" stroke="#475569" stroke-width="2"/>
+
+    <!-- Work markers -->
+    <circle cx="0" cy="30" r="6" fill="#3B82F6"/>
+    <circle cx="100" cy="30" r="6" fill="#3B82F6"/>
+    <circle cx="200" cy="30" r="6" fill="#3B82F6"/>
+    <circle cx="300" cy="30" r="6" fill="#3B82F6"/>
+    <circle cx="400" cy="30" r="6" fill="#3B82F6"/>
+
+    <!-- Impact markers (immediate) -->
+    <circle cx="0" cy="80" r="8" fill="#10B981" opacity="0.8"/>
+    <circle cx="100" cy="80" r="8" fill="#10B981" opacity="0.8"/>
+    <circle cx="200" cy="80" r="8" fill="#10B981" opacity="0.8"/>
+    <circle cx="300" cy="80" r="8" fill="#10B981" opacity="0.8"/>
+    <circle cx="400" cy="80" r="8" fill="#10B981" opacity="0.8"/>
+
+    <!-- Connection lines -->
+    <line x1="0" y1="36" x2="0" y2="72" stroke="#10B981" stroke-width="1" stroke-dasharray="4,4" opacity="0.5"/>
+    <line x1="100" y1="36" x2="100" y2="72" stroke="#10B981" stroke-width="1" stroke-dasharray="4,4" opacity="0.5"/>
+    <line x1="200" y1="36" x2="200" y2="72" stroke="#10B981" stroke-width="1" stroke-dasharray="4,4" opacity="0.5"/>
+    <line x1="300" y1="36" x2="300" y2="72" stroke="#10B981" stroke-width="1" stroke-dasharray="4,4" opacity="0.5"/>
+    <line x1="400" y1="36" x2="400" y2="72" stroke="#10B981" stroke-width="1" stroke-dasharray="4,4" opacity="0.5"/>
+
+    <text x="200" y="110" font-family="system-ui, -apple-system, sans-serif" font-size="14" fill="#64748B" text-anchor="middle">
+      Immediate measurable impact
+    </text>
+  </g>
+
+  <!-- Long-term work timeline -->
+  <g transform="translate(150, 380)">
+    <text x="0" y="-15" font-family="system-ui, -apple-system, sans-serif" font-size="18" font-weight="600" fill="#8B5CF6">
+      Long-term Work
+    </text>
+
+    <!-- Timeline line -->
+    <line x1="0" y1="30" x2="800" y2="30" stroke="#475569" stroke-width="2"/>
+
+    <!-- Work marker (single effort) -->
+    <circle cx="100" cy="30" r="8" fill="#8B5CF6"/>
+    <text x="100" y="60" font-family="system-ui, -apple-system, sans-serif" font-size="12" fill="#64748B" text-anchor="middle">
+      Refactor
+    </text>
+
+    <!-- Impact markers (delayed, compounding) -->
+    <circle cx="300" cy="80" r="10" fill="#10B981" opacity="0.3"/>
+    <circle cx="500" cy="80" r="12" fill="#10B981" opacity="0.5"/>
+    <circle cx="700" cy="80" r="14" fill="#10B981" opacity="0.7"/>
+    <circle cx="800" cy="80" r="16" fill="#10B981" opacity="0.9"/>
+
+    <!-- Connection lines -->
+    <path d="M 100 38 Q 200 60, 300 72" stroke="#10B981" stroke-width="1" stroke-dasharray="4,4" opacity="0.5" fill="none"/>
+    <path d="M 100 38 Q 300 60, 500 68" stroke="#10B981" stroke-width="1" stroke-dasharray="4,4" opacity="0.5" fill="none"/>
+    <path d="M 100 38 Q 400 60, 700 66" stroke="#10B981" stroke-width="1" stroke-dasharray="4,4" opacity="0.5" fill="none"/>
+    <path d="M 100 38 Q 450 60, 800 64" stroke="#10B981" stroke-width="1" stroke-dasharray="4,4" opacity="0.5" fill="none"/>
+
+    <text x="400" y="130" font-family="system-ui, -apple-system, sans-serif" font-size="14" fill="#64748B" text-anchor="middle">
+      Impact compounds over months and years
+    </text>
+  </g>
+
+  <!-- Legend -->
+  <g transform="translate(600, 220)">
+    <circle cx="450" cy="10" r="6" fill="#3B82F6"/>
+    <text x="465" y="15" font-family="system-ui, -apple-system, sans-serif" font-size="14" fill="#94A3B8">
+      Work completed
+    </text>
+
+    <circle cx="450" cy="40" r="6" fill="#10B981"/>
+    <text x="465" y="45" font-family="system-ui, -apple-system, sans-serif" font-size="14" fill="#94A3B8">
+      Measurable impact
+    </text>
+  </g>
+</svg>

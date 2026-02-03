@@ -1,0 +1,217 @@
+<svg width="1000" height="600" viewBox="0 0 1000 600" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background -->
+  <rect width="1000" height="600" fill="#FFFFFF"/>
+
+  <!-- Title -->
+  <text x="500" y="40" font-family="system-ui, -apple-system, sans-serif" font-size="24" font-weight="600" fill="#0F172A" text-anchor="middle">
+    Documentation Template: Before/After Metrics
+  </text>
+
+  <!-- Before section -->
+  <g transform="translate(50, 80)">
+    <rect x="0" y="0" width="420" height="440" rx="8" fill="#FEF2F2" stroke="#DC2626" stroke-width="2"/>
+
+    <text x="210" y="35" font-family="system-ui, -apple-system, sans-serif" font-size="20" font-weight="600" fill="#DC2626" text-anchor="middle">
+      BEFORE
+    </text>
+
+    <!-- Problem statement -->
+    <rect x="20" y="60" width="380" height="80" rx="6" fill="#FFFFFF" stroke="#E5E7EB" stroke-width="1"/>
+    <text x="30" y="80" font-family="system-ui, -apple-system, sans-serif" font-size="12" font-weight="600" fill="#6B7280">
+      THE PROBLEM:
+    </text>
+    <text x="30" y="100" font-family="system-ui, -apple-system, sans-serif" font-size="11" fill="#374151">
+      Authentication features took 2-3 weeks
+    </text>
+    <text x="30" y="115" font-family="system-ui, -apple-system, sans-serif" font-size="11" fill="#374151">
+      Required working around legacy code
+    </text>
+    <text x="30" y="130" font-family="system-ui, -apple-system, sans-serif" font-size="11" fill="#374151">
+      5 engineers blocked 30% of the time
+    </text>
+
+    <!-- Metrics -->
+    <rect x="20" y="160" width="380" height="260" rx="6" fill="#FFFFFF" stroke="#E5E7EB" stroke-width="1"/>
+    <text x="30" y="180" font-family="system-ui, -apple-system, sans-serif" font-size="12" font-weight="600" fill="#6B7280">
+      KEY METRICS:
+    </text>
+
+    <!-- Metric 1 -->
+    <g transform="translate(30, 200)">
+      <text x="0" y="0" font-family="system-ui, -apple-system, sans-serif" font-size="11" fill="#6B7280">
+        Development time:
+      </text>
+      <text x="200" y="0" font-family="system-ui, -apple-system, sans-serif" font-size="16" font-weight="700" fill="#DC2626">
+        2-3 weeks
+      </text>
+    </g>
+
+    <!-- Metric 2 -->
+    <g transform="translate(30, 240)">
+      <text x="0" y="0" font-family="system-ui, -apple-system, sans-serif" font-size="11" fill="#6B7280">
+        Workarounds needed:
+      </text>
+      <text x="200" y="0" font-family="system-ui, -apple-system, sans-serif" font-size="16" font-weight="700" fill="#DC2626">
+        Multiple
+      </text>
+    </g>
+
+    <!-- Metric 3 -->
+    <g transform="translate(30, 280)">
+      <text x="0" y="0" font-family="system-ui, -apple-system, sans-serif" font-size="11" fill="#6B7280">
+        Engineers blocked:
+      </text>
+      <text x="200" y="0" font-family="system-ui, -apple-system, sans-serif" font-size="16" font-weight="700" fill="#DC2626">
+        5 engineers
+      </text>
+    </g>
+
+    <!-- Metric 4 -->
+    <g transform="translate(30, 320)">
+      <text x="0" y="0" font-family="system-ui, -apple-system, sans-serif" font-size="11" fill="#6B7280">
+        Time lost to workarounds:
+      </text>
+      <text x="200" y="0" font-family="system-ui, -apple-system, sans-serif" font-size="16" font-weight="700" fill="#DC2626">
+        30%
+      </text>
+    </g>
+
+    <!-- Metric 5 -->
+    <g transform="translate(30, 360)">
+      <text x="0" y="0" font-family="system-ui, -apple-system, sans-serif" font-size="11" fill="#6B7280">
+        Code age:
+      </text>
+      <text x="200" y="0" font-family="system-ui, -apple-system, sans-serif" font-size="16" font-weight="700" fill="#DC2626">
+        3 years old
+      </text>
+    </g>
+
+    <!-- Metric 6 -->
+    <g transform="translate(30, 400)">
+      <text x="0" y="0" font-family="system-ui, -apple-system, sans-serif" font-size="11" fill="#6B7280">
+        Velocity impact:
+      </text>
+      <text x="200" y="0" font-family="system-ui, -apple-system, sans-serif" font-size="16" font-weight="700" fill="#DC2626">
+        Baseline
+      </text>
+    </g>
+  </g>
+
+  <!-- Arrow -->
+  <g transform="translate(485, 300)">
+    <path d="M 0 0 L 20 0 L 15 -5 M 20 0 L 15 5" stroke="#3B82F6" stroke-width="3" fill="none"/>
+  </g>
+
+  <!-- After section -->
+  <g transform="translate(530, 80)">
+    <rect x="0" y="0" width="420" height="440" rx="8" fill="#F0FDF4" stroke="#10B981" stroke-width="2"/>
+
+    <text x="210" y="35" font-family="system-ui, -apple-system, sans-serif" font-size="20" font-weight="600" fill="#10B981" text-anchor="middle">
+      AFTER
+    </text>
+
+    <!-- Solution statement -->
+    <rect x="20" y="60" width="380" height="80" rx="6" fill="#FFFFFF" stroke="#E5E7EB" stroke-width="1"/>
+    <text x="30" y="80" font-family="system-ui, -apple-system, sans-serif" font-size="12" font-weight="600" fill="#6B7280">
+      THE SOLUTION:
+    </text>
+    <text x="30" y="100" font-family="system-ui, -apple-system, sans-serif" font-size="11" fill="#374151">
+      Refactored authentication system
+    </text>
+    <text x="30" y="115" font-family="system-ui, -apple-system, sans-serif" font-size="11" fill="#374151">
+      Eliminated legacy codebase
+    </text>
+    <text x="30" y="130" font-family="system-ui, -apple-system, sans-serif" font-size="11" fill="#374151">
+      Engineers now unblocked
+    </text>
+
+    <!-- Metrics -->
+    <rect x="20" y="160" width="380" height="260" rx="6" fill="#FFFFFF" stroke="#E5E7EB" stroke-width="1"/>
+    <text x="30" y="180" font-family="system-ui, -apple-system, sans-serif" font-size="12" font-weight="600" fill="#6B7280">
+      NEW METRICS:
+    </text>
+
+    <!-- Metric 1 -->
+    <g transform="translate(30, 200)">
+      <text x="0" y="0" font-family="system-ui, -apple-system, sans-serif" font-size="11" fill="#6B7280">
+        Development time:
+      </text>
+      <text x="200" y="0" font-family="system-ui, -apple-system, sans-serif" font-size="16" font-weight="700" fill="#10B981">
+        2-3 days
+      </text>
+      <text x="290" y="0" font-family="system-ui, -apple-system, sans-serif" font-size="11" fill="#10B981">
+        ↓ 70% faster
+      </text>
+    </g>
+
+    <!-- Metric 2 -->
+    <g transform="translate(30, 240)">
+      <text x="0" y="0" font-family="system-ui, -apple-system, sans-serif" font-size="11" fill="#6B7280">
+        Workarounds needed:
+      </text>
+      <text x="200" y="0" font-family="system-ui, -apple-system, sans-serif" font-size="16" font-weight="700" fill="#10B981">
+        Zero
+      </text>
+      <text x="290" y="0" font-family="system-ui, -apple-system, sans-serif" font-size="11" fill="#10B981">
+        ↓ 100%
+      </text>
+    </g>
+
+    <!-- Metric 3 -->
+    <g transform="translate(30, 280)">
+      <text x="0" y="0" font-family="system-ui, -apple-system, sans-serif" font-size="11" fill="#6B7280">
+        Engineers blocked:
+      </text>
+      <text x="200" y="0" font-family="system-ui, -apple-system, sans-serif" font-size="16" font-weight="700" fill="#10B981">
+        0 engineers
+      </text>
+      <text x="290" y="0" font-family="system-ui, -apple-system, sans-serif" font-size="11" fill="#10B981">
+        ↓ 100%
+      </text>
+    </g>
+
+    <!-- Metric 4 -->
+    <g transform="translate(30, 320)">
+      <text x="0" y="0" font-family="system-ui, -apple-system, sans-serif" font-size="11" fill="#6B7280">
+        Time recovered:
+      </text>
+      <text x="200" y="0" font-family="system-ui, -apple-system, sans-serif" font-size="16" font-weight="700" fill="#10B981">
+        30%
+      </text>
+      <text x="290" y="0" font-family="system-ui, -apple-system, sans-serif" font-size="11" fill="#10B981">
+        ↑ gained
+      </text>
+    </g>
+
+    <!-- Metric 5 -->
+    <g transform="translate(30, 360)">
+      <text x="0" y="0" font-family="system-ui, -apple-system, sans-serif" font-size="11" fill="#6B7280">
+        Code quality:
+      </text>
+      <text x="200" y="0" font-family="system-ui, -apple-system, sans-serif" font-size="16" font-weight="700" fill="#10B981">
+        Modern
+      </text>
+      <text x="290" y="0" font-family="system-ui, -apple-system, sans-serif" font-size="11" fill="#10B981">
+        ↑ improved
+      </text>
+    </g>
+
+    <!-- Metric 6 -->
+    <g transform="translate(30, 400)">
+      <text x="0" y="0" font-family="system-ui, -apple-system, sans-serif" font-size="11" fill="#6B7280">
+        Velocity impact:
+      </text>
+      <text x="200" y="0" font-family="system-ui, -apple-system, sans-serif" font-size="16" font-weight="700" fill="#10B981">
+        +70%
+      </text>
+      <text x="290" y="0" font-family="system-ui, -apple-system, sans-serif" font-size="11" fill="#10B981">
+        ↑ faster
+      </text>
+    </g>
+  </g>
+
+  <!-- Bottom note -->
+  <text x="500" y="575" font-family="system-ui, -apple-system, sans-serif" font-size="13" fill="#64748B" text-anchor="middle" font-style="italic">
+    Pattern: Document the old state, the new state, and the measurable difference
+  </text>
+</svg>
