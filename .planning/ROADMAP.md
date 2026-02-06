@@ -100,11 +100,11 @@ Plans:
   3. Settings page shows current subscription status (plan, renewal date, or lifetime badge)
   4. Generate buttons are disabled with tooltip when credits insufficient
   5. Pricing comparison page shows annual vs lifetime options clearly
-**Plans**: TBD
+**Plans:** 2 plans
 
 Plans:
-- [ ] 05-01: Credit status display and upgrade prompt components
-- [ ] 05-02: Settings page subscription status and comparison page
+- [ ] 05-01-PLAN.md — Credit status provider, API endpoint, sidebar display, upgrade modal
+- [ ] 05-02-PLAN.md — Chat counter, credit-gated button, account status, pricing page
 
 ### Phase 6: Cleanup
 **Goal**: Remove legacy pricing tiers and update all documentation
@@ -132,7 +132,7 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6
 | 2. Credit System | 2/2 | Complete | 2026-02-06 |
 | 3. Subscription Management | 3/3 | Complete | 2026-02-06 |
 | 4. Feature Gates | 2/2 | Complete | 2026-02-06 |
-| 5. User Interface | 0/2 | Not started | - |
+| 5. User Interface | 0/2 | Planned | - |
 | 6. Cleanup | 0/2 | Not started | - |
 
 ---
