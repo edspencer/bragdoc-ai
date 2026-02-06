@@ -10,18 +10,18 @@ See: .planning/PROJECT.md (updated 2026-02-06)
 ## Current Position
 
 Phase: 4 of 6 (Feature Gates)
-Plan: 1 of 2 in Phase 4
+Plan: 2 of 2 in Phase 4
 Status: In progress
-Last activity: 2026-02-06 — Completed 04-01-PLAN.md
+Last activity: 2026-02-06 — Completed 04-02-PLAN.md
 
-Progress: [█████████░] 85%
+Progress: [█████████░] 90%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 9
+- Total plans completed: 10
 - Average duration: 6.0 min
-- Total execution time: 0.9 hours
+- Total execution time: 1.0 hours
 
 **By Phase:**
 
@@ -30,10 +30,10 @@ Progress: [█████████░] 85%
 | 01-database-foundation | 3 | 13 min | 4.3 min |
 | 02-credit-system | 2 | 15 min | 7.5 min |
 | 03-subscription-management | 3 | 26 min | 8.7 min |
-| 04-feature-gates | 1 | 4 min | 4.0 min |
+| 04-feature-gates | 2 | 14 min | 7.0 min |
 
 **Recent Trend:**
-- Last 5 plans: 9 min, 6 min, 8 min, 12 min, 4 min
+- Last 5 plans: 6 min, 8 min, 12 min, 4 min, 10 min
 - Trend: Stable
 
 *Updated after each plan completion*
@@ -71,6 +71,9 @@ Recent decisions affecting current work:
 - [04-01]: Credit gate placement BEFORE LLM operations, after auth and request validation
 - [04-01]: SSE endpoints: credit gate BEFORE ReadableStream creation (cannot return 402 after stream starts)
 - [04-01]: Credit gate pattern: hasUnlimitedAccess() -> checkUserCredits() -> deductCredits() -> logCreditTransaction()
+- [04-02]: Create separate *WithCreditCheck tool variants rather than runtime wrapping
+- [04-02]: Conditional tool selection based on hasUnlimitedAccess at request time
+- [04-02]: Tools return error objects instead of throwing to maintain LLM conversation flow
 
 ### Pending Todos
 
@@ -81,12 +84,11 @@ None yet.
 - Drizzle atomic UPDATE syntax verified and working
 - Chat message granularity confirmed as user messages only (not assistant responses)
 - Web app tests failing due to test database schema mismatch (free_credits column) - not blocking
-- Pre-existing build error in chat route (updateDocumentWithCreditCheck reference) - not related to current work
 
 ## Session Continuity
 
-Last session: 2026-02-06T21:54:21Z
-Stopped at: Completed 04-01-PLAN.md
+Last session: 2026-02-06T21:59:49Z
+Stopped at: Completed 04-02-PLAN.md
 Resume file: None
 
 ---
