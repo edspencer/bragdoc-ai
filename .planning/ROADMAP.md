@@ -115,11 +115,11 @@ Plans:
   2. Marketing site displays new pricing ($45/year or $99 lifetime)
   3. Old Stripe products are archived (not deleted)
   4. Environment documentation reflects new payment link variables
-**Plans**: TBD
+**Plans:** 2 plans
 
 Plans:
-- [ ] 06-01: Codebase cleanup and marketing updates
-- [ ] 06-02: Stripe product archival and documentation
+- [ ] 06-01-PLAN.md — Remove legacy pricing code and update marketing site
+- [ ] 06-02-PLAN.md — Archive Stripe products and update documentation
 
 ## Progress
 
