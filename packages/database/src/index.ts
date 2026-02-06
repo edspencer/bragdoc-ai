@@ -172,3 +172,9 @@ export {
 
 // Re-export credit transaction types
 export type { CreditTransactionInput } from './queries/credit-transactions';
+
+// Re-export stripe event queries
+export {
+  checkEventProcessed,
+  recordProcessedEvent,
+} from './stripe-events/queries';
