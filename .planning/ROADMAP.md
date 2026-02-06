@@ -84,11 +84,11 @@ Plans:
   3. Paid users have unlimited access to all LLM features
   4. Demo users have unlimited access to all LLM features
   5. Blocked requests return 402 with upgrade URL for client to display
-**Plans**: TBD
+**Plans:** 2 plans
 
 Plans:
-- [ ] 04-01: Document and workstream generation gates
-- [ ] 04-02: Chatbot endpoint gates and tool call credit handling
+- [ ] 04-01-PLAN.md — Document and workstream generation credit gates
+- [ ] 04-02-PLAN.md — Chatbot message gates, tool credit handling, and unit tests
 
 ### Phase 5: User Interface
 **Goal**: Display credit status and provide clear upgrade path when limits are reached
@@ -131,7 +131,7 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6
 | 1. Database Foundation | 3/3 | Complete | 2026-02-06 |
 | 2. Credit System | 2/2 | Complete | 2026-02-06 |
 | 3. Subscription Management | 3/3 | Complete | 2026-02-06 |
-| 4. Feature Gates | 0/2 | Not started | - |
+| 4. Feature Gates | 0/2 | Ready | - |
 | 5. User Interface | 0/2 | Not started | - |
 | 6. Cleanup | 0/2 | Not started | - |
 
