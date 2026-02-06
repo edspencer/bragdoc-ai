@@ -8,6 +8,7 @@ import { useToast } from '@/hooks/use-toast';
 import { SiteHeader } from '@/components/site-header';
 import { SidebarInset } from '@/components/ui/sidebar';
 import { DeleteAccountDialog } from '@/components/delete-account-dialog';
+import { SubscriptionStatus } from '@/components/subscription/subscription-status';
 
 export default function AccountPage() {
   const [isExporting, setIsExporting] = useState(false);
@@ -121,6 +122,12 @@ export default function AccountPage() {
               {isExporting ? 'Exporting...' : 'Export Data'}
             </Button>
           </div>
+
+          {/* Divider */}
+          <div className="border-border border-t" />
+
+          {/* Subscription Section */}
+          <SubscriptionStatus />
 
           {/* Divider */}
           <div className="border-border border-t" />
