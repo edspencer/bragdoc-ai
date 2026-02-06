@@ -14,7 +14,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 
 - [x] **Phase 1: Database Foundation** - Schema changes for credits, simplified enums, and audit logging
 - [x] **Phase 2: Credit System** - Atomic credit deduction and checking logic
-- [ ] **Phase 3: Subscription Management** - Stripe products, webhook handling, status helpers
+- [x] **Phase 3: Subscription Management** - Stripe products, webhook handling, status helpers
 - [ ] **Phase 4: Feature Gates** - Access control integration at LLM endpoints
 - [ ] **Phase 5: User Interface** - Credit display, upgrade prompts, settings page
 - [ ] **Phase 6: Cleanup** - Remove legacy tiers, update documentation
@@ -63,9 +63,9 @@ Plans:
 **Plans:** 3 plans
 
 Plans:
-- [ ] 03-01-PLAN.md — StripeEvent table and idempotency infrastructure
-- [ ] 03-02-PLAN.md — Webhook handler refactor with lookup_key and stripeCustomerId
-- [ ] 03-03-PLAN.md — Subscription status helper and Stripe dashboard setup
+- [x] 03-01-PLAN.md — StripeEvent table and idempotency infrastructure
+- [x] 03-02-PLAN.md — Webhook handler refactor with lookup_key and stripeCustomerId
+- [x] 03-03-PLAN.md — Subscription status helper and Stripe dashboard setup
 
 **Success Criteria** (what must be TRUE):
   1. Stripe dashboard has "BragDoc Yearly" ($45/year) and "BragDoc Lifetime" ($99) products created
@@ -130,7 +130,7 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6
 |-------|----------------|--------|-----------|
 | 1. Database Foundation | 3/3 | Complete | 2026-02-06 |
 | 2. Credit System | 2/2 | Complete | 2026-02-06 |
-| 3. Subscription Management | 0/3 | Not started | - |
+| 3. Subscription Management | 3/3 | Complete | 2026-02-06 |
 | 4. Feature Gates | 0/2 | Not started | - |
 | 5. User Interface | 0/2 | Not started | - |
 | 6. Cleanup | 0/2 | Not started | - |
