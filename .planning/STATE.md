@@ -5,32 +5,32 @@
 See: .planning/PROJECT.md (updated 2026-02-06)
 
 **Core value:** Simple two-option pricing ($45/year or $99 lifetime) with free trial credits
-**Current focus:** Phase 1 - Database Foundation
+**Current focus:** Phase 1 - Database Foundation (COMPLETE)
 
 ## Current Position
 
 Phase: 1 of 6 (Database Foundation)
-Plan: 1 of 2 in current phase
-Status: In progress
-Last activity: 2026-02-06 — Completed 01-01-PLAN.md (User Schema Credits)
+Plan: 2 of 2 in current phase
+Status: Phase complete
+Last activity: 2026-02-06 — Completed 01-02-PLAN.md (Credit Transaction Audit Table)
 
-Progress: [█░░░░░░░░░] 8%
+Progress: [██░░░░░░░░] 17%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 1
-- Average duration: 8 min
-- Total execution time: 0.13 hours
+- Total plans completed: 2
+- Average duration: 4.5 min
+- Total execution time: 0.15 hours
 
 **By Phase:**
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
-| 01-database-foundation | 1 | 8 min | 8 min |
+| 01-database-foundation | 2 | 9 min | 4.5 min |
 
 **Recent Trend:**
-- Last 5 plans: 8 min
+- Last 5 plans: 8 min, 1 min
 - Trend: Not enough data
 
 *Updated after each plan completion*
@@ -48,6 +48,9 @@ Recent decisions affecting current work:
 - [01-01]: NULL OR >= 0 CHECK constraint pattern for existing user compatibility
 - [01-01]: Keep deprecated enum values (basic, pro, monthly) for PostgreSQL compatibility
 - [01-01]: Default 10 freeCredits and 20 freeChatMessages via column defaults
+- [01-02]: Store amount as positive integer with operation enum indicating direction
+- [01-02]: JSONB metadata field for flexible context (document IDs, error messages, refund reasons)
+- [01-02]: Three-index strategy for CreditTransaction (userId, createdAt, userId+createdAt)
 
 ### Pending Todos
 
@@ -61,7 +64,7 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-02-06
-Stopped at: Completed 01-01-PLAN.md (User Schema Credits)
+Stopped at: Completed 01-02-PLAN.md (Credit Transaction Audit Table) - Phase 1 complete
 Resume file: None
 
 ---
