@@ -17,7 +17,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 3: Subscription Management** - Stripe products, webhook handling, status helpers
 - [x] **Phase 4: Feature Gates** - Access control integration at LLM endpoints
 - [x] **Phase 5: User Interface** - Credit display, upgrade prompts, settings page
-- [ ] **Phase 6: Cleanup** - Remove legacy tiers, update documentation
+- [x] **Phase 6: Cleanup** - Remove legacy tiers, update documentation
 
 ## Phase Details
 
@@ -118,8 +118,8 @@ Plans:
 **Plans:** 2 plans
 
 Plans:
-- [ ] 06-01-PLAN.md — Remove legacy pricing code and update marketing site
-- [ ] 06-02-PLAN.md — Archive Stripe products and update documentation
+- [x] 06-01-PLAN.md — Remove legacy pricing code and update marketing site
+- [x] 06-02-PLAN.md — Archive Stripe products and update documentation
 
 ## Progress
 
@@ -133,7 +133,7 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6
 | 3. Subscription Management | 3/3 | Complete | 2026-02-06 |
 | 4. Feature Gates | 2/2 | Complete | 2026-02-06 |
 | 5. User Interface | 2/2 | Complete | 2026-02-06 |
-| 6. Cleanup | 0/2 | Not started | - |
+| 6. Cleanup | 2/2 | Complete | 2026-02-06 |
 
 ---
 *Roadmap created: 2026-02-06*

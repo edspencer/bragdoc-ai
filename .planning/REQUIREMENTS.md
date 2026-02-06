@@ -355,10 +355,10 @@ Features deliberately NOT building to maintain simplicity.
 | UI-05 | Phase 5 | Complete |
 | UI-06 | Phase 5 | Complete |
 | UI-07 | Phase 5 | Complete |
-| CLEANUP-01 | Phase 6 | Pending |
-| CLEANUP-02 | Phase 6 | Pending |
-| CLEANUP-03 | Phase 6 | Pending |
-| CLEANUP-04 | Phase 6 | Pending |
+| CLEANUP-01 | Phase 6 | Complete |
+| CLEANUP-02 | Phase 6 | Complete |
+| CLEANUP-03 | Phase 6 | Complete |
+| CLEANUP-04 | Phase 6 | Complete |
 
 ---
 
