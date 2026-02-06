@@ -21,10 +21,19 @@ import {
 } from '@bragdoc/database';
 import type { User, Message } from '@bragdoc/database';
 import { format } from 'date-fns';
-import { updatePerformanceReviewDocument } from '@/lib/ai/tools/update-performance-review-document';
+import {
+  updatePerformanceReviewDocument,
+  updatePerformanceReviewDocumentWithCreditCheck,
+} from '@/lib/ai/tools/update-performance-review-document';
 import type { ChatMessage } from '@/lib/types';
 import { generateUUID } from '@/lib/utils';
 import { generateTitleFromUserMessage } from '@/app/(app)/chat/actions';
+import { hasUnlimitedAccess } from '@/lib/stripe/subscription';
+import {
+  checkUserChatMessages,
+  deductChatMessage,
+  logCreditTransaction,
+} from '@/lib/credits';
 
 export const maxDuration = 60;
 
@@ -84,6 +93,52 @@ export async function POST(request: Request) {
       return Response.json(
         { error: 'Performance review not found' },
         { status: 404 },
+      );
+    }
+
+    // Chat message gate - skip for paid/demo users
+    if (!hasUnlimitedAccess(user)) {
+      const { hasMessages, remainingMessages } = checkUserChatMessages(user);
+
+      if (!hasMessages) {
+        return Response.json(
+          {
+            error: 'insufficient_chat_messages',
+            message:
+              "You've used all 20 free messages. Upgrade for unlimited chat.",
+            remaining: 0,
+            upgradeUrl: '/pricing',
+          },
+          { status: 402 },
+        );
+      }
+
+      // Atomic deduction
+      const { success, remaining } = await deductChatMessage(
+        user.id,
+        user.level,
+      );
+      if (!success) {
+        return Response.json(
+          {
+            error: 'insufficient_chat_messages',
+            message: 'Messages exhausted. Upgrade for unlimited chat.',
+            remaining: 0,
+            upgradeUrl: '/pricing',
+          },
+          { status: 402 },
+        );
+      }
+
+      // Log the message deduction (non-blocking)
+      logCreditTransaction({
+        userId: user.id,
+        operation: 'deduct',
+        featureType: 'chat_message',
+        amount: 1,
+        metadata: { performanceReviewId, remainingMessages: remaining },
+      }).catch((err) =>
+        console.error('Failed to log chat message transaction:', err),
       );
     }
 
@@ -231,13 +286,23 @@ When using the tool, provide the complete updated document content. Be concise i
           messages: convertToModelMessages(uiMessages),
           stopWhen: stepCountIs(5),
           experimental_transform: smoothStream({ chunking: 'word' }),
-          tools: {
-            updatePerformanceReviewDocument: updatePerformanceReviewDocument({
-              user,
-              dataStream,
-              performanceReviewId,
-            }),
-          },
+          tools: hasUnlimitedAccess(user)
+            ? {
+                updatePerformanceReviewDocument:
+                  updatePerformanceReviewDocument({
+                    user,
+                    dataStream,
+                    performanceReviewId,
+                  }),
+              }
+            : {
+                updatePerformanceReviewDocument:
+                  updatePerformanceReviewDocumentWithCreditCheck({
+                    user,
+                    dataStream,
+                    performanceReviewId,
+                  }),
+              },
           onFinish: async ({ usage }) => {
             finalUsage = usage;
             dataStream.write({ type: 'data-usage', data: usage });
