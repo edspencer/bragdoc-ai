@@ -163,3 +163,12 @@ export type {
   PerformanceReviewWithDocument,
   AchievementWithContext,
 } from './performance-reviews/queries';
+
+// Re-export credit transaction queries
+export {
+  insertCreditTransaction,
+  getCreditTransactionsByUser,
+} from './queries/credit-transactions';
+
+// Re-export credit transaction types
+export type { CreditTransactionInput } from './queries/credit-transactions';
