@@ -518,7 +518,7 @@ export async function incrementalAssignment(
 }
 
 // Number of workstreams to name per LLM request
-const NAMING_BATCH_SIZE = 3;
+const NAMING_BATCH_SIZE = 5;
 // Maximum concurrent LLM requests for naming workstreams
 const NAMING_CONCURRENCY_LIMIT = 5;
 
