@@ -63,6 +63,22 @@ export const userStatusEnum = pgEnum('user_status', [
 export const sourceTypeEnum = pgEnum('source_type', ['git', 'github', 'jira']);
 export type SourceType = (typeof sourceTypeEnum.enumValues)[number];
 
+// Credit transaction audit enums
+export const operationTypeEnum = pgEnum('operation_type', [
+  'deduct',
+  'refund',
+  'grant',
+]);
+export type OperationType = (typeof operationTypeEnum.enumValues)[number];
+
+export const featureTypeEnum = pgEnum('feature_type', [
+  'document_generation', // Brag docs, performance reviews, weekly reports
+  'workstream_clustering', // ML-powered workstream generation
+  'chat_tool_call', // Tool calls within chat (update document, etc.)
+  'chat_message', // Chat message from free user
+]);
+export type FeatureType = (typeof featureTypeEnum.enumValues)[number];
+
 export const sourceItemTypeEnum = pgEnum('source_item_type', [
   'commit', // Git commit or GitHub commit
   'pr', // GitHub pull request
@@ -687,3 +703,32 @@ export const emailPreferences = pgTable('email_preferences', {
 });
 
 export type EmailPreferences = InferSelectModel<typeof emailPreferences>;
+
+// Credit transaction audit table for debugging and support
+export const creditTransaction = pgTable(
+  'CreditTransaction',
+  {
+    id: uuid('id').primaryKey().notNull().defaultRandom(),
+    userId: uuid('user_id')
+      .notNull()
+      .references(() => user.id, { onDelete: 'cascade' }),
+    amount: integer('amount').notNull(), // Positive for deduct/grant, shows magnitude
+    operation: operationTypeEnum('operation').notNull(),
+    featureType: featureTypeEnum('feature_type').notNull(),
+    metadata: jsonb('metadata').$type<Record<string, unknown>>(),
+    createdAt: timestamp('created_at').notNull().defaultNow(),
+  },
+  (table) => ({
+    // Index for user-specific queries (support lookups)
+    userIdIdx: index('credit_tx_user_id_idx').on(table.userId),
+    // Index for time-based queries (analytics)
+    createdAtIdx: index('credit_tx_created_at_idx').on(table.createdAt),
+    // Composite index for common query: user's recent transactions
+    userCreatedAtIdx: index('credit_tx_user_created_at_idx').on(
+      table.userId,
+      table.createdAt,
+    ),
+  }),
+);
+
+export type CreditTransaction = InferSelectModel<typeof creditTransaction>;
