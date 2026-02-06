@@ -2,175 +2,105 @@ import type { Stripe } from 'stripe';
 import { NextResponse } from 'next/server';
 import { stripe } from 'lib/stripe/stripe';
 import { db } from '@/database/index';
+import { checkEventProcessed, recordProcessedEvent } from '@bragdoc/database';
 import {
-  user,
-  type userLevelEnum,
-  type renewalPeriodEnum,
-} from '@/database/schema';
-import { eq } from 'drizzle-orm';
+  handleCheckoutComplete,
+  handleInvoicePaid,
+  handleSubscriptionDeleted,
+} from 'lib/stripe/webhook-handlers';
 
-async function updateUserSubscription(
-  customerId: string,
-  planId: string,
-  email: string,
-) {
-  // Extract level and renewal period from planId (e.g., 'basic_monthly' -> ['basic', 'monthly'])
-  const [level, renewalPeriod] = planId.split('_') as [
-    (typeof userLevelEnum.enumValues)[number],
-    (typeof renewalPeriodEnum.enumValues)[number],
-  ];
+const HANDLED_EVENTS = [
+  'checkout.session.completed',
+  'invoice.paid',
+  'customer.subscription.deleted',
+] as const;
 
-  console.log(
-    `Updating user subscription for customer ${customerId} to level ${level} and renewal period ${renewalPeriod}`,
-  );
+type HandledEventType = (typeof HANDLED_EVENTS)[number];
 
-  // Update user's subscription details and store Stripe customer ID
-  await db
-    .update(user)
-    .set({
-      level,
-      renewalPeriod,
-      lastPayment: new Date(),
-      stripeCustomerId: customerId,
-    })
-    .where(eq(user.email, email));
-}
-
-async function getSessionWithLineItems(sessionId: string) {
-  return await stripe.checkout.sessions.retrieve(sessionId, {
-    expand: ['line_items.data.price'],
-  });
-}
-
-async function getCustomerDetails(customerId: string) {
-  return await stripe.customers.retrieve(customerId);
+function isHandledEvent(type: string): type is HandledEventType {
+  return HANDLED_EVENTS.includes(type as HandledEventType);
 }
 
 export async function POST(req: Request) {
   let event: Stripe.Event;
 
+  // 1. Verify webhook signature immediately
   try {
+    const body = await req.text();
+    const signature = req.headers.get('stripe-signature');
+
+    if (!signature) {
+      return NextResponse.json(
+        { error: 'Missing stripe-signature header' },
+        { status: 400 },
+      );
+    }
+
     event = stripe.webhooks.constructEvent(
-      await (await req.blob()).text(),
-      req.headers.get('stripe-signature') as string,
+      body,
+      signature,
       process.env.STRIPE_WEBHOOK_SECRET as string,
     );
   } catch (err) {
-    const errorMessage = err instanceof Error ? err.message : 'Unknown error';
-    // On error, log and return the error message.
-    if (err! instanceof Error) console.log(err);
-    console.log(`❌ Error message: ${errorMessage}`);
+    const message = err instanceof Error ? err.message : 'Unknown error';
     return NextResponse.json(
-      { message: `Webhook Error: ${errorMessage}` },
+      { error: `Webhook signature verification failed: ${message}` },
       { status: 400 },
     );
   }
 
-  // Successfully constructed event.
-  console.log('✅ Success:', event.id);
-
-  const permittedEvents: string[] = [
-    'checkout.session.completed',
-    'payment_intent.succeeded',
-    'payment_intent.payment_failed',
-    'customer.subscription.deleted',
-  ];
-
-  if (permittedEvents.includes(event.type)) {
-    try {
-      switch (event.type) {
-        case 'checkout.session.completed': {
-          const session = event.data.object as Stripe.Checkout.Session;
-          console.log(`💰 CheckoutSession status: ${session.payment_status}`);
-
-          if (session.payment_status === 'paid') {
-            // Retrieve the session with line items
-            const expandedSession = await getSessionWithLineItems(session.id);
-            const lineItems = expandedSession.line_items?.data;
-
-            console.log(
-              `Line items for session ${session.id}:`,
-              lineItems?.map((item) => item.price?.product),
-            );
-
-            if (lineItems && lineItems.length > 0) {
-              const price = lineItems[0]?.price as Stripe.Price;
-              const planId = price.lookup_key;
-
-              if (planId) {
-                await updateUserSubscription(
-                  session.customer as string,
-                  planId,
-                  session.customer_details?.email ?? '',
-                );
-              }
-            }
-          }
-          break;
-        }
-
-        case 'payment_intent.payment_failed': {
-          const paymentIntent = event.data.object as Stripe.PaymentIntent;
-          console.log(
-            `❌ Payment failed: ${paymentIntent.last_payment_error?.message}`,
-          );
-
-          // If this was a subscription payment, we might want to update user status
-          if (paymentIntent.metadata?.planId) {
-            // You might want to mark the subscription as past_due or handle differently
-            console.log(
-              `Payment failed for plan: ${paymentIntent.metadata.planId}`,
-            );
-          }
-          break;
-        }
-
-        case 'payment_intent.succeeded': {
-          const paymentIntent = event.data.object as Stripe.PaymentIntent;
-          console.log(`💰 PaymentIntent status: ${paymentIntent.status}`);
-
-          // Update last payment date if this was a subscription payment
-          if (paymentIntent.metadata?.planId && paymentIntent.customer) {
-            // Fetch customer to get their email
-            const customer = await getCustomerDetails(
-              paymentIntent.customer as string,
-            );
-
-            if (!customer.deleted) {
-              await updateUserSubscription(
-                paymentIntent.customer as string,
-                paymentIntent.metadata.planId,
-                customer.email ?? '',
-              );
-            }
-          }
-          break;
-        }
-
-        case 'customer.subscription.deleted': {
-          const subscription = event.data.object as Stripe.Subscription;
-          // When subscription is cancelled, revert user to free plan
-          await db
-            .update(user)
-            .set({
-              level: 'free',
-              lastPayment: null,
-            })
-            .where(eq(user.stripeCustomerId, subscription.customer as string));
-          break;
-        }
-
-        default:
-          throw new Error(`Unhandled event: ${event.type}`);
-      }
-    } catch (error) {
-      console.log(error);
-      return NextResponse.json(
-        { message: 'Webhook handler failed' },
-        { status: 500 },
-      );
-    }
+  // 2. Skip unhandled event types early
+  if (!isHandledEvent(event.type)) {
+    return NextResponse.json({ received: true, handled: false });
   }
-  // Return a response to acknowledge receipt of the event.
-  return NextResponse.json({ message: 'Received' }, { status: 200 });
+
+  // 3. Check idempotency (before any processing)
+  const alreadyProcessed = await checkEventProcessed(event.id);
+  if (alreadyProcessed) {
+    return NextResponse.json({ received: true, duplicate: true });
+  }
+
+  // 4. Process event in transaction
+  try {
+    await db.transaction(async (tx) => {
+      // Record event first (acts as idempotency lock)
+      await recordProcessedEvent(tx, event.id, event.type);
+
+      // Handle specific event types
+      switch (event.type) {
+        case 'checkout.session.completed':
+          await handleCheckoutComplete(
+            tx,
+            event.data.object as Stripe.Checkout.Session,
+          );
+          break;
+
+        case 'invoice.paid':
+          await handleInvoicePaid(tx, event.data.object as Stripe.Invoice);
+          break;
+
+        case 'customer.subscription.deleted':
+          await handleSubscriptionDeleted(
+            tx,
+            event.data.object as Stripe.Subscription,
+          );
+          break;
+      }
+    });
+  } catch (error) {
+    // Log error without PII (just event ID)
+    const message = error instanceof Error ? error.message : 'Unknown error';
+    // Note: In production, use structured logger instead
+    console.error(
+      `Webhook processing failed for event ${event.id}: ${message}`,
+    );
+
+    // Return 500 to trigger Stripe retry
+    return NextResponse.json(
+      { error: 'Webhook processing failed' },
+      { status: 500 },
+    );
+  }
+
+  return NextResponse.json({ received: true, handled: true });
 }
