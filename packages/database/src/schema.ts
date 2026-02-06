@@ -732,3 +732,12 @@ export const creditTransaction = pgTable(
 );
 
 export type CreditTransaction = InferSelectModel<typeof creditTransaction>;
+
+// Stripe event idempotency table for webhook deduplication
+export const stripeEvent = pgTable('StripeEvent', {
+  id: varchar('id', { length: 64 }).primaryKey(), // Stripe event ID (evt_xxx)
+  type: varchar('type', { length: 64 }).notNull(),
+  processedAt: timestamp('processed_at').notNull().defaultNow(),
+});
+
+export type StripeEvent = InferSelectModel<typeof stripeEvent>;
