@@ -5,32 +5,33 @@
 See: .planning/PROJECT.md (updated 2026-02-06)
 
 **Core value:** Simple two-option pricing ($45/year or $99 lifetime) with free trial credits
-**Current focus:** Phase 2 - Credit System (ready to plan)
+**Current focus:** Phase 2 - Credit System (plan 01 complete)
 
 ## Current Position
 
-Phase: 1 of 6 (Database Foundation) — COMPLETE ✓
-Plan: 3 of 3 in Phase 1
-Status: Phase 1 verified, ready for Phase 2
-Last activity: 2026-02-06 — Phase 1 execution complete (verified)
+Phase: 2 of 6 (Credit System)
+Plan: 1 of 4 in Phase 2
+Status: In progress
+Last activity: 2026-02-06 — Completed 02-01-PLAN.md (Credit Operations)
 
-Progress: [██░░░░░░░░] 17%
+Progress: [███░░░░░░░] 24%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 3
-- Average duration: 4.3 min
-- Total execution time: 0.22 hours
+- Total plans completed: 4
+- Average duration: 4.7 min
+- Total execution time: 0.32 hours
 
 **By Phase:**
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
 | 01-database-foundation | 3 | 13 min | 4.3 min |
+| 02-credit-system | 1 | 6 min | 6 min |
 
 **Recent Trend:**
-- Last 5 plans: 8 min, 1 min, 4 min
+- Last 5 plans: 8 min, 1 min, 4 min, 6 min
 - Trend: Stable
 
 *Updated after each plan completion*
@@ -53,6 +54,8 @@ Recent decisions affecting current work:
 - [01-02]: Three-index strategy for CreditTransaction (userId, createdAt, userId+createdAt)
 - [01-03]: Better Auth additionalFields use required: false for nullable fields with existing users
 - [01-03]: Better Auth defaultValue matches database column defaults for consistency
+- [02-01]: Use destructuring assignment for Drizzle RETURNING results
+- [02-01]: COALESCE for NULL freeCredits on refund
 
 ### Pending Todos
 
@@ -60,13 +63,13 @@ None yet.
 
 ### Blockers/Concerns
 
-- Drizzle atomic UPDATE syntax needs verification during Phase 2 planning
+- Drizzle atomic UPDATE syntax verified and working
 - Chat message granularity confirmed as user messages only (not assistant responses)
 
 ## Session Continuity
 
 Last session: 2026-02-06
-Stopped at: Completed 01-03-PLAN.md (Better Auth Credit Fields) - Phase 1 complete with gap closure
+Stopped at: Completed 02-01-PLAN.md (Credit Operations)
 Resume file: None
 
 ---
