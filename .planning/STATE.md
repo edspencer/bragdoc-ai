@@ -5,33 +5,33 @@
 See: .planning/PROJECT.md (updated 2026-02-06)
 
 **Core value:** Simple two-option pricing ($45/year or $99 lifetime) with free trial credits
-**Current focus:** Phase 2 - Credit System (plan 01 complete)
+**Current focus:** Phase 2 - Credit System (plan 02 complete)
 
 ## Current Position
 
 Phase: 2 of 6 (Credit System)
-Plan: 1 of 4 in Phase 2
+Plan: 2 of 4 in Phase 2
 Status: In progress
-Last activity: 2026-02-06 — Completed 02-01-PLAN.md (Credit Operations)
+Last activity: 2026-02-06 — Completed 02-02-PLAN.md (Credit Checking and Logging)
 
-Progress: [███░░░░░░░] 24%
+Progress: [████░░░░░░] 29%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 4
-- Average duration: 4.7 min
-- Total execution time: 0.32 hours
+- Total plans completed: 5
+- Average duration: 5.2 min
+- Total execution time: 0.43 hours
 
 **By Phase:**
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
 | 01-database-foundation | 3 | 13 min | 4.3 min |
-| 02-credit-system | 1 | 6 min | 6 min |
+| 02-credit-system | 2 | 15 min | 7.5 min |
 
 **Recent Trend:**
-- Last 5 plans: 8 min, 1 min, 4 min, 6 min
+- Last 5 plans: 8 min, 1 min, 4 min, 6 min, 9 min
 - Trend: Stable
 
 *Updated after each plan completion*
@@ -56,6 +56,8 @@ Recent decisions affecting current work:
 - [01-03]: Better Auth defaultValue matches database column defaults for consistency
 - [02-01]: Use destructuring assignment for Drizzle RETURNING results
 - [02-01]: COALESCE for NULL freeCredits on refund
+- [02-02]: Non-blocking logger - credit logging failures don't fail the main operation
+- [02-02]: Nullish coalescing for existing users - NULL means never initialized, defaults to 10/20
 
 ### Pending Todos
 
@@ -69,7 +71,7 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-02-06
-Stopped at: Completed 02-01-PLAN.md (Credit Operations)
+Stopped at: Completed 02-02-PLAN.md (Credit Checking and Logging)
 Resume file: None
 
 ---
