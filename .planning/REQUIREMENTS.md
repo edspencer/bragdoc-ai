@@ -319,14 +319,50 @@ Features deliberately NOT building to maintain simplicity.
 
 ## Traceability
 
-Requirements will be mapped to phases by the roadmapper. This section will be populated after roadmap creation.
-
-| Requirement | Phase | Plan | Status |
-|-------------|-------|------|--------|
-| (To be filled by roadmapper) | | | |
+| Requirement | Phase | Status |
+|-------------|-------|--------|
+| DATABASE-01 | Phase 1 | Pending |
+| DATABASE-02 | Phase 1 | Pending |
+| DATABASE-03 | Phase 1 | Pending |
+| DATABASE-04 | Phase 1 | Pending |
+| DATABASE-05 | Phase 1 | Pending |
+| DATABASE-06 | Phase 1 | Pending |
+| DATABASE-07 | Phase 1 | Pending |
+| CREDIT-01 | Phase 2 | Pending |
+| CREDIT-02 | Phase 2 | Pending |
+| CREDIT-03 | Phase 2 | Pending |
+| CREDIT-04 | Phase 2 | Pending |
+| CREDIT-05 | Phase 2 | Pending |
+| CREDIT-06 | Phase 2 | Pending |
+| SUBSCRIPTION-01 | Phase 3 | Pending |
+| SUBSCRIPTION-02 | Phase 3 | Pending |
+| SUBSCRIPTION-03 | Phase 3 | Pending |
+| SUBSCRIPTION-04 | Phase 3 | Pending |
+| SUBSCRIPTION-05 | Phase 3 | Pending |
+| SUBSCRIPTION-06 | Phase 3 | Pending |
+| SUBSCRIPTION-07 | Phase 3 | Pending |
+| SUBSCRIPTION-08 | Phase 3 | Pending |
+| FEATURE-GATE-01 | Phase 4 | Pending |
+| FEATURE-GATE-02 | Phase 4 | Pending |
+| FEATURE-GATE-03 | Phase 4 | Pending |
+| FEATURE-GATE-04 | Phase 4 | Pending |
+| FEATURE-GATE-05 | Phase 4 | Pending |
+| FEATURE-GATE-06 | Phase 4 | Pending |
+| UI-01 | Phase 5 | Pending |
+| UI-02 | Phase 5 | Pending |
+| UI-03 | Phase 5 | Pending |
+| UI-04 | Phase 5 | Pending |
+| UI-05 | Phase 5 | Pending |
+| UI-06 | Phase 5 | Pending |
+| UI-07 | Phase 5 | Pending |
+| CLEANUP-01 | Phase 6 | Pending |
+| CLEANUP-02 | Phase 6 | Pending |
+| CLEANUP-03 | Phase 6 | Pending |
+| CLEANUP-04 | Phase 6 | Pending |
 
 ---
 
 *Requirements finalized: 2026-02-06*
+*Traceability updated: 2026-02-06*
 *Total v1 requirements: 38*
 *Total v2 requirements: 6*
