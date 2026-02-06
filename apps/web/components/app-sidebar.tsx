@@ -12,6 +12,7 @@ import {
 } from '@tabler/icons-react';
 import Image from 'next/image';
 
+import { CreditStatusDisplay } from '@/components/credit-status';
 import { NavCareers } from '@/components/nav-careers';
 import { NavMain } from '@/components/nav-main';
 import { NavProjects } from '@/components/nav-projects';
@@ -145,6 +146,7 @@ export function AppSidebar({
         <NavSecondary items={staticData.navSecondary} className="mt-auto" />
       </SidebarContent>
       <SidebarFooter>
+        <CreditStatusDisplay />
         <NavUser user={navUserData} />
       </SidebarFooter>
     </Sidebar>
