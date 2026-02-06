@@ -5,23 +5,23 @@
 See: .planning/PROJECT.md (updated 2026-02-06)
 
 **Core value:** Simple two-option pricing ($45/year or $99 lifetime) with free trial credits
-**Current focus:** Phase 3 - Subscription Management (ready to plan)
+**Current focus:** Phase 3 - Subscription Management (in progress)
 
 ## Current Position
 
-Phase: 2 of 6 (Credit System) — COMPLETE ✓
-Plan: 2 of 2 in Phase 2
-Status: Phase 2 verified, ready for Phase 3
-Last activity: 2026-02-06 — Phase 2 execution complete (verified with override)
+Phase: 3 of 6 (Subscription Management)
+Plan: 1 of 3 in Phase 3
+Status: In progress
+Last activity: 2026-02-06 - Completed 03-01-PLAN.md
 
-Progress: [████░░░░░░] 33%
+Progress: [████░░░░░░] 40%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 5
-- Average duration: 5.2 min
-- Total execution time: 0.43 hours
+- Total plans completed: 6
+- Average duration: 5.3 min
+- Total execution time: 0.53 hours
 
 **By Phase:**
 
@@ -29,9 +29,10 @@ Progress: [████░░░░░░] 33%
 |-------|-------|-------|----------|
 | 01-database-foundation | 3 | 13 min | 4.3 min |
 | 02-credit-system | 2 | 15 min | 7.5 min |
+| 03-subscription-management | 1 | 6 min | 6 min |
 
 **Recent Trend:**
-- Last 5 plans: 8 min, 1 min, 4 min, 6 min, 9 min
+- Last 5 plans: 1 min, 4 min, 6 min, 9 min, 6 min
 - Trend: Stable
 
 *Updated after each plan completion*
@@ -59,6 +60,8 @@ Recent decisions affecting current work:
 - [02-02]: Non-blocking logger - credit logging failures don't fail the main operation
 - [02-02]: Nullish coalescing for existing users - NULL means never initialized, defaults to 10/20
 - [02-verify]: Deferred internal logging wiring to Phase 4 when operations are integrated with endpoints
+- [03-01]: Use Stripe event ID as primary key directly (no synthetic UUID needed)
+- [03-01]: Standalone StripeEvent audit table (no foreign keys)
 
 ### Pending Todos
 
@@ -68,11 +71,12 @@ None yet.
 
 - Drizzle atomic UPDATE syntax verified and working
 - Chat message granularity confirmed as user messages only (not assistant responses)
+- Web app tests failing due to test database schema mismatch (free_credits column) - not blocking
 
 ## Session Continuity
 
 Last session: 2026-02-06
-Stopped at: Phase 2 complete - ready for Phase 3 planning
+Stopped at: Completed 03-01-PLAN.md
 Resume file: None
 
 ---
