@@ -19,6 +19,13 @@ import {
   type ProgressCallback,
 } from '@/lib/ai/workstreams';
 import { getClusteringParameters } from '@/lib/ai/clustering';
+import { hasUnlimitedAccess } from '@/lib/stripe/subscription';
+import {
+  checkUserCredits,
+  deductCredits,
+  CREDIT_COSTS,
+  logCreditTransaction,
+} from '@/lib/credits';
 
 const MINIMUM_ACHIEVEMENTS = 20;
 
@@ -167,6 +174,47 @@ export async function POST(request: NextRequest) {
   }
 
   const userId = auth.user.id;
+
+  // Credit gate - BEFORE creating ReadableStream (cannot return 402 after stream starts)
+  if (!hasUnlimitedAccess(auth.user)) {
+    const cost = CREDIT_COSTS.workstream_clustering; // 2 credits
+    const { hasCredits, remainingCredits } = checkUserCredits(auth.user, cost);
+
+    if (!hasCredits) {
+      return NextResponse.json(
+        {
+          error: 'insufficient_credits',
+          message: `Workstream generation requires ${cost} credits. You have ${remainingCredits} remaining.`,
+          required: cost,
+          available: remainingCredits,
+          upgradeUrl: '/pricing',
+        },
+        { status: 402 },
+      );
+    }
+
+    // Atomic deduction - must happen before stream
+    const { success } = await deductCredits(userId, cost);
+    if (!success) {
+      return NextResponse.json(
+        {
+          error: 'insufficient_credits',
+          message: 'Credits consumed by concurrent request. Please try again.',
+          upgradeUrl: '/pricing',
+        },
+        { status: 402 },
+      );
+    }
+
+    // Log the transaction (non-blocking)
+    logCreditTransaction({
+      userId,
+      operation: 'deduct',
+      featureType: 'workstream_clustering',
+      amount: cost,
+      metadata: {},
+    }).catch((err) => console.error('Failed to log credit transaction:', err));
+  }
 
   // Create SSE stream
   const encoder = new TextEncoder();
