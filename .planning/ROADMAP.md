@@ -12,7 +12,7 @@ This roadmap transforms BragDoc's pricing from a complex four-tier model (Free/B
 
 Decimal phases appear between their surrounding integers in numeric order.
 
-- [ ] **Phase 1: Database Foundation** - Schema changes for credits, simplified enums, and audit logging
+- [x] **Phase 1: Database Foundation** - Schema changes for credits, simplified enums, and audit logging
 - [ ] **Phase 2: Credit System** - Atomic credit deduction and checking logic
 - [ ] **Phase 3: Subscription Management** - Stripe products, webhook handling, status helpers
 - [ ] **Phase 4: Feature Gates** - Access control integration at LLM endpoints
@@ -30,7 +30,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 Plans:
 - [x] 01-01-PLAN.md — User table schema: credit fields, enum updates, CHECK constraints
 - [x] 01-02-PLAN.md — Credit transaction audit table with operation/feature enums
-- [ ] 01-03-PLAN.md — Gap closure: Better Auth config for credit fields
+- [x] 01-03-PLAN.md — Gap closure: Better Auth config for credit fields
 
 **Success Criteria** (what must be TRUE):
   1. New free users receive freeCredits=10 and freeChatMessages=20 upon account creation
@@ -126,7 +126,7 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Database Foundation | 2/3 | Gap closure needed | - |
+| 1. Database Foundation | 3/3 | ✓ Complete | 2026-02-06 |
 | 2. Credit System | 0/2 | Not started | - |
 | 3. Subscription Management | 0/3 | Not started | - |
 | 4. Feature Gates | 0/2 | Not started | - |

@@ -321,13 +321,13 @@ Features deliberately NOT building to maintain simplicity.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| DATABASE-01 | Phase 1 | Pending |
-| DATABASE-02 | Phase 1 | Pending |
-| DATABASE-03 | Phase 1 | Pending |
-| DATABASE-04 | Phase 1 | Pending |
-| DATABASE-05 | Phase 1 | Pending |
-| DATABASE-06 | Phase 1 | Pending |
-| DATABASE-07 | Phase 1 | Pending |
+| DATABASE-01 | Phase 1 | Complete |
+| DATABASE-02 | Phase 1 | Complete |
+| DATABASE-03 | Phase 1 | Complete |
+| DATABASE-04 | Phase 1 | Complete |
+| DATABASE-05 | Phase 1 | Complete |
+| DATABASE-06 | Phase 1 | Complete |
+| DATABASE-07 | Phase 1 | Complete |
 | CREDIT-01 | Phase 2 | Pending |
 | CREDIT-02 | Phase 2 | Pending |
 | CREDIT-03 | Phase 2 | Pending |
