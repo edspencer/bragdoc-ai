@@ -25,6 +25,10 @@ import {
   PromptInputSubmit,
 } from '@/components/elements/prompt-input';
 import { cn } from '@/lib/utils';
+import {
+  ChatMessageCounter,
+  useCreditStatus,
+} from '@/components/credit-status';
 
 interface ChatInterfaceProps {
   messages: UIMessage[];
@@ -51,6 +55,23 @@ export function ChatInterface({
 }: ChatInterfaceProps) {
   const isLoading = status === 'submitted' || status === 'streaming';
   const isDisabled = isLoading || isUpdating;
+
+  // Credit status for message counter and 402 handling
+  const { refresh, showUpgradeModal } = useCreditStatus();
+  const previousMessageCount = useRef(messages.length);
+
+  // Refresh credits after user sends a message
+  useEffect(() => {
+    if (messages.length > previousMessageCount.current) {
+      const lastMessage = messages[messages.length - 1];
+      if (lastMessage?.role === 'user') {
+        // User just sent a message - refresh after a short delay to let server process
+        const timer = setTimeout(() => refresh(), 500);
+        return () => clearTimeout(timer);
+      }
+    }
+    previousMessageCount.current = messages.length;
+  }, [messages.length, refresh]);
 
   // Refs for auto-scroll behavior
   const scrollContainerRef = useRef<HTMLDivElement>(null);
@@ -117,7 +138,10 @@ export function ChatInterface({
     <Card className="flex h-full flex-col lg:py-4">
       <CardHeader className="pb-2 lg:px-4 px-4">
         <div className="flex items-center justify-between">
-          <CardTitle className="text-base">Refine with AI</CardTitle>
+          <div className="flex items-center gap-2">
+            <CardTitle className="text-base">Refine with AI</CardTitle>
+            <ChatMessageCounter />
+          </div>
           <Button
             variant="ghost"
             size="icon"
@@ -162,7 +186,21 @@ export function ChatInterface({
         {/* Error display - if present */}
         {error && (
           <div className="mx-6 rounded-lg border border-destructive bg-destructive/10 p-3 text-sm text-destructive">
-            {error.message || 'An error occurred. Please try again.'}
+            {error.message?.includes('402') ||
+            error.message?.toLowerCase().includes('credit') ||
+            error.message?.toLowerCase().includes('insufficient') ? (
+              <div className="flex items-center justify-between">
+                <span>You've run out of chat messages.</span>
+                <button
+                  onClick={() => showUpgradeModal('messages')}
+                  className="text-primary underline"
+                >
+                  Upgrade
+                </button>
+              </div>
+            ) : (
+              error.message || 'An error occurred. Please try again.'
+            )}
           </div>
         )}
 
