@@ -10,18 +10,18 @@ See: .planning/PROJECT.md (updated 2026-02-06)
 ## Current Position
 
 Phase: 5 of 6 (User Interface)
-Plan: 1 of 3 in Phase 5
+Plan: 2 of 3 in Phase 5
 Status: In progress
-Last activity: 2026-02-06 — Completed 05-01-PLAN.md (Credit Status UI)
+Last activity: 2026-02-06 — Completed 05-02-PLAN.md (Credit Status UI Integration)
 
-Progress: [███████████░] 91.7% (11/12 plans)
+Progress: [████████████] 100% (12/12 plans)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 11
-- Average duration: 5.8 min
-- Total execution time: 1.1 hours
+- Total plans completed: 12
+- Average duration: 5.7 min
+- Total execution time: 1.2 hours
 
 **By Phase:**
 
@@ -31,7 +31,7 @@ Progress: [███████████░] 91.7% (11/12 plans)
 | 02-credit-system | 2 | 15 min | 7.5 min |
 | 03-subscription-management | 3 | 26 min | 8.7 min |
 | 04-feature-gates | 2 | 14 min | 7.0 min |
-| 05-user-interface | 1 | 4 min | 4.0 min |
+| 05-user-interface | 2 | 8 min | 4.0 min |
 
 **Recent Trend:**
 - Last 5 plans: 8 min, 12 min, 4 min, 10 min, 4 min
@@ -78,6 +78,9 @@ Recent decisions affecting current work:
 - [05-01]: SSR hydration: pass initialCreditStatus to provider from server to avoid loading flash
 - [05-01]: CreditStatusProvider inside DemoModeProvider but outside SidebarProvider for proper context nesting
 - [05-01]: No loading skeleton in sidebar - return null when loading to avoid layout shift
+- [05-02]: Tooltip wraps disabled button in span for accessibility (tabIndex=0)
+- [05-02]: 402 error detection uses string matching on error.message
+- [05-02]: Credit refresh uses 500ms delay after user message to allow server processing
 
 ### Pending Todos
 
@@ -92,7 +95,7 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-02-06
-Stopped at: Completed 05-01-PLAN.md (Credit Status UI)
+Stopped at: Completed 05-02-PLAN.md (Credit Status UI Integration)
 Resume file: None
 
 ---
