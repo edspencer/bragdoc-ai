@@ -137,6 +137,18 @@ export const betterAuthConfig: Partial<BetterAuthOptions> = {
         type: 'date',
         required: false,
       },
+
+      // Free trial credit fields (default values match database schema)
+      freeCredits: {
+        type: 'number',
+        required: false,
+        defaultValue: 10,
+      },
+      freeChatMessages: {
+        type: 'number',
+        required: false,
+        defaultValue: 20,
+      },
     },
     fields: {},
   },

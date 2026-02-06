@@ -21,6 +21,8 @@ export function createMockUser(overrides: Partial<User> = {}): User {
     tosAcceptedAt: null,
     demoUserId: null,
     isDemo: false,
+    freeCredits: 10,
+    freeChatMessages: 20,
     ...overrides,
   };
 }
