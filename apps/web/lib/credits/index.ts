@@ -40,6 +40,17 @@ export {
   withCreditReservation,
 } from './operations';
 
+// Credit checking utilities
+export {
+  checkUserCredits,
+  checkUserChatMessages,
+  type CreditCheckResult,
+  type ChatMessageCheckResult,
+} from './check';
+
+// Transaction logging
+export { logCreditTransaction, type LogCreditTransactionInput } from './logger';
+
 // Error classes
 export {
   InsufficientCreditsError,
