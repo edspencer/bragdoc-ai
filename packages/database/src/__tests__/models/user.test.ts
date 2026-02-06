@@ -25,6 +25,8 @@ describe('User Model', () => {
     tosAcceptedAt: null,
     demoUserId: null,
     isDemo: false,
+    freeCredits: 10,
+    freeChatMessages: 20,
   };
 
   describe('isActiveSubscription', () => {

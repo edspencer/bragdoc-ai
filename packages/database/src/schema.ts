@@ -19,6 +19,7 @@ import {
   real,
   index,
   uniqueIndex,
+  check,
 } from 'drizzle-orm/pg-core';
 import { sql } from 'drizzle-orm';
 
@@ -35,17 +36,21 @@ export interface AppUsage {
   modelId?: string;
 }
 
+// 'basic' and 'pro' are deprecated but kept for PostgreSQL enum compatibility
 export const userLevelEnum = pgEnum('user_level', [
   'free',
   'basic',
   'pro',
+  'paid',
   'demo',
 ]);
 export type UserLevel = (typeof userLevelEnum.enumValues)[number];
 
+// 'monthly' is deprecated but kept for PostgreSQL enum compatibility
 export const renewalPeriodEnum = pgEnum('renewal_period', [
   'monthly',
   'yearly',
+  'lifetime',
 ]);
 export type RenewalPeriod = (typeof renewalPeriodEnum.enumValues)[number];
 
@@ -102,6 +107,10 @@ export const user = pgTable(
     // Demo mode fields
     demoUserId: uuid('demo_user_id'), // Self-referential FK added separately
     isDemo: boolean('is_demo').notNull().default(false),
+
+    // Credit system fields (new users get free trial credits)
+    freeCredits: integer('free_credits').default(10),
+    freeChatMessages: integer('free_chat_messages').default(20),
   },
   (table) => ({
     // Critical for login/registration queries
@@ -111,6 +120,15 @@ export const user = pgTable(
       columns: [table.demoUserId],
       foreignColumns: [table.id],
     }).onDelete('set null'),
+    // Credit balance constraints
+    freeCreditsNonNegative: check(
+      'free_credits_non_negative',
+      sql`${table.freeCredits} IS NULL OR ${table.freeCredits} >= 0`,
+    ),
+    freeChatMessagesNonNegative: check(
+      'free_chat_messages_non_negative',
+      sql`${table.freeChatMessages} IS NULL OR ${table.freeChatMessages} >= 0`,
+    ),
   }),
 );
 
