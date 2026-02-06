@@ -60,18 +60,19 @@ Plans:
 **Goal**: Update Stripe integration for yearly/lifetime plans with robust webhook handling
 **Depends on**: Phase 1
 **Requirements**: SUBSCRIPTION-01, SUBSCRIPTION-02, SUBSCRIPTION-03, SUBSCRIPTION-04, SUBSCRIPTION-05, SUBSCRIPTION-06, SUBSCRIPTION-07, SUBSCRIPTION-08
+**Plans:** 3 plans
+
+Plans:
+- [ ] 03-01-PLAN.md — StripeEvent table and idempotency infrastructure
+- [ ] 03-02-PLAN.md — Webhook handler refactor with lookup_key and stripeCustomerId
+- [ ] 03-03-PLAN.md — Subscription status helper and Stripe dashboard setup
+
 **Success Criteria** (what must be TRUE):
   1. Stripe dashboard has "BragDoc Yearly" ($45/year) and "BragDoc Lifetime" ($99) products created
   2. Webhook correctly upgrades user to paid status on checkout completion
   3. Webhook handles yearly renewals and cancellations appropriately
   4. Lifetime users show as active subscribers with no renewal date checks
   5. Duplicate webhook events do not cause double-processing
-**Plans**: TBD
-
-Plans:
-- [ ] 03-01: Stripe product setup and payment link configuration
-- [ ] 03-02: Webhook handler updates for yearly/lifetime plans
-- [ ] 03-03: Subscription status helpers and idempotency
 
 ### Phase 4: Feature Gates
 **Goal**: Integrate credit checking at all LLM-powered endpoints while preserving demo mode
