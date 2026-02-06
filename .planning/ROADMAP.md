@@ -13,7 +13,7 @@ This roadmap transforms BragDoc's pricing from a complex four-tier model (Free/B
 Decimal phases appear between their surrounding integers in numeric order.
 
 - [x] **Phase 1: Database Foundation** - Schema changes for credits, simplified enums, and audit logging
-- [ ] **Phase 2: Credit System** - Atomic credit deduction and checking logic
+- [x] **Phase 2: Credit System** - Atomic credit deduction and checking logic
 - [ ] **Phase 3: Subscription Management** - Stripe products, webhook handling, status helpers
 - [ ] **Phase 4: Feature Gates** - Access control integration at LLM endpoints
 - [ ] **Phase 5: User Interface** - Credit display, upgrade prompts, settings page
@@ -46,8 +46,8 @@ Plans:
 **Plans:** 2 plans
 
 Plans:
-- [ ] 02-01-PLAN.md — Atomic credit deduction and reservation utilities
-- [ ] 02-02-PLAN.md — Credit checking helpers and transaction logging
+- [x] 02-01-PLAN.md — Atomic credit deduction and reservation utilities
+- [x] 02-02-PLAN.md — Credit checking helpers and transaction logging
 
 **Success Criteria** (what must be TRUE):
   1. Credit deduction is atomic (concurrent requests cannot cause double-spending)
@@ -128,7 +128,7 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Database Foundation | 3/3 | Complete | 2026-02-06 |
-| 2. Credit System | 0/2 | Ready | - |
+| 2. Credit System | 2/2 | Complete | 2026-02-06 |
 | 3. Subscription Management | 0/3 | Not started | - |
 | 4. Feature Gates | 0/2 | Not started | - |
 | 5. User Interface | 0/2 | Not started | - |
