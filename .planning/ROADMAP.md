@@ -16,7 +16,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 2: Credit System** - Atomic credit deduction and checking logic
 - [x] **Phase 3: Subscription Management** - Stripe products, webhook handling, status helpers
 - [x] **Phase 4: Feature Gates** - Access control integration at LLM endpoints
-- [ ] **Phase 5: User Interface** - Credit display, upgrade prompts, settings page
+- [x] **Phase 5: User Interface** - Credit display, upgrade prompts, settings page
 - [ ] **Phase 6: Cleanup** - Remove legacy tiers, update documentation
 
 ## Phase Details
@@ -103,8 +103,8 @@ Plans:
 **Plans:** 2 plans
 
 Plans:
-- [ ] 05-01-PLAN.md — Credit status provider, API endpoint, sidebar display, upgrade modal
-- [ ] 05-02-PLAN.md — Chat counter, credit-gated button, account status, pricing page
+- [x] 05-01-PLAN.md — Credit status provider, API endpoint, sidebar display, upgrade modal
+- [x] 05-02-PLAN.md — Chat counter, credit-gated button, account status, pricing page
 
 ### Phase 6: Cleanup
 **Goal**: Remove legacy pricing tiers and update all documentation
@@ -132,7 +132,7 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6
 | 2. Credit System | 2/2 | Complete | 2026-02-06 |
 | 3. Subscription Management | 3/3 | Complete | 2026-02-06 |
 | 4. Feature Gates | 2/2 | Complete | 2026-02-06 |
-| 5. User Interface | 0/2 | Planned | - |
+| 5. User Interface | 2/2 | Complete | 2026-02-06 |
 | 6. Cleanup | 0/2 | Not started | - |
 
 ---

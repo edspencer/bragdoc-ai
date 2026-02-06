@@ -186,46 +186,46 @@ Access control logic for LLM features based on credits and subscription status.
 
 UI components for credit display, upgrade prompts, and subscription status visibility.
 
-- [ ] **UI-01**: Display credit balance in application UI
+- [x] **UI-01**: Display credit balance in application UI
   - Show "X credits remaining" in sidebar or header (always visible)
   - Update in real-time after credit consumption
   - Consider progress bar visualization for at-a-glance status
   - Hide for paid users (show "Unlimited" badge instead)
   - Hide for demo users
 
-- [ ] **UI-02**: Display chat message counter in chat interface
+- [x] **UI-02**: Display chat message counter in chat interface
   - Show "X/20 messages used" in chat UI
   - Update after each user message
   - Clear indication when approaching limit (e.g., "3 messages remaining")
   - Hide for paid users
   - Hide for demo users
 
-- [ ] **UI-03**: Show upgrade prompt when credits exhausted
+- [x] **UI-03**: Show upgrade prompt when credits exhausted
   - Modal dialog: "You've used all 10 credits. Upgrade for unlimited access."
   - Display both options: $45/year OR $99 lifetime
   - Link to Stripe payment pages (external redirect)
   - No dark patterns: easy to dismiss, no fake urgency
   - Include clear pricing comparison
 
-- [ ] **UI-04**: Show upgrade prompt when chat messages exhausted
+- [x] **UI-04**: Show upgrade prompt when chat messages exhausted
   - Similar modal for 20-message limit
   - Same pricing display and CTA
   - Distinguish between credit limit and message limit in messaging
 
-- [ ] **UI-05**: Block UI controls when credits insufficient
+- [x] **UI-05**: Block UI controls when credits insufficient
   - Disable "Generate" buttons for credit-gated features
   - Show tooltip: "X credits required. Upgrade for unlimited access."
   - Allow viewing existing content (just not generating new)
   - Blocking is advisory (real enforcement is server-side)
 
-- [ ] **UI-06**: Add subscription status to account/settings page
+- [x] **UI-06**: Add subscription status to account/settings page
   - Display current plan: Free, Paid Yearly, Paid Lifetime
   - For yearly: show next renewal date
   - For lifetime: show "Lifetime Access - No renewal needed" badge
   - Link to Stripe customer portal for cancellation (yearly only)
   - Show credit/message status for free users
 
-- [ ] **UI-07**: Add annual vs lifetime choice comparison page
+- [x] **UI-07**: Add annual vs lifetime choice comparison page
   - Side-by-side comparison: $45/year vs $99 lifetime
   - Highlight value proposition: "Lifetime = 2.2 years of annual"
   - Both options lead to unlimited usage (no feature differences)
@@ -348,13 +348,13 @@ Features deliberately NOT building to maintain simplicity.
 | FEATURE-GATE-04 | Phase 4 | Complete |
 | FEATURE-GATE-05 | Phase 4 | Complete |
 | FEATURE-GATE-06 | Phase 4 | Complete |
-| UI-01 | Phase 5 | Pending |
-| UI-02 | Phase 5 | Pending |
-| UI-03 | Phase 5 | Pending |
-| UI-04 | Phase 5 | Pending |
-| UI-05 | Phase 5 | Pending |
-| UI-06 | Phase 5 | Pending |
-| UI-07 | Phase 5 | Pending |
+| UI-01 | Phase 5 | Complete |
+| UI-02 | Phase 5 | Complete |
+| UI-03 | Phase 5 | Complete |
+| UI-04 | Phase 5 | Complete |
+| UI-05 | Phase 5 | Complete |
+| UI-06 | Phase 5 | Complete |
+| UI-07 | Phase 5 | Complete |
 | CLEANUP-01 | Phase 6 | Pending |
 | CLEANUP-02 | Phase 6 | Pending |
 | CLEANUP-03 | Phase 6 | Pending |
