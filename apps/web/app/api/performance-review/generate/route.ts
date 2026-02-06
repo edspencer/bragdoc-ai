@@ -12,6 +12,13 @@ import {
 import { z } from 'zod/v3';
 import { generateUUID } from '@/lib/utils';
 import { format } from 'date-fns';
+import { hasUnlimitedAccess } from '@/lib/stripe/subscription';
+import {
+  checkUserCredits,
+  deductCredits,
+  CREDIT_COSTS,
+  logCreditTransaction,
+} from '@/lib/credits';
 
 export const maxDuration = 60;
 
@@ -44,6 +51,53 @@ export async function POST(request: Request) {
     }
 
     const { performanceReviewId, generationInstructions } = parseResult.data;
+
+    // Credit gate - skip for paid/demo users
+    if (!hasUnlimitedAccess(auth.user)) {
+      const cost = CREDIT_COSTS.document_generation.performance_review; // 2 credits
+      const { hasCredits, remainingCredits } = checkUserCredits(
+        auth.user,
+        cost,
+      );
+
+      if (!hasCredits) {
+        return Response.json(
+          {
+            error: 'insufficient_credits',
+            message: `Performance review generation requires ${cost} credits. You have ${remainingCredits} remaining.`,
+            required: cost,
+            available: remainingCredits,
+            upgradeUrl: '/pricing',
+          },
+          { status: 402 },
+        );
+      }
+
+      // Atomic deduction
+      const { success } = await deductCredits(auth.user.id, cost);
+      if (!success) {
+        return Response.json(
+          {
+            error: 'insufficient_credits',
+            message:
+              'Credits consumed by concurrent request. Please try again.',
+            upgradeUrl: '/pricing',
+          },
+          { status: 402 },
+        );
+      }
+
+      // Log the transaction (non-blocking)
+      logCreditTransaction({
+        userId: auth.user.id,
+        operation: 'deduct',
+        featureType: 'document_generation',
+        amount: cost,
+        metadata: { documentType: 'performance_review', performanceReviewId },
+      }).catch((err) =>
+        console.error('Failed to log credit transaction:', err),
+      );
+    }
 
     // Fetch the performance review with userId scope for security
     const performanceReview = await getPerformanceReviewById(

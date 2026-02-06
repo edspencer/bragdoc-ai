@@ -6,6 +6,13 @@ import { z } from 'zod/v3';
 import { fetchRenderExecute } from 'lib/ai/generate-document';
 import { generateUUID } from '@/lib/utils';
 import { captureServerEvent } from '@/lib/posthog-server';
+import { hasUnlimitedAccess } from '@/lib/stripe/subscription';
+import {
+  checkUserCredits,
+  deductCredits,
+  CREDIT_COSTS,
+  logCreditTransaction,
+} from '@/lib/credits';
 
 const generateSchema = z.object({
   achievementIds: z.array(z.string().uuid()),
@@ -46,6 +53,53 @@ export async function POST(request: Request) {
       userInstructions,
       defaultInstructions,
     } = parsed.data;
+
+    // Credit gate - skip for paid/demo users
+    if (!hasUnlimitedAccess(authUser)) {
+      const cost =
+        CREDIT_COSTS.document_generation[
+          type as keyof typeof CREDIT_COSTS.document_generation
+        ] ?? 1;
+      const { hasCredits, remainingCredits } = checkUserCredits(authUser, cost);
+
+      if (!hasCredits) {
+        return Response.json(
+          {
+            error: 'insufficient_credits',
+            message: `Document generation requires ${cost} credits. You have ${remainingCredits} remaining.`,
+            required: cost,
+            available: remainingCredits,
+            upgradeUrl: '/pricing',
+          },
+          { status: 402 },
+        );
+      }
+
+      // Atomic deduction
+      const { success } = await deductCredits(authUser.id, cost);
+      if (!success) {
+        return Response.json(
+          {
+            error: 'insufficient_credits',
+            message:
+              'Credits consumed by concurrent request. Please try again.',
+            upgradeUrl: '/pricing',
+          },
+          { status: 402 },
+        );
+      }
+
+      // Log the transaction (non-blocking)
+      logCreditTransaction({
+        userId: authUser.id,
+        operation: 'deduct',
+        featureType: 'document_generation',
+        amount: cost,
+        metadata: { documentType: type, title },
+      }).catch((err) =>
+        console.error('Failed to log credit transaction:', err),
+      );
+    }
 
     if (achievementIds.length === 0) {
       return Response.json(
