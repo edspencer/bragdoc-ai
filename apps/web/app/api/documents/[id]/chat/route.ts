@@ -10,8 +10,14 @@ import {
 import type { User, Message } from '@bragdoc/database';
 import { generateUUID } from '@/lib/utils';
 import { generateTitleFromUserMessage } from '@/app/(app)/chat/actions';
-import { createDocument } from '@/lib/ai/tools/create-document';
-import { updateDocument } from '@/lib/ai/tools/update-document';
+import {
+  createDocument,
+  createDocumentWithCreditCheck,
+} from '@/lib/ai/tools/create-document';
+import {
+  updateDocument,
+  updateDocumentWithCreditCheck,
+} from '@/lib/ai/tools/update-document';
 import type { ChatMessage } from '@/lib/types';
 import {
   streamText,
@@ -23,6 +29,12 @@ import {
 } from 'ai';
 import { routerModel } from '@/lib/ai';
 import { systemPrompt } from '@/lib/ai/prompts';
+import { hasUnlimitedAccess } from '@/lib/stripe/subscription';
+import {
+  checkUserChatMessages,
+  deductChatMessage,
+  logCreditTransaction,
+} from '@/lib/credits';
 
 export const maxDuration = 60;
 
@@ -72,6 +84,49 @@ export async function POST(
     return Response.json(
       { error: 'Failed to fetch document' },
       { status: 500 },
+    );
+  }
+
+  // Chat message gate - skip for paid/demo users
+  if (!hasUnlimitedAccess(user)) {
+    const { hasMessages, remainingMessages } = checkUserChatMessages(user);
+
+    if (!hasMessages) {
+      return Response.json(
+        {
+          error: 'insufficient_chat_messages',
+          message:
+            "You've used all 20 free messages. Upgrade for unlimited chat.",
+          remaining: 0,
+          upgradeUrl: '/pricing',
+        },
+        { status: 402 },
+      );
+    }
+
+    // Atomic deduction
+    const { success, remaining } = await deductChatMessage(user.id, user.level);
+    if (!success) {
+      return Response.json(
+        {
+          error: 'insufficient_chat_messages',
+          message: 'Messages exhausted. Upgrade for unlimited chat.',
+          remaining: 0,
+          upgradeUrl: '/pricing',
+        },
+        { status: 402 },
+      );
+    }
+
+    // Log the message deduction (non-blocking)
+    logCreditTransaction({
+      userId: user.id,
+      operation: 'deduct',
+      featureType: 'chat_message',
+      amount: 1,
+      metadata: { documentId, remainingMessages: remaining },
+    }).catch((err) =>
+      console.error('Failed to log chat message transaction:', err),
     );
   }
 
@@ -135,10 +190,21 @@ When the user refers to "this document", "the document", or asks to modify/trans
         messages: convertToModelMessages(uiMessages),
         stopWhen: stepCountIs(5),
         experimental_transform: smoothStream({ chunking: 'word' }),
-        tools: {
-          createDocument: createDocument({ user, dataStream }),
-          updateDocument: updateDocument({ user, dataStream }),
-        },
+        tools: hasUnlimitedAccess(user)
+          ? {
+              createDocument: createDocument({ user, dataStream }),
+              updateDocument: updateDocument({ user, dataStream }),
+            }
+          : {
+              createDocument: createDocumentWithCreditCheck({
+                user,
+                dataStream,
+              }),
+              updateDocument: updateDocumentWithCreditCheck({
+                user,
+                dataStream,
+              }),
+            },
         experimental_telemetry: {
           isEnabled: true,
           functionId: 'stream-text',
