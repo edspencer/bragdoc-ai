@@ -25,11 +25,12 @@ Decimal phases appear between their surrounding integers in numeric order.
 **Goal**: Establish the data model supporting credits, simplified subscription tiers, and audit logging
 **Depends on**: Nothing (first phase)
 **Requirements**: DATABASE-01, DATABASE-02, DATABASE-03, DATABASE-04, DATABASE-05, DATABASE-06, DATABASE-07
-**Plans:** 2 plans
+**Plans:** 3 plans
 
 Plans:
-- [ ] 01-01-PLAN.md — User table schema: credit fields, enum updates, CHECK constraints
-- [ ] 01-02-PLAN.md — Credit transaction audit table with operation/feature enums
+- [x] 01-01-PLAN.md — User table schema: credit fields, enum updates, CHECK constraints
+- [x] 01-02-PLAN.md — Credit transaction audit table with operation/feature enums
+- [ ] 01-03-PLAN.md — Gap closure: Better Auth config for credit fields
 
 **Success Criteria** (what must be TRUE):
   1. New free users receive freeCredits=10 and freeChatMessages=20 upon account creation
@@ -125,7 +126,7 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Database Foundation | 0/2 | Planned | - |
+| 1. Database Foundation | 2/3 | Gap closure needed | - |
 | 2. Credit System | 0/2 | Not started | - |
 | 3. Subscription Management | 0/3 | Not started | - |
 | 4. Feature Gates | 0/2 | Not started | - |
