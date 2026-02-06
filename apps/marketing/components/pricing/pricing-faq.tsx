@@ -14,21 +14,21 @@ export function PricingFaq() {
         </h2>
         <Accordion type="single" collapsible className="max-w-3xl mx-auto">
           <AccordionItem value="item-beta-1">
-            <AccordionTrigger>
-              Is BragDoc really free right now?
-            </AccordionTrigger>
+            <AccordionTrigger>Can I try BragDoc for free?</AccordionTrigger>
             <AccordionContent>
-              Yes! We're in open beta and all features are completely free.
-              Anyone who signs up during beta gets{' '}
-              <strong>one year free</strong> when we launch paid plans.
+              Yes! Every new account gets{' '}
+              <strong>10 free AI credits and 20 free chat messages</strong> to
+              try cloud features. Plus, you can always use the CLI with your own
+              LLM for free.
             </AccordionContent>
           </AccordionItem>
           <AccordionItem value="item-beta-2">
-            <AccordionTrigger>What happens when beta ends?</AccordionTrigger>
+            <AccordionTrigger>What are the paid options?</AccordionTrigger>
             <AccordionContent>
-              When we exit beta, pricing will be $4.99/month or $44.99/year. If
-              you signed up during beta, you'll automatically get one year free
-              before any charges begin.
+              We offer two simple options: <strong>$45/year</strong> (just
+              $3.75/month, billed annually) or <strong>$99 lifetime</strong>{' '}
+              (pay once, use forever). Both give you unlimited access to all
+              cloud AI features.
             </AccordionContent>
           </AccordionItem>
           <AccordionItem value="item-1">
@@ -39,11 +39,12 @@ export function PricingFaq() {
               The free account includes manual achievement tracking and
               AI-powered achievement extraction via the CLI - you just need to
               provide your own LLM API keys (OpenAI, Anthropic, Google,
-              DeepSeek, or free local Ollama). The Full Account (future pricing
-              $4.99/month after beta) gives you cloud-based AI features without
-              needing your own API keys, plus AI-generated standup summaries,
-              performance review documents, and all the features that make
-              BragDoc truly powerful. During beta, all features are free.
+              DeepSeek, or free local Ollama). The Full Account ($45/year or $99
+              lifetime) gives you cloud-based AI features without needing your
+              own API keys, plus AI-generated standup summaries, performance
+              review documents, and all the features that make BragDoc truly
+              powerful. New accounts get free trial credits to try cloud
+              features.
             </AccordionContent>
           </AccordionItem>
           <AccordionItem value="item-2">
@@ -73,12 +74,11 @@ export function PricingFaq() {
           <AccordionItem value="item-4">
             <AccordionTrigger>Is there a free trial?</AccordionTrigger>
             <AccordionContent>
-              Currently everything is FREE during open beta, so there's nothing
-              to commit to. Plus, beta users get one year free when we launch
-              paid features. After beta, the free account serves as your trial -
-              you can explore BragDoc, manually track achievements, and use
-              AI-powered extraction via the CLI (with your own LLM) to see if it
-              fits your workflow.
+              Yes! Every new account gets 10 free AI credits and 20 free chat
+              messages to try cloud features - no credit card required. Plus,
+              the free account lets you explore BragDoc, manually track
+              achievements, and use AI-powered extraction via the CLI (with your
+              own LLM) to see if it fits your workflow.
             </AccordionContent>
           </AccordionItem>
           <AccordionItem value="item-5">
@@ -97,12 +97,11 @@ export function PricingFaq() {
           <AccordionItem value="item-6">
             <AccordionTrigger>How does billing work?</AccordionTrigger>
             <AccordionContent>
-              During open beta, there's no billing - everything is free. After
-              beta launch, billing will be simple and you can cancel anytime.
-              Choose monthly billing at $4.99/month or annual billing at
-              $44.99/year (save 25%). There are no hidden fees, no setup costs,
-              and no long-term commitments. Beta users automatically get one
-              year free before any charges begin.
+              Billing is simple and you can cancel anytime. Choose annual
+              billing at $45/year ($3.75/month) or pay $99 once for lifetime
+              access. There are no hidden fees, no setup costs, and annual plans
+              can be canceled anytime. Start with free trial credits before you
+              commit.
             </AccordionContent>
           </AccordionItem>
         </Accordion>

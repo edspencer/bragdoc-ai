@@ -20,14 +20,14 @@ const comparisonData = [
     cliUsage: 'Light',
     standupMode: 'No',
     documentGen: 'Monthly',
-    typicalPrice: '$4.99/mo',
+    typicalPrice: '$45/year',
   },
   {
     useCase: 'Freelancer',
     cliUsage: 'Heavy',
     standupMode: 'Varies',
     documentGen: 'Per-client',
-    typicalPrice: 'Free or $4.99',
+    typicalPrice: 'Free or $45/yr',
   },
   {
     useCase: 'Transitioner',

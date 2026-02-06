@@ -11,11 +11,11 @@ import { PricingCta } from '@/components/pricing/pricing-cta';
 import { OfferSchema } from '@/components/structured-data/offer-schema';
 
 export const metadata: Metadata = {
-  title: 'BragDoc Pricing: Free Open Beta - One Year Free Offer',
+  title: 'BragDoc Pricing: $45/year or $99 Lifetime - Free Trial Credits',
   description:
-    'BragDoc is in open beta with all features FREE. Sign up now and get one year free when we launch at $4.99/month. No credit card required.',
+    'BragDoc offers simple pricing: $45/year or $99 lifetime. Start free with 10 AI credits and 20 chat messages. No credit card required.',
   keywords:
-    'bragdoc pricing, free achievement tracker, beta pricing, developer tool pricing, free open beta',
+    'bragdoc pricing, achievement tracker pricing, developer tool pricing, lifetime deal',
   alternates: {
     canonical: '/pricing',
   },
@@ -26,14 +26,19 @@ const pricingOffers = [
     name: 'Free Plan',
     price: '0',
     priceCurrency: 'USD',
-    description:
-      'Full CLI features with your own LLM (Ollama, OpenAI, Anthropic)',
+    description: 'Full CLI features with your own LLM plus free trial credits',
   },
   {
-    name: 'Cloud AI Plan',
-    price: '4.99',
+    name: 'Annual Plan',
+    price: '45',
     priceCurrency: 'USD',
-    description: 'Cloud-based AI document generation and advanced features',
+    description: 'Full cloud AI access, billed annually at $45/year',
+  },
+  {
+    name: 'Lifetime Plan',
+    price: '99',
+    priceCurrency: 'USD',
+    description: 'Pay once, use forever with full cloud AI access',
   },
 ];
 

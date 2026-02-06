@@ -203,21 +203,24 @@ export function ComparisonTable() {
                 </TableCell>
                 <TableCell className="text-center font-semibold">
                   Free
+                  <span className="text-xs text-muted-foreground block font-normal">
+                    + trial credits
+                  </span>
                 </TableCell>
                 <TableCell className="text-center font-semibold">
-                  <div className="text-green-600 dark:text-green-500 text-lg">
-                    FREE (Beta)
+                  <div className="text-[oklch(0.65_0.25_262)] dark:text-[oklch(0.7_0.25_262)] text-lg">
+                    $45/year
                   </div>
-                  <span className="text-xs text-muted-foreground block line-through opacity-60">
-                    $4.99/mo or $44.99/year*
+                  <span className="text-xs text-muted-foreground block">
+                    or $99 lifetime
                   </span>
                 </TableCell>
               </TableRow>
             </TableBody>
           </Table>
           <p className="text-sm text-muted-foreground mt-4 text-center">
-            * Future pricing after beta launch. All beta users get one year
-            free.
+            Start free with 10 AI credits + 20 chat messages. No credit card
+            required.
           </p>
         </div>
       </div>

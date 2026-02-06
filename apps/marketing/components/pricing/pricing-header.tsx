@@ -7,10 +7,10 @@ export function PricingHeader() {
         </h1>
         <p className="text-lg sm:text-xl text-muted-foreground max-w-3xl mx-auto text-balance">
           <span className="font-semibold text-green-600 dark:text-green-500">
-            Currently in open beta - all features FREE.
+            Start free with trial credits.
           </span>{' '}
-          Future pricing $4.99/month when we launch. Sign up now for one year
-          free!
+          Full access at $45/year or $99 lifetime. No credit card required to
+          try.
         </p>
       </div>
     </section>

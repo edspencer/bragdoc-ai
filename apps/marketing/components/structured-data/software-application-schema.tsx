@@ -9,10 +9,10 @@ export function SoftwareApplicationSchema() {
     operatingSystem: 'Web, macOS, Linux, Windows',
     offers: {
       '@type': 'Offer',
-      price: '0',
+      price: '45',
       priceCurrency: 'USD',
       description:
-        'Free with your own LLM, optional cloud AI features at $4.99/month',
+        'Free trial credits included. Full access at $45/year or $99 lifetime.',
     },
     aggregateRating: {
       '@type': 'AggregateRating',

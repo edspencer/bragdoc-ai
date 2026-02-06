@@ -47,15 +47,16 @@ export function HybridApproach() {
               <div className="text-2xl text-muted-foreground">→</div>
               <div className="text-center">
                 <div className="font-semibold text-lg mb-1">Cloud Reports</div>
-                <div className="text-sm text-muted-foreground">$4.99/month</div>
+                <div className="text-sm text-muted-foreground">$45/year</div>
               </div>
             </div>
             <div className="bg-muted/50 rounded-lg p-4">
               <p className="text-sm font-medium mb-2">Use Case:</p>
               <p className="text-sm text-muted-foreground">
                 Extract locally with Ollama (free), generate reports in cloud
-                ($4.99/month). Perfect for developers who want maximum privacy
-                during extraction but convenience for document generation.
+                ($45/year or $99 lifetime). Perfect for developers who want
+                maximum privacy during extraction but convenience for document
+                generation.
               </p>
             </div>
           </CardContent>

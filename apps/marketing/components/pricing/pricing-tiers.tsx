@@ -18,8 +18,8 @@ import { loginPath } from '@/lib/utils';
 export function PricingTiers() {
   const { trackPricingInteraction, trackCTAClick } = useTracking();
   const loginUrl = loginPath();
-  const [billingPeriod, setBillingPeriod] = useState<'monthly' | 'annual'>(
-    'monthly',
+  const [billingOption, setBillingOption] = useState<'annual' | 'lifetime'>(
+    'annual',
   );
 
   return (
@@ -37,8 +37,8 @@ export function PricingTiers() {
                 Full Account
               </CardTitle>
               <CardDescription className="text-base">
-                Everything you need to track and showcase your achievements -
-                currently FREE during open beta
+                Everything you need to track and showcase your achievements.
+                Start free with trial credits.
               </CardDescription>
 
               <div className="mt-6 flex justify-center">
@@ -46,72 +46,61 @@ export function PricingTiers() {
                   <button
                     type="button"
                     onClick={() => {
-                      setBillingPeriod('monthly');
-                      trackPricingInteraction('full_account_monthly');
-                    }}
-                    className={`px-6 py-2 rounded-md text-sm font-medium transition-all ${
-                      billingPeriod === 'monthly'
-                        ? 'bg-background shadow-sm'
-                        : 'text-muted-foreground hover:text-foreground'
-                    }`}
-                  >
-                    Monthly
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setBillingPeriod('annual');
+                      setBillingOption('annual');
                       trackPricingInteraction('full_account_annual');
                     }}
-                    className={`px-6 py-2 rounded-md text-sm font-medium transition-all relative ${
-                      billingPeriod === 'annual'
+                    className={`px-6 py-2 rounded-md text-sm font-medium transition-all ${
+                      billingOption === 'annual'
                         ? 'bg-background shadow-sm'
                         : 'text-muted-foreground hover:text-foreground'
                     }`}
                   >
                     Annual
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setBillingOption('lifetime');
+                      trackPricingInteraction('full_account_lifetime');
+                    }}
+                    className={`px-6 py-2 rounded-md text-sm font-medium transition-all relative ${
+                      billingOption === 'lifetime'
+                        ? 'bg-background shadow-sm'
+                        : 'text-muted-foreground hover:text-foreground'
+                    }`}
+                  >
+                    Lifetime
                     <Badge className="absolute -top-2 -right-2 bg-green-600 dark:bg-green-500 text-white text-[10px] px-1.5 py-0.5 leading-none">
-                      Save 25%
+                      Best Value
                     </Badge>
                   </button>
                 </div>
               </div>
 
               <div className="mt-6">
-                {/* Large "FREE" badge */}
-                <div className="text-center mb-4">
-                  <Badge className="text-2xl px-6 py-2 bg-green-600 dark:bg-green-500 text-white">
-                    FREE During Beta
-                  </Badge>
-                </div>
-
-                {/* Strikethrough future pricing */}
-                {billingPeriod === 'monthly' ? (
+                {/* Pricing display */}
+                {billingOption === 'annual' ? (
                   <div className="text-center">
-                    <div className="flex items-baseline justify-center gap-2 text-muted-foreground">
-                      <span className="text-3xl font-semibold line-through opacity-60">
-                        $4.99
-                      </span>
-                      <span className="text-base line-through opacity-60">
-                        /month
+                    <div className="flex items-baseline justify-center gap-2">
+                      <span className="text-4xl font-bold">$45</span>
+                      <span className="text-base text-muted-foreground">
+                        /year
                       </span>
                     </div>
-                    <p className="text-xs text-muted-foreground mt-1">
-                      Future price after beta
+                    <p className="text-sm text-muted-foreground mt-1">
+                      Just $3.75/month, billed annually
                     </p>
                   </div>
                 ) : (
                   <div className="text-center">
-                    <div className="flex items-baseline justify-center gap-2 text-muted-foreground">
-                      <span className="text-3xl font-semibold line-through opacity-60">
-                        $44.99
-                      </span>
-                      <span className="text-base line-through opacity-60">
-                        /year
+                    <div className="flex items-baseline justify-center gap-2">
+                      <span className="text-4xl font-bold">$99</span>
+                      <span className="text-base text-muted-foreground">
+                        one-time
                       </span>
                     </div>
-                    <p className="text-xs text-muted-foreground mt-1">
-                      Future price after beta
+                    <p className="text-sm text-muted-foreground mt-1">
+                      Pay once, use forever
                     </p>
                   </div>
                 )}
@@ -168,10 +157,10 @@ export function PricingTiers() {
               </div>
             </CardContent>
             <CardFooter className="flex flex-col gap-3 pt-6">
-              {/* One-year-free callout */}
+              {/* Free trial credits callout */}
               <div className="w-full p-3 rounded-lg bg-green-50 dark:bg-green-950/30 border border-green-200 dark:border-green-800">
                 <p className="text-sm font-medium text-green-700 dark:text-green-400 text-center">
-                  🎁 Sign up during beta → Get one year FREE when we launch
+                  Start free with 10 AI credits + 20 chat messages
                 </p>
               </div>
 
@@ -190,7 +179,7 @@ export function PricingTiers() {
                 </a>
               </Button>
               <p className="text-sm text-muted-foreground text-center">
-                Start with a free account, upgrade anytime
+                Try free with trial credits, upgrade anytime
               </p>
             </CardFooter>
           </Card>
@@ -200,8 +189,7 @@ export function PricingTiers() {
             <CardHeader>
               <CardTitle className="text-2xl">Free Account</CardTitle>
               <CardDescription>
-                Full CLI features with your own LLM - always free, even after
-                beta
+                Full CLI features with your own LLM - always free
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -211,7 +199,8 @@ export function PricingTiers() {
                   and AI-powered achievement extraction via the CLI
                 </strong>{' '}
                 - you just need to provide your own LLM API keys or use free
-                local Ollama.
+                local Ollama. Plus, get trial credits (10 AI credits + 20 chat
+                messages) to try cloud features.
               </p>
               <ul className="space-y-2 text-sm">
                 <li className="flex items-start gap-2">

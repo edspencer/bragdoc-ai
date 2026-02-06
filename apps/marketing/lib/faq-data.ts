@@ -35,7 +35,7 @@ export const faqData: FAQCategory[] = [
       {
         question: 'Can I try it before committing?',
         answer:
-          "Currently everything is FREE during open beta, so there's nothing to commit to. Plus, beta users get one year free when we launch paid features.",
+          'Yes! Every new account gets 10 free AI credits and 20 free chat messages to try cloud features. No credit card required.',
       },
     ],
   },
@@ -129,12 +129,12 @@ export const faqData: FAQCategory[] = [
       {
         question: "What's actually free?",
         answer:
-          'Currently in open beta, ALL features are free, including cloud AI. After beta, the free tier will exclude cloud AI features (future pricing $4.99/month). Beta users get one year free.',
+          'The free tier includes manual achievement tracking, CLI with your own LLM, plus 10 free AI credits and 20 free chat messages to try cloud features.',
       },
       {
         question: 'What do I pay for?',
         answer:
-          'During open beta, everything is free. After launch, optional cloud AI document generation will be $4.99/month. If you sign up during beta, you get one year free.',
+          'Cloud AI features (document generation, standup summaries, AI chat) require a subscription: $45/year or $99 lifetime. Free trial credits let you try before you buy.',
       },
       {
         question: 'How much does LLM usage cost?',
@@ -144,17 +144,17 @@ export const faqData: FAQCategory[] = [
       {
         question: 'Can I switch between free and paid?',
         answer:
-          'Yes, anytime after beta ends. No contracts or commitments. During beta, everything is free for everyone.',
+          'Yes, anytime. No contracts or commitments. Upgrade when you need more cloud AI credits.',
       },
       {
         question: 'What payment methods do you accept?',
         answer:
-          'After beta ends, credit card via Stripe. Cancel anytime with no penalties. Currently, everything is free during open beta.',
+          'Credit card via Stripe. Annual plans can be canceled anytime with no penalties.',
       },
       {
         question: 'Can I get a refund?',
         answer:
-          "Yes, within 30 days if you're not satisfied after beta ends and paid plans launch. During beta, everything is free so refunds don't apply.",
+          "Yes, within 30 days if you're not satisfied. Lifetime purchases are also refundable within 30 days.",
       },
       {
         question: 'Is there enterprise pricing?',

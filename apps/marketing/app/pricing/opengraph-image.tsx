@@ -49,7 +49,7 @@ export default async function Image() {
           </div>
         </div>
 
-        {/* Cloud AI Plan */}
+        {/* Annual Plan */}
         <div
           style={{
             display: 'flex',
@@ -70,7 +70,7 @@ export default async function Image() {
               display: 'flex',
             }}
           >
-            Cloud AI
+            Full Access
           </div>
           <div
             style={{
@@ -81,10 +81,10 @@ export default async function Image() {
               display: 'flex',
             }}
           >
-            $4.99
+            $45
           </div>
           <div style={{ fontSize: 20, color: '#94a3b8', display: 'flex' }}>
-            per month
+            per year or $99 lifetime
           </div>
         </div>
       </div>

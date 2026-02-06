@@ -22,7 +22,7 @@ const faqs = [
   {
     question: 'Do I need to pay for AI features?',
     answer:
-      'BragDoc offers a free account for basic tracking, but AI features like document generation, standups, and performance reviews require a Full Account at $4.99/month or $44.99/year. You can also self-host the open source version for free.',
+      'BragDoc offers free trial credits (10 AI credits + 20 chat messages) to try cloud features. For unlimited access, a Full Account costs $45/year or $99 lifetime. You can also self-host the open source version for free.',
   },
   {
     question: 'Can I use BragDoc without the CLI?',
