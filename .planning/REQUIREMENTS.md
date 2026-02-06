@@ -144,38 +144,38 @@ Payment processing, webhook handling, and subscription status tracking.
 
 Access control logic for LLM features based on credits and subscription status.
 
-- [ ] **FEATURE-GATE-01**: Update document generation endpoints to check credits
+- [x] **FEATURE-GATE-01**: Update document generation endpoints to check credits
   - Check credits BEFORE starting LLM operation (not during)
   - Block if insufficient: return 402 Payment Required with upgrade message
   - Paid users: bypass credit check entirely
   - Demo users: bypass credit check entirely
   - Endpoints: `/api/documents/[id]/generate`, `/api/performance-review/generate`
 
-- [ ] **FEATURE-GATE-02**: Update workstream generation endpoint to check credits
+- [x] **FEATURE-GATE-02**: Update workstream generation endpoint to check credits
   - Requires 2 credits for clustering + naming
   - Check BEFORE executing DBSCAN and LLM naming
   - Same bypass logic for paid/demo users
   - Endpoint: `POST /api/workstreams/generate`
 
-- [ ] **FEATURE-GATE-03**: Update chatbot endpoints to check message counter
+- [x] **FEATURE-GATE-03**: Update chatbot endpoints to check message counter
   - Decrement `freeChatMessages` on user message submission
   - Block if counter at zero
   - Paid/demo users: bypass counter entirely
   - Endpoints: `/api/performance-review/chat`, `/api/documents/[id]/chat`
 
-- [ ] **FEATURE-GATE-04**: Update chatbot tool call handler to check credits
+- [x] **FEATURE-GATE-04**: Update chatbot tool call handler to check credits
   - Each tool invocation costs 1 credit
   - Check BEFORE executing tool (file read, search, etc.)
   - Tool calls happen server-side (Vercel AI SDK streamText with tools)
   - Same bypass logic for paid/demo users
 
-- [ ] **FEATURE-GATE-05**: Preserve demo mode functionality
+- [x] **FEATURE-GATE-05**: Preserve demo mode functionality
   - Demo users (level='demo') must have unlimited access to all features
   - Never show credit limits or upgrade prompts to demo users
   - Demo mode creates shadow users for anonymous testing
   - All credit/message checks must include: `if (user.level === 'demo') return unlimited`
 
-- [ ] **FEATURE-GATE-06**: Add unit tests for credit checking edge cases
+- [x] **FEATURE-GATE-06**: Add unit tests for credit checking edge cases
   - Test: freeCredits=0 returns appropriate error
   - Test: freeCredits=1 with 2 concurrent requests, only 1 succeeds
   - Test: paid users bypass credit checks
@@ -342,12 +342,12 @@ Features deliberately NOT building to maintain simplicity.
 | SUBSCRIPTION-06 | Phase 3 | Complete |
 | SUBSCRIPTION-07 | Phase 3 | Complete |
 | SUBSCRIPTION-08 | Phase 3 | Complete |
-| FEATURE-GATE-01 | Phase 4 | Pending |
-| FEATURE-GATE-02 | Phase 4 | Pending |
-| FEATURE-GATE-03 | Phase 4 | Pending |
-| FEATURE-GATE-04 | Phase 4 | Pending |
-| FEATURE-GATE-05 | Phase 4 | Pending |
-| FEATURE-GATE-06 | Phase 4 | Pending |
+| FEATURE-GATE-01 | Phase 4 | Complete |
+| FEATURE-GATE-02 | Phase 4 | Complete |
+| FEATURE-GATE-03 | Phase 4 | Complete |
+| FEATURE-GATE-04 | Phase 4 | Complete |
+| FEATURE-GATE-05 | Phase 4 | Complete |
+| FEATURE-GATE-06 | Phase 4 | Complete |
 | UI-01 | Phase 5 | Pending |
 | UI-02 | Phase 5 | Pending |
 | UI-03 | Phase 5 | Pending |

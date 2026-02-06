@@ -15,7 +15,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 1: Database Foundation** - Schema changes for credits, simplified enums, and audit logging
 - [x] **Phase 2: Credit System** - Atomic credit deduction and checking logic
 - [x] **Phase 3: Subscription Management** - Stripe products, webhook handling, status helpers
-- [ ] **Phase 4: Feature Gates** - Access control integration at LLM endpoints
+- [x] **Phase 4: Feature Gates** - Access control integration at LLM endpoints
 - [ ] **Phase 5: User Interface** - Credit display, upgrade prompts, settings page
 - [ ] **Phase 6: Cleanup** - Remove legacy tiers, update documentation
 
@@ -87,8 +87,8 @@ Plans:
 **Plans:** 2 plans
 
 Plans:
-- [ ] 04-01-PLAN.md — Document and workstream generation credit gates
-- [ ] 04-02-PLAN.md — Chatbot message gates, tool credit handling, and unit tests
+- [x] 04-01-PLAN.md — Document and workstream generation credit gates
+- [x] 04-02-PLAN.md — Chatbot message gates, tool credit handling, and unit tests
 
 ### Phase 5: User Interface
 **Goal**: Display credit status and provide clear upgrade path when limits are reached
@@ -131,7 +131,7 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6
 | 1. Database Foundation | 3/3 | Complete | 2026-02-06 |
 | 2. Credit System | 2/2 | Complete | 2026-02-06 |
 | 3. Subscription Management | 3/3 | Complete | 2026-02-06 |
-| 4. Feature Gates | 0/2 | Ready | - |
+| 4. Feature Gates | 2/2 | Complete | 2026-02-06 |
 | 5. User Interface | 0/2 | Not started | - |
 | 6. Cleanup | 0/2 | Not started | - |
 
