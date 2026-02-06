@@ -5,23 +5,23 @@
 See: .planning/PROJECT.md (updated 2026-02-06)
 
 **Core value:** Simple two-option pricing ($45/year or $99 lifetime) with free trial credits
-**Current focus:** Phase 5 - User Interface (ready to plan)
+**Current focus:** Phase 5 - User Interface (in progress)
 
 ## Current Position
 
-Phase: 4 of 6 (Feature Gates) — COMPLETE ✓
-Plan: 2 of 2 in Phase 4
-Status: Phase 4 verified, ready for Phase 5
-Last activity: 2026-02-06 — Phase 4 execution complete (verified)
+Phase: 5 of 6 (User Interface)
+Plan: 1 of 3 in Phase 5
+Status: In progress
+Last activity: 2026-02-06 — Completed 05-01-PLAN.md (Credit Status UI)
 
-Progress: [██████████] 100%
+Progress: [███████████░] 91.7% (11/12 plans)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 10
-- Average duration: 6.0 min
-- Total execution time: 1.0 hours
+- Total plans completed: 11
+- Average duration: 5.8 min
+- Total execution time: 1.1 hours
 
 **By Phase:**
 
@@ -31,9 +31,10 @@ Progress: [██████████] 100%
 | 02-credit-system | 2 | 15 min | 7.5 min |
 | 03-subscription-management | 3 | 26 min | 8.7 min |
 | 04-feature-gates | 2 | 14 min | 7.0 min |
+| 05-user-interface | 1 | 4 min | 4.0 min |
 
 **Recent Trend:**
-- Last 5 plans: 6 min, 8 min, 12 min, 4 min, 10 min
+- Last 5 plans: 8 min, 12 min, 4 min, 10 min, 4 min
 - Trend: Stable
 
 *Updated after each plan completion*
@@ -74,6 +75,9 @@ Recent decisions affecting current work:
 - [04-02]: Create separate *WithCreditCheck tool variants rather than runtime wrapping
 - [04-02]: Conditional tool selection based on hasUnlimitedAccess at request time
 - [04-02]: Tools return error objects instead of throwing to maintain LLM conversation flow
+- [05-01]: SSR hydration: pass initialCreditStatus to provider from server to avoid loading flash
+- [05-01]: CreditStatusProvider inside DemoModeProvider but outside SidebarProvider for proper context nesting
+- [05-01]: No loading skeleton in sidebar - return null when loading to avoid layout shift
 
 ### Pending Todos
 
@@ -88,7 +92,7 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-02-06
-Stopped at: Phase 4 complete (Feature Gates verified)
+Stopped at: Completed 05-01-PLAN.md (Credit Status UI)
 Resume file: None
 
 ---
