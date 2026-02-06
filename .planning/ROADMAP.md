@@ -43,17 +43,18 @@ Plans:
 **Goal**: Implement race-condition-safe credit deduction and checking utilities
 **Depends on**: Phase 1
 **Requirements**: CREDIT-01, CREDIT-02, CREDIT-03, CREDIT-04, CREDIT-05, CREDIT-06
+**Plans:** 2 plans
+
+Plans:
+- [ ] 02-01-PLAN.md — Atomic credit deduction and reservation utilities
+- [ ] 02-02-PLAN.md — Credit checking helpers and transaction logging
+
 **Success Criteria** (what must be TRUE):
   1. Credit deduction is atomic (concurrent requests cannot cause double-spending)
   2. Streaming LLM operations reserve credit at start and refund on failure
   3. checkUserCredits() returns accurate status for free, paid, and demo users
   4. Chat message counter decrements correctly for free users only
   5. All credit operations are logged with user, operation type, and timestamp
-**Plans**: TBD
-
-Plans:
-- [ ] 02-01: Atomic credit deduction and reservation utilities
-- [ ] 02-02: Credit checking helpers and transaction logging
 
 ### Phase 3: Subscription Management
 **Goal**: Update Stripe integration for yearly/lifetime plans with robust webhook handling
@@ -126,8 +127,8 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Database Foundation | 3/3 | ✓ Complete | 2026-02-06 |
-| 2. Credit System | 0/2 | Not started | - |
+| 1. Database Foundation | 3/3 | Complete | 2026-02-06 |
+| 2. Credit System | 0/2 | Ready | - |
 | 3. Subscription Management | 0/3 | Not started | - |
 | 4. Feature Gates | 0/2 | Not started | - |
 | 5. User Interface | 0/2 | Not started | - |
