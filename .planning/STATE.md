@@ -5,23 +5,23 @@
 See: .planning/PROJECT.md (updated 2026-02-06)
 
 **Core value:** Simple two-option pricing ($45/year or $99 lifetime) with free trial credits
-**Current focus:** Phase 4 - Feature Gates (ready to plan)
+**Current focus:** Phase 4 - Feature Gates (in progress)
 
 ## Current Position
 
-Phase: 3 of 6 (Subscription Management) — COMPLETE ✓
-Plan: 3 of 3 in Phase 3
-Status: Phase 3 verified, ready for Phase 4
-Last activity: 2026-02-06 — Phase 3 execution complete (verified)
+Phase: 4 of 6 (Feature Gates)
+Plan: 1 of 2 in Phase 4
+Status: In progress
+Last activity: 2026-02-06 — Completed 04-01-PLAN.md
 
-Progress: [████████░░] 80%
+Progress: [█████████░] 85%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 8
-- Average duration: 6.4 min
-- Total execution time: 0.85 hours
+- Total plans completed: 9
+- Average duration: 6.0 min
+- Total execution time: 0.9 hours
 
 **By Phase:**
 
@@ -30,9 +30,10 @@ Progress: [████████░░] 80%
 | 01-database-foundation | 3 | 13 min | 4.3 min |
 | 02-credit-system | 2 | 15 min | 7.5 min |
 | 03-subscription-management | 3 | 26 min | 8.7 min |
+| 04-feature-gates | 1 | 4 min | 4.0 min |
 
 **Recent Trend:**
-- Last 5 plans: 6 min, 9 min, 6 min, 8 min, 12 min
+- Last 5 plans: 9 min, 6 min, 8 min, 12 min, 4 min
 - Trend: Stable
 
 *Updated after each plan completion*
@@ -67,6 +68,9 @@ Recent decisions affecting current work:
 - [03-03]: hasUnlimitedAccess convenience wrapper for simple feature gates
 - [03-02]: Use billing_reason to detect subscription invoices in Stripe SDK v19
 - [03-02]: Removed payment_intent events - not needed for Payment Links workflow
+- [04-01]: Credit gate placement BEFORE LLM operations, after auth and request validation
+- [04-01]: SSE endpoints: credit gate BEFORE ReadableStream creation (cannot return 402 after stream starts)
+- [04-01]: Credit gate pattern: hasUnlimitedAccess() -> checkUserCredits() -> deductCredits() -> logCreditTransaction()
 
 ### Pending Todos
 
@@ -77,11 +81,12 @@ None yet.
 - Drizzle atomic UPDATE syntax verified and working
 - Chat message granularity confirmed as user messages only (not assistant responses)
 - Web app tests failing due to test database schema mismatch (free_credits column) - not blocking
+- Pre-existing build error in chat route (updateDocumentWithCreditCheck reference) - not related to current work
 
 ## Session Continuity
 
-Last session: 2026-02-06
-Stopped at: Completed 03-02-PLAN.md (Phase 3 complete)
+Last session: 2026-02-06T21:54:21Z
+Stopped at: Completed 04-01-PLAN.md
 Resume file: None
 
 ---
