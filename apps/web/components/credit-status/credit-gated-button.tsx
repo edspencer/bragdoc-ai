@@ -96,7 +96,7 @@ export function CreditGatedButton({
   return (
     <Tooltip>
       <TooltipTrigger asChild>
-        <span tabIndex={0} className="inline-flex">
+        <span className="inline-flex">
           <Button
             disabled={true}
             onClick={handleBlockedClick}

@@ -1,31 +1,25 @@
 /**
  * Credit System Module
  *
- * Provides atomic credit deduction and reservation utilities for
- * race-condition-safe credit operations in LLM-powered features.
+ * Provides atomic credit deduction utilities for race-condition-safe
+ * credit operations in LLM-powered features.
  *
  * @example
  * ```typescript
  * import {
  *   CREDIT_COSTS,
- *   getDocumentCost,
- *   withCreditReservation,
- *   InsufficientCreditsError
+ *   checkUserCredits,
+ *   deductCredits,
  * } from '@/lib/credits';
  *
- * // Get cost for a document type
- * const cost = getDocumentCost('performance_review'); // 2
- *
- * // Execute operation with credit reservation
- * try {
- *   const result = await withCreditReservation(userId, cost, async () => {
- *     return await generateDocument();
- *   });
- * } catch (error) {
- *   if (error instanceof InsufficientCreditsError) {
- *     // Handle insufficient credits
- *   }
+ * // Check credits before operation
+ * const { hasCredits } = checkUserCredits(user, CREDIT_COSTS.document_generation);
+ * if (!hasCredits) {
+ *   return Response.json({ error: 'insufficient_credits' }, { status: 402 });
  * }
+ *
+ * // Atomically deduct credits
+ * const { success } = await deductCredits(userId, CREDIT_COSTS.document_generation);
  * ```
  */
 
@@ -33,12 +27,7 @@
 export { CREDIT_COSTS, getDocumentCost, type DocumentType } from './costs';
 
 // Atomic credit operations
-export {
-  deductCredits,
-  refundCredits,
-  deductChatMessage,
-  withCreditReservation,
-} from './operations';
+export { deductCredits, deductChatMessage } from './operations';
 
 // Credit checking utilities
 export {
