@@ -18,6 +18,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 4: Feature Gates** - Access control integration at LLM endpoints
 - [x] **Phase 5: User Interface** - Credit display, upgrade prompts, settings page
 - [x] **Phase 6: Cleanup** - Remove legacy tiers, update documentation
+- [ ] **Phase 7: UX Polish** - Fix document dialog 402 handling (gap closure)
 
 ## Phase Details
 
@@ -121,10 +122,25 @@ Plans:
 - [x] 06-01-PLAN.md — Remove legacy pricing code and update marketing site
 - [x] 06-02-PLAN.md — Archive Stripe products and update documentation
 
+### Phase 7: UX Polish
+**Goal**: Close tech debt gap from milestone audit - show upgrade modal instead of toast on 402 in document generation
+**Depends on**: Phase 5
+**Requirements**: None (tech debt closure from v1-MILESTONE-AUDIT.md)
+**Gap Closure**: Document generation dialog shows toast on 402 instead of upgrade modal
+**Plans:** 1 plan
+
+Plans:
+- [ ] 07-01-PLAN.md — Add 402 → upgrade modal handling to generate-document-dialog.tsx
+
+**Success Criteria** (what must be TRUE):
+  1. When document generation returns 402, upgrade modal appears (not toast)
+  2. Upgrade modal follows existing pattern from chat-interface.tsx
+  3. User can dismiss modal and see their credit status
+
 ## Progress
 
 **Execution Order:**
-Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6
+Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
@@ -134,8 +150,9 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6
 | 4. Feature Gates | 2/2 | Complete | 2026-02-06 |
 | 5. User Interface | 2/2 | Complete | 2026-02-06 |
 | 6. Cleanup | 2/2 | Complete | 2026-02-06 |
+| 7. UX Polish | 0/1 | Pending | — |
 
 ---
 *Roadmap created: 2026-02-06*
-*Total phases: 6*
+*Total phases: 7*
 *Total v1 requirements: 38*
