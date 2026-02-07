@@ -2,121 +2,93 @@
 
 ## What This Is
 
-A major pricing simplification for BragDoc that eliminates the multi-tier subscription model in favor of two simple options: $45/year (marketed as $3.75/month, billed annually) or $99 lifetime access. Free users get 10 credits to try LLM-powered features and 20 messages for chatbot features before hitting limits. This makes BragDoc accessible for free usage while sustainably monetizing expensive LLM operations.
+A credit-based pricing system for BragDoc that offers two simple options: $45/year (marketed as $3.75/month) or $99 lifetime for unlimited AI features. Free users receive 10 credits for LLM operations and 20 messages for chatbot features to experience the product before upgrading.
 
 ## Core Value
 
-Make pricing dead simple with no confusing tiers. Users choose between affordable annual billing or a one-time lifetime purchase. Free tier provides full product access except LLM features, with generous trial credits so users can experience the AI capabilities before deciding to pay.
+Dead-simple pricing with no confusing tiers. Free trial through credits, unlimited access through payment.
 
 ## Requirements
 
 ### Validated
 
-These capabilities already exist in the codebase:
+Capabilities shipped in v1:
 
-- ✓ Stripe SDK integration (v19.1.0) — existing
-- ✓ Database-backed user subscription tracking — existing
-- ✓ Webhook handler for Stripe events — existing
-- ✓ Feature gating system — existing
-- ✓ Better Auth authentication with JWT support — existing
-- ✓ Product creation script infrastructure — existing
-- ✓ User level and renewal period tracking — existing
-- ✓ PostgreSQL with Drizzle ORM — existing
-- ✓ Chat message persistence system — existing
-- ✓ Document and performance review generation — existing
-- ✓ Workstreams ML clustering — existing
+- ✓ Database schema with freeCredits and freeChatMessages fields — v1
+- ✓ Atomic credit deduction with race-condition-safe UPDATE queries — v1
+- ✓ Credit checking utilities (checkUserCredits, checkUserChatMessages) — v1
+- ✓ Credit transaction logging for audit trail — v1
+- ✓ Stripe webhook idempotency via StripeEvent table — v1
+- ✓ Subscription status helper with lifetime/yearly detection — v1
+- ✓ Feature gates at all LLM endpoints (documents, workstreams, chat) — v1
+- ✓ 402 Payment Required responses with upgrade URL — v1
+- ✓ Credit status display in sidebar and chat interface — v1
+- ✓ Upgrade modal on credit/message exhaustion — v1
+- ✓ Credit-gated button component with disabled state — v1
+- ✓ Subscription status in account settings — v1
+- ✓ Pricing comparison page ($45/year vs $99 lifetime) — v1
+- ✓ Legacy Basic/Pro tier code removed — v1
+- ✓ Marketing site updated to new pricing — v1
 
 ### Active
 
-New capabilities to build:
+Next capabilities to build (v2):
 
-- [ ] Update user_level enum from free/basic/pro/demo to free/paid/demo
-- [ ] Update renewalPeriod enum to support yearly/lifetime
-- [ ] Add freeCredits field to user table (default 10)
-- [ ] Add freeChatMessages field to user table (default 20)
-- [ ] Implement credit deduction system for LLM features
-- [ ] Implement chat message counter for free users
-- [ ] Update Stripe webhook to handle annual and lifetime plans
-- [ ] Update subscription status helper to recognize lifetime access
-- [ ] Create Stripe products for annual ($45) and lifetime ($99) plans
-- [ ] Update feature gates to check credits for free users
-- [ ] Add upgrade prompts when credits/messages exhausted
-- [ ] Display credit/message status in UI
-- [ ] Remove old Basic/Pro Stripe products
-- [ ] Update payment links environment variables
-- [ ] Add database migration for schema changes
-- [ ] Add audit logging for credit usage (security consideration)
+- [ ] Low credit warning system (proactive notifications at 30% remaining)
+- [ ] Credit usage history page (last 30 days of transactions)
+- [ ] Stripe Customer Portal integration (self-service management)
+- [ ] Analytics on credit usage patterns (internal dashboard)
 
 ### Out of Scope
 
-- Multiple pricing tiers (Basic/Pro) — removing complexity
+- Multi-tier paid plans — simplified to single paid tier
 - Monthly billing option — annual only for simplicity
-- Stripe Customer Portal integration — defer to future
-- Credit refills for free users — one-time trial only
-- In-app checkout flow — using Stripe payment links
-- Migration logic for existing paid users — no paid users exist yet
-- Subscription downgrade/upgrade flows — can cancel and repurchase
-- Proration logic — not needed with simple model
+- Credit top-up / purchase — binary free vs unlimited
+- Credit rollover — one-time trial credits only
+- Team/organization features — individual product
+- In-app checkout — using Stripe payment links
+- Promotional codes — marketing complexity avoided
 
 ## Context
 
-**Project Type:** Existing production application (brownfield)
+**Project Type:** Brownfield (pricing simplification on existing app)
 
-**Existing Infrastructure:**
-- Monorepo with Turborepo + pnpm workspaces
-- Next.js 16 App Router with React 19 Server Components
-- PostgreSQL database with Drizzle ORM
-- Stripe integration already configured
-- Better Auth for authentication
-- Vercel AI SDK for LLM operations
-- Multiple chatbot endpoints (performance reviews, documents)
-- Deployed on Cloudflare Workers
+**Shipped:** v1 on 2026-02-06
 
-**Current Pricing (Being Replaced):**
-- Basic: $5/month or $30/year
-- Pro: $9/month or $90/year
-- No users currently on paid plans
+**Codebase State:**
+- ~72,880 lines TypeScript in web app
+- ~5,038 lines TypeScript in database package
+- 125 files modified in this milestone
+- Tech stack: Next.js 16, PostgreSQL/Drizzle, Stripe SDK v19, Better Auth
 
-**LLM Features Requiring Payment:**
-- Document generation (performance reviews, brag docs, etc.)
-- Workstream name generation and clustering
-- Performance review chatbot document updates
-- General document chatbot interactions
-
-**Security Considerations:**
-- Open source project - all payment code publicly visible
-- Must follow security best practices
-- Design simplicity aids security review
-- Never expose Stripe secret keys in client code
-- All payment verification server-side only
-
-**Technical Debt Context:**
-From CONCERNS.md:
-- Type assertions (`as any`) exist in auth code
-- Console logging in production needs cleanup
-- Better Auth v1.3.33 is early version with known issues
-
-## Constraints
-
-- **Open Source**: All code publicly visible on GitHub - security through simplicity and best practices
-- **No IaC for Stripe**: Manual product setup in Stripe UI (previous IaC attempts were overly complex)
-- **Stripe Payment Links**: Use Stripe-hosted checkout pages, not custom UI
-- **Cloudflare Workers**: Deployment target constrains build configuration
-- **No Paid Users**: No migration logic needed, but must preserve demo mode
-- **Credit System Simplicity**: No complex tracking, just simple counters that decrement
+**Key Technical Decisions:**
+- Database-level credit tracking (simple integers) over Stripe Billing Credits
+- Forward-compatible enum migration (add 'paid' before removing 'basic'/'pro')
+- Global freeChatMessages counter (not per-conversation)
+- NULL OR >= 0 CHECK constraint pattern for existing user compatibility
+- Non-blocking credit logging (failures don't fail main operation)
+- 402 response pattern with structured upgradeUrl for client handling
 
 ## Key Decisions
 
 | Decision | Rationale | Outcome |
 |----------|-----------|---------|
-| Use yearly/lifetime for renewalPeriod enum | Annual billing exists as "yearly" in current code; avoids schema complexity | — Pending |
-| Global freeChatMessages counter | Simpler than per-conversation tracking; easier to implement and understand | — Pending |
-| Paid users have unlimited usage | No need to track credits for paying customers; simpler code paths | — Pending |
-| 10 credits + 20 chat messages for free | Enough to try full product capabilities without excessive LLM costs | — Pending |
-| Market as $3.75/month (billed annually) | Common pricing UX pattern; shows affordability while avoiding monthly Stripe fees | — Pending |
-| Remove all existing pricing tiers | Radical simplification eliminates maintenance burden and user confusion | — Pending |
-| Use Stripe payment links | Leverage Stripe's hosted checkout; no custom payment UI to secure | — Pending |
-| Manual Stripe product setup | Avoid IaC complexity; manual setup in Stripe dashboard is simpler | — Pending |
+| Use database integers for credits | Simple, no external dependencies | ✓ Good |
+| Global chat message counter | Simpler than per-conversation tracking | ✓ Good |
+| Paid users bypass all credit checks | Cleaner code paths | ✓ Good |
+| 10 credits + 20 messages for free | Enough to try full product | ✓ Good |
+| Market as $3.75/month (billed annually) | Common pricing UX pattern | ✓ Good |
+| Use Stripe payment links | No custom checkout UI to secure | ✓ Good |
+| Keep deprecated enum values | PostgreSQL compatibility | ✓ Good |
+| StripeEvent table for idempotency | Prevents duplicate webhook processing | ✓ Good |
+| Credit gate before LLM operations | Cannot return 402 mid-stream | ✓ Good |
+
+## Constraints
+
+- Open source codebase — security through simplicity
+- Cloudflare Workers deployment target
+- No existing paid users — no migration needed
+- Better Auth v1.3.33 — some known quirks
 
 ---
-*Last updated: 2026-02-06 after initialization*
+*Last updated: 2026-02-06 after v1 milestone*
