@@ -17,6 +17,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { FileText, Calendar, BarChart3, Edit3, Loader2 } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import type { AchievementWithRelationsUI } from '@/lib/types/achievement';
+import { useCreditStatus } from '@/components/credit-status';
 
 // Backend API types
 type DocumentType =
@@ -137,6 +138,7 @@ export function GenerateDocumentDialog({
   selectedAchievements,
 }: GenerateDocumentDialogProps) {
   const router = useRouter();
+  const { showUpgradeModal } = useCreditStatus();
   const [selectedType, setSelectedType] = useState<string | null>(null);
   const [customPrompt, setCustomPrompt] = useState('');
   const [editablePrompt, setEditablePrompt] = useState('');
@@ -211,6 +213,11 @@ export function GenerateDocumentDialog({
           throw new Error(
             errorData.error || 'Invalid request. Please check your selections.',
           );
+        } else if (response.status === 402) {
+          // Credit exhausted - show upgrade modal instead of toast
+          showUpgradeModal('credits');
+          setIsGenerating(false);
+          return; // Exit early, no toast needed
         } else {
           throw new Error(errorData.error || 'Failed to generate document');
         }
