@@ -18,7 +18,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 4: Feature Gates** - Access control integration at LLM endpoints
 - [x] **Phase 5: User Interface** - Credit display, upgrade prompts, settings page
 - [x] **Phase 6: Cleanup** - Remove legacy tiers, update documentation
-- [ ] **Phase 7: UX Polish** - Fix document dialog 402 handling (gap closure)
+- [x] **Phase 7: UX Polish** - Fix document dialog 402 handling (gap closure)
 
 ## Phase Details
 
@@ -130,7 +130,7 @@ Plans:
 **Plans:** 1 plan
 
 Plans:
-- [ ] 07-01-PLAN.md — Add 402 → upgrade modal handling to generate-document-dialog.tsx
+- [x] 07-01-PLAN.md — Add 402 → upgrade modal handling to generate-document-dialog.tsx
 
 **Success Criteria** (what must be TRUE):
   1. When document generation returns 402, upgrade modal appears (not toast)
@@ -150,7 +150,7 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7
 | 4. Feature Gates | 2/2 | Complete | 2026-02-06 |
 | 5. User Interface | 2/2 | Complete | 2026-02-06 |
 | 6. Cleanup | 2/2 | Complete | 2026-02-06 |
-| 7. UX Polish | 0/1 | Ready | — |
+| 7. UX Polish | 1/1 | Complete | 2026-02-06 |
 
 ---
 *Roadmap created: 2026-02-06*
