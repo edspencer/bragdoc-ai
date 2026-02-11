@@ -30,15 +30,15 @@ That's changing. Companies are realizing that AI amplifies execution. But humans
 
 AI coding tools are exceptional at implementation. They can write boilerplate. They can refactor legacy code. They can generate tests. They can translate between languages. They're getting better at complex algorithms and system design.
 
-But here's what AI still struggles with:
+AI still struggles with:
 
-**Defining the right problem.** AI can solve the problem you describe. But it can't tell you which problem to solve. Understanding what the business needs takes human judgment. Understanding what users actually want takes human judgment. Understanding what technical debt will hurt you in six months takes human judgment.
-
-**Navigating tradeoffs.** Should you prioritize speed or reliability? Build the feature or pay down debt? Optimize for today's users or tomorrow's scale? These decisions require context AI doesn't have.
+**Defining the right problem.** AI can solve the problem you describe. But it can't tell you which problem to solve. Understanding what the business needs, what users want, and what technical debt will hurt you in six months takes human judgment.
 
 **Cross-team coordination.** Getting three teams to align on an API contract requires human skills. Convincing leadership to delay a feature for architectural work requires human skills. Building consensus around a technical direction requires human skills.
 
-**Mentoring and knowledge transfer.** Teaching a junior engineer how to think about system design matters. Explaining why certain architectural patterns matter. Building team capability. AI can assist, but it can't replace this.
+**Mentoring and knowledge transfer.** Teaching a junior engineer how to think about system design matters. Explaining why certain architectural patterns matter in your specific context. Beyond needing knowledge the AI can't have, it also robs everyone involved of the opportunity to actually collaborate.
+
+**Team Building.** Teaching a new or junior engineer about some part of the system is as useful for you as it is for them - it forces you to keep your understanding fresh and intelligible, but it also gets you used to talking to each other instead of just a bunch of AIs. When the rubber hits the road you want to know there are other humans by your side.
 
 **Incident response under pressure.** When production is down, you need to make judgment calls with incomplete information. AI can suggest solutions. But it can't own the decision.
 
@@ -64,7 +64,7 @@ The difference: the second example shows strategic thinking, business impact, an
 
 The framework is straightforward: document your decisions, not just your deliverables.
 
-Here are five categories of work where documenting your strategic decisions matters most:
+Here are a few examples where documenting your strategic decisions matters most:
 
 ### 1. Architecture and Design Decisions
 
@@ -92,33 +92,7 @@ Notice: the AI assistance is mentioned honestly. But the documentation focuses o
 
 "Investigated why mobile app startup time increased 40% over 6 months. Used AI tools to analyze performance traces and identify patterns. But human analysis revealed root cause: feature flags library making 20+ network calls on startup. Proposed lazy loading strategy. Led implementation across 3 teams. Used GitHub Copilot to refactor 30+ call sites. Startup time reduced to baseline within 4 weeks. Retained 12% of users who would have churned based on analytics data."
 
-### 3. Cross-Team Collaboration and Unblocking
-
-**What to capture:**
-- What was blocked and why?
-- How did you build consensus?
-- What coordination did you drive?
-- What outcomes happened because you unblocked work?
-
-**Example:**
-
-"Frontend and backend teams deadlocked on API contract for new search feature. Facilitated 3 design sessions. Proposed GraphQL schema that satisfied both teams' constraints. Used AI to generate schema documentation and example queries. This reduced back-and-forth. Both teams unblocked within 1 week instead of stalled sprint. Feature shipped on time. Search conversion improved 18%."
-
-### 4. Mentoring and Team Capability
-
-**What to capture:**
-- Who did you help and how?
-- What capability did you build in the team?
-- What knowledge transfer happened?
-- How does the team function differently now?
-
-**Example:**
-
-"Mentored 2 junior engineers through first production feature. Designed pairing schedule. Conducted code reviews focused on decision-making patterns. Explained architectural tradeoffs. Used AI tools to generate code review templates and learning resources. Both engineers now shipping independently. Collectively delivering 3 features per sprint vs. previous 0.5. Time investment: 4 hours per week for 8 weeks. Team velocity increased 25% as they became self-sufficient."
-
-For more on documenting mentoring and other [long-term engineering work](/blog/documenting-long-term-engineering-impact), see our guide on impact that takes months or years to show results.
-
-### 5. Technical Strategy and Planning
+### 3. Technical Strategy and Planning
 
 **What to capture:**
 - What long-term technical direction did you set?
