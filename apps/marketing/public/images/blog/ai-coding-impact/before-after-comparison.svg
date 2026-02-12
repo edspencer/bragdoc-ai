@@ -1,0 +1,163 @@
+<svg width="1000" height="600" viewBox="0 0 1000 600" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background -->
+  <rect width="1000" height="600" fill="#FFFFFF"/>
+
+  <!-- Title -->
+  <text x="500" y="40" font-family="system-ui, -apple-system, sans-serif" font-size="24" font-weight="600" fill="#0F172A" text-anchor="middle">
+    Weak vs. Strong Documentation
+  </text>
+
+  <!-- BEFORE Column (Left) -->
+  <g transform="translate(50, 80)">
+    <rect x="0" y="0" width="420" height="460" rx="8" fill="#FEF2F2" stroke="#DC2626" stroke-width="2"/>
+
+    <!-- Header -->
+    <text x="210" y="35" font-family="system-ui, -apple-system, sans-serif" font-size="20" font-weight="600" fill="#DC2626" text-anchor="middle">
+      ❌ BEFORE (Weak)
+    </text>
+
+    <!-- Content box -->
+    <rect x="20" y="60" width="380" height="140" rx="6" fill="#FFFFFF" stroke="#E5E7EB" stroke-width="1"/>
+
+    <!-- Quote marks -->
+    <text x="35" y="90" font-family="system-ui, -apple-system, sans-serif" font-size="32" fill="#DC2626" opacity="0.3">
+      "
+    </text>
+
+    <!-- Weak documentation text -->
+    <text x="50" y="115" font-family="system-ui, -apple-system, sans-serif" font-size="14" fill="#374151">
+      <tspan x="50" dy="0">Used GitHub Copilot to write</tspan>
+      <tspan x="50" dy="20">authentication system.</tspan>
+      <tspan x="50" dy="25">Shipped in 2 weeks.</tspan>
+    </text>
+
+    <!-- Closing quote -->
+    <text x="360" y="165" font-family="system-ui, -apple-system, sans-serif" font-size="32" fill="#DC2626" opacity="0.3">
+      "
+    </text>
+
+    <!-- Problems list -->
+    <g transform="translate(30, 230)">
+      <text x="0" y="0" font-family="system-ui, -apple-system, sans-serif" font-size="14" font-weight="600" fill="#DC2626">
+        What's Missing:
+      </text>
+
+      <g transform="translate(0, 20)">
+        <circle cx="5" cy="5" r="3" fill="#DC2626"/>
+        <text x="20" y="10" font-family="system-ui, -apple-system, sans-serif" font-size="13" fill="#374151">
+          No context or problem statement
+        </text>
+      </g>
+
+      <g transform="translate(0, 45)">
+        <circle cx="5" cy="5" r="3" fill="#DC2626"/>
+        <text x="20" y="10" font-family="system-ui, -apple-system, sans-serif" font-size="13" fill="#374151">
+          No business impact or metrics
+        </text>
+      </g>
+
+      <g transform="translate(0, 70)">
+        <circle cx="5" cy="5" r="3" fill="#DC2626"/>
+        <text x="20" y="10" font-family="system-ui, -apple-system, sans-serif" font-size="13" fill="#374151">
+          No strategic decisions documented
+        </text>
+      </g>
+
+      <g transform="translate(0, 95)">
+        <circle cx="5" cy="5" r="3" fill="#DC2626"/>
+        <text x="20" y="10" font-family="system-ui, -apple-system, sans-serif" font-size="13" fill="#374151">
+          No team or force multiplication
+        </text>
+      </g>
+
+      <g transform="translate(0, 120)">
+        <circle cx="5" cy="5" r="3" fill="#DC2626"/>
+        <text x="20" y="10" font-family="system-ui, -apple-system, sans-serif" font-size="13" fill="#374151">
+          Focuses on activity, not outcomes
+        </text>
+      </g>
+    </g>
+  </g>
+
+  <!-- Arrow -->
+  <g transform="translate(485, 310)">
+    <path d="M 0 0 L 20 0 L 15 -5 M 20 0 L 15 5" stroke="#3B82F6" stroke-width="3" fill="none"/>
+  </g>
+
+  <!-- AFTER Column (Right) -->
+  <g transform="translate(530, 80)">
+    <rect x="0" y="0" width="420" height="460" rx="8" fill="#F0FDF4" stroke="#10B981" stroke-width="2"/>
+
+    <!-- Header -->
+    <text x="210" y="35" font-family="system-ui, -apple-system, sans-serif" font-size="20" font-weight="600" fill="#10B981" text-anchor="middle">
+      ✓ AFTER (Strong)
+    </text>
+
+    <!-- Content box -->
+    <rect x="20" y="60" width="380" height="240" rx="6" fill="#FFFFFF" stroke="#E5E7EB" stroke-width="1"/>
+
+    <!-- Quote marks -->
+    <text x="35" y="90" font-family="system-ui, -apple-system, sans-serif" font-size="32" fill="#10B981" opacity="0.3">
+      "
+    </text>
+
+    <!-- Strong documentation text -->
+    <text x="50" y="115" font-family="system-ui, -apple-system, sans-serif" font-size="13" fill="#374151">
+      <tspan x="50" dy="0">Architected authentication system that</tspan>
+      <tspan x="50" dy="18">supports SSO, SAML, and future OAuth</tspan>
+      <tspan x="50" dy="18">providers. Used GitHub Copilot to generate</tspan>
+      <tspan x="50" dy="18">boilerplate and test cases.</tspan>
+      <tspan x="50" dy="23" font-weight="600" fill="#10B981">Reduced implementation</tspan>
+      <tspan x="50" dy="18" font-weight="600" fill="#10B981">from 6 weeks to 2 weeks.</tspan>
+      <tspan x="50" dy="23">Time saved allowed team to implement</tspan>
+      <tspan x="50" dy="18">audit logging, which</tspan>
+      <tspan x="50" dy="18" font-weight="600" fill="#10B981">unblocked 3 enterprise</tspan>
+      <tspan x="50" dy="18" font-weight="600" fill="#10B981">deals worth $1800 MRR.</tspan>
+    </text>
+
+    <!-- Closing quote -->
+    <text x="360" y="285" font-family="system-ui, -apple-system, sans-serif" font-size="32" fill="#10B981" opacity="0.3">
+      "
+    </text>
+
+    <!-- Strengths list -->
+    <g transform="translate(30, 330)">
+      <text x="0" y="0" font-family="system-ui, -apple-system, sans-serif" font-size="14" font-weight="600" fill="#10B981">
+        What Makes It Strong:
+      </text>
+
+      <g transform="translate(0, 20)">
+        <circle cx="5" cy="5" r="3" fill="#10B981"/>
+        <text x="20" y="10" font-family="system-ui, -apple-system, sans-serif" font-size="13" fill="#374151">
+          <tspan font-weight="600">Context:</tspan> What problem was solved
+        </text>
+      </g>
+
+      <g transform="translate(0, 38)">
+        <circle cx="5" cy="5" r="3" fill="#10B981"/>
+        <text x="20" y="10" font-family="system-ui, -apple-system, sans-serif" font-size="13" fill="#374151">
+          <tspan font-weight="600">Metrics:</tspan> 6 weeks → 2 weeks (70% faster)
+        </text>
+      </g>
+
+      <g transform="translate(0, 56)">
+        <circle cx="5" cy="5" r="3" fill="#10B981"/>
+        <text x="20" y="10" font-family="system-ui, -apple-system, sans-serif" font-size="13" fill="#374151">
+          <tspan font-weight="600">Impact:</tspan> $1800 MRR, 3 deals unblocked
+        </text>
+      </g>
+
+      <g transform="translate(0, 74)">
+        <circle cx="5" cy="5" r="3" fill="#10B981"/>
+        <text x="20" y="10" font-family="system-ui, -apple-system, sans-serif" font-size="13" fill="#374151">
+          <tspan font-weight="600">Honest:</tspan> Shows what AI accelerated
+        </text>
+      </g>
+    </g>
+  </g>
+
+  <!-- Bottom note -->
+  <text x="500" y="575" font-family="system-ui, -apple-system, sans-serif" font-size="13" fill="#64748B" text-anchor="middle" font-style="italic">
+    Document decisions + impact, not just activity
+  </text>
+</svg>

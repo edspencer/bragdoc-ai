@@ -1,0 +1,143 @@
+---
+title: "What to Document as a Developer When AI Writes Your Code"
+description: "Meta now evaluates AI usage in performance reviews. When 65% of developers use AI tools weekly, documenting 'lines of code' won't cut it. Here's what actually matters."
+date: "2026-02-11"
+author: "BragDoc Team"
+tags: ["ai-tools", "performance-reviews", "career-growth", "github-copilot", "documentation"]
+image: "/images/blog/ai-coding-impact/ai-coding-impact-hero.svg"
+imageAlt: "Developer working alongside AI coding assistant, showing human strategic decisions overlaying automated code generation"
+published: true
+canonical_url: "https://www.bragdoc.ai/blog/documenting-impact-ai-coding-era"
+---
+
+This month, [Meta became the first major tech company](https://winbuzzer.com/2026/02/04/meta-ties-employee-performance-reviews-ai-usage-2026-xcxwbn/) to formally include AI-driven impact in employee performance reviews. Every Meta engineer will now be evaluated on how they use AI to deliver results.
+
+Microsoft executives have told managers that [using AI is "no longer optional."](https://www.technologyreview.com/2025/12/15/1128352/rise-of-ai-coding-developers-2026/) At Google and Microsoft, roughly 25% of code is now AI-generated. [Stack Overflow's 2025 survey](https://survey.stackoverflow.co/2025/) found that 65% of developers use AI coding tools at least weekly.
+
+If you're still documenting your work as "shipped 47 features" or "wrote 12,000 lines of code," you're missing the point. When AI can write code, [performance reviews](/blog/output-over-effort-changes-everything) care about something else entirely.
+
+## The Old Playbook Doesn't Work Anymore
+
+For years, the documentation playbook was straightforward. Count your output. Features shipped. Pull requests merged. Lines of code committed. Tickets closed.
+
+This made sense when writing code was the bottleneck. But GitHub Copilot can generate entire functions from comments. Claude can refactor a module in seconds. Raw output isn't the differentiator anymore.
+
+The engineer who "shipped 50 features with AI assistance" is doing different work than the engineer who "shipped 12 features while designing the architecture that unblocked the entire team." Yet many performance review systems still favor the first one.
+
+That's changing. Companies are realizing that AI amplifies execution. But humans still drive strategy. The question is: are you documenting the right things?
+
+## What AI Can't Do (Yet)
+
+AI coding tools are exceptional at implementation. They can write boilerplate. They can refactor legacy code. They can generate tests. They can translate between languages. They're getting better at complex algorithms and system design.
+
+AI still struggles with:
+
+**Defining the right problem.** AI can solve the problem you describe. But it can't tell you which problem to solve. Understanding what the business needs, what users want, and what technical debt will hurt you in six months takes human judgment.
+
+**Cross-team coordination.** Getting three teams to align on an API contract requires human skills. Convincing leadership to delay a feature for architectural work requires human skills. Building consensus around a technical direction requires human skills.
+
+**Mentoring and knowledge transfer.** Teaching a junior engineer how to think about system design matters. Explaining why certain architectural patterns matter in your specific context. Beyond needing knowledge the AI can't have, it also robs everyone involved of the opportunity to actually collaborate.
+
+**Team Building.** Teaching a new or junior engineer about some part of the system is as useful for you as it is for them - it forces you to keep your understanding fresh and intelligible, but it also gets you used to talking to each other instead of just a bunch of AIs. When the rubber hits the road you want to know there are other humans by your side.
+
+**Incident response under pressure.** When production is down, you need to make judgment calls with incomplete information. AI can suggest solutions. But it can't own the decision.
+
+This is what matters now. And this is what you should be documenting in your brag document.
+
+## What Meta's New Criteria Actually Means
+
+When Meta says they're evaluating "AI-driven impact," they're not asking "did you use GitHub Copilot?" They're asking: "How did AI tools amplify your effectiveness?"
+
+Here's what that looks like in practice:
+
+**Before:**
+"Used GitHub Copilot to write authentication system. Shipped in 2 weeks."
+
+**After:**
+"Architected authentication system that supports SSO, SAML, and future OAuth providers. Used GitHub Copilot to generate boilerplate and test cases. This reduced implementation from 6 weeks to 2 weeks. Time saved allowed team to also implement audit logging. This unblocked 3 enterprise deals worth $1800 MRR. Design decisions documented in RFC. Now used as template for other system designs."
+
+The difference: the second example shows strategic thinking, business impact, and force multiplication. While being honest about what AI accelerated.
+
+![Comparison showing weak documentation vs. strong documentation with concrete metrics and business impact](/images/blog/ai-coding-impact/before-after-comparison.svg)
+
+## How to Document AI-Augmented Work
+
+The framework is straightforward: document your decisions, not just your deliverables.
+
+Here are a few examples where documenting your strategic decisions matters most:
+
+### 1. Architecture and Design Decisions
+
+**What to capture:**
+- Why did you choose this approach over alternatives?
+- What tradeoffs did you consider?
+- What future scenarios did you plan for?
+- How does this decision enable future work?
+
+**Example:**
+
+"Proposed splitting monolithic API into microservices for background jobs. Context: deployments were blocked during business hours. Restarting jobs would lose state. Led technical design discussions. Evaluated tradeoffs between complexity and flexibility. Built proof-of-concept. Used Claude to draft initial service contracts and migration plan. This saved 2 weeks of planning time. Migration took 6 weeks. Results after 3 months: team deploys 4-5x per day instead of once daily. Jobs processing isolated from web traffic. Enabled 40% more feature releases last quarter. Deployment friction is gone."
+
+Notice: the AI assistance is mentioned honestly. But the documentation focuses on the problem analysis, decision-making process, and measurable outcomes.
+
+### 2. Problem Definition and Discovery
+
+**What to capture:**
+- What problem did you identify that others missed?
+- What investigation led to the discovery?
+- How did you validate the problem was worth solving?
+- What was the cost of not solving it?
+
+**Example:**
+
+"Investigated why mobile app startup time increased 40% over 6 months. Used AI tools to analyze performance traces and identify patterns. But human analysis revealed root cause: feature flags library making 20+ network calls on startup. Proposed lazy loading strategy. Led implementation across 3 teams. Used GitHub Copilot to refactor 30+ call sites. Startup time reduced to baseline within 4 weeks. Retained 12% of users who would have churned based on analytics data."
+
+### 3. Technical Strategy and Planning
+
+**What to capture:**
+- What long-term technical direction did you set?
+- What problems did you prevent?
+- How did you influence the roadmap?
+- What foundation did you build for future work?
+
+**Example:**
+
+"Wrote RFC proposing migration from REST to GraphQL for mobile clients. Context: mobile team spending 60% of time building custom endpoints for slightly different use cases. Used AI to analyze existing API patterns and generate migration cost estimates. Led 8 weeks of discussions across 4 teams. Decision approved: pilot with 2 features, full migration over 6 months. Early results: mobile team velocity up 35%. They now compose queries instead of requesting new endpoints."
+
+## The Pattern: Evidence + Context + Outcomes
+
+Every strong documentation entry follows this structure:
+
+1. **What was the problem or opportunity?** (context)
+2. **What did you decide and why?** (your contribution)
+3. **How did AI tools help execute?** (honest about amplification)
+4. **What measurable outcomes resulted?** (evidence)
+5. **What second-order impact happened?** (force multiplication)
+
+This pattern works whether you're documenting daily work, preparing for performance reviews, or updating your resume. The documentation isn't about "selling yourself." It's about making your actual contributions visible in a system where the rules have changed.
+
+![Visual diagram showing the 5-step pattern: Context → Decision → AI Assistance → Outcomes → Force Multiplication](/images/blog/ai-coding-impact/five-step-pattern.svg)
+
+Understanding [the different types of developer impact](/blog/six-types-developer-impact) can help you recognize which contributions matter most in AI-augmented workflows.
+
+## Start This Week
+
+Pick one project you completed recently with AI assistance. Write a paragraph following this format:
+
+- **Problem:** What was broken or needed?
+- **Your decision:** What did you choose and why?
+- **AI assistance:** What did AI tools accelerate?
+- **Outcome:** What improved and by how much?
+- **Team impact:** What became easier for others?
+
+This takes 10 minutes. But when performance review time comes, you'll have evidence ready. Or when you're interviewing for your next role. You'll have evidence of the work that actually matters. The strategic thinking and decision-making that AI can't replace.
+
+The engineers who advance fastest in the AI era won't be the ones who write the most code. They'll be the ones who document their judgment. Their decisions. Their force multiplication. While being honest about what AI made faster.
+
+## Keep Your Brag Document Updated
+
+Track the decisions, not just the deliverables. Capture the problems you solved. The tradeoffs you navigated. The teams you unblocked.
+
+If you want to automate the routine documentation—commits, PRs, daily work—that's what we built [BragDoc](/) to do. It extracts your GitHub activity automatically. So you can focus on documenting the strategic work that actually matters. When AI writes a quarter of your code, the thinking behind all of it is what sets you apart.
+
+<SignUpCTA />
