@@ -1,0 +1,64 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 400">
+  <!-- Background -->
+  <rect width="800" height="400" fill="#f8fafc"/>
+
+  <!-- Developer at desk -->
+  <g id="developer">
+    <!-- Desk -->
+    <rect x="50" y="280" width="300" height="8" fill="#64748b" rx="2"/>
+
+    <!-- Laptop -->
+    <rect x="100" y="220" width="200" height="120" fill="#1e293b" rx="4"/>
+    <rect x="110" y="230" width="180" height="90" fill="#0f172a"/>
+
+    <!-- Screen content - blank review form -->
+    <rect x="120" y="240" width="160" height="8" fill="#475569" rx="2"/>
+    <rect x="120" y="255" width="120" height="6" fill="#334155" rx="2"/>
+    <rect x="120" y="268" width="160" height="30" fill="#1e293b" stroke="#475569" stroke-width="1" rx="2"/>
+    <text x="200" y="288" font-family="Arial, sans-serif" font-size="10" fill="#64748b" text-anchor="middle">???</text>
+
+    <!-- Person head -->
+    <circle cx="200" cy="200" r="25" fill="#94a3b8"/>
+
+    <!-- Confused expression -->
+    <circle cx="192" cy="195" r="3" fill="#1e293b"/>
+    <circle cx="208" cy="195" r="3" fill="#1e293b"/>
+    <path d="M 185 208 Q 200 212 215 208" stroke="#1e293b" stroke-width="2" fill="none"/>
+
+    <!-- Thought bubble -->
+    <ellipse cx="250" cy="160" rx="80" ry="50" fill="#fff" stroke="#94a3b8" stroke-width="2"/>
+    <circle cx="225" cy="185" r="8" fill="#fff" stroke="#94a3b8" stroke-width="2"/>
+    <circle cx="215" cy="195" r="5" fill="#fff" stroke="#94a3b8" stroke-width="2"/>
+
+    <!-- Text in thought bubble -->
+    <text x="250" y="155" font-family="Arial, sans-serif" font-size="12" fill="#475569" text-anchor="middle">What did I do</text>
+    <text x="250" y="170" font-family="Arial, sans-serif" font-size="12" fill="#475569" text-anchor="middle">in March?</text>
+  </g>
+
+  <!-- AI assistant icon -->
+  <g id="ai-assistant">
+    <!-- Floating AI chip -->
+    <rect x="450" y="150" width="280" height="140" fill="#fff" stroke="#e2e8f0" stroke-width="2" rx="8"/>
+
+    <!-- AI sparkle icon -->
+    <circle cx="490" cy="190" r="20" fill="#8b5cf6" opacity="0.2"/>
+    <path d="M 490 175 L 493 187 L 505 190 L 493 193 L 490 205 L 487 193 L 475 190 L 487 187 Z" fill="#8b5cf6"/>
+
+    <!-- Text -->
+    <text x="525" y="185" font-family="Arial, sans-serif" font-size="16" fill="#1e293b" font-weight="bold">AI Writing Assistant</text>
+    <text x="525" y="205" font-family="Arial, sans-serif" font-size="12" fill="#64748b">Ready to help you write</text>
+    <text x="525" y="220" font-family="Arial, sans-serif" font-size="12" fill="#64748b">your review...</text>
+
+    <!-- Question mark -->
+    <text x="680" y="265" font-family="Arial, sans-serif" font-size="48" fill="#94a3b8" opacity="0.3">?</text>
+  </g>
+
+  <!-- Gap indicator -->
+  <g id="gap">
+    <line x1="350" y1="240" x2="450" y2="220" stroke="#ef4444" stroke-width="3" stroke-dasharray="5,5"/>
+    <text x="400" y="220" font-family="Arial, sans-serif" font-size="14" fill="#ef4444" font-weight="bold" text-anchor="middle">The Gap</text>
+  </g>
+
+  <!-- Title text -->
+  <text x="400" y="360" font-family="Arial, sans-serif" font-size="18" fill="#475569" text-anchor="middle" font-style="italic">You still need to remember what you accomplished</text>
+</svg>
