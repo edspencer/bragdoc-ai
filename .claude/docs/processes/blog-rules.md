@@ -33,9 +33,11 @@ Blog posts are written as .mdx files in the apps/marketing/content/blog director
 ### Titles and Headlines
 
 - Titles should be 50-60 characters to display properly in search results
+- **Include long-tail keyword in the title when possible** (e.g., "How to Track Accomplishments for Performance Reviews")
 - Include primary keyword naturally in the title, preferably near the beginning
 - Make titles compelling and click-worthy while accurately representing content
 - Use H1 for the main title (only one per page), H2 for major sections, H3 for subsections
+- If title is news-driven (e.g., "Meta Built an AI..."), ensure at least one H2 contains a long-tail keyword phrase
 
 ### Content Structure
 
@@ -47,10 +49,20 @@ Blog posts are written as .mdx files in the apps/marketing/content/blog director
 
 ### Keywords and Semantic SEO
 
-- Focus on one primary keyword per post, with 2-3 related secondary keywords
+**CRITICAL: Always Optimize for Long-Tail Keywords**
+
+- **Primary focus: Long-tail keywords (3-5+ words)** that capture specific user intent and search queries
+- Every blog post MUST target at least one long-tail keyword phrase in the title or primary H2
+- Long-tail examples: "how to track accomplishments for performance review", "document work achievements automatically", "remember what I did for performance review"
+- Avoid generic/competitive keywords like "performance reviews" or "career growth" as primary targets
+- Test keyword in Google - if first page is dominated by huge sites (LinkedIn, Indeed, Forbes), pick more specific long-tail
+
+**Keyword Strategy:**
+- Focus on one primary long-tail keyword per post (3-5 words minimum)
+- Include 2-3 related secondary long-tail keywords
 - Use keywords naturally - never force or stuff them
 - Include semantic variations and related terms (e.g., "brag document," "work achievements," "career tracking")
-- Target long-tail keywords that match user intent (e.g., "how to track work achievements" vs. "work tracking")
+- Target user intent: "how to", "why", "what to", "best way to" phrases perform well
 
 ### Meta Elements
 
