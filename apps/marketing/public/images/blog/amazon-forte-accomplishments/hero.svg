@@ -1,0 +1,80 @@
+<svg width="1200" height="630" viewBox="0 0 1200 630" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background gradient -->
+  <defs>
+    <linearGradient id="bgGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#f8fafc;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#e2e8f0;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="630" fill="url(#bgGradient)"/>
+
+  <!-- Decorative circles -->
+  <circle cx="80" cy="80" r="180" fill="#fef3c7" opacity="0.5"/>
+  <circle cx="1120" cy="550" r="220" fill="#dcfce7" opacity="0.4"/>
+
+  <!-- Title -->
+  <text x="600" y="62" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="36" font-weight="700" fill="#111827">Amazon's Forte System</text>
+  <text x="600" y="98" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="17" fill="#6b7280">350,000 employees. 3–5 documented accomplishments. Required.</text>
+
+  <!-- Left panel — Weak (old way) -->
+  <rect x="60" y="130" width="490" height="400" rx="14" fill="white" stroke="#e5e7eb" stroke-width="2"/>
+  <rect x="60" y="130" width="490" height="58" rx="14" fill="#fee2e2"/>
+  <rect x="60" y="172" width="490" height="16" fill="#fee2e2"/>
+  <text x="305" y="167" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="18" font-weight="600" fill="#dc2626">Activity-Based</text>
+  <text x="305" y="186" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="11" fill="#dc2626">WON'T CUT IT ANYMORE</text>
+
+  <g opacity="0.65">
+    <text x="90" y="232" font-family="system-ui, -apple-system, sans-serif" font-size="13" fill="#6b7280">"Worked on the authentication system"</text>
+    <line x1="85" y1="229" x2="440" y2="229" stroke="#dc2626" stroke-width="1.8"/>
+
+    <text x="90" y="282" font-family="system-ui, -apple-system, sans-serif" font-size="13" fill="#6b7280">"Fixed critical bugs in payment service"</text>
+    <line x1="85" y1="279" x2="432" y2="279" stroke="#dc2626" stroke-width="1.8"/>
+
+    <text x="90" y="332" font-family="system-ui, -apple-system, sans-serif" font-size="13" fill="#6b7280">"Participated in code reviews"</text>
+    <line x1="85" y1="329" x2="340" y2="329" stroke="#dc2626" stroke-width="1.8"/>
+
+    <text x="90" y="382" font-family="system-ui, -apple-system, sans-serif" font-size="13" fill="#6b7280">"Helped with the migration project"</text>
+    <line x1="85" y1="379" x2="388" y2="379" stroke="#dc2626" stroke-width="1.8"/>
+
+    <text x="90" y="432" font-family="system-ui, -apple-system, sans-serif" font-size="13" fill="#6b7280">"Contributed to team initiatives"</text>
+    <line x1="85" y1="429" x2="350" y2="429" stroke="#dc2626" stroke-width="1.8"/>
+  </g>
+
+  <circle cx="485" cy="490" r="26" fill="#fee2e2" stroke="#dc2626" stroke-width="2"/>
+  <line x1="473" y1="478" x2="497" y2="502" stroke="#dc2626" stroke-width="3" stroke-linecap="round"/>
+  <line x1="497" y1="478" x2="473" y2="502" stroke="#dc2626" stroke-width="3" stroke-linecap="round"/>
+
+  <!-- Arrow -->
+  <path d="M572 330 L628 330" stroke="#374151" stroke-width="3" stroke-linecap="round"/>
+  <path d="M620 321 L628 330 L620 339" stroke="#374151" stroke-width="3" stroke-linecap="round" fill="none"/>
+
+  <!-- Right panel — Strong (Forte way) -->
+  <rect x="650" y="130" width="490" height="400" rx="14" fill="white" stroke="#22c55e" stroke-width="2"/>
+  <rect x="650" y="130" width="490" height="58" rx="14" fill="#dcfce7"/>
+  <rect x="650" y="172" width="490" height="16" fill="#dcfce7"/>
+  <text x="895" y="167" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="18" font-weight="600" fill="#166534">Impact-Based</text>
+  <text x="895" y="186" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="11" fill="#166534">WHAT FORTE REQUIRES</text>
+
+  <text x="675" y="225" font-family="system-ui, -apple-system, sans-serif" font-size="12" fill="#374151">"Refactored auth system —</text>
+  <text x="675" y="243" font-family="system-ui, -apple-system, sans-serif" font-size="12" font-weight="600" fill="#166534">reduced login latency 40%, +3% DAU conversion"</text>
+
+  <text x="675" y="280" font-family="system-ui, -apple-system, sans-serif" font-size="12" fill="#374151">"Fixed race condition in payment queue —</text>
+  <text x="675" y="298" font-family="system-ui, -apple-system, sans-serif" font-size="12" font-weight="600" fill="#166534">protected ~$500K/month in revenue"</text>
+
+  <text x="675" y="335" font-family="system-ui, -apple-system, sans-serif" font-size="12" fill="#374151">"Reviewed 57 PRs, caught 3 security vulns —</text>
+  <text x="675" y="353" font-family="system-ui, -apple-system, sans-serif" font-size="12" font-weight="600" fill="#166534">prevented 2 production incidents"</text>
+
+  <text x="675" y="390" font-family="system-ui, -apple-system, sans-serif" font-size="12" fill="#374151">"Led DB migration for 2M records —</text>
+  <text x="675" y="408" font-family="system-ui, -apple-system, sans-serif" font-size="12" font-weight="600" fill="#166534">zero downtime, 25% query latency improvement"</text>
+
+  <!-- Formula -->
+  <rect x="670" y="432" width="450" height="62" rx="8" fill="#f0fdf4" stroke="#22c55e" stroke-width="1"/>
+  <text x="895" y="453" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="11" fill="#374151" font-weight="600">WHAT YOU DID  →  HOW IT HAPPENED  →  WHAT CHANGED</text>
+  <text x="895" y="474" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="11" fill="#6b7280">Amazon's Forte formula for accepted accomplishments</text>
+
+  <circle cx="1095" cy="490" r="26" fill="#dcfce7" stroke="#22c55e" stroke-width="2"/>
+  <path d="M1083 490 L1091 498 L1107 477" stroke="#22c55e" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+
+  <!-- Bottom -->
+  <text x="600" y="585" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="14" font-weight="500" fill="#6b7280">If you shipped it but didn't document it — Amazon won't credit it.</text>
+</svg>
