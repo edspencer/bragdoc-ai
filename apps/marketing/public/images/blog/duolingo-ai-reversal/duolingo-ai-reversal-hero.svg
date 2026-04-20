@@ -1,0 +1,100 @@
+<svg width="1200" height="630" viewBox="0 0 1200 630" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background -->
+  <rect width="1200" height="630" fill="#0F172A"/>
+
+  <!-- Grid pattern -->
+  <defs>
+    <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+      <path d="M 40 0 L 0 0 0 40" fill="none" stroke="#1E293B" stroke-width="1"/>
+    </pattern>
+    <linearGradient id="leftGlow" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#EF4444;stop-opacity:0.15" />
+      <stop offset="100%" style="stop-color:#EF4444;stop-opacity:0" />
+    </linearGradient>
+    <linearGradient id="rightGlow" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#10B981;stop-opacity:0" />
+      <stop offset="100%" style="stop-color:#10B981;stop-opacity:0.15" />
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="630" fill="url(#grid)" opacity="0.4"/>
+
+  <!-- Left glow -->
+  <rect x="0" y="0" width="550" height="630" fill="url(#leftGlow)"/>
+  <!-- Right glow -->
+  <rect x="650" y="0" width="550" height="630" fill="url(#rightGlow)"/>
+
+  <!-- Divider line -->
+  <line x1="600" y1="80" x2="600" y2="580" stroke="#334155" stroke-width="1" stroke-dasharray="6 4"/>
+
+  <!-- Title -->
+  <text x="600" y="55" font-family="system-ui, -apple-system, sans-serif" font-size="32" font-weight="700" fill="#F1F5F9" text-anchor="middle">The AI Performance Review Divide</text>
+
+  <!-- LEFT SIDE — Duolingo reverses -->
+  <text x="300" y="115" font-family="system-ui, -apple-system, sans-serif" font-size="22" font-weight="700" fill="#EF4444" text-anchor="middle">Duolingo</text>
+  <text x="300" y="140" font-family="system-ui, -apple-system, sans-serif" font-size="13" fill="#94A3B8" text-anchor="middle">BACKED DOWN</text>
+
+  <!-- Duolingo card -->
+  <rect x="80" y="160" width="440" height="320" rx="12" fill="#1E293B" stroke="#EF4444" stroke-width="1.5" stroke-opacity="0.6"/>
+
+  <!-- Policy text strikethrough -->
+  <text x="300" y="205" font-family="system-ui, -apple-system, sans-serif" font-size="14" font-weight="600" fill="#94A3B8" text-anchor="middle">Original policy (April 2025):</text>
+  <text x="300" y="232" font-family="system-ui, -apple-system, sans-serif" font-size="13" fill="#64748B" text-anchor="middle">"Employees evaluated on AI usage"</text>
+  <line x1="130" y1="230" x2="470" y2="230" stroke="#EF4444" stroke-width="2" opacity="0.8"/>
+
+  <!-- Reversed label -->
+  <rect x="200" y="255" width="200" height="32" rx="6" fill="#EF4444" fill-opacity="0.15" stroke="#EF4444" stroke-width="1"/>
+  <text x="300" y="276" font-family="system-ui, -apple-system, sans-serif" font-size="13" font-weight="600" fill="#EF4444" text-anchor="middle">↩ Reversed April 2026</text>
+
+  <!-- CEO quote -->
+  <text x="300" y="325" font-family="system-ui, -apple-system, sans-serif" font-size="12" fill="#94A3B8" text-anchor="middle">"If AI can't help you do your job better,</text>
+  <text x="300" y="345" font-family="system-ui, -apple-system, sans-serif" font-size="12" fill="#94A3B8" text-anchor="middle">I'm not going to force you."</text>
+  <text x="300" y="368" font-family="system-ui, -apple-system, sans-serif" font-size="11" fill="#475569" text-anchor="middle">— Luis von Ahn, CEO, Duolingo</text>
+
+  <!-- Reasons -->
+  <text x="300" y="410" font-family="system-ui, -apple-system, sans-serif" font-size="12" fill="#64748B" text-anchor="middle">Employee pushback · User backlash</text>
+  <text x="300" y="430" font-family="system-ui, -apple-system, sans-serif" font-size="12" fill="#64748B" text-anchor="middle">Public pressure</text>
+
+  <!-- X mark -->
+  <circle cx="300" cy="465" r="20" fill="#EF4444" fill-opacity="0.15" stroke="#EF4444" stroke-width="1.5"/>
+  <line x1="291" y1="456" x2="309" y2="474" stroke="#EF4444" stroke-width="2.5" stroke-linecap="round"/>
+  <line x1="309" y1="456" x2="291" y2="474" stroke="#EF4444" stroke-width="2.5" stroke-linecap="round"/>
+
+  <!-- RIGHT SIDE — Meta/Amazon/Google double down -->
+  <text x="900" y="115" font-family="system-ui, -apple-system, sans-serif" font-size="22" font-weight="700" fill="#10B981" text-anchor="middle">Meta · Amazon · Google</text>
+  <text x="900" y="140" font-family="system-ui, -apple-system, sans-serif" font-size="13" fill="#94A3B8" text-anchor="middle">DOUBLED DOWN</text>
+
+  <!-- Companies card -->
+  <rect x="680" y="160" width="440" height="320" rx="12" fill="#1E293B" stroke="#10B981" stroke-width="1.5" stroke-opacity="0.6"/>
+
+  <!-- Meta row -->
+  <rect x="700" y="178" width="400" height="80" rx="8" fill="#0F172A" fill-opacity="0.6"/>
+  <text x="720" y="201" font-family="system-ui, -apple-system, sans-serif" font-size="13" font-weight="700" fill="#F1F5F9">Meta — Checkpoint</text>
+  <text x="720" y="220" font-family="system-ui, -apple-system, sans-serif" font-size="11" fill="#94A3B8">200+ signals: AI code, velocity, strategic decisions</text>
+  <text x="720" y="238" font-family="system-ui, -apple-system, sans-serif" font-size="11" fill="#10B981">AI-driven impact tied to compensation</text>
+  <circle cx="1065" cy="218" r="10" fill="#10B981" fill-opacity="0.2" stroke="#10B981" stroke-width="1"/>
+  <path d="M1059 218 L1063 222 L1071 213" stroke="#10B981" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+
+  <!-- Amazon row -->
+  <rect x="700" y="268" width="400" height="80" rx="8" fill="#0F172A" fill-opacity="0.6"/>
+  <text x="720" y="291" font-family="system-ui, -apple-system, sans-serif" font-size="13" font-weight="700" fill="#F1F5F9">Amazon — Forte</text>
+  <text x="720" y="310" font-family="system-ui, -apple-system, sans-serif" font-size="11" fill="#94A3B8">3–5 documented accomplishments required per cycle</text>
+  <text x="720" y="328" font-family="system-ui, -apple-system, sans-serif" font-size="11" fill="#10B981">Pay and equity tied to documented output</text>
+  <circle cx="1065" cy="308" r="10" fill="#10B981" fill-opacity="0.2" stroke="#10B981" stroke-width="1"/>
+  <path d="M1059 308 L1063 312 L1071 303" stroke="#10B981" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+
+  <!-- Google row -->
+  <rect x="700" y="358" width="400" height="80" rx="8" fill="#0F172A" fill-opacity="0.6"/>
+  <text x="720" y="381" font-family="system-ui, -apple-system, sans-serif" font-size="13" font-weight="700" fill="#F1F5F9">Google — GRAD</text>
+  <text x="720" y="400" font-family="system-ui, -apple-system, sans-serif" font-size="11" fill="#94A3B8">Recalibrated: tighter top ratings, annual only</text>
+  <text x="720" y="418" font-family="system-ui, -apple-system, sans-serif" font-size="11" fill="#10B981">High performers rewarded, rest squeezed</text>
+  <circle cx="1065" cy="398" r="10" fill="#10B981" fill-opacity="0.2" stroke="#10B981" stroke-width="1"/>
+  <path d="M1059 398 L1063 402 L1071 393" stroke="#10B981" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+
+  <!-- Forward arrow -->
+  <circle cx="900" cy="465" r="20" fill="#10B981" fill-opacity="0.15" stroke="#10B981" stroke-width="1.5"/>
+  <path d="M888 465 L907 465" stroke="#10B981" stroke-width="2.5" stroke-linecap="round"/>
+  <path d="M901 458 L908 465 L901 472" stroke="#10B981" stroke-width="2.5" stroke-linecap="round" fill="none"/>
+
+  <!-- Bottom tagline -->
+  <text x="600" y="570" font-family="system-ui, -apple-system, sans-serif" font-size="15" fill="#64748B" text-anchor="middle">Your company may not force AI. But it will measure what you produce with it. Document everything.</text>
+</svg>
