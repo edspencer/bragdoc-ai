@@ -15,7 +15,7 @@ interface ImageGalleryProps {
 }
 
 export function ImageGallery({
-  images,
+  images = [],
   height = 300,
   gap = 8,
   fullWidth = false,
