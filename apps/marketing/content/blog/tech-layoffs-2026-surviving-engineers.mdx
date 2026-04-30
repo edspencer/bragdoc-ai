@@ -18,15 +18,13 @@ But here's what the headlines don't show you: some engineers within the same tea
 
 ## The AI Problem (and Why It's Different)
 
-According to [Tom's Hardware reporting in April 2026](https://www.tomshardware.com/tech-industry/tech-industry-lays-off-nearly-80-000-employees-in-the-first-quarter-of-2026-almost-50-percent-of-affected-positions-cut-due-to-ai), nearly 47.9% of Q1 layoffs were attributed directly to AI and automation reducing the need for human workers. This isn't the 2023 "efficiency correction" or the 2024 "market adjustment." This is structural.
+This isn't the 2023 "efficiency correction" or the 2024 "market adjustment." Nearly half of Q1 cuts were explicitly attributed to AI reducing headcount needs — not restructuring, not overhiring corrections. When [Snap announces](https://www.cnbc.com/2026/04/15/snap-stock-layoffs-16-percent-workforce.html) that AI writes 65% of their code and simultaneously cuts 16% of their workforce, those two numbers are directly connected.
 
-When [Snap announced its April layoffs](https://www.cnbc.com/2026/04/15/snap-stock-layoffs-16-percent-workforce.html), leadership was candid: if you're writing routine code, an AI writes it faster now. If you're doing standard feature work, the tool can generate scaffolding. The math is simple: why pay $250K/year for code that an LLM can produce for $20/month in API costs?
+The job market tells the same story in a different way: tech postings requiring AI skills are up 67% year-over-year. Postings for traditional software engineering roles are down 23%. [The CNBC report on Meta and Microsoft's April cuts](https://www.cnbc.com/2026/04/24/20k-job-cuts-at-meta-microsoft-raise-concern-of-ai-labor-crisis-.html) framed it as "concern that an AI-driven labor crisis is here" — but the hiring data suggests it's less a crisis arriving and more a transition already underway.
 
-The [CNBC report on Meta and Microsoft's April 2026 cuts](https://www.cnbc.com/2026/04/24/20k-job-cuts-at-meta-microsoft-raise-concern-of-ai-labor-crisis-.html) framed it as "concern that an AI-driven labor crisis is here." And the trend in job postings confirms it: tech job listings requiring AI skills are up 67% year-over-year, while traditional software engineering postings are down 23%.
+The uncomfortable implication: writing good code is table stakes now. An LLM can pass a coding screen. What it can't do is everything that happens around the code.
 
-For the first time in decades, a rising tide of engineering capability is not lifting all boats.
-
-## What Actually Separates Survivors from Casualties
+## What Actually Separates the Engineers Who Stayed
 
 The engineers who kept their jobs aren't necessarily the smartest coders or the fastest writers. They're the ones who can **point to impact that's impossible to automate away**.
 
@@ -34,50 +32,44 @@ These engineers typically share four things:
 
 **1. Architectural decisions, not implementation details**
 
-AI can write a function. It can't redesign how your system handles traffic spikes at scale. The survivors are the ones who made calls about system design, infrastructure choices, or scalability approaches that prevented disasters or unlocked new products. And crucially—they can *explain why the decision mattered*.
+AI can write a function. It can't own the call about whether your system should be synchronous or event-driven, or what breaks at 10x scale. The engineers who stayed made those decisions — and crucially, they could *explain why the decision mattered and what it prevented*.
 
-A survivor's note: "Migrated our monolith to microservices architecture, enabling a 3x throughput increase and reducing deployment friction from 4 hours to 20 minutes. This directly enabled the product team to ship weekly instead of quarterly."
+Strong: "Migrated our monolith to microservices, enabling a 3x throughput increase and cutting deployment friction from 4 hours to 20 minutes. This directly unblocked the product team from shipping weekly."
 
-A casualty's note: "Worked on microservices migration."
+Weak: "Worked on microservices migration."
+
+Same engineer, same project — completely different defensibility.
 
 **2. Cross-functional leverage**
 
-AI won't sit in meetings negotiating between engineering and product. It won't unblock a stuck technical decision by understanding both the business and the technical constraints. The survivors are the ones who appeared in meeting notes, who shaped product roadmaps, who translated between worlds.
+An LLM won't sit in a room negotiating between engineering and product when both sides think the other is wrong. It won't identify that the "simple feature request" will require re-architecting the auth layer. Engineers who shaped roadmaps, unblocked decisions, and translated between technical and business constraints had a track record that no headcount spreadsheet could dismiss easily.
 
-They don't just code. They *influence*.
+**3. The reliability tax**
 
-**3. Reliability and things that prevent disasters**
+When 65% of your code is AI-generated, the value of the people who *catch what AI gets wrong* goes up, not down. The engineers who built alerting systems, caught race conditions before production, and maintained service reliability during migrations were protecting something AI can produce but can't yet own.
 
-Snap's 65% AI-generated code number is shocking until you realize: someone still has to make sure it works. The engineers who survived often got there because they were the ones who caught bugs in production, who built resilience, who prevented incidents. **You can't automate quality assurance and reliability engineering with AI—you need people who care about the system not breaking.**
+One example worth writing down: "Identified a race condition in the payment queue causing 2% of transactions to fail silently — $500K/month in at-risk revenue. Fixed and deployed within 48 hours."
 
-A survivor's note: "Implemented alerting system for database connection pools, which caught a cascading failure scenario before it hit production. Estimated customer impact prevented: 4-hour downtime affecting 500K users."
+**4. Force multiplication through mentorship**
 
-**4. Mentorship and force multiplication**
+One engineer shipping alone is now in direct competition with an AI. One senior engineer who raises the output of five others isn't. The median re-employment time for laid-off tech workers jumped from 3.2 months (2024) to 4.7 months (early 2026) — the market is crowded with individual contributors. It is not crowded with people who demonstrably made teams better.
 
-The median re-employment time for laid-off tech workers jumped from 3.2 months in 2024 to 4.7 months in early 2026. That's a 47% increase. Meanwhile, at companies doing well, seniors who mentor are harder to replace than individual contributors. One engineer coding alone is replaceable by an AI. Five engineers all leveling up because one person invests in them isn't.
+## What Actually Happens in the Layoff Meeting
 
-The survivors kept their jobs partly because they made their teams better.
+Layoff decisions don't happen in performance reviews. They happen in a room — or more likely a spreadsheet — where a manager is told to cut 10%, has two hours to decide, and is working from memory and whatever documentation exists.
 
-## The Documentation Advantage
+The engineers who came up in those meetings with clear records weren't lucky. Their managers had something concrete to argue with: "She redesigned the caching layer and it reduced our infrastructure costs by $300K annually. I need her." That conversation is different from "he's a solid engineer, always reliable." The first is defensible. The second is negotiable.
 
-Here's the brutal truth: in layoff cycles, documentation becomes currency.
+As we covered in our post on [the shift to output-based performance reviews](/blog/output-over-effort-changes-everything), this was already the direction before the layoff wave — the cuts just made it consequential in a much more immediate way.
 
-When a manager is told "cut 10% of your team," they look at contributions that are *visible* and *quantified*. Not vague ones. The engineer who has a running record of decisions made, problems solved, and impact created gets protected. The engineer who "just codes" is exposed.
+## This Is Also an Opportunity
 
-Before the layoffs, many engineers couldn't articulate their own impact in under five minutes. Now, the ones still employed have clear records: weekly notes, achievement drafts, decision logs. When their name came up in the layoff discussion, their manager had ammunition.
+Here's the flip side: in leaner engineering orgs, visibility compounds differently. When headcount shrinks, the people with the clearest track records get more ownership, not less. High-impact work gets noticed faster because there are fewer people producing it.
 
-As we covered in our post on [output-based performance reviews](/blog/output-over-effort-changes-everything), the industry is already shifting from "how hard did you work" to "what actually changed because you were here." The layoff wave is accelerating that shift.
+The [six types of developer impact](/blog/six-types-developer-impact) — code, architecture, reliability, mentoring, cross-functional work, process improvements — are all things you're probably already doing. The gap isn't the work. It's that most engineers don't track it in real time. By review season, the specifics are gone.
 
-And the engineers documenting as they go—who follow the [habit system we outlined](/blog/stop-setting-goals-start-tracking-wins)—have a massive advantage. They don't scramble to prove value in a crisis. They already have the proof.
+The [habit that closes that gap](/blog/stop-setting-goals-start-tracking-wins) takes about 10 minutes a week: one note, one number, one outcome. Done consistently, it turns an ordinary six months into a record that's hard to argue with.
 
-## What This Means for Your Career Right Now
-
-If you're in tech, right now is the time to shift your internal narrative from "I'm a software engineer" to "I'm a person who drives outcomes." Write it down. Weekly. Add one line: what shipped, what changed, what you prevented from breaking. Link it to business impact when you can.
-
-The [six types of developer impact](/blog/six-types-developer-impact) gives you a framework for this—code, architecture, reliability, mentoring, cross-functional work, process improvements. You probably do all of these. Most engineers just don't write them down until review season.
-
-Start now. Not because a layoff is coming to your company. Because by the time one does, the ones who survive will be the ones with proof.
-
-And if you want to automate the hard part—automatically pulling your GitHub commits and PRs into draft achievements, so you're not starting from a blank page every Friday—that's what [BragDoc](/) does. Not to help you game reviews. To make it obvious what you've already accomplished.
+And if you want the GitHub half automated — commits and PRs surfaced as draft achievements without the manual excavation — that's what [BragDoc](/) does. Not to help you spin your work. To make sure what you actually built doesn't disappear into git history.
 
 <SignUpCTA />
