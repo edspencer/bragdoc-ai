@@ -1,0 +1,110 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" width="1200" height="630">
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#0f172a"/>
+      <stop offset="100%" style="stop-color:#1e293b"/>
+    </linearGradient>
+    <linearGradient id="dangerGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#450a0a"/>
+      <stop offset="100%" style="stop-color:#1e293b"/>
+    </linearGradient>
+    <linearGradient id="safeGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#1e293b"/>
+      <stop offset="100%" style="stop-color:#431407"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1200" height="630" fill="url(#bgGrad)"/>
+
+  <!-- Left panel tint (danger zone) -->
+  <rect width="580" height="480" fill="url(#dangerGrad)" opacity="0.4"/>
+
+  <!-- Right panel tint (safe zone) -->
+  <rect x="620" width="580" height="480" fill="url(#safeGrad)" opacity="0.3"/>
+
+  <!-- Center divider -->
+  <line x1="600" y1="30" x2="600" y2="490" stroke="#334155" stroke-width="1" stroke-dasharray="6,4"/>
+
+  <!-- Left label -->
+  <text x="290" y="55" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="11" font-weight="700" fill="#ef4444" letter-spacing="4">AT RISK</text>
+
+  <!-- Right label -->
+  <text x="910" y="55" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="11" font-weight="700" fill="#f97316" letter-spacing="4">PROTECTED</text>
+
+  <!-- Left side: vague work card 1 -->
+  <rect x="50" y="75" width="500" height="80" rx="10" fill="#1e293b" stroke="#374151" stroke-width="1"/>
+  <rect x="50" y="75" width="4" height="80" rx="2" fill="#ef4444"/>
+  <text x="80" y="108" font-family="system-ui, -apple-system, sans-serif" font-size="15" font-weight="600" fill="#64748b">Worked on backend services</text>
+  <text x="80" y="132" font-family="system-ui, -apple-system, sans-serif" font-size="13" fill="#475569">Participated in team projects and code reviews</text>
+  <text x="520" y="119" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="22" fill="#ef4444">✕</text>
+
+  <!-- Left side: vague work card 2 -->
+  <rect x="50" y="175" width="500" height="80" rx="10" fill="#1e293b" stroke="#374151" stroke-width="1"/>
+  <rect x="50" y="175" width="4" height="80" rx="2" fill="#ef4444"/>
+  <text x="80" y="208" font-family="system-ui, -apple-system, sans-serif" font-size="15" font-weight="600" fill="#64748b">Helped with the migration</text>
+  <text x="80" y="232" font-family="system-ui, -apple-system, sans-serif" font-size="13" fill="#475569">Contributed to infrastructure improvements</text>
+  <text x="520" y="219" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="22" fill="#ef4444">✕</text>
+
+  <!-- Left side: vague work card 3 -->
+  <rect x="50" y="275" width="500" height="80" rx="10" fill="#1e293b" stroke="#374151" stroke-width="1"/>
+  <rect x="50" y="275" width="4" height="80" rx="2" fill="#ef4444"/>
+  <text x="80" y="308" font-family="system-ui, -apple-system, sans-serif" font-size="15" font-weight="600" fill="#64748b">Reviewed pull requests regularly</text>
+  <text x="80" y="332" font-family="system-ui, -apple-system, sans-serif" font-size="13" fill="#475569">Supported junior developers on the team</text>
+  <text x="520" y="319" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="22" fill="#ef4444">✕</text>
+
+  <!-- Left conclusion badge -->
+  <rect x="50" y="375" width="500" height="50" rx="8" fill="#450a0a" stroke="#ef4444" stroke-width="1"/>
+  <text x="300" y="402" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="14" font-weight="600" fill="#ef4444">No documented impact = no proof of value</text>
+
+  <!-- Right side: strong achievement card 1 -->
+  <rect x="650" y="75" width="500" height="80" rx="10" fill="#1e293b" stroke="#f97316" stroke-width="1"/>
+  <rect x="650" y="75" width="4" height="80" rx="2" fill="#f97316"/>
+  <text x="680" y="103" font-family="system-ui, -apple-system, sans-serif" font-size="15" font-weight="600" fill="#f1f5f9">Refactored auth: latency 800ms → 180ms</text>
+  <text x="680" y="123" font-family="system-ui, -apple-system, sans-serif" font-size="13" fill="#94a3b8">Reduced login failures by 40%, improved DAU conversion</text>
+  <text x="680" y="143" font-family="system-ui, -apple-system, sans-serif" font-size="12" font-weight="600" fill="#f97316">Impact: $200K infrastructure savings/year</text>
+
+  <!-- Right side: strong achievement card 2 -->
+  <rect x="650" y="175" width="500" height="80" rx="10" fill="#1e293b" stroke="#f97316" stroke-width="1"/>
+  <rect x="650" y="175" width="4" height="80" rx="2" fill="#f97316"/>
+  <text x="680" y="203" font-family="system-ui, -apple-system, sans-serif" font-size="15" font-weight="600" fill="#f1f5f9">Zero-downtime migration of 8M records</text>
+  <text x="680" y="223" font-family="system-ui, -apple-system, sans-serif" font-size="13" fill="#94a3b8">Coordinated 4 teams over 6 weeks, no incidents</text>
+  <text x="680" y="243" font-family="system-ui, -apple-system, sans-serif" font-size="12" font-weight="600" fill="#f97316">Impact: 40% faster queries, unlocked new product line</text>
+
+  <!-- Right side: strong achievement card 3 -->
+  <rect x="650" y="275" width="500" height="80" rx="10" fill="#1e293b" stroke="#f97316" stroke-width="1"/>
+  <rect x="650" y="275" width="4" height="80" rx="2" fill="#f97316"/>
+  <text x="680" y="303" font-family="system-ui, -apple-system, sans-serif" font-size="15" font-weight="600" fill="#f1f5f9">57 code reviews — caught 3 critical vulns</text>
+  <text x="680" y="323" font-family="system-ui, -apple-system, sans-serif" font-size="13" fill="#94a3b8">Mentored 2 juniors, both hit promotion readiness</text>
+  <text x="680" y="343" font-family="system-ui, -apple-system, sans-serif" font-size="12" font-weight="600" fill="#f97316">Impact: Team velocity up 25%, zero production incidents</text>
+
+  <!-- Right conclusion badge -->
+  <rect x="650" y="375" width="500" height="50" rx="8" fill="#431407" stroke="#f97316" stroke-width="1"/>
+  <text x="900" y="402" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="14" font-weight="600" fill="#f97316">Documented impact = career insurance</text>
+
+  <!-- Bottom stats bar -->
+  <rect x="0" y="490" width="1200" height="140" fill="#0a0f1e"/>
+  <line x1="0" y1="490" x2="1200" y2="490" stroke="#1e293b" stroke-width="1"/>
+
+  <!-- Stat 1 -->
+  <text x="200" y="540" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="32" font-weight="700" fill="#f1f5f9">120,000+</text>
+  <text x="200" y="563" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="12" fill="#64748b">tech workers laid off in 2026</text>
+
+  <!-- Divider -->
+  <line x1="400" y1="510" x2="400" y2="580" stroke="#1e293b" stroke-width="1"/>
+
+  <!-- Stat 2 -->
+  <text x="600" y="540" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="32" font-weight="700" fill="#f97316">47.9%</text>
+  <text x="600" y="563" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="12" fill="#64748b">of cuts attributed to AI automation</text>
+
+  <!-- Divider -->
+  <line x1="800" y1="510" x2="800" y2="580" stroke="#1e293b" stroke-width="1"/>
+
+  <!-- Stat 3 -->
+  <text x="1000" y="540" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="32" font-weight="700" fill="#f1f5f9">65%</text>
+  <text x="1000" y="563" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="12" fill="#64748b">of Snap's code now AI-generated</text>
+
+  <!-- bragdoc.ai branding -->
+  <rect x="1062" y="596" width="120" height="28" rx="6" fill="#f97316"/>
+  <text x="1122" y="615" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="13" font-weight="600" fill="white">bragdoc.ai</text>
+</svg>
