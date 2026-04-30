@@ -150,6 +150,7 @@ export default async function BlogPostPage({
             <div className="prose prose-lg dark:prose-invert max-w-none">
               <MDXRemote
                 source={post.content}
+                options={{ blockJS: false }}
                 components={{
                   DemoCTA,
                   SignUpCTA,
