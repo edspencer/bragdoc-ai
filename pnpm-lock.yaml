@@ -157,6 +157,9 @@ importers:
       node-mocks-http:
         specifier: ^1.17.2
         version: 1.17.2(@types/node@24.10.1)
+      nodemailer:
+        specifier: ^7.0.10
+        version: 7.0.10
       server-cli-only:
         specifier: ^0.3.2
         version: 0.3.2
@@ -185,7 +188,7 @@ importers:
   apps/marketing:
     dependencies:
       '@next/mdx':
-        specifier: latest
+        specifier: ^16.1.6
         version: 16.2.4(@mdx-js/loader@3.1.1)(@mdx-js/react@3.1.1(@types/react@19.2.3)(react@19.2.0))
       '@radix-ui/react-accordion':
         specifier: 1.2.12
@@ -11507,7 +11510,6 @@ packages:
   rclone.js@0.6.6:
     resolution: {integrity: sha512-Dxh34cab/fNjFq5SSm0fYLNkGzG2cQSBy782UW9WwxJCEiVO4cGXkvaXcNlgv817dK8K8PuQ+NHUqSAMMhWujQ==}
     engines: {node: '>=12'}
-    cpu: [arm, arm64, mips, mipsel, x32, x64]
     os: [darwin, freebsd, linux, openbsd, sunos, win32]
     hasBin: true
 
