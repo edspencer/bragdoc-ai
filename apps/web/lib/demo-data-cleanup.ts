@@ -149,7 +149,7 @@ export async function cleanupDemoAccountData(
       await db.delete(session).where(eq(session.userId, userId));
     }
 
-    // User record is preserved for analytics (email, createdAt, level='demo')
+    // User record is preserved for analytics (email, createdAt)
     console.log(`Successfully cleaned up demo account data for user ${userId}`);
   } catch (error) {
     console.error(

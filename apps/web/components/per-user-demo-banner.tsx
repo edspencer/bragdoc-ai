@@ -11,7 +11,7 @@ import { Info, Loader2 } from 'lucide-react';
  * (per-user demo mode via session swap).
  *
  * This is different from the standalone demo mode banner:
- * - Standalone: User is a demo account (user.level === 'demo')
+ * - Standalone: User is a demo account (legacy standalone demo mode, now removed)
  * - Per-user: User has toggled demo mode to view sample data
  *
  * The banner provides:

@@ -27,7 +27,7 @@ interface UseDemoHelpDialogReturn {
  * - User closing dialog prevents re-opening in same session
  * - Help button can always reopen dialog regardless of seen status
  *
- * @param isDemoMode - Whether user is in demo mode (from session.user.level === 'demo')
+ * @param isDemoMode - Whether user is in demo mode (per-user demo session)
  * @param autoOpen - Whether to automatically open dialog on first view (default: true)
  * @returns { isOpen, setIsOpen } - Dialog state and setter
  *
