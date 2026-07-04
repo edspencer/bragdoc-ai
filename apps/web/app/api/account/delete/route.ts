@@ -94,7 +94,6 @@ export async function POST(request: NextRequest) {
       {
         userId,
         accountAge: accountAgeDays,
-        subscriptionLevel: userData.level,
         achievementCount: achievementCount.length,
         projectCount: projectCount.length,
         companyCount: companyCount.length,

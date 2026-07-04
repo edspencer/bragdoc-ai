@@ -80,8 +80,6 @@ export async function getAuthUser(
         provider: payload.provider as string,
         providerId: payload.providerId as string,
         preferences: payload.preferences as any,
-        level: payload.level as any,
-        renewalPeriod: payload.renewalPeriod as any,
       } as User,
       source: 'jwt',
     };
