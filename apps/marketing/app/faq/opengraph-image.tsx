@@ -12,7 +12,7 @@ export default async function Image() {
     badges: [
       'Getting Started',
       'Privacy',
-      'Pricing',
+      'Costs',
       'Features',
       'CLI',
       'Integrations',

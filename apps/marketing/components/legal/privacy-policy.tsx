@@ -72,7 +72,6 @@ export function PrivacyPolicyContent() {
               Communicate with you about your account, product updates, and
               support inquiries
             </li>
-            <li>Process payments and manage subscriptions (via Stripe)</li>
             <li>Detect and prevent fraud, abuse, and security issues</li>
           </ul>
         </section>
@@ -200,14 +199,6 @@ export function PrivacyPolicyContent() {
           <ul className="list-disc pl-6 mb-4 space-y-2">
             <li>
               <strong>Mailgun:</strong> Transactional email delivery
-            </li>
-          </ul>
-
-          <h3 className="text-xl font-semibold mb-3 mt-6">Payments</h3>
-          <ul className="list-disc pl-6 mb-4 space-y-2">
-            <li>
-              <strong>Stripe:</strong> Payment processing and subscription
-              management
             </li>
           </ul>
 

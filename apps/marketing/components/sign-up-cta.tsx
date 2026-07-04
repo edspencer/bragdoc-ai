@@ -27,7 +27,7 @@ export function SignUpCTA({
       description:
         'Join 1,000+ professionals already tracking their wins. Limited spots for early access.',
       buttonText: 'Claim My Free Account',
-      subtext: 'No credit card required • Upgrade anytime',
+      subtext: 'No credit card required • Free forever',
       gradient: 'from-blue-500 via-cyan-500 to-sky-500',
       bgGradient: 'from-blue-600 to-sky-600',
       hoverGradient: 'hover:from-blue-600 hover:to-sky-600',
@@ -40,7 +40,7 @@ export function SignUpCTA({
       description:
         'Transform your daily wins into compelling career narratives that get you promoted.',
       buttonText: 'Get Started Free',
-      subtext: 'Free forever plan • Upgrade anytime',
+      subtext: 'Free forever • No credit card required',
       gradient: 'from-indigo-500 via-blue-500 to-cyan-500',
       bgGradient: 'from-indigo-600 to-cyan-600',
       hoverGradient: 'hover:from-indigo-600 hover:to-cyan-600',

@@ -244,10 +244,6 @@ export function TermsOfServiceContent() {
             <li>Requests by law enforcement or government agencies</li>
             <li>Technical or security reasons</li>
           </ul>
-          <p className="mb-4 mt-4">
-            If we terminate your account for violations, you may not be entitled
-            to a refund of any subscription fees.
-          </p>
         </section>
 
         <section className="mb-12">
@@ -328,59 +324,21 @@ export function TermsOfServiceContent() {
         </section>
 
         <section className="mb-12">
-          <h2 className="text-2xl font-semibold mb-4">8. Payment Terms</h2>
-
-          <h3 className="text-xl font-semibold mb-3 mt-6">
-            Subscription Pricing
-          </h3>
+          <h2 className="text-2xl font-semibold mb-4">8. Fees</h2>
           <p className="mb-4">
-            BragDoc offers both free and paid subscription plans. Current
-            pricing and plan details are available on our{' '}
-            <Link href="/pricing" className="text-primary hover:underline">
-              pricing page
-            </Link>
-            .
+            BragDoc is provided free of charge. There are no subscription plans,
+            fees, or paid tiers.
           </p>
-
-          <h3 className="text-xl font-semibold mb-3 mt-6">Billing</h3>
           <ul className="list-disc pl-6 mb-4 space-y-2">
             <li>
-              Subscription fees are billed in advance on a monthly or annual
-              basis
-            </li>
-            <li>All fees are in USD unless otherwise stated</li>
-            <li>
-              You authorize us to charge your payment method for all fees
-              incurred
-            </li>
-            <li>Prices are subject to change with 30 days' notice</li>
-          </ul>
-
-          <h3 className="text-xl font-semibold mb-3 mt-6">Refund Policy</h3>
-          <ul className="list-disc pl-6 mb-4 space-y-2">
-            <li>
-              We offer a 14-day money-back guarantee for new subscriptions
-            </li>
-            <li>Refunds after 14 days are at our discretion</li>
-            <li>To request a refund, contact support@bragdoc.ai</li>
-            <li>Refunds are processed within 5-10 business days</li>
-          </ul>
-
-          <h3 className="text-xl font-semibold mb-3 mt-6">Cancellation</h3>
-          <ul className="list-disc pl-6 mb-4 space-y-2">
-            <li>
-              You may cancel your subscription at any time from your account
-              settings
+              AI features may require you to supply your own API key for a
+              third-party LLM provider (such as OpenAI or Anthropic). Any usage
+              charges from that provider are between you and the provider and
+              are your responsibility.
             </li>
             <li>
-              Cancellation takes effect at the end of your current billing
-              period
+              You may close your account at any time from your account settings.
             </li>
-            <li>
-              You will retain access to paid features until the end of the paid
-              period
-            </li>
-            <li>No refunds are provided for partial months or unused time</li>
           </ul>
         </section>
 

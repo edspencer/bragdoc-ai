@@ -13,42 +13,36 @@ const comparisonData = [
     cliUsage: 'Heavy',
     standupMode: 'Yes',
     documentGen: 'Monthly',
-    typicalPrice: 'Free (own LLM)',
   },
   {
     useCase: 'Manager',
     cliUsage: 'Light',
     standupMode: 'No',
     documentGen: 'Monthly',
-    typicalPrice: '$4.99/mo',
   },
   {
     useCase: 'Freelancer',
     cliUsage: 'Heavy',
     standupMode: 'Varies',
     documentGen: 'Per-client',
-    typicalPrice: 'Free or $4.99',
   },
   {
     useCase: 'Transitioner',
     cliUsage: 'Historical',
     standupMode: 'No',
     documentGen: 'Resume prep',
-    typicalPrice: 'Free',
   },
   {
     useCase: 'Remote',
     cliUsage: 'Daily',
     standupMode: 'Yes',
     documentGen: 'Weekly',
-    typicalPrice: 'Free (own LLM)',
   },
   {
     useCase: 'Enterprise',
     cliUsage: 'Heavy',
     standupMode: 'Yes',
     documentGen: 'Quarterly',
-    typicalPrice: 'Self-hosted',
   },
 ];
 
@@ -68,7 +62,6 @@ export function ComparisonTable() {
                   <TableHead className="font-semibold">CLI Usage</TableHead>
                   <TableHead className="font-semibold">Standup Mode</TableHead>
                   <TableHead className="font-semibold">Document Gen</TableHead>
-                  <TableHead className="font-semibold">Typical Price</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -78,7 +71,6 @@ export function ComparisonTable() {
                     <TableCell>{row.cliUsage}</TableCell>
                     <TableCell>{row.standupMode}</TableCell>
                     <TableCell>{row.documentGen}</TableCell>
-                    <TableCell>{row.typicalPrice}</TableCell>
                   </TableRow>
                 ))}
               </TableBody>

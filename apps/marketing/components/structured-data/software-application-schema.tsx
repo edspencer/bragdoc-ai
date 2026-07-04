@@ -12,7 +12,7 @@ export function SoftwareApplicationSchema() {
       price: '0',
       priceCurrency: 'USD',
       description:
-        'Free with your own LLM, optional cloud AI features at $4.99/month',
+        'Completely free — use the hosted app with your own LLM API key, or self-host it yourself',
     },
     aggregateRating: {
       '@type': 'AggregateRating',
