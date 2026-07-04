@@ -142,7 +142,6 @@ Set via Wrangler or Dashboard:
 wrangler secret put POSTGRES_URL
 wrangler secret put AUTH_SECRET
 wrangler secret put OPENAI_API_KEY
-wrangler secret put STRIPE_SECRET_KEY
 ```
 
 ### OpenNext Adapter
@@ -176,7 +175,6 @@ if (process.env.NODE_ENV === 'development') {
    AUTH_SECRET
    NEXTAUTH_URL
    OPENAI_API_KEY
-   STRIPE_SECRET_KEY
    GOOGLE_CLIENT_ID
    GOOGLE_CLIENT_SECRET
    GITHUB_CLIENT_ID
@@ -283,9 +281,6 @@ NEXT_PUBLIC_POSTHOG_HOST=https://app.posthog.com
 
 # AI/LLM
 OPENAI_API_KEY=sk-...
-
-# Payments
-STRIPE_SECRET_KEY=sk_...
 ```
 
 ### Optional

@@ -167,7 +167,7 @@ export default function FaqPage() {
 - Use on homepage
 
 **SoftwareApplication Schema** (`software-application-schema.tsx`):
-- App details, pricing, platform support
+- App details, platform support, free offer
 - Aggregate ratings
 - Use on homepage
 
@@ -185,11 +185,6 @@ export default function FaqPage() {
 - Step-by-step instructions
 - Rich snippet eligible
 - Use on tutorial/guide pages
-
-**Offer Schema** (`offer-schema.tsx`):
-- Pricing information
-- Product details
-- Use on pricing page
 
 ## Sitemap Pattern
 
@@ -322,11 +317,10 @@ export const metadata: Metadata = {
 **Components:**
 - `schema-wrapper.tsx` - Base component for all schema markup
 - `organization-schema.tsx` - Company information (homepage)
-- `software-application-schema.tsx` - App details and pricing (homepage)
+- `software-application-schema.tsx` - App details and free offer (homepage)
 - `faq-schema.tsx` - FAQ rich snippets (FAQ page)
 - `blog-posting-schema.tsx` - Article metadata (blog posts)
 - `how-to-schema.tsx` - Step-by-step guides (Get Started, How It Works)
-- `offer-schema.tsx` - Pricing information (Pricing page)
 
 **Usage:**
 ```typescript

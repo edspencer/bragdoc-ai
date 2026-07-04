@@ -12,13 +12,12 @@ This guide documents the SEO implementation for the BragDoc marketing site and p
 - All pages have canonical URLs to prevent duplicate content
 
 ### Schema.org Structured Data
-- **6 schema types** implemented:
+- **5 schema types** implemented:
   1. **OrganizationSchema** (homepage) - Company information
-  2. **SoftwareApplicationSchema** (homepage) - App details and pricing
+  2. **SoftwareApplicationSchema** (homepage) - App details and free offer
   3. **FAQSchema** (FAQ page) - 60+ question/answer pairs
   4. **BlogPostingSchema** (blog posts) - Article metadata
   5. **HowToSchema** (Get Started, How It Works) - Step-by-step guides
-  6. **OfferSchema** (Pricing page) - Pricing information
 
 ### Technical SEO Infrastructure
 - **robots.txt** - Search engine crawler directives
@@ -112,7 +111,7 @@ const staticPages = [
 
 **Priority Guidelines:**
 - 1.0 - Homepage only
-- 0.9 - Key pages (Features, Pricing, Get Started, FAQ)
+- 0.9 - Key pages (Features, Get Started, FAQ)
 - 0.8 - Important pages (How It Works, Use Cases, CLI)
 - 0.7 - Secondary pages (About, Blog index, Self-hosting)
 - 0.6 - Tertiary pages (Privacy, individual blog posts)

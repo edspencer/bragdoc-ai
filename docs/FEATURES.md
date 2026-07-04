@@ -203,7 +203,6 @@ Reports are stored in the `Document` table with the following key fields:
 
 Uses the `documentWritingModel` from the LLM router which selects the appropriate model based on:
 
-- User's subscription level
 - Task type (document generation)
 - Provider availability
 - Cost optimization
@@ -228,19 +227,6 @@ The following features are planned for future releases:
 - **Version history** - Track changes to edited reports
 - **Bulk operations** - Generate multiple reports at once
 - **Email delivery** - Send reports directly to managers
-
-### Payment Gating (Commercial Mode)
-
-When `PAYMENT_TOKEN_REQUIRED=true`, report generation may be gated by subscription level:
-
-| Feature           | Free         | Basic        | Pro          |
-| ----------------- | ------------ | ------------ | ------------ |
-| Report Generation | Limited      | ✅ Unlimited | ✅ Unlimited |
-| Custom Prompts    | ❌           | ✅           | ✅           |
-| AI Quality        | Standard     | Standard     | Premium      |
-| Report History    | Last 30 days | Last 90 days | Unlimited    |
-
-In open source mode (`PAYMENT_TOKEN_REQUIRED=false`), all report features are available to all users without restriction.
 
 ---
 
