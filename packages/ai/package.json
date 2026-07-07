@@ -32,6 +32,7 @@
   "license": "MIT",
   "scripts": {
     "build": "tsc",
+    "dev": "tsc --watch",
     "typecheck": "tsc --noEmit",
     "lint": "biome lint --write --unsafe src/",
     "format": "biome format --write src/"
