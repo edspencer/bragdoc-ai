@@ -35,20 +35,6 @@ export interface AppUsage {
   modelId?: string;
 }
 
-export const userLevelEnum = pgEnum('user_level', [
-  'free',
-  'basic',
-  'pro',
-  'demo',
-]);
-export type UserLevel = (typeof userLevelEnum.enumValues)[number];
-
-export const renewalPeriodEnum = pgEnum('renewal_period', [
-  'monthly',
-  'yearly',
-]);
-export type RenewalPeriod = (typeof renewalPeriodEnum.enumValues)[number];
-
 export const userStatusEnum = pgEnum('user_status', [
   'active',
   'banned',
@@ -89,14 +75,7 @@ export const user = pgTable(
     updatedAt: timestamp('updated_at').notNull().defaultNow(),
     emailVerified: boolean('email_verified').notNull().default(false), // Changed to boolean for Better Auth
 
-    level: userLevelEnum('level').notNull().default('free'),
-    renewalPeriod: renewalPeriodEnum('renewal_period')
-      .notNull()
-      .default('monthly'),
-    lastPayment: timestamp('last_payment'),
-
     status: userStatusEnum('status').notNull().default('active'),
-    stripeCustomerId: varchar('stripe_customer_id', { length: 256 }),
     tosAcceptedAt: timestamp('tos_accepted_at'),
 
     // Demo mode fields

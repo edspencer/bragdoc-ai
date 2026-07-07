@@ -67,7 +67,6 @@ export async function getOrCreateShadowUser(
     email: shadowEmail,
     name: 'Demo User',
     isDemo: true,
-    level: 'demo',
     provider: 'credentials', // Shadow users don't use real auth
     emailVerified: false,
   });
