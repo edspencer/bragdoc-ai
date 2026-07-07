@@ -28,7 +28,7 @@ import { eq } from 'drizzle-orm';
  * 1. Verifies the user exists
  * 2. Deletes all related data in proper order to respect foreign key constraints
  * 3. Anonymizes PII fields (email, name, password, OAuth tokens)
- * 4. Preserves the user record for analytics (userId, createdAt, level, stripeCustomerId)
+ * 4. Preserves the user record for analytics (userId, createdAt)
  * 5. Sets user status to 'deleted'
  *
  * Tables deleted:
@@ -105,7 +105,7 @@ export async function deleteAccountData(userId: string): Promise<void> {
     await db.delete(session).where(eq(session.userId, userId));
 
     // Anonymize and update user record
-    // Keep: createdAt, level (subscriptionLevel), stripeCustomerId
+    // Keep: createdAt
     // Anonymize: email, name, password, image, emailVerified, providerId
     // Set: status = 'deleted'
     await db

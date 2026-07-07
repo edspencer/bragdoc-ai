@@ -100,36 +100,11 @@ export const betterAuthConfig: Partial<BetterAuthOptions> = {
         required: false,
       },
 
-      // Subscription level
-      level: {
-        type: 'string',
-        required: true,
-        defaultValue: 'free',
-      },
-
-      // Billing renewal period
-      renewalPeriod: {
-        type: 'string',
-        required: false,
-      },
-
-      // Last payment timestamp
-      lastPayment: {
-        type: 'date',
-        required: false,
-      },
-
       // Account status
       status: {
         type: 'string',
         required: true,
         defaultValue: 'active',
-      },
-
-      // Stripe customer ID
-      stripeCustomerId: {
-        type: 'string',
-        required: false,
       },
 
       // Terms of Service acceptance timestamp

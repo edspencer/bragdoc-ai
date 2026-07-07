@@ -34,8 +34,6 @@ export async function POST(request: Request) {
       provider: user.provider,
       providerId: user.providerId,
       preferences: user.preferences,
-      level: user.level,
-      renewalPeriod: user.renewalPeriod,
     })
       .setProtectedHeader({ alg: 'HS256' })
       .setSubject(user.id)
