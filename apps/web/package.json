@@ -32,6 +32,7 @@
     "@ai-sdk/openai": "^2.0.53",
     "@ai-sdk/react": "^2.0.76",
     "@ai-sdk/rsc": "^1.0.76",
+    "@bragdoc/ai": "workspace:*",
     "@bragdoc/config": "workspace:*",
     "@bragdoc/database": "workspace:*",
     "@dnd-kit/core": "^6.3.1",

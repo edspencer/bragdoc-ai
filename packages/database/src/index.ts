@@ -146,6 +146,17 @@ export {
   getWorkstreamsByUserIdWithDateFilter,
 } from './workstreams/queries';
 
+// Re-export LLM config queries (BYOK)
+export {
+  getLLMConfigsForUser,
+  getDefaultLLMConfig,
+  upsertLLMConfig,
+  deleteLLMConfig,
+} from './llm-config/queries';
+
+// Re-export LLM config types
+export type { UpsertLLMConfigInput } from './llm-config/queries';
+
 // Re-export performance review queries
 export {
   getPerformanceReviewsByUserId,

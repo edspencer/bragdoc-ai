@@ -142,6 +142,8 @@ Set via Wrangler or Dashboard:
 wrangler secret put POSTGRES_URL
 wrangler secret put AUTH_SECRET
 wrangler secret put OPENAI_API_KEY
+# BYOK: encrypts user LLM API keys at rest (generate with: openssl rand -base64 32)
+wrangler secret put BYOK_ENCRYPTION_KEY
 ```
 
 ### OpenNext Adapter
