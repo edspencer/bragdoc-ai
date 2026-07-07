@@ -36,8 +36,8 @@ export function SelfHostingCTA() {
 
           <p className="text-sm text-muted-foreground mt-8">
             Prefer a managed solution?{' '}
-            <Link href="/pricing" className="text-primary hover:underline">
-              Check out our cloud hosting
+            <Link href="/get-started" className="text-primary hover:underline">
+              Use our free cloud hosting
             </Link>
           </p>
         </div>

@@ -22,7 +22,7 @@ const faqs = [
   {
     question: 'Do I need to pay for AI features?',
     answer:
-      'BragDoc offers a free account for basic tracking, but AI features like document generation, standups, and performance reviews require a Full Account at $4.99/month or $44.99/year. You can also self-host the open source version for free.',
+      'No — BragDoc is completely free. Bring your own LLM API key (OpenAI, Anthropic, or a local model like Ollama) and every feature is available: document generation, standups, and performance reviews. You can also self-host the open source version.',
   },
   {
     question: 'Can I use BragDoc without the CLI?',

@@ -7,8 +7,8 @@ export function ValuesSection() {
     },
     {
       emoji: '💰',
-      title: 'Fair Pricing',
-      description: 'Career-long tool priced fairly',
+      title: 'Free Forever',
+      description: 'Completely free — bring your own LLM key or self-host',
     },
     {
       emoji: '🔓',

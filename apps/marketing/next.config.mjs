@@ -23,6 +23,16 @@ const nextConfig = {
     ],
   },
   pageExtensions: ['js', 'jsx', 'md', 'mdx', 'ts', 'tsx'],
+  async redirects() {
+    return [
+      {
+        // BragDoc is free — the pricing page no longer exists
+        source: '/pricing',
+        destination: '/',
+        permanent: true,
+      },
+    ]
+  },
   // Optimize for static site
   output: 'standalone',
   // Reduce trace collection overhead

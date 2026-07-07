@@ -24,15 +24,8 @@ export function useTracking() {
     });
   };
 
-  const trackPricingInteraction = (planViewed: string) => {
-    posthog?.capture('plan_comparison_interacted', {
-      plan_viewed: planViewed,
-    });
-  };
-
   return {
     trackCTAClick,
     trackFeatureExplored,
-    trackPricingInteraction,
   };
 }

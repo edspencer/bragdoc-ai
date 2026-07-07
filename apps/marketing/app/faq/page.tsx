@@ -9,11 +9,11 @@ import { faqData } from '@/lib/faq-data';
 
 export const metadata: Metadata = {
   title:
-    'BragDoc FAQ: Pricing, Privacy, Setup & Features - All Your Questions Answered',
+    'BragDoc FAQ: Privacy, Setup, Costs & Features - All Your Questions Answered',
   description:
     'Answers to common questions about BragDoc: How does it work? Is it free? Is my code safe? Setup instructions, LLM configuration, privacy details, and more.',
   keywords:
-    'bragdoc faq, bragdoc questions, how to use bragdoc, is bragdoc safe, bragdoc pricing',
+    'bragdoc faq, bragdoc questions, how to use bragdoc, is bragdoc safe, is bragdoc free',
   alternates: {
     canonical: '/faq',
   },

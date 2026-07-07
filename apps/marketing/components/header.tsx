@@ -20,7 +20,6 @@ const navLinks = [
   { href: '/features', label: 'Features' },
   { href: '/how-it-works', label: 'How It Works' },
   { href: '/why-it-matters', label: 'Why It Matters' },
-  { href: '/pricing', label: 'Pricing' },
   { href: '/privacy', label: 'Privacy' },
   { href: '/blog', label: 'Blog' },
 ];

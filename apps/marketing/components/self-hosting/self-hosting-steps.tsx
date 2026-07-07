@@ -166,9 +166,6 @@ GOOGLE_CLIENT_SECRET="your-google-client-secret"
 GITHUB_CLIENT_ID="your-github-client-id"
 GITHUB_CLIENT_SECRET="your-github-client-secret"
 
-# Payment Integration (Open Source Mode)
-PAYMENT_TOKEN_REQUIRED="false"
-
 # App URLs
 NEXT_PUBLIC_APP_URL="http://localhost:3000"
 NEXT_PUBLIC_MARKETING_URL="http://localhost:3101"
