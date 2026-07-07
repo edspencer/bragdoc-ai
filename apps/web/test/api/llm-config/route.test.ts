@@ -74,6 +74,13 @@ function putRequest(body: Record<string, unknown>) {
 describe('LLM Config API Routes', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    // Base URL SSRF validation rejects private/internal addresses unless
+    // this is set; individual tests opt in to the self-hosted behavior.
+    delete process.env.BYOK_ALLOW_PRIVATE_BASEURLS;
+  });
+
+  afterAll(() => {
+    delete process.env.BYOK_ALLOW_PRIVATE_BASEURLS;
   });
 
   describe('GET /api/user/llm-config', () => {
@@ -266,7 +273,10 @@ describe('LLM Config API Routes', () => {
       expect(stored.isDefault).toBe(true); // existing row was default
     });
 
-    it('accepts a keyless ollama config with a baseURL', async () => {
+    it('accepts a keyless ollama config with a localhost baseURL when private base URLs are allowed (self-hosted)', async () => {
+      // Hosted BragDoc rejects localhost base URLs (SSRF guard); the
+      // self-hosted escape hatch allows them.
+      process.env.BYOK_ALLOW_PRIVATE_BASEURLS = 'true';
       authenticate();
       getLLMConfigsForUser.mockResolvedValue([]);
       verifyLLMConfig.mockResolvedValue({ ok: true });
@@ -288,6 +298,67 @@ describe('LLM Config API Routes', () => {
       expect(stored.iv).toBeNull();
       expect(stored.keyHint).toBeNull();
       expect(stored.baseURL).toBe('http://localhost:11434/api');
+    });
+
+    it('rejects a private/internal baseURL by default without probing it (SSRF guard)', async () => {
+      authenticate();
+      getLLMConfigsForUser.mockResolvedValue([]);
+
+      const response = await PUT(
+        putRequest({
+          provider: 'openai_compatible',
+          apiKey: 'x',
+          model: 'model-name',
+          baseURL: 'http://169.254.169.254/latest/meta-data/',
+        }),
+      );
+
+      expect(response.status).toBe(400);
+      const data = await response.json();
+      expect(data.error).toBe('invalid_base_url');
+      expect(verifyLLMConfig).not.toHaveBeenCalled();
+      expect(upsertLLMConfig).not.toHaveBeenCalled();
+    });
+
+    it('rejects a stored private baseURL reused on edit when private base URLs are not allowed', async () => {
+      authenticate();
+      const existing = makeConfigRow({
+        provider: 'ollama',
+        encryptedApiKey: null,
+        iv: null,
+        keyHint: null,
+        model: 'llama3.2',
+        baseURL: 'http://192.168.1.50:11434/api',
+      });
+      getLLMConfigsForUser.mockResolvedValue([existing]);
+
+      // Edit that omits baseURL — the stored private one would be reused
+      const response = await PUT(
+        putRequest({ provider: 'ollama', model: 'llama3.3' }),
+      );
+
+      expect(response.status).toBe(400);
+      const data = await response.json();
+      expect(data.error).toBe('invalid_base_url');
+      expect(verifyLLMConfig).not.toHaveBeenCalled();
+      expect(upsertLLMConfig).not.toHaveBeenCalled();
+    });
+
+    it('truncates long provider error messages in the 422 response', async () => {
+      authenticate();
+      getLLMConfigsForUser.mockResolvedValue([]);
+      verifyLLMConfig.mockResolvedValue({
+        ok: false,
+        error: 'x'.repeat(5000),
+      });
+
+      const response = await PUT(
+        putRequest({ provider: 'openai', apiKey: 'sk-bad-key' }),
+      );
+
+      expect(response.status).toBe(422);
+      const data = await response.json();
+      expect(data.message.length).toBe(300);
     });
 
     it('sets the config as default when setDefault is true', async () => {

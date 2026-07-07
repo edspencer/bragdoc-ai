@@ -275,6 +275,10 @@ export function LLMProviderSettings() {
                       {...field}
                     />
                   </FormControl>
+                  <FormDescription>
+                    On hosted BragDoc this must be a publicly reachable URL;
+                    self-hosted deployments can allow private/LAN addresses.
+                  </FormDescription>
                   <FormMessage />
                 </FormItem>
               )}

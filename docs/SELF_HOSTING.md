@@ -65,6 +65,10 @@ encrypted with `BYOK_ENCRYPTION_KEY`. Ollama needs no key, just a base URL.
 - `OPENAI_API_KEY` (optional): A platform-level OpenAI key that is only used
   for demo mode and Workstreams embeddings. Everything else uses per-user
   keys, so you can skip this if you don't need those two features.
+- `BYOK_ALLOW_PRIVATE_BASEURLS` (optional): Set to `true` on self-hosted
+  deployments to allow private/internal LLM base URLs (e.g. Ollama at
+  `http://localhost:11434` or `http://192.168.x.x:11434`). Left unset,
+  private addresses are rejected as an SSRF guard.
 
 ## Deployment Options
 
