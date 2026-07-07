@@ -170,8 +170,9 @@ GITHUB_CLIENT_SECRET="your-github-client-secret"
 NEXT_PUBLIC_APP_URL="http://localhost:3000"
 NEXT_PUBLIC_MARKETING_URL="http://localhost:3101"
 
-# AI Provider (at least one required for AI features)
-OPENAI_API_KEY="sk-..."`}
+# BYOK: encrypts the LLM API keys your users add in Settings
+# Generate with: openssl rand -base64 32
+BYOK_ENCRYPTION_KEY="your-random-secret"`}
                         />
                       </div>
 
@@ -183,7 +184,12 @@ OPENAI_API_KEY="sk-..."`}
                           language="bash"
                           code={`# Demo Mode (for testing)
 DEMO_MODE_ENABLED="false"
-NEXT_PUBLIC_DEMO_MODE_ENABLED="false"`}
+NEXT_PUBLIC_DEMO_MODE_ENABLED="false"
+
+# Platform OpenAI key - only used for demo mode and
+# Workstreams embeddings. Regular AI features run on
+# each user's own key, added in Settings -> AI Provider.
+OPENAI_API_KEY="sk-..."`}
                         />
                       </div>
 
@@ -191,9 +197,11 @@ NEXT_PUBLIC_DEMO_MODE_ENABLED="false"`}
                         <p className="text-sm text-muted-foreground">
                           <strong>Note:</strong> For a minimal self-hosted
                           setup, you only need the database, authentication, one
-                          OAuth provider, and one AI provider configured. All
-                          other variables are optional and can be added as
-                          needed.
+                          OAuth provider, and the BYOK encryption key
+                          configured. Users add their own LLM API keys via
+                          Settings → AI Provider in the web app, exactly like on
+                          bragdoc.ai. All other variables are optional and can
+                          be added as needed.
                         </p>
                       </div>
                     </div>

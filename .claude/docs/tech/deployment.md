@@ -177,6 +177,7 @@ if (process.env.NODE_ENV === 'development') {
    AUTH_SECRET
    NEXTAUTH_URL
    OPENAI_API_KEY
+   BYOK_ENCRYPTION_KEY
    GOOGLE_CLIENT_ID
    GOOGLE_CLIENT_SECRET
    GITHUB_CLIENT_ID
@@ -282,7 +283,13 @@ NEXT_PUBLIC_POSTHOG_KEY=phc_xxx  # Same for both apps (cross-domain tracking)
 NEXT_PUBLIC_POSTHOG_HOST=https://app.posthog.com
 
 # AI/LLM
+# Platform key — only used for demo mode and Workstreams embeddings.
+# Regular users' AI features run on their own keys (BYOK, added in Settings).
 OPENAI_API_KEY=sk-...
+
+# BYOK — encrypts user LLM API keys at rest (AES-256-GCM, key via HKDF-SHA256)
+# Generate with: openssl rand -base64 32
+BYOK_ENCRYPTION_KEY=...
 ```
 
 ### Optional

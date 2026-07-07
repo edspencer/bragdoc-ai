@@ -785,7 +785,7 @@ The endpoint registers the `updatePerformanceReviewDocument` tool which enables 
 const stream = createUIMessageStream({
   execute: ({ writer: dataStream }) => {
     const result = streamText({
-      model: routerModel,
+      model, // from resolveModelForUser(user, 'chat')
       system: enhancedSystemPrompt,
       messages: convertToModelMessages(uiMessages),
       tools: {
