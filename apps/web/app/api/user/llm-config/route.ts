@@ -15,6 +15,7 @@ import {
   KEYLESS_PROVIDERS,
   LLM_PROVIDER_DB_VALUES,
 } from 'lib/llm/providers';
+import { validateBaseURL } from 'lib/llm/validate-base-url';
 
 // Validation schema for upserting a provider config
 const llmConfigSchema = z.object({
@@ -121,6 +122,20 @@ export async function PUT(req: NextRequest) {
       );
     }
 
+    // SSRF guard: the base URL (whether supplied in this request or reused
+    // from the existing row) is probed server-side below, so reject
+    // private/internal targets unless BYOK_ALLOW_PRIVATE_BASEURLS is set
+    // (self-hosted deployments).
+    if (baseURL) {
+      const baseURLValidation = validateBaseURL(baseURL);
+      if (!baseURLValidation.ok) {
+        return NextResponse.json(
+          { error: 'invalid_base_url', message: baseURLValidation.reason },
+          { status: 400 },
+        );
+      }
+    }
+
     // Verify the config actually works before storing it
     const llmConfig = buildLLMConfig({
       provider,
@@ -131,8 +146,13 @@ export async function PUT(req: NextRequest) {
     const verification = await verifyLLMConfig(llmConfig);
 
     if (!verification.ok) {
+      // Truncate the upstream error echo so responses from the probed
+      // endpoint can't be read back wholesale via this route.
       return NextResponse.json(
-        { error: 'verification_failed', message: verification.error },
+        {
+          error: 'verification_failed',
+          message: verification.error.slice(0, 300),
+        },
         { status: 422 },
       );
     }
