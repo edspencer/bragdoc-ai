@@ -27,6 +27,9 @@ jobs:
       - name: Install dependencies
         run: pnpm install
 
+      - name: Build @bragdoc/ai (workspace dependency)
+        run: pnpm --filter=@bragdoc/ai build
+
       - name: Create Neon test branch
         id: create-branch
         run: ./scripts/create-neon-test-branch.sh
