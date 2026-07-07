@@ -4,8 +4,7 @@ import {
   type ExtractAchievementsPromptProps,
   type ExtractedAchievement,
 } from './prompts/types';
-import { streamObject } from 'ai';
-import { extractAchievementsModel } from '.';
+import { streamObject, type LanguageModel } from 'ai';
 import { getProjectsByUserId } from '@/database/projects/queries';
 import { getCompaniesByUserId } from '@/database/queries';
 
@@ -66,9 +65,10 @@ export async function render(
  */
 export async function* execute(
   prompt: string,
+  model: LanguageModel,
 ): AsyncGenerator<ExtractedAchievement, void, unknown> {
   const { elementStream } = streamObject({
-    model: extractAchievementsModel,
+    model,
     prompt,
     temperature: 0,
     output: 'array',
@@ -96,10 +96,11 @@ export async function* execute(
  */
 export async function* streamFetchRenderExecute(
   input: ExtractAchievementsFetcherProps,
+  model: LanguageModel,
 ): AsyncGenerator<ExtractedAchievement> {
   const data = await fetch(input);
 
-  for await (const achievement of execute(await render(data))) {
+  for await (const achievement of execute(await render(data), model)) {
     yield achievement;
   }
 }
@@ -119,10 +120,11 @@ export async function fetchRender(
  */
 export async function fetchRenderExecute(
   input: ExtractAchievementsFetcherProps,
+  model: LanguageModel,
 ): Promise<ExtractedAchievement[]> {
   const data = await fetch(input);
 
-  return await renderExecute(data);
+  return await renderExecute(data, model);
 }
 
 /**
@@ -133,10 +135,11 @@ export async function fetchRenderExecute(
  */
 export async function renderExecute(
   data: ExtractAchievementsPromptProps,
+  model: LanguageModel,
 ): Promise<ExtractedAchievement[]> {
   const achievements: ExtractedAchievement[] = [];
 
-  for await (const achievement of execute(await render(data))) {
+  for await (const achievement of execute(await render(data), model)) {
     achievements.push(achievement);
   }
 

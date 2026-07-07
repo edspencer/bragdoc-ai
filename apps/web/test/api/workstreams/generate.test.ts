@@ -28,6 +28,16 @@ jest.mock('@/lib/ai/workstreams', () => {
   };
 });
 
+// Mock per-user model resolution (BYOK) — the route pre-checks the user's
+// LLM config before opening the SSE stream
+jest.mock('@/lib/ai', () => {
+  const actual = jest.requireActual('@/lib/ai');
+  return {
+    ...actual,
+    resolveModelForUser: jest.fn().mockResolvedValue({ modelId: 'test' }),
+  };
+});
+
 // Note: Embeddings are already mocked globally in jest.setup.ts
 // We don't need to re-mock them here
 
@@ -180,6 +190,22 @@ describe('POST /api/workstreams/generate', () => {
       expect(error).toBeInstanceOf(Error);
       expect((error as Error).message).toContain('20 achievements');
     }
+  });
+
+  it('returns 409 no_llm_configured when the user has no LLM config', async () => {
+    const { resolveModelForUser, NoLLMConfigError } = require('@/lib/ai');
+    (resolveModelForUser as jest.Mock).mockRejectedValueOnce(
+      new NoLLMConfigError(),
+    );
+
+    const request = new NextRequest(
+      'http://localhost/api/workstreams/generate',
+      { method: 'POST' },
+    );
+
+    const response = await POST(request);
+    expect(response.status).toBe(409);
+    expect(await response.json()).toEqual({ error: 'no_llm_configured' });
   });
 
   it('performs full clustering on first run', async () => {

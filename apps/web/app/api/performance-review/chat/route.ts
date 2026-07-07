@@ -7,8 +7,12 @@ import {
   stepCountIs,
   JsonToSseTransformStream,
 } from 'ai';
-import type { UIMessage } from 'ai';
-import { routerModel } from '@/lib/ai';
+import type { UIMessage, LanguageModel } from 'ai';
+import {
+  NoLLMConfigError,
+  noLLMConfigResponse,
+  resolveModelForUser,
+} from '@/lib/ai';
 import {
   getPerformanceReviewById,
   getWorkstreamsByUserIdWithDateFilter,
@@ -74,6 +78,22 @@ export async function POST(request: Request) {
       return Response.json({ error: 'No message provided' }, { status: 400 });
     }
 
+    // Resolve the user's models BEFORE creating the stream so a missing
+    // LLM config surfaces as a clean 409 instead of a broken stream.
+    let chatModel: LanguageModel;
+    let writingModel: LanguageModel;
+    try {
+      [chatModel, writingModel] = await Promise.all([
+        resolveModelForUser(user, 'chat'),
+        resolveModelForUser(user, 'generation'),
+      ]);
+    } catch (error) {
+      if (error instanceof NoLLMConfigError) {
+        return noLLMConfigResponse();
+      }
+      throw error;
+    }
+
     // Fetch the performance review to get the date range and document
     const performanceReview = await getPerformanceReviewById(
       performanceReviewId,
@@ -93,7 +113,7 @@ export async function POST(request: Request) {
     if (!chatId && performanceReview.document) {
       // Document exists but no chat - create a new chat and link it
       chatId = generateUUID();
-      const title = await generateTitleFromUserMessage({ message });
+      const title = await generateTitleFromUserMessage({ message, user });
       await saveChat({ id: chatId, userId: user.id, title });
 
       // Update the document to link the chatId
@@ -107,7 +127,7 @@ export async function POST(request: Request) {
       const chat = await getChatById({ id: chatId });
       if (!chat) {
         // Chat doesn't exist, create it
-        const title = await generateTitleFromUserMessage({ message });
+        const title = await generateTitleFromUserMessage({ message, user });
         await saveChat({ id: chatId, userId: user.id, title });
       } else if (chat.userId !== user.id) {
         return Response.json({ error: 'Forbidden' }, { status: 403 });
@@ -226,7 +246,7 @@ When using the tool, provide the complete updated document content. Be concise i
         }
 
         const result = streamText({
-          model: routerModel,
+          model: chatModel,
           system: systemPrompt,
           messages: convertToModelMessages(uiMessages),
           stopWhen: stepCountIs(5),
@@ -236,6 +256,7 @@ When using the tool, provide the complete updated document content. Be concise i
               user,
               dataStream,
               performanceReviewId,
+              model: writingModel,
             }),
           },
           onFinish: async ({ usage }) => {

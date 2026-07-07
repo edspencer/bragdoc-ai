@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from 'components/ui/card';
 import { Textarea } from 'components/ui/textarea';
 import { IconRefresh, IconCheck, IconX, IconCopy } from '@tabler/icons-react';
 import { toast } from 'sonner';
+import { showNoLLMConfigToast } from '@/components/no-llm-config-alert';
 
 interface StandupUpdateSectionProps {
   standupId: string;
@@ -40,6 +41,12 @@ export function StandupUpdateSection({
       );
 
       if (!response.ok) {
+        if (response.status === 409) {
+          // No LLM provider configured — show the CTA instead of a
+          // generic failure toast.
+          showNoLLMConfigToast();
+          return;
+        }
         const error = await response.json();
         throw new Error(error.error || 'Failed to generate standup update');
       }

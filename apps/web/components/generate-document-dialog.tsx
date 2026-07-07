@@ -16,6 +16,10 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent } from '@/components/ui/card';
 import { FileText, Calendar, BarChart3, Edit3, Loader2 } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
+import {
+  isNoLLMConfiguredError,
+  NoLLMConfigAlert,
+} from '@/components/no-llm-config-alert';
 import type { AchievementWithRelationsUI } from '@/lib/types/achievement';
 
 // Backend API types
@@ -141,6 +145,7 @@ export function GenerateDocumentDialog({
   const [customPrompt, setCustomPrompt] = useState('');
   const [editablePrompt, setEditablePrompt] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
+  const [showNoLLMConfig, setShowNoLLMConfig] = useState(false);
 
   const handleTypeSelect = (typeId: string) => {
     setSelectedType(typeId);
@@ -169,6 +174,7 @@ export function GenerateDocumentDialog({
     }
 
     setIsGenerating(true);
+    setShowNoLLMConfig(false);
 
     try {
       // Get the original prompt for the selected type as default instructions
@@ -203,6 +209,13 @@ export function GenerateDocumentDialog({
         } catch {
           // Fallback if response isn't JSON (e.g., 500 with HTML error page)
           errorData = { error: 'An unexpected error occurred' };
+        }
+
+        if (response.status === 409 && isNoLLMConfiguredError(errorData)) {
+          // No LLM provider configured — show the inline CTA instead of
+          // a generic failure toast.
+          setShowNoLLMConfig(true);
+          return;
         }
 
         if (response.status === 401) {
@@ -247,6 +260,7 @@ export function GenerateDocumentDialog({
     setSelectedType(null);
     setCustomPrompt('');
     setEditablePrompt('');
+    setShowNoLLMConfig(false);
     onOpenChange(false);
   };
 
@@ -352,6 +366,8 @@ export function GenerateDocumentDialog({
             </div>
           </div>
         </div>
+
+        {showNoLLMConfig && <NoLLMConfigAlert />}
 
         <DialogFooter>
           <Button

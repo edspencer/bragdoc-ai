@@ -7,6 +7,11 @@ import {
   createStandupDocument,
 } from '@bragdoc/database';
 import { createOrUpdateStandupDocument } from 'lib/standups/create-standup-document';
+import {
+  NoLLMConfigError,
+  noLLMConfigResponse,
+  resolveModelForUser,
+} from 'lib/ai';
 import { computeNextRunUTC } from 'lib/scheduling';
 import type { StandupDocument } from '@bragdoc/database';
 
@@ -57,10 +62,23 @@ export async function POST(
 
     if (regenerate) {
       // Mode 1: Regenerate from achievements using AI (source will be 'llm')
+      // Only this branch needs an LLM; resolve the user's model (409 if
+      // none configured). Manual saves below never require a model.
+      let model: Awaited<ReturnType<typeof resolveModelForUser>>;
+      try {
+        model = await resolveModelForUser(auth.user, 'extraction');
+      } catch (error) {
+        if (error instanceof NoLLMConfigError) {
+          return noLLMConfigResponse();
+        }
+        throw error;
+      }
+
       document = await createOrUpdateStandupDocument(
         params.standupId,
         auth.user.id,
         standup,
+        model,
         undefined, // No target date - uses next scheduled date
         true, // regenerate = true
         achievementIds, // Pass selected achievement IDs

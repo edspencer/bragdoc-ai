@@ -3,6 +3,18 @@
  *
  * Manages generation and caching of OpenAI embeddings for achievements
  * using the text-embedding-3-small model.
+ *
+ * BYOK v1 decision: embeddings deliberately stay on the platform
+ * `OPENAI_API_KEY` (NOT the user's own key, unlike all chat/generation
+ * models — see `lib/ai/resolve-model.ts`). Rationale:
+ * - Embeddings are OpenAI-only (Anthropic/Ollama users have no embeddings
+ *   API), and Workstreams must keep working for them.
+ * - All stored vectors are 1536-d text-embedding-3-small in a pgvector
+ *   column; per-user embedding providers would mix dimensions and
+ *   invalidate every stored vector.
+ * - Cost is negligible (~$0.02/1M tokens; a small fraction of the ~$2/year
+ *   per-user Workstreams cost model).
+ * Revisit later (e.g. use the user's key when their provider is OpenAI).
  */
 
 import { openai } from '@ai-sdk/openai';

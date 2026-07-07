@@ -28,6 +28,11 @@ import { DocumentEditor } from './document-editor';
 import { ChatInterface } from './chat-interface';
 import { InstructionsSection } from './instructions-section';
 import { PerformanceReviewSummary } from './performance-review-summary';
+import {
+  isNoLLMConfiguredError,
+  NoLLMConfigAlert,
+  showNoLLMConfigToast,
+} from '@/components/no-llm-config-alert';
 import { cn } from '@/lib/utils';
 
 interface DocumentSectionProps {
@@ -68,6 +73,7 @@ export function DocumentSection({
   const [isGenerating, setIsGenerating] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [showNoLLMConfig, setShowNoLLMConfig] = useState(false);
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [_isLoadingMessages, setIsLoadingMessages] = useState(false);
 
@@ -184,6 +190,14 @@ export function DocumentSection({
       },
     }),
     onData: handleData,
+    onError: (err) => {
+      // The chat route returns 409 no_llm_configured before streaming;
+      // surface the "connect your AI provider" CTA instead of a generic
+      // failure.
+      if (isNoLLMConfiguredError(err)) {
+        showNoLLMConfigToast();
+      }
+    },
   });
 
   // Load messages when chatId changes
@@ -215,6 +229,7 @@ export function DocumentSection({
   const handleGenerate = async () => {
     setIsGenerating(true);
     setError(null);
+    setShowNoLLMConfig(false);
 
     try {
       const response = await fetch('/api/performance-review/generate', {
@@ -228,6 +243,11 @@ export function DocumentSection({
 
       if (!response.ok) {
         const errorData = await response.json();
+        if (response.status === 409 && isNoLLMConfiguredError(errorData)) {
+          // No LLM provider configured — show the inline CTA
+          setShowNoLLMConfig(true);
+          return;
+        }
         throw new Error(errorData.error || 'Failed to generate document');
       }
 
@@ -326,6 +346,7 @@ export function DocumentSection({
               onSaveToggle={onSaveInstructionsToggle}
             />
             {error && <div className="text-sm text-destructive">{error}</div>}
+            {showNoLLMConfig && <NoLLMConfigAlert />}
             <div className="flex flex-col gap-2 sm:flex-row sm:gap-3">
               <Button
                 onClick={handleGenerate}
