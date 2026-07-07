@@ -56,6 +56,7 @@ Your applications will be available at:
 ### AI Providers
 
 - `OPENAI_API_KEY`: For OpenAI GPT models
+- `BYOK_ALLOW_PRIVATE_BASEURLS`: Set to `true` on self-hosted deployments to allow private/internal LLM base URLs (e.g. Ollama at `http://localhost:11434` or `http://192.168.x.x:11434`). Left unset, private addresses are rejected as an SSRF guard.
 
 ## Deployment Options
 
