@@ -1,0 +1,51 @@
+{
+  "name": "@bragdoc/ai",
+  "version": "0.1.0",
+  "description": "Shared multi-provider LLM configuration and factory for BragDoc (web app + CLI)",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/",
+    "scope": "@bragdoc"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/edspencer/bragdoc-ai.git",
+    "directory": "packages/ai"
+  },
+  "keywords": [
+    "bragdoc",
+    "llm",
+    "ai"
+  ],
+  "author": "Ed Spencer",
+  "license": "MIT",
+  "scripts": {
+    "build": "tsc",
+    "typecheck": "tsc --noEmit",
+    "lint": "biome lint --write --unsafe src/",
+    "format": "biome format --write src/"
+  },
+  "dependencies": {
+    "@ai-sdk/anthropic": "^2.0.35",
+    "@ai-sdk/google": "^2.0.23",
+    "@ai-sdk/openai": "^2.0.53",
+    "ai": "^5.0.76",
+    "ollama-ai-provider-v2": "^1.5.1"
+  },
+  "devDependencies": {
+    "@repo/typescript-config": "workspace:*",
+    "@types/node": "^24.9.1",
+    "typescript": "^5.9.3"
+  }
+}

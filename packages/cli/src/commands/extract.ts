@@ -11,8 +11,7 @@ import { SourcesCache } from '../cache/sources';
 import { loadConfig } from '../config';
 import logger from '../utils/logger';
 import { createApiClient } from '../api/client';
-import { getLLMDisplayName } from '../ai/providers';
-import { isLLMConfigured } from '../config/llm-setup';
+import { getLLMDisplayName, isLLMConfigured } from '@bragdoc/ai';
 import {
   connectorRegistry,
   initializeConnectors,
@@ -165,7 +164,7 @@ export const extractCommand = new Command('extract')
         process.exit(1);
       }
 
-      const llmName = getLLMDisplayName(config);
+      const llmName = getLLMDisplayName(config.llm);
       logger.debug(`Using LLM: ${llmName}`);
 
       // Create API client
