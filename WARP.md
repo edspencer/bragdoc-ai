@@ -121,7 +121,7 @@ pnpm release
 
 The application revolves around these key entities:
 
-- **User** - Authenticated users with subscription levels (free/basic/pro)
+- **User** - Authenticated users
 - **Company** - User's employers with roles and date ranges
 - **Project** - Work projects, optionally linked to GitHub repositories
 - **Achievement** - Individual accomplishments extracted from user messages
@@ -150,7 +150,6 @@ The application revolves around these key entities:
 - **AI**: Vercel AI SDK supporting OpenAI, Anthropic, Google, and DeepSeek models
 - **File Storage**: Vercel Blob for document attachments
 - **Email**: React Email with Mailgun for transactional emails
-- **Payments**: Stripe integration for subscription management
 - **Testing**: Jest with Braintrust for LLM evaluations
 
 ### Key Application Patterns
@@ -171,7 +170,7 @@ The application revolves around these key entities:
 - Next.js App Router API routes in `/app/api/`
 - Server Actions for form handling
 - CLI API endpoints for token-based authentication
-- Webhook handlers for Stripe and Mailgun
+- Webhook handlers for Mailgun
 
 #### Canvas Document Editing
 - ProseMirror-based rich text editor
@@ -207,7 +206,6 @@ Environment variables are managed via Vercel or `.env` file:
 - `DATABASE_URL` - PostgreSQL connection
 - `NEXTAUTH_SECRET` - Authentication secret
 - `OPENAI_API_KEY` / `ANTHROPIC_API_KEY` - LLM providers
-- `STRIPE_SECRET_KEY` - Payment processing
 - `MAILGUN_API_KEY` - Email sending
 - `GITHUB_CLIENT_ID/SECRET` - GitHub OAuth
 
@@ -243,8 +241,7 @@ Environment variables are managed via Vercel or `.env` file:
 
 ## Important Notes
 
-- **GitHub Integration**: Supports retroactive repository scanning for commit-based achievements (Premium feature)
+- **GitHub Integration**: Supports retroactive repository scanning for commit-based achievements
 - **Email Integration**: Bi-directional - users can email achievements to `hello@bragdoc.ai`
 - **Multi-Company Support**: Users can track achievements across different employers
-- **Subscription Tiers**: Free (limited), Basic ($3/month), Pro ($9/month) with different GitHub repo limits
 - **Document Publishing**: Supports URL sharing, Google Docs integration, and email distribution

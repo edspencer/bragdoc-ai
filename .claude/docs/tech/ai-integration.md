@@ -26,7 +26,6 @@ BragDoc uses the Vercel AI SDK v5 to integrate multiple LLM providers for achiev
 
 Intelligently selects the appropriate LLM provider based on:
 - Task type (extraction, generation, chat)
-- User subscription level
 - Provider availability
 
 ```typescript

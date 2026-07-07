@@ -103,11 +103,7 @@ export const betterAuthConfig: Partial<BetterAuthOptions> = {
       provider: { type: 'string', required: false, defaultValue: 'credentials' },
       providerId: { type: 'string', required: false },
       preferences: { type: 'json', required: false },
-      level: { type: 'string', required: true, defaultValue: 'free' },
-      renewalPeriod: { type: 'string', required: false },
-      lastPayment: { type: 'date', required: false },
       status: { type: 'string', required: true, defaultValue: 'active' },
-      stripeCustomerId: { type: 'string', required: false },
       tosAcceptedAt: { type: 'date', required: false },
     },
     fields: {
@@ -449,11 +445,7 @@ export const user = pgTable('User', {
   provider: varchar('provider', { length: 32 }).notNull().default('credentials'),
   providerId: varchar('provider_id', { length: 256 }),
   preferences: jsonb('preferences').$type<UserPreferences>(),
-  level: userLevelEnum('level').notNull().default('free'),
-  renewalPeriod: renewalPeriodEnum('renewal_period').default('monthly'),
-  lastPayment: timestamp('last_payment'),
   status: userStatusEnum('status').notNull().default('active'),
-  stripeCustomerId: varchar('stripe_customer_id', { length: 256 }),
   tosAcceptedAt: timestamp('tos_accepted_at'),
 
   createdAt: timestamp('created_at').notNull().defaultNow(),
@@ -620,8 +612,6 @@ export async function getAuthUser(
         provider: decoded.provider as string,
         providerId: decoded.providerId as string,
         preferences: decoded.preferences as any,
-        level: decoded.level as any,
-        renewalPeriod: decoded.renewalPeriod as any,
       } as User,
       source: 'jwt',
     };
@@ -764,8 +754,6 @@ CLI JWT tokens contain:
 - `provider` - Auth provider (google, github, email)
 - `providerId` - Provider-specific user ID
 - `preferences` - User preferences (language, document instructions)
-- `level` - Subscription level (free, basic, pro, demo)
-- `renewalPeriod` - Billing cycle (monthly, yearly)
 - `exp` - Expiration timestamp (30 days)
 
 ## Protected Routes
@@ -1128,7 +1116,6 @@ if (auth?.source === 'jwt') {
 ```typescript
 const session = await auth.api.getSession({ headers: await headers() });
 const userId = session?.user?.id;
-const userLevel = session?.user?.level;
 ```
 
 ### Sign In with Social OAuth
@@ -1190,7 +1177,7 @@ These will be removed in future releases:
 
 BragDoc's demo mode allows authenticated users to toggle into a sandbox environment with sample data without affecting their real data. This feature uses a **session-swap architecture** where toggling demo mode creates a new session pointing to a shadow user.
 
-**Note:** This is the only demo mode implementation. Standalone demo mode (temporary `level='demo'` accounts) has been removed.
+**Note:** This is the only demo mode implementation. Standalone demo mode (temporary demo accounts) has been removed; demo users are identified by the `isDemo` flag.
 
 ### Key Architecture Decision
 

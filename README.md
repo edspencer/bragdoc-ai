@@ -174,9 +174,6 @@ Want to run your own instance? BragDoc is designed to be self-hosted.
    GOOGLE_CLIENT_SECRET="..."
    GITHUB_CLIENT_ID="..."
    GITHUB_CLIENT_SECRET="..."
-
-   # Payments (optional)
-   STRIPE_SECRET_KEY="sk_..."
    ```
 
 4. **Set up the database**:
@@ -457,28 +454,9 @@ See [CLAUDE.md](CLAUDE.md) for comprehensive development documentation.
 
 ---
 
-## 💰 Pricing & Subscription Tiers
+## 💰 Pricing
 
-### Free
-
-- Basic achievement tracking
-- Limited LLM usage
-- Manual Git extraction only
-
-### Basic Bragger ($3/month or $30/year)
-
-- One GitHub repository integration
-- Unlimited achievements and documents
-- Advanced LLM models
-
-### Pro Bragger ($9/month or $90/year)
-
-- Unlimited GitHub repositories
-- Scheduled automated extractions
-- Publishing options (URL sharing, Google Docs, email)
-- Priority support
-
-Payments via Stripe with Link for seamless checkout.
+BragDoc is completely free — every feature, no tiers, no subscriptions. Bring your own LLM API key (OpenAI, Anthropic, or a local model via Ollama), or self-host the whole platform.
 
 ---
 

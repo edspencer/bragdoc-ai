@@ -663,7 +663,6 @@ pnpm changeset version  # Update versions
 - `BETTER_AUTH_SECRET` - Better Auth secret key (or `AUTH_SECRET` for backward compatibility)
 - `BETTER_AUTH_URL` - Application URL (or `NEXTAUTH_URL` for backward compatibility)
 - `OPENAI_API_KEY` - OpenAI API key (for LLM)
-- `STRIPE_SECRET_KEY` - Stripe secret key
 
 **Optional:**
 - `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` - Google OAuth

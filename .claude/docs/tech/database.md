@@ -78,21 +78,12 @@ export const user = pgTable('User', {
   updatedAt: timestamp('updated_at').notNull().defaultNow(),
   emailVerified: timestamp('email_verified').defaultNow(),
 
-  // Subscription fields
-  level: userLevelEnum('level').notNull().default('free'),           // 'free', 'basic', 'pro', 'demo'
-  renewalPeriod: renewalPeriodEnum('renewal_period')                 // 'monthly', 'yearly'
-    .notNull()
-    .default('monthly'),
-  lastPayment: timestamp('last_payment'),
   status: userStatusEnum('status').notNull().default('active'),      // 'active', 'banned', 'deleted'
-  stripeCustomerId: varchar('stripe_customer_id', { length: 256 }),
 });
 ```
 
 **Enums:**
 ```typescript
-export const userLevelEnum = pgEnum('user_level', ['free', 'basic', 'pro', 'demo']);
-export const renewalPeriodEnum = pgEnum('renewal_period', ['monthly', 'yearly']);
 export const userStatusEnum = pgEnum('user_status', ['active', 'banned', 'deleted']);
 ```
 

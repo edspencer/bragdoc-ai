@@ -263,7 +263,6 @@ packages/database
     "drizzle-orm": "^0.34.1",
     "@neondatabase/serverless": "^0.10.5",
     "zod": "^3.24.1",
-    "stripe": "^17.5.0",
     "tailwindcss": "^4.1.9",
     "mdx-prompt": "^0.4.1",
     "@react-email/components": "0.5.7",
@@ -394,7 +393,6 @@ CLI Batch Processing (max 100 commits)
 Render MDX Prompt
     ↓
     ├─→ LLM Router (web app)
-    │   ├── Check user subscription level
     │   ├── Select provider (OpenAI, DeepSeek, etc.)
     │   └── Return configured model
     │
@@ -506,7 +504,6 @@ Cloudflare Edge Network
 
 External Services
 ├── PostHog (analytics - app.posthog.com)
-├── Stripe (payments)
 ├── Mailgun (emails)
 ├── OAuth Providers (Google, GitHub)
 └── LLM APIs (OpenAI, DeepSeek, Google)
@@ -720,10 +717,6 @@ NEXT_PUBLIC_POSTHOG_HOST=https://app.posthog.com
 # Email
 MAILGUN_API_KEY=xxx
 MAILGUN_DOMAIN=mg.your-domain.com
-
-# Payments
-STRIPE_SECRET_KEY=sk_xxx
-NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_xxx
 
 # AI/LLM
 OPENAI_API_KEY=sk-xxx

@@ -678,7 +678,6 @@ export const documentWritingModel = createLLMRouter({
 
 Model selection considers:
 
-- User's subscription level
 - Cost optimization
 - Provider availability
 - Quality requirements

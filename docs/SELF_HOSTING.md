@@ -43,25 +43,6 @@ Your applications will be available at:
 - `DATABASE_URL`: PostgreSQL connection string
 - `NEXTAUTH_SECRET`: Random secret for session encryption (generate with `openssl rand -base64 32`)
 
-### Payment Integration (Optional)
-
-BragDoc supports two modes:
-
-**Open Source Mode (Default):**
-
-- `PAYMENT_TOKEN_REQUIRED=false` or unset
-- All features available to all users
-- No payment integration required
-
-**Commercial Mode:**
-
-- `PAYMENT_TOKEN_REQUIRED=true`
-- Enable subscription-based feature gating
-- Requires Stripe configuration:
-  - `STRIPE_SECRET_KEY`: Your Stripe secret key
-  - `STRIPE_PUBLISHABLE_KEY`: Your Stripe publishable key
-  - `STRIPE_WEBHOOK_SECRET`: Your Stripe webhook secret
-
 ### Authentication Providers (Optional)
 
 - `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET`: For Google OAuth
@@ -138,9 +119,7 @@ BragDoc uses PostgreSQL. You can use any PostgreSQL instance:
 
 ## Feature Configuration
 
-### Open Source Mode Features
-
-When `PAYMENT_TOKEN_REQUIRED=false` (default):
+BragDoc is completely free — there is no payment integration or feature gating. Every deployment gets all features:
 
 - ✅ Unlimited achievement tracking
 - ✅ Document generation
@@ -148,23 +127,6 @@ When `PAYMENT_TOKEN_REQUIRED=false` (default):
 - ✅ Email integration
 - ✅ GitHub integration
 - ✅ All analytics and exports
-
-### Commercial Mode Features
-
-When `PAYMENT_TOKEN_REQUIRED=true`, features are gated by subscription level:
-
-**Free Tier:**
-
-- Basic achievement tracking
-- Limited documents
-
-**Paid Tiers (Basic/Pro):**
-
-- Unlimited documents
-- AI assistance
-- Advanced analytics
-- Email integration
-- API access
 
 ## Development Workflow
 
