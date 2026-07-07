@@ -5,7 +5,7 @@
   "scripts": {
     "dev": "NEXT_DIST_DIR=.next-dev next dev 2>&1 | tee .next-dev.log",
     "build": "next build",
-    "vercel-build": "pnpm --filter=@bragdoc/database db:migrate && pnpm build",
+    "vercel-build": "pnpm --filter=@bragdoc/ai build && pnpm --filter=@bragdoc/database db:migrate && pnpm build",
     "email:dev": "email dev --dir ./emails --port 3002",
     "start": "next start",
     "typecheck": "tsc --noEmit",
@@ -32,6 +32,7 @@
     "@ai-sdk/openai": "^2.0.53",
     "@ai-sdk/react": "^2.0.76",
     "@ai-sdk/rsc": "^1.0.76",
+    "@bragdoc/ai": "workspace:*",
     "@bragdoc/config": "workspace:*",
     "@bragdoc/database": "workspace:*",
     "@dnd-kit/core": "^6.3.1",

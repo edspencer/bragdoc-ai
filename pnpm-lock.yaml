@@ -335,6 +335,9 @@ importers:
       '@ai-sdk/rsc':
         specifier: ^1.0.76
         version: 1.0.93(react@19.2.0)(zod@3.25.76)
+      '@bragdoc/ai':
+        specifier: workspace:*
+        version: link:../../packages/ai
       '@bragdoc/config':
         specifier: workspace:*
         version: link:../../packages/config

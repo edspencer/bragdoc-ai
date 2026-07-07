@@ -18,6 +18,7 @@ import {
   standupDocument,
   emailPreferences,
   session,
+  userLLMConfig,
 } from '@/database/schema';
 import { eq } from 'drizzle-orm';
 
@@ -32,6 +33,9 @@ import { eq } from 'drizzle-orm';
  * 5. Sets user status to 'deleted'
  *
  * Tables deleted:
+ * - userLLMConfig (encrypted BYOK API keys — must be deleted explicitly
+ *   because the user row is anonymized, not deleted, so the FK cascade
+ *   never fires)
  * - emailPreferences
  * - standupDocument (depends on standup)
  * - standup
@@ -71,6 +75,11 @@ export async function deleteAccountData(userId: string): Promise<void> {
 
     // Delete related data in order that respects foreign key constraints
     // Start with tables that depend on other user tables, then work backwards
+
+    // LLM provider configs (encrypted BYOK API keys — the user row is
+    // preserved/anonymized, so the onDelete cascade never fires; delete
+    // key material explicitly)
+    await db.delete(userLLMConfig).where(eq(userLLMConfig.userId, userId));
 
     // Email preferences (independent)
     await db
