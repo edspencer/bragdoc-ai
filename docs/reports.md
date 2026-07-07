@@ -590,7 +590,7 @@ interface GenerateDocumentFetcherProps {
    - Returns rendered prompt string
 
 3. **Execute** (`execute()` function)
-   - Calls `streamText()` with `documentWritingModel`
+   - Calls `streamText()` with the model from `resolveModelForUser(user, 'generation')`
    - Streams response from LLM
    - Returns async iterable
 

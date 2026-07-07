@@ -662,7 +662,8 @@ pnpm changeset version  # Update versions
 - `POSTGRES_URL` - Database connection string
 - `BETTER_AUTH_SECRET` - Better Auth secret key (or `AUTH_SECRET` for backward compatibility)
 - `BETTER_AUTH_URL` - Application URL (or `NEXTAUTH_URL` for backward compatibility)
-- `OPENAI_API_KEY` - OpenAI API key (for LLM)
+- `BYOK_ENCRYPTION_KEY` - Encrypts per-user LLM API keys at rest (required for web AI features; generate with `openssl rand -base64 32`)
+- `OPENAI_API_KEY` - Platform OpenAI key, used only for demo mode and Workstreams embeddings (all other AI features run on each user's own BYOK key from Settings → AI Provider)
 
 **Optional:**
 - `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` - Google OAuth

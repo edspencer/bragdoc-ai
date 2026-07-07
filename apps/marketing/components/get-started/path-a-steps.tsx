@@ -40,6 +40,25 @@ export function PathASteps() {
 
           <StepItem
             number={3}
+            title="Add Your AI API Key"
+            time="1 minute"
+            description="In the web app, go to Settings → AI Provider and add an API key for OpenAI, Anthropic, Google, DeepSeek, or an Ollama/OpenAI-compatible endpoint. This powers web features like chat and document generation — your key is verified on save and stored encrypted."
+          >
+            <div className="flex justify-center my-4">
+              <Link href="https://app.bragdoc.ai/account">
+                <Button
+                  size="lg"
+                  variant="outline"
+                  className="text-lg px-8 py-6"
+                >
+                  Open Settings
+                </Button>
+              </Link>
+            </div>
+          </StepItem>
+
+          <StepItem
+            number={4}
             title="Authenticate"
             time="1 minute"
             description="Connect your CLI to your BragDoc account"
@@ -53,7 +72,7 @@ export function PathASteps() {
           </StepItem>
 
           <StepItem
-            number={4}
+            number={5}
             title="Initialize First Project"
             time="1 minute"
             description="Set up BragDoc in your project directory"
@@ -67,7 +86,7 @@ export function PathASteps() {
           </StepItem>
 
           <StepItem
-            number={5}
+            number={6}
             title="Extract Achievements"
             time="1 minute"
             description="Run your first extraction and see your achievements"
@@ -81,7 +100,7 @@ export function PathASteps() {
           </StepItem>
 
           <StepItem
-            number={6}
+            number={7}
             title="See Your Impact"
             time="Ongoing"
             description="Log in to the web app to view, organize, and share your achievements"

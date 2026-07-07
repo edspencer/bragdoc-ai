@@ -42,6 +42,7 @@ Your applications will be available at:
 
 - `DATABASE_URL`: PostgreSQL connection string
 - `NEXTAUTH_SECRET`: Random secret for session encryption (generate with `openssl rand -base64 32`)
+- `BYOK_ENCRYPTION_KEY`: Random secret used to encrypt the LLM API keys your users add in Settings (AES-256-GCM at rest). Generate with `openssl rand -base64 32`. Use a different value from `NEXTAUTH_SECRET` so the two can rotate independently.
 
 ### Authentication Providers (Optional)
 
@@ -53,9 +54,17 @@ Your applications will be available at:
 - `MAILGUN_API_KEY`: For sending emails
 - `MAILGUN_DOMAIN`: Your Mailgun domain
 
-### AI Providers
+### AI Providers (Bring Your Own Key)
 
-- `OPENAI_API_KEY`: For OpenAI GPT models
+BragDoc's AI features run on each user's own LLM API key. Users of your
+self-hosted instance add a key under **Settings → AI Provider** in the web
+app (OpenAI, Anthropic, Google, DeepSeek, Ollama, or any OpenAI-compatible
+endpoint) — exactly like on bragdoc.ai. Keys are verified on save and stored
+encrypted with `BYOK_ENCRYPTION_KEY`. Ollama needs no key, just a base URL.
+
+- `OPENAI_API_KEY` (optional): A platform-level OpenAI key that is only used
+  for demo mode and Workstreams embeddings. Everything else uses per-user
+  keys, so you can skip this if you don't need those two features.
 
 ## Deployment Options
 
@@ -123,7 +132,7 @@ BragDoc is completely free — there is no payment integration or feature gating
 
 - ✅ Unlimited achievement tracking
 - ✅ Document generation
-- ✅ AI assistance (if API keys provided)
+- ✅ AI assistance (each user adds their own LLM API key in Settings)
 - ✅ Email integration
 - ✅ GitHub integration
 - ✅ All analytics and exports

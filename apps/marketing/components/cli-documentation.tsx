@@ -547,6 +547,17 @@ bragdoc extract`}
         {/* LLM Configuration */}
         <section id="llm" className="mb-16 scroll-mt-24">
           <h2 className="text-3xl font-bold mb-6">LLM Configuration</h2>
+          <Card className="p-4 mb-6 bg-muted/50">
+            <div className="flex items-start gap-2 text-sm">
+              <AlertCircle className="size-4 text-muted-foreground mt-0.5 shrink-0" />
+              <span className="text-muted-foreground">
+                The CLI&apos;s LLM configuration only affects local extraction
+                on your machine. Web app AI features (chat, document generation,
+                standups) use the API key you add in the web app under{' '}
+                <strong>Settings → AI Provider</strong>.
+              </span>
+            </div>
+          </Card>
           <Accordion type="single" collapsible className="space-y-4">
             <AccordionItem value="llm-show" className="border rounded-lg px-6">
               <AccordionTrigger className="hover:no-underline">

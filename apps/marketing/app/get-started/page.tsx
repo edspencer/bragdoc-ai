@@ -31,12 +31,16 @@ const getStartedSteps = [
     text: 'Set up your free account.',
   },
   {
+    name: 'Add Your AI API Key',
+    text: 'In the web app, open Settings → AI Provider and add your own API key (OpenAI, Anthropic, Google, DeepSeek, or a local Ollama endpoint). This powers web AI features like chat and document generation.',
+  },
+  {
     name: 'Login to BragDoc',
     text: 'Run bragdoc login to authenticate with your account.',
   },
   {
-    name: 'Configure LLM',
-    text: 'Set up your preferred LLM provider (OpenAI, Anthropic, or local Ollama).',
+    name: 'Configure LLM for the CLI',
+    text: 'Run bragdoc llm set to configure the LLM provider the CLI uses for local extraction (OpenAI, Anthropic, or local Ollama).',
   },
   {
     name: 'Initialize Repository',

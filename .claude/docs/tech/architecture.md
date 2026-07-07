@@ -718,10 +718,10 @@ NEXT_PUBLIC_POSTHOG_HOST=https://app.posthog.com
 MAILGUN_API_KEY=xxx
 MAILGUN_DOMAIN=mg.your-domain.com
 
-# AI/LLM
-OPENAI_API_KEY=sk-xxx
-DEEPSEEK_API_KEY=xxx  # Optional
-GOOGLE_GENERATIVE_AI_API_KEY=xxx  # Optional
+# AI/LLM (BYOK)
+BYOK_ENCRYPTION_KEY=xxx  # Encrypts per-user LLM API keys at rest (openssl rand -base64 32)
+OPENAI_API_KEY=sk-xxx    # Platform key: demo mode + Workstreams embeddings only;
+                         # all other AI features use each user's own key (Settings → AI Provider)
 ```
 
 ### Optional Variables

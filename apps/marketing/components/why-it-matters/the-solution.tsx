@@ -36,9 +36,9 @@ export function TheSolution() {
             </div>
             <h3 className="font-semibold text-xl">AI-Powered Insights</h3>
             <p className="text-muted-foreground leading-relaxed">
-              Our AI analyzes your commits and generates clear, professional
-              descriptions of your achievements — ready to use in performance
-              reviews and manager reports.
+              Your own AI provider analyzes your commits and generates clear,
+              professional descriptions of your achievements — ready to use in
+              performance reviews and manager reports.
             </p>
           </Card>
 

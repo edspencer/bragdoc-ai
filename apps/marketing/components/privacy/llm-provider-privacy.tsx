@@ -1,6 +1,6 @@
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { ExternalLink, Sparkles, Server } from 'lucide-react';
+import { ExternalLink, Sparkles, Server, Lock } from 'lucide-react';
 
 export function LlmProviderPrivacy() {
   const cloudProviders = [
@@ -84,6 +84,26 @@ export function LlmProviderPrivacy() {
               </p>
             </Card>
           </div>
+
+          {/* API Key Security */}
+          <Card className="p-6 mt-6">
+            <div className="flex items-start gap-3">
+              <Lock className="size-5 text-primary mt-0.5 shrink-0" />
+              <div>
+                <h3 className="font-semibold text-lg mb-2">
+                  Your API Key Is Encrypted
+                </h3>
+                <p className="text-sm text-muted-foreground">
+                  API keys you add in Settings → AI Provider are encrypted at
+                  rest with AES-256-GCM and only ever used server-side to call
+                  the provider you chose. They are never returned to the
+                  browser, logged, or shared. The CLI&apos;s key never leaves
+                  your machine at all — it lives in{' '}
+                  <code className="bg-muted px-1 rounded">~/.bragdoc</code>.
+                </p>
+              </div>
+            </div>
+          </Card>
         </div>
       </div>
     </section>

@@ -28,6 +28,11 @@ export const faqData: FAQCategory[] = [
           "Ollama is free and runs locally on your machine. OpenAI and Anthropic are cloud-based options with excellent quality. It's your choice - all work great!",
       },
       {
+        question: 'Where do I put my API key?',
+        answer:
+          'For web app AI features (chat, document generation, standups, performance reviews), add your key in Settings → AI Provider — it is verified when you save and stored encrypted at rest. The CLI configures its own key separately via `bragdoc llm set` for local extraction. Ollama needs no API key at all, just a base URL.',
+      },
+      {
         question: 'How long does setup take?',
         answer:
           'About 5 minutes total: install the CLI, login, initialize your project, and configure your LLM provider.',

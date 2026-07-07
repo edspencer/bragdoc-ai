@@ -215,16 +215,16 @@ export function PrivacyPolicyContent() {
           <h3 className="text-xl font-semibold mb-3 mt-6">AI Services</h3>
           <ul className="list-disc pl-6 mb-4 space-y-2">
             <li>
-              <strong>OpenAI:</strong> AI-powered document generation and
-              achievement extraction
+              <strong>Your chosen LLM provider</strong> (OpenAI, Anthropic,
+              Google, DeepSeek, Ollama, or an OpenAI-compatible endpoint):
+              AI-powered document generation, chat, and achievement extraction,
+              using the API key you add in Settings. Your key is encrypted at
+              rest (AES-256-GCM) and only ever used server-side to call the
+              provider you selected.
             </li>
             <li>
-              <strong>DeepSeek:</strong> Alternative AI provider for document
-              generation
-            </li>
-            <li>
-              <strong>Google Gemini:</strong> Alternative AI provider for
-              document generation
+              <strong>OpenAI:</strong> Embeddings for the Workstreams feature
+              and demo mode, using BragDoc&apos;s own API key
             </li>
           </ul>
 

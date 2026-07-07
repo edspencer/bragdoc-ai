@@ -201,11 +201,10 @@ Reports are stored in the `Document` table with the following key fields:
 
 #### Model Selection
 
-Uses the `documentWritingModel` from the LLM router which selects the appropriate model based on:
-
-- Task type (document generation)
-- Provider availability
-- Cost optimization
+Uses `resolveModelForUser(user, 'generation')` (BYOK): the model comes from
+the user's own stored LLM provider config (Settings → AI Provider), decrypted
+server-side. Demo users run on the platform OpenAI key; users without a
+configured provider get a 409 `no_llm_configured` response.
 
 ### Security & Privacy
 

@@ -106,7 +106,7 @@ export function PrivacyArchitecture() {
                           <div className="flex items-start gap-2 text-sm">
                             <CheckCircle2 className="size-4 text-blue-600 dark:text-blue-400 mt-0.5 shrink-0" />
                             <span className="text-muted-foreground">
-                              Your API key
+                              Your API key, encrypted at rest
                             </span>
                           </div>
                           <div className="flex items-start gap-2 text-sm">
