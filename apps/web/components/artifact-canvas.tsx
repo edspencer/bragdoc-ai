@@ -6,6 +6,10 @@ import { Artifact } from '@/components/artifact';
 import { useArtifact } from '@/hooks/use-artifact';
 import { useDataStream } from '@/components/data-stream-provider';
 import { DefaultChatTransport } from 'ai';
+import {
+  isNoLLMConfiguredError,
+  showNoLLMConfigToast,
+} from '@/components/no-llm-config-alert';
 
 /**
  * Global artifact canvas component that can be opened from anywhere in the app.
@@ -49,6 +53,14 @@ export function ArtifactCanvas() {
     }),
     onData: (dataPart) => {
       setDataStream((ds) => (ds ? [...ds, dataPart as any] : []));
+    },
+    onError: (error) => {
+      // The chat route returns 409 no_llm_configured before streaming;
+      // surface the "connect your AI provider" CTA instead of failing
+      // silently.
+      if (isNoLLMConfiguredError(error)) {
+        showNoLLMConfigToast();
+      }
     },
   });
 

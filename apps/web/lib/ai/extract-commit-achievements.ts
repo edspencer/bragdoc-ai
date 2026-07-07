@@ -4,8 +4,7 @@ import {
   type ExtractedAchievement,
   type FetchExtractCommitAchievementsPromptProps,
 } from './prompts/types';
-import { streamObject } from 'ai';
-import { extractAchievementsModel } from '.';
+import { streamObject, type LanguageModel } from 'ai';
 import { getProjectsByUserId } from '@/database/projects/queries';
 import { getCompaniesByUserId } from '@/database/queries';
 
@@ -67,9 +66,10 @@ export async function render(
  */
 export async function* executeStream(
   prompt: string,
+  model: LanguageModel,
 ): AsyncGenerator<ExtractedAchievement, void, unknown> {
   const { elementStream } = streamObject({
-    model: extractAchievementsModel,
+    model,
     prompt,
     temperature: 0,
     output: 'array',
@@ -94,10 +94,13 @@ export async function* executeStream(
  *
  * @param prompt The prompt to extract achievements from
  */
-export async function execute(prompt: string): Promise<ExtractedAchievement[]> {
+export async function execute(
+  prompt: string,
+  model: LanguageModel,
+): Promise<ExtractedAchievement[]> {
   const achievements: ExtractedAchievement[] = [];
 
-  for await (const achievement of executeStream(prompt)) {
+  for await (const achievement of executeStream(prompt, model)) {
     achievements.push(achievement);
   }
 
@@ -112,19 +115,6 @@ export async function fetchRender(
 }
 
 /**
- * First fetches data necessary to render the prompt from, renders the prompt, and executes
- * the rendered prompt.
- *
- * @param input FetchExtractCommitAchievementsPromptProps
- * @returns ExtractedAchievement[]
- */
-export async function fetchRenderExecute(
-  input: FetchExtractCommitAchievementsPromptProps,
-): Promise<ExtractedAchievement[]> {
-  return await execute(await render(await fetch(input)));
-}
-
-/**
  * renderExecute takes a data argument, renders the prompt with it, then executes
  * the prompt, returning the array of ExtractedAchievement objects.
  *
@@ -133,6 +123,7 @@ export async function fetchRenderExecute(
  */
 export async function renderExecute(
   data: ExtractCommitAchievementsPromptProps,
+  model: LanguageModel,
 ): Promise<ExtractedAchievement[]> {
-  return await execute(await render(data));
+  return await execute(await render(data), model);
 }

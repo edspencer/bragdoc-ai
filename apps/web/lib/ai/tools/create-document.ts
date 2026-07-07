@@ -1,4 +1,4 @@
-import { tool, type UIMessageStreamWriter } from 'ai';
+import { tool, type LanguageModel, type UIMessageStreamWriter } from 'ai';
 import type { User } from '@bragdoc/database';
 import { z } from 'zod';
 import {
@@ -11,9 +11,15 @@ import { generateUUID } from '@/lib/utils';
 type CreateDocumentProps = {
   user: User;
   dataStream: UIMessageStreamWriter<ChatMessage>;
+  /** Language model to write the document with (resolved per-user by the route) */
+  model: LanguageModel;
 };
 
-export const createDocument = ({ user, dataStream }: CreateDocumentProps) =>
+export const createDocument = ({
+  user,
+  dataStream,
+  model,
+}: CreateDocumentProps) =>
   tool({
     description:
       'Create a document for a writing or content creation activities. This tool will call other functions that will generate the contents of the document based on the title and kind.',
@@ -62,6 +68,7 @@ export const createDocument = ({ user, dataStream }: CreateDocumentProps) =>
         title,
         dataStream,
         user,
+        model,
       });
 
       dataStream.write({ type: 'data-finish', data: null, transient: true });

@@ -1,4 +1,5 @@
 import { Eval } from 'braintrust';
+import { openai } from '@ai-sdk/openai';
 import { ExtractAchievementScorer } from './scorers/extract-achievement-scorer';
 import { renderExecute } from '../../extract-commit-achievements';
 import type {
@@ -18,7 +19,9 @@ import {
 async function wrappedExtractCommitAchievements(
   input: ExtractCommitAchievementsPromptProps,
 ): Promise<ExtractedAchievement[]> {
-  return await renderExecute(input);
+  // Evals are a dev-only tool: run on the platform key with the
+  // pre-BYOK extraction model.
+  return await renderExecute(input, openai('gpt-4o-mini'));
 }
 
 const lastMidnight = new Date();

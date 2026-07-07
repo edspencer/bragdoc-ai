@@ -1,4 +1,4 @@
-import { tool, type UIMessageStreamWriter } from 'ai';
+import { tool, type LanguageModel, type UIMessageStreamWriter } from 'ai';
 import type { User } from '@bragdoc/database';
 import { z } from 'zod';
 import { documentHandlersByArtifactKind } from '@/lib/artifacts/server';
@@ -8,9 +8,15 @@ import type { ChatMessage } from '@/lib/types';
 type UpdateDocumentProps = {
   user: User;
   dataStream: UIMessageStreamWriter<ChatMessage>;
+  /** Language model to write the document with (resolved per-user by the route) */
+  model: LanguageModel;
 };
 
-export const updateDocument = ({ user, dataStream }: UpdateDocumentProps) =>
+export const updateDocument = ({
+  user,
+  dataStream,
+  model,
+}: UpdateDocumentProps) =>
   tool({
     description: 'Update a document with the given description.',
     inputSchema: z.object({
@@ -48,6 +54,7 @@ export const updateDocument = ({ user, dataStream }: UpdateDocumentProps) =>
         description,
         dataStream,
         user,
+        model,
       });
 
       dataStream.write({ type: 'data-finish', data: null, transient: true });

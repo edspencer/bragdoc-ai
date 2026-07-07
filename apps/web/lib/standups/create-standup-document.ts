@@ -1,3 +1,4 @@
+import type { LanguageModel } from 'ai';
 import type { Standup, StandupDocument, Achievement } from '@bragdoc/database';
 import {
   getCurrentStandupDocument,
@@ -25,6 +26,7 @@ import {
  * @param standupId - ID of the standup
  * @param userId - ID of the user
  * @param standup - Standup configuration
+ * @param model - Language model to summarize with (resolved per-user by the route)
  * @param targetDate - Date for the standup document (defaults to next run date)
  * @param regenerate - If true, regenerate summary even if document exists
  * @param achievementIds - Optional list of specific achievement IDs to include
@@ -34,6 +36,7 @@ export async function createOrUpdateStandupDocument(
   standupId: string,
   userId: string,
   standup: Standup,
+  model: LanguageModel,
   targetDate?: Date,
   regenerate = false,
   achievementIds?: string[],
@@ -105,6 +108,7 @@ export async function createOrUpdateStandupDocument(
     // Generate summary using AI
     const summary = await generateStandupAchievementsSummary(
       achievements,
+      model,
       standup.instructions || undefined,
     );
 
@@ -127,10 +131,13 @@ export async function createOrUpdateStandupDocument(
 
   // Generate and save the short summary for list views
   if (document.achievementsSummary || document.wip) {
-    const shortSummary = await generateStandupDocumentSummary({
-      achievementsSummary: document.achievementsSummary,
-      wip: document.wip,
-    });
+    const shortSummary = await generateStandupDocumentSummary(
+      {
+        achievementsSummary: document.achievementsSummary,
+        wip: document.wip,
+      },
+      model,
+    );
 
     document = await updateStandupDocumentSummary(document.id, shortSummary);
   }

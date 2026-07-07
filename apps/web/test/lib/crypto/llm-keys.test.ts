@@ -54,7 +54,7 @@ describe('llm-keys crypto', () => {
 
     // Flip a byte in the ciphertext
     const bytes = Buffer.from(encrypted, 'base64');
-    bytes[0] = bytes[0] ^ 0xff;
+    bytes[0] = (bytes[0] ?? 0) ^ 0xff;
     const tampered = bytes.toString('base64');
 
     await expect(decryptApiKey(tampered, iv)).rejects.toThrow();

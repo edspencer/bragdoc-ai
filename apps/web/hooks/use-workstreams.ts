@@ -3,6 +3,11 @@ import useSWR from 'swr';
 import { useRouter } from 'next/navigation';
 import type { Workstream } from '@bragdoc/database';
 import { toast } from 'sonner';
+import {
+  isNoLLMConfiguredError,
+  NO_LLM_CONFIGURED_ERROR,
+  showNoLLMConfigToast,
+} from '@/components/no-llm-config-alert';
 
 // Encouraging messages to show when processing takes a while
 const ENCOURAGING_MESSAGES = [
@@ -214,6 +219,12 @@ export function useWorkstreamsActions() {
       });
 
       if (!response.ok) {
+        if (response.status === 409) {
+          const errorData = await response.json().catch(() => null);
+          if (isNoLLMConfiguredError(errorData)) {
+            throw new Error(NO_LLM_CONFIGURED_ERROR);
+          }
+        }
         throw new Error('Failed to generate workstreams');
       }
 
@@ -308,12 +319,18 @@ export function useWorkstreamsActions() {
       return result;
     } catch (error) {
       console.error('Failed to generate workstreams:', error);
-      toast.error('Failed to update workstreams', {
-        description:
-          error instanceof Error
-            ? error.message
-            : 'An unexpected error occurred',
-      });
+      if (isNoLLMConfiguredError(error)) {
+        // No LLM provider configured — show the CTA instead of a generic
+        // failure toast.
+        showNoLLMConfigToast();
+      } else {
+        toast.error('Failed to update workstreams', {
+          description:
+            error instanceof Error
+              ? error.message
+              : 'An unexpected error occurred',
+        });
+      }
       throw error;
     } finally {
       setIsGenerating(false);

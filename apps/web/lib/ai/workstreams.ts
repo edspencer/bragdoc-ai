@@ -19,10 +19,10 @@ import {
 } from '@bragdoc/database';
 import { and, eq, isNull, isNotNull, inArray, count } from 'drizzle-orm';
 import { v4 as uuidv4 } from 'uuid';
-import { generateObject } from 'ai';
+import { generateObject, type LanguageModel } from 'ai';
 import { z } from 'zod';
 import pLimit from 'p-limit';
-import { getLLM } from './index';
+import { resolveModelForUser } from './resolve-model';
 import {
   clusterEmbeddings,
   calculateCentroid,
@@ -549,14 +549,15 @@ function createBatchSchema(count: number) {
  *
  * @param clusterBatch - Array of achievement arrays (batch of clusters to name together)
  * @param startIndex - Starting index for logging purposes
+ * @param llm - Language model to use for naming (resolved per-user)
  * @returns Array of objects with name and description (same order as input)
  */
 async function nameWorkstreamBatch(
   clusterBatch: Achievement[][],
   startIndex: number,
+  llm: LanguageModel,
 ): Promise<Array<{ name: string; description: string }>> {
   const startTime = Date.now();
-  const llm = getLLM('extraction'); // gpt-4o-mini
   const batchSize = clusterBatch.length;
 
   // Build prompt for this batch of clusters
@@ -647,12 +648,12 @@ function chunkArray<T>(array: T[], chunkSize: number): T[][] {
  * Uses batching (multiple workstreams per LLM call) and p-limit for concurrency control
  *
  * @param clusters - Array of achievement arrays (one per cluster)
- * @param _user - User object (not currently used)
+ * @param user - User whose configured LLM is used for naming
  * @returns Array of objects with name and description (same order as input clusters)
  */
 export async function nameWorkstreamsBatch(
   clusters: Achievement[][],
-  _user: User,
+  user: User,
 ): Promise<Array<{ name: string; description: string }>> {
   const functionStartTime = Date.now();
   const numBatches = Math.ceil(clusters.length / NAMING_BATCH_SIZE);
@@ -664,6 +665,11 @@ export async function nameWorkstreamsBatch(
     return [];
   }
 
+  // Resolve the user's model once for all naming batches. Throws
+  // NoLLMConfigError for non-demo users without a stored provider config
+  // (the generate route pre-checks this before streaming).
+  const llm = await resolveModelForUser(user, 'extraction');
+
   // Split clusters into batches
   const clusterBatches = chunkArray(clusters, NAMING_BATCH_SIZE);
 
@@ -673,7 +679,7 @@ export async function nameWorkstreamsBatch(
   // Create naming tasks for each batch with concurrency limit
   const namingTasks = clusterBatches.map((batch, batchIdx) => {
     const startIndex = batchIdx * NAMING_BATCH_SIZE;
-    return limit(() => nameWorkstreamBatch(batch, startIndex));
+    return limit(() => nameWorkstreamBatch(batch, startIndex, llm));
   });
 
   // Run all batch tasks in parallel (limited by p-limit)
