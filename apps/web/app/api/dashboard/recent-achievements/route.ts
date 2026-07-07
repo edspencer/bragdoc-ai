@@ -3,7 +3,7 @@ import { NextResponse } from 'next/server';
 import { getAuthUser } from '@/lib/getAuthUser';
 import { db } from '@/database/index';
 import { achievement, project, company } from '@/database/schema';
-import { eq, desc } from 'drizzle-orm';
+import { and, eq, desc } from 'drizzle-orm';
 
 export async function GET(request: NextRequest) {
   try {
@@ -44,7 +44,7 @@ export async function GET(request: NextRequest) {
       .leftJoin(project, eq(achievement.projectId, project.id))
       .leftJoin(company, eq(achievement.companyId, company.id))
       .where(
-        eq(achievement.userId, userId) && eq(achievement.isArchived, false),
+        and(eq(achievement.userId, userId), eq(achievement.isArchived, false)),
       )
       .orderBy(desc(achievement.createdAt))
       .limit(10);
