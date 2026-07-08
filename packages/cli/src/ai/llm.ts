@@ -1,6 +1,6 @@
+import { createLLMFromConfig } from '@bragdoc/ai';
 import type { LanguageModel } from 'ai';
 import { loadConfig } from '../config';
-import { createLLMFromConfig } from './providers';
 
 let cachedModel: LanguageModel | null = null;
 
@@ -16,7 +16,7 @@ export async function getExtractionModel(): Promise<LanguageModel> {
   }
 
   const config = await loadConfig();
-  cachedModel = createLLMFromConfig(config);
+  cachedModel = createLLMFromConfig(config.llm);
 
   return cachedModel;
 }
