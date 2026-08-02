@@ -119,7 +119,7 @@ BragDoc uses PostgreSQL. You can use any PostgreSQL instance:
    ```bash
    # Install PostgreSQL locally
    createdb bragdoc
-   # Update DATABASE_URL in .env
+   # Update POSTGRES_URL in .env
    ```
 
 2. **Docker PostgreSQL**
@@ -203,7 +203,7 @@ If ports 3000 or 3101 are in use, modify the port in the respective app's packag
 ### Database Connection Issues
 
 1. Verify PostgreSQL is running
-2. Check DATABASE_URL format: `postgresql://user:password@host:port/database`
+2. Check POSTGRES_URL format: `postgresql://user:password@host:port/database`
 3. Ensure database exists and user has proper permissions
 
 ### Build Failures
@@ -219,7 +219,7 @@ Required variables will cause startup failures. Check the console for specific m
 ## Security Considerations
 
 - **Never commit secrets**: Use .env files and add them to .gitignore
-- **Use strong secrets**: Generate NEXTAUTH_SECRET with sufficient entropy
+- **Use strong secrets**: Generate `BETTER_AUTH_SECRET` and `BYOK_ENCRYPTION_KEY` with sufficient entropy (`openssl rand -base64 32`), and keep them distinct so they can rotate independently
 - **Database security**: Use connection pooling and proper authentication
 - **API keys**: Rotate keys regularly and use least-privilege access
 - **HTTPS in production**: Always use HTTPS for production deployments
