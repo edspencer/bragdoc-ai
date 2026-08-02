@@ -170,8 +170,9 @@ GITHUB_CLIENT_SECRET="your-github-client-secret"
 NEXT_PUBLIC_APP_URL="http://localhost:3000"
 NEXT_PUBLIC_MARKETING_URL="http://localhost:3101"
 
-# AI Provider (at least one required for AI features)
-OPENAI_API_KEY="sk-..."`}
+# BYOK: encrypts the LLM API keys your users add in Account Settings
+# Generate with: openssl rand -base64 32
+BYOK_ENCRYPTION_KEY="your-random-secret"`}
                         />
                       </div>
 
@@ -181,9 +182,20 @@ OPENAI_API_KEY="sk-..."`}
                         </h4>
                         <CodeBlock
                           language="bash"
-                          code={`# Demo Mode (for testing)
+                          code={`# Allow private/internal LLM base URLs so users can point
+# BragDoc at a local Ollama (http://localhost:11434) or a
+# LAN endpoint. Left unset, these are rejected as an SSRF
+# guard and saving the provider fails with invalid_base_url.
+BYOK_ALLOW_PRIVATE_BASEURLS="true"
+
+# Demo Mode (for testing)
 DEMO_MODE_ENABLED="false"
-NEXT_PUBLIC_DEMO_MODE_ENABLED="false"`}
+NEXT_PUBLIC_DEMO_MODE_ENABLED="false"
+
+# Platform OpenAI key - only used for demo mode and
+# Workstreams embeddings. Regular AI features run on
+# each user's own key, added in Account Settings -> AI Provider.
+OPENAI_API_KEY="sk-..."`}
                         />
                       </div>
 
@@ -191,8 +203,15 @@ NEXT_PUBLIC_DEMO_MODE_ENABLED="false"`}
                         <p className="text-sm text-muted-foreground">
                           <strong>Note:</strong> For a minimal self-hosted
                           setup, you only need the database, authentication, one
-                          OAuth provider, and one AI provider configured. All
-                          other variables are optional and can be added as
+                          OAuth provider, and the BYOK encryption key
+                          configured. Users add their own LLM API keys via
+                          Account Settings → AI Provider in the web app, exactly
+                          like on bragdoc.ai. If you want them to use a local
+                          Ollama, also set{' '}
+                          <code className="text-xs">
+                            BYOK_ALLOW_PRIVATE_BASEURLS=&quot;true&quot;
+                          </code>
+                          . All other variables are optional and can be added as
                           needed.
                         </p>
                       </div>

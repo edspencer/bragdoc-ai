@@ -714,6 +714,59 @@ export const workstreamMetadata = pgTable('WorkstreamMetadata', {
 
 ---
 
+### UserLLMConfig Table (BYOK)
+**Purpose**: Per-user LLM provider configuration — Bring Your Own Key. Web AI features run on the key stored here (see `ai-integration.md` for the resolution flow).
+
+```typescript
+export const llmProviderEnum = pgEnum('llm_provider', [
+  'openai',
+  'anthropic',
+  'google',
+  'deepseek',
+  'ollama',
+  'openai_compatible',
+]);
+
+export const userLLMConfig = pgTable(
+  'user_llm_config',
+  {
+    id: uuid('id').primaryKey().notNull().defaultRandom(),
+    userId: uuid('user_id')
+      .notNull()
+      .references(() => user.id, { onDelete: 'cascade' }),
+    provider: llmProviderEnum('provider').notNull(),
+    encryptedApiKey: text('encrypted_api_key'),      // AES-256-GCM ciphertext, base64 (null for keyless providers)
+    iv: text('iv'),                                  // 12-byte IV, base64
+    keyHint: varchar('key_hint', { length: 8 }),     // Last 4 chars for display; never return the key itself
+    model: varchar('model', { length: 256 }).notNull(),
+    baseURL: varchar('base_url', { length: 512 }),   // Ollama / OpenAI-compatible endpoints
+    isDefault: boolean('is_default').notNull().default(false),
+    lastVerifiedAt: timestamp('last_verified_at'),   // Last successful verify-on-save probe
+    createdAt: timestamp('created_at').notNull().defaultNow(),
+    updatedAt: timestamp('updated_at').notNull().defaultNow(),
+  },
+  (table) => ({
+    userIdIdx: index('user_llm_config_user_id_idx').on(table.userId),
+    // One config per (user, provider)
+    userProviderUnique: uniqueIndex('user_llm_config_user_provider_unique').on(
+      table.userId,
+      table.provider,
+    ),
+    // At most one default config per user (partial unique index)
+    userDefaultUnique: uniqueIndex('user_llm_config_user_default_unique')
+      .on(table.userId)
+      .where(sql`${table.isDefault} = true`),
+  }),
+);
+```
+
+**Key Points:**
+- **Encryption**: `encryptedApiKey`/`iv` hold AES-256-GCM output from `apps/web/lib/crypto/llm-keys.ts` (key derived via HKDF-SHA256 from `BYOK_ENCRYPTION_KEY`). Both are nullable because keyless providers (Ollama) have no ciphertext.
+- **Default row**: exactly one row per user may have `isDefault = true`, enforced by a partial unique index; `getDefaultLLMConfig(userId)` reads it during model resolution.
+- **Account deletion**: `deleteAccountData()` hard-deletes rows explicitly — the user row is anonymized rather than deleted, so the FK cascade never fires on its own.
+
+---
+
 ### Session Table
 ```typescript
 export const session = pgTable('Session', {

@@ -406,10 +406,11 @@ bragdoc standup status            # Show standup configuration
 ### LLM Configuration
 ```bash
 bragdoc llm show                  # Show current LLM configuration
-bragdoc llm set openai            # Set provider to OpenAI
-bragdoc llm set anthropic         # Set provider to Anthropic
-bragdoc llm set ollama llama3.2   # Set to local Ollama model
+bragdoc llm set                   # Interactive wizard: pick provider, model, key
 ```
+
+`llm set` accepts no arguments — it always runs the interactive
+`promptForLLMConfig()` wizard (`packages/cli/src/commands/llm.ts`).
 
 ### Cache Management
 ```bash

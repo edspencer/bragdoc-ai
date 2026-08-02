@@ -6,61 +6,142 @@ BragDoc uses the Vercel AI SDK v5 to integrate multiple LLM providers for achiev
 
 ## Supported Providers
 
-### Web Application
-- OpenAI (GPT-4, GPT-4o, GPT-3.5-turbo)
+Both the web application and the CLI support the same six providers via the
+shared `@bragdoc/ai` package:
+
+- OpenAI (GPT-4o, GPT-4.1, etc.)
+- Anthropic Claude (Claude Sonnet, Opus)
 - Google Gemini (Gemini-1.5-pro, Gemini-2.0-flash)
 - DeepSeek (deepseek-chat)
-- Anthropic Claude (planned)
-
-### CLI Tool
-- OpenAI
-- Google Gemini
-- DeepSeek
-- Anthropic Claude (Claude-3.5-Sonnet, Opus)
-- Ollama (local models: llama3.2, qwen2.5-coder, etc.)
+- Ollama (local models: llama3.2, qwen2.5-coder, etc. — no API key)
 - OpenAI-compatible APIs (LM Studio, LocalAI, etc.)
 
-## LLM Router
+## BYOK Architecture (Bring Your Own Key)
 
-**File:** `apps/web/lib/ai/llm-router.ts`
+BragDoc is free; all web AI features run on each user's own LLM API key.
+There is no platform-key fallback for regular users — the old module-level
+model singletons (`routerModel`, `documentWritingModel`,
+`extractAchievementsModel`, `chatModel`) and the user-less `getLLM(taskType)`
+helper were removed entirely.
 
-Intelligently selects the appropriate LLM provider based on:
-- Task type (extraction, generation, chat)
-- Provider availability
+### Shared Provider Package — `@bragdoc/ai`
 
-```typescript
-export async function getLLM(
-  user: User,
-  taskType: 'extraction' | 'generation' | 'chat'
-): Promise<LanguageModel> {
-  // Selection logic based on user.level and taskType
-  // Returns configured model from @ai-sdk/*
-}
-```
+**Location:** `packages/ai/`
+
+Extracted from the CLI and now used by both the CLI and the web app:
+
+- `LLMProvider` union + per-provider config interfaces (`LLMConfig`)
+- `DEFAULT_MODELS`, `PROVIDER_OPTIONS` (display names + API-key signup URLs)
+- `createLLMFromConfig(config)` — provider factory (no env mutation; Google
+  uses `createGoogleGenerativeAI({ apiKey })`)
+- `verifyLLMConfig(config)` — instantiates the model and runs a tiny
+  `generateText` probe (15s timeout); returns `{ ok } | { ok: false, error }`.
+  Never throws. Used by the settings "Verify & Save" flow.
+- Zod-free public surface; built to `dist/` with declarations so the
+  published CLI can consume compiled output.
+
+### Model Resolution — `resolveModelForUser`
+
+**File:** `apps/web/lib/ai/resolve-model.ts`
+
+Every server-side AI call obtains its model through
+`resolveModelForUser(user, task)` (task: `'chat' | 'extraction' | 'generation'`):
+
+1. **Demo users** (`user.isDemo === true`) → platform `OPENAI_API_KEY` with
+   the historical task→model mapping (extraction: gpt-4o-mini, generation:
+   gpt-4.1-mini, chat: gpt-4o). Demo keeps working with zero setup.
+2. **Otherwise** → load the user's default `user_llm_config` row, decrypt
+   the stored API key, and build the model via `createLLMFromConfig`. The
+   user's single chosen model serves all tasks in v1.
+3. **No config** → throw the typed `NoLLMConfigError`.
+
+Routes catch `NoLLMConfigError` and return HTTP 409
+`{ error: 'no_llm_configured' }` (via `noLLMConfigResponse()`). AI feature
+surfaces (chat, document generation, standups, performance review,
+workstreams) detect this code and show a "Connect your AI provider" CTA
+linking to Settings.
+
+### Key Storage — `user_llm_config` Table
+
+One row per (user, provider); at most one `isDefault` row per user. Stores
+`encryptedApiKey` + `iv` (base64, nullable for keyless providers like
+Ollama), `keyHint` (last 4 chars for display), `model`, `baseURL`, and
+`lastVerifiedAt`. See `database.md` for the full schema.
+
+### Encryption — `apps/web/lib/crypto/llm-keys.ts`
+
+- WebCrypto (`crypto.subtle`) AES-256-GCM with a random 12-byte IV per
+  encryption (Cloudflare Workers compatible).
+- The AES key is derived via HKDF-SHA256 from the dedicated
+  `BYOK_ENCRYPTION_KEY` secret (deliberately NOT `BETTER_AUTH_SECRET`, so it
+  can rotate independently).
+- Decryption happens strictly server-side inside route handlers / model
+  resolution. Plaintext keys never appear in API responses, logs, or client
+  components — `GET /api/user/llm-config` returns only masked metadata
+  (provider, model, keyHint, isDefault, lastVerifiedAt).
+
+### Verify-on-Save
+
+`PUT /api/user/llm-config` runs `verifyLLMConfig` with the raw key before
+encrypting and storing it; verification failures are rejected with the
+provider's error message. `lastVerifiedAt` records the last successful probe.
+
+### Embeddings Exception (v1 Decision)
+
+Workstreams embeddings stay on the platform `OPENAI_API_KEY`. Embeddings are
+OpenAI-only (`text-embedding-3-small`, 1536-d pgvector column); Anthropic has
+no embeddings API, and per-user embedding providers would mix vector
+dimensions and invalidate stored vectors. Cost is negligible (~$0.02/1M
+tokens), and Workstreams keeps working for Anthropic/Ollama users. Demo mode
+is the only other platform-key consumer.
+
+### CLI Relationship
+
+The CLI keeps its own local BYOK config (`bragdoc llm set`, stored in
+`~/.bragdoc/config.yml`) for local extraction — it does not use the key
+stored in the web app. Both now share the `@bragdoc/ai` provider factory.
 
 ## Achievement Extraction
 
 **File:** `apps/web/lib/ai/extract-achievements.ts`
 
-Extracts achievements from Git commits using streaming:
+Extracts achievements from Git commits using streaming. The module takes the
+already-resolved `model` as a parameter — it never resolves one itself, so the
+route can turn a missing BYOK config into a `409` before any work starts:
 
 ```typescript
-import { streamObject } from 'ai';
-import { getLLM } from './llm-router';
+import { streamObject, type LanguageModel } from 'ai';
 
-export async function* extractAchievements(commits: Commit[], user: User) {
-  const llm = await getLLM(user, 'extraction');
-  
-  const { partialObjectStream } = streamObject({
-    model: llm,
-    schema: achievementSchema,
-    prompt: renderPrompt(commits),
+// lib/ai/extract-achievements.ts
+export async function* execute(prompt: string, model: LanguageModel) {
+  const { elementStream } = streamObject({
+    model,
+    prompt,
     temperature: 0, // Deterministic extraction
+    output: 'array',
+    schema: achievementResponseSchema,
   });
 
-  for await (const achievement of partialObjectStream) {
-    if (achievement) yield achievement;
+  for await (const element of elementStream) {
+    yield { ...element, impactSource: 'llm', impactUpdatedAt: new Date() };
   }
+}
+```
+
+The route owns model resolution:
+
+```typescript
+// in the API route
+let model: Awaited<ReturnType<typeof resolveModelForUser>>;
+try {
+  model = await resolveModelForUser(authUser, 'extraction');
+} catch (error) {
+  if (error instanceof NoLLMConfigError) return noLLMConfigResponse(); // 409
+  throw error;
+}
+
+for await (const achievement of streamFetchRenderExecute(data, model)) {
+  // ...
 }
 ```
 
@@ -165,18 +246,29 @@ llm:
     model: 'claude-3-5-sonnet-20241022'
   ollama:
     model: 'llama3.2'
-    baseUrl: 'http://localhost:11434'
+    baseURL: 'http://localhost:11434'
 ```
+
+The file is plain YAML written with mode `0600` — the CLI does **not** encrypt
+its key (AES-256-GCM applies only to keys stored by the web app).
 
 **Commands:**
 ```bash
 bragdoc llm show               # Show current configuration
-bragdoc llm set openai         # Set provider to OpenAI
-bragdoc llm set anthropic      # Set provider to Anthropic
-bragdoc llm set ollama llama3.2  # Set to local Ollama model
+bragdoc llm set                # Interactive wizard: pick provider, model, key
 ```
 
+`llm set` takes **no arguments** (`packages/cli/src/commands/llm.ts`) — it
+always runs the `promptForLLMConfig()` wizard, and asks for confirmation first
+if a provider is already configured. `bragdoc init` runs the same wizard
+automatically when no LLM is configured yet.
+
 ## Provider Configuration
+
+In the web app, provider instantiation is handled by
+`createLLMFromConfig` in `@bragdoc/ai` with the user's decrypted key — the
+env-var examples below illustrate the underlying AI SDK calls (the CLI also
+falls back to these env vars when no key is in its config).
 
 ### OpenAI
 ```typescript
@@ -455,8 +547,9 @@ export const updatePerformanceReviewDocument = ({ user, dataStream }: UpdatePerf
 
       // 3. Stream updated content
       let draftContent = '';
+      const model = await resolveModelForUser(user, 'generation');
       const { fullStream } = streamText({
-        model: documentWritingModel,
+        model,
         system: updateDocumentPrompt(document.content, 'text'),
         experimental_transform: smoothStream({ chunking: 'word' }),
         prompt: description,
@@ -492,7 +585,8 @@ The tool is registered in the chat route using `createUIMessageStream`:
 const stream = createUIMessageStream({
   execute: ({ writer: dataStream }) => {
     const result = streamText({
-      model: routerModel,
+      model, // from resolveModelForUser(user, 'chat'); NoLLMConfigError → 409
+
       system: systemPrompt,
       messages: convertToModelMessages(uiMessages),
       tools: {
@@ -552,5 +646,5 @@ const { messages, sendMessage, status } = useChat({
 
 ---
 
-**Last Updated:** 2026-01-13
+**Last Updated:** 2026-07-06
 **Vercel AI SDK:** v5.0.0

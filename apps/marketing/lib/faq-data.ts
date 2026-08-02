@@ -25,7 +25,12 @@ export const faqData: FAQCategory[] = [
       {
         question: 'Which LLM should I use?',
         answer:
-          "Ollama is free and runs locally on your machine. OpenAI and Anthropic are cloud-based options with excellent quality. It's your choice - all work great!",
+          "Ollama is free and runs locally on your machine — the CLI (and self-hosted BragDoc) can talk to it directly. OpenAI, Anthropic, Google and DeepSeek are cloud-based options with excellent quality, and work everywhere including the hosted web app. It's your choice - all work great!",
+      },
+      {
+        question: 'Where do I put my API key?',
+        answer:
+          'For web app AI features (chat, document generation, standups, performance reviews), add your key in Account Settings → AI Provider — it is verified when you save and stored encrypted at rest. The CLI configures its own key separately via `bragdoc llm set` for local extraction. Ollama needs no API key at all, just a base URL — note that on bragdoc.ai the web app can only reach a publicly accessible Ollama endpoint, so a local Ollama is a CLI (or self-hosted) option.',
       },
       {
         question: 'How long does setup take?',

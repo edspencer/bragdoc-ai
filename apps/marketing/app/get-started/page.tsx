@@ -23,7 +23,7 @@ export const metadata: Metadata = {
 
 const getStartedSteps = [
   {
-    name: 'Install BragDoc CLI',
+    name: 'Install CLI',
     text: 'Run npm install -g @bragdoc/cli to install the command-line tool globally.',
   },
   {
@@ -31,20 +31,24 @@ const getStartedSteps = [
     text: 'Set up your free account.',
   },
   {
-    name: 'Login to BragDoc',
-    text: 'Run bragdoc login to authenticate with your account.',
+    name: 'Add Your AI API Key',
+    text: 'In the web app, open Account Settings → AI Provider and add your own API key (OpenAI, Anthropic, Google, DeepSeek, or an OpenAI-compatible endpoint). This powers web AI features like chat and document generation. On bragdoc.ai an Ollama or OpenAI-compatible base URL has to be reachable from the internet — to use Ollama on your own machine, point the CLI at it instead.',
   },
   {
-    name: 'Configure LLM',
-    text: 'Set up your preferred LLM provider (OpenAI, Anthropic, or local Ollama).',
+    name: 'Authenticate',
+    text: 'Run bragdoc login to connect the CLI to your BragDoc account.',
   },
   {
-    name: 'Initialize Repository',
-    text: 'Navigate to your git repository and run bragdoc init to connect it to BragDoc.',
+    name: 'Initialize First Project',
+    text: 'Navigate to your git repository and run bragdoc init to connect it to BragDoc. On first run this also walks you through choosing the LLM the CLI uses locally — including a local Ollama model.',
   },
   {
     name: 'Extract Achievements',
     text: 'Run bragdoc extract to automatically analyze your git commits and extract achievements.',
+  },
+  {
+    name: 'See Your Impact',
+    text: 'Log in to the web app to view, organize, and share the achievements the CLI has collected.',
   },
 ];
 
@@ -53,7 +57,7 @@ export default function GetStartedPage() {
     <div className="min-h-screen bg-background">
       <HowToSchema
         name="Getting Started with BragDoc"
-        description="Quick 5-minute setup guide for BragDoc achievement tracking"
+        description="Quick 6-minute setup guide for BragDoc achievement tracking"
         steps={getStartedSteps}
       />
       <Header />

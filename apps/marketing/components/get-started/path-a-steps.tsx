@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { TerminalScreenshot } from '@/components/terminal-screenshot';
+import { appPath } from '@/lib/utils';
 
 export function PathASteps() {
   return (
@@ -40,6 +41,25 @@ export function PathASteps() {
 
           <StepItem
             number={3}
+            title="Add Your AI API Key"
+            time="1 minute"
+            description="In the web app, go to Account Settings → AI Provider and add an API key for OpenAI, Anthropic, Google, DeepSeek, or an Ollama/OpenAI-compatible endpoint. This powers web features like chat and document generation — your key is verified on save and stored encrypted. On bragdoc.ai the base URL has to be reachable from the internet, so a local Ollama belongs on the CLI (step 5) or a self-hosted instance."
+          >
+            <div className="flex justify-center my-4">
+              <Link href={appPath('/account')}>
+                <Button
+                  size="lg"
+                  variant="outline"
+                  className="text-lg px-8 py-6"
+                >
+                  Open Settings
+                </Button>
+              </Link>
+            </div>
+          </StepItem>
+
+          <StepItem
+            number={4}
             title="Authenticate"
             time="1 minute"
             description="Connect your CLI to your BragDoc account"
@@ -53,10 +73,10 @@ export function PathASteps() {
           </StepItem>
 
           <StepItem
-            number={4}
+            number={5}
             title="Initialize First Project"
             time="1 minute"
-            description="Set up BragDoc in your project directory"
+            description="Set up BragDoc in your project directory. On first run it also walks you through picking the LLM the CLI uses locally — a cloud provider or a local Ollama model."
           >
             <TerminalScreenshot
               src="/screenshots/terminal/bragdoc-init.png"
@@ -67,7 +87,7 @@ export function PathASteps() {
           </StepItem>
 
           <StepItem
-            number={5}
+            number={6}
             title="Extract Achievements"
             time="1 minute"
             description="Run your first extraction and see your achievements"
@@ -81,14 +101,14 @@ export function PathASteps() {
           </StepItem>
 
           <StepItem
-            number={6}
+            number={7}
             title="See Your Impact"
             time="Ongoing"
             description="Log in to the web app to view, organize, and share your achievements"
           >
             <div className="space-y-4">
               <div className="flex justify-center">
-                <Link href="https://app.bragdoc.com/dashboard">
+                <Link href={appPath('/dashboard')}>
                   <Button size="lg" className="text-lg px-8 py-6">
                     Go to Dashboard
                   </Button>
@@ -96,7 +116,7 @@ export function PathASteps() {
               </div>
               <div className="flex justify-center">
                 <Link
-                  href="https://app.bragdoc.com/dashboard"
+                  href={appPath('/dashboard')}
                   className="block rounded-lg overflow-hidden border border-border hover:border-primary transition-colors max-w-[650px]"
                 >
                   <TerminalScreenshot

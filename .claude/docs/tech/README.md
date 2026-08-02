@@ -151,14 +151,14 @@ export function ClientComponent({ data }: Props) {
 POSTGRES_URL=postgresql://...
 AUTH_SECRET=<generate-with-openssl>
 NEXTAUTH_URL=http://localhost:3000
-OPENAI_API_KEY=sk-...
+BYOK_ENCRYPTION_KEY=<generate-with-openssl>  # Encrypts per-user LLM API keys
 ```
 
 ### Optional Variables
 ```env
 GOOGLE_CLIENT_ID=...          # Google OAuth
 GITHUB_CLIENT_ID=...          # GitHub OAuth
-DEEPSEEK_API_KEY=...          # Alternative LLM
+OPENAI_API_KEY=sk-...         # Platform key: demo mode + embeddings only
 DEMO_MODE_ENABLED=true        # Demo features
 ```
 
@@ -188,7 +188,7 @@ pnpm lint                     # Lint all code
 ### File Locations
 - **Auth**: `apps/web/app/(auth)/auth.ts`, `apps/web/lib/getAuthUser.ts`
 - **Database**: `packages/database/src/schema.ts`, `packages/database/src/queries.ts`
-- **AI**: `apps/web/lib/ai/extract-achievements.ts`, `apps/web/lib/ai/llm-router.ts`
+- **AI**: `apps/web/lib/ai/extract-achievements.ts`, `apps/web/lib/ai/resolve-model.ts`, `packages/ai/`
 - **CLI**: `packages/cli/src/index.ts`, `packages/cli/src/commands/`
 - **API**: `apps/web/app/api/*/route.ts`
 

@@ -660,14 +660,15 @@ pnpm changeset version  # Update versions
 
 **Required:**
 - `POSTGRES_URL` - Database connection string
-- `BETTER_AUTH_SECRET` - Better Auth secret key (or `AUTH_SECRET` for backward compatibility)
-- `BETTER_AUTH_URL` - Application URL (or `NEXTAUTH_URL` for backward compatibility)
-- `OPENAI_API_KEY` - OpenAI API key (for LLM)
+- `BETTER_AUTH_SECRET` - Better Auth secret key (no fallback: `apps/web/lib/better-auth/config.ts` throws at import if unset)
+- `BETTER_AUTH_URL` - Application URL (no fallback: same module throws at import if unset)
+- `BYOK_ENCRYPTION_KEY` - Encrypts per-user LLM API keys at rest (required for web AI features; generate with `openssl rand -base64 32`)
 
 **Optional:**
+- `OPENAI_API_KEY` - Platform OpenAI key, used only for demo mode and Workstreams embeddings (all other AI features run on each user's own BYOK key from Account Settings → AI Provider)
+- `BYOK_ALLOW_PRIVATE_BASEURLS` - Set to `true` on self-hosted deployments to allow private/internal LLM base URLs (e.g. local Ollama). Rejected by default as an SSRF guard.
 - `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` - Google OAuth
 - `GITHUB_CLIENT_ID` / `GITHUB_CLIENT_SECRET` - GitHub OAuth
-- `DEEPSEEK_API_KEY` - DeepSeek API key
 - `MAILGUN_API_KEY` - Mailgun for emails
 - `NEXT_PUBLIC_DEMO_MODE_ENABLED` - Enable demo mode toggle button in sidebar
 - `NEXT_PUBLIC_DEMO_HELP_ENABLED` - Enable demo help dialogs

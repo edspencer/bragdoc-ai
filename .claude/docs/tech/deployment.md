@@ -177,6 +177,7 @@ if (process.env.NODE_ENV === 'development') {
    AUTH_SECRET
    NEXTAUTH_URL
    OPENAI_API_KEY
+   BYOK_ENCRYPTION_KEY
    GOOGLE_CLIENT_ID
    GOOGLE_CLIENT_SECRET
    GITHUB_CLIENT_ID
@@ -282,7 +283,15 @@ NEXT_PUBLIC_POSTHOG_KEY=phc_xxx  # Same for both apps (cross-domain tracking)
 NEXT_PUBLIC_POSTHOG_HOST=https://app.posthog.com
 
 # AI/LLM
+# Platform key — only used for demo mode and Workstreams embeddings.
+# Regular users' AI features run on their own keys (BYOK, added in
+# Account Settings → AI Provider). No other provider env vars are read for
+# user-facing web features — resolveModelForUser refuses env fallback.
 OPENAI_API_KEY=sk-...
+
+# BYOK — encrypts user LLM API keys at rest (AES-256-GCM, key via HKDF-SHA256)
+# Generate with: openssl rand -base64 32
+BYOK_ENCRYPTION_KEY=...
 ```
 
 ### Optional
@@ -298,9 +307,9 @@ GITHUB_CLIENT_SECRET=...
 MAILGUN_API_KEY=...
 MAILGUN_DOMAIN=mg.yourdomain.com
 
-# Additional LLMs
-DEEPSEEK_API_KEY=...
-ANTHROPIC_API_KEY=...
+# BYOK — allow private/internal LLM base URLs (local Ollama, LAN endpoints).
+# Self-hosted only; rejected by default as an SSRF guard.
+BYOK_ALLOW_PRIVATE_BASEURLS=true
 
 # Demo Mode
 DEMO_MODE_ENABLED=true

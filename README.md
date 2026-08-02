@@ -24,6 +24,8 @@ BragDoc is a complete platform for managing your professional achievements:
 
 ### Key Features
 
+- **🆓 Completely Free**: No tiers, no subscriptions — bring your own LLM API key
+- **🔑 Bring Your Own Key**: AI features run on your own key (OpenAI, Anthropic, Google, DeepSeek, Ollama, or any OpenAI-compatible endpoint), added in Account Settings and encrypted at rest
 - **🎯 Achievement Tracking**: Log accomplishments individually or in batches
 - **🔗 Multi-Company Support**: Organize achievements as you change jobs
 - **📈 Impact Scoring**: AI-powered analysis ranks importance of your work
@@ -57,8 +59,8 @@ brag-ai/
 - **Frontend**: Next.js 15 with React 19 Server Components
 - **Backend**: Next.js API Routes
 - **Database**: PostgreSQL via Drizzle ORM
-- **Auth**: NextAuth.js with multiple providers
-- **AI**: Vercel AI SDK (OpenAI, DeepSeek, Google)
+- **Auth**: Better Auth with multiple providers
+- **AI**: Vercel AI SDK, bring-your-own-key (OpenAI, Anthropic, Google, DeepSeek, Ollama, OpenAI-compatible)
 - **Styling**: Tailwind CSS + shadcn/ui
 - **CLI**: Node.js with Commander
 - **Deployment**: Cloudflare Workers via OpenNext
@@ -80,7 +82,8 @@ The easiest way to get started:
    ```bash
    bragdoc login
    ```
-4. **Initialize your repository**:
+4. **Add your AI API key**: In the web app, open **Account Settings → AI Provider** and add an API key for your chosen LLM provider (OpenAI, Anthropic, Google, DeepSeek, Ollama, or an OpenAI-compatible endpoint). This powers web AI features like chat and document generation — the key is verified on save and stored encrypted. On hosted BragDoc, Ollama/OpenAI-compatible base URLs must be publicly reachable; a local Ollama (`http://localhost:11434`) works with the CLI, or with a self-hosted instance that sets `BYOK_ALLOW_PRIVATE_BASEURLS=true`. The CLI configures its own key separately via `bragdoc llm set`.
+5. **Initialize your repository**:
    ```bash
    cd /path/to/your/project
    bragdoc init
@@ -124,8 +127,9 @@ Want to run your own instance? BragDoc is designed to be self-hosted.
 
 - Node.js 18+
 - PostgreSQL database
-- OpenAI API key (or other LLM provider)
 - Email service (Mailgun recommended)
+
+No platform LLM key is required — your users bring their own (see below). An OpenAI key is only needed if you want demo mode and Workstreams embeddings.
 
 ### Quick Setup
 
@@ -154,11 +158,20 @@ Want to run your own instance? BragDoc is designed to be self-hosted.
    # Database
    POSTGRES_URL="postgresql://..."
 
-   # Authentication
-   AUTH_SECRET="generate-with-openssl-rand-base64-32"
-   NEXTAUTH_URL="http://localhost:3000"
+   # Authentication (both required - the app throws on startup if either is missing)
+   BETTER_AUTH_SECRET="generate-with-openssl-rand-base64-32"
+   BETTER_AUTH_URL="http://localhost:3000"
 
-   # LLM Provider
+   # BYOK: encrypts the LLM API keys users add in Account Settings
+   # Generate with: openssl rand -base64 32
+   BYOK_ENCRYPTION_KEY="..."
+
+   # BYOK (optional): allow private/internal LLM base URLs so your users can
+   # point BragDoc at a local Ollama. Rejected by default as an SSRF guard.
+   BYOK_ALLOW_PRIVATE_BASEURLS="true"
+
+   # Platform LLM key (optional) - only used for demo mode and
+   # Workstreams embeddings; all other AI features use per-user keys
    OPENAI_API_KEY="sk-..."
 
    # Analytics (PostHog)
@@ -280,13 +293,19 @@ Centralized data access with **Drizzle ORM**:
 
 ### AI/LLM Integration
 
-**Vercel AI SDK** with intelligent routing:
+**Vercel AI SDK** with per-user model resolution (BYOK):
 
 ```typescript
-// Automatically selects optimal LLM based on task and user tier
-const llm = await getLLM(user, 'extraction');
-const achievements = await extractAchievements(commits, llm);
+// Resolves the user's own stored provider config (decrypted server-side).
+// Demo users run on the platform key; users without a key get a 409
+// "no_llm_configured" and a "Connect your AI provider" CTA.
+const llm = await resolveModelForUser(user, 'extraction');
 ```
+
+Users add their LLM API key under **Account Settings → AI Provider**; keys are
+verified on save and AES-256-GCM encrypted at rest (`BYOK_ENCRYPTION_KEY`).
+The shared `@bragdoc/ai` package provides the provider factory for both the
+web app and the CLI.
 
 **Prompt Engineering**:
 
@@ -296,9 +315,12 @@ const achievements = await extractAchievements(commits, llm);
 
 **Supported Providers**:
 
-- OpenAI (GPT-4, GPT-3.5)
-- DeepSeek
+- OpenAI (GPT-4o, GPT-4.1)
+- Anthropic (Claude)
 - Google (Gemini)
+- DeepSeek
+- Ollama (local, no API key)
+- OpenAI-compatible endpoints (LM Studio, LocalAI, etc.)
 
 ### Data Flow
 
@@ -306,11 +328,11 @@ const achievements = await extractAchievements(commits, llm);
 
 ```
 1. CLI reads Git commits locally
-2. Sends batch to API: POST /api/cli/commits
-3. API processes with LLM (extract meaningful achievements)
-4. Saves to database with project/user association
-5. Returns achievement IDs to CLI
-6. CLI caches processed commit hashes
+2. CLI extracts achievements locally using your configured LLM
+   (bragdoc llm set — key stays on your machine)
+3. Sends finished achievements to the API
+4. API saves them with project/user association
+5. CLI caches processed commit hashes
 ```
 
 #### Chat → Achievements

@@ -7,6 +7,7 @@ export function DataAccess() {
     'Achievement metadata (dates, project names, impact ratings)',
     'Project information (names, companies, dates)',
     'User account information (email, name, preferences)',
+    'Your LLM provider settings and API key, if you add one in Account Settings (encrypted at rest, never shown again after saving, deleted with your account)',
   ];
 
   const neverSee = [

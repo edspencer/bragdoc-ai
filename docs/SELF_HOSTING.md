@@ -40,8 +40,10 @@ Your applications will be available at:
 
 ### Required Variables
 
-- `DATABASE_URL`: PostgreSQL connection string
-- `NEXTAUTH_SECRET`: Random secret for session encryption (generate with `openssl rand -base64 32`)
+- `POSTGRES_URL`: PostgreSQL connection string
+- `BETTER_AUTH_SECRET`: Random secret for session encryption (generate with `openssl rand -base64 32`). The web app throws on startup if it is missing.
+- `BETTER_AUTH_URL`: Public base URL of the web app (e.g. `http://localhost:3000`). Also required — the web app throws on startup without it.
+- `BYOK_ENCRYPTION_KEY`: Random secret used to encrypt the LLM API keys your users add in Account Settings (AES-256-GCM at rest). Generate with `openssl rand -base64 32`. Use a different value from `BETTER_AUTH_SECRET` so the two can rotate independently.
 
 ### Authentication Providers (Optional)
 
@@ -53,10 +55,21 @@ Your applications will be available at:
 - `MAILGUN_API_KEY`: For sending emails
 - `MAILGUN_DOMAIN`: Your Mailgun domain
 
-### AI Providers
+### AI Providers (Bring Your Own Key)
 
-- `OPENAI_API_KEY`: For OpenAI GPT models
-- `BYOK_ALLOW_PRIVATE_BASEURLS`: Set to `true` on self-hosted deployments to allow private/internal LLM base URLs (e.g. Ollama at `http://localhost:11434` or `http://192.168.x.x:11434`). Left unset, private addresses are rejected as an SSRF guard.
+BragDoc's AI features run on each user's own LLM API key. Users of your
+self-hosted instance add a key under **Account Settings → AI Provider** in the
+web app (OpenAI, Anthropic, Google, DeepSeek, Ollama, or any OpenAI-compatible
+endpoint) — exactly like on bragdoc.ai. Keys are verified on save and stored
+encrypted with `BYOK_ENCRYPTION_KEY`. Ollama needs no key, just a base URL.
+
+- `OPENAI_API_KEY` (optional): A platform-level OpenAI key that is only used
+  for demo mode and Workstreams embeddings. Everything else uses per-user
+  keys, so you can skip this if you don't need those two features.
+- `BYOK_ALLOW_PRIVATE_BASEURLS` (optional): Set to `true` on self-hosted
+  deployments to allow private/internal LLM base URLs (e.g. Ollama at
+  `http://localhost:11434` or `http://192.168.x.x:11434`). Left unset,
+  private addresses are rejected as an SSRF guard.
 
 ## Deployment Options
 
@@ -106,7 +119,7 @@ BragDoc uses PostgreSQL. You can use any PostgreSQL instance:
    ```bash
    # Install PostgreSQL locally
    createdb bragdoc
-   # Update DATABASE_URL in .env
+   # Update POSTGRES_URL in .env
    ```
 
 2. **Docker PostgreSQL**
@@ -124,7 +137,7 @@ BragDoc is completely free — there is no payment integration or feature gating
 
 - ✅ Unlimited achievement tracking
 - ✅ Document generation
-- ✅ AI assistance (if API keys provided)
+- ✅ AI assistance (each user adds their own LLM API key in Settings)
 - ✅ Email integration
 - ✅ GitHub integration
 - ✅ All analytics and exports
@@ -190,7 +203,7 @@ If ports 3000 or 3101 are in use, modify the port in the respective app's packag
 ### Database Connection Issues
 
 1. Verify PostgreSQL is running
-2. Check DATABASE_URL format: `postgresql://user:password@host:port/database`
+2. Check POSTGRES_URL format: `postgresql://user:password@host:port/database`
 3. Ensure database exists and user has proper permissions
 
 ### Build Failures
@@ -206,7 +219,7 @@ Required variables will cause startup failures. Check the console for specific m
 ## Security Considerations
 
 - **Never commit secrets**: Use .env files and add them to .gitignore
-- **Use strong secrets**: Generate NEXTAUTH_SECRET with sufficient entropy
+- **Use strong secrets**: Generate `BETTER_AUTH_SECRET` and `BYOK_ENCRYPTION_KEY` with sufficient entropy (`openssl rand -base64 32`), and keep them distinct so they can rotate independently
 - **Database security**: Use connection pooling and proper authentication
 - **API keys**: Rotate keys regularly and use least-privilege access
 - **HTTPS in production**: Always use HTTPS for production deployments
