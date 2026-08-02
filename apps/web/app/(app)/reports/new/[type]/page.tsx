@@ -41,6 +41,10 @@ import {
 } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
 import { SidebarInset } from '@/components/ui/sidebar';
+import {
+  isNoLLMConfiguredError,
+  NoLLMConfigAlert,
+} from '@/components/no-llm-config-alert';
 import { AppPage } from 'components/shared/app-page';
 import { AppContent } from '@/components/shared/app-content';
 import Link from 'next/link';
@@ -147,6 +151,8 @@ export default function NewReportPage() {
   const [projects, setProjects] = React.useState<Project[]>([]);
   const [companies, setCompanies] = React.useState<Company[]>([]);
   const [isGenerating, setIsGenerating] = React.useState(false);
+  // Shown when generation fails with 409 no_llm_configured
+  const [showNoLLMConfig, setShowNoLLMConfig] = React.useState(false);
   const [isLoading, setIsLoading] = React.useState(true);
 
   // User instructions - start with saved preference or default
@@ -270,6 +276,7 @@ export default function NewReportPage() {
     }
 
     setIsGenerating(true);
+    setShowNoLLMConfig(false);
 
     try {
       const response = await fetch('/api/documents/generate', {
@@ -285,7 +292,19 @@ export default function NewReportPage() {
       });
 
       if (!response.ok) {
-        throw new Error('Failed to generate document');
+        const errorData = await response.json().catch(() => null);
+
+        if (response.status === 409 && isNoLLMConfiguredError(errorData)) {
+          // No LLM provider configured — show the inline CTA instead of a
+          // dead-end "Failed to generate document" toast.
+          setShowNoLLMConfig(true);
+          return;
+        }
+
+        throw new Error(
+          (errorData as { error?: string } | null)?.error ||
+            'Failed to generate document',
+        );
       }
 
       const data = await response.json();
@@ -295,7 +314,9 @@ export default function NewReportPage() {
       router.push(`/reports/${documentId}`);
     } catch (error) {
       console.error('Error generating document:', error);
-      toast.error('Failed to generate document');
+      toast.error(
+        error instanceof Error ? error.message : 'Failed to generate document',
+      );
     } finally {
       setIsGenerating(false);
     }
@@ -382,6 +403,8 @@ export default function NewReportPage() {
                       )}
                     </Button>
                   </div>
+
+                  {showNoLLMConfig && <NoLLMConfigAlert className="mt-4" />}
 
                   {/* Filters */}
                   <div className="flex flex-wrap gap-4 pt-4">

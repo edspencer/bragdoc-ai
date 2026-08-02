@@ -13,6 +13,7 @@ jest.mock('@ai-sdk/openai', () => ({
 // Mock database queries
 jest.mock('@bragdoc/database', () => ({
   getDefaultLLMConfig: jest.fn(),
+  getUserById: jest.fn(),
 }));
 
 // Mock the shared provider factory
@@ -26,7 +27,7 @@ jest.mock('lib/crypto/llm-keys', () => ({
 }));
 
 const { openai } = require('@ai-sdk/openai');
-const { getDefaultLLMConfig } = require('@bragdoc/database');
+const { getDefaultLLMConfig, getUserById } = require('@bragdoc/database');
 const { createLLMFromConfig } = require('@bragdoc/ai');
 const { decryptApiKey } = require('lib/crypto/llm-keys');
 
@@ -62,13 +63,18 @@ function makeConfigRow(overrides: Record<string, unknown> = {}) {
 describe('resolveModelForUser', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    // Default: the DB agrees the user is not a demo user.
+    getUserById.mockResolvedValue({ id: userId, isDemo: false });
   });
 
   describe('demo users (platform key)', () => {
     it.each([
       ['extraction', 'gpt-4o-mini'],
       ['generation', 'gpt-4.1-mini'],
-      ['chat', 'gpt-4o'],
+      // routerModel (what the chat routes actually used pre-BYOK) aliased
+      // gpt-4o-mini, NOT gpt-4o. Demo chat bills to the platform key, so
+      // this must not drift up to gpt-4o.
+      ['chat', 'gpt-4o-mini'],
     ] as const)('uses the platform %s model for demo users', async (task, expectedModel) => {
       const model = await resolveModelForUser(makeUser({ isDemo: true }), task);
 
@@ -180,6 +186,42 @@ describe('resolveModelForUser', () => {
         NoLLMConfigError,
       );
       expect(openai).not.toHaveBeenCalled();
+    });
+
+    it('falls back to the database when the user object omits isDemo', async () => {
+      // Belt-and-braces: if a demo user's session ever loses the isDemo
+      // field again, the DB check keeps demo mode working instead of
+      // dead-ending on a 409 CTA.
+      getDefaultLLMConfig.mockResolvedValue(null);
+      getUserById.mockResolvedValue({ id: userId, isDemo: true });
+
+      const userWithoutFlag = makeUser();
+      delete (userWithoutFlag as any).isDemo;
+
+      const model = await resolveModelForUser(userWithoutFlag, 'generation');
+
+      expect(getUserById).toHaveBeenCalledWith(userId);
+      expect(model).toEqual({ provider: 'platform', modelId: 'gpt-4.1-mini' });
+    });
+
+    it('fails safe to non-demo when the demo lookup errors', async () => {
+      getDefaultLLMConfig.mockResolvedValue(null);
+      getUserById.mockRejectedValue(new Error('db down'));
+
+      await expect(resolveModelForUser(makeUser(), 'chat')).rejects.toThrow(
+        NoLLMConfigError,
+      );
+      expect(openai).not.toHaveBeenCalled();
+    });
+
+    it('does not hit the demo lookup when a config exists', async () => {
+      getDefaultLLMConfig.mockResolvedValue(makeConfigRow());
+      decryptApiKey.mockResolvedValue('sk-user-key');
+      createLLMFromConfig.mockReturnValue({ modelId: 'gpt-4o' });
+
+      await resolveModelForUser(makeUser(), 'chat');
+
+      expect(getUserById).not.toHaveBeenCalled();
     });
   });
 

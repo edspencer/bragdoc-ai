@@ -66,14 +66,22 @@ export function useGettingStarted({
   achievementsCount,
 }: UseGettingStartedParams): UseGettingStartedReturn {
   const [isDismissed, setIsDismissed] = useState(true); // Default to true to prevent flash
-  const { configs: llmConfigs } = useLLMConfigs();
+  const {
+    configs: llmConfigs,
+    isLoading: isLoadingLLMConfigs,
+    isError: llmConfigsError,
+  } = useLLMConfigs();
   const { isDemoMode } = useDemoMode();
 
   // Demo mode runs on the platform key, so demo users are never nagged to
   // connect a provider. Treat "still loading" as complete to avoid a flash
-  // of an incomplete item.
+  // of an incomplete item — but NOT "failed to load": SWR also yields
+  // undefined configs on error, and marking the item done there would
+  // complete the checklist and hide the whole banner on a transient 500.
   const hasLLMConfig =
-    isDemoMode || llmConfigs === undefined || llmConfigs.length > 0;
+    isDemoMode ||
+    (!llmConfigsError && isLoadingLLMConfigs) ||
+    (llmConfigs?.length ?? 0) > 0;
 
   // Check localStorage on mount
   useEffect(() => {

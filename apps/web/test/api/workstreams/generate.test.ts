@@ -25,11 +25,14 @@ jest.mock('@/lib/ai/workstreams', () => {
   return {
     ...actual,
     nameWorkstreamsBatch: jest.fn(),
+    // Spy that keeps the real behaviour by default, so individual tests can
+    // pin the strategy when they need a deterministic full/incremental path.
+    decideShouldReCluster: jest.fn(actual.decideShouldReCluster),
   };
 });
 
-// Mock per-user model resolution (BYOK) — the route pre-checks the user's
-// LLM config before opening the SSE stream
+// Mock per-user model resolution (BYOK) — resolved on the full-clustering
+// path only, since incremental assignment never calls an LLM
 jest.mock('@/lib/ai', () => {
   const actual = jest.requireActual('@/lib/ai');
   return {
@@ -109,6 +112,17 @@ describe('POST /api/workstreams/generate', () => {
       user: mockUser,
       source: 'session' as const,
     });
+
+    // jest's clearMocks only clears calls, not implementations, so restore
+    // the defaults that individual tests override.
+    const actualWorkstreams = jest.requireActual('@/lib/ai/workstreams');
+    const { decideShouldReCluster } = require('@/lib/ai/workstreams');
+    (decideShouldReCluster as jest.Mock).mockImplementation(
+      actualWorkstreams.decideShouldReCluster,
+    );
+
+    const { resolveModelForUser } = require('@/lib/ai');
+    (resolveModelForUser as jest.Mock).mockResolvedValue({ modelId: 'test' });
 
     // Mock nameWorkstreamsBatch to return dummy names without calling LLM
     const { nameWorkstreamsBatch } = require('@/lib/ai/workstreams');
@@ -192,7 +206,40 @@ describe('POST /api/workstreams/generate', () => {
     }
   });
 
-  it('returns 409 no_llm_configured when the user has no LLM config', async () => {
+  /** Seed `count` achievements that already have embeddings. */
+  async function seedEmbeddedAchievements(count: number) {
+    for (let i = 0; i < count; i++) {
+      await db.insert(achievement).values({
+        id: uuidv4(),
+        userId: mockUser.id,
+        projectId: mockProject.id,
+        title: `Achievement ${i}`,
+        summary: 'Summary',
+        details: null,
+        impact: 2,
+        source: 'manual' as const,
+        eventDuration: 'week' as const,
+        eventStart: new Date(),
+        eventEnd: null,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        isArchived: false,
+        embedding: Array(1536)
+          .fill(0)
+          .map(() => Math.random()),
+        embeddingModel: 'text-embedding-3-small',
+        embeddingGeneratedAt: new Date(),
+      });
+    }
+  }
+
+  it('reports no_llm_configured over SSE when clustering needs a model', async () => {
+    // Only the full-clustering path names workstreams with an LLM. The
+    // strategy isn't known until embeddings are generated inside the
+    // stream, so a missing config arrives as an SSE error event rather
+    // than an HTTP 409 (the client treats both the same way).
+    await seedEmbeddedAchievements(30);
+
     const { resolveModelForUser, NoLLMConfigError } = require('@/lib/ai');
     (resolveModelForUser as jest.Mock).mockRejectedValueOnce(
       new NoLLMConfigError(),
@@ -204,9 +251,41 @@ describe('POST /api/workstreams/generate', () => {
     );
 
     const response = await POST(request);
-    expect(response.status).toBe(409);
-    expect(await response.json()).toEqual({ error: 'no_llm_configured' });
-  });
+    expect(response.status).toBe(200);
+    await expect(parseSSEResponse(response)).rejects.toThrow(
+      'no_llm_configured',
+    );
+  }, 15000);
+
+  it('does not require an LLM config for incremental assignment', async () => {
+    // Regression: incremental assignment is pure vector maths and calls no
+    // LLM, so a user who removed their API key must not be blocked.
+    await seedEmbeddedAchievements(30);
+
+    const { decideShouldReCluster } = require('@/lib/ai/workstreams');
+    (decideShouldReCluster as jest.Mock).mockReturnValue({
+      strategy: 'incremental',
+      reason: 'Pinned for test',
+    });
+
+    const { resolveModelForUser, NoLLMConfigError } = require('@/lib/ai');
+    (resolveModelForUser as jest.Mock).mockRejectedValue(
+      new NoLLMConfigError(),
+    );
+
+    const request = new NextRequest(
+      'http://localhost/api/workstreams/generate',
+      { method: 'POST' },
+    );
+
+    const response = await POST(request);
+    expect(response.status).toBe(200);
+
+    const data = await parseSSEResponse(response);
+    expect(data.strategy).toBe('incremental');
+    // The key assertion: the model was never resolved at all.
+    expect(resolveModelForUser).not.toHaveBeenCalled();
+  }, 15000);
 
   it('performs full clustering on first run', async () => {
     // Add 30 achievements

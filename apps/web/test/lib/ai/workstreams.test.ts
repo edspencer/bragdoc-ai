@@ -26,6 +26,12 @@ jest.mock('@/lib/ai/workstreams', () => {
   };
 });
 
+/**
+ * fullReclustering takes a pre-resolved model (the route resolves it once
+ * per generation); naming itself is mocked out below.
+ */
+const mockLLM = { modelId: 'test-model' } as any;
+
 const mockUser = {
   id: '123e4567-e89b-12d3-a456-426614174000',
   email: 'test@example.com',
@@ -643,7 +649,7 @@ describe('Workstream Orchestration', () => {
         });
       }
 
-      const _result = await fullReclustering(mockUser.id, mockUser as any);
+      const _result = await fullReclustering(mockUser.id, mockLLM);
 
       // Old workstream should be archived
       const archived = await db
@@ -697,7 +703,7 @@ describe('Workstream Orchestration', () => {
         });
       }
 
-      const _result = await fullReclustering(mockUser.id, mockUser as any);
+      const _result = await fullReclustering(mockUser.id, mockLLM);
 
       // Old assignments should be cleared for non-user-assigned achievements
       const achs = await db.select().from(achievement);
@@ -754,7 +760,7 @@ describe('Workstream Orchestration', () => {
         });
       }
 
-      const _result = await fullReclustering(mockUser.id, mockUser as any);
+      const _result = await fullReclustering(mockUser.id, mockLLM);
 
       // User-assigned achievement should not be cleared
       const userAssigned = await db
@@ -790,7 +796,7 @@ describe('Workstream Orchestration', () => {
         });
       }
 
-      const result = await fullReclustering(mockUser.id, mockUser as any);
+      const result = await fullReclustering(mockUser.id, mockLLM);
 
       expect(result.metadata).toBeDefined();
       expect(result.metadata.userId).toBe(mockUser.id);

@@ -112,6 +112,25 @@ export const betterAuthConfig: Partial<BetterAuthOptions> = {
         type: 'date',
         required: false,
       },
+
+      // Shadow demo user flag.
+      //
+      // This MUST stay declared here. Better Auth's adapter rebuilds the
+      // user object from `additionalFields` on output, so any DB column not
+      // listed here is silently dropped before it reaches `session.user`
+      // (and before it is written to the session cookie cache). Demo mode
+      // swaps the session onto a shadow user whose row has isDemo = true,
+      // and lib/ai/resolve-model.ts uses that flag to keep demo AI features
+      // running on the platform OPENAI_API_KEY.
+      //
+      // input: false — isDemo grants platform-key LLM access, so it must
+      // never be settable from client input (e.g. /update-user).
+      isDemo: {
+        type: 'boolean',
+        required: false,
+        defaultValue: false,
+        input: false,
+      },
     },
     fields: {},
   },
