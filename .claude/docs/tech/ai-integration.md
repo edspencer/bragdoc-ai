@@ -105,25 +105,43 @@ stored in the web app. Both now share the `@bragdoc/ai` provider factory.
 
 **File:** `apps/web/lib/ai/extract-achievements.ts`
 
-Extracts achievements from Git commits using streaming:
+Extracts achievements from Git commits using streaming. The module takes the
+already-resolved `model` as a parameter — it never resolves one itself, so the
+route can turn a missing BYOK config into a `409` before any work starts:
 
 ```typescript
-import { streamObject } from 'ai';
-import { resolveModelForUser } from './resolve-model';
+import { streamObject, type LanguageModel } from 'ai';
 
-export async function* extractAchievements(commits: Commit[], user: User) {
-  const llm = await resolveModelForUser(user, 'extraction');
-  
-  const { partialObjectStream } = streamObject({
-    model: llm,
-    schema: achievementSchema,
-    prompt: renderPrompt(commits),
+// lib/ai/extract-achievements.ts
+export async function* execute(prompt: string, model: LanguageModel) {
+  const { elementStream } = streamObject({
+    model,
+    prompt,
     temperature: 0, // Deterministic extraction
+    output: 'array',
+    schema: achievementResponseSchema,
   });
 
-  for await (const achievement of partialObjectStream) {
-    if (achievement) yield achievement;
+  for await (const element of elementStream) {
+    yield { ...element, impactSource: 'llm', impactUpdatedAt: new Date() };
   }
+}
+```
+
+The route owns model resolution:
+
+```typescript
+// in the API route
+let model: Awaited<ReturnType<typeof resolveModelForUser>>;
+try {
+  model = await resolveModelForUser(authUser, 'extraction');
+} catch (error) {
+  if (error instanceof NoLLMConfigError) return noLLMConfigResponse(); // 409
+  throw error;
+}
+
+for await (const achievement of streamFetchRenderExecute(data, model)) {
+  // ...
 }
 ```
 
@@ -228,16 +246,22 @@ llm:
     model: 'claude-3-5-sonnet-20241022'
   ollama:
     model: 'llama3.2'
-    baseUrl: 'http://localhost:11434'
+    baseURL: 'http://localhost:11434'
 ```
+
+The file is plain YAML written with mode `0600` — the CLI does **not** encrypt
+its key (AES-256-GCM applies only to keys stored by the web app).
 
 **Commands:**
 ```bash
 bragdoc llm show               # Show current configuration
-bragdoc llm set openai         # Set provider to OpenAI
-bragdoc llm set anthropic      # Set provider to Anthropic
-bragdoc llm set ollama llama3.2  # Set to local Ollama model
+bragdoc llm set                # Interactive wizard: pick provider, model, key
 ```
+
+`llm set` takes **no arguments** (`packages/cli/src/commands/llm.ts`) — it
+always runs the `promptForLLMConfig()` wizard, and asks for confirmation first
+if a provider is already configured. `bragdoc init` runs the same wizard
+automatically when no LLM is configured yet.
 
 ## Provider Configuration
 

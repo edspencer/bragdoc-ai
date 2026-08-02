@@ -40,9 +40,10 @@ Your applications will be available at:
 
 ### Required Variables
 
-- `DATABASE_URL`: PostgreSQL connection string
-- `NEXTAUTH_SECRET`: Random secret for session encryption (generate with `openssl rand -base64 32`)
-- `BYOK_ENCRYPTION_KEY`: Random secret used to encrypt the LLM API keys your users add in Settings (AES-256-GCM at rest). Generate with `openssl rand -base64 32`. Use a different value from `NEXTAUTH_SECRET` so the two can rotate independently.
+- `POSTGRES_URL`: PostgreSQL connection string
+- `BETTER_AUTH_SECRET`: Random secret for session encryption (generate with `openssl rand -base64 32`). The web app throws on startup if it is missing.
+- `BETTER_AUTH_URL`: Public base URL of the web app (e.g. `http://localhost:3000`). Also required — the web app throws on startup without it.
+- `BYOK_ENCRYPTION_KEY`: Random secret used to encrypt the LLM API keys your users add in Account Settings (AES-256-GCM at rest). Generate with `openssl rand -base64 32`. Use a different value from `BETTER_AUTH_SECRET` so the two can rotate independently.
 
 ### Authentication Providers (Optional)
 
@@ -57,8 +58,8 @@ Your applications will be available at:
 ### AI Providers (Bring Your Own Key)
 
 BragDoc's AI features run on each user's own LLM API key. Users of your
-self-hosted instance add a key under **Settings → AI Provider** in the web
-app (OpenAI, Anthropic, Google, DeepSeek, Ollama, or any OpenAI-compatible
+self-hosted instance add a key under **Account Settings → AI Provider** in the
+web app (OpenAI, Anthropic, Google, DeepSeek, Ollama, or any OpenAI-compatible
 endpoint) — exactly like on bragdoc.ai. Keys are verified on save and stored
 encrypted with `BYOK_ENCRYPTION_KEY`. Ollama needs no key, just a base URL.
 

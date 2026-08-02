@@ -554,7 +554,7 @@ bragdoc extract`}
                 The CLI&apos;s LLM configuration only affects local extraction
                 on your machine. Web app AI features (chat, document generation,
                 standups) use the API key you add in the web app under{' '}
-                <strong>Settings → AI Provider</strong>.
+                <strong>Account Settings → AI Provider</strong>.
               </span>
             </div>
           </Card>

@@ -42,7 +42,9 @@ export function ArchitectureDiagram() {
               </div>
               <ul className="space-y-2 text-sm text-muted-foreground">
                 <li>• You choose: OpenAI, Anthropic, Google, Ollama</li>
-                <li>• Your API key, encrypted at rest (AES-256-GCM)</li>
+                <li>
+                  • Your API key stays on your machine, in ~/.bragdoc/config.yml
+                </li>
                 <li>• Git metadata analyzed here</li>
                 <li>• Returns achievements only</li>
               </ul>

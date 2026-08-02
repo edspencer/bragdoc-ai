@@ -284,7 +284,9 @@ NEXT_PUBLIC_POSTHOG_HOST=https://app.posthog.com
 
 # AI/LLM
 # Platform key — only used for demo mode and Workstreams embeddings.
-# Regular users' AI features run on their own keys (BYOK, added in Settings).
+# Regular users' AI features run on their own keys (BYOK, added in
+# Account Settings → AI Provider). No other provider env vars are read for
+# user-facing web features — resolveModelForUser refuses env fallback.
 OPENAI_API_KEY=sk-...
 
 # BYOK — encrypts user LLM API keys at rest (AES-256-GCM, key via HKDF-SHA256)
@@ -305,9 +307,9 @@ GITHUB_CLIENT_SECRET=...
 MAILGUN_API_KEY=...
 MAILGUN_DOMAIN=mg.yourdomain.com
 
-# Additional LLMs
-DEEPSEEK_API_KEY=...
-ANTHROPIC_API_KEY=...
+# BYOK — allow private/internal LLM base URLs (local Ollama, LAN endpoints).
+# Self-hosted only; rejected by default as an SSRF guard.
+BYOK_ALLOW_PRIVATE_BASEURLS=true
 
 # Demo Mode
 DEMO_MODE_ENABLED=true

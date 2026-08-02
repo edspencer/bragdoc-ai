@@ -25,7 +25,7 @@ BragDoc is a complete platform for managing your professional achievements:
 ### Key Features
 
 - **🆓 Completely Free**: No tiers, no subscriptions — bring your own LLM API key
-- **🔑 Bring Your Own Key**: AI features run on your own key (OpenAI, Anthropic, Google, DeepSeek, Ollama, or any OpenAI-compatible endpoint), added in Settings and encrypted at rest
+- **🔑 Bring Your Own Key**: AI features run on your own key (OpenAI, Anthropic, Google, DeepSeek, Ollama, or any OpenAI-compatible endpoint), added in Account Settings and encrypted at rest
 - **🎯 Achievement Tracking**: Log accomplishments individually or in batches
 - **🔗 Multi-Company Support**: Organize achievements as you change jobs
 - **📈 Impact Scoring**: AI-powered analysis ranks importance of your work
@@ -59,8 +59,8 @@ brag-ai/
 - **Frontend**: Next.js 15 with React 19 Server Components
 - **Backend**: Next.js API Routes
 - **Database**: PostgreSQL via Drizzle ORM
-- **Auth**: NextAuth.js with multiple providers
-- **AI**: Vercel AI SDK (OpenAI, DeepSeek, Google)
+- **Auth**: Better Auth with multiple providers
+- **AI**: Vercel AI SDK, bring-your-own-key (OpenAI, Anthropic, Google, DeepSeek, Ollama, OpenAI-compatible)
 - **Styling**: Tailwind CSS + shadcn/ui
 - **CLI**: Node.js with Commander
 - **Deployment**: Cloudflare Workers via OpenNext
@@ -82,7 +82,7 @@ The easiest way to get started:
    ```bash
    bragdoc login
    ```
-4. **Add your AI API key**: In the web app, open **Settings → AI Provider** and add an API key for your chosen LLM provider (OpenAI, Anthropic, Google, DeepSeek, Ollama, or an OpenAI-compatible endpoint). This powers web AI features like chat and document generation — the key is verified on save and stored encrypted. The CLI configures its own key separately via `bragdoc llm set`.
+4. **Add your AI API key**: In the web app, open **Account Settings → AI Provider** and add an API key for your chosen LLM provider (OpenAI, Anthropic, Google, DeepSeek, Ollama, or an OpenAI-compatible endpoint). This powers web AI features like chat and document generation — the key is verified on save and stored encrypted. On hosted BragDoc, Ollama/OpenAI-compatible base URLs must be publicly reachable; a local Ollama (`http://localhost:11434`) works with the CLI, or with a self-hosted instance that sets `BYOK_ALLOW_PRIVATE_BASEURLS=true`. The CLI configures its own key separately via `bragdoc llm set`.
 5. **Initialize your repository**:
    ```bash
    cd /path/to/your/project
@@ -158,13 +158,17 @@ No platform LLM key is required — your users bring their own (see below). An O
    # Database
    POSTGRES_URL="postgresql://..."
 
-   # Authentication
-   AUTH_SECRET="generate-with-openssl-rand-base64-32"
-   NEXTAUTH_URL="http://localhost:3000"
+   # Authentication (both required - the app throws on startup if either is missing)
+   BETTER_AUTH_SECRET="generate-with-openssl-rand-base64-32"
+   BETTER_AUTH_URL="http://localhost:3000"
 
-   # BYOK: encrypts the LLM API keys users add in Settings
+   # BYOK: encrypts the LLM API keys users add in Account Settings
    # Generate with: openssl rand -base64 32
    BYOK_ENCRYPTION_KEY="..."
+
+   # BYOK (optional): allow private/internal LLM base URLs so your users can
+   # point BragDoc at a local Ollama. Rejected by default as an SSRF guard.
+   BYOK_ALLOW_PRIVATE_BASEURLS="true"
 
    # Platform LLM key (optional) - only used for demo mode and
    # Workstreams embeddings; all other AI features use per-user keys
@@ -298,7 +302,7 @@ Centralized data access with **Drizzle ORM**:
 const llm = await resolveModelForUser(user, 'extraction');
 ```
 
-Users add their LLM API key under **Settings → AI Provider**; keys are
+Users add their LLM API key under **Account Settings → AI Provider**; keys are
 verified on save and AES-256-GCM encrypted at rest (`BYOK_ENCRYPTION_KEY`).
 The shared `@bragdoc/ai` package provides the provider factory for both the
 web app and the CLI.

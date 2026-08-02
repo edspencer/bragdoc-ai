@@ -49,9 +49,9 @@ const steps = [
     icon: Settings,
     description: [
       'Choose your AI provider: OpenAI, Anthropic, Google, DeepSeek, or Ollama',
-      'For web features (chat, document generation): add your API key in Settings → AI Provider — it is verified on save and encrypted at rest',
+      'For web features (chat, document generation): add your API key in Account Settings → AI Provider — it is verified on save and encrypted at rest',
       'For CLI extraction: run bragdoc llm set to configure a key locally',
-      'Ollama is completely free and runs locally — no API key needed',
+      'Ollama is completely free and runs locally — no API key needed. The CLI talks to it directly; the hosted web app needs a publicly reachable base URL, so pair local Ollama with the CLI or a self-hosted instance',
       'Your API key, your costs, your control',
     ],
     codeBlocks: [{ code: 'bragdoc llm set', language: 'bash' }],

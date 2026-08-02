@@ -404,54 +404,41 @@ export async function DELETE(
 }
 ```
 
-### POST /api/cli/commits
+### CLI Achievement Submission
 
-This endpoint is used by the CLI tool to submit achievements extracted from Git commits. It differs from standard achievement creation in that it handles batch submission and preserves source classification.
+The CLI has **no dedicated submission endpoint** — the old `POST /api/cli/commits`
+route was removed. `packages/cli/src/api/client.ts` (`createAchievements`) posts
+each extracted achievement to the standard `POST /api/achievements`, one request
+per achievement, authenticated with the CLI's JWT via the unified auth helper.
 
-**Request Format:**
+**Request Format** (one achievement per request):
 ```typescript
-// Array of achievements extracted from commits
-[
-  {
-    title: string;
-    summary?: string;
-    details?: string;
-    eventStart?: Date;
-    eventEnd?: Date;
-    eventDuration?: string;
-    companyId?: string;
-    projectId?: string;
-    impact?: number;
-    impactSource?: 'llm' | 'user';
-    source: 'commit';  // Achievement came from Git commit extraction
-  },
-  // ... more achievements
-]
+{
+  title: string;
+  summary?: string;
+  details?: string;
+  eventStart?: string;      // ISO 8601
+  eventEnd?: string;        // ISO 8601
+  eventDuration: string;
+  companyId?: string | null;
+  projectId: string;
+  impact?: number;
+  impactSource?: 'llm' | 'user';   // CLI defaults to 'llm'
+  impactUpdatedAt: string;         // ISO 8601
+  source?: 'llm' | 'manual' | 'commit';  // CLI defaults to 'commit'
+  uniqueSourceId?: string | null;  // e.g. commit SHA — makes retries idempotent
+  sourceItemType?: 'commit' | 'pr' | 'issue' | 'pr_comment' | null;
+}
 ```
 
-**Response Format:**
-```typescript
-[
-  {
-    id: string;
-    title: string;
-    summary?: string;
-    details?: string;
-    source: 'commit';  // Confirmed achievement source
-    impact?: number;
-    impactSource?: 'llm' | 'user';
-    createdAt: string;
-    // ... other achievement fields
-  },
-  // ... more created achievements
-]
-```
+**Response Format:** the single created (or, for a repeated
+`(projectId, uniqueSourceId)` pair, the pre-existing) achievement record.
 
 **Achievement Source Classification:**
 
 When the CLI submits achievements extracted from Git commits:
-- The endpoint expects `source='commit'` (indicating Git commit extraction)
-- The endpoint saves `impactSource='llm'` (indicating LLM-based impact estimation during extraction)
+- It sends `source='commit'` (indicating Git commit extraction)
+- It sends `impactSource='llm'` (indicating LLM-based impact estimation during extraction)
 - These values are stored in the database for tracking and filtering
 
 **Key Distinction:**

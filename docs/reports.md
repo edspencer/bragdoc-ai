@@ -662,25 +662,42 @@ Generate a professional document that highlights these achievements...
 
 ### Model Selection
 
-Uses `documentWritingModel` from `lib/ai/models.ts`:
+Document generation runs on the user's own LLM key (BYOK). The route resolves
+the model before doing anything else and passes it into the generation
+pipeline — `generate-document.ts` takes `model: LanguageModel` and never
+resolves one itself:
 
 ```typescript
-export const documentWritingModel = createLLMRouter({
-  taskType: 'document_generation',
-  models: {
-    openai: openai('gpt-4o-mini'),
-    deepseek: deepseek('deepseek-chat'),
-    google: google('gemini-1.5-flash'),
-  },
-  fallback: openai('gpt-4o-mini'),
-});
+// apps/web/app/api/documents/generate/route.ts
+import {
+  NoLLMConfigError,
+  noLLMConfigResponse,
+  resolveModelForUser,
+} from '@/lib/ai';
+import { fetchRenderExecute } from 'lib/ai/generate-document';
+
+// Resolve the user's configured model; 409 if none is set up.
+let model: Awaited<ReturnType<typeof resolveModelForUser>>;
+try {
+  model = await resolveModelForUser(authUser, 'generation');
+} catch (error) {
+  if (error instanceof NoLLMConfigError) {
+    return noLLMConfigResponse();
+  }
+  throw error;
+}
+
+const result = await fetchRenderExecute(
+  { title, user: authUser, achievementIds, userInstructions },
+  model,
+);
 ```
 
-Model selection considers:
-
-- Cost optimization
-- Provider availability
-- Quality requirements
+Which model is used therefore depends entirely on what the user configured
+under **Account Settings → AI Provider** (OpenAI, Anthropic, Google, DeepSeek,
+Ollama, or an OpenAI-compatible endpoint). There is no platform-side router or
+fallback model: a user with no stored config gets a `409` rather than a
+generation on BragDoc's key.
 
 ---
 

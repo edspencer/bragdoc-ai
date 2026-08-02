@@ -721,7 +721,7 @@ MAILGUN_DOMAIN=mg.your-domain.com
 # AI/LLM (BYOK)
 BYOK_ENCRYPTION_KEY=xxx  # Encrypts per-user LLM API keys at rest (openssl rand -base64 32)
 OPENAI_API_KEY=sk-xxx    # Platform key: demo mode + Workstreams embeddings only;
-                         # all other AI features use each user's own key (Settings → AI Provider)
+                         # all other AI features use each user's own key (Account Settings → AI Provider)
 ```
 
 ### Optional Variables

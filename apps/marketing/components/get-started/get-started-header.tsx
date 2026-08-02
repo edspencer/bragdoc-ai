@@ -22,8 +22,9 @@ export function GetStartedHeader() {
           </h1>
 
           <p className="text-lg sm:text-xl text-muted-foreground text-balance leading-relaxed">
-            Get started with BragDoc in 5 simple steps using the CLI and local
-            AI configuration
+            Get started with BragDoc in 7 simple steps — about 6 minutes to
+            install the CLI, connect your AI provider, and extract your first
+            achievements
           </p>
         </div>
       </div>

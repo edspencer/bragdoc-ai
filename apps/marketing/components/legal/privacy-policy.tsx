@@ -46,6 +46,13 @@ export function PrivacyPolicyContent() {
               Authentication credentials (passwords are hashed and never stored
               in plain text)
             </li>
+            <li>
+              LLM provider settings you enter under Account Settings → AI
+              Provider: your chosen provider, model, and (where applicable) base
+              URL, plus the API key itself. The key is encrypted at rest
+              (AES-256-GCM), is never returned to the browser after you save it,
+              and is only decrypted server-side to call the provider you chose.
+            </li>
           </ul>
 
           <h3 className="text-xl font-semibold mb-3 mt-6">Technical Data</h3>
@@ -158,6 +165,12 @@ export function PrivacyPolicyContent() {
             <li>
               <strong>Achievement and project data:</strong> Retained until you
               delete it or close your account
+            </li>
+            <li>
+              <strong>LLM provider settings and API key:</strong> Retained until
+              you remove them in Account Settings, or until you delete your
+              account — account deletion permanently removes the stored
+              encrypted key
             </li>
             <li>
               <strong>Backups:</strong> May be retained for up to 30 days after
