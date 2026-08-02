@@ -18,6 +18,18 @@ export const DEFAULT_MODELS: Record<LLMProvider, string> = {
 };
 
 /**
+ * Options that apply to every provider, independent of the LLM config.
+ */
+export interface CreateLLMOptions {
+  /**
+   * Custom `fetch` handed to the underlying `@ai-sdk/*` provider. The web app
+   * uses this to supply an SSRF-guarded fetch (redirects are re-validated
+   * rather than followed blindly) when probing a user-supplied base URL.
+   */
+  fetch?: typeof globalThis.fetch;
+}
+
+/**
  * Creates an LLM instance based on configuration.
  *
  * API keys may come from the config itself or (as a fallback) from the
@@ -26,9 +38,13 @@ export const DEFAULT_MODELS: Record<LLMProvider, string> = {
  * created (`createOpenAI`, `createAnthropic`, `createGoogleGenerativeAI`,
  * `createOllama`), so a passed-in apiKey never relies on ambient env state.
  */
-export function createLLMFromConfig(llmConfig?: LLMConfig): LanguageModel {
+export function createLLMFromConfig(
+  llmConfig?: LLMConfig,
+  options?: CreateLLMOptions,
+): LanguageModel {
   const config = llmConfig ?? { provider: 'openai' as const };
   const provider = config.provider;
+  const fetchOption = options?.fetch ? { fetch: options.fetch } : {};
 
   switch (provider) {
     case 'openai': {
@@ -46,6 +62,7 @@ export function createLLMFromConfig(llmConfig?: LLMConfig): LanguageModel {
       const openaiProvider = createOpenAI({
         apiKey,
         ...(baseURL && { baseURL }),
+        ...fetchOption,
       });
 
       return openaiProvider(model);
@@ -61,7 +78,7 @@ export function createLLMFromConfig(llmConfig?: LLMConfig): LanguageModel {
       }
 
       const model = config.anthropic?.model || DEFAULT_MODELS.anthropic;
-      const anthropicProvider = createAnthropic({ apiKey });
+      const anthropicProvider = createAnthropic({ apiKey, ...fetchOption });
       return anthropicProvider(model);
     }
 
@@ -76,7 +93,10 @@ export function createLLMFromConfig(llmConfig?: LLMConfig): LanguageModel {
       }
 
       const model = config.google?.model || DEFAULT_MODELS.google;
-      const googleProvider = createGoogleGenerativeAI({ apiKey });
+      const googleProvider = createGoogleGenerativeAI({
+        apiKey,
+        ...fetchOption,
+      });
       return googleProvider(model);
     }
 
@@ -95,6 +115,7 @@ export function createLLMFromConfig(llmConfig?: LLMConfig): LanguageModel {
       const deepseekProvider = createOpenAI({
         apiKey,
         baseURL,
+        ...fetchOption,
       });
 
       return deepseekProvider(model);
@@ -110,7 +131,7 @@ export function createLLMFromConfig(llmConfig?: LLMConfig): LanguageModel {
       }
 
       const baseURL = config.ollama.baseURL || 'http://localhost:11434/api';
-      const ollama = createOllama({ baseURL });
+      const ollama = createOllama({ baseURL, ...fetchOption });
 
       return ollama(config.ollama.model);
     }
@@ -129,6 +150,7 @@ export function createLLMFromConfig(llmConfig?: LLMConfig): LanguageModel {
       const compatibleProvider = createOpenAI({
         baseURL: config.openaiCompatible.baseURL,
         apiKey: config.openaiCompatible.apiKey || 'not-needed',
+        ...fetchOption,
       });
 
       return compatibleProvider(config.openaiCompatible.model);
