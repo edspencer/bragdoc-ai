@@ -143,5 +143,9 @@ export async function resolveModelForUser(
       model: config.model,
       baseURL: config.baseURL ?? undefined,
     }),
+    // Belt and braces: the guard above already refuses a keyed provider with no
+    // stored key, but this makes it structurally impossible for a user's request
+    // to be served by the platform's own environment keys.
+    { allowEnvFallback: false },
   );
 }

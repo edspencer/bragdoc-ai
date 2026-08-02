@@ -99,10 +99,18 @@ describe('resolveModelForUser', () => {
         'ciphertext-base64',
         'iv-base64',
       );
-      expect(createLLMFromConfig).toHaveBeenCalledWith({
-        provider: 'openai',
-        openai: { apiKey: 'sk-user-key', model: 'gpt-4o', baseURL: undefined },
-      });
+      expect(createLLMFromConfig).toHaveBeenCalledWith(
+        {
+          provider: 'openai',
+          openai: {
+            apiKey: 'sk-user-key',
+            model: 'gpt-4o',
+            baseURL: undefined,
+          },
+        },
+        // The platform's own env keys must never serve a user's request
+        { allowEnvFallback: false },
+      );
       expect(model).toBe(userModel);
       // Never uses the platform key
       expect(openai).not.toHaveBeenCalled();
@@ -144,10 +152,13 @@ describe('resolveModelForUser', () => {
       const model = await resolveModelForUser(makeUser(), 'generation');
 
       expect(decryptApiKey).not.toHaveBeenCalled();
-      expect(createLLMFromConfig).toHaveBeenCalledWith({
-        provider: 'ollama',
-        ollama: { model: 'llama3.2', baseURL: 'http://localhost:11434/api' },
-      });
+      expect(createLLMFromConfig).toHaveBeenCalledWith(
+        {
+          provider: 'ollama',
+          ollama: { model: 'llama3.2', baseURL: 'http://localhost:11434/api' },
+        },
+        { allowEnvFallback: false },
+      );
       expect(model).toBe(ollamaModel);
     });
 
