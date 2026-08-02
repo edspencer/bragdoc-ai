@@ -5,6 +5,14 @@ import type { LLMConfig } from './types';
 const VERIFY_TIMEOUT_MS = 15_000;
 
 /**
+ * OpenAI rejects `max_completion_tokens` below 16 for reasoning models
+ * (the o-series and gpt-5 family), which would make a perfectly valid key on
+ * such a model report a spurious verification failure. 16 is the smallest
+ * value accepted everywhere, and the probe response is discarded anyway.
+ */
+const VERIFY_MAX_OUTPUT_TOKENS = 16;
+
+/**
  * Coarse classification of why verification failed.
  *
  * Callers that expose verification results to an untrusted caller (the web
@@ -30,6 +38,15 @@ export type VerifyLLMConfigResult =
   | { ok: false; code: VerifyLLMFailureCode; error: string };
 
 /**
+ * Options for {@link verifyLLMConfig}. Mirrors the model-construction options
+ * so a server-side verify flow can refuse the `process.env` API-key fallback.
+ */
+export type VerifyLLMConfigOptions = Pick<
+  CreateLLMOptions,
+  'allowEnvFallback' | 'remediationHint' | 'fetch'
+>;
+
+/**
  * Verify that an LLM configuration actually works by instantiating the model
  * and running a tiny generateText probe against the provider.
  *
@@ -43,7 +60,7 @@ export type VerifyLLMConfigResult =
  */
 export async function verifyLLMConfig(
   config: LLMConfig,
-  options?: CreateLLMOptions,
+  options: VerifyLLMConfigOptions = {},
 ): Promise<VerifyLLMConfigResult> {
   try {
     const model = createLLMFromConfig(config, options);
@@ -51,7 +68,7 @@ export async function verifyLLMConfig(
     await generateText({
       model,
       prompt: 'ping',
-      maxOutputTokens: 8,
+      maxOutputTokens: VERIFY_MAX_OUTPUT_TOKENS,
       abortSignal: AbortSignal.timeout(VERIFY_TIMEOUT_MS),
     });
 

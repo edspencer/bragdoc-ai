@@ -1,17 +1,28 @@
 {
   "compilerOptions": {
     "target": "ES2020",
+    // @bragdoc/ai is compiled from source as part of this project (see "paths"
+    // below) and uses ES2022 APIs such as `Error.cause`. Node 18+, the CLI's
+    // minimum, supports them; only the emit target stays at ES2020.
+    "lib": ["ES2022"],
     "module": "NodeNext",
     "moduleResolution": "NodeNext",
     "outDir": "dist",
-    "rootDir": "src",
     "strict": true,
     "esModuleInterop": true,
     "skipLibCheck": true,
     "noEmit": false,
     "jsx": "react",
     "declaration": true,
-    "declarationMap": true
+    "declarationMap": true,
+    // @bragdoc/ai is a private workspace package that is bundled into the
+    // published CLI (see tsup.config.ts). Resolving it to source rather than to
+    // its build output means the bundler inlines it directly, the emitted
+    // .d.ts files contain no dangling '@bragdoc/ai' imports, and neither
+    // typechecking nor jest needs packages/ai to be built first.
+    "paths": {
+      "@bragdoc/ai": ["../ai/src/index.ts"]
+    }
   },
   "include": ["src/**/*.ts", "src/**/*.tsx"],
   "exclude": [

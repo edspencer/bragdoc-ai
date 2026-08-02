@@ -18,6 +18,7 @@ export type {
 } from './types';
 export {
   verifyLLMConfig,
+  type VerifyLLMConfigOptions,
   type VerifyLLMConfigResult,
   type VerifyLLMFailureCode,
 } from './verify';
