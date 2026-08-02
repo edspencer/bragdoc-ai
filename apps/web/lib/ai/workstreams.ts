@@ -13,7 +13,6 @@ import {
   project,
   company,
   type Achievement,
-  type User,
   type Workstream,
   type WorkstreamMetadata,
 } from '@bragdoc/database';
@@ -22,7 +21,6 @@ import { v4 as uuidv4 } from 'uuid';
 import { generateObject, type LanguageModel } from 'ai';
 import { z } from 'zod';
 import pLimit from 'p-limit';
-import { resolveModelForUser } from './resolve-model';
 import {
   clusterEmbeddings,
   calculateCentroid,
@@ -648,12 +646,14 @@ function chunkArray<T>(array: T[], chunkSize: number): T[][] {
  * Uses batching (multiple workstreams per LLM call) and p-limit for concurrency control
  *
  * @param clusters - Array of achievement arrays (one per cluster)
- * @param user - User whose configured LLM is used for naming
+ * @param llm - Pre-resolved language model (see `resolveModelForUser`). The
+ *   caller resolves it so the user's config is read and decrypted once per
+ *   generation rather than once per layer.
  * @returns Array of objects with name and description (same order as input clusters)
  */
 export async function nameWorkstreamsBatch(
   clusters: Achievement[][],
-  user: User,
+  llm: LanguageModel,
 ): Promise<Array<{ name: string; description: string }>> {
   const functionStartTime = Date.now();
   const numBatches = Math.ceil(clusters.length / NAMING_BATCH_SIZE);
@@ -664,11 +664,6 @@ export async function nameWorkstreamsBatch(
   if (clusters.length === 0) {
     return [];
   }
-
-  // Resolve the user's model once for all naming batches. Throws
-  // NoLLMConfigError for non-demo users without a stored provider config
-  // (the generate route pre-checks this before streaming).
-  const llm = await resolveModelForUser(user, 'extraction');
 
   // Split clusters into batches
   const clusterBatches = chunkArray(clusters, NAMING_BATCH_SIZE);
@@ -728,7 +723,7 @@ function extractCommonWords(text: string): string[] {
  * are used for clustering. Achievements outside the current filters are auto-assigned to nearest workstreams.
  *
  * @param userId - User ID to scope operation
- * @param user - User object for LLM selection in naming
+ * @param llm - Pre-resolved language model used to name the new clusters
  * @param onProgress - Optional callback for progress updates
  * @param filters - Optional filter parameters for clustering:
  *   - timeRange: Use Date objects (JS native). startDate and endDate define the range (inclusive).
@@ -738,7 +733,7 @@ function extractCommonWords(text: string): string[] {
  */
 export async function fullReclustering(
   userId: string,
-  user: User,
+  llm: LanguageModel,
   onProgress?: ProgressCallback,
   filters?: {
     timeRange?: { startDate: Date; endDate: Date };
@@ -1010,7 +1005,7 @@ export async function fullReclustering(
   const namingStartTime = Date.now();
   const names = await nameWorkstreamsBatch(
     workstreamAchievements.map((wa) => wa.achievements),
-    user,
+    llm,
   );
   const namingDuration = Date.now() - namingStartTime;
 

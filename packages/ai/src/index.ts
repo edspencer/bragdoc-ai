@@ -1,5 +1,6 @@
 export {
   createLLMFromConfig,
+  type CreateLLMOptions,
   DEFAULT_MODELS,
   getLLMDisplayName,
   isLLMConfigured,
@@ -15,4 +16,9 @@ export type {
   OpenAICompatibleConfig,
   OpenAIConfig,
 } from './types';
-export { verifyLLMConfig, type VerifyLLMConfigResult } from './verify';
+export {
+  verifyLLMConfig,
+  type VerifyLLMConfigOptions,
+  type VerifyLLMConfigResult,
+  type VerifyLLMFailureCode,
+} from './verify';

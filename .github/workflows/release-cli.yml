@@ -41,10 +41,13 @@ jobs:
       - name: Install Dependencies
         run: pnpm install
 
+      - name: Build CLI package (and workspace dependencies)
+        run: pnpm --filter=@bragdoc/cli... build
+
       - name: Run Tests
         env:
           OPENAI_API_KEY: nope
-        run: cd packages/cli && pnpm test
+        run: pnpm --filter=@bragdoc/ai --filter=@bragdoc/cli test
 
       - name: Create Release Pull Request or Publish to npm
         id: changesets

@@ -84,6 +84,25 @@ describe('validateBaseURL', () => {
       'http://[fe80::1]/',
       'http://[::]/',
       'http://[::ffff:192.168.1.1]:11434/',
+      // IPv4-compatible IPv6 (deprecated ::a.b.c.d form) — the URL parser
+      // hands these to us as ::7f00:1 / ::a9fe:a9fe
+      'http://[::127.0.0.1]/',
+      'http://[::7f00:1]/',
+      'http://[::169.254.169.254]/latest/meta-data/',
+      // RFC 6598 CGNAT, which holds Alibaba's metadata endpoint
+      'http://100.64.0.1/',
+      'http://100.100.100.200/latest/meta-data/',
+      'http://100.127.255.254/',
+      // 192.0.0.0/24 IETF protocol assignments
+      'http://192.0.0.1/',
+      'http://192.0.0.170/',
+      // NAT64 well-known prefix wrapping the link-local metadata address
+      'http://[64:ff9b::a9fe:a9fe]/latest/meta-data/',
+      'http://[64:ff9b::169.254.169.254]/',
+      'http://[64:ff9b::c0a8:1]/',
+      // 6to4 wrapping a private IPv4
+      'http://[2002:a9fe:a9fe::1]/',
+      'http://[2002:c0a8:0101::1]/',
     ];
 
     it.each(privateURLs)('rejects %s', (url) => {
@@ -101,6 +120,25 @@ describe('validateBaseURL', () => {
 
     it('does not treat 172.32.x.x (outside 172.16/12) as private', () => {
       expect(validateBaseURL('http://172.32.0.1/')).toEqual({ ok: true });
+    });
+
+    it('does not treat 100.x outside the CGNAT /10 as private', () => {
+      expect(validateBaseURL('http://100.63.255.255/')).toEqual({ ok: true });
+      expect(validateBaseURL('http://100.128.0.1/')).toEqual({ ok: true });
+    });
+
+    it('does not treat 192.0.1.x (outside 192.0.0.0/24) as private', () => {
+      expect(validateBaseURL('http://192.0.1.1/')).toEqual({ ok: true });
+    });
+
+    it('allows NAT64 and 6to4 addresses wrapping a public IPv4', () => {
+      // 8.8.8.8 == 0808:0808
+      expect(validateBaseURL('http://[64:ff9b::808:808]/')).toEqual({
+        ok: true,
+      });
+      expect(validateBaseURL('http://[2002:808:808::1]/')).toEqual({
+        ok: true,
+      });
     });
   });
 
@@ -124,6 +162,18 @@ describe('validateBaseURL', () => {
 
     it('allows IPv6 loopback', () => {
       expect(validateBaseURL('http://[::1]:11434/api')).toEqual({ ok: true });
+    });
+
+    it('allows the newly classified ranges too (escape hatch is global)', () => {
+      expect(validateBaseURL('http://100.100.100.200/')).toEqual({ ok: true });
+      expect(validateBaseURL('http://192.0.0.1/')).toEqual({ ok: true });
+      expect(validateBaseURL('http://[::127.0.0.1]/')).toEqual({ ok: true });
+      expect(validateBaseURL('http://[64:ff9b::a9fe:a9fe]/')).toEqual({
+        ok: true,
+      });
+      expect(validateBaseURL('http://[2002:a9fe:a9fe::1]/')).toEqual({
+        ok: true,
+      });
     });
 
     it('still rejects non-http protocols', () => {
