@@ -13,16 +13,14 @@ import {
   project,
   company,
   type Achievement,
-  type User,
   type Workstream,
   type WorkstreamMetadata,
 } from '@bragdoc/database';
 import { and, eq, isNull, isNotNull, inArray, count } from 'drizzle-orm';
 import { v4 as uuidv4 } from 'uuid';
-import { generateObject } from 'ai';
+import { generateObject, type LanguageModel } from 'ai';
 import { z } from 'zod';
 import pLimit from 'p-limit';
-import { getLLM } from './index';
 import {
   clusterEmbeddings,
   calculateCentroid,
@@ -549,14 +547,15 @@ function createBatchSchema(count: number) {
  *
  * @param clusterBatch - Array of achievement arrays (batch of clusters to name together)
  * @param startIndex - Starting index for logging purposes
+ * @param llm - Language model to use for naming (resolved per-user)
  * @returns Array of objects with name and description (same order as input)
  */
 async function nameWorkstreamBatch(
   clusterBatch: Achievement[][],
   startIndex: number,
+  llm: LanguageModel,
 ): Promise<Array<{ name: string; description: string }>> {
   const startTime = Date.now();
-  const llm = getLLM('extraction'); // gpt-4o-mini
   const batchSize = clusterBatch.length;
 
   // Build prompt for this batch of clusters
@@ -647,12 +646,14 @@ function chunkArray<T>(array: T[], chunkSize: number): T[][] {
  * Uses batching (multiple workstreams per LLM call) and p-limit for concurrency control
  *
  * @param clusters - Array of achievement arrays (one per cluster)
- * @param _user - User object (not currently used)
+ * @param llm - Pre-resolved language model (see `resolveModelForUser`). The
+ *   caller resolves it so the user's config is read and decrypted once per
+ *   generation rather than once per layer.
  * @returns Array of objects with name and description (same order as input clusters)
  */
 export async function nameWorkstreamsBatch(
   clusters: Achievement[][],
-  _user: User,
+  llm: LanguageModel,
 ): Promise<Array<{ name: string; description: string }>> {
   const functionStartTime = Date.now();
   const numBatches = Math.ceil(clusters.length / NAMING_BATCH_SIZE);
@@ -673,7 +674,7 @@ export async function nameWorkstreamsBatch(
   // Create naming tasks for each batch with concurrency limit
   const namingTasks = clusterBatches.map((batch, batchIdx) => {
     const startIndex = batchIdx * NAMING_BATCH_SIZE;
-    return limit(() => nameWorkstreamBatch(batch, startIndex));
+    return limit(() => nameWorkstreamBatch(batch, startIndex, llm));
   });
 
   // Run all batch tasks in parallel (limited by p-limit)
@@ -722,7 +723,7 @@ function extractCommonWords(text: string): string[] {
  * are used for clustering. Achievements outside the current filters are auto-assigned to nearest workstreams.
  *
  * @param userId - User ID to scope operation
- * @param user - User object for LLM selection in naming
+ * @param llm - Pre-resolved language model used to name the new clusters
  * @param onProgress - Optional callback for progress updates
  * @param filters - Optional filter parameters for clustering:
  *   - timeRange: Use Date objects (JS native). startDate and endDate define the range (inclusive).
@@ -732,7 +733,7 @@ function extractCommonWords(text: string): string[] {
  */
 export async function fullReclustering(
   userId: string,
-  user: User,
+  llm: LanguageModel,
   onProgress?: ProgressCallback,
   filters?: {
     timeRange?: { startDate: Date; endDate: Date };
@@ -1004,7 +1005,7 @@ export async function fullReclustering(
   const namingStartTime = Date.now();
   const names = await nameWorkstreamsBatch(
     workstreamAchievements.map((wa) => wa.achievements),
-    user,
+    llm,
   );
   const namingDuration = Date.now() - namingStartTime;
 

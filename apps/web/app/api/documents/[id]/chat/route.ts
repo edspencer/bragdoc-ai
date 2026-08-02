@@ -20,8 +20,13 @@ import {
   smoothStream,
   stepCountIs,
   JsonToSseTransformStream,
+  type LanguageModel,
 } from 'ai';
-import { routerModel } from '@/lib/ai';
+import {
+  NoLLMConfigError,
+  noLLMConfigResponse,
+  resolveModelForUser,
+} from '@/lib/ai';
 import { systemPrompt } from '@/lib/ai/prompts';
 
 export const maxDuration = 60;
@@ -75,12 +80,28 @@ export async function POST(
     );
   }
 
+  // Resolve the user's models BEFORE creating the stream so a missing LLM
+  // config surfaces as a clean 409 instead of a broken stream.
+  let chatModel: LanguageModel;
+  let writingModel: LanguageModel;
+  try {
+    [chatModel, writingModel] = await Promise.all([
+      resolveModelForUser(user, 'chat'),
+      resolveModelForUser(user, 'generation'),
+    ]);
+  } catch (error) {
+    if (error instanceof NoLLMConfigError) {
+      return noLLMConfigResponse();
+    }
+    throw error;
+  }
+
   // Check if chat exists
   const chat = await getChatById({ id: chatId });
 
   if (!chat) {
     // Create new chat
-    const title = await generateTitleFromUserMessage({ message });
+    const title = await generateTitleFromUserMessage({ message, user });
     await saveChat({ id: chatId, userId: user.id, title });
   } else if (chat.userId !== user.id) {
     return Response.json({ error: 'Forbidden' }, { status: 403 });
@@ -130,14 +151,22 @@ When the user refers to "this document", "the document", or asks to modify/trans
   const stream = createUIMessageStream({
     execute: ({ writer: dataStream }) => {
       const result = streamText({
-        model: routerModel,
+        model: chatModel,
         system: enhancedSystemPrompt,
         messages: convertToModelMessages(uiMessages),
         stopWhen: stepCountIs(5),
         experimental_transform: smoothStream({ chunking: 'word' }),
         tools: {
-          createDocument: createDocument({ user, dataStream }),
-          updateDocument: updateDocument({ user, dataStream }),
+          createDocument: createDocument({
+            user,
+            dataStream,
+            model: writingModel,
+          }),
+          updateDocument: updateDocument({
+            user,
+            dataStream,
+            model: writingModel,
+          }),
         },
         experimental_telemetry: {
           isEnabled: true,

@@ -8,6 +8,11 @@ import {
 } from '@bragdoc/database';
 import { calculateStandupOccurrences } from 'lib/standups/calculate-standup-occurrences';
 import { createOrUpdateStandupDocument } from 'lib/standups/create-standup-document';
+import {
+  NoLLMConfigError,
+  noLLMConfigResponse,
+  resolveModelForUser,
+} from 'lib/ai';
 import { getHistoricalStandupAchievementDateRange } from 'lib/scheduling/nextRun';
 
 /**
@@ -32,6 +37,18 @@ export async function POST(
     const standup = await getStandupById(params.standupId, auth.user.id);
     if (!standup) {
       return NextResponse.json({ error: 'Standup not found' }, { status: 404 });
+    }
+
+    // Resolve the user's configured model once for all documents;
+    // 409 if none is set up.
+    let model: Awaited<ReturnType<typeof resolveModelForUser>>;
+    try {
+      model = await resolveModelForUser(auth.user, 'extraction');
+    } catch (error) {
+      if (error instanceof NoLLMConfigError) {
+        return noLLMConfigResponse();
+      }
+      throw error;
     }
 
     // Get date range from query params or default to last 7 days
@@ -156,6 +173,7 @@ export async function POST(
           params.standupId,
           auth.user.id,
           standup,
+          model,
           occurrenceDate,
           true, // Force regeneration
         );

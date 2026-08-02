@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { Card, CardContent, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import {
@@ -86,6 +87,7 @@ export function GettingStartedBanner({
   projectsCount,
   achievementsCount,
 }: GettingStartedBannerProps) {
+  const router = useRouter();
   const { isDismissed, dismiss, checklistItems, completedCount, totalCount } =
     useGettingStarted({
       companiesCount,
@@ -116,6 +118,10 @@ export function GettingStartedBanner({
         break;
       case 'achievement':
         setAchievementDialogOpen(true);
+        break;
+      case 'llm':
+        // AI provider setup lives on the account page
+        router.push('/account');
         break;
     }
   };

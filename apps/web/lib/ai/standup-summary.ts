@@ -1,18 +1,17 @@
-import { generateText } from 'ai';
-import { routerModel } from './index';
-import type { Achievement, User, StandupDocument } from '@bragdoc/database';
+import { generateText, type LanguageModel } from 'ai';
+import type { Achievement, StandupDocument } from '@bragdoc/database';
 
 /**
  * Generate a standup summary from achievements
  * @param achievements List of achievements since last standup
+ * @param model The language model to generate with (resolved per-user by the caller)
  * @param instructions Optional custom instructions from user
- * @param user Optional user object for LLM selection
  * @returns Generated summary text
  */
 export async function generateStandupAchievementsSummary(
   achievements: Achievement[],
+  model: LanguageModel,
   instructions?: string,
-  _user?: User,
 ): Promise<string> {
   if (achievements.length === 0) {
     return 'No new achievements to report since the last standup.';
@@ -57,9 +56,6 @@ Instructions:
 - Use bullet points where appropriate`;
 
   try {
-    // Use the router model for generating summaries
-    const model = routerModel;
-
     const { text } = await generateText({
       model,
       messages: [
@@ -90,7 +86,7 @@ Instructions:
  */
 export async function generateStandupDocumentSummary(
   document: Pick<StandupDocument, 'achievementsSummary' | 'wip'>,
-  _user?: User,
+  model: LanguageModel,
 ): Promise<string> {
   const { achievementsSummary, wip } = document;
 
@@ -112,8 +108,6 @@ export async function generateStandupDocumentSummary(
   }
 
   try {
-    const model = routerModel;
-
     const { text } = await generateText({
       model,
       messages: [

@@ -1,21 +1,29 @@
-import { smoothStream, streamText, tool, type UIMessageStreamWriter } from 'ai';
+import {
+  smoothStream,
+  streamText,
+  tool,
+  type LanguageModel,
+  type UIMessageStreamWriter,
+} from 'ai';
 import type { User } from '@bragdoc/database';
 import { z } from 'zod';
 import { getPerformanceReviewById, updateDocument } from '@bragdoc/database';
 import { updateDocumentPrompt } from '@/lib/ai/prompts';
-import { documentWritingModel } from '@/lib/ai';
 import type { ChatMessage } from '@/lib/types';
 
 type UpdatePerformanceReviewDocumentProps = {
   user: User;
   dataStream: UIMessageStreamWriter<ChatMessage>;
   performanceReviewId: string;
+  /** Language model to write the document with (resolved per-user by the route) */
+  model: LanguageModel;
 };
 
 export const updatePerformanceReviewDocument = ({
   user,
   dataStream,
   performanceReviewId,
+  model,
 }: UpdatePerformanceReviewDocumentProps) =>
   tool({
     description:
@@ -81,14 +89,13 @@ export const updatePerformanceReviewDocument = ({
       console.log(
         '[updatePerformanceReviewDocument] Starting streamText with:',
         {
-          model: documentWritingModel,
           promptLength: description?.length,
           existingContentLength: document.content?.length,
         },
       );
 
       const { fullStream } = streamText({
-        model: documentWritingModel,
+        model,
         system: updateDocumentPrompt(document.content, 'text'),
         experimental_transform: smoothStream({ chunking: 'word' }),
         prompt: description,

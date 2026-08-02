@@ -7,6 +7,7 @@ import { document, chat, message } from '@/database/schema';
 import { eq, and } from 'drizzle-orm';
 import { generateUUID } from '@/lib/utils';
 import { generateTitleFromUserMessage } from '@/app/(app)/chat/actions';
+import type { User } from '@bragdoc/database';
 import type { ChatMessage } from '@/lib/types';
 import { revalidatePath } from 'next/cache';
 
@@ -55,6 +56,7 @@ export async function createDocumentWithChat(
     // Generate chat title from the message
     const chatTitle = await generateTitleFromUserMessage({
       message: initialMessage,
+      user: session.user as unknown as User,
     });
 
     // Execute operations sequentially (neon-http doesn't support transactions)

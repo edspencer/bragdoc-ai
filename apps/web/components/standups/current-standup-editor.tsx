@@ -9,6 +9,7 @@ import { Badge } from 'components/ui/badge';
 import { Separator } from 'components/ui/separator';
 import { IconSparkles, IconCheck, IconX } from '@tabler/icons-react';
 import { toast } from 'sonner';
+import { showNoLLMConfigToast } from '@/components/no-llm-config-alert';
 import { format, formatDistanceToNow } from 'date-fns';
 import type { Standup, StandupDocument } from '@bragdoc/database';
 import { AchievementItem } from '@/components/achievements/achievement-item';
@@ -251,6 +252,12 @@ export function CurrentStandupEditor({
       );
 
       if (!response.ok) {
+        if (response.status === 409) {
+          // No LLM provider configured — show the CTA instead of a
+          // generic failure toast.
+          showNoLLMConfigToast();
+          return;
+        }
         throw new Error('Failed to regenerate achievements summary');
       }
 

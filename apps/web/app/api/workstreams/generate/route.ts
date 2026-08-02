@@ -10,6 +10,11 @@ import {
 import { eq, isNotNull, count, and, gte, lte, inArray } from 'drizzle-orm';
 import { generateMissingEmbeddings } from '@/lib/ai/embeddings';
 import {
+  NO_LLM_CONFIGURED_ERROR,
+  NoLLMConfigError,
+  resolveModelForUser,
+} from '@/lib/ai';
+import {
   decideShouldReCluster,
   incrementalAssignment,
   fullReclustering,
@@ -167,6 +172,15 @@ export async function POST(request: NextRequest) {
   }
 
   const userId = auth.user.id;
+
+  // NOTE: the user's LLM config is deliberately NOT pre-checked here. Only
+  // the full re-clustering path names workstreams with an LLM; incremental
+  // assignment is pure vector maths and needs no key at all (embeddings use
+  // the platform key — see lib/ai/embeddings.ts). The strategy isn't known
+  // until embeddings have been generated inside the stream, so the model is
+  // resolved there, on the full path only, and a missing config is reported
+  // as an SSE `error` event carrying `no_llm_configured` (the client's
+  // isNoLLMConfiguredError check handles both that and the HTTP 409 shape).
 
   // Create SSE stream
   const encoder = new TextEncoder();
@@ -416,6 +430,21 @@ export async function POST(request: NextRequest) {
         let result: ResponseData;
 
         if (decision.strategy === 'full') {
+          // Naming new clusters is the only step that needs an LLM, so the
+          // user's model is resolved once here and threaded down to
+          // nameWorkstreamsBatch (one config read + decrypt per generation).
+          let llm: Awaited<ReturnType<typeof resolveModelForUser>>;
+          try {
+            llm = await resolveModelForUser(auth.user, 'extraction');
+          } catch (error) {
+            if (error instanceof NoLLMConfigError) {
+              sendEvent({ type: 'error', message: NO_LLM_CONFIGURED_ERROR });
+              controller.close();
+              return;
+            }
+            throw error;
+          }
+
           // Create progress callback for fullReclustering
           const progressCallback: ProgressCallback = (event) => {
             sendEvent(event);
@@ -424,7 +453,7 @@ export async function POST(request: NextRequest) {
           // Perform full re-clustering with progress callback
           const clusteringResult = await fullReclustering(
             userId,
-            auth.user,
+            llm,
             progressCallback,
             filters,
           );

@@ -1,17 +1,20 @@
 'use server';
 
 import { generateText } from 'ai';
-import { routerModel } from '@/lib/ai';
+import { resolveModelForUser } from '@/lib/ai';
 import type { ChatMessage } from '@/lib/types';
 import {
   deleteMessagesByChatIdAfterTimestamp,
   getMessageById,
+  type User,
 } from '@bragdoc/database';
 
 export async function generateTitleFromUserMessage({
   message,
+  user,
 }: {
   message: ChatMessage;
+  user: User;
 }): Promise<string> {
   try {
     // Extract text from message parts
@@ -26,8 +29,13 @@ export async function generateTitleFromUserMessage({
       return 'New Chat';
     }
 
+    // Cheap utility call — use the user's configured model ('extraction'
+    // maps to the low-cost platform model for demo users). Falls back to
+    // 'New Chat' below if the user has no LLM configured.
+    const model = await resolveModelForUser(user, 'extraction');
+
     const { text: title } = await generateText({
-      model: routerModel,
+      model,
       prompt: `Generate a short, concise title (3-5 words) for a chat that starts with this message: "${messageText.trim()}".
 
       Return ONLY the title text, nothing else. Do not use quotes.`,

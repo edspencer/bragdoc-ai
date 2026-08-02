@@ -1,4 +1,5 @@
 import { Eval } from 'braintrust';
+import { openai } from '@ai-sdk/openai';
 import { ExtractAchievementScorer } from './scorers/extract-achievement-scorer';
 import { renderExecute } from '../../extract-achievements';
 import type {
@@ -10,7 +11,9 @@ import type {
 async function wrappedExtractAchievements(
   input: ExtractAchievementsPromptProps,
 ): Promise<ExtractedAchievement[]> {
-  return await renderExecute(input);
+  // Evals are a dev-only tool: run on the platform key with the
+  // pre-BYOK extraction model.
+  return await renderExecute(input, openai('gpt-4o-mini'));
 }
 
 //we should be extracting 4 Achievements out of this - 2 from each paragraph

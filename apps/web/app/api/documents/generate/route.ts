@@ -4,6 +4,11 @@ import { document, user, chat } from '@/database/schema';
 import { eq } from 'drizzle-orm';
 import { z } from 'zod/v3';
 import { fetchRenderExecute } from 'lib/ai/generate-document';
+import {
+  NoLLMConfigError,
+  noLLMConfigResponse,
+  resolveModelForUser,
+} from '@/lib/ai';
 import { generateUUID } from '@/lib/utils';
 import { captureServerEvent } from '@/lib/posthog-server';
 
@@ -28,6 +33,17 @@ export async function POST(request: Request) {
     return Response.json({ error: 'Unauthorized' }, { status: 401 });
   }
   const { user: authUser } = authResult;
+
+  // Resolve the user's configured model; 409 if none is set up.
+  let model: Awaited<ReturnType<typeof resolveModelForUser>>;
+  try {
+    model = await resolveModelForUser(authUser, 'generation');
+  } catch (error) {
+    if (error instanceof NoLLMConfigError) {
+      return noLLMConfigResponse();
+    }
+    throw error;
+  }
 
   try {
     const json = await request.json();
@@ -73,12 +89,15 @@ export async function POST(request: Request) {
     }
 
     // Generate the document using the full pipeline
-    const result = await fetchRenderExecute({
-      title,
-      user: authUser,
-      achievementIds,
-      userInstructions,
-    });
+    const result = await fetchRenderExecute(
+      {
+        title,
+        user: authUser,
+        achievementIds,
+        userInstructions,
+      },
+      model,
+    );
 
     // In AI SDK v5, use the text promise to await the complete result
     let content = '';

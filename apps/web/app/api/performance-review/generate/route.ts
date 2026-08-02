@@ -1,6 +1,10 @@
 import { getAuthUser } from '@/lib/getAuthUser';
-import { streamText } from 'ai';
-import { documentWritingModel } from '@/lib/ai';
+import { streamText, type LanguageModel } from 'ai';
+import {
+  NoLLMConfigError,
+  noLLMConfigResponse,
+  resolveModelForUser,
+} from '@/lib/ai';
 import {
   getPerformanceReviewById,
   getWorkstreamsByUserIdWithDateFilter,
@@ -27,6 +31,18 @@ export async function POST(request: Request) {
 
     if (!auth?.user?.id) {
       return Response.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    // Resolve the user's model BEFORE streaming so a missing LLM config
+    // surfaces as a clean 409 instead of a broken stream.
+    let model: LanguageModel;
+    try {
+      model = await resolveModelForUser(auth.user, 'generation');
+    } catch (error) {
+      if (error instanceof NoLLMConfigError) {
+        return noLLMConfigResponse();
+      }
+      throw error;
     }
 
     // Parse and validate request body
@@ -166,9 +182,9 @@ ${generationInstructions ? `\n## IMPORTANT: User's Custom Instructions\nThe user
     const chatId = generateUUID();
     const documentId = generateUUID();
 
-    // Stream the response using the document writing model (GPT-4o)
+    // Stream the response using the user's configured model
     const result = streamText({
-      model: documentWritingModel,
+      model,
       prompt: systemPrompt,
       onFinish: async ({ text }) => {
         try {

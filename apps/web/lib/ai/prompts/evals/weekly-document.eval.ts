@@ -1,9 +1,12 @@
 import { Eval } from 'braintrust';
+import { openai } from '@ai-sdk/openai';
 import { renderExecute } from 'lib/ai/generate-document';
 import { DocumentScorer } from './scorers/document-scorer';
 
 const createDocument = async (input: any): Promise<string> => {
-  const { fullStream } = await renderExecute(input);
+  // Evals are a dev-only tool: run on the platform key with the
+  // pre-BYOK document-writing model.
+  const { fullStream } = await renderExecute(input, openai('gpt-4.1-mini'));
   let docText = '';
 
   for await (const delta of fullStream) {

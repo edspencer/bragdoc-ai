@@ -1,4 +1,5 @@
 import { Eval } from 'braintrust';
+import { openai } from '@ai-sdk/openai';
 import { ExtractAchievementScorer } from './scorers/extract-achievement-scorer';
 import { renderExecute } from '../../extract-achievements';
 import type {
@@ -12,7 +13,9 @@ import { companies, projects, user } from './data/user';
 async function wrappedExtractAchievements(
   input: ExtractAchievementsPromptProps,
 ): Promise<ExtractedAchievement[]> {
-  return await renderExecute(input);
+  // Evals are a dev-only tool: run on the platform key with the
+  // pre-BYOK extraction model.
+  return await renderExecute(input, openai('gpt-4o-mini'));
 }
 
 const chatHistory = [

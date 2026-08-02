@@ -1,4 +1,4 @@
-import type { UIMessageStreamWriter } from 'ai';
+import type { LanguageModel, UIMessageStreamWriter } from 'ai';
 import type { User, Document } from '@bragdoc/database';
 import { saveDocument, updateDocument } from '@bragdoc/database';
 import { textDocumentHandler } from '@/artifacts/text/server';
@@ -19,6 +19,8 @@ export type CreateDocumentCallbackProps = {
   title: string;
   dataStream: UIMessageStreamWriter<ChatMessage>;
   user: User;
+  /** Language model to write the document with (resolved per-user by the route) */
+  model: LanguageModel;
 };
 
 export type UpdateDocumentCallbackProps = {
@@ -26,6 +28,8 @@ export type UpdateDocumentCallbackProps = {
   description: string;
   dataStream: UIMessageStreamWriter<ChatMessage>;
   user: User;
+  /** Language model to write the document with (resolved per-user by the route) */
+  model: LanguageModel;
 };
 
 export type DocumentHandler<T = ArtifactKind> = {
@@ -47,6 +51,7 @@ export function createDocumentHandler<T extends ArtifactKind>(config: {
         title: args.title,
         dataStream: args.dataStream,
         user: args.user,
+        model: args.model,
       });
 
       if (args.user?.id) {
@@ -67,6 +72,7 @@ export function createDocumentHandler<T extends ArtifactKind>(config: {
         description: args.description,
         dataStream: args.dataStream,
         user: args.user,
+        model: args.model,
       });
 
       if (args.user?.id) {

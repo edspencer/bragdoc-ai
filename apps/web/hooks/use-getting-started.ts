@@ -1,6 +1,8 @@
 'use client';
 
 import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useLLMConfigs } from '@/hooks/use-llm-config';
+import { useDemoMode } from '@/components/demo-mode-provider';
 
 /**
  * localStorage key for persisting getting started banner dismissal
@@ -64,6 +66,22 @@ export function useGettingStarted({
   achievementsCount,
 }: UseGettingStartedParams): UseGettingStartedReturn {
   const [isDismissed, setIsDismissed] = useState(true); // Default to true to prevent flash
+  const {
+    configs: llmConfigs,
+    isLoading: isLoadingLLMConfigs,
+    isError: llmConfigsError,
+  } = useLLMConfigs();
+  const { isDemoMode } = useDemoMode();
+
+  // Demo mode runs on the platform key, so demo users are never nagged to
+  // connect a provider. Treat "still loading" as complete to avoid a flash
+  // of an incomplete item — but NOT "failed to load": SWR also yields
+  // undefined configs on error, and marking the item done there would
+  // complete the checklist and hide the whole banner on a transient 500.
+  const hasLLMConfig =
+    isDemoMode ||
+    (!llmConfigsError && isLoadingLLMConfigs) ||
+    (llmConfigs?.length ?? 0) > 0;
 
   // Check localStorage on mount
   useEffect(() => {
@@ -119,8 +137,13 @@ export function useGettingStarted({
         label: 'Add an achievement',
         isComplete: achievementsCount > 0,
       },
+      {
+        id: 'llm',
+        label: 'Connect your AI provider',
+        isComplete: hasLLMConfig,
+      },
     ],
-    [companiesCount, projectsCount, achievementsCount],
+    [companiesCount, projectsCount, achievementsCount, hasLLMConfig],
   );
 
   const completedCount = useMemo(
@@ -130,9 +153,9 @@ export function useGettingStarted({
 
   const totalCount = checklistItems.length;
 
-  // Auto-hide when onboarding is complete (has company, project, and achievement)
-  const isOnboardingComplete =
-    companiesCount > 0 && projectsCount > 0 && achievementsCount > 0;
+  // Auto-hide when onboarding is complete (all checklist items done,
+  // including connecting an AI provider)
+  const isOnboardingComplete = checklistItems.every((item) => item.isComplete);
 
   return {
     isDismissed: isDismissed || isOnboardingComplete,

@@ -1,7 +1,6 @@
 import { getProjectById } from '@/database/projects/queries';
 import { getAchievements, getCompanyById } from '@/database/queries';
-import { streamText } from 'ai';
-import { documentWritingModel } from '.';
+import { streamText, type LanguageModel } from 'ai';
 
 import type {
   GenerateDocumentFetcherProps,
@@ -95,18 +94,20 @@ export async function fetch({
  * Fetches data, renders the prompt, and executes it in a single operation
  *
  * @param input GenerateDocumentFetcherProps - Input parameters for document generation
+ * @param model - The language model to generate with (resolved per-user by the caller)
  * @param streamTextOptions - Optional parameters for text streaming
  * @returns Promise<AsyncIterable<string>> - Stream of generated document text
  */
 export async function fetchRenderExecute(
   input: GenerateDocumentFetcherProps,
+  model: LanguageModel,
   streamTextOptions?: Partial<
     Omit<Parameters<typeof streamText>[0], 'model' | 'prompt' | 'messages'>
   >,
 ) {
   const data = await fetch(input);
 
-  return await renderExecute(data, streamTextOptions);
+  return await renderExecute(data, model, streamTextOptions);
 }
 
 /**
@@ -126,35 +127,39 @@ export async function fetchRender(
  * Renders the prompt and executes it to generate the document
  *
  * @param promptData GenerateDocumentPromptProps - Data needed to generate the document
+ * @param model - The language model to generate with (resolved per-user by the caller)
  * @param streamTextOptions - Optional parameters for text streaming
  * @returns Promise<AsyncIterable<string>> - Stream of generated document text
  */
 export async function renderExecute(
   promptData: GenerateDocumentPromptProps,
+  model: LanguageModel,
   streamTextOptions?: Partial<
     Omit<Parameters<typeof streamText>[0], 'model' | 'prompt' | 'messages'>
   >,
 ) {
   const prompt = await render(promptData);
 
-  return execute(prompt, streamTextOptions);
+  return execute(prompt, model, streamTextOptions);
 }
 
 /**
  * Executes the rendered prompt to generate the document
  *
  * @param prompt string - The rendered prompt to execute
+ * @param model - The language model to generate with (resolved per-user by the caller)
  * @param streamTextOptions - Optional parameters for text streaming
  * @returns Promise<AsyncIterable<string>> - Stream of generated document text
  */
 export async function execute(
   prompt: string,
+  model: LanguageModel,
   streamTextOptions?: Partial<
     Omit<Parameters<typeof streamText>[0], 'model' | 'prompt' | 'messages'>
   >,
 ) {
   return streamText({
-    model: documentWritingModel,
+    model,
     prompt,
     ...streamTextOptions,
   });

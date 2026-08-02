@@ -35,6 +35,10 @@ import {
 } from '@tabler/icons-react';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
+import {
+  isNoLLMConfiguredError,
+  showNoLLMConfigToast,
+} from '@/components/no-llm-config-alert';
 
 interface RecentAchievementsTableProps {
   standupId: string;
@@ -683,7 +687,24 @@ export function RecentAchievementsTable({
                         },
                       );
                       if (!response.ok) {
-                        throw new Error('Failed to generate standup documents');
+                        const errorData = await response
+                          .json()
+                          .catch(() => null);
+
+                        if (
+                          response.status === 409 &&
+                          isNoLLMConfiguredError(errorData)
+                        ) {
+                          // No LLM provider configured — point the user at
+                          // Settings instead of silently flipping back to idle.
+                          showNoLLMConfigToast();
+                          return;
+                        }
+
+                        throw new Error(
+                          (errorData as { error?: string } | null)?.error ||
+                            'Failed to generate standup documents',
+                        );
                       }
                       // Refetch data
                       const [documentsRes, achievementsRes] = await Promise.all(
@@ -724,9 +745,21 @@ export function RecentAchievementsTable({
                             documentsData.map((doc: StandupDocument) => doc.id),
                           ),
                         );
+
+                        toast.success('Standup documents generated');
+                      } else {
+                        throw new Error(
+                          'Standups were generated but could not be loaded. Try refreshing.',
+                        );
                       }
                     } catch (error) {
                       console.error('Error generating standups:', error);
+                      toast.error('Failed to generate standup documents', {
+                        description:
+                          error instanceof Error
+                            ? error.message
+                            : 'An unexpected error occurred',
+                      });
                     } finally {
                       setIsGenerating(false);
                     }
