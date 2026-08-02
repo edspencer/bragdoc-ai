@@ -34,10 +34,9 @@ export async function extractAchievementsFromProject(
       );
     }
 
-    if (!process.env.OPENAI_API_KEY) {
-      throw new Error('OPENAI_API_KEY environment variable is required.');
-    }
-
+    // No up-front API key check: the configured provider's credentials are
+    // validated when the model is created (config value or provider-specific
+    // environment variable), which throws a clear error if missing.
     const repoInfo = getRepositoryInfo(projectPath);
 
     // Find project config

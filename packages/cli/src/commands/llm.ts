@@ -1,8 +1,8 @@
 import { Command } from 'commander';
 import chalk from 'chalk';
+import { getLLMDisplayName, isLLMConfigured } from '@bragdoc/ai';
 import { loadConfig, saveConfig } from '../config';
-import { promptForLLMConfig, isLLMConfigured } from '../config/llm-setup';
-import { getLLMDisplayName } from '../ai/providers';
+import { promptForLLMConfig } from '../config/llm-setup';
 
 /**
  * Show current LLM configuration
@@ -21,7 +21,7 @@ async function showLLM() {
       return;
     }
 
-    const displayName = getLLMDisplayName(config);
+    const displayName = getLLMDisplayName(config.llm);
     console.log(chalk.green('✓ LLM Provider Configured'));
     console.log(chalk.bold(`\n  ${displayName}`));
 
@@ -68,7 +68,7 @@ async function setLLM() {
 
     // Check if already configured and ask if they want to reconfigure
     if (isLLMConfigured(config.llm)) {
-      const displayName = getLLMDisplayName(config);
+      const displayName = getLLMDisplayName(config.llm);
       console.log(chalk.yellow(`\n⚠️  LLM provider already configured:`));
       console.log(chalk.bold(`  ${displayName}\n`));
 
@@ -94,7 +94,7 @@ async function setLLM() {
     config.llm = llmConfig;
     await saveConfig(config);
 
-    const displayName = getLLMDisplayName(config);
+    const displayName = getLLMDisplayName(config.llm);
     console.log(chalk.green(`\n✓ LLM provider configured: ${displayName}`));
     console.log(chalk.dim('Configuration saved to: ~/.bragdoc/config.yml\n'));
   } catch (error: any) {

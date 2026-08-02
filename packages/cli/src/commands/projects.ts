@@ -21,8 +21,8 @@ import {
   convertCronToWindowsSchedule,
 } from '../lib/scheduling';
 import { syncProjectWithApi, syncSourceWithApi } from '../lib/projects';
-import { promptForLLMConfig, isLLMConfigured } from '../config/llm-setup';
-import { getLLMDisplayName } from '../ai/providers';
+import { getLLMDisplayName, isLLMConfigured } from '@bragdoc/ai';
+import { promptForLLMConfig } from '../config/llm-setup';
 import type { ExtractionConfig, ExtractionDetailLevel } from '../config/types';
 import { parseGitHubRepo, isGitHubCliAvailable } from '../lib/github';
 
@@ -583,7 +583,7 @@ export async function addProject(
     config.llm = llmConfig;
     await saveConfig(config);
 
-    const displayName = getLLMDisplayName(config);
+    const displayName = getLLMDisplayName(config.llm);
     console.log(chalk.green(`✓ LLM configured: ${displayName}\n`));
   } else if (options.skipLlmConfig) {
     console.log(
@@ -915,7 +915,7 @@ export async function updateProject(
       const llmConfig = await promptForLLMConfig();
       config.llm = llmConfig;
       await saveConfig(config);
-      const displayName = getLLMDisplayName(config);
+      const displayName = getLLMDisplayName(config.llm);
       console.log(chalk.green(`✓ LLM configured: ${displayName}\n`));
     }
 

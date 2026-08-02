@@ -1,53 +1,6 @@
+import { DEFAULT_MODELS, PROVIDER_OPTIONS } from '@bragdoc/ai';
+import type { LLMConfig, LLMProvider } from '@bragdoc/ai';
 import inquirer from 'inquirer';
-import type { LLMConfig, LLMProvider } from './types';
-
-interface ProviderOption {
-  name: string;
-  value: LLMProvider;
-  description: string;
-}
-
-const PROVIDER_OPTIONS: ProviderOption[] = [
-  {
-    name: 'OpenAI (GPT-4, GPT-4o)',
-    value: 'openai',
-    description: 'Get API key at https://platform.openai.com/api-keys',
-  },
-  {
-    name: 'Anthropic (Claude)',
-    value: 'anthropic',
-    description: 'Get API key at https://console.anthropic.com/settings/keys',
-  },
-  {
-    name: 'Google (Gemini)',
-    value: 'google',
-    description: 'Get API key at https://aistudio.google.com/app/apikey',
-  },
-  {
-    name: 'DeepSeek',
-    value: 'deepseek',
-    description: 'Get API key at https://platform.deepseek.com/api_keys',
-  },
-  {
-    name: 'Ollama (Local LLMs)',
-    value: 'ollama',
-    description: 'Run LLMs locally - requires Ollama installed',
-  },
-  {
-    name: 'OpenAI-Compatible (LM Studio, LocalAI, etc.)',
-    value: 'openai-compatible',
-    description: 'Any OpenAI-compatible API endpoint',
-  },
-];
-
-const DEFAULT_MODELS: Record<LLMProvider, string> = {
-  openai: 'gpt-4o',
-  anthropic: 'claude-3-5-sonnet-20241022',
-  google: 'gemini-1.5-pro',
-  deepseek: 'deepseek-chat',
-  ollama: 'llama3.2',
-  'openai-compatible': 'model-name',
-};
 
 /**
  * Prompts user to configure their LLM provider
@@ -212,33 +165,4 @@ export async function promptForLLMConfig(): Promise<LLMConfig> {
   }
 
   return config;
-}
-
-/**
- * Check if LLM configuration is valid and complete in the config file
- * Note: Does NOT check environment variables - we want explicit config
- */
-export function isLLMConfigured(config: LLMConfig | undefined): boolean {
-  if (!config) return false;
-
-  const { provider } = config;
-
-  switch (provider) {
-    case 'openai':
-      return !!config.openai?.apiKey;
-    case 'anthropic':
-      return !!config.anthropic?.apiKey;
-    case 'google':
-      return !!config.google?.apiKey;
-    case 'deepseek':
-      return !!config.deepseek?.apiKey;
-    case 'ollama':
-      return !!config.ollama?.model;
-    case 'openai-compatible':
-      return !!(
-        config.openaiCompatible?.baseURL && config.openaiCompatible?.model
-      );
-    default:
-      return false;
-  }
 }

@@ -40,9 +40,9 @@
   "author": "Ed Spencer",
   "license": "MIT",
   "scripts": {
-    "build": "tsc && pnpm build:copy-assets && pnpm build:chmod",
-    "build:watch": "tsc -w && pnpm build:copy-assets",
-    "build:copy-assets": "copyfiles -u 1 'src/**/*.mdx' dist",
+    "build": "tsup && pnpm build:copy-assets && pnpm build:chmod",
+    "build:watch": "tsup --watch",
+    "build:copy-assets": "copyfiles -u 2 'src/ai/prompts/**/*.mdx' dist",
     "build:chmod": "chmod +x dist/index.js",
     "typecheck": "tsc --noEmit",
     "start": "node dist/index.js",
@@ -77,6 +77,7 @@
     "zod": "^4.1.12"
   },
   "devDependencies": {
+    "@bragdoc/ai": "workspace:*",
     "@changesets/cli": "^2.29.7",
     "@types/inquirer": "^9.0.9",
     "@types/jest": "^29.5.14",
@@ -88,6 +89,7 @@
     "mock-fs": "^5.5.0",
     "ts-jest": "^29.4.5",
     "ts-node": "^10.9.2",
+    "tsup": "^8.5.1",
     "tsx": "^4.20.6",
     "typescript": "^5.9.3"
   }

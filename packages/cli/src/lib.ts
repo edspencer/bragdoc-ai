@@ -23,7 +23,13 @@ export {
 export { getExtractionModel, clearModelCache } from './ai/llm';
 
 // LLM providers - for creating models with custom configs
-export { createLLMFromConfig, getLLMDisplayName } from './ai/providers';
+// (re-exported from the shared @bragdoc/ai package; both take an LLMConfig)
+export {
+  createLLMFromConfig,
+  getLLMDisplayName,
+  isLLMConfigured,
+  verifyLLMConfig,
+} from '@bragdoc/ai';
 
 // Types for extraction
 export type {
