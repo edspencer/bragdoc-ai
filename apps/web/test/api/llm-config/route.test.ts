@@ -4,7 +4,7 @@ import { DELETE } from 'app/api/user/llm-config/[provider]/route';
 import { encryptApiKey } from 'lib/crypto/llm-keys';
 
 // Crypto secret for the real encrypt/decrypt used by the PUT route
-process.env.BYOK_ENCRYPTION_KEY = 'dGVzdC1zZWNyZXQtZm9yLXJvdXRlLXRlc3Rz';
+process.env.BYOK_ENCRYPTION_KEY = 'not-a-real-secret-byok-route-tests';
 
 // Mock auth
 jest.mock('lib/getAuthUser', () => ({
