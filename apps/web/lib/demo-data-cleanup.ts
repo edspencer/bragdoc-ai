@@ -22,6 +22,7 @@ import {
   performanceReview,
   workstream,
   workstreamMetadata,
+  userLLMConfig,
 } from '@/database/schema';
 import { eq, and, ne } from 'drizzle-orm';
 
@@ -45,6 +46,8 @@ interface CleanupOptions {
  * 3. Preserves the user record for analytics (email, createdAt, isDemo)
  *
  * Tables cleaned up:
+ * - userLLMConfig (encrypted BYOK API keys — the user row is preserved,
+ *   so the FK cascade never fires; delete key material explicitly)
  * - emailPreferences
  * - standupDocument (depends on standup)
  * - standup
@@ -91,6 +94,11 @@ export async function cleanupDemoAccountData(
 
     // Delete related data in order that respects foreign key constraints
     // Start with tables that depend on other user tables, then work backwards
+
+    // LLM provider configs (encrypted BYOK API keys — the user row is
+    // preserved, so the onDelete cascade never fires; delete key material
+    // explicitly)
+    await db.delete(userLLMConfig).where(eq(userLLMConfig.userId, userId));
 
     // Email preferences (independent)
     await db

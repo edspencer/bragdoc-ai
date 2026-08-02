@@ -22,6 +22,13 @@ export const DEFAULT_MODELS: Record<LLMProvider, string> = {
  */
 export interface CreateLLMOptions {
   /**
+   * Custom `fetch` handed to the underlying `@ai-sdk/*` provider. The web app
+   * uses this to supply an SSRF-guarded fetch (redirects are re-validated
+   * rather than followed blindly) when probing a user-supplied base URL.
+   */
+  fetch?: typeof globalThis.fetch;
+
+  /**
    * Whether a missing `apiKey` may fall back to the conventional
    * `<PROVIDER>_API_KEY` environment variable.
    *
@@ -109,6 +116,7 @@ export function createLLMFromConfig(
   const { allowEnvFallback = true, remediationHint } = options;
   const config = llmConfig ?? { provider: 'openai' as const };
   const provider = config.provider;
+  const fetchOption = options.fetch ? { fetch: options.fetch } : {};
 
   switch (provider) {
     case 'openai': {
@@ -132,6 +140,7 @@ export function createLLMFromConfig(
       const openaiProvider = createOpenAI({
         apiKey,
         ...(baseURL && { baseURL }),
+        ...fetchOption,
       });
 
       return openaiProvider(model);
@@ -153,7 +162,7 @@ export function createLLMFromConfig(
       }
 
       const model = config.anthropic?.model || DEFAULT_MODELS.anthropic;
-      const anthropicProvider = createAnthropic({ apiKey });
+      const anthropicProvider = createAnthropic({ apiKey, ...fetchOption });
       return anthropicProvider(model);
     }
 
@@ -173,7 +182,10 @@ export function createLLMFromConfig(
       }
 
       const model = config.google?.model || DEFAULT_MODELS.google;
-      const googleProvider = createGoogleGenerativeAI({ apiKey });
+      const googleProvider = createGoogleGenerativeAI({
+        apiKey,
+        ...fetchOption,
+      });
       return googleProvider(model);
     }
 
@@ -198,6 +210,7 @@ export function createLLMFromConfig(
       const deepseekProvider = createOpenAI({
         apiKey,
         baseURL,
+        ...fetchOption,
       });
 
       return deepseekProvider(model);
@@ -214,7 +227,7 @@ export function createLLMFromConfig(
       }
 
       const baseURL = config.ollama.baseURL || 'http://localhost:11434/api';
-      const ollama = createOllama({ baseURL });
+      const ollama = createOllama({ baseURL, ...fetchOption });
 
       return ollama(config.ollama.model);
     }
@@ -234,6 +247,7 @@ export function createLLMFromConfig(
       const compatibleProvider = createOpenAI({
         baseURL: config.openaiCompatible.baseURL,
         apiKey: config.openaiCompatible.apiKey || 'not-needed',
+        ...fetchOption,
       });
 
       return compatibleProvider(config.openaiCompatible.model);

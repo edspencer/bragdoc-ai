@@ -20,4 +20,5 @@ export {
   verifyLLMConfig,
   type VerifyLLMConfigOptions,
   type VerifyLLMConfigResult,
+  type VerifyLLMFailureCode,
 } from './verify';

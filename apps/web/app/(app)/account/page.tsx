@@ -8,6 +8,7 @@ import { useToast } from '@/hooks/use-toast';
 import { SiteHeader } from '@/components/site-header';
 import { SidebarInset } from '@/components/ui/sidebar';
 import { DeleteAccountDialog } from '@/components/delete-account-dialog';
+import { LLMProviderSettings } from '@/components/account/llm-provider-settings';
 
 export default function AccountPage() {
   const [isExporting, setIsExporting] = useState(false);
@@ -102,6 +103,12 @@ export default function AccountPage() {
       <SidebarInset>
         <SiteHeader title="Account Settings" />
         <div className="space-y-8 p-6">
+          {/* AI Provider Section */}
+          <LLMProviderSettings />
+
+          {/* Divider */}
+          <div className="border-border border-t" />
+
           {/* Export Section */}
           <div className="space-y-4">
             <div>

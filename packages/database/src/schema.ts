@@ -1,4 +1,4 @@
-import type { InferSelectModel } from 'drizzle-orm';
+import type { InferInsertModel, InferSelectModel } from 'drizzle-orm';
 import {
   pgTable,
   varchar,
@@ -51,6 +51,16 @@ export const sourceItemTypeEnum = pgEnum('source_item_type', [
   'pr_comment', // GitHub PR review comment (P3)
 ]);
 export type SourceItemType = (typeof sourceItemTypeEnum.enumValues)[number];
+
+export const llmProviderEnum = pgEnum('llm_provider', [
+  'openai',
+  'anthropic',
+  'google',
+  'deepseek',
+  'ollama',
+  'openai_compatible',
+]);
+export type LLMProviderDbValue = (typeof llmProviderEnum.enumValues)[number];
 
 export const user = pgTable(
   'User',
@@ -648,3 +658,47 @@ export const emailPreferences = pgTable('email_preferences', {
 });
 
 export type EmailPreferences = InferSelectModel<typeof emailPreferences>;
+
+/**
+ * Per-user LLM provider configuration (BYOK — Bring Your Own Key).
+ *
+ * One row per (user, provider). API keys are AES-256-GCM encrypted at rest
+ * (base64 ciphertext + IV); `encryptedApiKey`/`iv` are nullable because
+ * keyless providers (Ollama) have no ciphertext. Exactly one row per user
+ * may have `isDefault = true` (enforced by a partial unique index).
+ */
+export const userLLMConfig = pgTable(
+  'user_llm_config',
+  {
+    id: uuid('id').primaryKey().notNull().defaultRandom(),
+    userId: uuid('user_id')
+      .notNull()
+      .references(() => user.id, { onDelete: 'cascade' }),
+    provider: llmProviderEnum('provider').notNull(),
+    encryptedApiKey: text('encrypted_api_key'),
+    iv: text('iv'),
+    keyHint: varchar('key_hint', { length: 8 }),
+    model: varchar('model', { length: 256 }).notNull(),
+    baseURL: varchar('base_url', { length: 512 }),
+    isDefault: boolean('is_default').notNull().default(false),
+    lastVerifiedAt: timestamp('last_verified_at'),
+    createdAt: timestamp('created_at').notNull().defaultNow(),
+    updatedAt: timestamp('updated_at').notNull().defaultNow(),
+  },
+  (table) => ({
+    // Index for user-scoped lookups
+    userIdIdx: index('user_llm_config_user_id_idx').on(table.userId),
+    // One config per (user, provider)
+    userProviderUnique: uniqueIndex('user_llm_config_user_provider_unique').on(
+      table.userId,
+      table.provider,
+    ),
+    // At most one default config per user
+    userDefaultUnique: uniqueIndex('user_llm_config_user_default_unique')
+      .on(table.userId)
+      .where(sql`${table.isDefault} = true`),
+  }),
+);
+
+export type UserLLMConfig = InferSelectModel<typeof userLLMConfig>;
+export type NewUserLLMConfig = InferInsertModel<typeof userLLMConfig>;

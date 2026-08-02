@@ -2,7 +2,10 @@ import { generateText } from 'ai';
 import type { LLMConfig } from './types';
 import { verifyLLMConfig } from './verify';
 
+// Only the network call is mocked. verify.ts classifies failures via
+// APICallError.isInstance, so the real error class is kept.
 jest.mock('ai', () => ({
+  ...jest.requireActual('ai'),
   generateText: jest.fn(),
 }));
 
@@ -52,6 +55,7 @@ describe('verifyLLMConfig', () => {
 
     expect(result).toEqual({
       ok: false,
+      code: 'timeout',
       error: expect.stringContaining('Verification timed out'),
     });
   });
@@ -74,7 +78,11 @@ describe('verifyLLMConfig', () => {
 
     const result = await verifyLLMConfig(WORKING_CONFIG);
 
-    expect(result).toEqual({ ok: false, error: 'Incorrect API key provided' });
+    expect(result).toEqual({
+      ok: false,
+      code: 'unknown',
+      error: 'Incorrect API key provided',
+    });
   });
 
   it('appends the cause when it adds information', async () => {
@@ -87,6 +95,7 @@ describe('verifyLLMConfig', () => {
 
     expect(result).toEqual({
       ok: false,
+      code: 'unknown',
       error: 'Failed to call provider: ECONNREFUSED 127.0.0.1:11434',
     });
   });
@@ -99,7 +108,11 @@ describe('verifyLLMConfig', () => {
 
     const result = await verifyLLMConfig(WORKING_CONFIG);
 
-    expect(result).toEqual({ ok: false, error: 'boom: inner detail' });
+    expect(result).toEqual({
+      ok: false,
+      code: 'unknown',
+      error: 'boom: inner detail',
+    });
   });
 
   it('never throws — model construction failures become results', async () => {
@@ -117,6 +130,7 @@ describe('verifyLLMConfig', () => {
 
     await expect(verifyLLMConfig(WORKING_CONFIG)).resolves.toEqual({
       ok: false,
+      code: 'unknown',
       error: 'plain string failure',
     });
   });
