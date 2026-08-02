@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import * as z from 'zod/v3';
@@ -67,7 +67,7 @@ function defaultModelFor(provider: LLMProviderDbValue): string {
 }
 
 export function LLMProviderSettings() {
-  const { configs, isLoading, mutate } = useLLMConfigs();
+  const { configs, isLoading, isError, mutate } = useLLMConfigs();
   const { toast } = useToast();
   const [isSaving, setIsSaving] = useState(false);
   const [verifyError, setVerifyError] = useState<string | null>(null);
@@ -81,6 +81,35 @@ export function LLMProviderSettings() {
       baseURL: '',
     },
   });
+
+  // `configs` arrives after the first render, so the initially-selected
+  // provider's fields still hold the hard-coded defaults. Without this the
+  // form would submit `model: "gpt-4o"` for a user whose stored OpenAI config
+  // is something else, and the route prefers the submitted model — silently
+  // downgrading them on an unrelated edit (e.g. rotating their key).
+  // Provider *switches* are already handled by handleProviderChange.
+  const hasHydratedRef = useRef(false);
+
+  useEffect(() => {
+    if (!configs || hasHydratedRef.current) return;
+    hasHydratedRef.current = true;
+
+    const provider = form.getValues('provider');
+    const existing = configs.find((config) => config.provider === provider);
+    if (!existing) return;
+
+    // keepDirtyValues so anything the user already typed while the fetch was
+    // in flight (most likely a pasted API key) survives
+    form.reset(
+      {
+        provider,
+        apiKey: '',
+        model: existing.model,
+        baseURL: existing.baseURL || '',
+      },
+      { keepDirtyValues: true },
+    );
+  }, [configs, form]);
 
   const selectedProvider = form.watch('provider');
   const existingConfig = configs?.find(
@@ -297,7 +326,16 @@ export function LLMProviderSettings() {
         </form>
       </Form>
 
-      {!isLoading && configs && configs.length > 0 && (
+      {isError && (
+        <Alert variant="destructive">
+          <AlertDescription>
+            Could not load your saved providers. Anything you have already
+            configured is still stored — reload the page to try again.
+          </AlertDescription>
+        </Alert>
+      )}
+
+      {!isLoading && !isError && configs && configs.length > 0 && (
         <ConfiguredProviderList configs={configs} onChanged={() => mutate()} />
       )}
     </div>

@@ -18,25 +18,119 @@ export const DEFAULT_MODELS: Record<LLMProvider, string> = {
 };
 
 /**
+ * Options controlling how a model is built from an {@link LLMConfig}.
+ */
+export interface CreateLLMOptions {
+  /**
+   * Custom `fetch` handed to the underlying `@ai-sdk/*` provider. The web app
+   * uses this to supply an SSRF-guarded fetch (redirects are re-validated
+   * rather than followed blindly) when probing a user-supplied base URL.
+   */
+  fetch?: typeof globalThis.fetch;
+
+  /**
+   * Whether a missing `apiKey` may fall back to the conventional
+   * `<PROVIDER>_API_KEY` environment variable.
+   *
+   * `true` (the default) preserves the CLI's config-or-env behaviour, where
+   * the environment belongs to the same person as the config.
+   *
+   * Server/multi-tenant callers (the web app) MUST pass `false`: falling back
+   * there would silently bill a user's request to the platform's own key.
+   * With `false`, a config without an `apiKey` throws instead of reading
+   * `process.env`.
+   *
+   * @default true
+   */
+  allowEnvFallback?: boolean;
+
+  /**
+   * Optional caller-specific guidance appended to configuration errors, so
+   * each consumer can tell its own users how to fix the problem (the CLI
+   * points at `bragdoc llm set`, the web app at its settings page) without
+   * this package having to know who is calling it.
+   */
+  remediationHint?: string;
+}
+
+/**
+ * Builds a configuration error, appending the caller's remediation hint when
+ * one was supplied.
+ */
+function configError(message: string, remediationHint?: string): Error {
+  return new Error(
+    remediationHint ? `${message}\n${remediationHint}` : message,
+  );
+}
+
+/**
+ * Resolves an API key from the config, optionally falling back to the
+ * provider's conventional environment variable.
+ */
+function resolveApiKey(
+  configuredKey: string | undefined,
+  envVar: string,
+  allowEnvFallback: boolean,
+): string | undefined {
+  if (configuredKey) {
+    return configuredKey;
+  }
+
+  return allowEnvFallback ? process.env[envVar] : undefined;
+}
+
+/**
+ * Builds the "API key not found" error for a provider. The wording depends on
+ * whether the environment fallback was even permitted, so we never tell a web
+ * user to set a server-side environment variable.
+ */
+function missingApiKeyError(
+  providerLabel: string,
+  envVar: string,
+  allowEnvFallback: boolean,
+  remediationHint?: string,
+): Error {
+  const message = allowEnvFallback
+    ? `${providerLabel} API key not found. Provide an apiKey in the LLM config ` +
+      `or set the ${envVar} environment variable`
+    : `${providerLabel} API key not found. Provide an apiKey in the LLM config ` +
+      '(environment variable fallback is disabled)';
+
+  return configError(message, remediationHint);
+}
+
+/**
  * Creates an LLM instance based on configuration.
  *
  * API keys may come from the config itself or (as a fallback) from the
  * conventional environment variable for the provider — this preserves the
- * CLI's config-or-env behavior. Explicit provider instances are always
+ * CLI's config-or-env behavior, and can be turned off with
+ * `{ allowEnvFallback: false }`. Explicit provider instances are always
  * created (`createOpenAI`, `createAnthropic`, `createGoogleGenerativeAI`,
  * `createOllama`), so a passed-in apiKey never relies on ambient env state.
  */
-export function createLLMFromConfig(llmConfig?: LLMConfig): LanguageModel {
+export function createLLMFromConfig(
+  llmConfig?: LLMConfig,
+  options: CreateLLMOptions = {},
+): LanguageModel {
+  const { allowEnvFallback = true, remediationHint } = options;
   const config = llmConfig ?? { provider: 'openai' as const };
   const provider = config.provider;
+  const fetchOption = options.fetch ? { fetch: options.fetch } : {};
 
   switch (provider) {
     case 'openai': {
-      const apiKey = config.openai?.apiKey || process.env.OPENAI_API_KEY;
+      const apiKey = resolveApiKey(
+        config.openai?.apiKey,
+        'OPENAI_API_KEY',
+        allowEnvFallback,
+      );
       if (!apiKey) {
-        throw new Error(
-          'OpenAI API key not found. Provide an apiKey in the LLM config ' +
-            'or set the OPENAI_API_KEY environment variable',
+        throw missingApiKeyError(
+          'OpenAI',
+          'OPENAI_API_KEY',
+          allowEnvFallback,
+          remediationHint,
         );
       }
 
@@ -46,46 +140,67 @@ export function createLLMFromConfig(llmConfig?: LLMConfig): LanguageModel {
       const openaiProvider = createOpenAI({
         apiKey,
         ...(baseURL && { baseURL }),
+        ...fetchOption,
       });
 
       return openaiProvider(model);
     }
 
     case 'anthropic': {
-      const apiKey = config.anthropic?.apiKey || process.env.ANTHROPIC_API_KEY;
+      const apiKey = resolveApiKey(
+        config.anthropic?.apiKey,
+        'ANTHROPIC_API_KEY',
+        allowEnvFallback,
+      );
       if (!apiKey) {
-        throw new Error(
-          'Anthropic API key not found. Provide an apiKey in the LLM config ' +
-            'or set the ANTHROPIC_API_KEY environment variable',
+        throw missingApiKeyError(
+          'Anthropic',
+          'ANTHROPIC_API_KEY',
+          allowEnvFallback,
+          remediationHint,
         );
       }
 
       const model = config.anthropic?.model || DEFAULT_MODELS.anthropic;
-      const anthropicProvider = createAnthropic({ apiKey });
+      const anthropicProvider = createAnthropic({ apiKey, ...fetchOption });
       return anthropicProvider(model);
     }
 
     case 'google': {
-      const apiKey =
-        config.google?.apiKey || process.env.GOOGLE_GENERATIVE_AI_API_KEY;
+      const apiKey = resolveApiKey(
+        config.google?.apiKey,
+        'GOOGLE_GENERATIVE_AI_API_KEY',
+        allowEnvFallback,
+      );
       if (!apiKey) {
-        throw new Error(
-          'Google API key not found. Provide an apiKey in the LLM config ' +
-            'or set the GOOGLE_GENERATIVE_AI_API_KEY environment variable',
+        throw missingApiKeyError(
+          'Google',
+          'GOOGLE_GENERATIVE_AI_API_KEY',
+          allowEnvFallback,
+          remediationHint,
         );
       }
 
       const model = config.google?.model || DEFAULT_MODELS.google;
-      const googleProvider = createGoogleGenerativeAI({ apiKey });
+      const googleProvider = createGoogleGenerativeAI({
+        apiKey,
+        ...fetchOption,
+      });
       return googleProvider(model);
     }
 
     case 'deepseek': {
-      const apiKey = config.deepseek?.apiKey || process.env.DEEPSEEK_API_KEY;
+      const apiKey = resolveApiKey(
+        config.deepseek?.apiKey,
+        'DEEPSEEK_API_KEY',
+        allowEnvFallback,
+      );
       if (!apiKey) {
-        throw new Error(
-          'DeepSeek API key not found. Provide an apiKey in the LLM config ' +
-            'or set the DEEPSEEK_API_KEY environment variable',
+        throw missingApiKeyError(
+          'DeepSeek',
+          'DEEPSEEK_API_KEY',
+          allowEnvFallback,
+          remediationHint,
         );
       }
 
@@ -95,6 +210,7 @@ export function createLLMFromConfig(llmConfig?: LLMConfig): LanguageModel {
       const deepseekProvider = createOpenAI({
         apiKey,
         baseURL,
+        ...fetchOption,
       });
 
       return deepseekProvider(model);
@@ -102,15 +218,16 @@ export function createLLMFromConfig(llmConfig?: LLMConfig): LanguageModel {
 
     case 'ollama': {
       if (!config.ollama?.model) {
-        throw new Error(
+        throw configError(
           'Ollama model not specified. ' +
             'Available models: llama3.2, qwen2.5-coder, etc.\n' +
             'See: https://ollama.com/library',
+          remediationHint,
         );
       }
 
       const baseURL = config.ollama.baseURL || 'http://localhost:11434/api';
-      const ollama = createOllama({ baseURL });
+      const ollama = createOllama({ baseURL, ...fetchOption });
 
       return ollama(config.ollama.model);
     }
@@ -120,22 +237,27 @@ export function createLLMFromConfig(llmConfig?: LLMConfig): LanguageModel {
         !config.openaiCompatible?.baseURL ||
         !config.openaiCompatible?.model
       ) {
-        throw new Error(
+        throw configError(
           'OpenAI-compatible configuration incomplete. Required: baseURL and model\n' +
             'Example: LM Studio at http://localhost:1234/v1',
+          remediationHint,
         );
       }
 
       const compatibleProvider = createOpenAI({
         baseURL: config.openaiCompatible.baseURL,
         apiKey: config.openaiCompatible.apiKey || 'not-needed',
+        ...fetchOption,
       });
 
       return compatibleProvider(config.openaiCompatible.model);
     }
 
     default:
-      throw new Error(`Unsupported LLM provider: ${provider}`);
+      throw configError(
+        `Unsupported LLM provider: ${provider}`,
+        remediationHint,
+      );
   }
 }
 

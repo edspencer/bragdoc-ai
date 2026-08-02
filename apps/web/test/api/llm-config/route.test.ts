@@ -166,11 +166,12 @@ describe('LLM Config API Routes', () => {
       expect(data.message).toMatch(/base URL/i);
     });
 
-    it('returns 422 with the provider message when verification fails, and stores nothing', async () => {
+    it('returns 422 with a classified message when verification fails, and stores nothing', async () => {
       authenticate();
       getLLMConfigsForUser.mockResolvedValue([]);
       verifyLLMConfig.mockResolvedValue({
         ok: false,
+        code: 'unauthorized',
         error: 'Incorrect API key provided',
       });
 
@@ -181,7 +182,8 @@ describe('LLM Config API Routes', () => {
       expect(response.status).toBe(422);
       const data = await response.json();
       expect(data.error).toBe('verification_failed');
-      expect(data.message).toBe('Incorrect API key provided');
+      expect(data.code).toBe('unauthorized');
+      expect(data.message).toMatch(/rejected that API key/i);
       expect(upsertLLMConfig).not.toHaveBeenCalled();
     });
 
@@ -209,6 +211,7 @@ describe('LLM Config API Routes', () => {
           provider: 'openai',
           openai: expect.objectContaining({ apiKey, model: 'gpt-4o' }),
         }),
+        expect.objectContaining({ fetch: expect.any(Function) }),
       );
 
       // Stored values: encrypted (not plaintext), keyHint, default, verified
@@ -263,6 +266,7 @@ describe('LLM Config API Routes', () => {
             model: 'gpt-4.1',
           }),
         }),
+        expect.objectContaining({ fetch: expect.any(Function) }),
       );
 
       // The stored key is kept (re-encrypted) and the model updated
@@ -344,12 +348,36 @@ describe('LLM Config API Routes', () => {
       expect(upsertLLMConfig).not.toHaveBeenCalled();
     });
 
-    it('truncates long provider error messages in the 422 response', async () => {
+    it('never echoes upstream response text in the 422 body (SSRF readback)', async () => {
+      authenticate();
+      getLLMConfigsForUser.mockResolvedValue([]);
+      // What a JSONParseError over an internal endpoint's HTML/creds body
+      // looks like coming out of the AI SDK
+      const leaked =
+        'JSON parsing failed: Text: {"AccessKeyId":"ASIA-SECRET-LEAK"}';
+      verifyLLMConfig.mockResolvedValue({
+        ok: false,
+        code: 'invalid_request',
+        error: leaked,
+      });
+
+      const response = await PUT(
+        putRequest({ provider: 'openai', apiKey: 'sk-bad-key' }),
+      );
+
+      expect(response.status).toBe(422);
+      const body = await response.text();
+      expect(body).not.toContain('ASIA-SECRET-LEAK');
+      expect(body).not.toContain(leaked);
+    });
+
+    it('falls back to a generic message for an unrecognised failure code', async () => {
       authenticate();
       getLLMConfigsForUser.mockResolvedValue([]);
       verifyLLMConfig.mockResolvedValue({
         ok: false,
-        error: 'x'.repeat(5000),
+        code: 'something-new',
+        error: 'raw upstream text',
       });
 
       const response = await PUT(
@@ -358,7 +386,41 @@ describe('LLM Config API Routes', () => {
 
       expect(response.status).toBe(422);
       const data = await response.json();
-      expect(data.message.length).toBe(300);
+      expect(data.message).toMatch(/Could not verify the provider/i);
+      expect(JSON.stringify(data)).not.toContain('raw upstream text');
+    });
+
+    it('passes an SSRF-guarded fetch into the verification probe', async () => {
+      authenticate();
+      getLLMConfigsForUser.mockResolvedValue([]);
+      verifyLLMConfig.mockResolvedValue({ ok: true });
+      upsertLLMConfig.mockImplementation(async (input: any) =>
+        makeConfigRow({ ...input }),
+      );
+
+      await PUT(putRequest({ provider: 'openai', apiKey: 'sk-test' }));
+
+      expect(verifyLLMConfig).toHaveBeenCalledWith(
+        expect.anything(),
+        expect.objectContaining({ fetch: expect.any(Function) }),
+      );
+    });
+
+    it('returns 400 (not 500) for a body that is not valid JSON', async () => {
+      authenticate();
+
+      const request = new Request('http://localhost/api/user/llm-config', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: '{ not json',
+      }) as any;
+
+      const response = await PUT(request);
+
+      expect(response.status).toBe(400);
+      const data = await response.json();
+      expect(data.error).toBe('validation_error');
+      expect(getLLMConfigsForUser).not.toHaveBeenCalled();
     });
 
     it('sets the config as default when setDefault is true', async () => {
@@ -379,6 +441,113 @@ describe('LLM Config API Routes', () => {
 
       expect(response.status).toBe(201);
       expect(upsertLLMConfig.mock.calls[0][0].isDefault).toBe(true);
+    });
+
+    describe('set-default-only requests', () => {
+      it('promotes an existing config without running the live probe', async () => {
+        authenticate();
+        const anthropic = makeConfigRow({
+          provider: 'anthropic',
+          model: 'claude-3-5-sonnet-20241022',
+          encryptedApiKey: 'anthropic-ciphertext',
+          iv: 'anthropic-iv',
+          keyHint: 'wxyz',
+          isDefault: false,
+          lastVerifiedAt: new Date('2026-06-15T00:00:00Z'),
+        });
+        getLLMConfigsForUser.mockResolvedValue([makeConfigRow(), anthropic]);
+        upsertLLMConfig.mockImplementation(async (input: any) =>
+          makeConfigRow({ ...input }),
+        );
+
+        const response = await PUT(
+          putRequest({ provider: 'anthropic', setDefault: true }),
+        );
+
+        expect(response.status).toBe(200);
+        // A local flag flip must not depend on the provider being up
+        expect(verifyLLMConfig).not.toHaveBeenCalled();
+
+        // Stored credentials/endpoint/model are carried over untouched
+        const stored = upsertLLMConfig.mock.calls[0][0];
+        expect(stored.provider).toBe('anthropic');
+        expect(stored.isDefault).toBe(true);
+        expect(stored.encryptedApiKey).toBe('anthropic-ciphertext');
+        expect(stored.iv).toBe('anthropic-iv');
+        expect(stored.keyHint).toBe('wxyz');
+        expect(stored.model).toBe('claude-3-5-sonnet-20241022');
+        expect(stored.lastVerifiedAt).toEqual(new Date('2026-06-15T00:00:00Z'));
+
+        // Response stays masked
+        const data = await response.json();
+        expect(data.config.encryptedApiKey).toBeUndefined();
+        expect(data.config.iv).toBeUndefined();
+      });
+
+      it('skips the probe even when the stored baseURL is private (nothing is contacted)', async () => {
+        authenticate();
+        const ollama = makeConfigRow({
+          provider: 'ollama',
+          encryptedApiKey: null,
+          iv: null,
+          keyHint: null,
+          model: 'llama3.2',
+          baseURL: 'http://192.168.1.50:11434/api',
+          isDefault: false,
+        });
+        getLLMConfigsForUser.mockResolvedValue([makeConfigRow(), ollama]);
+        upsertLLMConfig.mockImplementation(async (input: any) =>
+          makeConfigRow({ ...input }),
+        );
+
+        const response = await PUT(
+          putRequest({ provider: 'ollama', setDefault: true }),
+        );
+
+        expect(response.status).toBe(200);
+        expect(verifyLLMConfig).not.toHaveBeenCalled();
+        expect(upsertLLMConfig.mock.calls[0][0].baseURL).toBe(
+          'http://192.168.1.50:11434/api',
+        );
+      });
+
+      it.each([
+        ['apiKey', { apiKey: 'sk-rotated' }],
+        ['model', { model: 'gpt-4.1' }],
+        ['baseURL', { baseURL: 'https://api.example.com/v1' }],
+      ])('still verifies when setDefault is combined with a %s change', async (_label, change) => {
+        authenticate();
+        const storedKey = 'sk-existing-key-9876';
+        const { encrypted, iv } = await encryptApiKey(storedKey);
+        getLLMConfigsForUser.mockResolvedValue([
+          makeConfigRow({ encryptedApiKey: encrypted, iv, isDefault: false }),
+        ]);
+        verifyLLMConfig.mockResolvedValue({ ok: true });
+        upsertLLMConfig.mockImplementation(async (input: any) =>
+          makeConfigRow({ ...input }),
+        );
+
+        const response = await PUT(
+          putRequest({ provider: 'openai', setDefault: true, ...change }),
+        );
+
+        expect(response.status).toBe(200);
+        expect(verifyLLMConfig).toHaveBeenCalledTimes(1);
+        expect(upsertLLMConfig.mock.calls[0][0].isDefault).toBe(true);
+      });
+
+      it('falls through to the normal path when no config exists yet', async () => {
+        authenticate();
+        getLLMConfigsForUser.mockResolvedValue([]);
+
+        const response = await PUT(
+          putRequest({ provider: 'openai', setDefault: true }),
+        );
+
+        // No stored key to promote — this is a validation error, not a no-op
+        expect(response.status).toBe(400);
+        expect(upsertLLMConfig).not.toHaveBeenCalled();
+      });
     });
   });
 
