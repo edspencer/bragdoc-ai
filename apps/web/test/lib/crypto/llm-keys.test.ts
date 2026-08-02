@@ -1,6 +1,6 @@
 import { decryptApiKey, encryptApiKey } from 'lib/crypto/llm-keys';
 
-const TEST_SECRET = 'dGVzdC1zZWNyZXQtZm9yLWJ5b2stdW5pdC10ZXN0cw==';
+const TEST_SECRET = 'not-a-real-secret-byok-unit-tests';
 
 describe('llm-keys crypto', () => {
   const originalSecret = process.env.BYOK_ENCRYPTION_KEY;
