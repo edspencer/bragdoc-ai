@@ -31,7 +31,7 @@ interface Fake {
  * A ctx on a throwaway home with a fake service manager. `answer(port)` is what the health probe sees; by default
  * BragDoc answers exactly while the fake manager has it running.
  */
-function fake(platform: NodeJS.Platform, o: { answer?: (port: number, f: Fake) => Probe; bootstrapFailures?: number; env?: NodeJS.ProcessEnv; cliScript?: string; packageRoot?: string; noBus?: boolean } = {}): Fake {
+function fake(platform: NodeJS.Platform, o: { answer?: (port: number, f: Fake) => Probe; bootstrapFailures?: number; bootstrapCode?: number; failed?: boolean; env?: NodeJS.ProcessEnv; cliScript?: string; packageRoot?: string; noBus?: boolean } = {}): Fake {
   const h = tmpHome();
   homes.push(h.cleanup);
   let out = '';
@@ -56,7 +56,7 @@ function fake(platform: NodeJS.Platform, o: { answer?: (port: number, f: Fake) =
         case 'print':
           return f.state.loaded ? ok(`x = {\n\tstate = ${f.state.running ? 'running' : 'waiting'}\n${f.state.running ? `\tpid = ${f.state.pid}\n` : ''}}\n`) : { code: 113, stdout: '', stderr: 'Could not find service' };
         case 'bootstrap':
-          if (bootstrapFailures-- > 0) return { code: 5, stdout: '', stderr: 'Bootstrap failed: 5: Input/output error' };
+          if (bootstrapFailures-- > 0) return { code: o.bootstrapCode ?? 5, stdout: '', stderr: `Bootstrap failed: ${o.bootstrapCode ?? 5}: Input/output error` };
           up();
           return ok();
         case 'bootout':
@@ -74,7 +74,7 @@ function fake(platform: NodeJS.Platform, o: { answer?: (port: number, f: Fake) =
       if (o.noBus) return { code: 1, stdout: '', stderr: 'Failed to connect to bus: No medium found' };
       const verb = args[1];
       if (verb === 'show')
-        return ok(`LoadState=${f.state.loaded ? 'loaded' : 'not-found'}\nActiveState=${f.state.running ? 'active' : 'inactive'}\nSubState=${f.state.running ? 'running' : 'dead'}\nMainPID=${f.state.running ? f.state.pid : 0}\nExecMainPID=0\nExecMainStatus=0\n`);
+        return ok(`LoadState=${f.state.loaded ? 'loaded' : 'not-found'}\nActiveState=${f.state.running ? 'active' : o.failed ? 'failed' : 'inactive'}\nSubState=${f.state.running ? 'running' : o.failed ? 'failed' : 'dead'}\nMainPID=${f.state.running ? f.state.pid : 0}\nExecMainPID=${o.failed ? 77 : 0}\nExecMainStatus=${o.failed ? 1 : 0}\n`);
       if (verb === 'start' || verb === 'restart') up();
       if (verb === 'stop') f.state.running = false;
       if (verb === 'disable' && args.includes('--now')) Object.assign(f.state, { loaded: false, running: false });
@@ -238,7 +238,7 @@ test('stop, start, restart and uninstall on macOS: bootout, bootstrap, re-read',
   assert.equal(await service(f.ctx, ['stop'], {}, undefined), 0);
   assert.ok(f.calls.includes('launchctl bootout gui/501/ai.bragdoc.local'));
   assert.ok(!f.calls.some((c) => c.startsWith('launchctl stop')), 'never launchctl stop: KeepAlive overrules it');
-  assert.match(f.out(), /starts again when you next log in/);
+  assert.match(f.out(), /starts again at your next login, or now with/);
   assert.equal(fs.existsSync(plistFile(f)), true, 'stop keeps it installed');
   assert.equal(await service(f.ctx, ['stop'], {}, undefined), 0);
   assert.match(f.out(), /already stopped/);
@@ -314,4 +314,19 @@ test('usage errors: no subcommand, an unknown one, a flag it does not take, an a
 test("Linux without a reachable user manager: one clear error naming XDG_RUNTIME_DIR", async () => {
   const f = fake('linux', { noBus: true });
   await assert.rejects(service(f.ctx, ['status'], {}, undefined), /can't reach systemd's per-user instance.*XDG_RUNTIME_DIR/);
+});
+
+test('macOS over ssh with nobody logged in at the screen (bootstrap 125): one clear error, no retrying', async () => {
+  const f = fake('darwin', { bootstrapFailures: 99, bootstrapCode: 125 });
+  await assert.rejects(service(f.ctx, ['install'], {}, undefined), /no login session for this user at the screen/);
+  assert.equal(f.calls.filter((c) => c.startsWith('launchctl bootstrap')).length, 1);
+});
+
+test('a failed systemd unit is shown as not running, with its exit status, not as "stopped"', async () => {
+  const f = fake('linux', { failed: true });
+  fs.mkdirSync(path.dirname(unitFile(f)), { recursive: true });
+  fs.writeFileSync(unitFile(f), 'ExecStart=/n/node /p/cli.js serve --port 2724\n');
+  f.state.loaded = true;
+  await service(f.ctx, ['status'], {}, undefined);
+  assert.match(f.out(), /State: {5}not running \(failed \(failed\)\), last exit status 1/);
 });

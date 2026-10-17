@@ -119,7 +119,12 @@ export function launchdManager({ dir, uid, run, sleep = (ms) => new Promise((r) 
       const r = await run('launchctl', ['bootstrap', domain, file]);
       if (r.code === 0) return;
       if (r.code === 127) throw missing();
-      if (i >= 10) throw new ServiceManagerError(`launchctl bootstrap ${domain} ${file} failed (exit ${r.code}): ${(r.stderr || r.stdout).trim()}`);
+      // 125, "Domain does not support specified action": there's no GUI session for this user (an ssh login with nobody
+      // logged in at the screen), so there's no gui/<uid> domain to load an agent into
+      if (r.code === 125)
+        throw new ServiceManagerError(`launchctl can't load a LaunchAgent here: there's no login session for this user at the screen (gui/${uid}). Log in on the Mac itself, then run it again.`);
+      // 5 (I/O error) and 37 (operation already in progress): the job is still on its way out after a bootout
+      if (i >= 10 || (r.code !== 5 && r.code !== 37)) throw new ServiceManagerError(`launchctl bootstrap ${domain} ${file} failed (exit ${r.code}): ${(r.stderr || r.stdout).trim()}`);
       await sleep(500);
     }
   };

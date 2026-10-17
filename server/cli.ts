@@ -65,12 +65,16 @@ async function serve(flags: Record<string, string>): Promise<number | undefined>
   const dataDir = resolveDataDir(flags['data-dir']);
   const { startServer } = await import('./index.js');
   let bound: number;
+  let close: () => Promise<void>;
   try {
     // `npm run dev` (BRAGDOC_DEV=1): Vite serves the web app; the server is the API only
-    ({ port: bound } = await startServer(port, { hostname, dataDir, webDist: process.env.BRAGDOC_DEV ? null : undefined }));
+    ({ port: bound, close } = await startServer(port, { hostname, dataDir, webDist: process.env.BRAGDOC_DEV ? null : undefined }));
   } catch (e) {
     const code = (e as NodeJS.ErrnoException).code;
     // never another port (D6): a bookmark, the service and an agent's MCP registration all point at this one
+    // who holds it is only asked on loopback, where 127.0.0.1 is the address that's taken
+    if (code === 'EADDRINUSE' && !(LOOPBACK.has(hostname) || hostname === '0.0.0.0' || hostname === '::'))
+      throw new Error(`port ${port} is already in use on ${hostname}; pick another with --port <n>`);
     if (code === 'EADDRINUSE') {
       const { probeHealth } = await import('./commands/ready.js');
       const who = await probeHealth(port);
@@ -92,6 +96,14 @@ async function serve(flags: Record<string, string>): Promise<number | undefined>
       { isTTY: process.stdout.isTTY, columns: process.stdout.columns, env: process.env },
     ),
   );
+  // a clean exit 0 on SIGTERM (what launchd and systemd send at logout and on `service stop`), and on Ctrl-C. The
+  // service is restarted after it all the same (KeepAlive <true/>, Restart=always: D23, Paddock #872). The unref'd
+  // timer is a backstop for a handle that would keep the process alive after the server has closed.
+  for (const sig of ['SIGTERM', 'SIGINT'] as const)
+    process.once(sig, () => {
+      setTimeout(() => process.exit(0), 5000).unref();
+      void close().then(() => (process.exitCode = 0));
+    });
   if (!LOOPBACK.has(hostname)) process.stderr.write(`bragdoc: listening on ${hostname}, not just this computer (BRAGDOC_DANGEROUSLY_ALLOW_OPEN=1).\n`);
   if (flags.open) {
     const [{ openCommand }, { launch }] = await Promise.all([import('./platform/index.js'), import('./platform/runner.js')]);

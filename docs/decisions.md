@@ -183,11 +183,13 @@ D17 onwards are decisions made while building.
   `bragdoc.service` in `$XDG_CONFIG_HOME/systemd/user`. Windows: "not supported yet" (D14). It runs as you, so it
   **starts at login, not at boot**; on Linux, `loginctl enable-linger` (suggested, never run) keeps it past logout.
 - The unit runs `process.execPath` and the realpath of `dist/server/cli.js` (never the bin shim), with the PATH
-  captured at install minus per-shell directories. `install` refuses to run from npx's (or pnpm dlx's, bunx's) cache,
+  captured at install minus per-shell directories. Homebrew's versioned `Cellar/node/<v>` path is swapped for its
+  `opt/node` symlink, which survives `brew upgrade`; `status` warns when the Node a unit names has gone. `install` refuses to run from npx's (or pnpm dlx's, bunx's) cache,
   and from an unbuilt checkout.
 - **Always restarted**: KeepAlive `<true/>` / `Restart=always` (Paddock #872: a conditional restart leaves it down
   after a graceful SIGTERM). Stopping on purpose is `bragdoc service stop`, which lasts until the next login
-  (launchd: bootout; systemd: stop, never disable). `uninstall` is the permanent one.
+  (or, on Linux with lingering on, the next boot; launchd: bootout; systemd: stop, never disable). `serve` exits 0 on
+  SIGTERM, which is exactly the case a conditional restart would leave down; the CI job proves it comes back. `uninstall` is the permanent one.
 - The port is always written into the unit, and `status` / `start` / `restart` read it back from there; the data home
   is written only when it was chosen (`--data-dir`, `$BRAGDOC_HOME`), so by default the service and a terminal
   `bragdoc` share `~/.bragdoc`. `install`, `start` and `restart` wait up to 20 s for `/api/health`; a timeout is
@@ -206,7 +208,8 @@ D17 onwards are decisions made while building.
 - PR2 brings `server/proc.ts` and `server/egress.ts` and a guard test that only they may spawn or fetch (D9). PR5 was
   built alongside it, so its subprocesses all go through `server/platform/runner.ts` (`execFile` for launchctl,
   systemctl; a streaming `spawn` for `journalctl -f`; a detached `spawn` for `open` / `xdg-open`), and its one HTTP
-  call, the loopback `/api/health` probe, is in `server/commands/ready.ts`.
+  call, the loopback `/api/health` probe (with a plain TCP connect as its fallback, so a non-HTTP listener still counts
+  as "taken"), is in `server/commands/ready.ts`.
 - Whichever of PR2 and PR5 merges second moves those two files onto `proc.ts` / `egressFetch`. `proc.ts` needs a
   streaming variant (inherited stdio, no timeout) for `journalctl -f`, and `launch` (detached, not awaited) for `--open`.
 - PR2's bind guard replaces `assertBindAllowed()` in `server/cli.ts`, its single call site (D21).

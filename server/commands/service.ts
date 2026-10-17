@@ -10,9 +10,9 @@ import { DEFAULT_PORT, parsePort } from '../port.js';
 import { resolveDataDir } from '../paths.js';
 import { type ServiceManager, type ServiceStatus, managerFor } from '../platform/index.js';
 import { servicePath } from '../platform/path.js';
-import { buildSpec, readArgv, serviceDir, transientInstall, transientRefusal } from '../platform/spec.js';
+import { buildSpec, readArgv, serviceDir, stableNodePath, transientInstall, transientRefusal } from '../platform/spec.js';
 import { type Ctx, lastLines, show } from './context.js';
-import { waitForReady } from './ready.js';
+import { READY_TIMEOUT_LABEL, waitForReady } from './ready.js';
 
 const SERVICE_USAGE = 'service needs one of: install, uninstall, status, start, stop, restart, logs';
 
@@ -54,11 +54,12 @@ const installedDataDir = (ctx: Ctx, st: ServiceStatus) => readArgv(st.argv).data
 
 /**
  * Stopped on purpose (or never started), as opposed to between restarts: launchd's booted-out job isn't loaded at all;
- * systemd's stays loaded, `inactive` or `failed`. A job that's loaded but waiting to be restarted isn't stopped.
+ * systemd's stays loaded and `inactive`. A job waiting to be restarted isn't stopped, and nor is a `failed` one: status
+ * shows that as not running, with its exit status.
  */
 function isStopped(mgr: ServiceManager, st: ServiceStatus): boolean {
   if (st.running) return false;
-  return mgr.kind === 'launchd' ? !st.loaded : !st.loaded || /^(inactive|failed)\b/.test(st.state ?? 'inactive');
+  return mgr.kind === 'launchd' ? !st.loaded : !st.loaded || /^inactive\b/.test(st.state ?? 'inactive');
 }
 
 function notInstalled(ctx: Ctx, mgr: ServiceManager): Error {
@@ -88,14 +89,15 @@ async function install(ctx: Ctx, flags: Record<string, string>): Promise<number>
   // inherit this shell's environment; with neither, the unit names none, so it and a terminal `bragdoc` share ~/.bragdoc
   const chosen = flags['data-dir'] || ctx.env.BRAGDOC_HOME || undefined;
   const dataDir = resolveDataDir(chosen, {}, ctx.homedir);
+  const nodePath = stableNodePath(ctx.node.path, fs.existsSync);
   const spec = buildSpec({
-    nodePath: ctx.node.path,
+    nodePath,
     nodeVersion: ctx.node.version,
     cliScript: ctx.cliScript,
     dataDir,
     dataDirChosen: chosen !== undefined,
     port,
-    pathEnv: servicePath(path.dirname(ctx.node.path), ctx.env.PATH),
+    pathEnv: servicePath(path.dirname(nodePath), ctx.env.PATH),
   });
   const url = urlOf(port);
 
@@ -138,7 +140,7 @@ async function install(ctx: Ctx, flags: Record<string, string>): Promise<number>
       '',
       w.ready
         ? `BragDoc ${w.version} is running at ${url}`
-        : `BragDoc is installed, but ${url} didn't answer within 20 seconds. It may still be starting, or failing to start: the logs say which.`,
+        : `BragDoc is installed, but ${url} didn't answer within ${READY_TIMEOUT_LABEL}. It may still be starting, or failing to start: the logs say which.`,
       `Data home: ${show(dataDir, ctx.homedir)}`,
       `Logs:      ${logsHint(ctx, mgr, dataDir)}`,
       '',
@@ -226,7 +228,7 @@ async function startOrRestart(ctx: Ctx, mgr: ServiceManager, action: string): Pr
   const w = await waitForReady(port, { probe: ctx.probe, sleep: ctx.sleep, now: ctx.now });
   const verb = action === 'start' ? 'started' : 'restarted';
   if (w.ready) ctx.out(`BragDoc ${w.version} is running at ${url}\n`);
-  else ctx.out(`BragDoc was ${verb}, but ${url} didn't answer within 20 seconds. It may still be starting: \`bragdoc service status\`, and ${logsHint(ctx, mgr, installedDataDir(ctx, before))}.\n`);
+  else ctx.out(`BragDoc was ${verb}, but ${url} didn't answer within ${READY_TIMEOUT_LABEL}. It may still be starting: \`bragdoc service status\`, and ${logsHint(ctx, mgr, installedDataDir(ctx, before))}.\n`);
   return 0;
 }
 
@@ -238,7 +240,9 @@ async function stop(ctx: Ctx, mgr: ServiceManager): Promise<number> {
     return 0;
   }
   await mgr.stop();
-  ctx.out('Stopped BragDoc. The service is still installed: it starts again when you next log in, or now with `bragdoc service start`.\n');
+  ctx.out(
+    `Stopped BragDoc. The service is still installed, so it starts again at your next login${mgr.kind === 'systemd' ? ' (or the next boot, with lingering on)' : ''}, or now with \`bragdoc service start\`.\n`,
+  );
   return 0;
 }
 

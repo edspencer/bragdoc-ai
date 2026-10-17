@@ -34,8 +34,17 @@ export const defaultRunner: Runner = (cmd, args) =>
 export const defaultStreamer: Streamer = (cmd, args) =>
   new Promise((resolve) => {
     const child = spawn(cmd, args, { stdio: 'inherit' });
-    child.once('error', (e: NodeJS.ErrnoException) => resolve(e.code === 'ENOENT' ? 127 : 1));
-    child.once('exit', (code, signal) => resolve(code ?? (signal ? 0 : 1)));
+    // a terminal's Ctrl-C reaches the whole process group, but a SIGTERM or SIGHUP sent to `bragdoc` alone (an agent's
+    // timeout, a closed ssh session) would otherwise leave `journalctl -f` running on its own, holding our stdout open
+    const forward = (sig: NodeJS.Signals) => child.kill(sig);
+    const signals: NodeJS.Signals[] = ['SIGINT', 'SIGTERM', 'SIGHUP'];
+    for (const s of signals) process.on(s, forward);
+    const done = (code: number) => {
+      for (const s of signals) process.off(s, forward);
+      resolve(code);
+    };
+    child.once('error', (e: NodeJS.ErrnoException) => done(e.code === 'ENOENT' ? 127 : 1));
+    child.once('exit', (code, signal) => done(code ?? (signal ? 0 : 1)));
   });
 
 /** Start a program and don't wait for it (the browser for `--open`). Resolves false if it couldn't be started. */

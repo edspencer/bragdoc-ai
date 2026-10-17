@@ -9,6 +9,7 @@
 //
 // D9: outbound HTTP goes through server/egress.ts (PR2), which allows loopback. Until it lands, this is the one place
 // the CLI calls fetch(), always to 127.0.0.1; on rebase `probeHealth` becomes an egressFetch.
+import net from 'node:net';
 import type { HealthResponse } from '../../shared/api.js';
 
 /** What answers on a port: BragDoc (and its version), something else, or nothing at all. */
@@ -23,7 +24,9 @@ export async function probeHealth(port: number, timeoutMs = 2000): Promise<Probe
     // refused (or reset before answering): nothing is listening. A timeout means something took the connection and
     // never answered, which is someone, just not BragDoc.
     const name = (e as Error).name;
-    return name === 'TimeoutError' || name === 'AbortError' ? { kind: 'other' } : { kind: 'none' };
+    if (name === 'TimeoutError' || name === 'AbortError') return { kind: 'other' };
+    // not HTTP isn't the same as nothing: a database or a raw TCP service accepts the connection and then hangs up
+    return (await accepts(port)) ? { kind: 'other' } : { kind: 'none' };
   }
   try {
     const body = (await res.json()) as Partial<HealthResponse>;
@@ -34,12 +37,28 @@ export async function probeHealth(port: number, timeoutMs = 2000): Promise<Probe
   return { kind: 'other' };
 }
 
+/** Does anything accept a TCP connection on 127.0.0.1:port? */
+function accepts(port: number, timeoutMs = 1000): Promise<boolean> {
+  return new Promise((resolve) => {
+    const s = net.connect({ port, host: '127.0.0.1' });
+    const done = (v: boolean) => {
+      s.destroy();
+      resolve(v);
+    };
+    s.setTimeout(timeoutMs, () => done(false));
+    s.once('connect', () => done(true));
+    s.once('error', () => done(false));
+  });
+}
+
 /**
  * How long to wait before saying "couldn't confirm" (Paddock): generous, because it's only ever spent on the unhappy
  * path (a ready server answers in well under a second), and a false "didn't answer" on a cold boot is the most
  * alarming thing this output could say about a service that's fine.
  */
 export const READY_TIMEOUT_MS = 20_000;
+/** The same budget in words, so a message and the clock can't drift apart. */
+export const READY_TIMEOUT_LABEL = `${READY_TIMEOUT_MS / 1000} seconds`;
 
 export interface ReadyOptions {
   probe?: (port: number) => Promise<Probe>;

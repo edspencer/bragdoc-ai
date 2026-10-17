@@ -120,7 +120,8 @@ try {
   step('service restart');
   assert.match(bd('service', 'restart'), new RegExp(`is running at ${url}`));
 
-  step('KeepAlive / Restart=always: a crash and a graceful stop both come back');
+  // serve exits 0 on SIGTERM, so the second is the case a conditional KeepAlive / Restart=on-failure would leave down
+  step('KeepAlive / Restart=always: a crash (SIGKILL) and a clean exit (SIGTERM, exit 0) both come back');
   await killAndWait(url, 'SIGKILL');
   await killAndWait(url, 'SIGTERM');
 
@@ -134,12 +135,24 @@ try {
 
   step('service logs');
   const logs = await new Promise((resolve) => {
-    const child = spawn(process.execPath, [cli, 'service', 'logs'], { env, stdio: ['ignore', 'pipe', 'pipe'] });
+    // its own process group, so the kill reaches `journalctl -f` too: a grandchild left holding our pipes would keep
+    // this script alive until the job's timeout
+    const child = spawn(process.execPath, [cli, 'service', 'logs'], { env, stdio: ['ignore', 'pipe', 'pipe'], detached: true });
     let out = '';
     child.stdout.on('data', (d) => (out += d));
     child.stderr.on('data', (d) => (out += d));
-    setTimeout(() => child.kill(), 3000);
-    child.on('exit', () => resolve(out));
+    setTimeout(() => {
+      try {
+        process.kill(-child.pid, 'SIGTERM');
+      } catch {
+        child.kill();
+      }
+    }, 3000);
+    child.on('exit', () => {
+      child.stdout.destroy();
+      child.stderr.destroy();
+      resolve(out);
+    });
   });
   console.log(logs.slice(-2000));
   // the user journal isn't always readable on a CI runner; the file on macOS always is
@@ -163,3 +176,5 @@ try {
   if (fs.existsSync(log)) console.log(`--- ${log}\n${fs.readFileSync(log, 'utf8').slice(-4000)}`);
   fs.rmSync(tmp, { recursive: true, force: true });
 }
+// a backstop: nothing this script started may keep the CI step alive once it's done
+process.exit(process.exitCode ?? 0);

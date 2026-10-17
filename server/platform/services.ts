@@ -65,7 +65,8 @@ export function writeIfChanged(file: string, text: string): boolean {
     /* missing: write it */
   }
   fs.mkdirSync(path.dirname(file), { recursive: true });
-  const tmp = `${file}.tmp-${process.pid}`;
+  // a dot-file, so launchd (which reads every plist in the directory) never sees a half-written one
+  const tmp = path.join(path.dirname(file), `.${path.basename(file)}.tmp-${process.pid}`);
   fs.writeFileSync(tmp, text, { mode: 0o644 });
   fs.renameSync(tmp, file);
   return true;

@@ -76,6 +76,19 @@ export function buildSpec(i: SpecInput): ServiceSpec {
   };
 }
 
+/**
+ * A Node path that survives an upgrade, where the package manager offers one. Homebrew's Node resolves to a versioned
+ * Cellar path (`/opt/homebrew/Cellar/node/24.1.0/bin/node`), which `brew upgrade` + `brew cleanup` deletes, and the
+ * service would silently stop coming back at login; Homebrew's `opt/<formula>` symlink follows upgrades. Version
+ * managers' paths (nvm, fnm) are versioned on purpose, and left alone: `status` warns when one has gone.
+ */
+export function stableNodePath(real: string, exists: (p: string) => boolean): string {
+  const m = /^(.*)\/Cellar\/(node(?:@\d+)?)\/[^/]+\/bin\/node$/.exec(real);
+  if (!m) return real;
+  const opt = `${m[1]}/opt/${m[2]}/bin/node`;
+  return exists(opt) ? opt : real;
+}
+
 /** What an installed unit's argv says: the port and data home it serves (null: not named, so the default). */
 export function readArgv(argv: string[]): { port: number; dataDir: string | null } {
   const value = (flag: string) => {

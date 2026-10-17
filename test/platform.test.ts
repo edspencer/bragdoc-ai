@@ -7,7 +7,7 @@ import path from 'node:path';
 import { openCommand } from '../server/platform/index.ts';
 import { parseLaunchctlPrint, parsePlistArgv, renderPlist } from '../server/platform/launchd.ts';
 import { pathProblem, servicePath } from '../server/platform/path.ts';
-import { type ServiceSpec, buildSpec, readArgv, transientInstall } from '../server/platform/spec.ts';
+import { type ServiceSpec, buildSpec, readArgv, stableNodePath, transientInstall } from '../server/platform/spec.ts';
 import { execWord, parseShow, parseUnitArgv, renderUnit } from '../server/platform/systemd.ts';
 import { DEFAULT_PORT } from '../server/port.ts';
 import { ROOT } from './fixture.ts';
@@ -97,4 +97,12 @@ test('--open uses open on macOS, xdg-open on Linux, and nothing it would have to
   assert.deepEqual(openCommand('darwin', 'http://localhost:2724'), ['open', ['http://localhost:2724']]);
   assert.deepEqual(openCommand('linux', 'http://localhost:2724'), ['xdg-open', ['http://localhost:2724']]);
   assert.equal(openCommand('win32', 'http://localhost:2724'), null);
+});
+
+test("Homebrew's versioned Cellar Node becomes its opt/ symlink, which survives brew upgrade; other paths are kept", () => {
+  const yes = () => true;
+  assert.equal(stableNodePath('/opt/homebrew/Cellar/node/24.1.0/bin/node', yes), '/opt/homebrew/opt/node/bin/node');
+  assert.equal(stableNodePath('/usr/local/Cellar/node@22/22.12.0/bin/node', yes), '/usr/local/opt/node@22/bin/node');
+  assert.equal(stableNodePath('/opt/homebrew/Cellar/node/24.1.0/bin/node', () => false), '/opt/homebrew/Cellar/node/24.1.0/bin/node');
+  assert.equal(stableNodePath('/home/someone/.nvm/versions/node/v24.1.0/bin/node', yes), '/home/someone/.nvm/versions/node/v24.1.0/bin/node');
 });

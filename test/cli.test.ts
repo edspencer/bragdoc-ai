@@ -144,3 +144,29 @@ test('guide is there (a placeholder until the MCP server arrives)', () => {
   assert.equal(r.status, 0, r.stderr);
   assert.match(r.stdout, /coding agents/);
 });
+
+test('a TCP listener that is not HTTP still counts as taken (the probe falls back to a plain connect)', async () => {
+  const { probeHealth } = await import('../server/commands/ready.ts');
+  const raw = net.createServer((s) => s.destroy()).listen(0, '127.0.0.1');
+  await new Promise((r) => raw.once('listening', r));
+  try {
+    assert.deepEqual(await probeHealth((raw.address() as net.AddressInfo).port), { kind: 'other' });
+  } finally {
+    raw.close();
+  }
+  const free = net.createServer().listen(0, '127.0.0.1');
+  await new Promise((r) => free.once('listening', r));
+  const port = (free.address() as net.AddressInfo).port;
+  await new Promise((r) => free.close(r));
+  assert.deepEqual(await probeHealth(port), { kind: 'none' });
+});
+
+test('serve exits 0 on SIGTERM (a clean stop; the service is restarted after it anyway)', async () => {
+  const { child, ready } = startServe(['--port', '0']);
+  await ready;
+  const code = await new Promise((r) => {
+    child.once('exit', (c, sig) => r(c ?? sig));
+    child.kill('SIGTERM');
+  });
+  assert.equal(code, 0);
+});
