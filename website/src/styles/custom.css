@@ -1,0 +1,299 @@
+/*
+ * BragDoc docs: the Scrapbook look on top of Starlight.
+ *
+ * Every colour and font is a token (tokens.css); this file maps them onto Starlight's variables, then adds the few
+ * touches that make the docs feel like the app: the board under everything, the tomato pill for the current page,
+ * sticky-note asides with a strip of tape, and tables on card stock. Starlight's own styles sit in
+ * `@layer starlight.core`, so these unlayered rules win without !important.
+ */
+@import './tokens.css';
+
+/* ---- Starlight's palette ------------------------------------------------------------------------------------------ */
+
+/* Dark: lamplight. Starlight's `:root` is its dark theme. */
+:root {
+	--sl-color-accent-low: var(--bd-accent-soft);
+	--sl-color-accent: var(--bd-accent);
+	--sl-color-accent-high: var(--bd-accent-text);
+
+	--sl-color-white: var(--bd-ink);
+	--sl-color-gray-1: #e6dccb;
+	--sl-color-gray-2: var(--bd-muted);
+	--sl-color-gray-3: #a39580;
+	--sl-color-gray-4: var(--bd-faint);
+	--sl-color-gray-5: var(--bd-line);
+	--sl-color-gray-6: var(--bd-surface);
+	--sl-color-black: var(--bd-bg);
+
+	--sl-font: var(--bd-font-sans);
+	--sl-font-mono: var(--bd-font-mono);
+
+	/* Slightly wider content column for reference tables (config keys, API). */
+	--sl-content-width: 48rem;
+}
+
+:root[data-theme='light'] {
+	--sl-color-accent-low: var(--bd-accent-soft);
+	--sl-color-accent: var(--bd-accent-text);
+	--sl-color-accent-high: #7d2412;
+
+	--sl-color-white: var(--bd-ink);
+	--sl-color-gray-1: #2b2620;
+	--sl-color-gray-2: #4a443c;
+	--sl-color-gray-3: var(--bd-muted);
+	--sl-color-gray-4: var(--bd-faint);
+	--sl-color-gray-5: var(--bd-line);
+	--sl-color-gray-6: var(--bd-sunk);
+	--sl-color-gray-7: #f6f1e7;
+	--sl-color-black: var(--bd-bg);
+}
+
+/* ---- The board ---------------------------------------------------------------------------------------------------- */
+
+/* The pinboard texture scrolls with the page, as in the app. Starlight paints the body with --sl-color-bg, so the
+   texture goes on <html> and the body is let through. */
+html {
+	background-color: var(--bd-board-color);
+	background-image: var(--bd-board-image);
+	background-size: var(--bd-board-size);
+	background-position: var(--bd-board-position);
+}
+body {
+	background: transparent;
+}
+
+/* Starlight's sidebar and the mobile menu are opaque panes; keep the mobile one opaque (it covers the page) and let
+   the desktop one show the board. */
+@media (min-width: 50rem) {
+	.sidebar-pane {
+		background-color: transparent;
+	}
+}
+
+/* ---- Header: frosted glass over the board, like the app's ------------------------------------------------------- */
+
+header.header {
+	background: var(--bd-glass);
+	backdrop-filter: blur(10px);
+	border-bottom: 1.5px dashed var(--bd-line);
+}
+
+.site-title {
+	font-family: var(--bd-font-head);
+	font-weight: 800;
+	font-size: 1.45rem;
+	letter-spacing: -0.03em;
+	text-transform: lowercase;
+	color: var(--bd-ink);
+}
+
+/* The app header tilts the mark −6° over a darker tomato edge, like something pinned up in a hurry (brand/README.md). */
+.site-title img {
+	height: 2rem;
+	width: auto;
+	transform: rotate(-6deg);
+	filter: drop-shadow(0 2.5px 0 var(--bd-accent-shadow));
+}
+
+/* ---- Sidebar: the current page is the app's tomato pill ------------------------------------------------------- */
+
+nav.sidebar .large {
+	font-family: var(--bd-font-head);
+	font-weight: 700;
+	letter-spacing: -0.01em;
+}
+
+nav.sidebar a {
+	border-radius: 999px;
+}
+
+nav.sidebar a[aria-current='page'],
+nav.sidebar a[aria-current='page']:hover,
+nav.sidebar a[aria-current='page']:focus {
+	background-color: var(--bd-accent);
+	color: var(--bd-accent-ink);
+	font-weight: 650;
+	box-shadow: 0 2px 0 var(--bd-accent-shadow);
+}
+
+/* ---- Content -------------------------------------------------------------------------------------------------------- */
+
+h1#_top,
+.sl-markdown-content :is(h2, h3, h4) {
+	font-family: var(--bd-font-head);
+	letter-spacing: -0.02em;
+}
+
+h1#_top {
+	font-weight: 800;
+	letter-spacing: -0.03em;
+}
+
+.sl-markdown-content h2 {
+	font-weight: 750;
+}
+
+.sl-markdown-content :is(h3, h4) {
+	font-weight: 700;
+	color: var(--bd-ink-2);
+}
+
+.sl-markdown-content a {
+	text-decoration-thickness: 1.5px;
+	text-underline-offset: 0.18em;
+}
+
+/* Inline code: a little chip of card stock. */
+.sl-markdown-content :not(pre) > code {
+	background: var(--bd-sunk);
+	border: 1px solid var(--bd-line);
+	border-radius: 0.35rem;
+	padding: 0.05em 0.35em;
+	font-size: 0.86em;
+}
+
+/* Tables: card stock on the board. */
+.sl-markdown-content table {
+	background: var(--bd-surface);
+	box-shadow: var(--bd-card-shadow);
+	border-radius: 0.6rem;
+	overflow: hidden;
+}
+
+.sl-markdown-content th {
+	font-family: var(--bd-font-head);
+	font-weight: 700;
+	background: var(--bd-sunk);
+}
+
+.sl-markdown-content :is(th, td) {
+	border-color: var(--bd-line);
+}
+
+/* room between the text and the card's edge */
+.sl-markdown-content :is(th, td):first-child {
+	padding-inline-start: 1rem;
+}
+.sl-markdown-content :is(th, td):last-child {
+	padding-inline-end: 1rem;
+}
+
+/* Code blocks: a rounded frame, like the app's dark PR slab. */
+.expressive-code .frame {
+	border-radius: 0.6rem;
+	overflow: hidden;
+	box-shadow: var(--bd-card-shadow);
+}
+
+/* ---- Asides as pinned paper ------------------------------------------------------------------------------------------- */
+
+/* A note is a sticky note with a strip of tape; a tip is card stock; a caution or danger keeps its colour as a
+   left edge so it still reads as a warning. Each is tilted a hair, as the app's stickies are. */
+.sl-markdown-content .starlight-aside {
+	position: relative;
+	border: 0;
+	border-radius: 0.2rem;
+	padding: 1.1rem 1.15rem 1rem;
+	margin-block: 1.6rem;
+	box-shadow: var(--bd-card-shadow);
+}
+
+.sl-markdown-content .starlight-aside::before {
+	content: '';
+	position: absolute;
+	top: -0.6rem;
+	left: 50%;
+	width: 5.5rem;
+	height: 1.2rem;
+	margin-left: -2.75rem;
+	background: var(--bd-accent);
+	opacity: var(--bd-tape-op);
+	mix-blend-mode: var(--bd-tape-blend);
+	clip-path: polygon(3% 0, 100% 6%, 97% 100%, 0 92%);
+}
+
+:root[data-theme='dark'] .sl-markdown-content .starlight-aside::before {
+	background-image: linear-gradient(180deg, rgba(255, 255, 255, 0.22), rgba(255, 255, 255, 0) 55%, rgba(0, 0, 0, 0.18));
+}
+
+.sl-markdown-content .starlight-aside--note {
+	background: var(--bd-sticky);
+	color: var(--bd-sticky-ink);
+	rotate: -0.4deg;
+}
+
+.sl-markdown-content .starlight-aside--note :is(.starlight-aside__title, a, code, strong) {
+	color: var(--bd-sticky-ink);
+}
+
+.sl-markdown-content .starlight-aside--note code {
+	background: rgb(0 0 0 / 0.07);
+	border-color: rgb(0 0 0 / 0.1);
+}
+
+.sl-markdown-content .starlight-aside--tip {
+	background: var(--bd-surface);
+	rotate: 0.3deg;
+}
+
+.sl-markdown-content .starlight-aside--tip::before {
+	background-color: var(--bd-good);
+}
+
+.sl-markdown-content .starlight-aside--caution,
+.sl-markdown-content .starlight-aside--danger {
+	background: var(--bd-surface);
+	border-inline-start: 4px solid var(--sl-color-orange);
+}
+
+.sl-markdown-content .starlight-aside--danger {
+	border-inline-start-color: var(--sl-color-red);
+}
+
+.sl-markdown-content .starlight-aside--caution::before,
+.sl-markdown-content .starlight-aside--danger::before {
+	display: none;
+}
+
+.sl-markdown-content .starlight-aside__title {
+	font-family: var(--bd-font-head);
+	font-weight: 700;
+}
+
+/* "Coming in v0.1" notes: a sticky whose title is in the handwriting face, as if scribbled on. */
+.sl-markdown-content .starlight-aside--note .starlight-aside__title {
+	font-family: var(--bd-font-hand);
+	font-size: 1.45rem;
+	font-weight: 500;
+	line-height: 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.sl-markdown-content .starlight-aside {
+		rotate: none;
+	}
+}
+
+/* ---- Pagination and cards -------------------------------------------------------------------------------------------- */
+
+.pagination-links a {
+	background: var(--bd-surface);
+	border-color: var(--bd-line);
+	box-shadow: var(--bd-card-shadow);
+}
+
+.pagination-links a .link-title {
+	font-family: var(--bd-font-head);
+	font-weight: 700;
+}
+
+.sl-markdown-content .card,
+.sl-markdown-content .sl-link-card {
+	background: var(--bd-surface);
+	border-color: var(--bd-line);
+	box-shadow: var(--bd-card-shadow);
+}
+
+::selection {
+	background: color-mix(in oklab, var(--bd-accent) 35%, transparent);
+}

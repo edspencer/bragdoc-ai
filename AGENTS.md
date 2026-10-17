@@ -81,13 +81,15 @@ public/              static files copied into dist/web (favicon.svg). Only conte
 test/                node:test suites, run from source via tsx; fixture.ts has the throwaway-dir helpers
 e2e/                 Playwright specs, run against the built server (playwright.config.ts)
 scripts/             start.mjs (npm start), dev.mjs (npm run dev), check-no-nul-bytes.mjs, sync-reference.ts,
-                     store-demo.ts
+                     store-demo.ts, whats-new-release.mjs (heads the docs site's What's new at release time)
 docs/                decisions.md (D1…), data-format.md (the file format; its reference tables are generated)
+website/             the documentation site (Astro + Starlight, its own package: never part of the app's build or
+                     tarball). Rules in website/CLAUDE.md; test/docs.test.ts keeps its facts in step with the app
 ```
 
 Coming soon, so you know where things go: `server/{config,home,runtime,security,egress,proc,events}.ts` (PR2), the Scrapbook kit under `src/` and
 `tools/docs-media/` (PR4), `server/commands/` and `server/platform/` (PR5), the release machinery and `Dockerfile`
-(PR6), `website/` (PR18).
+(PR6).
 
 ## Commands
 
@@ -102,7 +104,9 @@ npm test               # node:test, from source via tsx
 npm run build          # dist/web (Vite) + dist/server, dist/shared (tsc)
 npm run test:e2e       # Playwright against the built server (run `npm run build` first)
 npm run routes         # regenerate src/routeTree.gen.ts by hand (typecheck, dev and build do it anyway)
-npm run sync:reference # regenerate the reference tables in docs/data-format.md after a schema change
+npm run sync:reference # regenerate the reference tables in docs/data-format.md (and the docs site's copy) after a
+                       # schema change
+(cd website && npm install && npm run build && npm run check-links && npm run check-external)   # the docs site
 npm run store:demo     # the file store end to end on a throwaway data home (seed, index stats, watcher events)
 ```
 
@@ -140,6 +144,10 @@ locally (and `npm run test:e2e` if you touched anything it covers), and CI is gr
   conflicts.
 - **A CLI flag:** add it to `VALUE_FLAGS` or `BOOLEAN_FLAGS` in `server/args.ts` and to the command's `check()` list
   in `cli.ts`, then document it in `USAGE`.
+- **Anything a user can see from outside** (a command, a `serve` flag, a `BRAGDOC_*` variable, an MCP tool, a file
+  field): document it on the docs site too (`website/src/content/docs/reference/`, `agents/mcp.md`; rules in
+  `website/CLAUDE.md`). `test/docs.test.ts` fails on a command, `serve` flag, env var or (once `server/mcp/` exists)
+  MCP tool the site doesn't list. A page about a feature you've just built loses its "Coming in v0.1" note.
 - **A decision:** append to `docs/decisions.md` with the next free D-number at rebase time.
 - **Dependencies:** each PR adds its own. On a lockfile conflict, regenerate it (`npm install`), never hand-merge it.
   Only what the server needs at run time is a `dependency`; React and everything bundled into `dist/web` is a
