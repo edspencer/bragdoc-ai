@@ -114,15 +114,16 @@ tools/docs-media/    the screenshot rig: `npm run docs:media` (shots.ts lists th
 test/                node:test suites, run from source via tsx; fixture.ts has the throwaway-dir helpers
 e2e/                 Playwright specs, run against the built server (playwright.config.ts)
 scripts/             start.mjs (npm start), dev.mjs (npm run dev), check-no-nul-bytes.mjs, sync-reference.ts,
-                     store-demo.ts; the release's: build-info.mjs (dist/build-info.json), strip-maps.mjs,
+                     store-demo.ts, whats-new-release.mjs (heads the docs site's What's new at `changeset:version`);
+                     the release's: build-info.mjs (dist/build-info.json), strip-maps.mjs,
                      smoke-pack.mjs (npm run smoke:pack), smoke-image.sh (a built Docker image, in CI)
 .changeset/          pending changelog entries (`npm run changeset`); config.json versions against next
 .github/workflows/   ci.yml (every push and PR); release.yml (manual only, dry run by default: RELEASING.md)
 Dockerfile           the image (Docker on your laptop, D14); compose.yaml runs it with ~/.bragdoc at /data
 docs/                decisions.md (D1…), data-format.md (the file format; its reference tables are generated)
+website/             the documentation site (Astro + Starlight, its own package: never part of the app's build or
+                     tarball). Rules in website/CLAUDE.md; test/docs.test.ts keeps its facts in step with the app
 ```
-
-Coming soon, so you know where things go: `website/` (PR18).
 
 ## Commands
 
@@ -142,7 +143,9 @@ npm run test:e2e       # Playwright against the built server (run `npm run build
 npm run routes         # regenerate src/routeTree.gen.ts by hand (typecheck, dev and build do it anyway)
 npm run docs:media     # build with /dev/kit, boot a throwaway instance, take every shot in tools/docs-media/shots.ts
 npm run brand          # regenerate the favicons, icons and social cards from brand/mark.svg
-npm run sync:reference # regenerate the reference tables in docs/data-format.md after a schema change
+npm run sync:reference # regenerate the reference tables in docs/data-format.md (and the docs site's copy) after a
+                       # schema change
+(cd website && npm install && npm run build && npm run check-links && npm run check-external)   # the docs site
 npm run store:demo     # the file store end to end on a throwaway data home (seed, index stats, watcher events)
 ```
 
@@ -199,6 +202,10 @@ npm run smoke:pack` pass locally (and `npm run test:e2e` if you touched anything
   if the server sends `change` events for it, its `ServerEvent` type in `CHANGE_INVALIDATES` (`src/api/events.ts`).
 - **A CLI flag:** add it to `VALUE_FLAGS` or `BOOLEAN_FLAGS` in `server/args.ts` and to the command's `check()` list
   in `cli.ts`, then document it in `USAGE`.
+- **Anything a user can see from outside** (a command, a `serve` flag, a `BRAGDOC_*` variable, an MCP tool, a file
+  field): document it on the docs site too (`website/src/content/docs/reference/`, `agents/mcp.md`; rules in
+  `website/CLAUDE.md`). `test/docs.test.ts` fails on a command, `serve` flag, env var or (once `server/mcp/` exists)
+  MCP tool the site doesn't list. A page about a feature you've just built loses its "Coming in v0.1" note.
 - **A decision:** append to `docs/decisions.md` with the next free D-number at rebase time.
 - **Dependencies:** each PR adds its own. On a lockfile conflict, regenerate it (`npm install`), never hand-merge it.
   Only what the server needs at run time is a `dependency`; React and everything bundled into `dist/web` is a

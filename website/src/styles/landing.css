@@ -1,0 +1,669 @@
+/*
+ * The landing page's styles. Loaded ONLY by src/pages/index.astro (via LandingLayout), which lives outside Starlight
+ * and inherits none of its CSS. The colours and fonts are the shared tokens (tokens.css), switched by
+ * <html data-theme>, exactly as on the docs pages; the pieces (taped cards, sticky notes, the photo print, the dark
+ * slab) are the app's Scrapbook kit, redrawn in plain CSS.
+ */
+@import './tokens.css';
+
+*,
+*::before,
+*::after {
+	box-sizing: border-box;
+}
+
+html {
+	background-color: var(--bd-board-color);
+	background-image: var(--bd-board-image);
+	background-size: var(--bd-board-size);
+	background-position: var(--bd-board-position);
+	color-scheme: light;
+	scroll-padding-top: 5rem;
+}
+html[data-theme='dark'] {
+	color-scheme: dark;
+}
+
+body {
+	margin: 0;
+	font-family: var(--bd-font-sans);
+	font-size: 1.0625rem;
+	line-height: 1.6;
+	color: var(--bd-ink);
+	-webkit-font-smoothing: antialiased;
+	/* nothing may scroll sideways at 360 px */
+	overflow-x: hidden;
+	position: relative;
+}
+
+/* The desk lamp at the top of the dark board (the app's .sb-backdrop). */
+html[data-theme='dark'] body::before {
+	content: '';
+	position: absolute;
+	inset: 0 0 auto 0;
+	height: 1100px;
+	pointer-events: none;
+	background:
+		radial-gradient(ellipse 70% 60% at 50% -10%, rgba(255, 180, 100, 0.17), transparent 70%),
+		radial-gradient(ellipse 50% 40% at 0% 0%, rgba(0, 0, 0, 0.35), transparent 70%),
+		radial-gradient(ellipse 50% 40% at 100% 0%, rgba(0, 0, 0, 0.35), transparent 70%);
+}
+
+a {
+	color: var(--bd-accent-text);
+	text-decoration-thickness: 1.5px;
+	text-underline-offset: 0.18em;
+}
+
+:focus-visible {
+	outline: 2.5px solid var(--bd-accent);
+	outline-offset: 2px;
+}
+
+::selection {
+	background: color-mix(in oklab, var(--bd-accent) 35%, transparent);
+}
+
+.sr-only {
+	position: absolute;
+	width: 1px;
+	height: 1px;
+	overflow: hidden;
+	clip: rect(0 0 0 0);
+	white-space: nowrap;
+}
+
+.container {
+	width: min(1140px, 100% - 2 * clamp(1.1rem, 4vw, 2.5rem));
+	margin-inline: auto;
+	position: relative;
+}
+
+main > section {
+	margin-block: clamp(3.5rem, 8vw, 6.5rem);
+}
+
+h1,
+h2,
+h3 {
+	font-family: var(--bd-font-head);
+	letter-spacing: -0.03em;
+	line-height: 1.08;
+	margin: 0;
+}
+
+.eyebrow {
+	margin: 0 0 0.6rem;
+	font-family: var(--bd-font-hand);
+	font-size: 1.5rem;
+	line-height: 1.1;
+	color: var(--bd-muted);
+}
+
+.section-title {
+	font-size: clamp(2rem, 4.5vw, 2.9rem);
+	font-weight: 800;
+	margin-bottom: 2rem;
+}
+
+/* ---- skip link, nav ---------------------------------------------------------------------------------------------- */
+
+.skip {
+	position: absolute;
+	left: -9999px;
+	top: 0;
+	z-index: 100;
+	padding: 0.7rem 1rem;
+	background: var(--bd-surface);
+	color: var(--bd-ink);
+}
+.skip:focus {
+	left: 0;
+}
+
+.nav {
+	position: sticky;
+	top: 0;
+	z-index: 50;
+	background: var(--bd-glass);
+	backdrop-filter: blur(10px);
+	border-bottom: 1.5px dashed var(--bd-line);
+}
+
+.nav-inner {
+	display: flex;
+	align-items: center;
+	gap: 1.25rem;
+	height: 4.25rem;
+}
+
+.brand {
+	display: flex;
+	align-items: center;
+	gap: 0.6rem;
+	color: var(--bd-ink);
+	text-decoration: none;
+	font-family: var(--bd-font-head);
+	font-weight: 800;
+	font-size: 1.6rem;
+	letter-spacing: -0.03em;
+}
+
+/* the app header's mark: tilted −6° over a darker tomato edge */
+.brand img {
+	transform: rotate(-6deg);
+	filter: drop-shadow(0 2.5px 0 var(--bd-accent-shadow));
+}
+
+.nav-links {
+	display: none;
+	margin-inline-start: auto;
+	gap: 0.25rem;
+	padding: 0.3rem;
+	border-radius: 999px;
+	background: var(--bd-surface);
+	box-shadow: var(--bd-card-shadow);
+}
+
+.nav-links a {
+	padding: 0.35rem 0.9rem;
+	border-radius: 999px;
+	color: var(--bd-muted);
+	font-family: var(--bd-font-head);
+	font-weight: 650;
+	font-size: 0.95rem;
+	text-decoration: none;
+}
+
+.nav-links a:hover {
+	color: var(--bd-ink);
+	background: var(--bd-sunk);
+}
+
+.theme {
+	display: flex;
+	gap: 0.15rem;
+	margin-inline-start: auto;
+	padding: 0.25rem;
+	border-radius: 999px;
+	background: var(--bd-surface);
+	box-shadow: var(--bd-card-shadow);
+}
+
+.theme button {
+	display: grid;
+	place-items: center;
+	width: 2rem;
+	height: 2rem;
+	border: 0;
+	border-radius: 999px;
+	background: transparent;
+	color: var(--bd-muted);
+	cursor: pointer;
+}
+
+.theme button:hover {
+	color: var(--bd-ink);
+}
+
+.theme button[aria-pressed='true'] {
+	background: var(--bd-ink);
+	color: var(--bd-bg);
+}
+
+.nav-docs {
+	margin-inline-start: auto;
+	padding: 0.4rem 0.95rem;
+	border-radius: 999px;
+	background: var(--bd-surface);
+	box-shadow: var(--bd-card-shadow);
+	color: var(--bd-ink);
+	font-family: var(--bd-font-head);
+	font-weight: 700;
+	font-size: 0.95rem;
+	text-decoration: none;
+}
+.nav-docs + .nav-links + .theme {
+	margin-inline-start: 0;
+}
+
+@media (min-width: 820px) {
+	.nav-docs {
+		display: none;
+	}
+	.nav-links {
+		display: flex;
+	}
+	.theme {
+		margin-inline-start: 0;
+	}
+}
+
+/* ---- paper ------------------------------------------------------------------------------------------------------ */
+
+.card {
+	position: relative;
+	background: var(--bd-surface);
+	box-shadow: var(--bd-card-shadow);
+	border-radius: 0.9rem;
+	padding: 1.6rem 1.4rem 1.3rem;
+}
+
+.sticky {
+	position: relative;
+	background: var(--bd-sticky);
+	color: var(--bd-sticky-ink);
+	box-shadow: 0 8px 16px -8px rgba(60, 50, 0, 0.5);
+}
+html[data-theme='dark'] .sticky {
+	box-shadow: 0 10px 18px -8px rgba(0, 0, 0, 0.8);
+	background-image: linear-gradient(170deg, rgba(255, 255, 255, 0.08), transparent 40%);
+}
+
+.tape {
+	position: absolute;
+	top: -0.7rem;
+	left: 50%;
+	width: 5.5rem;
+	height: 1.3rem;
+	margin-left: -2.75rem;
+	opacity: var(--bd-tape-op);
+	mix-blend-mode: var(--bd-tape-blend);
+	clip-path: polygon(3% 0, 100% 6%, 97% 100%, 0 92%);
+}
+html[data-theme='dark'] .tape {
+	background-image: linear-gradient(180deg, rgba(255, 255, 255, 0.22), rgba(255, 255, 255, 0) 55%, rgba(0, 0, 0, 0.18));
+}
+.tape--tomato {
+	background-color: var(--bd-accent);
+}
+.tape--blue {
+	background-color: var(--bd-blue);
+}
+.tape--green {
+	background-color: var(--bd-good);
+}
+
+.tilt-0 {
+	rotate: -0.6deg;
+}
+.tilt-1 {
+	rotate: 0.4deg;
+}
+.tilt-2 {
+	rotate: -0.25deg;
+}
+
+.slab {
+	margin: 0;
+	padding: 1rem 1.15rem;
+	border-radius: 0.6rem;
+	background: var(--bd-slab);
+	color: var(--bd-slab-ink);
+	font-family: var(--bd-font-mono);
+	font-size: 0.9rem;
+	line-height: 1.6;
+	overflow-x: auto;
+}
+
+.slab .prompt {
+	color: var(--bd-accent);
+	user-select: none;
+}
+
+.pill {
+	display: inline-block;
+	padding: 0.15rem 0.65rem;
+	border-radius: 999px;
+	font-family: var(--bd-font-head);
+	font-weight: 700;
+	font-size: 0.78rem;
+}
+.pill--ok {
+	background: var(--bd-good);
+	color: var(--bd-ink);
+}
+.pill--wait {
+	background: var(--bd-sunk);
+	color: var(--bd-muted);
+	border: 1px dashed var(--bd-faint);
+}
+
+/* ---- buttons ---------------------------------------------------------------------------------------------------- */
+
+.buttons {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 0.7rem;
+	margin-top: 1.6rem;
+}
+
+.btn {
+	display: inline-block;
+	padding: 0.6rem 1.15rem;
+	border-radius: 999px;
+	background: var(--bd-surface);
+	color: var(--bd-ink);
+	box-shadow: var(--bd-card-shadow);
+	font-family: var(--bd-font-head);
+	font-weight: 700;
+	text-decoration: none;
+	transition: translate 0.15s;
+}
+.btn:hover {
+	translate: 0 -1px;
+}
+.btn--primary {
+	background: var(--bd-accent-fill);
+	color: var(--bd-accent-ink);
+	box-shadow: 0 3px 0 var(--bd-accent-shadow);
+}
+
+/* ---- hero ------------------------------------------------------------------------------------------------------- */
+
+.hero {
+	display: grid;
+	gap: 2.5rem;
+	align-items: center;
+	margin-top: clamp(2.5rem, 7vw, 5rem);
+}
+
+.hero h1 {
+	font-size: clamp(2.6rem, 7vw, 4.6rem);
+	font-weight: 800;
+	max-width: 13ch;
+}
+
+.hero .lede {
+	margin: 1.3rem 0 0;
+	font-size: 1.2rem;
+	max-width: 38rem;
+}
+
+.hero .body,
+.agents .body {
+	margin: 0.8rem 0 0;
+	color: var(--bd-muted);
+	max-width: 38rem;
+}
+
+.install {
+	position: relative;
+}
+
+.install-card {
+	rotate: 0.8deg;
+}
+
+.install-head {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	margin-bottom: 0.8rem;
+}
+
+.install-label {
+	font-family: var(--bd-font-hand);
+	font-size: 1.5rem;
+	line-height: 1;
+	color: var(--bd-muted);
+}
+
+.install-after {
+	margin: 0.8rem 0 0;
+	font-size: 0.92rem;
+	color: var(--bd-muted);
+}
+
+.install-sticky {
+	margin: -0.6rem 0 0 auto;
+	width: min(19rem, 92%);
+	padding: 0.9rem 1rem;
+	rotate: -2.5deg;
+	font-size: 0.92rem;
+	line-height: 1.4;
+}
+
+@media (min-width: 940px) {
+	.hero {
+		grid-template-columns: 1.15fr 0.85fr;
+	}
+}
+
+/* ---- the mock-up print -------------------------------------------------------------------------------------------- */
+
+.print {
+	position: relative;
+	margin: 0;
+	padding: 0.7rem 0.7rem 0;
+	background: var(--bd-print);
+	box-shadow: var(--bd-print-shadow);
+	rotate: -0.7deg;
+}
+
+.print img {
+	display: block;
+	width: 100%;
+	height: auto;
+	filter: var(--bd-img-filter);
+}
+
+.tape--corner-l,
+.tape--corner-r {
+	top: -0.5rem;
+	background-color: var(--bd-sticky);
+}
+.tape--corner-l {
+	left: -0.8rem;
+	margin: 0;
+	rotate: -35deg;
+}
+.tape--corner-r {
+	left: auto;
+	right: -0.8rem;
+	margin: 0;
+	rotate: 35deg;
+}
+
+.print figcaption {
+	display: flex;
+	flex-wrap: wrap;
+	justify-content: space-between;
+	align-items: baseline;
+	gap: 0.3rem 1rem;
+	padding: 0.6rem 0.3rem 0.7rem;
+	color: #4a443c; /* app --print-ink: prints stay paper-coloured in both themes */
+}
+html[data-theme='dark'] .print figcaption {
+	color: #4a3f31; /* app dark --print-ink */
+}
+
+.hand {
+	font-family: var(--bd-font-hand);
+	font-size: 1.35rem;
+	line-height: 1.1;
+}
+
+.shot-tag {
+	font-family: var(--bd-font-mono);
+	font-size: 0.68rem;
+	letter-spacing: 0.06em;
+	text-transform: uppercase;
+}
+
+html[data-theme='light'] .only-dark,
+html[data-theme='dark'] .only-light {
+	display: none !important;
+}
+
+/* ---- guarantees, how -------------------------------------------------------------------------------------------- */
+
+.grid3 {
+	list-style: none;
+	margin: 0;
+	padding: 0;
+	display: grid;
+	gap: 2rem 1.6rem;
+}
+
+@media (min-width: 860px) {
+	.grid3 {
+		grid-template-columns: repeat(3, 1fr);
+	}
+}
+
+.grid3 h3 {
+	font-size: 1.4rem;
+	font-weight: 750;
+	margin-bottom: 0.6rem;
+}
+
+.grid3 p {
+	margin: 0 0 1rem;
+	color: var(--bd-muted);
+}
+
+.grid3 a {
+	font-family: var(--bd-font-head);
+	font-weight: 700;
+	text-decoration: none;
+}
+.grid3 a:hover {
+	text-decoration: underline;
+}
+
+.word {
+	display: inline-block;
+	margin-bottom: 0.9rem;
+	padding: 0.25rem 0.85rem;
+	border-radius: 999px;
+	background: var(--bd-sunk);
+	color: var(--bd-muted);
+	font-family: var(--bd-font-head);
+	font-weight: 700;
+	font-size: 0.9rem;
+}
+.word--on {
+	background: var(--bd-accent-fill);
+	color: var(--bd-accent-ink);
+}
+
+/* ---- agents ---------------------------------------------------------------------------------------------------- */
+
+.agents {
+	display: grid;
+	gap: 2rem;
+	align-items: center;
+}
+.agents .section-title {
+	margin-bottom: 0;
+}
+.agents .btn {
+	margin-top: 1.4rem;
+}
+
+.file {
+	margin: 0;
+	min-width: 0;
+	rotate: 0.6deg;
+}
+.file figcaption {
+	font-family: var(--bd-font-mono);
+	font-size: 0.78rem;
+	color: var(--bd-muted);
+	margin-bottom: 0.4rem;
+}
+
+@media (min-width: 940px) {
+	.agents {
+		grid-template-columns: 1fr 1fr;
+		gap: 3.5rem;
+	}
+}
+
+/* ---- open source ----------------------------------------------------------------------------------------------- */
+
+.open-sticky {
+	max-width: 44rem;
+	margin-inline: auto;
+	padding: 2.2rem 2rem 2rem;
+	rotate: -0.8deg;
+	text-align: center;
+}
+.open-sticky h2 {
+	font-size: clamp(1.9rem, 4.5vw, 2.6rem);
+	font-weight: 800;
+}
+.open-sticky p {
+	margin: 0.9rem auto 0;
+	max-width: 34rem;
+}
+.open-sticky .buttons {
+	justify-content: center;
+}
+.open-sticky .btn:not(.btn--primary) {
+	background: rgb(255 255 255 / 0.55);
+	color: var(--bd-sticky-ink);
+	box-shadow: none;
+}
+html[data-theme='dark'] .open-sticky .btn:not(.btn--primary) {
+	background: rgb(0 0 0 / 0.14);
+}
+
+.hosted {
+	text-align: center;
+	margin-top: 2.2rem;
+	font-weight: 600;
+}
+
+/* ---- footer ----------------------------------------------------------------------------------------------------- */
+
+.foot {
+	border-top: 1.5px dashed var(--bd-line);
+	padding-block: 2.2rem 2.6rem;
+	font-size: 0.9rem;
+	color: var(--bd-muted);
+}
+
+.foot-inner {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 1rem 2rem;
+	align-items: center;
+	justify-content: space-between;
+}
+
+.foot p {
+	margin: 0;
+	max-width: 36rem;
+}
+
+.foot a {
+	color: var(--bd-ink);
+	text-decoration: none;
+}
+.foot a:hover {
+	text-decoration: underline;
+}
+
+.foot-links {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 1.2rem;
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.tilt-0,
+	.tilt-1,
+	.tilt-2,
+	.install-card,
+	.install-sticky,
+	.print,
+	.file,
+	.open-sticky {
+		rotate: none;
+	}
+	.btn {
+		transition: none;
+	}
+}

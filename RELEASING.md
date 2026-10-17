@@ -87,8 +87,12 @@ So you decide *when* to release by running the workflow, and *what* the version 
 `version` by hand. The tag and the Release come after npm, so a `v<version>` tag always means that version is on npm.
 
 When the release channel is decided (#411 Q1), a push trigger can replace step 2's manual run, as Hallway's does.
-When the docs site gains a "What's new" page (PR18), `changeset:version` is where to hook a script that gives its
-upcoming section the released version's heading, as Local Review's `scripts/whats-new-release.mjs` does.
+`changeset:version` also runs `scripts/whats-new-release.mjs` (Local Review's), which gives the docs site's What's new
+page (`website/src/content/docs/whats-new.md`) its released heading: write the upcoming section by hand as
+`## Coming in <version>: <title>` with "Not released yet." under it, and the version PR renames it to the version
+actually released. `test/whats-new.test.ts` fails if a released version is still "coming". **For 0.1.0**, the version
+PR also needs `RELEASED` flipped in `website/src/site.mjs` and every "Coming in v0.1" note on the site replaced
+(PR19); `test/docs.test.ts` fails it until both are done.
 
 ### Build info: "official" is a claim, not a proof
 

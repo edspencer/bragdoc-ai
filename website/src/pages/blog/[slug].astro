@@ -1,0 +1,37 @@
+---
+/**
+ * One blog post, at /blog/<file name>/, inside Starlight's page frame (so it has the header, search, theme, the docs
+ * sidebar and an "On this page" list). The post body is the `blog` collection's Markdown (src/content/blog/).
+ */
+import StarlightPage from '@astrojs/starlight/components/StarlightPage.astro';
+import { render } from 'astro:content';
+import { posts, longDate, type Post } from '../../blog';
+
+export async function getStaticPaths() {
+	return (await posts()).map((post) => ({ params: { slug: post.id }, props: { post } }));
+}
+
+const { post } = Astro.props as { post: Post };
+const { Content, headings } = await render(post);
+---
+
+<StarlightPage frontmatter={{ title: post.data.title, description: post.data.description }} headings={headings}>
+	<p class="byline">
+		<time datetime={post.data.date.toISOString().slice(0, 10)}>{longDate(post.data.date)}</time>
+		<span aria-hidden="true">·</span>
+		<span>{post.data.author}</span>
+		<span aria-hidden="true">·</span>
+		<a href="/blog/">All posts</a>
+	</p>
+	<Content />
+</StarlightPage>
+
+<style>
+	.byline {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.5rem;
+		color: var(--sl-color-gray-3);
+		font-size: var(--sl-text-sm);
+	}
+</style>
