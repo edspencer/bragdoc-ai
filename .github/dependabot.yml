@@ -1,102 +1,30 @@
 version: 2
 updates:
-  # Root workspace (monitors all workspaces via pnpm)
-  - package-ecosystem: "npm"
-    directory: "/"
+  - package-ecosystem: npm
+    directory: /
+    # v0.1 is built on next (#411); point this at the default branch once next has merged into main.
+    target-branch: next
     schedule:
-      interval: "weekly"
-      day: "monday"
+      interval: weekly
     open-pull-requests-limit: 10
     groups:
-      nextjs:
-        patterns:
-          - "next"
-          - "@next/*"
-          - "next-*"
-      react:
-        patterns:
-          - "react"
-          - "react-dom"
-          - "@types/react"
-          - "@types/react-dom"
-      radix-ui:
-        patterns:
-          - "@radix-ui/*"
-      ai-sdk:
-        patterns:
-          - "ai"
-          - "@ai-sdk/*"
-          - "@openrouter/*"
-      auth:
-        patterns:
-          - "next-auth"
-          - "@auth/*"
-      database:
-        patterns:
-          - "drizzle-orm"
-          - "drizzle-kit"
-          - "@auth/drizzle-adapter"
-          - "postgres"
-          - "@vercel/postgres"
-      stripe:
-        patterns:
-          - "stripe"
-          - "@stripe/*"
-      testing:
-        patterns:
-          - "jest"
-          - "@types/jest"
-          - "@swc/jest"
-          - "ts-jest"
-          - "@testing-library/*"
-          - "jest-*"
-      linting:
-        patterns:
-          - "eslint"
-          - "eslint-*"
-          - "@eslint/*"
-          - "@biomejs/*"
-          - "biome"
-          - "typescript-eslint"
-      tailwind:
-        patterns:
-          - "tailwindcss"
-          - "@tailwindcss/*"
-          - "tailwind-*"
-      mdx:
-        patterns:
-          - "@mdx-js/*"
-          - "mdx"
-          - "mdx-*"
-          - "next-mdx-remote"
-      vercel:
-        patterns:
-          - "@vercel/*"
-      prosemirror:
-        patterns:
-          - "prosemirror-*"
-      analytics:
-        patterns:
-          - "posthog-js"
-          - "posthog-node"
-          - "@posthog/*"
-    ignore:
-      # Ignore major version updates for critical dependencies
-      - dependency-name: "next"
-        update-types: ["version-update:semver-major"]
-      - dependency-name: "@next/mdx"
-        update-types: ["version-update:semver-major"]
-      - dependency-name: "@next/third-parties"
-        update-types: ["version-update:semver-major"]
-      - dependency-name: "react"
-        update-types: ["version-update:semver-major"]
-      - dependency-name: "react-dom"
-        update-types: ["version-update:semver-major"]
+      # Everything that ships to users' machines (the `dependencies`: the server's runtime).
+      production:
+        dependency-type: production
+        update-types: [minor, patch]
+      # Build and test tooling, and the frontend libraries bundled into dist/web at build time.
+      development:
+        dependency-type: development
+        update-types: [minor, patch]
+    # Majors come as one PR each, so each gets read.
 
-  # GitHub Actions
-  - package-ecosystem: "github-actions"
-    directory: "/"
+  - package-ecosystem: github-actions
+    directory: /
+    target-branch: next
     schedule:
-      interval: "weekly"
-      day: "monday"
-    open-pull-requests-limit: 3
+      interval: weekly
+    groups:
+      actions:
+        patterns: ["*"]
+
+  # The docs site (website/, PR18) gets its own entry here when it lands: it's a standalone package with its own lockfile.

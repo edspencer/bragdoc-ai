@@ -1,0 +1,103 @@
+// The CLI as a user runs it: a child process from source (tsx), with a throwaway HOME and BRAGDOC_HOME.
+import { after, test } from 'node:test';
+import assert from 'node:assert/strict';
+import { spawn, spawnSync } from 'node:child_process';
+import fs from 'node:fs';
+import path from 'node:path';
+import { ROOT, stopChild, tmpHome } from './fixture.ts';
+
+const h = tmpHome();
+after(() => h.cleanup());
+
+const VERSION = JSON.parse(fs.readFileSync(path.join(ROOT, 'package.json'), 'utf8')).version;
+const CLI = ['--import', 'tsx', path.join(ROOT, 'server', 'cli.ts')];
+const run = (...args: string[]) => spawnSync(process.execPath, [...CLI, ...args], { cwd: ROOT, env: h.env, encoding: 'utf8' });
+
+test('--version and -v print the version', () => {
+  for (const flag of ['--version', '-v']) {
+    const r = run(flag);
+    assert.equal(r.status, 0, r.stderr);
+    assert.equal(r.stdout, `${VERSION}\n`);
+  }
+});
+
+test('--help and -h print the usage, naming the default port', () => {
+  for (const flag of ['--help', '-h']) {
+    const r = run(flag);
+    assert.equal(r.status, 0, r.stderr);
+    assert.match(r.stdout, /^Usage: bragdoc/);
+    assert.match(r.stdout, /2724/);
+  }
+});
+
+test('usage errors exit 2 with the usage; nothing is created', () => {
+  for (const args of [['frobnicate'], ['--nope'], ['serve', 'extra'], ['serve', '--port', 'abc'], ['serve', '--port'], ['serve', '--port='], ['serve', '--data-dir='], ['serve', '--host=']]) {
+    const r = run(...args);
+    assert.equal(r.status, 2, `${args.join(' ')}: ${r.stderr}`);
+    assert.match(r.stderr, /Usage: bragdoc/);
+  }
+  assert.equal(fs.existsSync(h.dataDir), false);
+});
+
+test('a non-loopback --host is refused (exit 1) without the dangerous opt-in', () => {
+  const r = run('serve', '--host', '0.0.0.0', '--port', '0');
+  assert.equal(r.status, 1);
+  assert.match(r.stderr, /BRAGDOC_DANGEROUSLY_ALLOW_OPEN/);
+});
+
+/**
+ * Start `bragdoc serve …` and wait for its "BragDoc on <url>" line. Rejects, with everything the child printed, if it
+ * exits first or hasn't said anything within `ms`: a hung child fails this test, not the whole CI job's timeout.
+ */
+function startServe(args: string[], ms = 15_000): { child: ReturnType<typeof spawn>; ready: Promise<string> } {
+  const child = spawn(process.execPath, [...CLI, 'serve', ...args], { cwd: ROOT, env: h.env });
+  const ready = new Promise<string>((resolve, reject) => {
+    let out = '';
+    const timer = setTimeout(() => reject(new Error(`no "BragDoc on" line after ${ms} ms; output so far: ${JSON.stringify(out)}`)), ms);
+    child.stdout!.on('data', (d) => {
+      out += d;
+      const m = /^BragDoc on (http:\/\/\S+)\n/.exec(out);
+      if (m) {
+        clearTimeout(timer);
+        resolve(m[1]!);
+      }
+    });
+    child.stderr!.on('data', (d) => (out += d));
+    child.on('exit', (code) => {
+      clearTimeout(timer);
+      reject(new Error(`exited ${code} before listening: ${JSON.stringify(out)}`));
+    });
+  });
+  return { child, ready };
+}
+
+test('--host [::1] binds the IPv6 loopback, or fails to bind cleanly where there is none', async () => {
+  const { child, ready } = startServe(['--host', '[::1]', '--port', '0']);
+  try {
+    assert.match(await ready, /^http:\/\/localhost:\d+$/);
+  } catch (e) {
+    // a machine without IPv6 can't bind ::1: that must be a clean exit, not a hang, and never the brackets' ENOTFOUND
+    const msg = (e as Error).message;
+    assert.match(msg, /^exited 1 before listening/, msg);
+    assert.doesNotMatch(msg, /ENOTFOUND/);
+  } finally {
+    await stopChild(child);
+  }
+});
+
+test('serve prints "BragDoc on <url>" first, then answers /api/health; a taken port is an error, not a new port', async () => {
+  const { child, ready } = startServe(['--port', '0', '--data-dir', h.dataDir]);
+  try {
+    const url = await ready;
+    assert.match(url, /^http:\/\/localhost:\d+$/);
+    const port = new URL(url).port;
+    const res = await fetch(`http://127.0.0.1:${port}/api/health`);
+    assert.deepEqual(await res.json(), { ok: true, version: VERSION });
+
+    const taken = run('serve', '--port', port);
+    assert.equal(taken.status, 1);
+    assert.match(taken.stderr, new RegExp(`port ${port} is already in use`));
+  } finally {
+    await stopChild(child);
+  }
+});

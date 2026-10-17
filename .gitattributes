@@ -1,3 +1,10 @@
-
-# Use bd merge for beads JSONL files
-.beads/issues.jsonl merge=beads
+# Every text file is checked out with LF, Windows included: fixtures and golden files are compared byte for byte.
+* text=auto eol=lf
+*.png binary
+*.jpg binary
+*.gif binary
+*.ttf binary
+*.woff binary
+*.woff2 binary
+*.ico binary
+*.pdf binary
