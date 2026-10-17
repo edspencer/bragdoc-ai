@@ -7,6 +7,12 @@ import { expect, test, type Page } from '@playwright/test';
 
 test.describe.configure({ mode: 'serial' });
 
+/**
+ * Every worker (each browser project, each retry) shares the one data home, so titles carry a run tag: a card from
+ * Chromium's run (or a failed first try) never matches Firefox's.
+ */
+const RUN = Math.random().toString(36).slice(2, 7);
+
 /** A real 1×1 PNG. */
 const PNG_B64 = 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==';
 
@@ -52,10 +58,10 @@ test('an empty composer cannot pin; typed text pins a card titled by its first l
   await expect(page.getByTestId('pin-it')).toHaveCount(0); // the footer only appears once there's something
   await page.getByTestId('composer-text').fill('   ');
   await expect(page.getByTestId('pin-it')).toBeDisabled();
-  await page.getByTestId('composer-text').fill('E2E: unblocked the release\nIt was stuck on a flaky test.');
+  await page.getByTestId('composer-text').fill(`E2E ${RUN}: unblocked the release\nIt was stuck on a flaky test.`);
   await page.getByTestId('composer-text').press('Control+Enter');
   await expect(page.getByTestId('toast')).toContainText('Pinned');
-  const c = card(page, 'E2E: unblocked the release');
+  const c = card(page, `E2E ${RUN}: unblocked the release`);
   await expect(c).toBeVisible();
   await expect(c).toContainText('It was stuck on a flaky test.');
   await expect(page.getByTestId('composer-text')).toHaveValue('');
@@ -72,9 +78,9 @@ test('a pasted picture, a dropped PDF, a pasted PR link and a .key file all land
   await expect(page.locator('[data-testid="pending"][data-status="ready"]')).toHaveCount(4);
   // GitHub isn't connected: the PR is shown as owner/repo#n, and nothing was fetched
   await expect(page.locator('[data-testid="pending"][data-kind="github_pr"]')).toContainText('acme/widgets#77');
-  await page.getByTestId('composer-text').fill('E2E: four kinds of evidence');
+  await page.getByTestId('composer-text').fill(`E2E ${RUN}: four kinds of evidence`);
   await page.getByTestId('pin-it').click();
-  const c = card(page, 'E2E: four kinds of evidence');
+  const c = card(page, `E2E ${RUN}: four kinds of evidence`);
   await expect(c).toBeVisible();
   await expect(c.getByRole('button', { name: /Open .* full size/ })).toBeVisible();
   await expect(c.getByRole('link', { name: /q3-review/ })).toHaveAttribute('href', /^\/api\/evidence\/[0-9a-f]{64}$/);
@@ -93,47 +99,47 @@ test('a file that claims to be a picture but is not one is refused with a toast'
 
 test('edit in the drawer, archive it, bring it back', async ({ page }) => {
   await page.goto('/');
-  await page.getByTestId('composer-text').fill('E2E: to be edited');
+  await page.getByTestId('composer-text').fill(`E2E ${RUN}: to be edited`);
   await page.getByTestId('pin-it').click();
-  await card(page, 'E2E: to be edited').getByRole('button', { name: 'E2E: to be edited', exact: true }).click();
+  await card(page, `E2E ${RUN}: to be edited`).getByRole('button', { name: `E2E ${RUN}: to be edited`, exact: true }).click();
   const drawer = page.getByTestId('edit-drawer');
   await expect(drawer).toBeVisible();
-  await drawer.getByTestId('edit-title').fill('E2E: edited');
+  await drawer.getByTestId('edit-title').fill(`E2E ${RUN}: edited`);
   await drawer.getByTestId('edit-summary').fill('Now with a summary.');
   await drawer.getByRole('radio', { name: /^6:/ }).click();
   await drawer.getByTestId('edit-save').click();
   await expect(drawer).toBeHidden();
-  const c = card(page, 'E2E: edited');
+  const c = card(page, `E2E ${RUN}: edited`);
   await expect(c).toContainText('Now with a summary.');
   await expect(c.getByLabel('Impact 6 out of 10')).toBeVisible();
 
-  await c.getByRole('button', { name: 'E2E: edited', exact: true }).click();
+  await c.getByRole('button', { name: `E2E ${RUN}: edited`, exact: true }).click();
   await drawer.getByTestId('edit-archive').click();
-  await expect(card(page, 'E2E: edited')).toHaveCount(0);
+  await expect(card(page, `E2E ${RUN}: edited`)).toHaveCount(0);
   await page.getByTestId('toast').getByRole('button', { name: 'Undo' }).click();
-  await expect(card(page, 'E2E: edited')).toBeVisible();
+  await expect(card(page, `E2E ${RUN}: edited`)).toBeVisible();
 });
 
 test('remove a card, then Undo puts it back', async ({ page }) => {
   await page.goto('/');
-  await page.getByTestId('composer-text').fill('E2E: to be removed');
+  await page.getByTestId('composer-text').fill(`E2E ${RUN}: to be removed`);
   await page.getByTestId('pin-it').click();
-  const c = card(page, 'E2E: to be removed');
-  await c.getByRole('button', { name: 'E2E: to be removed', exact: true }).click();
+  const c = card(page, `E2E ${RUN}: to be removed`);
+  await c.getByRole('button', { name: `E2E ${RUN}: to be removed`, exact: true }).click();
   await page.getByTestId('edit-remove').click();
   await expect(c).toHaveCount(0);
   await expect(page.getByTestId('toast')).toContainText('Removed');
   await page.getByTestId('toast').getByRole('button', { name: 'Undo' }).click();
-  await expect(card(page, 'E2E: to be removed')).toBeVisible();
+  await expect(card(page, `E2E ${RUN}: to be removed`)).toBeVisible();
 });
 
 test('search narrows the board; no matches says so', async ({ page }) => {
   await page.goto('/');
-  await page.getByTestId('composer-text').fill('E2E: the zeppelin migration');
+  await page.getByTestId('composer-text').fill(`E2E ${RUN}: the zeppelin${RUN} migration`);
   await page.getByTestId('pin-it').click();
-  await expect(card(page, 'E2E: the zeppelin migration')).toBeVisible();
-  await page.getByTestId('board-search').fill('zeppelin');
-  await expect(page).toHaveURL(/q=zeppelin/);
+  await expect(card(page, `E2E ${RUN}: the zeppelin${RUN} migration`)).toBeVisible();
+  await page.getByTestId('board-search').fill(`zeppelin${RUN}`);
+  await expect(page).toHaveURL(new RegExp(`q=zeppelin${RUN}`));
   await expect(page.getByTestId('achievement-card')).toHaveCount(1);
   await page.getByTestId('board-search').fill('qwertyuiopasdf');
   await expect(page.getByTestId('board-no-results')).toBeVisible();
@@ -141,17 +147,17 @@ test('search narrows the board; no matches says so', async ({ page }) => {
 
 test('a terminal edit of the file updates the open board live; breaking it shows a Problem', async ({ page, request }) => {
   await page.goto('/');
-  const res = await request.post('/api/achievements', { data: { title: 'E2E: edited by hand' } });
+  const res = await request.post('/api/achievements', { data: { title: `E2E ${RUN}: edited by hand` } });
   const { achievement } = await res.json();
-  await expect(card(page, 'E2E: edited by hand')).toBeVisible(); // arrived live: this tab didn't add it
+  await expect(card(page, `E2E ${RUN}: edited by hand`)).toBeVisible(); // arrived live: this tab didn't add it
   const file = path.join(process.env.BRAGDOC_E2E_HOME!, '.bragdoc', 'achievements', achievement.createdAt.slice(0, 4), achievement.createdAt.slice(5, 7), `${achievement.id}.md`);
   const good = fs.readFileSync(file, 'utf8');
-  fs.writeFileSync(file, good.replace(/^title: .*$/m, 'title: "E2E: edited in a terminal"'));
-  await expect(card(page, 'E2E: edited in a terminal')).toBeVisible();
+  fs.writeFileSync(file, good.replace(/^title: .*$/m, `title: "E2E ${RUN}: edited in a terminal"`));
+  await expect(card(page, `E2E ${RUN}: edited in a terminal`)).toBeVisible();
   fs.writeFileSync(file, good.replace(/^archived: .*$/m, 'archived: [not a boolean'));
   await expect(page.getByTestId('problems-banner')).toContainText(`${achievement.id}.md`);
   // the card stays, as it last was, marked
-  await expect(card(page, 'E2E: edited in a terminal').getByTestId('card-problem')).toBeVisible();
+  await expect(card(page, `E2E ${RUN}: edited in a terminal`).getByTestId('card-problem')).toBeVisible();
   fs.writeFileSync(file, good);
   await expect(page.getByTestId('problems-banner')).toHaveCount(0);
 });
