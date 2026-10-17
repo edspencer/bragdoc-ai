@@ -66,7 +66,7 @@ export function ImportPanel() {
   const busy = state.at === 'reading' || state.at === 'importing';
 
   return (
-    <Panel tape="#3b6cf6" className="md:col-span-2">
+    <Panel tape="#3b6cf6" className="min-w-0 md:col-span-2">
       <div data-testid="import-panel" onDragOver={(e) => (e.preventDefault(), setOver(true))} onDragLeave={() => setOver(false)} onDrop={drop}>
         <SectionTitle as="h3" sub="Bring your companies, projects, achievements and documents over from the hosted app. Export them there (Account → Export Data), then choose the file here. You’ll see what would come in before anything is written, and importing the same file again adds nothing.">
           Import from the hosted BragDoc
@@ -135,7 +135,7 @@ function Report({ state, onImport, onReset }: { state: Extract<State, { at: 'pla
         )}
       </div>
 
-      <div className="overflow-x-auto">
+      <div className="max-w-2xl overflow-x-auto">
         <table className="w-full min-w-[22rem] border-collapse text-[13.5px]" data-testid="import-counts">
           <thead>
             <tr className="text-left text-[11px] font-bold uppercase tracking-[0.1em] text-faint">
