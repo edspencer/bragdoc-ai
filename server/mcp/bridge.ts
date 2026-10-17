@@ -32,8 +32,8 @@ export function headersFor(msg: Json, negotiated: string | null): Record<string,
   const params = (msg.params ?? {}) as Json;
   const meta = (params._meta ?? {}) as Json;
   const version = typeof meta[META_VERSION] === 'string' ? (meta[META_VERSION] as string) : msg.method === 'initialize' ? null : negotiated;
-  if (version) h['mcp-protocol-version'] = version;
-  if (typeof msg.method === 'string') h['mcp-method'] = msg.method;
+  if (version) h['mcp-protocol-version'] = headerValue(version);
+  if (typeof msg.method === 'string') h['mcp-method'] = headerValue(msg.method);
   const name = msg.method === 'resources/read' ? params.uri : msg.method === 'tools/call' || msg.method === 'prompts/get' ? params.name : undefined;
   if (typeof name === 'string') h['mcp-name'] = headerValue(name);
   return h;
@@ -70,8 +70,8 @@ export async function* sseMessages(body: ReadableStream<Uint8Array>): AsyncGener
 export type BridgeFetch = (url: string, init: RequestInit) => Promise<Response>;
 
 export interface BridgeOptions {
-  /** The server's base URL, e.g. http://127.0.0.1:2724. */
-  base: string;
+  /** The server's base URL, e.g. http://127.0.0.1:2724; asked per request (BragDoc may have restarted on another port). */
+  base: () => string;
   /** The bearer token; called again once after a 401 (runtime.json may have a rotated one). */
   token: () => string | null;
   /** What to tell the user (in a JSON-RPC error) when the server has gone away. */
@@ -85,7 +85,6 @@ export interface BridgeOptions {
 
 /** Run the bridge until stdin ends. Resolves when everything in flight has finished or been cancelled. */
 export function runBridge({ base, token, notRunning, fetch: doFetch, stdin = process.stdin, stdout = process.stdout, stderr = process.stderr }: BridgeOptions): Promise<void> {
-  const endpoint = `${base}/mcp`;
   const inflight = new Map<Id, AbortController>();
   const pending = new Set<Promise<void>>();
   let negotiated: string | null = null;
@@ -115,7 +114,7 @@ export function runBridge({ base, token, notRunning, fetch: doFetch, stdin = pro
     const headers = headersFor(msg, negotiated);
     if (sent) headers.authorization = `Bearer ${sent}`;
     if (client) headers['x-bragdoc-client'] = client;
-    return doFetch(endpoint, { method: 'POST', headers, body: JSON.stringify(msg), signal });
+    return doFetch(`${base()}/mcp`, { method: 'POST', headers, body: JSON.stringify(msg), signal });
   };
 
   async function post(msg: Json) {
@@ -182,6 +181,11 @@ export function runBridge({ base, token, notRunning, fetch: doFetch, stdin = pro
         msg = JSON.parse(line);
       } catch {
         error(null, -32700, 'Parse error: each line must be one JSON-RPC message');
+        return;
+      }
+      if (Array.isArray(msg)) {
+        // JSON-RPC batches were removed from MCP (2025-06-18); say so rather than drop them
+        error(null, -32600, 'Invalid request: batches are not supported; send one message per line');
         return;
       }
       if (typeof msg.method !== 'string') return; // a response: the server never asks the client anything

@@ -1,8 +1,8 @@
 // What agents read: BragDoc's context (bragdoc_get_context, the bragdoc://context resource, the guide's live facts)
 // and the compact views the MCP tools return. Read-only: everything here comes from the store's index.
 //
-// The house style and the rules are written for an agent that's about to log something on the user's behalf: Ed's
-// "read the background first, look for contradictions" (RECOMMENDATIONS §11) is the point of get_context.
+// The house style and the rules are written for an agent that's about to log something on the user's behalf: "read
+// the background first, look for contradictions" is the point of get_context.
 import os from 'node:os';
 import path from 'node:path';
 import { IMPACT_SCALE } from '../../shared/impact.js';
@@ -41,7 +41,7 @@ export function repoForPath(store: Store, dir: string): Repo | undefined {
   let best: Repo | undefined;
   let bestLen = -1;
   for (const r of store.all('repo')) {
-    if (!r.localPath) continue;
+    if (!r.localPath || !r.tracked) continue;
     const root = path.resolve(expandHome(r.localPath));
     if ((target === root || target.startsWith(root + path.sep)) && root.length > bestLen) [best, bestLen] = [r, root.length];
   }

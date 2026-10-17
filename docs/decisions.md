@@ -474,13 +474,17 @@ D17 onwards are decisions made while building.
   An executable, an archive or unknown binary is refused before anything is stored (`IngestOptions.accept`, added to
   blobs.ts).
 - With `mcp.writeTo: found`, a new achievement becomes a Found candidate whose files stay where they are until the user
-  keeps it (D24); the same checks run at once, so a bad file fails the call rather than the keep.
+  keeps it (D24); the same checks run at once, so a bad file fails the call rather than the keep, and again when it's
+  kept (the file may have changed since: Found's keep applies `ATTACHABLE` to an agent's candidates).
 - Updates and `attach_evidence` change achievements that already exist, so they apply whatever `mcp.writeTo` says.
 
 ### D43 — The stdio bridge goes through egress; `mcp install` needs runtime.json for its token
 
 - `bragdoc mcp` sends each message with `egressFetch` (purpose `mcp.bridge`, loopback only), so its traffic is in
-  `logs/network.jsonl` like everything else. It reads the token from `runtime.json` and reads it again once on a 401
+  `logs/network.jsonl` like everything else. That makes the bridge a second process appending to the log: appends are
+  line-atomic, but if both rotate at the same moment the older file can lose its history, and the bridge's entries don't
+  push a live `network` event (Settings shows them on its next load). Accepted for v0.1; the server could log `/mcp`
+  requests itself instead if it matters. It reads the token from `runtime.json` and reads it again once on a 401
   (comparing with the token that request sent), so rotating the token doesn't need the client restarted. When
   `runtime.json` is missing or its pid is gone, it exits 1 with SPEC's message before reading stdin.
 - `mcp install claude` (HTTP) takes the token and the port from `runtime.json`; before BragDoc's first run there's no

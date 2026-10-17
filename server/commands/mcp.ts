@@ -52,7 +52,7 @@ async function bridge(ctx: Ctx, flags: Record<string, string>): Promise<number> 
   const egress = new Egress({ dataDir, config: () => DEFAULT_CONFIG });
   const { runBridge } = await import('../mcp/bridge.js');
   await runBridge({
-    base: `http://127.0.0.1:${rt.port}`,
+    base: () => `http://127.0.0.1:${readRuntime(dataDir)?.port ?? rt.port}`,
     token: () => readRuntime(dataDir)?.mcpToken ?? null,
     notRunning: `${NOT_RUNNING}, then reconnect`,
     fetch: (url, init) => egress.egressFetch({ purpose: 'mcp.bridge' }, url, init),
@@ -115,7 +115,9 @@ async function install(ctx: Ctx, flags: Record<string, string>): Promise<number>
       }
     }
     if (r.code !== 0) {
-      ctx.err(`bragdoc mcp install: \`claude mcp add\` failed (exit ${r.code}):\n${(r.stderr || r.stdout).trim()}\n\nThe command was:\n  ${shown}\n`);
+      // its own words, minus the token, should it ever repeat our arguments back
+      const said = (r.stderr || r.stdout).trim().replaceAll(token ?? '\u0000', '<token>');
+      ctx.err(`bragdoc mcp install: \`claude mcp add\` failed (exit ${r.code}):\n${said}\n\nThe command was:\n  ${shown}\n`);
       return 1;
     }
     ctx.out(

@@ -100,7 +100,7 @@ function harness(fetch: Parameters<typeof runBridge>[0]['fetch'], token: () => s
   const stdout = new PassThrough();
   const out: string[] = [];
   stdout.on('data', (d) => out.push(...String(d).trim().split('\n').filter(Boolean)));
-  const done = runBridge({ base: 'http://127.0.0.1:1', token, notRunning: "BragDoc isn't running", stdin, stdout, stderr: new PassThrough(), fetch });
+  const done = runBridge({ base: () => 'http://127.0.0.1:1', token, notRunning: "BragDoc isn't running", stdin, stdout, stderr: new PassThrough(), fetch });
   return { stdin, done, msgs: () => out.map((l) => JSON.parse(l)) };
 }
 
@@ -111,12 +111,13 @@ describe('runBridge', () => {
     });
     h.stdin.write('{"jsonrpc":"2.0","id":7,"method":"tools/list","params":{}}\n');
     h.stdin.write('not json\n');
+    h.stdin.write('[{"jsonrpc":"2.0","id":8,"method":"tools/list"}]\n');
     h.stdin.end();
     await h.done;
     const msgs = h.msgs();
     assert.equal(msgs.find((m) => m.id === 7)?.error.code, -32603);
     assert.match(msgs.find((m) => m.id === 7)?.error.message, /BragDoc isn't running \(connect ECONNREFUSED/);
-    assert.equal(msgs.find((m) => m.id === null)?.error.code, -32700);
+    assert.deepEqual(msgs.filter((m) => m.id === null).map((m) => m.error.code), [-32700, -32600]);
   });
 
   test('sends the token and the client name; a 401 re-reads the token once, then says the token was refused', async () => {

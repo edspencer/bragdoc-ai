@@ -7,6 +7,16 @@ import { blobPath, checkIngestPath, ingestBytes, ingestPath, sniff, type IngestO
 import { NotFoundError, type Store } from '../store/index.js';
 import { validate } from './util.js';
 
+/**
+ * What agents may add from disk (sniffed from the content, D42): pictures, documents, text and short videos. Applied
+ * when an MCP tool stores a file, and again when a Found candidate an agent sent is kept (the file may have changed).
+ */
+export const ATTACHABLE = {
+  mimes:
+    /^(?:image\/(?:png|jpeg|gif|webp|avif|svg\+xml|heic|heif|bmp|tiff)|application\/pdf|text\/(?:plain|markdown|csv)|application\/json|video\/(?:mp4|quicktime|webm)|application\/vnd\.openxmlformats-officedocument\.(?:wordprocessingml\.document|spreadsheetml\.sheet|presentationml\.presentation)|application\/vnd\.oasis\.opendocument\.(?:text|spreadsheet|presentation))$/,
+  what: 'images, PDFs, office documents, text files and videos',
+};
+
 export class EvidenceService {
   constructor(private store: Store) {}
 

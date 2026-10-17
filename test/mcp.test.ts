@@ -198,6 +198,30 @@ describe('writing achievements', () => {
     assert.equal(t.store.all('achievement').length, 1);
   });
 
+  test('parallel calls for the same PR (as evidence, no key of its own) write it once', async () => {
+    const t = await setup();
+    const dir = tmpDir('bragdoc-mcp-race-');
+    cleanups.push(() => rmTmp(dir));
+    fs.writeFileSync(path.join(dir, 'shot.png'), PNG);
+    // the file makes each call await before it writes, which is where a check-then-write would race
+    const args = { title: 'Same PR', evidence: [{ url: 'https://github.com/example/my-app/pull/10' }, { path: path.join(dir, 'shot.png') }] };
+    const rs = await Promise.all([1, 2, 3].map(() => t.call('bragdoc_add_achievement', args)));
+    assert.deepEqual(rs.map((r) => r.error), [null, null, null]);
+    assert.deepEqual(rs.map((r) => r.data.created).sort(), [false, false, true]);
+    assert.equal(t.store.all('achievement').length, 1);
+  });
+
+  test('a call refused for an unknown project stores no file', async () => {
+    const t = await setup();
+    const dir = tmpDir('bragdoc-mcp-orphan-');
+    cleanups.push(() => rmTmp(dir));
+    fs.writeFileSync(path.join(dir, 'shot.png'), PNG);
+    const r = await t.call('bragdoc_add_achievement', { title: 'Orphan?', projects: ['01JBZ8Q3W5C2Y6N0R7T4K9M1XE'], evidence: [{ path: path.join(dir, 'shot.png') }] });
+    assert.match(r.error ?? '', /no project/);
+    assert.equal(t.store.all('evidence').length, 0);
+    assert.equal(t.store.all('achievement').length, 0);
+  });
+
   test('evidence: a PR URL becomes github_pr with its key, a link stays a url, a quote, and a file is stored', async () => {
     const t = await setup();
     const dir = tmpDir('bragdoc-mcp-files-');
@@ -264,6 +288,11 @@ describe('writing achievements', () => {
     assert.equal(t.store.all('evidence').length, 0, 'not copied until it is kept');
     assert.equal((await t.call('bragdoc_add_achievement', { title: 'Again', externalKey: 'commit:abc123' })).data.created, false);
     assert.equal(t.store.all('found').length, 1);
+    // swapped for something else before the user keeps it: the type is checked again on keep, and it isn't stored
+    fs.writeFileSync(path.join(dir, 'praise.png'), Buffer.concat([Buffer.from('MZ'), Buffer.alloc(200)]));
+    const kept = await t.services.found.keep(data.candidate.id);
+    assert.deepEqual(kept.missingFiles, [path.join(dir, 'praise.png')]);
+    assert.equal(t.store.all('evidence').length, 0);
     // a bad file is refused at once, not when the user keeps it
     fs.writeFileSync(path.join(dir, 'tool.exe'), Buffer.concat([Buffer.from('MZ'), Buffer.alloc(200)]));
     assert.match((await t.call('bragdoc_add_achievement', { title: 'Exe', evidence: [{ path: path.join(dir, 'tool.exe') }] })).error ?? '', /only images, PDFs/);

@@ -11,7 +11,8 @@ import { IMPACT_SCALE } from '../../shared/impact.js';
 import { ACHIEVEMENT_SOURCES, PROJECT_STATUSES, ulidSchema, type Achievement, type Evidence, type EvidenceInput } from '../../shared/schema/index.js';
 import { ulid } from '../../shared/ulid.js';
 import type { Config } from '../config.js';
-import type { Services } from '../services/index.js';
+import { ATTACHABLE, type Services } from '../services/index.js';
+import { requireIds } from '../services/util.js';
 import { ConflictError, NotFoundError, ReadOnlyError, ValidationError, type Store } from '../store/index.js';
 import { achievementDetail, achievementSummary, buildContext, findProject, projectView, repoView } from './views.js';
 
@@ -111,13 +112,6 @@ const run =
 // ---------------------------------------------------------------------------------------------------------------
 // Evidence arguments
 // ---------------------------------------------------------------------------------------------------------------
-
-/** What agents may attach from disk (sniffed from the content): pictures, documents, text and short videos. */
-export const ATTACHABLE = {
-  mimes:
-    /^(?:image\/(?:png|jpeg|gif|webp|avif|svg\+xml|heic|heif|bmp|tiff)|application\/pdf|text\/(?:plain|markdown|csv)|application\/json|video\/(?:mp4|quicktime|webm)|application\/vnd\.openxmlformats-officedocument\.(?:wordprocessingml\.document|spreadsheetml\.sheet|presentationml\.presentation)|application\/vnd\.oasis\.opendocument\.(?:text|spreadsheet|presentation))$/,
-  what: 'images, PDFs, office documents, text files and videos',
-};
 
 const GITHUB_PR = /^https?:\/\/(?:www\.)?github\.com\/([\w.-]+)\/([\w.-]+)\/pull\/(\d+)(?:[/?#].*)?$/i;
 
@@ -318,6 +312,9 @@ export function createMcpServer(ctx: McpContext, era: 'legacy' | 'modern' = 'mod
           candidate: r.candidate,
         };
       }
+      // the ids it names exist, before any file is stored: a refused call leaves nothing behind in evidence/
+      requireIds(store, 'project', fields.projects ?? [], 'projects');
+      requireIds(store, 'repo', fields.repos ?? [], 'repos');
       const { achievement, created } = services.achievements.create({ ...fields, evidence: await toEvidence(evidence), externalKey, source: 'mcp', sourceAgent });
       return { created, writtenTo: 'board', achievement: written(achievement) };
     }),
@@ -357,7 +354,11 @@ export function createMcpServer(ctx: McpContext, era: 'legacy' | 'modern' = 'mod
       annotations: { destructiveHint: false, idempotentHint: true },
     },
     run(async ({ achievementId, ...arg }) => {
-      services.achievements.get(achievementId); // a missing achievement fails before a file is stored
+      // a missing (or unwritable) achievement fails before a file is stored
+      services.achievements.get(achievementId);
+      const entry = store.entry('achievement', achievementId);
+      if (entry?.readOnly || entry?.problems.some((p) => p.severity === 'error' && p.code !== 'dangling'))
+        throw new ConflictError(`${entry.file} has a problem (${entry.problems[0]?.message ?? 'from a newer BragDoc'}); fix it by hand first`);
       const [input] = await toEvidence([arg]);
       const { achievement, added } = services.achievements.addEvidence(achievementId, [{ id: ulid(store.now().getTime()), ...input } as Evidence]);
       return { added: added.length ? added : [], alreadyAttached: added.length === 0, achievement: written(achievement) };

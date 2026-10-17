@@ -18,18 +18,17 @@ Everything is plain files in a **data home**, `~/.bragdoc` by default (or `$BRAG
 achievement, one YAML file per project, company and repo. The app watches the folder, so a change made by hand, by
 `git pull` or by you shows up on the board within a second.
 
-There are three ways for you to write to it, best first:
+There are two ways for you to write to it:
 
 1. **MCP**, when your client has BragDoc's tools (`bragdoc_get_context` and friends). Typed, validated, and it marks
-   what you write as yours.
-2. **The HTTP API**, with `curl`, when BragDoc is running but you have no MCP tools.
-3. **The files**, directly, when BragDoc isn't running. That's allowed: it picks your edits up when it next starts
-   (or at once, if it's running). Prefer MCP or the API when it is running: they validate what you write, keep the
-   files' comments, and never overwrite an edit made meanwhile.
+   what you write as yours. Prefer it whenever BragDoc is running: it validates what you write, keeps the files'
+   comments, and never overwrites an edit made meanwhile.
+2. **The files**, directly, when you have no MCP tools or BragDoc isn't running. That's allowed: it picks your edits
+   up at once if it's running, or when it next starts.
 
 ## The rules
 
-- **Call `bragdoc_get_context` first** (or `GET /api/meta` and read the files): who the user is, their active
+- **Call `bragdoc_get_context` first** (without MCP: read `profile.yaml`, `projects/` and the newest `achievements/`): who the user is, their active
   projects and repos, their last 20 achievements, the impact scale and the house style below.
 - **Search before adding.** Look for the same work: the same PR, the same project, the same words
   (`bragdoc_search_achievements`). If it's already there, update it or attach evidence to it instead of adding a
@@ -72,7 +71,7 @@ There are three ways for you to write to it, best first:
 
 ## MCP
 
-BragDoc's MCP server is on its own port, at http://localhost:2724/mcp (Streamable HTTP), and needs the per-install
+BragDoc's MCP server is on BragDoc's own port, at http://localhost:2724/mcp (Streamable HTTP), and needs the per-install
 bearer token from `runtime.json` in the data home. The user sets it up once:
 
 ```sh
@@ -107,8 +106,8 @@ hidden folder or BragDoc's own data home.
 
 ## The HTTP API
 
-JSON, on this computer only (127.0.0.1). Writes need `Content-Type: application/json`. Requests from web pages are
-refused, so `curl` works and a browser tab on another site doesn't.
+On this computer only (127.0.0.1). Requests from web pages are refused, so `curl` works and a browser tab on another
+site doesn't. What's there for agents today:
 
 | Method | Path | What it does |
 |--------|------|--------------|
@@ -118,10 +117,7 @@ refused, so `curl` works and a browser tab on another site doesn't.
 | GET | `/agent-guide.md`, `/llms.txt`, `/llms-full.txt` | This guide, with live facts |
 | POST | `/mcp` | MCP (needs the bearer token) |
 
-Every file the API returns comes with an `etag`. Send it back as `If-Match` on a write and the write fails with
-**409** if the file changed since you read it, rather than overwriting someone else's edit. A write that would make a
-file invalid fails with **400** and lists the problems; nothing is written. Unknown keys in a request body are refused;
-unknown keys already in a file are kept.
+To write without MCP, edit the files (below).
 
 ## Editing the files
 
