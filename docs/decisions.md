@@ -380,3 +380,42 @@ D17 onwards are decisions made while building.
   request to a font CDN (or anywhere else off the machine; `test/web.test.ts` and e2e check).
 - Browser-driving code (`e2e/`, `tools/`) type-checks under its own `tsconfig.tools.json`, which adds the DOM types
   for `page.evaluate()` callbacks, so the server's config stays DOM-free.
+
+### D39 — Every store change reaches open tabs as a ServerEvent named after its entity
+
+- `server/live.ts` subscribes to the store (`Store.subscribe`), which hears every change to a data file whether
+  BragDoc wrote it (a route, an MCP tool) or something else did (a hand edit, `git pull`, an agent; the watcher), and
+  emits `{ type: <entity> }` on the event bus (`achievement`, `evidence`, `project`, `repo`, `company`, `found`,
+  `profile`), plus `{ type: 'problems' }` with each, since any change can break or fix a file. `createApp()` wires it, so
+  there is exactly one forwarder; features don't add their own.
+- Events are hints, never data: each type is debounced (`emitSoon`, keyed by type), so a burst of 200 files from a
+  `git pull` is one push per type, and the web app refetches by query-key prefix (`CHANGE_INVALIDATES`:
+  `achievement` and `evidence` → `achievements`, `project` → `projects`, and so on).
+- **Considered:** carrying the id and op in each event (a debounced burst keeps only the last one, so the client would
+  have to refetch anyway); one `{ type: 'store' }` event (every page would refetch everything on every change).
+
+### D40 — `/api/evidence/:sha/thumb` serves the picture itself until there is an image library
+
+- The board asks for `/thumb` on cards and the full file in the lightbox, so the URL contract is in place. In v0.1
+  `/thumb` returns the stored picture unchanged (same blob headers, cached immutably: the bytes are content-addressed),
+  and 404s for anything that isn't a picture. Cards load pictures lazily and decode them off the main thread.
+- Making real thumbnails means a native image library (sharp/libvips, ~30 MB installed, per-platform binaries in the
+  npm and Docker builds) or a slow pure-JS one; for pictures served over loopback that's a lot of weight for little
+  gain. When that changes, `/thumb` starts writing resized copies to `cache/` (derived, deletable) and nothing else
+  moves.
+- **Considered:** `sharp` as an optional dependency with a fallback (two code paths, and an install that differs by
+  platform); thumbnails made in the browser at upload (not derivable again, so not cache).
+
+### D41 — Board uploads: stored as soon as they're added; the claimed type is checked against the bytes
+
+- The composer uploads each file (`POST /api/evidence`) the moment it's pasted, dropped or picked, so a refused file
+  (too big, spoofed, damaged) is said at once, and pinning is one small JSON request. If the server goes away
+  mid-upload the item stays in the composer to retry; nothing is half-written (blobs are written atomically). A file
+  uploaded and then taken out of the composer stays in `evidence/` unreferenced: content-addressed and harmless, and
+  nothing is ever deleted (D24).
+- The bytes decide the type (`sniff`, magic bytes), but the browser's Content-Type is a claim that's checked: one
+  sent as `image/*` or `application/pdf` whose bytes aren't that is a 415 `type_mismatch` (an HTML page named `.png`),
+  and a PNG/JPEG/GIF/WebP whose header has no readable size is a 415 `damaged`. A file the browser has no type for
+  (a `.key`, a `.txt` sent as octet-stream) is stored as a file and served as a download.
+- **Considered:** uploading on "Pin it" (a refusal would only show at the end, and a slow upload would block saving);
+  rejecting every type mismatch (a `.key` is a zip; a type the browser doesn't know is not a lie).

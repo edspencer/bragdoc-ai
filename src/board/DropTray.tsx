@@ -11,7 +11,7 @@ import { ImpactPicker, ProjectPicker, RepoPicker } from './pickers.tsx';
 
 export function DropTray({ c, dragging, projects, repos, onSubmit, saving }: { c: Composer; dragging: boolean; projects: Project[]; repos: Repo[]; onSubmit: () => void; saving: boolean }) {
   const fileRef = useRef<HTMLInputElement>(null);
-  const has = !c.empty;
+  const has = c.text.length > 0 || c.pending.length > 0;
   const submit = () => c.canSubmit && !saving && onSubmit();
   const onKey = (e: KeyboardEvent) => {
     if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) {

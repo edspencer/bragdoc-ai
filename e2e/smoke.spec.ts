@@ -8,8 +8,10 @@ test('the shell loads and reaches the server', async ({ page }) => {
   page.on('console', (m) => m.type() === 'error' && errors.push(m.text()));
   await page.goto('/');
   await expect(page).toHaveTitle('BragDoc');
-  await expect(page.getByTestId('placeholder-shell')).toBeVisible();
-  await expect(page.getByTestId('server-status')).toHaveText(/Server OK, version \d+\.\d+\.\d+/);
+  await expect(page.getByTestId('composer')).toBeVisible();
+  // the board's first page came back from the API: a list (empty or not), not an error
+  await expect(page.getByTestId('board-error')).toHaveCount(0);
+  await expect(page.locator('[data-testid="board-empty"], [data-testid="week"]').first()).toBeVisible();
   expect(errors).toEqual([]);
 });
 
@@ -18,7 +20,7 @@ test('a deep link gets the shell, which shows its not-found page', async ({ page
   expect(res?.status()).toBe(200);
   await expect(page.getByTestId('not-found')).toBeVisible();
   await page.getByRole('link', { name: 'Back to the board' }).click();
-  await expect(page.getByTestId('placeholder-shell')).toBeVisible();
+  await expect(page.getByTestId('board-page')).toBeVisible();
 });
 
 test('missing files and API paths are 404s, not the shell', async ({ request }) => {
