@@ -381,6 +381,143 @@ D17 onwards are decisions made while building.
 - Browser-driving code (`e2e/`, `tools/`) type-checks under its own `tsconfig.tools.json`, which adds the DOM types
   for `page.evaluate()` callbacks, so the server's config stays DOM-free.
 
+### D36 — Every build writes `dist/build-info.json`; only the release workflow's is "official"
+
+- `scripts/build-info.mjs` runs at the end of every `npm run build`, so the npm package, the Docker image and a
+  checkout's build all have one: version, commit, build time (`SOURCE_DATE_EPOCH`, set by the release to the commit's
+  time), Actions run URL, `official`. `official` is true only with `BRAGDOC_OFFICIAL_BUILD=1` **and** a run URL, which
+  only `release.yml`'s non-dry runs set. CI, dry runs and `npm pack` on a laptop are "unofficial builds".
+- `GET /api/meta` (PR2) serves it as `build`, typed `BuildInfo` in `shared/api.ts`, and passes on only a file of that
+  shape (anything else is `null`). It's a claim, never a verification (SPEC R14): About → Verify (PR10) shows it next to
+  `npm audit signatures` and `gh attestation verify`.
+- Source maps: none are emitted (tsconfig.build.json, Vite's default); `scripts/strip-maps.mjs` (Paddock's
+  `copyTreeWithoutMaps`, in place) removes any that appear, and smoke:pack checks the installed package.
+- **Considered:** writing it only in the release workflow (then a dev build has no `build`, and About has two code
+  paths); a version-embedded TS module (a rebuild of the server for a metadata change).
+
+### D37 — `release.yml` is manual-only and dry-run by default until the release channel is decided
+
+- Triggers: `workflow_dispatch` (inputs `dist-tag`: `next` | `latest`, and `dry-run`, default **true**) and
+  `pull_request` on changes to `release.yml` itself, always a dry run. No push trigger (#411 Q1 is open). A real run is
+  refused outside `next` and `main`.
+- Hallway's shape (changesets version PR, detect, `verify-ci`, publish, provenance check, GitHub Release from the
+  CHANGELOG section) plus Paddock's images (native amd64/arm64 runners, push by digest, `imagetools create`), with
+  these changes: the npm tarball is built and smoke-tested once (`pack`) and that exact file is published and attached
+  to the release; the image is started and checked (`scripts/smoke-image.sh`) before it's pushed; build provenance and
+  an SBOM are attested on the image in GHCR, and provenance on the tarball; **npm publishes last**, after the image
+  (Paddock's lesson: the irreversible step goes last).
+- The pull-request dry run exists because GitHub only lets you dispatch workflows that are on the default branch
+  (`main`), so until `next` merges, dispatching it is impossible and the PR run is the only way to exercise it.
+- A dry run skips every step that writes (the version PR, registry login and pushes, attestations, tags, the Release)
+  and runs `npm publish --dry-run`. test/release.test.ts holds those properties.
+- **Considered:** a reusable workflow for SLSA Build L3 (RECOMMENDATIONS §12; worth doing, but after there's anything
+  to release); building the image only on PRs that touch it (D38).
+
+### D38 — The Docker image: `--host 0.0.0.0` in CMD, uid 1000, git and gh inside, built on every PR
+
+- `ghcr.io/edspencer/bragdoc`, multi-stage from `node:22-slim`, tini as pid 1, `HEALTHCHECK` on `/api/health` with
+  Node's `fetch` (no curl in the image), `BRAGDOC_HOME=/data`, `VOLUME /data`, `BRAGDOC_DANGEROUSLY_ALLOW_OPEN=1`.
+- The bind is `serve --host 0.0.0.0` in `CMD`, not `ENV HOST=0.0.0.0` as the brief said: `serve` doesn't read `HOST`,
+  and shouldn't, because many shells export it and a normal install must not open up because of that.
+- It runs as the image's `node` user (uid 1000), not root, so what it writes into a mounted `~/.bragdoc` belongs to the
+  user (compose.yaml's `user:` maps another uid). An unwritable data home now says so (`cli.ts`), instead of the old
+  message blaming the port for any `EACCES`.
+- git and gh are installed (GitHub's apt repo), because the server runs them for repositories and PRs (PR13); about
+  150 MB of the image, which is ~550 MB unpacked.
+- compose.yaml: `127.0.0.1:2724:2724`; `~/.bragdoc:/data`; the code folder (`BRAGDOC_CODE_DIR`, default `~/Code`)
+  read-only at the same absolute path; the screenshots folder and `~/.config/gh` as commented, read-only options.
+  Bind sources use `create_host_path: false`, so a missing folder is an error rather than an empty root-owned one.
+- CI builds and checks the image on both architectures on **every** PR, not only those touching the Dockerfile: the
+  image is the whole app, so a dependency or build change anywhere can break it. Nothing is pushed from CI.
+
+### D39 — The docs site: Hallway's, plus a blog, the brand kit, and no third-party anything
+
+- `website/` is Hallway's site (Astro 7, Starlight 0.42, sidebar in `src/sidebar.mjs`, generated llms.txt and per-page
+  Markdown, a custom landing page with its copy in `copy.ts`), with local-review's `test/docs.test.ts` and What's-new
+  release flow (SPEC R16). Its content rules are in `website/CLAUDE.md`.
+- **Nothing third-party:** no analytics (Hallway's PostHog and `functions/ingest/` dropped), and no Mermaid (it loads
+  from a CDN). `website/scripts/check-external.mjs` fails CI on any script, stylesheet, image, font or frame from
+  another origin in `dist/`.
+- **A blog**, which neither sibling has: a plain `blog` content collection rendered through `<StarlightPage>`, with an
+  RSS feed (`@astrojs/rss`). Chosen over a third-party Starlight blog plugin so a Starlight upgrade can't break it.
+- **The brand comes from the repo's kit** (`brand/`, PR4), copied in by `website/scripts/sync-brand.mjs`
+  (local-review's) instead of PR18's planned placeholder `make-brand.mjs`; `test/docs.test.ts` compares the copies once
+  `brand/` exists.
+- **The landing page follows the reader's theme**, using Starlight's own `starlight-theme` key, because the app has a
+  light and a dark theme (Hallway's landing page is always dark).
+- **Honesty before release:** pages about unbuilt features carry a "Coming in v0.1" note, and `RELEASED` in
+  `website/src/site.mjs` drives a "not on npm yet" notice. `test/docs.test.ts` fails if `RELEASED` disagrees with
+  `package.json` (0.1.0 or later means released), or if any "Coming in v0.1" is left after the release.
+- **The data-folder reference is generated:** `npm run sync:reference` writes the schema tables into
+  `website/src/content/docs/reference/data-folder.md` as well as `docs/data-format.md`.
+- **Deploying is Ed's:** Cloudflare Pages, root `website`, `npm install && npm run build`, output `dist`, production
+  branch `next` until it merges into `main` (`website/README.md` "Deploying"). CI only builds and checks.
+- **Considered:** `starlight-blog` (a dependency on a third-party plugin's release cadence); an always-dark landing
+  page like Hallway's (unlike the app); generating the brand placeholder here (the real kit exists).
+
+### D40 — `/mcp` is a route on BragDoc's own app, behind security.ts; the bearer token is checked before anything else
+
+- `/mcp` is registered like any other route (`server/routes/mcp.ts`), so the security guard (Host allow-list,
+  same-origin Origin, Fetch Metadata, JSON only, 1 MB) runs first, as for the API. The route then checks
+  `Authorization: Bearer <token>` against `runtime.json`'s token in constant time, read on every request so a rotated
+  token takes effect at once, before the SDK reads the body. GET and DELETE get 405 after auth (stateless, Paddock).
+- `/.well-known/oauth-*` answers a JSON 404: a client that gets our 401 looks for OAuth metadata there, and the SPA
+  fallback would otherwise hand it the web app's HTML with a 200.
+- The SDK's stateless `createMcpHandler` (2026-07-28, with 2025-era clients served statelessly) is used as Hallway uses
+  it. Resource-updated notifications for `bragdoc://context` come from `store.subscribe`, debounced to 250 ms.
+- **Considered:** `@modelcontextprotocol/hono`'s `createMcpHonoApp` and its Host/Origin middlewares (PLAN names the
+  adapter): security.ts is stricter (Origin must be our own host:port, not any localhost port) and already covers
+  `/mcp`, so the adapter isn't a dependency.
+
+### D41 — MCP tool arguments use the files' camelCase names; one extra tool, `bragdoc_get_achievement`
+
+- SPEC R11 writes `external_key` and `repo_path`; the tools take `externalKey` and `repoPath`. An agent then uses one
+  vocabulary everywhere: the files it may edit, the HTTP API, the tool arguments and what the tools return.
+- `bragdoc_get_achievement` (read-only) returns one achievement in full with its etag, for
+  `bragdoc_update_achievement`'s optional `etag`. Everything else is SPEC R11's list. No tool deletes anything.
+- Tool inputs are strict objects: a misspelt key is an error the agent sees, not a value silently dropped.
+- Evidence is given as `{ url | path | quote, title? }`. A GitHub pull request URL becomes `github_pr` evidence keyed
+  `github_pr:owner/repo#n`, which also makes adding the same PR twice a no-op.
+
+### D42 — `sourceAgent` holds the name the board shows; who it is comes from X-BragDoc-Client, then clientInfo
+
+- `sourceAgent` is a display name (`Claude Code`), so a hand-edited file and the board agree and the kit's
+  `ProvenanceBadge` shows it as is. Known client ids (`claude-code`, `claude-ai`, `cursor`, …) map to product names;
+  anything else is shown as sent (printable, at most 60 characters).
+- Order: the `X-BragDoc-Client` header (`mcp install claude` sets `claude-code`), then the client's own name from the
+  request's metadata (2026-07-28 clients send `clientInfo` with every request). A 2025-era client served statelessly
+  has no clientInfo on a `tools/call` (it was in an earlier request), so without the header it gets none and the board
+  says "Written by an agent". SPEC says "an MCP client"; storing that placeholder in the file would make it look like a
+  name, so nothing is stored. The stdio bridge sends the initialize's client name as the header, so stdio clients are
+  always named.
+
+### D43 — Files attached over MCP: an allow-list of types; `mcp.writeTo: found` leaves them in place
+
+- A path given to `bragdoc_add_achievement`, `bragdoc_attach_evidence` or `bragdoc_add_found` passes the store's
+  checks (absolute, a regular file, at most 25 MB, not in the data home or a hidden folder) and then a type allow-list,
+  sniffed from the content: images, PDFs, office documents, plain text / markdown / CSV / JSON, and mp4 / mov / webm.
+  An executable, an archive or unknown binary is refused before anything is stored (`IngestOptions.accept`, added to
+  blobs.ts).
+- With `mcp.writeTo: found`, a new achievement becomes a Found candidate whose files stay where they are until the user
+  keeps it (D24); the same checks run at once, so a bad file fails the call rather than the keep, and again when it's
+  kept (the file may have changed since: Found's keep applies `ATTACHABLE` to an agent's candidates).
+- Updates and `attach_evidence` change achievements that already exist, so they apply whatever `mcp.writeTo` says.
+
+### D44 — The stdio bridge goes through egress; `mcp install` needs runtime.json for its token
+
+- `bragdoc mcp` sends each message with `egressFetch` (purpose `mcp.bridge`, loopback only), so its traffic is in
+  `logs/network.jsonl` like everything else. That makes the bridge a second process appending to the log: appends are
+  line-atomic, but if both rotate at the same moment the older file can lose its history, and the bridge's entries don't
+  push a live `network` event (Settings shows them on its next load). Accepted for v0.1; the server could log `/mcp`
+  requests itself instead if it matters. It reads the token from `runtime.json` and reads it again once on a 401
+  (comparing with the token that request sent), so rotating the token doesn't need the client restarted. When
+  `runtime.json` is missing or its pid is gone, it exits 1 with SPEC's message before reading stdin.
+- `mcp install claude` (HTTP) takes the token and the port from `runtime.json`; before BragDoc's first run there's no
+  token, and it says to start BragDoc once (or use `--stdio`) rather than minting one outside the server. An existing
+  `bragdoc` registration is replaced (`claude mcp remove`, then `add`, both at user scope). `--stdio` registers this
+  Node and the realpath of `dist/server/cli.js` (npx's command when running from npx's cache), plus `--data-dir` when
+  one was chosen; from an unbuilt checkout it refuses.
+
 ### D45 — Every store change reaches open tabs as a ServerEvent named after its entity
 
 - `server/live.ts` subscribes to the store (`Store.subscribe`), which hears every change to a data file whether

@@ -1,0 +1,28 @@
+---
+/**
+ * Overrides Starlight's SocialIcons (astro.config.mjs → `components`) to put a "Blog" link before the GitHub icon:
+ * the blog is outside the docs sidebar, and the header is the one thing every page shares. The icons themselves are
+ * Starlight's own component, unchanged.
+ */
+import Default from '@astrojs/starlight/components/SocialIcons.astro';
+---
+
+<a class="hdr-link" href="/blog/">Blog</a>
+<Default />
+
+<style>
+	@layer starlight.core {
+		.hdr-link {
+			color: var(--sl-color-text-accent);
+			font-family: var(--bd-font-head);
+			font-weight: 650;
+			font-size: var(--sl-text-sm);
+			text-decoration: none;
+			padding: 0.5em;
+			margin: -0.5em 0.25em -0.5em -0.5em;
+		}
+		.hdr-link:hover {
+			color: var(--sl-color-white);
+		}
+	}
+</style>

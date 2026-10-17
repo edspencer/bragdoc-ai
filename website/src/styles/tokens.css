@@ -1,0 +1,105 @@
+/*
+ * BragDoc design tokens: every colour and font the site uses, in one place.
+ *
+ * The Scrapbook identity, as the app has it: light is an oat pinboard with a dot grid, white card stock, washi tape
+ * and a tomato accent; dark ("lamplight") is a dim cork board under a desk lamp, with dark kraft cards and deep
+ * marigold sticky notes. The values are the app's (src/styles.css at the repo root), copied rather than imported so
+ * the site stays self-contained (Cloudflare builds with website/ as its root). Each copied value names its app token;
+ * keep them in step when the app's palette changes. The few values the app doesn't have are marked "site".
+ *
+ * Both the docs (custom.css, on top of Starlight) and the landing page (landing.css, outside Starlight) import this
+ * file, and both switch on <html data-theme="light|dark">: Starlight sets it (and stores the choice in
+ * localStorage `starlight-theme`), and the landing page reads the same key (public/theme-init.js), so a reader's
+ * choice follows them between the two.
+ *
+ * Fonts are the app's four, all OFL and self-hosted from @fontsource (astro.config.mjs and LandingLayout.astro):
+ * Bricolage Grotesque for headings and the wordmark, Instrument Sans for text, Caveat for handwriting, Geist Mono
+ * for code.
+ */
+
+:root {
+	--bd-bg: #f1ece2; /* app --bg: oat */
+	--bd-dots: #d8cfbf; /* app: the board's dot grid */
+	--bd-surface: #fffdf8; /* app --surface: card stock */
+	--bd-sunk: #ebe4d6; /* app --sunk */
+	--bd-ink: #1d1a17; /* app --ink */
+	--bd-ink-2: #3a342d; /* site: between ink and muted, for secondary headings */
+	--bd-muted: #5f584e; /* app --muted */
+	--bd-faint: #948b7e; /* app --faint: never body text (2.9:1) */
+	--bd-line: #ddd4c4; /* app --line */
+	--bd-accent: #ef5a3c; /* app --accent: tomato. A fill, not small text: 3.1:1 on oat */
+	--bd-accent-text: #b8381f; /* app --accent-shadow, used here as the accent for TEXT on light grounds: 5.0:1 on oat */
+	--bd-accent-soft: #fde3d9; /* app --accent-soft */
+	--bd-accent-ink: #ffffff; /* app --accent-ink: text on tomato */
+	--bd-accent-fill: #c8402a; /* site: tomato deepened for fills that carry white text (pills, buttons): 4.97:1, where the
+	                               app's #ef5a3c is 3.4:1, under AA for text this size */
+	--bd-accent-shadow: #b8381f; /* app --accent-shadow: the edge under a tilted mark or an accent button */
+	--bd-print: #ffffff; /* app --print: photo prints */
+	--bd-img-filter: none; /* app --img-filter */
+	--bd-sticky: #fff3a8; /* app --sticky */
+	--bd-sticky-ink: #3d3600; /* app --sticky-ink */
+	--bd-sticky-sub: #6b6020; /* app --sticky-sub */
+	--bd-slab: #1d1a17; /* app --slab: the dark PR slab, and terminals */
+	--bd-slab-ink: #ffffff; /* app --slab-ink */
+	--bd-good: #2fb37e; /* app --good */
+	--bd-blue: #3b6cf6; /* app's brand pills (brand/generate.mjs) */
+	--bd-tape-blend: multiply; /* app --tape-blend */
+	--bd-tape-op: 0.82; /* app --tape-op */
+	--bd-card-shadow: 0 1px 0 rgba(0, 0, 0, 0.04), 0 10px 24px -14px rgba(40, 30, 10, 0.38); /* app --card-shadow */
+	--bd-print-shadow: 0 6px 16px -6px rgba(40, 30, 10, 0.35); /* app --print-shadow */
+	--bd-glass: rgba(255, 255, 255, 0.8); /* app --glass */
+	--bd-rule: #cfe0f5; /* app --rule: index-card lines */
+	--bd-margin: #f0a8a0; /* app --margin: index-card margin */
+
+	/* The board texture (app: html's background) */
+	--bd-board-color: var(--bd-bg);
+	--bd-board-image: radial-gradient(var(--bd-dots) 1px, transparent 1px);
+	--bd-board-size: 22px 22px;
+	--bd-board-position: 0 0;
+
+	--bd-font-head: 'Bricolage Grotesque Variable', system-ui, sans-serif; /* app --font-grotesk */
+	--bd-font-sans: 'Instrument Sans Variable', system-ui, sans-serif; /* app --font-sans */
+	--bd-font-hand: 'Caveat', cursive; /* app --font-hand */
+	--bd-font-mono: 'Geist Mono Variable', ui-monospace, SFMono-Regular, Menlo, monospace; /* app --font-mono */
+}
+
+:root[data-theme='dark'] {
+	--bd-bg: #1b1713; /* app dark --bg */
+	--bd-surface: #2b251f; /* app dark --surface: dark kraft */
+	--bd-sunk: #231e19; /* app dark --sunk */
+	--bd-ink: #f2e9da; /* app dark --ink */
+	--bd-ink-2: #e2d6c3; /* site */
+	--bd-muted: #c0b29c; /* app dark --muted */
+	--bd-faint: #8b7f6c; /* app dark --faint */
+	--bd-line: #3e362d; /* app dark --line */
+	--bd-accent: #ff6d4d; /* app dark --accent */
+	--bd-accent-text: #ff8a70; /* site: a touch lighter than the accent for small text on kraft (6.1:1 on --surface) */
+	--bd-accent-soft: #42251c; /* app dark --accent-soft */
+	--bd-accent-ink: #1b1713; /* app dark --accent-ink */
+	--bd-accent-fill: #ff6d4d; /* dark text on the app's dark tomato is already 6.4:1 */
+	--bd-accent-shadow: #a83a22; /* app dark --accent-shadow */
+	--bd-print: #e4d9c6; /* app dark --print: prints stay cream */
+	--bd-img-filter: brightness(0.84) sepia(0.14) saturate(0.9); /* app dark --img-filter */
+	--bd-sticky: #d6b74c; /* app dark --sticky: deep marigold */
+	--bd-sticky-ink: #2a2200; /* app dark --sticky-ink */
+	--bd-sticky-sub: #57490e; /* app dark --sticky-sub */
+	--bd-slab: #12100d; /* app dark --slab */
+	--bd-slab-ink: #efe6d6; /* app dark --slab-ink */
+	--bd-good: #3cc68c; /* app dark --good */
+	--bd-tape-blend: normal; /* app dark --tape-blend: multiply turns black on a dark board */
+	--bd-tape-op: 0.7; /* app dark --tape-op */
+	--bd-card-shadow: inset 0 1px 0 rgba(255, 236, 205, 0.05), 0 2px 0 rgba(0, 0, 0, 0.25), 0 16px 30px -14px rgba(0, 0, 0, 0.75);
+	--bd-print-shadow: 0 8px 18px -6px rgba(0, 0, 0, 0.7);
+	--bd-glass: rgba(43, 37, 31, 0.82); /* app dark --glass */
+	--bd-rule: rgba(130, 165, 215, 0.2);
+	--bd-margin: rgba(240, 120, 105, 0.38);
+
+	/* Cork speckle (app: html.dark's background) */
+	--bd-board-color: #211a14;
+	--bd-board-image:
+		radial-gradient(rgba(255, 212, 160, 0.055) 1px, transparent 1.6px),
+		radial-gradient(rgba(0, 0, 0, 0.32) 1px, transparent 1.7px),
+		radial-gradient(rgba(255, 212, 160, 0.03) 1.5px, transparent 2.2px);
+	--bd-board-size: 7px 7px, 11px 11px, 17px 17px;
+	--bd-board-position: 0 0, 3px 5px, 9px 2px;
+}
