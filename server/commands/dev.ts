@@ -27,15 +27,16 @@ export async function dev(ctx: Ctx, args: string[], flags: Record<string, string
 
   const profile = flags.name !== undefined ? { name: flags.name, aliases: list(flags.aliases), notMe: list(flags['not-me']) } : readProfile(ctx, flags['data-dir']);
   const rules = profile ? compileRules(profile) : null;
-  const { createOcr } = await import('../ocr/index.js');
-  const ocr = createOcr();
+  const [{ createOcr }, { TesseractEngine }, { VisionEngine }] = await Promise.all([import('../ocr/index.js'), import('../ocr/tesseract.js'), import('../ocr/vision-macos.js')]);
+  // a named engine is built even where it isn't a default (Vision off macOS), so it says why it can't run
+  const ocr = createOcr(engine === 'auto' ? {} : { engines: [engine === 'vision' ? new VisionEngine() : new TesseractEngine()] });
   const out: unknown[] = [];
   let failed = 0;
   try {
     for (const file of files) {
       const where = tildify(path.resolve(file), ctx.homedir);
       try {
-        const r = await ocr.read({ path: file }, engine === 'auto' ? {} : { engine });
+        const r = await ocr.read({ path: file });
         const verdict = rules?.(r.text) ?? null;
         if (flags.json) out.push({ file, engine: r.engine, ms: r.ms, confidence: r.confidence ?? null, skipped: r.skipped, text: r.text, rules: verdict });
         else {

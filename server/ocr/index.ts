@@ -75,7 +75,7 @@ export function evidenceOcrCache(store: Store, services: Services, others: OcrCa
       return others.get(sha);
     },
     set(sha, v) {
-      if (store.get('evidence', sha)) services.evidence.setOcr(sha, { engine: v.engine, text: v.text, at: new Date().toISOString() });
+      if (store.get('evidence', sha)) services.evidence.setOcr(sha, { engine: v.engine, text: v.text, at: store.now().toISOString() });
       else others.set(sha, v);
     },
   };
@@ -86,6 +86,8 @@ export interface OcrOptions {
   engines?: OcrEngine[];
   cache?: OcrCache;
   timeoutMs?: number;
+  /** How many reads may wait (default MAX_QUEUE). */
+  maxQueue?: number;
   now?: () => number;
 }
 
@@ -112,7 +114,7 @@ export function defaultEngines(platform: NodeJS.Platform = process.platform): Oc
 
 export const sha256Of = (b: Uint8Array) => createHash('sha256').update(b).digest('hex');
 
-export function createOcr({ engines = defaultEngines(), cache = memoryCache(), timeoutMs = DEFAULT_TIMEOUT_MS, now = Date.now }: OcrOptions = {}): Ocr {
+export function createOcr({ engines = defaultEngines(), cache = memoryCache(), timeoutMs = DEFAULT_TIMEOUT_MS, maxQueue = MAX_QUEUE, now = Date.now }: OcrOptions = {}): Ocr {
   let tail: Promise<unknown> = Promise.resolve();
   let waiting = 0;
   const inflight = new Map<string, Promise<OcrResult>>();
@@ -155,7 +157,7 @@ export function createOcr({ engines = defaultEngines(), cache = memoryCache(), t
       const key = `${opts.engine ?? ''}:${sha}`;
       const pending = inflight.get(key);
       if (pending) return pending;
-      if (waiting >= MAX_QUEUE) throw new OcrError(`too many images are waiting to be read (${waiting}); try again in a moment`, 'busy');
+      if (waiting >= maxQueue) throw new OcrError(`too many images are waiting to be read (${waiting}); try again in a moment`, 'busy');
       waiting++;
       const job = tail.then(() => readNow(bytes, sha, opts.engine)).finally(() => {
         waiting--;
