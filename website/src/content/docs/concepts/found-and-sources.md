@@ -8,7 +8,8 @@ Found and the sources are being built. This page describes the design.
 :::
 
 **Found** is an inbox. **Sources** fill it. Every source is **off** until you switch it on, and nothing a source
-spots reaches your board until you say so.
+spots reaches your board until you say so. The one exception is your own coding agent: by default, what it writes
+over MCP goes straight onto the board, labelled as its own (see [below](#your-coding-agent)).
 
 ## Keep, merge or dismiss
 

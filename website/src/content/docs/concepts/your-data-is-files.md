@@ -18,11 +18,11 @@ There is no database. Everything BragDoc knows is a file in its data folder, `~/
 ```markdown
 ---
 schemaVersion: 1
-id: 01JAB3K9Q2X7Z4M8N6P0R5T1VW
+id: 01M4XJCNXRQ2X7Z4M8N6P0R5T1
 title: Cut CI time from 20 minutes to 8
 happenedAt: 2026-10-14
 impact: 5
-projects: [01JAB2…]
+projects: [01M2B7…]
 source: manual
 archived: false
 createdAt: 2026-10-14T16:02:11.000Z
@@ -37,8 +37,9 @@ Split the test suite across four runners and cached the dependency install.
 - **Back them up** however you back up files. Put the folder in git if you like; BragDoc writes a `.gitignore` that
   keeps its machine-written files (the running server's details, logs, caches, secrets) out.
 - **Nothing is locked in.** If you stop using BragDoc, your data is still a folder of Markdown.
-- **Nobody else can see it.** There is no BragDoc server. The files are on your disk, and the app only listens on
-  your own computer (see [Localhost security](/guarantees/localhost-security/)).
+- **It stays with you.** There is no BragDoc cloud and no account. The files are on your disk, and the app only
+  answers your own computer (see [Localhost security](/guarantees/localhost-security/)). Who else can read the folder
+  is up to you: your backups, your sync tools and the other accounts on your machine, as for any of your files.
 
 ## Safe by design
 

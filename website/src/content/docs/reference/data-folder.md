@@ -38,11 +38,11 @@ legacy-cli/                     # the old BragDoc CLI's files, moved aside on fi
 
 ## Ids and references
 
-- Every id is a [ULID](https://github.com/ulid/spec): 26 characters, upper case, like `01JAB3K9Q2X7Z4M8N6P0R5T1VW`.
+- Every id is a [ULID](https://github.com/ulid/spec): 26 characters, upper case, like `01M4XJCNXRQ2X7Z4M8N6P0R5T1`.
   The first ten characters encode when it was made, so ids sort by creation time.
-- A file's id is its name (`projects/01JAB….yaml`). The `id:` key inside must match; a hand-written file may leave it
+- A file's id is its name (`projects/01M2B7….yaml`). The `id:` key inside must match; a hand-written file may leave it
   out.
-- Files refer to each other by id (`projects: [01JAB…]`), never by name, so renaming a project rewrites one file.
+- Files refer to each other by id (`projects: [01M2B7…]`), never by name, so renaming a project rewrites one file.
 - An achievement lives under the year and month **its id was made in** (UTC), not its `happenedAt`, so changing its
   date never moves it. To add one by hand, make a ULID for now and put the file in this month's folder.
 - A reference to something that doesn't exist is tolerated: everything still loads, and Settings → Data lists it as a
@@ -53,13 +53,13 @@ legacy-cli/                     # the old BragDoc CLI's files, moved aside on fi
 ```markdown
 ---
 schemaVersion: 1
-id: 01JAB3K9Q2X7Z4M8N6P0R5T1VW
+id: 01M4XJCNXRQ2X7Z4M8N6P0R5T1
 title: Cut CI time from 20 minutes to 8
 happenedAt: 2026-10-14
 impact: 5
-projects: [01JAB2…]
+projects: [01M2B7…]
 evidence:
-  - id: 01JAB3K9Q3…
+  - id: 01M4XJCNXS…
     kind: github_pr
     url: https://github.com/acme/rocket/pull/412
     externalKey: github_pr:acme/rocket#412

@@ -31,6 +31,8 @@
 	--bd-accent-text: #b8381f; /* app --accent-shadow, used here as the accent for TEXT on light grounds: 5.0:1 on oat */
 	--bd-accent-soft: #fde3d9; /* app --accent-soft */
 	--bd-accent-ink: #ffffff; /* app --accent-ink: text on tomato */
+	--bd-accent-fill: #c8402a; /* site: tomato deepened for fills that carry white text (pills, buttons): 4.97:1, where the
+	                               app's #ef5a3c is 3.4:1, under AA for text this size */
 	--bd-accent-shadow: #b8381f; /* app --accent-shadow: the edge under a tilted mark or an accent button */
 	--bd-print: #ffffff; /* app --print: photo prints */
 	--bd-img-filter: none; /* app --img-filter */
@@ -74,6 +76,7 @@
 	--bd-accent-text: #ff8a70; /* site: a touch lighter than the accent for small text on kraft (6.1:1 on --surface) */
 	--bd-accent-soft: #42251c; /* app dark --accent-soft */
 	--bd-accent-ink: #1b1713; /* app dark --accent-ink */
+	--bd-accent-fill: #ff6d4d; /* dark text on the app's dark tomato is already 6.4:1 */
 	--bd-accent-shadow: #a83a22; /* app dark --accent-shadow */
 	--bd-print: #e4d9c6; /* app dark --print: prints stay cream */
 	--bd-img-filter: brightness(0.84) sepia(0.14) saturate(0.9); /* app dark --img-filter */

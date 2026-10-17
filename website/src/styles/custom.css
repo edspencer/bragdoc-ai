@@ -110,7 +110,7 @@ nav.sidebar a {
 nav.sidebar a[aria-current='page'],
 nav.sidebar a[aria-current='page']:hover,
 nav.sidebar a[aria-current='page']:focus {
-	background-color: var(--bd-accent);
+	background-color: var(--bd-accent-fill);
 	color: var(--bd-accent-ink);
 	font-weight: 650;
 	box-shadow: 0 2px 0 var(--bd-accent-shadow);

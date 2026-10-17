@@ -55,14 +55,14 @@ export const MOCKUP = {
 export const GUARANTEES = [
 	{
 		title: 'Your data is just files',
-		body: 'One Markdown file per achievement, YAML for everything else, in ~/.bragdoc. Read them, edit them, back them up, put them in git. There is no BragDoc server and no account, so nobody else can see your data.',
+		body: 'One Markdown file per achievement, YAML for everything else, in ~/.bragdoc. Read them, edit them, back them up, put them in git. There is no BragDoc cloud and no account: your data stays in files on your disk, served only to your own computer.',
 		href: '/concepts/your-data-is-files/',
 		link: 'How the files work',
 		tape: 'tomato',
 	},
 	{
 		title: 'Nothing leaves unless you connect it',
-		body: 'BragDoc sends nothing off your machine on its own: no telemetry, no update check, no analytics. The only outbound requests go to services you connect yourself, such as GitHub, and Settings → Network activity lists every one.',
+		body: 'BragDoc sends nothing off your machine on its own: no telemetry, no update check, no analytics. The only outbound requests go to services you connect yourself, such as GitHub, and Settings → Network activity will list every one.',
 		href: '/guarantees/network-activity/',
 		link: 'Network activity',
 		tape: 'blue',
@@ -90,7 +90,7 @@ export const HOW = {
 		{
 			word: 'Found',
 			title: 'Let your sources find things',
-			body: 'Turn on the sources you want: your merged GitHub pull requests, a screenshots folder (read on your machine, with no AI), or your coding agent over MCP. What they spot waits in Found for a yes or no. Nothing reaches the board without you.',
+			body: 'Turn on the sources you want: your merged GitHub pull requests, or a screenshots folder (read on your machine, with no AI). What they spot waits in Found for a yes or no. Nothing a source finds reaches the board without you.',
 			href: '/concepts/found-and-sources/',
 		},
 		{
@@ -106,23 +106,26 @@ export const HOW = {
 export const AGENTS = {
 	eyebrow: 'Works with your coding agent',
 	title: 'Your agent was there. Let it take notes.',
-	body: 'BragDoc has an MCP server, so Claude Code (or any MCP client) can log what you just shipped, with the pull request attached, while it still remembers why it mattered. Its writes are labelled as written by your agent. And because the data is just files, any agent that can edit a file can help.',
+	body: 'v0.1 comes with an MCP server, so Claude Code (or any MCP client) can log what you just shipped, with the pull request attached, while it still remembers why it mattered. Its writes go straight onto your board, labelled as written by your agent (or into Found first, if you prefer). And because the data is just files, any agent that can edit a file can help.',
 	link: { text: 'Agents and MCP', href: '/agents/overview/' },
 	/** An achievement file in the format of docs/data-format.md (ids shortened). Illustrative, not real data. */
-	file: 'achievements/2026/10/01JAB3K9….md',
+	file: 'achievements/2026/10/01M4XJCNXR….md',
 	sample: `---
 schemaVersion: 1
-id: 01JAB3K9Q2X7Z4M8N6P0R5T1VW
+id: 01M4XJCNXRQ2X7Z4M8N6P0R5T1
 title: Cut CI time from 14 to 6 minutes
 happenedAt: 2026-10-14
 impact: 6
-projects: [01JAB2…]
+projects: [01M2B7…]
 evidence:
-  - id: 01JAB3K9Q3…
+  - id: 01M4XJCNXS…
     kind: github_pr
     url: https://github.com/acme/web/pull/481
 source: mcp
 sourceAgent: claude-code
+archived: false
+createdAt: 2026-10-14T16:02:11.000Z
+updatedAt: 2026-10-14T16:02:11.000Z
 ---
 Split the e2e suite across four runners and cached
 the browser download.`,

@@ -5,7 +5,7 @@ description: "The environment variables BragDoc reads: PORT, BRAGDOC_HOME, BRAGD
 
 :::note[Tracking `next`]
 This list follows the [`next` branch](https://github.com/edspencer/bragdoc-ai/tree/next). The root test suite checks
-that every `BRAGDOC_*` variable the code reads is listed here.
+that every `BRAGDOC_*` variable the code reads is listed here (apart from the test suite's own).
 :::
 
 A command-line option always wins over its environment variable.
@@ -19,8 +19,8 @@ A command-line option always wins over its environment variable.
 
 ## For development
 
-These are read by `npm run dev` in a checkout of the repository (see [Contributing](/contributing/)), not by an
-installed BragDoc.
+These are read by `npm run dev` and the build in a checkout of the repository (see [Contributing](/contributing/)),
+not by an installed BragDoc.
 
 | Variable | Default | Meaning |
 | --- | --- | --- |
@@ -28,3 +28,5 @@ installed BragDoc.
 | `BRAGDOC_API_PORT` | `PORT` + 1 | The port of the API server behind the Vite dev server. |
 | `BRAGDOC_WEB_PORT` | `PORT` | The Vite dev server's port (set by `npm run dev`). |
 | `BRAGDOC_DEV` | (set by `npm run dev`) | Tells the server that Vite serves the web app, so it serves only the API. |
+| `BRAGDOC_KIT` | (unset) | `1` builds the web app with its `/dev/kit` page of UI components (the screenshot rig uses it). Never set in a release build. |
+| `BRAGDOC_WEB_OUT` | `dist/web` | Where `vite build` writes the web app. |

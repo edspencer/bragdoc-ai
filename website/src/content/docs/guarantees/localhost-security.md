@@ -4,8 +4,8 @@ description: "BragDoc has no login, so it listens only on your own computer and 
 ---
 
 :::note[Coming in v0.1]
-Most of this is built, on the [`next` branch](https://github.com/edspencer/bragdoc-ai/tree/next); the MCP token and
-the handling of stored evidence arrive with the features that need them. `SECURITY.md` in the repository says which
+Most of this is built, on the [`next` branch](https://github.com/edspencer/bragdoc-ai/tree/next); the MCP token, the
+handling of stored evidence and Markdown sanitising arrive with the features that need them. `SECURITY.md` in the repository says which
 file enforces each rule.
 :::
 
@@ -41,7 +41,7 @@ listen on all interfaces inside the container; that is why the docs always publi
 - Stored evidence is served sandboxed. Images are only ever shown as images (SVGs included, so they can't run
   scripts), and anything that isn't an image downloads instead of opening. File types are checked from their content,
   not their names.
-- Markdown you write is sanitised before it is shown.
+- Markdown you write will be sanitised before it is shown.
 - BragDoc runs other programs only through one module, with fixed argument lists and no shell, and only these:
   `gh`, `git`, `osascript`, `launchctl`, `systemctl`, `journalctl`, `claude`, `defaults`, and `open` / `xdg-open` (for
   `bragdoc --open`).

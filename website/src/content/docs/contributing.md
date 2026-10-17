@@ -31,7 +31,7 @@ npm run test:e2e   # browser tests (Playwright)
 npm run build
 ```
 
-CI runs all of these on macOS and Linux, on Node 22 and 24.
+CI runs the typecheck, unit tests and build on macOS and Linux, on Node 22 and 24, and the browser tests on Linux.
 
 ## Work on these docs
 

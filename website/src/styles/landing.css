@@ -354,7 +354,7 @@ html[data-theme='dark'] .tape {
 	translate: 0 -1px;
 }
 .btn--primary {
-	background: var(--bd-accent);
+	background: var(--bd-accent-fill);
 	color: var(--bd-accent-ink);
 	box-shadow: 0 3px 0 var(--bd-accent-shadow);
 }
@@ -544,7 +544,7 @@ html[data-theme='dark'] .only-light {
 	font-size: 0.9rem;
 }
 .word--on {
-	background: var(--bd-accent);
+	background: var(--bd-accent-fill);
 	color: var(--bd-accent-ink);
 }
 

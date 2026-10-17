@@ -36,8 +36,6 @@ function idsOf(file) {
 	return ids.get(file);
 }
 
-// Served by the Cloudflare Pages Function in functions/, not by dist/.
-const IGNORE = [/^\/ingest(\/|$)/];
 
 const broken = [];
 let checked = 0;
@@ -49,7 +47,6 @@ for (const page of html(dist)) {
 		if (/^[a-z][a-z0-9+.-]*:/i.test(href) || href.startsWith('//')) continue; // external, mailto:, …
 		const [pathPart, frag] = href.split('#');
 		const path = (pathPart.split('?')[0] || here).replace(/^(?!\/)/, here.replace(/[^/]*$/, ''));
-		if (IGNORE.some((re) => re.test(path))) continue;
 		checked++;
 		const file = target(path);
 		if (!file) broken.push(`${relative(dist, page)}: ${href} (no such page)`);

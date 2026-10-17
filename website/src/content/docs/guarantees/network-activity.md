@@ -5,8 +5,8 @@ description: "BragDoc sends nothing off your machine on its own. The only outbou
 
 :::note[Coming in v0.1]
 The egress module, its CI guard and the request log are built, on the
-[`next` branch](https://github.com/edspencer/bragdoc-ai/tree/next). The Network activity screen, and the GitHub source
-that is the only thing that will use the network, are being built.
+[`next` branch](https://github.com/edspencer/bragdoc-ai/tree/next). The Network activity screen, the GitHub source (the only thing that will use the network) and text recognition
+are being built.
 :::
 
 **BragDoc sends nothing off your machine on its own.** No telemetry, no analytics, no crash reports, no update check.
@@ -24,8 +24,8 @@ GitHub, if you connect the [GitHub source](/concepts/found-and-sources/#github).
   or starting a process, and fails if it finds one.
 - **The pages can't phone home either.** The app's Content Security Policy only lets its pages talk to BragDoc
   itself, and a browser test checks the app makes no requests anywhere else.
-- **Libraries don't either.** Text recognition data is bundled with BragDoc and loaded from disk, never from the
-  library's default download site; a test runs it with the network switched off.
+- **Libraries won't either.** When text recognition arrives, its data will be bundled with BragDoc and loaded from
+  disk, never from the library's default download site, with a test that runs it with the network switched off.
 
 ## Seeing it for yourself
 

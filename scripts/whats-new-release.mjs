@@ -1,5 +1,8 @@
-// Run at release time, after `changeset version` has bumped package.json (local-review's scripts/whats-new-release.mjs;
-// PR6's release flow calls it from `changeset:version`): the docs site's What's new page gets its release heading.
+// Run at release time, after `changeset version` has bumped package.json (local-review's scripts/whats-new-release.mjs):
+// the docs site's What's new page gets its release heading. NOT WIRED YET: the release flow (PR6) should call it from
+// `changeset:version` (`changeset version && node scripts/whats-new-release.mjs && …`), as local-review's does.
+// The first release (0.1.0) also needs website/src/site.mjs's RELEASED flipped and every "Coming in v0.1" note
+// replaced; test/docs.test.ts fails the version PR until both are done.
 // Its upcoming section is written by hand as
 //
 //   ## Coming in 0.2.0: a short title

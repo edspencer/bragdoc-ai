@@ -13,7 +13,7 @@ export const GET: APIRoute = async (context) =>
 			title: p.data.title,
 			description: p.data.description,
 			pubDate: p.data.date,
-			author: p.data.author,
+			// no `author`: RSS 2.0 wants an email address there, and we publish none
 			link: `/blog/${p.id}/`,
 		})),
 	});

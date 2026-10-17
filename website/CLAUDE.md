@@ -63,7 +63,7 @@ installation page say the package isn't on npm yet. **Never claim behaviour that
 Every page needs Starlight frontmatter: `title:` and a real `description:` (llms.txt and search use it; quote values
 with a colon). The root `test/docs.test.ts` checks both, that every page is in the sidebar, that every
 `localhost:<port>` is 2724 (`DEFAULT_PORT` in `src/site.mjs`, a copy of `../server/port.ts`), that every `BRAGDOC_*`
-variable the code reads is on `reference/environment.md`, that `reference/cli.md` has a section per command and every
+variable the code reads (apart from the test suite's own, listed in the test) is on `reference/environment.md`, that `reference/cli.md` has a section per command and every
 `serve` flag, and (once `server/mcp/` exists) that `agents/mcp.md` lists exactly the registered tools.
 
 **What's new.** `whats-new.md` keeps one `## Coming in <version>: <title>` section headed "Not released yet." for the
@@ -72,7 +72,7 @@ next release; `../scripts/whats-new-release.mjs` gives it the real version at `c
 
 **Links.** Link pages site-relative with the trailing slash (`/reference/cli/`). After a build,
 `npm run check-links` checks every internal link and `#fragment` in `dist/`, and `npm run check-external` that nothing
-is loaded from elsewhere (the `website` job in the root `ci.yml` runs the build and both whenever `website/**` changes).
+is loaded from elsewhere (its parser is pinned by fixtures in `test/docs.test.ts`) (the `website` job in the root `ci.yml` runs the build and both whenever `website/**` changes).
 
 ## Sidebar
 
@@ -97,7 +97,8 @@ capture, because v0.1 has neither). PR19 replaces it with a real capture of the 
 All colours and fonts are CSS variables in `src/styles/tokens.css`, copied from the app's `src/styles.css` (each names
 its app token), imported by both `custom.css` (docs) and `landing.css`. Keep them in step with the app. **Tomato is a
 fill, not small text on light grounds** (3.1:1 on oat): the light theme's text accent is the darker
-`--bd-accent-text`. Fonts are the app's four, self-hosted from `@fontsource`: Bricolage Grotesque (headings,
+`--bd-accent-text`, and a tomato fill carrying white text (the current-page pill, primary buttons) uses the deeper
+`--bd-accent-fill` (4.97:1). Fonts are the app's four, self-hosted from `@fontsource`: Bricolage Grotesque (headings,
 wordmark), Instrument Sans (text), Caveat (handwriting), Geist Mono (code).
 
 ## Previewing under a process supervisor

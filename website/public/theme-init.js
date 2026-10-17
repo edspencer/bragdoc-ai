@@ -1,7 +1,7 @@
 // The landing page's theme, set before the first paint so it never flashes the wrong one (the app does the same with
 // its own public/theme-init.js). It reads the key Starlight's docs pages use, `starlight-theme` ('light', 'dark', or
 // '' / absent for "match the system"), so a reader's choice follows them between the landing page and the docs.
-// An external file rather than an inline script, like the app's, so the page needs no inline script.
+// An external file, like the app's, so it can load blocking in <head> before anything paints.
 (function () {
 	var stored = '';
 	try {

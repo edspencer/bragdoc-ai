@@ -1,6 +1,6 @@
 ---
 title: BragDoc is becoming a local-first, open-source app
-description: "Why BragDoc is being rebuilt to run on your own computer, keep your data as plain files, and send nothing anywhere."
+description: "Why BragDoc is being rebuilt to run on your own computer, keep your data as plain files, and send nothing off your machine except to services you connect."
 date: 2026-10-17
 ---
 
@@ -29,8 +29,8 @@ a database you can only get at through an export button.
 - **AI is off.** The first release has no AI features at all. Screenshots are read on your machine and checked
   against plain rules you can see. If AI features come later, each one will be off until you turn it on.
 - **Evidence first.** Paste a screenshot, drop a PDF, paste a pull request link. Sources you switch on (your merged
-  pull requests, a screenshots folder, your coding agent) collect candidates in an inbox, and nothing reaches your
-  board until you say yes.
+  pull requests, a screenshots folder) collect candidates in an inbox, and nothing they find reaches your board until
+  you say yes. Your coding agent can write to the board directly, labelled as its own, if you connect it.
 
 ## The hosted app
 
