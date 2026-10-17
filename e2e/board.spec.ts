@@ -8,10 +8,13 @@ import { expect, test, type Page } from '@playwright/test';
 test.describe.configure({ mode: 'serial' });
 
 /**
- * Every worker (each browser project, each retry) shares the one data home, so titles carry a run tag: a card from
- * Chromium's run (or a failed first try) never matches Firefox's.
+ * Every browser project, retry and repeat shares the one data home, so each test's titles carry a fresh tag: a card
+ * from Chromium's run (or a failed first try) never matches Firefox's.
  */
-const RUN = Math.random().toString(36).slice(2, 7);
+let RUN = '';
+test.beforeEach(() => {
+  RUN = Math.random().toString(36).slice(2, 7);
+});
 
 /** A real 1×1 PNG. */
 const PNG_B64 = 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==';
