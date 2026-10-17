@@ -31,7 +31,7 @@ test('--help and -h print the usage, naming the default port', () => {
 });
 
 test('usage errors exit 2 with the usage; nothing is created', () => {
-  for (const args of [['frobnicate'], ['--nope'], ['serve', 'extra'], ['serve', '--port', 'abc'], ['serve', '--port']]) {
+  for (const args of [['frobnicate'], ['--nope'], ['serve', 'extra'], ['serve', '--port', 'abc'], ['serve', '--port'], ['serve', '--port='], ['serve', '--data-dir='], ['serve', '--host=']]) {
     const r = run(...args);
     assert.equal(r.status, 2, `${args.join(' ')}: ${r.stderr}`);
     assert.match(r.stderr, /Usage: bragdoc/);
@@ -43,6 +43,25 @@ test('a non-loopback --host is refused (exit 1) without the dangerous opt-in', (
   const r = run('serve', '--host', '0.0.0.0', '--port', '0');
   assert.equal(r.status, 1);
   assert.match(r.stderr, /BRAGDOC_DANGEROUSLY_ALLOW_OPEN/);
+});
+
+test('--host [::1] is loopback: it binds, rather than failing on the brackets', async () => {
+  const child = spawn(process.execPath, [...CLI, 'serve', '--host', '[::1]', '--port', '0'], { cwd: ROOT, env: h.env });
+  try {
+    const code = await new Promise<number | string>((resolve) => {
+      let out = '';
+      child.stdout.on('data', (d) => {
+        out += d;
+        if (/^BragDoc on /.test(out)) resolve('listening');
+      });
+      child.stderr.on('data', (d) => (out += d));
+      child.on('exit', (c) => resolve(`exited ${c}: ${out}`));
+    });
+    // a runner without IPv6 can't bind ::1 at all; that's an EADDRNOTAVAIL, never the bracket ENOTFOUND
+    if (code !== 'listening') assert.doesNotMatch(String(code), /ENOTFOUND/);
+  } finally {
+    await stopChild(child);
+  }
 });
 
 test('serve prints "BragDoc on <url>" first, then answers /api/health; a taken port is an error, not a new port', async () => {

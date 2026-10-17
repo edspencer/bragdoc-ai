@@ -31,7 +31,9 @@ export const WEB_DIST = path.join(PACKAGE_ROOT, 'dist', 'web');
  * result is absolute. `env` and `homedir` are parameters so tests never consult the real home.
  */
 export function resolveDataDir(flag: string | undefined, env: NodeJS.ProcessEnv = process.env, homedir: string = os.homedir()): string {
-  const given = flag ?? (env.BRAGDOC_HOME || undefined);
+  // an empty value means "not set" at every level, never "the real home" while a later level was set (cli.ts refuses
+  // an empty --data-dir outright; this is the backstop)
+  const given = flag || env.BRAGDOC_HOME || undefined;
   if (!given) return path.join(homedir, '.bragdoc');
   const expanded = given === '~' ? homedir : given.startsWith('~/') ? path.join(homedir, given.slice(2)) : given;
   return path.resolve(expanded);

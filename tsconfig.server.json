@@ -1,6 +1,7 @@
 {
-  // The server and CLI (server/), the code shared with the web app (shared/), the unit tests and the e2e specs. Run
-  // from source by tsx; compiled to dist/ by tsconfig.build.json. website/ is deliberately not included.
+  // The server and CLI (server/), the code shared with the web app (shared/), the unit tests, the e2e specs and the two
+  // tool configs (vite.config.ts imports server/port.ts, so a rename there fails here, not at `vite` time). Run from
+  // source by tsx; compiled to dist/ by tsconfig.build.json. website/ is deliberately not included.
   "compilerOptions": {
     "target": "ES2023",
     "lib": ["ES2023"],
@@ -12,5 +13,5 @@
     "types": ["node"],
     "allowImportingTsExtensions": true
   },
-  "include": ["server", "shared", "test", "e2e", "playwright.config.ts"]
+  "include": ["server", "shared", "test", "e2e", "playwright.config.ts", "vite.config.ts"]
 }

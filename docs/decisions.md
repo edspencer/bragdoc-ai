@@ -135,6 +135,8 @@ D17 onwards are decisions made while building.
   deploys are unaffected.
 - **⚠ `vercel.json` must be deleted before `next` merges into `main`.** Otherwise it would turn off deploys of `main`
   too. (By then the hosted app's deployment may be retired anyway, but that's a separate decision.)
+- CI enforces it: on a pull request into `main`, the `test` job fails while `vercel.json` exists.
+- Observed on PR #412: with the file in place, Vercel posted no status, deployment or comment.
 - **Considered:** changing the integration's settings (not ours to change from a PR, and it would affect `main`).
 
 ### D18 — Routes: one module per feature, one line in `server/routes/index.ts`

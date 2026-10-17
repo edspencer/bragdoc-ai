@@ -23,14 +23,19 @@ Commands
 
 Exit codes: 0 ok, 1 error, 2 usage error.`;
 
-const LOOPBACK = new Set(['127.0.0.1', 'localhost', '::1', '[::1]']);
+/** Addresses that only this computer can reach. `--host` takes a bare address: `::1`, not the URL form `[::1]`. */
+const LOOPBACK = new Set(['127.0.0.1', 'localhost', '::1']);
 
 /** Resolves with an exit code when there's nothing to run, else undefined while the server runs. */
 async function serve(flags: Record<string, string>): Promise<number | undefined> {
-  const given = flags.port ?? process.env.PORT;
-  const port = given === undefined || given === '' ? DEFAULT_PORT : parsePort(given);
+  // an empty $PORT means "not set"; an empty --port is a mistake (`--port "$P"` with P unset), so it's refused
+  const given = flags.port ?? (process.env.PORT || undefined);
+  const port = given === undefined ? DEFAULT_PORT : parsePort(given);
   if (port === null) throw new UsageError(`${flags.port !== undefined ? '--port' : 'PORT'} must be a port number (0-65535), not '${given}'`);
-  const hostname = flags.host ?? '127.0.0.1';
+  // `[::1]` is how an IPv6 address appears in a URL; listen() wants it bare
+  const hostname = (flags.host ?? '127.0.0.1').replace(/^\[(.*)\]$/, '$1');
+  if (!hostname) throw new UsageError('--host needs an address');
+  if (flags['data-dir'] === '') throw new UsageError('--data-dir needs a directory');
   // A minimal stand-in for Paddock's bind-safety guard, which PR2 brings as server/bind-safety.ts (D10, D21).
   if (!LOOPBACK.has(hostname) && process.env.BRAGDOC_DANGEROUSLY_ALLOW_OPEN !== '1')
     throw new Error(`refusing to listen on ${hostname}: BragDoc has no login, so anyone who can reach that address could read and change your data. Use 127.0.0.1, or set BRAGDOC_DANGEROUSLY_ALLOW_OPEN=1 if you really mean it (e.g. inside Docker).`);
@@ -47,7 +52,7 @@ async function serve(flags: Record<string, string>): Promise<number | undefined>
     throw e;
   }
   const { startupMessage } = await import('./banner.js');
-  const shown = LOOPBACK.has(hostname) || hostname === '0.0.0.0' || hostname === '::' ? 'localhost' : hostname;
+  const shown = LOOPBACK.has(hostname) || hostname === '0.0.0.0' || hostname === '::' ? 'localhost' : hostname.includes(':') ? `[${hostname}]` : hostname;
   process.stdout.write(startupMessage({ version: VERSION, url: `http://${shown}:${bound}`, home: tildify(dataDir), quiet: !!flags.quiet }));
   if (!LOOPBACK.has(hostname)) process.stderr.write(`bragdoc: listening on ${hostname}, not just this computer (BRAGDOC_DANGEROUSLY_ALLOW_OPEN=1).\n`);
   return undefined;

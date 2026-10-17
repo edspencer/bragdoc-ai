@@ -14,7 +14,8 @@ before(() => {
   web = tmpDir('bragdoc-web-');
   fs.writeFileSync(path.join(web, 'index.html'), SHELL);
   fs.mkdirSync(path.join(web, 'assets'));
-  fs.writeFileSync(path.join(web, 'assets', 'index-abc123.js'), 'console.log(1)');
+  fs.writeFileSync(path.join(web, 'assets', 'index-Ab3_x-9Z.js'), 'console.log(1)');
+  fs.writeFileSync(path.join(web, 'assets', 'unhashed.woff2'), 'font');
   fs.writeFileSync(path.join(web, 'favicon.svg'), '<svg/>');
 });
 after(() => rmTmp(web));
@@ -58,10 +59,13 @@ test('a missing file is a 404, not the shell', async () => {
 });
 
 test('static files are served; hashed assets are immutable', async () => {
-  const js = await app().request('/assets/index-abc123.js');
+  const js = await app().request('/assets/index-Ab3_x-9Z.js');
   assert.equal(js.status, 200);
   assert.equal(await js.text(), 'console.log(1)');
   assert.match(js.headers.get('cache-control') ?? '', /immutable/);
+  const unhashed = await app().request('/assets/unhashed.woff2');
+  assert.equal(unhashed.status, 200);
+  assert.equal(unhashed.headers.get('cache-control'), 'no-cache');
   const icon = await app().request('/favicon.svg');
   assert.equal(icon.status, 200);
   assert.equal(icon.headers.get('cache-control'), 'no-cache');

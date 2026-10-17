@@ -12,6 +12,8 @@ test('the data home: --data-dir, then $BRAGDOC_HOME, then ~/.bragdoc', () => {
   assert.equal(resolveDataDir(undefined, { BRAGDOC_HOME: '' }, HOME), path.join(HOME, '.bragdoc'));
   assert.equal(resolveDataDir(undefined, { BRAGDOC_HOME: '/srv/brag' }, HOME), path.resolve('/srv/brag'));
   assert.equal(resolveDataDir('/flag/wins', { BRAGDOC_HOME: '/srv/brag' }, HOME), path.resolve('/flag/wins'));
+  // an empty flag never skips $BRAGDOC_HOME for the real home
+  assert.equal(resolveDataDir('', { BRAGDOC_HOME: '/srv/brag' }, HOME), path.resolve('/srv/brag'));
 });
 
 test('the data home expands ~ and is always absolute', () => {

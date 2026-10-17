@@ -38,6 +38,13 @@ jobs:
           cache: npm
       # Before `npm ci`: it needs no dependencies and is near-instant. A raw 0x00 in a source file is invisible in
       # diffs and makes grep/ripgrep skip the whole file as binary (scripts/check-no-nul-bytes.mjs).
+      # vercel.json turns off Vercel's git deployments for next and its branches; merged into main it would turn off the
+      # hosted app's deploys too (D17).
+      - name: No vercel.json on a PR into main
+        if: github.base_ref == 'main'
+        shell: bash
+        run: |
+          if [ -f vercel.json ]; then echo "::error file=vercel.json::delete vercel.json before merging next into main (D17)"; exit 1; fi
       - name: No raw NUL bytes in JS/TS sources
         run: npm run check:nul
       - run: npm ci

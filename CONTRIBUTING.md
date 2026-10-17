@@ -57,11 +57,12 @@ merged, however useful the rest of it is.
 - **Localhost only.** The server binds 127.0.0.1 and (from PR2) rejects requests whose `Host` or `Origin` isn't
   local. Binding anything else needs `BRAGDOC_DANGEROUSLY_ALLOW_OPEN=1`.
 - **No telemetry.** Nothing phones home. All outbound network traffic goes through one module (`server/egress.ts`)
-  and is logged, and processes are only spawned through `server/proc.ts`. CI fails if anything else does either.
+  and is logged, and processes are only spawned through `server/proc.ts`. From PR2, CI fails if anything else does
+  either.
 - **AI is off unless the user turns it on.** No AI dependency is ever installed, and no model downloaded, without the
   user's explicit say-so.
-- **Your data is just files.** Every write goes through the store (`server/store/`); hand edits are first-class and
-  never silently overwritten.
+- **Your data is just files.** Every write goes through the store (`server/store/`, from PR3); hand edits are
+  first-class and never silently overwritten.
 - **Keep it generic.** Examples, fixtures and docs never assume a particular employer, machine, username or network.
   Use `example.com`, `~/Code/my-app` and a made-up person.
 

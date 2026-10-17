@@ -8,8 +8,8 @@ import path from 'node:path';
 import { Hono } from 'hono';
 import { serve } from '@hono/node-server';
 import { serveStatic } from '@hono/node-server/serve-static';
-import type { ApiError } from '../shared/api.js';
 import type { AppContext } from './context.js';
+import { apiError } from './http.js';
 import { VERSION, WEB_DIST } from './paths.js';
 import { registerRoutes } from './routes/index.js';
 
@@ -20,11 +20,6 @@ export interface AppOptions {
   webDist?: string | null;
   /** Defaults to the package version. */
   version?: string;
-}
-
-/** An API error body (shared/api.ts ApiError). */
-export function apiError(code: string, message: string): ApiError {
-  return { error: { code, message } };
 }
 
 /**
@@ -38,6 +33,9 @@ export function hasFileExtension(pathname: string): boolean {
   return /\.[^./]+$/.test(last);
 }
 
+/** A Vite output file: `/assets/index-CqW7J_rx.js` (Vite's hashes are 8 base64url characters). */
+const HASHED_ASSET = /^\/assets\/[^/]+-[A-Za-z0-9_-]{8}\.[a-z0-9]+$/;
+
 export function createApp({ dataDir, webDist = WEB_DIST, version = VERSION }: AppOptions): Hono {
   const app = new Hono();
   const ctx: AppContext = { version, dataDir };
@@ -47,12 +45,13 @@ export function createApp({ dataDir, webDist = WEB_DIST, version = VERSION }: Ap
 
   if (webDist) {
     const index = path.join(webDist, 'index.html');
-    // Vite's content-hashed bundles under /assets never change, so they're cached for good; anything else in dist/web
-    // (the favicon, index.html itself) is revalidated, so a new version shows up on the next load.
+    // Vite's content-hashed bundles (`/assets/<name>-<hash>.<ext>`) never change, so they're cached for good; anything
+    // else in dist/web (the favicon, index.html itself, an unhashed file someone puts in public/assets/) is revalidated,
+    // so a new version shows up on the next load.
     app.use('*', async (c, next) => {
       await next();
       if (c.res.ok && !c.req.path.startsWith('/api/') && !c.res.headers.has('Cache-Control'))
-        c.res.headers.set('Cache-Control', c.req.path.startsWith('/assets/') ? 'public, max-age=31536000, immutable' : 'no-cache');
+        c.res.headers.set('Cache-Control', HASHED_ASSET.test(c.req.path) ? 'public, max-age=31536000, immutable' : 'no-cache');
     });
     app.use('*', serveStatic({ root: webDist }));
     app.on(['GET', 'HEAD'], '*', (c) => {

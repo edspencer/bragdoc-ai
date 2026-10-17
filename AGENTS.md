@@ -54,6 +54,7 @@ server/              the server and CLI (Node, TypeScript ESM, Hono)
                      `serve` prints at startup
   index.ts           createApp (routes → JSON 404 for /api/* → static files → SPA fallback) and startServer
   context.ts         AppContext: what every route module gets (version, dataDir; later the store, bus, config)
+  http.ts            helpers for route modules (apiError)
   routes/index.ts    registerRoutes(): one line per feature module (D18)
   routes/health.ts   GET /api/health
   paths.ts           package root, VERSION, WEB_DIST, the data home (resolveDataDir), tildify
@@ -64,7 +65,8 @@ src/                 the web app (React 19, Vite, Tailwind v4, TanStack Router +
   main.tsx           QueryClient + router
   routes/            file-based routes (TanStack Router; tsr.config.json); __root.tsx is the shell
   styles.css         Tailwind entry (PR4 adds the Scrapbook tokens)
-public/              static files copied into dist/web (favicon.svg)
+public/              static files copied into dist/web (favicon.svg). Only content-hashed names under /assets/ are
+                     cached as immutable; anything else is revalidated
 test/                node:test suites, run from source via tsx; fixture.ts has the throwaway-dir helpers
 e2e/                 Playwright specs, run against the built server (playwright.config.ts)
 scripts/             start.mjs (npm start), dev.mjs (npm run dev), check-no-nul-bytes.mjs
@@ -101,7 +103,7 @@ locally (and `npm run test:e2e` if you touched anything it covers), and CI is gr
 - **An HTTP route:** write `server/routes/<feature>.ts` exporting `register<Feature>(app: Hono, ctx: AppContext)`,
   registering full paths (`app.get('/api/things', …)`). Add **one line** to `registerRoutes()` in
   `server/routes/index.ts`, alphabetical by feature. Put request/response types in `shared/api.ts` in a section of
-  their own, and errors as `ApiError` (`{ error: { code, message } }`) via `apiError()` from `server/index.ts`. Unknown
+  their own, and errors as `ApiError` (`{ error: { code, message } }`) via `apiError()` from `server/http.ts` (never import `server/index.ts` from a route: it imports the routes). Unknown
   `/api/*` paths already 404 as JSON.
 - **Something routes need from the server** (the store, the event bus, config): add a field to `AppContext`
   (`server/context.ts`), one line each, and set it in `createApp()`.
@@ -163,7 +165,8 @@ npm run build && node dist/server/cli.js serve --port 5050
 
 - v0.1 work: branch `v01/<n>-<slug>` from the latest `origin/next`, PR into `next`, `Refs #411` in the body.
   Other work: a descriptive branch off `next`.
-- Conventional commits (`feat:`, `fix:`, `docs:`, `refactor:`, `test:`, `chore:`, `ci:`). PRs are squash-merged.
+- Conventional commits (`feat:`, `fix:`, `docs:`, `refactor:`, `test:`, `chore:`, `ci:`). PRs into `next` are
+  squash-merged, so the PR title becomes the commit: make it a conventional one.
 - The PR body says what and why, "Adapted from", how you verified it (commands, plus Playwright notes for anything
   visible), and screenshots for UI changes. The template in `.github/` has the sections.
 - Never force-push, never push to `main`, never merge your own v0.1 PR.
