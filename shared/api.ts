@@ -107,4 +107,132 @@ export interface NetworkLogResponse {
 export type ServerEvent =
   | { type: 'config' }
   | { type: 'network' }
-  | { type: 'notices' };
+  | { type: 'notices' }
+  | { type: 'project' }
+  | { type: 'company' }
+  | { type: 'repo' };
+
+// ---------------------------------------------------------------- projects, companies, repos (PR8)
+// The entities themselves are the data files' types (shared/schema/project.ts, …), restated loosely here because this
+// file imports nothing. Every one carries its file's `etag`: send it back as `If-Match` on PATCH and DELETE, and an
+// edit made against a stale copy is a 409 instead of a silent overwrite.
+
+export type ProjectStatus = 'active' | 'paused' | 'done' | 'archived';
+
+export interface ProjectEntry {
+  id: string;
+  name: string;
+  description?: string;
+  /** `#rrggbb`: any colour. */
+  color: string;
+  /** YYYY-MM-DD */
+  start: string;
+  /** YYYY-MM-DD, or null while it's ongoing. */
+  end: string | null;
+  status: ProjectStatus;
+  companyId: string | null;
+  repoIds: string[];
+  example?: boolean;
+  etag: string;
+  /** How many achievements (archived ones included) are tagged with it. */
+  achievements: number;
+}
+
+export interface CompanyEntry {
+  id: string;
+  name: string;
+  role?: string;
+  start?: string;
+  end: string | null;
+  example?: boolean;
+  etag: string;
+}
+
+export interface RepoEntry {
+  id: string;
+  name: string;
+  /** As the user writes it (`~/Code/my-app`). */
+  localPath?: string;
+  remoteUrl?: string;
+  /** `github.com`, …, or `local`. */
+  host: string;
+  tracked: boolean;
+  example?: boolean;
+  etag: string;
+}
+
+/** `GET /api/projects`: every project, newest start first. */
+export interface ProjectsResponse {
+  projects: ProjectEntry[];
+}
+/** `GET /api/companies` */
+export interface CompaniesResponse {
+  companies: CompanyEntry[];
+}
+/** `GET /api/repos` */
+export interface ReposResponse {
+  repos: RepoEntry[];
+}
+
+/** `POST /api/repos`: the repo, and whether it's new (false: one with the same folder or remote was already there). */
+export interface RepoCreateResponse {
+  repo: RepoEntry;
+  created: boolean;
+}
+
+/** `POST /api/projects/:id/repos`: link and/or unlink repos (ids). Returns the project (a ProjectEntry). */
+export interface ProjectReposRequest {
+  link?: string[];
+  unlink?: string[];
+}
+
+/** What a delete took the deleted thing off, so undo can put it back (ids). */
+export interface Detached {
+  achievements: string[];
+  projects: string[];
+}
+
+/**
+ * `DELETE /api/projects/:id` (and companies, repos): the file goes to backups/removed/, and references to it are
+ * taken off the files that had them (D45). Undo: `POST /api/<things>/:id/restore` with `{ reattach: detached }`.
+ */
+export interface DeleteResponse {
+  removedTo: string;
+  detached: Detached;
+}
+
+/** `POST /api/<things>/:id/restore` */
+export interface RestoreRequest {
+  reattach?: Partial<Detached>;
+}
+
+/** One achievement in a project's pile, as the Projects page draws it. */
+export interface PileItem {
+  id: string;
+  title: string;
+  summary?: string;
+  happenedAt: string;
+  impact?: number;
+  archived: boolean;
+  /** Evidence on it, by kind (`image`, `pdf`, `file`, `url`, `github_pr`, `quote`). */
+  evidence: Record<string, number>;
+}
+
+/** `GET /api/projects/:id/summary`: a project's pile (its achievements, newest first) and its counts. */
+export interface ProjectSummary {
+  project: ProjectEntry;
+  company: CompanyEntry | null;
+  repos: RepoEntry[];
+  /** Achievements tagged with it, archived ones excluded. */
+  achievements: number;
+  /** Evidence across those achievements, in all and by kind. */
+  evidence: { total: number; byKind: Record<string, number> };
+  /** The first and last achievement dates, or null with none. */
+  firstAt: string | null;
+  lastAt: string | null;
+  /** Newest first, at most `PILE_LIMIT`. */
+  pile: PileItem[];
+}
+
+/** How many achievements a project summary lists. */
+export const PILE_LIMIT = 200;

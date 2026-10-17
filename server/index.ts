@@ -76,6 +76,12 @@ export function createApp({ dataDir, webDist = WEB_DIST, version = VERSION, star
     services: createServices(store),
   };
 
+  // Projects, companies and repos are live: a change to their files (ours, or a hand edit) refreshes open pages. Bursts
+  // (a delete detaching many files, a git pull) coalesce into one event per kind. PR7 forwards the rest of the store.
+  store.subscribe((ch) => {
+    if (ch.entity === 'project' || ch.entity === 'company' || ch.entity === 'repo') bus.emitSoon(`store:${ch.entity}`, { type: ch.entity });
+  });
+
   // first, so nothing (a route, a static file, the SPA fallback) answers a request it hasn't checked (D10)
   app.use('*', security({ allowedHosts: () => config.allowedHosts(), uploads: ctx.uploads }));
   registerRoutes(app, ctx);
