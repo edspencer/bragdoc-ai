@@ -19,8 +19,18 @@ test.beforeEach(() => {
 /** A real 1×1 PNG. */
 const PNG_B64 = 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==';
 
-/** Paste files onto the page, as ⌘V with a screenshot on the clipboard does. */
+/**
+ * Paste a file onto the page, as ⌘V with a screenshot on the clipboard does: a paste event carrying the file. Firefox
+ * drops the `clipboardData` of a paste event a page makes (only real pastes carry data), and a test can't put a file
+ * on its real clipboard, so there the file goes in through "Add a PDF or file" instead: the same upload, minus the
+ * paste. Chromium covers the paste path itself.
+ */
 async function pasteFile(page: Page, file: { name: string; type: string; b64?: string; text?: string }) {
+  if (page.context().browser()?.browserType().name() === 'firefox') {
+    const buffer = file.b64 ? Buffer.from(file.b64, 'base64') : Buffer.from(file.text ?? '');
+    await page.getByTestId('file-input').setInputFiles({ name: file.name, mimeType: file.type || 'application/octet-stream', buffer });
+    return;
+  }
   await page.evaluate((f) => {
     const bytes = f.b64 ? Uint8Array.from(atob(f.b64), (c) => c.charCodeAt(0)) : new TextEncoder().encode(f.text ?? '');
     const d = new DataTransfer();
@@ -29,14 +39,16 @@ async function pasteFile(page: Page, file: { name: string; type: string; b64?: s
   }, file);
 }
 
-/** Paste text into the composer. */
+/** Paste text into the composer for real: put it on the clipboard (type it, cut it), then ⌘V/Ctrl+V. */
 async function pasteText(page: Page, text: string) {
-  await page.getByTestId('composer-text').focus();
-  await page.evaluate((t) => {
-    const d = new DataTransfer();
-    d.setData('text/plain', t);
-    document.activeElement!.dispatchEvent(new ClipboardEvent('paste', { clipboardData: d, bubbles: true, cancelable: true }));
-  }, text);
+  const box = page.getByTestId('composer-text');
+  const before = await box.inputValue();
+  await box.fill(text);
+  await box.selectText();
+  await page.keyboard.press('ControlOrMeta+X');
+  await page.keyboard.press('ControlOrMeta+V');
+  // a link is taken as evidence, so the box is back as it was; restore anything that was typed before
+  if (before) await box.fill(before);
 }
 
 /** Drop a file anywhere on the page. */
