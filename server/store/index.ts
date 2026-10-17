@@ -402,6 +402,12 @@ export class Store {
   achievementIdByLegacyId(legacyId: string): string | undefined {
     return first(this.keyIndex.achievement.get(`legacy:${legacyId}`));
   }
+  /** Companies and projects by their hosted-app id (the importer's; a scan, as there are only ever a few). */
+  idsByLegacyId(kind: 'company' | 'project'): Map<string, string> {
+    const out = new Map<string, string>();
+    for (const v of this.all(kind)) if (v.legacyId && !out.has(v.legacyId)) out.set(v.legacyId, v.id);
+    return out;
+  }
   foundIdByKey(key: string): string | undefined {
     return first(this.keyIndex.found.get(`ext:${key}`));
   }
@@ -613,6 +619,63 @@ export class Store {
     const dest = moveToRemoved(this.home, abs, this.now().toISOString().replace(/\.\d{3}Z$/, 'Z').replace(/:/g, '-'));
     this.reloadOne(kind, id, file);
     return toRel(path.relative(this.home, dest));
+  }
+
+  // -------------------------------------------------------------------------------------------------------------
+  // imports/: what the importer carries over that has no home of its own (SPEC R12)
+  // -------------------------------------------------------------------------------------------------------------
+
+  /**
+   * Write one markdown file under `imports/` (a hosted export's documents and reviews): front-matter plus a body,
+   * create-only and read-only (0444), never indexed or rewritten. `rel` is relative to the data home, under imports/.
+   */
+  writeImportFile(rel: string, frontMatter: Record<string, unknown> | null, body: string, header?: string): void {
+    const parts = rel.split('/');
+    // built from a timestamp and a slug by the importer; checked anyway, since it becomes a path
+    if (parts[0] !== 'imports' || parts.length < 2 || parts.some((p) => !/^[A-Za-z0-9][A-Za-z0-9._-]*$/.test(p) || p.includes('..')))
+      throw new Error(`not a path under imports/: ${rel}`);
+    let text = body;
+    if (frontMatter) {
+      const doc = newDocument(header);
+      mergePatch(doc, frontMatter);
+      text = joinFrontMatter(stringify(doc), body);
+    }
+    try {
+      atomicWrite(path.join(this.home, ...parts), text, { createOnly: true, mode: 0o444 });
+    } catch (err) {
+      if (err instanceof ExistsError) throw new ConflictError(`${rel} already exists`);
+      throw err;
+    }
+  }
+
+  /** Whether `imports/<name>` exists (the importer picks a fresh one for each import). */
+  importsDirExists(name: string): boolean {
+    return /^[A-Za-z0-9][A-Za-z0-9._-]*$/.test(name) && fs.existsSync(path.join(this.home, 'imports', name));
+  }
+
+  /** Every `legacyId:` in imports/**\/*.md front-matter, with the file it's in (what earlier imports carried over). */
+  importedLegacyIds(): Map<string, string> {
+    const out = new Map<string, string>();
+    const walk = (rel: string, depth: number) => {
+      let ents: fs.Dirent[];
+      try {
+        ents = fs.readdirSync(path.join(this.home, rel), { withFileTypes: true });
+      } catch {
+        return;
+      }
+      for (const e of ents) {
+        if (e.name.startsWith('.')) continue;
+        const r = `${rel}/${e.name}`;
+        if (e.isDirectory() && depth > 0) walk(r, depth - 1);
+        else if (e.isFile() && e.name.endsWith('.md')) {
+          const fm = splitFrontMatter(readRaw(path.join(this.home, r)) ?? '');
+          const m = fm && /^legacyId:[ \t]*['"]?([^'"\s#]+)/m.exec(fm.yaml);
+          if (m && !out.has(m[1])) out.set(m[1], r);
+        }
+      }
+    };
+    walk('imports', 2);
+    return out;
   }
 
   /** Bring back the newest removed copy of an entity. ConflictError if its file has been recreated meanwhile. */

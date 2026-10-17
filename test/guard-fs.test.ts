@@ -62,6 +62,9 @@ const ALLOWED: Record<string, Record<string, number>> = {
   'server/home.ts': {
     rename: 2, // the old CLI's config.yml/cache/logs into legacy-cli.partial/, then that into legacy-cli/ (D28)
   },
+  'server/import/lock.ts': {
+    unlink: 1, // releasing cache/import.lock: a fixed name, and only while it still holds our own pid (D45)
+  },
 };
 
 function files(dir: string): string[] {

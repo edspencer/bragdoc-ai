@@ -31,6 +31,8 @@ export const LOOPBACK_HOSTNAMES = ['localhost', '127.0.0.1', '[::1]'] as const;
 /** 1 MB for a JSON body; 25 MB for an upload (SPEC R3). */
 export const JSON_LIMIT = 1024 * 1024;
 export const UPLOAD_LIMIT = 25 * 1024 * 1024;
+/** The one larger JSON body: a hosted-app export, sent whole to POST /api/import/* (D45). */
+export const LARGE_JSON_LIMIT = 50 * 1024 * 1024;
 
 /** The SPA's Content-Security-Policy, exactly as SPEC R3 gives it. No inline scripts or styles, ever. */
 export const SPA_CSP = [
@@ -102,6 +104,15 @@ export class UploadRegistry {
       if (rule.types.test(t)) throw new Error(`an upload route may not accept ${t}: it's CORS-safelisted, so any web page could send it (SPEC R3)`);
     if ((rule.maxBytes ?? UPLOAD_LIMIT) > UPLOAD_LIMIT) throw new Error(`an upload is at most ${UPLOAD_LIMIT} bytes (SPEC R3)`);
     this.rules.push(rule);
+  }
+
+  /**
+   * A route whose JSON body may be larger than JSON_LIMIT, up to LARGE_JSON_LIMIT: only POST /api/import/* (a whole
+   * hosted-app export, D45). Still JSON only, with every other check as usual.
+   */
+  acceptLargeJson(rule: { method: string; path: RegExp; maxBytes: number }): void {
+    if (rule.maxBytes > LARGE_JSON_LIMIT) throw new Error(`a JSON body is at most ${LARGE_JSON_LIMIT} bytes`);
+    this.rules.push({ ...rule, types: /^application\/json$/i });
   }
 
   /** The rule for this request, if its route takes uploads and its Content-Type is one the route accepts. */

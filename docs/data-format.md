@@ -129,6 +129,7 @@ A company you worked at.
 | `role` | string |  | Your role there. |
 | `start` | date |  | When you started, YYYY-MM-DD. |
 | `end` | date or empty | default `null` | When you left; empty while you still work there. |
+| `legacyId` | string |  | Its id in the hosted BragDoc, for imported companies (re-importing skips it). |
 | `example` | boolean |  | `true` on example data, which Settings can remove in one go. |
 
 ### `projects/<id>.yaml`
@@ -147,6 +148,7 @@ A project: dates, a colour, optionally a company and linked repos.
 | `status` | one of the values given | default `"active"` | `active`, `paused`, `done` or `archived` (hidden from pickers). |
 | `companyId` | id or empty | default `null` | The company it was for (a company id), or empty. |
 | `repoIds` | list of id | default `[]` | Linked repos (repo ids). |
+| `legacyId` | string |  | Its id in the hosted BragDoc, for imported projects (re-importing skips it). |
 | `example` | boolean |  | `true` on example data, which Settings can remove in one go. |
 
 ### `repos/<id>.yaml`

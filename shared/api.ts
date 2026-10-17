@@ -108,3 +108,53 @@ export type ServerEvent =
   | { type: 'config' }
   | { type: 'network' }
   | { type: 'notices' };
+
+// ---------------------------------------------------------------- importer (PR12): POST /api/import/{plan,apply}
+
+/** What an import brings across, by kind. Documents and reviews become files under `imports/<timestamp>/`. */
+export type ImportKind = 'companies' | 'projects' | 'repos' | 'achievements' | 'documents' | 'reviews';
+
+export interface ImportCount {
+  /** New: created (or, in a dry run, would be). */
+  add: number;
+  /** Already here (an earlier import of the same export), or a repeat within the file: left alone. */
+  skip: number;
+  /** Couldn't be imported (see `problems`, level `error`). */
+  fail: number;
+}
+
+/** A field in the export that has no place in BragDoc, and why. Counted over the items that had a value for it. */
+export interface ImportDropped {
+  /** `achievements[].embedding`, `userId`, … */
+  field: string;
+  count: number;
+  why: string;
+}
+
+export interface ImportProblem {
+  /** `error`: the item wasn't imported. `warning`: it was, with the change the message describes. */
+  level: 'error' | 'warning';
+  kind: ImportKind;
+  /** Which item, for people: `"Shipped the importer" (id 3f2a…)`, or `#12` when it has no usable name. */
+  item: string;
+  message: string;
+}
+
+/**
+ * The answer to POST /api/import/plan (a dry run: nothing written) and /api/import/apply (done). Both take the export
+ * file itself as the JSON body, up to 50 MB. A file that can't be imported at all is a 400 (`invalid_export`, or
+ * `unsupported_version` for anything but version "1.0"); an import already running is a 409 (`import_running`).
+ */
+export interface ImportReport {
+  dryRun: boolean;
+  /** When the export was made, if it says. */
+  exportedAt: string | null;
+  counts: Record<ImportKind, ImportCount>;
+  dropped: ImportDropped[];
+  /** Errors first. */
+  problems: ImportProblem[];
+  /** Where documents and reviews go (relative to the data home, `imports/<timestamp>`), or null if there are none. */
+  importsDir: string | null;
+  /** The snapshot taken before importing (`backups/<name>`); null in a dry run, or when there was nothing to snapshot. */
+  snapshot: string | null;
+}
