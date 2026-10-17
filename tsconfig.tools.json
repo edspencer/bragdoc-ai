@@ -1,0 +1,11 @@
+{
+  // Code that drives a browser: the e2e specs, Playwright's config and tools/ (the capture rig). Like the server's
+  // config, plus the DOM types, because the callbacks passed to page.evaluate() run in the page. Kept apart so the
+  // server's own code can never lean on DOM globals by accident.
+  "extends": "./tsconfig.server.json",
+  "compilerOptions": {
+    "lib": ["ES2023", "DOM", "DOM.Iterable"]
+  },
+  "include": ["e2e", "tools", "playwright.config.ts"],
+  "exclude": ["tools/docs-media/out"]
+}

@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="600" viewBox="0 0 960 600">
+<rect width="960" height="600" fill="#f3f5f8"/>
+<rect width="960" height="72" fill="#0f2a3d"/>
+<text x="40" y="45" font-size="22" font-weight="700" fill="#fff" font-family="Inter, Arial">Pre-flight · AT-212</text>
+<text x="920" y="45" text-anchor="end" font-size="15" fill="#9cc3dd" font-family="Inter, Arial">● Offline · 3 queued</text>
+<text x="40" y="118" font-size="15" fill="#5b6576" font-family="Inter, Arial" letter-spacing="1">EXTERIOR · 3 OF 6</text>
+<rect x="240" y="106" width="360" height="10" rx="5" fill="#dfe3ea"/><rect x="240" y="106" width="180" height="10" rx="5" fill="#1f9d74"/>
+<rect x="40" y="150" width="560" height="58" rx="12" fill="#eaf6f1" stroke="#9fd6c0"/>
+<rect x="58" y="163" width="32" height="32" rx="8" fill="#1f9d74" stroke="#1f9d74" stroke-width="2"/>
+<path d="M66 179 l6 6 l12 -13" stroke="#fff" stroke-width="3.5" fill="none" stroke-linecap="round"/>
+<text x="108" y="186" font-size="20" fill="#1b2230" font-family="Inter, Arial" font-weight="400">Exterior walk-around</text>
+<rect x="40" y="220" width="560" height="58" rx="12" fill="#eaf6f1" stroke="#9fd6c0"/>
+<rect x="58" y="233" width="32" height="32" rx="8" fill="#1f9d74" stroke="#1f9d74" stroke-width="2"/>
+<path d="M66 249 l6 6 l12 -13" stroke="#fff" stroke-width="3.5" fill="none" stroke-linecap="round"/>
+<text x="108" y="256" font-size="20" fill="#1b2230" font-family="Inter, Arial" font-weight="400">Fuel quantity and sample</text>
+<rect x="40" y="290" width="560" height="58" rx="12" fill="#eaf6f1" stroke="#9fd6c0"/>
+<rect x="58" y="303" width="32" height="32" rx="8" fill="#1f9d74" stroke="#1f9d74" stroke-width="2"/>
+<path d="M66 319 l6 6 l12 -13" stroke="#fff" stroke-width="3.5" fill="none" stroke-linecap="round"/>
+<text x="108" y="326" font-size="20" fill="#1b2230" font-family="Inter, Arial" font-weight="400">Pitot covers removed</text>
+<rect x="40" y="360" width="560" height="58" rx="12" fill="#ffffff" stroke="#dfe3ea"/>
+<rect x="58" y="373" width="32" height="32" rx="8" fill="#ffffff" stroke="#9aa3b2" stroke-width="2"/>
+
+<text x="108" y="396" font-size="20" fill="#1b2230" font-family="Inter, Arial" font-weight="600">Control surfaces free and correct</text>
+<rect x="40" y="430" width="560" height="58" rx="12" fill="#ffffff" stroke="#dfe3ea"/>
+<rect x="58" y="443" width="32" height="32" rx="8" fill="#ffffff" stroke="#9aa3b2" stroke-width="2"/>
+
+<text x="108" y="466" font-size="20" fill="#1b2230" font-family="Inter, Arial" font-weight="600">Tyre pressure and wear</text>
+<rect x="40" y="500" width="560" height="58" rx="12" fill="#ffffff" stroke="#dfe3ea"/>
+<rect x="58" y="513" width="32" height="32" rx="8" fill="#ffffff" stroke="#9aa3b2" stroke-width="2"/>
+
+<text x="108" y="536" font-size="20" fill="#1b2230" font-family="Inter, Arial" font-weight="600">Lights: nav, strobe, landing</text>
+<rect x="640" y="150" width="280" height="390" rx="16" fill="#ffffff" stroke="#dfe3ea"/>
+<text x="664" y="190" font-size="15" fill="#5b6576" font-family="Inter, Arial" letter-spacing="1">SIGN-OFF</text>
+<text x="664" y="228" font-size="19" fill="#1b2230" font-family="Inter, Arial" font-weight="600">Captain R. Osei</text>
+<text x="664" y="256" font-size="15" fill="#5b6576" font-family="Inter, Arial">Glove mode on</text>
+<rect x="664" y="460" width="232" height="56" rx="12" fill="#0f2a3d"/>
+<text x="780" y="495" text-anchor="middle" font-size="18" fill="#fff" font-family="Inter, Arial" font-weight="600">Next section →</text>
+</svg>

@@ -1,0 +1,23 @@
+// The capture rig's leak scan, on its own so the unit tests can check it (test/docs-media.test.ts) without a browser.
+import { DEFAULT_PORT } from '../../server/port.ts';
+
+/**
+ * What the shots must never show: paths and hosts of the machine they were taken on, and anything that isn't the
+ * example world. The repository is public, and so is every pixel pushed to it. Extra patterns (your own hostnames,
+ * say) go in $BRAGDOC_LEAK_EXTRA, as regex alternatives; they're not written here because this file is public.
+ */
+export function leakPattern(port: string): RegExp {
+  return new RegExp(
+    [
+      String.raw`/(?:tmp|data|var|private|Users|home|root)/`,
+      String.raw`[A-Za-z]:\\`,
+      String.raw`127\.0\.0\.1(?!:${DEFAULT_PORT}\b)`,
+      String.raw`\b(?:10|192\.168|172\.(?:1[6-9]|2\d|3[01]))\.\d+\.\d+`,
+      String.raw`localhost:(?!${DEFAULT_PORT}\b)\d+`,
+      String.raw`[\w.+-]+@(?![\w-]+(?:\.[\w-]+)*\.example\b)[\w-]+\.[a-z]{2,}`,
+      `:${port}\\b`,
+      ...(process.env.BRAGDOC_LEAK_EXTRA ? [process.env.BRAGDOC_LEAK_EXTRA] : []),
+    ].join('|'),
+    'g',
+  );
+}
