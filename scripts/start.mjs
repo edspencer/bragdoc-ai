@@ -3,6 +3,7 @@
 // `npm start -- --port 5050`; `--build` forces a rebuild.
 import { spawnSync, spawn } from 'node:child_process';
 import fs from 'node:fs';
+import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -38,4 +39,5 @@ for (const [script, output, sources] of builds) {
 
 const child = spawn(process.execPath, [path.join(root, 'dist', 'server', 'cli.js'), ...args.filter((a) => a !== '--build')], { stdio: 'inherit', env: process.env });
 for (const sig of ['SIGINT', 'SIGTERM']) process.on(sig, () => child.kill(sig));
-child.on('exit', (code) => process.exit(code ?? 0));
+// killed by a signal: exit non-zero (128 + the signal's number, as a shell would), never 0
+child.on('exit', (code, signal) => process.exit(code ?? 128 + (os.constants.signals[signal] ?? 0)));

@@ -24,6 +24,15 @@ export default defineConfig({
     url: `http://127.0.0.1:${port}/api/health`,
     reuseExistingServer: false,
     timeout: 30_000,
-    env: { HOME: home, USERPROFILE: home, XDG_CONFIG_HOME: path.join(home, '.config'), BRAGDOC_HOME: path.join(home, '.bragdoc') },
+    // Playwright passes the rest of process.env through, so clear what would change how the server runs: dev mode
+    // (API only, no web app) and the open-bind opt-in.
+    env: {
+      HOME: home,
+      USERPROFILE: home,
+      XDG_CONFIG_HOME: path.join(home, '.config'),
+      BRAGDOC_HOME: path.join(home, '.bragdoc'),
+      BRAGDOC_DEV: '',
+      BRAGDOC_DANGEROUSLY_ALLOW_OPEN: '',
+    },
   },
 });

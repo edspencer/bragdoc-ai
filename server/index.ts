@@ -55,7 +55,8 @@ export function createApp({ dataDir, webDist = WEB_DIST, version = VERSION }: Ap
     });
     app.use('*', serveStatic({ root: webDist }));
     app.on(['GET', 'HEAD'], '*', (c) => {
-      if (hasFileExtension(c.req.path)) return c.text('Not found', 404);
+      // /assets/ is Vite's output and nothing else: a path there that serveStatic didn't find is a missing file
+      if (hasFileExtension(c.req.path) || c.req.path === '/assets' || c.req.path.startsWith('/assets/')) return c.text('Not found', 404);
       if (!fs.existsSync(index)) return c.text('The web app is not built. Run `npm run build` (or `npm start`).', 500);
       c.header('Cache-Control', 'no-cache');
       return c.html(fs.readFileSync(index, 'utf8'));

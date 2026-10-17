@@ -51,7 +51,7 @@ test('/ and client-side routes get the shell, uncached', async () => {
 });
 
 test('a missing file is a 404, not the shell', async () => {
-  for (const p of ['/nope.js', '/assets/index-gone.js', '/deep/route/style.css', '/favicon.ico']) {
+  for (const p of ['/nope.js', '/assets/index-gone.js', '/assets/no-extension', '/assets', '/deep/route/style.css', '/favicon.ico']) {
     const res = await app().request(p);
     assert.equal(res.status, 404, p);
     assert.notEqual(await res.text(), SHELL, p);
