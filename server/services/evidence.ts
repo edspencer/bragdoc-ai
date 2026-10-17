@@ -1,0 +1,46 @@
+// Evidence files: store bytes or a file from disk (content-addressed, typed by magic bytes; store/blobs.ts), turn the
+// result into an Evidence item, and record OCR text on the sidecar (PR11), which makes it searchable.
+import { OcrSchema, type Evidence, type EvidenceSidecar } from '../../shared/schema/index.js';
+import { ulid } from '../../shared/ulid.js';
+import { blobPath, ingestBytes, ingestPath, type Ingested } from '../store/blobs.js';
+import { NotFoundError, type Store } from '../store/index.js';
+import { validate } from './util.js';
+
+export class EvidenceService {
+  constructor(private store: Store) {}
+
+  /** Store bytes (an upload, a paste). */
+  ingestBytes(bytes: Uint8Array, opts: { originalName?: string } = {}): Promise<Ingested> {
+    return ingestBytes(this.store, bytes, opts);
+  }
+
+  /** Store a regular file from disk (a screenshot, an MCP attach_evidence path). */
+  ingestPath(file: string, opts: { originalName?: string } = {}): Promise<Ingested> {
+    return ingestPath(this.store, file, opts);
+  }
+
+  /** An Evidence item for a stored file, ready to attach. */
+  toEvidence(i: Ingested, title?: string): Evidence {
+    return { id: ulid(this.store.now().getTime()), kind: i.kind, blob: i.sha256, ...(title ? { title } : {}) };
+  }
+
+  sidecar(sha: string): EvidenceSidecar {
+    const s = this.store.get('evidence', sha);
+    if (!s) throw new NotFoundError(`there's no stored file ${sha}`);
+    return s;
+  }
+
+  /** The stored file's absolute path and type, for serving it (PR7), or NotFoundError. */
+  file(sha: string): { path: string; sidecar: EvidenceSidecar } {
+    const sidecar = this.sidecar(sha);
+    const p = blobPath(this.store, sha);
+    if (!p) throw new NotFoundError(`the stored file ${sha} is missing from evidence/`);
+    return { path: p, sidecar };
+  }
+
+  /** Record what OCR read on an image (PR11). Replaces any earlier reading. */
+  setOcr(sha: string, ocr: unknown): EvidenceSidecar {
+    const v = validate(OcrSchema, ocr);
+    return this.store.write('evidence', sha, () => ({ patch: { ocr: v } }), { mustExist: true });
+  }
+}

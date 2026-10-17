@@ -1,0 +1,40 @@
+// Helpers the services share: input validation, the clock, and checks that referenced ids exist.
+import type { z } from 'zod';
+import type { Evidence, EvidenceInput } from '../../shared/schema/index.js';
+import { ulid } from '../../shared/ulid.js';
+import { ValidationError, type EntityKind, type Store } from '../store/index.js';
+
+/** Validate a caller's input; a ValidationError listing every issue otherwise. */
+export function validate<S extends z.ZodType>(schema: S, input: unknown): z.infer<S> {
+  const r = schema.safeParse(input ?? {});
+  if (r.success) return r.data;
+  const issues = r.error.issues.map((i) => ({ key: i.path.map(String).join('.'), message: i.message }));
+  throw new ValidationError(issues.map((i) => (i.key ? `${i.key}: ${i.message}` : i.message)).join('; '), issues);
+}
+
+export const nowIso = (store: Store) => store.now().toISOString();
+
+/** Today's date (YYYY-MM-DD) in the profile's time zone, else the machine's. */
+export function today(store: Store): string {
+  const tz = store.profile()?.timezone;
+  try {
+    return new Intl.DateTimeFormat('en-CA', { timeZone: tz, year: 'numeric', month: '2-digit', day: '2-digit' }).format(store.now());
+  } catch {
+    return new Intl.DateTimeFormat('en-CA', { year: 'numeric', month: '2-digit', day: '2-digit' }).format(store.now());
+  }
+}
+
+/** Refuse ids that don't exist (files on disk may dangle; a request has no excuse). */
+export function requireIds(store: Store, kind: EntityKind, ids: readonly (string | null | undefined)[], key: string): void {
+  const missing = ids.filter((id): id is string => !!id && !store.get(kind, id));
+  if (missing.length) throw new ValidationError(`${key}: there's no ${kind} ${missing.join(', ')}`, [{ key, message: `no such ${kind}` }]);
+}
+
+/** Give evidence ids where they're missing, and check that stored files exist. */
+export function withEvidenceIds(store: Store, evidence: readonly EvidenceInput[]): Evidence[] {
+  requireIds(store, 'evidence', evidence.map((e) => e.blob), 'evidence.blob');
+  return evidence.map((e) => ({ ...e, id: e.id ?? ulid(store.now().getTime()) }));
+}
+
+/** An object without its undefined members (so a merge patch doesn't mention them). */
+export const defined = <T extends Record<string, unknown>>(o: T): Partial<T> => Object.fromEntries(Object.entries(o).filter(([, v]) => v !== undefined)) as Partial<T>;
