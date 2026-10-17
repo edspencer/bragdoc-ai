@@ -28,8 +28,10 @@ export class AchievementService {
    */
   create(input: unknown): { achievement: Achievement; created: boolean } {
     const v = validate(AchievementCreateSchema, input);
-    const existing =
-      (v.externalKey && this.store.achievementIdByKey(v.externalKey)) || (v.legacyId && this.store.achievementIdByLegacyId(v.legacyId)) || undefined;
+    // checked here, synchronously, right before the write: a caller that awaited something first (an MCP tool storing
+    // a file) can't have two requests for the same key both get past the check
+    const keys = [v.externalKey, ...(v.evidence ?? []).map((e) => e.externalKey)].filter((k): k is string => !!k);
+    const existing = keys.map((k) => this.store.achievementIdByKey(k)).find(Boolean) || (v.legacyId && this.store.achievementIdByLegacyId(v.legacyId)) || undefined;
     if (existing) return { achievement: this.get(existing), created: false };
     requireIds(this.store, 'project', v.projects ?? [], 'projects');
     requireIds(this.store, 'repo', v.repos ?? [], 'repos');

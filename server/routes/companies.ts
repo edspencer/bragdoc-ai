@@ -1,4 +1,4 @@
-// Companies (SPEC R6): optional, so a project can have none. Deleting one leaves its projects in "No company" (D40).
+// Companies (SPEC R6): optional, so a project can have none. Deleting one leaves its projects in "No company" (D45).
 //   GET    /api/companies                every company (CompaniesResponse)
 //   POST   /api/companies                create (CompanyCreateSchema) → 201 CompanyEntry
 //   PATCH  /api/companies/:id            edit (CompanyUpdateSchema; If-Match)

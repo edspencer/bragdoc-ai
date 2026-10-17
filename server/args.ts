@@ -8,7 +8,7 @@ export class UsageError extends Error {}
 /** Options that take a value (`--port 5050` or `--port=5050`). */
 const VALUE_FLAGS = ['port', 'host', 'data-dir'];
 /** Options that don't. */
-const BOOLEAN_FLAGS = ['open', 'dry-run'];
+const BOOLEAN_FLAGS = ['open', 'dry-run', 'stdio', 'print', 'snippet'];
 
 export interface ParsedArgs {
   pos: string[];

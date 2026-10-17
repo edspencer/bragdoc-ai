@@ -1,5 +1,5 @@
 // Every repo BragDoc knows, at the foot of the Projects page: which projects each is linked to, adding one by its
-// folder or remote URL, and deleting one (it's unlinked from projects and achievements, with Undo; D40).
+// folder or remote URL, and deleting one (it's unlinked from projects and achievements, with Undo; D45).
 import { useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { FolderGit2, Plus, Trash2 } from 'lucide-react';

@@ -7,6 +7,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { PACKAGE_ROOT, tildify } from '../paths.js';
 import { type Runner, type Streamer, defaultRunner, defaultStreamer } from '../platform/runner.js';
+import { type AllowedBin, type RunOptions, type RunResult, run as procRun } from '../proc.js';
 import { type Probe, probeHealth } from './ready.js';
 
 export interface Ctx {
@@ -27,6 +28,8 @@ export interface Ctx {
   packageRoot: string;
   run: Runner;
   stream: Streamer;
+  /** Run an allow-listed program (proc.ts run()): `claude` for `mcp install`. */
+  proc(bin: AllowedBin, args: readonly string[], opts?: RunOptions): Promise<RunResult>;
   probe(port: number): Promise<Probe>;
   sleep(ms: number): Promise<void>;
   now(): number;
@@ -67,6 +70,7 @@ export function makeCtx(o: CtxOptions = {}): Ctx {
     packageRoot: realpath(PACKAGE_ROOT),
     run: defaultRunner,
     stream: defaultStreamer,
+    proc: procRun,
     probe: (port) => probeHealth(port),
     sleep: (ms) => new Promise((r) => setTimeout(r, ms)),
     now: Date.now,

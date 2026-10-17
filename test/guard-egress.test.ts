@@ -59,6 +59,10 @@ const ALLOWED_IMPORTS: Record<string, string> = {
   'node:url': 'fileURLToPath',
   'node:crypto': 'tokens, hashes',
   'node:tty': "banner.ts: WriteStream#getColorDepth for Node's own colour rules (no I/O)",
+  '@modelcontextprotocol/server':
+    "the MCP server (PR9): createMcpHandler answers web-standard Requests handed to it, McpServer registers tools; it opens no connection and fetches nothing (its own deps: @modelcontextprotocol/core and zod)",
+  'node:readline': "the stdio bridge (server/mcp/bridge.ts) reads stdin a line at a time",
+  'node:stream': 'types only (Readable, Writable) for the bridge\'s injectable stdin/stdout',
 };
 /** Allowed in one file only. */
 const ALLOWED_IMPORTS_IN: Record<string, string> = {
@@ -106,6 +110,9 @@ const ALLOWED: Record<string, Record<string, number>> = {
   'server/commands/ready.ts': {
     fetch: 1, // INTERIM (D32): GET http://127.0.0.1:<port>/api/health, loopback only
     bannedName: 1, // INTERIM (D32): import net from 'node:net' (a TCP connect to 127.0.0.1)
+  },
+  'server/commands/mcp.ts': {
+    bannedName: 1, // `claude mcp add --transport http …`: the word is an argument to claude, run through proc.ts
   },
   'shared/ulid.ts': {
     globalObject: 1, // globalThis.crypto.getRandomValues(bytes): shared/ runs in the browser too, so no node:crypto

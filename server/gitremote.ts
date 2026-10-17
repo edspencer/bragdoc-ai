@@ -1,4 +1,4 @@
-// Adding a repo by its folder (SPEC R6): is it a git checkout, and what's its remote (D41)? This reads exactly one repo's
+// Adding a repo by its folder (SPEC R6): is it a git checkout, and what's its remote (D46)? This reads exactly one repo's
 // git config: `<folder>/.git/config`, or, for a linked worktree or submodule (where `.git` is a file saying
 // `gitdir: …`), the config that points at. Nothing else on the disk is listed or scanned (onboarding's folder scan is
 // a separate, bounded feature), and nothing is run: no `git` subprocess, so it works without git installed.

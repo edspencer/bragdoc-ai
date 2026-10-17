@@ -1,5 +1,5 @@
 // New / edit company (SPEC R6: name, role, start, end; all optional but the name), and deleting one: its projects
-// move to "No company", with Undo (D40).
+// move to "No company", with Undo (D45).
 import { useEffect, useState, type FormEvent } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import type { CompanyEntry, ProjectEntry } from '../../shared/api.ts';
