@@ -19,8 +19,10 @@ import { ifMatch, repoEntry } from './entries.js';
 
 /** A remote the user typed: one we understand, in its one spelling (no credentials survive normalising). */
 function checkRemote(url: string): string {
-  const r = normalizeRemote(url);
-  if (!r) throw new ValidationError(`"${url}" isn't a repository URL BragDoc understands (try https://github.com/owner/repo)`, [{ key: 'remoteUrl', message: 'not a repository URL' }]);
+  // `github.com/owner/repo`, as people often type it (and as the form's placeholder shows it), means https
+  const typed = url.trim();
+  const r = normalizeRemote(/^[\w-]+(\.[\w-]+)+\/[^\s:]+$/.test(typed) ? `https://${typed}` : typed);
+  if (!r) throw new ValidationError(`"${url}" isn't a repository URL BragDoc understands (try github.com/owner/repo)`, [{ key: 'remoteUrl', message: 'not a repository URL' }]);
   return r.url;
 }
 

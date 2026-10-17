@@ -214,13 +214,24 @@ export class CompanyService {
 
   create(input: unknown): Company {
     const v = validate(CompanyCreateSchema, input);
+    if (v.start && v.end && v.end < v.start) throw new ValidationError(`end: you left (${v.end}) before you started (${v.start})`, [{ key: 'end', message: 'before the start' }]);
     const id = ulid(this.store.now().getTime());
     return this.store.write('company', id, () => ({ patch: defined({ id, ...v }) }), { createOnly: true });
   }
 
   update(id: string, input: unknown, opts: IfMatch = {}): Company {
     const v = validate(CompanyUpdateSchema, input);
-    return this.store.write('company', id, () => ({ patch: defined(v) }), { ...opts, mustExist: true });
+    return this.store.write(
+      'company',
+      id,
+      (cur) => {
+        const start = v.start === undefined ? cur?.start : v.start;
+        const end = v.end === undefined ? cur?.end : v.end;
+        if (start && end && end < start) throw new ValidationError(`end: you left (${end}) before you started (${start})`, [{ key: 'end', message: 'before the start' }]);
+        return { patch: defined(v) };
+      },
+      { ...opts, mustExist: true },
+    );
   }
 
   remove(id: string, opts: IfMatch = {}): { removedTo: string } {

@@ -2,7 +2,7 @@
 // future projects, row packing for overlaps, and company swimlanes with "No company".
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { bar, chartWidth, durationLabel, fitWindow, gridlines, packRows, pct, swimlanes } from '../src/lib/gantt.ts';
+import { bar, chartWidth, labelPlacement, durationLabel, fitWindow, gridlines, packRows, pct, swimlanes } from '../src/lib/gantt.ts';
 
 const TODAY = '2026-10-17';
 const p = (id: string, start: string, end: string | null, companyId: string | null = null) => ({ id, name: id, start, end, companyId });
@@ -32,8 +32,9 @@ test('no projects, or one short one: at least six months, ending a little after 
 test('gridlines label the year at January and on the first line; thin out for long windows', () => {
   const w = fitWindow([p('a', '2025-11-03', null)], TODAY);
   const g = gridlines(w);
-  assert.deepEqual(g.slice(0, 4).map((x) => x.label), ['Nov 2025', 'Dec', 'Jan 2026', 'Feb']);
-  assert.equal(g.find((x) => x.label === 'Jan 2026')!.major, true);
+  assert.deepEqual(g.slice(0, 4).map((x) => x.label), ['Nov', 'Dec', 'Jan', 'Feb']);
+  assert.deepEqual(g.slice(0, 4).map((x) => x.year), ['2025', undefined, '2026', undefined]);
+  assert.equal(g[2].major, true);
   const long = gridlines(fitWindow([p('a', '2016-03-01', '2018-01-01')], TODAY));
   assert.ok(long.every((x) => x.date.endsWith('-01-01')), 'yearly lines for a ten-year window');
   assert.ok(long.some((x) => x.label === '2020'));
@@ -95,4 +96,11 @@ test('durations read like people say them', () => {
 test('the chart grows with its window, within bounds', () => {
   assert.equal(chartWidth(fitWindow([], TODAY)), 760);
   assert.equal(chartWidth(fitWindow([p('a', '2006-01-01', null)], TODAY)), 2400);
+});
+
+test('a short bar\'s name goes beside it when there\'s room', () => {
+  assert.equal(labelPlacement({ left: 10, width: 20 }, 100, 1000), 'inside');
+  assert.equal(labelPlacement({ left: 10, width: 2 }, 100, 1000), 'after');
+  assert.equal(labelPlacement({ left: 90, width: 2 }, 100, 1000, 100, 0), 'before');
+  assert.equal(labelPlacement({ left: 50, width: 2 }, 100, 1000, 55, 45), 'inside', 'boxed in: cut short inside');
 });

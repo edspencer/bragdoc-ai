@@ -71,16 +71,15 @@ export function pct(w: GanttWindow, d: string): number {
 export interface Gridline {
   date: string;
   left: number;
-  /** `Mar`, or `2027` / `Jan 2027` at a year boundary. */
+  /** `Mar` (or the year itself, when the lines are a year apart). */
   label: string;
+  /** The year, on the first line and at each New Year, so a timeline across a year boundary reads right. */
+  year?: string;
   /** A year boundary (drawn stronger). */
   major: boolean;
 }
 
-/**
- * Month gridlines, thinned out as the window grows: every month up to two years, every quarter up to six, then every
- * January. Year boundaries are labelled with the year, so a timeline across New Year reads right.
- */
+/** Month gridlines, thinned out as the window grows: every month up to two years, every quarter up to six, then every January. */
 export function gridlines(w: GanttWindow): Gridline[] {
   const n = monthsBetween(w.start, w.end);
   const step = n <= 24 ? 1 : n <= 72 ? 3 : 12;
@@ -88,10 +87,10 @@ export function gridlines(w: GanttWindow): Gridline[] {
   for (let d = w.start; d < w.end; d = addMonths(d, 1)) {
     const m = parseDay(d).getUTCMonth();
     if (m % step !== 0) continue;
-    const mon = parseDay(d).toLocaleString('en', { month: 'short', timeZone: 'UTC' });
     const year = d.slice(0, 4);
     const major = m === 0;
-    out.push({ date: d, left: pct(w, d), label: major ? (step === 12 ? year : `${mon} ${year}`) : out.length === 0 ? `${mon} ${year}` : mon, major });
+    if (step === 12) out.push({ date: d, left: pct(w, d), label: year, major });
+    else out.push({ date: d, left: pct(w, d), label: parseDay(d).toLocaleString('en', { month: 'short', timeZone: 'UTC' }), year: major || out.length === 0 ? year : undefined, major });
   }
   return out;
 }
@@ -188,6 +187,21 @@ export function durationLabel(p: Pick<GanttProject, 'start' | 'end'>, today: str
   }
   return p.end ? s : `${s} · ongoing`;
 }
+
+/**
+ * Where a bar's name goes: inside when it fits, else just after the bar when there's room before the next one (or the
+ * chart's edge), else just before it, else inside, cut short. Widths in px; `textPx` is the name's estimated width.
+ */
+export function labelPlacement(b: { left: number; width: number }, textPx: number, chartPx: number, nextLeft = 100, prevRight = 0): 'inside' | 'after' | 'before' {
+  const px = (pc: number) => (pc / 100) * chartPx;
+  if (px(b.width) >= textPx + 28) return 'inside';
+  if (px(nextLeft - b.left - b.width) >= textPx + 16) return 'after';
+  if (px(b.left - prevRight) >= textPx + 16) return 'before';
+  return 'inside';
+}
+
+/** A rough width for a bar's label (bold 13.5px grotesk), px. */
+export const labelWidth = (name: string) => Math.min(name.length, 60) * 7.6;
 
 /** How wide the chart is drawn, in px: roomier for longer windows, so months stay readable; it scrolls sideways. */
 export function chartWidth(w: GanttWindow): number {

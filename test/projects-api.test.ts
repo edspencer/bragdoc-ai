@@ -269,6 +269,8 @@ describe('repos', () => {
     const r = await json<RepoCreateResponse>('POST', '/api/repos', { remoteUrl: 'https://github.com/example/site/' });
     assert.equal(r.status, 201);
     assert.equal(r.body.repo.name, 'example/site');
+    const bare = await json<RepoCreateResponse>('POST', '/api/repos', { remoteUrl: 'github.com/example/bare' });
+    assert.equal(bare.body.repo.remoteUrl, 'https://github.com/example/bare');
     assert.equal((await req('POST', '/api/repos', { remoteUrl: 'not a url' })).status, 400);
     assert.equal((await req('POST', '/api/repos', {})).status, 400);
   });
@@ -318,6 +320,25 @@ test('a project can\'t end before it starts, on create or edit', async () => {
     const patch = await app2.request(`${ORIGIN}/api/projects/${ok.id}`, { method: 'PATCH', headers: { host: 'localhost:2724', 'content-type': 'application/json' }, body: JSON.stringify({ start: '2026-06-01' }) });
     assert.equal(patch.status, 400);
     assert.match(((await patch.json()) as { error: { message: string } }).error.message, /before it starts/);
+  } finally {
+    h2.cleanup();
+  }
+});
+
+test('a project can\'t end before it starts, on create or edit; nor a company', async () => {
+  const h2 = storeHome();
+  try {
+    const app2 = createApp({ dataDir: h2.home, webDist: null, store: h2.store });
+    const send = (method: string, p: string, b: unknown) =>
+      app2.request(`${ORIGIN}${p}`, { method, headers: { host: 'localhost:2724', 'content-type': 'application/json' }, body: JSON.stringify(b) });
+    assert.equal((await send('POST', '/api/projects', { name: 'x', start: '2026-05-01', end: '2026-04-01' })).status, 400);
+    const ok = (await (await send('POST', '/api/projects', { name: 'x', start: '2026-05-01', end: '2026-05-01' })).json()) as ProjectEntry;
+    const patch = await send('PATCH', `/api/projects/${ok.id}`, { start: '2026-06-01' });
+    assert.equal(patch.status, 400);
+    assert.match(((await patch.json()) as { error: { message: string } }).error.message, /before it starts/);
+    assert.equal((await send('POST', '/api/companies', { name: 'c', start: '2026-05-01', end: '2026-04-01' })).status, 400);
+    const c = (await (await send('POST', '/api/companies', { name: 'c', start: '2026-05-01' })).json()) as CompanyEntry;
+    assert.equal((await send('PATCH', `/api/companies/${c.id}`, { end: '2026-01-01' })).status, 400);
   } finally {
     h2.cleanup();
   }
