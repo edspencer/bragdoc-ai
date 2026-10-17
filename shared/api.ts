@@ -194,7 +194,7 @@ export interface Detached {
 
 /**
  * `DELETE /api/projects/:id` (and companies, repos): the file goes to backups/removed/, and references to it are
- * taken off the files that had them (D39). Undo: `POST /api/<things>/:id/restore` with `{ reattach: detached }`.
+ * taken off the files that had them (D40). Undo: `POST /api/<things>/:id/restore` with `{ reattach: detached }`.
  */
 export interface DeleteResponse {
   removedTo: string;

@@ -3,7 +3,7 @@
 //   POST   /api/projects                 create (ProjectCreateSchema) → 201 ProjectEntry
 //   GET    /api/projects/:id             one ProjectEntry
 //   PATCH  /api/projects/:id             edit (ProjectUpdateSchema; If-Match)
-//   DELETE /api/projects/:id             move aside + untag its achievements (If-Match; D39) → DeleteResponse
+//   DELETE /api/projects/:id             move aside + untag its achievements (If-Match; D40) → DeleteResponse
 //   POST   /api/projects/:id/restore     undo a delete ({ reattach }) → ProjectEntry
 //   POST   /api/projects/:id/repos       link / unlink repos ({ link, unlink }) → ProjectEntry
 //   GET    /api/projects/:id/summary     its pile and counts (ProjectSummary)

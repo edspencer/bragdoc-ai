@@ -2,7 +2,7 @@
 // (`repoIds`); removing anything moves its file to backups/removed/ and leaves references to it alone, so restoring it
 // brings everything back as it was (meanwhile they're listed as dangling-reference Problems). `removeAndDetach` is what
 // the UI's delete does instead: it also takes the id off every file that refers to it, and says which, so
-// `restoreAndReattach` can undo both (D39).
+// `restoreAndReattach` can undo both (D40).
 import {
   CompanyCreateSchema,
   CompanyUpdateSchema,
@@ -184,7 +184,7 @@ export class ProjectService {
     return this.store.restore('project', id);
   }
 
-  /** Delete from the UI: move the file aside and take the project off everything that refers to it (D39). */
+  /** Delete from the UI: move the file aside and take the project off everything that refers to it (D40). */
   removeAndDetach(id: string, opts: IfMatch = {}): { removedTo: string; detached: Detached } {
     precheck(this.store, 'project', id, opts);
     const removedTo = this.store.remove('project', id, opts);
@@ -242,7 +242,7 @@ export class CompanyService {
     return this.store.restore('company', id);
   }
 
-  /** Delete from the UI: move the file aside and take the company off everything that refers to it (D39). */
+  /** Delete from the UI: move the file aside and take the company off everything that refers to it (D40). */
   removeAndDetach(id: string, opts: IfMatch = {}): { removedTo: string; detached: Detached } {
     precheck(this.store, 'company', id, opts);
     const removedTo = this.store.remove('company', id, opts);
@@ -333,7 +333,7 @@ export class RepoService {
     return this.store.restore('repo', id);
   }
 
-  /** Delete from the UI: move the file aside and take the repo off everything that refers to it (D39). */
+  /** Delete from the UI: move the file aside and take the repo off everything that refers to it (D40). */
   removeAndDetach(id: string, opts: IfMatch = {}): { removedTo: string; detached: Detached } {
     precheck(this.store, 'repo', id, opts);
     const removedTo = this.store.remove('repo', id, opts);

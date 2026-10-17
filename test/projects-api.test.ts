@@ -1,4 +1,4 @@
-// The project, company and repo routes (PR8): CRUD over HTTP, If-Match, delete-with-detach and its undo (D39), the
+// The project, company and repo routes (PR8): CRUD over HTTP, If-Match, delete-with-detach and its undo (D40), the
 // project summary, adding a repo by folder (one git config read, nothing else), and the live change events.
 import { afterEach, beforeEach, describe, test } from 'node:test';
 import assert from 'node:assert/strict';
