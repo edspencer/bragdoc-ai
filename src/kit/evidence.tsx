@@ -3,17 +3,11 @@
 // than the stored evidence schema (shared/schema/, PR3): the board maps one to the other, and builds the image URLs.
 import { FileText, Link2, Paperclip } from 'lucide-react';
 import { fmt } from '../lib/dates.ts';
+import type { EvidenceView } from './evidence-view.ts';
 import { GithubMark } from './icons.tsx';
 import { PdfPage, Print, StickyQuote } from './paper.tsx';
 
-export type EvidenceView =
-  | { kind: 'image'; src: string; alt: string; caption?: string; full?: string }
-  | { kind: 'pdf'; title: string; pages?: number; bytes?: number; href?: string }
-  | { kind: 'file'; name: string; bytes?: number; href?: string }
-  | { kind: 'link'; url: string; title?: string }
-  /** `title` is missing when GitHub isn't connected: the slab shows `owner/repo#n` instead. */
-  | { kind: 'github_pr'; repo: string; number: number; title?: string; url?: string; mergedAt?: string; additions?: number; deletions?: number }
-  | { kind: 'quote'; text: string; from?: string; where?: string };
+export type { EvidenceView };
 
 /** 1.2 MB, 340 KB, 12 B */
 export function formatBytes(n: number): string {

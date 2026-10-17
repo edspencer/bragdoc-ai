@@ -7,69 +7,18 @@
 // Adapted from the Scrapbook prototype's shared/composer.ts: its classification and PR regex (now shared/links.ts),
 // with real uploads and previews in place of the simulated ones.
 import { useCallback, useEffect, useRef, useState } from 'react';
-import type { EvidenceFile, LinkPreview } from '../../shared/api.ts';
-import { isHttpUrl, parsePrUrl } from '../../shared/links.ts';
-import type { Evidence } from '../../shared/schema/index.ts';
+import type { LinkPreview } from '../../shared/api.ts';
+import { isHttpUrl } from '../../shared/links.ts';
 import { NETWORK_ERROR, isApiError, previewLink, uploadEvidence } from '../api/client.ts';
 import { todayIso } from '../lib/dates.ts';
-import { stem } from './evidence.ts';
+import { localPreview, type Pending } from './links.ts';
+
+export { fallbackTitle, linkEvidence, localPreview, type Pending } from './links.ts';
 
 /** 25 MB, the server's limit (SPEC R3): checked here first, so a huge file isn't sent only to be refused. */
 export const MAX_UPLOAD_BYTES = 25 * 1024 * 1024;
 
-export type Pending =
-  | {
-      pid: number;
-      kind: 'file';
-      name: string;
-      bytes: number;
-      /** The browser's idea of its type ('' if none). */
-      type: string;
-      /** A local preview for pictures (an object URL), revoked when it goes. */
-      preview?: string;
-      status: 'uploading' | 'ready' | 'error';
-      error?: string;
-      evidence?: Evidence;
-      file?: EvidenceFile;
-      source: File;
-    }
-  | {
-      pid: number;
-      kind: 'link';
-      url: string;
-      status: 'loading' | 'ready';
-      preview: LinkPreview;
-    };
-
 let pidSeq = 1;
-
-/** What a link becomes when the server couldn't be asked: the same classification, without a title or suggestions. */
-export function localPreview(url: string): LinkPreview {
-  const pr = parsePrUrl(url);
-  if (pr) return { kind: 'github_pr', url: pr.url, repo: pr.fullName, number: pr.number, externalKey: pr.externalKey, suggestedProjects: [] };
-  let domain = url;
-  try {
-    domain = new URL(url).hostname.replace(/^www\./, '');
-  } catch {
-    /* shown as typed */
-  }
-  return { kind: 'url', url, domain };
-}
-
-/** The evidence a previewed link becomes. */
-export function linkEvidence(p: LinkPreview): Omit<Evidence, 'id'> {
-  return p.kind === 'github_pr'
-    ? { kind: 'github_pr', url: p.url, externalKey: p.externalKey, ...(p.title ? { title: p.title } : {}) }
-    : { kind: 'url', url: p.url };
-}
-
-/** A title when nothing was typed: the PR's title (or owner/repo#n), else the first file's name, else the link's domain. */
-export function fallbackTitle(pending: readonly Pending[]): string {
-  for (const p of pending) if (p.kind === 'link' && p.preview.kind === 'github_pr') return p.preview.title || `${p.preview.repo}#${p.preview.number}`;
-  for (const p of pending) if (p.kind === 'file') return stem(p.name);
-  for (const p of pending) if (p.kind === 'link' && p.preview.kind === 'url') return p.preview.domain;
-  return '';
-}
 
 /** "Couldn't add X: …", from an upload's failure. */
 function uploadError(name: string, e: unknown): string {

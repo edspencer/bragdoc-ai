@@ -4,7 +4,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import type { Evidence } from '../shared/schema/index.ts';
 import { describe, toView } from '../src/board/evidence.ts';
-import { fallbackTitle, localPreview } from '../src/board/composer.ts';
+import { fallbackTitle, localPreview } from '../src/board/links.ts';
 
 const SHA = 'a'.repeat(64);
 const ID = '01M570000000000000000000A1';

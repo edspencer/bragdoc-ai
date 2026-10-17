@@ -3,7 +3,7 @@ import type { EvidenceFile } from '../../shared/api.ts';
 import { isHttpUrl, parsePrKey, parsePrUrl } from '../../shared/links.ts';
 import type { Evidence } from '../../shared/schema/index.ts';
 import { evidenceUrl } from '../api/client.ts';
-import type { EvidenceView } from '../kit/index.ts';
+import type { EvidenceView } from '../kit/evidence-view.ts';
 
 /** A name for a file without its extension: `Q3 review.pdf` → `Q3 review`. */
 export const stem = (name: string) => name.replace(/\.[a-z0-9]{1,10}$/i, '') || name;
