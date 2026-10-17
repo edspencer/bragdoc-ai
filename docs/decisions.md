@@ -454,3 +454,32 @@ D17 onwards are decisions made while building.
   branch `next` until it merges into `main` (`website/README.md` "Deploying"). CI only builds and checks.
 - **Considered:** `starlight-blog` (a dependency on a third-party plugin's release cadence); an always-dark landing
   page like Hallway's (unlike the app); generating the brand placeholder here (the real kit exists).
+
+### D40 — Deleting a project, company or repo from the UI takes it off whatever refers to it (and undo puts it back)
+
+- The store's `remove` moves a file to `backups/removed/` and leaves references to it alone (D24), so a restore brings
+  everything back as it was. Left like that, deleting a project from the Projects page would leave every achievement
+  tagged with it pointing at nothing: a dangling-reference Problem each, in a list meant for broken hand edits.
+- So the HTTP delete (`DELETE /api/projects/:id`, `/api/companies/:id`, `/api/repos/:id`) calls `removeAndDetach`:
+  it checks `If-Match` first (a stale delete changes nothing), moves the file aside, then takes the id off every
+  achievement (`projects`, `repos`, `companyId`) and, for companies and repos, every project (`companyId`,
+  `repoIds`). It answers with the ids it changed (`detached`); `POST …/:id/restore` with `{ reattach: detached }`
+  undoes both, and never overwrites a company a project was given in the meantime. A file that can't be edited
+  (broken by hand, or from a newer BragDoc) keeps its dangling reference rather than failing the delete.
+- A deleted company's projects therefore land in the Gantt's "No company" lane (SPEC R6). The UI offers **Archive**
+  (status `archived`, hidden from the Gantt by default) next to Delete for anything you might want back later.
+- MCP and other callers keep the plain `remove` (references left, as D24 says) unless they choose otherwise.
+- **Considered:** refusing to delete anything still referenced (pushes people to hand-edit dozens of files);
+  leaving dangling references (Problems noise, and the Board would draw pills for projects that don't exist).
+
+### D41 — Adding a repo by folder reads that repo's git config, and nothing else
+
+- `POST /api/repos { localPath }` checks the folder exists and has a `.git` (a folder, or a `gitdir:` file for a
+  linked worktree or submodule), then reads exactly one file, that repository's `config`, for its remote: `origin`,
+  else the first. No folder is listed or scanned (onboarding's bounded scan is PR16), and no `git` is run, so it
+  works without git installed and stays off `proc.ts`'s allow-list.
+- A remote BragDoc can't normalise (`normalizeRemote`) is left out rather than stored as written: a URL in a git
+  config can carry credentials (`https://user:token@…`), and the normalised form never does.
+- The folder is stored as people write it (`~/Code/my-app`) and compared that way, so adding it twice finds the first.
+- A project's dates are checked on the way in (`end` on or after `start`); a hand-edited file that breaks the rule
+  still loads and still draws (the Gantt clamps it), since files are never rejected for what the UI wouldn't allow.
