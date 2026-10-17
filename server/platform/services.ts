@@ -4,6 +4,7 @@
 // (runner.ts), so the lifecycle is tested with the runner mocked, on every OS. index.ts picks the manager.
 import fs from 'node:fs';
 import path from 'node:path';
+import type { AllowedBin } from '../proc.js';
 import type { ServiceSpec } from './spec.js';
 
 /** What the service manager says about BragDoc's service. */
@@ -23,7 +24,7 @@ export interface ServiceStatus {
 }
 
 /** Where `bragdoc service logs` reads: a file it follows (launchd), or a command it runs (journalctl). */
-export type LogSource = { file: string } | { command: [string, string[]] };
+export type LogSource = { file: string } | { command: [AllowedBin, string[]] };
 
 export class ServiceManagerError extends Error {}
 

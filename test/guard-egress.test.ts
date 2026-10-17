@@ -1,5 +1,6 @@
 // A static guard (SPEC R4, D9): no code in server/ or shared/ may open a network connection or start a process, except
-// server/egress.ts (the one real fetch) and server/proc.ts (the one child_process import), and they may import only
+// server/egress.ts (the one real fetch, and the loopback probe's node:net) and server/proc.ts (the one child_process
+// import), and they may import only
 // the reviewed modules in ALLOWED_IMPORTS. If this fails, you've added
 // a way for BragDoc to talk to the network, or to run something, behind the user's back: send the request through
 // ctx.egress.egressFetch(), or the command through proc.run(). Never widen ALLOWED to make this pass without the
@@ -67,15 +68,7 @@ const ALLOWED_IMPORTS: Record<string, string> = {
 /** Allowed in one file only. */
 const ALLOWED_IMPORTS_IN: Record<string, string> = {
   'node:child_process': 'server/proc.ts',
-};
-/**
- * INTERIM (D32): PR5 was built alongside PR2, so `bragdoc service` and `--open` run their programs through
- * server/platform/runner.ts and probe /api/health from server/commands/ready.ts. Both move onto proc.ts / egress in a
- * follow-up; delete these entries then. Exact counts, as everywhere else: nothing new may join them.
- */
-const INTERIM_IMPORTS_IN: Record<string, string> = {
-  'node:child_process': 'server/platform/runner.ts', // launchctl/systemctl (execFile), journalctl -f, open/xdg-open
-  'node:net': 'server/commands/ready.ts', // the probe's fallback: does anything accept a TCP connection on 127.0.0.1?
+  'node:net': 'server/egress.ts', // loopbackAccepts (D47): does anything accept a TCP connection on 127.0.0.1?
 };
 
 const RULES: Record<string, { on: 'code' | 'strings'; re: RegExp }> = {
@@ -99,17 +92,11 @@ const RULES: Record<string, { on: 'code' | 'strings'; re: RegExp }> = {
 /** Exact counts per file (relative to the repo). Anything not listed must be zero. */
 const ALLOWED: Record<string, Record<string, number>> = {
   'server/egress.ts': {
-    globalObject: 1, // the one real network call: (url, init) => globalThis.fetch(url, init)
+    globalObject: 1, // the one real network call: realFetch = (url, init) => globalThis.fetch(url, init)
+    bannedName: 1, // import net from 'node:net' (loopbackAccepts, D47: a TCP connect to 127.0.0.1 only)
   },
   'server/proc.ts': {
     bannedName: 1, // import { execFile, spawn } from 'node:child_process'
-  },
-  'server/platform/runner.ts': {
-    bannedName: 1, // INTERIM (D32): import { execFile, spawn } from 'node:child_process'
-  },
-  'server/commands/ready.ts': {
-    fetch: 1, // INTERIM (D32): GET http://127.0.0.1:<port>/api/health, loopback only
-    bannedName: 1, // INTERIM (D32): import net from 'node:net' (a TCP connect to 127.0.0.1)
   },
   'server/commands/mcp.ts': {
     bannedName: 1, // `claude mcp add --transport http …`: the word is an argument to claude, run through proc.ts
@@ -270,7 +257,7 @@ test('no code in server/ or shared/ reaches the network or starts a process outs
     for (const spec of importsOf(src)) {
       if (spec.startsWith('.')) continue;
       const pkg = spec.startsWith('node:') ? spec.split('/')[0]! : spec.startsWith('@') ? spec.split('/').slice(0, 2).join('/') : spec.split('/')[0]!;
-      if (ALLOWED_IMPORTS[pkg] || ALLOWED_IMPORTS_IN[pkg] === rel || INTERIM_IMPORTS_IN[pkg] === rel) continue;
+      if (ALLOWED_IMPORTS[pkg] || ALLOWED_IMPORTS_IN[pkg] === rel) continue;
       problems.push(`${rel}: imports ${spec}, which isn't in ALLOWED_IMPORTS`);
     }
   }

@@ -37,6 +37,10 @@ There's one honest exception to "every request". If you connect GitHub through t
 to GitHub, not BragDoc. BragDoc logs each time it runs `gh` ("via gh CLI"), but it can't see inside `gh`'s own
 traffic. If you'd rather everything went through BragDoc's own logged path, use a personal access token instead.
 
+One thing isn't listed because it never leaves your computer: while `bragdoc service start` waits for BragDoc to
+come up, it asks `127.0.0.1` several times a second whether it's answering. That check can only reach this computer
+and sends nothing but the question. Logging it would bury the entries the log is there to show.
+
 ## This site, too
 
 This documentation site follows the same rule: no analytics, and it loads nothing (fonts, scripts, images) from

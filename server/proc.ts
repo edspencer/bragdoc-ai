@@ -1,4 +1,5 @@
-// The one way to run another program (SPEC R3, D9). execFile with an argument array, never a shell, so nothing in an
+// The one way to run another program (SPEC R3, D9): run() collects output, runAttached() hands it this terminal,
+// launch() starts one and lets it go. execFile with an argument array, never a shell, so nothing in an
 // argument (a repo path, a branch name) can be read as shell syntax; and only the allow-listed binaries below.
 // test/guard-egress.test.ts fails CI if any other file in server/ or shared/ imports node:child_process.
 //
@@ -98,9 +99,17 @@ export function run(bin: AllowedBin, args: readonly string[], { cwd, env = proce
   });
 }
 
+/** Signals that stop `bragdoc` while a child runs attached: each is passed on to the child, which ends the run. */
+const FORWARDED: readonly NodeJS.Signals[] = ['SIGINT', 'SIGTERM', 'SIGHUP'];
+
 /**
  * Run `bin` attached to this terminal (stdio inherited): for `bragdoc service logs`, which follows journalctl. Resolves
  * with the exit code (128 + signal number if it was killed).
+ *
+ * While it runs, SIGINT, SIGTERM and SIGHUP sent to this process are forwarded to the child. A terminal's Ctrl-C
+ * reaches the whole process group anyway, but a SIGTERM or SIGHUP sent to `bragdoc` alone (an agent's timeout, a
+ * closed ssh session) would otherwise leave `journalctl -f` running on its own, holding our stdout open. Our own
+ * listeners also keep Node from dying before the child has: the run ends when the child exits, and the listeners go.
  */
 export function runAttached(bin: AllowedBin, args: readonly string[], { cwd, env = process.env }: Pick<RunOptions, 'cwd' | 'env'> = {}): Promise<number> {
   return new Promise((resolve, reject) => {
@@ -108,7 +117,37 @@ export function runAttached(bin: AllowedBin, args: readonly string[], { cwd, env
     const file = resolveBin(bin, env);
     if (!file) return reject(notFound(bin));
     const child = spawn(file, [...args], { cwd, env, stdio: 'inherit', shell: false, windowsHide: true });
-    child.once('error', (e: NodeJS.ErrnoException) => reject(e.code === 'ENOENT' ? notFound(bin) : e));
-    child.once('exit', (code, signal) => resolve(code ?? 128 + (signal ? (os.constants.signals[signal] ?? 0) : 0)));
+    const forward = (sig: NodeJS.Signals) => child.kill(sig);
+    for (const s of FORWARDED) process.on(s, forward);
+    const settle = () => {
+      for (const s of FORWARDED) process.off(s, forward);
+    };
+    child.once('error', (e: NodeJS.ErrnoException) => {
+      settle();
+      reject(e.code === 'ENOENT' ? notFound(bin) : e);
+    });
+    child.once('exit', (code, signal) => {
+      settle();
+      resolve(code ?? 128 + (signal ? (os.constants.signals[signal] ?? 0) : 0));
+    });
+  });
+}
+
+/**
+ * Start `bin` and don't wait for it: the browser for `bragdoc --open`. Detached, with no stdio and unref'd, so it
+ * neither holds this terminal nor keeps BragDoc alive, and outlives it. Resolves once the program has started; rejects
+ * with ProcError if it isn't allowed, isn't installed or couldn't start.
+ */
+export function launch(bin: AllowedBin, args: readonly string[], { cwd, env = process.env }: Pick<RunOptions, 'cwd' | 'env'> = {}): Promise<void> {
+  return new Promise((resolve, reject) => {
+    assertAllowed(bin, args);
+    const file = resolveBin(bin, env);
+    if (!file) return reject(notFound(bin));
+    const child = spawn(file, [...args], { cwd, env, stdio: 'ignore', detached: true, shell: false, windowsHide: true });
+    child.once('error', (e: NodeJS.ErrnoException) => reject(e.code === 'ENOENT' ? notFound(bin) : new ProcError(`${bin}: ${e.message}`, 'failed')));
+    child.once('spawn', () => {
+      child.unref();
+      resolve();
+    });
   });
 }

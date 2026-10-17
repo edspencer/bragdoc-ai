@@ -12,7 +12,11 @@
 // - Every request, allowed or denied, is appended to logs/network.jsonl (path only, never the query string, which
 //   can carry secrets), and rotated at LOG_MAX_BYTES. `gh` runs are logged too (logProcess), honestly marked as
 //   "via gh CLI": their traffic leaves outside this process, so all we can record is that we ran it.
+// - One exception, by construction loopback-only (D47): the CLI's readiness probe, probeLoopback() and
+//   loopbackAccepts() below, asks 127.0.0.1 whether BragDoc is up. Its host is fixed, it carries no data, and it isn't
+//   logged: `bragdoc service start` polls every 250 ms, and a log of what leaves this computer isn't the place for it.
 import fs from 'node:fs';
+import net from 'node:net';
 import type { NetworkLogEntry, NetworkLogResponse } from '../shared/api.js';
 import { appendLine } from './atomic.js';
 import type { Config } from './config.js';
@@ -46,6 +50,9 @@ export function egressAllowList(config: Config): string[] {
 
 type FetchFn = (url: URL, init: RequestInit) => Promise<Response>;
 
+/** The one real network call in the codebase (test/guard-egress.test.ts counts its globalThis). */
+const realFetch: FetchFn = (url, init) => globalThis.fetch(url, init);
+
 export interface EgressOptions {
   dataDir: string;
   /** The live settings (ConfigStore.get), asked on every request. */
@@ -69,8 +76,7 @@ export class Egress {
 
   constructor(private readonly opts: EgressOptions) {
     this.file = homePaths(opts.dataDir).networkLog;
-    // the one real network call in the codebase (test/guard-egress.test.ts counts its globalThis)
-    this.impl = opts.fetchImpl ?? ((url, init) => globalThis.fetch(url, init));
+    this.impl = opts.fetchImpl ?? realFetch;
     this.now = opts.now ?? (() => new Date());
   }
 
@@ -182,6 +188,36 @@ export class Egress {
     }
     this.opts.onLog?.(e);
   }
+}
+
+function assertPort(port: number): void {
+  if (!Number.isInteger(port) || port < 1 || port > 65535) throw new RangeError(`not a port: ${port}`);
+}
+
+/**
+ * GET `http://127.0.0.1:<port><path>`, unlogged and without following redirects: the readiness probe's question to a
+ * BragDoc that may be starting (D47). The host is fixed, so this can't be pointed anywhere but this computer. Rejects
+ * as fetch does: refused, reset, or a TimeoutError after `timeoutMs`.
+ */
+export async function probeLoopback(port: number, pathname: string, timeoutMs: number): Promise<Response> {
+  assertPort(port);
+  if (!pathname.startsWith('/') || pathname.startsWith('//')) throw new RangeError(`not a path: ${pathname}`);
+  return realFetch(new URL(`http://127.0.0.1:${port}${pathname}`), { signal: AbortSignal.timeout(timeoutMs), redirect: 'manual' });
+}
+
+/** Does anything accept a TCP connection on 127.0.0.1:port? The connection is closed at once, nothing is sent (D47). */
+export async function loopbackAccepts(port: number, timeoutMs: number): Promise<boolean> {
+  assertPort(port);
+  return await new Promise((resolve) => {
+    const s = net.connect({ port, host: '127.0.0.1' });
+    const done = (v: boolean) => {
+      s.destroy();
+      resolve(v);
+    };
+    s.setTimeout(timeoutMs, () => done(false));
+    s.once('connect', () => done(true));
+    s.once('error', () => done(false));
+  });
 }
 
 function rotateIfNeeded(file: string): void {

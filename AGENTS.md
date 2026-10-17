@@ -61,8 +61,8 @@ server/              the server and CLI (Node, TypeScript ESM, Hono)
   commands/          every other command, one file each, one line in commands/index.ts (Hallway's shape); context.ts
                      is the injectable Ctx (runner, probe, clock), ready.ts the /api/health probe and readiness wait
   platform/          `bragdoc service`: spec.ts (what the service is), launchd.ts / systemd.ts (the writers, pinned by
-                     test/fixtures/services/), path.ts (the PATH captured at install), runner.ts (its subprocesses;
-                     interim, until it moves onto proc.ts: D32), index.ts (which manager this OS has; Windows: not yet)
+                     test/fixtures/services/), path.ts (the PATH captured at install), runner.ts (the injectable Runner
+                     / Streamer, defaulting to proc.ts), index.ts (which manager this OS has; Windows: not yet)
   index.ts           createApp (routes → JSON 404 for /api/* → static files → SPA fallback) and startServer
   context.ts         AppContext: what every route module gets (version, dataDir, config, bus, egress, runtime,
                      uploads, notices, store, services)
@@ -79,8 +79,10 @@ server/              the server and CLI (Node, TypeScript ESM, Hono)
   config.ts          config.yaml: Zod schema, defaults, the schemaVersion downgrade guard, live re-read (ConfigStore)
   home.ts            the data home's layout and .gitignore on first run; moves the old CLI's files into legacy-cli/
   runtime.ts         runtime.json (0600): pid, port, url and the MCP token, which survives restarts; constantTimeEqual
-  egress.ts          the ONLY outbound network path: egressFetch({purpose}, url), allow-list, logs/network.jsonl
-  proc.ts            the ONLY way to run a program: run()/runAttached(), allow-listed binaries, no shell
+  egress.ts          the ONLY outbound network path: egressFetch({purpose}, url), allow-list, logs/network.jsonl;
+                     plus probeLoopback()/loopbackAccepts(), the CLI's unlogged 127.0.0.1-only readiness probe (D47)
+  proc.ts            the ONLY way to run a program: run(), runAttached() (forwards SIGINT/TERM/HUP), launch()
+                     (detached, for --open); allow-listed binaries, no shell
   events.ts          the event bus + the SSE stream (GET /api/events)
   atomic.ts          the platform's own writes (runtime.json, the network log, starter files): atomic, create-only (D27)
   routes/index.ts    registerRoutes(): one line per feature module (D18)

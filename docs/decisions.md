@@ -550,3 +550,22 @@ D17 onwards are decisions made while building.
 - The folder is stored as people write it (`~/Code/my-app`) and compared that way, so adding it twice finds the first.
 - A project's dates are checked on the way in (`end` on or after `start`); a hand-edited file that breaks the rule
   still loads and still draws (the Gantt clamps it), since files are never rejected for what the UI wouldn't allow.
+
+### D47 — The CLI's readiness probe lives in egress.ts, is fixed to 127.0.0.1, and isn't logged
+
+- `bragdoc service start|restart|status` polls `GET /api/health` every 250 ms for up to 20 s, and `serve` asks the
+  same question once when its port is taken; when that request fails, a plain TCP connect tells "nothing there"
+  from "something that isn't HTTP". Both now live in `server/egress.ts` as `probeLoopback(port, path, timeoutMs)` and
+  `loopbackAccepts(port, timeoutMs)`, so `node:net` and the real `fetch` are still in one file only (SPEC R4).
+- **They don't write to `logs/network.jsonl`.** A deviation from R4's "every request is logged", on purpose: the
+  network log is the record of what BragDoc sends (or tried to send) somewhere, and a poll would fill it (up to 80 lines
+  per start) with BragDoc asking itself whether it's up, burying the entries it exists to show. The exemption is safe by
+  construction rather than by policy: the host is a constant (`127.0.0.1`), the caller gives only a port (checked as an
+  integer, 1–65535) and a path (must start with a single `/`), no body or headers can be passed, redirects aren't
+  followed, and the TCP check sends nothing. The CLI also has no data home's config or `Egress` instance at that point
+  (it's probing a server that may not exist yet).
+- Everything else to loopback (the `bragdoc mcp` stdio bridge, D44) still goes through `egressFetch` and is logged:
+  it carries data.
+- **Considered:** `egressFetch` with a "don't log" flag (a flag any caller could set, to any allowed host); logging
+  only the first and last poll (still the CLI writing into the server's log, from another process); a separate
+  `server/platform/probe.ts` allowed `node:net` (a second network file for the guard to trust).
