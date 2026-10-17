@@ -1,4 +1,4 @@
-// The store's changes, onto the event bus (D39). The store announces every change to a data file, whether BragDoc
+// The store's changes, onto the event bus (D45). The store announces every change to a data file, whether BragDoc
 // wrote it (a route, an MCP tool) or something else did (a hand edit, `git pull`, an agent editing the file), as a
 // StoreChange; here each becomes a ServerEvent named after its entity (`{ type: 'achievement' }`), plus
 // `{ type: 'problems' }`, since any change can fix or break a file. The web app refetches whatever depends on that

@@ -80,7 +80,7 @@ export function createApp({ dataDir, webDist = WEB_DIST, version = VERSION, star
     services: createServices(store),
     linkPreviews: o.linkPreviews ?? new LinkPreviews(),
   };
-  // every change to a data file (ours, an agent's over MCP, a hand edit the watcher saw) reaches open tabs (D39)
+  // every change to a data file (ours, an agent's over MCP, a hand edit the watcher saw) reaches open tabs (D45)
   forwardStoreChanges(store, bus);
 
   // first, so nothing (a route, a static file, the SPA fallback) answers a request it hasn't checked (D10)

@@ -18,7 +18,7 @@ import { useQueryClient, type QueryClient } from '@tanstack/react-query';
 
 /** `change` type (ServerEvent['type']) → the first segments of the query keys it makes stale. */
 export const CHANGE_INVALIDATES: Record<string, readonly string[]> = {
-  // the store (PR7, D39): one type per kind of data file, plus the Problems list
+  // the store (PR7, D45): one type per kind of data file, plus the Problems list
   achievement: ['achievements'],
   // a sidecar: OCR text (searchable) and sizes shown on cards
   evidence: ['achievements'],

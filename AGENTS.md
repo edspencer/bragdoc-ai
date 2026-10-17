@@ -76,7 +76,7 @@ server/              the server and CLI (Node, TypeScript ESM, Hono)
   egress.ts          the ONLY outbound network path: egressFetch({purpose}, url), allow-list, logs/network.jsonl
   proc.ts            the ONLY way to run a program: run()/runAttached(), allow-listed binaries, no shell
   events.ts          the event bus + the SSE stream (GET /api/events)
-  live.ts            forwards every store change onto the bus as a ServerEvent named after its entity (D39)
+  live.ts            forwards every store change onto the bus as a ServerEvent named after its entity (D45)
   link-preview.ts    LinkPreviews: the GitHub PR lookup POST /api/link-preview uses, once a GitHub source registers one
   views.ts           how achievements look in the API: achievementView() (+ etag, files, broken), evidenceFile()
   atomic.ts          the platform's own writes (runtime.json, the network log, starter files): atomic, create-only (D27)
@@ -179,7 +179,7 @@ locally (and `npm run test:e2e` if you touched anything it covers), and CI is gr
 - **Live updates:** `ctx.store.subscribe(fn)` hears every change as a `StoreChange` (`shared/schema/change.ts`),
   whether BragDoc wrote it or a hand edit did; the watcher runs under `startServer`. Our own writes are one event each.
   `server/live.ts` already forwards them all to the browser (`{ type: 'achievement' | 'project' | … | 'problems' }`,
-  debounced per type, D39): don't add another forwarder. A page that shows store data just needs query keys that start
+  debounced per type, D45): don't add another forwarder. A page that shows store data just needs query keys that start
   with the matching prefix in `CHANGE_INVALIDATES` (`achievements`, `projects`, `repos`, `companies`, `found`,
   `profile`, `problems`).
 - **A field on a data file:** add it as optional (or with a default) to its schema in `shared/schema/`, with a
@@ -254,8 +254,8 @@ the services' input schemas.
 | `POST /api/achievements` | `AchievementCreate` → 201 `{ achievement, created: true }`, or 200 `created: false` when its top-level `externalKey` (or `legacyId`) is already on the board |
 | `PATCH /api/achievements/:id` | `AchievementUpdate` with `If-Match: <etag>` → the new view; a stale ETag is 409 `conflict` (with the current `ETag` header) |
 | `POST /api/achievements/:id/{archive,unarchive,remove,restore}` | remove moves the file to `backups/removed/` (`{ removedTo }`; takes `If-Match`), restore brings the newest copy back |
-| `POST /api/evidence` | a typed upload (raw bytes, Content-Type, URI-encoded `X-Filename`) → `{ evidence, file, created }`: an Evidence item with a fresh id, on no achievement yet (send it in `evidence`). 413 over 25 MB; 415 `type_mismatch` / `damaged` (D41) |
-| `GET /api/evidence/:sha` · `/thumb` | the file with the blob headers (non-pictures download); `/thumb` is pictures only (D40) |
+| `POST /api/evidence` | a typed upload (raw bytes, Content-Type, URI-encoded `X-Filename`) → `{ evidence, file, created }`: an Evidence item with a fresh id, on no achievement yet (send it in `evidence`). 413 over 25 MB; 415 `type_mismatch` / `damaged` (D47) |
+| `GET /api/evidence/:sha` · `/thumb` | the file with the blob headers (non-pictures download); `/thumb` is pictures only (D46) |
 | `POST /api/link-preview` | `{ url }` → `LinkPreview`: a PR → `owner/repo#n`, its `github_pr:` key (lower case: build keys with `prKey()` from `shared/links.ts`), the matching repo, its projects as suggestions, `onBoard`; a title only via `ctx.linkPreviews.setGithub(lookup)` (PR13 registers it). Other URLs → domain only, never fetched |
 | `GET /api/projects` · `/api/repos` | read-only lists with `etag` (projects also `achievements`, a count); PR8 owns the writes |
 | `GET /api/problems` · `/api/found/count` | the Problems list; `{ pending }` for Found's strip and badge |

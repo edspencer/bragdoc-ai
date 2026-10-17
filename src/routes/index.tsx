@@ -1,6 +1,6 @@
 // The board (SPEC R5): the composer, the "N waiting in Found" strip, a Problems banner when files in the data home are
 // broken, search, then your achievements grouped by week in a masonry, newest first, older weeks paged in as you
-// scroll. Everything refreshes live when files change on disk (the store's changes arrive over SSE, D39).
+// scroll. Everything refreshes live when files change on disk (the store's changes arrive over SSE, D45).
 // Adapted from the Scrapbook prototype's Board.tsx.
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
