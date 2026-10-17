@@ -1,0 +1,30 @@
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: /
+    # v0.1 is built on next (#411); point this at the default branch once next has merged into main.
+    target-branch: next
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 10
+    groups:
+      # Everything that ships to users' machines (the `dependencies`: the server's runtime).
+      production:
+        dependency-type: production
+        update-types: [minor, patch]
+      # Build and test tooling, and the frontend libraries bundled into dist/web at build time.
+      development:
+        dependency-type: development
+        update-types: [minor, patch]
+    # Majors come as one PR each, so each gets read.
+
+  - package-ecosystem: github-actions
+    directory: /
+    target-branch: next
+    schedule:
+      interval: weekly
+    groups:
+      actions:
+        patterns: ["*"]
+
+  # The docs site (website/, PR18) gets its own entry here when it lands: it's a standalone package with its own lockfile.

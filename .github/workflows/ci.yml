@@ -1,0 +1,98 @@
+name: CI
+
+# `next` is where v0.1 is built (#411); `main` is listed now so nothing needs editing when next merges into it.
+on:
+  push:
+    branches: [next, main]
+  pull_request:
+    branches: [next, main]
+
+# A new push to a PR cancels that PR's older run. Pushes get a group per commit, so they never cancel each other: the
+# release workflow (PR6) waits for the CI run on the exact commit it releases, and a cancelled run there would block it.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event_name == 'pull_request' && github.ref || github.sha }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: Test (Node ${{ matrix.node }}, ${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    # A green run takes a minute or two; a hung test should fail fast, not hold a runner for six hours.
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        node: ['22.12', '22', '24']
+        # macOS and Linux are both first-class (SPEC R1), so both run everything.
+        os: [ubuntu-latest, macos-latest]
+    steps:
+      - uses: actions/checkout@v7
+      # `22.12` is the oldest supported Node (engines.node); `22` resolves to the newest 22.x, so without it the floor
+      # would go untested. Node 22 bundles npm 10 and the lockfile is written by npm 11; `npm ci` reads it with both.
+      - uses: actions/setup-node@v7
+        with:
+          node-version: ${{ matrix.node }}
+          cache: npm
+      # Before `npm ci`: it needs no dependencies and is near-instant. A raw 0x00 in a source file is invisible in
+      # diffs and makes grep/ripgrep skip the whole file as binary (scripts/check-no-nul-bytes.mjs).
+      - name: No raw NUL bytes in JS/TS sources
+        run: npm run check:nul
+      - run: npm ci
+      - name: Typecheck
+        run: npm run typecheck
+      - name: Tests
+        run: npm test
+      - name: Build
+        run: npm run build
+      - name: The built CLI runs
+        run: node dist/server/cli.js --version
+
+  # The built server in a real browser (playwright.config.ts boots it on a throwaway HOME). One cell is enough: the
+  # unit tests cover the platforms, this covers the browser.
+  e2e:
+    name: E2E (Chromium)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - run: npm run build
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium-headless-shell
+      - name: Playwright
+        run: npm run test:e2e
+      - name: Keep the traces of a failure
+        if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: playwright-traces
+          path: test-results/
+          retention-days: 7
+
+  # PR5 adds a real `services` job and PR18 a `website` job here; add each to ci-passed's `needs`.
+
+  # One stable check name to require in branch rules, so the matrix can change without editing them.
+  ci-passed:
+    name: CI passed
+    if: always()
+    needs: [test, e2e]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Require every job to have passed
+        env:
+          RESULTS: ${{ join(needs.*.result, ' ') }}
+        run: |
+          echo "results: ${RESULTS}"
+          for r in ${RESULTS}; do
+            if [ "${r}" != "success" ]; then
+              echo "::error::a required job concluded '${r}'"
+              exit 1
+            fi
+          done

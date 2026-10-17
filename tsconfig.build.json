@@ -1,0 +1,13 @@
+{
+  // `npm run build:server`: compile the server (and the shared code it uses) to dist/server and dist/shared.
+  "extends": "./tsconfig.server.json",
+  "compilerOptions": {
+    "noEmit": false,
+    "allowImportingTsExtensions": false,
+    "rootDir": ".",
+    "outDir": "dist",
+    "sourceMap": false,
+    "rewriteRelativeImportExtensions": true
+  },
+  "include": ["server", "shared"]
+}

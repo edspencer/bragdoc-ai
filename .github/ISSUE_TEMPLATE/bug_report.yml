@@ -1,0 +1,77 @@
+name: Bug report
+description: Something in BragDoc doesn't work the way it should
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for reporting it. For a security problem, please don't use this form: report it privately (see SECURITY.md).
+
+        Screenshots and logs can show your achievements, project names and file paths. Leave out anything you don't want public.
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened
+      description: What you saw, and what you expected instead.
+    validations:
+      required: true
+  - type: textarea
+    id: repro
+    attributes:
+      label: Steps to reproduce
+      description: The commands you ran and what you clicked.
+      placeholder: |
+        1. `npx @bragdoc/local`
+        2. Open http://localhost:2724 and …
+        3. Click …
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: BragDoc version
+      description: The output of `bragdoc --version` (or `npx @bragdoc/local --version`).
+      placeholder: "0.1.0"
+    validations:
+      required: true
+  - type: dropdown
+    id: install
+    attributes:
+      label: How you run it
+      options:
+        - npx
+        - npm install -g
+        - Docker
+        - As a service (bragdoc service install)
+        - From a checkout
+    validations:
+      required: true
+  - type: dropdown
+    id: os
+    attributes:
+      label: Operating system
+      options:
+        - macOS
+        - Linux
+        - Windows (not officially supported)
+        - Other
+    validations:
+      required: true
+  - type: input
+    id: node
+    attributes:
+      label: Node.js version
+      description: The output of `node --version`.
+      placeholder: "v22.12.0"
+  - type: input
+    id: browser
+    attributes:
+      label: Browser
+      description: If it's about the UI.
+      placeholder: "Chrome 141, Safari 26, …"
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs and screenshots
+      description: Server output from the terminal, errors from the browser console, screenshots.
+      render: text

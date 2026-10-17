@@ -1,0 +1,18 @@
+{
+  // The web app (src/, bundled by Vite) and the shared code it imports. The server has its own config
+  // (tsconfig.server.json). website/ (the docs site, PR18) is its own project with its own config: it's never included here.
+  "compilerOptions": {
+    "target": "ES2022",
+    "lib": ["ES2023", "DOM", "DOM.Iterable"],
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "jsx": "react-jsx",
+    "strict": true,
+    "skipLibCheck": true,
+    "noEmit": true,
+    "isolatedModules": true,
+    "allowImportingTsExtensions": true,
+    "types": ["vite/client"]
+  },
+  "include": ["src", "shared"]
+}

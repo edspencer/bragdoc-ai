@@ -1,0 +1,3 @@
+/* Tailwind v4. PR4 replaces the placeholder look with the Scrapbook tokens (light + lamplight), mapped through
+   `@theme inline`, and the self-hosted fonts. */
+@import 'tailwindcss';

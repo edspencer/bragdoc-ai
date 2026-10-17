@@ -1,0 +1,16 @@
+{
+  // The server and CLI (server/), the code shared with the web app (shared/), the unit tests and the e2e specs. Run
+  // from source by tsx; compiled to dist/ by tsconfig.build.json. website/ is deliberately not included.
+  "compilerOptions": {
+    "target": "ES2023",
+    "lib": ["ES2023"],
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "strict": true,
+    "skipLibCheck": true,
+    "noEmit": true,
+    "types": ["node"],
+    "allowImportingTsExtensions": true
+  },
+  "include": ["server", "shared", "test", "e2e", "playwright.config.ts"]
+}

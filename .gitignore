@@ -1,0 +1,25 @@
+node_modules/
+dist/
+coverage/
+# `npm pack` output
+*.tgz
+.DS_Store
+*.log
+.env
+.env.*
+!.env.example
+# TanStack Router's generated route tree: `npm run routes` (and typecheck, dev and build) regenerate it, so parallel
+# PRs that each add a route never conflict over it.
+src/routeTree.gen.ts
+# Playwright: test output, reports, and the MCP's scratch (snapshots, screenshots from driving the UI)
+test-results/
+playwright-report/
+.playwright-mcp/
+# Scratch from QA and local task notes: never committed
+qa/
+.qa/
+tasks/
+# Personal agent rules for this checkout (Claude Code reads it next to CLAUDE.md); never committed.
+CLAUDE.local.md
+# Infrastructure state never belongs in this repo (the old hosted app's was removed from next)
+*.tfstate*
