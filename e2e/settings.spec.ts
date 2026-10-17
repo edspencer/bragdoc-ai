@@ -74,6 +74,31 @@ test('Sources: the MCP token shows, copies and rotates; writeTo saves to config.
   await expect.poll(() => fs.readFileSync(path.join(HOME, 'config.yaml'), 'utf8')).toMatch(/writeTo: board/);
 });
 
+test('Sources: arrow keys move through writeTo and keep focus; a broken config.yaml is refused and the choice snaps back', async ({ page }) => {
+  await page.goto('/settings/sources');
+  const board = page.getByLabel(/Straight onto your board/);
+  await expect(board).toBeChecked();
+  await board.focus();
+  await page.keyboard.press('ArrowDown');
+  await expect(page.getByLabel(/Into Found/)).toBeFocused();
+  await expect.poll(() => fs.readFileSync(path.join(HOME, 'config.yaml'), 'utf8')).toMatch(/writeTo: found/);
+  await page.keyboard.press('ArrowUp');
+  await expect(board).toBeFocused();
+  await expect.poll(() => fs.readFileSync(path.join(HOME, 'config.yaml'), 'utf8')).toMatch(/writeTo: board/);
+
+  const file = path.join(HOME, 'config.yaml');
+  const good = fs.readFileSync(file, 'utf8');
+  fs.writeFileSync(file, 'mcp: [broken\n');
+  try {
+    await page.getByLabel(/Into Found/).click();
+    await expect(page.getByText(/won't overwrite it/)).toBeVisible();
+    await expect(board).toBeChecked();
+    expect(fs.readFileSync(file, 'utf8')).toBe('mcp: [broken\n');
+  } finally {
+    fs.writeFileSync(file, good);
+  }
+});
+
 test('About: this build says what it is, "unofficial build", and never "verified"', async ({ page }) => {
   await page.goto('/settings/about');
   await expect(page.getByTestId('build-stamp')).toHaveText(/Unofficial build/i);

@@ -79,7 +79,7 @@ export function useSettings() {
   return useQuery({ queryKey: queryKeys.settings, queryFn: ({ signal }) => getSettings(signal) });
 }
 
-/** The MCP token, fetched only once the user asks to see or copy it. */
+/** The MCP token (Settings → Sources fetches it with the page, shown masked, so Copy works in one click). */
 export function useMcpToken(enabled: boolean) {
   return useQuery({ queryKey: queryKeys.mcpToken, queryFn: ({ signal }) => getMcpToken(signal), enabled, staleTime: Infinity });
 }

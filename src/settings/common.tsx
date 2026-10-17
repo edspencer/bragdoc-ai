@@ -36,13 +36,15 @@ export async function copyText(text: string): Promise<boolean> {
 }
 
 /** A Copy button that says "Copied" for a moment, or "Select and copy it by hand" if copying failed. */
-export function CopyButton({ text, label = 'Copy', what, onSlab, testId }: { text: string; label?: string; what: string; onSlab?: boolean; testId?: string }) {
+/** `onFail`: copying didn't work, so the caller can make sure the text is on screen to copy by hand (an unmasked token). */
+export function CopyButton({ text, label = 'Copy', what, onSlab, testId, onFail }: { text: string; label?: string; what: string; onSlab?: boolean; testId?: string; onFail?: () => void }) {
   const [state, setState] = useState<'idle' | 'copied' | 'failed'>('idle');
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
   useEffect(() => () => void (timer.current && clearTimeout(timer.current)), []);
   const click = async () => {
     const ok = await copyText(text);
     setState(ok ? 'copied' : 'failed');
+    if (!ok) onFail?.();
     if (timer.current) clearTimeout(timer.current);
     timer.current = setTimeout(() => setState('idle'), ok ? 1500 : 4000);
   };

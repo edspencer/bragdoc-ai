@@ -2,12 +2,12 @@
 // till receipt, newest first and a page at a time, live as requests happen; the allow-list as stamps; and a button
 // that asks for a forbidden request so you can watch it be refused. Adapted from the prototype's Network (Settings.tsx):
 // its receipt and stamps, without its Slack and AI lines.
-import { Fragment, useState } from 'react';
-import { useMutation } from '@tanstack/react-query';
+import { Fragment } from 'react';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { ShieldCheck } from 'lucide-react';
 import type { GuardCheckResponse, NetworkLogEntry } from '../../shared/api.ts';
 import { checkEgressGuard } from '../api/client.ts';
-import { useMeta, useNetworkLog } from '../api/queries.ts';
+import { queryKeys, useMeta, useNetworkLog } from '../api/queries.ts';
 import { Btn, Kicker, Receipt, SectionTitle, Stamp, Sticky, formatBytes } from '../kit/index.ts';
 import { LoadError, Loading } from './common.tsx';
 
@@ -16,7 +16,7 @@ const LOOPBACK = new Set(['localhost', '127.0.0.1', '[::1]']);
 
 /** Purposes people should be able to read without knowing the code. Anything else is shown as it is. */
 const PURPOSE: Record<string, string> = {
-  'settings.guard-check': 'Guard check from Settings: refused on purpose',
+  'settings.guard-check': 'Guard check from Settings',
 };
 
 const hostname = (host: string) => (host.startsWith('[') ? host.slice(0, host.indexOf(']') + 1) : host.replace(/:\d+$/, ''));
@@ -166,7 +166,9 @@ function Line({ e, time }: { e: NetworkLogEntry; time: string }) {
 const Tag = ({ children, className }: { children: string; className: string }) => <span className={`ml-1.5 whitespace-nowrap rounded px-1 text-[10px] font-bold ${className}`}>{children}</span>;
 
 function WhereItGoes() {
-  const check = useMutation({ mutationFn: checkEgressGuard });
+  const qc = useQueryClient();
+  // refetch the receipt ourselves too: the live event is the usual way, but the stream may be reconnecting
+  const check = useMutation({ mutationFn: checkEgressGuard, onSettled: () => qc.invalidateQueries({ queryKey: queryKeys.networkLog }) });
   const r: GuardCheckResponse | undefined = check.data;
   return (
     <div className="space-y-5">
@@ -190,7 +192,7 @@ function WhereItGoes() {
         <div aria-live="polite" className="mt-2">
           {r?.refused && (
             <div className="text-good" data-testid="guard-check-ok">
-              Refused, and nothing was sent. It’s on the receipt.
+              Refused, and nothing was sent. The refusal is logged on the receipt.
             </div>
           )}
           {r && !r.refused && (

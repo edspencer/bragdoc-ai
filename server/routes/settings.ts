@@ -31,11 +31,12 @@ const settingsOf = (c: Config): SettingsResponse => ({
 
 export function registerSettings(app: Hono, ctx: AppContext): void {
   // Problems can change with any file (a fix, a break, a deletion that leaves a reference dangling) and with a misnamed
-  // file arriving. Pushed only when the list really changed, after a burst settles (a `git pull` is many changes).
+  // file arriving. Checked 150 ms after the first change of a burst (a `git pull` is many changes; a steady stream of
+  // them can't postpone the check forever), and pushed only when the list really changed.
   let last = JSON.stringify(ctx.store.problems());
   let timer: NodeJS.Timeout | null = null;
   ctx.store.subscribeProblems(() => {
-    if (timer) clearTimeout(timer);
+    if (timer) return;
     timer = setTimeout(() => {
       timer = null;
       const now = JSON.stringify(ctx.store.problems());

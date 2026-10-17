@@ -59,6 +59,38 @@ describe('config.yaml edits from Settings', () => {
     assert.equal(config.get().mcp.writeTo, 'board');
   }));
 
+  test('an empty section (`mcp:` with its keys commented out) is the defaults, and can be set', withHome((dir) => {
+    const file = path.join(dir, 'config.yaml');
+    fs.writeFileSync(file, 'mcp:\n  # writeTo: found\n');
+    const config = new ConfigStore(dir);
+    assert.equal(config.get().mcp.writeTo, 'board');
+    assert.deepEqual(config.notices(), []);
+    config.update({ mcp: { writeTo: 'found' } });
+    assert.equal(config.get().mcp.writeTo, 'found');
+  }));
+
+  test('a symlinked config.yaml stays a symlink, and a mode you chose is kept', { skip: process.platform === 'win32' }, withHome((dir) => {
+    const real = path.join(path.dirname(dir), 'dotfiles-config.yaml');
+    fs.renameSync(path.join(dir, 'config.yaml'), real);
+    fs.chmodSync(real, 0o600);
+    fs.symlinkSync(real, path.join(dir, 'config.yaml'));
+    new ConfigStore(dir).update({ mcp: { writeTo: 'found' } });
+    assert.ok(fs.lstatSync(path.join(dir, 'config.yaml')).isSymbolicLink());
+    assert.match(fs.readFileSync(real, 'utf8'), /writeTo: found/);
+    assert.equal(fs.statSync(real).mode & 0o777, 0o600);
+  }));
+
+  test('an anchored value is never spliced: an alias to it keeps its own value', withHome((dir) => {
+    const file = path.join(dir, 'config.yaml');
+    fs.writeFileSync(file, 'mcp:\n  writeTo: &w board\nx-mine: *w\n');
+    const config = new ConfigStore(dir);
+    config.update({ mcp: { writeTo: 'found' } });
+    assert.equal(config.get().mcp.writeTo, 'found');
+    const text = fs.readFileSync(file, 'utf8');
+    assert.match(text, /x-mine: (?:\*w|board)/);
+    assert.doesNotMatch(text, /x-mine: found/);
+  }));
+
   test('a broken config.yaml is never overwritten; the change is refused and nothing is written', withHome((dir) => {
     const file = path.join(dir, 'config.yaml');
     for (const broken of ['mcp: [unclosed\n', 'mcp: { writeTo: sideways }\n', 'schemaVersion: 9\n']) {
@@ -199,7 +231,31 @@ describe('Problems', () => {
   }));
 });
 
+describe('the new writes keep the security rules', () => {
+  test('a CORS-safelisted content type is 415 and a foreign Origin 403, on every Settings write', withHome(async (dir) => {
+    const app = createApp({ dataDir: dir, webDist: null });
+    for (const [p, method] of [['/api/settings/mcp', 'PUT'], ['/api/network-log/guard-check', 'POST'], ['/api/mcp/token/rotate', 'POST']] as const) {
+      assert.equal((await app.request(p, { method, headers: { 'Content-Type': 'text/plain' }, body: '{"writeTo":"found"}' })).status, 415, p);
+      assert.equal((await app.request(p, { method, headers: { 'Content-Type': 'application/json', Origin: 'https://evil.example' }, body: '{"writeTo":"found"}' })).status, 403, p);
+    }
+    assert.match(fs.readFileSync(path.join(dir, 'config.yaml'), 'utf8'), /writeTo: board/, 'nothing changed');
+  }));
+});
+
 describe('the egress guard check', () => {
+  test('a guard that let the request through is reported as broken, whichever way it failed', withHome(async (dir) => {
+    const config = new ConfigStore(dir);
+    for (const fetchImpl of [async () => new Response('hi'), async (): Promise<Response> => Promise.reject(new Error('ENOTFOUND'))]) {
+      // an allow-list that (wrongly) includes the host: what a broken guard would look like
+      const egress = new Egress({ dataDir: dir, config: () => config.get(), fetchImpl });
+      (egress as unknown as { allowList: () => string[] }).allowList = () => [GUARD_CHECK_HOST];
+      const app = createApp({ dataDir: dir, webDist: null, config, egress });
+      const r = (await (await app.request('/api/network-log/guard-check', post)).json()) as GuardCheckResponse;
+      assert.equal(r.refused, false);
+      assert.match(r.message, /not refused/);
+    }
+  }));
+
   test('a request to a .invalid host is refused before anything is sent, and the refusal is logged', withHome(async (dir) => {
     let sent = 0;
     const events: ServerEvent[] = [];

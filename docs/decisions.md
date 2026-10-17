@@ -455,7 +455,7 @@ D17 onwards are decisions made while building.
 - **Considered:** `starlight-blog` (a dependency on a third-party plugin's release cadence); an always-dark landing
   page like Hallway's (unlike the app); generating the brand placeholder here (the real kit exists).
 
-### D40 — Settings edits config.yaml through `ConfigStore.update()`, byte for byte where it can
+### D45 — Settings edits config.yaml through `ConfigStore.update()`, byte for byte where it can
 
 - The Settings pages change settings (PR10: `mcp.writeTo`; PR13 and PR15 their sources) with `ctx.config.update(patch)`,
   a JSON merge patch applied to the file **as it is on disk at that moment**, so a hand edit made a second earlier
@@ -472,7 +472,7 @@ D17 onwards are decisions made while building.
 - **Considered:** making config.yaml a store entity (a lot of machinery for one file whose reader already exists);
   re-printing the document every time (it re-spaces the comments people line up).
 
-### D41 — Settings → Network activity can ask for a forbidden request ("Test the guard")
+### D46 — Settings → Network activity can ask for a forbidden request ("Test the guard")
 
 - `POST /api/network-log/guard-check` asks `egress` for `https://guard-check.bragdoc.invalid/`. It's refused before
   anything is sent (no allow-list can contain it, and `.invalid` can never resolve anyway, RFC 2606), logged like any

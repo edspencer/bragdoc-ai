@@ -1,7 +1,7 @@
 // config.yaml: BragDoc's settings, validated with Zod (SPEC R2). Every key is optional with a default, so a missing or
 // empty file is a valid one. home.ts writes the starter copy once; after that it's the user's, and the only other
 // writer is update() below, which Settings uses: a minimal edit through the store's yamldoc and safefs, so comments,
-// key order and keys this build doesn't know all survive, and a broken file is never overwritten (D40).
+// key order and keys this build doesn't know all survive, and a broken file is never overwritten (D45).
 //
 // The schemaVersion downgrade guard is Paddock's (schema-version.ts, its #724): a config.yaml from a NEWER BragDoc
 // refuses to boot, because reading it with this build would silently drop every key it doesn't know. Never
@@ -33,27 +33,36 @@ export function normalizeHostname(h: string): string {
   return s;
 }
 
+/** A section written but left empty (`mcp:` with its keys commented out) is YAML null: treat it as absent, so its defaults apply. */
+const section = <T extends z.ZodType>(s: T) => z.preprocess((v) => (v === null ? undefined : v), s);
+
 export const ConfigSchema = z.object({
   schemaVersion: z.number().int().optional(),
   /** Hostnames BragDoc answers to besides loopback: for Docker or a reverse proxy (SPEC R3). */
   allowedHosts: z.array(z.string().trim().min(1)).default([]),
-  mcp: z
-    .object({
-      /** Where achievements from MCP agents go: straight onto the board (D11's default) or into Found. */
-      writeTo: z.enum(['board', 'found']).default('board'),
-    })
-    .prefault({}),
-  sources: z
-    .object({
-      github: z
-        .object({
-          enabled: z.boolean().default(false),
-          /** `gh`: the GitHub CLI's own login (its traffic is logged as "via gh CLI"). `token`: a PAT in secrets.yaml. */
-          auth: z.enum(['gh', 'token']).default('gh'),
-        })
-        .prefault({}),
-    })
-    .prefault({}),
+  mcp: section(
+    z
+      .object({
+        /** Where achievements from MCP agents go: straight onto the board (D11's default) or into Found. */
+        writeTo: z.enum(['board', 'found']).default('board'),
+      })
+      .prefault({}),
+  ),
+  sources: section(
+    z
+      .object({
+        github: section(
+          z
+            .object({
+              enabled: z.boolean().default(false),
+              /** `gh`: the GitHub CLI's own login (its traffic is logged as "via gh CLI"). `token`: a PAT in secrets.yaml. */
+              auth: z.enum(['gh', 'token']).default('gh'),
+            })
+            .prefault({}),
+        ),
+      })
+      .prefault({}),
+  ),
 });
 export type Config = z.infer<typeof ConfigSchema>;
 
@@ -80,6 +89,17 @@ sources:
 /** config.yaml was written by a newer BragDoc: refuse to start (the CLI prints the message and exits 1). */
 export class ConfigFromTheFuture extends Error {}
 
+/** config.yaml's text, a stamp that changes with any edit, and its permission bits. A missing file is the template. */
+function readForUpdate(file: string): { text: string; stamp: string; mode?: number } {
+  try {
+    const st = fs.statSync(file);
+    return { text: fs.readFileSync(file, 'utf8'), stamp: `${st.ino}:${st.size}:${st.mtimeMs}`, mode: st.mode & 0o777 };
+  } catch (e) {
+    if ((e as NodeJS.ErrnoException).code !== 'ENOENT') throw new ConfigWriteError(`${tildify(file)} can't be read (${(e as NodeJS.ErrnoException).code ?? (e as Error).message})`);
+    return { text: CONFIG_TEMPLATE, stamp: 'missing' };
+  }
+}
+
 /**
  * The common case of a settings change, one existing plain value (`writeTo: board` → `found`), done by replacing just
  * that value's characters, so the rest of the file stays byte for byte (re-printing the document would also re-space
@@ -95,8 +115,9 @@ function spliceScalar(text: string, doc: ReturnType<typeof parseDocument>['doc']
     v = entries[0]![1];
   }
   if (!keys.length || !(typeof v === 'boolean' || (typeof v === 'string' && /^[a-z][a-z0-9-]*$/.test(v) && !['true', 'false', 'null', 'yes', 'no', 'on', 'off'].includes(v)))) return null;
-  const node = doc.getIn(keys, true) as { type?: string; range?: [number, number, number] } | undefined;
-  if (!node?.range || node.type !== 'PLAIN') return null;
+  const node = doc.getIn(keys, true) as { type?: string; range?: [number, number, number]; anchor?: string } | undefined;
+  // an anchored value may be aliased elsewhere (`other: *w`): splicing it would change those too, silently
+  if (!node?.range || node.type !== 'PLAIN' || node.anchor) return null;
   return text.slice(0, node.range[0]) + String(v) + text.slice(node.range[1]);
 }
 
@@ -197,27 +218,35 @@ export class ConfigStore {
    * settings, which are in force at once (onChange fires).
    */
   update(patch: Record<string, unknown>): Config {
-    let text: string;
+    // a config.yaml symlinked into a dotfiles repo stays a symlink: the write goes to the file it points at
+    let target = this.file;
     try {
-      text = fs.readFileSync(this.file, 'utf8');
-    } catch (e) {
-      if ((e as NodeJS.ErrnoException).code !== 'ENOENT') throw new ConfigWriteError(`${path.basename(this.file)} can't be read (${(e as NodeJS.ErrnoException).code ?? (e as Error).message})`);
-      text = CONFIG_TEMPLATE;
+      target = fs.realpathSync(this.file);
+    } catch {
+      /* none yet: create it where it belongs */
     }
-    const before = parseConfig(text, path.basename(this.file));
-    if (!before.ok) throw new ConfigWriteError(`${before.message.replace(/\.?$/, '.')} Fix it by hand first: BragDoc won't overwrite it.`);
-    const p = parseDocument(text);
-    if (p.error) throw new ConfigWriteError(`config.yaml isn't valid YAML: ${p.error.message}`); // parseConfig agreed it was; belt and braces
-    let out = spliceScalar(text, p.doc, patch);
-    if (out === null) {
-      mergePatch(p.doc, patch);
-      out = stringify(p.doc);
+    // a hand edit that lands while we work is re-read and the change made again on top of it, rather than overwritten
+    for (let attempt = 0; ; attempt++) {
+      const read = readForUpdate(target);
+      const before = parseConfig(read.text, path.basename(this.file));
+      if (!before.ok) throw new ConfigWriteError(`${before.message.replace(/\.?$/, '.')} Fix it by hand first: BragDoc won't overwrite it.`);
+      const p = parseDocument(read.text);
+      if (p.error) throw new ConfigWriteError(`config.yaml isn't valid YAML: ${p.error.message}`); // parseConfig agreed it was; belt and braces
+      let out = spliceScalar(read.text, p.doc, patch);
+      if (out === null) {
+        mergePatch(p.doc, patch);
+        out = stringify(p.doc);
+      }
+      const after = parseConfig(out, path.basename(this.file));
+      if (!after.ok) throw new ConfigWriteError(after.message);
+      if (readForUpdate(target).stamp !== read.stamp) {
+        if (attempt < 3) continue;
+        throw new ConfigWriteError('config.yaml keeps changing while BragDoc tries to save it. Try again in a moment.');
+      }
+      atomicWrite(target, out, read.mode === undefined ? {} : { mode: read.mode }); // keeps a mode you chose (chmod 600)
+      this.refresh(false);
+      return this.current;
     }
-    const after = parseConfig(out, path.basename(this.file));
-    if (!after.ok) throw new ConfigWriteError(after.message);
-    atomicWrite(this.file, out);
-    this.refresh(false);
-    return this.current;
   }
 
   private refresh(boot: boolean): void {

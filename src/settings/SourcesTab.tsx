@@ -3,7 +3,7 @@
 // folder are cards whose insides their sources fill in (PR13, PR15); every source is off until you turn it on.
 // Adapted from the prototype's Sources (Settings.tsx): its card grid, tape and status line, without Slack and the
 // "coming soon" connectors.
-import { useState, type ReactNode } from 'react';
+import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { Bot, Eye, EyeOff, ImageIcon, KeyRound } from 'lucide-react';
 import type { SettingsResponse } from '../../shared/api.ts';
@@ -17,7 +17,7 @@ export function SourcesTab() {
   const settings = useSettings();
   return (
     <div className="space-y-6" data-testid="settings-sources">
-      <SectionTitle sub="Each source collects candidates on its own and drops them into Found. Nothing reaches your board until you keep it, and every source is off until you turn it on.">
+      <SectionTitle sub="GitHub and the screenshots folder collect candidates on their own and drop them into Found, where nothing reaches your board until you keep it. Both are off until you turn them on. Agents can only connect with the token below.">
         Sources
       </SectionTitle>
       <Notices />
@@ -32,7 +32,13 @@ export function SourcesTab() {
           tilt={-0.4}
           blurb="Pull requests you merged, checked every hour, through the gh CLI if you have it or a token you paste."
           on={settings.data?.sources.github.enabled ?? false}
-          status={settings.data?.sources.github.enabled ? { tone: 'good', text: `On, through ${settings.data.sources.github.auth === 'gh' ? 'the gh CLI' : 'a token'}.` } : { tone: 'off', text: 'Off. Nothing is collected.' }}
+          status={
+            !settings.isSuccess
+              ? { tone: 'off', text: settings.isError ? 'Couldn’t read your settings.' : '…' }
+              : settings.data.sources.github.enabled
+                ? { tone: 'good', text: `On, through ${settings.data.sources.github.auth === 'gh' ? 'the gh CLI' : 'a token'}.` }
+                : { tone: 'off', text: 'Off. Nothing is collected.' }
+          }
           soon="Connecting GitHub from here comes with the GitHub source."
         />
         {/* PR15 fills this card: pick a folder, the last-7-days look-back, and "40 looked at · 3 sent to Found" */}
@@ -82,6 +88,15 @@ function AgentsCard({ settings, loading }: { settings: SettingsResponse | undefi
   const token = useMcpToken(true);
   const [show, setShow] = useState(false);
   const [confirming, setConfirming] = useState(false);
+  const rotateBtn = useRef<HTMLButtonElement>(null);
+  const keepBtn = useRef<HTMLButtonElement>(null);
+  const wasConfirming = useRef(false);
+  // focus goes into the confirmation when it opens, and back to the button that opened it when it closes
+  useEffect(() => {
+    if (confirming) keepBtn.current?.focus();
+    else if (wasConfirming.current) rotateBtn.current?.focus();
+    wasConfirming.current = confirming;
+  }, [confirming]);
 
   const rotate = useMutation({
     mutationFn: rotateMcpToken,
@@ -94,12 +109,20 @@ function AgentsCard({ settings, loading }: { settings: SettingsResponse | undefi
   });
   // the choice shows at once (a controlled radio would snap back until the mutation's state arrives a tick later), and
   // goes back to what's saved if saving fails
+  // goes back to what's saved if saving fails. Arrowing through the options sends each; only the last one's answer
+  // (or a fresh read) decides what's shown, so the radios stay enabled and keep keyboard focus.
   const [choice, setChoice] = useState<'board' | 'found' | null>(null);
+  const latest = useRef<'board' | 'found' | null>(null);
   const writeTo = useMutation({
     mutationFn: putMcpSettings,
-    onSuccess: (r) => qc.setQueryData(queryKeys.settings, r),
     onError: (e) => toast({ msg: e instanceof Error ? e.message : 'Couldn’t save that.', tone: 'bad' }),
-    onSettled: () => setChoice(null),
+    onSettled: (r, _e, vars) => {
+      if (vars.writeTo !== latest.current) return; // a later choice is on its way
+      if (r) qc.setQueryData(queryKeys.settings, r);
+      else void qc.invalidateQueries({ queryKey: queryKeys.settings });
+      latest.current = null;
+      setChoice(null);
+    },
   });
 
   const url = token.data?.url ?? meta.data?.mcpUrl;
@@ -138,13 +161,13 @@ function AgentsCard({ settings, loading }: { settings: SettingsResponse | undefi
               </div>
             ) : (
               <div className="mt-1.5 flex flex-wrap items-center gap-2">
-                <code className="min-w-0 break-all rounded-lg bg-sunk px-3 py-1.5 font-mono text-[13px]" data-testid="mcp-token">
+                <code className="min-w-0 break-all rounded-lg bg-sunk px-3 py-1.5 font-mono text-[13px]" data-testid="mcp-token" aria-label={token.data && !show ? 'Token, hidden' : undefined}>
                   {!token.data ? '…' : show ? token.data.token : '•'.repeat(24)}
                 </code>
                 <Btn size="sm" kind="ghost" onClick={() => setShow(!show)} disabled={!token.data} aria-pressed={show}>
                   {show ? <EyeOff className="size-3.5" aria-hidden /> : <Eye className="size-3.5" aria-hidden />} {show ? 'Hide' : 'Show'}
                 </Btn>
-                {token.data && <CopyButton text={token.data.token} what="the MCP token" testId="copy-mcp-token" />}
+                {token.data && <CopyButton text={token.data.token} what="the MCP token" testId="copy-mcp-token" onFail={() => setShow(true)} />}
               </div>
             )}
             <div className="mt-2 text-[12.5px] leading-snug text-muted">
@@ -152,7 +175,7 @@ function AgentsCard({ settings, loading }: { settings: SettingsResponse | undefi
             </div>
             <div className="mt-3">
               {!confirming ? (
-                <Btn size="sm" kind="danger" onClick={() => setConfirming(true)} data-testid="rotate-token">
+                <Btn ref={rotateBtn} size="sm" kind="danger" onClick={() => setConfirming(true)} data-testid="rotate-token">
                   Make a new token
                 </Btn>
               ) : (
@@ -162,7 +185,7 @@ function AgentsCard({ settings, loading }: { settings: SettingsResponse | undefi
                     <Btn size="sm" kind="danger" onClick={() => rotate.mutate()} disabled={rotate.isPending} data-testid="rotate-confirm-yes">
                       {rotate.isPending ? 'Making…' : 'Make a new token'}
                     </Btn>
-                    <Btn size="sm" kind="ghost" onClick={() => setConfirming(false)}>
+                    <Btn ref={keepBtn} size="sm" kind="ghost" onClick={() => setConfirming(false)}>
                       Keep this one
                     </Btn>
                   </div>
@@ -173,7 +196,7 @@ function AgentsCard({ settings, loading }: { settings: SettingsResponse | undefi
         </div>
 
         <div className="space-y-4">
-          <fieldset className="m-0 border-0 p-0" data-testid="mcp-write-to" disabled={!settings || choice !== null}>
+          <fieldset className="m-0 border-0 p-0" data-testid="mcp-write-to" disabled={!settings}>
             <legend className="p-0">
               <Kicker>Where their achievements go</Kicker>
             </legend>
@@ -195,6 +218,7 @@ function AgentsCard({ settings, loading }: { settings: SettingsResponse | undefi
                     checked={current === v}
                     onChange={() => {
                       setChoice(v);
+                      latest.current = v;
                       writeTo.mutate({ writeTo: v });
                     }}
                     className="mt-1 accent-[var(--accent)]"
