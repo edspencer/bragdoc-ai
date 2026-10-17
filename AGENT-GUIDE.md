@@ -116,6 +116,7 @@ site doesn't. What's there for agents today:
 | GET | `/api/events` | Server-sent events: what changed, as it changes |
 | GET | `/agent-guide.md`, `/llms.txt`, `/llms-full.txt` | This guide, with live facts |
 | POST | `/mcp` | MCP (needs the bearer token) |
+| POST | `/api/import/plan`, `/api/import/apply` | A hosted-app export (the JSON file as the body): what importing it would do, or do it |
 
 To write without MCP, edit the files (below).
 

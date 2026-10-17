@@ -517,3 +517,38 @@ D17 onwards are decisions made while building.
   `bragdoc` registration is replaced (`claude mcp remove`, then `add`, both at user scope). `--stdio` registers this
   Node and the realpath of `dist/server/cli.js` (npx's command when running from npx's cache), plus `--data-dir` when
   one was chosen; from an unbuilt checkout it refuses.
+
+### D45 — The importer: lenient per item, strict on the envelope; `legacyId` on companies and projects; 50 MB of JSON
+
+- `server/import/` reads the hosted app's export version 1.0 (its format only, D2). The envelope is all-or-nothing:
+  not JSON, not an object, no `version`, another `version`, or a list that isn't a list, and nothing is imported, with a
+  sentence saying which. Each item is then checked on its own and more forgivingly than the hosted app's schema (any
+  non-empty id, any date Date can read, a nullable field may be missing): one that still fails is an error in the
+  report and the rest import. Items that need a small change import with a warning (an unusable colour gets a swatch,
+  an unknown status becomes `active`/`done` by its end date, a reference to something not in the export is dropped and
+  kept under `meta.legacy`, an empty title takes the summary's first line, an impact off the 1–10 scale is kept only in
+  `meta.legacy`).
+- Idempotency is by the hosted id: `legacyId` on achievements (already in the schema), and now on **companies and
+  projects** too (optional fields, no version bump, D23); repos by their normalised remote; documents and reviews by
+  the `legacyId` in their front-matter under `imports/`. A project that's already here isn't re-linked to its repo.
+- `impactSource`: `user` stays `user`; anything else (the hosted app's `llm`) becomes `import`. The original is kept
+  in `meta.legacy`. Dates are the UTC day of the hosted timestamps (it stored times; which zone the user meant isn't
+  in the export). An achievement's company is written only when its project doesn't already imply it.
+- Every field the export carries is either mapped, kept in `meta.legacy`, or reported as left behind with a reason, so
+  the dry run accounts for all of it; a key that isn't in version 1.0 at all is reported as left behind too.
+- Writes go through the services (D24); documents through `Store.writeImportFile` (create-only, 0444). `apply` takes a
+  snapshot first, re-checks each `legacyId` as it writes, and yields to the event loop every 200 writes, so the server
+  keeps answering during a large import (5,000 achievements: about 3 s). One import at a time per data home:
+  `cache/import.lock` holds the importer's pid (taken over if that process has died); releasing it is the one new
+  `unlink` in test/guard-fs.test.ts.
+- `bragdoc import` sends the file to the running server (`POST /api/import/{plan,apply}`, via egress, loopback) when
+  runtime.json names a live process, so the server stays the one writer; otherwise it lays out the data home as `serve`
+  would and writes through the store itself, under the lock. A dry run on a data home that doesn't exist creates
+  nothing.
+- **The 50 MB body.** SPEC R3 caps JSON at 1 MB; an export of a few thousand achievements is several MB. Rather than
+  make the export a typed upload (a JSON file is still JSON), `UploadRegistry.acceptLargeJson()` lets one route take
+  `application/json` up to `LARGE_JSON_LIMIT` (50 MB); every other check (Host, Origin, Fetch Metadata, content type)
+  applies as usual, and every other route keeps 1 MB. The CLI refuses a file over 50 MB before reading it.
+- **Considered:** importing in one transaction that rolls back on any error (the store has no transactions, and a
+  partial import is safe to finish by re-running it); matching companies and projects by name (would merge two
+  different "Platform" projects); writing documents as achievements (they're reviews and reports, not things you did).

@@ -3,19 +3,43 @@ title: Moving from the hosted app
 description: "Bring your data from the hosted BragDoc app into BragDoc on your own computer with bragdoc import, safely and repeatably."
 ---
 
-:::note[Coming in v0.1]
-The importer is being built. This page describes how it is designed to work.
-:::
+If you used the hosted BragDoc web app, you can bring your data with you. Export it from the hosted app (**Account →
+Export Data**), which downloads a JSON file named like `bragdoc-export-2026-01-15.json` (its export format, version
+1.0). Then import that file into BragDoc on your computer.
 
-If you used the hosted BragDoc web app, you can bring your data with you. Export it from the hosted app as a JSON file
-(its export format, version 1.0), then import that file into BragDoc on your computer.
+Importing is entirely local: the file is read from your disk and nothing is sent anywhere.
 
 ## Import it
 
-Look before you leap: a dry run counts what would be imported and lists any problems, and changes nothing.
+Look before you leap: a dry run says what would be added, what's already here, what can't be imported, and which
+fields are left behind and why. It changes nothing.
 
 ```sh
 bragdoc import ~/Downloads/bragdoc-export.json --dry-run
+```
+
+```text
+Dry run of importing ~/Downloads/bragdoc-export.json (exported 2026-01-15).
+
+                       would add  already here  not imported
+  companies                    2             0             0
+  projects                     4             0             0
+  repos                        2             0             0
+  achievements               412             0             1
+  documents                    2             0             0
+  performance reviews          0             0             0
+
+Left behind (BragDoc has no place for these):
+  userId (421 items): your account id in the hosted app: it means nothing on your computer.
+  achievements[].embedding (412 items): the hosted app's AI search data: BragDoc searches your words directly, with no AI.
+  …
+
+Problems: 1 not imported, 1 to be imported with a change.
+  error    "Q3 launch" (id 3f2a9c1d…): not imported: createdAt: not a date and time
+  warning  "Atlas search" (id 5b10e2f7…): its colour "blue" isn't one BragDoc can use (#rrggbb); it gets #3b6cf6 instead
+
+Documents and reviews would go to imports/2026-10-17T09-00-00Z/ in your data folder, as read-only markdown.
+Nothing has been written. Run it again without --dry-run to import.
 ```
 
 Then import it for real:
@@ -24,24 +48,43 @@ Then import it for real:
 bragdoc import ~/Downloads/bragdoc-export.json
 ```
 
-You'll be able to do the same from **Settings → Data** in the app, and the first-run welcome offers it too.
+If BragDoc is running, the import goes through it; if not, the command writes to your data folder itself. Either way,
+BragDoc takes a snapshot of your data folder first (in `backups/`), so you can always get back to how things were.
+Use `--data-dir <dir>` to import into a data folder other than `~/.bragdoc`.
+
+You'll be able to do the same from **Settings → Data** in the app, and the first-run welcome will offer it too.
 
 ## What comes across
 
 | In the hosted app | In BragDoc |
 | --- | --- |
-| Companies | [Companies](/concepts/projects/) |
-| Projects | Projects; a project's repository URL becomes a linked repo |
-| Achievements | Achievements, with their dates, impact and archived state, marked as imported |
-| Documents and performance reviews | Read-only Markdown files under `imports/<timestamp>/` in your data folder |
+| Companies | [Companies](/concepts/projects/), with your role and dates |
+| Projects | Projects, with their dates, colour and status (*completed* becomes *done*); a project's repository URL becomes a linked [repo](/concepts/projects/), one per repository however its URL is written |
+| Achievements | Achievements marked as imported, each tagged with its project. The event start date (or, without one, the day it was added) becomes its date, and the event end its end date. Its details become its body; its impact, summary and archived state come along. Its original source and event duration are kept in its file, under `meta.legacy` |
+| Documents and performance reviews | Read-only Markdown files under `imports/<timestamp>/` in your data folder, for you and your agents to read |
 
-Some things are left behind because they don't apply on your own machine: search embeddings, account ids and share
-links.
+An impact you set yourself stays marked as yours (`impactSource: user`). One the hosted app suggested is marked as
+carried over (`impactSource: import`).
+
+Some things are left behind because they don't apply on your own machine: your account id, share links, links to
+chat messages the export doesn't include, and the hosted app's AI search data. The dry run lists each one, with how
+many items had it.
+
+## When something doesn't fit
+
+A file that isn't a version 1.0 export (not JSON, cut off part-way through a download, or a different version) is
+refused with a message saying why, and nothing is imported.
+
+Within a good file, each item is checked on its own. An item that can't be imported (an achievement with no date, say)
+is listed as an error, and everything else still comes across. Items that need a small change are imported and listed
+as warnings: a project colour BragDoc can't use gets one of its own; an achievement whose project or company isn't in
+the export is imported without it, with the original id kept under `meta.legacy`; an achievement with no title takes
+the first line of its summary.
 
 ## Safe to repeat
 
-Each imported achievement remembers its id from the hosted app (`legacyId`), so importing the same export again
-creates nothing new. Import a newer export later and only what's new comes across.
+Everything imported remembers its id from the hosted app (`legacyId`), so importing the same export again creates
+nothing new. Import a newer export later and only what's new comes across.
 
 ## The old CLI
 
