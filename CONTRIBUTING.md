@@ -54,10 +54,10 @@ npm run test:e2e      # Playwright against the built server (`npx playwright ins
 These are what make BragDoc safe to run on your machine with your career in it. A PR that weakens one won't be
 merged, however useful the rest of it is.
 
-- **Localhost only.** The server binds 127.0.0.1 and (from PR2) rejects requests whose `Host` or `Origin` isn't
+- **Localhost only.** The server binds 127.0.0.1 and rejects requests whose `Host` or `Origin` isn't
   local. Binding anything else needs `BRAGDOC_DANGEROUSLY_ALLOW_OPEN=1`.
 - **No telemetry.** Nothing phones home. All outbound network traffic goes through one module (`server/egress.ts`)
-  and is logged, and processes are only spawned through `server/proc.ts`. From PR2, CI fails if anything else does
+  and is logged, and processes are only spawned through `server/proc.ts`. CI fails if anything else does
   either.
 - **AI is off unless the user turns it on.** No AI dependency is ever installed, and no model downloaded, without the
   user's explicit say-so.

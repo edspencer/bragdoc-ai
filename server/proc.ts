@@ -1,0 +1,84 @@
+// The one way to run another program (SPEC R3, D9). execFile with an argument array, never a shell, so nothing in an
+// argument (a repo path, a branch name) can be read as shell syntax; and only the allow-listed binaries below.
+// test/guard-egress.test.ts fails CI if any other file in server/ or shared/ imports node:child_process.
+//
+// The gh CLI makes network requests outside BragDoc's egress module, so whoever runs it also logs it through
+// Egress.logProcess() (honestly marked "via gh CLI" in Settings → Network activity).
+import { execFile, spawn } from 'node:child_process';
+import os from 'node:os';
+
+/** The binaries BragDoc may run, by name (found on PATH). Anything else is refused before it's started. */
+export const ALLOWED_BINS = ['gh', 'git', 'osascript', 'defaults', 'launchctl', 'systemctl', 'journalctl', 'claude', 'open', 'xdg-open'] as const;
+export type AllowedBin = (typeof ALLOWED_BINS)[number];
+
+export const DEFAULT_TIMEOUT_MS = 30_000;
+/** Per stream: a runaway command can't fill memory. */
+export const DEFAULT_MAX_OUTPUT = 10 * 1024 * 1024;
+
+export interface RunOptions {
+  cwd?: string;
+  /** The child's whole environment (default: this process's). */
+  env?: NodeJS.ProcessEnv;
+  timeoutMs?: number;
+  maxOutput?: number;
+  /** Written to the child's stdin, which is then closed. */
+  input?: string;
+}
+
+export interface RunResult {
+  code: number;
+  stdout: string;
+  stderr: string;
+}
+
+/** The command couldn't run: not allowed, not installed, timed out, or too much output. A non-zero exit isn't this. */
+export class ProcError extends Error {
+  constructor(
+    message: string,
+    readonly code: 'not_allowed' | 'not_found' | 'timeout' | 'too_much_output' | 'failed',
+  ) {
+    super(message);
+    this.name = 'ProcError';
+  }
+}
+
+function assertAllowed(bin: string, args: readonly string[]): asserts bin is AllowedBin {
+  if (!(ALLOWED_BINS as readonly string[]).includes(bin)) throw new ProcError(`BragDoc doesn't run ${JSON.stringify(bin)} (allowed: ${ALLOWED_BINS.join(', ')})`, 'not_allowed');
+  for (const a of args) if (typeof a !== 'string' || a.includes('\0')) throw new ProcError(`a bad argument for ${bin}`, 'not_allowed');
+}
+
+/** Run `bin` with `args` and collect its output. Resolves with the exit code, whatever it is; rejects with ProcError. */
+export function run(bin: AllowedBin, args: readonly string[], { cwd, env = process.env, timeoutMs = DEFAULT_TIMEOUT_MS, maxOutput = DEFAULT_MAX_OUTPUT, input }: RunOptions = {}): Promise<RunResult> {
+  return new Promise((resolve, reject) => {
+    assertAllowed(bin, args); // inside the executor: a refusal is a rejection, like every other failure
+    const child = execFile(
+      bin,
+      [...args],
+      { cwd, env, timeout: timeoutMs, maxBuffer: maxOutput, encoding: 'utf8', shell: false, windowsHide: true, killSignal: 'SIGKILL' },
+      (err, stdout, stderr) => {
+        if (!err) return resolve({ code: 0, stdout, stderr });
+        const e = err as NodeJS.ErrnoException & { killed?: boolean; code?: string | number; signal?: string };
+        if (e.code === 'ENOENT') return reject(new ProcError(`${bin} isn't installed (or isn't on PATH)`, 'not_found'));
+        if (e.code === 'ERR_CHILD_PROCESS_STDIO_MAXBUFFER') return reject(new ProcError(`${bin} wrote more than ${maxOutput} bytes`, 'too_much_output'));
+        if (e.killed && e.signal) return reject(new ProcError(`${bin} took longer than ${timeoutMs} ms`, 'timeout'));
+        if (typeof e.code === 'number') return resolve({ code: e.code, stdout, stderr });
+        reject(new ProcError(`${bin}: ${e.message}`, 'failed'));
+      },
+    );
+    if (input !== undefined) child.stdin?.end(input);
+    else child.stdin?.end();
+  });
+}
+
+/**
+ * Run `bin` attached to this terminal (stdio inherited): for `bragdoc service logs`, which follows journalctl. Resolves
+ * with the exit code (128 + signal number if it was killed).
+ */
+export function runAttached(bin: AllowedBin, args: readonly string[], { cwd, env = process.env }: Pick<RunOptions, 'cwd' | 'env'> = {}): Promise<number> {
+  return new Promise((resolve, reject) => {
+    assertAllowed(bin, args);
+    const child = spawn(bin, [...args], { cwd, env, stdio: 'inherit', shell: false, windowsHide: true });
+    child.once('error', (e: NodeJS.ErrnoException) => reject(e.code === 'ENOENT' ? new ProcError(`${bin} isn't installed (or isn't on PATH)`, 'not_found') : e));
+    child.once('exit', (code, signal) => resolve(code ?? 128 + (signal ? (os.constants.signals[signal] ?? 0) : 0)));
+  });
+}

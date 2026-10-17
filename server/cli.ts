@@ -3,6 +3,7 @@
 // With no command it runs the server in the foreground (`serve`). This is PR1's minimal subset; PR5 brings the full
 // command set (server/commands/, `service`, `--open`, the Node version check) in Hallway's shape.
 import { LOOPBACK, UsageError, check, parseArgs, parseHost } from './args.js';
+import { evaluateBindSafety } from './bind-safety.js';
 import { DEFAULT_PORT, parsePort } from './port.js';
 import { VERSION, resolveDataDir, tildify } from './paths.js';
 
@@ -31,9 +32,8 @@ async function serve(flags: Record<string, string>): Promise<number | undefined>
   if (port === null) throw new UsageError(`${flags.port !== undefined ? '--port' : 'PORT'} must be a port number (0-65535), not '${given}'`);
   const hostname = parseHost(flags.host);
   if (flags['data-dir'] === '') throw new UsageError('--data-dir needs a directory');
-  // A minimal stand-in for Paddock's bind-safety guard, which PR2 brings as server/bind-safety.ts (D10, D21).
-  if (!LOOPBACK.has(hostname) && process.env.BRAGDOC_DANGEROUSLY_ALLOW_OPEN !== '1')
-    throw new Error(`refusing to listen on ${hostname}: BragDoc has no login, so anyone who can reach that address could read and change your data. Use 127.0.0.1, or set BRAGDOC_DANGEROUSLY_ALLOW_OPEN=1 if you really mean it (e.g. inside Docker).`);
+  const bind = evaluateBindSafety(hostname); // D10
+  if (bind.action === 'refuse') throw new Error(bind.message);
   const dataDir = resolveDataDir(flags['data-dir']);
   const { startServer } = await import('./index.js');
   let bound: number;
@@ -49,7 +49,7 @@ async function serve(flags: Record<string, string>): Promise<number | undefined>
   const { startupMessage } = await import('./banner.js');
   const shown = LOOPBACK.has(hostname) || hostname === '0.0.0.0' || hostname === '::' ? 'localhost' : hostname.includes(':') ? `[${hostname}]` : hostname;
   process.stdout.write(startupMessage({ version: VERSION, url: `http://${shown}:${bound}`, home: tildify(dataDir), quiet: !!flags.quiet }));
-  if (!LOOPBACK.has(hostname)) process.stderr.write(`bragdoc: listening on ${hostname}, not just this computer (BRAGDOC_DANGEROUSLY_ALLOW_OPEN=1).\n`);
+  if (bind.action === 'warn') process.stderr.write(`bragdoc: ${bind.message}\n`);
   return undefined;
 }
 
