@@ -75,9 +75,10 @@ export function Gantt({
         <div className="pt-7">
           {/* the corner over the company column, so month labels scrolled under it don't show through */}
           <div aria-hidden className="pointer-events-none sticky left-0 z-20 -mt-[4.5rem] h-[4.5rem] rounded-tl-3xl bg-surface" style={{ width: LABEL_W }} />
-          {lanes.map((lane) => (
-            <div key={lane.company?.id ?? 'none'} className="relative mt-4 flex items-stretch first:mt-0" data-testid="gantt-lane">
-              <div className="sticky left-0 z-20 shrink-0 bg-surface py-1 pl-4 pr-3 sm:pl-6 sm:pr-4" style={{ width: LABEL_W }}>
+          {lanes.map((lane, li) => (
+            // the gap between lanes is padding inside the sticky company cell, so gridlines never show through it
+            <div key={lane.company?.id ?? 'none'} className="relative flex items-stretch" data-testid="gantt-lane">
+              <div className={`sticky left-0 z-20 shrink-0 bg-surface pb-1 pl-4 pr-3 sm:pl-6 sm:pr-4 ${li > 0 ? 'pt-5' : 'pt-1'}`} style={{ width: LABEL_W }}>
                 {lane.company ? (
                   <button
                     type="button"
@@ -93,7 +94,8 @@ export function Gantt({
                   <span className="block font-grotesk text-[13px] font-extrabold italic sm:text-[16px] leading-tight text-muted">No company</span>
                 )}
               </div>
-              <div className="relative min-w-0 flex-1 space-y-2 rounded-2xl bg-sunk/60 py-2.5">
+              <div className={`min-w-0 flex-1 ${li > 0 ? 'pt-4' : ''}`}>
+              <div className="relative space-y-2 rounded-2xl bg-sunk/60 py-2.5">
                 {lane.rows.length === 0 && <div className="flex h-10 items-center px-4 font-hand text-[19px] text-faint">no projects here yet</div>}
                 {lane.rows.map((row, i) => (
                   <div key={i} className="relative h-10">
@@ -152,8 +154,10 @@ export function Gantt({
                   </div>
                 ))}
               </div>
+              </div>
             </div>
           ))}
+          <div aria-hidden className="pointer-events-none sticky left-0 z-20 -mb-11 h-11 rounded-bl-3xl bg-surface" style={{ width: LABEL_W }} />
         </div>
       </div>
     </div>
