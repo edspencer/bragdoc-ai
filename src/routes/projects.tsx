@@ -56,7 +56,7 @@ function Projects() {
   const sub =
     all.length === 0
       ? 'What you worked on, when, and for whom.'
-      : `${plural(companies.length, 'company', 'companies')}, ${plural(all.length - archivedCount, 'project', 'projects')}${archivedCount ? ` (and ${archivedCount} archived)` : ''}. Tap a bar to see its pile.`;
+      : `${companies.length ? `${plural(companies.length, 'company', 'companies')}, ` : ''}${plural(all.length - archivedCount, 'project', 'projects')}${archivedCount ? ` (and ${archivedCount} archived)` : ''}. Tap a bar to see its pile.`;
 
   async function confirmDelete(p: ProjectEntry, archiveInstead: boolean) {
     setDeleting(null);
