@@ -1,6 +1,7 @@
 // A static guard (adapted from Local Review's fsguard.test.ts): no server code may delete, truncate, overwrite or rename
-// files except the reviewed call sites below: temp-file cleanup and no-clobber renames in server/store/safefs.ts, and
-// snapshot copying and pruning in server/store/backups.ts. If this fails, you've added a way to lose data: route it
+// files except the reviewed call sites below: temp-file cleanup and no-clobber renames in server/store/safefs.ts,
+// snapshot copying and pruning in server/store/backups.ts, and the platform's own files in server/atomic.ts,
+// server/egress.ts (the network log) and server/home.ts (the legacy move-aside). If this fails, you've added a way to lose data: route it
 // through server/store/safefs.ts instead (atomicWrite, renameNoClobber, moveToRemoved), or, after careful review,
 // update ALLOWED with a comment saying why it can't destroy anything. Never loosen it just to make a test pass (D9's
 // rule for guards holds here too).
@@ -37,6 +38,18 @@ const ALLOWED: Record<string, Record<string, number>> = {
     rm: 1, // pruneSnapshots, only after assertPrunable (checked below)
     rename: 1, // a complete snapshot copy into its fresh name
     copy: 1, // a file into the brand-new snapshot directory, COPYFILE_EXCL
+  },
+  // the platform's own files, outside the store (D27): runtime.json, the network log, the starter config.yaml/.gitignore
+  'server/atomic.ts': {
+    unlink: 1, // removeOwnTemp: only a name matching TEMP_NAME (our own .tmp-<pid>-<hex>)
+    writeFile: 2, // atomicWrite's temp file, flag 'wx'; appendLine's append to a log (logs/network.jsonl)
+    rename: 1, // atomicWrite's temp -> its file (createOnly uses link(), which fails on an existing file)
+  },
+  'server/egress.ts': {
+    rename: 1, // rotating logs/network.jsonl to network.1.jsonl at LOG_MAX_BYTES (the older log is replaced)
+  },
+  'server/home.ts': {
+    rename: 2, // the old CLI's config.yml/cache/logs into legacy-cli.partial/, then that into legacy-cli/ (D28)
   },
 };
 
