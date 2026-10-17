@@ -177,7 +177,63 @@ D17 onwards are decisions made while building.
 - No Windows cells: Windows isn't supported in v0.1 (D14). Hallway runs them because it supports Windows best-effort.
 - CI runs on pushes and PRs to both `next` and `main`, so nothing needs editing when `next` merges.
 
-### D23 — Origin must be the server's own, on every request; Fetch Metadata guards the API
+### D23 — Per-file `schemaVersion`; a file from a newer BragDoc is read-only
+
+- Every file type has its own integer format version (`SCHEMA_VERSIONS` in `shared/schema/common.ts`); an absent
+  `schemaVersion` reads as 1, and files BragDoc creates state it. Bump a type's version only when an older BragDoc
+  would misread the new shape; adding an optional key never needs one. Adapted from Paddock's `schema-version.ts`.
+- A data file (anything but `config.yaml`) from a newer BragDoc, or one whose `schemaVersion` isn't a number, is listed
+  as a Problem and **read-only**: if it still validates against the shape this version knows, it's shown; it's never
+  written. `config.yaml` from the future refuses to boot (PR2).
+- **Considered:** skipping future files entirely, as Paddock does for projects (hides data that's probably fine to look
+  at); lenient parsing (the failure this exists to prevent: the next write drops the keys it didn't know).
+
+### D24 — The store and the services are the only write path
+
+- `server/store/` reads and writes the data home's files; `server/services/` is the operations layer that HTTP routes
+  and MCP tools both call, reached through `AppContext.store` and `AppContext.services`. Nothing else writes there
+  (test/guard-fs.test.ts counts every destructive fs call).
+- Store writes are **synchronous** and edit the file as it is on disk at that moment (not the in-memory copy, which may
+  lag a hand edit the watcher hasn't reported), as a YAML Document, then validate and write atomically. Synchronous
+  means concurrent requests can't interleave inside a read-modify-write. Only file ingest (and Found's keep/merge,
+  which ingest) is async.
+- A file that's invalid on disk is never written: writes to it fail with a conflict until it's fixed by hand. It still
+  claims its `externalKey`s and `legacyId` (read from whatever parses, else its `externalKey:` lines), so a dismissed
+  PR doesn't come back while its file is broken. Keys map to sets of files, so a hand copy doesn't lose one on removal.
+- Ids are checked before they become paths (a ULID; a sha256 for evidence), so no id can reach outside its own file.
+- Evidence items keep keys this version doesn't know, and list edits match items by `id`, so removing one never moves
+  another's comments or fields onto its neighbour. A nested mapping (`quote:`) is replaced whole.
+- Writes replace a symlinked file with a regular file (atomic rename). Keep the data home itself, not single files in
+  it, behind a symlink if you need one.
+- A file's `id:` must match its name, and may be left out of a hand-written file. An achievement's folder is the UTC
+  month its ULID was made in.
+- Removing anything moves its file to `backups/removed/<stamp>/`; references to it are left alone, so restoring is
+  lossless. Meanwhile each missing target is **one** dangling-reference Problem, however many files point at it.
+- File ingest takes absolute paths only, and refuses anything in the data home or in a hidden directory (after
+  following symlinks): an agent asking for `secrets.yaml` or `~/.ssh` is never asking for evidence. A screenshots
+  candidate's files must be images.
+- Found: decided candidates stay on disk (that's how a dismissed `externalKey` stays dismissed); `decision` records what
+  was done so undo can reverse exactly that (remove the achievement a keep made; take off exactly the evidence a merge
+  added). Keeping a candidate whose key reached the board meanwhile is a merge, so undo never removes an achievement
+  the candidate didn't make. A candidate's local files are copied into `evidence/` only on keep or merge.
+- Projects have a `status` of `active`, `paused`, `done` or `archived`; new projects take the next of the twelve
+  prototype swatches (`PROJECT_SWATCHES`).
+- **Considered:** an async store with per-file locks (Hallway's; needed there because writes await, not here); deleting
+  references when a project is removed (many writes, and undo would have to rewrite them all back).
+
+### D25 — js-yaml reads, `yaml` writes
+
+- The boot scan reads every file, and `yaml`'s Document parser takes about 0.13 ms per small file (5,000 achievements:
+  ~1.2 s on a fast machine, too close to the 2 s budget on CI). js-yaml is about seven times faster, so the read path
+  uses it, with YAML 1.2's core schema (as `yaml` does by default: no timestamps, so dates stay strings) and its
+  duplicate-key refusal. Writes still edit `yaml` Documents (comments and order survive), and Problems are located on
+  one. A file with an anchor (`&`) is read by `yaml` instead, which caps aliases; js-yaml doesn't.
+- test/yamldoc.test.ts holds the two parsers to the same answers on hand-edit edge cases, and a write re-reads its own
+  output through the read path before it touches the disk.
+- **Considered:** a parsed-value cache in `cache/` (helps warm boots only, and adds invalidation); `yaml` alone
+  (simplest, but the budget).
+
+### D26 — Origin must be the server's own, on every request; Fetch Metadata guards the API
 
 - Any `Origin` a browser sends must equal the request's own `Host` (host and port; the scheme isn't compared, since a
   TLS-terminating proxy hides it). The check runs on **every** request, not only writes, so the SSE stream and any
@@ -199,7 +255,7 @@ D17 onwards are decisions made while building.
 - **Considered:** Hallway's rule (Origin checked on writes only, any local port); requiring `Origin` on SSE (breaks
   the app, as above).
 
-### D24 — The platform's own files are written by `server/atomic.ts`, not the store
+### D27 — The platform's own files are written by `server/atomic.ts`, not the store
 
 - `runtime.json`, `logs/network.jsonl`, and the starter `.gitignore` / `config.yaml` are machine-written (or written
   once, create-only), so `server/atomic.ts` writes them: Hallway's temp-file-and-rename, and a hard link for
@@ -213,7 +269,7 @@ D17 onwards are decisions made while building.
 - **Considered:** waiting for PR3's safefs (PR2 and PR3 are built in parallel); writing runtime.json with a plain
   `writeFileSync` (not atomic: a reader could see half a file).
 
-### D25 — The legacy notice is shown on the start that moved the files; a recreated `config.yml` warns every start
+### D28 — The legacy notice is shown on the start that moved the files; a recreated `config.yml` warns every start
 
 - A home counts as BragDoc's once it has `config.yaml`, `runtime.json` or `legacy-cli/`. Only a home with none of
   them, and with the old CLI's signature (its `config.yml` or `cache/commits/`), has the old CLI's `config.yml` /
@@ -225,7 +281,7 @@ D17 onwards are decisions made while building.
   dismissal yet). Settings → Data (PR10) can show `legacy-cli/` itself permanently. `legacy-recreated` (a warning) is
   raised on every start while a `config.yml` is back.
 
-### D26 — `config.yaml` v1 owns `allowedHosts`, `mcp.writeTo` and `sources.github.{enabled,auth}`
+### D29 — `config.yaml` v1 owns `allowedHosts`, `mcp.writeTo` and `sources.github.{enabled,auth}`
 
 - The egress allow-list needs to know whether GitHub is connected with a token, so PR2 defines
   `sources.github.enabled` and `sources.github.auth: gh | token` (the token itself lives in `secrets.yaml`). Later PRs
@@ -236,7 +292,7 @@ D17 onwards are decisions made while building.
 - PR1's interim inline bind guard (D21) is replaced by `server/bind-safety.ts`, with the same flag and the same rule
   (only `1` counts).
 
-### D27 — `proc` resolves binaries itself; its allow-list includes `open` and `xdg-open`
+### D30 — `proc` resolves binaries itself; its allow-list includes `open` and `xdg-open`
 
 - `proc.run('git', …)` resolves `git` to an absolute path from the **absolute** entries of `PATH` only. An empty or
   relative entry (`::`, `.`) would otherwise let a repository's own `./git` run when `git` is started with that

@@ -2,8 +2,8 @@
 // (security.ts: Host allow-list, Origin, content types, body limits, headers and CSP) on every request, then every
 // route from routes/index.ts, a JSON 404 for any other /api path, then the built web app (a single-page app).
 //
-// createApp() touches no files, so tests build it freely; startServer() is where the data home is laid out, config.yaml
-// is checked and runtime.json is written. Later PRs add to AppContext rather than reshape this.
+// createApp() writes no files (it only reads the store), so tests build it freely; startServer() is where the data
+// home is laid out, config.yaml is checked and runtime.json is written. Later PRs add to AppContext rather than reshape this.
 import fs from 'node:fs';
 import path from 'node:path';
 import { Hono } from 'hono';
@@ -20,6 +20,10 @@ import { VERSION, WEB_DIST } from './paths.js';
 import { registerRoutes } from './routes/index.js';
 import { Runtime, displayUrl } from './runtime.js';
 import { UploadRegistry, security } from './security.js';
+import { createServices } from './services/index.js';
+import { startSnapshots } from './store/backups.js';
+import { openStore, type Store } from './store/index.js';
+import { watchStore } from './store/watch.js';
 
 export interface AppOptions {
   /** The data home, absolute. */
@@ -36,6 +40,8 @@ export interface AppOptions {
   egress?: Egress;
   /** What starting up had to say (home.ts: the legacy move-aside). */
   startupNotices?: Notice[];
+  /** The data home's store; opened (loaded) from `dataDir` when not given. */
+  store?: Store;
 }
 
 /**
@@ -56,6 +62,7 @@ export function createApp({ dataDir, webDist = WEB_DIST, version = VERSION, star
   const app = new Hono();
   const bus = o.bus ?? new EventBus();
   const config = o.config ?? new ConfigStore(dataDir, { onChange: () => bus.emit({ type: 'config' }) });
+  const store = o.store ?? openStore(dataDir);
   const ctx: AppContext = {
     version,
     dataDir,
@@ -65,6 +72,8 @@ export function createApp({ dataDir, webDist = WEB_DIST, version = VERSION, star
     runtime: o.runtime ?? new Runtime(dataDir),
     uploads: new UploadRegistry(),
     notices: () => [...startupNotices, ...config.notices()],
+    store,
+    services: createServices(store),
   };
 
   // first, so nothing (a route, a static file, the SPA fallback) answers a request it hasn't checked (D10)
@@ -114,20 +123,32 @@ export async function startServer(port: number, { hostname = '127.0.0.1', ...opt
   const home = initHome(opts.dataDir);
   config.load(); // initHome may have just written the starter config.yaml
   const runtime = opts.runtime ?? new Runtime(opts.dataDir);
-  const app = createApp({ ...opts, bus, config, runtime, startupNotices: [...(opts.startupNotices ?? []), ...home.notices] });
+  // the store is loaded before the port is bound, then watched for changes on disk and snapshotted (on start, hourly)
+  const store = opts.store ?? openStore(opts.dataDir);
+  const app = createApp({ ...opts, bus, config, runtime, store, startupNotices: [...(opts.startupNotices ?? []), ...home.notices] });
   const version = opts.version ?? VERSION;
+  const watcher = watchStore(store);
+  const stopSnapshots = startSnapshots(opts.dataDir);
   const bound = await new Promise<{ port: number; close: () => Promise<void> }>((resolve, reject) => {
+    const failed = (e: Error) => {
+      stopSnapshots();
+      void watcher.close();
+      reject(e);
+    };
     const server = serve({ fetch: app.fetch, port, hostname }, (info) => {
-      server.off('error', reject);
-      const close = () =>
-        new Promise<void>((res) => {
+      server.off('error', failed);
+      const close = async () => {
+        stopSnapshots();
+        await watcher.close();
+        await new Promise<void>((res) => {
           server.close(() => res());
           // idle keep-alive connections (and, later, open event streams) would otherwise hold close() open
           if ('closeAllConnections' in server) server.closeAllConnections();
         });
+      };
       resolve({ port: info.port, close });
     });
-    server.once('error', reject);
+    server.once('error', failed);
   });
   try {
     runtime.write({ pid: process.pid, port: bound.port, url: displayUrl(hostname, bound.port), version, startedAt: new Date().toISOString() });

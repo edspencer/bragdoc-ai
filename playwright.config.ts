@@ -21,7 +21,7 @@ export default defineConfig({
   projects: [
     { name: 'chromium', use: { ...devices['Desktop Chrome'] } },
     // CI adds Firefox (BRAGDOC_E2E_FIREFOX=1): it follows the Fetch spec's `Origin: null` on same-origin writes under
-    // Referrer-Policy: no-referrer, which the security guard has to tell apart from a sandboxed frame (D23). Opt-in, so
+    // Referrer-Policy: no-referrer, which the security guard has to tell apart from a sandboxed frame (D26). Opt-in, so
     // a checkout without Firefox installed still runs `npm run test:e2e`.
     ...(process.env.BRAGDOC_E2E_FIREFOX ? [{ name: 'firefox', use: { ...devices['Desktop Firefox'] } }] : []),
   ],

@@ -1,12 +1,14 @@
 // What every route module gets: the one object createApp() builds and hands to registerRoutes() (routes/index.ts).
-// Later PRs add what their routes need (the store, …) as new fields here, in their own lines, so parallel PRs rebase
-// cleanly. Keep it a plain bag of dependencies: no logic.
+// Later PRs add what their routes need as new fields here, in their own lines, so parallel PRs rebase cleanly. Keep
+// it a plain bag of dependencies: no logic.
 import type { Notice } from '../shared/api.js';
 import type { ConfigStore } from './config.js';
 import type { Egress } from './egress.js';
 import type { EventBus } from './events.js';
 import type { Runtime } from './runtime.js';
 import type { UploadRegistry } from './security.js';
+import type { Services } from './services/index.js';
+import type { Store } from './store/index.js';
 
 export interface AppContext {
   /** The package version (paths.ts). */
@@ -25,4 +27,8 @@ export interface AppContext {
   uploads: UploadRegistry;
   /** Everything the user should be told about right now (the legacy move-aside, a broken config.yaml, …). */
   notices: () => Notice[];
+  /** The data home's files and their in-memory index (server/store/). Routes read from it; they write through `services`. */
+  store: Store;
+  /** The operations routes and MCP both call: achievements, projects, companies, repos, evidence, found, profile. */
+  services: Services;
 }

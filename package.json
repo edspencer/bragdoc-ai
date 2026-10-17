@@ -51,11 +51,17 @@
     "test:e2e": "playwright test",
     "bragdoc": "tsx server/cli.ts",
     "check:nul": "node scripts/check-no-nul-bytes.mjs",
-    "prepack": "npm run build"
+    "prepack": "npm run build",
+    "sync:reference": "tsx scripts/sync-reference.ts",
+    "store:demo": "tsx scripts/store-demo.ts"
   },
   "dependencies": {
     "@hono/node-server": "^2.1.5",
+    "chokidar": "^5.0.0",
+    "file-type": "^22.2.0",
     "hono": "^4.13.13",
+    "js-yaml": "^4.3.2",
+    "minisearch": "^7.2.0",
     "yaml": "^2.9.1",
     "zod": "^4.6.7"
   },
@@ -66,6 +72,7 @@
     "@tanstack/react-router": "^1.170.45",
     "@tanstack/router-cli": "^1.167.45",
     "@tanstack/router-plugin": "^1.168.47",
+    "@types/js-yaml": "^4.0.9",
     "@types/node": "^26.6.5",
     "@types/react": "^19.3.0",
     "@types/react-dom": "^19.3.0",

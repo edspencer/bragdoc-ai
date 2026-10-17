@@ -47,7 +47,11 @@ const BANNED_MODULES = [
 const ALLOWED_IMPORTS: Record<string, string> = {
   hono: 'the HTTP framework (inbound only)',
   '@hono/node-server': "binds the inbound server (its node:http use is the listening socket, not egress)",
-  yaml: 'parses config.yaml',
+  yaml: 'parses config.yaml; writes the data files (comment-preserving)',
+  'js-yaml': 'parses the data files (PR3, D25)',
+  chokidar: 'watches the data home for hand edits (fs events only; its one dependency, readdirp, is fs only)',
+  minisearch: 'the in-memory search index (pure JS; its `fetch` is a SearchableMap method)',
+  'file-type': "sniffs an evidence file's type from its bytes (strtok3/token-types: buffers and fs only)",
   zod: 'validation',
   'node:fs': 'files',
   'node:path': 'paths',
@@ -85,6 +89,9 @@ const ALLOWED: Record<string, Record<string, number>> = {
   },
   'server/proc.ts': {
     bannedName: 1, // import { execFile, spawn } from 'node:child_process'
+  },
+  'shared/ulid.ts': {
+    globalObject: 1, // globalThis.crypto.getRandomValues(bytes): shared/ runs in the browser too, so no node:crypto
   },
 };
 
@@ -213,7 +220,8 @@ export function lex(src: string): { code: string; strings: string; withStrings: 
 /** Every module a file imports, re-exports from, requires or import()s (from the lexed code + its strings). */
 function importsOf(src: string): string[] {
   const out: string[] = [];
-  const re = /\b(?:from|import|require)\s*\(?\s*(['"])([^'"\n]+)\1/g;
+  // not a keyword that is itself a string's contents: `z.enum(['user', 'import']).describe('…')` is no import
+  const re = /(?<!['"])\b(?:from|import|require)\s*\(?\s*(['"])([^'"\n]+)\1/g;
   for (const m of lex(src).withStrings.matchAll(re)) out.push(m[2]!);
   return out;
 }
@@ -288,6 +296,7 @@ test('the guard catches the patterns it is meant to (a planted sample fails it)'
 test('a new import is caught until it is reviewed into ALLOWED_IMPORTS', () => {
   assert.deepEqual(importsOf("const W = '**/*.yaml';\nimport open from 'open';\n/** doc */"), ['open'], 'a glob in a string hides nothing');
   assert.deepEqual(importsOf("import { execa } from 'execa';\nimport x from './y.js';\nconst o = await import('@octokit/rest');\nexport * from 'open';"), ['execa', './y.js', '@octokit/rest', 'open']);
+  assert.deepEqual(importsOf("z.enum(['user', 'import']).optional().describe('Who set it')"), [], "a string 'import' is not an import");
   for (const p of ['execa', '@octokit/rest', 'open', 'simple-git', 'node:http']) assert.ok(!ALLOWED_IMPORTS[p], p);
 });
 
