@@ -8,6 +8,8 @@ function Home() {
   // A placeholder until PR4's typed API client: proves the shell talks to the server.
   const health = useQuery({
     queryKey: ['health'],
+    // a health check should say so at once, not after the default three retries with backoff
+    retry: false,
     queryFn: async (): Promise<HealthResponse> => {
       const res = await fetch('/api/health');
       if (!res.ok) throw new Error(`health check failed: ${res.status}`);
