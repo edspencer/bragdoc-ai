@@ -29,7 +29,7 @@ export function homePaths(dataDir: string) {
 }
 
 /** The machine-written, regenerable or private entries: in the generated .gitignore, so the data home can be a repo. */
-export const GITIGNORED = ['/runtime.json', '/secrets.yaml', '/logs/', '/cache/', '/backups/', '/legacy-cli/', '/legacy-cli.partial/'] as const;
+export const GITIGNORED = ['/runtime.json', '/secrets.yaml', '/logs/', '/cache/', '/backups/', '/service/', '/legacy-cli/', '/legacy-cli.partial/'] as const;
 
 export const GITIGNORE = `# Written by BragDoc. Your data home can be a git repository: these are machine-written, regenerable or private
 # (runtime.json holds the MCP token, secrets.yaml a GitHub token), so they stay out of it. Edit freely; BragDoc won't

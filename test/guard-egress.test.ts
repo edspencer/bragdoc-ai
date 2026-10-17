@@ -58,10 +58,20 @@ const ALLOWED_IMPORTS: Record<string, string> = {
   'node:os': 'homedir, constants',
   'node:url': 'fileURLToPath',
   'node:crypto': 'tokens, hashes',
+  'node:tty': "banner.ts: WriteStream#getColorDepth for Node's own colour rules (no I/O)",
 };
 /** Allowed in one file only. */
 const ALLOWED_IMPORTS_IN: Record<string, string> = {
   'node:child_process': 'server/proc.ts',
+};
+/**
+ * INTERIM (D32): PR5 was built alongside PR2, so `bragdoc service` and `--open` run their programs through
+ * server/platform/runner.ts and probe /api/health from server/commands/ready.ts. Both move onto proc.ts / egress in a
+ * follow-up; delete these entries then. Exact counts, as everywhere else: nothing new may join them.
+ */
+const INTERIM_IMPORTS_IN: Record<string, string> = {
+  'node:child_process': 'server/platform/runner.ts', // launchctl/systemctl (execFile), journalctl -f, open/xdg-open
+  'node:net': 'server/commands/ready.ts', // the probe's fallback: does anything accept a TCP connection on 127.0.0.1?
 };
 
 const RULES: Record<string, { on: 'code' | 'strings'; re: RegExp }> = {
@@ -89,6 +99,13 @@ const ALLOWED: Record<string, Record<string, number>> = {
   },
   'server/proc.ts': {
     bannedName: 1, // import { execFile, spawn } from 'node:child_process'
+  },
+  'server/platform/runner.ts': {
+    bannedName: 1, // INTERIM (D32): import { execFile, spawn } from 'node:child_process'
+  },
+  'server/commands/ready.ts': {
+    fetch: 1, // INTERIM (D32): GET http://127.0.0.1:<port>/api/health, loopback only
+    bannedName: 1, // INTERIM (D32): import net from 'node:net' (a TCP connect to 127.0.0.1)
   },
   'shared/ulid.ts': {
     globalObject: 1, // globalThis.crypto.getRandomValues(bytes): shared/ runs in the browser too, so no node:crypto
@@ -246,7 +263,7 @@ test('no code in server/ or shared/ reaches the network or starts a process outs
     for (const spec of importsOf(src)) {
       if (spec.startsWith('.')) continue;
       const pkg = spec.startsWith('node:') ? spec.split('/')[0]! : spec.startsWith('@') ? spec.split('/').slice(0, 2).join('/') : spec.split('/')[0]!;
-      if (ALLOWED_IMPORTS[pkg] || ALLOWED_IMPORTS_IN[pkg] === rel) continue;
+      if (ALLOWED_IMPORTS[pkg] || ALLOWED_IMPORTS_IN[pkg] === rel || INTERIM_IMPORTS_IN[pkg] === rel) continue;
       problems.push(`${rel}: imports ${spec}, which isn't in ALLOWED_IMPORTS`);
     }
   }

@@ -48,6 +48,17 @@ const ALLOWED: Record<string, Record<string, number>> = {
   'server/egress.ts': {
     rename: 1, // rotating logs/network.jsonl to network.1.jsonl at LOG_MAX_BYTES (the older log is replaced)
   },
+  // `bragdoc service` (PR5): the unit file lives outside the store, in the service manager's own directory (D31)
+  'server/platform/services.ts': {
+    writeFile: 1, // writeIfChanged's dot-file temp next to the plist/unit (launchd never reads a half-written one)
+    rename: 1, // that temp -> the plist/unit (~/Library/LaunchAgents/ai.bragdoc.local.plist, ~/.config/systemd/user/)
+  },
+  'server/platform/launchd.ts': {
+    rm: 1, // `service uninstall`: our own plist (a fixed name), after bootout
+  },
+  'server/platform/systemd.ts': {
+    rm: 1, // `service uninstall`: our own unit file (a fixed name), after disable --now
+  },
   'server/home.ts': {
     rename: 2, // the old CLI's config.yml/cache/logs into legacy-cli.partial/, then that into legacy-cli/ (D28)
   },
