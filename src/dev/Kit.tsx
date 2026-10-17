@@ -1,5 +1,5 @@
 // /dev/kit: every piece of the Scrapbook kit on one page, for building pages against and for comparing with the
-// design prototype in both themes (flip the theme in the header). Only in dev and BRAGDOC_KIT=1 builds (D23).
+// design prototype in both themes (flip the theme in the header). Only in dev and BRAGDOC_KIT=1 builds (D33).
 // Everything shown is invented: Alex Marlowe, Altimetry and the `*.example` links are the synthetic example world.
 import { useState, type ReactNode } from 'react';
 import { PenLine } from 'lucide-react';

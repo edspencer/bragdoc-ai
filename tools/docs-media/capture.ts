@@ -46,7 +46,7 @@ const freePort = () =>
     });
   });
 
-/** `npm run <script>`, with or without /dev/kit (BRAGDOC_KIT, D23). */
+/** `npm run <script>`, with or without /dev/kit (BRAGDOC_KIT, D33). */
 function build(script: 'build' | 'build:web', kit: boolean) {
   console.log(kit ? 'Building with /dev/kit (BRAGDOC_KIT=1)…' : 'Putting the release build back (without /dev/kit)…');
   const env: NodeJS.ProcessEnv = { ...process.env, BRAGDOC_KIT: kit ? '1' : '' };

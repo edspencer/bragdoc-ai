@@ -110,15 +110,15 @@ test('uploads: raw bytes, a non-safelisted type, the file name URI-encoded', asy
   assert.equal(uploadContentType('application/pdf'), 'application/pdf');
 });
 
-test('live updates: hello refreshes everything; change refreshes its kind, or everything if unknown', () => {
+test('live updates: hello refreshes everything; change refreshes its type, or everything if unknown', () => {
   assert.equal(invalidationsFor('hello', ''), 'all');
   assert.equal(invalidationsFor('ping', ''), null);
   assert.equal(invalidationsFor('change', 'not json'), 'all');
-  assert.equal(invalidationsFor('change', '{"kind":"something-new"}'), 'all');
-  assert.equal(invalidationsFor('change', '{"kind":"constructor"}'), 'all'); // not Object.prototype's
+  assert.equal(invalidationsFor('change', '{"type":"something-new"}'), 'all');
+  assert.equal(invalidationsFor('change', '{"type":"constructor"}'), 'all'); // not Object.prototype's
   CHANGE_INVALIDATES.widget = ['widgets', 'search'];
   try {
-    assert.deepEqual(invalidationsFor('change', '{"kind":"widget"}'), ['widgets', 'search']);
+    assert.deepEqual(invalidationsFor('change', '{"type":"widget"}'), ['widgets', 'search']);
   } finally {
     delete CHANGE_INVALIDATES.widget;
   }

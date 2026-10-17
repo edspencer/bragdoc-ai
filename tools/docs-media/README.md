@@ -14,7 +14,7 @@ npm run docs:media -- --no-build                     # reuse dist/ as it is
 Output goes to `tools/docs-media/out/` (git-ignored): `<shot>.png` at 2x, `provenance.json` (each shot's route,
 theme, viewport, scale and crop) and `contact-sheet.png` (every shot on one page, labelled).
 
-It builds with `/dev/kit` (`BRAGDOC_KIT=1`, D23) for the shots, then rebuilds the web app without it, so `dist/` is
+It builds with `/dev/kit` (`BRAGDOC_KIT=1`, D33) for the shots, then rebuilds the web app without it, so `dist/` is
 never left holding the kit. With `--no-build` it shoots whatever `dist/` has.
 
 ## The pieces

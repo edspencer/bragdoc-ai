@@ -14,7 +14,7 @@ const allowedHosts = (process.env.BRAGDOC_ALLOWED_HOSTS ?? '').split(',').map((h
 export default defineConfig(({ command }) => ({
   // The component kit's showcase at /dev/kit (src/dev/Kit.tsx) is in dev (`npm run dev`) and in builds made with
   // BRAGDOC_KIT=1 (the capture rig's, tools/docs-media/), never in a release build: there the constant is false, the
-  // kit page's import is dead code, and the route is a plain not-found (D23).
+  // kit page's import is dead code, and the route is a plain not-found (D33).
   define: { __BRAGDOC_KIT__: JSON.stringify(command === 'serve' || process.env.BRAGDOC_KIT === '1') },
   // The router plugin must come before react(): it generates src/routeTree.gen.ts from src/routes/ (tsr.config.json)
   // and code-splits each route.

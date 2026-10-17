@@ -7,15 +7,16 @@
 //
 // The wire format, which PR2's server/events.ts sends:
 //   event: hello            on connect (data ignored)
-//   event: change           data: {"kind": "<resource>", ...}: something of that kind changed
+//   event: change           data: a ServerEvent (shared/api.ts), {"type": "<resource>", ...}: something of that
+//                           type changed
 //   (comments)              keep-alive pings, which EventSource ignores by itself
 //
-// A `change` refreshes every query whose key starts with one of the resources in CHANGE_INVALIDATES[kind]. An
-// unknown kind refreshes everything: slower, never stale. Feature PRs add their kind to the map.
+// A `change` refreshes every query whose key starts with one of the resources in CHANGE_INVALIDATES[type]. An
+// unknown type refreshes everything: slower, never stale. Feature PRs add their ServerEvent type to the map.
 import { useEffect } from 'react';
 import { useQueryClient, type QueryClient } from '@tanstack/react-query';
 
-/** `change` kind → the first segments of the query keys it makes stale. */
+/** `change` type (ServerEvent['type']) → the first segments of the query keys it makes stale. */
 export const CHANGE_INVALIDATES: Record<string, readonly string[]> = {
   // e.g. (PR7) achievement: ['achievements', 'search'],
 };
@@ -26,7 +27,7 @@ export function invalidationsFor(type: string, data: string): readonly string[] 
   if (type !== 'change') return null;
   let kind: unknown;
   try {
-    kind = (JSON.parse(data) as { kind?: unknown } | null)?.kind;
+    kind = (JSON.parse(data) as { type?: unknown } | null)?.type;
   } catch {
     return 'all';
   }
@@ -50,10 +51,8 @@ const BACKOFF_MS = [500, 1000, 2000, 5000, 10_000, 30_000];
 const COALESCE_MS = 50;
 
 /**
- * Keep the page's queries fresh from the server's event stream. Mounted once, in the shell.
- *
- * `enabled` is false until the server has `/api/events` (PR2): an EventSource on a path that answers with JSON makes
- * the browser log an error on every retry, and the shell must load with a clean console.
+ * Keep the page's queries fresh from the server's event stream. Mounted once, in the shell. `enabled: false` skips it
+ * (an EventSource on a path that answers with JSON makes the browser log an error on every retry).
  */
 export function useServerEvents({ enabled = true, url = '/api/events' }: { enabled?: boolean; url?: string } = {}): void {
   const qc = useQueryClient();

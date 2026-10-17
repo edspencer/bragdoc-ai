@@ -34,7 +34,7 @@ test('an unknown API path is a JSON 404, never the web app', async () => {
     ['POST', '/api/nope'],
     ['GET', '/api/health/extra'],
   ] as const) {
-    const res = await app().request(p, { method });
+    const res = await app().request(p, { method, headers: { 'content-type': 'application/json' } });
     assert.equal(res.status, 404, `${method} ${p}`);
     const body = (await res.json()) as { error: { code: string } };
     assert.equal(body.error.code, 'not_found');
@@ -105,11 +105,13 @@ test('hasFileExtension looks at the last segment only', () => {
 });
 
 test('startServer binds 127.0.0.1 by default and closes cleanly', async () => {
-  const { port, close } = await startServer(0, { dataDir: '/x', webDist: web });
+  const data = tmpDir('bragdoc-data-');
+  const { port, close } = await startServer(0, { dataDir: data, webDist: web });
   try {
     const res = await fetch(`http://127.0.0.1:${port}/api/health`);
     assert.equal(res.status, 200);
   } finally {
     await close();
+    rmTmp(data);
   }
 });

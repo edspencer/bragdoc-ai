@@ -51,7 +51,7 @@ const DARK_INK_L = luminance([0x1d, 0x1a, 0x17]);
 /**
  * Legible text for any background colour: whichever of near-black and white has the higher contrast on it. That
  * crossover sits near luminance 0.18, and every colour gets at least about 4.2:1 either way (the floor, right at the crossover). The prototype used a fixed
- * 0.36 threshold, which put white on its own green at 2.67:1 and on tomato at 3.39:1 (D24). An unparseable colour
+ * 0.36 threshold, which put white on its own green at 2.67:1 and on tomato at 3.39:1 (D34). An unparseable colour
  * gets dark text, on the neutral tape it will be drawn as.
  */
 export function inkOn(hex: string): string {

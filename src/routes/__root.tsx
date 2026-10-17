@@ -16,8 +16,8 @@ export const Route = createRootRouteWithContext<RouterContext>()({
   notFoundComponent: NotFound,
 });
 
-/** Off until the server has `GET /api/events` (PR2); then it's on for good. See src/api/events.ts. */
-const LIVE_UPDATES = false;
+/** The server's `GET /api/events` (PR2) drives refetches. See src/api/events.ts. */
+const LIVE_UPDATES = true;
 
 function Shell() {
   useServerEvents({ enabled: LIVE_UPDATES });

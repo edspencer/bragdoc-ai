@@ -8,10 +8,13 @@ you explicitly connect. v0.1 is built on the **`next`** branch as a series of pu
 [#411](https://github.com/edspencer/bragdoc-ai/issues/411). `main` still holds the old hosted app; never touch it.
 
 What exists so far is the **skeleton** (PR1): the package, build, CI and repo hygiene; a Hono server with
-`GET /api/health` and the web app's static serving; and a minimal CLI (`serve`, `--version`, `--help`). And the
-**web foundation** (PR4): the Scrapbook component kit, the light / system / dark themes, the app shell with
-placeholder pages, the typed API client and the screenshot rig. Everything else arrives PR by PR, in the waves #411
-lays out.
+`GET /api/health` and the web app's static serving; and a minimal CLI (`serve`, `--version`, `--help`). PR3 added
+the file store: the data home's schemas (`shared/schema/`), the store and its index, the watcher, evidence files,
+backups, and the services every feature calls. PR2 added the platform: the localhost security guard, config.yaml, the
+data home's layout, runtime.json, egress, subprocesses and the event stream. PR5 added the full CLI and `bragdoc
+service`. And the **web foundation** (PR4): the Scrapbook component kit, the light / system / dark themes, the app
+shell with placeholder pages, the typed API client and the screenshot rig. Everything else arrives PR by PR, in the
+waves #411 lays out.
 
 Before changing behaviour, read, in order:
 
@@ -52,17 +55,43 @@ These are the product principles from the specification. They are not up for neg
 
 ```
 server/              the server and CLI (Node, TypeScript ESM, Hono)
-  cli.ts             `bragdoc` entry point (the package's bin); args.ts parses arguments; banner.ts is what
-                     `serve` prints at startup
+  cli.ts             `bragdoc` entry point (the package's bin) and `serve`; args.ts parses arguments; banner.ts is
+                     what `serve` prints at startup ("BragDoc on <url>" first, always); node-version.ts the Node check
+  commands/          every other command, one file each, one line in commands/index.ts (Hallway's shape); context.ts
+                     is the injectable Ctx (runner, probe, clock), ready.ts the /api/health probe and readiness wait
+  platform/          `bragdoc service`: spec.ts (what the service is), launchd.ts / systemd.ts (the writers, pinned by
+                     test/fixtures/services/), path.ts (the PATH captured at install), runner.ts (its subprocesses;
+                     interim, until it moves onto proc.ts: D32), index.ts (which manager this OS has; Windows: not yet)
   index.ts           createApp (routes → JSON 404 for /api/* → static files → SPA fallback) and startServer
-  context.ts         AppContext: what every route module gets (version, dataDir; later the store, bus, config)
+  context.ts         AppContext: what every route module gets (version, dataDir, config, bus, egress, runtime,
+                     uploads, notices, store, services)
   http.ts            helpers for route modules (apiError)
+  security.ts        the guard on every request: Host allow-list, same-origin Origin, Fetch Metadata, JSON-only or
+                     opt-in typed uploads, body limits, security headers + CSP; blobHeaders() for evidence (D10, D26)
+  bind-safety.ts     refuses a non-loopback --host without BRAGDOC_DANGEROUSLY_ALLOW_OPEN=1
+  config.ts          config.yaml: Zod schema, defaults, the schemaVersion downgrade guard, live re-read (ConfigStore)
+  home.ts            the data home's layout and .gitignore on first run; moves the old CLI's files into legacy-cli/
+  runtime.ts         runtime.json (0600): pid, port, url and the MCP token, which survives restarts; constantTimeEqual
+  egress.ts          the ONLY outbound network path: egressFetch({purpose}, url), allow-list, logs/network.jsonl
+  proc.ts            the ONLY way to run a program: run()/runAttached(), allow-listed binaries, no shell
+  events.ts          the event bus + the SSE stream (GET /api/events)
+  atomic.ts          the platform's own writes (runtime.json, the network log, starter files): atomic, create-only (D27)
   routes/index.ts    registerRoutes(): one line per feature module (D18)
   routes/health.ts   GET /api/health
+  routes/{events,meta,network}.ts   GET /api/events, /api/meta, /api/network-log
   paths.ts           package root, VERSION, WEB_DIST, the data home (resolveDataDir), tildify
   port.ts            DEFAULT_PORT (2724 = BRAG), alone so vite.config.ts can import it
+  store/             the only code that touches the data home's files (D5, D24): index.ts (Store: load, index,
+                     Problems, write/remove/restore), safefs.ts (atomic writes, nothing deleted), yamldoc.ts
+                     (comment-preserving edits, front-matter), files.ts (paths), blobs.ts (evidence files), search.ts
+                     (MiniSearch), watch.ts (chokidar), backups.ts (snapshots), errors.ts
+  services/          the operations HTTP and MCP both call: achievements, projects/companies/repos (catalog.ts),
+                     evidence, found, profile; createServices(store)
 shared/              code used by both server/ and src/: no Node or DOM APIs
   api.ts             the HTTP API contract (request/response types, ApiError)
+  schema/            the data files' Zod schemas and types (PR3 owns it), the services' input schemas (inputs.ts), the
+                     Problem and StoreChange types, and the generated file-format reference (reference.ts)
+  ulid.ts, impact.ts, judge.ts   ids; the 1–10 impact scale; the (unimplemented) AI judge seam (D8)
 src/                 the web app (React 19, Vite, Tailwind v4, TanStack Router + Query), built into dist/web
   main.tsx           fonts, ThemeProvider, QueryClient, router
   routes/            file-based routes (TanStack Router; tsr.config.json); __root.tsx is the shell
@@ -71,7 +100,7 @@ src/                 the web app (React 19, Vite, Tailwind v4, TanStack Router +
   api/               client.ts (the typed `api` wrapper), queries.ts (query keys + hooks), events.ts (live updates)
   theme/theme.tsx    light / system / dark: ThemeProvider + useTheme()
   lib/               pure helpers, unit-tested: colour.ts (inkOn, swatches, tilt), dates.ts (groupByWeek, fmt)
-  dev/Kit.tsx        /dev/kit, every kit component on one page (dev and BRAGDOC_KIT=1 builds only, D23)
+  dev/Kit.tsx        /dev/kit, every kit component on one page (dev and BRAGDOC_KIT=1 builds only, D33)
   styles.css         the Scrapbook tokens (light + lamplight), mapped to Tailwind names through `@theme inline`
 public/              static files copied into dist/web: theme-init.js (the theme before first paint) and the
                      favicons (generated from brand/). Only content-hashed names under /assets/ are cached as
@@ -80,13 +109,12 @@ brand/               the mark (mark.svg) and generate.mjs, which makes the favic
 tools/docs-media/    the screenshot rig: `npm run docs:media` (shots.ts lists the shots; it scans each for leaks)
 test/                node:test suites, run from source via tsx; fixture.ts has the throwaway-dir helpers
 e2e/                 Playwright specs, run against the built server (playwright.config.ts)
-scripts/             start.mjs (npm start), dev.mjs (npm run dev), check-no-nul-bytes.mjs
-docs/                decisions.md (D1…), data-format.md
+scripts/             start.mjs (npm start), dev.mjs (npm run dev), check-no-nul-bytes.mjs, sync-reference.ts,
+                     store-demo.ts
+docs/                decisions.md (D1…), data-format.md (the file format; its reference tables are generated)
 ```
 
-Coming soon, so you know where things go: `server/{config,home,runtime,security,egress,proc,events}.ts` (PR2),
-`server/store/`, `server/services/` and `shared/schema/` (PR3), `server/commands/` and `server/platform/` (PR5), the release machinery and `Dockerfile`
-(PR6), `website/` (PR18).
+Coming soon, so you know where things go: the release machinery and `Dockerfile` (PR6), `website/` (PR18).
 
 ## Commands
 
@@ -103,6 +131,8 @@ npm run test:e2e       # Playwright against the built server (run `npm run build
 npm run routes         # regenerate src/routeTree.gen.ts by hand (typecheck, dev and build do it anyway)
 npm run docs:media     # build with /dev/kit, boot a throwaway instance, take every shot in tools/docs-media/shots.ts
 npm run brand          # regenerate the favicons, icons and social cards from brand/mark.svg
+npm run sync:reference # regenerate the reference tables in docs/data-format.md after a schema change
+npm run store:demo     # the file store end to end on a throwaway data home (seed, index stats, watcher events)
 ```
 
 **The definition of done** for every PR: `npm run check:nul && npm run typecheck && npm test && npm run build` pass
@@ -119,15 +149,36 @@ locally (and `npm run test:e2e` if you touched anything it covers), and CI is gr
   `/api/*` paths already 404 as JSON.
 - **Something routes need from the server** (the store, the event bus, config): add a field to `AppContext`
   (`server/context.ts`), one line each, and set it in `createApp()`.
-- **Middleware that wraps everything** (PR2's security): `app.use('*', …)` at the top of `createApp()`, before
-  `registerRoutes()`.
+- **Middleware that wraps everything:** `app.use('*', …)` in `createApp()`, after the security guard and before
+  `registerRoutes()`. Never ahead of the guard.
+- **An outbound request:** `ctx.egress.egressFetch({ purpose: 'github.pulls' }, url, init)`, never `fetch`; if it needs a
+  new host, extend `egressAllowList()` in `server/egress.ts`, derived from config, never a constant. **A subprocess:**
+  `run('gh', args)` from `server/proc.ts`; a `gh` call that reaches the network is also logged with
+  `ctx.egress.logProcess(…)`. `test/guard-egress.test.ts` enforces both.
+- **A route that takes a raw upload** (an image, a PDF) instead of JSON: call `ctx.uploads.accept({ method, path,
+  types, maxBytes })` in its register function. Never a CORS-safelisted type.
+- **Something the web app should refetch when it changes:** add a member to `ServerEvent` in `shared/api.ts` and
+  `ctx.bus.emit(…)` (or `emitSoon` for bursts).
+- **Reading or writing data:** routes and MCP tools call `ctx.services` (`server/services/`), never the files and
+  never `ctx.store.write` directly. Validate request bodies with the input schemas in `shared/schema/inputs.ts`
+  (strict: unknown keys are errors) or let the service do it. Map the store's errors (`server/store/errors.ts`):
+  `NotFoundError` → 404, `ValidationError` → 400 (its `issues` say which keys), `ConflictError` and `ReadOnlyError` →
+  409. Reads that need no logic can use `ctx.store` (`get`, `all`, `problems()`, `search`, `achievementIdsIn`). What
+  `get`/`all` return are the index's own objects: **never mutate them** (copy first). Pass the client's `If-Match` to
+  updates from the UI (every entry has an `etag`), so an edit made against a stale copy is a 409, not a silent
+  overwrite. Serving evidence files: trust only an allow-list of types from the sidecar's `mime` (a sidecar is
+  hand-editable), with the blob headers from SECURITY.md.
+- **Live updates:** `ctx.store.subscribe(fn)` hears every change as a `StoreChange` (`shared/schema/change.ts`),
+  whether BragDoc wrote it or a hand edit did; the watcher runs under `startServer`. Our own writes are one event each.
+- **A field on a data file:** add it as optional (or with a default) to its schema in `shared/schema/`, with a
+  `.describe()` sentence, run `npm run sync:reference`, and don't bump `schemaVersion` (D23). Never redefine a type.
 - **A page:** add a file under `src/routes/` (TanStack file routes: `found.tsx` → `/found`,
   `settings/$tab.tsx` → `/settings/:tab`). The route tree regenerates itself; it's gitignored (D20), so it never
   conflicts. PR4 left a placeholder in each of the v0.1 pages (`<Placeholder>`): replace it. Build pages from the kit
   (below), never from raw colours.
 - **An API call from the web app:** a typed function at the bottom of `src/api/client.ts` (`export const
   getThings = () => api.get<ThingsResponse>('/api/things')`), its query key and hook in `src/api/queries.ts`, and,
-  if the server sends `change` events for it, its kind in `CHANGE_INVALIDATES` (`src/api/events.ts`).
+  if the server sends `change` events for it, its `ServerEvent` type in `CHANGE_INVALIDATES` (`src/api/events.ts`).
 - **A CLI flag:** add it to `VALUE_FLAGS` or `BOOLEAN_FLAGS` in `server/args.ts` and to the command's `check()` list
   in `cli.ts`, then document it in `USAGE`.
 - **A decision:** append to `docs/decisions.md` with the next free D-number at rebase time.
@@ -146,7 +197,7 @@ project-colour tape, on an oat board (light) or a dim cork board under a desk la
   exception. Fonts: `font-sans` (Instrument Sans, the default), `font-grotesk` (headings), `font-hand` (Caveat),
   `font-mono` (Geist Mono). All self-hosted; never add a font or anything else from a CDN.
 - **Project colours are data, and any colour.** Paint them with `style`, and put text on them with `inkOn(hex)`
-  (`src/lib/colour.ts`), which picks whichever of near-black and white reads better (at least ~4.2:1, D24). `safeColour()` guards
+  (`src/lib/colour.ts`), which picks whichever of near-black and white reads better (at least ~4.2:1, D34). `safeColour()` guards
   anything read from a file.
 - **CSP:** no inline `<script>`, `<style>` or `style=""` in HTML, and no library that injects a `<style>` tag at run
   time. React's `style={{…}}` prop is fine (it sets styles through the CSSOM, which the CSP allows); e2e checks every
@@ -176,8 +227,8 @@ until PR13), `ThemeToggle`, `Mark` / `Wordmark`, `NAV` and `SETTINGS_TABS`, `Pla
 the HTTP `status`; `code: 'network'` (status 0) means the server didn't answer. `api.upload<T>(path, file)` sends a
 typed upload (raw bytes, the file's type, never a CORS-safelisted one, `X-Filename`). `isApiError(e, code?)` narrows.
 The `QueryClient` (`createQueryClient()` in `queries.ts`) doesn't retry 4xx. `useServerEvents()` (mounted in the
-shell, **off until `/api/events` exists**: flip `LIVE_UPDATES` in `src/routes/__root.tsx`) refreshes queries from
-the server's SSE `change` events by their key's first segment, and everything on `hello`.
+shell) refreshes queries from the server's SSE `change` events (a `ServerEvent`, by its `type`) by their key's first
+segment, and everything on `hello` after a reconnect.
 
 ### Code
 
@@ -197,7 +248,8 @@ the server's SSE `change` events by their key's first segment, and everything on
 
 - node:test via tsx (`test/*.test.ts`). Test the HTTP app in-process with `createApp(...).request(path)`; test the CLI
   as a child process (`test/cli.test.ts` shows how).
-- **Tests never touch a real home or data home.** Use `tmpDir()` / `tmpHome()` from `test/fixture.ts`, and pass
+- **Tests never touch a real home or data home.** Use `storeHome()` from `test/store-fixture.ts` for a store (with
+  services, a fake clock and a `put()` for hand edits), and `tmpDir()` / `tmpHome()` from `test/fixture.ts`, and pass
   `tmpHome().env` to any child process (it points `HOME`, `XDG_*` and `BRAGDOC_HOME` into a temp dir).
 - e2e specs go in `e2e/` and run against the built server on a throwaway home (`playwright.config.ts`). Give
   elements you assert on a `data-testid`. `e2e/shell.spec.ts` checks every page under the production CSP with a
@@ -216,7 +268,8 @@ npm run build && node dist/server/cli.js serve --port 5050
 ```
 
 - Never run a real `bragdoc service install` or `bragdoc mcp install claude` against your own user: use a throwaway
-  `HOME` / `XDG_CONFIG_HOME`, `--dry-run` or `--print`.
+  `HOME` / `XDG_CONFIG_HOME`, `--dry-run` or `--print`. The service's real lifecycle runs only in CI
+  (`scripts/services-real.mjs`, which refuses to run elsewhere); test/service.test.ts covers it with the manager mocked.
 - Use a fake `gh` on `PATH` with fixture output, not your own GitHub login.
 - To reach a dev build through a reverse proxy: `--host 0.0.0.0` with `BRAGDOC_DANGEROUSLY_ALLOW_OPEN=1`, and (from
   PR2) `BRAGDOC_ALLOWED_HOSTS=<the proxy's hostname>`. Never outside a throwaway instance.
