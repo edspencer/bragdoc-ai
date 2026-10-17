@@ -71,23 +71,25 @@ test('an empty composer cannot pin; typed text pins a card titled by its first l
 });
 
 test('a pasted picture, a dropped PDF, a pasted PR link and a .key file all land on one card', async ({ page, request }) => {
+  const pr = 1000 + Math.floor(Math.random() * 1e6);
   await page.goto('/');
+  await expect(page.getByTestId('composer')).toBeVisible();
   await pasteFile(page, { name: 'praise.png', type: 'image/png', b64: PNG_B64 });
   await dropFile(page, 'q3-review.pdf', 'application/pdf', '%PDF-1.4\n1 0 obj << /Type /Catalog >> endobj\ntrailer << /Root 1 0 R >>\n%%EOF\n');
-  await pasteText(page, 'https://github.com/acme/widgets/pull/77');
+  await pasteText(page, `https://github.com/acme/widgets/pull/${pr}`);
   await pasteFile(page, { name: 'all-hands.key', type: '', b64: btoa('PK\u0003\u0004' + 'x'.repeat(64)) });
   const pending = page.getByTestId('pending');
   await expect(pending).toHaveCount(4);
   await expect(page.locator('[data-testid="pending"][data-status="ready"]')).toHaveCount(4);
   // GitHub isn't connected: the PR is shown as owner/repo#n, and nothing was fetched
-  await expect(page.locator('[data-testid="pending"][data-kind="github_pr"]')).toContainText('acme/widgets#77');
+  await expect(page.locator('[data-testid="pending"][data-kind="github_pr"]')).toContainText(`acme/widgets#${pr}`);
   await page.getByTestId('composer-text').fill(`E2E ${RUN}: four kinds of evidence`);
   await page.getByTestId('pin-it').click();
   const c = card(page, `E2E ${RUN}: four kinds of evidence`);
   await expect(c).toBeVisible();
   await expect(c.getByRole('button', { name: /Open .* full size/ })).toBeVisible();
   await expect(c.getByRole('link', { name: /q3-review/ })).toHaveAttribute('href', /^\/api\/evidence\/[0-9a-f]{64}$/);
-  await expect(c.getByRole('link', { name: /acme\/widgets#77/ })).toHaveAttribute('href', 'https://github.com/acme/widgets/pull/77');
+  await expect(c.getByRole('link', { name: new RegExp(`acme/widgets#${pr}`) })).toHaveAttribute('href', `https://github.com/acme/widgets/pull/${pr}`);
   await expect(c).toContainText('all-hands.key');
   const net = await (await request.get('/api/network-log')).json();
   expect(net.entries).toEqual([]);
@@ -95,6 +97,7 @@ test('a pasted picture, a dropped PDF, a pasted PR link and a .key file all land
 
 test('a file that claims to be a picture but is not one is refused with a toast', async ({ page }) => {
   await page.goto('/');
+  await expect(page.getByTestId('composer')).toBeVisible();
   await pasteFile(page, { name: 'cat.png', type: 'image/png', text: '<!doctype html><script>alert(1)</script>' });
   await expect(page.getByTestId('toast')).toContainText('says it\'s a picture, but it isn\'t one');
   await expect(page.getByTestId('pending')).toHaveCount(0);
@@ -163,4 +166,20 @@ test('a terminal edit of the file updates the open board live; breaking it shows
   await expect(card(page, `E2E ${RUN}: edited in a terminal`).getByTestId('card-problem')).toBeVisible();
   fs.writeFileSync(file, good);
   await expect(page.getByTestId('problems-banner')).toHaveCount(0);
+});
+
+test('pinning something already on the board keeps what you typed, and says so', async ({ page }) => {
+  const pr = 1000 + Math.floor(Math.random() * 1e6);
+  await page.goto('/');
+  await expect(page.getByTestId('composer')).toBeVisible();
+  for (const title of [`E2E ${RUN}: first with the PR`, `E2E ${RUN}: second with the PR`]) {
+    await pasteText(page, `https://github.com/acme/widgets/pull/${pr}`);
+    await expect(page.locator('[data-testid="pending"][data-status="ready"]')).toHaveCount(1);
+    await page.getByTestId('composer-text').fill(title);
+    await page.getByTestId('pin-it').click();
+    await expect(page.getByTestId('toast')).toBeVisible();
+  }
+  await expect(page.getByTestId('toast')).toContainText(`already on your board, as “E2E ${RUN}: first with the PR”`);
+  await expect(page.getByTestId('composer-text')).toHaveValue(`E2E ${RUN}: second with the PR`);
+  await expect(page.getByTestId('pending')).toHaveCount(1);
 });

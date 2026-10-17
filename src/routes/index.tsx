@@ -158,10 +158,15 @@ function Board() {
     setSaving(true);
     try {
       const r = await createAchievement(input);
-      c.reset();
       setFresh(r.achievement.id);
-      toast({ msg: r.created ? 'Pinned to your board.' : 'That was already on your board.' });
       refresh();
+      if (r.created) {
+        c.reset();
+        toast({ msg: 'Pinned to your board.' });
+      } else {
+        // something in it (a PR) is already on the board, so nothing new was pinned: keep what was typed and added
+        toast({ msg: `Something in this is already on your board, as “${r.achievement.title}”. Nothing new was pinned; take that out to pin the rest.`, tone: 'bad' });
+      }
     } catch (e) {
       toast({ msg: isApiError(e, NETWORK_ERROR) ? "Couldn't pin it: BragDoc isn't answering. It's all still here; try again." : isApiError(e) ? `Couldn't pin it: ${e.message}` : "Couldn't pin it.", tone: 'bad' });
     } finally {
