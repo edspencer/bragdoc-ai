@@ -86,3 +86,13 @@ test('cache/, backups/, logs/ and temp files are ignored', async () => {
   assert.deepEqual(events, []);
   assert.deepEqual(h.store.problems(), []);
 });
+
+test('a data home that cannot be created means no watching, not a crash', async () => {
+  h = storeHome();
+  const blocker = h.put('file-not-dir', 'x');
+  const errors: unknown[] = [];
+  const { Store } = await import('../server/store/index.ts');
+  w = watchStore(new Store(path.join(blocker, 'home')).load(), { onError: (e) => errors.push(e) });
+  await w.ready;
+  assert.match(String(errors[0]), /not watching/);
+});

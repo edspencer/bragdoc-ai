@@ -27,7 +27,13 @@ export interface WatchOptions {
 
 export function watchStore(store: Store, { debounceMs = 50, onError = (e) => process.stderr.write(`bragdoc: [watch] ${(e as Error).message ?? e}\n`) }: WatchOptions = {}): StoreWatcher {
   const home = path.resolve(store.home);
-  fs.mkdirSync(home, { recursive: true }); // chokidar can't watch a directory that isn't there yet
+  try {
+    fs.mkdirSync(home, { recursive: true }); // chokidar can't watch a directory that isn't there yet
+  } catch (e) {
+    // a data home we can't create (a read-only location): serve what loaded, without live updates, rather than fail
+    onError(new Error(`not watching ${home} for changes: ${(e as Error).message}`));
+    return { ready: Promise.resolve(), close: async () => {} };
+  }
   const ignored = (p: string) => {
     const rel = path.relative(home, p);
     if (!rel || rel.startsWith('..')) return false;
