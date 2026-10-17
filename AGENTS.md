@@ -110,11 +110,15 @@ tools/docs-media/    the screenshot rig: `npm run docs:media` (shots.ts lists th
 test/                node:test suites, run from source via tsx; fixture.ts has the throwaway-dir helpers
 e2e/                 Playwright specs, run against the built server (playwright.config.ts)
 scripts/             start.mjs (npm start), dev.mjs (npm run dev), check-no-nul-bytes.mjs, sync-reference.ts,
-                     store-demo.ts
+                     store-demo.ts; the release's: build-info.mjs (dist/build-info.json), strip-maps.mjs,
+                     smoke-pack.mjs (npm run smoke:pack), smoke-image.sh (a built Docker image, in CI)
+.changeset/          pending changelog entries (`npm run changeset`); config.json versions against next
+.github/workflows/   ci.yml (every push and PR); release.yml (manual only, dry run by default: RELEASING.md)
+Dockerfile           the image (Docker on your laptop, D14); compose.yaml runs it with ~/.bragdoc at /data
 docs/                decisions.md (D1…), data-format.md (the file format; its reference tables are generated)
 ```
 
-Coming soon, so you know where things go: the release machinery and `Dockerfile` (PR6), `website/` (PR18).
+Coming soon, so you know where things go: `website/` (PR18).
 
 ## Commands
 
@@ -126,7 +130,10 @@ npm run bragdoc -- <args>   # the CLI from source (tsx)
 npm run check:nul      # no raw NUL bytes in JS/TS sources
 npm run typecheck      # regenerates the route tree, then tsc for server, tools (e2e, tools/) and web
 npm test               # node:test, from source via tsx
-npm run build          # dist/web (Vite) + dist/server, dist/shared (tsc)
+npm run build          # dist/web (Vite) + dist/server, dist/shared (tsc), source maps stripped, dist/build-info.json
+npm run smoke:pack     # pack, install globally into a temp prefix with a throwaway HOME, run it, fetch from it
+npm run changeset      # add a changelog entry for a user-visible change
+docker compose up -d --build   # the Docker image from this checkout, on 127.0.0.1:2724 with your ~/.bragdoc
 npm run test:e2e       # Playwright against the built server (run `npm run build` first)
 npm run routes         # regenerate src/routeTree.gen.ts by hand (typecheck, dev and build do it anyway)
 npm run docs:media     # build with /dev/kit, boot a throwaway instance, take every shot in tools/docs-media/shots.ts
@@ -135,8 +142,8 @@ npm run sync:reference # regenerate the reference tables in docs/data-format.md 
 npm run store:demo     # the file store end to end on a throwaway data home (seed, index stats, watcher events)
 ```
 
-**The definition of done** for every PR: `npm run check:nul && npm run typecheck && npm test && npm run build` pass
-locally (and `npm run test:e2e` if you touched anything it covers), and CI is green.
+**The definition of done** for every PR: `npm run check:nul && npm run typecheck && npm test && npm run build &&
+npm run smoke:pack` pass locally (and `npm run test:e2e` if you touched anything it covers), and CI is green.
 
 ## Conventions
 
@@ -289,4 +296,9 @@ npm run build && node dist/server/cli.js serve --port 5050
   visible), and screenshots for UI changes. The template in `.github/` has the sections.
 - Never force-push, never push to `main`, never merge your own v0.1 PR.
 - Task notes (`tasks/`) and QA scratch (`qa/`, `.qa/`, `.playwright-mcp/`) are gitignored: keep them out of commits.
-- Changesets arrive with PR6; until then, user-visible changes say so in the PR body.
+- A user-visible change adds a changeset (`npm run changeset`, `patch` before 1.0; CONTRIBUTING.md says how to word
+  it). Never bump `version` or edit `CHANGELOG.md`: the release does (RELEASING.md). Nothing is published from a
+  laptop, ever.
+- **Something new the installed package needs at run time** (a file outside `dist/`, a runtime dependency, a binary
+  the server runs): add it to `files` or `dependencies`, and to what `npm run smoke:pack` checks. If the server runs
+  a binary, the Docker image needs it too (`Dockerfile`'s runtime stage); CI's Docker job will tell you.

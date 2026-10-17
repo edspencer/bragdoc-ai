@@ -109,7 +109,7 @@ jobs:
         if: runner.os == 'Linux'
         run: |
           sudo loginctl enable-linger "$USER"
-          for i in $(seq 1 20); do [ -S "/run/user/$(id -u)/bus" ] && break; sleep 0.5; done
+          for _ in $(seq 1 20); do [ -S "/run/user/$(id -u)/bus" ] && break; sleep 0.5; done
           echo "XDG_RUNTIME_DIR=/run/user/$(id -u)" >> "$GITHUB_ENV"
           echo "DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/$(id -u)/bus" >> "$GITHUB_ENV"
       - name: The service lifecycle, for real
@@ -117,13 +117,65 @@ jobs:
           BRAGDOC_REAL_SERVICES: '1'
         run: node scripts/services-real.mjs
 
+  # The npm package as a user gets it: pack (prepack builds), check the tarball (no source maps, no sources), install it
+  # globally into a temp prefix with a throwaway HOME, then run it and fetch from it (scripts/smoke-pack.mjs).
+  smoke-pack:
+    name: smoke:pack (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: smoke:pack
+        run: npm run smoke:pack
+
+  # The Docker image, on native amd64 and arm64 runners, as the release builds it: built, started on loopback with a
+  # data folder, healthy, and serving (scripts/smoke-image.sh). Every PR, not just ones that touch the Dockerfile: the
+  # image is the whole app, so a new dependency or build step can break it from anywhere (D38). Nothing is pushed.
+  docker:
+    name: Docker image (${{ matrix.arch }})
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - arch: amd64
+            runner: ubuntu-latest
+          - arch: arm64
+            runner: ubuntu-24.04-arm
+    steps:
+      - uses: actions/checkout@v7
+      - uses: docker/setup-buildx-action@v4
+      - name: Build
+        uses: docker/build-push-action@v7
+        with:
+          context: .
+          load: true
+          tags: bragdoc:ci
+          build-args: GITHUB_SHA=${{ github.sha }}
+          cache-from: type=gha,scope=ci-image-${{ matrix.arch }}
+          cache-to: type=gha,mode=max,scope=ci-image-${{ matrix.arch }}
+      - name: Start it and check it
+        run: scripts/smoke-image.sh bragdoc:ci "$(node -p "require('./package.json').version")" "${GITHUB_SHA}" false
+      - name: Image size
+        run: docker image ls bragdoc:ci
+
   # PR18 adds a `website` job here; add it to ci-passed's `needs`.
 
   # One stable check name to require in branch rules, so the matrix can change without editing them.
   ci-passed:
     name: CI passed
     if: always()
-    needs: [test, e2e, services]
+    needs: [test, e2e, services, smoke-pack, docker]
     runs-on: ubuntu-latest
     steps:
       - name: Require every job to have passed

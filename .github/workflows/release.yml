@@ -1,0 +1,602 @@
+name: Release
+
+# How a release happens (RELEASING.md has the whole story, including the one-time npm setup this needs first):
+#   1. Run this workflow by hand (Actions → Release → Run workflow) on `next`, with dry-run off. While changesets are
+#      pending, that keeps a "chore: version packages" PR up to date: it consumes the .changeset/*.md files into
+#      CHANGELOG.md and bumps package.json's version. Nothing else happens on that run.
+#   2. Merge the version PR, then run the workflow again. Now there are no changesets left and the version has no
+#      v<version> tag yet, so it's a release, all in one run:
+#        verify-ci      wait for CI on this exact commit, and require it to have passed;
+#        pack           build the package (an official build: dist/build-info.json says so) and run smoke:pack on it;
+#        build-image    build the Docker image on native amd64 and arm64 runners, start each and wait for healthy,
+#                       then push it by digest;
+#        publish-image  merge the digests into one multi-arch tag on GHCR, and attest its provenance and SBOM there;
+#        publish-npm    publish the exact tarball `pack` checked (trusted publishing over OIDC, with provenance: there
+#                       is no NPM_TOKEN). Last of the publishes, because it's the one that can't be undone;
+#        github-release tag v<version>, attest the tarball, and attach it to a GitHub Release.
+#
+# Dormant on purpose: there's no push trigger, and dry-run is the default. A dry run builds, smoke-tests and boots
+# everything, then runs `npm publish --dry-run` and stops: nothing is pushed, tagged, attested or published, and no
+# version PR is opened. Pull requests that change this file get a dry run too, because GitHub only offers "Run
+# workflow" for workflows on the default branch, which this one isn't yet. When the release channel is decided
+# (#411 Q1), a push trigger can replace the first manual run, as in Hallway's release.yml.
+#
+# Adapted from Hallway's release.yml (version PR, detect, verify-ci, publish + provenance check, release notes) and
+# Paddock's (native per-arch image builds pushed by digest, `imagetools create`, npm last).
+
+on:
+  workflow_dispatch:
+    inputs:
+      dist-tag:
+        description: "npm dist-tag and image tag: `next` (a preview: `npx @bragdoc/local` keeps installing `latest`) or `latest`"
+        type: choice
+        options: [next, latest]
+        default: next
+      dry-run:
+        description: "Dry run: build and check everything, publish nothing"
+        type: boolean
+        default: true
+  pull_request:
+    branches: [next, main]
+    paths: [.github/workflows/release.yml]
+
+# Release runs queue rather than cancel: a cancelled run could stop between the npm publish and the GitHub Release.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+env:
+  IMAGE: ghcr.io/edspencer/bragdoc
+
+jobs:
+  release:
+    name: Version PR / detect release
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write # push the changeset-release/<branch> branch
+      pull-requests: write # open and update the version PR
+    outputs:
+      should_release: ${{ steps.detect.outputs.should_release }}
+      version: ${{ steps.detect.outputs.version }}
+      dry_run: ${{ steps.mode.outputs.dry_run }}
+      dist_tag: ${{ steps.mode.outputs.dist_tag }}
+      epoch: ${{ steps.mode.outputs.epoch }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0 # the tags, for the check below
+
+      # Anything but a manual run with dry-run unticked is a dry run. A real release only from next (or main, once
+      # next has merged into it), so a release can't come from a feature branch by mistake.
+      - name: Mode
+        id: mode
+        env:
+          EVENT: ${{ github.event_name }}
+          DRY_RUN_INPUT: ${{ inputs.dry-run }}
+          DIST_TAG_INPUT: ${{ inputs.dist-tag }}
+          REF: ${{ github.ref }}
+        run: |
+          set -euo pipefail
+          dry_run=true
+          if [ "${EVENT}" = "workflow_dispatch" ] && [ "${DRY_RUN_INPUT}" = "false" ]; then dry_run=false; fi
+          dist_tag="${DIST_TAG_INPUT:-next}"
+          case "${dist_tag}" in next|latest) ;; *) echo "::error::dist-tag must be next or latest, not '${dist_tag}'"; exit 1 ;; esac
+          if [ "${dry_run}" = "false" ] && [ "${REF}" != "refs/heads/next" ] && [ "${REF}" != "refs/heads/main" ]; then
+            echo "::error::releases come from next or main, not ${REF}. Run it there, or tick dry-run."
+            exit 1
+          fi
+          # Every build in this run says it was built at the commit's time (scripts/build-info.mjs), so the package
+          # and both images agree.
+          epoch="$(git log -1 --format=%ct)"
+          echo "dry-run: ${dry_run}; dist-tag: ${dist_tag}; ref: ${REF}; SOURCE_DATE_EPOCH: ${epoch}"
+          { echo "dry_run=${dry_run}"; echo "dist_tag=${dist_tag}"; echo "epoch=${epoch}"; } >> "$GITHUB_OUTPUT"
+
+      # Node 24, for its npm 11: changeset:version refreshes package-lock.json, and npm 10 (Node 22's) would drop the
+      # `libc` fields npm 11 writes.
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: npm
+
+      # No install scripts: this job holds a token that can push, and changesets needs none of them.
+      - run: npm ci --ignore-scripts
+
+      # Opens or updates the version PR while there are changesets. No `publish-script`: publishing is the
+      # publish-npm job, after verify-ci and the image.
+      - name: Changesets version PR
+        id: changesets
+        if: steps.mode.outputs.dry_run == 'false'
+        uses: changesets/action@v2
+        with:
+          version-script: npm run changeset:version
+          commit-message: "chore: version packages"
+          pr-title: "chore: version packages"
+        env:
+          # For @changesets/changelog-github, which looks up each changeset's PR and author for the changelog.
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      # After the version PR merges there are no changesets left. If this version has no v<version> tag yet, it's a
+      # new release. (A release whose npm publish worked but whose GitHub Release didn't still has no tag, so "Re-run
+      # failed jobs" on that run finishes it: publish-npm skips a version that's already on npm. RELEASING.md.)
+      #
+      # 0.0.0 is the unreleased starting version in package.json (the npm name is reserved with a code-free 0.0.1
+      # placeholder, RELEASING.md): until the first changeset bumps it, there's nothing to release.
+      #
+      # A dry run always goes on, with whatever version package.json has, and says what the changesets would make it.
+      - name: Detect release
+        id: detect
+        if: steps.mode.outputs.dry_run == 'true' || steps.changesets.outputs.has-changesets == 'false'
+        env:
+          DRY_RUN: ${{ steps.mode.outputs.dry_run }}
+        run: |
+          set -euo pipefail
+          VERSION="$(node -p "require('./package.json').version")"
+          # 0.0.1 is the hand-published placeholder's version (RELEASING.md): publish-npm would find it "already on
+          # npm", skip the publish and then fail the provenance check. v0.1 needs a `minor` changeset (0.0.0 → 0.1.0).
+          if [ "${VERSION}" = "0.0.1" ]; then
+            echo "::error::0.0.1 is the placeholder's version on npm and can't be released. Add a minor changeset."
+            exit 1
+          fi
+          if [ "${DRY_RUN}" = "true" ]; then
+            npx changeset status --verbose --since="origin/${GITHUB_BASE_REF:-${GITHUB_REF_NAME}}" || true
+            echo "dry run: going through the release of ${VERSION} without publishing it"
+            echo "should_release=true" >> "$GITHUB_OUTPUT"
+            echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
+          elif [ "${VERSION}" = "0.0.0" ]; then
+            echo "0.0.0 is the unreleased starting version; nothing to do"
+            echo "should_release=false" >> "$GITHUB_OUTPUT"
+          elif git rev-parse -q --verify "refs/tags/v${VERSION}" >/dev/null; then
+            echo "v${VERSION} is already released; nothing to do"
+            echo "should_release=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "new release: v${VERSION}"
+            echo "should_release=true" >> "$GITHUB_OUTPUT"
+            echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
+          fi
+
+  # Nothing is published unless CI passed on the exact commit being released.
+  #
+  # The version PR is opened by github-actions[bot], and GitHub doesn't run CI normally for it (runs from a bot's PR
+  # are parked for approval, or not triggered at all), so that PR can merge without CI ever having run on it. CI on
+  # the push to the branch does run (a person merged it), and this job waits for that run and requires it to succeed.
+  #
+  # If CI failed for a reason you judge unrelated (a flake), re-run CI until it's green, then re-run this workflow.
+  verify-ci:
+    name: Require CI green on this commit
+    needs: release
+    if: needs.release.outputs.should_release == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    permissions:
+      actions: read
+    steps:
+      - name: Wait for CI on this commit, and require success
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+          SHA: ${{ github.sha }}
+          DRY_RUN: ${{ needs.release.outputs.dry_run }}
+        run: |
+          set -euo pipefail
+          # A pull request's dry run builds GitHub's merge commit, which CI never runs on by itself (the PR's CI is on
+          # its head): nothing to wait for.
+          if [ "${GITHUB_EVENT_NAME}" = "pull_request" ]; then
+            echo "dry run on a pull request: a release would wait here for CI on the pushed commit"
+            exit 0
+          fi
+          # Any other dry run reports CI's state once and goes on: on a branch CI doesn't run pushes for, there's
+          # nothing to wait for, and a dry run should still reach the publish step.
+          if [ "${DRY_RUN}" = "true" ]; then
+            gh api "repos/${REPO}/actions/workflows/ci.yml/runs?head_sha=${SHA}&event=push&per_page=1" \
+              --jq '.workflow_runs[0] // empty | "dry run: CI on this commit is \(.status) \(.conclusion // "")"' || true
+            echo "dry run: a release would wait here for CI on ${SHA} and require it to pass"
+            exit 0
+          fi
+          deadline=$(( SECONDS + 1800 ))   # 30 minutes; CI takes a few
+          while :; do
+            # `// empty`: CI may not have started yet
+            line="$(gh api \
+              "repos/${REPO}/actions/workflows/ci.yml/runs?head_sha=${SHA}&event=push&per_page=1" \
+              --jq '.workflow_runs[0] // empty | "\(.status)\t\(.conclusion // "-")\t\(.html_url)"' \
+              2>/dev/null || true)"
+
+            if [ -n "${line}" ]; then
+              status="$(printf '%s' "${line}" | cut -f1)"
+              conclusion="$(printf '%s' "${line}" | cut -f2)"
+              url="$(printf '%s' "${line}" | cut -f3)"
+              if [ "${status}" = "completed" ]; then
+                if [ "${conclusion}" = "success" ]; then
+                  echo "CI passed on ${SHA}: ${url}"
+                  exit 0
+                fi
+                echo "::error::CI concluded '${conclusion}' on ${SHA}. Not publishing a commit whose CI didn't pass. See ${url}"
+                exit 1
+              fi
+              echo "CI is ${status} on ${SHA}; waiting. ${url}"
+            else
+              echo "No CI run for ${SHA} yet; waiting."
+            fi
+
+            if [ "${SECONDS}" -ge "${deadline}" ]; then
+              echo "::error::Timed out after 30 minutes waiting for CI on ${SHA}. Not publishing."
+              exit 1
+            fi
+            sleep 20
+          done
+
+  # The npm package, built once: smoke:pack checks it as a user gets it (pack, global install into a temp prefix,
+  # boot, fetch), and that very tarball is what publish-npm publishes and github-release attaches.
+  pack:
+    name: Pack + smoke-test the npm package
+    needs: [release, verify-ci]
+    if: needs.release.outputs.should_release == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      VERSION: ${{ needs.release.outputs.version }}
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Build, pack and smoke-test
+        env:
+          SOURCE_DATE_EPOCH: ${{ needs.release.outputs.epoch }}
+          # scripts/build-info.mjs: only this workflow's real releases are "official"
+          BRAGDOC_OFFICIAL_BUILD: ${{ needs.release.outputs.dry_run == 'false' && '1' || '' }}
+          SMOKE_PACK_KEEP: ${{ runner.temp }}/package
+        run: npm run smoke:pack
+      - name: Checksum
+        working-directory: ${{ runner.temp }}/package
+        run: |
+          set -euo pipefail
+          ls -l
+          sha256sum ./*.tgz | tee SHA256SUMS
+      - uses: actions/upload-artifact@v7
+        with:
+          name: npm-package
+          path: ${{ runner.temp }}/package/
+          if-no-files-found: error
+          retention-days: 7
+
+  build-image:
+    name: Build image (${{ matrix.platform }})
+    needs: [release, verify-ci]
+    if: needs.release.outputs.should_release == 'true'
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 30
+    permissions:
+      contents: read
+      packages: write # push by digest, and the SBOM attestation next to it
+      id-token: write # sign the SBOM attestation (Sigstore)
+      attestations: write
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - platform: linux/amd64
+            arch: amd64
+            runner: ubuntu-latest
+          - platform: linux/arm64
+            arch: arm64
+            runner: ubuntu-24.04-arm
+    env:
+      DRY_RUN: ${{ needs.release.outputs.dry_run }}
+      VERSION: ${{ needs.release.outputs.version }}
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: docker/setup-buildx-action@v4
+
+      # The image says what the package says (scripts/build-info.mjs): the build context has no .git, so the commit,
+      # the run and the official flag come in as build args.
+      - name: Build args
+        id: args
+        env:
+          EPOCH: ${{ needs.release.outputs.epoch }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}/attempts/${{ github.run_attempt }}
+        run: |
+          set -euo pipefail
+          official=""; [ "${DRY_RUN}" = "false" ] && official=1
+          {
+            echo "build_args<<EOF"
+            echo "GITHUB_SHA=${GITHUB_SHA}"
+            echo "SOURCE_DATE_EPOCH=${EPOCH}"
+            echo "BRAGDOC_BUILD_RUN_URL=${RUN_URL}"
+            echo "BRAGDOC_OFFICIAL_BUILD=${official}"
+            echo "EOF"
+          } >> "$GITHUB_OUTPUT"
+
+      # Built into the local image store first, so it can be started and checked before anything is pushed.
+      - name: Build
+        uses: docker/build-push-action@v7
+        with:
+          context: .
+          platforms: ${{ matrix.platform }}
+          load: true
+          tags: bragdoc:smoke
+          build-args: ${{ steps.args.outputs.build_args }}
+          cache-from: type=gha,scope=image-${{ matrix.arch }}
+          cache-to: type=gha,mode=max,scope=image-${{ matrix.arch }}
+
+      # The way the docs say to run it: published on loopback, a data folder at /data. Healthy, then what it serves.
+      - name: Start it and check it
+        run: scripts/smoke-image.sh bragdoc:smoke "${VERSION}" "${GITHUB_SHA}" "$([ "${DRY_RUN}" = false ] && echo true || echo false)"
+
+      - name: Log in to GHCR
+        if: env.DRY_RUN == 'false'
+        uses: docker/login-action@v4
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      # Same inputs as the build above, so it's all cache hits.
+      - name: Push by digest
+        id: push
+        if: env.DRY_RUN == 'false'
+        uses: docker/build-push-action@v7
+        with:
+          context: .
+          platforms: ${{ matrix.platform }}
+          build-args: ${{ steps.args.outputs.build_args }}
+          labels: |
+            org.opencontainers.image.source=${{ github.server_url }}/${{ github.repository }}
+            org.opencontainers.image.revision=${{ github.sha }}
+            org.opencontainers.image.version=${{ env.VERSION }}
+            org.opencontainers.image.licenses=MIT
+            org.opencontainers.image.title=BragDoc Local
+            org.opencontainers.image.description=A local-first tracker for your achievements at work
+          outputs: type=image,name=${{ env.IMAGE }},push-by-digest=true,name-canonical=true,push=true
+          cache-from: type=gha,scope=image-${{ matrix.arch }}
+
+      # One SBOM per architecture, on its own runner, attested against that architecture's digest: an SBOM made from
+      # the multi-arch index would only describe the platform the scanner ran on.
+      - name: SBOM
+        if: env.DRY_RUN == 'false'
+        uses: anchore/sbom-action@v0
+        with:
+          image: ${{ env.IMAGE }}@${{ steps.push.outputs.digest }}
+          format: spdx-json
+          output-file: ${{ runner.temp }}/sbom.spdx.json
+          upload-artifact: false
+          upload-release-assets: false
+
+      - name: Attest SBOM
+        if: env.DRY_RUN == 'false'
+        uses: actions/attest-sbom@v4
+        with:
+          subject-name: ${{ env.IMAGE }}
+          subject-digest: ${{ steps.push.outputs.digest }}
+          sbom-path: ${{ runner.temp }}/sbom.spdx.json
+          push-to-registry: true
+
+      - name: Export digest
+        if: env.DRY_RUN == 'false'
+        env:
+          DIGEST: ${{ steps.push.outputs.digest }}
+        run: |
+          mkdir -p "${RUNNER_TEMP}/digests"
+          touch "${RUNNER_TEMP}/digests/${DIGEST#sha256:}"
+
+      - name: Upload digest
+        if: env.DRY_RUN == 'false'
+        uses: actions/upload-artifact@v7
+        with:
+          name: digests-${{ matrix.arch }}
+          path: ${{ runner.temp }}/digests/*
+          if-no-files-found: error
+          retention-days: 1
+
+  # One multi-arch tag from the per-arch digests, then its build provenance, pushed to GHCR next to it
+  # (`gh attestation verify oci://ghcr.io/edspencer/bragdoc:<version> -R edspencer/bragdoc-ai`). The SBOMs are per
+  # architecture (build-image).
+  publish-image:
+    name: Publish image + attestations
+    needs: [release, pack, build-image]
+    if: needs.release.outputs.should_release == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: read
+      packages: write # push the merged manifest and the attestations
+      id-token: write # sign the attestations (Sigstore)
+      attestations: write
+    env:
+      DRY_RUN: ${{ needs.release.outputs.dry_run }}
+      VERSION: ${{ needs.release.outputs.version }}
+      DIST_TAG: ${{ needs.release.outputs.dist_tag }}
+    steps:
+      - name: Dry run
+        if: env.DRY_RUN == 'true'
+        run: |
+          echo "dry run: would tag ${IMAGE}:${VERSION} and ${IMAGE}:${DIST_TAG} from the per-arch digests, and attest provenance"
+
+      - name: Download digests
+        if: env.DRY_RUN == 'false'
+        uses: actions/download-artifact@v8
+        with:
+          path: ${{ runner.temp }}/digests
+          pattern: digests-*
+          merge-multiple: true
+
+      - uses: docker/setup-buildx-action@v4
+        if: env.DRY_RUN == 'false'
+
+      - name: Log in to GHCR
+        if: env.DRY_RUN == 'false'
+        uses: docker/login-action@v4
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      # :<version> and the channel tag (:next or :latest). Each file in the digests dir is named by a digest.
+      - name: Tag the multi-arch image
+        id: tag
+        if: env.DRY_RUN == 'false'
+        run: |
+          set -euo pipefail
+          # A version's tag never moves: a fresh run for a version that's already out (rather than "Re-run failed
+          # jobs" on the original run) rebuilt the image, and its digest differs from the one people have pulled.
+          if docker buildx imagetools inspect "${IMAGE}:${VERSION}" >/dev/null 2>&1; then
+            echo "${IMAGE}:${VERSION} already exists; leaving it (and :${DIST_TAG}) where they are"
+          else
+            refs=""
+            for f in "${RUNNER_TEMP}"/digests/*; do refs="${refs} ${IMAGE}@sha256:$(basename "$f")"; done
+            # shellcheck disable=SC2086 # one reference per word
+            docker buildx imagetools create -t "${IMAGE}:${VERSION}" -t "${IMAGE}:${DIST_TAG}" ${refs}
+          fi
+          docker buildx imagetools inspect "${IMAGE}:${VERSION}"
+          digest="$(docker buildx imagetools inspect "${IMAGE}:${VERSION}" --format '{{json .Manifest}}' | jq -r .digest)"
+          echo "digest=${digest}" >> "$GITHUB_OUTPUT"
+
+      - name: Attest build provenance
+        if: env.DRY_RUN == 'false'
+        uses: actions/attest-build-provenance@v4
+        with:
+          subject-name: ${{ env.IMAGE }}
+          subject-digest: ${{ steps.tag.outputs.digest }}
+          push-to-registry: true
+
+  # Auth is npm trusted publishing over OIDC: no NPM_TOKEN exists anywhere. It needs `id-token: write`, npm >= 11.5.1
+  # and `registry-url` on setup-node, and a trusted publisher on npmjs.com for this repo and this workflow file
+  # (RELEASING.md). Provenance comes from publishConfig.provenance (and --provenance, to be sure).
+  #
+  # Last of the publishes, after the image, because it's the irreversible one: a version can never be published twice
+  # (Paddock learned this the hard way: npm went out while CI was still running, and before the job that tags).
+  publish-npm:
+    name: Publish to npm
+    needs: [release, verify-ci, pack, publish-image]
+    if: needs.release.outputs.should_release == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: read
+      id-token: write # OIDC: trusted publishing and provenance
+    env:
+      DRY_RUN: ${{ needs.release.outputs.dry_run }}
+      VERSION: ${{ needs.release.outputs.version }}
+      DIST_TAG: ${{ needs.release.outputs.dist_tag }}
+    steps:
+      - uses: actions/download-artifact@v8
+        with:
+          name: npm-package
+          path: ${{ runner.temp }}/package
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          # Without this npm never writes a registry line into .npmrc, and the publish can't authenticate.
+          registry-url: "https://registry.npmjs.org"
+
+      # Node 22 ships npm 10; trusted publishing needs >= 11.5.1. Pinned to a major (the one that wrote the lockfile)
+      # rather than @latest, so a new npm major can't change how a release publishes.
+      - name: Upgrade npm for trusted publishing
+        run: npm install -g npm@^11.5.1
+
+      # The tarball smoke:pack checked, not a rebuild. "Re-run failed jobs" after a later step failed finds the
+      # version already on npm and skips this (an npm version can never be published twice).
+      - name: Publish
+        run: |
+          set -euo pipefail
+          tarball="$(ls "${RUNNER_TEMP}"/package/*.tgz)"
+          if [ "${DRY_RUN}" = "true" ]; then
+            npm publish "${tarball}" --tag "${DIST_TAG}" --access public --dry-run
+            echo "dry run: stopping before the publish"
+          elif [ -n "$(npm view "@bragdoc/local@${VERSION}" version 2>/dev/null || true)" ]; then
+            echo "@bragdoc/local@${VERSION} is already on npm; not publishing it again"
+          else
+            npm publish "${tarball}" --tag "${DIST_TAG}" --access public --provenance
+          fi
+
+      - name: Verify provenance landed
+        if: env.DRY_RUN == 'false'
+        run: |
+          set -euo pipefail
+          for i in $(seq 1 40); do
+            if npm view "@bragdoc/local@${VERSION}" dist.attestations.provenance --json 2>/dev/null | grep -q slsa; then
+              echo "provenance attested for ${VERSION}"; exit 0
+            fi
+            echo "attestation not visible yet (attempt $i); waiting"; sleep 15
+          done
+          echo "::error::@bragdoc/local@${VERSION} is published but no provenance attestation appeared" >&2
+          exit 1
+
+  # The tag and the GitHub Release come after npm, so a tag always means a published version. The tarball on the
+  # release is the one on npm, with its own build-provenance attestation (`gh attestation verify <file> -R …`).
+  github-release:
+    name: Tag + GitHub Release
+    needs: [release, publish-npm]
+    if: needs.release.outputs.should_release == 'true' && needs.release.outputs.dry_run == 'false'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write # create the v<version> tag and the Release
+      id-token: write # sign the tarball's attestation
+      attestations: write
+    env:
+      VERSION: ${{ needs.release.outputs.version }}
+      DIST_TAG: ${{ needs.release.outputs.dist_tag }}
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/download-artifact@v8
+        with:
+          name: npm-package
+          path: ${{ runner.temp }}/package
+
+      # The Release carries the tarball that's on npm, or nothing. They differ only if this is a fresh run for a
+      # version an earlier run published (build-info.json names the run): re-run the failed jobs of that run instead.
+      - name: The tarball is the one on npm
+        run: |
+          set -euo pipefail
+          tarball="$(ls "${RUNNER_TEMP}"/package/*.tgz)"
+          ours="sha512-$(openssl dgst -sha512 -binary "${tarball}" | base64 -w0)"
+          theirs="$(npm view "@bragdoc/local@${VERSION}" dist.integrity)"
+          if [ "${ours}" != "${theirs}" ]; then
+            echo "::error::this run's tarball isn't the one on npm (${theirs}). Re-run the failed jobs of the run that published ${VERSION}, rather than starting a new run."
+            exit 1
+          fi
+          echo "the tarball is @bragdoc/local@${VERSION} on npm: ${theirs}"
+
+      - name: Attest the tarball
+        uses: actions/attest-build-provenance@v4
+        with:
+          subject-path: ${{ runner.temp }}/package/*.tgz
+
+      # The release notes are this version's CHANGELOG.md section, without its heading.
+      # TODO(PR18): once website/ has a What's new page, add its section here too (local-review's whats-new-release).
+      - name: Release notes from CHANGELOG.md
+        run: |
+          set -euo pipefail
+          awk -v v="## ${VERSION}" '$0 == v { on = 1; next } on && /^## / { exit } on { print }' CHANGELOG.md > notes.md
+          if [ ! -s notes.md ]; then
+            echo "::error::CHANGELOG.md has no '## ${VERSION}' section"
+            exit 1
+          fi
+          cat notes.md
+
+      # Creates the v<version> tag at this commit. A `next` release is a prerelease on GitHub too.
+      - name: Create the GitHub Release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          if gh release view "v${VERSION}" >/dev/null 2>&1; then
+            echo "v${VERSION} already has a GitHub Release"
+            exit 0
+          fi
+          prerelease=""; [ "${DIST_TAG}" = "next" ] && prerelease="--prerelease"
+          # shellcheck disable=SC2086 # empty or one flag
+          gh release create "v${VERSION}" ${prerelease} \
+            --target "${GITHUB_SHA}" \
+            --title "v${VERSION}" \
+            --notes-file notes.md \
+            "${RUNNER_TEMP}"/package/*.tgz "${RUNNER_TEMP}/package/SHA256SUMS"
