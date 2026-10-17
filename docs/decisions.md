@@ -176,3 +176,37 @@ D17 onwards are decisions made while building.
   for branch rules; later jobs (PR5 `services`, PR6 `smoke:pack` and Docker, PR18 `website`) join its `needs`.
 - No Windows cells: Windows isn't supported in v0.1 (D14). Hallway runs them because it supports Windows best-effort.
 - CI runs on pushes and PRs to both `next` and `main`, so nothing needs editing when `next` merges.
+
+### D23 — `/dev/kit` exists in dev and `BRAGDOC_KIT=1` builds, never in a release
+
+- The component kit's showcase (`src/dev/Kit.tsx`) is the reference for building pages and the source of the kit's
+  screenshots, but it isn't part of the product. `vite.config.ts` defines `__BRAGDOC_KIT__`: true under `npm run dev`
+  and in builds made with `BRAGDOC_KIT=1` (the capture rig makes one), false otherwise. When false, the route's lazy
+  import is dead code the bundler drops, and `/dev/kit` is the not-found page. `test/web.test.ts` and an e2e spec
+  check a release build leaves it out.
+- The route file always exists, so the generated route tree is the same in every mode (D20 keeps it uncommitted;
+  this keeps it from churning between builds).
+- **Considered:** an ignore pattern for `src/routes/dev/` in production builds (the route tree would differ by mode,
+  and the typed links to it would break); shipping it (about 25 KB of demo content plus its fixture images, for nobody).
+
+### D24 — Text on a project colour: whichever of near-black and white reads better
+
+- Project colours can be any colour (SPEC R6), so text on them (pills, Gantt bars, nav pills) is picked in `inkOn()`:
+  the ink with the higher WCAG contrast. The crossover is near luminance 0.18, and no colour gets less than about
+  4.2:1. A unit test sweeps the swatches and a range of colours.
+- The Scrapbook prototype used a fixed threshold of 0.36, which put white on its own green at 2.67:1 and on tomato at
+  3.39:1. Now green, tomato, pink and teal get dark text (the Board and Folio nav pills too); blue, violet, purple,
+  brown, slate and near-black keep white. A visible change from the prototype, made for legibility.
+- Kit text on fixed colours follows the same rule: dark ink on the green `go` button and the amber Found badge.
+  The tomato accent button keeps the design's white text (3.4:1, bold); revisit if it reads poorly.
+
+### D25 — Brand assets are generated with Playwright's Chromium; fonts are self-hosted
+
+- `brand/mark.svg` (a "b" path on a tomato tile, no font needed) is the source of the favicons, icons and social
+  cards, which `brand/generate.mjs` renders. Adapted from Local Review's generator, but rasterising with the Chromium
+  that `@playwright/test` already brings instead of adding `@resvg/resvg-js` and `opentype.js`. The app and the docs
+  site (PR18) both use `brand/`.
+- The four Scrapbook fonts come from `@fontsource` packages, bundled into `dist/web` by Vite: the app makes no
+  request to a font CDN (or anywhere else off the machine; `test/web.test.ts` and e2e check).
+- Browser-driving code (`e2e/`, `tools/`) type-checks under its own `tsconfig.tools.json`, which adds the DOM types
+  for `page.evaluate()` callbacks, so the server's config stays DOM-free.

@@ -17,7 +17,7 @@ test('a deep link gets the shell, which shows its not-found page', async ({ page
   const res = await page.goto('/deep/route');
   expect(res?.status()).toBe(200);
   await expect(page.getByTestId('not-found')).toBeVisible();
-  await page.getByRole('link', { name: 'Back to the start' }).click();
+  await page.getByRole('link', { name: 'Back to the board' }).click();
   await expect(page.getByTestId('placeholder-shell')).toBeVisible();
 });
 
