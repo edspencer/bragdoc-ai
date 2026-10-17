@@ -162,11 +162,18 @@ test('a TCP listener that is not HTTP still counts as taken (the probe falls bac
 });
 
 test('serve exits 0 on SIGTERM (a clean stop; the service is restarted after it anyway)', async () => {
-  const { child, ready } = startServe(['--port', '0']);
-  await ready;
-  const code = await new Promise((r) => {
-    child.once('exit', (c, sig) => r(c ?? sig));
-    child.kill('SIGTERM');
-  });
-  assert.equal(code, 0);
+  // the signal is sent the instant "BragDoc on" arrives, several times over: the handler must already exist by then
+  for (let i = 0; i < 10; i++) {
+    const { child, ready } = startServe(['--port', '0']);
+    try {
+      await ready; // rejects with the child's output if it never got that far
+      const code = await new Promise((r) => {
+        child.once('exit', (c, sig) => r(c ?? sig));
+        child.kill('SIGTERM');
+      });
+      assert.equal(code, 0, `run ${i + 1}`);
+    } finally {
+      await stopChild(child);
+    }
+  }
 });
