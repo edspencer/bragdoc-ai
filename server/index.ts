@@ -12,6 +12,10 @@ import type { AppContext } from './context.js';
 import { apiError } from './http.js';
 import { VERSION, WEB_DIST } from './paths.js';
 import { registerRoutes } from './routes/index.js';
+import { createServices } from './services/index.js';
+import { startSnapshots } from './store/backups.js';
+import { openStore, type Store } from './store/index.js';
+import { watchStore } from './store/watch.js';
 
 export interface AppOptions {
   /** The data home, absolute. */
@@ -20,6 +24,8 @@ export interface AppOptions {
   webDist?: string | null;
   /** Defaults to the package version. */
   version?: string;
+  /** The data home's store; opened (loaded) from `dataDir` when not given. */
+  store?: Store;
 }
 
 /**
@@ -36,9 +42,9 @@ export function hasFileExtension(pathname: string): boolean {
 /** A Vite output file: `/assets/index-CqW7J_rx.js` (Vite's hashes are 8 base64url characters). */
 const HASHED_ASSET = /^\/assets\/[^/]+-[A-Za-z0-9_-]{8}\.[a-z0-9]+$/;
 
-export function createApp({ dataDir, webDist = WEB_DIST, version = VERSION }: AppOptions): Hono {
+export function createApp({ dataDir, webDist = WEB_DIST, version = VERSION, store = openStore(dataDir) }: AppOptions): Hono {
   const app = new Hono();
-  const ctx: AppContext = { version, dataDir };
+  const ctx: AppContext = { version, dataDir, store, services: createServices(store) };
 
   registerRoutes(app, ctx);
   app.all('/api/*', (c) => c.json(apiError('not_found', `no API route ${c.req.method} ${c.req.path}`), 404));
@@ -77,18 +83,30 @@ export interface ServerOptions extends AppOptions {
  * rejects if it can't bind (EADDRINUSE, EACCES), for the CLI to explain.
  */
 export async function startServer(port: number, { hostname = '127.0.0.1', ...opts }: ServerOptions): Promise<{ port: number; close: () => Promise<void> }> {
-  const app = createApp(opts);
+  // the store is loaded before the port is bound, then watched for changes on disk and snapshotted (on start, hourly)
+  const store = opts.store ?? openStore(opts.dataDir);
+  const app = createApp({ ...opts, store });
+  const watcher = watchStore(store);
+  const stopSnapshots = startSnapshots(opts.dataDir);
   return new Promise((resolve, reject) => {
+    const failed = (e: Error) => {
+      stopSnapshots();
+      void watcher.close();
+      reject(e);
+    };
     const server = serve({ fetch: app.fetch, port, hostname }, (info) => {
-      server.off('error', reject);
-      const close = () =>
-        new Promise<void>((res) => {
+      server.off('error', failed);
+      const close = async () => {
+        stopSnapshots();
+        await watcher.close();
+        await new Promise<void>((res) => {
           server.close(() => res());
           // idle keep-alive connections (and, later, open event streams) would otherwise hold close() open
           if ('closeAllConnections' in server) server.closeAllConnections();
         });
+      };
       resolve({ port: info.port, close });
     });
-    server.once('error', reject);
+    server.once('error', failed);
   });
 }
