@@ -6,7 +6,9 @@
 set -euo pipefail
 image="$1" version="$2" commit="$3" official="$4"
 data="$(mktemp -d)"
-# the image runs as uid 1000 (`node`), and so must own its data folder, as compose.yaml arranges on a laptop
+# the image runs as uid 1000 (`node`), and so must own its data folder, as compose.yaml arranges on a laptop. 755, not
+# mktemp's 700, so this script (another uid) can still look inside afterwards.
+chmod 755 "${data}"
 if [ "$(id -u)" = 0 ]; then chown 1000:1000 "${data}"; else sudo chown 1000:1000 "${data}"; fi
 name="bragdoc-smoke-$$"
 cleanup() { docker rm -f "${name}" >/dev/null 2>&1 || true; }
