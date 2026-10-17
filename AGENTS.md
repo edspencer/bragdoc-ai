@@ -9,7 +9,9 @@ you explicitly connect. v0.1 is built on the **`next`** branch as a series of pu
 
 What exists so far is the **skeleton** (PR1): the package, build, CI and repo hygiene; a Hono server with
 `GET /api/health` and the web app's static serving; a minimal CLI (`serve`, `--version`, `--help`); and a placeholder
-web shell. Everything else arrives PR by PR, in the waves #411 lays out.
+web shell. PR3 added the file store: the data home's schemas (`shared/schema/`), the store and its index, the
+watcher, evidence files, backups, and the services every feature calls. Everything else arrives PR by PR, in the waves
+#411 lays out.
 
 Before changing behaviour, read, in order:
 
@@ -53,14 +55,23 @@ server/              the server and CLI (Node, TypeScript ESM, Hono)
   cli.ts             `bragdoc` entry point (the package's bin); args.ts parses arguments; banner.ts is what
                      `serve` prints at startup
   index.ts           createApp (routes → JSON 404 for /api/* → static files → SPA fallback) and startServer
-  context.ts         AppContext: what every route module gets (version, dataDir; later the store, bus, config)
+  context.ts         AppContext: what every route module gets (version, dataDir, store, services; later bus, config)
   http.ts            helpers for route modules (apiError)
   routes/index.ts    registerRoutes(): one line per feature module (D18)
   routes/health.ts   GET /api/health
   paths.ts           package root, VERSION, WEB_DIST, the data home (resolveDataDir), tildify
   port.ts            DEFAULT_PORT (2724 = BRAG), alone so vite.config.ts can import it
+  store/             the only code that touches the data home's files (D5, D24): index.ts (Store: load, index,
+                     Problems, write/remove/restore), safefs.ts (atomic writes, nothing deleted), yamldoc.ts
+                     (comment-preserving edits, front-matter), files.ts (paths), blobs.ts (evidence files), search.ts
+                     (MiniSearch), watch.ts (chokidar), backups.ts (snapshots), errors.ts
+  services/          the operations HTTP and MCP both call: achievements, projects/companies/repos (catalog.ts),
+                     evidence, found, profile; createServices(store)
 shared/              code used by both server/ and src/: no Node or DOM APIs
   api.ts             the HTTP API contract (request/response types, ApiError)
+  schema/            the data files' Zod schemas and types (PR3 owns it), the services' input schemas (inputs.ts), the
+                     Problem and StoreChange types, and the generated file-format reference (reference.ts)
+  ulid.ts, impact.ts, judge.ts   ids; the 1–10 impact scale; the (unimplemented) AI judge seam (D8)
 src/                 the web app (React 19, Vite, Tailwind v4, TanStack Router + Query), built into dist/web
   main.tsx           QueryClient + router
   routes/            file-based routes (TanStack Router; tsr.config.json); __root.tsx is the shell
@@ -69,12 +80,12 @@ public/              static files copied into dist/web (favicon.svg). Only conte
                      cached as immutable; anything else is revalidated
 test/                node:test suites, run from source via tsx; fixture.ts has the throwaway-dir helpers
 e2e/                 Playwright specs, run against the built server (playwright.config.ts)
-scripts/             start.mjs (npm start), dev.mjs (npm run dev), check-no-nul-bytes.mjs
-docs/                decisions.md (D1…), data-format.md
+scripts/             start.mjs (npm start), dev.mjs (npm run dev), check-no-nul-bytes.mjs, sync-reference.ts,
+                     store-demo.ts
+docs/                decisions.md (D1…), data-format.md (the file format; its reference tables are generated)
 ```
 
-Coming soon, so you know where things go: `server/{config,home,runtime,security,egress,proc,events}.ts` (PR2),
-`server/store/`, `server/services/` and `shared/schema/` (PR3), the Scrapbook kit under `src/` and
+Coming soon, so you know where things go: `server/{config,home,runtime,security,egress,proc,events}.ts` (PR2), the Scrapbook kit under `src/` and
 `tools/docs-media/` (PR4), `server/commands/` and `server/platform/` (PR5), the release machinery and `Dockerfile`
 (PR6), `website/` (PR18).
 
@@ -91,6 +102,8 @@ npm test               # node:test, from source via tsx
 npm run build          # dist/web (Vite) + dist/server, dist/shared (tsc)
 npm run test:e2e       # Playwright against the built server (run `npm run build` first)
 npm run routes         # regenerate src/routeTree.gen.ts by hand (typecheck, dev and build do it anyway)
+npm run sync:reference # regenerate the reference tables in docs/data-format.md after a schema change
+npm run store:demo     # the file store end to end on a throwaway data home (seed, index stats, watcher events)
 ```
 
 **The definition of done** for every PR: `npm run check:nul && npm run typecheck && npm test && npm run build` pass
@@ -109,6 +122,19 @@ locally (and `npm run test:e2e` if you touched anything it covers), and CI is gr
   (`server/context.ts`), one line each, and set it in `createApp()`.
 - **Middleware that wraps everything** (PR2's security): `app.use('*', …)` at the top of `createApp()`, before
   `registerRoutes()`.
+- **Reading or writing data:** routes and MCP tools call `ctx.services` (`server/services/`), never the files and
+  never `ctx.store.write` directly. Validate request bodies with the input schemas in `shared/schema/inputs.ts`
+  (strict: unknown keys are errors) or let the service do it. Map the store's errors (`server/store/errors.ts`):
+  `NotFoundError` → 404, `ValidationError` → 400 (its `issues` say which keys), `ConflictError` and `ReadOnlyError` →
+  409. Reads that need no logic can use `ctx.store` (`get`, `all`, `problems()`, `search`, `achievementIdsIn`). What
+  `get`/`all` return are the index's own objects: **never mutate them** (copy first). Pass the client's `If-Match` to
+  updates from the UI (every entry has an `etag`), so an edit made against a stale copy is a 409, not a silent
+  overwrite. Serving evidence files: trust only an allow-list of types from the sidecar's `mime` (a sidecar is
+  hand-editable), with the blob headers from SECURITY.md.
+- **Live updates:** `ctx.store.subscribe(fn)` hears every change as a `StoreChange` (`shared/schema/change.ts`),
+  whether BragDoc wrote it or a hand edit did; the watcher runs under `startServer`. Our own writes are one event each.
+- **A field on a data file:** add it as optional (or with a default) to its schema in `shared/schema/`, with a
+  `.describe()` sentence, run `npm run sync:reference`, and don't bump `schemaVersion` (D23). Never redefine a type.
 - **A page:** add a file under `src/routes/` (TanStack file routes: `found.tsx` → `/found`,
   `settings/$tab.tsx` → `/settings/:tab`). The route tree regenerates itself; it's gitignored (D20), so it never
   conflicts.
@@ -137,7 +163,8 @@ locally (and `npm run test:e2e` if you touched anything it covers), and CI is gr
 
 - node:test via tsx (`test/*.test.ts`). Test the HTTP app in-process with `createApp(...).request(path)`; test the CLI
   as a child process (`test/cli.test.ts` shows how).
-- **Tests never touch a real home or data home.** Use `tmpDir()` / `tmpHome()` from `test/fixture.ts`, and pass
+- **Tests never touch a real home or data home.** Use `storeHome()` from `test/store-fixture.ts` for a store (with
+  services, a fake clock and a `put()` for hand edits), and `tmpDir()` / `tmpHome()` from `test/fixture.ts`, and pass
   `tmpHome().env` to any child process (it points `HOME`, `XDG_*` and `BRAGDOC_HOME` into a temp dir).
 - e2e specs go in `e2e/` and run against the built server on a throwaway home (`playwright.config.ts`). Give
   elements you assert on a `data-testid`.
