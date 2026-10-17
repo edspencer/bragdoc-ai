@@ -1,0 +1,51 @@
+# BragDoc Local in Docker, on your laptop: an alternative to `npx @bragdoc/local` with the same data (D14).
+#
+#   mkdir -p ~/.bragdoc ~/Code    # first, so Docker doesn't create them owned by root
+#   docker compose up -d          # then open http://localhost:2724
+#
+# It sees your machine the way an npm install would:
+# - ~/.bragdoc is the data home at /data, so `bragdoc` from npm and this container read and write the same files
+#   (don't run both at once: they'd both be on port 2724 anyway);
+# - your code folder is mounted read-only at the SAME absolute path, so the repository paths BragDoc stores mean the
+#   same thing inside the container and out. Set BRAGDOC_CODE_DIR if yours isn't ~/Code;
+# - optionally your screenshots folder (for the Screenshots source) and your gh login (to find your pull requests);
+#   uncomment those lines below.
+#
+# What doesn't work in a container: macOS-only features (Vision OCR, notifications), and reaching Ollama, which is
+# at host.docker.internal:11434 from in here.
+name: bragdoc
+services:
+  bragdoc:
+    image: ghcr.io/edspencer/bragdoc:latest
+    # To build this checkout instead: `docker compose up -d --build`
+    build: .
+    pull_policy: missing
+    # BragDoc has no login: publish it on this computer's loopback only, never 0.0.0.0 (D10).
+    ports:
+      - "127.0.0.1:2724:2724"
+    # The image runs as uid 1000 (`node`), the usual first user on Linux. If `id -u` says something else, set
+    # BRAGDOC_UID / BRAGDOC_GID so what BragDoc writes into ~/.bragdoc is owned by you. (Docker Desktop on macOS maps
+    # ownership for you.)
+    user: "${BRAGDOC_UID:-1000}:${BRAGDOC_GID:-1000}"
+    environment:
+      # A token instead of the mounted gh login, if you prefer: GH_TOKEN: ${GH_TOKEN}
+      TZ: ${TZ:-UTC}
+    volumes:
+      # create_host_path: false, so a missing folder is an error rather than a root-owned empty one
+      - type: bind
+        source: ${HOME}/.bragdoc
+        target: /data
+        bind: { create_host_path: false }
+      - type: bind
+        source: ${BRAGDOC_CODE_DIR:-${HOME}/Code}
+        target: ${BRAGDOC_CODE_DIR:-${HOME}/Code}
+        read_only: true
+        bind: { create_host_path: false }
+      # The folder your screenshots land in, if you turn on the Screenshots source (macOS: ~/Desktop by default):
+      # - type: bind
+      #   source: ${BRAGDOC_SCREENSHOTS_DIR:-${HOME}/Desktop}
+      #   target: ${BRAGDOC_SCREENSHOTS_DIR:-${HOME}/Desktop}
+      #   read_only: true
+      # Your gh login, so BragDoc can find your pull requests without a token of its own:
+      # - ${HOME}/.config/gh:/home/node/.config/gh:ro
+    restart: unless-stopped

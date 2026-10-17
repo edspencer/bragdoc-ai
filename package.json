@@ -29,6 +29,7 @@
     "dist/server/",
     "dist/shared/",
     "dist/web/",
+    "dist/build-info.json",
     "AGENT-GUIDE.md",
     "CHANGELOG.md"
   ],
@@ -42,7 +43,7 @@
   "scripts": {
     "start": "node scripts/start.mjs",
     "dev": "node scripts/dev.mjs",
-    "build": "npm run build:web && npm run build:server",
+    "build": "npm run build:web && npm run build:server && node scripts/strip-maps.mjs && node scripts/build-info.mjs",
     "build:web": "vite build",
     "build:server": "node -e \"fs.rmSync('dist/server',{recursive:true,force:true});fs.rmSync('dist/shared',{recursive:true,force:true})\" && tsc -p tsconfig.build.json",
     "routes": "tsr generate",
@@ -52,6 +53,9 @@
     "bragdoc": "tsx server/cli.ts",
     "check:nul": "node scripts/check-no-nul-bytes.mjs",
     "prepack": "npm run build",
+    "smoke:pack": "node scripts/smoke-pack.mjs",
+    "changeset": "changeset",
+    "changeset:version": "changeset version && npm install --package-lock-only --ignore-scripts",
     "sync:reference": "tsx scripts/sync-reference.ts",
     "store:demo": "tsx scripts/store-demo.ts"
   },
@@ -66,6 +70,8 @@
     "zod": "^4.6.7"
   },
   "devDependencies": {
+    "@changesets/changelog-github": "^1.0.1",
+    "@changesets/cli": "^3.0.3",
     "@playwright/test": "^1.64.1",
     "@tailwindcss/vite": "^4.3.3",
     "@tanstack/react-query": "^5.104.4",
