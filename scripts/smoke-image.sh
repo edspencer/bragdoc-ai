@@ -51,4 +51,10 @@ docker stop "${name}" >/dev/null
 bounded=(); command -v timeout >/dev/null && bounded=(timeout 60) # macOS has no timeout(1)
 out="$("${bounded[@]}" docker run --rm --user 4321:4321 "${image}" 2>&1 || true)"
 case "${out}" in *"can't write to /data"*) check "an unwritable /data is explained" ;; *) echo "an unwritable /data said: ${out}" >&2; exit 1 ;; esac
+# OCR (PR11, D40) with no network at all: the image reads a screenshot with only what it ships
+fixtures="$(cd "$(dirname "$0")/.." && pwd)/test/fixtures/screenshots"
+ocr="$(docker run --rm --network none -v "${fixtures}:/fixtures:ro" "${image}" node dist/server/cli.js dev ocr /fixtures/praise.png --engine tesseract --name 'Alex Marlowe' --json)"
+echo "${ocr}" | jq -e '.[0].engine == "tesseract" and .[0].rules.pass == true and (.[0].text | test("@Alex Marlowe ran the dual-write plan"))' >/dev/null \
+  || { echo "OCR in the image: ${ocr}" >&2; exit 1; }
+check "OCR reads a screenshot with --network none"
 check ok

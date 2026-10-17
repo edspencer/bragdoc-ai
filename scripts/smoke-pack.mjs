@@ -128,6 +128,26 @@ try {
   fails(['frobnicate'], 2, /unknown command 'frobnicate'/);
   fails(['--port', 'nope'], 2, /--port must be a port number/);
 
+  // OCR (PR11, D40): the installed package reads a screenshot with what it ships (tesseract.js, its wasm, the English
+  // data), with the network gone: a preload, which worker threads inherit, makes every fetch, socket and DNS lookup
+  // throw. A package that tried to download its language data would fail here.
+  step('dev ocr, with no network');
+  const noNet = path.join(tmp, 'no-network.mjs');
+  fs.writeFileSync(
+    noNet,
+    `import net from 'node:net'; import dns from 'node:dns'; import http from 'node:http'; import https from 'node:https';
+const no = (what) => () => { throw new Error('smoke:pack: no network (' + what + ')'); };
+globalThis.fetch = no('fetch'); net.Socket.prototype.connect = no('socket'); net.connect = net.createConnection = no('net.connect');
+dns.lookup = no('dns'); http.request = http.get = no('http'); https.request = https.get = no('https');\n`,
+  );
+  const fixture = path.join(root, 'test', 'fixtures', 'screenshots', 'praise.png');
+  const ocrOut = execFileSync(process.execPath, ['--import', noNet, bin, 'dev', 'ocr', fixture, '--engine', 'tesseract', '--name', 'Alex Marlowe', '--json'], { cwd: work, env, encoding: 'utf8' });
+  const [ocrResult] = JSON.parse(ocrOut);
+  assert.equal(ocrResult.engine, 'tesseract', ocrOut);
+  assert.match(ocrResult.text, /@Alex Marlowe ran the dual-write plan beautifully/, ocrOut);
+  assert.equal(ocrResult.rules.pass, true, ocrOut);
+  assert.deepEqual(fs.readdirSync(work), [], 'dev ocr wrote nothing into the current directory (tesseract.js caches there by default)');
+
   step('serve');
   server = spawn(bin, ['--port', '0'], { cwd: work, env, stdio: ['ignore', 'pipe', 'inherit'] });
   let printed = '';

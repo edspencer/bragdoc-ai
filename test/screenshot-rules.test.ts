@@ -27,6 +27,11 @@ test('praise that names you passes, with the rules it matched, a quote, who said
   assert.equal(r.where, '#eng-billing');
 });
 
+test("a quote leaves out the reaction row and the reply count", () => {
+  const r = rules('# eng\nDana Whitfield 4:52 PM\nKudos @Alex Marlowe, the cutover saved 3 hours.\nB22 In 8\n12 replies');
+  assert.equal(r.quote, 'Kudos @Alex Marlowe, the cutover saved 3 hours.');
+});
+
 test('every form of your name counts: full name, first, last, handle, aliases, GitHub login', () => {
   for (const name of ['Alex Marlowe', 'Alex', 'Marlowe', '@alex.m', 'alex.m', "Alex's", 'ALEX', 'AlexMarlowe']) assert.ok(pass(slack('Dana Whitfield', `Kudos to ${name} for the cutover`)), name);
   const r = compileRules({ name: 'Sam Okafor', githubLogin: 'sokafor', aliases: ['Sammy'] });

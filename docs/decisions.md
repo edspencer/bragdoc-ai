@@ -454,3 +454,52 @@ D17 onwards are decisions made while building.
   branch `next` until it merges into `main` (`website/README.md` "Deploying"). CI only builds and checks.
 - **Considered:** `starlight-blog` (a dependency on a third-party plugin's release cadence); an always-dark landing
   page like Hallway's (unlike the app); generating the brand placeholder here (the real kit exists).
+
+### D40 — OCR: tesseract.js with its English data in the package and no network; Vision through JXA; rules you can read
+
+PR11 (SPEC R7, R8, R4). The library is `server/ocr/` and `shared/rules/screenshot.ts`; the screenshots source and
+pasted images (PR15) are its callers.
+
+- **The language data ships with the package, never fetched.** `@tesseract.js-data/eng` is a runtime dependency, and
+  tesseract.js reads its LSTM-only `4.0.0_best_int` model (2.9 MB) from disk. Fetching it from tesseract.js's default
+  CDN would be a download nobody asked for, and an egress call; an opt-in download was the alternative and buys
+  nothing for one language. Other languages, if ever, are an explicit opt-in download through `egress`.
+- **tesseract.js can't reach the network or write a file.** Images go in as bytes (a string is fetched if it looks like
+  a URL), `langPath` is a local directory, `cacheMethod: 'none'` (by default it caches the data in the current
+  directory). And the worker thread runs `server/ocr/tesseract-worker.ts`, our copy of tesseract.js's 15-line Node
+  worker entry, whose adapter's `fetch` only fails and whose cache writes are no-ops. That file is the egress guard's
+  one reviewed `node:worker_threads` import. It also ends the thread when language data fails to load or initialise:
+  tesseract.js 7's `createWorker()` otherwise never settles, and the stray thread keeps the process alive. Checked by
+  test/ocr.test.ts (the worker pointed at the CDN fails; the global fetch throws throughout), `smoke:pack` (the
+  installed package with every socket, DNS lookup and fetch made to throw) and the Docker smoke (`--network none`).
+- **Small screenshots are scaled up.** A PNG narrower than 1600 px is decoded (pngjs, pure JS), flattened onto white
+  and scaled 2× before tesseract reads it: a non-Retina chat screenshot went from mean confidence 33 to 85. Over 40 MP
+  is refused. Other formats go in as they are.
+- **Apple Vision is a JXA script, not a binary.** `osascript -l JavaScript` bridging to `VNRecognizeTextRequest`, run
+  through `proc.run`, with the image as base64 on stdin (no temp file) and JSON lines back. A capability probe runs
+  once; a failure on any image falls back to tesseract.js, and the result says which engine ran and why another
+  didn't. It is checked for real on the macOS CI runners only; the Linux box tests its contract with a fake osascript.
+- **One read at a time, cached by sha256.** At most 100 waiting (then `busy`); the same image queued twice is read
+  once; a read past its timeout (60 s) terminates the worker. The cache is in memory, except that evidence files keep
+  their text in their sidecar's `ocr` (where search reads it): a screenshot that isn't kept leaves no text on disk.
+- **The rules, as built.** `pass` = (a) your name, surname, handle or a non-initials alias, OCR-tolerant
+  (`AIex` is Alex), minus `notMe`; or (b) your initials, case-sensitive, never a time (`9 AM`, `AM PT`, `AM/PM`) or
+  capitals; **and** (c) praise, or an impact (a number with a unit, money, customers, a promotion), **in the same
+  message**. Messages are split at chat author lines (`Dana Whitfield 4:52 PM`); without any, a name and a praise word
+  must be within three lines. (d), the chat cues (`#channel`, replies, timestamps, @-mentions), only lift borderline
+  cases: a lone "thanks"/"great" or an impact number counts in a chat window, not on a dashboard. Additions to the brief
+  from testing on OCR text: your own messages and bots' never pass; a bare acknowledgement ("thx AM") is dropped, as in
+  the spike; a reply in a thread under your own message counts as (a) when it names nobody else on screen; avatar
+  initials and emoji debris that OCR reads into a message are cleaned off.
+- **Measured** (`npm run eval:screenshots`, the Found spike's 218 messages drawn as screenshots): perfect text, recall
+  83% / precision 71% (98% without sarcasm); through tesseract, recall 79% / precision 69% (95% without sarcasm). The
+  misses are DMs that never name you; nearly every false pass is sarcasm, which rules can't read and the future judge
+  is for (`shared/judge.ts`, unchanged: the seam already had the right shape). All 18 hand-made screenshots (Slack light,
+  dark, small and Retina; an email; a dashboard; a code editor; a standup invite; a blank image) give their expected
+  outcome; "praise for someone else, naming you in passing" passes, and is documented as a limit.
+- **Size:** the installed package grows from about 24 MB to 80 MB: tesseract.js-core is 43 MB (six wasm builds, of
+  which one runs) and the language package 13 MB (two models, of which the 2.9 MB one is read). Vendoring just the
+  model and one wasm build would save about 50 MB but means maintaining tesseract.js's loader ourselves; not worth it
+  for v0.1.
+- **Considered:** a compiled Swift helper for Vision (a binary to build, sign and ship per arch); the CDN or an opt-in
+  download for the data; sharp for scaling (native, large); counting impact numbers anywhere (every dashboard passed).

@@ -59,7 +59,8 @@
     "changeset": "changeset",
     "changeset:version": "changeset version && node scripts/whats-new-release.mjs && npm install --package-lock-only --ignore-scripts",
     "sync:reference": "tsx scripts/sync-reference.ts",
-    "store:demo": "tsx scripts/store-demo.ts"
+    "store:demo": "tsx scripts/store-demo.ts",
+    "eval:screenshots": "tsx scripts/eval-screenshots.ts"
   },
   "dependencies": {
     "@hono/node-server": "^2.1.5",

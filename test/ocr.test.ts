@@ -57,6 +57,11 @@ test('what tesseract reads: the words, a small screenshot (upscaled), dark mode,
   assert.equal((await read(png(caseById('blank').svg))).text.trim(), '');
 });
 
+test('the committed fixture smoke:pack and the Docker smoke read still passes (test/fixtures/screenshots/praise.png)', async () => {
+  const r = rules((await read(fs.readFileSync(path.join(ROOT, 'test', 'fixtures', 'screenshots', 'praise.png')))).text);
+  assert.ok(r.pass, JSON.stringify(r));
+});
+
 test("a slice of the spike's dataset: OCR'd, the rules agree with the perfect reading", async () => {
   const slice = DATASET.messages.filter((_, i) => i % 9 === 0);
   let agree = 0;

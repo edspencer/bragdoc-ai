@@ -385,7 +385,8 @@ function quoteOf(lines: string[], b: Block, from: number, to: number): string {
   const e = short ? b.end : Math.min(b.end, to + 1);
   const text = lines
     .slice(s, e + 1)
-    .filter((l) => l.trim() && !/^(?:\d+\s+repl(?:y|ies)\b|Last reply\b|View thread\b)/i.test(l.trim()) && !/^[\s\d·•|]+$/.test(l))
+    // not the thread's reply count, and not a reaction row (emoji pills read as "B22 In 8": short bits with numbers)
+    .filter((l) => l.trim() && !/^(?:\d+\s+repl(?:y|ies)\b|Last reply\b|View thread\b)/i.test(l.trim()) && !(/^\S{1,3}(?:\s+\S{1,3})*$/.test(l.trim()) && /\d/.test(l)))
     .join(' ')
     .replace(/\s+/g, ' ')
     .trim();
