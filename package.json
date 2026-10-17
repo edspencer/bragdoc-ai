@@ -57,7 +57,7 @@
     "docs:media": "tsx tools/docs-media/capture.ts",
     "smoke:pack": "node scripts/smoke-pack.mjs",
     "changeset": "changeset",
-    "changeset:version": "changeset version && npm install --package-lock-only --ignore-scripts",
+    "changeset:version": "changeset version && node scripts/whats-new-release.mjs && npm install --package-lock-only --ignore-scripts",
     "sync:reference": "tsx scripts/sync-reference.ts",
     "store:demo": "tsx scripts/store-demo.ts"
   },

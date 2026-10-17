@@ -1,0 +1,123 @@
+---
+/**
+ * /blog/: every post, newest first, as taped cards on the board. Rendered inside Starlight's page frame
+ * (<StarlightPage>), so it keeps the header, search, theme and the docs sidebar; the posts themselves are the `blog`
+ * collection (src/content.config.ts).
+ */
+import StarlightPage from '@astrojs/starlight/components/StarlightPage.astro';
+import { posts, cardDate } from '../../blog';
+
+const all = await posts();
+---
+
+<StarlightPage
+	frontmatter={{
+		title: 'Blog',
+		description: 'Notes on building BragDoc: what changed, what is next, and why it works the way it does.',
+		tableOfContents: false,
+		pagefind: false,
+	}}
+>
+	<p class="blog-lede">
+		Notes on building BragDoc. Subscribe with the <a href="/blog/rss.xml">RSS feed</a>.
+	</p>
+	{
+		all.length === 0 ? (
+			<p class="blog-empty">No posts yet.</p>
+		) : (
+			<ul class="blog-list not-content">
+				{all.map((p, i) => (
+					<li class={`blog-card tilt-${i % 3}`}>
+						<span class="blog-tape" aria-hidden="true" />
+						<time class="blog-date" datetime={p.data.date.toISOString().slice(0, 10)}>
+							{cardDate(p.data.date)}
+						</time>
+						<h2>
+							<a href={`/blog/${p.id}/`}>{p.data.title}</a>
+						</h2>
+						<p>{p.data.description}</p>
+					</li>
+				))}
+			</ul>
+		)
+	}
+</StarlightPage>
+
+<style>
+	.blog-lede {
+		color: var(--sl-color-gray-2);
+	}
+	.blog-empty {
+		font-family: var(--bd-font-hand);
+		font-size: 1.6rem;
+		color: var(--bd-muted);
+	}
+	.blog-list {
+		list-style: none;
+		padding: 0;
+		margin: 2rem 0 0;
+		display: grid;
+		gap: 2.2rem;
+	}
+	.blog-card {
+		position: relative;
+		background: var(--bd-surface);
+		box-shadow: var(--bd-card-shadow);
+		border-radius: 0.9rem;
+		padding: 1.5rem 1.4rem 1.25rem;
+	}
+	.tilt-0 {
+		rotate: -0.4deg;
+	}
+	.tilt-1 {
+		rotate: 0.35deg;
+	}
+	.blog-tape {
+		position: absolute;
+		top: -0.65rem;
+		left: 1.6rem;
+		width: 5rem;
+		height: 1.25rem;
+		background: var(--bd-accent);
+		opacity: var(--bd-tape-op);
+		mix-blend-mode: var(--bd-tape-blend);
+		clip-path: polygon(3% 0, 100% 6%, 97% 100%, 0 92%);
+	}
+	.blog-date {
+		font-family: var(--bd-font-hand);
+		font-size: 1.35rem;
+		color: var(--bd-muted);
+	}
+	.blog-card h2 {
+		margin: 0.15rem 0 0.4rem;
+		font-family: var(--bd-font-head);
+		font-weight: 750;
+		font-size: var(--sl-text-2xl);
+		letter-spacing: -0.02em;
+		line-height: 1.2;
+	}
+	.blog-card h2 a {
+		color: var(--bd-ink);
+		text-decoration: none;
+	}
+	/* the whole card is the link's target */
+	.blog-card h2 a::after {
+		content: '';
+		position: absolute;
+		inset: 0;
+		border-radius: inherit;
+	}
+	.blog-card:hover h2 a,
+	.blog-card h2 a:focus-visible {
+		color: var(--sl-color-text-accent);
+	}
+	.blog-card p {
+		margin: 0;
+		color: var(--sl-color-gray-2);
+	}
+	@media (prefers-reduced-motion: reduce) {
+		.blog-card {
+			rotate: none;
+		}
+	}
+</style>

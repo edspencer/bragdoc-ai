@@ -1,0 +1,128 @@
+---
+/**
+ * The landing page.
+ *
+ * This file route wins `/` over Starlight's injected routes, so it renders outside Starlight with its own layout
+ * (LandingLayout). The docs start at /introduction/, the first entry in the sidebar. Never point the sidebar at `/`:
+ * it would eject a reader from the docs with no way back.
+ *
+ * All copy is in components/landing/copy.ts. The board picture is a capture of the design prototype with invented
+ * data, tagged "Mock-up" (PR19 replaces it with a real capture of the app on the example dataset).
+ */
+import { Image } from 'astro:assets';
+import LandingLayout from '../components/landing/LandingLayout.astro';
+import { hero, INSTALL, HERO_LINKS, MOCKUP, GUARANTEES, HOW, AGENTS, OPEN } from '../components/landing/copy';
+import { TITLE, TAGLINE } from '../site.mjs';
+import boardLight from '../assets/landing/board-light.png';
+import boardDark from '../assets/landing/board-dark.png';
+---
+
+<LandingLayout title={`${TITLE}: ${TAGLINE.toLowerCase()}`} description={hero.lede}>
+	<section class="hero container">
+		<div class="hero-text">
+			<p class="eyebrow">{hero.eyebrow}</p>
+			<h1>{hero.title}</h1>
+			<p class="lede">{hero.lede}</p>
+			<p class="body">{hero.body}</p>
+			<div class="buttons">
+				{
+					HERO_LINKS.map((l) => (
+						<a class:list={['btn', { 'btn--primary': l.primary }]} href={l.href}>
+							{l.text}
+						</a>
+					))
+				}
+			</div>
+		</div>
+
+		<div class="install">
+			<div class="card install-card">
+				<span class="tape tape--tomato" aria-hidden="true"></span>
+				<div class="install-head">
+					<span class="install-label">Run it</span>
+					<span class:list={['pill', INSTALL.notYet ? 'pill--wait' : 'pill--ok']}>{INSTALL.tag}</span>
+				</div>
+				<pre class="slab"><code><span class="prompt" aria-hidden="true">$ </span>{INSTALL.command}</code></pre>
+				<p class="install-after">{INSTALL.after}</p>
+			</div>
+			{INSTALL.notYet && <p class="sticky install-sticky">{INSTALL.notYet}</p>}
+		</div>
+	</section>
+
+	<section class="mock container" aria-label="What the board looks like">
+		<figure class="print">
+			<span class="tape tape--corner-l" aria-hidden="true"></span>
+			<span class="tape tape--corner-r" aria-hidden="true"></span>
+			<Image class="only-light" src={boardLight} alt={MOCKUP.alt} widths={[700, 1200, 2400]} sizes="(min-width: 1180px) 1100px, 94vw" loading="eager" />
+			<Image class="only-dark" src={boardDark} alt={MOCKUP.alt} widths={[700, 1200, 2400]} sizes="(min-width: 1180px) 1100px, 94vw" loading="lazy" />
+			<figcaption>
+				<span class="hand">{MOCKUP.caption}</span>
+				<span class="shot-tag">{MOCKUP.tag}</span>
+			</figcaption>
+		</figure>
+	</section>
+
+	<section class="guarantees container" aria-labelledby="g-title">
+		<h2 id="g-title" class="section-title">Three promises</h2>
+		<ul class="grid3">
+			{
+				GUARANTEES.map((g, i) => (
+					<li class={`card promise tilt-${i}`}>
+						<span class={`tape tape--${g.tape}`} aria-hidden="true" />
+						<h3>{g.title}</h3>
+						<p>{g.body}</p>
+						<a href={g.href}>{g.link} →</a>
+					</li>
+				))
+			}
+		</ul>
+	</section>
+
+	<section class="how container" aria-labelledby="how-title">
+		<p class="eyebrow">{HOW.eyebrow}</p>
+		<h2 id="how-title" class="section-title">{HOW.title}</h2>
+		<ol class="grid3">
+			{
+				HOW.steps.map((s, i) => (
+					<li class="card step">
+						<span class:list={['word', { 'word--on': i === 0 }]}>{s.word}</span>
+						<h3>{s.title}</h3>
+						<p>{s.body}</p>
+						<a href={s.href}>More about {s.word} →</a>
+					</li>
+				))
+			}
+		</ol>
+	</section>
+
+	<section class="agents container" aria-labelledby="agents-title">
+		<div>
+			<p class="eyebrow">{AGENTS.eyebrow}</p>
+			<h2 id="agents-title" class="section-title">{AGENTS.title}</h2>
+			<p class="body">{AGENTS.body}</p>
+			<a class="btn" href={AGENTS.link.href}>{AGENTS.link.text}</a>
+		</div>
+		<figure class="file">
+			<figcaption>{AGENTS.file}</figcaption>
+			<pre class="slab"><code>{AGENTS.sample}</code></pre>
+		</figure>
+	</section>
+
+	<section class="open container" aria-labelledby="open-title">
+		<div class="sticky open-sticky">
+			<span class="tape tape--tomato" aria-hidden="true"></span>
+			<h2 id="open-title">{OPEN.title}</h2>
+			<p>{OPEN.body}</p>
+			<div class="buttons">
+				{
+					HERO_LINKS.map((l) => (
+						<a class:list={['btn', { 'btn--primary': l.primary }]} href={l.href}>
+							{l.text}
+						</a>
+					))
+				}
+			</div>
+		</div>
+		<p class="hosted"><a href={OPEN.hosted.href}>{OPEN.hosted.text} →</a></p>
+	</section>
+</LandingLayout>
