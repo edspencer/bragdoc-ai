@@ -8,7 +8,7 @@ export const Route = createFileRoute('/welcome')({ component: Welcome });
 
 function Welcome() {
   return (
-    <div data-testid="welcome-page" className="mx-auto max-w-3xl px-4 pb-16 pt-10 sm:px-6">
+    <main data-testid="welcome-page" className="mx-auto max-w-3xl px-4 pb-16 pt-10 sm:px-6">
       <div className="flex items-center gap-2">
         <Mark />
         <Wordmark />
@@ -25,6 +25,6 @@ function Welcome() {
           Go to the board →
         </LinkBtn>
       </div>
-    </div>
+    </main>
   );
 }

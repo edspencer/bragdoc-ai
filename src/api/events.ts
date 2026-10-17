@@ -1,7 +1,8 @@
 // Live updates: the server's event stream (`GET /api/events`, SSE, PR2) turned into query invalidations. An event is
 // a hint about what changed, never the data itself: the matching queries are refetched rather than patched from the
 // payload. Events that arrive together are coalesced into one round of refetches, the stream reconnects with backoff,
-// and every (re)connect refreshes everything, since events may have been missed while it was down. All of this is
+// and every reconnect refreshes everything, since events may have been missed while it was down (the first
+// connect doesn't: the page has just loaded its data). All of this is
 // adapted from Hallway's src/live.ts.
 //
 // The wire format, which PR2's server/events.ts sends:
@@ -29,7 +30,7 @@ export function invalidationsFor(type: string, data: string): readonly string[] 
   } catch {
     return 'all';
   }
-  return (typeof kind === 'string' && CHANGE_INVALIDATES[kind]) || 'all';
+  return (typeof kind === 'string' && Object.hasOwn(CHANGE_INVALIDATES, kind) && CHANGE_INVALIDATES[kind]) || 'all';
 }
 
 /** Turn a batch of invalidations into the fewest refetches: everything, or each prefix once. */
@@ -64,6 +65,7 @@ export function useServerEvents({ enabled = true, url = '/api/events' }: { enabl
     let flushTimer: ReturnType<typeof setTimeout> | null = null;
     let batch: (readonly string[] | 'all')[] = [];
     let stopped = false;
+    let connectedBefore = false;
 
     const queue = (inv: readonly string[] | 'all' | null) => {
       if (!inv) return;
@@ -80,7 +82,8 @@ export function useServerEvents({ enabled = true, url = '/api/events' }: { enabl
       es = new EventSource(url);
       es.addEventListener('hello', (e) => {
         attempt = 0;
-        queue(invalidationsFor('hello', dataOf(e)));
+        if (connectedBefore) queue(invalidationsFor('hello', dataOf(e)));
+        connectedBefore = true;
       });
       es.addEventListener('change', (e) => queue(invalidationsFor('change', dataOf(e))));
       es.onerror = () => {

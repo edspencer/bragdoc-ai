@@ -146,7 +146,7 @@ project-colour tape, on an oat board (light) or a dim cork board under a desk la
   exception. Fonts: `font-sans` (Instrument Sans, the default), `font-grotesk` (headings), `font-hand` (Caveat),
   `font-mono` (Geist Mono). All self-hosted; never add a font or anything else from a CDN.
 - **Project colours are data, and any colour.** Paint them with `style`, and put text on them with `inkOn(hex)`
-  (`src/lib/colour.ts`), which picks black or white with at least 3:1 contrast (D24). `safeColour()` guards
+  (`src/lib/colour.ts`), which picks whichever of near-black and white reads better (at least ~4.2:1, D24). `safeColour()` guards
   anything read from a file.
 - **CSP:** no inline `<script>`, `<style>` or `style=""` in HTML, and no library that injects a `<style>` tag at run
   time. React's `style={{…}}` prop is fine (it sets styles through the CSSOM, which the CSP allows); e2e checks every

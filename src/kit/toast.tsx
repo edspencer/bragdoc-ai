@@ -3,7 +3,7 @@
 // current one. It goes after 3.5 s, or 6 s when there's something to undo, and stays while hovered or focused so
 // Undo can't vanish under the pointer. Errors use tone 'bad'. Ported from the Scrapbook prototype's Toast, without
 // the AI judge's "Tell the judge why?" reasons.
-import { createContext, useCallback, useContext, useEffect, useRef, useState, type ReactNode } from 'react';
+import { createContext, useCallback, useContext, useEffect, useRef, useState, type FocusEvent, type ReactNode } from 'react';
 
 export interface ToastSpec {
   msg: ReactNode;
@@ -18,6 +18,9 @@ export function ToastProvider({ children }: { children: ReactNode }) {
   const [held, setHeld] = useState(false);
   const seq = useRef(0);
   const show = useCallback((t: ToastSpec) => setToast({ ...t, id: ++seq.current }), []);
+
+  // a new toast starts unheld: the old one may have been removed with focus still in it, and never got its blur
+  useEffect(() => setHeld(false), [toast?.id]);
 
   useEffect(() => {
     if (!toast || held) return;
@@ -37,8 +40,9 @@ export function ToastProvider({ children }: { children: ReactNode }) {
             onMouseEnter={() => setHeld(true)}
             onMouseLeave={() => setHeld(false)}
             onFocus={() => setHeld(true)}
-            onBlur={() => setHeld(false)}
-            className={`sb-toast pointer-events-auto flex max-w-xl flex-wrap items-center gap-x-3 gap-y-2 rounded-2xl px-4 py-3 text-[13.5px] font-semibold shadow-2xl ${toast.tone === 'bad' ? 'bg-bad text-white' : 'bg-ink text-bg'}`}
+            // only when focus leaves the toast, not when it moves from Undo to ×
+            onBlur={(e: FocusEvent<HTMLDivElement>) => !e.currentTarget.contains(e.relatedTarget as Node | null) && setHeld(false)}
+            className={`sb-toast pointer-events-auto flex max-w-xl flex-wrap items-center gap-x-3 gap-y-2 rounded-2xl px-4 py-3 text-[13.5px] font-semibold shadow-2xl ${toast.tone === 'bad' ? 'bg-bad text-white dark:text-[#1b1713]' : 'bg-ink text-bg'}`}
           >
             <span>{toast.msg}</span>
             {toast.undo && (

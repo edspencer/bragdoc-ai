@@ -189,13 +189,16 @@ D17 onwards are decisions made while building.
 - **Considered:** an ignore pattern for `src/routes/dev/` in production builds (the route tree would differ by mode,
   and the typed links to it would break); shipping it (about 25 KB of demo content plus its fixture images, for nobody).
 
-### D24 — Text on a project colour: white below luminance 0.30, else near-black
+### D24 — Text on a project colour: whichever of near-black and white reads better
 
-- Project colours can be any colour (SPEC R6), so text on them (pills, Gantt bars, nav pills) is picked by WCAG
-  luminance in `inkOn()`. The threshold is where white text falls to 3:1 contrast, so any colour gets at least 3:1
-  whichever ink wins (the dark side gets 5.7:1 or more). A unit test sweeps the swatches and a range of colours.
-- The Scrapbook prototype used 0.36, which put white on its own green swatch at 2.67:1. At 0.30 the green, and the
-  Folio nav pill, get dark text; tomato and blue keep white.
+- Project colours can be any colour (SPEC R6), so text on them (pills, Gantt bars, nav pills) is picked in `inkOn()`:
+  the ink with the higher WCAG contrast. The crossover is near luminance 0.18, and no colour gets less than about
+  4.2:1. A unit test sweeps the swatches and a range of colours.
+- The Scrapbook prototype used a fixed threshold of 0.36, which put white on its own green at 2.67:1 and on tomato at
+  3.39:1. Now green, tomato, pink and teal get dark text (the Board and Folio nav pills too); blue, violet, purple,
+  brown, slate and near-black keep white. A visible change from the prototype, made for legibility.
+- Kit text on fixed colours follows the same rule: dark ink on the green `go` button and the amber Found badge.
+  The tomato accent button keeps the design's white text (3.4:1, bold); revisit if it reads poorly.
 
 ### D25 — Brand assets are generated with Playwright's Chromium; fonts are self-hosted
 

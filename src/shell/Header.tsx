@@ -34,7 +34,7 @@ export function Header() {
         {NAV.map((n) => (
           <NavPill key={n.to} to={n.to} color={n.color} activeOptions={{ exact: n.to === '/' }} className="group flex items-center gap-1.5 rounded-full px-4 py-1.5 font-grotesk text-[14px] font-semibold text-muted hover:text-ink">
             {n.label}
-            {n.to === '/found' && !!found && <CountBadge n={found} className="bg-warn text-white group-data-[status=active]:bg-white/35 group-data-[status=active]:text-[var(--nav-ink)]" />}
+            {n.to === '/found' && !!found && <CountBadge n={found} className="bg-warn text-[#2a1a00] group-data-[status=active]:bg-white/40 group-data-[status=active]:text-[var(--nav-ink)]" />}
           </NavPill>
         ))}
       </nav>
@@ -66,7 +66,7 @@ export function MobileTabs() {
       {NAV.map((n) => (
         <NavPill key={n.to} to={n.to} color={n.color} activeOptions={{ exact: n.to === '/' }} className="relative flex flex-1 flex-col items-center rounded-xl py-1.5 font-grotesk text-[13px] font-bold text-muted">
           {n.label}
-          {n.to === '/found' && !!found && <CountBadge n={found} className="absolute right-1 top-0.5 bg-warn text-[10px] text-white" />}
+          {n.to === '/found' && !!found && <CountBadge n={found} className="absolute right-1 top-0.5 bg-warn text-[10px] text-[#2a1a00]" />}
         </NavPill>
       ))}
     </nav>

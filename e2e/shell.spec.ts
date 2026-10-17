@@ -46,11 +46,12 @@ test('every page loads under the production CSP, with a clean console and no thi
 
 test('the fonts are the self-hosted Scrapbook fonts', async ({ page }) => {
   await page.goto('/');
-  const loaded = await page.evaluate(async () => {
-    await document.fonts.ready;
-    return ['Instrument Sans Variable', 'Bricolage Grotesque Variable', 'Caveat'].map((f) => document.fonts.check(`16px "${f}"`));
-  });
-  expect(loaded).toEqual([true, true, true]);
+  // load each face explicitly (they're fetched on first use, so `fonts.ready` alone can resolve before them): each
+  // must come back with at least one face, from the app's own origin (the CSP and the watch() above ensure the rest)
+  const loaded = await page.evaluate(async () =>
+    Promise.all(['Instrument Sans Variable', 'Bricolage Grotesque Variable', 'Caveat', 'Geist Mono Variable'].map(async (f) => (await document.fonts.load(`16px "${f}"`)).length > 0)),
+  );
+  expect(loaded).toEqual([true, true, true, true]);
 });
 
 test('dark is applied before the app runs: no flash of the light theme', async ({ page }) => {
@@ -89,14 +90,32 @@ test('the theme toggle switches, is remembered across reloads, and follows the s
   await expect(html).toHaveClass(/dark/);
 });
 
-test('at 390 px: bottom tabs instead of the pill nav, and nothing scrolls sideways', async ({ page }) => {
-  await page.setViewportSize({ width: 390, height: 844 });
-  for (const p of PAGES) {
-    await page.goto(p);
-    await expect(page.locator('h1').first()).toBeVisible();
-    if (p !== '/welcome') await expect(page.getByTestId('mobile-tabs')).toBeVisible();
-    expect(await page.evaluate(() => document.documentElement.scrollWidth), p).toBeLessThanOrEqual(390);
+/**
+ * Elements whose right edge is past the viewport, other than inside something that scrolls sideways on purpose (the
+ * settings tabs, the Gantt). body has overflow-x: hidden, so scrollWidth alone would hide a clipped element.
+ */
+const overflowing = (page: Page) =>
+  page.evaluate(() =>
+    [...document.querySelectorAll('body *')]
+      .filter((el) => {
+        if (el.getBoundingClientRect().right <= window.innerWidth + 0.5) return false;
+        for (let p = el.parentElement; p; p = p.parentElement) if (['auto', 'scroll'].includes(getComputedStyle(p).overflowX)) return false;
+        return true;
+      })
+      .map((el) => `${el.tagName.toLowerCase()}.${String(el.getAttribute('class') ?? '').slice(0, 50)}`),
+  );
+
+test('at 360 and 390 px: bottom tabs instead of the pill nav, and nothing pokes out sideways', async ({ page }) => {
+  for (const width of [360, 390]) {
+    await page.setViewportSize({ width, height: 800 });
+    for (const p of PAGES) {
+      await page.goto(p);
+      await expect(page.locator('h1').first()).toBeVisible();
+      if (p !== '/welcome') await expect(page.getByTestId('mobile-tabs')).toBeVisible();
+      expect(await overflowing(page), `${p} at ${width}px`).toEqual([]);
+    }
   }
+  await page.setViewportSize({ width: 390, height: 844 });
   await page.goto('/');
   await page.getByTestId('mobile-tabs').getByRole('link', { name: 'Folio' }).click();
   await expect(page.getByTestId('folio-page')).toBeVisible();

@@ -1,7 +1,7 @@
 // Paper: the things pinned to the board. Taped cards and panels, photo prints, PDF pages, sticky notes, rubber stamps
 // and the receipt roll. Ported from the Scrapbook prototype (ui.tsx, Board.tsx, Settings.tsx), with its data lookups
 // replaced by plain props.
-import { useState, type CSSProperties, type ReactNode } from 'react';
+import { forwardRef, useState, type CSSProperties, type HTMLAttributes, type ReactNode } from 'react';
 import { safeColour, tilt } from '../lib/colour.ts';
 import { Lightbox } from './Lightbox.tsx';
 
@@ -16,7 +16,7 @@ const TAPE_AT = {
   right: '-top-2.5 right-8 w-14',
 } as const;
 
-export interface CardProps {
+export interface CardProps extends Omit<HTMLAttributes<HTMLElement>, 'children'> {
   children: ReactNode;
   /** Tape colour (a project's colour); no tape if omitted. */
   tape?: string;
@@ -26,23 +26,26 @@ export interface CardProps {
   /** Highlight a just-added card: a tomato ring and a pop-in. */
   fresh?: boolean;
   as?: 'article' | 'section' | 'div';
-  className?: string;
   'data-testid'?: string;
 }
 
-/** A card on the board: card stock, a soft shadow, optional project-colour tape. */
-export function Card({ children, tape, tapeAt = 'center', tiltId, fresh, as: Tag = 'article', className = '', ...rest }: CardProps) {
+/**
+ * A card on the board: card stock, a soft shadow, optional project-colour tape. Other props (`id`, `onClick`, aria
+ * attributes, a ref) go to the element.
+ */
+export const Card = forwardRef<HTMLElement, CardProps>(function Card({ children, tape, tapeAt = 'center', tiltId, fresh, as: Tag = 'article', className = '', style, ...rest }, ref) {
   return (
     <Tag
+      ref={ref as never}
+      {...rest}
       className={`sb-card relative rounded-2xl p-4 ${fresh ? 'sb-pop-in ring-2 ring-accent' : ''} ${className}`}
-      style={tiltId ? { transform: `rotate(${tilt(tiltId, 0.4)}deg)` } : undefined}
-      data-testid={rest['data-testid']}
+      style={tiltId ? { rotate: `${tilt(tiltId, 0.4)}deg`, ...style } : style}
     >
       {tape && <Tape color={tape} className={TAPE_AT[tapeAt]} />}
       {children}
     </Tag>
   );
-}
+});
 
 /** A bigger sheet for forms and settings: rounder, roomier, tape on the left. */
 export function Panel({ children, tape, className = '' }: { children: ReactNode; tape?: string; className?: string }) {
@@ -84,10 +87,15 @@ export function Print({ src, alt, caption, tiltId, small }: PrintProps) {
     <>
       <button
         type="button"
-        onClick={() => setOpen(true)}
+        onClick={(e) => {
+          // the print sits inside cards that may be clickable themselves: opening it is all this click does
+          e.stopPropagation();
+          setOpen(true);
+        }}
         aria-label={`Open ${alt} full size`}
         className="sb-print block w-full cursor-zoom-in p-2 pb-1 transition hover:rotate-0 hover:scale-[1.01]"
-        style={tiltId ? { transform: `rotate(${tilt(tiltId, small ? 0.8 : 1.6)}deg)` } : undefined}
+        // `rotate`, not `transform`, so Tailwind's hover:rotate-0 (which sets `rotate`) can straighten it
+        style={tiltId ? { rotate: `${tilt(tiltId, small ? 0.8 : 1.6)}deg` } : undefined}
       >
         <img src={src} alt={alt} className="block w-full" />
         {!small && <span className="block px-1 pb-1 pt-1.5 text-left font-hand text-[17px] leading-tight text-print-ink">{caption ?? alt}</span>}

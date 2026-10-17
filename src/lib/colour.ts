@@ -41,21 +41,33 @@ export function luminance([r, g, b]: [number, number, number]): number {
   return 0.2126 * lin(r) + 0.7152 * lin(g) + 0.0722 * lin(b);
 }
 
+/** WCAG contrast ratio between two luminances (1 to 21). */
+export function contrast(a: number, b: number): number {
+  return (Math.max(a, b) + 0.05) / (Math.min(a, b) + 0.05);
+}
+
+const DARK_INK_L = luminance([0x1d, 0x1a, 0x17]);
+
 /**
- * Legible text for any background colour: near-black on light colours, white on dark ones. The threshold is where
- * white text drops to 3:1 contrast (luminance 0.30), so whichever ink is picked, any colour gets at least 3:1 (the
- * dark side gets 5.7:1 or more). The prototype used 0.36, which put white on its green at 2.67:1 (D24). An
- * unparseable colour gets dark text, on the neutral tape it will be drawn as.
+ * Legible text for any background colour: whichever of near-black and white has the higher contrast on it. That
+ * crossover sits near luminance 0.18, and every colour gets at least about 4.2:1 either way (the floor, right at the crossover). The prototype used a fixed
+ * 0.36 threshold, which put white on its own green at 2.67:1 and on tomato at 3.39:1 (D24). An unparseable colour
+ * gets dark text, on the neutral tape it will be drawn as.
  */
 export function inkOn(hex: string): string {
   const rgb = parseHex(hex);
   if (!rgb) return DARK_INK;
-  return luminance(rgb) > 0.3 ? DARK_INK : LIGHT_INK;
+  const l = luminance(rgb);
+  return contrast(l, DARK_INK_L) >= contrast(l, 1) ? DARK_INK : LIGHT_INK;
 }
 
-/** A colour that's safe to paint: the input if it's a hex colour, else the neutral tape. */
+/**
+ * A colour that's safe to paint and to hand to <input type="color">: any hex colour (`#abc`, `ABCDEF`, …) as
+ * lowercase `#rrggbb`, and anything else as the neutral tape.
+ */
 export function safeColour(hex: string | null | undefined): string {
-  return hex && parseHex(hex) ? hex : NEUTRAL_TAPE;
+  const rgb = hex ? parseHex(hex) : null;
+  return rgb ? `#${rgb.map((c) => c.toString(16).padStart(2, '0')).join('')}` : NEUTRAL_TAPE;
 }
 
 /**

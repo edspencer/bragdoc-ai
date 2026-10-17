@@ -14,10 +14,15 @@ export function ThemeToggle() {
   const { pref, setPref } = useTheme();
   const refs = useRef<(HTMLButtonElement | null)[]>([]);
   const onKey = (e: KeyboardEvent, i: number) => {
-    const step = e.key === 'ArrowRight' || e.key === 'ArrowDown' ? 1 : e.key === 'ArrowLeft' || e.key === 'ArrowUp' ? -1 : 0;
-    if (!step) return;
+    const last = OPTIONS.length - 1;
+    const next =
+      e.key === 'ArrowRight' || e.key === 'ArrowDown' ? (i + 1) % OPTIONS.length
+      : e.key === 'ArrowLeft' || e.key === 'ArrowUp' ? (i + last) % OPTIONS.length
+      : e.key === 'Home' ? 0
+      : e.key === 'End' ? last
+      : -1;
+    if (next < 0) return;
     e.preventDefault();
-    const next = (i + step + OPTIONS.length) % OPTIONS.length;
     setPref(OPTIONS[next].id);
     refs.current[next]?.focus();
   };

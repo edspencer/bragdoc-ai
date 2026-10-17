@@ -2,7 +2,7 @@
 // from the Scrapbook prototype (ui.tsx Btn, Switch, Dot, Field, inputCls; Found.tsx FilterChip; Projects.tsx
 // ColourPicker). Every control is a real <button>/<input>/<a>, so keyboard focus and screen readers come for free;
 // the focus ring is the global :focus-visible rule in styles.css.
-import { forwardRef, useId, type AnchorHTMLAttributes, type ButtonHTMLAttributes, type InputHTMLAttributes, type ReactNode, type TextareaHTMLAttributes } from 'react';
+import { cloneElement, forwardRef, isValidElement, useId, type AnchorHTMLAttributes, type ButtonHTMLAttributes, type InputHTMLAttributes, type ReactNode, type TextareaHTMLAttributes } from 'react';
 import { createLink } from '@tanstack/react-router';
 import { Check, Palette } from 'lucide-react';
 import { PROJECT_SWATCHES, inkOn, safeColour } from '../lib/colour.ts';
@@ -10,7 +10,8 @@ import { PROJECT_SWATCHES, inkOn, safeColour } from '../lib/colour.ts';
 export type BtnKind = 'go' | 'accent' | 'paper' | 'ghost' | 'ink' | 'danger';
 
 const BTN_KIND: Record<BtnKind, string> = {
-  go: 'bg-good text-white shadow-[0_3px_0_var(--good-shadow)] active:translate-y-0.5 active:shadow-none dark:text-[#10241a]',
+  // dark ink on green in both themes: white on it is 2.7:1
+  go: 'bg-good text-[#10241a] shadow-[0_3px_0_var(--good-shadow)] active:translate-y-0.5 active:shadow-none',
   accent: 'bg-accent text-accent-ink shadow-[0_3px_0_var(--accent-shadow)] active:translate-y-0.5 active:shadow-none',
   paper: 'bg-surface text-ink ring-2 ring-line hover:ring-faint/60',
   ink: 'bg-ink text-bg',
@@ -81,20 +82,40 @@ export function Dot({ tone, label }: { tone: Tone; label?: string }) {
 export const inputCls =
   'block w-full rounded-xl bg-sunk px-3.5 py-2.5 text-[15px] text-ink outline-none ring-2 ring-transparent placeholder:text-faint focus-visible:ring-accent/60 aria-[invalid=true]:ring-bad/70 disabled:opacity-50';
 
-/** A labelled form field: the label over the control, a hint or an error under it. */
+/**
+ * A labelled form field: the label over the control, a hint or an error under it. The control (one element) is
+ * given an id, `aria-describedby` pointing at the hint or error, and `aria-invalid` when there's an error.
+ */
 export function Field({ label, hint, error, children }: { label: string; hint?: ReactNode; error?: ReactNode; children: ReactNode }) {
+  const id = useId();
+  const noteId = `${id}-note`;
+  const note = error ?? hint;
+  const control = isValidElement<Record<string, unknown>>(children)
+    ? cloneElement(children, {
+        id: (children.props.id as string | undefined) ?? id,
+        'aria-describedby': note ? noteId : undefined,
+        'aria-invalid': error ? true : children.props['aria-invalid'],
+      })
+    : children;
+  const controlId = isValidElement<Record<string, unknown>>(children) ? ((children.props.id as string | undefined) ?? id) : undefined;
   return (
-    <label className="block">
-      <span className="text-[12.5px] font-semibold text-muted">{label}</span>
-      <div className="mt-1">{children}</div>
+    <div>
+      <label htmlFor={controlId} className="text-[12.5px] font-semibold text-muted">
+        {label}
+      </label>
+      <div className="mt-1">{control}</div>
       {error ? (
-        <span role="alert" className="mt-1 block text-[12px] font-semibold text-bad">
+        <span id={noteId} role="alert" className="mt-1 block text-[12px] font-semibold text-bad">
           {error}
         </span>
       ) : (
-        hint && <span className="mt-1 block text-[12px] text-faint">{hint}</span>
+        hint && (
+          <span id={noteId} className="mt-1 block text-[12px] text-faint">
+            {hint}
+          </span>
+        )
       )}
-    </label>
+    </div>
   );
 }
 
@@ -123,7 +144,7 @@ export function FilterChip({ on, onClick, label, count, color }: { on: boolean; 
 }
 
 /** A small count bubble (the Found badge). */
-export function CountBadge({ n, className = 'bg-warn text-white' }: { n: number; className?: string }) {
+export function CountBadge({ n, className = 'bg-warn text-[#2a1a00]' }: { n: number; className?: string }) {
   return <span className={`rounded-full px-1.5 text-[11px] font-bold ${className}`}>{n > 99 ? '99+' : n}</span>;
 }
 
@@ -135,7 +156,7 @@ export function ColourPicker({ value, onChange, label = 'Tape colour' }: { value
   const id = useId();
   const cur = safeColour(value).toLowerCase();
   return (
-    <div role="group" aria-labelledby={id} className="flex flex-wrap items-center gap-2 rounded-2xl bg-surface/70 p-2.5 pr-4 ring-1 ring-line sm:w-fit">
+    <div role="radiogroup" aria-labelledby={id} className="flex flex-wrap items-center gap-2 rounded-2xl bg-surface/70 p-2.5 pr-4 ring-1 ring-line sm:w-fit">
       <span id={id} className="flex items-center gap-1.5 px-1.5 text-[12px] font-bold uppercase tracking-wider text-faint">
         <Palette aria-hidden className="size-4" /> {label}
       </span>
@@ -143,8 +164,9 @@ export function ColourPicker({ value, onChange, label = 'Tape colour' }: { value
         <button
           key={s}
           type="button"
+          role="radio"
           aria-label={`Use ${s}`}
-          aria-pressed={cur === s}
+          aria-checked={cur === s}
           onClick={() => onChange(s)}
           className="flex size-7 items-center justify-center rounded-full ring-2 ring-offset-2 ring-offset-surface transition hover:scale-110"
           style={{ background: s, ['--tw-ring-color' as string]: cur === s ? s : 'transparent' }}

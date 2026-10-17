@@ -39,15 +39,18 @@ interface RequestOptions {
 }
 
 async function send<T>(method: Method, path: string, body: string | Blob | undefined, headers: Record<string, string>, signal?: AbortSignal): Promise<T> {
+  const unreachable = () => new ApiRequestError(0, NETWORK_ERROR, "Couldn't reach BragDoc. Is it still running?");
   let res: Response;
+  let text: string;
   try {
     res = await fetch(path, { method, headers, body, signal });
+    if (res.status === 204) return undefined as T;
+    text = await res.text();
   } catch (e) {
-    if ((e as Error).name === 'AbortError') throw e;
-    throw new ApiRequestError(0, NETWORK_ERROR, "Couldn't reach BragDoc. Is it still running?");
+    // the caller cancelled (abort(), AbortSignal.timeout()): pass its reason on, it isn't the server's fault
+    if (signal?.aborted) throw e;
+    throw unreachable();
   }
-  if (res.status === 204) return undefined as T;
-  const text = await res.text();
   let data: unknown = undefined;
   try {
     data = text ? JSON.parse(text) : undefined;

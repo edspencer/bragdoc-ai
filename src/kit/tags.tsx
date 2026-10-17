@@ -14,16 +14,16 @@ export function ProjectPill({ name, color, active = true, onClick }: { name: str
   const c = safeColour(color);
   const style = active ? { background: c, color: inkOn(c) } : { boxShadow: `inset 0 0 0 1.5px ${c}`, color: 'var(--ink)' };
   // a faint edge in the dark theme, so a near-black project colour still reads on the dark board
-  const cls = `inline-flex max-w-full items-center gap-1 truncate rounded-full px-2.5 py-0.5 text-[11.5px] font-semibold transition ${active ? 'dark:ring-1 dark:ring-white/15' : ''}`;
+  const cls = `inline-flex max-w-full min-w-0 items-center gap-1 rounded-full px-2.5 py-0.5 text-[11.5px] font-semibold transition ${active ? 'dark:ring-1 dark:ring-white/15' : ''}`;
   if (!onClick)
     return (
-      <span className={cls} style={style}>
-        {name}
+      <span className={cls} style={style} title={name}>
+        <span className="truncate">{name}</span>
       </span>
     );
   return (
-    <button type="button" aria-pressed={active} onClick={onClick} className={`${cls} cursor-pointer hover:-translate-y-px`} style={style}>
-      {name}
+    <button type="button" aria-pressed={active} onClick={onClick} className={`${cls} cursor-pointer hover:-translate-y-px`} style={style} title={name}>
+      <span className="truncate">{name}</span>
     </button>
   );
 }

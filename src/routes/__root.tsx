@@ -35,7 +35,7 @@ function Shell() {
                 Skip to the page
               </a>
               <Header />
-              <main id="main" className="mx-auto max-w-[1240px] px-4 pb-32 sm:px-6">
+              <main id="main" tabIndex={-1} className="mx-auto max-w-[1240px] px-4 pb-32 outline-none sm:px-6">
                 <Outlet />
               </main>
               <MobileTabs />

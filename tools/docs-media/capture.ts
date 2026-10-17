@@ -9,7 +9,8 @@
 // Output: tools/docs-media/out/<name>.png (2x), provenance.json, and contact-sheet.png (every shot on one page).
 // Needs Chromium: `npx playwright install chromium`.
 //
-// The build it makes includes /dev/kit. `npm run build` (and `npm pack`, via prepack) builds without it again.
+// It builds the web app with /dev/kit for the shots, and puts the release build (without it) back afterwards, so
+// dist/ is never left with the kit in it.
 import { execFileSync, spawn, type ChildProcess } from 'node:child_process';
 import fs from 'node:fs';
 import net from 'node:net';
@@ -45,11 +46,12 @@ const freePort = () =>
     });
   });
 
-function build() {
-  console.log('Building with /dev/kit (BRAGDOC_KIT=1)…');
-  const env: NodeJS.ProcessEnv = { ...process.env, BRAGDOC_KIT: '1' };
+/** `npm run <script>`, with or without /dev/kit (BRAGDOC_KIT, D23). */
+function build(script: 'build' | 'build:web', kit: boolean) {
+  console.log(kit ? 'Building with /dev/kit (BRAGDOC_KIT=1)…' : 'Putting the release build back (without /dev/kit)…');
+  const env: NodeJS.ProcessEnv = { ...process.env, BRAGDOC_KIT: kit ? '1' : '' };
   delete env.NODE_ENV; // a shell's NODE_ENV=production would change how Vite builds
-  execFileSync('npm', ['run', 'build'], { cwd: ROOT, env, stdio: ['ignore', 'ignore', 'inherit'] });
+  execFileSync('npm', ['run', script], { cwd: ROOT, env, stdio: ['ignore', 'ignore', 'inherit'] });
 }
 
 async function bootRig(): Promise<{ base: string; proc: ChildProcess; home: string }> {
@@ -76,7 +78,17 @@ async function bootRig(): Promise<{ base: string; proc: ChildProcess; home: stri
 // ------------------------------------------------------------------------------------------------ hygiene
 
 async function assertClean(page: Page, name: string, port: string) {
-  const text = await page.evaluate(() => document.body.innerText);
+  // the visible text, plus what's on screen without being text: form values, placeholders, tooltips, alt text
+  const text = await page.evaluate(() => {
+    const extra = [...document.querySelectorAll('input, textarea, select, [placeholder], [title], [alt], [aria-label]')].flatMap((el) => [
+      (el as HTMLInputElement).value ?? '',
+      el.getAttribute('placeholder') ?? '',
+      el.getAttribute('title') ?? '',
+      el.getAttribute('alt') ?? '',
+      el.getAttribute('aria-label') ?? '',
+    ]);
+    return [document.body.innerText, ...extra].join('\n');
+  });
   const found = [...new Set(text.match(leakPattern(port)) ?? [])];
   if (found.length) throw new Error(`${name}: the page shows ${found.map((f) => JSON.stringify(f)).join(', ')}; shot not written`);
 }
@@ -133,6 +145,8 @@ async function takeShot(browser: Browser, shot: Shot, base: string) {
     reducedMotion: 'reduce',
     locale: 'en-GB',
     timezoneId: 'UTC',
+    // STILL_CSS goes in as an inline <style>, which the app's CSP (style-src 'self') would refuse
+    bypassCSP: true,
   });
   await context.clock.setFixedTime(new Date(SHOT_NOW));
   // tsx (esbuild) wraps named functions in __name(); functions sent to the page need it to exist there too
@@ -199,8 +213,9 @@ async function main() {
   fs.mkdirSync(OUT, { recursive: true });
 
   let rig: Awaited<ReturnType<typeof bootRig>> | undefined;
+  const building = !BASE && !argv.includes('--no-build');
   if (!BASE) {
-    if (!argv.includes('--no-build')) build();
+    if (building) build('build', true);
     console.log('Booting the rig (serve.sh)…');
     rig = await bootRig();
     BASE = rig.base;
@@ -228,6 +243,7 @@ async function main() {
       rig.proc.kill();
       fs.rmSync(rig.home, { recursive: true, force: true });
     }
+    if (building) build('build:web', false);
   }
   const provFile = path.join(OUT, 'provenance.json');
   const prev = fs.existsSync(provFile) && ONLY ? JSON.parse(fs.readFileSync(provFile, 'utf8')).shots : {};

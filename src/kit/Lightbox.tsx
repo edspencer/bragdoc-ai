@@ -22,13 +22,17 @@ export function Lightbox({ src, alt, caption, onClose }: { src: string; alt: str
       // `close` is dispatched after the fact: under StrictMode's unmount-and-remount the dialog is open again by then,
       // and that close wasn't the user's
       onClose={() => !ref.current?.open && onClose()}
-      onClick={onClose}
+      onClick={(e) => {
+        // React events follow the component tree, not the top layer: keep this click from reaching the card behind
+        e.stopPropagation();
+        onClose();
+      }}
       className="m-0 h-full max-h-none w-full max-w-none cursor-zoom-out bg-black/80 p-6 text-center backdrop:bg-transparent"
     >
       <div className="flex h-full flex-col items-center justify-center">
         <img src={src} alt={alt} className="max-h-[80vh] max-w-[92vw] rounded-md shadow-2xl" />
         <div className="mt-4 text-sm text-white/80">{caption ?? alt}</div>
-        <button type="button" onClick={onClose} className="mt-1 rounded text-xs text-white/60 underline decoration-dotted underline-offset-2 hover:text-white">
+        <button type="button" className="mt-1 rounded text-xs text-white/60 underline decoration-dotted underline-offset-2 hover:text-white">
           Close (Esc)
         </button>
       </div>

@@ -75,6 +75,21 @@ test('an aborted request rejects with the AbortError, not a network error', asyn
   await assert.rejects(api.get('/api/health', { signal: ctl.signal }), (e: unknown) => (e as Error).name === 'AbortError');
 });
 
+test('an abort with a reason, or a timeout, passes the reason on rather than blaming the server', async () => {
+  stub((_url, init) => {
+    init.signal?.throwIfAborted();
+    return json({});
+  });
+  const ctl = new AbortController();
+  ctl.abort(new Error('user left the page'));
+  await assert.rejects(api.get('/api/health', { signal: ctl.signal }), /user left the page/);
+});
+
+test('a body that fails to read is a network error, not a raw TypeError', async () => {
+  stub(() => ({ ok: true, status: 200, statusText: 'OK', text: () => Promise.reject(new TypeError('terminated')) }) as unknown as Response);
+  await assert.rejects(api.get('/api/x'), (e: unknown) => isApiError(e, NETWORK_ERROR));
+});
+
 test('204 resolves with undefined; a 200 that is not JSON is an error', async () => {
   stub(() => new Response(null, { status: 204 }));
   assert.equal(await api.delete('/api/things/x'), undefined);
@@ -100,6 +115,7 @@ test('live updates: hello refreshes everything; change refreshes its kind, or ev
   assert.equal(invalidationsFor('ping', ''), null);
   assert.equal(invalidationsFor('change', 'not json'), 'all');
   assert.equal(invalidationsFor('change', '{"kind":"something-new"}'), 'all');
+  assert.equal(invalidationsFor('change', '{"kind":"constructor"}'), 'all'); // not Object.prototype's
   CHANGE_INVALIDATES.widget = ['widgets', 'search'];
   try {
     assert.deepEqual(invalidationsFor('change', '{"kind":"widget"}'), ['widgets', 'search']);

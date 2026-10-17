@@ -6,7 +6,7 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useState, t
 
 export type ThemePref = 'light' | 'system' | 'dark';
 
-/** Shared with public/theme-init.js: change both together (test/theme.test.ts checks). */
+/** Shared with public/theme-init.js: change both together (test/web.test.ts checks). */
 export const THEME_STORAGE_KEY = 'bragdoc.theme';
 
 const DARK_QUERY = '(prefers-color-scheme: dark)';
