@@ -277,10 +277,16 @@ test('catalog, Problems and the Found count', async () => {
   h.services.projects.create({ name: 'Zeta', start: '2026-01-01' });
   h.services.projects.create({ name: 'Alpha', start: '2026-06-01' });
   h.services.repos.create({ localPath: '/tmp/x/my-app' });
-  const projects = (await (await app.request('/api/projects')).json()) as { projects: { name: string }[] };
+  const projects = (await (await app.request('/api/projects')).json()) as { projects: { id: string; name: string; etag: string; achievements: number }[] };
   assert.deepEqual(projects.projects.map((p) => p.name), ['Alpha', 'Zeta']);
-  const repos = (await (await app.request('/api/repos')).json()) as { repos: { name: string }[] };
+  assert.match(projects.projects[0].etag, /^"[0-9a-f]{16}"$/);
+  assert.equal(projects.projects[0].achievements, 0);
+  await create({ title: 'In Alpha', projects: [projects.projects[0].id] });
+  const again = (await (await app.request('/api/projects')).json()) as { projects: { achievements: number }[] };
+  assert.equal(again.projects[0].achievements, 1);
+  const repos = (await (await app.request('/api/repos')).json()) as { repos: { name: string; etag: string }[] };
   assert.deepEqual(repos.repos.map((r) => r.name), ['my-app']);
+  assert.match(repos.repos[0].etag, /^"/);
   assert.deepEqual(await (await app.request('/api/problems')).json(), { problems: [] });
   h.put('achievements/2026/10/01JC0000000000000000000BAD.md', '---\ntitle: [unclosed\n---\n');
   h.store.reloadPath(`${h.home}/achievements/2026/10/01JC0000000000000000000BAD.md`);

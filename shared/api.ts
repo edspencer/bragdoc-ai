@@ -203,14 +203,19 @@ export type LinkPreview =
     }
   | { kind: 'url'; url: string; domain: string };
 
-/** `GET /api/projects` (read-only here; PR8 adds the writes). Every project, newest start first. */
+/** A project as the API lists it: the file's fields, its ETag (If-Match for edits) and how many achievements it has (archived included). */
+export type ProjectEntry<P = Record<string, unknown>> = P & { etag: string; achievements: number };
+/** A repo as the API lists it: the file's fields and its ETag. */
+export type RepoEntry<R = Record<string, unknown>> = R & { etag: string };
+
+/** `GET /api/projects` (the writes are PR8's). Every project, newest start first. */
 export interface ProjectsResponse<P = Record<string, unknown>> {
-  projects: P[];
+  projects: ProjectEntry<P>[];
 }
 
-/** `GET /api/repos` (read-only here; PR8 adds the writes). */
+/** `GET /api/repos` (the writes are PR8's). Every repo, by name. */
 export interface ReposResponse<R = Record<string, unknown>> {
-  repos: R[];
+  repos: RepoEntry<R>[];
 }
 
 /** `GET /api/problems`: everything wrong with files in the data home, errors first (SPEC R2). */
