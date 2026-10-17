@@ -46,18 +46,24 @@
     "build:web": "vite build",
     "build:server": "node -e \"fs.rmSync('dist/server',{recursive:true,force:true});fs.rmSync('dist/shared',{recursive:true,force:true})\" && tsc -p tsconfig.build.json",
     "routes": "tsr generate",
-    "typecheck": "tsr generate && tsc -p tsconfig.server.json && tsc -p tsconfig.json",
+    "typecheck": "tsr generate && tsc -p tsconfig.server.json && tsc -p tsconfig.tools.json && tsc -p tsconfig.json",
     "test": "node --import tsx --test test/*.test.ts",
     "test:e2e": "playwright test",
     "bragdoc": "tsx server/cli.ts",
     "check:nul": "node scripts/check-no-nul-bytes.mjs",
-    "prepack": "npm run build"
+    "prepack": "npm run build",
+    "brand": "node brand/generate.mjs",
+    "docs:media": "tsx tools/docs-media/capture.ts"
   },
   "dependencies": {
     "@hono/node-server": "^2.1.5",
     "hono": "^4.13.13"
   },
   "devDependencies": {
+    "@fontsource-variable/bricolage-grotesque": "^5.3.0",
+    "@fontsource-variable/geist-mono": "^5.3.0",
+    "@fontsource-variable/instrument-sans": "^5.3.0",
+    "@fontsource/caveat": "^5.3.0",
     "@playwright/test": "^1.64.1",
     "@tailwindcss/vite": "^4.3.3",
     "@tanstack/react-query": "^5.104.4",
@@ -69,6 +75,7 @@
     "@types/react-dom": "^19.3.0",
     "@vitejs/plugin-react": "^6.1.2",
     "concurrently": "^10.0.6",
+    "lucide-react": "^1.59.0",
     "react": "^19.3.1",
     "react-dom": "^19.3.1",
     "tailwindcss": "^4.3.3",

@@ -1,7 +1,11 @@
-// The app shell every page renders inside. PR4 replaces this placeholder with the Scrapbook header, pill nav, theme
-// toggle and mobile tabs; pages are files in src/routes/ (TanStack Router file routes, tsr.config.json).
+// The app shell every page renders inside: the board backdrop (with the lamp glow in the dark theme), the header, the
+// page, the mobile tab bar, and the toast host. Welcome (first run) is the one page without the header and tabs.
+// Pages are files in src/routes/ (TanStack Router file routes, tsr.config.json).
 import type { QueryClient } from '@tanstack/react-query';
-import { Link, Outlet, createRootRouteWithContext } from '@tanstack/react-router';
+import { Outlet, createRootRouteWithContext, useRouterState } from '@tanstack/react-router';
+import { useServerEvents } from '../api/events.ts';
+import { LinkBtn, PageTitle, ToastProvider } from '../kit/index.ts';
+import { Header, MobileTabs } from '../shell/Header.tsx';
 
 export interface RouterContext {
   queryClient: QueryClient;
@@ -12,33 +16,46 @@ export const Route = createRootRouteWithContext<RouterContext>()({
   notFoundComponent: NotFound,
 });
 
+/** Off until the server has `GET /api/events` (PR2); then it's on for good. See src/api/events.ts. */
+const LIVE_UPDATES = false;
+
 function Shell() {
+  useServerEvents({ enabled: LIVE_UPDATES });
+  const bare = useRouterState({ select: (s) => s.location.pathname === '/welcome' });
   return (
-    <div className="min-h-screen bg-stone-100 text-stone-900 dark:bg-stone-900 dark:text-stone-100">
-      <header className="flex items-center gap-3 border-b border-stone-300 px-6 py-4 dark:border-stone-700">
-        <Link to="/" className="text-xl font-bold tracking-tight">
-          BragDoc
-        </Link>
-        <span className="rounded bg-amber-200 px-2 py-0.5 text-xs font-medium text-amber-900">v0.1 in progress</span>
-      </header>
-      <main className="mx-auto max-w-3xl px-6 py-10">
-        <Outlet />
-      </main>
-    </div>
+    <ToastProvider>
+      <div className="relative min-h-screen text-ink">
+        <div aria-hidden className="sb-backdrop" />
+        <div className="relative z-[1]">
+          {bare ? (
+            <Outlet />
+          ) : (
+            <>
+              <a href="#main" className="sr-only rounded-full bg-ink px-4 py-2 text-bg focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-50">
+                Skip to the page
+              </a>
+              <Header />
+              <main id="main" className="mx-auto max-w-[1240px] px-4 pb-32 sm:px-6">
+                <Outlet />
+              </main>
+              <MobileTabs />
+            </>
+          )}
+        </div>
+      </div>
+    </ToastProvider>
   );
 }
 
 function NotFound() {
   return (
     <div data-testid="not-found">
-      <h1 className="text-2xl font-semibold">Nothing here</h1>
-      <p className="mt-2 text-stone-600 dark:text-stone-400">
-        There's no page at this address.{' '}
-        <Link to="/" className="underline">
-          Back to the start
-        </Link>
-        .
-      </p>
+      <PageTitle hand="hm." sub="There's nothing pinned at this address. It may have moved, or the link is wrong.">
+        Nothing here
+      </PageTitle>
+      <LinkBtn to="/" kind="accent" className="mt-6">
+        Back to the board
+      </LinkBtn>
     </div>
   );
 }

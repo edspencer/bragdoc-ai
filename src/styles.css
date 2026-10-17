@@ -1,3 +1,179 @@
-/* Tailwind v4. PR4 replaces the placeholder look with the Scrapbook tokens (light + lamplight), mapped through
-   `@theme inline`, and the self-hosted fonts. */
+/* The Scrapbook look (ported from the Scrapbook v2 design prototype: its scrapbook.css and the `@theme inline`
+   mapping in its index.css).
+
+   Light: an oat board with a dot grid, white card stock, washi tape.
+   Dark ("lamplight"): a dim cork board under a warm desk lamp. Card stock turns to dark kraft, photo prints stay
+   cream but their pictures are dimmed and warmed, sticky notes go deep marigold, and tape loses its multiply blend
+   (which would turn black on a dark board) and gets a sheen instead. Project colours never change between themes.
+
+   The tokens live on <html>: public/theme-init.js puts `dark` there before the first paint, so the page background
+   is right from the first frame (no flash), and src/theme/theme.tsx keeps it in step afterwards. Components use the
+   Tailwind names below (bg-surface, text-muted, …), never raw hex, except for project colours, which are data. */
 @import 'tailwindcss';
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme inline {
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-sunk: var(--sunk);
+  --color-ink: var(--ink);
+  --color-muted: var(--muted);
+  --color-faint: var(--faint);
+  --color-line: var(--line);
+  --color-accent: var(--accent);
+  --color-accent-soft: var(--accent-soft);
+  --color-accent-ink: var(--accent-ink);
+  --color-print: var(--print);
+  --color-print-ink: var(--print-ink);
+  --color-sticky: var(--sticky);
+  --color-sticky-ink: var(--sticky-ink);
+  --color-sticky-sub: var(--sticky-sub);
+  --color-slab: var(--slab);
+  --color-slab-ink: var(--slab-ink);
+  --color-good: var(--good);
+  --color-bad: var(--bad);
+  --color-warn: var(--warn);
+  /* Self-hosted through @fontsource (src/main.tsx): the app makes no third-party requests, fonts included. */
+  --font-sans: 'Instrument Sans Variable', system-ui, sans-serif;
+  --font-grotesk: 'Bricolage Grotesque Variable', system-ui, sans-serif;
+  --font-hand: 'Caveat', cursive;
+  --font-mono: 'Geist Mono Variable', ui-monospace, monospace;
+}
+
+:root {
+  --bg: #f1ece2; --surface: #fffdf8; --sunk: #ebe4d6; --ink: #1d1a17; --muted: #5f584e; --faint: #948b7e;
+  --line: #ddd4c4; --accent: #ef5a3c; --accent-soft: #fde3d9; --accent-ink: #ffffff; --accent-shadow: #b8381f;
+  --print: #ffffff; --print-ink: #4a443c; --img-filter: none;
+  --sticky: #fff3a8; --sticky-ink: #3d3600; --sticky-sub: #6b6020;
+  --slab: #1d1a17; --slab-ink: #ffffff;
+  --good: #2fb37e; --good-shadow: #1f8a5f; --bad: #e5484d; --warn: #e9961a;
+  --tape-blend: multiply; --tape-op: .82;
+  --card-shadow: 0 1px 0 rgba(0,0,0,.04), 0 10px 24px -14px rgba(40,30,10,.38);
+  --lift-shadow: 0 1px 0 rgba(0,0,0,.04), 0 18px 34px -16px rgba(40,30,10,.45);
+  --print-shadow: 0 6px 16px -6px rgba(40,30,10,.35);
+  --rule: #cfe0f5; --margin: #f0a8a0; --holes: #f1ece2;
+  --glass: rgba(255,255,255,.8);
+  color-scheme: light;
+}
+
+:root.dark {
+  --bg: #1b1713; --surface: #2b251f; --sunk: #231e19; --ink: #f2e9da; --muted: #c0b29c; --faint: #8b7f6c;
+  --line: #3e362d; --accent: #ff6d4d; --accent-soft: #42251c; --accent-ink: #1b1713; --accent-shadow: #a83a22;
+  --print: #e4d9c6; --print-ink: #4a3f31; --img-filter: brightness(.84) sepia(.14) saturate(.9);
+  --sticky: #d6b74c; --sticky-ink: #2a2200; --sticky-sub: #57490e;
+  --slab: #12100d; --slab-ink: #efe6d6;
+  --good: #3cc68c; --good-shadow: #1d7a53; --bad: #ff6b6b; --warn: #f2a93b;
+  --tape-blend: normal; --tape-op: .7;
+  --card-shadow: inset 0 1px 0 rgba(255,236,205,.05), 0 2px 0 rgba(0,0,0,.25), 0 16px 30px -14px rgba(0,0,0,.75);
+  --lift-shadow: inset 0 1px 0 rgba(255,236,205,.06), 0 24px 40px -16px rgba(0,0,0,.85);
+  --print-shadow: 0 8px 18px -6px rgba(0,0,0,.7);
+  --rule: rgba(130,165,215,.2); --margin: rgba(240,120,105,.38); --holes: #1b1713;
+  --glass: rgba(43,37,31,.82);
+  color-scheme: dark;
+}
+
+/* The board texture scrolls with the page; the lamp glow (.sb-backdrop, in the shell) sits at the top. */
+html {
+  background-color: var(--bg);
+  background-image: radial-gradient(#d8cfbf 1px, transparent 1px);
+  background-size: 22px 22px;
+}
+html.dark {
+  background-color: #211a14;
+  background-image:
+    radial-gradient(rgba(255,212,160,.055) 1px, transparent 1.6px),
+    radial-gradient(rgba(0,0,0,.32) 1px, transparent 1.7px),
+    radial-gradient(rgba(255,212,160,.03) 1.5px, transparent 2.2px);
+  background-size: 7px 7px, 11px 11px, 17px 17px;
+  background-position: 0 0, 3px 5px, 9px 2px;
+}
+html, body { margin: 0; }
+body {
+  font-family: var(--font-sans);
+  color: var(--ink);
+  -webkit-font-smoothing: antialiased;
+  /* nothing on a page may scroll sideways at 360 px (SPEC R10); wide things (the Gantt) scroll inside themselves */
+  overflow-x: hidden;
+}
+
+/* Keyboard focus: a tomato ring on everything focusable, in both themes. Mouse clicks don't show it. */
+:focus-visible { outline: 2.5px solid var(--accent); outline-offset: 2px; }
+
+.sb-backdrop { position: absolute; inset: 0 0 auto 0; height: 100%; max-height: 1100px; z-index: 0; pointer-events: none; }
+.dark .sb-backdrop {
+  background:
+    radial-gradient(ellipse 70% 60% at 50% -10%, rgba(255,180,100,.17), transparent 70%),
+    radial-gradient(ellipse 50% 40% at 0% 0%, rgba(0,0,0,.35), transparent 70%),
+    radial-gradient(ellipse 50% 40% at 100% 0%, rgba(0,0,0,.35), transparent 70%);
+}
+
+.sb-glass { background: var(--glass); }
+.sb-card { background: var(--surface); box-shadow: var(--card-shadow); }
+.sb-lift { box-shadow: var(--lift-shadow); }
+
+.sb-tape {
+  position: absolute; height: 20px; width: 80px; opacity: var(--tape-op); mix-blend-mode: var(--tape-blend);
+  clip-path: polygon(3% 0, 100% 6%, 97% 100%, 0 92%);
+}
+.dark .sb-tape {
+  background-image: linear-gradient(180deg, rgba(255,255,255,.22), rgba(255,255,255,0) 55%, rgba(0,0,0,.18));
+}
+
+.sb-print { background: var(--print); box-shadow: var(--print-shadow); }
+.sb-print img, .sb-img { filter: var(--img-filter); }
+
+.sb-sticky { background: var(--sticky); color: var(--sticky-ink); box-shadow: 0 8px 16px -8px rgba(60,50,0,.5); }
+.dark .sb-sticky {
+  box-shadow: 0 10px 18px -8px rgba(0,0,0,.8);
+  background-image: linear-gradient(170deg, rgba(255,255,255,.08), transparent 40%);
+}
+
+/* Index card / notebook page: blue rules, red margin. */
+.sb-ruled {
+  background-color: var(--surface);
+  background-image:
+    linear-gradient(90deg, transparent 63px, var(--margin) 63px, var(--margin) 65px, transparent 65px),
+    repeating-linear-gradient(180deg, transparent 0, transparent 27px, var(--rule) 27px, var(--rule) 28px);
+  background-position: 0 0, 0 var(--rule-offset, 12px);
+}
+
+/* Receipt roll (Settings → Network activity), with zig-zag torn edges. */
+.sb-receipt { --paper: #fbf8f1; position: relative; background: var(--paper); color: #2a2620; }
+.dark .sb-receipt { --paper: #d3c8b4; }
+.sb-receipt::before, .sb-receipt::after {
+  content: ''; position: absolute; left: 0; right: 0; height: 10px;
+  background:
+    linear-gradient(45deg, transparent 33.33%, var(--paper) 33.33%, var(--paper) 66.66%, transparent 66.66%),
+    linear-gradient(-45deg, transparent 33.33%, var(--paper) 33.33%, var(--paper) 66.66%, transparent 66.66%);
+  background-size: 14px 28px;
+}
+.sb-receipt::before { top: -10px; background-position: 0 4px; }
+.sb-receipt::after { bottom: -10px; background-position: 0 -14px; }
+
+/* A rubber stamp's uneven ink. */
+.sb-stamp { mask-image: radial-gradient(circle at 30% 40%, #000 60%, rgba(0,0,0,.82) 100%); }
+
+.sb-switch { transition: background .2s; }
+.sb-switch > span { transition: transform .2s; }
+
+/* The colour picker's "any colour" chip. */
+.sb-rainbow { background: conic-gradient(red, yellow, lime, cyan, blue, magenta, red); }
+
+::selection { background: color-mix(in oklab, var(--accent) 35%, transparent); }
+
+@keyframes sb-pop-in { from { opacity: 0; transform: translateY(-6px) scale(.98); } to { opacity: 1; transform: none; } }
+.sb-pop-in { animation: sb-pop-in .35s ease-out both; }
+@keyframes sb-fade { from { opacity: 0; } to { opacity: 1; } }
+.sb-fade-in { animation: sb-fade .25s ease-out both; }
+@keyframes sb-wiggle { 0%,100% { transform: rotate(0); } 25% { transform: rotate(-2deg); } 75% { transform: rotate(2deg); } }
+.sb-wiggle { animation: sb-wiggle .4s ease-in-out 2; }
+@keyframes sb-spin { to { transform: rotate(360deg); } }
+.sb-spin { animation: sb-spin 1s linear infinite; }
+@keyframes sb-slide-up { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: none; } }
+.sb-toast { animation: sb-slide-up .25s ease-out both; }
+
+@media (prefers-reduced-motion: reduce) {
+  .sb-pop-in, .sb-fade-in, .sb-wiggle, .sb-toast { animation: none; }
+  .sb-spin { animation-duration: 3s; }
+}

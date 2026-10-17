@@ -8,8 +8,10 @@ you explicitly connect. v0.1 is built on the **`next`** branch as a series of pu
 [#411](https://github.com/edspencer/bragdoc-ai/issues/411). `main` still holds the old hosted app; never touch it.
 
 What exists so far is the **skeleton** (PR1): the package, build, CI and repo hygiene; a Hono server with
-`GET /api/health` and the web app's static serving; a minimal CLI (`serve`, `--version`, `--help`); and a placeholder
-web shell. Everything else arrives PR by PR, in the waves #411 lays out.
+`GET /api/health` and the web app's static serving; and a minimal CLI (`serve`, `--version`, `--help`). And the
+**web foundation** (PR4): the Scrapbook component kit, the light / system / dark themes, the app shell with
+placeholder pages, the typed API client and the screenshot rig. Everything else arrives PR by PR, in the waves #411
+lays out.
 
 Before changing behaviour, read, in order:
 
@@ -62,11 +64,20 @@ server/              the server and CLI (Node, TypeScript ESM, Hono)
 shared/              code used by both server/ and src/: no Node or DOM APIs
   api.ts             the HTTP API contract (request/response types, ApiError)
 src/                 the web app (React 19, Vite, Tailwind v4, TanStack Router + Query), built into dist/web
-  main.tsx           QueryClient + router
+  main.tsx           fonts, ThemeProvider, QueryClient, router
   routes/            file-based routes (TanStack Router; tsr.config.json); __root.tsx is the shell
-  styles.css         Tailwind entry (PR4 adds the Scrapbook tokens)
-public/              static files copied into dist/web (favicon.svg). Only content-hashed names under /assets/ are
-                     cached as immutable; anything else is revalidated
+  kit/               the Scrapbook component kit: import from kit/index.ts (see "The web app" below)
+  shell/             the header, mobile tabs, theme toggle, logo, nav and settings-tab lists, Placeholder
+  api/               client.ts (the typed `api` wrapper), queries.ts (query keys + hooks), events.ts (live updates)
+  theme/theme.tsx    light / system / dark: ThemeProvider + useTheme()
+  lib/               pure helpers, unit-tested: colour.ts (inkOn, swatches, tilt), dates.ts (groupByWeek, fmt)
+  dev/Kit.tsx        /dev/kit, every kit component on one page (dev and BRAGDOC_KIT=1 builds only, D23)
+  styles.css         the Scrapbook tokens (light + lamplight), mapped to Tailwind names through `@theme inline`
+public/              static files copied into dist/web: theme-init.js (the theme before first paint) and the
+                     favicons (generated from brand/). Only content-hashed names under /assets/ are cached as
+                     immutable; anything else is revalidated
+brand/               the mark (mark.svg) and generate.mjs, which makes the favicons, icons and social cards
+tools/docs-media/    the screenshot rig: `npm run docs:media` (shots.ts lists the shots; it scans each for leaks)
 test/                node:test suites, run from source via tsx; fixture.ts has the throwaway-dir helpers
 e2e/                 Playwright specs, run against the built server (playwright.config.ts)
 scripts/             start.mjs (npm start), dev.mjs (npm run dev), check-no-nul-bytes.mjs
@@ -74,8 +85,7 @@ docs/                decisions.md (D1…), data-format.md
 ```
 
 Coming soon, so you know where things go: `server/{config,home,runtime,security,egress,proc,events}.ts` (PR2),
-`server/store/`, `server/services/` and `shared/schema/` (PR3), the Scrapbook kit under `src/` and
-`tools/docs-media/` (PR4), `server/commands/` and `server/platform/` (PR5), the release machinery and `Dockerfile`
+`server/store/`, `server/services/` and `shared/schema/` (PR3), `server/commands/` and `server/platform/` (PR5), the release machinery and `Dockerfile`
 (PR6), `website/` (PR18).
 
 ## Commands
@@ -86,11 +96,13 @@ npm run dev            # Vite with hot reload on $PORT (2724) + the API (tsx wat
 npm start              # build if stale, then run the compiled CLI (`npm start -- --port 5050`, …)
 npm run bragdoc -- <args>   # the CLI from source (tsx)
 npm run check:nul      # no raw NUL bytes in JS/TS sources
-npm run typecheck      # regenerates the route tree, then tsc for server + web
+npm run typecheck      # regenerates the route tree, then tsc for server, tools (e2e, tools/) and web
 npm test               # node:test, from source via tsx
 npm run build          # dist/web (Vite) + dist/server, dist/shared (tsc)
 npm run test:e2e       # Playwright against the built server (run `npm run build` first)
 npm run routes         # regenerate src/routeTree.gen.ts by hand (typecheck, dev and build do it anyway)
+npm run docs:media     # build with /dev/kit, boot a throwaway instance, take every shot in tools/docs-media/shots.ts
+npm run brand          # regenerate the favicons, icons and social cards from brand/mark.svg
 ```
 
 **The definition of done** for every PR: `npm run check:nul && npm run typecheck && npm test && npm run build` pass
@@ -111,13 +123,61 @@ locally (and `npm run test:e2e` if you touched anything it covers), and CI is gr
   `registerRoutes()`.
 - **A page:** add a file under `src/routes/` (TanStack file routes: `found.tsx` → `/found`,
   `settings/$tab.tsx` → `/settings/:tab`). The route tree regenerates itself; it's gitignored (D20), so it never
-  conflicts.
+  conflicts. PR4 left a placeholder in each of the v0.1 pages (`<Placeholder>`): replace it. Build pages from the kit
+  (below), never from raw colours.
+- **An API call from the web app:** a typed function at the bottom of `src/api/client.ts` (`export const
+  getThings = () => api.get<ThingsResponse>('/api/things')`), its query key and hook in `src/api/queries.ts`, and,
+  if the server sends `change` events for it, its kind in `CHANGE_INVALIDATES` (`src/api/events.ts`).
 - **A CLI flag:** add it to `VALUE_FLAGS` or `BOOLEAN_FLAGS` in `server/args.ts` and to the command's `check()` list
   in `cli.ts`, then document it in `USAGE`.
 - **A decision:** append to `docs/decisions.md` with the next free D-number at rebase time.
 - **Dependencies:** each PR adds its own. On a lockfile conflict, regenerate it (`npm install`), never hand-merge it.
   Only what the server needs at run time is a `dependency`; React and everything bundled into `dist/web` is a
   `devDependency`.
+
+### The web app
+
+**The look is Scrapbook v2** (the design prototype): a pinboard of taped cards, photo prints, sticky notes and
+project-colour tape, on an oat board (light) or a dim cork board under a desk lamp ("lamplight", dark).
+
+- **Colours are tokens**, as Tailwind names: `bg-surface` (card stock), `bg-sunk`, `text-ink`, `text-muted`,
+  `text-faint`, `border-line`, `bg-accent` / `text-accent-ink` (tomato), `bg-print`, `bg-sticky`, `bg-slab`,
+  `text-good` / `text-warn` / `text-bad`. They switch with the theme by themselves; `dark:` exists for the rare
+  exception. Fonts: `font-sans` (Instrument Sans, the default), `font-grotesk` (headings), `font-hand` (Caveat),
+  `font-mono` (Geist Mono). All self-hosted; never add a font or anything else from a CDN.
+- **Project colours are data, and any colour.** Paint them with `style`, and put text on them with `inkOn(hex)`
+  (`src/lib/colour.ts`), which picks black or white with at least 3:1 contrast (D24). `safeColour()` guards
+  anything read from a file.
+- **CSP:** no inline `<script>`, `<style>` or `style=""` in HTML, and no library that injects a `<style>` tag at run
+  time. React's `style={{…}}` prop is fine (it sets styles through the CSSOM, which the CSP allows); e2e checks every
+  page under the production CSP.
+- **Theme:** `useTheme()` gives `{ pref, setPref, dark }`. The choice is in localStorage (`bragdoc.theme`);
+  `public/theme-init.js` applies it before first paint, so keep the two in step (`test/web.test.ts` checks).
+- **AI is off** and v0.1 has none: no AI badge, chip, score or "confidence" anywhere in the UI (D8).
+
+**The kit** (`src/kit/index.ts`; see each on `/dev/kit` under `npm run dev`):
+
+| Group | Components |
+|---|---|
+| Paper | `Card` (taped card: `tape`, `tapeAt`, `tiltId`, `fresh`), `Panel` (forms/settings sheet), `Masonry` (1/2/3 columns), `Tape`, `Print` (photo print + lightbox), `Lightbox`, `PdfPage`, `Sticky`, `StickyQuote`, `Stamp`, `Receipt`, `Ruled` |
+| Type | `PageTitle` (title, `hand` aside, `sub`, `right` actions), `SectionTitle`, `Kicker`, `Hand`, `WeekHeader` (for `groupByWeek` groups) |
+| Controls | `Btn` (`accent` · `go` · `paper` · `ink` · `ghost` · `danger`; `size="sm"`), `LinkBtn` (a router link styled as a button), `btnClass()`, `Switch`, `Field` (label, `hint`, `error`), `TextInput`, `TextArea`, `inputCls`, `FilterChip`, `CountBadge`, `Dot`, `ColourPicker` (12 swatches + any colour) |
+| Tags | `ProjectPill` (`name`, `color`, `active`, `onClick`), `RepoTag`, `ImpactBadge` (1–10), `ProvenanceBadge` (`github` · `screenshot` · `mcp` + `agent` · `import`; `soft` on cards, `solid` on Found), `PROVENANCE` (labels and colours for filter rows) |
+| Evidence | `EvidenceBit` (draws an `EvidenceView`: `image` · `pdf` · `file` · `link` · `github_pr` · `quote`), and each kind alone: `PrSlab` (shows `owner/repo#n` without a title), `LinkCard`, `PdfChip`, `FileChip`; `formatBytes`, `domainOf` |
+| Feedback | `ToastProvider` (in the shell) and `useToast()`: `toast({ msg, undo?, tone? })` |
+| Navigation | `NotebookTabs` + `NotebookTab` (Settings' divider tabs; router links) |
+
+Shell pieces in `src/shell/`: `Header` and `MobileTabs` (the nav; the Found badge reads `useFoundCount()`, a stub
+until PR13), `ThemeToggle`, `Mark` / `Wordmark`, `NAV` and `SETTINGS_TABS`, `Placeholder`. Dates: `groupByWeek`,
+`weekLabel`, `fmt.*`, `todayIso` in `src/lib/dates.ts` (calendar days, weeks from Monday).
+
+**The API client** (`src/api/client.ts`): `api.get/post/put/patch/delete<T>(path, …)` send and receive JSON
+(same-origin, relative paths) and reject with an `ApiRequestError` carrying the envelope's `code` and `message` and
+the HTTP `status`; `code: 'network'` (status 0) means the server didn't answer. `api.upload<T>(path, file)` sends a
+typed upload (raw bytes, the file's type, never a CORS-safelisted one, `X-Filename`). `isApiError(e, code?)` narrows.
+The `QueryClient` (`createQueryClient()` in `queries.ts`) doesn't retry 4xx. `useServerEvents()` (mounted in the
+shell, **off until `/api/events` exists**: flip `LIVE_UPDATES` in `src/routes/__root.tsx`) refreshes queries from
+the server's SSE `change` events by their key's first segment, and everything on `hello`.
 
 ### Code
 
@@ -140,7 +200,10 @@ locally (and `npm run test:e2e` if you touched anything it covers), and CI is gr
 - **Tests never touch a real home or data home.** Use `tmpDir()` / `tmpHome()` from `test/fixture.ts`, and pass
   `tmpHome().env` to any child process (it points `HOME`, `XDG_*` and `BRAGDOC_HOME` into a temp dir).
 - e2e specs go in `e2e/` and run against the built server on a throwaway home (`playwright.config.ts`). Give
-  elements you assert on a `data-testid`.
+  elements you assert on a `data-testid`. `e2e/shell.spec.ts` checks every page under the production CSP with a
+  clean console and no third-party requests: add new pages to its `PAGES`.
+- `test/web.test.ts` builds the web app into a temp dir and fails on any `http(s)://` URL in the bundle outside its
+  allow-list, on inline scripts in `index.html`, and on `/dev/kit` leaking into a release build.
 
 ### QA with a throwaway HOME
 
@@ -159,7 +222,9 @@ npm run build && node dist/server/cli.js serve --port 5050
   PR2) `BRAGDOC_ALLOWED_HOSTS=<the proxy's hostname>`. Never outside a throwaway instance.
 - Confirm the server you're driving is your build (check the served bundle) before trusting a screenshot.
 - UI changes ship before / after / control screenshots, light and dark, from synthetic data only. Check every pixel
-  for paths, hostnames and real names: the repo is public.
+  for paths, hostnames and real names: the repo is public. `npm run docs:media` takes repeatable ones on a throwaway
+  home and refuses to write a shot whose text looks like a path, a private address or a real email
+  (`tools/docs-media/leaks.ts`).
 
 ### Branches, PRs and issues
 
