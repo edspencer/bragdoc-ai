@@ -140,14 +140,21 @@ async function guard(c: Context, next: () => Promise<void>, extra: readonly stri
     return null;
   };
   const host = c.req.header('host');
+  // over a real socket (@hono/node-server puts it in c.env), a request with no Host at all (HTTP/1.0) is refused too
+  if (host === undefined && (c.env as { incoming?: unknown } | undefined)?.incoming)
+    return deny(c, 403, 'forbidden_host', 'A request needs a Host header.');
   // The Host header is what a rebinding browser sends; the URL's host is checked too, because an absolute-form request
   // line (`GET http://localhost/ HTTP/1.1`) sets it separately. In-process requests (tests) have only the URL.
   if ((host !== undefined && !isAllowedHost(host, extra)) || !isAllowedHost(new URL(c.req.url).host, extra))
     return deny(c, 403, 'forbidden_host', 'This address is not one BragDoc answers to. To reach it through another name, add it to allowedHosts in config.yaml.');
   const authority = host ?? new URL(c.req.url).host;
   const origin = c.req.header('origin');
-  if (origin !== undefined && !isSameOrigin(origin, authority)) return deny(c, 403, 'forbidden_origin', 'Cross-origin requests are not allowed.');
   const site = c.req.header('sec-fetch-site');
+  // `Origin: null` is a sandboxed frame or a file:// page, except for one case: the Fetch spec has a same-origin write
+  // under `Referrer-Policy: no-referrer` (which we send) carry `null`, and Firefox does. Sec-Fetch-Site, which a page
+  // can't set, tells the two apart.
+  const ownNull = origin === 'null' && site === 'same-origin';
+  if (origin !== undefined && !ownNull && !isSameOrigin(origin, authority)) return deny(c, 403, 'forbidden_origin', 'Cross-origin requests are not allowed.');
   if (isApi(c.req.path) && (site === 'cross-site' || site === 'same-site')) return deny(c, 403, 'forbidden_origin', 'Cross-site requests are not allowed.');
 
   const method = c.req.method;

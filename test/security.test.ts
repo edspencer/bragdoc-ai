@@ -4,9 +4,10 @@
 import { after, before, describe, test } from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
+import net from 'node:net';
 import path from 'node:path';
 import { Hono } from 'hono';
-import { createApp } from '../server/index.ts';
+import { createApp, startServer } from '../server/index.ts';
 import { ConfigStore } from '../server/config.ts';
 import {
   BLOB_CSP,
@@ -60,7 +61,7 @@ describe('the Host allow-list (DNS rebinding)', () => {
   test('pure: loopback in every spelling, ports stripped, extras, nothing else', () => {
     for (const h of ['localhost', 'localhost:2724', 'LOCALHOST:2724', '127.0.0.1', '127.0.0.1:5050', '[::1]', '[::1]:2724'])
       assert.ok(isAllowedHost(h), h);
-    for (const h of ['evil.example', 'evil.example:2724', 'localhost.evil.example', '127.0.0.1.nip.io', 'localhost.', '0.0.0.0', '[::]', '', null, undefined, 'localhost@evil.example', '127.0.0.2'])
+    for (const h of ['evil.example', 'evil.example:2724', 'localhost.evil.example', '127.0.0.1.nip.io', 'localhost.', '0.0.0.0', '[::]', '', null, undefined, 'localhost@evil.example', '127.0.0.2', '[::1]evil.example', '[::1]:2724x'])
       assert.ok(!isAllowedHost(h), String(h));
     assert.ok(isAllowedHost('bragdoc.example.com:443', ['bragdoc.example.com']));
     assert.ok(!isAllowedHost('sub.bragdoc.example.com', ['bragdoc.example.com']));
@@ -110,6 +111,33 @@ describe('the Host allow-list (DNS rebinding)', () => {
   });
 });
 
+describe('over a real socket', () => {
+  /** Send raw bytes, return the status line. */
+  function raw(port: number, request: string): Promise<string> {
+    return new Promise((resolve, reject) => {
+      const sock = net.connect(port, '127.0.0.1', () => sock.end(request));
+      let out = '';
+      sock.on('data', (d) => (out += d));
+      sock.on('end', () => resolve(out.split('\r\n')[0]!));
+      sock.on('error', reject);
+    });
+  }
+
+  test('no Host at all (HTTP/1.0), or an absolute-form line naming localhost with a foreign Host, is refused', async () => {
+    const dir = tmpDir('bragdoc-raw-');
+    const { port, close } = await startServer(0, { dataDir: dir, webDist: web });
+    try {
+      assert.match(await raw(port, 'GET /api/health HTTP/1.0\r\n\r\n'), / 403 /);
+      assert.match(await raw(port, `GET http://localhost:${port}/api/health HTTP/1.1\r\nHost: evil.example\r\nConnection: close\r\n\r\n`), / 403 /);
+      assert.match(await raw(port, `GET http://evil.example/api/health HTTP/1.1\r\nHost: localhost:${port}\r\nConnection: close\r\n\r\n`), / 403 /);
+      assert.match(await raw(port, `GET /api/health HTTP/1.1\r\nHost: localhost:${port}\r\nConnection: close\r\n\r\n`), / 200 /);
+    } finally {
+      await close();
+      rmTmp(dir);
+    }
+  });
+});
+
 describe('Origin and Fetch Metadata (cross-site requests)', () => {
   test('pure: same origin means scheme http(s) and host:port equal to the Host header', () => {
     assert.ok(isSameOrigin('http://localhost:2724', 'localhost:2724'));
@@ -133,6 +161,13 @@ describe('Origin and Fetch Metadata (cross-site requests)', () => {
 
   test('no Origin at all (curl, an agent, a same-origin GET) is fine: the Host check still applies', async () => {
     assert.equal((await req(guarded(), '/api/things', json({ a: 1 }))).status, 200);
+  });
+
+  test('Origin: null passes only with Sec-Fetch-Site: same-origin (a same-origin write under no-referrer)', async () => {
+    const app = guarded();
+    assert.equal((await req(app, '/api/things', json({ a: 1 }, { origin: 'null', 'sec-fetch-site': 'same-origin' }))).status, 200);
+    for (const site of [undefined, 'cross-site', 'same-site', 'none'])
+      assert.equal((await req(app, '/api/things', json({ a: 1 }, { origin: 'null', ...(site ? { 'sec-fetch-site': site } : {}) }))).status, 403, String(site));
   });
 
   test('SSE with a foreign Origin is a 403 (an EventSource from another site)', async () => {

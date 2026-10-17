@@ -34,6 +34,8 @@ export class EgressDenied extends Error {
 export const LOG_MAX_BYTES = 1024 * 1024;
 const MAX_REDIRECTS = 5;
 const LOOPBACK = ['localhost', '127.0.0.1', '[::1]'];
+/** Headers that may follow a redirect to another host. */
+const SAFE_HEADERS = new Set(['accept', 'accept-language', 'user-agent', 'x-github-api-version']);
 
 /** The hosts outbound requests may go to under `config`, loopback included. */
 export function egressAllowList(config: Config): string[] {
@@ -67,7 +69,7 @@ export class Egress {
 
   constructor(private readonly opts: EgressOptions) {
     this.file = homePaths(opts.dataDir).networkLog;
-    // the one real network call in the codebase (test/guard-egress.test.ts counts it)
+    // the one real network call in the codebase (test/guard-egress.test.ts counts its globalThis)
     this.impl = opts.fetchImpl ?? ((url, init) => globalThis.fetch(url, init));
     this.now = opts.now ?? (() => new Date());
   }
@@ -104,29 +106,48 @@ export class Egress {
       if (hop >= MAX_REDIRECTS) throw new Error(`too many redirects (${purpose})`);
       await res.body?.cancel();
       const next = new URL(location, url);
-      // credentials are for the host they were given to, never wherever it redirects
+      // what a browser does: 303 (and 301/302 after a POST) become a GET without the body
+      const toGet = res.status === 303 || ((res.status === 301 || res.status === 302) && method === 'POST');
       if (next.host !== url.host) {
-        headers = new Headers(headers);
-        headers.delete('authorization');
-        headers.delete('cookie');
+        // a remote service must never be able to point us at this computer's own services
+        const refuse =
+          !LOOPBACK.includes(url.hostname) && LOOPBACK.includes(next.hostname)
+            ? 'a remote host may not redirect to this computer'
+            : !toGet && body != null
+              ? "a request body isn't re-sent to another host"
+              : null;
+        if (refuse) {
+          this.log({ at: this.now().toISOString(), purpose, via: 'fetch', method, host: next.host, path: next.pathname, outcome: 'denied', status: null, bytes: null, error: refuse });
+          throw new EgressDenied(next.host, purpose, `BragDoc won't follow ${url.host}'s redirect to ${next.host} (${purpose}): ${refuse}`);
+        }
+        // credentials (Authorization, a token header, cookies) are for the host they were given to: only headers known
+        // to be harmless cross to another one
+        headers = new Headers([...headers].filter(([k]) => SAFE_HEADERS.has(k.toLowerCase())));
       }
       url = next;
-      // what a browser does: 303 (and 301/302 after a POST) become a GET without the body
-      if (res.status === 303 || ((res.status === 301 || res.status === 302) && method === 'POST')) {
+      if (toGet) {
         method = 'GET';
         body = undefined;
+        headers.delete('content-type');
+        headers.delete('content-length');
       }
     }
   }
 
   /** Record a subprocess that talks to the network itself (the gh CLI): call it after the run, with how it went. */
   logProcess({ purpose, bin, args, exitCode, error }: { purpose: string; bin: 'gh'; args: string[]; exitCode: number | null; error?: string }): void {
-    // `gh api repos/o/r/pulls?state=closed` → `api repos/o/r/pulls`: the subcommand and path, never a query or a flag value
-    const cmd = args
-      .filter((a) => !a.startsWith('-'))
-      .slice(0, 3)
-      .map((a) => a.split('?')[0])
-      .join(' ');
+    // `gh api repos/o/r/pulls?state=closed --jq …` → `gh api repos/o/r/pulls`: only the leading positional arguments,
+    // up to the first flag (a flag's value can be a header or a GraphQL query), only if they look like a subcommand or a
+    // path, and without a query string
+    const shown: string[] = [];
+    for (const a of args) {
+      if (a.startsWith('-')) break;
+      const p = a.split('?')[0]!;
+      if (!/^[\w./@:-]+$/.test(p)) break;
+      shown.push(p);
+      if (shown.length === 3) break;
+    }
+    const cmd = shown.join(' ');
     this.log({
       at: this.now().toISOString(),
       purpose,

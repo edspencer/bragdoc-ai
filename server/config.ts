@@ -22,7 +22,8 @@ export const CONFIG_SCHEMA_VERSION = 1;
 /** A hostname as the Host check compares it: lower case, no port, IPv6 in brackets (`[fd00::1]`). */
 export function normalizeHostname(h: string): string {
   let s = h.trim().toLowerCase();
-  if (s.startsWith('[')) return s.slice(0, s.indexOf(']') + 1);
+  // `[::1]` or `[::1]:2724`; anything else after the bracket (`[::1]evil.example`) is returned whole, and matches nothing
+  if (s.startsWith('[')) return /^\[[^\]]*\](?::\d*)?$/.test(s) ? s.slice(0, s.indexOf(']') + 1) : s;
   if ((s.match(/:/g) ?? []).length > 1) return `[${s}]`; // a bare IPv6 address
   s = s.replace(/:\d*$/, '');
   return s;
@@ -170,7 +171,14 @@ export class ConfigStore {
       if (stamp === this.stamp) return;
       text = fs.readFileSync(this.file, 'utf8');
     } catch (e) {
-      if ((e as NodeJS.ErrnoException).code !== 'ENOENT') throw e;
+      if ((e as NodeJS.ErrnoException).code !== 'ENOENT') {
+        // unreadable (a directory, no permission): refuse at boot, where the message is seen; while running, this runs
+        // inside every request's Host check, so it's a notice and the last good settings, never a 500 for everything
+        if (boot) throw e;
+        this.stamp = null; // try again next time
+        this.set(this.current, `${this.file} can't be read (${(e as NodeJS.ErrnoException).code ?? (e as Error).message})`, boot);
+        return;
+      }
       // no config.yaml: the defaults (a fresh home before home.ts has run, or a deleted file)
       if (this.stamp === 'missing') return;
       this.stamp = 'missing';

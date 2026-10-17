@@ -18,7 +18,13 @@ export default defineConfig({
   retries: process.env.CI ? 1 : 0,
   reporter: process.env.CI ? [['github'], ['list']] : 'list',
   use: { baseURL: `http://127.0.0.1:${port}`, trace: 'retain-on-failure' },
-  projects: [{ name: 'chromium', use: { ...devices['Desktop Chrome'] } }],
+  projects: [
+    { name: 'chromium', use: { ...devices['Desktop Chrome'] } },
+    // CI adds Firefox (BRAGDOC_E2E_FIREFOX=1): it follows the Fetch spec's `Origin: null` on same-origin writes under
+    // Referrer-Policy: no-referrer, which the security guard has to tell apart from a sandboxed frame (D23). Opt-in, so
+    // a checkout without Firefox installed still runs `npm run test:e2e`.
+    ...(process.env.BRAGDOC_E2E_FIREFOX ? [{ name: 'firefox', use: { ...devices['Desktop Firefox'] } }] : []),
+  ],
   webServer: {
     command: `node dist/server/cli.js serve --port ${port} --quiet`,
     url: `http://127.0.0.1:${port}/api/health`,

@@ -187,6 +187,10 @@ D17 onwards are decisions made while building.
   browsers send it on EventSource", but browsers send no `Origin` on a *same-origin* GET, the app's own EventSource
   included: requiring one would refuse the app itself. Cross-origin EventSources do send it, and are refused.
   Non-browser clients send none and can't be a cross-site vector; the Host check still applies to them.
+- `Origin: null` is refused, with one exception: together with `Sec-Fetch-Site: same-origin`. The Fetch spec gives a
+  same-origin write under `Referrer-Policy: no-referrer` (SPEC R3's header, which we send) `Origin: null`, and Firefox
+  follows it; Sec-Fetch-Site can't be set by a page, so it tells that apart from a sandboxed frame. CI runs the e2e
+  suite in Firefox for this.
 - `/api/*` and `/mcp` refuse `Sec-Fetch-Site: cross-site` and `same-site`. Same-site matters on shared hostnames:
   another app on a sibling subdomain is same-site, but not us.
 - Stricter than SPEC's "a present Origin must be allowed" (any allowed hostname, any port): another local app on
@@ -203,16 +207,20 @@ D17 onwards are decisions made while building.
 - `legacy-cli/`: home.ts moves the old CLI's files there with a plain rename into a fresh directory (nothing can be
   replaced).
 - When PR3's `test/guard-fs.test.ts` lands, its allow-list needs entries for `atomic.ts` (one temp `writeFile` with
-  flag `wx`, one `appendFile`, one `rename`, one `unlink` of its own temp), `home.ts` (one `rename`) and `egress.ts`
-  (one `rename`: rotating the log). Whichever of PR2/PR3 merges second adds them.
+  flag `wx`, one `appendFile`, one `rename`, one `unlink` of its own temp), `home.ts` (two `rename`s: each legacy entry
+  into the fresh `legacy-cli.partial/`, then that directory to `legacy-cli/`) and `egress.ts` (one `rename`: rotating
+  the log). Whichever of PR2/PR3 merges second adds them.
 - **Considered:** waiting for PR3's safefs (PR2 and PR3 are built in parallel); writing runtime.json with a plain
   `writeFileSync` (not atomic: a reader could see half a file).
 
 ### D25 — The legacy notice is shown on the start that moved the files; a recreated `config.yml` warns every start
 
 - A home counts as BragDoc's once it has `config.yaml`, `runtime.json` or `legacy-cli/`. Only a home with none of
-  them has the old CLI's `config.yml` / `cache/` / `logs/` moved, so BragDoc's own `cache/` and `logs/` are never
-  mistaken for the old CLI's.
+  them, and with the old CLI's signature (its `config.yml` or `cache/commits/`), has the old CLI's `config.yml` /
+  `cache/` / `logs/` moved: BragDoc's own `cache/` and `logs/`, or a `--data-dir` folder that merely has a `logs/`,
+  are never mistaken for the old CLI's.
+- The entries go into `legacy-cli.partial/` and that is renamed to `legacy-cli/` at the end, so a move cut short is
+  finished on the next start instead of leaving the home half-moved but marked as ours.
 - `legacy-moved` is a notice for the life of the process that did the move (there's no notice state to remember a
   dismissal yet). Settings → Data (PR10) can show `legacy-cli/` itself permanently. `legacy-recreated` (a warning) is
   raised on every start while a `config.yml` is back.
@@ -227,3 +235,14 @@ D17 onwards are decisions made while building.
   `schemaVersion` refuses to start (Paddock's downgrade guard), and if it appears while running it's a notice.
 - PR1's interim inline bind guard (D21) is replaced by `server/bind-safety.ts`, with the same flag and the same rule
   (only `1` counts).
+
+### D27 — `proc` resolves binaries itself; its allow-list includes `open` and `xdg-open`
+
+- `proc.run('git', …)` resolves `git` to an absolute path from the **absolute** entries of `PATH` only. An empty or
+  relative entry (`::`, `.`) would otherwise let a repository's own `./git` run when `git` is started with that
+  repository as its working directory.
+- The allow-list is PLAN's: SPEC R3's (`gh`, `git`, `osascript`, `launchctl`, `systemctl`, `journalctl`, `claude`,
+  `defaults`) plus `open` and `xdg-open`, which `bragdoc serve --open` (PR5) needs. `tail` is not on it: PR5's
+  `service logs` on macOS follows the log file in-process, or adds `tail` here with a reason.
+- `logProcess()` records a `gh` run by its leading subcommand and path only, stopping at the first flag: a flag's
+  value can be a header (`-H 'Authorization: …'`) or a GraphQL query.

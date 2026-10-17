@@ -103,6 +103,43 @@ describe('the allow-list', () => {
     }
   });
 
+  test('a remote host can never redirect into loopback; a body never follows a cross-host redirect', async () => {
+    const d = tmpDir('bragdoc-eg-');
+    try {
+      const net = fakeFetch({
+        'https://api.github.com/to-local': () => new Response(null, { status: 307, headers: { location: 'http://127.0.0.1:6379/x' } }),
+        'https://api.github.com/post': () => new Response(null, { status: 307, headers: { location: 'https://api.github.com/elsewhere' } }),
+        'https://api.github.com/elsewhere': () => new Response('ok'),
+        'http://127.0.0.1:6379/x': () => new Response('reached redis'),
+      });
+      const eg = new Egress({ dataDir: d, config: () => withGithub('token'), fetchImpl: net.impl });
+      await assert.rejects(eg.egressFetch({ purpose: 'github.x' }, 'https://api.github.com/to-local', { method: 'POST', body: 'payload' }), /may not redirect to this computer/);
+      await assert.rejects(eg.egressFetch({ purpose: 'github.x' }, 'https://api.github.com/to-local'), /may not redirect to this computer/);
+      assert.ok(!net.calls.some((c) => c.url.startsWith('http://127.0.0.1')), 'loopback was never contacted');
+      // same host: a 307 keeps the method and body, as it should
+      const ok = await eg.egressFetch({ purpose: 'github.x' }, 'https://api.github.com/post', { method: 'POST', body: 'b' });
+      assert.equal(await ok.text(), 'ok');
+      assert.equal(net.calls.at(-1)!.init.body, 'b');
+    } finally {
+      rmTmp(d);
+    }
+  });
+
+  test('on a cross-host redirect only harmless headers follow (no token headers of any name)', async () => {
+    const d = tmpDir('bragdoc-eg-');
+    try {
+      const net = fakeFetch({
+        'http://127.0.0.1:1/a': () => new Response(null, { status: 302, headers: { location: 'http://localhost:1/b' } }),
+        'http://localhost:1/b': () => new Response('ok'),
+      });
+      const eg = new Egress({ dataDir: d, config: () => DEFAULT_CONFIG, fetchImpl: net.impl });
+      await eg.egressFetch({ purpose: 'mcp.shim' }, 'http://127.0.0.1:1/a', { headers: { authorization: 'Bearer t', 'x-api-key': 'k', 'proxy-authorization': 'p', accept: 'application/json' } });
+      assert.deepEqual([...new Headers(net.calls[1]!.init.headers)], [['accept', 'application/json']]);
+    } finally {
+      rmTmp(d);
+    }
+  });
+
   test('a network error is logged as an error and rethrown', async () => {
     const d = tmpDir('bragdoc-eg-');
     try {
@@ -140,17 +177,23 @@ describe('the allow-list', () => {
 });
 
 describe('the network log', () => {
-  test('gh runs are logged "via gh CLI": the subcommand and path, never a query or a flag value', () => {
+  test('gh runs are logged "via gh CLI": the subcommand and path, never a query, a flag or a flag value', () => {
     const d = tmpDir('bragdoc-eg-');
     try {
       const eg = new Egress({ dataDir: d, config: () => DEFAULT_CONFIG });
       eg.logProcess({ purpose: 'github.pulls', bin: 'gh', args: ['api', 'repos/o/r/pulls?state=closed&per_page=100', '--jq', '.[]'], exitCode: 0 });
-      const [e] = log(d);
-      assert.equal(e!.via, 'gh');
-      assert.equal(e!.host, 'github.com (via gh CLI)');
-      assert.equal(e!.path, 'gh api repos/o/r/pulls .[]');
-      assert.equal(e!.status, 0);
-      assert.ok(!e!.path.includes('state='));
+      eg.logProcess({ purpose: 'github.x', bin: 'gh', args: ['api', '-H', 'Authorization: token SECRET123', 'repos/o/r'], exitCode: 0 });
+      eg.logProcess({ purpose: 'github.gql', bin: 'gh', args: ['api', 'graphql', '-f', 'query=query { viewer { login } }'], exitCode: 1 });
+      const [gql, hdr, pulls] = log(d);
+      assert.equal(pulls!.via, 'gh');
+      assert.equal(pulls!.host, 'github.com (via gh CLI)');
+      assert.equal(pulls!.path, 'gh api repos/o/r/pulls');
+      assert.equal(pulls!.status, 0);
+      assert.equal(hdr!.path, 'gh api');
+      assert.equal(gql!.path, 'gh api graphql');
+      assert.equal(gql!.status, 1);
+      const text = fs.readFileSync(path.join(d, 'logs', 'network.jsonl'), 'utf8');
+      for (const secret of ['SECRET123', 'state=', 'viewer', '.[]']) assert.ok(!text.includes(secret), secret);
     } finally {
       rmTmp(d);
     }
@@ -233,6 +276,20 @@ describe('proc', () => {
     const evil = await run('git', ['$(touch /tmp/bragdoc-pwned);', '--x']);
     assert.notEqual(evil.code, 0);
     assert.ok(!fs.existsSync('/tmp/bragdoc-pwned'));
+  });
+
+  test('binaries resolve from absolute PATH entries only: a ./git in the working directory never runs', { skip: process.platform === 'win32' }, async () => {
+    const repo = tmpDir('bragdoc-proc-');
+    try {
+      fs.writeFileSync(path.join(repo, 'git'), '#!/bin/sh\necho pwned\n', { mode: 0o755 });
+      for (const PATH of ['', '.', `.${path.delimiter}`, `${path.delimiter}/nonexistent`]) {
+        await assert.rejects(run('git', ['--version'], { cwd: repo, env: { PATH } }), (e: Error) => e instanceof ProcError && e.code === 'not_found', JSON.stringify(PATH));
+      }
+      const r = await run('git', ['--version'], { cwd: repo, env: { ...process.env, PATH: `.${path.delimiter}${process.env.PATH}` } });
+      assert.match(r.stdout, /^git version/, 'the real git, not ./git');
+    } finally {
+      rmTmp(repo);
+    }
   });
 
   test('a missing binary is not_found; a hang is a timeout; a flood is too_much_output; exit codes come back', { skip: process.platform === 'win32' }, async () => {

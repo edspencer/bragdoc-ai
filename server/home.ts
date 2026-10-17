@@ -29,7 +29,7 @@ export function homePaths(dataDir: string) {
 }
 
 /** The machine-written, regenerable or private entries: in the generated .gitignore, so the data home can be a repo. */
-export const GITIGNORED = ['/runtime.json', '/secrets.yaml', '/logs/', '/cache/', '/backups/', '/legacy-cli/'] as const;
+export const GITIGNORED = ['/runtime.json', '/secrets.yaml', '/logs/', '/cache/', '/backups/', '/legacy-cli/', '/legacy-cli.partial/'] as const;
 
 export const GITIGNORE = `# Written by BragDoc. Your data home can be a git repository: these are machine-written, regenerable or private
 # (runtime.json holds the MCP token, secrets.yaml a GitHub token), so they stay out of it. Edit freely; BragDoc won't
@@ -76,19 +76,28 @@ export function moveLegacyAside(dataDir: string): { moved: string[]; notices: No
       });
     return { moved, notices };
   }
+  // Only a home that looks like the old CLI's: its config.yml or its commit cache. A --data-dir that happens to hold a
+  // logs/ folder of someone's own isn't one. A legacy-cli.partial/ means a move was cut short: finish it.
+  const partial = p.legacy + '.partial';
+  const resuming = exists(partial);
+  if (!resuming && !exists(path.join(dataDir, 'config.yml')) && !exists(path.join(dataDir, 'cache', 'commits'))) return { moved, notices };
   const present = LEGACY_ENTRIES.filter((e) => exists(path.join(dataDir, e)));
-  if (!present.length) return { moved, notices };
-  fs.mkdirSync(p.legacy, { mode: 0o700 });
+  // into a staging directory first, renamed to legacy-cli/ only once everything is in: a crash part-way leaves
+  // legacy-cli.partial/, which the next start finishes, rather than a legacy-cli/ that would mark the home as ours
+  // with the rest of the old CLI's files still mixed in
+  if (!resuming) fs.mkdirSync(partial, { mode: 0o700 });
   for (const e of present) {
-    // a rename: same file system, modes and contents kept, nothing copied or deleted. legacy-cli/ is new and empty,
-    // so nothing there can be replaced.
-    fs.renameSync(path.join(dataDir, e), path.join(p.legacy, e));
+    // a rename: same file system, modes and contents kept, nothing copied or deleted. Never onto something already
+    // there (only possible when resuming): that one stays where it is.
+    if (exists(path.join(partial, e))) continue;
+    fs.renameSync(path.join(dataDir, e), path.join(partial, e));
     moved.push(e);
   }
+  fs.renameSync(partial, p.legacy);
   notices.push({
     id: 'legacy-moved',
     level: 'info',
-    message: `This folder had the old BragDoc CLI's files in it (${moved.map((e) => (e.includes('.') ? e : e + '/')).join(', ')}). They've been moved, untouched, into legacy-cli/; nothing was deleted.`,
+    message: `This folder had the old BragDoc CLI's files in it (${LEGACY_ENTRIES.filter((e) => exists(path.join(p.legacy, e))).map((e) => (e.includes('.') ? e : e + '/')).join(', ')}). They've been moved, untouched, into legacy-cli/; nothing was deleted.`,
   });
   return { moved, notices };
 }

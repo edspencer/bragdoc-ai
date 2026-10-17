@@ -52,3 +52,15 @@ test('a foreign Host and a cross-site write are refused by the built server', as
   expect((await request.post('/api/health', { headers: { origin: 'https://evil.example', 'content-type': 'application/json' }, data: '{}' })).status()).toBe(403);
   expect((await request.post('/api/health', { headers: { 'content-type': 'text/plain' }, data: 'x' })).status()).toBe(415);
 });
+
+test("the app's own writes get past the guard (same-origin, under Referrer-Policy: no-referrer)", async ({ page }) => {
+  await page.goto('/');
+  // no write route exists yet, so getting past the guard means the JSON 404, not a 403
+  const statuses = await page.evaluate(async () => {
+    const out: number[] = [];
+    for (const method of ['POST', 'PUT', 'PATCH', 'DELETE'])
+      out.push((await fetch('/api/nope', { method, headers: { 'content-type': 'application/json' }, body: '{}' })).status);
+    return out;
+  });
+  expect(statuses).toEqual([404, 404, 404, 404]);
+});

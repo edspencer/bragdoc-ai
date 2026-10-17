@@ -7,7 +7,7 @@ import path from 'node:path';
 import { evaluateBindSafety, isLoopbackHost } from '../server/bind-safety.ts';
 import { CONFIG_TEMPLATE, ConfigFromTheFuture, ConfigStore, DEFAULT_CONFIG, normalizeHostname, parseConfig } from '../server/config.ts';
 import { GITIGNORE, initHome } from '../server/home.ts';
-import { startServer } from '../server/index.ts';
+import { createApp, startServer } from '../server/index.ts';
 import { Runtime, constantTimeEqual, displayUrl, readRuntime } from '../server/runtime.ts';
 import { rmTmp, tmpDir } from './fixture.ts';
 
@@ -102,6 +102,25 @@ describe('config.yaml', () => {
     assert.match(store.notices()[0]!.message, /newer BragDoc/);
   }));
 
+  test('a config.yaml that becomes unreadable while running is a notice, not a 500 on every request', withDir(async (dir) => {
+    const file = path.join(dir, 'config.yaml');
+    fs.writeFileSync(file, 'allowedHosts: [a.example]\n');
+    const config = new ConfigStore(dir);
+    config.load();
+    const app = createApp({ dataDir: dir, webDist: null, config });
+    fs.rmSync(file);
+    fs.mkdirSync(file); // EISDIR on read
+    const res = await app.request('/api/meta');
+    assert.equal(res.status, 200);
+    const meta = (await res.json()) as { notices: { id: string; message: string }[]; allowedHosts: string[] };
+    assert.equal(meta.notices[0]!.id, 'config-invalid');
+    assert.match(meta.notices[0]!.message, /can't be read \(EISDIR\)/);
+    assert.deepEqual(meta.allowedHosts, ['a.example']);
+    fs.rmdirSync(file);
+    fs.writeFileSync(file, 'allowedHosts: [b.example]\n');
+    assert.deepEqual(config.allowedHosts(), ['b.example'], 'recovers when it is fixed');
+  }));
+
   test('a change calls onChange (the bus\'s config event); an unchanged file does not', withDir((dir) => {
     const file = path.join(dir, 'config.yaml');
     fs.writeFileSync(file, 'mcp: { writeTo: board }\n');
@@ -137,7 +156,7 @@ describe('the data home', () => {
     assert.deepEqual(fs.readdirSync(dir).sort(), ['.gitignore', 'backups', 'cache', 'config.yaml', 'logs']);
     if (posix) for (const d of [dir, path.join(dir, 'logs'), path.join(dir, 'cache'), path.join(dir, 'backups')]) assert.equal(mode(d), 0o700, d);
     assert.equal(fs.readFileSync(path.join(dir, '.gitignore'), 'utf8'), GITIGNORE);
-    for (const e of ['/runtime.json', '/secrets.yaml', '/logs/', '/cache/', '/backups/', '/legacy-cli/']) assert.match(GITIGNORE, new RegExp(`^${e.replace(/[.*+?^${}()|[\]\\/]/g, '\\$&')}$`, 'm'));
+    for (const e of ['/runtime.json', '/secrets.yaml', '/logs/', '/cache/', '/backups/', '/legacy-cli/', '/legacy-cli.partial/']) assert.match(GITIGNORE, new RegExp(`^${e.replace(/[.*+?^${}()|[\]\\/]/g, '\\$&')}$`, 'm'));
     assert.equal(fs.readFileSync(path.join(dir, 'config.yaml'), 'utf8'), CONFIG_TEMPLATE);
     assert.deepEqual(r.moved, []);
     assert.deepEqual(r.notices, []);
@@ -219,6 +238,30 @@ describe('the data home', () => {
     assert.deepEqual(r.moved, []);
     assert.ok(fs.existsSync(path.join(dir, 'logs', 'network.jsonl')));
     assert.ok(!fs.existsSync(path.join(dir, 'legacy-cli')));
+  }));
+
+  test("a folder of someone's own with a logs/ but no sign of the old CLI is left alone", withDir((dir) => {
+    fs.mkdirSync(path.join(dir, 'logs'));
+    fs.writeFileSync(path.join(dir, 'logs', 'mine.log'), 'mine\n');
+    fs.writeFileSync(path.join(dir, 'notes.md'), '# notes\n');
+    const r = initHome(dir);
+    assert.deepEqual(r.moved, []);
+    assert.ok(!fs.existsSync(path.join(dir, 'legacy-cli')));
+    assert.equal(fs.readFileSync(path.join(dir, 'logs', 'mine.log'), 'utf8'), 'mine\n');
+  }));
+
+  test('a move cut short (legacy-cli.partial/) is finished on the next start', withDir((dir) => {
+    legacyHome(dir);
+    // as if the process died after moving config.yml and cache/, before logs/
+    fs.mkdirSync(path.join(dir, 'legacy-cli.partial'));
+    fs.renameSync(path.join(dir, 'config.yml'), path.join(dir, 'legacy-cli.partial', 'config.yml'));
+    fs.renameSync(path.join(dir, 'cache'), path.join(dir, 'legacy-cli.partial', 'cache'));
+    const r = initHome(dir);
+    assert.deepEqual(r.moved, ['logs']);
+    assert.deepEqual(fs.readdirSync(path.join(dir, 'legacy-cli')).sort(), ['cache', 'config.yml', 'logs']);
+    assert.ok(!fs.existsSync(path.join(dir, 'legacy-cli.partial')));
+    assert.match(r.notices[0]!.message, /config\.yml, cache\/, logs\//);
+    assert.deepEqual(fs.readdirSync(path.join(dir, 'logs')), [], 'our logs/ is fresh');
   }));
 
   test('the move notice is in /api/meta after startServer', withDir(async (dir) => {
