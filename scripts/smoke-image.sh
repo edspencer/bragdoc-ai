@@ -44,4 +44,7 @@ check "a foreign Host is refused"
 [ -n "$(ls -A "${data}")" ] || { echo "nothing was written to /data" >&2; exit 1; }
 check "the data home was laid out"
 docker stop "${name}" >/dev/null
+# the wrong uid (a data folder that isn't the container user's) is explained, not blamed on the port
+out="$(docker run --rm --user 4321:4321 "${image}" 2>&1 || true)"
+case "${out}" in *"can't write to /data"*) check "an unwritable /data is explained" ;; *) echo "an unwritable /data said: ${out}" >&2; exit 1 ;; esac
 check ok

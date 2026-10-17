@@ -302,3 +302,52 @@ D17 onwards are decisions made while building.
   `service logs` on macOS follows the log file in-process, or adds `tail` here with a reason.
 - `logProcess()` records a `gh` run by its leading subcommand and path only, stopping at the first flag: a flag's
   value can be a header (`-H 'Authorization: …'`) or a GraphQL query.
+
+### D-PR6a — Every build writes `dist/build-info.json`; only the release workflow's is "official"
+
+- `scripts/build-info.mjs` runs at the end of every `npm run build`, so the npm package, the Docker image and a
+  checkout's build all have one: version, commit, build time (`SOURCE_DATE_EPOCH`, set by the release to the commit's
+  time), Actions run URL, `official`. `official` is true only with `BRAGDOC_OFFICIAL_BUILD=1` **and** a run URL, which
+  only `release.yml`'s non-dry runs set. CI, dry runs and `npm pack` on a laptop are "unofficial builds".
+- `GET /api/meta` (PR2) serves it as `build`, typed `BuildInfo` in `shared/api.ts`, and passes on only a file of that
+  shape (anything else is `null`). It's a claim, never a verification (SPEC R14): About → Verify (PR10) shows it next to
+  `npm audit signatures` and `gh attestation verify`.
+- Source maps: none are emitted (tsconfig.build.json, Vite's default); `scripts/strip-maps.mjs` (Paddock's
+  `copyTreeWithoutMaps`, in place) removes any that appear, and smoke:pack checks the installed package.
+- **Considered:** writing it only in the release workflow (then a dev build has no `build`, and About has two code
+  paths); a version-embedded TS module (a rebuild of the server for a metadata change).
+
+### D-PR6b — `release.yml` is manual-only and dry-run by default until the release channel is decided
+
+- Triggers: `workflow_dispatch` (inputs `dist-tag`: `next` | `latest`, and `dry-run`, default **true**) and
+  `pull_request` on changes to `release.yml` itself, always a dry run. No push trigger (#411 Q1 is open). A real run is
+  refused outside `next` and `main`.
+- Hallway's shape (changesets version PR, detect, `verify-ci`, publish, provenance check, GitHub Release from the
+  CHANGELOG section) plus Paddock's images (native amd64/arm64 runners, push by digest, `imagetools create`), with
+  these changes: the npm tarball is built and smoke-tested once (`pack`) and that exact file is published and attached
+  to the release; the image is started and checked (`scripts/smoke-image.sh`) before it's pushed; build provenance and
+  an SBOM are attested on the image in GHCR, and provenance on the tarball; **npm publishes last**, after the image
+  (Paddock's lesson: the irreversible step goes last).
+- The pull-request dry run exists because GitHub only lets you dispatch workflows that are on the default branch
+  (`main`), so until `next` merges, dispatching it is impossible and the PR run is the only way to exercise it.
+- A dry run skips every step that writes (the version PR, registry login and pushes, attestations, tags, the Release)
+  and runs `npm publish --dry-run`. test/release.test.ts holds those properties.
+- **Considered:** a reusable workflow for SLSA Build L3 (RECOMMENDATIONS §12; worth doing, but after there's anything
+  to release); building the image only on PRs that touch it (D-PR6c).
+
+### D-PR6c — The Docker image: `--host 0.0.0.0` in CMD, uid 1000, git and gh inside, built on every PR
+
+- `ghcr.io/edspencer/bragdoc`, multi-stage from `node:22-slim`, tini as pid 1, `HEALTHCHECK` on `/api/health` with
+  Node's `fetch` (no curl in the image), `BRAGDOC_HOME=/data`, `VOLUME /data`, `BRAGDOC_DANGEROUSLY_ALLOW_OPEN=1`.
+- The bind is `serve --host 0.0.0.0` in `CMD`, not `ENV HOST=0.0.0.0` as the brief said: `serve` doesn't read `HOST`,
+  and shouldn't, because many shells export it and a normal install must not open up because of that.
+- It runs as the image's `node` user (uid 1000), not root, so what it writes into a mounted `~/.bragdoc` belongs to the
+  user (compose.yaml's `user:` maps another uid). An unwritable data home now says so (`cli.ts`), instead of the old
+  message blaming the port for any `EACCES`.
+- git and gh are installed (GitHub's apt repo), because the server runs them for repositories and PRs (PR13); about
+  150 MB of the image, which is ~550 MB unpacked.
+- compose.yaml: `127.0.0.1:2724:2724`; `~/.bragdoc:/data`; the code folder (`BRAGDOC_CODE_DIR`, default `~/Code`)
+  read-only at the same absolute path; the screenshots folder and `~/.config/gh` as commented, read-only options.
+  Bind sources use `create_host_path: false`, so a missing folder is an error rather than an empty root-owned one.
+- CI builds and checks the image on both architectures on **every** PR, not only those touching the Dockerfile: the
+  image is the whole app, so a dependency or build change anywhere can break it. Nothing is pushed from CI.

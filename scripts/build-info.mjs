@@ -18,7 +18,6 @@ import { fileURLToPath } from 'node:url';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const pkg = JSON.parse(fs.readFileSync(path.join(root, 'package.json'), 'utf8'));
-const env = process.env;
 
 function gitCommit() {
   try {
@@ -28,31 +27,35 @@ function gitCommit() {
   }
 }
 
-function builtAt() {
-  const epoch = env.SOURCE_DATE_EPOCH;
+function builtAt(epoch) {
   if (epoch === undefined || epoch === '') return new Date().toISOString();
   if (!/^\d+$/.test(epoch)) throw new Error(`SOURCE_DATE_EPOCH must be whole seconds since 1970, not '${epoch}'`);
   return new Date(Number(epoch) * 1000).toISOString();
 }
 
-const actions = env.GITHUB_ACTIONS === 'true';
-const runUrl =
-  env.BRAGDOC_BUILD_RUN_URL ||
-  (actions && env.GITHUB_SERVER_URL && env.GITHUB_REPOSITORY && env.GITHUB_RUN_ID
-    ? `${env.GITHUB_SERVER_URL}/${env.GITHUB_REPOSITORY}/actions/runs/${env.GITHUB_RUN_ID}${env.GITHUB_RUN_ATTEMPT ? `/attempts/${env.GITHUB_RUN_ATTEMPT}` : ''}`
-    : null);
+/** What dist/build-info.json says, from the environment (a parameter, so tests can pass their own). */
+export function buildInfo(env = process.env, commit = gitCommit) {
+  const actions = env.GITHUB_ACTIONS === 'true';
+  const runUrl =
+    env.BRAGDOC_BUILD_RUN_URL ||
+    (actions && env.GITHUB_SERVER_URL && env.GITHUB_REPOSITORY && env.GITHUB_RUN_ID
+      ? `${env.GITHUB_SERVER_URL}/${env.GITHUB_REPOSITORY}/actions/runs/${env.GITHUB_RUN_ID}${env.GITHUB_RUN_ATTEMPT ? `/attempts/${env.GITHUB_RUN_ATTEMPT}` : ''}`
+      : null);
+  return {
+    name: pkg.name,
+    version: pkg.version,
+    commit: env.GITHUB_SHA || commit(),
+    builtAt: builtAt(env.SOURCE_DATE_EPOCH),
+    runUrl,
+    // An official build always names the run that made it. The Docker build runs inside BuildKit, outside Actions'
+    // environment, so the workflow passes the run URL in as a build arg and the image claims the same as the package.
+    official: env.BRAGDOC_OFFICIAL_BUILD === '1' && runUrl !== null,
+  };
+}
 
-const info = {
-  name: pkg.name,
-  version: pkg.version,
-  commit: env.GITHUB_SHA || gitCommit(),
-  builtAt: builtAt(),
-  runUrl,
-  // An official build always names the run that made it. The Docker build runs inside BuildKit, outside Actions'
-  // environment, so the workflow passes the run URL in as a build arg and the image claims the same as the package.
-  official: env.BRAGDOC_OFFICIAL_BUILD === '1' && runUrl !== null,
-};
-
-fs.mkdirSync(path.join(root, 'dist'), { recursive: true });
-fs.writeFileSync(path.join(root, 'dist', 'build-info.json'), JSON.stringify(info, null, 2) + '\n');
-console.log(`build-info: ${info.name}@${info.version} ${info.commit?.slice(0, 12) ?? '(no commit)'} ${info.official ? 'official' : 'unofficial'} build`);
+if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
+  const info = buildInfo();
+  fs.mkdirSync(path.join(root, 'dist'), { recursive: true });
+  fs.writeFileSync(path.join(root, 'dist', 'build-info.json'), JSON.stringify(info, null, 2) + '\n');
+  console.log(`build-info: ${info.name}@${info.version} ${info.commit?.slice(0, 12) ?? '(no commit)'} ${info.official ? 'official' : 'unofficial'} build`);
+}

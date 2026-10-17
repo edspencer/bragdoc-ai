@@ -41,9 +41,11 @@ async function serve(flags: Record<string, string>): Promise<number | undefined>
     // `npm run dev` (BRAGDOC_DEV=1): Vite serves the web app; the server is the API only
     ({ port: bound } = await startServer(port, { hostname, dataDir, webDist: process.env.BRAGDOC_DEV ? null : undefined }));
   } catch (e) {
-    const code = (e as NodeJS.ErrnoException).code;
+    const { code, syscall, path: file } = e as NodeJS.ErrnoException;
     if (code === 'EADDRINUSE') throw new Error(`port ${port} is already in use (another BragDoc, or something else); pick another with --port <n>`);
-    if (code === 'EACCES') throw new Error(`not allowed to listen on port ${port}; pick another with --port <n>`);
+    // EACCES from laying out the data home (say, a Docker volume owned by another uid) isn't about the port
+    if (code === 'EACCES' && syscall === 'listen') throw new Error(`not allowed to listen on port ${port}; pick another with --port <n>`);
+    if ((code === 'EACCES' || code === 'EPERM') && file) throw new Error(`can't write to ${file}: permission denied. The data home (${dataDir}) must belong to the user BragDoc runs as.`);
     throw e;
   }
   const { startupMessage } = await import('./banner.js');

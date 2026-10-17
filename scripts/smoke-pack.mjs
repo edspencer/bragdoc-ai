@@ -140,7 +140,7 @@ try {
   });
   step(`serving on ${base}`);
   assert.ok(printed.includes(`Data home: ${data}`), `the data home: ${printed}`);
-  assert.ok(fs.existsSync(data), 'the data home was created');
+  for (const f of ['config.yaml', '.gitignore', 'runtime.json']) assert.ok(fs.existsSync(path.join(data, f)), `the data home has ${f}`);
 
   assert.deepEqual(await (await get(base, '/api/health', /json/)).json(), { ok: true, version: pkg.version });
   const meta = await (await get(base, '/api/meta', /json/)).json();

@@ -22,6 +22,13 @@ npm ci
 npm start             # builds, then serves http://localhost:2724
 ```
 
+Or in Docker, on your laptop (an alternative to Node, sharing the same `~/.bragdoc`; see `compose.yaml`):
+
+```sh
+mkdir -p ~/.bragdoc ~/Code
+docker compose up -d --build   # serves http://localhost:2724, on this computer only
+```
+
 ## Contributing
 
 See [CONTRIBUTING.md](CONTRIBUTING.md). Coding agents: [AGENTS.md](AGENTS.md).
