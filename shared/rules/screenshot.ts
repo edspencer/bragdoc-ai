@@ -271,7 +271,8 @@ export function compileRules(profile: RulesProfile): (text: string) => RulesResu
     if (chatLayout) {
       let cur: Block = { own: false, start: 0, end: -1 };
       lines.forEach((_, i) => {
-        const author = headers[i];
+        // "AM Alex Marlowe": the avatar's initials, read onto the author line
+        const author = headers[i]?.replace(/^(\p{Lu}{1,3})\s+(.+)$/u, (all, ini: string, rest: string) => (initialsOfName(rest) === ini ? rest : all));
         if (author) {
           if (cur.author || cur.end >= cur.start) blocks.push(cur);
           cur = { author, own: isMe(author), bot: /bot$/i.test(author) || /\s(?:APP|BOT)\s/.test(lines[i]!), start: i + 1, end: i };

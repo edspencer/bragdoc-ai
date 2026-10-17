@@ -73,6 +73,7 @@ test('praise with no name of yours fails, and so does your own message praising 
   assert.match(own.notes.join(), /your own message/);
   // OCR may read the avatar's initials in front of the author line
   assert.ok(!pass('# kudos\nAM Alex Marlowe 3:12 PM\nHuge shoutout to Taylor, amazing work'));
+  assert.equal(rules('Thread # eng\nAM Alex Marlowe 3:12 PM\nRFC\n1 reply\nJK Jordan Kim 3:20 PM\nGreat work').from, 'Jordan Kim');
   // a bot's message is never praise
   assert.ok(!pass('# deploys\ndeploybot 10:00 AM\nCanary healthy: v2.32 (by alex.m), promoting to 100%. Amazing'));
   assert.ok(!pass('# deploys\nJira APP 10:00 AM\nKudos! Alex Marlowe closed 12 tickets'));
