@@ -87,4 +87,138 @@ export interface NetworkLogResponse {
 export type ServerEvent =
   | { type: 'config' }
   | { type: 'network' }
-  | { type: 'notices' };
+  | { type: 'notices' }
+  // the store (PR7 forwards every change to a data file, BragDoc's own or a hand edit, as its entity's type; D39)
+  | { type: 'achievement' }
+  | { type: 'evidence' }
+  | { type: 'project' }
+  | { type: 'repo' }
+  | { type: 'company' }
+  | { type: 'found' }
+  | { type: 'profile' }
+  /** The Problems list may have changed (sent with every store change). */
+  | { type: 'problems' };
+
+// ---------------------------------------------------------------- board (PR7): achievements, evidence, links, problems
+//
+// The data files' own types (Achievement, Evidence, Project, Repo, Problem, …) are in shared/schema/; these are the
+// shapes the HTTP API wraps them in. Request bodies are the services' input schemas (shared/schema/inputs.ts):
+// AchievementCreate for POST /api/achievements, AchievementUpdate for PATCH.
+
+/** A stored evidence file, as a card needs it (from its sidecar). Keyed by sha256 in `AchievementView.files`. */
+export interface EvidenceFile {
+  sha256: string;
+  mime: string;
+  bytes: number;
+  /** The name it was added with (display only). */
+  name?: string;
+  width?: number;
+  height?: number;
+  /** Text OCR read from it (PR11/PR15), when there is some. */
+  ocrText?: string;
+}
+
+/**
+ * An achievement as the API returns it: the file's front-matter and `body`, plus `etag` (send it back as `If-Match` on
+ * PATCH/remove, so an edit made against a stale copy is a 409, not a silent overwrite) and `files`, the sidecars of the
+ * evidence files it carries (a missing key: the file is gone from evidence/).
+ *
+ * The data-file fields are typed loosely here (shared/api.ts imports nothing); use `Achievement` from shared/schema/ for
+ * the exact type: `AchievementView<Achievement>`.
+ */
+export type AchievementView<A = Record<string, unknown>> = A & {
+  etag: string | null;
+  files: Record<string, EvidenceFile>;
+  /** The file on disk is broken right now: this is its last good copy, and edits are refused until it's fixed. */
+  broken?: true;
+  /** Written by a newer BragDoc: shown, never changed (D23). */
+  readOnly?: true;
+};
+
+/**
+ * `GET /api/achievements`: the board, a page of whole weeks at a time (weeks start on Monday), newest first.
+ *
+ * Query: `q` (full-text), `projectId`, `repoId`, `companyId`, `from` / `to` (YYYY-MM-DD, on `happenedAt`), `archived`
+ * (`exclude` (default) | `include` | `only`), `source`, `minImpact`, `weeks` (how many weeks per page, default 8, at
+ * most 104), `before` (a Monday: only weeks before it; pass the previous page's `nextBefore`).
+ */
+export interface AchievementsPage<A = Record<string, unknown>> {
+  items: AchievementView<A>[];
+  /** How many achievements match the filters in all, across every page. */
+  total: number;
+  /** The Monday to pass as `before` for the next (older) page; null when this is the last page. */
+  nextBefore: string | null;
+}
+
+/** `POST /api/achievements`: 201 with the new one, or 200 with `created: false` when its externalKey is already on the board. */
+export interface AchievementCreated<A = Record<string, unknown>> {
+  achievement: AchievementView<A>;
+  created: boolean;
+}
+
+/** `POST /api/achievements/:id/remove`: its file moved to backups/removed/ (undo: `POST …/restore`). */
+export interface AchievementRemoved {
+  removedTo: string;
+}
+
+/**
+ * `POST /api/evidence`: a typed upload (the file's bytes as the body, its type as Content-Type, its name URI-encoded in
+ * `X-Filename`). The type is checked against the bytes: a file that claims to be an image or a PDF and isn't is a 415
+ * (`type_mismatch`), and so is a picture whose header is damaged (`damaged`). Over 25 MB: 413. Returns an Evidence item
+ * (with a fresh id), not yet on any achievement: send it in `evidence` on create or update.
+ */
+export interface EvidenceUploaded<E = Record<string, unknown>> {
+  evidence: E;
+  file: EvidenceFile;
+  /** False when these exact bytes were already stored. */
+  created: boolean;
+}
+
+/** `POST /api/link-preview` body. */
+export interface LinkPreviewRequest {
+  url: string;
+}
+
+/**
+ * What a pasted URL becomes. A GitHub PR gets its title only if a GitHub source is connected (PR13 registers it);
+ * otherwise it's shown as `owner/repo#n`. Any other URL is never fetched: just its domain.
+ */
+export type LinkPreview =
+  | {
+      kind: 'github_pr';
+      url: string;
+      /** owner/repo */
+      repo: string;
+      number: number;
+      externalKey: string;
+      title?: string;
+      /** Why there's no title: GitHub isn't connected, or asking it failed (the message says how). */
+      titleNote?: string;
+      /** The repo in repos/ with this remote, if there is one. */
+      repoId?: string;
+      /** Projects linked to that repo: the composer pre-selects them. */
+      suggestedProjects: string[];
+      /** An achievement that already carries this PR (adding it again returns that one). */
+      onBoard?: string;
+    }
+  | { kind: 'url'; url: string; domain: string };
+
+/** `GET /api/projects` (read-only here; PR8 adds the writes). Every project, newest start first. */
+export interface ProjectsResponse<P = Record<string, unknown>> {
+  projects: P[];
+}
+
+/** `GET /api/repos` (read-only here; PR8 adds the writes). */
+export interface ReposResponse<R = Record<string, unknown>> {
+  repos: R[];
+}
+
+/** `GET /api/problems`: everything wrong with files in the data home, errors first (SPEC R2). */
+export interface ProblemsResponse<P = Record<string, unknown>> {
+  problems: P[];
+}
+
+/** `GET /api/found/count`: how many candidates are waiting in Found (the board strip, the nav badge). */
+export interface FoundCountResponse {
+  pending: number;
+}

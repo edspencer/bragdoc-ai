@@ -11,14 +11,26 @@
 // Unknown /api/* paths get a JSON 404 (index.ts), never the web app's HTML.
 import type { Hono } from 'hono';
 import type { AppContext } from '../context.js';
+import { registerAchievements } from './achievements.js';
+import { registerCatalog } from './catalog.js';
 import { registerEvents } from './events.js';
+import { registerEvidence } from './evidence.js';
+import { registerFoundCount } from './found-count.js';
 import { registerHealth } from './health.js';
+import { registerLinkPreview } from './link-preview.js';
 import { registerMeta } from './meta.js';
 import { registerNetwork } from './network.js';
+import { registerProblems } from './problems.js';
 
 export function registerRoutes(app: Hono, ctx: AppContext): void {
+  registerAchievements(app, ctx);
+  registerCatalog(app, ctx);
   registerEvents(app, ctx);
+  registerEvidence(app, ctx);
+  registerFoundCount(app, ctx);
   registerHealth(app, ctx);
+  registerLinkPreview(app, ctx);
   registerMeta(app, ctx);
   registerNetwork(app, ctx);
+  registerProblems(app, ctx);
 }

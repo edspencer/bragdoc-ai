@@ -16,6 +16,8 @@ import { Egress } from './egress.js';
 import { EventBus } from './events.js';
 import { initHome } from './home.js';
 import { apiError } from './http.js';
+import { LinkPreviews } from './link-preview.js';
+import { forwardStoreChanges } from './live.js';
 import { VERSION, WEB_DIST } from './paths.js';
 import { registerRoutes } from './routes/index.js';
 import { Runtime, displayUrl } from './runtime.js';
@@ -42,6 +44,8 @@ export interface AppOptions {
   startupNotices?: Notice[];
   /** The data home's store; opened (loaded) from `dataDir` when not given. */
   store?: Store;
+  /** The GitHub PR lookup behind POST /api/link-preview (tests); a GitHub source registers its own on it. */
+  linkPreviews?: LinkPreviews;
 }
 
 /**
@@ -74,7 +78,10 @@ export function createApp({ dataDir, webDist = WEB_DIST, version = VERSION, star
     notices: () => [...startupNotices, ...config.notices()],
     store,
     services: createServices(store),
+    linkPreviews: o.linkPreviews ?? new LinkPreviews(),
   };
+  // every change to a data file (ours, an agent's over MCP, a hand edit the watcher saw) reaches open tabs (D39)
+  forwardStoreChanges(store, bus);
 
   // first, so nothing (a route, a static file, the SPA fallback) answers a request it hasn't checked (D10)
   app.use('*', security({ allowedHosts: () => config.allowedHosts(), uploads: ctx.uploads }));
