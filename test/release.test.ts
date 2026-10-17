@@ -157,6 +157,10 @@ describe('the release workflow', () => {
         }
     assert.ok(gated >= 9, `found the writing steps (${gated})`);
     assert.match(jobs['github-release'].if ?? '', /dry_run == 'false'/, 'no GitHub Release in a dry run');
+    // each architecture's SBOM is attested on its own digest; the Release only ever carries the tarball that's on npm
+    assert.ok(jobs['build-image'].steps.some((st) => st.uses?.startsWith('actions/attest-sbom')));
+    const rel = jobs['github-release'].steps.map((st) => st.name);
+    assert.ok(rel.indexOf('The tarball is the one on npm') !== -1 && rel.indexOf('The tarball is the one on npm') < rel.indexOf('Attest the tarball'));
     const publish = jobs['publish-npm'].steps.find((s) => s.name === 'Publish')?.run ?? '';
     assert.match(publish, /if \[ "\$\{DRY_RUN\}" = "true" \]; then\n\s+npm publish "\$\{tarball\}" [^\n]*--dry-run/, 'a dry run publishes with --dry-run');
   });

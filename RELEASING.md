@@ -77,7 +77,7 @@ After the first real release reaches `latest`: `npm deprecate @bragdoc/local@0.0
    - `build-image`: build the image on native amd64 and arm64 runners, start each and wait for its health check
      (`scripts/smoke-image.sh`), then push it to GHCR by digest;
    - `publish-image`: merge the digests into `ghcr.io/edspencer/bragdoc:<version>` and `:<dist-tag>`, then attest its
-     build provenance and an SPDX SBOM, pushed to the registry next to it;
+     build provenance, pushed to the registry next to it (each architecture's SPDX SBOM is attested in `build-image`);
    - `publish-npm`: `npm publish <tarball> --tag <dist-tag>` with provenance, then check the attestation is visible on
      the registry. **npm goes last**, after the image, because it's the one step that can't be undone;
    - `github-release`: attest the tarball, create the tag `v<version>` and a GitHub Release (a prerelease for `next`)
@@ -140,15 +140,18 @@ The pipeline is built so that re-running it finishes a half-done release. npm wi
 - **`pack` or `build-image` failed.** Nothing was published. A smoke test failing here is a real bug in the release:
   fix it on `next`.
 - **`publish-image` failed.** The per-arch images may be on GHCR by digest, untagged; nothing was published to npm.
-  Fix the cause and re-run: tagging and attesting again is harmless.
+  Fix the cause and re-run the failed jobs: attesting again is harmless.
 - **`publish-npm` failed before publishing** (auth, network). Nothing is on npm and there's no tag. An auth failure
   (`E404`/`ENEEDAUTH`) almost always means the trusted publisher doesn't match the repo, the workflow file name or the
   job's `id-token` permission. `E403 … OIDC permission denied for this action`: tick **npm publish** under the trusted
   publisher's Allowed actions, then re-run the failed jobs. If it fails at the token exchange with `package not
   found` (E404), check [npm/cli#9969](https://github.com/npm/cli/issues/9969).
 - **Published, but a later step failed** (the provenance check timed out, or the GitHub Release step failed). The
-  version is on npm and there's no `v<version>` tag, so re-running the workflow detects the release again, *skips*
-  the publish ("already on npm") and finishes the provenance check, the tag and the Release.
+  version is on npm and there's no `v<version>` tag. Use **Re-run failed jobs** on *that* run: it reuses the run's
+  tarball and image, skips the publish ("already on npm") and finishes the provenance check, the tag and the Release.
+  Don't start a fresh run for it: a new run rebuilds, and its tarball (whose `build-info.json` names the run) isn't
+  the one on npm. The workflow refuses to attach a tarball that doesn't match npm's integrity, and never moves an
+  existing `:<version>` image tag, so a fresh run fails at the Release instead of shipping a mismatch.
 - **A bad version is out.** Don't try to replace it: fix forward with a new changeset (a patch) and release it.
   `npm deprecate @bragdoc/local@<bad> "<why; use x.y.z>"` warns anyone who installs it.
 

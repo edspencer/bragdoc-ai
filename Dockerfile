@@ -42,7 +42,12 @@ RUN apt-get update && apt-get install -y --no-install-recommends git ca-certific
     && echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" > /etc/apt/sources.list.d/github-cli.list \
     && apt-get update && apt-get install -y --no-install-recommends gh \
     && apt-get purge -y curl && apt-get autoremove -y \
-    && rm -rf /var/lib/apt/lists/*
+    && rm -rf /var/lib/apt/lists/* \
+    && git config --system --add safe.directory '*'
+# safe.directory: your repositories are mounted read-only and owned by your uid on the host, which inside the
+# container often isn't the uid BragDoc runs as (Docker Desktop's file sharing, or compose.yaml's BRAGDOC_UID), and
+# git refuses to read a repo it considers someone else's ("detected dubious ownership"). The mounts are your own repos,
+# read-only, so trusting them is the point.
 
 # Production dependencies only: React, Vite, tsc and the rest are build-time (the same as an npm install).
 COPY package.json package-lock.json ./
@@ -54,14 +59,17 @@ COPY --from=build /app/dist dist
 
 # The data home is /data (mount ~/.bragdoc there). BragDoc runs as the image's `node` user (uid 1000), not root, so
 # what it writes into your ~/.bragdoc is yours; compose.yaml's `user:` maps another uid. The directory is made here so
-# an unmounted /data is still writable.
+# an unmounted /data is still writable. HOME is fixed, so it's /home/node (where a mounted gh login goes) whatever the
+# uid; an unknown uid would otherwise get `/`.
 #
 # The bind: BragDoc refuses anything but loopback unless BRAGDOC_DANGEROUSLY_ALLOW_OPEN=1 (D10). Inside a container,
-# loopback is unreachable from the host, so the image binds 0.0.0.0 and relies on the port being published on the
-# host's 127.0.0.1. Requests still have to carry a loopback Host (localhost:2724), which is what your browser sends.
+# loopback is unreachable from the host, so the image binds 0.0.0.0, and **publishing the port on the host's
+# 127.0.0.1 is the only thing keeping other machines out**: `-p 2724:2724` (no address) opens it to your network. The
+# Host check (loopback names only) stops DNS rebinding, not a machine on your network that sends `Host: localhost`.
 # The bind is CMD's `--host`, not a HOST variable: `serve` doesn't read HOST, so a shell that exports it (many do)
 # can't open a normal install up by accident (D38).
 ENV NODE_ENV=production \
+    HOME=/home/node \
     BRAGDOC_HOME=/data \
     BRAGDOC_DANGEROUSLY_ALLOW_OPEN=1 \
     PORT=2724

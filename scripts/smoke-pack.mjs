@@ -93,7 +93,12 @@ try {
   }
 
   step(`installing ${packed.filename} into a temp prefix`);
-  npm(['install', '--global', '--prefix', prefix, '--no-audit', '--no-fund', tarball], { env: { ...process.env, NODE_ENV: 'production' }, stdio: ['ignore', 'ignore', 'inherit'] });
+  // with the throwaway HOME too, and none of this shell's npm settings: a ~/.npmrc or npm_config_* (include=dev, a
+  // registry) could hide a missing dependency or slip a devDependency in. The cache stays in the temp dir.
+  npm(['install', '--global', '--prefix', prefix, '--no-audit', '--no-fund', tarball], {
+    env: { ...env, NODE_ENV: 'production', npm_config_cache: path.join(tmp, 'npm-cache') },
+    stdio: ['ignore', 'ignore', 'inherit'],
+  });
   const deps = fs.existsSync(path.join(installed, 'node_modules')) ? fs.readdirSync(path.join(installed, 'node_modules')) : [];
   for (const dev of Object.keys(pkg.devDependencies)) {
     const top = dev.startsWith('@') ? dev.split('/')[0] : dev;
@@ -115,6 +120,7 @@ try {
   assert.ok(!Number.isNaN(Date.parse(info.builtAt)), `builtAt is a date: ${info.builtAt}`);
   // only the release workflow's build may say it's official
   if (process.env.BRAGDOC_OFFICIAL_BUILD !== '1') assert.equal(info.official, false, 'a build outside the release workflow is unofficial');
+  else assert.equal(info.official, true, "the release workflow's build is official");
 
   step('--version, --help, usage errors');
   assert.equal(run('--version').trim(), pkg.version);

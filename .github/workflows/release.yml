@@ -55,6 +55,7 @@ jobs:
   release:
     name: Version PR / detect release
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     permissions:
       contents: write # push the changeset-release/<branch> branch
       pull-requests: write # open and update the version PR
@@ -89,7 +90,7 @@ jobs:
             exit 1
           fi
           # Every build in this run says it was built at the commit's time (scripts/build-info.mjs), so the package
-          # and both images agree, and a re-run builds the same thing.
+          # and both images agree.
           epoch="$(git log -1 --format=%ct)"
           echo "dry-run: ${dry_run}; dist-tag: ${dist_tag}; ref: ${REF}; SOURCE_DATE_EPOCH: ${epoch}"
           { echo "dry_run=${dry_run}"; echo "dist_tag=${dist_tag}"; echo "epoch=${epoch}"; } >> "$GITHUB_OUTPUT"
@@ -101,7 +102,8 @@ jobs:
           node-version: 24
           cache: npm
 
-      - run: npm ci
+      # No install scripts: this job holds a token that can push, and changesets needs none of them.
+      - run: npm ci --ignore-scripts
 
       # Opens or updates the version PR while there are changesets. No `publish-script`: publishing is the
       # publish-npm job, after verify-ci and the image.
@@ -118,8 +120,8 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       # After the version PR merges there are no changesets left. If this version has no v<version> tag yet, it's a
-      # new release. (A release whose npm publish worked but whose GitHub Release didn't still has no tag, so a re-run
-      # finishes it: publish-npm skips a version that's already on npm.)
+      # new release. (A release whose npm publish worked but whose GitHub Release didn't still has no tag, so "Re-run
+      # failed jobs" on that run finishes it: publish-npm skips a version that's already on npm. RELEASING.md.)
       #
       # 0.0.0 is the unreleased starting version in package.json (the npm name is reserved with a code-free 0.0.1
       # placeholder, RELEASING.md): until the first changeset bumps it, there's nothing to release.
@@ -168,6 +170,7 @@ jobs:
     needs: release
     if: needs.release.outputs.should_release == 'true'
     runs-on: ubuntu-latest
+    timeout-minutes: 40
     permissions:
       actions: read
     steps:
@@ -183,6 +186,14 @@ jobs:
           # its head): nothing to wait for.
           if [ "${GITHUB_EVENT_NAME}" = "pull_request" ]; then
             echo "dry run on a pull request: a release would wait here for CI on the pushed commit"
+            exit 0
+          fi
+          # Any other dry run reports CI's state once and goes on: on a branch CI doesn't run pushes for, there's
+          # nothing to wait for, and a dry run should still reach the publish step.
+          if [ "${DRY_RUN}" = "true" ]; then
+            gh api "repos/${REPO}/actions/workflows/ci.yml/runs?head_sha=${SHA}&event=push&per_page=1" \
+              --jq '.workflow_runs[0] // empty | "dry run: CI on this commit is \(.status) \(.conclusion // "")"' || true
+            echo "dry run: a release would wait here for CI on ${SHA} and require it to pass"
             exit 0
           fi
           deadline=$(( SECONDS + 1800 ))   # 30 minutes; CI takes a few
@@ -224,6 +235,7 @@ jobs:
     needs: [release, verify-ci]
     if: needs.release.outputs.should_release == 'true'
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     env:
       VERSION: ${{ needs.release.outputs.version }}
     steps:
@@ -258,9 +270,12 @@ jobs:
     needs: [release, verify-ci]
     if: needs.release.outputs.should_release == 'true'
     runs-on: ${{ matrix.runner }}
+    timeout-minutes: 30
     permissions:
       contents: read
-      packages: write # push by digest
+      packages: write # push by digest, and the SBOM attestation next to it
+      id-token: write # sign the SBOM attestation (Sigstore)
+      attestations: write
     strategy:
       fail-fast: false
       matrix:
@@ -341,6 +356,27 @@ jobs:
           outputs: type=image,name=${{ env.IMAGE }},push-by-digest=true,name-canonical=true,push=true
           cache-from: type=gha,scope=image-${{ matrix.arch }}
 
+      # One SBOM per architecture, on its own runner, attested against that architecture's digest: an SBOM made from
+      # the multi-arch index would only describe the platform the scanner ran on.
+      - name: SBOM
+        if: env.DRY_RUN == 'false'
+        uses: anchore/sbom-action@v0
+        with:
+          image: ${{ env.IMAGE }}@${{ steps.push.outputs.digest }}
+          format: spdx-json
+          output-file: ${{ runner.temp }}/sbom.spdx.json
+          upload-artifact: false
+          upload-release-assets: false
+
+      - name: Attest SBOM
+        if: env.DRY_RUN == 'false'
+        uses: actions/attest-sbom@v4
+        with:
+          subject-name: ${{ env.IMAGE }}
+          subject-digest: ${{ steps.push.outputs.digest }}
+          sbom-path: ${{ runner.temp }}/sbom.spdx.json
+          push-to-registry: true
+
       - name: Export digest
         if: env.DRY_RUN == 'false'
         env:
@@ -358,13 +394,15 @@ jobs:
           if-no-files-found: error
           retention-days: 1
 
-  # One multi-arch tag from the per-arch digests, then its provenance and SBOM attestations, pushed to GHCR next to
-  # it (`gh attestation verify oci://ghcr.io/edspencer/bragdoc:<version> -R edspencer/bragdoc-ai`).
+  # One multi-arch tag from the per-arch digests, then its build provenance, pushed to GHCR next to it
+  # (`gh attestation verify oci://ghcr.io/edspencer/bragdoc:<version> -R edspencer/bragdoc-ai`). The SBOMs are per
+  # architecture (build-image).
   publish-image:
     name: Publish image + attestations
     needs: [release, pack, build-image]
     if: needs.release.outputs.should_release == 'true'
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     permissions:
       contents: read
       packages: write # push the merged manifest and the attestations
@@ -378,7 +416,7 @@ jobs:
       - name: Dry run
         if: env.DRY_RUN == 'true'
         run: |
-          echo "dry run: would tag ${IMAGE}:${VERSION} and ${IMAGE}:${DIST_TAG} from the per-arch digests, and attest provenance and an SBOM"
+          echo "dry run: would tag ${IMAGE}:${VERSION} and ${IMAGE}:${DIST_TAG} from the per-arch digests, and attest provenance"
 
       - name: Download digests
         if: env.DRY_RUN == 'false'
@@ -405,10 +443,16 @@ jobs:
         if: env.DRY_RUN == 'false'
         run: |
           set -euo pipefail
-          refs=""
-          for f in "${RUNNER_TEMP}"/digests/*; do refs="${refs} ${IMAGE}@sha256:$(basename "$f")"; done
-          # shellcheck disable=SC2086 # one reference per word
-          docker buildx imagetools create -t "${IMAGE}:${VERSION}" -t "${IMAGE}:${DIST_TAG}" ${refs}
+          # A version's tag never moves: a fresh run for a version that's already out (rather than "Re-run failed
+          # jobs" on the original run) rebuilt the image, and its digest differs from the one people have pulled.
+          if docker buildx imagetools inspect "${IMAGE}:${VERSION}" >/dev/null 2>&1; then
+            echo "${IMAGE}:${VERSION} already exists; leaving it (and :${DIST_TAG}) where they are"
+          else
+            refs=""
+            for f in "${RUNNER_TEMP}"/digests/*; do refs="${refs} ${IMAGE}@sha256:$(basename "$f")"; done
+            # shellcheck disable=SC2086 # one reference per word
+            docker buildx imagetools create -t "${IMAGE}:${VERSION}" -t "${IMAGE}:${DIST_TAG}" ${refs}
+          fi
           docker buildx imagetools inspect "${IMAGE}:${VERSION}"
           digest="$(docker buildx imagetools inspect "${IMAGE}:${VERSION}" --format '{{json .Manifest}}' | jq -r .digest)"
           echo "digest=${digest}" >> "$GITHUB_OUTPUT"
@@ -419,25 +463,6 @@ jobs:
         with:
           subject-name: ${{ env.IMAGE }}
           subject-digest: ${{ steps.tag.outputs.digest }}
-          push-to-registry: true
-
-      - name: SBOM
-        if: env.DRY_RUN == 'false'
-        uses: anchore/sbom-action@v0
-        with:
-          image: ${{ env.IMAGE }}@${{ steps.tag.outputs.digest }}
-          format: spdx-json
-          output-file: ${{ runner.temp }}/sbom.spdx.json
-          upload-artifact: false
-          upload-release-assets: false
-
-      - name: Attest SBOM
-        if: env.DRY_RUN == 'false'
-        uses: actions/attest-sbom@v4
-        with:
-          subject-name: ${{ env.IMAGE }}
-          subject-digest: ${{ steps.tag.outputs.digest }}
-          sbom-path: ${{ runner.temp }}/sbom.spdx.json
           push-to-registry: true
 
   # Auth is npm trusted publishing over OIDC: no NPM_TOKEN exists anywhere. It needs `id-token: write`, npm >= 11.5.1
@@ -451,6 +476,7 @@ jobs:
     needs: [release, verify-ci, pack, publish-image]
     if: needs.release.outputs.should_release == 'true'
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     permissions:
       contents: read
       id-token: write # OIDC: trusted publishing and provenance
@@ -475,8 +501,8 @@ jobs:
       - name: Upgrade npm for trusted publishing
         run: npm install -g npm@^11.5.1
 
-      # The tarball smoke:pack checked, not a rebuild. A re-run after a later step failed finds the version already
-      # on npm and skips this (an npm version can never be published twice).
+      # The tarball smoke:pack checked, not a rebuild. "Re-run failed jobs" after a later step failed finds the
+      # version already on npm and skips this (an npm version can never be published twice).
       - name: Publish
         run: |
           set -euo pipefail
@@ -510,6 +536,7 @@ jobs:
     needs: [release, publish-npm]
     if: needs.release.outputs.should_release == 'true' && needs.release.outputs.dry_run == 'false'
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     permissions:
       contents: write # create the v<version> tag and the Release
       id-token: write # sign the tarball's attestation
@@ -524,6 +551,20 @@ jobs:
         with:
           name: npm-package
           path: ${{ runner.temp }}/package
+
+      # The Release carries the tarball that's on npm, or nothing. They differ only if this is a fresh run for a
+      # version an earlier run published (build-info.json names the run): re-run the failed jobs of that run instead.
+      - name: The tarball is the one on npm
+        run: |
+          set -euo pipefail
+          tarball="$(ls "${RUNNER_TEMP}"/package/*.tgz)"
+          ours="sha512-$(openssl dgst -sha512 -binary "${tarball}" | base64 -w0)"
+          theirs="$(npm view "@bragdoc/local@${VERSION}" dist.integrity)"
+          if [ "${ours}" != "${theirs}" ]; then
+            echo "::error::this run's tarball isn't the one on npm (${theirs}). Re-run the failed jobs of the run that published ${VERSION}, rather than starting a new run."
+            exit 1
+          fi
+          echo "the tarball is @bragdoc/local@${VERSION} on npm: ${theirs}"
 
       - name: Attest the tarball
         uses: actions/attest-build-provenance@v4

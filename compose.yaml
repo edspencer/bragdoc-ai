@@ -16,8 +16,9 @@
 name: bragdoc
 services:
   bragdoc:
-    image: ghcr.io/edspencer/bragdoc:latest
-    # To build this checkout instead: `docker compose up -d --build`
+    # BRAGDOC_TAG=next for preview releases. `docker compose up -d --build` builds this checkout instead, and gives the
+    # build this name locally: `docker compose pull` gets the published image back.
+    image: ghcr.io/edspencer/bragdoc:${BRAGDOC_TAG:-latest}
     build: .
     pull_policy: missing
     # BragDoc has no login: publish it on this computer's loopback only, never 0.0.0.0 (D10).
