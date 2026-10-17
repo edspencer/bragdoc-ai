@@ -62,7 +62,7 @@ async function serve(flags: Record<string, string>): Promise<number | undefined>
     // `npm run dev` (BRAGDOC_DEV=1): Vite serves the web app; the server is the API only
     ({ port: bound, close } = await startServer(port, { hostname, dataDir, webDist: process.env.BRAGDOC_DEV ? null : undefined }));
   } catch (e) {
-    const code = (e as NodeJS.ErrnoException).code;
+    const { code, syscall, path: file } = e as NodeJS.ErrnoException;
     // never another port (D6): a bookmark, the service and an agent's MCP registration all point at this one
     // who holds it is only asked on loopback, where 127.0.0.1 is the address that's taken
     if (code === 'EADDRINUSE' && !(LOOPBACK.has(hostname) || hostname === '0.0.0.0' || hostname === '::'))
@@ -76,7 +76,9 @@ async function serve(flags: Record<string, string>): Promise<number | undefined>
         );
       throw new Error(`port ${port} is already in use by something that isn't BragDoc; pick another with --port <n>`);
     }
-    if (code === 'EACCES') throw new Error(`not allowed to listen on port ${port}; pick another with --port <n>`);
+    // EACCES from laying out the data home (say, a Docker volume owned by another uid) isn't about the port
+    if (code === 'EACCES' && syscall === 'listen') throw new Error(`not allowed to listen on port ${port}; pick another with --port <n>`);
+    if ((code === 'EACCES' || code === 'EPERM') && file) throw new Error(`can't write to ${file}: permission denied. The data home (${dataDir}) must belong to the user BragDoc runs as.`);
     throw e;
   }
   const [{ startupMessage }, { transientInstall }] = await Promise.all([import('./banner.js'), import('./platform/spec.js')]);

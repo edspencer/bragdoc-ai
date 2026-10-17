@@ -63,8 +63,24 @@ anyone on your network read and change your data. Inside the container BragDoc l
 for Docker's port forwarding to reach it), which is why the image sets `BRAGDOC_DANGEROUSLY_ALLOW_OPEN=1`; see
 [Localhost security](/guarantees/localhost-security/).
 
-The release will include a `compose.yaml` that also mounts your code folder and a screenshots folder read-only, for
-the GitHub and screenshot sources.
+The image runs as an ordinary user (uid 1000), never root, keeps its data in `/data`, and has a health check on
+`/api/health`. For day-to-day use, the repository's `compose.yaml` does the same with less typing:
+
+```sh
+docker compose up -d
+```
+
+It publishes the port on `127.0.0.1` only, mounts `~/.bragdoc` at `/data`, and mounts your code folder read-only at
+the same path inside the container (so repository paths mean the same thing inside and out). You can tune it with:
+
+| Variable | Default | Meaning |
+| --- | --- | --- |
+| `BRAGDOC_CODE_DIR` | `~/Code` | The code folder to mount read-only. |
+| `BRAGDOC_UID`, `BRAGDOC_GID` | `1000` | The user the container runs as, so the files it writes in `~/.bragdoc` are yours. |
+| `BRAGDOC_TAG` | `latest` | The image tag; `next` for preview releases. |
+
+Commented-out lines in it mount a screenshots folder and your GitHub CLI login, read-only, for the screenshot and
+GitHub sources.
 
 ## Ports and folders
 

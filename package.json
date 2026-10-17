@@ -29,6 +29,7 @@
     "dist/server/",
     "dist/shared/",
     "dist/web/",
+    "dist/build-info.json",
     "AGENT-GUIDE.md",
     "CHANGELOG.md"
   ],
@@ -42,7 +43,7 @@
   "scripts": {
     "start": "node scripts/start.mjs",
     "dev": "node scripts/dev.mjs",
-    "build": "npm run build:web && npm run build:server",
+    "build": "npm run build:web && npm run build:server && node scripts/strip-maps.mjs && node scripts/build-info.mjs",
     "build:web": "vite build",
     "build:server": "node -e \"fs.rmSync('dist/server',{recursive:true,force:true});fs.rmSync('dist/shared',{recursive:true,force:true})\" && tsc -p tsconfig.build.json",
     "routes": "tsr generate",
@@ -54,6 +55,9 @@
     "prepack": "npm run build",
     "brand": "node brand/generate.mjs",
     "docs:media": "tsx tools/docs-media/capture.ts",
+    "smoke:pack": "node scripts/smoke-pack.mjs",
+    "changeset": "changeset",
+    "changeset:version": "changeset version && node scripts/whats-new-release.mjs && npm install --package-lock-only --ignore-scripts",
     "sync:reference": "tsx scripts/sync-reference.ts",
     "store:demo": "tsx scripts/store-demo.ts"
   },
@@ -68,6 +72,8 @@
     "zod": "^4.6.7"
   },
   "devDependencies": {
+    "@changesets/changelog-github": "^1.0.1",
+    "@changesets/cli": "^3.0.3",
     "@fontsource-variable/bricolage-grotesque": "^5.3.0",
     "@fontsource-variable/geist-mono": "^5.3.0",
     "@fontsource-variable/instrument-sans": "^5.3.0",

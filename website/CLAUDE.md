@@ -68,7 +68,7 @@ variable the code reads (apart from the test suite's own, listed in the test) is
 
 **What's new.** `whats-new.md` keeps one `## Coming in <version>: <title>` section headed "Not released yet." for the
 next release; `../scripts/whats-new-release.mjs` gives it the real version at `changeset version` time, and
-`../test/release.test.ts` checks a released version is never "coming".
+`../test/whats-new.test.ts` checks a released version is never "coming".
 
 **Links.** Link pages site-relative with the trailing slash (`/reference/cli/`). After a build,
 `npm run check-links` checks every internal link and `#fragment` in `dist/`, and `npm run check-external` that nothing

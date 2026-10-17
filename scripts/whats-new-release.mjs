@@ -1,8 +1,7 @@
-// Run at release time, after `changeset version` has bumped package.json (local-review's scripts/whats-new-release.mjs):
-// the docs site's What's new page gets its release heading. NOT WIRED YET: the release flow (PR6) should call it from
-// `changeset:version` (`changeset version && node scripts/whats-new-release.mjs && …`), as local-review's does.
-// The first release (0.1.0) also needs website/src/site.mjs's RELEASED flipped and every "Coming in v0.1" note
-// replaced; test/docs.test.ts fails the version PR until both are done.
+// Part of `npm run changeset:version`, which the Release workflow runs to build the version PR (RELEASING.md): after
+// `changeset version` has bumped package.json, the docs site's What's new page gets its release heading
+// (local-review's scripts/whats-new-release.mjs). The first release (0.1.0) also needs website/src/site.mjs's RELEASED
+// flipped and every "Coming in v0.1" note replaced; test/docs.test.ts fails the version PR until both are done.
 // Its upcoming section is written by hand as
 //
 //   ## Coming in 0.2.0: a short title
@@ -11,7 +10,7 @@
 //
 // and this turns it into `## <the version actually released>: a short title`, without the "Not released yet." line,
 // whatever version the section guessed (a patch release instead of a minor one, say). Without a "Coming in"
-// section it changes nothing. test/release.test.ts checks the page never calls a released version "coming".
+// section it changes nothing. test/whats-new.test.ts checks the page never calls a released version "coming".
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';

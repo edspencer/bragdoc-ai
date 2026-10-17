@@ -76,9 +76,13 @@ merged, however useful the rest of it is.
 
 ## Changesets
 
-Versions and the changelog will come from [changesets](https://github.com/changesets/changesets); the setup arrives
-with the release machinery (PR6 of #411). Once it's there, a PR that changes something a user would notice adds one
-with `npm run changeset`. You never bump `version` or edit `CHANGELOG.md` yourself.
+Versions and the changelog come from [changesets](https://github.com/changesets/changesets). A PR that changes
+something a user would notice adds one: run `npm run changeset`, pick the bump (`patch` for everything before 1.0),
+and write a sentence or two for users, not reviewers: what they can now do, or what no longer goes wrong. Commit the
+`.changeset/*.md` file it writes with the PR. Internal changes (tests, CI, refactors, docs for contributors) don't
+need one.
+
+You never bump `version` or edit `CHANGELOG.md` yourself: the release does ([RELEASING.md](RELEASING.md)).
 
 ## Security
 

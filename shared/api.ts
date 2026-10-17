@@ -35,11 +35,31 @@ export interface Notice {
   message: string;
 }
 
+/**
+ * What a build says about itself: dist/build-info.json, written by scripts/build-info.mjs at the end of every
+ * `npm run build` (so the npm package and the Docker image both have one). It's a claim, not a proof: anyone can write
+ * this file, so the app never calls a build "verified"; About → Verify this build shows it next to the commands that
+ * check it independently (`npm audit signatures`, `gh attestation verify`).
+ */
+export interface BuildInfo {
+  /** The package name and version it was built as. */
+  name: string;
+  version: string;
+  /** The git commit it was built from, or null if unknown (a build from a tarball of the sources). */
+  commit: string | null;
+  /** ISO 8601. A release sets it to the commit's time (SOURCE_DATE_EPOCH), so rebuilding one commit says the same. */
+  builtAt: string;
+  /** The GitHub Actions run that built it, or null. */
+  runUrl: string | null;
+  /** True only for a build by the release workflow; every other build is an "unofficial build". */
+  official: boolean;
+}
+
 /** `GET /api/meta`: what this server is and how it's set up. */
 export interface MetaResponse {
   version: string;
-  /** dist/build-info.json from the release build (PR6), or null for a build from source. Never a "verified" claim. */
-  build: Record<string, unknown> | null;
+  /** dist/build-info.json, or null when there isn't one (running from source) or it isn't readable. */
+  build: BuildInfo | null;
   /** The data home, absolute, and as people write it (`~/.bragdoc`). */
   dataDir: string;
   dataDirDisplay: string;
