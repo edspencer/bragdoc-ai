@@ -45,37 +45,51 @@ test('a non-loopback --host is refused (exit 1) without the dangerous opt-in', (
   assert.match(r.stderr, /BRAGDOC_DANGEROUSLY_ALLOW_OPEN/);
 });
 
-test('--host [::1] is loopback: it binds, rather than failing on the brackets', async () => {
-  const child = spawn(process.execPath, [...CLI, 'serve', '--host', '[::1]', '--port', '0'], { cwd: ROOT, env: h.env });
-  try {
-    const code = await new Promise<number | string>((resolve) => {
-      let out = '';
-      child.stdout.on('data', (d) => {
-        out += d;
-        if (/^BragDoc on /.test(out)) resolve('listening');
-      });
-      child.stderr.on('data', (d) => (out += d));
-      child.on('exit', (c) => resolve(`exited ${c}: ${out}`));
+/**
+ * Start `bragdoc serve …` and wait for its "BragDoc on <url>" line. Rejects, with everything the child printed, if it
+ * exits first or hasn't said anything within `ms`: a hung child fails this test, not the whole CI job's timeout.
+ */
+function startServe(args: string[], ms = 15_000): { child: ReturnType<typeof spawn>; ready: Promise<string> } {
+  const child = spawn(process.execPath, [...CLI, 'serve', ...args], { cwd: ROOT, env: h.env });
+  const ready = new Promise<string>((resolve, reject) => {
+    let out = '';
+    const timer = setTimeout(() => reject(new Error(`no "BragDoc on" line after ${ms} ms; output so far: ${JSON.stringify(out)}`)), ms);
+    child.stdout!.on('data', (d) => {
+      out += d;
+      const m = /^BragDoc on (http:\/\/\S+)\n/.exec(out);
+      if (m) {
+        clearTimeout(timer);
+        resolve(m[1]!);
+      }
     });
-    // a runner without IPv6 can't bind ::1 at all; that's an EADDRNOTAVAIL, never the bracket ENOTFOUND
-    if (code !== 'listening') assert.doesNotMatch(String(code), /ENOTFOUND/);
+    child.stderr!.on('data', (d) => (out += d));
+    child.on('exit', (code) => {
+      clearTimeout(timer);
+      reject(new Error(`exited ${code} before listening: ${JSON.stringify(out)}`));
+    });
+  });
+  return { child, ready };
+}
+
+test('--host [::1] binds the IPv6 loopback, or fails to bind cleanly where there is none', async () => {
+  const { child, ready } = startServe(['--host', '[::1]', '--port', '0']);
+  try {
+    assert.match(await ready, /^http:\/\/localhost:\d+$/);
+  } catch (e) {
+    // a machine without IPv6 can't bind ::1: that must be a clean exit, not a hang, and never the brackets' ENOTFOUND
+    const msg = (e as Error).message;
+    assert.match(msg, /^exited 1 before listening/, msg);
+    assert.doesNotMatch(msg, /ENOTFOUND/);
   } finally {
     await stopChild(child);
   }
 });
 
 test('serve prints "BragDoc on <url>" first, then answers /api/health; a taken port is an error, not a new port', async () => {
-  const child = spawn(process.execPath, [...CLI, 'serve', '--port', '0', '--data-dir', h.dataDir], { cwd: ROOT, env: h.env });
+  const { child, ready } = startServe(['--port', '0', '--data-dir', h.dataDir]);
   try {
-    const url = await new Promise<string>((resolve, reject) => {
-      let out = '';
-      child.stdout.on('data', (d) => {
-        out += d;
-        const m = /^BragDoc on (http:\/\/localhost:(\d+))\n/.exec(out);
-        if (m) resolve(m[1]!);
-      });
-      child.on('exit', (code) => reject(new Error(`exited ${code}: ${out}`)));
-    });
+    const url = await ready;
+    assert.match(url, /^http:\/\/localhost:\d+$/);
     const port = new URL(url).port;
     const res = await fetch(`http://127.0.0.1:${port}/api/health`);
     assert.deepEqual(await res.json(), { ok: true, version: VERSION });

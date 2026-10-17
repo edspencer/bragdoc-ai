@@ -42,6 +42,16 @@ export function parseArgs(argv: string[]): ParsedArgs {
   return { pos, flags };
 }
 
+/** Addresses that only this computer can reach. `--host` takes a bare address: `::1`, not the URL form `[::1]`. */
+export const LOOPBACK = new Set(['127.0.0.1', 'localhost', '::1']);
+
+/** `--host`'s value as listen() wants it: `[::1]` (an address as it appears in a URL) becomes `::1`. */
+export function parseHost(flag: string | undefined): string {
+  const host = (flag ?? '127.0.0.1').replace(/^\[(.*)\]$/, '$1');
+  if (!host) throw new UsageError('--host needs an address');
+  return host;
+}
+
 /** Each command takes its own options and at most `max` arguments, and a `-- <command>` only if `takesRest`. */
 export function check(cmd: string, flags: Record<string, string>, allowed: string[], args: string[], max: number, rest?: string[], takesRest = false) {
   const bad = Object.keys(flags).find((k) => !allowed.includes(k));

@@ -2,7 +2,7 @@
 // `bragdoc [command] …`: the command-line entry point (the package's bin; `npm run bragdoc -- …` from a checkout).
 // With no command it runs the server in the foreground (`serve`). This is PR1's minimal subset; PR5 brings the full
 // command set (server/commands/, `service`, `--open`, the Node version check) in Hallway's shape.
-import { UsageError, check, parseArgs } from './args.js';
+import { LOOPBACK, UsageError, check, parseArgs, parseHost } from './args.js';
 import { DEFAULT_PORT, parsePort } from './port.js';
 import { VERSION, resolveDataDir, tildify } from './paths.js';
 
@@ -23,18 +23,13 @@ Commands
 
 Exit codes: 0 ok, 1 error, 2 usage error.`;
 
-/** Addresses that only this computer can reach. `--host` takes a bare address: `::1`, not the URL form `[::1]`. */
-const LOOPBACK = new Set(['127.0.0.1', 'localhost', '::1']);
-
 /** Resolves with an exit code when there's nothing to run, else undefined while the server runs. */
 async function serve(flags: Record<string, string>): Promise<number | undefined> {
   // an empty $PORT means "not set"; an empty --port is a mistake (`--port "$P"` with P unset), so it's refused
   const given = flags.port ?? (process.env.PORT || undefined);
   const port = given === undefined ? DEFAULT_PORT : parsePort(given);
   if (port === null) throw new UsageError(`${flags.port !== undefined ? '--port' : 'PORT'} must be a port number (0-65535), not '${given}'`);
-  // `[::1]` is how an IPv6 address appears in a URL; listen() wants it bare
-  const hostname = (flags.host ?? '127.0.0.1').replace(/^\[(.*)\]$/, '$1');
-  if (!hostname) throw new UsageError('--host needs an address');
+  const hostname = parseHost(flags.host);
   if (flags['data-dir'] === '') throw new UsageError('--data-dir needs a directory');
   // A minimal stand-in for Paddock's bind-safety guard, which PR2 brings as server/bind-safety.ts (D10, D21).
   if (!LOOPBACK.has(hostname) && process.env.BRAGDOC_DANGEROUSLY_ALLOW_OPEN !== '1')

@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { UsageError, check, parseArgs } from '../server/args.ts';
+import { LOOPBACK, UsageError, check, parseArgs, parseHost } from '../server/args.ts';
 import { DEFAULT_PORT, parsePort } from '../server/port.ts';
 
 test('parses positionals, value flags in both forms, and the short flags', () => {
@@ -27,6 +27,17 @@ test('check rejects flags a command does not take, and extra arguments', () => {
   assert.throws(() => check('serve', {}, [], ['extra'], 0), /unexpected argument 'extra'/);
   assert.throws(() => check('serve', {}, [], [], 0, ['x']), /doesn't take a command after --/);
   check('serve', { port: '1' }, ['port'], [], 0);
+});
+
+test('--host: bare addresses, brackets stripped, loopback recognised', () => {
+  assert.equal(parseHost(undefined), '127.0.0.1');
+  assert.equal(parseHost('[::1]'), '::1');
+  assert.equal(parseHost('::1'), '::1');
+  assert.equal(parseHost('0.0.0.0'), '0.0.0.0');
+  assert.throws(() => parseHost(''), UsageError);
+  assert.throws(() => parseHost('[]'), UsageError);
+  assert.ok(LOOPBACK.has(parseHost('[::1]')));
+  assert.ok(!LOOPBACK.has(parseHost('0.0.0.0')));
 });
 
 test('ports: 2724 by default, integers 0-65535 only', () => {
