@@ -128,12 +128,13 @@ const PRAISE_EMOJI = /(?:🎉|🙌|🙏|❤️?|👏|🚀|🏆|💯|🔥|⭐|�
  * with one of these isn't trivial either.
  */
 const IMPACT = /(?<![\p{L}\p{N}])(?:\d+(?:[.,]\d+)?\s?%|[$€£]\s?\d[\d,.]*\s?[kmb]?|\d+(?:[.,]\d+)?\s?(?:k|ms|min|mins|minutes|hours|hrs|seconds|x)(?![\p{L}])|customers|revenue|renew(?:al|ed)?|saved|down from|up from|from \d[\d.,]*\s?\S* to \d|promo(?:tion)?|nominat\p{L}*|award\p{L}*|calibration|staff level|adopted by|root cause|deciding factor|zero downtime)/giu;
-/** A bare acknowledgement ("thanks!", "ty 🙏", "thx AM"): dropped when it's all the message says (the spike's rule). */
+/** The shape of a bare acknowledgement ("thanks!", "ty 🙏", "thx AM"); isTrivialAck decides (the spike's rule). */
 const TRIVIAL_ACK = /^\s*(?:thanks?(?: you)?|ty(?:sm)?|thx|cheers|ack|ok|👍|🙏)[\s!.,:;'"—–\-a-z@<>0-9\p{Extended_Pictographic}\u{fe0f}]*$/iu;
 
 /** Chat-UI cues (d), by kind. A `#channel` or a thread is enough; otherwise two different kinds. */
 const CHAT_CUES: [kind: string, re: RegExp, enough: boolean][] = [
-  ['channel', /(?:^|\s)#\s?[a-z0-9][a-z0-9_-]{1,79}(?![\p{L}\p{N}_])/gmu, true],
+  // a letter somewhere: `#412` is a pull request, not a channel
+  ['channel', /(?:^|\s)#\s?(?=[a-z0-9_-]*[a-z])[a-z0-9][a-z0-9_-]{1,79}(?![\p{L}\p{N}_])/gmu, true],
   ['thread', /\b\d+\s+repl(?:y|ies)\b|\bLast reply\b|\bView thread\b|\bReply in thread\b|^Thread\b/gim, true],
   ['timestamp', /\b\d{1,2}[:.]\d{2}\s?[AaPp]\.?[Mm]\b|\b(?:Today|Yesterday) at\b/g, false],
   ['mention', /(?:^|\s)@(?:here|channel|everyone|[\p{L}][\p{L}.-]+)/gmu, false],
@@ -152,8 +153,8 @@ const TIME_AFTER = `(?!\\s*(?:[-–/]|or|to|and)\\s*PM\\b)(?!\\s*\\(?(?:${TIMEZO
  */
 const NAME_WORD = "[@\\p{Lu}][\\p{L}\\p{M}.'-]*";
 const HEADER = new RegExp(
-  `^(?:\\S{1,4}\\s+)??[^\\p{L}\\p{N}@#]{0,4}((?:${NAME_WORD}(?:\\s+${NAME_WORD}){0,3})|[\\p{Ll}][\\p{L}\\p{N}._-]*bot)` +
-    `\\s*(?:\\(you\\)\\s*)?(?:APP\\s+|BOT\\s+)?(?:[-–—·•|]\\s*)?(?:(?:[Tt]oday|[Yy]esterday)\\s+at\\s+)?\\d{1,2}[:.]\\d{2}(?:\\s*[AaPp]\\.?[Mm]\\.?)?\\s*$`,
+  `^(?:\\S{1,4}\\s+)??[^\\p{L}\\p{N}@#]{0,4}((?:${NAME_WORD}(?:\\s+${NAME_WORD}){0,3})|([\\p{Ll}][\\p{L}\\p{N}._-]*bot))` +
+    `\\s*(?:\\(you\\)\\s*)?(?:(APP|BOT)\\s+)?(?:[-–—·•|]\\s*)?(?:(?:[Tt]oday|[Yy]esterday)\\s+at\\s+)?\\d{1,2}[:.]\\d{2}(?:\\s*[AaPp]\\.?[Mm]\\.?)?\\s*$`,
   'u',
 );
 
@@ -220,8 +221,14 @@ const allMatches = (re: RegExp, s: string) => [...s.matchAll(new RegExp(re.sourc
 /** The rules for one person, compiled once: call the result with each screenshot's OCR text. */
 export function compileRules(profile: RulesProfile): (text: string) => RulesResult {
   const terms = nameTerms(profile);
-  const nameRe = terms.length ? new RegExp(`${BEFORE}@?(?:${terms.map(tolerant).join('|')})${AFTER}`, 'giu') : null;
-  const ownExact = terms.length ? new RegExp(`^@?(?:${terms.map(tolerant).join('|')})$`, 'iu') : null;
+  // a name of three letters or fewer is matched as written (case and all): tolerantly, "Al" would be every "AI"
+  // and "Li" every "11"
+  const long = terms.filter((t) => t.replace(/\s/g, '').length > 3);
+  const short = terms.filter((t) => t.replace(/\s/g, '').length <= 3);
+  const longRe = long.length ? new RegExp(`${BEFORE}@?(?:${long.map(tolerant).join('|')})${AFTER}`, 'giu') : null;
+  const shortRe = short.length ? new RegExp(`${BEFORE}@?(?:${short.map(escape).join('|')})${AFTER}`, 'gu') : null;
+  const names = (s: string) => [...(longRe ? allMatches(longRe, s) : []), ...(shortRe ? allMatches(shortRe, s) : [])].sort((a, b) => a.index - b.index);
+  const ownExact = (a: string) => names(a).some((m) => m.index === 0 && m[0].length === a.length);
   const full = profile.name.trim().replace(/\s+/g, ' ');
   const fullRe = full.length >= 2 ? new RegExp(`${BEFORE}${tolerant(full)}${AFTER}`, 'iu') : null;
   const initials = [...new Set((profile.aliases ?? []).filter(isInitials).map((a) => a.trim()))];
@@ -234,7 +241,7 @@ export function compileRules(profile: RulesProfile): (text: string) => RulesResu
   const isMe = (author: string) => {
     const a = author.replace(/\s+(?:APP|BOT)$/, '').trim();
     if (notMeRe && new RegExp(`^(?:${notMeRe.source})$`, 'iu').test(a)) return false;
-    return !!(ownExact?.test(a) || fullRe?.test(a));
+    return ownExact(a) || !!fullRe?.test(a);
   };
 
   return function rules(raw: string): RulesResult {
@@ -265,17 +272,18 @@ export function compileRules(profile: RulesProfile): (text: string) => RulesResu
     const thread = !!allMatches(CHAT_CUES[1]![1], lines.join('\n')).length;
 
     // messages: split at author lines when there are any; otherwise the whole text is one, with a nearness rule
-    const headers = lines.map((l) => HEADER.exec(l)?.[1]);
+    const headers = lines.map((l) => HEADER.exec(l));
     const blocks: Block[] = [];
-    const chatLayout = headers.some(Boolean);
+    const chatLayout = headers.some((h) => h);
     if (chatLayout) {
       let cur: Block = { own: false, start: 0, end: -1 };
       lines.forEach((_, i) => {
         // "AM Alex Marlowe": the avatar's initials, read onto the author line
-        const author = headers[i]?.replace(/^(\p{Lu}{1,3})\s+(.+)$/u, (all, ini: string, rest: string) => (initialsOfName(rest) === ini ? rest : all));
+        const h = headers[i];
+        const author = h?.[1]!.replace(/^(\p{Lu}{1,3})\s+(.+)$/u, (all, ini: string, rest: string) => (initialsOfName(rest) === ini ? rest : all));
         if (author) {
           if (cur.author || cur.end >= cur.start) blocks.push(cur);
-          cur = { author, own: isMe(author), bot: /bot$/i.test(author) || /\s(?:APP|BOT)\s/.test(lines[i]!), start: i + 1, end: i };
+          cur = { author, own: isMe(author), bot: !!(h![2] || h![3]) || /\s(?:APP|BOT)$/.test(author), start: i + 1, end: i };
         } else cur.end = i;
       });
       blocks.push(cur);
@@ -309,7 +317,7 @@ export function compileRules(profile: RulesProfile): (text: string) => RulesResu
       const hits: Hit[] = [];
       for (let i = b.start; i <= b.end; i++) {
         const line = lines[i]!;
-        if (nameRe) for (const m of allMatches(nameRe, line)) hits.push({ rule: 'name', text: m[0], line: i });
+        for (const m of names(line)) hits.push({ rule: 'name', text: m[0], line: i });
         if (initialsRe && initialsTimedRe) {
           const notTimes = new Set(allMatches(initialsTimedRe, line).map((m) => m.index));
           for (const m of allMatches(initialsRe, line)) {
@@ -331,7 +339,7 @@ export function compileRules(profile: RulesProfile): (text: string) => RulesResu
       const who = hits.filter((h) => h.rule === 'name' || h.rule === 'initials');
       const praise = hits.filter((h) => h.rule === 'praise' || h.rule === 'impact');
       // (a), in a thread: a reply under your own message, that names nobody else on screen
-      if (!who.length && sawOwn && thread && praise.length && !namesSomeoneElse(body, authors, nameRe)) who.push({ rule: 'reply', text: `a reply to ${sawOwn}`, line: b.start });
+      if (!who.length && sawOwn && thread && praise.length && !namesSomeoneElse(body, authors, (t) => names(t).length > 0)) who.push({ rule: 'reply', text: `a reply to ${sawOwn}`, line: b.start });
 
       // a name and a praise word in the same message (or, without author lines, within a few lines of each other)
       const near = who.some((w) => praise.some((p) => chatLayout || Math.abs(w.line - p.line) <= NEARBY_LINES));
@@ -339,7 +347,7 @@ export function compileRules(profile: RulesProfile): (text: string) => RulesResu
       const score = (who.length ? 2 : 0) + (praise.length ? 1 : 0) + (near ? 1 : 0);
       if (score > best.score) best = { hits: dedupe([...who, ...praise, ...cues]), score };
       if (!near) continue;
-      if (body.length < 40 && TRIVIAL_ACK.test(body) && !allMatches(IMPACT, body).length) {
+      if (isTrivialAck(body, names)) {
         notes.push(`just an acknowledgement: "${body}"`);
         continue;
       }
@@ -358,15 +366,35 @@ export function compileRules(profile: RulesProfile): (text: string) => RulesResu
 }
 
 /** Does this message name someone other than you: another author on screen, or an @mention that isn't you? */
-function namesSomeoneElse(body: string, authors: Set<string>, nameRe: RegExp | null): boolean {
+function namesSomeoneElse(body: string, authors: Set<string>, isMine: (text: string) => boolean): boolean {
   for (const a of authors) {
     const first = a.replace(/^@/, '').split(/\s+/)[0]!;
     if (first.length >= 2 && new RegExp(`${BEFORE}${escape(first)}${AFTER}`, 'iu').test(body)) return true;
   }
   for (const m of body.matchAll(/(?:^|\s)@([\p{L}][\p{L}.-]+(?:\s\p{Lu}[\p{L}-]+)?)/gu)) {
-    if (!nameRe || !new RegExp(nameRe.source, 'iu').test(m[1]!)) return true;
+    if (!isMine(m[1]!)) return true;
   }
   return false;
+}
+
+/**
+ * A bare acknowledgement: short, starts with a thanks or an ok, and after that says nothing but your name, a mention,
+ * a time, an emoji or a few plain words ("thx AM", "thanks for the quick reply", "thanks @alex, appreciate it"). Not
+ * when anything after the thanks is praise ("thanks for the great review", "you are a legend") or an impact ("saved
+ * us 2 hours").
+ */
+function isTrivialAck(body: string, names: (s: string) => RegExpMatchArray[]): boolean {
+  if (body.length >= 40 || !TRIVIAL_ACK.test(body) || allMatches(IMPACT, body).length) return false;
+  const lead = /^(?:\s*(?:thanks?(?: you)?|ty(?:sm)?|thx|cheers|ack|ok)\b[\s,!.]*)+/i.exec(body)?.[0] ?? '';
+  let rest = body.slice(lead.length).replace(/\bappreciate (?:it|you|that)\b/gi, ' ');
+  if (allMatches(STRONG_PRAISE, rest).length || allMatches(WEAK_PRAISE, rest).length) return false;
+  for (const m of names(rest).reverse()) rest = rest.slice(0, m.index) + ' ' + rest.slice(m.index! + m[0].length);
+  rest = rest
+    .replace(/\b\d{1,2}(?::\d{2})?\s?[AaPp]\.?[Mm]\b\.?/g, ' ')
+    .replace(/@\S+/g, ' ')
+    .replace(/\b\p{Lu}{2,4}\b/gu, ' ')
+    .replace(/[^\p{L}\p{N}\s']/gu, ' ');
+  return rest.split(/\s+/).filter(Boolean).length <= 5;
 }
 
 function dedupe(hits: Hit[]): Hit[] {

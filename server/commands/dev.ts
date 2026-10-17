@@ -24,6 +24,7 @@ export async function dev(ctx: Ctx, args: string[], flags: Record<string, string
   const engine = (flags.engine ?? 'auto') as (typeof ENGINES)[number];
   if (!ENGINES.includes(engine)) throw new UsageError(`--engine must be one of ${ENGINES.join(', ')}, not '${flags.engine}'`);
   if (flags.name === '') throw new UsageError('--name needs a name');
+  if (flags.name === undefined && (flags.aliases !== undefined || flags['not-me'] !== undefined)) throw new UsageError('--aliases and --not-me go with --name');
 
   const profile = flags.name !== undefined ? { name: flags.name, aliases: list(flags.aliases), notMe: list(flags['not-me']) } : readProfile(ctx, flags['data-dir']);
   const rules = profile ? compileRules(profile) : null;

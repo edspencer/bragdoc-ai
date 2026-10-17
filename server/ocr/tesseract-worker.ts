@@ -15,34 +15,38 @@
 // The worker_threads import is the guard's reviewed exception (test/guard-egress.test.ts): it is how a worker talks to
 // its parent, and nothing here starts a thread.
 import { parentPort } from 'node:worker_threads';
-// @ts-expect-error: tesseract.js ships no types for its worker internals (CommonJS)
-import worker from 'tesseract.js/src/worker-script/index.js';
-// @ts-expect-error: as above
-import getCore from 'tesseract.js/src/worker-script/node/getCore.js';
-// @ts-expect-error: as above
-import gunzip from 'tesseract.js/src/worker-script/node/gunzip.js';
-// @ts-expect-error: as above
-import cache from 'tesseract.js/src/worker-script/node/cache.js';
 
-interface Packet {
-  status?: string;
-  action?: string;
-}
 const FATAL = new Set(['load', 'loadLanguage', 'initialize']);
 
-worker.setAdapter({
-  getCore,
-  gunzip,
-  fetch: (url: unknown) => Promise.reject(new Error(`BragDoc's OCR worker has no network access (it was asked to fetch ${String(url)})`)),
-  readCache: cache.readCache,
-  checkCache: cache.checkCache,
-  writeCache: () => Promise.resolve(),
-  deleteCache: () => Promise.resolve(),
-});
+// Anything uncaught here (tesseract.js's internals moved, say) ends the thread rather than reaching the parent as an
+// error it must handle; the parent sees the exit (server/ocr/tesseract.ts).
+process.on('uncaughtException', () => process.exit(1));
 
-parentPort!.on('message', (packet: unknown) => {
-  worker.dispatchHandlers(packet, (out: Packet) => {
-    parentPort!.postMessage(out);
-    if (out.status === 'reject' && FATAL.has(out.action ?? '')) setTimeout(() => process.exit(1), 50);
+try {
+  // CommonJS internals (typed in tesseract-internals.d.ts)
+  const [worker, { default: getCore }, { default: gunzip }, { default: cache }] = await Promise.all([
+    import('tesseract.js/src/worker-script/index.js'),
+    import('tesseract.js/src/worker-script/node/getCore.js'),
+    import('tesseract.js/src/worker-script/node/gunzip.js'),
+    import('tesseract.js/src/worker-script/node/cache.js'),
+  ]);
+
+  worker.setAdapter({
+    getCore,
+    gunzip,
+    fetch: (url: unknown) => Promise.reject(new Error(`BragDoc's OCR worker has no network access (it was asked to fetch ${String(url)})`)),
+    readCache: cache.readCache,
+    checkCache: cache.checkCache,
+    writeCache: () => Promise.resolve(),
+    deleteCache: () => Promise.resolve(),
   });
-});
+
+  parentPort!.on('message', (packet: unknown) => {
+    worker.dispatchHandlers(packet, (out) => {
+      parentPort!.postMessage(out);
+      if (out.status === 'reject' && FATAL.has(out.action ?? '')) setTimeout(() => process.exit(1), 50);
+    });
+  });
+} catch {
+  process.exit(1);
+}

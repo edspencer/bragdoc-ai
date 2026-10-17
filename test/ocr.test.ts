@@ -93,10 +93,28 @@ test("tesseract's worker can't fetch: pointed at the CDN, it fails instead of do
 test('a recognition past its timeout stops the worker; the next one starts a fresh one', async () => {
   const engine = new TesseractEngine();
   try {
-    await assert.rejects(engine.recognize(png(caseById('praise-billing').svg, 2), { timeoutMs: 1 }), (e: OcrError) => e.code === 'timeout');
+    // warm: the worker is up, so the timeout below lands on the recognition itself, not on starting
+    await engine.recognize(png(caseById('blank').svg), { timeoutMs: 60_000 });
+    const big = png(caseById('code-editor').svg, 2.5);
+    await assert.rejects(engine.recognize(big, { timeoutMs: 30 }), (e: OcrError) => e.code === 'timeout' && /^tesseract took longer/.test(e.message));
     assert.match((await engine.recognize(png(caseById('praise-billing').svg), { timeoutMs: 60_000 })).text, /eng-billing/);
   } finally {
     await engine.close();
+  }
+});
+
+test('a worker that dies while starting is an error, and closing it never hangs', async () => {
+  const dir = tmpDir();
+  const script = path.join(dir, 'dies.mjs');
+  fs.writeFileSync(script, 'process.exit(1);\n'); // what our worker does when tesseract.js's internals won't load
+  const engine = new TesseractEngine({ workerPath: script });
+  try {
+    await assert.rejects(engine.recognize(png(caseById('blank').svg), { timeoutMs: 1500 }), (e: OcrError) => e.code === 'timeout');
+    const t = Date.now();
+    await engine.close();
+    assert.ok(Date.now() - t < 3000, `close took ${Date.now() - t} ms`);
+  } finally {
+    rmTmp(dir);
   }
 });
 
@@ -400,6 +418,7 @@ test('bragdoc dev ocr: the engine, the text and the rules, for each image; JSON 
       [['dev', 'ocr'], /needs at least one image/],
       [['dev', 'ocr', 'x.png', '--engine', 'magic'], /--engine must be one of auto, tesseract, vision/],
       [['dev', 'ocr', 'x.png', '--port', '1'], /dev ocr doesn't take --port/],
+      [['dev', 'ocr', 'x.png', '--aliases', 'AM'], /--aliases and --not-me go with --name/],
     ] as const) {
       const r = run(...args);
       assert.equal(r.status, 2, `${args.join(' ')}: ${r.stderr}`);

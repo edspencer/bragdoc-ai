@@ -169,3 +169,19 @@ test("the Found spike's dataset, as a perfect OCR would read it", () => {
   assert.ok(by.get('praise_other')!.passed <= 2, `praise for others: ${by.get('praise_other')!.passed}`);
   assert.ok(rate('sarcasm') >= 0.8, 'sarcasm passes: rules cannot read tone (documented)');
 });
+
+// From the independent review: each of these was wrong once.
+test('review regressions: short thanks that praise, surnames ending in "bot", short names, a PR number', () => {
+  assert.ok(pass(slack('Dana Whitfield', 'Thanks Alex for the great review!')), 'more than a bare thanks');
+  assert.ok(pass(slack('Dana Whitfield', 'thanks alex, you are a legend')), 'strong praise after the thanks');
+  assert.ok(!pass(slack('Dana Whitfield', 'thanks for organizing')), 'still a bare thanks');
+  assert.ok(pass(slack('Ryan Talbot', 'Amazing work Alex on the launch')), 'Talbot is a person');
+  assert.ok(!pass(slack('deploybot', 'Amazing work Alex')), 'deploybot is a bot');
+  const li = compileRules({ name: 'Al Li' });
+  assert.ok(!li('# eng\n11 replies\nAmazing launch everyone').pass, '"11" is not "Li"');
+  assert.ok(!li(slack('Dana Whitfield', 'The new AI feature is amazing')).pass, '"AI" is not "Al"');
+  assert.ok(li(slack('Dana Whitfield', 'Amazing work Al!')).pass);
+  const pr = rules('Merged PR #412: saved 3 hours. Alex Marlowe, great');
+  assert.equal(pr.pass, false, 'a #number is not a channel, so impact and "great" stay weak');
+  assert.equal(pr.where, undefined);
+});
