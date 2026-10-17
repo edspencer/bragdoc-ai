@@ -39,10 +39,10 @@ describe('launch', { skip: !posix }, () => {
     const mark = path.join(bin, 'opened');
     // pauses before it writes, so a launch() that waited for it would be seen to
     // (its process group from /proc where there is one: not every Linux box has ps)
-    fake('xdg-open', `sleep 0.3\npgid=$( [ -r /proc/$$/stat ] && cut -d' ' -f5 /proc/$$/stat || ps -o pgid= -p $$ )\necho "$$ $pgid $*" > "${mark}"`);
+    fake('xdg-open', `sleep 1.5\npgid=$( [ -r /proc/$$/stat ] && cut -d' ' -f5 /proc/$$/stat || ps -o pgid= -p $$ )\necho "$$ $pgid $*" > "${mark}"`);
     const t0 = Date.now();
     await launch('xdg-open', ['http://localhost:2724'], { env });
-    assert.ok(Date.now() - t0 < 250, 'resolved once started, not when it finished');
+    assert.ok(Date.now() - t0 < 1000, 'resolved once started, not when it finished');
     assert.equal(read(mark), '', 'still running');
     await until(() => read(mark).endsWith('\n'));
     const [pid, pgid, ...args] = read(mark).trim().split(/\s+/);
@@ -77,15 +77,16 @@ describe('runAttached', { skip: !posix }, () => {
   }
 
   test('a child killed by a signal resolves 128 + its number; a missing one rejects not_found', async () => {
+    const listening = process.listenerCount('SIGTERM');
     fake('journalctl', 'kill -TERM $$');
     assert.equal(await runAttached('journalctl', [], { env }), 128 + 15);
     await assert.rejects(runAttached('journalctl', [], { env: { PATH: '/nonexistent' } }), (e: Error) => e instanceof ProcError && e.code === 'not_found');
-    assert.equal(process.listenerCount('SIGTERM'), 0);
+    assert.equal(process.listenerCount('SIGTERM'), listening);
   });
 });
 
 describe("the service runner's defaults are proc.ts", { skip: !posix }, () => {
-  test('an exit code comes back; a program that is not installed is 127', async () => {
+  test('an exit code comes back; a stop by signal is 0; a program that is not installed is 127', async () => {
     const PATH = process.env.PATH;
     try {
       fake('systemctl', 'echo "$*"; echo warn >&2; exit 4');
@@ -93,6 +94,9 @@ describe("the service runner's defaults are proc.ts", { skip: !posix }, () => {
       assert.deepEqual(await defaultRunner('systemctl', ['--user', 'is-active']), { code: 4, stdout: '--user is-active\n', stderr: 'warn\n' });
       fake('journalctl', 'exit 2');
       assert.equal(await defaultStreamer('journalctl', []), 2);
+      // stopped by a signal (its own, or one bragdoc forwarded): a clean stop, as before the move onto proc.ts
+      fake('journalctl', 'kill -TERM $$');
+      assert.equal(await defaultStreamer('journalctl', []), 0);
       process.env.PATH = '/nonexistent';
       assert.deepEqual(await defaultRunner('launchctl', ['print']), { code: 127, stdout: '', stderr: 'launchctl: command not found' });
       assert.equal(await defaultStreamer('journalctl', ['-f']), 127);

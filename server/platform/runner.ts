@@ -30,10 +30,18 @@ export const defaultRunner: Runner = async (cmd, args) => {
   }
 };
 
-/** proc.runAttached forwards SIGINT/SIGTERM/SIGHUP to the child, so stopping `bragdoc service logs` stops journalctl. */
+/** A stop, not a failure: 128 + SIGHUP, SIGINT or SIGTERM. */
+const STOPPED = new Set([129, 130, 143]);
+
+/**
+ * proc.runAttached forwards SIGINT/SIGTERM/SIGHUP to the child, so stopping `bragdoc service logs` stops journalctl.
+ * A child those signals killed counts as a clean stop (exit 0), like `serve` on SIGTERM: following logs until told to
+ * stop is the command working.
+ */
 export const defaultStreamer: Streamer = async (cmd, args) => {
   try {
-    return await runAttached(cmd, args);
+    const code = await runAttached(cmd, args);
+    return STOPPED.has(code) ? 0 : code;
   } catch (e) {
     if (e instanceof ProcError && e.code === 'not_found') return 127;
     throw e;

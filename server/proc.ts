@@ -122,7 +122,12 @@ export function runAttached(bin: AllowedBin, args: readonly string[], { cwd, env
     const settle = () => {
       for (const s of FORWARDED) process.off(s, forward);
     };
-    child.once('error', (e: NodeJS.ErrnoException) => {
+    // after a successful spawn, an 'error' is a signal that couldn't be delivered: the child still runs, and its exit
+    // settles the run
+    let spawned = false;
+    child.once('spawn', () => (spawned = true));
+    child.on('error', (e: NodeJS.ErrnoException) => {
+      if (spawned) return;
       settle();
       reject(e.code === 'ENOENT' ? notFound(bin) : e);
     });
