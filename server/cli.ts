@@ -6,6 +6,7 @@
 // Everything imported statically here must load on an old Node, so the version check below gets to say so: the server,
 // Hono and the commands are imported lazily, after it.
 import { LOOPBACK, UsageError, check, parseArgs, parseHost } from './args.js';
+import { evaluateBindSafety } from './bind-safety.js';
 import { MIN_NODE, nodeTooOld } from './node-version.js';
 import { DEFAULT_PORT, parsePort } from './port.js';
 import { PACKAGE_ROOT, VERSION, resolveDataDir, tildify } from './paths.js';
@@ -43,16 +44,6 @@ Commands
 
 Exit codes: 0 ok, 1 error, 2 usage error.`;
 
-/**
- * The bind guard, at ONE call site, so PR2's server/bind-safety.ts (adapted from Paddock) replaces this function's
- * body and nothing else (D21). BragDoc has no login, so a non-loopback address is refused unless
- * BRAGDOC_DANGEROUSLY_ALLOW_OPEN=1 (D10).
- */
-function assertBindAllowed(hostname: string, env: NodeJS.ProcessEnv): void {
-  if (!LOOPBACK.has(hostname) && env.BRAGDOC_DANGEROUSLY_ALLOW_OPEN !== '1')
-    throw new Error(`refusing to listen on ${hostname}: BragDoc has no login, so anyone who can reach that address could read and change your data. Use 127.0.0.1, or set BRAGDOC_DANGEROUSLY_ALLOW_OPEN=1 if you really mean it (e.g. inside Docker).`);
-}
-
 /** Resolves with an exit code when there's nothing to run, else undefined while the server runs. */
 async function serve(flags: Record<string, string>): Promise<number | undefined> {
   // an empty $PORT means "not set"; an empty --port is a mistake (`--port "$P"` with P unset), so it's refused
@@ -61,7 +52,8 @@ async function serve(flags: Record<string, string>): Promise<number | undefined>
   if (port === null) throw new UsageError(`${flags.port !== undefined ? '--port' : 'PORT'} must be a port number (0-65535), not '${given}'`);
   const hostname = parseHost(flags.host);
   if (flags['data-dir'] === '') throw new UsageError('--data-dir needs a directory');
-  assertBindAllowed(hostname, process.env);
+  const bind = evaluateBindSafety(hostname); // D10
+  if (bind.action === 'refuse') throw new Error(bind.message);
   const dataDir = resolveDataDir(flags['data-dir']);
   const { startServer } = await import('./index.js');
   let bound: number;
@@ -97,14 +89,14 @@ async function serve(flags: Record<string, string>): Promise<number | undefined>
     ),
   );
   // a clean exit 0 on SIGTERM (what launchd and systemd send at logout and on `service stop`), and on Ctrl-C. The
-  // service is restarted after it all the same (KeepAlive <true/>, Restart=always: D23, Paddock #872). The unref'd
+  // service is restarted after it all the same (KeepAlive <true/>, Restart=always: D31, Paddock #872). The unref'd
   // timer is a backstop for a handle that would keep the process alive after the server has closed.
   for (const sig of ['SIGTERM', 'SIGINT'] as const)
     process.once(sig, () => {
       setTimeout(() => process.exit(0), 5000).unref();
       void close().then(() => (process.exitCode = 0));
     });
-  if (!LOOPBACK.has(hostname)) process.stderr.write(`bragdoc: listening on ${hostname}, not just this computer (BRAGDOC_DANGEROUSLY_ALLOW_OPEN=1).\n`);
+  if (bind.action === 'warn') process.stderr.write(`bragdoc: ${bind.message}\n`);
   if (flags.open) {
     const [{ openCommand }, { launch }] = await Promise.all([import('./platform/index.js'), import('./platform/runner.js')]);
     const cmd = openCommand(process.platform, url);

@@ -60,7 +60,7 @@ jobs:
   # The built server in a real browser (playwright.config.ts boots it on a throwaway HOME). One cell is enough: the
   # unit tests cover the platforms, this covers the browser.
   e2e:
-    name: E2E (Chromium)
+    name: E2E (Chromium, Firefox)
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
@@ -71,10 +71,12 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run build
-      - name: Install Chromium
-        run: npx playwright install --with-deps chromium-headless-shell
+      - name: Install Chromium and Firefox
+        run: npx playwright install --with-deps chromium-headless-shell firefox
       - name: Playwright
         run: npm run test:e2e
+        env:
+          BRAGDOC_E2E_FIREFOX: '1'
       - name: Keep the traces of a failure
         if: failure()
         uses: actions/upload-artifact@v7
