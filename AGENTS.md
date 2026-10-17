@@ -55,10 +55,22 @@ server/              the server and CLI (Node, TypeScript ESM, Hono)
   cli.ts             `bragdoc` entry point (the package's bin); args.ts parses arguments; banner.ts is what
                      `serve` prints at startup
   index.ts           createApp (routes → JSON 404 for /api/* → static files → SPA fallback) and startServer
-  context.ts         AppContext: what every route module gets (version, dataDir, store, services; later bus, config)
+  context.ts         AppContext: what every route module gets (version, dataDir, config, bus, egress, runtime,
+                     uploads, notices, store, services)
   http.ts            helpers for route modules (apiError)
+  security.ts        the guard on every request: Host allow-list, same-origin Origin, Fetch Metadata, JSON-only or
+                     opt-in typed uploads, body limits, security headers + CSP; blobHeaders() for evidence (D10, D26)
+  bind-safety.ts     refuses a non-loopback --host without BRAGDOC_DANGEROUSLY_ALLOW_OPEN=1
+  config.ts          config.yaml: Zod schema, defaults, the schemaVersion downgrade guard, live re-read (ConfigStore)
+  home.ts            the data home's layout and .gitignore on first run; moves the old CLI's files into legacy-cli/
+  runtime.ts         runtime.json (0600): pid, port, url and the MCP token, which survives restarts; constantTimeEqual
+  egress.ts          the ONLY outbound network path: egressFetch({purpose}, url), allow-list, logs/network.jsonl
+  proc.ts            the ONLY way to run a program: run()/runAttached(), allow-listed binaries, no shell
+  events.ts          the event bus + the SSE stream (GET /api/events)
+  atomic.ts          the platform's own writes (runtime.json, the network log, starter files): atomic, create-only (D27)
   routes/index.ts    registerRoutes(): one line per feature module (D18)
   routes/health.ts   GET /api/health
+  routes/{events,meta,network}.ts   GET /api/events, /api/meta, /api/network-log
   paths.ts           package root, VERSION, WEB_DIST, the data home (resolveDataDir), tildify
   port.ts            DEFAULT_PORT (2724 = BRAG), alone so vite.config.ts can import it
   store/             the only code that touches the data home's files (D5, D24): index.ts (Store: load, index,
@@ -85,7 +97,7 @@ scripts/             start.mjs (npm start), dev.mjs (npm run dev), check-no-nul-
 docs/                decisions.md (D1…), data-format.md (the file format; its reference tables are generated)
 ```
 
-Coming soon, so you know where things go: `server/{config,home,runtime,security,egress,proc,events}.ts` (PR2), the Scrapbook kit under `src/` and
+Coming soon, so you know where things go: the Scrapbook kit under `src/` and
 `tools/docs-media/` (PR4), `server/commands/` and `server/platform/` (PR5), the release machinery and `Dockerfile`
 (PR6), `website/` (PR18).
 
@@ -120,8 +132,16 @@ locally (and `npm run test:e2e` if you touched anything it covers), and CI is gr
   `/api/*` paths already 404 as JSON.
 - **Something routes need from the server** (the store, the event bus, config): add a field to `AppContext`
   (`server/context.ts`), one line each, and set it in `createApp()`.
-- **Middleware that wraps everything** (PR2's security): `app.use('*', …)` at the top of `createApp()`, before
-  `registerRoutes()`.
+- **Middleware that wraps everything:** `app.use('*', …)` in `createApp()`, after the security guard and before
+  `registerRoutes()`. Never ahead of the guard.
+- **An outbound request:** `ctx.egress.egressFetch({ purpose: 'github.pulls' }, url, init)`, never `fetch`; if it needs a
+  new host, extend `egressAllowList()` in `server/egress.ts`, derived from config, never a constant. **A subprocess:**
+  `run('gh', args)` from `server/proc.ts`; a `gh` call that reaches the network is also logged with
+  `ctx.egress.logProcess(…)`. `test/guard-egress.test.ts` enforces both.
+- **A route that takes a raw upload** (an image, a PDF) instead of JSON: call `ctx.uploads.accept({ method, path,
+  types, maxBytes })` in its register function. Never a CORS-safelisted type.
+- **Something the web app should refetch when it changes:** add a member to `ServerEvent` in `shared/api.ts` and
+  `ctx.bus.emit(…)` (or `emitSoon` for bursts).
 - **Reading or writing data:** routes and MCP tools call `ctx.services` (`server/services/`), never the files and
   never `ctx.store.write` directly. Validate request bodies with the input schemas in `shared/schema/inputs.ts`
   (strict: unknown keys are errors) or let the service do it. Map the store's errors (`server/store/errors.ts`):
