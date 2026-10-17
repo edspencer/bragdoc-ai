@@ -120,7 +120,7 @@ const slug = (s: string) =>
     .slice(0, 60)
     .replace(/-+$/, '');
 
-const STATUS: Record<string, (typeof PROJECT_STATUSES)[number]> = { active: 'active', completed: 'done', complete: 'done', done: 'done', archived: 'archived', paused: 'paused' };
+const STATUS: Record<string, (typeof PROJECT_STATUSES)[number]> = { active: 'active', completed: 'done', complete: 'done', done: 'done', archived: 'archived', paused: 'paused', 'on hold': 'paused', 'on-hold': 'paused' };
 
 /** Read and plan in one go: text (or parsed JSON) → Plan. Throws ExportRefused for a file that can't be imported. */
 export function planImport(store: Store, input: string | unknown): Plan {

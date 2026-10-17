@@ -228,7 +228,7 @@ test('orphans and bad items: problems item by item, and the rest imports', async
   assert.ok(msg(/A repeat of achievement 1.*appears more than once/), 'a repeat');
   assert.ok(msg(/"Project 1".*company .* isn't in the export; imported without a company/));
   assert.ok(msg(/"Project 2".*colour "blue"/));
-  assert.ok(msg(/"Project 2".*status "on hold"/));
+  assert.equal(h.store.all('project').find((p) => p.name === 'Project 2')!.status, 'paused'); // "on hold"
   assert.ok(msg(/"Achievement 1".*project .* isn't in the export/));
   assert.ok(msg(/"Achievement 2".*company .* isn't in the export/));
   assert.ok(msg(/achievement #4.*has no title; imported as "Fixed the flaky deploy"/));
