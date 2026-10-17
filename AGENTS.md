@@ -50,8 +50,13 @@ These are the product principles from the specification. They are not up for neg
 
 ```
 server/              the server and CLI (Node, TypeScript ESM, Hono)
-  cli.ts             `bragdoc` entry point (the package's bin); args.ts parses arguments; banner.ts is what
-                     `serve` prints at startup
+  cli.ts             `bragdoc` entry point (the package's bin) and `serve`; args.ts parses arguments; banner.ts is
+                     what `serve` prints at startup ("BragDoc on <url>" first, always); node-version.ts the Node check
+  commands/          every other command, one file each, one line in commands/index.ts (Hallway's shape); context.ts
+                     is the injectable Ctx (runner, probe, clock), ready.ts the /api/health probe and readiness wait
+  platform/          `bragdoc service`: spec.ts (what the service is), launchd.ts / systemd.ts (the writers, pinned by
+                     test/fixtures/services/), path.ts (the PATH captured at install), runner.ts (the only subprocess
+                     code until PR2's proc.ts), index.ts (which manager this OS has; Windows: not yet)
   index.ts           createApp (routes → JSON 404 for /api/* → static files → SPA fallback) and startServer
   context.ts         AppContext: what every route module gets (version, dataDir; later the store, bus, config)
   http.ts            helpers for route modules (apiError)
@@ -75,7 +80,7 @@ docs/                decisions.md (D1…), data-format.md
 
 Coming soon, so you know where things go: `server/{config,home,runtime,security,egress,proc,events}.ts` (PR2),
 `server/store/`, `server/services/` and `shared/schema/` (PR3), the Scrapbook kit under `src/` and
-`tools/docs-media/` (PR4), `server/commands/` and `server/platform/` (PR5), the release machinery and `Dockerfile`
+`tools/docs-media/` (PR4), the release machinery and `Dockerfile`
 (PR6), `website/` (PR18).
 
 ## Commands
@@ -153,7 +158,8 @@ npm run build && node dist/server/cli.js serve --port 5050
 ```
 
 - Never run a real `bragdoc service install` or `bragdoc mcp install claude` against your own user: use a throwaway
-  `HOME` / `XDG_CONFIG_HOME`, `--dry-run` or `--print`.
+  `HOME` / `XDG_CONFIG_HOME`, `--dry-run` or `--print`. The service's real lifecycle runs only in CI
+  (`scripts/services-real.mjs`, which refuses to run elsewhere); test/service.test.ts covers it with the manager mocked.
 - Use a fake `gh` on `PATH` with fixture output, not your own GitHub login.
 - To reach a dev build through a reverse proxy: `--host 0.0.0.0` with `BRAGDOC_DANGEROUSLY_ALLOW_OPEN=1`, and (from
   PR2) `BRAGDOC_ALLOWED_HOSTS=<the proxy's hostname>`. Never outside a throwaway instance.

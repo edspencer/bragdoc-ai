@@ -1,6 +1,6 @@
 // Command-line parsing for `bragdoc`, kept apart from cli.ts (which runs on import) so it can be unit-tested.
 // Exit codes (SPEC R1): 0 success, 1 error, 2 usage error (with the usage printed): a UsageError is the 2.
-// PR5 grows this into the full command set; add a flag to VALUE_FLAGS or BOOLEAN_FLAGS and to the command's `check`.
+// A new flag goes in VALUE_FLAGS or BOOLEAN_FLAGS and in the `check` of each command that takes it.
 
 /** Bad usage: exit 2, with the usage. Anything else thrown exits 1. */
 export class UsageError extends Error {}
@@ -8,7 +8,7 @@ export class UsageError extends Error {}
 /** Options that take a value (`--port 5050` or `--port=5050`). */
 const VALUE_FLAGS = ['port', 'host', 'data-dir'];
 /** Options that don't. */
-const BOOLEAN_FLAGS: string[] = [];
+const BOOLEAN_FLAGS = ['open', 'dry-run'];
 
 export interface ParsedArgs {
   pos: string[];
