@@ -1,2 +1,0 @@
-ALTER TABLE "WorkstreamMetadata" ADD COLUMN "generation_params" jsonb DEFAULT '{}'::jsonb NOT NULL;--> statement-breakpoint
-ALTER TABLE "WorkstreamMetadata" ADD COLUMN "filtered_achievement_count" integer DEFAULT 0 NOT NULL;
