@@ -1,5 +1,5 @@
 // POST /api/import/plan and /api/import/apply (SPEC R12): the hosted app's export file is the JSON body (up to 50 MB,
-// D45). `plan` is the dry run: what would be added, skipped and left behind, and any problems, with nothing written.
+// D47). `plan` is the dry run: what would be added, skipped and left behind, and any problems, with nothing written.
 // `apply` imports it. Both answer an ImportReport (shared/api.ts). Settings → Data's import and `bragdoc import`
 // (when a server is running) call these.
 import type { Hono } from 'hono';

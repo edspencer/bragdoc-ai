@@ -31,7 +31,7 @@ export const LOOPBACK_HOSTNAMES = ['localhost', '127.0.0.1', '[::1]'] as const;
 /** 1 MB for a JSON body; 25 MB for an upload (SPEC R3). */
 export const JSON_LIMIT = 1024 * 1024;
 export const UPLOAD_LIMIT = 25 * 1024 * 1024;
-/** The one larger JSON body: a hosted-app export, sent whole to POST /api/import/* (D45). */
+/** The one larger JSON body: a hosted-app export, sent whole to POST /api/import/* (D47). */
 export const LARGE_JSON_LIMIT = 50 * 1024 * 1024;
 
 /** The SPA's Content-Security-Policy, exactly as SPEC R3 gives it. No inline scripts or styles, ever. */
@@ -108,7 +108,7 @@ export class UploadRegistry {
 
   /**
    * A route whose JSON body may be larger than JSON_LIMIT, up to LARGE_JSON_LIMIT: only POST /api/import/* (a whole
-   * hosted-app export, D45). Still JSON only, with every other check as usual.
+   * hosted-app export, D47). Still JSON only, with every other check as usual.
    */
   acceptLargeJson(rule: { method: string; path: RegExp; maxBytes: number }): void {
     if (rule.maxBytes > LARGE_JSON_LIMIT) throw new Error(`a JSON body is at most ${LARGE_JSON_LIMIT} bytes`);

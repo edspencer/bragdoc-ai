@@ -83,7 +83,7 @@ back, and each decision can be undone. A screenshot candidate points at the orig
 
 ## Imports
 
-`bragdoc import` brings an export from the hosted BragDoc app across (D45). Companies, projects,
+`bragdoc import` brings an export from the hosted BragDoc app across (D47). Companies, projects,
 repos and achievements become ordinary files like the ones above, each with its hosted id as `legacyId` (so importing
 the same export again adds nothing), and achievements with `source: import` and anything without a field of its own
 under `meta.legacy`. Documents and performance reviews have no place in the board, so they're written once, read-only

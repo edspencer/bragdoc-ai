@@ -5,7 +5,22 @@
 // in queries.ts.
 //
 // Requests are same-origin and relative (`/api/...`): the CSP allows `connect-src 'self'` and nothing else.
-import type { ApiError, HealthResponse, ImportReport } from '../../shared/api.ts';
+import type {
+  ApiError,
+  CompaniesResponse,
+  CompanyEntry,
+  DeleteResponse,
+  Detached,
+  HealthResponse,
+  ImportReport,
+  ProjectEntry,
+  ProjectReposRequest,
+  ProjectSummary,
+  ProjectsResponse,
+  RepoCreateResponse,
+  RepoEntry,
+  ReposResponse,
+} from '../../shared/api.ts';
 
 /** A failed API call: the HTTP status (0 when the server couldn't be reached) and the envelope's code and message. */
 export class ApiRequestError extends Error {
@@ -128,3 +143,65 @@ const asJson = (file: File) => new File([file], file.name, { type: 'application/
 export const planImport = (file: File, signal?: AbortSignal) => api.upload<ImportReport>('/api/import/plan', asJson(file), { signal });
 /** `POST /api/import/apply`: import it. */
 export const applyImport = (file: File) => api.upload<ImportReport>('/api/import/apply', asJson(file));
+// ---------------------------------------------------------------- projects, companies, repos (PR8)
+// Edits and deletes send the entry's etag as If-Match: one made against a stale copy is a 409 (`conflict`).
+
+/** The input types are the server's (shared/schema/inputs.ts), restated loosely: the server validates. */
+export interface ProjectInput {
+  name?: string;
+  description?: string | null;
+  color?: string;
+  start?: string;
+  end?: string | null;
+  status?: ProjectEntry['status'];
+  companyId?: string | null;
+  repoIds?: string[];
+}
+export interface CompanyInput {
+  name?: string;
+  role?: string | null;
+  start?: string | null;
+  end?: string | null;
+}
+export interface RepoInput {
+  name?: string;
+  localPath?: string;
+  remoteUrl?: string;
+}
+
+const ifMatch = (etag?: string) => (etag ? { headers: { 'If-Match': etag } } : undefined);
+
+/** `GET /api/projects` */
+export const getProjects = (signal?: AbortSignal) => api.get<ProjectsResponse>('/api/projects', { signal });
+/** `GET /api/projects/:id/summary` */
+export const getProjectSummary = (id: string, signal?: AbortSignal) => api.get<ProjectSummary>(`/api/projects/${seg(id)}/summary`, { signal });
+/** `POST /api/projects` */
+export const createProject = (body: ProjectInput) => api.post<ProjectEntry>('/api/projects', body);
+/** `PATCH /api/projects/:id` */
+export const updateProject = (id: string, body: ProjectInput, etag?: string) => api.patch<ProjectEntry>(`/api/projects/${seg(id)}`, body, ifMatch(etag));
+/** `DELETE /api/projects/:id` */
+export const deleteProject = (id: string, etag?: string) => api.delete<DeleteResponse>(`/api/projects/${seg(id)}`, ifMatch(etag));
+/** `POST /api/projects/:id/restore` */
+export const restoreProject = (id: string, reattach?: Detached) => api.post<ProjectEntry>(`/api/projects/${seg(id)}/restore`, { reattach });
+/** `POST /api/projects/:id/repos` */
+export const linkProjectRepos = (id: string, body: ProjectReposRequest) => api.post<ProjectEntry>(`/api/projects/${seg(id)}/repos`, body);
+
+/** `GET /api/companies` */
+export const getCompanies = (signal?: AbortSignal) => api.get<CompaniesResponse>('/api/companies', { signal });
+/** `POST /api/companies` */
+export const createCompany = (body: CompanyInput) => api.post<CompanyEntry>('/api/companies', body);
+/** `PATCH /api/companies/:id` */
+export const updateCompany = (id: string, body: CompanyInput, etag?: string) => api.patch<CompanyEntry>(`/api/companies/${seg(id)}`, body, ifMatch(etag));
+/** `DELETE /api/companies/:id` */
+export const deleteCompany = (id: string, etag?: string) => api.delete<DeleteResponse>(`/api/companies/${seg(id)}`, ifMatch(etag));
+/** `POST /api/companies/:id/restore` */
+export const restoreCompany = (id: string, reattach?: Detached) => api.post<CompanyEntry>(`/api/companies/${seg(id)}/restore`, { reattach });
+
+/** `GET /api/repos` */
+export const getRepos = (signal?: AbortSignal) => api.get<ReposResponse>('/api/repos', { signal });
+/** `POST /api/repos` */
+export const createRepo = (body: RepoInput) => api.post<RepoCreateResponse>('/api/repos', body);
+/** `DELETE /api/repos/:id` */
+export const deleteRepo = (id: string, etag?: string) => api.delete<DeleteResponse>(`/api/repos/${seg(id)}`, ifMatch(etag));
+/** `POST /api/repos/:id/restore` */
+export const restoreRepo = (id: string, reattach?: Detached) => api.post<RepoEntry>(`/api/repos/${seg(id)}/restore`, { reattach });

@@ -10,7 +10,7 @@ import { z } from 'zod';
 /** The only version this importer reads. */
 export const EXPORT_VERSION = '1.0';
 
-/** The largest export accepted, by the CLI and by POST /api/import/* (D45). */
+/** The largest export accepted, by the CLI and by POST /api/import/* (D47). */
 export const MAX_EXPORT_BYTES = 50 * 1024 * 1024;
 
 const legacyId = z.string().trim().min(1, 'no id');

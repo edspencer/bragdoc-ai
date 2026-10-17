@@ -66,7 +66,9 @@ server/              the server and CLI (Node, TypeScript ESM, Hono)
   index.ts           createApp (routes → JSON 404 for /api/* → static files → SPA fallback) and startServer
   context.ts         AppContext: what every route module gets (version, dataDir, config, bus, egress, runtime,
                      uploads, notices, store, services)
-  http.ts            helpers for route modules (apiError)
+  http.ts            helpers for route modules: apiError, storeError (the store's errors → 400/404/409), handle (run a
+                     route's work, answer JSON or the store error), jsonBody
+  gitremote.ts       a repo folder's remote, from that one repo's git config: no scan, no subprocess (D46)
   mcp/               the MCP server (SPEC R11, D40–D44): index.ts (the SDK's stateless handler, resource-updated
                      notifications from the store), tools.ts (the tools, resource and prompts, over ctx.services),
                      views.ts (bragdoc_get_context: the house style, the rules, compact views), bridge.ts (`bragdoc mcp`)
@@ -106,7 +108,9 @@ src/                 the web app (React 19, Vite, Tailwind v4, TanStack Router +
   shell/             the header, mobile tabs, theme toggle, logo, nav and settings-tab lists, Placeholder
   api/               client.ts (the typed `api` wrapper), queries.ts (query keys + hooks), events.ts (live updates)
   theme/theme.tsx    light / system / dark: ThemeProvider + useTheme()
-  lib/               pure helpers, unit-tested: colour.ts (inkOn, swatches, tilt), dates.ts (groupByWeek, fmt)
+  lib/               pure helpers, unit-tested: colour.ts (inkOn, swatches, tilt), dates.ts (groupByWeek, fmt), gantt.ts
+                     (the Projects timeline's window, gridlines, bars, rows and swimlanes)
+  projects/          the Projects page's pieces: Gantt, ProjectDialog, CompanyDialog, Pile, ReposPanel
   dev/Kit.tsx        /dev/kit, every kit component on one page (dev and BRAGDOC_KIT=1 builds only, D33)
   styles.css         the Scrapbook tokens (light + lamplight), mapped to Tailwind names through `@theme inline`
 public/              static files copied into dist/web: theme-init.js (the theme before first paint) and the
@@ -180,7 +184,7 @@ npm run smoke:pack` pass locally (and `npm run test:e2e` if you touched anything
   never `ctx.store.write` directly. Validate request bodies with the input schemas in `shared/schema/inputs.ts`
   (strict: unknown keys are errors) or let the service do it. Map the store's errors (`server/store/errors.ts`):
   `NotFoundError` → 404, `ValidationError` → 400 (its `issues` say which keys), `ConflictError` and `ReadOnlyError` →
-  409. Reads that need no logic can use `ctx.store` (`get`, `all`, `problems()`, `search`, `achievementIdsIn`). What
+  409 (`handle()` / `storeError()` in `server/http.ts` do this). Reads that need no logic can use `ctx.store` (`get`, `all`, `problems()`, `search`, `achievementIdsIn`). What
   `get`/`all` return are the index's own objects: **never mutate them** (copy first). Pass the client's `If-Match` to
   updates from the UI (every entry has an `etag`), so an edit made against a stale copy is a 409, not a silent
   overwrite. Serving evidence files: trust only an allow-list of types from the sidecar's `mime` (a sidecar is
@@ -240,7 +244,7 @@ project-colour tape, on an oat board (light) or a dim cork board under a desk la
 | Controls | `Btn` (`accent` · `go` · `paper` · `ink` · `ghost` · `danger`; `size="sm"`), `LinkBtn` (a router link styled as a button), `btnClass()`, `Switch`, `Field` (label, `hint`, `error`), `TextInput`, `TextArea`, `inputCls`, `FilterChip`, `CountBadge`, `Dot`, `ColourPicker` (12 swatches + any colour) |
 | Tags | `ProjectPill` (`name`, `color`, `active`, `onClick`), `RepoTag`, `ImpactBadge` (1–10), `ProvenanceBadge` (`github` · `screenshot` · `mcp` + `agent` · `import`; `soft` on cards, `solid` on Found), `PROVENANCE` (labels and colours for filter rows) |
 | Evidence | `EvidenceBit` (draws an `EvidenceView`: `image` · `pdf` · `file` · `link` · `github_pr` · `quote`), and each kind alone: `PrSlab` (shows `owner/repo#n` without a title), `LinkCard`, `PdfChip`, `FileChip`; `formatBytes`, `domainOf` |
-| Feedback | `ToastProvider` (in the shell) and `useToast()`: `toast({ msg, undo?, tone? })` |
+| Feedback | `ToastProvider` (in the shell) and `useToast()`: `toast({ msg, undo?, tone? })`; `Dialog` (a modal sheet on the native `<dialog>`: `open`, `onClose`, `title`, `footer`, `tape`, `size`) |
 | Navigation | `NotebookTabs` + `NotebookTab` (Settings' divider tabs; router links) |
 
 Shell pieces in `src/shell/`: `Header` and `MobileTabs` (the nav; the Found badge reads `useFoundCount()`, a stub

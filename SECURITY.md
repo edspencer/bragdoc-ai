@@ -27,7 +27,7 @@ is built; each guarantee names the file that enforces it.
   `allowedHosts`): the DNS-rebinding defence. Any `Origin` a browser sends must be BragDoc's own, on every request
   including the live-update stream; the API refuses cross-site and same-site fetches by Fetch Metadata; writes are
   JSON or a typed upload, never a type a page can send without a CORS preflight, and no CORS is ever granted. Bodies
-  are capped at 1 MB (JSON; 50 MB for a hosted-app export sent to `/api/import/*`, D45) and 25 MB (uploads). All in
+  are capped at 1 MB (JSON; 50 MB for a hosted-app export sent to `/api/import/*`, D47) and 25 MB (uploads). All in
   `server/security.ts`.
 - **The web app can't be served something it didn't expect.** A missing file is a 404, never the app's HTML
   (`server/index.ts`). Everything is served with a strict Content-Security-Policy with no inline scripts, `nosniff`,

@@ -2,7 +2,7 @@
 // nothing; `apply(store, services, plan)` does it, through the services like every other write (D24). The CLI
 // (commands/import.ts) and POST /api/import/{plan,apply} (routes/import.ts) both call these.
 //
-// The mapping (D45):
+// The mapping (D47):
 //  - companies → companies; projects → projects, each project's `repoRemoteUrl` → a repo linked to it (one repo per
 //    remote, however it's spelt, and an existing one is reused);
 //  - achievements → achievements with `source: import`: `eventStart` (else `createdAt`) → `happenedAt`, `eventEnd` →
@@ -106,7 +106,7 @@ const HEADER = ' Carried over from the hosted BragDoc app by `bragdoc import`. R
 /**
  * The calendar day (YYYY-MM-DD) of a time the export gave, in the user's time zone (the profile's, else this
  * machine's): the hosted app's date picker stored local midnight and showed dates in the browser's zone, so the UTC
- * day would put everyone east of Greenwich a day early (D45).
+ * day would put everyone east of Greenwich a day early (D47).
  */
 function dayIn(timeZone: string | null | undefined): (s: string | null | undefined) => string | undefined {
   const opts = { year: 'numeric', month: '2-digit', day: '2-digit' } as const;
@@ -338,7 +338,7 @@ export function plan(store: Store, ex: RawExport): Plan {
         happenedAt,
         endedAt: day(a.eventEnd),
         impact,
-        // an impact you set yourself stays yours; one the hosted app's AI suggested is marked as carried over (D45)
+        // an impact you set yourself stays yours; one the hosted app's AI suggested is marked as carried over (D47)
         impactSource: impact === undefined ? undefined : a.impactSource === 'user' ? ('user' as const) : ('import' as const),
         source: 'import' as const,
         legacyId: a.id,

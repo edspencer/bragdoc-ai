@@ -63,7 +63,7 @@ const ALLOWED: Record<string, Record<string, number>> = {
     rename: 2, // the old CLI's config.yml/cache/logs into legacy-cli.partial/, then that into legacy-cli/ (D28)
   },
   'server/import/lock.ts': {
-    unlink: 1, // releasing cache/import.lock: a fixed name, and only while it still holds our own pid (D45)
+    unlink: 1, // releasing cache/import.lock: a fixed name, and only while it still holds our own pid (D47)
   },
 };
 

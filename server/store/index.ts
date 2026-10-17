@@ -112,7 +112,7 @@ export interface StoreOptions {
 
 export const etagOf = (raw: string) => `"${crypto.createHash('sha256').update(raw).digest('hex').slice(0, 16)}"`;
 const normEtag = (t: string) => t.trim().replace(/^W\//, '').replace(/^"(.*)"$/, '$1');
-const etagMatches = (ifMatch: string, etag: string | null) => etag !== null && (ifMatch.trim() === '*' || ifMatch.split(',').some((t) => normEtag(t) === normEtag(etag)));
+export const etagMatches = (ifMatch: string, etag: string | null) => etag !== null && (ifMatch.trim() === '*' || ifMatch.split(',').some((t) => normEtag(t) === normEtag(etag)));
 
 function readRaw(file: string): string | null {
   try {
