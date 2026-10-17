@@ -468,8 +468,11 @@ pasted images (PR15) are its callers.
   a URL), `langPath` is a local directory, `cacheMethod: 'none'` (by default it caches the data in the current
   directory). And the worker thread runs `server/ocr/tesseract-worker.ts`, our copy of tesseract.js's 15-line Node
   worker entry, whose adapter's `fetch` only fails and whose cache writes are no-ops. That file is the egress guard's
-  one reviewed `node:worker_threads` import. It also ends the thread when language data fails to load or initialise:
-  tesseract.js 7's `createWorker()` otherwise never settles, and the stray thread keeps the process alive. Checked by
+  one reviewed `node:worker_threads` import, and tesseract.js itself is allowed only in the two OCR files (it can
+  fetch). The worker also ends its thread when language data fails to load or initialise: tesseract.js 7's
+  `createWorker()` otherwise never settles, and the stray thread keeps the process alive. The engine listens for the
+  thread's own `error`/`exit` (tesseract.js's `onerror` does nothing on a Node Worker, so an error in the thread would
+  otherwise crash the server). tesseract.js is pinned `~7.0.0`, because the worker loads its internals. Checked by
   test/ocr.test.ts (the worker pointed at the CDN fails; the global fetch throws throughout), `smoke:pack` (the
   installed package with every socket, DNS lookup and fetch made to throw) and the Docker smoke (`--network none`).
 - **Small screenshots are scaled up.** A PNG narrower than 1600 px is decoded (pngjs, pure JS), flattened onto white
@@ -489,10 +492,14 @@ pasted images (PR15) are its callers.
   must be within three lines. (d), the chat cues (`#channel`, replies, timestamps, @-mentions), only lift borderline
   cases: a lone "thanks"/"great" or an impact number counts in a chat window, not on a dashboard. Additions to the brief
   from testing on OCR text: your own messages and bots' never pass; a bare acknowledgement ("thx AM") is dropped, as in
-  the spike; a reply in a thread under your own message counts as (a) when it names nobody else on screen; avatar
-  initials and emoji debris that OCR reads into a message are cleaned off.
+  the spike, but only when nothing after the thanks praises; a reply in a thread under your own message counts as
+  (a) when it names nobody else on screen; avatar initials and emoji debris that OCR reads into a message are cleaned
+  off. A name of three letters or fewer is matched as written ("Al" isn't every "AI"); a bot is a lower-case `…bot`
+  author or an `APP`/`BOT` tag, not any name ending in "bot"; a `#` needs a letter to be a channel (`#412` is a PR).
 - **Measured** (`npm run eval:screenshots`, the Found spike's 218 messages drawn as screenshots): perfect text, recall
-  83% / precision 71% (98% without sarcasm); through tesseract, recall 79% / precision 69% (95% without sarcasm). The
+  83% / precision 70% (96% without sarcasm); through tesseract (`-- --ocr`), recall 79% / precision 69% (95% without
+  sarcasm). **These are in-sample:** the praise and impact vocabulary was tuned on these same messages, so a fresh set
+  will do worse; they're a regression floor (test/screenshot-rules.test.ts pins them), not a forecast. The
   misses are DMs that never name you; nearly every false pass is sarcasm, which rules can't read and the future judge
   is for (`shared/judge.ts`, unchanged: the seam already had the right shape). All 18 hand-made screenshots (Slack light,
   dark, small and Retina; an email; a dashboard; a code editor; a standup invite; a blank image) give their expected
