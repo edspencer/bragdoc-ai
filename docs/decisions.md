@@ -429,3 +429,62 @@ D17 onwards are decisions made while building.
   Bind sources use `create_host_path: false`, so a missing folder is an error rather than an empty root-owned one.
 - CI builds and checks the image on both architectures on **every** PR, not only those touching the Dockerfile: the
   image is the whole app, so a dependency or build change anywhere can break it. Nothing is pushed from CI.
+
+### D39 — `/mcp` is a route on BragDoc's own app, behind security.ts; the bearer token is checked before anything else
+
+- `/mcp` is registered like any other route (`server/routes/mcp.ts`), so the security guard (Host allow-list,
+  same-origin Origin, Fetch Metadata, JSON only, 1 MB) runs first, as for the API. The route then checks
+  `Authorization: Bearer <token>` against `runtime.json`'s token in constant time, read on every request so a rotated
+  token takes effect at once, before the SDK reads the body. GET and DELETE get 405 after auth (stateless, Paddock).
+- `/.well-known/oauth-*` answers a JSON 404: a client that gets our 401 looks for OAuth metadata there, and the SPA
+  fallback would otherwise hand it the web app's HTML with a 200.
+- The SDK's stateless `createMcpHandler` (2026-07-28, with 2025-era clients served statelessly) is used as Hallway uses
+  it. Resource-updated notifications for `bragdoc://context` come from `store.subscribe`, debounced to 250 ms.
+- **Considered:** `@modelcontextprotocol/hono`'s `createMcpHonoApp` and its Host/Origin middlewares (PLAN names the
+  adapter): security.ts is stricter (Origin must be our own host:port, not any localhost port) and already covers
+  `/mcp`, so the adapter isn't a dependency.
+
+### D40 — MCP tool arguments use the files' camelCase names; one extra tool, `bragdoc_get_achievement`
+
+- SPEC R11 writes `external_key` and `repo_path`; the tools take `externalKey` and `repoPath`. An agent then uses one
+  vocabulary everywhere: the files it may edit, the HTTP API, the tool arguments and what the tools return.
+- `bragdoc_get_achievement` (read-only) returns one achievement in full with its etag, for
+  `bragdoc_update_achievement`'s optional `etag`. Everything else is SPEC R11's list. No tool deletes anything.
+- Tool inputs are strict objects: a misspelt key is an error the agent sees, not a value silently dropped.
+- Evidence is given as `{ url | path | quote, title? }`. A GitHub pull request URL becomes `github_pr` evidence keyed
+  `github_pr:owner/repo#n`, which also makes adding the same PR twice a no-op.
+
+### D41 — `sourceAgent` holds the name the board shows; who it is comes from X-BragDoc-Client, then clientInfo
+
+- `sourceAgent` is a display name (`Claude Code`), so a hand-edited file and the board agree and the kit's
+  `ProvenanceBadge` shows it as is. Known client ids (`claude-code`, `claude-ai`, `cursor`, …) map to product names;
+  anything else is shown as sent (printable, at most 60 characters).
+- Order: the `X-BragDoc-Client` header (`mcp install claude` sets `claude-code`), then the client's own name from the
+  request's metadata (2026-07-28 clients send `clientInfo` with every request). A 2025-era client served statelessly
+  has no clientInfo on a `tools/call` (it was in an earlier request), so without the header it gets none and the board
+  says "Written by an agent". SPEC says "an MCP client"; storing that placeholder in the file would make it look like a
+  name, so nothing is stored. The stdio bridge sends the initialize's client name as the header, so stdio clients are
+  always named.
+
+### D42 — Files attached over MCP: an allow-list of types; `mcp.writeTo: found` leaves them in place
+
+- A path given to `bragdoc_add_achievement`, `bragdoc_attach_evidence` or `bragdoc_add_found` passes the store's
+  checks (absolute, a regular file, at most 25 MB, not in the data home or a hidden folder) and then a type allow-list,
+  sniffed from the content: images, PDFs, office documents, plain text / markdown / CSV / JSON, and mp4 / mov / webm.
+  An executable, an archive or unknown binary is refused before anything is stored (`IngestOptions.accept`, added to
+  blobs.ts).
+- With `mcp.writeTo: found`, a new achievement becomes a Found candidate whose files stay where they are until the user
+  keeps it (D24); the same checks run at once, so a bad file fails the call rather than the keep.
+- Updates and `attach_evidence` change achievements that already exist, so they apply whatever `mcp.writeTo` says.
+
+### D43 — The stdio bridge goes through egress; `mcp install` needs runtime.json for its token
+
+- `bragdoc mcp` sends each message with `egressFetch` (purpose `mcp.bridge`, loopback only), so its traffic is in
+  `logs/network.jsonl` like everything else. It reads the token from `runtime.json` and reads it again once on a 401
+  (comparing with the token that request sent), so rotating the token doesn't need the client restarted. When
+  `runtime.json` is missing or its pid is gone, it exits 1 with SPEC's message before reading stdin.
+- `mcp install claude` (HTTP) takes the token and the port from `runtime.json`; before BragDoc's first run there's no
+  token, and it says to start BragDoc once (or use `--stdio`) rather than minting one outside the server. An existing
+  `bragdoc` registration is replaced (`claude mcp remove`, then `add`, both at user scope). `--stdio` registers this
+  Node and the realpath of `dist/server/cli.js` (npx's command when running from npx's cache), plus `--data-dir` when
+  one was chosen; from an unbuilt checkout it refuses.
