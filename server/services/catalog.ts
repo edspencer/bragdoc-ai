@@ -1,6 +1,8 @@
 // Projects, companies and repos (SPEC R6): CRUD, plus linking repos to projects. A project's file holds its links
 // (`repoIds`); removing anything moves its file to backups/removed/ and leaves references to it alone, so restoring it
-// brings everything back as it was (meanwhile they're listed as dangling-reference Problems).
+// brings everything back as it was (meanwhile they're listed as dangling-reference Problems). `removeAndDetach` is what
+// the UI's delete does instead: it also takes the id off every file that refers to it, and says which, so
+// `restoreAndReattach` can undo both (D45).
 import {
   CompanyCreateSchema,
   CompanyUpdateSchema,
@@ -9,15 +11,121 @@ import {
   ProjectUpdateSchema,
   RepoCreateSchema,
   RepoUpdateSchema,
+  type Achievement,
   type Company,
   type Project,
   type Repo,
 } from '../../shared/schema/index.js';
 import { ulid } from '../../shared/ulid.js';
-import { NotFoundError, type Store, type WriteOptions } from '../store/index.js';
-import { defined, requireIds, today, validate } from './util.js';
+import { ConflictError, NotFoundError, ValidationError, etagMatches, type Store, type WriteOptions } from '../store/index.js';
+import { defined, nowIso, requireIds, today, validate } from './util.js';
 
 type IfMatch = Pick<WriteOptions, 'ifMatch'>;
+
+/**
+ * The files a delete took a reference out of, by kind (ids), so an undo can put it back. A file that couldn't be
+ * edited (broken by hand, or from a newer BragDoc) is left as it was and keeps a dangling reference: a Problem, not a
+ * failed delete.
+ */
+export interface Detached {
+  achievements: string[];
+  projects: string[];
+}
+
+type RefKind = 'project' | 'company' | 'repo';
+
+/** The store's per-file refusals (a broken or newer file, one that's gone): what detach and reattach skip. */
+const isFileProblem = (e: unknown) => e instanceof ConflictError || e instanceof NotFoundError || e instanceof ValidationError;
+
+/** Take `id` off every achievement (and, for companies and repos, every project) that refers to it. */
+function detach(store: Store, kind: RefKind, id: string): Detached {
+  const out: Detached = { achievements: [], projects: [] };
+  const tryWrite = (fn: () => unknown, ok: () => void) => {
+    try {
+      fn();
+      ok();
+    } catch (e) {
+      // broken, read-only, or gone meanwhile: it keeps the dangling reference (see Detached). A real I/O error isn't
+      // one of those, and fails the request.
+      if (!isFileProblem(e)) throw e;
+    }
+  };
+  const achievementIds =
+    kind === 'project'
+      ? [...store.achievementIdsIn('project', id)]
+      : kind === 'repo'
+        ? [...store.achievementIdsIn('repo', id)]
+        : store.all('achievement').filter((a) => a.companyId === id).map((a) => a.id);
+  for (const aid of achievementIds) {
+    const patch = (cur: Achievement) =>
+      kind === 'project' ? { projects: cur.projects.filter((p) => p !== id) } : kind === 'repo' ? { repos: cur.repos.filter((r) => r !== id) } : { companyId: null };
+    tryWrite(
+      () => store.write('achievement', aid, (cur) => (cur ? { patch: { ...patch(cur), updatedAt: nowIso(store) } } : null), { mustExist: true }),
+      () => out.achievements.push(aid),
+    );
+  }
+  if (kind !== 'project') {
+    const projectIds = store.all('project').filter((p) => (kind === 'company' ? p.companyId === id : p.repoIds.includes(id))).map((p) => p.id);
+    for (const pid of projectIds)
+      tryWrite(
+        () => store.write('project', pid, (cur) => (cur ? { patch: kind === 'company' ? { companyId: null } : { repoIds: cur.repoIds.filter((r) => r !== id) } } : null), { mustExist: true }),
+        () => out.projects.push(pid),
+      );
+  }
+  return out;
+}
+
+/** Put `id` back on the files `detach` took it off (those that still exist; nothing is added twice). */
+function reattach(store: Store, kind: RefKind, id: string, d: Partial<Detached>): void {
+  const quietly = (fn: () => unknown) => {
+    try {
+      fn();
+    } catch (e) {
+      // gone or broken since: nothing to put back
+      if (!isFileProblem(e)) throw e;
+    }
+  };
+  for (const aid of d.achievements ?? [])
+    quietly(() =>
+      store.write(
+        'achievement',
+        aid,
+        (cur) => {
+          if (!cur) return null;
+          if (kind === 'project') return cur.projects.includes(id) ? null : { patch: { projects: [...cur.projects, id], updatedAt: nowIso(store) } };
+          if (kind === 'repo') return cur.repos.includes(id) ? null : { patch: { repos: [...cur.repos, id], updatedAt: nowIso(store) } };
+          return cur.companyId ? null : { patch: { companyId: id, updatedAt: nowIso(store) } };
+        },
+        { mustExist: true },
+      ),
+    );
+  if (kind === 'project') return;
+  for (const pid of d.projects ?? [])
+    quietly(() =>
+      store.write(
+        'project',
+        pid,
+        (cur) => {
+          if (!cur) return null;
+          if (kind === 'company') return cur.companyId ? null : { patch: { companyId: id } };
+          return cur.repoIds.includes(id) ? null : { patch: { repoIds: [...cur.repoIds, id] } };
+        },
+        { mustExist: true },
+      ),
+    );
+}
+
+/** Check a delete's If-Match before anything is detached, so a stale delete changes nothing. */
+function precheck(store: Store, kind: RefKind, id: string, opts: IfMatch): void {
+  const e = store.entry(kind, id);
+  if (!e?.etag) throw new NotFoundError(`there's no ${kind} ${id}`);
+  if (opts.ifMatch && !etagMatches(opts.ifMatch, e.etag)) throw new ConflictError(`${e.file} has changed since you read it; read it again`, e.etag);
+}
+
+/** A project can't end before it starts (a file edited by hand still can: the Gantt copes). */
+function checkDates(start: string, end: string | null | undefined): void {
+  if (end && end < start) throw new ValidationError(`end: it ends (${end}) before it starts (${start})`, [{ key: 'end', message: 'before the start' }]);
+}
 
 export class ProjectService {
   constructor(private store: Store) {}
@@ -38,6 +146,7 @@ export class ProjectService {
     requireIds(this.store, 'company', [v.companyId], 'companyId');
     requireIds(this.store, 'repo', v.repoIds ?? [], 'repoIds');
     const id = ulid(this.store.now().getTime());
+    checkDates(v.start ?? today(this.store), v.end);
     const color = v.color ?? PROJECT_SWATCHES[this.store.all('project').length % PROJECT_SWATCHES.length];
     return this.store.write('project', id, () => ({ patch: defined({ id, ...v, color, start: v.start ?? today(this.store), repoIds: v.repoIds ?? [] }) }), { createOnly: true });
   }
@@ -46,7 +155,15 @@ export class ProjectService {
     const v = validate(ProjectUpdateSchema, input);
     requireIds(this.store, 'company', [v.companyId], 'companyId');
     requireIds(this.store, 'repo', v.repoIds ?? [], 'repoIds');
-    return this.store.write('project', id, () => ({ patch: defined(v) }), { ...opts, mustExist: true });
+    return this.store.write(
+      'project',
+      id,
+      (cur) => {
+        if (cur && (v.start !== undefined || v.end !== undefined)) checkDates(v.start ?? cur.start, v.end === undefined ? cur.end : v.end);
+        return { patch: defined(v) };
+      },
+      { ...opts, mustExist: true },
+    );
   }
 
   linkRepo(projectId: string, repoId: string): Project {
@@ -72,6 +189,20 @@ export class ProjectService {
   restore(id: string): Project {
     return this.store.restore('project', id);
   }
+
+  /** Delete from the UI: move the file aside and take the project off everything that refers to it (D45). */
+  removeAndDetach(id: string, opts: IfMatch = {}): { removedTo: string; detached: Detached } {
+    precheck(this.store, 'project', id, opts);
+    const removedTo = this.store.remove('project', id, opts);
+    return { removedTo, detached: detach(this.store, 'project', id) };
+  }
+
+  /** Undo removeAndDetach: bring the file back, then the references. */
+  restoreAndReattach(id: string, detached: Partial<Detached> = {}): Project {
+    const v = this.store.restore('project', id);
+    reattach(this.store, 'project', id, detached);
+    return v;
+  }
 }
 
 export class CompanyService {
@@ -89,13 +220,24 @@ export class CompanyService {
 
   create(input: unknown): Company {
     const v = validate(CompanyCreateSchema, input);
+    if (v.start && v.end && v.end < v.start) throw new ValidationError(`end: you left (${v.end}) before you started (${v.start})`, [{ key: 'end', message: 'before the start' }]);
     const id = ulid(this.store.now().getTime());
     return this.store.write('company', id, () => ({ patch: defined({ id, ...v }) }), { createOnly: true });
   }
 
   update(id: string, input: unknown, opts: IfMatch = {}): Company {
     const v = validate(CompanyUpdateSchema, input);
-    return this.store.write('company', id, () => ({ patch: defined(v) }), { ...opts, mustExist: true });
+    return this.store.write(
+      'company',
+      id,
+      (cur) => {
+        const start = v.start === undefined ? cur?.start : v.start;
+        const end = v.end === undefined ? cur?.end : v.end;
+        if (start && end && end < start) throw new ValidationError(`end: you left (${end}) before you started (${start})`, [{ key: 'end', message: 'before the start' }]);
+        return { patch: defined(v) };
+      },
+      { ...opts, mustExist: true },
+    );
   }
 
   remove(id: string, opts: IfMatch = {}): { removedTo: string } {
@@ -104,6 +246,20 @@ export class CompanyService {
 
   restore(id: string): Company {
     return this.store.restore('company', id);
+  }
+
+  /** Delete from the UI: move the file aside and take the company off everything that refers to it (D45). */
+  removeAndDetach(id: string, opts: IfMatch = {}): { removedTo: string; detached: Detached } {
+    precheck(this.store, 'company', id, opts);
+    const removedTo = this.store.remove('company', id, opts);
+    return { removedTo, detached: detach(this.store, 'company', id) };
+  }
+
+  /** Undo removeAndDetach: bring the file back, then the references. */
+  restoreAndReattach(id: string, detached: Partial<Detached> = {}): Company {
+    const v = this.store.restore('company', id);
+    reattach(this.store, 'company', id, detached);
+    return v;
   }
 }
 
@@ -116,8 +272,12 @@ export function normalizeRemote(url: string): { url: string; host: string; path:
   const scp = /^(?:[\w.-]+@)?([\w.-]+):(?!\/\/)(.+)$/.exec(s);
   let host: string;
   let p: string;
-  if (scp && !/^[a-z]+:\/\//i.test(s)) [host, p] = [scp[1], scp[2]];
-  else {
+  if (scp && !/^[a-z]+:\/\//i.test(s)) {
+    // `user:password@host:path` doesn't match the user part, which would make `user` the host and leave the password
+    // in the path; a drive letter (`C:/repos/x`) isn't a host either. Neither is a remote we understand.
+    if (scp[2].includes('@') || !scp[1].includes('.')) return null;
+    [host, p] = [scp[1], scp[2]];
+  } else {
     try {
       const u = new URL(s);
       if (!['http:', 'https:', 'ssh:', 'git:'].includes(u.protocol)) return null;
@@ -181,6 +341,20 @@ export class RepoService {
 
   restore(id: string): Repo {
     return this.store.restore('repo', id);
+  }
+
+  /** Delete from the UI: move the file aside and take the repo off everything that refers to it (D45). */
+  removeAndDetach(id: string, opts: IfMatch = {}): { removedTo: string; detached: Detached } {
+    precheck(this.store, 'repo', id, opts);
+    const removedTo = this.store.remove('repo', id, opts);
+    return { removedTo, detached: detach(this.store, 'repo', id) };
+  }
+
+  /** Undo removeAndDetach: bring the file back, then the references. */
+  restoreAndReattach(id: string, detached: Partial<Detached> = {}): Repo {
+    const v = this.store.restore('repo', id);
+    reattach(this.store, 'repo', id, detached);
+    return v;
   }
 }
 

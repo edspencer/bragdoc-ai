@@ -2,10 +2,15 @@
 // `['achievements', filters]`, …), so the live-update hook (events.ts) can refresh a whole resource by its first
 // segment. Feature PRs add their key and hook here, one block each.
 import { QueryClient, useQuery } from '@tanstack/react-query';
-import { getHealth, isApiError } from './client.ts';
+import { getCompanies, getHealth, getProjectSummary, getProjects, getRepos, isApiError } from './client.ts';
 
 export const queryKeys = {
   health: ['health'] as const,
+  projects: ['projects'] as const,
+  /** under 'projects', so a project change refreshes every open summary too */
+  projectSummary: (id: string) => ['projects', id, 'summary'] as const,
+  companies: ['companies'] as const,
+  repos: ['repos'] as const,
 };
 
 export function createQueryClient(): QueryClient {
@@ -32,4 +37,22 @@ export function useFoundCount(): number | undefined {
 export function useHealth() {
   // a health check should say so at once, not after retries with backoff
   return useQuery({ queryKey: queryKeys.health, queryFn: ({ signal }) => getHealth(signal), retry: false });
+}
+
+// ---------------------------------------------------------------- projects, companies, repos (PR8)
+
+export function useProjects() {
+  return useQuery({ queryKey: queryKeys.projects, queryFn: ({ signal }) => getProjects(signal) });
+}
+
+export function useProjectSummary(id: string | undefined) {
+  return useQuery({ queryKey: queryKeys.projectSummary(id ?? ''), queryFn: ({ signal }) => getProjectSummary(id!, signal), enabled: !!id });
+}
+
+export function useCompanies() {
+  return useQuery({ queryKey: queryKeys.companies, queryFn: ({ signal }) => getCompanies(signal) });
+}
+
+export function useRepos() {
+  return useQuery({ queryKey: queryKeys.repos, queryFn: ({ signal }) => getRepos(signal) });
 }

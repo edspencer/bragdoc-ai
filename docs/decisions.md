@@ -455,7 +455,103 @@ D17 onwards are decisions made while building.
 - **Considered:** `starlight-blog` (a dependency on a third-party plugin's release cadence); an always-dark landing
   page like Hallway's (unlike the app); generating the brand placeholder here (the real kit exists).
 
-### D40 — OCR: tesseract.js with its English data in the package and no network; Vision through JXA; rules you can read
+### D40 — `/mcp` is a route on BragDoc's own app, behind security.ts; the bearer token is checked before anything else
+
+- `/mcp` is registered like any other route (`server/routes/mcp.ts`), so the security guard (Host allow-list,
+  same-origin Origin, Fetch Metadata, JSON only, 1 MB) runs first, as for the API. The route then checks
+  `Authorization: Bearer <token>` against `runtime.json`'s token in constant time, read on every request so a rotated
+  token takes effect at once, before the SDK reads the body. GET and DELETE get 405 after auth (stateless, Paddock).
+- `/.well-known/oauth-*` answers a JSON 404: a client that gets our 401 looks for OAuth metadata there, and the SPA
+  fallback would otherwise hand it the web app's HTML with a 200.
+- The SDK's stateless `createMcpHandler` (2026-07-28, with 2025-era clients served statelessly) is used as Hallway uses
+  it. Resource-updated notifications for `bragdoc://context` come from `store.subscribe`, debounced to 250 ms.
+- **Considered:** `@modelcontextprotocol/hono`'s `createMcpHonoApp` and its Host/Origin middlewares (PLAN names the
+  adapter): security.ts is stricter (Origin must be our own host:port, not any localhost port) and already covers
+  `/mcp`, so the adapter isn't a dependency.
+
+### D41 — MCP tool arguments use the files' camelCase names; one extra tool, `bragdoc_get_achievement`
+
+- SPEC R11 writes `external_key` and `repo_path`; the tools take `externalKey` and `repoPath`. An agent then uses one
+  vocabulary everywhere: the files it may edit, the HTTP API, the tool arguments and what the tools return.
+- `bragdoc_get_achievement` (read-only) returns one achievement in full with its etag, for
+  `bragdoc_update_achievement`'s optional `etag`. Everything else is SPEC R11's list. No tool deletes anything.
+- Tool inputs are strict objects: a misspelt key is an error the agent sees, not a value silently dropped.
+- Evidence is given as `{ url | path | quote, title? }`. A GitHub pull request URL becomes `github_pr` evidence keyed
+  `github_pr:owner/repo#n`, which also makes adding the same PR twice a no-op.
+
+### D42 — `sourceAgent` holds the name the board shows; who it is comes from X-BragDoc-Client, then clientInfo
+
+- `sourceAgent` is a display name (`Claude Code`), so a hand-edited file and the board agree and the kit's
+  `ProvenanceBadge` shows it as is. Known client ids (`claude-code`, `claude-ai`, `cursor`, …) map to product names;
+  anything else is shown as sent (printable, at most 60 characters).
+- Order: the `X-BragDoc-Client` header (`mcp install claude` sets `claude-code`), then the client's own name from the
+  request's metadata (2026-07-28 clients send `clientInfo` with every request). A 2025-era client served statelessly
+  has no clientInfo on a `tools/call` (it was in an earlier request), so without the header it gets none and the board
+  says "Written by an agent". SPEC says "an MCP client"; storing that placeholder in the file would make it look like a
+  name, so nothing is stored. The stdio bridge sends the initialize's client name as the header, so stdio clients are
+  always named.
+
+### D43 — Files attached over MCP: an allow-list of types; `mcp.writeTo: found` leaves them in place
+
+- A path given to `bragdoc_add_achievement`, `bragdoc_attach_evidence` or `bragdoc_add_found` passes the store's
+  checks (absolute, a regular file, at most 25 MB, not in the data home or a hidden folder) and then a type allow-list,
+  sniffed from the content: images, PDFs, office documents, plain text / markdown / CSV / JSON, and mp4 / mov / webm.
+  An executable, an archive or unknown binary is refused before anything is stored (`IngestOptions.accept`, added to
+  blobs.ts).
+- With `mcp.writeTo: found`, a new achievement becomes a Found candidate whose files stay where they are until the user
+  keeps it (D24); the same checks run at once, so a bad file fails the call rather than the keep, and again when it's
+  kept (the file may have changed since: Found's keep applies `ATTACHABLE` to an agent's candidates).
+- Updates and `attach_evidence` change achievements that already exist, so they apply whatever `mcp.writeTo` says.
+
+### D44 — The stdio bridge goes through egress; `mcp install` needs runtime.json for its token
+
+- `bragdoc mcp` sends each message with `egressFetch` (purpose `mcp.bridge`, loopback only), so its traffic is in
+  `logs/network.jsonl` like everything else. That makes the bridge a second process appending to the log: appends are
+  line-atomic, but if both rotate at the same moment the older file can lose its history, and the bridge's entries don't
+  push a live `network` event (Settings shows them on its next load). Accepted for v0.1; the server could log `/mcp`
+  requests itself instead if it matters. It reads the token from `runtime.json` and reads it again once on a 401
+  (comparing with the token that request sent), so rotating the token doesn't need the client restarted. When
+  `runtime.json` is missing or its pid is gone, it exits 1 with SPEC's message before reading stdin.
+- `mcp install claude` (HTTP) takes the token and the port from `runtime.json`; before BragDoc's first run there's no
+  token, and it says to start BragDoc once (or use `--stdio`) rather than minting one outside the server. An existing
+  `bragdoc` registration is replaced (`claude mcp remove`, then `add`, both at user scope). `--stdio` registers this
+  Node and the realpath of `dist/server/cli.js` (npx's command when running from npx's cache), plus `--data-dir` when
+  one was chosen; from an unbuilt checkout it refuses.
+
+### D45 — Deleting a project, company or repo from the UI takes it off whatever refers to it (and undo puts it back)
+
+- The store's `remove` moves a file to `backups/removed/` and leaves references to it alone (D24), so a restore brings
+  everything back as it was. Left like that, deleting a project from the Projects page would leave every achievement
+  tagged with it pointing at nothing: a dangling-reference Problem each, in a list meant for broken hand edits.
+- So the HTTP delete (`DELETE /api/projects/:id`, `/api/companies/:id`, `/api/repos/:id`) calls `removeAndDetach`:
+  it checks `If-Match` first (a stale delete changes nothing), moves the file aside, then takes the id off every
+  achievement (`projects`, `repos`, `companyId`) and, for companies and repos, every project (`companyId`,
+  `repoIds`). It answers with the ids it changed (`detached`); `POST …/:id/restore` with `{ reattach: detached }`
+  undoes both, and never overwrites a company a project was given in the meantime. A file that can't be edited
+  (broken by hand, or from a newer BragDoc) keeps its dangling reference rather than failing the delete.
+- A deleted company's projects therefore land in the Gantt's "No company" lane (SPEC R6). The UI offers **Archive**
+  (status `archived`, hidden from the Gantt by default) next to Delete for anything you might want back later.
+- The file is moved aside before the references are detached, so a crash in between leaves dangling references (the
+  Problems list shows them) and an undo that can't know which files to reattach; the file itself is still restorable.
+  Only the store's per-file refusals (a broken, newer or vanished file) are skipped while detaching; a real I/O error
+  fails the request.
+- MCP and other callers keep the plain `remove` (references left, as D24 says) unless they choose otherwise.
+- **Considered:** refusing to delete anything still referenced (pushes people to hand-edit dozens of files);
+  leaving dangling references (Problems noise, and the Board would draw pills for projects that don't exist).
+
+### D46 — Adding a repo by folder reads that repo's git config, and nothing else
+
+- `POST /api/repos { localPath }` checks the folder exists and has a `.git` (a folder, or a `gitdir:` file for a
+  linked worktree or submodule), then reads exactly one file, that repository's `config`, for its remote: `origin`,
+  else the first. No folder is listed or scanned (onboarding's bounded scan is PR16), and no `git` is run, so it
+  works without git installed and stays off `proc.ts`'s allow-list.
+- A remote BragDoc can't normalise (`normalizeRemote`) is left out rather than stored as written: a URL in a git
+  config can carry credentials (`https://user:token@…`), and the normalised form never does.
+- The folder is stored as people write it (`~/Code/my-app`) and compared that way, so adding it twice finds the first.
+- A project's dates are checked on the way in (`end` on or after `start`); a hand-edited file that breaks the rule
+  still loads and still draws (the Gantt clamps it), since files are never rejected for what the UI wouldn't allow.
+
+### D47 — OCR: tesseract.js with its English data in the package and no network; Vision through JXA; rules you can read
 
 PR11 (SPEC R7, R8, R4). The library is `server/ocr/` and `shared/rules/screenshot.ts`; the screenshots source and
 pasted images (PR15) are its callers.

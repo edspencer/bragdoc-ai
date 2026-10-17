@@ -59,7 +59,11 @@ const ALLOWED_IMPORTS: Record<string, string> = {
   'node:url': 'fileURLToPath',
   'node:crypto': 'tokens, hashes',
   'node:tty': "banner.ts: WriteStream#getColorDepth for Node's own colour rules (no I/O)",
-  // OCR (PR11, D40). tesseract.js CAN fetch (node-fetch, or the global fetch): its language data when `langPath` is a
+  '@modelcontextprotocol/server':
+    "the MCP server (PR9): createMcpHandler answers web-standard Requests handed to it, McpServer registers tools; it opens no connection and fetches nothing (its own deps: @modelcontextprotocol/core and zod)",
+  'node:readline': "the stdio bridge (server/mcp/bridge.ts) reads stdin a line at a time",
+  'node:stream': 'types only (Readable, Writable) for the bridge\'s injectable stdin/stdout',
+  // OCR (PR11, D47). tesseract.js CAN fetch (node-fetch, or the global fetch): its language data when `langPath` is a
   // URL (its default is a CDN) and an image given as a URL. server/ocr/tesseract.ts passes a local langPath (the
   // package's own data) and images as bytes, and the worker it runs in has no fetch at all (tesseract-worker.ts
   // replaces its adapter's). test/ocr.test.ts points it at the CDN and proves the request fails, with fetch stubbed.
@@ -72,7 +76,7 @@ const ALLOWED_IMPORTS: Record<string, string> = {
 /** Allowed in these files only. */
 const ALLOWED_IMPORTS_IN: Record<string, string | string[]> = {
   'node:child_process': 'server/proc.ts',
-  // tesseract.js's OCR worker entry, rewritten so it has no network (D40): parentPort is how a worker talks to its
+  // tesseract.js's OCR worker entry, rewritten so it has no network (D47): parentPort is how a worker talks to its
   // parent. Nothing in it starts a thread; tesseract.js starts the one it runs in.
   'node:worker_threads': 'server/ocr/tesseract-worker.ts',
   // OCR (see the note in ALLOWED_IMPORTS): the engine, and its worker (which loads tesseract.js's worker internals)
@@ -120,6 +124,9 @@ const ALLOWED: Record<string, Record<string, number>> = {
   'server/commands/ready.ts': {
     fetch: 1, // INTERIM (D32): GET http://127.0.0.1:<port>/api/health, loopback only
     bannedName: 1, // INTERIM (D32): import net from 'node:net' (a TCP connect to 127.0.0.1)
+  },
+  'server/commands/mcp.ts': {
+    bannedName: 1, // `claude mcp add --transport http …`: the word is an argument to claude, run through proc.ts
   },
   'server/ocr/tesseract-worker.ts': {
     bannedName: 1, // import { parentPort } from 'node:worker_threads' (see ALLOWED_IMPORTS_IN)

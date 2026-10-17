@@ -1,10 +1,21 @@
 // Evidence files: store bytes or a file from disk (content-addressed, typed by magic bytes; store/blobs.ts), turn the
 // result into an Evidence item, and record OCR text on the sidecar (PR11), which makes it searchable.
+import fs from 'node:fs';
 import { OcrSchema, type Evidence, type EvidenceSidecar } from '../../shared/schema/index.js';
 import { ulid } from '../../shared/ulid.js';
-import { blobPath, ingestBytes, ingestPath, type IngestOptions, type Ingested } from '../store/blobs.js';
+import { blobPath, checkIngestPath, ingestBytes, ingestPath, sniff, type IngestOptions, type Ingested } from '../store/blobs.js';
 import { NotFoundError, type Store } from '../store/index.js';
 import { validate } from './util.js';
+
+/**
+ * What agents may add from disk (sniffed from the content, D43): pictures, documents, text and short videos. Applied
+ * when an MCP tool stores a file, and again when a Found candidate an agent sent is kept (the file may have changed).
+ */
+export const ATTACHABLE = {
+  mimes:
+    /^(?:image\/(?:png|jpeg|gif|webp|avif|svg\+xml|heic|heif|bmp|tiff)|application\/pdf|text\/(?:plain|markdown|csv)|application\/json|video\/(?:mp4|quicktime|webm)|application\/vnd\.openxmlformats-officedocument\.(?:wordprocessingml\.document|spreadsheetml\.sheet|presentationml\.presentation)|application\/vnd\.oasis\.opendocument\.(?:text|spreadsheet|presentation))$/,
+  what: 'images, PDFs, office documents, text files and videos',
+};
 
 export class EvidenceService {
   constructor(private store: Store) {}
@@ -17,6 +28,16 @@ export class EvidenceService {
   /** Store a regular file from disk (a screenshot, an MCP attach_evidence path). */
   ingestPath(file: string, opts: IngestOptions = {}): Promise<Ingested> {
     return ingestPath(this.store, file, opts);
+  }
+
+  /**
+   * What a file would be stored as, without storing it: ingestPath's checks, then its type from its content. For a file
+   * a Found candidate points at, which is only copied into evidence/ when it's kept (D24).
+   */
+  async inspectPath(file: string): Promise<{ real: string; bytes: number; mime: string }> {
+    const { real, bytes } = checkIngestPath(this.store, file);
+    const { mime } = await sniff(fs.readFileSync(real), file);
+    return { real, bytes, mime };
   }
 
   /** An Evidence item for a stored file, ready to attach. */
