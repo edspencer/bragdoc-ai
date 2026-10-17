@@ -82,6 +82,15 @@ test('with no build, the fallback says how to build instead of a blank page', as
   }
 });
 
+test('a missing build prints nothing (scripts wait for "BragDoc on" as the first line)', async (t) => {
+  const log = t.mock.method(console, 'log');
+  const warn = t.mock.method(console, 'warn');
+  const error = t.mock.method(console, 'error');
+  const res = await createApp({ dataDir: '/x', webDist: '/nonexistent/dist/web' }).request('/assets/index-Ab3_x-9Z.js');
+  assert.equal(res.status, 404);
+  assert.equal(log.mock.callCount() + warn.mock.callCount() + error.mock.callCount(), 0);
+});
+
 test('API only (webDist: null, as under npm run dev): no shell', async () => {
   const res = await createApp({ dataDir: '/x', webDist: null }).request('/deep/route');
   assert.equal(res.status, 404);
