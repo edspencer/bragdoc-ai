@@ -19,6 +19,11 @@ import { useQueryClient, type QueryClient } from '@tanstack/react-query';
 /** `change` type (ServerEvent['type']) → the first segments of the query keys it makes stale. */
 export const CHANGE_INVALIDATES: Record<string, readonly string[]> = {
   // e.g. (PR7) achievement: ['achievements', 'search'],
+  config: ['meta', 'settings'],
+  'mcp-token': ['mcp-token'],
+  network: ['network-log'],
+  notices: ['meta'],
+  problems: ['problems'],
 };
 
 /** What to refresh for one event: a list of key prefixes, or 'all'. Null: nothing (pings, unknown event types). */

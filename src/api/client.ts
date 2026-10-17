@@ -5,7 +5,18 @@
 // in queries.ts.
 //
 // Requests are same-origin and relative (`/api/...`): the CSP allows `connect-src 'self'` and nothing else.
-import type { ApiError, HealthResponse } from '../../shared/api.ts';
+import type {
+  ApiError,
+  BackupsResponse,
+  GuardCheckResponse,
+  HealthResponse,
+  McpSettingsRequest,
+  McpTokenResponse,
+  MetaResponse,
+  NetworkLogResponse,
+  ProblemsResponse,
+  SettingsResponse,
+} from '../../shared/api.ts';
 
 /** A failed API call: the HTTP status (0 when the server couldn't be reached) and the envelope's code and message. */
 export class ApiRequestError extends Error {
@@ -116,3 +127,25 @@ export const seg = (s: string) => encodeURIComponent(s);
 
 /** `GET /api/health` */
 export const getHealth = (signal?: AbortSignal) => api.get<HealthResponse>('/api/health', { signal });
+
+// settings (PR10)
+
+/** `GET /api/meta` */
+export const getMeta = (signal?: AbortSignal) => api.get<MetaResponse>('/api/meta', { signal });
+/** `GET /api/network-log`, newest first */
+export const getNetworkLog = (offset: number, limit: number, signal?: AbortSignal) =>
+  api.get<NetworkLogResponse>(`/api/network-log?offset=${offset}&limit=${limit}`, { signal });
+/** `POST /api/network-log/guard-check` */
+export const checkEgressGuard = () => api.post<GuardCheckResponse>('/api/network-log/guard-check');
+/** `GET /api/problems` */
+export const getProblems = (signal?: AbortSignal) => api.get<ProblemsResponse>('/api/problems', { signal });
+/** `GET /api/backups` */
+export const getBackups = (signal?: AbortSignal) => api.get<BackupsResponse>('/api/backups', { signal });
+/** `GET /api/settings` */
+export const getSettings = (signal?: AbortSignal) => api.get<SettingsResponse>('/api/settings', { signal });
+/** `PUT /api/settings/mcp` */
+export const putMcpSettings = (body: McpSettingsRequest) => api.put<SettingsResponse>('/api/settings/mcp', body);
+/** `GET /api/mcp/token` */
+export const getMcpToken = (signal?: AbortSignal) => api.get<McpTokenResponse>('/api/mcp/token', { signal });
+/** `POST /api/mcp/token/rotate` */
+export const rotateMcpToken = () => api.post<McpTokenResponse>('/api/mcp/token/rotate');

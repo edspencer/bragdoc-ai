@@ -184,6 +184,8 @@ export class Store {
   /** Misnamed files, by relative path. */
   private stray = new Map<string, Problem>();
   private listeners = new Set<Listener>();
+  /** Told when a misnamed file comes or goes: a Problem that isn't an entity, so it has no StoreChange. */
+  private strayListeners = new Set<() => void>();
   /** The clock (a fake one in tests). */
   readonly now: () => Date;
 
@@ -239,8 +241,16 @@ export class Store {
     const c = classify(rel);
     if (!c) return [];
     if ('stray' in c) {
+      const had = this.stray.has(rel);
       if (fs.existsSync(path.join(this.home, rel))) this.stray.set(rel, { severity: 'warning', code: 'stray', file: rel, message: c.stray });
       else this.stray.delete(rel);
+      if (had !== this.stray.has(rel))
+        for (const l of this.strayListeners)
+          try {
+            l();
+          } catch {
+            /* a broken listener mustn't break a reload */
+          }
       return [];
     }
     const change = this.reloadOne(c.kind, c.id, rel);
@@ -505,6 +515,19 @@ export class Store {
   subscribe(fn: Listener): () => void {
     this.listeners.add(fn);
     return () => this.listeners.delete(fn);
+  }
+
+  /**
+   * Hear when problems() may have changed: every change (a file that broke, was fixed, or went, and so any dangling
+   * reference to it), and a misnamed file appearing or going. For Settings → Data's live Problems list (PR10).
+   */
+  subscribeProblems(fn: () => void): () => void {
+    const unsubscribe = this.subscribe(() => fn());
+    this.strayListeners.add(fn);
+    return () => {
+      unsubscribe();
+      this.strayListeners.delete(fn);
+    };
   }
 
   private announce(kind: EntityKind, id: string, op: StoreChange['op'], problem = false): StoreChange {

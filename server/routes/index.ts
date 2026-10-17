@@ -15,10 +15,12 @@ import { registerEvents } from './events.js';
 import { registerHealth } from './health.js';
 import { registerMeta } from './meta.js';
 import { registerNetwork } from './network.js';
+import { registerSettings } from './settings.js';
 
 export function registerRoutes(app: Hono, ctx: AppContext): void {
   registerEvents(app, ctx);
   registerHealth(app, ctx);
   registerMeta(app, ctx);
   registerNetwork(app, ctx);
+  registerSettings(app, ctx);
 }
