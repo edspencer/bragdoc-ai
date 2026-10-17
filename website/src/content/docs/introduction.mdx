@@ -1,0 +1,46 @@
+---
+title: Introduction
+description: "BragDoc is a free, open-source, local-first record of the work you did and the evidence for it, kept as plain files on your own computer."
+---
+
+import { LinkCard, CardGrid } from '@astrojs/starlight/components';
+
+BragDoc keeps a record of the work you did, and the evidence for it: the screenshot of a kind message, the PDF of
+a design review, the pull requests you merged, the link to the launch post. When it is time to write a self-review,
+make a promotion case or update your CV, the evidence is already in one place, with dates.
+
+It runs on your own computer. You start it with one command, open it in your browser at `http://localhost:2724`, and
+everything you put in it is saved as plain Markdown and YAML files in a folder you own, `~/.bragdoc`.
+
+:::note[Coming in v0.1]
+BragDoc v0.1 is being built in the open, on the
+[`next` branch](https://github.com/edspencer/bragdoc-ai/tree/next), and isn't on npm yet. These pages describe what
+v0.1 is being built to do. Pages marked like this one describe features that don't exist yet; they are written from
+the specification and will be checked against the real thing before the release.
+:::
+
+## What it is
+
+- **A board.** Each achievement is a card: a title, a date, a few words, and the evidence pinned to it. Cards are
+  grouped by week, newest first. Drop in screenshots, PDFs, links and pull request URLs, or just type.
+- **Found.** Sources you switch on (your merged GitHub pull requests, a folder of screenshots) spot things worth
+  keeping and leave them in Found. You say yes, merge it into something you already have, or dismiss it. Nothing a
+  source finds reaches the board without you. (Your own coding agent is the exception you choose: its writes go
+  straight on, labelled as its own, or to Found if you'd rather.)
+- **Folio.** Pick a date range, filter it, and export it as Markdown for a review.
+- **Files.** Everything is a file you can read, edit, back up or keep in git. There's no database to export from.
+
+## What it promises
+
+- **Your data stays on your computer.** There is no BragDoc server and no account. BragDoc sends nothing off your
+  machine on its own: no telemetry, no analytics, no update check. The only outbound requests go to services you
+  connect yourself, and it shows you every one. See [Network activity](/guarantees/network-activity/).
+- **AI is off unless you turn it on.** v0.1 has no AI features at all. See [AI is opt-in](/guarantees/ai-is-opt-in/).
+- **It's open source.** MIT licensed, free, with nothing to buy.
+
+<CardGrid>
+	<LinkCard title="Install BragDoc" href="/getting-started/installation/" description="npx, a global install, Docker, or a login service." />
+	<LinkCard title="Quickstart" href="/getting-started/quickstart/" description="Your first achievement in a few minutes." />
+	<LinkCard title="Your data is files" href="/concepts/your-data-is-files/" description="What's in ~/.bragdoc, and why." />
+	<LinkCard title="Working with agents" href="/agents/overview/" description="Let Claude Code log what you shipped." />
+</CardGrid>

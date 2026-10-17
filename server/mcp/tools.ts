@@ -3,7 +3,7 @@
 // the index at once. Names are verb_noun with a `bragdoc_` prefix, and the descriptions are written for tool search:
 // they're what a client's tool search matches when the user says "note this in my BragDoc".
 //
-// Writes carry `source: mcp` and the agent's name (agentName, D41). `mcp.writeTo: found` in config.yaml sends new
+// Writes carry `source: mcp` and the agent's name (agentName, D42). `mcp.writeTo: found` in config.yaml sends new
 // achievements to Found instead of the board (D11). Nothing here deletes anything.
 import { McpServer, type CallToolResult, type ServerContext } from '@modelcontextprotocol/server';
 import * as z from 'zod';
@@ -64,7 +64,7 @@ function clean(s: string | undefined | null): string | undefined {
  * Who wrote it, as the board shows it ("Written by Claude Code"): the X-BragDoc-Client header (`bragdoc mcp install`
  * sets it; the stdio bridge sets it from the client's initialize), else the client's own name from the request's
  * metadata (2026-07-28 clients send it with every request), else nothing (the board says "an agent"). Known ids get
- * their product name (D41).
+ * their product name (D42).
  */
 export function agentName(header: string | undefined | null, clientInfo?: { name?: unknown; title?: unknown }): string | undefined {
   const h = clean(header);

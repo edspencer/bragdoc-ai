@@ -108,7 +108,7 @@ export class FoundService {
     const missing: string[] = [];
     for (const file of f.files) {
       try {
-        // a screenshots candidate brings images, an agent's the types agents may attach (D42), checked again now: the
+        // a screenshots candidate brings images, an agent's the types agents may attach (D43), checked again now: the
         // file may have changed since it was sent
         const i = await this.evidence.ingestPath(file.path, f.source === 'screenshots' ? { only: ['image'] } : f.source === 'mcp' ? { accept: ATTACHABLE } : {});
         evidence.push(this.evidence.toEvidence(i, file.title));

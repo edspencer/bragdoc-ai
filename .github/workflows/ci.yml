@@ -171,11 +171,58 @@ jobs:
 
   # PR18 adds a `website` job here; add it to ci-passed's `needs`.
 
+  # The docs site (website/, its own package; Hallway's job). Only does anything when website/ (or this file) changed:
+  # on any other change it passes in seconds, so it can stay a required part of ci-passed. Its facts-in-step checks
+  # (test/docs.test.ts) run in the test job above, on every change, because a server change can make them stale too.
+  website:
+    name: Docs site
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    # paths-filter reads the PR's changed-file list through the API.
+    permissions:
+      contents: read
+      pull-requests: read
+    steps:
+      - uses: actions/checkout@v7
+      - uses: dorny/paths-filter@v4
+        id: filter
+        with:
+          filters: |
+            docs:
+              - 'website/**'
+              - '.github/workflows/ci.yml'
+      - uses: actions/setup-node@v7
+        if: steps.filter.outputs.docs == 'true'
+        with:
+          # website/.node-version: what Cloudflare Pages builds with
+          node-version-file: website/.node-version
+          cache: npm
+          cache-dependency-path: website/package-lock.json
+      - name: Install docs-site deps
+        if: steps.filter.outputs.docs == 'true'
+        run: npm ci
+        working-directory: website
+      - name: Build docs site
+        if: steps.filter.outputs.docs == 'true'
+        run: npm run build
+        working-directory: website
+      # Every site-relative link (and #fragment) in the built pages resolves (no dependencies; scripts/check-links.mjs).
+      - name: Check internal links
+        if: steps.filter.outputs.docs == 'true'
+        run: npm run check-links
+        working-directory: website
+      # Nothing loads from another origin: no font CDN, no analytics, no external script, style or image.
+      - name: Check for third-party requests
+        if: steps.filter.outputs.docs == 'true'
+        run: npm run check-external
+        working-directory: website
+
+
   # One stable check name to require in branch rules, so the matrix can change without editing them.
   ci-passed:
     name: CI passed
     if: always()
-    needs: [test, e2e, services, smoke-pack, docker]
+    needs: [test, e2e, services, smoke-pack, docker, website]
     runs-on: ubuntu-latest
     steps:
       - name: Require every job to have passed

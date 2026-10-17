@@ -8,7 +8,7 @@ import { NotFoundError, type Store } from '../store/index.js';
 import { validate } from './util.js';
 
 /**
- * What agents may add from disk (sniffed from the content, D42): pictures, documents, text and short videos. Applied
+ * What agents may add from disk (sniffed from the content, D43): pictures, documents, text and short videos. Applied
  * when an MCP tool stores a file, and again when a Found candidate an agent sent is kept (the file may have changed).
  */
 export const ATTACHABLE = {

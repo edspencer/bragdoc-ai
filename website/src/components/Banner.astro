@@ -1,0 +1,40 @@
+---
+/**
+ * Overrides Starlight's Banner (astro.config.mjs → `components`) so that EVERY docs page says where v0.1 stands,
+ * without each page having to remember a `banner:` frontmatter entry. A page that does set one gets its own instead.
+ * Reword it at the first release (and flip RELEASED in src/site.mjs).
+ */
+import { RELEASED } from '../site.mjs';
+
+const { banner } = Astro.locals.starlightRoute.entry.data;
+const content =
+	banner?.content ??
+	(RELEASED
+		? '<strong>BragDoc is out:</strong> <code>npx @bragdoc/local</code>. See <a href="/whats-new/">what’s new</a>.'
+		: '<strong>BragDoc v0.1 is being built</strong> and isn’t on npm yet. These pages describe what it is being built to do; see the <a href="/roadmap/">roadmap</a>.');
+---
+
+<div class="sl-banner" data-pagefind-ignore set:html={content} />
+
+<style>
+	@layer starlight.core {
+		.sl-banner {
+			padding: 0.55rem var(--sl-nav-pad-x);
+			background-color: var(--bd-sticky);
+			color: var(--bd-sticky-ink);
+			border-bottom: 1px solid var(--sl-color-hairline);
+			font-size: var(--sl-text-sm);
+			line-height: var(--sl-line-height-headings);
+			text-align: center;
+			text-wrap: balance;
+		}
+		.sl-banner :global(a) {
+			color: inherit;
+			font-weight: 600;
+		}
+		.sl-banner :global(code) {
+			font-family: var(--sl-font-mono);
+			font-size: 0.9em;
+		}
+	}
+</style>

@@ -430,7 +430,32 @@ D17 onwards are decisions made while building.
 - CI builds and checks the image on both architectures on **every** PR, not only those touching the Dockerfile: the
   image is the whole app, so a dependency or build change anywhere can break it. Nothing is pushed from CI.
 
-### D39 — `/mcp` is a route on BragDoc's own app, behind security.ts; the bearer token is checked before anything else
+### D39 — The docs site: Hallway's, plus a blog, the brand kit, and no third-party anything
+
+- `website/` is Hallway's site (Astro 7, Starlight 0.42, sidebar in `src/sidebar.mjs`, generated llms.txt and per-page
+  Markdown, a custom landing page with its copy in `copy.ts`), with local-review's `test/docs.test.ts` and What's-new
+  release flow (SPEC R16). Its content rules are in `website/CLAUDE.md`.
+- **Nothing third-party:** no analytics (Hallway's PostHog and `functions/ingest/` dropped), and no Mermaid (it loads
+  from a CDN). `website/scripts/check-external.mjs` fails CI on any script, stylesheet, image, font or frame from
+  another origin in `dist/`.
+- **A blog**, which neither sibling has: a plain `blog` content collection rendered through `<StarlightPage>`, with an
+  RSS feed (`@astrojs/rss`). Chosen over a third-party Starlight blog plugin so a Starlight upgrade can't break it.
+- **The brand comes from the repo's kit** (`brand/`, PR4), copied in by `website/scripts/sync-brand.mjs`
+  (local-review's) instead of PR18's planned placeholder `make-brand.mjs`; `test/docs.test.ts` compares the copies once
+  `brand/` exists.
+- **The landing page follows the reader's theme**, using Starlight's own `starlight-theme` key, because the app has a
+  light and a dark theme (Hallway's landing page is always dark).
+- **Honesty before release:** pages about unbuilt features carry a "Coming in v0.1" note, and `RELEASED` in
+  `website/src/site.mjs` drives a "not on npm yet" notice. `test/docs.test.ts` fails if `RELEASED` disagrees with
+  `package.json` (0.1.0 or later means released), or if any "Coming in v0.1" is left after the release.
+- **The data-folder reference is generated:** `npm run sync:reference` writes the schema tables into
+  `website/src/content/docs/reference/data-folder.md` as well as `docs/data-format.md`.
+- **Deploying is Ed's:** Cloudflare Pages, root `website`, `npm install && npm run build`, output `dist`, production
+  branch `next` until it merges into `main` (`website/README.md` "Deploying"). CI only builds and checks.
+- **Considered:** `starlight-blog` (a dependency on a third-party plugin's release cadence); an always-dark landing
+  page like Hallway's (unlike the app); generating the brand placeholder here (the real kit exists).
+
+### D40 — `/mcp` is a route on BragDoc's own app, behind security.ts; the bearer token is checked before anything else
 
 - `/mcp` is registered like any other route (`server/routes/mcp.ts`), so the security guard (Host allow-list,
   same-origin Origin, Fetch Metadata, JSON only, 1 MB) runs first, as for the API. The route then checks
@@ -444,7 +469,7 @@ D17 onwards are decisions made while building.
   adapter): security.ts is stricter (Origin must be our own host:port, not any localhost port) and already covers
   `/mcp`, so the adapter isn't a dependency.
 
-### D40 — MCP tool arguments use the files' camelCase names; one extra tool, `bragdoc_get_achievement`
+### D41 — MCP tool arguments use the files' camelCase names; one extra tool, `bragdoc_get_achievement`
 
 - SPEC R11 writes `external_key` and `repo_path`; the tools take `externalKey` and `repoPath`. An agent then uses one
   vocabulary everywhere: the files it may edit, the HTTP API, the tool arguments and what the tools return.
@@ -454,7 +479,7 @@ D17 onwards are decisions made while building.
 - Evidence is given as `{ url | path | quote, title? }`. A GitHub pull request URL becomes `github_pr` evidence keyed
   `github_pr:owner/repo#n`, which also makes adding the same PR twice a no-op.
 
-### D41 — `sourceAgent` holds the name the board shows; who it is comes from X-BragDoc-Client, then clientInfo
+### D42 — `sourceAgent` holds the name the board shows; who it is comes from X-BragDoc-Client, then clientInfo
 
 - `sourceAgent` is a display name (`Claude Code`), so a hand-edited file and the board agree and the kit's
   `ProvenanceBadge` shows it as is. Known client ids (`claude-code`, `claude-ai`, `cursor`, …) map to product names;
@@ -466,7 +491,7 @@ D17 onwards are decisions made while building.
   name, so nothing is stored. The stdio bridge sends the initialize's client name as the header, so stdio clients are
   always named.
 
-### D42 — Files attached over MCP: an allow-list of types; `mcp.writeTo: found` leaves them in place
+### D43 — Files attached over MCP: an allow-list of types; `mcp.writeTo: found` leaves them in place
 
 - A path given to `bragdoc_add_achievement`, `bragdoc_attach_evidence` or `bragdoc_add_found` passes the store's
   checks (absolute, a regular file, at most 25 MB, not in the data home or a hidden folder) and then a type allow-list,
@@ -478,7 +503,7 @@ D17 onwards are decisions made while building.
   kept (the file may have changed since: Found's keep applies `ATTACHABLE` to an agent's candidates).
 - Updates and `attach_evidence` change achievements that already exist, so they apply whatever `mcp.writeTo` says.
 
-### D43 — The stdio bridge goes through egress; `mcp install` needs runtime.json for its token
+### D44 — The stdio bridge goes through egress; `mcp install` needs runtime.json for its token
 
 - `bragdoc mcp` sends each message with `egressFetch` (purpose `mcp.bridge`, loopback only), so its traffic is in
   `logs/network.jsonl` like everything else. That makes the bridge a second process appending to the log: appends are

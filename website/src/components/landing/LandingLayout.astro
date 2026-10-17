@@ -1,0 +1,131 @@
+---
+/**
+ * LandingLayout: the document shell for the landing page (adapted from Hallway's).
+ *
+ * This page lives at src/pages/index.astro, OUTSIDE Starlight. Astro's file routes take precedence over an
+ * integration's injected routes, so this wins `/` while the Starlight docs pages keep building untouched.
+ *
+ * The cost of being outside Starlight is that nothing is inherited: no nav, no footer, no head tags, no theme. All
+ * four are re-provided here, and the duplication is called out at each site rather than left to be discovered.
+ * Unlike Hallway's always-dark landing page, this one follows the reader's theme (light / system / dark), with the
+ * same storage key as the docs, because the app itself has both.
+ */
+// Fonts first (OFL, self-hosted; the docs load the same four from astro.config.mjs), then the page's styles.
+import '@fontsource-variable/instrument-sans';
+import '@fontsource-variable/bricolage-grotesque';
+import '@fontsource-variable/geist-mono';
+import '@fontsource/caveat/500.css';
+import '../../styles/landing.css';
+import { REPO_URL } from './copy';
+import { TITLE } from '../../site.mjs';
+// The mark from the brand kit (../brand, copied in by `npm run sync-brand`).
+import mark from '../../assets/mark.svg';
+
+interface Props {
+	title: string;
+	description: string;
+}
+
+const { title, description } = Astro.props;
+const canonical = new URL(Astro.url.pathname, Astro.site).href;
+const ogImage = new URL('/og-image.png', Astro.site).href;
+
+const navLinks = [
+	{ text: 'Docs', href: '/introduction/' },
+	{ text: 'Install', href: '/getting-started/installation/' },
+	{ text: 'Guarantees', href: '/guarantees/localhost-security/' },
+	{ text: 'Blog', href: '/blog/' },
+];
+
+const themes = [
+	{ value: 'light', label: 'Light', icon: 'M12 3v2m0 14v2m9-9h-2M5 12H3m15.36-6.36-1.42 1.42M7.05 16.95l-1.41 1.41m12.72 0-1.42-1.41M7.05 7.05 5.64 5.64M16 12a4 4 0 1 1-8 0 4 4 0 0 1 8 0Z' },
+	{ value: 'auto', label: 'Match system', icon: 'M4 5h16v11H4zM9 20h6m-3-4v4' },
+	{ value: 'dark', label: 'Dark', icon: 'M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5Z' },
+];
+---
+
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		<title>{title}</title>
+		<meta name="description" content={description} />
+		<!-- before any paint: the stored theme (public/theme-init.js) -->
+		<script src="/theme-init.js" is:inline></script>
+		<meta name="color-scheme" content="light dark" />
+		<link rel="canonical" href={canonical} />
+		<link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+		<link rel="icon" href="/favicon.ico" sizes="32x32" />
+		<link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+		<link rel="alternate" type="application/rss+xml" title={`${TITLE} blog`} href="/blog/rss.xml" />
+		<link rel="sitemap" href="/sitemap-index.xml" />
+		<!-- for coding agents: what the site is, in Markdown (src/pages/llms.txt.ts) -->
+		<link rel="describedby" type="text/plain" href="/llms.txt" />
+
+		<meta property="og:type" content="website" />
+		<meta property="og:title" content={title} />
+		<meta property="og:description" content={description} />
+		<meta property="og:url" content={canonical} />
+		<meta property="og:image" content={ogImage} />
+		<meta property="og:image:width" content="1200" />
+		<meta property="og:image:height" content="630" />
+		<meta name="twitter:card" content="summary_large_image" />
+		<meta name="twitter:image" content={ogImage} />
+	</head>
+
+	<body>
+		<a class="skip" href="#main">Skip to content</a>
+
+		<header class="nav">
+			<div class="nav-inner container">
+				<a class="brand" href="/" aria-label={`${TITLE} home`}>
+					<img src={mark.src} alt="" width="34" height="34" />
+					<span>bragdoc</span>
+				</a>
+				<!-- narrow screens: the full nav doesn't fit, so just the way into the docs -->
+				<a class="nav-docs" href="/introduction/">Docs</a>
+				<nav class="nav-links" aria-label="Main">
+					{navLinks.map((l) => <a href={l.href}>{l.text}</a>)}
+					<a href={REPO_URL} rel="noopener">GitHub</a>
+				</nav>
+				<div class="theme" role="group" aria-label="Colour theme">
+					{
+						themes.map((t) => (
+							<button type="button" data-theme-set={t.value} aria-pressed="false" title={t.label}>
+								<span class="sr-only">{t.label}</span>
+								<svg viewBox="0 0 24 24" width="17" height="17" aria-hidden="true">
+									<path d={t.icon} fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
+								</svg>
+							</button>
+						))
+					}
+				</div>
+			</div>
+		</header>
+
+		<main id="main">
+			<slot />
+		</main>
+
+		<footer class="foot">
+			<div class="container foot-inner">
+				<p>
+					{TITLE} is free, open-source software under the MIT licence, by <a href="https://edspencer.net">Ed Spencer</a>
+					and contributors. This site uses no analytics and loads nothing from anywhere else.
+				</p>
+				<nav class="foot-links" aria-label="Footer">
+					<a href="/introduction/">Docs</a>
+					<a href="/blog/">Blog</a>
+					<a href="/roadmap/">Roadmap</a>
+					<a href="/contributing/">Contributing</a>
+					<a href={REPO_URL}>GitHub</a>
+				</nav>
+			</div>
+		</footer>
+
+		<script>
+			import '../../scripts/landing';
+		</script>
+	</body>
+</html>
