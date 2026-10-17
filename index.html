@@ -4,9 +4,13 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="color-scheme" content="light dark" />
+    <link rel="icon" href="/favicon.ico" sizes="48x48" />
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
     <title>BragDoc</title>
-    <!-- No inline scripts, ever: the CSP is script-src 'self' (SPEC R3). PR4's theme pre-paint is an external file. -->
+    <!-- No inline scripts, ever: the CSP is script-src 'self' (SPEC R3). The theme goes on <html> before the first
+         paint from this external, blocking script (public/theme-init.js). -->
+    <script src="/theme-init.js"></script>
   </head>
   <body>
     <div id="root"></div>

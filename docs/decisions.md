@@ -303,7 +303,85 @@ D17 onwards are decisions made while building.
 - `logProcess()` records a `gh` run by its leading subcommand and path only, stopping at the first flag: a flag's
   value can be a header (`-H 'Authorization: …'`) or a GraphQL query.
 
-### D-PR6a — Every build writes `dist/build-info.json`; only the release workflow's is "official"
+### D31 — `bragdoc service`: a login service, always restarted, read back from its own unit
+
+- macOS: a **LaunchAgent** `ai.bragdoc.local` in `~/Library/LaunchAgents`; Linux: a **systemd user unit**
+  `bragdoc.service` in `$XDG_CONFIG_HOME/systemd/user`. Windows: "not supported yet" (D14). It runs as you, so it
+  **starts at login, not at boot**; on Linux, `loginctl enable-linger` (suggested, never run) keeps it past logout.
+- The unit runs `process.execPath` and the realpath of `dist/server/cli.js` (never the bin shim), with the PATH
+  captured at install minus per-shell directories. Homebrew's versioned `Cellar/node/<v>` path is swapped for its
+  `opt/node` symlink, which survives `brew upgrade`; `status` warns when the Node a unit names has gone. `install` refuses to run from npx's (or pnpm dlx's, bunx's) cache,
+  and from an unbuilt checkout.
+- **Always restarted**: KeepAlive `<true/>` / `Restart=always` (Paddock #872: a conditional restart leaves it down
+  after a graceful SIGTERM). Stopping on purpose is `bragdoc service stop`, which lasts until the next login
+  (or, on Linux with lingering on, the next boot; launchd: bootout; systemd: stop, never disable). `serve` exits 0 on
+  SIGTERM, which is exactly the case a conditional restart would leave down; the CI job proves it comes back. `uninstall` is the permanent one.
+- The port is always written into the unit, and `status` / `start` / `restart` read it back from there; the data home
+  is written only when it was chosen (`--data-dir`, `$BRAGDOC_HOME`), so by default the service and a terminal
+  `bragdoc` share `~/.bragdoc`. `install`, `start` and `restart` wait up to 20 s for `/api/health`; a timeout is
+  reported as a caveat, not an error.
+- Logs: macOS writes both streams to `<data home>/service/bragdoc.log` (followed in Node by `service logs`, no
+  `tail`); Linux uses the journal (`journalctl --user -u bragdoc.service -f`).
+- **Deviation:** `install` creates `<data home>/service/` itself (launchd and systemd both need the working directory
+  to exist before they start the job). That's a write to the data home outside the store (PR3), and only that
+  directory; PR3's fsguard allow-list and PR2's `.gitignore` should include `service/`.
+- `install --dry-run` prints the unit and the commands and writes nothing.
+- **Considered:** a LaunchDaemon / system unit (boots without a login, but runs as root, without your `gh` login);
+  Hallway's `stop` that also disables (Paddock's "for this session" is easier to explain, and the same on both).
+
+### D32 — Until PR2: one subprocess module, one fetch site
+
+- PR2 brings `server/proc.ts` and `server/egress.ts` and a guard test that only they may spawn or fetch (D9). PR5 was
+  built alongside it, so its subprocesses all go through `server/platform/runner.ts` (`execFile` for launchctl,
+  systemctl; a streaming `spawn` for `journalctl -f`; a detached `spawn` for `open` / `xdg-open`), and its one HTTP
+  call, the loopback `/api/health` probe (with a plain TCP connect as its fallback, so a non-HTTP listener still counts
+  as "taken"), is in `server/commands/ready.ts`.
+- Whichever of PR2 and PR5 merges second moves those two files onto `proc.ts` / `egressFetch`. `proc.ts` needs a
+  streaming variant (inherited stdio, no timeout) for `journalctl -f`, and `launch` (detached, not awaited) for `--open`.
+- PR2's bind guard replaces `assertBindAllowed()` in `server/cli.ts`, its single call site (D21).
+
+- **At integration (PR5 merged after PR2), the move was deferred, not done.** It isn't a drop-in: `proc.ts` has no
+  detached `launch` (for `--open`), `runAttached` doesn't forward SIGTERM/SIGHUP to `journalctl -f` as the streamer
+  does, the probe's TCP fallback needs `node:net`, and `egressFetch` would log every 250 ms readiness poll to
+  `logs/network.jsonl`. So `test/guard-egress.test.ts` lists these two files with exact counts, marked interim, and
+  the move is a follow-up PR with its own review. Until then nothing else may import `node:child_process` or call
+  `fetch`.
+
+### D33 — `/dev/kit` exists in dev and `BRAGDOC_KIT=1` builds, never in a release
+
+- The component kit's showcase (`src/dev/Kit.tsx`) is the reference for building pages and the source of the kit's
+  screenshots, but it isn't part of the product. `vite.config.ts` defines `__BRAGDOC_KIT__`: true under `npm run dev`
+  and in builds made with `BRAGDOC_KIT=1` (the capture rig makes one), false otherwise. When false, the route's lazy
+  import is dead code the bundler drops, and `/dev/kit` is the not-found page. `test/web.test.ts` and an e2e spec
+  check a release build leaves it out.
+- The route file always exists, so the generated route tree is the same in every mode (D20 keeps it uncommitted;
+  this keeps it from churning between builds).
+- **Considered:** an ignore pattern for `src/routes/dev/` in production builds (the route tree would differ by mode,
+  and the typed links to it would break); shipping it (about 25 KB of demo content plus its fixture images, for nobody).
+
+### D34 — Text on a project colour: whichever of near-black and white reads better
+
+- Project colours can be any colour (SPEC R6), so text on them (pills, Gantt bars, nav pills) is picked in `inkOn()`:
+  the ink with the higher WCAG contrast. The crossover is near luminance 0.18, and no colour gets less than about
+  4.2:1. A unit test sweeps the swatches and a range of colours.
+- The Scrapbook prototype used a fixed threshold of 0.36, which put white on its own green at 2.67:1 and on tomato at
+  3.39:1. Now green, tomato, pink and teal get dark text (the Board and Folio nav pills too); blue, violet, purple,
+  brown, slate and near-black keep white. A visible change from the prototype, made for legibility.
+- Kit text on fixed colours follows the same rule: dark ink on the green `go` button and the amber Found badge.
+  The tomato accent button keeps the design's white text (3.4:1, bold); revisit if it reads poorly.
+
+### D35 — Brand assets are generated with Playwright's Chromium; fonts are self-hosted
+
+- `brand/mark.svg` (a "b" path on a tomato tile, no font needed) is the source of the favicons, icons and social
+  cards, which `brand/generate.mjs` renders. Adapted from Local Review's generator, but rasterising with the Chromium
+  that `@playwright/test` already brings instead of adding `@resvg/resvg-js` and `opentype.js`. The app and the docs
+  site (PR18) both use `brand/`.
+- The four Scrapbook fonts come from `@fontsource` packages, bundled into `dist/web` by Vite: the app makes no
+  request to a font CDN (or anywhere else off the machine; `test/web.test.ts` and e2e check).
+- Browser-driving code (`e2e/`, `tools/`) type-checks under its own `tsconfig.tools.json`, which adds the DOM types
+  for `page.evaluate()` callbacks, so the server's config stays DOM-free.
+
+### D36 — Every build writes `dist/build-info.json`; only the release workflow's is "official"
 
 - `scripts/build-info.mjs` runs at the end of every `npm run build`, so the npm package, the Docker image and a
   checkout's build all have one: version, commit, build time (`SOURCE_DATE_EPOCH`, set by the release to the commit's
@@ -317,7 +395,7 @@ D17 onwards are decisions made while building.
 - **Considered:** writing it only in the release workflow (then a dev build has no `build`, and About has two code
   paths); a version-embedded TS module (a rebuild of the server for a metadata change).
 
-### D-PR6b — `release.yml` is manual-only and dry-run by default until the release channel is decided
+### D37 — `release.yml` is manual-only and dry-run by default until the release channel is decided
 
 - Triggers: `workflow_dispatch` (inputs `dist-tag`: `next` | `latest`, and `dry-run`, default **true**) and
   `pull_request` on changes to `release.yml` itself, always a dry run. No push trigger (#411 Q1 is open). A real run is
@@ -333,9 +411,9 @@ D17 onwards are decisions made while building.
 - A dry run skips every step that writes (the version PR, registry login and pushes, attestations, tags, the Release)
   and runs `npm publish --dry-run`. test/release.test.ts holds those properties.
 - **Considered:** a reusable workflow for SLSA Build L3 (RECOMMENDATIONS §12; worth doing, but after there's anything
-  to release); building the image only on PRs that touch it (D-PR6c).
+  to release); building the image only on PRs that touch it (D38).
 
-### D-PR6c — The Docker image: `--host 0.0.0.0` in CMD, uid 1000, git and gh inside, built on every PR
+### D38 — The Docker image: `--host 0.0.0.0` in CMD, uid 1000, git and gh inside, built on every PR
 
 - `ghcr.io/edspencer/bragdoc`, multi-stage from `node:22-slim`, tini as pid 1, `HEALTHCHECK` on `/api/health` with
   Node's `fetch` (no curl in the image), `BRAGDOC_HOME=/data`, `VOLUME /data`, `BRAGDOC_DANGEROUSLY_ALLOW_OPEN=1`.

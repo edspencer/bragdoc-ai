@@ -133,8 +133,14 @@ jobs:
         run: |
           set -euo pipefail
           VERSION="$(node -p "require('./package.json').version")"
+          # 0.0.1 is the hand-published placeholder's version (RELEASING.md): publish-npm would find it "already on
+          # npm", skip the publish and then fail the provenance check. v0.1 needs a `minor` changeset (0.0.0 → 0.1.0).
+          if [ "${VERSION}" = "0.0.1" ]; then
+            echo "::error::0.0.1 is the placeholder's version on npm and can't be released. Add a minor changeset."
+            exit 1
+          fi
           if [ "${DRY_RUN}" = "true" ]; then
-            npx changeset status --verbose || true
+            npx changeset status --verbose --since="origin/${GITHUB_BASE_REF:-${GITHUB_REF_NAME}}" || true
             echo "dry run: going through the release of ${VERSION} without publishing it"
             echo "should_release=true" >> "$GITHUB_OUTPUT"
             echo "version=${VERSION}" >> "$GITHUB_OUTPUT"

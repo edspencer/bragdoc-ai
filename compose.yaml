@@ -11,8 +11,8 @@
 # - optionally your screenshots folder (for the Screenshots source) and your gh login (to find your pull requests);
 #   uncomment those lines below.
 #
-# What doesn't work in a container: macOS-only features (Vision OCR, notifications), and reaching Ollama, which is
-# at host.docker.internal:11434 from in here.
+# What doesn't work in a container: macOS-only features (Vision OCR, notifications). If you use Ollama (AI is off unless
+# you turn it on), it's at http://host.docker.internal:11434 from in here.
 name: bragdoc
 services:
   bragdoc:

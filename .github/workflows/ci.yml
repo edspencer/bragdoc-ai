@@ -85,6 +85,38 @@ jobs:
           path: test-results/
           retention-days: 7
 
+  # `bragdoc service` against the runner's real launchd / systemd user instance: install, health, restart, a crash and a
+  # graceful stop brought back by KeepAlive / Restart=always, stop, start, logs, uninstall (scripts/services-real.mjs).
+  # The unit tests cover the same code with the service manager mocked; this is the only place it runs for real.
+  services:
+    name: Services (real ${{ matrix.os == 'macos-latest' && 'launchd' || 'systemd' }})
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - run: npm run build
+      # A CI step isn't a login session, so there's no user manager to talk to until lingering starts one.
+      - name: Start a systemd user instance (Linux)
+        if: runner.os == 'Linux'
+        run: |
+          sudo loginctl enable-linger "$USER"
+          for i in $(seq 1 20); do [ -S "/run/user/$(id -u)/bus" ] && break; sleep 0.5; done
+          echo "XDG_RUNTIME_DIR=/run/user/$(id -u)" >> "$GITHUB_ENV"
+          echo "DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/$(id -u)/bus" >> "$GITHUB_ENV"
+      - name: The service lifecycle, for real
+        env:
+          BRAGDOC_REAL_SERVICES: '1'
+        run: node scripts/services-real.mjs
+
   # The npm package as a user gets it: pack (prepack builds), check the tarball (no source maps, no sources), install it
   # globally into a temp prefix with a throwaway HOME, then run it and fetch from it (scripts/smoke-pack.mjs).
   smoke-pack:
@@ -107,7 +139,7 @@ jobs:
 
   # The Docker image, on native amd64 and arm64 runners, as the release builds it: built, started on loopback with a
   # data folder, healthy, and serving (scripts/smoke-image.sh). Every PR, not just ones that touch the Dockerfile: the
-  # image is the whole app, so a new dependency or build step can break it from anywhere (D-PR6c). Nothing is pushed.
+  # image is the whole app, so a new dependency or build step can break it from anywhere (D38). Nothing is pushed.
   docker:
     name: Docker image (${{ matrix.arch }})
     runs-on: ${{ matrix.runner }}
@@ -137,13 +169,13 @@ jobs:
       - name: Image size
         run: docker image ls bragdoc:ci
 
-  # PR5 adds a real `services` job and PR18 a `website` job here; add each to ci-passed's `needs`.
+  # PR18 adds a `website` job here; add it to ci-passed's `needs`.
 
   # One stable check name to require in branch rules, so the matrix can change without editing them.
   ci-passed:
     name: CI passed
     if: always()
-    needs: [test, e2e, smoke-pack, docker]
+    needs: [test, e2e, services, smoke-pack, docker]
     runs-on: ubuntu-latest
     steps:
       - name: Require every job to have passed

@@ -60,7 +60,7 @@ COPY --from=build /app/dist dist
 # loopback is unreachable from the host, so the image binds 0.0.0.0 and relies on the port being published on the
 # host's 127.0.0.1. Requests still have to carry a loopback Host (localhost:2724), which is what your browser sends.
 # The bind is CMD's `--host`, not a HOST variable: `serve` doesn't read HOST, so a shell that exports it (many do)
-# can't open a normal install up by accident (D-PR6c).
+# can't open a normal install up by accident (D38).
 ENV NODE_ENV=production \
     BRAGDOC_HOME=/data \
     BRAGDOC_DANGEROUSLY_ALLOW_OPEN=1 \

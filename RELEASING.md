@@ -56,6 +56,9 @@ In this order. Steps 1–3 need a logged-in npm owner of the `@bragdoc` scope; t
 7. Optional: private vulnerability reporting (Settings → Code security), which [SECURITY.md](SECURITY.md) points to,
    and a ruleset on `next` requiring the **CI passed** check.
 
+**The first release must be 0.1.0, not 0.0.1**, which the placeholder holds: its changesets need one `minor` (PR17,
+the v0.1 release candidate, adds it). The workflow refuses to release 0.0.1.
+
 After the first real release reaches `latest`: `npm deprecate @bragdoc/local@0.0.1 "placeholder, use the latest version"`.
 
 ## How a release happens
@@ -161,7 +164,7 @@ the whole release without publishing: it builds and smoke-tests the package, bui
 Locally:
 
 ```sh
-npx changeset status --verbose   # what the next version would be, and which changesets make it
+npx changeset status --verbose --since=origin/next   # what the next version would be, and which changesets make it
 npm publish --dry-run            # builds (prepack) and lists exactly what would go into the tarball
 npm run smoke:pack               # packs, installs and runs the package as a user would (CI runs this too)
 

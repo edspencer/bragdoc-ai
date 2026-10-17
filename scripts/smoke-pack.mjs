@@ -84,7 +84,7 @@ try {
   for (const f of ['package.json', 'LICENSE', 'README.md', 'dist/build-info.json', 'dist/server/cli.js', 'dist/web/index.html', 'dist/web/favicon.svg'])
     assert.ok(files.includes(f), `the package includes ${f}`);
   for (const f of files) {
-    assert.ok(!/^(src|server|shared|test|e2e|scripts|website|docs|public|\.github|\.changeset)\//.test(f), `the package shouldn't include ${f}`);
+    assert.ok(!/^(src|server|shared|test|e2e|scripts|website|docs|public|tools|brand|\.github|\.changeset)\//.test(f), `the package shouldn't include ${f}`);
     assert.ok(!f.endsWith('.map'), `the package shouldn't include a source map: ${f}`);
   }
   if (process.env.SMOKE_PACK_KEEP) {

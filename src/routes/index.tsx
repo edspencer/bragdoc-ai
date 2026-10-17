@@ -1,31 +1,36 @@
-import { useQuery } from '@tanstack/react-query';
 import { createFileRoute } from '@tanstack/react-router';
-import type { HealthResponse } from '../../shared/api.ts';
+import { useHealth } from '../api/queries.ts';
+import { Dot, PageTitle } from '../kit/index.ts';
+import { Placeholder } from '../shell/Placeholder.tsx';
 
-export const Route = createFileRoute('/')({ component: Home });
+export const Route = createFileRoute('/')({ component: Board });
 
-function Home() {
-  // A placeholder until PR4's typed API client: proves the shell talks to the server.
-  const health = useQuery({
-    queryKey: ['health'],
-    // a health check should say so at once, not after the default three retries with backoff
-    retry: false,
-    queryFn: async (): Promise<HealthResponse> => {
-      const res = await fetch('/api/health');
-      if (!res.ok) throw new Error(`health check failed: ${res.status}`);
-      return res.json();
-    },
-  });
+function Board() {
+  const health = useHealth();
   return (
-    <div data-testid="placeholder-shell">
-      <h1 className="text-3xl font-semibold">BragDoc Local</h1>
-      <p className="mt-3 text-stone-600 dark:text-stone-400">
-        A local-first tracker for the things you've done at work. This is the empty skeleton of v0.1: the board, Found,
-        projects and Folio arrive in the next pull requests.
-      </p>
-      <p className="mt-6 font-mono text-sm" data-testid="server-status">
-        {health.isPending ? 'Checking the server…' : health.isError ? 'The server is not answering.' : `Server OK, version ${health.data.version}`}
-      </p>
+    <div data-testid="board-page">
+      <PageTitle sub="Your achievements, pinned up week by week, with the evidence that backs them up.">Board</PageTitle>
+      <Placeholder tape="#ef5a3c" testId="placeholder-shell">
+        <p className="m-0">
+          This is where your board goes: paste a screenshot, drop a PDF or a PR link, or write a line, and it&apos;s pinned
+          here. BragDoc v0.1 is being built one piece at a time; this page arrives in a later pull request.
+        </p>
+        <p className="m-0 mt-4 flex items-center gap-2 font-mono text-[13px] text-ink" data-testid="server-status">
+          {health.isPending ? (
+            <>
+              <Dot tone="off" /> Checking the server…
+            </>
+          ) : health.isError ? (
+            <>
+              <Dot tone="bad" /> The server is not answering.
+            </>
+          ) : (
+            <>
+              <Dot tone="good" /> Server OK, version {health.data.version}
+            </>
+          )}
+        </p>
+      </Placeholder>
     </div>
   );
 }

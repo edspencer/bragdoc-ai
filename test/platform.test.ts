@@ -156,7 +156,7 @@ describe('the data home', () => {
     assert.deepEqual(fs.readdirSync(dir).sort(), ['.gitignore', 'backups', 'cache', 'config.yaml', 'logs']);
     if (posix) for (const d of [dir, path.join(dir, 'logs'), path.join(dir, 'cache'), path.join(dir, 'backups')]) assert.equal(mode(d), 0o700, d);
     assert.equal(fs.readFileSync(path.join(dir, '.gitignore'), 'utf8'), GITIGNORE);
-    for (const e of ['/runtime.json', '/secrets.yaml', '/logs/', '/cache/', '/backups/', '/legacy-cli/', '/legacy-cli.partial/']) assert.match(GITIGNORE, new RegExp(`^${e.replace(/[.*+?^${}()|[\]\\/]/g, '\\$&')}$`, 'm'));
+    for (const e of ['/runtime.json', '/secrets.yaml', '/logs/', '/cache/', '/backups/', '/service/', '/legacy-cli/', '/legacy-cli.partial/']) assert.match(GITIGNORE, new RegExp(`^${e.replace(/[.*+?^${}()|[\]\\/]/g, '\\$&')}$`, 'm'));
     assert.equal(fs.readFileSync(path.join(dir, 'config.yaml'), 'utf8'), CONFIG_TEMPLATE);
     assert.deepEqual(r.moved, []);
     assert.deepEqual(r.notices, []);

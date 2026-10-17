@@ -14,6 +14,8 @@ src/routeTree.gen.ts
 # Playwright: test output, reports, and the MCP's scratch (snapshots, screenshots from driving the UI)
 test-results/
 playwright-report/
+/tools/docs-media/out/
+/brand/.card.html
 .playwright-mcp/
 # Scratch from QA and local task notes: never committed
 qa/
