@@ -669,8 +669,9 @@ export class Store {
         if (e.isDirectory() && depth > 0) walk(r, depth - 1);
         else if (e.isFile() && e.name.endsWith('.md')) {
           const fm = splitFrontMatter(readRaw(path.join(this.home, r)) ?? '');
-          const m = fm && /^legacyId:[ \t]*['"]?([^'"\s#]+)/m.exec(fm.yaml);
-          if (m && !out.has(m[1])) out.set(m[1], r);
+          const v = fm ? readYaml(fm.yaml).value : null;
+          const id = v && typeof v === 'object' ? (v as Record<string, unknown>).legacyId : undefined;
+          if (typeof id === 'string' && id && !out.has(id)) out.set(id, r);
         }
       }
     };

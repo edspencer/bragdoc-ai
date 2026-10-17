@@ -14,7 +14,11 @@ export const EXPORT_VERSION = '1.0';
 export const MAX_EXPORT_BYTES = 50 * 1024 * 1024;
 
 const legacyId = z.string().trim().min(1, 'no id');
-const time = z.string().refine((s) => !Number.isNaN(Date.parse(s)), 'not a date and time');
+/** A time Date can read, between 1900 and 2999 (a year like +010000 would make no sense as a date, or a file name). */
+const time = z.string().refine((s) => {
+  const t = Date.parse(s);
+  return !Number.isNaN(t) && t >= Date.UTC(1900, 0, 1) && t < Date.UTC(3000, 0, 1);
+}, 'not a date and time');
 const text = z.string().nullish();
 
 export const ExportCompanySchema = z.object({

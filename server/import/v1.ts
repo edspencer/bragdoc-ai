@@ -11,12 +11,13 @@
 //  - documents and performance reviews → read-only markdown under `imports/<timestamp>/`;
 //  - account ids, share links and AI search data are left behind, and the report says so, field by field.
 // Everything imported keeps its hosted id as `legacyId`, so importing the same export again adds nothing.
+import path from 'node:path';
 import type { ImportCount, ImportDropped, ImportKind, ImportProblem, ImportReport } from '../../shared/api.js';
 import { PROJECT_STATUSES, PROJECT_SWATCHES, type AchievementCreate, type CompanyCreate, type ProjectCreate } from '../../shared/schema/index.js';
 import { normalizeRemote } from '../services/catalog.js';
 import type { Services } from '../services/index.js';
 import { today } from '../services/util.js';
-import { listSnapshots, snapshotName, snapshotNow } from '../store/backups.js';
+import { fingerprint, listSnapshots, pruneSnapshots, snapshotName, takeSnapshot } from '../store/backups.js';
 import type { Store } from '../store/index.js';
 import {
   LISTS,
@@ -102,8 +103,21 @@ const USED: Record<ListName, string[]> = {
 
 const HEADER = ' Carried over from the hosted BragDoc app by `bragdoc import`. Read-only: BragDoc never changes this file.';
 
-/** The day (YYYY-MM-DD, UTC) of a time the export gave, or undefined. */
-const day = (s: string | null | undefined) => (s ? new Date(s).toISOString().slice(0, 10) : undefined);
+/**
+ * The calendar day (YYYY-MM-DD) of a time the export gave, in the user's time zone (the profile's, else this
+ * machine's): the hosted app's date picker stored local midnight and showed dates in the browser's zone, so the UTC
+ * day would put everyone east of Greenwich a day early (D45).
+ */
+function dayIn(timeZone: string | null | undefined): (s: string | null | undefined) => string | undefined {
+  const opts = { year: 'numeric', month: '2-digit', day: '2-digit' } as const;
+  let f: Intl.DateTimeFormat;
+  try {
+    f = new Intl.DateTimeFormat('en-CA', { ...opts, timeZone: timeZone ?? undefined });
+  } catch {
+    f = new Intl.DateTimeFormat('en-CA', opts); // not a zone this machine knows
+  }
+  return (s) => (s ? f.format(new Date(s)) : undefined);
+}
 const iso = (s: string | null | undefined) => (s ? new Date(s).toISOString() : undefined);
 const clean = (s: string | null | undefined) => (s && s.trim() ? s : undefined);
 const short = (s: string, n = 48) => (s.length > n ? s.slice(0, n - 1).trimEnd() + '…' : s);
@@ -129,6 +143,7 @@ export function planImport(store: Store, input: string | unknown): Plan {
 
 /** Work out what importing `ex` would do. Writes nothing. */
 export function plan(store: Store, ex: RawExport): Plan {
+  const day = dayIn(store.profile()?.timezone);
   const counts = Object.fromEntries(KINDS.map((k) => [k, { add: 0, skip: 0, fail: 0 }])) as Record<ImportKind, ImportCount>;
   const problems: ImportProblem[] = [];
   const dropped = new Map<string, ImportDropped>();
@@ -395,7 +410,7 @@ export function plan(store: Store, ex: RawExport): Plan {
         startDate: day(r.startDate),
         endDate: day(r.endDate),
         // the review's document, relative to this file when it's in the same import
-        document: doc ? (doc.startsWith(dir + '/') ? '../' + doc.slice(dir.length + 1) : doc) : undefined,
+        document: doc ? path.posix.relative(path.posix.dirname(rel), doc) : undefined,
         documentLegacyId: r.documentId && !doc ? r.documentId : undefined,
         legacyId: r.id,
         createdAt: iso(r.createdAt),
@@ -445,8 +460,7 @@ export async function apply(store: Store, services: Services, p: Plan, { yieldEv
   const nothing = KINDS.every((k) => report.counts[k].add === 0);
   if (snapshot && !nothing) {
     // a copy of the data home as it was, before anything is added (backups/; the usual retention applies)
-    const name = snapshotNow(store.home, store.now()) ?? listSnapshots(`${store.home}/backups`).at(-1) ?? null;
-    report.snapshot = name ? `backups/${name}` : null;
+    report.snapshot = snapshotBefore(store);
   }
   const failed: ImportProblem[] = [];
   let n = 0;
@@ -466,6 +480,11 @@ export async function apply(store: Store, services: Services, p: Plan, { yieldEv
     }
   };
 
+  // something this item refers to failed above: it fails too, rather than come in without the link, so importing the
+  // file again (once the cause is fixed) brings both, linked
+  const missing = (what: string): never => {
+    throw new Error(`its ${what} couldn't be imported (see above), so it wasn't either; import the file again once that's fixed`);
+  };
   const companies = store.idsByLegacyId('company');
   for (const a of p.companies) {
     attempt('companies', a.label, () => {
@@ -489,8 +508,8 @@ export async function apply(store: Store, services: Services, p: Plan, { yieldEv
   for (const a of p.projects) {
     attempt('projects', a.label, () => {
       if (projects.has(a.legacyId)) return 'skipped';
-      const companyId = a.company ? (companies.get(a.company) ?? null) : null;
-      const repoId = a.repo ? repos.get(a.repo) : undefined;
+      const companyId = a.company ? (companies.get(a.company) ?? missing('company')) : null;
+      const repoId = a.repo ? (repos.get(a.repo) ?? missing('repo')) : undefined;
       projects.set(a.legacyId, services.projects.create({ ...a.input, companyId, repoIds: repoId ? [repoId] : [] }).id);
       return 'added';
     });
@@ -498,8 +517,8 @@ export async function apply(store: Store, services: Services, p: Plan, { yieldEv
   }
   for (const a of p.achievements) {
     attempt('achievements', a.label, () => {
-      const project = a.project ? projects.get(a.project) : undefined;
-      const companyId = a.company ? companies.get(a.company) : undefined;
+      const project = a.project ? (projects.get(a.project) ?? missing('project')) : undefined;
+      const companyId = a.company ? (companies.get(a.company) ?? missing('company')) : undefined;
       // idempotent by legacyId inside the service too (an achievement imported meanwhile is returned, not duplicated)
       const { created } = services.achievements.create({ ...a.input, projects: project ? [project] : [], ...(companyId ? { companyId } : {}) });
       return created ? 'added' : 'skipped';
@@ -527,6 +546,34 @@ export async function apply(store: Store, services: Services, p: Plan, { yieldEv
   report.problems = [...failed, ...report.problems.filter((x) => x.level === 'error'), ...report.problems.filter((x) => x.level === 'warning')];
   return report;
 }
+
+/**
+ * A snapshot of the data home as it is now (backups/), for the report: a new one, or the newest when nothing has
+ * changed since it, or null when the data home has nothing in it yet. If one can't be taken, the import doesn't start.
+ */
+function snapshotBefore(store: Store): string | null {
+  const backups = path.join(store.home, 'backups');
+  let name: string | null;
+  try {
+    name = takeSnapshot(store.home, store.now());
+  } catch (e) {
+    throw new SnapshotFailed(`BragDoc couldn't take a snapshot of your data before importing (${(e as Error).message}), so nothing was imported`);
+  }
+  if (name) {
+    try {
+      pruneSnapshots(store.home, store.now()); // the usual retention, as the server's hourly snapshot applies it
+    } catch {
+      /* pruning is housekeeping: never a reason to stop */
+    }
+    return `backups/${name}`;
+  }
+  if (!fingerprint(store.home)) return null; // nothing to copy
+  const newest = listSnapshots(backups).at(-1);
+  return newest && fingerprint(path.join(backups, newest)) === fingerprint(store.home) ? `backups/${newest}` : null;
+}
+
+/** The snapshot before an import failed: nothing was imported. */
+export class SnapshotFailed extends Error {}
 
 function importsReadme(r: ImportReport, now: Date): string {
   return `# Carried over from the hosted BragDoc app

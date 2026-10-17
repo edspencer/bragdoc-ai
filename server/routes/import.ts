@@ -8,7 +8,7 @@ import type { AppContext } from '../context.js';
 import { apiError } from '../http.js';
 import { ImportRunning, takeImportLock } from '../import/lock.js';
 import { ExportRefused, MAX_EXPORT_BYTES } from '../import/v1-schema.js';
-import { apply, planImport } from '../import/v1.js';
+import { SnapshotFailed, apply, planImport } from '../import/v1.js';
 
 export function registerImport(app: Hono, ctx: AppContext): void {
   ctx.uploads.acceptLargeJson({ method: 'POST', path: /^\/api\/import\/(?:plan|apply)$/, maxBytes: MAX_EXPORT_BYTES });
@@ -37,6 +37,7 @@ export function registerImport(app: Hono, ctx: AppContext): void {
       return c.json(report satisfies ImportReport);
     } catch (e) {
       if (e instanceof ExportRefused) return c.json(apiError(e.code, e.message), 400);
+      if (e instanceof SnapshotFailed) return c.json(apiError('snapshot_failed', `${e.message}.`), 500);
       throw e;
     } finally {
       release();

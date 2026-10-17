@@ -31,7 +31,8 @@ Dry run of importing ~/Downloads/bragdoc-export.json (exported 2026-01-15).
 
 Left behind (BragDoc has no place for these):
   userId (421 items): your account id in the hosted app: it means nothing on your computer.
-  achievements[].embedding (412 items): the hosted app's AI search data: BragDoc searches your words directly, with no AI.
+  companies[].domain (2 items): BragDoc's companies have no website field.
+  documents[].shareToken (1 item): a public share link on the hosted app: nothing is shared from your computer.
   …
 
 Problems: 1 not imported, 1 to be imported with a change.
@@ -84,7 +85,14 @@ the first line of its summary.
 ## Safe to repeat
 
 Everything imported remembers its id from the hosted app (`legacyId`), so importing the same export again creates
-nothing new. Import a newer export later and only what's new comes across.
+nothing new. Import a newer export later and only what's new comes across. One thing to know: if you delete something
+you imported, importing the same export again brings it back, because it's in the export and no longer here.
+
+If an import stops part-way (the disk filled up, say), run it again: what came across is skipped, and the rest comes
+in. Something whose project couldn't be imported isn't imported either, so a second run brings both, linked.
+
+Dates come across as the day you picked in the hosted app, in your time zone (the one in your profile, or else your
+computer's).
 
 ## The old CLI
 

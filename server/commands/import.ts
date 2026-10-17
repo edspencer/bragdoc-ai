@@ -39,13 +39,12 @@ export async function importCommand(ctx: Ctx, args: string[], flags: Record<stri
   const dataDir = resolveDataDir(flags['data-dir'] || ctx.env.BRAGDOC_HOME || undefined, {}, ctx.homedir);
   const rt = readRuntime(dataDir);
 
-  let report: ImportReport;
+  let report: ImportReport | null = null;
   if (rt?.running) {
     const base = `http://127.0.0.1:${rt.port}`;
-    ctx.err(`Importing through the running BragDoc (${rt.url}).\n`);
     // loopback is always on the egress allow-list; the request is in the network log like any other
     const egress = new Egress({ dataDir, config: () => DEFAULT_CONFIG });
-    let res: Response;
+    let res: Response | null = null;
     try {
       res = await egress.egressFetch({ purpose: dryRun ? 'import.plan' : 'import.apply' }, `${base}/api/import/${dryRun ? 'plan' : 'apply'}`, {
         method: 'POST',
@@ -53,14 +52,19 @@ export async function importCommand(ctx: Ctx, args: string[], flags: Record<stri
         body: text,
       });
     } catch (e) {
-      throw new Error(
-        `BragDoc is running (process ${rt.pid}) but didn't answer on port ${rt.port} (${(e as Error).message}). Try again in a moment, or stop it and run the import on its own.`,
-      );
+      // nothing listening: runtime.json's pid is alive but isn't BragDoc any more (pids are reused), so it's safe to
+      // import directly, under the lock. Anything else (a timeout, a reset) may be BragDoc mid-request: don't race it
+      if (!refused(e))
+        throw new Error(`BragDoc is running (process ${rt.pid}) but didn't answer on port ${rt.port} (${(e as Error).message}). Try again in a moment, or stop it and run the import on its own.`);
     }
-    const body = (await res.json().catch(() => null)) as ImportReport | ApiError | null;
-    if (!res.ok || !body || 'error' in body) throw new Error(`can't import ${shown}: ${body && 'error' in body ? body.error.message : `BragDoc answered ${res.status}`}`);
-    report = body;
-  } else {
+    if (res) {
+      ctx.err(`${dryRun ? 'Asked' : 'Imported through'} the running BragDoc (${rt.url}).\n`);
+      const body = (await res.json().catch(() => null)) as ImportReport | ApiError | null;
+      if (!res.ok || !body || 'error' in body) throw new Error(`can't import ${shown}: ${body && 'error' in body ? body.error.message : `BragDoc answered ${res.status}`}`);
+      report = body;
+    }
+  }
+  if (!report) {
     // as `serve` starts: a config.yaml from a newer BragDoc refuses (before anything's touched), then the layout
     new ConfigStore(dataDir, { env: {} }).load();
     if (!dryRun) initHome(dataDir);
@@ -95,4 +99,10 @@ function readFile(file: string, shown: string): string {
   } catch (e) {
     throw new Error(`can't read ${shown}: ${(e as Error).message}`);
   }
+}
+
+/** A connection nobody accepted (fetch's TypeError, with the socket error as its cause). */
+function refused(e: unknown): boolean {
+  const cause = (e as { cause?: { code?: string } } | null)?.cause;
+  return cause?.code === 'ECONNREFUSED';
 }

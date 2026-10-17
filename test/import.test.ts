@@ -5,6 +5,7 @@ import { afterEach, test } from 'node:test';
 import assert from 'node:assert/strict';
 import { spawn, spawnSync } from 'node:child_process';
 import fs from 'node:fs';
+import net from 'node:net';
 import path from 'node:path';
 import type { ImportReport } from '../shared/api.ts';
 import { ConfigStore } from '../server/config.ts';
@@ -12,13 +13,17 @@ import { ImportRunning, takeImportLock } from '../server/import/lock.ts';
 import { formatReport } from '../server/import/report.ts';
 import { ExportRefused, readExport } from '../server/import/v1-schema.ts';
 import { apply, planImport } from '../server/import/v1.ts';
+import { createServices } from '../server/services/index.ts';
 import { createApp } from '../server/index.ts';
 import { Runtime } from '../server/runtime.ts';
 import { LARGE_JSON_LIMIT, UploadRegistry } from '../server/security.ts';
 import { relPathFor } from '../server/store/files.ts';
 import { ROOT, stopChild, tmpHome } from './fixture.ts';
-import { FIXTURES_DIR, achievement, alexExport, allNullsExport, bigExport, exportOf, missingOptionalExport, orphansExport, uuid } from './import-fixture.ts';
+import { FIXTURES_DIR, achievement, alexExport, allNullsExport, bigExport, exportOf, missingOptionalExport, orphansExport, project, uuid } from './import-fixture.ts';
 import { storeHome, type StoreHome } from './store-fixture.ts';
+
+// dates are calendar days in the user's zone (the profile's, else this machine's): pin the machine's for the tests
+process.env.TZ = 'UTC';
 
 const cleanups: (() => void)[] = [];
 afterEach(() => {
@@ -339,6 +344,17 @@ test('the lock: one holder; a dead holder is taken over; release removes only ou
   fs.writeFileSync(path.join(h.home, 'cache', 'import.lock'), JSON.stringify({ pid: Number(dead.stdout) }));
   const again = takeImportLock(h.home);
   again();
+  const lock = path.join(h.home, 'cache', 'import.lock');
+  // our own pid, but not ours (a restarted container reuses its pid): stale
+  fs.writeFileSync(lock, JSON.stringify({ pid: process.pid, startedAt: new Date().toISOString() }));
+  takeImportLock(h.home)();
+  // a live process, but over an hour ago: stale
+  fs.writeFileSync(lock, JSON.stringify({ pid: process.ppid, startedAt: new Date(Date.now() - 2 * 3600_000).toISOString() }));
+  takeImportLock(h.home)();
+  // a live process, just now: refused, naming the file to remove if nothing is importing
+  fs.writeFileSync(lock, JSON.stringify({ pid: process.ppid, startedAt: new Date().toISOString() }));
+  assert.throws(() => takeImportLock(h.home), (e: unknown) => e instanceof ImportRunning && e.message.includes(lock));
+  fs.rmSync(lock);
   assert.throws(() => new UploadRegistry().acceptLargeJson({ method: 'POST', path: /x/, maxBytes: LARGE_JSON_LIMIT + 1 }), /at most/);
 });
 
@@ -371,6 +387,7 @@ test('5,000 achievements: planned, imported and re-imported in reasonable time',
 
 test('the CLI: dry run writes nothing; import; re-import; errors are sentences; a running server is used', async () => {
   const t = tmpHome();
+  t.env.TZ = 'UTC';
   cleanups.push(t.cleanup);
   const CLI = ['--import', 'tsx', path.join(ROOT, 'server', 'cli.ts')];
   const run = (...args: string[]) => spawnSync(process.execPath, [...CLI, ...args], { cwd: ROOT, env: t.env, encoding: 'utf8' });
@@ -409,6 +426,23 @@ test('the CLI: dry run writes nothing; import; re-import; errors are sentences; 
   const again = run('import', alex);
   assert.match(again.stdout, /Everything in it was already here/);
 
+  // runtime.json naming a live process with nothing listening (a reused pid): imported directly, under the lock
+  const free = await new Promise<number>((resolve) => {
+    const srv = net.createServer().listen(0, '127.0.0.1', () => {
+      const port = (srv.address() as net.AddressInfo).port;
+      srv.close(() => resolve(port));
+    });
+  });
+  const runtime = path.join(t.dataDir, 'runtime.json');
+  fs.writeFileSync(runtime, JSON.stringify({ pid: process.pid, port: free, url: `http://localhost:${free}`, version: '0.0.0', startedAt: new Date().toISOString(), mcpToken: 'a'.repeat(43) }));
+  const reused = path.join(t.home, 'reused.json');
+  fs.writeFileSync(reused, json(exportOf({ achievements: [achievement(601)] })));
+  const direct = run('import', reused);
+  assert.equal(direct.status, 0, direct.stderr);
+  assert.doesNotMatch(direct.stderr, /through the running BragDoc/);
+  assert.match(direct.stdout, /achievements\s+1\s+0\s+0/);
+  fs.rmSync(runtime);
+
   // with BragDoc running, the import goes through it
   const child = spawn(process.execPath, [...CLI, 'serve', '--port', '0'], { cwd: ROOT, env: t.env });
   try {
@@ -428,7 +462,7 @@ test('the CLI: dry run writes nothing; import; re-import; errors are sentences; 
     fs.writeFileSync(more, json(exportOf({ achievements: [achievement(501), achievement(502), achievement(503, { createdAt: 'soon' })] })));
     const via = run('import', more);
     assert.equal(via.status, 0, via.stderr);
-    assert.match(via.stderr, /^Importing through the running BragDoc \(http:\/\/localhost:\d+\)\./);
+    assert.match(via.stderr, /^Imported through the running BragDoc \(http:\/\/localhost:\d+\)\./);
     assert.match(via.stdout, /achievements\s+2\s+0\s+1/);
     assert.match(fs.readFileSync(path.join(t.dataDir, 'logs', 'network.jsonl'), 'utf8'), /"purpose":"import\.apply"/);
   } finally {
@@ -441,4 +475,60 @@ test('an export with nothing in it imports nothing, and says so', async () => {
   const r = await importInto(h, exportOf());
   assert.equal(r.snapshot, null);
   assert.match(formatReport({ ...r, dryRun: true }), /There is nothing in it to import\./);
+});
+
+test("dates are the user's calendar day: the profile's time zone", async () => {
+  const h = home();
+  h.services.profile.set({ name: 'Alex Marlowe', timezone: 'Europe/Berlin' });
+  // the hosted app's date picker stored local midnight: 15 March in Berlin is 23:00 UTC on the 14th
+  const r = await importInto(h, exportOf({ achievements: [achievement(1, { eventStart: '2024-03-14T23:00:00.000Z', eventEnd: '2024-03-15T23:00:00.000Z' })] }));
+  assert.equal(r.counts.achievements.add, 1);
+  const [a] = h.store.all('achievement');
+  assert.deepEqual([a.happenedAt, a.endedAt], ['2024-03-15', '2024-03-16']);
+  // and the machine's zone without a profile (pinned to UTC above)
+  const h2 = home();
+  await importInto(h2, exportOf({ achievements: [achievement(1, { eventStart: '2024-03-14T23:00:00.000Z' })] }));
+  assert.equal(h2.store.all('achievement')[0]!.happenedAt, '2024-03-14');
+  // years no date picker makes are refused, item by item
+  const odd = planImport(h2.store, json(exportOf({ achievements: [achievement(9, { createdAt: '+010000-01-01T00:00:00.000Z' })] }))).report;
+  assert.equal(odd.counts.achievements.fail, 1);
+});
+
+test('documents whose ids are not plain tokens are still recognised on re-import', async () => {
+  const h = home();
+  const doc = (id: string) => ({ id, createdAt: '2025-01-06T00:00:00.000Z', updatedAt: null, title: `Doc ${id}`, content: 'x', userId: null, companyId: null, type: null, shareToken: null });
+  const ex = exportOf({ documents: [doc("it's mine"), doc('a b c'), doc('#hash: colon')] });
+  assert.equal((await importInto(h, ex)).counts.documents.add, 3);
+  h.clock.tick(60_000);
+  assert.deepEqual((await importInto(h, ex)).counts.documents, { add: 0, skip: 3, fail: 0 });
+});
+
+test("an item whose project couldn't be imported fails too, and a re-run brings both, linked", async () => {
+  const h = home();
+  const ex = exportOf({ projects: [project(1)], achievements: [achievement(1, { projectId: uuid(2, 1) })] });
+  const real = h.services.projects.create.bind(h.services.projects);
+  h.services.projects.create = () => {
+    throw new Error('disk full');
+  };
+  const r = await importInto(h, ex);
+  assert.deepEqual([r.counts.projects.fail, r.counts.achievements.fail, r.counts.achievements.add], [1, 1, 0]);
+  assert.ok(r.problems.some((p) => p.kind === 'achievements' && /its project couldn't be imported/.test(p.message)));
+  assert.ok(r.problems.some((p) => p.kind === 'projects' && /disk full/.test(p.message)));
+  h.services.projects.create = real;
+  h.clock.tick(60_000);
+  const again = await importInto(h, ex);
+  assert.deepEqual([again.counts.projects.add, again.counts.achievements.add], [1, 1]);
+  assert.deepEqual(h.store.all('achievement')[0]!.projects, [h.store.all('project')[0]!.id]);
+});
+
+test('the snapshot named in the report is of the data as it was just before', async () => {
+  const h = home();
+  await importInto(h, exportOf({ achievements: [achievement(1)] }));
+  h.clock.tick(60_000);
+  const r = await importInto(h, exportOf({ achievements: [achievement(2)] }));
+  assert.ok(r.snapshot);
+  const snapAchievements = files(path.join(h.home, r.snapshot!)).filter((f) => f.startsWith('achievements/'));
+  assert.equal(snapAchievements.length, 1, 'it has the first import, not the second');
+  // a restart of the store doesn't matter, and services built on another store instance see the same files
+  assert.equal(createServices(h.reopen()).achievements.list().total, 2);
 });
