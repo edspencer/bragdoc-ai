@@ -59,10 +59,22 @@ const ALLOWED_IMPORTS: Record<string, string> = {
   'node:url': 'fileURLToPath',
   'node:crypto': 'tokens, hashes',
   'node:tty': "banner.ts: WriteStream#getColorDepth for Node's own colour rules (no I/O)",
+  // OCR (PR11, D40). tesseract.js CAN fetch (node-fetch, or the global fetch): its language data when `langPath` is a
+  // URL (its default is a CDN) and an image given as a URL. server/ocr/tesseract.ts passes a local langPath (the
+  // package's own data) and images as bytes, and the worker it runs in has no fetch at all (tesseract-worker.ts
+  // replaces its adapter's). test/ocr.test.ts points it at the CDN and proves the request fails, with fetch stubbed.
+  // It starts one worker_thread (its OCR runs in WebAssembly there), and writes no files (cacheMethod: 'none', and
+  // the worker's cache writes are no-ops).
+  'tesseract.js': "OCR (PR11): local langPath and bytes only; its worker's fetch only fails (tesseract-worker.ts)",
+  '@tesseract.js-data/eng': 'the English language data, resolved to a path on disk (import.meta.resolve); no code runs',
+  pngjs: 'decodes and encodes PNGs for OCR (pure JS: zlib and streams only)',
 };
 /** Allowed in one file only. */
 const ALLOWED_IMPORTS_IN: Record<string, string> = {
   'node:child_process': 'server/proc.ts',
+  // tesseract.js's OCR worker entry, rewritten so it has no network (D40): parentPort is how a worker talks to its
+  // parent. Nothing in it starts a thread; tesseract.js starts the one it runs in.
+  'node:worker_threads': 'server/ocr/tesseract-worker.ts',
 };
 /**
  * INTERIM (D32): PR5 was built alongside PR2, so `bragdoc service` and `--open` run their programs through
@@ -106,6 +118,9 @@ const ALLOWED: Record<string, Record<string, number>> = {
   'server/commands/ready.ts': {
     fetch: 1, // INTERIM (D32): GET http://127.0.0.1:<port>/api/health, loopback only
     bannedName: 1, // INTERIM (D32): import net from 'node:net' (a TCP connect to 127.0.0.1)
+  },
+  'server/ocr/tesseract-worker.ts': {
+    bannedName: 1, // import { parentPort } from 'node:worker_threads' (see ALLOWED_IMPORTS_IN)
   },
   'shared/ulid.ts': {
     globalObject: 1, // globalThis.crypto.getRandomValues(bytes): shared/ runs in the browser too, so no node:crypto
