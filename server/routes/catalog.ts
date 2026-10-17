@@ -1,5 +1,5 @@
 // Read-only lists of projects and repos, so the board's pickers and pills work (SPEC R5). The writes, and companies,
-// are PR8's (its own route modules); these two GETs stay here.
+// are PR8's. PR8 has the same two GETs, with the same shapes, in its own catalog.ts: whichever lands second keeps one copy.
 //
 //   GET /api/projects   ProjectsResponse: every project, newest start first, with its ETag and achievement count
 //   GET /api/repos      ReposResponse: every repo, by name, with its ETag

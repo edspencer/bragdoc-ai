@@ -7,7 +7,7 @@ import { GithubMark } from './icons.tsx';
 import { PdfPage, Print, StickyQuote } from './paper.tsx';
 
 export type EvidenceView =
-  | { kind: 'image'; src: string; alt: string; caption?: string }
+  | { kind: 'image'; src: string; alt: string; caption?: string; full?: string }
   | { kind: 'pdf'; title: string; pages?: number; bytes?: number; href?: string }
   | { kind: 'file'; name: string; bytes?: number; href?: string }
   | { kind: 'link'; url: string; title?: string }
@@ -124,7 +124,7 @@ export function FileChip({ name, bytes, href }: { name: string; bytes?: number; 
 export function EvidenceBit({ e, id }: { e: EvidenceView; id: string }) {
   switch (e.kind) {
     case 'image':
-      return <Print src={e.src} alt={e.alt} caption={e.caption} tiltId={id} />;
+      return <Print src={e.src} full={e.full} alt={e.alt} caption={e.caption} tiltId={id} />;
     case 'github_pr':
       return <PrSlab {...e} />;
     case 'link':

@@ -75,14 +75,25 @@ export interface PrintProps {
   tiltId?: string;
   /** No caption and less tilt, for small spaces. */
   small?: boolean;
+  /** The full-size picture for the lightbox, when `src` is a thumbnail. */
+  full?: string;
 }
 
 /**
  * A photo print: a screenshot or image on cream stock with a handwritten caption. In the dark theme the picture is
  * dimmed and warmed so a white screenshot doesn't glare. Click to open it full size.
  */
-export function Print({ src, alt, caption, tiltId, small }: PrintProps) {
+export function Print({ src, alt, caption, tiltId, small, full }: PrintProps) {
   const [open, setOpen] = useState(false);
+  const [broken, setBroken] = useState(false);
+  // a damaged or missing picture: say so on the print rather than show the browser's broken-image icon
+  if (broken)
+    return (
+      <div role="img" aria-label={`${alt} (it can't be shown)`} className="sb-print block w-full p-2 pb-1" style={tiltId ? { rotate: `${tilt(tiltId, small ? 0.8 : 1.6)}deg` } : undefined}>
+        <div className="flex aspect-[4/3] max-h-40 w-full items-center justify-center bg-[#e6e0d4] px-3 text-center text-[12px] font-semibold text-[#5f584d]">This picture can&apos;t be shown</div>
+        {!small && <span className="block px-1 pb-1 pt-1.5 text-left font-hand text-[17px] leading-tight text-print-ink">{caption ?? alt}</span>}
+      </div>
+    );
   return (
     <>
       <button
@@ -97,10 +108,10 @@ export function Print({ src, alt, caption, tiltId, small }: PrintProps) {
         // `rotate`, not `transform`, so Tailwind's hover:rotate-0 (which sets `rotate`) can straighten it
         style={tiltId ? { rotate: `${tilt(tiltId, small ? 0.8 : 1.6)}deg` } : undefined}
       >
-        <img src={src} alt={alt} className="block w-full" />
+        <img src={src} alt={alt} loading="lazy" decoding="async" onError={() => setBroken(true)} className="block w-full" />
         {!small && <span className="block px-1 pb-1 pt-1.5 text-left font-hand text-[17px] leading-tight text-print-ink">{caption ?? alt}</span>}
       </button>
-      {open && <Lightbox src={src} alt={alt} caption={caption} onClose={() => setOpen(false)} />}
+      {open && <Lightbox src={full ?? src} alt={alt} caption={caption} onClose={() => setOpen(false)} />}
     </>
   );
 }

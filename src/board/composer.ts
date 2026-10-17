@@ -1,0 +1,311 @@
+// "Drop it here.": the composer's logic (SPEC R5). Paste (⌘V) or drop images, PDFs, other files, links and GitHub PR
+// URLs, or pick files, or type. Each file is uploaded as soon as it's added (POST /api/evidence), so a spoofed,
+// damaged or oversized file is refused at once, with the server's own sentence; each link is previewed
+// (POST /api/link-preview: a PR becomes `owner/repo#n`, with its title only if GitHub is connected; other links are
+// never fetched). The first line of the text is the title, the rest the body. ⌘/Ctrl+Enter pins it.
+//
+// Adapted from the Scrapbook prototype's shared/composer.ts: its classification and PR regex (now shared/links.ts),
+// with real uploads and previews in place of the simulated ones.
+import { useCallback, useEffect, useRef, useState } from 'react';
+import type { EvidenceFile, LinkPreview } from '../../shared/api.ts';
+import { isHttpUrl, parsePrUrl } from '../../shared/links.ts';
+import type { Evidence } from '../../shared/schema/index.ts';
+import { NETWORK_ERROR, isApiError, previewLink, uploadEvidence } from '../api/client.ts';
+import { todayIso } from '../lib/dates.ts';
+import { stem } from './evidence.ts';
+
+/** 25 MB, the server's limit (SPEC R3): checked here first, so a huge file isn't sent only to be refused. */
+export const MAX_UPLOAD_BYTES = 25 * 1024 * 1024;
+
+export type Pending =
+  | {
+      pid: number;
+      kind: 'file';
+      name: string;
+      bytes: number;
+      /** The browser's idea of its type ('' if none). */
+      type: string;
+      /** A local preview for pictures (an object URL), revoked when it goes. */
+      preview?: string;
+      status: 'uploading' | 'ready' | 'error';
+      error?: string;
+      evidence?: Evidence;
+      file?: EvidenceFile;
+      source: File;
+    }
+  | {
+      pid: number;
+      kind: 'link';
+      url: string;
+      status: 'loading' | 'ready';
+      preview: LinkPreview;
+    };
+
+let pidSeq = 1;
+
+/** What a link becomes when the server couldn't be asked: the same classification, without a title or suggestions. */
+export function localPreview(url: string): LinkPreview {
+  const pr = parsePrUrl(url);
+  if (pr) return { kind: 'github_pr', url: pr.url, repo: pr.fullName, number: pr.number, externalKey: pr.externalKey, suggestedProjects: [] };
+  let domain = url;
+  try {
+    domain = new URL(url).hostname.replace(/^www\./, '');
+  } catch {
+    /* shown as typed */
+  }
+  return { kind: 'url', url, domain };
+}
+
+/** The evidence a previewed link becomes. */
+export function linkEvidence(p: LinkPreview): Omit<Evidence, 'id'> {
+  return p.kind === 'github_pr'
+    ? { kind: 'github_pr', url: p.url, externalKey: p.externalKey, ...(p.title ? { title: p.title } : {}) }
+    : { kind: 'url', url: p.url };
+}
+
+/** A title when nothing was typed: the PR's title (or owner/repo#n), else the first file's name, else the link's domain. */
+export function fallbackTitle(pending: readonly Pending[]): string {
+  for (const p of pending) if (p.kind === 'link' && p.preview.kind === 'github_pr') return p.preview.title || `${p.preview.repo}#${p.preview.number}`;
+  for (const p of pending) if (p.kind === 'file') return stem(p.name);
+  for (const p of pending) if (p.kind === 'link' && p.preview.kind === 'url') return p.preview.domain;
+  return '';
+}
+
+/** "Couldn't add X: …", from an upload's failure. */
+function uploadError(name: string, e: unknown): string {
+  if (isApiError(e, NETWORK_ERROR)) return `Couldn't add “${name}”: BragDoc isn't answering. Is it still running?`;
+  if (isApiError(e) && e.status === 413) return `“${name}” is over 25 MB, the most BragDoc keeps per file.`;
+  if (isApiError(e)) return e.message;
+  return `Couldn't add “${name}”.`;
+}
+
+export interface ComposerOptions {
+  /** A message for the user (a refused file, a duplicate PR). */
+  notify: (msg: string, tone?: 'ink' | 'bad') => void;
+}
+
+export function useComposer({ notify }: ComposerOptions) {
+  const [text, setText] = useState('');
+  const [pending, setPending] = useState<Pending[]>([]);
+  const [projects, setProjects] = useState<string[]>([]);
+  const [repos, setRepos] = useState<string[]>([]);
+  const [suggestedProjects, setSuggestedProjects] = useState<string[]>([]);
+  const [suggestedRepos, setSuggestedRepos] = useState<string[]>([]);
+  const [impact, setImpact] = useState<number | undefined>(undefined);
+  const [date, setDate] = useState(todayIso());
+  const aborts = useRef(new Map<number, AbortController>());
+  // the latest pending list, for the unmount cleanup
+  const pendingRef = useRef(pending);
+  pendingRef.current = pending;
+
+  useEffect(
+    () => () => {
+      for (const a of aborts.current.values()) a.abort();
+      for (const p of pendingRef.current) if (p.kind === 'file' && p.preview) URL.revokeObjectURL(p.preview);
+    },
+    [],
+  );
+
+  const update = useCallback((pid: number, patch: Partial<Pending>) => setPending((xs) => xs.map((x) => (x.pid === pid ? ({ ...x, ...patch } as Pending) : x))), []);
+
+  const upload = useCallback(
+    async (pid: number, file: File) => {
+      const ctl = new AbortController();
+      aborts.current.set(pid, ctl);
+      update(pid, { status: 'uploading', error: undefined });
+      try {
+        const r = await uploadEvidence(file, ctl.signal);
+        update(pid, { status: 'ready', evidence: r.evidence, file: r.file });
+      } catch (e) {
+        if (ctl.signal.aborted) return;
+        const msg = uploadError(file.name || 'that file', e);
+        // refused for what it is (spoofed, damaged, too big): it can't be retried, so it goes, with the reason
+        if (isApiError(e) && e.status >= 400 && e.status < 500) {
+          setPending((xs) => {
+            const gone = xs.find((x) => x.pid === pid);
+            if (gone?.kind === 'file' && gone.preview) URL.revokeObjectURL(gone.preview);
+            return xs.filter((x) => x.pid !== pid);
+          });
+          notify(msg, 'bad');
+        } else {
+          // the server went away mid-upload: keep it, to retry
+          update(pid, { status: 'error', error: msg });
+          notify(msg, 'bad');
+        }
+      } finally {
+        aborts.current.delete(pid);
+      }
+    },
+    [update, notify],
+  );
+
+  const addFiles = useCallback(
+    (files: File[]) => {
+      for (const f of files) {
+        const name = f.name || (f.type.startsWith('image/') ? 'Pasted picture' : 'Pasted file');
+        if (f.size > MAX_UPLOAD_BYTES) {
+          notify(`“${name}” is ${(f.size / 1048576).toFixed(0)} MB; BragDoc keeps files up to 25 MB.`, 'bad');
+          continue;
+        }
+        if (f.size === 0) {
+          notify(`“${name}” is empty${f.type ? '' : ' (or a folder: zip it first)'}, so there's nothing to add.`, 'bad');
+          continue;
+        }
+        const pid = pidSeq++;
+        const preview = f.type.startsWith('image/') ? URL.createObjectURL(f) : undefined;
+        setPending((xs) => [...xs, { pid, kind: 'file', name, bytes: f.size, type: f.type, preview, status: 'uploading', source: f }]);
+        void upload(pid, f);
+      }
+    },
+    [upload, notify],
+  );
+
+  const retry = useCallback(
+    (pid: number) => {
+      const p = pendingRef.current.find((x) => x.pid === pid);
+      if (p?.kind === 'file') void upload(pid, p.source);
+    },
+    [upload],
+  );
+
+  const addUrl = useCallback(
+    async (raw: string) => {
+      const url = raw.trim();
+      if (pendingRef.current.some((p) => p.kind === 'link' && p.url === url)) return;
+      const pid = pidSeq++;
+      setPending((xs) => [...xs, { pid, kind: 'link', url, status: 'loading', preview: localPreview(url) }]);
+      let preview: LinkPreview;
+      try {
+        preview = await previewLink(url);
+      } catch {
+        preview = localPreview(url); // the same classification, minus suggestions: nothing is lost
+      }
+      update(pid, { status: 'ready', preview });
+      if (preview.kind === 'github_pr') {
+        if (preview.suggestedProjects.length) setSuggestedProjects((s) => [...new Set([...s, ...preview.suggestedProjects])]);
+        if (preview.repoId) {
+          setSuggestedRepos((s) => [...new Set([...s, preview.repoId!])]);
+          // a PR names its repo outright: choose it (and its projects, if none are chosen yet)
+          setRepos((r) => (r.includes(preview.repoId!) ? r : [...r, preview.repoId!]));
+        }
+        setProjects((p) => (p.length ? p : preview.suggestedProjects));
+        if (preview.onBoard) notify(`${preview.repo}#${preview.number} is already on your board.`);
+      }
+    },
+    [update, notify],
+  );
+
+  /** A paste: files win; else one URL becomes a link. True if it was taken (the caller prevents the default). */
+  const takePaste = useCallback(
+    (data: DataTransfer): boolean => {
+      const files = [...data.files];
+      if (files.length) {
+        addFiles(files);
+        return true;
+      }
+      const t = data.getData('text/plain').trim();
+      if (isHttpUrl(t)) {
+        void addUrl(t);
+        return true;
+      }
+      return false;
+    },
+    [addFiles, addUrl],
+  );
+
+  /** A drop: files (folders refused), else a dragged link. */
+  const takeDrop = useCallback(
+    (data: DataTransfer) => {
+      const items = [...data.items];
+      const folders = items.filter((i) => i.kind === 'file' && i.webkitGetAsEntry?.()?.isDirectory).length;
+      if (folders) notify(`${folders === 1 ? 'That is a folder' : 'Some of those are folders'}: BragDoc takes files. Zip ${folders === 1 ? 'it' : 'them'} first.`, 'bad');
+      const files = [...data.files].filter((_, i) => !items[i]?.webkitGetAsEntry?.()?.isDirectory);
+      if (files.length) return addFiles(files);
+      if (folders) return;
+      const t = (data.getData('text/uri-list').split('\n').find((l) => l && !l.startsWith('#')) || data.getData('text/plain')).trim();
+      if (isHttpUrl(t)) void addUrl(t);
+    },
+    [addFiles, addUrl, notify],
+  );
+
+  const remove = useCallback((pid: number) => {
+    aborts.current.get(pid)?.abort();
+    setPending((xs) => {
+      const gone = xs.find((x) => x.pid === pid);
+      if (gone?.kind === 'file' && gone.preview) URL.revokeObjectURL(gone.preview);
+      return xs.filter((x) => x.pid !== pid);
+    });
+  }, []);
+
+  const reset = useCallback(() => {
+    for (const p of pendingRef.current) if (p.kind === 'file' && p.preview) URL.revokeObjectURL(p.preview);
+    setText('');
+    setPending([]);
+    setProjects([]);
+    setRepos([]);
+    setSuggestedProjects([]);
+    setSuggestedRepos([]);
+    setImpact(undefined);
+    setDate(todayIso());
+  }, []);
+
+  const busy = pending.some((p) => p.status === 'uploading' || p.status === 'loading');
+  const failed = pending.some((p) => p.status === 'error');
+  const empty = !text.trim() && !pending.length;
+
+  /** The "Paste a screenshot" / "Paste a PR link" buttons: read the clipboard, where the browser allows it. */
+  const pasteFromClipboard = useCallback(
+    async (want: 'image' | 'link') => {
+      const keys = /Mac|iPhone|iPad/.test(navigator.platform) ? '⌘V' : 'Ctrl+V';
+      try {
+        if (want === 'image' && navigator.clipboard?.read) {
+          const items = await navigator.clipboard.read();
+          const files: File[] = [];
+          for (const item of items) {
+            const type = item.types.find((t) => t.startsWith('image/'));
+            if (type) files.push(new File([await item.getType(type)], `Pasted picture.${type.split('/')[1] === 'jpeg' ? 'jpg' : type.split('/')[1]}`, { type }));
+          }
+          if (files.length) return addFiles(files);
+        }
+        const t = navigator.clipboard?.readText ? (await navigator.clipboard.readText()).trim() : '';
+        if (isHttpUrl(t)) return void addUrl(t);
+        notify(want === 'image' ? `There's no picture on your clipboard. Copy a screenshot, then press ${keys} here.` : `There's no link on your clipboard. Copy a PR link, then press ${keys} here.`);
+      } catch {
+        // the browser said no (or can't): the keyboard always works
+        notify(`Press ${keys} to paste it here.`);
+      }
+    },
+    [addFiles, addUrl, notify],
+  );
+
+  return {
+    pasteFromClipboard,
+    text,
+    setText,
+    pending,
+    projects,
+    setProjects,
+    repos,
+    setRepos,
+    suggestedProjects,
+    suggestedRepos,
+    impact,
+    setImpact,
+    date,
+    setDate,
+    addFiles,
+    addUrl,
+    takePaste,
+    takeDrop,
+    remove,
+    retry,
+    reset,
+    busy,
+    failed,
+    empty,
+    /** Pin it: nothing to pin, an upload still going, or one that failed (retry or remove it first) all say no. */
+    canSubmit: !empty && !busy && !failed,
+  };
+}
+
+export type Composer = ReturnType<typeof useComposer>;

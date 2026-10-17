@@ -208,12 +208,12 @@ export type ProjectEntry<P = Record<string, unknown>> = P & { etag: string; achi
 /** A repo as the API lists it: the file's fields and its ETag. */
 export type RepoEntry<R = Record<string, unknown>> = R & { etag: string };
 
-/** `GET /api/projects` (the writes are PR8's). Every project, newest start first. */
+/** `GET /api/projects` (server/routes/catalog.ts; PR8 adds the writes). Every project, newest start first. */
 export interface ProjectsResponse<P = Record<string, unknown>> {
   projects: ProjectEntry<P>[];
 }
 
-/** `GET /api/repos` (the writes are PR8's). Every repo, by name. */
+/** `GET /api/repos` (server/routes/catalog.ts; PR8 adds the writes). Every repo, by name. */
 export interface ReposResponse<R = Record<string, unknown>> {
   repos: RepoEntry<R>[];
 }
