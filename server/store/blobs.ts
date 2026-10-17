@@ -79,14 +79,21 @@ export function imageSize(b: Uint8Array): { width: number; height: number } | un
 const cleanName = (n: string | undefined) => (n ? path.basename(n).replace(/[\u0000-\u001f\u007f]/g, '').slice(0, 200) || undefined : undefined);
 
 /** Store `bytes` as an evidence file (or find them already stored). */
-export async function ingestBytes(store: Store, bytes: Uint8Array, opts: { originalName?: string } = {}): Promise<Ingested> {
+export interface IngestOptions {
+  originalName?: string;
+  /** Only these evidence kinds (checked from the content, before anything is stored). */
+  only?: readonly EvidenceKind[];
+}
+
+export async function ingestBytes(store: Store, bytes: Uint8Array, opts: IngestOptions = {}): Promise<Ingested> {
   if (bytes.byteLength > MAX_BLOB_BYTES) throw new ValidationError(`that file is ${(bytes.byteLength / 1048576).toFixed(1)} MB; the limit is ${MAX_BLOB_BYTES / 1048576} MB`);
   if (bytes.byteLength === 0) throw new ValidationError('that file is empty');
   const sha = crypto.createHash('sha256').update(bytes).digest('hex');
   const existing = store.get('evidence', sha);
   const blobAbs = existing ? path.join(store.home, blobRelPath(sha, existing.ext)) : null;
-  if (existing && blobAbs && fs.existsSync(blobAbs)) return { sha256: sha, sidecar: existing, kind: evidenceKindFor(existing.mime), created: false };
   const { mime, ext } = existing ?? (await sniff(bytes, opts.originalName));
+  if (opts.only && !opts.only.includes(evidenceKindFor(mime))) throw new ValidationError(`that file is ${mime}, not ${opts.only.join(' or ')}`);
+  if (existing && blobAbs && fs.existsSync(blobAbs)) return { sha256: sha, sidecar: existing, kind: evidenceKindFor(existing.mime), created: false };
   const abs = path.join(store.home, blobRelPath(sha, ext));
   // content-addressed: a file already at this name holds these very bytes, so it's never replaced
   if (!fs.existsSync(abs)) atomicWrite(abs, bytes, { createOnly: true });
@@ -110,19 +117,38 @@ export async function ingestBytes(store: Store, bytes: Uint8Array, opts: { origi
 }
 
 /**
- * Store the file at `file` as evidence: a regular file only (not a directory, device or socket), within the size cap,
- * checked before it's read. Symlinks are followed (a screenshot folder may be one), but the target must be a file.
+ * Store the file at `file` as evidence: an absolute path to a regular file (not a directory, device or socket), within
+ * the size cap, checked before it's read; never one in the data home or a hidden directory. Symlinks are followed (a
+ * screenshot folder may be one), and the checks apply to where they lead.
  */
-export async function ingestPath(store: Store, file: string, opts: { originalName?: string } = {}): Promise<Ingested> {
+export async function ingestPath(store: Store, file: string, opts: IngestOptions = {}): Promise<Ingested> {
+  if (!path.isAbsolute(file)) throw new ValidationError(`${file} isn't an absolute path`);
+  // never BragDoc's own files (secrets.yaml, runtime.json), and nothing in a hidden directory (~/.ssh, ~/.config): an
+  // agent asking for those is never asking for evidence
+  let real: string;
+  try {
+    real = fs.realpathSync(file);
+  } catch {
+    throw new ValidationError(`there's no file at ${file}`);
+  }
+  const home = (() => {
+    try {
+      return fs.realpathSync(store.home);
+    } catch {
+      return path.resolve(store.home);
+    }
+  })();
+  if (real === home || real.startsWith(home + path.sep)) throw new ValidationError(`${file} is inside BragDoc's data folder, so it can't be added as evidence`);
+  if (real.split(path.sep).slice(0, -1).some((seg) => seg.startsWith('.'))) throw new ValidationError(`${file} is in a hidden folder, so it can't be added as evidence`);
   let st: fs.Stats;
   try {
-    st = fs.statSync(file);
+    st = fs.statSync(real);
   } catch {
     throw new ValidationError(`there's no file at ${file}`);
   }
   if (!st.isFile()) throw new ValidationError(`${file} is not a regular file`);
   if (st.size > MAX_BLOB_BYTES) throw new ValidationError(`${file} is ${(st.size / 1048576).toFixed(1)} MB; the limit is ${MAX_BLOB_BYTES / 1048576} MB`);
-  return ingestBytes(store, fs.readFileSync(file), { originalName: opts.originalName ?? path.basename(file) });
+  return ingestBytes(store, fs.readFileSync(real), { ...opts, originalName: opts.originalName ?? path.basename(file) });
 }
 
 /** The absolute path of a stored evidence file, or null if there's no such blob (or its file is missing). */

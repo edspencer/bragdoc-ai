@@ -56,7 +56,8 @@ test('ingest refuses empty and oversized files, and anything but a regular file'
   h = storeHome();
   await assert.rejects(h.services.evidence.ingestBytes(new Uint8Array(0)), ValidationError);
   await assert.rejects(h.services.evidence.ingestBytes(new Uint8Array(MAX_BLOB_BYTES + 1)), /limit is 25 MB/);
-  await assert.rejects(h.services.evidence.ingestPath(h.home), /not a regular file/);
+  await assert.rejects(h.services.evidence.ingestPath(path.join(h.home, '..')), /not a regular file/);
+  await assert.rejects(h.services.evidence.ingestPath('relative/shot.png'), /absolute/);
   await assert.rejects(h.services.evidence.ingestPath(path.join(h.home, 'nope.png')), /no file/);
   const big = path.join(h.home, '..', 'big.bin');
   fs.writeFileSync(big, '');
@@ -75,4 +76,18 @@ test('a sidecar whose blob file is missing: file() says so, and re-ingesting res
   assert.throws(() => h.services.evidence.file(a.sha256), /missing/);
   await h.services.evidence.ingestBytes(PDF);
   assert.ok(h.services.evidence.file(a.sha256).path);
+});
+
+test('ingestPath refuses BragDoc\'s own files and hidden folders, wherever a symlink points', async () => {
+  h = storeHome();
+  h.put('secrets.yaml', 'githubToken: shh\n');
+  await assert.rejects(h.services.evidence.ingestPath(path.join(h.home, 'secrets.yaml')), /inside BragDoc's data folder/);
+  const outside = path.join(h.home, '..', 'innocent.png');
+  fs.symlinkSync(path.join(h.home, 'secrets.yaml'), outside);
+  await assert.rejects(h.services.evidence.ingestPath(outside), /inside BragDoc's data folder/);
+  const ssh = path.join(h.home, '..', '.ssh');
+  fs.mkdirSync(ssh);
+  fs.writeFileSync(path.join(ssh, 'id_ed25519'), 'key');
+  await assert.rejects(h.services.evidence.ingestPath(path.join(ssh, 'id_ed25519')), /hidden folder/);
+  assert.equal(h.store.all('evidence').length, 0);
 });

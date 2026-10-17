@@ -52,9 +52,9 @@ export class AchievementService {
           source: v.source ?? 'manual',
           archived: v.archived ?? false,
           createdAt: v.createdAt ?? now,
-          updatedAt: now,
+          updatedAt: v.updatedAt ?? now,
         }),
-        body: body ? (body.endsWith('\n') ? body : body + '\n') : '',
+        body: withNewline(body ?? ''),
       }),
       { createOnly: true },
     );
@@ -68,11 +68,13 @@ export class AchievementService {
     if (v.repos) requireIds(this.store, 'repo', v.repos, 'repos');
     requireIds(this.store, 'company', [v.companyId], 'companyId');
     const { body, evidence, ...rest } = v;
-    const ev = evidence ? withEvidenceIds(this.store, evidence) : undefined;
     return this.store.write(
       'achievement',
       id,
-      () => ({ patch: defined({ ...rest, ...(ev ? { evidence: ev } : {}), updatedAt: nowIso(this.store) }), body }),
+      (cur) => ({
+        patch: defined({ ...rest, ...(evidence ? { evidence: withEvidenceIds(this.store, evidence, cur!.evidence) } : {}), updatedAt: nowIso(this.store) }),
+        body: body === undefined ? undefined : withNewline(body),
+      }),
       { ...opts, mustExist: true },
     );
   }
@@ -152,6 +154,9 @@ export class AchievementService {
     return this.list({ ...filters, q });
   }
 }
+
+/** A non-empty body ends with a newline, as files do. */
+const withNewline = (b: string) => (b && !b.endsWith('\n') ? b + '\n' : b);
 
 function intersect(a: Iterable<string> | null, b: ReadonlySet<string>): Iterable<string> {
   return a ? [...a].filter((x) => b.has(x)) : b;

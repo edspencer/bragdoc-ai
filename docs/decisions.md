@@ -197,14 +197,25 @@ D17 onwards are decisions made while building.
   lag a hand edit the watcher hasn't reported), as a YAML Document, then validate and write atomically. Synchronous
   means concurrent requests can't interleave inside a read-modify-write. Only file ingest (and Found's keep/merge,
   which ingest) is async.
-- A file that's invalid on disk is never written: writes to it fail with a conflict until it's fixed by hand.
+- A file that's invalid on disk is never written: writes to it fail with a conflict until it's fixed by hand. It still
+  claims its `externalKey`s and `legacyId` (read from whatever parses, else its `externalKey:` lines), so a dismissed
+  PR doesn't come back while its file is broken. Keys map to sets of files, so a hand copy doesn't lose one on removal.
+- Ids are checked before they become paths (a ULID; a sha256 for evidence), so no id can reach outside its own file.
+- Evidence items keep keys this version doesn't know, and list edits match items by `id`, so removing one never moves
+  another's comments or fields onto its neighbour. A nested mapping (`quote:`) is replaced whole.
+- Writes replace a symlinked file with a regular file (atomic rename). Keep the data home itself, not single files in
+  it, behind a symlink if you need one.
 - A file's `id:` must match its name, and may be left out of a hand-written file. An achievement's folder is the UTC
   month its ULID was made in.
 - Removing anything moves its file to `backups/removed/<stamp>/`; references to it are left alone, so restoring is
   lossless. Meanwhile each missing target is **one** dangling-reference Problem, however many files point at it.
+- File ingest takes absolute paths only, and refuses anything in the data home or in a hidden directory (after
+  following symlinks): an agent asking for `secrets.yaml` or `~/.ssh` is never asking for evidence. A screenshots
+  candidate's files must be images.
 - Found: decided candidates stay on disk (that's how a dismissed `externalKey` stays dismissed); `decision` records what
   was done so undo can reverse exactly that (remove the achievement a keep made; take off exactly the evidence a merge
-  added). A candidate's local files are copied into `evidence/` only on keep or merge.
+  added). Keeping a candidate whose key reached the board meanwhile is a merge, so undo never removes an achievement
+  the candidate didn't make. A candidate's local files are copied into `evidence/` only on keep or merge.
 - Projects have a `status` of `active`, `paused`, `done` or `archived`; new projects take the next of the twelve
   prototype swatches (`PROJECT_SWATCHES`).
 - **Considered:** an async store with per-file locks (Hallway's; needed there because writes await, not here); deleting

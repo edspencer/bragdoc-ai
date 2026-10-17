@@ -126,7 +126,11 @@ locally (and `npm run test:e2e` if you touched anything it covers), and CI is gr
   never `ctx.store.write` directly. Validate request bodies with the input schemas in `shared/schema/inputs.ts`
   (strict: unknown keys are errors) or let the service do it. Map the store's errors (`server/store/errors.ts`):
   `NotFoundError` → 404, `ValidationError` → 400 (its `issues` say which keys), `ConflictError` and `ReadOnlyError` →
-  409. Reads that need no logic can use `ctx.store` (`get`, `all`, `problems()`, `search`, `achievementIdsIn`).
+  409. Reads that need no logic can use `ctx.store` (`get`, `all`, `problems()`, `search`, `achievementIdsIn`). What
+  `get`/`all` return are the index's own objects: **never mutate them** (copy first). Pass the client's `If-Match` to
+  updates from the UI (every entry has an `etag`), so an edit made against a stale copy is a 409, not a silent
+  overwrite. Serving evidence files: trust only an allow-list of types from the sidecar's `mime` (a sidecar is
+  hand-editable), with the blob headers from SECURITY.md.
 - **Live updates:** `ctx.store.subscribe(fn)` hears every change as a `StoreChange` (`shared/schema/change.ts`),
   whether BragDoc wrote it or a hand edit did; the watcher runs under `startServer`. Our own writes are one event each.
 - **A field on a data file:** add it as optional (or with a default) to its schema in `shared/schema/`, with a

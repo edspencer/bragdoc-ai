@@ -106,18 +106,21 @@ function setNode(doc: Document, node: unknown, value: unknown): Node {
   }
   if (Array.isArray(value)) {
     if (!isSeq(node)) return createNode(doc, value);
-    // list items are whole values (an evidence item, an id): patching one replaces its keys exactly, so a key the new
-    // item doesn't have goes, but the item keeps its comments
+    // list items are whole values. Mappings with an `id` (evidence) are matched by it, not by position, so removing
+    // one item never shifts another's comments or keys onto its neighbour
+    if (value.length && value.every((v) => isPlainObject(v) && typeof v.id === 'string')) {
+      const byId = new Map<string, YAMLMap>();
+      for (const it of node.items) if (isMap(it) && typeof it.get('id') === 'string') byId.set(it.get('id') as string, it);
+      node.items = value.map((v) => {
+        const old = byId.get((v as { id: string }).id);
+        return old ? replaceMap(doc, old, v as Record<string, unknown>) : createNode(doc, v);
+      });
+      return node;
+    }
     value.forEach((v, i) => {
       if (i >= node.items.length) node.items.push(createNode(doc, v));
-      else if (isPlainObject(v) && isMap(node.items[i])) {
-        const m = node.items[i] as YAMLMap;
-        for (const it of [...m.items]) {
-          const k = isScalar(it.key) ? String(it.key.value) : String(it.key);
-          if (!(k in v)) m.delete(k);
-        }
-        node.items[i] = setNode(doc, m, v);
-      } else node.items[i] = setNode(doc, node.items[i], v);
+      else if (isPlainObject(v) && isMap(node.items[i])) node.items[i] = replaceMap(doc, node.items[i] as YAMLMap, v);
+      else node.items[i] = setNode(doc, node.items[i], v);
     });
     node.items.length = value.length;
     return node;
@@ -134,6 +137,27 @@ function setNode(doc: Document, node: unknown, value: unknown): Node {
     Object.assign(fresh, { comment: old.comment, commentBefore: old.commentBefore, spaceBefore: old.spaceBefore });
   }
   return fresh;
+}
+
+/**
+ * Make a list item's mapping exactly `value`: keys it lacks go, scalars keep their comments, and a nested mapping or
+ * list is replaced whole unless it's unchanged (merging a `quote:` into another quote would mix up who said what).
+ */
+function replaceMap(doc: Document, m: YAMLMap, value: Record<string, unknown>): YAMLMap {
+  for (const it of [...m.items]) {
+    const k = isScalar(it.key) ? String(it.key.value) : String(it.key);
+    if (value[k] === undefined || value[k] === null) m.delete(k);
+  }
+  for (const [k, v] of Object.entries(value)) {
+    if (v === undefined || v === null) continue;
+    const pair = m.items.find((it) => (isScalar(it.key) ? it.key.value : it.key) === k);
+    if (!pair) m.items.push(new Pair(doc.createNode(k), createNode(doc, v)));
+    else if (isPlainObject(v) || Array.isArray(v)) {
+      const same = JSON.stringify((pair.value as Node | null)?.toJSON?.() ?? pair.value) === JSON.stringify(v);
+      if (!same) pair.value = setNode(doc, null, v);
+    } else pair.value = setNode(doc, pair.value, v);
+  }
+  return m;
 }
 
 function root(doc: Document): YAMLMap {
@@ -159,7 +183,25 @@ export function newDocument(header?: string): Document {
   return doc;
 }
 
+/**
+ * The document as text. A string the `yaml` library would write plain but js-yaml would read back as something else
+ * (`0b101` and `1_000` are numbers to js-yaml, not in YAML 1.2's core schema) is quoted, so a write reads back as
+ * what was written (D25).
+ */
 export function stringify(doc: Document): string {
+  YAML.visit(doc, {
+    Scalar(_, n) {
+      if (typeof n.value !== 'string' || (n.type && n.type !== Scalar.PLAIN)) return;
+      let same = false;
+      try {
+        same = jsyaml.load(n.value, { schema: jsyaml.CORE_SCHEMA }) === n.value;
+      } catch {
+        /* not plain-safe: quote it */
+      }
+      // a plain scalar that's ambiguous to js-yaml; `yaml` quotes the ones it finds ambiguous itself
+      if (!same && !/[\n:#]|^\s|\s$/.test(n.value) && /^[-+.0-9]/.test(n.value)) n.type = Scalar.QUOTE_DOUBLE;
+    },
+  });
   return doc.toString({ lineWidth: 0 });
 }
 

@@ -29,6 +29,7 @@ export const AchievementCreateSchema = z.strictObject({
   legacyId: z.string().min(1).optional(),
   archived: z.boolean().optional(),
   createdAt: isoDateTime.optional().describe('For importers: when it was originally added (its id is made from this time).'),
+  updatedAt: isoDateTime.optional().describe('For importers: when it was last changed. Defaults to now.'),
   example: z.boolean().optional(),
   meta: record.optional(),
 });
@@ -146,7 +147,7 @@ export const FoundAddSchema = z.strictObject({
   happenedAt: isoDate.optional().describe('Defaults to today.'),
   impact: impact.optional(),
   evidence: z.array(EvidenceInputSchema).optional(),
-  files: z.array(z.strictObject({ path: z.string().min(1), title: z.string().optional() })).optional(),
+  files: z.array(z.strictObject({ path: z.string().regex(/^(\/|[A-Za-z]:[\\/])/, 'an absolute path'), title: z.string().optional() })).optional(),
   quote: QuoteSchema.optional().describe('Shorthand for one quote evidence.'),
   matchedRules: z.array(z.string()).optional(),
   suggestedProjects: ids.optional(),

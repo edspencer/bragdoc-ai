@@ -36,8 +36,12 @@ function checkEvidence(e: { kind: EvidenceKind; blob?: string; url?: string; ext
   if (e.kind === 'quote') need('quote', 'quote evidence needs a quote');
 }
 
+/** The keys BragDoc knows on an evidence item; any others are kept as they are (they may be a newer BragDoc's). */
+export const EVIDENCE_KEYS = ['id', ...Object.keys(evidenceFields)] as const;
+
+// loose: an evidence item keeps keys this version doesn't know, so rewriting the list never drops them (D24)
 export const EvidenceSchema = z
-  .object({ id: ulidSchema.describe('The evidence\'s id (a ULID).'), ...evidenceFields })
+  .looseObject({ id: ulidSchema.describe('The evidence\'s id (a ULID).'), ...evidenceFields })
   .superRefine(checkEvidence);
 /** Evidence as a caller gives it: the id is optional (the services assign one). Unknown keys are refused. */
 export const EvidenceInputSchema = z

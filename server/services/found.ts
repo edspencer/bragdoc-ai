@@ -66,8 +66,11 @@ export class FoundService {
     const keys = [v.externalKey, ...(v.evidence ?? []).map((e) => e.externalKey)].filter((k): k is string => !!k);
     for (const k of keys) {
       const fid = this.store.foundIdByKey(k);
-      const f = fid ? this.store.get('found', fid) : undefined;
-      if (f) return { candidate: f, created: false, reason: f.status === 'dismissed' ? 'dismissed' : 'exists' };
+      if (fid) {
+        // a candidate whose file is broken still holds its key (it may be a dismissed one)
+        const f = this.store.get('found', fid) ?? null;
+        return { candidate: f, created: false, reason: f?.status === 'dismissed' ? 'dismissed' : 'exists' };
+      }
       const aid = this.store.achievementIdByKey(k);
       if (aid) return { candidate: null, created: false, reason: 'on-board', achievementId: aid };
     }
@@ -85,10 +88,18 @@ export class FoundService {
     return { candidate, created: true };
   }
 
+  /** The candidate, if it's pending and its file can be written (checked first, so a decision never half-happens). */
   private pending(id: string): FoundCandidate {
     const f = this.get(id);
     if (f.status !== 'pending') throw new ConflictError(`that one was already ${f.status}; undo it first`);
+    this.writable(id);
     return f;
+  }
+
+  private writable(id: string): void {
+    const e = this.store.entry('found', id)!;
+    if (e.readOnly || e.problems.some((p) => p.severity === 'error' && p.code !== 'dangling'))
+      throw new ConflictError(`${e.file} has a problem (${e.problems[0]?.message}); fix it by hand first`);
   }
 
   /** Copy the candidate's files into evidence/, as Evidence items. */
@@ -97,7 +108,9 @@ export class FoundService {
     const missing: string[] = [];
     for (const file of f.files) {
       try {
-        evidence.push(this.evidence.toEvidence(await this.evidence.ingestPath(file.path), file.title));
+        // a screenshots candidate brings images, nothing else
+        const i = await this.evidence.ingestPath(file.path, f.source === 'screenshots' ? { only: ['image'] } : {});
+        evidence.push(this.evidence.toEvidence(i, file.title));
       } catch {
         missing.push(file.path);
       }
@@ -109,6 +122,10 @@ export class FoundService {
   async keep(id: string, input: unknown = {}): Promise<DecideResult> {
     const o = validate(FoundKeepSchema, input);
     const f = this.pending(id);
+    // its key is on the board already (added some other way since): keeping it means merging into that one, so that
+    // undo never removes an achievement this candidate didn't make
+    const onBoard = f.externalKey ? this.store.achievementIdByKey(f.externalKey) : undefined;
+    if (onBoard && this.store.get('achievement', onBoard)) return this.merge(id, onBoard);
     const files = await this.ingestFiles(f);
     this.pending(id); // still pending after the await
     const { achievement } = this.achievements.create(
@@ -154,6 +171,7 @@ export class FoundService {
     const f = this.get(id);
     const d = f.decision;
     if (f.status === 'pending' || !d) throw new ConflictError('there is nothing to undo: it is still pending');
+    this.writable(id);
     if (d.action === 'keep' && d.achievementId && this.store.get('achievement', d.achievementId)) this.achievements.remove(d.achievementId);
     if (d.action === 'merge' && d.achievementId && d.evidenceIds?.length && this.store.get('achievement', d.achievementId))
       this.achievements.removeEvidence(d.achievementId, d.evidenceIds);

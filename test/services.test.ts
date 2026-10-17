@@ -7,6 +7,8 @@ import path from 'node:path';
 import { relPathFor } from '../server/store/files.ts';
 import { ConflictError, ValidationError } from '../server/store/index.ts';
 import { normalizeRemote } from '../server/services/catalog.ts';
+import * as servicesModule from '../server/services/index.ts';
+const require_services = () => servicesModule;
 import { storeHome, type StoreHome } from './store-fixture.ts';
 
 let h: StoreHome;
@@ -61,7 +63,7 @@ test('achievements: update changes only front-matter, keeping the body byte for 
   assert.equal(u.impact, 6);
   assert.equal(u.updatedAt, '2026-10-17T09:01:00.000Z');
   assert.ok(h.read(rel).endsWith(`---\n${body}`));
-  assert.equal(h.services.achievements.update(a.id, { body: 'New body' }).body, 'New body');
+  assert.equal(h.services.achievements.update(a.id, { body: 'New body' }).body, 'New body\n');
 });
 
 test('achievements: archive, list filters, ordering and search', () => {
@@ -237,4 +239,91 @@ test('found: dismiss and undo, list order and filters', () => {
   assert.throws(() => f.undo(b.id), /nothing to undo/);
   f.undo(a.id);
   assert.equal(f.pendingCount(), 2);
+});
+
+test('evidence edits match items by id: unknown keys and comments stay with their own item', () => {
+  h = storeHome();
+  const s = h.services;
+  const { achievement: a } = s.achievements.create({
+    title: 'Quotes',
+    evidence: [
+      { kind: 'quote', quote: { text: 'great', from: 'Alice', where: 'slack' } },
+      { kind: 'quote', quote: { text: 'nice' } },
+    ],
+  });
+  const rel = relPathFor('achievement', a.id);
+  const [q0, q1] = a.evidence;
+  // a hand edit: a comment and an unknown key on the second item
+  h.put(rel, h.read(rel).replace(`  - id: ${q1.id}\n`, `  # from the standup\n  - id: ${q1.id}\n    pinned: true\n`));
+  h.store.reloadPath(path.join(h.home, rel));
+  s.achievements.removeEvidence(a.id, [q0.id]);
+  let text = h.read(rel);
+  assert.match(text, /# from the standup\n  - id: /);
+  assert.match(text, /pinned: true/);
+  assert.doesNotMatch(text, /Alice|slack/, 'the removed quote\'s who and where went with it');
+  s.achievements.addEvidence(a.id, [{ id: '01JA0000000000000000000009', kind: 'url', url: 'https://example.com' }]);
+  // an update from a client that doesn't know `pinned` keeps it, too
+  s.achievements.update(a.id, { evidence: [{ id: q1.id, kind: 'quote', quote: { text: 'nice!' } }] });
+  text = h.read(rel);
+  assert.match(text, /pinned: true/);
+  assert.match(text, /text: nice!/);
+  assert.equal((h.store.get('achievement', a.id)!.evidence[0] as Record<string, unknown>).pinned, true);
+});
+
+test('ids are checked before they become paths', () => {
+  h = storeHome();
+  h.put('secrets.yaml', 'githubToken: shh\n');
+  h.put('config.yaml', 'schemaVersion: 1\n');
+  assert.throws(() => h.services.projects.remove('../secrets'), /no project/);
+  assert.throws(() => h.services.companies.remove('x/../../config'), /no company/);
+  assert.throws(() => h.services.repos.restore('../secrets'), /no repo/);
+  assert.throws(() => h.services.achievements.update('../../secrets', { title: 'x' }), /no achievement/);
+  assert.ok(h.exists('secrets.yaml') && h.exists('config.yaml'));
+});
+
+test('keeping a candidate whose key reached the board meanwhile merges, and undo leaves the board alone', async () => {
+  h = storeHome();
+  const s = h.services;
+  const { candidate } = s.found.add({ source: 'github', externalKey: 'github_pr:o/r#5', title: 'PR 5', evidence: [{ kind: 'url', url: 'https://example.com/ci' }] });
+  const mine = s.achievements.create({ title: 'My own write-up of PR 5', externalKey: 'github_pr:o/r#5' }).achievement;
+  const kept = await s.found.keep(candidate!.id);
+  assert.equal(kept.achievementId, mine.id);
+  assert.equal(kept.candidate.decision!.action, 'merge');
+  s.found.undo(candidate!.id);
+  assert.equal(s.achievements.get(mine.id).title, 'My own write-up of PR 5');
+  assert.equal(s.achievements.get(mine.id).evidence.length, 0);
+});
+
+test('a dismissed key stays dismissed while its file is broken; duplicate files keep the key claimed', () => {
+  h = storeHome();
+  const f = h.services.found;
+  const { candidate } = f.add({ source: 'github', externalKey: 'github_pr:o/r#7', title: 'PR 7' });
+  f.dismiss(candidate!.id);
+  const rel = relPathFor('found', candidate!.id);
+  const good = h.read(rel);
+  h.put(rel, good.replace(/^title: .*$/m, 'title: [broken'));
+  const s2 = (h.store = h.reopen());
+  const { createServices } = require_services();
+  const again = createServices(s2).found.add({ source: 'github', externalKey: 'github_pr:o/r#7', title: 'PR 7 again' });
+  assert.equal(again.created, false);
+  // two achievement files with one key (a hand copy): removing one leaves the key claimed by the other
+  const svc = createServices(s2);
+  const a = svc.achievements.create({ title: 'A', externalKey: 'k:1' }).achievement;
+  const copyId = '01JA0000000000000000000ABC';
+  h.put(relPathFor('achievement', copyId), h.read(relPathFor('achievement', a.id)).replace(a.id, copyId));
+  s2.reloadPath(path.join(h.home, relPathFor('achievement', copyId)));
+  svc.achievements.remove(a.id);
+  assert.equal(svc.achievements.create({ title: 'A again', externalKey: 'k:1' }).created, false);
+});
+
+test('a candidate in a hidden or data-home path is refused by the schema or at keep; screenshots must be images', async () => {
+  h = storeHome();
+  const s = h.services;
+  assert.throws(() => s.found.add({ source: 'screenshots', title: 'x', files: [{ path: 'relative.png' }] }), /absolute/);
+  const txt = path.join(h.home, '..', 'notes.txt');
+  fs.writeFileSync(txt, 'not an image');
+  const { candidate } = s.found.add({ source: 'screenshots', title: 'x', files: [{ path: txt }, { path: path.join(h.home, 'profile.yaml') }] });
+  const kept = await s.found.keep(candidate!.id);
+  assert.deepEqual(kept.missingFiles, [txt, path.join(h.home, 'profile.yaml')]);
+  assert.equal(h.store.all('evidence').length, 0);
 });

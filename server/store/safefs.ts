@@ -98,20 +98,23 @@ export function moveToRemoved(home: string, file: string, stamp: string): string
 }
 
 /**
- * The newest copy of `rel` (a path relative to the data home) in backups/removed/, or null. Restoring is
- * `renameNoClobber(found, original)`, which refuses if something has taken the original name since.
+ * The newest removed copy of an entity in backups/removed/, or null: `rel` is its path relative to the data home, or a
+ * function that finds it inside one removal's directory (an achievement may have lived in any month's folder).
+ * Restoring is `renameNoClobber(from, original)`, which refuses if something has taken the original name since.
  */
-export function findRemoved(home: string, rel: string): string | null {
+export function findRemoved(home: string, rel: string | ((removalDir: string) => string | null)): { from: string; rel: string } | null {
   const dir = path.join(home, 'backups', 'removed');
   let stamps: string[];
   try {
-    stamps = fs.readdirSync(dir).sort().reverse();
+    stamps = fs.readdirSync(dir);
   } catch {
     return null;
   }
+  // newest first; `<stamp>-10` is newer than `<stamp>-9`
+  stamps.sort((a, b) => b.localeCompare(a, 'en', { numeric: true }));
   for (const s of stamps) {
-    const p = path.join(dir, s, rel);
-    if (fs.existsSync(p)) return p;
+    const r = typeof rel === 'string' ? rel : rel(path.join(dir, s));
+    if (r && fs.existsSync(path.join(dir, s, r))) return { from: path.join(dir, s, r), rel: r };
   }
   return null;
 }

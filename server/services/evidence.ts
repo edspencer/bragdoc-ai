@@ -2,7 +2,7 @@
 // result into an Evidence item, and record OCR text on the sidecar (PR11), which makes it searchable.
 import { OcrSchema, type Evidence, type EvidenceSidecar } from '../../shared/schema/index.js';
 import { ulid } from '../../shared/ulid.js';
-import { blobPath, ingestBytes, ingestPath, type Ingested } from '../store/blobs.js';
+import { blobPath, ingestBytes, ingestPath, type IngestOptions, type Ingested } from '../store/blobs.js';
 import { NotFoundError, type Store } from '../store/index.js';
 import { validate } from './util.js';
 
@@ -10,12 +10,12 @@ export class EvidenceService {
   constructor(private store: Store) {}
 
   /** Store bytes (an upload, a paste). */
-  ingestBytes(bytes: Uint8Array, opts: { originalName?: string } = {}): Promise<Ingested> {
+  ingestBytes(bytes: Uint8Array, opts: IngestOptions = {}): Promise<Ingested> {
     return ingestBytes(this.store, bytes, opts);
   }
 
   /** Store a regular file from disk (a screenshot, an MCP attach_evidence path). */
-  ingestPath(file: string, opts: { originalName?: string } = {}): Promise<Ingested> {
+  ingestPath(file: string, opts: IngestOptions = {}): Promise<Ingested> {
     return ingestPath(this.store, file, opts);
   }
 

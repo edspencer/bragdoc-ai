@@ -201,3 +201,46 @@ test('remove moves the file into backups/removed/ and restore brings it back; no
   assert.ok(h.exists(again));
 });
 
+
+test('an achievement moved by hand to another month folder stays indexed; restore finds it wherever it was', async () => {
+  h = storeHome();
+  const { watchStore } = await import('../server/store/watch.ts');
+  const fs = await import('node:fs');
+  const { achievement } = h.services.achievements.create({ title: 'Moving' });
+  const from = relPathFor('achievement', achievement.id);
+  const to = `achievements/2023/09/${achievement.id}.md`;
+  const changes: unknown[] = [];
+  h.store.subscribe((c) => changes.push(c));
+  const w = watchStore(h.store);
+  await w.ready;
+  fs.mkdirSync(`${h.home}/achievements/2023/09`, { recursive: true });
+  fs.renameSync(`${h.home}/${from}`, `${h.home}/${to}`);
+  await new Promise((r) => setTimeout(r, 400));
+  await w.close();
+  assert.equal(h.store.entry('achievement', achievement.id)!.file, to);
+  assert.deepEqual(changes, [], 'the same bytes under a new name: nothing to announce');
+  h.services.achievements.update(achievement.id, { title: 'Moved' });
+  assert.match(h.read(to), /title: Moved/);
+  h.services.achievements.remove(achievement.id);
+  h.services.achievements.restore(achievement.id);
+  assert.ok(h.exists(to));
+});
+
+test('removing a sidecar takes its OCR text out of search', async () => {
+  h = storeHome();
+  const png = Buffer.from('89504e470d0a1a0a0000000d494844520000000100000001080600000000000000', 'hex');
+  const img = await h.services.evidence.ingestBytes(png);
+  h.services.evidence.setOcr(img.sha256, { engine: 'tesseract', text: 'zebracorn', at: '2026-10-17T09:00:00Z' });
+  h.services.achievements.create({ title: 'Shot', evidence: [h.services.evidence.toEvidence(img)] });
+  assert.equal(h.store.search('zebracorn').length, 1);
+  h.store.remove('evidence', img.sha256);
+  assert.equal(h.store.search('zebracorn').length, 0);
+});
+
+test('a string that looks like a number to the fast reader is written quoted', () => {
+  h = storeHome();
+  const { achievement } = h.services.achievements.create({ title: '0b1010', meta: { code: '0x1F' } });
+  const back = h.reopen().get('achievement', achievement.id)!;
+  assert.equal(back.title, '0b1010');
+  assert.deepEqual(back.meta, { code: '0x1F' });
+});

@@ -36,6 +36,7 @@ import {
   type Repo,
   type StoreChange,
 } from '../../shared/schema/index.js';
+import { ULID_RE } from '../../shared/ulid.js';
 import { ConflictError, NotFoundError, ReadOnlyError, ValidationError } from './errors.js';
 import { classify, relPathFor, SCAN_ROOTS, type EntityKind } from './files.js';
 import { atomicWrite, ExistsError, findRemoved, moveToRemoved, renameNoClobber } from './safefs.js';
@@ -84,6 +85,8 @@ export interface Entry<T> {
   problems: Problem[];
   /** From a newer BragDoc: never written. */
   readOnly: boolean;
+  /** The externalKeys and legacyId this file claims (`ext:…`, `legacy:…`), even while it's broken (D24). */
+  keys: string[];
 }
 
 /** What a write does: a merge patch onto the file (null removes a key) and, for achievements, a new body. */
@@ -135,6 +138,37 @@ const delFromSet = (m: Map<string, Set<string>>, k: string, v: string) => {
   if (s && s.delete(v) && !s.size) m.delete(k);
 };
 
+const first = (s: Set<string> | undefined) => (s ? s.values().next().value : undefined);
+
+/** The keys a file claims, from its value or (while it's broken) whatever of it parsed: strings only. */
+function keysOf(kind: EntityKind, v: unknown): string[] {
+  if (kind !== 'achievement' && kind !== 'found') return [];
+  const o = (v ?? {}) as Record<string, unknown>;
+  const str = (x: unknown) => (typeof x === 'string' && x ? x : null);
+  const ev = Array.isArray(o.evidence) ? o.evidence : [];
+  const keys = [str(o.externalKey), ...ev.map((e) => str((e as Record<string, unknown> | null)?.externalKey))].filter((k): k is string => !!k).map((k) => `ext:${k}`);
+  const legacy = kind === 'achievement' ? str(o.legacyId) : null;
+  return [...new Set([...keys, ...(legacy ? [`legacy:${legacy}`] : [])])];
+}
+
+/** The keys in a file that doesn't even parse: its `externalKey:` and `legacyId:` lines, best effort. */
+function scanKeys(kind: EntityKind, raw: string): string[] {
+  if (kind !== 'achievement' && kind !== 'found') return [];
+  const out: string[] = [];
+  // a YAML comment starts at a `#` after whitespace, so `owner/repo#12` is all value
+  for (const m of raw.matchAll(/^[\s-]*(externalKey|legacyId):[ \t]+(.+?)(?:[ \t]+#.*)?[ \t]*$/gm)) {
+    const v = m[2].replace(/^(['"])(.*)\1$/, '$2');
+    if (m[1] === 'externalKey') out.push(`ext:${v}`);
+    else if (kind === 'achievement') out.push(`legacy:${v}`);
+  }
+  return [...new Set(out)];
+}
+
+/** Ids as file names: a ULID, a sha256 for evidence, `profile` for the profile. Anything else is no such entity. */
+function validId(kind: EntityKind, id: string): boolean {
+  return kind === 'profile' ? id === 'profile' : kind === 'evidence' ? /^[0-9a-f]{64}$/.test(id) : ULID_RE.test(id);
+}
+
 type Listener = (c: StoreChange) => void;
 
 export class Store {
@@ -154,9 +188,8 @@ export class Store {
   readonly now: () => Date;
 
   // secondary indexes, over good values only
-  private achievementByKey = new Map<string, string>();
-  private achievementByLegacy = new Map<string, string>();
-  private foundByKey = new Map<string, string>();
+  /** `ext:<externalKey>` / `legacy:<legacyId>` → the ids of the files that claim it (a hand copy makes two). */
+  private keyIndex = { achievement: new Map<string, Set<string>>(), found: new Map<string, Set<string>>() };
   private byProject = new Map<string, Set<string>>();
   private byRepo = new Map<string, Set<string>>();
   private byMonth = new Map<string, Set<string>>();
@@ -218,16 +251,26 @@ export class Store {
   private reloadOne<K extends EntityKind>(kind: K, id: string, rel?: string): StoreChange | null {
     const map = this.entries[kind] as Map<string, Entry<EntityTypes[K]>>;
     const known = map.get(id);
-    const file = rel ?? known?.file ?? relPathFor(kind, id);
-    // an achievement moved by hand to another month's folder: the file we know about is still the one that counts
+    let file = rel ?? known?.file ?? relPathFor(kind, id);
+    // a second copy of an achievement in another month's folder: the file we know about is still the one that counts
     if (known && known.file !== file && known.raw !== null && readRaw(path.join(this.home, known.file)) !== null) return null;
-    const raw = readRaw(path.join(this.home, file));
-    if (known && raw === known.raw) return null;
-    const e: Entry<EntityTypes[K]> = known ?? { kind, id, file, raw: null, etag: null, value: null, problems: [], readOnly: false };
+    let raw = readRaw(path.join(this.home, file));
+    // the achievement file we knew has gone: maybe it was moved (by hand, or a checkout) to another month's folder
+    if (raw === null && kind === 'achievement' && known) {
+      const moved = this.findAchievementFile(id);
+      if (moved) [file, raw] = [moved, readRaw(path.join(this.home, moved))];
+    }
+    if (known && raw === known.raw) {
+      if (raw !== null) known.file = file; // the same bytes under a new name: nothing to announce
+      return null;
+    }
+    const e: Entry<EntityTypes[K]> = known ?? { kind, id, file, raw: null, etag: null, value: null, problems: [], readOnly: false, keys: [] };
     if (raw === null) {
       if (!known) return null;
       this.unindex(kind, e.value);
+      this.setKeys(e, []);
       map.delete(id);
+      if (kind === 'evidence') this.reindexBlob(id);
       return this.announce(kind, id, 'remove');
     }
     const r = this.check(kind, id, file, raw);
@@ -238,14 +281,32 @@ export class Store {
       e.value = r.value as EntityTypes[K];
       this.index(kind, e.value);
     }
+    // a broken file still claims its keys, so a dismissed PR can't come back while its file is broken (D24)
+    const from = r.value ?? e.value ?? r.obj;
+    this.setKeys(e, from ? keysOf(kind, from) : scanKeys(kind, raw));
     return this.announce(kind, id, 'upsert', r.value === null);
+  }
+
+  /** Where an achievement's file is, wherever it was moved within achievements/YYYY/MM/; null if nowhere. */
+  private findAchievementFile(id: string): string | null {
+    const root = path.join(this.home, 'achievements');
+    for (const y of safeList(root)) for (const m of safeList(path.join(root, y))) if (fs.existsSync(path.join(root, y, m, `${id}.md`))) return `achievements/${y}/${m}/${id}.md`;
+    return null;
+  }
+
+  private setKeys(e: Entry<unknown>, keys: string[]): void {
+    const idx = e.kind === 'achievement' || e.kind === 'found' ? this.keyIndex[e.kind] : null;
+    if (!idx) return;
+    for (const k of e.keys) delFromSet(idx, k, e.id);
+    for (const k of keys) addToSet(idx, k, e.id);
+    e.keys = keys;
   }
 
   /**
    * Parse and validate a file's text. `value` is null when the file is broken (a syntax error, a schema error, or a
    * future version that doesn't validate any more).
    */
-  private check(kind: EntityKind, id: string, file: string, raw: string): { value: unknown; problems: Problem[]; readOnly: boolean } {
+  private check(kind: EntityKind, id: string, file: string, raw: string): { value: unknown; problems: Problem[]; readOnly: boolean; obj?: Record<string, unknown> } {
     const problem = (code: Problem['code'], message: string, at?: { line: number; col: number }, key?: string): Problem => ({
       severity: 'error',
       code,
@@ -307,7 +368,7 @@ export class Store {
       }
     }
     const broken = problems.some((p) => p.code !== 'future-version');
-    if (broken || !r.success) return { value: null, readOnly, problems };
+    if (broken || !r.success) return { value: null, readOnly, problems, obj };
     const value = kind === 'achievement' ? { ...(r.data as object), body } : r.data;
     if (readOnly) (value as { schemaVersion: unknown }).schemaVersion = version;
     return { value, readOnly, problems };
@@ -336,13 +397,13 @@ export class Store {
 
   /** The achievement with this externalKey, its own or one of its evidence's. */
   achievementIdByKey(key: string): string | undefined {
-    return this.achievementByKey.get(key);
+    return first(this.keyIndex.achievement.get(`ext:${key}`));
   }
   achievementIdByLegacyId(legacyId: string): string | undefined {
-    return this.achievementByLegacy.get(legacyId);
+    return first(this.keyIndex.achievement.get(`legacy:${legacyId}`));
   }
   foundIdByKey(key: string): string | undefined {
-    return this.foundByKey.get(key);
+    return first(this.keyIndex.found.get(`ext:${key}`));
   }
   /** Achievement ids in a project / touching a repo / that happened in a month (`YYYY-MM`) / carrying a blob. */
   achievementIdsIn(by: 'project' | 'repo' | 'month' | 'blob', key: string): ReadonlySet<string> {
@@ -404,39 +465,30 @@ export class Store {
   // -------------------------------------------------------------------------------------------------------------
 
   private index(kind: EntityKind, value: unknown): void {
-    if (kind === 'found') {
-      const f = value as FoundCandidate;
-      if (f.externalKey) this.foundByKey.set(f.externalKey, f.id);
-    } else if (kind === 'achievement') {
+    if (kind === 'achievement') {
       const a = value as Achievement;
-      if (a.externalKey) this.achievementByKey.set(a.externalKey, a.id);
-      if (a.legacyId) this.achievementByLegacy.set(a.legacyId, a.id);
-      for (const ev of a.evidence) {
-        if (ev.externalKey) this.achievementByKey.set(ev.externalKey, a.id);
-        if (ev.blob) addToSet(this.byBlob, ev.blob, a.id);
-      }
+      for (const ev of a.evidence) if (ev.blob) addToSet(this.byBlob, ev.blob, a.id);
       for (const p of a.projects) addToSet(this.byProject, p, a.id);
       for (const r of a.repos) addToSet(this.byRepo, r, a.id);
       addToSet(this.byMonth, a.happenedAt.slice(0, 7), a.id);
       this.searchIndex.put(a, (sha) => this.get('evidence', sha));
     } else if (kind === 'evidence') {
-      // its OCR text is searchable through the achievements that carry it
-      for (const id of this.achievementIdsIn('blob', (value as EvidenceSidecar).sha256)) {
-        const a = this.get('achievement', id);
-        if (a) this.searchIndex.put(a, (sha) => this.get('evidence', sha));
-      }
+      this.reindexBlob((value as EvidenceSidecar).sha256);
+    }
+  }
+
+  /** A sidecar changed or went: its OCR text is searchable through the achievements that carry it. */
+  private reindexBlob(sha: string): void {
+    for (const id of this.achievementIdsIn('blob', sha)) {
+      const a = this.get('achievement', id);
+      if (a) this.searchIndex.put(a, (s) => this.get('evidence', s));
     }
   }
 
   private unindex(kind: EntityKind, value: unknown): void {
     if (!value) return;
-    if (kind === 'found') {
-      const f = value as FoundCandidate;
-      if (f.externalKey && this.foundByKey.get(f.externalKey) === f.id) this.foundByKey.delete(f.externalKey);
-    } else if (kind === 'achievement') {
+    if (kind === 'achievement') {
       const a = value as Achievement;
-      for (const k of [a.externalKey, ...a.evidence.map((e) => e.externalKey)]) if (k && this.achievementByKey.get(k) === a.id) this.achievementByKey.delete(k);
-      if (a.legacyId && this.achievementByLegacy.get(a.legacyId) === a.id) this.achievementByLegacy.delete(a.legacyId);
       for (const ev of a.evidence) if (ev.blob) delFromSet(this.byBlob, ev.blob, a.id);
       for (const p of a.projects) delFromSet(this.byProject, p, a.id);
       for (const r of a.repos) delFromSet(this.byRepo, r, a.id);
@@ -495,6 +547,7 @@ export class Store {
    * validates the result, and writes it atomically. Returning null from `edit` writes nothing. Returns the new value.
    */
   write<K extends EntityKind>(kind: K, id: string, edit: (current: EntityTypes[K] | null) => Edit | null, opts: WriteOptions = {}): EntityTypes[K] {
+    if (!validId(kind, id)) throw new NotFoundError(`there's no ${kind} ${JSON.stringify(id)}`);
     const known = this.entries[kind].get(id);
     const file = known?.file ?? relPathFor(kind, id);
     const abs = path.join(this.home, file);
@@ -549,6 +602,8 @@ export class Store {
 
   /** Move an entity's file into backups/removed/ (never deleted). Returns where it went, relative to the data home. */
   remove(kind: EntityKind, id: string, opts: Pick<WriteOptions, 'ifMatch'> = {}): string {
+    // the id becomes a path: only ever a real id, so nothing outside the entity's own file can be moved
+    if (!validId(kind, id)) throw new NotFoundError(`there's no ${kind} ${JSON.stringify(id)}`);
     const e = this.entries[kind].get(id);
     const file = e?.file ?? relPathFor(kind, id);
     const abs = path.join(this.home, file);
@@ -562,10 +617,22 @@ export class Store {
 
   /** Bring back the newest removed copy of an entity. ConflictError if its file has been recreated meanwhile. */
   restore<K extends EntityKind>(kind: K, id: string): EntityTypes[K] {
-    const file = relPathFor(kind, id);
+    if (!validId(kind, id)) throw new NotFoundError(`there's no ${kind} ${JSON.stringify(id)}`);
+    const found = findRemoved(
+      this.home,
+      kind === 'achievement'
+        ? (dir) => {
+            // back to whichever month's folder it was removed from
+            const root = path.join(dir, 'achievements');
+            for (const y of safeList(root)) for (const m of safeList(path.join(root, y))) if (fs.existsSync(path.join(root, y, m, `${id}.md`))) return `achievements/${y}/${m}/${id}.md`;
+            return null;
+          }
+        : relPathFor(kind, id),
+    );
+    if (!found) throw new NotFoundError(`there's no removed ${kind} ${id} to restore`);
+    const { from, rel: file } = found;
     const abs = path.join(this.home, file);
-    const from = findRemoved(this.home, file);
-    if (!from) throw new NotFoundError(`there's no removed ${kind} ${id} to restore`);
+    if (this.entries[kind].has(id)) throw new ConflictError(`${this.entries[kind].get(id)!.file} exists again, so it can't be restored over`);
     try {
       fs.mkdirSync(path.dirname(abs), { recursive: true });
       renameNoClobber(from, abs);
@@ -577,6 +644,14 @@ export class Store {
     const v = this.get(kind, id);
     if (!v) throw new ConflictError(`${file} was restored, but it has a problem; fix it by hand`);
     return v;
+  }
+}
+
+function safeList(d: string): string[] {
+  try {
+    return fs.readdirSync(d).filter((n) => /^\d+$/.test(n));
+  } catch {
+    return [];
   }
 }
 
