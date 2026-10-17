@@ -93,6 +93,16 @@ async function serve(flags: Record<string, string>): Promise<number | undefined>
   const [{ startupMessage }, { transientInstall }] = await Promise.all([import('./banner.js'), import('./platform/spec.js')]);
   const shown = LOOPBACK.has(hostname) || hostname === '0.0.0.0' || hostname === '::' ? 'localhost' : hostname.includes(':') ? `[${hostname}]` : hostname;
   const url = `http://${shown}:${bound}`;
+  // a clean exit 0 on SIGTERM (what launchd and systemd send at logout and on `service stop`), and on Ctrl-C. The
+  // service is restarted after it all the same (KeepAlive <true/>, Restart=always: D31, Paddock #872). The unref'd
+  // timer is a backstop for a handle that would keep the process alive after the server has closed. Installed BEFORE
+  // the banner: whoever waits for "BragDoc on" may stop us the moment they see it, and until a handler exists a SIGTERM
+  // kills outright.
+  for (const sig of ['SIGTERM', 'SIGINT'] as const)
+    process.once(sig, () => {
+      setTimeout(() => process.exit(0), 5000).unref();
+      void close().then(() => (process.exitCode = 0));
+    });
   process.stdout.write(
     startupMessage(
       { version: VERSION, url, home: tildify(dataDir), transient: transientInstall(PACKAGE_ROOT)?.where ?? null, quiet: !!flags.quiet },
