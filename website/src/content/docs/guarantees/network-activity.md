@@ -4,7 +4,9 @@ description: "BragDoc sends nothing off your machine on its own. The only outbou
 ---
 
 :::note[Coming in v0.1]
-The egress module, its CI guard and the Network activity screen are being built. This page describes the design.
+The egress module, its CI guard and the request log are built, on the
+[`next` branch](https://github.com/edspencer/bragdoc-ai/tree/next). The Network activity screen, and the GitHub source
+that is the only thing that will use the network, are being built.
 :::
 
 **BragDoc sends nothing off your machine on its own.** No telemetry, no analytics, no crash reports, no update check.

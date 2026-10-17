@@ -233,7 +233,155 @@ D17 onwards are decisions made while building.
 - **Considered:** a parsed-value cache in `cache/` (helps warm boots only, and adds invalidation); `yaml` alone
   (simplest, but the budget).
 
-### D26 — The docs site: Hallway's, plus a blog, the brand kit, and no third-party anything
+### D26 — Origin must be the server's own, on every request; Fetch Metadata guards the API
+
+- Any `Origin` a browser sends must equal the request's own `Host` (host and port; the scheme isn't compared, since a
+  TLS-terminating proxy hides it). The check runs on **every** request, not only writes, so the SSE stream and any
+  streaming or WebSocket endpoint a later PR adds are covered without anyone remembering to (Paddock's
+  WebSocket-origin gap, its #975, was a route that forgot). `Origin: null` is refused.
+- An **absent** `Origin` is allowed, including on `/api/events`. SPEC R3 says SSE "requires an allowed Origin, since
+  browsers send it on EventSource", but browsers send no `Origin` on a *same-origin* GET, the app's own EventSource
+  included: requiring one would refuse the app itself. Cross-origin EventSources do send it, and are refused.
+  Non-browser clients send none and can't be a cross-site vector; the Host check still applies to them.
+- `Origin: null` is refused, with one exception: together with `Sec-Fetch-Site: same-origin`. The Fetch spec gives a
+  same-origin write under `Referrer-Policy: no-referrer` (SPEC R3's header, which we send) `Origin: null`, and Firefox
+  follows it; Sec-Fetch-Site can't be set by a page, so it tells that apart from a sandboxed frame. CI runs the e2e
+  suite in Firefox for this.
+- `/api/*` and `/mcp` refuse `Sec-Fetch-Site: cross-site` and `same-site`. Same-site matters on shared hostnames:
+  another app on a sibling subdomain is same-site, but not us.
+- Stricter than SPEC's "a present Origin must be allowed" (any allowed hostname, any port): another local app on
+  another port is refused too. The cost: a reverse proxy that rewrites `Host` breaks writes. Proxies that pass `Host`
+  through (Caddy's default, nginx with `proxy_set_header Host $host`) work.
+- **Considered:** Hallway's rule (Origin checked on writes only, any local port); requiring `Origin` on SSE (breaks
+  the app, as above).
+
+### D27 — The platform's own files are written by `server/atomic.ts`, not the store
+
+- `runtime.json`, `logs/network.jsonl`, and the starter `.gitignore` / `config.yaml` are machine-written (or written
+  once, create-only), so `server/atomic.ts` writes them: Hallway's temp-file-and-rename, and a hard link for
+  create-only. Everything people and agents edit still goes only through the store (D5).
+- `legacy-cli/`: home.ts moves the old CLI's files there with a plain rename into a fresh directory (nothing can be
+  replaced).
+- When PR3's `test/guard-fs.test.ts` lands, its allow-list needs entries for `atomic.ts` (one temp `writeFile` with
+  flag `wx`, one `appendFile`, one `rename`, one `unlink` of its own temp), `home.ts` (two `rename`s: each legacy entry
+  into the fresh `legacy-cli.partial/`, then that directory to `legacy-cli/`) and `egress.ts` (one `rename`: rotating
+  the log). Whichever of PR2/PR3 merges second adds them.
+- **Considered:** waiting for PR3's safefs (PR2 and PR3 are built in parallel); writing runtime.json with a plain
+  `writeFileSync` (not atomic: a reader could see half a file).
+
+### D28 — The legacy notice is shown on the start that moved the files; a recreated `config.yml` warns every start
+
+- A home counts as BragDoc's once it has `config.yaml`, `runtime.json` or `legacy-cli/`. Only a home with none of
+  them, and with the old CLI's signature (its `config.yml` or `cache/commits/`), has the old CLI's `config.yml` /
+  `cache/` / `logs/` moved: BragDoc's own `cache/` and `logs/`, or a `--data-dir` folder that merely has a `logs/`,
+  are never mistaken for the old CLI's.
+- The entries go into `legacy-cli.partial/` and that is renamed to `legacy-cli/` at the end, so a move cut short is
+  finished on the next start instead of leaving the home half-moved but marked as ours.
+- `legacy-moved` is a notice for the life of the process that did the move (there's no notice state to remember a
+  dismissal yet). Settings → Data (PR10) can show `legacy-cli/` itself permanently. `legacy-recreated` (a warning) is
+  raised on every start while a `config.yml` is back.
+
+### D29 — `config.yaml` v1 owns `allowedHosts`, `mcp.writeTo` and `sources.github.{enabled,auth}`
+
+- The egress allow-list needs to know whether GitHub is connected with a token, so PR2 defines
+  `sources.github.enabled` and `sources.github.auth: gh | token` (the token itself lives in `secrets.yaml`). Later PRs
+  add optional keys (`sources.screenshots`, …) without bumping `schemaVersion`.
+- Unknown keys are ignored on read, and config.yaml is never rewritten by the platform, so nothing is lost.
+- An invalid edit keeps the last good settings and raises a `config-invalid` notice; a future or unreadable
+  `schemaVersion` refuses to start (Paddock's downgrade guard), and if it appears while running it's a notice.
+- PR1's interim inline bind guard (D21) is replaced by `server/bind-safety.ts`, with the same flag and the same rule
+  (only `1` counts).
+
+### D30 — `proc` resolves binaries itself; its allow-list includes `open` and `xdg-open`
+
+- `proc.run('git', …)` resolves `git` to an absolute path from the **absolute** entries of `PATH` only. An empty or
+  relative entry (`::`, `.`) would otherwise let a repository's own `./git` run when `git` is started with that
+  repository as its working directory.
+- The allow-list is PLAN's: SPEC R3's (`gh`, `git`, `osascript`, `launchctl`, `systemctl`, `journalctl`, `claude`,
+  `defaults`) plus `open` and `xdg-open`, which `bragdoc serve --open` (PR5) needs. `tail` is not on it: PR5's
+  `service logs` on macOS follows the log file in-process, or adds `tail` here with a reason.
+- `logProcess()` records a `gh` run by its leading subcommand and path only, stopping at the first flag: a flag's
+  value can be a header (`-H 'Authorization: …'`) or a GraphQL query.
+
+### D31 — `bragdoc service`: a login service, always restarted, read back from its own unit
+
+- macOS: a **LaunchAgent** `ai.bragdoc.local` in `~/Library/LaunchAgents`; Linux: a **systemd user unit**
+  `bragdoc.service` in `$XDG_CONFIG_HOME/systemd/user`. Windows: "not supported yet" (D14). It runs as you, so it
+  **starts at login, not at boot**; on Linux, `loginctl enable-linger` (suggested, never run) keeps it past logout.
+- The unit runs `process.execPath` and the realpath of `dist/server/cli.js` (never the bin shim), with the PATH
+  captured at install minus per-shell directories. Homebrew's versioned `Cellar/node/<v>` path is swapped for its
+  `opt/node` symlink, which survives `brew upgrade`; `status` warns when the Node a unit names has gone. `install` refuses to run from npx's (or pnpm dlx's, bunx's) cache,
+  and from an unbuilt checkout.
+- **Always restarted**: KeepAlive `<true/>` / `Restart=always` (Paddock #872: a conditional restart leaves it down
+  after a graceful SIGTERM). Stopping on purpose is `bragdoc service stop`, which lasts until the next login
+  (or, on Linux with lingering on, the next boot; launchd: bootout; systemd: stop, never disable). `serve` exits 0 on
+  SIGTERM, which is exactly the case a conditional restart would leave down; the CI job proves it comes back. `uninstall` is the permanent one.
+- The port is always written into the unit, and `status` / `start` / `restart` read it back from there; the data home
+  is written only when it was chosen (`--data-dir`, `$BRAGDOC_HOME`), so by default the service and a terminal
+  `bragdoc` share `~/.bragdoc`. `install`, `start` and `restart` wait up to 20 s for `/api/health`; a timeout is
+  reported as a caveat, not an error.
+- Logs: macOS writes both streams to `<data home>/service/bragdoc.log` (followed in Node by `service logs`, no
+  `tail`); Linux uses the journal (`journalctl --user -u bragdoc.service -f`).
+- **Deviation:** `install` creates `<data home>/service/` itself (launchd and systemd both need the working directory
+  to exist before they start the job). That's a write to the data home outside the store (PR3), and only that
+  directory; PR3's fsguard allow-list and PR2's `.gitignore` should include `service/`.
+- `install --dry-run` prints the unit and the commands and writes nothing.
+- **Considered:** a LaunchDaemon / system unit (boots without a login, but runs as root, without your `gh` login);
+  Hallway's `stop` that also disables (Paddock's "for this session" is easier to explain, and the same on both).
+
+### D32 — Until PR2: one subprocess module, one fetch site
+
+- PR2 brings `server/proc.ts` and `server/egress.ts` and a guard test that only they may spawn or fetch (D9). PR5 was
+  built alongside it, so its subprocesses all go through `server/platform/runner.ts` (`execFile` for launchctl,
+  systemctl; a streaming `spawn` for `journalctl -f`; a detached `spawn` for `open` / `xdg-open`), and its one HTTP
+  call, the loopback `/api/health` probe (with a plain TCP connect as its fallback, so a non-HTTP listener still counts
+  as "taken"), is in `server/commands/ready.ts`.
+- Whichever of PR2 and PR5 merges second moves those two files onto `proc.ts` / `egressFetch`. `proc.ts` needs a
+  streaming variant (inherited stdio, no timeout) for `journalctl -f`, and `launch` (detached, not awaited) for `--open`.
+- PR2's bind guard replaces `assertBindAllowed()` in `server/cli.ts`, its single call site (D21).
+
+- **At integration (PR5 merged after PR2), the move was deferred, not done.** It isn't a drop-in: `proc.ts` has no
+  detached `launch` (for `--open`), `runAttached` doesn't forward SIGTERM/SIGHUP to `journalctl -f` as the streamer
+  does, the probe's TCP fallback needs `node:net`, and `egressFetch` would log every 250 ms readiness poll to
+  `logs/network.jsonl`. So `test/guard-egress.test.ts` lists these two files with exact counts, marked interim, and
+  the move is a follow-up PR with its own review. Until then nothing else may import `node:child_process` or call
+  `fetch`.
+
+### D33 — `/dev/kit` exists in dev and `BRAGDOC_KIT=1` builds, never in a release
+
+- The component kit's showcase (`src/dev/Kit.tsx`) is the reference for building pages and the source of the kit's
+  screenshots, but it isn't part of the product. `vite.config.ts` defines `__BRAGDOC_KIT__`: true under `npm run dev`
+  and in builds made with `BRAGDOC_KIT=1` (the capture rig makes one), false otherwise. When false, the route's lazy
+  import is dead code the bundler drops, and `/dev/kit` is the not-found page. `test/web.test.ts` and an e2e spec
+  check a release build leaves it out.
+- The route file always exists, so the generated route tree is the same in every mode (D20 keeps it uncommitted;
+  this keeps it from churning between builds).
+- **Considered:** an ignore pattern for `src/routes/dev/` in production builds (the route tree would differ by mode,
+  and the typed links to it would break); shipping it (about 25 KB of demo content plus its fixture images, for nobody).
+
+### D34 — Text on a project colour: whichever of near-black and white reads better
+
+- Project colours can be any colour (SPEC R6), so text on them (pills, Gantt bars, nav pills) is picked in `inkOn()`:
+  the ink with the higher WCAG contrast. The crossover is near luminance 0.18, and no colour gets less than about
+  4.2:1. A unit test sweeps the swatches and a range of colours.
+- The Scrapbook prototype used a fixed threshold of 0.36, which put white on its own green at 2.67:1 and on tomato at
+  3.39:1. Now green, tomato, pink and teal get dark text (the Board and Folio nav pills too); blue, violet, purple,
+  brown, slate and near-black keep white. A visible change from the prototype, made for legibility.
+- Kit text on fixed colours follows the same rule: dark ink on the green `go` button and the amber Found badge.
+  The tomato accent button keeps the design's white text (3.4:1, bold); revisit if it reads poorly.
+
+### D35 — Brand assets are generated with Playwright's Chromium; fonts are self-hosted
+
+- `brand/mark.svg` (a "b" path on a tomato tile, no font needed) is the source of the favicons, icons and social
+  cards, which `brand/generate.mjs` renders. Adapted from Local Review's generator, but rasterising with the Chromium
+  that `@playwright/test` already brings instead of adding `@resvg/resvg-js` and `opentype.js`. The app and the docs
+  site (PR18) both use `brand/`.
+- The four Scrapbook fonts come from `@fontsource` packages, bundled into `dist/web` by Vite: the app makes no
+  request to a font CDN (or anywhere else off the machine; `test/web.test.ts` and e2e check).
+- Browser-driving code (`e2e/`, `tools/`) type-checks under its own `tsconfig.tools.json`, which adds the DOM types
+  for `page.evaluate()` callbacks, so the server's config stays DOM-free.
+
+### D36 — The docs site: Hallway's, plus a blog, the brand kit, and no third-party anything
 
 - `website/` is Hallway's site (Astro 7, Starlight 0.42, sidebar in `src/sidebar.mjs`, generated llms.txt and per-page
   Markdown, a custom landing page with its copy in `copy.ts`), with local-review's `test/docs.test.ts` and What's-new

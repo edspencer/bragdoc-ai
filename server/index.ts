@@ -1,17 +1,25 @@
-// The HTTP app (createApp) and startServer, which binds it. The app is: every route from routes/index.ts, a JSON 404
-// for any other /api path, then the built web app (a single-page app) for everything else.
+// The HTTP app (createApp) and startServer, which boots the platform and binds it. The app is: the security guard
+// (security.ts: Host allow-list, Origin, content types, body limits, headers and CSP) on every request, then every
+// route from routes/index.ts, a JSON 404 for any other /api path, then the built web app (a single-page app).
 //
-// Later PRs wrap this rather than reshape it: PR2 puts its security middleware (Host allow-list, Origin, content
-// types, CSP) first with `app.use('*', …)`, and the store, event bus and config arrive as AppContext fields.
+// createApp() writes no files (it only reads the store), so tests build it freely; startServer() is where the data
+// home is laid out, config.yaml is checked and runtime.json is written. Later PRs add to AppContext rather than reshape this.
 import fs from 'node:fs';
 import path from 'node:path';
 import { Hono } from 'hono';
 import { serve } from '@hono/node-server';
 import { serveStatic } from '@hono/node-server/serve-static';
+import type { Notice } from '../shared/api.js';
+import { ConfigStore } from './config.js';
 import type { AppContext } from './context.js';
+import { Egress } from './egress.js';
+import { EventBus } from './events.js';
+import { initHome } from './home.js';
 import { apiError } from './http.js';
 import { VERSION, WEB_DIST } from './paths.js';
 import { registerRoutes } from './routes/index.js';
+import { Runtime, displayUrl } from './runtime.js';
+import { UploadRegistry, security } from './security.js';
 import { createServices } from './services/index.js';
 import { startSnapshots } from './store/backups.js';
 import { openStore, type Store } from './store/index.js';
@@ -24,6 +32,14 @@ export interface AppOptions {
   webDist?: string | null;
   /** Defaults to the package version. */
   version?: string;
+  /** The live config.yaml (default: one reading `<dataDir>/config.yaml`, which may not exist: the defaults). */
+  config?: ConfigStore;
+  bus?: EventBus;
+  runtime?: Runtime;
+  /** Swaps the real network out of the egress module (tests). */
+  egress?: Egress;
+  /** What starting up had to say (home.ts: the legacy move-aside). */
+  startupNotices?: Notice[];
   /** The data home's store; opened (loaded) from `dataDir` when not given. */
   store?: Store;
 }
@@ -42,10 +58,26 @@ export function hasFileExtension(pathname: string): boolean {
 /** A Vite output file: `/assets/index-CqW7J_rx.js` (Vite's hashes are 8 base64url characters). */
 const HASHED_ASSET = /^\/assets\/[^/]+-[A-Za-z0-9_-]{8}\.[a-z0-9]+$/;
 
-export function createApp({ dataDir, webDist = WEB_DIST, version = VERSION, store = openStore(dataDir) }: AppOptions): Hono {
+export function createApp({ dataDir, webDist = WEB_DIST, version = VERSION, startupNotices = [], ...o }: AppOptions): Hono {
   const app = new Hono();
-  const ctx: AppContext = { version, dataDir, store, services: createServices(store) };
+  const bus = o.bus ?? new EventBus();
+  const config = o.config ?? new ConfigStore(dataDir, { onChange: () => bus.emit({ type: 'config' }) });
+  const store = o.store ?? openStore(dataDir);
+  const ctx: AppContext = {
+    version,
+    dataDir,
+    config,
+    bus,
+    egress: o.egress ?? new Egress({ dataDir, config: () => config.get(), onLog: () => bus.emitSoon('network', { type: 'network' }) }),
+    runtime: o.runtime ?? new Runtime(dataDir),
+    uploads: new UploadRegistry(),
+    notices: () => [...startupNotices, ...config.notices()],
+    store,
+    services: createServices(store),
+  };
 
+  // first, so nothing (a route, a static file, the SPA fallback) answers a request it hasn't checked (D10)
+  app.use('*', security({ allowedHosts: () => config.allowedHosts(), uploads: ctx.uploads }));
   registerRoutes(app, ctx);
   app.all('/api/*', (c) => c.json(apiError('not_found', `no API route ${c.req.method} ${c.req.path}`), 404));
 
@@ -83,12 +115,21 @@ export interface ServerOptions extends AppOptions {
  * rejects if it can't bind (EADDRINUSE, EACCES), for the CLI to explain.
  */
 export async function startServer(port: number, { hostname = '127.0.0.1', ...opts }: ServerOptions): Promise<{ port: number; close: () => Promise<void> }> {
+  // config.yaml first, read-only: one from a newer BragDoc refuses to start (ConfigFromTheFuture) before anything in
+  // the data home is touched. Then the layout (which moves the old CLI's files aside first), then the MCP token.
+  const bus = opts.bus ?? new EventBus();
+  const config = opts.config ?? new ConfigStore(opts.dataDir, { onChange: () => bus.emit({ type: 'config' }) });
+  config.load();
+  const home = initHome(opts.dataDir);
+  config.load(); // initHome may have just written the starter config.yaml
+  const runtime = opts.runtime ?? new Runtime(opts.dataDir);
   // the store is loaded before the port is bound, then watched for changes on disk and snapshotted (on start, hourly)
   const store = opts.store ?? openStore(opts.dataDir);
-  const app = createApp({ ...opts, store });
+  const app = createApp({ ...opts, bus, config, runtime, store, startupNotices: [...(opts.startupNotices ?? []), ...home.notices] });
+  const version = opts.version ?? VERSION;
   const watcher = watchStore(store);
   const stopSnapshots = startSnapshots(opts.dataDir);
-  return new Promise((resolve, reject) => {
+  const bound = await new Promise<{ port: number; close: () => Promise<void> }>((resolve, reject) => {
     const failed = (e: Error) => {
       stopSnapshots();
       void watcher.close();
@@ -109,4 +150,11 @@ export async function startServer(port: number, { hostname = '127.0.0.1', ...opt
     });
     server.once('error', failed);
   });
+  try {
+    runtime.write({ pid: process.pid, port: bound.port, url: displayUrl(hostname, bound.port), version, startedAt: new Date().toISOString() });
+  } catch (e) {
+    await bound.close(); // a server without its runtime.json would be unreachable for agents: don't leave it running
+    throw e;
+  }
+  return bound;
 }

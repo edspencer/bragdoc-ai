@@ -1,7 +1,8 @@
 // The watcher (SPEC R2): hand edits, `git pull` and agents editing files show up live. chokidar on the data home
 // (adapted from Local Review's events.ts), skipping what isn't ours to index: cache/, backups/, logs/, imports/,
-// legacy-cli/, dot-directories and temp files. Each path's events are debounced, then the store re-reads it; the store
-// announces real changes to its subscribers (Store.subscribe), and our own writes find nothing new, so they don't echo.
+// service/, legacy-cli/, dot-directories and temp files. Each path's events are debounced, then the store re-reads it;
+// the store announces real changes to its subscribers (Store.subscribe), and our own writes find nothing new, so they
+// don't echo.
 // This module knows nothing about SSE: PR7 forwards the store's changes to the event stream.
 import fs from 'node:fs';
 import path from 'node:path';
@@ -10,7 +11,7 @@ import type { Store } from './index.js';
 import { isTempName } from './safefs.js';
 
 /** Top-level directories the watcher never looks in. */
-const IGNORED_TOP = new Set(['cache', 'backups', 'logs', 'imports', 'legacy-cli', 'node_modules']);
+const IGNORED_TOP = new Set(['cache', 'backups', 'logs', 'imports', 'legacy-cli', 'service', 'node_modules']);
 
 export interface StoreWatcher {
   /** Resolves once the initial scan is done and changes are being picked up. */
