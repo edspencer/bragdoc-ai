@@ -81,6 +81,15 @@ async function serve(flags: Record<string, string>): Promise<number | undefined>
     if ((code === 'EACCES' || code === 'EPERM') && file) throw new Error(`can't write to ${file}: permission denied. The data home (${dataDir}) must belong to the user BragDoc runs as.`);
     throw e;
   }
+  // a clean exit 0 on SIGTERM (what launchd and systemd send at logout and on `service stop`), and on Ctrl-C. The
+  // service is restarted after it all the same (KeepAlive <true/>, Restart=always: D31, Paddock #872). The unref'd
+  // timer is a backstop for a handle that would keep the process alive after the server has closed. Installed before
+  // the startup line: whoever waits for that line (a test, a supervisor, `docker stop`) may signal at once.
+  for (const sig of ['SIGTERM', 'SIGINT'] as const)
+    process.once(sig, () => {
+      setTimeout(() => process.exit(0), 5000).unref();
+      void close().then(() => (process.exitCode = 0));
+    });
   const [{ startupMessage }, { transientInstall }] = await Promise.all([import('./banner.js'), import('./platform/spec.js')]);
   const shown = LOOPBACK.has(hostname) || hostname === '0.0.0.0' || hostname === '::' ? 'localhost' : hostname.includes(':') ? `[${hostname}]` : hostname;
   const url = `http://${shown}:${bound}`;
@@ -90,14 +99,6 @@ async function serve(flags: Record<string, string>): Promise<number | undefined>
       { isTTY: process.stdout.isTTY, columns: process.stdout.columns, env: process.env },
     ),
   );
-  // a clean exit 0 on SIGTERM (what launchd and systemd send at logout and on `service stop`), and on Ctrl-C. The
-  // service is restarted after it all the same (KeepAlive <true/>, Restart=always: D31, Paddock #872). The unref'd
-  // timer is a backstop for a handle that would keep the process alive after the server has closed.
-  for (const sig of ['SIGTERM', 'SIGINT'] as const)
-    process.once(sig, () => {
-      setTimeout(() => process.exit(0), 5000).unref();
-      void close().then(() => (process.exitCode = 0));
-    });
   if (bind.action === 'warn') process.stderr.write(`bragdoc: ${bind.message}\n`);
   if (flags.open) {
     const [{ openCommand }, { launch }] = await Promise.all([import('./platform/index.js'), import('./platform/runner.js')]);
