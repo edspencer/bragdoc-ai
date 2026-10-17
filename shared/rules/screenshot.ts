@@ -4,14 +4,16 @@
 // case-sensitive initials with a time guard, the trivial-ack drop), and reworked for OCR text, which has no structure:
 // no author ids, no mentions, no channel types, just lines of text with the odd misread letter.
 //
-// A screenshot passes when one message in it (a) names you, or (b) has your initials, **and** (c) praises. (d), chat-UI
-// cues, only lifts borderline praise: a lone "thanks" or "great" counts as praise in a chat window, not on a dashboard.
+// A screenshot passes when one message in it (a) names you, or (b) has your initials, **and** (c) praises, or states an
+// impact (a number with a unit, money, customers, a promotion: the spike's impact signal; on its 218 messages, a third
+// of the wins that name you do it with numbers, not praise words). (d), chat-UI cues, only lifts borderline cases: a
+// lone "thanks" or "great", or an impact number, counts in a chat window, not on a dashboard (which is all numbers).
 // The rules can't read tone: sarcasm that names you and uses praise words passes, by design. That is the future judge's
 // job (shared/judge.ts), and Found is where you dismiss it.
 //
 // shared/ runs in the browser too: no Node APIs here.
 
-export type RuleId = 'name' | 'initials' | 'reply' | 'praise' | 'chat';
+export type RuleId = 'name' | 'initials' | 'reply' | 'praise' | 'impact' | 'chat';
 
 export interface RuleMatch {
   rule: RuleId;
@@ -114,16 +116,20 @@ const STRONG_PRAISE = words([
   "chef's kiss", 'saved us', 'saved the day', 'saved my', 'saved our', 'saved me', 'life saver', 'lifesaver',
   'game changer', 'game-changer', 'thank you', 'thanks so much', 'thanks a ton', 'thanks a lot', 'thanks again',
   'thanks to', 'many thanks', 'big thanks', 'huge thanks', 'grateful', 'appreciate*', 'proud', 'beautifully',
-  "couldn't have done", "couldn't have shipped", 'made my day', 'made our day', 'made my week',
+  "couldn't have done", "couldn't have shipped", 'made my day', 'made our day', 'made my week', 'called out',
+  'so much better', 'exactly the kind of', 'the reason we', 'the only reason', 'credit to', 'credit goes to', 'a big reason', 'the model for',
 ]);
 /** Praise only in a chat window (d): alone, these are too common to mean anything. */
 const WEAK_PRAISE = words(['thanks', 'thank', 'thx', 'ty', 'tysm', 'cheers', 'great', 'nice', 'good', 'love*', 'huge', 'solid', 'helpful', 'cool', 'wow', 'sweet', 'clutch']);
 /** Emoji and Slack's shortcodes for them; weak, like the words above. OCR rarely reads an emoji, but Vision sometimes does. */
 const PRAISE_EMOJI = /(?:🎉|🙌|🙏|❤️?|👏|🚀|🏆|💯|🔥|⭐|🌟|✨|💪|🥇|🤩|😍|🥳|:(?:tada|raised_hands|pray|clap|heart|rocket|trophy|100|fire|star2?|sparkles|muscle|first_place_medal|star-struck|heart_eyes|partying_face):)/gu;
-/** Impact: a number with a unit, money, customers. A short ack with one of these isn't trivial (the spike's rule). */
-const IMPACT = /(?:\d+(?:\.\d+)?\s?%|\$\s?\d|\d+\s?(?:k|m|ms|min|minutes|hours|x)\b|customers?|revenue|renew|saved|down from|up \d|promo|promotion|nominat|award|calibration)/i;
+/**
+ * Impact (c): a number with a unit, money, customers, a promotion (the spike's impact words, plus a few). A short ack
+ * with one of these isn't trivial either.
+ */
+const IMPACT = /(?<![\p{L}\p{N}])(?:\d+(?:[.,]\d+)?\s?%|[$€£]\s?\d[\d,.]*\s?[kmb]?|\d+(?:[.,]\d+)?\s?(?:k|ms|min|mins|minutes|hours|hrs|seconds|x)(?![\p{L}])|customers|revenue|renew(?:al|ed)?|saved|down from|up from|from \d[\d.,]*\s?\S* to \d|promo(?:tion)?|nominat\p{L}*|award\p{L}*|calibration|staff level|adopted by|root cause|deciding factor|zero downtime)/giu;
 /** A bare acknowledgement ("thanks!", "ty 🙏", "thx AM"): dropped when it's all the message says (the spike's rule). */
-const TRIVIAL_ACK = /^\s*(?:thanks?(?: you)?|ty(?:sm)?|thx|cheers|ack|ok|👍|🙏)[\s!.,a-z@<>0-9🙏👍]*$/iu;
+const TRIVIAL_ACK = /^\s*(?:thanks?(?: you)?|ty(?:sm)?|thx|cheers|ack|ok|👍|🙏)[\s!.,:;'"—–\-a-z@<>0-9\p{Extended_Pictographic}\u{fe0f}]*$/iu;
 
 /** Chat-UI cues (d), by kind. A `#channel` or a thread is enough; otherwise two different kinds. */
 const CHAT_CUES: [kind: string, re: RegExp, enough: boolean][] = [
@@ -163,6 +169,8 @@ interface Block {
   /** Who wrote it (its author line), if the screenshot shows one. */
   author?: string;
   own: boolean;
+  /** A bot or an app (`deploybot`, `Jira APP`): never praise from a person (the spike drops bots). */
+  bot?: boolean;
   /** Line indexes: the body, after the author line. */
   start: number;
   end: number;
@@ -196,6 +204,16 @@ function shouting(line: string): boolean {
   const upper = line.replace(/[^\p{Lu}]/gu, '');
   return letters.length >= 8 && upper.length / letters.length > 0.6 && (line.match(/\b\p{Lu}{2,}\b/gu)?.length ?? 0) >= 3;
 }
+
+/** "Sam Okafor" → "SO": what an avatar without a photo shows. */
+const initialsOfName = (n: string) =>
+  n
+    .replace(/^@/, '')
+    .split(/\s+/)
+    .map((w) => w[0] ?? '')
+    .join('')
+    .slice(0, 3)
+    .toUpperCase();
 
 const allMatches = (re: RegExp, s: string) => [...s.matchAll(new RegExp(re.source, re.flags.includes('g') ? re.flags : re.flags + 'g'))];
 
@@ -256,11 +274,22 @@ export function compileRules(profile: RulesProfile): (text: string) => RulesResu
         const author = headers[i];
         if (author) {
           if (cur.author || cur.end >= cur.start) blocks.push(cur);
-          cur = { author, own: isMe(author), start: i + 1, end: i };
+          cur = { author, own: isMe(author), bot: /bot$/i.test(author) || /\s(?:APP|BOT)\s/.test(lines[i]!), start: i + 1, end: i };
         } else cur.end = i;
       });
       blocks.push(cur);
     } else blocks.push({ own: false, start: 0, end: lines.length - 1 });
+
+    // an avatar's initials, read as text at the start of its message ("SO thx AM"), and the bits of drawn emoji OCR
+    // reads as brackets and bars ("GA [|"): neither is something anyone wrote
+    for (const b of blocks) {
+      const avatar = b.author ? initialsOfName(b.author) : '';
+      for (let i = b.start; i <= b.end; i++) {
+        let l = lines[i]!;
+        if (avatar && i <= b.start + 1) l = l.replace(new RegExp(`^${escape(avatar)}(?:\\s+|$)`), '');
+        lines[i] = l.replace(/(?:^|\s)[[\]|{}()]+(?=\s|$)/g, '').trim();
+      }
+    }
 
     const authors = new Set(blocks.flatMap((b) => (b.author && !b.own ? [b.author.trim()] : [])));
     let best: { hits: Hit[]; score: number } = { hits: cues.map((c) => ({ ...c })), score: -1 };
@@ -270,6 +299,10 @@ export function compileRules(profile: RulesProfile): (text: string) => RulesResu
       if (b.own) {
         notes.push(`your own message ("${b.author}")`);
         sawOwn = b.author;
+        continue;
+      }
+      if (b.bot) {
+        notes.push(`a bot's message ("${b.author}")`);
         continue;
       }
       const hits: Hit[] = [];
@@ -284,6 +317,8 @@ export function compileRules(profile: RulesProfile): (text: string) => RulesResu
             else hits.push({ rule: 'initials', text: m[0], line: i });
           }
         }
+        // impact is borderline like weak praise: a dashboard is all numbers
+        if (chat) for (const m of allMatches(IMPACT, line)) hits.push({ rule: 'impact', text: m[0], line: i });
         const strong = allMatches(STRONG_PRAISE, line);
         for (const m of strong) hits.push({ rule: 'praise', text: m[0], line: i });
         if (chat)
@@ -293,7 +328,7 @@ export function compileRules(profile: RulesProfile): (text: string) => RulesResu
       }
       const body = lines.slice(b.start, b.end + 1).join(' ').trim();
       const who = hits.filter((h) => h.rule === 'name' || h.rule === 'initials');
-      const praise = hits.filter((h) => h.rule === 'praise');
+      const praise = hits.filter((h) => h.rule === 'praise' || h.rule === 'impact');
       // (a), in a thread: a reply under your own message, that names nobody else on screen
       if (!who.length && sawOwn && thread && praise.length && !namesSomeoneElse(body, authors, nameRe)) who.push({ rule: 'reply', text: `a reply to ${sawOwn}`, line: b.start });
 
@@ -303,7 +338,7 @@ export function compileRules(profile: RulesProfile): (text: string) => RulesResu
       const score = (who.length ? 2 : 0) + (praise.length ? 1 : 0) + (near ? 1 : 0);
       if (score > best.score) best = { hits: dedupe([...who, ...praise, ...cues]), score };
       if (!near) continue;
-      if (body.length < 40 && TRIVIAL_ACK.test(body) && !IMPACT.test(body)) {
+      if (body.length < 40 && TRIVIAL_ACK.test(body) && !allMatches(IMPACT, body).length) {
         notes.push(`just an acknowledgement: "${body}"`);
         continue;
       }
@@ -368,6 +403,8 @@ export function describeMatch(m: RuleMatch): string {
       return `Replies to your message`;
     case 'praise':
       return `Praise: "${m.text}"`;
+    case 'impact':
+      return `Impact: "${m.text}"`;
     case 'chat':
       return `Looks like a chat: "${m.text}"`;
   }
