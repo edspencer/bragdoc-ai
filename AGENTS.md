@@ -256,7 +256,7 @@ the services' input schemas.
 | `POST /api/achievements/:id/{archive,unarchive,remove,restore}` | remove moves the file to `backups/removed/` (`{ removedTo }`; takes `If-Match`), restore brings the newest copy back |
 | `POST /api/evidence` | a typed upload (raw bytes, Content-Type, URI-encoded `X-Filename`) → `{ evidence, file, created }`: an Evidence item with a fresh id, on no achievement yet (send it in `evidence`). 413 over 25 MB; 415 `type_mismatch` / `damaged` (D41) |
 | `GET /api/evidence/:sha` · `/thumb` | the file with the blob headers (non-pictures download); `/thumb` is pictures only (D40) |
-| `POST /api/link-preview` | `{ url }` → `LinkPreview`: a PR → `owner/repo#n`, its `github_pr:` key, the matching repo, its projects as suggestions, `onBoard`; a title only via `ctx.linkPreviews.setGithub(lookup)` (PR13 registers it). Other URLs → domain only, never fetched |
+| `POST /api/link-preview` | `{ url }` → `LinkPreview`: a PR → `owner/repo#n`, its `github_pr:` key (lower case: build keys with `prKey()` from `shared/links.ts`), the matching repo, its projects as suggestions, `onBoard`; a title only via `ctx.linkPreviews.setGithub(lookup)` (PR13 registers it). Other URLs → domain only, never fetched |
 | `GET /api/projects` · `/api/repos` | read-only lists with `etag` (projects also `achievements`, a count); PR8 owns the writes |
 | `GET /api/problems` · `/api/found/count` | the Problems list; `{ pending }` for Found's strip and badge |
 

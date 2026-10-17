@@ -389,7 +389,8 @@ D17 onwards are decisions made while building.
   `profile`), plus `{ type: 'problems' }` with each, since any change can break or fix a file. `createApp()` wires it, so
   there is exactly one forwarder; features don't add their own.
 - Events are hints, never data: each type is debounced (`emitSoon`, keyed by type), so a burst of 200 files from a
-  `git pull` is one push per type, and the web app refetches by query-key prefix (`CHANGE_INVALIDATES`:
+  `git pull` is one push per type (a stream that never pauses still pushes once a second: `MAX_WAIT_MS`), and the
+  web app refetches by query-key prefix (`CHANGE_INVALIDATES`:
   `achievement` and `evidence` → `achievements`, `project` → `projects`, and so on).
 - **Considered:** carrying the id and op in each event (a debounced burst keeps only the last one, so the client would
   have to refetch anyway); one `{ type: 'store' }` event (every page would refetch everything on every change).

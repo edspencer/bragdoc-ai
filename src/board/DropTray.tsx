@@ -36,6 +36,7 @@ export function DropTray({ c, dragging, projects, repos, onSubmit, saving }: { c
           )}
           <textarea
             value={c.text}
+            readOnly={saving}
             onChange={(e) => c.setText(e.target.value)}
             rows={has ? 2 : 3}
             aria-label="What did you do? The first line is the title."

@@ -14,7 +14,7 @@ export interface PrRef {
   fullName: string;
   /** The canonical URL, without anything after the number. */
   url: string;
-  /** `github_pr:owner/repo#n`: what makes adding the same PR twice a no-op. */
+  /** `github_pr:owner/repo#n`, owner/repo lower-cased (GitHub names are case-insensitive): what makes adding the same PR twice a no-op. */
   externalKey: string;
 }
 
@@ -26,8 +26,11 @@ export function parsePrUrl(text: string): PrRef | null {
   const number = Number(n);
   if (!number) return null;
   const fullName = `${owner}/${repo}`;
-  return { owner, repo, number, fullName, url: `https://github.com/${fullName}/pull/${number}`, externalKey: `github_pr:${fullName}#${number}` };
+  return { owner, repo, number, fullName, url: `https://github.com/${fullName}/pull/${number}`, externalKey: prKey(fullName, number) };
 }
+
+/** The key for a pull request: `github_pr:owner/repo#n`, lower case, so `Acme/App` and `acme/app` are one PR. Sources (PR13) build keys with this too. */
+export const prKey = (fullName: string, number: number) => `github_pr:${fullName.toLowerCase()}#${number}`;
 
 /** True for one http(s) URL and nothing else (no spaces, no other text around it). */
 export function isHttpUrl(text: string): boolean {

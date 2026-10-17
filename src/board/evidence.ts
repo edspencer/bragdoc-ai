@@ -44,7 +44,8 @@ export function toView(e: Evidence, files: Record<string, EvidenceFile>): Eviden
           repo: ref.fullName,
           number: ref.number,
           title: e.title,
-          url: e.url && isHttpUrl(e.url) ? e.url : `https://github.com/${ref.fullName}/pull/${ref.number}`,
+          // the link is built from the PR it names, never taken from `url`: a slab that says acme/app#12 goes there
+          url: `https://github.com/${ref.fullName}/pull/${ref.number}`,
           ...(typeof meta.mergedAt === 'string' ? { mergedAt: meta.mergedAt } : {}),
           ...(typeof meta.additions === 'number' && typeof meta.deletions === 'number' ? { additions: meta.additions, deletions: meta.deletions } : {}),
         };

@@ -43,6 +43,7 @@ export function useComposer({ notify }: ComposerOptions) {
   const [impact, setImpact] = useState<number | undefined>(undefined);
   const [date, setDate] = useState(todayIso());
   const aborts = useRef(new Map<number, AbortController>());
+  const urls = useRef(new Set<string>());
   // the latest pending list, for the unmount cleanup
   const pendingRef = useRef(pending);
   pendingRef.current = pending;
@@ -120,7 +121,9 @@ export function useComposer({ notify }: ComposerOptions) {
   const addUrl = useCallback(
     async (raw: string) => {
       const url = raw.trim();
-      if (pendingRef.current.some((p) => p.kind === 'link' && p.url === url)) return;
+      // a ref, not state: two quick pastes of one link happen before a render
+      if (urls.current.has(url)) return;
+      urls.current.add(url);
       const pid = pidSeq++;
       setPending((xs) => [...xs, { pid, kind: 'link', url, status: 'loading', preview: localPreview(url) }]);
       let preview: LinkPreview;
@@ -182,12 +185,14 @@ export function useComposer({ notify }: ComposerOptions) {
     setPending((xs) => {
       const gone = xs.find((x) => x.pid === pid);
       if (gone?.kind === 'file' && gone.preview) URL.revokeObjectURL(gone.preview);
+      if (gone?.kind === 'link') urls.current.delete(gone.url);
       return xs.filter((x) => x.pid !== pid);
     });
   }, []);
 
   const reset = useCallback(() => {
     for (const p of pendingRef.current) if (p.kind === 'file' && p.preview) URL.revokeObjectURL(p.preview);
+    urls.current.clear();
     setText('');
     setPending([]);
     setProjects([]);

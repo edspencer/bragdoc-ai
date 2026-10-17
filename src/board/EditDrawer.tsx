@@ -327,7 +327,7 @@ export function EditDrawer({
               {base.archived ? <ArchiveRestore aria-hidden className="size-3.5" /> : <Archive aria-hidden className="size-3.5" />}
               {base.archived ? 'Unarchive' : 'Archive'}
             </Btn>
-            <Btn size="sm" kind="danger" disabled={saving} onClick={() => onRemove(base)} data-testid="edit-remove">
+            <Btn size="sm" kind="danger" disabled={saving || !!base.readOnly} onClick={() => onRemove(base)} data-testid="edit-remove">
               <Trash2 aria-hidden className="size-3.5" /> Remove
             </Btn>
           </span>

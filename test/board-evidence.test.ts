@@ -43,3 +43,8 @@ test('the composer: links classified without the server, and the title when noth
   assert.equal(fallbackTitle([{ pid: 2, kind: 'link', url: '', status: 'ready', preview: localPreview('https://example.com/a') }]), 'example.com');
   assert.equal(fallbackTitle([]), '');
 });
+
+test("a PR slab links to the PR its key names, whatever its url says", () => {
+  const v = toView({ id: ID, kind: 'github_pr', url: 'https://evil.example/phish', externalKey: 'github_pr:acme/app#3' }, {});
+  assert.equal(v.kind === 'github_pr' && v.url, 'https://github.com/acme/app/pull/3');
+});

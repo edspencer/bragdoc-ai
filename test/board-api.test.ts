@@ -147,6 +147,7 @@ test('remove moves the file to backups/removed/, restore brings it back', async 
   assert.equal(back.status, 200);
   assert.ok(h.exists(`achievements/2026/10/${a.id}.md`));
   assert.equal((await json('POST', `/api/achievements/${a.id}/remove`, {}, { 'if-match': '"stale"' })).status, 409);
+  assert.ok(h.exists(`achievements/2026/10/${a.id}.md`), 'a stale remove leaves the file where it is');
 });
 
 test('uploads: a picture, a PDF and any other file each become the right evidence and file on disk', async () => {
@@ -239,6 +240,9 @@ test('link preview: a PR without GitHub connected makes no request and shows own
   const pr = (await res.json()) as Extract<LinkPreview, { kind: 'github_pr' }>;
   assert.equal(pr.kind, 'github_pr');
   assert.deepEqual([pr.repo, pr.number, pr.externalKey, pr.url], ['acme/app', 42, 'github_pr:acme/app#42', 'https://github.com/acme/app/pull/42']);
+  // GitHub names are case-insensitive: one PR, one key
+  const shouty = (await (await json('POST', '/api/link-preview', { url: 'https://github.com/ACME/App/pull/42' })).json()) as Extract<LinkPreview, { kind: 'github_pr' }>;
+  assert.equal(shouty.externalKey, 'github_pr:acme/app#42');
   assert.equal(pr.title, undefined);
   assert.match(pr.titleNote!, /isn’t connected/);
   assert.equal(pr.repoId, repo.id);
@@ -314,4 +318,18 @@ test('store changes reach the event bus, debounced per type, with problems', asy
   h.services.projects.create({ name: 'P' });
   bus.flush();
   assert.deepEqual(seen.map((e) => e.type).sort(), ['achievement', 'problems', 'project']);
+});
+
+test('a steady stream of changes still reaches the bus at least every MAX_WAIT_MS', async () => {
+  const b = new EventBus();
+  const seen: number[] = [];
+  b.subscribe(() => seen.push(Date.now()));
+  const start = Date.now();
+  // a call every 50 ms for 600 ms: a plain 150 ms debounce would hold it all until the end
+  while (Date.now() - start < 600) {
+    b.emitSoon('k', { type: 'achievement' }, 150, 200);
+    await new Promise((r) => setTimeout(r, 50));
+  }
+  assert.ok(seen.length >= 2, `pushed ${seen.length} times during the stream`);
+  assert.ok(seen[0] - start < 400, 'the first push came within the max wait');
 });

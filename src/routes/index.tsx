@@ -51,6 +51,8 @@ function Board() {
   const notify = useCallback((msg: string, tone: 'ink' | 'bad' = 'ink') => toast({ msg, tone }), [toast]);
   const c = useComposer({ notify });
   const [saving, setSaving] = useState(false);
+  const savingRef = useRef(false);
+  savingRef.current = saving;
   const [fresh, setFresh] = useState<string | null>(null);
   const [editing, setEditing] = useState<AchievementItem | null>(null);
   const [dragging, setDragging] = useState(false);
@@ -85,7 +87,7 @@ function Board() {
   useEffect(() => {
     const drawerOpen = () => !!document.querySelector('dialog[open]');
     const onPaste = (e: ClipboardEvent) => {
-      if (!e.clipboardData || drawerOpen()) return;
+      if (!e.clipboardData || drawerOpen() || savingRef.current) return;
       const t = e.target as HTMLElement | null;
       const inField = t?.closest?.('input, textarea, [contenteditable="true"]');
       const inComposer = t?.closest?.('[data-testid="composer"]');
@@ -104,14 +106,18 @@ function Board() {
       depth = Math.max(0, depth - 1);
       if (!depth) setDragging(false);
     };
+    // a file dropped anywhere is never opened by the browser in place of the app (over the lightbox too); the
+    // drawer takes its own drops, and while a pin is saving drops are ignored rather than lost by its reset
     const onOver = (e: DragEvent) => {
-      if (carries(e) && !drawerOpen()) e.preventDefault();
+      if (carries(e)) e.preventDefault();
     };
     const onDrop = (e: DragEvent) => {
       depth = 0;
       setDragging(false);
-      if (!e.dataTransfer || drawerOpen() || !carries(e)) return;
+      if (!e.dataTransfer || !carries(e)) return;
+      if (e.defaultPrevented) return; // the drawer took it
       e.preventDefault();
+      if (drawerOpen() || savingRef.current) return;
       takeDrop(e.dataTransfer);
     };
     document.addEventListener('paste', onPaste);
@@ -183,7 +189,7 @@ function Board() {
 
   const remove = async (a: AchievementItem) => {
     try {
-      await removeAchievement(a.id);
+      await removeAchievement(a.id, a.etag);
       setEditing(null);
       refresh();
       toast({
@@ -194,7 +200,17 @@ function Board() {
             .catch((e) => toast({ msg: isApiError(e) ? `Couldn't put it back: ${e.message}` : "Couldn't put it back.", tone: 'bad' })),
       });
     } catch (e) {
-      toast({ msg: isApiError(e, NETWORK_ERROR) ? "Couldn't remove it: BragDoc isn't answering." : isApiError(e) ? e.message : "Couldn't remove it.", tone: 'bad' });
+      toast({
+        msg: isApiError(e, NETWORK_ERROR)
+          ? "Couldn't remove it: BragDoc isn't answering."
+          : isApiError(e, 'conflict')
+            ? 'It changed on disk since you opened it, so it wasn’t removed. Have a look at the new version first.'
+            : isApiError(e)
+              ? e.message
+              : "Couldn't remove it.",
+        tone: 'bad',
+      });
+      if (isApiError(e, 'conflict')) refresh();
     }
   };
 
