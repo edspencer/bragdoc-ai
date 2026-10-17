@@ -7,9 +7,17 @@ import path from 'node:path';
 import { expect, test } from '@playwright/test';
 
 test.describe.configure({ mode: 'serial' });
+// One server and one data home serve every browser project, so these steps run once (in Chromium) rather than racing
+// a second browser over the same projects. Firefox's own concern, the Origin rule, is security.spec.ts's.
+test.skip(({ browserName }) => browserName !== 'chromium', 'runs once: the data home is shared');
 
 let scratch: string;
-test.beforeAll(() => {
+test.beforeAll(async ({ request }) => {
+  // a clean slate even on a retry (serial groups re-run from the top): everything this spec makes goes again
+  for (const kind of ['projects', 'companies', 'repos'] as const) {
+    const list = (await (await request.get(`/api/${kind}`)).json())[kind] as { id: string }[];
+    for (const x of list) expect((await request.delete(`/api/${kind}/${x.id}`)).ok()).toBe(true);
+  }
   scratch = fs.realpathSync(fs.mkdtempSync(path.join(os.tmpdir(), 'bragdoc-e2e-repos-')));
   fs.mkdirSync(path.join(scratch, 'my-app', '.git'), { recursive: true });
   fs.writeFileSync(path.join(scratch, 'my-app', '.git', 'config'), '[remote "origin"]\n\turl = git@github.com:example/my-app.git\n');
