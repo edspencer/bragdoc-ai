@@ -176,3 +176,38 @@ D17 onwards are decisions made while building.
   for branch rules; later jobs (PR5 `services`, PR6 `smoke:pack` and Docker, PR18 `website`) join its `needs`.
 - No Windows cells: Windows isn't supported in v0.1 (D14). Hallway runs them because it supports Windows best-effort.
 - CI runs on pushes and PRs to both `next` and `main`, so nothing needs editing when `next` merges.
+
+### D23 — `bragdoc service`: a login service, always restarted, read back from its own unit
+
+- macOS: a **LaunchAgent** `ai.bragdoc.local` in `~/Library/LaunchAgents`; Linux: a **systemd user unit**
+  `bragdoc.service` in `$XDG_CONFIG_HOME/systemd/user`. Windows: "not supported yet" (D14). It runs as you, so it
+  **starts at login, not at boot**; on Linux, `loginctl enable-linger` (suggested, never run) keeps it past logout.
+- The unit runs `process.execPath` and the realpath of `dist/server/cli.js` (never the bin shim), with the PATH
+  captured at install minus per-shell directories. `install` refuses to run from npx's (or pnpm dlx's, bunx's) cache,
+  and from an unbuilt checkout.
+- **Always restarted**: KeepAlive `<true/>` / `Restart=always` (Paddock #872: a conditional restart leaves it down
+  after a graceful SIGTERM). Stopping on purpose is `bragdoc service stop`, which lasts until the next login
+  (launchd: bootout; systemd: stop, never disable). `uninstall` is the permanent one.
+- The port is always written into the unit, and `status` / `start` / `restart` read it back from there; the data home
+  is written only when it was chosen (`--data-dir`, `$BRAGDOC_HOME`), so by default the service and a terminal
+  `bragdoc` share `~/.bragdoc`. `install`, `start` and `restart` wait up to 20 s for `/api/health`; a timeout is
+  reported as a caveat, not an error.
+- Logs: macOS writes both streams to `<data home>/service/bragdoc.log` (followed in Node by `service logs`, no
+  `tail`); Linux uses the journal (`journalctl --user -u bragdoc.service -f`).
+- **Deviation:** `install` creates `<data home>/service/` itself (launchd and systemd both need the working directory
+  to exist before they start the job). That's a write to the data home outside the store (PR3), and only that
+  directory; PR3's fsguard allow-list and PR2's `.gitignore` should include `service/`.
+- `install --dry-run` prints the unit and the commands and writes nothing.
+- **Considered:** a LaunchDaemon / system unit (boots without a login, but runs as root, without your `gh` login);
+  Hallway's `stop` that also disables (Paddock's "for this session" is easier to explain, and the same on both).
+
+### D24 — Until PR2: one subprocess module, one fetch site
+
+- PR2 brings `server/proc.ts` and `server/egress.ts` and a guard test that only they may spawn or fetch (D9). PR5 was
+  built alongside it, so its subprocesses all go through `server/platform/runner.ts` (`execFile` for launchctl,
+  systemctl; a streaming `spawn` for `journalctl -f`; a detached `spawn` for `open` / `xdg-open`), and its one HTTP
+  call, the loopback `/api/health` probe, is in `server/commands/ready.ts`.
+- Whichever of PR2 and PR5 merges second moves those two files onto `proc.ts` / `egressFetch`. `proc.ts` needs a
+  streaming variant (inherited stdio, no timeout) for `journalctl -f`, and `launch` (detached, not awaited) for `--open`.
+- PR2's bind guard replaces `assertBindAllowed()` in `server/cli.ts`, its single call site (D21).
+
