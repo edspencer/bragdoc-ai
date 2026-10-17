@@ -12,13 +12,17 @@
 import type { Hono } from 'hono';
 import type { AppContext } from '../context.js';
 import { registerEvents } from './events.js';
+import { registerGuide } from './guide.js';
 import { registerHealth } from './health.js';
+import { registerMcp } from './mcp.js';
 import { registerMeta } from './meta.js';
 import { registerNetwork } from './network.js';
 
 export function registerRoutes(app: Hono, ctx: AppContext): void {
   registerEvents(app, ctx);
+  registerGuide(app, ctx);
   registerHealth(app, ctx);
+  registerMcp(app, ctx);
   registerMeta(app, ctx);
   registerNetwork(app, ctx);
 }
