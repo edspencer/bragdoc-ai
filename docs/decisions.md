@@ -468,6 +468,10 @@ D17 onwards are decisions made while building.
   (broken by hand, or from a newer BragDoc) keeps its dangling reference rather than failing the delete.
 - A deleted company's projects therefore land in the Gantt's "No company" lane (SPEC R6). The UI offers **Archive**
   (status `archived`, hidden from the Gantt by default) next to Delete for anything you might want back later.
+- The file is moved aside before the references are detached, so a crash in between leaves dangling references (the
+  Problems list shows them) and an undo that can't know which files to reattach; the file itself is still restorable.
+  Only the store's per-file refusals (a broken, newer or vanished file) are skipped while detaching; a real I/O error
+  fails the request.
 - MCP and other callers keep the plain `remove` (references left, as D24 says) unless they choose otherwise.
 - **Considered:** refusing to delete anything still referenced (pushes people to hand-edit dozens of files);
   leaving dangling references (Problems noise, and the Board would draw pills for projects that don't exist).

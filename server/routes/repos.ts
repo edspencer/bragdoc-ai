@@ -48,7 +48,9 @@ export function registerRepos(app: Hono, ctx: AppContext): void {
       const v = validate(RepoCreateSchema, await jsonBody(c.req));
       const remoteUrl = v.remoteUrl ? checkRemote(v.remoteUrl) : undefined;
       const local = v.localPath ? checkFolder(v.localPath) : undefined;
-      const { repo, created } = services.repos.create({ ...v, localPath: local?.localPath, remoteUrl: remoteUrl ?? local?.remoteUrl ?? undefined });
+      let { repo, created } = services.repos.create({ ...v, localPath: local?.localPath, remoteUrl: remoteUrl ?? local?.remoteUrl ?? undefined });
+      // the same remote, known so far without a folder: this is its checkout, so remember where it is
+      if (!created && local && !repo.localPath) repo = services.repos.update(repo.id, { localPath: local.localPath });
       return c.json({ repo: entry(repo), created } satisfies RepoCreateResponse, created ? 201 : 200);
     } catch (e) {
       const r = storeError(e);

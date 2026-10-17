@@ -77,6 +77,11 @@ test('an ongoing project is striped; any colour keeps its text readable and is s
   await expect(bar).toHaveCSS('background-color', 'rgb(255, 255, 0)');
   await expect(bar).toHaveCSS('color', 'rgb(29, 26, 23)');
   await expect.poll(async () => (await (await request.get(`/api/projects/${p.id}`)).json()).color).toBe('#ffff00');
+
+  // a colour picked just before switching to another project is still saved (the pile unmounts mid-debounce)
+  await page.getByRole('radio', { name: 'Use #6a5cf0' }).click();
+  await page.getByTestId('gantt-bar').filter({ hasText: 'Search relevance v2' }).click();
+  await expect.poll(async () => (await (await request.get(`/api/projects/${p.id}`)).json()).color).toBe('#6a5cf0');
 });
 
 test('delete a project, then Undo brings it back', async ({ page }) => {

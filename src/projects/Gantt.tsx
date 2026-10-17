@@ -129,7 +129,7 @@ export function Gantt({
                           title={`${p.name}\n${dates}`}
                           data-testid="gantt-bar"
                           data-project={p.id}
-                          className={`absolute inset-y-0 flex min-w-0 items-center overflow-hidden rounded-xl px-3 font-grotesk text-[13.5px] font-bold ring-1 ring-black/10 transition hover:z-10 hover:-translate-y-0.5 dark:ring-white/15 ${active ? 'z-10 shadow-[0_4px_0_rgba(0,0,0,.22)]' : 'opacity-75 hover:opacity-100'} ${archived ? 'opacity-40 grayscale-[.4]' : ''}`}
+                          className={`absolute inset-y-0 flex min-w-0 items-center overflow-hidden rounded-xl px-3 font-grotesk text-[13.5px] font-bold ring-1 ring-black/10 transition hover:z-10 hover:-translate-y-0.5 dark:ring-white/15 ${active ? 'z-10 shadow-[0_4px_0_rgba(0,0,0,.22)]' : archived ? 'opacity-40 grayscale-[.4] hover:opacity-80' : 'opacity-75 hover:opacity-100'}`}
                           style={{
                             left: `${b.left}%`,
                             width: `${b.width}%`,

@@ -48,15 +48,26 @@ export function parseRemotes(config: string): { name: string; url: string }[] {
   return out;
 }
 
+/** The most of a git file this reads: configs are a few hundred bytes; anything huge isn't one. */
+const MAX_BYTES = 64 * 1024;
+
+/** A small regular file's text: never a FIFO or device (a read would block the server), never a huge file. */
+function readSmall(file: string): string {
+  const st = fs.statSync(file);
+  if (!st.isFile() || st.size > MAX_BYTES) throw new NotARepoError('its git files don\'t look right', 'not_a_repo');
+  return fs.readFileSync(file, 'utf8');
+}
+
 /** The config file of the repo whose `.git` is at `dotGit` (a folder, or a `gitdir:` file). */
 function configFile(dotGit: string, st: fs.Stats): string {
   if (st.isDirectory()) return path.join(dotGit, 'config');
-  const m = /^gitdir:\s*(.+?)\s*$/m.exec(fs.readFileSync(dotGit, 'utf8'));
+  if (!st.isFile()) throw new NotARepoError('its .git is neither a folder nor a file', 'not_a_repo');
+  const m = /^gitdir:\s*(.+?)\s*$/m.exec(readSmall(dotGit));
   if (!m) throw new NotARepoError('its .git file doesn\'t say where the repository is', 'not_a_repo');
   const gitdir = path.resolve(path.dirname(dotGit), m[1]);
   // a linked worktree's gitdir holds `commondir`, pointing at the main repository (which has the config)
   try {
-    const common = fs.readFileSync(path.join(gitdir, 'commondir'), 'utf8').trim();
+    const common = readSmall(path.join(gitdir, 'commondir')).trim();
     if (common) return path.join(path.resolve(gitdir, common), 'config');
   } catch {
     /* a submodule: its gitdir has its own config */
@@ -69,7 +80,9 @@ function configFile(dotGit: string, st: fs.Stats): string {
  * repo is fine). Throws NotARepoError with a sentence for people otherwise.
  */
 export function readLocalRepo(folder: string, home?: string): { path: string; remoteUrl: string | null } {
-  const abs = expandHome(folder.trim(), home);
+  const typed = expandHome(folder.trim(), home);
+  // one spelling per folder (`~/Code/./my-app/` is `~/Code/my-app`), so adding it twice finds the first
+  const abs = path.isAbsolute(typed) ? path.resolve(typed) : typed;
   if (!path.isAbsolute(abs)) throw new NotARepoError(`give the folder's full path (like ~/Code/my-app), not "${folder}"`, 'no_such_folder');
   let st: fs.Stats;
   try {
@@ -87,7 +100,7 @@ export function readLocalRepo(folder: string, home?: string): { path: string; re
   }
   let text = '';
   try {
-    text = fs.readFileSync(configFile(dotGit, gst), 'utf8');
+    text = readSmall(configFile(dotGit, gst));
   } catch (e) {
     if (e instanceof NotARepoError) throw e;
     throw new NotARepoError(`${folder} looks like a git repository, but its config can't be read`, 'not_a_repo');

@@ -4,7 +4,7 @@ import { useEffect, useState, type FormEvent } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { Plus, X } from 'lucide-react';
 import type { CompanyEntry, ProjectEntry, ProjectStatus, RepoEntry } from '../../shared/api.ts';
-import { createCompany, createProject, createRepo, isApiError, updateProject, type ProjectInput } from '../api/client.ts';
+import { createCompany, createProject, createRepo, getProjects, isApiError, updateProject, type ProjectInput } from '../api/client.ts';
 import { queryKeys } from '../api/queries.ts';
 import { Btn, ColourPicker, Dialog, Field, TextArea, TextInput, inputCls } from '../kit/index.ts';
 import { PROJECT_SWATCHES, inkOn, safeColour } from '../lib/colour.ts';
@@ -47,6 +47,16 @@ function initial(p: ProjectEntry | undefined, nextColour: string): Form {
     repoIds: p?.repoIds ?? [],
     color: p?.color ?? nextColour,
   };
+}
+
+/** The fields of `body` that differ from the project as it was opened. */
+function changedOnly(body: ProjectInput, p: ProjectEntry): ProjectInput {
+  const out: Record<string, unknown> = {};
+  for (const [k, v] of Object.entries(body)) {
+    const was = (p as unknown as Record<string, unknown>)[k];
+    if (JSON.stringify(v ?? null) !== JSON.stringify(was ?? null)) out[k] = v;
+  }
+  return out as ProjectInput;
 }
 
 /** A folder (`/…`, `~/…`, `C:\…`) or else a remote URL. */
@@ -143,7 +153,9 @@ export function ProjectDialog({
       const desc = f.description.trim();
       if (desc) body.description = desc;
       else if (project?.description) body.description = null;
-      const saved = project ? await updateProject(project.id, body, etag) : await createProject(body);
+      // an edit sends only what changed: a field left alone that holds an id since removed (a dangling company or repo)
+      // mustn't make an unrelated edit fail
+      const saved = project ? await updateProject(project.id, changedOnly(body, project), etag) : await createProject(body);
       await qc.invalidateQueries({ queryKey: queryKeys.projects });
       onSaved(saved);
     } catch (err) {
@@ -184,12 +196,16 @@ export function ProjectDialog({
               <button
                 type="button"
                 className="ml-2 underline"
-                onClick={() => {
-                  const latest = projects.find((p) => p.id === project.id);
-                  if (latest) {
-                    setF(initial(latest, nextColour));
-                    setEtag(latest.etag);
+                onClick={async () => {
+                  // straight from the server: the cached list may be the stale copy that conflicted
+                  const fresh = await qc.fetchQuery({ queryKey: queryKeys.projects, queryFn: () => getProjects(), staleTime: 0 }).catch(() => null);
+                  const latest = fresh?.projects.find((p) => p.id === project.id);
+                  if (!latest) {
+                    setError('It can\'t be found any more: it may have been deleted.');
+                    return;
                   }
+                  setF(initial(latest, nextColour));
+                  setEtag(latest.etag);
                   setConflict(false);
                   setError(null);
                 }}

@@ -78,7 +78,8 @@ function Projects() {
         undo: () =>
           void restoreProject(p.id, r.detached)
             .then(() => qc.invalidateQueries({ queryKey: queryKeys.projects }))
-            .then(() => select(p.id))
+            // the toast outlives the page: only pick it if Projects is still what's showing
+            .then(() => window.location.pathname === '/projects' && select(p.id))
             .catch((e) => toast({ msg: isApiError(e) ? e.message : 'Couldn\'t undo.', tone: 'bad' })),
       });
     } catch (e) {

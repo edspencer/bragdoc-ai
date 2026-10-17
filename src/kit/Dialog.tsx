@@ -24,6 +24,8 @@ export interface DialogProps {
 export function Dialog({ open, onClose, title, sub, tape, children, footer, size = 'md', 'data-testid': testId }: DialogProps) {
   const ref = useRef<HTMLDialogElement>(null);
   const titleId = useId();
+  // where the last press started: a drag from a text box out onto the backdrop is a click on the backdrop too
+  const downOnBackdrop = useRef(false);
   useEffect(() => {
     const d = ref.current;
     if (!d) return;
@@ -39,9 +41,12 @@ export function Dialog({ open, onClose, title, sub, tape, children, footer, size
         e.preventDefault();
         onClose();
       }}
+      onMouseDown={(e) => (downOnBackdrop.current = e.target === ref.current)}
       onClick={(e) => {
-        // the <dialog> itself is only the target when the click lands on its backdrop
-        if (e.target === ref.current) onClose();
+        // the <dialog> itself is only the target when the click lands on its backdrop; and only a press that also
+        // started there closes it, so selecting text and letting go outside the sheet doesn't throw the form away
+        if (e.target === ref.current && downOnBackdrop.current) onClose();
+        downOnBackdrop.current = false;
       }}
       className={`sb-card m-auto max-h-[min(92vh,900px)] w-[calc(100vw-1.5rem)] overflow-visible rounded-3xl bg-surface p-0 text-ink backdrop:bg-[rgba(20,16,12,.45)] backdrop:backdrop-blur-[2px] ${size === 'sm' ? 'max-w-md' : 'max-w-2xl'}`}
     >

@@ -34,6 +34,9 @@ export interface Detached {
 
 type RefKind = 'project' | 'company' | 'repo';
 
+/** The store's per-file refusals (a broken or newer file, one that's gone): what detach and reattach skip. */
+const isFileProblem = (e: unknown) => e instanceof ConflictError || e instanceof NotFoundError || e instanceof ValidationError;
+
 /** Take `id` off every achievement (and, for companies and repos, every project) that refers to it. */
 function detach(store: Store, kind: RefKind, id: string): Detached {
   const out: Detached = { achievements: [], projects: [] };
@@ -41,8 +44,10 @@ function detach(store: Store, kind: RefKind, id: string): Detached {
     try {
       fn();
       ok();
-    } catch {
-      /* broken or read-only: it keeps the dangling reference (see Detached) */
+    } catch (e) {
+      // broken, read-only, or gone meanwhile: it keeps the dangling reference (see Detached). A real I/O error isn't
+      // one of those, and fails the request.
+      if (!isFileProblem(e)) throw e;
     }
   };
   const achievementIds =
@@ -75,8 +80,9 @@ function reattach(store: Store, kind: RefKind, id: string, d: Partial<Detached>)
   const quietly = (fn: () => unknown) => {
     try {
       fn();
-    } catch {
-      /* gone or broken since: nothing to put back */
+    } catch (e) {
+      // gone or broken since: nothing to put back
+      if (!isFileProblem(e)) throw e;
     }
   };
   for (const aid of d.achievements ?? [])
@@ -266,8 +272,12 @@ export function normalizeRemote(url: string): { url: string; host: string; path:
   const scp = /^(?:[\w.-]+@)?([\w.-]+):(?!\/\/)(.+)$/.exec(s);
   let host: string;
   let p: string;
-  if (scp && !/^[a-z]+:\/\//i.test(s)) [host, p] = [scp[1], scp[2]];
-  else {
+  if (scp && !/^[a-z]+:\/\//i.test(s)) {
+    // `user:password@host:path` doesn't match the user part, which would make `user` the host and leave the password
+    // in the path; a drive letter (`C:/repos/x`) isn't a host either. Neither is a remote we understand.
+    if (scp[2].includes('@') || !scp[1].includes('.')) return null;
+    [host, p] = [scp[1], scp[2]];
+  } else {
     try {
       const u = new URL(s);
       if (!['http:', 'https:', 'ssh:', 'git:'].includes(u.protocol)) return null;

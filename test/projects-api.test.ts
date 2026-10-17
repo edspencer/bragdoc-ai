@@ -343,3 +343,56 @@ test('a project can\'t end before it starts, on create or edit; nor a company', 
     h2.cleanup();
   }
 });
+
+describe('review follow-ups', () => {
+  let scratch: string;
+  beforeEach(() => (scratch = tmpDir('bragdoc-repos2-')));
+  afterEach(() => rmTmp(scratch));
+
+  test('a password in an scp-style remote, or a drive letter, is never taken for a remote', async () => {
+    const { normalizeRemote } = await import('../server/services/catalog.ts');
+    assert.equal(normalizeRemote('user:s3cret@github.com:owner/repo.git'), null);
+    assert.equal(normalizeRemote('C:/repos/x'), null);
+    assert.equal(normalizeRemote('git@github.com:owner/repo.git')?.url, 'https://github.com/owner/repo');
+    const dir = fakeRepo(path.join(scratch, 'pw'), '[remote "origin"]\n\turl = user:s3cret@github.com:owner/repo.git\n');
+    const r = await json<RepoCreateResponse>('POST', '/api/repos', { localPath: dir });
+    assert.equal(r.body.repo.remoteUrl, undefined);
+    assert.doesNotMatch(h.read(`repos/${r.body.repo.id}.yaml`), /s3cret/);
+  });
+
+  test('linking a known and an unknown repo changes nothing', async () => {
+    const r = h.services.repos.create({ remoteUrl: 'https://github.com/example/a' }).repo;
+    const p = h.services.projects.create({ name: 'P' });
+    assert.equal((await req('POST', `/api/projects/${p.id}/repos`, { link: [r.id, '01JAAAAAAAAAAAAAAAAAAAAAAA'] })).status, 400);
+    assert.deepEqual(h.store.get('project', p.id)!.repoIds, []);
+  });
+
+  test('a folder whose remote is already known (without a folder) fills in its folder', async () => {
+    const known = h.services.repos.create({ remoteUrl: 'https://github.com/example/known' }).repo;
+    const dir = fakeRepo(path.join(scratch, 'known'), '[remote "origin"]\n\turl = https://github.com/example/known.git\n');
+    const r = await json<RepoCreateResponse>('POST', '/api/repos', { localPath: dir + '/./' });
+    assert.equal(r.body.created, false);
+    assert.equal(r.body.repo.id, known.id);
+    assert.equal(r.body.repo.localPath, dir, 'stored in one spelling');
+  });
+
+  test('a .git that is a directory-less pointer to nowhere, or a huge config, is refused, not read', async () => {
+    const wt = path.join(scratch, 'dangling');
+    fs.mkdirSync(wt);
+    fs.writeFileSync(path.join(wt, '.git'), 'gitdir: /nonexistent/gitdir\n');
+    assert.equal((await req('POST', '/api/repos', { localPath: wt })).status, 400);
+    const big = fakeRepo(path.join(scratch, 'big'), '#'.repeat(100 * 1024));
+    assert.equal((await req('POST', '/api/repos', { localPath: big })).status, 400);
+  });
+
+  test('undo twice is a 404 the second time; restoring with no reattach still works', async () => {
+    const p = h.services.projects.create({ name: 'P' });
+    await req('DELETE', `/api/projects/${p.id}`);
+    assert.equal((await req('POST', `/api/projects/${p.id}/restore`, {})).status, 200);
+    assert.equal((await req('POST', `/api/projects/${p.id}/restore`, {})).status, 404, 'nothing left to restore');
+    const q = h.services.projects.create({ name: 'Q' });
+    await req('DELETE', `/api/projects/${q.id}`);
+    assert.equal((await req('POST', `/api/projects/${q.id}/restore`, { reattach: {} })).status, 200);
+    assert.equal((await req('POST', `/api/projects/${q.id}/restore`)).status, 415, 'a write without a JSON body is refused by the guard');
+  });
+});

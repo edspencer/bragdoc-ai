@@ -30,24 +30,41 @@ export function Pile({ project, today, onEdit, onDelete }: { project: ProjectEnt
   const s = summary.data;
   const [colour, setColour] = useState(safeColour(project.color));
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const pending = useRef<string | null>(null);
 
   // follow the project's colour when it changes elsewhere (another tab, a hand edit), unless a change is pending here
   useEffect(() => {
     if (!timer.current) setColour(safeColour(project.color));
   }, [project.color]);
-  useEffect(() => () => void (timer.current && clearTimeout(timer.current)), []);
+  // leaving (another project, another page) with a colour still waiting to be saved: save it now
+  useEffect(
+    () => () => {
+      if (!timer.current) return;
+      clearTimeout(timer.current);
+      timer.current = null;
+      if (pending.current) save(pending.current);
+    },
+    // only on unmount (save() reads the latest project id, which a keyed Pile never changes)
+    [],
+  );
+
+  function save(hex: string) {
+    pending.current = null;
+    // no If-Match: a colour is the whole edit, and the native picker sends a stream of them
+    updateProject(project.id, { color: hex })
+      .catch((e) => toast({ msg: isApiError(e) ? e.message : 'Couldn\'t save the colour.', tone: 'bad' }))
+      .finally(() => void qc.invalidateQueries({ queryKey: queryKeys.projects }));
+  }
 
   /** Paint the new colour at once everywhere on the page; save it once the native picker stops moving. */
   function pickColour(hex: string) {
     setColour(hex);
     qc.setQueryData<ProjectsResponse>(queryKeys.projects, (d) => d && { projects: d.projects.map((p) => (p.id === project.id ? { ...p, color: hex } : p)) });
+    pending.current = hex;
     if (timer.current) clearTimeout(timer.current);
     timer.current = setTimeout(() => {
       timer.current = null;
-      // no If-Match: a colour is the whole edit, and the native picker sends a stream of them
-      updateProject(project.id, { color: hex })
-        .catch((e) => toast({ msg: isApiError(e) ? e.message : 'Couldn\'t save the colour.', tone: 'bad' }))
-        .finally(() => void qc.invalidateQueries({ queryKey: queryKeys.projects }));
+      save(hex);
     }, 300);
   }
 

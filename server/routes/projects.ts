@@ -12,7 +12,7 @@ import { PILE_LIMIT, type PileItem, type ProjectSummary } from '../../shared/api
 import { ProjectReposSchema, RestoreSchema } from '../../shared/schema/index.js';
 import type { AppContext } from '../context.js';
 import { handle, jsonBody } from '../http.js';
-import { validate } from '../services/util.js';
+import { requireIds, validate } from '../services/util.js';
 import { companyEntry, ifMatch, projectEntry, repoEntry } from './entries.js';
 
 export function registerProjects(app: Hono, ctx: AppContext): void {
@@ -38,7 +38,8 @@ export function registerProjects(app: Hono, ctx: AppContext): void {
     handle(c, async () => {
       const id = c.req.param('id');
       const { link = [], unlink = [] } = validate(ProjectReposSchema, await jsonBody(c.req));
-      services.projects.get(id); // 404 before anything changes
+      services.projects.get(id); // 404, and unknown repo ids, before anything changes: never half-applied
+      requireIds(store, 'repo', link, 'link');
       for (const r of link) services.projects.linkRepo(id, r);
       for (const r of unlink) services.projects.unlinkRepo(id, r);
       return entry(services.projects.get(id));
