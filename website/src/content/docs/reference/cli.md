@@ -44,18 +44,21 @@ when you log in (not when the computer boots), runs as you, and is restarted if 
 
 ## `bragdoc guide`
 
-Prints the [agent guide](/agents/agent-guide/), the document that tells coding agents how to work with BragDoc.
+Prints the [agent guide](/agents/agent-guide/), the document that tells coding agents how to work with BragDoc. It works
+without BragDoc running. `--snippet` prints just the paragraph for your agent's instruction file.
 
 ## `bragdoc mcp`
 
-*Coming in v0.1.* The [MCP](/agents/mcp/) stdio shim: forwards an MCP client's requests to the running BragDoc. If
-BragDoc isn't running, it says so.
+The [MCP](/agents/mcp/) stdio bridge: forwards an MCP client's requests to the running BragDoc, with the address and
+token from `runtime.json`. If BragDoc isn't running, it says so and exits 1. `--data-dir <dir>` picks the data folder
+to find it by.
 
 | Command | What it does |
 | --- | --- |
 | `bragdoc mcp install claude` | Registers BragDoc's MCP server with Claude Code (`claude mcp add`, user scope), with its token. |
 | `bragdoc mcp install claude --stdio` | Registers `bragdoc mcp` instead of the HTTP endpoint. |
-| `bragdoc mcp install claude --print` | Prints configuration for other clients and writes nothing. |
+| `bragdoc mcp install claude --print` | Prints configuration for Claude Desktop, Cursor and other clients, and changes nothing. |
+| `--port <n>`, `--data-dir <dir>` | The port to register (default: the one BragDoc last ran on), and the data folder whose token to use. |
 
 ## `bragdoc import <export.json>`
 

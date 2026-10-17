@@ -183,7 +183,7 @@ One achievement: these keys as YAML front-matter between `---` lines, then the m
 | `companyId` | id or empty |  | The company, when it isn't implied by a project. |
 | `evidence` | list of mapping | default `[]` | What backs it up (see Evidence). |
 | `source` | one of the values given | default `"manual"` | How it got here: `manual`, `paste`, `github-pr`, `screenshot`, `mcp` or `import`. |
-| `sourceAgent` | string |  | For `mcp`: which agent wrote it, e.g. `claude-code`. |
+| `sourceAgent` | string |  | For `mcp`: which agent wrote it, as the board names it, e.g. `Claude Code`. |
 | `externalKey` | string |  | A stable key for where it came from (`github_pr:owner/repo#123`); adding the same key again is a no-op. |
 | `legacyId` | string |  | Its id in the hosted BragDoc, for imported achievements (re-importing skips it). |
 | `archived` | boolean | default `false` | `true` hides it from the board without deleting it. |

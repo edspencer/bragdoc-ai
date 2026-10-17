@@ -83,6 +83,8 @@ export interface IngestOptions {
   originalName?: string;
   /** Only these evidence kinds (checked from the content, before anything is stored). */
   only?: readonly EvidenceKind[];
+  /** Only these types (checked from the content, before anything is stored); `what` names them in the refusal. */
+  accept?: { mimes: RegExp; what: string };
 }
 
 export async function ingestBytes(store: Store, bytes: Uint8Array, opts: IngestOptions = {}): Promise<Ingested> {
@@ -93,6 +95,7 @@ export async function ingestBytes(store: Store, bytes: Uint8Array, opts: IngestO
   const blobAbs = existing ? path.join(store.home, blobRelPath(sha, existing.ext)) : null;
   const { mime, ext } = existing ?? (await sniff(bytes, opts.originalName));
   if (opts.only && !opts.only.includes(evidenceKindFor(mime))) throw new ValidationError(`that file is ${mime}, not ${opts.only.join(' or ')}`);
+  if (opts.accept && !opts.accept.mimes.test(mime)) throw new ValidationError(`that file is ${mime}; only ${opts.accept.what} can be added as evidence`);
   if (existing && blobAbs && fs.existsSync(blobAbs)) return { sha256: sha, sidecar: existing, kind: evidenceKindFor(existing.mime), created: false };
   const abs = path.join(store.home, blobRelPath(sha, ext));
   // content-addressed: a file already at this name holds these very bytes, so it's never replaced
@@ -117,11 +120,11 @@ export async function ingestBytes(store: Store, bytes: Uint8Array, opts: IngestO
 }
 
 /**
- * Store the file at `file` as evidence: an absolute path to a regular file (not a directory, device or socket), within
- * the size cap, checked before it's read; never one in the data home or a hidden directory. Symlinks are followed (a
- * screenshot folder may be one), and the checks apply to where they lead.
+ * Check that `file` may be stored as evidence, without reading it: an absolute path to a regular file (not a directory,
+ * device or socket), within the size cap; never one in the data home or a hidden directory. Symlinks are followed (a
+ * screenshot folder may be one), and the checks apply to where they lead. Returns the real path and its size.
  */
-export async function ingestPath(store: Store, file: string, opts: IngestOptions = {}): Promise<Ingested> {
+export function checkIngestPath(store: Store, file: string): { real: string; bytes: number } {
   if (!path.isAbsolute(file)) throw new ValidationError(`${file} isn't an absolute path`);
   // never BragDoc's own files (secrets.yaml, runtime.json), and nothing in a hidden directory (~/.ssh, ~/.config): an
   // agent asking for those is never asking for evidence
@@ -148,6 +151,12 @@ export async function ingestPath(store: Store, file: string, opts: IngestOptions
   }
   if (!st.isFile()) throw new ValidationError(`${file} is not a regular file`);
   if (st.size > MAX_BLOB_BYTES) throw new ValidationError(`${file} is ${(st.size / 1048576).toFixed(1)} MB; the limit is ${MAX_BLOB_BYTES / 1048576} MB`);
+  return { real, bytes: st.size };
+}
+
+/** Store the file at `file` as evidence, after checkIngestPath's checks. */
+export async function ingestPath(store: Store, file: string, opts: IngestOptions = {}): Promise<Ingested> {
+  const { real } = checkIngestPath(store, file);
   return ingestBytes(store, fs.readFileSync(real), { ...opts, originalName: opts.originalName ?? path.basename(file) });
 }
 

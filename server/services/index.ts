@@ -35,6 +35,6 @@ export function createServices(store: Store): Services {
 
 export type { AchievementService, ListResult } from './achievements.js';
 export type { CompanyService, ProjectService, RepoService } from './catalog.js';
-export type { EvidenceService } from './evidence.js';
+export { ATTACHABLE, type EvidenceService } from './evidence.js';
 export type { AddResult, DecideResult, FoundService } from './found.js';
 export type { ProfileService } from './profile.js';

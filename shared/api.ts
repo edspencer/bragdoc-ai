@@ -64,7 +64,7 @@ export interface MetaResponse {
   dataDir: string;
   dataDirDisplay: string;
   notices: Notice[];
-  /** Where MCP clients connect (the endpoint itself arrives with PR9). */
+  /** Where MCP clients connect (Streamable HTTP; needs the bearer token from runtime.json). */
   mcpUrl: string;
   /** Hostnames the Host check accepts besides loopback (config.yaml allowedHosts + BRAGDOC_ALLOWED_HOSTS). */
   allowedHosts: string[];

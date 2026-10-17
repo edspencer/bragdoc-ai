@@ -21,7 +21,7 @@ export const AchievementFrontMatterSchema = z.object({
   companyId: ulidSchema.nullable().optional().describe('The company, when it isn\'t implied by a project.'),
   evidence: z.array(EvidenceSchema).default([]).describe('What backs it up (see Evidence).'),
   source: z.enum(ACHIEVEMENT_SOURCES).default('manual').describe('How it got here: `manual`, `paste`, `github-pr`, `screenshot`, `mcp` or `import`.'),
-  sourceAgent: z.string().optional().describe('For `mcp`: which agent wrote it, e.g. `claude-code`.'),
+  sourceAgent: z.string().optional().describe('For `mcp`: which agent wrote it, as the board names it, e.g. `Claude Code`.'),
   externalKey: z.string().optional().describe('A stable key for where it came from (`github_pr:owner/repo#123`); adding the same key again is a no-op.'),
   legacyId: z.string().optional().describe('Its id in the hosted BragDoc, for imported achievements (re-importing skips it).'),
   archived: z.boolean().default(false).describe('`true` hides it from the board without deleting it.'),

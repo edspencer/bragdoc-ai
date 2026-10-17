@@ -35,6 +35,7 @@ These are enforced for every request (see [Localhost security](/guarantees/local
 | `GET /api/events` | A Server-Sent Events stream of changes, for live updates. |
 | `GET /api/meta` | What this server is and how it's set up: version, build information (release builds only), data folder, MCP address, allowed hosts, the current outbound allow-list, and any notices. |
 | `GET /api/network-log` | Recent outbound requests, for [Network activity](/guarantees/network-activity/). |
-| `POST /mcp` | *Coming in v0.1.* The [MCP server](/agents/mcp/). Needs `Authorization: Bearer <token>`. |
+| `POST /mcp` | The [MCP server](/agents/mcp/). Needs `Authorization: Bearer <token>`; GET and DELETE are 405 (it's stateless). |
+| `GET /agent-guide.md`, `/llms.txt`, `/llms-full.txt` | The [agent guide](/agents/agent-guide/), with this BragDoc's live facts. |
 
 Achievements, evidence, projects, Found and settings get their endpoints as those features are built.

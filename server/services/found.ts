@@ -13,7 +13,7 @@ import {
 import { ulid } from '../../shared/ulid.js';
 import { ConflictError, NotFoundError, type Store } from '../store/index.js';
 import type { AchievementService } from './achievements.js';
-import type { EvidenceService } from './evidence.js';
+import { ATTACHABLE, type EvidenceService } from './evidence.js';
 import { defined, nowIso, today, validate, withEvidenceIds } from './util.js';
 
 const SOURCE_FOR: Record<FoundSource, AchievementSource> = { github: 'github-pr', screenshots: 'screenshot', mcp: 'mcp' };
@@ -108,8 +108,9 @@ export class FoundService {
     const missing: string[] = [];
     for (const file of f.files) {
       try {
-        // a screenshots candidate brings images, nothing else
-        const i = await this.evidence.ingestPath(file.path, f.source === 'screenshots' ? { only: ['image'] } : {});
+        // a screenshots candidate brings images, an agent's the types agents may attach (D43), checked again now: the
+        // file may have changed since it was sent
+        const i = await this.evidence.ingestPath(file.path, f.source === 'screenshots' ? { only: ['image'] } : f.source === 'mcp' ? { accept: ATTACHABLE } : {});
         evidence.push(this.evidence.toEvidence(i, file.title));
       } catch {
         missing.push(file.path);
