@@ -113,7 +113,7 @@ export function judgeSpec({ perfectText, judgeAll, only }: JudgeEvalOptions): Ev
       if (!r.pass && !judgeAll) return { rules: false, judged: false, keep: false, quote: 'none' };
       const quote = r.pass && r.quote ? { text: r.quote, ...(r.from ? { from: r.from } : {}), ...(r.where ? { where: r.where } : {}) } : { text: datasetShot(m).text.split('\n').at(-1)! };
       const systemChars = judgeScreenshotPrompt({ profile: PROFILE, projects: PROJECTS, instructions: INSTRUCTIONS, input: '' }).system.length;
-      const input = screenshotInput({ ocrText: text, quote, profile: PROFILE, maxChars: inputBudget({ contextTokens: DEFAULT_CONTEXT_TOKENS, systemChars }) });
+      const input = screenshotInput({ ocrText: text, quote, profile: PROFILE, maxChars: inputBudget({ contextTokens: DEFAULT_CONTEXT_TOKENS, systemChars }) ?? 0 });
       const { system, prompt } = judgeScreenshotPrompt({ profile: PROFILE, projects: PROJECTS, instructions: INSTRUCTIONS, input: input.text });
       const a = await ask.object({ system, prompt, schema: JudgeScreenshotAnswer, schemaName: JUDGE_SCREENSHOT_SCHEMA_NAME, maxOutputTokens: 400 });
       const p: Pick<Prepared, 'kind' | 'input' | 'inputHash' | 'projects'> = { kind: 'screenshots', input, inputHash: inputHashOf('screenshots', input.text, INSTRUCTIONS), projects: PROJECT_IDS };

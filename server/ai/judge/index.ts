@@ -105,6 +105,8 @@ export interface JudgeEngine extends Judge {
   judgePending(opts: RunOptions): Promise<RunSummary>;
   /** Stop the run in progress (if any): what's been judged stays. */
   cancel(): void;
+  /** Settles when no run is in progress (shutdown waits for it, so a run's last line is written). */
+  idle(): Promise<void>;
   status(): AiJudgeStatus;
   /** The candidates a run would take now (or of `ids`, for Judge again). */
   eligible(ids?: string[]): FoundCandidate[];
@@ -156,7 +158,8 @@ export function checkAnswer(a: JudgeAnswer, p: Pick<Prepared, 'kind' | 'input' |
     ...(a.keep && quote && p.kind === 'screenshots' && isVerbatim(quote, p.input.target) ? { quote: cut(quote, 400) } : {}),
     ...(why ? { why: cut(why, WHY_MAX) } : {}),
     suggestedProjects: projects,
-    ...(from && p.kind === 'screenshots' && isVerbatim(from, p.input.text) ? { from: cut(from, FROM_MAX) } : {}),
+    // who praised you: only the judged message's own author, never a label, a heading or someone else on screen
+    ...(from && p.kind === 'screenshots' && p.input.author && isVerbatim(from, p.input.author) ? { from: cut(from, FROM_MAX) } : {}),
     ...(impact !== undefined ? { impact } : {}),
     inputHash: p.inputHash,
   };
@@ -166,6 +169,7 @@ export function createJudge(deps: JudgeDeps): JudgeEngine {
   const { config, ai, aiActivity, store, services, ocr, bus } = deps;
   let running: (NonNullable<AiJudgeStatus['running']> & { controller: AbortController }) | null = null;
   let last: AiJudgeStatus['last'] = null;
+  let current: Promise<unknown> = Promise.resolve();
   const changed = () => bus?.emitSoon('ai-judge', { type: 'ai-judge' }, 100, 500);
 
   const unStarter = services.instructions.setStarter('what-counts', () => whatCountsStarter(store.profile()));
@@ -230,6 +234,8 @@ export function createJudge(deps: JudgeDeps): JudgeEngine {
     }
   }
 
+  const projectMap = (projects: Pick<Project, 'name' | 'id'>[]) => new Map(projects.map((p) => [p.name.replace(/\s+/g, ' ').trim().toLowerCase(), p.id]));
+
   async function prepare(c: FoundCandidate): Promise<Prepared> {
     if (c.source !== 'screenshots' && c.source !== 'github') throw new NotJudgeable(`the judge doesn't judge ${c.source} candidates`);
     const profile: Profile | null = store.profile();
@@ -245,16 +251,18 @@ export function createJudge(deps: JudgeDeps): JudgeEngine {
       input = githubInput({ repo, title: c.title, body: c.body ?? null, mergedAt: merged });
     } else {
       const q = c.evidence.find((e) => e.kind === 'quote')?.quote ?? null;
-      const systemChars = promptOf({ ...base, input: '' }).system.length;
+      const { contextTokens } = slotInfo();
+      const maxChars = inputBudget({ contextTokens, systemChars: promptOf({ ...base, input: '' }).system.length });
+      if (maxChars === null) throw new AiError('context_too_long', `ai/what-counts.md leaves no room for a screenshot in a ${contextTokens}-token context: shorten it, or give the connection a bigger context (Settings → AI). Nothing was sent.`);
       input = screenshotInput({
         ocrText: await reread(c),
         quote: q ? { text: q.text, ...(q.from ? { from: q.from } : {}), ...(q.where ? { where: q.where } : {}) } : null,
         profile: { name: profile?.name ?? '', aliases: profile?.aliases ?? [], notMe: profile?.notMe ?? [], ...(profile?.githubLogin ? { githubLogin: profile.githubLogin } : {}) },
-        maxChars: inputBudget({ contextTokens: slotInfo().contextTokens, systemChars }),
+        maxChars,
       });
     }
     const { system, prompt } = promptOf({ ...base, input: input.text });
-    return { kind: c.source, input, instructions, system, prompt, inputHash: inputHashOf(c.source, input.text, instructions), projects: new Map(projects.map((p) => [p.name.replace(/\s+/g, ' ').trim().toLowerCase(), p.id])) };
+    return { kind: c.source, input, instructions, system, prompt, inputHash: inputHashOf(c.source, input.text, instructions), projects: projectMap(projects) };
   }
 
   /** One call: the prepared prompt → the checked verdict, and where it came from. */
@@ -270,17 +278,15 @@ export function createJudge(deps: JudgeDeps): JudgeEngine {
     return { verdict: checkAnswer(answer, p), by: `${r.model} on ${whereLabel(r.where, host ?? r.connection)}` };
   }
 
-  /** Judge interface (D8): one candidate, its context given. The engine's runs build the context themselves. */
+  /** Judge interface (D8): one candidate, its context given (with `input`, nothing is read again). */
   async function decide(candidate: FoundCandidate, context: JudgeContext): Promise<Omit<Verdict, 'at' | 'by'>> {
-    const p = await prepare(candidate);
-    if (context.input !== undefined || context.instructions !== undefined) {
-      const instructions = context.instructions ?? null;
-      const input: JudgeInput = context.input !== undefined ? { ...p.input, text: context.input, target: context.input } : p.input;
-      const promptOf = p.kind === 'github' ? judgeGithubPrompt : judgeScreenshotPrompt;
-      const { system, prompt } = promptOf({ profile: context.profile, projects: context.projects.map((x) => x.name), instructions, input: input.text });
-      Object.assign(p, { input, instructions, system, prompt, inputHash: inputHashOf(p.kind, input.text, instructions), projects: new Map(context.projects.map((x) => [x.name.trim().toLowerCase(), x.id])) });
-    }
-    return (await ask(p, {})).verdict;
+    if (context.input === undefined) return (await ask(await prepare(candidate), {})).verdict;
+    if (candidate.source !== 'screenshots' && candidate.source !== 'github') throw new NotJudgeable(`the judge doesn't judge ${candidate.source} candidates`);
+    const kind = candidate.source;
+    const instructions = context.instructions ?? null;
+    const input: JudgeInput = { text: context.input, target: context.input, from: kind === 'github' ? 'github' : 'quote', truncated: false };
+    const { system, prompt } = (kind === 'github' ? judgeGithubPrompt : judgeScreenshotPrompt)({ profile: context.profile, projects: context.projects.map((x) => x.name), instructions, input: input.text });
+    return (await ask({ kind, input, instructions, system, prompt, inputHash: inputHashOf(kind, input.text, instructions), projects: projectMap(context.projects) }, {})).verdict;
   }
 
   function start({ ids, trigger, priority, signal }: RunOptions): { runId: string; queued: number; done: Promise<RunSummary> } {
@@ -359,6 +365,7 @@ export function createJudge(deps: JudgeDeps): JudgeEngine {
       }
       return { runId: run.id, total: state.total, done: state.done, counts: { ...counts }, outcome: last!.outcome, error };
     })();
+    current = done.catch(() => {});
     return { runId: run.id, queued: todo.length, done };
   }
 
@@ -367,6 +374,7 @@ export function createJudge(deps: JudgeDeps): JudgeEngine {
     start,
     judgePending: async (opts) => start(opts).done,
     cancel: () => running?.controller.abort(),
+    idle: () => current.then(() => {}),
     eligible,
     prepare,
     ensureInstructions,

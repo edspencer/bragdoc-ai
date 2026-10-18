@@ -1120,9 +1120,15 @@ Export is a download of a blob made in the page; nothing about a folio is writte
   - **The message to judge** is the one holding the rules' quote (`isVerbatim`), else the one sharing most of its
     words. The rest is context, labelled as such, **nearest first** until the budget runs out (`truncated` says so).
     Text with no author lines is one block: then the rules' quote is "the part to judge" and the block is context.
-  - **The budget** is the connection's `contextTokens`, less the system prompt and room for the answer, at three
-    characters a token (OCR text tokenises worse than prose): `inputBudget()`.
-  - **A picture that's gone** (or replaced since) is judged from the stored quote alone.
+  - **The budget** is the connection's `contextTokens`, less the system prompt and room for the answer, at 2.5
+    characters a token (OCR text, names and emoji tokenise worse than prose), because Ollama cuts an over-long prompt
+    silently from the front, fence and all: `inputBudget()`. Instructions so long they leave no room fail the item with
+    `context_too_long` before anything is sent.
+  - **`from`** is kept only if it's the judged message's own author (as shown, or the rules' `from`).
+  - **A picture that's gone** (or replaced since) is judged from the stored quote alone. **Known gap (v0.1's):** the
+    rules blank `notMe` names out before taking their quote, so a stored quote has lost "Alex P" and can't be marked;
+    and a `notMe` author line isn't a header to the rules (it's blanked) but is to the judge's split. Both only matter
+    when the picture is gone; changing the rules' quote is out of this PR (no rule changes).
 - **A merged PR**: repo, title, merge date and the first 2,000 characters of its description, HTML comments removed.
   The question is different: notable or routine, plus an impact on BragDoc's 1–10 scale.
 - **The prompts** (`server/ai/prompts/judge-screenshot.ts`, `judge-github.ts`) are pure functions of `{ profile,

@@ -197,6 +197,8 @@ export async function startServer(port: number, { hostname = '127.0.0.1', ...opt
         stopSources();
         stopEvidenceText();
         ctx.judge.cancel(); // a run in progress stops; what it judged stays
+        await ctx.judge.idle();
+        ctx.judge.close();
         await watcher.close();
         // a screenshot or a picture being read finishes (and, switched off, adds nothing) before OCR is let go
         await Promise.all([ctx.sources.screenshots.idle(), ctx.evidenceText.idle()]);

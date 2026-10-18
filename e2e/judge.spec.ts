@@ -119,7 +119,7 @@ test('Judge now puts the verdict on the card; with AI off it stays, marked "judg
   expect((await api('PUT', '/api/ai', { enabled: false })).status).toBe(200);
   await page.reload();
   await expect(card.getByTestId('found-verdict-stamp')).toHaveText('Looks like a win · 86%');
-  await expect(card.getByTestId('found-verdict-by')).toContainText('judged earlier');
+  await expect(card.getByTestId('found-verdict-by')).toHaveText('judged by qwen3.5:4b on this computer · judged earlier (the judge is off now)');
   await expect(page.getByTestId('judge-now')).toHaveCount(0);
   const refused = await api('POST', '/api/ai/judge/run', {});
   expect([refused.status, refused.body.error.code]).toEqual([409, 'ai_off']);

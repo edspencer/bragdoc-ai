@@ -28,6 +28,8 @@ function Found() {
   const decide = useDecide();
   const judge = useJudgeStatus();
   const judgeOn = !!judge.data?.ready;
+  // a verdict from before: only once we know the judge can't run now (not while its status loads)
+  const judgedEarlier = judge.data && !judge.data.ready ? (judge.data.reason === 'ai_off' ? 'the judge is off now' : 'the judge can’t run now') : null;
   const projectMap = useMemo(() => new Map((projects.data?.projects ?? []).map((p) => [p.id, p])), [projects.data]);
   const repoMap = useMemo(() => new Map((repos.data?.repos ?? []).map((r) => [r.id, r])), [repos.data]);
   const counts = found.data?.counts;
@@ -71,7 +73,7 @@ function Found() {
       ) : (
         <div className="mt-8 gap-8 lg:columns-2" data-testid="found-list">
           {items.map((c) => (
-            <FoundCard key={c.id} c={c} projects={projectMap} repos={repoMap} busy={decide.isPending && decide.variables?.c.id === c.id} onDecide={(d) => decide.mutate({ c, d })} judgeOn={judgeOn} />
+            <FoundCard key={c.id} c={c} projects={projectMap} repos={repoMap} busy={decide.isPending && decide.variables?.c.id === c.id} onDecide={(d) => decide.mutate({ c, d })} judgedEarlier={judgedEarlier} />
           ))}
         </div>
       )}
@@ -91,7 +93,7 @@ function JudgeNow({ status }: { status: NonNullable<ReturnType<typeof useJudgeSt
     },
     onError: (e) => toast({ msg: `The judge couldn’t start: ${(e as Error).message}`, tone: 'bad' }),
   });
-  if (status.running)
+  if (status.running?.total)
     return (
       <span className="text-[13px] font-semibold text-muted" data-testid="judge-progress" role="status">
         Judging {Math.min(status.running.done + 1, status.running.total)} of {status.running.total}…

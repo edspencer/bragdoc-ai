@@ -48,7 +48,7 @@ export const DEFAULT_GUIDANCE = [
 ].join('\n');
 
 /** Take the fence's markers out of untrusted text, so it can't end the material early or open a new one. */
-export const defang = (s: string) => s.replace(/<\/?\s*(?:material|instructions)\s*>/gi, (m) => m.replace(/[<>]/g, ''));
+export const defang = (s: string) => s.replace(/<\s*\/?\s*(?:material|instructions)\b[^>]*>/gi, (m) => m.replace(/[<>]/g, ''));
 
 /** Who the user is, in the words the input will use. */
 export function whoIsTheUser(profile: JudgePromptInput['profile']): string {

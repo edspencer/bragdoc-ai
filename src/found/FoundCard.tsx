@@ -26,15 +26,15 @@ export function FoundCard({
   repos,
   busy,
   onDecide,
-  judgeOn = false,
+  judgedEarlier = null,
 }: {
   c: FoundCandidate;
   projects: ReadonlyMap<string, ProjectEntry>;
   repos: ReadonlyMap<string, RepoEntry>;
   busy: boolean;
   onDecide: (d: Decision) => void;
-  /** The judge can run now: without it, a verdict is from before, and says so. */
-  judgeOn?: boolean;
+  /** Set while the judge can't run (AI or the judge off, no model…): a verdict is from before, and says why. */
+  judgedEarlier?: string | null;
 }) {
   const pills = c.suggestedProjects.map((id) => projects.get(id)).filter((p): p is ProjectEntry => !!p);
   const repoTags = c.suggestedRepos.map((id) => repos.get(id)).filter((r): r is RepoEntry => !!r);
@@ -76,7 +76,7 @@ export function FoundCard({
         </>
       )}
       {c.source === 'mcp' && <div className="mt-3 font-hand text-[19px] text-[#6a4fd0] dark:text-[#b7a4ff]">{c.sourceAgent || 'An agent'} suggested this, so it’s waiting for your OK.</div>}
-      {c.verdict && <VerdictNote v={c.verdict} earlier={!judgeOn} />}
+      {c.verdict && <VerdictNote v={c.verdict} earlier={judgedEarlier} />}
 
       {c.matchedRules.length > 0 && (
         <div className="mt-4 rounded-2xl border-2 border-dashed border-line p-3.5" data-testid="found-rules">
@@ -160,7 +160,7 @@ export const verdictLabel = (v: Pick<Verdict, 'keep' | 'confidence'>) => `${v.ke
  * The judge's opinion (SPEC R21): a stamp, its reason, and which model gave it. Only an opinion: the buttons below are
  * still the only way anything is kept or dismissed.
  */
-function VerdictNote({ v, earlier }: { v: Verdict; earlier: boolean }) {
+function VerdictNote({ v, earlier }: { v: Verdict; earlier: string | null }) {
   return (
     <div className="mt-4 rounded-2xl bg-sunk p-3.5" data-testid="found-verdict" data-keep={v.keep}>
       <Stamp color={v.keep ? 'var(--good)' : 'var(--faint)'} rotate={-2}>
@@ -173,7 +173,7 @@ function VerdictNote({ v, earlier }: { v: Verdict; earlier: boolean }) {
       )}
       <div className="mt-2 text-[11.5px] text-faint" data-testid="found-verdict-by">
         {v.by ? `judged by ${v.by}` : 'judged by AI'}
-        {earlier && ' · judged earlier (AI is off now)'}
+        {earlier && ` · judged earlier (${earlier})`}
       </div>
     </div>
   );

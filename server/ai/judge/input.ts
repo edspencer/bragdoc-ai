@@ -24,6 +24,8 @@ export interface JudgeInput {
   from: 'ocr' | 'quote' | 'github';
   /** The words the judge's `quote` must come from (the message to judge; for a PR, the whole input). */
   target: string;
+  /** Who wrote the message to judge, as the screenshot shows it (or the rules kept it): what `from` must be. */
+  author?: string;
   /** Context was left out, or the message cut, to fit the budget. */
   truncated: boolean;
 }
@@ -86,7 +88,7 @@ export function screenshotInput({ ocrText, quote, profile, maxChars }: { ocrText
     const head = `The message to judge${quote?.where ? `, in ${quote.where}` : ''}:`;
     const body = cut(markNotMe(text, notMe), budget - head.length - 60);
     const line = `  ${quote?.from ? `${quote.from}: ` : ''}${body}`;
-    return { text: `${head}\n${line}`, from: 'quote', target: text, truncated: body.length < text.length };
+    return { text: `${head}\n${line}`, from: 'quote', target: text, ...(quote?.from ? { author: quote.from } : {}), truncated: body.length < text.length };
   }
 
   const where = quote?.where ? `, in ${quote.where}` : '';
@@ -100,6 +102,7 @@ export function screenshotInput({ ocrText, quote, profile, maxChars }: { ocrText
       text: `Text in the screenshot, for context only:\n  ${rest}\n\nThe part to judge${where}:\n  ${part}`,
       from: 'ocr',
       target: quote.text.trim(),
+      ...(quote.from ? { author: quote.from } : {}),
       truncated: rest.length < target.text.length || part.length < quote.text.trim().length,
     };
   }
@@ -134,7 +137,7 @@ export function screenshotInput({ ocrText, quote, profile, maxChars }: { ocrText
     own,
     ...(after.length ? ['', 'Later messages on screen, for context only:', ...after] : []),
   ];
-  return { text: parts.join('\n'), from: 'ocr', target: target.text, truncated };
+  return { text: parts.join('\n'), from: 'ocr', target: target.text, ...(target.author ? { author: target.author } : {}), truncated };
 }
 
 /** HTML comments (PR templates' hidden instructions) out, whitespace tidied. */
@@ -153,10 +156,15 @@ export function githubInput({ repo, title, body, mergedAt }: { repo: string | nu
   return { text, from: 'github', target: text, truncated: shown.length < desc.length };
 }
 
+/** Characters per token assumed: English is about four, but OCR text, names, numbers and emoji tokenise worse. */
+export const CHARS_PER_TOKEN = 2.5;
+
 /**
- * The characters of input a connection's context can take, after the system prompt and room for the answer. A token
- * is about four characters of English; OCR text and names tokenise worse, so three is assumed, which leaves slack.
+ * The characters of input a connection's context can take, after the system prompt and room for the answer. Ollama
+ * cuts an over-long prompt silently, from the front (the system prompt, and its fence), so this leans small. Null when
+ * the system prompt alone (a long ai/what-counts.md) leaves no room for any input: nothing should be sent.
  */
-export function inputBudget({ contextTokens, systemChars, answerTokens = 500 }: { contextTokens: number; systemChars: number; answerTokens?: number }): number {
-  return Math.max(MIN_INPUT_CHARS, Math.min(24_000, (contextTokens - answerTokens) * 3 - systemChars - 300));
+export function inputBudget({ contextTokens, systemChars, answerTokens = 500 }: { contextTokens: number; systemChars: number; answerTokens?: number }): number | null {
+  const room = Math.floor((contextTokens - answerTokens) * CHARS_PER_TOKEN) - systemChars - 300;
+  return room < MIN_INPUT_CHARS ? null : Math.min(24_000, room);
 }
