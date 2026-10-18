@@ -67,6 +67,7 @@ test('candidates show with their rules; keep, merge and dismiss each undo; the b
   await expect(card(page, 1)).toContainText('From GitHub');
   await expect(card(page, 3)).toContainText('Written by Claude Code');
   await expect(page.getByText(/confidence|% a win/i)).toHaveCount(0); // no confidence while AI is off (D8, SPEC R26)
+  await expect(card(page, 1)).toContainText('plain rules · AI off'); // SPEC R26's footer
 
   const count = async () => (await (await request.get('/api/found/count')).json()).pending as number;
   const badge = page.getByRole('navigation').first().getByText(/^\d+\+?$/);

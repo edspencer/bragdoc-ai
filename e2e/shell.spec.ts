@@ -7,7 +7,7 @@ import { expect, test, type Page } from '@playwright/test';
 const CSP =
   "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' blob: data:; font-src 'self'; connect-src 'self'; object-src 'none'; base-uri 'none'; frame-ancestors 'none'; form-action 'self'";
 
-const PAGES = ['/', '/found', '/projects', '/folio', '/welcome', '/settings/sources', '/settings/network', '/settings/data', '/settings/about'];
+const PAGES = ['/', '/found', '/projects', '/folio', '/welcome', '/settings/sources', '/settings/ai', '/settings/network', '/settings/data', '/settings/about'];
 
 /** Watch a page: CSP violations, console errors, uncaught errors, and any request that isn't to the app itself. */
 async function watch(page: Page, baseURL: string) {
