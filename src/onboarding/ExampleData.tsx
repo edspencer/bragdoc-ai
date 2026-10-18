@@ -88,7 +88,8 @@ export function ExampleBanner() {
     <div className="sb-glass mt-5 flex flex-wrap items-center gap-x-3 gap-y-2 rounded-2xl px-4 py-2.5 text-[13.5px]" role="status" data-testid="example-banner">
       <FlaskConical aria-hidden className="size-4 shrink-0 text-accent" />
       <span className="min-w-0 flex-1">
-        <b>Example data.</b> <span className="text-muted">Alex Marlowe, both companies and everything they did are made up, for trying BragDoc out. Anything you add yourself stays when it goes.</span>
+        <b>Example data.</b> <span className="text-muted sm:hidden">All made up, for trying BragDoc out.</span>
+        <span className="hidden text-muted sm:inline">Alex Marlowe, both companies and everything they did are made up, for trying BragDoc out. Anything you add yourself stays when it goes.</span>
       </span>
       <RemoveButton counts={example.data.counts} size="sm" testId="example-remove" />
     </div>
