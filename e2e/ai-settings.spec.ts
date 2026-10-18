@@ -100,6 +100,7 @@ test('local: turn AI on, add the fake Ollama, test it, pick a model: the header 
   await expect(page.getByTestId('ai-master-sentence')).toHaveText('AI is on. No feature is on until you switch it on below.');
   await expect(page.getByTestId('ai-chip')).toHaveText(/AI · no model yet/);
   for (const f of ['judge', 'tidy', 'draft']) await expect(page.getByTestId(`ai-feature-${f}`)).toContainText('off');
+  await expect(page.getByTestId('ai-activity-empty')).toHaveText(/Nothing has asked a model anything/);
 
   await page.getByTestId('ai-add-ollama').click();
   await page.getByTestId('ai-add-url').fill(fake.url);
@@ -112,6 +113,7 @@ test('local: turn AI on, add the fake Ollama, test it, pick a model: the header 
   await card.getByTestId('ai-connection-test-go').click();
   await expect(card.getByTestId('ai-connection-outcome')).toHaveAttribute('data-ok', 'true');
   await expect(card.getByTestId('ai-connection-outcome')).toContainText('Structured answers: yes');
+  await expect(page.getByTestId('ai-activity-line').filter({ hasText: 'Test connection' }).first()).toBeVisible();
   await card.getByTestId('ai-connection-use').click();
   await expect(page.getByTestId('ai-chip')).toHaveText(/AI · this computer/);
   await expect(page.getByTestId('ai-text-slot-model')).toHaveText('qwen3.5:4b');

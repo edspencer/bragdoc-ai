@@ -9,13 +9,13 @@
 // feature on. Adapted from the Scrapbook prototype's AI tab (its tiles and the "what changes" card; layout only, its
 // copy and Slack bits dropped).
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { Link } from '@tanstack/react-router';
 import type { AiStatus } from '../../shared/api.ts';
 import { HOST_CLASS_LABEL } from '../../shared/ai/hosts.ts';
 import { isApiError, putAi } from '../api/client.ts';
 import { queryKeys, useAi } from '../api/queries.ts';
 import { Hand, Kicker, SectionTitle, Stamp, Switch, useToast } from '../kit/index.ts';
-import { LoadError, Loading, Slot } from './common.tsx';
+import { LoadError, Loading } from './common.tsx';
+import { AiActivity } from './ai/Activity.tsx';
 import { AddConnection } from './ai/AddConnection.tsx';
 import { ConnectionCard } from './ai/ConnectionCard.tsx';
 import { Detect } from './ai/Detect.tsx';
@@ -171,13 +171,7 @@ function On({ s }: { s: AiStatus }) {
 
       <section className="space-y-3">
         <SectionTitle as="h3">AI activity</SectionTitle>
-        <Slot title="Every model call, as a receipt" testId="ai-activity-slot">
-          The AI activity log comes with the features. Until then, every call (each test, each look for a runner) is a line in{' '}
-          <Link to="/settings/$tab" params={{ tab: 'network' }} className="underline decoration-dotted underline-offset-2">
-            Network activity
-          </Link>
-          , marked this computer, your network or internet.
-        </Slot>
+        <AiActivity />
       </section>
     </>
   );
