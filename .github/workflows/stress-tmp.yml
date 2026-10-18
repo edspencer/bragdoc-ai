@@ -1,4 +1,5 @@
-# TEMPORARY (PR30): stress the macOS instructions-watch flake, old test vs new. Removed before the PR is ready.
+# TEMPORARY (PR30): stress the macOS instructions-watch flake under the full suite, old test vs new. Removed before
+# the PR is ready.
 name: stress-tmp
 on:
   push:
@@ -9,8 +10,9 @@ jobs:
       fail-fast: false
       matrix:
         which: [old, new]
+        shard: [1, 2, 3]
     runs-on: macos-latest
-    timeout-minutes: 40
+    timeout-minutes: 50
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-node@v7
@@ -18,14 +20,15 @@ jobs:
           node-version: '22'
           cache: npm
       - run: npm ci
-      - name: 25 runs under CPU load
+      - name: the full suite, 4 times
         shell: bash
         run: |
-          for i in 1 2 3 4 5 6; do (yes > /dev/null &) ; done
-          f=test/ai-instructions.test.ts; [ "${{ matrix.which }}" = old ] && f=test/zz-old-instructions.stress.ts
-          pass=0; fail=0
-          for i in $(seq 1 25); do
-            if node --import tsx --test --test-name-pattern='hand' "$f" > out.txt 2>&1; then pass=$((pass+1)); else fail=$((fail+1)); grep -E 'not ok|timed out' out.txt | head -3; fi
+          [ "${{ matrix.which }}" = old ] && cp test/zz-old-instructions.stress.ts test/ai-instructions.test.ts
+          flaky=0; other=0
+          for i in 1 2 3 4; do
+            npm test > out.txt 2>&1 || true
+            grep -q '^not ok .*hand edit is picked up live' out.txt && flaky=$((flaky+1))
+            grep -E '^not ok' out.txt | grep -v 'hand edit is picked up live' && other=$((other+1))
+            grep -E '^# (pass|fail)' out.txt
           done
-          pkill yes || true
-          echo "${{ matrix.which }}: pass=$pass fail=$fail" | tee -a "$GITHUB_STEP_SUMMARY"
+          echo "${{ matrix.which }} shard ${{ matrix.shard }}: instructions-watch failures=$flaky/4, runs with other failures=$other" | tee -a "$GITHUB_STEP_SUMMARY"
