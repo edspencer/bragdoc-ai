@@ -655,9 +655,10 @@ export interface GithubDisconnectRequest {
  * Why the folder can't be watched (or chosen), in a word a program can switch on; the `message` says it for people.
  * `missing`: there's nothing there (or it was deleted). `not_a_folder`: it's a file. `denied`: the system said no
  * (on macOS, the privacy permission for Desktop, Documents and Downloads). `not_allowed`: inside BragDoc's data folder
- * or a hidden folder. `not_set`: no folder chosen yet. `invalid`: a bad request. `failed`: anything else.
+ * or a hidden folder. `not_set`: no folder chosen yet. `invalid`: a bad request. `busy`: a look back is already running.
+ * `config_invalid`: config.yaml is broken, so nothing could be saved. `failed`: anything else.
  */
-export type ScreenshotsErrorCode = 'missing' | 'not_a_folder' | 'denied' | 'not_allowed' | 'not_set' | 'invalid' | 'failed';
+export type ScreenshotsErrorCode = 'missing' | 'not_a_folder' | 'denied' | 'not_allowed' | 'not_set' | 'invalid' | 'busy' | 'config_invalid' | 'failed';
 
 export interface ScreenshotsError {
   code: ScreenshotsErrorCode;

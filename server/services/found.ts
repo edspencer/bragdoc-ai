@@ -124,6 +124,12 @@ export class FoundService {
         // a screenshots candidate brings images, an agent's the types agents may attach (D43), checked again now: the
         // file may have changed since it was sent
         const i = await this.evidence.ingestPath(file.path, f.source === 'screenshots' ? { only: ['image'] } : f.source === 'mcp' ? { accept: ATTACHABLE } : {});
+        // a screenshot replaced since (a tool that reuses a name): not the picture that passed, so not kept. Its blob,
+        // just stored, is an orphan the store tolerates, like any upload never attached
+        if (f.source === 'screenshots' && f.externalKey?.startsWith('screenshot:') && f.externalKey !== `screenshot:${i.sha256}`) {
+          missing.push(file.path);
+          continue;
+        }
         evidence.push(this.evidence.toEvidence(i, file.title));
       } catch {
         missing.push(file.path);

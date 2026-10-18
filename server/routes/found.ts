@@ -9,8 +9,9 @@
 //   POST /api/found/:id/dismiss   → FoundDecided
 //   POST /api/found/:id/undo      → FoundDecided (pending again)
 //   GET  /api/found/:id/picture   a screenshot candidate's picture, read from where it is (it's only copied into
-//                                 evidence/ on keep): 404 `gone` if it was moved or deleted
+//                                 evidence/ on keep): 404 `gone` if it was moved, deleted or replaced
 // GET /api/found/count (found-count.ts) is the nav badge's and the board strip's.
+import { createHash } from 'node:crypto';
 import fs from 'node:fs';
 import type { Hono } from 'hono';
 import type { FoundDecided, FoundListResponse } from '../../shared/api.js';
@@ -18,6 +19,7 @@ import { FOUND_SOURCES, type FoundCandidate, type FoundSource } from '../../shar
 import type { AppContext } from '../context.js';
 import { apiError, handle, jsonBody } from '../http.js';
 import { blobHeaders } from '../security.js';
+import { checkIngestPath, sniff } from '../store/blobs.js';
 import { ValidationError } from '../store/errors.js';
 
 /** What a screenshot card may show. */
@@ -45,14 +47,20 @@ export function registerFound(app: Hono, ctx: AppContext): void {
     const f = ctx.store.get('found', c.req.param('id'));
     const file = f?.source === 'screenshots' && f.status === 'pending' ? f.files[0] : undefined;
     if (!file) return c.json(apiError('not_found', 'There is no screenshot for that.'), 404);
+    const gone = () => c.json(apiError('gone', 'The screenshot isn’t where it was: it was moved, deleted or replaced.'), 404);
+    let bytes: Uint8Array<ArrayBuffer>;
     try {
-      const { real, mime } = await ctx.services.evidence.inspectPath(file.path);
-      if (!PICTURES.has(mime)) return c.json(apiError('not_found', 'That file isn’t a picture any more.'), 404);
-      const headers = { ...blobHeaders(mime, file.title ?? 'screenshot'), 'Cache-Control': 'no-store' };
-      return c.body(new Uint8Array(fs.readFileSync(real)), 200, headers);
+      const { real } = checkIngestPath(ctx.store, file.path);
+      bytes = new Uint8Array(fs.readFileSync(real));
     } catch {
-      return c.json(apiError('gone', 'The screenshot isn’t where it was: it was moved or deleted.'), 404);
+      return gone();
     }
+    // only the picture that passed the rules: the bytes must still be the ones its key was made from (a tool that
+    // reuses a name, or a hand-edited path, shows nothing rather than some other picture)
+    if (f!.externalKey !== `screenshot:${createHash('sha256').update(bytes).digest('hex')}`) return gone();
+    const { mime } = await sniff(bytes, file.title);
+    if (!PICTURES.has(mime)) return gone();
+    return c.body(bytes, 200, { ...blobHeaders(mime, file.title ?? 'screenshot'), 'Cache-Control': 'no-store' });
   });
 
   app.post('/api/found/:id/keep', (c) =>

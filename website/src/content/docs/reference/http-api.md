@@ -52,8 +52,8 @@ These are enforced for every request (see [Localhost security](/guarantees/local
 | `POST /api/sources/github/disconnect` | Switch GitHub off; `{ "forgetToken": true }` also removes the token from `secrets.yaml`. |
 | `GET /api/sources/screenshots/suggestions` | Folders worth watching on this computer (where it saves screenshots), and whether each exists. |
 | `PUT /api/sources/screenshots` | Any of `{ "folder": "~/Screenshots", "enabled": true, "onlyScreenshots": true }`. The folder is checked first: a missing, unreadable or hidden one is refused with what's wrong (`missing`, `denied`, `not_allowed`, …) and nothing is saved. |
-| `POST /api/sources/screenshots/look-back` | `{ "days": 7 }` (1 to 30): read the folder's screenshots from those days, once. |
-| `GET /api/found/:id/picture` | A screenshot candidate's picture, read from where it is; **404** `gone` if it was moved or deleted. |
+| `POST /api/sources/screenshots/look-back` | `{ "days": 7 }` (1 to 30): read the folder's pictures from those days, once. **409** `busy` while one is running. |
+| `GET /api/found/:id/picture` | A screenshot candidate's picture, read from where it is; **404** `gone` if it was moved, deleted or replaced. |
 | `GET /api/evidence/:sha/ocr` | The text read from a picture on the board, in the background after it's added: `pending`, `done` (with `text`, and the `quote` when it's praise for you), `failed`, or `none` (not a picture). |
 
 Achievements, evidence, projects and settings get their endpoints as those features are built.

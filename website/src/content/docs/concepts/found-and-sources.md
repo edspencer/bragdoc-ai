@@ -57,8 +57,10 @@ Switch it on in **Settings → Sources** and choose a folder. BragDoc suggests w
 on a Mac, wherever you've told it to (`defaults read com.apple.screencapture location`), else your Desktop; on Linux,
 `~/Pictures/Screenshots`, where GNOME and KDE put them. A folder just for screenshots works best.
 
-From then on, BragDoc watches that folder for **new** files only. It never reads what's already there unless you press
-**Look at the last 7 days**, which reads that week's screenshots once. Each new file goes through:
+From then on, BragDoc watches that folder for **new** files only, while it's running. It never reads what's already
+there unless you press **Look at the last 7 days**, which reads that week's screenshots once: use it after BragDoc
+has been stopped for a while, since screenshots taken meanwhile aren't read by themselves. Files in the folder only:
+not its subfolders, and not links to files elsewhere. Each new file goes through:
 
 1. **Its name.** Only files named like screenshots are read: macOS's "Screenshot 2026-10-17 at 9.41.03 PM.png" in any
    language macOS uses, and the names GNOME, KDE (Spectacle), Flameshot, Windows and CleanShot give them. Turn off
@@ -78,7 +80,8 @@ its text isn't kept anywhere. The rules can't read tone, so sarcasm that names y
 They look for your name, so the source reads nothing until `profile.yaml` has one.
 
 The picture stays where it is until you **keep** it, when it's copied into your data folder with its text (so search
-finds it). If you've moved or deleted it by then, keeping it keeps the quote, and BragDoc says the picture had gone.
+finds it). If you've moved, deleted or replaced it by then, keeping it keeps the quote, and BragDoc says the picture
+had gone.
 
 **On a Mac, the Desktop is protected.** macOS asks before any program reads your Desktop, Documents or Downloads
 folder, and the permission goes to the app BragDoc runs in: Terminal (or your terminal app) when you start BragDoc
@@ -91,7 +94,8 @@ mkdir -p ~/Screenshots && defaults write com.apple.screencapture location ~/Scre
 ```
 
 If the folder goes away (deleted, renamed, on a disk that's been unplugged) or BragDoc isn't allowed to read it, the
-card turns red and says so. BragDoc looks again every half minute and carries on by itself when the folder is back.
+card turns red and says so. BragDoc looks again every half minute and carries on watching by itself when the folder is
+back (screenshots saved while it was gone aren't read: look back over the last 7 days for those).
 Switching the source off stops the watching at once; what it already found stays in Found.
 
 ### Your coding agent

@@ -43,6 +43,7 @@ const SHOT_STATUS: Record<ScreenshotsSourceError['code'], 400 | 409> = {
   not_a_folder: 400,
   not_allowed: 400,
   not_set: 409,
+  busy: 409,
   denied: 409,
   failed: 409,
   config_invalid: 409,

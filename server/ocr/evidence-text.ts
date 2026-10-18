@@ -66,7 +66,10 @@ export class EvidenceText {
       this.queued.delete(sha);
       if (!this.wanted(sha)) continue;
       const file = blobPath(this.o.store, sha);
-      if (!file) continue;
+      if (!file) {
+        this.failed.set(sha, 'the stored file is missing from evidence/');
+        continue;
+      }
       try {
         const r = await this.o.ocr.read({ path: file });
         // the cache may have written it already (createOcr's evidenceOcrCache); a cached answer didn't

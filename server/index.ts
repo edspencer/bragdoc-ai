@@ -179,6 +179,8 @@ export async function startServer(port: number, { hostname = '127.0.0.1', ...opt
         stopSources();
         stopEvidenceText();
         await watcher.close();
+        // a screenshot or a picture being read finishes (and, switched off, adds nothing) before OCR is let go
+        await Promise.all([ctx.sources.screenshots.idle(), ctx.evidenceText.idle()]);
         await ctx.ocr.close(); // the tesseract worker thread
         await new Promise<void>((res) => {
           server.close(() => res());

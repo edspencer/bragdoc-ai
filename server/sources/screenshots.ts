@@ -92,8 +92,9 @@ export function looksLikeScreenshot(name: string): boolean {
 export function expandFolder(folder: string, homedir: string): string | null {
   const f = folder.trim();
   if (f === '~') return homedir;
-  if (f.startsWith('~/')) return path.join(homedir, f.slice(2));
-  return path.isAbsolute(f) ? path.normalize(f) : null;
+  if (f.startsWith('~/')) return path.join(homedir, f.slice(2)).replace(/(.)[\\/]+$/, '$1');
+  // `defaults read` and people both write `~/Screenshots/`: one folder, one spelling
+  return path.isAbsolute(f) ? path.normalize(f).replace(/(.)[\\/]+$/, '$1') : null;
 }
 
 /** macOS protects these: reading one asks for permission (TCC). */
@@ -145,10 +146,19 @@ interface State {
 
 const EMPTY_STATE = (): State => ({ counts: { looked: 0, sent: 0, ignored: 0, failed: 0 }, lastMatch: null, lastSeen: null, lookBack: null });
 
+/** A folder that can be watched: where it really is, and which directory (a new one at the same path is another). */
+interface Opened {
+  real: string;
+  dev: number;
+  ino: number;
+  /** When it was made: a file system may give a new directory the old one's inode number. */
+  born: number;
+}
+
 interface Job {
   file: string;
-  /** Part of a look back (counted in its progress). */
-  lookBack: boolean;
+  /** The look back it's part of (counted in its progress), or null. */
+  lookBack: number | null;
 }
 
 /** What became of one file. */
@@ -207,8 +217,13 @@ export class ScreenshotsSource {
   private readonly stableMs: number;
   private st: State;
   private watcher: FSWatcher | null = null;
-  /** The folder the watcher is on (absolute). */
-  private watching: string | null = null;
+  /** The watcher has finished its first look: a file that arrives now is a new one. */
+  private ready = false;
+  /** The folder the watcher is on: as configured (absolute), where it really is, and which directory that was. */
+  private watching: ({ abs: string } & Opened) | null = null;
+  private reconciling: Promise<void> | null = null;
+  private again = false;
+  private lookBackSeq = 0;
   private error: ScreenshotsSourceError | null = null;
   private queue: Job[] = [];
   private queuedFiles = new Set<string>();
@@ -299,16 +314,20 @@ export class ScreenshotsSource {
    * Check a folder can be watched: absolute (or `~/…`), a folder, readable, and not inside BragDoc's data folder or a
    * hidden folder (a kept screenshot couldn't be copied from there: store/blobs.ts checkIngestPath). The absolute path.
    */
-  checkFolder(folder: string | null): string {
+  async checkFolder(folder: string | null): Promise<Opened> {
     if (!folder) throw fail('not_set', 'Choose a folder to watch.');
     const abs = expandFolder(folder, this.homedir);
     if (!abs) throw fail('invalid', `“${folder}” isn’t a full path. Start it with / or ~/.`);
     const shown = this.shown(abs);
     let real: string;
+    let st: fs.Stats;
+    // asynchronously: on macOS the first read of Desktop, Documents or Downloads waits for the user to answer the
+    // permission prompt, and the server mustn't stop answering everything else meanwhile
     try {
-      real = fs.realpathSync(abs);
-      if (!fs.statSync(real).isDirectory()) throw Object.assign(new Error('not a directory'), { code: 'ENOTDIR' });
-      fs.readdirSync(real); // the read macOS asks permission for, and a directory we may not list
+      real = await fs.promises.realpath(abs);
+      st = await fs.promises.stat(real);
+      if (!st.isDirectory()) throw Object.assign(new Error('not a directory'), { code: 'ENOTDIR' });
+      await fs.promises.readdir(real); // the read macOS asks permission for, and a directory we may not list
     } catch (e) {
       throw folderError(e, shown, this.platform, this.homedir, abs);
     }
@@ -319,10 +338,14 @@ export class ScreenshotsSource {
         return path.resolve(this.o.dataDir);
       }
     })();
-    if (real === home || real.startsWith(home + path.sep) || home.startsWith(real + path.sep))
-      throw fail('not_allowed', `${shown} holds BragDoc’s own data folder. Choose a folder just for screenshots.`);
+    const inside = (outer: string, inner: string) => {
+      const rel = path.relative(outer, inner);
+      return rel === '' || (!rel.startsWith('..') && !path.isAbsolute(rel));
+    };
+    // either way round: the data folder itself, a folder in it, or one that holds it (`/`, your home folder)
+    if (inside(home, real) || inside(real, home)) throw fail('not_allowed', `${shown} holds BragDoc’s own data folder. Choose a folder just for screenshots.`);
     if (real.split(path.sep).some((s) => s.startsWith('.'))) throw fail('not_allowed', `${shown} is a hidden folder. BragDoc doesn’t read hidden folders; choose another.`);
-    return real;
+    return { real, dev: st.dev, ino: st.ino, born: st.birthtimeMs };
   }
 
   /** Where screenshots probably go here, best first (`defaults read com.apple.screencapture location` on macOS). */
@@ -374,7 +397,7 @@ export class ScreenshotsSource {
   }
 
   /** Change the folder, switch it on or off, or the name filter. A folder is checked before anything is saved. */
-  update(req: ScreenshotsSettingsRequest): ScreenshotsSourceStatus {
+  async update(req: ScreenshotsSettingsRequest): Promise<ScreenshotsSourceStatus> {
     const patch: Record<string, unknown> = {};
     if (req.enabled !== undefined) {
       if (typeof req.enabled !== 'boolean') throw fail('invalid', '`enabled` is true or false');
@@ -386,90 +409,132 @@ export class ScreenshotsSource {
     }
     if (req.folder !== undefined) {
       if (typeof req.folder !== 'string' || !req.folder.trim() || req.folder.length > 4096) throw fail('invalid', '`folder` is a path, like ~/Screenshots');
-      this.checkFolder(req.folder);
+      await this.checkFolder(req.folder);
       // kept as you'd write it (a symlink stays a symlink), under your home folder as ~/…
       patch.folder = this.shown(expandFolder(req.folder, this.homedir)!);
     }
     const before = this.settings();
     const folder = (patch.folder as string | undefined) ?? before.folder;
-    if (patch.enabled === true) this.checkFolder(folder);
+    if (patch.enabled === true) await this.checkFolder(folder);
     try {
       this.o.config.update({ sources: { screenshots: patch } });
     } catch (e) {
       if (e instanceof ConfigWriteError) throw fail('config_invalid', e.message);
       throw e;
     }
-    this.reconcile();
+    await this.reconcile();
     this.changed();
     return this.status();
   }
 
   // ---- watching
 
-  /** Open or close the watcher to match the settings. Safe to call any time (a config change, the health check). */
-  reconcile(): void {
+  /**
+   * Open or close the watcher to match the settings. Safe to call any time (a config change, the health check): calls
+   * that arrive while one runs are folded into one more run after it.
+   */
+  reconcile(): Promise<void> {
+    if (this.reconciling) {
+      this.again = true;
+      return this.reconciling;
+    }
+    this.reconciling = (async () => {
+      do {
+        this.again = false;
+        await this.reconcileOnce();
+      } while (this.again);
+    })().finally(() => {
+      this.reconciling = null;
+    });
+    return this.reconciling;
+  }
+
+  private async reconcileOnce(): Promise<void> {
     if (!this.started) return;
     const c = this.settings();
     const want = c.enabled && c.folder ? expandFolder(c.folder, this.homedir) : null;
     if (!want) {
-      if (this.watcher || this.queue.length || this.error) this.stopWatching();
+      // off: nothing open, nothing waiting, and a read that's running adds nothing
+      if (this.watcher || this.queue.length || this.reading || this.error) this.cancel();
       this.error = null;
       return;
     }
-    if (this.watcher && this.watching === want) {
-      // still there? (chokidar doesn't always say when the watched folder itself goes)
+    if (this.watcher && this.watching?.abs === want) {
+      // still the same folder? chokidar doesn't always say when the watched folder itself goes, and a folder deleted and
+      // made again (or a disk unplugged and back) is a new directory its watch never sees
       try {
-        fs.readdirSync(want);
+        const real = await fs.promises.realpath(want);
+        const st = await fs.promises.stat(real);
+        await fs.promises.readdir(real);
+        const w = this.watching;
+        if (real === w.real && st.dev === w.dev && st.ino === w.ino && st.birthtimeMs === w.born) return;
+        this.closeWatcher(); // a new directory: watch that one instead
       } catch (e) {
-        this.stopWatching();
+        this.cancel();
         this.error = folderError(e, this.shown(want), this.platform, this.homedir, want);
         this.changed();
+        return;
       }
-      return;
     }
-    if (this.watcher) this.stopWatching();
-    let real: string;
+    if (this.watcher) this.cancel();
+    let opened: Opened;
     try {
-      real = this.checkFolder(c.folder);
+      opened = await this.checkFolder(c.folder);
     } catch (e) {
       const before = this.error?.message;
       this.error = e instanceof ScreenshotsSourceError ? e : fail('failed', (e as Error).message);
       if (before !== this.error.message) this.changed();
       return;
     }
+    if (!this.started) return; // stopped while it looked
     this.error = null;
-    this.watching = want;
+    this.watching = { abs: want, ...opened };
+    const real = opened.real;
     const gen = this.generation;
     const w = watch(real, {
       ignoreInitial: true,
       depth: 0,
+      // a link in the folder may lead anywhere (a hidden folder, the data folder): only files that are really there
+      followSymlinks: false,
       // hidden (macOS's `.Screenshot …` while it writes) and temp files: never read
       ignored: (p: string) => p !== real && (path.basename(p).startsWith('.') || isTempName(path.basename(p))),
       awaitWriteFinish: { stabilityThreshold: this.stableMs, pollInterval: Math.min(100, this.stableMs) },
     });
     w.on('add', (p) => {
-      if (gen === this.generation) this.enqueue(p, false);
+      if (gen === this.generation) this.enqueue(p, null);
     })
       .on('unlinkDir', (p) => {
-        if (path.resolve(p) === real && gen === this.generation) this.reconcile();
+        // the folder itself went: this watch is dead whatever is at that path by the time we look
+        if (path.resolve(p) !== real || gen !== this.generation) return;
+        this.closeWatcher();
+        void this.reconcile();
       })
       .on('error', (e) => {
         if (gen !== this.generation) return;
-        this.stopWatching();
+        this.cancel();
         this.error = folderError(e, this.shown(want), this.platform, this.homedir, want);
         this.changed();
       });
     this.watcher = w;
+    this.ready = false;
+    w.once('ready', () => {
+      if (this.watcher === w) this.ready = true;
+    });
     this.changed();
   }
 
-  private stopWatching(): void {
-    this.generation++;
+  private closeWatcher(): void {
     const w = this.watcher;
     this.watcher = null;
+    this.ready = false;
     this.watching = null;
     if (w) void w.close().catch(() => {});
-    // what was waiting is dropped: switched off means nothing more is read
+  }
+
+  /** Stop everything: the watcher, what was waiting, and (by the generation) the result of a read that's running. */
+  private cancel(): void {
+    this.generation++;
+    this.closeWatcher();
     this.queue = [];
     this.queuedFiles.clear();
     if (this.st.lookBack?.running) this.st.lookBack = { ...this.st.lookBack, running: false };
@@ -480,10 +545,10 @@ export class ScreenshotsSource {
   start(): () => void {
     this.started = true;
     this.offConfig = this.o.bus.subscribe((e) => {
-      if (e.type === 'config') this.reconcile();
+      if (e.type === 'config') void this.reconcile();
     });
-    this.reconcile();
-    this.health = setInterval(() => this.reconcile(), this.healthMs);
+    void this.reconcile();
+    this.health = setInterval(() => void this.reconcile(), this.healthMs);
     this.health.unref?.();
     return () => this.stop();
   }
@@ -495,13 +560,13 @@ export class ScreenshotsSource {
     this.offConfig = null;
     if (this.health) clearInterval(this.health);
     this.health = null;
-    if (this.watcher) this.stopWatching();
+    this.cancel();
     if (this.saveTimer) this.saveNow();
   }
 
-  /** What's open right now (tests: switched off means none of these). */
+  /** What's open right now (tests: switched off means none of these). `watcher` once it sees new files. */
   handles(): { watcher: boolean; health: boolean } {
-    return { watcher: this.watcher !== null, health: this.health !== null };
+    return { watcher: this.watcher !== null && this.ready, health: this.health !== null };
   }
 
   /** Resolves when the queue is empty and nothing is being read (tests, shutdown). */
@@ -511,21 +576,26 @@ export class ScreenshotsSource {
 
   // ---- the look back
 
-  /** Read the pictures of the last `days` in the folder, once (oldest first). Returns the status. */
-  lookBack(days = 7): ScreenshotsSourceStatus {
+  /**
+   * Read the pictures of the last `days` in the folder, once: the newest MAX_QUEUE of them, oldest first. One look back
+   * at a time (`busy`). Returns the status.
+   */
+  async lookBack(days = 7): Promise<ScreenshotsSourceStatus> {
     if (!Number.isInteger(days) || days < 1 || days > MAX_LOOK_BACK_DAYS) throw fail('invalid', `How far back is a whole number of days, from 1 to ${MAX_LOOK_BACK_DAYS}.`);
+    if (this.st.lookBack?.running) throw fail('busy', 'A look back is already running. Wait for it to finish.');
     const c = this.settings();
     if (!c.enabled) throw fail('not_set', 'Turn the screenshots folder on first.');
-    const real = this.checkFolder(c.folder);
+    const { real } = await this.checkFolder(c.folder);
     const since = this.now().getTime() - days * 86_400_000;
-    let files: { p: string; t: number }[] = [];
+    const files: { p: string; t: number }[] = [];
     try {
-      for (const name of fs.readdirSync(real)) {
-        if (name.startsWith('.') || isTempName(name)) continue;
-        const p = path.join(real, name);
+      for (const d of await fs.promises.readdir(real, { withFileTypes: true })) {
+        // regular files only (not a link that leads elsewhere), and pictures only: a Desktop is full of other things
+        if (!d.isFile() || d.name.startsWith('.') || isTempName(d.name) || !PICTURE_EXT.test(d.name)) continue;
+        const p = path.join(real, d.name);
         try {
-          const s = fs.statSync(p);
-          if (s.isFile() && s.mtimeMs >= since) files.push({ p, t: s.mtimeMs });
+          const st = await fs.promises.stat(p);
+          if (st.mtimeMs >= since) files.push({ p, t: st.mtimeMs });
         } catch {
           /* gone already */
         }
@@ -533,23 +603,28 @@ export class ScreenshotsSource {
     } catch (e) {
       throw folderError(e, this.shown(real), this.platform, this.homedir, real);
     }
-    files = files.sort((a, b) => a.t - b.t).slice(0, MAX_QUEUE);
-    this.st.lookBack = { running: files.length > 0, days, total: files.length, done: 0, at: this.now().toISOString() };
-    for (const f of files) this.enqueue(f.p, true);
+    const take = files
+      .sort((a, b) => b.t - a.t)
+      .slice(0, Math.max(0, MAX_QUEUE - this.queue.length))
+      .reverse();
+    const id = ++this.lookBackSeq;
+    this.st.lookBack = { running: take.length > 0, days, total: take.length, done: 0, at: this.now().toISOString() };
+    for (const f of take) this.enqueue(f.p, id);
     this.changed();
     return this.status();
   }
 
   // ---- reading
 
-  private enqueue(file: string, lookBack: boolean): void {
+  /** `lookBack`: the look back it's part of (its progress counts it), or null for a new file. */
+  private enqueue(file: string, lookBack: number | null): void {
     if (this.queuedFiles.has(file)) {
-      if (lookBack) this.progress(); // already waiting: it counts as done for the look back's sake
+      if (lookBack !== null) this.progress(lookBack); // already waiting: it counts as done for the look back's sake
       return;
     }
     if (this.queue.length >= MAX_QUEUE) {
       this.note(path.basename(file), 'ignored', 'too many at once: it was passed over');
-      if (lookBack) this.progress();
+      if (lookBack !== null) this.progress(lookBack);
       return;
     }
     this.queue.push({ file, lookBack });
@@ -561,9 +636,9 @@ export class ScreenshotsSource {
       });
   }
 
-  private progress(): void {
+  private progress(id: number): void {
     const lb = this.st.lookBack;
-    if (!lb?.running) return;
+    if (!lb?.running || id !== this.lookBackSeq) return;
     const done = lb.done + 1;
     this.st.lookBack = { ...lb, done, running: done < lb.total };
   }
@@ -581,7 +656,7 @@ export class ScreenshotsSource {
         // one bad file mustn't stop the rest
         if (gen === this.generation) this.note(path.basename(job.file), 'failed', `something went wrong: ${(e as Error).message}`);
       }
-      if (job.lookBack && gen === this.generation) this.progress();
+      if (job.lookBack !== null && gen === this.generation) this.progress(job.lookBack);
       this.reading = null;
       this.changed();
     }
@@ -614,10 +689,12 @@ export class ScreenshotsSource {
     if (this.settings().onlyScreenshots && !looksLikeScreenshot(name)) return this.note(name, 'ignored', 'not named like a screenshot');
     let st: fs.Stats;
     try {
-      st = fs.statSync(file);
+      st = fs.lstatSync(file);
     } catch {
       return { kind: 'skipped', why: 'gone before it could be read' };
     }
+    // a link may lead anywhere (a hidden folder, the data folder): only files that are really in the folder
+    if (st.isSymbolicLink()) return this.note(name, 'ignored', 'a link, not a file');
     if (!st.isFile()) return { kind: 'skipped', why: 'not a file' };
     if (st.size > MAX_BLOB_BYTES) return this.note(name, 'ignored', `too big to keep (${(st.size / 1048576).toFixed(0)} MB; the limit is ${MAX_BLOB_BYTES / 1048576} MB)`);
     if (st.size === 0) return this.note(name, 'ignored', 'empty');
@@ -645,7 +722,6 @@ export class ScreenshotsSource {
       const missing = !r.matched.some((m) => m.rule === 'name' || m.rule === 'initials') ? 'doesn’t name you' : 'no praise or impact near your name';
       return this.note(name, 'looked', `didn’t pass the rules (${text.trim() ? missing : 'no text in it'})`);
     }
-    this.st.counts.looked++;
     const added = this.o.services.found.add({
       source: 'screenshots',
       externalKey: key,
@@ -656,6 +732,7 @@ export class ScreenshotsSource {
       files: [{ path: file, title: name }],
       matchedRules: reasonsOf(r),
     });
+    this.st.counts.looked++; // after add: a file that couldn't be written is counted once, as failed (drain)
     if (!added.created || !added.candidate) {
       this.st.lastSeen = { at: this.now().toISOString(), name, outcome: 'already in Found or on your board' };
       this.changed();

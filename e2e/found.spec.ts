@@ -125,14 +125,18 @@ test('screenshots folder: choose it, a praise screenshot reaches Found by itself
   test.setTimeout(90_000); // real OCR (tesseract.js) on the server
   const folder = path.join(E2E_HOME, `Shots-${RUN}`);
   fs.mkdirSync(folder, { recursive: true });
+  // the rules look for this name: put it in place for the test, and put back whatever was there after
   const profile = path.join(HOME, 'profile.yaml');
-  const wroteProfile = !fs.existsSync(profile);
-  if (wroteProfile) fs.writeFileSync(profile, 'name: Alex Marlowe\naliases: [Alex, AM]\n');
+  const hadProfile = fs.existsSync(profile) ? fs.readFileSync(profile) : null;
+  fs.writeFileSync(profile, 'name: Alex Marlowe\naliases: [Alex, AM]\n');
   let keptId: string | undefined;
   try {
     await page.goto('/settings/sources');
     const cardEl = page.getByTestId('source-screenshots');
     await expect(cardEl.getByTestId('screenshots-status')).toContainText('Off');
+    // the counts are kept across runs (a retry, a reused home): look at what this run adds
+    const counts = async () => (await (await request.get('/api/sources')).json()).screenshots.counts as { looked: number; sent: number };
+    const before = await counts();
     await cardEl.getByRole('switch').click();
     await cardEl.getByTestId('screenshots-other').fill(folder);
     await cardEl.getByTestId('screenshots-save').click();
@@ -144,7 +148,8 @@ test('screenshots folder: choose it, a praise screenshot reaches Found by itself
     fs.writeFileSync(path.join(folder, 'Screenshot 2026-10-17 at 9.41.03\u202fPM.png'), praise);
     fs.writeFileSync(path.join(folder, 'Screenshot 2026-10-17 at 9.42.03\u202fPM.png'), plain);
 
-    await expect(cardEl.getByTestId('screenshots-counts')).toContainText('2 looked at · 1 sent to Found', { timeout: 60_000 });
+    await expect.poll(counts, { timeout: 60_000 }).toEqual({ ...before, looked: before.looked + 2, sent: before.sent + 1 });
+    await expect(cardEl.getByTestId('screenshots-counts')).toContainText(`${before.looked + 2} looked at · ${before.sent + 1} sent to Found`);
     await page.goto('/found');
     const key = `screenshot:${createHash('sha256').update(praise).digest('hex')}`;
     const shotCard = page.locator(`[data-key="${key}"]`);
@@ -165,7 +170,8 @@ test('screenshots folder: choose it, a praise screenshot reaches Found by itself
   } finally {
     await request.put('/api/sources/screenshots', { data: { enabled: false } });
     if (keptId) await request.post(`/api/achievements/${keptId}/remove`, { data: {} });
-    if (wroteProfile) fs.rmSync(profile, { force: true });
+    if (hadProfile) fs.writeFileSync(profile, hadProfile);
+    else fs.rmSync(profile, { force: true });
     fs.rmSync(folder, { recursive: true, force: true });
   }
 });

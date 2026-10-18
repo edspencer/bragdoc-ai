@@ -30,15 +30,18 @@ const OTHER = shot('Massive kudos to the SRE team for the zero-downtime Postgres
 const DEPLOY = shot('Reminder: the deploy freeze starts Friday at noon.', 'Sam Okafor', '# eng');
 
 /** OCR that reads back the text each known picture was drawn with; counts its reads. */
-function fakeOcr(): Ocr & { reads: number; texts: Map<string, string>; fail: Set<string> } {
+function fakeOcr(): Ocr & { reads: number; texts: Map<string, string>; fail: Set<string>; gate: Promise<void> | null } {
   const texts = new Map<string, string>();
   const fail = new Set<string>();
   const o = {
     reads: 0,
     texts,
     fail,
+    /** While set, every read waits for it (a read "in progress"). */
+    gate: null as Promise<void> | null,
     async read(input: { bytes: Uint8Array } | { path: string }): Promise<OcrResult> {
       o.reads++;
+      if (o.gate) await o.gate;
       const bytes = 'bytes' in input ? input.bytes : new Uint8Array(fs.readFileSync(input.path));
       const sha = sha256Of(bytes);
       if (fail.has(sha)) throw new OcrError("the PNG can't be decoded", 'unsupported');
@@ -173,8 +176,8 @@ describe('one file, start to finish', () => {
     assert.deepEqual(r.src.status().counts, { looked: 2, sent: 0, ignored: 0, failed: 0 });
     assert.match(r.src.status().lastSeen!.outcome, /didn’t pass the rules \(doesn’t name you\)/);
     r.src.stop(); // saves the state now: counts and names, never text
-    const saved = fs.readFileSync(path.join(r.dir, 'cache', 'sources', 'screenshots.json'), 'utf8');
-    assert.doesNotMatch(saved, /Postgres|deploy freeze/);
+    const all = (d: string): string[] => fs.readdirSync(d, { withFileTypes: true }).flatMap((e) => (e.isDirectory() ? all(path.join(d, e.name)) : [path.join(d, e.name)]));
+    for (const f of all(r.dir)) assert.doesNotMatch(fs.readFileSync(f, 'latin1'), /Postgres|deploy freeze/, f);
   });
 
   test('passed over without reading: not a picture, a fake .png, not named like a screenshot, too small, too big, empty', async () => {
@@ -216,6 +219,18 @@ describe('one file, start to finish', () => {
     assert.equal(r.src.status().counts.failed, 1);
   });
 
+  test('a link in the folder is passed over: it may lead anywhere (a hidden folder, the data folder)', async () => {
+    const r = rig();
+    const hidden = path.join(r.home, '.secret');
+    fs.mkdirSync(hidden);
+    fs.writeFileSync(path.join(hidden, 'p.png'), PRAISE.bytes);
+    const link = path.join(r.folder, NAME);
+    fs.symlinkSync(path.join(hidden, 'p.png'), link);
+    const o = await r.src.process(link);
+    assert.equal(o.kind, 'ignored');
+    assert.equal(r.ocr.reads, 0);
+  });
+
   test('without a name in profile.yaml nothing is read, and the card says why', async () => {
     const r = rig({ profile: false });
     assert.equal(r.src.status().needsProfile, true);
@@ -232,7 +247,8 @@ describe('watching', () => {
     await r.call('PUT', '/api/sources/screenshots', { folder: '~/Screenshots', enabled: true });
     const stop = r.src.start();
     try {
-      await new Promise((res) => setTimeout(res, 400));
+      await until('watching', () => r.src.handles().watcher);
+      await new Promise((res) => setTimeout(res, 300));
       assert.equal(r.ocr.reads, 0, 'no back-scan without asking');
       const other = shot('Huge shoutout to @Alex Marlowe for the pager timeline export. Kudos!', 'Oskar Lindqvist', '# incidents');
       r.ocr.texts.set(sha256Of(other.bytes), other.text);
@@ -249,7 +265,7 @@ describe('watching', () => {
     await r.call('PUT', '/api/sources/screenshots', { folder: '~/Screenshots', enabled: true });
     const stop = r.src.start();
     try {
-      await new Promise((res) => setTimeout(res, 200));
+      await until('watching', () => r.src.handles().watcher);
       const p = path.join(r.folder, NAME);
       const fd = fs.openSync(p, 'w');
       const half = Math.floor(PRAISE.bytes.length / 2);
@@ -271,6 +287,7 @@ describe('watching', () => {
     await r.call('PUT', '/api/sources/screenshots', { folder: '~/Screenshots', enabled: true });
     const stop = r.src.start();
     try {
+      await until('watching', () => r.src.handles().watcher);
       fs.rmSync(r.folder, { recursive: true });
       await until('the error', () => r.src.status().state === 'error');
       assert.equal(r.src.status().error?.code, 'missing');
@@ -289,6 +306,7 @@ describe('watching', () => {
     const r = rig();
     await r.call('PUT', '/api/sources/screenshots', { folder: '~/Screenshots', enabled: true });
     const stop = r.src.start();
+    await until('watching', () => r.src.handles().watcher);
     assert.deepEqual(r.src.handles(), { watcher: true, health: true });
     const off = await r.call<ScreenshotsSourceStatus>('PUT', '/api/sources/screenshots', { enabled: false });
     assert.equal(off.body.state, 'off');
@@ -298,6 +316,44 @@ describe('watching', () => {
     assert.equal(r.ocr.reads, 0, 'nothing is read while it is off');
     stop();
     assert.deepEqual(r.src.handles(), { watcher: false, health: false });
+  });
+
+  test('switched off while a screenshot is being read: that read adds nothing, and what was waiting is dropped', async () => {
+    const r = rig();
+    await r.call('PUT', '/api/sources/screenshots', { folder: '~/Screenshots', enabled: true });
+    const stop = r.src.start();
+    try {
+      await until('watching', () => r.src.handles().watcher);
+      let release!: () => void;
+      r.ocr.gate = new Promise((res) => (release = res));
+      r.write(NAME, PRAISE.bytes);
+      r.write('Screenshot 2026-10-17 at 9.41.04 PM.png', OTHER.bytes);
+      await until('a read in progress, one waiting', () => r.ocr.reads === 1 && r.src.status().queued === 1);
+      await r.call('PUT', '/api/sources/screenshots', { enabled: false });
+      assert.equal(r.src.status().queued, 0, 'what was waiting is dropped');
+      release();
+      await r.src.idle();
+      assert.equal(r.ctx.services.found.list().length, 0, 'the read that was running added nothing');
+      assert.equal(r.ocr.reads, 1);
+    } finally {
+      stop();
+    }
+  });
+
+  test('a folder deleted and made again between checks is watched again (a new directory at the same path)', async () => {
+    const r = rig();
+    await r.call('PUT', '/api/sources/screenshots', { folder: '~/Screenshots', enabled: true });
+    const stop = r.src.start();
+    try {
+      await until('watching', () => r.src.handles().watcher);
+      fs.rmSync(r.folder, { recursive: true });
+      fs.mkdirSync(r.folder);
+      await new Promise((res) => setTimeout(res, 400)); // a few health checks
+      r.write(NAME, PRAISE.bytes);
+      await until('the candidate', () => r.ctx.services.found.list().length === 1);
+    } finally {
+      stop();
+    }
   });
 
   test('a hand edit of config.yaml switching it on is followed', async () => {
@@ -326,6 +382,7 @@ describe('choosing a folder, the look back, and the routes', () => {
       ['~/.hidden', 400, 'not_allowed'],
       [r.dir, 400, 'not_allowed'],
       [r.home, 400, 'not_allowed'], // holds the data folder
+      ['/', 400, 'not_allowed'], // so does the root of the file system
     ];
     for (const [folder, status, code] of cases) {
       const res = await r.call<{ error: { code: string } }>('PUT', '/api/sources/screenshots', { folder, enabled: true });
@@ -347,9 +404,9 @@ describe('choosing a folder, the look back, and the routes', () => {
     const r = rig({ platform: 'darwin' });
     const desktop = path.join(r.home, 'Desktop');
     fs.mkdirSync(desktop);
-    const realReaddir = fs.readdirSync;
-    // as root (this box), chmod can't make a folder unreadable: stand in for TCC's EPERM
-    (fs as { readdirSync: unknown }).readdirSync = (p: fs.PathLike, ...rest: unknown[]) => {
+    const realReaddir = fs.promises.readdir;
+    // as root, chmod can't make a folder unreadable: stand in for TCC's EPERM
+    (fs.promises as { readdir: unknown }).readdir = async (p: fs.PathLike, ...rest: unknown[]) => {
       if (String(p) === desktop) throw Object.assign(new Error('operation not permitted'), { code: 'EPERM' });
       return (realReaddir as (...a: unknown[]) => unknown)(p, ...rest);
     };
@@ -360,7 +417,7 @@ describe('choosing a folder, the look back, and the routes', () => {
       assert.match(res.body.error.message, /Desktop, Documents and Downloads are protected/);
       assert.match(res.body.error.message, /Privacy & Security/);
     } finally {
-      (fs as { readdirSync: unknown }).readdirSync = realReaddir;
+      (fs.promises as { readdir: unknown }).readdir = realReaddir;
     }
   });
 
@@ -388,13 +445,32 @@ describe('choosing a folder, the look back, and the routes', () => {
     const tenDays = (Date.now() - 10 * 86_400_000) / 1000;
     fs.utimesSync(old, tenDays, tenDays);
     r.write(NAME, PRAISE.bytes);
+    const newer = r.write('Screenshot 2026-10-17 at 9.50.00 PM.png', DEPLOY.bytes);
+    const twoDays = (Date.now() - 2 * 86_400_000) / 1000;
+    fs.utimesSync(path.join(r.folder, NAME), twoDays, twoDays);
+    r.write('notes.txt', 'not a picture'); // not counted: the look back takes pictures only
+    const order: string[] = [];
+    const read = r.ocr.read.bind(r.ocr);
+    r.ocr.read = async (input) => {
+      const res = await read(input);
+      order.push(res.sha256);
+      return res;
+    };
+    let release!: () => void;
+    r.ocr.gate = new Promise((res) => (release = res));
     const res = await r.call<ScreenshotsSourceStatus>('POST', '/api/sources/screenshots/look-back', { days: 7 });
     assert.equal(res.status, 200);
-    assert.equal(res.body.lookBack?.total, 1);
+    assert.equal(res.body.lookBack?.total, 2);
+    const busy = await r.call<{ error: { code: string } }>('POST', '/api/sources/screenshots/look-back', { days: 7 });
+    assert.equal(busy.status, 409);
+    assert.equal(busy.body.error.code, 'busy');
+    release();
+    r.ocr.gate = null;
     await r.src.idle();
-    assert.equal(r.ocr.reads, 1);
+    assert.deepEqual(order, [sha256Of(PRAISE.bytes), sha256Of(fs.readFileSync(newer))], 'oldest first');
     assert.equal(r.ctx.services.found.list().length, 1);
-    assert.deepEqual({ ...r.src.status().lookBack, at: '' }, { running: false, days: 7, total: 1, done: 1, at: '' });
+    assert.deepEqual({ ...r.src.status().lookBack, at: '' }, { running: false, days: 7, total: 2, done: 2, at: '' });
+    assert.equal(r.src.status().counts.ignored, 0);
     assert.equal((await r.call('POST', '/api/sources/screenshots/look-back', { days: 400 })).status, 400);
   });
 
@@ -407,6 +483,9 @@ describe('choosing a folder, the look back, and the routes', () => {
     assert.equal(ok.status, 200);
     assert.equal(ok.type, 'image/png');
     assert.equal(Buffer.from(ok.body).equals(PRAISE.bytes), true);
+    // replaced by another picture under the same name: not shown, and not kept
+    fs.writeFileSync(p, OTHER.bytes);
+    assert.equal((await r.call('GET', `/api/found/${c!.id}/picture`)).status, 404);
     fs.rmSync(p);
     const gone = await r.call<{ error: { code: string } }>('GET', `/api/found/${c!.id}/picture`);
     assert.equal(gone.status, 404);
@@ -415,6 +494,32 @@ describe('choosing a folder, the look back, and the routes', () => {
     const kept = await r.call<{ missingFiles: string[]; achievementId: string }>('POST', `/api/found/${c!.id}/keep`);
     assert.deepEqual(kept.body.missingFiles, [p]);
     assert.ok(r.ctx.store.get('achievement', kept.body.achievementId)!.evidence.some((e) => e.kind === 'quote'));
+  });
+
+  test("the picture route never serves from a hidden folder or the data folder, whatever found/<id>.yaml says", async () => {
+    const r = rig();
+    await r.src.process(r.write(NAME, PRAISE.bytes));
+    const [c] = r.ctx.services.found.list();
+    const file = path.join(r.dir, 'found', `${c!.id}.yaml`);
+    for (const target of [path.join(r.home, '.secret', 'p.png'), path.join(r.dir, 'p.png')]) {
+      fs.mkdirSync(path.dirname(target), { recursive: true });
+      fs.writeFileSync(target, PRAISE.bytes); // even the very bytes that passed
+      fs.writeFileSync(file, fs.readFileSync(file, 'utf8').replace(/path: .*/, `path: ${target}`));
+      r.ctx.store.reloadPath(file, { dir: false });
+      assert.equal(r.ctx.store.get('found', c!.id)!.files[0]!.path, target);
+      assert.equal((await r.call('GET', `/api/found/${c!.id}/picture`)).status, 404, target);
+    }
+  });
+
+  test("keep after the screenshot was replaced keeps the quote, not the other picture", async () => {
+    const r = rig();
+    const p = r.write(NAME, PRAISE.bytes);
+    await r.src.process(p);
+    const [c] = r.ctx.services.found.list();
+    fs.writeFileSync(p, OTHER.bytes);
+    const kept = await r.call<{ missingFiles: string[]; achievementId: string }>('POST', `/api/found/${c!.id}/keep`);
+    assert.deepEqual(kept.body.missingFiles, [p]);
+    assert.deepEqual(r.ctx.store.get('achievement', kept.body.achievementId)!.evidence.map((e) => e.kind), ['quote']);
   });
 
   test("keep copies the screenshot into evidence/, with its text on the sidecar once read (searchable)", async () => {

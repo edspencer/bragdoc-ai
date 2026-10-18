@@ -94,7 +94,11 @@ export function ScreenshotsCard() {
         <ScreenshotsFolderPicker
           current={s.folder}
           onSaved={() => setChoosing(false)}
-          onCancel={() => setChoosing(false)}
+          onCancel={() => {
+            setChoosing(false);
+            // on without a folder (config.yaml edited by hand): "Not now" means off
+            if (on && !s.folder) toggle.mutate(false);
+          }}
         />
       ) : (
         s && <Details s={s} on={on} onChange={() => setChoosing(true)} />
@@ -241,6 +245,7 @@ export function ScreenshotsFolderPicker({ current, onSaved, onCancel, saveLabel 
         </legend>
         <div className="mt-1.5 grid gap-2">
           {sug.isPending && <div className="text-[12.5px] text-muted">Looking for where screenshots go…</div>}
+          {sug.isError && <div className="text-[12.5px] text-muted">BragDoc couldn’t suggest a folder ({errorText(sug.error)}). Type one below.</div>}
           {current && !list.some((x) => x.folder === current) && (
             <Choice checked={pick === current} onChange={() => setPick(current)} title={current} testId="screenshots-pick-current">
               The folder you chose before.
