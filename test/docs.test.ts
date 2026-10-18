@@ -156,6 +156,14 @@ describe('docs site', () => {
       assert.ok(names.has(r.name), `${r.from}: ${r.name} isn't a shot in shots.ts`);
       assert.ok(fs.existsSync(path.join(WEBSITE, 'src', 'assets', r.dir, `${r.name}.png`)), `${r.from}: website/src/assets/${r.dir}/${r.name}.png is missing (npm run docs:media:sync)`);
     }
+    // a shot from the rig's AI world shows answers from the test model server, never a real model: its tag says so (D83)
+    // (the consent dialog shows no answer: it's what you see before anything is sent)
+    const aiWorld = new Set(SHOTS.filter((s) => s.data === 'ai').map((s) => s.name.replace(/-(light|dark)$/, '')).filter((n) => n !== 'docs-ai-consent'));
+    for (const f of prose().filter((x) => x.endsWith('.mdx'))) {
+      for (const m of fs.readFileSync(f, 'utf8').matchAll(/<Shot\b[^>]*?name="([^"]+)"[^>]*>/g)) {
+        if (aiWorld.has(m[1]!)) assert.match(m[0], /\sstaged\b/, `${path.relative(ROOT, f)}: <Shot name="${m[1]}"> is from the AI world: mark it staged`);
+      }
+    }
     // nothing still pretends to be a mock-up
     assert.deepEqual(prose().filter((f) => /Mock-up/i.test(fs.readFileSync(f, 'utf8'))).map((f) => path.relative(ROOT, f)), []);
   });

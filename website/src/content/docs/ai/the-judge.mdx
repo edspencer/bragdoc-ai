@@ -33,9 +33,9 @@ and the plain rules' chips, which stay. **Keep** files the achievement under the
 suggested together, shown on the card first. **Judge again** asks once more, and **What's sent** shows exactly what
 that would send.
 
-<Shot name="docs-found-judged" alt="Found with the judge on: a group headed Looks like a win, with a screenshot card stamped Looks like a win 86%, the quote read on this computer, why the judge picked it, judged by qwen3.5:4b on this computer, Judge again and What's sent, the rules it passed, and Keep, Merge and Dismiss; beside it a GitHub pull request card, also judged." caption="Found after Judge now. The verdicts were staged with BragDoc's test model server, not a real model; the people and messages are the made-up example data." />
+<Shot name="docs-found-judged" alt="Found with the judge on: a group headed Looks like a win, with a screenshot card stamped Looks like a win 86%, the quote read on this computer, why the judge picked it, judged by qwen3.5:4b on this computer, Judge again and What's sent, the rules it passed, and Keep, Merge and Dismiss; beside it a GitHub pull request card, also judged." caption="Found after Judge now. The verdicts were staged with BragDoc's test model server, not a real model; the people and messages are the made-up example data." staged />
 
-<Shot name="docs-found-judged-mobile" alt="Found with verdicts on a phone: one column, a screenshot card stamped Looks like a win with the judge's reason, and the tabs along the bottom." caption="The same, at phone width. Verdicts staged with BragDoc's test model server." max={300} />
+<Shot name="docs-found-judged-mobile" alt="Found with verdicts on a phone: one column, a screenshot card stamped Looks like a win with the judge's reason, and the tabs along the bottom." caption="The same, at phone width. Verdicts staged with BragDoc's test model server." max={300} staged />
 
 When you keep or dismiss a judged candidate, BragDoc counts whether you agreed with it, and Settings → AI says "You
 agreed with the judge on 18 of 20". Only the counts are kept (`cache/ai/judge-stats.json`), never which candidate.
@@ -87,7 +87,7 @@ And two conditions, for those background runs only:
   card says it can't tell. It reads the power only while that decides something (the judge on, with a background
   trigger set or its card open): with AI off, `pmset` never runs.
 
-<Shot name="docs-ai-judge-card" alt="The judge's card in Settings, AI: on, using qwen3.5:4b on Ollama on this computer; what it judges (screenshots the rules let through, and merged PRs); when it runs by itself (as new candidates arrive, every N hours, only between two times, only when plugged in); the what counts as a win for me editor; and Judge now." caption="The judge's card, on, with nothing in the background yet. The model is BragDoc's test model server standing in for a real runner." />
+<Shot name="docs-ai-judge-card" alt="The judge's card in Settings, AI: on, using qwen3.5:4b on Ollama on this computer; what it judges (screenshots the rules let through, and merged PRs); when it runs by itself (as new candidates arrive, every N hours, only between two times, only when plugged in); the what counts as a win for me editor; and Judge now." caption="The judge's card, on, with nothing in the background yet. The model is BragDoc's test model server standing in for a real runner." staged />
 
 **With a cloud model, background runs need one more tick:** **Also send to *host* in the background.** Without it,
 the schedule holds and only Judge now sends anything, so a schedule you set for a local model can't start sending your
