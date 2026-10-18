@@ -174,9 +174,9 @@ export function summariseJudge(rows: EvalRow[]): Record<string, Cell> {
       ? {
           'messages judged': `${judged.length} of ${msgs.length} (the rules passed ${msgs.filter((r) => r.cells.rules === 'pass').length})`,
           'pipeline P / R': `${pct(tp, tp + fp)} / ${pct(tp, wins)} (${tp} of ${wins} wins kept, ${fp} false keeps)`,
-          ...(all.length > passed.length ? { 'judge alone P / R': `${pct(atp, atp + afp)} / ${pct(atp, all.filter(win).length)} (every message judged, rules ignored)` } : {}),
+          ...(scored.some((r) => r.cells.rules === 'drop' && r.cells.judge !== '–') ? { 'judge alone P / R': `${pct(atp, atp + afp)} / ${pct(atp, all.filter(win).length)} (every message judged, rules ignored)` } : {}),
           'judge P / R on passed': `${pct(ptp, ptp + pfp)} / ${pct(ptp, pwins)} (${ptp} of ${pwins} wins the rules passed)`,
-          'sarcasm kept': `${sarcasm.filter(shown).length} of ${sarcasm.length} (the rules passed ${sarcasm.filter((r) => r.cells.rules === 'pass').length}${all.length > passed.length ? `; the judge alone kept ${sarcasm.filter(kept).length}` : ''})`,
+          'sarcasm kept': `${sarcasm.filter(shown).length} of ${sarcasm.length} (the rules passed ${sarcasm.filter((r) => r.cells.rules === 'pass').length}${scored.some((r) => r.cells.rules === 'drop' && r.cells.judge !== '–') ? `; the judge alone kept ${sarcasm.filter(kept).length}` : ''})`,
           'valid answers': `${asked.filter((r) => !r.error).length} of ${asked.length}${asked.some((r) => r.repaired) ? ` (${asked.filter((r) => r.repaired).length} after a repair)` : ''}`,
           'p50 / p90': `${q(0.5)} / ${q(0.9)} per call`,
           'quotes verbatim': `${quotes.filter((r) => r.cells.quote === 'kept').length} of ${quotes.length}`,
