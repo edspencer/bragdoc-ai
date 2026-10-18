@@ -64,6 +64,7 @@
     "store:demo": "tsx scripts/store-demo.ts",
     "eval:screenshots": "tsx scripts/eval-screenshots.ts",
     "eval:smoke": "tsx scripts/eval/smoke.ts",
+    "eval:draft": "tsx scripts/eval/draft.ts",
     "eval:tidy": "tsx scripts/eval/tidy.ts",
     "gen:example": "tsx scripts/gen-example.ts"
   },

@@ -538,6 +538,23 @@ The composer's Summary and Until fields appear only once a suggestion sets them.
 prompt through `services.instructions.forPrompt('style')`, as Tidy does; the fake's `tidy` row (answers.ts) is keyed on
 the schema name `achievement_tidy`.
 
+PR27 added **Draft with AI** in Folio (SPEC R24, D80–D81):
+
+- `POST /api/ai/draft { folio: AiDraftFolio, purpose? }` streams NDJSON (`AiDraftEvent`: `start`, `text`…, `done`);
+  `POST /api/ai/draft/check` and `GET /api/ai/draft/preview` make no model call (`server/routes/ai-draft.ts`). The
+  server rebuilds the clippings from the folio's state: `folioData()` (`server/folio.ts`, shared with `GET
+  /api/folio`) → `prepareDraft()` (`server/ai/draft/prepare.ts`: numbering, the budget in `budget.ts`, the prompt in
+  `prompts/draft.ts`, and the check's sources). One activity run per draft (`sent`, `omitted`).
+- The check is `checkDraft(draft, sources)` in `shared/ai/draft.ts` (pure): per line, against the clippings that line
+  cites. `draftExportName()` names the download. The fake's `draft` row plants `37%` and one uncited bullet; a note
+  containing `(clean)` leaves them out (handy for screenshots).
+- In the web app: `streamDraft()` / `checkAiDraft()` / `getAiDraftPreview()` (`src/api/client.ts`), `useDraft()`
+  (`src/folio/draft.ts`), `DraftPanel` (`src/folio/DraftPanel.tsx`), `DraftCard` in Settings → AI. The Folio page's
+  leave guard asks only when leaving `/folio` (its filters are URL changes too). `StyleEditor.tsx` is PR26's, copied
+  byte for byte.
+- `npm run eval:draft` (live): three example-data folios (a quarter, six months, a year on a 4k context that hits the
+  budget); `EVAL_SHOW=1` prints each draft.
+
 **Adding an AI feature** (five steps):
 1. Its settings already exist under `ai.features.<name>` (PR21 laid down all of them); read them with
    `ctx.ai.readiness(feature)`, never by checking `enabled` yourself.

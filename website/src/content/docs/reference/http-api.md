@@ -175,6 +175,18 @@ Every write answers with the new status and refreshes open tabs (an `ai` event).
 | `POST /api/ai/connections/:id/pull` | `{ "confirm": true, "model": "qwen3.5:4b" }`: ask that Ollama connection to download a recommended model. Answers `application/x-ndjson`: Ollama's progress lines (`status`, `completed`, `total`), then `{ "done": true, "ok": true }` or `{ "done": true, "ok": false, "error" }`. Closing the request cancels it. **400** `confirm_needed` without the confirm, `not_recommended` for any other model, `not_ollama`; **409** `ai_off`. Logged twice: the request to Ollama, and the download itself as "registry (via Ollama)". |
 | `PUT /api/ai/features/:feature` | `judge`, `tidy` or `draft`: change its settings (`enabled`, `model`, and the judge's `screenshots`, `github`, `when`, `backgroundCloud`, `maxPerRun`), as a merge patch. Unknown settings are a **400**. |
 
+### Draft with AI (Folio)
+
+A review draft from what a folio picks (Settings → AI → Draft with AI). The page sends the folio's **state**, never its
+text: the server rebuilds the same achievements `GET /api/folio` gives the page, already cut down to what a folio may
+show (no ids, no file locations, no links to your computer). Nothing is written to your data folder.
+
+| Method and path | What it does |
+| --- | --- |
+| `POST /api/ai/draft` | `{ "folio": { "from", "to", "projects", "company", "minImpact", "exclude", "group" }, "purpose": "…" }` (the folio's filters as Folio's URL holds them; `purpose` is the optional "What's this for?" note, up to 300 characters). Answers `application/x-ndjson`: a `start` line (`model`, `connection`, `where`, `sent`, `omitted`, `cited`: which `[n]` is which achievement, and `ahead`: calls waiting before it), `text` lines as the draft arrives, then `{ "type": "done", "ok": true, "ms", "tokensIn", "tokensOut", "check" }`, or `{ "type": "done", "ok": false, "error": { "code", "message" } }` if the model failed or AI was switched off mid-draft. If the folio is too big for the model's context, its lowest-impact achievements are left out and counted (`omitted`, and the `X-BragDoc-Omitted` header). Closing the request cancels it. Time limits: 15 minutes on your computer or network, 3 on the internet. **400** `empty` when nothing is picked, `context_too_long` when not even one achievement fits, `invalid` for a bad body; **409** `ai_off`, `no_model`, `not_consented` or `no_key` before anything is sent. |
+| `POST /api/ai/draft/check` | `{ "draft": "…", "folio": { … }, "purpose": "…" }`: check a draft (an edited one, say) against the achievements it was made from: `{ "ungrounded", "uncited", "filler", "badCitations" }`, each a list of `{ "line", "text" }`. `ungrounded`: a number, date or name in none of the achievements that line cites; `uncited`: a bullet that cites none; `filler`: a stock phrase your own achievements don't use; `badCitations`: a `[n]` with no achievement `n`. Makes no model call, so it works with AI off. |
+| `GET /api/ai/draft/preview` | Exactly what a draft sends: `{ "system", "prompt", "sent", "omitted", "budget" }`. With no parameters, the template (the achievements' place marked); with a folio's URL parameters (`from`, `to`, `p`, `c`, `min`, `out`, `group`, and `purpose`), that folio's prompt. No model call. |
+
 Every model call, local ones included, is in [Network activity](/guarantees/network-activity/) with where it went
 (`this computer`, `your network` or `internet`), what it was for, the model and how many bytes were sent: never what
 was sent.

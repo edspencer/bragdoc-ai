@@ -74,6 +74,7 @@ import type {
 import type { Achievement, AchievementCreate, AchievementUpdate, Evidence, FoundCandidate, FoundKeep, Problem, Profile, ProfileUpdate } from '../../shared/schema/index.ts';
 // v0.2's AI plumbing (PR22), on a line of its own so the AI PRs' imports don't collide
 import type { AiActivityResponse, AiInstructionsName, AiInstructionsReset, AiInstructionsResponse } from '../../shared/api.ts';
+import type { AiDraftCheck, AiDraftCheckRequest, AiDraftEvent, AiDraftPreview, AiDraftRequest } from '../../shared/api.ts';
 
 /** A failed API call: the HTTP status (0 when the server couldn't be reached) and the envelope's code and message. */
 export class ApiRequestError extends Error {
@@ -473,3 +474,65 @@ export const resetAiInstructions = (name: AiInstructionsName) => api.post<AiInst
 /** `GET /api/ai/activity`: the AI activity log, newest first. */
 export const getAiActivity = (opts: { limit?: number; offset?: number } = {}, signal?: AbortSignal) =>
   api.get<AiActivityResponse>(`/api/ai/activity?limit=${opts.limit ?? 50}&offset=${opts.offset ?? 0}`, { signal });
+
+// ---------------------------------------------------------------- Folio "Draft with AI" (PR27)
+
+/**
+ * `POST /api/ai/draft`: a draft, read as it streams. `onEvent` hears `start` and each `text`; the promise settles with
+ * the `done` line (a model's failure mid-draft is a `done` with `ok: false`, not a throw). Throws an ApiRequestError
+ * when the server refused before starting (a gate, an empty folio), and the abort when `signal` cancels it.
+ */
+export async function streamDraft(body: AiDraftRequest, onEvent: (e: Exclude<AiDraftEvent, { type: 'done' }>) => void, signal: AbortSignal): Promise<Extract<AiDraftEvent, { type: 'done' }>> {
+  let res: Response;
+  try {
+    res = await fetch('/api/ai/draft', { method: 'POST', headers: { 'Content-Type': 'application/json', Accept: 'application/x-ndjson' }, body: JSON.stringify(body), signal });
+  } catch (e) {
+    if (signal.aborted) throw e;
+    throw new ApiRequestError(0, NETWORK_ERROR, "Couldn't reach BragDoc. Is it still running?");
+  }
+  if (!res.ok || !res.body || !res.headers.get('content-type')?.includes('ndjson')) {
+    const text = await res.text().catch(() => '');
+    let data: unknown;
+    try {
+      data = JSON.parse(text);
+    } catch {
+      /* not JSON */
+    }
+    if (isEnvelope(data)) throw new ApiRequestError(res.status, data.error.code, data.error.message);
+    throw new ApiRequestError(res.status, `http_${res.status}`, `The draft didn't start (${res.status}).`);
+  }
+  const reader = res.body.pipeThrough(new TextDecoderStream()).getReader();
+  let buf = '';
+  let last: Extract<AiDraftEvent, { type: 'done' }> = { type: 'done', ok: false, error: { code: 'failed', message: 'The draft stopped before it finished: BragDoc went away mid-answer.' } };
+  for (;;) {
+    let chunk: Awaited<ReturnType<typeof reader.read>>;
+    try {
+      chunk = await reader.read();
+    } catch (e) {
+      if (signal.aborted) throw e;
+      break;
+    }
+    if (chunk.done) break;
+    buf += chunk.value;
+    let i: number;
+    while ((i = buf.indexOf('\n')) >= 0) {
+      const line = buf.slice(0, i).trim();
+      buf = buf.slice(i + 1);
+      if (!line) continue;
+      try {
+        const e = JSON.parse(line) as AiDraftEvent;
+        if (e.type === 'done') last = e;
+        else onEvent(e);
+      } catch {
+        /* a torn line: skip it */
+      }
+    }
+  }
+  return last;
+}
+
+/** `POST /api/ai/draft/check`: the flags on an (edited) draft. No model call. */
+export const checkAiDraft = (body: AiDraftCheckRequest, signal?: AbortSignal) => api.post<AiDraftCheck>('/api/ai/draft/check', body, { signal });
+
+/** `GET /api/ai/draft/preview`: what a draft sends (the template, without params). */
+export const getAiDraftPreview = (params?: Record<string, string>, signal?: AbortSignal) => api.get<AiDraftPreview>(`/api/ai/draft/preview${params ? `?${new URLSearchParams(params)}` : ''}`, { signal });

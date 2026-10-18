@@ -1200,3 +1200,65 @@ previous month. A `happenedAt` or `endedAt` outside all of them is **dropped and
 your text, so it was left out"), and an end not after the start goes too. `today` is the browser's day (its time
 zone), accepted within two days of the server's, else the server's (the profile's time zone). The model gets the same
 rule in its prompt; this is the check, not the instruction.
+
+### D80 — Draft with AI: the folio's state in, a streamed draft out, and a check on every line
+
+PR27 (SPEC R24). The page sends the folio's **state** (`AiDraftFolio`: the window, filters and unticked ids), never its
+text, and the server rebuilds the clippings with `folioData()` (shared with `GET /api/folio`, now in `server/folio.ts`)
+and `matching()`, so a draft is made from exactly what the page shows (D55's cut-down clippings: no ids, paths or local
+URLs), and a client can't slip anything else into a prompt.
+
+- **Numbered, best first, and cited.** The clippings go in impact order as `[1]`, `[2]`…; the prompt asks for every
+  bullet to end with the numbers it comes from. The `start` line maps each number to its achievement for the page's
+  links; ids never reach the model.
+- **The check** (`checkDraft`, shared/ai/draft.ts, pure) is line by line, and stricter than "somewhere in the folio":
+  a line's numbers, dates and capitalised names must be in **the clippings that line cites**: their content, not the
+  scaffolding the prompt adds (a clipping's own `[n]` and impact score ground nothing), or the context the prompt
+  states about the person, the window (and its quarter or year) and the note. Project and company names are not
+  context: each is in its own clippings, so "for Atlas [3]" has to be Atlas's clipping. A line citing nothing (the
+  opening) is checked against all of it; prose under a heading must cite like a bullet. Bullets with no citation, citations to a number that wasn't sent,
+  and a short list of filler phrases (only those the user's own clippings don't use) are flagged too. Headings are
+  checked for numbers only (a theme is the model's word). A run like "Shipped Preflight" at the start of a line is
+  grounded if the name after the verb is; "410ms" is "410 ms". `POST /api/ai/draft/check` runs the same check on an
+  edited draft, against the draft's **own numbering** (the `cited` ids from its `start` line, rebuilt from the store
+  and kept only if the folio still picks them), so a new achievement or a smaller model since can't renumber it. It
+  makes no model call, so it's ungated. Sources are indexed once per check (`groundingIndex()`), and at most 2,000
+  lines are read: it runs after every pause in typing, on a single-threaded server.
+- **Only the sent clippings' projects and companies are named** in the prompt, never the rest of the catalog: a folio
+  filtered to one company doesn't tell a cloud model about the last one. Clipping text can't forge the markers (NFKC,
+  zero-width characters stripped) or a citation (`[7]` in a title becomes `(7)`).
+- **Streamed as NDJSON, not text/plain** (a deviation from the plan's brief). A plain-text stream has no way to say
+  "the runner died", "timed out" or "AI was switched off" after the first byte, and a draft can fail minutes in.
+  `start` / `text` / `done` lines, like PR23's pull, carry the model and where, what was sent and left out, the error
+  in words, and the check. Refusals before anything is sent stay plain JSON errors (409 gates, 400 `empty`).
+- **One activity run per draft** (`sent` and `omitted` counts), so a cancelled or closed tab is a `cancelled` line.
+  15 minutes local, 3 to the internet (SPEC R20); `maxOutputTokens` is the budget's answer room; temperature 0.2.
+- **Considered:** sending the page's markdown (simpler, but the server would have to trust it, and a hand-crafted
+  request could send anything to a cloud host under Draft's consent); checking only "anywhere in the folio" (misses a
+  real number pinned on the wrong achievement); a check in the browser alone (the server owns the clippings as sent).
+
+### D81 — Draft's budget, and the Draft panel
+
+PR27 (SPEC R24, R26).
+
+- **Budget** (`server/ai/draft/budget.ts`): a quarter of the connection's `contextTokens` (1,024–4,096) is kept for
+  the answer and sent as its cap; the rest holds the instructions and the clippings, estimated at 3.5 characters a
+  token for ASCII and one token for every other character (deliberately high: no tokenizer is bundled, and a prompt
+  Ollama silently truncates is worse than one that leaves an item out). "How I write" may take a fifth of the input
+  at most; past that it's cut ("cut short to fit"), and the panel says so. Clippings are added best first until the next doesn't fit; the rest (always the lowest-impact
+  tail) are counted, told to the model ("don't say it covers everything"), and shown: "N lower-impact items weren't
+  sent". One clipping is capped at 900 characters ("cut short") so a long note can't crowd the rest out. With the
+  default 8,192 that's about 5k tokens of clippings; with a cloud connection's 30k, about 25k.
+- **The panel is a third view beside Printout and Markdown** (a "Draft" chip), not a third column: the clippings stay
+  on the left so `[n]` can scroll to and light up its clipping, and the plain export stays one click away and the
+  default. On a phone it's the same chip, i.e. a tab. Draft with AI and the "What's this for?" note sit with Copy,
+  Print and Export.
+- **Shown only while AI and Draft are on** (SPEC R26, Ed's default 6). On but not ready: the button is disabled with
+  the reason and a link to Settings → AI. **A draft already written is the user's text**: if AI is switched off
+  mid-draft it stops with the reason, and what arrived stays editable, copyable and exportable until they leave the
+  page (Draft again is gone). Losing it would punish the user for turning AI off.
+- **Nothing is saved** (D55): the draft lives in the page. Leaving Folio (or reloading) with a draft not yet copied or
+  exported asks first; changing the folio's own filters or view (URL changes on the same page) never asks, and the
+  draft keeps meaning what it was made from ("the folio has changed since this draft"). Draft again over an edited
+  draft asks too.
+
