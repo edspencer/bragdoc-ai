@@ -81,6 +81,9 @@ const ALLOWED_IMPORTS_IN: Record<string, string | string[]> = {
   'node:worker_threads': 'server/ocr/tesseract-worker.ts',
   // OCR (see the note in ALLOWED_IMPORTS): the engine, and its worker (which loads tesseract.js's worker internals)
   'tesseract.js': ['server/ocr/tesseract.ts', 'server/ocr/tesseract-worker.ts'],
+  // from source only: registers tsx's TypeScript loader in the OCR worker thread (Node 22.12's workers don't inherit
+  // it). A devDependency, never in the package (tsc doesn't copy .mjs; smoke:pack checks no server/ file ships)
+  tsx: 'server/ocr/tesseract-worker-source.mjs',
 };
 /**
  * INTERIM (D32): PR5 was built alongside PR2, so `bragdoc service` and `--open` run their programs through

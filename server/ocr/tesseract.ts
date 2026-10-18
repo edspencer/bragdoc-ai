@@ -15,8 +15,8 @@ import { prepareForTesseract } from './image.js';
 
 /** The English model, inside the installed package: never the CDN tesseract.js would use by default. */
 export const LANG_DIR = path.join(path.dirname(fileURLToPath(import.meta.resolve('@tesseract.js-data/eng/package.json'))), '4.0.0_best_int');
-/** Our worker wrapper: `.ts` when running from source (tsx; the worker inherits its --import), `.js` once built. */
-const WORKER_PATH = fileURLToPath(new URL(`./tesseract-worker${path.extname(fileURLToPath(import.meta.url))}`, import.meta.url));
+/** Our worker: tesseract-worker.js once built; from source, a bootstrap that loads the .ts through tsx. */
+const WORKER_PATH = fileURLToPath(new URL(import.meta.url.endsWith('.ts') ? './tesseract-worker-source.mjs' : './tesseract-worker.js', import.meta.url));
 export const IDLE_MS = 60_000;
 
 export interface TesseractOptions {
