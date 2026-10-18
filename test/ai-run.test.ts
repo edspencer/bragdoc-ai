@@ -52,6 +52,7 @@ describe('structured answers', () => {
     assert.deepEqual([sent.think, sent.options.num_ctx, sent.format.type, sent.options.temperature], [false, 4096, 'object', 0], 'Ollama: thinking off, the context size, the schema');
     const v = fake.requests.filter((r) => r.path === '/v1/chat/completions').at(-1)!.body as any;
     assert.equal(v.response_format.type, 'json_schema');
+    assert.equal(v.response_format.json_schema.strict, false, 'non-strict: our Zod check is the strict one');
   });
 
   test('bad-json-once: one repair retry that shows the model its mistake, then valid', async () => {

@@ -12,7 +12,9 @@ import { ROOT, rmTmp, tmpDir } from './fixture.ts';
 /**
  * URLs allowed in the bundle, none of which the app fetches: XML namespaces (React DOM), React's error-decoder link
  * in its minified errors, the router's parsing base, the project's own GitHub repository and docs links, and the link
- * a pasted pull request opens (built from its owner/repo#n, opened in a new tab, never fetched: PR7).
+ * a pasted pull request opens (built from its owner/repo#n, opened in a new tab, never fetched: PR7), and the cloud
+ * providers' privacy policies that a consent statement links to (shared/ai/consent.ts, v0.2: links you open, never
+ * fetched; the consent dialog shows them before anything is sent to that provider).
  */
 const ALLOWED = [
   /^http:\/\/www\.w3\.org\/(?:1998\/Math\/MathML|1999\/xlink|1999\/xhtml|2000\/svg|XML\/1998\/namespace)$/,
@@ -20,6 +22,9 @@ const ALLOWED = [
   /^http:\/\/localhost$/,
   /^https:\/\/github\.com\/edspencer\/bragdoc-ai(?:[/#?].*)?$/,
   /^https:\/\/github\.com\/\$\{[\w.]+\}\/pull\/\$\{[\w.]+\}$/,
+  /^https:\/\/www\.anthropic\.com\/legal\/privacy$/, // consent.ts: Anthropic's privacy policy
+  /^https:\/\/openai\.com\/policies\/privacy-policy\/$/, // consent.ts: OpenAI's privacy policy
+  /^https:\/\/openrouter\.ai\/privacy$/, // consent.ts: OpenRouter's privacy policy (also Jev's, which goes through it)
 ];
 
 let out: string;

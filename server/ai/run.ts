@@ -354,6 +354,9 @@ export function createAi({ config, egress, secrets, load = loadSdk, now = Date.n
             temperature: call.temperature ?? 0,
             ...(call.maxOutputTokens ? { maxOutputTokens: call.maxOutputTokens } : {}),
             experimental_download: noDownloads,
+            // the schema guides the model; strict mode would refuse a schema with optional fields at some providers,
+            // and our own Zod check below is the strict one
+            providerOptions: { openaiCompatible: { strictJsonSchema: false }, openai: { strictJsonSchema: false } },
           });
           count(r.usage as { inputTokens?: number; outputTokens?: number });
           return r.text;

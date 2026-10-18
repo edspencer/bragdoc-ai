@@ -143,6 +143,38 @@ These are enforced for every request (see [Localhost security](/guarantees/local
 | `POST /api/import/plan` | A dry run of importing a [hosted-app export](/moving-from-the-hosted-app/): the export file is the JSON body (up to 50 MB). Returns what would be added, what's already here, what can't be imported, the fields left behind and why, and any problems. Writes nothing. A file that isn't a version 1.0 export is a **400** (`invalid_export`, `unsupported_version`). |
 | `POST /api/import/apply` | The same, for real: it imports the export and returns the same report of what it did, plus the snapshot it took first. Importing the same export again adds nothing. **409** `import_running` while another import is running. |
 
+## AI (v0.2, off unless you turn it on)
+
+:::note[Being built on the v0.2 branch]
+These endpoints are the start of v0.2's opt-in AI. AI is off, and every AI feature is off, until you switch it on, and
+nothing here switches anything on by itself. With AI off, every model call is refused before anything is sent, and the
+AI code isn't even loaded. Settings → AI, the screen for all of this, comes later in v0.2.
+:::
+
+Keys are never returned: a connection shows `hasKey` and the last four characters of its key, `keyHint` (`…abcd`). A
+connection on the internet (by its host: anything that isn't this computer or your network) sends **nothing, not even
+a test**, until you accept its consent statement. Plain `http://` is accepted only for this computer and your network.
+Every write answers with the new status and refreshes open tabs (an `ai` event).
+
+| Method and path | What it does |
+| --- | --- |
+| `GET /api/ai` | The AI settings: the master switch, the text model, each connection (its kind, address, host, `class` (`this-computer`, `your-network` or `internet`), whether it needs consent and has it, `hasKey` and `keyHint`, and what's blocking it), each feature's settings and whether it's ready (or why not), and the hosts AI has added to the outbound allow-list (none while AI is off). |
+| `PUT /api/ai` | `{ "enabled": true }` (the master switch; turning it on turns no feature on) and/or `{ "text": { "connection": "ollama", "model": "qwen3.5:4b" } }` (the model features use). Switching off stops any call in progress. |
+| `POST /api/ai/connections` | Add a connection: `{ "kind": "ollama" }` (also `lmstudio`, `llamacpp`, `openai-compatible`, `anthropic`, `openai`, `openrouter`, `jev`), with optional `id` (default: the kind), `name`, `baseUrl` (default: the kind's usual address; required for `openai-compatible`), `contextTokens` (default 8192) and, for `jev`, `via` (an OpenRouter connection). **400** `plain_http` for `http://` to the internet, `bad_url` for an address that isn't one. |
+| `PUT /api/ai/connections/:id` | Change `name`, `baseUrl`, `contextTokens` or `via` (`null` clears one). Pointing it at another host withdraws its consent. |
+| `DELETE /api/ai/connections/:id` | Remove it, and forget its key. A model choice that used it is cleared. |
+| `PUT /api/ai/connections/:id/key` | `{ "key": "…" }`: save its key in `secrets.yaml` (readable only by you). **409** `secrets_invalid` if `secrets.yaml` is broken (it's never overwritten). |
+| `DELETE /api/ai/connections/:id/key` | Forget its key (removed from `secrets.yaml`). |
+| `POST /api/ai/connections/:id/consent` | `{ "version": 1 }`: accept the consent statement you were shown, for a connection on the internet. Its host joins the allow-list while AI is on. **409** `stale_consent` if the statement has changed since. |
+| `DELETE /api/ai/connections/:id/consent` | Revoke it: nothing more is sent, from the next request. Another connection on the same host keeps its own consent. |
+| `POST /api/ai/connections/:id/test` | `{ "model": "…" }` (optional: default the model chosen for it): one tiny request that asks for a structured answer. `{ "ok": true, "ms", "structured", "where" }`, or `{ "ok": false, "error": { "code", "message" } }` in plain words (`unreachable`, `model_missing`, `key_refused`, `quota`, `rate_limited`, `timeout`, `no_structured_output`, …). **409** (`ai_off`, `not_consented`, `no_key`) when it would have to send something it may not: nothing is sent. |
+| `GET /api/ai/connections/:id/models` | The models the connection offers (Ollama's installed models, or an OpenAI-style list). Logged like any call; the same **409**s. |
+| `PUT /api/ai/features/:feature` | `judge`, `tidy` or `draft`: change its settings (`enabled`, `model`, and the judge's `screenshots`, `github`, `when`, `backgroundCloud`, `maxPerRun`), as a merge patch. Unknown settings are a **400**. |
+
+Every model call, local ones included, is in [Network activity](/guarantees/network-activity/) with where it went
+(`this computer`, `your network` or `internet`), what it was for, the model and how many bytes were sent: never what
+was sent.
+
 ## For agents
 
 | Method and path | What it does |

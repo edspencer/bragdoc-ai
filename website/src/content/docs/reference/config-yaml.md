@@ -35,6 +35,24 @@ sources:
 
 welcome:
   skipped: false   # true once you skip the welcome steps (they show while there's no profile.yaml)
+
+# AI is off, and every AI feature is off, until you switch it on. Nothing is sent to any model while it's off.
+ai:
+  enabled: false   # the master switch; turning it on turns no feature on
+  connections:     # where models run, by id, e.g. ollama: { kind: ollama } (at its usual address)
+  text: null       # the model features use: { connection: <id>, model: <name> }
+  vision: null     # reserved; unused
+  features:
+    judge:
+      enabled: false
+      screenshots: true
+      github: false
+      model: null
+      when: { onArrival: false, everyHours: null, onlyBetween: null, onlyOnAC: true }
+      backgroundCloud: false
+      maxPerRun: 50
+    tidy: { enabled: false, model: null }
+    draft: { enabled: false, model: null }
 ```
 
 ## Keys
@@ -53,6 +71,12 @@ welcome:
 | `sources.screenshots.folder` | `null` | The folder to watch: a full path, or one starting `~/`. Not BragDoc's data folder, and not a hidden folder. |
 | `sources.screenshots.onlyScreenshots` | `true` | Read only files named like screenshots. `false`: every picture that lands in the folder. |
 | `welcome.skipped` | `false` | `true` once you skip [Welcome](/getting-started/quickstart/). The board opens Welcome while there's no `profile.yaml` and this is `false`. |
+| `ai.enabled` | `false` | *Being built for v0.2.* The master switch for AI. Off: no model is asked anything, and BragDoc doesn't even load its AI code. On: still no feature is on until you switch it on. |
+| `ai.connections` | `{}` | Where models run, by id: `kind` (`ollama`, `lmstudio`, `llamacpp`, `openai-compatible`, `anthropic`, `openai`, `openrouter`, `jev`), and optionally `name`, `baseUrl` (default: the kind's usual address), `contextTokens` (default 8192), `via` (for `jev`: an OpenRouter connection) and `consent`. A connection whose host isn't this computer or your network is on the internet, whatever its kind, and sends nothing until you consent: `consent` records what you accepted (`at`, `version`, `host`). Keys are in `secrets.yaml`, never here. |
+| `ai.text` | `null` | The model features use: `{ connection: <id>, model: <name> }`. |
+| `ai.vision` | `null` | Reserved for reading pictures; unused. |
+| `ai.features.judge` | off | The Found judge: `enabled`, `screenshots` (judge screenshot candidates), `github` (also merged PRs), `model` (its own, else `ai.text`), `when` (`onArrival`, `everyHours` of 1, 3, 6, 12 or 24, `onlyBetween` `{ from: "19:00", to: "08:00" }`, `onlyOnAC`), `backgroundCloud` (a cloud model may run in the background), `maxPerRun` (1 to 500). Background runs are off until you choose them. |
+| `ai.features.tidy`, `ai.features.draft` | off | `enabled` and `model` (its own, else `ai.text`). |
 
 A section left empty falls back to its defaults. Settings → Sources writes these for you (and keeps your comments). The GitHub source's own state (where the next check starts, the last check,
 how long GitHub asked it to wait) is in `cache/sources/github.json`: delete it and the next check simply looks back the
