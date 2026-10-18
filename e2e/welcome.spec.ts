@@ -59,8 +59,8 @@ function fakeRepo(dir: string, daysAgo: number, remote?: string) {
 const watchErrors = (page: Page) => {
   const errors: string[] = [];
   page.on('pageerror', (e) => errors.push(e.message));
-  // a refused scan is a 400 the browser reports by itself; anything else is a bug
-  page.on('console', (m) => m.type() === 'error' && !/status of 400/.test(m.text()) && errors.push(m.text()));
+  // a refused scan or folder is a 400/409 the browser reports by itself; anything else is a bug
+  page.on('console', (m) => m.type() === 'error' && !/status of 40[09]/.test(m.text()) && errors.push(m.text()));
   return errors;
 };
 
@@ -112,6 +112,21 @@ test('the steps again from Settings: the profile, then only the repos you tick',
   await page.getByTestId('welcome-next').click();
   await expect(page.getByTestId('welcome-sources')).toBeVisible();
   await expect(page.getByTestId('source-github')).toContainText('Off');
+  // the screenshots folder (PR15's card): off; switching it on asks which folder, and a bad one is said plainly
+  const shots = page.getByTestId('source-screenshots');
+  await expect(shots.getByTestId('screenshots-status')).toContainText('Off');
+  fs.mkdirSync(path.join(server.home, 'Shots'));
+  await shots.getByRole('switch', { name: 'Screenshots folder' }).click();
+  await shots.getByTestId('screenshots-other').fill('~/Nope');
+  await shots.getByTestId('screenshots-save').click();
+  await expect(shots.getByTestId('screenshots-error')).toBeVisible();
+  expect(fs.readFileSync(path.join(server.data, 'config.yaml'), 'utf8')).not.toMatch(/screenshots:\n\s+enabled: true/);
+  await shots.getByTestId('screenshots-other').fill('~/Shots');
+  await shots.getByTestId('screenshots-save').click();
+  await expect(shots.getByTestId('screenshots-status')).toContainText('On');
+  expect(fs.readFileSync(path.join(server.data, 'config.yaml'), 'utf8')).toMatch(/screenshots:\n\s+enabled: true\n\s+folder: ~\/Shots/);
+  await shots.getByRole('switch', { name: 'Screenshots folder' }).click();
+  await expect(shots.getByTestId('screenshots-status')).toContainText('Off');
   await page.getByTestId('welcome-next').click();
 
   // a folder that isn't there: said plainly

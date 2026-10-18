@@ -1,20 +1,21 @@
 // Welcome (SPEC R10): the first run, and the same steps again later from Settings. Three paper tabs, each skippable:
 //   1. About you: profile.yaml (name, role, what people call you) and, if you say, the company you work at.
 //   2. Where wins come from: every source off, each with a line on what it does. GitHub connects here (PR13's card);
-//      the screenshots folder comes with its source; agents get a note on MCP.
+//      the screenshots folder is PR15's card (off until you choose a folder); agents get a note on MCP.
 //   3. Your code: a folder you name, scanned a few levels deep for at most 5 s (and, only if you tick them, the places
 //      that already know your recent projects). Only the repos you tick are saved.
 // Then the board. "Skip for now" leaves at any point, and remembers that you did, so the board doesn't send you back.
 // Adapted from the Scrapbook prototype's Welcome.tsx (paper tabs, the cards, the repo checklist).
-import { useEffect, useMemo, useState, type FormEvent, type KeyboardEvent, type ReactNode } from 'react';
+import { useEffect, useMemo, useRef, useState, type FormEvent, type KeyboardEvent, type ReactNode } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { Link, createFileRoute, useNavigate } from '@tanstack/react-router';
-import { Bot, Check, FolderGit2, FolderSearch, ImageIcon, X } from 'lucide-react';
+import { Bot, Check, FolderGit2, FolderSearch, X } from 'lucide-react';
 import type { DiscoverHintId, DiscoverScanResponse, DiscoveredRepo } from '../../shared/api.ts';
 import { addDiscoveredRepos, createCompany, getCompanies, isApiError, putProfile, scanForRepos, skipWelcome } from '../api/client.ts';
 import { queryKeys, useDiscoverSuggestions, useProfile, useProjects, useWelcome } from '../api/queries.ts';
-import { Btn, Field, Hand, Kicker, Switch, Tape, TextInput, inputCls, useToast } from '../kit/index.ts';
+import { Btn, Field, Hand, Kicker, Tape, TextInput, inputCls, useToast } from '../kit/index.ts';
 import { GithubCard } from '../settings/GithubCard.tsx';
+import { ScreenshotsCard } from '../settings/ScreenshotsCard.tsx';
 import { CommandSlab } from '../settings/common.tsx';
 import { STEPS, WELCOME_LEFT, type StepId } from '../onboarding/steps.ts';
 import { Mark, Wordmark } from '../shell/Logo.tsx';
@@ -303,19 +304,8 @@ function Sources({ onBack, onNext, onSkip }: { onBack: () => void; onNext: () =>
       </p>
       <div className="mt-6 grid gap-5 sm:grid-cols-2">
         <GithubCard />
-        {/* the screenshots folder comes with its source (PR15): until then, a card saying so, switched off */}
-        <div className="sb-card relative flex flex-col rounded-2xl p-5" style={{ transform: 'rotate(0.4deg)' }} data-testid="welcome-screenshots">
-          <Tape color="#3b6cf6" className="-top-2.5 right-8 w-14" />
-          <div className="flex items-center gap-3">
-            <span className="flex size-10 items-center justify-center rounded-xl bg-sunk text-ink ring-1 ring-line">
-              <ImageIcon aria-hidden className="size-5" />
-            </span>
-            <div className="min-w-0 flex-1 font-grotesk text-[17px] font-bold leading-tight">Screenshots folder</div>
-            <Switch on={false} onChange={() => {}} label="Screenshots folder" disabled />
-          </div>
-          <p className="m-0 mt-3 text-[13.5px] leading-relaxed text-muted">Take a screenshot of praise and it turns up in Found, read with OCR on this computer. Only the ones that mention you go to Found.</p>
-          <div className="mt-auto pt-3 text-[12px] text-faint">Coming in the next build: choosing a folder arrives with the screenshots source.</div>
-        </div>
+        {/* PR15's card, as Settings has it: off until you switch it on and choose a folder */}
+        <ScreenshotsCard />
         <div className="sb-card relative flex flex-col rounded-2xl p-5 sm:col-span-2" style={{ transform: 'rotate(-0.2deg)' }} data-testid="welcome-agents">
           <Tape color="#8b6cf6" className="-top-2.5 right-8 w-14" />
           <div className="flex items-center gap-3">
@@ -355,8 +345,16 @@ function YourCode({ onBack, onDone }: { onBack: () => void; onDone: () => void }
   const [ticked, setTicked] = useState<Record<string, boolean>>({});
   const [project, setProject] = useState<Record<string, ProjectChoice>>({});
   const [added, setAdded] = useState<string[]>([]);
-  // the folder box starts with the first usual folder that exists (nothing is read until you press Look)
-  const folder = root ?? suggestions.data?.folders[0] ?? '';
+  // the folder box starts with the first usual folder that exists (nothing is read until you press Look), unless
+  // you've already been in the box: suggestions arriving while you type mustn't land in front of what you typed
+  // (checked as the effect runs, not from state: a focus a moment earlier may not have re-rendered yet)
+  const box = useRef<HTMLInputElement>(null);
+  const touched = useRef(false);
+  useEffect(() => {
+    if (root !== null || touched.current || document.activeElement === box.current) return;
+    if (suggestions.data?.folders[0]) setRoot(suggestions.data.folders[0]);
+  }, [root, suggestions.data]);
+  const folder = root ?? '';
 
   const look = useMutation({
     mutationFn: () => scanForRepos({ root: folder.trim() || null, hints }),
@@ -411,7 +409,7 @@ function YourCode({ onBack, onDone }: { onBack: () => void; onDone: () => void }
           <label className="relative min-w-0 flex-1 basis-60">
             <span className="sr-only">Folder to look in</span>
             <FolderSearch aria-hidden className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-faint" />
-            <input value={folder} onChange={(e) => setRoot(e.target.value)} placeholder="~/Code" spellCheck={false} className={`${inputCls} pl-9 font-mono text-[14px]`} data-testid="discover-root" />
+            <input ref={box} value={folder} onFocus={() => (touched.current = true)} onChange={(e) => setRoot(e.target.value)} placeholder="~/Code" spellCheck={false} className={`${inputCls} pl-9 font-mono text-[14px]`} data-testid="discover-root" />
           </label>
           <Btn kind="accent" type="submit" disabled={!canLook || look.isPending} data-testid="discover-look">
             {look.isPending ? 'Looking…' : result ? 'Look again' : 'Look for repos'}

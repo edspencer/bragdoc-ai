@@ -23,8 +23,9 @@ You can run any step again later from **Settings → Data → Welcome steps**.
    `profile.yaml` in your data folder.
 2. **Where wins come from:** each source, **off until you switch it on**, with a line on what it does. You can connect
    [GitHub](/concepts/found-and-sources/#github) here (through the `gh` CLI if you have it, or a token), or later.
-   The screenshots folder comes in the next build. Your coding agent needs nothing switched on: the step shows the one
-   command that [connects Claude Code](/agents/mcp/).
+   You can also switch on the [screenshots folder](/concepts/found-and-sources/#a-screenshots-folder): pick the folder your screenshots
+   land in, and the ones that mention you turn up in Found. Your coding agent needs nothing switched on: the step
+   shows the one command that [connects Claude Code](/agents/mcp/).
 3. **Your code:** name the folder you keep your code in. BragDoc suggests the usual ones that exist (`~/Code`,
    `~/src`, `~/dev`, `~/projects`, `~/work`, …) but only checks which of those exist until you press **Look for repos**.
    Then it looks inside that folder only:

@@ -410,8 +410,7 @@ folder unreadable: test a denied folder with a stand-in (the unit test) or a ser
   profile.yaml (If-Match optional; the first write needs a name). **The shared e2e server's home has a profile.yaml**
   (playwright.config.ts), so its board stays the board; `e2e/welcome.spec.ts` runs its own servers on fresh homes.
 - **Welcome's steps:** `/welcome?step=you|sources|code` (`src/onboarding/steps.ts`). The Sources step reuses
-  `GithubCard`; **PR15:** its screenshots card is a disabled placeholder in `src/routes/welcome.tsx` (`welcome-
-  screenshots`, marked): put the screenshots source's own card there.
+  `GithubCard` and PR15's `ScreenshotsCard` as they are, so a change to either card shows in both places.
 - **Repo scan** (D60): `GET /api/discover/suggestions`, `POST /api/discover/scan {root?, hints?}` (stores nothing),
   `POST /api/discover/add {repos: [{path, project?}]}` (re-checks each path, then `services.repos.create`).
 - **Example data** (D61): `GET /api/example`, `POST /api/example {asOf?}`, `POST /api/example/remove`. Everything it
