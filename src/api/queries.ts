@@ -3,7 +3,7 @@
 // segment. Feature PRs add their key and hook here, one block each.
 import { QueryClient, keepPreviousData, useInfiniteQuery, useQuery } from '@tanstack/react-query';
 import type { FoundSourceName } from '../../shared/api.ts';
-import { getDiscoverSuggestions, getExample, getProfile, getWelcome, getAchievements, getBackups, getCompanies, getFolio, getFound, getFoundCount, getGhInstalled, getSources, getHealth, getMcpToken, getMeta, getNetworkLog, getProblems, getProjectSummary, getProjects, getRepos, getSettings, getEvidenceOcr, getScreenshotSuggestions, isApiError, type AchievementFilters } from './client.ts';
+import { getAi, getAiDetect, getAiHardware, getAiModels, getDiscoverSuggestions, getExample, getProfile, getWelcome, getAchievements, getBackups, getCompanies, getFolio, getFound, getFoundCount, getGhInstalled, getSources, getHealth, getMcpToken, getMeta, getNetworkLog, getProblems, getProjectSummary, getProjects, getRepos, getSettings, getEvidenceOcr, getScreenshotSuggestions, isApiError, type AchievementFilters } from './client.ts';
 
 export const queryKeys = {
   health: ['health'] as const,
@@ -36,6 +36,12 @@ export const queryKeys = {
   profile: ['profile'] as const,
   discoverSuggestions: ['discover', 'suggestions'] as const,
   example: ['example'] as const,
+  // AI (PR23): the `ai` event refreshes these. A connection's models are asked of the runner itself, so they're under
+  // their own prefix and refreshed only when asked (each ask is a line in Network activity)
+  ai: ['ai'] as const,
+  aiHardware: ['ai', 'hardware'] as const,
+  aiDetect: ['ai', 'detect'] as const,
+  aiModels: (id: string) => ['ai-models', id] as const,
 };
 
 export function createQueryClient(): QueryClient {
@@ -198,4 +204,29 @@ export function useDiscoverSuggestions() {
 /** Is there example data, and how much. */
 export function useExample() {
   return useQuery({ queryKey: queryKeys.example, queryFn: ({ signal }) => getExample(signal) });
+}
+
+// ---------------------------------------------------------------- AI (PR23)
+
+/** `GET /api/ai`: refreshed by the `ai` and `config` events (another tab, a hand edit of config.yaml). */
+export function useAi() {
+  return useQuery({ queryKey: queryKeys.ai, queryFn: ({ signal }) => getAi(signal) });
+}
+
+/** Is AI on? False while unknown: nothing AI shows until the server says so (SPEC R26). */
+export function useAiOn(): boolean {
+  return useQuery({ queryKey: queryKeys.ai, queryFn: ({ signal }) => getAi(signal), select: (s) => s.enabled }).data === true;
+}
+
+export function useAiHardware(enabled: boolean) {
+  return useQuery({ queryKey: queryKeys.aiHardware, queryFn: ({ signal }) => getAiHardware(signal), enabled, staleTime: Infinity });
+}
+
+export function useAiDetect(enabled: boolean) {
+  return useQuery({ queryKey: queryKeys.aiDetect, queryFn: ({ signal }) => getAiDetect(signal), enabled });
+}
+
+/** What a connection offers, asked of it once per page (a cloud one only when `enabled` says so: a click). */
+export function useAiModels(id: string, enabled: boolean) {
+  return useQuery({ queryKey: queryKeys.aiModels(id), queryFn: ({ signal }) => getAiModels(id, signal), enabled, staleTime: Infinity, retry: false });
 }

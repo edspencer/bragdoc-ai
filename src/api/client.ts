@@ -6,6 +6,18 @@
 //
 // Requests are same-origin and relative (`/api/...`): the CSP allows `connect-src 'self'` and nothing else.
 import type {
+  AiConnectionCreate,
+  AiConnectionUpdate,
+  AiConnectionView,
+  AiDetectResult,
+  AiFeatureName,
+  AiFeatureUpdate,
+  AiHardware,
+  AiModelsResponse,
+  AiPullEvent,
+  AiSettingsRequest,
+  AiStatus,
+  AiTestResult,
   AchievementCreated,
   AchievementRemoved,
   AchievementsPage,
@@ -370,3 +382,74 @@ export const addDiscoveredRepos = (body: DiscoverAddRequest) => api.post<Discove
 export const getExample = (signal?: AbortSignal) => api.get<ExampleStatus>('/api/example', { signal });
 export const addExample = () => api.post<ExampleChanged>('/api/example', {});
 export const removeExample = () => api.post<ExampleChanged>('/api/example/remove', {});
+
+// ---------------------------------------------------------------- AI (PR21's routes, PR23's Settings → AI)
+
+/** `GET /api/ai`: settings, connections (never a key: `hasKey`, `keyHint`), consent, readiness, the AI hosts allowed. */
+export const getAi = (signal?: AbortSignal) => api.get<AiStatus>('/api/ai', { signal });
+/** The master switch and the text slot. */
+export const putAi = (body: AiSettingsRequest) => api.put<AiStatus>('/api/ai', body);
+export const addAiConnection = (body: AiConnectionCreate) => api.post<{ connection: AiConnectionView; status: AiStatus }>('/api/ai/connections', body);
+export const putAiConnection = (id: string, body: AiConnectionUpdate) => api.put<AiStatus>(`/api/ai/connections/${seg(id)}`, body);
+export const deleteAiConnection = (id: string) => api.delete<AiStatus>(`/api/ai/connections/${seg(id)}`);
+export const putAiKey = (id: string, key: string) => api.put<AiStatus>(`/api/ai/connections/${seg(id)}/key`, { key });
+export const forgetAiKey = (id: string) => api.delete<AiStatus>(`/api/ai/connections/${seg(id)}/key`);
+/** Allow a cloud connection: the version of the statement the user read (409 `stale_consent` if it moved on). */
+export const allowAiConnection = (id: string, version: number) => api.post<AiStatus>(`/api/ai/connections/${seg(id)}/consent`, { version });
+export const revokeAiConnection = (id: string) => api.delete<AiStatus>(`/api/ai/connections/${seg(id)}/consent`);
+/** One tiny structured request (logged). A gate (AI off, not allowed, no key) is a 409: nothing was sent. */
+export const testAiConnection = (id: string, model?: string) => api.post<AiTestResult>(`/api/ai/connections/${seg(id)}/test`, model ? { model } : {});
+export const getAiModels = (id: string, signal?: AbortSignal) => api.get<AiModelsResponse>(`/api/ai/connections/${seg(id)}/models`, { signal });
+export const putAiFeature = (feature: AiFeatureName, body: AiFeatureUpdate) => api.put<AiStatus>(`/api/ai/features/${seg(feature)}`, body);
+export const getAiHardware = (signal?: AbortSignal) => api.get<AiHardware>('/api/ai/hardware', { signal });
+export const getAiDetect = (signal?: AbortSignal) => api.get<AiDetectResult | null>('/api/ai/detect', { signal });
+/** Look for a model runner on this computer (each probe logged; 409 ai_off while AI is off). */
+export const detectAi = () => api.post<AiDetectResult>('/api/ai/detect', {});
+
+/**
+ * Ask a connection's Ollama to download `model`, after the confirm. Calls `onEvent` for each progress line; resolves
+ * with the last (`done`) line. Aborting `signal` cancels the download (the server closes Ollama's stream). Rejects with
+ * an ApiRequestError when the server refused before starting (the gates, a missing confirm).
+ */
+export async function pullAiModel(id: string, model: string, onEvent: (e: AiPullEvent) => void, signal: AbortSignal): Promise<AiPullEvent> {
+  let res: Response;
+  try {
+    res = await fetch(`/api/ai/connections/${seg(id)}/pull`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ confirm: true, model }), signal });
+  } catch (e) {
+    if (signal.aborted) throw e;
+    throw new ApiRequestError(0, NETWORK_ERROR, "Couldn't reach BragDoc. Is it still running?");
+  }
+  if (!res.ok || !res.body) {
+    const text = await res.text().catch(() => '');
+    let data: unknown;
+    try {
+      data = JSON.parse(text);
+    } catch {
+      /* not JSON */
+    }
+    if (isEnvelope(data)) throw new ApiRequestError(res.status, data.error.code, data.error.message);
+    throw new ApiRequestError(res.status, `http_${res.status}`, `The download didn't start (${res.status}).`);
+  }
+  const reader = res.body.pipeThrough(new TextDecoderStream()).getReader();
+  let buf = '';
+  let last: AiPullEvent = { done: true, ok: false, error: { code: 'failed', message: 'The download stopped before it finished.' } };
+  for (;;) {
+    const { value, done } = await reader.read();
+    if (done) break;
+    buf += value;
+    let i: number;
+    while ((i = buf.indexOf('\n')) >= 0) {
+      const line = buf.slice(0, i).trim();
+      buf = buf.slice(i + 1);
+      if (!line) continue;
+      try {
+        const e = JSON.parse(line) as AiPullEvent;
+        if (e.done) last = e;
+        else onEvent(e);
+      } catch {
+        /* a torn line: skip it */
+      }
+    }
+  }
+  return last;
+}
