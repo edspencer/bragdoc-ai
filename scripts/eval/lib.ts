@@ -27,7 +27,7 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import type { z } from 'zod';
+import { z } from 'zod';
 import type { AiWhere } from '../../shared/api.ts';
 import { AI_KINDS, baseUrlOf, type AiCallFeature, type AiKind } from '../../shared/ai/connections.ts';
 import { hostClass } from '../../shared/ai/hosts.ts';
@@ -87,8 +87,10 @@ export interface EvalRow {
 }
 
 export interface RecordedCall {
-  /** `sha256:` of the system prompt and the prompt: what was asked, exactly. */
+  /** `sha256:` of the system prompt and the prompt: what was asked, exactly (the fake server matches on it). */
   hash: string;
+  /** `sha256:` of the schema, its name and the output options: a change to them makes the recording stale too. */
+  shape: string;
   /** The validated object, or the text. */
   answer: unknown;
   ms: number;
@@ -103,7 +105,8 @@ export interface Recording {
   model: string;
   where: AiWhere;
   recordedAt: string;
-  cases: { id: string; calls: RecordedCall[] }[];
+  /** `error`: the case failed when it was recorded (its calls are those that answered): replay skips it. */
+  cases: { id: string; calls: RecordedCall[]; error?: string }[];
 }
 
 export interface EvalReport {
@@ -119,6 +122,11 @@ export interface EvalReport {
 
 /** These end the eval: nothing after them could go differently. Anything else is one item's failure. */
 const FATAL = new Set(['ai_off', 'no_model', 'not_consented', 'no_key', 'unreachable', 'model_missing', 'key_refused', 'quota', 'rate_limited', 'cancelled', 'busy']);
+
+const sha = (v: unknown) => `sha256:${crypto.createHash('sha256').update(JSON.stringify(v)).digest('hex')}`;
+/** The shape of a call (not its content): the schema, its name, the output options. */
+export const shapeHash = (o: { schema?: z.ZodType; schemaName?: string; maxOutputTokens?: number; kind: 'object' | 'text' }) =>
+  sha([o.kind, o.schema ? z.toJSONSchema(o.schema) : null, o.schemaName ?? null, o.maxOutputTokens ?? null]);
 
 export const askedHash = (system: string, prompt: string) => `sha256:${crypto.createHash('sha256').update(system).update('\0').update(prompt).digest('hex')}`;
 
@@ -169,7 +177,7 @@ export async function runEval<I, A>(spec: EvalSpec<I, A>, { ai, slot, activity, 
           const r = await ai.object({ ...base, system, prompt, schema, ...(schemaName ? { schemaName } : {}), ...(maxOutputTokens ? { maxOutputTokens } : {}), ...(timeoutMs ? { timeoutMs } : {}) });
           note(r);
           row.repaired ||= r.repaired;
-          calls.push({ hash: askedHash(system, prompt), answer: r.object, ms: r.ms, tokensIn: r.tokensIn, tokensOut: r.tokensOut });
+          calls.push({ hash: askedHash(system, prompt), shape: shapeHash({ kind: 'object', schema, ...(schemaName ? { schemaName } : {}), ...(maxOutputTokens ? { maxOutputTokens } : {}) }), answer: r.object, ms: r.ms, tokensIn: r.tokensIn, tokensOut: r.tokensOut });
           return r.object;
         },
         async text({ system, prompt, maxOutputTokens, timeoutMs }) {
@@ -179,7 +187,7 @@ export async function runEval<I, A>(spec: EvalSpec<I, A>, { ai, slot, activity, 
           }
           const r = await s.done;
           note(r);
-          calls.push({ hash: askedHash(system, prompt), answer: r.text, ms: r.ms, tokensIn: r.tokensIn, tokensOut: r.tokensOut });
+          calls.push({ hash: askedHash(system, prompt), shape: shapeHash({ kind: 'text', ...(maxOutputTokens ? { maxOutputTokens } : {}) }), answer: r.text, ms: r.ms, tokensIn: r.tokensIn, tokensOut: r.tokensOut });
           return r.text;
         },
       };
@@ -198,7 +206,7 @@ export async function runEval<I, A>(spec: EvalSpec<I, A>, { ai, slot, activity, 
         else run?.count('error');
       }
       rows.push(row);
-      recorded.push({ id: c.id, calls });
+      recorded.push({ id: c.id, calls, ...(row.error ? { error: row.error } : {}) });
       onRow?.(row, i, cases.length);
       if (stopped) break;
     }
@@ -257,11 +265,15 @@ export const modelSlug = (model: string) => model.toLowerCase().replace(/[^a-z0-
 
 export const recordingPath = (name: string, model: string, root = RECORDINGS) => path.join(root, name, `${modelSlug(model)}.json`);
 
-/** Write a recording, after checking it holds nothing it mustn't (`forbidden`: the connection's host, its key). */
+/**
+ * Write a recording, after checking it holds nothing it mustn't: `forbidden` (the connection's host and hostname, its
+ * key), and any URL or address that isn't on the internet (this computer or your network: a private address).
+ */
 export function writeRecording(rec: Recording, forbidden: string[], root = RECORDINGS): string {
   const text = JSON.stringify(rec, null, 2) + '\n';
   for (const f of forbidden) if (f && f.length >= 4 && text.includes(f)) throw new Error(`not writing the recording: it contains ${f.length > 12 ? 'a secret' : JSON.stringify(f)} (an answer echoed it?)`);
-  if (/https?:\/\/(?:127\.|localhost|10\.|192\.168\.)/.test(text)) throw new Error('not writing the recording: it contains a local address');
+  const local = [...text.matchAll(/\bhttps?:\/\/[^\s"'<>\\]+/g)].some((m) => hostClass(m[0]) !== 'internet') || /\b(?:127\.\d+\.\d+\.\d+|10\.\d+\.\d+\.\d+|192\.168\.\d+\.\d+|172\.(?:1[6-9]|2\d|3[01])\.\d+\.\d+|169\.254\.\d+\.\d+|0\.0\.0\.0)\b|\[::1\]|\blocalhost\b/.test(text);
+  if (local) throw new Error('not writing the recording: it contains a local address');
   const file = recordingPath(rec.eval, rec.model, root);
   fs.mkdirSync(path.dirname(file), { recursive: true });
   fs.writeFileSync(file, text);
@@ -275,7 +287,7 @@ export function readRecording(file: string): Recording {
 }
 
 /** A connection made up for one run (`kind@url`, this computer or your network only), with its own temp home. */
-export function adHoc(kind: AiKind, baseUrl: string, model: string, feature: AiCallFeature): { ai: Ai; slot: Slot; activity: AiActivity; dataDir: string; host: string; close: () => void } {
+export function adHoc(kind: AiKind, baseUrl: string, model: string, feature: AiCallFeature): { ai: Ai; slot: Slot; activity: AiActivity; dataDir: string; host: string; hostname: string; close: () => void } {
   const where = hostClass(baseUrl);
   if (where === 'internet') throw new Error(`${new URL(baseUrl).host} is on the internet: a cloud connection needs consent. Add it in Settings → AI, accept its statement, and use its id`);
   const dataDir = fs.mkdtempSync(path.join(os.tmpdir(), 'bragdoc-eval-'));
@@ -285,11 +297,11 @@ export function adHoc(kind: AiKind, baseUrl: string, model: string, feature: AiC
   const ai = createAi({ config: () => config, egress, secrets: new Secrets(dataDir) });
   const activity = new AiActivity({ dataDir });
   activity.listen(ai);
-  return { ai, slot: { connection: 'eval', model }, activity, dataDir, host: new URL(baseUrl).host, close: () => fs.rmSync(dataDir, { recursive: true, force: true }) };
+  return { ai, slot: { connection: 'eval', model }, activity, dataDir, host: new URL(baseUrl).host, hostname: new URL(baseUrl).hostname, close: () => fs.rmSync(dataDir, { recursive: true, force: true }) };
 }
 
 /** A connection from a data home's config.yaml, read live, with only the feature's own switch taken as on. */
-export function fromHome(dataDir: string, id: string, model: string, feature: AiCallFeature, env: NodeJS.ProcessEnv): { ai: Ai; slot: Slot; activity: AiActivity; host: string; key: string | null } {
+export function fromHome(dataDir: string, id: string, model: string, feature: AiCallFeature, env: NodeJS.ProcessEnv): { ai: Ai; slot: Slot; activity: AiActivity; host: string; hostname: string; key: string | null } {
   if (!fs.existsSync(path.join(dataDir, 'config.yaml'))) throw new Error(`there's no config.yaml in ${dataDir} (--data-dir, or BRAGDOC_HOME)`);
   const store = new ConfigStore(dataDir, { env });
   store.load();
@@ -312,7 +324,7 @@ export function fromHome(dataDir: string, id: string, model: string, feature: Ai
     /* the gates will say so */
   }
   const url = baseUrlOf(conns[id]!, conns);
-  return { ai, slot: { connection: id, model }, activity, host: url ? new URL(url).host : id, key };
+  return { ai, slot: { connection: id, model }, activity, host: url ? new URL(url).host : id, hostname: url ? new URL(url).hostname : id, key };
 }
 
 const USAGE = (spec: EvalSpec<unknown, unknown>) => `npm run eval:${spec.name} -- --connection <id | kind@url> --model <name> [--limit N] [--record] [--data-dir <home>]
@@ -328,7 +340,14 @@ ${spec.cases.length} synthetic cases. Needs BRAGDOC_LIVE_AI=1; refuses to run wh
 `;
 
 /** The command line: refuse, parse, run, print, record. Returns the exit code. */
-export async function main<I, A>(spec: EvalSpec<I, A>, argv = process.argv.slice(2), env = process.env, out = (s: string) => process.stdout.write(s), err = (s: string) => process.stderr.write(s)): Promise<number> {
+export async function main<I, A>(
+  spec: EvalSpec<I, A>,
+  argv = process.argv.slice(2),
+  env = process.env,
+  out: (s: string) => unknown = (s) => process.stdout.write(s),
+  err: (s: string) => unknown = (s) => process.stderr.write(s),
+  recordings = RECORDINGS,
+): Promise<number> {
   const flags: Record<string, string | true> = {};
   for (let i = 0; i < argv.length; i++) {
     const a = argv[i]!;
@@ -344,8 +363,10 @@ export async function main<I, A>(spec: EvalSpec<I, A>, argv = process.argv.slice
   if (typeof flags.connection !== 'string' || typeof flags.model !== 'string') return (err(`eval:${spec.name} needs --connection and --model\n\n${USAGE(spec as EvalSpec<unknown, unknown>)}`), 2);
   const limit = flags.limit === undefined ? undefined : Number(flags.limit);
   if (limit !== undefined && !(Number.isInteger(limit) && limit > 0)) return (err('--limit is a whole number above 0\n'), 2);
+  // a recording replaces the model's file whole: a partial one would quietly shrink what the replay tests cover
+  if (flags.record && limit !== undefined) return (err('--record records every case: drop --limit\n'), 2);
 
-  let setup: { ai: Ai; slot: Slot; activity: AiActivity; host: string; key?: string | null; close?: () => void; logs: string };
+  let setup: { ai: Ai; slot: Slot; activity: AiActivity; host: string; hostname: string; key?: string | null; close?: () => void; logs: string };
   try {
     const m = /^([a-z-]+)@(https?:\/\/.+)$/.exec(flags.connection);
     if (m) {
@@ -386,7 +407,7 @@ export async function main<I, A>(spec: EvalSpec<I, A>, argv = process.argv.slice
   }
   if (flags.record) {
     try {
-      const file = writeRecording(report.recording, [setup.host, setup.key ?? '']);
+      const file = writeRecording(report.recording, [setup.host, setup.hostname, setup.key ?? ''], recordings);
       err(`recorded ${report.rows.length} answers in ${path.relative(ROOT, file)}\n`);
     } catch (e) {
       err(`${(e as Error).message}\n`);

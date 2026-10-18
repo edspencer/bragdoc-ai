@@ -14,6 +14,8 @@ export interface Replayed {
   stale: string[];
   /** Recorded cases the spec doesn't have any more. */
   missing: string[];
+  /** Cases that failed when they were recorded (a timeout, an invalid answer): not replayed. */
+  unanswered: string[];
 }
 
 /** Run `spec`'s recorded cases against the fake model server, answering from `rec`. */
@@ -21,13 +23,16 @@ export async function replay<I, A>(spec: EvalSpec<I, A>, rec: Recording): Promis
   const fake = await startFakeLlm({ rules: replayRules(rec) });
   const a = adHoc('openai-compatible', `${fake.url}/v1`, rec.model, spec.feature);
   try {
-    const ids = new Set(rec.cases.map((c) => c.id));
+    const ids = new Set(rec.cases.filter((c) => !c.error).map((c) => c.id));
     const report = await runEval({ ...spec, cases: spec.cases.filter((c) => ids.has(c.id)) }, { ai: a.ai, slot: a.slot });
-    const asked = new Map(rec.cases.map((c) => [c.id, c.calls.map((x) => x.hash).join(' ')]));
+    // what was asked and in what shape: a changed prompt, schema or output option makes a case stale
+    const key = (calls: { hash: string; shape: string }[]) => calls.map((x) => `${x.hash}/${x.shape}`).join(' ');
+    const asked = new Map(rec.cases.map((c) => [c.id, key(c.calls)]));
     return {
       report,
-      stale: report.recording.cases.filter((c) => asked.get(c.id) !== c.calls.map((x) => x.hash).join(' ')).map((c) => c.id),
+      stale: report.recording.cases.filter((c) => asked.get(c.id) !== key(c.calls)).map((c) => c.id),
       missing: rec.cases.filter((c) => !spec.cases.some((s) => s.id === c.id)).map((c) => c.id),
+      unanswered: rec.cases.filter((c) => c.error).map((c) => c.id),
     };
   } finally {
     a.close();

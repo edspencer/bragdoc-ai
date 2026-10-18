@@ -356,7 +356,7 @@ export class Store {
       // model with every call
       if (raw.length > INSTRUCTIONS_MAX_CHARS)
         return { value: null, readOnly: false, problems: [problem('invalid', `it's ${raw.length.toLocaleString('en')} characters long; instructions can be at most ${INSTRUCTIONS_MAX_CHARS.toLocaleString('en')}, because they're sent to the model with every call. Shorten it`)] };
-      if (/^---[ \t]*\r?\n/.test(raw)) {
+      if (/^\uFEFF?---[ \t]*\r?\n/.test(raw)) {
         const fm = splitFrontMatter(raw);
         if (!fm) return { value: null, readOnly: false, problems: [problem('syntax', 'its front-matter is never closed: after the first `---` line and its YAML keys, add another `---` line (or remove the first one)', { line: 1, col: 1 })] };
         ({ yaml, body } = fm);
@@ -680,15 +680,11 @@ export class Store {
     if (raw !== null) {
       const r = this.check(kind, id, file, raw);
       if (r.readOnly) throw new ReadOnlyError(`${file} was written by a newer BragDoc, so this one won't change it. Upgrade BragDoc to edit it.`, etag);
-      if (r.value === null && !opts.ifMatch)
+      // a concrete ETag, not `*`: replacing a broken file needs proof that its writer has seen what's there (D67)
+      if (r.value === null && (!opts.ifMatch || opts.ifMatch.trim() === '*'))
         throw new ConflictError(`${file} has a problem (${r.problems[0]?.message ?? 'it is invalid'}), so BragDoc won't overwrite it unseen. Fix it by hand, or save it again with its current ETag.`, etag);
     }
-    const checked = this.check(kind, id, file, text);
-    if (checked.value === null || checked.readOnly)
-      throw new ValidationError(
-        `that would make ${file} ${checked.readOnly ? 'read-only' : 'invalid'}: ${checked.problems.map((p) => p.message).join('; ')}`,
-        checked.problems.map((p) => ({ key: p.key ?? '', message: p.message })),
-      );
+    this.assertWritableText(kind, id, text);
     if (text !== raw) {
       try {
         atomicWrite(abs, text, { createOnly: raw === null });
@@ -699,6 +695,17 @@ export class Store {
     }
     this.reloadOne(kind, id, file);
     return this.get(kind, id)!;
+  }
+
+  /** Throw the ValidationError writeText() would for `text`, without touching the disk. */
+  assertWritableText(kind: 'instructions', id: string, text: string): void {
+    const file = relPathFor(kind, id);
+    const checked = this.check(kind, id, file, text);
+    if (checked.value === null || checked.readOnly)
+      throw new ValidationError(
+        `that would make ${file} ${checked.readOnly ? 'read-only' : 'invalid'}: ${checked.problems.map((p) => p.message).join('; ')}`,
+        checked.problems.map((p) => ({ key: p.key ?? '', message: p.message })),
+      );
   }
 
   /** Move an entity's file into backups/removed/ (never deleted). Returns where it went, relative to the data home. */

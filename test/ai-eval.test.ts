@@ -7,7 +7,8 @@ import assert from 'node:assert/strict';
 import { spawn } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
-import { adHoc, formatReport, fromHome, readRecording, RECORDINGS, recordingPath, refusal, runEval, writeRecording, type Recording } from '../scripts/eval/lib.ts';
+import { z } from 'zod';
+import { adHoc, formatReport, fromHome, main, readRecording, RECORDINGS, recordingPath, refusal, runEval, writeRecording, type Recording } from '../scripts/eval/lib.ts';
 import { SMOKE } from '../scripts/eval/smoke.ts';
 import { readActivity } from '../server/ai/activity.ts';
 import { ConfigStore } from '../server/config.ts';
@@ -96,16 +97,19 @@ test('the runner down: it stops at once with the reason, exit 1, and no recordin
   assert.match(formatReport(report), /stopped early: unreachable/);
   assert.match(formatReport(report), /valid answers\s+0 of 1/);
   assert.deepEqual([readActivity(a.dataDir).entries[0]!.outcome, readActivity(a.dataDir).entries[0]!.error], ['error', 'unreachable']);
-  // the command line says so, and writes nothing
-  const h = tmpHome();
-  cleanups.push(h.cleanup);
-  const env: NodeJS.ProcessEnv = { ...h.env, BRAGDOC_LIVE_AI: '1' };
-  delete env.CI;
-  const r = await evalScript(['--connection', `ollama@${fake.url}/s/down`, '--model', 'qwen3.5:4b', '--record', '--limit', '2'], env);
-  assert.equal(r.code, 1, r.err);
-  assert.match(r.out, /stopped early: unreachable/);
-  assert.match(r.err, /not recording/);
-  assert.equal(fs.existsSync(recordingPath('smoke', 'qwen3.5:4b')) && fs.readFileSync(recordingPath('smoke', 'qwen3.5:4b'), 'utf8').includes('"unreachable"'), false);
+  // the command line says so, and writes nothing (into a throwaway recordings folder, never the committed one)
+  const root = tmpDir('bragdoc-recordings-');
+  cleanups.push(() => rmTmp(root));
+  let out = '';
+  let err = '';
+  const code = await main(SMOKE, ['--connection', `ollama@${fake.url}/s/down`, '--model', 'qwen3.5:4b', '--record'], { BRAGDOC_LIVE_AI: '1' }, (s) => void (out += s), (s) => void (err += s), root);
+  assert.equal(code, 1, err);
+  assert.match(out, /stopped early: unreachable/);
+  assert.match(err, /not recording/);
+  assert.deepEqual(fs.readdirSync(root), []);
+  // a partial recording would replace the whole one: refused
+  assert.equal(await main(SMOKE, ['--connection', `ollama@${fake.url}`, '--model', 'qwen3.5:4b', '--record', '--limit', '2'], { BRAGDOC_LIVE_AI: '1' }, () => {}, (s) => void (err += s), root), 2);
+  assert.match(err, /drop --limit/);
 });
 
 test('AI turned off mid-eval: the data home’s switch is read live, the call in flight is stopped, the run says cancelled', async () => {
@@ -157,8 +161,24 @@ test('record → replay round-trips: the same answers, the same scores, nothing 
   const changed = { ...SMOKE, run: (c: (typeof SMOKE.cases)[number], ask: Parameters<typeof SMOKE.run>[1]) => SMOKE.run({ ...c, input: { ...c.input, sentence: c.input.sentence + ' (edited)' } }, ask) };
   assert.equal((await replay(changed, rec)).stale.length, SMOKE.cases.length);
   // a recording never holds the connection's host or key
-  assert.throws(() => writeRecording({ ...rec, cases: [{ id: 'x', calls: [{ hash: 'h', answer: 'see http://127.0.0.1:11434', ms: 1, tokensIn: null, tokensOut: null }] }] }, [], root), /local address/);
-  assert.throws(() => writeRecording({ ...rec, cases: [{ id: 'x', calls: [{ hash: 'h', answer: 'sk-or-v1-abcdefghijklmnop', ms: 1, tokensIn: null, tokensOut: null }] }] }, ['sk-or-v1-abcdefghijklmnop'], root), /a secret/);
+  const saying = (answer: string) => ({ ...rec, cases: [{ id: 'x', calls: [{ hash: 'h', shape: 's', answer, ms: 1, tokensIn: null, tokensOut: null }] }] });
+  for (const local of ['see http://127.0.0.1:11434', 'at http://runner.local:11434/api', 'on 172.20.1.5', 'via [::1]:8080', 'http://169.254.1.1/x', 'http://localhost/'])
+    assert.throws(() => writeRecording(saying(local), [], root), /local address/, local);
+  assert.throws(() => writeRecording(saying('sk-or-v1-abcdefghijklmnop'), ['sk-or-v1-abcdefghijklmnop'], root), /a secret/);
+  assert.throws(() => writeRecording(saying('my box gpu-box.example.net said hi'), ['gpu-box.example.net'], root), /contains/);
+  assert.doesNotThrow(() => writeRecording(saying('see https://ollama.com/library'), [], root));
+  // the schema changed since it was recorded: stale too, though the prompt is the same
+  const wider = { ...SMOKE, run: (c: (typeof SMOKE.cases)[number], ask: Parameters<typeof SMOKE.run>[1]) => ask.object({ system: 'x', prompt: 'y', schema: z.object({ date: z.string().nullable() }), schemaName: 'eval_smoke' }) as never };
+  const shaped = { ...SMOKE, run: (c: (typeof SMOKE.cases)[number], ask: Parameters<typeof SMOKE.run>[1]) => ask.object({ system: 'x', prompt: 'y', schema: z.object({ date: z.string().nullable(), percent: z.number().nullable() }), schemaName: 'eval_smoke' }) as never };
+  const a2 = adHoc('ollama', fake.url, 'qwen3.5:4b', SMOKE.feature);
+  cleanups.push(a2.close);
+  const base = (await runEval({ ...shaped, cases: SMOKE.cases.slice(0, 1) }, { ai: a2.ai, slot: a2.slot })).recording;
+  assert.deepEqual((await replay({ ...shaped, cases: SMOKE.cases.slice(0, 1) }, base)).stale, []);
+  assert.deepEqual((await replay({ ...wider, cases: SMOKE.cases.slice(0, 1) }, base)).stale, [SMOKE.cases[0]!.id]);
+  // a case that failed when recorded is skipped, and said so
+  const failed: Recording = { ...rec, cases: [{ id: rec.cases[0]!.id, calls: [], error: 'timeout' }, ...rec.cases.slice(1)] };
+  const rf = await replay(SMOKE, failed);
+  assert.deepEqual([rf.unanswered, rf.stale, rf.report.rows.length], [[rec.cases[0]!.id], [], rec.cases.length - 1]);
 });
 
 test('the recordings from real models replay: nothing stale, every case answered', async () => {
@@ -169,7 +189,7 @@ test('the recordings from real models replay: nothing stale, every case answered
     const rec = readRecording(path.join(dir, f));
     assert.equal(rec.where, 'this-computer', f);
     const r = await replay(SMOKE, rec);
-    assert.deepEqual([r.stale, r.missing], [[], []], `${f}: re-record it (the prompt or the cases changed)`);
+    assert.deepEqual([r.stale, r.missing, r.unanswered], [[], [], []], `${f}: re-record it (the prompt, the schema or the cases changed)`);
     assert.equal(r.report.rows.length, rec.cases.length);
     assert.ok(r.report.rows.every((x) => x.error === null), `${f}:\n${formatReport(r.report)}`);
   }

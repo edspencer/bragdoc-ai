@@ -91,6 +91,7 @@ export class AiActivity {
 
   /** One finished call (from ctx.ai): into its run, or a line of its own. */
   record(r: CallRecord): void {
+    this.sweep();
     const open = r.runId ? this.runs.get(r.runId) : undefined;
     if (open && !open.ended) {
       add(open.entry, r);
@@ -109,6 +110,7 @@ export class AiActivity {
 
   /** What's in the log, newest first. */
   read(opts: { limit?: number; offset?: number } = {}): AiActivityResponse {
+    this.sweep();
     return readActivity(this.opts.dataDir, opts);
   }
 
@@ -130,7 +132,10 @@ export class AiActivity {
     return e;
   }
 
-  /** Write runs left open far too long, so a feature's bug can't hold memory (or its line) forever. */
+  /**
+   * Write runs left open far too long, so a feature's bug can't hold memory (or its line) forever. Checked whenever
+   * the log is touched (start, record, read). A run still open when the process stops is not written.
+   */
   private sweep(): void {
     const now = this.now();
     for (const open of [...this.runs.values()]) if (now - open.t0 > RUN_MAX_MS) this.finish(open, { error: 'abandoned', cancelled: false });

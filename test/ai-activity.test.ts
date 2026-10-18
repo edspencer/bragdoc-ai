@@ -102,6 +102,18 @@ test('a feature run groups its calls into one line, with its own counts; a run t
   assert.equal(said.end({ error: `couldn't read ${MARKER}` })!.error, 'failed');
 });
 
+test('a run never ended is written as abandoned after 6 hours, whenever the log is next touched', () => {
+  dir = tmpDir('bragdoc-activity-');
+  let now = Date.parse('2026-10-18T09:00:00Z');
+  const log = new AiActivity({ dataDir: dir, now: () => now });
+  const run = log.start({ feature: 'judge', trigger: 'schedule' });
+  log.record(rec({ runId: run.id }));
+  now += 7 * 60 * 60 * 1000;
+  const { entries } = log.read();
+  assert.deepEqual([entries.length, entries[0]!.id, entries[0]!.error, entries[0]!.outcome], [1, run.id, 'abandoned', 'error']);
+  assert.equal(run.end(), null, 'ending it late writes nothing more');
+});
+
 test('rotation: at the size limit the log becomes ai-runs.1.jsonl (replacing the one before), and reads cover both', () => {
   dir = tmpDir('bragdoc-activity-');
   const log = new AiActivity({ dataDir: dir, maxBytes: 2000 });

@@ -31,7 +31,7 @@ ai/style.md                     # v0.2: how you write, for tidying and drafting 
 secrets.yaml                    # readable only by you: a GitHub token, and AI providers' keys, if you use them
 runtime.json                    # readable only by you: the running server's port, URL, version and MCP token
 logs/network.jsonl              # every outbound request
-logs/ai-runs.jsonl              # v0.2: every AI run, without its content (only once you use AI)
+logs/ai-runs.jsonl              # v0.2: every AI run, without its content (only once you use AI; ai-runs.1.jsonl is the older half)
 backups/<timestamp>/            # automatic snapshots
 backups/removed/                # "deleted" files, moved here, never erased
 .gitignore                      # keeps machine-written files out of git
@@ -89,13 +89,14 @@ from it there is searchable.
 If you use v0.2's opt-in AI, what you tell the models lives in `ai/`, as Markdown you write, and it's yours like the
 rest of the folder: backed up, picked up live when you edit it by hand, and never ignored by `.gitignore`.
 
-- `ai/what-counts.md` is "what counts as a win for me": the AI judge reads it. It's written for you, from your profile,
-  when you first switch the judge on; after that it's only changed by you.
+- `ai/what-counts.md` is "what counts as a win for me": the AI judge reads it. A starter, made from your profile, is
+  written when you first switch the judge on (as v0.2's judge is built); after that it's only changed by you.
 - `ai/style.md` is "how I write", if you want one: tidying and drafting read it.
 
 Each is plain Markdown. It may start with front-matter (a `---` line, YAML, another `---` line), which the models
-aren't shown. A file over 20,000 characters, or with front-matter that isn't closed or isn't YAML, is a Problem, and
-the last good version is used until you fix it. Any other `.md` file in `ai/` is listed as a Problem too (most likely a
+aren't shown. A file over 20,000 characters, or with front-matter that isn't closed or isn't YAML, is a Problem. While
+BragDoc keeps running it uses the last good version it read; started with the file already broken, it has none, and
+the feature says so until you fix it. To start the Markdown itself with a horizontal rule, use `***`, not `---`. Any other `.md` file in `ai/` is listed as a Problem too (most likely a
 misspelt name), and otherwise ignored. A v0.1 BragDoc ignores the folder entirely.
 
 ## Hand edits, Problems and versions

@@ -36,7 +36,11 @@ export class InstructionsService {
     };
   }
 
-  /** What a prompt includes: the file's markdown, trimmed (its last good copy while it's broken), or null if empty. */
+  /**
+   * What a prompt includes: the file's markdown, trimmed, or null if there's none. While the file is broken it's the
+   * last good copy this server read; a server started with the file already broken has none (null), so a feature that
+   * needs instructions should also look at `get(name).problems` and say so.
+   */
   forPrompt(name: InstructionsName): string | null {
     const body = this.store.get('instructions', name)?.body.trim();
     return body ? body : null;
@@ -69,10 +73,20 @@ export class InstructionsService {
     const n = this.name(name);
     const text = starter ?? this.starters.get(n)?.();
     if (text === undefined) throw new NotFoundError(`nothing has a starter for ${INSTRUCTIONS_INFO[n].file} yet (it comes with the feature that reads it)`);
+    // the starter is checked before anything moves: a bad one must not leave you with no file at all
+    this.store.assertWritableText('instructions', n, text);
     const e = this.store.entry('instructions', n);
     let removedTo: string | null = null;
     if (e?.raw != null && e.raw !== text) removedTo = this.store.remove('instructions', n);
-    if (e?.raw !== text) this.store.writeText('instructions', n, text, { createOnly: true });
+    if (e?.raw !== text) {
+      try {
+        this.store.writeText('instructions', n, text, { createOnly: true });
+      } catch (err) {
+        // someone made the file meanwhile: theirs stays, and yours comes back only if the place is still empty
+        if (removedTo && this.store.entry('instructions', n)?.raw == null) this.store.restore('instructions', n);
+        throw err;
+      }
+    }
     return { ...this.get(n), removedTo };
   }
 

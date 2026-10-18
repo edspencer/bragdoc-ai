@@ -45,7 +45,11 @@ export const SMOKE: EvalSpec<Input, Answer> = {
     const percent = a.percent === c.input.percent;
     return { pass: date && percent, cells: { date: date ? 'ok' : `got ${JSON.stringify(a.date)}`, percent: percent ? 'ok' : `got ${JSON.stringify(a.percent)}` } };
   },
-  summarise: (rows) => ({ 'nulls right': `${rows.filter((r) => r.pass !== null && ['billing', 'flaky', 'nothing', 'incident'].includes(r.id) && r.pass).length} of 4` }),
+  summarise: (rows) => {
+    // the cases where the right answer includes a null: a model that guesses gets these wrong
+    const withNull = rows.filter((r) => CASES.some((c) => c.id === r.id && (c.input.date === null || c.input.percent === null)));
+    return { 'nulls right': `${withNull.filter((r) => r.pass).length} of ${withNull.length}` };
+  },
 };
 
 if (isMain(import.meta.url)) process.exitCode = await main(SMOKE);

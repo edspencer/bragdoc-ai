@@ -129,9 +129,19 @@ test('a hand-broken file is a Problem: the last good copy is used, and it is nev
   assert.throws(() => svc.put('what-counts', { text: 'Fixed.\n' }), ConflictError);
   assert.equal(h.read('ai/what-counts.md'), before);
   assert.throws(() => svc.put('what-counts', { text: 'Fixed.\n' }, { ifMatch: '"0000000000000000"' }), ConflictError);
+  assert.throws(() => svc.put('what-counts', { text: 'Fixed.\n' }, { ifMatch: '*' }), ConflictError, '`*` is not proof of having seen it');
   svc.put('what-counts', { text: 'Fixed.\n' }, { ifMatch: r.etag });
   assert.equal(h.read('ai/what-counts.md'), 'Fixed.\n');
   assert.deepEqual(svc.get('what-counts').problems, []);
+});
+
+test('a byte-order mark before the front-matter: still front-matter, never sent to the model', () => {
+  h = storeHome();
+  h.put('ai/style.md', '\uFEFF---\nschemaVersion: 1\nnote: mine\n---\nWrite plainly.\n');
+  const store = h.reopen();
+  assert.equal(store.get('instructions', 'style')?.body, 'Write plainly.\n');
+  h.put('ai/style.md', '\uFEFF---\nschemaVersion: 2\n---\nFrom the future.\n');
+  assert.equal(h.reopen().entry('instructions', 'style')?.readOnly, true);
 });
 
 test('a huge file is a Problem, and a huge save is refused with nothing written', () => {
@@ -192,6 +202,12 @@ test('reset: the starter back, your version moved into backups/removed/ first; e
   const r2 = svc.reset('what-counts');
   assert.equal(h.read('ai/what-counts.md'), 'The starter.\n');
   assert.equal(h.read(r2.removedTo!), '---\nbroken: [\n');
+  // a bad starter is refused before anything moves: your file stays where it is
+  svc.put('what-counts', { text: WINS });
+  assert.throws(() => svc.reset('what-counts', '---\nnever closed\n'), ValidationError);
+  assert.throws(() => svc.reset('what-counts', 'x'.repeat(INSTRUCTIONS_MAX_CHARS + 1)), ValidationError);
+  assert.equal(h.read('ai/what-counts.md'), WINS);
+  assert.equal(svc.forPrompt('what-counts'), WINS.trim());
   off();
   assert.equal(svc.get('what-counts').hasStarter, false);
 });

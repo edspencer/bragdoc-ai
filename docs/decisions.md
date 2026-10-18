@@ -1045,13 +1045,15 @@ Export is a download of a blob made in the page; nothing about a folio is writte
   the file, rather than patching YAML as the other kinds are. What's saved is checked exactly as a hand edit is read,
   and refused (400) if it would be a Problem.
 - **A broken file is a Problem and keeps its last good copy** for prompts, as every store file does. It's replaced only
-  by a PUT carrying its current ETag (`If-Match`): proof that whoever is writing has seen what's there. Without one,
-  409. That's D5's "never overwritten" kept for the case where the user is the one fixing it in the editor.
+  by a PUT carrying its current ETag (`If-Match`, and not `*`): proof that whoever is writing has seen what's there.
+  Without one, 409. "Last good copy" is this process's: a server started with the file already broken has none, so
+  `forPrompt` is null and a feature should look at the file's `problems` and say so. That's D5's "never overwritten" kept for the case where the user is the one fixing it in the editor.
 - **Capped at 20,000 characters** (`INSTRUCTIONS_MAX_CHARS`): the file goes with every call of its feature, and a
   local model's context is 8192 tokens by default. Longer is a Problem ("shorten it"), not a silent truncation.
 - **Reset** (`POST …/reset`, `services.instructions.reset`) puts back a starter that the feature registers
   (`setStarter(name, () => text)`; PR24 makes the judge's from your profile). Your file, if it's different, is moved to
-  `backups/removed/` first, broken or not: nothing is deleted. `ensure(name, starter)` writes the starter only if
+  `backups/removed/` first, broken or not: nothing is deleted. The starter is checked before anything moves, and if
+  the write still fails your file is put back. `ensure(name, starter)` writes the starter only if
   there's no file, for a feature's first switch-on. The brief listed only GET and PUT; reset is here so the three
   features share one, instead of each adding its own.
 - `ai/` is in backups' `EDITABLE` and the boot scan, the watcher already sees it (it isn't in `IGNORED_TOP`), and it is
@@ -1079,7 +1081,11 @@ Export is a download of a blob made in the page; nothing about a folio is writte
   - Rotated at 1 MB to `ai-runs.1.jsonl`, like the network log (its own one-line rotate, with a guard-fs entry, rather
     than reshaping `egress.ts`, which PR21 owns). Nothing is created until a line is written. `{ type: 'ai-activity' }`
     follows each line this server writes; lines another process wrote (`dev ai`, an eval) appear on the next read.
-  - A run left open for 6 hours is written as `abandoned`, so a feature's bug can't hold it forever.
+  - A run left open for 6 hours is written as `abandoned` the next time the log is touched, so a feature's bug can't
+    hold it forever. A run still open when the process stops isn't written.
+  - Two processes on one data home (the server and an eval) can, rarely, both rotate at the same moment and lose a
+    line or the older half. Accepted: it's a bounded record of recent activity, like the network log, not an audit
+    trail.
 - **Live evals** (`scripts/eval/lib.ts`; `npm run eval:<name>`): a feature supplies a spec (its synthetic cases, how to
   ask, how to score); the harness refuses without `BRAGDOC_LIVE_AI=1` and whenever `CI` is set, and runs every call
   through `ctx.ai` (gates, queue, egress).
@@ -1089,13 +1095,16 @@ Export is a download of a blob made in the page; nothing about a folio is writte
     cloud connection needs consent, given in Settings.
   - Run-level failures (unreachable, model missing, AI off, a refused key…) stop it with the reason, exit 1, and no
     recording; an item's own failure (an answer that's still invalid after the repair, a timeout) is its row.
-  - **Recordings** (`--record`): `test/fixtures/ai-recordings/<eval>/<model>.json`, each answer keyed by a sha256 of
-    exactly what was asked (system prompt and prompt). They hold the model's name, where it ran and the answers;
-    `writeRecording` refuses one containing the connection's host, its key or a local address.
+  - **Recordings** (`--record`, every case: not with `--limit`, which would shrink what replay covers):
+    `test/fixtures/ai-recordings/<eval>/<model>.json`, each answer keyed by a sha256 of exactly what was asked (system
+    prompt and prompt), with a second hash of the call's shape (the schema, its name, the output options). A case
+    that failed when recorded keeps its error code and is skipped on replay (`unanswered`). They hold the model's name, where it ran and the answers;
+    `writeRecording` refuses one containing the connection's host or hostname, its key, or any address that isn't on
+    the internet.
   - **Replay** (`test/ai-replay.ts`): the fake model server answers each recorded request with the recorded answer
     (its new `rules` option, also `--recording <file>` on the command line), so CI runs a feature's whole pipeline on a
     real model's answers. A request whose hash isn't in the recording (the prompt changed) gets the fake's own answer
-    and its case is reported **stale**: re-record it on a machine with the model. That's deliberate: a replay that
+    and its case is reported **stale** (as is one whose shape changed): re-record it on a machine with the model. That's deliberate: a replay that
     silently passed on yesterday's prompt would measure nothing.
   - `npm run eval:smoke` is the harness's own check (a date and a percentage from each of eight synthetic sentences,
     feature `test`), with a committed real-model recording that CI replays.

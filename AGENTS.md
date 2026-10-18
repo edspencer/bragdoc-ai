@@ -482,7 +482,8 @@ PR22 added the plumbing the three features share (D67, D68):
   `instructions`, owned by the store like every data file (backed up, watched, never gitignored). Through
   `ctx.services.instructions`:
   - `forPrompt(name)` → the markdown a prompt includes (after any front-matter, trimmed; the last good copy while the
-    file is broken), or null. **A prompt reads instructions only this way.**
+    file is broken), or null. **A prompt reads instructions only this way**, and a feature that needs them checks
+    `get(name).problems` too: a server started with the file already broken has no last good copy.
   - `setStarter(name, () => text)` registers the feature's starter (do it where the feature is created; PR24 makes the
     judge's from the profile). `ensure(name, text)` writes it only if there's no file (a first switch-on);
     `reset(name)` puts it back, moving the user's version to `backups/removed/` first.
@@ -511,8 +512,8 @@ PR22 added the plumbing the three features share (D67, D68):
   `--record`, the table, stopping on a run-level failure, one activity run (trigger `eval`). `smoke.ts` is the example.
   - **Recordings** go to `test/fixtures/ai-recordings/<eval>/<model>.json`, keyed by a hash of exactly what was asked.
     `replay(spec, recording)` (`test/ai-replay.ts`) runs the spec against the fake model server answering from it:
-    assert `stale` and `missing` are empty and the scores are what you expect. **Changing a prompt makes its
-    recordings stale**: re-record on a machine with the model (`--record`), never by hand. `node --import tsx
+    assert `stale`, `missing` and `unanswered` are empty and the scores are what you expect. **Changing a prompt
+    or a schema makes its recordings stale**: re-record on a machine with the model (`--record`), never by hand. `node --import tsx
     test/fixtures/fake-llm/server.ts --recording <file>` serves one for box QA.
 
 **Adding an AI feature** (five steps):

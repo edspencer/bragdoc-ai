@@ -4,18 +4,19 @@
   "feature": "test",
   "model": "qwen3.5:4b",
   "where": "this-computer",
-  "recordedAt": "2026-10-18T17:40:02.159Z",
+  "recordedAt": "2026-10-18T17:53:47.118Z",
   "cases": [
     {
       "id": "cache",
       "calls": [
         {
           "hash": "sha256:04049fdd96b3c889dba28d4af361f6af7575b619e4205f83434a259a6f459a60",
+          "shape": "sha256:90cf25c518fcb5720e98fde85ed886451c6efda0bc56c9cb9003a115af1252f4",
           "answer": {
             "date": "2026-03-04",
             "percent": 38
           },
-          "ms": 12889,
+          "ms": 2601,
           "tokensIn": 130,
           "tokensOut": 23
         }
@@ -26,11 +27,12 @@
       "calls": [
         {
           "hash": "sha256:b68d2b1a8210004014b759c3785746fe48af6454664cb6c4484aef24c33fe23f",
+          "shape": "sha256:90cf25c518fcb5720e98fde85ed886451c6efda0bc56c9cb9003a115af1252f4",
           "answer": {
             "date": "2026-05-19",
             "percent": null
           },
-          "ms": 4520,
+          "ms": 2340,
           "tokensIn": 129,
           "tokensOut": 21
         }
@@ -41,11 +43,12 @@
       "calls": [
         {
           "hash": "sha256:cefd194f7679f2752d61e78850911e235bdffd63ad49010fdf1c32b236e8414e",
+          "shape": "sha256:90cf25c518fcb5720e98fde85ed886451c6efda0bc56c9cb9003a115af1252f4",
           "answer": {
             "date": "null",
             "percent": 99.5
           },
-          "ms": 4022,
+          "ms": 1882,
           "tokensIn": 125,
           "tokensOut": 16
         }
@@ -56,11 +59,12 @@
       "calls": [
         {
           "hash": "sha256:4ba14aa4cd7d3f7b9928d588258800e79d5ba152ebe2a32137596ec51c2012fb",
+          "shape": "sha256:90cf25c518fcb5720e98fde85ed886451c6efda0bc56c9cb9003a115af1252f4",
           "answer": {
             "date": "2026-01-12",
             "percent": 40
           },
-          "ms": 5162,
+          "ms": 2575,
           "tokensIn": 136,
           "tokensOut": 23
         }
@@ -71,11 +75,12 @@
       "calls": [
         {
           "hash": "sha256:1ecf829b1ee3a37c84e86ae96ce599ebd2c269eb07993861ec7948e36feb53fb",
+          "shape": "sha256:90cf25c518fcb5720e98fde85ed886451c6efda0bc56c9cb9003a115af1252f4",
           "answer": {
             "date": "null",
             "percent": null
           },
-          "ms": 4109,
+          "ms": 1524,
           "tokensIn": 115,
           "tokensOut": 12
         }
@@ -86,11 +91,12 @@
       "calls": [
         {
           "hash": "sha256:605f6dba9f98b17b2394a00ee80c628ba971e8c72d2a9abf0f4201d1af3a591e",
+          "shape": "sha256:90cf25c518fcb5720e98fde85ed886451c6efda0bc56c9cb9003a115af1252f4",
           "answer": {
             "date": "2025-11-30",
             "percent": 22
           },
-          "ms": 5361,
+          "ms": 2556,
           "tokensIn": 130,
           "tokensOut": 23
         }
@@ -101,11 +107,12 @@
       "calls": [
         {
           "hash": "sha256:c1adcabc270af8d1383735a3f406f35f0b0ef1ae12c71056c624bdb540321aea",
+          "shape": "sha256:90cf25c518fcb5720e98fde85ed886451c6efda0bc56c9cb9003a115af1252f4",
           "answer": {
             "date": "2026-07-08",
             "percent": 75
           },
-          "ms": 5469,
+          "ms": 4667,
           "tokensIn": 130,
           "tokensOut": 23
         }
@@ -116,11 +123,12 @@
       "calls": [
         {
           "hash": "sha256:aaa8f1f59a82ac1497009f88e99c2b7dcd679591557571042cd17b1907f0b11a",
+          "shape": "sha256:90cf25c518fcb5720e98fde85ed886451c6efda0bc56c9cb9003a115af1252f4",
           "answer": {
             "date": "2026-02-27",
             "percent": null
           },
-          "ms": 6291,
+          "ms": 2791,
           "tokensIn": 126,
           "tokensOut": 21
         }
