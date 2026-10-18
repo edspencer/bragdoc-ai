@@ -54,11 +54,46 @@ export const ANSWERS: AnswerRule[] = [
       return { date: /\d{4}-\d{2}-\d{2}/.exec(s)?.[0] ?? null, percent: pct ? Number(pct[1]) : null };
     },
   },
+  // Folio's Draft with AI (PR27): a draft made from the prompt's own clippings, best first, citing each, plus the two
+  // mistakes the check must catch: one bullet with no citation, and one planted number ("by 37%") no clipping has.
+  // A note containing "(clean)" leaves both out.
+  { name: 'draft', when: (r) => !r.json && /^You draft the achievements section/.test(r.system), answer: (r) => fakeDraft(r.prompt) },
   // ---- feature rows go above this line ----
   { name: 'schema', when: (r) => r.json && !!r.schema, answer: (r) => synthesize(r.schema!, r.schema!) },
   { name: 'json', when: (r) => r.json, answer: () => ({ answer: FALLBACK_TEXT }) },
   { name: 'text', when: () => true, answer: () => FALLBACK_TEXT },
 ];
+
+/** The fake's draft: the clippings in the prompt grouped by project, each a bullet citing it. */
+function fakeDraft(prompt: string): string {
+  const block = /<<<CLIPPINGS\n([\s\S]*?)\nCLIPPINGS>>>/.exec(prompt)?.[1] ?? '';
+  const clips = block
+    .split(/\n\n(?=\[\d+\] )/)
+    .map((c) => {
+      const m = /^\[(\d+)\] (.*)$/m.exec(c);
+      const project = /^Project: ([^(\n]*?)(?: \(|$)/m.exec(c)?.[1]?.trim() ?? 'Other work';
+      return m ? { n: Number(m[1]), title: m[2]!.trim(), project } : null;
+    })
+    .filter((c): c is { n: number; title: string; project: string } => !!c);
+  if (!clips.length) return 'There was nothing to draft from.';
+  const clean = /\(clean\)/.test(prompt);
+  const groups = new Map<string, typeof clips>();
+  for (const c of clips) groups.set(c.project, [...(groups.get(c.project) ?? []), c]);
+  const out = [`This period was mostly about ${[...groups.keys()].slice(0, 2).join(' and ')}. This draft came from the fake model server, not a real model.`];
+  let planted = clean;
+  for (const [project, cs] of groups) {
+    out.push('', `## ${project}`, '');
+    for (const c of cs) {
+      const lower = c.title.charAt(0).toLowerCase() + c.title.slice(1);
+      if (!planted) {
+        out.push(`- I ${lower}, cutting review time by 37% [${c.n}]`);
+        planted = true;
+      } else out.push(`- I ${lower} [${c.n}]`);
+    }
+  }
+  if (!clean) out.push('', '## Also', '', '- I helped wherever I was needed');
+  return `${out.join('\n')}\n`;
+}
 
 function lastLine(prompt: string): string {
   const lines = prompt.split('\n').map((l) => l.trim()).filter(Boolean);
