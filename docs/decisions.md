@@ -518,7 +518,7 @@ D17 onwards are decisions made while building.
   Node and the realpath of `dist/server/cli.js` (npx's command when running from npx's cache), plus `--data-dir` when
   one was chosen; from an unbuilt checkout it refuses.
 
-### D45 — Every store change reaches open tabs as a ServerEvent named after its entity
+### D48 — Every store change reaches open tabs as a ServerEvent named after its entity
 
 - `server/live.ts` subscribes to the store (`Store.subscribe`), which hears every change to a data file whether
   BragDoc wrote it (a route, an MCP tool) or something else did (a hand edit, `git pull`, an agent; the watcher), and
@@ -532,7 +532,7 @@ D17 onwards are decisions made while building.
 - **Considered:** carrying the id and op in each event (a debounced burst keeps only the last one, so the client would
   have to refetch anyway); one `{ type: 'store' }` event (every page would refetch everything on every change).
 
-### D46 — `/api/evidence/:sha/thumb` serves the picture itself until there is an image library
+### D49 — `/api/evidence/:sha/thumb` serves the picture itself until there is an image library
 
 - The board asks for `/thumb` on cards and the full file in the lightbox, so the URL contract is in place. In v0.1
   `/thumb` returns the stored picture unchanged (same blob headers, cached immutably: the bytes are content-addressed),
@@ -544,7 +544,7 @@ D17 onwards are decisions made while building.
 - **Considered:** `sharp` as an optional dependency with a fallback (two code paths, and an install that differs by
   platform); thumbnails made in the browser at upload (not derivable again, so not cache).
 
-### D47 — Board uploads: stored as soon as they're added; the claimed type is checked against the bytes
+### D50 — Board uploads: stored as soon as they're added; the claimed type is checked against the bytes
 
 - The composer uploads each file (`POST /api/evidence`) the moment it's pasted, dropped or picked, so a refused file
   (too big, spoofed, damaged) is said at once, and pinning is one small JSON request. If the server goes away

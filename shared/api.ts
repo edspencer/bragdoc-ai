@@ -108,7 +108,7 @@ export type ServerEvent =
   | { type: 'config' }
   | { type: 'network' }
   | { type: 'notices' }
-  // the store (PR7 forwards every change to a data file, BragDoc's own or a hand edit, as its entity's type; D45)
+  // the store (PR7 forwards every change to a data file, BragDoc's own or a hand edit, as its entity's type; D48)
   | { type: 'achievement' }
   | { type: 'evidence' }
   | { type: 'project' }

@@ -2,7 +2,7 @@
 //
 //   POST /api/evidence              a typed upload (raw bytes; Content-Type; X-Filename) → EvidenceUploaded
 //   GET  /api/evidence/:sha         the file, with the blob headers (sandboxed; anything but a picture downloads)
-//   GET  /api/evidence/:sha/thumb   a picture for a card (D46: the picture itself, until there's an image library)
+//   GET  /api/evidence/:sha/thumb   a picture for a card (D49: the picture itself, until there's an image library)
 //
 // The bytes decide what a file is (store/blobs.ts sniffs magic bytes), never its name or the Content-Type the browser
 // sent. But the Content-Type is a claim we can check: a file sent as image/png that isn't a picture (an HTML page named
