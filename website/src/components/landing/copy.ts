@@ -62,7 +62,7 @@ export const GUARANTEES = [
 	},
 	{
 		title: 'Nothing leaves unless you connect it',
-		body: 'BragDoc has no server. It never sends your data to us or to anyone else: no telemetry, no update check, no analytics. The only network calls it makes are to services you connect yourself (in v0.1, that means GitHub), and Settings → Network activity shows you every one.',
+		body: 'There is no BragDoc server of ours, and BragDoc never sends your data to us or to anyone else: no telemetry, no update check, no analytics. The only network calls it makes are to services you connect yourself (in v0.1, that means GitHub), and Settings → Network activity shows you every one (if you connect through the gh CLI, it shows each time gh runs).',
 		href: '/guarantees/network-activity/',
 		link: 'Network activity',
 		tape: 'blue',

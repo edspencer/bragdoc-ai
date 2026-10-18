@@ -74,38 +74,37 @@ function build(script: 'build' | 'build:web', kit: boolean) {
 
 async function bootRig(data: Data): Promise<Rig> {
   const home = fs.mkdtempSync(path.join(os.tmpdir(), 'bragdoc-docs-media-'));
-  // The example world shows BragDoc's own address (Settings → Sources), so it runs on the default port if it can.
-  const port = data === 'example' ? await freePort(DEFAULT_PORT).catch(() => freePort()) : await freePort();
-  if (data === 'example' && port !== DEFAULT_PORT) console.warn(`  ! port ${DEFAULT_PORT} is taken: shots that show BragDoc's address will fail the leak scan`);
-  const args = [home, '--port', String(port)];
-  if (data === 'example') args.push('--fake-gh', path.join(HERE, 'fake-gh-prs.json'), new Date().toISOString());
-  const proc = spawn(path.join(HERE, 'serve.sh'), args, { stdio: ['ignore', 'pipe', 'pipe'] });
-  let log = '';
-  proc.stdout!.on('data', (d) => (log += d));
-  proc.stderr!.on('data', (d) => (log += d));
-  const base = `http://localhost:${port}`;
-  for (let i = 0; i < 150; i++) {
-    if (proc.exitCode !== null) throw new Error(`the rig exited (${proc.exitCode}):\n${log}`);
-    try {
-      if ((await fetch(`${base}/api/health`)).ok) {
-        const rig = { base, proc, home, now: new Date(SHOT_NOW) };
-        if (data === 'example') {
-          await seedExample(rig);
-          rig.now = new Date(Date.now() + 10 * 60_000); // a little after everything the seed stamped
-        }
-        return rig;
-      }
-    } catch (e) {
-      if ((e as Error).message.startsWith('seed:')) {
-        proc.kill();
-        throw e;
-      }
-      /* not up yet */
+  let proc: ChildProcess | undefined;
+  try {
+    // The example world shows BragDoc's own address (Settings → Sources), so it runs on the default port if it can.
+    const port = data === 'example' ? await freePort(DEFAULT_PORT).catch(() => freePort()) : await freePort();
+    if (data === 'example' && port !== DEFAULT_PORT) console.warn(`  ! port ${DEFAULT_PORT} is taken: shots that show BragDoc's address will fail the leak scan`);
+    const args = [home, '--port', String(port)];
+    if (data === 'example') args.push('--fake-gh', path.join(HERE, 'fake-gh-prs.json'), new Date().toISOString());
+    const child = spawn(path.join(HERE, 'serve.sh'), args, { stdio: ['ignore', 'pipe', 'pipe'] });
+    proc = child;
+    let log = '';
+    child.stdout!.on('data', (d) => (log += d));
+    child.stderr!.on('data', (d) => (log += d));
+    const base = `http://localhost:${port}`;
+    let up = false;
+    for (let i = 0; i < 150 && !up; i++) {
+      if (child.exitCode !== null) throw new Error(`the rig exited (${child.exitCode}):\n${log}`);
+      up = await fetch(`${base}/api/health`).then((r) => r.ok, () => false);
+      if (!up) await new Promise((r) => setTimeout(r, 200));
     }
-    await new Promise((r) => setTimeout(r, 200));
+    if (!up) throw new Error(`the rig didn't start:\n${log}`);
+    const rig = { base, proc: child, home, now: new Date(SHOT_NOW) };
+    if (data === 'example') {
+      await seedExample(rig); // outside the health poll: a seed error is reported as itself, and never retried
+      rig.now = new Date(Date.now() + 10 * 60_000); // a little after everything the seed stamped
+    }
+    return rig;
+  } catch (e) {
+    proc?.kill();
+    fs.rmSync(home, { recursive: true, force: true });
+    throw e;
   }
-  proc.kill();
-  throw new Error(`the rig didn't start:\n${log}`);
 }
 
 /** The example world, set up through BragDoc's own API, the way a person would (Welcome, Settings → Sources). */
@@ -139,8 +138,11 @@ async function seedExample({ base, home }: Rig) {
   fs.copyFileSync(path.join(ROOT, 'fixtures', 'example', 'evidence', 'slack-design.png'), aside);
   const when = new Date(now - 86_400_000 - 3 * 3_600_000);
   fs.utimesSync(aside, when, when);
-  fs.renameSync(aside, path.join(shots, 'Screenshot 2026-10-16 at 9.12.09 AM.png'));
+  const name = `Screenshot ${when.toISOString().slice(0, 10)} at 9.12.09 AM.png`; // macOS's naming, dated as the file is
+  fs.renameSync(aside, path.join(shots, name));
   await until('the screenshot to reach Found', async () => (await call('GET', '/api/found')).counts.screenshots > 0);
+  // "Test the guard", once, so Network activity shows a refusal (as a per-shot click it would add one per theme)
+  await call('POST', '/api/network-log/guard-check', {});
 }
 
 // ------------------------------------------------------------------------------------------------ hygiene
@@ -285,11 +287,18 @@ async function main() {
   const rigs = new Map<Data, Rig>();
   const building = !BASE && !argv.includes('--no-build');
   if (!BASE && building) build('build', true);
+  const broken = new Map<Data, Error>(); // a rig that failed to boot isn't tried again for every shot
   const rigFor = async (data: Data): Promise<{ base: string; now: Date }> => {
     if (BASE) return { base: BASE, now: new Date(SHOT_NOW) };
+    if (broken.has(data)) throw broken.get(data)!;
     if (!rigs.has(data)) {
       console.log(`Booting the ${data} rig (serve.sh)…`);
-      rigs.set(data, await bootRig(data));
+      try {
+        rigs.set(data, await bootRig(data));
+      } catch (e) {
+        broken.set(data, e as Error);
+        throw e;
+      }
     }
     return rigs.get(data)!;
   };

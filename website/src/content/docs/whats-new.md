@@ -22,6 +22,6 @@ The first release of BragDoc as a local-first app you run on your own computer, 
 - **[Importing](/moving-from-the-hosted-app/)** an export from the hosted app.
 - **Settings:** sources, [Network activity](/guarantees/network-activity/), your data and its problems, and the
   build you're running.
-- **[Your data is files](/concepts/your-data-is-files/)** in `~/.bragdoc`, with snapshots, and nothing ever erased.
+- **[Your data is files](/concepts/your-data-is-files/)** in `~/.bragdoc`, with snapshots, and removing something moves its file aside rather than erasing it.
 - Light, dark and system themes, and a layout that works on a phone.
 - No AI, no telemetry, no account. Run it with `npx`, a global install, a login service (macOS and Linux) or Docker.

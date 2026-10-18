@@ -5,7 +5,7 @@ description: "BragDoc sends nothing off your machine on its own. The only outbou
 
 import Shot from '../../../components/Shot.astro';
 
-**BragDoc has no server, and never sends your data to us or to anyone else.** It sends nothing off your machine on its own: no
+**There is no BragDoc server of ours, and BragDoc never sends your data to us or to anyone else.** It sends nothing off your machine on its own: no
 telemetry, no analytics, no crash reports, no update check.
 
 The only network calls BragDoc makes are to services **you connect yourself**, and it shows you every one. In v0.1
@@ -37,7 +37,7 @@ it is renamed `network.1.jsonl`, replacing the previous one, and a new log start
 **Test the guard**, under "Don't take our word for it", asks BragDoc to send a request somewhere it isn't allowed: it
 is refused before anything is sent, and the refusal appears on the receipt.
 
-<Shot name="docs-network" alt="Settings, Network activity: a receipt titled BragDoc outbound listing a refused request from Test the guard and two runs of the gh CLI (gh search prs and gh auth status) marked via gh CLI, then To BragDoc's makers: 0 B; beside it a note on where your data goes and the Test the guard box saying the request was refused and nothing was sent." caption="Network activity after connecting GitHub through gh (a stand-in, for the screenshot) and pressing Test the guard." />
+<Shot name="docs-network" alt="Settings, Network activity: a receipt titled BragDoc outbound listing a refused request from Test the guard and two runs of the gh CLI (gh search prs and gh auth status) marked via gh CLI, then To BragDoc's makers: 0 B; beside it a note on where your data goes and the Test the guard box." caption="Network activity after connecting GitHub through gh (a stand-in, for the screenshot) and pressing Test the guard." />
 
 There's one honest exception to "every request". If you connect GitHub through the `gh` CLI, it is `gh` that talks
 to GitHub, not BragDoc. BragDoc logs each time it runs `gh` ("via gh CLI"), but it can't see inside `gh`'s own
