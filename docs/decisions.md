@@ -1034,3 +1034,68 @@ Export is a download of a blob made in the page; nothing about a folio is writte
   In JSON mode it reads the schema from the instructions, as a model would.
 - Cloud hosts can't be pointed at it (and no release build gets a way to redirect one), so cloud paths are tested with
   an injected egress `fetchImpl` (`test/ai-fixture.ts`).
+
+### D67 — Instructions files: a store kind, written whole, capped, never overwritten unseen
+
+- `ai/what-counts.md` (the judge's) and `ai/style.md` (tidy's and draft's) are user data, so they're a store file kind,
+  `instructions` (D5), named by those two names only. Markdown, with front-matter only when the file starts with a
+  `---` line; a model is given the markdown after it (`services.instructions.forPrompt(name)`). Front-matter has no
+  keys of its own beyond `schemaVersion`; anything else in it is kept, unread.
+- **Written whole** (`Store.writeText`, `PUT /api/ai/instructions/:name { text }`): an editor shows the file and saves
+  the file, rather than patching YAML as the other kinds are. What's saved is checked exactly as a hand edit is read,
+  and refused (400) if it would be a Problem.
+- **A broken file is a Problem and keeps its last good copy** for prompts, as every store file does. It's replaced only
+  by a PUT carrying its current ETag (`If-Match`): proof that whoever is writing has seen what's there. Without one,
+  409. That's D5's "never overwritten" kept for the case where the user is the one fixing it in the editor.
+- **Capped at 20,000 characters** (`INSTRUCTIONS_MAX_CHARS`): the file goes with every call of its feature, and a
+  local model's context is 8192 tokens by default. Longer is a Problem ("shorten it"), not a silent truncation.
+- **Reset** (`POST …/reset`, `services.instructions.reset`) puts back a starter that the feature registers
+  (`setStarter(name, () => text)`; PR24 makes the judge's from your profile). Your file, if it's different, is moved to
+  `backups/removed/` first, broken or not: nothing is deleted. `ensure(name, starter)` writes the starter only if
+  there's no file, for a feature's first switch-on. The brief listed only GET and PUT; reset is here so the three
+  features share one, instead of each adding its own.
+- `ai/` is in backups' `EDITABLE` and the boot scan, the watcher already sees it (it isn't in `IGNORED_TOP`), and it is
+  **not** in `GITIGNORED`: your instructions belong in your data home's repo. A misspelt `.md` in `ai/` is a stray
+  Problem; `what-counts.txt` is told to be renamed; anything else there is left alone.
+- **What a 0.1 build does with `ai/`:** nothing at all. Checked on the `next` store: it isn't scanned (no Problem, no
+  stray notice), isn't in a snapshot, and isn't gitignored. So a data home used by 0.2 and then opened by 0.1 keeps
+  the files untouched, just unread and unbacked-up.
+- **The instructions routes aren't gated on AI.** They read and write your own files and make no model call: with AI
+  off, nothing is sent and the SDK isn't loaded (the test checks both).
+
+### D68 — The AI activity log, and live evals with recordings
+
+- **`logs/ai-runs.jsonl`** (`server/ai/activity.ts`, `ctx.aiActivity`): one line per run, for Settings → AI's receipt.
+  It hears every finished `ctx.ai` call (`Ai.onCall`). A feature that makes many calls opens a run
+  (`ctx.aiActivity.start({ feature, trigger })`), passes its `id` as each call's `runId`, counts its own outcomes
+  (`run.count('win')`) and ends it in a `finally`; that's one line. Any other call is a line of its own, with the
+  `trigger` it was given (default `now`; `bragdoc dev ai` says `cli`).
+  - Fields: id, feature, trigger (`now` · `arrival` · `schedule` · `eval` · `cli`), start, end, ms, connection, model,
+    where, items, calls by outcome, the feature's counts, tokens in and out (summed, when reported), the run's outcome
+    and an error **code**. Never a message: a message can quote what was sent. A count or an error that isn't a code
+    is dropped (`failed`).
+  - **A run that made no calls writes nothing.** It's the log of what asked a model; a judge run with nothing to judge
+    didn't, and "Nothing has asked a model anything" stays true with AI on and idle.
+  - Rotated at 1 MB to `ai-runs.1.jsonl`, like the network log (its own one-line rotate, with a guard-fs entry, rather
+    than reshaping `egress.ts`, which PR21 owns). Nothing is created until a line is written. `{ type: 'ai-activity' }`
+    follows each line this server writes; lines another process wrote (`dev ai`, an eval) appear on the next read.
+  - A run left open for 6 hours is written as `abandoned`, so a feature's bug can't hold it forever.
+- **Live evals** (`scripts/eval/lib.ts`; `npm run eval:<name>`): a feature supplies a spec (its synthetic cases, how to
+  ask, how to score); the harness refuses without `BRAGDOC_LIVE_AI=1` and whenever `CI` is set, and runs every call
+  through `ctx.ai` (gates, queue, egress).
+  - `--connection <id>` uses a data home's connection, key and consent, with its **master switch read live** (turning
+    AI off mid-eval stops it, and the run is logged as cancelled). The feature's own switch is taken as on: running an
+    eval is the opt-in. `--connection kind@url` makes one up for the run, **this computer or your network only**: a
+    cloud connection needs consent, given in Settings.
+  - Run-level failures (unreachable, model missing, AI off, a refused key…) stop it with the reason, exit 1, and no
+    recording; an item's own failure (an answer that's still invalid after the repair, a timeout) is its row.
+  - **Recordings** (`--record`): `test/fixtures/ai-recordings/<eval>/<model>.json`, each answer keyed by a sha256 of
+    exactly what was asked (system prompt and prompt). They hold the model's name, where it ran and the answers;
+    `writeRecording` refuses one containing the connection's host, its key or a local address.
+  - **Replay** (`test/ai-replay.ts`): the fake model server answers each recorded request with the recorded answer
+    (its new `rules` option, also `--recording <file>` on the command line), so CI runs a feature's whole pipeline on a
+    real model's answers. A request whose hash isn't in the recording (the prompt changed) gets the fake's own answer
+    and its case is reported **stale**: re-record it on a machine with the model. That's deliberate: a replay that
+    silently passed on yesterday's prompt would measure nothing.
+  - `npm run eval:smoke` is the harness's own check (a date and a percentage from each of eight synthetic sentences,
+    feature `test`), with a committed real-model recording that CI replays.

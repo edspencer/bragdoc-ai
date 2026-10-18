@@ -2,8 +2,9 @@
 // `['achievements', filters]`, …), so the live-update hook (events.ts) can refresh a whole resource by its first
 // segment. Feature PRs add their key and hook here, one block each.
 import { QueryClient, keepPreviousData, useInfiniteQuery, useQuery } from '@tanstack/react-query';
-import type { FoundSourceName } from '../../shared/api.ts';
+import type { AiInstructionsName, FoundSourceName } from '../../shared/api.ts';
 import { getDiscoverSuggestions, getExample, getProfile, getWelcome, getAchievements, getBackups, getCompanies, getFolio, getFound, getFoundCount, getGhInstalled, getSources, getHealth, getMcpToken, getMeta, getNetworkLog, getProblems, getProjectSummary, getProjects, getRepos, getSettings, getEvidenceOcr, getScreenshotSuggestions, isApiError, type AchievementFilters } from './client.ts';
+import { getAiActivity, getAiInstructions } from './client.ts';
 
 export const queryKeys = {
   health: ['health'] as const,
@@ -36,6 +37,9 @@ export const queryKeys = {
   profile: ['profile'] as const,
   discoverSuggestions: ['discover', 'suggestions'] as const,
   example: ['example'] as const,
+  // AI plumbing (PR22): refreshed by the `instructions` and `ai-activity` events
+  aiInstructions: (name: string) => ['ai-instructions', name] as const,
+  aiActivity: (limit: number) => ['ai-activity', limit] as const,
 };
 
 export function createQueryClient(): QueryClient {
@@ -198,4 +202,16 @@ export function useDiscoverSuggestions() {
 /** Is there example data, and how much. */
 export function useExample() {
   return useQuery({ queryKey: queryKeys.example, queryFn: ({ signal }) => getExample(signal) });
+}
+
+// AI plumbing (PR22)
+
+/** An instructions file (ai/<name>.md), for its editor. Live: a hand edit refreshes it. */
+export function useAiInstructions(name: AiInstructionsName, enabled = true) {
+  return useQuery({ queryKey: queryKeys.aiInstructions(name), queryFn: ({ signal }) => getAiInstructions(name, signal), enabled });
+}
+
+/** The newest `limit` lines of the AI activity log. Live: each new line refreshes it. */
+export function useAiActivity(limit = 50) {
+  return useQuery({ queryKey: queryKeys.aiActivity(limit), queryFn: ({ signal }) => getAiActivity({ limit }, signal) });
 }

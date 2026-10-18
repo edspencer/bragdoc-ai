@@ -82,9 +82,8 @@ export class AiActivity {
     return {
       id,
       count: (outcome, n = 1) => {
-        const k = code(outcome);
-        if (!k || open.ended) return;
-        open.entry.counts[k] = (open.entry.counts[k] ?? 0) + n;
+        if (!CODE_RE.test(outcome) || open.ended || !(n > 0)) return; // a name, never a sentence
+        open.entry.counts[outcome] = (open.entry.counts[outcome] ?? 0) + n;
       },
       end: ({ error = null, cancelled = false } = {}) => this.finish(open, { error, cancelled }),
     };

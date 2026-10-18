@@ -43,7 +43,7 @@ export const SMOKE: EvalSpec<Input, Answer> = {
   score(c, a) {
     const date = a.date === c.input.date;
     const percent = a.percent === c.input.percent;
-    return { pass: date && percent, cells: { date: date ? 'ok' : `got ${a.date ?? 'null'}`, percent: percent ? 'ok' : `got ${a.percent ?? 'null'}` } };
+    return { pass: date && percent, cells: { date: date ? 'ok' : `got ${JSON.stringify(a.date)}`, percent: percent ? 'ok' : `got ${JSON.stringify(a.percent)}` } };
   },
   summarise: (rows) => ({ 'nulls right': `${rows.filter((r) => r.pass !== null && ['billing', 'flaky', 'nothing', 'incident'].includes(r.id) && r.pass).length} of 4` }),
 };
