@@ -19,7 +19,7 @@ import { useQueryClient, type QueryClient } from '@tanstack/react-query';
 /** `change` type (ServerEvent['type']) → the first segments of the query keys it makes stale. */
 export const CHANGE_INVALIDATES: Record<string, readonly string[]> = {
   // the GitHub source's options live in config.yaml, and Found's empty state says what's on
-  config: ['meta', 'settings', 'sources', 'welcome'],
+  config: ['meta', 'settings', 'sources', 'welcome', 'ai-judge'],
   // a source's status: a check started or finished, connected or disconnected (PR13)
   sources: ['sources'],
   'mcp-token': ['mcp-token'],
@@ -36,7 +36,8 @@ export const CHANGE_INVALIDATES: Record<string, readonly string[]> = {
   // a company's or repo's name shows in project summaries; deleting one detaches it from projects
   company: ['companies', 'projects', 'folio', 'example'],
   repo: ['repos', 'projects', 'example'],
-  found: ['found'],
+  // the judge's waiting count is pending candidates without a verdict (PR24)
+  found: ['found', 'ai-judge'],
   // Welcome's first-run state is "is there a profile.yaml?" (PR16); the screenshot rules read your name: a picture's
   // quote, and the screenshots card's "needs your name" (PR15)
   profile: ['profile', 'folio', 'welcome', 'evidence-ocr', 'sources'],

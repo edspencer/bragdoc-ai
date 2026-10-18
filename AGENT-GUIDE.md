@@ -85,7 +85,7 @@ when BragDoc isn't running.
 
 | Tool | What it does |
 |------|--------------|
-| `bragdoc_get_context` | **Call it first.** The profile, active projects, tracked repos, the last 20 achievements, the impact scale, the house style and these rules. `repoPath` (your working directory) or `project` adds what's recorded for that repo or project. |
+| `bragdoc_get_context` | **Call it first.** The profile, active projects, tracked repos, the last 20 achievements, the impact scale, the house style and these rules, plus `winInstructions`: what the user says counts as a win for them (their `ai/what-counts.md`, or null). `repoPath` (your working directory) or `project` adds what's recorded for that repo or project. |
 | `bragdoc_search_achievements` | Full-text search with filters (project, repo, dates, source), best match first; newest first without a query. |
 | `bragdoc_get_achievement` | One achievement in full, with its `etag`. |
 | `bragdoc_add_achievement` | Log an achievement, with evidence (links, PR URLs, quotes, files by absolute path). Idempotent on `externalKey`. |

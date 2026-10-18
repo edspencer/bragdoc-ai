@@ -62,6 +62,8 @@ import type {
 import type { Achievement, AchievementCreate, AchievementUpdate, Evidence, FoundCandidate, FoundKeep, Problem, Profile, ProfileUpdate } from '../../shared/schema/index.ts';
 // v0.2's AI plumbing (PR22), on a line of its own so the AI PRs' imports don't collide
 import type { AiActivityResponse, AiInstructionsName, AiInstructionsReset, AiInstructionsResponse } from '../../shared/api.ts';
+// the judge (PR24)
+import type { AiJudgePreview, AiJudgeRunResponse, AiJudgeStatus } from '../../shared/api.ts';
 
 /** A failed API call: the HTTP status (0 when the server couldn't be reached) and the envelope's code and message. */
 export class ApiRequestError extends Error {
@@ -385,3 +387,12 @@ export const resetAiInstructions = (name: AiInstructionsName) => api.post<AiInst
 /** `GET /api/ai/activity`: the AI activity log, newest first. */
 export const getAiActivity = (opts: { limit?: number; offset?: number } = {}, signal?: AbortSignal) =>
   api.get<AiActivityResponse>(`/api/ai/activity?limit=${opts.limit ?? 50}&offset=${opts.offset ?? 0}`, { signal });
+
+// ---------------------------------------------------------------- the judge (PR24)
+
+/** `GET /api/ai/judge/status`: can it run, what's waiting, the run in progress and the last one. */
+export const getJudgeStatus = (signal?: AbortSignal) => api.get<AiJudgeStatus>('/api/ai/judge/status', { signal });
+/** `POST /api/ai/judge/run`: Judge now (what's waiting), or `ids` again. It runs in the background. */
+export const runJudge = (ids?: string[]) => api.post<AiJudgeRunResponse>('/api/ai/judge/run', ids ? { ids } : {});
+/** `GET /api/ai/judge/preview?candidate=`: what would be sent for one candidate (nothing is sent). */
+export const getJudgePreview = (id: string, signal?: AbortSignal) => api.get<AiJudgePreview>(`/api/ai/judge/preview?candidate=${encodeURIComponent(id)}`, { signal });

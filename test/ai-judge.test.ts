@@ -296,7 +296,7 @@ describe('Judge now', () => {
       // the activity log: one run, its counts, never content
       const log = readActivity(r.dir).entries.filter((e) => e.feature === 'judge');
       assert.equal(log.length, 1);
-      assert.deepEqual([log[0]!.trigger, log[0]!.calls.ok, log[0]!.counts, log[0]!.runId ?? log[0]!.id], ['now', 3, { win: 1, 'probably-not': 2 }, res.body.runId]);
+      assert.deepEqual([log[0]!.trigger, log[0]!.calls.ok, log[0]!.counts, log[0]!.id], ['now', 3, { win: 1, 'probably-not': 2 }, res.body.runId]);
       assert.doesNotMatch(JSON.stringify(log), /Amazing|rollback|Jordan/);
       // Network activity: each call, as the judge's, to this computer
       const net = readNetworkLog(r.dir, { limit: 100 }).entries.filter((e) => e.feature === 'judge');
