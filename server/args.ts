@@ -6,7 +6,7 @@
 export class UsageError extends Error {}
 
 /** Options that take a value (`--port 5050` or `--port=5050`). */
-const VALUE_FLAGS = ['port', 'host', 'data-dir', 'engine', 'name', 'aliases', 'not-me'];
+const VALUE_FLAGS = ['port', 'host', 'data-dir', 'engine', 'name', 'aliases', 'not-me', 'connection', 'model', 'schema', 'file', 'system'];
 /** Options that don't. */
 const BOOLEAN_FLAGS = ['open', 'dry-run', 'stdio', 'print', 'snippet', 'json'];
 
