@@ -377,7 +377,7 @@ function TestAndUse({ c, allowed, inUse, status, put }: { c: AiConnectionView; a
           onChange={(e) => setModel(e.target.value)}
           placeholder={c.kind === 'ollama' ? 'qwen3.5:4b' : 'a model name'}
           spellCheck={false}
-          className="min-w-0 flex-1 py-1.5 font-mono text-[12.5px]"
+          className="w-full min-w-0 basis-full py-1.5 font-mono text-[12.5px]"
           data-testid="ai-connection-model"
         />
         <datalist id={listId}>
