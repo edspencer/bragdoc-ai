@@ -1035,6 +1035,57 @@ Export is a download of a blob made in the page; nothing about a folio is writte
 - Cloud hosts can't be pointed at it (and no release build gets a way to redirect one), so cloud paths are tested with
   an injected egress `fetchImpl` (`test/ai-fixture.ts`).
 
+### D69 — Settings → AI: off means nothing that could reach a runner; local models are listed on sight, cloud ones on a click
+
+- With AI off the tab shows the master switch, what being off means, and the connections you've saved, and nothing
+  that could contact a runner. Looking for one, listing models, testing and downloading all wait until AI is on, and the
+  server refuses them too (`ai_off`, 409): "nothing is contacted" (SPEC principle 3) holds for the setup screens, not
+  only the features. Adding, editing and allowing a connection send nothing, so the API still accepts them with AI off
+  (PR21); the tab just doesn't offer them until it's on.
+- A connection on this computer or your network is asked which models it has when its card appears (one logged GET).
+  One on the internet is asked only when you click: opening a settings page must never send a request to a provider.
+  Model lists are cached per connection *and address*, so pointing a connection elsewhere asks again.
+- After a connection on the internet is added, the consent dialog opens at once; "Not now" leaves it saved and blocked.
+  The dialog is made from `shared/ai/consent.ts`, so the page and the docs' provider pages can't disagree.
+- Feature cards are a registry, `FEATURE_CARDS` in `src/settings/ai/index.ts`: each feature PR replaces its `Card: null`
+  with its component, one line, like a route. Until then the tab lists each feature as off with what it will do.
+- AI activity is PR22's log (`GET /api/ai/activity`) as a receipt like Network activity's: one line per run, never content.
+- The header chip appears only while AI is on: "AI · this computer" / "AI · your network" for a local text model, the
+  provider's name (or a typed-in server's host) for one on the internet, "AI · no model yet" before one is chosen.
+
+### D70 — Looking for a runner: a fixed loopback probe through egress, and a look at PATH that runs nothing
+
+- `egress.probe()` is the only way to reach an address that isn't a configured connection (`fetchFor` only reaches a
+  connection's own origin). It allows only loopback names and `host.docker.internal`, only a GET with no body, no
+  query string and no credentials, never follows a redirect, refuses while AI is off, and logs each probe as
+  `feature: detect` with where it went. The probes are the presets' addresses (Ollama 11434, LM Studio 1234, llama.cpp
+  8080) and, when `BRAGDOC_IN_DOCKER=1` (the image sets it), the host's Ollama through `host.docker.internal:11434`.
+- Whether `ollama` is installed is `proc.onPath()`: a stat of PATH's absolute entries. Ollama is not in `ALLOWED_BINS`
+  and never will be: BragDoc doesn't run it, start it or install it. When it's on PATH but nothing answered, the page
+  says to start it; otherwise it says BragDoc doesn't install model runners and links to ollama.com.
+- The last result is kept in `cache/ai/detect.json` (derived, deletable); which runner is already a connection is worked
+  out when it's read, against the connections as they are then.
+- A runner on another port (this project's own dev box runs one on 11500) isn't found, by design: probing a range of
+  ports would be a port scan. Adding it by hand is the path, and the "none found" panel says so.
+
+### D71 — Asking Ollama to download: recommended models only, a server-side confirm, a warning not a wall for disk
+
+- `POST /api/ai/connections/:id/pull` takes only `{ confirm: true, model }` (400 `confirm_needed` otherwise) and only a
+  model from the recommended table whose size is known (`gemma4:e4b`, `qwen3.5:4b`): the confirm has to state the size
+  (SPEC principle 2), and the "better" tier's varies. Anything else is `ollama pull` in a terminal; the command is
+  always shown, with Copy.
+- The confirm restates the download, the free space in your home folder and the RAM it wants against what this machine
+  has. Too little free space or RAM is a red warning and the button becomes "Download anyway", not a block: free space
+  is the home folder's, and Ollama may keep its models on another disk (`OLLAMA_MODELS`), which BragDoc can't see.
+- The answer is Ollama's progress as NDJSON lines, then one `{ done }` line. Cancel closes the request, which closes
+  Ollama's stream (Ollama may keep the part it fetched, to resume; the dialog says so). Turning AI off or revoking the
+  connection stops a download in progress too (`ctx.localAi.cancelAll`, and a once-a-second check for a hand edit of
+  config.yaml), the same as ctx.ai's calls. The pull is logged twice: the
+  loopback request (`this computer`) and "registry (via Ollama)" (`internet`, outcome and error), because the download
+  leaves through Ollama, outside BragDoc's process (D9's honesty, as for gh).
+- The network log also totals the request bytes sent to AI providers on the internet (`toAiInternet` on
+  `GET /api/network-log`), for the receipt's "To AI providers on the internet" line beside "To BragDoc's makers: 0 B".
+  Refused requests and local ones don't count; content is never logged.
 ### D67 — Instructions files: a store kind, written whole, capped, never overwritten unseen
 
 - `ai/what-counts.md` (the judge's) and `ai/style.md` (tidy's and draft's) are user data, so they're a store file kind,

@@ -109,6 +109,8 @@ export interface NetworkLogResponse {
   entries: NetworkLogEntry[];
   /** How many entries the log holds in all (for paging). */
   total: number;
+  /** v0.2: the request bytes sent to AI providers on the internet, over the whole log (never content; SPEC R19). */
+  toAiInternet?: number;
 }
 
 /**
@@ -1015,6 +1017,65 @@ export interface AiModelsResponse {
 /** `PUT /api/ai/features/:feature`: any of that feature's settings (a merge patch). */
 export type AiFeatureUpdate = Partial<AiJudgeSettings> | Partial<AiFeatureSettings['tidy']>;
 
+// ---------------------------------------------------------------- Settings → AI (PR23)
+//
+// Looking for a model runner on this computer, the hardware readings behind "Recommended for this computer", and asking
+// Ollama to download a recommended model (SPEC R18, D69–D71). Routes: server/routes/ai-local.ts.
+
+/** A local runner kind detection looks for. */
+export type AiRunnerKind = 'ollama' | 'lmstudio' | 'llamacpp';
+
+/** `GET /api/ai/hardware`: what this computer (or, under Docker, this container) has. */
+export interface AiHardware {
+  ramBytes: number;
+  cpu: string;
+  cores: number;
+  /** `arm64`, `x64`… */
+  arch: string;
+  appleSilicon: boolean;
+  /** Free space in the home folder (where Ollama keeps models by default): BragDoc can't know where a runner stores them. */
+  freeDiskBytes: number | null;
+  /** The readings are a container's (BRAGDOC_IN_DOCKER=1), not the machine's. */
+  inDocker: boolean;
+  /** The recommended model for this RAM (shared/ai/models.ts recommendFor), or null under 8 GB. */
+  recommended: string | null;
+  /** "roughly 15–20 s per item without a GPU", for a computer that isn't Apple silicon. */
+  speedNote: string | null;
+  /** The recommendations table's date. */
+  modelsAsOf: string;
+}
+
+/** One runner detection found answering. */
+export interface AiDetectedRunner {
+  kind: AiRunnerKind;
+  baseUrl: string;
+  where: AiWhere;
+  version: string | null;
+  models: { name: string; sizeBytes: number | null }[];
+  /** The id of a connection that already points here, or null. */
+  connectionId: string | null;
+}
+
+/** `POST /api/ai/detect` (and `GET`, the last result, or null before the first look). */
+export interface AiDetectResult {
+  at: string;
+  runners: AiDetectedRunner[];
+  /** An `ollama` program on BragDoc's PATH (a look; nothing ran). */
+  ollamaOnPath: boolean;
+  inDocker: boolean;
+}
+
+/** `POST /api/ai/connections/:id/pull`: Ollama only, and only with the confirm. */
+export interface AiPullRequest {
+  confirm: true;
+  model: string;
+}
+
+/** One line of the pull's answer (application/x-ndjson): progress, then one `done`. */
+export type AiPullEvent =
+  | { done?: false; status: string; completed?: number; total?: number }
+  | { done: true; ok: true }
+  | { done: true; ok: false; error: { code: string; message: string } };
 // ---------------------------------------------------------------- AI plumbing (PR22): instructions, activity
 //
 // The instructions files (ai/what-counts.md, ai/style.md; D67) and the AI activity log (logs/ai-runs.jsonl; D68).

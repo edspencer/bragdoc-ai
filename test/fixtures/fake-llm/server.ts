@@ -301,7 +301,7 @@ export async function startFakeLlm(opts: FakeLlmOptions & { port?: number } = {}
   };
 }
 
-// run directly: `node --import tsx test/fixtures/fake-llm/server.ts --port 5150 [--scenario slow] [--recording <file>]`
+// run directly: `node --import tsx test/fixtures/fake-llm/server.ts --port 5150 [--scenario slow] [--recording <file>] [--pull-step-ms 1000]`
 // (--recording: answer what a recording was asked with what it recorded, as the replay tests do)
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
   const arg = (n: string) => {
@@ -316,6 +316,8 @@ if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.me
   const port = Number(arg('port') ?? process.env.PORT ?? 0);
   const recording = arg('recording');
   const rules = recording ? (await import('./replay.ts')).replayRules((await import('../../../scripts/eval/lib.ts')).readRecording(recording)) : [];
-  const f = await startFakeLlm({ port, rules, ...(scenario ? { scenario } : {}) });
+  // --pull-step-ms: a slower fake download, for trying Cancel and "AI off mid-download" by hand
+  const step = Number(arg('pull-step-ms') ?? NaN);
+  const f = await startFakeLlm({ port, rules, ...(scenario ? { scenario } : {}), ...(Number.isFinite(step) ? { pullStepMs: step } : {}) });
   process.stdout.write(`fake-llm on ${f.url} (scenario: ${scenario ?? 'from FAKE_LLM_SCENARIO or ~/.fake-llm/scenario, else ok'})\n`);
 }
