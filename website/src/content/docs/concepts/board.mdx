@@ -1,0 +1,71 @@
+---
+title: The board
+description: "The board is your feed of achievements, grouped by week, with the evidence for each one pinned to its card."
+---
+
+import Shot from '../../../components/Shot.astro';
+
+The board is where your achievements live: one card each, grouped by week (weeks start on Monday), newest first, in
+one, two or three columns depending on the width of your window. Older weeks load as you scroll.
+
+<Shot name="docs-board" alt="The BragDoc board: the Drop it here box with buttons for a screenshot, a PDF or file and a PR link; a strip saying 5 things found by your sources are waiting; a note that this is example data; and this week's achievements as taped cards, one with a sticky-note quote and one with a screenshot of a chat message." caption="The board on the example data: the composer, the Found strip, and this week's cards." />
+
+## Adding something
+
+At the top is a box that says **Drop it here.** You can:
+
+- **type** a line or a few: the first line is the title, the rest is the body;
+- **paste** (⌘V or Ctrl+V) a screenshot or any image, or a link (one per paste; a link you type into the text stays
+  part of the text);
+- **drag and drop** images, PDFs or any other file, anywhere on the page;
+- **pick files** with **Paste a screenshot**, **Add a PDF or file** and **Paste a PR link**.
+
+Each file can be up to 25 MB. A folder can't be added (zip it first).
+
+A pasted GitHub pull request URL becomes a pull request slab. If you've [connected GitHub](/concepts/found-and-sources/#github),
+BragDoc asks GitHub for its title; otherwise it shows as `owner/repo#123`. If that pull request is already on your
+board, the box says so. Any other URL becomes a link, and BragDoc never fetches it.
+
+Pictures are read on your machine (OCR) in the background after you add them, so the words in a screenshot become
+searchable. If the words look like praise for you, the box offers **+ Add the quote as a sticky**. It decides with the
+same plain rules as the [screenshots folder](/concepts/found-and-sources/#a-screenshots-folder), so it needs your name
+in [your profile](/getting-started/quickstart/#2-say-who-you-are-or-skip-it). OCR reads PNG, JPEG, GIF and WebP
+pictures.
+
+Before you pin it, pick its [projects](/concepts/projects/) and repos, how big it was (**How big?**: an impact from 1
+to 10, optional) and when it happened (**When?**: today unless you change it). Then press **Pin it**, or ⌘+Enter
+(Ctrl+Enter).
+
+## The cards
+
+A card shows its date, title, summary and evidence: screenshots as photo prints (click for a larger view), PDFs and
+files as chips, pull requests as dark slabs, quotes as sticky notes. The tape across the top is in the colour of its
+first project. A badge says how it got there when you didn't add it yourself: **Written by Claude Code** (or whichever
+agent wrote it), **From GitHub**, **Spotted on your desktop** (the screenshots folder), or **Imported**.
+
+Click a card to open it in a drawer, where you can change its title, summary, notes, dates (including an end date,
+**Until**, for something that took a while), impact, projects and repos, and add or remove evidence: files, links and
+quotes. From there:
+
+- **Archive** hides it from the board but keeps it. The **Archived** filter shows archived cards, and **Unarchive**
+  brings one back.
+- **Remove** moves its file into `backups/removed/` in your data folder rather than erasing it. The message that
+  appears has an **Undo**.
+
+If the file behind a card can't be read (a broken hand edit), or was written by a newer version of BragDoc, the card
+says so and can't be edited until that's sorted out; see [Your data is files](/concepts/your-data-is-files/#safe-by-design).
+
+## Search and live updates
+
+The search box searches titles, summaries, notes, evidence titles and links, quotes (and who said them), file names,
+and the text read from pictures. The search is kept in the page's address (`?q=`), so you can bookmark it.
+
+The board updates live when its files change on disk, whether the change came from your editor, a `git pull`, or an
+agent.
+
+When sources have spotted things, a strip at the top says how many are waiting in [Found](/concepts/found-and-sources/).
+If a file in your data folder has a problem, a banner says so and links to Settings → Data.
+
+## On a phone
+
+<Shot name="docs-board-mobile" alt="The board on a phone: one column of cards, with the Board, Found, Projects and Folio tabs along the bottom." caption="At phone width: one column, with the tabs along the bottom." max={300} />

@@ -12,7 +12,7 @@ test('machine paths, private addresses, other ports and real emails are leaks', 
 });
 
 test('the default port, ~ paths and .example addresses are fine', () => {
-  for (const t of ['localhost:2724', '127.0.0.1:2724/mcp', '~/.bragdoc/achievements', 'alex@altimetry.example', 'dana@mail.quillfeather.example', 'wiki.altimetry.example'])
+  for (const t of ['localhost:2724', '127.0.0.1:2724/mcp', 'localhost, 127.0.0.1 and [::1]', '~/.bragdoc/achievements', 'alex@altimetry.example', 'dana@mail.quillfeather.example', 'wiki.altimetry.example'])
     assert.deepEqual(leaks(t), [], t);
 });
 

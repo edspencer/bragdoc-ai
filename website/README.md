@@ -41,15 +41,25 @@ npm run check-external              # after a build: nothing is loaded from anot
 
 ## Screenshots
 
-There are no real captures of the app yet: it isn't built. The landing page's picture of the board
-(`src/assets/landing/board-light.png`, `board-dark.png`) is a capture of the Scrapbook **design prototype**, at
-1200×800 and 2× scale, in each theme. Every name, company and message in it is invented. Before capturing, the
-prototype's AI status pill, its "demo" labels and its "States" control were removed from the page, because v0.1 has
-no AI and the demo controls aren't part of the app. The page tags it "Mock-up · design prototype, invented data".
+Every screenshot is a real capture of the app on its made-up example data, taken by the repo's capture rig
+(`../tools/docs-media/`, see its README) in both themes, and tagged "Real capture · example data":
 
-When the app is built (PR19), real captures come from the example dataset through the repo's leak-scanning capture
-rig, tagged "Real capture · example data". Check every pixel for host names, paths and real names before committing
-one: the repository is public.
+```bash
+# at the repo root
+npm run docs:media        # build, boot BragDoc on throwaway data folders, take every shot (leak-scanned)
+npm run docs:media:sync   # copy the ones the site uses into src/assets/shots/ and src/assets/landing/
+```
+
+- In a page (`.mdx`), `<Shot name="docs-board" alt="…" caption="…" />` (`src/components/Shot.astro`) shows
+  `src/assets/shots/docs-board-light.png` or `-dark.png`, following the reader's theme, at half its pixel width
+  (the rig shoots at 2x) with 1x and 2x variants. The page's Markdown copy (`/<page>.md`, llms-full.txt) gets a line
+  with its alt text instead.
+- The landing page's board is `src/assets/landing/landing-board-{light,dark}.png`.
+- A new shot goes in `../tools/docs-media/shots.ts` first; `test/docs.test.ts` fails on a page using a shot that
+  isn't listed there, or isn't committed.
+
+Look at every picture before committing it: the leak scan reads the page's text, not its pixels, and the repository
+is public.
 
 ## Fonts and brand
 

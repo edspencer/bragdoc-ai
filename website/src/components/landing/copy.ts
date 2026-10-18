@@ -6,7 +6,7 @@
  * The rules (website/CLAUDE.md "Content rules"): this is a documentation site, not marketing. Say plainly what
  * BragDoc is, how to run it, and what it promises; no selling, no pricing, no testimonials. Every claim must be
  * checkable against SPEC/spec.md and the code. While v0.1 isn't released (RELEASED in site.mjs), the page says so next
- * to the install command, and nothing here may describe a feature as available today.
+ * to the install command: the features are built (on `next`), but there's nothing to install from npm yet.
  */
 
 import { REPO_URL, INSTALL_COMMAND, RELEASED, DEFAULT_PORT } from '../../site.mjs';
@@ -30,7 +30,7 @@ export const INSTALL = {
 	/** The tag on the card: honest about whether it works yet. */
 	tag: RELEASED ? 'On npm' : 'Not on npm yet',
 	/** Under the card while there's no release. */
-	notYet: RELEASED ? null : 'v0.1 is being built in the open. Until it is released, this command won’t find anything; follow along on GitHub.',
+	notYet: RELEASED ? null : 'v0.1 is built in the open, on GitHub, but not released yet: until it is, this command won’t find anything. You can run it from source in the meantime.',
 } as const;
 
 /** The hero buttons. */
@@ -40,11 +40,11 @@ export const HERO_LINKS = [
 	{ text: 'Source on GitHub', href: REPO_URL, primary: false },
 ] as const;
 
-/** The mock-up print under the hero. */
-export const MOCKUP = {
-	alt: 'A mock-up of the BragDoc board: a "Drop it here." box for screenshots, PDFs and links, a strip saying 7 things found by your sources are waiting for a yes or no, and this week’s achievements as taped cards, one with a sticky-note quote and one with a screenshot of a chat message praising the work. Every name in it is invented.',
-	tag: 'Mock-up · design prototype, invented data',
-	caption: 'The board, as designed. Real captures come with the release.',
+/** The board print under the hero: a real capture of the app (tools/docs-media, shots landing-board-light/-dark). */
+export const SHOT = {
+	alt: 'The BragDoc board: a "Drop it here." box for screenshots, PDFs and links, a strip saying 5 things found by your sources are waiting for a yes or no, a note that this is example data, and this week’s achievements as taped cards, one with a sticky-note quote and one with a screenshot of a chat message praising the work. Every name in it is invented.',
+	tag: 'Real capture · example data',
+	caption: 'The board, filled with BragDoc’s made-up example data.',
 };
 
 /**
@@ -62,7 +62,7 @@ export const GUARANTEES = [
 	},
 	{
 		title: 'Nothing leaves unless you connect it',
-		body: 'BragDoc sends nothing off your machine on its own: no telemetry, no update check, no analytics. The only outbound requests go to services you connect yourself, such as GitHub, and Settings → Network activity will list every one.',
+		body: 'BragDoc has no server. It never sends your data to us or to anyone else: no telemetry, no update check, no analytics. The only network calls it makes are to services you connect yourself (in v0.1, that means GitHub), and Settings → Network activity shows you every one.',
 		href: '/guarantees/network-activity/',
 		link: 'Network activity',
 		tape: 'blue',
@@ -96,7 +96,7 @@ export const HOW = {
 		{
 			word: 'Folio',
 			title: 'Pull it together for a review',
-			body: 'Pick a date range, filter by project or impact, and export the lot as Markdown, ready to paste into a self-review or a promotion case.',
+			body: 'Pick a date range, filter by project or impact, and take the lot away as Markdown (export or copy it) or print it, ready for a self-review or a promotion case.',
 			href: '/concepts/folio/',
 		},
 	],
@@ -106,7 +106,7 @@ export const HOW = {
 export const AGENTS = {
 	eyebrow: 'Works with your coding agent',
 	title: 'Your agent was there. Let it take notes.',
-	body: 'v0.1 comes with an MCP server, so Claude Code (or any MCP client) can log what you just shipped, with the pull request attached, while it still remembers why it mattered. Its writes go straight onto your board, labelled as written by your agent (or into Found first, if you prefer). And because the data is just files, any agent that can edit a file can help.',
+	body: 'BragDoc has an MCP server, so Claude Code (or any MCP client) can log what you just shipped, with the pull request attached, while it still remembers why it mattered. Its writes go straight onto your board, labelled as written by your agent (or into Found first, if you prefer). And because the data is just files, any agent that can edit a file can help.',
 	link: { text: 'Agents and MCP', href: '/agents/overview/' },
 	/** An achievement file in the format of docs/data-format.md (ids shortened). Illustrative, not real data. */
 	file: 'achievements/2026/10/01M4XJCNXR….md',
@@ -121,8 +121,9 @@ evidence:
   - id: 01M4XJCNXS…
     kind: github_pr
     url: https://github.com/acme/web/pull/481
+    externalKey: github_pr:acme/web#481
 source: mcp
-sourceAgent: claude-code
+sourceAgent: Claude Code
 archived: false
 createdAt: 2026-10-14T16:02:11.000Z
 updatedAt: 2026-10-14T16:02:11.000Z

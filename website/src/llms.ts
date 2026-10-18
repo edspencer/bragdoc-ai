@@ -33,7 +33,7 @@ export async function sections(): Promise<Section[]> {
 
 const status = RELEASED
 	? `**Status:** released on npm (\`${INSTALL_COMMAND}\`, Node 22.12+). What shipped in each release is at ${SITE_URL}/whats-new/.`
-	: `**Status:** v0.1 is being built and is not on npm yet. These pages describe what v0.1 is being built to do; pages marked "Coming in v0.1" describe features that don't exist yet. See ${SITE_URL}/roadmap/.`;
+	: `**Status:** v0.1 is built on the \`next\` branch but not released, so it is not on npm yet. These pages describe it as built. See ${SITE_URL}/whats-new/.`;
 
 export const intro = `# ${TITLE}
 
@@ -46,3 +46,10 @@ Every page below is also available as Markdown at the same URL with \`.md\` inst
 
 /** `/introduction/` → `https://…/introduction.md` */
 export const mdUrl = (e: Entry) => `${SITE_URL}/${e.id}.md`;
+
+/** `<Shot name="…" alt="What it shows" … />` → `*Screenshot: What it shows*`; the component's import line goes. */
+export const unShot = (body: string) =>
+	body
+		.replace(/^import Shot from .*\n/m, '')
+		.replace(/<Shot\b[^>]*?\balt="([^"]*)"[^>]*\/>/g, (_, alt: string) => `*Screenshot: ${alt}*`)
+		.replace(/\n{3,}/g, '\n\n');

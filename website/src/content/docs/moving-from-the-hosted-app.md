@@ -41,7 +41,10 @@ Problems: 1 not imported, 1 to be imported with a change.
 
 Documents and reviews would go to imports/2026-10-17T09-00-00Z/ in your data folder, as read-only markdown.
 Nothing has been written. Run it again without --dry-run to import.
+Data folder: ~/.bragdoc
 ```
+
+(Only the first 20 problems are listed, then how many more there are.)
 
 Then import it for real:
 
@@ -53,7 +56,8 @@ If BragDoc is running, the import goes through it; if not, the command writes to
 BragDoc takes a snapshot of your data folder first (in `backups/`), so you can always get back to how things were.
 Use `--data-dir <dir>` to import into a data folder other than `~/.bragdoc`.
 
-You'll be able to do the same from **Settings → Data** in the app, and the first-run welcome will offer it too.
+You can do the same in the app: **Settings → Data** has an importer that shows the same dry run before anything is
+written. The first step of Welcome points you there too.
 
 ## What comes across
 
@@ -80,7 +84,7 @@ Within a good file, each item is checked on its own. An item that can't be impor
 is listed as an error, and everything else still comes across. Items that need a small change are imported and listed
 as warnings: a project colour BragDoc can't use gets one of its own; an achievement whose project or company isn't in
 the export is imported without it, with the original id kept under `meta.legacy`; an achievement with no title takes
-the first line of its summary.
+the first line of its summary (or, without one, of its details).
 
 ## Safe to repeat
 

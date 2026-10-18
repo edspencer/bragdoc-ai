@@ -17,6 +17,16 @@ A command-line option always wins over its environment variable.
 | `BRAGDOC_ALLOWED_HOSTS` | (none) | Extra hostnames BragDoc answers to, comma separated, added to `allowedHosts` in [config.yaml](/reference/config-yaml/). For Docker or a reverse proxy. |
 | `BRAGDOC_DANGEROUSLY_ALLOW_OPEN` | (unset) | Set to `1` to let BragDoc listen on an address other networks can reach. BragDoc has no login, so only do this when something else limits who can connect, such as Docker publishing the port on `127.0.0.1` only. See [Localhost security](/guarantees/localhost-security/). |
 
+## Read from your environment
+
+BragDoc also follows a few standard variables, as any well-behaved command does:
+
+| Variable | What BragDoc uses it for |
+| --- | --- |
+| `XDG_CONFIG_HOME` | Linux: where the login service's systemd unit goes, where editors keep their recent-project lists (for Welcome's **Also look at**), and `user-dirs.dirs`, whose pictures folder helps suggest a screenshots folder. Default `~/.config`. |
+| `NO_COLOR`, `FORCE_COLOR`, `TERM`, `COLORTERM` | Whether, and in how many colours, `serve` prints its startup banner. |
+| `GH_TOKEN` | Not read by BragDoc, but passed on to the `gh` CLI it runs, which uses it instead of its own login. |
+
 ## For development
 
 These are read by `npm run dev` and the build in a checkout of the repository (see [Contributing](/contributing/)),

@@ -3,6 +3,8 @@ title: Folio
 description: "Folio gathers the achievements in a date range into a Markdown document you can export, copy or print, for reviews and promotion cases."
 ---
 
+import Shot from '../../../components/Shot.astro';
+
 Folio is for the moment you need it all in one place: a self-review, a promotion case, a CV update, a one-to-one. Open
 it from **Folio** in the header.
 
@@ -10,17 +12,20 @@ it from **Folio** in the header.
    quarter" and "this year" run to today. With nothing picked, Folio shows the last six months.
 2. **Filter:** by project (including "No project"), by company, or by minimum impact. "At least 5" leaves out
    achievements you haven't rated; at the far left, everything counts, rated or not. Only projects and companies with
-   something in the window are offered, with a count.
+   something in the window are offered (projects with a count).
 3. **Choose the clippings:** every matching achievement is listed, best first (highest impact, then newest). Untick
    the ones to leave out, or use **Tick all** and **Untick all**. Unticked ones stay in the list, faded, so you can
-   change your mind.
+   change your mind. A long list shows the best ones first, with **Show all** for the rest.
 4. **Read the preview:** the right-hand side shows the document as a printout, or as the raw Markdown. Group it by
-   **project** (the default), **month** or **week**.
+   **project** (the default), **month** or **week**; grouped by month or week, each line names its projects.
 5. **Take it away:** **Export .md** downloads `bragdoc-<from>-<to>.md`; **Copy** puts the same Markdown on the
    clipboard; **Print** prints just the printout, black on white, with each link's address written out (or save it as
-   a PDF from your browser's print dialog).
+   a PDF from your browser's print dialog). If your browser won't let BragDoc use the clipboard, it says so and points
+   you at **Export .md**.
 
-Everything you pick lives in the page's address, so reloading, going back, or bookmarking it brings the same folio
+<Shot name="docs-folio" alt="Folio for July to October: filters for projects, companies and impact on the left, a list of ticked achievements, and on the right the document as a printout headed Alex Marlowe: achievements, grouped by project." caption="A folio of the example data's last few months, grouped by project." />
+
+Everything you pick, the printout or Markdown view included, lives in the page's address, so reloading, going back, or bookmarking it brings the same folio
 back.
 
 ## What's in the document
@@ -34,7 +39,7 @@ _1 July 2026 – 30 September 2026 · 12 achievements_
 
 - **Offline sync survived its first real weekend** · 13 Sep 2026 · impact 8/10
   Crews ran 140 checklists on flaky Wi-Fi.
-  - PR: [altimetry/preflight-web#341: CRDT merge](https://github.com/altimetry/preflight-web/pull/341)
+  - PR: [altimetry-example/preflight-web#341: CRDT merge](https://github.com/altimetry-example/preflight-web/pull/341)
   - Screenshot: sync-dashboard.png
   > Not one conflict all weekend.
   >
@@ -49,7 +54,7 @@ _1 July 2026 – 30 September 2026 · 12 achievements_
 - **Files are named, never located.** Screenshots, PDFs and other files appear by their caption or file name only:
   no folder, and no link to BragDoc, which nobody you send the document to could open.
 - **Nothing that only works on your computer or your network** goes in: a link to `localhost`, a private address
-  (`192.168.…`, `10.…`) or a local name (`.local`, `.lan`) is named and marked as left out, and links that aren't web
+  (`192.168.…`, `10.…`) or a local name (`.local`, `.lan`, `.internal`, `.home.arpa`) is named and marked as left out, and links that aren't web
   pages (`mailto:`, `file:`) are dropped. The same goes for text you wrote: a local link in a summary or a quote
   becomes "(a local link)", and a file's location (`/Users/…`, `~/…`, `C:\…`) becomes just its name. Internal ids
   never appear.

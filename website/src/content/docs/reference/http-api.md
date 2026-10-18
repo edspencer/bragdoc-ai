@@ -4,10 +4,10 @@ description: "The local HTTP API the BragDoc web app uses, the rules every reque
 ---
 
 :::note[Tracking `next`]
-The API is being built with the app, and changes between commits until v0.1 is released. This page lists what is on
-the [`next` branch](https://github.com/edspencer/bragdoc-ai/tree/next) or in review, and will be filled in as the
-features land. For agents, prefer [MCP](/agents/mcp/) or [the files](/reference/data-folder/): those are the stable
-interfaces.
+This page lists every endpoint on the [`next` branch](https://github.com/edspencer/bragdoc-ai/tree/next) (the root
+test suite checks it against the server's routes). The API is the web app's own, and may change between versions
+before 1.0. For agents, prefer [MCP](/agents/mcp/) or [the files](/reference/data-folder/): those are the stable
+interfaces. The request and response types are in `shared/api.ts` in the repository.
 :::
 
 BragDoc's web app talks to its own server over a JSON API under `/api/`, on the same address
@@ -22,30 +22,91 @@ These are enforced for every request (see [Localhost security](/guarantees/local
   ([config.yaml](/reference/config-yaml/)) or `BRAGDOC_ALLOWED_HOSTS`. Otherwise: **403**.
 - If the request has an `Origin` header, it must be BragDoc's own (the same host and port as the request), on every
   request. `/api/*` and `/mcp` also refuse `Sec-Fetch-Site: cross-site` and `same-site`. Otherwise: **403**.
-- Its body must be `application/json`, or a typed upload whose type isn't `text/plain`,
-  `application/x-www-form-urlencoded` or `multipart/form-data`. Otherwise: **415**. JSON bodies are capped at 1 MB
-  (50 MB for a hosted-app export sent to `/api/import/*`), uploads at 25 MB.
-- Errors are JSON: `{ "error": { "code": "…", "message": "…" } }`.
+- Its body must be `application/json`, or, where an endpoint takes a file (only `POST /api/evidence`), the file's own
+  type, never `text/plain`, `application/x-www-form-urlencoded` or `multipart/form-data`. Otherwise: **415**. JSON
+  bodies are capped at 1 MB (50 MB for a hosted-app export sent to `/api/import/*`), uploads at 25 MB; more is a
+  **413**.
+- JSON bodies are checked strictly: an unknown key is a **400**, whose error says which.
+- Errors are JSON: `{ "error": { "code": "…", "message": "…" } }`. An unknown `/api/…` path is a JSON **404**
+  (`not_found`).
+- Entries you can edit come with an `etag`. Send it back as `If-Match` on a change (`PATCH`, `DELETE`, remove), and a
+  change made against a stale copy is a **409** (`conflict`) rather than a silent overwrite. A store error maps to
+  **404** (not found), **400** (invalid, with the keys at fault) or **409** (conflict, or a file that's read-only
+  because it's broken or from a newer BragDoc).
 
-## Endpoints
 
-| Method and path | What it returns |
+## The app and its server
+
+| Method and path | What it does |
 | --- | --- |
 | `GET /api/health` | `{ "ok": true, "version": "…" }`. Used by the service's readiness check and Docker's health check. |
-| `GET /api/events` | A Server-Sent Events stream of changes, for live updates. |
-| `GET /api/meta` | What this server is and how it's set up: version, build information (release builds only), data folder, MCP address, allowed hosts, the current outbound allow-list, and any notices. |
-| `GET /api/network-log` | Recent outbound requests, for [Network activity](/guarantees/network-activity/). |
-| `POST /mcp` | The [MCP server](/agents/mcp/). Needs `Authorization: Bearer <token>`; GET and DELETE are 405 (it's stateless). |
-| `GET /agent-guide.md`, `/llms.txt`, `/llms-full.txt` | The [agent guide](/agents/agent-guide/), with this BragDoc's live facts. |
-| `POST /api/import/plan` | A dry run of importing a [hosted-app export](/moving-from-the-hosted-app/): the export file is the JSON body (up to 50 MB). Returns what would be added, what's already here, what can't be imported, the fields left behind and why, and any problems. Writes nothing. A file that isn't a version 1.0 export is a **400** (`invalid_export`, `unsupported_version`). |
-| `POST /api/import/apply` | The same, for real: it imports the export and returns the same report of what it did, plus the snapshot it took first. Importing the same export again adds nothing. **409** `import_running` while another import is running. |
-| `GET /api/folio?from=YYYY-MM-DD&to=YYYY-MM-DD` | [Folio](/concepts/folio/)'s data for a date window: its achievements (archived ones left out), newest first, cut down to what a folio may show (no ids beyond each achievement's own, no file locations, no links to this computer), plus every project and company and your profile's name. Both dates are required; a bad or backwards window is a **400**. Read-only: the export is made in the browser. |
+| `GET /api/events` | A Server-Sent Events stream: a `change` event (`{ "type": "achievement" }`, `"found"`, `"config"`, …) whenever something changes, on disk or through the app, so pages refresh themselves. |
+| `GET /api/meta` | What this server is: its version and build (commit, time, and whether it's an official release build), its data folder, MCP address, allowed hosts, the current outbound allow-list, and any notices. |
+| `GET /api/network-log` | Recent outbound requests, newest first, for [Network activity](/guarantees/network-activity/): `{ entries, total }`. `?limit=` (default 100, at most 500) and `&offset=`. |
+| `POST /api/network-log/guard-check` | **Test the guard**: asks the egress module to send a request to a host that isn't allowed. It's refused and logged, and nothing is sent. |
+| `GET /api/problems` | The files in your data folder that BragDoc can't use as they are (broken YAML, a missing reference, a misnamed file), errors first, with what's wrong and where. |
+| `GET /api/backups` | The snapshots in `backups/`, newest first, and how many are kept. |
+| `GET /api/settings` | The settings Settings shows: where MCP writes go, and whether GitHub is on and how. |
+| `PUT /api/settings/mcp` | `{ "writeTo": "board" }` or `"found"`: where achievements from your MCP agents go. **409** `config_invalid` if `config.yaml` is broken (fix it first). |
+| `GET /api/mcp/token` | The MCP address and token, for Settings (never cached). |
+| `POST /api/mcp/token/rotate` | Make a new MCP token. The old one stops working at once. |
+
+## Achievements and evidence
+
+| Method and path | What it does |
+| --- | --- |
+| `GET /api/achievements` | The board: whole weeks (from Monday), newest first, `{ items, total, nextBefore }`. Filters: `q` (search), `projectId`, `repoId`, `companyId`, `from`, `to`, `archived` (`exclude`, `include` or `only`), `source`, `minImpact` (1–10), `weeks` (default 8), and `before` (the previous page's `nextBefore`). |
+| `GET /api/achievements/:id` | One achievement, with its `etag`, the details of its stored files, and whether it's broken or read-only. |
+| `POST /api/achievements` | A new achievement: `title` is required; `summary`, `body`, `happenedAt`, `endedAt`, `impact`, `projects`, `repos`, `companyId`, `evidence`, `source`, `externalKey` and the rest are optional. **201** `{ achievement, created: true }`, or **200** with `created: false` and the existing one when its `externalKey` is already on the board. |
+| `PATCH /api/achievements/:id` | Change fields (with `If-Match`). An `evidence` array replaces the whole list. |
+| `POST /api/achievements/:id/archive` | Archive it (hidden from the board, kept). |
+| `POST /api/achievements/:id/unarchive` | Bring it back. |
+| `POST /api/achievements/:id/remove` | Move its file to `backups/removed/` (`{ removedTo }`; takes `If-Match`). |
+| `POST /api/achievements/:id/restore` | Bring back the newest removed copy. |
+| `POST /api/evidence` | Store a file: the raw bytes as the body, its type as `Content-Type`, its name (URI-encoded) in `X-Filename`. Returns `{ evidence, file, created }`: an evidence item to put on an achievement. **400** for an empty file, **413** over 25 MB, **415** `type_mismatch` when the bytes aren't the picture or PDF they claim to be, or `damaged`. |
+| `GET /api/evidence/:sha` | A stored file. PNG, JPEG, GIF, WebP, AVIF and SVG pictures are shown; anything else downloads. |
+| `GET /api/evidence/:sha/thumb` | A stored picture, for the board (**404** for anything that isn't a picture). |
+| `GET /api/evidence/:sha/ocr` | The text read from a picture on the board, in the background after it's added: `pending`, `done` (with `text`, and the `quote` when it's praise for you), `failed`, or `none` (not a picture). |
+| `POST /api/link-preview` | `{ "url": "…" }`: what a pasted link becomes. A GitHub pull request gives `owner/repo#123`, its key, the matching repo and its projects as suggestions, whether it's already on the board, and its title if GitHub is connected. Any other link gives its domain, and is never fetched. |
+
+## Projects, companies and repos
+
+| Method and path | What it does |
+| --- | --- |
+| `GET /api/projects` | Every project, each with its `etag` and how many achievements it has. |
+| `POST /api/projects` | A new project: `name` is required; `description`, `color`, `start`, `end`, `status`, `companyId` and `repoIds` are optional. **201**. |
+| `GET /api/projects/:id` | One project. |
+| `PATCH /api/projects/:id` | Change it (with `If-Match`). |
+| `DELETE /api/projects/:id` | Move its file to `backups/removed/` and take it off its achievements: `{ removedTo, detached }`. |
+| `POST /api/projects/:id/restore` | Put it back; `{ "reattach": { "achievements": […] } }` re-tags what the delete untagged (the app's Undo). |
+| `POST /api/projects/:id/repos` | `{ "link": [ids], "unlink": [ids] }`: link or unlink repos, all or nothing. |
+| `GET /api/projects/:id/summary` | A project's pile: the project, its company and repos, its achievements (up to 200), counts of its evidence by kind, and its first and last dates. |
+| `GET /api/companies` | Every company. |
+| `POST /api/companies` | `{ "name": "…", "role": "…", "start": "…", "end": "…" }` (only `name` required). **201**. |
+| `GET /api/companies/:id` | One company. |
+| `PATCH /api/companies/:id` | Change it (with `If-Match`). |
+| `DELETE /api/companies/:id` | Remove it; its projects and achievements lose their company (`{ removedTo, detached }`). |
+| `POST /api/companies/:id/restore` | Put it back. |
+| `GET /api/repos` | Every repo, each with its `etag`. |
+| `POST /api/repos` | `{ "localPath": "~/Code/my-app" }` and/or `{ "remoteUrl": "…" }`, plus `name` and `tracked`. A folder must be a git checkout; its remote is read from its own git config. **201**, or **200** with `created: false` if it's already there. |
+| `GET /api/repos/:id` | One repo. |
+| `PATCH /api/repos/:id` | Change it (with `If-Match`). |
+| `DELETE /api/repos/:id` | Remove it, and unlink it from its projects and achievements. |
+| `POST /api/repos/:id/restore` | Put it back. |
+
+## Found and sources
+
+| Method and path | What it does |
+| --- | --- |
 | `GET /api/found` | The candidates waiting in [Found](/concepts/found-and-sources/), newest first, and how many each source has. `?source=github` (or `screenshots`, `mcp`) shows one source's. |
+| `GET /api/found/count` | `{ "pending": 5 }`, for the badge and the board's strip. |
 | `POST /api/found/:id/keep` | Make the candidate an achievement, with its evidence and suggested projects. The body may change the title, summary, body, date, impact, projects or repos. |
 | `POST /api/found/:id/merge` | `{ "achievementId": "…" }`: attach the candidate's evidence to an achievement you already have. |
-| `POST /api/found/:id/dismiss` | Set it aside for good: its file keeps only a hash of its key, so the same pull request never comes back. |
-| `POST /api/found/:id/undo` | Undo keep, merge or dismiss (a dismissal only until BragDoc restarts). |
-| `GET /api/sources` | Each source's state: for GitHub, whether it's on and how (the gh CLI or a token), where it looks, the last check and what it found, and any error; for the screenshots folder, which folder, whether it's watching (or what's wrong), and what it has looked at and sent to Found. |
+| `POST /api/found/:id/dismiss` | Set it aside for good: its file keeps only hashes of its keys, so the same pull request never comes back. |
+| `POST /api/found/:id/undo` | Undo keep, merge or dismiss (a dismissal only until BragDoc restarts). A decision on one already decided is a **409**. |
+| `GET /api/found/:id/picture` | A screenshot candidate's picture, read from where it is; **404** `gone` if it was moved, deleted or replaced. |
+| `GET /api/sources` | Each source's state: for GitHub, whether it's on and how (the gh CLI or a token), where it looks, the last check and what it found, and any error (with `retryAt` when GitHub asked it to wait); for the screenshots folder, which folder, whether it's watching (or what's wrong), and what it has looked at and sent to Found; and where MCP writes go. |
+| `GET /api/sources/github/gh` | `{ "installed": true }`: whether `gh` is on your `PATH` (it isn't run). |
 | `POST /api/sources/github/connect` | `{ "auth": "gh" }` or `{ "auth": "token", "token": "…" }`, plus optional `lookBackDays` and `repos`: check the login, switch GitHub on and start the first check. A token GitHub refuses isn't kept. |
 | `PUT /api/sources/github` | Change `lookBackDays`, `repos` or `hourly`. |
 | `POST /api/sources/github/run` | Check GitHub now, and wait for it. **429** while GitHub has asked BragDoc to wait. |
@@ -53,11 +114,21 @@ These are enforced for every request (see [Localhost security](/guarantees/local
 | `GET /api/sources/screenshots/suggestions` | Folders worth watching on this computer (where it saves screenshots), and whether each exists. |
 | `PUT /api/sources/screenshots` | Any of `{ "folder": "~/Screenshots", "enabled": true, "onlyScreenshots": true }`. The folder is checked first: a missing, unreadable or hidden one is refused with what's wrong (`missing`, `denied`, `not_allowed`, …) and nothing is saved. |
 | `POST /api/sources/screenshots/look-back` | `{ "days": 7 }` (1 to 30): read the folder's pictures from those days, once. **409** `busy` while one is running. |
-| `GET /api/found/:id/picture` | A screenshot candidate's picture, read from where it is; **404** `gone` if it was moved, deleted or replaced. |
-| `GET /api/evidence/:sha/ocr` | The text read from a picture on the board, in the background after it's added: `pending`, `done` (with `text`, and the `quote` when it's praise for you), `failed`, or `none` (not a picture). |
+
+## Folio
+
+| Method and path | What it does |
+| --- | --- |
+| `GET /api/folio` | `?from=YYYY-MM-DD&to=YYYY-MM-DD`: [Folio](/concepts/folio/)'s data for a date window: its achievements (archived ones left out), newest first, cut down to what a folio may show (no ids beyond each achievement's own, no file locations, no links to this computer), plus every project and company and your profile's name. Both dates are required; a bad or backwards window is a **400**. Read-only: the export is made in the browser. |
+
+## Welcome, your profile and example data
+
+| Method and path | What it does |
+| --- | --- |
 | `GET /api/welcome` | Whether the board should open [Welcome](/getting-started/quickstart/): `firstRun` is true while there's no `profile.yaml` and Welcome wasn't skipped. Also says whether the old CLI's files were moved into `legacy-cli/`. |
 | `POST /api/welcome/skip` | `{}` (or `{ "skipped": false }` to undo): remember that you skipped Welcome, as `welcome.skipped` in `config.yaml`. |
-| `GET /api/profile`, `PUT /api/profile` | Your `profile.yaml` (`null` before you've written one) and its ETag; `PUT` changes fields (`null` clears one; the first write needs a `name`). `If-Match` is optional. |
+| `GET /api/profile` | Your `profile.yaml` (`null` before you've written one) and its ETag. |
+| `PUT /api/profile` | Change fields (`null` clears one; the first write needs a `name`). `If-Match` is optional. |
 | `GET /api/discover/suggestions` | Which usual code folders exist (`~/Code`, `~/src`, `~/dev`, `~/projects`, `~/work`, …) and which editors' recent-project lists are there to read. A look at names only: nothing is opened. |
 | `POST /api/discover/scan` | `{ "root": "~/Code" }` and/or `{ "hints": ["vscode", "jetbrains", "claude"] }`: the git repos in that folder, at most 4 levels down and for at most 5 seconds (`timedOut` says if it stopped), plus those the ticked hints name, each with what its `.git` says about when you last worked in it. Nothing is stored. A folder that can't be scanned is a **400** (`no_such_folder`, `not_a_folder`, `unreadable`, `too_broad`, `not_absolute`). |
 | `POST /api/discover/add` | `{ "repos": [{ "path": "~/Code/my-app", "project": { "name": "My app" } }] }`: save these repos (each checked again: it must be a git checkout), optionally each with a new or existing (`{ "id": "…" }`) project. Answers per repo. |
@@ -65,4 +136,18 @@ These are enforced for every request (see [Localhost security](/guarantees/local
 | `POST /api/example` | `{}` (or `{ "asOf": "YYYY-MM-DD" }` to place its dates): add the example data that isn't there yet. Adding it twice adds nothing. |
 | `POST /api/example/remove` | `{}`: remove every entry marked `example: true`, into `backups/removed/`. Your own entries stay; a project of the example data is taken off any of yours that you tagged with it. |
 
-Achievements, evidence, projects and settings get their endpoints as those features are built.
+## Importing
+
+| Method and path | What it does |
+| --- | --- |
+| `POST /api/import/plan` | A dry run of importing a [hosted-app export](/moving-from-the-hosted-app/): the export file is the JSON body (up to 50 MB). Returns what would be added, what's already here, what can't be imported, the fields left behind and why, and any problems. Writes nothing. A file that isn't a version 1.0 export is a **400** (`invalid_export`, `unsupported_version`). |
+| `POST /api/import/apply` | The same, for real: it imports the export and returns the same report of what it did, plus the snapshot it took first. Importing the same export again adds nothing. **409** `import_running` while another import is running. |
+
+## For agents
+
+| Method and path | What it does |
+| --- | --- |
+| `POST /mcp` | The [MCP server](/agents/mcp/) (stateless Streamable HTTP). Every request needs `Authorization: Bearer <token>`: without it, or with an old one, a **401**. `GET /mcp` and `DELETE /mcp` are **405** (it's stateless). `GET /.well-known/oauth-*` is a **404**: it uses a token, not OAuth. |
+| `GET /agent-guide.md` | The [agent guide](/agents/agent-guide/), with this BragDoc's live facts. |
+| `GET /llms.txt` | The [llms.txt](https://llmstxt.org) for agents: where the guide and the MCP server are. |
+| `GET /llms-full.txt` | The same, with the whole guide in it. |

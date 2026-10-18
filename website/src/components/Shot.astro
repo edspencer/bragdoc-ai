@@ -1,0 +1,88 @@
+---
+/**
+ * A real screenshot of the app, in the reader's theme: `<Shot name="docs-board" alt="…" caption="…" />` in an .mdx page
+ * shows src/assets/shots/docs-board-light.png in the light theme and docs-board-dark.png in the dark one.
+ *
+ * The PNGs come from the repo's capture rig (tools/docs-media: `npm run docs:media && npm run docs:media:sync`), taken
+ * on the example dataset and leak-scanned; test/docs.test.ts fails on a <Shot> whose name isn't a shot in
+ * tools/docs-media/shots.ts, or whose PNGs aren't committed. The rig captures at 2x, so each picture is shown at half
+ * its pixel width (never wider than the column), with 1x and 2x variants: crisp on a retina screen, small on others.
+ *
+ * Why a component rather than Markdown images (Local Review's rehype-shots): Astro 7 renders Markdown without rehype
+ * plugins unless @astrojs/markdown-remark is added, and a Markdown image can't follow the theme.
+ */
+import { Image } from 'astro:assets';
+import type { ImageMetadata } from 'astro';
+
+interface Props {
+	/** The shot's name in shots.ts, without -light / -dark. */
+	name: string;
+	/** What the picture shows, for screen readers (the same for both themes). */
+	alt: string;
+	/** The line under it. */
+	caption?: string;
+	/** The widest it is shown, in CSS px (default: the column, 760). */
+	max?: number;
+}
+
+const { name, alt, caption, max = 760 } = Astro.props;
+const all = import.meta.glob<{ default: ImageMetadata }>('../assets/shots/*.png', { eager: true });
+const pick = (theme: 'light' | 'dark') => {
+	const hit = all[`../assets/shots/${name}-${theme}.png`];
+	if (!hit) throw new Error(`<Shot name="${name}">: no src/assets/shots/${name}-${theme}.png (npm run docs:media:sync)`);
+	return hit.default;
+};
+const light = pick('light');
+const dark = pick('dark');
+const width = Math.min(Math.round(light.width / 2), max);
+---
+
+<figure class="shot not-content" style={`--shot-w: ${width}px`}>
+	<Image class="shot-light" src={light} alt={alt} width={width} densities={[1, 2]} loading="lazy" />
+	<Image class="shot-dark" src={dark} alt={alt} width={width} densities={[1, 2]} loading="lazy" />
+	<figcaption>
+		{caption && <span>{caption}</span>}
+		<span class="shot-tag">Real capture · example data</span>
+	</figcaption>
+</figure>
+
+<style>
+	.shot {
+		margin-block: 1.75rem;
+		max-width: min(100%, var(--shot-w));
+	}
+	.shot img {
+		display: block;
+		width: 100%;
+		height: auto;
+		border: 1px solid var(--sl-color-hairline);
+		border-radius: 0.75rem;
+		box-shadow: 0 10px 28px -16px rgb(0 0 0 / 0.45);
+	}
+	:global(:root[data-theme='dark']) .shot img {
+		box-shadow: 0 10px 28px -14px rgb(0 0 0 / 0.8);
+	}
+	:global(:root[data-theme='dark']) .shot-light,
+	:global(:root:not([data-theme='dark'])) .shot-dark {
+		display: none;
+	}
+	figcaption {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.35rem 0.75rem;
+		align-items: baseline;
+		margin-top: 0.6rem;
+		font-size: var(--sl-text-sm);
+		color: var(--sl-color-gray-3);
+	}
+	.shot-tag {
+		font-family: var(--sl-font-mono);
+		font-size: 0.72rem;
+		letter-spacing: 0.02em;
+		text-transform: uppercase;
+		color: var(--sl-color-gray-3);
+		border: 1px dashed var(--sl-color-gray-4);
+		border-radius: 999px;
+		padding: 0.05rem 0.55rem;
+	}
+</style>

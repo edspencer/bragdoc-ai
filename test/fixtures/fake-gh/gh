@@ -3,7 +3,8 @@
 // BragDoc runs (auth status, search prs, pr view) from prs.json next to it, whose dates are "days ago" from now
 // (FAKE_GH_NOW, else the clock). The scenario comes from FAKE_GH_SCENARIO, else $HOME/.fake-gh/scenario (so QA can
 // change it while the server runs): ok (default), logged-out, rate-limited, offline, zero, many (200 PRs), not-json.
-// FAKE_GH_LOG, if set, gets one line per run: the arguments as JSON.
+// FAKE_GH_LOG, if set, gets one line per run: the arguments as JSON. FAKE_GH_PRS, if set, is another fixture file to
+// answer from (the docs' capture rig uses tools/docs-media/fake-gh-prs.json, in the example data's world).
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -20,7 +21,7 @@ if (!scenario) {
     scenario = 'ok';
   }
 }
-const fixture = JSON.parse(fs.readFileSync(path.join(__dirname, 'prs.json'), 'utf8'));
+const fixture = JSON.parse(fs.readFileSync(process.env.FAKE_GH_PRS || path.join(__dirname, 'prs.json'), 'utf8'));
 const now = process.env.FAKE_GH_NOW ? new Date(process.env.FAKE_GH_NOW) : new Date();
 const iso = (daysAgo) => new Date(now.getTime() - daysAgo * 86400000).toISOString().replace(/\.\d{3}Z$/, 'Z');
 const fail = (msg, code = 1) => {

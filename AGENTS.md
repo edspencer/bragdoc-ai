@@ -23,8 +23,8 @@ the **GitHub source**: the Found page, its API, the source framework (`server/so
 Settings → Sources (see "Found and sources" below). PR15 added the **screenshots folder** (a source) and reads the
 board's pictures in the background, so their text is searchable. PR16 built **onboarding**: Welcome (the first run, and its steps
 again from Settings → Data), the bounded repo scan, and the example data (see "Onboarding and example data" below).
-Everything else arrives
-PR by PR, in the waves #411 lays out.
+PR19 brought the docs site up to date with what was built, with real screenshots from the capture rig's example world.
+Everything else arrives PR by PR, in the waves #411 lays out.
 
 Before changing behaviour, read, in order:
 
@@ -195,6 +195,7 @@ docker compose up -d --build   # the Docker image from this checkout, on 127.0.0
 npm run test:e2e       # Playwright against the built server (run `npm run build` first)
 npm run routes         # regenerate src/routeTree.gen.ts by hand (typecheck, dev and build do it anyway)
 npm run docs:media     # build with /dev/kit, boot a throwaway instance, take every shot in tools/docs-media/shots.ts
+npm run docs:media:sync # copy the shots the docs site uses (<Shot name> in its pages) into website/src/assets/
 npm run brand          # regenerate the favicons, icons and social cards from brand/mark.svg
 npm run sync:reference # regenerate the reference tables in docs/data-format.md, AGENT-GUIDE.md and the docs site's
                        # copy after a schema change
@@ -265,7 +266,7 @@ npm run smoke:pack` pass locally (and `npm run test:e2e` if you touched anything
 - **A CLI flag:** add it to `VALUE_FLAGS` or `BOOLEAN_FLAGS` in `server/args.ts` and to the command's `check()` list
   in `cli.ts`, then document it in `USAGE`.
 - **Anything a user can see from outside** (a command, a `serve` flag, a `BRAGDOC_*` variable, an MCP tool, a file
-  field): document it on the docs site too (`website/src/content/docs/reference/`, `agents/mcp.md`; rules in
+  field): document it on the docs site too (`website/src/content/docs/reference/`, `agents/mcp.mdx`; rules in
   `website/CLAUDE.md`). `test/docs.test.ts` fails on a command, `serve` flag, env var or (once `server/mcp/` exists)
   MCP tool the site doesn't list. A page about a feature you've just built loses its "Coming in v0.1" note.
 - **An MCP tool:** register it in `server/mcp/tools.ts` (verb_noun, `bragdoc_` prefix, a description written for

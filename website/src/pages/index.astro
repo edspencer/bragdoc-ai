@@ -6,15 +6,15 @@
  * (LandingLayout). The docs start at /introduction/, the first entry in the sidebar. Never point the sidebar at `/`:
  * it would eject a reader from the docs with no way back.
  *
- * All copy is in components/landing/copy.ts. The board picture is a capture of the design prototype with invented
- * data, tagged "Mock-up" (PR19 replaces it with a real capture of the app on the example dataset).
+ * All copy is in components/landing/copy.ts. The board picture is a real capture of the app on the example dataset, in
+ * each theme, from the repo's capture rig (tools/docs-media, shots landing-board-light/-dark; npm run docs:media:sync).
  */
 import { Image } from 'astro:assets';
 import LandingLayout from '../components/landing/LandingLayout.astro';
-import { hero, INSTALL, HERO_LINKS, MOCKUP, GUARANTEES, HOW, AGENTS, OPEN } from '../components/landing/copy';
+import { hero, INSTALL, HERO_LINKS, SHOT, GUARANTEES, HOW, AGENTS, OPEN } from '../components/landing/copy';
 import { TITLE, TAGLINE } from '../site.mjs';
-import boardLight from '../assets/landing/board-light.png';
-import boardDark from '../assets/landing/board-dark.png';
+import boardLight from '../assets/landing/landing-board-light.png';
+import boardDark from '../assets/landing/landing-board-dark.png';
 ---
 
 <LandingLayout title={`${TITLE}: ${TAGLINE.toLowerCase()}`} description={hero.lede}>
@@ -49,15 +49,15 @@ import boardDark from '../assets/landing/board-dark.png';
 		</div>
 	</section>
 
-	<section class="mock container" aria-label="What the board looks like">
+	<section class="board-shot container" aria-label="What the board looks like">
 		<figure class="print">
 			<span class="tape tape--corner-l" aria-hidden="true"></span>
 			<span class="tape tape--corner-r" aria-hidden="true"></span>
-			<Image class="only-light" src={boardLight} alt={MOCKUP.alt} widths={[700, 1200, 2400]} sizes="(min-width: 1180px) 1100px, 94vw" loading="eager" />
-			<Image class="only-dark" src={boardDark} alt={MOCKUP.alt} widths={[700, 1200, 2400]} sizes="(min-width: 1180px) 1100px, 94vw" loading="lazy" />
+			<Image class="only-light" src={boardLight} alt={SHOT.alt} widths={[700, 1280, 2560]} sizes="(min-width: 1180px) 1100px, 94vw" loading="eager" />
+			<Image class="only-dark" src={boardDark} alt={SHOT.alt} widths={[700, 1280, 2560]} sizes="(min-width: 1180px) 1100px, 94vw" loading="lazy" />
 			<figcaption>
-				<span class="hand">{MOCKUP.caption}</span>
-				<span class="shot-tag">{MOCKUP.tag}</span>
+				<span class="hand">{SHOT.caption}</span>
+				<span class="shot-tag">{SHOT.tag}</span>
 			</figcaption>
 		</figure>
 	</section>

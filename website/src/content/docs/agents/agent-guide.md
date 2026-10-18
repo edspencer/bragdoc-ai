@@ -15,8 +15,8 @@ You can get it three ways:
 
 - `bragdoc guide` prints it in your terminal (it's `AGENT-GUIDE.md` in the package);
 - a running BragDoc serves it at `http://localhost:2724/agent-guide.md`;
-- and at `http://localhost:2724/llms.txt`, the [llms.txt](https://llmstxt.org) convention for telling agents where
-  things are.
+- and at `http://localhost:2724/llms.txt` (and `/llms-full.txt`), the [llms.txt](https://llmstxt.org) convention for
+  telling agents where things are.
 
 This documentation site has its own [`/llms.txt`](/llms.txt) and [`/llms-full.txt`](/llms-full.txt), and every page
 is available as Markdown at its URL with `.md` instead of the trailing slash.
