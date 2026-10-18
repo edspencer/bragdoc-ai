@@ -296,7 +296,8 @@ describe('live updates', () => {
     await req('POST', '/api/projects', { name: 'Two' });
     await req('POST', '/api/companies', { name: 'Co' });
     bus.flush();
-    assert.deepEqual(seen.map((e) => e.type).sort(), ['company', 'project']);
+    // plus one `problems` (server/live.ts sends it with every store change, D48)
+    assert.deepEqual(seen.map((e) => e.type).sort(), ['company', 'problems', 'project']);
   });
 });
 

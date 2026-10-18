@@ -7,7 +7,7 @@
 // confirm it" (a slow first boot) is a real, common answer, and not the same claim as "it failed". Callers print a
 // timeout as a caveat pointing at the logs, never as an error.
 //
-// The requests themselves are egress.ts's loopback-only probeLoopback() and loopbackAccepts() (D9, D48): fixed to
+// The requests themselves are egress.ts's loopback-only probeLoopback() and loopbackAccepts() (D9, D51): fixed to
 // 127.0.0.1, and not written to the network log, which a 250 ms poll would otherwise fill.
 import type { HealthResponse } from '../../shared/api.js';
 import { loopbackAccepts, probeLoopback } from '../egress.js';

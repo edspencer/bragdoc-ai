@@ -11,13 +11,15 @@ import { ROOT, rmTmp, tmpDir } from './fixture.ts';
 
 /**
  * URLs allowed in the bundle, none of which the app fetches: XML namespaces (React DOM), React's error-decoder link
- * in its minified errors, the router's parsing base, and the project's own GitHub repository and docs links.
+ * in its minified errors, the router's parsing base, the project's own GitHub repository and docs links, and the link
+ * a pasted pull request opens (built from its owner/repo#n, opened in a new tab, never fetched: PR7).
  */
 const ALLOWED = [
   /^http:\/\/www\.w3\.org\/(?:1998\/Math\/MathML|1999\/xlink|1999\/xhtml|2000\/svg|XML\/1998\/namespace)$/,
   /^https:\/\/react\.dev\/errors\/$/,
   /^http:\/\/localhost$/,
   /^https:\/\/github\.com\/edspencer\/bragdoc-ai(?:[/#?].*)?$/,
+  /^https:\/\/github\.com\/\$\{[\w.]+\}\/pull\/\$\{[\w.]+\}$/,
 ];
 
 let out: string;

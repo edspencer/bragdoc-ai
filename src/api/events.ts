@@ -18,12 +18,19 @@ import { useQueryClient, type QueryClient } from '@tanstack/react-query';
 
 /** `change` type (ServerEvent['type']) → the first segments of the query keys it makes stale. */
 export const CHANGE_INVALIDATES: Record<string, readonly string[]> = {
-  // e.g. (PR7) achievement: ['achievements', 'search'],
-  // a project's colour and name show on the Gantt, its summary, and (PR7) the board's tape and pills
+  // the store (PR7, D48): one type per kind of data file, plus the Problems list
+  // projects too: their achievement counts and piles (PR8)
+  achievement: ['achievements', 'projects'],
+  // a sidecar: OCR text (searchable) and sizes shown on cards
+  evidence: ['achievements'],
+  // a project's colour and name show on the Gantt, its summary, and the board's tape and pills
   project: ['projects'],
   // a company's or repo's name shows in project summaries; deleting one detaches it from projects
   company: ['companies', 'projects'],
   repo: ['repos', 'projects'],
+  found: ['found'],
+  profile: ['profile'],
+  problems: ['problems'],
 };
 
 /** What to refresh for one event: a list of key prefixes, or 'all'. Null: nothing (pings, unknown event types). */
