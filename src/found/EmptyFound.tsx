@@ -1,6 +1,7 @@
 // Found's two empty states (SPEC R7, R10): "All caught up" with what's still watching, or "every source is off" with
 // the way to Settings → Sources. Adapted from the Scrapbook prototype's EmptyFound, with v0.1's sources (no Slack).
 import type { AiJudgeStatus, SourcesResponse } from '../../shared/api.ts';
+import { judgeEmptyLine } from './judge.ts';
 import { Kicker, LinkBtn } from '../kit/index.ts';
 import { fmt, todayIso } from '../lib/dates.ts';
 import { clock } from './FoundCard.tsx';
@@ -89,13 +90,4 @@ export function EmptyFound({ sources, filtered, judge = null }: { sources: Sourc
       )}
     </div>
   );
-}
-
-/** The judge's line in "Still watching": what it does with new things, in a few words. */
-export function judgeEmptyLine(j: Pick<AiJudgeStatus, 'kinds' | 'schedule'>): string {
-  const s = j.schedule;
-  const kinds = j.kinds.github ? 'new screenshots and merged PRs' : 'new screenshots';
-  if (!s?.background) return `looks at ${kinds} when you press Judge now`;
-  const how = [s.onArrival ? 'as they arrive' : null, s.everyHours ? `every ${s.everyHours === 1 ? 'hour' : `${s.everyHours} hours`}` : null].filter(Boolean).join(' and ');
-  return `looks at ${kinds} ${how}${s.hold?.code === 'cloud' ? ' (once you tick “also in the background”)' : ''}`;
 }

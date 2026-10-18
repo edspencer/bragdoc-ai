@@ -1,7 +1,7 @@
 // The judge, as Found and its Settings card say it (SPEC R21, R22; PR25). Pure, so it's unit-tested (test/judge-ui.test.ts):
 // how Found groups what's waiting once verdicts exist, and the plain words for when the judge runs by itself and why
 // it isn't running now ("waiting for 19:00", "on battery", "backing off until 14:20").
-import type { AiJudgeCounts, AiJudgeSchedule } from '../../shared/api.ts';
+import type { AiJudgeCounts, AiJudgeSchedule, AiJudgeStatus } from '../../shared/api.ts';
 import type { FoundCandidate } from '../../shared/schema/index.ts';
 import { OUTCOME_HEADLINE } from '../settings/ai/words.ts';
 
@@ -88,4 +88,13 @@ export const POWER_WORDS: Record<AiJudgeSchedule['power'], string> = {
 export function countsLine(c: AiJudgeCounts): string {
   const parts = [c.win ? `${c.win} ${c.win === 1 ? 'win' : 'wins'}` : null, c['probably-not'] ? `${c['probably-not']} probably not` : null, c.failed ? `${c.failed} failed` : null, c.skipped ? `${c.skipped} skipped` : null].filter(Boolean);
   return parts.length ? parts.join(' · ') : 'nothing judged';
+}
+
+/** The judge's line in "Still watching": what it does with new things, in a few words. */
+export function judgeEmptyLine(j: Pick<AiJudgeStatus, 'kinds' | 'schedule'>): string {
+  const s = j.schedule;
+  const kinds = j.kinds.github ? 'new screenshots and merged PRs' : 'new screenshots';
+  if (!s?.background) return `looks at ${kinds} when you press Judge now`;
+  const how = [s.onArrival ? 'as they arrive' : null, s.everyHours ? `every ${s.everyHours === 1 ? 'hour' : `${s.everyHours} hours`}` : null].filter(Boolean).join(' and ');
+  return `looks at ${kinds} ${how}${s.hold?.code === 'cloud' ? ' (once you tick “also in the background”)' : ''}`;
 }

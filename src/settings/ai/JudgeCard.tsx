@@ -4,9 +4,9 @@
 // tick. Then: which kinds it judges (screenshots; merged PRs only if you tick them), its model, when it runs (as they
 // arrive, every N hours, only between, only on power) with a plain status, "What counts as a win for me"
 // (ai/what-counts.md), exactly what's sent, Judge now, the last run, and how often you agreed with it.
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import type { AiJudgeSettings, AiJudgeStatus } from '../../../shared/api.ts';
+import type { AiJudgeSettings, AiJudgeStatus, AiStatus } from '../../../shared/api.ts';
 import { HOST_CLASS_LABEL } from '../../../shared/ai/hosts.ts';
 import { isApiError, putAiFeature, putAiInstructions, resetAiInstructions, runJudge } from '../../api/client.ts';
 import { queryKeys, useAiInstructions, useAiModels, useFound, useJudgeStatus } from '../../api/queries.ts';
@@ -30,11 +30,24 @@ export function JudgeCard({ status, readiness }: FeatureCardProps) {
   const j = judge.data;
   const save = useMutation({
     mutationFn: (body: Patch) => putAiFeature('judge', body as Parameters<typeof putAiFeature>[1]),
+    // a tick shows its new state at once; the server's answer (or the refetch after an error) settles it
+    onMutate: async (body) => {
+      await qc.cancelQueries({ queryKey: queryKeys.ai });
+      const before = qc.getQueryData<AiStatus>(queryKeys.ai);
+      if (before) {
+        const j = before.features.judge;
+        qc.setQueryData<AiStatus>(queryKeys.ai, { ...before, features: { ...before.features, judge: { ...j, ...body, when: { ...j.when, ...(body.when ?? {}) } } as AiJudgeSettings } });
+      }
+      return { before };
+    },
     onSuccess: (s) => {
       qc.setQueryData(queryKeys.ai, s);
       void qc.invalidateQueries({ queryKey: queryKeys.judgeStatus });
     },
-    onError: (e) => toast({ msg: isApiError(e) ? e.message : 'That didn’t save.', tone: 'bad' }),
+    onError: (e, _b, ctx) => {
+      if (ctx?.before) qc.setQueryData(queryKeys.ai, ctx.before);
+      toast({ msg: isApiError(e) ? e.message : 'That didn’t save.', tone: 'bad' });
+    },
   });
   const slot = readiness.slot;
   const conn = slot ? status.connections.find((c) => c.id === slot.connection) : undefined;
@@ -115,9 +128,12 @@ export function JudgeCard({ status, readiness }: FeatureCardProps) {
 }
 
 function Tick({ on, onChange, children, testId, disabled }: { on: boolean; onChange: (v: boolean) => void; children: React.ReactNode; testId: string; disabled?: boolean }) {
+  // shows the click at once, until the saved setting (or a refusal, which puts it back) comes from the server
+  const [mine, setMine] = useState<boolean | null>(null);
+  useEffect(() => setMine(null), [on]);
   return (
     <label className="flex cursor-pointer items-start gap-2 leading-snug">
-      <input type="checkbox" checked={on} onChange={(e) => onChange(e.target.checked)} disabled={disabled} className="mt-0.5 accent-[var(--accent)]" data-testid={testId} />
+      <input type="checkbox" checked={mine ?? on} onChange={(e) => (setMine(e.target.checked), onChange(e.target.checked))} disabled={disabled} className="mt-0.5 accent-[var(--accent)]" data-testid={testId} />
       <span>{children}</span>
     </label>
   );
