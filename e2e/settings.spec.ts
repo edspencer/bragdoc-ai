@@ -27,20 +27,21 @@ test('Network activity: the empty receipt, then a refused request shows up live,
   await expect(page.getByTestId('network-line')).toHaveCount(2);
 });
 
-test('Data: a hand-broken file appears on the Problems list live, and goes when it is fixed', async ({ page }) => {
+test('Data: a hand-broken file appears on the Problems list live, and goes when it is dealt with', async ({ page }) => {
   await page.goto('/settings/data');
   await expect(page.getByTestId('problems-empty')).toBeVisible();
   await expect(page.getByTestId('data-dir')).toHaveText(/\.bragdoc$/);
   await expect(page.getByTestId('import-panel')).toBeVisible();
-  const file = path.join(HOME, 'projects', '01JABCDEFGHJKMNPQRSTVWXYZ0.yaml');
+  // in found/, which no page draws yet: a broken project would show up in other specs' Gantt while they run alongside
+  const file = path.join(HOME, 'found', '01JABCDEFGHJKMNPQRSTVWXYZ0.yaml');
   fs.mkdirSync(path.dirname(file), { recursive: true });
-  fs.writeFileSync(file, 'schemaVersion: 1\nid: 01JABCDEFGHJKMNPQRSTVWXYZ0\nname: [unclosed\n');
+  fs.writeFileSync(file, 'schemaVersion: 1\nid: 01JABCDEFGHJKMNPQRSTVWXYZ0\nstatus: [unclosed\n');
   try {
     const problem = page.getByTestId('problem');
     await expect(problem).toHaveCount(1, { timeout: 10_000 });
-    await expect(problem).toContainText('projects/01JABCDEFGHJKMNPQRSTVWXYZ0.yaml');
+    await expect(problem).toContainText('found/01JABCDEFGHJKMNPQRSTVWXYZ0.yaml');
     await expect(problem).toHaveAttribute('data-severity', 'error');
-    fs.writeFileSync(file, 'schemaVersion: 1\nid: 01JABCDEFGHJKMNPQRSTVWXYZ0\nname: Fixed\ncolor: "#3b6cf6"\nstart: 2026-01-01\n');
+    fs.rmSync(file); // dealt with: the problem goes with it
     await expect(page.getByTestId('problems-empty')).toBeVisible({ timeout: 10_000 });
   } finally {
     fs.rmSync(file, { force: true });
