@@ -375,8 +375,9 @@ export function createAi({ config, egress, secrets, load = loadSdk, now = Date.n
         let raw: unknown;
         try {
           raw = JSON.parse(text.trim().replace(/^```(?:json)?\s*|\s*```$/g, ''));
-        } catch (e) {
-          return { ok: false, issue: `it isn't valid JSON (${(e as Error).message.slice(0, 120)})` };
+        } catch {
+          // not the parser's message: it quotes the answer, and an error's words may end up in a log
+          return { ok: false, issue: "it isn't valid JSON" };
         }
         const r = call.schema.safeParse(raw);
         if (r.success) return { ok: true, value: r.data };

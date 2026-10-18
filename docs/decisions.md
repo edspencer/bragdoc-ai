@@ -933,3 +933,95 @@ Export is a download of a blob made in the page; nothing about a folio is writte
   (content-addressed; nothing is unlinked).
 - **Considered:** importing it as a hosted export (PR12's importer: `legacyId`s and an "Imported" badge on every card);
   random sample data (not repeatable for captures and tests).
+
+### D62 — v0.2 is built on its own integration branch, `v0.2`, with D-numbers reserved per PR
+
+- v0.2 (opt-in AI, #434) is built as PRs into a long-lived `v0.2` branch, cut from `next` at the v0.1 release candidate
+  (95338b9) with one commit that adds it to CI's branch lists. `next` stays exactly the v0.1 that was QA'd, so 0.1.0
+  can be published from it at any time; Changesets' `baseBranch` stays `next`. A v0.1 fix lands on `next` and is
+  merged forward into `v0.2` (a merge, never a rebase). When the release candidate (PR30) is green and approved,
+  `v0.2` merges into `next` and 0.2.0 is released from there.
+- **Decision numbers are reserved per PR** (#434's plan: PR21 D62–D66, PR22 D67–D68, PR23 D69–D71, PR24 D72–D74,
+  PR25 D75–D77, PR26 D78–D79, PR27 D80–D81, PR28 D82, PR29 D83, PR30 D84). A PR uses only its own and never renumbers,
+  so this file's order may not be numeric. A decision made on `next` while v0.2 is open takes D100 and up.
+- **Considered:** building on `next` (0.1.0 would need a release branch cut from an older commit); waiting for 0.1.0
+  first (ties the AI work to release chores); v0.1's renumber-at-rebase rule (it cost several renumberings and one
+  missed cross-reference, #428).
+
+### D63 — Ollama through its native `/api/chat`, behind a thin adapter
+
+- Ollama is a language model of its own (`server/ai/ollama.ts`), not `@ai-sdk/openai-compatible` over its `/v1`. Every
+  call sends `options.num_ctx` (the connection's `contextTokens`, 8192 unless set), `think: false`, and the JSON schema
+  as `format` (grammar-constrained output): the Found spike's settings (`eval-judge.js`). Streaming reads its NDJSON.
+- **Why not `/v1`:** it can't set the context size per request. Ollama's default context is small, and a longer
+  prompt is cut without a word: the judge would then see only the start of a screenshot's text, and a folio draft
+  only part of its clippings. Checked on the dev box's Ollama 0.40.5 (see PR21's body for the numbers): the same
+  ~6,000-token prompt through `/v1` came back with the prompt cut to the runner's default, through `/api/chat` with
+  `num_ctx` 8192 whole, and only the native call answered about its last line.
+- Thinking is turned off only where we know how to (Ollama's `think`). Other OpenAI-compatible runners and the cloud
+  get their provider's default: an unknown `reasoning_effort` is an error at some providers.
+- **Considered:** `/v1` with `OLLAMA_CONTEXT_LENGTH` set by the user (a setting outside BragDoc that it can't see or
+  check); a community Ollama provider package (another dependency that can fetch, for a 200-line adapter).
+
+### D64 — AI settings: their own API, and consent decided by host, per connection, per version
+
+- AI settings live in `config.yaml`'s `ai:` section (SPEC R17), written only through `ctx.config.update()` (D53), but
+  they're served by `GET /api/ai` rather than `SettingsResponse` (AGENTS.md's convention for settings). AI carries
+  more than settings: each connection's class, consent and key state, each feature's readiness and why not, and the
+  hosts it has added to the allow-list. One `AiStatus` answers every AI write, and an `ai` event refreshes it.
+- **Local or cloud is decided by the connection's host, never its kind** (`shared/ai/hosts.ts`): loopback is *this
+  computer*; RFC 1918, ULA, link-local, `.local` and `host.docker.internal` are *your network*; everything else is the
+  *internet*, including a hosted "OpenAI-compatible" server and a public name that resolves to a private address (the
+  host as written is all we can vouch for). Plain http only to the first two.
+- **Consent is stored as `{ at, version, host }`.** It counts while the statement's version is no newer and the
+  connection still points at that host: changing the address to another host withdraws it, and so does a statement
+  that grows. Egress checks *the connection*, not just the host, on every request, so revoking one of two connections
+  on the same host (an OpenRouter one and a Jev one) stops that one even mid-run.
+- `connections` is a map keyed by id, so two tabs editing different connections both keep their edit.
+- Keys go in `secrets.yaml` under `ai.<id>.apiKey`. The API returns `hasKey` and `keyHint` (the last four characters,
+  or just `…` for a key under 16 characters). Removing a connection forgets its key.
+- **Considered:** consent by kind (a custom URL would slip through as "local" or need its own rule); consent per host
+  only (revoking Jev would need revoking OpenRouter too).
+
+### D65 — The AI runtime: one lazy loader, one fetch, one queue, a fixed set of errors
+
+- **The SDK is loaded once, on the first model call**, by `import()` in `server/ai/sdk.ts`, the only file that names it
+  outside `providers.ts` and (from PR28) `decide.ts`; the guard confines each package to those files. On load it sets
+  `AI_SDK_DEFAULT_PROVIDER` to a provider that throws (a model given as a string can't reach the hosted gateway) and
+  `AI_SDK_LOG_WARNINGS` to false (one `Object.assign`, so the guard counts one use of `globalThis`). Telemetry is
+  never registered. `test/ai-lazy.test.ts` and `smoke:pack` prove an AI-off session (source and packed) never
+  resolves `ai`.
+- **The only fetch a provider gets is `egress.fetchFor()`.** Providers are built per call with it; the SDK's own
+  downloader (it fetches URLs in prompts, outside egress, with undici) is replaced by one that refuses, and prompts are
+  text only. Keys and base URLs are always passed as strings, so the providers never read `*_API_KEY` or `*_BASE_URL`
+  from the environment.
+- **No hidden retries:** the SDK's `maxRetries` is 0. The one retry is ours: when an answer doesn't validate, the model
+  is shown its answer and the problem once. A server that refuses a schema is asked again in JSON mode (the schema in
+  the instructions, then our own Zod check), and that model is remembered as schemaless for the process. json_schema
+  is sent non-strict: strict mode refuses optional fields at some providers, and our check is the strict one.
+- **OpenAI goes through Chat Completions** (`.chat()`), the API every OpenAI-compatible server shares, so one fake
+  covers it; the Responses API adds nothing a text-only, tool-less call needs.
+- **The queue** is per connection: one call at a time on this computer or your network, two to the internet; `now`
+  before `background`; timeouts count from the start (180 s local, 60 s cloud by default). A job re-checks its gates
+  when it starts and once a second while it runs, so AI switched off (in the app or by hand) or consent revoked stops
+  it. `PUT /api/ai { enabled: false }` also cancels everything at once.
+- **Errors** are a fixed set (`server/ai/errors.ts`), each with a sentence: the brief's ten, plus `cancelled` (the
+  caller went away: a closed tab, Cancel) and `busy` (200 calls already waiting on one connection). An error's words
+  never quote the model's answer.
+- **Considered:** loading the SDK at start when AI is on (a hand edit can turn AI on at any moment, and loading on
+  first use costs about 0.3 s once); the SDK's own retries (a 429 would quietly become three requests).
+
+### D66 — The fake model server: three APIs, scenarios by path, answers by rule
+
+- `test/fixtures/fake-llm/` answers Ollama's, an OpenAI-compatible server's and Anthropic's APIs on 127.0.0.1, so tests,
+  e2e, the docs' captures and box QA never call a real model (SPEC R28). Like the fake `gh`, its scenario comes from
+  `FAKE_LLM_SCENARIO` or `$HOME/.fake-llm/scenario` (re-read on every request, so QA can switch it live), and also
+  from a `/s/<scenario>/` prefix on the path, so one server can be many connections, each misbehaving its own way
+  (`http://127.0.0.1:<port>/s/bad-json/v1`).
+- Scenarios: the brief's nine, plus `bad-json-once` (wrong until it's shown its mistake: the repair retry's happy path),
+  `quota` and `no-models`.
+- Answers come from a rule table (`answers.ts`), first match wins, keyed on the schema's name or properties and the
+  prompt; a structured request nothing matches gets a valid answer made from its schema. Feature PRs add their rows.
+  In JSON mode it reads the schema from the instructions, as a model would.
+- Cloud hosts can't be pointed at it (and no release build gets a way to redirect one), so cloud paths are tested with
+  an injected egress `fetchImpl` (`test/ai-fixture.ts`).

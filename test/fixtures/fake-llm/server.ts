@@ -208,7 +208,7 @@ export function createFakeLlm(opts: FakeLlmOptions = {}): FakeLlm {
     if (!raw || typeof body !== 'object') return error(400, 'the request body is not JSON');
 
     const r = normalise(api, body);
-    const known = api !== 'ollama' || FAKE_MODELS.includes(r.model) || pulled.has(r.model);
+    const known = api !== 'ollama' || (scenario !== 'no-models' && FAKE_MODELS.includes(r.model)) || pulled.has(r.model);
     if (!r.model || r.model.startsWith('missing') || !known)
       return error(404, api === 'ollama' ? `model '${r.model}' not found, try pulling it first` : `The model \`${r.model}\` does not exist`, 'not_found_error');
     if (scenario === 'context-too-long') return error(400, api === 'openai' ? "This model's maximum context length is 4096 tokens. However, your messages resulted in 9000 tokens." : 'prompt is too long: context length exceeded');

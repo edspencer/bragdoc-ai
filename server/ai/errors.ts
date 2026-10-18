@@ -90,7 +90,7 @@ export function classify(e: unknown, ctx: { connection: string; host: string | n
     if (/ECONNREFUSED|ECONNRESET|ENOTFOUND|EAI_AGAIN|EHOSTUNREACH|ENETUNREACH|socket|fetch failed|other side closed|terminated|UND_ERR/i.test(text) || err.name === 'TypeError')
       return new AiError('unreachable', `${host} isn't answering. Is the model runner running?`);
     if (err.name === 'AI_NoObjectGeneratedError' || err.name === 'AI_JSONParseError' || err.name === 'AI_TypeValidationError')
-      return new AiError('bad_output', `the model's answer wasn't what was asked for (${said.slice(0, 160)})`);
+      return new AiError('bad_output', "the model's answer wasn't what was asked for");
     return new AiError('failed', said || 'the call failed');
   }
   if (status === 401 || status === 403) return new AiError('key_refused', `${host} refused the key${said ? `: ${said}` : ''}.`);
