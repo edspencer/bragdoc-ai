@@ -118,7 +118,7 @@ export function DropTray({ c, dragging, projects, repos, onSubmit, saving }: { c
           {c.summary !== null && (
             <label className="flex items-center gap-2 text-[12px] font-semibold text-muted">
               Summary
-              <input value={c.summary} onChange={(e) => c.setSummary(e.target.value)} readOnly={saving} className={`${inputCls} py-1 text-[13px]`} data-testid="composer-summary" />
+              <input value={c.summary} onChange={(e) => c.setSummary(e.target.value)} readOnly={saving} className={`${inputCls} py-1.5 text-[13.5px] font-normal text-ink`} data-testid="composer-summary" />
             </label>
           )}
           <ProjectPicker projects={projects} value={c.projects} onChange={c.setProjects} suggested={c.suggestedProjects} />

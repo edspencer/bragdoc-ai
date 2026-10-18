@@ -74,9 +74,12 @@ export function tidyAnswer(prompt: string): Record<string, unknown> {
   const material = /<<<MATERIAL\n([\s\S]*?)\nMATERIAL>>>/.exec(prompt)?.[1] ?? '';
   const today = /Today is (\d{4}-\d{2}-\d{2})/.exec(prompt)?.[1] ?? '2026-01-01';
   const projects = [.../Their projects: (.*)\.\n/.exec(prompt)?.[1]?.matchAll(/"([^"]+)"/g) ?? []].map((m) => m[1]!);
+  // each part (and line) a sentence of its own, so an achievement's title and summary don't run together
   const text = material
     .split('\n')
-    .filter((l) => !/^\[.*\]$/.test(l.trim()))
+    .map((l) => l.trim())
+    .filter((l) => l && !/^\[.*\]$/.test(l))
+    .map((l) => (/[.!?]$/.test(l) ? l : `${l}.`))
     .join(' ')
     .replace(/\s+/g, ' ')
     .trim();
@@ -84,7 +87,7 @@ export function tidyAnswer(prompt: string): Record<string, unknown> {
   if (/\b(invitation|you(?:'ve| have) been invited|calendar|join (?:zoom|the) meeting)\b/i.test(text))
     return { ...empty, notAnAchievement: 'It reads like a calendar invite: something planned, not something you did.' };
   const sentences = text
-    .replace(/^(hey|hi|hello|so|ok|okay|um+|just wanted to say)[,!.]?\s+/i, '')
+    .replace(/^(?:(?:hey|hi|hello|so|ok|okay|um+|just wanted to say)[,!.]?\s+)+/i, '')
     .split(/(?<=[.!?])\s+/)
     .filter(Boolean);
   const first = (sentences[0] ?? text).replace(/[.!?]+$/, '');
