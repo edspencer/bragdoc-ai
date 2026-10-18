@@ -95,7 +95,7 @@ export function allowedDates(text: string, today: string): DateRange[] {
   const guessYear = (m: number, d: number) => (`${year}-${pad(m + 1)}-${pad(d)}` > today ? year - 1 : year);
 
   for (const m of t.matchAll(/(?<!\d)(\d{4})-(\d{2})-(\d{2})(?!\d)/g)) exact(`${m[1]}-${m[2]}-${m[3]}`, m[0]);
-  for (const m of t.matchAll(new RegExp(`\\b${MONTH_RE} (\\d{1,2})(?:st|nd|rd|th)?(?:,? (\\d{4}))?(?![\\d:])`, 'g'))) {
+  for (const m of t.matchAll(new RegExp(`\\b${MONTH_RE} (\\d{1,2})(?:st|nd|rd|th)?(?:,? (\\d{4}))?(?!\\d|:\\d)`, 'g'))) {
     const mo = monthIdx(m[1]!), d = Number(m[2]);
     exact(`${m[3] ?? guessYear(mo, d)}-${pad(mo + 1)}-${pad(d)}`, m[0]);
   }
@@ -188,10 +188,14 @@ const oneLine = (s: string) => s.replace(/\s+/g, ' ').trim();
 // mostly not a quantity ("one of the services").
 const NUMBER_WORD = /\b(two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|fifteen|twenty|thirty|forty|fifty|sixty|seventy|eighty|ninety|hundreds?|thousands?|millions?|billions?|dozens?|double[ds]?|doubling|triple[ds]?|tripling|quadrupled?|half|halved|halving|twice|thrice)\b/gi;
 
-/** Is flagged run `w` a sentence's first word plus words that are all in the sources (any case)? Then it isn't a name. */
-function sentenceVerbOnly(output: string, w: string, sources: string[]): boolean {
-  const parts = w.split(/\s+/);
+/** Is flagged run `w` not a name after all: its words are all in the sources (any case, any order), or it is a sentence's first word plus words that are? */
+function notReallyAName(output: string, w: string, sources: string[]): boolean {
+  const parts = w.split(/\s+/).map((p) => p.replace(/['’]s$/, ''));
   if (parts.length < 2) return false;
+  const hay0 = sources.join('\n').toLowerCase();
+  const inText = (p: string) => new RegExp(`(?<![\\p{L}\\p{N}])${p.toLowerCase().replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}(?![\\p{L}\\p{N}])`, 'u').test(hay0);
+  // every word is in your text, just not capitalised or not together ("Sam's Docker" from "sam … his docker")
+  if (parts.every(inText)) return true;
   const at = output.indexOf(w);
   if (at < 0 || !/(^|[.!?:;]\s+|\n\s*)$/.test(output.slice(0, at))) return false;
   const hay = sources.join('\n').toLowerCase();
@@ -207,8 +211,10 @@ export function inventedWords(output: string, sources: string[]): string[] {
   const hay = sources.join('\n').toLowerCase();
   const has = (w: string) => new RegExp(`(?<![\\p{L}\\p{N}])${w.toLowerCase().replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}(?![\\p{L}\\p{N}])`, 'u').test(hay);
   const out: string[] = [];
-  for (const m of output.matchAll(/[\p{L}][\p{L}'’-]*/gu)) {
-    const w = m[0].replace(/['’]s$/, '');
+  for (const m of output.matchAll(/[\p{L}][\p{L}\p{N}'’-]*/gu)) {
+    // anything with a digit in it ("INC-2291", "v2") is grounding's to check, whole
+    if (/\d/.test(m[0])) continue;
+    const w = m[0].replace(/['’]s$/, '').replace(/[-'’]+$/, '');
     if (!/^\p{Lu}/u.test(w) || w === 'I' || /^I['’]/.test(w)) continue;
     const before = output.slice(0, m.index);
     if (/(^|[.!?:;]\s+|\n\s*|["“(]\s*)$/.test(before)) continue; // the start of a sentence
@@ -287,7 +293,7 @@ export function finishTidy(a: TidyAnswer, input: FinishInput): Pick<AiTidyRespon
     const v = s[field];
     if (!v) continue;
     // a run that starts a sentence ("Fixed PDF renderer…") is a capitalised verb plus the rest: the rest is the claim
-    const words = ungrounded(v, sources).filter((w) => !sentenceVerbOnly(v, w, sources));
+    const words = ungrounded(v, sources).filter((w) => !notReallyAName(v, w, sources));
     // a lone word already inside a flagged run ("Acme Corp") isn't flagged twice
     for (const w of inventedWords(v, sources)) if (!words.some((x) => x.toLowerCase().split(/\s+/).includes(w.toLowerCase()))) words.push(w);
     const uniq = [...new Map(words.map((w) => [w.toLowerCase(), w])).values()];

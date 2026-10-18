@@ -336,6 +336,9 @@ test('lone invented names and number words are flagged too; sentence starts and 
   // a capitalised verb starting a sentence isn't half of a name: "Fixed PDF" when the text says "pdf"
   assert.equal(finish(answer({ title: 'Fixed PDF renderer emoji issue' }), 'the pdf renderer was choking on emoji').ungrounded.title, undefined);
   assert.deepEqual(finish(answer({ title: 'Fixed Acme Corp billing' }), 'fixed billing').ungrounded.title, ['Fixed Acme Corp']);
+  // words that are all in the text, in another case or order, aren't a name; an id like INC-2291 is checked whole
+  assert.equal(finish(answer({ summary: 'I helped with Sam\'s Docker setup for INC-2291.' }), 'helped sam debug his docker thing on inc-2291').ungrounded.summary, undefined);
+  assert.equal(finish(answer({ happenedAt: '2026-03-04' }), 'March 4: presented the plan').suggestion.happenedAt, '2026-03-04');
   // a run grounding already flags isn't flagged word by word as well
   assert.deepEqual(finish(answer({ summary: 'I helped Acme Corp ship.' }), 'helped ship').ungrounded.summary, ['Acme Corp']);
 });
