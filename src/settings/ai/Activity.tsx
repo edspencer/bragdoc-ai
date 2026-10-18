@@ -5,7 +5,11 @@ import { Fragment, useState } from 'react';
 import type { AiActivityEntry } from '../../../shared/api.ts';
 import { useAiActivity } from '../../api/queries.ts';
 import { Receipt } from '../../kit/index.ts';
+import { countsLine, errorWords } from '../../found/judge.ts';
 import { seconds } from './words.ts';
+
+/** What started a run, when it wasn't you pressing a button (PR25: the judge's schedule). */
+const TRIGGER: Record<string, string> = { arrival: 'as they arrived', schedule: 'on schedule', eval: 'an eval', cli: 'the CLI' };
 
 const FEATURE: Record<string, string> = {
   judge: 'the judge',
@@ -83,9 +87,11 @@ function Line({ e, time }: { e: AiActivityEntry; time: string }) {
       <span className="opacity-60">{time}</span>
       <span className="min-w-0">
         <span className="font-bold">{FEATURE[e.feature] ?? e.feature}</span>
+        {TRIGGER[e.trigger] && <span className="opacity-70"> · {TRIGGER[e.trigger]}</span>}
         {w && <span className={`ml-1.5 whitespace-nowrap rounded px-1 text-[10px] font-bold ${w.className}`}>{w.label}</span>}
         {e.model && <span className="block truncate opacity-70">{e.model}{e.connection ? ` · ${e.connection}` : ''}</span>}
-        {bad && <span className="block font-sans text-[12px]">{e.outcome === 'cancelled' ? 'cancelled' : `failed${e.error ? `: ${e.error}` : ''}`}</span>}
+        {e.feature === 'judge' && Object.keys(e.counts).length > 0 && <span className="block opacity-70" data-testid="ai-activity-counts">{countsLine(e.counts)}</span>}
+        {bad && <span className="block font-sans text-[12px]">{e.outcome === 'cancelled' ? (e.error && e.error !== 'cancelled' ? errorWords(e.error) : 'cancelled') : `failed${e.error ? `: ${errorWords(e.error)}` : ''}`}</span>}
       </span>
       <span className="text-right">
         {seconds(e.ms)}
