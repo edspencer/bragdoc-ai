@@ -3,10 +3,6 @@ title: Working with agents
 description: "Your coding agent can log achievements as you work, over MCP or simply by editing BragDoc's files."
 ---
 
-:::note[Coming in v0.1]
-The MCP server and the agent guide are built; the board that shows what agents write is still being built.
-:::
-
 Your coding agent was there when you shipped the thing. It knows which pull request it was, what it fixed and why it
 mattered, so it is well placed to write it down. BragDoc gives it three ways in.
 
@@ -20,7 +16,8 @@ bragdoc mcp install claude
 ```
 
 Achievements an agent writes are labelled on the board ("Written by Claude Code"). By default they go straight to the
-board; set `mcp.writeTo: found` in [config.yaml](/reference/config-yaml/) to review each one in Found first.
+board; to review each one in Found first, choose **Into Found, for you to review** in Settings → Sources (or set
+`mcp.writeTo: found` in [config.yaml](/reference/config-yaml/)). The same card shows BragDoc's MCP address and token.
 
 ## 2. The files
 

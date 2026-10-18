@@ -41,13 +41,15 @@ installs them (that is what Cloudflare's build does).
 
 ## Content rules
 
-**BragDoc v0.1 isn't released.** While `RELEASED` is `false` in `src/site.mjs`, the Banner, the landing page and the
-installation page say the package isn't on npm yet. **Never claim behaviour that isn't built and verified.**
+**BragDoc v0.1 is built on `next` but isn't released.** While `RELEASED` is `false` in `src/site.mjs`, the Banner, the
+landing page, the introduction and the installation page say the package isn't on npm yet. **Never claim behaviour
+that isn't built and verified** (against the running app, not just the code).
 
 - **Mark what isn't built** with a sticky note at the top of the page: `:::note[Coming in v0.1]` … `:::`, saying in a
   sentence what is and isn't there. Reference pages say `:::note[Tracking \`next\`]` instead. Inline, write
-  *Coming in v0.1.* at the start of the paragraph. PR19 replaces these as the features land; the root test suite fails
-  if any "Coming in v0.1" is left once `package.json` reaches 0.1.0, or if `RELEASED` disagrees with it.
+  *Coming in v0.1.* at the start of the paragraph. Since PR19 no page has one: every v0.1 feature has landed. The root
+  test suite fails if any "Coming in v0.1" is left once `package.json` reaches 0.1.0, or if `RELEASED` disagrees with
+  it.
 - **The guarantees are promises: word them exactly.** "Sends nothing off your machine on its own"; "the only
   outbound requests go to services you connect yourself"; "AI is off unless you turn it on" (v0.1 has none). State the
   edges honestly (the `gh` CLI's own traffic isn't visible to BragDoc). Never say "Verified" about a build.
@@ -64,7 +66,7 @@ Every page needs Starlight frontmatter: `title:` and a real `description:` (llms
 with a colon). The root `test/docs.test.ts` checks both, that every page is in the sidebar, that every
 `localhost:<port>` is 2724 (`DEFAULT_PORT` in `src/site.mjs`, a copy of `../server/port.ts`), that every `BRAGDOC_*`
 variable the code reads (apart from the test suite's own, listed in the test) is on `reference/environment.md`, that `reference/cli.md` has a section per command and every
-`serve` flag, and (once `server/mcp/` exists) that `agents/mcp.md` lists exactly the registered tools.
+`serve` flag, and (once `server/mcp/` exists) that `agents/mcp.mdx` lists exactly the registered tools.
 
 **What's new.** `whats-new.md` keeps one `## Coming in <version>: <title>` section headed "Not released yet." for the
 next release; `../scripts/whats-new-release.mjs` gives it the real version at `changeset version` time, and
@@ -87,10 +89,16 @@ sidebar.
 `src/components/landing/copy.ts`. Because it is outside Starlight, head tags, fonts and the theme are re-provided by
 `LandingLayout.astro`: change a site-wide head tag in `astro.config.mjs` and check whether the layout needs it too.
 
-Its picture of the board is a capture of the **design prototype** with invented data, tagged "Mock-up"
-(`src/assets/landing/board-{light,dark}.png`; the AI status pill and the prototype's demo controls were removed before
-capture, because v0.1 has neither). PR19 replaces it with a real capture of the app on the example dataset, tagged
-"Real capture · example data". Check every pixel of any capture for real names, hosts and paths: the repo is public.
+Its picture of the board is a real capture of the app on the example dataset, tagged "Real capture · example data"
+(`src/assets/landing/landing-board-{light,dark}.png`, from the capture rig). README.md "Screenshots" says how every
+capture is made. Check every pixel of any capture for real names, hosts and paths: the repo is public.
+
+## Screenshots
+
+Only real captures from the repo's rig (`../tools/docs-media`), never a hand-taken screenshot or a mock-up: in an
+`.mdx` page, `<Shot name="…" alt="…" caption="…" />` (`src/components/Shot.astro`). The PNGs are committed under
+`src/assets/shots/` (`npm run docs:media && npm run docs:media:sync` at the repo root), and `test/docs.test.ts` checks
+each one is a shot in `shots.ts`. Write `alt` as what the picture shows, for someone who can't see it.
 
 ## Design tokens
 

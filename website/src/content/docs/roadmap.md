@@ -7,9 +7,9 @@ BragDoc is being rebuilt as a local-first app. The work is tracked in
 [issue #411](https://github.com/edspencer/bragdoc-ai/issues/411) and happens on the
 [`next` branch](https://github.com/edspencer/bragdoc-ai/tree/next).
 
-## v0.1: being built
+## v0.1: built, not yet released
 
-Everything here is planned for the first release. None of it is released yet.
+Everything here is built on `next` and goes into the first release. None of it is on npm yet.
 
 - **Run it your way:** `npx @bragdoc/local`, a global install, a login service (macOS and Linux), or Docker.
 - **Your data is files:** Markdown and YAML in `~/.bragdoc`, edited live, with backups, Problems for broken hand
@@ -34,7 +34,7 @@ Ideas, not promises:
 - chat sources (Slack, Teams, Discord);
 - smarter duplicate detection;
 - Windows support for the login service;
-- saved Folios and PDF export.
+- saved Folios, and a PDF export of its own (today, Folio's **Print** can save a PDF through your browser).
 
 ## Not planned
 

@@ -4,7 +4,7 @@ description: "How to build BragDoc from source, run its tests, work on these doc
 ---
 
 BragDoc is open source under the MIT licence, and contributions are welcome. The repository is
-[edspencer/bragdoc-ai](https://github.com/edspencer/bragdoc-ai); v0.1 is being built on the `next` branch, so branch
+[edspencer/bragdoc-ai](https://github.com/edspencer/bragdoc-ai); v0.1 is built on the `next` branch, so branch
 from `next` and open pull requests against it. `CONTRIBUTING.md` and `AGENTS.md` in the repository have the full
 working rules.
 
@@ -31,7 +31,9 @@ npm run test:e2e   # browser tests (Playwright)
 npm run build
 ```
 
-CI runs the typecheck, unit tests and build on macOS and Linux, on Node 22 and 24, and the browser tests on Linux.
+CI runs the typecheck, unit tests and build on macOS and Linux, on Node 22.12, 22 and 24; the browser tests on Linux
+in Chromium and Firefox; the login service for real on macOS and Linux; the packed npm package; and the Docker image
+for amd64 and arm64.
 
 ## Work on these docs
 
@@ -46,6 +48,12 @@ npm run build && npm run check-links && npm run check-external
 
 `website/CLAUDE.md` has the content rules. The short version: describe only what BragDoc really does (or say plainly
 that it's coming), keep examples generic, and never add analytics or anything loaded from another site.
+
+The screenshots are real captures of the app on its example data, taken by a script so they can be re-taken in one
+go: `npm run docs:media` (at the repository root) boots BragDoc on a throwaway data folder, takes every shot in
+`tools/docs-media/shots.ts` in both themes, and refuses to write one whose text looks like a path, a private address
+or a real email; `npm run docs:media:sync` then copies the ones the site uses into `website/src/assets/`. Look at
+every picture before you commit it: the repository is public.
 
 ## Ground rules
 

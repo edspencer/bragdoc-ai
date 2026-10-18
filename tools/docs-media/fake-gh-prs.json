@@ -1,0 +1,9 @@
+{
+  "login": "alexmarlowe-example",
+  "prs": [
+    { "repo": "altimetry-example/checklist-engine", "number": 231, "daysAgo": 1, "title": "Offline queue: retry checklist sync with backoff", "body": "Queued checklist edits now retry with exponential backoff instead of failing the sync.\n\n- no data loss in the airplane-mode test\n- sync errors on flaky Wi-Fi down from 4% to 0.3%" },
+    { "repo": "altimetry-example/preflight-web", "number": 356, "daysAgo": 2, "title": "Keyboard shortcuts for the checklist runner", "body": "Space ticks the current item, J/K move between items. Crews asked for it at the September review." },
+    { "repo": "altimetry-example/pager-bot", "number": 71, "daysAgo": 4, "title": "Quiet hours for non-urgent pages", "body": "Low-severity pages wait until 7am local time." },
+    { "repo": "altimetry-example/ops-api", "number": 921, "daysAgo": 6, "title": "Cache crew rosters for 60 seconds", "body": "" }
+  ]
+}

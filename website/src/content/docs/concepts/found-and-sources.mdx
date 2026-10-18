@@ -1,0 +1,139 @@
+---
+title: Found and sources
+description: "Sources you switch on spot things worth keeping and leave them in Found, where you keep, merge or dismiss each one."
+---
+
+import Shot from '../../../components/Shot.astro';
+
+**Found** is an inbox. **Sources** fill it. Every source is **off** until you switch it on, and nothing a source
+spots reaches your board until you say so. The one exception is your own coding agent: by default, what it writes
+over MCP goes straight onto the board, labelled as its own (see [below](#your-coding-agent)).
+
+## Keep, merge or dismiss
+
+Each candidate in Found shows where it came from, what it is (a pull request, a screenshot with the words that passed
+on a sticky note, or what your agent wrote), **which rules it passed**, and the projects it probably belongs to. The
+chips at the top show one source at a time. Then:
+
+<Shot name="docs-found" alt="Found with five candidates: a screenshot of a chat message with the praise quoted on a sticky note and the rules it passed (Says your name, Praise, Looks like a chat), and four merged pull requests, each listing You opened it and Merged, with Keep, Merge into and Dismiss buttons." caption="Found with one screenshot and four merged pull requests, each with the rules it passed. Staged for the screenshot: the pull requests come from a stand-in for GitHub, and all of it is made up." />
+
+
+- **Keep** makes it an achievement, with its evidence attached. (If the same pull request is already on your board,
+  keeping it adds to that achievement instead.)
+- **Merge into…** attaches its evidence to an achievement you already have.
+- **Dismiss** sets it aside. The same pull request or screenshot never comes back. Of a dismissed candidate, BragDoc
+  keeps only hashes of its keys (such as `github_pr:owner/repo#123`), which are enough to recognise it again, its
+  source and dates: its title, words and picture are gone.
+
+Each of these can be undone from the message that appears. Undoing a keep moves the new achievement into
+`backups/removed/`. Undoing a dismissal works until BragDoc restarts (for the latest 500 dismissals): after that, nothing is left to
+bring back.
+
+There's no "confidence score": v0.1 has no AI, so candidates are chosen by plain rules you can read, and each card
+lists the ones it passed, in words: "You opened it", "Merged", "In a repo you track" for a pull request;
+`Says your name: "…"`, `Praise: "…"`, `Looks like a chat: "…"` for a screenshot; "Sent by Claude Code" for an agent's.
+
+## The sources
+
+### GitHub
+
+Finds the pull requests you opened that were merged. Connect it in **Settings → Sources**:
+
+- **Through the [GitHub CLI](https://cli.github.com/)** (`gh`, version 2.20 or later), if you have it and are logged
+  in (`gh auth login`). BragDoc stores no token: it runs `gh auth status` when you connect, then
+  `gh search prs --author=@me --merged` for each check (and `gh pr view` for a pasted link's title).
+- **With a token**, if you'd rather not use `gh`: a fine-grained personal access token with read-only access to
+  "Pull requests" and "Metadata" (a classic token works too). It's stored in `secrets.yaml` (readable only by you,
+  never backed up), checked with GitHub when you paste it, and not kept if GitHub refuses it. Disconnecting can delete
+  it too.
+
+When you connect, you choose how far back the first check looks (90 days by default) and, if you like, **where to
+look**: owners (`acme`) or repositories (`acme/app`). It starts with the GitHub repositories you track in Projects;
+empty means everywhere you merged. A repository BragDoc doesn't know yet is added to your repos, untracked.
+
+It checks when you connect and when you press **Check now**. It checks by itself every hour while BragDoc runs only
+if you turn on **Check every hour**. Each check starts a day before the last one ended, so nothing merged around
+midnight slips through; changing how far back to look, or where, makes the next check look over the whole window
+again. Each merged pull request becomes one candidate, so running it again finds nothing new. One already on your
+board (pasted by hand, say) isn't added.
+
+If something goes wrong, the GitHub card says what, in plain words: `gh` isn't installed, `gh` is logged out, the
+token was refused or can't read pull requests, you're offline, or GitHub asked BragDoc to slow down. In that last case
+**Check now** waits: until the time GitHub gives, if it gives one, or else for 15 minutes, then longer each time, up to
+6 hours.
+
+While GitHub is connected, pasting a pull request link on the board also asks GitHub for its title.
+
+GitHub is the one service v0.1 can talk to, and only once you connect it. Every request appears in
+[Network activity](/guarantees/network-activity/).
+
+<Shot name="docs-sources" alt="Settings, Sources: the GitHub card, on, connected through the gh CLI, with Check now, Check every hour, how far back to look and where; and the Screenshots folder card, on, watching ~/Screenshots, with 1 looked at and 1 sent to Found." caption="Settings → Sources with both sources on (GitHub through a stand-in for the gh CLI, for the screenshot)." />
+
+### A screenshots folder
+
+The zero-permission way to catch praise: no Slack app, no admin approval. Someone says something nice about your work
+in a chat, you take a screenshot, and it turns up in Found.
+
+Switch it on in **Settings → Sources** and choose a folder. BragDoc suggests where this computer saves screenshots:
+on a Mac, wherever you've told it to (`defaults read com.apple.screencapture location`), else your Desktop; on Linux,
+`~/Pictures/Screenshots`, where GNOME and KDE put them. A folder just for screenshots works best. BragDoc won't watch a
+hidden folder, its own data folder, or any folder that holds it (so not your home folder itself, with the data
+folder in its usual place).
+
+From then on, BragDoc watches that folder for **new** files only, while it's running. It never reads what's already
+there unless you press **Look at the last 7 days**, which reads that week's screenshots once (the newest 1,000 at
+most): use it after BragDoc has been stopped for a while, since screenshots taken meanwhile aren't read by themselves. Files in the folder only:
+not its subfolders, and not links to files elsewhere. Each new file goes through:
+
+1. **Its name.** Only files named like screenshots are read: macOS's "Screenshot 2026-10-17 at 9.41.03 PM.png" in any
+   language macOS uses, and the names GNOME, KDE (Spectacle), Flameshot, Windows and CleanShot give them. Turn off
+   **Only files named like screenshots** to read every picture in the folder.
+2. **Its size and contents.** It must really be a picture (whatever its name says), at least 64 pixels each way, and
+   no bigger than 25 MB (the most BragDoc keeps as evidence). BragDoc waits until a file has finished being written.
+   Text is read from PNG, JPEG, GIF and WebP; other pictures are counted as unreadable.
+3. **Its text,** read on your computer: Apple's Vision framework on a Mac where it works, the bundled Tesseract
+   otherwise. Nothing is downloaded and nothing leaves your computer.
+4. **The rules.** Does one message name you (your name, surname, GitHub login, or a handle or nickname from
+   `profile.yaml`, minus the names you've said aren't you), or your initials (not a time like "9 AM"), or reply to a
+   message of yours, **and** praise you? Strong praise is enough on its own. Milder words ("thanks", "great"), emoji,
+   and an impact (a number with a unit, customers, a promotion) count when the screenshot also looks like a chat app
+   (a `#channel`, "12 replies"). Your own messages, and bots', are skipped.
+
+A screenshot that passes becomes a candidate: its card shows the picture, the words that passed on a sticky note, and
+the rules it passed. One that doesn't is only counted on the Screenshots card ("40 looked at · 3 sent to Found", plus
+how many were passed over or unreadable), and its text isn't written anywhere (BragDoc holds it in memory, to save
+reading the same picture twice, until it stops). The rules can't read tone, so sarcasm that names you passes: that's what Dismiss is for.
+They look for your name, so the source reads nothing until `profile.yaml` has one.
+
+The picture stays where it is until you **keep** it, when it's copied into your data folder with its text (so search
+finds it). If you've moved, deleted or replaced it by then, keeping it keeps the quote, and BragDoc says the picture
+had gone.
+
+**On a Mac, the Desktop is protected.** macOS asks before any program reads your Desktop, Documents or Downloads
+folder, and the permission goes to the app BragDoc runs in: Terminal (or your terminal app) when you start BragDoc
+yourself, or `node` when it runs as a [background service](/reference/cli/), which then covers every program run with
+node. If you said no, change it in System Settings → Privacy & Security → Files and Folders. The tidier way is a folder
+of their own, which needs no permission at all:
+
+```sh
+mkdir -p ~/Screenshots && defaults write com.apple.screencapture location ~/Screenshots && killall SystemUIServer
+```
+
+If the folder goes away (deleted, renamed, on a disk that's been unplugged) or BragDoc isn't allowed to read it, the
+card turns red and says so. BragDoc looks again every half minute and carries on watching by itself when the folder is
+back (screenshots saved while it was gone aren't read: look back over the last 7 days for those).
+Switching the source off stops the watching at once; what it already found stays in Found.
+
+### Your coding agent
+
+An agent connected over [MCP](/agents/mcp/) can send candidates to Found (`bragdoc_add_found`). By default, the
+achievements an agent adds go straight to the board, labelled as written by it. To review each one in Found first,
+choose **Into Found, for you to review** under "Where their achievements go" in Settings → Sources (or set
+`mcp.writeTo: found` in [config.yaml](/reference/config-yaml/)). That covers new achievements; an agent's changes to
+existing ones, projects and repos still apply directly, as they would from the app.
+
+## When it's empty
+
+If you've reviewed everything, Found says you're all caught up and what it is still watching: when GitHub last checked
+and what it found, which folder is watched for screenshots, and that your coding agent can suggest things over MCP. If
+neither GitHub nor the screenshots folder is on, it says so, with **Choose sources** to go to Settings → Sources.

@@ -4,9 +4,8 @@ description: "Every bragdoc command and option: serve, service, guide, mcp, impo
 ---
 
 :::note[Tracking `next`]
-This reference follows the [`next` branch](https://github.com/edspencer/bragdoc-ai/tree/next), where v0.1 is being
-built. Commands marked *coming in v0.1* don't exist yet. `bragdoc --help` is always the last word for the version you
-have.
+This reference follows the [`next` branch](https://github.com/edspencer/bragdoc-ai/tree/next), where v0.1 is built.
+`bragdoc --help` is always the last word for the version you have.
 :::
 
 ```
@@ -57,8 +56,12 @@ to find it by.
 | --- | --- |
 | `bragdoc mcp install claude` | Registers BragDoc's MCP server with Claude Code (`claude mcp add`, user scope), with its token. |
 | `bragdoc mcp install claude --stdio` | Registers `bragdoc mcp` instead of the HTTP endpoint. |
-| `bragdoc mcp install claude --print` | Prints configuration for Claude Desktop, Cursor and other clients, and changes nothing. |
+| `bragdoc mcp install claude --print` | Prints configuration for Claude Code, Claude Desktop, Cursor and other clients, and changes nothing. |
 | `--port <n>`, `--data-dir <dir>` | The port to register (default: the one BragDoc last ran on), and the data folder whose token to use. |
+
+`install claude` replaces an existing `bragdoc` registration, and sets an `X-BragDoc-Client: claude-code` header so
+the board can say which agent wrote what. Without `--stdio`, it needs the token, so BragDoc must have run at least
+once with that data folder; otherwise it says so and exits 1.
 
 ## `bragdoc import <export.json>`
 
@@ -72,8 +75,9 @@ the import goes through it (so it stays the one writer); otherwise it writes to 
 | `--dry-run` | Say what would be added, what's already here and what can't be imported, list the fields left behind and why, and change nothing. |
 | `--data-dir <dir>` | The data folder to import into (default `$BRAGDOC_HOME`, else `~/.bragdoc`). |
 
-A file that isn't a version 1.0 export (not JSON, cut off part-way, or another version) is refused with exit code 1,
-and nothing is imported. Problems with single items (an achievement with no date, a project whose company isn't in
+When it goes through the running BragDoc it says so (on stderr), and it ends by naming the data folder. A file that
+isn't a version 1.0 export (not JSON, cut off part-way, or another version) is refused with exit code 1, and nothing
+is imported. Problems with single items (an achievement with no date, a project whose company isn't in
 the file) are listed, and everything else is imported.
 
 ## `bragdoc dev`
@@ -95,6 +99,8 @@ profile, or the options below.
 | `--data-dir <dir>` | The data folder whose profile to use. |
 | `--json` | Print the results as JSON. |
 
+It exits 1 if any image can't be read. `--aliases` and `--not-me` without `--name` are a usage error.
+
 ## Everywhere
 
 | Option | Meaning |
@@ -102,5 +108,8 @@ profile, or the options below.
 | `--version`, `-v` | Print the version. |
 | `--help`, `-h` | Print the help. |
 
-**Exit codes:** 0 success, 1 error, 2 usage error (with the usage printed). The startup banner is only printed when
-the output is a terminal.
+**Exit codes:** 0 success, 1 error, 2 usage error (with the usage printed).
+
+**What `serve` prints:** the first line is always `BragDoc on <url>`, then `Data home: <folder>`. In a terminal (or
+with `FORCE_COLOR` set) a banner and a hint follow, and, when it's running from npx's cache, how to keep it running
+with an installed copy; otherwise just a `Version:` line. With `--quiet`, only the first line.

@@ -10,6 +10,8 @@ import { pathToFileURL } from 'node:url';
 import { DEFAULT_PORT } from '../server/port.ts';
 import { withReference } from '../shared/schema/reference.ts';
 import { ROOT } from './fixture.ts';
+import { SHOTS } from '../tools/docs-media/shots.ts';
+import { referencedShots } from '../tools/docs-media/sync.ts';
 
 const WEBSITE = path.join(ROOT, 'website');
 const DOCS = path.join(WEBSITE, 'src', 'content', 'docs');
@@ -126,6 +128,44 @@ describe('docs site', () => {
     for (const f of flags) assert.ok(page.includes(`\`--${f}`), `reference/cli.md doesn't list serve's --${f}`);
   });
 
+  // Screenshots come from the capture rig (tools/docs-media), so they can be re-shot in one command and are
+  // leak-scanned: every one the site uses must be a shot in shots.ts, and committed (local-review's cross-check).
+  test('every screenshot the site uses is a shot in tools/docs-media/shots.ts, and is committed', () => {
+    const names = new Set(SHOTS.map((s) => s.name));
+    const refs = referencedShots();
+    assert.ok(refs.some((r) => r.dir === 'landing'), 'the landing page has no real capture');
+    for (const r of refs) {
+      assert.ok(names.has(r.name), `${r.from}: ${r.name} isn't a shot in shots.ts`);
+      assert.ok(fs.existsSync(path.join(WEBSITE, 'src', 'assets', r.dir, `${r.name}.png`)), `${r.from}: website/src/assets/${r.dir}/${r.name}.png is missing (npm run docs:media:sync)`);
+    }
+    // nothing still pretends to be a mock-up
+    assert.deepEqual(prose().filter((f) => /Mock-up/i.test(fs.readFileSync(f, 'utf8'))).map((f) => path.relative(ROOT, f)), []);
+  });
+
+  // Every route the server registers is on the HTTP API page, as `METHOD /path` (a template like
+  // `/api/achievements/:id/${action}` is expanded from the list it loops over).
+  test('reference/http-api.md lists every HTTP route the server registers', () => {
+    const page = read('website/src/content/docs/reference/http-api.md');
+    const routes: string[] = [];
+    for (const f of files(path.join(ROOT, 'server', 'routes'), /\.ts$/)) {
+      const src = fs.readFileSync(f, 'utf8').replace(/^\s*(?:\/\/|\*).*$/gm, ''); // not the examples in comments
+      for (const m of src.matchAll(/\bapp\.(get|post|put|patch|delete|all)\((['`])([^'`]+)\2/g)) {
+        const method = m[1] === 'all' ? 'POST' : m[1]!.toUpperCase();
+        const p = m[3]!;
+        if (!p.includes('${')) routes.push(`${method} ${p}`);
+        else {
+          // the only templated route: archive / unarchive, from `for (const [action, archived] of [['archive', …], …])`
+          const actions = [...(/for \(const \[action[^\]]*\] of \[([\s\S]*?)\] as const\)/.exec(src)?.[1] ?? '').matchAll(/\['([a-z]+)'/g)].map((a) => a[1]!);
+          assert.ok(actions.length, `${path.relative(ROOT, f)}: can't expand ${p}`);
+          for (const a of actions) routes.push(`${method} ${p.replace(/\$\{action\}/, a)}`);
+        }
+      }
+    }
+    assert.ok(routes.length > 60, `only found ${routes.length} routes: has registerRoutes' shape changed?`);
+    const missing = routes.filter((r) => !page.includes(`\`${r}\``)).sort();
+    assert.deepEqual(missing, [], 'add these to website/src/content/docs/reference/http-api.md');
+  });
+
   // website/scripts/check-external.mjs is the CI enforcement of "the docs load nothing from elsewhere", so its parser
   // is pinned here: each of these must be caught, and none of the harmless ones flagged.
   test('check-external catches every kind of third-party load, and nothing harmless', async () => {
@@ -165,9 +205,9 @@ describe('docs site', () => {
   });
 
   // Once the MCP server exists (PR9), the tools it registers and the tools the MCP page lists must be the same set.
-  test('agents/mcp.md lists exactly the MCP tools the server registers', { skip: !fs.existsSync(path.join(ROOT, 'server', 'mcp')) && 'no server/mcp yet (PR9)' }, () => {
+  test('agents/mcp.mdx lists exactly the MCP tools the server registers', { skip: !fs.existsSync(path.join(ROOT, 'server', 'mcp')) && 'no server/mcp yet (PR9)' }, () => {
     const registered = new Set(files(path.join(ROOT, 'server', 'mcp'), /\.ts$/).flatMap((f) => [...fs.readFileSync(f, 'utf8').matchAll(/['"`](bragdoc_[a-z_]+)['"`]/g)].map((m) => m[1]!)));
-    const documented = new Set([...read('website/src/content/docs/agents/mcp.md').matchAll(/\|\s*`(bragdoc_[a-z_]+)`/g)].map((m) => m[1]!));
+    const documented = new Set([...read('website/src/content/docs/agents/mcp.mdx').matchAll(/\|\s*`(bragdoc_[a-z_]+)`/g)].map((m) => m[1]!));
     assert.deepEqual([...registered].sort(), [...documented].sort());
   });
 

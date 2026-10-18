@@ -1,0 +1,53 @@
+---
+title: Network activity
+description: "BragDoc sends nothing off your machine on its own. The only outbound requests are to services you connect, and every one is logged where you can see it."
+---
+
+import Shot from '../../../components/Shot.astro';
+
+**There is no BragDoc server of ours, and BragDoc never sends your data to us or to anyone else.** It sends nothing off your machine on its own: no
+telemetry, no analytics, no crash reports, no update check.
+
+The only network calls BragDoc makes are to services **you connect yourself**, and it shows you every one. In v0.1
+that is one service: GitHub, if you connect the [GitHub source](/concepts/found-and-sources/#github). Once it's
+connected, BragDoc talks to it when it checks for your merged pull requests, and when you paste a pull request link on
+the board (to fetch its title).
+
+## How that's enforced
+
+- **One door out.** Exactly one module in BragDoc (`server/egress.ts`) is allowed to make network requests. Before
+  every request it rebuilds its allow-list from your settings (this computer, plus `api.github.com` only if you
+  connected GitHub with a token) and refuses anything else.
+- **A test that fails the build.** BragDoc's CI scans the server code for any other way of making a network request
+  or starting a process, and fails if it finds one.
+- **The pages can't phone home either.** The app's Content Security Policy only lets its pages talk to BragDoc
+  itself, and a browser test checks the app makes no requests anywhere else.
+- **Libraries won't either.** Text recognition (OCR) reads pictures with Tesseract, whose English data is part of
+  BragDoc's package and is loaded from disk, never from the library's default download site; a test runs it with the
+  network blocked and checks nothing was fetched. On a Mac, Apple's Vision framework does the reading, on your
+  machine.
+
+## Seeing it for yourself
+
+**Settings → Network activity** lists every outbound request, allowed or refused, with when, why, where and how
+much, as a receipt, newest first. It also shows what's allowed right now, and a line for BragDoc's makers: 0 B,
+telemetry and update checks none. The log is kept in `logs/network.jsonl` in your data folder (when it reaches 1 MB,
+it is renamed `network.1.jsonl`, replacing the previous one, and a new log starts).
+
+**Test the guard**, under "Don't take our word for it", asks BragDoc to send a request somewhere it isn't allowed: it
+is refused before anything is sent, and the refusal appears on the receipt.
+
+<Shot name="docs-network" alt="Settings, Network activity: a receipt titled BragDoc outbound listing a refused request from Test the guard and two runs of the gh CLI (gh search prs and gh auth status) marked via gh CLI, then To BragDoc's makers: 0 B; beside it a note on where your data goes and the Test the guard box." caption="Network activity after connecting GitHub through gh (a stand-in, for the screenshot) and pressing Test the guard." />
+
+There's one honest exception to "every request". If you connect GitHub through the `gh` CLI, it is `gh` that talks
+to GitHub, not BragDoc. BragDoc logs each time it runs `gh` ("via gh CLI"), but it can't see inside `gh`'s own
+traffic. If you'd rather everything went through BragDoc's own logged path, use a personal access token instead.
+
+One thing isn't listed because it never leaves your computer: when the `bragdoc` command checks whether BragDoc is
+up (`bragdoc service start` waits for it, asking several times a second), it asks only `127.0.0.1`, and sends
+nothing but the question. Logging it would bury the entries the log is there to show.
+
+## This site, too
+
+This documentation site follows the same rule: no analytics, and it loads nothing (fonts, scripts, images) from
+anywhere but itself.
