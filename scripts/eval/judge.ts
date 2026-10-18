@@ -16,6 +16,8 @@
 //                   recordings are made this way, so the replay tests in CI need no OCR)
 //   --judge-all     judge every message, skipping the rules (the judge alone, as the spike's hosted table measured it)
 //   --only          just the messages, or just the PRs
+//   --instructions <file>  judge by this what-counts.md instead of the starter (try your own; not with --record)
+import fs from 'node:fs';
 import path from 'node:path';
 import { checkAnswer, inputHashOf, type Prepared } from '../../server/ai/judge/index.ts';
 import { githubInput, inputBudget, screenshotInput } from '../../server/ai/judge/input.ts';
@@ -77,10 +79,13 @@ export interface JudgeEvalOptions {
   perfectText: boolean;
   judgeAll: boolean;
   only?: 'messages' | 'prs';
+  /** Instead of the starter what-counts.md. */
+  instructions?: string;
 }
 
 /** Build the spec for these options. Exported for the replay tests (perfect text: the recordings' mode). */
-export function judgeSpec({ perfectText, judgeAll, only }: JudgeEvalOptions): EvalSpec<Input, Answer> & { close(): Promise<void> } {
+export function judgeSpec({ perfectText, judgeAll, only, instructions = INSTRUCTIONS }: JudgeEvalOptions): EvalSpec<Input, Answer> & { close(): Promise<void> } {
+  const INSTRUCTIONS = instructions;
   const rules = compileRules(PROFILE);
   let ocr: { read(i: { bytes: Uint8Array }): Promise<{ text: string }> } | null = null;
   const textOf = async (m: DatasetMessage): Promise<string> => {
@@ -194,15 +199,16 @@ if (isMain(import.meta.url)) {
   const perfectText = take('--perfect-text');
   const judgeAll = take('--judge-all');
   const only = value('--only');
+  const instructionsFile = value('--instructions');
   if (only !== undefined && only !== 'messages' && only !== 'prs') {
     process.stderr.write('--only is messages or prs\n');
     process.exitCode = 2;
-  } else if (argv.includes('--record') && (!perfectText || judgeAll || only)) {
+  } else if (argv.includes('--record') && (!perfectText || judgeAll || only || instructionsFile)) {
     // recordings are replayed in CI, where there's no OCR: only the perfect-text pipeline over every case is recorded
-    process.stderr.write(`--record needs --perfect-text, and no --judge-all or --only (${path.basename(import.meta.url)})\n`);
+    process.stderr.write(`--record needs --perfect-text, and no --judge-all, --only or --instructions (${path.basename(import.meta.url)})\n`);
     process.exitCode = 2;
   } else {
-    const spec = judgeSpec({ perfectText, judgeAll, ...(only ? { only: only as 'messages' | 'prs' } : {}) });
+    const spec = judgeSpec({ perfectText, judgeAll, ...(only ? { only: only as 'messages' | 'prs' } : {}), ...(instructionsFile ? { instructions: fs.readFileSync(instructionsFile, 'utf8') } : {}) });
     process.exitCode = await main(spec, argv);
     await spec.close();
   }
