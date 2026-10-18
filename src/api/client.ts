@@ -392,8 +392,14 @@ export const putAi = (body: AiSettingsRequest) => api.put<AiStatus>('/api/ai', b
 export const addAiConnection = (body: AiConnectionCreate) => api.post<{ connection: AiConnectionView; status: AiStatus }>('/api/ai/connections', body);
 export const putAiConnection = (id: string, body: AiConnectionUpdate) => api.put<AiStatus>(`/api/ai/connections/${seg(id)}`, body);
 export const deleteAiConnection = (id: string) => api.delete<AiStatus>(`/api/ai/connections/${seg(id)}`);
-export const putAiKey = (id: string, key: string) => api.put<AiStatus>(`/api/ai/connections/${seg(id)}/key`, { key });
-export const forgetAiKey = (id: string) => api.delete<AiStatus>(`/api/ai/connections/${seg(id)}/key`);
+/** Save a key (never returned: the answer is only whether there is one, and its last four characters). */
+export const putAiKey = (id: string, key: string) => api.put<AiKeyStatus>(`/api/ai/connections/${seg(id)}/key`, { key });
+export const forgetAiKey = (id: string) => api.delete<AiKeyStatus>(`/api/ai/connections/${seg(id)}/key`);
+interface AiKeyStatus {
+  id: string;
+  hasKey: boolean;
+  keyHint: string | null;
+}
 /** Allow a cloud connection: the version of the statement the user read (409 `stale_consent` if it moved on). */
 export const allowAiConnection = (id: string, version: number) => api.post<AiStatus>(`/api/ai/connections/${seg(id)}/consent`, { version });
 export const revokeAiConnection = (id: string) => api.delete<AiStatus>(`/api/ai/connections/${seg(id)}/consent`);

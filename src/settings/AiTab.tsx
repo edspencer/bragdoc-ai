@@ -84,7 +84,7 @@ function Off({ s }: { s: AiStatus }) {
   return (
     <div className="space-y-5">
       <div className="sb-card relative flex max-w-3xl flex-col gap-4 rounded-2xl p-5 sm:flex-row" data-testid="ai-off">
-        <Stamp color="var(--muted)" rotate={-4} className="self-start">
+        <Stamp color="var(--muted)" rotate={-4} className="self-start whitespace-nowrap">
           AI is off
         </Stamp>
         <div className="text-[13.5px] leading-relaxed">

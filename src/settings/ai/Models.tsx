@@ -48,7 +48,7 @@ export function Recommended({ status }: { status: AiStatus }) {
   // the Ollama a download would go to: the one in use, else the first one
   const ollamas = status.connections.filter((c) => c.kind === 'ollama');
   const target = ollamas.find((c) => c.id === status.text?.connection) ?? ollamas[0];
-  const models = useAiModels(target?.id ?? '-', !!target && !target.blocked);
+  const models = useAiModels(target?.id ?? '-', target?.baseUrl ?? null, !!target && !target.blocked);
   const installed = new Set(models.data?.models.map((m) => m.name) ?? []);
   if (hw.isPending) return <div className="text-[13px] text-faint">Reading this computer…</div>;
   if (hw.isError || !hw.data) return <div className="text-[13px] text-bad">Couldn’t read this computer’s hardware.</div>;
@@ -157,7 +157,7 @@ function PullDialog({ m, h, target, onClose }: { m: RecommendedModel; h: AiHardw
       if (ac.signal.aborted) setState({ phase: 'cancelled' });
       else setState({ phase: 'failed', message: isApiError(e) ? e.message : (e as Error).message });
     } finally {
-      void qc.invalidateQueries({ queryKey: queryKeys.aiModels(target.id) });
+      void qc.invalidateQueries({ queryKey: ['ai-models', target.id] });
     }
   };
   const cancel = () => ctl.current?.abort();

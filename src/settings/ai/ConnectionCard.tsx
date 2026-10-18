@@ -41,7 +41,7 @@ export function ConnectionCard({ c, status }: { c: AiConnectionView; status: AiS
     mutationFn: () => deleteAiConnection(c.id),
     onSuccess: (s) => {
       put(s);
-      qc.removeQueries({ queryKey: queryKeys.aiModels(c.id) });
+      qc.removeQueries({ queryKey: ['ai-models', c.id] });
       toast({ msg: `${connectionName(c)} is removed${c.hasKey ? ', and its key deleted' : ''}.` });
     },
     onError: (e) => {
@@ -111,7 +111,7 @@ export function ConnectionCard({ c, status }: { c: AiConnectionView; status: AiS
         </div>
       )}
 
-      {(c.needsKey || c.cloud) && c.kind !== 'jev' && <KeyField c={c} put={put} secretsProblem={status.secretsProblem} />}
+      {(c.needsKey || c.cloud) && c.kind !== 'jev' && <KeyField c={c} secretsProblem={status.secretsProblem} />}
 
       <TestAndUse c={c} allowed={allowed} inUse={inUse} status={status} put={put} />
 
@@ -132,7 +132,7 @@ export function ConnectionCard({ c, status }: { c: AiConnectionView; status: AiS
           </Btn>
         )}
       </div>
-      {c.cloud && <ConsentDialog connection={c} open={consenting} onClose={() => setConsenting(false)} />}
+      {c.cloud && consenting && <ConsentDialog connection={c} open onClose={() => setConsenting(false)} />}
     </div>
   );
 }
@@ -241,22 +241,23 @@ function ContextField({ c, put }: { c: AiConnectionView; put: (s: AiStatus) => v
   );
 }
 
-function KeyField({ c, put, secretsProblem }: { c: AiConnectionView; put: (s: AiStatus) => void; secretsProblem: string | null }) {
+function KeyField({ c, secretsProblem }: { c: AiConnectionView; secretsProblem: string | null }) {
   const id = useId();
+  const qc = useQueryClient();
   const toast = useToast();
   const [key, setKey] = useState('');
   const save = useMutation({
     mutationFn: () => putAiKey(c.id, key),
-    onSuccess: (s) => {
-      put(s);
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: queryKeys.ai });
       setKey(''); // never kept in the page once it's saved
       toast({ msg: 'Key saved in secrets.yaml. It won’t be shown again.' });
     },
   });
   const forget = useMutation({
     mutationFn: () => forgetAiKey(c.id),
-    onSuccess: (s) => {
-      put(s);
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: queryKeys.ai });
       toast({ msg: 'Key deleted from secrets.yaml.' });
     },
     onError: (e) => toast({ msg: errorText(e), tone: 'bad' }),
@@ -327,7 +328,7 @@ function TestAndUse({ c, allowed, inUse, status, put }: { c: AiConnectionView; a
   const usable = !c.blocked;
   // a local runner is asked what it has when the card opens (a line in Network activity); a cloud one only on a click
   const [listAsked, setListAsked] = useState(!c.cloud);
-  const models = useAiModels(c.id, usable && listAsked);
+  const models = useAiModels(c.id, c.baseUrl, usable && listAsked);
   const slotModel = status.text?.connection === c.id ? status.text.model : '';
   const [model, setModel] = useState(slotModel);
   useEffect(() => {
@@ -403,7 +404,7 @@ function TestAndUse({ c, allowed, inUse, status, put }: { c: AiConnectionView; a
       )}
       {result?.ok && (
         <Outcome title={`Works: answered in ${seconds(result.ms)}`}>
-          Structured answers: {result.structured ? 'yes' : 'no (BragDoc asks for JSON in the instructions instead)'}. Sent to {HOST_CLASS_LABEL[result.where]}, as a line in Network activity.
+          Structured answers: {result.structured ? 'yes' : 'no (BragDoc asks for JSON in the instructions instead)'}. Sent to {result.where === 'internet' ? `${c.host}, on the internet` : HOST_CLASS_LABEL[result.where]}, as a line in Network activity.
         </Outcome>
       )}
       {result && !result.ok && (

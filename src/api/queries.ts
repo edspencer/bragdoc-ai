@@ -41,7 +41,8 @@ export const queryKeys = {
   ai: ['ai'] as const,
   aiHardware: ['ai', 'hardware'] as const,
   aiDetect: ['ai', 'detect'] as const,
-  aiModels: (id: string) => ['ai-models', id] as const,
+  /** by address too: pointed somewhere else, a connection is asked again */
+  aiModels: (id: string, baseUrl: string | null) => ['ai-models', id, baseUrl ?? ''] as const,
 };
 
 export function createQueryClient(): QueryClient {
@@ -227,6 +228,6 @@ export function useAiDetect(enabled: boolean) {
 }
 
 /** What a connection offers, asked of it once per page (a cloud one only when `enabled` says so: a click). */
-export function useAiModels(id: string, enabled: boolean) {
-  return useQuery({ queryKey: queryKeys.aiModels(id), queryFn: ({ signal }) => getAiModels(id, signal), enabled, staleTime: Infinity, retry: false });
+export function useAiModels(id: string, baseUrl: string | null, enabled: boolean) {
+  return useQuery({ queryKey: queryKeys.aiModels(id, baseUrl), queryFn: ({ signal }) => getAiModels(id, signal), enabled, staleTime: Infinity, retry: false });
 }
