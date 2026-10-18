@@ -36,7 +36,11 @@ export function DropTray({ c, dragging, projects, repos, onSubmit, saving }: { c
   useEffect(() => {
     if (!has && phase.kind !== 'idle') closeTidy();
   }, [has, phase.kind, closeTidy]);
-  const startTidy = () => void tidy.run({ ...(c.text.trim() ? { text: c.text } : {}), ...(readPictures.length ? { evidenceShas: readPictures } : {}) }, avail.label);
+  const reading = pictures.filter((_, i) => !ocr[i]?.data || ocr[i]?.data?.status === 'pending').length;
+  const startTidy = () => {
+    const text = c.tidySource();
+    void tidy.run({ ...(text.trim() ? { text } : {}), ...(readPictures.length ? { evidenceShas: readPictures } : {}) }, avail.label);
+  };
   const submit = () => c.canSubmit && !saving && onSubmit();
   const onKey = (e: KeyboardEvent) => {
     if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) {
@@ -93,7 +97,7 @@ export function DropTray({ c, dragging, projects, repos, onSubmit, saving }: { c
             </ul>
           )}
           <TidyStatus tidy={tidy} />
-          <TidySheet tidy={tidy} projects={projects} inert={avail.show ? null : 'AI or Tidy was switched off, so this suggestion can’t be used now. Your text is as you left it.'} saveLabel="Pin it" onUse={(keys, r) => (c.applyTidy(keys, r), tidy.markUsed(keys))} />
+          <TidySheet tidy={tidy} projects={projects} inert={avail.show ? null : `AI or Tidy was switched off, so this suggestion can’t be used now.${phase.kind === 'done' && phase.used.length ? ' What you already used stays until you change it.' : ' Your text is as you left it.'}`} saveLabel="Pin it" onUse={(keys, r) => (c.applyTidy(keys, r), tidy.markUsed(keys))} />
         </div>
         <div className="flex shrink-0 flex-wrap items-center gap-2 lg:w-[240px] lg:flex-col lg:items-stretch">
           <Hint icon={<ImageIcon className="size-3.5" />} bg="#3b6cf6" label="Paste a screenshot" sub={pasteKeys()} onClick={() => void c.pasteFromClipboard('image')} />
@@ -136,6 +140,11 @@ export function DropTray({ c, dragging, projects, repos, onSubmit, saving }: { c
               </label>
             )}
             <span className="ml-auto flex flex-wrap items-center justify-end gap-3">
+              {avail.show && reading > 0 && (
+                <span className="text-[11.5px] text-faint" data-testid="composer-tidy-reading">
+                  {reading === 1 ? 'A picture is still being read: Tidy leaves its text out until it is.' : `${reading} pictures are still being read: Tidy leaves their text out until they are.`}
+                </span>
+              )}
               <TidyButton avail={avail} tidy={tidy} can={canTidy && !saving} onTidy={startTidy} testId="composer-tidy" />
               {c.busy && <span className="text-[12px] font-semibold text-muted">Adding…</span>}
               {c.failed && <span className="text-[12px] font-semibold text-bad">Retry or remove what didn&apos;t upload</span>}

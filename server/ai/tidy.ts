@@ -111,13 +111,27 @@ export function allowedDates(text: string, today: string): DateRange[] {
     const q = Number(m[1]) - 1, y = Number(m[2]);
     out.push({ from: `${y}-${pad(q * 3 + 1)}-01`, to: `${y}-${pad(q * 3 + 3)}-${pad(lastDay(y, q * 3 + 2))}`, why: m[0] });
   }
-  // 10/11 or 10/11/2026: either reading
-  for (const m of t.matchAll(/(?<![\d/])(\d{1,2})\/(\d{1,2})(?:\/(\d{2}|\d{4}))?(?![\d/])/g)) {
+  // 10/11 or 10/11/2026: either reading. Not a fraction ("1/3 of it") or "24/7"
+  for (const m of t.matchAll(/(?<![\d/.])(\d{1,2})\/(\d{1,2})(?:\/(\d{2}|\d{4}))?(?![\d/%])(?!\s+of\b)/g)) {
+    if (m[0] === '24/7') continue;
     const a = Number(m[1]), b = Number(m[2]);
     const y = m[3] ? (m[3].length === 2 ? 2000 + Number(m[3]) : Number(m[3])) : null;
     if (a >= 1 && a <= 12) exact(`${y ?? guessYear(a - 1, b)}-${pad(a)}-${pad(b)}`, m[0]);
     if (b >= 1 && b <= 12) exact(`${y ?? guessYear(b - 1, a)}-${pad(b)}-${pad(a)}`, m[0]);
   }
+
+  // 11.10.2026 (day first) and 2026/10/11
+  for (const m of t.matchAll(/(?<![\d.])(\d{1,2})\.(\d{1,2})\.(\d{4})(?![\d.])/g)) exact(`${m[3]}-${pad(Number(m[2]))}-${pad(Number(m[1]))}`, m[0]);
+  for (const m of t.matchAll(/(?<!\d)(\d{4})\/(\d{1,2})\/(\d{1,2})(?!\d)/g)) exact(`${m[1]}-${pad(Number(m[2]))}-${pad(Number(m[3]))}`, m[0]);
+  // "the 5th", "on the 12th": that day this month or last
+  for (const m of t.matchAll(/\bthe (\d{1,2})(?:st|nd|rd|th)\b(?! of)/g)) {
+    const d = Number(m[1]), mo = Number(today.slice(5, 7)) - 1;
+    for (const [y, mm] of [[year, mo], mo === 0 ? [year - 1, 11] : [year, mo - 1]] as const) if (d <= lastDay(y, mm)) exact(`${y}-${pad(mm + 1)}-${pad(d)}`, m[0]);
+  }
+  // a year on its own ("in 2025", "last year", "this year"): the whole year
+  for (const m of t.matchAll(/\b(?:in|during|since|throughout) (\d{4})\b/g)) out.push({ from: `${m[1]}-01-01`, to: `${m[1]}-12-31`, why: m[0] });
+  if (/\blast year\b/.test(t)) out.push({ from: `${year - 1}-01-01`, to: `${year - 1}-12-31`, why: 'last year' });
+  if (/\bthis year\b/.test(t)) out.push({ from: `${year}-01-01`, to: today, why: 'this year' });
 
   // relative dates, against today
   if (/\b(today|tonight|this (morning|afternoon|evening)|earlier today|just now)\b/.test(t)) exact(today, 'today');
@@ -130,7 +144,9 @@ export function allowedDates(text: string, today: string): DateRange[] {
     out.push({ from: addDays(today, -n * unit - slack), to: addDays(today, Math.min(0, -n * unit + slack)), why: m[0] });
   }
   for (const [i, day] of WEEKDAYS.entries()) {
-    if (!new RegExp(`\\b${day}s?\\b`).test(t)) continue;
+    // Tuesday, Tues, Tue (and Thurs, Thu, Weds…)
+    const abbrev = { sunday: 'sun', monday: 'mon', tuesday: 'tues?', wednesday: 'wed(?:s)?', thursday: 'thu(?:rs?)?', friday: 'fri', saturday: 'sat' }[day];
+    if (!new RegExp(`\\b(?:${day}s?|${abbrev})\\b`).test(t)) continue;
     // the last two weeks' worth of that weekday ("on Tuesday", "last Tuesday")
     for (let back = 0; back <= 14; back++) {
       const iso = addDays(today, -back);
@@ -167,6 +183,30 @@ export function clip(s: string, max: number): string {
 }
 
 const oneLine = (s: string) => s.replace(/\s+/g, ' ').trim();
+
+// Number words a model reaches for when it rounds up an outcome ("three weeks", "doubled"). "one" is left out: it's
+// mostly not a quantity ("one of the services").
+const NUMBER_WORD = /\b(two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|fifteen|twenty|thirty|forty|fifty|sixty|seventy|eighty|ninety|hundreds?|thousands?|millions?|billions?|dozens?|double[ds]?|doubling|triple[ds]?|tripling|quadrupled?|half|halved|halving|twice|thrice)\b/gi;
+
+/**
+ * What shared/ai/grounding.ts doesn't catch, for tidy (D78): a lone capitalised word that isn't starting a sentence
+ * ("for Stripe", "with Priya"), and number words. Each counts as grounded if it appears in a source as a word. Leans
+ * toward flagging, as grounding does: a false flag costs a glance.
+ */
+export function inventedWords(output: string, sources: string[]): string[] {
+  const hay = sources.join('\n').toLowerCase();
+  const has = (w: string) => new RegExp(`(?<![\\p{L}\\p{N}])${w.toLowerCase().replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}(?![\\p{L}\\p{N}])`, 'u').test(hay);
+  const out: string[] = [];
+  for (const m of output.matchAll(/[\p{L}][\p{L}'’-]*/gu)) {
+    const w = m[0].replace(/['’]s$/, '');
+    if (!/^\p{Lu}/u.test(w) || w === 'I' || /^I['’]/.test(w)) continue;
+    const before = output.slice(0, m.index);
+    if (/(^|[.!?:;]\s+|\n\s*|["“(]\s*)$/.test(before)) continue; // the start of a sentence
+    if (!has(w)) out.push(w);
+  }
+  for (const m of output.matchAll(NUMBER_WORD)) if (!has(m[0])) out.push(m[0]);
+  return out;
+}
 
 export interface FinishInput {
   /** The material that was tidied (all parts, as sent). */
@@ -237,7 +277,10 @@ export function finishTidy(a: TidyAnswer, input: FinishInput): Pick<AiTidyRespon
     const v = s[field];
     if (!v) continue;
     const words = ungrounded(v, sources);
-    if (words.length) ungroundedOut[field] = words;
+    // a lone word already inside a flagged run ("Acme Corp") isn't flagged twice
+    for (const w of inventedWords(v, sources)) if (!words.some((x) => x.toLowerCase().split(/\s+/).includes(w.toLowerCase()))) words.push(w);
+    const uniq = [...new Map(words.map((w) => [w.toLowerCase(), w])).values()];
+    if (uniq.length) ungroundedOut[field] = uniq;
   }
   return { suggestion: s, ungrounded: ungroundedOut, dropped };
 }

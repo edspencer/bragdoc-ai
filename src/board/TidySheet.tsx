@@ -36,13 +36,21 @@ export function TidyStatus({ tidy }: { tidy: Tidy }) {
   const p = tidy.phase;
   if (p.kind === 'thinking')
     return (
-      <div className="sb-sticky relative mt-3 flex w-fit max-w-full flex-wrap items-center gap-3 px-4 py-2.5 text-[13.5px]" style={{ transform: 'rotate(-0.6deg)' }} role="status" data-testid="tidy-thinking">
+      <div className="sb-sticky relative mt-3 flex w-fit max-w-full flex-wrap items-center gap-3 px-4 py-2.5 text-[13.5px]" style={{ transform: 'rotate(-0.6deg)' }} data-testid="tidy-thinking">
         <Loader2 aria-hidden className="size-4 shrink-0 animate-spin" />
-        <span className="font-hand text-[19px] leading-none">tidying{p.label ? ` with ${p.label}` : ''}…</span>
+        <span role="status" className="font-hand text-[19px] leading-none">
+          tidying{p.label ? ` with ${p.label}` : ''}…
+        </span>
         <Btn size="sm" kind="ghost" onClick={tidy.cancel} data-testid="tidy-cancel">
           Cancel
         </Btn>
       </div>
+    );
+  if (p.kind === 'done')
+    return (
+      <span role="status" className="sr-only">
+        {p.r.suggestion.notAnAchievement ? 'Tidy says this doesn’t look like an achievement.' : 'Tidy’s suggestion is ready, below.'}
+      </span>
     );
   if (p.kind === 'error')
     return (
@@ -96,7 +104,7 @@ function Row({ k, label, children, field, used, inert, onUse }: RowProps) {
           <Check aria-hidden className="size-3.5" /> Used
         </span>
       ) : (
-        <Btn size="sm" onClick={() => onUse(k)} disabled={!!inert} data-testid={`tidy-use-${k}`} aria-label={`Use the suggested ${label.toLowerCase()}`}>
+        <Btn size="sm" onClick={() => onUse(k)} disabled={!!inert} data-testid={`tidy-use-${k}`} aria-label={`Use the suggested ${k === 'dates' ? 'date' : label.toLowerCase()}`}>
           Use
         </Btn>
       )}

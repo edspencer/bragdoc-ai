@@ -48,8 +48,10 @@ export function useComposer({ notify }: ComposerOptions) {
   // only ever set by an accepted Tidy suggestion (v0.2): null keeps the composer exactly as it was without AI
   const [summary, setSummary] = useState<string | null>(null);
   const [endedAt, setEndedAt] = useState<string | null>(null);
-  // has a suggested title moved what you wrote down into the notes yet (D78)
-  const tidyKept = useRef(false);
+  // the title Tidy last put on the first line (D78), and what you'd written before any suggestion was used: a second
+  // tidy reads your words, not the first one's
+  const tidyTitle = useRef<string | null>(null);
+  const tidyOriginal = useRef<string | null>(null);
   const textRef = useRef(text);
   textRef.current = text;
   const aborts = useRef(new Map<number, AbortController>());
@@ -216,16 +218,18 @@ export function useComposer({ notify }: ComposerOptions) {
     setStickies([]);
     setSummary(null);
     setEndedAt(null);
-    tidyKept.current = false;
+    tidyTitle.current = null;
+    tidyOriginal.current = null;
   }, []);
 
   /** Use some of a Tidy suggestion (D78): what you wrote stays, in the notes; nothing is pinned until you Pin it. */
   const applyTidy = useCallback((keys: TidyKey[], r: AiTidyResponse) => {
     const s = r.suggestion;
     let t = textRef.current;
+    if (tidyOriginal.current === null || !t.includes(tidyOriginal.current)) tidyOriginal.current = t;
     if (keys.includes('title') && s.title) {
-      t = applyTitle(t, s.title, tidyKept.current);
-      tidyKept.current = true;
+      t = applyTitle(t, s.title, tidyTitle.current);
+      tidyTitle.current = s.title;
     }
     if (keys.includes('body') && s.body) t = applyBody(t, s.body);
     if (t !== textRef.current) setText(t);
@@ -294,6 +298,8 @@ export function useComposer({ notify }: ComposerOptions) {
     endedAt,
     setEndedAt,
     applyTidy,
+    /** What a tidy reads: your own words, while they're still in the text; else the text as it is. */
+    tidySource: () => (tidyOriginal.current && textRef.current.includes(tidyOriginal.current) ? tidyOriginal.current : textRef.current),
     addSticky,
     removeSticky,
     addFiles,

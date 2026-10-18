@@ -86,18 +86,23 @@ const composer = (page: Page) => page.getByTestId('composer-text');
 test('AI off, or Tidy off: no Tidy button in the composer or the edit drawer, and no AI request', async ({ page }) => {
   const errors = watchErrors(page);
   const n = fake.requests.length;
+  const tidyCalls: string[] = [];
+  page.on('request', (r) => r.url().includes('/api/ai/tidy') && tidyCalls.push(r.url()));
   for (const step of ['ai off', 'tidy off'] as const) {
     if (step === 'tidy off') await setAi(true);
     await page.goto(`${server.url}/`);
     await composer(page).fill('Shipped the Atlas Migration cutover yesterday');
     await expect(page.getByTestId('pin-it')).toBeVisible();
     await expect(page.getByTestId('composer-tidy')).toHaveCount(0);
+    await expect(page.getByTestId('composer-summary')).toHaveCount(0);
+    await expect(page.getByTestId('composer-ended')).toHaveCount(0);
     await page.getByText('did the importer').first().click();
     await expect(page.getByTestId('edit-drawer')).toBeVisible();
     await expect(page.getByTestId('edit-tidy')).toHaveCount(0);
     await expect(page.getByTestId('edit-tidy-area')).toHaveCount(0);
   }
   expect(fake.requests.length).toBe(n);
+  expect(tidyCalls).toEqual([]);
   expect(errors).toEqual([]);
   await api('PUT', '/api/ai/features/tidy', { enabled: true });
 });
@@ -126,6 +131,18 @@ test('paste → Tidy → Use the title only → Pin it: only the title changed, 
   expect(a.projects).toEqual([]);
   expect(a.happenedAt).toBe(new Date().toLocaleDateString('en-CA'));
   expect(errors).toEqual([]);
+});
+
+test('a second tidy after clearing the composer never replaces the first line you typed', async ({ page }) => {
+  await page.goto(`${server.url}/`);
+  await composer(page).fill('fixed the flaky checkout tests');
+  await page.getByTestId('composer-tidy').click();
+  await page.getByTestId('tidy-use-title').click();
+  await composer(page).fill('');
+  await composer(page).fill('paired with Jo on the pager bot');
+  await page.getByTestId('composer-tidy').click();
+  await page.getByTestId('tidy-use-title').click();
+  await expect(composer(page)).toHaveValue('Paired with Jo on the pager bot\npaired with Jo on the pager bot');
 });
 
 test('Use all: title, summary, the date from "yesterday", impact and the project, all yours until you pin', async ({ page }) => {

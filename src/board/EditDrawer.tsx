@@ -91,7 +91,8 @@ export function EditDrawer({
       ...(keys.includes('title') && s.title ? { title: s.title } : {}),
       ...(keys.includes('summary') && s.summary ? { summary: s.summary } : {}),
       ...(keys.includes('body') && s.body ? { body: x.body.trim() ? `${s.body}\n\n${x.body}` : s.body } : {}),
-      ...(keys.includes('dates') && s.happenedAt ? { happenedAt: s.happenedAt, endedAt: s.endedAt ?? '' } : {}),
+      // a saved end date stays unless the suggestion has its own, or it would now end before it starts
+      ...(keys.includes('dates') && s.happenedAt ? { happenedAt: s.happenedAt, endedAt: s.endedAt ?? (x.endedAt && x.endedAt > s.happenedAt ? x.endedAt : '') } : {}),
       ...(keys.includes('impact') && s.impact !== null ? { impact: s.impact } : {}),
       ...(keys.includes('projects') ? { projects: [...new Set([...x.projects, ...s.suggestedProjects])] } : {}),
     }));
@@ -252,7 +253,7 @@ export function EditDrawer({
             <TidyStatus tidy={tidy} />
           </div>
         )}
-        <TidySheet tidy={tidy} projects={projects} inert={avail.show ? null : 'AI or Tidy was switched off, so this suggestion can’t be used now. Nothing was changed.'} saveLabel="Save" onUse={applyTidy} />
+        <TidySheet tidy={tidy} projects={projects} inert={!avail.show ? `AI or Tidy was switched off, so this suggestion can’t be used now.${tidy.phase.kind === 'done' && tidy.phase.used.length ? ' What you already used stays until you change it or Cancel.' : ' Nothing was changed.'}` : saving ? 'Saving…' : !editable ? 'This achievement can’t be changed here.' : null} saveLabel="Save" onUse={applyTidy} />
 
         <fieldset disabled={!editable || saving} className="m-0 mt-4 space-y-4 border-0 p-0">
           <Field label="Title">

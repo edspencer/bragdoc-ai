@@ -117,14 +117,16 @@ export type Tidy = ReturnType<typeof useTidy>;
 
 /**
  * The composer's text is "the first line is the title, the rest the notes". Using a suggested title or body keeps
- * what you pasted (D78): the first time a title is used, your whole text moves down into the notes under it; after
- * that a title replaces the first line. A suggested body goes under the title, above your own words.
+ * what you wrote (D78): a title goes in as a new first line, with your whole text moved down into the notes under it;
+ * using another title later replaces only a first line that is still the title Tidy put there (`previous`), never one
+ * you typed. A suggested body goes under the title, above your own words.
  */
-export function applyTitle(text: string, title: string, kept: boolean): string {
+export function applyTitle(text: string, title: string, previous: string | null): string {
   if (!text.trim()) return title;
-  if (!kept) return `${title}\n${text}`;
   const nl = text.indexOf('\n');
-  return nl < 0 ? title : `${title}${text.slice(nl)}`;
+  const first = nl < 0 ? text : text.slice(0, nl);
+  if (previous !== null && first === previous) return nl < 0 ? title : `${title}${text.slice(nl)}`;
+  return `${title}\n${text}`;
 }
 
 export function applyBody(text: string, body: string): string {

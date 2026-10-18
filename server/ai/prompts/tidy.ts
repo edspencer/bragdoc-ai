@@ -44,13 +44,24 @@ const LABEL: Record<TidyPart['label'], string> = {
   quote: 'A quote kept with it',
 };
 
+/**
+ * Text can't forge the block's structure: a line that looks like a part's heading ("[Pasted text]") gets round
+ * brackets, and either marker, in any case, is broken up.
+ */
+export function neutralise(text: string): string {
+  return text
+    .replace(/^[ \t]*\[([^\]\n]*)\][ \t]*$/gm, '($1)')
+    .replace(/<<<\s*material/gi, '<< <MATERIAL')
+    .replace(/material\s*>>>/gi, 'MATERIAL> >>');
+}
+
 /** The material, as one block: each part under a short heading. Pure, so the route and the preview agree. */
 export function tidyMaterial(parts: TidyPart[]): string {
   return parts
     .filter((p) => p.text.trim())
     .map((p) => {
       const by = p.label === 'quote' && (p.from || p.where) ? ` (${[p.from && `from ${p.from}`, p.where && `in ${p.where}`].filter(Boolean).join(', ')})` : '';
-      return `[${LABEL[p.label]}${by}]\n${p.text.trim()}`;
+      return `[${LABEL[p.label]}${by}]\n${neutralise(p.text.trim())}`;
     })
     .join('\n\n');
 }
@@ -86,6 +97,7 @@ export function tidyPrompt(input: TidyPromptInput): { system: string; prompt: st
     input.projects.length ? `Their projects: ${input.projects.map((p) => `"${p}"`).join(', ')}.` : 'They have no projects yet: leave projects empty.',
   ];
   if (input.style?.trim()) lines.push('', 'How they like their achievements written (follow it unless it breaks a rule above):', input.style.trim());
-  lines.push('', '<<<MATERIAL', input.text.replace(/MATERIAL>>>/g, 'MATERIAL> >>'), 'MATERIAL>>>', '', 'Tidy this into one achievement.');
+  // tidyMaterial neutralises each part already; this is for a caller that hands over raw text
+  lines.push('', '<<<MATERIAL', input.text.replace(/<<<\s*material/gi, '<< <MATERIAL').replace(/material\s*>>>/gi, 'MATERIAL> >>'), 'MATERIAL>>>', '', 'Tidy this into one achievement.');
   return { system: TIDY_SYSTEM, prompt: lines.join('\n') };
 }
