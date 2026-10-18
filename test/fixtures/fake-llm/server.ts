@@ -299,7 +299,7 @@ export async function startFakeLlm(opts: FakeLlmOptions & { port?: number } = {}
   };
 }
 
-// run directly: `node --import tsx test/fixtures/fake-llm/server.ts --port 5150 [--scenario slow]`
+// run directly: `node --import tsx test/fixtures/fake-llm/server.ts --port 5150 [--scenario slow] [--pull-step-ms 1000]`
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
   const arg = (n: string) => {
     const i = process.argv.indexOf(`--${n}`);
@@ -311,6 +311,8 @@ if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.me
     process.exit(2);
   }
   const port = Number(arg('port') ?? process.env.PORT ?? 0);
-  const f = await startFakeLlm({ port, ...(scenario ? { scenario } : {}) });
+  // --pull-step-ms: a slower fake download, for trying Cancel and "AI off mid-download" by hand
+  const step = Number(arg('pull-step-ms') ?? NaN);
+  const f = await startFakeLlm({ port, ...(scenario ? { scenario } : {}), ...(Number.isFinite(step) ? { pullStepMs: step } : {}) });
   process.stdout.write(`fake-llm on ${f.url} (scenario: ${scenario ?? 'from FAKE_LLM_SCENARIO or ~/.fake-llm/scenario, else ok'})\n`);
 }
