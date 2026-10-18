@@ -245,6 +245,15 @@ function AboutYou({ firstRun, legacyCli, dataDir, onNext, onSkip }: { firstRun: 
           .
         </div>
       )}
+      {!legacyCli && firstRun && (
+        <p className="m-0 mt-3 text-[13px] text-faint" data-testid="welcome-import-line">
+          Coming from the hosted BragDoc?{' '}
+          <Link to="/settings/$tab" params={{ tab: 'data' }} className="font-semibold text-muted underline decoration-dotted underline-offset-2">
+            Import your export
+          </Link>{' '}
+          any time from Settings → Data.
+        </p>
+      )}
       <div className="mt-7 grid gap-4 sm:grid-cols-2">
         <Field label="Your name" error={error}>
           <TextInput value={name} onChange={(e) => setName(e.target.value)} placeholder="Alex Marlowe" autoComplete="name" data-testid="welcome-name" />

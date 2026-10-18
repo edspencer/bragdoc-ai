@@ -9,6 +9,10 @@ import { defineConfig, devices } from '@playwright/test';
 process.env.BRAGDOC_E2E_HOME ??= fs.realpathSync(fs.mkdtempSync(path.join(os.tmpdir(), 'bragdoc-e2e-')));
 const home = process.env.BRAGDOC_E2E_HOME;
 const port = Number(process.env.BRAGDOC_E2E_PORT ?? 27240);
+// The shared server's home has a profile.yaml, so its board is the board (a fresh home's sends you to Welcome, PR16).
+// e2e/welcome.spec.ts runs its own servers on fresh homes for the first run.
+fs.mkdirSync(path.join(home, '.bragdoc'), { recursive: true });
+if (!fs.existsSync(path.join(home, '.bragdoc', 'profile.yaml'))) fs.writeFileSync(path.join(home, '.bragdoc', 'profile.yaml'), 'name: Alex Marlowe\n');
 
 export default defineConfig({
   testDir: 'e2e',
