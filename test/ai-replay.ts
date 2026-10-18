@@ -2,6 +2,7 @@
 // real model said, so a feature's whole pipeline after the model (validation, post-processing, scoring) runs in CI
 // on a real model's answers without calling one. A request the recording doesn't have (its prompt changed since)
 // gets the fake's own answer, and its case is reported `stale`: re-record it on a machine with the model.
+import type { AiKind } from '../shared/ai/connections.ts';
 import { adHoc, runEval, type EvalReport, type EvalSpec, type Recording } from '../scripts/eval/lib.ts';
 import { replayRules } from './fixtures/fake-llm/replay.ts';
 import { startFakeLlm } from './fixtures/fake-llm/server.ts';
@@ -18,10 +19,10 @@ export interface Replayed {
   unanswered: string[];
 }
 
-/** Run `spec`'s recorded cases against the fake model server, answering from `rec`. */
-export async function replay<I, A>(spec: EvalSpec<I, A>, rec: Recording): Promise<Replayed> {
+/** Run `spec`'s recorded cases against the fake model server, answering from `rec`. `jev`: through a Jev connection (D82). */
+export async function replay<I, A>(spec: EvalSpec<I, A>, rec: Recording, kind: Extract<AiKind, 'openai-compatible' | 'jev'> = 'openai-compatible'): Promise<Replayed> {
   const fake = await startFakeLlm({ rules: replayRules(rec) });
-  const a = adHoc('openai-compatible', `${fake.url}/v1`, rec.model, spec.feature);
+  const a = adHoc(kind, `${fake.url}/v1`, rec.model, spec.feature);
   try {
     const ids = new Set(rec.cases.filter((c) => !c.error).map((c) => c.id));
     const report = await runEval({ ...spec, cases: spec.cases.filter((c) => ids.has(c.id)) }, { ai: a.ai, slot: a.slot });

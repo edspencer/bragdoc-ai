@@ -3,15 +3,19 @@
 // only `…abcd`, with Forget), consent and Revoke (internet), a model and Test connection with the outcome in plain
 // words, Use for AI features, and Remove. Adapted from GithubCard.tsx: its connect / error / rollback flow.
 //
+// A Jev connection (D82) has no address or key of its own: the card says which OpenRouter connection it goes through,
+// that it answers with a probability only, and offers "Use for the judge" instead of "Use for AI features" (Jev can't
+// write, so it's never the text slot).
+//
 // Two tabs can edit different connections at once: connections are a map in config.yaml and every write is a merge
 // patch (D53), and the fields here keep what you're typing while the other tab's change refreshes the card.
 import { useEffect, useId, useState, type FormEvent, type ReactNode } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { KeyRound, Play, Trash2 } from 'lucide-react';
 import type { AiConnectionView, AiStatus, AiTestResult } from '../../../shared/api.ts';
-import { DEFAULT_CONTEXT_TOKENS, KIND_LABEL, LOCAL_RUNNER_KINDS } from '../../../shared/ai/connections.ts';
+import { DEFAULT_CONTEXT_TOKENS, decisionOnly, JEV_MODEL, KIND_LABEL, LOCAL_RUNNER_KINDS } from '../../../shared/ai/connections.ts';
 import { HOST_CLASS_LABEL } from '../../../shared/ai/hosts.ts';
-import { deleteAiConnection, forgetAiKey, isApiError, putAi, putAiConnection, putAiKey, revokeAiConnection, testAiConnection } from '../../api/client.ts';
+import { deleteAiConnection, forgetAiKey, isApiError, putAi, putAiConnection, putAiFeature, putAiKey, revokeAiConnection, testAiConnection } from '../../api/client.ts';
 import { queryKeys, useAiModels } from '../../api/queries.ts';
 import { Btn, Dot, Kicker, Stamp, TextInput, inputCls, useToast, type Tone } from '../../kit/index.ts';
 import { ConsentDialog } from './ConsentDialog.tsx';
@@ -30,13 +34,18 @@ export function ConnectionCard({ c, status }: { c: AiConnectionView; status: AiS
   const put = (s: AiStatus) => qc.setQueryData(queryKeys.ai, s);
   const editable = LOCAL_RUNNER_KINDS.includes(c.kind) || c.kind === 'openai-compatible';
   const allowed = !c.cloud || !!c.consent?.current;
-  const inUse = status.text?.connection === c.id;
+  const judgeOnly = decisionOnly(c.kind);
+  // Jev is in use when it's the judge's model; anything else when it's the text slot
+  const inUse = judgeOnly ? status.features.judge.model?.connection === c.id : status.text?.connection === c.id;
+  const via = judgeOnly ? status.connections.find((x) => x.id === c.via) : undefined;
+  // the Jevs that go through this (an OpenRouter) connection: removing it stops them, and they ask for consent again
+  const riders = status.connections.filter((x) => decisionOnly(x.kind) && x.via === c.id);
 
   const revoke = useMutation({
     mutationFn: () => revokeAiConnection(c.id),
     onSuccess: (s) => {
       put(s);
-      toast({ msg: `${connectionName(c)} is revoked. Nothing more is sent to ${c.host}.` });
+      toast({ msg: decisionOnly(c.kind) ? `${connectionName(c)} is revoked. Nothing more is sent to Jev.` : `${connectionName(c)} is revoked. Nothing more is sent to ${c.host}.` });
     },
     onError: (e) => toast({ msg: errorText(e), tone: 'bad' }),
   });
@@ -62,7 +71,7 @@ export function ConnectionCard({ c, status }: { c: AiConnectionView; status: AiS
           <div className="text-[12px] text-faint">
             {c.name ? `${KIND_LABEL[c.kind]} · ` : ''}
             <span className="font-mono">{c.id}</span>
-            {inUse && <span className="ml-1.5 font-semibold text-good">· in use</span>}
+            {(inUse || riders.length > 0) && <span className="ml-1.5 font-semibold text-good">· in use{!inUse ? ` by ${riders.map(connectionName).join(', ')}` : ''}</span>}
           </div>
         </div>
         <Stamp color={CLASS_COLOUR[c.class]} rotate={-2} className="text-[11px]">
@@ -83,10 +92,26 @@ export function ConnectionCard({ c, status }: { c: AiConnectionView; status: AiS
         </span>
       </div>
 
+      {judgeOnly && (
+        <Row label="Goes through">
+          <div className="text-[13px]" data-testid="ai-connection-via">
+            {via ? (
+              <>
+                {connectionName(via)} <span className="text-muted">({via.hasKey ? 'with its key' : 'which has no key yet'})</span>
+              </>
+            ) : (
+              <span className="text-warn">its OpenRouter connection is gone. Add OpenRouter again to reconnect it (it asks for consent again), or remove this one.</span>
+            )}
+          </div>
+          <p className="m-0 mt-1.5 text-[12.5px] leading-snug text-muted" data-testid="ai-connection-jev-note">
+            Jev only judges what Found picks up, and answers with a probability only (“a win: 93%”). It never says why, and BragDoc never makes a reason up for it.
+          </p>
+        </Row>
+      )}
       {editable ? <AddressField c={c} put={put} /> : c.baseUrl && <Row label="Address"><span className="break-all font-mono text-[12.5px]">{c.baseUrl}</span></Row>}
       {!c.cloud && editable && <ContextField c={c} put={put} />}
 
-      {c.cloud && (
+      {c.cloud && c.host && (
         <div className="space-y-2" data-testid="ai-connection-consent">
           <Kicker>Consent</Kicker>
           {c.consent?.current ? (
@@ -121,7 +146,11 @@ export function ConnectionCard({ c, status }: { c: AiConnectionView; status: AiS
       <div className="flex flex-wrap items-center gap-2 border-t border-dashed border-line pt-3">
         {removing ? (
           <>
-            <span className="text-[13px]">Remove {connectionName(c)}{c.hasKey ? ' and delete its key' : ''}?</span>
+            <span className="text-[13px]">
+              Remove {connectionName(c)}
+              {c.hasKey ? ' and delete its key' : ''}?
+              {riders.length > 0 && ` ${riders.map(connectionName).join(', ')} goes through it: the judge stops using it, and it asks for consent again.`}
+            </span>
             <Btn size="sm" kind="danger" onClick={() => remove.mutate()} disabled={remove.isPending} data-testid="ai-connection-remove-yes">
               Remove
             </Btn>
@@ -341,8 +370,10 @@ function TestAndUse({ c, allowed, inUse, status, put }: { c: AiConnectionView; a
   // moved onto the internet (or back): asking it again is a click again
   useEffect(() => setListAsked(!c.cloud), [c.cloud]);
   const models = useAiModels(c.id, c.baseUrl, usable && listAsked);
-  const slotModel = status.text?.connection === c.id ? status.text.model : '';
-  const [model, setModel] = useState(slotModel);
+  const judgeOnly = decisionOnly(c.kind);
+  const judgeSlot = status.features.judge.model;
+  const slotModel = judgeOnly ? (judgeSlot?.connection === c.id ? judgeSlot.model : '') : status.text?.connection === c.id ? status.text.model : '';
+  const [model, setModel] = useState(slotModel || (judgeOnly ? JEV_MODEL : ''));
   useEffect(() => {
     if (slotModel) setModel(slotModel);
   }, [slotModel]);
@@ -356,10 +387,15 @@ function TestAndUse({ c, allowed, inUse, status, put }: { c: AiConnectionView; a
     onSuccess: setResult,
   });
   const use = useMutation({
-    mutationFn: () => putAi({ text: { connection: c.id, model: model.trim() } }),
+    mutationFn: () => (judgeOnly ? putAiFeature('judge', { model: { connection: c.id, model: model.trim() } }) : putAi({ text: { connection: c.id, model: model.trim() } })),
     onSuccess: (s) => {
       put(s);
-      toast({ msg: `AI features will use ${model.trim()} on ${connectionName(c)}.` });
+      const jevJudge = !judgeOnly && status.connections.some((x) => decisionOnly(x.kind) && x.id === status.features.judge.model?.connection);
+      toast({
+        msg: judgeOnly
+          ? `The judge will ask Jev (${model.trim()})${status.features.judge.enabled ? '.' : '. Switch the judge on to use it.'}`
+          : `AI features will use ${model.trim()} on ${connectionName(c)}.${jevJudge ? ' The judge still uses Jev, its own model.' : ''}`,
+      });
     },
     onError: (e) => toast({ msg: errorText(e), tone: 'bad' }),
   });
@@ -389,13 +425,15 @@ function TestAndUse({ c, allowed, inUse, status, put }: { c: AiConnectionView; a
           <Play className="size-3.5" aria-hidden /> {test.isPending ? 'Testing…' : 'Test connection'}
         </Btn>
         <Btn size="sm" kind={inUse && slotModel === model.trim() ? 'ghost' : 'go'} onClick={() => use.mutate()} disabled={!model.trim() || use.isPending || (inUse && slotModel === model.trim())} data-testid="ai-connection-use">
-          {inUse && slotModel === model.trim() ? 'In use' : 'Use for AI features'}
+          {inUse && slotModel === model.trim() ? (judgeOnly ? 'The judge’s model' : 'In use') : judgeOnly ? 'Use for the judge' : 'Use for AI features'}
         </Btn>
       </div>
       <div className="text-[12px] text-faint" data-testid="ai-connection-models">
         {!usable
           ? 'Testing and listing models wait until the line above is sorted.'
-          : !listAsked
+          : judgeOnly
+            ? `Jev’s model is ${JEV_MODEL}.`
+            : !listAsked
             ? (
               <button type="button" className="underline decoration-dotted underline-offset-2" onClick={() => setListAsked(true)} disabled={!allowed} data-testid="ai-connection-list">
                 Ask {c.host} which models it has
@@ -416,7 +454,7 @@ function TestAndUse({ c, allowed, inUse, status, put }: { c: AiConnectionView; a
       )}
       {result?.ok && (
         <Outcome title={`Works: answered in ${seconds(result.ms)}`}>
-          Structured answers: {result.structured ? 'yes' : 'no (BragDoc asks for JSON in the instructions instead)'}. Sent to {result.where === 'internet' ? `${c.host}, on the internet` : HOST_CLASS_LABEL[result.where]}, as a line in Network activity.
+          {judgeOnly ? 'It answered a yes-or-no question with a probability.' : `Structured answers: ${result.structured ? 'yes' : 'no (BragDoc asks for JSON in the instructions instead)'}.`} Sent to {result.where === 'internet' ? `${c.host}, on the internet` : HOST_CLASS_LABEL[result.where]}, as a line in Network activity.
         </Outcome>
       )}
       {result && !result.ok && (

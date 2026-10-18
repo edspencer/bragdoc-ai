@@ -1,0 +1,2582 @@
+{
+  "format": 1,
+  "eval": "judge",
+  "feature": "judge",
+  "model": "typesafe/jev-1.14",
+  "where": "internet",
+  "recordedAt": "2026-10-18T21:56:57.792Z",
+  "cases": [
+    {
+      "id": "m001",
+      "calls": []
+    },
+    {
+      "id": "m002",
+      "calls": []
+    },
+    {
+      "id": "m003",
+      "calls": []
+    },
+    {
+      "id": "m004",
+      "calls": []
+    },
+    {
+      "id": "m005",
+      "calls": []
+    },
+    {
+      "id": "m006",
+      "calls": [
+        {
+          "hash": "sha256:e3a24689e7af66d0ce4bb0921987b3278474276828f7560c30b39e998ad3cf80",
+          "shape": "sha256:2fd16fde6cbe09d9f9292428c1500c2b15c76ef52f2dacf240bd78b6cae78536",
+          "answer": {
+            "keep": {
+              "type": "boolean",
+              "probability": 0.98
+            },
+            "project": {
+              "type": "choice",
+              "choice": "Mobile Offline Sync"
+            }
+          },
+          "ms": 347,
+          "tokensIn": 1079,
+          "tokensOut": 118
+        }
+      ]
+    },
+    {
+      "id": "m007",
+      "calls": []
+    },
+    {
+      "id": "m008",
+      "calls": [
+        {
+          "hash": "sha256:e0b298c781ee989ea30749799de95cb6b02e7b256c62652e7ccd09db207f94ef",
+          "shape": "sha256:2fd16fde6cbe09d9f9292428c1500c2b15c76ef52f2dacf240bd78b6cae78536",
+          "answer": {
+            "keep": {
+              "type": "boolean",
+              "probability": 0.53
+            },
+            "project": {
+              "type": "choice",
+              "choice": "On-call & Incidents"
+            }
+          },
+          "ms": 199,
+          "tokensIn": 1084,
+          "tokensOut": 120
+        }
+      ]
+    },
+    {
+      "id": "m009",
+      "calls": []
+    },
+    {
+      "id": "m010",
+      "calls": [
+        {
+          "hash": "sha256:92137604a617ad0d52cf5b87179357c8d414592592936982293a82c70efeffc1",
+          "shape": "sha256:2fd16fde6cbe09d9f9292428c1500c2b15c76ef52f2dacf240bd78b6cae78536",
+          "answer": {
+            "keep": {
+              "type": "boolean",
+              "probability": 0.95
+            },
+            "project": {
+              "type": "choice",
+              "choice": "Mentoring"
+            }
+          },
+          "ms": 208,
+          "tokensIn": 1071,
+          "tokensOut": 118
+        }
+      ]
+    },
+    {
+      "id": "m011",
+      "calls": []
+    },
+    {
+      "id": "m012",
+      "calls": [
+        {
+          "hash": "sha256:1a71dba1117ebbecd1166abd487c6f32468518ba77f988e721ea60ad74f45d1b",
+          "shape": "sha256:2fd16fde6cbe09d9f9292428c1500c2b15c76ef52f2dacf240bd78b6cae78536",
+          "answer": {
+            "keep": {
+              "type": "boolean",
+              "probability": 0.95
+            },
+            "project": {
+              "type": "choice",
+              "choice": "Search Relevance"
+            }
+          },
+          "ms": 135,
+          "tokensIn": 1115,
+          "tokensOut": 119
+        }
+      ]
+    },
+    {
+      "id": "m013",
+      "calls": []
+    },
+    {
+      "id": "m014",
+      "calls": []
+    },
+    {
+      "id": "m015",
+      "calls": []
+    },
+    {
+      "id": "m016",
+      "calls": [
+        {
+          "hash": "sha256:8becdc0142374ac3367b5339bea8ae8ee809639e0522029c62191fb0a8725b7f",
+          "shape": "sha256:2fd16fde6cbe09d9f9292428c1500c2b15c76ef52f2dacf240bd78b6cae78536",
+          "answer": {
+            "keep": {
+              "type": "boolean",
+              "probability": 0.97
+            },
+            "project": {
+              "type": "choice",
+              "choice": "Deploy Pipeline"
+            }
+          },
+          "ms": 233,
+          "tokensIn": 1097,
+          "tokensOut": 117
+        }
+      ]
+    },
+    {
+      "id": "m017",
+      "calls": []
+    },
+    {
+      "id": "m018",
+      "calls": []
+    },
+    {
+      "id": "m019",
+      "calls": [
+        {
+          "hash": "sha256:e8537ae82c0421e33ee637649550de533119602645981c11d782e26794698485",
+          "shape": "sha256:2fd16fde6cbe09d9f9292428c1500c2b15c76ef52f2dacf240bd78b6cae78536",
+          "answer": {
+            "keep": {
+              "type": "boolean",
+              "probability": 0.1
+            },
+            "project": {
+              "type": "choice",
+              "choice": "(none of these)"
+            }
+          },
+          "ms": 890,
+          "tokensIn": 1064,
+          "tokensOut": 120
+        }
+      ]
+    },
+    {
+      "id": "m020",
+      "calls": []
+    },
+    {
+      "id": "m021",
+      "calls": []
+    },
+    {
+      "id": "m022",
+      "calls": []
+    },
+    {
+      "id": "m023",
+      "calls": []
+    },
+    {
+      "id": "m024",
+      "calls": []
+    },
+    {
+      "id": "m025",
+      "calls": []
+    },
+    {
+      "id": "m026",
+      "calls": []
+    },
+    {
+      "id": "m027",
+      "calls": []
+    },
+    {
+      "id": "m028",
+      "calls": [
+        {
+          "hash": "sha256:cacd7ed9b9adf29597af3af55d43ccbb76f8f1dcb35bd3ce069d9eb9ef5a23a4",
+          "shape": "sha256:2fd16fde6cbe09d9f9292428c1500c2b15c76ef52f2dacf240bd78b6cae78536",
+          "answer": {
+            "keep": {
+              "type": "boolean",
+              "probability": 0.98
+            },
+            "project": {
+              "type": "choice",
+              "choice": "(none of these)"
+            }
+          },
+          "ms": 172,
+          "tokensIn": 1087,
+          "tokensOut": 120
+        }
+      ]
+    },
+    {
+      "id": "m029",
+      "calls": []
+    },
+    {
+      "id": "m030",
+      "calls": [
+        {
+          "hash": "sha256:e00b03cce6f1aa9b63695ce00ee52cdfe3708399e2de85c7002f4f37e6a7a07a",
+          "shape": "sha256:2fd16fde6cbe09d9f9292428c1500c2b15c76ef52f2dacf240bd78b6cae78536",
+          "answer": {
+            "keep": {
+              "type": "boolean",
+              "probability": 0.94
+            },
+            "project": {
+              "type": "choice",
+              "choice": "On-call & Incidents"
+            }
+          },
+          "ms": 131,
+          "tokensIn": 1088,
+          "tokensOut": 120
+        }
+      ]
+    },
+    {
+      "id": "m031",
+      "calls": []
+    },
+    {
+      "id": "m032",
+      "calls": [
+        {
+          "hash": "sha256:e45c0f2dcb62f8ef78038fde4fa40a94eb39ace9298034032d87c97238bb6f40",
+          "shape": "sha256:2fd16fde6cbe09d9f9292428c1500c2b15c76ef52f2dacf240bd78b6cae78536",
+          "answer": {
+            "keep": {
+              "type": "boolean",
+              "probability": 0.97
+            },
+            "project": {
+              "type": "choice",
+              "choice": "Mobile Offline Sync"
+            }
+          },
+          "ms": 912,
+          "tokensIn": 1079,
+          "tokensOut": 118
+        }
+      ]
+    },
+    {
+      "id": "m033",
+      "calls": [
+        {
+          "hash": "sha256:49b4de59f1234e12b1b14bb8176bac09f20e5da6ce78453bbc0a33e315b58a34",
+          "shape": "sha256:2fd16fde6cbe09d9f9292428c1500c2b15c76ef52f2dacf240bd78b6cae78536",
+          "answer": {
+            "keep": {
+              "type": "boolean",
+              "probability": 0.9
+            },
+            "project": {
+              "type": "choice",
+              "choice": "Checkout v2"
+            }
+          },
+          "ms": 198,
+          "tokensIn": 1085,
+          "tokensOut": 118
+        }
+      ]
+    },
+    {
+      "id": "m034",
+      "calls": []
+    },
+    {
+      "id": "m035",
+      "calls": [
+        {
+          "hash": "sha256:a8684013ff905093aa715edbb015103f7575a330efea2bed86cd522e15a621d1",
+          "shape": "sha256:2fd16fde6cbe09d9f9292428c1500c2b15c76ef52f2dacf240bd78b6cae78536",
+          "answer": {
+            "keep": {
+              "type": "boolean",
+              "probability": 0.22
+            },
+            "project": {
+              "type": "choice",
+              "choice": "Deploy Pipeline"
+            }
+          },
+          "ms": 228,
+          "tokensIn": 1068,
+          "tokensOut": 117
+        }
+      ]
+    },
+    {
+      "id": "m036",
+      "calls": [
+        {
+          "hash": "sha256:b5bbdef907c88808a44667e627db0b107e911e713434936a3b07c26f0e150cc5",
+          "shape": "sha256:2fd16fde6cbe09d9f9292428c1500c2b15c76ef52f2dacf240bd78b6cae78536",
+          "answer": {
+            "keep": {
+              "type": "boolean",
+              "probability": 0.93
+            },
+            "project": {
+              "type": "choice",
+              "choice": "Deploy Pipeline"
+            }
+          },
+          "ms": 178,
+          "tokensIn": 1081,
+          "tokensOut": 117
+        }
+      ]
+    },
+    {
+      "id": "m037",
+      "calls": []
+    },
+    {
+      "id": "m038",
+      "calls": []
+    },
+    {
+      "id": "m039",
+      "calls": []
+    },
+    {
+      "id": "m040",
+      "calls": [
+        {
+          "hash": "sha256:371e11f08c515b9376b299816a63d9e98e4ce3a21a8c93162987c9f22f797692",
+          "shape": "sha256:2fd16fde6cbe09d9f9292428c1500c2b15c76ef52f2dacf240bd78b6cae78536",
+          "answer": {
+            "keep": {
+              "type": "boolean",
+              "probability": 0.95
+            },
+            "project": {
+              "type": "choice",
+              "choice": "Ledger Platform"
+            }
+          },
+          "ms": 180,
+          "tokensIn": 1115,
+          "tokensOut": 118
+        }
+      ]
+    },
+    {
+      "id": "m041",
+      "calls": []
+    },
+    {
+      "id": "m042",
+      "calls": []
+    },
+    {
+      "id": "m043",
+      "calls": []
+    },
+    {
+      "id": "m044",
+      "calls": [
+        {
+          "hash": "sha256:1dc5a806aad6b4208bdbdfdd7da4673ac128c7baad459ca74227d607c8afbc46",
+          "shape": "sha256:2fd16fde6cbe09d9f9292428c1500c2b15c76ef52f2dacf240bd78b6cae78536",
+          "answer": {
+            "keep": {
+              "type": "boolean",
+              "probability": 0.04
+            },
+            "project": {
+              "type": "choice",
+              "choice": "(none of these)"
+            }
+          },
+          "ms": 134,
+          "tokensIn": 1068,
+          "tokensOut": 120
+        }
+      ]
+    },
+    {
+      "id": "m045",
+      "calls": []
+    },
+    {
+      "id": "m046",
+      "calls": []
+    },
+    {
+      "id": "m047",
+      "calls": []
+    },
+    {
+      "id": "m048",
+      "calls": []
+    },
+    {
+      "id": "m049",
+      "calls": []
+    },
+    {
+      "id": "m050",
+      "calls": [
+        {
+          "hash": "sha256:b640081ed543804dbb915fb655278ed6827dbd3514e13051622bfbc0884929f9",
+          "shape": "sha256:2fd16fde6cbe09d9f9292428c1500c2b15c76ef52f2dacf240bd78b6cae78536",
+          "answer": {
+            "keep": {
+              "type": "boolean",
+              "probability": 0.46
+            },
+            "project": {
+              "type": "choice",
+              "choice": "On-call & Incidents"
+            }
+          },
+          "ms": 185,
+          "tokensIn": 1071,
+          "tokensOut": 120
+        }
+      ]
+    },
+    {
+      "id": "m051",
+      "calls": []
+    },
+    {
+      "id": "m052",
+      "calls": []
+    },
+    {
+      "id": "m053",
+      "calls": [
+        {
+          "hash": "sha256:fc8564f73b52d62e80e5fb7ae3b5120dee7e598d84ef9c0dc233e0832495c86c",
+          "shape": "sha256:2fd16fde6cbe09d9f9292428c1500c2b15c76ef52f2dacf240bd78b6cae78536",
+          "answer": {
+            "keep": {
+              "type": "boolean",
+              "probability": 0.92
+            },
+            "project": {
+              "type": "choice",
+              "choice": "Search Relevance"
+            }
+          },
+          "ms": 171,
+          "tokensIn": 1074,
+          "tokensOut": 119
+        }
+      ]
+    },
+    {
+      "id": "m054",
+      "calls": []
+    },
+    {
+      "id": "m055",
+      "calls": []
+    },
+    {
+      "id": "m056",
+      "calls": [
+        {
+          "hash": "sha256:4fccbdd1d30f0cedcfc6d464a0e23d47cc8ae1f7f91f78d2cfe8aea214324de7",
+          "shape": "sha256:2fd16fde6cbe09d9f9292428c1500c2b15c76ef52f2dacf240bd78b6cae78536",
+          "answer": {
+            "keep": {
+              "type": "boolean",
+              "probability": 0.99
+            },
+            "project": {
+              "type": "choice",
+              "choice": "Checkout v2"
+            }
+          },
+          "ms": 140,
+          "tokensIn": 1092,
+          "tokensOut": 118
+        }
+      ]
+    },
+    {
+      "id": "m057",
+      "calls": []
+    },
+    {
+      "id": "m058",
+      "calls": []
+    },
+    {
+      "id": "m059",
+      "calls": []
+    },
+    {
+      "id": "m060",
+      "calls": []
+    },
+    {
+      "id": "m061",
+      "calls": []
+    },
+    {
+      "id": "m062",
+      "calls": [
+        {
+          "hash": "sha256:fd755da5b8d0d3181f07dceb39f79293b8fbd252f2ac16716489c21ad638070d",
+          "shape": "sha256:2fd16fde6cbe09d9f9292428c1500c2b15c76ef52f2dacf240bd78b6cae78536",
+          "answer": {
+            "keep": {
+              "type": "boolean",
+              "probability": 0.97
+            },
+            "project": {
+              "type": "choice",
+              "choice": "Search Relevance"
+            }
+          },
+          "ms": 165,
+          "tokensIn": 1087,
+          "tokensOut": 119
+        }
+      ]
+    },
+    {
+      "id": "m063",
+      "calls": []
+    },
+    {
+      "id": "m064",
+      "calls": []
+    },
+    {
+      "id": "m065",
+      "calls": []
+    },
+    {
+      "id": "m066",
+      "calls": []
+    },
+    {
+      "id": "m067",
+      "calls": []
+    },
+    {
+      "id": "m068",
+      "calls": [
+        {
+          "hash": "sha256:ac060767473957a5600ed02305db1dc916bf1d006ee26a3d2976dfcdb3948547",
+          "shape": "sha256:2fd16fde6cbe09d9f9292428c1500c2b15c76ef52f2dacf240bd78b6cae78536",
+          "answer": {
+            "keep": {
+              "type": "boolean",
+              "probability": 0.07
+            },
+            "project": {
+              "type": "choice",
+              "choice": "(none of these)"
+            }
+          },
+          "ms": 155,
+          "tokensIn": 1068,
+          "tokensOut": 120
+        }
+      ]
+    },
+    {
+      "id": "m069",
+      "calls": []
+    },
+    {
+      "id": "m070",
+      "calls": []
+    },
+    {
+      "id": "m071",
+      "calls": [
+        {
+          "hash": "sha256:da17bbfdfbe50dcf29b427169e9b2efc2f0becbb10eaa1cfba9f065fe85b2e2a",
+          "shape": "sha256:2fd16fde6cbe09d9f9292428c1500c2b15c76ef52f2dacf240bd78b6cae78536",
+          "answer": {
+            "keep": {
+              "type": "boolean",
+              "probability": 0.93
+            },
+            "project": {
+              "type": "choice",
+              "choice": "(none of these)"
+            }
+          },
+          "ms": 142,
+          "tokensIn": 1062,
+          "tokensOut": 120
+        }
+      ]
+    },
+    {
+      "id": "m072",
+      "calls": []
+    },
+    {
+      "id": "m073",
+      "calls": [
+        {
+          "hash": "sha256:48db63616f48deaa095654079f20a6c0fc6b4d4d253b879b25b52ac81824a88e",
+          "shape": "sha256:2fd16fde6cbe09d9f9292428c1500c2b15c76ef52f2dacf240bd78b6cae78536",
+          "answer": {
+            "keep": {
+              "type": "boolean",
+              "probability": 0.98
+            },
+            "project": {
+              "type": "choice",
+              "choice": "Checkout v2"
+            }
+          },
+          "ms": 117,
+          "tokensIn": 1088,
+          "tokensOut": 118
+        }
+      ]
+    },
+    {
+      "id": "m074",
+      "calls": [
+        {
+          "hash": "sha256:6f0d044b3645882b8bdf340a7f7093d5fb97e8088beea537abcbf8e8769b75b3",
+          "shape": "sha256:2fd16fde6cbe09d9f9292428c1500c2b15c76ef52f2dacf240bd78b6cae78536",
+          "answer": {
+            "keep": {
+              "type": "boolean",
+              "probability": 0.23
+            },
+            "project": {
+              "type": "choice",
+              "choice": "Mobile Offline Sync"
+            }
+          },
+          "ms": 165,
+          "tokensIn": 1061,
+          "tokensOut": 118
+        }
+      ]
+    },
+    {
+      "id": "m075",
+      "calls": []
+    },
+    {
+      "id": "m076",
+      "calls": []
+    },
+    {
+      "id": "m077",
+      "calls": []
+    },
+    {
+      "id": "m078",
+      "calls": []
+    },
+    {
+      "id": "m079",
+      "calls": []
+    },
+    {
+      "id": "m080",
+      "calls": []
+    },
+    {
+      "id": "m081",
+      "calls": []
+    },
+    {
+      "id": "m082",
+      "calls": []
+    },
+    {
+      "id": "m083",
+      "calls": [
+        {
+          "hash": "sha256:899c698b7030cf148c966641e167358d2008e28212e5e08e8e07330808a055e9",
+          "shape": "sha256:2fd16fde6cbe09d9f9292428c1500c2b15c76ef52f2dacf240bd78b6cae78536",
+          "answer": {
+            "keep": {
+              "type": "boolean",
+              "probability": 0.96
+            },
+            "project": {
+              "type": "choice",
+              "choice": "Search Relevance"
+            }
+          },
+          "ms": 189,
+          "tokensIn": 1077,
+          "tokensOut": 119
+        }
+      ]
+    },
+    {
+      "id": "m084",
+      "calls": [
+        {
+          "hash": "sha256:6452a168deb78b8fc20102df1a91594930fed4c094aee7fedfb9ac485f902858",
+          "shape": "sha256:2fd16fde6cbe09d9f9292428c1500c2b15c76ef52f2dacf240bd78b6cae78536",
+          "answer": {
+            "keep": {
+              "type": "boolean",
+              "probability": 0.04
+            },
+            "project": {
+              "type": "choice",
+              "choice": "(none of these)"
+            }
+          },
+          "ms": 122,
+          "tokensIn": 1063,
+          "tokensOut": 120
+        }
+      ]
+    },
+    {
+      "id": "m085",
+      "calls": []
+    },
+    {
+      "id": "m086",
+      "calls": []
+    },
+    {
+      "id": "m087",
+      "calls": []
+    },
+    {
+      "id": "m088",
+      "calls": []
+    },
+    {
+      "id": "m089",
+      "calls": [
+        {
+          "hash": "sha256:7418cb43b166e6dd81a712dee87aecc8472265c8c26404d2f0d60744e835d6e4",
+          "shape": "sha256:2fd16fde6cbe09d9f9292428c1500c2b15c76ef52f2dacf240bd78b6cae78536",
+          "answer": {
+            "keep": {
+              "type": "boolean",
+              "probability": 0.95
+            },
+            "project": {
+              "type": "choice",
+              "choice": "Deploy Pipeline"
+            }
+          },
+          "ms": 140,
+          "tokensIn": 1074,
+          "tokensOut": 117
+        }
+      ]
+    },
+    {
+      "id": "m090",
+      "calls": []
+    },
+    {
+      "id": "m091",
+      "calls": [
+        {
+          "hash": "sha256:96d489602c4c2ffb5d578b33c94bae391218f278318940b1ab8e5f3b09f0df36",
+          "shape": "sha256:2fd16fde6cbe09d9f9292428c1500c2b15c76ef52f2dacf240bd78b6cae78536",
+          "answer": {
+            "keep": {
+              "type": "boolean",
+              "probability": 0.98
+            },
+            "project": {
+              "type": "choice",
+              "choice": "On-call & Incidents"
+            }
+          },
+          "ms": 137,
+          "tokensIn": 1096,
+          "tokensOut": 120
+        }
+      ]
+    },
+    {
+      "id": "m092",
+      "calls": []
+    },
+    {
+      "id": "m093",
+      "calls": [
+        {
+          "hash": "sha256:91639a9d32f64a20921182ca13de0883cda943986a2b0138f654877274785f52",
+          "shape": "sha256:2fd16fde6cbe09d9f9292428c1500c2b15c76ef52f2dacf240bd78b6cae78536",
+          "answer": {
+            "keep": {
+              "type": "boolean",
+              "probability": 0.03
+            },
+            "project": {
+              "type": "choice",
+              "choice": "(none of these)"
+            }
+          },
+          "ms": 183,
+          "tokensIn": 1058,
+          "tokensOut": 120
+        }
+      ]
+    },
+    {
+      "id": "m094",
+      "calls": []
+    },
+    {
+      "id": "m095",
+      "calls": [
+        {
+          "hash": "sha256:cd3b3bfce5c17b3325f2a6b7e4fb5141fc7f4423e0e55021e77010a4d8fd12fb",
+          "shape": "sha256:2fd16fde6cbe09d9f9292428c1500c2b15c76ef52f2dacf240bd78b6cae78536",
+          "answer": {
+            "keep": {
+              "type": "boolean",
+              "probability": 0.03
+            },
+            "project": {
+              "type": "choice",
+              "choice": "(none of these)"
+            }
+          },
+          "ms": 158,
+          "tokensIn": 1063,
+          "tokensOut": 120
+        }
+      ]
+    },
+    {
+      "id": "m096",
+      "calls": []
+    },
+    {
+      "id": "m097",
+      "calls": []
+    },
+    {
+      "id": "m098",
+      "calls": []
+    },
+    {
+      "id": "m099",
+      "calls": []
+    },
+    {
+      "id": "m100",
+      "calls": []
+    },
+    {
+      "id": "m101",
+      "calls": [
+        {
+          "hash": "sha256:8b34d992e96c730135e3549ec9142890d8bcdaf744cfe8fac8436c7e83508d3e",
+          "shape": "sha256:2fd16fde6cbe09d9f9292428c1500c2b15c76ef52f2dacf240bd78b6cae78536",
+          "answer": {
+            "keep": {
+              "type": "boolean",
+              "probability": 0.97
+            },
+            "project": {
+              "type": "choice",
+              "choice": "(none of these)"
+            }
+          },
+          "ms": 155,
+          "tokensIn": 1074,
+          "tokensOut": 120
+        }
+      ]
+    },
+    {
+      "id": "m102",
+      "calls": [
+        {
+          "hash": "sha256:a8ba031733367bd4d1ec86a3e5e789a19e54b4e468ac05c8beec2304a7dd7437",
+          "shape": "sha256:2fd16fde6cbe09d9f9292428c1500c2b15c76ef52f2dacf240bd78b6cae78536",
+          "answer": {
+            "keep": {
+              "type": "boolean",
+              "probability": 0.39
+            },
+            "project": {
+              "type": "choice",
+              "choice": "Deploy Pipeline"
+            }
+          },
+          "ms": 196,
+          "tokensIn": 1061,
+          "tokensOut": 117
+        }
+      ]
+    },
+    {
+      "id": "m103",
+      "calls": [
+        {
+          "hash": "sha256:ea45ebd4f0571c8b10f77e9cc020c48a0b4ba54caa2f909bfb7e8f4894d5c76c",
+          "shape": "sha256:2fd16fde6cbe09d9f9292428c1500c2b15c76ef52f2dacf240bd78b6cae78536",
+          "answer": {
+            "keep": {
+              "type": "boolean",
+              "probability": 0.14
+            },
+            "project": {
+              "type": "choice",
+              "choice": "Mobile Offline Sync"
+            }
+          },
+          "ms": 184,
+          "tokensIn": 1066,
+          "tokensOut": 118
+        }
+      ]
+    },
+    {
+      "id": "m104",
+      "calls": [
+        {
+          "hash": "sha256:c8fdcdb7d9f5abb0be5565601a099a4dfd845b7f82b5f1ade1dd7973afaecedc",
+          "shape": "sha256:2fd16fde6cbe09d9f9292428c1500c2b15c76ef52f2dacf240bd78b6cae78536",
+          "answer": {
+            "keep": {
+              "type": "boolean",
+              "probability": 0.98
+            },
+            "project": {
+              "type": "choice",
+              "choice": "Mobile Offline Sync"
+            }
+          },
+          "ms": 160,
+          "tokensIn": 1078,
+          "tokensOut": 118
+        }
+      ]
+    },
+    {
+      "id": "m105",
+      "calls": []
+    },
+    {
+      "id": "m106",
+      "calls": []
+    },
+    {
+      "id": "m107",
+      "calls": [
+        {
+          "hash": "sha256:c8a7c56c9892a10cdd4e5a53e2c9fc34fc3abf8e3a2c91dad189e4d143697b53",
+          "shape": "sha256:2fd16fde6cbe09d9f9292428c1500c2b15c76ef52f2dacf240bd78b6cae78536",
+          "answer": {
+            "keep": {
+              "type": "boolean",
+              "probability": 0.22
+            },
+            "project": {
+              "type": "choice",
+              "choice": "Deploy Pipeline"
+            }
+          },
+          "ms": 898,
+          "tokensIn": 1133,
+          "tokensOut": 117
+        }
+      ]
+    },
+    {
+      "id": "m108",
+      "calls": []
+    },
+    {
+      "id": "m109",
+      "calls": []
+    },
+    {
+      "id": "m110",
+      "calls": []
+    },
+    {
+      "id": "m111",
+      "calls": []
+    },
+    {
+      "id": "m112",
+      "calls": []
+    },
+    {
+      "id": "m113",
+      "calls": []
+    },
+    {
+      "id": "m114",
+      "calls": [
+        {
+          "hash": "sha256:b8260ba2f40ac0b4ff8e58e822755640b48868f517eb08af6ae78df0053def29",
+          "shape": "sha256:2fd16fde6cbe09d9f9292428c1500c2b15c76ef52f2dacf240bd78b6cae78536",
+          "answer": {
+            "keep": {
+              "type": "boolean",
+              "probability": 0.06
+            },
+            "project": {
+              "type": "choice",
+              "choice": "On-call & Incidents"
+            }
+          },
+          "ms": 166,
+          "tokensIn": 1084,
+          "tokensOut": 120
+        }
+      ]
+    },
+    {
+      "id": "m115",
+      "calls": []
+    },
+    {
+      "id": "m116",
+      "calls": []
+    },
+    {
+      "id": "m117",
+      "calls": []
+    },
+    {
+      "id": "m118",
+      "calls": []
+    },
+    {
+      "id": "m119",
+      "calls": [
+        {
+          "hash": "sha256:36498e09729d4ea135e99784df8a86551bc6f29c4b867761f540f4872d2bab30",
+          "shape": "sha256:2fd16fde6cbe09d9f9292428c1500c2b15c76ef52f2dacf240bd78b6cae78536",
+          "answer": {
+            "keep": {
+              "type": "boolean",
+              "probability": 0.02
+            },
+            "project": {
+              "type": "choice",
+              "choice": "(none of these)"
+            }
+          },
+          "ms": 170,
+          "tokensIn": 1068,
+          "tokensOut": 120
+        }
+      ]
+    },
+    {
+      "id": "m120",
+      "calls": [
+        {
+          "hash": "sha256:3f4f41736c9ef6c111b5ae5984fcde14a89173a52fc63421bf52fef07ac8e9b6",
+          "shape": "sha256:2fd16fde6cbe09d9f9292428c1500c2b15c76ef52f2dacf240bd78b6cae78536",
+          "answer": {
+            "keep": {
+              "type": "boolean",
+              "probability": 0.98
+            },
+            "project": {
+              "type": "choice",
+              "choice": "Checkout v2"
+            }
+          },
+          "ms": 141,
+          "tokensIn": 1078,
+          "tokensOut": 118
+        }
+      ]
+    },
+    {
+      "id": "m121",
+      "calls": [
+        {
+          "hash": "sha256:37caa1f0baf887eeb10659537cacee7a2440d45cf349c108d45960a855c3a57a",
+          "shape": "sha256:2fd16fde6cbe09d9f9292428c1500c2b15c76ef52f2dacf240bd78b6cae78536",
+          "answer": {
+            "keep": {
+              "type": "boolean",
+              "probability": 0.97
+            },
+            "project": {
+              "type": "choice",
+              "choice": "(none of these)"
+            }
+          },
+          "ms": 175,
+          "tokensIn": 1074,
+          "tokensOut": 120
+        }
+      ]
+    },
+    {
+      "id": "m122",
+      "calls": [
+        {
+          "hash": "sha256:591aecb9e368d750ca9df0cddbe3f4e73552d42555d249ea792961540766bd40",
+          "shape": "sha256:2fd16fde6cbe09d9f9292428c1500c2b15c76ef52f2dacf240bd78b6cae78536",
+          "answer": {
+            "keep": {
+              "type": "boolean",
+              "probability": 0.1
+            },
+            "project": {
+              "type": "choice",
+              "choice": "(none of these)"
+            }
+          },
+          "ms": 187,
+          "tokensIn": 1061,
+          "tokensOut": 120
+        }
+      ]
+    },
+    {
+      "id": "m123",
+      "calls": []
+    },
+    {
+      "id": "m124",
+      "calls": []
+    },
+    {
+      "id": "m125",
+      "calls": []
+    },
+    {
+      "id": "m126",
+      "calls": []
+    },
+    {
+      "id": "m127",
+      "calls": []
+    },
+    {
+      "id": "m128",
+      "calls": [
+        {
+          "hash": "sha256:e4db2fbaaf087163dfd4fc48beb2e1db3bef65a53a444c5726777f96e0cd7097",
+          "shape": "sha256:2fd16fde6cbe09d9f9292428c1500c2b15c76ef52f2dacf240bd78b6cae78536",
+          "answer": {
+            "keep": {
+              "type": "boolean",
+              "probability": 0.96
+            },
+            "project": {
+              "type": "choice",
+              "choice": "(none of these)"
+            }
+          },
+          "ms": 189,
+          "tokensIn": 1102,
+          "tokensOut": 120
+        }
+      ]
+    },
+    {
+      "id": "m129",
+      "calls": [
+        {
+          "hash": "sha256:d1d1181ce62ed220467204ed5d2725b80a3c4a07373cd20b12d58b5f22f3c34f",
+          "shape": "sha256:2fd16fde6cbe09d9f9292428c1500c2b15c76ef52f2dacf240bd78b6cae78536",
+          "answer": {
+            "keep": {
+              "type": "boolean",
+              "probability": 0.98
+            },
+            "project": {
+              "type": "choice",
+              "choice": "Ledger Platform"
+            }
+          },
+          "ms": 170,
+          "tokensIn": 1083,
+          "tokensOut": 118
+        }
+      ]
+    },
+    {
+      "id": "m130",
+      "calls": []
+    },
+    {
+      "id": "m131",
+      "calls": []
+    },
+    {
+      "id": "m132",
+      "calls": [
+        {
+          "hash": "sha256:5b39cf0a2226c70286857bef32dcb20100c778f83068b4487a8e1344ecb445d1",
+          "shape": "sha256:2fd16fde6cbe09d9f9292428c1500c2b15c76ef52f2dacf240bd78b6cae78536",
+          "answer": {
+            "keep": {
+              "type": "boolean",
+              "probability": 0.86
+            },
+            "project": {
+              "type": "choice",
+              "choice": "Deploy Pipeline"
+            }
+          },
+          "ms": 144,
+          "tokensIn": 1068,
+          "tokensOut": 117
+        }
+      ]
+    },
+    {
+      "id": "m133",
+      "calls": []
+    },
+    {
+      "id": "m134",
+      "calls": []
+    },
+    {
+      "id": "m135",
+      "calls": []
+    },
+    {
+      "id": "m136",
+      "calls": []
+    },
+    {
+      "id": "m137",
+      "calls": []
+    },
+    {
+      "id": "m138",
+      "calls": [
+        {
+          "hash": "sha256:e3795c2ca7dced95834997c04645c8944b00bc7515f06d0a2323e9abb7d81547",
+          "shape": "sha256:2fd16fde6cbe09d9f9292428c1500c2b15c76ef52f2dacf240bd78b6cae78536",
+          "answer": {
+            "keep": {
+              "type": "boolean",
+              "probability": 0.25
+            },
+            "project": {
+              "type": "choice",
+              "choice": "(none of these)"
+            }
+          },
+          "ms": 233,
+          "tokensIn": 1062,
+          "tokensOut": 120
+        }
+      ]
+    },
+    {
+      "id": "m139",
+      "calls": []
+    },
+    {
+      "id": "m140",
+      "calls": []
+    },
+    {
+      "id": "m141",
+      "calls": []
+    },
+    {
+      "id": "m142",
+      "calls": []
+    },
+    {
+      "id": "m143",
+      "calls": []
+    },
+    {
+      "id": "m144",
+      "calls": []
+    },
+    {
+      "id": "m145",
+      "calls": [
+        {
+          "hash": "sha256:4dd4de2da5000f5c1406c45191f6c5b533d8337d00bdd61a027c364fbef08519",
+          "shape": "sha256:2fd16fde6cbe09d9f9292428c1500c2b15c76ef52f2dacf240bd78b6cae78536",
+          "answer": {
+            "keep": {
+              "type": "boolean",
+              "probability": 0.85
+            },
+            "project": {
+              "type": "choice",
+              "choice": "On-call & Incidents"
+            }
+          },
+          "ms": 167,
+          "tokensIn": 1076,
+          "tokensOut": 120
+        }
+      ]
+    },
+    {
+      "id": "m146",
+      "calls": []
+    },
+    {
+      "id": "m147",
+      "calls": []
+    },
+    {
+      "id": "m148",
+      "calls": []
+    },
+    {
+      "id": "m149",
+      "calls": []
+    },
+    {
+      "id": "m150",
+      "calls": [
+        {
+          "hash": "sha256:20522b13905114c7ca10f49f506a405e3fd6b512f4bbdbb6312f53a2eb3e8384",
+          "shape": "sha256:2fd16fde6cbe09d9f9292428c1500c2b15c76ef52f2dacf240bd78b6cae78536",
+          "answer": {
+            "keep": {
+              "type": "boolean",
+              "probability": 0.03
+            },
+            "project": {
+              "type": "choice",
+              "choice": "(none of these)"
+            }
+          },
+          "ms": 900,
+          "tokensIn": 1061,
+          "tokensOut": 120
+        }
+      ]
+    },
+    {
+      "id": "m151",
+      "calls": []
+    },
+    {
+      "id": "m152",
+      "calls": []
+    },
+    {
+      "id": "m153",
+      "calls": []
+    },
+    {
+      "id": "m154",
+      "calls": []
+    },
+    {
+      "id": "m155",
+      "calls": []
+    },
+    {
+      "id": "m156",
+      "calls": []
+    },
+    {
+      "id": "m157",
+      "calls": []
+    },
+    {
+      "id": "m158",
+      "calls": [
+        {
+          "hash": "sha256:1f1ea17c4a5bf5b3c67d9fd4142e376547b4b47620374886ac712a638fb6646d",
+          "shape": "sha256:2fd16fde6cbe09d9f9292428c1500c2b15c76ef52f2dacf240bd78b6cae78536",
+          "answer": {
+            "keep": {
+              "type": "boolean",
+              "probability": 0.97
+            },
+            "project": {
+              "type": "choice",
+              "choice": "Billing Migration"
+            }
+          },
+          "ms": 1053,
+          "tokensIn": 1105,
+          "tokensOut": 117
+        }
+      ]
+    },
+    {
+      "id": "m159",
+      "calls": []
+    },
+    {
+      "id": "m160",
+      "calls": []
+    },
+    {
+      "id": "m161",
+      "calls": []
+    },
+    {
+      "id": "m162",
+      "calls": [
+        {
+          "hash": "sha256:fffb702f77f707863ddf89617304875743c9943221cc0f25a3823b26eb27b471",
+          "shape": "sha256:2fd16fde6cbe09d9f9292428c1500c2b15c76ef52f2dacf240bd78b6cae78536",
+          "answer": {
+            "keep": {
+              "type": "boolean",
+              "probability": 0.97
+            },
+            "project": {
+              "type": "choice",
+              "choice": "Checkout v2"
+            }
+          },
+          "ms": 200,
+          "tokensIn": 1077,
+          "tokensOut": 118
+        }
+      ]
+    },
+    {
+      "id": "m163",
+      "calls": []
+    },
+    {
+      "id": "m164",
+      "calls": [
+        {
+          "hash": "sha256:e9b258d2c1d2d6727fc7e7173a3bc630cb6d9d3a4901d9df41891ccb6d51275a",
+          "shape": "sha256:2fd16fde6cbe09d9f9292428c1500c2b15c76ef52f2dacf240bd78b6cae78536",
+          "answer": {
+            "keep": {
+              "type": "boolean",
+              "probability": 0.9
+            },
+            "project": {
+              "type": "choice",
+              "choice": "(none of these)"
+            }
+          },
+          "ms": 143,
+          "tokensIn": 1065,
+          "tokensOut": 120
+        }
+      ]
+    },
+    {
+      "id": "m165",
+      "calls": [
+        {
+          "hash": "sha256:64a69b557cbd51c140c02acb23036fb2f72a44a9d99061e59a919c0830b06b5d",
+          "shape": "sha256:2fd16fde6cbe09d9f9292428c1500c2b15c76ef52f2dacf240bd78b6cae78536",
+          "answer": {
+            "keep": {
+              "type": "boolean",
+              "probability": 0.03
+            },
+            "project": {
+              "type": "choice",
+              "choice": "(none of these)"
+            }
+          },
+          "ms": 189,
+          "tokensIn": 1066,
+          "tokensOut": 120
+        }
+      ]
+    },
+    {
+      "id": "m166",
+      "calls": [
+        {
+          "hash": "sha256:7446dcade6ef33c16f06cb6ba37eac360cd974e8dc8af8005f73168383146d09",
+          "shape": "sha256:2fd16fde6cbe09d9f9292428c1500c2b15c76ef52f2dacf240bd78b6cae78536",
+          "answer": {
+            "keep": {
+              "type": "boolean",
+              "probability": 0.96
+            },
+            "project": {
+              "type": "choice",
+              "choice": "(none of these)"
+            }
+          },
+          "ms": 227,
+          "tokensIn": 1067,
+          "tokensOut": 120
+        }
+      ]
+    },
+    {
+      "id": "m167",
+      "calls": []
+    },
+    {
+      "id": "m168",
+      "calls": []
+    },
+    {
+      "id": "m169",
+      "calls": []
+    },
+    {
+      "id": "m170",
+      "calls": [
+        {
+          "hash": "sha256:1abfa23ddb66fe874a0ffe1d44fb50ce171cd11858c75a03225872b4287c67aa",
+          "shape": "sha256:2fd16fde6cbe09d9f9292428c1500c2b15c76ef52f2dacf240bd78b6cae78536",
+          "answer": {
+            "keep": {
+              "type": "boolean",
+              "probability": 0.94
+            },
+            "project": {
+              "type": "choice",
+              "choice": "(none of these)"
+            }
+          },
+          "ms": 160,
+          "tokensIn": 1074,
+          "tokensOut": 120
+        }
+      ]
+    },
+    {
+      "id": "m171",
+      "calls": [
+        {
+          "hash": "sha256:84f23c78b8be0631e5b2fcaf22873066b2117e1175837da6f1581ed39fd3bc81",
+          "shape": "sha256:2fd16fde6cbe09d9f9292428c1500c2b15c76ef52f2dacf240bd78b6cae78536",
+          "answer": {
+            "keep": {
+              "type": "boolean",
+              "probability": 0.98
+            },
+            "project": {
+              "type": "choice",
+              "choice": "(none of these)"
+            }
+          },
+          "ms": 143,
+          "tokensIn": 1074,
+          "tokensOut": 120
+        }
+      ]
+    },
+    {
+      "id": "m172",
+      "calls": []
+    },
+    {
+      "id": "m173",
+      "calls": []
+    },
+    {
+      "id": "m174",
+      "calls": []
+    },
+    {
+      "id": "m175",
+      "calls": [
+        {
+          "hash": "sha256:a4ef04990abfb37a8d7cad10ebdfcda39a2591fd307d09b88b34fc687d2bae73",
+          "shape": "sha256:2fd16fde6cbe09d9f9292428c1500c2b15c76ef52f2dacf240bd78b6cae78536",
+          "answer": {
+            "keep": {
+              "type": "boolean",
+              "probability": 0.96
+            },
+            "project": {
+              "type": "choice",
+              "choice": "On-call & Incidents"
+            }
+          },
+          "ms": 140,
+          "tokensIn": 1101,
+          "tokensOut": 120
+        }
+      ]
+    },
+    {
+      "id": "m176",
+      "calls": []
+    },
+    {
+      "id": "m177",
+      "calls": []
+    },
+    {
+      "id": "m178",
+      "calls": []
+    },
+    {
+      "id": "m179",
+      "calls": []
+    },
+    {
+      "id": "m180",
+      "calls": [
+        {
+          "hash": "sha256:a384fd6443c52cb75c3205dc6b7063ed21eaa21bac67d997d36c54adcd978ab8",
+          "shape": "sha256:2fd16fde6cbe09d9f9292428c1500c2b15c76ef52f2dacf240bd78b6cae78536",
+          "answer": {
+            "keep": {
+              "type": "boolean",
+              "probability": 0.95
+            },
+            "project": {
+              "type": "choice",
+              "choice": "(none of these)"
+            }
+          },
+          "ms": 128,
+          "tokensIn": 1075,
+          "tokensOut": 120
+        }
+      ]
+    },
+    {
+      "id": "m181",
+      "calls": []
+    },
+    {
+      "id": "m182",
+      "calls": [
+        {
+          "hash": "sha256:80ad3b73259ea4596868d50786257e23cd6f7de4da5b5e7d8f4f0d9c57925c6c",
+          "shape": "sha256:2fd16fde6cbe09d9f9292428c1500c2b15c76ef52f2dacf240bd78b6cae78536",
+          "answer": {
+            "keep": {
+              "type": "boolean",
+              "probability": 0.96
+            },
+            "project": {
+              "type": "choice",
+              "choice": "Ledger Platform"
+            }
+          },
+          "ms": 136,
+          "tokensIn": 1111,
+          "tokensOut": 118
+        }
+      ]
+    },
+    {
+      "id": "m183",
+      "calls": []
+    },
+    {
+      "id": "m184",
+      "calls": [
+        {
+          "hash": "sha256:ee9af9c8f8b091d01e97f33400a62bf574ae3ca76847492e690780ad3e8d3f0e",
+          "shape": "sha256:2fd16fde6cbe09d9f9292428c1500c2b15c76ef52f2dacf240bd78b6cae78536",
+          "answer": {
+            "keep": {
+              "type": "boolean",
+              "probability": 0.09
+            },
+            "project": {
+              "type": "choice",
+              "choice": "Deploy Pipeline"
+            }
+          },
+          "ms": 188,
+          "tokensIn": 1081,
+          "tokensOut": 117
+        }
+      ]
+    },
+    {
+      "id": "m185",
+      "calls": []
+    },
+    {
+      "id": "m186",
+      "calls": []
+    },
+    {
+      "id": "m187",
+      "calls": []
+    },
+    {
+      "id": "m188",
+      "calls": []
+    },
+    {
+      "id": "m189",
+      "calls": []
+    },
+    {
+      "id": "m190",
+      "calls": []
+    },
+    {
+      "id": "m191",
+      "calls": []
+    },
+    {
+      "id": "m192",
+      "calls": []
+    },
+    {
+      "id": "m193",
+      "calls": [
+        {
+          "hash": "sha256:59ecbc46c8944429e6c8b697fcc4c140bc61ed8bd3847b2bd8487b80c27daaef",
+          "shape": "sha256:2fd16fde6cbe09d9f9292428c1500c2b15c76ef52f2dacf240bd78b6cae78536",
+          "answer": {
+            "keep": {
+              "type": "boolean",
+              "probability": 0.91
+            },
+            "project": {
+              "type": "choice",
+              "choice": "Mentoring"
+            }
+          },
+          "ms": 1437,
+          "tokensIn": 1079,
+          "tokensOut": 118
+        }
+      ]
+    },
+    {
+      "id": "m194",
+      "calls": []
+    },
+    {
+      "id": "m195",
+      "calls": [
+        {
+          "hash": "sha256:3131c5a09aef930d2b7876c8f7eb484747c75678b7679b9c3f4ec0e99e3979c9",
+          "shape": "sha256:2fd16fde6cbe09d9f9292428c1500c2b15c76ef52f2dacf240bd78b6cae78536",
+          "answer": {
+            "keep": {
+              "type": "boolean",
+              "probability": 0.98
+            },
+            "project": {
+              "type": "choice",
+              "choice": "Billing Migration"
+            }
+          },
+          "ms": 150,
+          "tokensIn": 1084,
+          "tokensOut": 117
+        }
+      ]
+    },
+    {
+      "id": "m196",
+      "calls": []
+    },
+    {
+      "id": "m197",
+      "calls": []
+    },
+    {
+      "id": "m198",
+      "calls": [
+        {
+          "hash": "sha256:75b3ac30bd72deacb2f7aa9085737ad2bdcd6d064844d7f82e51e29544d00dab",
+          "shape": "sha256:2fd16fde6cbe09d9f9292428c1500c2b15c76ef52f2dacf240bd78b6cae78536",
+          "answer": {
+            "keep": {
+              "type": "boolean",
+              "probability": 0.98
+            },
+            "project": {
+              "type": "choice",
+              "choice": "Checkout v2"
+            }
+          },
+          "ms": 222,
+          "tokensIn": 1080,
+          "tokensOut": 118
+        }
+      ]
+    },
+    {
+      "id": "m199",
+      "calls": []
+    },
+    {
+      "id": "m200",
+      "calls": [
+        {
+          "hash": "sha256:96fc790aa82dd9aee5e27120fdd4ce0859b75e9ab16be0171847e8f7ebf03529",
+          "shape": "sha256:2fd16fde6cbe09d9f9292428c1500c2b15c76ef52f2dacf240bd78b6cae78536",
+          "answer": {
+            "keep": {
+              "type": "boolean",
+              "probability": 0.96
+            },
+            "project": {
+              "type": "choice",
+              "choice": "(none of these)"
+            }
+          },
+          "ms": 163,
+          "tokensIn": 1068,
+          "tokensOut": 120
+        }
+      ]
+    },
+    {
+      "id": "m201",
+      "calls": [
+        {
+          "hash": "sha256:da0f5303596257981197e9a92ac16a4afa3cc8101ff0124014e163a45c2052d6",
+          "shape": "sha256:2fd16fde6cbe09d9f9292428c1500c2b15c76ef52f2dacf240bd78b6cae78536",
+          "answer": {
+            "keep": {
+              "type": "boolean",
+              "probability": 0.03
+            },
+            "project": {
+              "type": "choice",
+              "choice": "(none of these)"
+            }
+          },
+          "ms": 233,
+          "tokensIn": 1067,
+          "tokensOut": 120
+        }
+      ]
+    },
+    {
+      "id": "m202",
+      "calls": []
+    },
+    {
+      "id": "m203",
+      "calls": [
+        {
+          "hash": "sha256:0f86274ea4c721f74bb661d1b22bc8db7f871072a3755b4e9a8d0e72cd738a3b",
+          "shape": "sha256:2fd16fde6cbe09d9f9292428c1500c2b15c76ef52f2dacf240bd78b6cae78536",
+          "answer": {
+            "keep": {
+              "type": "boolean",
+              "probability": 0.96
+            },
+            "project": {
+              "type": "choice",
+              "choice": "Mobile Offline Sync"
+            }
+          },
+          "ms": 225,
+          "tokensIn": 1080,
+          "tokensOut": 118
+        }
+      ]
+    },
+    {
+      "id": "m204",
+      "calls": [
+        {
+          "hash": "sha256:714e7206004cd7c45427385d7ff74bae5d256853a8f5a1d5b1c5f00a4c862da2",
+          "shape": "sha256:2fd16fde6cbe09d9f9292428c1500c2b15c76ef52f2dacf240bd78b6cae78536",
+          "answer": {
+            "keep": {
+              "type": "boolean",
+              "probability": 0.98
+            },
+            "project": {
+              "type": "choice",
+              "choice": "(none of these)"
+            }
+          },
+          "ms": 171,
+          "tokensIn": 1083,
+          "tokensOut": 120
+        }
+      ]
+    },
+    {
+      "id": "m205",
+      "calls": []
+    },
+    {
+      "id": "m206",
+      "calls": []
+    },
+    {
+      "id": "m207",
+      "calls": [
+        {
+          "hash": "sha256:294d2e0e86c3f982f1ed506bdcac3d0194eb25ec0f3f1260e466079e75572e47",
+          "shape": "sha256:2fd16fde6cbe09d9f9292428c1500c2b15c76ef52f2dacf240bd78b6cae78536",
+          "answer": {
+            "keep": {
+              "type": "boolean",
+              "probability": 0.98
+            },
+            "project": {
+              "type": "choice",
+              "choice": "On-call & Incidents"
+            }
+          },
+          "ms": 183,
+          "tokensIn": 1127,
+          "tokensOut": 120
+        }
+      ]
+    },
+    {
+      "id": "m208",
+      "calls": []
+    },
+    {
+      "id": "m209",
+      "calls": [
+        {
+          "hash": "sha256:b9f6ce8f0499e2d8eed3aa0780f1b4d8e81408ad4813625347ff23323afef73f",
+          "shape": "sha256:2fd16fde6cbe09d9f9292428c1500c2b15c76ef52f2dacf240bd78b6cae78536",
+          "answer": {
+            "keep": {
+              "type": "boolean",
+              "probability": 0.49
+            },
+            "project": {
+              "type": "choice",
+              "choice": "Search Relevance"
+            }
+          },
+          "ms": 203,
+          "tokensIn": 1066,
+          "tokensOut": 119
+        }
+      ]
+    },
+    {
+      "id": "m210",
+      "calls": [
+        {
+          "hash": "sha256:4906025551d4d3b5e31bec08b5c386203032f077c06d6306affe96b549e76fc6",
+          "shape": "sha256:2fd16fde6cbe09d9f9292428c1500c2b15c76ef52f2dacf240bd78b6cae78536",
+          "answer": {
+            "keep": {
+              "type": "boolean",
+              "probability": 0.6
+            },
+            "project": {
+              "type": "choice",
+              "choice": "Ledger Platform"
+            }
+          },
+          "ms": 187,
+          "tokensIn": 1134,
+          "tokensOut": 118
+        }
+      ]
+    },
+    {
+      "id": "m211",
+      "calls": []
+    },
+    {
+      "id": "m212",
+      "calls": []
+    },
+    {
+      "id": "m213",
+      "calls": [
+        {
+          "hash": "sha256:cd898d90a91c0803d6b8f8ca1098496be7037d63d978eeb0a823306a28e63a49",
+          "shape": "sha256:2fd16fde6cbe09d9f9292428c1500c2b15c76ef52f2dacf240bd78b6cae78536",
+          "answer": {
+            "keep": {
+              "type": "boolean",
+              "probability": 0.96
+            },
+            "project": {
+              "type": "choice",
+              "choice": "Search Relevance"
+            }
+          },
+          "ms": 125,
+          "tokensIn": 1113,
+          "tokensOut": 119
+        }
+      ]
+    },
+    {
+      "id": "m214",
+      "calls": [
+        {
+          "hash": "sha256:b700211760bbe152b74a16e8d4f99db2121cba6cd3a9945c5c40b406e0d3dbab",
+          "shape": "sha256:2fd16fde6cbe09d9f9292428c1500c2b15c76ef52f2dacf240bd78b6cae78536",
+          "answer": {
+            "keep": {
+              "type": "boolean",
+              "probability": 0.98
+            },
+            "project": {
+              "type": "choice",
+              "choice": "On-call & Incidents"
+            }
+          },
+          "ms": 210,
+          "tokensIn": 1093,
+          "tokensOut": 120
+        }
+      ]
+    },
+    {
+      "id": "m215",
+      "calls": []
+    },
+    {
+      "id": "m216",
+      "calls": [
+        {
+          "hash": "sha256:c3205fff7ddfe58bab97e41805b639e5943c210962590493c40d64a4b6bfb2d9",
+          "shape": "sha256:2fd16fde6cbe09d9f9292428c1500c2b15c76ef52f2dacf240bd78b6cae78536",
+          "answer": {
+            "keep": {
+              "type": "boolean",
+              "probability": 0.03
+            },
+            "project": {
+              "type": "choice",
+              "choice": "(none of these)"
+            }
+          },
+          "ms": 220,
+          "tokensIn": 1059,
+          "tokensOut": 120
+        }
+      ]
+    },
+    {
+      "id": "m217",
+      "calls": [
+        {
+          "hash": "sha256:7639704cf2a5a0e34b0107ed7f836be40db602f0c0273eb51ffbfa4dc8bf9a54",
+          "shape": "sha256:2fd16fde6cbe09d9f9292428c1500c2b15c76ef52f2dacf240bd78b6cae78536",
+          "answer": {
+            "keep": {
+              "type": "boolean",
+              "probability": 0.92
+            },
+            "project": {
+              "type": "choice",
+              "choice": "Deploy Pipeline"
+            }
+          },
+          "ms": 129,
+          "tokensIn": 1081,
+          "tokensOut": 117
+        }
+      ]
+    },
+    {
+      "id": "m218",
+      "calls": [
+        {
+          "hash": "sha256:9ac38443b493dc0042a05daf8932eff91ef52355e26b728780fa0d57245cd537",
+          "shape": "sha256:2fd16fde6cbe09d9f9292428c1500c2b15c76ef52f2dacf240bd78b6cae78536",
+          "answer": {
+            "keep": {
+              "type": "boolean",
+              "probability": 0.25
+            },
+            "project": {
+              "type": "choice",
+              "choice": "On-call & Incidents"
+            }
+          },
+          "ms": 141,
+          "tokensIn": 1077,
+          "tokensOut": 120
+        }
+      ]
+    },
+    {
+      "id": "pr01",
+      "calls": [
+        {
+          "hash": "sha256:d9ec7e37a5e29fa1cc920ff4bedbf45b810b8ac5ad192982d47a8196afc1d6d3",
+          "shape": "sha256:2fd16fde6cbe09d9f9292428c1500c2b15c76ef52f2dacf240bd78b6cae78536",
+          "answer": {
+            "keep": {
+              "type": "boolean",
+              "probability": 0.95
+            },
+            "project": {
+              "type": "choice",
+              "choice": "Ledger Platform"
+            }
+          },
+          "ms": 195,
+          "tokensIn": 1058,
+          "tokensOut": 118
+        }
+      ]
+    },
+    {
+      "id": "pr02",
+      "calls": [
+        {
+          "hash": "sha256:f009dcd0cbbf3c4fd7b812c5d348d6f40a1d0b0b64631cd9136ebfc611c5960f",
+          "shape": "sha256:2fd16fde6cbe09d9f9292428c1500c2b15c76ef52f2dacf240bd78b6cae78536",
+          "answer": {
+            "keep": {
+              "type": "boolean",
+              "probability": 0.04
+            },
+            "project": {
+              "type": "choice",
+              "choice": "Ledger Platform"
+            }
+          },
+          "ms": 169,
+          "tokensIn": 1041,
+          "tokensOut": 118
+        }
+      ]
+    },
+    {
+      "id": "pr03",
+      "calls": [
+        {
+          "hash": "sha256:5af4e8f3c939da1e129b57730bb3732e6000b8231da4ab5fb6a290985aea41b7",
+          "shape": "sha256:2fd16fde6cbe09d9f9292428c1500c2b15c76ef52f2dacf240bd78b6cae78536",
+          "answer": {
+            "keep": {
+              "type": "boolean",
+              "probability": 0.95
+            },
+            "project": {
+              "type": "choice",
+              "choice": "Checkout v2"
+            }
+          },
+          "ms": 153,
+          "tokensIn": 1057,
+          "tokensOut": 118
+        }
+      ]
+    },
+    {
+      "id": "pr04",
+      "calls": [
+        {
+          "hash": "sha256:cdb620b938dc975305ac8e15e930caec1b81794131b00dc015b203e0a0851fc8",
+          "shape": "sha256:2fd16fde6cbe09d9f9292428c1500c2b15c76ef52f2dacf240bd78b6cae78536",
+          "answer": {
+            "keep": {
+              "type": "boolean",
+              "probability": 0.03
+            },
+            "project": {
+              "type": "choice",
+              "choice": "Checkout v2"
+            }
+          },
+          "ms": 174,
+          "tokensIn": 1024,
+          "tokensOut": 118
+        }
+      ]
+    },
+    {
+      "id": "pr05",
+      "calls": [
+        {
+          "hash": "sha256:b8de58f112b57a23b1712618c24c33a977b20c43445177d28bec3fddfc383e03",
+          "shape": "sha256:2fd16fde6cbe09d9f9292428c1500c2b15c76ef52f2dacf240bd78b6cae78536",
+          "answer": {
+            "keep": {
+              "type": "boolean",
+              "probability": 0.94
+            },
+            "project": {
+              "type": "choice",
+              "choice": "Deploy Pipeline"
+            }
+          },
+          "ms": 154,
+          "tokensIn": 1046,
+          "tokensOut": 117
+        }
+      ]
+    },
+    {
+      "id": "pr06",
+      "calls": [
+        {
+          "hash": "sha256:21581d99e46380e985be47ba5a7d63486443cc67ed644b36c1a699a89126d5f5",
+          "shape": "sha256:2fd16fde6cbe09d9f9292428c1500c2b15c76ef52f2dacf240bd78b6cae78536",
+          "answer": {
+            "keep": {
+              "type": "boolean",
+              "probability": 0.14
+            },
+            "project": {
+              "type": "choice",
+              "choice": "Deploy Pipeline"
+            }
+          },
+          "ms": 172,
+          "tokensIn": 1038,
+          "tokensOut": 117
+        }
+      ]
+    },
+    {
+      "id": "pr07",
+      "calls": [
+        {
+          "hash": "sha256:6fa562ff04642bc19a4f964acbcf0bc76f935f8dc684e92107a5d1893aa20e58",
+          "shape": "sha256:2fd16fde6cbe09d9f9292428c1500c2b15c76ef52f2dacf240bd78b6cae78536",
+          "answer": {
+            "keep": {
+              "type": "boolean",
+              "probability": 0.93
+            },
+            "project": {
+              "type": "choice",
+              "choice": "Search Relevance"
+            }
+          },
+          "ms": 162,
+          "tokensIn": 1048,
+          "tokensOut": 119
+        }
+      ]
+    },
+    {
+      "id": "pr08",
+      "calls": [
+        {
+          "hash": "sha256:3f27aa54be55a13851b22796c95561e48591fde116df9a1c03d172e460b0a717",
+          "shape": "sha256:2fd16fde6cbe09d9f9292428c1500c2b15c76ef52f2dacf240bd78b6cae78536",
+          "answer": {
+            "keep": {
+              "type": "boolean",
+              "probability": 0.03
+            },
+            "project": {
+              "type": "choice",
+              "choice": "(none of these)"
+            }
+          },
+          "ms": 223,
+          "tokensIn": 1022,
+          "tokensOut": 120
+        }
+      ]
+    },
+    {
+      "id": "pr09",
+      "calls": [
+        {
+          "hash": "sha256:e5e9ed4301c69818501e9cdedb2c13aa802dce758fd6b92cab0cb2e63dfa1cc2",
+          "shape": "sha256:2fd16fde6cbe09d9f9292428c1500c2b15c76ef52f2dacf240bd78b6cae78536",
+          "answer": {
+            "keep": {
+              "type": "boolean",
+              "probability": 0.94
+            },
+            "project": {
+              "type": "choice",
+              "choice": "Mobile Offline Sync"
+            }
+          },
+          "ms": 198,
+          "tokensIn": 1054,
+          "tokensOut": 118
+        }
+      ]
+    },
+    {
+      "id": "pr10",
+      "calls": [
+        {
+          "hash": "sha256:05aaf0c7475c203361ba99d3743655819a47870e7dcc742d2b0a1f0d1814e476",
+          "shape": "sha256:2fd16fde6cbe09d9f9292428c1500c2b15c76ef52f2dacf240bd78b6cae78536",
+          "answer": {
+            "keep": {
+              "type": "boolean",
+              "probability": 0.04
+            },
+            "project": {
+              "type": "choice",
+              "choice": "(none of these)"
+            }
+          },
+          "ms": 168,
+          "tokensIn": 1029,
+          "tokensOut": 120
+        }
+      ]
+    },
+    {
+      "id": "pr11",
+      "calls": [
+        {
+          "hash": "sha256:1aa8ee265b00fc07a3cea760509aa0b9a0513738c3597040311a6a090a0cc674",
+          "shape": "sha256:2fd16fde6cbe09d9f9292428c1500c2b15c76ef52f2dacf240bd78b6cae78536",
+          "answer": {
+            "keep": {
+              "type": "boolean",
+              "probability": 0.95
+            },
+            "project": {
+              "type": "choice",
+              "choice": "Billing Migration"
+            }
+          },
+          "ms": 215,
+          "tokensIn": 1060,
+          "tokensOut": 117
+        }
+      ]
+    },
+    {
+      "id": "pr12",
+      "calls": [
+        {
+          "hash": "sha256:c61dd842d475e959d88c7c10eafc7f54da37959ef6eb569a73efcd61232aaa7a",
+          "shape": "sha256:2fd16fde6cbe09d9f9292428c1500c2b15c76ef52f2dacf240bd78b6cae78536",
+          "answer": {
+            "keep": {
+              "type": "boolean",
+              "probability": 0.04
+            },
+            "project": {
+              "type": "choice",
+              "choice": "Billing Migration"
+            }
+          },
+          "ms": 160,
+          "tokensIn": 1029,
+          "tokensOut": 117
+        }
+      ]
+    },
+    {
+      "id": "pr13",
+      "calls": [
+        {
+          "hash": "sha256:c07f9affbc55f9142fe127a4fc4e799a6a9d47b0465c3aad3c602925d01fb89f",
+          "shape": "sha256:2fd16fde6cbe09d9f9292428c1500c2b15c76ef52f2dacf240bd78b6cae78536",
+          "answer": {
+            "keep": {
+              "type": "boolean",
+              "probability": 0.96
+            },
+            "project": {
+              "type": "choice",
+              "choice": "Ledger Platform"
+            }
+          },
+          "ms": 188,
+          "tokensIn": 1058,
+          "tokensOut": 118
+        }
+      ]
+    },
+    {
+      "id": "pr14",
+      "calls": [
+        {
+          "hash": "sha256:d9416b3571684277f925c5fee5f34e5a265c1807c1137def0b246ec52aedbe96",
+          "shape": "sha256:2fd16fde6cbe09d9f9292428c1500c2b15c76ef52f2dacf240bd78b6cae78536",
+          "answer": {
+            "keep": {
+              "type": "boolean",
+              "probability": 0.06
+            },
+            "project": {
+              "type": "choice",
+              "choice": "Ledger Platform"
+            }
+          },
+          "ms": 161,
+          "tokensIn": 1030,
+          "tokensOut": 118
+        }
+      ]
+    },
+    {
+      "id": "pr15",
+      "calls": [
+        {
+          "hash": "sha256:d8e7e244bb3e7451b88ea653be94ca685ba4dc59e83d816391e464753b434bc6",
+          "shape": "sha256:2fd16fde6cbe09d9f9292428c1500c2b15c76ef52f2dacf240bd78b6cae78536",
+          "answer": {
+            "keep": {
+              "type": "boolean",
+              "probability": 0.95
+            },
+            "project": {
+              "type": "choice",
+              "choice": "On-call & Incidents"
+            }
+          },
+          "ms": 228,
+          "tokensIn": 1055,
+          "tokensOut": 120
+        }
+      ]
+    },
+    {
+      "id": "pr16",
+      "calls": [
+        {
+          "hash": "sha256:4db1ff53077865f1b69f09c72abcf7e2d47c91d8147ad1ac0df76eea7d9f9778",
+          "shape": "sha256:2fd16fde6cbe09d9f9292428c1500c2b15c76ef52f2dacf240bd78b6cae78536",
+          "answer": {
+            "keep": {
+              "type": "boolean",
+              "probability": 0.05
+            },
+            "project": {
+              "type": "choice",
+              "choice": "On-call & Incidents"
+            }
+          },
+          "ms": 206,
+          "tokensIn": 1023,
+          "tokensOut": 120
+        }
+      ]
+    },
+    {
+      "id": "pr17",
+      "calls": [
+        {
+          "hash": "sha256:f820bf1ee31c926ec292af0e3da4b554bd25fb8d8c00049c99da3da4a35f505d",
+          "shape": "sha256:2fd16fde6cbe09d9f9292428c1500c2b15c76ef52f2dacf240bd78b6cae78536",
+          "answer": {
+            "keep": {
+              "type": "boolean",
+              "probability": 0.96
+            },
+            "project": {
+              "type": "choice",
+              "choice": "(none of these)"
+            }
+          },
+          "ms": 216,
+          "tokensIn": 1046,
+          "tokensOut": 120
+        }
+      ]
+    },
+    {
+      "id": "pr18",
+      "calls": [
+        {
+          "hash": "sha256:1fd05ea2c2ac142b80fc409cff82810d18d08bfbe1f0e1218a4d71e237d1a4d0",
+          "shape": "sha256:2fd16fde6cbe09d9f9292428c1500c2b15c76ef52f2dacf240bd78b6cae78536",
+          "answer": {
+            "keep": {
+              "type": "boolean",
+              "probability": 0.04
+            },
+            "project": {
+              "type": "choice",
+              "choice": "Deploy Pipeline"
+            }
+          },
+          "ms": 214,
+          "tokensIn": 1027,
+          "tokensOut": 117
+        }
+      ]
+    },
+    {
+      "id": "pr19",
+      "calls": [
+        {
+          "hash": "sha256:f6117735b7f33c5cba2019be039c498e62594170d786dc7ab512e273d287e338",
+          "shape": "sha256:2fd16fde6cbe09d9f9292428c1500c2b15c76ef52f2dacf240bd78b6cae78536",
+          "answer": {
+            "keep": {
+              "type": "boolean",
+              "probability": 0.68
+            },
+            "project": {
+              "type": "choice",
+              "choice": "Mentoring"
+            }
+          },
+          "ms": 163,
+          "tokensIn": 1051,
+          "tokensOut": 118
+        }
+      ]
+    },
+    {
+      "id": "pr20",
+      "calls": [
+        {
+          "hash": "sha256:f62c0b4d10a53476e1d0e978b61d1fb3371c44d507aea61dc4641e3dde3cfc4b",
+          "shape": "sha256:2fd16fde6cbe09d9f9292428c1500c2b15c76ef52f2dacf240bd78b6cae78536",
+          "answer": {
+            "keep": {
+              "type": "boolean",
+              "probability": 0.07
+            },
+            "project": {
+              "type": "choice",
+              "choice": "(none of these)"
+            }
+          },
+          "ms": 222,
+          "tokensIn": 1024,
+          "tokensOut": 120
+        }
+      ]
+    }
+  ]
+}

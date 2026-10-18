@@ -4,6 +4,7 @@
 import { useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import type { AiTidyPreview } from '../../../shared/api.ts';
+import { decisionOnly } from '../../../shared/ai/connections.ts';
 import { HOST_CLASS_LABEL } from '../../../shared/ai/hosts.ts';
 import { api, isApiError, putAiFeature } from '../../api/client.ts';
 import { queryKeys, useAiModels } from '../../api/queries.ts';
@@ -88,18 +89,20 @@ export function TidyCard({ status, readiness }: FeatureCardProps) {
 }
 
 function ModelChooser({ status, saving, onSave }: { status: FeatureCardProps['status']; saving: boolean; onSave: (m: { connection: string; model: string }) => void }) {
-  const [connection, setConnection] = useState(status.connections[0]?.id ?? '');
+  // Jev answers yes-or-no decisions for the judge only: it can't write (D82)
+  const conns = status.connections.filter((c) => !decisionOnly(c.kind));
+  const [connection, setConnection] = useState(conns[0]?.id ?? '');
   const [model, setModel] = useState('');
   const c = status.connections.find((x) => x.id === connection);
   // what the runner has, to pick from: asked of a usable local one only (a cloud one is asked on its own card, D69)
   const models = useAiModels(c?.id ?? '-', c?.baseUrl ?? null, !!c && !c.blocked && !c.cloud);
   const known = models.data?.models.map((m) => m.name) ?? [];
   const unknown = !!model.trim() && models.isSuccess && !known.includes(model.trim());
-  if (!status.connections.length) return <Hand className="mt-2 block text-[16px] text-faint">add a connection above first</Hand>;
+  if (!conns.length) return <Hand className="mt-2 block text-[16px] text-faint">add a connection above first</Hand>;
   return (
     <div className="mt-2 flex flex-wrap items-center gap-2" data-testid="ai-tidy-chooser">
       <select value={connection} onChange={(e) => setConnection(e.target.value)} className={`${inputCls} w-auto py-1 text-[13px]`} aria-label="Connection">
-        {status.connections.map((c) => (
+        {conns.map((c) => (
           <option key={c.id} value={c.id}>
             {connectionName(c)}
           </option>

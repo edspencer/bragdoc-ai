@@ -66,6 +66,9 @@ export const ANSWERS: AnswerRule[] = [
   // mistakes the check must catch: one bullet with no citation, and one planted number ("by 37%") no clipping has.
   // A note containing "(clean)" leaves both out.
   { name: 'draft', when: (r) => !r.json && /^You draft the achievements section/.test(r.system), answer: (r) => fakeDraft(r.prompt) },
+  // Jev (PR28, D82): typed questions, answered in the AI SDK's shape (the server puts `boolean` on the wire as `noul`).
+  // The same opinions as the judge rows above, as P(win); the project whose name the text mentions, else none
+  { name: 'jev', when: (r) => r.schemaName === 'jev_decision', answer: (r) => jevAnswer(r) },
   // ---- feature rows go above this line ----
   { name: 'schema', when: (r) => r.json && !!r.schema, answer: (r) => synthesize(r.schema!, r.schema!) },
   { name: 'json', when: (r) => r.json, answer: () => ({ answer: FALLBACK_TEXT }) },
@@ -118,6 +121,33 @@ function judgeMessage(prompt: string) {
     return { keep: true, confidence: 0.86, quote, from: author, why: 'Specific praise for something the user did.', projects: [] };
   }
   return { keep: false, confidence: 0.7, quote: '', from: author, why: "Routine chatter, not about the user's work.", projects: [] };
+}
+
+/** Jev's fake answers: P(win) from the judge rows' opinion, and a project only when the text names it. */
+function jevAnswer(r: FakeRequest): Record<string, unknown> {
+  const questions = new Map((safeJson(r.system) as [string, string, string, Record<string, string> | null][] | null ?? []).map(([id, , , criteria]) => [id, criteria]));
+  const state = (safeJson(r.prompt) ?? {}) as Record<string, string>;
+  const out: Record<string, unknown> = {};
+  if (questions.has('ok')) out.ok = { type: 'boolean', probability: 0.97 }; // a connection test
+  if (questions.has('keep')) {
+    const o = state.pull_request !== undefined ? judgePr(state.pull_request) : judgeMessage(state.screenshot ?? '');
+    out.keep = { type: 'boolean', probability: o.keep ? o.confidence : Math.round((1 - o.confidence) * 100) / 100 };
+  }
+  if (questions.has('project')) {
+    const names = Object.keys(questions.get('project') ?? {});
+    const text = (state.screenshot ?? state.pull_request ?? '').toLowerCase();
+    const hit = names.slice(0, -1).find((n) => text.includes(n.toLowerCase()));
+    out.project = { type: 'choice', choice: hit ?? names.at(-1) };
+  }
+  return out;
+}
+
+function safeJson(s: string): unknown {
+  try {
+    return JSON.parse(s);
+  } catch {
+    return null;
+  }
 }
 
 /** The judge's fake opinion of a merged PR: routine when its title says so. */

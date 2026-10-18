@@ -14,14 +14,17 @@
 //   remembered (per connection and model) and asked in JSON mode, with the schema in the instructions instead.
 // - No retries of our own beyond that one, and none of the SDK's (maxRetries: 0): a retry is a second request the user
 //   didn't see coming, and against a rate limit it makes things worse.
+// - **Decisions** (decide): typed questions to a decision model (Jev, D82) through the SDK's experimental_decide, in
+//   the same line, with the same gates, timeouts and log. No repair: a decision model's answer is valid or it isn't.
 import { z } from 'zod';
 import type { AiModelsResponse, AiTestResult, AiTrigger, AiWhere } from '../../shared/api.js';
-import { baseUrlOf, type AiCallFeature } from '../../shared/ai/connections.js';
+import { baseUrlOf, decisionOnly, isJevModel, JEV_MODEL, type AiCallFeature } from '../../shared/ai/connections.js';
 import type { Config } from '../config.js';
 import type { Egress } from '../egress.js';
 import type { Secrets } from '../secrets.js';
 import { AiError, classify, isGate, SCHEMA_UNSUPPORTED_RE } from './errors.js';
 import { connectionGate, connectionHost, featureGate, featureSlot, whereOf, type Gate, type Slot } from './policy.js';
+import type { DecisionAnswer, DecisionQuestion } from './decide.js';
 import { loadSdk, type Loaded } from './sdk.js';
 
 export const LOCAL_TIMEOUT_MS = 180_000;
@@ -52,6 +55,20 @@ export interface CallBase {
   /** What started a call that isn't part of a run, for its activity line. Default `now` (someone asked). */
   trigger?: AiTrigger;
 }
+
+/** What every call carries but its prompt: a decision has a state and questions instead. */
+export type CallMeta = Omit<CallBase, 'system' | 'prompt' | 'temperature' | 'maxOutputTokens'>;
+
+/** Typed questions about one state, for a decision model (Jev, D82). */
+export interface DecideCall extends CallMeta {
+  /** What every question is about: one JSON object of plain text fields. */
+  state: Record<string, string>;
+  questions: Record<string, DecisionQuestion>;
+  /** Per choice question, the option an answer outside its options becomes (so it can't sink the other answers). */
+  fallbacks?: Record<string, string>;
+}
+
+export type { DecisionAnswer, DecisionQuestion };
 
 export interface ObjectCall<T> extends CallBase {
   schema: z.ZodType<T>;
@@ -100,6 +117,8 @@ export interface StreamResult {
 export interface Ai {
   object<T>(call: ObjectCall<T>): Promise<{ object: T } & CallInfo>;
   stream(call: CallBase): Promise<StreamResult>;
+  /** Typed questions to a decision model (a `jev` connection): an answer per question, never any prose. */
+  decide(call: DecideCall): Promise<{ answers: Record<string, DecisionAnswer>; cost: number | null } & CallInfo>;
   /** Settings' Test connection: one tiny structured request (SPEC R17). Never throws. */
   test(connectionId: string, model?: string, signal?: AbortSignal): Promise<AiTestResult>;
   /** The models a connection offers (Ollama's tags, an OpenAI-style /models). */
@@ -221,7 +240,7 @@ export function createAi({ config, egress, secrets, load = loadSdk, now = Date.n
    * Run `fn` in connection `slot.connection`'s line, with its timeout and abort, and report it. The gates were checked
    * by the caller; they're checked again when it starts (things change while a job waits).
    */
-  function enqueue<T>(call: CallBase, slot: Slot, fn: (signal: AbortSignal, info: { connection: string; model: string; where: AiWhere; host: string | null }) => Promise<T & { tokensIn?: number | null; tokensOut?: number | null }>): Promise<T> {
+  function enqueue<T>(call: CallMeta, slot: Slot, fn: (signal: AbortSignal, info: { connection: string; model: string; where: AiWhere; host: string | null }) => Promise<T & { tokensIn?: number | null; tokensOut?: number | null }>): Promise<T> {
     const id = slot.connection;
     const cfg = config();
     const where = whereOf(cfg.ai, id);
@@ -315,7 +334,7 @@ export function createAi({ config, egress, secrets, load = loadSdk, now = Date.n
   }
 
   /** The gates for a call, or throws the AiError (409) before anything is queued. */
-  function gated(call: CallBase): Slot {
+  function gated(call: CallMeta): Slot {
     const { gate, slot } = readiness(call.feature, call.slot);
     if (gate) throw new AiError(gate.code, gate.message);
     return slot!;
@@ -335,8 +354,14 @@ export function createAi({ config, egress, secrets, load = loadSdk, now = Date.n
     }
   };
 
+  /** A decision model can't write text: say so plainly rather than let a provider factory fail. */
+  function textOnly(slot: Slot): void {
+    if (decisionOnly(config().ai.connections[slot.connection]?.kind)) throw new AiError('no_model', `${slot.connection} is Jev, which answers yes-or-no decisions for the judge only: it can't write text`);
+  }
+
   async function object<T>(call: ObjectCall<T>): Promise<{ object: T } & CallInfo> {
     const slot = gated(call);
+    textOnly(slot);
     return enqueue(call, slot, async (signal, info) => {
       const { sdk: ai, providers } = await sdk();
       const started = now();
@@ -443,6 +468,7 @@ export function createAi({ config, egress, secrets, load = loadSdk, now = Date.n
 
   async function stream(call: CallBase): Promise<StreamResult> {
     const slot = gated(call);
+    textOnly(slot);
     // the answer is handed over through a small buffer: the job holds its place in the line until the stream ends
     const chunks: string[] = [];
     let wake: (() => void) | null = null;
@@ -512,6 +538,28 @@ export function createAi({ config, egress, secrets, load = loadSdk, now = Date.n
     return { textStream: textStream(), done };
   }
 
+  async function decide(call: DecideCall): Promise<{ answers: Record<string, DecisionAnswer>; cost: number | null } & CallInfo> {
+    const slot = gated(call);
+    const conn = config().ai.connections[slot.connection];
+    if (!decisionOnly(conn?.kind)) throw new AiError('no_model', `${slot.connection} isn't a decision model: only a Jev connection answers typed questions`);
+    return enqueue(call, slot, async (signal, info) => {
+      const { decisions } = await sdk();
+      const started = now();
+      const cfg = config();
+      const r = await decisions.decide({
+        baseURL: baseUrlOf(cfg.ai.connections[slot.connection]!, cfg.ai.connections)!,
+        model: slot.model,
+        apiKey: keyFor(slot.connection),
+        fetch: egress.fetchFor({ purpose: call.purpose, feature: call.feature, model: slot.model, connectionId: slot.connection }),
+        state: call.state,
+        questions: call.questions,
+        ...(call.fallbacks ? { fallbacks: call.fallbacks } : {}),
+        signal,
+      });
+      return { answers: r.answers, cost: r.cost, connection: slot.connection, model: slot.model, where: info.where, ms: now() - started, tokensIn: r.tokensIn, tokensOut: r.tokensOut, mode: 'schema' as const, repaired: false };
+    });
+  }
+
   async function test(connectionId: string, model?: string, signal?: AbortSignal): Promise<AiTestResult> {
     const cfg = config();
     const m =
@@ -519,6 +567,26 @@ export function createAi({ config, egress, secrets, load = loadSdk, now = Date.n
       (cfg.ai.text?.connection === connectionId ? cfg.ai.text.model : undefined) ??
       Object.values(cfg.ai.features).map((f) => f.model).find((s) => s?.connection === connectionId)?.model;
     const where = cfg.ai.connections[connectionId] ? whereOf(cfg.ai, connectionId) : null;
+    // Jev: one typed question about nothing of yours (its consent statement's "test")
+    if (decisionOnly(cfg.ai.connections[connectionId]?.kind)) {
+      const jm = model ?? JEV_MODEL;
+      if (!isJevModel(jm)) return { ok: false, model: jm, where, error: { code: 'model_missing', message: `Jev's model is ${JEV_MODEL} (${jm} isn't one of Jev's: typesafe/jev-router is a chat model). Nothing was sent.` } };
+      try {
+        const r = await decide({
+          feature: 'test',
+          purpose: 'ai.test',
+          slot: { connection: connectionId, model: jm },
+          state: { text: 'BragDoc is checking that this connection works.' },
+          questions: { ok: { type: 'boolean', instructions: 'Is this text a connection check?' } },
+          priority: 'now',
+          ...(signal ? { signal } : {}),
+        });
+        return { ok: true, model: jm, where: r.where, ms: r.ms, structured: true };
+      } catch (e) {
+        const err = e instanceof AiError ? e : classify(e, { connection: connectionId, host: connectionHost(cfg.ai, connectionId) });
+        return { ok: false, model: jm, where, error: { code: err.code, message: err.message } };
+      }
+    }
     if (!m) return { ok: false, model: null, where, error: { code: 'no_model', message: 'choose a model to test (Settings → AI)' } };
     try {
       const r = await object({
@@ -544,6 +612,8 @@ export function createAi({ config, egress, secrets, load = loadSdk, now = Date.n
     const gate = connectionGate(cfg, connectionId, { hasKey });
     if (gate) throw new AiError(gate.code, gate.message);
     const c = cfg.ai.connections[connectionId]!;
+    // Jev has one model, and OpenRouter's list doesn't carry it: nothing is asked
+    if (decisionOnly(c.kind)) return [{ name: JEV_MODEL, sizeBytes: null }];
     const base = baseUrlOf(c, cfg.ai.connections)!;
     const send = egress.fetchFor({ purpose: 'ai.models', feature: 'test', connectionId });
     const key = keyFor(connectionId);
@@ -565,6 +635,7 @@ export function createAi({ config, egress, secrets, load = loadSdk, now = Date.n
   return {
     object,
     stream,
+    decide,
     test,
     models,
     readiness,

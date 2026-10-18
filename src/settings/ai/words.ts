@@ -37,10 +37,17 @@ export function providerOf(c: Pick<AiConnectionView, 'kind' | 'host'>): string {
   return c.kind === 'anthropic' || c.kind === 'openai' || c.kind === 'openrouter' ? KIND_LABEL[c.kind] : c.kind === 'jev' ? 'OpenRouter' : (c.host ?? 'a server you typed in');
 }
 
-/** The header chip (SPEC R26): "AI · this computer", "AI · Anthropic"; null while AI is off (no chip at all). */
-export function chipLabel(s: { enabled: boolean; text: AiStatus['text']; connections: Pick<AiConnectionView, 'id' | 'kind' | 'class' | 'host' | 'blocked'>[] } | undefined): string | null {
+/**
+ * The header chip (SPEC R26): "AI · this computer", "AI · Anthropic"; null while AI is off (no chip at all). Without a
+ * text slot, a switched-on feature's own model counts: Jev (D82) is only ever the judge's, never the text slot.
+ */
+export function chipLabel(s: { enabled: boolean; text: AiStatus['text']; features?: AiStatus['features']; connections: Pick<AiConnectionView, 'id' | 'kind' | 'class' | 'host' | 'blocked'>[] } | undefined): string | null {
   if (!s?.enabled) return null;
-  const c = s.text ? s.connections.find((x) => x.id === s.text!.connection) : undefined;
+  // the text slot and every switched-on feature's own model: where any of them is on the internet, the chip says so
+  // (a judge on Jev with a local text slot sends to OpenRouter)
+  const slots = [s.text, ...(s.features ? [s.features.judge, s.features.tidy, s.features.draft].filter((f) => f.enabled).map((f) => f.model) : [])];
+  const used = slots.map((x) => (x ? s.connections.find((c) => c.id === x.connection) : undefined)).filter((c): c is NonNullable<typeof c> => !!c);
+  const c = used.find((x) => x.class === 'internet') ?? used[0];
   if (!c) return 'AI · no model yet';
   const where = c.class === 'internet' ? providerOf(c) : HOST_CLASS_LABEL[c.class];
   return c.blocked ? `AI · ${where} (not ready)` : `AI · ${where}`;

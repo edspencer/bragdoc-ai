@@ -32,12 +32,13 @@ import type { AiWhere } from '../../shared/api.ts';
 import { AI_KINDS, baseUrlOf, type AiCallFeature, type AiKind } from '../../shared/ai/connections.ts';
 import { hostClass } from '../../shared/ai/hosts.ts';
 import { AiActivity, type ActivityRun } from '../../server/ai/activity.ts';
-import { AiError, createAi, type Ai } from '../../server/ai/run.ts';
+import { AiError, createAi, type Ai, type DecisionAnswer, type DecisionQuestion } from '../../server/ai/run.ts';
 import type { Slot } from '../../server/ai/policy.ts';
 import { ConfigSchema, ConfigStore, type Config } from '../../server/config.ts';
 import { Egress } from '../../server/egress.ts';
 import { resolveDataDir } from '../../server/paths.ts';
 import { Secrets } from '../../server/secrets.ts';
+import { decisionAsked } from './decision.ts';
 
 export const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 export const RECORDINGS = path.join(ROOT, 'test/fixtures/ai-recordings');
@@ -54,6 +55,8 @@ export interface EvalCase<I> {
 export interface Ask {
   object<T>(call: { system: string; prompt: string; schema: z.ZodType<T>; schemaName?: string; maxOutputTokens?: number; timeoutMs?: number }): Promise<T>;
   text(call: { system: string; prompt: string; maxOutputTokens?: number; timeoutMs?: number }): Promise<string>;
+  /** Typed questions to a decision model (Jev, D82): an answer per question. */
+  decide(call: { state: Record<string, string>; questions: Record<string, DecisionQuestion>; fallbacks?: Record<string, string>; timeoutMs?: number }): Promise<Record<string, DecisionAnswer>>;
 }
 
 export interface EvalSpec<I, A> {
@@ -125,7 +128,7 @@ const FATAL = new Set(['ai_off', 'no_model', 'not_consented', 'no_key', 'unreach
 
 const sha = (v: unknown) => `sha256:${crypto.createHash('sha256').update(JSON.stringify(v)).digest('hex')}`;
 /** The shape of a call (not its content): the schema, its name, the output options. */
-export const shapeHash = (o: { schema?: z.ZodType; schemaName?: string; maxOutputTokens?: number; kind: 'object' | 'text' }) =>
+export const shapeHash = (o: { schema?: z.ZodType; schemaName?: string; maxOutputTokens?: number; kind: 'object' | 'text' | 'decision' }) =>
   sha([o.kind, o.schema ? z.toJSONSchema(o.schema) : null, o.schemaName ?? null, o.maxOutputTokens ?? null]);
 
 export const askedHash = (system: string, prompt: string) => `sha256:${crypto.createHash('sha256').update(system).update('\0').update(prompt).digest('hex')}`;
@@ -189,6 +192,13 @@ export async function runEval<I, A>(spec: EvalSpec<I, A>, { ai, slot, activity, 
           note(r);
           calls.push({ hash: askedHash(system, prompt), shape: shapeHash({ kind: 'text', ...(maxOutputTokens ? { maxOutputTokens } : {}) }), answer: r.text, ms: r.ms, tokensIn: r.tokensIn, tokensOut: r.tokensOut });
           return r.text;
+        },
+        async decide({ state, questions, fallbacks, timeoutMs }) {
+          const r = await ai.decide({ ...base, state, questions, ...(fallbacks ? { fallbacks } : {}), ...(timeoutMs ? { timeoutMs } : {}) });
+          note(r);
+          const asked = decisionAsked(state, questions);
+          calls.push({ hash: askedHash(asked.system, asked.prompt), shape: shapeHash({ kind: 'decision' }), answer: r.answers, ms: r.ms, tokensIn: r.tokensIn, tokensOut: r.tokensOut });
+          return r.answers;
         },
       };
       const t0 = now();
@@ -292,9 +302,14 @@ export function adHoc(kind: AiKind, baseUrl: string, model: string, feature: AiC
   if (where === 'internet') throw new Error(`${new URL(baseUrl).host} is on the internet: a cloud connection needs consent. Add it in Settings → AI, accept its statement, and use its id`);
   const dataDir = fs.mkdtempSync(path.join(os.tmpdir(), 'bragdoc-eval-'));
   const features = feature === 'judge' || feature === 'tidy' || feature === 'draft' ? { [feature]: { enabled: true } } : {};
-  const config: Config = ConfigSchema.parse({ ai: { enabled: true, connections: { eval: { kind, baseUrl } }, features } });
+  // Jev (D82) goes through an OpenRouter-kind connection at that address; a key is required, and a local one gets a
+  // placeholder (the real Jev is never local: this is the fake model server, or a replay)
+  const connections = kind === 'jev' ? { via: { kind: 'openrouter', baseUrl }, eval: { kind, via: 'via' } } : { eval: { kind, baseUrl } };
+  const config: Config = ConfigSchema.parse({ ai: { enabled: true, connections, features } });
   const egress = new Egress({ dataDir, config: () => config });
-  const ai = createAi({ config: () => config, egress, secrets: new Secrets(dataDir) });
+  const secrets = new Secrets(dataDir);
+  if (kind === 'jev') secrets.setAiKey('via', 'local-placeholder');
+  const ai = createAi({ config: () => config, egress, secrets });
   const activity = new AiActivity({ dataDir });
   activity.listen(ai);
   return { ai, slot: { connection: 'eval', model }, activity, dataDir, host: new URL(baseUrl).host, hostname: new URL(baseUrl).hostname, close: () => fs.rmSync(dataDir, { recursive: true, force: true }) };
