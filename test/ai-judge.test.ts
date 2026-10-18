@@ -368,7 +368,7 @@ describe('Judge now', () => {
       r.shot(PRAISE, 'Amazing work Alex, p95 is down 40% since the batching went out.');
       r.shot(CHATTER, "I'm OOO tomorrow, Alex is covering on-call");
       const sum = await r.ctx.judge.judgePending({ trigger: 'now' });
-      assert.deepEqual([sum.outcome, sum.done, sum.counts], ['ok', 2, { failed: 2 }]);
+      assert.deepEqual([sum.outcome, sum.error, sum.done, sum.counts], ['error', 'bad_output', 2, { failed: 2 }], 'every item went on, and all failed');
       assert.ok(r.ctx.services.found.list().every((c) => c.verdict === null));
       assert.equal(r.fake.requests.filter((q) => q.path.endsWith('/api/chat')).length, 4, 'one repair retry each');
     } finally {
@@ -421,7 +421,7 @@ describe('Judge now', () => {
       const orig = r.ctx.ai.object.bind(r.ctx.ai);
       r.ctx.ai.object = ((call: Parameters<typeof orig>[0]) => orig({ ...call, timeoutMs: 200 })) as typeof orig;
       const sum = await r.ctx.judge.judgePending({ trigger: 'now' });
-      assert.deepEqual([sum.outcome, sum.counts], ['ok', { failed: 1 }]);
+      assert.deepEqual([sum.outcome, sum.error, sum.counts], ['error', 'timeout', { failed: 1 }]);
     } finally {
       await r.close();
     }

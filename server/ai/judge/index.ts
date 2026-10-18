@@ -306,6 +306,7 @@ export function createJudge(deps: JudgeDeps): JudgeEngine {
     const done = (async (): Promise<RunSummary> => {
       let error: string | null = null;
       let cancelled = false;
+      let itemError: string | null = null;
       try {
         for (const c of todo) {
           if (controller.signal.aborted) {
@@ -341,11 +342,14 @@ export function createJudge(deps: JudgeDeps): JudgeEngine {
               break;
             }
             count('failed'); // this item: a bad answer, a timeout, a file that can't be written
+            itemError = code ?? 'failed';
           }
           state.done++;
           changed();
         }
       } finally {
+        // every item failed (and none was judged): the run failed, with the last item's reason, as the activity log says
+        if (!error && itemError && !counts.win && !counts['probably-not']) error = itemError;
         signal?.removeEventListener('abort', onAbort);
         run.end({ error, cancelled });
         const outcome: RunSummary['outcome'] = cancelled ? 'cancelled' : error ? 'error' : 'ok';
