@@ -1,19 +1,14 @@
-// Read-only lists of projects and repos, so the board's pickers and pills work (SPEC R5). The writes, and companies,
-// are PR8's. PR8 has the same two GETs, with the same shapes, in its own catalog.ts: whichever lands second keeps one copy.
-//
-//   GET /api/projects   ProjectsResponse: every project, newest start first, with its ETag and achievement count
-//   GET /api/repos      ReposResponse: every repo, by name, with its ETag
+// The project and repo lists, which the Board's pills (PR7) and the Projects page (PR8) both read:
+//   GET /api/projects   every project, newest start first (ProjectsResponse)
+//   GET /api/repos      every repo, by name (ReposResponse)
+// Each item carries its file's ETag, for If-Match on edits (routes/projects.ts, routes/repos.ts).
 import type { Hono } from 'hono';
 import type { ProjectsResponse, ReposResponse } from '../../shared/api.js';
-import type { Project, Repo } from '../../shared/schema/index.js';
 import type { AppContext } from '../context.js';
+import { projectEntry, repoEntry } from './entries.js';
 
 export function registerCatalog(app: Hono, ctx: AppContext): void {
-  const etag = (kind: 'project' | 'repo', id: string) => ctx.store.entry(kind, id)?.etag ?? '';
-  app.get('/api/projects', (c) =>
-    c.json({
-      projects: ctx.services.projects.list().map((p) => ({ ...p, etag: etag('project', p.id), achievements: ctx.store.achievementIdsIn('project', p.id).size })),
-    } satisfies ProjectsResponse<Project>),
-  );
-  app.get('/api/repos', (c) => c.json({ repos: ctx.services.repos.list().map((r) => ({ ...r, etag: etag('repo', r.id) })) } satisfies ReposResponse<Repo>));
+  const { store, services } = ctx;
+  app.get('/api/projects', (c) => c.json({ projects: services.projects.list().map((p) => projectEntry(store, p)) } satisfies ProjectsResponse));
+  app.get('/api/repos', (c) => c.json({ repos: services.repos.list().map((r) => repoEntry(store, r)) } satisfies ReposResponse));
 }

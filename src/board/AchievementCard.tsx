@@ -2,7 +2,7 @@
 // handwriting, impact, title, summary (or the start of the body), the rest of the evidence, then project pills, repo
 // tags and where it came from. Adapted from the Scrapbook prototype's Board.tsx Card.
 import { AlertTriangle, Archive, Pencil } from 'lucide-react';
-import type { Project, Repo } from '../../shared/schema/index.ts';
+import type { ProjectEntry as Project, RepoEntry as Repo } from '../../shared/api.ts';
 import type { AchievementItem } from '../api/client.ts';
 import { Card, EvidenceBit, Hand, ImpactBadge, ProjectPill, ProvenanceBadge, RepoTag, type Provenance } from '../kit/index.ts';
 import { fmt } from '../lib/dates.ts';

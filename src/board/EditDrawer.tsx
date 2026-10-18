@@ -6,9 +6,9 @@
 // the save is refused with a 409 and the drawer offers to load the new version rather than overwrite it.
 import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { Archive, ArchiveRestore, Link2, Loader2, Paperclip, Quote, Trash2, X } from 'lucide-react';
-import type { EvidenceFile } from '../../shared/api.ts';
+import type { EvidenceFile, ProjectEntry as Project, RepoEntry as Repo } from '../../shared/api.ts';
 import { isHttpUrl } from '../../shared/links.ts';
-import type { AchievementUpdate, Evidence, EvidenceInput, Project, Repo } from '../../shared/schema/index.ts';
+import type { AchievementUpdate, Evidence, EvidenceInput } from '../../shared/schema/index.ts';
 import { NETWORK_ERROR, isApiError, previewLink, updateAchievement, uploadEvidence, type AchievementItem } from '../api/client.ts';
 import { Btn, Field, TextArea, TextInput, inputCls, useToast } from '../kit/index.ts';
 import { MAX_UPLOAD_BYTES, linkEvidence, localPreview } from './composer.ts';

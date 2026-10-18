@@ -13,28 +13,36 @@ import type { Hono } from 'hono';
 import type { AppContext } from '../context.js';
 import { registerAchievements } from './achievements.js';
 import { registerCatalog } from './catalog.js';
+import { registerCompanies } from './companies.js';
 import { registerEvents } from './events.js';
 import { registerEvidence } from './evidence.js';
 import { registerFoundCount } from './found-count.js';
 import { registerGuide } from './guide.js';
 import { registerHealth } from './health.js';
+import { registerImport } from './import.js';
 import { registerLinkPreview } from './link-preview.js';
 import { registerMcp } from './mcp.js';
 import { registerMeta } from './meta.js';
 import { registerNetwork } from './network.js';
 import { registerProblems } from './problems.js';
+import { registerProjects } from './projects.js';
+import { registerRepos } from './repos.js';
 
 export function registerRoutes(app: Hono, ctx: AppContext): void {
   registerAchievements(app, ctx);
   registerCatalog(app, ctx);
+  registerCompanies(app, ctx);
   registerEvents(app, ctx);
   registerEvidence(app, ctx);
   registerFoundCount(app, ctx);
   registerGuide(app, ctx);
   registerHealth(app, ctx);
+  registerImport(app, ctx);
   registerLinkPreview(app, ctx);
   registerMcp(app, ctx);
   registerMeta(app, ctx);
   registerNetwork(app, ctx);
   registerProblems(app, ctx);
+  registerProjects(app, ctx);
+  registerRepos(app, ctx);
 }

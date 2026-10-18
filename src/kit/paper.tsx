@@ -1,7 +1,7 @@
 // Paper: the things pinned to the board. Taped cards and panels, photo prints, PDF pages, sticky notes, rubber stamps
 // and the receipt roll. Ported from the Scrapbook prototype (ui.tsx, Board.tsx, Settings.tsx), with its data lookups
 // replaced by plain props.
-import { forwardRef, useState, type CSSProperties, type HTMLAttributes, type ReactNode } from 'react';
+import { Children, forwardRef, useState, type CSSProperties, type HTMLAttributes, type ReactNode } from 'react';
 import { safeColour, tilt } from '../lib/colour.ts';
 import { Lightbox } from './Lightbox.tsx';
 
@@ -63,7 +63,17 @@ export function Panel({ children, tape, className = '' }: { children: ReactNode;
  * week of two cards both in the first column.
  */
 export function Masonry({ children, className = '' }: { children: ReactNode; className?: string }) {
-  return <div className={`gap-6 sm:columns-2 lg:columns-3 [&>*]:mb-7 [&>*]:block [&>*]:w-full [&>*]:break-inside-avoid ${className}`}>{children}</div>;
+  // Each card sits in a wrapper with room on top for its tape: tape that pokes above a card starting a new column is
+  // overflow Chrome paints at the foot of the previous column, as an orphan strip.
+  return (
+    <div className={`gap-6 sm:columns-2 lg:columns-3 ${className}`}>
+      {Children.map(children, (c) =>
+        c == null || c === false ? null : (
+          <div className="mb-4 block w-full break-inside-avoid pt-3 [&>*]:block [&>*]:w-full">{c}</div>
+        ),
+      )}
+    </div>
+  );
 }
 
 export interface PrintProps {

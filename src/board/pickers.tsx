@@ -3,7 +3,7 @@
 import { useEffect, useId, useMemo, useRef, useState } from 'react';
 import { Check, ChevronDown, X } from 'lucide-react';
 import { IMPACT_SCALE, impactLevel } from '../../shared/impact.ts';
-import type { Project, Repo } from '../../shared/schema/index.ts';
+import type { ProjectEntry as Project, RepoEntry as Repo } from '../../shared/api.ts';
 import { ProjectPill, inputCls } from '../kit/index.ts';
 import { safeColour } from '../lib/colour.ts';
 

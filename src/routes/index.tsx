@@ -64,8 +64,10 @@ function Board() {
   const repos = useRepos();
   const problems = useProblems();
   const found = useFoundCount();
-  const projectMap = useMemo(() => new Map((projects.data ?? []).map((p) => [p.id, p])), [projects.data]);
-  const repoMap = useMemo(() => new Map((repos.data ?? []).map((r) => [r.id, r])), [repos.data]);
+  const projectList = useMemo(() => projects.data?.projects ?? [], [projects.data]);
+  const repoList = useMemo(() => repos.data?.repos ?? [], [repos.data]);
+  const projectMap = useMemo(() => new Map(projectList.map((p) => [p.id, p])), [projectList]);
+  const repoMap = useMemo(() => new Map(repoList.map((r) => [r.id, r])), [repoList]);
   const items = useMemo(() => list.data?.pages.flatMap((p) => p.items) ?? [], [list.data]);
   const weeks = useMemo(() => groupByWeek(items.map((a) => ({ date: a.happenedAt, a }))), [items]);
   const total = list.data?.pages[0]?.total;
@@ -236,7 +238,7 @@ function Board() {
   return (
     <div data-testid="board-page">
       <h1 className="sr-only">Board</h1>
-      <DropTray c={c} dragging={dragging} projects={projects.data ?? []} repos={repos.data ?? []} onSubmit={() => void pin()} saving={saving} />
+      <DropTray c={c} dragging={dragging} projects={projectList} repos={repoList} onSubmit={() => void pin()} saving={saving} />
 
       <div className="mt-6 flex flex-wrap items-center gap-3">
         {!!found && (
@@ -353,8 +355,8 @@ function Board() {
         <EditDrawer
           key={editing.id}
           a={editing}
-          projects={projects.data ?? []}
-          repos={repos.data ?? []}
+          projects={projectList}
+          repos={repoList}
           onClose={() => setEditing(null)}
           onSaved={() => {
             setEditing(null);

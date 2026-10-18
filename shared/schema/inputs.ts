@@ -77,6 +77,7 @@ export const ProjectCreateSchema = z.strictObject({
   status: z.enum(PROJECT_STATUSES).optional(),
   companyId: ulidSchema.nullable().optional(),
   repoIds: ids.optional(),
+  legacyId: z.string().min(1).optional(),
   example: z.boolean().optional(),
 });
 export type ProjectCreate = z.infer<typeof ProjectCreateSchema>;
@@ -97,6 +98,7 @@ export const CompanyCreateSchema = z.strictObject({
   role: z.string().optional(),
   start: isoDate.optional(),
   end: isoDate.nullable().optional(),
+  legacyId: z.string().min(1).optional(),
   example: z.boolean().optional(),
 });
 export type CompanyCreate = z.infer<typeof CompanyCreateSchema>;
@@ -167,3 +169,15 @@ export const FoundKeepSchema = z.strictObject({
   repos: ids.optional().describe('Defaults to the suggested repos.'),
 });
 export type FoundKeep = z.infer<typeof FoundKeepSchema>;
+
+/** Link and unlink repos on a project in one call (`POST /api/projects/:id/repos`). */
+export const ProjectReposSchema = z
+  .strictObject({ link: ids.optional(), unlink: ids.optional() })
+  .refine((r) => (r.link?.length ?? 0) + (r.unlink?.length ?? 0) > 0, { message: 'give repo ids to link or unlink', path: ['link'] });
+export type ProjectRepos = z.infer<typeof ProjectReposSchema>;
+
+/** Undoing a delete: the references it took off, to put back (what the delete answered with as `detached`). */
+export const RestoreSchema = z.strictObject({
+  reattach: z.strictObject({ achievements: ids.optional(), projects: ids.optional() }).optional(),
+});
+export type Restore = z.infer<typeof RestoreSchema>;

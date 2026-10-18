@@ -23,9 +23,11 @@ export const CHANGE_INVALIDATES: Record<string, readonly string[]> = {
   achievement: ['achievements', 'projects'],
   // a sidecar: OCR text (searchable) and sizes shown on cards
   evidence: ['achievements'],
+  // a project's colour and name show on the Gantt, its summary, and the board's tape and pills
   project: ['projects'],
-  repo: ['repos'],
-  company: ['companies'],
+  // a company's or repo's name shows in project summaries; deleting one detaches it from projects
+  company: ['companies', 'projects'],
+  repo: ['repos', 'projects'],
   found: ['found'],
   profile: ['profile'],
   problems: ['problems'],

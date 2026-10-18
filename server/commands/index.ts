@@ -1,8 +1,9 @@
 // Every `bragdoc` command except `serve` (server/cli.ts), by name (Hallway's server/commands/index.ts). Each resolves
 // with its exit code, or undefined while it keeps running (`service logs`). A new command is a file here and one line
-// below; `import` (PR12) adds itself this way.
+// below.
 import type { Ctx } from './context.js';
 import { guide } from './guide.js';
+import { importCommand } from './import.js';
 import { mcp } from './mcp.js';
 import { service } from './service.js';
 
@@ -12,6 +13,7 @@ export type Command = (ctx: Ctx, args: string[], flags: Record<string, string>, 
 
 export const COMMANDS: Record<string, Command> = {
   guide,
+  import: importCommand,
   mcp,
   service,
 };

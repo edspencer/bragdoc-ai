@@ -3,7 +3,7 @@
 // the date and "Pin it". Adapted from the Scrapbook prototype's Board.tsx DropTray, without its demo buttons.
 import { useRef, type KeyboardEvent, type ReactNode } from 'react';
 import { AlertTriangle, FileText, ImageIcon, Link2, Loader2, Paperclip, RotateCw, X } from 'lucide-react';
-import type { Project, Repo } from '../../shared/schema/index.ts';
+import type { ProjectEntry as Project, RepoEntry as Repo } from '../../shared/api.ts';
 import { GithubMark, PdfPage, formatBytes, inputCls } from '../kit/index.ts';
 import type { Composer, Pending } from './composer.ts';
 import { stem } from './evidence.ts';

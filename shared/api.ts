@@ -223,21 +223,6 @@ export type LinkPreview =
     }
   | { kind: 'url'; url: string; domain: string };
 
-/** A project as the API lists it: the file's fields, its ETag (If-Match for edits) and how many achievements it has (archived included). */
-export type ProjectEntry<P = Record<string, unknown>> = P & { etag: string; achievements: number };
-/** A repo as the API lists it: the file's fields and its ETag. */
-export type RepoEntry<R = Record<string, unknown>> = R & { etag: string };
-
-/** `GET /api/projects` (server/routes/catalog.ts; PR8 adds the writes). Every project, newest start first. */
-export interface ProjectsResponse<P = Record<string, unknown>> {
-  projects: ProjectEntry<P>[];
-}
-
-/** `GET /api/repos` (server/routes/catalog.ts; PR8 adds the writes). Every repo, by name. */
-export interface ReposResponse<R = Record<string, unknown>> {
-  repos: RepoEntry<R>[];
-}
-
 /** `GET /api/problems`: everything wrong with files in the data home, errors first (SPEC R2). */
 export interface ProblemsResponse<P = Record<string, unknown>> {
   problems: P[];
@@ -246,4 +231,179 @@ export interface ProblemsResponse<P = Record<string, unknown>> {
 /** `GET /api/found/count`: how many candidates are waiting in Found (the board strip, the nav badge). */
 export interface FoundCountResponse {
   pending: number;
+}
+
+// ---------------------------------------------------------------- projects, companies, repos (PR8)
+// The entities themselves are the data files' types (shared/schema/project.ts, …), restated loosely here because this
+// file imports nothing. Every one carries its file's `etag`: send it back as `If-Match` on PATCH and DELETE, and an
+// edit made against a stale copy is a 409 instead of a silent overwrite.
+
+export type ProjectStatus = 'active' | 'paused' | 'done' | 'archived';
+
+export interface ProjectEntry {
+  id: string;
+  name: string;
+  description?: string;
+  /** `#rrggbb`: any colour. */
+  color: string;
+  /** YYYY-MM-DD */
+  start: string;
+  /** YYYY-MM-DD, or null while it's ongoing. */
+  end: string | null;
+  status: ProjectStatus;
+  companyId: string | null;
+  repoIds: string[];
+  example?: boolean;
+  etag: string;
+  /** How many achievements (archived ones included) are tagged with it. */
+  achievements: number;
+}
+
+export interface CompanyEntry {
+  id: string;
+  name: string;
+  role?: string;
+  start?: string;
+  end: string | null;
+  example?: boolean;
+  etag: string;
+}
+
+export interface RepoEntry {
+  id: string;
+  name: string;
+  /** As the user writes it (`~/Code/my-app`). */
+  localPath?: string;
+  remoteUrl?: string;
+  /** `github.com`, …, or `local`. */
+  host: string;
+  tracked: boolean;
+  example?: boolean;
+  etag: string;
+}
+
+/** `GET /api/projects`: every project, newest start first. */
+export interface ProjectsResponse {
+  projects: ProjectEntry[];
+}
+/** `GET /api/companies` */
+export interface CompaniesResponse {
+  companies: CompanyEntry[];
+}
+/** `GET /api/repos` */
+export interface ReposResponse {
+  repos: RepoEntry[];
+}
+
+/** `POST /api/repos`: the repo, and whether it's new (false: one with the same folder or remote was already there). */
+export interface RepoCreateResponse {
+  repo: RepoEntry;
+  created: boolean;
+}
+
+/** `POST /api/projects/:id/repos`: link and/or unlink repos (ids). Returns the project (a ProjectEntry). */
+export interface ProjectReposRequest {
+  link?: string[];
+  unlink?: string[];
+}
+
+/** What a delete took the deleted thing off, so undo can put it back (ids). */
+export interface Detached {
+  achievements: string[];
+  projects: string[];
+}
+
+/**
+ * `DELETE /api/projects/:id` (and companies, repos): the file goes to backups/removed/, and references to it are
+ * taken off the files that had them (D45). Undo: `POST /api/<things>/:id/restore` with `{ reattach: detached }`.
+ */
+export interface DeleteResponse {
+  removedTo: string;
+  detached: Detached;
+}
+
+/** `POST /api/<things>/:id/restore` */
+export interface RestoreRequest {
+  reattach?: Partial<Detached>;
+}
+
+/** One achievement in a project's pile, as the Projects page draws it. */
+export interface PileItem {
+  id: string;
+  title: string;
+  summary?: string;
+  happenedAt: string;
+  impact?: number;
+  archived: boolean;
+  /** Evidence on it, by kind (`image`, `pdf`, `file`, `url`, `github_pr`, `quote`). */
+  evidence: Record<string, number>;
+}
+
+/** `GET /api/projects/:id/summary`: a project's pile (its achievements, newest first) and its counts. */
+export interface ProjectSummary {
+  project: ProjectEntry;
+  company: CompanyEntry | null;
+  repos: RepoEntry[];
+  /** Achievements tagged with it, archived ones excluded. */
+  achievements: number;
+  /** Evidence across those achievements, in all and by kind. */
+  evidence: { total: number; byKind: Record<string, number> };
+  /** The first and last achievement dates, or null with none. */
+  firstAt: string | null;
+  lastAt: string | null;
+  /** Newest first, at most `PILE_LIMIT`. */
+  pile: PileItem[];
+}
+
+/** How many achievements a project summary lists. */
+export const PILE_LIMIT = 200;
+
+// ---------------------------------------------------------------- importer (PR12): POST /api/import/{plan,apply}
+
+/** What an import brings across, by kind. Documents and reviews become files under `imports/<timestamp>/`. */
+export type ImportKind = 'companies' | 'projects' | 'repos' | 'achievements' | 'documents' | 'reviews';
+
+export interface ImportCount {
+  /** New: created (or, in a dry run, would be). */
+  add: number;
+  /** Already here (an earlier import of the same export), or a repeat within the file: left alone. */
+  skip: number;
+  /** Couldn't be imported (see `problems`, level `error`). */
+  fail: number;
+}
+
+/** A field in the export that has no place in BragDoc, and why. Counted over the items that had a value for it. */
+export interface ImportDropped {
+  /** `achievements[].embedding`, `userId`, … */
+  field: string;
+  count: number;
+  why: string;
+}
+
+export interface ImportProblem {
+  /** `error`: the item wasn't imported. `warning`: it was, with the change the message describes. */
+  level: 'error' | 'warning';
+  kind: ImportKind;
+  /** Which item, for people: `"Shipped the importer" (id 3f2a…)`, or `#12` when it has no usable name. */
+  item: string;
+  message: string;
+}
+
+/**
+ * The answer to POST /api/import/plan (a dry run: nothing written) and /api/import/apply (done). Both take the export
+ * file itself as the JSON body, up to 50 MB. A file that can't be imported at all is a 400 (`invalid_export`, or
+ * `unsupported_version` for anything but version "1.0"); an import already running is a 409 (`import_running`).
+ */
+export interface ImportReport {
+  dryRun: boolean;
+  /** When the export was made, if it says. */
+  exportedAt: string | null;
+  counts: Record<ImportKind, ImportCount>;
+  dropped: ImportDropped[];
+  /** Errors first. */
+  problems: ImportProblem[];
+  /** Where documents and reviews go (relative to the data home, `imports/<timestamp>`), or null if there are none. */
+  importsDir: string | null;
+  /** The snapshot taken before importing (`backups/<name>`); null in a dry run, or when there was nothing to snapshot. */
+  snapshot: string | null;
 }
