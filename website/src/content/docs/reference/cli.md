@@ -101,6 +101,25 @@ profile, or the options below.
 
 It exits 1 if any image can't be read. `--aliases` and `--not-me` without `--name` are a usage error.
 
+`bragdoc dev ai --connection <id> --model <name> "<prompt>"` (*being built for v0.2*) asks one model one question,
+through the same path every AI feature uses: your `config.yaml`'s AI settings and connections, the keys in
+`secrets.yaml`, and the outbound allow-list. It prints the answer as it arrives, then how long it took and where it
+went (this computer, your network or the internet). It's refused, with nothing sent, exactly when the app would refuse:
+with AI off, for a cloud connection you haven't consented to, or without a key. The call is in Network activity like
+any other.
+
+| Option | Meaning |
+| --- | --- |
+| `--connection <id>` | Which connection (an id under `ai.connections`). Required. |
+| `--model <name>` | Which model on it. Required. |
+| `--schema <name>` | Ask for a structured answer: `ok`, `answer` or `lastLine`. It says whether the model kept to the schema, or the server could only do JSON mode. |
+| `--file <file>` | Read the prompt from a file instead. |
+| `--system <text>` | The instructions to give it. |
+| `--data-dir <dir>` | The data folder whose settings to use. |
+| `--json` | Print the answer and the details as JSON. |
+
+It exits 1 when the call is refused or fails, with the reason (`ai_off`, `not_consented`, `unreachable`, `timeout`, …).
+
 ## Everywhere
 
 | Option | Meaning |

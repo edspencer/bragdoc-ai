@@ -74,6 +74,9 @@ const ALLOWED_IMPORTS: Record<string, string> = {
   '@tesseract.js-data/eng': 'the English language data, resolved to a path on disk (import.meta.resolve); no code runs',
   pngjs: 'decodes and encodes PNGs for OCR (pure JS: zlib and streams only)',
 };
+/** Where the AI SDK may be imported (see its entries below). */
+const AI_SDK_FILES = ['server/ai/sdk.ts', 'server/ai/providers.ts', 'server/ai/decide.ts'];
+
 /** Allowed in these files only. */
 const ALLOWED_IMPORTS_IN: Record<string, string | string[]> = {
   'node:child_process': 'server/proc.ts',
@@ -86,6 +89,20 @@ const ALLOWED_IMPORTS_IN: Record<string, string | string[]> = {
   // from source only: registers tsx's TypeScript loader in the OCR worker thread (Node 22.12's workers don't inherit
   // it). A devDependency, never in the package (tsc doesn't copy .mjs; smoke:pack checks no server/ file ships)
   tsx: 'server/ocr/tesseract-worker-source.mjs',
+  // The AI SDK (v0.2, SPEC R20; D65). Each CAN fetch: a provider calls the `fetch` it's given, and falls back to
+  // globalThis.fetch without one (the `ai` package's own downloader for URLs in a prompt can even use undici directly).
+  // Every provider instance is given egress's fetchFor(), prompts are text only and the downloader refuses (run.ts
+  // noDownloads); test/ai-egress.test.ts stubs globalThis.fetch to throw and proves every kind still goes through
+  // egress. They're loaded only by sdk.ts's import() on the first model call (test/ai-lazy.test.ts: never with AI
+  // off), so they're allowed in these files alone: sdk.ts (the loader), providers.ts (the factories) and decide.ts
+  // (pre-registered for Jev, PR28).
+  ai: AI_SDK_FILES,
+  '@ai-sdk/openai-compatible': AI_SDK_FILES,
+  '@ai-sdk/anthropic': AI_SDK_FILES,
+  '@ai-sdk/openai': AI_SDK_FILES,
+  // the provider specification: types and error classes (APICallError), no network code. The Ollama adapter
+  // (ollama.ts, D63) implements a language model against it over the fetch it's given
+  '@ai-sdk/provider': [...AI_SDK_FILES, 'server/ai/ollama.ts'],
 };
 
 const RULES: Record<string, { on: 'code' | 'strings'; re: RegExp }> = {
@@ -120,6 +137,11 @@ const ALLOWED: Record<string, Record<string, number>> = {
   },
   'server/ocr/tesseract-worker.ts': {
     bannedName: 1, // import { parentPort } from 'node:worker_threads' (see ALLOWED_IMPORTS_IN)
+  },
+  'server/ai/sdk.ts': {
+    // Object.assign(globalThis, { AI_SDK_DEFAULT_PROVIDER: <one that throws>, AI_SDK_LOG_WARNINGS: false }): closes the
+    // SDK's route to its hosted gateway for a model named by string (SPEC principle 8), once, on first load
+    globalObject: 1,
   },
   'shared/ulid.ts': {
     globalObject: 1, // globalThis.crypto.getRandomValues(bytes): shared/ runs in the browser too, so no node:crypto
@@ -331,6 +353,12 @@ test('a new import is caught until it is reviewed into ALLOWED_IMPORTS', () => {
   for (const p of ['execa', '@octokit/rest', 'open', 'simple-git', 'node:http']) assert.ok(!ALLOWED_IMPORTS[p], p);
   // tesseract.js can fetch: it's reviewed for the OCR engine's two files, not for everyone
   assert.ok(!ALLOWED_IMPORTS['tesseract.js']);
+  // so can the AI SDK: it's confined to server/ai/'s loader, factories and Jev (SPEC R20)
+  for (const p of ['ai', '@ai-sdk/openai-compatible', '@ai-sdk/anthropic', '@ai-sdk/openai', '@ai-sdk/provider', '@ai-sdk/gateway', '@ai-sdk/provider-utils']) {
+    assert.ok(!ALLOWED_IMPORTS[p], p);
+    for (const f of [ALLOWED_IMPORTS_IN[p] ?? []].flat()) assert.match(f, /^server\/ai\//, `${p} in ${f}`);
+  }
+  assert.ok(!ALLOWED_IMPORTS_IN['@ai-sdk/gateway'], 'the hosted gateway is never imported');
 });
 
 test('no runtime dependency is a known network client', () => {

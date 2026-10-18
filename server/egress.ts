@@ -12,12 +12,21 @@
 // - Every request, allowed or denied, is appended to logs/network.jsonl (path only, never the query string, which
 //   can carry secrets), and rotated at LOG_MAX_BYTES. `gh` runs are logged too (logProcess), honestly marked as
 //   "via gh CLI": their traffic leaves outside this process, so all we can record is that we ran it.
+// - AI (v0.2, SPEC R19): while `ai.enabled`, each local connection's host and each consented cloud connection's host
+//   join the allow-list (server/ai/policy.ts aiHosts). A provider never gets egressFetch itself: it gets fetchFor(),
+//   which re-checks that one connection (on, consented) on every call, refuses any host but its own, follows no
+//   redirect, replaces the SDK's User-Agent with a fixed, versionless one and drops attribution headers. Its log lines
+//   say where the call went (this computer, your network, internet), for which feature and model, and how many bytes
+//   were sent: never the content. Plain http is allowed to this computer and your network only (shared/ai/hosts.ts).
 // - One exception, by construction loopback-only (D51): the CLI's readiness probe, probeLoopback() and
 //   loopbackAccepts() below, asks 127.0.0.1 whether BragDoc is up. Its host is fixed, it carries no data, and it isn't
 //   logged: `bragdoc service start` polls every 250 ms, and a log of what leaves this computer isn't the place for it.
 import fs from 'node:fs';
 import net from 'node:net';
 import type { NetworkLogEntry, NetworkLogResponse } from '../shared/api.js';
+import type { AiCallFeature } from '../shared/ai/connections.js';
+import { hostnameClass, isLocalClass } from '../shared/ai/hosts.js';
+import { aiHosts, connectionGate, connectionOrigin, type GateCode } from './ai/policy.js';
 import { appendLine } from './atomic.js';
 import type { Config } from './config.js';
 import { homePaths } from './home.js';
@@ -28,6 +37,8 @@ export class EgressDenied extends Error {
     readonly host: string,
     readonly purpose: string,
     message: string,
+    /** For an AI call: which gate refused it (AI off, consent revoked…). */
+    readonly code?: GateCode,
   ) {
     super(message);
     this.name = 'EgressDenied';
@@ -40,15 +51,22 @@ const MAX_REDIRECTS = 5;
 const LOOPBACK = ['localhost', '127.0.0.1', '[::1]'];
 /** Headers that may follow a redirect to another host. */
 const SAFE_HEADERS = new Set(['accept', 'accept-language', 'user-agent', 'x-github-api-version']);
+/** What every model call says it is: fixed and versionless, so a provider learns nothing about this install (SPEC R20). */
+export const AI_USER_AGENT = 'BragDoc';
+/** Headers a provider SDK may add to say who's calling (OpenRouter's app attribution, a referrer): never sent. */
+const ATTRIBUTION_HEADERS = /^(?:referer|http-referer|x-title|x-openrouter-[\w-]+|x-stainless-[\w-]+)$/i;
 
 /** The hosts outbound requests may go to under `config`, loopback included. */
 export function egressAllowList(config: Config): string[] {
   const hosts = [...LOOPBACK];
   if (config.sources.github.enabled && config.sources.github.auth === 'token') hosts.push('api.github.com');
+  for (const h of aiHosts(config)) if (!hosts.includes(h)) hosts.push(h);
   return hosts;
 }
 
 type FetchFn = (url: URL, init: RequestInit) => Promise<Response>;
+/** The fetch a provider is given (globalThis.fetch's shape). */
+export type ProviderFetch = (input: string | URL | Request, init?: RequestInit) => Promise<Response>;
 
 /** The one real network call in the codebase (test/guard-egress.test.ts counts its globalThis). */
 const realFetch: FetchFn = (url, init) => globalThis.fetch(url, init);
@@ -69,6 +87,24 @@ export interface EgressRequest {
   purpose: string;
 }
 
+/** A model call's fetch: for which connection, feature and model (each log line carries them; SPEC R19). */
+export interface AiFetchRequest extends EgressRequest {
+  feature: AiCallFeature;
+  model?: string;
+  connectionId: string;
+}
+
+/** What a request's body weighs, when it's something we can measure without reading a stream. */
+function bodyBytes(body: RequestInit['body']): number | null {
+  if (body == null) return 0;
+  if (typeof body === 'string') return Buffer.byteLength(body);
+  if (body instanceof ArrayBuffer) return body.byteLength;
+  if (ArrayBuffer.isView(body)) return body.byteLength;
+  if (body instanceof URLSearchParams) return Buffer.byteLength(body.toString());
+  if (body instanceof Blob) return body.size;
+  return null;
+}
+
 export class Egress {
   private readonly file: string;
   private readonly impl: FetchFn;
@@ -86,7 +122,61 @@ export class Egress {
   }
 
   /** fetch(), through the allow-list and the log. Throws EgressDenied (logged) for anything not allowed. */
-  async egressFetch({ purpose }: EgressRequest, input: string | URL, init: RequestInit = {}): Promise<Response> {
+  egressFetch({ purpose }: EgressRequest, input: string | URL, init: RequestInit = {}): Promise<Response> {
+    return this.send(purpose, {}, input, init);
+  }
+
+  /**
+   * The only fetch a model provider is ever given (SPEC R20). On every call it asks config.yaml again whether this one
+   * connection may be used (AI on; local, or cloud with current consent), so turning AI off or revoking a connection
+   * stops the next request even mid-run, and another connection on the same host is unaffected. It refuses any host
+   * but the connection's own, follows no redirect, and sends a fixed User-Agent and no attribution headers.
+   */
+  fetchFor({ purpose, feature, model, connectionId }: AiFetchRequest): ProviderFetch {
+    return async (input, init = {}) => {
+      if (input instanceof Request) {
+        // the SDKs pass a URL and an init; a Request is unpacked so its headers and body are seen like any other's
+        init = { method: input.method, headers: input.headers, body: input.body === null ? undefined : await input.arrayBuffer(), signal: input.signal, ...init };
+        input = input.url;
+      }
+      const url = new URL(input);
+      const extra = { feature, ...(model ? { model } : {}), where: hostnameClass(url.hostname), sent: bodyBytes(init.body) };
+      const config = this.opts.config();
+      const gate = connectionGate(config, connectionId);
+      // its own origin only (scheme, host and port): a provider can't be pointed at another service on the same machine
+      const own = connectionOrigin(config.ai, connectionId);
+      const refuse = gate?.message ?? (own !== url.origin ? `${url.origin} isn't where ${connectionId} points (${own ?? 'nowhere'})` : null);
+      if (refuse) {
+        this.log({ at: this.now().toISOString(), purpose, via: 'fetch', method: (init.method ?? 'GET').toUpperCase(), host: url.host, path: url.pathname, outcome: 'denied', status: null, bytes: null, error: refuse, ...extra });
+        throw new EgressDenied(url.host, purpose, `BragDoc won't send a request to ${url.host} (${purpose}): ${refuse}`, gate?.code);
+      }
+      const headers = new Headers(init.headers);
+      for (const k of [...headers.keys()]) if (ATTRIBUTION_HEADERS.test(k)) headers.delete(k);
+      headers.set('user-agent', AI_USER_AGENT);
+      return this.send(purpose, extra, url, { ...init, headers, redirect: 'manual' });
+    };
+  }
+
+  /** Record a download a model runner makes itself (Ollama pulling a model): it leaves outside BragDoc, like gh's. */
+  logVia(via: 'ollama', { purpose, feature, model, outcome, error }: { purpose: string; feature: AiCallFeature; model?: string; outcome: 'ok' | 'error'; error?: string }): void {
+    this.log({
+      at: this.now().toISOString(),
+      purpose,
+      via,
+      method: 'RUN',
+      host: 'registry (via Ollama)',
+      path: model ? `pull ${model}` : 'pull',
+      outcome,
+      status: null,
+      bytes: null,
+      feature,
+      ...(model ? { model } : {}),
+      where: 'internet',
+      ...(error ? { error } : {}),
+    });
+  }
+
+  private async send(purpose: string, extra: Partial<NetworkLogEntry>, input: string | URL, init: RequestInit): Promise<Response> {
     let url = new URL(input);
     let method = (init.method ?? 'GET').toUpperCase();
     let body = init.body;
@@ -95,18 +185,18 @@ export class Egress {
       const at = this.now().toISOString();
       const denied = this.check(url);
       if (denied) {
-        this.log({ at, purpose, via: 'fetch', method, host: url.host, path: url.pathname, outcome: 'denied', status: null, bytes: null, error: denied });
+        this.log({ at, purpose, via: 'fetch', method, host: url.host, path: url.pathname, outcome: 'denied', status: null, bytes: null, error: denied, ...extra });
         throw new EgressDenied(url.host, purpose, `BragDoc won't send a request to ${url.host} (${purpose}): ${denied}`);
       }
       let res: Response;
       try {
         res = await this.impl(url, { ...init, method, body, headers, redirect: 'manual' });
       } catch (e) {
-        this.log({ at, purpose, via: 'fetch', method, host: url.host, path: url.pathname, outcome: 'error', status: null, bytes: null, error: (e as Error).message });
+        this.log({ at, purpose, via: 'fetch', method, host: url.host, path: url.pathname, outcome: 'error', status: null, bytes: null, error: errorText(e), ...extra });
         throw e;
       }
       const len = res.headers.get('content-length');
-      this.log({ at, purpose, via: 'fetch', method, host: url.host, path: url.pathname, outcome: 'ok', status: res.status, bytes: len === null ? null : Number(len) });
+      this.log({ at, purpose, via: 'fetch', method, host: url.host, path: url.pathname, outcome: 'ok', status: res.status, bytes: len === null ? null : Number(len), ...extra });
       const location = res.headers.get('location');
       if (res.status < 300 || res.status > 399 || res.status === 304 || !location || init.redirect === 'manual') return res;
       if (hop >= MAX_REDIRECTS) throw new Error(`too many redirects (${purpose})`);
@@ -119,6 +209,8 @@ export class Egress {
         const refuse =
           !LOOPBACK.includes(url.hostname) && LOOPBACK.includes(next.hostname)
             ? 'a remote host may not redirect to this computer'
+            : isLocalClass(hostnameClass(next.hostname)) && hostnameClass(next.hostname) !== hostnameClass(url.hostname)
+              ? 'a host may not redirect to this computer or your network'
             : !toGet && body != null
               ? "a request body isn't re-sent to another host"
               : null;
@@ -173,7 +265,8 @@ export class Egress {
     if (url.protocol !== 'https:' && url.protocol !== 'http:') return `${url.protocol} isn't allowed`;
     const allowed = this.allowList();
     if (!allowed.includes(url.hostname.toLowerCase())) return `${url.hostname} isn't on the allow-list (${allowed.join(', ')})`;
-    if (url.protocol === 'http:' && !LOOPBACK.includes(url.hostname)) return 'only https leaves this computer';
+    // plain http to this computer, or to a model runner on your network (SPEC R19); https everywhere else
+    if (url.protocol === 'http:' && !LOOPBACK.includes(url.hostname) && !isLocalClass(hostnameClass(url.hostname))) return 'only https leaves this computer';
     if (url.username || url.password) return 'credentials in a URL are not allowed';
     return null;
   }
@@ -188,6 +281,13 @@ export class Egress {
     }
     this.opts.onLog?.(e);
   }
+}
+
+/** A failed fetch's reason: undici hides the useful part ("connect ECONNREFUSED …") in `cause`. */
+function errorText(e: unknown): string {
+  const err = e as Error & { cause?: { code?: string; message?: string } };
+  if (err?.name === 'AbortError' || err?.name === 'TimeoutError') return 'cancelled';
+  return err?.cause?.code ? `${err.message} (${err.cause.code})` : (err?.message ?? String(e));
 }
 
 function assertPort(port: number): void {

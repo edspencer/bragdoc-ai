@@ -25,7 +25,8 @@ board's pictures in the background, so their text is searchable. PR16 built **on
 again from Settings → Data), the bounded repo scan, and the example data (see "Onboarding and example data" below).
 PR19 brought the docs site up to date with what was built, with real screenshots from the capture rig's example world.
 PR17 is the v0.1 release candidate: an end-to-end pass over all of it, the fixes it turned up, and the 0.1.0 changeset.
-v0.1's feature set is complete; what comes next is tracked in issues.
+v0.1's feature set is complete. **v0.2 adds opt-in AI** (epic [#434](https://github.com/edspencer/bragdoc-ai/issues/434)),
+built on the `v0.2` branch: PR21 laid down the AI core (see "AI (v0.2)" below); its UI and features follow.
 
 Before changing behaviour, read, in order:
 
@@ -39,9 +40,10 @@ The human-facing version of these conventions is [CONTRIBUTING.md](CONTRIBUTING.
 
 These are the product principles from the specification. They are not up for negotiation in a PR.
 
-- **AI is off by default, and every AI feature is an explicit opt-in (D8).** v0.1 has no AI features and no AI
-  dependencies. Never install Ollama or download a model; at most detect an existing install, explain what it would
-  download, and act only after the user confirms. Every non-AI path must work fully on its own.
+- **AI is off by default, and every AI feature is an explicit opt-in (D8).** v0.1 has no AI features; v0.2 adds them
+  behind a master switch and a switch per feature, all off (see "AI (v0.2)"). With AI off, no AI code runs and the AI
+  SDK isn't even loaded. Never install Ollama or download a model; at most detect an existing install, explain what it
+  would download, and act only after the user confirms. Every non-AI path must work fully on its own.
 - **No telemetry, no update check (D9).** All outbound HTTP goes through `server/egress.ts` (PR2) and is logged;
   subprocesses run only through `server/proc.ts` (PR2). The guard tests enforce both. **Never weaken a guard test to
   make something pass.**
@@ -97,7 +99,12 @@ server/              the server and CLI (Node, TypeScript ESM, Hono)
   events.ts          the event bus + the SSE stream (GET /api/events)
   live.ts            forwards every store change onto the bus as a ServerEvent named after its entity (D48)
   link-preview.ts    LinkPreviews: the GitHub PR lookup POST /api/link-preview uses (the GitHub source registers it)
-  secrets.ts         secrets.yaml (0600): the GitHub token, written through atomic.ts, never logged or backed up
+  secrets.ts         secrets.yaml (0600): the GitHub token and AI keys (aiKey, setAiKey, aiKeyHint), written through
+                     atomic.ts, never logged, returned or backed up
+  ai/                v0.2's AI runtime (see "AI (v0.2)"): policy.ts (the gates and the AI allow-list hosts, pure),
+                     run.ts (ctx.ai: queue, object/stream/test/models), errors.ts (AiError, the fixed codes), sdk.ts
+                     (the ONLY place the AI SDK is loaded, by import()), providers.ts (connection → model), ollama.ts
+                     (Ollama's native /api/chat as a model)
   discover.ts        Welcome's "Your code": the bounded scan of one named folder (4 levels, 5 s, stops at .git,
                      symlink-loop safe), opt-in editor hints, recency from each repo's own .git (D60)
   example.ts         the example dataset (fixtures/example/): add (create-only, `example: true`), remove exactly it (D61)
@@ -138,6 +145,9 @@ shared/              code used by both server/ and src/: no Node or DOM APIs
                      folio may show: no ids, paths or local URLs)
   links.ts           parsePrUrl (→ owner/repo#n and `github_pr:` key), isHttpUrl, githubRepoOf, parsePrKey
   rules/screenshot.ts "is this screenshot praise for me?" from OCR text: plain rules, never a model (D52)
+  ai/                v0.2: hosts.ts (hostClass: this computer · your network · internet), connections.ts (kinds,
+                     presets, isCloud), consent.ts (the versioned statements), models.ts (the recommended models),
+                     grounding.ts (ungrounded, isVerbatim)
 src/                 the web app (React 19, Vite, Tailwind v4, TanStack Router + Query), built into dist/web
   main.tsx           fonts, ThemeProvider, QueryClient, router
   routes/            file-based routes (TanStack Router; tsr.config.json); __root.tsx is the shell
@@ -297,7 +307,8 @@ project-colour tape, on an oat board (light) or a dim cork board under a desk la
   page under the production CSP.
 - **Theme:** `useTheme()` gives `{ pref, setPref, dark }`. The choice is in localStorage (`bragdoc.theme`);
   `public/theme-init.js` applies it before first paint, so keep the two in step (`test/web.test.ts` checks).
-- **AI is off** and v0.1 has none: no AI badge, chip, score or "confidence" anywhere in the UI (D8).
+- **AI is off** unless you turn it on: with AI off, no AI badge, chip, score or "confidence" anywhere in the UI (D8).
+  v0.2's affordances appear only when their feature is on (SPEC R26).
 
 **The kit** (`src/kit/index.ts`; see each on `/dev/kit` under `npm run dev`):
 
@@ -404,6 +415,75 @@ egress module. The screenshots source is tested with a fake `Ocr` (`createAppWit
 text each rendered screenshot was drawn with (test/screenshots-source.test.ts); found.spec.ts drives it end to end with
 real OCR (serially, so its candidates can't land while that spec counts the badge). As root, `chmod 000` doesn't make a
 folder unreadable: test a denied folder with a stand-in (the unit test) or a server run as another user.
+
+### AI (v0.2)
+
+PR21 built the runtime every AI feature stands on (SPEC R17–R20, R28; D62–D66). It has no UI: Settings → AI is PR23.
+**The rules:** nothing AI runs *or loads* unless AI and that feature are on; every model call goes through `ctx.ai` →
+`egress.fetchFor()`; local or cloud is decided by **host**, and cloud needs consent; nothing is installed or downloaded
+without a confirm; nothing a model says reaches the board or changes a Found candidate's status without a click.
+
+- **Settings** are config.yaml's `ai:` section (`server/config.ts`: `enabled`, `connections` (a map by id), `text`,
+  `vision`, `features.{judge,tidy,draft}`), every default off, written only with `ctx.config.update({ ai: … })`. They're
+  served by `GET /api/ai` (`AiStatus`), not `SettingsResponse` (D64): connections with `class`, `cloud`, `consent`,
+  `hasKey`/`keyHint` and `blocked`, readiness per feature, and the AI hosts on the allow-list. Types: `shared/api.ts`
+  "AI (PR21)". Routes: `server/routes/ai.ts` (the table is on the docs site's HTTP API page).
+- **Where a call goes is its host** (`shared/ai/hosts.ts` `hostClass(url)`): `this-computer` (loopback),
+  `your-network` (RFC 1918, ULA, link-local, `.local`, `host.docker.internal`) or `internet`. `isCloud(connection)`
+  (`shared/ai/connections.ts`) is "its base URL's host is on the internet", whatever its kind. Plain http only to the
+  first two. Consent (`shared/ai/consent.ts`) is versioned per kind and stored as `{ at, version, host }`: it counts
+  only for that host and a version at least the statement's.
+- **Keys:** `ctx.secrets.aiKey(id, connections?)` (a `jev` reads its `via`'s), `setAiKey(id, key | null)`,
+  `aiKeyHint(id)` (`…abcd`). Never anywhere else.
+- **Egress:** `egressAllowList()` adds AI hosts only while `ai.enabled` (local ones; cloud ones with consent).
+  `ctx.egress.fetchFor({ purpose, feature, model, connectionId })` is the only fetch a provider gets: it re-checks
+  *that* connection on every request (so revoking one of two on the same host stops it), refuses any other host,
+  follows no redirect, sends `User-Agent: BragDoc` and no attribution headers, and logs `where`, `feature`, `model`
+  and `sent` (bytes; never content). `ctx.egress.logVia('ollama', …)` logs a download Ollama makes itself (a pull).
+- **The SDK** (`ai` + `@ai-sdk/*`) is imported only in `server/ai/sdk.ts` (by `import()`), `providers.ts` and
+  `decide.ts` (Jev, PR28); `@ai-sdk/provider` also in `ollama.ts` (guard-egress's `AI_SDK_FILES`). Anything that
+  `createApp` imports statically may only `import type` from them. `test/ai-lazy.test.ts` runs an AI-off session under
+  a loader hook and fails if `ai` is ever resolved: keep it green.
+- **`ctx.ai`** (`server/ai/run.ts`):
+  - `object({ feature, purpose, slot?, schema, schemaName?, system, prompt, signal?, priority?, timeoutMs?, runId? })`
+    → `{ object, connection, model, where, ms, tokensIn, tokensOut, mode, repaired }`: the provider's own schema
+    support, then Zod, then ONE repair retry; JSON mode (schema in the instructions) for a server that refuses schemas.
+  - `stream({ … })` → `{ textStream, done }`; breaking out of `textStream` cancels the call.
+  - `test(connectionId, model?)`, `models(connectionId)`, `readiness(feature)`, `cancelAll(code, message)`,
+    `onCall(fn)` (every finished call as a `CallRecord`, no content: PR22's activity log listens here), `queue()`.
+  - Gates (409, checked before queueing, when a job starts, and every second while it runs): `ai_off`, `no_model`,
+    `not_consented`, `no_key`. Errors (`AiError.code`): `unreachable`, `model_missing`, `key_refused`, `quota`,
+    `rate_limited`, `timeout`, `no_structured_output`, `bad_output`, `context_too_long`, `cancelled`, `busy`,
+    `failed`. `AiError.status` is the HTTP status to answer with.
+  - The queue: per connection, one at a time locally and two to the internet; `priority: 'now'` (default; the judge's
+    default is `background`) goes first; timeouts count from the start: 180 s local, 60 s cloud, or `timeoutMs`.
+- **Found:** `VerdictSchema` has `from`, `impact`, `inputHash`. `ctx.services.found.setVerdict(id, verdict)` writes
+  only a pending candidate's verdict (replacing it whole) and never its status; a decided one is left alone
+  (`written: false, reason: 'decided'`). `dismiss()` clears `verdict`; undo brings it back.
+- **The fake model server** (`test/fixtures/fake-llm/`): Ollama (`/api/version`, `/api/tags`, `/api/chat`,
+  `/api/pull`), OpenAI-compatible (`/v1/models`, `/v1/chat/completions`) and Anthropic (`/v1/messages`). Scenarios
+  `ok`, `slow`, `down`, `bad-json`, `bad-json-once`, `no-schema`, `timeout`, `rate-limited`, `refused-key`, `quota`,
+  `context-too-long`, `no-models`, picked per request by a `/s/<scenario>/` path prefix (so one server can be several
+  connections), else `--scenario`, `FAKE_LLM_SCENARIO`, `$HOME/.fake-llm/scenario` (re-read each request). A model
+  named `missing…`, or an unpulled one on the Ollama side, is a 404. Answers come from the rule table in `answers.ts`
+  (by schema name, the properties asked for, or the prompt): **add your feature's rows there**, above the catch-alls.
+  In tests: `startFakeLlm({ scenario?, slowMs? })` → `{ url, requests, close }`; `requests` records each body (check
+  `think`, `num_ctx`, headers). On the box: `node --import tsx test/fixtures/fake-llm/server.ts --port <p>`. Cloud
+  paths can't point at it: test them with an injected egress `fetchImpl` (`test/ai-fixture.ts`).
+- **`bragdoc dev ai --connection <id> --model <m> [--schema ok] "<prompt>"`** makes one call through all of the above.
+
+**Adding an AI feature** (five steps):
+1. Its settings already exist under `ai.features.<name>` (PR21 laid down all of them); read them with
+   `ctx.ai.readiness(feature)`, never by checking `enabled` yourself.
+2. A prompt in `server/ai/prompts/<feature>.ts`: a pure function of its inputs, tested for what it includes and what
+   it leaves out (never a path, an id or a local URL); the same function feeds the "what's sent" preview.
+3. A Zod schema for the answer, and one call: `ctx.ai.object({ feature, purpose: 'ai.<feature>', schema, system,
+   prompt, signal: c.req.raw.signal })` (or `stream`). Map an `AiError` to `c.json(apiError(e.code, e.message),
+   e.status)`. Check the output with `shared/ai/grounding.ts` before showing it.
+4. A route module (`server/routes/ai-<feature>.ts`, one line in `routes/index.ts`), documented on the HTTP API page,
+   and rows in the fake's `answers.ts` for its tests and e2e.
+5. Its card in Settings → AI (`src/settings/ai/`, one line in `FEATURE_CARDS`, after PR23), and its affordance shown
+   only while `readiness` says it's on.
 
 ### Onboarding and example data (PR16)
 

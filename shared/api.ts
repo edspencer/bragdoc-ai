@@ -78,8 +78,11 @@ export interface NetworkLogEntry {
   at: string;
   /** Why BragDoc made it, e.g. `github.pulls`. */
   purpose: string;
-  /** `fetch`: through BragDoc's own egress module. `gh`: a GitHub CLI run, whose traffic leaves outside BragDoc. */
-  via: 'fetch' | 'gh';
+  /**
+   * `fetch`: through BragDoc's own egress module. `gh`: a GitHub CLI run, whose traffic leaves outside BragDoc.
+   * `ollama`: a download Ollama makes itself when asked to pull a model (v0.2), also outside BragDoc.
+   */
+  via: 'fetch' | 'gh' | 'ollama';
   method: string;
   host: string;
   /** The path only: never the query string, which can carry secrets. For `gh`, the subcommand. */
@@ -91,6 +94,14 @@ export interface NetworkLogEntry {
   bytes: number | null;
   /** Why it was denied or failed. */
   error?: string;
+  /** AI calls (v0.2, SPEC R19): where it went, by host. */
+  where?: AiWhere;
+  /** AI calls: what for (`judge`, `tidy`, `draft`, `test`, `detect`, `pull`). */
+  feature?: AiCallFeature;
+  /** AI calls: which model, when there is one. */
+  model?: string;
+  /** AI calls: the request body's size in bytes (never its content); null when it couldn't be measured. */
+  sent?: number | null;
 }
 
 /** `GET /api/network-log?limit=&offset=`: newest first. */
@@ -120,7 +131,9 @@ export type ServerEvent =
   /** A source's status changed: a check started or finished, it was connected or disconnected (PR13). */
   | { type: 'sources' }
   /** The Problems list may have changed (sent with every store change, and when a misnamed file comes or goes). */
-  | { type: 'problems' };
+  | { type: 'problems' }
+  /** AI settings, a connection, a key or consent changed (PR21): refetch GET /api/ai. */
+  | { type: 'ai' };
 
 // ---------------------------------------------------------------- board (PR7): achievements, evidence, links, problems
 //
@@ -851,3 +864,149 @@ export interface ExampleChanged {
   skipped?: string[];
   status: ExampleStatus;
 }
+
+// ---------------------------------------------------------------- AI (PR21)
+//
+// v0.2's opt-in AI (SPEC R17–R20). Settings live in config.yaml's `ai:` section but are served here, not in
+// SettingsResponse, because they carry their own readiness and consent (D64). Keys are never returned: only `hasKey`
+// and `keyHint` (the last four characters). The literal unions restate shared/ai/ (this file has no imports).
+
+/** Where a call goes, by host (shared/ai/hosts.ts). */
+export type AiWhere = 'this-computer' | 'your-network' | 'internet';
+export type AiKindName = 'ollama' | 'lmstudio' | 'llamacpp' | 'openai-compatible' | 'anthropic' | 'openai' | 'openrouter' | 'jev';
+export type AiFeatureName = 'judge' | 'tidy' | 'draft';
+export type AiCallFeature = AiFeatureName | 'test' | 'detect' | 'pull';
+/** Why something can't run now: the gates (all 409). */
+export type AiGateCode = 'ai_off' | 'no_model' | 'not_consented' | 'no_key';
+/** How a model call failed (server/ai/errors.ts). */
+export type AiErrorCode =
+  | 'unreachable'
+  | 'model_missing'
+  | 'key_refused'
+  | 'quota'
+  | 'rate_limited'
+  | 'timeout'
+  | 'no_structured_output'
+  | 'bad_output'
+  | 'context_too_long'
+  | 'cancelled'
+  | 'busy'
+  | 'failed';
+
+/** Which model on which connection. */
+export interface AiSlot {
+  connection: string;
+  model: string;
+}
+
+export interface AiJudgeSettings {
+  enabled: boolean;
+  screenshots: boolean;
+  github: boolean;
+  model: AiSlot | null;
+  when: { onArrival: boolean; everyHours: 1 | 3 | 6 | 12 | 24 | null; onlyBetween: { from: string; to: string } | null; onlyOnAC: boolean };
+  backgroundCloud: boolean;
+  maxPerRun: number;
+}
+
+export interface AiFeatureSettings {
+  judge: AiJudgeSettings;
+  tidy: { enabled: boolean; model: AiSlot | null };
+  draft: { enabled: boolean; model: AiSlot | null };
+}
+
+/** One connection, as the API shows it. */
+export interface AiConnectionView {
+  id: string;
+  kind: AiKindName;
+  name: string | null;
+  /** The address its requests go to (its own, or the kind's preset); null when it has none yet. */
+  baseUrl: string | null;
+  /** Its host, as the allow-list has it. */
+  host: string | null;
+  class: AiWhere;
+  /** Needs consent before any request (its host is on the internet). */
+  cloud: boolean;
+  contextTokens: number;
+  via: string | null;
+  /** Stored consent, and whether it still covers this host and the statement shown today. */
+  consent: { at: string; version: number; current: boolean } | null;
+  /** The consent statement's version to accept (POST …/consent { version }). Null for a local connection. */
+  consentVersion: number | null;
+  needsKey: boolean;
+  hasKey: boolean;
+  /** `…abcd`: never the key. */
+  keyHint: string | null;
+  /** Why it can't be used right now, or null. */
+  blocked: { code: AiGateCode; message: string } | null;
+}
+
+export interface AiFeatureReadiness {
+  ready: boolean;
+  /** Why not, when it isn't. */
+  reason: AiGateCode | null;
+  message: string | null;
+  /** The model it would use. */
+  slot: AiSlot | null;
+  where: AiWhere | null;
+}
+
+/** `GET /api/ai` (and every AI write's answer). */
+export interface AiStatus {
+  enabled: boolean;
+  text: AiSlot | null;
+  connections: AiConnectionView[];
+  features: AiFeatureSettings;
+  readiness: Record<AiFeatureName, AiFeatureReadiness>;
+  /** The hosts AI adds to the egress allow-list right now (none while AI is off). */
+  egressHosts: string[];
+  /** secrets.yaml can't be read: keys can't be used or saved until it's fixed by hand. */
+  secretsProblem: string | null;
+}
+
+/** `PUT /api/ai`: the master switch and the text slot. */
+export interface AiSettingsRequest {
+  enabled?: boolean;
+  text?: AiSlot | null;
+}
+
+/** `POST /api/ai/connections`. `id` defaults to the kind (`ollama`, then `ollama-2`…). */
+export interface AiConnectionCreate {
+  id?: string;
+  kind: AiKindName;
+  name?: string;
+  baseUrl?: string;
+  contextTokens?: number;
+  via?: string;
+}
+
+/** `PUT /api/ai/connections/:id` (the kind can't change). A changed host clears consent. Null clears a field. */
+export interface AiConnectionUpdate {
+  name?: string | null;
+  baseUrl?: string | null;
+  contextTokens?: number | null;
+  via?: string | null;
+}
+
+/** `PUT /api/ai/connections/:id/key`. */
+export interface AiKeyRequest {
+  key: string;
+}
+
+/** `POST /api/ai/connections/:id/consent`: the version of the statement the user was shown. */
+export interface AiConsentRequest {
+  version: number;
+}
+
+/** `POST /api/ai/connections/:id/test` (optional `{ model }`): one tiny structured request, logged like any call. */
+export type AiTestResult =
+  | { ok: true; model: string; where: AiWhere; ms: number; structured: boolean }
+  | { ok: false; model: string | null; where: AiWhere | null; error: { code: AiErrorCode | AiGateCode; message: string } };
+
+/** `GET /api/ai/connections/:id/models`. */
+export interface AiModelsResponse {
+  models: { name: string; sizeBytes: number | null }[];
+}
+
+/** `PUT /api/ai/features/:feature`: any of that feature's settings (a merge patch). */
+export type AiFeatureUpdate = Partial<AiJudgeSettings> | Partial<AiFeatureSettings['tidy']>;
