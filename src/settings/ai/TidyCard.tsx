@@ -108,8 +108,9 @@ function ModelChooser({ status, onSave }: { status: FeatureCardProps['status']; 
   );
 }
 
+// under ai-instructions: a saved "How I write" (here, by hand, in another tab) refreshes it while it's open
 function Preview() {
-  const q = useQuery({ queryKey: ['ai', 'tidy-preview'], queryFn: ({ signal }) => api.get<AiTidyPreview>('/api/ai/tidy/preview', { signal }) });
+  const q = useQuery({ queryKey: ['ai-instructions', 'tidy-preview'], queryFn: ({ signal }) => api.get<AiTidyPreview>('/api/ai/tidy/preview', { signal }) });
   if (q.isPending) return <div className="mt-2 text-[12.5px] text-faint">Building it…</div>;
   if (q.isError) return <div className="mt-2 text-[12.5px] text-bad">Couldn’t build the preview.</div>;
   return (

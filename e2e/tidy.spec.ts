@@ -227,3 +227,28 @@ test('AI switched off with the suggestion open: it stays readable, every Use goe
   await expect(composer(page)).toHaveValue('Fixed the flaky checkout tests');
   await setAi(true);
 });
+
+test("Settings → AI's Tidy card: its switch hides the board's button, How I write is saved to ai/style.md and is in what's sent", async ({ page }) => {
+  const errors = watchErrors(page);
+  await page.goto(`${server.url}/settings/ai`);
+  const card = page.getByTestId('ai-feature-tidy');
+  await expect(card).toContainText('on');
+  await expect(card.getByTestId('ai-tidy-model')).toContainText('qwen3.5:4b');
+  await card.getByTestId('ai-tidy-preview-toggle').click();
+  await expect(card.getByTestId('ai-tidy-preview')).toContainText('(what you paste, or the text read from your picture, goes here)');
+  await expect(card.getByTestId('ai-tidy-preview')).not.toContainText('Lead with the outcome');
+  await card.getByTestId('ai-tidy-style-text').fill('- Lead with the outcome.');
+  await card.getByTestId('ai-tidy-style-save').click();
+  await expect(card.getByTestId('ai-tidy-preview')).toContainText('Lead with the outcome');
+  expect((await api('GET', '/api/ai/instructions/style')).body.text).toBe('- Lead with the outcome.');
+
+  await card.getByTestId('ai-tidy-switch').getByRole('switch').click();
+  await expect(card.getByTestId('ai-tidy-state')).toHaveText('off');
+  await page.goto(`${server.url}/`);
+  await composer(page).fill('Shipped it');
+  await expect(page.getByTestId('pin-it')).toBeVisible();
+  await expect(page.getByTestId('composer-tidy')).toHaveCount(0);
+  await api('PUT', '/api/ai/features/tidy', { enabled: true });
+  await expect(page.getByTestId('composer-tidy')).toBeVisible();
+  expect(errors).toEqual([]);
+});
