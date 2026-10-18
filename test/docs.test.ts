@@ -228,5 +228,9 @@ describe('docs site', () => {
     if (!released()) return;
     const left = prose().filter((f) => /Coming in v0\.1\b/.test(fs.readFileSync(f, 'utf8')));
     assert.deepEqual(left.map((f) => path.relative(ROOT, f)), [], 'v0.1 is out: these pages still say "Coming in v0.1"');
+    // the components follow RELEASED by themselves; a page's own "not on npm yet" note doesn't (PR17). What's new is
+    // released by scripts/whats-new-release.mjs, and a blog post is dated, so it may say what was true that day.
+    const stale = files(DOCS, /\.mdx?$/).filter((f) => path.basename(f) !== 'whats-new.md' && /on npm yet|(?:isn['’]t|not) released yet/i.test(fs.readFileSync(f, 'utf8')));
+    assert.deepEqual(stale.map((f) => path.relative(ROOT, f)), [], `${VERSION} is out: these pages still say it isn't on npm or released`);
   });
 });
