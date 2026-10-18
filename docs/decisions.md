@@ -953,11 +953,14 @@ Export is a download of a blob made in the page; nothing about a folio is writte
 - Ollama is a language model of its own (`server/ai/ollama.ts`), not `@ai-sdk/openai-compatible` over its `/v1`. Every
   call sends `options.num_ctx` (the connection's `contextTokens`, 8192 unless set), `think: false`, and the JSON schema
   as `format` (grammar-constrained output): the Found spike's settings (`eval-judge.js`). Streaming reads its NDJSON.
-- **Why not `/v1`:** it can't set the context size per request. Ollama's default context is small, and a longer
-  prompt is cut without a word: the judge would then see only the start of a screenshot's text, and a folio draft
-  only part of its clippings. Checked on the dev box's Ollama 0.40.5 (see PR21's body for the numbers): the same
-  ~6,000-token prompt through `/v1` came back with the prompt cut to the runner's default, through `/api/chat` with
-  `num_ctx` 8192 whole, and only the native call answered about its last line.
+- **Why not `/v1`:** it can't set the context size per request, and it can't turn thinking off. Measured on the dev
+  box's Ollama 0.40.5 with `qwen3.5:4b` and one ~5,900-token synthetic prompt (a codename on its first line, a city on
+  its last, a question about both):
+  - native `/api/chat` with `num_ctx` 8192: all 5,875 prompt tokens read, the answer "BLUEHERON / Lisbon", 154 s;
+  - `/v1/chat/completions` (JSON mode): the runner loaded the model at its default 4,096 context, read only 2,050 prompt
+    tokens (the rest cut without a word), spent the other 2,046 thinking, and returned an empty answer, after 337 s.
+
+  The judge would see only part of a screenshot's text, and a folio draft only part of its clippings.
 - Thinking is turned off only where we know how to (Ollama's `think`). Other OpenAI-compatible runners and the cloud
   get their provider's default: an unknown `reasoning_effort` is an error at some providers.
 - **Considered:** `/v1` with `OLLAMA_CONTEXT_LENGTH` set by the user (a setting outside BragDoc that it can't see or
