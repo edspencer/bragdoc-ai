@@ -1,0 +1,88 @@
+#!/usr/bin/env node
+// A fake GitHub CLI for tests and QA: it never touches the network or a real login. It answers the few commands
+// BragDoc runs (auth status, search prs, pr view) from prs.json next to it, whose dates are "days ago" from now
+// (FAKE_GH_NOW, else the clock). The scenario comes from FAKE_GH_SCENARIO, else $HOME/.fake-gh/scenario (so QA can
+// change it while the server runs): ok (default), logged-out, rate-limited, offline, zero, many (200 PRs), not-json.
+// FAKE_GH_LOG, if set, gets one line per run: the arguments as JSON.
+import fs from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+
+const args = process.argv.slice(2);
+if (process.env.FAKE_GH_LOG) fs.appendFileSync(process.env.FAKE_GH_LOG, JSON.stringify(args) + '\n');
+let scenario = process.env.FAKE_GH_SCENARIO;
+if (!scenario) {
+  try {
+    scenario = fs.readFileSync(path.join(process.env.HOME || '/nonexistent', '.fake-gh', 'scenario'), 'utf8').trim();
+  } catch {
+    scenario = 'ok';
+  }
+}
+const fixture = JSON.parse(fs.readFileSync(path.join(__dirname, 'prs.json'), 'utf8'));
+const now = process.env.FAKE_GH_NOW ? new Date(process.env.FAKE_GH_NOW) : new Date();
+const iso = (daysAgo) => new Date(now.getTime() - daysAgo * 86400000).toISOString().replace(/\.\d{3}Z$/, 'Z');
+const fail = (msg, code = 1) => {
+  process.stderr.write(msg + '\n');
+  process.exit(code);
+};
+const flag = (name) => args.filter((a) => a.startsWith(`--${name}=`)).map((a) => a.slice(name.length + 3));
+
+function prs() {
+  if (scenario === 'zero') return [];
+  if (scenario === 'many') {
+    const repos = ['northwind-labs/ledger', 'northwind-labs/ledger-web', 'acme-corp/deploy-tools'];
+    return Array.from({ length: 200 }, (_, i) => ({ repo: repos[i % 3], number: 2000 + i, daysAgo: i / 10, title: `Change ${i + 1} of 200: tidy the ${['ledger', 'reports', 'deploys'][i % 3]} code`, body: '' }));
+  }
+  return fixture.prs;
+}
+
+function common() {
+  if (scenario === 'offline') fail('error connecting to api.github.com\ncheck your internet connection or https://githubstatus.com');
+}
+
+if (args[0] === '--version') {
+  process.stdout.write('gh version 2.62.0 (fake)\n');
+} else if (args[0] === 'auth' && args[1] === 'status') {
+  common();
+  if (scenario === 'logged-out') fail('You are not logged into any GitHub hosts. To log in, run: gh auth login');
+  process.stdout.write(`github.com\n  ✓ Logged in to github.com account ${fixture.login} (keyring)\n  - Active account: true\n  - Git operations protocol: https\n`);
+} else if (args[0] === 'search' && args[1] === 'prs') {
+  common();
+  if (scenario === 'logged-out') fail('To get started with GitHub CLI, please run:  gh auth login\nAlternatively, populate the GH_TOKEN environment variable with a GitHub API authentication token.', 4);
+  if (scenario === 'rate-limited') fail('HTTP 403: API rate limit exceeded for user ID 1. If you reach out to GitHub Support for help, please include the request ID.');
+  if (scenario === 'not-json') {
+    process.stdout.write('this is not json');
+    process.exit(0);
+  }
+  if (!args.includes('--author=@me') || !args.includes('--merged')) fail('fake gh: BragDoc should only ever ask for your own merged PRs');
+  const [range] = flag('merged-at');
+  const [from, to] = (range || '..').split('..');
+  const limit = Number(flag('limit')[0] || 30);
+  const owners = flag('owner').map((s) => s.toLowerCase());
+  const repos = flag('repo').map((s) => s.toLowerCase());
+  const out = prs()
+    .map((p) => ({ ...p, closedAt: iso(p.daysAgo) }))
+    .filter((p) => (!from || p.closedAt.slice(0, 10) >= from) && (!to || p.closedAt.slice(0, 10) <= to))
+    .filter((p) => (!owners.length && !repos.length) || repos.includes(p.repo.toLowerCase()) || owners.includes(p.repo.split('/')[0].toLowerCase()))
+    .slice(0, limit)
+    .map((p) => ({
+      number: p.number,
+      title: p.title,
+      url: `https://github.com/${p.repo}/pull/${p.number}`,
+      body: p.body,
+      closedAt: p.closedAt,
+      repository: { name: p.repo.split('/')[1], nameWithOwner: p.repo },
+    }));
+  process.stdout.write(JSON.stringify(out));
+} else if (args[0] === 'pr' && args[1] === 'view') {
+  common();
+  const n = Number(args[2]);
+  const [repo] = flag('repo');
+  const p = prs().find((x) => x.number === n && x.repo.toLowerCase() === (repo || '').toLowerCase());
+  if (!p) fail(`GraphQL: Could not resolve to a PullRequest with the number of ${n}. (repository.pullRequest)`);
+  process.stdout.write(JSON.stringify({ title: p.title, mergedAt: iso(p.daysAgo), additions: 120, deletions: 40 }));
+} else {
+  fail(`fake gh: unknown command ${args.join(' ')}`);
+}

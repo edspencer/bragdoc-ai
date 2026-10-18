@@ -7,8 +7,10 @@ import type { Egress } from './egress.js';
 import type { EventBus } from './events.js';
 import type { LinkPreviews } from './link-preview.js';
 import type { Runtime } from './runtime.js';
+import type { Secrets } from './secrets.js';
 import type { UploadRegistry } from './security.js';
 import type { Services } from './services/index.js';
+import type { Sources } from './sources/index.js';
 import type { Store } from './store/index.js';
 
 export interface AppContext {
@@ -34,4 +36,8 @@ export interface AppContext {
   services: Services;
   /** POST /api/link-preview's GitHub lookup: unset until a GitHub source registers one (`setGithub`, PR13). */
   linkPreviews: LinkPreviews;
+  /** secrets.yaml (0600): the GitHub token, when GitHub is connected with one. */
+  secrets: Secrets;
+  /** The sources that fill Found by themselves: `ctx.sources.github` (PR13); PR15 adds the screenshots folder. */
+  sources: Sources;
 }

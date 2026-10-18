@@ -103,9 +103,10 @@ test('a pasted picture, a dropped PDF, a pasted PR link and a .key file all land
   await expect(c.getByRole('link', { name: /q3-review/ })).toHaveAttribute('href', /^\/api\/evidence\/[0-9a-f]{64}$/);
   await expect(c.getByRole('link', { name: new RegExp(`acme/widgets#${pr}`) })).toHaveAttribute('href', `https://github.com/acme/widgets/pull/${pr}`);
   await expect(c).toContainText('all-hands.key');
-  // nothing went out (settings.spec.ts's "Test the guard" logs a refused request on this same server: not the board's)
+  // nothing went out for the pasted PR: no title lookup, with GitHub not connected. Other specs share this server's log
+  // (settings.spec.ts's "Test the guard", found.spec.ts's connect attempt with gh logged out), so look at the board's own
   const net = (await (await request.get('/api/network-log')).json()) as { entries: { purpose: string }[] };
-  expect(net.entries.filter((e) => e.purpose !== 'settings.guard-check')).toEqual([]);
+  expect(net.entries.filter((e) => e.purpose !== 'settings.guard-check' && e.purpose !== 'github.auth')).toEqual([]);
 });
 
 test('a file that claims to be a picture but is not one is refused with a toast', async ({ page }) => {

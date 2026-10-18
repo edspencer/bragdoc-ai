@@ -1,0 +1,13 @@
+{
+  "login": "alexmarlowe",
+  "prs": [
+    { "repo": "northwind-labs/ledger", "number": 412, "daysAgo": 2, "title": "Cut the nightly reconciliation from 40 minutes to 6", "body": "<!-- template: describe your change -->\nBatches the ledger reads and drops the per-row lookups.\n\n- p95 of the nightly job: 40 min → 6 min\n- no schema changes" },
+    { "repo": "northwind-labs/ledger", "number": 398, "daysAgo": 9, "title": "Retry queue for failed sign-offs", "body": "Failed sign-offs go to a retry queue instead of paging on-call." },
+    { "repo": "northwind-labs/ledger-web", "number": 77, "daysAgo": 15, "title": "Accessible date picker on the export screen", "body": "Keyboard support and screen-reader labels for the export date range." },
+    { "repo": "northwind-labs/ledger-web", "number": 71, "daysAgo": 31, "title": "Dark mode for the reports page", "body": "" },
+    { "repo": "acme-corp/deploy-tools", "number": 1203, "daysAgo": 44, "title": "Blue/green switch-over with automatic rollback", "body": "Rolls back by itself when the health check fails twice in a row." },
+    { "repo": "alexm-oss/tiny-cron", "number": 15, "daysAgo": 60, "title": "Support @reboot schedules", "body": "Closes #12." },
+    { "repo": "alexm-oss/tiny-cron", "number": 9, "daysAgo": 85, "title": "First release: 0.1.0", "body": "" },
+    { "repo": "acme-corp/deploy-tools", "number": 1100, "daysAgo": 120, "title": "An old one, outside the 90-day window", "body": "" }
+  ]
+}

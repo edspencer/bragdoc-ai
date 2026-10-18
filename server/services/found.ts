@@ -2,6 +2,10 @@
 // idempotent on externalKey: a key already in Found (pending, kept or dismissed) or on the board is never added again,
 // which is how a dismissed PR stays dismissed. Candidates' files (a screenshot's path) are copied into evidence/ only
 // when you keep or merge them.
+//
+// A dismissed candidate keeps nothing but the hashes of its keys (D56): its file is cut down to a tombstone, so
+// BragDoc doesn't hold on to a PR's text or a screenshot's path you said no to. Undo puts back what it was, from a copy
+// held in memory while this server runs (the toast's Undo); after a restart a dismissal is final.
 import {
   FoundAddSchema,
   FoundKeepSchema,
@@ -11,7 +15,7 @@ import {
   type FoundSource,
 } from '../../shared/schema/index.js';
 import { ulid } from '../../shared/ulid.js';
-import { ConflictError, NotFoundError, type Store } from '../store/index.js';
+import { ConflictError, keyHash, NotFoundError, type Store } from '../store/index.js';
 import type { AchievementService } from './achievements.js';
 import { ATTACHABLE, type EvidenceService } from './evidence.js';
 import { defined, nowIso, today, validate, withEvidenceIds } from './util.js';
@@ -35,7 +39,15 @@ export interface DecideResult {
   missingFiles: string[];
 }
 
+/** What a dismissed candidate's file keeps: its id, source and dates, and `keyHashes`. Everything else is cleared. */
+const DISMISSED_TITLE = 'Dismissed';
+/** How many dismissals can still be undone (the newest). */
+const UNDO_KEEP = 500;
+
 export class FoundService {
+  /** Dismissed candidates as they were, by id, for undo while this server runs (D56). */
+  private dismissed = new Map<string, FoundCandidate>();
+
   constructor(
     private store: Store,
     private achievements: AchievementService,
@@ -54,7 +66,8 @@ export class FoundService {
     return this.store
       .all('found')
       .filter((f) => (status === 'all' || f.status === status) && (!filter.source || f.source === filter.source))
-      .sort((a, b) => (a.foundAt < b.foundAt ? 1 : a.foundAt > b.foundAt ? -1 : a.id < b.id ? 1 : -1));
+      // found in one go (a check), the one that happened last comes first
+      .sort((a, b) => (a.foundAt !== b.foundAt ? (a.foundAt < b.foundAt ? 1 : -1) : a.happenedAt !== b.happenedAt ? (a.happenedAt < b.happenedAt ? 1 : -1) : a.id < b.id ? 1 : -1));
   }
 
   pendingCount(): number {
@@ -159,9 +172,40 @@ export class FoundService {
     return { candidate, achievementId, missingFiles: files.missing };
   }
 
+  /** Dismiss: the candidate becomes a tombstone that remembers only the hashes of its keys (D56). */
   dismiss(id: string): FoundCandidate {
-    this.pending(id);
-    return this.decide(id, { action: 'dismiss', at: nowIso(this.store) });
+    const f = this.pending(id);
+    const keys = [f.externalKey, ...f.evidence.map((e) => e.externalKey)].filter((k): k is string => !!k);
+    const keyHashes = [...new Set([...(f.keyHashes ?? []), ...keys.map(keyHash)])];
+    const out = this.store.write(
+      'found',
+      id,
+      () => ({
+        patch: {
+          status: 'dismissed',
+          decision: { action: 'dismiss', at: nowIso(this.store) },
+          title: DISMISSED_TITLE,
+          keyHashes,
+          // null removes a key (a merge patch); a list goes to its empty default
+          externalKey: null,
+          sourceAgent: null,
+          summary: null,
+          body: null,
+          impact: null,
+          meta: null,
+          evidence: [],
+          files: [],
+          matchedRules: [],
+          suggestedProjects: [],
+          suggestedRepos: [],
+        },
+      }),
+      { mustExist: true },
+    );
+    this.dismissed.set(id, structuredClone(f));
+    // the toast's Undo needs the last few, not every dismissal since the server started
+    if (this.dismissed.size > UNDO_KEEP) this.dismissed.delete(this.dismissed.keys().next().value!);
+    return out;
   }
 
   /**
@@ -176,6 +220,13 @@ export class FoundService {
     if (d.action === 'keep' && d.achievementId && this.store.get('achievement', d.achievementId)) this.achievements.remove(d.achievementId);
     if (d.action === 'merge' && d.achievementId && d.evidenceIds?.length && this.store.get('achievement', d.achievementId))
       this.achievements.removeEvidence(d.achievementId, d.evidenceIds);
+    if (d.action === 'dismiss') {
+      const was = this.dismissed.get(id);
+      if (!was) throw new ConflictError('that was dismissed before BragDoc last started, and dismissing keeps nothing to bring back');
+      this.dismissed.delete(id);
+      const { id: _id, schemaVersion: _v, ...rest } = was;
+      return this.store.write('found', id, () => ({ patch: { ...rest, keyHashes: was.keyHashes ?? null, status: 'pending', decision: null } }), { mustExist: true });
+    }
     return this.store.write('found', id, () => ({ patch: { status: 'pending', decision: null } }), { mustExist: true });
   }
 

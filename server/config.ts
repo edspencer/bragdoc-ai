@@ -33,6 +33,9 @@ export function normalizeHostname(h: string): string {
   return s;
 }
 
+/** One entry of `sources.github.repos`: a GitHub owner (`acme`) or repository (`acme/app`). */
+export const GITHUB_SCOPE_RE = /^[A-Za-z0-9](?:[A-Za-z0-9-]{0,38})(?:\/[A-Za-z0-9._-]{1,100})?$/;
+
 /** A section written but left empty (`mcp:` with its keys commented out) is YAML null: treat it as absent, so its defaults apply. */
 const section = <T extends z.ZodType>(s: T) => z.preprocess((v) => (v === null ? undefined : v), s);
 
@@ -57,6 +60,12 @@ export const ConfigSchema = z.object({
               enabled: z.boolean().default(false),
               /** `gh`: the GitHub CLI's own login (its traffic is logged as "via gh CLI"). `token`: a PAT in secrets.yaml. */
               auth: z.enum(['gh', 'token']).default('gh'),
+              /** How far back the first check looks, in days (SPEC R7: 90 by default). */
+              lookBackDays: z.number().int().min(1).max(3650).default(90),
+              /** Where to look: `owner` or `owner/repo` entries; empty means every repository you merged into (D57). */
+              repos: z.array(z.string().trim().regex(GITHUB_SCOPE_RE, 'an owner or owner/repo')).default([]),
+              /** Check by itself every hour while BragDoc runs. Off: only when you press Check now (D57). */
+              hourly: z.boolean().default(false),
             })
             .prefault({}),
         ),
@@ -83,7 +92,10 @@ mcp:
 sources:
   github:
     enabled: false
-    auth: gh       # gh (the GitHub CLI's login) or token (a personal access token in secrets.yaml)
+    auth: gh         # gh (the GitHub CLI's login) or token (a personal access token in secrets.yaml)
+    lookBackDays: 90 # how far back the first check looks
+    repos: []        # owners or owner/repo to look in, e.g. [acme, my-org/my-app]; empty: everywhere you merged
+    hourly: false    # check by itself every hour while BragDoc runs (off: only when you press Check now)
 `;
 
 /** config.yaml was written by a newer BragDoc: refuse to start (the CLI prints the message and exits 1). */

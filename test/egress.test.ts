@@ -13,7 +13,7 @@ import { createApp } from '../server/index.ts';
 import { ProcError, run } from '../server/proc.ts';
 import { rmTmp, tmpDir } from './fixture.ts';
 
-const withGithub = (auth: 'gh' | 'token', enabled = true): Config => ({ ...DEFAULT_CONFIG, sources: { github: { enabled, auth } } });
+const withGithub = (auth: 'gh' | 'token', enabled = true): Config => ({ ...DEFAULT_CONFIG, sources: { github: { ...DEFAULT_CONFIG.sources.github, enabled, auth } } });
 const log = (dir: string) => readNetworkLog(dir, { limit: 1000 }).entries;
 
 let dir: string;

@@ -37,6 +37,10 @@ export const FoundCandidateSchema = z.object({
   source: z.enum(FOUND_SOURCES).describe('Which source spotted it: `github`, `screenshots` or `mcp`.'),
   sourceAgent: z.string().optional().describe('For `mcp`: which agent sent it.'),
   externalKey: z.string().optional().describe('A stable key (`github_pr:owner/repo#123`, `screenshot:<sha256>`): the same key is never added twice.'),
+  keyHashes: z
+    .array(z.string().regex(/^sha256:[0-9a-f]{64}$/))
+    .optional()
+    .describe('A dismissed candidate keeps only these: `sha256:` of each key it had, so the same thing never comes back.'),
   title: z.string().min(1).describe('What the achievement would be called.'),
   summary: z.string().optional(),
   body: z.string().optional().describe('Markdown, for the achievement\'s body.'),

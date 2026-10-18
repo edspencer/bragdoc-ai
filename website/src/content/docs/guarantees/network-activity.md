@@ -3,12 +3,6 @@ title: Network activity
 description: "BragDoc sends nothing off your machine on its own. The only outbound requests are to services you connect, and every one is logged where you can see it."
 ---
 
-:::note[Coming in v0.1]
-The egress module, its CI guard and the request log are built, on the
-[`next` branch](https://github.com/edspencer/bragdoc-ai/tree/next). The Network activity screen, the GitHub source (the only thing that will use the network) and text recognition
-are being built.
-:::
-
 **BragDoc sends nothing off your machine on its own.** No telemetry, no analytics, no crash reports, no update check.
 There is no BragDoc server to send anything to.
 

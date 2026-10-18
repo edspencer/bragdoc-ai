@@ -18,7 +18,9 @@ stdio bridge (`bragdoc mcp`), `bragdoc mcp install claude` and the agent guide (
 PR7 built the **Board**: the achievements and evidence API, link previews, store changes forwarded live to the
 browser, and the board page (composer, cards, edit drawer, search). PR14 built **Folio**: a date window, filtered,
 exported as markdown, copied or printed. PR11 added OCR and the screenshot rules, as a
-library (`server/ocr/`, `shared/rules/screenshot.ts`) that the screenshots source builds on. Everything else arrives
+library (`server/ocr/`, `shared/rules/screenshot.ts`) that the screenshots source builds on. PR13 built **Found** and
+the **GitHub source**: the Found page, its API, the source framework (`server/sources/`) and the GitHub card in
+Settings → Sources (see "Found and sources" below). Everything else arrives
 PR by PR, in the waves #411 lays out.
 
 Before changing behaviour, read, in order:
@@ -90,7 +92,10 @@ server/              the server and CLI (Node, TypeScript ESM, Hono)
                      (detached, for --open); allow-listed binaries, no shell
   events.ts          the event bus + the SSE stream (GET /api/events)
   live.ts            forwards every store change onto the bus as a ServerEvent named after its entity (D48)
-  link-preview.ts    LinkPreviews: the GitHub PR lookup POST /api/link-preview uses, once a GitHub source registers one
+  link-preview.ts    LinkPreviews: the GitHub PR lookup POST /api/link-preview uses (the GitHub source registers it)
+  secrets.ts         secrets.yaml (0600): the GitHub token, written through atomic.ts, never logged or backed up
+  sources/           what fills Found by itself (D15): index.ts (Sources: createSources, start()), github.ts (gh or a
+                     token, windowed search, dedup by prKey, backoff, the hourly check; D57)
   views.ts           how achievements look in the API: achievementView() (+ etag, files, broken), evidenceFile()
   atomic.ts          the platform's own writes (runtime.json, the network log, starter files): atomic, create-only (D27)
   routes/index.ts    registerRoutes(): one line per feature module (D18)
@@ -101,6 +106,7 @@ server/              the server and CLI (Node, TypeScript ESM, Hono)
   routes/guide.ts    GET /agent-guide.md, /llms.txt, /llms-full.txt
   routes/{achievements,evidence,link-preview,problems,found-count}.ts   the board's API (see "The board's API")
   routes/folio.ts    GET /api/folio: a window's achievements as clippings, safe to export (D55)
+  routes/{found,sources}.ts   Found's list and decisions, the sources' status and the GitHub card's actions
   paths.ts           package root, VERSION, WEB_DIST, the data home (resolveDataDir), tildify
   port.ts            DEFAULT_PORT (2724 = BRAG), alone so vite.config.ts can import it
   store/             the only code that touches the data home's files (D5, D24): index.ts (Store: load, index,
@@ -129,7 +135,9 @@ src/                 the web app (React 19, Vite, Tailwind v4, TanStack Router +
   shell/             the header, mobile tabs, theme toggle, logo, nav and settings-tab lists, Placeholder
   board/             the board's pieces: composer.ts (paste/drop/upload logic), DropTray, AchievementCard, EditDrawer,
                      pickers (projects, repos, impact), evidence.ts (stored evidence → the kit's EvidenceView)
-  settings/          Settings' tabs (SourcesTab, NetworkTab, DataTab, AboutTab) and what they share (common.tsx:
+  found/             Found's pieces: FoundCard, MergeInto (the search picker), EmptyFound (both empty states),
+                     decide.ts (keep / merge / dismiss with the Undo toast)
+  settings/          Settings' tabs (SourcesTab + GithubCard, NetworkTab, DataTab, AboutTab) and what they share (common.tsx:
                      CopyButton, CommandSlab, LoadError, Slot); routes/settings/$tab.tsx picks one
   api/               client.ts (the typed `api` wrapper), queries.ts (query keys + hooks), events.ts (live updates)
   theme/theme.tsx    light / system / dark: ThemeProvider + useTheme()
@@ -211,9 +219,10 @@ npm run smoke:pack` pass locally (and `npm run test:e2e` if you touched anything
   `server/config.ts`, then write it with `ctx.config.update({ sources: { … } })` (a merge patch on the file as it is
   on disk; it keeps comments, refuses a broken file with `ConfigWriteError` → 409, and fires the `config` event).
   Expose it in `SettingsResponse` (`GET /api/settings`). Never write config.yaml any other way (D53).
-- **A Sources card's insides** (PR13 GitHub, PR15 screenshots): replace the `SourceCard` placeholder in
-  `src/settings/SourcesTab.tsx` (marked with a comment). Data → the Example data `Slot` (marked) is
-  PR16's; the importer is PR12's `ImportPanel` (`src/import/`).
+- **A Sources card's insides** (PR15 screenshots): replace the `SourceCard` placeholder in
+  `src/settings/SourcesTab.tsx` (marked with a comment); GitHub's is `GithubCard.tsx`. Data → the Example data `Slot`
+  (marked) is PR16's; the importer is PR12's `ImportPanel` (`src/import/`).
+- **A source** (something that fills Found by itself): see "Found and sources" below.
 - **Something the web app should refetch when it changes:** add a member to `ServerEvent` in `shared/api.ts` and
   `ctx.bus.emit(…)` (or `emitSoon` for bursts).
 - **Reading or writing data:** routes and MCP tools call `ctx.services` (`server/services/`), never the files and
@@ -287,8 +296,7 @@ project-colour tape, on an oat board (light) or a dim cork board under a desk la
 | Feedback | `ToastProvider` (in the shell) and `useToast()`: `toast({ msg, undo?, tone? })`; `Dialog` (a modal sheet on the native `<dialog>`: `open`, `onClose`, `title`, `footer`, `tape`, `size`) |
 | Navigation | `NotebookTabs` + `NotebookTab` (Settings' divider tabs; router links) |
 
-Shell pieces in `src/shell/`: `Header` and `MobileTabs` (the nav; the Found badge reads `useFoundCount()`, a stub
-until PR13), `ThemeToggle`, `Mark` / `Wordmark`, `NAV` and `SETTINGS_TABS`, `Placeholder`. Dates: `groupByWeek`,
+Shell pieces in `src/shell/`: `Header` and `MobileTabs` (the nav; the Found badge reads `useFoundCount()`), `ThemeToggle`, `Mark` / `Wordmark`, `NAV` and `SETTINGS_TABS`, `Placeholder`. Dates: `groupByWeek`,
 `weekLabel`, `fmt.*`, `todayIso` in `src/lib/dates.ts` (calendar days, weeks from Monday).
 
 **The API client** (`src/api/client.ts`): `api.get/post/put/patch/delete<T>(path, …)` send and receive JSON
@@ -320,6 +328,52 @@ the services' input schemas.
 Errors from the store map through `storeErrorResponse(c, e)` in `server/http.ts` (404 / 400 with `issues` / 409).
 In the web app: `getAchievements` … `previewLink` in `src/api/client.ts`, `useAchievements` (an infinite query over
 `before`), `useProjects`, `useRepos`, `useProblems`, `useFoundCount` in `queries.ts`.
+
+### Found and sources (PR13)
+
+**The model.** A candidate is a `found/<id>.yaml` (`FoundCandidate`, shared/schema/found.ts): `source` (`github` ·
+`screenshots` · `mcp`), `externalKey`, title/summary/body, `happenedAt`, `evidence`, `files` (paths copied into
+evidence/ only on keep or merge), `matchedRules` (the plain-words reasons its card shows: there's no AI, so no
+confidence), `suggestedProjects` / `suggestedRepos`, `status` (`pending` · `kept` · `dismissed`) and `decision`. Every
+change goes through `ctx.services.found` (`add`, `keep`, `merge`, `dismiss`, `undo`, `list`, `pendingCount`):
+
+- `add()` is idempotent on keys: a key (its own or an evidence's) already in Found, dismissed, or on the board adds
+  nothing (`reason: 'exists' | 'dismissed' | 'on-board'`). Build PR keys with `prKey()` (lower case); a screenshot's is
+  `screenshot:<sha256>`.
+- `dismiss()` leaves a tombstone holding only `keyHashes` (D56); the store indexes them, so `foundIdByKey(key)` still
+  finds it. Undo restores from memory while the server runs. Don't read a dismissed candidate's content: it's gone.
+- Keep makes an achievement (`source` from the candidate's: github → `github-pr`, screenshots → `screenshot`, mcp →
+  `mcp`); merge adds its evidence to one (`addEvidence`). Both are undoable.
+
+**A source** lives in `server/sources/<name>.ts`, is created in `createSources()` (server/sources/index.ts, from the
+AppContext), and runs anything in the background from `Sources.start()` (startServer calls it; createApp never does, so
+tests start nothing). It adds candidates with `ctx.services.found.add({ source, externalKey, title, happenedAt,
+evidence, files, matchedRules, suggestedProjects, suggestedRepos })` and never writes found/ itself. Its settings are
+keys under `sources.<name>` in `ConfigSchema` (written with `ctx.config.update()`), its machine state goes in
+`cache/sources/<name>.json` through `atomicWrite` (derived, deletable), it emits `{ type: 'sources' }` when its status
+changes, and it reports in `GET /api/sources` (`SourcesResponse`: PR15 replaces `screenshots: { enabled }` with its
+own status). Its Settings card is a component next to `GithubCard.tsx`. Found's empty state (`EmptyFound.tsx`) lists
+what's watching: add a line for the new source.
+
+**The API** (types in shared/api.ts, "Found + sources (PR13)"):
+
+| Route | What |
+|---|---|
+| `GET /api/found?source=` | `FoundListResponse`: pending candidates, newest first (one check's newest-merged first), and `counts` per source (unfiltered) |
+| `POST /api/found/:id/{keep,merge,dismiss,undo}` | `FoundDecided`; keep takes an optional `FoundKeep` body, merge `{ achievementId }`; a decided one is 409 |
+| `GET /api/found/count` | `{ pending }` for the badge and the board strip |
+| `GET /api/sources` | `SourcesResponse` (`github: GithubSourceStatus`) |
+| `GET /api/sources/github/gh` | `{ installed }`: gh on PATH? (a look, nothing runs) |
+| `POST /api/sources/github/{connect,run,disconnect}`, `PUT /api/sources/github` | connect (`{ auth: 'gh' }` or `{ auth: 'token', token }`, + `lookBackDays`, `repos`), Check now (waits; 429 while rate limited), disconnect (`forgetToken`), options (`lookBackDays`, `repos`, `hourly`). Errors: `GithubErrorCode` |
+
+In the web app: `useFound(source)`, `useSources()`, `useGhInstalled()`; `useDecide()` (src/found/decide.ts) does a
+decision with its toast. Query keys start `found` / `sources`; the `found`, `sources` and `config` events refresh them.
+
+**Testing a source:** never with a real login. `test/fixtures/fake-gh/gh` is a fake GitHub CLI (invented repos in
+`prs.json`, dates in days-ago); its scenario comes from `FAKE_GH_SCENARIO` or `$HOME/.fake-gh/scenario` (`ok`,
+`logged-out`, `rate-limited`, `offline`, `zero`, `many`, `not-json`). test/github-source.test.ts builds a PATH with only
+it and node; the e2e server has it first on PATH. The token path is tested with a fake `fetchImpl` behind the real
+egress module.
 
 ### Code
 

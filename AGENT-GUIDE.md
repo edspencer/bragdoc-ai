@@ -118,6 +118,8 @@ site doesn't. What's there for agents today:
 | POST | `/mcp` | MCP (needs the bearer token) |
 | POST | `/api/import/plan`, `/api/import/apply` | A hosted-app export (the JSON file as the body): what importing it would do, or do it |
 | GET | `/api/folio?from=YYYY-MM-DD&to=YYYY-MM-DD` | A date window's achievements as Folio shows them (safe to share: no ids, file locations or local links), with project and company names |
+| GET | `/api/found` | What's waiting in Found (newest first); `POST /api/found/:id/{keep,merge,dismiss,undo}` decides |
+| GET | `/api/sources` | Each source's state (GitHub: on or off, the last check, any error) |
 
 To write without MCP, edit the files (below).
 
@@ -305,6 +307,7 @@ A candidate in Found.
 | `source` | one of the values given | yes | Which source spotted it: `github`, `screenshots` or `mcp`. |
 | `sourceAgent` | string |  | For `mcp`: which agent sent it. |
 | `externalKey` | string |  | A stable key (`github_pr:owner/repo#123`, `screenshot:<sha256>`): the same key is never added twice. |
+| `keyHashes` | list of string |  | A dismissed candidate keeps only these: `sha256:` of each key it had, so the same thing never comes back. |
 | `title` | string | yes | What the achievement would be called. |
 | `summary` | string |  |  |
 | `body` | string |  | Markdown, for the achievement's body. |

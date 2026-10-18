@@ -140,7 +140,15 @@ const delFromSet = (m: Map<string, Set<string>>, k: string, v: string) => {
 
 const first = (s: Set<string> | undefined) => (s ? s.values().next().value : undefined);
 
+/**
+ * What a dismissed candidate keeps of its keys: `sha256:<hex>` of each (D56). Enough to know the same PR or screenshot
+ * when a source finds it again, without keeping what it was.
+ */
+export const keyHash = (key: string) => `sha256:${crypto.createHash('sha256').update(key).digest('hex')}`;
+const KEY_HASH_RE = /^sha256:[0-9a-f]{64}$/;
+
 /** The keys a file claims, from its value or (while it's broken) whatever of it parsed: strings only. */
+
 function keysOf(kind: EntityKind, v: unknown): string[] {
   if (kind !== 'achievement' && kind !== 'found') return [];
   const o = (v ?? {}) as Record<string, unknown>;
@@ -148,7 +156,8 @@ function keysOf(kind: EntityKind, v: unknown): string[] {
   const ev = Array.isArray(o.evidence) ? o.evidence : [];
   const keys = [str(o.externalKey), ...ev.map((e) => str((e as Record<string, unknown> | null)?.externalKey))].filter((k): k is string => !!k).map((k) => `ext:${k}`);
   const legacy = kind === 'achievement' ? str(o.legacyId) : null;
-  return [...new Set([...keys, ...(legacy ? [`legacy:${legacy}`] : [])])];
+  const hashes = kind === 'found' && Array.isArray(o.keyHashes) ? o.keyHashes.filter((h): h is string => typeof h === 'string' && KEY_HASH_RE.test(h)).map((h) => `hash:${h}`) : [];
+  return [...new Set([...keys, ...hashes, ...(legacy ? [`legacy:${legacy}`] : [])])];
 }
 
 /** The keys in a file that doesn't even parse: its `externalKey:` and `legacyId:` lines, best effort. */
@@ -161,6 +170,8 @@ function scanKeys(kind: EntityKind, raw: string): string[] {
     if (m[1] === 'externalKey') out.push(`ext:${v}`);
     else if (kind === 'achievement') out.push(`legacy:${v}`);
   }
+  // a dismissed candidate's keyHashes (a list of sha256:<hex>): the one thing that keeps its PR from coming back
+  if (kind === 'found') for (const m of raw.matchAll(/(?:^|[\s\[,'"-])(sha256:[0-9a-f]{64})\b/gm)) out.push(`hash:${m[1]}`);
   return [...new Set(out)];
 }
 
@@ -418,8 +429,9 @@ export class Store {
     for (const v of this.all(kind)) if (v.legacyId && !out.has(v.legacyId)) out.set(v.legacyId, v.id);
     return out;
   }
+  /** The candidate with this externalKey (its own or its evidence's), or a dismissed one that kept only its hash (D56). */
   foundIdByKey(key: string): string | undefined {
-    return first(this.keyIndex.found.get(`ext:${key}`));
+    return first(this.keyIndex.found.get(`ext:${key}`)) ?? first(this.keyIndex.found.get(`hash:${keyHash(key)}`));
   }
   /** Achievement ids in a project / touching a repo / that happened in a month (`YYYY-MM`) / carrying a blob. */
   achievementIdsIn(by: 'project' | 'repo' | 'month' | 'blob', key: string): ReadonlySet<string> {

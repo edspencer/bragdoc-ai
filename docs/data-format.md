@@ -248,6 +248,7 @@ A candidate in Found.
 | `source` | one of the values given | yes | Which source spotted it: `github`, `screenshots` or `mcp`. |
 | `sourceAgent` | string |  | For `mcp`: which agent sent it. |
 | `externalKey` | string |  | A stable key (`github_pr:owner/repo#123`, `screenshot:<sha256>`): the same key is never added twice. |
+| `keyHashes` | list of string |  | A dismissed candidate keeps only these: `sha256:` of each key it had, so the same thing never comes back. |
 | `title` | string | yes | What the achievement would be called. |
 | `summary` | string |  |  |
 | `body` | string |  | Markdown, for the achievement's body. |

@@ -779,3 +779,47 @@ Export is a download of a blob made in the page; nothing about a folio is writte
 - **Considered:** generating the markdown on the server (`GET /api/folio.md`): one more place the format lives, and a
   long `out=` list in a URL either way; rendering the printout from the markdown (a markdown renderer in the bundle
   for one page); grouping by week only (a six-month review would have 26 headings).
+
+### D56 — A dismissed candidate keeps only the hashes of its keys; undo comes from memory
+
+- Dismissing rewrites `found/<id>.yaml` as a tombstone: id, source, status, the decision, its dates, the title
+  `Dismissed`, and `keyHashes` (`sha256:<hex>` of its `externalKey` and its evidence's keys). The PR's title, body and
+  link, a screenshot's path, an agent's text and the suggestions are all cleared. The store indexes the hashes, so
+  `foundIdByKey()` still finds it (also when the file is broken: `scanKeys` reads the hash lines), and the same PR or
+  screenshot is never added again, by a source or by MCP's `bragdoc_add_found`. This is FOUND-SPIKE §7's data
+  minimisation ("keep at most a hash of externalKey for rejected items"), applied to every source.
+- Undo (the toast's) restores the candidate from a copy the FoundService holds in memory while the server runs. After
+  a restart a dismissal is final, and undo says so (409). Keep and merge undo as before.
+- The hash isn't secret: anyone who can guess a PR's key can check it. It's there so the file doesn't hold the content,
+  not to hide that a key was seen. Snapshots taken before the dismissal still hold the full candidate until they're
+  pruned (30 days at most).
+- **Considered:** keeping dismissed candidates whole (simplest, but keeps text the user said no to); deleting the file
+  and keeping hashes in a separate list (a second file to keep consistent with found/, and one more place for
+  hand edits to go wrong); undo by re-sending the candidate from the browser (a client could then write any candidate).
+
+### D57 — The GitHub source: opt-in, no polling unless you turn it on, and where to look starts from your tracked repos
+
+- **When it runs:** on connect, on **Check now**, and every hour while BragDoc runs **only if `sources.github.hourly`
+  is on** (default off). SPEC R7 says "polls hourly while running"; the orchestrator's rule for v0.1 is no polling the
+  user didn't ask for, so hourly is a switch on the card. One check at a time; a second request gets the running one.
+- **Where it looks:** `sources.github.repos`, owners (`acme`) and repositories (`acme/app`). The connect form fills it
+  with the GitHub remotes of the repos you track; empty means everywhere you merged, which the form says. Owners and
+  repositories are searched separately (GitHub ORs qualifiers of one kind), and results are filtered again locally.
+  A repository BragDoc doesn't know is added to `repos/` untracked (SPEC R6: repos come from PR discovery).
+- **What it searches:** merged on or after a cursor (UTC dates; the first check looks back `lookBackDays`, 90), by
+  windows: a window GitHub can't return in full (over 1,000 results) is split in two and searched again. The cursor
+  moves only after a check that worked. Changing `repos` or `lookBackDays` resets it; dedup by key makes re-looking
+  harmless. `gh search prs --json` has no merged time, only `closedAt`, which for a merged PR is when it was merged.
+- **Its state** (cursor, login, last check, backoff) is machine-written, derived and deletable, so it's
+  `cache/sources/github.json` (via atomic.ts, 0600), not config.yaml and not the store.
+- **Connecting with a token:** the egress allow-list only has `api.github.com` while a token is connected (D29), so the
+  token is saved and the source switched on, `GET /user` checks it, and on any failure both are put back exactly as
+  they were. The token is never kept if GitHub refuses it. It lives in `secrets.yaml` (0600, `server/secrets.ts`
+  through atomic.ts), never in config.yaml, and is never logged (the network log has paths only).
+- **Errors** are a fixed set of codes with plain-words messages (`gh_missing`, `gh_logged_out`, `token_missing`,
+  `token_invalid`, `token_scope`, `rate_limited`, `offline`, `failed`), shown on the card and in Found's empty state.
+  A rate limit waits until GitHub's reset time (or `Retry-After`); without one, 15 minutes doubling to 6 hours. While
+  it waits, Check now answers 429 and nothing is sent.
+- **Considered:** auto-creating repos only on Keep (candidates would then carry no repo to show or suggest from);
+  polling hourly by default (SPEC's wording; overruled for v0.1); storing the cursor in config.yaml (machine state in
+  the user's file).

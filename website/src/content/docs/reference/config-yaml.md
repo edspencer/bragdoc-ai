@@ -25,7 +25,10 @@ mcp:
 sources:
   github:
     enabled: false
-    auth: gh       # gh (the GitHub CLI's login) or token (a personal access token in secrets.yaml)
+    auth: gh         # gh (the GitHub CLI's login) or token (a personal access token in secrets.yaml)
+    lookBackDays: 90 # how far back the first check looks
+    repos: []        # owners or owner/repo to look in, e.g. [acme, my-org/my-app]; empty: everywhere you merged
+    hourly: false    # check by itself every hour while BragDoc runs (off: only when you press Check now)
 ```
 
 ## Keys
@@ -37,6 +40,13 @@ sources:
 | `mcp.writeTo` | `board` | Where achievements from your MCP agents go: `board` or `found`. See [MCP](/agents/mcp/). |
 | `sources.github.enabled` | `false` | Whether the [GitHub source](/concepts/found-and-sources/#github) is on. |
 | `sources.github.auth` | `gh` | `gh` uses the GitHub CLI's own login; `token` uses a personal access token from `secrets.yaml`. Only `token` adds `api.github.com` to BragDoc's [network allow-list](/guarantees/network-activity/). |
+| `sources.github.lookBackDays` | `90` | How far back the first check looks, in days (1 to 3650). Changing it makes the next check look back the whole window again; nothing already found comes back. |
+| `sources.github.repos` | `[]` | Where to look: owners (`acme`) and repositories (`acme/app`). Empty: every repository you merged into. |
+| `sources.github.hourly` | `false` | Check GitHub by itself every hour while BragDoc runs. Off: it checks only when you connect it or press **Check now**. |
+
+Settings → Sources writes these for you. The GitHub source's own state (where the next check starts, the last check,
+how long GitHub asked it to wait) is in `cache/sources/github.json`: delete it and the next check simply looks back the
+whole window again.
 
 ## If it's wrong
 
