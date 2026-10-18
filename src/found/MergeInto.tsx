@@ -59,7 +59,7 @@ export function MergeInto({ onPick, disabled }: { onPick: (a: AchievementItem) =
       </Btn>
       {open && (
         <div ref={box} id={listId} className="absolute bottom-12 left-0 z-20 w-[min(22rem,calc(100vw-4rem))] rounded-2xl bg-surface p-2 shadow-2xl ring-1 ring-line sm:left-20" data-testid="merge-picker">
-          <label className="flex items-center gap-2 rounded-xl bg-sunk px-3 py-2 ring-2 ring-transparent focus-within:ring-accent/60">
+          <label className="flex items-center gap-2 rounded-xl bg-sunk px-3 py-2">
             <Search className="size-4 text-faint" aria-hidden />
             <input
               autoFocus
@@ -67,7 +67,7 @@ export function MergeInto({ onPick, disabled }: { onPick: (a: AchievementItem) =
               onChange={(e) => setQ(e.target.value)}
               placeholder="Search your board…"
               aria-label="Search your board"
-              className="w-full bg-transparent text-[13.5px] outline-none placeholder:text-faint focus-visible:outline-none"
+              className="w-full bg-transparent text-[13.5px] outline-none placeholder:text-faint"
               data-testid="merge-search"
             />
           </label>

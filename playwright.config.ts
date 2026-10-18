@@ -39,6 +39,11 @@ export default defineConfig({
       BRAGDOC_HOME: path.join(home, '.bragdoc'),
       BRAGDOC_DEV: '',
       BRAGDOC_DANGEROUSLY_ALLOW_OPEN: '',
+      // a fake gh first on PATH (fixtures, never the network or a real login): the GitHub source's specs drive it
+      // through $HOME/.fake-gh/scenario. Nor a token from the environment that gh would otherwise pick up.
+      PATH: [path.resolve('test/fixtures/fake-gh'), process.env.PATH].join(path.delimiter),
+      GH_TOKEN: '',
+      GITHUB_TOKEN: '',
     },
   },
 });
