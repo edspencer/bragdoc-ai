@@ -87,10 +87,12 @@ function Folio() {
   const panel = useRef<HTMLDivElement>(null);
   const sameFolio = (a: FolioFilter, b: FolioFilter) => JSON.stringify(writeSearch(a)) === JSON.stringify(writeSearch(b));
   const changed = !!draft && !sameFolio(draft.folio, f);
-  // a draft you haven't copied or exported took minutes to write: leaving (or reloading) asks first
+  // a draft you haven't copied or exported took minutes to write: leaving (or reloading) asks first. Changing the
+  // folio's own filters or view is a navigation too (they live in the URL), and keeps the draft: that never asks.
   const unsaved = !!draft?.text && !draft.taken;
-  useBlocker({ shouldBlockFn: () => unsaved && !window.confirm('Leave Folio? Your draft isn’t saved anywhere: copy or export it first to keep it.'), enableBeforeUnload: () => unsaved });
+  useBlocker({ shouldBlockFn: ({ next }) => unsaved && next.pathname !== '/folio' && !window.confirm('Leave Folio? Your draft isn’t saved anywhere: copy or export it first to keep it.'), enableBeforeUnload: () => unsaved });
   const doDraft = () => {
+    if (draft?.edited && !draft.taken && !window.confirm('Draft again? Your edited draft will be replaced, and it isn’t saved anywhere.')) return;
     void start(f, purpose);
     setShowDraft(true);
     requestAnimationFrame(() => panel.current?.scrollIntoView({ block: 'nearest', behavior: 'smooth' }));

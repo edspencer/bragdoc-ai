@@ -287,9 +287,11 @@ export function DraftPanel({ d, canDraft, why, changed, onEdit, onCancel, onAgai
         </details>
       )}
 
-      <Hand className="mt-4 block text-[16px] text-muted">
-        a suggestion from {s ? s.model : 'a model'}: check it against your clippings. Copy, Print and Export .md above still give exactly what you picked.
-      </Hand>
+      {(running || d.text) && (
+        <Hand className="mt-4 block text-[16px] text-muted">
+          a suggestion from {s ? s.model : 'a model'}: check it against your clippings. Copy, Print and Export .md above still give exactly what you picked.
+        </Hand>
+      )}
     </section>
   );
 }
