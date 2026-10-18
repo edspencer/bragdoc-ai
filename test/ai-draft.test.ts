@@ -244,10 +244,13 @@ test('the check is quick on a long, uncited draft (it runs after every pause in 
   const many: FolioResponse = { ...DATA, items: Array.from({ length: 100 }, (_, i) => ({ id: `I${i}`, title: `Achievement ${i} with Some Names and ${i * 7} numbers`, summary: 'A summary with 12 things, 40% better, in Q3 2026, for Acme Corp.', happenedAt: '2026-08-01', impact: (i % 10) + 1, projects: ['P1'], evidence: [] })) };
   const p = prepareDraft({ data: many, folio: QUARTER, contextTokens: 30_000 });
   const draft = Array.from({ length: 2000 }, (_, i) => `Line ${i} says Big Claims about ${i} things and Other Names, significantly.`).join('\n');
-  const t0 = performance.now();
+  // CPU time, not wall time: the suite runs files in parallel on a busy machine. About 0.4 s here; before the sources
+  // were indexed once per check it was nearer 9 s
+  const t0 = process.cpuUsage();
   const c = checkDraft(draft, p.sources);
-  const ms = performance.now() - t0;
-  assert.ok(ms < 3000, `${Math.round(ms)} ms`);
+  const cpu = process.cpuUsage(t0);
+  const ms = (cpu.user + cpu.system) / 1000;
+  assert.ok(ms < 4000, `${Math.round(ms)} ms of CPU`);
   assert.ok(c.ungrounded.length > 100 && c.filler.length > 100);
   // past CHECK_MAX_LINES, lines aren't read
   assert.equal(checkDraft(`${'\n'.repeat(2500)}- uncited`, p.sources).uncited.length, 0);

@@ -181,7 +181,7 @@ e2e/                 Playwright specs, run against the built server (playwright.
 fixtures/example/    the example dataset (example.json + evidence/), shipped in the package and the image (D61)
 scripts/             gen-example.ts (npm run gen:example: the example evidence files), start.mjs (npm start), dev.mjs (npm run dev), check-no-nul-bytes.mjs, sync-reference.ts,
                      store-demo.ts, whats-new-release.mjs (heads the docs site's What's new at `changeset:version`),
-                     eval/ (v0.2's live evals: lib.ts is the harness, one spec per eval: smoke.ts);
+                     eval/ (v0.2's live evals: lib.ts is the harness, one spec per eval: smoke.ts, tidy.ts);
                      the release's: build-info.mjs (dist/build-info.json), strip-maps.mjs,
                      smoke-pack.mjs (npm run smoke:pack), smoke-image.sh (a built Docker image, in CI)
 .changeset/          pending changelog entries (`npm run changeset`); config.json versions against next
@@ -220,6 +220,7 @@ npm run eval:screenshots -- --ocr   # the screenshot rules' precision and recall
 npm run bragdoc -- dev ocr <image>  # which OCR engine ran, the text, and what the rules made of it
 BRAGDOC_LIVE_AI=1 npm run eval:smoke -- --connection ollama@http://127.0.0.1:11434 --model qwen3.5:4b [--record]
                        # a live eval on a REAL model (refuses under CI); --record saves answers for replay tests
+BRAGDOC_LIVE_AI=1 npm run eval:tidy -- --connection … --model …   # Tidy this up on 30 synthetic blobs (PR26)
 npm run gen:example    # remake fixtures/example/evidence/ after changing a picture in scripts/gen-example.ts
 ```
 
@@ -525,6 +526,17 @@ PR22 added the plumbing the three features share (D67, D68):
     assert `stale`, `missing` and `unanswered` are empty and the scores are what you expect. **Changing a prompt
     or a schema makes its recordings stale**: re-record on a machine with the model (`--record`), never by hand. `node --import tsx
     test/fixtures/fake-llm/server.ts --recording <file>` serves one for box QA.
+
+PR26 added **Tidy this up** on the board (SPEC R23; D78, D79): `POST /api/ai/tidy` and `GET /api/ai/tidy/preview`
+(`server/routes/ai-tidy.ts`), the prompt in `server/ai/prompts/tidy.ts` (`tidyPrompt`, `tidyMaterial`: labelled parts
+in one delimited block), and `server/ai/tidy.ts`: `gatherTidy` (the server collects the text: pasted, board pictures'
+OCR, an achievement's fields), `runTidy`, and the pure `finishTidy` (clips, nulls, impact, project names → ids,
+`allowedDates` for dates, `ungrounded` flags). Nothing it does writes anything. On the board: `src/board/tidy.ts`
+(`useTidyAvailability`: shown only while AI and Tidy are on; `useTidy`: the call with Cancel; `applyTitle`/`applyBody`,
+which keep what you wrote in the notes) and `src/board/TidySheet.tsx` (the button, the thinking sticky, the sheet).
+The composer's Summary and Until fields appear only once a suggestion sets them. **For PR27:** `ai/style.md` reaches a
+prompt through `services.instructions.forPrompt('style')`, as Tidy does; the fake's `tidy` row (answers.ts) is keyed on
+the schema name `achievement_tidy`.
 
 PR27 added **Draft with AI** in Folio (SPEC R24, D80–D81):
 

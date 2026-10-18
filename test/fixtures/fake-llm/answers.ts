@@ -54,6 +54,10 @@ export const ANSWERS: AnswerRule[] = [
       return { date: /\d{4}-\d{2}-\d{2}/.exec(s)?.[0] ?? null, percent: pct ? Number(pct[1]) : null };
     },
   },
+  // "Tidy this up" (PR26): a tidy made from the material's own words, so a grounded answer is the default. Planted
+  // traps for the checks: "cut costs" with no number gets an invented 40%, "INVENT-DATE" an invented date, "MADE-UP
+  // PROJECT" a project that isn't theirs, and a calendar invite is notAnAchievement.
+  { name: 'tidy', when: (r) => r.json && (r.schemaName === 'achievement_tidy' || asks(r, 'title', 'summary', 'notAnAchievement')), answer: (r) => tidyAnswer(r.prompt) },
   // Folio's Draft with AI (PR27): a draft made from the prompt's own clippings, best first, citing each, plus the two
   // mistakes the check must catch: one bullet with no citation, and one planted number ("by 37%") no clipping has.
   // A note containing "(clean)" leaves both out.
@@ -98,6 +102,51 @@ function fakeDraft(prompt: string): string {
 function lastLine(prompt: string): string {
   const lines = prompt.split('\n').map((l) => l.trim()).filter(Boolean);
   return lines.filter((l) => !/what is the last line/i.test(l)).at(-1) ?? '';
+}
+
+/** The fake's tidy (PR26), from the prompt alone: deterministic, and only the material's own words unless planted. */
+export function tidyAnswer(prompt: string): Record<string, unknown> {
+  const material = /<<<MATERIAL\n([\s\S]*?)\nMATERIAL>>>/.exec(prompt)?.[1] ?? '';
+  const today = /Today is (?:\w+ )?(\d{4}-\d{2}-\d{2})/.exec(prompt)?.[1] ?? '2026-01-01';
+  const projects = [.../Their projects: (.*)\.\n/.exec(prompt)?.[1]?.matchAll(/"([^"]+)"/g) ?? []].map((m) => m[1]!);
+  // each part (and line) a sentence of its own, so an achievement's title and summary don't run together
+  const text = material
+    .split('\n')
+    .map((l) => l.trim())
+    .filter((l) => l && !/^\[.*\]$/.test(l))
+    .map((l) => (/[.!?]$/.test(l) ? l : `${l}.`))
+    .join(' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+  const empty = { title: '', summary: '', body: null, happenedAt: null, endedAt: null, impact: null, impactWhy: null, projects: [], unclear: null };
+  if (/\b(invitation|you(?:'ve| have) been invited|calendar|join (?:zoom|the) meeting)\b/i.test(text))
+    return { ...empty, notAnAchievement: 'It reads like a calendar invite: something planned, not something you did.' };
+  const sentences = text
+    .replace(/^(?:(?:hey|hi|hello|so|ok|okay|um+|just wanted to say)[,!.]?\s+)+/i, '')
+    .split(/(?<=[.!?])\s+/)
+    .filter(Boolean);
+  const first = (sentences[0] ?? text).replace(/[.!?]+$/, '');
+  const cap = first.charAt(0).toUpperCase() + first.slice(1);
+  const title = cap.length > 80 ? cap.slice(0, 80).replace(/\s+\S*$/, '') : cap;
+  let summary = sentences.slice(0, 2).join(' ').slice(0, 260);
+  if (/\bcut costs\b/i.test(text) && !/\d/.test(text)) summary = `${summary.replace(/[.!?]?$/, '')}, cutting costs by 40%.`;
+  let happenedAt: string | null = /\d{4}-\d{2}-\d{2}/.exec(text)?.[0] ?? null;
+  if (!happenedAt && /\byesterday\b/i.test(text)) happenedAt = new Date(Date.parse(`${today}T00:00:00Z`) - 86_400_000).toISOString().slice(0, 10);
+  if (/INVENT-DATE/.test(text)) happenedAt = '2019-03-14';
+  const named = projects.filter((p) => text.toLowerCase().includes(p.toLowerCase()));
+  if (/MADE-UP PROJECT/.test(text)) named.push('Project Nightjar');
+  const praise = /\b(thank|thanks|great job|kudos|shout-?out|amazing)\b/i.test(text);
+  return {
+    ...empty,
+    title,
+    summary,
+    happenedAt,
+    impact: praise ? 3 : 4,
+    impactWhy: praise ? 'Someone took the time to thank me for it.' : 'The team relied on it, from what I wrote.',
+    projects: named,
+    notAnAchievement: null,
+    unclear: /\bwe\b/i.test(text) ? 'Who "we" is.' : null,
+  };
 }
 
 /** The answer for a request: from `extra` first (a replayed recording's rows; test/ai-replay.ts), then the table. */
