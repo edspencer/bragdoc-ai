@@ -11,6 +11,7 @@ import { forwardStoreChanges } from '../server/live.ts';
 import { EventBus } from '../server/events.ts';
 import { GITIGNORED } from '../server/home.ts';
 import { takeSnapshot } from '../server/store/backups.ts';
+import { relPathFor } from '../server/store/files.ts';
 import { ConflictError, NotFoundError, ValidationError } from '../server/store/index.ts';
 import { watchStore, type StoreWatcher } from '../server/store/watch.ts';
 import { aiHome, type AiHome } from './ai-fixture.ts';
@@ -84,12 +85,25 @@ test('only the two names exist; a misspelt file in ai/ is a Problem, anything no
   assert.match(stray.find((p) => p.file === 'ai/style.txt')!.message, /rename it to style\.md/);
 });
 
+/**
+ * Prime a just-started watcher: write by hand (again each second, up to 10 s) until it's seen. macOS's FSEvents can
+ * drop the first events of a stream that has only just begun, even after chokidar's `ready`: a flake on macOS CI under
+ * the full suite's load (PR30 reproduced it in 4 of 12 runs). What a test then asserts is a later edit, with no retry.
+ */
+const primed = async (write: (attempt: number) => void, seen: (attempt: number) => boolean) => {
+  for (let i = 0; i < 10; i++) {
+    write(i);
+    try {
+      return await until(() => seen(i), 'the watcher to start', 1000);
+    } catch {
+      // not seen yet: write again
+    }
+  }
+  throw new Error('the watcher never saw a hand edit');
+};
+
 test('a hand edit is picked up live, and announced to open tabs as an `instructions` event', async () => {
   h = storeHome();
-  // The file you edit by hand is one BragDoc already wrote (the judge's starter, on its first switch-on), so ai/ is
-  // there before the watcher starts. Creating ai/ in the same instant the watcher starts was a macOS-only flake (PR30):
-  // FSEvents can drop the new folder's event from a stream that has only just begun, and the edit is never seen.
-  h.services.instructions.put('what-counts', { text: '# What counts as a win for me\n' });
   const events: StoreChange[] = [];
   h.store.subscribe((c) => events.push(c));
   const bus = new EventBus();
@@ -98,20 +112,26 @@ test('a hand edit is picked up live, and announced to open tabs as an `instructi
   forwardStoreChanges(h.store, bus);
   w = watchStore(h.store);
   await w.ready;
-  h.put('ai/what-counts.md', WINS);
-  await until(() => h!.services.instructions.forPrompt('what-counts') === WINS.trim(), 'the first hand edit');
+  await primed(
+    (i) => h!.put('ai/what-counts.md', `${WINS}<!-- ${i} -->\n`),
+    (i) => h!.services.instructions.get('what-counts').text === `${WINS}<!-- ${i} -->\n`,
+  );
   h.put('ai/what-counts.md', WINS + '- Mentoring someone through their first launch.\n');
-  await until(() => /Mentoring/.test(h!.services.instructions.forPrompt('what-counts') ?? ''), 'the second hand edit');
+  await until(() => /Mentoring/.test(h!.services.instructions.forPrompt('what-counts') ?? ''), 'the hand edit');
   assert.ok(events.every((e) => e.entity === 'instructions' && e.id === 'what-counts'), JSON.stringify(events));
   await until(() => sent.includes('instructions'), 'the instructions event');
 });
 
 test('a hand-made ai/ folder is picked up too, once the watcher is running', async () => {
   h = storeHome();
+  const { achievement } = h.services.achievements.create({ title: 'Before' });
+  const rel = relPathFor('achievement', achievement.id);
   w = watchStore(h.store);
   await w.ready;
-  // a moment for the watcher's stream to be live (see above): this is about a new folder, not about a race at start
-  await new Promise((r) => setTimeout(r, 500));
+  await primed(
+    (i) => h!.put(rel, h!.read(rel).replace(/title: .*/, `title: Edited ${i}`)),
+    (i) => h!.store.get('achievement', achievement.id)?.title === `Edited ${i}`,
+  );
   h.put('ai/style.md', 'Write plainly.\n');
   await until(() => h!.services.instructions.forPrompt('style') === 'Write plainly.', 'the new ai/ folder');
 });
