@@ -178,6 +178,53 @@ describe('the folder scan', () => {
     assert.equal(HINTS.length, 3);
   }));
 
+  test('the folder named may be a repo itself: listed, and still looked through', withTree(async (root) => {
+    fakeRepo(root, { commitDaysAgo: 30 }); // dotfiles in ~
+    fakeRepo(path.join(root, 'Code', 'app'), { commitDaysAgo: 1 });
+    const r = await scan({ root: '~' }, opts(root));
+    assert.deepEqual(r.repos.map((x) => x.path), ['~/Code/app', '~']);
+  }));
+
+  test('a .git that is a symlink is listed but not followed; a symlinked root is scanned as its target', withTree(async (root) => {
+    fakeRepo(path.join(root, 'outside', 'real'), { commitDaysAgo: 0, remote: 'https://github.com/acme/secret' });
+    fs.mkdirSync(path.join(root, 'Code', 'linked'), { recursive: true });
+    fs.symlinkSync(path.join(root, 'outside', 'real', '.git'), path.join(root, 'Code', 'linked', '.git'));
+    fs.symlinkSync(path.join(root, 'Code'), path.join(root, 'CodeLink'));
+    const r = await scan({ root: '~/CodeLink' }, opts(root));
+    assert.equal(r.root, '~/Code');
+    assert.deepEqual(r.repos.map((x) => [x.name, x.remoteUrl, x.linked, x.lastActivity]), [['linked', null, true, null]]);
+  }));
+
+  test('on macOS, scanning home skips the folders the OS guards with a prompt, unless you name one', withTree(async (root) => {
+    fakeRepo(path.join(root, 'Documents', 'thesis'), { commitDaysAgo: 1 });
+    fakeRepo(path.join(root, 'Code', 'app'), { commitDaysAgo: 1 });
+    const mac = { ...opts(root), platform: 'darwin' as const };
+    assert.deepEqual((await scan({ root: '~' }, mac)).repos.map((x) => x.name), ['app']);
+    assert.deepEqual((await scan({ root: '~/Documents' }, mac)).repos.map((x) => x.name), ['thesis']);
+    assert.deepEqual((await scan({ root: '~' }, opts(root))).repos.map((x) => x.name).sort(), ['app', 'thesis']);
+  }));
+
+  test('one deadline covers reading the repos too: what it runs out of time for is listed, unread', withTree(async (root) => {
+    for (let i = 0; i < 30; i++) fakeRepo(path.join(root, 'Code', `r${i}`), { commitDaysAgo: i });
+    let t = NOW.getTime();
+    // each look at the clock moves it on 10 ms: the 1 s budget runs out part-way through
+    const r = await scan({ root: '~/Code' }, { ...opts(root), now: () => new Date((t += 10)), timeMs: 1000 });
+    assert.equal(r.repos.length, 30);
+    assert.equal(r.timedOut, true);
+    assert.ok(r.repos.some((x) => x.why === 'not looked at: out of time'));
+    assert.ok(r.repos.some((x) => x.why.startsWith('you committed')));
+  }));
+
+  test('a hint naming a folder inside a repo counts as that repo', withTree(async (root) => {
+    fakeRepo(path.join(root, 'mono'), { commitDaysAgo: 2 });
+    fs.mkdirSync(path.join(root, 'mono', 'packages', 'web'), { recursive: true });
+    const storage = path.join(root, '.config', 'Code', 'User', 'globalStorage');
+    fs.mkdirSync(storage, { recursive: true });
+    fs.writeFileSync(path.join(storage, 'storage.json'), JSON.stringify({ w: `file://${path.join(root, 'mono', 'packages', 'web')}`, h: `file://${root}` }));
+    const r = await scan({ hints: ['vscode'] }, { ...opts(root), env: { XDG_CONFIG_HOME: path.join(root, '.config') } });
+    assert.deepEqual(r.repos.map((x) => x.name), ['mono']);
+  }));
+
   test('reflogs and words', () => {
     assert.deepEqual(lastReflogEntry(`${SHA} ${SHA} A <a@b> 1700000000 +0100\tcommit: x\n`), { at: new Date(1700000000_000), message: 'commit: x' });
     assert.equal(lastReflogEntry('garbage'), null);
@@ -213,6 +260,7 @@ describe('Welcome, profile and adding repos over HTTP', () => {
     fs.writeFileSync(path.join(dir, 'config.yaml'), 'welcome: [');
     const r = await app.request('/api/welcome/skip', send('POST'));
     assert.equal(r.status, 409);
+    assert.equal(fs.readFileSync(path.join(dir, 'config.yaml'), 'utf8'), 'welcome: [');
   }));
 
   test('the profile: the first write needs a name; then it is no longer a first run', withApp(async (app) => {
@@ -263,10 +311,13 @@ describe('Welcome, profile and adding repos over HTTP', () => {
     assert.deepEqual(projects.map((p) => [p.name, p.repoIds.length]), [['One', 1]]);
     s = (await (await app.request('/api/discover/scan', send('POST', { root: code }))).json()) as DiscoverScanResponse;
     assert.deepEqual(s.repos.map((r) => [r.name, r.known]), [['one', true], ['two', true], ['three', false]]);
-    // adding again: the same repo, not a second one; a project of that name gets it linked
-    const again = (await (await app.request('/api/discover/add', send('POST', { repos: [{ path: path.join(code, 'two'), project: { name: 'one' } }] }))).json()) as DiscoverAddResponse;
+    // adding again: the same repo, not a second one; a name is always a new project, an id an existing one
+    const again = (await (await app.request('/api/discover/add', send('POST', { repos: [{ path: path.join(code, 'two'), project: { name: 'One' } }] }))).json()) as DiscoverAddResponse;
     assert.ok('created' in again.results[0]! && again.results[0].created === false);
-    assert.equal(((await (await app.request('/api/projects')).json()) as { projects: unknown[] }).projects.length, 1);
+    assert.equal(((await (await app.request('/api/projects')).json()) as { projects: unknown[] }).projects.length, 2);
+    const firstId = 'repo' in add.results[0]! ? add.results[0].projectId! : '';
+    const linked = (await (await app.request('/api/discover/add', send('POST', { repos: [{ path: path.join(code, 'three'), project: { id: firstId } }] }))).json()) as DiscoverAddResponse;
+    assert.ok('projectId' in linked.results[0]! && linked.results[0].projectId === firstId);
   }));
 });
 
@@ -327,6 +378,27 @@ describe('example data', () => {
       assert.ok(fs.readdirSync(path.join(h.home, 'backups', 'removed')).length > 0);
       // and it can come back
       assert.equal((await addExample(store, services, { asOf: '2026-10-17' })).achievements, d.achievements.length);
+    } finally {
+      h.cleanup();
+    }
+  });
+
+  test('removing while an add runs is refused; your entries on an example repo or company lose only that reference', async () => {
+    const h = storeHome();
+    try {
+      const { store, services } = h;
+      const adding = addExample(store, services, { asOf: '2026-10-17' });
+      assert.throws(() => removeExample(store, services), /still being added/);
+      await adding;
+      const exRepo = store.all('repo').find((r) => r.example)!;
+      const exCompany = store.all('company').find((c) => c.example)!;
+      const mine = services.achievements.create({ title: 'Mine', repos: [exRepo.id], companyId: exCompany.id }).achievement;
+      const myProject = services.projects.create({ name: 'Mine too', companyId: exCompany.id, repoIds: [exRepo.id] });
+      removeExample(store, services);
+      assert.deepEqual(store.get('achievement', mine.id)!.repos, []);
+      assert.equal(store.get('achievement', mine.id)!.companyId ?? null, null);
+      assert.deepEqual([store.get('project', myProject.id)!.companyId, store.get('project', myProject.id)!.repoIds], [null, []]);
+      assert.deepEqual(store.problems(), []);
     } finally {
       h.cleanup();
     }

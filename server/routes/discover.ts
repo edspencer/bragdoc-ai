@@ -4,6 +4,7 @@
 //   POST /api/discover/scan          DiscoverScanRequest → DiscoverScanResponse (4 levels, 5 s; 400 for a folder that
 //                                    can't be scanned, with a DiscoverErrorCode)
 //   POST /api/discover/add           DiscoverAddRequest → DiscoverAddResponse
+import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import type { Hono } from 'hono';
@@ -35,8 +36,15 @@ const AddSchema = z.strictObject({
     .max(500),
 });
 
-/** One spelling of a folder, for "is it one of yours already?". */
-const canon = (p: string, home: string) => path.resolve(expandHome(p, home));
+/** One spelling of a folder, for "is it one of yours already?": its real path (the scan's are real), else as given. */
+function canon(p: string, home: string): string {
+  const abs = path.resolve(expandHome(p, home));
+  try {
+    return fs.realpathSync.native(abs);
+  } catch {
+    return abs;
+  }
+}
 
 export function registerDiscover(app: Hono, ctx: AppContext): void {
   const { store, services } = ctx;
@@ -73,11 +81,8 @@ export function registerDiscover(app: Hono, ctx: AppContext): void {
           if (!created && !repo.localPath) repo = services.repos.update(repo.id, { localPath });
           let projectId: string | null = null;
           if (want.project && 'id' in want.project) projectId = services.projects.linkRepo(want.project.id, repo.id).id;
-          else if (want.project) {
-            const name = want.project.name;
-            const same = store.all('project').find((p) => !p.example && p.name.toLowerCase() === name.toLowerCase());
-            projectId = same ? services.projects.linkRepo(same.id, repo.id).id : services.projects.create({ name, repoIds: [repo.id] }).id;
-          }
+          // a name is always a new project (the picker offers the existing ones by id)
+          else if (want.project) projectId = services.projects.create({ name: want.project.name, repoIds: [repo.id] }).id;
           results.push({ path: want.path, repo: repoEntry(store, repo), created, projectId });
         } catch (e) {
           if (e instanceof NotARepoError) results.push({ path: want.path, error: e.message });

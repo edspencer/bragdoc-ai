@@ -89,7 +89,7 @@ export function ExampleBanner() {
       <FlaskConical aria-hidden className="size-4 shrink-0 text-accent" />
       <span className="min-w-0 flex-1">
         <b>Example data.</b> <span className="text-muted sm:hidden">All made up, for trying BragDoc out.</span>
-        <span className="hidden text-muted sm:inline">Alex Marlowe, both companies and everything they did are made up, for trying BragDoc out. Anything you add yourself stays when it goes.</span>
+        <span className="hidden text-muted sm:inline">Alex Marlowe, both companies and everything they did are made up, for trying BragDoc out. What you add yourself stays when it goes; example cards go, even ones you’ve edited.</span>
       </span>
       <RemoveButton counts={example.data.counts} size="sm" testId="example-remove" />
     </div>

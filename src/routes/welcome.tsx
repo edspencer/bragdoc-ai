@@ -47,7 +47,8 @@ function Welcome() {
   // Leaving before the end: remember it, so the board doesn't send you straight back here. Only a first run needs
   // that (with a profile.yaml, the board never sends you here anyway).
   const leave = async () => {
-    if (welcome.data && !welcome.data.hasProfile && !welcome.data.skipped) {
+    // (not known yet: say so anyway; with a profile it changes nothing)
+    if (!welcome.data || (!welcome.data.hasProfile && !welcome.data.skipped)) {
       try {
         qc.setQueryData(queryKeys.welcome, await skipWelcome(true));
       } catch (e) {
@@ -203,7 +204,8 @@ function AboutYou({ firstRun, legacyCli, dataDir, onNext, onSkip }: { firstRun: 
       // the company: made once, if there isn't one of that name already
       const c = company.trim();
       if (c) {
-        const have = (await getCompanies()).companies.some((x) => x.name.toLowerCase() === c.toLowerCase());
+        // an example company of that name isn't yours (it goes when the example data does)
+        const have = (await getCompanies()).companies.some((x) => !x.example && x.name.toLowerCase() === c.toLowerCase());
         if (!have) await createCompany({ name: c, ...(role.trim() ? { role: role.trim() } : {}), ...(since ? { start: `${since}-01` } : {}) });
       }
       return r;

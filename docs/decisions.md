@@ -846,18 +846,26 @@ Export is a download of a blob made in the page; nothing about a folio is writte
   results and `timedOut`), at most 500 repos. It stops at a folder with `.git` (dir or file), and skips dot-folders,
   `node_modules`, `Library`, `Applications`, `__pycache__`, `site-packages`, `Pods` and `vendor`. A symlinked folder is
   followed only when its real path is inside the named folder's real path, and each real path once, so loops end and
-  nothing outside is listed. `/` is refused (`too_broad`); `~` is allowed (the bounds hold).
+  nothing outside is listed; a folder is re-checked when it's read (swapped for a symlink since it was listed), and
+  each read races the time left (a hung network mount). The named folder may itself be a repo: it's listed, and its
+  insides are still looked through. `/` is refused (`too_broad`); `~` is allowed (the bounds hold), and on macOS the
+  folders under home that raise a privacy prompt (Desktop, Documents, Downloads, Pictures, Movies, Music, Public) are
+  skipped unless one is the folder named.
+- **One deadline** covers the walk, the hints and reading each repo's history; the scan yields to the event loop as it
+  goes. Repos it runs out of time for are still listed ("not looked at: out of time"), with `timedOut`.
 - **Recency without git:** the last line of `.git/logs/HEAD` (time and kind: commit, checkout, pull, merge), the
   remote-tracking reflogs ("update by push"), and `FETCH_HEAD`'s mtime; `HEAD`'s mtime when there's no reflog. Only
   the tail of each file is read. A worktree or submodule (`.git` is a file) isn't followed to its gitdir, which may be
   outside the folder.
 - **Hints** (RECOMMENDATIONS §7): VS Code-style editors' `storage.json` (not `state.vscdb`: that's SQLite, a new
   dependency for one key), JetBrains' `recentProjects.xml`, Claude Code's `projects/` (the `cwd` in each project's
-  newest session's first 16 KB; nothing else). Each is read only when ticked; suggestions only check that the files
-  exist. Shell history and `~/.gitconfig` aren't read in v0.1.
+  newest session's first 16 KB; at most 200 projects and 50 sessions each; nothing else). Each is read only when
+  ticked; suggestions only check that the files exist. A hint naming a subfolder of a repo counts as that repo (the
+  nearest `.git`, up to 4 levels up, never home). Shell history and `~/.gitconfig` aren't read in v0.1.
 - **Ticked to start with:** repos found in the named folder with activity in the last 30 days (the prototype's
   behaviour; the folder was your choice). Hint results start unticked. Nothing is saved until **Add**, which checks
-  each path again (`readLocalRepo`) and stores only those.
+  each path again (`readLocalRepo`) and stores only those. "New project" always makes one; an existing project is
+  picked by id.
 - **Considered:** `fdir` (RECOMMENDATIONS §7; a dependency for a 60-line walk, and its symlink handling resolves
   outside the root); running `git log --author` for the top candidates (a subprocess per repo, and git may be absent).
 

@@ -26,12 +26,13 @@ You can run any step again later from **Settings → Data → Welcome steps**.
    The screenshots folder comes in the next build. Your coding agent needs nothing switched on: the step shows the one
    command that [connects Claude Code](/agents/mcp/).
 3. **Your code:** name the folder you keep your code in. BragDoc suggests the usual ones that exist (`~/Code`,
-   `~/src`, `~/dev`, `~/projects`, `~/work`, …) but reads nothing until you press **Look for repos**. Then it looks
-   inside that folder only:
+   `~/src`, `~/dev`, `~/projects`, `~/work`, …) but only checks which of those exist until you press **Look for repos**.
+   Then it looks inside that folder only:
    - at most **4 levels down**, for at most **5 seconds** (if it runs out of time, it says so and shows what it found
      so far: name a folder further in to look deeper);
    - it stops at each repository (a folder with a `.git`), and never goes into hidden folders, `node_modules` or
-     `Library`;
+     `Library` (nor, when you name your home folder on a Mac, `Desktop`, `Documents`, `Downloads` and the other
+     folders macOS asks permission for);
    - a symlinked folder is followed only if it points inside the folder you named, and never twice, so a symlink loop
      can't trap it.
 
@@ -41,8 +42,9 @@ You can run any step again later from **Settings → Data → Welcome steps**.
    are saved (as `repos/<id>.yaml`); nothing else from the scan is kept.
 
    **Also look at** lists places that already know your recent projects: VS Code-style editors (Cursor, Windsurf),
-   JetBrains IDEs and Claude Code. Each is read **only if you tick it**, one small file each, and only the paths that
-   are git repositories come back. Your shell history is never read.
+   JetBrains IDEs and Claude Code. Each is read **only if you tick it**: the editors' own list of recent folders, or
+   the first lines of each Claude Code project's newest session (where it ran, not what was said). Only the paths that
+   are git repositories come back, and the same five seconds cover these too. Your shell history is never read.
 
 Nothing in Welcome sends anything anywhere, except connecting GitHub if you choose to, which shows up in
 [Network activity](/guarantees/network-activity/).

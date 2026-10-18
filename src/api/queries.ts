@@ -162,7 +162,8 @@ export function useGhInstalled(enabled: boolean) {
 
 /** Should Welcome open? (no profile.yaml and not skipped) */
 export function useWelcome() {
-  return useQuery({ queryKey: queryKeys.welcome, queryFn: ({ signal }) => getWelcome(signal) });
+  // the board waits for this (so it doesn't flash on the way to Welcome): answer at once if the server is down
+  return useQuery({ queryKey: queryKeys.welcome, queryFn: ({ signal }) => getWelcome(signal), retry: false });
 }
 
 export function useProfile() {

@@ -131,12 +131,33 @@ export function checkRoot(root: string, home = os.homedir()): string {
 const inside = (child: string, parent: string) => child === parent || child.startsWith(parent.endsWith(path.sep) ? parent : parent + path.sep);
 
 /**
+ * Folders in your home that macOS guards with a privacy prompt ("node would like to access your Documents"): never
+ * gone into when scanning home itself, so naming `~` can't set off a string of OS prompts (or wait on one past the
+ * time box). Name one of them as the folder to look in and it's scanned like any other.
+ */
+const MAC_PROTECTED = new Set(['Desktop', 'Documents', 'Downloads', 'Pictures', 'Movies', 'Music', 'Public']);
+
+/** Resolves with what `p` resolves with, or with `undefined` if `ms` passes first (a hung network mount). */
+function within<T>(p: Promise<T>, ms: number): Promise<T | undefined> {
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  return Promise.race([p, new Promise<undefined>((r) => (timer = setTimeout(() => r(undefined), Math.max(0, ms))))]).finally(() => clearTimeout(timer));
+}
+
+/**
  * Breadth first from `realRoot`, so the time box cuts off the deepest folders first. Each queued folder carries its
  * real path: a plain folder's is its parent's plus its name, a symlink's is resolved, and a real path is visited once.
+ * A folder is checked again when it's read (it may have been swapped for a symlink since it was listed), and every
+ * read races the time left, so a hung mount can't hold the scan past its deadline.
  */
-async function walk(realRoot: string, deadline: number, now: () => number): Promise<Walked> {
+async function walk(realRoot: string, deadline: number, now: () => number, o: { home: string; platform: NodeJS.Platform }): Promise<Walked> {
   const out: Walked = { repos: [], looked: 0, unreadable: 0, timedOut: false, capped: false };
   const seen = new Set<string>([realRoot]);
+  let realHome: string | null = null;
+  try {
+    realHome = fs.realpathSync.native(o.home);
+  } catch {
+    /* no home: nothing to protect */
+  }
   let queue: { dir: string; depth: number }[] = [{ dir: realRoot, depth: 0 }];
   while (queue.length) {
     const next: typeof queue = [];
@@ -145,26 +166,41 @@ async function walk(realRoot: string, deadline: number, now: () => number): Prom
         out.timedOut = true;
         return out;
       }
-      let entries: fs.Dirent[];
+      let entries: fs.Dirent[] | undefined;
       try {
-        entries = await fs.promises.readdir(dir, { withFileTypes: true });
+        // still the folder that was listed, and still inside the one you named?
+        const real = await within(fs.promises.realpath(dir), deadline - now());
+        if (real === undefined) {
+          out.timedOut = true;
+          return out;
+        }
+        if (!inside(real, realRoot)) continue;
+        entries = await within(fs.promises.readdir(real, { withFileTypes: true }), deadline - now());
       } catch {
         out.unreadable++;
         continue;
       }
+      if (entries === undefined) {
+        out.timedOut = true;
+        return out;
+      }
       out.looked++;
       const git = entries.find((e) => e.name === '.git');
       if (git) {
-        out.repos.push({ abs: dir, linked: !git.isDirectory() && !git.isSymbolicLink() });
+        // a .git that isn't a plain folder (a worktree's file, or a symlink) isn't followed: it may point outside
+        out.repos.push({ abs: dir, linked: !git.isDirectory() });
         if (out.repos.length >= SCAN_MAX_REPOS) {
           out.capped = true;
           return out;
         }
-        continue; // a repo's insides are its own business
+        // a repo's insides are its own business; but the folder you named may be a repo itself (dotfiles in ~, a
+        // ~/Code that's a checkout), and you asked for what's inside it
+        if (depth > 0) continue;
       }
       if (depth >= SCAN_DEPTH) continue;
+      const atHome = o.platform === 'darwin' && dir === realHome;
       for (const e of entries) {
-        if (e.name.startsWith('.') || SKIP.has(e.name)) continue;
+        if (e.name.startsWith('.') || SKIP.has(e.name) || (atHome && MAC_PROTECTED.has(e.name))) continue;
         let real: string;
         if (e.isDirectory()) real = path.join(dir, e.name);
         else if (e.isSymbolicLink()) {
@@ -370,6 +406,9 @@ interface HintSource {
 }
 
 const MAX_HINT_BYTES = 4 * 1024 * 1024;
+/** Claude Code: at most this many project folders, and session files looked at (by date) in each. */
+const CLAUDE_MAX_PROJECTS = 200;
+const CLAUDE_MAX_SESSIONS = 50;
 
 function readHint(file: string): string | null {
   try {
@@ -449,13 +488,14 @@ export const HINTS: HintSource[] = [
     files: (o) => {
       const root = path.join(o.env.CLAUDE_CONFIG_DIR || path.join(o.home, '.claude'), 'projects');
       return listDir(root)
-        .slice(0, 300)
+        .slice(0, CLAUDE_MAX_PROJECTS)
         .map((d) => path.join(root, d));
     },
     // a project folder: the newest .jsonl's first few KB carry the session's `cwd` (the folder name is lossy)
     read: (dir) => {
       const newest = listDir(dir)
         .filter((f) => f.endsWith('.jsonl'))
+        .slice(0, CLAUDE_MAX_SESSIONS)
         .map((f) => ({ f, t: mtime(path.join(dir, f))?.getTime() ?? 0 }))
         .sort((a, b) => b.t - a.t)[0];
       if (!newest) return [];
@@ -479,15 +519,26 @@ function opts(o: DiscoverOptions) {
   return { home: o.home ?? os.homedir(), env: o.env ?? process.env, platform: o.platform ?? process.platform, now: o.now ?? (() => new Date()) };
 }
 
-/** Is it a git repo's top folder? (Its own .git; nothing more is read.) */
-function repoAt(abs: string): { linked: boolean } | null {
-  try {
-    const st = fs.statSync(path.join(abs, '.git'));
-    return { linked: !st.isDirectory() };
-  } catch {
-    return null;
+/**
+ * The git repo a hint's folder is in: the folder itself, or (an editor opened a subfolder, `repo/packages/web`) the
+ * nearest parent with a `.git`, a few levels up at most and never home or the disk's root. Only `.git` is looked at.
+ */
+function repoAt(abs: string, home: string): { top: string; linked: boolean } | null {
+  let dir = abs;
+  for (let i = 0; i < 4; i++) {
+    if (dir === home || path.parse(dir).root === dir) return null;
+    try {
+      const st = fs.lstatSync(path.join(dir, '.git'));
+      return { top: dir, linked: !st.isDirectory() };
+    } catch {
+      dir = path.dirname(dir);
+    }
   }
+  return null;
 }
+
+/** A turn of the event loop, so a long scan never holds up other requests. */
+const breathe = () => new Promise<void>((r) => setImmediate(r));
 
 // ---------------------------------------------------------------- the API
 
@@ -544,24 +595,32 @@ export async function scan(input: { root?: string | null; hints?: HintId[] }, o:
   const byPath = new Map<string, { abs: string; linked: boolean; via: FoundRepo['via'] }>();
   let walked: Walked = { repos: [], looked: 0, unreadable: 0, timedOut: false, capped: false };
   if (realRoot) {
-    walked = await walk(realRoot, started + (o.timeMs ?? SCAN_MS), () => now().getTime());
+    walked = await walk(realRoot, started + (o.timeMs ?? SCAN_MS), () => now().getTime(), { home, platform });
     for (const r of walked.repos) byPath.set(r.abs, { ...r, via: ['folder'] });
   }
+  // one deadline for the whole scan: the walk, then the hints, then reading each repo's history
+  const deadline = started + (o.timeMs ?? SCAN_MS);
+  let timedOut = walked.timedOut;
   const emptyHints: HintId[] = [];
+  let reads = 0;
   for (const id of new Set(input.hints ?? [])) {
     const h = HINTS.find((x) => x.id === id);
     if (!h) continue;
     let n = 0;
     for (const file of h.files({ home, env, platform })) {
+      if (now().getTime() > deadline) {
+        timedOut = true;
+        break;
+      }
+      if (++reads % 20 === 0) await breathe();
       for (const p of h.read(file, home)) {
         if (!path.isAbsolute(p)) continue;
-        const abs = path.resolve(p);
-        const at = repoAt(abs);
+        const at = repoAt(path.resolve(p), home);
         if (!at) continue;
         n++;
-        let real = abs;
+        let real = at.top;
         try {
-          real = fs.realpathSync.native(abs);
+          real = fs.realpathSync.native(at.top);
         } catch {
           /* keep as given */
         }
@@ -571,20 +630,26 @@ export async function scan(input: { root?: string | null; hints?: HintId[] }, o:
         } else if (byPath.size < SCAN_MAX_REPOS) byPath.set(real, { abs: real, linked: at.linked, via: [id] });
       }
     }
-    if (!n) emptyHints.push(id);
+    if (!n && !timedOut) emptyHints.push(id);
   }
   const at = now();
-  const repos = [...byPath.values()]
-    .map((r) => describe(r.abs, r.linked, r.via, home, at))
-    // the most recent first; repos with nothing to go on last, by name
-    .sort((a, b) => (b.lastActivity ?? '').localeCompare(a.lastActivity ?? '') || a.path.localeCompare(b.path));
+  const described: FoundRepo[] = [];
+  for (const r of byPath.values()) {
+    // out of time: the rest are listed without their history (still yours to tick)
+    const late = now().getTime() > deadline;
+    if (late) timedOut = true;
+    described.push(late ? { ...describe(r.abs, true, r.via, home, at), why: 'not looked at: out of time', linked: undefined } : describe(r.abs, r.linked, r.via, home, at));
+    if (described.length % 25 === 0) await breathe();
+  }
+  // the most recent first; repos with nothing to go on last, by name
+  const repos = described.sort((a, b) => (b.lastActivity ?? '').localeCompare(a.lastActivity ?? '') || a.path.localeCompare(b.path));
   return {
     root: realRoot ? tildify(realRoot, home) : null,
     repos,
     looked: walked.looked,
     unreadable: walked.unreadable,
     elapsedMs: now().getTime() - started,
-    timedOut: walked.timedOut,
+    timedOut,
     capped: walked.capped,
     emptyHints,
   };
