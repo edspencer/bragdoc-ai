@@ -218,7 +218,7 @@ export function useComposer({ notify }: ComposerOptions) {
   /** The "Paste a screenshot" / "Paste a PR link" buttons: read the clipboard, where the browser allows it. */
   const pasteFromClipboard = useCallback(
     async (want: 'image' | 'link') => {
-      const keys = /Mac|iPhone|iPad/.test(navigator.platform) ? '⌘V' : 'Ctrl+V';
+      const keys = pasteKeys();
       try {
         if (want === 'image' && navigator.clipboard?.read) {
           const items = await navigator.clipboard.read();
@@ -274,6 +274,9 @@ export function useComposer({ notify }: ComposerOptions) {
 }
 
 export type Composer = ReturnType<typeof useComposer>;
+
+/** The paste shortcut on this computer, as the board's hints spell it: ⌘V on a Mac, Ctrl+V elsewhere. */
+export const pasteKeys = (): string => (typeof navigator !== 'undefined' && /Mac|iPhone|iPad/.test(navigator.platform) ? '⌘V' : 'Ctrl+V');
 
 /** A quote read from a pasted picture, to pin as a sticky (quote evidence) with it. */
 export interface Sticky {

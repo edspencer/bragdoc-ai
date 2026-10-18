@@ -6,7 +6,7 @@ import { AlertTriangle, FileText, ImageIcon, Link2, Loader2, Paperclip, RotateCw
 import type { ProjectEntry as Project, RepoEntry as Repo } from '../../shared/api.ts';
 import { useEvidenceOcr } from '../api/queries.ts';
 import { GithubMark, PdfPage, StickyQuote, formatBytes, inputCls } from '../kit/index.ts';
-import type { Composer, Pending } from './composer.ts';
+import { pasteKeys, type Composer, type Pending } from './composer.ts';
 import { stem } from './evidence.ts';
 import { ImpactPicker, ProjectPicker, RepoPicker } from './pickers.tsx';
 
@@ -70,7 +70,7 @@ export function DropTray({ c, dragging, projects, repos, onSubmit, saving }: { c
           )}
         </div>
         <div className="flex shrink-0 flex-wrap items-center gap-2 lg:w-[240px] lg:flex-col lg:items-stretch">
-          <Hint icon={<ImageIcon className="size-3.5" />} bg="#3b6cf6" label="Paste a screenshot" sub="⌘V" onClick={() => void c.pasteFromClipboard('image')} />
+          <Hint icon={<ImageIcon className="size-3.5" />} bg="#3b6cf6" label="Paste a screenshot" sub={pasteKeys()} onClick={() => void c.pasteFromClipboard('image')} />
           <Hint icon={<FileText className="size-3.5" />} bg="#ef5a3c" label="Add a PDF or file" sub="or drop" onClick={() => fileRef.current?.click()} testId="pick-files" />
           <Hint icon={<GithubMark className="size-3.5" />} bg="#1d1a17" label="Paste a PR link" sub="any link" onClick={() => void c.pasteFromClipboard('link')} />
           <span className="px-2 text-[12px] font-semibold text-muted">…or drag files anywhere on the page</span>
@@ -142,7 +142,7 @@ function PendingBit({ p, c }: { p: Pending; c: Composer }) {
       {p.kind === 'file' && p.preview ? (
         <div className="sb-print rotate-[-2deg] p-1.5 pb-5">
           <img src={p.preview} alt="" className={`block h-20 w-full object-cover object-left-top ${p.status === 'uploading' ? 'opacity-60' : ''}`} />
-          <div className="absolute bottom-0.5 left-2 right-2 truncate font-hand text-[14px] text-print-ink">{status(p) ?? 'pasted ✓'}</div>
+          <div className="absolute bottom-0.5 left-2 right-2 truncate font-hand text-[14px] text-print-ink">{status(p) ?? 'added ✓'}</div>
         </div>
       ) : p.kind === 'file' && (p.file?.mime ?? p.type) === 'application/pdf' ? (
         <div className="flex items-end gap-2">
