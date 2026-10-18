@@ -823,3 +823,42 @@ Export is a download of a blob made in the page; nothing about a folio is writte
 - **Considered:** auto-creating repos only on Keep (candidates would then carry no repo to show or suggest from);
   polling hourly by default (SPEC's wording; overruled for v0.1); storing the cursor in config.yaml (machine state in
   the user's file).
+
+### D58 — The screenshots folder: opt-in, new files only, read through one OCR queue; the board's pictures too
+
+- **Opt-in, and only what's new.** Off until you choose a folder in Settings → Sources (`sources.screenshots.enabled`,
+  `folder`, `onlyScreenshots` in config.yaml, written through `ctx.config.update()`, D53). chokidar with
+  `ignoreInitial` and `awaitWriteFinish` (the size must hold still for a second), depth 0, hidden and temp files
+  ignored (macOS writes a hidden `.Screenshot …` first). What's already there is read only when you ask: **Look at
+  the last 7 days** (1–30 days), once, oldest first. Suggestions come from `defaults read com.apple.screencapture
+  location` through proc.ts on macOS (else `~/Desktop`), and `XDG_PICTURES_DIR/Screenshots` on Linux.
+- **The filters, before any OCR:** a picture extension; a name like a screenshot's (on by default): "screenshot" in the
+  languages macOS uses and the common tools' names, or a date-then-time stamp, which covers macOS's U+202F before
+  AM/PM, GNOME, Spectacle, Flameshot and Windows (best effort); the bytes must sniff as a picture; no side under 64 px;
+  nothing over 25 MB (it could never be kept as evidence, MAX_BLOB_BYTES). A key already in Found or on the board is
+  skipped before OCR. Without a name in profile.yaml nothing is read: the rules couldn't pass.
+- **Rules, never a model (D8, D52).** `compileRules(profile)`. A pass becomes a candidate keyed `screenshot:<sha256>`
+  with a quote evidence (the passing message, who, where), the file it points at (`files`, copied in only on keep,
+  D24), a title from the quote's first sentence, the day from the file's mtime, and the reasons as chips (the chat cues
+  merged into one). A fail is counted; its text is in OCR's memory cache at most, never on disk (R7). Counts, the last
+  match and the last file seen are in `cache/sources/screenshots.json` (atomic.ts, 0600): names and numbers only.
+- **No cached thumbnail (deviation from the brief).** There's no image library to make one (D49), and a copy in
+  cache/ of every passing screenshot is a second copy of something the user hasn't kept. The card's picture is read
+  from where it is (`GET /api/found/:id/picture`: pending screenshots candidates only, `inspectPath`'s checks, a
+  sniffed picture type, the blob headers); if it's gone the print says so, and keep keeps the quote and says the
+  picture had gone (`missingFiles`).
+- **Pause is the switch.** Off closes the watcher, drops what was waiting, and a read that was running finishes without
+  adding anything (a generation counter, like D57's); the folder and the counts are kept for when it's back on.
+- **A folder that goes wrong** (deleted, unreadable, permission taken back; macOS TCC's EPERM on Desktop, Documents,
+  Downloads) closes the watcher and shows a red status with a plain message; every 30 s the folder is looked at again
+  and watching resumes by itself. No retry loop, nothing in the log per attempt. The folder may not be (or hold) the data
+  home, nor be hidden: a candidate from there could never be kept (`checkIngestPath`).
+- **One OCR queue for the app.** `ctx.ocr` is one `createOcr({ cache: evidenceOcrCache(...) })`, shared by the
+  screenshots source and the board's pictures, so a burst of screenshots and a paste take turns (R8), and each source
+  feeds it one file at a time. `ctx.evidenceText` (server/ocr/evidence-text.ts, started by startServer) reads every
+  image sidecar without text (a store change, plus a sweep at start), writes it with `setOcr`, which makes it
+  searchable; a picture OCR can't read is remembered as failed until restart. `GET /api/evidence/:sha/ocr` reports it,
+  with the quote when the rules pass, which the composer offers as a sticky (quote evidence).
+- **Considered:** polling the folder (chokidar already falls back to polling where it must); reading every picture by
+  default (a Desktop is full of pictures that aren't screenshots); OCR'ing pasted images inline in the upload request
+  (a slow upload, and a second queue).

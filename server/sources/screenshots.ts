@@ -1,4 +1,4 @@
-// The screenshots source (SPEC R7, R8, D59): a folder you pick is watched for new screenshots, and the ones that are
+// The screenshots source (SPEC R7, R8, D58): a folder you pick is watched for new screenshots, and the ones that are
 // praise for you wait in Found. The zero-permission praise catcher: no Slack app, no admin, no AI. You screenshot it,
 // BragDoc reads it on this computer (OCR, server/ocr/), and the screenshot rules (shared/rules/screenshot.ts) decide.
 //
