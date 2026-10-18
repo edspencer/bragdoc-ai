@@ -16,6 +16,7 @@ import { registerCatalog } from './catalog.js';
 import { registerCompanies } from './companies.js';
 import { registerEvents } from './events.js';
 import { registerEvidence } from './evidence.js';
+import { registerFolio } from './folio.js';
 import { registerFoundCount } from './found-count.js';
 import { registerGuide } from './guide.js';
 import { registerHealth } from './health.js';
@@ -34,6 +35,7 @@ export function registerRoutes(app: Hono, ctx: AppContext): void {
   registerCompanies(app, ctx);
   registerEvents(app, ctx);
   registerEvidence(app, ctx);
+  registerFolio(app, ctx);
   registerFoundCount(app, ctx);
   registerGuide(app, ctx);
   registerHealth(app, ctx);

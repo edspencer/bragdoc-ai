@@ -16,6 +16,7 @@ import type {
   DeleteResponse,
   Detached,
   EvidenceUploaded,
+  FolioResponse,
   FoundCountResponse,
   HealthResponse,
   ImportReport,
@@ -269,3 +270,8 @@ export const createRepo = (body: RepoInput) => api.post<RepoCreateResponse>('/ap
 export const deleteRepo = (id: string, etag?: string) => api.delete<DeleteResponse>(`/api/repos/${seg(id)}`, ifMatch(etag));
 /** `POST /api/repos/:id/restore` */
 export const restoreRepo = (id: string, reattach?: Detached) => api.post<RepoEntry>(`/api/repos/${seg(id)}/restore`, { reattach });
+
+// ---------------------------------------------------------------- Folio (PR14)
+
+/** `GET /api/folio`: a window's achievements, cut down to what a folio may show. */
+export const getFolio = (from: string, to: string, signal?: AbortSignal) => api.get<FolioResponse>(`/api/folio?${new URLSearchParams({ from, to })}`, { signal });
