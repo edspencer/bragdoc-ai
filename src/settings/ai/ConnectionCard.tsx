@@ -97,7 +97,7 @@ export function ConnectionCard({ c, status }: { c: AiConnectionView; status: AiS
               <Btn size="sm" kind="danger" onClick={() => revoke.mutate()} disabled={revoke.isPending} data-testid="ai-connection-revoke">
                 Revoke
               </Btn>
-              <Btn size="sm" kind="ghost" onClick={() => setConsenting(true)}>
+              <Btn size="sm" kind="ghost" onClick={() => setConsenting(true)} data-testid="ai-connection-what">
                 What it sends
               </Btn>
             </div>
@@ -203,7 +203,9 @@ function AddressField({ c, put }: { c: AiConnectionView; put: (s: AiStatus) => v
           </>
         )}
       </div>
-      {editing && c.cloud && c.consent && <p className="m-0 mt-1 text-[12px] text-faint">A new address asks for consent again, and forgets the key.</p>}
+      {editing && (c.hasKey || c.consent) && (
+        <p className="m-0 mt-1 text-[12px] text-faint">A new host {c.consent ? 'asks for consent again' : ''}{c.consent && c.hasKey ? ', and ' : ''}{c.hasKey ? 'forgets the saved key' : ''}.</p>
+      )}
       {save.isError && (
         <p role="alert" className="m-0 mt-1.5 text-[12.5px] text-bad" data-testid="ai-connection-url-error">
           {errorText(save.error)}
@@ -336,6 +338,8 @@ function TestAndUse({ c, allowed, inUse, status, put }: { c: AiConnectionView; a
   const usable = !c.blocked;
   // a local runner is asked what it has when the card opens (a line in Network activity); a cloud one only on a click
   const [listAsked, setListAsked] = useState(!c.cloud);
+  // moved onto the internet (or back): asking it again is a click again
+  useEffect(() => setListAsked(!c.cloud), [c.cloud]);
   const models = useAiModels(c.id, c.baseUrl, usable && listAsked);
   const slotModel = status.text?.connection === c.id ? status.text.model : '';
   const [model, setModel] = useState(slotModel);

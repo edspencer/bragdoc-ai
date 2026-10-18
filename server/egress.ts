@@ -379,6 +379,6 @@ export function readNetworkLog(dataDir: string, { limit = 100, offset = 0 }: { l
   }
   entries.reverse();
   // what the Network tab's "To AI providers on the internet" line adds up: request bodies only, never content (SPEC R19)
-  const toAiInternet = entries.reduce((n, e) => n + (e.where === 'internet' && e.via === 'fetch' && e.outcome !== 'denied' && typeof e.sent === 'number' ? e.sent : 0), 0);
+  const toAiInternet = entries.reduce((n, e) => n + (e.where === 'internet' && e.via === 'fetch' && e.outcome === 'ok' && typeof e.sent === 'number' ? e.sent : 0), 0);
   return { entries: entries.slice(offset, offset + limit), total: entries.length, toAiInternet };
 }

@@ -6,7 +6,7 @@
 import type { ProjectEntry, RepoEntry } from '../../shared/api.ts';
 import type { FoundCandidate } from '../../shared/schema/index.ts';
 import { foundPictureUrl } from '../api/client.ts';
-import { useAiOn } from '../api/queries.ts';
+import { useAiState } from '../api/queries.ts';
 import { toView } from '../board/evidence.ts';
 import { Btn, EvidenceBit, Hand, ImpactBadge, Kicker, Print, ProjectPill, ProvenanceBadge, RepoTag, StickyQuote, type Provenance } from '../kit/index.ts';
 import { fmt, todayIso } from '../lib/dates.ts';
@@ -37,7 +37,7 @@ export function FoundCard({
   const pills = c.suggestedProjects.map((id) => projects.get(id)).filter((p): p is ProjectEntry => !!p);
   const repoTags = c.suggestedRepos.map((id) => repos.get(id)).filter((r): r is RepoEntry => !!r);
   const blurb = c.summary || c.body?.trim();
-  const aiOn = useAiOn();
+  const ai = useAiState();
   return (
     <article className="sb-card relative mb-8 inline-block w-full break-inside-avoid rounded-3xl p-5" data-testid="found-card" data-id={c.id} data-key={c.externalKey} aria-labelledby={`f-${c.id}`}>
       <div className="flex flex-wrap items-center gap-2">
@@ -88,7 +88,7 @@ export function FoundCard({
           </ul>
         </div>
       )}
-      <div className="mt-3 text-[11.5px] text-faint">Found by {FOUND_BY[c.source]} · plain rules{aiOn ? '' : ' · AI off'}</div>
+      <div className="mt-3 text-[11.5px] text-faint">Found by {FOUND_BY[c.source]} · plain rules{ai === false ? ' · AI off' : ''}</div>
 
       {(pills.length > 0 || repoTags.length > 0 || c.impact) && (
         <div className="mt-4 flex flex-wrap items-center gap-1.5">

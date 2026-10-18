@@ -1,5 +1,5 @@
 // The plain words Settings → AI says things in (SPEC R17: "reports the outcome in plain words"), and the header chip's
-// label. Pure, so they're unit-tested (test/ai-settings-words.test.ts).
+// label. Pure, so they're unit-tested (test/ai-local.test.ts).
 import type { AiConnectionView, AiErrorCode, AiGateCode, AiStatus, AiWhere } from '../../../shared/api.ts';
 import { KIND_LABEL } from '../../../shared/ai/connections.ts';
 import { HOST_CLASS_LABEL } from '../../../shared/ai/hosts.ts';
@@ -38,11 +38,12 @@ export function providerOf(c: Pick<AiConnectionView, 'kind' | 'host'>): string {
 }
 
 /** The header chip (SPEC R26): "AI · this computer", "AI · Anthropic"; null while AI is off (no chip at all). */
-export function chipLabel(s: Pick<AiStatus, 'enabled' | 'text' | 'connections'> | undefined): string | null {
+export function chipLabel(s: { enabled: boolean; text: AiStatus['text']; connections: Pick<AiConnectionView, 'id' | 'kind' | 'class' | 'host' | 'blocked'>[] } | undefined): string | null {
   if (!s?.enabled) return null;
   const c = s.text ? s.connections.find((x) => x.id === s.text!.connection) : undefined;
   if (!c) return 'AI · no model yet';
-  return c.class === 'internet' ? `AI · ${providerOf(c)}` : `AI · ${HOST_CLASS_LABEL[c.class]}`;
+  const where = c.class === 'internet' ? providerOf(c) : HOST_CLASS_LABEL[c.class];
+  return c.blocked ? `AI · ${where} (not ready)` : `AI · ${where}`;
 }
 
 /** Each class's stamp colour: green for this computer, blue for your network, amber for the internet. */

@@ -205,6 +205,48 @@ test('pull: Cancel (the request closed) stops Ollama’s stream; the registry li
   }
 });
 
+test('pull: turning AI off mid-download stops it (the stream ends with ai_off, Ollama’s stream closes)', async () => {
+  const fake = await startFakeLlm({ scenario: 'no-models', pullStepMs: 150 });
+  const home = aiHome({ ai: { enabled: true, connections: { ollama: { kind: 'ollama', baseUrl: fake.url } } } });
+  try {
+    const res = await home.app.request('/api/ai/connections/ollama/pull', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ confirm: true, model: 'gemma4:e4b' }) });
+    const text = res.text();
+    await new Promise((r) => setTimeout(r, 300));
+    assert.equal((await home.req('PUT', '/api/ai', { enabled: false })).status, 200);
+    const lines = (await text).trim().split('\n').map((l) => JSON.parse(l));
+    const last = lines.at(-1);
+    assert.equal(last.done, true);
+    assert.equal(last.ok, false);
+    assert.equal(last.error.code, 'ai_off');
+    await new Promise((r) => setTimeout(r, 400));
+    const tags = (await (await fetch(`${fake.url}/api/tags`)).json()) as { models: { name: string }[] };
+    assert.ok(!tags.models.some((m) => m.name === 'gemma4:e4b'), 'not installed');
+    const via = home.log().find((l) => l.via === 'ollama');
+    assert.equal(via?.outcome, 'error');
+    assert.match(via?.error ?? '', /switched off/);
+  } finally {
+    home.close();
+    await fake.close();
+  }
+});
+
+test('pull: an error from Ollama part way (disk full) ends the stream with its words, and the registry line says so', async () => {
+  const net = fakeNetwork(() => new Response(['{"status":"pulling manifest"}', '{"status":"pulling 0000","total":100,"completed":40}', '{"error":"write /models/blobs: no space left on device"}'].join('\n') + '\n', { status: 200, headers: { 'content-type': 'application/x-ndjson' } }));
+  const home = aiHome({ ai: { enabled: true, connections: { ollama: { kind: 'ollama', baseUrl: 'http://127.0.0.1:1' } } }, fetchImpl: net.impl });
+  try {
+    const res = await home.app.request('/api/ai/connections/ollama/pull', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ confirm: true, model: 'qwen3.5:4b' }) });
+    const lines = (await res.text()).trim().split('\n').map((l) => JSON.parse(l));
+    assert.equal(lines[1].completed, 40);
+    assert.equal(lines.at(-1).ok, false);
+    assert.match(lines.at(-1).error.message, /no space left on device/);
+    const via = home.log().find((l) => l.via === 'ollama');
+    assert.equal(via?.outcome, 'error');
+    assert.match(via?.error ?? '', /no space left/);
+  } finally {
+    home.close();
+  }
+});
+
 test('the cloud journey the tab drives: a custom https URL is internet, nothing is sent before Allow, Revoke takes it off', async () => {
   const net = fakeNetwork((u, b) => cannedAnswer(u, b));
   const home = aiHome({ ai: { enabled: true }, fetchImpl: net.impl });
@@ -289,6 +331,7 @@ test('the words: the header chip, providers, durations and sizes', () => {
   assert.equal(chipLabel({ enabled: true, text: { connection: 'c', model: 'm' }, connections: [conn({ class: 'your-network' })] }), 'AI · your network');
   assert.equal(chipLabel({ enabled: true, text: { connection: 'c', model: 'm' }, connections: [conn({ kind: 'anthropic', class: 'internet', host: 'api.anthropic.com' })] }), 'AI · Anthropic');
   assert.equal(chipLabel({ enabled: true, text: { connection: 'c', model: 'm' }, connections: [conn({ kind: 'ollama', class: 'internet', host: 'llm.example.com' })] }), 'AI · llm.example.com');
+  assert.equal(chipLabel({ enabled: true, text: { connection: 'c', model: 'm' }, connections: [conn({ kind: 'openrouter', class: 'internet', host: 'openrouter.ai', blocked: { code: 'not_consented', message: '' } })] }), 'AI · OpenRouter (not ready)');
   assert.equal(providerOf({ kind: 'openrouter', host: 'openrouter.ai' }), 'OpenRouter');
   assert.equal(seconds(850), '850 ms');
   assert.equal(seconds(8500), '8.5 s');

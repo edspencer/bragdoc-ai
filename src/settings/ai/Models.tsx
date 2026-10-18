@@ -48,7 +48,8 @@ export function Recommended({ status }: { status: AiStatus }) {
   // the Ollama a download would go to: the one in use, else the first one
   const ollamas = status.connections.filter((c) => c.kind === 'ollama');
   const target = ollamas.find((c) => c.id === status.text?.connection) ?? ollamas[0];
-  const models = useAiModels(target?.id ?? '-', target?.baseUrl ?? null, !!target && !target.blocked);
+  // a runner on the internet is asked only on a click (on its card), never by opening the page (D69)
+  const models = useAiModels(target?.id ?? '-', target?.baseUrl ?? null, !!target && !target.blocked && !target.cloud);
   const installed = new Set(models.data?.models.map((m) => m.name) ?? []);
   if (hw.isPending) return <div className="text-[13px] text-faint">Reading this computer…</div>;
   if (hw.isError || !hw.data) return <div className="text-[13px] text-bad">Couldn’t read this computer’s hardware.</div>;
@@ -143,8 +144,10 @@ function PullDialog({ m, h, target, onClose }: { m: RecommendedModel; h: AiHardw
   const ctl = useRef<AbortController | null>(null);
   useEffect(() => () => ctl.current?.abort(), []);
   const sizeBytes = (m.downloadGb ?? 0) * 1e9;
-  const lowDisk = h.freeDiskBytes != null && h.freeDiskBytes < sizeBytes * 1.1;
-  const lowRam = ramGb(h.ramBytes) < m.ramGb;
+  // the readings are BragDoc's own machine: only the runner's when it's on this computer and BragDoc isn't in a container
+  const sameMachine = target.class === 'this-computer' && !h.inDocker;
+  const lowDisk = sameMachine && h.freeDiskBytes != null && h.freeDiskBytes < sizeBytes * 1.1;
+  const lowRam = sameMachine && ramGb(h.ramBytes) < m.ramGb;
   const start = async () => {
     const ac = new AbortController();
     ctl.current = ac;
@@ -200,13 +203,18 @@ function PullDialog({ m, h, target, onClose }: { m: RecommendedModel; h: AiHardw
         <dl className="m-0 grid grid-cols-[auto_1fr] gap-x-4 gap-y-1.5" data-testid="ai-pull-facts">
           <dt className="text-muted">Download</dt>
           <dd className="m-0 font-semibold" data-testid="ai-pull-size">about {m.downloadGb} GB</dd>
-          <dt className="text-muted">Free space in your home folder</dt>
+          <dt className="text-muted">{sameMachine ? 'Free space in your home folder' : 'Free space where BragDoc runs'}</dt>
           <dd className={`m-0 font-semibold ${lowDisk ? 'text-bad' : ''}`} data-testid="ai-pull-disk">{h.freeDiskBytes == null ? 'couldn’t tell' : gb(h.freeDiskBytes)}</dd>
           <dt className="text-muted">RAM it wants</dt>
           <dd className={`m-0 font-semibold ${lowRam ? 'text-bad' : ''}`} data-testid="ai-pull-ram">
-            {m.ramGb} GB (this computer has {ramGb(h.ramBytes)} GB)
+            {m.ramGb} GB ({sameMachine ? 'this computer' : 'where BragDoc runs'} has {ramGb(h.ramBytes)} GB)
           </dd>
         </dl>
+        {!sameMachine && (
+          <p className="m-0 text-[12.5px] text-muted" data-testid="ai-pull-elsewhere">
+            {h.inDocker ? 'BragDoc is in a container, so these are the container’s readings,' : `This Ollama is on ${target.host}, so these are BragDoc’s readings,`} not those of the machine that would download and run the model. Check that one has the room.
+          </p>
+        )}
         {lowDisk && (
           <p role="alert" className="m-0 rounded-xl bg-bad/10 p-3 text-[13px] ring-1 ring-bad/30" data-testid="ai-pull-lowdisk">
             Your home folder doesn’t have room for it. If Ollama keeps its models on another disk it may still fit; otherwise free some space first, or Ollama will stop part way.
@@ -220,7 +228,7 @@ function PullDialog({ m, h, target, onClose }: { m: RecommendedModel; h: AiHardw
         <CommandSlab kicker="Or run it yourself" command={`ollama pull ${m.name}`} note="The same download, from a terminal." />
         {state.phase === 'pulling' && (
           <div role="status" aria-live="polite" data-testid="ai-pull-progress">
-            <div className="h-2 overflow-hidden rounded-full bg-sunk ring-1 ring-line">
+            <div className="h-2 overflow-hidden rounded-full bg-sunk ring-1 ring-line" role="progressbar" aria-label={`Downloading ${m.name}`} aria-valuemin={0} aria-valuemax={100} aria-valuenow={pct ?? undefined}>
               <div className="h-full bg-good transition-[width]" style={{ width: `${pct ?? 3}%` }} />
             </div>
             <div className="mt-1 text-[12.5px] text-muted">

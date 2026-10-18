@@ -216,7 +216,12 @@ export function useAi() {
 
 /** Is AI on? False while unknown: nothing AI shows until the server says so (SPEC R26). */
 export function useAiOn(): boolean {
-  return useQuery({ queryKey: queryKeys.ai, queryFn: ({ signal }) => getAi(signal), select: (s) => s.enabled }).data === true;
+  return useAiState() === true;
+}
+
+/** AI on (true), off (false), or not known yet (undefined): for copy that says either way. */
+export function useAiState(): boolean | undefined {
+  return useQuery({ queryKey: queryKeys.ai, queryFn: ({ signal }) => getAi(signal), select: (s) => s.enabled }).data;
 }
 
 export function useAiHardware(enabled: boolean) {

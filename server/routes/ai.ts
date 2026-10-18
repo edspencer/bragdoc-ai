@@ -174,7 +174,10 @@ export function registerAi(app: Hono, ctx: AppContext): void {
       if (b.text && !ctx.config.get().ai.connections[b.text.connection]) throw new Refused(400, 'invalid', `there's no AI connection called ${b.text.connection}`);
       update({ ...(b.enabled !== undefined ? { enabled: b.enabled } : {}), ...(b.text !== undefined ? { text: b.text } : {}) });
       // switched off: whatever is running or waiting stops now, not at its next request
-      if (b.enabled === false) ctx.ai.cancelAll('ai_off', 'AI was switched off.');
+      if (b.enabled === false) {
+        ctx.ai.cancelAll('ai_off', 'AI was switched off.');
+        ctx.localAi.cancelAll('ai_off', 'AI was switched off.');
+      }
     }),
   );
 
@@ -291,6 +294,7 @@ export function registerAi(app: Hono, ctx: AppContext): void {
       connection(id);
       // nothing more is sent from now: egress refuses the next request, and ctx.ai stops a running call within a second
       update({ connections: { [id]: { consent: null } } });
+      ctx.localAi.cancelAll('not_consented', `${id} was revoked.`);
     }),
   );
 

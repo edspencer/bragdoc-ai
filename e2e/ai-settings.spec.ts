@@ -159,6 +159,10 @@ test('cloud: a custom https server is internet; consent comes first and nothing 
 
   await consent.getByTestId('ai-consent-allow').click();
   await expect(consent).toHaveCount(0);
+  // allowed: "What it sends" is a reminder, with no Allow
+  await page.getByTestId('ai-connection-what').click();
+  await expect(consent.getByTestId('ai-consent-allow')).toHaveCount(0);
+  await consent.getByTestId('ai-consent-close').click();
   s = await (await page.request.get(`${server.url}/api/ai`)).json();
   expect(s.egressHosts).toContain('llm.example.com');
   const card = page.getByTestId('ai-connection-openai-compatible');
@@ -197,16 +201,19 @@ test('detection: none running → BragDoc doesn’t install runners; a runner wi
   expect(detectLines.every((l) => l.where === 'this-computer')).toBe(true);
 
   // staged: what the server would answer with a runner on its usual port
-  const runner = (models: string[]) => ({ at: new Date().toISOString(), ollamaOnPath: true, inDocker: false, runners: [{ kind: 'lmstudio', baseUrl: `${fake.url}/v1`, where: 'this-computer', version: null, models: models.map((name) => ({ name, sizeBytes: null })), connectionId: null }] });
+  const runner = (models: string[], connectionId: string | null = null) => ({ at: new Date().toISOString(), ollamaOnPath: true, inDocker: false, runners: [{ kind: 'lmstudio', baseUrl: `${fake.url}/v1`, where: 'this-computer', version: null, models: models.map((name) => ({ name, sizeBytes: null })), connectionId }] });
   await page.route('**/api/ai/detect', (r) => (r.request().method() === 'POST' ? r.fulfill({ json: runner([]) }) : r.continue()));
   await page.getByTestId('ai-detect-go').click();
   await expect(page.getByTestId('ai-detect-models')).toContainText('No models installed yet');
   await page.unroute('**/api/ai/detect');
-  await page.route('**/api/ai/detect', (r) => (r.request().method() === 'POST' ? r.fulfill({ json: runner(['qwen3.5:4b', 'gemma4:e4b']) }) : r.continue()));
+  // the server's answer once it's a connection: GET works out connectionId against the connections as they are
+  await page.route('**/api/ai/detect', (r) => r.fulfill({ json: r.request().method() === 'POST' ? runner(['qwen3.5:4b', 'gemma4:e4b']) : runner(['qwen3.5:4b', 'gemma4:e4b'], 'lmstudio') }));
   await page.getByTestId('ai-detect-go').click();
   await expect(page.getByTestId('ai-detect-models')).toContainText('2 models installed');
   await page.getByTestId('ai-detect-use').click();
   await expect(page.getByTestId('ai-connection-lmstudio')).toBeVisible();
+  await expect(page.getByTestId('ai-detect-runner-lmstudio')).toContainText('Added, as lmstudio');
+  await expect(page.getByTestId('ai-detect-use')).toHaveCount(0);
   await page.unroute('**/api/ai/detect');
   await page.getByTestId('ai-connection-lmstudio').getByTestId('ai-connection-remove').click();
   await page.getByTestId('ai-connection-lmstudio').getByTestId('ai-connection-remove-yes').click();

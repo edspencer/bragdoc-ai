@@ -69,6 +69,8 @@ export interface LocalAi {
   lastDetect(): AiDetectResult | null;
   /** Ask a connection's Ollama to download `model`; yields its progress. Throws AiError before anything is sent. */
   pull(connectionId: string, model: string, signal: AbortSignal): AsyncGenerator<AiPullEvent>;
+  /** Stop every download in progress (AI switched off, consent revoked): each ends with `code`. */
+  cancelAll(code: 'ai_off' | 'not_consented', message: string): void;
 }
 
 const GB = 1024 ** 3;
@@ -104,12 +106,30 @@ export function hardwareView(h: Omit<AiHardware, 'recommended' | 'speedNote' | '
   };
 }
 
-const sameUrl = (a: string | null, b: string) => !!a && a.replace(/\/+$/, '').toLowerCase() === b.replace(/\/+$/, '').toLowerCase();
+/** The same runner? Compared as URLs, with the loopback names (localhost, 127.0.0.1, [::1]) treated as one. */
+function sameUrl(a: string | null, b: string): boolean {
+  if (!a) return false;
+  const norm = (s: string) => {
+    try {
+      const u = new URL(s);
+      if (u.hostname === 'localhost' || u.hostname === '[::1]') u.hostname = '127.0.0.1';
+      return u.toString().replace(/\/+$/, '').toLowerCase();
+    } catch {
+      return s.replace(/\/+$/, '').toLowerCase();
+    }
+  };
+  return norm(a) === norm(b);
+}
+
+/** How often a running download re-checks that it may still run (AI on, its connection allowed). */
+const PULL_WATCH_MS = 1000;
 
 export function createLocalAi(o: LocalAiOptions): LocalAi {
   const env = o.env ?? process.env;
   const file = path.join(homePaths(o.dataDir).cache, 'ai', 'detect.json');
   const homedir = o.homedir ?? os.homedir();
+  /** Downloads in progress: each one's stop. */
+  const running = new Set<(gate: { code: 'ai_off' | 'not_consented' | 'no_model' | 'no_key'; message: string }) => void>();
 
   const withConnections = (r: AiDetectResult): AiDetectResult => {
     const all = o.config().ai.connections;
@@ -181,7 +201,7 @@ export function createLocalAi(o: LocalAiOptions): LocalAi {
       }
     },
 
-    async *pull(connectionId, model, signal) {
+    async *pull(connectionId, model, outer) {
       const cfg = o.config();
       const conn = cfg.ai.connections[connectionId];
       if (!conn) throw new AiError('failed', `there's no AI connection called ${connectionId}`);
@@ -189,59 +209,105 @@ export function createLocalAi(o: LocalAiOptions): LocalAi {
       if (!PULLABLE.includes(model)) throw new AiError('failed', `BragDoc only asks for the recommended models (${PULLABLE.join(', ')}); for anything else, run ollama pull yourself`);
       const gate = connectionGate(cfg, connectionId);
       if (gate) throw new AiError(gate.code, gate.message);
+      const host = connectionHost(cfg.ai, connectionId);
+      // stopped by the caller (Cancel), by cancelAll (AI off, consent revoked in the app), or by the watch below (the
+      // same, by a hand edit of config.yaml): whichever comes first says why
+      const ctl = new AbortController();
+      let killedBy: { code: 'ai_off' | 'not_consented' | 'no_model' | 'no_key'; message: string } | null = null;
+      const kill = (g: NonNullable<typeof killedBy>) => {
+        killedBy ??= g;
+        ctl.abort();
+      };
+      const onOuter = () => ctl.abort();
+      outer.addEventListener('abort', onOuter, { once: true });
+      if (outer.aborted) ctl.abort();
+      const watch = setInterval(() => {
+        const g = connectionGate(o.config(), connectionId);
+        if (g) kill(g);
+      }, PULL_WATCH_MS);
+      watch.unref?.();
+      running.add(kill);
+      const signal = ctl.signal;
       const base = baseUrlOf(conn, cfg.ai.connections)!;
       const send = o.egress.fetchFor({ purpose: 'ai.pull', feature: 'pull', model, connectionId });
       const via = (outcome: 'ok' | 'error', error?: string) => o.egress.logVia('ollama', { purpose: 'ai.pull', feature: 'pull', model, outcome, ...(error ? { error } : {}) });
-      let res: Response;
-      try {
-        res = await send(`${base}/api/pull`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ model, stream: true }), signal });
-      } catch (e) {
-        throw classify(e, { connection: connectionId, host: connectionHost(cfg.ai, connectionId), cancelled: signal.aborted });
-      }
-      if (!res.ok) {
-        const text = await res.text().catch(() => '');
-        const err = classify(Object.assign(new Error(`HTTP ${res.status}`), { statusCode: res.status, responseBody: text }), { connection: connectionId, host: connectionHost(cfg.ai, connectionId) });
-        via('error', err.message);
-        throw err;
-      }
-      // Ollama has started the download: from here it's logged as a registry line too, however it ends
+      const stopped = () => (killedBy ? new AiError(killedBy.code, `the download stopped: ${killedBy.message}`) : null);
+      let reader: ReadableStreamDefaultReader<string> | null = null;
+      // set once Ollama has started the download: from then on it's logged as a registry line too, however it ends
+      let started = false;
       let failed: string | null = 'cancelled';
       try {
-        const reader = res.body!.pipeThrough(new TextDecoderStream()).getReader();
+        let res: Response;
+        try {
+          res = await send(`${base}/api/pull`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ model, stream: true }), signal });
+        } catch (e) {
+          throw stopped() ?? classify(e, { connection: connectionId, host, cancelled: signal.aborted });
+        }
+        if (!res.ok) {
+          const text = await res.text().catch(() => '');
+          const err = classify(Object.assign(new Error(`HTTP ${res.status}`), { statusCode: res.status, responseBody: text }), { connection: connectionId, host });
+          started = true;
+          failed = err.message;
+          throw err;
+        }
+        started = true;
+        reader = res.body!.pipeThrough(new TextDecoderStream()).getReader();
         let buf = '';
-        for (;;) {
-          const { value, done } = await reader.read();
-          if (done) break;
-          buf += value;
-          let i: number;
-          while ((i = buf.indexOf('\n')) >= 0) {
-            const line = buf.slice(0, i).trim();
-            buf = buf.slice(i + 1);
-            if (!line) continue;
-            let j: { status?: unknown; completed?: unknown; total?: unknown; error?: unknown };
-            try {
-              j = JSON.parse(line);
-            } catch {
-              continue;
+        try {
+          for (;;) {
+            const { value, done } = await reader.read();
+            if (done) break;
+            buf += value;
+            let i: number;
+            while ((i = buf.indexOf('\n')) >= 0) {
+              const line = buf.slice(0, i).trim();
+              buf = buf.slice(i + 1);
+              if (!line) continue;
+              let j: { status?: unknown; completed?: unknown; total?: unknown; error?: unknown };
+              try {
+                j = JSON.parse(line);
+              } catch {
+                continue;
+              }
+              if (typeof j.error === 'string') {
+                failed = j.error.slice(0, 300);
+                throw new AiError('failed', `Ollama couldn't download ${model}: ${failed}`);
+              }
+              const status = typeof j.status === 'string' ? j.status.slice(0, 120) : '';
+              if (status === 'success') failed = null;
+              yield { status, ...(typeof j.completed === 'number' ? { completed: j.completed } : {}), ...(typeof j.total === 'number' ? { total: j.total } : {}) };
             }
-            if (typeof j.error === 'string') {
-              failed = j.error.slice(0, 300);
-              throw new AiError('failed', `Ollama couldn't download ${model}: ${failed}`);
-            }
-            const status = typeof j.status === 'string' ? j.status.slice(0, 120) : '';
-            if (status === 'success') failed = null;
-            yield { status, ...(typeof j.completed === 'number' ? { completed: j.completed } : {}), ...(typeof j.total === 'number' ? { total: j.total } : {}) };
           }
+        } catch (e) {
+          if (e instanceof AiError) throw e;
+          const s = stopped();
+          if (s) {
+            failed = s.message;
+            throw s;
+          }
+          if (!signal.aborted) failed = (e as Error).message;
+          throw classify(e, { connection: connectionId, host, cancelled: signal.aborted });
+        }
+        const s = stopped();
+        if (s) {
+          failed = s.message;
+          throw s;
         }
         if (failed === 'cancelled' && !signal.aborted) failed = 'the download stopped before Ollama said it was done';
-      } catch (e) {
-        if (e instanceof AiError) throw e;
-        if (!signal.aborted) failed = (e as Error).message;
-        throw classify(e, { connection: connectionId, host: connectionHost(cfg.ai, connectionId), cancelled: signal.aborted });
+        if (failed) throw new AiError('failed', failed);
       } finally {
-        via(failed ? 'error' : 'ok', failed ?? undefined);
+        clearInterval(watch);
+        running.delete(kill);
+        outer.removeEventListener('abort', onOuter);
+        // an early exit (the browser went away) closes Ollama's stream too, not only the request
+        ctl.abort();
+        await reader?.cancel().catch(() => {});
+        if (started) via(failed ? 'error' : 'ok', failed ?? undefined);
       }
-      if (failed) throw new AiError('failed', failed);
+    },
+
+    cancelAll(code, message) {
+      for (const kill of [...running]) kill({ code, message });
     },
   };
 }

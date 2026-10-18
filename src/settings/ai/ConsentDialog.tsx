@@ -26,39 +26,54 @@ export function ConsentDialog({ connection: c, open, onClose }: { connection: Ai
   const toast = useToast();
   const st = consentStatement(c.kind);
   const host = c.host ?? 'its address';
+  // already allowed for what this page shows: the dialog is only a reminder of what it sends
+  const readOnly = !!c.consent?.current;
   const allow = useMutation({
-    mutationFn: () => allowAiConnection(c.id, c.consentVersion ?? st.version),
+    // the version of the statement on screen: if the server's has moved on (a newer BragDoc), it refuses, and this page
+    // must be reloaded to show the new one, rather than recording consent to words nobody read
+    mutationFn: () => allowAiConnection(c.id, st.version),
     onSuccess: (s) => {
       qc.setQueryData(queryKeys.ai, s);
       toast({ msg: `${connectionName(c)} is allowed. It sends nothing until you test it or switch a feature on.` });
       onClose(true);
     },
-    onError: (e) => {
-      // the statement moved on while the dialog was open: read the new one
-      if (isApiError(e, 'stale_consent')) void qc.invalidateQueries({ queryKey: queryKeys.ai });
-    },
+    onError: () => void qc.invalidateQueries({ queryKey: queryKeys.ai }),
   });
   return (
     <Dialog
       open={open}
       onClose={() => onClose(false)}
-      title={`Allow BragDoc to send to ${host}?`}
-      sub={`${connectionName(c)} is on the internet. Nothing has been sent to it yet, and nothing will be until you allow it here.`}
+      title={readOnly ? `What ${connectionName(c)} sends to ${host}` : `Allow BragDoc to send to ${host}?`}
+      sub={
+        readOnly
+          ? `You allowed this on ${new Date(c.consent!.at).toLocaleDateString()}. Revoke it on the connection's card to stop at once.`
+          : c.consent
+            ? `${connectionName(c)} is on the internet, and what it would send (or where) has changed since you allowed it. Nothing more is sent until you allow it again.`
+            : `${connectionName(c)} is on the internet. Nothing has been sent to it yet, and nothing will be until you allow it here.`
+      }
       tape="#e9961a"
       data-testid="ai-consent"
       footer={
         <div className="flex flex-wrap items-center justify-end gap-2">
           {allow.isError && (
             <span role="alert" className="mr-auto text-[13px] text-bad" data-testid="ai-consent-error">
-              {allow.error instanceof Error ? allow.error.message : 'That didn’t save.'}
+              {isApiError(allow.error, 'stale_consent') ? 'What it would send has changed since this page loaded. Reload the page to read the new version.' : allow.error instanceof Error ? allow.error.message : 'That didn’t save.'}
             </span>
           )}
-          <Btn kind="ghost" onClick={() => onClose(false)} data-testid="ai-consent-no">
-            Not now
-          </Btn>
-          <Btn kind="accent" onClick={() => allow.mutate()} disabled={allow.isPending} data-testid="ai-consent-allow">
-            <ShieldCheck className="size-4" aria-hidden /> {allow.isPending ? 'Allowing…' : 'Allow'}
-          </Btn>
+          {readOnly ? (
+            <Btn onClick={() => onClose(false)} data-testid="ai-consent-close">
+              Close
+            </Btn>
+          ) : (
+            <>
+              <Btn kind="ghost" onClick={() => onClose(false)} data-testid="ai-consent-no">
+                Not now
+              </Btn>
+              <Btn kind="accent" onClick={() => allow.mutate()} disabled={allow.isPending} data-testid="ai-consent-allow">
+                <ShieldCheck className="size-4" aria-hidden /> {allow.isPending ? 'Allowing…' : 'Allow'}
+              </Btn>
+            </>
+          )}
         </div>
       }
     >

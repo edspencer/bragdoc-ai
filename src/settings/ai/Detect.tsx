@@ -9,7 +9,7 @@ import { KIND_LABEL } from '../../../shared/ai/connections.ts';
 import { RECOMMENDED_MODELS } from '../../../shared/ai/models.ts';
 import { HOST_CLASS_LABEL } from '../../../shared/ai/hosts.ts';
 import { addAiConnection, detectAi, isApiError, putAi } from '../../api/client.ts';
-import { queryKeys, useAiDetect } from '../../api/queries.ts';
+import { queryKeys, useAiDetect, useAiHardware } from '../../api/queries.ts';
 import { Btn, Kicker, useToast } from '../../kit/index.ts';
 
 const OLLAMA_SITE = 'https://ollama.com';
@@ -21,7 +21,9 @@ export function Detect({ status }: { status: AiStatus }) {
     mutationFn: detectAi,
     onSuccess: (r) => qc.setQueryData(queryKeys.aiDetect, r),
   });
-  const r = look.data ?? last.data ?? null;
+  // the query only (the look writes its answer there): after "Use it" it's refetched, and says the runner is added
+  const r = last.data ?? null;
+  const hw = useAiHardware(true);
   return (
     <div className="space-y-3" data-testid="ai-detect">
       <div className="flex flex-wrap items-center gap-3">
@@ -29,7 +31,7 @@ export function Detect({ status }: { status: AiStatus }) {
           <Search className="size-4" aria-hidden /> {look.isPending ? 'Looking…' : r ? 'Look again' : 'Look for a model runner on this computer'}
         </Btn>
         <span className="text-[12.5px] text-muted">
-          Asks Ollama, LM Studio and llama.cpp at their usual addresses{r?.inDocker ? ', and Ollama on the computer running Docker' : ''}. Each ask is a line in Network activity.
+          Asks Ollama, LM Studio and llama.cpp at their usual addresses{hw.data?.inDocker ? ', and Ollama on the computer running Docker' : ''}. Each ask is a line in Network activity.
         </span>
       </div>
       {look.isError && (
@@ -37,7 +39,7 @@ export function Detect({ status }: { status: AiStatus }) {
           {isApiError(look.error) ? look.error.message : 'BragDoc isn’t answering. Is it still running?'}
         </p>
       )}
-      {r && <Results r={r} status={status} fresh={!!look.data} />}
+      {r && <Results r={r} status={status} fresh={look.isSuccess} />}
     </div>
   );
 }
