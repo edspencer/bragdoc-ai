@@ -36,7 +36,8 @@ test.beforeAll(async ({ request, browserName }) => {
     impact: 8,
     projects: [],
     evidence: [
-      { kind: 'github_pr', url: 'https://github.com/example/app/pull/341', externalKey: 'github_pr:example/app#341', title: 'CRDT merge' },
+      // a PR of this browser's own: adding one already on the board (another browser's) returns that achievement instead
+      { kind: 'github_pr', url: `https://github.com/example/app/pull/${YEAR}`, externalKey: `github_pr:example/app#${YEAR}`, title: 'CRDT merge' },
       { kind: 'url', url: 'http://localhost:2724/preview', title: 'Local preview' },
       { kind: 'quote', quote: { text: 'Not one conflict.', from: 'Sam', where: '#eng' } },
     ],
@@ -70,7 +71,7 @@ test('Export downloads bragdoc-<from>-<to>.md with links kept and nothing local 
   const md = fs.readFileSync((await download.path())!, 'utf8');
   expect(md).toContain('## No project');
   expect(md).toContain(`- **Offline sync shipped ${YEAR}** · 13 Sep ${YEAR} · impact 8/10`);
-  expect(md).toContain('[example/app#341: CRDT merge](https://github.com/example/app/pull/341)');
+  expect(md).toContain(`[example/app#${YEAR}: CRDT merge](https://github.com/example/app/pull/${YEAR})`);
   expect(md).toContain('  > Not one conflict.');
   expect(md).toContain('Local preview (a local address, left out)');
   expect(md).not.toContain(`Welcome talk ${YEAR}`);
