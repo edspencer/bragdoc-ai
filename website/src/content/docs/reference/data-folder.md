@@ -35,7 +35,9 @@ logs/ai-runs.jsonl              # v0.2: every AI run, without its content (only 
 backups/<timestamp>/            # automatic snapshots
 backups/removed/                # "deleted" files, moved here, never erased
 .gitignore                      # keeps machine-written files out of git
-cache/                          # derived and safe to delete (cache/ai/detect.json: the last look for a model runner)
+cache/                          # derived and safe to delete (cache/ai/detect.json: the last look for a model runner;
+                                #   cache/ai/judge.json: the judge's last run and any backoff; cache/ai/judge-stats.json:
+                                #   how often you agreed with it, as two counts)
 legacy-cli/                     # the old BragDoc CLI's files, moved aside on first run
 ```
 

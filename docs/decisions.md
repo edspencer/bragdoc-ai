@@ -1339,3 +1339,62 @@ PR27 (SPEC R24, R26).
   is remembered per connection and model (not the repair retry). Found by this eval: Claude Haiku through OpenRouter
   spent the judge's 400-token answer budget on reasoning and returned nothing for a long OCR text. Structured calls
   (`ctx.ai.object`) only; streaming (Draft) is unchanged.
+
+### D75 — When the judge runs by itself: the second choice, the conditions, one run, the backoff
+
+- **Turning the judge on gives Judge now and nothing else** (SPEC R22, Ed's default). The card then asks one question,
+  "Also judge new candidates as they arrive?", with what it costs here (the last run's seconds per candidate, else
+  about 20 s of CPU per screenshot for a small local model; for a cloud model, where the text goes). "Every N hours" is
+  a second background trigger. **With a cloud model, background runs need one more tick** (`backgroundCloud`); without
+  it the schedule holds (`cloud`) and only Judge now sends.
+- **As they arrive** (`server/ai/judge/schedule.ts`): a found change for a candidate new to Found (not one an Undo
+  brought back, not one our own verdict write touched, not a kind the judge doesn't take) starts a run 30 s after the
+  last of a burst, at most 5 minutes after the first. A run takes what's waiting, newest first, up to `maxPerRun`.
+  **Nothing is gathered while AI or the judge is off**, so switching them back on starts nothing (found on the box).
+- **Conditions**, for background runs only: "only between" two local times (from = to is all day; across midnight is
+  fine) and "only on power" (on by default). The schedule looks every 30 s; arrivals and a due "every N hours" slot
+  held back by a condition run when it lifts. **Judge now ignores every condition and the backoff.**
+- **Stopping:** a background run asks before each item whether its conditions still hold (`RunOptions.until`, a hook
+  on PR24's engine, which already stops when a gate closes): unplugged, the window closed, background judging or the
+  judge or AI switched off. It stops after the item in progress, logged as `cancelled` with the reason's code
+  (`battery`, `window`, `off`, `cloud`), and what's left is put back to run when the condition lifts. While a
+  background run goes, the power is read every 5 s (the 30 s tick alone missed a short run: found on the box). The
+  engine also re-checks the gates after a model answers and before writing, so AI switched off mid-call writes
+  nothing more. This replaces a generation counter (D57, D58): the run asks the live conditions, which is the same
+  guarantee without a counter to keep in step.
+- **Backoff:** a run that ended with an error that would fail every item (`unreachable`, `timeout`, `model_missing`,
+  `key_refused`, `quota`, `rate_limited`, …) holds background runs 15 minutes, doubling to 6 hours (D57's numbers);
+  any run that judged something clears it. State, including the last run of any kind, is `cache/ai/judge.json`
+  (derived, deletable; written only once the judge has run).
+- **Power** (`server/platform/power.ts`): `pmset -g batt` on macOS (`pmset` joins proc's allow-list), the mains / USB
+  supplies and the battery's status under `/sys/class/power_supply` on Linux (a `scope: Device` battery is a
+  peripheral's), else `unknown`, which counts as plugged in; the card says it can't tell. `BRAGDOC_POWER_SUPPLY_DIR`
+  (internal) points the Linux reading at a fixture, for the tests and box QA.
+- **Rejected:** judging only the new arrivals in an arrival run (the newest are first anyway, and a second list of
+  "arrived" ids would have to survive restarts); retrying failed items on every tick (a broken answer would spin).
+
+### D76 — Found once there are verdicts: three groups, Dismiss these N, Judge again
+
+- **Without a verdict Found is v0.1's list**, unchanged (AI never on is the default, and the AI-off control). Once any
+  candidate has one: **Looks like a win** (surest first), **Not judged yet** (newest first), **Probably not**
+  (collapsed, with its count). Verdicts are data: they keep their groups while AI is off, marked "judged earlier",
+  with Judge again, the judge line and Judge now hidden (SPEC R26).
+- **Dismiss these N** is one request (`POST /api/found/dismiss { ids }`) and its Undo another (`POST /api/found/undo
+  { ids }`), at most 500 (D56's undo memory), each id as the one-at-a-time route does it: one decided meanwhile is
+  skipped and said, never an error for the rest. **The judge never dismisses**: nothing empties Probably not but you.
+- **The card:** the stamp in the header, the why ("Why the judge picked it" / "passed on it"), the model's quote only
+  when it isn't the rules' (highlighted), "judged by …", Judge again and What's sent (`GET /api/ai/judge/preview`, the
+  same prompt function). A verdict with no why (a probability-only judge, PR28) says so. Nothing on the card depends on
+  which judge wrote the verdict. **Keep files it under the rules' and the judge's projects together** (the server's
+  default for a keep without `projects`), shown on the card first; the judge's ones are marked.
+- **A broken `ai/what-counts.md`** is a Problem, and the editor says what the judge uses meanwhile: the last good copy,
+  or, if BragDoc started with it broken, the starter written from the profile (never nothing at all).
+
+### D77 — "You agreed with the judge on N of M"
+
+- Counted when you keep, merge or dismiss a candidate that has a verdict: keep or merge agrees with a win, dismiss with
+  probably not. `FoundService.onDecided()` is the one hook (HTTP and any later caller alike); undecided, unjudged
+  candidates never count. An Undo while BragDoc runs takes its count back (which way each decision went is held in
+  memory for the newest 500, like D56's undo).
+- **Counts only**, in `cache/ai/judge-stats.json`: never which candidate, never its text. Served as
+  `AiJudgeStatus.agreement`.

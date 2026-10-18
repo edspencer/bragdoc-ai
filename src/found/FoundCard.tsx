@@ -206,6 +206,12 @@ function VerdictNote({ v, rulesQuote, earlier }: { v: Verdict; rulesQuote: strin
           </div>
         </div>
       )}
+      {!v.why && (
+        // a judge that answers with a probability alone (Jev, PR28) gives no reason: say so rather than leave a gap
+        <p className="m-0 text-[13px] text-muted" data-testid="found-verdict-no-why">
+          No reason given: this judge answers only with how sure it is.
+        </p>
+      )}
       {otherQuote && (
         <p className="m-0 mt-2 text-[13px] text-muted break-words" data-testid="found-verdict-quote">
           The words it judged: <mark className="rounded bg-sticky px-1 text-ink">“{otherQuote}”</mark>
