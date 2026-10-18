@@ -136,7 +136,8 @@ export function TidySheet({ tidy, projects, inert, saveLabel, onUse }: { tidy: T
         <div className="min-w-0 flex-1">
           <div className="font-grotesk text-[16px] font-bold leading-tight">{s.notAnAchievement ? 'This doesn’t look like an achievement' : 'A tidier version'}</div>
           <div className="mt-0.5 text-[11.5px] text-muted">
-            Suggested by {r.model} on {r.where === 'this-computer' ? 'this computer' : r.where === 'your-network' ? 'your network' : 'the internet'}. Nothing changes until you use it, and nothing is saved until you press {saveLabel}.
+            {s.notAnAchievement ? 'Read' : 'Suggested'} by {r.model} on {r.where === 'this-computer' ? 'this computer' : r.where === 'your-network' ? 'your network' : 'the internet'}.
+            {s.notAnAchievement ? '' : ` Nothing changes until you use it, and nothing is saved until you press ${saveLabel}.`}
           </div>
         </div>
         <button type="button" onClick={tidy.close} aria-label="Close the suggestion" className="rounded-full p-1 text-muted hover:bg-sunk hover:text-ink" data-testid="tidy-close">
