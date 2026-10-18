@@ -1,0 +1,110 @@
+---
+title: AI, off unless you turn it on
+description: "BragDoc's three optional AI features (the judge, Tidy this up, Draft with AI): what each does, what it sends where, and how to turn it on. All of them are off by default."
+---
+
+import Shot from '../../../components/Shot.astro';
+
+:::note[Coming in 0.2.0]
+The AI features are built on the [`v0.2` branch](https://github.com/edspencer/bragdoc-ai/tree/v0.2) and will be in
+BragDoc 0.2.0. Everything else in BragDoc works without them, and keeps working exactly as before.
+:::
+
+**AI is off by default, and BragDoc works fully without it.** Pasting, Found, the board, Projects and Folio all work
+with AI off. While it's off, no model is asked anything, on this computer or anywhere else, and BragDoc doesn't even
+load its AI code. Upgrading to a version with AI changes nothing until you act.
+
+There are two levels of switch, and each one starts off:
+
+1. **The master switch**, in **Settings → AI**. Turning it on lets you set up where models run. It sends nothing by
+   itself, and it switches no feature on.
+2. **A switch per feature.** Each of the three features below has its own, on its card in Settings → AI.
+
+<Shot name="docs-ai-off" alt="Settings, AI tab, with AI off: a note that BragDoc works fully without AI, the switch reading AI is off, nothing is sent to any model, and a list of what being off means: Found shows only the plain rules, Folio exports exactly what you picked, and no model is contacted at all." caption="Settings → AI as it starts: off. This is a real capture of the example data." />
+
+## The three features
+
+| Feature | Where | What it does | When it sends |
+|---|---|---|---|
+| [**The judge**](/ai/the-judge/) | Found | Reads a candidate the rules already let through and says whether it looks like a win for you, how sure it is, and why. | When you press **Judge now**, or on a schedule you choose. |
+| [**Tidy this up**](/ai/tidy/) | The board | Turns something you pasted, or a picture's text, into a suggested title, summary, date, impact and projects. | Only when you press **Tidy this up**. |
+| [**Draft with AI**](/ai/draft/) | Folio | Writes a review draft from the achievements a folio picks, citing each one. | Only when you press **Draft with AI**. |
+
+Turning a feature on is what makes its button appear: with Tidy off there's no Tidy button on the board, with Draft
+off there's no Draft in Folio, and with the judge off Found has no Judge now (and, until the judge has ever run, no
+verdicts). When a feature is on but can't
+run yet (no model chosen, a runner that isn't answering, a cloud connection you haven't allowed), its button shows
+disabled, with the reason and a link to Settings → AI.
+
+**AI suggests; you decide.** Nothing a model writes reaches your board, an achievement or a file of yours without a
+click from you:
+
+- the judge only ever fills in its opinion on a Found candidate. It never keeps anything and never dismisses anything;
+- Tidy's suggestion sits beside your text, and you use it field by field. Nothing is saved until you pin it;
+- a draft lives in the Folio page, for you to edit, copy or export. Nothing is written to your data folder.
+
+**Nothing invented, checked in code.** Each prompt tells the model to use only what it was given, and BragDoc then
+checks the answer: a number, an amount or a capitalised name in a suggestion that isn't in what you gave it is
+flagged, a date your text doesn't support is left out, and a judge's quote that isn't word for word in the screenshot
+is dropped.
+
+## Where the models run
+
+A model runs on a **connection**: somewhere models run. You add connections in Settings → AI:
+
+- **On this computer, or your network.** A model runner such as [Ollama, LM Studio or llama.cpp](/ai/local-models/).
+  It needs no consent and no key: nothing leaves your network.
+- **In the cloud**, with your own key: [Anthropic](/ai/cloud/anthropic/), [OpenAI](/ai/cloud/openai/),
+  [OpenRouter](/ai/cloud/openrouter/), [Jev](/ai/cloud/jev/) through OpenRouter, or
+  [any other server](/ai/cloud/custom/) that speaks OpenAI's API.
+
+**Whether a connection is local or cloud is decided by its address, never by what kind it is.** It counts as local
+only when its host is this computer (`localhost`, `127.0.0.1`, `::1`), a private network address (`10.x`, `172.16–31.x`,
+`192.168.x`, link-local, IPv6 unique-local), a `.local` name or `host.docker.internal`. Every other host is the
+internet, including an "OpenAI-compatible" server you typed in yourself, and **a connection on the internet sends
+nothing at all, not even a test, until you've read exactly what it would send and pressed Allow**. Each provider's
+page has that statement word for word.
+
+[Choosing a model](/ai/choosing-a-model/) has the recommended models, the RAM each wants, and what they scored.
+
+## What each feature sends
+
+What a model is sent is built by the same code that shows it to you: each feature's card in Settings → AI has a
+"what's sent" button (**Show me what's sent** for the judge, **See exactly what's sent** for Tidy and Draft), and so
+does each judged card in Found (**What's sent**). It renders the real prompt for an example from your own data, and
+sends nothing. In short:
+
+- **The judge:** the screenshot's text (read on this computer), with your own messages marked; for a merged pull
+  request, if you tick that, its repository, title, merge date and the first 2,000 characters of its description; your
+  name, the other names you go by and the names to ignore; your active projects' names; and your
+  [what counts as a win](/ai/the-judge/#what-counts-as-a-win-for-me) instructions.
+- **Tidy:** the text you pasted, or the text read from a picture you added; today's date; your name and role; your
+  projects' names; and your optional "how I write" notes.
+- **Draft:** the achievements in the folio (titles, summaries, dates, impact, project and company names, and evidence
+  by name); your name and role; your note on what the draft is for; and your "how I write" notes.
+
+Never sent: file paths, BragDoc's ids, or BragDoc's own addresses. The picture itself never goes to a model either:
+the judge and Tidy read the text BragDoc read from it, on your machine.
+
+## Seeing what it did
+
+Every call to a model is a line in **Settings → Network activity**, stamped *this computer*, *your network* or
+*internet*, with the feature, the model and how many bytes were sent (never the content). The receipt there also
+totals what went **to AI providers on the internet**, beside the unchanged **To BragDoc's makers: 0 B**.
+
+**AI activity**, at the bottom of Settings → AI, is a receipt of runs: when, what started it, which model, where, how
+many items and what came of them, and how long it took. It's kept in `logs/ai-runs.jsonl` in your data folder, and
+it never holds content either.
+
+<Shot name="docs-ai-activity" alt="The AI activity receipt: lines for Draft with AI, Tidy this up and the judge, each stamped this computer, with the model qwen3.5:4b on ollama, a duration, and for the judge a count of wins and probably-nots." caption="AI activity after a judge run, a few tidies and drafts. The answers were staged with BragDoc's test model server, not a real model." />
+
+## Turning it off
+
+Switching the master switch off stops anything running at once, and hides every AI button in the app again. A
+verdict the judge already wrote stays on its Found card (it's data, like anything else you have), marked "judged
+earlier". Your connections, keys and instructions stay where they are, unused, until you turn AI on again.
+
+To stop one cloud provider without turning AI off, press **Revoke** on its connection: nothing more is sent to it from
+that moment.
+
+The promise behind all this, rule by rule, is on [AI is opt-in](/guarantees/ai-is-opt-in/).

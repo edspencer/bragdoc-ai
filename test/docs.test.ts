@@ -9,6 +9,8 @@ import path from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { DEFAULT_PORT } from '../server/port.ts';
 import { withReference } from '../shared/schema/reference.ts';
+import { aiReferenceBlocks, withAiReference } from '../scripts/ai-reference.ts';
+import { PRESET_PORTS } from '../tools/docs-media/leaks.ts';
 import { ROOT } from './fixture.ts';
 import { SHOTS } from '../tools/docs-media/shots.ts';
 import { referencedShots } from '../tools/docs-media/sync.ts';
@@ -53,12 +55,13 @@ describe('docs site', () => {
     assert.equal(site.PACKAGE, JSON.parse(read('package.json')).name);
   });
 
-  // Pages write the port out (code blocks can't interpolate it), so every localhost/127.0.0.1 port must be the default.
-  test(`every localhost:<port> on the site is ${DEFAULT_PORT}`, () => {
+  // Pages write the port out (code blocks can't interpolate it), so every localhost/127.0.0.1 port must be the default,
+  // or a local model runner's preset address (Ollama 11434, LM Studio 1234, llama.cpp 8080: shared/ai/connections.ts).
+  test(`every localhost:<port> on the site is ${DEFAULT_PORT}, or a model runner's preset`, () => {
     const bad: string[] = [];
     for (const f of prose()) {
       for (const m of fs.readFileSync(f, 'utf8').matchAll(/(?:localhost|127\.0\.0\.1):(\d+)/g)) {
-        if (Number(m[1]) !== DEFAULT_PORT) bad.push(`${path.relative(ROOT, f)}: ${m[0]}`);
+        if (!PRESET_PORTS.includes(m[1]!)) bad.push(`${path.relative(ROOT, f)}: ${m[0]}`);
       }
     }
     assert.deepEqual(bad, []);
@@ -88,6 +91,20 @@ describe('docs site', () => {
   test('the data-folder page\'s reference tables match the schemas (npm run sync:reference)', () => {
     const page = read('website/src/content/docs/reference/data-folder.md');
     assert.equal(withReference(page), page, 'website/src/content/docs/reference/data-folder.md is stale: npm run sync:reference');
+  });
+
+  // The AI pages' tables (the recommended models, what the judge measured, each provider's consent statement) are
+  // generated from the code the app runs on (scripts/ai-reference.ts, D83), so the docs and the consent dialog can't
+  // disagree.
+  test("the AI pages' generated tables match the code (npm run sync:reference)", () => {
+    const pages = files(DOCS, /\.mdx?$/).filter((f) => aiReferenceBlocks(fs.readFileSync(f, 'utf8')).length);
+    const blocks = pages.flatMap((f) => aiReferenceBlocks(fs.readFileSync(f, 'utf8')));
+    for (const want of ['models', 'measured', 'consent-anthropic', 'consent-openai', 'consent-openrouter', 'consent-jev', 'consent-custom'])
+      assert.ok(blocks.includes(want), `no docs page has the ai-reference block ${want}`);
+    for (const f of pages) {
+      const page = fs.readFileSync(f, 'utf8');
+      assert.equal(withAiReference(page), page, `${path.relative(ROOT, f)} is stale: npm run sync:reference`);
+    }
   });
 
   // Every BRAGDOC_* variable the code reads is documented. A few are for the project's own tests and CI, not users.
@@ -229,6 +246,12 @@ describe('docs site', () => {
     if (!released()) return;
     const left = prose().filter((f) => /Coming in v0\.1\b/.test(fs.readFileSync(f, 'utf8')));
     assert.deepEqual(left.map((f) => path.relative(ROOT, f)), [], 'v0.1 is out: these pages still say "Coming in v0.1"');
+    // the AI pages' `:::note[Coming in 0.2.0]` (D83), once 0.2.0 or later is out (What's new has its own release step)
+    const [major = 0, minor = 0] = VERSION.split('.').map(Number);
+    if (major > 0 || minor >= 2) {
+      const ai = prose().filter((f) => path.basename(f) !== 'whats-new.md' && /Coming in 0\.2\.0/.test(fs.readFileSync(f, 'utf8')));
+      assert.deepEqual(ai.map((f) => path.relative(ROOT, f)), [], `${VERSION} is out: these pages still say "Coming in 0.2.0"`);
+    }
     // the components follow RELEASED by themselves, and scripts/whats-new-release.mjs takes the pages' `:::note[Not …]`
     // asides out (PR17); anything else saying "not on npm yet" would still say it. What's new is released by the same
     // script, a blog post is dated (it may say what was true that day), and the README and SECURITY.md ship on npm.

@@ -101,7 +101,7 @@ profile, or the options below.
 
 It exits 1 if any image can't be read. `--aliases` and `--not-me` without `--name` are a usage error.
 
-`bragdoc dev ai --connection <id> --model <name> "<prompt>"` (*being built for v0.2*) asks one model one question,
+`bragdoc dev ai --connection <id> --model <name> "<prompt>"` (*from 0.2.0*) asks one model one question,
 through the same path every AI feature uses: your `config.yaml`'s AI settings and connections, the keys in
 `secrets.yaml`, and the outbound allow-list. It prints the answer as it arrives, then how long it took and where it
 went (this computer, your network or the internet). It's refused, with nothing sent, exactly when the app would refuse:

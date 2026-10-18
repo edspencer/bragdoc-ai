@@ -29,9 +29,15 @@ Each of these can be undone from the message that appears. Undoing a keep moves 
 `backups/removed/`. Undoing a dismissal works until BragDoc restarts (for the latest 500 dismissals): after that, nothing is left to
 bring back.
 
-There's no "confidence score": v0.1 has no AI, so candidates are chosen by plain rules you can read, and each card
-lists the ones it passed, in words: "You opened it", "Merged", "In a repo you track" for a pull request;
+Candidates are chosen by plain rules you can read, with no "confidence score", and each card lists the ones it passed,
+in words: "You opened it", "Merged", "In a repo you track" for a pull request;
 `Says your name: "…"`, `Praise: "…"`, `Looks like a chat: "…"` for a screenshot; "Sent by Claude Code" for an agent's.
+
+From 0.2.0, if you turn on AI and its optional [judge](/ai/the-judge/), a model also reads the screenshots (and, if
+you tick it, the pull requests) the rules let through, and says whether each looks like a win for you, how sure it is,
+and why. Found then groups them: Looks like a win, Not judged yet, and Probably not. **The judge never keeps or
+dismisses anything**: the decision stays yours, and the rules' chips stay on the card. With AI off, Found is exactly as
+described here, and each card ends "plain rules · AI off".
 
 ## The sources
 
