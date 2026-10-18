@@ -117,7 +117,7 @@ export type ServerEvent =
   | { type: 'company' }
   | { type: 'found' }
   | { type: 'profile' }
-  /** The Problems list may have changed (sent with every store change). */
+  /** The Problems list may have changed (sent with every store change, and when a misnamed file comes or goes). */
   | { type: 'problems' };
 
 // ---------------------------------------------------------------- board (PR7): achievements, evidence, links, problems

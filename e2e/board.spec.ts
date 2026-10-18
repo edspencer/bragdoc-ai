@@ -103,8 +103,9 @@ test('a pasted picture, a dropped PDF, a pasted PR link and a .key file all land
   await expect(c.getByRole('link', { name: /q3-review/ })).toHaveAttribute('href', /^\/api\/evidence\/[0-9a-f]{64}$/);
   await expect(c.getByRole('link', { name: new RegExp(`acme/widgets#${pr}`) })).toHaveAttribute('href', `https://github.com/acme/widgets/pull/${pr}`);
   await expect(c).toContainText('all-hands.key');
-  const net = await (await request.get('/api/network-log')).json();
-  expect(net.entries).toEqual([]);
+  // nothing went out (settings.spec.ts's "Test the guard" logs a refused request on this same server: not the board's)
+  const net = (await (await request.get('/api/network-log')).json()) as { entries: { purpose: string }[] };
+  expect(net.entries.filter((e) => e.purpose !== 'settings.guard-check')).toEqual([]);
 });
 
 test('a file that claims to be a picture but is not one is refused with a toast', async ({ page }) => {
