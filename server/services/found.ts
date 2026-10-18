@@ -13,6 +13,8 @@ import {
   type Evidence,
   type FoundCandidate,
   type FoundSource,
+  type Verdict,
+  VerdictSchema,
 } from '../../shared/schema/index.js';
 import { ulid } from '../../shared/ulid.js';
 import { ConflictError, keyHash, NotFoundError, type Store } from '../store/index.js';
@@ -30,6 +32,13 @@ export interface AddResult {
   reason?: 'exists' | 'dismissed' | 'on-board';
   /** For `on-board`: the achievement that has the key. */
   achievementId?: string;
+}
+
+export interface VerdictResult {
+  candidate: FoundCandidate;
+  written: boolean;
+  /** Why nothing was written: you decided it meanwhile. A judge never touches a decided candidate (SPEC R21). */
+  reason?: 'decided';
 }
 
 export interface DecideResult {
@@ -178,6 +187,34 @@ export class FoundService {
     return { candidate, achievementId, missingFiles: files.missing };
   }
 
+  /**
+   * A judge's opinion on a pending candidate (SPEC R21): writes `verdict` and nothing else. A candidate you've kept,
+   * merged or dismissed meanwhile is left alone (`written: false, reason: 'decided'`): the judge never changes `status`.
+   */
+  setVerdict(id: string, verdict: Verdict): VerdictResult {
+    const f = this.get(id);
+    if (f.status !== 'pending') return { candidate: f, written: false, reason: 'decided' };
+    const v = validate(VerdictSchema, verdict);
+    this.writable(id);
+    // a merge patch would merge into the old verdict (keeping a quote the new one hasn't got): name every key
+    const patch = Object.fromEntries(Object.keys(VerdictSchema.shape).map((k) => [k, (v as Record<string, unknown>)[k] ?? null]));
+    let decided = false;
+    const candidate = this.store.write(
+      'found',
+      id,
+      (cur) => {
+        // decided between the check above and the write (the store hands us the file as it is now): leave it
+        if (cur?.status !== 'pending') {
+          decided = true;
+          return null;
+        }
+        return { patch: { verdict: patch } };
+      },
+      { mustExist: true },
+    );
+    return decided ? { candidate, written: false, reason: 'decided' } : { candidate, written: true };
+  }
+
   /** Dismiss: the candidate becomes a tombstone that remembers only the hashes of its keys (D56). */
   dismiss(id: string): FoundCandidate {
     const f = this.pending(id);
@@ -204,6 +241,8 @@ export class FoundService {
           matchedRules: [],
           suggestedProjects: [],
           suggestedRepos: [],
+          // a verdict's quote and why are the screenshot's text: a dismissed candidate keeps none of it (SPEC R21, D56)
+          verdict: null,
         },
       }),
       { mustExist: true },

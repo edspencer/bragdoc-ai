@@ -9,8 +9,8 @@ export type FoundSource = (typeof FOUND_SOURCES)[number];
 export const FOUND_STATUSES = ['pending', 'kept', 'dismissed'] as const;
 
 /**
- * What a judge decided (the future AI seam, D8; shared/judge.ts). v0.1 has no judge, so it's always null. Shaped like
- * the judge's answer so a later version fills it in without a format change.
+ * What a judge decided (the AI seam, D8; shared/judge.ts). Null until an AI judge (v0.2, opt-in) has looked at it.
+ * A judge only ever writes this: it never keeps or dismisses (SPEC R21). Dismissing clears it (D56).
  */
 export const VerdictSchema = z.object({
   keep: z.boolean(),
@@ -20,6 +20,13 @@ export const VerdictSchema = z.object({
   suggestedProjects: z.array(ulidSchema).default([]),
   by: z.string().optional().describe('Which judge (model or service).'),
   at: isoDateTime.optional(),
+  from: z.string().optional().describe('Who the judge says the praise came from.'),
+  impact: impact.optional().describe('For a merged PR: the impact the judge suggests, 1–10.'),
+  inputHash: z
+    .string()
+    .regex(/^sha256:[0-9a-f]{64}$/)
+    .optional()
+    .describe('`sha256:` of what the judge was given (its input and your instructions), so "Judge again" knows what changed.'),
 });
 export type Verdict = z.infer<typeof VerdictSchema>;
 
@@ -54,7 +61,7 @@ export const FoundCandidateSchema = z.object({
   matchedRules: z.array(z.string()).default([]).describe('Which rules it passed, in words (shown on its card).'),
   suggestedProjects: z.array(ulidSchema).default([]).describe('Projects it probably belongs to.'),
   suggestedRepos: z.array(ulidSchema).default([]).describe('Repos it probably touched.'),
-  verdict: VerdictSchema.nullable().default(null).describe('A judge\'s decision. Always empty in v0.1 (no AI).'),
+  verdict: VerdictSchema.nullable().default(null).describe('An AI judge\'s opinion, when you have the judge on (v0.2). It never keeps or dismisses anything.'),
   decision: DecisionSchema.nullable().default(null).describe('What you decided, once you have.'),
   foundAt: isoDateTime.describe('When it was spotted.'),
   meta,

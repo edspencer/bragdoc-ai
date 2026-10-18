@@ -2,6 +2,7 @@
 // Later PRs add what their routes need as new fields here, in their own lines, so parallel PRs rebase cleanly. Keep
 // it a plain bag of dependencies: no logic.
 import type { Notice } from '../shared/api.js';
+import type { Ai } from './ai/run.js';
 import type { ConfigStore } from './config.js';
 import type { Egress } from './egress.js';
 import type { EventBus } from './events.js';
@@ -46,4 +47,6 @@ export interface AppContext {
   ocr: Ocr;
   /** The board's pictures, read in the background (started by startServer): `status(sha)` for GET /api/evidence/:sha/ocr. */
   evidenceText: EvidenceText;
+  /** Every model call (v0.2): `ctx.ai.object/stream/test/models`, gated, queued, through egress. Loads no SDK until used. */
+  ai: Ai;
 }

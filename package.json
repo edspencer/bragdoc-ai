@@ -66,9 +66,14 @@
     "gen:example": "tsx scripts/gen-example.ts"
   },
   "dependencies": {
+    "@ai-sdk/anthropic": "^4.0.82",
+    "@ai-sdk/openai": "^4.0.96",
+    "@ai-sdk/openai-compatible": "^3.0.71",
+    "@ai-sdk/provider": "^4.0.29",
     "@hono/node-server": "^2.1.5",
     "@modelcontextprotocol/server": "^2.3.1",
     "@tesseract.js-data/eng": "^1.0.0",
+    "ai": "^7.0.143",
     "chokidar": "^5.0.0",
     "file-type": "^22.2.0",
     "hono": "^4.13.13",

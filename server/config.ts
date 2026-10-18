@@ -16,6 +16,7 @@ import path from 'node:path';
 import YAML from 'yaml';
 import { z } from 'zod';
 import type { Notice } from '../shared/api.js';
+import { AI_KINDS, CONNECTION_ID_RE } from '../shared/ai/connections.js';
 import { tildify } from './paths.js';
 import { atomicWrite } from './store/safefs.js';
 import { mergePatch, parse as parseDocument, stringify } from './store/yamldoc.js';
@@ -38,6 +39,64 @@ export const GITHUB_SCOPE_RE = /^[A-Za-z0-9](?:[A-Za-z0-9-]{0,38})(?:\/[A-Za-z0-
 
 /** A section written but left empty (`mcp:` with its keys commented out) is YAML null: treat it as absent, so its defaults apply. */
 const section = <T extends z.ZodType>(s: T) => z.preprocess((v) => (v === null ? undefined : v), s);
+
+/** An AI connection's address: http(s), no credentials in it. Whether plain http may be used is egress's call (by host). */
+const AiBaseUrl = z
+  .string()
+  .trim()
+  .refine((s) => {
+    try {
+      const u = new URL(s);
+      return (u.protocol === 'http:' || u.protocol === 'https:') && !u.username && !u.password && !u.search && !u.hash;
+    } catch {
+      return false;
+    }
+  }, 'an http(s) address, without a password, query or #fragment');
+
+const HHMM = z.string().regex(/^(?:[01]\d|2[0-3]):[0-5]\d$/, 'a time, HH:MM');
+
+/** `ai.connections.<id>` (shared/ai/connections.ts AiConnectionConfig). */
+export const AiConnectionSchema = z.object({
+  kind: z.enum(AI_KINDS),
+  name: z.string().trim().min(1).max(80).optional(),
+  /** Overrides the kind's preset (KIND_BASE_URL); required for `openai-compatible`. */
+  baseUrl: AiBaseUrl.optional(),
+  /** Local runners: the context size prompts are budgeted against, and Ollama's num_ctx (default 8192). */
+  contextTokens: z.number().int().min(512).max(2_000_000).optional(),
+  /** `jev`: the OpenRouter connection whose key it uses. */
+  via: z.string().regex(CONNECTION_ID_RE).optional(),
+  /** A cloud connection's consent: the statement's version you accepted, for which host, and when (SPEC R17). */
+  consent: z.object({ at: z.string(), version: z.number().int().min(1), host: z.string().optional() }).nullable().optional(),
+});
+
+/** Which model on which connection: `{ connection: <id>, model: <name> }`. */
+export const AiSlotSchema = z.object({ connection: z.string().regex(CONNECTION_ID_RE), model: z.string().trim().min(1).max(200) });
+
+/** `ai.features.judge` (SPEC R21, R22). */
+export const AiJudgeSchema = z.object({
+  enabled: z.boolean().default(false),
+  /** Judge screenshot candidates (on once the judge is). */
+  screenshots: z.boolean().default(true),
+  /** Also judge merged PRs (a separate tick, off even when the judge is on). */
+  github: z.boolean().default(false),
+  /** A model for the judge alone; null: the text slot. */
+  model: AiSlotSchema.nullable().default(null),
+  when: section(z.object({
+    /** Judge new candidates as they arrive (debounced). Off: only when you press Judge now (SPEC R22). */
+    onArrival: z.boolean().default(false),
+    everyHours: z.union([z.literal(1), z.literal(3), z.literal(6), z.literal(12), z.literal(24)]).nullable().default(null),
+    /** Only between two local times, e.g. { from: '19:00', to: '08:00' } (across midnight is fine). */
+    onlyBetween: z.object({ from: HHMM, to: HHMM }).nullable().default(null),
+    /** Background runs only on AC power (unknown counts as plugged in). */
+    onlyOnAC: z.boolean().default(true),
+  }).prefault({})),
+  /** With a cloud model, background runs need this extra tick; otherwise only Judge now sends. */
+  backgroundCloud: z.boolean().default(false),
+  maxPerRun: z.number().int().min(1).max(500).default(50),
+});
+
+/** `ai.features.tidy` and `ai.features.draft`. */
+export const AiSimpleFeatureSchema = z.object({ enabled: z.boolean().default(false), model: AiSlotSchema.nullable().default(null) });
 
 export const ConfigSchema = z.object({
   schemaVersion: z.number().int().optional(),
@@ -86,6 +145,22 @@ export const ConfigSchema = z.object({
   ),
   /** The welcome steps (PR16): shown on first run, while there's no profile.yaml, unless you skipped them. */
   welcome: section(z.object({ skipped: z.boolean().default(false) }).prefault({})),
+  /** AI (v0.2, SPEC R17): off, with every feature off, until you switch it on. GET /api/ai serves it (D64). */
+  ai: section(z.object({
+    /** The master switch. Off: no model is asked anything, and no AI code is even loaded (SPEC principle 3). */
+    enabled: z.boolean().default(false),
+    /** Where models run, by id (a map, so two tabs editing different connections both keep their edit: D53). */
+    connections: section(z.record(z.string().regex(CONNECTION_ID_RE, 'a connection id: lower case letters, digits and -'), AiConnectionSchema).default({})),
+    /** The model features use unless one says otherwise. */
+    text: AiSlotSchema.nullable().default(null),
+    /** Reserved for reading pictures; unused in v0.2. */
+    vision: AiSlotSchema.nullable().default(null),
+    features: section(z.object({
+      judge: section(AiJudgeSchema.prefault({})),
+      tidy: section(AiSimpleFeatureSchema.prefault({})),
+      draft: section(AiSimpleFeatureSchema.prefault({})),
+    }).prefault({})),
+  }).prefault({})),
 });
 export type Config = z.infer<typeof ConfigSchema>;
 
@@ -117,6 +192,33 @@ sources:
 
 welcome:
   skipped: false   # true once you skip the welcome steps (they show while there's no profile.yaml)
+
+# AI is off, and every AI feature is off, until you switch it on (Settings → AI). Nothing is sent to any model while
+# it's off. Keys for cloud providers live in secrets.yaml, never here.
+ai:
+  enabled: false   # the master switch; turning it on turns no feature on
+  connections:     # where models run, by id, e.g. ollama: { kind: ollama, baseUrl: http://127.0.0.1:11434 }
+  text: null       # the model features use: { connection: <id>, model: <name> }
+  vision: null     # reserved; unused
+  features:
+    judge:
+      enabled: false
+      screenshots: true    # judge screenshot candidates
+      github: false        # also judge merged PRs
+      model: null          # null: the text model
+      when:
+        onArrival: false   # judge new candidates as they arrive (off: only when you press Judge now)
+        everyHours: null   # 1, 3, 6, 12 or 24
+        onlyBetween: null  # e.g. { from: "19:00", to: "08:00" }
+        onlyOnAC: true     # background runs only on AC power
+      backgroundCloud: false # with a cloud model, also run in the background without asking each time
+      maxPerRun: 50
+    tidy:
+      enabled: false
+      model: null
+    draft:
+      enabled: false
+      model: null
 `;
 
 /** config.yaml was written by a newer BragDoc: refuse to start (the CLI prints the message and exits 1). */
