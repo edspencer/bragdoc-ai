@@ -1,0 +1,846 @@
+{
+  "anchor": "2026-10-16",
+  "companies": [
+    {
+      "key": "quill",
+      "name": "Quillfeather",
+      "role": "Software Engineer II",
+      "start": "2025-02-03",
+      "end": "2026-07-17"
+    },
+    {
+      "key": "alti",
+      "name": "Altimetry",
+      "role": "Senior Software Engineer",
+      "start": "2026-08-03"
+    }
+  ],
+  "repos": [
+    {
+      "key": "checklist-engine",
+      "remoteUrl": "https://github.com/altimetry-example/checklist-engine"
+    },
+    {
+      "key": "ops-api",
+      "remoteUrl": "https://github.com/altimetry-example/ops-api"
+    },
+    {
+      "key": "pager-bot",
+      "remoteUrl": "https://github.com/altimetry-example/pager-bot"
+    },
+    {
+      "key": "preflight-web",
+      "remoteUrl": "https://github.com/altimetry-example/preflight-web"
+    },
+    {
+      "key": "billing-core",
+      "remoteUrl": "https://github.com/quillfeather-example/billing-core"
+    },
+    {
+      "key": "search-service",
+      "remoteUrl": "https://github.com/quillfeather-example/search-service"
+    },
+    {
+      "key": "web",
+      "remoteUrl": "https://github.com/quillfeather-example/web"
+    }
+  ],
+  "projects": [
+    {
+      "key": "search",
+      "name": "Search relevance v2",
+      "description": "Rebuild ranking for the article search: hybrid BM25 + embeddings, offline eval harness, p95 latency budget.",
+      "color": "#3b6cf6",
+      "start": "2026-03-30",
+      "end": "2026-06-26",
+      "company": "quill",
+      "repos": [
+        "search-service",
+        "web"
+      ]
+    },
+    {
+      "key": "billing",
+      "name": "Billing migration",
+      "description": "Move subscriptions off the legacy invoicing system with a dual-write cutover and zero customer-facing errors.",
+      "color": "#f5a524",
+      "start": "2026-05-11",
+      "end": "2026-07-17",
+      "company": "quill",
+      "repos": [
+        "billing-core",
+        "web"
+      ]
+    },
+    {
+      "key": "ramp",
+      "name": "Ramp-up & onboarding",
+      "description": "First month at Altimetry: dev environment, on-call shadowing, first production changes.",
+      "color": "#2fb37e",
+      "start": "2026-08-03",
+      "end": "2026-08-28",
+      "company": "alti",
+      "repos": [
+        "ops-api"
+      ]
+    },
+    {
+      "key": "incident",
+      "name": "Incident tooling",
+      "description": "Pager bot, incident timelines and postmortem exports for the operations team.",
+      "color": "#a25ddc",
+      "start": "2026-08-17",
+      "company": "alti",
+      "repos": [
+        "pager-bot",
+        "ops-api"
+      ]
+    },
+    {
+      "key": "preflight",
+      "name": "Pre-flight checklist",
+      "description": "Digital pre-flight checklists for crews: offline-first tablet app, sign-off audit trail, regulator export.",
+      "color": "#14a3a3",
+      "start": "2026-09-07",
+      "company": "alti",
+      "repos": [
+        "preflight-web",
+        "checklist-engine"
+      ]
+    }
+  ],
+  "achievements": [
+    {
+      "key": "a42",
+      "title": "Demoed offline sync at the company all-hands",
+      "summary": "Ten minutes, live, with the tablet in airplane mode. Three other teams asked how to reuse the sync engine.",
+      "happenedAt": "2026-10-15",
+      "impact": 5,
+      "projects": [
+        "preflight"
+      ],
+      "repos": [],
+      "source": "manual",
+      "evidence": [
+        {
+          "kind": "quote",
+          "text": "Airplane mode, live, on stage. Respect.",
+          "from": "Rafael Ortiz",
+          "where": "#all-hands"
+        }
+      ]
+    },
+    {
+      "key": "a41",
+      "title": "Paired with Jo on their first pager-bot change",
+      "summary": "New starter on the ops team. Shipped their first PR on day three.",
+      "happenedAt": "2026-10-14",
+      "impact": 3,
+      "projects": [
+        "incident"
+      ],
+      "repos": [
+        "pager-bot"
+      ],
+      "source": "manual",
+      "evidence": []
+    },
+    {
+      "key": "a40",
+      "title": "Offline checklist sync survived its first real weekend",
+      "summary": "Crews at the pilot base ran 140 checklists over the weekend on flaky hangar Wi-Fi. Zero sync conflicts, zero lost sign-offs.",
+      "happenedAt": "2026-10-13",
+      "impact": 8,
+      "projects": [
+        "preflight"
+      ],
+      "repos": [
+        "preflight-web",
+        "checklist-engine"
+      ],
+      "source": "paste",
+      "evidence": [
+        {
+          "kind": "file",
+          "file": "evidence/slack-preflight.png",
+          "title": "Chat message from Imani Brooks praising the offline sync"
+        },
+        {
+          "kind": "github_pr",
+          "repo": "altimetry-example/checklist-engine",
+          "number": 218,
+          "title": "CRDT merge for checklist item state",
+          "mergedAt": "2026-10-08",
+          "additions": 912,
+          "deletions": 140
+        }
+      ]
+    },
+    {
+      "key": "a39",
+      "title": "Sign-off audit trail export for the regulator",
+      "summary": "PDF + CSV export of every sign-off with tamper-evident hashes. Unblocked the compliance review.",
+      "happenedAt": "2026-10-09",
+      "impact": 7,
+      "projects": [
+        "preflight"
+      ],
+      "repos": [
+        "preflight-web"
+      ],
+      "source": "github-pr",
+      "evidence": [
+        {
+          "kind": "github_pr",
+          "repo": "altimetry-example/preflight-web",
+          "number": 342,
+          "title": "Audit trail export (PDF/CSV) with hash chain",
+          "mergedAt": "2026-10-09",
+          "additions": 640,
+          "deletions": 58
+        },
+        {
+          "kind": "file",
+          "file": "evidence/audit-export-sample.csv"
+        }
+      ]
+    },
+    {
+      "key": "a38",
+      "title": "Ran the checklist design review with crew leads",
+      "summary": "Walked six crew leads through v3 of the design doc; folded their feedback into the tablet layout.",
+      "happenedAt": "2026-10-02",
+      "impact": 5,
+      "projects": [
+        "preflight"
+      ],
+      "repos": [],
+      "source": "manual",
+      "evidence": [
+        {
+          "kind": "file",
+          "file": "evidence/preflight-design-v3.pdf",
+          "title": "Pre-flight checklist — design doc v3"
+        }
+      ]
+    },
+    {
+      "key": "a37",
+      "title": "Tablet checklist UI in front of pilots",
+      "summary": "First usable build of the tablet checklist. Big tap targets, glove-friendly, works in direct sunlight.",
+      "happenedAt": "2026-09-25",
+      "impact": 6,
+      "projects": [
+        "preflight"
+      ],
+      "repos": [
+        "preflight-web"
+      ],
+      "source": "paste",
+      "evidence": [
+        {
+          "kind": "file",
+          "file": "evidence/slack-design.png",
+          "title": "Chat message from Sun-hee Lim about glove mode"
+        },
+        {
+          "kind": "file",
+          "file": "evidence/preflight-ui.png",
+          "title": "Screenshot of the tablet pre-flight checklist"
+        }
+      ]
+    },
+    {
+      "key": "a36",
+      "title": "Checklist engine: typed schema for every aircraft variant",
+      "summary": "Replaced 31 hand-written JSON checklists with one typed schema and per-variant overrides; caught 4 inconsistent steps.",
+      "happenedAt": "2026-09-18",
+      "impact": 6,
+      "projects": [
+        "preflight"
+      ],
+      "repos": [
+        "checklist-engine"
+      ],
+      "source": "mcp",
+      "sourceAgent": "Claude Code",
+      "evidence": [
+        {
+          "kind": "github_pr",
+          "repo": "altimetry-example/checklist-engine",
+          "number": 187,
+          "title": "Typed checklist schema + variant overrides",
+          "mergedAt": "2026-09-18",
+          "additions": 1480,
+          "deletions": 2210
+        }
+      ]
+    },
+    {
+      "key": "a35",
+      "title": "Kicked off the pre-flight checklist project",
+      "summary": "Wrote the one-pager, agreed scope with Imani (PM) and Sun-hee (design). Offline-first was my call.",
+      "happenedAt": "2026-09-08",
+      "impact": 5,
+      "projects": [
+        "preflight"
+      ],
+      "repos": [],
+      "source": "manual",
+      "evidence": [
+        {
+          "kind": "url",
+          "url": "https://docs.altimetry.example/preflight/one-pager",
+          "title": "Pre-flight checklist — one-pager"
+        }
+      ]
+    },
+    {
+      "key": "a34",
+      "title": "Pager bot now drafts the incident timeline",
+      "summary": "Timeline export collects pages, deploys and Slack decisions into one doc. Postmortem prep went from half a day to 20 minutes.",
+      "happenedAt": "2026-10-06",
+      "impact": 7,
+      "projects": [
+        "incident"
+      ],
+      "repos": [
+        "pager-bot"
+      ],
+      "source": "github-pr",
+      "evidence": [
+        {
+          "kind": "file",
+          "file": "evidence/slack-incident.png",
+          "title": "Chat message from Oskar Lindqvist about the timeline export"
+        },
+        {
+          "kind": "github_pr",
+          "repo": "altimetry-example/pager-bot",
+          "number": 64,
+          "title": "Timeline export: pages + deploys + decisions",
+          "mergedAt": "2026-10-06",
+          "additions": 530,
+          "deletions": 41
+        }
+      ]
+    },
+    {
+      "key": "a33",
+      "title": "Incident commander for INC-2291 (ops-api brownout)",
+      "summary": "Led a 47-minute incident: identified the connection-pool leak, coordinated rollback, wrote the postmortem.",
+      "happenedAt": "2026-09-29",
+      "impact": 7,
+      "projects": [
+        "incident"
+      ],
+      "repos": [
+        "ops-api"
+      ],
+      "source": "manual",
+      "evidence": [
+        {
+          "kind": "file",
+          "file": "evidence/INC-2291-postmortem.pdf",
+          "title": "INC-2291 postmortem — ops-api brownout"
+        },
+        {
+          "kind": "quote",
+          "text": "Calmest IC I have seen in a while. Clear updates every 10 minutes.",
+          "from": "Rafael Ortiz",
+          "where": "#incidents"
+        }
+      ]
+    },
+    {
+      "key": "a32",
+      "title": "Paging noise down 38% after alert audit",
+      "summary": "Audited 112 alerts with Oskar; deleted 29, re-tuned 17. Weekly pages fell from 52 to 32.",
+      "happenedAt": "2026-09-15",
+      "impact": 6,
+      "projects": [
+        "incident"
+      ],
+      "repos": [
+        "pager-bot"
+      ],
+      "source": "paste",
+      "evidence": [
+        {
+          "kind": "file",
+          "file": "evidence/pages-chart.png",
+          "title": "Chart of weekly pages falling from 52 to 32"
+        }
+      ]
+    },
+    {
+      "key": "a31",
+      "title": "Pager bot: acknowledge from Slack",
+      "summary": "One-click ack button in the alert message.",
+      "happenedAt": "2026-08-27",
+      "impact": 4,
+      "projects": [
+        "incident"
+      ],
+      "repos": [
+        "pager-bot"
+      ],
+      "source": "github-pr",
+      "evidence": [
+        {
+          "kind": "github_pr",
+          "repo": "altimetry-example/pager-bot",
+          "number": 41,
+          "title": "Slack ack button for pages",
+          "mergedAt": "2026-08-27",
+          "additions": 188,
+          "deletions": 12
+        }
+      ]
+    },
+    {
+      "key": "a30",
+      "title": "Joined the on-call rotation",
+      "summary": "Shadowed two weeks, then took primary. Wrote down everything that confused me as a runbook PR.",
+      "happenedAt": "2026-08-20",
+      "impact": 4,
+      "projects": [
+        "incident",
+        "ramp"
+      ],
+      "repos": [
+        "ops-api"
+      ],
+      "source": "manual",
+      "evidence": [
+        {
+          "kind": "github_pr",
+          "repo": "altimetry-example/ops-api",
+          "number": 903,
+          "title": "Runbook: what a new on-call actually needs to know",
+          "mergedAt": "2026-08-21",
+          "additions": 310,
+          "deletions": 22
+        }
+      ]
+    },
+    {
+      "key": "a29",
+      "title": "First production change at Altimetry, day 6",
+      "summary": "Fixed timezone handling on crew duty reports (UTC vs local base time).",
+      "happenedAt": "2026-08-11",
+      "impact": 3,
+      "projects": [
+        "ramp"
+      ],
+      "repos": [
+        "ops-api"
+      ],
+      "source": "github-pr",
+      "evidence": [
+        {
+          "kind": "github_pr",
+          "repo": "altimetry-example/ops-api",
+          "number": 871,
+          "title": "Duty reports: use base-local time for day boundaries",
+          "mergedAt": "2026-08-11",
+          "additions": 64,
+          "deletions": 19
+        }
+      ]
+    },
+    {
+      "key": "a28",
+      "title": "Dev environment setup cut from a day to 25 minutes",
+      "summary": "Turned the wiki page into a devcontainer + seed script. Next two hires used it on day one.",
+      "happenedAt": "2026-08-14",
+      "impact": 5,
+      "projects": [
+        "ramp"
+      ],
+      "repos": [
+        "ops-api"
+      ],
+      "source": "manual",
+      "evidence": [
+        {
+          "kind": "quote",
+          "text": "New-hire setup in 25 minutes?! Alex, this is great.",
+          "from": "Imani Brooks",
+          "where": "#eng-general"
+        }
+      ]
+    },
+    {
+      "key": "a27",
+      "title": "Started at Altimetry",
+      "summary": "Senior Software Engineer, operations platform team.",
+      "happenedAt": "2026-08-03",
+      "impact": 2,
+      "projects": [
+        "ramp"
+      ],
+      "repos": [],
+      "source": "manual",
+      "evidence": []
+    },
+    {
+      "key": "a26",
+      "title": "Handover doc for the billing system",
+      "summary": "Wrote a 9-page handover before leaving: architecture, runbooks, the three things that will page you.",
+      "happenedAt": "2026-07-16",
+      "impact": 5,
+      "projects": [
+        "billing"
+      ],
+      "repos": [],
+      "source": "manual",
+      "evidence": [
+        {
+          "kind": "file",
+          "file": "evidence/billing-handover.pdf",
+          "title": "Billing core — handover notes"
+        }
+      ]
+    },
+    {
+      "key": "a25",
+      "title": "Billing cutover with zero customer-facing errors",
+      "summary": "41k subscriptions moved off the legacy invoicer. Dual-write for 3 weeks, then a 12-minute cutover.",
+      "happenedAt": "2026-07-07",
+      "impact": 9,
+      "projects": [
+        "billing"
+      ],
+      "repos": [
+        "billing-core"
+      ],
+      "source": "paste",
+      "evidence": [
+        {
+          "kind": "file",
+          "file": "evidence/slack-billing.png",
+          "title": "Chat message from Dana Whitfield thanking Alex for the cutover"
+        },
+        {
+          "kind": "github_pr",
+          "repo": "quillfeather-example/billing-core",
+          "number": 512,
+          "title": "Cutover: flip read path to new ledger",
+          "mergedAt": "2026-07-07",
+          "additions": 96,
+          "deletions": 402
+        }
+      ]
+    },
+    {
+      "key": "a24",
+      "title": "Reconciliation job caught a 0.3% drift before cutover",
+      "summary": "Nightly diff between old and new ledgers found a proration rounding bug that would have hit 120 customers.",
+      "happenedAt": "2026-06-24",
+      "impact": 7,
+      "projects": [
+        "billing"
+      ],
+      "repos": [
+        "billing-core"
+      ],
+      "source": "github-pr",
+      "evidence": [
+        {
+          "kind": "github_pr",
+          "repo": "quillfeather-example/billing-core",
+          "number": 488,
+          "title": "Nightly ledger reconciliation + drift report",
+          "mergedAt": "2026-06-22",
+          "additions": 420,
+          "deletions": 8
+        }
+      ]
+    },
+    {
+      "key": "a23",
+      "title": "Dual-write plan approved by finance",
+      "summary": "Got sign-off from finance and support on the migration plan and rollback criteria.",
+      "happenedAt": "2026-06-03",
+      "impact": 6,
+      "projects": [
+        "billing"
+      ],
+      "repos": [],
+      "source": "manual",
+      "evidence": [
+        {
+          "kind": "file",
+          "file": "evidence/billing-migration-plan.pdf",
+          "title": "Billing migration — dual-write plan"
+        }
+      ]
+    },
+    {
+      "key": "a22",
+      "title": "Billing: idempotent webhook handler",
+      "summary": "Duplicate payment-provider webhooks no longer create duplicate invoices.",
+      "happenedAt": "2026-05-21",
+      "impact": 5,
+      "projects": [
+        "billing"
+      ],
+      "repos": [
+        "billing-core"
+      ],
+      "source": "github-pr",
+      "evidence": [
+        {
+          "kind": "github_pr",
+          "repo": "quillfeather-example/billing-core",
+          "number": 455,
+          "title": "Idempotency keys on webhook ingestion",
+          "mergedAt": "2026-05-21",
+          "additions": 233,
+          "deletions": 61
+        }
+      ]
+    },
+    {
+      "key": "a21",
+      "title": "Hybrid ranking shipped to 100%",
+      "summary": "Search click-through up 14%, zero-result queries down by a third. p95 stayed under the 180 ms budget.",
+      "happenedAt": "2026-06-17",
+      "impact": 9,
+      "projects": [
+        "search"
+      ],
+      "repos": [
+        "search-service",
+        "web"
+      ],
+      "source": "manual",
+      "evidence": [
+        {
+          "kind": "file",
+          "file": "evidence/search-latency.png",
+          "title": "Dashboard: search p95 latency and click-through"
+        },
+        {
+          "kind": "url",
+          "url": "https://blog.quillfeather.example/engineering/hybrid-search",
+          "title": "How we rebuilt search ranking"
+        }
+      ]
+    },
+    {
+      "key": "a20",
+      "title": "Wrote the engineering blog post on hybrid search",
+      "summary": "Co-wrote with Theo. 9k reads in the first week, picked up by two newsletters.",
+      "happenedAt": "2026-06-24",
+      "impact": 5,
+      "projects": [
+        "search"
+      ],
+      "repos": [],
+      "source": "manual",
+      "evidence": [
+        {
+          "kind": "url",
+          "url": "https://blog.quillfeather.example/engineering/hybrid-search",
+          "title": "How we rebuilt search ranking"
+        }
+      ]
+    },
+    {
+      "key": "a19",
+      "title": "A/B test: hybrid ranking beats BM25 on every segment",
+      "summary": "Two-week test, 1.2M sessions. Biggest win on long-tail queries.",
+      "happenedAt": "2026-06-05",
+      "impact": 6,
+      "projects": [
+        "search"
+      ],
+      "repos": [
+        "search-service"
+      ],
+      "source": "manual",
+      "evidence": []
+    },
+    {
+      "key": "a18",
+      "title": "p95 search latency 410 ms → 160 ms",
+      "summary": "Moved embedding lookups behind a warm cache and batched the re-ranker. Paid for the hybrid ranking budget.",
+      "happenedAt": "2026-05-27",
+      "impact": 8,
+      "projects": [
+        "search"
+      ],
+      "repos": [
+        "search-service"
+      ],
+      "source": "github-pr",
+      "evidence": [
+        {
+          "kind": "github_pr",
+          "repo": "quillfeather-example/search-service",
+          "number": 1204,
+          "title": "Batch re-ranker calls; warm embedding cache",
+          "mergedAt": "2026-05-27",
+          "additions": 380,
+          "deletions": 155
+        },
+        {
+          "kind": "quote",
+          "text": "That latency graph is the nicest thing I have seen all quarter.",
+          "from": "Theo Park",
+          "where": "#search"
+        }
+      ]
+    },
+    {
+      "key": "a17",
+      "title": "Offline evaluation harness for ranking",
+      "summary": "nDCG@10 on 4k judged queries, runs in CI in 6 minutes. The team now argues with numbers instead of vibes.",
+      "happenedAt": "2026-05-08",
+      "impact": 7,
+      "projects": [
+        "search"
+      ],
+      "repos": [
+        "search-service"
+      ],
+      "source": "manual",
+      "evidence": [
+        {
+          "kind": "file",
+          "file": "evidence/search-offline-eval.pdf",
+          "title": "Search relevance — offline evaluation method"
+        },
+        {
+          "kind": "github_pr",
+          "repo": "quillfeather-example/search-service",
+          "number": 1161,
+          "title": "Offline eval harness (nDCG@10) in CI",
+          "mergedAt": "2026-05-08",
+          "additions": 760,
+          "deletions": 30
+        }
+      ]
+    },
+    {
+      "key": "a16",
+      "title": "Mentored Jun through their first on-call",
+      "summary": "Pairing sessions twice a week; Jun handled their first page solo by week three.",
+      "happenedAt": "2026-05-01",
+      "impact": 4,
+      "projects": [],
+      "repos": [],
+      "source": "manual",
+      "evidence": [
+        {
+          "kind": "quote",
+          "text": "Thank you for being so patient with my 2am questions!",
+          "from": "Jun Takeda",
+          "where": "DM"
+        }
+      ]
+    },
+    {
+      "key": "a15",
+      "title": "Search query logging without PII",
+      "summary": "Hashed identifiers and redaction so the eval set could be built legally.",
+      "happenedAt": "2026-04-23",
+      "impact": 5,
+      "projects": [
+        "search"
+      ],
+      "repos": [
+        "search-service"
+      ],
+      "source": "github-pr",
+      "evidence": [
+        {
+          "kind": "github_pr",
+          "repo": "quillfeather-example/search-service",
+          "number": 1133,
+          "title": "Redacted query log pipeline",
+          "mergedAt": "2026-04-23",
+          "additions": 290,
+          "deletions": 44
+        }
+      ]
+    },
+    {
+      "key": "a14",
+      "title": "Gave the search guild talk on embeddings",
+      "summary": "45 minutes, 60 attendees, recording now part of onboarding.",
+      "happenedAt": "2026-04-29",
+      "impact": 3,
+      "projects": [
+        "search"
+      ],
+      "repos": [],
+      "source": "manual",
+      "evidence": []
+    },
+    {
+      "key": "a13",
+      "title": "Fixed flaky checkout tests blocking every deploy",
+      "summary": "Deterministic clock and seeded fixtures; flake rate from 9% to 0.",
+      "happenedAt": "2026-07-01",
+      "impact": 4,
+      "projects": [
+        "billing"
+      ],
+      "repos": [
+        "web"
+      ],
+      "source": "github-pr",
+      "evidence": [
+        {
+          "kind": "github_pr",
+          "repo": "quillfeather-example/web",
+          "number": 2290,
+          "title": "Deflake checkout e2e suite",
+          "mergedAt": "2026-07-01",
+          "additions": 120,
+          "deletions": 210
+        }
+      ]
+    },
+    {
+      "key": "a12",
+      "title": "Interviewed 6 candidates for the search team",
+      "summary": "Two hires. Rewrote the system-design question so it fits in 45 minutes.",
+      "happenedAt": "2026-06-11",
+      "impact": 3,
+      "projects": [],
+      "repos": [],
+      "source": "manual",
+      "evidence": []
+    },
+    {
+      "key": "a11",
+      "title": "Altimetry ops-api: N+1 query fix on crew roster",
+      "summary": "Roster endpoint from 2.4 s to 140 ms by preloading assignments.",
+      "happenedAt": "2026-09-03",
+      "impact": 4,
+      "projects": [
+        "incident"
+      ],
+      "repos": [
+        "ops-api"
+      ],
+      "source": "mcp",
+      "sourceAgent": "Claude Code",
+      "evidence": [
+        {
+          "kind": "github_pr",
+          "repo": "altimetry-example/ops-api",
+          "number": 948,
+          "title": "Preload assignments on roster endpoint",
+          "mergedAt": "2026-09-03",
+          "additions": 42,
+          "deletions": 17
+        }
+      ]
+    }
+  ]
+}

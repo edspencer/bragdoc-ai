@@ -1,0 +1,41 @@
+%PDF-1.4
+1 0 obj
+<< /Type /Catalog /Pages 2 0 R >>
+endobj
+2 0 obj
+<< /Type /Pages /Kids [3 0 R] /Count 1 >>
+endobj
+3 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Resources << /Font << /F1 5 0 R >> >> /Contents 4 0 R >>
+endobj
+4 0 obj
+<< /Length 469 >>
+stream
+BT /F1 20 Tf 72 720 Td (Search relevance: offline evaluation) Tj ET
+BT /F1 12 Tf 72 680 Td (Metric: nDCG@10 over 4,000 judged queries.) Tj ET
+BT /F1 12 Tf 72 658 Td (Judgements: three raters per query, majority label.) Tj ET
+BT /F1 12 Tf 72 636 Td (Runs in CI in about 6 minutes on every ranking change.) Tj ET
+BT /F1 12 Tf 72 614 Td (Baseline BM25: 0.412. Hybrid ranking: 0.468.) Tj ET
+BT /F1 9 Tf 72 72 Td (Example data: everything in this document is made up.) Tj ET
+endstream
+endobj
+5 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>
+endobj
+6 0 obj
+<< /Title (Search relevance: offline evaluation) /Producer (BragDoc example data) >>
+endobj
+xref
+0 7
+0000000000 65535 f 
+0000000009 00000 n 
+0000000058 00000 n 
+0000000115 00000 n 
+0000000241 00000 n 
+0000000761 00000 n 
+0000000831 00000 n 
+trailer
+<< /Size 7 /Root 1 0 R /Info 6 0 R >>
+startxref
+931
+%%EOF

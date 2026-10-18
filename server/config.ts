@@ -72,6 +72,8 @@ export const ConfigSchema = z.object({
       })
       .prefault({}),
   ),
+  /** The welcome steps (PR16): shown on first run, while there's no profile.yaml, unless you skipped them. */
+  welcome: section(z.object({ skipped: z.boolean().default(false) }).prefault({})),
 });
 export type Config = z.infer<typeof ConfigSchema>;
 
@@ -96,6 +98,9 @@ sources:
     lookBackDays: 90 # how far back the first check looks
     repos: []        # owners or owner/repo to look in, e.g. [acme, my-org/my-app]; empty: everywhere you merged
     hourly: false    # check by itself every hour while BragDoc runs (off: only when you press Check now)
+
+welcome:
+  skipped: false   # true once you skip the welcome steps (they show while there's no profile.yaml)
 `;
 
 /** config.yaml was written by a newer BragDoc: refuse to start (the CLI prints the message and exits 1). */
