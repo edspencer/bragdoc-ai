@@ -249,7 +249,9 @@ export function createJudge(deps: JudgeDeps): JudgeEngine {
     if (c.source !== 'screenshots' && c.source !== 'github') throw new NotJudgeable(`the judge doesn't judge ${c.source} candidates`);
     const profile: Profile | null = store.profile();
     const projects = judgeProjects(store);
-    const instructions = services.instructions.forPrompt('what-counts');
+    // a broken file with no last good copy (BragDoc started with it broken): the starter from your profile, as the card
+    // says, never nothing at all (PR25)
+    const instructions = services.instructions.forPrompt('what-counts') ?? (store.entry('instructions', 'what-counts')?.problems.length ? whatCountsStarter(profile) : null);
     const base: Omit<JudgePromptInput, 'input'> = { profile, projects: projects.map((p) => p.name), instructions };
     const promptOf = c.source === 'github' ? judgeGithubPrompt : judgeScreenshotPrompt;
     let input: JudgeInput;

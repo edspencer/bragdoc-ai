@@ -506,6 +506,26 @@ describe('a cloud model', () => {
   });
 });
 
+describe('a broken ai/what-counts.md', () => {
+  test('with no last good copy (started broken), the judge uses the starter from the profile', async () => {
+    const r = await rig();
+    try {
+      const c = r.shot();
+      r.ctx.judge.ensureInstructions();
+      // broken on disk, in a fresh store that never saw it whole
+      fs.writeFileSync(path.join(r.dir, 'ai', 'what-counts.md'), '---\ntitle: [unclosed\n---\nmine\n');
+      const { ctx } = createAppWithContext({ dataDir: r.dir, webDist: null, config: r.config, ocr: r.ctx.ocr });
+      assert.ok(ctx.store.entry('instructions', 'what-counts')?.problems.length, 'a Problem');
+      const p = await ctx.judge.preview(c.id);
+      assert.match(p.system + p.prompt, /I'm Alex Marlowe/, 'the starter, written from the profile');
+      assert.doesNotMatch(p.system + p.prompt, /hasn't written instructions/);
+      ctx.judge.close();
+    } finally {
+      await r.close();
+    }
+  });
+});
+
 describe('agreement, and Dismiss these N', () => {
   test('a keep or dismiss of a judged candidate counts; Undo takes it back; an unjudged one never counts', async () => {
     const r = await rig();

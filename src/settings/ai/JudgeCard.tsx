@@ -286,7 +286,7 @@ function WhatCountsEditor() {
       <TextArea value={value} onChange={(e) => setText(e.target.value)} rows={8} readOnly={file.readOnly} aria-label="What counts as a win for me" className="font-mono text-[12.5px]" data-testid="ai-judge-what-counts-text" />
       {file.problems.length > 0 && (
         <p className="m-0 text-[12px] text-warn" role="status" data-testid="ai-judge-what-counts-problem">
-          ai/what-counts.md has a problem: {file.problems[0]!.message}. {file.body ? 'The judge uses the last good copy until it’s fixed.' : 'Until it’s fixed, the judge uses its built-in guidance instead of your file.'}
+          ai/what-counts.md has a problem: {file.problems[0]!.message}. {file.body ? 'The judge uses the last good copy until it’s fixed.' : 'Until it’s fixed, the judge uses the starter (written from your profile) instead.'}
         </p>
       )}
       {conflict && (
