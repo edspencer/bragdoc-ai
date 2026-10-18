@@ -23,7 +23,8 @@ test.beforeAll(async ({ request }) => {
   fs.writeFileSync(path.join(scratch, 'my-app', '.git', 'config'), '[remote "origin"]\n\turl = git@github.com:example/my-app.git\n');
   fs.mkdirSync(path.join(scratch, 'plain'));
 });
-test.afterAll(() => fs.rmSync(scratch, { recursive: true, force: true }));
+// beforeAll may not have run in this worker (a retry after another spec's failure): nothing to clean up then
+test.afterAll(() => scratch && fs.rmSync(scratch, { recursive: true, force: true }));
 
 test('zero projects: an empty state that leads to New project', async ({ page }) => {
   await page.goto('/projects');

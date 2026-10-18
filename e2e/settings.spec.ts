@@ -56,8 +56,10 @@ test('Data: a hand-broken file appears on the Problems list live, and goes when 
   }
 });
 
-test('Sources: the MCP token shows, copies and rotates; writeTo saves to config.yaml', async ({ page, context }) => {
-  await context.grantPermissions(['clipboard-read', 'clipboard-write']);
+test('Sources: the MCP token shows, copies and rotates; writeTo saves to config.yaml', async ({ page, context, browserName }) => {
+  // only Chromium lets a test read the clipboard back (Firefox has no clipboard-read permission to grant)
+  const clipboard = browserName === 'chromium';
+  if (clipboard) await context.grantPermissions(['clipboard-read', 'clipboard-write']);
   await page.goto('/settings/sources');
   await expect(page.getByTestId('source-github')).toContainText('Off');
   await expect(page.getByTestId('mcp-url')).toHaveText(/\/mcp$/);
@@ -66,8 +68,10 @@ test('Sources: the MCP token shows, copies and rotates; writeTo saves to config.
   await page.getByRole('button', { name: 'Show' }).click();
   const before = (await token.textContent())!;
   expect(before).not.toMatch(/•/);
-  await page.getByTestId('copy-mcp-token').click();
-  expect(await page.evaluate(() => navigator.clipboard.readText())).toBe(before);
+  if (clipboard) {
+    await page.getByTestId('copy-mcp-token').click();
+    expect(await page.evaluate(() => navigator.clipboard.readText())).toBe(before);
+  }
 
   await page.getByTestId('rotate-token').click();
   await page.getByTestId('rotate-confirm-yes').click();
