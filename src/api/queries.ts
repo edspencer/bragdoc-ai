@@ -6,6 +6,7 @@ import type { AiInstructionsName, FoundSourceName } from '../../shared/api.ts';
 import { getDiscoverSuggestions, getExample, getProfile, getWelcome, getAchievements, getBackups, getCompanies, getFolio, getFound, getFoundCount, getGhInstalled, getSources, getHealth, getMcpToken, getMeta, getNetworkLog, getProblems, getProjectSummary, getProjects, getRepos, getSettings, getEvidenceOcr, getScreenshotSuggestions, isApiError, type AchievementFilters } from './client.ts';
 import { getAiActivity, getAiInstructions } from './client.ts';
 import { getAi, getAiDetect, getAiHardware, getAiModels } from './client.ts';
+import { getJudgeStatus } from './client.ts';
 
 export const queryKeys = {
   health: ['health'] as const,
@@ -48,6 +49,8 @@ export const queryKeys = {
   // AI plumbing (PR22): refreshed by the `instructions` and `ai-activity` events
   aiInstructions: (name: string) => ['ai-instructions', name] as const,
   aiActivity: (limit: number) => ['ai-activity', limit] as const,
+  // the judge (PR24): refreshed by the `ai-judge` event (a run's progress) and by `found` (what's waiting)
+  judgeStatus: ['ai-judge', 'status'] as const,
 };
 
 export function createQueryClient(): QueryClient {
@@ -252,4 +255,11 @@ export function useAiInstructions(name: AiInstructionsName, enabled = true) {
 /** The newest `limit` lines of the AI activity log. Live: each new line refreshes it. */
 export function useAiActivity(limit = 50) {
   return useQuery({ queryKey: queryKeys.aiActivity(limit), queryFn: ({ signal }) => getAiActivity({ limit }, signal) });
+}
+
+// the judge (PR24)
+
+/** Can the judge run, what's waiting, and the run in progress. Live: the `ai-judge` event refreshes it. */
+export function useJudgeStatus() {
+  return useQuery({ queryKey: queryKeys.judgeStatus, queryFn: ({ signal }) => getJudgeStatus(signal), retry: false });
 }

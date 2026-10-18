@@ -1,0 +1,2499 @@
+{
+  "format": 1,
+  "eval": "judge",
+  "feature": "judge",
+  "model": "qwen3.5:4b",
+  "where": "this-computer",
+  "recordedAt": "2026-10-18T20:16:14.140Z",
+  "cases": [
+    {
+      "id": "m001",
+      "calls": []
+    },
+    {
+      "id": "m002",
+      "calls": []
+    },
+    {
+      "id": "m003",
+      "calls": []
+    },
+    {
+      "id": "m004",
+      "calls": []
+    },
+    {
+      "id": "m005",
+      "calls": []
+    },
+    {
+      "id": "m006",
+      "calls": [
+        {
+          "hash": "sha256:42f22ec2be498192394e788917572467b5c2a8a867009464d7db2f79070a97d8",
+          "shape": "sha256:273a5004bcbedd286f44b82991406c0de156eeee97fa8ef647ed71cf14029714",
+          "answer": {
+            "keep": true,
+            "confidence": 1,
+            "quote": "Battery usage dropped 18% on Android with AM's background sync batching. Play Store rating went from 3.9 to 4.4 this month 🙌",
+            "from": "Chris Alvarez",
+            "why": "This message shows clear impact of the user's work on mobile performance and customer satisfaction.",
+            "projects": [
+              "Mobile Offline Sync"
+            ]
+          },
+          "ms": 45919,
+          "tokensIn": 939,
+          "tokensOut": 109
+        }
+      ]
+    },
+    {
+      "id": "m007",
+      "calls": []
+    },
+    {
+      "id": "m008",
+      "calls": [
+        {
+          "hash": "sha256:b723dc45f66796518589bbf31042b4275d714041cc54c1b88273568115fa226a",
+          "shape": "sha256:273a5004bcbedd286f44b82991406c0de156eeee97fa8ef647ed71cf14029714",
+          "answer": {
+            "keep": true,
+            "confidence": 0.9,
+            "quote": "Appreciate you jumping on this so late.",
+            "from": "Priya Raman",
+            "why": "Acknowledges the user's effort in handling a late-night incident.",
+            "projects": [
+              "On-call & Incidents"
+            ]
+          },
+          "ms": 37452,
+          "tokensIn": 943,
+          "tokensOut": 85
+        }
+      ]
+    },
+    {
+      "id": "m009",
+      "calls": []
+    },
+    {
+      "id": "m010",
+      "calls": [
+        {
+          "hash": "sha256:6b4bb40830f6f5c378b8528421c431bfb8240f58c620320f89e3ca5d646ea48c",
+          "shape": "sha256:273a5004bcbedd286f44b82991406c0de156eeee97fa8ef647ed71cf14029714",
+          "answer": {
+            "keep": true,
+            "confidence": 1,
+            "quote": "I got the offer to move up to Engineer II!! honestly your mentoring these last 6 months is a big reason why.",
+            "from": "Taylor Nguyen",
+            "why": "Taylor explicitly credits Alex's mentoring for her promotion.",
+            "projects": [
+              "Mentoring"
+            ]
+          },
+          "ms": 40506,
+          "tokensIn": 931,
+          "tokensOut": 91
+        }
+      ]
+    },
+    {
+      "id": "m011",
+      "calls": []
+    },
+    {
+      "id": "m012",
+      "calls": [
+        {
+          "hash": "sha256:b916b2244c0bf5441c066dbaa638fb9005125d31d88280deafa662586afedf51",
+          "shape": "sha256:273a5004bcbedd286f44b82991406c0de156eeee97fa8ef647ed71cf14029714",
+          "answer": {
+            "keep": true,
+            "confidence": 1,
+            "quote": "great call, and it worked — latency back to normal and the index is 40% smaller",
+            "from": "Jordan Kim",
+            "why": "Jordan confirms Alex's decision on the Search Relevance project had real impact on performance and size.",
+            "projects": [
+              "Search Relevance"
+            ]
+          },
+          "ms": 40353,
+          "tokensIn": 975,
+          "tokensOut": 98
+        }
+      ]
+    },
+    {
+      "id": "m013",
+      "calls": []
+    },
+    {
+      "id": "m014",
+      "calls": []
+    },
+    {
+      "id": "m015",
+      "calls": []
+    },
+    {
+      "id": "m016",
+      "calls": [
+        {
+          "hash": "sha256:5e180fb6f22c2dcfa4c2903c56ebd04816397a6ff9f5c348ad8deb0dbd480733",
+          "shape": "sha256:273a5004bcbedd286f44b82991406c0de156eeee97fa8ef647ed71cf14029714",
+          "answer": {
+            "keep": true,
+            "confidence": 1,
+            "quote": "Deploy times are down from 41 min to 9 min thanks to the new pipeline @Alex Marlowe and team built.",
+            "from": "Dana Whitfield",
+            "why": "This message explicitly credits the user with a significant performance improvement and quantifies the impact in engineer-hours saved.",
+            "projects": [
+              "Deploy Pipeline"
+            ]
+          },
+          "ms": 77903,
+          "tokensIn": 953,
+          "tokensOut": 105
+        }
+      ]
+    },
+    {
+      "id": "m017",
+      "calls": []
+    },
+    {
+      "id": "m018",
+      "calls": []
+    },
+    {
+      "id": "m019",
+      "calls": [
+        {
+          "hash": "sha256:b34340ae8a8fb3acaf905e4fd7d50e5a97fab76da0b44fa2c3c7b06eb15b2caa",
+          "shape": "sha256:273a5004bcbedd286f44b82991406c0de156eeee97fa8ef647ed71cf14029714",
+          "answer": {
+            "keep": false,
+            "confidence": 0.95,
+            "quote": "",
+            "from": "Chris Alvarez",
+            "why": "Routine scheduling praise without specific work impact or achievement.",
+            "projects": []
+          },
+          "ms": 120827,
+          "tokensIn": 924,
+          "tokensOut": 59
+        }
+      ]
+    },
+    {
+      "id": "m020",
+      "calls": []
+    },
+    {
+      "id": "m021",
+      "calls": []
+    },
+    {
+      "id": "m022",
+      "calls": []
+    },
+    {
+      "id": "m023",
+      "calls": []
+    },
+    {
+      "id": "m024",
+      "calls": []
+    },
+    {
+      "id": "m025",
+      "calls": []
+    },
+    {
+      "id": "m026",
+      "calls": []
+    },
+    {
+      "id": "m027",
+      "calls": []
+    },
+    {
+      "id": "m028",
+      "calls": [
+        {
+          "hash": "sha256:264be82fd752b46310969942a06103fbc829b339c132742cd7b577493b24e6c6",
+          "shape": "sha256:273a5004bcbedd286f44b82991406c0de156eeee97fa8ef647ed71cf14029714",
+          "answer": {
+            "keep": true,
+            "confidence": 1,
+            "quote": "@Alex Marlowe the idempotency-key work just saved us from double-charging ~1,200 customers during the Stripe retry storm.",
+            "from": "Dana Whitfield",
+            "why": "Specific praise for a fix that prevented financial loss for over a thousand customers.",
+            "projects": [
+              "Billing Migration"
+            ]
+          },
+          "ms": 169512,
+          "tokensIn": 944,
+          "tokensOut": 103
+        }
+      ]
+    },
+    {
+      "id": "m029",
+      "calls": []
+    },
+    {
+      "id": "m030",
+      "calls": [
+        {
+          "hash": "sha256:8bb8abdc6b695e254bf46e1d0d4acf14c52c09ba25732763973f47cdb5e4e3bb",
+          "shape": "sha256:273a5004bcbedd286f44b82991406c0de156eeee97fa8ef647ed71cf14029714",
+          "answer": {
+            "keep": true,
+            "confidence": 0.95,
+            "quote": "the status page automation Alex built posted our update 6 minutes after detection",
+            "from": "Riley Brooks",
+            "why": "Shows the impact of user's work by demonstrating faster customer updates and positive reception.",
+            "projects": [
+              "On-call & Incidents"
+            ]
+          },
+          "ms": 113113,
+          "tokensIn": 949,
+          "tokensOut": 93
+        }
+      ]
+    },
+    {
+      "id": "m031",
+      "calls": []
+    },
+    {
+      "id": "m032",
+      "calls": [
+        {
+          "hash": "sha256:45d61a449802f1f83698defef5bd4550504894ae8f4561c6c45e818cc8cccb81",
+          "shape": "sha256:273a5004bcbedd286f44b82991406c0de156eeee97fa8ef647ed71cf14029714",
+          "answer": {
+            "keep": true,
+            "confidence": 0.95,
+            "quote": "\"the new offline mode is the reason we renewed.\", @Alex Marlowe that's your work 🙌",
+            "from": "Nina Osei",
+            "why": "Customer directly credits Alex's offline mode work for a business renewal.",
+            "projects": [
+              "Mobile Offline Sync"
+            ]
+          },
+          "ms": 105454,
+          "tokensIn": 939,
+          "tokensOut": 98
+        }
+      ]
+    },
+    {
+      "id": "m033",
+      "calls": [
+        {
+          "hash": "sha256:96c76ed62461460ac84aede9e5b15fc4d1884d4ca31739342f6e17362577100b",
+          "shape": "sha256:273a5004bcbedd286f44b82991406c0de156eeee97fa8ef647ed71cf14029714",
+          "answer": {
+            "keep": true,
+            "confidence": 1,
+            "quote": "Our NPS for the payments flow jumped from 31 to 47 after the checkout redesign.",
+            "from": "Nina Osei",
+            "why": "Shows clear impact of work on customer satisfaction metrics.",
+            "projects": [
+              "Checkout v2"
+            ]
+          },
+          "ms": 107620,
+          "tokensIn": 944,
+          "tokensOut": 89
+        }
+      ]
+    },
+    {
+      "id": "m034",
+      "calls": []
+    },
+    {
+      "id": "m035",
+      "calls": [
+        {
+          "hash": "sha256:7fe3f0a93fb3371211a6dca0e534cdf93b0e9870726a4e95dc9340f4856d0c1c",
+          "shape": "sha256:273a5004bcbedd286f44b82991406c0de156eeee97fa8ef647ed71cf14029714",
+          "answer": {
+            "keep": false,
+            "confidence": 0.95,
+            "quote": "",
+            "from": "Sam Okafor",
+            "why": "The message is sarcasm/jokes about a merge conflict that took down CI.",
+            "projects": []
+          },
+          "ms": 104980,
+          "tokensIn": 926,
+          "tokensOut": 67
+        }
+      ]
+    },
+    {
+      "id": "m036",
+      "calls": [
+        {
+          "hash": "sha256:44211845df0c9b9725c54cff7ef878e94f40c29aa92c02dec8e7f027c79d7385",
+          "shape": "sha256:273a5004bcbedd286f44b82991406c0de156eeee97fa8ef647ed71cf14029714",
+          "answer": {
+            "keep": true,
+            "confidence": 1,
+            "quote": "Shoutout to Alex for the canary auto-rollback. It caught and reverted a bad deploy at 2am without anyone waking up.",
+            "from": "Omar Haddad",
+            "why": "Recognition of handling an incident that prevented customer impact with zero downtime.",
+            "projects": [
+              "Deploy Pipeline"
+            ]
+          },
+          "ms": 119293,
+          "tokensIn": 939,
+          "tokensOut": 100
+        }
+      ]
+    },
+    {
+      "id": "m037",
+      "calls": []
+    },
+    {
+      "id": "m038",
+      "calls": []
+    },
+    {
+      "id": "m039",
+      "calls": []
+    },
+    {
+      "id": "m040",
+      "calls": [
+        {
+          "hash": "sha256:60803bdf13e10aac9745617470c9a4dd98c6d1ecc683339089b5e42e39da7757",
+          "shape": "sha256:273a5004bcbedd286f44b82991406c0de156eeee97fa8ef647ed71cf14029714",
+          "answer": {
+            "keep": true,
+            "confidence": 0.95,
+            "quote": "This is the kind of cost work that gets noticed — $38k/month saved on DB instances.",
+            "from": "Dana Whitfield",
+            "why": "A manager explicitly recognizes and thanks the user for a specific cost-saving achievement with clear financial impact.",
+            "projects": [
+              "Ledger Platform"
+            ]
+          },
+          "ms": 111038,
+          "tokensIn": 971,
+          "tokensOut": 101
+        }
+      ]
+    },
+    {
+      "id": "m041",
+      "calls": []
+    },
+    {
+      "id": "m042",
+      "calls": []
+    },
+    {
+      "id": "m043",
+      "calls": []
+    },
+    {
+      "id": "m044",
+      "calls": [
+        {
+          "hash": "sha256:f8db3670cfc0c3e11a4e6bb377aadb627582405f1e97cf63a9eeb2cd25e75a91",
+          "shape": "sha256:273a5004bcbedd286f44b82991406c0de156eeee97fa8ef647ed71cf14029714",
+          "answer": {
+            "keep": false,
+            "confidence": 1,
+            "quote": "",
+            "from": "Lee Chen",
+            "why": "This is sarcasm/jokes about a project expansion, not genuine praise or recognition of work impact.",
+            "projects": []
+          },
+          "ms": 107782,
+          "tokensIn": 928,
+          "tokensOut": 68
+        }
+      ]
+    },
+    {
+      "id": "m045",
+      "calls": []
+    },
+    {
+      "id": "m046",
+      "calls": []
+    },
+    {
+      "id": "m047",
+      "calls": []
+    },
+    {
+      "id": "m048",
+      "calls": []
+    },
+    {
+      "id": "m049",
+      "calls": []
+    },
+    {
+      "id": "m050",
+      "calls": [
+        {
+          "hash": "sha256:64242a01c69253613f28451ed07f7f6b658a0d9aa964db92d8a384ab67865bc3",
+          "shape": "sha256:273a5004bcbedd286f44b82991406c0de156eeee97fa8ef647ed71cf14029714",
+          "answer": {
+            "keep": false,
+            "confidence": 0.95,
+            "quote": "",
+            "from": "Omar Haddad",
+            "why": "This is a brief acknowledgment of a previous point, not specific praise or evidence of impact.",
+            "projects": []
+          },
+          "ms": 72519,
+          "tokensIn": 932,
+          "tokensOut": 70
+        }
+      ]
+    },
+    {
+      "id": "m051",
+      "calls": []
+    },
+    {
+      "id": "m052",
+      "calls": []
+    },
+    {
+      "id": "m053",
+      "calls": [
+        {
+          "hash": "sha256:713ba65df7f604f85c4c2387c1d62d76de0394435678e7e91a105d680a187d96",
+          "shape": "sha256:273a5004bcbedd286f44b82991406c0de156eeee97fa8ef647ed71cf14029714",
+          "answer": {
+            "keep": true,
+            "confidence": 0.95,
+            "quote": "@Alex Marlowe thank you for stepping in to lead search while Lee was out. The team hit every milestone and morale is great.",
+            "from": "Priya Raman",
+            "why": "Leadership recognizes the user's impact by highlighting successful milestones and team morale during their leadership.",
+            "projects": [
+              "Search Relevance"
+            ]
+          },
+          "ms": 110595,
+          "tokensIn": 934,
+          "tokensOut": 106
+        }
+      ]
+    },
+    {
+      "id": "m054",
+      "calls": []
+    },
+    {
+      "id": "m055",
+      "calls": []
+    },
+    {
+      "id": "m056",
+      "calls": [
+        {
+          "hash": "sha256:7072070f89eff80272c41db7f834a7852aec42c1bc40599c2a958084ccb6ca76",
+          "shape": "sha256:273a5004bcbedd286f44b82991406c0de156eeee97fa8ef647ed71cf14029714",
+          "answer": {
+            "keep": true,
+            "confidence": 0.95,
+            "quote": "Huge shoutout to @Alex Marlowe for leading the checkout v2 cutover this weekend. Zero downtime, and conversion is already up 3.1% week over week.",
+            "from": "Priya Raman",
+            "why": "Praise for leading a critical project with measurable positive business impact.",
+            "projects": [
+              "Checkout v2"
+            ]
+          },
+          "ms": 108545,
+          "tokensIn": 952,
+          "tokensOut": 113
+        }
+      ]
+    },
+    {
+      "id": "m057",
+      "calls": []
+    },
+    {
+      "id": "m058",
+      "calls": []
+    },
+    {
+      "id": "m059",
+      "calls": []
+    },
+    {
+      "id": "m060",
+      "calls": []
+    },
+    {
+      "id": "m061",
+      "calls": []
+    },
+    {
+      "id": "m062",
+      "calls": [
+        {
+          "hash": "sha256:a44dbc2aa1ec16b2c42cbcc0d613bc167aa87057ccb4c23f87e3612edd7d5bfe",
+          "shape": "sha256:273a5004bcbedd286f44b82991406c0de156eeee97fa8ef647ed71cf14029714",
+          "answer": {
+            "keep": true,
+            "confidence": 1,
+            "quote": "Alex's re-ranker lifted click-through by 12% and zero-result queries dropped by a third.",
+            "from": "Morgan Diaz",
+            "why": "Shows clear impact of the user's work on search performance metrics.",
+            "projects": [
+              "Search Relevance"
+            ]
+          },
+          "ms": 123854,
+          "tokensIn": 946,
+          "tokensOut": 92
+        }
+      ]
+    },
+    {
+      "id": "m063",
+      "calls": []
+    },
+    {
+      "id": "m064",
+      "calls": []
+    },
+    {
+      "id": "m065",
+      "calls": []
+    },
+    {
+      "id": "m066",
+      "calls": []
+    },
+    {
+      "id": "m067",
+      "calls": []
+    },
+    {
+      "id": "m068",
+      "calls": [
+        {
+          "hash": "sha256:9ea64ac15d3c3499a4e1d751ee166fe1487bf83a659ae380db16b461169c688e",
+          "shape": "sha256:273a5004bcbedd286f44b82991406c0de156eeee97fa8ef647ed71cf14029714",
+          "answer": {
+            "keep": false,
+            "confidence": 0.95,
+            "quote": "",
+            "from": "Lee Chen",
+            "why": "A generic thank you and thumbs up for a small favor does not meet the criteria for a significant win.",
+            "projects": []
+          },
+          "ms": 136844,
+          "tokensIn": 927,
+          "tokensOut": 70
+        }
+      ]
+    },
+    {
+      "id": "m069",
+      "calls": []
+    },
+    {
+      "id": "m070",
+      "calls": []
+    },
+    {
+      "id": "m071",
+      "calls": [
+        {
+          "hash": "sha256:3ecff50db5d620c3250e6c6a3446b33366dda70431bcf84d44a8ae73712136a5",
+          "shape": "sha256:273a5004bcbedd286f44b82991406c0de156eeee97fa8ef647ed71cf14029714",
+          "answer": {
+            "keep": true,
+            "confidence": 0.95,
+            "quote": "honestly alex your PR description template is now what the whole team uses, it's so much better",
+            "from": "Lee Chen",
+            "why": "Team adoption of a user-created template demonstrates significant impact on workflow efficiency.",
+            "projects": [
+              "Deploy Pipeline"
+            ]
+          },
+          "ms": 89882,
+          "tokensIn": 922,
+          "tokensOut": 93
+        }
+      ]
+    },
+    {
+      "id": "m072",
+      "calls": []
+    },
+    {
+      "id": "m073",
+      "calls": [
+        {
+          "hash": "sha256:0473b6e5fa4f143d4cd2fe9cce7e8c3b8da5ff3f9516171ec8f1b337ae1844d3",
+          "shape": "sha256:273a5004bcbedd286f44b82991406c0de156eeee97fa8ef647ed71cf14029714",
+          "answer": {
+            "keep": true,
+            "confidence": 0.95,
+            "quote": "We hit 99.99% checkout availability for Q3, first time ever.",
+            "from": "Priya Raman",
+            "why": "Recognition of driving reliability work that resulted in a record availability metric.",
+            "projects": [
+              "Checkout v2"
+            ]
+          },
+          "ms": 76473,
+          "tokensIn": 946,
+          "tokensOut": 93
+        }
+      ]
+    },
+    {
+      "id": "m074",
+      "calls": [
+        {
+          "hash": "sha256:24be6078ae2c9fc35410b99cbbd93ad135870b558d0911e389bc61ff8815eec5",
+          "shape": "sha256:273a5004bcbedd286f44b82991406c0de156eeee97fa8ef647ed71cf14029714",
+          "answer": {
+            "keep": false,
+            "confidence": 0.95,
+            "quote": "",
+            "from": "Chris Alvarez",
+            "why": "The message is a sarcastic joke about offline usage, not genuine praise for work.",
+            "projects": []
+          },
+          "ms": 77628,
+          "tokensIn": 921,
+          "tokensOut": 66
+        }
+      ]
+    },
+    {
+      "id": "m075",
+      "calls": []
+    },
+    {
+      "id": "m076",
+      "calls": []
+    },
+    {
+      "id": "m077",
+      "calls": []
+    },
+    {
+      "id": "m078",
+      "calls": []
+    },
+    {
+      "id": "m079",
+      "calls": []
+    },
+    {
+      "id": "m080",
+      "calls": []
+    },
+    {
+      "id": "m081",
+      "calls": []
+    },
+    {
+      "id": "m082",
+      "calls": []
+    },
+    {
+      "id": "m083",
+      "calls": [
+        {
+          "hash": "sha256:c8a27f88f6d1c793d72801c703e343d7d246df71daf8dc5ae6d924deca711579",
+          "shape": "sha256:273a5004bcbedd286f44b82991406c0de156eeee97fa8ef647ed71cf14029714",
+          "answer": {
+            "keep": true,
+            "confidence": 0.95,
+            "quote": "Dana specifically called out @Alex Marlowe's analysis of query abandonment as 'the clearest framing of the problem we've had.'",
+            "from": "Morgan Diaz",
+            "why": "Leadership recognition for specific work impact on search team.",
+            "projects": [
+              "Search Relevance"
+            ]
+          },
+          "ms": 95244,
+          "tokensIn": 937,
+          "tokensOut": 100
+        }
+      ]
+    },
+    {
+      "id": "m084",
+      "calls": [
+        {
+          "hash": "sha256:241bfa2b8fe6826d31a8fefa57745d8d83b850512347c9cfdff50cd6495bf871",
+          "shape": "sha256:273a5004bcbedd286f44b82991406c0de156eeee97fa8ef647ed71cf14029714",
+          "answer": {
+            "keep": false,
+            "confidence": 0.95,
+            "quote": "",
+            "from": "Sam Okafor",
+            "why": "This is sarcasm disguised as praise and does not meet the criteria for a win.",
+            "projects": []
+          },
+          "ms": 150276,
+          "tokensIn": 923,
+          "tokensOut": 68
+        }
+      ]
+    },
+    {
+      "id": "m085",
+      "calls": []
+    },
+    {
+      "id": "m086",
+      "calls": []
+    },
+    {
+      "id": "m087",
+      "calls": []
+    },
+    {
+      "id": "m088",
+      "calls": []
+    },
+    {
+      "id": "m089",
+      "calls": [
+        {
+          "hash": "sha256:6b14790410e22458f2791cc78945d2fa5acf0357c5f0372fc4aa95848d2b2b7b",
+          "shape": "sha256:273a5004bcbedd286f44b82991406c0de156eeee97fa8ef647ed71cf14029714",
+          "answer": {
+            "keep": true,
+            "confidence": 1,
+            "quote": "Alex's Terraform module cleanup cut our plan time from 12 minutes to 90 seconds. Small thing, enormous quality of life.",
+            "from": "Omar Haddad",
+            "why": "Shows clear impact on performance and team productivity for a specific task.",
+            "projects": [
+              "Deploy Pipeline"
+            ]
+          },
+          "ms": 137895,
+          "tokensIn": 935,
+          "tokensOut": 100
+        }
+      ]
+    },
+    {
+      "id": "m090",
+      "calls": []
+    },
+    {
+      "id": "m091",
+      "calls": [
+        {
+          "hash": "sha256:7f9d897895ed33283b810d6e05e11832a289b8d175e4d149426dd4d5587e4057",
+          "shape": "sha256:273a5004bcbedd286f44b82991406c0de156eeee97fa8ef647ed71cf14029714",
+          "answer": {
+            "keep": true,
+            "confidence": 1,
+            "quote": "Omar Haddad: Closing INC-4471. @Alex Marlowe found the root cause (connection pool exhaustion in the ledger service) in under 20 minutes and shipped the fix. MTTR 34m vs our 2h average.",
+            "from": "Omar Haddad",
+            "why": "Recognition of specific impact on incident resolution time and successful fix shipping.",
+            "projects": [
+              "On-call & Incidents",
+              "Ledger Platform"
+            ]
+          },
+          "ms": 88991,
+          "tokensIn": 957,
+          "tokensOut": 137
+        }
+      ]
+    },
+    {
+      "id": "m092",
+      "calls": []
+    },
+    {
+      "id": "m093",
+      "calls": [
+        {
+          "hash": "sha256:17aa1e4fd28fc69112208e65ae7efbd594d93cd1e22ff9d9e5a63611a223ad8c",
+          "shape": "sha256:273a5004bcbedd286f44b82991406c0de156eeee97fa8ef647ed71cf14029714",
+          "answer": {
+            "keep": false,
+            "confidence": 1,
+            "quote": "",
+            "from": "Jordan Kim",
+            "why": "Sarcasm about making the app slower and bigger is not a win.",
+            "projects": []
+          },
+          "ms": 79068,
+          "tokensIn": 918,
+          "tokensOut": 61
+        }
+      ]
+    },
+    {
+      "id": "m094",
+      "calls": []
+    },
+    {
+      "id": "m095",
+      "calls": [
+        {
+          "hash": "sha256:529fd0ac0611faed42bb4f3e58086af1863143fb6c16aea3bc196949f6bdb332",
+          "shape": "sha256:273a5004bcbedd286f44b82991406c0de156eeee97fa8ef647ed71cf14029714",
+          "answer": {
+            "keep": true,
+            "confidence": 0.95,
+            "quote": "wow thanks AM for deleting the staging DB, 10/10 friday experience",
+            "from": "Lee Chen",
+            "why": "Specific praise and high rating for a task Alex completed.",
+            "projects": [
+              "Deploy Pipeline"
+            ]
+          },
+          "ms": 82738,
+          "tokensIn": 923,
+          "tokensOut": 87
+        }
+      ]
+    },
+    {
+      "id": "m096",
+      "calls": []
+    },
+    {
+      "id": "m097",
+      "calls": []
+    },
+    {
+      "id": "m098",
+      "calls": []
+    },
+    {
+      "id": "m099",
+      "calls": []
+    },
+    {
+      "id": "m100",
+      "calls": []
+    },
+    {
+      "id": "m101",
+      "calls": [
+        {
+          "hash": "sha256:08a7d116e163c11ea1987ce5548ca55da8b9c40c3327c237e416ddadaba2062c",
+          "shape": "sha256:273a5004bcbedd286f44b82991406c0de156eeee97fa8ef647ed71cf14029714",
+          "answer": {
+            "keep": true,
+            "confidence": 1,
+            "quote": "Sales just closed the EU enterprise deal and they said SEPA support was the deciding factor. Alex built that in 3 weeks.",
+            "from": "Morgan Diaz",
+            "why": "Customer credit for a specific feature shipped by the user with clear business impact.",
+            "projects": [
+              "Checkout v2"
+            ]
+          },
+          "ms": 77073,
+          "tokensIn": 934,
+          "tokensOut": 98
+        }
+      ]
+    },
+    {
+      "id": "m102",
+      "calls": [
+        {
+          "hash": "sha256:177858404b2f7bbe86f2e37855503d6eeb456d6b3a56f95d5a77b9243b07214d",
+          "shape": "sha256:273a5004bcbedd286f44b82991406c0de156eeee97fa8ef647ed71cf14029714",
+          "answer": {
+            "keep": true,
+            "confidence": 0.9,
+            "quote": "thanks alex. really. great timing on the friday 5pm deploy",
+            "from": "Chris Alvarez",
+            "why": "Specific praise for a timely deployment that avoided issues.",
+            "projects": [
+              "Deploy Pipeline"
+            ]
+          },
+          "ms": 119808,
+          "tokensIn": 919,
+          "tokensOut": 82
+        }
+      ]
+    },
+    {
+      "id": "m103",
+      "calls": [
+        {
+          "hash": "sha256:814d7f1621ac4727f6f5d90029bbe9ea5f1812aa29c7b112dd683c4eb6151577",
+          "shape": "sha256:273a5004bcbedd286f44b82991406c0de156eeee97fa8ef647ed71cf14029714",
+          "answer": {
+            "keep": false,
+            "confidence": 0.95,
+            "quote": "",
+            "from": "Sam Okafor",
+            "why": "A single 'nice' comment is too brief to confirm specific impact or a notable achievement.",
+            "projects": []
+          },
+          "ms": 99839,
+          "tokensIn": 926,
+          "tokensOut": 69
+        }
+      ]
+    },
+    {
+      "id": "m104",
+      "calls": [
+        {
+          "hash": "sha256:cbbf8485824e0070575cb66826e1f4d8b38966d4c5cb3ad898c83cf0b06ff5f7",
+          "shape": "sha256:273a5004bcbedd286f44b82991406c0de156eeee97fa8ef647ed71cf14029714",
+          "answer": {
+            "keep": true,
+            "confidence": 1,
+            "quote": "Offline sync crash rate went from 2.3% to 0.1% after AM's conflict-resolution rewrite.",
+            "from": "Sam Okafor",
+            "why": "This shows the significant impact of Alex's work on reducing crash rates for the Mobile Offline Sync project.",
+            "projects": [
+              "Mobile Offline Sync"
+            ]
+          },
+          "ms": 85140,
+          "tokensIn": 938,
+          "tokensOut": 102
+        }
+      ]
+    },
+    {
+      "id": "m105",
+      "calls": []
+    },
+    {
+      "id": "m106",
+      "calls": []
+    },
+    {
+      "id": "m107",
+      "calls": [
+        {
+          "hash": "sha256:36a81dd22661b909dcf4fb016ddbf179c1f4cb9b8dc762c0e4cf0d4ffa49e135",
+          "shape": "sha256:273a5004bcbedd286f44b82991406c0de156eeee97fa8ef647ed71cf14029714",
+          "answer": {
+            "keep": true,
+            "confidence": 0.95,
+            "quote": "Amazing work Alex, really loving the 3rd rollback today",
+            "from": "Chris Alvarez",
+            "why": "Specific praise for handling a significant incident (the 3rd rollback) demonstrates impact.",
+            "projects": [
+              "On-call & Incidents",
+              "Deploy Pipeline"
+            ]
+          },
+          "ms": 79572,
+          "tokensIn": 990,
+          "tokensOut": 97
+        }
+      ]
+    },
+    {
+      "id": "m108",
+      "calls": []
+    },
+    {
+      "id": "m109",
+      "calls": []
+    },
+    {
+      "id": "m110",
+      "calls": []
+    },
+    {
+      "id": "m111",
+      "calls": []
+    },
+    {
+      "id": "m112",
+      "calls": []
+    },
+    {
+      "id": "m113",
+      "calls": []
+    },
+    {
+      "id": "m114",
+      "calls": [
+        {
+          "hash": "sha256:719abd5f29d971dd9d856ceb188096eda6383cd0837ec8f29d545fe112c2b138",
+          "shape": "sha256:273a5004bcbedd286f44b82991406c0de156eeee97fa8ef647ed71cf14029714",
+          "answer": {
+            "keep": false,
+            "confidence": 0.95,
+            "quote": "",
+            "from": "Chris Alvarez",
+            "why": "The message is sarcastic and implies a negative outcome rather than genuine praise.",
+            "projects": []
+          },
+          "ms": 76123,
+          "tokensIn": 945,
+          "tokensOut": 64
+        }
+      ]
+    },
+    {
+      "id": "m115",
+      "calls": []
+    },
+    {
+      "id": "m116",
+      "calls": []
+    },
+    {
+      "id": "m117",
+      "calls": []
+    },
+    {
+      "id": "m118",
+      "calls": []
+    },
+    {
+      "id": "m119",
+      "calls": [
+        {
+          "hash": "sha256:43aaa8029168ffcf6dac0c946df3ec59231735e94110bbe4da6979a83763f332",
+          "shape": "sha256:273a5004bcbedd286f44b82991406c0de156eeee97fa8ef647ed71cf14029714",
+          "answer": {
+            "keep": false,
+            "confidence": 1,
+            "quote": "",
+            "from": "Sam Okafor",
+            "why": "This is sarcasm/jokes about a long document, not praise for work or impact.",
+            "projects": []
+          },
+          "ms": 82821,
+          "tokensIn": 928,
+          "tokensOut": 68
+        }
+      ]
+    },
+    {
+      "id": "m120",
+      "calls": [
+        {
+          "hash": "sha256:280e5f21f4ec43c4441569bf95c975196ab7a283481d9f0ece48c6965a568976",
+          "shape": "sha256:273a5004bcbedd286f44b82991406c0de156eeee97fa8ef647ed71cf14029714",
+          "answer": {
+            "keep": true,
+            "confidence": 1,
+            "quote": "Kudos to @Alex Marlowe for running the accessibility audit on checkout and fixing all 23 WCAG issues. We pass AA now.",
+            "from": "Jordan Kim",
+            "why": "Specific praise for a completed task with clear impact (fixing 23 issues, passing AA).",
+            "projects": [
+              "Checkout v2"
+            ]
+          },
+          "ms": 75431,
+          "tokensIn": 938,
+          "tokensOut": 107
+        }
+      ]
+    },
+    {
+      "id": "m121",
+      "calls": [
+        {
+          "hash": "sha256:f36c8880c0e67d3db59f880fb7906d05c70ceb5abcd810926a0c2a82f00e4b7e",
+          "shape": "sha256:273a5004bcbedd286f44b82991406c0de156eeee97fa8ef647ed71cf14029714",
+          "answer": {
+            "keep": true,
+            "confidence": 1,
+            "quote": "Alex's cross-team proposal on shared idempotency libraries got adopted by 4 teams.",
+            "from": "Dana Whitfield",
+            "why": "This shows significant impact of the user's work across multiple teams.",
+            "projects": [
+              "Deploy Pipeline"
+            ]
+          },
+          "ms": 69522,
+          "tokensIn": 932,
+          "tokensOut": 89
+        }
+      ]
+    },
+    {
+      "id": "m122",
+      "calls": [
+        {
+          "hash": "sha256:d2f565b158d04b2cd74913f25bceaf4c6e1520f412be63b75ab54dffb166ee77",
+          "shape": "sha256:273a5004bcbedd286f44b82991406c0de156eeee97fa8ef647ed71cf14029714",
+          "answer": {
+            "keep": true,
+            "confidence": 0.95,
+            "quote": "nice to see alex's PR got merged... after only 6 weeks in review",
+            "from": "Lee Chen",
+            "why": "Lee Chen praises Alex for a fast PR merge on a project.",
+            "projects": [
+              "Deploy Pipeline"
+            ]
+          },
+          "ms": 68884,
+          "tokensIn": 920,
+          "tokensOut": 88
+        }
+      ]
+    },
+    {
+      "id": "m123",
+      "calls": []
+    },
+    {
+      "id": "m124",
+      "calls": []
+    },
+    {
+      "id": "m125",
+      "calls": []
+    },
+    {
+      "id": "m126",
+      "calls": []
+    },
+    {
+      "id": "m127",
+      "calls": []
+    },
+    {
+      "id": "m128",
+      "calls": [
+        {
+          "hash": "sha256:22abe57d03f52aeaa9a23815effc1871c03aa4a65bb5afc3d576cce4787da3a4",
+          "shape": "sha256:273a5004bcbedd286f44b82991406c0de156eeee97fa8ef647ed71cf14029714",
+          "answer": {
+            "keep": false,
+            "confidence": 0.95,
+            "quote": "",
+            "from": "Priya Raman",
+            "why": "This message praises Priya's own work on a cleanup, not Alex Marlowe.",
+            "projects": []
+          },
+          "ms": 70594,
+          "tokensIn": 962,
+          "tokensOut": 69
+        }
+      ]
+    },
+    {
+      "id": "m129",
+      "calls": [
+        {
+          "hash": "sha256:2ff3c7b4548badd75566336e3f64b34482db93b7245b798d9831694812c90f12",
+          "shape": "sha256:273a5004bcbedd286f44b82991406c0de156eeee97fa8ef647ed71cf14029714",
+          "answer": {
+            "keep": true,
+            "confidence": 1,
+            "quote": "@Alex Marlowe is consistently operating at staff level on the payments platform. The ledger redesign doc is the best design doc I've read this year.",
+            "from": "Dana Whitfield",
+            "why": "Manager explicitly praises Alex's performance and specific work for calibration.",
+            "projects": [
+              "Ledger Platform",
+              "Payments"
+            ]
+          },
+          "ms": 73417,
+          "tokensIn": 941,
+          "tokensOut": 105
+        }
+      ]
+    },
+    {
+      "id": "m130",
+      "calls": []
+    },
+    {
+      "id": "m131",
+      "calls": []
+    },
+    {
+      "id": "m132",
+      "calls": [
+        {
+          "hash": "sha256:bc472acb91d4ff94854677938bf648c5c9d93739488676e8aa99026dde08c241",
+          "shape": "sha256:273a5004bcbedd286f44b82991406c0de156eeee97fa8ef647ed71cf14029714",
+          "answer": {
+            "keep": true,
+            "confidence": 1,
+            "quote": "Shoutout to everyone on the deploy pipeline project: Alex, Omar and Chris. 9 minute deploys!",
+            "from": "Jordan Kim",
+            "why": "Recognition for a specific performance win (9-minute deploys) on a user project.",
+            "projects": [
+              "Deploy Pipeline"
+            ]
+          },
+          "ms": 73258,
+          "tokensIn": 927,
+          "tokensOut": 95
+        }
+      ]
+    },
+    {
+      "id": "m133",
+      "calls": []
+    },
+    {
+      "id": "m134",
+      "calls": []
+    },
+    {
+      "id": "m135",
+      "calls": []
+    },
+    {
+      "id": "m136",
+      "calls": []
+    },
+    {
+      "id": "m137",
+      "calls": []
+    },
+    {
+      "id": "m138",
+      "calls": [
+        {
+          "hash": "sha256:b392eb0a09d13e1b71fe81634366ab645cb416a829827589db1cd0fef15c6c57",
+          "shape": "sha256:273a5004bcbedd286f44b82991406c0de156eeee97fa8ef647ed71cf14029714",
+          "answer": {
+            "keep": false,
+            "confidence": 0.95,
+            "quote": "",
+            "from": "Dana Whitfield",
+            "why": "This is a backhanded comment criticizing visibility rather than praising specific work or impact.",
+            "projects": []
+          },
+          "ms": 84465,
+          "tokensIn": 920,
+          "tokensOut": 68
+        }
+      ]
+    },
+    {
+      "id": "m139",
+      "calls": []
+    },
+    {
+      "id": "m140",
+      "calls": []
+    },
+    {
+      "id": "m141",
+      "calls": []
+    },
+    {
+      "id": "m142",
+      "calls": []
+    },
+    {
+      "id": "m143",
+      "calls": []
+    },
+    {
+      "id": "m144",
+      "calls": []
+    },
+    {
+      "id": "m145",
+      "calls": [],
+      "error": "timeout"
+    },
+    {
+      "id": "m146",
+      "calls": []
+    },
+    {
+      "id": "m147",
+      "calls": []
+    },
+    {
+      "id": "m148",
+      "calls": []
+    },
+    {
+      "id": "m149",
+      "calls": []
+    },
+    {
+      "id": "m150",
+      "calls": [
+        {
+          "hash": "sha256:4d9489bd1c9cd202ee9bd7d0141b2c3ddf405a86e725c6aadf6f12a8216152d8",
+          "shape": "sha256:273a5004bcbedd286f44b82991406c0de156eeee97fa8ef647ed71cf14029714",
+          "answer": {
+            "keep": false,
+            "confidence": 1,
+            "quote": "",
+            "from": "Sam Okafor",
+            "why": "Sarcasm about showing up to standup is not a win.",
+            "projects": []
+          },
+          "ms": 82917,
+          "tokensIn": 920,
+          "tokensOut": 62
+        }
+      ]
+    },
+    {
+      "id": "m151",
+      "calls": []
+    },
+    {
+      "id": "m152",
+      "calls": []
+    },
+    {
+      "id": "m153",
+      "calls": []
+    },
+    {
+      "id": "m154",
+      "calls": []
+    },
+    {
+      "id": "m155",
+      "calls": []
+    },
+    {
+      "id": "m156",
+      "calls": []
+    },
+    {
+      "id": "m157",
+      "calls": []
+    },
+    {
+      "id": "m158",
+      "calls": [
+        {
+          "hash": "sha256:0176c48b24e072e0fdf4d2c12dbf2206dac1633982ddbc4a7132d2b1b55a767f",
+          "shape": "sha256:273a5004bcbedd286f44b82991406c0de156eeee97fa8ef647ed71cf14029714",
+          "answer": {
+            "keep": true,
+            "confidence": 1,
+            "quote": "That migration script you wrote meant we did in one afternoon what we'd budgeted two sprints for.",
+            "from": "Lee Chen",
+            "why": "Lee Chen explicitly credits the user's work with delivering a major milestone faster than planned.",
+            "projects": [
+              "Billing Migration"
+            ]
+          },
+          "ms": 37774,
+          "tokensIn": 961,
+          "tokensOut": 93
+        }
+      ]
+    },
+    {
+      "id": "m159",
+      "calls": []
+    },
+    {
+      "id": "m160",
+      "calls": []
+    },
+    {
+      "id": "m161",
+      "calls": []
+    },
+    {
+      "id": "m162",
+      "calls": [
+        {
+          "hash": "sha256:f46dd346fb33d8b35f1a4d30b127978beac728819775f464a6c19245b19d7692",
+          "shape": "sha256:273a5004bcbedd286f44b82991406c0de156eeee97fa8ef647ed71cf14029714",
+          "answer": {
+            "keep": true,
+            "confidence": 1,
+            "quote": "Platform MVP goes to @Alex Marlowe for checkout v2 + the deploy pipeline.",
+            "from": "Dana Whitfield",
+            "why": "Leadership recognized Alex with an award for specific impactful work on his projects.",
+            "projects": [
+              "Checkout v2",
+              "Deploy Pipeline"
+            ]
+          },
+          "ms": 39521,
+          "tokensIn": 935,
+          "tokensOut": 97
+        }
+      ]
+    },
+    {
+      "id": "m163",
+      "calls": []
+    },
+    {
+      "id": "m164",
+      "calls": [
+        {
+          "hash": "sha256:bbd7323a95cb5df17df1ba3ca488e9cf091af99eced1ba49272bb87df4d027c3",
+          "shape": "sha256:273a5004bcbedd286f44b82991406c0de156eeee97fa8ef647ed71cf14029714",
+          "answer": {
+            "keep": true,
+            "confidence": 1,
+            "quote": "Thanks @Alex Marlowe and @Jordan Kim for the refund fix, customers are happy",
+            "from": "Dana Whitfield",
+            "why": "Customer impact praise for a specific fix shipped by Alex.",
+            "projects": [
+              "On-call & Incidents"
+            ]
+          },
+          "ms": 43807,
+          "tokensIn": 923,
+          "tokensOut": 90
+        }
+      ]
+    },
+    {
+      "id": "m165",
+      "calls": [
+        {
+          "hash": "sha256:9912a6b60772b9a60ba27cbaa9552a5fa0cba4a0564774301f7e89a3616af912",
+          "shape": "sha256:273a5004bcbedd286f44b82991406c0de156eeee97fa8ef647ed71cf14029714",
+          "answer": {
+            "keep": false,
+            "confidence": 0.95,
+            "quote": "",
+            "from": "Lee Chen",
+            "why": "The message is sarcasm/jokes about a trivial typo fix, not a real achievement.",
+            "projects": []
+          },
+          "ms": 37509,
+          "tokensIn": 926,
+          "tokensOut": 67
+        }
+      ]
+    },
+    {
+      "id": "m166",
+      "calls": [
+        {
+          "hash": "sha256:63625305e767bd7483777034d5bcce5e3d200ff95b9efb387b97d990ba2487b1",
+          "shape": "sha256:273a5004bcbedd286f44b82991406c0de156eeee97fa8ef647ed71cf14029714",
+          "answer": {
+            "keep": true,
+            "confidence": 0.95,
+            "quote": "Thanks Alex for representing us at the payments conference. Three candidates mentioned your talk in interviews this week.",
+            "from": "Dana Whitfield",
+            "why": "Evidence of impact showing a talk helped secure interview mentions for three candidates.",
+            "projects": [
+              "Checkout v2"
+            ]
+          },
+          "ms": 55531,
+          "tokensIn": 925,
+          "tokensOut": 95
+        }
+      ]
+    },
+    {
+      "id": "m167",
+      "calls": []
+    },
+    {
+      "id": "m168",
+      "calls": []
+    },
+    {
+      "id": "m169",
+      "calls": []
+    },
+    {
+      "id": "m170",
+      "calls": [
+        {
+          "hash": "sha256:c131a0de01ca719b0a581ed4187a2b2571e42b99aeb62dac6c44352686479d27",
+          "shape": "sha256:273a5004bcbedd286f44b82991406c0de156eeee97fa8ef647ed71cf14029714",
+          "answer": {
+            "keep": true,
+            "confidence": 0.95,
+            "quote": "they said it was the most helpful engineering conversation they've had with any vendor.",
+            "from": "Riley Brooks",
+            "why": "Customer praise confirms significant impact of Alex's support on a hospital client.",
+            "projects": [
+              "On-call & Incidents"
+            ]
+          },
+          "ms": 35604,
+          "tokensIn": 934,
+          "tokensOut": 92
+        }
+      ]
+    },
+    {
+      "id": "m171",
+      "calls": [
+        {
+          "hash": "sha256:d01ec8182ac53d51ad91ac52135b5dc458e9a2d090af6eb64b4eb1f12cdf06b2",
+          "shape": "sha256:273a5004bcbedd286f44b82991406c0de156eeee97fa8ef647ed71cf14029714",
+          "answer": {
+            "keep": true,
+            "confidence": 0.95,
+            "quote": "the fraud rule backtest you built found $210k of false positives we were declining every month",
+            "from": "Sam Okafor",
+            "why": "Specific praise for a shipped feature with clear financial impact.",
+            "projects": [
+              "Checkout v2"
+            ]
+          },
+          "ms": 35917,
+          "tokensIn": 934,
+          "tokensOut": 94
+        }
+      ]
+    },
+    {
+      "id": "m172",
+      "calls": []
+    },
+    {
+      "id": "m173",
+      "calls": []
+    },
+    {
+      "id": "m174",
+      "calls": []
+    },
+    {
+      "id": "m175",
+      "calls": [
+        {
+          "hash": "sha256:acb49cd67f2b3b86b341d21d2ee6c9918c36470e674db6ec3c046f8adbeb58d5",
+          "shape": "sha256:273a5004bcbedd286f44b82991406c0de156eeee97fa8ef647ed71cf14029714",
+          "answer": {
+            "keep": true,
+            "confidence": 0.95,
+            "quote": "the reason this stayed a sev3 instead of a sev1 is that Alex had added the circuit breaker last month.",
+            "from": "Sam Okafor",
+            "why": "Recognition that Alex's work prevented a more severe incident.",
+            "projects": [
+              "Ledger Platform"
+            ]
+          },
+          "ms": 37389,
+          "tokensIn": 962,
+          "tokensOut": 95
+        }
+      ]
+    },
+    {
+      "id": "m176",
+      "calls": []
+    },
+    {
+      "id": "m177",
+      "calls": []
+    },
+    {
+      "id": "m178",
+      "calls": []
+    },
+    {
+      "id": "m179",
+      "calls": []
+    },
+    {
+      "id": "m180",
+      "calls": [
+        {
+          "hash": "sha256:f1c3661f388a4ec4182b65400d6efd8b052e7064da40b5e6bac62a50188805e3",
+          "shape": "sha256:273a5004bcbedd286f44b82991406c0de156eeee97fa8ef647ed71cf14029714",
+          "answer": {
+            "keep": true,
+            "confidence": 1,
+            "quote": "Congrats to Alex Marlowe on promotion to Staff Engineer!",
+            "from": "Dana Whitfield",
+            "why": "Leadership recognized the user's promotion to Staff Engineer.",
+            "projects": []
+          },
+          "ms": 32554,
+          "tokensIn": 931,
+          "tokensOut": 72
+        }
+      ]
+    },
+    {
+      "id": "m181",
+      "calls": []
+    },
+    {
+      "id": "m182",
+      "calls": [
+        {
+          "hash": "sha256:dfd93361d6c1aab3ac2552714b700f59cff458291428580b1f254216d0d69b0e",
+          "shape": "sha256:273a5004bcbedd286f44b82991406c0de156eeee97fa8ef647ed71cf14029714",
+          "answer": {
+            "keep": true,
+            "confidence": 1,
+            "quote": "The runbook Alex wrote for ledger reconciliation got me through a 3am page with zero context. Saved my night.",
+            "from": "Lee Chen",
+            "why": "A specific thank you for a runbook that prevented an incident and saved time.",
+            "projects": [
+              "Ledger Platform",
+              "On-call & Incidents"
+            ]
+          },
+          "ms": 36628,
+          "tokensIn": 970,
+          "tokensOut": 105
+        }
+      ]
+    },
+    {
+      "id": "m183",
+      "calls": []
+    },
+    {
+      "id": "m184",
+      "calls": [
+        {
+          "hash": "sha256:336fba9195c67b37da10582c7bec8452b062e1eda80ad0234fd5f5a00be044d3",
+          "shape": "sha256:273a5004bcbedd286f44b82991406c0de156eeee97fa8ef647ed71cf14029714",
+          "answer": {
+            "keep": false,
+            "confidence": 0.95,
+            "quote": "",
+            "from": "Chris Alvarez",
+            "why": "This is just an emoji celebration without any specific context about the user's work.",
+            "projects": []
+          },
+          "ms": 31980,
+          "tokensIn": 941,
+          "tokensOut": 65
+        }
+      ]
+    },
+    {
+      "id": "m185",
+      "calls": []
+    },
+    {
+      "id": "m186",
+      "calls": []
+    },
+    {
+      "id": "m187",
+      "calls": []
+    },
+    {
+      "id": "m188",
+      "calls": []
+    },
+    {
+      "id": "m189",
+      "calls": []
+    },
+    {
+      "id": "m190",
+      "calls": []
+    },
+    {
+      "id": "m191",
+      "calls": []
+    },
+    {
+      "id": "m192",
+      "calls": []
+    },
+    {
+      "id": "m193",
+      "calls": [
+        {
+          "hash": "sha256:2745b78989c3d1f5378ad784ea334c32e96c683972dc952a9b8d84980a9afc4b",
+          "shape": "sha256:273a5004bcbedd286f44b82991406c0de156eeee97fa8ef647ed71cf14029714",
+          "answer": {
+            "keep": true,
+            "confidence": 0.95,
+            "quote": "Shoutout to @Alex Marlowe who paired with me for 3 hours to untangle the webhook retries.",
+            "from": "Taylor Nguyen",
+            "why": "Taylor thanks Alex for specific help that resolved a technical issue and improved her understanding of the system.",
+            "projects": [
+              "On-call & Incidents"
+            ]
+          },
+          "ms": 35758,
+          "tokensIn": 938,
+          "tokensOut": 104
+        }
+      ]
+    },
+    {
+      "id": "m194",
+      "calls": []
+    },
+    {
+      "id": "m195",
+      "calls": [
+        {
+          "hash": "sha256:2f55c8595f1134bf16ec1641cdcd375e6ac6e03c95cb37c34e2e27d881526bda",
+          "shape": "sha256:273a5004bcbedd286f44b82991406c0de156eeee97fa8ef647ed71cf14029714",
+          "answer": {
+            "keep": true,
+            "confidence": 1,
+            "quote": "Finance confirmed: the billing migration @Alex Marlowe led closed out with $0 in reconciliation discrepancies across 2.4M invoices.",
+            "from": "Morgan Diaz",
+            "why": "This confirms a major impact win for the Billing Migration project with zero discrepancies on millions of invoices.",
+            "projects": [
+              "Billing Migration"
+            ]
+          },
+          "ms": 36136,
+          "tokensIn": 944,
+          "tokensOut": 103
+        }
+      ]
+    },
+    {
+      "id": "m196",
+      "calls": []
+    },
+    {
+      "id": "m197",
+      "calls": []
+    },
+    {
+      "id": "m198",
+      "calls": [
+        {
+          "hash": "sha256:60c1389e4797c73026f38a4fb6551a86a4e750837bfe47c0ec5117d9232543fe",
+          "shape": "sha256:273a5004bcbedd286f44b82991406c0de156eeee97fa8ef647ed71cf14029714",
+          "answer": {
+            "keep": true,
+            "confidence": 1,
+            "quote": "Nominating @Alex Marlowe for the Q4 promo cycle.",
+            "from": "Priya Raman",
+            "why": "A manager is nominating the user for a promotion based on their work and mentoring impact.",
+            "projects": [
+              "Checkout v2",
+              "Billing Migration",
+              "Mentoring"
+            ]
+          },
+          "ms": 35960,
+          "tokensIn": 940,
+          "tokensOut": 104
+        }
+      ]
+    },
+    {
+      "id": "m199",
+      "calls": []
+    },
+    {
+      "id": "m200",
+      "calls": [
+        {
+          "hash": "sha256:c47aa4e85e438358a29e45640403486a1057d362e1d4cbe494c7fa1c92144ed9",
+          "shape": "sha256:273a5004bcbedd286f44b82991406c0de156eeee97fa8ef647ed71cf14029714",
+          "answer": {
+            "keep": true,
+            "confidence": 0.95,
+            "quote": "@alex.m your load test harness found the regression before launch. would've been a sev1.",
+            "from": "Sam Okafor",
+            "why": "Recognition that the user's work prevented a severe incident.",
+            "projects": [
+              "Deploy Pipeline"
+            ]
+          },
+          "ms": 35225,
+          "tokensIn": 928,
+          "tokensOut": 90
+        }
+      ]
+    },
+    {
+      "id": "m201",
+      "calls": [
+        {
+          "hash": "sha256:bcfc232205b08de5cf839beb8541af8f5534f117efd93e3e587958424ab76acd",
+          "shape": "sha256:273a5004bcbedd286f44b82991406c0de156eeee97fa8ef647ed71cf14029714",
+          "answer": {
+            "keep": false,
+            "confidence": 1,
+            "quote": "",
+            "from": "Sam Okafor",
+            "why": "Sarcasm and backhanded comment about fixing an incident, not genuine praise.",
+            "projects": []
+          },
+          "ms": 31784,
+          "tokensIn": 927,
+          "tokensOut": 65
+        }
+      ]
+    },
+    {
+      "id": "m202",
+      "calls": []
+    },
+    {
+      "id": "m203",
+      "calls": [
+        {
+          "hash": "sha256:11dc288f9c8bc2fafc70685c7296102b34d157289f7bbc0e7a26e14db431edc5",
+          "shape": "sha256:273a5004bcbedd286f44b82991406c0de156eeee97fa8ef647ed71cf14029714",
+          "answer": {
+            "keep": true,
+            "confidence": 0.95,
+            "quote": "Mobile offline sync is GA 🎉 Credit to AM for the sync engine — this was our #1 customer request for two years.",
+            "from": "Morgan Diaz",
+            "why": "Recognition of a major product launch driven by user feedback and specific credit to the user.",
+            "projects": [
+              "Mobile Offline Sync"
+            ]
+          },
+          "ms": 35344,
+          "tokensIn": 938,
+          "tokensOut": 104
+        }
+      ]
+    },
+    {
+      "id": "m204",
+      "calls": [
+        {
+          "hash": "sha256:7876c0282252f084a49200c9ac46a3f2607babc888b8e0595ac9125c60d836ff",
+          "shape": "sha256:273a5004bcbedd286f44b82991406c0de156eeee97fa8ef647ed71cf14029714",
+          "answer": {
+            "keep": true,
+            "confidence": 1,
+            "quote": "Support tickets about failed payments are down 40% this month. @Alex Marlowe the retry-UI change you pushed made a real difference for our team and customers",
+            "from": "Riley Brooks",
+            "why": "Shows clear impact of user's work on ticket volume and customer experience.",
+            "projects": [
+              "Checkout v2"
+            ]
+          },
+          "ms": 36479,
+          "tokensIn": 943,
+          "tokensOut": 107
+        }
+      ]
+    },
+    {
+      "id": "m205",
+      "calls": []
+    },
+    {
+      "id": "m206",
+      "calls": []
+    },
+    {
+      "id": "m207",
+      "calls": [
+        {
+          "hash": "sha256:cedbaa2963ef9bb8da507fb07925bd84b95505e626edea3a993b300e74e40bae",
+          "shape": "sha256:273a5004bcbedd286f44b82991406c0de156eeee97fa8ef647ed71cf14029714",
+          "answer": {
+            "keep": true,
+            "confidence": 0.95,
+            "quote": "Great incident command from Alex today. Calm, clear updates every 15 min, and customers were informed before they noticed. Textbook.",
+            "from": "Dana Whitfield",
+            "why": "A manager explicitly praised the user's specific handling of an incident with clear impact on customer communication.",
+            "projects": [
+              "On-call & Incidents"
+            ]
+          },
+          "ms": 38086,
+          "tokensIn": 987,
+          "tokensOut": 111
+        }
+      ]
+    },
+    {
+      "id": "m208",
+      "calls": []
+    },
+    {
+      "id": "m209",
+      "calls": [
+        {
+          "hash": "sha256:0c54815fe9c769f994568594c8caeab5999ce7b76fb9c69dcddc579988c23909",
+          "shape": "sha256:273a5004bcbedd286f44b82991406c0de156eeee97fa8ef647ed71cf14029714",
+          "answer": {
+            "keep": true,
+            "confidence": 0.95,
+            "quote": "love how the new ranker puts the 'out of stock' items first, really great UX Alex",
+            "from": "Chris Alvarez",
+            "why": "Specific praise for a feature (new ranker) that improves user experience.",
+            "projects": [
+              "Search Relevance"
+            ]
+          },
+          "ms": 34687,
+          "tokensIn": 926,
+          "tokensOut": 95
+        }
+      ]
+    },
+    {
+      "id": "m210",
+      "calls": [
+        {
+          "hash": "sha256:79ce2baabdfed77a8077ce07285d89d10753854675d02833fe8d5e4b0eef6f67",
+          "shape": "sha256:273a5004bcbedd286f44b82991406c0de156eeee97fa8ef647ed71cf14029714",
+          "answer": {
+            "keep": false,
+            "confidence": 0.9,
+            "quote": "",
+            "from": "Sam Okafor",
+            "why": "General praise without specific details about Alex's work or impact.",
+            "projects": []
+          },
+          "ms": 32674,
+          "tokensIn": 994,
+          "tokensOut": 62
+        }
+      ]
+    },
+    {
+      "id": "m211",
+      "calls": []
+    },
+    {
+      "id": "m212",
+      "calls": []
+    },
+    {
+      "id": "m213",
+      "calls": [
+        {
+          "hash": "sha256:dc5a983951c800ae8b8b7d2013c678d7db2249b3b6171c6e7e8c1ac1322e3e11",
+          "shape": "sha256:273a5004bcbedd286f44b82991406c0de156eeee97fa8ef647ed71cf14029714",
+          "answer": {
+            "keep": true,
+            "confidence": 0.95,
+            "quote": "this is fantastic, the new eval harness makes relevance work 10x faster to iterate on",
+            "from": "Lee Chen",
+            "why": "Lee Chen praises the user's offline eval harness for a significant performance improvement.",
+            "projects": [
+              "Search Relevance"
+            ]
+          },
+          "ms": 36388,
+          "tokensIn": 971,
+          "tokensOut": 94
+        }
+      ]
+    },
+    {
+      "id": "m214",
+      "calls": [
+        {
+          "hash": "sha256:ba0d746cde636d78be8ffdb4fa481e769cf2de04c97e86e6919cefe84ebd2aa1",
+          "shape": "sha256:273a5004bcbedd286f44b82991406c0de156eeee97fa8ef647ed71cf14029714",
+          "answer": {
+            "keep": true,
+            "confidence": 1,
+            "quote": "Please welcome our new on-call rotation tooling, built by @Alex Marlowe as a side project. Pages are now auto-routed and we cut false alerts by 70%.",
+            "from": "Priya Raman",
+            "why": "Recognition for building a tool that reduced false alerts by 70%.",
+            "projects": [
+              "On-call & Incidents"
+            ]
+          },
+          "ms": 37200,
+          "tokensIn": 951,
+          "tokensOut": 114
+        }
+      ]
+    },
+    {
+      "id": "m215",
+      "calls": []
+    },
+    {
+      "id": "m216",
+      "calls": [
+        {
+          "hash": "sha256:abf73c9f296bc9699378a6b2deffcae8e69cc2a148bd7134532cab24865e6960",
+          "shape": "sha256:273a5004bcbedd286f44b82991406c0de156eeee97fa8ef647ed71cf14029714",
+          "answer": {
+            "keep": false,
+            "confidence": 1,
+            "quote": "",
+            "from": "Jordan Kim",
+            "why": "This is a joke about microwaving fish, not praise for work or impact.",
+            "projects": []
+          },
+          "ms": 31273,
+          "tokensIn": 918,
+          "tokensOut": 65
+        }
+      ]
+    },
+    {
+      "id": "m217",
+      "calls": [
+        {
+          "hash": "sha256:d1aabf4e27c80801228f7b6b5809d517c2afdb5c10a00d86d88c46d52aeba30b",
+          "shape": "sha256:273a5004bcbedd286f44b82991406c0de156eeee97fa8ef647ed71cf14029714",
+          "answer": {
+            "keep": true,
+            "confidence": 0.95,
+            "quote": "first time ever we've done 50 deploys in a day with zero rollbacks. the pipeline rework is paying off big time",
+            "from": "Chris Alvarez",
+            "why": "This highlights a significant impact win on the Deploy Pipeline project with specific metrics.",
+            "projects": [
+              "Deploy Pipeline"
+            ]
+          },
+          "ms": 36766,
+          "tokensIn": 938,
+          "tokensOut": 102
+        }
+      ]
+    },
+    {
+      "id": "m218",
+      "calls": [
+        {
+          "hash": "sha256:8a2013600da90ed1652984ec400f498126b7e4b8ce587d93044889a540bf6927",
+          "shape": "sha256:273a5004bcbedd286f44b82991406c0de156eeee97fa8ef647ed71cf14029714",
+          "answer": {
+            "keep": false,
+            "confidence": 1,
+            "quote": "",
+            "from": "Priya Raman",
+            "why": "The message praises Taylor for handling on-call pages, not the user.",
+            "projects": []
+          },
+          "ms": 31731,
+          "tokensIn": 936,
+          "tokensOut": 64
+        }
+      ]
+    },
+    {
+      "id": "pr01",
+      "calls": [
+        {
+          "hash": "sha256:6aab8e286219d28af664a7a536947744596c2ac46118e0dddecbbaf9c5fe9cf6",
+          "shape": "sha256:d5bfe557893b39f3218fc32ab34832e4218f57f16de3c1aa8626cead03236430",
+          "answer": {
+            "keep": true,
+            "confidence": 0.95,
+            "why": "This PR delivers a significant performance win by reducing settlement latency from 840ms to 120ms.",
+            "impact": 7,
+            "projects": [
+              "Ledger Platform"
+            ]
+          },
+          "ms": 36751,
+          "tokensIn": 1078,
+          "tokensOut": 76
+        }
+      ]
+    },
+    {
+      "id": "pr02",
+      "calls": [
+        {
+          "hash": "sha256:a6b28f1eb241f21b16f5953014a14be321aa2f03e7cfe920f9a27234a9ef00d9",
+          "shape": "sha256:d5bfe557893b39f3218fc32ab34832e4218f57f16de3c1aa8626cead03236430",
+          "answer": {
+            "keep": false,
+            "confidence": 0.95,
+            "why": "This is a routine dependency bump with no specific impact mentioned.",
+            "impact": 1,
+            "projects": []
+          },
+          "ms": 33163,
+          "tokensIn": 1059,
+          "tokensOut": 54
+        }
+      ]
+    },
+    {
+      "id": "pr03",
+      "calls": [
+        {
+          "hash": "sha256:14682ed7bd491fb3ad3c099ce3f34f0aa46d05283bfa91a591968fdf2de107c8",
+          "shape": "sha256:d5bfe557893b39f3218fc32ab34832e4218f57f16de3c1aa8626cead03236430",
+          "answer": {
+            "keep": true,
+            "confidence": 0.95,
+            "why": "This PR ships a core payment feature (saved cards) that impacts customers and revenue.",
+            "impact": 6,
+            "projects": [
+              "Checkout v2"
+            ]
+          },
+          "ms": 35007,
+          "tokensIn": 1074,
+          "tokensOut": 69
+        }
+      ]
+    },
+    {
+      "id": "pr04",
+      "calls": [
+        {
+          "hash": "sha256:704e266669263154f488da561a95f1f95237b09950d96cb4c1a619ed2511f4e8",
+          "shape": "sha256:d5bfe557893b39f3218fc32ab34832e4218f57f16de3c1aa8626cead03236430",
+          "answer": {
+            "keep": false,
+            "confidence": 1,
+            "why": "This is a simple typo fix that falls under routine maintenance.",
+            "impact": 1,
+            "projects": []
+          },
+          "ms": 31536,
+          "tokensIn": 1043,
+          "tokensOut": 53
+        }
+      ]
+    },
+    {
+      "id": "pr05",
+      "calls": [
+        {
+          "hash": "sha256:0d4802e576b11d2c1f1ae9c1689f2a50bce769d818390a34c56be8b49f8d5b83",
+          "shape": "sha256:d5bfe557893b39f3218fc32ab34832e4218f57f16de3c1aa8626cead03236430",
+          "answer": {
+            "keep": true,
+            "confidence": 0.95,
+            "why": "This PR removes maintenance windows for payments releases by implementing blue/green deploys with automatic rollback.",
+            "impact": 7,
+            "projects": [
+              "Deploy Pipeline",
+              "Payments API"
+            ]
+          },
+          "ms": 34514,
+          "tokensIn": 1065,
+          "tokensOut": 76
+        }
+      ]
+    },
+    {
+      "id": "pr06",
+      "calls": [
+        {
+          "hash": "sha256:031888d20967f58599a7f1530fd30fec55ccb6607ad53199fb3ff1bf093bff4e",
+          "shape": "sha256:d5bfe557893b39f3218fc32ab34832e4218f57f16de3c1aa8626cead03236430",
+          "answer": {
+            "keep": false,
+            "confidence": 0.95,
+            "why": "This is a revert of a previous change due to a build breakage, which is routine maintenance.",
+            "impact": 1,
+            "projects": []
+          },
+          "ms": 34396,
+          "tokensIn": 1060,
+          "tokensOut": 62
+        }
+      ]
+    },
+    {
+      "id": "pr07",
+      "calls": [
+        {
+          "hash": "sha256:8715e6f1d93fdb47cddc0d50a53f938d8ad7f7426c18d892e8ef88182c177765",
+          "shape": "sha256:d5bfe557893b39f3218fc32ab34832e4218f57f16de3c1aa8626cead03236430",
+          "answer": {
+            "keep": true,
+            "confidence": 0.95,
+            "why": "This PR delivers a measurable performance win with significant user engagement impact.",
+            "impact": 6,
+            "projects": [
+              "Search Relevance"
+            ]
+          },
+          "ms": 33181,
+          "tokensIn": 1069,
+          "tokensOut": 65
+        }
+      ]
+    },
+    {
+      "id": "pr08",
+      "calls": [
+        {
+          "hash": "sha256:61d1e7806d9144468ef300a4df2f983b69b162585e773cb28ede246fe4c5af1e",
+          "shape": "sha256:d5bfe557893b39f3218fc32ab34832e4218f57f16de3c1aa8626cead03236430",
+          "answer": {
+            "keep": false,
+            "confidence": 1,
+            "why": "This is a routine lockfile update with no functional impact.",
+            "impact": 1,
+            "projects": []
+          },
+          "ms": 31809,
+          "tokensIn": 1043,
+          "tokensOut": 53
+        }
+      ]
+    },
+    {
+      "id": "pr09",
+      "calls": [
+        {
+          "hash": "sha256:5e377a31f673b638492767e0adb49e08ae34e5a62d239a33cd17cb96eef9a9c8",
+          "shape": "sha256:d5bfe557893b39f3218fc32ab34832e4218f57f16de3c1aa8626cead03236430",
+          "answer": {
+            "keep": true,
+            "confidence": 0.95,
+            "why": "This PR implements a critical offline payment queuing feature with idempotency to prevent duplicate charges.",
+            "impact": 6,
+            "projects": [
+              "Mobile Offline Sync",
+              "Checkout v2"
+            ]
+          },
+          "ms": 35087,
+          "tokensIn": 1074,
+          "tokensOut": 79
+        }
+      ]
+    },
+    {
+      "id": "pr10",
+      "calls": [
+        {
+          "hash": "sha256:fb9c2c808b3020a29cb82838e785313a7d388d4ba9bc1e22a57fc46f2bb046d3",
+          "shape": "sha256:d5bfe557893b39f3218fc32ab34832e4218f57f16de3c1aa8626cead03236430",
+          "answer": {
+            "keep": false,
+            "confidence": 1,
+            "why": "This is a routine version bump for a release.",
+            "impact": 1,
+            "projects": []
+          },
+          "ms": 32670,
+          "tokensIn": 1050,
+          "tokensOut": 51
+        }
+      ]
+    },
+    {
+      "id": "pr11",
+      "calls": [
+        {
+          "hash": "sha256:76d9ffeef4f2bcafafb659618a0ebbbf8b02f7c4be6e7b7fcf4a0a10decf0097",
+          "shape": "sha256:d5bfe557893b39f3218fc32ab34832e4218f57f16de3c1aa8626cead03236430",
+          "answer": {
+            "keep": true,
+            "confidence": 0.95,
+            "why": "This PR represents a significant migration milestone that removed substantial technical debt and improved efficiency.",
+            "impact": 8,
+            "projects": [
+              "Billing Migration"
+            ]
+          },
+          "ms": 33728,
+          "tokensIn": 1079,
+          "tokensOut": 67
+        }
+      ]
+    },
+    {
+      "id": "pr12",
+      "calls": [
+        {
+          "hash": "sha256:10ef46dce6adedf6f368d10b069953b586dd3242b7e6597fb6a0e98510e1408c",
+          "shape": "sha256:d5bfe557893b39f3218fc32ab34832e4218f57f16de3c1aa8626cead03236430",
+          "answer": {
+            "keep": false,
+            "confidence": 1,
+            "why": "This is a formatting-only change with no behavioral impact.",
+            "impact": 1,
+            "projects": [
+              "Billing Migration"
+            ]
+          },
+          "ms": 32580,
+          "tokensIn": 1049,
+          "tokensOut": 61
+        }
+      ]
+    },
+    {
+      "id": "pr13",
+      "calls": [
+        {
+          "hash": "sha256:1b7c718a9a5908d8949cb52ccc370f91b929945ff2816ce252c4427429e578ba",
+          "shape": "sha256:d5bfe557893b39f3218fc32ab34832e4218f57f16de3c1aa8626cead03236430",
+          "answer": {
+            "keep": true,
+            "confidence": 0.95,
+            "why": "Fixing a $48k financial discrepancy that required backfilling six months of data is a significant impact.",
+            "impact": 6,
+            "projects": [
+              "Ledger Platform"
+            ]
+          },
+          "ms": 35130,
+          "tokensIn": 1077,
+          "tokensOut": 75
+        }
+      ]
+    },
+    {
+      "id": "pr14",
+      "calls": [
+        {
+          "hash": "sha256:f286176c9bf8b3917a2477c1b40da44bf67143144b9bbddd8b10881a98a16636",
+          "shape": "sha256:d5bfe557893b39f3218fc32ab34832e4218f57f16de3c1aa8626cead03236430",
+          "answer": {
+            "keep": false,
+            "confidence": 0.95,
+            "why": "This is a simple rename for consistency, which is routine maintenance.",
+            "impact": 1,
+            "projects": [
+              "Ledger Platform"
+            ]
+          },
+          "ms": 33129,
+          "tokensIn": 1047,
+          "tokensOut": 65
+        }
+      ]
+    },
+    {
+      "id": "pr15",
+      "calls": [
+        {
+          "hash": "sha256:492e959e905ae849ea1a984b6a586ef839347a02836a2d2652e4d094958f2882",
+          "shape": "sha256:d5bfe557893b39f3218fc32ab34832e4218f57f16de3c1aa8626cead03236430",
+          "answer": {
+            "keep": true,
+            "confidence": 0.95,
+            "why": "This PR delivered a significant performance win by cutting incident response time from 14 to 3 minutes.",
+            "impact": 7,
+            "projects": [
+              "On-call & Incidents"
+            ]
+          },
+          "ms": 34972,
+          "tokensIn": 1076,
+          "tokensOut": 75
+        }
+      ]
+    },
+    {
+      "id": "pr16",
+      "calls": [
+        {
+          "hash": "sha256:70d614191dc43821065482480e82028fddea43f3e264c41da82d1c0a8a8e6ef6",
+          "shape": "sha256:d5bfe557893b39f3218fc32ab34832e4218f57f16de3c1aa8626cead03236430",
+          "answer": {
+            "keep": false,
+            "confidence": 0.95,
+            "why": "This is a routine rota update involving simple shift swaps.",
+            "impact": 1,
+            "projects": [
+              "On-call & Incidents"
+            ]
+          },
+          "ms": 32779,
+          "tokensIn": 1044,
+          "tokensOut": 65
+        }
+      ]
+    },
+    {
+      "id": "pr17",
+      "calls": [
+        {
+          "hash": "sha256:3ff9568a1d9ade5069a3a563cbf8cdb4025e7b885fe8cc353b948483e673e5b6",
+          "shape": "sha256:d5bfe557893b39f3218fc32ab34832e4218f57f16de3c1aa8626cead03236430",
+          "answer": {
+            "keep": true,
+            "confidence": 0.95,
+            "why": "This PR replaced three home-grown rate limiters with a single shared solution adopted by multiple teams.",
+            "impact": 7,
+            "projects": [
+              "Deploy Pipeline",
+              "Ledger Platform"
+            ]
+          },
+          "ms": 35932,
+          "tokensIn": 1066,
+          "tokensOut": 78
+        }
+      ]
+    },
+    {
+      "id": "pr18",
+      "calls": [
+        {
+          "hash": "sha256:1cc4230183b2d2a48b3c804e8411eafd03afbe7258f9448b7f28e629c36cdb18",
+          "shape": "sha256:d5bfe557893b39f3218fc32ab34832e4218f57f16de3c1aa8626cead03236430",
+          "answer": {
+            "keep": false,
+            "confidence": 1,
+            "why": "This is a routine Dependabot dependency bump.",
+            "impact": 1,
+            "projects": []
+          },
+          "ms": 31579,
+          "tokensIn": 1047,
+          "tokensOut": 51
+        }
+      ]
+    },
+    {
+      "id": "pr19",
+      "calls": [
+        {
+          "hash": "sha256:af422868db953297b08354edd7405069a9ab2119a6fb9b1a83c4b557abda9118",
+          "shape": "sha256:d5bfe557893b39f3218fc32ab34832e4218f57f16de3c1aa8626cead03236430",
+          "answer": {
+            "keep": true,
+            "confidence": 0.95,
+            "why": "This PR documents a mentoring initiative where mentees shipped real work in their first week.",
+            "impact": 4,
+            "projects": [
+              "Mentoring"
+            ]
+          },
+          "ms": 33898,
+          "tokensIn": 1069,
+          "tokensOut": 69
+        }
+      ]
+    },
+    {
+      "id": "pr20",
+      "calls": [
+        {
+          "hash": "sha256:7f88345bcd7dbab00eeb0c0bef184586230fe0deca336070519f35b4e1faf145",
+          "shape": "sha256:d5bfe557893b39f3218fc32ab34832e4218f57f16de3c1aa8626cead03236430",
+          "answer": {
+            "keep": false,
+            "confidence": 0.95,
+            "why": "This is a work-in-progress experiment explicitly marked as not ready for review.",
+            "impact": 1,
+            "projects": []
+          },
+          "ms": 32176,
+          "tokensIn": 1045,
+          "tokensOut": 57
+        }
+      ]
+    }
+  ]
+}

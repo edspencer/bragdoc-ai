@@ -58,6 +58,10 @@ export const ANSWERS: AnswerRule[] = [
   // traps for the checks: "cut costs" with no number gets an invented 40%, "INVENT-DATE" an invented date, "MADE-UP
   // PROJECT" a project that isn't theirs, and a calendar invite is notAnAchievement.
   { name: 'tidy', when: (r) => r.json && (r.schemaName === 'achievement_tidy' || asks(r, 'title', 'summary', 'notAnAchievement')), answer: (r) => tidyAnswer(r.prompt) },
+  // the Found judge (PR24): a merged PR (notable or routine), and a screenshot's message (a win, probably not, or the
+  // sarcastic trap a small model falls for: praise words, aimed at you, meant the other way)
+  { name: 'judge-pr', when: (r) => r.json && (r.schemaName === 'found_judge_pr' || asks(r, 'keep', 'impact') || /Is this pull request notable/.test(r.prompt)), answer: (r) => judgePr(r.prompt) },
+  { name: 'judge', when: (r) => r.json && (r.schemaName === 'found_judge' || asks(r, 'keep', 'quote', 'why') || /Is the message to judge a win/.test(r.prompt)), answer: (r) => judgeMessage(r.prompt) },
   // Folio's Draft with AI (PR27): a draft made from the prompt's own clippings, best first, citing each, plus the two
   // mistakes the check must catch: one bullet with no citation, and one planted number ("by 37%") no clipping has.
   // A note containing "(clean)" leaves both out.
@@ -97,6 +101,30 @@ function fakeDraft(prompt: string): string {
   }
   if (!clean) out.push('', '## Also', '', '- I helped wherever I was needed');
   return `${out.join('\n')}\n`;
+}
+
+/** The judge's fake opinion of the message to judge in the material (server/ai/judge/input.ts's layout). */
+function judgeMessage(prompt: string) {
+  const line = /The (?:message|part) to judge[^\n]*:\n {2}([^\n]*)/.exec(prompt)?.[1] ?? '';
+  const m = /^(.+?)(?: \((the user|not the user|a bot)\))?: (.*)$/.exec(line);
+  const author = m && !m[1]!.startsWith('(') ? m[1]! : '';
+  const mark = m?.[2] ?? '';
+  const text = (m ? m[3]! : line).trim();
+  if (/really loving|love that for us|very efficient|10\/10|great timing|🙃|once anyone can|most creative interpretation/i.test(text))
+    return { keep: false, confidence: 0.8, quote: '', from: author, why: 'Reads as sarcasm, not praise.', projects: [] };
+  if (mark === 'the user') return { keep: false, confidence: 0.75, quote: '', from: author, why: "The user's own message, not praise for them.", projects: [] };
+  if (/\b(?:thank|thanks|great|kudos|amazing|awesome|saved|well done|nice work|impressive|shout ?out|congrat\w*|legend|brilliant)\b/i.test(text)) {
+    const quote = (/^.*?[.!?](?=\s|$)/.exec(text)?.[0] ?? text).trim();
+    return { keep: true, confidence: 0.86, quote, from: author, why: 'Specific praise for something the user did.', projects: [] };
+  }
+  return { keep: false, confidence: 0.7, quote: '', from: author, why: "Routine chatter, not about the user's work.", projects: [] };
+}
+
+/** The judge's fake opinion of a merged PR: routine when its title says so. */
+function judgePr(prompt: string) {
+  const title = /^Title: (.*)$/m.exec(prompt)?.[1] ?? '';
+  if (/\b(?:bump|bumps|chore|typo|revert|deps?|dependabot|version|lint|format)\b/i.test(title)) return { keep: false, confidence: 0.8, why: 'Routine maintenance.', impact: 1, projects: [] };
+  return { keep: true, confidence: 0.75, why: 'A notable change worth a brag.', impact: 5, projects: [] };
 }
 
 function lastLine(prompt: string): string {

@@ -75,6 +75,8 @@ import type { Achievement, AchievementCreate, AchievementUpdate, Evidence, Found
 // v0.2's AI plumbing (PR22), on a line of its own so the AI PRs' imports don't collide
 import type { AiActivityResponse, AiInstructionsName, AiInstructionsReset, AiInstructionsResponse } from '../../shared/api.ts';
 import type { AiDraftCheck, AiDraftCheckRequest, AiDraftEvent, AiDraftPreview, AiDraftRequest } from '../../shared/api.ts';
+// the judge (PR24)
+import type { AiJudgePreview, AiJudgeRunResponse, AiJudgeStatus } from '../../shared/api.ts';
 
 /** A failed API call: the HTTP status (0 when the server couldn't be reached) and the envelope's code and message. */
 export class ApiRequestError extends Error {
@@ -536,3 +538,12 @@ export const checkAiDraft = (body: AiDraftCheckRequest, signal?: AbortSignal) =>
 
 /** `GET /api/ai/draft/preview`: what a draft sends (the template, without params). */
 export const getAiDraftPreview = (params?: Record<string, string>, signal?: AbortSignal) => api.get<AiDraftPreview>(`/api/ai/draft/preview${params ? `?${new URLSearchParams(params)}` : ''}`, { signal });
+
+// ---------------------------------------------------------------- the judge (PR24)
+
+/** `GET /api/ai/judge/status`: can it run, what's waiting, the run in progress and the last one. */
+export const getJudgeStatus = (signal?: AbortSignal) => api.get<AiJudgeStatus>('/api/ai/judge/status', { signal });
+/** `POST /api/ai/judge/run`: Judge now (what's waiting), or `ids` again. It runs in the background. */
+export const runJudge = (ids?: string[]) => api.post<AiJudgeRunResponse>('/api/ai/judge/run', ids ? { ids } : {});
+/** `GET /api/ai/judge/preview?candidate=`: what would be sent for one candidate (nothing is sent). */
+export const getJudgePreview = (id: string, signal?: AbortSignal) => api.get<AiJudgePreview>(`/api/ai/judge/preview?candidate=${encodeURIComponent(id)}`, { signal });

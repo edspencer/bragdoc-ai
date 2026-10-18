@@ -235,8 +235,8 @@ test('the API: GET, PUT with If-Match, reset; AI off changes nothing, and nothin
   assert.equal((await res('PUT', '/api/ai/instructions/what-counts', { text: 1 })).status, 400);
   assert.equal((await res('PUT', '/api/ai/instructions/what-counts', { text: 'x', more: 1 })).status, 400);
   assert.equal((await res('PUT', '/api/ai/instructions/what-counts', { text: 'y'.repeat(INSTRUCTIONS_MAX_CHARS + 1) })).status, 400);
-  // reset: 404 until a feature registers a starter
-  assert.equal((await res('POST', '/api/ai/instructions/what-counts/reset')).status, 404);
+  // reset: 404 until a feature registers a starter (the judge registers what-counts' when the app is made, PR24)
+  assert.equal((await res('POST', '/api/ai/instructions/style/reset')).status, 404);
   a.ctx.services.instructions.setStarter('what-counts', () => 'Starter.\n');
   r = await res('POST', '/api/ai/instructions/what-counts/reset');
   assert.equal(r.status, 200);

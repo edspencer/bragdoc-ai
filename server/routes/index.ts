@@ -16,6 +16,7 @@ import { registerAi } from './ai.js';
 import { registerAiActivity } from './ai-activity.js';
 import { registerAiDraft } from './ai-draft.js';
 import { registerAiInstructions } from './ai-instructions.js';
+import { registerAiJudge } from './ai-judge.js';
 import { registerAiLocal } from './ai-local.js';
 import { registerAiTidy } from './ai-tidy.js';
 import { registerCatalog } from './catalog.js';
@@ -47,6 +48,7 @@ export function registerRoutes(app: Hono, ctx: AppContext): void {
   registerAiActivity(app, ctx);
   registerAiDraft(app, ctx);
   registerAiInstructions(app, ctx);
+  registerAiJudge(app, ctx);
   registerAiLocal(app, ctx);
   registerAiTidy(app, ctx);
   registerCatalog(app, ctx);

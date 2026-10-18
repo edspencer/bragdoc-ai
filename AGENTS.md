@@ -27,7 +27,8 @@ PR19 brought the docs site up to date with what was built, with real screenshots
 PR17 is the v0.1 release candidate: an end-to-end pass over all of it, the fixes it turned up, and the 0.1.0 changeset.
 v0.1's feature set is complete. **v0.2 adds opt-in AI** (epic [#434](https://github.com/edspencer/bragdoc-ai/issues/434)),
 built on the `v0.2` branch: PR21 laid down the AI core and PR22 the shared plumbing the features use (instructions
-files, the AI activity log, live evals; see "AI (v0.2)" below); its UI and features follow.
+files, the AI activity log, live evals; see "AI (v0.2)" below); PR24 the Found judge's engine. Its UI and the other
+features follow.
 
 Before changing behaviour, read, in order:
 
@@ -106,7 +107,9 @@ server/              the server and CLI (Node, TypeScript ESM, Hono)
                      run.ts (ctx.ai: queue, object/stream/test/models), local.ts (ctx.localAi: hardware, detection, the
                      confirmed Ollama download; PR23), errors.ts (AiError, the fixed codes), sdk.ts
                      (the ONLY place the AI SDK is loaded, by import()), providers.ts (connection → model), ollama.ts
-                     (Ollama's native /api/chat as a model), activity.ts (ctx.aiActivity: logs/ai-runs.jsonl, PR22)
+                     (Ollama's native /api/chat as a model), activity.ts (ctx.aiActivity: logs/ai-runs.jsonl, PR22),
+                     judge/ (the Found judge, PR24: index.ts ctx.judge, input.ts what it reads, starter.ts),
+                     prompts/ (one file per prompt: judge-screenshot.ts, judge-github.ts)
   discover.ts        Welcome's "Your code": the bounded scan of one named folder (4 levels, 5 s, stops at .git,
                      symlink-loop safe), opt-in editor hints, recency from each repo's own .git (D60)
   example.ts         the example dataset (fixtures/example/): add (create-only, `example: true`), remove exactly it (D61)
@@ -221,6 +224,8 @@ npm run bragdoc -- dev ocr <image>  # which OCR engine ran, the text, and what t
 BRAGDOC_LIVE_AI=1 npm run eval:smoke -- --connection ollama@http://127.0.0.1:11434 --model qwen3.5:4b [--record]
                        # a live eval on a REAL model (refuses under CI); --record saves answers for replay tests
 BRAGDOC_LIVE_AI=1 npm run eval:tidy -- --connection … --model …   # Tidy this up on 30 synthetic blobs (PR26)
+BRAGDOC_LIVE_AI=1 npm run eval:judge -- --connection … --model … [--perfect-text] [--judge-all] [--only messages|prs]
+                       # the Found judge on the 218 labelled screenshots and 20 PRs (record with --perfect-text)
 npm run gen:example    # remake fixtures/example/evidence/ after changing a picture in scripts/gen-example.ts
 ```
 
@@ -554,6 +559,37 @@ PR27 added **Draft with AI** in Folio (SPEC R24, D80–D81):
   byte for byte.
 - `npm run eval:draft` (live): three example-data folios (a quarter, six months, a year on a 4k context that hits the
   budget); `EVAL_SHOW=1` prints each draft.
+
+PR24 added **the Found judge** (SPEC R21; D72–D74). It only ever writes a pending candidate's `verdict`
+(through `services.found.setVerdict`), never its status. **For PR25 (schedule, Found UI) and PR28 (Jev):**
+
+- **`ctx.judge`** (`server/ai/judge/index.ts`, `createJudge(deps)`; no SDK import, so createApp builds it with AI off):
+  - `start({ ids?, trigger, priority?, signal? })` → `{ runId, queued, done }`: a run in the background. Throws an
+    `AiError` for a gate (409) or `JudgeRunning` (one run at a time). `trigger` is the activity log's (`now` ·
+    `arrival` · `schedule`); priority defaults to `now` for `trigger: 'now'`, else `background`. `done` resolves to a
+    `RunSummary` (`total`, `done`, `counts`, `outcome`, `error`); it never rejects for a model's failure.
+  - `judgePending(opts)`: `start()` and wait. `cancel()` stops the run in progress (what's judged stays).
+  - `eligible(ids?)`: what a run would take (pending, ticked kinds, no verdict unless `ids`, newest first, `maxPerRun`).
+  - `status()` → `AiJudgeStatus` (`ready`/`reason`, `kinds`, `waiting`, `running`, `last`), `preview(id)` →
+    `AiJudgePreview` (the exact system and prompt, nothing sent; `NotJudgeable` for a decided or MCP candidate),
+    `prepare(c)` → `Prepared` (input, prompt, `inputHash`, project map), `decide(c, context)` (the `Judge` seam).
+  - `checkAnswer(answer, prepared)`: the checks every verdict passes (quote verbatim in the message judged, `from` its
+    author, projects to ids, `why` ≤ 160, clamps). **Jev (PR28) runs its answer through it too.**
+  - Counts are `win` · `probably-not` · `failed` · `skipped`. A run emits `{ type: 'ai-judge' }` as it goes; the store
+    forwards `found` as each verdict is written.
+- **Routes** (`server/routes/ai-judge.ts`): `POST /api/ai/judge/run` (`{ ids? }` → 202), `GET /api/ai/judge/status`,
+  `GET /api/ai/judge/preview?candidate=`. Web: `runJudge`, `getJudgeStatus`, `getJudgePreview`, `useJudgeStatus()`.
+- **The input** (`judge/input.ts`): `screenshotInput`, `githubInput`, `inputBudget`. Messages come from
+  `compileMessages(profile)` in `shared/rules/screenshot.ts`: the rules' own split, with `notMe` kept and flagged.
+- **The starter** `ai/what-counts.md` (`judge/starter.ts`, from the profile) is registered with
+  `services.instructions.setStarter` when the app is made, and written when the judge is first switched on.
+- **Found's card** shows the verdict (`VerdictNote` in `src/found/FoundCard.tsx`: stamp, why, "judged by …", "judged
+  earlier" while the judge is off) and the page has a minimal Judge now. Grouping, "Probably not" and Judge again are
+  PR25's.
+- **The fake's judge rows** (`answers.ts`, schema names `found_judge` and `found_judge_pr`): praise words → a win
+  (0.86), sarcasm markers → probably not, "(the user)"'s own message → probably not; a PR titled bump/chore/typo/revert
+  → routine (impact 1), else notable (5). **`e2e/judge.spec.ts`** runs its own server and fake.
+- **Recordings** `test/fixtures/ai-recordings/judge/<model>.json` (perfect text) are replayed in `test/ai-judge-replay.test.ts`.
 
 **Adding an AI feature** (five steps):
 1. Its settings already exist under `ai.features.<name>` (PR21 laid down all of them); read them with

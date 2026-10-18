@@ -4,6 +4,7 @@
 import type { Notice } from '../shared/api.js';
 import type { LocalAi } from './ai/local.js';
 import type { AiActivity } from './ai/activity.js';
+import type { JudgeEngine } from './ai/judge/index.js';
 import type { Ai } from './ai/run.js';
 import type { ConfigStore } from './config.js';
 import type { Egress } from './egress.js';
@@ -55,4 +56,6 @@ export interface AppContext {
   localAi: LocalAi;
   /** The AI activity log (logs/ai-runs.jsonl): every ctx.ai call lands here; `start()` groups a feature's run (PR22). */
   aiActivity: AiActivity;
+  /** The Found judge (PR24): `start()`/`judgePending()` fill pending candidates' verdicts, `status()`, `preview(id)`. */
+  judge: JudgeEngine;
 }

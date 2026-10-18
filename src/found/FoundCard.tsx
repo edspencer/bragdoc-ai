@@ -1,14 +1,15 @@
 // One candidate in Found (SPEC R7): where it came from, what it is (a PR slab, an agent's text, evidence), which rules
-// it passed, the projects and repos it probably goes with, and Keep · Merge into… · Dismiss. No confidence stamp and no
-// verdict: with AI off (the default, D8) the card shows the plain rules that let it through, and says AI is off (SPEC
-// R26); the judge's verdicts are PR25's. Adapted from the Scrapbook
-// prototype's FoundCard (Found.tsx), without its Slack body and its judge.
+// it passed, the projects and repos it probably goes with, and Keep · Merge into… · Dismiss. The rules that let it
+// through are always shown. With AI off (the default, D8) the card says so (SPEC R26). With the judge on (v0.2, opt-in),
+// a judged card also shows its verdict: the stamp, the why and which model judged it (SPEC R21); PR25 adds the rest. A
+// verdict from before stays while the judge can't run, marked "judged earlier". Adapted from the Scrapbook prototype's
+// FoundCard (Found.tsx), without its Slack body.
 import type { ProjectEntry, RepoEntry } from '../../shared/api.ts';
-import type { FoundCandidate } from '../../shared/schema/index.ts';
+import type { FoundCandidate, Verdict } from '../../shared/schema/index.ts';
 import { foundPictureUrl } from '../api/client.ts';
 import { useAiState } from '../api/queries.ts';
 import { toView } from '../board/evidence.ts';
-import { Btn, EvidenceBit, Hand, ImpactBadge, Kicker, Print, ProjectPill, ProvenanceBadge, RepoTag, StickyQuote, type Provenance } from '../kit/index.ts';
+import { Btn, EvidenceBit, Hand, ImpactBadge, Kicker, Print, ProjectPill, ProvenanceBadge, RepoTag, Stamp, StickyQuote, type Provenance } from '../kit/index.ts';
 import { fmt, todayIso } from '../lib/dates.ts';
 import type { Decision } from './decide.ts';
 import { MergeInto } from './MergeInto.tsx';
@@ -27,12 +28,15 @@ export function FoundCard({
   repos,
   busy,
   onDecide,
+  judgedEarlier = null,
 }: {
   c: FoundCandidate;
   projects: ReadonlyMap<string, ProjectEntry>;
   repos: ReadonlyMap<string, RepoEntry>;
   busy: boolean;
   onDecide: (d: Decision) => void;
+  /** Set while the judge can't run (AI or the judge off, no model…): a verdict is from before, and says why. */
+  judgedEarlier?: string | null;
 }) {
   const pills = c.suggestedProjects.map((id) => projects.get(id)).filter((p): p is ProjectEntry => !!p);
   const repoTags = c.suggestedRepos.map((id) => repos.get(id)).filter((r): r is RepoEntry => !!r);
@@ -75,6 +79,7 @@ export function FoundCard({
         </>
       )}
       {c.source === 'mcp' && <div className="mt-3 font-hand text-[19px] text-[#6a4fd0] dark:text-[#b7a4ff]">{c.sourceAgent || 'An agent'} suggested this, so it’s waiting for your OK.</div>}
+      {c.verdict && <VerdictNote v={c.verdict} earlier={judgedEarlier} />}
 
       {c.matchedRules.length > 0 && (
         <div className="mt-4 rounded-2xl border-2 border-dashed border-line p-3.5" data-testid="found-rules">
@@ -146,6 +151,31 @@ function ScreenshotBody({ c }: { c: FoundCandidate }) {
           <StickyQuote text={quote.text} from={quote.from} where={quote.where} rotate={1.2} />
         </div>
       )}
+    </div>
+  );
+}
+/** "Looks like a win · 86%" / "Probably not · 70%". */
+export const verdictLabel = (v: Pick<Verdict, 'keep' | 'confidence'>) => `${v.keep ? 'Looks like a win' : 'Probably not'}${v.confidence !== undefined ? ` · ${Math.round(v.confidence * 100)}%` : ''}`;
+
+/**
+ * The judge's opinion (SPEC R21): a stamp, its reason, and which model gave it. Only an opinion: the buttons below are
+ * still the only way anything is kept or dismissed.
+ */
+function VerdictNote({ v, earlier }: { v: Verdict; earlier: string | null }) {
+  return (
+    <div className="mt-4 rounded-2xl bg-sunk p-3.5" data-testid="found-verdict" data-keep={v.keep}>
+      <Stamp color={v.keep ? 'var(--good)' : 'var(--faint)'} rotate={-2}>
+        <span data-testid="found-verdict-stamp">{verdictLabel(v)}</span>
+      </Stamp>
+      {v.why && (
+        <p className="m-0 mt-2.5 text-[14px] leading-snug text-ink break-words" data-testid="found-verdict-why">
+          {v.why}
+        </p>
+      )}
+      <div className="mt-2 text-[11.5px] text-faint" data-testid="found-verdict-by">
+        {v.by ? `judged by ${v.by}` : 'judged by AI'}
+        {earlier && ` · judged earlier (${earlier})`}
+      </div>
     </div>
   );
 }

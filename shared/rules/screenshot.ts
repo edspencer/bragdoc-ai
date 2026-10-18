@@ -218,8 +218,8 @@ const initialsOfName = (n: string) =>
 
 const allMatches = (re: RegExp, s: string) => [...s.matchAll(new RegExp(re.source, re.flags.includes('g') ? re.flags : re.flags + 'g'))];
 
-/** The rules for one person, compiled once: call the result with each screenshot's OCR text. */
-export function compileRules(profile: RulesProfile): (text: string) => RulesResult {
+/** Your names as patterns, compiled once: shared by the rules and the judge's message splitting. */
+function nameMatchers(profile: RulesProfile) {
   const terms = nameTerms(profile);
   // a name of three letters or fewer is matched as written (case and all): tolerantly, "Al" would be every "AI"
   // and "Li" every "11"
@@ -231,9 +231,6 @@ export function compileRules(profile: RulesProfile): (text: string) => RulesResu
   const ownExact = (a: string) => names(a).some((m) => m.index === 0 && m[0].length === a.length);
   const full = profile.name.trim().replace(/\s+/g, ' ');
   const fullRe = full.length >= 2 ? new RegExp(`${BEFORE}${tolerant(full)}${AFTER}`, 'iu') : null;
-  const initials = [...new Set((profile.aliases ?? []).filter(isInitials).map((a) => a.trim()))];
-  const initialsRe = initials.length ? new RegExp(`${BEFORE}(?:${initials.map(escape).join('|')})${AFTER}`, 'gu') : null;
-  const initialsTimedRe = initials.length ? new RegExp(`${TIME_BEFORE}${BEFORE}(?:${initials.map(escape).join('|')})${AFTER}${TIME_AFTER}`, 'gu') : null;
   const notMe = (profile.notMe ?? []).map((n) => n.trim()).filter((n) => n.length >= 2);
   const notMeRe = notMe.length ? new RegExp(`${BEFORE}@?(?:${notMe.sort((a, b) => b.length - a.length).map(tolerant).join('|')})(?![\\p{L}\\p{N}_])`, 'giu') : null;
 
@@ -243,6 +240,15 @@ export function compileRules(profile: RulesProfile): (text: string) => RulesResu
     if (notMeRe && new RegExp(`^(?:${notMeRe.source})$`, 'iu').test(a)) return false;
     return ownExact(a) || !!fullRe?.test(a);
   };
+  return { names, isMe, notMeRe };
+}
+
+/** The rules for one person, compiled once: call the result with each screenshot's OCR text. */
+export function compileRules(profile: RulesProfile): (text: string) => RulesResult {
+  const { names, isMe, notMeRe } = nameMatchers(profile);
+  const initials = [...new Set((profile.aliases ?? []).filter(isInitials).map((a) => a.trim()))];
+  const initialsRe = initials.length ? new RegExp(`${BEFORE}(?:${initials.map(escape).join('|')})${AFTER}`, 'gu') : null;
+  const initialsTimedRe = initials.length ? new RegExp(`${TIME_BEFORE}${BEFORE}(?:${initials.map(escape).join('|')})${AFTER}${TIME_AFTER}`, 'gu') : null;
 
   return function rules(raw: string): RulesResult {
     const notes: string[] = [];
@@ -272,33 +278,7 @@ export function compileRules(profile: RulesProfile): (text: string) => RulesResu
     const thread = !!allMatches(CHAT_CUES[1]![1], lines.join('\n')).length;
 
     // messages: split at author lines when there are any; otherwise the whole text is one, with a nearness rule
-    const headers = lines.map((l) => HEADER.exec(l));
-    const blocks: Block[] = [];
-    const chatLayout = headers.some((h) => h);
-    if (chatLayout) {
-      let cur: Block = { own: false, start: 0, end: -1 };
-      lines.forEach((_, i) => {
-        // "AM Alex Marlowe": the avatar's initials, read onto the author line
-        const h = headers[i];
-        const author = h?.[1]!.replace(/^(\p{Lu}{1,3})\s+(.+)$/u, (all, ini: string, rest: string) => (initialsOfName(rest) === ini ? rest : all));
-        if (author) {
-          if (cur.author || cur.end >= cur.start) blocks.push(cur);
-          cur = { author, own: isMe(author), bot: !!(h![2] || h![3]) || /\s(?:APP|BOT)$/.test(author), start: i + 1, end: i };
-        } else cur.end = i;
-      });
-      blocks.push(cur);
-    } else blocks.push({ own: false, start: 0, end: lines.length - 1 });
-
-    // an avatar's initials, read as text at the start of its message ("SO thx AM"), and the bits of drawn emoji OCR
-    // reads as brackets and bars ("GA [|"): neither is something anyone wrote
-    for (const b of blocks) {
-      const avatar = b.author ? initialsOfName(b.author) : '';
-      for (let i = b.start; i <= b.end; i++) {
-        let l = lines[i]!;
-        if (avatar && i <= b.start + 1) l = l.replace(new RegExp(`^${escape(avatar)}(?:\\s+|$)`), '');
-        lines[i] = l.replace(/(?:^|\s)[[\]|{}()]+(?=\s|$)/g, '').trim();
-      }
-    }
+    const { blocks, chatLayout } = splitBlocks(lines, isMe);
 
     const authors = new Set(blocks.flatMap((b) => (b.author && !b.own ? [b.author.trim()] : [])));
     let best: { hits: Hit[]; score: number } = { hits: cues.map((c) => ({ ...c })), score: -1 };
@@ -362,6 +342,73 @@ export function compileRules(profile: RulesProfile): (text: string) => RulesResu
       };
     }
     return { pass: false, matched: best.hits.map(({ rule, text }) => ({ rule, text })), ...(where ? { where } : {}), notes };
+  };
+}
+
+/**
+ * Split OCR lines into messages at chat author lines (`Dana Whitfield 4:52 PM`); without any, the whole text is one.
+ * Cleans `lines` in place: an avatar's initials read at the start of a message ("SO thx AM"), and the bits of drawn
+ * emoji OCR reads as brackets and bars ("GA [|"), are removed, since neither is something anyone wrote.
+ */
+function splitBlocks(lines: string[], isMe: (author: string) => boolean): { blocks: Block[]; chatLayout: boolean } {
+  const headers = lines.map((l) => HEADER.exec(l));
+  const blocks: Block[] = [];
+  const chatLayout = headers.some((h) => h);
+  if (chatLayout) {
+    let cur: Block = { own: false, start: 0, end: -1 };
+    lines.forEach((_, i) => {
+      // "AM Alex Marlowe": the avatar's initials, read onto the author line
+      const h = headers[i];
+      const author = h?.[1]!.replace(/^(\p{Lu}{1,3})\s+(.+)$/u, (all, ini: string, rest: string) => (initialsOfName(rest) === ini ? rest : all));
+      if (author) {
+        if (cur.author || cur.end >= cur.start) blocks.push(cur);
+        cur = { author, own: isMe(author), bot: !!(h![2] || h![3]) || /\s(?:APP|BOT)$/.test(author), start: i + 1, end: i };
+      } else cur.end = i;
+    });
+    blocks.push(cur);
+  } else blocks.push({ own: false, start: 0, end: lines.length - 1 });
+
+  for (const b of blocks) {
+    const avatar = b.author ? initialsOfName(b.author) : '';
+    for (let i = b.start; i <= b.end; i++) {
+      let l = lines[i]!;
+      if (avatar && i <= b.start + 1) l = l.replace(new RegExp(`^${escape(avatar)}(?:\\s+|$)`), '');
+      lines[i] = l.replace(/(?:^|\s)[[\]|{}()]+(?=\s|$)/g, '').trim();
+    }
+  }
+  return { blocks, chatLayout };
+}
+
+/** One message on screen, as the judge is shown it (PR24): who wrote it, and what it says on one line. */
+export interface ScreenMessage {
+  /** The author line's name, when the screenshot shows one. */
+  author?: string;
+  /** You wrote it (your name on its author line). */
+  own: boolean;
+  /** The author is one of `notMe` (someone whose name looks like yours). */
+  notMe: boolean;
+  /** A bot or an app. */
+  bot: boolean;
+  text: string;
+}
+
+/**
+ * The messages in a screenshot's OCR text, split the way the rules split them (at author lines; the whole text is one
+ * message without any), for the judge (SPEC R21). Unlike the rules, `notMe` names are kept, not blanked out: the judge
+ * is told whose they are. Messages with no text (an author line and nothing under it) are left out.
+ */
+export function compileMessages(profile: RulesProfile): (text: string) => ScreenMessage[] {
+  const { isMe, notMeRe } = nameMatchers(profile);
+  const isNotMe = (author: string) => !!notMeRe && allMatches(notMeRe, author).length > 0;
+  return (raw) => {
+    const lines = normaliseOcr(raw).split('\n');
+    const { blocks } = splitBlocks(lines, isMe);
+    return blocks.flatMap((b) => {
+      const text = lines.slice(b.start, b.end + 1).join(' ').replace(/\s+/g, ' ').trim();
+      if (!text) return [];
+      const author = b.author?.trim();
+      return [{ ...(author ? { author } : {}), own: b.own, notMe: !!author && !b.own && isNotMe(author), bot: !!b.bot, text }];
+    });
   };
 }
 

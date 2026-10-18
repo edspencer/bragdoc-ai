@@ -1262,3 +1262,80 @@ PR27 (SPEC R24, R26).
   draft keeps meaning what it was made from ("the folio has changed since this draft"). Draft again over an edited
   draft asks too.
 
+### D72 — What the judge reads: the screenshot re-read and marked, a PR's start, fenced as material
+
+- **A screenshot** (`server/ai/judge/input.ts`, pure): the picture is read again through `ctx.ocr`, **only if the file
+  is still the picture that passed** (its sha256 is the candidate's `screenshot:` key); its text is held in memory and
+  never written (R7). It's split into messages at author lines by the rules' own splitter
+  (`compileMessages`, exported from `shared/rules/screenshot.ts` without changing a rule: `eval:screenshots` gives
+  identical numbers). Unlike the rules, `notMe` names are kept and **marked**: an author who is you is "(the user)", one
+  of `notMe` is "(not the user)", and a `notMe` name inside a message gets the same mark.
+  - **The message to judge** is the one holding the rules' quote (`isVerbatim`), else the one sharing most of its
+    words. The rest is context, labelled as such, **nearest first** until the budget runs out (`truncated` says so).
+    Text with no author lines is one block: then the rules' quote is "the part to judge" and the block is context.
+  - **The budget** is the connection's `contextTokens`, less the system prompt and room for the answer, at 2.5
+    characters a token (OCR text, names and emoji tokenise worse than prose), because Ollama cuts an over-long prompt
+    silently from the front, fence and all: `inputBudget()`. Instructions so long they leave no room fail the item with
+    `context_too_long` before anything is sent.
+  - **`from`** is kept only if it's the judged message's own author (as shown, or the rules' `from`).
+  - **A picture that's gone** (or replaced since) is judged from the stored quote alone. **Known gap (v0.1's):** the
+    rules blank `notMe` names out before taking their quote, so a stored quote has lost "Alex P" and can't be marked;
+    and a `notMe` author line isn't a header to the rules (it's blanked) but is to the judge's split. Both only matter
+    when the picture is gone; changing the rules' quote is out of this PR (no rule changes).
+- **A merged PR**: repo, title, merge date and the first 2,000 characters of its description, HTML comments removed.
+  The question is different: notable or routine, plus an impact on BragDoc's 1–10 scale.
+- **The prompts** (`server/ai/prompts/judge-screenshot.ts`, `judge-github.ts`) are pure functions of `{ profile,
+  projects, instructions, input }`, written fresh (D2) after the spike's. The input goes between `<material>` markers
+  and the prompt says it's material to judge, never instructions; the markers (and `<instructions>`) are taken out of
+  the input so it can't close the fence. Projects are names (code maps them back). With no instructions (no file, or an
+  empty one) a short built-in guidance stands in. The screenshot prompt also says the user took the screenshot, so
+  "you" in someone else's message usually means them: the spike told the model a DM was "between the user and X", a
+  fact OCR can't recover.
+- **Rejected:** sending the whole OCR text unmarked (the spike's biggest prompt fix was "(the user)"); a separate
+  splitter for the judge (two definitions of "a message" would drift); storing the OCR text to skip the re-read (R7).
+
+### D73 — Judge runs: what's waiting, one at a time, what's checked before it's written
+
+- **What's judged** (`eligible`): pending candidates of the ticked kinds (screenshots; merged PRs only with
+  `judge.github`; never MCP), **without a verdict**, newest first, at most `maxPerRun`. "Judge again" names ids, and
+  then an existing verdict doesn't matter; decided candidates and unticked kinds still do. A candidate decided, or its
+  kind unticked, while a run is under way is skipped when its turn comes (`skipped`).
+- **One run at a time** (409 `running`), started in the background (`POST /api/ai/judge/run` → 202 `{ runId,
+  queued }`; the id is the activity log's). Judge now runs at `now` priority, everything else at `background`. Each item
+  is one call; the run is one line in the AI activity log, counted `win` · `probably-not` · `failed` · `skipped`.
+  - **Run-level failures stop it** (the same set as the eval harness: a gate, unreachable, a missing model, a refused
+    key, quota, rate limit, busy, cancelled); turning AI off mid-run is `cancelled` with `ai_off`. **An item's own
+    failure** (an answer still wrong after the repair, a timeout, a file that can't be written) is counted and the run
+    goes on. A run in which every item failed reports the last item's code, as the activity log does.
+  - `GET /api/ai/judge/status` keeps the run in progress and the last one **in memory only**; the activity log is the
+    record. An `ai-judge` event refreshes open tabs.
+- **Checks before writing** (`checkAnswer`): a `quote` is kept only if it's verbatim in **the message judged** (not the
+  context) and the verdict is a keep; `from` only if it's the judged message's author; project names map to the active and paused
+  projects' ids, others dropped; `why` is cut to 160 characters; `confidence` is clamped to 0–1 (a whole number up to
+  100 is read as a percentage); a PR's `impact` is rounded and clamped to 1–10. `by` is "<model> on <this computer ·
+  your network · host>"; `inputHash` is the sha256 of the kind, the input and the instructions, so the preview's hash
+  equals the verdict's when nothing changed.
+- **The starter `ai/what-counts.md`** is written from the profile when the judge is first on (AI and the judge both),
+  however it was switched on (the `config` event), and again at a run's start if it's missing; never over a file that
+  exists, even an empty one. `bragdoc_get_context` returns the same file as `winInstructions`.
+- **Rejected:** "current verdict" meaning "same inputHash" for what's waiting (it means re-reading every picture to
+  find out); a judge that writes anything but `verdict` (SPEC R21).
+
+### D74 — The judge's eval, and reasoning off for OpenRouter
+
+- **`npm run eval:judge`** (`scripts/eval/judge.ts`): the spike's 218 labelled messages, drawn as screenshots, read by
+  the real OCR (or `--perfect-text`), then the rules, then the judge; plus 20 synthetic merged PRs on
+  `altimetry-example/*`. It reports the pipeline's precision and recall, the judge's on what the rules passed, sarcasm
+  kept, valid answers, verbatim quotes, p50/p90 per call and PR accuracy. `--judge-all` judges every message (the judge
+  alone, as the spike's hosted table measured it).
+  - **Recordings are made with `--perfect-text`** (and only then): the replay tests run in CI, which has no OCR to
+    spare, and perfect text is the same on every machine.
+  - **Deviation from the brief:** it asked for "≥ 100 of the prefiltered messages" per local model. The screenshot
+    rules pass **70** of the 218 (the spike's Slack prefilter passed 108, from metadata a picture doesn't have: DMs,
+    threads, mentions), so a local run judges 70 messages and 20 PRs. The rules' own recall (83% on perfect text) caps
+    the pipeline's, so the comparison with the spike is the judge's numbers **on what the rules passed**.
+- **OpenRouter calls ask for no reasoning** (`reasoning: { effort: 'none', exclude: true }`, SPEC R20's "thinking off
+  where the runner allows it"), and a model that answers "reasoning is mandatory" is asked once more with `low`, which
+  is remembered per connection and model (not the repair retry). Found by this eval: Claude Haiku through OpenRouter
+  spent the judge's 400-token answer budget on reasoning and returned nothing for a long OCR text. Structured calls
+  (`ctx.ai.object`) only; streaming (Draft) is unchanged.
