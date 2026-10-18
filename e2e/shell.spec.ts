@@ -122,9 +122,10 @@ test('at 360 and 390 px: bottom tabs instead of the pill nav, and nothing pokes 
 });
 
 test('the board says so when the server is not answering', async ({ page }) => {
-  await page.route('**/api/health', (route) => route.abort('connectionrefused'));
+  await page.route('**/api/achievements*', (route) => route.abort('connectionrefused'));
   await page.goto('/');
-  await expect(page.getByTestId('server-status')).toHaveText('The server is not answering.');
+  // after the query's own retries (a network error might be a restart), with backoff
+  await expect(page.getByTestId('board-error')).toContainText('BragDoc isn’t answering.', { timeout: 15_000 });
 });
 
 test('settings: /settings opens Sources, tabs navigate, an unknown tab is not found', async ({ page }) => {
