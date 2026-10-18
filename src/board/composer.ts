@@ -42,6 +42,8 @@ export function useComposer({ notify }: ComposerOptions) {
   const [suggestedRepos, setSuggestedRepos] = useState<string[]>([]);
   const [impact, setImpact] = useState<number | undefined>(undefined);
   const [date, setDate] = useState(todayIso());
+  // quotes read from pasted screenshots (OCR + the rules) that you chose to pin as stickies, by the picture's sha
+  const [stickies, setStickies] = useState<Sticky[]>([]);
   const aborts = useRef(new Map<number, AbortController>());
   const urls = useRef(new Set<string>());
   // the latest pending list, for the unmount cleanup
@@ -184,6 +186,8 @@ export function useComposer({ notify }: ComposerOptions) {
     aborts.current.get(pid)?.abort();
     setPending((xs) => {
       const gone = xs.find((x) => x.pid === pid);
+      // its quote goes with it
+      if (gone?.kind === 'file' && gone.evidence?.blob) setStickies((ss) => ss.filter((q) => q.sha !== gone.evidence!.blob));
       if (gone?.kind === 'file' && gone.preview) URL.revokeObjectURL(gone.preview);
       if (gone?.kind === 'link') urls.current.delete(gone.url);
       return xs.filter((x) => x.pid !== pid);
@@ -201,7 +205,11 @@ export function useComposer({ notify }: ComposerOptions) {
     setSuggestedRepos([]);
     setImpact(undefined);
     setDate(todayIso());
+    setStickies([]);
   }, []);
+
+  const addSticky = useCallback((q: Sticky) => setStickies((xs) => (xs.some((x) => x.sha === q.sha) ? xs : [...xs, q])), []);
+  const removeSticky = useCallback((sha: string) => setStickies((xs) => xs.filter((x) => x.sha !== sha)), []);
 
   const busy = pending.some((p) => p.status === 'uploading' || p.status === 'loading');
   const failed = pending.some((p) => p.status === 'error');
@@ -247,6 +255,9 @@ export function useComposer({ notify }: ComposerOptions) {
     setImpact,
     date,
     setDate,
+    stickies,
+    addSticky,
+    removeSticky,
     addFiles,
     addUrl,
     takePaste,
@@ -263,3 +274,12 @@ export function useComposer({ notify }: ComposerOptions) {
 }
 
 export type Composer = ReturnType<typeof useComposer>;
+
+/** A quote read from a pasted picture, to pin as a sticky (quote evidence) with it. */
+export interface Sticky {
+  /** The picture it was read from. */
+  sha: string;
+  text: string;
+  from?: string;
+  where?: string;
+}

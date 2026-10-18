@@ -4,8 +4,9 @@
 // prototype's FoundCard (Found.tsx), without its Slack body and its judge.
 import type { ProjectEntry, RepoEntry } from '../../shared/api.ts';
 import type { FoundCandidate } from '../../shared/schema/index.ts';
+import { foundPictureUrl } from '../api/client.ts';
 import { toView } from '../board/evidence.ts';
-import { Btn, EvidenceBit, Hand, ImpactBadge, Kicker, ProjectPill, ProvenanceBadge, RepoTag, type Provenance } from '../kit/index.ts';
+import { Btn, EvidenceBit, Hand, ImpactBadge, Kicker, Print, ProjectPill, ProvenanceBadge, RepoTag, StickyQuote, type Provenance } from '../kit/index.ts';
 import { fmt, todayIso } from '../lib/dates.ts';
 import type { Decision } from './decide.ts';
 import { MergeInto } from './MergeInto.tsx';
@@ -47,6 +48,10 @@ export function FoundCard({
       <h3 id={`f-${c.id}`} className="m-0 mt-4 font-grotesk text-[21px] font-bold leading-tight break-words">
         {c.title}
       </h3>
+      {c.source === 'screenshots' ? (
+        <ScreenshotBody c={c} />
+      ) : (
+        <>
       {blurb && <p className="m-0 mt-1.5 line-clamp-4 whitespace-pre-line text-[14px] leading-relaxed text-muted break-words">{blurb}</p>}
       {c.evidence.length > 0 && (
         <div className="mt-4 space-y-2">
@@ -63,6 +68,8 @@ export function FoundCard({
             </li>
           ))}
         </ul>
+      )}
+        </>
       )}
       {c.source === 'mcp' && <div className="mt-3 font-hand text-[19px] text-[#6a4fd0] dark:text-[#b7a4ff]">{c.sourceAgent || 'An agent'} suggested this, so it’s waiting for your OK.</div>}
 
@@ -106,5 +113,36 @@ export function FoundCard({
         </Btn>
       </div>
     </article>
+  );
+}
+
+/**
+ * A screenshot: the picture itself (read from where it is: it's only copied in when you keep it), with the words the
+ * rules passed on a sticky over its corner. Adapted from the prototype's ScreenshotBody (Found.tsx).
+ */
+function ScreenshotBody({ c }: { c: FoundCandidate }) {
+  const quote = c.evidence.find((e) => e.kind === 'quote')?.quote;
+  const file = c.files[0];
+  return (
+    <div className="relative mt-4 pb-1" data-testid="found-screenshot">
+      {file && (
+        <div className="w-[86%]">
+          <Print
+            src={foundPictureUrl(c.id)}
+            alt={file.title ?? 'The screenshot'}
+            caption={file.title}
+            tiltId={c.id}
+            small
+            brokenText="The screenshot isn’t where it was (moved or deleted). Keeping it keeps the quote."
+          />
+        </div>
+      )}
+      {quote && (
+        <div className={`relative ml-auto w-[80%] ${file ? '-mt-8' : ''}`} data-testid="found-quote">
+          <div className="pointer-events-none absolute -top-4 left-3 z-10 rounded-full bg-surface px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-faint ring-1 ring-line">Read on this computer</div>
+          <StickyQuote text={quote.text} from={quote.from} where={quote.where} rotate={1.2} />
+        </div>
+      )}
+    </div>
   );
 }

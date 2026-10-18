@@ -37,7 +37,11 @@ export function useDecide() {
       );
     },
     onSuccess: (r, { c, d }) => {
-      const missing = r.missingFiles?.length ? ` (${r.missingFiles.length === 1 ? 'one file had gone' : `${r.missingFiles.length} files had gone`}, so it wasn’t attached)` : '';
+      const missing = !r.missingFiles?.length
+        ? ''
+        : c.source === 'screenshots'
+          ? ' (the screenshot had been moved or deleted, so only its quote was kept)'
+          : ` (${r.missingFiles.length === 1 ? 'one file had gone' : `${r.missingFiles.length} files had gone`}, so it wasn’t attached)`;
       const msg =
         d.action === 'keep'
           ? r.candidate.decision?.action === 'merge'

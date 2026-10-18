@@ -87,20 +87,22 @@ export interface PrintProps {
   small?: boolean;
   /** The full-size picture for the lightbox, when `src` is a thumbnail. */
   full?: string;
+  /** What the print says when the picture can't be shown (default: "This picture can't be shown"). */
+  brokenText?: string;
 }
 
 /**
  * A photo print: a screenshot or image on cream stock with a handwritten caption. In the dark theme the picture is
  * dimmed and warmed so a white screenshot doesn't glare. Click to open it full size.
  */
-export function Print({ src, alt, caption, tiltId, small, full }: PrintProps) {
+export function Print({ src, alt, caption, tiltId, small, full, brokenText = "This picture can't be shown" }: PrintProps) {
   const [open, setOpen] = useState(false);
   const [broken, setBroken] = useState(false);
   // a damaged or missing picture: say so on the print rather than show the browser's broken-image icon
   if (broken)
     return (
       <div role="img" aria-label={`${alt} (it can't be shown)`} className="sb-print block w-full p-2 pb-1" style={tiltId ? { rotate: `${tilt(tiltId, small ? 0.8 : 1.6)}deg` } : undefined}>
-        <div className="flex aspect-[4/3] max-h-40 w-full items-center justify-center bg-[#e6e0d4] px-3 text-center text-[12px] font-semibold text-[#5f584d]">This picture can&apos;t be shown</div>
+        <div className="flex aspect-[4/3] max-h-40 w-full items-center justify-center bg-[#e6e0d4] px-3 text-center text-[12px] font-semibold text-[#5f584d]">{brokenText}</div>
         {!small && <span className="block px-1 pb-1 pt-1.5 text-left font-hand text-[17px] leading-tight text-print-ink">{caption ?? alt}</span>}
       </div>
     );

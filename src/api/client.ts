@@ -44,6 +44,11 @@ import type {
   ReposResponse,
   SettingsResponse,
   SourcesResponse,
+  EvidenceOcrResponse,
+  ScreenshotsLookBackRequest,
+  ScreenshotsSettingsRequest,
+  ScreenshotsSourceStatus,
+  ScreenshotsSuggestionsResponse,
 } from '../../shared/api.ts';
 import type { Achievement, AchievementCreate, AchievementUpdate, Evidence, FoundCandidate, FoundKeep, Problem } from '../../shared/schema/index.ts';
 
@@ -329,3 +334,16 @@ export const putGithub = (body: GithubSettingsRequest) => api.put<GithubSourceSt
 /** Check now: resolves when the check has finished. */
 export const runGithub = () => api.post<GithubSourceStatus>('/api/sources/github/run');
 export const disconnectGithub = (forgetToken = false) => api.post<GithubSourceStatus>('/api/sources/github/disconnect', { forgetToken });
+
+// ---------------------------------------------------------------- the screenshots folder (PR15)
+
+/** `GET /api/sources/screenshots/suggestions`: where screenshots probably go on this computer (the folder picker's list). */
+export const getScreenshotSuggestions = (signal?: AbortSignal) => api.get<ScreenshotsSuggestionsResponse>('/api/sources/screenshots/suggestions', { signal });
+/** Choose the folder, switch it on or off, the name filter. The folder is checked first (an ApiError says what's wrong). */
+export const putScreenshots = (body: ScreenshotsSettingsRequest) => api.put<ScreenshotsSourceStatus>('/api/sources/screenshots', body);
+/** Read the last `days` of screenshots in the folder, once. */
+export const lookBackScreenshots = (body: ScreenshotsLookBackRequest = {}) => api.post<ScreenshotsSourceStatus>('/api/sources/screenshots/look-back', body);
+/** `GET /api/evidence/:sha/ocr`: the text read from a picture on the board (and a quote, if the rules pass). */
+export const getEvidenceOcr = (sha: string, signal?: AbortSignal) => api.get<EvidenceOcrResponse>(`/api/evidence/${seg(sha)}/ocr`, { signal });
+/** A screenshot candidate's picture, read from where it is. */
+export const foundPictureUrl = (id: string) => `/api/found/${seg(id)}/picture`;
