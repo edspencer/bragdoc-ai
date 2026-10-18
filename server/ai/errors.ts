@@ -87,6 +87,7 @@ export function classify(e: unknown, ctx: { connection: string; host: string | n
   let said = upstreamMessage(err.responseBody ?? inner.responseBody) || err.message || '';
   if (ctx.key) said = said.split(ctx.key).join('…');
   said = said.replace(/\b(sk|key|pk)-[\w-]{8,}/gi, '…');
+  said = said.trim().replace(/[.\s]+$/, ''); // the sentences below end with their own full stop
   if (status === undefined) {
     if (err.name === 'AbortError' || err.name === 'TimeoutError') return new AiError(ctx.timedOut ? 'timeout' : 'cancelled', 'cancelled');
     const text = `${err.message ?? ''} ${(inner as { code?: string }).code ?? ''} ${String((err.cause as { cause?: { code?: string } })?.cause?.code ?? '')}`;

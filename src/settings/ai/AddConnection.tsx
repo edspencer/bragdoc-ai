@@ -184,7 +184,7 @@ function AddDialog({ kind, onClose }: { kind: AiKindName; onClose: (added: AiCon
             <Stamp color={CLASS_COLOUR[where]} rotate={-1.5} className="text-[11px]">
               {HOST_CLASS_LABEL[where]}
             </Stamp>
-            {where === 'internet' && <span className="basis-full text-[12.5px] text-muted">So it counts as a cloud provider, whatever kind you picked: you’ll be asked to allow it first.</span>}
+            {where === 'internet' && !jev && <span className="basis-full text-[12.5px] text-muted">So it counts as a cloud provider, whatever kind you picked: you’ll be asked to allow it first.</span>}
           </div>
         )}
         <Field label="Name (optional)" hint="What this page calls it.">
