@@ -1049,7 +1049,7 @@ Export is a download of a blob made in the page; nothing about a folio is writte
   The dialog is made from `shared/ai/consent.ts`, so the page and the docs' provider pages can't disagree.
 - Feature cards are a registry, `FEATURE_CARDS` in `src/settings/ai/index.ts`: each feature PR replaces its `Card: null`
   with its component, one line, like a route. Until then the tab lists each feature as off with what it will do.
-- AI activity is a placeholder until PR22's activity log lands; meanwhile every call is in Network activity.
+- AI activity is PR22's log (`GET /api/ai/activity`) as a receipt like Network activity's: one line per run, never content.
 - The header chip appears only while AI is on: "AI · this computer" / "AI · your network" for a local text model, the
   provider's name (or a typed-in server's host) for one on the internet, "AI · no model yet" before one is chosen.
 
