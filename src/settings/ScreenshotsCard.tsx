@@ -154,15 +154,21 @@ function Details({ s, on, onChange }: { s: ScreenshotsSourceStatus; on: boolean;
   const lb = s.lookBack;
   return (
     <div className="mt-4 space-y-4">
+      {!s.folder ? (
+        <Btn size="sm" kind="accent" onClick={onChange} data-testid="screenshots-start">
+          Choose a folder
+        </Btn>
+      ) : (
       <div className="flex flex-wrap items-center gap-2">
         <Kicker>Folder</Kicker>
         <code className="min-w-0 break-all rounded-lg bg-sunk px-2.5 py-1 font-mono text-[12.5px]" data-testid="screenshots-folder">
           {s.folder ?? 'none chosen'}
         </code>
         <Btn size="sm" kind="ghost" onClick={onChange} data-testid="screenshots-change">
-          {s.folder ? 'Change' : 'Choose a folder'}
+          Change
         </Btn>
       </div>
+      )}
       {on && (
         <>
           <div className="flex items-start gap-3">
