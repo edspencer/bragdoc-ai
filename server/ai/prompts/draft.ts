@@ -35,10 +35,16 @@ export function draftClipping(a: FolioItem, data: Pick<FolioResponse, 'projects'
   return { title: a.title, when: whenOf(a), ...(a.impact ? { impact: a.impact } : {}), projects: names, ...(company ? { company } : {}), ...(a.summary ? { summary: a.summary } : {}), evidence: a.evidence };
 }
 
-/** Text that can't forge the material's markers or a clipping's heading. On one line. */
-function flat(s: string): string {
+/**
+ * Text that can't forge the material's markers, a clipping's heading or a citation: on one line, NFKC (so fullwidth
+ * `＞＞＞` is `>>>`), with zero-width characters gone, and `[7]` written `(7)`, so a title can't pass for a citation.
+ */
+export function flat(s: string): string {
   return s
+    .normalize('NFKC')
+    .replace(/[\u200B-\u200D\u2060\uFEFF\u00AD]/g, '')
     .replace(/\s+/g, ' ')
+    .replace(/\[(\d+(?:\s*,\s*\d+)*)\]/g, '($1)')
     .replace(/<<<\s*clippings/gi, '<< <CLIPPINGS')
     .replace(/clippings\s*>>>/gi, 'CLIPPINGS> >>')
     .trim();
@@ -57,10 +63,14 @@ function evidenceText(e: FolioEvidence): string {
   }
 }
 
-/** Clipping n as it's sent (and as the check reads it). Cut at CLIPPING_MAX_CHARS, saying so. */
-export function clippingText(n: number, c: DraftClipping): string {
-  const lines = [`[${n}] ${flat(c.title)}`, `When: ${c.when}`];
-  lines.push(`Impact: ${c.impact ? `${c.impact} of 10` : 'not rated'}`);
+/**
+ * Clipping n as it's sent. Cut at CLIPPING_MAX_CHARS, saying so. `facts`: what the check reads instead: the same
+ * content without the scaffolding the prompt adds (its `[n]` and its impact score), so "3 services [3]" isn't grounded
+ * by the clipping's own number.
+ */
+export function clippingText(n: number, c: DraftClipping, facts = false): string {
+  const lines = facts ? [flat(c.title), `When: ${c.when}`] : [`[${n}] ${flat(c.title)}`, `When: ${c.when}`];
+  if (!facts) lines.push(`Impact: ${c.impact ? `${c.impact} of 10` : 'not rated'}`);
   if (c.projects.length) lines.push(`Project: ${c.projects.map(flat).join(', ')}${c.company ? ` (${flat(c.company)})` : ''}`);
   else if (c.company) lines.push(`Company: ${flat(c.company)}`);
   if (c.summary) lines.push(`Summary: ${flat(c.summary)}`);
@@ -76,7 +86,7 @@ export interface DraftPromptInput {
   to: string;
   name?: string | null;
   role?: string | null;
-  /** Every project and company name in the folio's data (they may be named in the opening). */
+  /** The projects and companies the clippings sent belong to (never the rest of the catalog: D80). */
   projects: string[];
   companies: string[];
   purpose?: string | null;
@@ -104,7 +114,7 @@ Rules:
 
 /** The system prompt and the user prompt for one draft. */
 export function draftPrompt(input: DraftPromptInput): { system: string; prompt: string } {
-  const who = input.name?.trim() ? `${input.name.trim()}${input.role?.trim() ? `, ${input.role.trim()}` : ''}` : null;
+  const who = input.name?.trim() ? `${flat(input.name)}${input.role?.trim() ? `, ${flat(input.role)}` : ''}` : null;
   const lines = [
     who ? `This is ${who}.` : 'This is the person whose brag document it is.',
     `The period: ${longDate(input.from)} to ${longDate(input.to)}.`,
@@ -127,11 +137,12 @@ export function draftPrompt(input: DraftPromptInput): { system: string; prompt: 
 }
 
 /**
- * The context the check accepts facts from besides the clippings: what the prompt itself says (the person, the window
- * and its quarter, the names, the note).
+ * The context the check accepts facts from on any line, besides the clippings that line cites: what the prompt itself
+ * says about the person, the window (and its quarter or year), and the note. Not project or company names: each is in
+ * its own clippings, so "for Atlas [3]" must be Atlas's clipping.
  */
-export function draftContext(input: Omit<DraftPromptInput, 'clippings' | 'omitted' | 'style'>): string[] {
-  const out = [input.name ?? '', input.role ?? '', `${longDate(input.from)} ${longDate(input.to)}`, ...input.projects, ...input.companies, input.purpose ?? ''];
+export function draftContext(input: Omit<DraftPromptInput, 'clippings' | 'omitted' | 'style' | 'projects' | 'companies'>): string[] {
+  const out = [input.name ?? '', input.role ?? '', `${longDate(input.from)} ${longDate(input.to)}`, input.purpose ?? ''];
   // a window that is a calendar quarter may be called that ("Q3 2026"); a year, by its number
   const [fy, fm, fd] = input.from.split('-').map(Number) as [number, number, number];
   const [ty, tm] = input.to.split('-').map(Number) as [number, number];

@@ -1189,11 +1189,16 @@ export interface AiDraftCheck {
   badCitations: AiDraftFlag[];
 }
 
-/** `POST /api/ai/draft/check`: check an (edited) draft against the clippings it was made from. */
+/**
+ * `POST /api/ai/draft/check`: check an (edited) draft against the clippings it was made from. `cited`: the draft's own
+ * numbering (its `start` line's ids, in [n] order), so [3] keeps meaning what it meant even if the store or the model
+ * changed since; without it, the folio's clippings as a draft would number them now.
+ */
 export interface AiDraftCheckRequest {
   draft: string;
   folio: AiDraftFolio;
   purpose?: string;
+  cited?: string[];
 }
 
 /** Which achievement each `[n]` is, for the page's links back to its clippings. Ids never reach the model. */
@@ -1219,6 +1224,8 @@ export type AiDraftEvent =
       cited: AiDraftCited[];
       /** Calls ahead of this one on the same connection (a busy local runner). */
       ahead: number;
+      /** "How I write" was cut short to leave room for the clippings. */
+      styleCut: boolean;
     }
   | { type: 'text'; text: string }
   | { type: 'done'; ok: true; ms: number; tokensIn: number | null; tokensOut: number | null; check: AiDraftCheck }

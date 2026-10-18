@@ -17,7 +17,7 @@ import type { AiDraftEvent, AiDraftPreview } from '../../shared/api.js';
 import { contextTokensOf, DEFAULT_CONTEXT_TOKENS } from '../../shared/ai/connections.js';
 import { checkDraft } from '../../shared/ai/draft.js';
 import { GROUPS, isDay, readSearch, type FolioFilter } from '../../shared/folio.js';
-import { prepareDraft } from '../ai/draft/prepare.js';
+import { checkSources, prepareDraft } from '../ai/draft/prepare.js';
 import { AiError } from '../ai/errors.js';
 import { whereOf } from '../ai/policy.js';
 import { PURPOSE_MAX_CHARS } from '../ai/prompts/draft.js';
@@ -46,7 +46,12 @@ const FolioSchema = z
   .refine((f) => Number(f.to.slice(0, 4)) - Number(f.from.slice(0, 4)) <= FOLIO_MAX_YEARS, `a folio covers at most ${FOLIO_MAX_YEARS} years`);
 const Purpose = z.string().trim().max(PURPOSE_MAX_CHARS, `the note is at most ${PURPOSE_MAX_CHARS} characters`).optional();
 const DraftSchema = z.strictObject({ folio: FolioSchema, purpose: Purpose });
-const CheckSchema = z.strictObject({ draft: z.string().max(DRAFT_MAX_CHARS, `a draft of at most ${DRAFT_MAX_CHARS.toLocaleString('en-US')} characters`), folio: FolioSchema, purpose: Purpose });
+const CheckSchema = z.strictObject({
+  draft: z.string().max(DRAFT_MAX_CHARS, `a draft of at most ${DRAFT_MAX_CHARS.toLocaleString('en-US')} characters`),
+  folio: FolioSchema,
+  purpose: Purpose,
+  cited: z.array(Id).max(5000).optional(),
+});
 
 export function registerAiDraft(app: Hono, ctx: AppContext): void {
   const issue = (e: z.ZodError) => {
@@ -88,7 +93,10 @@ export function registerAiDraft(app: Hono, ctx: AppContext): void {
     const p = prepare(b.folio as FolioFilter, b.purpose);
     if (!p.picked.length) return c.json(apiError('empty', 'Nothing is picked in this folio, so there’s nothing to draft from. Widen the window or tick some clippings.'), 400);
     if (!p.sent)
-      return c.json(apiError('context_too_long', `Not even the first clipping fits in this model’s context (${p.budget.contextTokens.toLocaleString('en-US')} tokens). Raise the connection’s context size in Settings → AI.`), 400);
+      return c.json(
+        apiError('context_too_long', `Not even the first clipping fits in this model’s context (${p.budget.contextTokens.toLocaleString('en-US')} tokens)${p.styleCut ? ', after a shortened “How I write”' : ''}. Raise the connection’s context size in Settings → AI${p.styleCut ? ', or shorten “How I write”' : ''}.`),
+        400,
+      );
 
     const where = whereOf(ctx.config.get().ai, slot.connection);
     const q = ctx.ai.queue()[slot.connection];
@@ -129,7 +137,7 @@ export function registerAiDraft(app: Hono, ctx: AppContext): void {
             /* the browser went away */
           }
         };
-        send({ type: 'start', model: slot.model, connection: slot.connection, where, sent: p.sent, omitted: p.omitted, cited: p.cited, ahead });
+        send({ type: 'start', model: slot.model, connection: slot.connection, where, sent: p.sent, omitted: p.omitted, cited: p.cited, ahead, styleCut: p.styleCut });
         let text = '';
         try {
           for await (const t of s.textStream) {
@@ -162,8 +170,12 @@ export function registerAiDraft(app: Hono, ctx: AppContext): void {
   app.post('/api/ai/draft/check', async (c) => {
     const b = await body(c, CheckSchema);
     if (b instanceof Response) return b;
-    const p = prepare(b.folio as FolioFilter, b.purpose);
-    return c.json(checkDraft(b.draft, p.sources));
+    const folio = b.folio as FolioFilter;
+    if (b.cited) {
+      const data = folioData(ctx.store, folio.from, folio.to);
+      return c.json(checkDraft(b.draft, checkSources({ data, folio, purpose: b.purpose || null, role: ctx.store.profile()?.role ?? null }, b.cited)));
+    }
+    return c.json(checkDraft(b.draft, prepare(folio, b.purpose).sources));
   });
 
   app.get('/api/ai/draft/preview', (c) => {
@@ -175,6 +187,8 @@ export function registerAiDraft(app: Hono, ctx: AppContext): void {
     if (!purpose.success) return c.json(apiError('invalid', issue(purpose.error)), 400);
     if (q.from || q.to) {
       if (!isDay(q.from) || !isDay(q.to)) return c.json(apiError('invalid', 'from and to are dates, YYYY-MM-DD.'), 400);
+      if (q.from > q.to) return c.json(apiError('invalid', 'from is after to.'), 400);
+      if (Number(q.to.slice(0, 4)) - Number(q.from.slice(0, 4)) > FOLIO_MAX_YEARS) return c.json(apiError('invalid', `A folio covers at most ${FOLIO_MAX_YEARS} years.`), 400);
       const folio = readSearch(q, q.to);
       const p = prepare(folio, purpose.data);
       return c.json({ system: p.system, prompt: p.prompt, sent: p.sent, omitted: p.omitted, budget: p.budget } satisfies AiDraftPreview);

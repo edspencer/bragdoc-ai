@@ -5,10 +5,30 @@
 // don't fit are left out and counted, for the page to say so ("12 lower-impact items weren't sent").
 //
 // Tokens are estimated, not counted: no tokenizer is bundled (each model has its own). The estimate is deliberately
-// high (about 3.5 characters a token, where English averages nearer 4), so a folio that fits by the estimate fits.
+// high, so a folio that fits by the estimate fits: about 3.5 characters a token for ASCII (English averages nearer
+// 4), and a token for every other character (CJK, emoji and accented text take one or more each).
 
 /** Estimated tokens in a piece of text. */
-export const estimateTokens = (s: string): number => Math.ceil(s.length / 3.5);
+export function estimateTokens(s: string): number {
+  let other = 0;
+  for (const ch of s) if (ch.charCodeAt(0) > 127) other++;
+  return Math.ceil((s.length - other) / 3.5) + other;
+}
+
+/** The most of the input budget "How I write" may take: past it, it's cut (and the cut said), so clippings fit. */
+export const STYLE_SHARE = 0.2;
+
+/** `style` cut to `maxTokens` by the estimate, or as it is. */
+export function capText(s: string, maxTokens: number): { text: string; cut: boolean } {
+  if (estimateTokens(s) <= maxTokens) return { text: s, cut: false };
+  let lo = 0, hi = s.length;
+  while (lo < hi) {
+    const mid = Math.ceil((lo + hi) / 2);
+    if (estimateTokens(s.slice(0, mid)) <= maxTokens) lo = mid;
+    else hi = mid - 1;
+  }
+  return { text: `${s.slice(0, lo).trimEnd()}\n… (cut short to fit)`, cut: true };
+}
 
 export interface DraftBudget {
   contextTokens: number;

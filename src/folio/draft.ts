@@ -81,11 +81,12 @@ export function useRecheck(d: DraftState | null, setCheck: (c: AiDraftCheck) => 
   const settled = d?.phase === 'done' || d?.phase === 'cancelled' || d?.phase === 'failed';
   const folio = d?.folio;
   const purpose = d?.purpose;
+  const cited = d?.start?.cited;
   useEffect(() => {
     if (!edited || !settled || !text || !folio) return;
     const ac = new AbortController();
     const t = setTimeout(() => {
-      checkAiDraft({ draft: text, folio, ...(purpose ? { purpose } : {}) }, ac.signal).then(setCheck, () => {
+      checkAiDraft({ draft: text, folio, ...(purpose ? { purpose } : {}), ...(cited ? { cited: cited.map((c) => c.id) } : {}) }, ac.signal).then(setCheck, () => {
         /* a failed re-check leaves the last flags up */
       });
     }, 700);
@@ -93,7 +94,7 @@ export function useRecheck(d: DraftState | null, setCheck: (c: AiDraftCheck) => 
       clearTimeout(t);
       ac.abort();
     };
-  }, [text, edited, settled, folio, purpose, setCheck]);
+  }, [text, edited, settled, folio, purpose, cited, setCheck]);
 }
 
 /** `1:05`, from milliseconds. */

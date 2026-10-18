@@ -38,6 +38,7 @@ function Cited({ text, cited, onCite }: { text: string; cited: AiDraftCited[]; o
                   ) : (
                     <span className="font-semibold text-bad" title="no clipping has this number">
                       {n}
+                      <span className="sr-only"> (no clipping has this number)</span>
                     </span>
                   )}
                   {j < all.length - 1 ? ', ' : ''}
@@ -148,7 +149,12 @@ export function DraftPanel({ d, canDraft, why, changed, onEdit, onCancel, onAgai
           <b>
             {s.omitted} lower-impact {s.omitted === 1 ? 'item wasn’t' : 'items weren’t'} sent
           </b>{' '}
-          (the {s.sent} highest-impact {s.sent === 1 ? 'one was' : 'ones were'}, to fit the model’s context). Narrow the window or raise the minimum impact to include {s.omitted === 1 ? 'it' : 'them'}.
+          (the {s.sent} highest-impact {s.sent === 1 ? 'one was' : 'ones were'}, to fit the model’s context). To include {s.omitted === 1 ? 'it' : 'them'}, narrow the window or the projects, untick some, or use a model with a larger context.
+        </p>
+      )}
+      {s?.styleCut && (
+        <p className="m-0 mt-2 text-[12.5px] text-muted" data-testid="draft-style-cut">
+          Your “How I write” notes were cut short to leave room for your achievements.
         </p>
       )}
       {changed && settled && (
@@ -159,13 +165,15 @@ export function DraftPanel({ d, canDraft, why, changed, onEdit, onCancel, onAgai
 
       {running && (
         <div className="mt-3">
-          <div className="flex flex-wrap items-center gap-2 text-[13px]" role="status" aria-live="polite" data-testid="draft-status">
+          <div className="flex flex-wrap items-center gap-2 text-[13px]" data-testid="draft-status">
             <span className="size-2 animate-pulse rounded-full bg-accent" aria-hidden />
-            {d.phase === 'waiting'
-              ? s
-                ? `Waiting for ${s.model} on ${where}${s.ahead ? ` (${s.ahead} ${s.ahead === 1 ? 'call' : 'calls'} ahead)` : ''}… A model on a computer without a GPU can take a few minutes to start.`
-                : 'Starting…'
-              : `Writing with ${s?.model ?? 'the model'} on ${where ?? '…'}…`}
+            <span role="status" aria-live="polite">
+              {d.phase === 'waiting'
+                ? s
+                  ? `Waiting for ${s.model} on ${where}${s.ahead ? ` (${s.ahead} ${s.ahead === 1 ? 'call' : 'calls'} ahead)` : ''}… A model on a computer without a GPU can take a few minutes to start.`
+                  : 'Starting…'
+                : `Writing with ${s?.model ?? 'the model'} on ${where ?? '…'}…`}
+            </span>
             <Btn size="sm" kind="paper" className="ml-auto" onClick={onCancel} data-testid="draft-cancel">
               <Square aria-hidden className="size-3.5" /> Cancel
             </Btn>

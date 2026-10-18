@@ -11,7 +11,7 @@
 // - a filler phrase ("passionate about", "went above and beyond") the user's own material doesn't use is `filler`.
 // Headings are themes the model names, so only their numbers and dates are checked.
 import type { AiDraftCheck, AiDraftFlag } from '../api.js';
-import { normaliseForMatch, ungrounded } from './grounding.js';
+import { groundingIndex, joinIndexes, normaliseForMatch, ungrounded, type GroundingIndex } from './grounding.js';
 
 /** What a draft is checked against. `clippings[n - 1]` is clipping n's text exactly as it was sent. */
 export interface DraftSources {
@@ -96,26 +96,30 @@ interface Block {
   text: string;
 }
 
-/** The draft as blocks: a bullet with its indented continuation lines, a heading, or a line of text. */
+/** The most lines a check reads: past this a draft is a document, not a self-review, and the server has other work. */
+export const CHECK_MAX_LINES = 2000;
+
+/**
+ * The draft as blocks: a bullet with its indented continuation lines, a heading, or a line of text. Fence lines are
+ * skipped, but what's between them is checked like anything else (a claim in a code block is still a claim).
+ */
 function blocks(draft: string): Block[] {
   const out: Block[] = [];
-  let fenced = false;
-  draft.split(/\r?\n/).forEach((raw, i) => {
-    const line = i + 1;
-    if (/^\s*(```|~~~)/.test(raw)) {
-      fenced = !fenced;
-      return;
-    }
-    if (fenced || !raw.trim()) return;
-    if (HEADING.test(raw)) out.push({ kind: 'heading', line, text: raw.replace(HEADING, '') });
-    else if (BULLET.test(raw)) out.push({ kind: 'bullet', line, text: raw.replace(BULLET, '') });
-    else {
-      const prev = out.at(-1);
-      // an indented line straight after a bullet continues it (a wrapped bullet, or one written over two lines)
-      if (prev?.kind === 'bullet' && /^\s{2,}\S/.test(raw) && prev.line + countLines(prev.text) === line) prev.text += `\n${raw.trim()}`;
-      else out.push({ kind: 'text', line, text: raw.replace(/^\s*>\s?/, '') });
-    }
-  });
+  draft
+    .split(/\r?\n/)
+    .slice(0, CHECK_MAX_LINES)
+    .forEach((raw, i) => {
+      const line = i + 1;
+      if (/^\s*(```|~~~)/.test(raw) || !raw.trim()) return;
+      if (HEADING.test(raw)) out.push({ kind: 'heading', line, text: raw.replace(HEADING, '') });
+      else if (BULLET.test(raw)) out.push({ kind: 'bullet', line, text: raw.replace(BULLET, '') });
+      else {
+        const prev = out.at(-1);
+        // an indented line straight after a bullet continues it (a wrapped bullet, or one written over two lines)
+        if (prev?.kind === 'bullet' && /^\s{2,}\S/.test(raw) && prev.line + countLines(prev.text) === line) prev.text += `\n${raw.trim()}`;
+        else out.push({ kind: 'text', line, text: raw.replace(/^\s*>\s?/, '') });
+      }
+    });
   return out;
 }
 const countLines = (s: string) => s.split('\n').length;
@@ -132,22 +136,31 @@ function verbLed(flag: string, text: string, appears: (s: string) => boolean): b
   return appears(words.slice(1).join(' '));
 }
 
-/** `needle` (normalised) occurs in `hay` (normalised) as whole words. */
-function hasWords(hay: string, needle: string): boolean {
-  const re = new RegExp(`(?<![\\p{L}\\p{N}])${needle.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}(?![\\p{L}\\p{N}])`, 'u');
-  return re.test(hay);
-}
+/** A whole-words matcher for `needle` (normalised), compiled once. */
+const wordsRe = (needle: string) => new RegExp(`(?<![\\p{L}\\p{N}])${needle.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}(?![\\p{L}\\p{N}])`, 'u');
+const FILLER_RES = DRAFT_FILLER.map((p) => [p, wordsRe(p)] as const);
+const containsWords = (hay: string, needle: string) => wordsRe(needle).test(hay);
 
-/** Check a draft against its sources (see the top of this file). Flags are in line order. */
+/**
+ * Check a draft against its sources (see the top of this file). Flags are in line order. Each source is normalised
+ * and indexed once per check, not once per line: a check runs again after every pause in typing, on a long draft.
+ */
 export function checkDraft(draft: string, src: DraftSources): AiDraftCheck {
   const check: AiDraftCheck = { ungrounded: [], uncited: [], filler: [], badCitations: [] };
   const clippings = src.clippings.map(spaceUnits);
   const context = src.context.map(spaceUnits);
-  const all = [...clippings, ...context];
-  const material = normaliseForMatch(all.join('\n'));
-  const fillers = DRAFT_FILLER.filter((p) => !hasWords(material, p));
-  const push = (list: AiDraftFlag[], line: number, text: string) => {
-    if (!list.some((f) => f.line === line && f.text === text)) list.push({ line, text });
+  const clipIx = clippings.map((c) => groundingIndex(c));
+  const contextIx = groundingIndex(context);
+  const allIx = joinIndexes(...clipIx, contextIx);
+  const joined = new Map<string, GroundingIndex>();
+  const material = allIx.haystacks.join('\n');
+  const fillers = FILLER_RES.filter(([, re]) => !re.test(material));
+  const seen = new Set<string>();
+  const push = (list: AiDraftFlag[], kind: string, line: number, text: string) => {
+    const k = `${kind}\0${line}\0${text}`;
+    if (seen.has(k)) return;
+    seen.add(k);
+    list.push({ line, text });
   };
 
   let headed = false;
@@ -155,22 +168,26 @@ export function checkDraft(draft: string, src: DraftSources): AiDraftCheck {
     if (b.kind === 'heading') headed = true;
     const cited = citations(b.text);
     const valid = cited.filter((n) => n >= 1 && n <= clippings.length);
-    for (const n of cited) if (!valid.includes(n)) push(check.badCitations, b.line, `[${n}]`);
-    if ((b.kind === 'bullet' || (b.kind === 'text' && headed)) && !cited.length) push(check.uncited, b.line, b.text.split('\n')[0]!.trim().slice(0, 120));
+    for (const n of cited) if (!valid.includes(n)) push(check.badCitations, 'bad', b.line, `[${n}]`);
+    if ((b.kind === 'bullet' || (b.kind === 'text' && headed)) && !cited.length) push(check.uncited, 'uncited', b.line, b.text.split('\n')[0]!.trim().slice(0, 120));
 
     const text = spaceUnits(uncite(b.text));
     // a line's facts must be in what it cites; a line citing nothing (an opening paragraph) is checked against it all
-    const sources = valid.length ? [...valid.map((n) => clippings[n - 1]!), ...context] : all;
-    const hay = sources.map((s) => normaliseForMatch(s));
-    const appears = (s: string) => hay.some((h) => hasWords(h, normaliseForMatch(s)));
-    for (const fact of ungrounded(text, sources)) {
+    let ix = allIx;
+    if (valid.length) {
+      const key = [...valid].sort((x, y) => x - y).join(',');
+      ix = joined.get(key) ?? joinIndexes(...valid.map((n) => clipIx[n - 1]!), contextIx);
+      joined.set(key, ix);
+    }
+    const appears = (s: string) => ix.haystacks.some((h) => containsWords(h, normaliseForMatch(s)));
+    for (const fact of ungrounded(text, ix)) {
       if (b.kind === 'heading' && !/\d/.test(fact)) continue;
       if (verbLed(fact, text, appears)) continue;
-      push(check.ungrounded, b.line, fact);
+      push(check.ungrounded, 'ungrounded', b.line, fact);
     }
 
     const norm = normaliseForMatch(text);
-    for (const p of fillers) if (hasWords(norm, p)) push(check.filler, b.line, p);
+    for (const [p, re] of fillers) if (re.test(norm)) push(check.filler, 'filler', b.line, p);
   }
   return check;
 }

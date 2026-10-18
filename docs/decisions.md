@@ -1171,13 +1171,21 @@ URLs), and a client can't slip anything else into a prompt.
   bullet to end with the numbers it comes from. The `start` line maps each number to its achievement for the page's
   links; ids never reach the model.
 - **The check** (`checkDraft`, shared/ai/draft.ts, pure) is line by line, and stricter than "somewhere in the folio":
-  a line's numbers, dates and capitalised names must be in **the clippings that line cites** (or the context the
-  prompt itself states: the person, the window and its quarter, project and company names, the note). A line citing
-  nothing (the opening) is checked against all of it. Bullets with no citation, citations to a number that wasn't sent,
+  a line's numbers, dates and capitalised names must be in **the clippings that line cites**: their content, not the
+  scaffolding the prompt adds (a clipping's own `[n]` and impact score ground nothing), or the context the prompt
+  states about the person, the window (and its quarter or year) and the note. Project and company names are not
+  context: each is in its own clippings, so "for Atlas [3]" has to be Atlas's clipping. A line citing nothing (the
+  opening) is checked against all of it; prose under a heading must cite like a bullet. Bullets with no citation, citations to a number that wasn't sent,
   and a short list of filler phrases (only those the user's own clippings don't use) are flagged too. Headings are
   checked for numbers only (a theme is the model's word). A run like "Shipped Preflight" at the start of a line is
-  grounded if the name after the verb is. `POST /api/ai/draft/check` runs the same check on an edited draft; it makes
-  no model call, so it's ungated.
+  grounded if the name after the verb is; "410ms" is "410 ms". `POST /api/ai/draft/check` runs the same check on an
+  edited draft, against the draft's **own numbering** (the `cited` ids from its `start` line, rebuilt from the store
+  and kept only if the folio still picks them), so a new achievement or a smaller model since can't renumber it. It
+  makes no model call, so it's ungated. Sources are indexed once per check (`groundingIndex()`), and at most 2,000
+  lines are read: it runs after every pause in typing, on a single-threaded server.
+- **Only the sent clippings' projects and companies are named** in the prompt, never the rest of the catalog: a folio
+  filtered to one company doesn't tell a cloud model about the last one. Clipping text can't forge the markers (NFKC,
+  zero-width characters stripped) or a citation (`[7]` in a title becomes `(7)`).
 - **Streamed as NDJSON, not text/plain** (a deviation from the plan's brief). A plain-text stream has no way to say
   "the runner died", "timed out" or "AI was switched off" after the first byte, and a draft can fail minutes in.
   `start` / `text` / `done` lines, like PR23's pull, carry the model and where, what was sent and left out, the error
@@ -1194,8 +1202,9 @@ PR27 (SPEC R24, R26).
 
 - **Budget** (`server/ai/draft/budget.ts`): a quarter of the connection's `contextTokens` (1,024–4,096) is kept for
   the answer and sent as its cap; the rest holds the instructions and the clippings, estimated at 3.5 characters a
-  token (deliberately high: no tokenizer is bundled, and a prompt Ollama silently truncates is worse than one that
-  leaves an item out). Clippings are added best first until the next doesn't fit; the rest (always the lowest-impact
+  token for ASCII and one token for every other character (deliberately high: no tokenizer is bundled, and a prompt
+  Ollama silently truncates is worse than one that leaves an item out). "How I write" may take a fifth of the input
+  at most; past that it's cut ("cut short to fit"), and the panel says so. Clippings are added best first until the next doesn't fit; the rest (always the lowest-impact
   tail) are counted, told to the model ("don't say it covers everything"), and shown: "N lower-impact items weren't
   sent". One clipping is capped at 900 characters ("cut short") so a long note can't crowd the rest out. With the
   default 8,192 that's about 5k tokens of clippings; with a cloud connection's 30k, about 25k.
