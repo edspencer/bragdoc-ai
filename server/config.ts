@@ -1,7 +1,7 @@
 // config.yaml: BragDoc's settings, validated with Zod (SPEC R2). Every key is optional with a default, so a missing or
 // empty file is a valid one. home.ts writes the starter copy once; after that it's the user's, and the only other
 // writer is update() below, which Settings uses: a minimal edit through the store's yamldoc and safefs, so comments,
-// key order and keys this build doesn't know all survive, and a broken file is never overwritten (D45).
+// key order and keys this build doesn't know all survive, and a broken file is never overwritten (D48).
 //
 // The schemaVersion downgrade guard is Paddock's (schema-version.ts, its #724): a config.yaml from a NEWER BragDoc
 // refuses to boot, because reading it with this build would silently drop every key it doesn't know. Never

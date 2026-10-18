@@ -44,27 +44,37 @@ when you log in (not when the computer boots), runs as you, and is restarted if 
 
 ## `bragdoc guide`
 
-Prints the [agent guide](/agents/agent-guide/), the document that tells coding agents how to work with BragDoc.
+Prints the [agent guide](/agents/agent-guide/), the document that tells coding agents how to work with BragDoc. It works
+without BragDoc running. `--snippet` prints just the paragraph for your agent's instruction file.
 
 ## `bragdoc mcp`
 
-*Coming in v0.1.* The [MCP](/agents/mcp/) stdio shim: forwards an MCP client's requests to the running BragDoc. If
-BragDoc isn't running, it says so.
+The [MCP](/agents/mcp/) stdio bridge: forwards an MCP client's requests to the running BragDoc, with the address and
+token from `runtime.json`. If BragDoc isn't running, it says so and exits 1. `--data-dir <dir>` picks the data folder
+to find it by.
 
 | Command | What it does |
 | --- | --- |
 | `bragdoc mcp install claude` | Registers BragDoc's MCP server with Claude Code (`claude mcp add`, user scope), with its token. |
 | `bragdoc mcp install claude --stdio` | Registers `bragdoc mcp` instead of the HTTP endpoint. |
-| `bragdoc mcp install claude --print` | Prints configuration for other clients and writes nothing. |
+| `bragdoc mcp install claude --print` | Prints configuration for Claude Desktop, Cursor and other clients, and changes nothing. |
+| `--port <n>`, `--data-dir <dir>` | The port to register (default: the one BragDoc last ran on), and the data folder whose token to use. |
 
 ## `bragdoc import <export.json>`
 
-*Coming in v0.1.* Imports an export from the hosted BragDoc app. See
+Imports an export from the hosted BragDoc app (its version 1.0 JSON file): companies, projects and their repos,
+achievements, and documents as read-only files. Importing the same file again adds nothing. If BragDoc is running,
+the import goes through it (so it stays the one writer); otherwise it writes to the data folder directly. See
 [Moving from the hosted app](/moving-from-the-hosted-app/).
 
 | Option | Meaning |
 | --- | --- |
-| `--dry-run` | Count what would be imported and list any problems, and change nothing. |
+| `--dry-run` | Say what would be added, what's already here and what can't be imported, list the fields left behind and why, and change nothing. |
+| `--data-dir <dir>` | The data folder to import into (default `$BRAGDOC_HOME`, else `~/.bragdoc`). |
+
+A file that isn't a version 1.0 export (not JSON, cut off part-way, or another version) is refused with exit code 1,
+and nothing is imported. Problems with single items (an achievement with no date, a project whose company isn't in
+the file) are listed, and everything else is imported.
 
 ## Everywhere
 

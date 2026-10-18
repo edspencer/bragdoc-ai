@@ -4,8 +4,10 @@
 // line, the data home it creates, /api/health, the build info /api/meta reports, the web app's index.html and one of
 // its scripts, the favicon, a client route, the Host check). Cleans up after itself. Linux and macOS (D14).
 //
-// Adapted from Hallway's scripts/smoke-pack.mjs. Later PRs extend it: `guide` and MCP tools/list (PR9),
-// `import --dry-run` (PR12).
+// Adapted from Hallway's scripts/smoke-pack.mjs. PR9 added `guide` (the shipped AGENT-GUIDE.md, byte for byte), and
+// MCP: initialize + tools/list over HTTP with the token, a 401 without it, and the same through the `bragdoc mcp` stdio
+// bridge. PR12 added `import`: a dry run on a new data home (which creates nothing), a refused version, and a real
+// import through the running server, twice (the second adds nothing).
 //
 // SMOKE_PACK_KEEP=<dir> copies the tarball there before cleaning up (CI uploads it, and the release workflow publishes
 // exactly the tarball this checked).
@@ -81,7 +83,7 @@ try {
   const tarball = path.join(tmp, packed.filename);
   const files = packed.files.map((f) => f.path);
   step(`${packed.filename}: ${files.length} files, ${(packed.size / 1024).toFixed(1)} kB packed, ${(packed.unpackedSize / 1024).toFixed(1)} kB unpacked`);
-  for (const f of ['package.json', 'LICENSE', 'README.md', 'dist/build-info.json', 'dist/server/cli.js', 'dist/web/index.html', 'dist/web/favicon.svg'])
+  for (const f of ['package.json', 'LICENSE', 'README.md', 'AGENT-GUIDE.md', 'dist/build-info.json', 'dist/server/cli.js', 'dist/web/index.html', 'dist/web/favicon.svg'])
     assert.ok(files.includes(f), `the package includes ${f}`);
   for (const f of files) {
     assert.ok(!/^(src|server|shared|test|e2e|scripts|website|docs|public|tools|brand|\.github|\.changeset)\//.test(f), `the package shouldn't include ${f}`);
@@ -128,6 +130,27 @@ try {
   fails(['frobnicate'], 2, /unknown command 'frobnicate'/);
   fails(['--port', 'nope'], 2, /--port must be a port number/);
 
+  step('guide');
+  {
+    // the shipped AGENT-GUIDE.md around the live-facts marker, byte for byte (its reference is already generated)
+    const [head, tail] = fs.readFileSync(path.join(installed, 'AGENT-GUIDE.md'), 'utf8').split('<!-- live facts -->');
+    const out = run('guide');
+    assert.ok(out.startsWith(head) && out.endsWith(tail.trimEnd() + '\n'), 'bragdoc guide prints AGENT-GUIDE.md');
+    assert.match(out, /\*\*No live data here:\*\*/);
+    assert.match(out, /\| `externalKey` \|/, 'with the file-format reference');
+    assert.match(run('guide', '--snippet'), /^When I ask you to note, log or remember something I did at work/);
+  }
+
+  step('import --dry-run (a hosted-app export; nothing is written)');
+  const exportFile = path.join(root, 'test', 'fixtures', 'import', 'alex-marlowe.json');
+  {
+    const out = run('import', exportFile, '--dry-run');
+    assert.match(out, /^Dry run of importing .*alex-marlowe\.json/);
+    assert.match(out, /achievements\s+8\s+0\s+0/);
+    assert.equal(fs.existsSync(data), false, 'a dry run creates no data home');
+    fails(['import', path.join(root, 'test', 'fixtures', 'import', 'version-2.json')], 1, /version "2\.0"/);
+  }
+
   step('serve');
   server = spawn(bin, ['--port', '0'], { cwd: work, env, stdio: ['ignore', 'pipe', 'inherit'] });
   let printed = '';
@@ -160,6 +183,57 @@ try {
   await get(base, '/favicon.svg', /^image\/svg\+xml/);
   await get(base, '/some/client/route', /html/);
   assert.equal(await statusWithHost(`${base}/api/health`, 'evil.example'), 403, 'a foreign Host is refused');
+
+  step('MCP over HTTP: initialize, tools/list; no token is a 401');
+  const token = JSON.parse(fs.readFileSync(path.join(data, 'runtime.json'), 'utf8')).mcpToken;
+  const rpc = (body, headers = {}) =>
+    fetch(`${base}/mcp`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json', accept: 'application/json, text/event-stream', 'mcp-protocol-version': '2025-11-25', authorization: `Bearer ${token}`, ...headers },
+      body: JSON.stringify(body),
+    });
+  /** A JSON-RPC result from a JSON or an SSE response. */
+  const result = async (res) => {
+    assert.equal(res.status, 200, `/mcp: ${res.status} ${await res.clone().text()}`);
+    const text = await res.text();
+    const json = (res.headers.get('content-type') ?? '').includes('text/event-stream') ? text.match(/^data: (.*)$/m)?.[1] : text;
+    return JSON.parse(json).result;
+  };
+  const init = await result(await rpc({ jsonrpc: '2.0', id: 0, method: 'initialize', params: { protocolVersion: '2025-11-25', capabilities: {}, clientInfo: { name: 'smoke', version: '1' } } }));
+  assert.equal(init.serverInfo.name, 'bragdoc');
+  assert.equal(init.serverInfo.version, pkg.version);
+  const listed = (await result(await rpc({ jsonrpc: '2.0', id: 1, method: 'tools/list', params: {} }))).tools.map((t) => t.name);
+  assert.ok(listed.includes('bragdoc_get_context') && listed.includes('bragdoc_add_achievement'), `tools/list: ${listed}`);
+  assert.equal((await rpc({ jsonrpc: '2.0', id: 2, method: 'tools/list', params: {} }, { authorization: '' })).status, 401);
+
+  step('import through the running server, twice');
+  {
+    const first = execFileSync(bin, ['import', exportFile], { cwd: work, env, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] });
+    assert.match(first, /^Imported .*\n[\s\S]*achievements\s+8\s+0\s+0/);
+    const listed = fs.readdirSync(path.join(data, 'projects'));
+    assert.equal(listed.length, 4, `projects: ${listed}`);
+    assert.match(run('import', exportFile), /achievements\s+0\s+8\s+0[\s\S]*Everything in it was already here/);
+  }
+
+  step('MCP through the stdio bridge (bragdoc mcp)');
+  const bridged = execFileSync(bin, ['mcp'], {
+    cwd: work,
+    env,
+    encoding: 'utf8',
+    input: [{ jsonrpc: '2.0', id: 0, method: 'initialize', params: { protocolVersion: '2025-11-25', capabilities: {}, clientInfo: { name: 'smoke', version: '1' } } }, { jsonrpc: '2.0', id: 1, method: 'tools/list', params: {} }]
+      .map((m) => JSON.stringify(m))
+      .join('\n') + '\n',
+  })
+    .trim()
+    .split('\n')
+    .map((l) => JSON.parse(l));
+  assert.ok(bridged.find((m) => m.id === 1)?.result.tools.some((t) => t.name === 'bragdoc_get_context'), `bragdoc mcp: ${JSON.stringify(bridged).slice(0, 300)}`);
+
+  server.kill();
+  await new Promise((r) => server.once('exit', r));
+  server = null;
+  step('bragdoc mcp with BragDoc stopped: exit 1, and says so');
+  fails(['mcp'], 1, /BragDoc isn't running: run `bragdoc` or `bragdoc service install`/);
 
   step('ok');
 } finally {

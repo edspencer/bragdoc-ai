@@ -37,7 +37,24 @@ Commands
   service logs           Follow its output.
   service uninstall      Stop it and remove the service. Your data stays.
 
-  guide                  The guide for coding agents.
+  mcp                    An MCP server on stdio, for coding agents: a bridge to the running BragDoc
+                         (it reads runtime.json for the address and token).
+    --data-dir <dir>     the data home to find it by (default $BRAGDOC_HOME, else ~/.bragdoc)
+  mcp install claude     Register BragDoc's MCP server with Claude Code (user scope), with its token.
+    --stdio              register the stdio bridge (\`bragdoc mcp\`) instead of the HTTP endpoint
+    --print              print the configuration for Claude Code, Claude Desktop, Cursor and
+                         others, and change nothing
+    --port <n>           the port to register (default: the one BragDoc last ran on)
+    --data-dir <dir>     the data home whose token to use
+
+  import <export.json>   Bring an export from the hosted BragDoc app across: companies, projects
+                         (with their repos), achievements, and documents as read-only files.
+                         Importing the same file again adds nothing new.
+    --dry-run            say what it would add, skip and leave behind, and why; write nothing
+    --data-dir <dir>     the data home to import into (default $BRAGDOC_HOME, else ~/.bragdoc)
+
+  guide                  The guide for coding agents (AGENT-GUIDE.md): how to log achievements.
+    --snippet            just the paragraph for your agent's instruction file (CLAUDE.md, AGENTS.md)
 
   --version, -v          Print the version.
   --help, -h             Print this help.

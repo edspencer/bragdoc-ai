@@ -1,11 +1,12 @@
 // Settings → Data (SPEC R2, R13): where the data folder is, what BragDoc couldn't read in it (Problems, live), its
 // backups, anything it has to tell you (the old CLI's files moved aside, a broken config.yaml), and the slots the
-// importer (PR12) and example data (PR16) fill.
+// example data (PR16) fills, and the importer (PR12's ImportPanel).
 import { useState } from 'react';
 import { AlertTriangle, FolderOpen, Info } from 'lucide-react';
 import type { FileProblem } from '../../shared/api.ts';
 import { useBackups, useMeta, useProblems } from '../api/queries.ts';
 import { Btn, Dot, Kicker, Panel, SectionTitle } from '../kit/index.ts';
+import { ImportPanel } from '../import/ImportPanel.tsx';
 import { CopyButton, LoadError, Loading, Slot } from './common.tsx';
 
 const CODE_LABEL: Record<FileProblem['code'], string> = {
@@ -28,16 +29,12 @@ export function DataTab() {
       <DataFolder />
       <Problems />
       <Backups />
-      <div className="grid gap-4 md:grid-cols-2">
-        {/* PR12 replaces this with the hosted-export importer (dry run, then import) */}
-        <Slot title="Import from the hosted BragDoc" testId="slot-import">
-          Bring in an export from the old hosted app: a dry run shows what would come in before anything is written.
-        </Slot>
-        {/* PR16 replaces this with "Remove example data" (shown only while example data is present) */}
-        <Slot title="Example data" testId="slot-example-data">
-          If you filled the board with example data to try BragDoc out, you’ll be able to remove all of it here in one click.
-        </Slot>
-      </div>
+      {/* the hosted-export importer (PR12): dry run, then import */}
+      <ImportPanel />
+      {/* PR16 replaces this with "Remove example data" (shown only while example data is present) */}
+      <Slot title="Example data" testId="slot-example-data">
+        If you filled the board with example data to try BragDoc out, you’ll be able to remove all of it here in one click.
+      </Slot>
     </div>
   );
 }

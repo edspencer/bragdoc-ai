@@ -29,7 +29,7 @@ listen on all interfaces inside the container; that is why the docs always publi
   of your machine, gets a 403. The API also refuses requests the browser marks as cross-site or same-site (Fetch
   Metadata), and never grants CORS.
 - **No sneaky content types.** Writes must be JSON or a typed upload, never one of the content types a web page can
-  send to another site without a CORS preflight (a 415 otherwise). Bodies are capped at 1 MB for JSON and 25 MB per upload.
+  send to another site without a CORS preflight (a 415 otherwise). Bodies are capped at 1 MB for JSON (50 MB for a hosted-app export, the one exception) and 25 MB per upload.
 - **A token for agents.** The MCP endpoint needs a per-install bearer token, kept in `runtime.json`, which only your
   user can read.
 

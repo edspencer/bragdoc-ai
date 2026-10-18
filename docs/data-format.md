@@ -81,6 +81,16 @@ agent sent. Keeping it makes an achievement; merging attaches its evidence to an
 back, and each decision can be undone. A screenshot candidate points at the original file (`files:`); it's copied into
 `evidence/` only when you keep or merge it.
 
+## Imports
+
+`bragdoc import` brings an export from the hosted BragDoc app across (D47). Companies, projects,
+repos and achievements become ordinary files like the ones above, each with its hosted id as `legacyId` (so importing
+the same export again adds nothing), and achievements with `source: import` and anything without a field of its own
+under `meta.legacy`. Documents and performance reviews have no place in the board, so they're written once, read-only
+(mode 0444), as markdown under `imports/<timestamp>/documents/` and `imports/<timestamp>/reviews/`, each with its
+`legacyId` in the front-matter, plus a `README.md` saying where they came from. BragDoc never reads them back except
+to find those `legacyId`s, and never changes them. `cache/import.lock` exists while an import runs.
+
 ## Hand edits, Problems and versions
 
 - **Comments, key order and unknown keys survive.** BragDoc edits YAML as a document, changing only the keys it means
@@ -129,6 +139,7 @@ A company you worked at.
 | `role` | string |  | Your role there. |
 | `start` | date |  | When you started, YYYY-MM-DD. |
 | `end` | date or empty | default `null` | When you left; empty while you still work there. |
+| `legacyId` | string |  | Its id in the hosted BragDoc, for imported companies (re-importing skips it). |
 | `example` | boolean |  | `true` on example data, which Settings can remove in one go. |
 
 ### `projects/<id>.yaml`
@@ -147,6 +158,7 @@ A project: dates, a colour, optionally a company and linked repos.
 | `status` | one of the values given | default `"active"` | `active`, `paused`, `done` or `archived` (hidden from pickers). |
 | `companyId` | id or empty | default `null` | The company it was for (a company id), or empty. |
 | `repoIds` | list of id | default `[]` | Linked repos (repo ids). |
+| `legacyId` | string |  | Its id in the hosted BragDoc, for imported projects (re-importing skips it). |
 | `example` | boolean |  | `true` on example data, which Settings can remove in one go. |
 
 ### `repos/<id>.yaml`
@@ -183,7 +195,7 @@ One achievement: these keys as YAML front-matter between `---` lines, then the m
 | `companyId` | id or empty |  | The company, when it isn't implied by a project. |
 | `evidence` | list of mapping | default `[]` | What backs it up (see Evidence). |
 | `source` | one of the values given | default `"manual"` | How it got here: `manual`, `paste`, `github-pr`, `screenshot`, `mcp` or `import`. |
-| `sourceAgent` | string |  | For `mcp`: which agent wrote it, e.g. `claude-code`. |
+| `sourceAgent` | string |  | For `mcp`: which agent wrote it, as the board names it, e.g. `Claude Code`. |
 | `externalKey` | string |  | A stable key for where it came from (`github_pr:owner/repo#123`); adding the same key again is a no-op. |
 | `legacyId` | string |  | Its id in the hosted BragDoc, for imported achievements (re-importing skips it). |
 | `archived` | boolean | default `false` | `true` hides it from the board without deleting it. |

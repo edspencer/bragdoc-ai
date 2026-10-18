@@ -31,7 +31,7 @@ test('Data: a hand-broken file appears on the Problems list live, and goes when 
   await page.goto('/settings/data');
   await expect(page.getByTestId('problems-empty')).toBeVisible();
   await expect(page.getByTestId('data-dir')).toHaveText(/\.bragdoc$/);
-  await expect(page.getByTestId('slot-import')).toBeVisible();
+  await expect(page.getByTestId('import-panel')).toBeVisible();
   const file = path.join(HOME, 'projects', '01JABCDEFGHJKMNPQRSTVWXYZ0.yaml');
   fs.mkdirSync(path.dirname(file), { recursive: true });
   fs.writeFileSync(file, 'schemaVersion: 1\nid: 01JABCDEFGHJKMNPQRSTVWXYZ0\nname: [unclosed\n');

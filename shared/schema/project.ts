@@ -19,6 +19,7 @@ export const ProjectSchema = z.object({
   status: z.enum(PROJECT_STATUSES).default('active').describe('`active`, `paused`, `done` or `archived` (hidden from pickers).'),
   companyId: ulidSchema.nullable().default(null).describe('The company it was for (a company id), or empty.'),
   repoIds: z.array(ulidSchema).default([]).describe('Linked repos (repo ids).'),
+  legacyId: z.string().optional().describe('Its id in the hosted BragDoc, for imported projects (re-importing skips it).'),
   example,
 });
 export type Project = z.infer<typeof ProjectSchema>;

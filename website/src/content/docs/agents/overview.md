@@ -4,7 +4,7 @@ description: "Your coding agent can log achievements as you work, over MCP or si
 ---
 
 :::note[Coming in v0.1]
-The MCP server and the agent guide are being built. This page describes the design.
+The MCP server and the agent guide are built; the board that shows what agents write is still being built.
 :::
 
 Your coding agent was there when you shipped the thing. It knows which pull request it was, what it fixed and why it

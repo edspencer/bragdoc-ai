@@ -13,8 +13,9 @@ the file store: the data home's schemas (`shared/schema/`), the store and its in
 backups, and the services every feature calls. PR2 added the platform: the localhost security guard, config.yaml, the
 data home's layout, runtime.json, egress, subprocesses and the event stream. PR5 added the full CLI and `bragdoc
 service`. And the **web foundation** (PR4): the Scrapbook component kit, the light / system / dark themes, the app
-shell with placeholder pages, the typed API client and the screenshot rig. Everything else arrives PR by PR, in the
-waves #411 lays out.
+shell with placeholder pages, the typed API client and the screenshot rig. PR9 added the MCP server (`/mcp`), the
+stdio bridge (`bragdoc mcp`), `bragdoc mcp install claude` and the agent guide (`AGENT-GUIDE.md`, `bragdoc guide`).
+Everything else arrives PR by PR, in the waves #411 lays out.
 
 Before changing behaviour, read, in order:
 
@@ -65,12 +66,18 @@ server/              the server and CLI (Node, TypeScript ESM, Hono)
   index.ts           createApp (routes → JSON 404 for /api/* → static files → SPA fallback) and startServer
   context.ts         AppContext: what every route module gets (version, dataDir, config, bus, egress, runtime,
                      uploads, notices, store, services)
-  http.ts            helpers for route modules (apiError)
+  http.ts            helpers for route modules: apiError, storeError (the store's errors → 400/404/409), handle (run a
+                     route's work, answer JSON or the store error), jsonBody
+  gitremote.ts       a repo folder's remote, from that one repo's git config: no scan, no subprocess (D46)
+  mcp/               the MCP server (SPEC R11, D40–D44): index.ts (the SDK's stateless handler, resource-updated
+                     notifications from the store), tools.ts (the tools, resource and prompts, over ctx.services),
+                     views.ts (bragdoc_get_context: the house style, the rules, compact views), bridge.ts (`bragdoc mcp`)
+  guide.ts           renders AGENT-GUIDE.md (live facts, its generated reference), /llms.txt and the --snippet
   security.ts        the guard on every request: Host allow-list, same-origin Origin, Fetch Metadata, JSON-only or
                      opt-in typed uploads, body limits, security headers + CSP; blobHeaders() for evidence (D10, D26)
   bind-safety.ts     refuses a non-loopback --host without BRAGDOC_DANGEROUSLY_ALLOW_OPEN=1
   config.ts          config.yaml: Zod schema, defaults, the schemaVersion downgrade guard, live re-read (ConfigStore),
-                     and update(), the one way Settings edits it (D45)
+                     and update(), the one way Settings edits it (D48)
   home.ts            the data home's layout and .gitignore on first run; moves the old CLI's files into legacy-cli/
   runtime.ts         runtime.json (0600): pid, port, url and the MCP token, which survives restarts; constantTimeEqual
   egress.ts          the ONLY outbound network path: egressFetch({purpose}, url), allow-list, logs/network.jsonl
@@ -79,8 +86,10 @@ server/              the server and CLI (Node, TypeScript ESM, Hono)
   atomic.ts          the platform's own writes (runtime.json, the network log, starter files): atomic, create-only (D27)
   routes/index.ts    registerRoutes(): one line per feature module (D18)
   routes/health.ts   GET /api/health
-  routes/{events,meta,network}.ts   GET /api/events, /api/meta, /api/network-log (+ POST …/guard-check, D46)
+  routes/{events,meta,network}.ts   GET /api/events, /api/meta, /api/network-log (+ POST …/guard-check, D49)
   routes/settings.ts /api/problems, /api/backups, /api/settings (+ PUT /api/settings/mcp), /api/mcp/token (+ rotate)
+  routes/mcp.ts      /mcp: the bearer token (runtime.json), 405 on GET/DELETE, then server/mcp/
+  routes/guide.ts    GET /agent-guide.md, /llms.txt, /llms-full.txt
   paths.ts           package root, VERSION, WEB_DIST, the data home (resolveDataDir), tildify
   port.ts            DEFAULT_PORT (2724 = BRAG), alone so vite.config.ts can import it
   store/             the only code that touches the data home's files (D5, D24): index.ts (Store: load, index,
@@ -103,7 +112,9 @@ src/                 the web app (React 19, Vite, Tailwind v4, TanStack Router +
                      CopyButton, CommandSlab, LoadError, Slot); routes/settings/$tab.tsx picks one
   api/               client.ts (the typed `api` wrapper), queries.ts (query keys + hooks), events.ts (live updates)
   theme/theme.tsx    light / system / dark: ThemeProvider + useTheme()
-  lib/               pure helpers, unit-tested: colour.ts (inkOn, swatches, tilt), dates.ts (groupByWeek, fmt)
+  lib/               pure helpers, unit-tested: colour.ts (inkOn, swatches, tilt), dates.ts (groupByWeek, fmt), gantt.ts
+                     (the Projects timeline's window, gridlines, bars, rows and swimlanes)
+  projects/          the Projects page's pieces: Gantt, ProjectDialog, CompanyDialog, Pile, ReposPanel
   dev/Kit.tsx        /dev/kit, every kit component on one page (dev and BRAGDOC_KIT=1 builds only, D33)
   styles.css         the Scrapbook tokens (light + lamplight), mapped to Tailwind names through `@theme inline`
 public/              static files copied into dist/web: theme-init.js (the theme before first paint) and the
@@ -143,8 +154,8 @@ npm run test:e2e       # Playwright against the built server (run `npm run build
 npm run routes         # regenerate src/routeTree.gen.ts by hand (typecheck, dev and build do it anyway)
 npm run docs:media     # build with /dev/kit, boot a throwaway instance, take every shot in tools/docs-media/shots.ts
 npm run brand          # regenerate the favicons, icons and social cards from brand/mark.svg
-npm run sync:reference # regenerate the reference tables in docs/data-format.md (and the docs site's copy) after a
-                       # schema change
+npm run sync:reference # regenerate the reference tables in docs/data-format.md, AGENT-GUIDE.md and the docs site's
+                       # copy after a schema change
 (cd website && npm install && npm run build && npm run check-links && npm run check-external)   # the docs site
 npm run store:demo     # the file store end to end on a throwaway data home (seed, index stats, watcher events)
 ```
@@ -174,17 +185,17 @@ npm run smoke:pack` pass locally (and `npm run test:e2e` if you touched anything
 - **A setting the user changes in Settings** (a source's on/off, its options): add the key to `ConfigSchema` in
   `server/config.ts`, then write it with `ctx.config.update({ sources: { … } })` (a merge patch on the file as it is
   on disk; it keeps comments, refuses a broken file with `ConfigWriteError` → 409, and fires the `config` event).
-  Expose it in `SettingsResponse` (`GET /api/settings`). Never write config.yaml any other way (D45).
+  Expose it in `SettingsResponse` (`GET /api/settings`). Never write config.yaml any other way (D48).
 - **A Sources card's insides** (PR13 GitHub, PR15 screenshots): replace the `SourceCard` placeholder in
-  `src/settings/SourcesTab.tsx` (marked with a comment). Data → the Import and Example data slots (`Slot`, marked)
-  are PR12's and PR16's.
+  `src/settings/SourcesTab.tsx` (marked with a comment). Data → the Example data `Slot` (marked) is
+  PR16's; the importer is PR12's `ImportPanel` (`src/import/`).
 - **Something the web app should refetch when it changes:** add a member to `ServerEvent` in `shared/api.ts` and
   `ctx.bus.emit(…)` (or `emitSoon` for bursts).
 - **Reading or writing data:** routes and MCP tools call `ctx.services` (`server/services/`), never the files and
   never `ctx.store.write` directly. Validate request bodies with the input schemas in `shared/schema/inputs.ts`
   (strict: unknown keys are errors) or let the service do it. Map the store's errors (`server/store/errors.ts`):
   `NotFoundError` → 404, `ValidationError` → 400 (its `issues` say which keys), `ConflictError` and `ReadOnlyError` →
-  409. Reads that need no logic can use `ctx.store` (`get`, `all`, `problems()`, `search`, `achievementIdsIn`). What
+  409 (`handle()` / `storeError()` in `server/http.ts` do this). Reads that need no logic can use `ctx.store` (`get`, `all`, `problems()`, `search`, `achievementIdsIn`). What
   `get`/`all` return are the index's own objects: **never mutate them** (copy first). Pass the client's `If-Match` to
   updates from the UI (every entry has an `etag`), so an edit made against a stale copy is a 409, not a silent
   overwrite. Serving evidence files: trust only an allow-list of types from the sidecar's `mime` (a sidecar is
@@ -206,6 +217,10 @@ npm run smoke:pack` pass locally (and `npm run test:e2e` if you touched anything
   field): document it on the docs site too (`website/src/content/docs/reference/`, `agents/mcp.md`; rules in
   `website/CLAUDE.md`). `test/docs.test.ts` fails on a command, `serve` flag, env var or (once `server/mcp/` exists)
   MCP tool the site doesn't list. A page about a feature you've just built loses its "Coming in v0.1" note.
+- **An MCP tool:** register it in `server/mcp/tools.ts` (verb_noun, `bragdoc_` prefix, a description written for
+  tool search, a strict input schema, `run(…)` for the error mapping), calling `ctx.services`; add it to `TOOLS` in
+  test/mcp.test.ts and to the MCP table in AGENT-GUIDE.md (test/guide.test.ts checks). New HTTP routes go in the guide's
+  "The HTTP API" table too.
 - **A decision:** append to `docs/decisions.md` with the next free D-number at rebase time.
 - **Dependencies:** each PR adds its own. On a lockfile conflict, regenerate it (`npm install`), never hand-merge it.
   Only what the server needs at run time is a `dependency`; React and everything bundled into `dist/web` is a
@@ -240,7 +255,7 @@ project-colour tape, on an oat board (light) or a dim cork board under a desk la
 | Controls | `Btn` (`accent` · `go` · `paper` · `ink` · `ghost` · `danger`; `size="sm"`), `LinkBtn` (a router link styled as a button), `btnClass()`, `Switch`, `Field` (label, `hint`, `error`), `TextInput`, `TextArea`, `inputCls`, `FilterChip`, `CountBadge`, `Dot`, `ColourPicker` (12 swatches + any colour) |
 | Tags | `ProjectPill` (`name`, `color`, `active`, `onClick`), `RepoTag`, `ImpactBadge` (1–10), `ProvenanceBadge` (`github` · `screenshot` · `mcp` + `agent` · `import`; `soft` on cards, `solid` on Found), `PROVENANCE` (labels and colours for filter rows) |
 | Evidence | `EvidenceBit` (draws an `EvidenceView`: `image` · `pdf` · `file` · `link` · `github_pr` · `quote`), and each kind alone: `PrSlab` (shows `owner/repo#n` without a title), `LinkCard`, `PdfChip`, `FileChip`; `formatBytes`, `domainOf` |
-| Feedback | `ToastProvider` (in the shell) and `useToast()`: `toast({ msg, undo?, tone? })` |
+| Feedback | `ToastProvider` (in the shell) and `useToast()`: `toast({ msg, undo?, tone? })`; `Dialog` (a modal sheet on the native `<dialog>`: `open`, `onClose`, `title`, `footer`, `tape`, `size`) |
 | Navigation | `NotebookTabs` + `NotebookTab` (Settings' divider tabs; router links) |
 
 Shell pieces in `src/shell/`: `Header` and `MobileTabs` (the nav; the Found badge reads `useFoundCount()`, a stub
