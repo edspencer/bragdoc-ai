@@ -1,6 +1,7 @@
 // Settings → Sources (SPEC R7, R11, R13): a card per source. The Agents (MCP) card is whole here: where agents
-// connect, the bearer token (show, copy, rotate) and where their writes go (mcp.writeTo). GitHub and the screenshots
-// folder are cards whose insides their sources fill in (PR13, PR15); every source is off until you turn it on.
+// connect, the bearer token (show, copy, rotate) and where their writes go (mcp.writeTo). GitHub's card is
+// GithubCard.tsx (PR13); the screenshots folder's insides come with its source (PR15). Every source is off until you
+// turn it on.
 // Adapted from the prototype's Sources (Settings.tsx): its card grid, tape and status line, without Slack and the
 // "coming soon" connectors.
 import { useEffect, useRef, useState, type ReactNode } from 'react';
@@ -9,8 +10,9 @@ import { Bot, Eye, EyeOff, ImageIcon, KeyRound } from 'lucide-react';
 import type { SettingsResponse } from '../../shared/api.ts';
 import { putMcpSettings, rotateMcpToken } from '../api/client.ts';
 import { queryKeys, useMcpToken, useMeta, useSettings } from '../api/queries.ts';
-import { Btn, Dot, GithubMark, Kicker, SectionTitle, Switch, Tape, useToast, type Tone } from '../kit/index.ts';
+import { Btn, Dot, Kicker, SectionTitle, Switch, Tape, useToast, type Tone } from '../kit/index.ts';
 import { CommandSlab, CopyButton, LoadError, Loading } from './common.tsx';
+import { GithubCard } from './GithubCard.tsx';
 import { Notices } from './DataTab.tsx';
 
 export function SourcesTab() {
@@ -23,24 +25,7 @@ export function SourcesTab() {
       <Notices />
       {settings.isError && <LoadError error={settings.error} what="your settings" retry={() => void settings.refetch()} />}
       <div className="grid gap-5 md:grid-cols-2">
-        {/* PR13 fills this card: connect with gh or a token, the backfill window, Run now, and its status line */}
-        <SourceCard
-          testId="source-github"
-          icon={<GithubMark className="size-5" />}
-          name="GitHub"
-          tape="#6b7a8a"
-          tilt={-0.4}
-          blurb="Pull requests you merged, checked every hour, through the gh CLI if you have it or a token you paste."
-          on={settings.data?.sources.github.enabled ?? false}
-          status={
-            !settings.isSuccess
-              ? { tone: 'off', text: settings.isError ? 'Couldn’t read your settings.' : '…' }
-              : settings.data.sources.github.enabled
-                ? { tone: 'good', text: `On, through ${settings.data.sources.github.auth === 'gh' ? 'the gh CLI' : 'a token'}.` }
-                : { tone: 'off', text: 'Off. Nothing is collected.' }
-          }
-          soon="Connecting GitHub from here comes with the GitHub source."
-        />
+        <GithubCard />
         {/* PR15 fills this card: pick a folder, the last-7-days look-back, and "40 looked at · 3 sent to Found" */}
         <SourceCard
           testId="source-screenshots"

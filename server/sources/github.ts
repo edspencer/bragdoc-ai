@@ -76,8 +76,8 @@ const err = (code: GithubSourceError['code'], message: string, retryAt?: string)
 
 /** The plain-words message for each failure (the card shows it; docs/decisions.md D56 lists them). */
 export const MESSAGES = {
-  gh_missing: 'The GitHub CLI (gh) isn’t installed, or BragDoc can’t find it on its PATH. Install it from cli.github.com and run `gh auth login`, or connect with a token instead.',
-  gh_logged_out: 'The GitHub CLI isn’t logged in. Run `gh auth login` in a terminal, then try again.',
+  gh_missing: 'The GitHub CLI (gh) isn’t installed, or BragDoc can’t find it on its PATH. Install it from cli.github.com and run “gh auth login”, or connect with a token instead.',
+  gh_logged_out: 'The GitHub CLI isn’t logged in. Run “gh auth login” in a terminal, then try again.',
   token_missing: 'There’s no GitHub token in secrets.yaml any more. Connect again with a token.',
   token_invalid: 'GitHub didn’t accept the token: it may have expired or been revoked. Make a new one and connect again.',
   token_scope: 'GitHub refused: this token can’t read pull requests. Give it read-only access to “Pull requests” (and “Metadata”) on the repositories you want, or make a new one.',
@@ -563,7 +563,9 @@ export class GithubSource {
       }
       result.seen = found.size;
       // disconnected while it ran: say what it saw, keep nothing
-      if (this.settings().enabled) for (const [key, pr] of found) if (this.addCandidate(key, pr, scope)) result.added++;
+      // oldest first, so Found (newest first) lists the most recently merged at the top
+      const byMerged = [...found].sort(([, a], [, b]) => (a.mergedAt < b.mergedAt ? -1 : a.mergedAt > b.mergedAt ? 1 : 0));
+      if (this.settings().enabled) for (const [key, pr] of byMerged) if (this.addCandidate(key, pr, scope)) result.added++;
       result.requests = client.requests;
       result.finishedAt = this.now().toISOString();
       this.save({ cursor: to, lastRun: result, retryAt: null, strikes: 0 });
@@ -594,13 +596,14 @@ export class GithubSource {
     else if (scope.owners.includes(name.split('/')[0]!)) rules.push(`Under ${pr.repo.split('/')[0]}, which you picked`);
     else if (repo?.tracked) rules.push('In a repo you track');
     const body = pr.body?.replace(/<!--[\s\S]*?-->/g, '').trim();
+    const day = dayIn(pr.mergedAt, store.profile()?.timezone);
     const r = services.found.add({
       source: 'github',
       externalKey: key,
       title: pr.title.trim().slice(0, 300) || `${pr.repo}#${pr.number}`,
       ...(body ? { body: body.length > BODY_MAX ? `${body.slice(0, BODY_MAX).trimEnd()}…` : body } : {}),
-      happenedAt: dayIn(pr.mergedAt, store.profile()?.timezone),
-      evidence: [{ kind: 'github_pr', url: pr.url, externalKey: key, title: pr.title.trim().slice(0, 300) }],
+      happenedAt: day,
+      evidence: [{ kind: 'github_pr', url: pr.url, externalKey: key, title: pr.title.trim().slice(0, 300), meta: { mergedAt: day } }],
       matchedRules: rules,
       suggestedProjects: repo ? services.projects.forRepo(repo.id).filter((p) => p.status !== 'archived').map((p) => p.id) : [],
       suggestedRepos: repo ? [repo.id] : [],

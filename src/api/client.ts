@@ -18,6 +18,13 @@ import type {
   Detached,
   EvidenceUploaded,
   FoundCountResponse,
+  FoundDecided,
+  FoundListResponse,
+  FoundSourceName,
+  GhDetectResponse,
+  GithubConnectRequest,
+  GithubSettingsRequest,
+  GithubSourceStatus,
   GuardCheckResponse,
   HealthResponse,
   ImportReport,
@@ -35,8 +42,9 @@ import type {
   RepoEntry,
   ReposResponse,
   SettingsResponse,
+  SourcesResponse,
 } from '../../shared/api.ts';
-import type { Achievement, AchievementCreate, AchievementUpdate, Evidence, Problem } from '../../shared/schema/index.ts';
+import type { Achievement, AchievementCreate, AchievementUpdate, Evidence, FoundCandidate, FoundKeep, Problem } from '../../shared/schema/index.ts';
 
 /** A failed API call: the HTTP status (0 when the server couldn't be reached) and the envelope's code and message. */
 export class ApiRequestError extends Error {
@@ -296,3 +304,22 @@ export const createRepo = (body: RepoInput) => api.post<RepoCreateResponse>('/ap
 export const deleteRepo = (id: string, etag?: string) => api.delete<DeleteResponse>(`/api/repos/${seg(id)}`, ifMatch(etag));
 /** `POST /api/repos/:id/restore` */
 export const restoreRepo = (id: string, reattach?: Detached) => api.post<RepoEntry>(`/api/repos/${seg(id)}/restore`, { reattach });
+
+// ---------------------------------------------------------------- Found + sources (PR13)
+
+/** `GET /api/found`: pending candidates (one source's, or all) and the per-source counts. */
+export const getFound = (source: FoundSourceName | undefined, signal?: AbortSignal) => api.get<FoundListResponse<FoundCandidate>>(`/api/found${qs({ source })}`, { signal });
+export const keepFound = (id: string, body: FoundKeep = {}) => api.post<FoundDecided<FoundCandidate>>(`/api/found/${seg(id)}/keep`, body);
+export const mergeFound = (id: string, achievementId: string) => api.post<FoundDecided<FoundCandidate>>(`/api/found/${seg(id)}/merge`, { achievementId });
+export const dismissFound = (id: string) => api.post<FoundDecided<FoundCandidate>>(`/api/found/${seg(id)}/dismiss`);
+export const undoFound = (id: string) => api.post<FoundDecided<FoundCandidate>>(`/api/found/${seg(id)}/undo`);
+
+/** `GET /api/sources` */
+export const getSources = (signal?: AbortSignal) => api.get<SourcesResponse>('/api/sources', { signal });
+/** `GET /api/sources/github/gh`: is gh on PATH (nothing runs) */
+export const getGhInstalled = (signal?: AbortSignal) => api.get<GhDetectResponse>('/api/sources/github/gh', { signal });
+export const connectGithub = (body: GithubConnectRequest) => api.post<GithubSourceStatus>('/api/sources/github/connect', body);
+export const putGithub = (body: GithubSettingsRequest) => api.put<GithubSourceStatus>('/api/sources/github', body);
+/** Check now: resolves when the check has finished. */
+export const runGithub = () => api.post<GithubSourceStatus>('/api/sources/github/run');
+export const disconnectGithub = (forgetToken = false) => api.post<GithubSourceStatus>('/api/sources/github/disconnect', { forgetToken });

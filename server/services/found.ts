@@ -64,7 +64,8 @@ export class FoundService {
     return this.store
       .all('found')
       .filter((f) => (status === 'all' || f.status === status) && (!filter.source || f.source === filter.source))
-      .sort((a, b) => (a.foundAt < b.foundAt ? 1 : a.foundAt > b.foundAt ? -1 : a.id < b.id ? 1 : -1));
+      // found in one go (a check), the one that happened last comes first
+      .sort((a, b) => (a.foundAt !== b.foundAt ? (a.foundAt < b.foundAt ? 1 : -1) : a.happenedAt !== b.happenedAt ? (a.happenedAt < b.happenedAt ? 1 : -1) : a.id < b.id ? 1 : -1));
   }
 
   pendingCount(): number {

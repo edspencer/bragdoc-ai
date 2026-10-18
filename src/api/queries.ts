@@ -2,7 +2,8 @@
 // `['achievements', filters]`, …), so the live-update hook (events.ts) can refresh a whole resource by its first
 // segment. Feature PRs add their key and hook here, one block each.
 import { QueryClient, useInfiniteQuery, useQuery } from '@tanstack/react-query';
-import { getAchievements, getBackups, getCompanies, getFoundCount, getHealth, getMcpToken, getMeta, getNetworkLog, getProblems, getProjectSummary, getProjects, getRepos, getSettings, isApiError, type AchievementFilters } from './client.ts';
+import type { FoundSourceName } from '../../shared/api.ts';
+import { getAchievements, getBackups, getCompanies, getFound, getFoundCount, getGhInstalled, getSources, getHealth, getMcpToken, getMeta, getNetworkLog, getProblems, getProjectSummary, getProjects, getRepos, getSettings, isApiError, type AchievementFilters } from './client.ts';
 
 export const queryKeys = {
   health: ['health'] as const,
@@ -15,6 +16,10 @@ export const queryKeys = {
   achievements: (filters: AchievementFilters) => ['achievements', filters] as const,
   problems: ['problems'] as const,
   foundCount: ['found', 'count'] as const,
+  // Found + sources (PR13)
+  found: (source?: string) => ['found', 'list', source ?? 'all'] as const,
+  sources: ['sources'] as const,
+  ghInstalled: ['sources', 'gh'] as const,
   // settings (PR10)
   meta: ['meta'] as const,
   networkLog: ['network-log'] as const,
@@ -121,4 +126,20 @@ export function useAchievements(filters: AchievementFilters) {
 /** Problems with files in the data home (the board's banner, Settings → Data). */
 export function useProblems() {
   return useQuery({ queryKey: queryKeys.problems, queryFn: ({ signal }) => getProblems(signal), select: (r) => r.problems });
+}
+
+// Found + sources (PR13)
+
+/** Found's pending candidates (one source's, or all), with every source's count for the filter row. */
+export function useFound(source?: FoundSourceName) {
+  return useQuery({ queryKey: queryKeys.found(source), queryFn: ({ signal }) => getFound(source, signal), placeholderData: (prev) => prev });
+}
+
+export function useSources() {
+  return useQuery({ queryKey: queryKeys.sources, queryFn: ({ signal }) => getSources(signal) });
+}
+
+/** Is gh on PATH? (A look at the file system, nothing runs.) */
+export function useGhInstalled(enabled: boolean) {
+  return useQuery({ queryKey: queryKeys.ghInstalled, queryFn: ({ signal }) => getGhInstalled(signal), enabled, select: (r) => r.installed });
 }
