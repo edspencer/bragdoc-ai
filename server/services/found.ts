@@ -126,7 +126,7 @@ export class FoundService {
         const i = await this.evidence.ingestPath(file.path, f.source === 'screenshots' ? { only: ['image'] } : f.source === 'mcp' ? { accept: ATTACHABLE } : {});
         // a screenshot replaced since (a tool that reuses a name): not the picture that passed, so not kept. Its blob,
         // just stored, is an orphan the store tolerates, like any upload never attached
-        if (f.source === 'screenshots' && f.externalKey?.startsWith('screenshot:') && f.externalKey !== `screenshot:${i.sha256}`) {
+        if (f.source === 'screenshots' && /^screenshot:[0-9a-f]{64}$/.test(f.externalKey ?? '') && f.externalKey !== `screenshot:${i.sha256}`) {
           missing.push(file.path);
           continue;
         }
