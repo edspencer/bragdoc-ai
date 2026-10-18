@@ -21,6 +21,7 @@ import {
   CompanySchema,
   EvidenceSidecarSchema,
   FoundCandidateSchema,
+  InstructionsFrontMatterSchema,
   ProfileSchema,
   ProjectSchema,
   RepoSchema,
@@ -30,12 +31,14 @@ import {
   type Company,
   type EvidenceSidecar,
   type FoundCandidate,
+  type Instructions,
   type Problem,
   type Profile,
   type Project,
   type Repo,
   type StoreChange,
 } from '../../shared/schema/index.js';
+import { INSTRUCTIONS_MAX_CHARS, isInstructionsName } from '../../shared/ai/instructions.js';
 import { ULID_RE } from '../../shared/ulid.js';
 import { ConflictError, NotFoundError, ReadOnlyError, ValidationError } from './errors.js';
 import { classify, relPathFor, SCAN_ROOTS, type EntityKind } from './files.js';
@@ -55,6 +58,7 @@ export interface EntityTypes {
   achievement: Achievement;
   evidence: EvidenceSidecar;
   found: FoundCandidate;
+  instructions: Instructions;
 }
 
 const SCHEMAS: Record<EntityKind, z.ZodType> = {
@@ -65,6 +69,7 @@ const SCHEMAS: Record<EntityKind, z.ZodType> = {
   achievement: AchievementFrontMatterSchema,
   evidence: EvidenceSidecarSchema,
   found: FoundCandidateSchema,
+  instructions: InstructionsFrontMatterSchema,
 };
 
 /** The key a file's own id is under (checked against its file name). */
@@ -175,8 +180,9 @@ function scanKeys(kind: EntityKind, raw: string): string[] {
   return [...new Set(out)];
 }
 
-/** Ids as file names: a ULID, a sha256 for evidence, `profile` for the profile. Anything else is no such entity. */
+/** Ids as file names: a ULID, a sha256 for evidence, `profile` for the profile, a known name for instructions. */
 function validId(kind: EntityKind, id: string): boolean {
+  if (kind === 'instructions') return isInstructionsName(id);
   return kind === 'profile' ? id === 'profile' : kind === 'evidence' ? /^[0-9a-f]{64}$/.test(id) : ULID_RE.test(id);
 }
 
@@ -191,6 +197,7 @@ export class Store {
     achievement: new Map(),
     evidence: new Map(),
     found: new Map(),
+    instructions: new Map(),
   };
   /** Misnamed files, by relative path. */
   private stray = new Map<string, Problem>();
@@ -344,6 +351,20 @@ export class Store {
       if (!fm) return { value: null, readOnly: false, problems: [problem('syntax', 'no front-matter: an achievement file starts with a `---` line, its YAML keys, and another `---` line', { line: 1, col: 1 })] };
       ({ yaml, body } = fm);
       lineOffset = fm.yamlLine - 1;
+    } else if (kind === 'instructions') {
+      // markdown, with front-matter only if it starts with a `---` line (D67); its size is capped, as it's sent to a
+      // model with every call
+      if (raw.length > INSTRUCTIONS_MAX_CHARS)
+        return { value: null, readOnly: false, problems: [problem('invalid', `it's ${raw.length.toLocaleString('en')} characters long; instructions can be at most ${INSTRUCTIONS_MAX_CHARS.toLocaleString('en')}, because they're sent to the model with every call. Shorten it`)] };
+      if (/^---[ \t]*\r?\n/.test(raw)) {
+        const fm = splitFrontMatter(raw);
+        if (!fm) return { value: null, readOnly: false, problems: [problem('syntax', 'its front-matter is never closed: after the first `---` line and its YAML keys, add another `---` line (or remove the first one)', { line: 1, col: 1 })] };
+        ({ yaml, body } = fm);
+        lineOffset = fm.yamlLine - 1;
+      } else {
+        yaml = '';
+        body = raw;
+      }
     }
     const at = (p: { line: number; col: number } | undefined) => (p ? { line: p.line + lineOffset, col: p.col } : undefined);
     const read = readYaml(yaml);
@@ -390,7 +411,7 @@ export class Store {
     }
     const broken = problems.some((p) => p.code !== 'future-version');
     if (broken || !r.success) return { value: null, readOnly, problems, obj };
-    const value = kind === 'achievement' ? { ...(r.data as object), body } : r.data;
+    const value = kind === 'achievement' || kind === 'instructions' ? { ...(r.data as object), body } : r.data;
     if (readOnly) (value as { schemaVersion: unknown }).schemaVersion = version;
     return { value, readOnly, problems };
   }
@@ -588,6 +609,7 @@ export class Store {
    * validates the result, and writes it atomically. Returning null from `edit` writes nothing. Returns the new value.
    */
   write<K extends EntityKind>(kind: K, id: string, edit: (current: EntityTypes[K] | null) => Edit | null, opts: WriteOptions = {}): EntityTypes[K] {
+    if (kind === 'instructions') throw new Error('an instructions file is written whole: use writeText()');
     if (!validId(kind, id)) throw new NotFoundError(`there's no ${kind} ${JSON.stringify(id)}`);
     const known = this.entries[kind].get(id);
     const file = known?.file ?? relPathFor(kind, id);
@@ -632,6 +654,44 @@ export class Store {
     if (text !== raw) {
       try {
         atomicWrite(abs, text, { createOnly: !exists });
+      } catch (err) {
+        if (err instanceof ExistsError) throw new ConflictError(`${file} appeared while saving; read it again`);
+        throw err;
+      }
+    }
+    this.reloadOne(kind, id, file);
+    return this.get(kind, id)!;
+  }
+
+  /**
+   * Replace an instructions file with `text`, the whole file as the user wrote it (D67). It's checked as a hand edit
+   * would be, and refused (ValidationError) if it would be a Problem. A file that's broken now is replaced only with
+   * `ifMatch` (its current ETag: proof that whoever is writing has seen it); without it, ConflictError, as write()
+   * does. Returns the new value.
+   */
+  writeText(kind: 'instructions', id: string, text: string, opts: Pick<WriteOptions, 'ifMatch' | 'createOnly'> = {}): Instructions {
+    if (!validId(kind, id)) throw new NotFoundError(`there's no ${kind} ${JSON.stringify(id)}`);
+    const file = relPathFor(kind, id);
+    const abs = path.join(this.home, file);
+    const raw = readRaw(abs);
+    const etag = raw !== null ? etagOf(raw) : null;
+    if (opts.createOnly && raw !== null) throw new ConflictError(`${file} already exists`, etag);
+    if (opts.ifMatch && !etagMatches(opts.ifMatch, etag)) throw new ConflictError(etag ? `${file} has changed since you read it; read it again` : `${file} doesn't exist`, etag);
+    if (raw !== null) {
+      const r = this.check(kind, id, file, raw);
+      if (r.readOnly) throw new ReadOnlyError(`${file} was written by a newer BragDoc, so this one won't change it. Upgrade BragDoc to edit it.`, etag);
+      if (r.value === null && !opts.ifMatch)
+        throw new ConflictError(`${file} has a problem (${r.problems[0]?.message ?? 'it is invalid'}), so BragDoc won't overwrite it unseen. Fix it by hand, or save it again with its current ETag.`, etag);
+    }
+    const checked = this.check(kind, id, file, text);
+    if (checked.value === null || checked.readOnly)
+      throw new ValidationError(
+        `that would make ${file} ${checked.readOnly ? 'read-only' : 'invalid'}: ${checked.problems.map((p) => p.message).join('; ')}`,
+        checked.problems.map((p) => ({ key: p.key ?? '', message: p.message })),
+      );
+    if (text !== raw) {
+      try {
+        atomicWrite(abs, text, { createOnly: raw === null });
       } catch (err) {
         if (err instanceof ExistsError) throw new ConflictError(`${file} appeared while saving; read it again`);
         throw err;

@@ -7,6 +7,7 @@ import { AchievementService } from './achievements.js';
 import { CompanyService, ProjectService, RepoService } from './catalog.js';
 import { EvidenceService } from './evidence.js';
 import { FoundService } from './found.js';
+import { InstructionsService } from './instructions.js';
 import { ProfileService } from './profile.js';
 
 export interface Services {
@@ -17,6 +18,7 @@ export interface Services {
   evidence: EvidenceService;
   found: FoundService;
   profile: ProfileService;
+  instructions: InstructionsService;
 }
 
 export function createServices(store: Store): Services {
@@ -30,6 +32,7 @@ export function createServices(store: Store): Services {
     evidence,
     found: new FoundService(store, achievements, evidence),
     profile: new ProfileService(store),
+    instructions: new InstructionsService(store),
   };
 }
 
@@ -37,4 +40,5 @@ export type { AchievementService, ListResult } from './achievements.js';
 export type { CompanyService, ProjectService, RepoService } from './catalog.js';
 export { ATTACHABLE, type EvidenceService } from './evidence.js';
 export type { AddResult, DecideResult, FoundService } from './found.js';
+export type { InstructionsService } from './instructions.js';
 export type { ProfileService } from './profile.js';

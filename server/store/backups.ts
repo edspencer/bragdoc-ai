@@ -18,7 +18,7 @@ export const KEEP_DAYS = 30;
 export const INTERVAL_MS = 60 * 60 * 1000;
 
 /** What a snapshot holds, relative to the data home. Not secrets.yaml (a token), runtime.json, logs/ or cache/. */
-export const EDITABLE = ['config.yaml', 'profile.yaml', 'companies', 'projects', 'repos', 'achievements', 'found', 'evidence', 'imports'];
+export const EDITABLE = ['config.yaml', 'profile.yaml', 'companies', 'projects', 'repos', 'achievements', 'found', 'evidence', 'imports', 'ai'];
 
 /** `2026-10-09T08-45-12Z` (ISO 8601 UTC, ':' → '-' so it's a valid file name everywhere), maybe `-2`, `-3`… */
 export const SNAPSHOT_NAME = /^(\d{4}-\d{2}-\d{2})T\d{2}-\d{2}-\d{2}Z(?:-\d{1,3})?$/;

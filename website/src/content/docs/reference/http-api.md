@@ -175,6 +175,20 @@ Every model call, local ones included, is in [Network activity](/guarantees/netw
 (`this computer`, `your network` or `internet`), what it was for, the model and how many bytes were sent: never what
 was sent.
 
+### Instructions and AI activity
+
+The instructions files are markdown you write for the models, in the data folder's [`ai/` folder](/reference/data-folder/):
+`what-counts` (`ai/what-counts.md`, "What counts as a win for me", which the judge reads) and `style` (`ai/style.md`,
+"How I write", for tidying and drafting). They're your files, so these work whether AI is on or off, and reading or
+saving one sends nothing anywhere. A change to one, here or by hand, refreshes open tabs (an `instructions` event).
+
+| Method and path | What it does |
+| --- | --- |
+| `GET /api/ai/instructions/:name` | The file: `text` (all of it, front-matter included), `body` (what a model is given: the markdown after any front-matter), `exists`, `etag` (also the `ETag` header), its `problems`, and `maxChars` (20,000). A broken file keeps its last good `body`. **404** for any other name. |
+| `PUT /api/ai/instructions/:name` | `{ "text": "…" }`: the whole new file, with `If-Match` optional. **400** if it would be a Problem (too long, front-matter that isn't closed or isn't YAML), and nothing is written. **409** if it changed since your `If-Match`, or if the file on disk is broken and you didn't send `If-Match` with its current ETag (it's never overwritten unseen). |
+| `POST /api/ai/instructions/:name/reset` | Put the feature's starter text back. Your file, if it's different, is moved into `backups/removed/` first (`removedTo` says where). **404** until the feature that reads the file has a starter. |
+| `GET /api/ai/activity` | The AI activity log, newest first: `limit` (1–500, default 50) and `offset`. One line per run (a judge pass, an eval) or per single call (a tidy, a draft, a connection test): when, the feature, what started it (`trigger`), the model and where it went, how many items and calls, the feature's own counts, tokens (when the provider reports them), and an error code. **Never any content**: no prompt, answer or message. A new line refreshes open tabs (an `ai-activity` event). |
+
 ## For agents
 
 | Method and path | What it does |

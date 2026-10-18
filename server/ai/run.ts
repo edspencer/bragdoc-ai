@@ -15,7 +15,7 @@
 // - No retries of our own beyond that one, and none of the SDK's (maxRetries: 0): a retry is a second request the user
 //   didn't see coming, and against a rate limit it makes things worse.
 import { z } from 'zod';
-import type { AiModelsResponse, AiTestResult, AiWhere } from '../../shared/api.js';
+import type { AiModelsResponse, AiTestResult, AiTrigger, AiWhere } from '../../shared/api.js';
 import { baseUrlOf, type AiCallFeature } from '../../shared/ai/connections.js';
 import type { Config } from '../config.js';
 import type { Egress } from '../egress.js';
@@ -47,8 +47,10 @@ export interface CallBase {
   timeoutMs?: number;
   temperature?: number;
   maxOutputTokens?: number;
-  /** Groups calls into one run in the activity log (PR22). */
+  /** Groups calls into one run in the activity log: a run's id from `ctx.aiActivity.start()` (PR22). */
   runId?: string;
+  /** What started a call that isn't part of a run, for its activity line. Default `now` (someone asked). */
+  trigger?: AiTrigger;
 }
 
 export interface ObjectCall<T> extends CallBase {
@@ -76,6 +78,7 @@ export interface CallRecord {
   feature: AiCallFeature;
   purpose: string;
   runId?: string;
+  trigger?: AiTrigger;
   connection: string;
   model: string;
   where: AiWhere;
@@ -238,7 +241,7 @@ export function createAi({ config, egress, secrets, load = loadSdk, now = Date.n
         if (settled) return;
         settled = true;
         call.signal?.removeEventListener('abort', onAbort);
-        const r: CallRecord = { feature: call.feature, purpose: call.purpose, ...(call.runId ? { runId: call.runId } : {}), connection: id, model: slot.model, where, startedAt, ms: started ? now() - t0.v : 0, outcome, tokensIn: null, tokensOut: null, ...extra };
+        const r: CallRecord = { feature: call.feature, purpose: call.purpose, ...(call.runId ? { runId: call.runId } : {}), ...(call.trigger ? { trigger: call.trigger } : {}), connection: id, model: slot.model, where, startedAt, ms: started ? now() - t0.v : 0, outcome, tokensIn: null, tokensOut: null, ...extra };
         for (const f of listeners) {
           try {
             f(r);

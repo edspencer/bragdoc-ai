@@ -41,6 +41,9 @@ export const CHANGE_INVALIDATES: Record<string, readonly string[]> = {
   // quote, and the screenshots card's "needs your name" (PR15)
   profile: ['profile', 'folio', 'welcome', 'evidence-ocr', 'sources'],
   problems: ['problems'],
+  // v0.2's AI (PR22): an instructions file (store), and a new line in the AI activity log
+  instructions: ['ai-instructions'],
+  'ai-activity': ['ai-activity'],
 };
 
 /** What to refresh for one event: a list of key prefixes, or 'all'. Null: nothing (pings, unknown event types). */
