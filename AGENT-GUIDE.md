@@ -120,6 +120,8 @@ site doesn't. What's there for agents today:
 | GET | `/api/folio?from=YYYY-MM-DD&to=YYYY-MM-DD` | A date window's achievements as Folio shows them (safe to share: no ids, file locations or local links), with project and company names |
 | GET | `/api/found` | What's waiting in Found (newest first); `POST /api/found/:id/{keep,merge,dismiss,undo}` decides |
 | GET | `/api/sources` | Each source's state (GitHub: on or off, the last check, any error) |
+| GET | `/api/profile` | The user's profile.yaml: name, role, what people call them, GitHub login (`null` before onboarding) |
+| GET | `/api/example` | Whether the board holds example data (made-up entries marked `example: true`: never treat them as the user's work) |
 
 To write without MCP, edit the files (below).
 

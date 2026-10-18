@@ -823,3 +823,60 @@ Export is a download of a blob made in the page; nothing about a folio is writte
 - **Considered:** auto-creating repos only on Keep (candidates would then carry no repo to show or suggest from);
   polling hourly by default (SPEC's wording; overruled for v0.1); storing the cursor in config.yaml (machine state in
   the user's file).
+
+### D58 — First run: no profile.yaml and Welcome not skipped; only the board sends you there
+
+- **The rule:** `GET /api/welcome` says `firstRun` while there's no `profile.yaml` **and** `welcome.skipped` in
+  config.yaml is false. "Skip for now" (or finishing Welcome without saving a profile) sets `welcome.skipped: true`
+  through `ctx.config.update()` (D53). Without that, skipping would bring you straight back: SPEC R10 defines first run
+  as "no profile.yaml", and skipping "About you" leaves none.
+- **Only the board redirects** (`/` → `/welcome`, in the shell). A link to Settings, Folio or Found opens what it says,
+  so a deep link or a bookmark is never hijacked. While the answer is pending, the board waits rather than flash.
+- **A broken config.yaml** refuses the write (409). The page says so and goes to the board anyway, and a
+  sessionStorage flag stops this tab bouncing back; another browser would see Welcome again until the file is fixed.
+- **Re-running:** Settings → Data → Welcome steps opens any step. The form fills in from the profile.
+- **The company** typed in "About you" becomes a `companies/<id>.yaml` (once, if none of that name exists): the
+  profile has no company field, and adding one would duplicate companies/.
+- **Considered:** localStorage for the skip (per browser; a service has several); a `cache/` marker (deletable cache
+  that changes behaviour); redirecting from every page (breaks deep links).
+
+### D59 — Finding your repos: one named folder, bounded; other sources only when ticked; nothing kept but what you add
+
+- **The scan** (`server/discover.ts`) reads only the folder you name: breadth first, 4 levels down, 5 s (then partial
+  results and `timedOut`), at most 500 repos. It stops at a folder with `.git` (dir or file), and skips dot-folders,
+  `node_modules`, `Library`, `Applications`, `__pycache__`, `site-packages`, `Pods` and `vendor`. A symlinked folder is
+  followed only when its real path is inside the named folder's real path, and each real path once, so loops end and
+  nothing outside is listed. `/` is refused (`too_broad`); `~` is allowed (the bounds hold).
+- **Recency without git:** the last line of `.git/logs/HEAD` (time and kind: commit, checkout, pull, merge), the
+  remote-tracking reflogs ("update by push"), and `FETCH_HEAD`'s mtime; `HEAD`'s mtime when there's no reflog. Only
+  the tail of each file is read. A worktree or submodule (`.git` is a file) isn't followed to its gitdir, which may be
+  outside the folder.
+- **Hints** (RECOMMENDATIONS §7): VS Code-style editors' `storage.json` (not `state.vscdb`: that's SQLite, a new
+  dependency for one key), JetBrains' `recentProjects.xml`, Claude Code's `projects/` (the `cwd` in each project's
+  newest session's first 16 KB; nothing else). Each is read only when ticked; suggestions only check that the files
+  exist. Shell history and `~/.gitconfig` aren't read in v0.1.
+- **Ticked to start with:** repos found in the named folder with activity in the last 30 days (the prototype's
+  behaviour; the folder was your choice). Hint results start unticked. Nothing is saved until **Add**, which checks
+  each path again (`readLocalRepo`) and stores only those.
+- **Considered:** `fdir` (RECOMMENDATIONS §7; a dependency for a 60-line walk, and its symlink handling resolves
+  outside the root); running `git log --author` for the top candidates (a subprocess per repo, and git may be absent).
+
+### D60 — Example data: shipped, deterministic, marked, and removed by moving exactly what's marked
+
+- **The dataset** is `fixtures/example/example.json` (the design prototype's Alex Marlowe: 2 companies, 5 projects,
+  7 repos, 32 achievements) plus evidence files made by `scripts/gen-example.ts` (resvg with the bundled fonts, so the
+  same bytes everywhere; a test checks the committed files match). It ships in the npm package and the Docker image.
+- **Dates move by whole weeks** so the newest entry falls in the last seven days (`asOf` overrides "today", for the
+  docs' captures). Everything else is the same every time.
+- **Invented GitHub owners:** `altimetry-example/…` and `quillfeather-example/…`. The prototype's `altimetry` and
+  `quillfeather` are real GitHub accounts, and PR slabs link to github.com. Links elsewhere use `.example` domains.
+  Example repos are `tracked: false`, so GitHub's "where to look" (D57) never fills in a made-up repo.
+- **Marked:** every company, project, repo and achievement it adds has `example: true` (the schema field PR3 added);
+  achievements also have `externalKey: example:<key>`, so adding twice adds nothing. A repo whose remote you already
+  have is reused, not duplicated (and isn't removed with the example data).
+- **Removed:** every entry with `example: true`, through the services: achievements are moved to `backups/removed/`;
+  projects, repos and companies with D45's detach, so your own entries tagged with one lose the tag rather than
+  dangle. A file BragDoc can't change (broken by hand) is left and reported. Evidence files stay in `evidence/`
+  (content-addressed; nothing is unlinked).
+- **Considered:** importing it as a hosted export (PR12's importer: `legacyId`s and an "Imported" badge on every card);
+  random sample data (not repeatable for captures and tests).

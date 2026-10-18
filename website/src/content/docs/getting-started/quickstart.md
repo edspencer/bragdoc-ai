@@ -3,10 +3,6 @@ title: Quickstart
 description: "Start BragDoc, tell it a little about yourself, and pin your first achievement to the board."
 ---
 
-:::note[Coming in v0.1]
-This walks through v0.1 as it is designed. The screens don't exist yet; real screenshots will replace this note.
-:::
-
 ## 1. Start it
 
 ```sh
@@ -17,14 +13,39 @@ Open `http://localhost:2724` in your browser.
 
 ## 2. Say who you are (or skip it)
 
-The first time, BragDoc opens **Welcome**. Every step can be skipped and changed later in Settings.
+The first time, the board sends you to **Welcome**: three steps on paper tabs, visited in any order. **Skip for now**
+leaves at any point and lands you on your (empty) board; BragDoc remembers that you skipped, and doesn't ask again.
+You can run any step again later from **Settings → Data → Welcome steps**.
 
-1. **About you:** your name, your role, and what people call you at work (nicknames, handles). The screenshot
-   source uses these to recognise when a screenshot is about you.
-2. **Where wins come from:** each source, off until you switch it on. You can connect GitHub (BragDoc uses the `gh`
-   CLI if you have it), point it at a screenshots folder, or skip all of them.
-3. **Your code:** optionally, pick a folder like `~/Code`. BragDoc looks inside it, and only inside it, for git
-   repositories you've pushed to recently, and you tick the ones to track. Only the paths you accept are saved.
+1. **About you:** your name, what you do, where (a company, optional) and since when, and **what people call you at
+   work**: nicknames, chat handles, initials. BragDoc uses these to tell when a screenshot or a message is about you.
+   If someone at work has a name like yours, say so too, and BragDoc won't mistake them for you. This becomes
+   `profile.yaml` in your data folder.
+2. **Where wins come from:** each source, **off until you switch it on**, with a line on what it does. You can connect
+   [GitHub](/concepts/found-and-sources/#github) here (through the `gh` CLI if you have it, or a token), or later.
+   The screenshots folder comes in the next build. Your coding agent needs nothing switched on: the step shows the one
+   command that [connects Claude Code](/agents/mcp/).
+3. **Your code:** name the folder you keep your code in. BragDoc suggests the usual ones that exist (`~/Code`,
+   `~/src`, `~/dev`, `~/projects`, `~/work`, …) but reads nothing until you press **Look for repos**. Then it looks
+   inside that folder only:
+   - at most **4 levels down**, for at most **5 seconds** (if it runs out of time, it says so and shows what it found
+     so far: name a folder further in to look deeper);
+   - it stops at each repository (a folder with a `.git`), and never goes into hidden folders, `node_modules` or
+     `Library`;
+   - a symlinked folder is followed only if it points inside the folder you named, and never twice, so a symlink loop
+     can't trap it.
+
+   Each repository is listed with **why**, from its own `.git`: "you pushed 3 days ago", "you committed yesterday",
+   "fetched 3 days ago; your last commit was 6 weeks ago". The ones you worked in during the last 30 days start
+   ticked. Tick or untick, give any of them a project if you like, and press **Add**: only the repositories you add
+   are saved (as `repos/<id>.yaml`); nothing else from the scan is kept.
+
+   **Also look at** lists places that already know your recent projects: VS Code-style editors (Cursor, Windsurf),
+   JetBrains IDEs and Claude Code. Each is read **only if you tick it**, one small file each, and only the paths that
+   are git repositories come back. Your shell history is never read.
+
+Nothing in Welcome sends anything anywhere, except connecting GitHub if you choose to, which shows up in
+[Network activity](/guarantees/network-activity/).
 
 ## 3. Add an achievement
 
@@ -37,8 +58,16 @@ becomes the title; anything after it is the body. Then:
 
 Press ⌘+Enter (Ctrl+Enter) to save. The card appears under **This week**.
 
-If the board feels empty and you'd like to see what it's for, **Fill it with example data** adds a set of invented
-achievements, marked as examples and removable in one click.
+### Example data
+
+If the board feels empty and you'd like to see what it's for, press **Fill it with example data** on the empty board
+(or in Settings → Data). It adds a few months in the working life of Alex Marlowe, a made-up engineer at two made-up
+companies: projects, pull requests, quotes, screenshots and documents, all invented. Every entry is marked
+`example: true` in its file and shows an **example** tag on its card, and a strip on the board says so.
+
+**Remove example data** (on that strip, or in Settings → Data) takes away exactly those entries, into
+`backups/removed/`. Anything you added yourself stays, even if you tagged it with one of the example projects (the tag
+is taken off). Adding the example data twice adds nothing new.
 
 ## 4. Look at the file
 
