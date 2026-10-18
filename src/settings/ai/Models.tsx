@@ -140,9 +140,18 @@ type PullState = { phase: 'confirm' } | { phase: 'pulling'; status: string; comp
 /** The confirm (size, free disk, RAM), then Ollama's progress with Cancel. */
 function PullDialog({ m, h, target, onClose }: { m: RecommendedModel; h: AiHardware; target: AiConnectionView; onClose: () => void }) {
   const qc = useQueryClient();
+  const toast = useToast();
   const [state, setState] = useState<PullState>({ phase: 'confirm' });
   const ctl = useRef<AbortController | null>(null);
-  useEffect(() => () => ctl.current?.abort(), []);
+  const pulling = useRef(false);
+  // the dialog can vanish mid-download (AI switched off in another tab hides the whole setup): say what happened
+  useEffect(
+    () => () => {
+      if (pulling.current) toast({ msg: `The download of ${m.name} stopped: AI was switched off, or you left the page.`, tone: 'bad' });
+      ctl.current?.abort();
+    },
+    [],
+  );
   const sizeBytes = (m.downloadGb ?? 0) * 1e9;
   // the readings are BragDoc's own machine: only the runner's when it's on this computer and BragDoc isn't in a container
   const sameMachine = target.class === 'this-computer' && !h.inDocker;
@@ -151,6 +160,7 @@ function PullDialog({ m, h, target, onClose }: { m: RecommendedModel; h: AiHardw
   const start = async () => {
     const ac = new AbortController();
     ctl.current = ac;
+    pulling.current = true;
     setState({ phase: 'pulling', status: 'asking Ollama…' });
     try {
       const last: AiPullEvent = await pullAiModel(target.id, m.name, (e) => !e.done && setState({ phase: 'pulling', status: e.status, completed: e.completed, total: e.total }), ac.signal);
@@ -160,6 +170,7 @@ function PullDialog({ m, h, target, onClose }: { m: RecommendedModel; h: AiHardw
       if (ac.signal.aborted) setState({ phase: 'cancelled' });
       else setState({ phase: 'failed', message: isApiError(e) ? e.message : (e as Error).message });
     } finally {
+      pulling.current = false;
       void qc.invalidateQueries({ queryKey: ['ai-models', target.id] });
     }
   };
