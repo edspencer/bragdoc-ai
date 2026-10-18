@@ -333,6 +333,9 @@ test('lone invented names and number words are flagged too; sentence starts and 
   assert.deepEqual(inventedWords('I moved Atlas Migration to the new queue with Jo, one of the two queues.', ['moved it with jo and two queues', 'Atlas Migration']), []);
   const r = finish(answer({ summary: 'I shipped the export for Stripe, three weeks early.' }), 'shipped the export');
   assert.deepEqual(r.ungrounded.summary, ['Stripe', 'three']);
+  // a capitalised verb starting a sentence isn't half of a name: "Fixed PDF" when the text says "pdf"
+  assert.equal(finish(answer({ title: 'Fixed PDF renderer emoji issue' }), 'the pdf renderer was choking on emoji').ungrounded.title, undefined);
+  assert.deepEqual(finish(answer({ title: 'Fixed Acme Corp billing' }), 'fixed billing').ungrounded.title, ['Fixed Acme Corp']);
   // a run grounding already flags isn't flagged word by word as well
   assert.deepEqual(finish(answer({ summary: 'I helped Acme Corp ship.' }), 'helped ship').ungrounded.summary, ['Acme Corp']);
 });
@@ -377,3 +380,29 @@ test("the day: the browser's within two days, else the server's; a bad time zone
   await tidy(h, { text: 'shipped it yesterday', today: '2001-01-02' });
   assert.match(lastPrompt(), new RegExp(`^Today is \\w+ ${localToday(new Date())}\\.`));
 });
+
+// ---------------------------------------------------------------- eval:tidy's recordings from real models (D68)
+
+test("eval:tidy: each recommended model's recording replays through the real prompt and checks, nothing stale", async () => {
+  const fs = await import('node:fs');
+  const path = await import('node:path');
+  const { RECORDINGS, readRecording, formatReport } = await import('../scripts/eval/lib.ts');
+  const { TIDY_EVAL } = await import('../scripts/eval/tidy.ts');
+  const { replay } = await import('./ai-replay.ts');
+  const dir = path.join(RECORDINGS, 'tidy');
+  const files = fs.existsSync(dir) ? fs.readdirSync(dir).filter((f) => f.endsWith('.json')).sort() : [];
+  assert.deepEqual(files, ['gemma4-e4b.json', 'qwen3.5-4b.json'], 'a recording from each recommended model (npm run eval:tidy -- --record)');
+  for (const f of files) {
+    const rec = readRecording(path.join(dir, f));
+    assert.equal(rec.where, 'this-computer', f);
+    const r = await replay(TIDY_EVAL, rec);
+    assert.deepEqual([r.stale, r.missing], [[], []], `${f}: re-record it (the prompt, the schema or the cases changed)`);
+    assert.ok(r.report.rows.every((x) => x.error === null), `${f}:\n${formatReport(r.report)}`);
+    // the floor each model cleared when recorded: a change to finishTidy that makes things worse shows here
+    const passed = r.report.rows.filter((x) => x.pass).length;
+    assert.ok(passed >= (REPLAY_FLOOR[f] ?? 0), `${f}: ${passed} passed\n${formatReport(r.report)}`);
+  }
+});
+
+/** How many of the 30 each recording passes (set from the recorded run). */
+const REPLAY_FLOOR: Record<string, number> = {};

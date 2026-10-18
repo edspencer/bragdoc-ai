@@ -188,6 +188,16 @@ const oneLine = (s: string) => s.replace(/\s+/g, ' ').trim();
 // mostly not a quantity ("one of the services").
 const NUMBER_WORD = /\b(two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|fifteen|twenty|thirty|forty|fifty|sixty|seventy|eighty|ninety|hundreds?|thousands?|millions?|billions?|dozens?|double[ds]?|doubling|triple[ds]?|tripling|quadrupled?|half|halved|halving|twice|thrice)\b/gi;
 
+/** Is flagged run `w` a sentence's first word plus words that are all in the sources (any case)? Then it isn't a name. */
+function sentenceVerbOnly(output: string, w: string, sources: string[]): boolean {
+  const parts = w.split(/\s+/);
+  if (parts.length < 2) return false;
+  const at = output.indexOf(w);
+  if (at < 0 || !/(^|[.!?:;]\s+|\n\s*)$/.test(output.slice(0, at))) return false;
+  const hay = sources.join('\n').toLowerCase();
+  return parts.slice(1).every((p) => new RegExp(`(?<![\\p{L}\\p{N}])${p.toLowerCase().replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}(?![\\p{L}\\p{N}])`, 'u').test(hay));
+}
+
 /**
  * What shared/ai/grounding.ts doesn't catch, for tidy (D78): a lone capitalised word that isn't starting a sentence
  * ("for Stripe", "with Priya"), and number words. Each counts as grounded if it appears in a source as a word. Leans
@@ -276,7 +286,8 @@ export function finishTidy(a: TidyAnswer, input: FinishInput): Pick<AiTidyRespon
   for (const field of ['title', 'summary', 'body', 'impactWhy'] as const) {
     const v = s[field];
     if (!v) continue;
-    const words = ungrounded(v, sources);
+    // a run that starts a sentence ("Fixed PDF renderer…") is a capitalised verb plus the rest: the rest is the claim
+    const words = ungrounded(v, sources).filter((w) => !sentenceVerbOnly(v, w, sources));
     // a lone word already inside a flagged run ("Acme Corp") isn't flagged twice
     for (const w of inventedWords(v, sources)) if (!words.some((x) => x.toLowerCase().split(/\s+/).includes(w.toLowerCase()))) words.push(w);
     const uniq = [...new Map(words.map((w) => [w.toLowerCase(), w])).values()];
