@@ -1,5 +1,5 @@
 // What Settings needs beyond /api/meta and /api/network-log (SPEC R13):
-//   GET  /api/problems            the data home's Problems (Settings → Data), pushed live as a `problems` event
+//   a `problems` event when a misnamed file comes or goes (GET /api/problems is routes/problems.ts, PR7's)
 //   GET  /api/backups             the snapshots in backups/, newest first
 //   GET  /api/settings            the config.yaml settings the pages show; PUT /api/settings/mcp edits mcp.writeTo
 //   GET  /api/mcp/token           the MCP bearer token, for "Copy"; POST /api/mcp/token/rotate makes a new one
@@ -8,7 +8,7 @@
 import path from 'node:path';
 import type { Hono } from 'hono';
 import { z } from 'zod';
-import type { BackupsResponse, McpTokenResponse, ProblemsResponse, SettingsResponse } from '../../shared/api.js';
+import type { BackupsResponse, McpTokenResponse, SettingsResponse } from '../../shared/api.js';
 import { ConfigWriteError, type Config } from '../config.js';
 import type { AppContext } from '../context.js';
 import { homePaths } from '../home.js';
@@ -46,8 +46,6 @@ export function registerSettings(app: Hono, ctx: AppContext): void {
     }, 150);
     timer.unref?.();
   });
-
-  app.get('/api/problems', (c) => c.json({ problems: ctx.store.problems() } satisfies ProblemsResponse));
 
   app.get('/api/backups', (c) => {
     const dir = homePaths(ctx.dataDir).backups;

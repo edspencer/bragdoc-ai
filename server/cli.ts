@@ -119,9 +119,10 @@ async function serve(flags: Record<string, string>): Promise<number | undefined>
   );
   if (bind.action === 'warn') process.stderr.write(`bragdoc: ${bind.message}\n`);
   if (flags.open) {
-    const [{ openCommand }, { launch }] = await Promise.all([import('./platform/index.js'), import('./platform/runner.js')]);
+    const [{ openCommand }, { launch }] = await Promise.all([import('./platform/index.js'), import('./proc.js')]);
     const cmd = openCommand(process.platform, url);
-    if (!cmd || !(await launch(...cmd))) process.stderr.write(`bragdoc: couldn't open a browser here; open ${url} yourself.\n`);
+    const opened = cmd ? await launch(...cmd).then(() => true, () => false) : false;
+    if (!opened) process.stderr.write(`bragdoc: couldn't open a browser here; open ${url} yourself.\n`);
   }
   return undefined;
 }

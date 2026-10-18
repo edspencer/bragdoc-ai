@@ -1,6 +1,6 @@
 ---
 title: CLI
-description: "Every bragdoc command and option: serve, service, guide, mcp and import, with exit codes."
+description: "Every bragdoc command and option: serve, service, guide, mcp, import and dev, with exit codes."
 ---
 
 :::note[Tracking `next`]
@@ -75,6 +75,25 @@ the import goes through it (so it stays the one writer); otherwise it writes to 
 A file that isn't a version 1.0 export (not JSON, cut off part-way, or another version) is refused with exit code 1,
 and nothing is imported. Problems with single items (an achievement with no date, a project whose company isn't in
 the file) are listed, and everything else is imported.
+
+## `bragdoc dev`
+
+Tools for checking BragDoc's own machinery. They read and change nothing, and aren't listed in `--help`.
+
+`bragdoc dev ocr <image>…` reads the text in each screenshot, on your machine, the way the
+[screenshots source](/concepts/found-and-sources/#a-screenshots-folder) will. It shows which engine read it (Apple
+Vision on macOS where it works, otherwise the bundled Tesseract), the text, and what the screenshot rules made of
+it: which rules matched, the quote, and why anything was set aside. The rules use the name and nicknames in your
+profile, or the options below.
+
+| Option | Meaning |
+| --- | --- |
+| `--engine <name>` | `auto` (the default), `tesseract` or `vision`. |
+| `--name <name>` | Check the rules for this name instead of your profile's. |
+| `--aliases <a,b>` | With `--name`: nicknames, handles and initials, comma-separated. |
+| `--not-me <a,b>` | With `--name`: names that look like yours but aren't you. |
+| `--data-dir <dir>` | The data folder whose profile to use. |
+| `--json` | Print the results as JSON. |
 
 ## Everywhere
 

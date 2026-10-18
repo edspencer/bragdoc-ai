@@ -90,7 +90,7 @@ function DataFolder() {
 
 function Problems() {
   const q = useProblems();
-  const list = q.data?.problems ?? [];
+  const list = q.data ?? [];
   const errors = list.filter((p) => p.severity === 'error').length;
   return (
     <Panel>

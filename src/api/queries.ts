@@ -2,7 +2,7 @@
 // `['achievements', filters]`, …), so the live-update hook (events.ts) can refresh a whole resource by its first
 // segment. Feature PRs add their key and hook here, one block each.
 import { QueryClient, useInfiniteQuery, useQuery } from '@tanstack/react-query';
-import { getBackups, getCompanies, getHealth, getMcpToken, getMeta, getNetworkLog, getProblems, getProjectSummary, getProjects, getRepos, getSettings, isApiError } from './client.ts';
+import { getAchievements, getBackups, getCompanies, getFoundCount, getHealth, getMcpToken, getMeta, getNetworkLog, getProblems, getProjectSummary, getProjects, getRepos, getSettings, isApiError, type AchievementFilters } from './client.ts';
 
 export const queryKeys = {
   health: ['health'] as const,
@@ -11,10 +11,13 @@ export const queryKeys = {
   projectSummary: (id: string) => ['projects', id, 'summary'] as const,
   companies: ['companies'] as const,
   repos: ['repos'] as const,
+  // board (PR7)
+  achievements: (filters: AchievementFilters) => ['achievements', filters] as const,
+  problems: ['problems'] as const,
+  foundCount: ['found', 'count'] as const,
   // settings (PR10)
   meta: ['meta'] as const,
   networkLog: ['network-log'] as const,
-  problems: ['problems'] as const,
   backups: ['backups'] as const,
   settings: ['settings'] as const,
   mcpToken: ['mcp-token'] as const,
@@ -34,11 +37,11 @@ export function createQueryClient(): QueryClient {
 }
 
 /**
- * How many candidates are waiting in Found, for the nav badge; undefined while unknown. A stub until Found's API
- * exists (PR13), which replaces the body with a query and adds its key above.
+ * How many candidates are waiting in Found, for the nav badge and the board's strip; undefined while unknown, or if
+ * the count can't be had (nothing is shown then).
  */
 export function useFoundCount(): number | undefined {
-  return undefined;
+  return useQuery({ queryKey: queryKeys.foundCount, queryFn: ({ signal }) => getFoundCount(signal), select: (r) => r.pending, retry: false }).data;
 }
 
 export function useHealth() {
@@ -72,10 +75,6 @@ export function useNetworkLog() {
   });
 }
 
-export function useProblems() {
-  return useQuery({ queryKey: queryKeys.problems, queryFn: ({ signal }) => getProblems(signal) });
-}
-
 export function useBackups() {
   return useQuery({ queryKey: queryKeys.backups, queryFn: ({ signal }) => getBackups(signal) });
 }
@@ -105,4 +104,21 @@ export function useCompanies() {
 
 export function useRepos() {
   return useQuery({ queryKey: queryKeys.repos, queryFn: ({ signal }) => getRepos(signal) });
+}
+
+// ---------------------------------------------------------------- board (PR7)
+
+/** The board: pages of whole weeks, newest first (`fetchNextPage` for older weeks). */
+export function useAchievements(filters: AchievementFilters) {
+  return useInfiniteQuery({
+    queryKey: queryKeys.achievements(filters),
+    queryFn: ({ pageParam, signal }) => getAchievements({ ...filters, ...(pageParam ? { before: pageParam } : {}) }, signal),
+    initialPageParam: '' as string,
+    getNextPageParam: (last) => last.nextBefore ?? undefined,
+  });
+}
+
+/** Problems with files in the data home (the board's banner, Settings → Data). */
+export function useProblems() {
+  return useQuery({ queryKey: queryKeys.problems, queryFn: ({ signal }) => getProblems(signal), select: (r) => r.problems });
 }

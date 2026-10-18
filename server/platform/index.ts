@@ -3,6 +3,7 @@
 // process.platform itself.
 import os from 'node:os';
 import { posix as path } from 'node:path';
+import type { AllowedBin } from '../proc.js';
 import { launchdManager } from './launchd.js';
 import type { Runner } from './runner.js';
 import type { ServiceManager } from './services.js';
@@ -43,7 +44,7 @@ function safeUser(): string {
 }
 
 /** The command that opens a URL in the default browser, or null where there isn't one we know (`--open`). */
-export function openCommand(platform: NodeJS.Platform, url: string): [string, string[]] | null {
+export function openCommand(platform: NodeJS.Platform, url: string): [AllowedBin, string[]] | null {
   if (platform === 'darwin') return ['open', [url]];
   if (platform === 'linux') return ['xdg-open', [url]];
   return null;

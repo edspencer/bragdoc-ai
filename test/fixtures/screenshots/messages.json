@@ -1,0 +1,3436 @@
+{
+ "about": "Synthetic Slack messages about a fictional engineer, Alex Marlowe, labelled for the screenshot rules. From the Found spike (218 messages); every person, company and channel is made up.",
+ "me": {
+  "id": "U01ALEX",
+  "name": "Alex Marlowe",
+  "handle": "alex.m"
+ },
+ "users": [
+  {
+   "id": "U01ALEX",
+   "name": "Alex Marlowe",
+   "handle": "alex.m"
+  },
+  {
+   "id": "U02PRIYA",
+   "name": "Priya Raman",
+   "handle": "priya"
+  },
+  {
+   "id": "U03JORDAN",
+   "name": "Jordan Kim",
+   "handle": "jkim"
+  },
+  {
+   "id": "U04SAM",
+   "name": "Sam Okafor",
+   "handle": "sam.o"
+  },
+  {
+   "id": "U05DANA",
+   "name": "Dana Whitfield",
+   "handle": "dana"
+  },
+  {
+   "id": "U06LEE",
+   "name": "Lee Chen",
+   "handle": "lee"
+  },
+  {
+   "id": "U07MORGAN",
+   "name": "Morgan Diaz",
+   "handle": "morgan"
+  },
+  {
+   "id": "U08RILEY",
+   "name": "Riley Brooks",
+   "handle": "riley"
+  },
+  {
+   "id": "U09TAYLOR",
+   "name": "Taylor Nguyen",
+   "handle": "taylor"
+  },
+  {
+   "id": "U10ALEXP",
+   "name": "Alexandra Petrov",
+   "handle": "alexandra.p"
+  },
+  {
+   "id": "U11CHRIS",
+   "name": "Chris Alvarez",
+   "handle": "chris.a"
+  },
+  {
+   "id": "U12NINA",
+   "name": "Nina Osei",
+   "handle": "nina"
+  },
+  {
+   "id": "U13OMAR",
+   "name": "Omar Haddad",
+   "handle": "omar"
+  },
+  {
+   "id": "U99DEPLOY",
+   "name": "deploybot",
+   "handle": "deploybot"
+  }
+ ],
+ "messages": [
+  {
+   "id": "m001",
+   "channel": {
+    "name": "search-team",
+    "type": "public"
+   },
+   "iso": "2026-09-01T13:22:00+00:00",
+   "user": "U03JORDAN",
+   "text": "I'm OOO tomorrow, Alex is covering search on-call",
+   "label": "neutral",
+   "keep": false,
+   "note": "mentions Alex, neutral"
+  },
+  {
+   "id": "m002",
+   "channel": {
+    "name": "payments-eng",
+    "type": "public"
+   },
+   "iso": "2026-09-01T14:41:00+00:00",
+   "user": "U07MORGAN",
+   "text": "Jordan and Sam, the refund metrics dashboard is great. Execs are using it daily.",
+   "label": "praise_other",
+   "keep": false
+  },
+  {
+   "id": "m003",
+   "channel": {
+    "name": "incidents",
+    "type": "public"
+   },
+   "iso": "2026-09-01T19:10:00+00:00",
+   "user": "U13OMAR",
+   "text": "Well, at least Alex's alert is very thorough. It paged me 47 times.",
+   "thread": [
+    {
+     "user": "U01ALEX",
+     "text": "Added a new alert for ledger lag > 5s",
+     "iso": "2026-09-01T19:05:00.000100+00:00"
+    }
+   ],
+   "label": "sarcasm",
+   "keep": false
+  },
+  {
+   "id": "m004",
+   "channel": {
+    "name": "random",
+    "type": "public"
+   },
+   "iso": "2026-09-01T23:35:00+00:00",
+   "user": "U04SAM",
+   "text": "Anyone watching the game tonight?",
+   "label": "neutral",
+   "keep": false
+  },
+  {
+   "id": "m005",
+   "channel": {
+    "name": "payments-eng",
+    "type": "public"
+   },
+   "iso": "2026-09-02T02:34:00+00:00",
+   "user": "U06LEE",
+   "text": "PSA: staging is down for maintenance from 6-8 PM",
+   "label": "neutral",
+   "keep": false
+  },
+  {
+   "id": "m006",
+   "channel": {
+    "name": "mobile",
+    "type": "public"
+   },
+   "iso": "2026-09-02T04:07:00+00:00",
+   "user": "U11CHRIS",
+   "text": "Battery usage dropped 18% on Android with AM's background sync batching. Play Store rating went from 3.9 to 4.4 this month 🙌",
+   "reactions": [
+    [
+     "battery",
+     3
+    ]
+   ],
+   "label": "win_alex",
+   "keep": true
+  },
+  {
+   "id": "m007",
+   "channel": {
+    "name": "incidents",
+    "type": "public"
+   },
+   "iso": "2026-09-02T07:22:00+00:00",
+   "user": "U08RILEY",
+   "text": "Thanks Omar, the customer comms you drafted were perfect.",
+   "label": "praise_other",
+   "keep": false
+  },
+  {
+   "id": "m008",
+   "channel": {
+    "name": "payments-eng",
+    "type": "public"
+   },
+   "iso": "2026-09-02T09:57:00+00:00",
+   "user": "U02PRIYA",
+   "text": "Appreciate you jumping on this so late.",
+   "thread": [
+    {
+     "user": "U01ALEX",
+     "text": "On it, looking at the ledger alarm now (11pm)",
+     "iso": "2026-09-02T09:52:00.000100+00:00"
+    }
+   ],
+   "label": "ambiguous",
+   "keep": null,
+   "note": "effort, no outcome"
+  },
+  {
+   "id": "m009",
+   "channel": {
+    "name": "mobile",
+    "type": "public"
+   },
+   "iso": "2026-09-02T16:11:00+00:00",
+   "user": "U11CHRIS",
+   "text": "Sam this animation work is chef's kiss 🤌",
+   "thread": [
+    {
+     "user": "U04SAM",
+     "text": "New onboarding animations are on TestFlight",
+     "iso": "2026-09-02T16:06:00.000100+00:00"
+    }
+   ],
+   "label": "praise_other",
+   "keep": false
+  },
+  {
+   "id": "m010",
+   "channel": {
+    "name": "dm:taylor",
+    "type": "im"
+   },
+   "iso": "2026-09-02T20:55:00+00:00",
+   "user": "U09TAYLOR",
+   "text": "I got the offer to move up to Engineer II!! honestly your mentoring these last 6 months is a big reason why. thank you so much Alex 🥹",
+   "label": "win_alex",
+   "keep": true
+  },
+  {
+   "id": "m011",
+   "channel": {
+    "name": "kudos",
+    "type": "public"
+   },
+   "iso": "2026-09-02T23:00:00+00:00",
+   "user": "U06LEE",
+   "text": "Massive kudos to the SRE team for the zero-downtime Postgres upgrade 🐘",
+   "label": "praise_other",
+   "keep": false
+  },
+  {
+   "id": "m012",
+   "channel": {
+    "name": "search-team",
+    "type": "public"
+   },
+   "iso": "2026-09-03T02:25:00+00:00",
+   "user": "U03JORDAN",
+   "text": "great call, and it worked — latency back to normal and the index is 40% smaller",
+   "thread": [
+    {
+     "user": "U01ALEX",
+     "text": "Proposal: drop the trigram index on product descriptions, it's 60% of index size and <1% of hits",
+     "iso": "2026-09-03T02:15:00.000100+00:00"
+    },
+    {
+     "user": "U06LEE",
+     "text": "agree, let's try it",
+     "iso": "2026-09-03T02:20:00.000100+00:00"
+    }
+   ],
+   "label": "win_alex",
+   "keep": true
+  },
+  {
+   "id": "m013",
+   "channel": {
+    "name": "kudos",
+    "type": "public"
+   },
+   "iso": "2026-09-03T08:38:00+00:00",
+   "user": "U01ALEX",
+   "text": "Thanks Priya for fighting for our headcount. It made a real difference.",
+   "label": "alex_praising",
+   "keep": false
+  },
+  {
+   "id": "m014",
+   "channel": {
+    "name": "payments-eng",
+    "type": "public"
+   },
+   "iso": "2026-09-03T09:11:00+00:00",
+   "user": "U04SAM",
+   "text": "ty",
+   "thread": [
+    {
+     "user": "U01ALEX",
+     "text": "PR #8830 is ready for review when you get a chance",
+     "iso": "2026-09-03T09:06:00.000100+00:00"
+    }
+   ],
+   "label": "passing_thanks",
+   "keep": false
+  },
+  {
+   "id": "m015",
+   "channel": {
+    "name": "dm:nina",
+    "type": "im"
+   },
+   "iso": "2026-09-03T14:01:00+00:00",
+   "user": "U12NINA",
+   "text": "Thanks for the quick reply!",
+   "thread": [
+    {
+     "user": "U01ALEX",
+     "text": "Yes, SEPA works for Belgian accounts",
+     "iso": "2026-09-03T13:56:00.000100+00:00"
+    }
+   ],
+   "label": "passing_thanks",
+   "keep": false
+  },
+  {
+   "id": "m016",
+   "channel": {
+    "name": "eng-announcements",
+    "type": "public"
+   },
+   "iso": "2026-09-03T19:50:00+00:00",
+   "user": "U05DANA",
+   "text": "Deploy times are down from 41 min to 9 min thanks to the new pipeline <@U01ALEX> and team built. That's ~600 engineer-hours a quarter back.",
+   "reactions": [
+    [
+     "rocket",
+     22
+    ],
+    [
+     "100",
+     7
+    ]
+   ],
+   "label": "win_alex",
+   "keep": true
+  },
+  {
+   "id": "m017",
+   "channel": {
+    "name": "payments-eng",
+    "type": "public"
+   },
+   "iso": "2026-09-04T02:06:00+00:00",
+   "user": "U05DANA",
+   "text": "Jordan's refund dedupe work saved $90k last quarter. Great stuff.",
+   "reactions": [
+    [
+     "moneybag",
+     4
+    ]
+   ],
+   "label": "praise_other",
+   "keep": false
+  },
+  {
+   "id": "m018",
+   "channel": {
+    "name": "deploys",
+    "type": "public"
+   },
+   "iso": "2026-09-04T04:39:00+00:00",
+   "user": "U99DEPLOY",
+   "text": "Deploy started: payments-api v2.31.0 (by alex.m)",
+   "label": "neutral",
+   "keep": false
+  },
+  {
+   "id": "m019",
+   "channel": {
+    "name": "general",
+    "type": "public"
+   },
+   "iso": "2026-09-04T08:06:00+00:00",
+   "user": "U11CHRIS",
+   "text": "Love that <@U01ALEX> scheduled the 'quick sync' for 90 minutes. Very efficient.",
+   "label": "sarcasm",
+   "keep": false
+  },
+  {
+   "id": "m020",
+   "channel": {
+    "name": "general",
+    "type": "public"
+   },
+   "iso": "2026-09-04T11:28:00+00:00",
+   "user": "U05DANA",
+   "text": "All-hands is at 10 AM PT Thursday. Questions in the doc.",
+   "label": "neutral",
+   "keep": false,
+   "note": "'AM' trap"
+  },
+  {
+   "id": "m021",
+   "channel": {
+    "name": "eng-announcements",
+    "type": "public"
+   },
+   "iso": "2026-09-04T13:42:00+00:00",
+   "user": "U05DANA",
+   "text": "Q3 eng awards: Rookie of the Quarter goes to <@U09TAYLOR>! 🏆",
+   "reactions": [
+    [
+     "trophy",
+     21
+    ]
+   ],
+   "label": "praise_other",
+   "keep": false
+  },
+  {
+   "id": "m022",
+   "channel": {
+    "name": "incidents",
+    "type": "public"
+   },
+   "iso": "2026-09-04T18:39:00+00:00",
+   "user": "U08RILEY",
+   "text": "thx",
+   "thread": [
+    {
+     "user": "U01ALEX",
+     "text": "Customer can retry now",
+     "iso": "2026-09-04T18:34:00.000100+00:00"
+    }
+   ],
+   "label": "passing_thanks",
+   "keep": false
+  },
+  {
+   "id": "m023",
+   "channel": {
+    "name": "mobile",
+    "type": "public"
+   },
+   "iso": "2026-09-04T23:16:00+00:00",
+   "user": "U01ALEX",
+   "text": "Chris thank you for fixing the gradle build, you saved my afternoon",
+   "label": "alex_praising",
+   "keep": false
+  },
+  {
+   "id": "m024",
+   "channel": {
+    "name": "incidents",
+    "type": "public"
+   },
+   "iso": "2026-09-05T05:01:00+00:00",
+   "user": "U13OMAR",
+   "text": "<@U01ALEX> you're IC for the next rotation starting Monday",
+   "label": "neutral",
+   "keep": false
+  },
+  {
+   "id": "m025",
+   "channel": {
+    "name": "search-team",
+    "type": "public"
+   },
+   "iso": "2026-09-05T10:34:00+00:00",
+   "user": "U07MORGAN",
+   "text": "@alex.m can you join the search sync at 3?",
+   "label": "neutral",
+   "keep": false
+  },
+  {
+   "id": "m026",
+   "channel": {
+    "name": "random",
+    "type": "public"
+   },
+   "iso": "2026-09-05T12:33:00+00:00",
+   "user": "U03JORDAN",
+   "text": "Alex really outdid himself with that 7am meeting invite, truly visionary",
+   "label": "sarcasm",
+   "keep": false
+  },
+  {
+   "id": "m027",
+   "channel": {
+    "name": "general",
+    "type": "public"
+   },
+   "iso": "2026-09-05T14:55:00+00:00",
+   "user": "U05DANA",
+   "text": "Great quarter everyone. Special thanks to platform and payments.",
+   "label": "ambiguous",
+   "keep": null,
+   "note": "team-level"
+  },
+  {
+   "id": "m028",
+   "channel": {
+    "name": "payments-eng",
+    "type": "public"
+   },
+   "iso": "2026-09-05T18:40:00+00:00",
+   "user": "U05DANA",
+   "text": "<@U01ALEX> the idempotency-key work just saved us from double-charging ~1,200 customers during the Stripe retry storm. Thank you, genuinely.",
+   "reactions": [
+    [
+     "pray",
+     6
+    ]
+   ],
+   "label": "win_alex",
+   "keep": true
+  },
+  {
+   "id": "m029",
+   "channel": {
+    "name": "kudos",
+    "type": "public"
+   },
+   "iso": "2026-09-05T20:56:00+00:00",
+   "user": "U01ALEX",
+   "text": "Huge shoutout to <@U09TAYLOR> for shipping dark mode end-to-end. Proud of you! 🎉",
+   "reactions": [
+    [
+     "tada",
+     10
+    ]
+   ],
+   "label": "alex_praising",
+   "keep": false
+  },
+  {
+   "id": "m030",
+   "channel": {
+    "name": "incidents",
+    "type": "public"
+   },
+   "iso": "2026-09-06T01:41:00+00:00",
+   "user": "U08RILEY",
+   "text": "Customer-facing note: the status page automation Alex built posted our update 6 minutes after detection. Customers noticed and thanked us.",
+   "thread": [
+    {
+     "user": "U13OMAR",
+     "text": "INC-4519 resolved, thanks all",
+     "iso": "2026-09-06T01:36:00.000100+00:00"
+    }
+   ],
+   "label": "win_alex",
+   "keep": true
+  },
+  {
+   "id": "m031",
+   "channel": {
+    "name": "payments-eng",
+    "type": "public"
+   },
+   "iso": "2026-09-06T05:03:00+00:00",
+   "user": "U07MORGAN",
+   "text": "What's the ETA on the SEPA refunds ticket?",
+   "label": "neutral",
+   "keep": false
+  },
+  {
+   "id": "m032",
+   "channel": {
+    "name": "general",
+    "type": "public"
+   },
+   "iso": "2026-09-06T05:37:00+00:00",
+   "user": "U12NINA",
+   "text": "Customer quote from Acme Corp's QBR: \"the new offline mode is the reason we renewed.\" <@U01ALEX> that's your work 🙌",
+   "reactions": [
+    [
+     "heart",
+     11
+    ]
+   ],
+   "label": "win_alex",
+   "keep": true
+  },
+  {
+   "id": "m033",
+   "channel": {
+    "name": "general",
+    "type": "public"
+   },
+   "iso": "2026-09-06T08:20:00+00:00",
+   "user": "U12NINA",
+   "text": "Our NPS for the payments flow jumped from 31 to 47 after the checkout redesign. <@U01ALEX> and the payments team — you've made my renewals so much easier.",
+   "label": "win_alex",
+   "keep": true
+  },
+  {
+   "id": "m034",
+   "channel": {
+    "name": "eng-leads",
+    "type": "private"
+   },
+   "iso": "2026-09-06T10:52:00+00:00",
+   "user": "U02PRIYA",
+   "text": "Nominating Sam Okafor for promo — the iOS offline work was outstanding.",
+   "label": "praise_other",
+   "keep": false
+  },
+  {
+   "id": "m035",
+   "channel": {
+    "name": "deploys",
+    "type": "public"
+   },
+   "iso": "2026-09-06T17:06:00+00:00",
+   "user": "U04SAM",
+   "text": "great job everyone, especially alex for the merge conflict that took down CI for 3 hours",
+   "reactions": [
+    [
+     "sob",
+     5
+    ]
+   ],
+   "label": "sarcasm",
+   "keep": false
+  },
+  {
+   "id": "m036",
+   "channel": {
+    "name": "deploys",
+    "type": "public"
+   },
+   "iso": "2026-09-06T20:22:00+00:00",
+   "user": "U13OMAR",
+   "text": "Shoutout to Alex for the canary auto-rollback. It caught and reverted a bad deploy at 2am without anyone waking up.",
+   "reactions": [
+    [
+     "sleeping",
+     6
+    ],
+    [
+     "raised_hands",
+     4
+    ]
+   ],
+   "label": "win_alex",
+   "keep": true
+  },
+  {
+   "id": "m037",
+   "channel": {
+    "name": "general",
+    "type": "public"
+   },
+   "iso": "2026-09-07T02:52:00+00:00",
+   "user": "U07MORGAN",
+   "text": "Shoutout to the design team for the new brand refresh, it looks amazing!",
+   "label": "praise_other",
+   "keep": false
+  },
+  {
+   "id": "m038",
+   "channel": {
+    "name": "search-team",
+    "type": "public"
+   },
+   "iso": "2026-09-07T06:18:00+00:00",
+   "user": "U07MORGAN",
+   "text": "Let's discuss the ranking experiment in tomorrow's sync",
+   "label": "neutral",
+   "keep": false
+  },
+  {
+   "id": "m039",
+   "channel": {
+    "name": "dm:priya",
+    "type": "im"
+   },
+   "iso": "2026-09-07T08:30:00+00:00",
+   "user": "U02PRIYA",
+   "text": "Wanted to say directly: the way you handled the billing migration retro was exactly the kind of leadership I want to put in your promo packet. Nice work.",
+   "label": "win_alex",
+   "keep": true
+  },
+  {
+   "id": "m040",
+   "channel": {
+    "name": "payments-eng",
+    "type": "public"
+   },
+   "iso": "2026-09-07T10:46:00+00:00",
+   "user": "U05DANA",
+   "text": "This is the kind of cost work that gets noticed — $38k/month saved on DB instances. Thank you!",
+   "thread": [
+    {
+     "user": "U01ALEX",
+     "text": "Rightsized the ledger read replicas after the outbox change; monthly RDS bill down $38k. Graphs attached.",
+     "iso": "2026-09-07T10:41:00.000100+00:00"
+    }
+   ],
+   "reactions": [
+    [
+     "moneybag",
+     9
+    ]
+   ],
+   "label": "win_alex",
+   "keep": true
+  },
+  {
+   "id": "m041",
+   "channel": {
+    "name": "incidents",
+    "type": "public"
+   },
+   "iso": "2026-09-07T12:46:00+00:00",
+   "user": "U13OMAR",
+   "text": "ack, thanks",
+   "thread": [
+    {
+     "user": "U01ALEX",
+     "text": "I'll take the 2nd shift on-call tonight",
+     "iso": "2026-09-07T12:41:00.000100+00:00"
+    }
+   ],
+   "label": "passing_thanks",
+   "keep": false
+  },
+  {
+   "id": "m042",
+   "channel": {
+    "name": "kudos",
+    "type": "public"
+   },
+   "iso": "2026-09-07T14:50:00+00:00",
+   "user": "U01ALEX",
+   "text": "Kudos to Riley for the incredible support macros, ticket handling time is way down",
+   "label": "alex_praising",
+   "keep": false
+  },
+  {
+   "id": "m043",
+   "channel": {
+    "name": "general",
+    "type": "public"
+   },
+   "iso": "2026-09-07T20:29:00+00:00",
+   "user": "U13OMAR",
+   "text": "big thanks to <@U08RILEY> for the incident timeline, saved me an hour on the retro",
+   "label": "praise_other",
+   "keep": false
+  },
+  {
+   "id": "m044",
+   "channel": {
+    "name": "search-team",
+    "type": "public"
+   },
+   "iso": "2026-09-07T20:49:00+00:00",
+   "user": "U06LEE",
+   "text": "Cool cool, so the 'quick fix' from Alex is now a 3 sprint project. Love that for us.",
+   "label": "sarcasm",
+   "keep": false
+  },
+  {
+   "id": "m045",
+   "channel": {
+    "name": "dm:jordan",
+    "type": "im"
+   },
+   "iso": "2026-09-08T02:43:00+00:00",
+   "user": "U01ALEX",
+   "text": "great job on the migration, that was a gnarly one",
+   "label": "alex_praising",
+   "keep": false
+  },
+  {
+   "id": "m046",
+   "channel": {
+    "name": "general",
+    "type": "public"
+   },
+   "iso": "2026-09-08T08:32:00+00:00",
+   "user": "U01ALEX",
+   "text": "Congrats Lee on the promotion!! Well deserved 🎉",
+   "label": "alex_praising",
+   "keep": false
+  },
+  {
+   "id": "m047",
+   "channel": {
+    "name": "payments-eng",
+    "type": "public"
+   },
+   "iso": "2026-09-08T14:30:00+00:00",
+   "user": "U04SAM",
+   "text": "Alex and I are pairing on the webhook retries this afternoon",
+   "label": "neutral",
+   "keep": false
+  },
+  {
+   "id": "m048",
+   "channel": {
+    "name": "general",
+    "type": "public"
+   },
+   "iso": "2026-09-08T18:08:00+00:00",
+   "user": "U08RILEY",
+   "text": "thanks <@U01ALEX>, appreciate it",
+   "thread": [
+    {
+     "user": "U01ALEX",
+     "text": "Answered the customer's question in the ticket",
+     "iso": "2026-09-08T18:03:00.000100+00:00"
+    }
+   ],
+   "label": "passing_thanks",
+   "keep": false
+  },
+  {
+   "id": "m049",
+   "channel": {
+    "name": "kudos",
+    "type": "public"
+   },
+   "iso": "2026-09-09T00:32:00+00:00",
+   "user": "U03JORDAN",
+   "text": "Shoutout to <@U12NINA> for turning around that angry enterprise customer. They just expanded their contract!",
+   "label": "praise_other",
+   "keep": false
+  },
+  {
+   "id": "m050",
+   "channel": {
+    "name": "incidents",
+    "type": "public"
+   },
+   "iso": "2026-09-09T02:34:00+00:00",
+   "user": "U13OMAR",
+   "text": "good catch",
+   "thread": [
+    {
+     "user": "U01ALEX",
+     "text": "I think the cron is running twice, see the timestamps",
+     "iso": "2026-09-09T02:29:00.000100+00:00"
+    }
+   ],
+   "label": "ambiguous",
+   "keep": null,
+   "note": "small but real praise"
+  },
+  {
+   "id": "m051",
+   "channel": {
+    "name": "incidents",
+    "type": "public"
+   },
+   "iso": "2026-09-09T04:25:00+00:00",
+   "user": "U08RILEY",
+   "text": "<@U01ALEX> customer reporting double charge, ticket #55120, can you look?",
+   "label": "neutral",
+   "keep": false
+  },
+  {
+   "id": "m052",
+   "channel": {
+    "name": "general",
+    "type": "public"
+   },
+   "iso": "2026-09-09T10:10:00+00:00",
+   "user": "U06LEE",
+   "text": "thanks <@U01ALEX>",
+   "thread": [
+    {
+     "user": "U01ALEX",
+     "text": "Reminder: the office is closed Monday",
+     "iso": "2026-09-09T10:05:00.000100+00:00"
+    }
+   ],
+   "label": "passing_thanks",
+   "keep": false
+  },
+  {
+   "id": "m053",
+   "channel": {
+    "name": "search-team",
+    "type": "public"
+   },
+   "iso": "2026-09-09T11:14:00+00:00",
+   "user": "U02PRIYA",
+   "text": "<@U01ALEX> thank you for stepping in to lead search while Lee was out. The team hit every milestone and morale is great.",
+   "label": "win_alex",
+   "keep": true
+  },
+  {
+   "id": "m054",
+   "channel": {
+    "name": "deploys",
+    "type": "public"
+   },
+   "iso": "2026-09-09T17:43:00+00:00",
+   "user": "U13OMAR",
+   "text": "nice work chris, smooth rollout 👍",
+   "thread": [
+    {
+     "user": "U11CHRIS",
+     "text": "Deploying web v4.18 to prod",
+     "iso": "2026-09-09T17:38:00.000100+00:00"
+    }
+   ],
+   "label": "praise_other",
+   "keep": false
+  },
+  {
+   "id": "m055",
+   "channel": {
+    "name": "mobile",
+    "type": "public"
+   },
+   "iso": "2026-09-09T22:00:00+00:00",
+   "user": "U12NINA",
+   "text": "Our biggest customer loves the new widget, thank you Sam 🙏",
+   "label": "praise_other",
+   "keep": false
+  },
+  {
+   "id": "m056",
+   "channel": {
+    "name": "kudos",
+    "type": "public"
+   },
+   "iso": "2026-09-10T04:40:00+00:00",
+   "user": "U02PRIYA",
+   "text": "Huge shoutout to <@U01ALEX> for leading the checkout v2 cutover this weekend. Zero downtime, and conversion is already up 3.1% week over week. 🎉",
+   "reactions": [
+    [
+     "tada",
+     14
+    ],
+    [
+     "raised_hands",
+     9
+    ]
+   ],
+   "label": "win_alex",
+   "keep": true
+  },
+  {
+   "id": "m057",
+   "channel": {
+    "name": "search-team",
+    "type": "public"
+   },
+   "iso": "2026-09-10T11:11:00+00:00",
+   "user": "U03JORDAN",
+   "text": "tysm",
+   "thread": [
+    {
+     "user": "U01ALEX",
+     "text": "added you to the search-ranking repo",
+     "iso": "2026-09-10T11:06:00.000100+00:00"
+    }
+   ],
+   "label": "passing_thanks",
+   "keep": false
+  },
+  {
+   "id": "m058",
+   "channel": {
+    "name": "general",
+    "type": "public"
+   },
+   "iso": "2026-09-10T12:58:00+00:00",
+   "user": "U07MORGAN",
+   "text": "Thanks Alex, see you there",
+   "thread": [
+    {
+     "user": "U01ALEX",
+     "text": "Calendar invite sent for the roadmap review",
+     "iso": "2026-09-10T12:53:00.000100+00:00"
+    }
+   ],
+   "label": "passing_thanks",
+   "keep": false
+  },
+  {
+   "id": "m059",
+   "channel": {
+    "name": "general",
+    "type": "public"
+   },
+   "iso": "2026-09-10T13:32:00+00:00",
+   "user": "U12NINA",
+   "text": "Anyone have the link to the customer advisory board deck?",
+   "label": "neutral",
+   "keep": false
+  },
+  {
+   "id": "m060",
+   "channel": {
+    "name": "random",
+    "type": "public"
+   },
+   "iso": "2026-09-10T18:54:00+00:00",
+   "user": "U11CHRIS",
+   "text": "who's up for tacos at 12:30?",
+   "label": "neutral",
+   "keep": false
+  },
+  {
+   "id": "m061",
+   "channel": {
+    "name": "deploys",
+    "type": "public"
+   },
+   "iso": "2026-09-11T00:49:00+00:00",
+   "user": "U13OMAR",
+   "text": "Deploy freeze starts Wed 5pm for the holidays",
+   "label": "neutral",
+   "keep": false
+  },
+  {
+   "id": "m062",
+   "channel": {
+    "name": "search-team",
+    "type": "public"
+   },
+   "iso": "2026-09-11T06:22:00+00:00",
+   "user": "U07MORGAN",
+   "text": "Search relevance A/B results are in: Alex's re-ranker lifted click-through by 12% and zero-result queries dropped by a third. Calling it — shipping to 100%.",
+   "reactions": [
+    [
+     "chart_with_upwards_trend",
+     8
+    ]
+   ],
+   "label": "win_alex",
+   "keep": true
+  },
+  {
+   "id": "m063",
+   "channel": {
+    "name": "kudos",
+    "type": "public"
+   },
+   "iso": "2026-09-11T11:47:00+00:00",
+   "user": "U02PRIYA",
+   "text": "Huge thanks to the whole payments team for checkout v2! 🎉",
+   "reactions": [
+    [
+     "tada",
+     20
+    ]
+   ],
+   "label": "ambiguous",
+   "keep": null,
+   "note": "team praise, Alex is on payments team, not named"
+  },
+  {
+   "id": "m064",
+   "channel": {
+    "name": "dm:priya",
+    "type": "im"
+   },
+   "iso": "2026-09-11T17:43:00+00:00",
+   "user": "U02PRIYA",
+   "text": "Dana mentioned your incident writeup in the exec staff meeting as the model for how we should do postmortems. Wanted you to hear it from me.",
+   "label": "win_alex",
+   "keep": true
+  },
+  {
+   "id": "m065",
+   "channel": {
+    "name": "deploys",
+    "type": "public"
+   },
+   "iso": "2026-09-11T19:22:00+00:00",
+   "user": "U99DEPLOY",
+   "text": "Deploy failed: search-api v1.88.0 (by lee) — tests failed",
+   "label": "neutral",
+   "keep": false
+  },
+  {
+   "id": "m066",
+   "channel": {
+    "name": "mobile",
+    "type": "public"
+   },
+   "iso": "2026-09-12T00:22:00+00:00",
+   "user": "U04SAM",
+   "text": "cheers alex",
+   "thread": [
+    {
+     "user": "U01ALEX",
+     "text": "bumped the SDK version in the lockfile",
+     "iso": "2026-09-12T00:17:00.000100+00:00"
+    }
+   ],
+   "label": "passing_thanks",
+   "keep": false
+  },
+  {
+   "id": "m067",
+   "channel": {
+    "name": "kudos",
+    "type": "public"
+   },
+   "iso": "2026-09-12T00:52:00+00:00",
+   "user": "U02PRIYA",
+   "text": "Huge shoutout to <@U03JORDAN> for shipping the refund flow redesign a week early! 🎉",
+   "reactions": [
+    [
+     "tada",
+     12
+    ]
+   ],
+   "label": "praise_other",
+   "keep": false
+  },
+  {
+   "id": "m068",
+   "channel": {
+    "name": "search-team",
+    "type": "public"
+   },
+   "iso": "2026-09-12T07:23:00+00:00",
+   "user": "U06LEE",
+   "text": "👍 thanks",
+   "thread": [
+    {
+     "user": "U01ALEX",
+     "text": "Rebased your branch for you",
+     "iso": "2026-09-12T07:18:00.000100+00:00"
+    }
+   ],
+   "label": "passing_thanks",
+   "keep": false
+  },
+  {
+   "id": "m069",
+   "channel": {
+    "name": "search-team",
+    "type": "public"
+   },
+   "iso": "2026-09-12T08:35:00+00:00",
+   "user": "U07MORGAN",
+   "text": "Alex P's work on the query autocomplete is incredible — typing latency down 60%.",
+   "label": "praise_other",
+   "keep": false,
+   "note": "alias trap: Alex P = Alexandra Petrov"
+  },
+  {
+   "id": "m070",
+   "channel": {
+    "name": "incidents",
+    "type": "public"
+   },
+   "iso": "2026-09-12T10:06:00+00:00",
+   "user": "U01ALEX",
+   "text": "Huge thanks to Riley for keeping customers updated, that made IC so much easier",
+   "label": "alex_praising",
+   "keep": false
+  },
+  {
+   "id": "m071",
+   "channel": {
+    "name": "mpdm-alex.m--sam.o--lee",
+    "type": "mpim"
+   },
+   "iso": "2026-09-12T12:05:00+00:00",
+   "user": "U06LEE",
+   "text": "honestly alex your PR description template is now what the whole team uses, it's so much better",
+   "label": "win_alex",
+   "keep": true
+  },
+  {
+   "id": "m072",
+   "channel": {
+    "name": "search-team",
+    "type": "public"
+   },
+   "iso": "2026-09-12T14:13:00+00:00",
+   "user": "U05DANA",
+   "text": "Alex P: the autocomplete demo at staff meeting was the highlight. Great job.",
+   "label": "praise_other",
+   "keep": false,
+   "note": "alias trap"
+  },
+  {
+   "id": "m073",
+   "channel": {
+    "name": "eng-announcements",
+    "type": "public"
+   },
+   "iso": "2026-09-12T16:41:00+00:00",
+   "user": "U02PRIYA",
+   "text": "We hit 99.99% checkout availability for Q3, first time ever. <@U01ALEX> drove most of the reliability work behind this.",
+   "reactions": [
+    [
+     "tada",
+     19
+    ]
+   ],
+   "label": "win_alex",
+   "keep": true
+  },
+  {
+   "id": "m074",
+   "channel": {
+    "name": "mobile",
+    "type": "public"
+   },
+   "iso": "2026-09-12T19:30:00+00:00",
+   "user": "U11CHRIS",
+   "text": "Thanks AM, the new sync engine works great as long as you never go offline 🙃",
+   "label": "sarcasm",
+   "keep": false
+  },
+  {
+   "id": "m075",
+   "channel": {
+    "name": "kudos",
+    "type": "public"
+   },
+   "iso": "2026-09-12T21:53:00+00:00",
+   "user": "U01ALEX",
+   "text": "Shoutout to the SRE team, especially Omar, for the zero-downtime upgrade.",
+   "label": "alex_praising",
+   "keep": false
+  },
+  {
+   "id": "m076",
+   "channel": {
+    "name": "mobile",
+    "type": "public"
+   },
+   "iso": "2026-09-13T03:13:00+00:00",
+   "user": "U11CHRIS",
+   "text": "ty!",
+   "thread": [
+    {
+     "user": "U01ALEX",
+     "text": "the Android build is fixed, it was a gradle cache thing",
+     "iso": "2026-09-13T03:08:00.000100+00:00"
+    }
+   ],
+   "label": "passing_thanks",
+   "keep": false
+  },
+  {
+   "id": "m077",
+   "channel": {
+    "name": "deploys",
+    "type": "public"
+   },
+   "iso": "2026-09-13T05:45:00+00:00",
+   "user": "U06LEE",
+   "text": "props to omar for the new deploy dashboard, so much easier to read",
+   "label": "praise_other",
+   "keep": false
+  },
+  {
+   "id": "m078",
+   "channel": {
+    "name": "search-team",
+    "type": "public"
+   },
+   "iso": "2026-09-13T09:39:00+00:00",
+   "user": "U03JORDAN",
+   "text": "Alexandra's fuzzy matching PR is a work of art",
+   "label": "praise_other",
+   "keep": false,
+   "note": "alias trap"
+  },
+  {
+   "id": "m079",
+   "channel": {
+    "name": "dm:nina",
+    "type": "im"
+   },
+   "iso": "2026-09-13T11:06:00+00:00",
+   "user": "U12NINA",
+   "text": "Just closed the Globex renewal ($1.2M). They said the custom reconciliation report you built them was a big factor. Owe you a coffee ☕",
+   "label": "win_alex",
+   "keep": true
+  },
+  {
+   "id": "m080",
+   "channel": {
+    "name": "dm:taylor",
+    "type": "im"
+   },
+   "iso": "2026-09-13T17:44:00+00:00",
+   "user": "U01ALEX",
+   "text": "Your design doc was really strong, nicely done. Share it with the team!",
+   "label": "alex_praising",
+   "keep": false
+  },
+  {
+   "id": "m081",
+   "channel": {
+    "name": "deploys",
+    "type": "public"
+   },
+   "iso": "2026-09-13T21:58:00+00:00",
+   "user": "U01ALEX",
+   "text": "nice work chris 🚀",
+   "thread": [
+    {
+     "user": "U11CHRIS",
+     "text": "web v4.20 is out",
+     "iso": "2026-09-13T21:53:00.000100+00:00"
+    }
+   ],
+   "label": "alex_praising",
+   "keep": false
+  },
+  {
+   "id": "m082",
+   "channel": {
+    "name": "random",
+    "type": "public"
+   },
+   "iso": "2026-09-14T03:16:00+00:00",
+   "user": "U06LEE",
+   "text": "my cat walked on my keyboard and pushed to main. jk. mostly.",
+   "label": "neutral",
+   "keep": false
+  },
+  {
+   "id": "m083",
+   "channel": {
+    "name": "search-team",
+    "type": "public"
+   },
+   "iso": "2026-09-14T08:00:00+00:00",
+   "user": "U07MORGAN",
+   "text": "Leadership review went really well. Dana specifically called out <@U01ALEX>'s analysis of query abandonment as 'the clearest framing of the problem we've had.'",
+   "label": "win_alex",
+   "keep": true
+  },
+  {
+   "id": "m084",
+   "channel": {
+    "name": "payments-eng",
+    "type": "public"
+   },
+   "iso": "2026-09-14T12:36:00+00:00",
+   "user": "U04SAM",
+   "text": "Well, I'm sure Alex's design is great, once anyone can understand it.",
+   "label": "sarcasm",
+   "keep": false,
+   "note": "backhanded"
+  },
+  {
+   "id": "m085",
+   "channel": {
+    "name": "deploys",
+    "type": "public"
+   },
+   "iso": "2026-09-14T17:28:00+00:00",
+   "user": "U11CHRIS",
+   "text": "thx AM",
+   "thread": [
+    {
+     "user": "U01ALEX",
+     "text": "unlocked the deploy queue",
+     "iso": "2026-09-14T17:23:00.000100+00:00"
+    }
+   ],
+   "label": "passing_thanks",
+   "keep": false
+  },
+  {
+   "id": "m086",
+   "channel": {
+    "name": "search-team",
+    "type": "public"
+   },
+   "iso": "2026-09-14T22:16:00+00:00",
+   "user": "U06LEE",
+   "text": "interesting approach 🤔",
+   "thread": [
+    {
+     "user": "U01ALEX",
+     "text": "RFC: rewrite ranking in Rust",
+     "iso": "2026-09-14T22:11:00.000100+00:00"
+    }
+   ],
+   "label": "ambiguous",
+   "keep": null,
+   "note": "could be neutral or skeptical"
+  },
+  {
+   "id": "m087",
+   "channel": {
+    "name": "incidents",
+    "type": "public"
+   },
+   "iso": "2026-09-14T22:45:00+00:00",
+   "user": "U08RILEY",
+   "text": "Is checkout down? Getting customer reports",
+   "label": "neutral",
+   "keep": false
+  },
+  {
+   "id": "m088",
+   "channel": {
+    "name": "dm:nina",
+    "type": "im"
+   },
+   "iso": "2026-09-15T00:38:00+00:00",
+   "user": "U12NINA",
+   "text": "Acme's CTO just emailed our CEO specifically to praise how fast the payment bug was fixed. That was you! Forwarding you the email.",
+   "label": "win_alex",
+   "keep": true
+  },
+  {
+   "id": "m089",
+   "channel": {
+    "name": "general",
+    "type": "public"
+   },
+   "iso": "2026-09-15T01:00:00+00:00",
+   "user": "U13OMAR",
+   "text": "Alex's Terraform module cleanup cut our plan time from 12 minutes to 90 seconds. Small thing, enormous quality of life.",
+   "reactions": [
+    [
+     "zap",
+     7
+    ]
+   ],
+   "label": "win_alex",
+   "keep": true
+  },
+  {
+   "id": "m090",
+   "channel": {
+    "name": "eng-announcements",
+    "type": "public"
+   },
+   "iso": "2026-09-15T02:36:00+00:00",
+   "user": "U05DANA",
+   "text": "Congrats to Lee Chen on promotion to Senior Engineer! 🎉",
+   "reactions": [
+    [
+     "tada",
+     33
+    ]
+   ],
+   "label": "praise_other",
+   "keep": false
+  },
+  {
+   "id": "m091",
+   "channel": {
+    "name": "incidents",
+    "type": "public"
+   },
+   "iso": "2026-09-15T04:08:00+00:00",
+   "user": "U13OMAR",
+   "text": "Closing INC-4471. <@U01ALEX> found the root cause (connection pool exhaustion in the ledger service) in under 20 minutes and shipped the fix. MTTR 34m vs our 2h average.",
+   "reactions": [
+    [
+     "white_check_mark",
+     5
+    ]
+   ],
+   "label": "win_alex",
+   "keep": true
+  },
+  {
+   "id": "m092",
+   "channel": {
+    "name": "mpdm-alex.m--sam.o--lee",
+    "type": "mpim"
+   },
+   "iso": "2026-09-15T09:44:00+00:00",
+   "user": "U06LEE",
+   "text": "thanks for the heads up",
+   "thread": [
+    {
+     "user": "U01ALEX",
+     "text": "fyi I'm out Thursday afternoon",
+     "iso": "2026-09-15T09:39:00.000100+00:00"
+    }
+   ],
+   "label": "passing_thanks",
+   "keep": false
+  },
+  {
+   "id": "m093",
+   "channel": {
+    "name": "mobile",
+    "type": "public"
+   },
+   "iso": "2026-09-15T11:05:00+00:00",
+   "user": "U03JORDAN",
+   "text": "honestly impressed Alex managed to make the app slower AND bigger in one release",
+   "reactions": [
+    [
+     "joy",
+     6
+    ]
+   ],
+   "label": "sarcasm",
+   "keep": false
+  },
+  {
+   "id": "m094",
+   "channel": {
+    "name": "mpdm-alex.m--sam.o--lee",
+    "type": "mpim"
+   },
+   "iso": "2026-09-15T11:56:00+00:00",
+   "user": "U04SAM",
+   "text": "ok the dashboard you made for the board deck is getting a lot of love from the execs. Dana said the CFO loved it",
+   "label": "win_alex",
+   "keep": true
+  },
+  {
+   "id": "m095",
+   "channel": {
+    "name": "payments-eng",
+    "type": "public"
+   },
+   "iso": "2026-09-15T18:05:00+00:00",
+   "user": "U06LEE",
+   "text": "wow thanks AM for deleting the staging DB, 10/10 friday experience",
+   "reactions": [
+    [
+     "skull",
+     4
+    ]
+   ],
+   "label": "sarcasm",
+   "keep": false
+  },
+  {
+   "id": "m096",
+   "channel": {
+    "name": "random",
+    "type": "public"
+   },
+   "iso": "2026-09-15T22:56:00+00:00",
+   "user": "U03JORDAN",
+   "text": "the coffee machine on 3 is broken again",
+   "label": "neutral",
+   "keep": false
+  },
+  {
+   "id": "m097",
+   "channel": {
+    "name": "eng-leads",
+    "type": "private"
+   },
+   "iso": "2026-09-16T03:23:00+00:00",
+   "user": "U01ALEX",
+   "text": "I'd like to nominate Taylor for the rookie award. She's grown enormously this year.",
+   "label": "alex_praising",
+   "keep": false
+  },
+  {
+   "id": "m098",
+   "channel": {
+    "name": "mpdm-alex.m--sam.o--lee",
+    "type": "mpim"
+   },
+   "iso": "2026-09-16T04:37:00+00:00",
+   "user": "U04SAM",
+   "text": "thanks dude",
+   "thread": [
+    {
+     "user": "U01ALEX",
+     "text": "lunch order placed, should arrive at 12:30",
+     "iso": "2026-09-16T04:32:00.000100+00:00"
+    }
+   ],
+   "label": "passing_thanks",
+   "keep": false
+  },
+  {
+   "id": "m099",
+   "channel": {
+    "name": "dm:jordan",
+    "type": "im"
+   },
+   "iso": "2026-09-16T05:26:00+00:00",
+   "user": "U03JORDAN",
+   "text": "thanks for the review!",
+   "thread": [
+    {
+     "user": "U01ALEX",
+     "text": "approved with a couple of nits",
+     "iso": "2026-09-16T05:21:00.000100+00:00"
+    }
+   ],
+   "label": "passing_thanks",
+   "keep": false
+  },
+  {
+   "id": "m100",
+   "channel": {
+    "name": "eng-announcements",
+    "type": "public"
+   },
+   "iso": "2026-09-16T07:23:00+00:00",
+   "user": "U01ALEX",
+   "text": "Checkout v2 is now live for 100% of traffic. Conversion +3% in the first week. Thanks to everyone who helped!",
+   "reactions": [
+    [
+     "tada",
+     37
+    ],
+    [
+     "rocket",
+     15
+    ]
+   ],
+   "label": "ambiguous",
+   "keep": null,
+   "note": "Alex's own announcement with big reactions — impact evidence, not praise"
+  },
+  {
+   "id": "m101",
+   "channel": {
+    "name": "payments-eng",
+    "type": "public"
+   },
+   "iso": "2026-09-16T08:04:00+00:00",
+   "user": "U07MORGAN",
+   "text": "Sales just closed the EU enterprise deal and they said SEPA support was the deciding factor. Alex built that in 3 weeks.",
+   "reactions": [
+    [
+     "eu",
+     3
+    ],
+    [
+     "tada",
+     8
+    ]
+   ],
+   "label": "win_alex",
+   "keep": true
+  },
+  {
+   "id": "m102",
+   "channel": {
+    "name": "deploys",
+    "type": "public"
+   },
+   "iso": "2026-09-16T09:14:00+00:00",
+   "user": "U11CHRIS",
+   "text": "thanks alex. really. great timing on the friday 5pm deploy 🙂",
+   "label": "sarcasm",
+   "keep": false
+  },
+  {
+   "id": "m103",
+   "channel": {
+    "name": "mobile",
+    "type": "public"
+   },
+   "iso": "2026-09-16T13:25:00+00:00",
+   "user": "U04SAM",
+   "text": "nice",
+   "thread": [
+    {
+     "user": "U01ALEX",
+     "text": "Shipped the offline photo queue fix",
+     "iso": "2026-09-16T13:20:00.000100+00:00"
+    }
+   ],
+   "label": "ambiguous",
+   "keep": null,
+   "note": "minimal acknowledgement of a ship"
+  },
+  {
+   "id": "m104",
+   "channel": {
+    "name": "mobile",
+    "type": "public"
+   },
+   "iso": "2026-09-16T13:59:00+00:00",
+   "user": "U04SAM",
+   "text": "Offline sync crash rate went from 2.3% to 0.1% after AM's conflict-resolution rewrite. Best release we've had all year.",
+   "reactions": [
+    [
+     "fire",
+     6
+    ]
+   ],
+   "label": "win_alex",
+   "keep": true
+  },
+  {
+   "id": "m105",
+   "channel": {
+    "name": "mpdm-alex.m--sam.o--lee",
+    "type": "mpim"
+   },
+   "iso": "2026-09-16T14:51:00+00:00",
+   "user": "U01ALEX",
+   "text": "you two crushed the load test, thanks for staying late",
+   "label": "alex_praising",
+   "keep": false
+  },
+  {
+   "id": "m106",
+   "channel": {
+    "name": "general",
+    "type": "public"
+   },
+   "iso": "2026-09-16T17:57:00+00:00",
+   "user": "U05DANA",
+   "text": "Thanks to everyone who organised the hackathon, especially Nina and Chris!",
+   "label": "praise_other",
+   "keep": false
+  },
+  {
+   "id": "m107",
+   "channel": {
+    "name": "deploys",
+    "type": "public"
+   },
+   "iso": "2026-09-16T22:35:00+00:00",
+   "user": "U11CHRIS",
+   "text": "Amazing work Alex, really loving the 3rd rollback today 👏👏👏",
+   "thread": [
+    {
+     "user": "U99DEPLOY",
+     "text": "Rollback: web v4.19 -> v4.18 (initiated by alex.m)",
+     "iso": "2026-09-16T22:25:00.000100+00:00"
+    },
+    {
+     "user": "U99DEPLOY",
+     "text": "Rollback: web v4.19.1 -> v4.18 (initiated by alex.m)",
+     "iso": "2026-09-16T22:30:00.000100+00:00"
+    }
+   ],
+   "label": "sarcasm",
+   "keep": false
+  },
+  {
+   "id": "m108",
+   "channel": {
+    "name": "kudos",
+    "type": "public"
+   },
+   "iso": "2026-09-17T03:17:00+00:00",
+   "user": "U09TAYLOR",
+   "text": "shoutout to <@U11CHRIS> for the CSS grid cheat sheet, saved me hours",
+   "label": "praise_other",
+   "keep": false
+  },
+  {
+   "id": "m109",
+   "channel": {
+    "name": "dm:taylor",
+    "type": "im"
+   },
+   "iso": "2026-09-17T09:31:00+00:00",
+   "user": "U09TAYLOR",
+   "text": "can you explain what a saga pattern is? the docs are confusing",
+   "label": "neutral",
+   "keep": false
+  },
+  {
+   "id": "m110",
+   "channel": {
+    "name": "payments-eng",
+    "type": "public"
+   },
+   "iso": "2026-09-17T13:42:00+00:00",
+   "user": "U07MORGAN",
+   "text": "AM PM or both? Sorry, which window works for the migration — AM or PM?",
+   "label": "neutral",
+   "keep": false,
+   "note": "'AM' trap"
+  },
+  {
+   "id": "m111",
+   "channel": {
+    "name": "payments-eng",
+    "type": "public"
+   },
+   "iso": "2026-09-17T18:35:00+00:00",
+   "user": "U07MORGAN",
+   "text": "This looks promising! Let's see what the numbers say next week.",
+   "thread": [
+    {
+     "user": "U01ALEX",
+     "text": "Prototype of the new fraud scoring is in staging",
+     "iso": "2026-09-17T18:30:00.000100+00:00"
+    }
+   ],
+   "label": "ambiguous",
+   "keep": null,
+   "note": "tentative positive, no impact yet"
+  },
+  {
+   "id": "m112",
+   "channel": {
+    "name": "dm:jordan",
+    "type": "im"
+   },
+   "iso": "2026-09-17T22:59:00+00:00",
+   "user": "U03JORDAN",
+   "text": "hey, just wanted to say your code review on my migration PR caught a data-loss bug that would've been really bad in prod. learned a ton from your comments, thank you",
+   "label": "win_alex",
+   "keep": true
+  },
+  {
+   "id": "m113",
+   "channel": {
+    "name": "mobile",
+    "type": "public"
+   },
+   "iso": "2026-09-18T01:25:00+00:00",
+   "user": "U02PRIYA",
+   "text": "Congrats to Sam for the iOS widget launch, App Store featured it! 🚀",
+   "reactions": [
+    [
+     "rocket",
+     9
+    ]
+   ],
+   "label": "praise_other",
+   "keep": false
+  },
+  {
+   "id": "m114",
+   "channel": {
+    "name": "incidents",
+    "type": "public"
+   },
+   "iso": "2026-09-18T06:12:00+00:00",
+   "user": "U11CHRIS",
+   "text": "Kudos to Alex for the most creative interpretation of 'low risk change' I've ever seen",
+   "thread": [
+    {
+     "user": "U13OMAR",
+     "text": "INC-4533: checkout errors after config push",
+     "iso": "2026-09-18T06:07:00.000100+00:00"
+    }
+   ],
+   "label": "sarcasm",
+   "keep": false
+  },
+  {
+   "id": "m115",
+   "channel": {
+    "name": "eng-leads",
+    "type": "private"
+   },
+   "iso": "2026-09-18T11:18:00+00:00",
+   "user": "U05DANA",
+   "text": "Calibration sessions are next week. Please have packets ready by Tuesday.",
+   "label": "neutral",
+   "keep": false
+  },
+  {
+   "id": "m116",
+   "channel": {
+    "name": "search-team",
+    "type": "public"
+   },
+   "iso": "2026-09-18T15:27:00+00:00",
+   "user": "U01ALEX",
+   "text": "Lee's synonym work is the biggest relevance win we've had this quarter, kudos",
+   "label": "alex_praising",
+   "keep": false
+  },
+  {
+   "id": "m117",
+   "channel": {
+    "name": "dm:nina",
+    "type": "im"
+   },
+   "iso": "2026-09-18T19:20:00+00:00",
+   "user": "U12NINA",
+   "text": "Do you have 15 min to talk to a customer about SEPA tomorrow?",
+   "label": "neutral",
+   "keep": false
+  },
+  {
+   "id": "m118",
+   "channel": {
+    "name": "dm:priya",
+    "type": "im"
+   },
+   "iso": "2026-09-18T23:00:00+00:00",
+   "user": "U02PRIYA",
+   "text": "Your talk at the eng all-hands was great. Several people asked me for the slides. Can you share them in #eng-announcements?",
+   "label": "win_alex",
+   "keep": true
+  },
+  {
+   "id": "m119",
+   "channel": {
+    "name": "payments-eng",
+    "type": "public"
+   },
+   "iso": "2026-09-19T02:01:00+00:00",
+   "user": "U04SAM",
+   "text": "oh great, another 40-page RFC from <@U01ALEX>. can't wait 🙃",
+   "label": "sarcasm",
+   "keep": false
+  },
+  {
+   "id": "m120",
+   "channel": {
+    "name": "kudos",
+    "type": "public"
+   },
+   "iso": "2026-09-19T08:04:00+00:00",
+   "user": "U03JORDAN",
+   "text": "Kudos to <@U01ALEX> for running the accessibility audit on checkout and fixing all 23 WCAG issues. We pass AA now.",
+   "reactions": [
+    [
+     "accessibility",
+     3
+    ],
+    [
+     "clap",
+     6
+    ]
+   ],
+   "label": "win_alex",
+   "keep": true
+  },
+  {
+   "id": "m121",
+   "channel": {
+    "name": "eng-leads",
+    "type": "private"
+   },
+   "iso": "2026-09-19T12:03:00+00:00",
+   "user": "U05DANA",
+   "text": "Alex's cross-team proposal on shared idempotency libraries got adopted by 4 teams. That's org-level impact.",
+   "label": "win_alex",
+   "keep": true
+  },
+  {
+   "id": "m122",
+   "channel": {
+    "name": "general",
+    "type": "public"
+   },
+   "iso": "2026-09-19T14:11:00+00:00",
+   "user": "U06LEE",
+   "text": "nice to see alex's PR got merged... after only 6 weeks in review 👍",
+   "label": "sarcasm",
+   "keep": false,
+   "note": "backhanded, ambiguous-ish but negative"
+  },
+  {
+   "id": "m123",
+   "channel": {
+    "name": "dm:priya",
+    "type": "im"
+   },
+   "iso": "2026-09-19T17:06:00+00:00",
+   "user": "U02PRIYA",
+   "text": "thanks, will review tonight",
+   "thread": [
+    {
+     "user": "U01ALEX",
+     "text": "Sent you my self-review draft",
+     "iso": "2026-09-19T17:01:00.000100+00:00"
+    }
+   ],
+   "label": "passing_thanks",
+   "keep": false
+  },
+  {
+   "id": "m124",
+   "channel": {
+    "name": "payments-eng",
+    "type": "public"
+   },
+   "iso": "2026-09-19T18:28:00+00:00",
+   "user": "U01ALEX",
+   "text": "Jordan, this refund dedupe PR is beautiful work. Learned something reading it.",
+   "label": "alex_praising",
+   "keep": false
+  },
+  {
+   "id": "m125",
+   "channel": {
+    "name": "deploys",
+    "type": "public"
+   },
+   "iso": "2026-09-19T20:07:00+00:00",
+   "user": "U99DEPLOY",
+   "text": "Canary healthy: payments-api v2.32.0 (by alex.m) — promoting to 100%",
+   "label": "neutral",
+   "keep": false
+  },
+  {
+   "id": "m126",
+   "channel": {
+    "name": "general",
+    "type": "public"
+   },
+   "iso": "2026-09-20T01:56:00+00:00",
+   "user": "U02PRIYA",
+   "text": "Welcome back Lee! Great to have you back and congrats on the new baby 👶",
+   "label": "praise_other",
+   "keep": false
+  },
+  {
+   "id": "m127",
+   "channel": {
+    "name": "payments-eng",
+    "type": "public"
+   },
+   "iso": "2026-09-20T05:23:00+00:00",
+   "user": "U03JORDAN",
+   "text": "Truly inspiring to watch Alex rewrite the same module for the 4th time",
+   "label": "sarcasm",
+   "keep": false
+  },
+  {
+   "id": "m128",
+   "channel": {
+    "name": "payments-eng",
+    "type": "public"
+   },
+   "iso": "2026-09-20T07:52:00+00:00",
+   "user": "U02PRIYA",
+   "text": "Exactly the kind of proactive cleanup we need. This removes our last PCI audit finding.",
+   "thread": [
+    {
+     "user": "U01ALEX",
+     "text": "Removed the last code path that logged raw card BINs. PR #8812 merged, verified in staging logs.",
+     "iso": "2026-09-20T07:47:00.000100+00:00"
+    }
+   ],
+   "label": "win_alex",
+   "keep": true
+  },
+  {
+   "id": "m129",
+   "channel": {
+    "name": "eng-leads",
+    "type": "private"
+   },
+   "iso": "2026-09-20T12:11:00+00:00",
+   "user": "U05DANA",
+   "text": "For calibration: <@U01ALEX> is consistently operating at staff level on the payments platform. The ledger redesign doc is the best design doc I've read this year.",
+   "label": "win_alex",
+   "keep": true
+  },
+  {
+   "id": "m130",
+   "channel": {
+    "name": "general",
+    "type": "public"
+   },
+   "iso": "2026-09-20T13:19:00+00:00",
+   "user": "U12NINA",
+   "text": "Our biggest customer is visiting the office on the 14th",
+   "label": "neutral",
+   "keep": false
+  },
+  {
+   "id": "m131",
+   "channel": {
+    "name": "payments-eng",
+    "type": "public"
+   },
+   "iso": "2026-09-20T17:48:00+00:00",
+   "user": "U06LEE",
+   "text": "thanks, merged",
+   "thread": [
+    {
+     "user": "U01ALEX",
+     "text": "LGTM",
+     "iso": "2026-09-20T17:43:00.000100+00:00"
+    }
+   ],
+   "label": "passing_thanks",
+   "keep": false
+  },
+  {
+   "id": "m132",
+   "channel": {
+    "name": "kudos",
+    "type": "public"
+   },
+   "iso": "2026-09-20T23:49:00+00:00",
+   "user": "U03JORDAN",
+   "text": "Shoutout to everyone on the deploy pipeline project: Alex, Omar and Chris. 9 minute deploys!",
+   "label": "ambiguous",
+   "keep": null,
+   "note": "shared credit, named, with impact"
+  },
+  {
+   "id": "m133",
+   "channel": {
+    "name": "payments-eng",
+    "type": "public"
+   },
+   "iso": "2026-09-21T02:03:00+00:00",
+   "user": "U03JORDAN",
+   "text": "Alex, is the ledger service still on Postgres 14?",
+   "label": "neutral",
+   "keep": false
+  },
+  {
+   "id": "m134",
+   "channel": {
+    "name": "mobile",
+    "type": "public"
+   },
+   "iso": "2026-09-21T08:24:00+00:00",
+   "user": "U04SAM",
+   "text": "for the record — this was all AM. I just reviewed it.",
+   "thread": [
+    {
+     "user": "U07MORGAN",
+     "text": "Whoever fixed the offline photo upload bug: our top 3 enterprise accounts have stopped complaining 🙏",
+     "iso": "2026-09-21T08:14:00.000100+00:00"
+    },
+    {
+     "user": "U11CHRIS",
+     "text": "was it sam?",
+     "iso": "2026-09-21T08:19:00.000100+00:00"
+    }
+   ],
+   "label": "win_alex",
+   "keep": true
+  },
+  {
+   "id": "m135",
+   "channel": {
+    "name": "search-team",
+    "type": "public"
+   },
+   "iso": "2026-09-21T13:07:00+00:00",
+   "user": "U06LEE",
+   "text": "Alex's re-ranker PR needs a second reviewer",
+   "label": "neutral",
+   "keep": false,
+   "note": "mentions Alex, neutral"
+  },
+  {
+   "id": "m136",
+   "channel": {
+    "name": "payments-eng",
+    "type": "public"
+   },
+   "iso": "2026-09-21T16:20:00+00:00",
+   "user": "U03JORDAN",
+   "text": "thanks for covering!",
+   "thread": [
+    {
+     "user": "U01ALEX",
+     "text": "I'll run standup today since Priya's out",
+     "iso": "2026-09-21T16:15:00.000100+00:00"
+    }
+   ],
+   "label": "passing_thanks",
+   "keep": false
+  },
+  {
+   "id": "m137",
+   "channel": {
+    "name": "payments-eng",
+    "type": "public"
+   },
+   "iso": "2026-09-21T18:20:00+00:00",
+   "user": "U01ALEX",
+   "text": "Merging the outbox migration after lunch, shout if you object",
+   "label": "neutral",
+   "keep": false
+  },
+  {
+   "id": "m138",
+   "channel": {
+    "name": "eng-leads",
+    "type": "private"
+   },
+   "iso": "2026-09-21T21:23:00+00:00",
+   "user": "U05DANA",
+   "text": "Alex's work is solid but needs more visibility outside the team.",
+   "label": "ambiguous",
+   "keep": null,
+   "note": "mixed feedback"
+  },
+  {
+   "id": "m139",
+   "channel": {
+    "name": "kudos",
+    "type": "public"
+   },
+   "iso": "2026-09-22T03:52:00+00:00",
+   "user": "U10ALEXP",
+   "text": "Thanks everyone for the kind words on the SOC2 audit! Couldn't have done it without the whole security team.",
+   "label": "praise_other",
+   "keep": false,
+   "note": "Alexandra thanking; not about Alex"
+  },
+  {
+   "id": "m140",
+   "channel": {
+    "name": "dm:taylor",
+    "type": "im"
+   },
+   "iso": "2026-09-22T04:21:00+00:00",
+   "user": "U09TAYLOR",
+   "text": "thank you! 😊",
+   "thread": [
+    {
+     "user": "U01ALEX",
+     "text": "here's that blog post about consistent hashing I mentioned",
+     "iso": "2026-09-22T04:16:00.000100+00:00"
+    }
+   ],
+   "label": "passing_thanks",
+   "keep": false
+  },
+  {
+   "id": "m141",
+   "channel": {
+    "name": "kudos",
+    "type": "public"
+   },
+   "iso": "2026-09-22T09:24:00+00:00",
+   "user": "U04SAM",
+   "text": "Shoutout to Taylor for the dark mode PR, users are loving it ✨",
+   "label": "praise_other",
+   "keep": false
+  },
+  {
+   "id": "m142",
+   "channel": {
+    "name": "kudos",
+    "type": "public"
+   },
+   "iso": "2026-09-22T13:29:00+00:00",
+   "user": "U09TAYLOR",
+   "text": "Thanks Alex!",
+   "thread": [
+    {
+     "user": "U01ALEX",
+     "text": "Congrats on the dark mode launch Taylor! 🎉",
+     "iso": "2026-09-22T13:24:00.000100+00:00"
+    }
+   ],
+   "label": "passing_thanks",
+   "keep": false
+  },
+  {
+   "id": "m143",
+   "channel": {
+    "name": "deploys",
+    "type": "public"
+   },
+   "iso": "2026-09-22T13:58:00+00:00",
+   "user": "U13OMAR",
+   "text": "thanks",
+   "thread": [
+    {
+     "user": "U01ALEX",
+     "text": "rolled back the config change, errors gone",
+     "iso": "2026-09-22T13:53:00.000100+00:00"
+    }
+   ],
+   "label": "passing_thanks",
+   "keep": false,
+   "note": "mild: a rollback fix, but just 'thanks'"
+  },
+  {
+   "id": "m144",
+   "channel": {
+    "name": "general",
+    "type": "public"
+   },
+   "iso": "2026-09-22T17:07:00+00:00",
+   "user": "U02PRIYA",
+   "text": "Reminder: please fill out the engagement survey 🙏",
+   "label": "neutral",
+   "keep": false
+  },
+  {
+   "id": "m145",
+   "channel": {
+    "name": "kudos",
+    "type": "public"
+   },
+   "iso": "2026-09-22T22:46:00+00:00",
+   "user": "U13OMAR",
+   "text": "Kudos to <@U01ALEX> for volunteering to take the holiday on-call swap AND fixing the flaky disk alert while there. Hero.",
+   "reactions": [
+    [
+     "superhero",
+     5
+    ]
+   ],
+   "label": "win_alex",
+   "keep": true
+  },
+  {
+   "id": "m146",
+   "channel": {
+    "name": "general",
+    "type": "public"
+   },
+   "iso": "2026-09-23T03:28:00+00:00",
+   "user": "U12NINA",
+   "text": "The support team crushed it this month — CSAT 96%! Thank you Riley and team 💜",
+   "label": "praise_other",
+   "keep": false
+  },
+  {
+   "id": "m147",
+   "channel": {
+    "name": "mobile",
+    "type": "public"
+   },
+   "iso": "2026-09-23T04:45:00+00:00",
+   "user": "U11CHRIS",
+   "text": "Who owns the push notification service now?",
+   "label": "neutral",
+   "keep": false
+  },
+  {
+   "id": "m148",
+   "channel": {
+    "name": "kudos",
+    "type": "public"
+   },
+   "iso": "2026-09-23T07:02:00+00:00",
+   "user": "U13OMAR",
+   "text": "Kudos to Alexandra for automating the cert rotation. No more 2am expiry pages!",
+   "label": "praise_other",
+   "keep": false,
+   "note": "alias trap: Alexandra"
+  },
+  {
+   "id": "m149",
+   "channel": {
+    "name": "general",
+    "type": "public"
+   },
+   "iso": "2026-09-23T08:05:00+00:00",
+   "user": "U12NINA",
+   "text": "Thanks to Morgan for the clearest roadmap presentation I've seen here",
+   "label": "praise_other",
+   "keep": false
+  },
+  {
+   "id": "m150",
+   "channel": {
+    "name": "general",
+    "type": "public"
+   },
+   "iso": "2026-09-23T10:44:00+00:00",
+   "user": "U04SAM",
+   "text": "Nice of <@U01ALEX> to finally show up to standup 😂",
+   "label": "sarcasm",
+   "keep": false
+  },
+  {
+   "id": "m151",
+   "channel": {
+    "name": "general",
+    "type": "public"
+   },
+   "iso": "2026-09-23T12:36:00+00:00",
+   "user": "U12NINA",
+   "text": "Thanks Alex 👍",
+   "thread": [
+    {
+     "user": "U01ALEX",
+     "text": "Customer list for the beta is in the shared drive",
+     "iso": "2026-09-23T12:31:00.000100+00:00"
+    }
+   ],
+   "label": "passing_thanks",
+   "keep": false
+  },
+  {
+   "id": "m152",
+   "channel": {
+    "name": "incidents",
+    "type": "public"
+   },
+   "iso": "2026-09-23T14:02:00+00:00",
+   "user": "U01ALEX",
+   "text": "Thank you Omar for the fast mitigation, you saved us tonight.",
+   "label": "alex_praising",
+   "keep": false
+  },
+  {
+   "id": "m153",
+   "channel": {
+    "name": "payments-eng",
+    "type": "public"
+   },
+   "iso": "2026-09-23T17:58:00+00:00",
+   "user": "U07MORGAN",
+   "text": "thank you!",
+   "thread": [
+    {
+     "user": "U01ALEX",
+     "text": "Estimates are in the ticket",
+     "iso": "2026-09-23T17:53:00.000100+00:00"
+    }
+   ],
+   "label": "passing_thanks",
+   "keep": false
+  },
+  {
+   "id": "m154",
+   "channel": {
+    "name": "eng-leads",
+    "type": "private"
+   },
+   "iso": "2026-09-24T00:04:00+00:00",
+   "user": "U05DANA",
+   "text": "Chris has quietly become our best frontend reviewer. Worth recognising in calibration.",
+   "label": "praise_other",
+   "keep": false
+  },
+  {
+   "id": "m155",
+   "channel": {
+    "name": "dm:jordan",
+    "type": "im"
+   },
+   "iso": "2026-09-24T02:36:00+00:00",
+   "user": "U03JORDAN",
+   "text": "ty 🙏",
+   "thread": [
+    {
+     "user": "U01ALEX",
+     "text": "sent you the staging creds via 1password",
+     "iso": "2026-09-24T02:31:00.000100+00:00"
+    }
+   ],
+   "label": "passing_thanks",
+   "keep": false
+  },
+  {
+   "id": "m156",
+   "channel": {
+    "name": "dm:taylor",
+    "type": "im"
+   },
+   "iso": "2026-09-24T04:12:00+00:00",
+   "user": "U09TAYLOR",
+   "text": "ok thank you!!",
+   "thread": [
+    {
+     "user": "U01ALEX",
+     "text": "you can skip the 1:1 this week, we'll catch up Friday",
+     "iso": "2026-09-24T04:07:00.000100+00:00"
+    }
+   ],
+   "label": "passing_thanks",
+   "keep": false
+  },
+  {
+   "id": "m157",
+   "channel": {
+    "name": "general",
+    "type": "public"
+   },
+   "iso": "2026-09-24T08:55:00+00:00",
+   "user": "U05DANA",
+   "text": "thanks for organizing",
+   "thread": [
+    {
+     "user": "U01ALEX",
+     "text": "Booked the room for Friday's lunch and learn",
+     "iso": "2026-09-24T08:50:00.000100+00:00"
+    }
+   ],
+   "label": "passing_thanks",
+   "keep": false
+  },
+  {
+   "id": "m158",
+   "channel": {
+    "name": "payments-eng",
+    "type": "public"
+   },
+   "iso": "2026-09-24T13:28:00+00:00",
+   "user": "U06LEE",
+   "text": "That migration script you wrote meant we did in one afternoon what we'd budgeted two sprints for. 👏",
+   "thread": [
+    {
+     "user": "U01ALEX",
+     "text": "Backfill done: 14M rows migrated to the new schema, verified checksums match.",
+     "iso": "2026-09-24T13:23:00.000100+00:00"
+    }
+   ],
+   "label": "win_alex",
+   "keep": true
+  },
+  {
+   "id": "m159",
+   "channel": {
+    "name": "dm:priya",
+    "type": "im"
+   },
+   "iso": "2026-09-24T16:35:00+00:00",
+   "user": "U02PRIYA",
+   "text": "Can we move our 1:1 to Wednesday?",
+   "label": "neutral",
+   "keep": false
+  },
+  {
+   "id": "m160",
+   "channel": {
+    "name": "general",
+    "type": "public"
+   },
+   "iso": "2026-09-24T19:17:00+00:00",
+   "user": "U01ALEX",
+   "text": "Thanks to Nina for organizing the customer visit, it was super valuable for the team",
+   "label": "alex_praising",
+   "keep": false
+  },
+  {
+   "id": "m161",
+   "channel": {
+    "name": "payments-eng",
+    "type": "public"
+   },
+   "iso": "2026-09-25T01:29:00+00:00",
+   "user": "U01ALEX",
+   "text": "Shoutout to Jordan and Sam for covering on-call while I was out ❤️",
+   "label": "alex_praising",
+   "keep": false
+  },
+  {
+   "id": "m162",
+   "channel": {
+    "name": "general",
+    "type": "public"
+   },
+   "iso": "2026-09-25T05:26:00+00:00",
+   "user": "U05DANA",
+   "text": "Q3 eng awards: Platform MVP goes to <@U01ALEX> for checkout v2 + the deploy pipeline. Well deserved.",
+   "reactions": [
+    [
+     "trophy",
+     31
+    ],
+    [
+     "clap",
+     20
+    ]
+   ],
+   "label": "win_alex",
+   "keep": true
+  },
+  {
+   "id": "m163",
+   "channel": {
+    "name": "deploys",
+    "type": "public"
+   },
+   "iso": "2026-09-25T08:03:00+00:00",
+   "user": "U99DEPLOY",
+   "text": "Deploy succeeded: payments-api v2.31.0 (by alex.m) in 8m 41s",
+   "label": "neutral",
+   "keep": false
+  },
+  {
+   "id": "m164",
+   "channel": {
+    "name": "payments-eng",
+    "type": "public"
+   },
+   "iso": "2026-09-25T13:47:00+00:00",
+   "user": "U05DANA",
+   "text": "Thanks <@U01ALEX> and <@U03JORDAN> for the refund fix, customers are happy",
+   "label": "ambiguous",
+   "keep": null,
+   "note": "shared credit with impact"
+  },
+  {
+   "id": "m165",
+   "channel": {
+    "name": "random",
+    "type": "public"
+   },
+   "iso": "2026-09-25T16:20:00+00:00",
+   "user": "U06LEE",
+   "text": "<@U01ALEX> the hero we deserve: fixing a typo in the README and calling it a 'docs initiative'",
+   "label": "sarcasm",
+   "keep": false
+  },
+  {
+   "id": "m166",
+   "channel": {
+    "name": "general",
+    "type": "public"
+   },
+   "iso": "2026-09-25T21:51:00+00:00",
+   "user": "U05DANA",
+   "text": "Thanks Alex for representing us at the payments conference. Three candidates mentioned your talk in interviews this week.",
+   "reactions": [
+    [
+     "microphone",
+     4
+    ]
+   ],
+   "label": "win_alex",
+   "keep": true
+  },
+  {
+   "id": "m167",
+   "channel": {
+    "name": "incidents",
+    "type": "public"
+   },
+   "iso": "2026-09-26T00:04:00+00:00",
+   "user": "U13OMAR",
+   "text": "Postmortem for INC-4560 scheduled for Monday 11 AM",
+   "label": "neutral",
+   "keep": false
+  },
+  {
+   "id": "m168",
+   "channel": {
+    "name": "general",
+    "type": "public"
+   },
+   "iso": "2026-09-26T02:39:00+00:00",
+   "user": "U07MORGAN",
+   "text": "Q4 planning doc is up for comments",
+   "label": "neutral",
+   "keep": false
+  },
+  {
+   "id": "m169",
+   "channel": {
+    "name": "dm:jordan",
+    "type": "im"
+   },
+   "iso": "2026-09-26T06:51:00+00:00",
+   "user": "U03JORDAN",
+   "text": "are you coming to the offsite?",
+   "label": "neutral",
+   "keep": false
+  },
+  {
+   "id": "m170",
+   "channel": {
+    "name": "general",
+    "type": "public"
+   },
+   "iso": "2026-09-26T10:04:00+00:00",
+   "user": "U08RILEY",
+   "text": "Thank you @alex.m for jumping on the call with the hospital customer yesterday — they said it was the most helpful engineering conversation they've had with any vendor.",
+   "label": "win_alex",
+   "keep": true
+  },
+  {
+   "id": "m171",
+   "channel": {
+    "name": "payments-eng",
+    "type": "public"
+   },
+   "iso": "2026-09-26T13:57:00+00:00",
+   "user": "U04SAM",
+   "text": "@alex.m legend. the fraud rule backtest you built found $210k of false positives we were declining every month",
+   "reactions": [
+    [
+     "moneybag",
+     5
+    ]
+   ],
+   "label": "win_alex",
+   "keep": true
+  },
+  {
+   "id": "m172",
+   "channel": {
+    "name": "incidents",
+    "type": "public"
+   },
+   "iso": "2026-09-26T19:35:00+00:00",
+   "user": "U13OMAR",
+   "text": "INC-4560 opened: elevated 5xx on search-api. Investigating.",
+   "label": "neutral",
+   "keep": false
+  },
+  {
+   "id": "m173",
+   "channel": {
+    "name": "search-team",
+    "type": "public"
+   },
+   "iso": "2026-09-26T20:17:00+00:00",
+   "user": "U07MORGAN",
+   "text": "Lee's synonym dictionary fixed the 'sneakers vs trainers' problem. UK conversion up 5%!",
+   "label": "praise_other",
+   "keep": false
+  },
+  {
+   "id": "m174",
+   "channel": {
+    "name": "general",
+    "type": "public"
+   },
+   "iso": "2026-09-27T02:40:00+00:00",
+   "user": "U07MORGAN",
+   "text": "Roadmap review moved to Thursday at 2pm.",
+   "label": "neutral",
+   "keep": false
+  },
+  {
+   "id": "m175",
+   "channel": {
+    "name": "incidents",
+    "type": "public"
+   },
+   "iso": "2026-09-27T03:56:00+00:00",
+   "user": "U04SAM",
+   "text": "Retro note: the reason this stayed a sev3 instead of a sev1 is that Alex had added the circuit breaker last month. Good call.",
+   "thread": [
+    {
+     "user": "U13OMAR",
+     "text": "Retro for INC-4502 (ledger latency spike) — please add notes",
+     "iso": "2026-09-27T03:51:00.000100+00:00"
+    }
+   ],
+   "label": "win_alex",
+   "keep": true
+  },
+  {
+   "id": "m176",
+   "channel": {
+    "name": "payments-eng",
+    "type": "public"
+   },
+   "iso": "2026-09-27T06:30:00+00:00",
+   "user": "U03JORDAN",
+   "text": "<@U01ALEX> can you take a look at PR #8841 when you get a chance?",
+   "label": "neutral",
+   "keep": false
+  },
+  {
+   "id": "m177",
+   "channel": {
+    "name": "dm:jordan",
+    "type": "im"
+   },
+   "iso": "2026-09-27T08:22:00+00:00",
+   "user": "U03JORDAN",
+   "text": "the onboarding guide you wrote is the only reason I shipped something in my first week. telling everyone about it",
+   "label": "win_alex",
+   "keep": true
+  },
+  {
+   "id": "m178",
+   "channel": {
+    "name": "payments-eng",
+    "type": "public"
+   },
+   "iso": "2026-09-27T11:21:00+00:00",
+   "user": "U01ALEX",
+   "text": "Morgan, the roadmap clarity this quarter has been amazing. Thank you.",
+   "label": "alex_praising",
+   "keep": false
+  },
+  {
+   "id": "m179",
+   "channel": {
+    "name": "payments-eng",
+    "type": "public"
+   },
+   "iso": "2026-09-27T14:17:00+00:00",
+   "user": "U04SAM",
+   "text": "jordan you absolute legend, the flaky test is finally fixed",
+   "thread": [
+    {
+     "user": "U03JORDAN",
+     "text": "Fixed the flaky ledger test (it was a timezone bug, of course)",
+     "iso": "2026-09-27T14:12:00.000100+00:00"
+    }
+   ],
+   "label": "praise_other",
+   "keep": false
+  },
+  {
+   "id": "m180",
+   "channel": {
+    "name": "eng-announcements",
+    "type": "public"
+   },
+   "iso": "2026-09-27T16:22:00+00:00",
+   "user": "U05DANA",
+   "text": "Congrats to Alex Marlowe on promotion to Staff Engineer! 🎉",
+   "reactions": [
+    [
+     "tada",
+     48
+    ],
+    [
+     "clap",
+     22
+    ]
+   ],
+   "label": "win_alex",
+   "keep": true
+  },
+  {
+   "id": "m181",
+   "channel": {
+    "name": "payments-eng",
+    "type": "public"
+   },
+   "iso": "2026-09-27T20:30:00+00:00",
+   "user": "U04SAM",
+   "text": "Standup at 9 AM tomorrow instead of 10",
+   "label": "neutral",
+   "keep": false,
+   "note": "'AM' alias trap"
+  },
+  {
+   "id": "m182",
+   "channel": {
+    "name": "payments-eng",
+    "type": "public"
+   },
+   "iso": "2026-09-28T02:34:00+00:00",
+   "user": "U06LEE",
+   "text": "The runbook Alex wrote for ledger reconciliation got me through a 3am page with zero context. Saved my night.",
+   "thread": [
+    {
+     "user": "U01ALEX",
+     "text": "Wrote up a runbook for ledger reconciliation failures: <https://wiki.example.com/ledger-recon|Ledger recon runbook>",
+     "iso": "2026-09-28T02:29:00.000100+00:00"
+    }
+   ],
+   "label": "win_alex",
+   "keep": true
+  },
+  {
+   "id": "m183",
+   "channel": {
+    "name": "general",
+    "type": "public"
+   },
+   "iso": "2026-09-28T05:12:00+00:00",
+   "user": "U08RILEY",
+   "text": "Thank you <@U13OMAR> for staying up with us during the outage, you're a rock star",
+   "label": "praise_other",
+   "keep": false
+  },
+  {
+   "id": "m184",
+   "channel": {
+    "name": "deploys",
+    "type": "public"
+   },
+   "iso": "2026-09-28T05:41:00+00:00",
+   "user": "U11CHRIS",
+   "text": "🎉🎉🎉",
+   "thread": [
+    {
+     "user": "U01ALEX",
+     "text": "Deploy pipeline v2 is now the default for all services",
+     "iso": "2026-09-28T05:36:00.000100+00:00"
+    }
+   ],
+   "reactions": [
+    [
+     "tada",
+     12
+    ]
+   ],
+   "label": "ambiguous",
+   "keep": null,
+   "note": "emoji-only reply to Alex's ship announcement"
+  },
+  {
+   "id": "m185",
+   "channel": {
+    "name": "search-team",
+    "type": "public"
+   },
+   "iso": "2026-09-28T06:19:00+00:00",
+   "user": "U07MORGAN",
+   "text": "Not bad for a first pass!",
+   "thread": [
+    {
+     "user": "U01ALEX",
+     "text": "First cut of the query analytics dashboard: <https://dash.example.com/q|link>",
+     "iso": "2026-09-28T06:14:00.000100+00:00"
+    }
+   ],
+   "label": "ambiguous",
+   "keep": null,
+   "note": "mild/possibly backhanded"
+  },
+  {
+   "id": "m186",
+   "channel": {
+    "name": "mobile",
+    "type": "public"
+   },
+   "iso": "2026-09-28T06:48:00+00:00",
+   "user": "U01ALEX",
+   "text": "Sam, the widget is gorgeous. Great work!",
+   "thread": [
+    {
+     "user": "U04SAM",
+     "text": "iOS widget is live!",
+     "iso": "2026-09-28T06:43:00.000100+00:00"
+    }
+   ],
+   "label": "alex_praising",
+   "keep": false
+  },
+  {
+   "id": "m187",
+   "channel": {
+    "name": "payments-eng",
+    "type": "public"
+   },
+   "iso": "2026-09-28T11:26:00+00:00",
+   "user": "U01ALEX",
+   "text": "Heads up: I'm rotating the Stripe webhook secret at 4pm.",
+   "label": "neutral",
+   "keep": false
+  },
+  {
+   "id": "m188",
+   "channel": {
+    "name": "search-team",
+    "type": "public"
+   },
+   "iso": "2026-09-28T13:23:00+00:00",
+   "user": "U01ALEX",
+   "text": "Alexandra, your fuzzy matching PR is excellent, thanks for helping us out",
+   "label": "alex_praising",
+   "keep": false,
+   "note": "Alex praising Alex P — double trap"
+  },
+  {
+   "id": "m189",
+   "channel": {
+    "name": "dm:priya",
+    "type": "im"
+   },
+   "iso": "2026-09-28T17:46:00+00:00",
+   "user": "U02PRIYA",
+   "text": "Good job today.",
+   "label": "ambiguous",
+   "keep": null,
+   "note": "vague praise, no specifics"
+  },
+  {
+   "id": "m190",
+   "channel": {
+    "name": "mobile",
+    "type": "public"
+   },
+   "iso": "2026-09-28T21:54:00+00:00",
+   "user": "U04SAM",
+   "text": "TestFlight build 4.18.2 is up",
+   "label": "neutral",
+   "keep": false
+  },
+  {
+   "id": "m191",
+   "channel": {
+    "name": "general",
+    "type": "public"
+   },
+   "iso": "2026-09-29T03:51:00+00:00",
+   "user": "U08RILEY",
+   "text": "Lunch and learn on Friday: 'Intro to our support tooling'",
+   "label": "neutral",
+   "keep": false
+  },
+  {
+   "id": "m192",
+   "channel": {
+    "name": "incidents",
+    "type": "public"
+   },
+   "iso": "2026-09-29T09:43:00+00:00",
+   "user": "U05DANA",
+   "text": "Great incident command from Omar today. Textbook.",
+   "thread": [
+    {
+     "user": "U13OMAR",
+     "text": "IC update: mitigation deployed",
+     "iso": "2026-09-29T09:38:00.000100+00:00"
+    }
+   ],
+   "label": "praise_other",
+   "keep": false
+  },
+  {
+   "id": "m193",
+   "channel": {
+    "name": "kudos",
+    "type": "public"
+   },
+   "iso": "2026-09-29T15:39:00+00:00",
+   "user": "U09TAYLOR",
+   "text": "Shoutout to <@U01ALEX> who paired with me for 3 hours to untangle the webhook retries. I actually understand our queue system now!",
+   "reactions": [
+    [
+     "heart",
+     4
+    ]
+   ],
+   "label": "win_alex",
+   "keep": true
+  },
+  {
+   "id": "m194",
+   "channel": {
+    "name": "search-team",
+    "type": "public"
+   },
+   "iso": "2026-09-29T20:38:00+00:00",
+   "user": "U06LEE",
+   "text": "Does anyone know why the nightly index job failed?",
+   "label": "neutral",
+   "keep": false
+  },
+  {
+   "id": "m195",
+   "channel": {
+    "name": "payments-eng",
+    "type": "public"
+   },
+   "iso": "2026-09-30T00:19:00+00:00",
+   "user": "U07MORGAN",
+   "text": "Finance confirmed: the billing migration <@U01ALEX> led closed out with $0 in reconciliation discrepancies across 2.4M invoices. That has literally never happened before.",
+   "reactions": [
+    [
+     "exploding_head",
+     7
+    ],
+    [
+     "clap",
+     10
+    ]
+   ],
+   "label": "win_alex",
+   "keep": true
+  },
+  {
+   "id": "m196",
+   "channel": {
+    "name": "payments-eng",
+    "type": "public"
+   },
+   "iso": "2026-09-30T03:16:00+00:00",
+   "user": "U03JORDAN",
+   "text": "thanks!",
+   "thread": [
+    {
+     "user": "U01ALEX",
+     "text": "Here's the link to the API spec: <https://docs.example.com/api|spec>",
+     "iso": "2026-09-30T03:11:00.000100+00:00"
+    }
+   ],
+   "label": "passing_thanks",
+   "keep": false
+  },
+  {
+   "id": "m197",
+   "channel": {
+    "name": "general",
+    "type": "public"
+   },
+   "iso": "2026-09-30T05:26:00+00:00",
+   "user": "U02PRIYA",
+   "text": "Reminder: self-reviews are due Friday.",
+   "label": "neutral",
+   "keep": false
+  },
+  {
+   "id": "m198",
+   "channel": {
+    "name": "eng-leads",
+    "type": "private"
+   },
+   "iso": "2026-09-30T08:41:00+00:00",
+   "user": "U02PRIYA",
+   "text": "Nominating <@U01ALEX> for the Q4 promo cycle. Evidence: checkout v2, billing migration, mentored 2 engineers to promotion.",
+   "label": "win_alex",
+   "keep": true
+  },
+  {
+   "id": "m199",
+   "channel": {
+    "name": "search-team",
+    "type": "public"
+   },
+   "iso": "2026-09-30T15:02:00+00:00",
+   "user": "U02PRIYA",
+   "text": "Lee, this ranking analysis is excellent, thank you for pulling it together so fast.",
+   "thread": [
+    {
+     "user": "U06LEE",
+     "text": "Ranking analysis for Q3 is up: <https://docs.example.com/q3-rank|doc>",
+     "iso": "2026-09-30T14:57:00.000100+00:00"
+    }
+   ],
+   "label": "praise_other",
+   "keep": false
+  },
+  {
+   "id": "m200",
+   "channel": {
+    "name": "mpdm-alex.m--sam.o--lee",
+    "type": "mpim"
+   },
+   "iso": "2026-09-30T20:47:00+00:00",
+   "user": "U04SAM",
+   "text": "@alex.m your load test harness found the regression before launch. would've been a sev1. 🙏",
+   "label": "win_alex",
+   "keep": true
+  },
+  {
+   "id": "m201",
+   "channel": {
+    "name": "search-team",
+    "type": "public"
+   },
+   "iso": "2026-10-01T00:34:00+00:00",
+   "user": "U04SAM",
+   "text": "<@U01ALEX> I'm sure management loves your 'impact', the rest of us love fixing it",
+   "label": "sarcasm",
+   "keep": false
+  },
+  {
+   "id": "m202",
+   "channel": {
+    "name": "search-team",
+    "type": "public"
+   },
+   "iso": "2026-10-01T01:21:00+00:00",
+   "user": "U07MORGAN",
+   "text": "Thanks Alex, got it.",
+   "thread": [
+    {
+     "user": "U01ALEX",
+     "text": "Moved the sync to 3pm",
+     "iso": "2026-10-01T01:16:00.000100+00:00"
+    }
+   ],
+   "label": "passing_thanks",
+   "keep": false
+  },
+  {
+   "id": "m203",
+   "channel": {
+    "name": "eng-announcements",
+    "type": "public"
+   },
+   "iso": "2026-10-01T02:47:00+00:00",
+   "user": "U07MORGAN",
+   "text": "Mobile offline sync is GA 🎉 Credit to AM for the sync engine — this was our #1 customer request for two years.",
+   "reactions": [
+    [
+     "tada",
+     25
+    ]
+   ],
+   "label": "win_alex",
+   "keep": true
+  },
+  {
+   "id": "m204",
+   "channel": {
+    "name": "kudos",
+    "type": "public"
+   },
+   "iso": "2026-10-01T03:43:00+00:00",
+   "user": "U08RILEY",
+   "text": "Support tickets about failed payments are down 40% this month. <@U01ALEX> the retry-UI change you pushed made a real difference for our team and customers ❤️",
+   "reactions": [
+    [
+     "heart",
+     9
+    ]
+   ],
+   "label": "win_alex",
+   "keep": true
+  },
+  {
+   "id": "m205",
+   "channel": {
+    "name": "kudos",
+    "type": "public"
+   },
+   "iso": "2026-10-01T10:22:00+00:00",
+   "user": "U05DANA",
+   "text": "Kudos to <@U10ALEXP> for leading the SOC2 audit. We passed with zero findings.",
+   "reactions": [
+    [
+     "clap",
+     15
+    ]
+   ],
+   "label": "praise_other",
+   "keep": false,
+   "note": "alias trap: Alexandra, not Alex"
+  },
+  {
+   "id": "m206",
+   "channel": {
+    "name": "dm:priya",
+    "type": "im"
+   },
+   "iso": "2026-10-01T14:22:00+00:00",
+   "user": "U02PRIYA",
+   "text": "Thanks for the update.",
+   "thread": [
+    {
+     "user": "U01ALEX",
+     "text": "Checkout v2 is 80% rolled out, still on track",
+     "iso": "2026-10-01T14:17:00.000100+00:00"
+    }
+   ],
+   "label": "passing_thanks",
+   "keep": false
+  },
+  {
+   "id": "m207",
+   "channel": {
+    "name": "incidents",
+    "type": "public"
+   },
+   "iso": "2026-10-01T15:10:00+00:00",
+   "user": "U05DANA",
+   "text": "Great incident command from Alex today. Calm, clear updates every 15 min, and customers were informed before they noticed. Textbook.",
+   "thread": [
+    {
+     "user": "U01ALEX",
+     "text": "IC update 14:15: mitigation deployed, error rates back to baseline, monitoring for 30 min.",
+     "iso": "2026-10-01T15:00:00.000100+00:00"
+    },
+    {
+     "user": "U13OMAR",
+     "text": "confirmed, p99 back to normal",
+     "iso": "2026-10-01T15:05:00.000100+00:00"
+    }
+   ],
+   "label": "win_alex",
+   "keep": true
+  },
+  {
+   "id": "m208",
+   "channel": {
+    "name": "mobile",
+    "type": "public"
+   },
+   "iso": "2026-10-01T21:10:00+00:00",
+   "user": "U11CHRIS",
+   "text": "<@U01ALEX> what's the min Android version we support now?",
+   "label": "neutral",
+   "keep": false
+  },
+  {
+   "id": "m209",
+   "channel": {
+    "name": "search-team",
+    "type": "public"
+   },
+   "iso": "2026-10-02T00:45:00+00:00",
+   "user": "U11CHRIS",
+   "text": "love how the new ranker puts the 'out of stock' items first, really great UX Alex",
+   "reactions": [
+    [
+     "upside_down_face",
+     3
+    ]
+   ],
+   "label": "sarcasm",
+   "keep": false
+  },
+  {
+   "id": "m210",
+   "channel": {
+    "name": "payments-eng",
+    "type": "public"
+   },
+   "iso": "2026-10-02T06:48:00+00:00",
+   "user": "U03JORDAN",
+   "text": "+1, this design is way simpler than what we had and the latency numbers speak for themselves (p99 180ms -> 45ms)",
+   "thread": [
+    {
+     "user": "U01ALEX",
+     "text": "RFC: replace the ledger fan-out with a single outbox table. Benchmarks in the doc.",
+     "iso": "2026-10-02T06:38:00.000100+00:00"
+    },
+    {
+     "user": "U04SAM",
+     "text": "read it, love it",
+     "iso": "2026-10-02T06:43:00.000100+00:00"
+    }
+   ],
+   "label": "win_alex",
+   "keep": true
+  },
+  {
+   "id": "m211",
+   "channel": {
+    "name": "payments-eng",
+    "type": "public"
+   },
+   "iso": "2026-10-02T12:14:00+00:00",
+   "user": "U07MORGAN",
+   "text": "Thanks AM — 9 AM works for me",
+   "thread": [
+    {
+     "user": "U01ALEX",
+     "text": "Can we move the billing sync to 9 AM?",
+     "iso": "2026-10-02T12:09:00.000100+00:00"
+    }
+   ],
+   "label": "passing_thanks",
+   "keep": false
+  },
+  {
+   "id": "m212",
+   "channel": {
+    "name": "general",
+    "type": "public"
+   },
+   "iso": "2026-10-02T18:28:00+00:00",
+   "user": "U12NINA",
+   "text": "Whoever fixed the invoice PDF bug: thank you!! 🙏",
+   "label": "ambiguous",
+   "keep": null,
+   "note": "unknown recipient; it was Alex but message doesn't say"
+  },
+  {
+   "id": "m213",
+   "channel": {
+    "name": "search-team",
+    "type": "public"
+   },
+   "iso": "2026-10-02T19:11:00+00:00",
+   "user": "U06LEE",
+   "text": "this is fantastic, the new eval harness makes relevance work 10x faster to iterate on",
+   "thread": [
+    {
+     "user": "U01ALEX",
+     "text": "Pushed an offline eval harness for search ranking: replays last week's queries against a candidate model and reports NDCG deltas. README in the repo.",
+     "iso": "2026-10-02T19:06:00.000100+00:00"
+    }
+   ],
+   "reactions": [
+    [
+     "star",
+     4
+    ]
+   ],
+   "label": "win_alex",
+   "keep": true
+  },
+  {
+   "id": "m214",
+   "channel": {
+    "name": "eng-announcements",
+    "type": "public"
+   },
+   "iso": "2026-10-02T21:05:00+00:00",
+   "user": "U02PRIYA",
+   "text": "Please welcome our new on-call rotation tooling, built by <@U01ALEX> as a side project. Pages are now auto-routed and we cut false alerts by 70%.",
+   "reactions": [
+    [
+     "tada",
+     18
+    ]
+   ],
+   "label": "win_alex",
+   "keep": true
+  },
+  {
+   "id": "m215",
+   "channel": {
+    "name": "mpdm-alex.m--sam.o--lee",
+    "type": "mpim"
+   },
+   "iso": "2026-10-02T23:42:00+00:00",
+   "user": "U06LEE",
+   "text": "where are we on the ledger RFC comments?",
+   "label": "neutral",
+   "keep": false
+  },
+  {
+   "id": "m216",
+   "channel": {
+    "name": "random",
+    "type": "public"
+   },
+   "iso": "2026-10-03T00:03:00+00:00",
+   "user": "U03JORDAN",
+   "text": "shoutout to alex for microwaving fish in the office kitchen. bold leadership",
+   "label": "sarcasm",
+   "keep": false
+  },
+  {
+   "id": "m217",
+   "channel": {
+    "name": "deploys",
+    "type": "public"
+   },
+   "iso": "2026-10-03T03:29:00+00:00",
+   "user": "U11CHRIS",
+   "text": "first time ever we've done 50 deploys in a day with zero rollbacks. the pipeline rework is paying off big time, nice one Alex",
+   "reactions": [
+    [
+     "chart_with_upwards_trend",
+     5
+    ]
+   ],
+   "label": "win_alex",
+   "keep": true
+  },
+  {
+   "id": "m218",
+   "channel": {
+    "name": "kudos",
+    "type": "public"
+   },
+   "iso": "2026-10-03T08:29:00+00:00",
+   "user": "U02PRIYA",
+   "text": "Shoutout to Taylor for her first on-call week — handled 3 pages solo! (and thanks <@U01ALEX> for shadowing)",
+   "label": "praise_other",
+   "keep": false,
+   "note": "primarily Taylor; Alex's mention is incidental"
+  }
+ ]
+}
