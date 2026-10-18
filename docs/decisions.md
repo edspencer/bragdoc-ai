@@ -349,7 +349,7 @@ D17 onwards are decisions made while building.
 - **Done in PR20.** `proc.ts` gained `launch()` (detached, no stdio, unref'd; resolves once started), and
   `runAttached()` forwards SIGINT/SIGTERM/SIGHUP to its child while it runs. `runner.ts` keeps the injectable
   `Runner`/`Streamer` types with proc.ts as their defaults (a `journalctl` stopped by one of those signals still counts
-  as exit 0, as before). The probe moved into egress.ts (D48). guard-egress has no interim entries left.
+  as exit 0, as before). The probe moved into egress.ts (D51). guard-egress has no interim entries left.
 
 ### D33 — `/dev/kit` exists in dev and `BRAGDOC_KIT=1` builds, never in a release
 
