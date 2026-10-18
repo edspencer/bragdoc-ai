@@ -1,6 +1,6 @@
 // The worker thread tesseract.js runs OCR in (its `workerPath`): tesseract's own Node entry
 // (tesseract.js/src/worker-script/node/index.js, 15 lines), rewritten so the worker can't reach the network or write a
-// file, and can't be left hanging (SPEC R4, D47).
+// file, and can't be left hanging (SPEC R4, D48).
 //
 // - **No network.** tesseract.js fetches in two cases: language data when `langPath` is a URL (its default is a CDN),
 //   and an image given as a URL. server/ocr/tesseract.ts never does either (the English data is read from the package,

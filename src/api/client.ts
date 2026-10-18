@@ -12,6 +12,7 @@ import type {
   DeleteResponse,
   Detached,
   HealthResponse,
+  ImportReport,
   ProjectEntry,
   ProjectReposRequest,
   ProjectSummary,
@@ -131,6 +132,17 @@ export const seg = (s: string) => encodeURIComponent(s);
 /** `GET /api/health` */
 export const getHealth = (signal?: AbortSignal) => api.get<HealthResponse>('/api/health', { signal });
 
+// ---------------------------------------------------------------- importer (PR12)
+
+/**
+ * The export file, sent as it is (it can be far over the 1 MB other JSON bodies get: up to 50 MB). Its type is set to
+ * JSON whatever the OS called it, since a `.json` file can come with no type at all.
+ */
+const asJson = (file: File) => new File([file], file.name, { type: 'application/json' });
+/** `POST /api/import/plan`: what importing this export would do; writes nothing. */
+export const planImport = (file: File, signal?: AbortSignal) => api.upload<ImportReport>('/api/import/plan', asJson(file), { signal });
+/** `POST /api/import/apply`: import it. */
+export const applyImport = (file: File) => api.upload<ImportReport>('/api/import/apply', asJson(file));
 // ---------------------------------------------------------------- projects, companies, repos (PR8)
 // Edits and deletes send the entry's etag as If-Match: one made against a stale copy is a 409 (`conflict`).
 

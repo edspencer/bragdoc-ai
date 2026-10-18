@@ -97,7 +97,7 @@ server/              the server and CLI (Node, TypeScript ESM, Hono)
                      (MiniSearch), watch.ts (chokidar), backups.ts (snapshots), errors.ts
   services/          the operations HTTP and MCP both call: achievements, projects/companies/repos (catalog.ts),
                      evidence, found, profile; createServices(store)
-  ocr/               reading text in images, locally (D47): index.ts (createOcr: engine choice and fallback, one read
+  ocr/               reading text in images, locally (D48): index.ts (createOcr: engine choice and fallback, one read
                      at a time, cache by sha256; evidenceOcrCache keeps evidence text in its sidecar), tesseract.ts
                      (tesseract.js + the package's English data) and tesseract-worker.ts (its worker, with no network),
                      vision-macos.ts (Apple Vision through a JXA script on osascript), image.ts (upscaling small PNGs)
@@ -106,7 +106,7 @@ shared/              code used by both server/ and src/: no Node or DOM APIs
   schema/            the data files' Zod schemas and types (PR3 owns it), the services' input schemas (inputs.ts), the
                      Problem and StoreChange types, and the generated file-format reference (reference.ts)
   ulid.ts, impact.ts, judge.ts   ids; the 1–10 impact scale; the (unimplemented) AI judge seam (D8)
-  rules/screenshot.ts "is this screenshot praise for me?" from OCR text: plain rules, never a model (D47)
+  rules/screenshot.ts "is this screenshot praise for me?" from OCR text: plain rules, never a model (D48)
 src/                 the web app (React 19, Vite, Tailwind v4, TanStack Router + Query), built into dist/web
   main.tsx           fonts, ThemeProvider, QueryClient, router
   routes/            file-based routes (TanStack Router; tsr.config.json); __root.tsx is the shell

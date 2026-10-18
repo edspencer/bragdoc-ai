@@ -62,12 +62,19 @@ to find it by.
 
 ## `bragdoc import <export.json>`
 
-*Coming in v0.1.* Imports an export from the hosted BragDoc app. See
+Imports an export from the hosted BragDoc app (its version 1.0 JSON file): companies, projects and their repos,
+achievements, and documents as read-only files. Importing the same file again adds nothing. If BragDoc is running,
+the import goes through it (so it stays the one writer); otherwise it writes to the data folder directly. See
 [Moving from the hosted app](/moving-from-the-hosted-app/).
 
 | Option | Meaning |
 | --- | --- |
-| `--dry-run` | Count what would be imported and list any problems, and change nothing. |
+| `--dry-run` | Say what would be added, what's already here and what can't be imported, list the fields left behind and why, and change nothing. |
+| `--data-dir <dir>` | The data folder to import into (default `$BRAGDOC_HOME`, else `~/.bragdoc`). |
+
+A file that isn't a version 1.0 export (not JSON, cut off part-way, or another version) is refused with exit code 1,
+and nothing is imported. Problems with single items (an achievement with no date, a project whose company isn't in
+the file) are listed, and everything else is imported.
 
 ## `bragdoc dev`
 

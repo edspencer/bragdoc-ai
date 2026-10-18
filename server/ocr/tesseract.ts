@@ -2,7 +2,7 @@
 // the English language data is a dependency of the package (@tesseract.js-data/eng's LSTM-only "best_int" model,
 // 2.9 MB), read from disk; nothing is cached on disk either (`cacheMethod: 'none'`: by default tesseract.js writes
 // the data into the current directory); images go in as bytes; and the worker has no fetch at all
-// (server/ocr/tesseract-worker.ts). D47.
+// (server/ocr/tesseract-worker.ts). D48.
 //
 // One worker, one image at a time (server/ocr/index.ts queues). It starts on first use, which takes about half a
 // second, and stops after a minute idle, giving back its ~100 MB. A recognition that runs past its timeout terminates
