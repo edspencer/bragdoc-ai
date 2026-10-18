@@ -5,10 +5,10 @@
 // It shows only while AI and Tidy are both on (SPEC R26): with either off there's no button, no sheet, nothing. Turned
 // on but not ready (no model chosen, a connection without consent), the button shows disabled with the reason.
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
 import type { AiStatus, AiTidyRequest, AiTidyResponse } from '../../shared/api.ts';
 import { HOST_CLASS_LABEL } from '../../shared/ai/hosts.ts';
 import { NETWORK_ERROR, api, isApiError } from '../api/client.ts';
+import { useAi } from '../api/queries.ts';
 import { todayIso } from '../lib/dates.ts';
 
 export const tidyText = (body: AiTidyRequest, signal?: AbortSignal) => api.post<AiTidyResponse>('/api/ai/tidy', { ...body, today: todayIso() }, { signal });
@@ -34,10 +34,9 @@ export function tidyAvailability(s: AiStatus | undefined): TidyAvailability {
   return { show: true, ready: r.ready, why: r.ready ? null : (r.message ?? 'Tidy isn’t ready (Settings → AI).'), label };
 }
 
-/** Whether to offer Tidy, live: the same query (and key) as Settings → AI, so a change there shows here at once. */
+/** Whether to offer Tidy, live: Settings → AI's own query, refreshed by the `ai` and `config` events. */
 export function useTidyAvailability(): TidyAvailability {
-  const q = useQuery({ queryKey: ['ai'], queryFn: ({ signal }) => api.get<AiStatus>('/api/ai', { signal }) });
-  return tidyAvailability(q.data);
+  return tidyAvailability(useAi().data);
 }
 
 /** What a suggestion offers, one key per Use button. */
