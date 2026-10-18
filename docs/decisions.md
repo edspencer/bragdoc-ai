@@ -713,3 +713,33 @@ pasted images (PR15) are its callers.
   for v0.1.
 - **Considered:** a compiled Swift helper for Vision (a binary to build, sign and ship per arch); the CDN or an opt-in
   download for the data; sharp for scaling (native, large); counting impact numbers anywhere (every dashboard passed).
+
+### D53 — Settings edits config.yaml through `ConfigStore.update()`, byte for byte where it can
+
+- The Settings pages change settings (PR10: `mcp.writeTo`; PR13 and PR15 their sources) with `ctx.config.update(patch)`,
+  a JSON merge patch applied to the file **as it is on disk at that moment**, so a hand edit made a second earlier
+  survives. A change to one existing plain value (`writeTo: board` → `found`) replaces just those characters, so the
+  rest of the file, the template's aligned comments included, stays byte for byte; anything else re-prints the
+  document through the store's `yamldoc` (comments and unknown keys kept, alignment not). The result must validate;
+  the write is the store's `safefs.atomicWrite`.
+- A broken config.yaml (bad YAML, a value that doesn't validate, a `schemaVersion` from a newer BragDoc, unreadable) is
+  **never overwritten**: `update()` throws `ConfigWriteError`, the API answers 409 with the reason, and the UI says to
+  fix the file by hand. This is SPEC R2's rule for every other data file.
+- config.yaml stays outside the store (D27): it isn't an entity, it has no id and no index, and the live re-read in
+  `ConfigStore.get()` already makes hand edits take effect. The notices that name it now say `~/.bragdoc/config.yaml`
+  rather than the absolute path (shorter, and nothing private in a screenshot).
+- **Considered:** making config.yaml a store entity (a lot of machinery for one file whose reader already exists);
+  re-printing the document every time (it re-spaces the comments people line up).
+
+### D54 — Settings → Network activity can ask for a forbidden request ("Test the guard")
+
+- `POST /api/network-log/guard-check` asks `egress` for `https://guard-check.bragdoc.invalid/`. It's refused before
+  anything is sent (no allow-list can contain it, and `.invalid` can never resolve anyway, RFC 2606), logged like any
+  refusal, and pushed to the open receipt as a red "refused · not sent" line. It's what the plan's "denied-egress test
+  hook" became: rather than a hidden test route, the user can see the promise kept. `refused: false` is reported as a
+  broken guard.
+- The receipt pages the log 100 entries at a time, newest first; a `network` event refetches every loaded page
+  together, so offsets stay consistent as new entries arrive (1,500 entries page in about 0.1 s each on the dev box).
+- No AI tab. The prototype has one, but v0.1 has no AI (D8), so the only AI copy in Settings is one sentence on the
+  Network page saying no model is ever contacted. The AI opt-in arrives with the AI work, as its own tab.
+- **Considered:** a test-only route behind an environment variable (invisible to the people the promise is for).

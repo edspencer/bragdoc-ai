@@ -11,15 +11,21 @@ import type {
   AchievementsPage,
   AchievementView,
   ApiError,
+  BackupsResponse,
   CompaniesResponse,
   CompanyEntry,
   DeleteResponse,
   Detached,
   EvidenceUploaded,
   FoundCountResponse,
+  GuardCheckResponse,
   HealthResponse,
   ImportReport,
   LinkPreview,
+  McpSettingsRequest,
+  McpTokenResponse,
+  MetaResponse,
+  NetworkLogResponse,
   ProblemsResponse,
   ProjectEntry,
   ProjectReposRequest,
@@ -28,6 +34,7 @@ import type {
   RepoCreateResponse,
   RepoEntry,
   ReposResponse,
+  SettingsResponse,
 } from '../../shared/api.ts';
 import type { Achievement, AchievementCreate, AchievementUpdate, Evidence, Problem } from '../../shared/schema/index.ts';
 
@@ -195,6 +202,26 @@ export const previewLink = (url: string, signal?: AbortSignal) => api.post<LinkP
 export const getProblems = (signal?: AbortSignal) => api.get<ProblemsResponse<Problem>>('/api/problems', { signal });
 /** `GET /api/found/count` */
 export const getFoundCount = (signal?: AbortSignal) => api.get<FoundCountResponse>('/api/found/count', { signal });
+
+// settings (PR10)
+
+/** `GET /api/meta` */
+export const getMeta = (signal?: AbortSignal) => api.get<MetaResponse>('/api/meta', { signal });
+/** `GET /api/network-log`, newest first */
+export const getNetworkLog = (offset: number, limit: number, signal?: AbortSignal) =>
+  api.get<NetworkLogResponse>(`/api/network-log?offset=${offset}&limit=${limit}`, { signal });
+/** `POST /api/network-log/guard-check` */
+export const checkEgressGuard = () => api.post<GuardCheckResponse>('/api/network-log/guard-check');
+/** `GET /api/backups` */
+export const getBackups = (signal?: AbortSignal) => api.get<BackupsResponse>('/api/backups', { signal });
+/** `GET /api/settings` */
+export const getSettings = (signal?: AbortSignal) => api.get<SettingsResponse>('/api/settings', { signal });
+/** `PUT /api/settings/mcp` */
+export const putMcpSettings = (body: McpSettingsRequest) => api.put<SettingsResponse>('/api/settings/mcp', body);
+/** `GET /api/mcp/token` */
+export const getMcpToken = (signal?: AbortSignal) => api.get<McpTokenResponse>('/api/mcp/token', { signal });
+/** `POST /api/mcp/token/rotate` */
+export const rotateMcpToken = () => api.post<McpTokenResponse>('/api/mcp/token/rotate');
 
 // ---------------------------------------------------------------- importer (PR12)
 

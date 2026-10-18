@@ -79,7 +79,8 @@ server/              the server and CLI (Node, TypeScript ESM, Hono)
   security.ts        the guard on every request: Host allow-list, same-origin Origin, Fetch Metadata, JSON-only or
                      opt-in typed uploads, body limits, security headers + CSP; blobHeaders() for evidence (D10, D26)
   bind-safety.ts     refuses a non-loopback --host without BRAGDOC_DANGEROUSLY_ALLOW_OPEN=1
-  config.ts          config.yaml: Zod schema, defaults, the schemaVersion downgrade guard, live re-read (ConfigStore)
+  config.ts          config.yaml: Zod schema, defaults, the schemaVersion downgrade guard, live re-read (ConfigStore),
+                     and update(), the one way Settings edits it (D53)
   home.ts            the data home's layout and .gitignore on first run; moves the old CLI's files into legacy-cli/
   runtime.ts         runtime.json (0600): pid, port, url and the MCP token, which survives restarts; constantTimeEqual
   egress.ts          the ONLY outbound network path: egressFetch({purpose}, url), allow-list, logs/network.jsonl;
@@ -93,7 +94,8 @@ server/              the server and CLI (Node, TypeScript ESM, Hono)
   atomic.ts          the platform's own writes (runtime.json, the network log, starter files): atomic, create-only (D27)
   routes/index.ts    registerRoutes(): one line per feature module (D18)
   routes/health.ts   GET /api/health
-  routes/{events,meta,network}.ts   GET /api/events, /api/meta, /api/network-log
+  routes/{events,meta,network}.ts   GET /api/events, /api/meta, /api/network-log (+ POST …/guard-check, D54)
+  routes/settings.ts /api/backups, /api/settings (+ PUT /api/settings/mcp), /api/mcp/token (+ rotate)
   routes/mcp.ts      /mcp: the bearer token (runtime.json), 405 on GET/DELETE, then server/mcp/
   routes/guide.ts    GET /agent-guide.md, /llms.txt, /llms-full.txt
   routes/{achievements,evidence,link-preview,problems,found-count}.ts   the board's API (see "The board's API")
@@ -123,6 +125,8 @@ src/                 the web app (React 19, Vite, Tailwind v4, TanStack Router +
   shell/             the header, mobile tabs, theme toggle, logo, nav and settings-tab lists, Placeholder
   board/             the board's pieces: composer.ts (paste/drop/upload logic), DropTray, AchievementCard, EditDrawer,
                      pickers (projects, repos, impact), evidence.ts (stored evidence → the kit's EvidenceView)
+  settings/          Settings' tabs (SourcesTab, NetworkTab, DataTab, AboutTab) and what they share (common.tsx:
+                     CopyButton, CommandSlab, LoadError, Slot); routes/settings/$tab.tsx picks one
   api/               client.ts (the typed `api` wrapper), queries.ts (query keys + hooks), events.ts (live updates)
   theme/theme.tsx    light / system / dark: ThemeProvider + useTheme()
   lib/               pure helpers, unit-tested: colour.ts (inkOn, swatches, tilt), dates.ts (groupByWeek, fmt), gantt.ts
@@ -198,6 +202,13 @@ npm run smoke:pack` pass locally (and `npm run test:e2e` if you touched anything
   `ctx.egress.logProcess(…)`. `test/guard-egress.test.ts` enforces both.
 - **A route that takes a raw upload** (an image, a PDF) instead of JSON: call `ctx.uploads.accept({ method, path,
   types, maxBytes })` in its register function. Never a CORS-safelisted type.
+- **A setting the user changes in Settings** (a source's on/off, its options): add the key to `ConfigSchema` in
+  `server/config.ts`, then write it with `ctx.config.update({ sources: { … } })` (a merge patch on the file as it is
+  on disk; it keeps comments, refuses a broken file with `ConfigWriteError` → 409, and fires the `config` event).
+  Expose it in `SettingsResponse` (`GET /api/settings`). Never write config.yaml any other way (D53).
+- **A Sources card's insides** (PR13 GitHub, PR15 screenshots): replace the `SourceCard` placeholder in
+  `src/settings/SourcesTab.tsx` (marked with a comment). Data → the Example data `Slot` (marked) is
+  PR16's; the importer is PR12's `ImportPanel` (`src/import/`).
 - **Something the web app should refetch when it changes:** add a member to `ServerEvent` in `shared/api.ts` and
   `ctx.bus.emit(…)` (or `emitSoon` for bursts).
 - **Reading or writing data:** routes and MCP tools call `ctx.services` (`server/services/`), never the files and
