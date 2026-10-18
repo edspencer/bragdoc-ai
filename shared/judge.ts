@@ -38,6 +38,12 @@ export interface JudgeAnswer {
   impact?: number;
 }
 
+/**
+ * A verdict from a decision model (Jev, D82): a probability and nothing else. It has no `why`, quote or `from`, and
+ * none may be made up for it: the card says it answers with a probability only.
+ */
+export const probabilityOnly = (v: { by?: string | undefined } | null | undefined): boolean => /^typesafe\/jev\b/.test(v?.by ?? '');
+
 export interface Judge {
   /** Decide whether a candidate is worth keeping. Never called unless the user has turned an AI feature on. */
   decide(candidate: FoundCandidate, context: JudgeContext): Promise<Omit<Verdict, 'at' | 'by'>>;

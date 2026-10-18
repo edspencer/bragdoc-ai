@@ -13,11 +13,13 @@ import type { ProviderFetch } from '../egress.js';
 export type { LanguageModel };
 export type Sdk = typeof import('ai');
 export type Providers = typeof import('./providers.js');
+export type Decisions = typeof import('./decide.js');
 
-/** What the first model call loads: the SDK and the provider factories. */
+/** What the first model call loads: the SDK, the provider factories, and Jev's decision model (D82). */
 export interface Loaded {
   sdk: Sdk;
   providers: Providers;
+  decisions: Decisions;
 }
 
 let loading: Promise<Loaded> | null = null;
@@ -29,13 +31,13 @@ const refuse = (what: string) => () => {
 /** The SDK, loaded once, on first use. */
 export function loadSdk(): Promise<Loaded> {
   loading ??= (async () => {
-    const [sdk, providers] = await Promise.all([import('ai'), import('./providers.js')]);
+    const [sdk, providers, decisions] = await Promise.all([import('ai'), import('./providers.js'), import('./decide.js')]);
     // one assignment, so the egress guard counts one use of the global object here
     Object.assign(globalThis, {
-      AI_SDK_DEFAULT_PROVIDER: { specificationVersion: 'v4', languageModel: refuse('languageModel'), embeddingModel: refuse('embeddingModel'), imageModel: refuse('imageModel') },
+      AI_SDK_DEFAULT_PROVIDER: { specificationVersion: 'v4', languageModel: refuse('languageModel'), embeddingModel: refuse('embeddingModel'), imageModel: refuse('imageModel'), decisionModel: refuse('decisionModel') },
       AI_SDK_LOG_WARNINGS: false,
     });
-    return { sdk, providers };
+    return { sdk, providers, decisions };
   })();
   loading.catch(() => {
     loading = null; // a failed load (a broken install) is tried again next time

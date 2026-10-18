@@ -55,11 +55,20 @@ export const CONSENT: Record<'anthropic' | 'openai' | 'openrouter' | 'jev' | 'cu
   anthropic: { ...CLOUD, provider: 'Anthropic', policyUrl: 'https://www.anthropic.com/legal/privacy' },
   openai: { ...CLOUD, provider: 'OpenAI', policyUrl: 'https://openai.com/policies/privacy-policy/' },
   openrouter: { ...CLOUD, provider: 'OpenRouter', policyUrl: 'https://openrouter.ai/privacy' },
+  // Jev's own consent (D82), apart from the OpenRouter connection whose key it uses. Version 2: what it sends grew to
+  // the judge's whole list (a PR's details, your names), as for a chat model
   jev: {
     ...CLOUD,
+    version: 2,
     provider: 'OpenRouter, for TypeSafe’s Jev',
     policyUrl: 'https://openrouter.ai/privacy',
-    sends: { judge: ["The text of a screenshot Found picked up (read on this computer), with your own messages marked", "Your “what counts as a win” instructions", "Your active projects' names"], test: TEST },
+    sends: { judge: JUDGE, test: TEST },
+    notes: [
+      'It goes from this computer to openrouter.ai, which passes it to TypeSafe AI, who run Jev. BragDoc’s makers see nothing: there is no BragDoc server in between.',
+      'Jev answers with probabilities only (“a win: 93%”, and which project). It never says why, and BragDoc never makes a reason up for it.',
+      'It uses the key of the OpenRouter connection it goes through: that stays in secrets.yaml on this computer (readable by you alone), and is sent only to openrouter.ai.',
+      'To stop: Settings → AI → the Jev connection → Revoke. Nothing more is sent to Jev from that moment, even while the OpenRouter connection stays allowed.',
+    ],
   },
   // any server you typed in that isn't on this computer or your network, whatever kind you chose for it
   custom: CLOUD,

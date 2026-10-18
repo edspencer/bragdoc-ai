@@ -15,7 +15,7 @@
 import type { Context, Hono } from 'hono';
 import { z } from 'zod';
 import type { AiConnectionView, AiFeatureReadiness, AiStatus } from '../../shared/api.js';
-import { AI_FEATURES, AI_KINDS, baseUrlOf, CONNECTION_ID_RE, connectionClass, contextTokensOf, isCloud, KEY_REQUIRED, type AiConnectionConfig, type AiFeature } from '../../shared/ai/connections.js';
+import { AI_FEATURES, AI_KINDS, baseUrlOf, CONNECTION_ID_RE, connectionClass, contextTokensOf, decisionOnly, isCloud, JEV_MODEL, KEY_REQUIRED, type AiConnectionConfig, type AiFeature } from '../../shared/ai/connections.js';
 import { consentCurrent, consentStatement } from '../../shared/ai/consent.js';
 import { hostClass } from '../../shared/ai/hosts.js';
 import { AiError } from '../ai/errors.js';
@@ -172,6 +172,7 @@ export function registerAi(app: Hono, ctx: AppContext): void {
     write(c, async () => {
       const b = await body(c, SettingsSchema, 'AI settings');
       if (b.text && !ctx.config.get().ai.connections[b.text.connection]) throw new Refused(400, 'invalid', `there's no AI connection called ${b.text.connection}`);
+      if (b.text) slotFor(ctx.config.get().ai.connections, b.text, 'text');
       update({ ...(b.enabled !== undefined ? { enabled: b.enabled } : {}), ...(b.text !== undefined ? { text: b.text } : {}) });
       // switched off: whatever is running or waiting stops now, not at its next request
       if (b.enabled === false) {
@@ -251,7 +252,10 @@ export function registerAi(app: Hono, ctx: AppContext): void {
       for (const f of AI_FEATURES) if (cfg.ai.features[f].model?.connection === id) feats[f] = { model: null };
       // its key first: with secrets.yaml broken, refuse (409) rather than leave a key a new connection of that id would inherit
       ctx.secrets.setAiKey(id, null);
-      update({ connections: { [id]: null }, ...(cfg.ai.text?.connection === id ? { text: null } : {}), ...(Object.keys(feats).length ? { features: feats } : {}) });
+      // a Jev that went through it has nothing to go through, and its consent goes too: an OpenRouter connection added
+      // later under the same id (another account, another key) asks again before Jev sends anything (D82)
+      const orphans = Object.fromEntries(Object.entries(cfg.ai.connections).filter(([, x]) => x.kind === 'jev' && x.via === id && x.consent).map(([j]) => [j, { consent: null }]));
+      update({ connections: { ...orphans, [id]: null }, ...(cfg.ai.text?.connection === id ? { text: null } : {}), ...(Object.keys(feats).length ? { features: feats } : {}) });
     }),
   );
 
@@ -341,9 +345,24 @@ export function registerAi(app: Hono, ctx: AppContext): void {
       }
       const slot = (raw as { model?: { connection?: string } | null }).model;
       if (slot && !cfg.ai.connections[slot.connection ?? '']) throw new Refused(400, 'invalid', `there's no AI connection called ${slot.connection}`);
+      if (slot) slotFor(cfg.ai.connections, slot as { connection: string; model: string }, feature);
       update({ features: { [feature]: raw } });
     }),
   );
+}
+
+/** Jev's models at /systemone (`typesafe/jev-1.14`); never `typesafe/jev-router`, OpenRouter's chat model (D82). */
+const JEV_MODEL_RE = /^typesafe\/jev-\d[\w.-]*$/;
+
+/**
+ * May this connection and model fill this slot? A decision model (Jev) only judges: never the text slot (Tidy's and
+ * Draft's), nor their own; and only with one of Jev's models (D82).
+ */
+function slotFor(all: Record<string, AiConnectionConfig>, slot: { connection: string; model: string }, use: AiFeature | 'text'): void {
+  const conn = all[slot.connection];
+  if (!decisionOnly(conn?.kind)) return;
+  if (use !== 'judge') throw new Refused(400, 'invalid', `${slot.connection} is Jev, which answers yes-or-no decisions for the judge only: choose a chat model for ${use === 'text' ? 'the text slot' : use}`);
+  if (!JEV_MODEL_RE.test(slot.model)) throw new Refused(400, 'invalid', `Jev's model is ${JEV_MODEL} (${slot.model} isn't one of Jev's: typesafe/jev-router is a chat model)`);
 }
 
 /** A merge patch applied to plain data (null removes a key: its default applies). */

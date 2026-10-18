@@ -18,6 +18,7 @@ import fs from 'node:fs';
 import http from 'node:http';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { decisionAsked } from '../../../scripts/eval/decision.ts';
 import { answerFor, type AnswerRule, type FakeRequest } from './answers.ts';
 
 export const SCENARIOS = ['ok', 'slow', 'down', 'bad-json', 'bad-json-once', 'no-schema', 'timeout', 'rate-limited', 'refused-key', 'quota', 'context-too-long', 'no-models'] as const;
@@ -156,7 +157,9 @@ export function createFakeLlm(opts: FakeLlmOptions = {}): FakeLlm {
     requests.push(rec);
     if (requests.length > 500) requests.shift();
 
-    const api: FakeRequest['api'] | null = p.startsWith('/api/') ? 'ollama' : p === '/v1/messages' || (p === '/v1/models' && 'x-api-key' in req.headers) ? 'anthropic' : p.startsWith('/v1/') ? 'openai' : null;
+    // Jev's decision endpoint (OpenRouter's /api/v1/systemone, D82) answers like OpenRouter, wherever it's mounted
+    const decision = /\/systemone$/.test(p);
+    const api: FakeRequest['api'] | null = decision ? 'openai' : p.startsWith('/api/') ? 'ollama' : p === '/v1/messages' || (p === '/v1/models' && 'x-api-key' in req.headers) ? 'anthropic' : p.startsWith('/v1/') ? 'openai' : null;
     const json = (status: number, v: unknown) => res.writeHead(status, { 'content-type': 'application/json' }).end(JSON.stringify(v));
     const error = (status: number, message: string, type = 'invalid_request_error') =>
       api === 'ollama' ? json(status, { error: message }) : api === 'anthropic' ? json(status, { type: 'error', error: { type, message } }) : json(status, { error: { message, type, code: null } });
@@ -206,6 +209,7 @@ export function createFakeLlm(opts: FakeLlmOptions = {}): FakeLlm {
       return json(200, api === 'anthropic' ? { data: names.map((id) => ({ type: 'model', id, display_name: id })), has_more: false } : { object: 'list', data: names.map((id) => ({ id, object: 'model', owned_by: 'fake' })) });
     }
 
+    if (decision && req.method === 'POST') return systemone(body, scenario, opts.rules ?? [], json, rec);
     if (!modelCall || !api) return error(404, `the fake model server has no ${req.method} ${p}`);
     if (!raw || typeof body !== 'object') return error(400, 'the request body is not JSON');
 
@@ -271,6 +275,35 @@ export function createFakeLlm(opts: FakeLlmOptions = {}): FakeLlm {
     res.end();
   });
   return { server, requests };
+}
+
+/**
+ * Jev at OpenRouter's /systemone (D82): typed questions about a state, answered `noul` (P(yes)) or `choice`, as the
+ * real endpoint does (its 400s included). The answer comes from the rule table like any other (the `jev` row, or a
+ * recording's), in the AI SDK's shape (`boolean` → `noul` here). `bad-json`: an answer that isn't one.
+ */
+function systemone(body: Record<string, any>, scenario: Scenario, rules: AnswerRule[], json: (status: number, v: unknown) => unknown, rec: Recorded): unknown {
+  const model = String(body.model ?? '');
+  if (!/^typesafe\/jev-\d/.test(model)) return json(400, { error: { message: `Model ${model} does not exist`, code: 400 } });
+  const qs = body.questions && typeof body.questions === 'object' ? (body.questions as Record<string, { type?: string; instructions?: unknown; criteria?: unknown }>) : null;
+  if (!qs || !Object.keys(qs).length || Object.values(qs).some((q) => !['noul', 'choice', 'score', 'box'].includes(String(q?.type))))
+    return json(400, { error: { message: "Invalid discriminator value. Expected 'noul' | 'choice' | 'score' | 'box'", code: 400 } });
+  if (!body.state || typeof body.state !== 'object') return json(400, { error: { message: 'state: expected an object', code: 400 } });
+  const { system, prompt } = decisionAsked(body.state, qs);
+  const r: FakeRequest = { api: 'openai', model, system, messages: [{ role: 'user', content: prompt }], prompt, schema: null, schemaName: 'jev_decision', schemaSent: false, json: true, stream: false };
+  const { rule, value } = answerFor(r, rules);
+  rec.rule = rule;
+  const sdk = (value ?? {}) as Record<string, { type?: string; probability?: number; choice?: string; probabilities?: Record<string, number> }>;
+  const answers = Object.fromEntries(
+    Object.keys(qs).map((id) => {
+      const a = sdk[id];
+      if (scenario === 'bad-json' || scenario === 'bad-json-once') return [id, { type: 'noul', noul: 'very likely' }];
+      if (a?.type === 'boolean') return [id, { type: 'noul', noul: a.probability }];
+      if (a?.type === 'choice') return [id, { type: 'choice', choice: a.choice, ...(a.probabilities ? { probabilities: a.probabilities } : {}) }];
+      return [id, a ?? { type: 'refusal' }];
+    }),
+  );
+  return json(200, { model: `${model}-fake`, answers, usage: { input_tokens: Math.ceil(JSON.stringify(body).length / 4), output_tokens: 12, cost: 0 }, id: 'gen-dec-fake', provider: 'TypeSafe (fake)' });
 }
 
 function safeParse(s: string): unknown {
