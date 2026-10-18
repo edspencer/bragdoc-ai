@@ -36,7 +36,8 @@ export function DropTray({ c, dragging, projects, repos, onSubmit, saving }: { c
   useEffect(() => {
     if (!has && phase.kind !== 'idle') closeTidy();
   }, [has, phase.kind, closeTidy]);
-  const reading = pictures.filter((_, i) => !ocr[i]?.data || ocr[i]?.data?.status === 'pending').length;
+  // still being read: asked and waiting, or answered "pending" (a failed request isn't "being read": it's said nowhere)
+  const reading = pictures.filter((_, i) => !ocr[i]?.isError && (!ocr[i]?.data || ocr[i]?.data?.status === 'pending')).length;
   const startTidy = () => {
     const text = c.tidySource();
     void tidy.run({ ...(text.trim() ? { text } : {}), ...(readPictures.length ? { evidenceShas: readPictures } : {}) }, avail.label);
@@ -96,7 +97,7 @@ export function DropTray({ c, dragging, projects, repos, onSubmit, saving }: { c
               ))}
             </ul>
           )}
-          <TidyStatus tidy={tidy} />
+          <TidyStatus tidy={tidy} quiet={!avail.show} />
           <TidySheet tidy={tidy} projects={projects} inert={avail.show ? null : `AI or Tidy was switched off, so this suggestion can’t be used now.${phase.kind === 'done' && phase.used.length ? ' What you already used stays until you change it.' : ' Your text is as you left it.'}`} saveLabel="Pin it" onUse={(keys, r) => (c.applyTidy(keys, r), tidy.markUsed(keys))} />
         </div>
         <div className="flex shrink-0 flex-wrap items-center gap-2 lg:w-[240px] lg:flex-col lg:items-stretch">

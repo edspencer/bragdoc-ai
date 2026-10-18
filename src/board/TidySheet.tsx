@@ -32,7 +32,7 @@ export function TidyButton({ avail, tidy, can, onTidy, testId }: { avail: TidyAv
 }
 
 /** While it thinks: which model, where, and Cancel. Then an error, in words, if it failed. */
-export function TidyStatus({ tidy }: { tidy: Tidy }) {
+export function TidyStatus({ tidy, quiet = false }: { tidy: Tidy; quiet?: boolean }) {
   const p = tidy.phase;
   if (p.kind === 'thinking')
     return (
@@ -46,7 +46,7 @@ export function TidyStatus({ tidy }: { tidy: Tidy }) {
         </Btn>
       </div>
     );
-  if (p.kind === 'done')
+  if (p.kind === 'done' && !quiet)
     return (
       <span role="status" className="sr-only">
         {p.r.suggestion.notAnAchievement ? 'Tidy says this doesn’t look like an achievement.' : 'Tidy’s suggestion is ready, below.'}

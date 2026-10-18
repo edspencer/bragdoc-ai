@@ -14,6 +14,7 @@
 import { z } from 'zod';
 import type { AiTidyField, AiTidyRequest, AiTidyResponse, AiTidySuggestion } from '../../shared/api.js';
 import { ungrounded } from '../../shared/ai/grounding.js';
+import { IMPACT_SCALE } from '../../shared/impact.js';
 import type { Achievement, Project } from '../../shared/schema/index.js';
 import type { AppContext } from '../context.js';
 import { AiError } from './errors.js';
@@ -123,13 +124,17 @@ export function allowedDates(text: string, today: string): DateRange[] {
   // 11.10.2026 (day first) and 2026/10/11
   for (const m of t.matchAll(/(?<![\d.])(\d{1,2})\.(\d{1,2})\.(\d{4})(?![\d.])/g)) exact(`${m[3]}-${pad(Number(m[2]))}-${pad(Number(m[1]))}`, m[0]);
   for (const m of t.matchAll(/(?<!\d)(\d{4})\/(\d{1,2})\/(\d{1,2})(?!\d)/g)) exact(`${m[1]}-${pad(Number(m[2]))}-${pad(Number(m[3]))}`, m[0]);
-  // "the 5th", "on the 12th": that day this month or last
-  for (const m of t.matchAll(/\bthe (\d{1,2})(?:st|nd|rd|th)\b(?! of)/g)) {
+  // "on the 12th", "the 5th of this month": that day this month or last ("the 3rd attempt" is not a date)
+  for (const m of t.matchAll(/\b(?:on|by|since) the (\d{1,2})(?:st|nd|rd|th)\b(?! of(?! (?:this|last) month))|\bthe (\d{1,2})(?:st|nd|rd|th) of (?:this|last) month\b/g)) {
+    m[1] ??= m[2];
     const d = Number(m[1]), mo = Number(today.slice(5, 7)) - 1;
     for (const [y, mm] of [[year, mo], mo === 0 ? [year - 1, 11] : [year, mo - 1]] as const) if (d <= lastDay(y, mm)) exact(`${y}-${pad(mm + 1)}-${pad(d)}`, m[0]);
   }
   // a year on its own ("in 2025", "last year", "this year"): the whole year
-  for (const m of t.matchAll(/\b(?:in|during|since|throughout) (\d{4})\b/g)) out.push({ from: `${m[1]}-01-01`, to: `${m[1]}-12-31`, why: m[0] });
+  for (const m of t.matchAll(/\b(?:in|during|since|throughout) (\d{4})\b(?! ?ms\b)/g)) {
+    const y = Number(m[1]);
+    if (y >= year - 40 && y <= year) out.push({ from: `${y}-01-01`, to: y === year ? today : `${y}-12-31`, why: m[0] });
+  }
   if (/\blast year\b/.test(t)) out.push({ from: `${year - 1}-01-01`, to: `${year - 1}-12-31`, why: 'last year' });
   if (/\bthis year\b/.test(t)) out.push({ from: `${year}-01-01`, to: today, why: 'this year' });
 
@@ -144,9 +149,10 @@ export function allowedDates(text: string, today: string): DateRange[] {
     out.push({ from: addDays(today, -n * unit - slack), to: addDays(today, Math.min(0, -n * unit + slack)), why: m[0] });
   }
   for (const [i, day] of WEEKDAYS.entries()) {
-    // Tuesday, Tues, Tue (and Thurs, Thu, Weds…)
-    const abbrev = { sunday: 'sun', monday: 'mon', tuesday: 'tues?', wednesday: 'wed(?:s)?', thursday: 'thu(?:rs?)?', friday: 'fri', saturday: 'sat' }[day];
-    if (!new RegExp(`\\b(?:${day}s?|${abbrev})\\b`).test(t)) continue;
+    // Tuesday in any case; an abbreviation (Tue, Tues, Thurs, Weds…) only capitalised or with a full stop, since
+    // "sat with", "sun-themed" and "the mon dashboard" are words
+    const abbrev = { sunday: 'Sun', monday: 'Mon', tuesday: 'Tues?', wednesday: 'Weds?', thursday: 'Thu(?:rs?)?', friday: 'Fri', saturday: 'Sat' }[day]!;
+    if (!new RegExp(`\\b${day}s?\\b`).test(t) && !new RegExp(`\\b${abbrev}\\b(?![\\p{L}-])`, 'u').test(text) && !new RegExp(`\\b${abbrev.toLowerCase()}\\.|\\b(?:last|on|this|since|by) ${abbrev.toLowerCase()}\\b`).test(t)) continue;
     // the last two weeks' worth of that weekday ("on Tuesday", "last Tuesday")
     for (let back = 0; back <= 14; back++) {
       const iso = addDays(today, -back);
@@ -188,10 +194,17 @@ const oneLine = (s: string) => s.replace(/\s+/g, ' ').trim();
 // mostly not a quantity ("one of the services").
 const NUMBER_WORD = /\b(two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|fifteen|twenty|thirty|forty|fifty|sixty|seventy|eighty|ninety|hundreds?|thousands?|millions?|billions?|dozens?|double[ds]?|doubling|triple[ds]?|tripling|quadrupled?|half|halved|halving|twice|thrice)\b/gi;
 
+/** Words a sentence opens with that aren't names: irregular past tenses, pronouns, articles, connectives. */
+const OPENER =
+  /^(?:I|A|An|The|This|That|These|Those|It|Its|My|Our|We|They|He|She|Their|His|Her|After|Before|When|While|With|Without|Then|Also|Both|All|Every|Each|Some|Most|New|First|Second|Last|Next|Now|Once|Over|Under|From|For|To|In|On|At|By|As|So|But|And|Or|No|Not|Only|Just|Still|Already|Again|Thanks|Thank|Kudos|Huge|Big|Great|Took|Led|Ran|Wrote|Rewrote|Built|Rebuilt|Made|Got|Gave|Cut|Set|Kept|Won|Brought|Found|Taught|Bought|Sent|Spent|Held|Met|Paid|Put|Read|Saw|Said|Told|Thought|Began|Became|Broke|Chose|Drew|Drove|Fed|Fought|Flew|Forgot|Grew|Hit|Hid|Knew|Left|Lent|Let|Lost|Meant|Overcame|Oversaw|Rode|Rose|Shot|Shut|Sold|Split|Spoke|Spun|Stood|Struck|Swept|Swam|Threw|Understood|Undertook|Upheld|Woke|Wore|Withdrew|Help|Helps|Fix|Fixes|Ship|Ships|Move|Moves|Add|Adds|Cut|Make|Makes|Build|Builds|Run|Runs|Lead|Leads|Improve|Improves|Reduce|Reduces|Speed|Speeds)$/;
+
+const WORD_VALUE: Record<string, number> = { two: 2, three: 3, four: 4, five: 5, six: 6, seven: 7, eight: 8, nine: 9, ten: 10, eleven: 11, twelve: 12, fifteen: 15, twenty: 20, thirty: 30, forty: 40, fifty: 50, sixty: 60, seventy: 70, eighty: 80, ninety: 90, hundred: 100, thousand: 1000, million: 1_000_000, billion: 1_000_000_000, dozen: 12, twice: 2, thrice: 3 };
+
 /** Is flagged run `w` not a name after all: its words are all in the sources (any case, any order), or it is a sentence's first word plus words that are? */
 function notReallyAName(output: string, w: string, sources: string[]): boolean {
   const parts = w.split(/\s+/).map((p) => p.replace(/['’]s$/, ''));
-  if (parts.length < 2) return false;
+  // only a run of capitalised words can be a name: a number, an amount or a date flagged by grounding stays flagged
+  if (parts.length < 2 || !parts.every((p) => /^\p{Lu}[\p{L}'’-]*$/u.test(p))) return false;
   const hay0 = sources.join('\n').toLowerCase();
   const inText = (p: string) => new RegExp(`(?<![\\p{L}\\p{N}])${p.toLowerCase().replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}(?![\\p{L}\\p{N}])`, 'u').test(hay0);
   // every word is in your text, just not capitalised or not together ("Sam's Docker" from "sam … his docker")
@@ -209,6 +222,7 @@ function notReallyAName(output: string, w: string, sources: string[]): boolean {
  */
 export function inventedWords(output: string, sources: string[]): string[] {
   const hay = sources.join('\n').toLowerCase();
+  const digits = new Set([...hay.matchAll(/\d+/g)].map((m) => Number(m[0])));
   const has = (w: string) => new RegExp(`(?<![\\p{L}\\p{N}])${w.toLowerCase().replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}(?![\\p{L}\\p{N}])`, 'u').test(hay);
   const out: string[] = [];
   for (const m of output.matchAll(/[\p{L}][\p{L}\p{N}'’-]*/gu)) {
@@ -216,11 +230,15 @@ export function inventedWords(output: string, sources: string[]): string[] {
     if (/\d/.test(m[0])) continue;
     const w = m[0].replace(/['’]s$/, '').replace(/[-'’]+$/, '');
     if (!/^\p{Lu}/u.test(w) || w === 'I' || /^I['’]/.test(w)) continue;
+    if (new RegExp(`^(?:${NUMBER_WORD.source.replace(/^\\b\(|\)\\b$/g, '')})$`, 'i').test(w)) continue; // the number check below decides
     const before = output.slice(0, m.index);
-    if (/(^|[.!?:;]\s+|\n\s*|["“(]\s*)$/.test(before)) continue; // the start of a sentence
+    // a sentence's first word is usually a verb ("Shipped", "Led"), but a title can open with a name ("Stripe
+    // migration"): flag it unless it looks like a verb or a common opener
+    if (/(^|[.!?:;]\s+|\n\s*|["“(]\s*)$/.test(before) && (OPENER.test(w) || /(?:ed|ing)$/i.test(w))) continue;
     if (!has(w)) out.push(w);
   }
-  for (const m of output.matchAll(NUMBER_WORD)) if (!has(m[0])) out.push(m[0]);
+  // "three" is grounded by a 3 in the text
+  for (const m of output.matchAll(NUMBER_WORD)) if (!has(m[0]) && !(WORD_VALUE[m[0].toLowerCase()] !== undefined && digits.has(WORD_VALUE[m[0].toLowerCase()]!))) out.push(m[0]);
   return out;
 }
 
@@ -287,7 +305,8 @@ export function finishTidy(a: TidyAnswer, input: FinishInput): Pick<AiTidyRespon
   }
 
   // grounding: your text, plus what's yours anyway (your projects' names, your name), plus the dates it allowed
-  const sources = [input.material, ...input.projects.map((p) => p.name), ...input.own.filter(Boolean), ...ranges.filter((r) => r.from === r.to).map((r) => r.from)];
+  // the impact scale's labels ("Routine", "Standout") were in the prompt: a why that uses one invents nothing
+  const sources = [input.material, ...input.projects.map((p) => p.name), ...input.own.filter(Boolean), ...IMPACT_SCALE.map((l) => l.label), ...ranges.filter((r) => r.from === r.to).map((r) => r.from)];
   const ungroundedOut: Partial<Record<AiTidyField, string[]>> = {};
   for (const field of ['title', 'summary', 'body', 'impactWhy'] as const) {
     const v = s[field];

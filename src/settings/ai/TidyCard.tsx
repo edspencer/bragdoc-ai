@@ -6,7 +6,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import type { AiTidyPreview } from '../../../shared/api.ts';
 import { HOST_CLASS_LABEL } from '../../../shared/ai/hosts.ts';
 import { api, isApiError, putAiFeature } from '../../api/client.ts';
-import { queryKeys } from '../../api/queries.ts';
+import { queryKeys, useAiModels } from '../../api/queries.ts';
 import { Btn, Hand, Kicker, Switch, inputCls, useToast } from '../../kit/index.ts';
 import type { FeatureCardProps } from './index.ts';
 import { StyleEditor } from './StyleEditor.tsx';
@@ -32,7 +32,7 @@ export function TidyCard({ status, readiness }: FeatureCardProps) {
         <div className="min-w-0 flex-1">
           <div className="font-grotesk text-[15px] font-bold">Tidy this up, on the board</div>
           <p className="m-0 mt-1 text-[13px] leading-relaxed text-muted">
-            Turns something you pasted, or a screenshot’s text, into a title, a summary, a date, an impact and projects, for you to use field by field. It uses only what’s in your text, and nothing is saved until you pin it.
+            Turns something you pasted, or a screenshot’s text, into a title, a summary, a date, an impact and projects, for you to use field by field. It’s told to use only what’s in your text: anything that isn’t is underlined, and a date that isn’t is left out. Nothing is saved until you pin it, or Save it in the edit drawer.
           </p>
         </div>
         <span className="mt-1 text-[11px] font-bold uppercase text-faint" data-testid="ai-tidy-state">
@@ -68,7 +68,7 @@ export function TidyCard({ status, readiness }: FeatureCardProps) {
             </Btn>
           )}
         </div>
-        {choosing && <ModelChooser status={status} onSave={(model) => (save.mutate({ model }), setChoosing(false))} />}
+        {choosing && <ModelChooser status={status} saving={save.isPending} onSave={(model) => save.mutate({ model }, { onSuccess: () => setChoosing(false) })} />}
       </div>
 
       <div className="mt-4">
@@ -87,9 +87,14 @@ export function TidyCard({ status, readiness }: FeatureCardProps) {
   );
 }
 
-function ModelChooser({ status, onSave }: { status: FeatureCardProps['status']; onSave: (m: { connection: string; model: string }) => void }) {
+function ModelChooser({ status, saving, onSave }: { status: FeatureCardProps['status']; saving: boolean; onSave: (m: { connection: string; model: string }) => void }) {
   const [connection, setConnection] = useState(status.connections[0]?.id ?? '');
   const [model, setModel] = useState('');
+  const c = status.connections.find((x) => x.id === connection);
+  // what the runner has, to pick from: asked of a usable local one only (a cloud one is asked on its own card, D69)
+  const models = useAiModels(c?.id ?? '-', c?.baseUrl ?? null, !!c && !c.blocked && !c.cloud);
+  const known = models.data?.models.map((m) => m.name) ?? [];
+  const unknown = !!model.trim() && models.isSuccess && !known.includes(model.trim());
   if (!status.connections.length) return <Hand className="mt-2 block text-[16px] text-faint">add a connection above first</Hand>;
   return (
     <div className="mt-2 flex flex-wrap items-center gap-2" data-testid="ai-tidy-chooser">
@@ -100,10 +105,16 @@ function ModelChooser({ status, onSave }: { status: FeatureCardProps['status']; 
           </option>
         ))}
       </select>
-      <input value={model} onChange={(e) => setModel(e.target.value)} placeholder="model, e.g. gemma4:e4b" aria-label="Model" className={`${inputCls} w-48 py-1 font-mono text-[13px]`} />
-      <Btn size="sm" kind="go" onClick={() => onSave({ connection, model: model.trim() })} disabled={!connection || !model.trim()}>
-        Use for Tidy
+      <input value={model} onChange={(e) => setModel(e.target.value)} placeholder="model, e.g. gemma4:e4b" aria-label="Model" list="ai-tidy-models" className={`${inputCls} w-48 py-1 font-mono text-[13px]`} />
+      <datalist id="ai-tidy-models">
+        {known.map((m) => (
+          <option key={m} value={m} />
+        ))}
+      </datalist>
+      <Btn size="sm" kind="go" onClick={() => onSave({ connection, model: model.trim() })} disabled={!connection || !model.trim() || saving}>
+        {saving ? 'Saving…' : 'Use for Tidy'}
       </Btn>
+      {unknown && <span className="basis-full text-[12px] text-warn">{connectionName(c!)} doesn’t list “{model.trim()}”: check the name, or a tidy will say the model is missing.</span>}
     </div>
   );
 }

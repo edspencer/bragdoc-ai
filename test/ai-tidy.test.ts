@@ -366,7 +366,11 @@ test("text can't forge the material's structure", async () => {
 });
 
 test("the composer's apply: your words kept, a typed first line never replaced, a body above your notes", async () => {
-  const { applyTitle, applyBody, markUngrounded } = await import('../src/board/tidy.ts');
+  const { applyTitle, applyBody, markUngrounded, withoutTidy } = await import('../src/board/tidy.ts');
+  // a re-tidy reads your words: what you added since, never Tidy's title or body
+  assert.equal(withoutTidy('Tidy title\nfixed login bug\nalso cut p95 by 40%', 'Tidy title', null), 'fixed login bug\nalso cut p95 by 40%');
+  assert.equal(withoutTidy('Tidy title\nBody text\n\nfixed login bgu typo fixed', 'Tidy title', 'Body text'), 'fixed login bgu typo fixed');
+  assert.equal(withoutTidy('My own title now\nfixed it', 'Tidy title', null), 'My own title now\nfixed it');
   assert.equal(applyTitle('a rambling paste', 'Tidy title', null), 'Tidy title\na rambling paste');
   assert.equal(applyTitle('Tidy title\na rambling paste', 'Better title', 'Tidy title'), 'Better title\na rambling paste');
   // the first line is no longer what Tidy put there (you cleared it and typed anew): it's yours, so it moves down
@@ -409,3 +413,22 @@ test("eval:tidy: each recommended model's recording replays through the real pro
 
 /** How many of the 30 each recording passes (set from the recorded run). */
 const REPLAY_FLOOR: Record<string, number> = { 'qwen3.5-4b.json': 23 };
+
+test('second review: invented numbers, dates and opening names stay flagged; ordinary words are not dates', () => {
+  const t = (title: string, material: string) => finish(answer({ title, summary: 'x' }), material, '2026-10-18').ungrounded.title ?? [];
+  for (const [title, material] of [
+    ['Shipped on March 15', 'closed 15 tickets in march'],
+    ['Grew revenue to 40 million', 'we had 40 users and a million requests'],
+    ['Shipped in October 2025', '2025 was busy; in october we shipped'],
+    ['Stripe migration for billing', 'moved billing over'],
+    ['Shipped the export. Priya helped', 'shipped the export'],
+  ]) assert.ok(t(title!, material!).length > 0, title);
+  for (const [title, material] of [
+    ['Three times faster builds', 'it was 3 times faster'],
+    ['Led the incident review', 'led the review of the incident'],
+    ['Rewrote the onboarding guide', 'rewrote the onboarding guide'],
+  ]) assert.deepEqual(t(title!, material!), [], title);
+  const has = (text: string, iso: string) => allowedDates(text, '2026-10-18').some((r) => iso >= r.from && iso <= r.to);
+  for (const [text, iso] of [['in 2026 roadmap planning', '2026-12-20'], ['in 1500 ms', '1500-06-01'], ['sat with the team', '2026-10-10'], ['a sun-themed page', '2026-10-11'], ['the 3rd attempt worked', '2026-10-03']]) assert.ok(!has(text!, iso!), text);
+  for (const [text, iso] of [['Sat: shipped', '2026-10-17'], ['on the 5th', '2026-10-05'], ['last tues', '2026-10-13']]) assert.ok(has(text!, iso!), text);
+});

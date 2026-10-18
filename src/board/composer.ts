@@ -12,7 +12,7 @@ import { isHttpUrl } from '../../shared/links.ts';
 import { NETWORK_ERROR, isApiError, previewLink, uploadEvidence } from '../api/client.ts';
 import { todayIso } from '../lib/dates.ts';
 import { localPreview, type Pending } from './links.ts';
-import { applyBody, applyTitle, type TidyKey } from './tidy.ts';
+import { applyBody, applyTitle, withoutTidy, type TidyKey } from './tidy.ts';
 
 export { fallbackTitle, linkEvidence, localPreview, type Pending } from './links.ts';
 
@@ -48,10 +48,10 @@ export function useComposer({ notify }: ComposerOptions) {
   // only ever set by an accepted Tidy suggestion (v0.2): null keeps the composer exactly as it was without AI
   const [summary, setSummary] = useState<string | null>(null);
   const [endedAt, setEndedAt] = useState<string | null>(null);
-  // the title Tidy last put on the first line (D78), and what you'd written before any suggestion was used: a second
-  // tidy reads your words, not the first one's
+  // what Tidy put in the text (D78): the title on the first line and the body under it. A second tidy reads the text
+  // without them, so it reads your words, including any you added since, and never Tidy's own as yours
   const tidyTitle = useRef<string | null>(null);
-  const tidyOriginal = useRef<string | null>(null);
+  const tidyBody = useRef<string | null>(null);
   const textRef = useRef(text);
   textRef.current = text;
   const aborts = useRef(new Map<number, AbortController>());
@@ -219,19 +219,21 @@ export function useComposer({ notify }: ComposerOptions) {
     setSummary(null);
     setEndedAt(null);
     tidyTitle.current = null;
-    tidyOriginal.current = null;
+    tidyBody.current = null;
   }, []);
 
   /** Use some of a Tidy suggestion (D78): what you wrote stays, in the notes; nothing is pinned until you Pin it. */
   const applyTidy = useCallback((keys: TidyKey[], r: AiTidyResponse) => {
     const s = r.suggestion;
     let t = textRef.current;
-    if (tidyOriginal.current === null || !t.includes(tidyOriginal.current)) tidyOriginal.current = t;
     if (keys.includes('title') && s.title) {
       t = applyTitle(t, s.title, tidyTitle.current);
       tidyTitle.current = s.title;
     }
-    if (keys.includes('body') && s.body) t = applyBody(t, s.body);
+    if (keys.includes('body') && s.body) {
+      t = applyBody(t, s.body);
+      tidyBody.current = s.body;
+    }
     if (t !== textRef.current) setText(t);
     if (keys.includes('summary') && s.summary) setSummary(s.summary);
     if (keys.includes('dates') && s.happenedAt) {
@@ -298,8 +300,8 @@ export function useComposer({ notify }: ComposerOptions) {
     endedAt,
     setEndedAt,
     applyTidy,
-    /** What a tidy reads: your own words, while they're still in the text; else the text as it is. */
-    tidySource: () => (tidyOriginal.current && textRef.current.includes(tidyOriginal.current) ? tidyOriginal.current : textRef.current),
+    /** What a tidy reads: the text without what Tidy put there. */
+    tidySource: () => withoutTidy(textRef.current, tidyTitle.current, tidyBody.current),
     addSticky,
     removeSticky,
     addFiles,

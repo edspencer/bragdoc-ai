@@ -128,6 +128,18 @@ export function applyTitle(text: string, title: string, previous: string | null)
   return `${title}\n${text}`;
 }
 
+/** The composer's text minus what Tidy put in it: a first line that's still its title, and its body block. */
+export function withoutTidy(text: string, title: string | null, body: string | null): string {
+  let t = text;
+  const nl = t.indexOf('\n');
+  if (title !== null && (nl < 0 ? t : t.slice(0, nl)) === title) t = nl < 0 ? '' : t.slice(nl + 1);
+  if (body) {
+    const i = t.indexOf(body);
+    if (i >= 0) t = (t.slice(0, i) + t.slice(i + body.length).replace(/^\n{1,2}/, '')).replace(/\n{3,}/g, '\n\n');
+  }
+  return t.trim() ? t : text;
+}
+
 export function applyBody(text: string, body: string): string {
   const nl = text.indexOf('\n');
   if (nl < 0) return text.trim() ? `${text}\n${body}` : `\n${body}`;
