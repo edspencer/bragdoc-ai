@@ -23,6 +23,7 @@ const TYPE: Record<ChangeEntity, ServerEvent['type']> = {
   company: 'company',
   found: 'found',
   profile: 'profile',
+  instructions: 'instructions',
 };
 
 /** Forward every store change to the bus. Returns the unsubscribe function. */

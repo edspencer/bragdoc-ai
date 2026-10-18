@@ -10,6 +10,7 @@ import { Hono } from 'hono';
 import { serve } from '@hono/node-server';
 import { serveStatic } from '@hono/node-server/serve-static';
 import type { Notice } from '../shared/api.js';
+import { AiActivity } from './ai/activity.js';
 import { createAi, type Ai } from './ai/run.js';
 import { ConfigStore } from './config.js';
 import type { AppContext } from './context.js';
@@ -61,6 +62,8 @@ export interface AppOptions {
   homedir?: string;
   /** ctx.ai (tests: a fake). Default: createAi() over this app's config, egress and secrets. */
   ai?: Ai;
+  /** The AI activity log (tests: a small rotation size). Default: logs/ai-runs.jsonl in the data home. */
+  aiActivity?: AiActivity;
 }
 
 /**
@@ -92,6 +95,10 @@ export function createAppWithContext({ dataDir, webDist = WEB_DIST, version = VE
   const ocr = o.ocr ?? createOcr({ cache: evidenceOcrCache(store, services) });
   const egress = o.egress ?? new Egress({ dataDir, config: () => config.get(), onLog: () => bus.emitSoon('network', { type: 'network' }) });
   const secrets = new Secrets(dataDir);
+  const ai = o.ai ?? createAi({ config: () => config.get(), egress, secrets });
+  // every model call, logged without content once it's over; nothing is written until one is made (D68)
+  const aiActivity = o.aiActivity ?? new AiActivity({ dataDir, onLine: () => bus.emitSoon('ai-activity', { type: 'ai-activity' }) });
+  aiActivity.listen(ai);
   const base: Omit<AppContext, 'sources'> = {
     version,
     dataDir,
@@ -108,7 +115,8 @@ export function createAppWithContext({ dataDir, webDist = WEB_DIST, version = VE
     ocr,
     evidenceText: new EvidenceText({ store, services, ocr }),
     // a thin shell: the AI SDK is loaded by the first model call, never at start (SPEC R20)
-    ai: o.ai ?? createAi({ config: () => config.get(), egress, secrets }),
+    ai,
+    aiActivity,
   };
   const ctx: AppContext = { ...base, sources: createSources(base, { env: o.env, now: o.now, homedir: o.homedir }) };
   // every change to a data file (ours, an agent's over MCP, a hand edit the watcher saw) reaches open tabs, projects,

@@ -133,7 +133,11 @@ export type ServerEvent =
   /** The Problems list may have changed (sent with every store change, and when a misnamed file comes or goes). */
   | { type: 'problems' }
   /** AI settings, a connection, a key or consent changed (PR21): refetch GET /api/ai. */
-  | { type: 'ai' };
+  | { type: 'ai' }
+  /** An instructions file (ai/<name>.md) changed: saved, reset, or edited by hand (PR22). */
+  | { type: 'instructions' }
+  /** A line was added to the AI activity log (PR22): refetch GET /api/ai/activity. */
+  | { type: 'ai-activity' };
 
 // ---------------------------------------------------------------- board (PR7): achievements, evidence, links, problems
 //
@@ -1010,3 +1014,75 @@ export interface AiModelsResponse {
 
 /** `PUT /api/ai/features/:feature`: any of that feature's settings (a merge patch). */
 export type AiFeatureUpdate = Partial<AiJudgeSettings> | Partial<AiFeatureSettings['tidy']>;
+
+// ---------------------------------------------------------------- AI plumbing (PR22): instructions, activity
+//
+// The instructions files (ai/what-counts.md, ai/style.md; D67) and the AI activity log (logs/ai-runs.jsonl; D68).
+
+export type AiInstructionsName = 'what-counts' | 'style';
+
+/** `GET /api/ai/instructions/:name` (and PUT's answer). The ETag is also the response's `ETag` header. */
+export interface AiInstructionsResponse {
+  name: AiInstructionsName;
+  /** Relative to the data home: `ai/what-counts.md`. */
+  file: string;
+  exists: boolean;
+  /** The whole file as it is on disk (front-matter included), for an editor; null when there's no file. */
+  text: string | null;
+  /** What a model is given: the markdown after any front-matter, from the last good copy; null if there's none. */
+  body: string | null;
+  etag: string | null;
+  /** The file's Problems. A broken file keeps its last good `body`, and a PUT replaces it only with `If-Match`. */
+  problems: FileProblem[];
+  readOnly: boolean;
+  /** A feature has registered a starter: POST …/reset puts it back. */
+  hasStarter: boolean;
+  /** The longest the file may be, in characters. */
+  maxChars: number;
+}
+
+/** `PUT /api/ai/instructions/:name` (If-Match optional; required over a broken file): the whole new file. */
+export interface AiInstructionsRequest {
+  text: string;
+}
+
+/** `POST /api/ai/instructions/:name/reset`: where your previous file went (backups/removed/…), if it was replaced. */
+export interface AiInstructionsReset extends AiInstructionsResponse {
+  removedTo: string | null;
+}
+
+/** What started an AI run: someone asked, a candidate arrived, the schedule, an eval script, `bragdoc dev ai`. */
+export type AiTrigger = 'now' | 'arrival' | 'schedule' | 'eval' | 'cli';
+
+/** One line of the AI activity log: a run (a judge pass, an eval) or a single call (a tidy, a test). Never content. */
+export interface AiActivityEntry {
+  id: string;
+  feature: AiCallFeature;
+  trigger: AiTrigger;
+  startedAt: string;
+  endedAt: string;
+  ms: number;
+  /** The first call's connection, model and where it went; null for a run whose calls never got that far. */
+  connection: string | null;
+  model: string | null;
+  where: AiWhere | null;
+  /** What was processed: the feature's own count if it kept one (`counts`), else the calls made. */
+  items: number;
+  /** The model calls, by how they ended. */
+  calls: { ok: number; error: number; cancelled: number };
+  /** The feature's own outcomes, e.g. the judge's `{ win: 3, 'probably-not': 5, failed: 1 }`. */
+  counts: Record<string, number>;
+  /** Summed over the calls, when the provider reports them. */
+  tokensIn: number | null;
+  tokensOut: number | null;
+  /** How it ended overall. */
+  outcome: 'ok' | 'error' | 'cancelled';
+  /** An error code (AiErrorCode, a gate, or the feature's own), never a message: messages can quote what was sent. */
+  error: string | null;
+}
+
+/** `GET /api/ai/activity?limit=&offset=`: newest first. */
+export interface AiActivityResponse {
+  entries: AiActivityEntry[];
+  total: number;
+}

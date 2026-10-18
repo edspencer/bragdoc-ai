@@ -60,6 +60,8 @@ import type {
   WelcomeResponse,
 } from '../../shared/api.ts';
 import type { Achievement, AchievementCreate, AchievementUpdate, Evidence, FoundCandidate, FoundKeep, Problem, Profile, ProfileUpdate } from '../../shared/schema/index.ts';
+// v0.2's AI plumbing (PR22), on a line of its own so the AI PRs' imports don't collide
+import type { AiActivityResponse, AiInstructionsName, AiInstructionsReset, AiInstructionsResponse } from '../../shared/api.ts';
 
 /** A failed API call: the HTTP status (0 when the server couldn't be reached) and the envelope's code and message. */
 export class ApiRequestError extends Error {
@@ -370,3 +372,16 @@ export const addDiscoveredRepos = (body: DiscoverAddRequest) => api.post<Discove
 export const getExample = (signal?: AbortSignal) => api.get<ExampleStatus>('/api/example', { signal });
 export const addExample = () => api.post<ExampleChanged>('/api/example', {});
 export const removeExample = () => api.post<ExampleChanged>('/api/example/remove', {});
+
+// ---------------------------------------------------------------- AI plumbing (PR22): instructions, activity
+
+/** `GET /api/ai/instructions/:name`: the file (all of it, for an editor), what a model is given, its Problems. */
+export const getAiInstructions = (name: AiInstructionsName, signal?: AbortSignal) => api.get<AiInstructionsResponse>(`/api/ai/instructions/${seg(name)}`, { signal });
+/** Save the whole file. Send the ETag you read: a stale one is a 409, and a broken file needs it to be replaced. */
+export const putAiInstructions = (name: AiInstructionsName, text: string, etag?: string | null) =>
+  api.put<AiInstructionsResponse>(`/api/ai/instructions/${seg(name)}`, { text }, etag ? { headers: { 'If-Match': etag } } : undefined);
+/** Put the feature's starter back (your version is moved to backups/removed/). */
+export const resetAiInstructions = (name: AiInstructionsName) => api.post<AiInstructionsReset>(`/api/ai/instructions/${seg(name)}/reset`, {});
+/** `GET /api/ai/activity`: the AI activity log, newest first. */
+export const getAiActivity = (opts: { limit?: number; offset?: number } = {}, signal?: AbortSignal) =>
+  api.get<AiActivityResponse>(`/api/ai/activity?limit=${opts.limit ?? 50}&offset=${opts.offset ?? 0}`, { signal });

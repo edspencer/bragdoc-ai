@@ -4,8 +4,8 @@
 //
 // `bragdoc dev ai --connection <id> --model <m> [--schema ok] "<prompt>"` (v0.2, PR21): one model call through the
 // real runtime (ctx.ai: the gates, the queue, egress), with the data home's config.yaml and secrets.yaml. It prints
-// the answer, how long it took and where it went. Like any call, it's in the data home's Network activity, and it's
-// refused exactly as the app would refuse it: with AI off it sends nothing.
+// the answer, how long it took and where it went. Like any call, it's in the data home's Network activity and AI
+// activity (trigger `cli`), and it's refused exactly as the app would refuse it: with AI off it sends nothing.
 //
 // The rules need to know who you are. They use --name / --aliases / --not-me when given, else the data home's
 // profile.yaml (read only), else they're skipped.
@@ -108,19 +108,21 @@ async function devAi(ctx: Ctx, args: string[], flags: Record<string, string>, re
   if (!!args[0] === !!flags.file) throw new UsageError('dev ai needs a prompt: "<prompt>" or --file <file>');
   const prompt = flags.file ? fs.readFileSync(path.resolve(flags.file), 'utf8') : args[0]!;
   const dataDir = resolveDataDir(flags['data-dir'], ctx.env, ctx.homedir);
-  const [{ ConfigStore }, { Egress }, { Secrets }, { createAi, AiError }, { HOST_CLASS_LABEL }] = await Promise.all([
+  const [{ ConfigStore }, { Egress }, { Secrets }, { createAi, AiError }, { HOST_CLASS_LABEL }, { AiActivity }] = await Promise.all([
     import('../config.js'),
     import('../egress.js'),
     import('../secrets.js'),
     import('../ai/run.js'),
     import('../../shared/ai/hosts.js'),
+    import('../ai/activity.js'),
   ]);
   const config = new ConfigStore(dataDir, { env: ctx.env });
   config.load();
   const egress = new Egress({ dataDir, config: () => config.get() });
   const ai = createAi({ config: () => config.get(), egress, secrets: new Secrets(dataDir) });
+  new AiActivity({ dataDir }).listen(ai); // in the data home's AI activity, like any call (a running server lists it)
   const slot = { connection: flags.connection, model: flags.model };
-  const call = { feature: 'test' as const, purpose: 'ai.dev', slot, system: flags.system ?? 'You are a helpful assistant. Answer briefly.', prompt, priority: 'now' as const };
+  const call = { feature: 'test' as const, purpose: 'ai.dev', slot, system: flags.system ?? 'You are a helpful assistant. Answer briefly.', prompt, priority: 'now' as const, trigger: 'cli' as const };
   const t0 = ctx.now();
   try {
     let line: { where: string; ms: number; tokensIn: number | null; tokensOut: number | null; mode: string; repaired: boolean };
