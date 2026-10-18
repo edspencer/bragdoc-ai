@@ -38,6 +38,8 @@ export function ConnectionCard({ c, status }: { c: AiConnectionView; status: AiS
   // Jev is in use when it's the judge's model; anything else when it's the text slot
   const inUse = judgeOnly ? status.features.judge.model?.connection === c.id : status.text?.connection === c.id;
   const via = judgeOnly ? status.connections.find((x) => x.id === c.via) : undefined;
+  // the Jevs that go through this (an OpenRouter) connection: removing it stops them, and they ask for consent again
+  const riders = status.connections.filter((x) => decisionOnly(x.kind) && x.via === c.id);
 
   const revoke = useMutation({
     mutationFn: () => revokeAiConnection(c.id),
@@ -69,7 +71,7 @@ export function ConnectionCard({ c, status }: { c: AiConnectionView; status: AiS
           <div className="text-[12px] text-faint">
             {c.name ? `${KIND_LABEL[c.kind]} · ` : ''}
             <span className="font-mono">{c.id}</span>
-            {inUse && <span className="ml-1.5 font-semibold text-good">· in use</span>}
+            {(inUse || riders.length > 0) && <span className="ml-1.5 font-semibold text-good">· in use{!inUse ? ` by ${riders.map(connectionName).join(', ')}` : ''}</span>}
           </div>
         </div>
         <Stamp color={CLASS_COLOUR[c.class]} rotate={-2} className="text-[11px]">
@@ -98,7 +100,7 @@ export function ConnectionCard({ c, status }: { c: AiConnectionView; status: AiS
                 {connectionName(via)} <span className="text-muted">({via.hasKey ? 'with its key' : 'which has no key yet'})</span>
               </>
             ) : (
-              <span className="text-warn">an OpenRouter connection that’s gone: remove this one and add Jev again</span>
+              <span className="text-warn">its OpenRouter connection is gone. Add OpenRouter again to reconnect it (it asks for consent again), or remove this one.</span>
             )}
           </div>
           <p className="m-0 mt-1.5 text-[12.5px] leading-snug text-muted" data-testid="ai-connection-jev-note">
@@ -109,7 +111,7 @@ export function ConnectionCard({ c, status }: { c: AiConnectionView; status: AiS
       {editable ? <AddressField c={c} put={put} /> : c.baseUrl && <Row label="Address"><span className="break-all font-mono text-[12.5px]">{c.baseUrl}</span></Row>}
       {!c.cloud && editable && <ContextField c={c} put={put} />}
 
-      {c.cloud && (
+      {c.cloud && c.host && (
         <div className="space-y-2" data-testid="ai-connection-consent">
           <Kicker>Consent</Kicker>
           {c.consent?.current ? (
@@ -144,7 +146,11 @@ export function ConnectionCard({ c, status }: { c: AiConnectionView; status: AiS
       <div className="flex flex-wrap items-center gap-2 border-t border-dashed border-line pt-3">
         {removing ? (
           <>
-            <span className="text-[13px]">Remove {connectionName(c)}{c.hasKey ? ' and delete its key' : ''}?</span>
+            <span className="text-[13px]">
+              Remove {connectionName(c)}
+              {c.hasKey ? ' and delete its key' : ''}?
+              {riders.length > 0 && ` ${riders.map(connectionName).join(', ')} goes through it: the judge stops using it, and it asks for consent again.`}
+            </span>
             <Btn size="sm" kind="danger" onClick={() => remove.mutate()} disabled={remove.isPending} data-testid="ai-connection-remove-yes">
               Remove
             </Btn>
@@ -384,7 +390,12 @@ function TestAndUse({ c, allowed, inUse, status, put }: { c: AiConnectionView; a
     mutationFn: () => (judgeOnly ? putAiFeature('judge', { model: { connection: c.id, model: model.trim() } }) : putAi({ text: { connection: c.id, model: model.trim() } })),
     onSuccess: (s) => {
       put(s);
-      toast({ msg: judgeOnly ? `The judge will ask Jev (${model.trim()}). Switch the judge on to use it.` : `AI features will use ${model.trim()} on ${connectionName(c)}.` });
+      const jevJudge = !judgeOnly && status.connections.some((x) => decisionOnly(x.kind) && x.id === status.features.judge.model?.connection);
+      toast({
+        msg: judgeOnly
+          ? `The judge will ask Jev (${model.trim()})${status.features.judge.enabled ? '.' : '. Switch the judge on to use it.'}`
+          : `AI features will use ${model.trim()} on ${connectionName(c)}.${jevJudge ? ' The judge still uses Jev, its own model.' : ''}`,
+      });
     },
     onError: (e) => toast({ msg: errorText(e), tone: 'bad' }),
   });

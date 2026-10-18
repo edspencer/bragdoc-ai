@@ -4,7 +4,7 @@
   "feature": "judge",
   "model": "typesafe/jev-1.14",
   "where": "internet",
-  "recordedAt": "2026-10-18T21:41:29.600Z",
+  "recordedAt": "2026-10-18T21:56:57.792Z",
   "cases": [
     {
       "id": "m001",
@@ -30,7 +30,7 @@
       "id": "m006",
       "calls": [
         {
-          "hash": "sha256:f4d07e38232ce02ba162ace70f8668bb4aa526b13295ff9a6a6b99cfbc1f0788",
+          "hash": "sha256:e3a24689e7af66d0ce4bb0921987b3278474276828f7560c30b39e998ad3cf80",
           "shape": "sha256:2fd16fde6cbe09d9f9292428c1500c2b15c76ef52f2dacf240bd78b6cae78536",
           "answer": {
             "keep": {
@@ -39,21 +39,10 @@
             },
             "project": {
               "type": "choice",
-              "choice": "Mobile Offline Sync",
-              "probabilities": {
-                "Checkout v2": 0,
-                "Billing Migration": 0,
-                "Deploy Pipeline": 0,
-                "Search Relevance": 0,
-                "Mobile Offline Sync": 0.92,
-                "On-call & Incidents": 0,
-                "Mentoring": 0,
-                "Ledger Platform": 0,
-                "(none of these)": 0.08
-              }
+              "choice": "Mobile Offline Sync"
             }
           },
-          "ms": 288,
+          "ms": 347,
           "tokensIn": 1079,
           "tokensOut": 118
         }
@@ -67,30 +56,19 @@
       "id": "m008",
       "calls": [
         {
-          "hash": "sha256:1c8bc94ddaa8f5f687d1686330c3973967269e2289fbcfda827e7262c21974df",
+          "hash": "sha256:e0b298c781ee989ea30749799de95cb6b02e7b256c62652e7ccd09db207f94ef",
           "shape": "sha256:2fd16fde6cbe09d9f9292428c1500c2b15c76ef52f2dacf240bd78b6cae78536",
           "answer": {
             "keep": {
               "type": "boolean",
-              "probability": 0.48
+              "probability": 0.53
             },
             "project": {
               "type": "choice",
-              "choice": "On-call & Incidents",
-              "probabilities": {
-                "Checkout v2": 0,
-                "Billing Migration": 0,
-                "Deploy Pipeline": 0,
-                "Search Relevance": 0,
-                "Mobile Offline Sync": 0,
-                "On-call & Incidents": 0.76,
-                "Mentoring": 0,
-                "Ledger Platform": 0.23,
-                "(none of these)": 0.01
-              }
+              "choice": "On-call & Incidents"
             }
           },
-          "ms": 232,
+          "ms": 199,
           "tokensIn": 1084,
           "tokensOut": 120
         }
@@ -104,30 +82,19 @@
       "id": "m010",
       "calls": [
         {
-          "hash": "sha256:cf59c420422bf68b234b02eaf7284e7f3ccbf6ca4315e295d95e7b756604317c",
+          "hash": "sha256:92137604a617ad0d52cf5b87179357c8d414592592936982293a82c70efeffc1",
           "shape": "sha256:2fd16fde6cbe09d9f9292428c1500c2b15c76ef52f2dacf240bd78b6cae78536",
           "answer": {
             "keep": {
               "type": "boolean",
-              "probability": 0.94
+              "probability": 0.95
             },
             "project": {
               "type": "choice",
-              "choice": "Mentoring",
-              "probabilities": {
-                "Checkout v2": 0,
-                "Billing Migration": 0,
-                "Deploy Pipeline": 0,
-                "Search Relevance": 0,
-                "Mobile Offline Sync": 0,
-                "On-call & Incidents": 0,
-                "Mentoring": 0.99,
-                "Ledger Platform": 0,
-                "(none of these)": 0.01
-              }
+              "choice": "Mentoring"
             }
           },
-          "ms": 188,
+          "ms": 208,
           "tokensIn": 1071,
           "tokensOut": 118
         }
@@ -141,30 +108,19 @@
       "id": "m012",
       "calls": [
         {
-          "hash": "sha256:f6992bb3484d16e8d6b3f761906c8daff084163b26de9c0c0c14f0843a7ea7a5",
+          "hash": "sha256:1a71dba1117ebbecd1166abd487c6f32468518ba77f988e721ea60ad74f45d1b",
           "shape": "sha256:2fd16fde6cbe09d9f9292428c1500c2b15c76ef52f2dacf240bd78b6cae78536",
           "answer": {
             "keep": {
               "type": "boolean",
-              "probability": 0.96
+              "probability": 0.95
             },
             "project": {
               "type": "choice",
-              "choice": "Search Relevance",
-              "probabilities": {
-                "Checkout v2": 0,
-                "Billing Migration": 0,
-                "Deploy Pipeline": 0,
-                "Search Relevance": 0.91,
-                "Mobile Offline Sync": 0,
-                "On-call & Incidents": 0,
-                "Mentoring": 0,
-                "Ledger Platform": 0,
-                "(none of these)": 0.09
-              }
+              "choice": "Search Relevance"
             }
           },
-          "ms": 192,
+          "ms": 135,
           "tokensIn": 1115,
           "tokensOut": 119
         }
@@ -186,7 +142,7 @@
       "id": "m016",
       "calls": [
         {
-          "hash": "sha256:cbd476602553b5d21881add4f46bb98cb36b241c53dec5b4c7575d012042e5b3",
+          "hash": "sha256:8becdc0142374ac3367b5339bea8ae8ee809639e0522029c62191fb0a8725b7f",
           "shape": "sha256:2fd16fde6cbe09d9f9292428c1500c2b15c76ef52f2dacf240bd78b6cae78536",
           "answer": {
             "keep": {
@@ -195,21 +151,10 @@
             },
             "project": {
               "type": "choice",
-              "choice": "Deploy Pipeline",
-              "probabilities": {
-                "Checkout v2": 0,
-                "Billing Migration": 0,
-                "Deploy Pipeline": 1,
-                "Search Relevance": 0,
-                "Mobile Offline Sync": 0,
-                "On-call & Incidents": 0,
-                "Mentoring": 0,
-                "Ledger Platform": 0,
-                "(none of these)": 0
-              }
+              "choice": "Deploy Pipeline"
             }
           },
-          "ms": 213,
+          "ms": 233,
           "tokensIn": 1097,
           "tokensOut": 117
         }
@@ -227,30 +172,19 @@
       "id": "m019",
       "calls": [
         {
-          "hash": "sha256:9c0c078ea67aa1b69132285fef15df7dbc97d26f94783a316d5a049693d09c42",
+          "hash": "sha256:e8537ae82c0421e33ee637649550de533119602645981c11d782e26794698485",
           "shape": "sha256:2fd16fde6cbe09d9f9292428c1500c2b15c76ef52f2dacf240bd78b6cae78536",
           "answer": {
             "keep": {
               "type": "boolean",
-              "probability": 0.09
+              "probability": 0.1
             },
             "project": {
               "type": "choice",
-              "choice": "(none of these)",
-              "probabilities": {
-                "Checkout v2": 0,
-                "Billing Migration": 0,
-                "Deploy Pipeline": 0,
-                "Search Relevance": 0,
-                "Mobile Offline Sync": 0,
-                "On-call & Incidents": 0,
-                "Mentoring": 0,
-                "Ledger Platform": 0,
-                "(none of these)": 1
-              }
+              "choice": "(none of these)"
             }
           },
-          "ms": 144,
+          "ms": 890,
           "tokensIn": 1064,
           "tokensOut": 120
         }
@@ -292,7 +226,7 @@
       "id": "m028",
       "calls": [
         {
-          "hash": "sha256:70cd295388dfaace919acc363c3db7701003d9e01166d9951c2400e76c97ab8c",
+          "hash": "sha256:cacd7ed9b9adf29597af3af55d43ccbb76f8f1dcb35bd3ce069d9eb9ef5a23a4",
           "shape": "sha256:2fd16fde6cbe09d9f9292428c1500c2b15c76ef52f2dacf240bd78b6cae78536",
           "answer": {
             "keep": {
@@ -301,21 +235,10 @@
             },
             "project": {
               "type": "choice",
-              "choice": "(none of these)",
-              "probabilities": {
-                "Checkout v2": 0.06,
-                "Billing Migration": 0,
-                "Deploy Pipeline": 0,
-                "Search Relevance": 0,
-                "Mobile Offline Sync": 0,
-                "On-call & Incidents": 0.13,
-                "Mentoring": 0,
-                "Ledger Platform": 0.2,
-                "(none of these)": 0.61
-              }
+              "choice": "(none of these)"
             }
           },
-          "ms": 167,
+          "ms": 172,
           "tokensIn": 1087,
           "tokensOut": 120
         }
@@ -329,30 +252,19 @@
       "id": "m030",
       "calls": [
         {
-          "hash": "sha256:a09cc1720e1b3412af580f9a6737b3e4a2c4c899cc669dfed2cd43f3a4705047",
+          "hash": "sha256:e00b03cce6f1aa9b63695ce00ee52cdfe3708399e2de85c7002f4f37e6a7a07a",
           "shape": "sha256:2fd16fde6cbe09d9f9292428c1500c2b15c76ef52f2dacf240bd78b6cae78536",
           "answer": {
             "keep": {
               "type": "boolean",
-              "probability": 0.93
+              "probability": 0.94
             },
             "project": {
               "type": "choice",
-              "choice": "On-call & Incidents",
-              "probabilities": {
-                "Checkout v2": 0,
-                "Billing Migration": 0,
-                "Deploy Pipeline": 0,
-                "Search Relevance": 0,
-                "Mobile Offline Sync": 0,
-                "On-call & Incidents": 0.96,
-                "Mentoring": 0,
-                "Ledger Platform": 0,
-                "(none of these)": 0.04
-              }
+              "choice": "On-call & Incidents"
             }
           },
-          "ms": 215,
+          "ms": 131,
           "tokensIn": 1088,
           "tokensOut": 120
         }
@@ -366,7 +278,7 @@
       "id": "m032",
       "calls": [
         {
-          "hash": "sha256:44867175b862ecb94b1183171eaf8b067961108ef9bb366cf6d65b725304b9a2",
+          "hash": "sha256:e45c0f2dcb62f8ef78038fde4fa40a94eb39ace9298034032d87c97238bb6f40",
           "shape": "sha256:2fd16fde6cbe09d9f9292428c1500c2b15c76ef52f2dacf240bd78b6cae78536",
           "answer": {
             "keep": {
@@ -375,21 +287,10 @@
             },
             "project": {
               "type": "choice",
-              "choice": "Mobile Offline Sync",
-              "probabilities": {
-                "Checkout v2": 0,
-                "Billing Migration": 0,
-                "Deploy Pipeline": 0,
-                "Search Relevance": 0,
-                "Mobile Offline Sync": 0.98,
-                "On-call & Incidents": 0,
-                "Mentoring": 0,
-                "Ledger Platform": 0,
-                "(none of these)": 0.02
-              }
+              "choice": "Mobile Offline Sync"
             }
           },
-          "ms": 157,
+          "ms": 912,
           "tokensIn": 1079,
           "tokensOut": 118
         }
@@ -399,7 +300,7 @@
       "id": "m033",
       "calls": [
         {
-          "hash": "sha256:1aafae1524b6ac63efa50603a5b4c0c52ca34bf53392a65a496cc389abcafd2a",
+          "hash": "sha256:49b4de59f1234e12b1b14bb8176bac09f20e5da6ce78453bbc0a33e315b58a34",
           "shape": "sha256:2fd16fde6cbe09d9f9292428c1500c2b15c76ef52f2dacf240bd78b6cae78536",
           "answer": {
             "keep": {
@@ -408,21 +309,10 @@
             },
             "project": {
               "type": "choice",
-              "choice": "Checkout v2",
-              "probabilities": {
-                "Checkout v2": 0.97,
-                "Billing Migration": 0,
-                "Deploy Pipeline": 0,
-                "Search Relevance": 0,
-                "Mobile Offline Sync": 0,
-                "On-call & Incidents": 0,
-                "Mentoring": 0,
-                "Ledger Platform": 0,
-                "(none of these)": 0.03
-              }
+              "choice": "Checkout v2"
             }
           },
-          "ms": 133,
+          "ms": 198,
           "tokensIn": 1085,
           "tokensOut": 118
         }
@@ -436,7 +326,7 @@
       "id": "m035",
       "calls": [
         {
-          "hash": "sha256:fa6ecb235f70db74f86b8206b2b553c5e7e3dd33826e67359f620ef0e98c6d8a",
+          "hash": "sha256:a8684013ff905093aa715edbb015103f7575a330efea2bed86cd522e15a621d1",
           "shape": "sha256:2fd16fde6cbe09d9f9292428c1500c2b15c76ef52f2dacf240bd78b6cae78536",
           "answer": {
             "keep": {
@@ -445,21 +335,10 @@
             },
             "project": {
               "type": "choice",
-              "choice": "Deploy Pipeline",
-              "probabilities": {
-                "Checkout v2": 0,
-                "Billing Migration": 0,
-                "Deploy Pipeline": 0.95,
-                "Search Relevance": 0,
-                "Mobile Offline Sync": 0,
-                "On-call & Incidents": 0.01,
-                "Mentoring": 0,
-                "Ledger Platform": 0,
-                "(none of these)": 0.04
-              }
+              "choice": "Deploy Pipeline"
             }
           },
-          "ms": 125,
+          "ms": 228,
           "tokensIn": 1068,
           "tokensOut": 117
         }
@@ -469,30 +348,19 @@
       "id": "m036",
       "calls": [
         {
-          "hash": "sha256:33045077f73a099ca46b6b0ae2cd77f622295d02e599bcbdf52201d7cc79eefb",
+          "hash": "sha256:b5bbdef907c88808a44667e627db0b107e911e713434936a3b07c26f0e150cc5",
           "shape": "sha256:2fd16fde6cbe09d9f9292428c1500c2b15c76ef52f2dacf240bd78b6cae78536",
           "answer": {
             "keep": {
               "type": "boolean",
-              "probability": 0.94
+              "probability": 0.93
             },
             "project": {
               "type": "choice",
-              "choice": "Deploy Pipeline",
-              "probabilities": {
-                "Checkout v2": 0,
-                "Billing Migration": 0,
-                "Deploy Pipeline": 0.96,
-                "Search Relevance": 0,
-                "Mobile Offline Sync": 0,
-                "On-call & Incidents": 0.03,
-                "Mentoring": 0,
-                "Ledger Platform": 0,
-                "(none of these)": 0.01
-              }
+              "choice": "Deploy Pipeline"
             }
           },
-          "ms": 156,
+          "ms": 178,
           "tokensIn": 1081,
           "tokensOut": 117
         }
@@ -514,7 +382,7 @@
       "id": "m040",
       "calls": [
         {
-          "hash": "sha256:d929945817dce2af974d1f9714c5354b93e5a37f5971d33584b5ef3a691a348c",
+          "hash": "sha256:371e11f08c515b9376b299816a63d9e98e4ce3a21a8c93162987c9f22f797692",
           "shape": "sha256:2fd16fde6cbe09d9f9292428c1500c2b15c76ef52f2dacf240bd78b6cae78536",
           "answer": {
             "keep": {
@@ -523,21 +391,10 @@
             },
             "project": {
               "type": "choice",
-              "choice": "Ledger Platform",
-              "probabilities": {
-                "Checkout v2": 0,
-                "Billing Migration": 0,
-                "Deploy Pipeline": 0,
-                "Search Relevance": 0,
-                "Mobile Offline Sync": 0,
-                "On-call & Incidents": 0,
-                "Mentoring": 0,
-                "Ledger Platform": 0.99,
-                "(none of these)": 0.01
-              }
+              "choice": "Ledger Platform"
             }
           },
-          "ms": 157,
+          "ms": 180,
           "tokensIn": 1115,
           "tokensOut": 118
         }
@@ -559,7 +416,7 @@
       "id": "m044",
       "calls": [
         {
-          "hash": "sha256:d0355ab7cb3c6be2a45fc897091e600426d34cae6ee2c95bb2e595c46a71300d",
+          "hash": "sha256:1dc5a806aad6b4208bdbdfdd7da4673ac128c7baad459ca74227d607c8afbc46",
           "shape": "sha256:2fd16fde6cbe09d9f9292428c1500c2b15c76ef52f2dacf240bd78b6cae78536",
           "answer": {
             "keep": {
@@ -568,21 +425,10 @@
             },
             "project": {
               "type": "choice",
-              "choice": "(none of these)",
-              "probabilities": {
-                "Checkout v2": 0,
-                "Billing Migration": 0,
-                "Deploy Pipeline": 0,
-                "Search Relevance": 0.28,
-                "Mobile Offline Sync": 0,
-                "On-call & Incidents": 0.01,
-                "Mentoring": 0,
-                "Ledger Platform": 0,
-                "(none of these)": 0.71
-              }
+              "choice": "(none of these)"
             }
           },
-          "ms": 165,
+          "ms": 134,
           "tokensIn": 1068,
           "tokensOut": 120
         }
@@ -612,30 +458,19 @@
       "id": "m050",
       "calls": [
         {
-          "hash": "sha256:f5fcd61bde5205d4662ae15790a996aa76812fae034396fca67eeecca3bd21cf",
+          "hash": "sha256:b640081ed543804dbb915fb655278ed6827dbd3514e13051622bfbc0884929f9",
           "shape": "sha256:2fd16fde6cbe09d9f9292428c1500c2b15c76ef52f2dacf240bd78b6cae78536",
           "answer": {
             "keep": {
               "type": "boolean",
-              "probability": 0.5
+              "probability": 0.46
             },
             "project": {
               "type": "choice",
-              "choice": "On-call & Incidents",
-              "probabilities": {
-                "Checkout v2": 0,
-                "Billing Migration": 0,
-                "Deploy Pipeline": 0,
-                "Search Relevance": 0,
-                "Mobile Offline Sync": 0,
-                "On-call & Incidents": 0.87,
-                "Mentoring": 0,
-                "Ledger Platform": 0,
-                "(none of these)": 0.13
-              }
+              "choice": "On-call & Incidents"
             }
           },
-          "ms": 146,
+          "ms": 185,
           "tokensIn": 1071,
           "tokensOut": 120
         }
@@ -653,30 +488,19 @@
       "id": "m053",
       "calls": [
         {
-          "hash": "sha256:45ebf1ee06ac6f220ad9848f35e63d7a310a747d947f095f9dc35c0e1865fe72",
+          "hash": "sha256:fc8564f73b52d62e80e5fb7ae3b5120dee7e598d84ef9c0dc233e0832495c86c",
           "shape": "sha256:2fd16fde6cbe09d9f9292428c1500c2b15c76ef52f2dacf240bd78b6cae78536",
           "answer": {
             "keep": {
               "type": "boolean",
-              "probability": 0.93
+              "probability": 0.92
             },
             "project": {
               "type": "choice",
-              "choice": "Search Relevance",
-              "probabilities": {
-                "Checkout v2": 0,
-                "Billing Migration": 0,
-                "Deploy Pipeline": 0,
-                "Search Relevance": 0.9400000000000001,
-                "Mobile Offline Sync": 0,
-                "On-call & Incidents": 0,
-                "Mentoring": 0,
-                "Ledger Platform": 0,
-                "(none of these)": 0.06
-              }
+              "choice": "Search Relevance"
             }
           },
-          "ms": 239,
+          "ms": 171,
           "tokensIn": 1074,
           "tokensOut": 119
         }
@@ -694,7 +518,7 @@
       "id": "m056",
       "calls": [
         {
-          "hash": "sha256:fd9c3e903a2b45f4a92fddd6983413619db7429e61a8f0137f6c61f86d067255",
+          "hash": "sha256:4fccbdd1d30f0cedcfc6d464a0e23d47cc8ae1f7f91f78d2cfe8aea214324de7",
           "shape": "sha256:2fd16fde6cbe09d9f9292428c1500c2b15c76ef52f2dacf240bd78b6cae78536",
           "answer": {
             "keep": {
@@ -703,21 +527,10 @@
             },
             "project": {
               "type": "choice",
-              "choice": "Checkout v2",
-              "probabilities": {
-                "Checkout v2": 1,
-                "Billing Migration": 0,
-                "Deploy Pipeline": 0,
-                "Search Relevance": 0,
-                "Mobile Offline Sync": 0,
-                "On-call & Incidents": 0,
-                "Mentoring": 0,
-                "Ledger Platform": 0,
-                "(none of these)": 0
-              }
+              "choice": "Checkout v2"
             }
           },
-          "ms": 151,
+          "ms": 140,
           "tokensIn": 1092,
           "tokensOut": 118
         }
@@ -747,30 +560,19 @@
       "id": "m062",
       "calls": [
         {
-          "hash": "sha256:3342d9f6b9a48e957b132cbcab7f550bc2157d3e29d4a4cf05fbefe9079aa329",
+          "hash": "sha256:fd755da5b8d0d3181f07dceb39f79293b8fbd252f2ac16716489c21ad638070d",
           "shape": "sha256:2fd16fde6cbe09d9f9292428c1500c2b15c76ef52f2dacf240bd78b6cae78536",
           "answer": {
             "keep": {
               "type": "boolean",
-              "probability": 0.96
+              "probability": 0.97
             },
             "project": {
               "type": "choice",
-              "choice": "Search Relevance",
-              "probabilities": {
-                "Checkout v2": 0,
-                "Billing Migration": 0,
-                "Deploy Pipeline": 0,
-                "Search Relevance": 1,
-                "Mobile Offline Sync": 0,
-                "On-call & Incidents": 0,
-                "Mentoring": 0,
-                "Ledger Platform": 0,
-                "(none of these)": 0
-              }
+              "choice": "Search Relevance"
             }
           },
-          "ms": 120,
+          "ms": 165,
           "tokensIn": 1087,
           "tokensOut": 119
         }
@@ -800,30 +602,19 @@
       "id": "m068",
       "calls": [
         {
-          "hash": "sha256:7c813f70ceadc88ab16879ea7417b4f82113988ad222118c2a1e4676ba6133b2",
+          "hash": "sha256:ac060767473957a5600ed02305db1dc916bf1d006ee26a3d2976dfcdb3948547",
           "shape": "sha256:2fd16fde6cbe09d9f9292428c1500c2b15c76ef52f2dacf240bd78b6cae78536",
           "answer": {
             "keep": {
               "type": "boolean",
-              "probability": 0.08
+              "probability": 0.07
             },
             "project": {
               "type": "choice",
-              "choice": "(none of these)",
-              "probabilities": {
-                "Checkout v2": 0,
-                "Billing Migration": 0,
-                "Deploy Pipeline": 0,
-                "Search Relevance": 0.16,
-                "Mobile Offline Sync": 0,
-                "On-call & Incidents": 0,
-                "Mentoring": 0,
-                "Ledger Platform": 0,
-                "(none of these)": 0.84
-              }
+              "choice": "(none of these)"
             }
           },
-          "ms": 163,
+          "ms": 155,
           "tokensIn": 1068,
           "tokensOut": 120
         }
@@ -841,7 +632,7 @@
       "id": "m071",
       "calls": [
         {
-          "hash": "sha256:1e926d378190748afa92912860694c914015404b681244633f3ea3ce9b26465b",
+          "hash": "sha256:da17bbfdfbe50dcf29b427169e9b2efc2f0becbb10eaa1cfba9f065fe85b2e2a",
           "shape": "sha256:2fd16fde6cbe09d9f9292428c1500c2b15c76ef52f2dacf240bd78b6cae78536",
           "answer": {
             "keep": {
@@ -850,21 +641,10 @@
             },
             "project": {
               "type": "choice",
-              "choice": "(none of these)",
-              "probabilities": {
-                "Checkout v2": 0,
-                "Billing Migration": 0,
-                "Deploy Pipeline": 0,
-                "Search Relevance": 0,
-                "Mobile Offline Sync": 0,
-                "On-call & Incidents": 0,
-                "Mentoring": 0,
-                "Ledger Platform": 0,
-                "(none of these)": 1
-              }
+              "choice": "(none of these)"
             }
           },
-          "ms": 148,
+          "ms": 142,
           "tokensIn": 1062,
           "tokensOut": 120
         }
@@ -878,7 +658,7 @@
       "id": "m073",
       "calls": [
         {
-          "hash": "sha256:48099fd2d6dd843fee8975f05a9dfb59d3a8e07fc9c44237d576fdf918f495d7",
+          "hash": "sha256:48db63616f48deaa095654079f20a6c0fc6b4d4d253b879b25b52ac81824a88e",
           "shape": "sha256:2fd16fde6cbe09d9f9292428c1500c2b15c76ef52f2dacf240bd78b6cae78536",
           "answer": {
             "keep": {
@@ -887,21 +667,10 @@
             },
             "project": {
               "type": "choice",
-              "choice": "Checkout v2",
-              "probabilities": {
-                "Checkout v2": 0.61,
-                "Billing Migration": 0,
-                "Deploy Pipeline": 0,
-                "Search Relevance": 0,
-                "Mobile Offline Sync": 0,
-                "On-call & Incidents": 0.1,
-                "Mentoring": 0,
-                "Ledger Platform": 0,
-                "(none of these)": 0.29
-              }
+              "choice": "Checkout v2"
             }
           },
-          "ms": 149,
+          "ms": 117,
           "tokensIn": 1088,
           "tokensOut": 118
         }
@@ -911,30 +680,19 @@
       "id": "m074",
       "calls": [
         {
-          "hash": "sha256:8c41c446e2b928c5f74e1855f13475afe3e01048a52cbd2e72e238e0473f65a3",
+          "hash": "sha256:6f0d044b3645882b8bdf340a7f7093d5fb97e8088beea537abcbf8e8769b75b3",
           "shape": "sha256:2fd16fde6cbe09d9f9292428c1500c2b15c76ef52f2dacf240bd78b6cae78536",
           "answer": {
             "keep": {
               "type": "boolean",
-              "probability": 0.24
+              "probability": 0.23
             },
             "project": {
               "type": "choice",
-              "choice": "Mobile Offline Sync",
-              "probabilities": {
-                "Checkout v2": 0,
-                "Billing Migration": 0,
-                "Deploy Pipeline": 0,
-                "Search Relevance": 0,
-                "Mobile Offline Sync": 0.99,
-                "On-call & Incidents": 0,
-                "Mentoring": 0,
-                "Ledger Platform": 0,
-                "(none of these)": 0.01
-              }
+              "choice": "Mobile Offline Sync"
             }
           },
-          "ms": 136,
+          "ms": 165,
           "tokensIn": 1061,
           "tokensOut": 118
         }
@@ -976,7 +734,7 @@
       "id": "m083",
       "calls": [
         {
-          "hash": "sha256:23171048aa8ec0815662b0ba2d825f80923fcba750ebd1bad9f8befd566f731a",
+          "hash": "sha256:899c698b7030cf148c966641e167358d2008e28212e5e08e8e07330808a055e9",
           "shape": "sha256:2fd16fde6cbe09d9f9292428c1500c2b15c76ef52f2dacf240bd78b6cae78536",
           "answer": {
             "keep": {
@@ -985,21 +743,10 @@
             },
             "project": {
               "type": "choice",
-              "choice": "Search Relevance",
-              "probabilities": {
-                "Checkout v2": 0,
-                "Billing Migration": 0,
-                "Deploy Pipeline": 0,
-                "Search Relevance": 0.98,
-                "Mobile Offline Sync": 0,
-                "On-call & Incidents": 0,
-                "Mentoring": 0,
-                "Ledger Platform": 0,
-                "(none of these)": 0.02
-              }
+              "choice": "Search Relevance"
             }
           },
-          "ms": 129,
+          "ms": 189,
           "tokensIn": 1077,
           "tokensOut": 119
         }
@@ -1009,30 +756,19 @@
       "id": "m084",
       "calls": [
         {
-          "hash": "sha256:ca16d6fdeecd8da048c3ebde0fdff1646d6c0e4906da713a34cd5f72d6f707ce",
+          "hash": "sha256:6452a168deb78b8fc20102df1a91594930fed4c094aee7fedfb9ac485f902858",
           "shape": "sha256:2fd16fde6cbe09d9f9292428c1500c2b15c76ef52f2dacf240bd78b6cae78536",
           "answer": {
             "keep": {
               "type": "boolean",
-              "probability": 0.05
+              "probability": 0.04
             },
             "project": {
               "type": "choice",
-              "choice": "(none of these)",
-              "probabilities": {
-                "Checkout v2": 0,
-                "Billing Migration": 0,
-                "Deploy Pipeline": 0,
-                "Search Relevance": 0,
-                "Mobile Offline Sync": 0,
-                "On-call & Incidents": 0,
-                "Mentoring": 0,
-                "Ledger Platform": 0,
-                "(none of these)": 1
-              }
+              "choice": "(none of these)"
             }
           },
-          "ms": 193,
+          "ms": 122,
           "tokensIn": 1063,
           "tokensOut": 120
         }
@@ -1058,30 +794,19 @@
       "id": "m089",
       "calls": [
         {
-          "hash": "sha256:846889066756d1f45245a1ec8a0f58d0de3ef8dfdcf3f47c4b9162638150c155",
+          "hash": "sha256:7418cb43b166e6dd81a712dee87aecc8472265c8c26404d2f0d60744e835d6e4",
           "shape": "sha256:2fd16fde6cbe09d9f9292428c1500c2b15c76ef52f2dacf240bd78b6cae78536",
           "answer": {
             "keep": {
               "type": "boolean",
-              "probability": 0.96
+              "probability": 0.95
             },
             "project": {
               "type": "choice",
-              "choice": "Deploy Pipeline",
-              "probabilities": {
-                "Checkout v2": 0,
-                "Billing Migration": 0,
-                "Deploy Pipeline": 0.77,
-                "Search Relevance": 0,
-                "Mobile Offline Sync": 0,
-                "On-call & Incidents": 0,
-                "Mentoring": 0,
-                "Ledger Platform": 0,
-                "(none of these)": 0.23
-              }
+              "choice": "Deploy Pipeline"
             }
           },
-          "ms": 155,
+          "ms": 140,
           "tokensIn": 1074,
           "tokensOut": 117
         }
@@ -1095,7 +820,7 @@
       "id": "m091",
       "calls": [
         {
-          "hash": "sha256:0c0a6393f9c6ab6f9622119890c79fdb0b5278b83fb8056d9e8d191b0b867d4e",
+          "hash": "sha256:96d489602c4c2ffb5d578b33c94bae391218f278318940b1ab8e5f3b09f0df36",
           "shape": "sha256:2fd16fde6cbe09d9f9292428c1500c2b15c76ef52f2dacf240bd78b6cae78536",
           "answer": {
             "keep": {
@@ -1104,21 +829,10 @@
             },
             "project": {
               "type": "choice",
-              "choice": "On-call & Incidents",
-              "probabilities": {
-                "Checkout v2": 0,
-                "Billing Migration": 0,
-                "Deploy Pipeline": 0,
-                "Search Relevance": 0,
-                "Mobile Offline Sync": 0,
-                "On-call & Incidents": 0.52,
-                "Mentoring": 0,
-                "Ledger Platform": 0.48,
-                "(none of these)": 0
-              }
+              "choice": "On-call & Incidents"
             }
           },
-          "ms": 1323,
+          "ms": 137,
           "tokensIn": 1096,
           "tokensOut": 120
         }
@@ -1132,7 +846,7 @@
       "id": "m093",
       "calls": [
         {
-          "hash": "sha256:59867b5cc126d21ab26dd675f0c05b04ea75a8d1299f83777b67461b68f9914c",
+          "hash": "sha256:91639a9d32f64a20921182ca13de0883cda943986a2b0138f654877274785f52",
           "shape": "sha256:2fd16fde6cbe09d9f9292428c1500c2b15c76ef52f2dacf240bd78b6cae78536",
           "answer": {
             "keep": {
@@ -1141,18 +855,7 @@
             },
             "project": {
               "type": "choice",
-              "choice": "(none of these)",
-              "probabilities": {
-                "Checkout v2": 0,
-                "Billing Migration": 0,
-                "Deploy Pipeline": 0,
-                "Search Relevance": 0,
-                "Mobile Offline Sync": 0.24,
-                "On-call & Incidents": 0,
-                "Mentoring": 0,
-                "Ledger Platform": 0,
-                "(none of these)": 0.76
-              }
+              "choice": "(none of these)"
             }
           },
           "ms": 183,
@@ -1169,7 +872,7 @@
       "id": "m095",
       "calls": [
         {
-          "hash": "sha256:0cc99fa7a2464c3216be71185f620412969b389e3090e3ad95b5163b8733a823",
+          "hash": "sha256:cd3b3bfce5c17b3325f2a6b7e4fb5141fc7f4423e0e55021e77010a4d8fd12fb",
           "shape": "sha256:2fd16fde6cbe09d9f9292428c1500c2b15c76ef52f2dacf240bd78b6cae78536",
           "answer": {
             "keep": {
@@ -1178,21 +881,10 @@
             },
             "project": {
               "type": "choice",
-              "choice": "(none of these)",
-              "probabilities": {
-                "Checkout v2": 0,
-                "Billing Migration": 0,
-                "Deploy Pipeline": 0.03,
-                "Search Relevance": 0,
-                "Mobile Offline Sync": 0,
-                "On-call & Incidents": 0.03,
-                "Mentoring": 0,
-                "Ledger Platform": 0.01,
-                "(none of these)": 0.93
-              }
+              "choice": "(none of these)"
             }
           },
-          "ms": 201,
+          "ms": 158,
           "tokensIn": 1063,
           "tokensOut": 120
         }
@@ -1222,7 +914,7 @@
       "id": "m101",
       "calls": [
         {
-          "hash": "sha256:7de3117e5047c808f6bdd461a7ddc7f728ce6a9a3595caeb5fea5d1c578e428a",
+          "hash": "sha256:8b34d992e96c730135e3549ec9142890d8bcdaf744cfe8fac8436c7e83508d3e",
           "shape": "sha256:2fd16fde6cbe09d9f9292428c1500c2b15c76ef52f2dacf240bd78b6cae78536",
           "answer": {
             "keep": {
@@ -1231,21 +923,10 @@
             },
             "project": {
               "type": "choice",
-              "choice": "(none of these)",
-              "probabilities": {
-                "Checkout v2": 0.2,
-                "Billing Migration": 0.01,
-                "Deploy Pipeline": 0,
-                "Search Relevance": 0,
-                "Mobile Offline Sync": 0,
-                "On-call & Incidents": 0,
-                "Mentoring": 0,
-                "Ledger Platform": 0.01,
-                "(none of these)": 0.78
-              }
+              "choice": "(none of these)"
             }
           },
-          "ms": 134,
+          "ms": 155,
           "tokensIn": 1074,
           "tokensOut": 120
         }
@@ -1255,30 +936,19 @@
       "id": "m102",
       "calls": [
         {
-          "hash": "sha256:b23854c4a0a85fdb147db3076dd4437bd7086db7804fad20aab7525e26e5d23c",
+          "hash": "sha256:a8ba031733367bd4d1ec86a3e5e789a19e54b4e468ac05c8beec2304a7dd7437",
           "shape": "sha256:2fd16fde6cbe09d9f9292428c1500c2b15c76ef52f2dacf240bd78b6cae78536",
           "answer": {
             "keep": {
               "type": "boolean",
-              "probability": 0.36
+              "probability": 0.39
             },
             "project": {
               "type": "choice",
-              "choice": "Deploy Pipeline",
-              "probabilities": {
-                "Checkout v2": 0,
-                "Billing Migration": 0,
-                "Deploy Pipeline": 0.67,
-                "Search Relevance": 0,
-                "Mobile Offline Sync": 0,
-                "On-call & Incidents": 0,
-                "Mentoring": 0,
-                "Ledger Platform": 0,
-                "(none of these)": 0.33
-              }
+              "choice": "Deploy Pipeline"
             }
           },
-          "ms": 204,
+          "ms": 196,
           "tokensIn": 1061,
           "tokensOut": 117
         }
@@ -1288,30 +958,19 @@
       "id": "m103",
       "calls": [
         {
-          "hash": "sha256:59b147941a79de64458f4848e3655b19b5228ff314baf74fac777c76e17888c0",
+          "hash": "sha256:ea45ebd4f0571c8b10f77e9cc020c48a0b4ba54caa2f909bfb7e8f4894d5c76c",
           "shape": "sha256:2fd16fde6cbe09d9f9292428c1500c2b15c76ef52f2dacf240bd78b6cae78536",
           "answer": {
             "keep": {
               "type": "boolean",
-              "probability": 0.15
+              "probability": 0.14
             },
             "project": {
               "type": "choice",
-              "choice": "Mobile Offline Sync",
-              "probabilities": {
-                "Checkout v2": 0,
-                "Billing Migration": 0,
-                "Deploy Pipeline": 0,
-                "Search Relevance": 0,
-                "Mobile Offline Sync": 0.79,
-                "On-call & Incidents": 0,
-                "Mentoring": 0,
-                "Ledger Platform": 0,
-                "(none of these)": 0.21
-              }
+              "choice": "Mobile Offline Sync"
             }
           },
-          "ms": 191,
+          "ms": 184,
           "tokensIn": 1066,
           "tokensOut": 118
         }
@@ -1321,7 +980,7 @@
       "id": "m104",
       "calls": [
         {
-          "hash": "sha256:2fc48d641ee81d582c6fdcab3ef0c53bf3a9d5c9f782820d84eb55ec2d76a1b6",
+          "hash": "sha256:c8fdcdb7d9f5abb0be5565601a099a4dfd845b7f82b5f1ade1dd7973afaecedc",
           "shape": "sha256:2fd16fde6cbe09d9f9292428c1500c2b15c76ef52f2dacf240bd78b6cae78536",
           "answer": {
             "keep": {
@@ -1330,21 +989,10 @@
             },
             "project": {
               "type": "choice",
-              "choice": "Mobile Offline Sync",
-              "probabilities": {
-                "Checkout v2": 0,
-                "Billing Migration": 0,
-                "Deploy Pipeline": 0,
-                "Search Relevance": 0,
-                "Mobile Offline Sync": 1,
-                "On-call & Incidents": 0,
-                "Mentoring": 0,
-                "Ledger Platform": 0,
-                "(none of these)": 0
-              }
+              "choice": "Mobile Offline Sync"
             }
           },
-          "ms": 168,
+          "ms": 160,
           "tokensIn": 1078,
           "tokensOut": 118
         }
@@ -1362,30 +1010,19 @@
       "id": "m107",
       "calls": [
         {
-          "hash": "sha256:01b777e0c6d6033faba3ac42054b2168c1b3c71507798be4ab7b2f5f45475f98",
+          "hash": "sha256:c8a7c56c9892a10cdd4e5a53e2c9fc34fc3abf8e3a2c91dad189e4d143697b53",
           "shape": "sha256:2fd16fde6cbe09d9f9292428c1500c2b15c76ef52f2dacf240bd78b6cae78536",
           "answer": {
             "keep": {
               "type": "boolean",
-              "probability": 0.21
+              "probability": 0.22
             },
             "project": {
               "type": "choice",
-              "choice": "Deploy Pipeline",
-              "probabilities": {
-                "Checkout v2": 0,
-                "Billing Migration": 0,
-                "Deploy Pipeline": 0.78,
-                "Search Relevance": 0,
-                "Mobile Offline Sync": 0,
-                "On-call & Incidents": 0.04,
-                "Mentoring": 0,
-                "Ledger Platform": 0,
-                "(none of these)": 0.18
-              }
+              "choice": "Deploy Pipeline"
             }
           },
-          "ms": 158,
+          "ms": 898,
           "tokensIn": 1133,
           "tokensOut": 117
         }
@@ -1419,7 +1056,7 @@
       "id": "m114",
       "calls": [
         {
-          "hash": "sha256:4bacef257651da325d77c1c5a6ea2b714f57999180676e8772e9cc2246326260",
+          "hash": "sha256:b8260ba2f40ac0b4ff8e58e822755640b48868f517eb08af6ae78df0053def29",
           "shape": "sha256:2fd16fde6cbe09d9f9292428c1500c2b15c76ef52f2dacf240bd78b6cae78536",
           "answer": {
             "keep": {
@@ -1428,21 +1065,10 @@
             },
             "project": {
               "type": "choice",
-              "choice": "On-call & Incidents",
-              "probabilities": {
-                "Checkout v2": 0.07,
-                "Billing Migration": 0,
-                "Deploy Pipeline": 0.05,
-                "Search Relevance": 0,
-                "Mobile Offline Sync": 0,
-                "On-call & Incidents": 0.45,
-                "Mentoring": 0,
-                "Ledger Platform": 0,
-                "(none of these)": 0.43
-              }
+              "choice": "On-call & Incidents"
             }
           },
-          "ms": 189,
+          "ms": 166,
           "tokensIn": 1084,
           "tokensOut": 120
         }
@@ -1468,7 +1094,7 @@
       "id": "m119",
       "calls": [
         {
-          "hash": "sha256:927777f99e084ab054da6434009e8daa93b5d1e07c94d63dcca31a6e05726570",
+          "hash": "sha256:36498e09729d4ea135e99784df8a86551bc6f29c4b867761f540f4872d2bab30",
           "shape": "sha256:2fd16fde6cbe09d9f9292428c1500c2b15c76ef52f2dacf240bd78b6cae78536",
           "answer": {
             "keep": {
@@ -1477,21 +1103,10 @@
             },
             "project": {
               "type": "choice",
-              "choice": "(none of these)",
-              "probabilities": {
-                "Checkout v2": 0,
-                "Billing Migration": 0,
-                "Deploy Pipeline": 0,
-                "Search Relevance": 0,
-                "Mobile Offline Sync": 0,
-                "On-call & Incidents": 0,
-                "Mentoring": 0,
-                "Ledger Platform": 0,
-                "(none of these)": 1
-              }
+              "choice": "(none of these)"
             }
           },
-          "ms": 225,
+          "ms": 170,
           "tokensIn": 1068,
           "tokensOut": 120
         }
@@ -1501,7 +1116,7 @@
       "id": "m120",
       "calls": [
         {
-          "hash": "sha256:4a9fa90def9637588f869d9e456cf4cc25a5d9db6e3750d9ca8646bb3814ae68",
+          "hash": "sha256:3f4f41736c9ef6c111b5ae5984fcde14a89173a52fc63421bf52fef07ac8e9b6",
           "shape": "sha256:2fd16fde6cbe09d9f9292428c1500c2b15c76ef52f2dacf240bd78b6cae78536",
           "answer": {
             "keep": {
@@ -1510,21 +1125,10 @@
             },
             "project": {
               "type": "choice",
-              "choice": "Checkout v2",
-              "probabilities": {
-                "Checkout v2": 0.8,
-                "Billing Migration": 0,
-                "Deploy Pipeline": 0,
-                "Search Relevance": 0,
-                "Mobile Offline Sync": 0,
-                "On-call & Incidents": 0,
-                "Mentoring": 0,
-                "Ledger Platform": 0,
-                "(none of these)": 0.2
-              }
+              "choice": "Checkout v2"
             }
           },
-          "ms": 139,
+          "ms": 141,
           "tokensIn": 1078,
           "tokensOut": 118
         }
@@ -1534,7 +1138,7 @@
       "id": "m121",
       "calls": [
         {
-          "hash": "sha256:8b2b140d46d76e17ef7e67f4feee513bcc33a450534e8af748be7ebf8af7f0ec",
+          "hash": "sha256:37caa1f0baf887eeb10659537cacee7a2440d45cf349c108d45960a855c3a57a",
           "shape": "sha256:2fd16fde6cbe09d9f9292428c1500c2b15c76ef52f2dacf240bd78b6cae78536",
           "answer": {
             "keep": {
@@ -1543,21 +1147,10 @@
             },
             "project": {
               "type": "choice",
-              "choice": "(none of these)",
-              "probabilities": {
-                "Checkout v2": 0,
-                "Billing Migration": 0,
-                "Deploy Pipeline": 0,
-                "Search Relevance": 0,
-                "Mobile Offline Sync": 0,
-                "On-call & Incidents": 0,
-                "Mentoring": 0,
-                "Ledger Platform": 0.08,
-                "(none of these)": 0.92
-              }
+              "choice": "(none of these)"
             }
           },
-          "ms": 179,
+          "ms": 175,
           "tokensIn": 1074,
           "tokensOut": 120
         }
@@ -1567,30 +1160,19 @@
       "id": "m122",
       "calls": [
         {
-          "hash": "sha256:3186da7da6f6b3016c7470b857485470f00e219e12bc3eb898b0dd6c2e7208f4",
+          "hash": "sha256:591aecb9e368d750ca9df0cddbe3f4e73552d42555d249ea792961540766bd40",
           "shape": "sha256:2fd16fde6cbe09d9f9292428c1500c2b15c76ef52f2dacf240bd78b6cae78536",
           "answer": {
             "keep": {
               "type": "boolean",
-              "probability": 0.11
+              "probability": 0.1
             },
             "project": {
               "type": "choice",
-              "choice": "(none of these)",
-              "probabilities": {
-                "Checkout v2": 0,
-                "Billing Migration": 0,
-                "Deploy Pipeline": 0,
-                "Search Relevance": 0,
-                "Mobile Offline Sync": 0,
-                "On-call & Incidents": 0,
-                "Mentoring": 0,
-                "Ledger Platform": 0,
-                "(none of these)": 1
-              }
+              "choice": "(none of these)"
             }
           },
-          "ms": 167,
+          "ms": 187,
           "tokensIn": 1061,
           "tokensOut": 120
         }
@@ -1620,7 +1202,7 @@
       "id": "m128",
       "calls": [
         {
-          "hash": "sha256:272ef49a525798cb844ac9fd3327a146d7cd248c9bbb4a44bcfcf0287bb33bd0",
+          "hash": "sha256:e4db2fbaaf087163dfd4fc48beb2e1db3bef65a53a444c5726777f96e0cd7097",
           "shape": "sha256:2fd16fde6cbe09d9f9292428c1500c2b15c76ef52f2dacf240bd78b6cae78536",
           "answer": {
             "keep": {
@@ -1629,21 +1211,10 @@
             },
             "project": {
               "type": "choice",
-              "choice": "(none of these)",
-              "probabilities": {
-                "Checkout v2": 0.01,
-                "Billing Migration": 0,
-                "Deploy Pipeline": 0,
-                "Search Relevance": 0,
-                "Mobile Offline Sync": 0,
-                "On-call & Incidents": 0,
-                "Mentoring": 0,
-                "Ledger Platform": 0,
-                "(none of these)": 0.99
-              }
+              "choice": "(none of these)"
             }
           },
-          "ms": 758,
+          "ms": 189,
           "tokensIn": 1102,
           "tokensOut": 120
         }
@@ -1653,7 +1224,7 @@
       "id": "m129",
       "calls": [
         {
-          "hash": "sha256:2f992d5dc37cf93794e61e13684d2b7cc203bb5d9bf7d4650f2527e0228dccd3",
+          "hash": "sha256:d1d1181ce62ed220467204ed5d2725b80a3c4a07373cd20b12d58b5f22f3c34f",
           "shape": "sha256:2fd16fde6cbe09d9f9292428c1500c2b15c76ef52f2dacf240bd78b6cae78536",
           "answer": {
             "keep": {
@@ -1662,21 +1233,10 @@
             },
             "project": {
               "type": "choice",
-              "choice": "Ledger Platform",
-              "probabilities": {
-                "Checkout v2": 0,
-                "Billing Migration": 0,
-                "Deploy Pipeline": 0,
-                "Search Relevance": 0,
-                "Mobile Offline Sync": 0,
-                "On-call & Incidents": 0,
-                "Mentoring": 0,
-                "Ledger Platform": 1,
-                "(none of these)": 0
-              }
+              "choice": "Ledger Platform"
             }
           },
-          "ms": 120,
+          "ms": 170,
           "tokensIn": 1083,
           "tokensOut": 118
         }
@@ -1694,30 +1254,19 @@
       "id": "m132",
       "calls": [
         {
-          "hash": "sha256:ab8ec860bef590489fde64d9789508d031d3ed7ca5b97b858d09f2df9d51449c",
+          "hash": "sha256:5b39cf0a2226c70286857bef32dcb20100c778f83068b4487a8e1344ecb445d1",
           "shape": "sha256:2fd16fde6cbe09d9f9292428c1500c2b15c76ef52f2dacf240bd78b6cae78536",
           "answer": {
             "keep": {
               "type": "boolean",
-              "probability": 0.87
+              "probability": 0.86
             },
             "project": {
               "type": "choice",
-              "choice": "Deploy Pipeline",
-              "probabilities": {
-                "Checkout v2": 0,
-                "Billing Migration": 0,
-                "Deploy Pipeline": 1,
-                "Search Relevance": 0,
-                "Mobile Offline Sync": 0,
-                "On-call & Incidents": 0,
-                "Mentoring": 0,
-                "Ledger Platform": 0,
-                "(none of these)": 0
-              }
+              "choice": "Deploy Pipeline"
             }
           },
-          "ms": 203,
+          "ms": 144,
           "tokensIn": 1068,
           "tokensOut": 117
         }
@@ -1747,7 +1296,7 @@
       "id": "m138",
       "calls": [
         {
-          "hash": "sha256:cbdb824cdf5326fa9a2f815ec7faeac15da40dfd10b35942994f09a149368a1c",
+          "hash": "sha256:e3795c2ca7dced95834997c04645c8944b00bc7515f06d0a2323e9abb7d81547",
           "shape": "sha256:2fd16fde6cbe09d9f9292428c1500c2b15c76ef52f2dacf240bd78b6cae78536",
           "answer": {
             "keep": {
@@ -1756,21 +1305,10 @@
             },
             "project": {
               "type": "choice",
-              "choice": "(none of these)",
-              "probabilities": {
-                "Checkout v2": 0,
-                "Billing Migration": 0,
-                "Deploy Pipeline": 0,
-                "Search Relevance": 0,
-                "Mobile Offline Sync": 0,
-                "On-call & Incidents": 0,
-                "Mentoring": 0.01,
-                "Ledger Platform": 0,
-                "(none of these)": 0.99
-              }
+              "choice": "(none of these)"
             }
           },
-          "ms": 154,
+          "ms": 233,
           "tokensIn": 1062,
           "tokensOut": 120
         }
@@ -1804,27 +1342,16 @@
       "id": "m145",
       "calls": [
         {
-          "hash": "sha256:c27c61776d4dd6cce7a04a406a683445def3807d7c2e9c3b10a62dbd09ea8b7a",
+          "hash": "sha256:4dd4de2da5000f5c1406c45191f6c5b533d8337d00bdd61a027c364fbef08519",
           "shape": "sha256:2fd16fde6cbe09d9f9292428c1500c2b15c76ef52f2dacf240bd78b6cae78536",
           "answer": {
             "keep": {
               "type": "boolean",
-              "probability": 0.86
+              "probability": 0.85
             },
             "project": {
               "type": "choice",
-              "choice": "On-call & Incidents",
-              "probabilities": {
-                "Checkout v2": 0,
-                "Billing Migration": 0,
-                "Deploy Pipeline": 0,
-                "Search Relevance": 0,
-                "Mobile Offline Sync": 0,
-                "On-call & Incidents": 0.99,
-                "Mentoring": 0,
-                "Ledger Platform": 0,
-                "(none of these)": 0.01
-              }
+              "choice": "On-call & Incidents"
             }
           },
           "ms": 167,
@@ -1853,7 +1380,7 @@
       "id": "m150",
       "calls": [
         {
-          "hash": "sha256:71bf0a305e5484bc02d40ab1ac18cee38972d3c008228f4be61312071fd9df2a",
+          "hash": "sha256:20522b13905114c7ca10f49f506a405e3fd6b512f4bbdbb6312f53a2eb3e8384",
           "shape": "sha256:2fd16fde6cbe09d9f9292428c1500c2b15c76ef52f2dacf240bd78b6cae78536",
           "answer": {
             "keep": {
@@ -1862,21 +1389,10 @@
             },
             "project": {
               "type": "choice",
-              "choice": "(none of these)",
-              "probabilities": {
-                "Checkout v2": 0,
-                "Billing Migration": 0,
-                "Deploy Pipeline": 0,
-                "Search Relevance": 0,
-                "Mobile Offline Sync": 0,
-                "On-call & Incidents": 0,
-                "Mentoring": 0,
-                "Ledger Platform": 0,
-                "(none of these)": 1
-              }
+              "choice": "(none of these)"
             }
           },
-          "ms": 130,
+          "ms": 900,
           "tokensIn": 1061,
           "tokensOut": 120
         }
@@ -1914,7 +1430,7 @@
       "id": "m158",
       "calls": [
         {
-          "hash": "sha256:49b332135f75d1cd7ff641e4a5ab880ba1b8fa8937878fc7f8081c060c6f66f2",
+          "hash": "sha256:1f1ea17c4a5bf5b3c67d9fd4142e376547b4b47620374886ac712a638fb6646d",
           "shape": "sha256:2fd16fde6cbe09d9f9292428c1500c2b15c76ef52f2dacf240bd78b6cae78536",
           "answer": {
             "keep": {
@@ -1923,21 +1439,10 @@
             },
             "project": {
               "type": "choice",
-              "choice": "Billing Migration",
-              "probabilities": {
-                "Checkout v2": 0,
-                "Billing Migration": 0.71,
-                "Deploy Pipeline": 0,
-                "Search Relevance": 0,
-                "Mobile Offline Sync": 0,
-                "On-call & Incidents": 0,
-                "Mentoring": 0,
-                "Ledger Platform": 0.01,
-                "(none of these)": 0.28
-              }
+              "choice": "Billing Migration"
             }
           },
-          "ms": 129,
+          "ms": 1053,
           "tokensIn": 1105,
           "tokensOut": 117
         }
@@ -1959,7 +1464,7 @@
       "id": "m162",
       "calls": [
         {
-          "hash": "sha256:fdd070415c5f0318a0689bda2dd1715f7988802738dbfbfee9aad02561ca60d0",
+          "hash": "sha256:fffb702f77f707863ddf89617304875743c9943221cc0f25a3823b26eb27b471",
           "shape": "sha256:2fd16fde6cbe09d9f9292428c1500c2b15c76ef52f2dacf240bd78b6cae78536",
           "answer": {
             "keep": {
@@ -1968,21 +1473,10 @@
             },
             "project": {
               "type": "choice",
-              "choice": "Checkout v2",
-              "probabilities": {
-                "Checkout v2": 0.87,
-                "Billing Migration": 0,
-                "Deploy Pipeline": 0.09,
-                "Search Relevance": 0,
-                "Mobile Offline Sync": 0,
-                "On-call & Incidents": 0,
-                "Mentoring": 0,
-                "Ledger Platform": 0,
-                "(none of these)": 0.04
-              }
+              "choice": "Checkout v2"
             }
           },
-          "ms": 196,
+          "ms": 200,
           "tokensIn": 1077,
           "tokensOut": 118
         }
@@ -1996,30 +1490,19 @@
       "id": "m164",
       "calls": [
         {
-          "hash": "sha256:9585935ce700870fb548aeb45c5296cf0b1db2e5ea7975360b25dce2473f5c64",
+          "hash": "sha256:e9b258d2c1d2d6727fc7e7173a3bc630cb6d9d3a4901d9df41891ccb6d51275a",
           "shape": "sha256:2fd16fde6cbe09d9f9292428c1500c2b15c76ef52f2dacf240bd78b6cae78536",
           "answer": {
             "keep": {
               "type": "boolean",
-              "probability": 0.89
+              "probability": 0.9
             },
             "project": {
               "type": "choice",
-              "choice": "(none of these)",
-              "probabilities": {
-                "Checkout v2": 0.02,
-                "Billing Migration": 0.01,
-                "Deploy Pipeline": 0,
-                "Search Relevance": 0,
-                "Mobile Offline Sync": 0,
-                "On-call & Incidents": 0.02,
-                "Mentoring": 0,
-                "Ledger Platform": 0.09,
-                "(none of these)": 0.86
-              }
+              "choice": "(none of these)"
             }
           },
-          "ms": 132,
+          "ms": 143,
           "tokensIn": 1065,
           "tokensOut": 120
         }
@@ -2029,30 +1512,19 @@
       "id": "m165",
       "calls": [
         {
-          "hash": "sha256:9dc8b4ae130cf3dda8f632151b2dbc52cc3fb8469446e29e82160ce8c44e677e",
+          "hash": "sha256:64a69b557cbd51c140c02acb23036fb2f72a44a9d99061e59a919c0830b06b5d",
           "shape": "sha256:2fd16fde6cbe09d9f9292428c1500c2b15c76ef52f2dacf240bd78b6cae78536",
           "answer": {
             "keep": {
               "type": "boolean",
-              "probability": 0.04
+              "probability": 0.03
             },
             "project": {
               "type": "choice",
-              "choice": "(none of these)",
-              "probabilities": {
-                "Checkout v2": 0,
-                "Billing Migration": 0,
-                "Deploy Pipeline": 0,
-                "Search Relevance": 0,
-                "Mobile Offline Sync": 0,
-                "On-call & Incidents": 0,
-                "Mentoring": 0,
-                "Ledger Platform": 0,
-                "(none of these)": 1
-              }
+              "choice": "(none of these)"
             }
           },
-          "ms": 160,
+          "ms": 189,
           "tokensIn": 1066,
           "tokensOut": 120
         }
@@ -2062,7 +1534,7 @@
       "id": "m166",
       "calls": [
         {
-          "hash": "sha256:a9e6efa24936a2db89082770090dbc160e94fa623fb8289b605e7ad8ff78c5fb",
+          "hash": "sha256:7446dcade6ef33c16f06cb6ba37eac360cd974e8dc8af8005f73168383146d09",
           "shape": "sha256:2fd16fde6cbe09d9f9292428c1500c2b15c76ef52f2dacf240bd78b6cae78536",
           "answer": {
             "keep": {
@@ -2071,21 +1543,10 @@
             },
             "project": {
               "type": "choice",
-              "choice": "(none of these)",
-              "probabilities": {
-                "Checkout v2": 0,
-                "Billing Migration": 0,
-                "Deploy Pipeline": 0,
-                "Search Relevance": 0,
-                "Mobile Offline Sync": 0,
-                "On-call & Incidents": 0,
-                "Mentoring": 0.01,
-                "Ledger Platform": 0,
-                "(none of these)": 0.99
-              }
+              "choice": "(none of these)"
             }
           },
-          "ms": 174,
+          "ms": 227,
           "tokensIn": 1067,
           "tokensOut": 120
         }
@@ -2107,30 +1568,19 @@
       "id": "m170",
       "calls": [
         {
-          "hash": "sha256:be3958a91f00adf77840dda276cbbdfa67c240f9e98d04e312cfbbf3b6371e19",
+          "hash": "sha256:1abfa23ddb66fe874a0ffe1d44fb50ce171cd11858c75a03225872b4287c67aa",
           "shape": "sha256:2fd16fde6cbe09d9f9292428c1500c2b15c76ef52f2dacf240bd78b6cae78536",
           "answer": {
             "keep": {
               "type": "boolean",
-              "probability": 0.93
+              "probability": 0.94
             },
             "project": {
               "type": "choice",
-              "choice": "(none of these)",
-              "probabilities": {
-                "Checkout v2": 0,
-                "Billing Migration": 0,
-                "Deploy Pipeline": 0,
-                "Search Relevance": 0,
-                "Mobile Offline Sync": 0,
-                "On-call & Incidents": 0,
-                "Mentoring": 0.06,
-                "Ledger Platform": 0,
-                "(none of these)": 0.94
-              }
+              "choice": "(none of these)"
             }
           },
-          "ms": 202,
+          "ms": 160,
           "tokensIn": 1074,
           "tokensOut": 120
         }
@@ -2140,7 +1590,7 @@
       "id": "m171",
       "calls": [
         {
-          "hash": "sha256:85b02890d7157cc0d32613dc9f5c4e7d83b0c42f313669785f2eb96a89df2271",
+          "hash": "sha256:84f23c78b8be0631e5b2fcaf22873066b2117e1175837da6f1581ed39fd3bc81",
           "shape": "sha256:2fd16fde6cbe09d9f9292428c1500c2b15c76ef52f2dacf240bd78b6cae78536",
           "answer": {
             "keep": {
@@ -2149,21 +1599,10 @@
             },
             "project": {
               "type": "choice",
-              "choice": "(none of these)",
-              "probabilities": {
-                "Checkout v2": 0,
-                "Billing Migration": 0,
-                "Deploy Pipeline": 0,
-                "Search Relevance": 0,
-                "Mobile Offline Sync": 0,
-                "On-call & Incidents": 0,
-                "Mentoring": 0,
-                "Ledger Platform": 0,
-                "(none of these)": 1
-              }
+              "choice": "(none of these)"
             }
           },
-          "ms": 157,
+          "ms": 143,
           "tokensIn": 1074,
           "tokensOut": 120
         }
@@ -2185,7 +1624,7 @@
       "id": "m175",
       "calls": [
         {
-          "hash": "sha256:b0473af588a6340b339f13416ef4b313d4bde6a8c96703adbce834c32ec6f4f4",
+          "hash": "sha256:a4ef04990abfb37a8d7cad10ebdfcda39a2591fd307d09b88b34fc687d2bae73",
           "shape": "sha256:2fd16fde6cbe09d9f9292428c1500c2b15c76ef52f2dacf240bd78b6cae78536",
           "answer": {
             "keep": {
@@ -2194,21 +1633,10 @@
             },
             "project": {
               "type": "choice",
-              "choice": "On-call & Incidents",
-              "probabilities": {
-                "Checkout v2": 0,
-                "Billing Migration": 0,
-                "Deploy Pipeline": 0,
-                "Search Relevance": 0,
-                "Mobile Offline Sync": 0,
-                "On-call & Incidents": 0.51,
-                "Mentoring": 0,
-                "Ledger Platform": 0.47,
-                "(none of these)": 0.02
-              }
+              "choice": "On-call & Incidents"
             }
           },
-          "ms": 179,
+          "ms": 140,
           "tokensIn": 1101,
           "tokensOut": 120
         }
@@ -2234,7 +1662,7 @@
       "id": "m180",
       "calls": [
         {
-          "hash": "sha256:4626d6b26ee56aa8b4bdebc31b739f09f9efab56a1bc1f3868381d541d80c370",
+          "hash": "sha256:a384fd6443c52cb75c3205dc6b7063ed21eaa21bac67d997d36c54adcd978ab8",
           "shape": "sha256:2fd16fde6cbe09d9f9292428c1500c2b15c76ef52f2dacf240bd78b6cae78536",
           "answer": {
             "keep": {
@@ -2243,21 +1671,10 @@
             },
             "project": {
               "type": "choice",
-              "choice": "(none of these)",
-              "probabilities": {
-                "Checkout v2": 0,
-                "Billing Migration": 0,
-                "Deploy Pipeline": 0,
-                "Search Relevance": 0,
-                "Mobile Offline Sync": 0,
-                "On-call & Incidents": 0,
-                "Mentoring": 0,
-                "Ledger Platform": 0,
-                "(none of these)": 1
-              }
+              "choice": "(none of these)"
             }
           },
-          "ms": 159,
+          "ms": 128,
           "tokensIn": 1075,
           "tokensOut": 120
         }
@@ -2271,7 +1688,7 @@
       "id": "m182",
       "calls": [
         {
-          "hash": "sha256:e3222aa49f4ce545288e41ae76d1ab6d4867ff074e66df92e51e0fd3c58d8d27",
+          "hash": "sha256:80ad3b73259ea4596868d50786257e23cd6f7de4da5b5e7d8f4f0d9c57925c6c",
           "shape": "sha256:2fd16fde6cbe09d9f9292428c1500c2b15c76ef52f2dacf240bd78b6cae78536",
           "answer": {
             "keep": {
@@ -2280,21 +1697,10 @@
             },
             "project": {
               "type": "choice",
-              "choice": "Ledger Platform",
-              "probabilities": {
-                "Checkout v2": 0,
-                "Billing Migration": 0,
-                "Deploy Pipeline": 0,
-                "Search Relevance": 0,
-                "Mobile Offline Sync": 0,
-                "On-call & Incidents": 0.2,
-                "Mentoring": 0,
-                "Ledger Platform": 0.8,
-                "(none of these)": 0
-              }
+              "choice": "Ledger Platform"
             }
           },
-          "ms": 156,
+          "ms": 136,
           "tokensIn": 1111,
           "tokensOut": 118
         }
@@ -2308,30 +1714,19 @@
       "id": "m184",
       "calls": [
         {
-          "hash": "sha256:8b8536c165b005607970648abba7d05b447c4018eb72974dfdc2c0254e16ad88",
+          "hash": "sha256:ee9af9c8f8b091d01e97f33400a62bf574ae3ca76847492e690780ad3e8d3f0e",
           "shape": "sha256:2fd16fde6cbe09d9f9292428c1500c2b15c76ef52f2dacf240bd78b6cae78536",
           "answer": {
             "keep": {
               "type": "boolean",
-              "probability": 0.08
+              "probability": 0.09
             },
             "project": {
               "type": "choice",
-              "choice": "Deploy Pipeline",
-              "probabilities": {
-                "Checkout v2": 0,
-                "Billing Migration": 0,
-                "Deploy Pipeline": 0.58,
-                "Search Relevance": 0,
-                "Mobile Offline Sync": 0,
-                "On-call & Incidents": 0,
-                "Mentoring": 0,
-                "Ledger Platform": 0,
-                "(none of these)": 0.42
-              }
+              "choice": "Deploy Pipeline"
             }
           },
-          "ms": 178,
+          "ms": 188,
           "tokensIn": 1081,
           "tokensOut": 117
         }
@@ -2373,30 +1768,19 @@
       "id": "m193",
       "calls": [
         {
-          "hash": "sha256:9dd036bd018b554ca02de1a6c7fc29d4a3c852f356e5f3e8082939e451ea43d9",
+          "hash": "sha256:59ecbc46c8944429e6c8b697fcc4c140bc61ed8bd3847b2bd8487b80c27daaef",
           "shape": "sha256:2fd16fde6cbe09d9f9292428c1500c2b15c76ef52f2dacf240bd78b6cae78536",
           "answer": {
             "keep": {
               "type": "boolean",
-              "probability": 0.92
+              "probability": 0.91
             },
             "project": {
               "type": "choice",
-              "choice": "Mentoring",
-              "probabilities": {
-                "Checkout v2": 0,
-                "Billing Migration": 0,
-                "Deploy Pipeline": 0,
-                "Search Relevance": 0,
-                "Mobile Offline Sync": 0,
-                "On-call & Incidents": 0.08,
-                "Mentoring": 0.55,
-                "Ledger Platform": 0.07,
-                "(none of these)": 0.3
-              }
+              "choice": "Mentoring"
             }
           },
-          "ms": 186,
+          "ms": 1437,
           "tokensIn": 1079,
           "tokensOut": 118
         }
@@ -2410,7 +1794,7 @@
       "id": "m195",
       "calls": [
         {
-          "hash": "sha256:86617aac28e886986447c63be675715a2f52aeff00fc0b2ecb34e9abe677fce6",
+          "hash": "sha256:3131c5a09aef930d2b7876c8f7eb484747c75678b7679b9c3f4ec0e99e3979c9",
           "shape": "sha256:2fd16fde6cbe09d9f9292428c1500c2b15c76ef52f2dacf240bd78b6cae78536",
           "answer": {
             "keep": {
@@ -2419,21 +1803,10 @@
             },
             "project": {
               "type": "choice",
-              "choice": "Billing Migration",
-              "probabilities": {
-                "Checkout v2": 0,
-                "Billing Migration": 1,
-                "Deploy Pipeline": 0,
-                "Search Relevance": 0,
-                "Mobile Offline Sync": 0,
-                "On-call & Incidents": 0,
-                "Mentoring": 0,
-                "Ledger Platform": 0,
-                "(none of these)": 0
-              }
+              "choice": "Billing Migration"
             }
           },
-          "ms": 178,
+          "ms": 150,
           "tokensIn": 1084,
           "tokensOut": 117
         }
@@ -2451,7 +1824,7 @@
       "id": "m198",
       "calls": [
         {
-          "hash": "sha256:c615c5fda6601fa8ea24f8858fb702872e3fa2b2b11ca30d85f57b43dbc773bf",
+          "hash": "sha256:75b3ac30bd72deacb2f7aa9085737ad2bdcd6d064844d7f82e51e29544d00dab",
           "shape": "sha256:2fd16fde6cbe09d9f9292428c1500c2b15c76ef52f2dacf240bd78b6cae78536",
           "answer": {
             "keep": {
@@ -2460,21 +1833,10 @@
             },
             "project": {
               "type": "choice",
-              "choice": "Checkout v2",
-              "probabilities": {
-                "Checkout v2": 0.56,
-                "Billing Migration": 0.06,
-                "Deploy Pipeline": 0,
-                "Search Relevance": 0,
-                "Mobile Offline Sync": 0,
-                "On-call & Incidents": 0,
-                "Mentoring": 0.17,
-                "Ledger Platform": 0,
-                "(none of these)": 0.2
-              }
+              "choice": "Checkout v2"
             }
           },
-          "ms": 146,
+          "ms": 222,
           "tokensIn": 1080,
           "tokensOut": 118
         }
@@ -2488,7 +1850,7 @@
       "id": "m200",
       "calls": [
         {
-          "hash": "sha256:c0c0bb03fb120b6b4c65fc980f0939980e6cf3e57683e6411a25fc01d8654248",
+          "hash": "sha256:96fc790aa82dd9aee5e27120fdd4ce0859b75e9ab16be0171847e8f7ebf03529",
           "shape": "sha256:2fd16fde6cbe09d9f9292428c1500c2b15c76ef52f2dacf240bd78b6cae78536",
           "answer": {
             "keep": {
@@ -2497,21 +1859,10 @@
             },
             "project": {
               "type": "choice",
-              "choice": "(none of these)",
-              "probabilities": {
-                "Checkout v2": 0,
-                "Billing Migration": 0,
-                "Deploy Pipeline": 0.11,
-                "Search Relevance": 0,
-                "Mobile Offline Sync": 0,
-                "On-call & Incidents": 0.25,
-                "Mentoring": 0,
-                "Ledger Platform": 0.01,
-                "(none of these)": 0.63
-              }
+              "choice": "(none of these)"
             }
           },
-          "ms": 143,
+          "ms": 163,
           "tokensIn": 1068,
           "tokensOut": 120
         }
@@ -2521,7 +1872,7 @@
       "id": "m201",
       "calls": [
         {
-          "hash": "sha256:9be5281f1ba925a85965081d696913387ac1dcb39c229b141c164d5d40c9d2b9",
+          "hash": "sha256:da0f5303596257981197e9a92ac16a4afa3cc8101ff0124014e163a45c2052d6",
           "shape": "sha256:2fd16fde6cbe09d9f9292428c1500c2b15c76ef52f2dacf240bd78b6cae78536",
           "answer": {
             "keep": {
@@ -2530,21 +1881,10 @@
             },
             "project": {
               "type": "choice",
-              "choice": "(none of these)",
-              "probabilities": {
-                "Checkout v2": 0,
-                "Billing Migration": 0,
-                "Deploy Pipeline": 0,
-                "Search Relevance": 0.36,
-                "Mobile Offline Sync": 0,
-                "On-call & Incidents": 0.01,
-                "Mentoring": 0,
-                "Ledger Platform": 0,
-                "(none of these)": 0.63
-              }
+              "choice": "(none of these)"
             }
           },
-          "ms": 138,
+          "ms": 233,
           "tokensIn": 1067,
           "tokensOut": 120
         }
@@ -2558,7 +1898,7 @@
       "id": "m203",
       "calls": [
         {
-          "hash": "sha256:37220268338bd411c4e608242963a6fa31510aae3bf3fb1163b5505e0232aff1",
+          "hash": "sha256:0f86274ea4c721f74bb661d1b22bc8db7f871072a3755b4e9a8d0e72cd738a3b",
           "shape": "sha256:2fd16fde6cbe09d9f9292428c1500c2b15c76ef52f2dacf240bd78b6cae78536",
           "answer": {
             "keep": {
@@ -2567,21 +1907,10 @@
             },
             "project": {
               "type": "choice",
-              "choice": "Mobile Offline Sync",
-              "probabilities": {
-                "Checkout v2": 0,
-                "Billing Migration": 0,
-                "Deploy Pipeline": 0,
-                "Search Relevance": 0,
-                "Mobile Offline Sync": 1,
-                "On-call & Incidents": 0,
-                "Mentoring": 0,
-                "Ledger Platform": 0,
-                "(none of these)": 0
-              }
+              "choice": "Mobile Offline Sync"
             }
           },
-          "ms": 128,
+          "ms": 225,
           "tokensIn": 1080,
           "tokensOut": 118
         }
@@ -2591,7 +1920,7 @@
       "id": "m204",
       "calls": [
         {
-          "hash": "sha256:e71e0acf3896d72e360a8f42cc07522b75d9c90740669053b485775a40a2541d",
+          "hash": "sha256:714e7206004cd7c45427385d7ff74bae5d256853a8f5a1d5b1c5f00a4c862da2",
           "shape": "sha256:2fd16fde6cbe09d9f9292428c1500c2b15c76ef52f2dacf240bd78b6cae78536",
           "answer": {
             "keep": {
@@ -2600,21 +1929,10 @@
             },
             "project": {
               "type": "choice",
-              "choice": "(none of these)",
-              "probabilities": {
-                "Checkout v2": 0.31,
-                "Billing Migration": 0,
-                "Deploy Pipeline": 0,
-                "Search Relevance": 0,
-                "Mobile Offline Sync": 0,
-                "On-call & Incidents": 0,
-                "Mentoring": 0,
-                "Ledger Platform": 0,
-                "(none of these)": 0.6900000000000001
-              }
+              "choice": "(none of these)"
             }
           },
-          "ms": 167,
+          "ms": 171,
           "tokensIn": 1083,
           "tokensOut": 120
         }
@@ -2632,30 +1950,19 @@
       "id": "m207",
       "calls": [
         {
-          "hash": "sha256:44b60b93c3ce3703ba303169b7be7233d1bbcd0af60b6cf40cf5dd7449fa97d7",
+          "hash": "sha256:294d2e0e86c3f982f1ed506bdcac3d0194eb25ec0f3f1260e466079e75572e47",
           "shape": "sha256:2fd16fde6cbe09d9f9292428c1500c2b15c76ef52f2dacf240bd78b6cae78536",
           "answer": {
             "keep": {
               "type": "boolean",
-              "probability": 0.97
+              "probability": 0.98
             },
             "project": {
               "type": "choice",
-              "choice": "On-call & Incidents",
-              "probabilities": {
-                "Checkout v2": 0,
-                "Billing Migration": 0,
-                "Deploy Pipeline": 0,
-                "Search Relevance": 0,
-                "Mobile Offline Sync": 0,
-                "On-call & Incidents": 1,
-                "Mentoring": 0,
-                "Ledger Platform": 0,
-                "(none of these)": 0
-              }
+              "choice": "On-call & Incidents"
             }
           },
-          "ms": 135,
+          "ms": 183,
           "tokensIn": 1127,
           "tokensOut": 120
         }
@@ -2669,30 +1976,19 @@
       "id": "m209",
       "calls": [
         {
-          "hash": "sha256:b4fb46a9a16a3662f3515f692b9c1f8e717edd72091874db1afb849e2bd74405",
+          "hash": "sha256:b9f6ce8f0499e2d8eed3aa0780f1b4d8e81408ad4813625347ff23323afef73f",
           "shape": "sha256:2fd16fde6cbe09d9f9292428c1500c2b15c76ef52f2dacf240bd78b6cae78536",
           "answer": {
             "keep": {
               "type": "boolean",
-              "probability": 0.54
+              "probability": 0.49
             },
             "project": {
               "type": "choice",
-              "choice": "Search Relevance",
-              "probabilities": {
-                "Checkout v2": 0,
-                "Billing Migration": 0,
-                "Deploy Pipeline": 0,
-                "Search Relevance": 0.99,
-                "Mobile Offline Sync": 0,
-                "On-call & Incidents": 0,
-                "Mentoring": 0,
-                "Ledger Platform": 0,
-                "(none of these)": 0.01
-              }
+              "choice": "Search Relevance"
             }
           },
-          "ms": 210,
+          "ms": 203,
           "tokensIn": 1066,
           "tokensOut": 119
         }
@@ -2702,30 +1998,19 @@
       "id": "m210",
       "calls": [
         {
-          "hash": "sha256:8fa2163fd9443fd811f28cef75d449fa8019c368533b3ba3392ad3cf7556de05",
+          "hash": "sha256:4906025551d4d3b5e31bec08b5c386203032f077c06d6306affe96b549e76fc6",
           "shape": "sha256:2fd16fde6cbe09d9f9292428c1500c2b15c76ef52f2dacf240bd78b6cae78536",
           "answer": {
             "keep": {
               "type": "boolean",
-              "probability": 0.56
+              "probability": 0.6
             },
             "project": {
               "type": "choice",
-              "choice": "Ledger Platform",
-              "probabilities": {
-                "Checkout v2": 0,
-                "Billing Migration": 0,
-                "Deploy Pipeline": 0,
-                "Search Relevance": 0,
-                "Mobile Offline Sync": 0,
-                "On-call & Incidents": 0,
-                "Mentoring": 0,
-                "Ledger Platform": 0.98,
-                "(none of these)": 0.02
-              }
+              "choice": "Ledger Platform"
             }
           },
-          "ms": 183,
+          "ms": 187,
           "tokensIn": 1134,
           "tokensOut": 118
         }
@@ -2743,7 +2028,7 @@
       "id": "m213",
       "calls": [
         {
-          "hash": "sha256:b484d939c53280bc137838bf4d14f4f56062865e21a6a48588fbfef26ad21600",
+          "hash": "sha256:cd898d90a91c0803d6b8f8ca1098496be7037d63d978eeb0a823306a28e63a49",
           "shape": "sha256:2fd16fde6cbe09d9f9292428c1500c2b15c76ef52f2dacf240bd78b6cae78536",
           "answer": {
             "keep": {
@@ -2752,21 +2037,10 @@
             },
             "project": {
               "type": "choice",
-              "choice": "Search Relevance",
-              "probabilities": {
-                "Checkout v2": 0,
-                "Billing Migration": 0,
-                "Deploy Pipeline": 0,
-                "Search Relevance": 1,
-                "Mobile Offline Sync": 0,
-                "On-call & Incidents": 0,
-                "Mentoring": 0,
-                "Ledger Platform": 0,
-                "(none of these)": 0
-              }
+              "choice": "Search Relevance"
             }
           },
-          "ms": 175,
+          "ms": 125,
           "tokensIn": 1113,
           "tokensOut": 119
         }
@@ -2776,7 +2050,7 @@
       "id": "m214",
       "calls": [
         {
-          "hash": "sha256:6a86595c9b1c866eb0da6b9235ada27525b08cd6763a9e42c739100328a54932",
+          "hash": "sha256:b700211760bbe152b74a16e8d4f99db2121cba6cd3a9945c5c40b406e0d3dbab",
           "shape": "sha256:2fd16fde6cbe09d9f9292428c1500c2b15c76ef52f2dacf240bd78b6cae78536",
           "answer": {
             "keep": {
@@ -2785,21 +2059,10 @@
             },
             "project": {
               "type": "choice",
-              "choice": "On-call & Incidents",
-              "probabilities": {
-                "Checkout v2": 0,
-                "Billing Migration": 0,
-                "Deploy Pipeline": 0,
-                "Search Relevance": 0,
-                "Mobile Offline Sync": 0,
-                "On-call & Incidents": 1,
-                "Mentoring": 0,
-                "Ledger Platform": 0,
-                "(none of these)": 0
-              }
+              "choice": "On-call & Incidents"
             }
           },
-          "ms": 151,
+          "ms": 210,
           "tokensIn": 1093,
           "tokensOut": 120
         }
@@ -2813,7 +2076,7 @@
       "id": "m216",
       "calls": [
         {
-          "hash": "sha256:3ee346ec49cf496d48ae4377e14b6f87cb69a8f6eacaa93d01f5e93856f2afab",
+          "hash": "sha256:c3205fff7ddfe58bab97e41805b639e5943c210962590493c40d64a4b6bfb2d9",
           "shape": "sha256:2fd16fde6cbe09d9f9292428c1500c2b15c76ef52f2dacf240bd78b6cae78536",
           "answer": {
             "keep": {
@@ -2822,21 +2085,10 @@
             },
             "project": {
               "type": "choice",
-              "choice": "(none of these)",
-              "probabilities": {
-                "Checkout v2": 0,
-                "Billing Migration": 0,
-                "Deploy Pipeline": 0,
-                "Search Relevance": 0,
-                "Mobile Offline Sync": 0,
-                "On-call & Incidents": 0,
-                "Mentoring": 0,
-                "Ledger Platform": 0,
-                "(none of these)": 1
-              }
+              "choice": "(none of these)"
             }
           },
-          "ms": 183,
+          "ms": 220,
           "tokensIn": 1059,
           "tokensOut": 120
         }
@@ -2846,7 +2098,7 @@
       "id": "m217",
       "calls": [
         {
-          "hash": "sha256:2945329b915862854318623a9196685758dd0c16e71e18eed6280cd7f6a6f8eb",
+          "hash": "sha256:7639704cf2a5a0e34b0107ed7f836be40db602f0c0273eb51ffbfa4dc8bf9a54",
           "shape": "sha256:2fd16fde6cbe09d9f9292428c1500c2b15c76ef52f2dacf240bd78b6cae78536",
           "answer": {
             "keep": {
@@ -2855,21 +2107,10 @@
             },
             "project": {
               "type": "choice",
-              "choice": "Deploy Pipeline",
-              "probabilities": {
-                "Checkout v2": 0,
-                "Billing Migration": 0,
-                "Deploy Pipeline": 1,
-                "Search Relevance": 0,
-                "Mobile Offline Sync": 0,
-                "On-call & Incidents": 0,
-                "Mentoring": 0,
-                "Ledger Platform": 0,
-                "(none of these)": 0
-              }
+              "choice": "Deploy Pipeline"
             }
           },
-          "ms": 172,
+          "ms": 129,
           "tokensIn": 1081,
           "tokensOut": 117
         }
@@ -2879,30 +2120,19 @@
       "id": "m218",
       "calls": [
         {
-          "hash": "sha256:24b025727e9563a300e6fe06543f5a71b2830b71ca06ea0ee6351bb8e6244d80",
+          "hash": "sha256:9ac38443b493dc0042a05daf8932eff91ef52355e26b728780fa0d57245cd537",
           "shape": "sha256:2fd16fde6cbe09d9f9292428c1500c2b15c76ef52f2dacf240bd78b6cae78536",
           "answer": {
             "keep": {
               "type": "boolean",
-              "probability": 0.24
+              "probability": 0.25
             },
             "project": {
               "type": "choice",
-              "choice": "On-call & Incidents",
-              "probabilities": {
-                "Checkout v2": 0,
-                "Billing Migration": 0,
-                "Deploy Pipeline": 0,
-                "Search Relevance": 0,
-                "Mobile Offline Sync": 0,
-                "On-call & Incidents": 0.92,
-                "Mentoring": 0.05,
-                "Ledger Platform": 0,
-                "(none of these)": 0.03
-              }
+              "choice": "On-call & Incidents"
             }
           },
-          "ms": 143,
+          "ms": 141,
           "tokensIn": 1077,
           "tokensOut": 120
         }
@@ -2912,7 +2142,7 @@
       "id": "pr01",
       "calls": [
         {
-          "hash": "sha256:b28752db4c1d3e35d47242fef89d0ab177a3826d8944f49475c0aed7867c2760",
+          "hash": "sha256:d9ec7e37a5e29fa1cc920ff4bedbf45b810b8ac5ad192982d47a8196afc1d6d3",
           "shape": "sha256:2fd16fde6cbe09d9f9292428c1500c2b15c76ef52f2dacf240bd78b6cae78536",
           "answer": {
             "keep": {
@@ -2921,21 +2151,10 @@
             },
             "project": {
               "type": "choice",
-              "choice": "Ledger Platform",
-              "probabilities": {
-                "Checkout v2": 0,
-                "Billing Migration": 0,
-                "Deploy Pipeline": 0,
-                "Search Relevance": 0,
-                "Mobile Offline Sync": 0,
-                "On-call & Incidents": 0,
-                "Mentoring": 0,
-                "Ledger Platform": 1,
-                "(none of these)": 0
-              }
+              "choice": "Ledger Platform"
             }
           },
-          "ms": 165,
+          "ms": 195,
           "tokensIn": 1058,
           "tokensOut": 118
         }
@@ -2945,7 +2164,7 @@
       "id": "pr02",
       "calls": [
         {
-          "hash": "sha256:4884729f67bcbb2e524265ff6fe3aaf883d354be88666d28e50184f7c1a5491a",
+          "hash": "sha256:f009dcd0cbbf3c4fd7b812c5d348d6f40a1d0b0b64631cd9136ebfc611c5960f",
           "shape": "sha256:2fd16fde6cbe09d9f9292428c1500c2b15c76ef52f2dacf240bd78b6cae78536",
           "answer": {
             "keep": {
@@ -2954,21 +2173,10 @@
             },
             "project": {
               "type": "choice",
-              "choice": "Ledger Platform",
-              "probabilities": {
-                "Checkout v2": 0,
-                "Billing Migration": 0,
-                "Deploy Pipeline": 0,
-                "Search Relevance": 0,
-                "Mobile Offline Sync": 0,
-                "On-call & Incidents": 0,
-                "Mentoring": 0,
-                "Ledger Platform": 0.91,
-                "(none of these)": 0.09
-              }
+              "choice": "Ledger Platform"
             }
           },
-          "ms": 151,
+          "ms": 169,
           "tokensIn": 1041,
           "tokensOut": 118
         }
@@ -2978,7 +2186,7 @@
       "id": "pr03",
       "calls": [
         {
-          "hash": "sha256:ae94aa6c9c146eb92f3ee4c4db55d55f109b95cc200c120f9ed28de6b9cb9c86",
+          "hash": "sha256:5af4e8f3c939da1e129b57730bb3732e6000b8231da4ab5fb6a290985aea41b7",
           "shape": "sha256:2fd16fde6cbe09d9f9292428c1500c2b15c76ef52f2dacf240bd78b6cae78536",
           "answer": {
             "keep": {
@@ -2987,21 +2195,10 @@
             },
             "project": {
               "type": "choice",
-              "choice": "Checkout v2",
-              "probabilities": {
-                "Checkout v2": 1,
-                "Billing Migration": 0,
-                "Deploy Pipeline": 0,
-                "Search Relevance": 0,
-                "Mobile Offline Sync": 0,
-                "On-call & Incidents": 0,
-                "Mentoring": 0,
-                "Ledger Platform": 0,
-                "(none of these)": 0
-              }
+              "choice": "Checkout v2"
             }
           },
-          "ms": 160,
+          "ms": 153,
           "tokensIn": 1057,
           "tokensOut": 118
         }
@@ -3011,7 +2208,7 @@
       "id": "pr04",
       "calls": [
         {
-          "hash": "sha256:5e5b752334594b816f280829e89e6b2a1896af775de87e899ce9dc6ec5e15340",
+          "hash": "sha256:cdb620b938dc975305ac8e15e930caec1b81794131b00dc015b203e0a0851fc8",
           "shape": "sha256:2fd16fde6cbe09d9f9292428c1500c2b15c76ef52f2dacf240bd78b6cae78536",
           "answer": {
             "keep": {
@@ -3020,21 +2217,10 @@
             },
             "project": {
               "type": "choice",
-              "choice": "Checkout v2",
-              "probabilities": {
-                "Checkout v2": 0.59,
-                "Billing Migration": 0,
-                "Deploy Pipeline": 0,
-                "Search Relevance": 0,
-                "Mobile Offline Sync": 0,
-                "On-call & Incidents": 0,
-                "Mentoring": 0,
-                "Ledger Platform": 0,
-                "(none of these)": 0.41
-              }
+              "choice": "Checkout v2"
             }
           },
-          "ms": 143,
+          "ms": 174,
           "tokensIn": 1024,
           "tokensOut": 118
         }
@@ -3044,7 +2230,7 @@
       "id": "pr05",
       "calls": [
         {
-          "hash": "sha256:73f8d99d0c7a679f5f30017c17f1bc2f35f103df6cab597834202a57abea43db",
+          "hash": "sha256:b8de58f112b57a23b1712618c24c33a977b20c43445177d28bec3fddfc383e03",
           "shape": "sha256:2fd16fde6cbe09d9f9292428c1500c2b15c76ef52f2dacf240bd78b6cae78536",
           "answer": {
             "keep": {
@@ -3053,21 +2239,10 @@
             },
             "project": {
               "type": "choice",
-              "choice": "Deploy Pipeline",
-              "probabilities": {
-                "Checkout v2": 0,
-                "Billing Migration": 0,
-                "Deploy Pipeline": 0.98,
-                "Search Relevance": 0,
-                "Mobile Offline Sync": 0,
-                "On-call & Incidents": 0,
-                "Mentoring": 0,
-                "Ledger Platform": 0,
-                "(none of these)": 0.02
-              }
+              "choice": "Deploy Pipeline"
             }
           },
-          "ms": 153,
+          "ms": 154,
           "tokensIn": 1046,
           "tokensOut": 117
         }
@@ -3077,30 +2252,19 @@
       "id": "pr06",
       "calls": [
         {
-          "hash": "sha256:131b7bca5ee720143405022339349a11370a9319aa4f52c51b65630ead849ce4",
+          "hash": "sha256:21581d99e46380e985be47ba5a7d63486443cc67ed644b36c1a699a89126d5f5",
           "shape": "sha256:2fd16fde6cbe09d9f9292428c1500c2b15c76ef52f2dacf240bd78b6cae78536",
           "answer": {
             "keep": {
               "type": "boolean",
-              "probability": 0.15
+              "probability": 0.14
             },
             "project": {
               "type": "choice",
-              "choice": "Deploy Pipeline",
-              "probabilities": {
-                "Checkout v2": 0,
-                "Billing Migration": 0,
-                "Deploy Pipeline": 0.98,
-                "Search Relevance": 0,
-                "Mobile Offline Sync": 0,
-                "On-call & Incidents": 0,
-                "Mentoring": 0,
-                "Ledger Platform": 0,
-                "(none of these)": 0.02
-              }
+              "choice": "Deploy Pipeline"
             }
           },
-          "ms": 139,
+          "ms": 172,
           "tokensIn": 1038,
           "tokensOut": 117
         }
@@ -3110,7 +2274,7 @@
       "id": "pr07",
       "calls": [
         {
-          "hash": "sha256:aeffa8d82c20674d6b54ebaa4072f6d1ae109341245da87498127c4c4b80d6ed",
+          "hash": "sha256:6fa562ff04642bc19a4f964acbcf0bc76f935f8dc684e92107a5d1893aa20e58",
           "shape": "sha256:2fd16fde6cbe09d9f9292428c1500c2b15c76ef52f2dacf240bd78b6cae78536",
           "answer": {
             "keep": {
@@ -3119,21 +2283,10 @@
             },
             "project": {
               "type": "choice",
-              "choice": "Search Relevance",
-              "probabilities": {
-                "Checkout v2": 0,
-                "Billing Migration": 0,
-                "Deploy Pipeline": 0,
-                "Search Relevance": 0.99,
-                "Mobile Offline Sync": 0,
-                "On-call & Incidents": 0,
-                "Mentoring": 0,
-                "Ledger Platform": 0,
-                "(none of these)": 0.01
-              }
+              "choice": "Search Relevance"
             }
           },
-          "ms": 211,
+          "ms": 162,
           "tokensIn": 1048,
           "tokensOut": 119
         }
@@ -3143,7 +2296,7 @@
       "id": "pr08",
       "calls": [
         {
-          "hash": "sha256:c55cc47d91ac023c3cd893d86ecbd1a2c1bbf4c4654a6135848b6617b24d05cc",
+          "hash": "sha256:3f27aa54be55a13851b22796c95561e48591fde116df9a1c03d172e460b0a717",
           "shape": "sha256:2fd16fde6cbe09d9f9292428c1500c2b15c76ef52f2dacf240bd78b6cae78536",
           "answer": {
             "keep": {
@@ -3152,21 +2305,10 @@
             },
             "project": {
               "type": "choice",
-              "choice": "(none of these)",
-              "probabilities": {
-                "Checkout v2": 0,
-                "Billing Migration": 0,
-                "Deploy Pipeline": 0.01,
-                "Search Relevance": 0.31,
-                "Mobile Offline Sync": 0,
-                "On-call & Incidents": 0,
-                "Mentoring": 0,
-                "Ledger Platform": 0,
-                "(none of these)": 0.68
-              }
+              "choice": "(none of these)"
             }
           },
-          "ms": 150,
+          "ms": 223,
           "tokensIn": 1022,
           "tokensOut": 120
         }
@@ -3176,30 +2318,19 @@
       "id": "pr09",
       "calls": [
         {
-          "hash": "sha256:fed3d41def3d55240a296872953de9dae6fd1248b5f736cf4be0516c7e709354",
+          "hash": "sha256:e5e9ed4301c69818501e9cdedb2c13aa802dce758fd6b92cab0cb2e63dfa1cc2",
           "shape": "sha256:2fd16fde6cbe09d9f9292428c1500c2b15c76ef52f2dacf240bd78b6cae78536",
           "answer": {
             "keep": {
               "type": "boolean",
-              "probability": 0.93
+              "probability": 0.94
             },
             "project": {
               "type": "choice",
-              "choice": "Mobile Offline Sync",
-              "probabilities": {
-                "Checkout v2": 0,
-                "Billing Migration": 0,
-                "Deploy Pipeline": 0,
-                "Search Relevance": 0,
-                "Mobile Offline Sync": 1,
-                "On-call & Incidents": 0,
-                "Mentoring": 0,
-                "Ledger Platform": 0,
-                "(none of these)": 0
-              }
+              "choice": "Mobile Offline Sync"
             }
           },
-          "ms": 155,
+          "ms": 198,
           "tokensIn": 1054,
           "tokensOut": 118
         }
@@ -3209,7 +2340,7 @@
       "id": "pr10",
       "calls": [
         {
-          "hash": "sha256:3b379dcad74478e9fb4f6544e2b3360be284270de59ce220b69a6b3a30296804",
+          "hash": "sha256:05aaf0c7475c203361ba99d3743655819a47870e7dcc742d2b0a1f0d1814e476",
           "shape": "sha256:2fd16fde6cbe09d9f9292428c1500c2b15c76ef52f2dacf240bd78b6cae78536",
           "answer": {
             "keep": {
@@ -3218,21 +2349,10 @@
             },
             "project": {
               "type": "choice",
-              "choice": "(none of these)",
-              "probabilities": {
-                "Checkout v2": 0,
-                "Billing Migration": 0,
-                "Deploy Pipeline": 0.03,
-                "Search Relevance": 0,
-                "Mobile Offline Sync": 0.14,
-                "On-call & Incidents": 0,
-                "Mentoring": 0,
-                "Ledger Platform": 0,
-                "(none of these)": 0.83
-              }
+              "choice": "(none of these)"
             }
           },
-          "ms": 182,
+          "ms": 168,
           "tokensIn": 1029,
           "tokensOut": 120
         }
@@ -3242,7 +2362,7 @@
       "id": "pr11",
       "calls": [
         {
-          "hash": "sha256:75311ef93db8e74139b8006a928d590570708ea4582a4cfc287619f994fa3668",
+          "hash": "sha256:1aa8ee265b00fc07a3cea760509aa0b9a0513738c3597040311a6a090a0cc674",
           "shape": "sha256:2fd16fde6cbe09d9f9292428c1500c2b15c76ef52f2dacf240bd78b6cae78536",
           "answer": {
             "keep": {
@@ -3251,21 +2371,10 @@
             },
             "project": {
               "type": "choice",
-              "choice": "Billing Migration",
-              "probabilities": {
-                "Checkout v2": 0,
-                "Billing Migration": 1,
-                "Deploy Pipeline": 0,
-                "Search Relevance": 0,
-                "Mobile Offline Sync": 0,
-                "On-call & Incidents": 0,
-                "Mentoring": 0,
-                "Ledger Platform": 0,
-                "(none of these)": 0
-              }
+              "choice": "Billing Migration"
             }
           },
-          "ms": 186,
+          "ms": 215,
           "tokensIn": 1060,
           "tokensOut": 117
         }
@@ -3275,7 +2384,7 @@
       "id": "pr12",
       "calls": [
         {
-          "hash": "sha256:4d2278cb1f5a3627efaf603908a8e8b91a823b80a28fcf3fd4f64e5a12ed64e9",
+          "hash": "sha256:c61dd842d475e959d88c7c10eafc7f54da37959ef6eb569a73efcd61232aaa7a",
           "shape": "sha256:2fd16fde6cbe09d9f9292428c1500c2b15c76ef52f2dacf240bd78b6cae78536",
           "answer": {
             "keep": {
@@ -3284,21 +2393,10 @@
             },
             "project": {
               "type": "choice",
-              "choice": "Billing Migration",
-              "probabilities": {
-                "Checkout v2": 0,
-                "Billing Migration": 0.61,
-                "Deploy Pipeline": 0,
-                "Search Relevance": 0,
-                "Mobile Offline Sync": 0,
-                "On-call & Incidents": 0,
-                "Mentoring": 0,
-                "Ledger Platform": 0,
-                "(none of these)": 0.39
-              }
+              "choice": "Billing Migration"
             }
           },
-          "ms": 173,
+          "ms": 160,
           "tokensIn": 1029,
           "tokensOut": 117
         }
@@ -3308,7 +2406,7 @@
       "id": "pr13",
       "calls": [
         {
-          "hash": "sha256:622516838a6ef00f5b6d70b65015fb481a36e44c59b6fa1c2e833e3a1f79e379",
+          "hash": "sha256:c07f9affbc55f9142fe127a4fc4e799a6a9d47b0465c3aad3c602925d01fb89f",
           "shape": "sha256:2fd16fde6cbe09d9f9292428c1500c2b15c76ef52f2dacf240bd78b6cae78536",
           "answer": {
             "keep": {
@@ -3317,21 +2415,10 @@
             },
             "project": {
               "type": "choice",
-              "choice": "Ledger Platform",
-              "probabilities": {
-                "Checkout v2": 0,
-                "Billing Migration": 0,
-                "Deploy Pipeline": 0,
-                "Search Relevance": 0,
-                "Mobile Offline Sync": 0,
-                "On-call & Incidents": 0,
-                "Mentoring": 0,
-                "Ledger Platform": 1,
-                "(none of these)": 0
-              }
+              "choice": "Ledger Platform"
             }
           },
-          "ms": 136,
+          "ms": 188,
           "tokensIn": 1058,
           "tokensOut": 118
         }
@@ -3341,30 +2428,19 @@
       "id": "pr14",
       "calls": [
         {
-          "hash": "sha256:6ee62e344c3c705375d0709cb04382a0ac42948c9a9accda0c8fd6e87a48f690",
+          "hash": "sha256:d9416b3571684277f925c5fee5f34e5a265c1807c1137def0b246ec52aedbe96",
           "shape": "sha256:2fd16fde6cbe09d9f9292428c1500c2b15c76ef52f2dacf240bd78b6cae78536",
           "answer": {
             "keep": {
               "type": "boolean",
-              "probability": 0.07
+              "probability": 0.06
             },
             "project": {
               "type": "choice",
-              "choice": "Ledger Platform",
-              "probabilities": {
-                "Checkout v2": 0,
-                "Billing Migration": 0,
-                "Deploy Pipeline": 0,
-                "Search Relevance": 0,
-                "Mobile Offline Sync": 0,
-                "On-call & Incidents": 0,
-                "Mentoring": 0,
-                "Ledger Platform": 0.99,
-                "(none of these)": 0.01
-              }
+              "choice": "Ledger Platform"
             }
           },
-          "ms": 221,
+          "ms": 161,
           "tokensIn": 1030,
           "tokensOut": 118
         }
@@ -3374,7 +2450,7 @@
       "id": "pr15",
       "calls": [
         {
-          "hash": "sha256:cac3cb53e3ff4793b792e741d14b737bfe6a9998fca7ea3f54bed310c37afcfd",
+          "hash": "sha256:d8e7e244bb3e7451b88ea653be94ca685ba4dc59e83d816391e464753b434bc6",
           "shape": "sha256:2fd16fde6cbe09d9f9292428c1500c2b15c76ef52f2dacf240bd78b6cae78536",
           "answer": {
             "keep": {
@@ -3383,21 +2459,10 @@
             },
             "project": {
               "type": "choice",
-              "choice": "On-call & Incidents",
-              "probabilities": {
-                "Checkout v2": 0,
-                "Billing Migration": 0,
-                "Deploy Pipeline": 0,
-                "Search Relevance": 0,
-                "Mobile Offline Sync": 0,
-                "On-call & Incidents": 1,
-                "Mentoring": 0,
-                "Ledger Platform": 0,
-                "(none of these)": 0
-              }
+              "choice": "On-call & Incidents"
             }
           },
-          "ms": 214,
+          "ms": 228,
           "tokensIn": 1055,
           "tokensOut": 120
         }
@@ -3407,7 +2472,7 @@
       "id": "pr16",
       "calls": [
         {
-          "hash": "sha256:e5a99d0165f0762aa6b18462b47b330e8414e84d55fa81f4761b1df09ad62941",
+          "hash": "sha256:4db1ff53077865f1b69f09c72abcf7e2d47c91d8147ad1ac0df76eea7d9f9778",
           "shape": "sha256:2fd16fde6cbe09d9f9292428c1500c2b15c76ef52f2dacf240bd78b6cae78536",
           "answer": {
             "keep": {
@@ -3416,21 +2481,10 @@
             },
             "project": {
               "type": "choice",
-              "choice": "On-call & Incidents",
-              "probabilities": {
-                "Checkout v2": 0,
-                "Billing Migration": 0,
-                "Deploy Pipeline": 0,
-                "Search Relevance": 0,
-                "Mobile Offline Sync": 0,
-                "On-call & Incidents": 0.99,
-                "Mentoring": 0,
-                "Ledger Platform": 0,
-                "(none of these)": 0.01
-              }
+              "choice": "On-call & Incidents"
             }
           },
-          "ms": 179,
+          "ms": 206,
           "tokensIn": 1023,
           "tokensOut": 120
         }
@@ -3440,7 +2494,7 @@
       "id": "pr17",
       "calls": [
         {
-          "hash": "sha256:3959ebecaead39d0e097b84b58885e62f2c9fe95e2df00aef4122c21f250cf0d",
+          "hash": "sha256:f820bf1ee31c926ec292af0e3da4b554bd25fb8d8c00049c99da3da4a35f505d",
           "shape": "sha256:2fd16fde6cbe09d9f9292428c1500c2b15c76ef52f2dacf240bd78b6cae78536",
           "answer": {
             "keep": {
@@ -3449,21 +2503,10 @@
             },
             "project": {
               "type": "choice",
-              "choice": "(none of these)",
-              "probabilities": {
-                "Checkout v2": 0,
-                "Billing Migration": 0,
-                "Deploy Pipeline": 0,
-                "Search Relevance": 0,
-                "Mobile Offline Sync": 0,
-                "On-call & Incidents": 0,
-                "Mentoring": 0,
-                "Ledger Platform": 0.04,
-                "(none of these)": 0.96
-              }
+              "choice": "(none of these)"
             }
           },
-          "ms": 140,
+          "ms": 216,
           "tokensIn": 1046,
           "tokensOut": 120
         }
@@ -3473,7 +2516,7 @@
       "id": "pr18",
       "calls": [
         {
-          "hash": "sha256:0d766e8244c71856a286089c4bba6b16677b3e66231985e1baf721bd9461ec1b",
+          "hash": "sha256:1fd05ea2c2ac142b80fc409cff82810d18d08bfbe1f0e1218a4d71e237d1a4d0",
           "shape": "sha256:2fd16fde6cbe09d9f9292428c1500c2b15c76ef52f2dacf240bd78b6cae78536",
           "answer": {
             "keep": {
@@ -3482,21 +2525,10 @@
             },
             "project": {
               "type": "choice",
-              "choice": "Deploy Pipeline",
-              "probabilities": {
-                "Checkout v2": 0.01,
-                "Billing Migration": 0,
-                "Deploy Pipeline": 0.57,
-                "Search Relevance": 0,
-                "Mobile Offline Sync": 0,
-                "On-call & Incidents": 0,
-                "Mentoring": 0,
-                "Ledger Platform": 0,
-                "(none of these)": 0.42
-              }
+              "choice": "Deploy Pipeline"
             }
           },
-          "ms": 150,
+          "ms": 214,
           "tokensIn": 1027,
           "tokensOut": 117
         }
@@ -3506,7 +2538,7 @@
       "id": "pr19",
       "calls": [
         {
-          "hash": "sha256:248ace1ad27583d9cf93b4a835945ad6b235368d98cc8d55ad710e65672eeab5",
+          "hash": "sha256:f6117735b7f33c5cba2019be039c498e62594170d786dc7ab512e273d287e338",
           "shape": "sha256:2fd16fde6cbe09d9f9292428c1500c2b15c76ef52f2dacf240bd78b6cae78536",
           "answer": {
             "keep": {
@@ -3515,21 +2547,10 @@
             },
             "project": {
               "type": "choice",
-              "choice": "Mentoring",
-              "probabilities": {
-                "Checkout v2": 0,
-                "Billing Migration": 0,
-                "Deploy Pipeline": 0,
-                "Search Relevance": 0,
-                "Mobile Offline Sync": 0,
-                "On-call & Incidents": 0,
-                "Mentoring": 0.98,
-                "Ledger Platform": 0,
-                "(none of these)": 0.02
-              }
+              "choice": "Mentoring"
             }
           },
-          "ms": 136,
+          "ms": 163,
           "tokensIn": 1051,
           "tokensOut": 118
         }
@@ -3539,7 +2560,7 @@
       "id": "pr20",
       "calls": [
         {
-          "hash": "sha256:03eff2a8a95ca7b996eee522cacdf88d69be397442afaed83e81aeabffad309a",
+          "hash": "sha256:f62c0b4d10a53476e1d0e978b61d1fb3371c44d507aea61dc4641e3dde3cfc4b",
           "shape": "sha256:2fd16fde6cbe09d9f9292428c1500c2b15c76ef52f2dacf240bd78b6cae78536",
           "answer": {
             "keep": {
@@ -3548,21 +2569,10 @@
             },
             "project": {
               "type": "choice",
-              "choice": "(none of these)",
-              "probabilities": {
-                "Checkout v2": 0,
-                "Billing Migration": 0,
-                "Deploy Pipeline": 0.01,
-                "Search Relevance": 0,
-                "Mobile Offline Sync": 0,
-                "On-call & Incidents": 0.01,
-                "Mentoring": 0,
-                "Ledger Platform": 0.03,
-                "(none of these)": 0.95
-              }
+              "choice": "(none of these)"
             }
           },
-          "ms": 144,
+          "ms": 222,
           "tokensIn": 1024,
           "tokensOut": 120
         }

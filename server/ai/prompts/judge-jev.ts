@@ -20,6 +20,8 @@ export type JevQuestion =
 export interface JevRequest {
   state: Record<string, string>;
   questions: Record<string, JevQuestion>;
+  /** A project answer that isn't one of the options becomes "none of these" (decide.ts), not a failed verdict. */
+  fallbacks?: Record<string, string>;
 }
 
 /** The project question's "none of them" option (a key no project name is likely to be). */
@@ -61,7 +63,7 @@ export function judgeJevRequest(kind: 'screenshots' | 'github', { profile, proje
       instructions: kind === 'github' ? "Which of the user's projects is this pull request most about?" : "Which of the user's projects is the message to judge most about?",
       criteria: { ...Object.fromEntries(names.map((n) => [n, n])), [JEV_NO_PROJECT]: 'None of these projects, or it isn’t clear which.' },
     };
-  return { state, questions };
+  return { state, questions, ...(questions.project ? { fallbacks: { project: JEV_NO_PROJECT } } : {}) };
 }
 
 /** The request as the preview shows it: the questions, then the state, exactly as they're sent. */

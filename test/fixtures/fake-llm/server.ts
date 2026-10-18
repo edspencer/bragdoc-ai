@@ -127,6 +127,8 @@ export function createFakeLlm(opts: FakeLlmOptions = {}): FakeLlm {
   const slowMs = opts.slowMs ?? 1500;
   const pullStepMs = opts.pullStepMs ?? 150;
   const pulled = new Set<string>();
+  /** /systemone's `bad-json-once`: only the first decision is malformed (there's no repair turn to tell by). */
+  const once = { bad: true };
 
   const server = http.createServer(async (req, res) => {
     const aborted = new AbortController();
@@ -209,7 +211,11 @@ export function createFakeLlm(opts: FakeLlmOptions = {}): FakeLlm {
       return json(200, api === 'anthropic' ? { data: names.map((id) => ({ type: 'model', id, display_name: id })), has_more: false } : { object: 'list', data: names.map((id) => ({ id, object: 'model', owned_by: 'fake' })) });
     }
 
-    if (decision && req.method === 'POST') return systemone(body, scenario, opts.rules ?? [], json, rec);
+    if (decision && req.method === 'POST') {
+      const bad = scenario === 'bad-json' || (scenario === 'bad-json-once' && once.bad);
+      if (scenario === 'bad-json-once') once.bad = false;
+      return systemone(body, bad, opts.rules ?? [], json, rec);
+    }
     if (!modelCall || !api) return error(404, `the fake model server has no ${req.method} ${p}`);
     if (!raw || typeof body !== 'object') return error(400, 'the request body is not JSON');
 
@@ -282,7 +288,7 @@ export function createFakeLlm(opts: FakeLlmOptions = {}): FakeLlm {
  * real endpoint does (its 400s included). The answer comes from the rule table like any other (the `jev` row, or a
  * recording's), in the AI SDK's shape (`boolean` → `noul` here). `bad-json`: an answer that isn't one.
  */
-function systemone(body: Record<string, any>, scenario: Scenario, rules: AnswerRule[], json: (status: number, v: unknown) => unknown, rec: Recorded): unknown {
+function systemone(body: Record<string, any>, bad: boolean, rules: AnswerRule[], json: (status: number, v: unknown) => unknown, rec: Recorded): unknown {
   const model = String(body.model ?? '');
   if (!/^typesafe\/jev-\d/.test(model)) return json(400, { error: { message: `Model ${model} does not exist`, code: 400 } });
   const qs = body.questions && typeof body.questions === 'object' ? (body.questions as Record<string, { type?: string; instructions?: unknown; criteria?: unknown }>) : null;
@@ -297,9 +303,9 @@ function systemone(body: Record<string, any>, scenario: Scenario, rules: AnswerR
   const answers = Object.fromEntries(
     Object.keys(qs).map((id) => {
       const a = sdk[id];
-      if (scenario === 'bad-json' || scenario === 'bad-json-once') return [id, { type: 'noul', noul: 'very likely' }];
+      if (bad) return [id, { type: 'noul', noul: 'very likely' }];
       if (a?.type === 'boolean') return [id, { type: 'noul', noul: a.probability }];
-      if (a?.type === 'choice') return [id, { type: 'choice', choice: a.choice, ...(a.probabilities ? { probabilities: a.probabilities } : {}) }];
+      if (a?.type === 'choice') return [id, { type: 'choice', choice: a.choice }];
       return [id, a ?? { type: 'refusal' }];
     }),
   );

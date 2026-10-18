@@ -301,7 +301,7 @@ export function createJudge(deps: JudgeDeps): JudgeEngine {
   async function ask(p: Prepared, call: { runId?: string; priority?: Priority; signal?: AbortSignal; trigger?: AiTrigger }): Promise<{ verdict: Omit<Verdict, 'at' | 'by'>; by: string }> {
     const meta = { feature: 'judge' as const, purpose: 'ai.judge', ...(call.runId ? { runId: call.runId } : {}), ...(call.trigger ? { trigger: call.trigger } : {}), ...(call.priority ? { priority: call.priority } : {}), ...(call.signal ? { signal: call.signal } : {}) };
     if (p.decision) {
-      const r = await ai.decide({ ...meta, state: p.decision.state, questions: p.decision.questions });
+      const r = await ai.decide({ ...meta, state: p.decision.state, questions: p.decision.questions, ...(p.decision.fallbacks ? { fallbacks: p.decision.fallbacks } : {}) });
       const host = connectionHost(config.get().ai, r.connection);
       return { verdict: checkAnswer(jevAnswer(r.answers as Parameters<typeof jevAnswer>[0]), p), by: `${r.model} on ${whereLabel(r.where, host ?? r.connection)}` };
     }

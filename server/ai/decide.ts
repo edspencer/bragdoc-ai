@@ -26,6 +26,8 @@ export interface JevOptions {
   apiKey: string | null;
   /** egress.fetchFor(...) for this call. */
   fetch: ProviderFetch;
+  /** Per choice question, what an answer outside its options becomes (sdkAnswer). */
+  fallbacks?: Record<string, string>;
 }
 
 /** What Jev's endpoint answers, per question. Anything else is an answer that wasn't asked for. */
@@ -41,16 +43,19 @@ function wireQuestion(q: DecisionQuestionV4): Record<string, unknown> {
   throw new Error(`Jev isn't asked ${q.type} questions here`);
 }
 
-/** Jev's answer → the SDK's, or null when it isn't one. */
-function sdkAnswer(q: DecisionQuestionV4, a: unknown): DecisionAnswer | null {
+/**
+ * Jev's answer → the SDK's, or null when it isn't one. A choice's distribution isn't passed on (BragDoc never reads
+ * it, and a sloppy one would fail the SDK's checks, losing the other answers too), and a choice outside the options
+ * becomes `fallback` (the "none of these" option) when there is one: dropping a project, never inventing one.
+ */
+function sdkAnswer(q: DecisionQuestionV4, a: unknown, fallback?: string): DecisionAnswer | null {
   const w = a as WireAnswer | undefined;
   if (!w || typeof w !== 'object') return null;
   if (w.type === 'refusal') return { type: 'refusal' };
   if (q.type === 'boolean' && w.type === 'noul' && isProbability(w.noul)) return { type: 'boolean', probability: w.noul };
   if (q.type === 'choice' && w.type === 'choice' && typeof w.choice === 'string') {
-    const p = w.probabilities;
-    const ok = p && typeof p === 'object' && Object.keys(q.criteria).every((k) => isProbability(p[k])) && Object.keys(p).every((k) => k in q.criteria);
-    return { type: 'choice', choice: w.choice, ...(ok ? { probabilities: p } : {}) };
+    if (Object.hasOwn(q.criteria, w.choice)) return { type: 'choice', choice: w.choice };
+    return fallback !== undefined && Object.hasOwn(q.criteria, fallback) ? { type: 'choice', choice: fallback } : null;
   }
   return null;
 }
@@ -63,7 +68,7 @@ function wireState(parts: readonly { type: string; value?: JSONValue; text?: str
 }
 
 /** Jev as an AI SDK decision model, over the fetch it's given. */
-export function jevModel({ baseURL, model, apiKey, fetch: send }: JevOptions): DecisionModelV4 {
+export function jevModel({ baseURL, model, apiKey, fetch: send, fallbacks = {} }: JevOptions): DecisionModelV4 {
   const url = `${baseURL.replace(/\/+$/, '')}/systemone`;
   return {
     specificationVersion: 'v4',
@@ -88,7 +93,7 @@ export function jevModel({ baseURL, model, apiKey, fetch: send }: JevOptions): D
       }
       const answers: Record<string, DecisionAnswer> = {};
       for (const [id, q] of Object.entries(questions)) {
-        const a = sdkAnswer(q, j.answers?.[id]);
+        const a = sdkAnswer(q, j.answers?.[id], fallbacks[id]);
         if (!a) throw new InvalidResponseDataError({ data: null, message: `Jev's answer to "${id}" isn't a ${q.type === 'boolean' ? 'probability' : q.type}` });
         answers[id] = a;
       }

@@ -18,7 +18,7 @@
 //   the same line, with the same gates, timeouts and log. No repair: a decision model's answer is valid or it isn't.
 import { z } from 'zod';
 import type { AiModelsResponse, AiTestResult, AiTrigger, AiWhere } from '../../shared/api.js';
-import { baseUrlOf, decisionOnly, JEV_MODEL, type AiCallFeature } from '../../shared/ai/connections.js';
+import { baseUrlOf, decisionOnly, isJevModel, JEV_MODEL, type AiCallFeature } from '../../shared/ai/connections.js';
 import type { Config } from '../config.js';
 import type { Egress } from '../egress.js';
 import type { Secrets } from '../secrets.js';
@@ -64,6 +64,8 @@ export interface DecideCall extends CallMeta {
   /** What every question is about: one JSON object of plain text fields. */
   state: Record<string, string>;
   questions: Record<string, DecisionQuestion>;
+  /** Per choice question, the option an answer outside its options becomes (so it can't sink the other answers). */
+  fallbacks?: Record<string, string>;
 }
 
 export type { DecisionAnswer, DecisionQuestion };
@@ -551,6 +553,7 @@ export function createAi({ config, egress, secrets, load = loadSdk, now = Date.n
         fetch: egress.fetchFor({ purpose: call.purpose, feature: call.feature, model: slot.model, connectionId: slot.connection }),
         state: call.state,
         questions: call.questions,
+        ...(call.fallbacks ? { fallbacks: call.fallbacks } : {}),
         signal,
       });
       return { answers: r.answers, cost: r.cost, connection: slot.connection, model: slot.model, where: info.where, ms: now() - started, tokensIn: r.tokensIn, tokensOut: r.tokensOut, mode: 'schema' as const, repaired: false };
@@ -567,6 +570,7 @@ export function createAi({ config, egress, secrets, load = loadSdk, now = Date.n
     // Jev: one typed question about nothing of yours (its consent statement's "test")
     if (decisionOnly(cfg.ai.connections[connectionId]?.kind)) {
       const jm = model ?? JEV_MODEL;
+      if (!isJevModel(jm)) return { ok: false, model: jm, where, error: { code: 'model_missing', message: `Jev's model is ${JEV_MODEL} (${jm} isn't one of Jev's: typesafe/jev-router is a chat model). Nothing was sent.` } };
       try {
         const r = await decide({
           feature: 'test',

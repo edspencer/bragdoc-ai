@@ -15,7 +15,7 @@
 import type { Context, Hono } from 'hono';
 import { z } from 'zod';
 import type { AiConnectionView, AiFeatureReadiness, AiStatus } from '../../shared/api.js';
-import { AI_FEATURES, AI_KINDS, baseUrlOf, CONNECTION_ID_RE, connectionClass, contextTokensOf, decisionOnly, isCloud, JEV_MODEL, KEY_REQUIRED, type AiConnectionConfig, type AiFeature } from '../../shared/ai/connections.js';
+import { AI_FEATURES, AI_KINDS, baseUrlOf, CONNECTION_ID_RE, connectionClass, contextTokensOf, decisionOnly, isCloud, isJevModel, JEV_MODEL, KEY_REQUIRED, type AiConnectionConfig, type AiFeature } from '../../shared/ai/connections.js';
 import { consentCurrent, consentStatement } from '../../shared/ai/consent.js';
 import { hostClass } from '../../shared/ai/hosts.js';
 import { AiError } from '../ai/errors.js';
@@ -195,6 +195,7 @@ export function registerAi(app: Hono, ctx: AppContext): void {
         if (b.baseUrl) conn.baseUrl = checkBaseUrl(b.baseUrl);
         if (b.contextTokens) conn.contextTokens = b.contextTokens;
         if (b.kind === 'jev') {
+          if (b.baseUrl || b.contextTokens) throw new Refused(400, 'invalid', 'Jev has no address or context size of its own: it goes through its OpenRouter connection (`via`)');
           if (!b.via || all[b.via]?.kind !== 'openrouter') throw new Refused(400, 'invalid', 'Jev goes through an OpenRouter connection: send `via` with its id');
           conn.via = b.via;
         } else if (b.via) throw new Refused(400, 'invalid', 'only a Jev connection has `via`');
@@ -211,6 +212,7 @@ export function registerAi(app: Hono, ctx: AppContext): void {
       const id = c.req.param('id');
       const conn = connection(id);
       const b = await body(c, UpdateSchema, 'a connection');
+      if (conn.kind === 'jev' && (b.baseUrl || b.contextTokens)) throw new Refused(400, 'invalid', 'Jev has no address or context size of its own: it goes through its OpenRouter connection (`via`)');
       const patch: Record<string, unknown> = {};
       if (b.name !== undefined) patch.name = b.name;
       if (b.contextTokens !== undefined) patch.contextTokens = b.contextTokens;
@@ -265,7 +267,13 @@ export function registerAi(app: Hono, ctx: AppContext): void {
       const conn = connection(id);
       if (conn.kind === 'jev') throw new Refused(400, 'invalid', `Jev uses its OpenRouter connection's key (${conn.via ?? 'none set'})`);
       const { key } = await body(c, KeySchema, 'a key');
+      const replaced = !!ctx.secrets.aiKeyHint(id).hasKey;
       ctx.secrets.setAiKey(id, key);
+      // a different key may be a different account: a Jev going through this connection asks again (D82)
+      if (replaced) {
+        const jevs = Object.entries(ctx.config.get().ai.connections).filter(([, x]) => x.kind === 'jev' && x.via === id && x.consent);
+        if (jevs.length) update({ connections: Object.fromEntries(jevs.map(([j]) => [j, { consent: null }])) });
+      }
       return { id, ...ctx.secrets.aiKeyHint(id) };
     }),
   );
@@ -286,6 +294,8 @@ export function registerAi(app: Hono, ctx: AppContext): void {
       const { version } = await body(c, ConsentSchema, 'consent');
       const cfg = ctx.config.get();
       if (!isCloud(conn, cfg.ai.connections)) throw new Refused(400, 'not_cloud', `${id} is on this computer or your network: it needs no consent`);
+      // nowhere to send yet (a Jev whose OpenRouter connection is gone): there's no host to consent to
+      if (!connectionHost(cfg.ai, id)) throw new Refused(409, 'no_model', `${id} has no address yet${conn.kind === 'jev' ? ': it needs an OpenRouter connection to go through' : ''}`);
       const want = consentStatement(conn.kind).version;
       if (version !== want) throw new Refused(409, 'stale_consent', `that was version ${version} of what ${id} would send; the current one is ${want}. Read it again.`);
       update({ connections: { [id]: { consent: { at: new Date().toISOString(), version, host: connectionHost(cfg.ai, id) } } } });
@@ -351,9 +361,6 @@ export function registerAi(app: Hono, ctx: AppContext): void {
   );
 }
 
-/** Jev's models at /systemone (`typesafe/jev-1.14`); never `typesafe/jev-router`, OpenRouter's chat model (D82). */
-const JEV_MODEL_RE = /^typesafe\/jev-\d[\w.-]*$/;
-
 /**
  * May this connection and model fill this slot? A decision model (Jev) only judges: never the text slot (Tidy's and
  * Draft's), nor their own; and only with one of Jev's models (D82).
@@ -362,7 +369,7 @@ function slotFor(all: Record<string, AiConnectionConfig>, slot: { connection: st
   const conn = all[slot.connection];
   if (!decisionOnly(conn?.kind)) return;
   if (use !== 'judge') throw new Refused(400, 'invalid', `${slot.connection} is Jev, which answers yes-or-no decisions for the judge only: choose a chat model for ${use === 'text' ? 'the text slot' : use}`);
-  if (!JEV_MODEL_RE.test(slot.model)) throw new Refused(400, 'invalid', `Jev's model is ${JEV_MODEL} (${slot.model} isn't one of Jev's: typesafe/jev-router is a chat model)`);
+  if (!isJevModel(slot.model)) throw new Refused(400, 'invalid', `Jev's model is ${JEV_MODEL} (${slot.model} isn't one of Jev's: typesafe/jev-router is a chat model)`);
 }
 
 /** A merge patch applied to plain data (null removes a key: its default applies). */

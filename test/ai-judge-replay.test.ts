@@ -17,11 +17,11 @@ const EXPECTED: Record<string, Record<string, string>> = {
     'sarcasm kept': '8 of 20 (the rules passed 17)',
     'PR accuracy': '100% (20 of 20)',
   },
-  // Jev (D82), through a Jev connection: the fake's /systemone answers from the recording. One sarcastic message came
-  // back at P(win) 0.54 when recorded (a borderline call; it dropped in a run without the rules)
+  // Jev (D82), through a Jev connection: the fake's /systemone answers from the recording. (One sarcastic message is
+  // borderline for Jev: it came back at P(win) 0.54 in an earlier run, and below 0.5 in this one.)
   'typesafe-jev-1.14.json': {
-    'judge P / R on passed': '98% / 100% (44 of 44 wins the rules passed)',
-    'sarcasm kept': '1 of 20 (the rules passed 17)',
+    'judge P / R on passed': '100% / 100% (44 of 44 wins the rules passed)',
+    'sarcasm kept': '0 of 20 (the rules passed 17)',
     'PR accuracy': '100% (20 of 20)',
   },
   'qwen3.5-4b.json': {

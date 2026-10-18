@@ -64,7 +64,7 @@ describe('the adapter (decide.ts)', () => {
     assert.deepEqual(body.state, { message: 'Priya: Huge thanks Sam, the checkout rewrite cut page load in half!' });
     assert.equal(new Headers(sent[0]!.init.headers).get('authorization'), `Bearer ${KEY}`);
     assert.deepEqual(r.answers.keep, { type: 'boolean', probability: 0.93 });
-    assert.deepEqual(r.answers.project, { type: 'choice', choice: 'Checkout', probabilities: { Checkout: 1, none: 0 } });
+    assert.deepEqual(r.answers.project, { type: 'choice', choice: 'Checkout' }, 'the distribution is not passed on');
     assert.deepEqual([r.tokensIn, r.tokensOut, r.cost], [396, 47, 0.000016632]);
   });
 
@@ -80,6 +80,23 @@ describe('the adapter (decide.ts)', () => {
       assert.doesNotMatch(JSON.stringify(e), /secret words/);
       return true;
     });
+  });
+
+  test("a choice outside the options becomes the fallback (no project), never sinking the yes/no; without one it's bad_output", async () => {
+    const ask = (fallbacks?: Record<string, string>) =>
+      decide({
+        baseURL: 'https://openrouter.ai/api/v1',
+        model: JEV_MODEL,
+        apiKey: KEY,
+        fetch: (async () => json({ answers: { keep: { type: 'noul', noul: 0.9 }, project: { type: 'choice', choice: 'Made-up Project', probabilities: { 'Made-up Project': 0.7, x: 0.2 } } } })) as never,
+        state: { text: 't' },
+        questions: { keep: { type: 'boolean', instructions: 'x?' }, project: { type: 'choice', instructions: 'which?', criteria: { A: 'A', [JEV_NO_PROJECT]: 'none' } } },
+        ...(fallbacks ? { fallbacks } : {}),
+        signal: new AbortController().signal,
+      });
+    const r = await ask({ project: JEV_NO_PROJECT });
+    assert.deepEqual([r.answers.keep, r.answers.project], [{ type: 'boolean', probability: 0.9 }, { type: 'choice', choice: JEV_NO_PROJECT }]);
+    await assert.rejects(ask(), (e: Error) => e.name === 'AI_InvalidResponseDataError');
   });
 
   test('takes only the question types Jev answers here', () => {
@@ -134,6 +151,7 @@ describe('the verdict from Jev', () => {
   test('probabilityOnly() tells a Jev verdict from a chat model one', () => {
     assert.equal(probabilityOnly({ by: 'typesafe/jev-1.14 on openrouter.ai' }), true);
     assert.equal(probabilityOnly({ by: 'qwen3.5:4b on this computer' }), false);
+    assert.equal(probabilityOnly({ by: 'typesafe/jev-router on openrouter.ai' }), false, 'a chat model that gives a why');
     assert.equal(probabilityOnly(null), false);
   });
 });
@@ -215,6 +233,32 @@ describe('Judge now with Jev (cloud, through egress)', () => {
     home.close();
   });
 
+  test("consent is asked again: Jev pointed at another OpenRouter, that OpenRouter's key replaced, an older statement; none to give with nothing to go through", async () => {
+    const { home } = await cloudRig();
+    const jevConsent = () => home.config.get().ai.connections.jev!.consent ?? null;
+    const blocked = async () => (await home.req('GET', '/api/ai')).body.connections.find((x: { id: string }) => x.id === 'jev').blocked?.code ?? null;
+    // the first key on the OpenRouter connection was set before; a new one may be another account
+    assert.equal((await home.req('PUT', '/api/ai/connections/or/key', { key: `${KEY}-2` })).status, 200);
+    assert.equal(jevConsent(), null);
+    assert.equal(await blocked(), 'not_consented');
+    assert.equal((await home.req('POST', '/api/ai/connections/jev/consent', { version: 2 })).status, 200);
+    // through another OpenRouter connection
+    assert.equal((await home.req('POST', '/api/ai/connections', { kind: 'openrouter', id: 'or2' })).status, 201);
+    assert.equal((await home.req('PUT', '/api/ai/connections/jev', { via: 'or2' })).status, 200);
+    assert.equal(jevConsent(), null, 'another OpenRouter connection: consent again');
+    // a consent to version 1 (before the statement grew) isn't current
+    home.config.update({ ai: { connections: { jev: { via: 'or', consent: { at: '2026-10-18T00:00:00.000Z', version: 1, host: 'openrouter.ai' } } } } });
+    assert.equal(await blocked(), 'not_consented');
+    // nothing to go through: no host, so no consent to give
+    home.config.update({ ai: { connections: { jev: { via: 'gone' } } } });
+    const r = await home.req('POST', '/api/ai/connections/jev/consent', { version: 2 });
+    assert.deepEqual([r.status, r.body.error.code], [409, 'no_model']);
+    // a Jev has no address or context size of its own
+    assert.equal((await home.req('PUT', '/api/ai/connections/jev', { baseUrl: 'https://llm.example.com/v1' })).status, 400);
+    assert.equal((await home.req('POST', '/api/ai/connections', { kind: 'jev', via: 'or', contextTokens: 4096 })).status, 400);
+    home.close();
+  });
+
   test('the unhappy paths: a refused key and rate limiting stop the run; a malformed answer fails its item; the endpoint down is unreachable', async () => {
     const cases: [string, (url: URL) => Response | Promise<Response>, { error: string; failed?: number }][] = [
       ['invalid key', () => json({ error: { message: 'User not found.', code: 401 } }, 401), { error: 'key_refused' }],
@@ -272,6 +316,9 @@ describe('where Jev may be used', () => {
     const bad = await cloudRig(() => json({ error: { message: 'User not found.', code: 401 } }, 401));
     const t2 = await withoutGlobalFetch(() => bad.home.req('POST', '/api/ai/connections/jev/test', {}));
     assert.deepEqual([t2.body.ok, t2.body.error.code], [false, 'key_refused']);
+    const t3 = await withoutGlobalFetch(() => home.req('POST', '/api/ai/connections/jev/test', { model: 'typesafe/jev-router' }));
+    assert.deepEqual([t3.body.ok, t3.body.error.code], [false, 'model_missing']);
+    assert.equal(net.calls.length, 1, 'jev-router is never sent to /systemone');
     home.close();
     bad.home.close();
   });
@@ -280,6 +327,8 @@ describe('where Jev may be used', () => {
     const conn = { id: 'jev', kind: 'jev' as const, class: 'internet' as const, host: 'openrouter.ai', blocked: null };
     const features = { judge: { enabled: true, model: { connection: 'jev', model: JEV_MODEL } }, tidy: { enabled: false, model: null }, draft: { enabled: false, model: null } } as never;
     assert.equal(chipLabel({ enabled: true, text: null, features, connections: [conn] }), 'AI · OpenRouter');
+    const local = { id: 'ollama', kind: 'ollama' as const, class: 'this-computer' as const, host: '127.0.0.1', blocked: null };
+    assert.equal(chipLabel({ enabled: true, text: { connection: 'ollama', model: 'qwen3.5:4b' }, features, connections: [local, conn] }), 'AI · OpenRouter', 'the judge sends to OpenRouter even with a local text slot');
     assert.equal(chipLabel({ enabled: true, text: null, features: { ...(features as object), judge: { enabled: false, model: { connection: 'jev', model: JEV_MODEL } } } as never, connections: [conn] }), 'AI · no model yet', 'a feature that is off does not count');
   });
 
@@ -288,7 +337,7 @@ describe('where Jev may be used', () => {
     assert.equal(s.version, 2);
     assert.match(s.provider!, /OpenRouter, for TypeSafe/);
     assert.ok(s.sends.judge!.some((x) => /screenshot/.test(x)) && s.sends.judge!.some((x) => /pull request/.test(x)));
-    assert.ok(s.notes.some((x) => /openrouter\.ai, which passes it to TypeSafe AI/.test(x)));
+    assert.ok(s.notes.some((x) => /OpenRouter, which passes it to TypeSafe AI/.test(x)));
     assert.ok(s.notes.some((x) => /never says why/.test(x)));
   });
 });

@@ -56,7 +56,7 @@ export interface Ask {
   object<T>(call: { system: string; prompt: string; schema: z.ZodType<T>; schemaName?: string; maxOutputTokens?: number; timeoutMs?: number }): Promise<T>;
   text(call: { system: string; prompt: string; maxOutputTokens?: number; timeoutMs?: number }): Promise<string>;
   /** Typed questions to a decision model (Jev, D82): an answer per question. */
-  decide(call: { state: Record<string, string>; questions: Record<string, DecisionQuestion>; timeoutMs?: number }): Promise<Record<string, DecisionAnswer>>;
+  decide(call: { state: Record<string, string>; questions: Record<string, DecisionQuestion>; fallbacks?: Record<string, string>; timeoutMs?: number }): Promise<Record<string, DecisionAnswer>>;
 }
 
 export interface EvalSpec<I, A> {
@@ -193,8 +193,8 @@ export async function runEval<I, A>(spec: EvalSpec<I, A>, { ai, slot, activity, 
           calls.push({ hash: askedHash(system, prompt), shape: shapeHash({ kind: 'text', ...(maxOutputTokens ? { maxOutputTokens } : {}) }), answer: r.text, ms: r.ms, tokensIn: r.tokensIn, tokensOut: r.tokensOut });
           return r.text;
         },
-        async decide({ state, questions, timeoutMs }) {
-          const r = await ai.decide({ ...base, state, questions, ...(timeoutMs ? { timeoutMs } : {}) });
+        async decide({ state, questions, fallbacks, timeoutMs }) {
+          const r = await ai.decide({ ...base, state, questions, ...(fallbacks ? { fallbacks } : {}), ...(timeoutMs ? { timeoutMs } : {}) });
           note(r);
           const asked = decisionAsked(state, questions);
           calls.push({ hash: askedHash(asked.system, asked.prompt), shape: shapeHash({ kind: 'decision' }), answer: r.answers, ms: r.ms, tokensIn: r.tokensIn, tokensOut: r.tokensOut });

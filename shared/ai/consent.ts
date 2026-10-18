@@ -64,9 +64,9 @@ export const CONSENT: Record<'anthropic' | 'openai' | 'openrouter' | 'jev' | 'cu
     policyUrl: 'https://openrouter.ai/privacy',
     sends: { judge: JUDGE, test: TEST },
     notes: [
-      'It goes from this computer to openrouter.ai, which passes it to TypeSafe AI, who run Jev. BragDoc’s makers see nothing: there is no BragDoc server in between.',
+      'It goes from this computer to OpenRouter, which passes it to TypeSafe AI, who run Jev. BragDoc’s makers see nothing: there is no BragDoc server in between.',
       'Jev answers with probabilities only (“a win: 93%”, and which project). It never says why, and BragDoc never makes a reason up for it.',
-      'It uses the key of the OpenRouter connection it goes through: that stays in secrets.yaml on this computer (readable by you alone), and is sent only to openrouter.ai.',
+      'It uses the key of the OpenRouter connection it goes through: that stays in secrets.yaml on this computer (readable by you alone), and is sent only to that connection’s host. A new key there, or removing it, asks for this consent again.',
       'To stop: Settings → AI → the Jev connection → Revoke. Nothing more is sent to Jev from that moment, even while the OpenRouter connection stays allowed.',
     ],
   },

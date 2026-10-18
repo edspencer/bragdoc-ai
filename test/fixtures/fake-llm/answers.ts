@@ -125,7 +125,7 @@ function judgeMessage(prompt: string) {
 
 /** Jev's fake answers: P(win) from the judge rows' opinion, and a project only when the text names it. */
 function jevAnswer(r: FakeRequest): Record<string, unknown> {
-  const questions = new Map((safeJson(r.system) as [string, string, Record<string, string> | null][] | null ?? []).map(([id, , criteria]) => [id, criteria]));
+  const questions = new Map((safeJson(r.system) as [string, string, string, Record<string, string> | null][] | null ?? []).map(([id, , , criteria]) => [id, criteria]));
   const state = (safeJson(r.prompt) ?? {}) as Record<string, string>;
   const out: Record<string, unknown> = {};
   if (questions.has('ok')) out.ok = { type: 'boolean', probability: 0.97 }; // a connection test

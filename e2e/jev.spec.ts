@@ -108,7 +108,9 @@ test('Jev through OpenRouter judges a candidate: a probability, and no reason', 
   await expect(card.getByTestId('ai-connection-outcome')).toContainText('answered a yes-or-no question with a probability');
   await card.getByTestId('ai-connection-use').click();
   await expect(card.getByTestId('ai-connection-use')).toHaveText('The judge’s model');
-  // Tidy's model chooser never offers Jev
+  // Tidy's model chooser never offers Jev, and the server refuses it there anyway
+  await page.getByTestId('ai-tidy-choose').click();
+  await expect(page.getByTestId('ai-tidy-chooser').locator('select option')).toHaveText(['OpenRouter']);
   expect((await api('PUT', '/api/ai/features/tidy', { model: { connection: 'jev', model: 'typesafe/jev-1.14' } })).status).toBe(400);
 
   await page.goto(url + '/found');
@@ -121,4 +123,27 @@ test('Jev through OpenRouter judges a candidate: a probability, and no reason', 
   expect(sent).toHaveLength(1);
   expect(JSON.stringify(sent[0]!.body)).toContain('The message to judge');
   expect(JSON.stringify(sent[0]!.body)).not.toContain(home);
+});
+
+test('a Jev through a cloud OpenRouter asks for its own consent; "Not now" sends nothing', async ({ page }) => {
+  // OpenRouter at its real address (cloud), allowed and keyed; nothing here makes a request to it
+  expect((await api('POST', '/api/ai/connections', { id: 'or-cloud', kind: 'openrouter', name: 'OpenRouter (cloud)' })).status).toBe(201);
+  expect((await api('POST', '/api/ai/connections/or-cloud/consent', { version: 1 })).status).toBe(200);
+  await page.goto(url + '/settings/ai');
+  await page.getByTestId('ai-add-jev').click();
+  await page.getByTestId('ai-add-via').selectOption('or-cloud');
+  await page.getByTestId('ai-add-save').click();
+  await expect(page.getByRole('dialog')).toContainText('Allow BragDoc to send to openrouter.ai?');
+  await expect(page.getByTestId('ai-consent-sends-judge')).toContainText('For a merged pull request');
+  await page.getByRole('button', { name: 'Not now' }).click();
+  const card = page.getByTestId('ai-connection-jev-2');
+  await expect(card.getByTestId('ai-connection-status')).toContainText('allow it first');
+  await expect(card.getByTestId('ai-connection-test-go')).toBeDisabled();
+  // the OpenRouter card says a Jev goes through it, and removing it warns
+  const or = page.getByTestId('ai-connection-or-cloud');
+  await expect(or).toContainText('in use by Jev (via OpenRouter)');
+  await or.getByTestId('ai-connection-remove').click();
+  await expect(or).toContainText('goes through it: the judge stops using it');
+  const egress = await api('GET', '/api/network-log?limit=200');
+  expect(egress.body.entries.filter((e: { host: string }) => e.host === 'openrouter.ai')).toEqual([]);
 });
