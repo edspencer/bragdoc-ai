@@ -5,6 +5,7 @@ import type { Notice } from '../shared/api.js';
 import type { ConfigStore } from './config.js';
 import type { Egress } from './egress.js';
 import type { EventBus } from './events.js';
+import type { LinkPreviews } from './link-preview.js';
 import type { Runtime } from './runtime.js';
 import type { UploadRegistry } from './security.js';
 import type { Services } from './services/index.js';
@@ -31,4 +32,6 @@ export interface AppContext {
   store: Store;
   /** The operations routes and MCP both call: achievements, projects, companies, repos, evidence, found, profile. */
   services: Services;
+  /** POST /api/link-preview's GitHub lookup: unset until a GitHub source registers one (`setGithub`, PR13). */
+  linkPreviews: LinkPreviews;
 }

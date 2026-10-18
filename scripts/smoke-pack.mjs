@@ -141,7 +141,7 @@ try {
     assert.match(run('guide', '--snippet'), /^When I ask you to note, log or remember something I did at work/);
   }
 
-  // OCR (PR11, D48): the installed package reads a screenshot with what it ships (tesseract.js, its wasm, the English
+  // OCR (PR11, D52): the installed package reads a screenshot with what it ships (tesseract.js, its wasm, the English
   // data), with the network gone: a preload, which worker threads inherit, makes every fetch, socket and DNS lookup
   // throw. A package that tried to download its language data would fail here.
   step('dev ocr, with no network');

@@ -10,6 +10,21 @@ export function apiError(code: string, message: string): ApiError {
 }
 
 /**
+ * The response for an error the store or a service threw (server/store/errors.ts): NotFoundError → 404,
+ * ValidationError → 400, ConflictError and ReadOnlyError → 409 (with the file's current ETag, so the client can say
+ * "it changed"). Anything else is rethrown, for Hono's 500.
+ */
+export function storeErrorResponse(c: Context, e: unknown): Response {
+  if (e instanceof NotFoundError) return c.json(apiError('not_found', e.message), 404);
+  if (e instanceof ValidationError) return c.json({ ...apiError('invalid', e.message), issues: e.issues }, 400);
+  if (e instanceof ConflictError) {
+    if (e.etag) c.header('ETag', e.etag);
+    return c.json(apiError(e.code, e.message), 409);
+  }
+  throw e;
+}
+
+/**
  * The store's errors (server/store/errors.ts) as an HTTP answer: NotFoundError → 404, ValidationError → 400,
  * ConflictError and ReadOnlyError → 409, each with its own code and sentence. Anything else is rethrown (a 500).
  * Use it around a service call: `try { … } catch (e) { const r = storeError(e); return c.json(r.body, r.status); }`.

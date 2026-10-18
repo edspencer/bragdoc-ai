@@ -15,8 +15,10 @@ data home's layout, runtime.json, egress, subprocesses and the event stream. PR5
 service`. And the **web foundation** (PR4): the Scrapbook component kit, the light / system / dark themes, the app
 shell with placeholder pages, the typed API client and the screenshot rig. PR9 added the MCP server (`/mcp`), the
 stdio bridge (`bragdoc mcp`), `bragdoc mcp install claude` and the agent guide (`AGENT-GUIDE.md`, `bragdoc guide`).
-PR11 added OCR and the screenshot rules, as a library (`server/ocr/`,
-`shared/rules/screenshot.ts`) that the screenshots source builds on. Everything else arrives PR by PR, in the waves #411 lays out.
+PR7 built the **Board**: the achievements and evidence API, link previews, store changes forwarded live to the
+browser, and the board page (composer, cards, edit drawer, search). PR11 added OCR and the screenshot rules, as a
+library (`server/ocr/`, `shared/rules/screenshot.ts`) that the screenshots source builds on. Everything else arrives
+PR by PR, in the waves #411 lays out.
 
 Before changing behaviour, read, in order:
 
@@ -83,12 +85,16 @@ server/              the server and CLI (Node, TypeScript ESM, Hono)
   egress.ts          the ONLY outbound network path: egressFetch({purpose}, url), allow-list, logs/network.jsonl
   proc.ts            the ONLY way to run a program: run()/runAttached(), allow-listed binaries, no shell
   events.ts          the event bus + the SSE stream (GET /api/events)
+  live.ts            forwards every store change onto the bus as a ServerEvent named after its entity (D48)
+  link-preview.ts    LinkPreviews: the GitHub PR lookup POST /api/link-preview uses, once a GitHub source registers one
+  views.ts           how achievements look in the API: achievementView() (+ etag, files, broken), evidenceFile()
   atomic.ts          the platform's own writes (runtime.json, the network log, starter files): atomic, create-only (D27)
   routes/index.ts    registerRoutes(): one line per feature module (D18)
   routes/health.ts   GET /api/health
   routes/{events,meta,network}.ts   GET /api/events, /api/meta, /api/network-log
   routes/mcp.ts      /mcp: the bearer token (runtime.json), 405 on GET/DELETE, then server/mcp/
   routes/guide.ts    GET /agent-guide.md, /llms.txt, /llms-full.txt
+  routes/{achievements,evidence,link-preview,problems,found-count}.ts   the board's API (see "The board's API")
   paths.ts           package root, VERSION, WEB_DIST, the data home (resolveDataDir), tildify
   port.ts            DEFAULT_PORT (2724 = BRAG), alone so vite.config.ts can import it
   store/             the only code that touches the data home's files (D5, D24): index.ts (Store: load, index,
@@ -97,7 +103,7 @@ server/              the server and CLI (Node, TypeScript ESM, Hono)
                      (MiniSearch), watch.ts (chokidar), backups.ts (snapshots), errors.ts
   services/          the operations HTTP and MCP both call: achievements, projects/companies/repos (catalog.ts),
                      evidence, found, profile; createServices(store)
-  ocr/               reading text in images, locally (D48): index.ts (createOcr: engine choice and fallback, one read
+  ocr/               reading text in images, locally (D52): index.ts (createOcr: engine choice and fallback, one read
                      at a time, cache by sha256; evidenceOcrCache keeps evidence text in its sidecar), tesseract.ts
                      (tesseract.js + the package's English data) and tesseract-worker.ts (its worker, with no network),
                      vision-macos.ts (Apple Vision through a JXA script on osascript), image.ts (upscaling small PNGs)
@@ -106,12 +112,15 @@ shared/              code used by both server/ and src/: no Node or DOM APIs
   schema/            the data files' Zod schemas and types (PR3 owns it), the services' input schemas (inputs.ts), the
                      Problem and StoreChange types, and the generated file-format reference (reference.ts)
   ulid.ts, impact.ts, judge.ts   ids; the 1–10 impact scale; the (unimplemented) AI judge seam (D8)
-  rules/screenshot.ts "is this screenshot praise for me?" from OCR text: plain rules, never a model (D48)
+  links.ts           parsePrUrl (→ owner/repo#n and `github_pr:` key), isHttpUrl, githubRepoOf, parsePrKey
+  rules/screenshot.ts "is this screenshot praise for me?" from OCR text: plain rules, never a model (D52)
 src/                 the web app (React 19, Vite, Tailwind v4, TanStack Router + Query), built into dist/web
   main.tsx           fonts, ThemeProvider, QueryClient, router
   routes/            file-based routes (TanStack Router; tsr.config.json); __root.tsx is the shell
   kit/               the Scrapbook component kit: import from kit/index.ts (see "The web app" below)
   shell/             the header, mobile tabs, theme toggle, logo, nav and settings-tab lists, Placeholder
+  board/             the board's pieces: composer.ts (paste/drop/upload logic), DropTray, AchievementCard, EditDrawer,
+                     pickers (projects, repos, impact), evidence.ts (stored evidence → the kit's EvidenceView)
   api/               client.ts (the typed `api` wrapper), queries.ts (query keys + hooks), events.ts (live updates)
   theme/theme.tsx    light / system / dark: ThemeProvider + useTheme()
   lib/               pure helpers, unit-tested: colour.ts (inkOn, swatches, tilt), dates.ts (groupByWeek, fmt), gantt.ts
@@ -200,6 +209,10 @@ npm run smoke:pack` pass locally (and `npm run test:e2e` if you touched anything
   hand-editable), with the blob headers from SECURITY.md.
 - **Live updates:** `ctx.store.subscribe(fn)` hears every change as a `StoreChange` (`shared/schema/change.ts`),
   whether BragDoc wrote it or a hand edit did; the watcher runs under `startServer`. Our own writes are one event each.
+  `server/live.ts` already forwards them all to the browser (`{ type: 'achievement' | 'project' | … | 'problems' }`,
+  debounced per type, D48): don't add another forwarder. A page that shows store data just needs query keys that start
+  with the matching prefix in `CHANGE_INVALIDATES` (`achievements`, `projects`, `repos`, `companies`, `found`,
+  `profile`, `problems`).
 - **A field on a data file:** add it as optional (or with a default) to its schema in `shared/schema/`, with a
   `.describe()` sentence, run `npm run sync:reference`, and don't bump `schemaVersion` (D23). Never redefine a type.
 - **A page:** add a file under `src/routes/` (TanStack file routes: `found.tsx` → `/found`,
@@ -248,7 +261,7 @@ project-colour tape, on an oat board (light) or a dim cork board under a desk la
 
 | Group | Components |
 |---|---|
-| Paper | `Card` (taped card: `tape`, `tapeAt`, `tiltId`, `fresh`), `Panel` (forms/settings sheet), `Masonry` (1/2/3 columns), `Tape`, `Print` (photo print + lightbox), `Lightbox`, `PdfPage`, `Sticky`, `StickyQuote`, `Stamp`, `Receipt`, `Ruled` |
+| Paper | `Card` (taped card: `tape`, `tapeAt`, `tiltId`, `fresh`), `Panel` (forms/settings sheet), `Masonry` (1/2/3 columns), `Tape`, `Print` (photo print + lightbox; `full` for a separate full-size source; draws "can't be shown" for a broken picture), `Lightbox`, `PdfPage`, `Sticky`, `StickyQuote`, `Stamp`, `Receipt`, `Ruled` |
 | Type | `PageTitle` (title, `hand` aside, `sub`, `right` actions), `SectionTitle`, `Kicker`, `Hand`, `WeekHeader` (for `groupByWeek` groups) |
 | Controls | `Btn` (`accent` · `go` · `paper` · `ink` · `ghost` · `danger`; `size="sm"`), `LinkBtn` (a router link styled as a button), `btnClass()`, `Switch`, `Field` (label, `hint`, `error`), `TextInput`, `TextArea`, `inputCls`, `FilterChip`, `CountBadge`, `Dot`, `ColourPicker` (12 swatches + any colour) |
 | Tags | `ProjectPill` (`name`, `color`, `active`, `onClick`), `RepoTag`, `ImpactBadge` (1–10), `ProvenanceBadge` (`github` · `screenshot` · `mcp` + `agent` · `import`; `soft` on cards, `solid` on Found), `PROVENANCE` (labels and colours for filter rows) |
@@ -267,6 +280,28 @@ typed upload (raw bytes, the file's type, never a CORS-safelisted one, `X-Filena
 The `QueryClient` (`createQueryClient()` in `queries.ts`) doesn't retry 4xx. `useServerEvents()` (mounted in the
 shell) refreshes queries from the server's SSE `change` events (a `ServerEvent`, by its `type`) by their key's first
 segment, and everything on `hello` after a reconnect.
+
+### The board's API (PR7)
+
+What Found (PR13), Folio (PR14) and MCP build on. Types are in `shared/api.ts` ("board (PR7)"); request bodies are
+the services' input schemas.
+
+| Route | What |
+|---|---|
+| `GET /api/achievements` | `AchievementsPage`: whole weeks (Monday start), newest first; `q`, `projectId`, `repoId`, `companyId`, `from`, `to`, `archived` (`exclude`·`include`·`only`), `source`, `minImpact`, `weeks` (default 8), `before` (the previous page's `nextBefore`). Search results are by date too, so weeks stay whole |
+| `GET /api/achievements/:id` | one `AchievementView`: the achievement + `etag` + `files` (sidecars of its evidence files, by sha) + `broken`/`readOnly` |
+| `POST /api/achievements` | `AchievementCreate` → 201 `{ achievement, created: true }`, or 200 `created: false` when its top-level `externalKey` (or `legacyId`) is already on the board |
+| `PATCH /api/achievements/:id` | `AchievementUpdate` with `If-Match: <etag>` → the new view; a stale ETag is 409 `conflict` (with the current `ETag` header) |
+| `POST /api/achievements/:id/{archive,unarchive,remove,restore}` | remove moves the file to `backups/removed/` (`{ removedTo }`; takes `If-Match`), restore brings the newest copy back |
+| `POST /api/evidence` | a typed upload (raw bytes, Content-Type, URI-encoded `X-Filename`) → `{ evidence, file, created }`: an Evidence item with a fresh id, on no achievement yet (send it in `evidence`). 413 over 25 MB; 415 `type_mismatch` / `damaged` (D50) |
+| `GET /api/evidence/:sha` · `/thumb` | the file with the blob headers (non-pictures download); `/thumb` is pictures only (D49) |
+| `POST /api/link-preview` | `{ url }` → `LinkPreview`: a PR → `owner/repo#n`, its `github_pr:` key (lower case: build keys with `prKey()` from `shared/links.ts`), the matching repo, its projects as suggestions, `onBoard`; a title only via `ctx.linkPreviews.setGithub(lookup)` (PR13 registers it). Other URLs → domain only, never fetched |
+| `GET /api/projects` · `/api/repos` | PR8's (`server/routes/catalog.ts`): `ProjectEntry` / `RepoEntry` with `etag` (projects also `achievements`, a count); the board's pickers read them |
+| `GET /api/problems` · `/api/found/count` | the Problems list; `{ pending }` for Found's strip and badge |
+
+Errors from the store map through `storeErrorResponse(c, e)` in `server/http.ts` (404 / 400 with `issues` / 409).
+In the web app: `getAchievements` … `previewLink` in `src/api/client.ts`, `useAchievements` (an infinite query over
+`before`), `useProjects`, `useRepos`, `useProblems`, `useFoundCount` in `queries.ts`.
 
 ### Code
 

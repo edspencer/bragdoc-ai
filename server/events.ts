@@ -18,7 +18,7 @@ export const HEARTBEAT_MS = 25_000;
 
 export class EventBus {
   private listeners = new Set<Listener>();
-  private timers = new Map<string, { t: NodeJS.Timeout; e: ServerEvent }>();
+  private timers = new Map<string, { t: NodeJS.Timeout; e: ServerEvent; since: number }>();
 
   subscribe(l: Listener): () => void {
     this.listeners.add(l);
@@ -42,17 +42,20 @@ export class EventBus {
 
   /**
    * Debounce per key: emit `e` `ms` after the last call with this key, so a burst (an editor's write-rename-chmod, a
-   * `git pull`, a page of GitHub requests) becomes one push.
+   * `git pull`, a page of GitHub requests) becomes one push. With `maxWaitMs`, a steady stream of calls (a long import,
+   * an agent writing in a loop) still emits at least that often, rather than holding every push until it stops.
    */
-  emitSoon(key: string, e: ServerEvent, ms = DEBOUNCE_MS): void {
+  emitSoon(key: string, e: ServerEvent, ms = DEBOUNCE_MS, maxWaitMs = Infinity): void {
     const prev = this.timers.get(key);
     if (prev) clearTimeout(prev.t);
+    const since = prev?.since ?? Date.now();
+    const wait = Math.max(0, Math.min(ms, since + maxWaitMs - Date.now()));
     const t = setTimeout(() => {
       this.timers.delete(key);
       this.emit(e);
-    }, ms);
+    }, wait);
     t.unref?.(); // a pending push mustn't hold a stopping server open
-    this.timers.set(key, { t, e });
+    this.timers.set(key, { t, e, since });
   }
 
   /** Run every pending debounced emit now (tests, shutdown). */

@@ -11,8 +11,8 @@ test('the shell runs under the strict CSP with zero violations and zero non-loca
   });
   const res = await page.goto('/');
   expect(res?.headers()['content-security-policy']).toContain("script-src 'self'");
-  await expect(page.getByTestId('placeholder-shell')).toBeVisible();
-  await expect(page.getByTestId('server-status')).toHaveText(/Server OK/);
+  await expect(page.getByTestId('composer')).toBeVisible();
+  await expect(page.locator('[data-testid="board-empty"], [data-testid="week"]').first()).toBeVisible();
   // anything the CSP blocked is also reported as an event the page can see
   const blocked = await page.evaluate(
     () =>

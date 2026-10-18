@@ -63,7 +63,7 @@ const ALLOWED_IMPORTS: Record<string, string> = {
     "the MCP server (PR9): createMcpHandler answers web-standard Requests handed to it, McpServer registers tools; it opens no connection and fetches nothing (its own deps: @modelcontextprotocol/core and zod)",
   'node:readline': "the stdio bridge (server/mcp/bridge.ts) reads stdin a line at a time",
   'node:stream': 'types only (Readable, Writable) for the bridge\'s injectable stdin/stdout',
-  // OCR (PR11, D48). tesseract.js CAN fetch (node-fetch, or the global fetch): its language data when `langPath` is a
+  // OCR (PR11, D52). tesseract.js CAN fetch (node-fetch, or the global fetch): its language data when `langPath` is a
   // URL (its default is a CDN) and an image given as a URL. server/ocr/tesseract.ts passes a local langPath (the
   // package's own data) and images as bytes, and the worker it runs in has no fetch at all (tesseract-worker.ts
   // replaces its adapter's). test/ocr.test.ts points it at the CDN and proves the request fails, with fetch stubbed.
@@ -76,7 +76,7 @@ const ALLOWED_IMPORTS: Record<string, string> = {
 /** Allowed in these files only. */
 const ALLOWED_IMPORTS_IN: Record<string, string | string[]> = {
   'node:child_process': 'server/proc.ts',
-  // tesseract.js's OCR worker entry, rewritten so it has no network (D48): parentPort is how a worker talks to its
+  // tesseract.js's OCR worker entry, rewritten so it has no network (D52): parentPort is how a worker talks to its
   // parent. Nothing in it starts a thread; tesseract.js starts the one it runs in.
   'node:worker_threads': 'server/ocr/tesseract-worker.ts',
   // OCR (see the note in ALLOWED_IMPORTS): the engine, and its worker (which loads tesseract.js's worker internals)

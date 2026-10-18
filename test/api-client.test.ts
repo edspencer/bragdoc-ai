@@ -54,8 +54,15 @@ test('an error envelope becomes an ApiRequestError with its code, message and st
 });
 
 test('an error without an envelope still says what failed', async () => {
-  stub(() => new Response('<html>Bad gateway</html>', { status: 502, statusText: 'Bad Gateway' }));
-  await assert.rejects(api.get('/api/x'), (e: unknown) => isApiError(e, 'http_502') && /GET \/api\/x failed \(502 Bad Gateway\)/.test((e as Error).message));
+  stub(() => new Response('<html>Teapot</html>', { status: 418, statusText: "I'm a teapot" }));
+  await assert.rejects(api.get('/api/x'), (e: unknown) => isApiError(e, 'http_418') && /GET \/api\/x failed \(418 I'm a teapot\)/.test((e as Error).message));
+});
+
+test("a gateway's own error page (a proxy in front of a stopped BragDoc) is a network error", async () => {
+  for (const status of [502, 503, 504]) {
+    stub(() => new Response('<html>Bad gateway</html>', { status }));
+    await assert.rejects(api.get('/api/x'), (e: unknown) => isApiError(e, 'network') && (e as ApiRequestError).status === 0);
+  }
 });
 
 test('a server that is not running is a network error, status 0', async () => {
