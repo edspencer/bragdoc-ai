@@ -161,6 +161,39 @@ test('a TCP listener that is not HTTP still counts as taken (the probe falls bac
   assert.deepEqual(await probeHealth(port), { kind: 'none' });
 });
 
+test('--open launches the opener through proc.ts, and says so when there is none', { skip: !['linux', 'darwin'].includes(process.platform) }, async () => {
+  const bin = path.join(h.home, 'fakebin');
+  fs.mkdirSync(bin, { recursive: true });
+  const mark = path.join(bin, 'opened');
+  const opener = process.platform === 'darwin' ? 'open' : 'xdg-open';
+  fs.writeFileSync(path.join(bin, opener), `#!/bin/sh\necho "$*" > "${mark}"\n`, { mode: 0o755 });
+  const waitFor = async (check: () => boolean) => {
+    const deadline = Date.now() + 5000;
+    while (!check() && Date.now() < deadline) await new Promise((r) => setTimeout(r, 20));
+  };
+  for (const [PATH, opens] of [[`${bin}${path.delimiter}${process.env.PATH}`, true], [path.join(h.home, 'empty'), false]] as const) {
+    const child = spawn(process.execPath, [...CLI, '--open', '--port', '0'], { cwd: ROOT, env: { ...h.env, PATH } });
+    let out = '';
+    let err = '';
+    child.stdout!.on('data', (d) => (out += d));
+    child.stderr!.on('data', (d) => (err += d));
+    try {
+      await waitFor(() => /^BragDoc on http:\/\/\S+\n/.test(out) || child.exitCode !== null);
+      const url = /^BragDoc on (http:\/\/\S+)\n/.exec(out)?.[1];
+      assert.ok(url, `no banner: ${out}${err}`);
+      if (opens) {
+        await waitFor(() => fs.existsSync(mark));
+        assert.equal(fs.readFileSync(mark, 'utf8'), `${url}\n`);
+      } else {
+        await waitFor(() => err.includes("couldn't open a browser"));
+        assert.ok(err.includes(`couldn't open a browser here; open ${url} yourself.`), err);
+      }
+    } finally {
+      await stopChild(child);
+    }
+  }
+});
+
 test('serve exits 0 on SIGTERM (a clean stop; the service is restarted after it anyway)', async () => {
   // the signal is sent the instant "BragDoc on" arrives, several times over: the handler must already exist by then
   for (let i = 0; i < 10; i++) {

@@ -7,26 +7,26 @@
 // confirm it" (a slow first boot) is a real, common answer, and not the same claim as "it failed". Callers print a
 // timeout as a caveat pointing at the logs, never as an error.
 //
-// D9: outbound HTTP goes through server/egress.ts (PR2), which allows loopback. Until it lands, this is the one place
-// the CLI calls fetch(), always to 127.0.0.1; on rebase `probeHealth` becomes an egressFetch.
-import net from 'node:net';
+// The requests themselves are egress.ts's loopback-only probeLoopback() and loopbackAccepts() (D9, D51): fixed to
+// 127.0.0.1, and not written to the network log, which a 250 ms poll would otherwise fill.
 import type { HealthResponse } from '../../shared/api.js';
+import { loopbackAccepts, probeLoopback } from '../egress.js';
 
 /** What answers on a port: BragDoc (and its version), something else, or nothing at all. */
 export type Probe = { kind: 'bragdoc'; version: string } | { kind: 'other' } | { kind: 'none' };
 
-/** Ask `http://127.0.0.1:<port>/api/health` who's there. Never rejects. */
+/** Ask `http://127.0.0.1:<port>/api/health` who's there. Never rejects for a port in 1–65535. */
 export async function probeHealth(port: number, timeoutMs = 2000): Promise<Probe> {
   let res: Response;
   try {
-    res = await fetch(`http://127.0.0.1:${port}/api/health`, { signal: AbortSignal.timeout(timeoutMs), redirect: 'manual' });
+    res = await probeLoopback(port, '/api/health', timeoutMs);
   } catch (e) {
     // refused (or reset before answering): nothing is listening. A timeout means something took the connection and
     // never answered, which is someone, just not BragDoc.
     const name = (e as Error).name;
     if (name === 'TimeoutError' || name === 'AbortError') return { kind: 'other' };
     // not HTTP isn't the same as nothing: a database or a raw TCP service accepts the connection and then hangs up
-    return (await accepts(port)) ? { kind: 'other' } : { kind: 'none' };
+    return (await loopbackAccepts(port, 1000)) ? { kind: 'other' } : { kind: 'none' };
   }
   try {
     const body = (await res.json()) as Partial<HealthResponse>;
@@ -35,20 +35,6 @@ export async function probeHealth(port: number, timeoutMs = 2000): Promise<Probe
     /* not JSON: not BragDoc */
   }
   return { kind: 'other' };
-}
-
-/** Does anything accept a TCP connection on 127.0.0.1:port? */
-function accepts(port: number, timeoutMs = 1000): Promise<boolean> {
-  return new Promise((resolve) => {
-    const s = net.connect({ port, host: '127.0.0.1' });
-    const done = (v: boolean) => {
-      s.destroy();
-      resolve(v);
-    };
-    s.setTimeout(timeoutMs, () => done(false));
-    s.once('connect', () => done(true));
-    s.once('error', () => done(false));
-  });
 }
 
 /**

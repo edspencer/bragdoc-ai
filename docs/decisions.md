@@ -346,6 +346,10 @@ D17 onwards are decisions made while building.
   `logs/network.jsonl`. So `test/guard-egress.test.ts` lists these two files with exact counts, marked interim, and
   the move is a follow-up PR with its own review. Until then nothing else may import `node:child_process` or call
   `fetch`.
+- **Done in PR20.** `proc.ts` gained `launch()` (detached, no stdio, unref'd; resolves once started), and
+  `runAttached()` forwards SIGINT/SIGTERM/SIGHUP to its child while it runs. `runner.ts` keeps the injectable
+  `Runner`/`Streamer` types with proc.ts as their defaults (a `journalctl` stopped by one of those signals still counts
+  as exit 0, as before). The probe moved into egress.ts (D48). guard-egress has no interim entries left.
 
 ### D33 — `/dev/kit` exists in dev and `BRAGDOC_KIT=1` builds, never in a release
 
@@ -634,6 +638,25 @@ D17 onwards are decisions made while building.
   (a `.key`, a `.txt` sent as octet-stream) is stored as a file and served as a download.
 - **Considered:** uploading on "Pin it" (a refusal would only show at the end, and a slow upload would block saving);
   rejecting every type mismatch (a `.key` is a zip; a type the browser doesn't know is not a lie).
+
+### D51 — The CLI's readiness probe lives in egress.ts, is fixed to 127.0.0.1, and isn't logged
+
+- `bragdoc service start|restart|status` polls `GET /api/health` every 250 ms for up to 20 s, and `serve` asks the
+  same question once when its port is taken; when that request fails, a plain TCP connect tells "nothing there"
+  from "something that isn't HTTP". Both now live in `server/egress.ts` as `probeLoopback(port, path, timeoutMs)` and
+  `loopbackAccepts(port, timeoutMs)`, so `node:net` and the real `fetch` are still in one file only (SPEC R4).
+- **They don't write to `logs/network.jsonl`.** A deviation from R4's "every request is logged", on purpose: the
+  network log is the record of what BragDoc sends (or tried to send) somewhere, and a poll would fill it (up to 80 lines
+  per start) with BragDoc asking itself whether it's up, burying the entries it exists to show. The exemption is safe by
+  construction rather than by policy: the host is a constant (`127.0.0.1`), the caller gives only a port (checked as an
+  integer, 1–65535) and a path (must start with a single `/`), no body or headers can be passed, redirects aren't
+  followed, and the TCP check sends nothing. The CLI also has no data home's config or `Egress` instance at that point
+  (it's probing a server that may not exist yet).
+- Everything else to loopback (the `bragdoc mcp` stdio bridge, D44) still goes through `egressFetch` and is logged:
+  it carries data.
+- **Considered:** `egressFetch` with a "don't log" flag (a flag any caller could set, to any allowed host); logging
+  only the first and last poll (still the CLI writing into the server's log, from another process); a separate
+  `server/platform/probe.ts` allowed `node:net` (a second network file for the guard to trust).
 
 ### D52 — OCR: tesseract.js with its English data in the package and no network; Vision through JXA; rules you can read
 
