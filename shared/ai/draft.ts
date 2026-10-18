@@ -1,7 +1,9 @@
 // Folio "Draft with AI" (SPEC R24, D80): checking a draft against what it was made from. Pure and dependency-free
 // (shared/ runs in the browser too). The draft is a suggestion: every claim in it should trace to a clipping the user
 // picked. So, line by line:
-// - a bullet must cite its clippings (`[3]`, `[3, 5]`, `[3][5]`); one that doesn't is `uncited`;
+// - a bullet must cite its clippings (`[3]`, `[3, 5]`, `[3][5]`); one that doesn't is `uncited`, as is a paragraph
+//   under a heading (a model that writes prose instead of bullets still has to say where each claim came from; only
+//   the opening, before the first heading, may cite nothing);
 // - a `[n]` with no clipping n is a `badCitation`;
 // - any number, amount, date or capitalised name in a line that isn't in the clippings it cites (or, for a line citing
 //   nothing, in any clipping), nor in the context the model was given (the person, the window, the projects and
@@ -76,6 +78,12 @@ export function citations(text: string): number[] {
   return out;
 }
 
+/**
+ * A number glued to its unit ("410ms", "2.4s") spaced as the clippings usually write it ("410 ms"): the same fact, so
+ * not a flag. Magnitudes (`41k`) and multipliers (`3x`) are the grounding check's own business.
+ */
+const spaceUnits = (s: string) => s.replace(/(\d)(ms|s|secs?|mins?|hrs?|h|kb|mb|gb|tb|px|pp)(?![\p{L}\p{N}])/giu, '$1 $2');
+
 /** Text without its citations (their digits aren't facts). */
 const uncite = (text: string) => text.replace(CITE, ' ');
 
@@ -133,22 +141,26 @@ function hasWords(hay: string, needle: string): boolean {
 /** Check a draft against its sources (see the top of this file). Flags are in line order. */
 export function checkDraft(draft: string, src: DraftSources): AiDraftCheck {
   const check: AiDraftCheck = { ungrounded: [], uncited: [], filler: [], badCitations: [] };
-  const all = [...src.clippings, ...src.context];
+  const clippings = src.clippings.map(spaceUnits);
+  const context = src.context.map(spaceUnits);
+  const all = [...clippings, ...context];
   const material = normaliseForMatch(all.join('\n'));
   const fillers = DRAFT_FILLER.filter((p) => !hasWords(material, p));
   const push = (list: AiDraftFlag[], line: number, text: string) => {
     if (!list.some((f) => f.line === line && f.text === text)) list.push({ line, text });
   };
 
+  let headed = false;
   for (const b of blocks(draft)) {
+    if (b.kind === 'heading') headed = true;
     const cited = citations(b.text);
-    const valid = cited.filter((n) => n >= 1 && n <= src.clippings.length);
+    const valid = cited.filter((n) => n >= 1 && n <= clippings.length);
     for (const n of cited) if (!valid.includes(n)) push(check.badCitations, b.line, `[${n}]`);
-    if (b.kind === 'bullet' && !cited.length) push(check.uncited, b.line, b.text.split('\n')[0]!.trim().slice(0, 120));
+    if ((b.kind === 'bullet' || (b.kind === 'text' && headed)) && !cited.length) push(check.uncited, b.line, b.text.split('\n')[0]!.trim().slice(0, 120));
 
-    const text = uncite(b.text);
+    const text = spaceUnits(uncite(b.text));
     // a line's facts must be in what it cites; a line citing nothing (an opening paragraph) is checked against it all
-    const sources = valid.length ? [...valid.map((n) => src.clippings[n - 1]!), ...src.context] : all;
+    const sources = valid.length ? [...valid.map((n) => clippings[n - 1]!), ...context] : all;
     const hay = sources.map((s) => normaliseForMatch(s));
     const appears = (s: string) => hay.some((h) => hasWords(h, normaliseForMatch(s)));
     for (const fact of ungrounded(text, sources)) {

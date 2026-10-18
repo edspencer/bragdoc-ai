@@ -4,13 +4,19 @@
 import { after, afterEach, before, test } from 'node:test';
 import assert from 'node:assert/strict';
 import { execFileSync } from 'node:child_process';
+import fs from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import type { AiDraftCheck, AiDraftEvent } from '../shared/api.ts';
 import { checkDraft, citations, draftExportName, flagCount } from '../shared/ai/draft.ts';
 import { folioDoc, type FolioFilter, type FolioResponse } from '../shared/folio.ts';
 import { draftBudget, estimateTokens, fit } from '../server/ai/draft/budget.ts';
 import { pickedItems, prepareDraft } from '../server/ai/draft/prepare.ts';
 import { clippingText, draftClipping, draftPrompt, DRAFT_SYSTEM, CLIPPING_MAX_CHARS } from '../server/ai/prompts/draft.ts';
+import { DRAFT_EVAL } from '../scripts/eval/draft.ts';
+import { readRecording } from '../scripts/eval/lib.ts';
 import { aiHome, type AiHome } from './ai-fixture.ts';
+import { replay } from './ai-replay.ts';
 import { startFakeLlm } from './fixtures/fake-llm/server.ts';
 
 let fake: Awaited<ReturnType<typeof startFakeLlm>>;
@@ -174,6 +180,19 @@ test('a fact must be in the clipping the bullet cites, not just somewhere', () =
   assert.deepEqual(checkDraft('- Wrote the on-call guide, saving 14 minutes [1, 2]', p.sources).ungrounded, []);
 });
 
+test('prose under a heading must cite too; only the opening may not (a model that skips bullets)', () => {
+  const p = prepareDraft({ data: DATA, folio: QUARTER, contextTokens: 8192 });
+  const c = checkDraft(['An opening with no citation.', '', '## Builds', '', 'I cut the checkout build from 14 to 6 minutes.', 'I wrote the on-call guide [2].'].join('\n'), p.sources);
+  assert.deepEqual(c.uncited, [{ line: 5, text: 'I cut the checkout build from 14 to 6 minutes.' }]);
+});
+
+test('a number glued to its unit is the same fact as the clipping’s spaced one', () => {
+  const data: FolioResponse = { ...DATA, items: [{ id: 'L1', title: 'p95 search latency 410 ms → 160 ms', happenedAt: '2026-08-01', impact: 8, projects: [], evidence: [] }] };
+  const p = prepareDraft({ data, folio: QUARTER, contextTokens: 8192 });
+  assert.deepEqual(checkDraft('- Cut p95 latency from 410ms to 160ms [1]', p.sources).ungrounded, []);
+  assert.deepEqual(checkDraft('- Cut p95 latency from 410ms to 150ms [1]', p.sources).ungrounded, [{ line: 1, text: '150' }]);
+});
+
 test('filler the user wrote themselves is theirs, and isn’t flagged', () => {
   const p = prepareDraft({ data: { ...DATA, items: [{ ...DATA.items[0]!, summary: 'I was passionate about this one.' }] }, folio: QUARTER, contextTokens: 8192 });
   assert.deepEqual(checkDraft('- I was passionate about the build [1]', p.sources).filler, []);
@@ -335,4 +354,21 @@ test('nothing is written to the data home: git status is clean after drafting, c
   await home.req('POST', '/api/ai/draft/check', { draft: '- x [1]', folio: folio() });
   await home.req('GET', `/api/ai/draft/preview?from=${folio().from}&to=${folio().to}`);
   assert.equal(git('status', '--porcelain'), '');
+});
+
+// ---------------------------------------------------------------- recordings of real models (eval:draft --record)
+
+test('replayed real-model drafts: nothing stale, every draft cites, and the check runs on each', async () => {
+  const dir = path.join(path.dirname(fileURLToPath(import.meta.url)), 'fixtures/ai-recordings/draft');
+  const files = fs.readdirSync(dir).filter((f) => f.endsWith('.json'));
+  assert.ok(files.length >= 1, 'at least one recording');
+  for (const f of files) {
+    const r = await replay(DRAFT_EVAL, readRecording(path.join(dir, f)));
+    assert.deepEqual([r.stale, r.missing], [[], []], `${f}: re-record with eval:draft --record`);
+    for (const row of r.report.rows) {
+      assert.equal(row.error, null, `${f} ${row.id}`);
+      assert.ok(Number(row.cells.bullets) > 0, `${f} ${row.id}: bullets`);
+      assert.match(String(row.cells.cited), /^(9\d|100)%$/, `${f} ${row.id}: nearly every bullet cites`);
+    }
+  }
 });

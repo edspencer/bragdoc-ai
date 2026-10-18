@@ -39,7 +39,7 @@ export function DraftCard({ status, readiness }: FeatureCardProps) {
           {f.enabled ? 'on' : 'off'}
         </span>
         <span data-testid="ai-draft-switch">
-          <Switch on={f.enabled} onChange={(on) => save.mutate({ enabled: on })} disabled={save.isPending} label="Draft with AI" />
+          <Switch on={f.enabled} onChange={(on) => save.mutate({ enabled: on })} disabled={save.isPending} label="Draft, in Folio" />
         </span>
       </div>
 

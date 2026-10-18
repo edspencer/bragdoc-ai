@@ -94,7 +94,7 @@ Rules:
 - Use only facts that are in the clippings. Never invent a number, an amount, a percentage, a date, a name, a team, a customer or an outcome. If a clipping doesn't say how much, by how much or for whom, neither do you.
 - Every bullet ends with the numbers of the clippings it comes from, in square brackets: "[3]" or "[3, 7]". A bullet with no clipping behind it doesn't belong in the draft.
 - Lead with what mattered most: the clippings come numbered from highest impact down, and impact is 1 to 10 (${scale}). Give high-impact work more words; fold small, related items together into one bullet that cites them all.
-- Group the bullets under a few short "## " headings, one per theme or project. Order the sections by their most important item.
+- Group the bullets under a few short "## " headings, one per theme or project. Order the sections by their most important item. Under a heading, write only bullets ("- "), one point each: no paragraphs.
 - Start with a short opening paragraph (two or three sentences) saying what the period was mostly about, with no citations and no number that isn't in a clipping.
 - Write in the first person ("I"), plain and specific: what I did and what came of it. No filler, no superlatives, no buzzwords: never "passionate", "spearheaded", "leveraged", "successfully", "significantly", "went above and beyond" or "team player".
 - Don't mention impact scores, clipping numbers outside the brackets, or that you were given clippings.

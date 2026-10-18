@@ -541,7 +541,7 @@ PR27 added **Draft with AI** in Folio (SPEC R24, D80–D81):
   leave guard asks only when leaving `/folio` (its filters are URL changes too). `StyleEditor.tsx` is PR26's, copied
   byte for byte.
 - `npm run eval:draft` (live): three example-data folios (a quarter, six months, a year on a 4k context that hits the
-  budget); `--show` prints each draft.
+  budget); `EVAL_SHOW=1` prints each draft.
 
 **Adding an AI feature** (five steps):
 1. Its settings already exist under `ai.features.<name>` (PR21 laid down all of them); read them with

@@ -5,7 +5,7 @@
 // citations to clippings that weren't sent. A draft passes with every bullet cited and nothing flagged.
 //
 // BRAGDOC_LIVE_AI=1 npm run eval:draft -- --connection ollama@http://127.0.0.1:11434 --model gemma4:e4b [--record]
-// One call per folio, each a few minutes on a CPU. `--show` prints each draft in full, for the PR body.
+// One call per folio, each a few minutes on a CPU. EVAL_SHOW=1 prints each draft in full, for the PR body.
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
@@ -72,7 +72,7 @@ export const DRAFT_EVAL: EvalSpec<Input, Answer> = {
   async run(c, ask) {
     const prepared = await prepareCase(c.input);
     const draft = await ask.text({ system: prepared.system, prompt: prepared.prompt, maxOutputTokens: prepared.budget.answerTokens, timeoutMs: 15 * 60_000 });
-    if (process.argv.includes('--show')) process.stdout.write(`\n---- ${c.id} (${prepared.sent} sent, ${prepared.omitted} left out)\n${draft}\n`);
+    if (process.env.EVAL_SHOW === '1') process.stdout.write(`\n---- ${c.id} (${prepared.sent} sent, ${prepared.omitted} left out)\n${draft}\n`);
     return { draft, prepared, check: checkDraft(draft, prepared.sources) };
   },
   score(_c, a) {
