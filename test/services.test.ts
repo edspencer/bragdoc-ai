@@ -235,7 +235,7 @@ test('found: dismiss and undo, list order and filters', () => {
   assert.deepEqual(f.list({ source: 'github' }).map((x) => x.title), ['A']);
   f.dismiss(a.id);
   assert.deepEqual(f.list().map((x) => x.title), ['B']);
-  // a dismissed candidate keeps nothing of what it was (D55)
+  // a dismissed candidate keeps nothing of what it was (D56)
   assert.deepEqual(f.list({ status: 'dismissed' }).map((x) => [x.id, x.title]), [[a.id, 'Dismissed']]);
   assert.throws(() => f.undo(b.id), /nothing to undo/);
   assert.equal(f.undo(a.id).title, 'A', 'undo brings back what it was');

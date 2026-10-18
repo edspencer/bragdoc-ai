@@ -1,6 +1,6 @@
 // The GitHub source and Found's API (SPEC R7, PR13), against a fake gh (test/fixtures/fake-gh: invented repos, never
 // the network or a real login) and, for the token path, a fake fetch behind the real egress module. Run 1 finds the
-// fixture's PRs, run 2 nothing; dismissed PRs never come back and keep only a hash (D55); keep and merge reach the
+// fixture's PRs, run 2 nothing; dismissed PRs never come back and keep only a hash (D56); keep and merge reach the
 // board; every failure (gh missing or logged out, a bad or under-scoped token, rate limits, offline) is a plain message
 // and no crash; and Network activity lists exactly the requests made.
 import { describe, test } from 'node:test';
@@ -183,7 +183,7 @@ describe('GitHub through the gh CLI', () => {
     assert.equal((await status(r)).lastRun?.added, 0);
   }));
 
-  test('dismissed PRs never come back, and keep only a hash of their key (D55); undo brings one back while running', withRig({}, async (r) => {
+  test('dismissed PRs never come back, and keep only a hash of their key (D56); undo brings one back while running', withRig({}, async (r) => {
     await connectGh(r);
     const c = (await found(r)).items.find((x) => x.externalKey === 'github_pr:alexm-oss/tiny-cron#15')!;
     const d = await r.send<FoundDecided<FoundCandidate>>('POST', `/api/found/${c.id}/dismiss`);
@@ -219,7 +219,7 @@ describe('GitHub through the gh CLI', () => {
     assert.ok(!(await found(r)).items.some((x) => x.externalKey === 'github_pr:northwind-labs/ledger#412'));
   }));
 
-  test('only the owners and repositories you picked (D56)', withRig({}, async (r) => {
+  test('only the owners and repositories you picked (D57)', withRig({}, async (r) => {
     await connectGh(r, { repos: ['northwind-labs/ledger-web', 'alexm-oss'] });
     const f = await found(r);
     assert.deepEqual(f.items.map((x) => x.externalKey).sort(), ['github_pr:alexm-oss/tiny-cron#15', 'github_pr:alexm-oss/tiny-cron#9', 'github_pr:northwind-labs/ledger-web#71', 'github_pr:northwind-labs/ledger-web#77']);

@@ -1,6 +1,6 @@
 // Settings → Sources → GitHub (SPEC R7, PR13): connect through the gh CLI you're already logged in to (no secret
 // stored) or a fine-grained token (kept in secrets.yaml, 0600); choose how far back the first check looks and, if you
-// like, which owners or repositories; check now, or every hour if you turn that on (D56); see the last check and any
+// like, which owners or repositories; check now, or every hour if you turn that on (D57); see the last check and any
 // error in plain words; disconnect. Nothing leaves this computer until you connect, and every request after that is in
 // Network activity. Adapted from the prototype's Sources card (Settings.tsx), without Slack.
 import { useEffect, useMemo, useState, type FormEvent, type ReactNode } from 'react';
@@ -110,7 +110,7 @@ function Connect({ onCancel }: { onCancel: () => void }) {
   const toast = useToast();
   const gh = useGhInstalled(true);
   const repos = useRepos();
-  // where to look starts from the GitHub repos you track (D56); empty means everywhere you merged
+  // where to look starts from the GitHub repos you track (D57); empty means everywhere you merged
   const tracked = useMemo(
     () => [...new Set((repos.data?.repos ?? []).filter((r) => r.tracked).map((r) => githubRepoOf(r.remoteUrl)).filter((x): x is string => !!x))],
     [repos.data],

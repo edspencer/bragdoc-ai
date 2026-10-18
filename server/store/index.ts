@@ -141,7 +141,7 @@ const delFromSet = (m: Map<string, Set<string>>, k: string, v: string) => {
 const first = (s: Set<string> | undefined) => (s ? s.values().next().value : undefined);
 
 /**
- * What a dismissed candidate keeps of its keys: `sha256:<hex>` of each (D55). Enough to know the same PR or screenshot
+ * What a dismissed candidate keeps of its keys: `sha256:<hex>` of each (D56). Enough to know the same PR or screenshot
  * when a source finds it again, without keeping what it was.
  */
 export const keyHash = (key: string) => `sha256:${crypto.createHash('sha256').update(key).digest('hex')}`;
@@ -429,7 +429,7 @@ export class Store {
     for (const v of this.all(kind)) if (v.legacyId && !out.has(v.legacyId)) out.set(v.legacyId, v.id);
     return out;
   }
-  /** The candidate with this externalKey (its own or its evidence's), or a dismissed one that kept only its hash (D55). */
+  /** The candidate with this externalKey (its own or its evidence's), or a dismissed one that kept only its hash (D56). */
   foundIdByKey(key: string): string | undefined {
     return first(this.keyIndex.found.get(`ext:${key}`)) ?? first(this.keyIndex.found.get(`hash:${keyHash(key)}`));
   }

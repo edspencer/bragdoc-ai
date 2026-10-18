@@ -150,7 +150,7 @@ export async function startServer(port: number, { hostname = '127.0.0.1', ...opt
   const version = opts.version ?? VERSION;
   const watcher = watchStore(store);
   const stopSnapshots = startSnapshots(opts.dataDir);
-  const stopSources = ctx.sources.start(); // the hourly GitHub check, only if you turned it on (D56)
+  const stopSources = ctx.sources.start(); // the hourly GitHub check, only if you turned it on (D57)
   const bound = await new Promise<{ port: number; close: () => Promise<void> }>((resolve, reject) => {
     const failed = (e: Error) => {
       stopSnapshots();

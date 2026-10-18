@@ -3,7 +3,7 @@
 // which is how a dismissed PR stays dismissed. Candidates' files (a screenshot's path) are copied into evidence/ only
 // when you keep or merge them.
 //
-// A dismissed candidate keeps nothing but the hashes of its keys (D55): its file is cut down to a tombstone, so
+// A dismissed candidate keeps nothing but the hashes of its keys (D56): its file is cut down to a tombstone, so
 // BragDoc doesn't hold on to a PR's text or a screenshot's path you said no to. Undo puts back what it was, from a copy
 // held in memory while this server runs (the toast's Undo); after a restart a dismissal is final.
 import {
@@ -45,7 +45,7 @@ const DISMISSED_TITLE = 'Dismissed';
 const UNDO_KEEP = 500;
 
 export class FoundService {
-  /** Dismissed candidates as they were, by id, for undo while this server runs (D55). */
+  /** Dismissed candidates as they were, by id, for undo while this server runs (D56). */
   private dismissed = new Map<string, FoundCandidate>();
 
   constructor(
@@ -172,7 +172,7 @@ export class FoundService {
     return { candidate, achievementId, missingFiles: files.missing };
   }
 
-  /** Dismiss: the candidate becomes a tombstone that remembers only the hashes of its keys (D55). */
+  /** Dismiss: the candidate becomes a tombstone that remembers only the hashes of its keys (D56). */
   dismiss(id: string): FoundCandidate {
     const f = this.pending(id);
     const keys = [f.externalKey, ...f.evidence.map((e) => e.externalKey)].filter((k): k is string => !!k);

@@ -474,11 +474,62 @@ export interface ImportReport {
   snapshot: string | null;
 }
 
+// ---------------------------------------------------------------- Folio (PR14): GET /api/folio
+// The window's achievements cut down to what a folio may show (D55): shared/folio.ts makes them (toClipping) and turns
+// them into the document.
+
+/** Evidence as a folio shows it: already safe to put in a document that leaves this machine. */
+export type FolioEvidence =
+  | { kind: 'github_pr'; ref: string; url?: string; title?: string }
+  | { kind: 'url'; url?: string; domain?: string; title?: string }
+  | { kind: 'quote'; text: string; from?: string; where?: string }
+  | { kind: 'image' | 'pdf' | 'file'; name?: string };
+
+/** One achievement, cut out for the folio. `id` is for the page's include/exclude only; it never reaches the document. */
+export interface FolioItem {
+  id: string;
+  title: string;
+  summary?: string;
+  /** YYYY-MM-DD */
+  happenedAt: string;
+  endedAt?: string;
+  impact?: number;
+  /** Project ids, existing ones only (a dangling reference is dropped, as if it weren't there). */
+  projects: string[];
+  /** Its own company, else none (projects carry theirs). Existing companies only. */
+  companyId?: string;
+  evidence: FolioEvidence[];
+}
+
+export interface FolioProject {
+  id: string;
+  name: string;
+  color: string;
+  companyId: string | null;
+}
+
+export interface FolioCompany {
+  id: string;
+  name: string;
+}
+
+/** `GET /api/folio?from=YYYY-MM-DD&to=YYYY-MM-DD`: the window's achievements (archived ones left out), newest first. */
+export interface FolioResponse {
+  from: string;
+  to: string;
+  /** The profile's name, for the document's heading; null before onboarding. */
+  author: string | null;
+  items: FolioItem[];
+  /** Every project and company (so a filter in the URL still has a name when nothing in the window uses it). */
+  projects: FolioProject[];
+  companies: FolioCompany[];
+}
+
 // ---------------------------------------------------------------- Found + sources (PR13)
 //
 // Found's candidates are the data files' type (FoundCandidate, shared/schema/found.ts), typed loosely here. Keep, merge
 // and dismiss answer with the candidate as it is now; undo puts it back to pending. A dismissed candidate keeps only
-// the hashes of its keys (D55), so the same PR or screenshot never comes back.
+// the hashes of its keys (D56), so the same PR or screenshot never comes back.
 
 /** Where a candidate came from: the GitHub source, the screenshots folder (PR15), or an agent over MCP. */
 export type FoundSourceName = 'github' | 'screenshots' | 'mcp';
@@ -543,7 +594,7 @@ export interface GithubSourceStatus {
   enabled: boolean;
   auth: 'gh' | 'token';
   lookBackDays: number;
-  /** Owners and owner/repo it looks in; empty: everywhere you merged (D56). */
+  /** Owners and owner/repo it looks in; empty: everywhere you merged (D57). */
   repos: string[];
   /** Checks every hour by itself while BragDoc runs. */
   hourly: boolean;

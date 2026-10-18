@@ -62,9 +62,9 @@ export const ConfigSchema = z.object({
               auth: z.enum(['gh', 'token']).default('gh'),
               /** How far back the first check looks, in days (SPEC R7: 90 by default). */
               lookBackDays: z.number().int().min(1).max(3650).default(90),
-              /** Where to look: `owner` or `owner/repo` entries; empty means every repository you merged into (D56). */
+              /** Where to look: `owner` or `owner/repo` entries; empty means every repository you merged into (D57). */
               repos: z.array(z.string().trim().regex(GITHUB_SCOPE_RE, 'an owner or owner/repo')).default([]),
-              /** Check by itself every hour while BragDoc runs. Off: only when you press Check now (D56). */
+              /** Check by itself every hour while BragDoc runs. Off: only when you press Check now (D57). */
               hourly: z.boolean().default(false),
             })
             .prefault({}),

@@ -27,16 +27,17 @@ export const CHANGE_INVALIDATES: Record<string, readonly string[]> = {
   notices: ['meta'],
   // the store (PR7, D48): one type per kind of data file, plus the Problems list
   // projects too: their achievement counts and piles (PR8)
-  achievement: ['achievements', 'projects'],
+  // folio too: its clippings are achievements, with evidence names, projects' and companies' names and the profile's
+  achievement: ['achievements', 'projects', 'folio'],
   // a sidecar: OCR text (searchable) and sizes shown on cards
-  evidence: ['achievements'],
+  evidence: ['achievements', 'folio'],
   // a project's colour and name show on the Gantt, its summary, and the board's tape and pills
-  project: ['projects'],
+  project: ['projects', 'folio'],
   // a company's or repo's name shows in project summaries; deleting one detaches it from projects
-  company: ['companies', 'projects'],
+  company: ['companies', 'projects', 'folio'],
   repo: ['repos', 'projects'],
   found: ['found'],
-  profile: ['profile'],
+  profile: ['profile', 'folio'],
   problems: ['problems'],
 };
 

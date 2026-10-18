@@ -1,9 +1,9 @@
 // TanStack Query keys and hooks over the API client. Every key starts with the resource's name (`['health']`,
 // `['achievements', filters]`, …), so the live-update hook (events.ts) can refresh a whole resource by its first
 // segment. Feature PRs add their key and hook here, one block each.
-import { QueryClient, useInfiniteQuery, useQuery } from '@tanstack/react-query';
+import { QueryClient, keepPreviousData, useInfiniteQuery, useQuery } from '@tanstack/react-query';
 import type { FoundSourceName } from '../../shared/api.ts';
-import { getAchievements, getBackups, getCompanies, getFound, getFoundCount, getGhInstalled, getSources, getHealth, getMcpToken, getMeta, getNetworkLog, getProblems, getProjectSummary, getProjects, getRepos, getSettings, isApiError, type AchievementFilters } from './client.ts';
+import { getAchievements, getBackups, getCompanies, getFolio, getFound, getFoundCount, getGhInstalled, getSources, getHealth, getMcpToken, getMeta, getNetworkLog, getProblems, getProjectSummary, getProjects, getRepos, getSettings, isApiError, type AchievementFilters } from './client.ts';
 
 export const queryKeys = {
   health: ['health'] as const,
@@ -26,6 +26,8 @@ export const queryKeys = {
   backups: ['backups'] as const,
   settings: ['settings'] as const,
   mcpToken: ['mcp-token'] as const,
+  // Folio (PR14)
+  folio: (from: string, to: string) => ['folio', from, to] as const,
 };
 
 export function createQueryClient(): QueryClient {
@@ -126,6 +128,13 @@ export function useAchievements(filters: AchievementFilters) {
 /** Problems with files in the data home (the board's banner, Settings → Data). */
 export function useProblems() {
   return useQuery({ queryKey: queryKeys.problems, queryFn: ({ signal }) => getProblems(signal), select: (r) => r.problems });
+}
+
+// ---------------------------------------------------------------- Folio (PR14)
+
+/** A window's clippings. The previous window's stay on screen while a new one loads, so the page doesn't flash empty. */
+export function useFolio(from: string, to: string) {
+  return useQuery({ queryKey: queryKeys.folio(from, to), queryFn: ({ signal }) => getFolio(from, to, signal), placeholderData: keepPreviousData });
 }
 
 // Found + sources (PR13)

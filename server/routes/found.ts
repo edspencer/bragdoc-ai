@@ -1,7 +1,7 @@
 // Found (SPEC R7): the candidates sources spotted, and what you decide about each. Everything goes through
 // ctx.services.found (D24). A decision is undoable (the Undo toast): keep removes the achievement it made (to
 // backups/removed/), merge takes off exactly the evidence it added, and a dismissal is brought back from the copy this
-// server held when you dismissed it (D55: a dismissed candidate's file keeps only the hashes of its keys).
+// server held when you dismissed it (D56: a dismissed candidate's file keeps only the hashes of its keys).
 //
 //   GET  /api/found?source=github|screenshots|mcp   FoundListResponse: pending, newest first, + counts per source
 //   POST /api/found/:id/keep      FoundKeep (optional) → FoundDecided (with achievementId)

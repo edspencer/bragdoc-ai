@@ -117,6 +117,7 @@ site doesn't. What's there for agents today:
 | GET | `/agent-guide.md`, `/llms.txt`, `/llms-full.txt` | This guide, with live facts |
 | POST | `/mcp` | MCP (needs the bearer token) |
 | POST | `/api/import/plan`, `/api/import/apply` | A hosted-app export (the JSON file as the body): what importing it would do, or do it |
+| GET | `/api/folio?from=YYYY-MM-DD&to=YYYY-MM-DD` | A date window's achievements as Folio shows them (safe to share: no ids, file locations or local links), with project and company names |
 | GET | `/api/found` | What's waiting in Found (newest first); `POST /api/found/:id/{keep,merge,dismiss,undo}` decides |
 | GET | `/api/sources` | Each source's state (GitHub: on or off, the last check, any error) |
 

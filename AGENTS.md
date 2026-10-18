@@ -16,7 +16,8 @@ service`. And the **web foundation** (PR4): the Scrapbook component kit, the lig
 shell with placeholder pages, the typed API client and the screenshot rig. PR9 added the MCP server (`/mcp`), the
 stdio bridge (`bragdoc mcp`), `bragdoc mcp install claude` and the agent guide (`AGENT-GUIDE.md`, `bragdoc guide`).
 PR7 built the **Board**: the achievements and evidence API, link previews, store changes forwarded live to the
-browser, and the board page (composer, cards, edit drawer, search). PR11 added OCR and the screenshot rules, as a
+browser, and the board page (composer, cards, edit drawer, search). PR14 built **Folio**: a date window, filtered,
+exported as markdown, copied or printed. PR11 added OCR and the screenshot rules, as a
 library (`server/ocr/`, `shared/rules/screenshot.ts`) that the screenshots source builds on. PR13 built **Found** and
 the **GitHub source**: the Found page, its API, the source framework (`server/sources/`) and the GitHub card in
 Settings → Sources (see "Found and sources" below). Everything else arrives
@@ -94,7 +95,7 @@ server/              the server and CLI (Node, TypeScript ESM, Hono)
   link-preview.ts    LinkPreviews: the GitHub PR lookup POST /api/link-preview uses (the GitHub source registers it)
   secrets.ts         secrets.yaml (0600): the GitHub token, written through atomic.ts, never logged or backed up
   sources/           what fills Found by itself (D15): index.ts (Sources: createSources, start()), github.ts (gh or a
-                     token, windowed search, dedup by prKey, backoff, the hourly check; D56)
+                     token, windowed search, dedup by prKey, backoff, the hourly check; D57)
   views.ts           how achievements look in the API: achievementView() (+ etag, files, broken), evidenceFile()
   atomic.ts          the platform's own writes (runtime.json, the network log, starter files): atomic, create-only (D27)
   routes/index.ts    registerRoutes(): one line per feature module (D18)
@@ -104,6 +105,7 @@ server/              the server and CLI (Node, TypeScript ESM, Hono)
   routes/mcp.ts      /mcp: the bearer token (runtime.json), 405 on GET/DELETE, then server/mcp/
   routes/guide.ts    GET /agent-guide.md, /llms.txt, /llms-full.txt
   routes/{achievements,evidence,link-preview,problems,found-count}.ts   the board's API (see "The board's API")
+  routes/folio.ts    GET /api/folio: a window's achievements as clippings, safe to export (D55)
   routes/{found,sources}.ts   Found's list and decisions, the sources' status and the GitHub card's actions
   paths.ts           package root, VERSION, WEB_DIST, the data home (resolveDataDir), tildify
   port.ts            DEFAULT_PORT (2724 = BRAG), alone so vite.config.ts can import it
@@ -122,6 +124,8 @@ shared/              code used by both server/ and src/: no Node or DOM APIs
   schema/            the data files' Zod schemas and types (PR3 owns it), the services' input schemas (inputs.ts), the
                      Problem and StoreChange types, and the generated file-format reference (reference.ts)
   ulid.ts, impact.ts, judge.ts   ids; the 1–10 impact scale; the (unimplemented) AI judge seam (D8)
+  folio.ts           Folio (D55): presets, the URL state, filters, grouping, the markdown, and toClipping (what a
+                     folio may show: no ids, paths or local URLs)
   links.ts           parsePrUrl (→ owner/repo#n and `github_pr:` key), isHttpUrl, githubRepoOf, parsePrKey
   rules/screenshot.ts "is this screenshot praise for me?" from OCR text: plain rules, never a model (D52)
 src/                 the web app (React 19, Vite, Tailwind v4, TanStack Router + Query), built into dist/web
@@ -139,6 +143,7 @@ src/                 the web app (React 19, Vite, Tailwind v4, TanStack Router +
   theme/theme.tsx    light / system / dark: ThemeProvider + useTheme()
   lib/               pure helpers, unit-tested: colour.ts (inkOn, swatches, tilt), dates.ts (groupByWeek, fmt), gantt.ts
                      (the Projects timeline's window, gridlines, bars, rows and swimlanes)
+  folio/             the Folio page's pieces: Filters, Clippings, Sheet (the printout), folio.css (the print stylesheet)
   projects/          the Projects page's pieces: Gantt, ProjectDialog, CompanyDialog, Pile, ReposPanel
   dev/Kit.tsx        /dev/kit, every kit component on one page (dev and BRAGDOC_KIT=1 builds only, D33)
   styles.css         the Scrapbook tokens (light + lamplight), mapped to Tailwind names through `@theme inline`
@@ -335,7 +340,7 @@ change goes through `ctx.services.found` (`add`, `keep`, `merge`, `dismiss`, `un
 - `add()` is idempotent on keys: a key (its own or an evidence's) already in Found, dismissed, or on the board adds
   nothing (`reason: 'exists' | 'dismissed' | 'on-board'`). Build PR keys with `prKey()` (lower case); a screenshot's is
   `screenshot:<sha256>`.
-- `dismiss()` leaves a tombstone holding only `keyHashes` (D55); the store indexes them, so `foundIdByKey(key)` still
+- `dismiss()` leaves a tombstone holding only `keyHashes` (D56); the store indexes them, so `foundIdByKey(key)` still
   finds it. Undo restores from memory while the server runs. Don't read a dismissed candidate's content: it's gone.
 - Keep makes an achievement (`source` from the candidate's: github → `github-pr`, screenshots → `screenshot`, mcp →
   `mcp`); merge adds its evidence to one (`addEvidence`). Both are undoable.

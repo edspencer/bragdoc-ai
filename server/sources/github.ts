@@ -11,14 +11,14 @@
 //   other request. api.github.com is on the allow-list only while this is connected (egress.ts).
 //
 // What it searches: merged on or after a cursor (the first check looks back `lookBackDays`, 90 by default), optionally
-// only in some owners or repositories (`repos`, D56). GitHub's search returns at most 1,000 results per query, so a
+// only in some owners or repositories (`repos`, D57). GitHub's search returns at most 1,000 results per query, so a
 // window that comes back full is split in two and each half searched again (windowed pagination). Each PR becomes one
-// candidate keyed `github_pr:owner/repo#n` (prKey), so a PR already in Found, dismissed (D55), or on the board is never
+// candidate keyed `github_pr:owner/repo#n` (prKey), so a PR already in Found, dismissed (D56), or on the board is never
 // added again: run it twice and the second run adds nothing. A repository BragDoc doesn't know yet is added to repos/,
 // untracked, so the candidate can say where it's from.
 //
 // When it runs: when you connect, when you press Check now, and every hour while BragDoc runs only if you turned that on
-// (D56). One check at a time. When GitHub says "too many requests", it waits until GitHub says it may ask again (or,
+// (D57). One check at a time. When GitHub says "too many requests", it waits until GitHub says it may ask again (or,
 // if it doesn't say, a backoff that doubles up to 6 hours) and a scheduled check skips until then.
 //
 // Its state (the cursor, the last check, the backoff) lives in cache/sources/github.json: derived and deletable. Without
@@ -74,7 +74,7 @@ export class GithubSourceError extends Error {
 
 const err = (code: GithubSourceError['code'], message: string, retryAt?: string) => new GithubSourceError(code, message, retryAt);
 
-/** The plain-words message for each failure (the card shows it; docs/decisions.md D56 lists them). */
+/** The plain-words message for each failure (the card shows it; docs/decisions.md D57 lists them). */
 export const MESSAGES = {
   gh_missing: 'The GitHub CLI (gh) isn’t installed, or BragDoc can’t find it on its PATH. Install it from cli.github.com and run “gh auth login”, or connect with a token instead.',
   gh_logged_out: 'The GitHub CLI isn’t logged in. Run “gh auth login” in a terminal, then try again.',
