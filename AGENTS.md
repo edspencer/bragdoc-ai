@@ -24,7 +24,8 @@ Settings → Sources (see "Found and sources" below). PR15 added the **screensho
 board's pictures in the background, so their text is searchable. PR16 built **onboarding**: Welcome (the first run, and its steps
 again from Settings → Data), the bounded repo scan, and the example data (see "Onboarding and example data" below).
 PR19 brought the docs site up to date with what was built, with real screenshots from the capture rig's example world.
-Everything else arrives PR by PR, in the waves #411 lays out.
+PR17 is the v0.1 release candidate: an end-to-end pass over all of it, the fixes it turned up, and the 0.1.0 changeset.
+v0.1's feature set is complete; what comes next is tracked in issues.
 
 Before changing behaviour, read, in order:
 
