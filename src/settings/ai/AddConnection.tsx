@@ -3,6 +3,10 @@
 // internet) as you type it, by host, the way the server and egress will decide: a hosted "OpenAI-compatible" service is
 // still the internet. Anything on the internet goes straight on to the consent dialog after it's added; nothing is sent
 // before Allow. Adapted from the Scrapbook prototype's provider tiles (layout only).
+//
+// Jev (D82) is a tile too: it has no address or key of its own, but goes through one of your OpenRouter connections
+// (with that one's key), so its form picks which; with none yet, it says to add OpenRouter first. It's cloud, so it
+// asks for its own consent next, whatever the OpenRouter connection's.
 import { useState, type FormEvent } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { Plus } from 'lucide-react';
@@ -10,10 +14,10 @@ import type { AiConnectionView, AiKindName } from '../../../shared/api.ts';
 import { DEFAULT_CONTEXT_TOKENS, KIND_BASE_URL, KIND_LABEL, LOCAL_RUNNER_KINDS } from '../../../shared/ai/connections.ts';
 import { HOST_CLASS_LABEL, hostClass } from '../../../shared/ai/hosts.ts';
 import { addAiConnection, isApiError } from '../../api/client.ts';
-import { queryKeys } from '../../api/queries.ts';
-import { Btn, Dialog, Field, Stamp, TextInput } from '../../kit/index.ts';
+import { queryKeys, useAi } from '../../api/queries.ts';
+import { Btn, Dialog, Field, Stamp, TextInput, inputCls } from '../../kit/index.ts';
 import { ConsentDialog } from './ConsentDialog.tsx';
-import { CLASS_COLOUR } from './words.ts';
+import { CLASS_COLOUR, connectionName } from './words.ts';
 
 interface Preset {
   kind: AiKindName;
@@ -28,6 +32,7 @@ const PRESETS: readonly Preset[] = [
   { kind: 'anthropic', line: 'Claude, with your key' },
   { kind: 'openai', line: 'GPT, with your key' },
   { kind: 'openrouter', line: 'Many models, with your key' },
+  { kind: 'jev', line: 'TypeSafe’s yes-or-no judge for Found, through your OpenRouter key' },
 ];
 
 /** Does a kind take an address you can change? Cloud providers' are fixed. */
@@ -40,7 +45,7 @@ export function AddConnection() {
     <div data-testid="ai-add">
       <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
         {PRESETS.map((p) => {
-          const url = KIND_BASE_URL[p.kind];
+          const url = KIND_BASE_URL[p.kind === 'jev' ? 'openrouter' : p.kind];
           const where = url ? hostClass(url) : null;
           return (
             <button
@@ -86,6 +91,11 @@ function AddDialog({ kind, onClose }: { kind: AiKindName; onClose: (added: AiCon
   const [url, setUrl] = useState(preset ?? '');
   const [context, setContext] = useState(String(DEFAULT_CONTEXT_TOKENS));
   const local = LOCAL_RUNNER_KINDS.includes(kind) || kind === 'openai-compatible';
+  // Jev: which OpenRouter connection it goes through (the first, unless you pick another)
+  const routers = (useAi().data?.connections ?? []).filter((c) => c.kind === 'openrouter');
+  const [via, setVia] = useState('');
+  const viaId = via || routers[0]?.id || '';
+  const jev = kind === 'jev';
   const typed = url.trim();
   let parsed: URL | null = null;
   try {
@@ -93,7 +103,8 @@ function AddDialog({ kind, onClose }: { kind: AiKindName; onClose: (added: AiCon
   } catch {
     parsed = null;
   }
-  const where = hasAddress(kind) ? (parsed ? hostClass(parsed) : null) : preset ? hostClass(preset) : null;
+  const viaUrl = routers.find((r) => r.id === viaId)?.baseUrl ?? null;
+  const where = hasAddress(kind) ? (parsed ? hostClass(parsed) : null) : jev ? (viaUrl ? hostClass(viaUrl) : null) : preset ? hostClass(preset) : null;
   // the server refuses these too, with the same reason; saying it here saves a round trip
   const plainHttpOut = parsed?.protocol === 'http:' && where === 'internet';
   const add = useMutation({
@@ -103,6 +114,7 @@ function AddDialog({ kind, onClose }: { kind: AiKindName; onClose: (added: AiCon
         kind,
         ...(name.trim() ? { name: name.trim() } : {}),
         ...(hasAddress(kind) && typed && typed !== preset ? { baseUrl: typed } : {}),
+        ...(jev ? { via: viaId } : {}),
         ...(local && where !== 'internet' && Number.isInteger(n) && n !== DEFAULT_CONTEXT_TOKENS ? { contextTokens: n } : {}),
       });
     },
@@ -120,7 +132,13 @@ function AddDialog({ kind, onClose }: { kind: AiKindName; onClose: (added: AiCon
       open
       onClose={() => onClose(null)}
       title={`Add ${KIND_LABEL[kind]}`}
-      sub={hasAddress(kind) ? 'Where it answers. Nothing is sent until you test it or switch a feature on.' : `Requests go to ${preset ? new URL(preset).host : 'the provider'}, on the internet. Next you’ll read exactly what would be sent there, and decide.`}
+      sub={
+        hasAddress(kind)
+          ? 'Where it answers. Nothing is sent until you test it or switch a feature on.'
+          : jev
+            ? 'Jev only judges what Found picks up. It answers with a probability (“a win: 93%”) and never says why. Requests go to openrouter.ai, on the internet, which passes them to TypeSafe AI. Next you’ll read exactly what would be sent, and decide.'
+            : `Requests go to ${preset ? new URL(preset).host : 'the provider'}, on the internet. Next you’ll read exactly what would be sent there, and decide.`
+      }
       size="sm"
       data-testid="ai-add-dialog"
       footer={
@@ -128,13 +146,29 @@ function AddDialog({ kind, onClose }: { kind: AiKindName; onClose: (added: AiCon
           <Btn kind="ghost" onClick={() => onClose(null)}>
             Cancel
           </Btn>
-          <Btn kind="accent" type="submit" form="ai-add-form" disabled={add.isPending || (hasAddress(kind) && (!parsed || plainHttpOut))} data-testid="ai-add-save">
+          <Btn kind="accent" type="submit" form="ai-add-form" disabled={add.isPending || (hasAddress(kind) && (!parsed || plainHttpOut)) || (jev && !viaId)} data-testid="ai-add-save">
             {add.isPending ? 'Adding…' : where === 'internet' ? 'Add, then read what’s sent' : 'Add'}
           </Btn>
         </div>
       }
     >
       <form id="ai-add-form" onSubmit={submit} className="space-y-4">
+        {jev &&
+          (routers.length ? (
+            <Field label="Goes through" hint="The OpenRouter connection whose key Jev uses. Jev still asks for its own consent.">
+              <select value={viaId} onChange={(e) => setVia(e.target.value)} className={`${inputCls} w-auto py-1.5 text-[13px]`} data-testid="ai-add-via">
+                {routers.map((r) => (
+                  <option key={r.id} value={r.id}>
+                    {connectionName(r)}
+                  </option>
+                ))}
+              </select>
+            </Field>
+          ) : (
+            <p className="m-0 rounded-xl bg-warn/10 p-3 text-[13px] leading-snug ring-1 ring-warn/30" data-testid="ai-add-via-none">
+              Jev goes through an OpenRouter connection, with its key. Add OpenRouter first (the tile before this one), then come back.
+            </p>
+          ))}
         {hasAddress(kind) && (
           <Field
             label="Address"
