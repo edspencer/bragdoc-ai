@@ -17,6 +17,9 @@ import { Btn, Dot, Kicker, Stamp, TextInput, inputCls, useToast, type Tone } fro
 import { ConsentDialog } from './ConsentDialog.tsx';
 import { CLASS_COLOUR, OUTCOME_HEADLINE, connectionName, seconds } from './words.ts';
 
+/** The longest key the server takes (server/routes/ai.ts KeySchema). */
+const KEY_MAX = 500;
+
 const errorText = (e: unknown) => (isApiError(e) ? e.message : 'BragDoc isn’t answering. Is it still running?');
 
 export function ConnectionCard({ c, status }: { c: AiConnectionView; status: AiStatus }) {
@@ -306,10 +309,15 @@ function KeyField({ c, secretsProblem }: { c: AiConnectionView; secretsProblem: 
             disabled={!!secretsProblem}
             data-testid="ai-connection-key-input"
           />
-          <Btn size="sm" type="submit" disabled={!key.trim() || save.isPending || !!secretsProblem} data-testid="ai-connection-key-save">
+          <Btn size="sm" type="submit" disabled={!key.trim() || key.trim().length > KEY_MAX || save.isPending || !!secretsProblem} data-testid="ai-connection-key-save">
             Save key
           </Btn>
         </form>
+      )}
+      {key.trim().length > KEY_MAX && (
+        <p role="alert" className="m-0 mt-1.5 text-[12.5px] text-bad" data-testid="ai-connection-key-long">
+          That’s {key.trim().length.toLocaleString()} characters: longer than any key ({KEY_MAX} at most). Did the paste catch something else?
+        </p>
       )}
       {save.isError && (
         <p role="alert" className="m-0 mt-1.5 text-[12.5px] text-bad" data-testid="ai-connection-key-error">

@@ -138,7 +138,7 @@ function AddDialog({ kind, onClose }: { kind: AiKindName; onClose: (added: AiCon
         {hasAddress(kind) && (
           <Field
             label="Address"
-            hint={kind === 'ollama' ? 'Ollama’s usual address. Change the port if yours runs on another one.' : kind === 'openai-compatible' ? 'Its OpenAI-style base URL, usually ending in /v1.' : 'Its usual address.'}
+            hint={kind === 'ollama' ? 'Ollama’s usual address is http://127.0.0.1:11434. Change the port if yours runs on another one, or the host for another computer on your network.' : kind === 'openai-compatible' ? 'Its OpenAI-style base URL, usually ending in /v1.' : 'Its usual address.'}
             error={typed && !parsed ? 'That isn’t a web address: it should start with http:// or https://' : plainHttpOut ? 'Only https leaves this computer: http:// is for a runner on this computer or your network.' : undefined}
           >
             <TextInput value={url} onChange={(e) => setUrl(e.target.value)} spellCheck={false} placeholder="https://llm.example.com/v1" className="font-mono text-[13px]" data-testid="ai-add-url" autoFocus />

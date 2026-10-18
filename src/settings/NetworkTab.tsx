@@ -186,7 +186,7 @@ function Line({ e, time }: { e: NetworkLogEntry; time: string }) {
           {e.path}
         </span>
         <span className="block font-sans text-[12px] opacity-80">
-          {e.feature ? `AI · ${AI_FEATURE[e.feature] ?? e.feature}${e.model ? ` · ${e.model}` : ''}` : (PURPOSE[e.purpose] ?? e.purpose)}
+          {e.feature ? `AI · ${e.purpose === 'ai.models' ? 'listing its models' : (AI_FEATURE[e.feature] ?? e.feature)}${e.model ? ` · ${e.model}` : ''}` : (PURPOSE[e.purpose] ?? e.purpose)}
           {typeof e.sent === 'number' && e.sent > 0 && <span className="opacity-70"> · sent {formatBytes(e.sent)}</span>}
         </span>
         {e.error && <span className="block break-words font-sans text-[12px]">{e.error}</span>}

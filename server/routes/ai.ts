@@ -59,7 +59,7 @@ const UpdateSchema = z.strictObject({
 });
 const SettingsSchema = z.strictObject({ enabled: z.boolean().optional(), text: AiSlotSchema.nullable().optional() });
 // a key is one token: no spaces or line breaks (a paste that caught a newline is trimmed first)
-const KeySchema = z.strictObject({ key: z.string().trim().min(8, 'that looks too short for a key').max(500).regex(/^\S+$/, 'a key has no spaces in it') });
+const KeySchema = z.strictObject({ key: z.string().trim().min(8, 'that looks too short for a key').max(500, 'that’s longer than any key (500 characters at most)').regex(/^\S+$/, 'a key has no spaces in it') });
 const ConsentSchema = z.strictObject({ version: z.number().int().min(1) });
 const TestSchema = z.strictObject({ model: z.string().trim().min(1).max(200).optional() });
 
