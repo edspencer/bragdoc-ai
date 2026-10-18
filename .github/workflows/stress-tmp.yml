@@ -1,0 +1,31 @@
+# TEMPORARY (PR30): stress the macOS instructions-watch flake, old test vs new. Removed before the PR is ready.
+name: stress-tmp
+on:
+  push:
+    branches: [v02/30-release-candidate]
+jobs:
+  stress:
+    strategy:
+      fail-fast: false
+      matrix:
+        which: [old, new]
+    runs-on: macos-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci
+      - name: 25 runs under CPU load
+        shell: bash
+        run: |
+          for i in 1 2 3 4 5 6; do (yes > /dev/null &) ; done
+          f=test/ai-instructions.test.ts; [ "${{ matrix.which }}" = old ] && f=test/zz-old-instructions.stress.ts
+          pass=0; fail=0
+          for i in $(seq 1 25); do
+            if node --import tsx --test --test-name-pattern='hand' "$f" > out.txt 2>&1; then pass=$((pass+1)); else fail=$((fail+1)); grep -E 'not ok|timed out' out.txt | head -3; fi
+          done
+          pkill yes || true
+          echo "${{ matrix.which }}: pass=$pass fail=$fail" | tee -a "$GITHUB_STEP_SUMMARY"

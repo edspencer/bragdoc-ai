@@ -28,10 +28,10 @@ afterEach(async () => {
   a = undefined;
 });
 
-const until = async (cond: () => boolean, ms = 10_000) => {
+const until = async (cond: () => boolean, what: string, ms = 10_000) => {
   const start = Date.now();
   while (!cond()) {
-    if (Date.now() - start > ms) throw new Error('timed out');
+    if (Date.now() - start > ms) throw new Error(`timed out waiting for ${what}`);
     await new Promise((r) => setTimeout(r, 10));
   }
 };
@@ -86,6 +86,10 @@ test('only the two names exist; a misspelt file in ai/ is a Problem, anything no
 
 test('a hand edit is picked up live, and announced to open tabs as an `instructions` event', async () => {
   h = storeHome();
+  // The file you edit by hand is one BragDoc already wrote (the judge's starter, on its first switch-on), so ai/ is
+  // there before the watcher starts. Creating ai/ in the same instant the watcher starts was a macOS-only flake (PR30):
+  // FSEvents can drop the new folder's event from a stream that has only just begun, and the edit is never seen.
+  h.services.instructions.put('what-counts', { text: '# What counts as a win for me\n' });
   const events: StoreChange[] = [];
   h.store.subscribe((c) => events.push(c));
   const bus = new EventBus();
@@ -95,11 +99,21 @@ test('a hand edit is picked up live, and announced to open tabs as an `instructi
   w = watchStore(h.store);
   await w.ready;
   h.put('ai/what-counts.md', WINS);
-  await until(() => h!.services.instructions.forPrompt('what-counts') === WINS.trim());
+  await until(() => h!.services.instructions.forPrompt('what-counts') === WINS.trim(), 'the first hand edit');
   h.put('ai/what-counts.md', WINS + '- Mentoring someone through their first launch.\n');
-  await until(() => /Mentoring/.test(h!.services.instructions.forPrompt('what-counts') ?? ''));
+  await until(() => /Mentoring/.test(h!.services.instructions.forPrompt('what-counts') ?? ''), 'the second hand edit');
   assert.ok(events.every((e) => e.entity === 'instructions' && e.id === 'what-counts'), JSON.stringify(events));
-  await until(() => sent.includes('instructions'));
+  await until(() => sent.includes('instructions'), 'the instructions event');
+});
+
+test('a hand-made ai/ folder is picked up too, once the watcher is running', async () => {
+  h = storeHome();
+  w = watchStore(h.store);
+  await w.ready;
+  // a moment for the watcher's stream to be live (see above): this is about a new folder, not about a race at start
+  await new Promise((r) => setTimeout(r, 500));
+  h.put('ai/style.md', 'Write plainly.\n');
+  await until(() => h!.services.instructions.forPrompt('style') === 'Write plainly.', 'the new ai/ folder');
 });
 
 test('a hand-broken file is a Problem: the last good copy is used, and it is never overwritten unseen', () => {
