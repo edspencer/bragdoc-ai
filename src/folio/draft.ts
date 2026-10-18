@@ -73,15 +73,16 @@ export function useDraft() {
   return { draft: d, start, cancel, edit, taken, discard, setCheck };
 }
 
-/** Re-check an edited draft, a moment after you stop typing. */
+/** Check an edited (or cut-short) draft, a moment after you stop typing. */
 export function useRecheck(d: DraftState | null, setCheck: (c: AiDraftCheck) => void) {
   const text = d?.text;
-  const edited = d?.edited;
+  // what you changed, or what arrived before a Cancel or a failure (a finished draft comes with its check)
+  const edited = d?.edited || d?.phase === 'cancelled' || d?.phase === 'failed';
   const settled = d?.phase === 'done' || d?.phase === 'cancelled' || d?.phase === 'failed';
   const folio = d?.folio;
   const purpose = d?.purpose;
   useEffect(() => {
-    if (!edited || !settled || text === undefined || !folio) return;
+    if (!edited || !settled || !text || !folio) return;
     const ac = new AbortController();
     const t = setTimeout(() => {
       checkAiDraft({ draft: text, folio, ...(purpose ? { purpose } : {}) }, ac.signal).then(setCheck, () => {

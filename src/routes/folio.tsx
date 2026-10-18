@@ -162,7 +162,7 @@ function Folio() {
           onClick={doDraft}
           disabled={!canTake || !ready || draft?.phase === 'waiting' || draft?.phase === 'streaming'}
           title={!canTake ? 'Pick something first: there’s nothing to draft from.' : (notReady ?? undefined)}
-          data-testid="folio-draft"
+          data-testid="folio-draft-button"
         >
           <Sparkles aria-hidden className="size-4" /> {draft ? 'Draft again' : 'Draft with AI'}
         </Btn>
