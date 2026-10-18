@@ -10,7 +10,7 @@ import type { AiConnectionView, AiHardware, AiPullEvent, AiStatus } from '../../
 import { MIN_LOCAL_RAM_GB, RECOMMENDED_MODELS, type RecommendedModel } from '../../../shared/ai/models.ts';
 import { isApiError, pullAiModel, putAi } from '../../api/client.ts';
 import { queryKeys, useAiHardware, useAiModels } from '../../api/queries.ts';
-import { Btn, Dialog, Kicker, useToast } from '../../kit/index.ts';
+import { Btn, Dialog, Kicker, inputCls, useToast } from '../../kit/index.ts';
 import { CommandSlab, CopyButton } from '../common.tsx';
 import { connectionName, gb, ramGb } from './words.ts';
 
@@ -45,9 +45,10 @@ export function TextSlot({ status }: { status: AiStatus }) {
 
 export function Recommended({ status }: { status: AiStatus }) {
   const hw = useAiHardware(true);
-  // the Ollama a download would go to: the one in use, else the first one
+  // the Ollama a download would go to: the one you pick here (with more than one), else the one in use, else the first
   const ollamas = status.connections.filter((c) => c.kind === 'ollama');
-  const target = ollamas.find((c) => c.id === status.text?.connection) ?? ollamas[0];
+  const [picked, setPicked] = useState<string | null>(null);
+  const target = ollamas.find((c) => c.id === picked) ?? ollamas.find((c) => c.id === status.text?.connection) ?? ollamas[0];
   // a runner on the internet is asked only on a click (on its card), never by opening the page (D69)
   const models = useAiModels(target?.id ?? '-', target?.baseUrl ?? null, !!target && !target.blocked && !target.cloud);
   const installed = new Set(models.data?.models.map((m) => m.name) ?? []);
@@ -73,7 +74,24 @@ export function Recommended({ status }: { status: AiStatus }) {
         ))}
       </div>
       <p className="m-0 text-[12px] text-faint">
-        Recommendations as of {h.modelsAsOf}, from measurements on a laptop CPU. {target ? `Installed means installed on ${connectionName(target)}.` : 'Add an Ollama connection to see what’s installed.'}
+        Recommendations as of {h.modelsAsOf}, from measurements on a laptop CPU.{' '}
+        {!target ? (
+          'Add an Ollama connection to see what’s installed.'
+        ) : ollamas.length > 1 ? (
+          <>
+            Installed means installed on{' '}
+            <select value={target.id} onChange={(e) => setPicked(e.target.value)} className={`${inputCls} inline-block w-auto py-0.5 text-[12px]`} aria-label="Which Ollama" data-testid="ai-recommended-target">
+              {ollamas.map((c) => (
+                <option key={c.id} value={c.id}>
+                  {connectionName(c)}
+                </option>
+              ))}
+            </select>
+            .
+          </>
+        ) : (
+          `Installed means installed on ${connectionName(target)}.`
+        )}
       </p>
     </div>
   );

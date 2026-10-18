@@ -445,7 +445,7 @@ function TestAndUse({ c, allowed, inUse, status, put }: { c: AiConnectionView; a
                 ? `Couldn’t list its models: ${errorText(models.error)} You can still type a name.`
                 : names.length
                   ? `${names.length} model${names.length === 1 ? '' : 's'} available${c.cloud ? '' : ' (installed)'}: pick one, or type a name.`
-                  : 'It has no models yet. See Recommended for this computer below.'}
+                  : `It has no models yet. See Recommended for this computer below${c.kind === 'ollama' && status.connections.filter((x) => x.kind === 'ollama').length > 1 ? ', and pick this runner there' : ''}.`}
       </div>
       {test.isError && (
         <Outcome bad title={isApiError(test.error) && test.error.code in OUTCOME_HEADLINE ? OUTCOME_HEADLINE[test.error.code as keyof typeof OUTCOME_HEADLINE] : 'It didn’t work'}>
