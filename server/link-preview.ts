@@ -19,11 +19,20 @@ export type PrLookup = (pr: PrRef, signal: AbortSignal) => Promise<PrDetails | n
 export const PR_LOOKUP_TIMEOUT_MS = 5000;
 
 export class LinkPreviews {
-  private github: PrLookup | null = null;
+  private lookup: PrLookup | null = null;
+  private active: () => boolean = () => true;
 
-  /** Register (or, with null, unregister) the GitHub lookup: the GitHub source does this when it connects or disconnects. */
-  setGithub(lookup: PrLookup | null): void {
-    this.github = lookup;
+  /**
+   * Register (or, with null, unregister) the GitHub lookup. `active` says whether it may be used right now: the GitHub
+   * source registers once and answers from config.yaml, so connecting, disconnecting or a hand edit take effect at once.
+   */
+  setGithub(lookup: PrLookup | null, active: () => boolean = () => true): void {
+    this.lookup = lookup;
+    this.active = active;
+  }
+
+  private get github(): PrLookup | null {
+    return this.lookup && this.active() ? this.lookup : null;
   }
 
   get hasGithub(): boolean {

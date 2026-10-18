@@ -16,6 +16,7 @@ import { registerCatalog } from './catalog.js';
 import { registerCompanies } from './companies.js';
 import { registerEvents } from './events.js';
 import { registerEvidence } from './evidence.js';
+import { registerFound } from './found.js';
 import { registerFoundCount } from './found-count.js';
 import { registerGuide } from './guide.js';
 import { registerHealth } from './health.js';
@@ -28,6 +29,7 @@ import { registerProblems } from './problems.js';
 import { registerProjects } from './projects.js';
 import { registerRepos } from './repos.js';
 import { registerSettings } from './settings.js';
+import { registerSources } from './sources.js';
 
 export function registerRoutes(app: Hono, ctx: AppContext): void {
   registerAchievements(app, ctx);
@@ -35,6 +37,7 @@ export function registerRoutes(app: Hono, ctx: AppContext): void {
   registerCompanies(app, ctx);
   registerEvents(app, ctx);
   registerEvidence(app, ctx);
+  registerFound(app, ctx);
   registerFoundCount(app, ctx);
   registerGuide(app, ctx);
   registerHealth(app, ctx);
@@ -47,4 +50,5 @@ export function registerRoutes(app: Hono, ctx: AppContext): void {
   registerProjects(app, ctx);
   registerRepos(app, ctx);
   registerSettings(app, ctx);
+  registerSources(app, ctx);
 }

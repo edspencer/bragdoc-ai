@@ -235,10 +235,15 @@ test('found: dismiss and undo, list order and filters', () => {
   assert.deepEqual(f.list({ source: 'github' }).map((x) => x.title), ['A']);
   f.dismiss(a.id);
   assert.deepEqual(f.list().map((x) => x.title), ['B']);
-  assert.deepEqual(f.list({ status: 'dismissed' }).map((x) => x.title), ['A']);
+  // a dismissed candidate keeps nothing of what it was (D55)
+  assert.deepEqual(f.list({ status: 'dismissed' }).map((x) => [x.id, x.title]), [[a.id, 'Dismissed']]);
   assert.throws(() => f.undo(b.id), /nothing to undo/);
-  f.undo(a.id);
+  assert.equal(f.undo(a.id).title, 'A', 'undo brings back what it was');
   assert.equal(f.pendingCount(), 2);
+  // after a restart there's no copy to bring back: the dismissal is final
+  f.dismiss(a.id);
+  const { createServices } = require_services();
+  assert.throws(() => createServices(h.reopen()).found.undo(a.id), /keeps nothing to bring back/);
 });
 
 test('evidence edits match items by id: unknown keys and comments stay with their own item', () => {

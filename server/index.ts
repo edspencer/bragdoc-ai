@@ -21,8 +21,10 @@ import { forwardStoreChanges } from './live.js';
 import { VERSION, WEB_DIST } from './paths.js';
 import { registerRoutes } from './routes/index.js';
 import { Runtime, displayUrl } from './runtime.js';
+import { Secrets } from './secrets.js';
 import { UploadRegistry, security } from './security.js';
 import { createServices } from './services/index.js';
+import { createSources } from './sources/index.js';
 import { startSnapshots } from './store/backups.js';
 import { openStore, type Store } from './store/index.js';
 import { watchStore } from './store/watch.js';
@@ -46,6 +48,10 @@ export interface AppOptions {
   store?: Store;
   /** The GitHub PR lookup behind POST /api/link-preview (tests); a GitHub source registers its own on it. */
   linkPreviews?: LinkPreviews;
+  /** The environment the sources run gh with (tests: a fake gh on PATH). Defaults to this process's. */
+  env?: NodeJS.ProcessEnv;
+  /** The clock the sources use (tests). */
+  now?: () => Date;
 }
 
 /**
@@ -62,12 +68,17 @@ export function hasFileExtension(pathname: string): boolean {
 /** A Vite output file: `/assets/index-CqW7J_rx.js` (Vite's hashes are 8 base64url characters). */
 const HASHED_ASSET = /^\/assets\/[^/]+-[A-Za-z0-9_-]{8}\.[a-z0-9]+$/;
 
-export function createApp({ dataDir, webDist = WEB_DIST, version = VERSION, startupNotices = [], ...o }: AppOptions): Hono {
+export function createApp(opts: AppOptions): Hono {
+  return createAppWithContext(opts).app;
+}
+
+/** createApp, and the AppContext its routes share: startServer starts and stops what runs in the background (the sources). */
+export function createAppWithContext({ dataDir, webDist = WEB_DIST, version = VERSION, startupNotices = [], ...o }: AppOptions): { app: Hono; ctx: AppContext } {
   const app = new Hono();
   const bus = o.bus ?? new EventBus();
   const config = o.config ?? new ConfigStore(dataDir, { onChange: () => bus.emit({ type: 'config' }) });
   const store = o.store ?? openStore(dataDir);
-  const ctx: AppContext = {
+  const base: Omit<AppContext, 'sources'> = {
     version,
     dataDir,
     config,
@@ -79,7 +90,9 @@ export function createApp({ dataDir, webDist = WEB_DIST, version = VERSION, star
     store,
     services: createServices(store),
     linkPreviews: o.linkPreviews ?? new LinkPreviews(),
+    secrets: new Secrets(dataDir),
   };
+  const ctx: AppContext = { ...base, sources: createSources(base, { env: o.env, now: o.now }) };
   // every change to a data file (ours, an agent's over MCP, a hand edit the watcher saw) reaches open tabs, projects,
   // companies and repos included (PR8's pages), as one event per kind per burst (D48): the one forwarder
   forwardStoreChanges(store, bus);
@@ -110,7 +123,7 @@ export function createApp({ dataDir, webDist = WEB_DIST, version = VERSION, star
       return c.html(fs.readFileSync(index, 'utf8'));
     });
   }
-  return app;
+  return { app, ctx };
 }
 
 export interface ServerOptions extends AppOptions {
@@ -133,13 +146,15 @@ export async function startServer(port: number, { hostname = '127.0.0.1', ...opt
   const runtime = opts.runtime ?? new Runtime(opts.dataDir);
   // the store is loaded before the port is bound, then watched for changes on disk and snapshotted (on start, hourly)
   const store = opts.store ?? openStore(opts.dataDir);
-  const app = createApp({ ...opts, bus, config, runtime, store, startupNotices: [...(opts.startupNotices ?? []), ...home.notices] });
+  const { app, ctx } = createAppWithContext({ ...opts, bus, config, runtime, store, startupNotices: [...(opts.startupNotices ?? []), ...home.notices] });
   const version = opts.version ?? VERSION;
   const watcher = watchStore(store);
   const stopSnapshots = startSnapshots(opts.dataDir);
+  const stopSources = ctx.sources.start(); // the hourly GitHub check, only if you turned it on (D56)
   const bound = await new Promise<{ port: number; close: () => Promise<void> }>((resolve, reject) => {
     const failed = (e: Error) => {
       stopSnapshots();
+      stopSources();
       void watcher.close();
       reject(e);
     };
@@ -147,6 +162,7 @@ export async function startServer(port: number, { hostname = '127.0.0.1', ...opt
       server.off('error', failed);
       const close = async () => {
         stopSnapshots();
+        stopSources();
         await watcher.close();
         await new Promise<void>((res) => {
           server.close(() => res());

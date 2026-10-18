@@ -117,6 +117,8 @@ export type ServerEvent =
   | { type: 'company' }
   | { type: 'found' }
   | { type: 'profile' }
+  /** A source's status changed: a check started or finished, it was connected or disconnected (PR13). */
+  | { type: 'sources' }
   /** The Problems list may have changed (sent with every store change, and when a misnamed file comes or goes). */
   | { type: 'problems' };
 
@@ -271,7 +273,7 @@ export interface BackupsResponse {
 /** `GET /api/settings`: the settings the Settings pages edit or show (config.yaml, live: a `config` event). */
 export interface SettingsResponse {
   mcp: { writeTo: 'board' | 'found' };
-  sources: { github: { enabled: boolean; auth: 'gh' | 'token' } };
+  sources: { github: { enabled: boolean; auth: 'gh' | 'token'; lookBackDays?: number; repos?: string[]; hourly?: boolean } };
 }
 
 /** `PUT /api/settings/mcp`: where MCP agents' achievements go. Answers with the new SettingsResponse. */
@@ -470,4 +472,123 @@ export interface ImportReport {
   importsDir: string | null;
   /** The snapshot taken before importing (`backups/<name>`); null in a dry run, or when there was nothing to snapshot. */
   snapshot: string | null;
+}
+
+// ---------------------------------------------------------------- Found + sources (PR13)
+//
+// Found's candidates are the data files' type (FoundCandidate, shared/schema/found.ts), typed loosely here. Keep, merge
+// and dismiss answer with the candidate as it is now; undo puts it back to pending. A dismissed candidate keeps only
+// the hashes of its keys (D55), so the same PR or screenshot never comes back.
+
+/** Where a candidate came from: the GitHub source, the screenshots folder (PR15), or an agent over MCP. */
+export type FoundSourceName = 'github' | 'screenshots' | 'mcp';
+
+/** `GET /api/found?source=`: the pending candidates, newest first, and how many are pending from each source. */
+export interface FoundListResponse<F = Record<string, unknown>> {
+  items: F[];
+  /** Pending, whatever the `source` filter: for the filter row. */
+  counts: Record<FoundSourceName | 'all', number>;
+}
+
+/** `POST /api/found/:id/merge` */
+export interface FoundMergeRequest {
+  achievementId: string;
+}
+
+/**
+ * `POST /api/found/:id/{keep,merge,dismiss,undo}`. `achievementId`: the achievement keep made, or merge added to.
+ * `missingFiles`: files the candidate pointed at that had gone, so weren't attached.
+ */
+export interface FoundDecided<F = Record<string, unknown>> {
+  candidate: F;
+  achievementId?: string;
+  missingFiles?: string[];
+}
+
+/**
+ * Why a GitHub check (or connecting) failed, in a word a program can switch on; the `message` says it for people.
+ * `gh_missing`: no gh on PATH. `gh_logged_out`: gh isn't logged in. `token_missing`/`token_invalid`/`token_scope`: the
+ * token isn't there, isn't accepted, or can't read pull requests. `rate_limited`: GitHub asked us to wait (`retryAt`).
+ * `offline`: GitHub couldn't be reached. `failed`: anything else (the message has gh's or GitHub's own words).
+ */
+export type GithubErrorCode = 'gh_missing' | 'gh_logged_out' | 'token_missing' | 'token_invalid' | 'token_scope' | 'rate_limited' | 'offline' | 'failed';
+
+export interface GithubError {
+  code: GithubErrorCode;
+  message: string;
+  /** For `rate_limited`: when GitHub said it would answer again. */
+  retryAt?: string;
+}
+
+/** One check of GitHub. */
+export interface GithubRun {
+  /** When it started and finished. */
+  at: string;
+  finishedAt: string;
+  /** What it searched: merged on or after `from`, up to `to` (YYYY-MM-DD, UTC). */
+  from: string;
+  to: string;
+  /** Merged pull requests GitHub returned, and how many of those were new to Found. */
+  seen: number;
+  added: number;
+  /** Requests it made (gh runs or HTTP requests): each is one line in Network activity. */
+  requests: number;
+  error?: GithubError;
+}
+
+/** The GitHub source, for its Settings card and Found's empty state. */
+export interface GithubSourceStatus {
+  enabled: boolean;
+  auth: 'gh' | 'token';
+  lookBackDays: number;
+  /** Owners and owner/repo it looks in; empty: everywhere you merged (D56). */
+  repos: string[];
+  /** Checks every hour by itself while BragDoc runs. */
+  hourly: boolean;
+  /** The GitHub account it found when it connected (or last checked), if it knows. */
+  login: string | null;
+  /** A token is saved in secrets.yaml. */
+  hasToken: boolean;
+  /** A check is running right now. */
+  running: boolean;
+  /** The last check, or null if there hasn't been one. */
+  lastRun: GithubRun | null;
+  /** The next check will look from this date (YYYY-MM-DD); null before the first. */
+  cursor: string | null;
+  /** When the hourly check runs next, if it's on. */
+  nextRunAt: string | null;
+  /** GitHub asked BragDoc to wait until then (rate limited). */
+  retryAt: string | null;
+}
+
+/** `GET /api/sources`: every source's state. */
+export interface SourcesResponse {
+  github: GithubSourceStatus;
+  /** PR15 fills this in. */
+  screenshots: { enabled: boolean };
+  /** Agents over MCP: always listening (with the token); `writeTo` says where their achievements go. */
+  mcp: { writeTo: 'board' | 'found' };
+}
+
+/**
+ * `GET /api/sources/github/gh`: is the GitHub CLI installed? Nothing is run and nothing leaves this computer: BragDoc
+ * only looks for it on PATH. Whether it's logged in is checked when you connect with it (that is a request, and it's logged).
+ */
+export interface GhDetectResponse {
+  installed: boolean;
+}
+
+/** `POST /api/sources/github/connect`: answers with the GithubSourceStatus (and runs the first check), or 400/409 `GithubError`. */
+export type GithubConnectRequest = { auth: 'gh'; lookBackDays?: number; repos?: string[] } | { auth: 'token'; token: string; lookBackDays?: number; repos?: string[] };
+
+/** `PUT /api/sources/github`: change its options. Answers with the GithubSourceStatus. */
+export interface GithubSettingsRequest {
+  lookBackDays?: number;
+  repos?: string[];
+  hourly?: boolean;
+}
+
+/** `POST /api/sources/github/disconnect`: switch it off; with `forgetToken`, the token in secrets.yaml is removed too. */
+export interface GithubDisconnectRequest {
+  forgetToken?: boolean;
 }

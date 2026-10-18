@@ -39,5 +39,15 @@ These are enforced for every request (see [Localhost security](/guarantees/local
 | `GET /agent-guide.md`, `/llms.txt`, `/llms-full.txt` | The [agent guide](/agents/agent-guide/), with this BragDoc's live facts. |
 | `POST /api/import/plan` | A dry run of importing a [hosted-app export](/moving-from-the-hosted-app/): the export file is the JSON body (up to 50 MB). Returns what would be added, what's already here, what can't be imported, the fields left behind and why, and any problems. Writes nothing. A file that isn't a version 1.0 export is a **400** (`invalid_export`, `unsupported_version`). |
 | `POST /api/import/apply` | The same, for real: it imports the export and returns the same report of what it did, plus the snapshot it took first. Importing the same export again adds nothing. **409** `import_running` while another import is running. |
+| `GET /api/found` | The candidates waiting in [Found](/concepts/found-and-sources/), newest first, and how many each source has. `?source=github` (or `screenshots`, `mcp`) shows one source's. |
+| `POST /api/found/:id/keep` | Make the candidate an achievement, with its evidence and suggested projects. The body may change the title, summary, body, date, impact, projects or repos. |
+| `POST /api/found/:id/merge` | `{ "achievementId": "…" }`: attach the candidate's evidence to an achievement you already have. |
+| `POST /api/found/:id/dismiss` | Set it aside for good: its file keeps only a hash of its key, so the same pull request never comes back. |
+| `POST /api/found/:id/undo` | Undo keep, merge or dismiss (a dismissal only until BragDoc restarts). |
+| `GET /api/sources` | Each source's state: for GitHub, whether it's on and how (the gh CLI or a token), where it looks, the last check and what it found, and any error. |
+| `POST /api/sources/github/connect` | `{ "auth": "gh" }` or `{ "auth": "token", "token": "…" }`, plus optional `lookBackDays` and `repos`: check the login, switch GitHub on and start the first check. A token GitHub refuses isn't kept. |
+| `PUT /api/sources/github` | Change `lookBackDays`, `repos` or `hourly`. |
+| `POST /api/sources/github/run` | Check GitHub now, and wait for it. **429** while GitHub has asked BragDoc to wait. |
+| `POST /api/sources/github/disconnect` | Switch GitHub off; `{ "forgetToken": true }` also removes the token from `secrets.yaml`. |
 
-Achievements, evidence, projects, Found and settings get their endpoints as those features are built.
+Achievements, evidence, projects and settings get their endpoints as those features are built.
