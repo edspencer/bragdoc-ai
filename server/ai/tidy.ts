@@ -305,8 +305,8 @@ export function finishTidy(a: TidyAnswer, input: FinishInput): Pick<AiTidyRespon
   }
 
   // grounding: your text, plus what's yours anyway (your projects' names, your name), plus the dates it allowed
-  // the impact scale's labels ("Routine", "Standout") were in the prompt: a why that uses one invents nothing
-  const sources = [input.material, ...input.projects.map((p) => p.name), ...input.own.filter(Boolean), ...IMPACT_SCALE.map((l) => l.label), ...ranges.filter((r) => r.from === r.to).map((r) => r.from)];
+  // the impact scale (its labels and guidance) was in the prompt: a why that quotes it invents nothing
+  const sources = [input.material, ...input.projects.map((p) => p.name), ...input.own.filter(Boolean), ...IMPACT_SCALE.flatMap((l) => [l.label, l.guidance]), ...ranges.filter((r) => r.from === r.to).map((r) => r.from)];
   const ungroundedOut: Partial<Record<AiTidyField, string[]>> = {};
   for (const field of ['title', 'summary', 'body', 'impactWhy'] as const) {
     const v = s[field];

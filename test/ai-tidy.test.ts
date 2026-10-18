@@ -398,7 +398,7 @@ test("eval:tidy: each recommended model's recording replays through the real pro
   const { replay } = await import('./ai-replay.ts');
   const dir = path.join(RECORDINGS, 'tidy');
   const files = fs.existsSync(dir) ? fs.readdirSync(dir).filter((f) => f.endsWith('.json')).sort() : [];
-  assert.ok(files.includes('qwen3.5-4b.json'), 'a recording from a recommended model (npm run eval:tidy -- --record)');
+  assert.deepEqual(files, ['gemma4-e4b.json', 'qwen3.5-4b.json'], 'a recording from each recommended model (npm run eval:tidy -- --record)');
   for (const f of files) {
     const rec = readRecording(path.join(dir, f));
     assert.equal(rec.where, 'this-computer', f);
@@ -412,7 +412,7 @@ test("eval:tidy: each recommended model's recording replays through the real pro
 });
 
 /** How many of the 30 each recording passes (set from the recorded run). */
-const REPLAY_FLOOR: Record<string, number> = { 'qwen3.5-4b.json': 23 };
+const REPLAY_FLOOR: Record<string, number> = { 'gemma4-e4b.json': 27, 'qwen3.5-4b.json': 23 };
 
 test('second review: invented numbers, dates and opening names stay flagged; ordinary words are not dates', () => {
   const t = (title: string, material: string) => finish(answer({ title, summary: 'x' }), material, '2026-10-18').ungrounded.title ?? [];

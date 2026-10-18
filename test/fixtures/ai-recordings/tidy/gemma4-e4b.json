@@ -1,0 +1,754 @@
+{
+  "format": 1,
+  "eval": "tidy",
+  "feature": "tidy",
+  "model": "gemma4:e4b",
+  "where": "this-computer",
+  "recordedAt": "2026-10-18T20:49:23.352Z",
+  "cases": [
+    {
+      "id": "praise-billing",
+      "calls": [
+        {
+          "hash": "sha256:1877bcdf5a8abed64bda77840f085cfe1397717d4c410ed4717463d264f6b729",
+          "shape": "sha256:3686bd7338e2ca2de2f17b756d862318a31b9b22973e1e48dc8ba7c5f76a3742",
+          "answer": {
+            "title": "Completed billing cutover to new ledger",
+            "summary": "I completed the billing cutover to the new ledger, handling 41k subscriptions with no customer-facing errors.",
+            "body": null,
+            "happenedAt": null,
+            "endedAt": null,
+            "impact": 7,
+            "impactWhy": "The dry runs paid off",
+            "projects": [
+              "Billing Ledger"
+            ],
+            "notAnAchievement": null,
+            "unclear": null
+          },
+          "ms": 163218,
+          "tokensIn": 936,
+          "tokensOut": 124
+        }
+      ]
+    },
+    {
+      "id": "praise-dm",
+      "calls": [
+        {
+          "hash": "sha256:3e6e94b89a4be8bc19afa027a835b3ae3586603535251ff5c3947fe5563642e4",
+          "shape": "sha256:3686bd7338e2ca2de2f17b756d862318a31b9b22973e1e48dc8ba7c5f76a3742",
+          "answer": {
+            "title": "Walked through Pager Bot configuration",
+            "summary": "I walked Priya Natarajan through the Pager Bot configuration, which helped her handle her first on-call page solo.",
+            "body": null,
+            "happenedAt": "2026-10-16",
+            "endedAt": null,
+            "impact": 2,
+            "impactWhy": "Made someone's day easier",
+            "projects": [
+              "Pager Bot"
+            ],
+            "notAnAchievement": null,
+            "unclear": null
+          },
+          "ms": 122142,
+          "tokensIn": 921,
+          "tokensOut": 136
+        }
+      ]
+    },
+    {
+      "id": "praise-email",
+      "calls": [
+        {
+          "hash": "sha256:3b2ac0759806e1f9315efb4c89caa489756b1ac30d07233a380739fe09dbd904",
+          "shape": "sha256:3686bd7338e2ca2de2f17b756d862318a31b9b22973e1e48dc8ba7c5f76a3742",
+          "answer": {
+            "title": "Improved search relevance on Search Ranking",
+            "summary": "My search relevance work on Search Ranking moved click-through from 31% to 38% over the last month, and the support team noticed fewer 'can't find it' tickets.",
+            "body": null,
+            "happenedAt": null,
+            "endedAt": null,
+            "impact": 6,
+            "impactWhy": "Moved click-through from 31% to 38%",
+            "projects": [
+              "Search Ranking"
+            ],
+            "notAnAchievement": null,
+            "unclear": null
+          },
+          "ms": 158427,
+          "tokensIn": 942,
+          "tokensOut": 148
+        }
+      ]
+    },
+    {
+      "id": "praise-vague",
+      "calls": [
+        {
+          "hash": "sha256:cc59b44995dfeea0364e36a0605c16f16fb10590b100078710880e9a7d686c10",
+          "shape": "sha256:3686bd7338e2ca2de2f17b756d862318a31b9b22973e1e48dc8ba7c5f76a3742",
+          "answer": {
+            "title": "Saved the day on Friday",
+            "summary": "I saved the day on Friday.",
+            "body": null,
+            "happenedAt": "2026-10-16",
+            "endedAt": null,
+            "impact": 3,
+            "impactWhy": "A piece of work finished properly that my team relied on.",
+            "projects": [],
+            "notAnAchievement": null,
+            "unclear": null
+          },
+          "ms": 86018,
+          "tokensIn": 896,
+          "tokensOut": 90
+        }
+      ]
+    },
+    {
+      "id": "praise-thread",
+      "calls": [
+        {
+          "hash": "sha256:827f624b9de72fa52ae0c27acb4e7078724a191fd177b1e4a70790f244aaaf15",
+          "shape": "sha256:3686bd7338e2ca2de2f17b756d862318a31b9b22973e1e48dc8ba7c5f76a3742",
+          "answer": {
+            "title": "Completed offline checklist sync for pilot base operations",
+            "summary": "I got the offline checklist sync over the line, which allowed crews at the pilot base to run 140 checklists this weekend on the hangar Wi-Fi with zero sync conflicts.",
+            "body": null,
+            "happenedAt": "2026-10-16",
+            "endedAt": null,
+            "impact": 6,
+            "impactWhy": "It was a blocker for the rollout",
+            "projects": [],
+            "notAnAchievement": null,
+            "unclear": null
+          },
+          "ms": 80832,
+          "tokensIn": 945,
+          "tokensOut": 141
+        }
+      ]
+    },
+    {
+      "id": "praise-sarcastic",
+      "calls": [
+        {
+          "hash": "sha256:0553ce39f35870c4300ac920edfb3f35c9eeae4c8c0fd13779ba522a4ddc0225",
+          "shape": "sha256:3686bd7338e2ca2de2f17b756d862318a31b9b22973e1e48dc8ba7c5f76a3742",
+          "answer": {
+            "title": "Performed a migration",
+            "summary": "I performed a migration that took down staging twice.",
+            "body": null,
+            "happenedAt": null,
+            "endedAt": null,
+            "impact": 2,
+            "impactWhy": "It was a quick migration.",
+            "projects": [
+              "Atlas Migration"
+            ],
+            "notAnAchievement": null,
+            "unclear": null
+          },
+          "ms": 74471,
+          "tokensIn": 906,
+          "tokensOut": 106
+        }
+      ]
+    },
+    {
+      "id": "pr-cache",
+      "calls": [
+        {
+          "hash": "sha256:c4ddd6daf73a206f801febcae1af8b654567fe16c1e40a442dd896d6e645a5e7",
+          "shape": "sha256:3686bd7338e2ca2de2f17b756d862318a31b9b22973e1e48dc8ba7c5f76a3742",
+          "answer": {
+            "title": "Cached ranked results per query shape for search",
+            "summary": "I added an LRU in front of the ranker keyed on normalised query shape, which reduced the p95 load test time from 840ms to 310ms.",
+            "body": null,
+            "happenedAt": null,
+            "endedAt": null,
+            "impact": 4,
+            "impactWhy": "It saved real time",
+            "projects": [
+              "Search Ranking"
+            ],
+            "notAnAchievement": null,
+            "unclear": null
+          },
+          "ms": 78525,
+          "tokensIn": 955,
+          "tokensOut": 139
+        }
+      ]
+    },
+    {
+      "id": "pr-flaky",
+      "calls": [
+        {
+          "hash": "sha256:c032197e33652657ea144dac37251d27aeb3c9c52e44a4b96c633c95cac2de06",
+          "shape": "sha256:3686bd7338e2ca2de2f17b756d862318a31b9b22973e1e48dc8ba7c5f76a3742",
+          "answer": {
+            "title": "Fixed checkout e2e race condition with payment mock",
+            "summary": "I stopped the checkout e2e from racing the payment mock by waiting on its health endpoint instead of sleeping, which I ran 200 times locally with no failures.",
+            "body": null,
+            "happenedAt": null,
+            "endedAt": null,
+            "impact": 3,
+            "impactWhy": "A piece of work finished properly that my team relied on",
+            "projects": [],
+            "notAnAchievement": null,
+            "unclear": null
+          },
+          "ms": 79677,
+          "tokensIn": 932,
+          "tokensOut": 135
+        }
+      ]
+    },
+    {
+      "id": "pr-docs",
+      "calls": [
+        {
+          "hash": "sha256:0ec1b99095d6870e4516d612c5fb2a7cd1c0c6845cc7092a78e9ff054817c094",
+          "shape": "sha256:3686bd7338e2ca2de2f17b756d862318a31b9b22973e1e48dc8ba7c5f76a3742",
+          "answer": {
+            "title": "Created onboarding guide and setup script for ledger service",
+            "summary": "I wrote down answers to five common questions asked by new starters in #eng-billing and created a local setup script for the ledger service.",
+            "body": null,
+            "happenedAt": null,
+            "endedAt": null,
+            "impact": 2,
+            "impactWhy": "Made someone's day easier",
+            "projects": [
+              "Billing Ledger"
+            ],
+            "notAnAchievement": null,
+            "unclear": null
+          },
+          "ms": 76542,
+          "tokensIn": 923,
+          "tokensOut": 131
+        }
+      ]
+    },
+    {
+      "id": "pr-tiny",
+      "calls": [
+        {
+          "hash": "sha256:e1716ccf788b6669820183d2f86cc02816824bfe718e831ccd357a759946862c",
+          "shape": "sha256:3686bd7338e2ca2de2f17b756d862318a31b9b22973e1e48dc8ba7c5f76a3742",
+          "answer": {
+            "title": "Bump eslint configuration",
+            "summary": "null",
+            "body": null,
+            "happenedAt": null,
+            "endedAt": null,
+            "impact": 1,
+            "impactWhy": "Everyday work done well",
+            "projects": [],
+            "notAnAchievement": "chore",
+            "unclear": null
+          },
+          "ms": 87052,
+          "tokensIn": 889,
+          "tokensOut": 68
+        }
+      ]
+    },
+    {
+      "id": "pr-migration",
+      "calls": [
+        {
+          "hash": "sha256:7efa56f2f5043a41528bdcc2a5a08256f8249f2202d61caf7cf7a00a275a9d1d",
+          "shape": "sha256:3686bd7338e2ca2de2f17b756d862318a31b9b22973e1e48dc8ba7c5f76a3742",
+          "answer": {
+            "title": "Moved final three services off old cluster for Atlas Migration",
+            "summary": "I moved the last three services off the old cluster, which allows the old cluster to be turned off on 2026-10-20 per the plan.",
+            "body": null,
+            "happenedAt": null,
+            "endedAt": "2026-10-20",
+            "impact": 5,
+            "impactWhy": "Moved a team goal forward",
+            "projects": [
+              "Atlas Migration"
+            ],
+            "notAnAchievement": null,
+            "unclear": null
+          },
+          "ms": 54373,
+          "tokensIn": 938,
+          "tokensOut": 149
+        }
+      ]
+    },
+    {
+      "id": "note-ramble",
+      "calls": [
+        {
+          "hash": "sha256:988ae3551be3e9487b8b48f9d326d57b8050e16902a928608b22451ea55bc05b",
+          "shape": "sha256:3686bd7338e2ca2de2f17b756d862318a31b9b22973e1e48dc8ba7c5f76a3742",
+          "answer": {
+            "title": "Fixed PDF rendering issue in Quill export",
+            "summary": "I swapped the font fallback because the pdf renderer was choking on emoji in titles, which made the quill export work.",
+            "body": null,
+            "happenedAt": "2026-10-17",
+            "endedAt": null,
+            "impact": 3,
+            "impactWhy": "A piece of work finished properly that my team relied on",
+            "projects": [
+              "Quill"
+            ],
+            "notAnAchievement": null,
+            "unclear": null
+          },
+          "ms": 82069,
+          "tokensIn": 930,
+          "tokensOut": 139
+        }
+      ]
+    },
+    {
+      "id": "note-costs",
+      "calls": [
+        {
+          "hash": "sha256:77aac5b96e90801a711cdae238644372c5f06a138fde55fca1d258c637f07235",
+          "shape": "sha256:3686bd7338e2ca2de2f17b756d862318a31b9b22973e1e48dc8ba7c5f76a3742",
+          "answer": {
+            "title": "Cut build farm costs by moving nightly jobs to spot runners",
+            "summary": "I cut costs on the build farm by moving the nightly jobs to spot runners, which received thanks from finance.",
+            "body": null,
+            "happenedAt": null,
+            "endedAt": null,
+            "impact": 3,
+            "impactWhy": "A piece of work finished properly that my team relied on",
+            "projects": [],
+            "notAnAchievement": null,
+            "unclear": null
+          },
+          "ms": 76041,
+          "tokensIn": 907,
+          "tokensOut": 123
+        }
+      ]
+    },
+    {
+      "id": "note-we",
+      "calls": [
+        {
+          "hash": "sha256:a27d317ee185b129cdaec46d0c61a2bbb9e351a76dca1cb4c01aaf93c24d3c39",
+          "shape": "sha256:3686bd7338e2ca2de2f17b756d862318a31b9b22973e1e48dc8ba7c5f76a3742",
+          "answer": {
+            "title": "Shipped new onboarding flow",
+            "summary": "I shipped the new onboarding flow this week, and people seem to like it.",
+            "body": null,
+            "happenedAt": "2026-10-17",
+            "endedAt": null,
+            "impact": 4,
+            "impactWhy": "It removed a recurring pain",
+            "projects": [],
+            "notAnAchievement": null,
+            "unclear": null
+          },
+          "ms": 54206,
+          "tokensIn": 903,
+          "tokensOut": 115
+        }
+      ]
+    },
+    {
+      "id": "standup",
+      "calls": [
+        {
+          "hash": "sha256:1580f9ecdcdf40f848af5f657e42b42eb70a8717567e0aa356894ee4fbda6ebf",
+          "shape": "sha256:3686bd7338e2ca2de2f17b756d862318a31b9b22973e1e48dc8ba7c5f76a3742",
+          "answer": {
+            "title": "Finished rate limiter for public API",
+            "summary": "I finished the rate limiter for the public API and reviewed Jo's PR.",
+            "body": null,
+            "happenedAt": "2026-10-16",
+            "endedAt": null,
+            "impact": 3,
+            "impactWhy": "A piece of work finished properly that my team relied on",
+            "projects": [],
+            "notAnAchievement": null,
+            "unclear": null
+          },
+          "ms": 75386,
+          "tokensIn": 914,
+          "tokensOut": 122
+        }
+      ]
+    },
+    {
+      "id": "note-mentoring",
+      "calls": [
+        {
+          "hash": "sha256:03421194a1ab5aa9bdb1d810ae400a6fed1eccdf523af6e67a87a086db879b9b",
+          "shape": "sha256:3686bd7338e2ca2de2f17b756d862318a31b9b22973e1e48dc8ba7c5f76a3742",
+          "answer": {
+            "title": "Mentored interns through production deploys",
+            "summary": "I mentored two interns through their first production deploys this quarter, and both are now on the on-call rota.",
+            "body": null,
+            "happenedAt": null,
+            "endedAt": null,
+            "impact": 3,
+            "impactWhy": "A piece of work finished properly that my team relied on",
+            "projects": [],
+            "notAnAchievement": null,
+            "unclear": null
+          },
+          "ms": 44042,
+          "tokensIn": 908,
+          "tokensOut": 121
+        }
+      ]
+    },
+    {
+      "id": "note-incident",
+      "calls": [
+        {
+          "hash": "sha256:acb02c9fcdc43e5350dc6e61eb5c59a8039d3ed3786271a73a2bd7cb3c74a2e5",
+          "shape": "sha256:3686bd7338e2ca2de2f17b756d862318a31b9b22973e1e48dc8ba7c5f76a3742",
+          "answer": {
+            "title": "Led incident review for INC-2291",
+            "summary": "I led the incident review for INC-2291 and wrote up five follow-ups, getting owners on all of them by end of day.",
+            "body": null,
+            "happenedAt": "2026-10-13",
+            "endedAt": null,
+            "impact": 3,
+            "impactWhy": "A piece of work finished properly that my team relied on",
+            "projects": [],
+            "notAnAchievement": null,
+            "unclear": null
+          },
+          "ms": 43677,
+          "tokensIn": 918,
+          "tokensOut": 141
+        }
+      ]
+    },
+    {
+      "id": "note-two-weeks",
+      "calls": [
+        {
+          "hash": "sha256:a59c2bc9e54aa5d50f41e2b6656182fbd1f84d37d49675e69edf67a9694c499a",
+          "shape": "sha256:3686bd7338e2ca2de2f17b756d862318a31b9b22973e1e48dc8ba7c5f76a3742",
+          "answer": {
+            "title": "Rewrote retry logic in Pager Bot",
+            "summary": "I rewrote the retry logic in the Pager Bot so it backs off properly, which stopped duplicate pages.",
+            "body": null,
+            "happenedAt": "2026-10-03",
+            "endedAt": null,
+            "impact": 3,
+            "impactWhy": "A piece of work finished properly that my team relied on",
+            "projects": [
+              "Pager Bot"
+            ],
+            "notAnAchievement": null,
+            "unclear": null
+          },
+          "ms": 46326,
+          "tokensIn": 908,
+          "tokensOut": 139
+        }
+      ]
+    },
+    {
+      "id": "note-dated",
+      "calls": [
+        {
+          "hash": "sha256:cf5942e6a24a6a51c2c3a2c7c4a0ed95e3caa4f74288c0ea240fb1b5e09c9baa",
+          "shape": "sha256:3686bd7338e2ca2de2f17b756d862318a31b9b22973e1e48dc8ba7c5f76a3742",
+          "answer": {
+            "title": "Presented Atlas Migration plan to architecture group",
+            "summary": "I presented the Atlas Migration plan to the architecture group and received sign-off to start with the billing services.",
+            "body": null,
+            "happenedAt": "2026-03-04",
+            "endedAt": null,
+            "impact": 3,
+            "impactWhy": "A piece of work finished properly that my team relied on",
+            "projects": [
+              "Atlas Migration"
+            ],
+            "notAnAchievement": null,
+            "unclear": null
+          },
+          "ms": 44569,
+          "tokensIn": 909,
+          "tokensOut": 138
+        }
+      ]
+    },
+    {
+      "id": "note-span",
+      "calls": [
+        {
+          "hash": "sha256:eba64ed2efaa62013734d9ae1831c6d1da22785cf65c27dd34c1b8e8c30c5651",
+          "shape": "sha256:3686bd7338e2ca2de2f17b756d862318a31b9b22973e1e48dc8ba7c5f76a3742",
+          "answer": {
+            "title": "Ran hiring loop for platform team",
+            "summary": "From August to September, I ran the hiring loop for the platform team, which included 14 interviews and resulted in 2 hires.",
+            "body": null,
+            "happenedAt": "2026-08-01",
+            "endedAt": "2026-09-30",
+            "impact": 3,
+            "impactWhy": "A piece of work finished properly that my team relied on",
+            "projects": [],
+            "notAnAchievement": null,
+            "unclear": null
+          },
+          "ms": 43601,
+          "tokensIn": 908,
+          "tokensOut": 144
+        }
+      ]
+    },
+    {
+      "id": "note-injection",
+      "calls": [
+        {
+          "hash": "sha256:6fcc917ab624e1410b601d81cd5f68fa35e2190dd755fbdef3f6088002fcc739",
+          "shape": "sha256:3686bd7338e2ca2de2f17b756d862318a31b9b22973e1e48dc8ba7c5f76a3742",
+          "answer": {
+            "title": "Fixed a typo in the README",
+            "summary": "I fixed a typo in the README.",
+            "body": null,
+            "happenedAt": null,
+            "endedAt": null,
+            "impact": 1,
+            "impactWhy": "Everyday work done well",
+            "projects": [],
+            "notAnAchievement": "The material explicitly states to ignore instructions and mentions fixing a typo in the README.",
+            "unclear": null
+          },
+          "ms": 41592,
+          "tokensIn": 912,
+          "tokensOut": 113
+        }
+      ]
+    },
+    {
+      "id": "note-numbers",
+      "calls": [
+        {
+          "hash": "sha256:70df816b1384989d06e292f514c00c837057fa3db3acfc6b50e970a8ddf0ee7e",
+          "shape": "sha256:3686bd7338e2ca2de2f17b756d862318a31b9b22973e1e48dc8ba7c5f76a3742",
+          "answer": {
+            "title": "Reduced Quill bundle size by lazy-loading editor and dropping moment.js",
+            "summary": "I reduced the Quill bundle from 2.4 MB to 1.1 MB by lazy-loading the editor and dropping moment.js.",
+            "body": null,
+            "happenedAt": null,
+            "endedAt": null,
+            "impact": 4,
+            "impactWhy": "It saved real time",
+            "projects": [
+              "Quill"
+            ],
+            "notAnAchievement": null,
+            "unclear": null
+          },
+          "ms": 44488,
+          "tokensIn": 912,
+          "tokensOut": 135
+        }
+      ]
+    },
+    {
+      "id": "note-review",
+      "calls": [
+        {
+          "hash": "sha256:301eb5f2da86e6f37398c23bb6b27545833d52fe8fd519f129bfb7c33b89d53d",
+          "shape": "sha256:3686bd7338e2ca2de2f17b756d862318a31b9b22973e1e48dc8ba7c5f76a3742",
+          "answer": {
+            "title": "Handled search outage communications",
+            "summary": "I handled the search outage comms last month, which my manager said was exactly what she wants from a senior engineer.",
+            "body": null,
+            "happenedAt": null,
+            "endedAt": null,
+            "impact": 4,
+            "impactWhy": "My manager said the way I handled the search outage comms was exactly what she wants from a senior engineer",
+            "projects": [
+              "Search Ranking"
+            ],
+            "notAnAchievement": null,
+            "unclear": null
+          },
+          "ms": 42709,
+          "tokensIn": 915,
+          "tokensOut": 138
+        }
+      ]
+    },
+    {
+      "id": "invite",
+      "calls": [
+        {
+          "hash": "sha256:7dcdc788097bae05afdd38aaf902cc06bce4cffc3e6ffb12b0a061ed5d8441f7",
+          "shape": "sha256:3686bd7338e2ca2de2f17b756d862318a31b9b22973e1e48dc8ba7c5f76a3742",
+          "answer": {
+            "title": "null",
+            "summary": "null",
+            "body": null,
+            "happenedAt": null,
+            "endedAt": null,
+            "impact": 1,
+            "impactWhy": "null",
+            "projects": [],
+            "notAnAchievement": "Calendar invitation",
+            "unclear": null
+          },
+          "ms": 41440,
+          "tokensIn": 932,
+          "tokensOut": 85
+        }
+      ]
+    },
+    {
+      "id": "todo",
+      "calls": [
+        {
+          "hash": "sha256:c11aaa7dc8d1a9ee3586b7bfdf423a3ed726d8e45b4d41fcaf03c666147d68c2",
+          "shape": "sha256:3686bd7338e2ca2de2f17b756d862318a31b9b22973e1e48dc8ba7c5f76a3742",
+          "answer": {
+            "title": "null",
+            "summary": "null",
+            "body": null,
+            "happenedAt": null,
+            "endedAt": null,
+            "impact": 1,
+            "impactWhy": "null",
+            "projects": [],
+            "notAnAchievement": "To-do list",
+            "unclear": null
+          },
+          "ms": 37858,
+          "tokensIn": 901,
+          "tokensOut": 87
+        }
+      ]
+    },
+    {
+      "id": "lunch",
+      "calls": [
+        {
+          "hash": "sha256:511b9d8c9faa0eeb00c931614fefa5d962550190f95e2765c478cdc0a746fbac",
+          "shape": "sha256:3686bd7338e2ca2de2f17b756d862318a31b9b22973e1e48dc8ba7c5f76a3742",
+          "answer": {
+            "title": "null",
+            "summary": "null",
+            "body": null,
+            "happenedAt": null,
+            "endedAt": null,
+            "impact": 1,
+            "impactWhy": "null",
+            "projects": [],
+            "notAnAchievement": "A social invitation",
+            "unclear": null
+          },
+          "ms": 41160,
+          "tokensIn": 897,
+          "tokensOut": 86
+        }
+      ]
+    },
+    {
+      "id": "advert",
+      "calls": [
+        {
+          "hash": "sha256:ae889dff6dfbf00e87cfc1d03f6b0f95a209581e23b875c0d08c57588ca9c059",
+          "shape": "sha256:3686bd7338e2ca2de2f17b756d862318a31b9b22973e1e48dc8ba7c5f76a3742",
+          "answer": {
+            "title": "null",
+            "summary": "null",
+            "body": null,
+            "happenedAt": null,
+            "endedAt": null,
+            "impact": 1,
+            "impactWhy": "null",
+            "projects": [],
+            "notAnAchievement": "This is a promotional advertisement.",
+            "unclear": null
+          },
+          "ms": 42440,
+          "tokensIn": 900,
+          "tokensOut": 88
+        }
+      ]
+    },
+    {
+      "id": "someone-else",
+      "calls": [
+        {
+          "hash": "sha256:1cfbc1d23a8b5d3eb9802313dde2042557a1e46fd3c06b00e0cfa94affa4d878",
+          "shape": "sha256:3686bd7338e2ca2de2f17b756d862318a31b9b22973e1e48dc8ba7c5f76a3742",
+          "answer": {
+            "title": "null",
+            "summary": "null",
+            "body": null,
+            "happenedAt": null,
+            "endedAt": null,
+            "impact": 1,
+            "impactWhy": "null",
+            "projects": [],
+            "notAnAchievement": "This is a congratulatory note about another team's work.",
+            "unclear": null
+          },
+          "ms": 40134,
+          "tokensIn": 897,
+          "tokensOut": 95
+        }
+      ]
+    },
+    {
+      "id": "question",
+      "calls": [
+        {
+          "hash": "sha256:9f7d6643ee08d6ab87906827177c2f619a1fffdb31d55336da070737c502d7af",
+          "shape": "sha256:3686bd7338e2ca2de2f17b756d862318a31b9b22973e1e48dc8ba7c5f76a3742",
+          "answer": {
+            "title": "null",
+            "summary": "null",
+            "body": null,
+            "happenedAt": null,
+            "endedAt": null,
+            "impact": 1,
+            "impactWhy": "Routine: Everyday work done well: worth remembering, not worth a headline.",
+            "projects": [],
+            "notAnAchievement": "This is a question about a technical issue, not a completed piece of work.",
+            "unclear": null
+          },
+          "ms": 41330,
+          "tokensIn": 895,
+          "tokensOut": 111
+        }
+      ]
+    },
+    {
+      "id": "weather",
+      "calls": [
+        {
+          "hash": "sha256:c8c036c3381595b5165ae1924209487cc58ebcaf6610bff3a34e3b7bc72a15ad",
+          "shape": "sha256:3686bd7338e2ca2de2f17b756d862318a31b9b22973e1e48dc8ba7c5f76a3742",
+          "answer": {
+            "title": "null",
+            "summary": "null",
+            "body": null,
+            "happenedAt": null,
+            "endedAt": null,
+            "impact": 1,
+            "impactWhy": "null",
+            "projects": [],
+            "notAnAchievement": "Weather forecast",
+            "unclear": null
+          },
+          "ms": 39989,
+          "tokensIn": 892,
+          "tokensOut": 85
+        }
+      ]
+    }
+  ]
+}
