@@ -4,7 +4,8 @@
 import { useRef, type KeyboardEvent, type ReactNode } from 'react';
 import { AlertTriangle, FileText, ImageIcon, Link2, Loader2, Paperclip, RotateCw, X } from 'lucide-react';
 import type { ProjectEntry as Project, RepoEntry as Repo } from '../../shared/api.ts';
-import { GithubMark, PdfPage, formatBytes, inputCls } from '../kit/index.ts';
+import { useEvidenceOcr } from '../api/queries.ts';
+import { GithubMark, PdfPage, StickyQuote, formatBytes, inputCls } from '../kit/index.ts';
 import type { Composer, Pending } from './composer.ts';
 import { stem } from './evidence.ts';
 import { ImpactPicker, ProjectPicker, RepoPicker } from './pickers.tsx';
@@ -47,6 +48,23 @@ export function DropTray({ c, dragging, projects, repos, onSubmit, saving }: { c
             <ul className="m-0 mt-2 flex list-none flex-wrap items-end gap-4 p-0" aria-label="Added">
               {c.pending.map((p) => (
                 <PendingBit key={p.pid} p={p} c={c} />
+              ))}
+            </ul>
+          )}
+          {c.stickies.length > 0 && (
+            <ul className="m-0 mt-4 flex list-none flex-wrap items-start gap-4 p-0" aria-label="Quotes to pin">
+              {c.stickies.map((q) => (
+                <li key={q.sha} className="group relative w-[240px]" data-testid="composer-sticky">
+                  <StickyQuote text={q.text} from={q.from} where={q.where} rotate={-1} />
+                  <button
+                    type="button"
+                    onClick={() => c.removeSticky(q.sha)}
+                    className="absolute -right-2 -top-2 rounded-full bg-ink p-1 text-bg opacity-80 shadow transition hover:opacity-100 focus-visible:opacity-100"
+                    aria-label="Remove the quote"
+                  >
+                    <X aria-hidden className="size-3" />
+                  </button>
+                </li>
               ))}
             </ul>
           )}
@@ -159,6 +177,7 @@ function PendingBit({ p, c }: { p: Pending; c: Composer }) {
           <div className="mt-0.5 line-clamp-2 break-all font-semibold">{p.url.replace(/^https?:\/\//, '')}</div>
         </div>
       )}
+      {p.kind === 'file' && p.status === 'ready' && p.file?.mime?.startsWith('image/') && p.evidence?.blob && <QuoteOffer sha={p.evidence.blob} c={c} />}
       {p.status === 'error' && (
         <div className="mt-1.5 flex items-center gap-1.5 text-[11px] font-semibold text-bad" role="alert">
           <AlertTriangle aria-hidden className="size-3.5 shrink-0" /> Didn&apos;t upload
@@ -188,4 +207,31 @@ function status(p: Extract<Pending, { kind: 'file' }>): ReactNode | null {
     );
   if (p.status === 'error') return 'not added';
   return null;
+}
+
+/**
+ * A pasted picture is read in the background (OCR, on this computer); when its text passes the screenshot rules (your
+ * name near praise), offer the words as a sticky to pin with it (SPEC R5).
+ */
+function QuoteOffer({ sha, c }: { sha: string; c: Composer }) {
+  const ocr = useEvidenceOcr(sha);
+  const q = ocr.data?.quote;
+  if (ocr.data?.status === 'pending')
+    return (
+      <div className="mt-1.5 flex items-center gap-1 text-[11px] text-faint" data-testid="ocr-reading">
+        <Loader2 aria-hidden className="size-3 animate-spin" /> reading the text…
+      </div>
+    );
+  if (!q || c.stickies.some((x) => x.sha === sha)) return null;
+  return (
+    <button
+      type="button"
+      onClick={() => c.addSticky({ sha, ...q })}
+      className="mt-1.5 block w-full rounded-lg bg-sticky px-2 py-1.5 text-left text-[11.5px] font-semibold leading-snug text-ink shadow-sm ring-1 ring-line transition hover:-translate-y-0.5"
+      data-testid="ocr-quote-offer"
+    >
+      <span className="line-clamp-2 font-hand text-[15px] font-normal">“{q.text}”</span>
+      <span className="text-accent">+ Add the quote as a sticky</span>
+    </button>
+  );
 }

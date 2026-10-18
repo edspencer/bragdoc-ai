@@ -21,6 +21,23 @@ export function githubLine(g: SourcesResponse['github']): string {
   return `checked at ${when(r.at)}, ${what}${g.hourly ? '; checks every hour' : ''}`;
 }
 
+/** "40 looked at · 3 sent to Found" (SPEC R7's counters). */
+export function screenshotCounts(s: SourcesResponse['screenshots']): string {
+  const c = s.counts;
+  return `${c.looked} looked at · ${c.sent} sent to Found${c.ignored ? ` · ${c.ignored} passed over` : ''}${c.failed ? ` · ${c.failed} unreadable` : ''}`;
+}
+
+/** One line about the screenshots folder for "Still watching" and its card. */
+export function screenshotsLine(s: SourcesResponse['screenshots']): string {
+  if (s.state === 'error') return s.error?.message ?? 'it can’t watch the folder';
+  if (s.reading) return `reading ${s.reading}${s.queued ? ` (${s.queued} more waiting)` : ''}…`;
+  const when = (iso: string) => {
+    const day = todayIso(new Date(iso));
+    return `${day === todayIso() ? 'today' : fmt.relative(day)}, ${clock(iso)}`;
+  };
+  return `watching ${s.folder}${s.lastMatch ? `; last sent to Found ${when(s.lastMatch.at)}` : ''}`;
+}
+
 export function EmptyFound({ sources, filtered }: { sources: SourcesResponse | undefined; filtered?: string }) {
   if (filtered)
     return (
@@ -34,7 +51,7 @@ export function EmptyFound({ sources, filtered }: { sources: SourcesResponse | u
       <div className="mx-auto mt-16 max-w-xl text-center" data-testid="found-empty-off">
         <div className="font-hand text-[34px] leading-tight text-muted">Found is quiet because every source is switched off.</div>
         <p className="mt-3 text-[14.5px] text-muted">
-          That’s fine. You can still pin things to your board by hand, and your coding agent can still suggest things over MCP. If you want BragDoc to spot your merged pull requests for you, turn on GitHub.
+          That’s fine. You can still pin things to your board by hand, and your coding agent can still suggest things over MCP. If you want BragDoc to spot your merged pull requests, or praise you screenshot, turn on GitHub or the screenshots folder.
         </p>
         <LinkBtn to="/settings/$tab" params={{ tab: 'sources' }} kind="accent" className="mt-5" data-testid="found-choose-sources">
           Choose sources
@@ -54,8 +71,8 @@ export function EmptyFound({ sources, filtered }: { sources: SourcesResponse | u
               </li>
             )}
             {sources.screenshots.enabled && (
-              <li>
-                <b>Screenshots folder</b> <span className="text-muted">· watching</span>
+              <li data-testid="watching-screenshots">
+                <b>Screenshots folder</b> <span className="text-muted">· {screenshotsLine(sources.screenshots)}</span>
               </li>
             )}
             <li>

@@ -146,7 +146,10 @@ function Board() {
 
   const pin = async () => {
     const [first, ...rest] = c.text.trim().split('\n');
-    const evidence = c.pending.flatMap((p) => (p.kind === 'file' ? (p.evidence ? [p.evidence] : []) : [linkEvidence(p.preview)]));
+    const evidence = [
+      ...c.pending.flatMap((p) => (p.kind === 'file' ? (p.evidence ? [p.evidence] : []) : [linkEvidence(p.preview)])),
+      ...c.stickies.map(({ text, from, where }) => ({ kind: 'quote' as const, quote: { text, ...(from ? { from } : {}), ...(where ? { where } : {}) } })),
+    ];
     const input: AchievementCreate = {
       title: first?.trim() || fallbackTitle(c.pending) || 'Untitled',
       ...(rest.join('\n').trim() ? { body: rest.join('\n').trim() } : {}),

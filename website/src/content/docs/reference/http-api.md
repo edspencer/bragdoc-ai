@@ -45,10 +45,15 @@ These are enforced for every request (see [Localhost security](/guarantees/local
 | `POST /api/found/:id/merge` | `{ "achievementId": "…" }`: attach the candidate's evidence to an achievement you already have. |
 | `POST /api/found/:id/dismiss` | Set it aside for good: its file keeps only a hash of its key, so the same pull request never comes back. |
 | `POST /api/found/:id/undo` | Undo keep, merge or dismiss (a dismissal only until BragDoc restarts). |
-| `GET /api/sources` | Each source's state: for GitHub, whether it's on and how (the gh CLI or a token), where it looks, the last check and what it found, and any error. |
+| `GET /api/sources` | Each source's state: for GitHub, whether it's on and how (the gh CLI or a token), where it looks, the last check and what it found, and any error; for the screenshots folder, which folder, whether it's watching (or what's wrong), and what it has looked at and sent to Found. |
 | `POST /api/sources/github/connect` | `{ "auth": "gh" }` or `{ "auth": "token", "token": "…" }`, plus optional `lookBackDays` and `repos`: check the login, switch GitHub on and start the first check. A token GitHub refuses isn't kept. |
 | `PUT /api/sources/github` | Change `lookBackDays`, `repos` or `hourly`. |
 | `POST /api/sources/github/run` | Check GitHub now, and wait for it. **429** while GitHub has asked BragDoc to wait. |
 | `POST /api/sources/github/disconnect` | Switch GitHub off; `{ "forgetToken": true }` also removes the token from `secrets.yaml`. |
+| `GET /api/sources/screenshots/suggestions` | Folders worth watching on this computer (where it saves screenshots), and whether each exists. |
+| `PUT /api/sources/screenshots` | Any of `{ "folder": "~/Screenshots", "enabled": true, "onlyScreenshots": true }`. The folder is checked first: a missing, unreadable or hidden one is refused with what's wrong (`missing`, `denied`, `not_allowed`, …) and nothing is saved. |
+| `POST /api/sources/screenshots/look-back` | `{ "days": 7 }` (1 to 30): read the folder's pictures from those days, once. **409** `busy` while one is running. |
+| `GET /api/found/:id/picture` | A screenshot candidate's picture, read from where it is; **404** `gone` if it was moved, deleted or replaced. |
+| `GET /api/evidence/:sha/ocr` | The text read from a picture on the board, in the background after it's added: `pending`, `done` (with `text`, and the `quote` when it's praise for you), `failed`, or `none` (not a picture). |
 
 Achievements, evidence, projects and settings get their endpoints as those features are built.

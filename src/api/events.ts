@@ -30,14 +30,15 @@ export const CHANGE_INVALIDATES: Record<string, readonly string[]> = {
   // folio too: its clippings are achievements, with evidence names, projects' and companies' names and the profile's
   achievement: ['achievements', 'projects', 'folio'],
   // a sidecar: OCR text (searchable) and sizes shown on cards
-  evidence: ['achievements', 'folio'],
+  evidence: ['achievements', 'folio', 'evidence-ocr'],
   // a project's colour and name show on the Gantt, its summary, and the board's tape and pills
   project: ['projects', 'folio'],
   // a company's or repo's name shows in project summaries; deleting one detaches it from projects
   company: ['companies', 'projects', 'folio'],
   repo: ['repos', 'projects'],
   found: ['found'],
-  profile: ['profile', 'folio'],
+  // the screenshot rules read your name: a picture's quote, and the screenshots card's "needs your name"
+  profile: ['profile', 'folio', 'evidence-ocr', 'sources'],
   problems: ['problems'],
 };
 

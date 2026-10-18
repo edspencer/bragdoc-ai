@@ -1,18 +1,19 @@
 // Settings → Sources (SPEC R7, R11, R13): a card per source. The Agents (MCP) card is whole here: where agents
 // connect, the bearer token (show, copy, rotate) and where their writes go (mcp.writeTo). GitHub's card is
-// GithubCard.tsx (PR13); the screenshots folder's insides come with its source (PR15). Every source is off until you
-// turn it on.
+// GithubCard.tsx (PR13); the screenshots folder's is ScreenshotsCard.tsx (PR15). Every source is off until you turn
+// it on.
 // Adapted from the prototype's Sources (Settings.tsx): its card grid, tape and status line, without Slack and the
 // "coming soon" connectors.
-import { useEffect, useRef, useState, type ReactNode } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { Bot, Eye, EyeOff, ImageIcon, KeyRound } from 'lucide-react';
+import { Bot, Eye, EyeOff, KeyRound } from 'lucide-react';
 import type { SettingsResponse } from '../../shared/api.ts';
 import { putMcpSettings, rotateMcpToken } from '../api/client.ts';
 import { queryKeys, useMcpToken, useMeta, useSettings } from '../api/queries.ts';
-import { Btn, Dot, Kicker, SectionTitle, Switch, Tape, useToast, type Tone } from '../kit/index.ts';
+import { Btn, Kicker, SectionTitle, Tape, useToast } from '../kit/index.ts';
 import { CommandSlab, CopyButton, LoadError, Loading } from './common.tsx';
 import { GithubCard } from './GithubCard.tsx';
+import { ScreenshotsCard } from './ScreenshotsCard.tsx';
 import { Notices } from './DataTab.tsx';
 
 export function SourcesTab() {
@@ -26,41 +27,9 @@ export function SourcesTab() {
       {settings.isError && <LoadError error={settings.error} what="your settings" retry={() => void settings.refetch()} />}
       <div className="grid gap-5 md:grid-cols-2">
         <GithubCard />
-        {/* PR15 fills this card: pick a folder, the last-7-days look-back, and "40 looked at · 3 sent to Found" */}
-        <SourceCard
-          testId="source-screenshots"
-          icon={<ImageIcon className="size-5" />}
-          name="Screenshots folder"
-          tape="#3b6cf6"
-          tilt={0.35}
-          blurb="New screenshots of praise, read on this computer with OCR. Only the ones that pass your rules go to Found."
-          on={false}
-          status={{ tone: 'off', text: 'Off. Nothing is watched.' }}
-          soon="Choosing a folder comes with the screenshots source."
-        />
+        <ScreenshotsCard />
         <AgentsCard settings={settings.data} loading={settings.isPending} />
       </div>
-    </div>
-  );
-}
-
-function SourceCard(p: { testId: string; icon: ReactNode; name: string; tape: string; tilt: number; blurb: string; on: boolean; status: { tone: Tone; text: string }; soon: string }) {
-  return (
-    <div className="sb-card relative flex flex-col rounded-2xl p-5" style={{ transform: `rotate(${p.tilt}deg)` }} data-testid={p.testId}>
-      <Tape color={p.tape} className="-top-2.5 right-8 w-14" />
-      <div className="flex items-center gap-3">
-        <span className="flex size-10 items-center justify-center rounded-xl bg-sunk text-ink ring-1 ring-line">{p.icon}</span>
-        <div className="min-w-0 flex-1 font-grotesk text-[17px] font-bold leading-tight">{p.name}</div>
-        <Switch on={p.on} onChange={() => {}} label={p.name} disabled />
-      </div>
-      <p className="m-0 mt-3 text-[13.5px] leading-relaxed text-muted">{p.blurb}</p>
-      <div className="mt-4 flex items-start gap-2 rounded-xl bg-sunk px-3 py-2 text-[12.5px] leading-snug text-muted">
-        <span className="mt-1.5">
-          <Dot tone={p.status.tone} />
-        </span>
-        <span>{p.status.text}</span>
-      </div>
-      <div className="mt-2 text-[12px] text-faint">{p.soon}</div>
     </div>
   );
 }

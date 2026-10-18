@@ -3,6 +3,7 @@
 //   POST /api/evidence              a typed upload (raw bytes; Content-Type; X-Filename) → EvidenceUploaded
 //   GET  /api/evidence/:sha         the file, with the blob headers (sandboxed; anything but a picture downloads)
 //   GET  /api/evidence/:sha/thumb   a picture for a card (D49: the picture itself, until there's an image library)
+//   GET  /api/evidence/:sha/ocr     EvidenceOcrResponse: the text read from a picture in the background (PR15)
 //
 // The bytes decide what a file is (store/blobs.ts sniffs magic bytes), never its name or the Content-Type the browser
 // sent. But the Content-Type is a claim we can check: a file sent as image/png that isn't a picture (an HTML page named
@@ -117,4 +118,13 @@ export function registerEvidence(app: Hono, ctx: AppContext): void {
   };
   app.get('/api/evidence/:sha', serve(false));
   app.get('/api/evidence/:sha/thumb', serve(true));
+  app.get('/api/evidence/:sha/ocr', (c) => {
+    const sha = c.req.param('sha');
+    if (!SHA.test(sha)) return c.json(apiError('not_found', 'There is no such file.'), 404);
+    try {
+      return c.json(ctx.evidenceText.status(sha));
+    } catch (e) {
+      return storeErrorResponse(c, e);
+    }
+  });
 }
