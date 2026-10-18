@@ -1078,7 +1078,9 @@ Export is a download of a blob made in the page; nothing about a folio is writte
   has. Too little free space or RAM is a red warning and the button becomes "Download anyway", not a block: free space
   is the home folder's, and Ollama may keep its models on another disk (`OLLAMA_MODELS`), which BragDoc can't see.
 - The answer is Ollama's progress as NDJSON lines, then one `{ done }` line. Cancel closes the request, which closes
-  Ollama's stream (Ollama may keep the part it fetched, to resume; the dialog says so). The pull is logged twice: the
+  Ollama's stream (Ollama may keep the part it fetched, to resume; the dialog says so). Turning AI off or revoking the
+  connection stops a download in progress too (`ctx.localAi.cancelAll`, and a once-a-second check for a hand edit of
+  config.yaml), the same as ctx.ai's calls. The pull is logged twice: the
   loopback request (`this computer`) and "registry (via Ollama)" (`internet`, outcome and error), because the download
   leaves through Ollama, outside BragDoc's process (D9's honesty, as for gh).
 - The network log also totals the request bytes sent to AI providers on the internet (`toAiInternet` on
