@@ -16,8 +16,9 @@ service`. And the **web foundation** (PR4): the Scrapbook component kit, the lig
 shell with placeholder pages, the typed API client and the screenshot rig. PR9 added the MCP server (`/mcp`), the
 stdio bridge (`bragdoc mcp`), `bragdoc mcp install claude` and the agent guide (`AGENT-GUIDE.md`, `bragdoc guide`).
 PR7 built the **Board**: the achievements and evidence API, link previews, store changes forwarded live to the
-browser, and the board page (composer, cards, edit drawer, search). Everything else arrives PR by PR, in the waves #411
-lays out.
+browser, and the board page (composer, cards, edit drawer, search). PR11 added OCR and the screenshot rules, as a
+library (`server/ocr/`, `shared/rules/screenshot.ts`) that the screenshots source builds on. Everything else arrives
+PR by PR, in the waves #411 lays out.
 
 Before changing behaviour, read, in order:
 
@@ -104,12 +105,17 @@ server/              the server and CLI (Node, TypeScript ESM, Hono)
                      (MiniSearch), watch.ts (chokidar), backups.ts (snapshots), errors.ts
   services/          the operations HTTP and MCP both call: achievements, projects/companies/repos (catalog.ts),
                      evidence, found, profile; createServices(store)
+  ocr/               reading text in images, locally (D52): index.ts (createOcr: engine choice and fallback, one read
+                     at a time, cache by sha256; evidenceOcrCache keeps evidence text in its sidecar), tesseract.ts
+                     (tesseract.js + the package's English data) and tesseract-worker.ts (its worker, with no network),
+                     vision-macos.ts (Apple Vision through a JXA script on osascript), image.ts (upscaling small PNGs)
 shared/              code used by both server/ and src/: no Node or DOM APIs
   api.ts             the HTTP API contract (request/response types, ApiError)
   schema/            the data files' Zod schemas and types (PR3 owns it), the services' input schemas (inputs.ts), the
                      Problem and StoreChange types, and the generated file-format reference (reference.ts)
   ulid.ts, impact.ts, judge.ts   ids; the 1–10 impact scale; the (unimplemented) AI judge seam (D8)
   links.ts           parsePrUrl (→ owner/repo#n and `github_pr:` key), isHttpUrl, githubRepoOf, parsePrKey
+  rules/screenshot.ts "is this screenshot praise for me?" from OCR text: plain rules, never a model (D52)
 src/                 the web app (React 19, Vite, Tailwind v4, TanStack Router + Query), built into dist/web
   main.tsx           fonts, ThemeProvider, QueryClient, router
   routes/            file-based routes (TanStack Router; tsr.config.json); __root.tsx is the shell
@@ -165,6 +171,9 @@ npm run sync:reference # regenerate the reference tables in docs/data-format.md,
                        # copy after a schema change
 (cd website && npm install && npm run build && npm run check-links && npm run check-external)   # the docs site
 npm run store:demo     # the file store end to end on a throwaway data home (seed, index stats, watcher events)
+npm run eval:screenshots -- --ocr   # the screenshot rules' precision and recall on the synthetic screenshots
+                       # (test/screenshots.ts), read by real OCR; without --ocr, on perfect text (fast)
+npm run bragdoc -- dev ocr <image>  # which OCR engine ran, the text, and what the rules made of it
 ```
 
 **The definition of done** for every PR: `npm run check:nul && npm run typecheck && npm test && npm run build &&

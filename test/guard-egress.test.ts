@@ -64,11 +64,28 @@ const ALLOWED_IMPORTS: Record<string, string> = {
     "the MCP server (PR9): createMcpHandler answers web-standard Requests handed to it, McpServer registers tools; it opens no connection and fetches nothing (its own deps: @modelcontextprotocol/core and zod)",
   'node:readline': "the stdio bridge (server/mcp/bridge.ts) reads stdin a line at a time",
   'node:stream': 'types only (Readable, Writable) for the bridge\'s injectable stdin/stdout',
+  // OCR (PR11, D52). tesseract.js CAN fetch (node-fetch, or the global fetch): its language data when `langPath` is a
+  // URL (its default is a CDN) and an image given as a URL. server/ocr/tesseract.ts passes a local langPath (the
+  // package's own data) and images as bytes, and the worker it runs in has no fetch at all (tesseract-worker.ts
+  // replaces its adapter's). test/ocr.test.ts points it at the CDN and proves the request fails, with fetch stubbed.
+  // It starts one worker_thread (its OCR runs in WebAssembly there), and writes no files (cacheMethod: 'none', and
+  // the worker's cache writes are no-ops). Because it CAN fetch, it's allowed only in those two files
+  // (ALLOWED_IMPORTS_IN), not everywhere.
+  '@tesseract.js-data/eng': 'the English language data, resolved to a path on disk (import.meta.resolve); no code runs',
+  pngjs: 'decodes and encodes PNGs for OCR (pure JS: zlib and streams only)',
 };
-/** Allowed in one file only. */
-const ALLOWED_IMPORTS_IN: Record<string, string> = {
+/** Allowed in these files only. */
+const ALLOWED_IMPORTS_IN: Record<string, string | string[]> = {
   'node:child_process': 'server/proc.ts',
   'node:net': 'server/egress.ts', // loopbackAccepts (D51): does anything accept a TCP connection on 127.0.0.1?
+  // tesseract.js's OCR worker entry, rewritten so it has no network (D52): parentPort is how a worker talks to its
+  // parent. Nothing in it starts a thread; tesseract.js starts the one it runs in.
+  'node:worker_threads': 'server/ocr/tesseract-worker.ts',
+  // OCR (see the note in ALLOWED_IMPORTS): the engine, and its worker (which loads tesseract.js's worker internals)
+  'tesseract.js': ['server/ocr/tesseract.ts', 'server/ocr/tesseract-worker.ts'],
+  // from source only: registers tsx's TypeScript loader in the OCR worker thread (Node 22.12's workers don't inherit
+  // it). A devDependency, never in the package (tsc doesn't copy .mjs; smoke:pack checks no server/ file ships)
+  tsx: 'server/ocr/tesseract-worker-source.mjs',
 };
 
 const RULES: Record<string, { on: 'code' | 'strings'; re: RegExp }> = {
@@ -100,6 +117,9 @@ const ALLOWED: Record<string, Record<string, number>> = {
   },
   'server/commands/mcp.ts': {
     bannedName: 1, // `claude mcp add --transport http …`: the word is an argument to claude, run through proc.ts
+  },
+  'server/ocr/tesseract-worker.ts': {
+    bannedName: 1, // import { parentPort } from 'node:worker_threads' (see ALLOWED_IMPORTS_IN)
   },
   'shared/ulid.ts': {
     globalObject: 1, // globalThis.crypto.getRandomValues(bytes): shared/ runs in the browser too, so no node:crypto
@@ -257,7 +277,7 @@ test('no code in server/ or shared/ reaches the network or starts a process outs
     for (const spec of importsOf(src)) {
       if (spec.startsWith('.')) continue;
       const pkg = spec.startsWith('node:') ? spec.split('/')[0]! : spec.startsWith('@') ? spec.split('/').slice(0, 2).join('/') : spec.split('/')[0]!;
-      if (ALLOWED_IMPORTS[pkg] || ALLOWED_IMPORTS_IN[pkg] === rel) continue;
+      if (ALLOWED_IMPORTS[pkg] || [ALLOWED_IMPORTS_IN[pkg] ?? []].flat().includes(rel)) continue;
       problems.push(`${rel}: imports ${spec}, which isn't in ALLOWED_IMPORTS`);
     }
   }
@@ -309,6 +329,8 @@ test('a new import is caught until it is reviewed into ALLOWED_IMPORTS', () => {
   assert.deepEqual(importsOf("import { execa } from 'execa';\nimport x from './y.js';\nconst o = await import('@octokit/rest');\nexport * from 'open';"), ['execa', './y.js', '@octokit/rest', 'open']);
   assert.deepEqual(importsOf("z.enum(['user', 'import']).optional().describe('Who set it')"), [], "a string 'import' is not an import");
   for (const p of ['execa', '@octokit/rest', 'open', 'simple-git', 'node:http']) assert.ok(!ALLOWED_IMPORTS[p], p);
+  // tesseract.js can fetch: it's reviewed for the OCR engine's two files, not for everyone
+  assert.ok(!ALLOWED_IMPORTS['tesseract.js']);
 });
 
 test('no runtime dependency is a known network client', () => {
