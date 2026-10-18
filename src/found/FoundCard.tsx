@@ -132,7 +132,7 @@ export function FoundCard({
           ))}
           {fromJudge.size > 0 && pills.some((p) => fromJudge.has(p.id)) && (
             <span className="text-[11px] text-faint" data-testid="found-judge-projects-note">
-              {pills.every((p) => fromJudge.has(p.id)) ? 'suggested by the judge' : 'the last suggested by the judge'}
+              {pills.every((p) => fromJudge.has(p.id)) ? 'suggested by the judge' : `the judge added ${pills.filter((p) => fromJudge.has(p.id)).map((p) => p.name).join(', ')}`}
             </span>
           )}
           {repoTags.map((r) => (

@@ -170,6 +170,14 @@ function When({ f, cloud, host, status, saving, onSave }: { f: AiJudgeSettings; 
   const w = f.when;
   const [from, setFrom] = useState(w.onlyBetween?.from ?? '19:00');
   const [to, setTo] = useState(w.onlyBetween?.to ?? '08:00');
+  // follow the saved window (another tab, a hand edit of config.yaml)
+  useEffect(() => {
+    if (w.onlyBetween) {
+      setFrom(w.onlyBetween.from);
+      setTo(w.onlyBetween.to);
+    }
+  }, [w.onlyBetween?.from, w.onlyBetween?.to]);
+  const valid = /^\d{2}:\d{2}$/.test(from) && /^\d{2}:\d{2}$/.test(to);
   const s = status?.schedule;
   const line = s ? scheduleLine(s, w.onlyBetween) : null;
   return (
@@ -191,12 +199,12 @@ function When({ f, cloud, host, status, saving, onSave }: { f: AiJudgeSettings; 
       </label>
       <div className="pt-1 text-[12px] font-semibold text-muted">and only…</div>
       <div className="flex flex-wrap items-center gap-2">
-        <Tick on={!!w.onlyBetween} onChange={(v) => onSave({ when: { onlyBetween: v ? { from, to } : null } })} testId="ai-judge-between" disabled={saving}>
+        <Tick on={!!w.onlyBetween} onChange={(v) => onSave({ when: { onlyBetween: v ? { from, to } : null } })} testId="ai-judge-between" disabled={saving || (!w.onlyBetween && !valid)}>
           between
         </Tick>
-        <input type="time" value={from} onChange={(e) => setFrom(e.target.value)} onBlur={() => w.onlyBetween && from && onSave({ when: { onlyBetween: { from, to } } })} className={`${inputCls} max-w-[8.5rem] py-0.5 text-[13px]`} aria-label="From" data-testid="ai-judge-from" />
+        <input type="time" value={from} onChange={(e) => setFrom(e.target.value)} onBlur={() => w.onlyBetween && valid && from !== w.onlyBetween.from && onSave({ when: { onlyBetween: { from, to } } })} className={`${inputCls} max-w-[8.5rem] py-0.5 text-[13px]`} aria-label="From" data-testid="ai-judge-from" />
         <span>and</span>
-        <input type="time" value={to} onChange={(e) => setTo(e.target.value)} onBlur={() => w.onlyBetween && to && onSave({ when: { onlyBetween: { from, to } } })} className={`${inputCls} max-w-[8.5rem] py-0.5 text-[13px]`} aria-label="To" data-testid="ai-judge-to" />
+        <input type="time" value={to} onChange={(e) => setTo(e.target.value)} onBlur={() => w.onlyBetween && valid && to !== w.onlyBetween.to && onSave({ when: { onlyBetween: { from, to } } })} className={`${inputCls} max-w-[8.5rem] py-0.5 text-[13px]`} aria-label="To" data-testid="ai-judge-to" />
         <span className="text-muted">(local time; across midnight is fine)</span>
       </div>
       <Tick on={w.onlyOnAC} onChange={(v) => onSave({ when: { onlyOnAC: v } })} testId="ai-judge-ac" disabled={saving}>

@@ -131,7 +131,7 @@ function FoundList({ items, projects, repos, decide, judgedEarlier, judge }: { i
       )}
       {g.unjudged.length > 0 && (
         <section data-testid="found-group-unjudged" aria-label="Not judged yet">
-          <GroupTitle title="Not judged yet" count={g.unjudged.length} sub={judge ? undefined : 'The judge isn’t on, so these wait for you as they are.'} />
+          <GroupTitle title="Not judged yet" count={g.unjudged.length} />
           <div className="mt-4 gap-8 lg:columns-2">{g.unjudged.map(card)}</div>
         </section>
       )}
@@ -139,7 +139,7 @@ function FoundList({ items, projects, repos, decide, judgedEarlier, judge }: { i
         <section data-testid="found-group-no" aria-label="Probably not">
           <div className="flex flex-wrap items-center gap-3">
             <button type="button" onClick={() => setOpenNo((x) => !x)} aria-expanded={openNo} className="flex items-baseline gap-2 text-left" data-testid="found-group-no-toggle">
-              <span className="font-grotesk text-[20px] font-bold">Probably not</span>
+              <h2 className="m-0 font-grotesk text-[20px] font-bold">Probably not</h2>
               <span className="rounded-full bg-sunk px-2 text-[13px] font-semibold text-muted" data-testid="found-group-no-count">
                 {g.probablyNot.length}
               </span>
@@ -181,18 +181,22 @@ function DismissThese({ items }: { items: FoundCandidate[] }) {
     onError: (e) => toast({ msg: isApiError(e) ? e.message : 'Couldn’t undo that. Is BragDoc still running?', tone: 'bad' }),
     onSettled: refresh,
   });
+  // one request holds at most what Undo can bring back (D56's 500); a longer group takes two presses
+  const batch = items.slice(0, 500);
   const go = useMutation({
-    mutationFn: () => dismissFoundMany(items.map((c) => c.id)),
+    // only ones the judge still calls probably not: a Judge again since this list was drawn may have changed its mind
+    mutationFn: () => dismissFoundMany(batch.map((c) => c.id), 'probably-not'),
     onSuccess: (r) => {
       const n = r.done.length;
-      toast({ msg: `Dismissed ${n === 1 ? 'one' : n}. They won’t come back.${r.skipped.length ? ` ${r.skipped.length} had been decided already.` : ''}`, ...(n ? { undo: () => undo.mutate(r.done) } : {}) });
+      const left = r.skipped.length ? ` ${r.skipped.length === 1 ? 'One was' : `${r.skipped.length} were`} left: ${r.skipped[0]!.message}.` : '';
+      toast({ msg: `${n === 1 ? 'Dismissed it. It won’t' : `Dismissed ${n}. They won’t`} come back.${left}`, ...(n ? { undo: () => undo.mutate(r.done) } : {}) });
     },
     onError: (e) => toast({ msg: isApiError(e) ? e.message : 'Couldn’t dismiss those. Is BragDoc still running?', tone: 'bad' }),
     onSettled: refresh,
   });
   return (
     <Btn size="sm" kind="paper" onClick={() => go.mutate()} disabled={go.isPending || !items.length} data-testid="found-dismiss-these">
-      Dismiss these {items.length}
+      Dismiss {batch.length === 1 ? 'this one' : `these ${batch.length}`}
     </Btn>
   );
 }

@@ -104,7 +104,7 @@ These are enforced for every request (see [Localhost security](/guarantees/local
 | `POST /api/found/:id/merge` | `{ "achievementId": "…" }`: attach the candidate's evidence to an achievement you already have. |
 | `POST /api/found/:id/dismiss` | Set it aside for good: its file keeps only hashes of its keys, so the same pull request never comes back. |
 | `POST /api/found/:id/undo` | Undo keep, merge or dismiss (a dismissal only until BragDoc restarts). A decision on one already decided is a **409**. |
-| `POST /api/found/dismiss` | `{ "ids": […] }`: dismiss many at once (Found's **Dismiss these N**), at most 500. Answers `{ done, skipped }`: one that was decided meanwhile, or is gone, is skipped with the reason, and the rest are still dismissed. |
+| `POST /api/found/dismiss` | `{ "ids": […], "only"?: "probably-not" }`: dismiss many at once (Found's **Dismiss these N**), at most 500. Answers `{ done, skipped }`: one that was decided meanwhile, or is gone (or, with `only`, that the judge no longer calls probably not), is skipped with the reason, and the rest are still dismissed. |
 | `POST /api/found/undo` | `{ "ids": […] }`: undo many decisions at once (the Undo after **Dismiss these N**), at most 500. Answers `{ done, skipped }`. |
 | `GET /api/found/:id/picture` | A screenshot candidate's picture, read from where it is; **404** `gone` if it was moved, deleted or replaced. |
 | `GET /api/sources` | Each source's state: for GitHub, whether it's on and how (the gh CLI or a token), where it looks, the last check and what it found, and any error (with `retryAt` when GitHub asked it to wait); for the screenshots folder, which folder, whether it's watching (or what's wrong), and what it has looked at and sent to Found; and where MCP writes go. |

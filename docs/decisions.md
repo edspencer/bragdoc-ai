@@ -1349,8 +1349,11 @@ PR27 (SPEC R24, R26).
   it the schedule holds (`cloud`) and only Judge now sends.
 - **As they arrive** (`server/ai/judge/schedule.ts`): a found change for a candidate new to Found (not one an Undo
   brought back, not one our own verdict write touched, not a kind the judge doesn't take) starts a run 30 s after the
-  last of a burst, at most 5 minutes after the first. A run takes what's waiting, newest first, up to `maxPerRun`.
-  **Nothing is gathered while AI or the judge is off**, so switching them back on starts nothing (found on the box).
+  last of a burst, at most 5 minutes after the first. A run takes what's waiting, newest first, up to `maxPerRun`; an
+  arrival run that hit that cap goes on with the rest next, and one that couldn't reach its model is tried again when
+  the backoff ends. **"Every N hours" takes at most `maxPerRun` per slot**: the rest wait for the next slot, so a big
+  backlog never goes to a cloud model all at once. **Nothing is gathered while AI or the judge is off, and a slot that
+  fell due meanwhile waits a whole period**, so switching them back on starts nothing (found on the box and in review).
 - **Conditions**, for background runs only: "only between" two local times (from = to is all day; across midnight is
   fine) and "only on power" (on by default). The schedule looks every 30 s; arrivals and a due "every N hours" slot
   held back by a condition run when it lifts. **Judge now ignores every condition and the backoff.**
@@ -1364,11 +1367,14 @@ PR27 (SPEC R24, R26).
   guarantee without a counter to keep in step.
 - **Backoff:** a run that ended with an error that would fail every item (`unreachable`, `timeout`, `model_missing`,
   `key_refused`, `quota`, `rate_limited`, …) holds background runs 15 minutes, doubling to 6 hours (D57's numbers);
-  any run that judged something clears it. State, including the last run of any kind, is `cache/ai/judge.json`
+  any run that judged something clears it. A failed Judge now counts too (the runner is down either way), but Judge now
+  itself is never held by it. State, including the last run of any kind, is `cache/ai/judge.json`
   (derived, deletable; written only once the judge has run).
 - **Power** (`server/platform/power.ts`): `pmset -g batt` on macOS (`pmset` joins proc's allow-list), the mains / USB
   supplies and the battery's status under `/sys/class/power_supply` on Linux (a `scope: Device` battery is a
-  peripheral's), else `unknown`, which counts as plugged in; the card says it can't tell. `BRAGDOC_POWER_SUPPLY_DIR`
+  peripheral's), else `unknown`, which counts as plugged in; the card says it can't tell. It's read only while it
+  decides something (AI and the judge on, "only on power" ticked, and a background trigger set or the card open), one
+  read at a time: with AI off (the default) `pmset` never runs. `BRAGDOC_POWER_SUPPLY_DIR`
   (internal) points the Linux reading at a fixture, for the tests and box QA.
 - **Rejected:** judging only the new arrivals in an arrival run (the newest are first anyway, and a second list of
   "arrived" ids would have to survive restarts); retrying failed items on every tick (a broken answer would spin).

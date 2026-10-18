@@ -91,13 +91,18 @@ async function rig({ when = {}, judge = {}, start = new Date(2026, 9, 18, 12, 0)
   config.update({ ai: { enabled: true, connections: { local: { kind: 'ollama', baseUrl: fake.url } }, features: { judge: { enabled: true, model: { connection: 'local', model: 'qwen3.5:4b' }, ...judge, when } } } });
   const texts = new Map<string, string>();
   const clock = fakeClock(start);
-  const pw = { state: 'ac' as PowerState };
+  const pw = { state: 'ac' as PowerState, reads: 0 };
   const egress = new Egress({ dataDir: dir, config: () => config.get() });
-  const { app, ctx } = createAppWithContext({ dataDir: dir, webDist: null, config, bus, egress, ocr: fakeOcr(texts), scheduleClock: clock, power: async () => pw.state });
+  const { app, ctx } = createAppWithContext({ dataDir: dir, webDist: null, config, bus, egress, ocr: fakeOcr(texts), scheduleClock: clock, power: async () => (pw.reads++, pw.state) });
   let n = 0;
-  const stop = ctx.judgeSchedule.start();
+  let stop = ctx.judgeSchedule.start();
   await clock.advance(0);
   return {
+    /** Stop the schedule (as shutdown does). */
+    stopSchedule() {
+      stop();
+      stop = () => {};
+    },
     dir,
     app,
     ctx,
@@ -442,20 +447,150 @@ describe('the schedule', () => {
     }
   });
 
-  test('60 waiting with maxPerRun 50: one run takes 50, newest first', async () => {
+  test('arrivals Judge now took meanwhile: the flag clears, and the next arrival still waits its 30 s', async () => {
+    const r = await rig({ when: { onArrival: true } });
+    try {
+      r.shot();
+      await r.clock.advance(5_000);
+      assert.equal((await r.req('POST', '/api/ai/judge/run', {})).status, 202);
+      await r.settle();
+      await r.clock.advance(60_000); // the debounce fires (nothing waiting), then a tick
+      assert.equal(r.ctx.judgeSchedule.status().arrivalsWaiting, false);
+      assert.deepEqual(r.runs().map((x) => x.trigger), ['now']);
+      r.shot();
+      await r.clock.advance(10_000);
+      await r.settle();
+      assert.equal(r.runs().length, 1, 'not straight away: a fresh burst');
+      await r.clock.advance(25_000);
+      await r.settle();
+      assert.deepEqual(r.runs().map((x) => x.trigger), ['arrival', 'now']);
+    } finally {
+      await r.close();
+    }
+  });
+
+  test('stopped (shutdown): a tick that comes after starts nothing', async () => {
+    const r = await rig({ when: { everyHours: 1 } });
+    try {
+      r.shot();
+      r.stopSchedule();
+      await r.ctx.judgeSchedule.tick();
+      await r.clock.advance(2 * 60 * 60_000);
+      assert.equal(r.runs().length, 0);
+    } finally {
+      await r.close();
+    }
+  });
+
+  test('every N hours: AI off for a day and back on starts nothing at once; the next slot is a whole period on', async () => {
+    const r = await rig({ when: { everyHours: 3 } });
+    try {
+      await r.clock.advance(30_000);
+      await r.settle(); // the first slot: nothing waiting, so it's just used
+      r.shot();
+      r.config.update({ ai: { enabled: false } });
+      await r.clock.advance(24 * 60 * 60_000);
+      r.config.update({ ai: { enabled: true } });
+      await r.clock.advance(60 * 60_000);
+      await r.settle();
+      assert.equal(r.runs().length, 0, 'switching AI back on started nothing');
+      await r.clock.advance(2 * 60 * 60_000 + 60_000);
+      await r.settle();
+      assert.deepEqual(r.runs().map((x) => x.trigger), ['schedule']);
+    } finally {
+      await r.close();
+    }
+  });
+
+  test('every N hours with 60 waiting and maxPerRun 50: one slot judges 50, the rest wait for the next slot', async () => {
     const r = await rig({ when: { everyHours: 1 } });
     try {
       for (let i = 0; i < 60; i++) r.shot();
       await r.clock.advance(30_000);
       await r.settle();
-      const run = r.runs()[0]!;
-      assert.equal(run.items, 50);
+      await r.clock.advance(20 * 60_000);
+      await r.settle();
+      assert.equal(r.runs().length, 1, 'no chained run inside the slot');
       assert.equal(r.judged(), 50);
-      assert.equal(r.ctx.judge.status().waiting, 10);
+      await r.clock.advance(40 * 60_000);
+      await r.settle();
+      assert.equal(r.runs().length, 2);
+      assert.equal(r.judged(), 60);
     } finally {
       await r.close();
     }
   });
+
+  test('an arrival run that couldn\'t reach the runner is tried again once the backoff ends', async () => {
+    const r = await rig({ when: { onArrival: true } });
+    try {
+      r.config.update({ ai: { connections: { local: { baseUrl: `${r.fake.url}/s/down` } } } });
+      r.shot();
+      await r.clock.advance(31_000);
+      await r.settle();
+      assert.equal(r.runs()[0]!.error, 'unreachable');
+      assert.equal(r.ctx.judgeSchedule.status().arrivalsWaiting, true, 'still waiting for it');
+      r.config.update({ ai: { connections: { local: { baseUrl: r.fake.url } } } });
+      await r.clock.advance(10 * 60_000);
+      await r.settle();
+      assert.equal(r.runs().length, 1, 'the backoff holds it');
+      await r.clock.advance(6 * 60_000);
+      await r.settle();
+      assert.deepEqual(r.runs().map((x) => [x.trigger, x.outcome]), [['arrival', 'ok'], ['arrival', 'error']]);
+      assert.equal(r.judged(), 1);
+    } finally {
+      await r.close();
+    }
+  });
+
+  test('the window closing mid-run stops it after the item in progress', async () => {
+    const r = await rig({ when: { everyHours: 1, onlyBetween: { from: '13:00', to: '14:00' } }, start: new Date(2026, 9, 18, 13, 58), scenario: 'slow', slowMs: 300 });
+    try {
+      for (let i = 0; i < 4; i++) r.shot();
+      await r.clock.advance(31_000);
+      for (let i = 0; i < 200 && (r.ctx.judge.status().running?.done ?? 0) < 1; i++) await new Promise((x) => setTimeout(x, 10));
+      await r.clock.set(new Date(2026, 9, 18, 14, 0, 30));
+      await r.settle();
+      const run = r.runs().at(-1)!;
+      assert.deepEqual([run.outcome, run.error], ['cancelled', 'window']);
+      assert.ok(r.judged() < 4);
+    } finally {
+      await r.close();
+    }
+  });
+
+  test('unticking "as they arrive" stops an arrival run, even with every N hours still on', async () => {
+    const r = await rig({ when: { onArrival: true, everyHours: 24 }, scenario: 'slow', slowMs: 300 });
+    try {
+      await r.clock.advance(30_000);
+      await r.settle(); // the first daily slot: nothing waiting
+      for (let i = 0; i < 4; i++) r.shot();
+      await r.clock.advance(31_000);
+      for (let i = 0; i < 200 && (r.ctx.judge.status().running?.done ?? 0) < 1; i++) await new Promise((x) => setTimeout(x, 10));
+      r.config.update({ ai: { features: { judge: { when: { onArrival: false } } } } });
+      await r.settle();
+      const run = r.runs()[0]!;
+      assert.deepEqual([run.trigger, run.outcome, run.error], ['arrival', 'cancelled', 'off']);
+    } finally {
+      await r.close();
+    }
+  });
+
+  test('the power is never read while AI is off, or with no background trigger', async () => {
+    const r = await rig();
+    try {
+      const before = r.pw.reads;
+      await r.clock.advance(60 * 60_000);
+      assert.equal(r.pw.reads, before, 'Judge now only: no reason to read it every 30 s');
+      r.config.update({ ai: { enabled: false } });
+      await r.req('GET', '/api/ai/judge/status');
+      await r.clock.advance(60 * 60_000);
+      assert.equal(r.pw.reads, before, 'AI off: never');
+    } finally {
+      await r.close();
+    }
+  });
+
 });
 
 describe('a cloud model', () => {
@@ -564,6 +699,12 @@ describe('agreement, and Dismiss these N', () => {
       st = (await r.req('POST', '/api/found/dismiss', { ids: [b.id, a.id, 'nope'] })).body;
       assert.deepEqual(st.done, [b.id]);
       assert.deepEqual(st.skipped.map((s: { id: string }) => s.id), [a.id, 'nope']);
+      // only: leave one the judge now calls a win (Judge again since the list was drawn)
+      r.ctx.services.found.setVerdict(c.id, { ...r.ctx.services.found.get(c.id).verdict!, keep: true });
+      const guarded = await r.req('POST', '/api/found/dismiss', { ids: [c.id], only: 'probably-not' });
+      assert.deepEqual([guarded.body.done, guarded.body.skipped[0]?.id], [[], c.id]);
+      assert.equal(r.ctx.services.found.get(c.id).status, 'pending');
+      assert.equal((await r.req('POST', '/api/found/dismiss', { ids: [c.id], only: 'wins' })).status, 400);
       // bad bodies
       assert.equal((await r.req('POST', '/api/found/dismiss', {})).status, 400);
       assert.equal((await r.req('POST', '/api/found/dismiss', { ids: [] })).status, 400);

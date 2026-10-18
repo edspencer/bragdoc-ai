@@ -12,8 +12,10 @@
 // - **Backoff:** a run that couldn't reach its model (the runner down, the model gone, rate limits…) holds background
 //   runs for 15 minutes, doubling to 6 hours; any run that works clears it. Judge now ignores all of this: you asked.
 //
-// Its state (the last scheduled run, the backoff, the last run of any kind) is cache/ai/judge.json: derived, deletable,
-// written only once the judge has run. Nothing here runs until startServer calls start(); createApp starts nothing.
+// Its state (the last scheduled slot, the backoff, the last run of any kind) is cache/ai/judge.json: derived, deletable,
+// written only once the judge is on and has run or used a slot. The power is read only while it decides something (AI
+// and the judge on, "only on power" ticked, a background trigger set, or the card asking). Nothing here runs until
+// startServer calls start(); createApp starts nothing.
 import fs from 'node:fs';
 import path from 'node:path';
 import type { AiJudgeHold, AiJudgeSchedule, AiTrigger } from '../../../shared/api.js';
@@ -131,11 +133,16 @@ export function createJudgeSchedule(deps: ScheduleDeps): JudgeSchedule {
   /** Candidates already seen (so an Undo isn't an arrival). */
   const known = new Set<string>();
   let arrivalsWaiting = false;
-  /** A scheduled run stopped by its conditions (or cut at maxPerRun): it carries on when they lift. */
+  /** A scheduled run its conditions stopped: it carries on when they lift (a capped one waits for the next slot). */
   let resumeSchedule = false;
   let firstArrival = 0;
   let debounce: unknown = null;
   let tickTimer: unknown = null;
+  /** The 5 s power poll of the background run in progress (stop() clears it). Runs never overlap. */
+  let pollTimer: unknown = null;
+  let reading: Promise<void> | null = null;
+  /** AI and the judge were both on at the last look: switching them back on mustn't start an overdue slot (D75). */
+  let wasOn = false;
   let running: Promise<unknown> | null = null;
   let started = false;
   let state: State | null = null;
@@ -162,6 +169,17 @@ export function createJudgeSchedule(deps: ScheduleDeps): JudgeSchedule {
 
   const settings = () => config.get().ai.features.judge;
   const now = () => new Date(clock.now());
+  const judgeOn = () => config.get().ai.enabled && settings().enabled;
+  const background = () => !!(settings().when.onArrival || settings().when.everyHours);
+  /** The power is read only when it decides something: AI and the judge on, and "only on power" ticked. */
+  const powerMatters = () => judgeOn() && settings().when.onlyOnAC;
+
+  function clearArrivals(): void {
+    arrivalsWaiting = false;
+    firstArrival = 0;
+    if (debounce) clock.clearTimeout(debounce);
+    debounce = null;
+  }
 
   function cloud(): boolean {
     const slot = ai.readiness('judge').slot;
@@ -172,10 +190,12 @@ export function createJudgeSchedule(deps: ScheduleDeps): JudgeSchedule {
    * Why a background run can't go on (or start) right now, for the conditions only: the switches, cloud, the window,
    * the power. Also what a running background run asks between items (D75).
    */
-  function conditions(): { code: AiJudgeHold; until: string | null } | null {
+  function conditions(trigger?: AiTrigger): { code: AiJudgeHold; until: string | null } | null {
     const j = settings();
     if (ai.readiness('judge').gate) return { code: 'not-ready', until: null };
     if (!j.when.onArrival && !j.when.everyHours) return { code: 'off', until: null };
+    // a run asks about its own trigger: an arrival run stops when "as they arrive" is unticked, whatever else is on
+    if ((trigger === 'arrival' && !j.when.onArrival) || (trigger === 'schedule' && !j.when.everyHours)) return { code: 'off', until: null };
     if (cloud() && !j.backgroundCloud) return { code: 'cloud', until: null };
     const at = now();
     if (j.when.onlyBetween && !inWindow(at, j.when.onlyBetween)) return { code: 'window', until: windowOpens(at, j.when.onlyBetween).toISOString() };
@@ -208,24 +228,31 @@ export function createJudgeSchedule(deps: ScheduleDeps): JudgeSchedule {
 
   /** Start a background run, if nothing holds it. */
   function tryRun(trigger: Extract<AiTrigger, 'arrival' | 'schedule'>): boolean {
+    if (!started) return false; // stopped (shutting down): nothing new starts
     const h = hold();
     if (h) {
-      if (h.code === 'nothing' && trigger === 'schedule') save({ lastScheduledAt: now().toISOString() }); // the slot's used: nothing waited
+      if (h.code === 'nothing') {
+        if (trigger === 'schedule') save({ lastScheduledAt: now().toISOString() }); // the slot's used: nothing waited
+        else clearArrivals(); // what arrived was judged meanwhile (Judge now): nothing is waiting for it any more
+        resumeSchedule = false;
+      }
       return false;
     }
     try {
-      const r = judge.start({ trigger, until: () => conditions()?.code ?? null });
+      const r = judge.start({ trigger, until: () => conditions(trigger)?.code ?? null });
       // its `until` reads the power reading: keep it fresh while the run goes on
       let live = true;
       const poll = () => {
-        if (!live) return;
-        void refreshPower(0).finally(() => live && clock.setTimeout(poll, RUN_POWER_MS));
+        if (!live || !started) return;
+        void refreshPower(0).finally(() => {
+          if (live && started) pollTimer = clock.setTimeout(poll, RUN_POWER_MS);
+        });
       };
-      clock.setTimeout(poll, RUN_POWER_MS);
+      pollTimer = clock.setTimeout(poll, RUN_POWER_MS);
       void r.done.finally(() => (live = false));
       if (trigger === 'schedule') save({ lastScheduledAt: now().toISOString() });
       // this run takes them; one stopped early (or cut at maxPerRun) puts them back (onRunEnd)
-      if (trigger === 'arrival') arrivalsWaiting = false;
+      if (trigger === 'arrival') clearArrivals();
       else resumeSchedule = false;
       running = r.done.catch(() => {}).finally(() => (running = null));
       changed();
@@ -236,28 +263,46 @@ export function createJudgeSchedule(deps: ScheduleDeps): JudgeSchedule {
   }
 
   async function tick(): Promise<void> {
-    if (clock.now() - powerAt >= tickMs / 2) await refreshPower(0);
-    const j = settings();
-    if (!j.enabled || !config.get().ai.enabled) {
-      arrivalsWaiting = resumeSchedule = false;
+    if (!judgeOn()) {
+      clearArrivals();
+      resumeSchedule = false;
+      wasOn = false;
       return;
     }
+    if (!wasOn) {
+      // switched (back) on: an "every N hours" slot that fell due while it was off waits a whole period, rather than
+      // starting the moment you switch AI on
+      wasOn = true;
+      if (settings().when.everyHours) {
+        const last = load().lastScheduledAt;
+        const due = last ? Date.parse(last) + settings().when.everyHours! * HOUR : 0;
+        if (last && due <= clock.now()) save({ lastScheduledAt: now().toISOString() });
+      }
+    }
+    if (background() && clock.now() - powerAt >= tickMs / 2) await refreshPower(0);
+    if (!started) return; // stopped while the power was read
+    const j = settings();
     if (arrivalsWaiting && j.when.onArrival && !debounce && tryRun('arrival')) return;
     if (resumeSchedule && j.when.everyHours && tryRun('schedule')) return;
     const next = nextScheduled();
     if (next && next.getTime() <= clock.now()) tryRun('schedule');
   }
 
+  /** Read the power again (one read at a time, shared), only when "only on power" decides something. */
   async function refreshPower(maxAgeMs = 30_000): Promise<void> {
+    if (!powerMatters()) return;
     if (clock.now() - powerAt < maxAgeMs && powerAt) return;
-    const before = power;
-    try {
-      power = await readPower();
-    } catch {
-      power = 'unknown';
-    }
-    powerAt = clock.now();
-    if (power !== before) changed();
+    reading ??= (async () => {
+      const before = power;
+      try {
+        power = await readPower();
+      } catch {
+        power = 'unknown';
+      }
+      powerAt = clock.now();
+      if (power !== before) changed();
+    })().finally(() => (reading = null));
+    await reading;
   }
 
   function arrived(id: string): void {
@@ -276,20 +321,26 @@ export function createJudgeSchedule(deps: ScheduleDeps): JudgeSchedule {
     const wait = Math.max(0, Math.min(ARRIVAL_DEBOUNCE_MS, firstArrival + ARRIVAL_MAX_WAIT_MS - t));
     debounce = clock.setTimeout(() => {
       debounce = null;
-      if (arrivalsWaiting) tryRun('arrival');
+      if (arrivalsWaiting && started) tryRun('arrival');
     }, wait);
     changed();
   }
 
   function onRunEnd(r: RunSummary & { trigger: AiTrigger; startedAt: string; endedAt: string }): void {
-    // a background run its conditions stopped, or one that took maxPerRun with more waiting: the rest go next, once
-    // nothing holds them (not after a failure: the backoff decides that, and a failing item isn't retried every tick)
+    // what's left after a background run goes next, once nothing holds it:
+    // - a run its conditions stopped (unplugged, the window closed): either trigger carries on when they lift;
+    // - an arrival run that took maxPerRun with more waiting, or that couldn't reach its model (the backoff spaces the
+    //   retries, so a failing item can't spin);
+    // - never a scheduled run that was simply capped: maxPerRun is per slot, and the rest wait for the next one (D75).
     if (r.trigger === 'arrival' || r.trigger === 'schedule') {
       const stopped = r.outcome === 'cancelled' && r.error !== null && ['battery', 'window', 'cloud', 'off'].includes(r.error);
-      const capped = r.outcome === 'ok' && r.total >= settings().maxPerRun;
-      if ((stopped || capped) && judge.eligible().length) {
-        if (r.trigger === 'arrival') arrivalsWaiting = true;
-        else resumeSchedule = true;
+      const capped = r.trigger === 'arrival' && r.outcome === 'ok' && r.total >= settings().maxPerRun;
+      const failed = r.trigger === 'arrival' && r.outcome === 'error' && !!r.error && BACKOFF_CODES.has(r.error);
+      if ((stopped || capped || failed) && judge.eligible().length) {
+        if (r.trigger === 'arrival') {
+          arrivalsWaiting = true;
+          firstArrival = clock.now();
+        } else resumeSchedule = true;
       }
     }
     const lastRun: AiJudgeSchedule['lastRun'] = { at: r.endedAt, trigger: r.trigger, outcome: r.outcome, error: r.error, counts: r.counts, total: r.total, done: r.done };
@@ -317,11 +368,8 @@ export function createJudgeSchedule(deps: ScheduleDeps): JudgeSchedule {
         const j = settings();
         // AI, the judge or background judging switched off: arrivals gathered so far are forgotten (Judge now still takes
         // them)
-        if (!config.get().ai.enabled || !j.enabled || !j.when.onArrival) {
-          arrivalsWaiting = false;
-          if (debounce) clock.clearTimeout(debounce);
-          debounce = null;
-        }
+        if (!judgeOn() || !j.when.onArrival) clearArrivals();
+        if (!judgeOn()) wasOn = false;
         changed();
       });
       const loop = () => {
@@ -329,7 +377,8 @@ export function createJudgeSchedule(deps: ScheduleDeps): JudgeSchedule {
           void tick().finally(() => started && loop());
         }, tickMs);
       };
-      void refreshPower(0);
+      wasOn = judgeOn();
+      if (background()) void refreshPower(0);
       loop();
       return () => {
         started = false;
@@ -338,7 +387,8 @@ export function createJudgeSchedule(deps: ScheduleDeps): JudgeSchedule {
         unBus?.();
         if (debounce) clock.clearTimeout(debounce);
         if (tickTimer) clock.clearTimeout(tickTimer);
-        debounce = tickTimer = null;
+        if (pollTimer) clock.clearTimeout(pollTimer);
+        debounce = tickTimer = pollTimer = null;
       };
     },
     status(): AiJudgeSchedule {

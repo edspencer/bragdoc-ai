@@ -351,7 +351,7 @@ export const mergeFound = (id: string, achievementId: string) => api.post<FoundD
 export const dismissFound = (id: string) => api.post<FoundDecided<FoundCandidate>>(`/api/found/${seg(id)}/dismiss`);
 export const undoFound = (id: string) => api.post<FoundDecided<FoundCandidate>>(`/api/found/${seg(id)}/undo`);
 /** "Dismiss these N" (PR25): many at once, and its Undo. */
-export const dismissFoundMany = (ids: string[]) => api.post<FoundBulkResponse>('/api/found/dismiss', { ids } satisfies FoundBulkRequest);
+export const dismissFoundMany = (ids: string[], only?: 'probably-not') => api.post<FoundBulkResponse>('/api/found/dismiss', { ids, ...(only ? { only } : {}) } satisfies FoundBulkRequest);
 export const undoFoundMany = (ids: string[]) => api.post<FoundBulkResponse>('/api/found/undo', { ids } satisfies FoundBulkRequest);
 
 /** `GET /api/sources` */

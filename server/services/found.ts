@@ -290,9 +290,13 @@ export class FoundService {
    * "Dismiss these N" (PR25): each one as dismiss() would, one request. One that's no longer pending (or can't be
    * written) is left and said; the rest still go. At most the undo memory's worth (D56), so Undo brings back them all.
    */
-  dismissMany(ids: string[]): BulkResult {
+  dismissMany(ids: string[], { probablyNotOnly = false }: { probablyNotOnly?: boolean } = {}): BulkResult {
     if (ids.length > UNDO_KEEP) throw new ValidationError(`dismiss at most ${UNDO_KEEP} at once (so Undo can bring them all back)`);
-    return this.each(ids, (id) => this.dismiss(id));
+    return this.each(ids, (id) => {
+      // "Dismiss these N" from a list on screen: one the judge has since called a win (Judge again) isn't one of them
+      if (probablyNotOnly && this.get(id).verdict?.keep !== false) throw new ConflictError('the judge no longer says “probably not” about it; it was left');
+      this.dismiss(id);
+    });
   }
 
   /** Undo many decisions at once: Undo after "Dismiss these N". */
@@ -308,8 +312,8 @@ export class FoundService {
         fn(id);
         out.done.push(id);
       } catch (e) {
-        if (!(e instanceof ConflictError || e instanceof NotFoundError)) throw e;
-        out.skipped.push({ id, message: e.message });
+        // each id stands alone: one that fails is said, and the ones already done stay done (and can be undone)
+        out.skipped.push({ id, message: e instanceof ConflictError || e instanceof NotFoundError ? e.message : `it couldn’t be changed: ${(e as Error).message}` });
       }
     }
     return out;
@@ -324,7 +328,6 @@ export class FoundService {
     const d = f.decision;
     if (f.status === 'pending' || !d) throw new ConflictError('there is nothing to undo: it is still pending');
     this.writable(id);
-    if (d.action !== 'dismiss' || this.dismissed.has(id)) this.told(f, 'undo');
     if (d.action === 'keep' && d.achievementId && this.store.get('achievement', d.achievementId)) this.achievements.remove(d.achievementId);
     if (d.action === 'merge' && d.achievementId && d.evidenceIds?.length && this.store.get('achievement', d.achievementId))
       this.achievements.removeEvidence(d.achievementId, d.evidenceIds);
@@ -333,9 +336,13 @@ export class FoundService {
       if (!was) throw new ConflictError('that was dismissed before BragDoc last started, and dismissing keeps nothing to bring back');
       this.dismissed.delete(id);
       const { id: _id, schemaVersion: _v, ...rest } = was;
-      return this.store.write('found', id, () => ({ patch: { ...rest, keyHashes: was.keyHashes ?? null, status: 'pending', decision: null } }), { mustExist: true });
+      const back = this.store.write('found', id, () => ({ patch: { ...rest, keyHashes: was.keyHashes ?? null, status: 'pending', decision: null } }), { mustExist: true });
+      this.told(f, 'undo'); // only once it's back
+      return back;
     }
-    return this.store.write('found', id, () => ({ patch: { status: 'pending', decision: null } }), { mustExist: true });
+    const back = this.store.write('found', id, () => ({ patch: { status: 'pending', decision: null } }), { mustExist: true });
+    this.told(f, 'undo');
+    return back;
   }
 
   private decide(id: string, decision: NonNullable<FoundCandidate['decision']>): FoundCandidate {

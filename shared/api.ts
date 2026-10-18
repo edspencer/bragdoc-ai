@@ -580,6 +580,8 @@ export interface FoundDecided<F = Record<string, unknown>> {
 /** `POST /api/found/dismiss` and `POST /api/found/undo` (PR25): many at once ("Dismiss these N", and its Undo). */
 export interface FoundBulkRequest {
   ids: string[];
+  /** Dismiss only: leave any the judge no longer calls "probably not" (Judge again since the list was shown). */
+  only?: 'probably-not';
 }
 
 /** What a bulk dismiss or undo did: the ones it changed, and the ones it left (decided meanwhile, gone, too old to undo). */
