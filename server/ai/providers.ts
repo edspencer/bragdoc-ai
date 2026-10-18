@@ -19,7 +19,7 @@ import { ollamaModel } from './ollama.js';
 import type { ModelRequest } from './sdk.js';
 
 /** The language model for one call. `model` is always a name on a connection: never a bare string the SDK resolves. */
-export function modelFor({ config, connectionId, model, fetch, apiKey, jsonMode }: ModelRequest): LanguageModel {
+export function modelFor({ config, connectionId, model, fetch: send, apiKey, jsonMode }: ModelRequest): LanguageModel {
   const all = config.ai.connections;
   const c = all[connectionId];
   if (!c) throw new AiError('no_model', `there's no AI connection called ${connectionId}`);
@@ -28,7 +28,7 @@ export function modelFor({ config, connectionId, model, fetch, apiKey, jsonMode 
   const headers = {}; // no attribution: egress strips it again on the way out
   switch (c.kind) {
     case 'ollama':
-      return ollamaModel({ baseUrl: baseURL, model, contextTokens: contextTokensOf(c, all), fetch });
+      return ollamaModel({ baseUrl: baseURL, model, contextTokens: contextTokensOf(c, all), fetch: send });
     case 'lmstudio':
     case 'llamacpp':
     case 'openai-compatible':
@@ -38,15 +38,15 @@ export function modelFor({ config, connectionId, model, fetch, apiKey, jsonMode 
         baseURL,
         ...(apiKey ? { apiKey } : {}),
         headers,
-        fetch,
+        fetch: send,
         includeUsage: true,
         // a server that refused a schema once gets JSON mode (response_format: json_object) and our own check
         supportsStructuredOutputs: !jsonMode,
       }).chatModel(model);
     case 'anthropic':
-      return createAnthropic({ baseURL, apiKey: apiKey ?? '', headers, fetch })(model);
+      return createAnthropic({ baseURL, apiKey: apiKey ?? '', headers, fetch: send })(model);
     case 'openai':
-      return createOpenAI({ baseURL, apiKey: apiKey ?? '', headers, fetch }).chat(model);
+      return createOpenAI({ baseURL, apiKey: apiKey ?? '', headers, fetch: send }).chat(model);
     case 'jev':
       throw new AiError('failed', 'Jev answers yes-or-no decisions for the judge only; it has no chat model to test or call here');
   }

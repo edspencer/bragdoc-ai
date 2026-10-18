@@ -52,7 +52,7 @@ const usage = (c: OllamaChunk): LanguageModelV4Usage => ({
 
 const finish = (c: OllamaChunk) => ({ unified: c.done_reason === 'length' ? ('length' as const) : ('stop' as const), raw: c.done_reason });
 
-export function ollamaModel({ baseUrl, model, contextTokens, fetch }: OllamaModelOptions): LanguageModelV4 {
+export function ollamaModel({ baseUrl, model, contextTokens, fetch: send }: OllamaModelOptions): LanguageModelV4 {
   const url = `${baseUrl.replace(/\/+$/, '')}/api/chat`;
 
   const body = (o: LanguageModelV4CallOptions, stream: boolean) => {
@@ -77,7 +77,7 @@ export function ollamaModel({ baseUrl, model, contextTokens, fetch }: OllamaMode
 
   async function post(o: LanguageModelV4CallOptions, stream: boolean): Promise<{ res: Response; sent: ReturnType<typeof body> }> {
     const sent = body(o, stream);
-    const res = await fetch(url, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(sent), signal: o.abortSignal });
+    const res = await send(url, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(sent), signal: o.abortSignal });
     if (!res.ok) {
       const text = await res.text().catch(() => '');
       let message = `Ollama answered ${res.status}`;

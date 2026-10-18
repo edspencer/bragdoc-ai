@@ -329,7 +329,7 @@ export function createAi({ config, egress, secrets, load = loadSdk, now = Date.n
     return enqueue(call, slot, async (signal, info) => {
       const { sdk: ai, providers } = await sdk();
       const started = now();
-      const fetch = egress.fetchFor({ purpose: call.purpose, feature: call.feature, model: slot.model, connectionId: slot.connection });
+      const send = egress.fetchFor({ purpose: call.purpose, feature: call.feature, model: slot.model, connectionId: slot.connection });
       const apiKey = keyFor(slot.connection);
       const pairKey = `${slot.connection}\0${slot.model}`;
       let tokensIn = 0;
@@ -341,7 +341,7 @@ export function createAi({ config, egress, secrets, load = loadSdk, now = Date.n
 
       /** One request. Returns the raw text; throws APICallError and friends for the caller to classify. */
       const ask = async (mode: 'schema' | 'json', messages: { role: 'user' | 'assistant'; content: string }[]): Promise<string> => {
-        const model = providers.modelFor({ config: config(), connectionId: slot.connection, model: slot.model, fetch, apiKey, jsonMode: mode === 'json' });
+        const model = providers.modelFor({ config: config(), connectionId: slot.connection, model: slot.model, fetch: send, apiKey, jsonMode: mode === 'json' });
         const system = mode === 'json' ? `${call.system}\n\nAnswer with only a JSON object that matches this JSON schema, and nothing else:\n${JSON.stringify(z.toJSONSchema(call.schema))}` : call.system;
         try {
           const r = await ai.generateText({
@@ -427,8 +427,8 @@ export function createAi({ config, egress, secrets, load = loadSdk, now = Date.n
     const done = enqueue({ ...call, signal }, slot, async (sig, info) => {
       const { sdk: ai, providers } = await sdk();
       const started = now();
-      const fetch = egress.fetchFor({ purpose: call.purpose, feature: call.feature, model: slot.model, connectionId: slot.connection });
-      const model = providers.modelFor({ config: config(), connectionId: slot.connection, model: slot.model, fetch, apiKey: keyFor(slot.connection) });
+      const send = egress.fetchFor({ purpose: call.purpose, feature: call.feature, model: slot.model, connectionId: slot.connection });
+      const model = providers.modelFor({ config: config(), connectionId: slot.connection, model: slot.model, fetch: send, apiKey: keyFor(slot.connection) });
       let streamError: unknown = null;
       const r = ai.streamText({
         model,
@@ -519,13 +519,13 @@ export function createAi({ config, egress, secrets, load = loadSdk, now = Date.n
     if (gate) throw new AiError(gate.code, gate.message);
     const c = cfg.ai.connections[connectionId]!;
     const base = baseUrlOf(c, cfg.ai.connections)!;
-    const fetch = egress.fetchFor({ purpose: 'ai.models', feature: 'test', connectionId });
+    const send = egress.fetchFor({ purpose: 'ai.models', feature: 'test', connectionId });
     const key = keyFor(connectionId);
     const headers: Record<string, string> = c.kind === 'anthropic' ? { 'anthropic-version': '2023-06-01', ...(key ? { 'x-api-key': key } : {}) } : key ? { authorization: `Bearer ${key}` } : {};
     const url = c.kind === 'ollama' ? `${base}/api/tags` : `${base}/models`;
     const timeout = AbortSignal.timeout(MODELS_TIMEOUT_MS);
     try {
-      const res = await fetch(url, { headers, signal: signal ? AbortSignal.any([signal, timeout]) : timeout });
+      const res = await send(url, { headers, signal: signal ? AbortSignal.any([signal, timeout]) : timeout });
       const body = await res.text();
       if (!res.ok) throw Object.assign(new Error(`HTTP ${res.status}`), { statusCode: res.status, responseBody: body });
       const j = JSON.parse(body) as { models?: { name?: string; size?: number }[]; data?: { id?: string }[] };
