@@ -4,9 +4,10 @@
 // line, the data home it creates, /api/health, the build info /api/meta reports, the web app's index.html and one of
 // its scripts, the favicon, a client route, the Host check). Cleans up after itself. Linux and macOS (D14).
 //
-// Adapted from Hallway's scripts/smoke-pack.mjs. Later PRs extend it: `import --dry-run` (PR12). PR9 added `guide` (the
-// shipped AGENT-GUIDE.md, byte for byte), and MCP: initialize + tools/list over HTTP with the token, a 401 without it,
-// and the same through the `bragdoc mcp` stdio bridge.
+// Adapted from Hallway's scripts/smoke-pack.mjs. PR9 added `guide` (the shipped AGENT-GUIDE.md, byte for byte), and
+// MCP: initialize + tools/list over HTTP with the token, a 401 without it, and the same through the `bragdoc mcp` stdio
+// bridge. PR12 added `import`: a dry run on a new data home (which creates nothing), a refused version, and a real
+// import through the running server, twice (the second adds nothing).
 //
 // SMOKE_PACK_KEEP=<dir> copies the tarball there before cleaning up (CI uploads it, and the release workflow publishes
 // exactly the tarball this checked).
@@ -140,6 +141,16 @@ try {
     assert.match(run('guide', '--snippet'), /^When I ask you to note, log or remember something I did at work/);
   }
 
+  step('import --dry-run (a hosted-app export; nothing is written)');
+  const exportFile = path.join(root, 'test', 'fixtures', 'import', 'alex-marlowe.json');
+  {
+    const out = run('import', exportFile, '--dry-run');
+    assert.match(out, /^Dry run of importing .*alex-marlowe\.json/);
+    assert.match(out, /achievements\s+8\s+0\s+0/);
+    assert.equal(fs.existsSync(data), false, 'a dry run creates no data home');
+    fails(['import', path.join(root, 'test', 'fixtures', 'import', 'version-2.json')], 1, /version "2\.0"/);
+  }
+
   step('serve');
   server = spawn(bin, ['--port', '0'], { cwd: work, env, stdio: ['ignore', 'pipe', 'inherit'] });
   let printed = '';
@@ -194,6 +205,15 @@ try {
   const listed = (await result(await rpc({ jsonrpc: '2.0', id: 1, method: 'tools/list', params: {} }))).tools.map((t) => t.name);
   assert.ok(listed.includes('bragdoc_get_context') && listed.includes('bragdoc_add_achievement'), `tools/list: ${listed}`);
   assert.equal((await rpc({ jsonrpc: '2.0', id: 2, method: 'tools/list', params: {} }, { authorization: '' })).status, 401);
+
+  step('import through the running server, twice');
+  {
+    const first = execFileSync(bin, ['import', exportFile], { cwd: work, env, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] });
+    assert.match(first, /^Imported .*\n[\s\S]*achievements\s+8\s+0\s+0/);
+    const listed = fs.readdirSync(path.join(data, 'projects'));
+    assert.equal(listed.length, 4, `projects: ${listed}`);
+    assert.match(run('import', exportFile), /achievements\s+0\s+8\s+0[\s\S]*Everything in it was already here/);
+  }
 
   step('MCP through the stdio bridge (bragdoc mcp)');
   const bridged = execFileSync(bin, ['mcp'], {

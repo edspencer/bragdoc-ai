@@ -68,7 +68,7 @@ const ALLOWED_IMPORTS: Record<string, string> = {
 /** Allowed in one file only. */
 const ALLOWED_IMPORTS_IN: Record<string, string> = {
   'node:child_process': 'server/proc.ts',
-  'node:net': 'server/egress.ts', // loopbackAccepts (D47): does anything accept a TCP connection on 127.0.0.1?
+  'node:net': 'server/egress.ts', // loopbackAccepts (D48): does anything accept a TCP connection on 127.0.0.1?
 };
 
 const RULES: Record<string, { on: 'code' | 'strings'; re: RegExp }> = {
@@ -93,7 +93,7 @@ const RULES: Record<string, { on: 'code' | 'strings'; re: RegExp }> = {
 const ALLOWED: Record<string, Record<string, number>> = {
   'server/egress.ts': {
     globalObject: 1, // the one real network call: realFetch = (url, init) => globalThis.fetch(url, init)
-    bannedName: 1, // import net from 'node:net' (loopbackAccepts, D47: a TCP connect to 127.0.0.1 only)
+    bannedName: 1, // import net from 'node:net' (loopbackAccepts, D48: a TCP connect to 127.0.0.1 only)
   },
   'server/proc.ts': {
     bannedName: 1, // import { execFile, spawn } from 'node:child_process'

@@ -77,6 +77,7 @@ export const ProjectCreateSchema = z.strictObject({
   status: z.enum(PROJECT_STATUSES).optional(),
   companyId: ulidSchema.nullable().optional(),
   repoIds: ids.optional(),
+  legacyId: z.string().min(1).optional(),
   example: z.boolean().optional(),
 });
 export type ProjectCreate = z.infer<typeof ProjectCreateSchema>;
@@ -97,6 +98,7 @@ export const CompanyCreateSchema = z.strictObject({
   role: z.string().optional(),
   start: isoDate.optional(),
   end: isoDate.nullable().optional(),
+  legacyId: z.string().min(1).optional(),
   example: z.boolean().optional(),
 });
 export type CompanyCreate = z.infer<typeof CompanyCreateSchema>;

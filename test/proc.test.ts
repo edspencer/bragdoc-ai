@@ -1,5 +1,5 @@
 // proc.ts's launch() and runAttached()'s signal forwarding (D32), the service runner's adapters over them, and
-// egress.ts's loopback-only readiness probe (D47). Every program run here is a fake on a throwaway PATH.
+// egress.ts's loopback-only readiness probe (D48). Every program run here is a fake on a throwaway PATH.
 import { after, before, describe, test } from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';

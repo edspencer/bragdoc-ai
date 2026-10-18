@@ -12,7 +12,7 @@
 // - Every request, allowed or denied, is appended to logs/network.jsonl (path only, never the query string, which
 //   can carry secrets), and rotated at LOG_MAX_BYTES. `gh` runs are logged too (logProcess), honestly marked as
 //   "via gh CLI": their traffic leaves outside this process, so all we can record is that we ran it.
-// - One exception, by construction loopback-only (D47): the CLI's readiness probe, probeLoopback() and
+// - One exception, by construction loopback-only (D48): the CLI's readiness probe, probeLoopback() and
 //   loopbackAccepts() below, asks 127.0.0.1 whether BragDoc is up. Its host is fixed, it carries no data, and it isn't
 //   logged: `bragdoc service start` polls every 250 ms, and a log of what leaves this computer isn't the place for it.
 import fs from 'node:fs';
@@ -196,7 +196,7 @@ function assertPort(port: number): void {
 
 /**
  * GET `http://127.0.0.1:<port><path>`, unlogged and without following redirects: the readiness probe's question to a
- * BragDoc that may be starting (D47). The host is fixed, so this can't be pointed anywhere but this computer. Rejects
+ * BragDoc that may be starting (D48). The host is fixed, so this can't be pointed anywhere but this computer. Rejects
  * as fetch does: refused, reset, or a TimeoutError after `timeoutMs`.
  */
 export async function probeLoopback(port: number, pathname: string, timeoutMs: number): Promise<Response> {
@@ -205,7 +205,7 @@ export async function probeLoopback(port: number, pathname: string, timeoutMs: n
   return realFetch(new URL(`http://127.0.0.1:${port}${pathname}`), { signal: AbortSignal.timeout(timeoutMs), redirect: 'manual' });
 }
 
-/** Does anything accept a TCP connection on 127.0.0.1:port? The connection is closed at once, nothing is sent (D47). */
+/** Does anything accept a TCP connection on 127.0.0.1:port? The connection is closed at once, nothing is sent (D48). */
 export async function loopbackAccepts(port: number, timeoutMs: number): Promise<boolean> {
   assertPort(port);
   return await new Promise((resolve) => {

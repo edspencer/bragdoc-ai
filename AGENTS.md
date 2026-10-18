@@ -80,7 +80,7 @@ server/              the server and CLI (Node, TypeScript ESM, Hono)
   home.ts            the data home's layout and .gitignore on first run; moves the old CLI's files into legacy-cli/
   runtime.ts         runtime.json (0600): pid, port, url and the MCP token, which survives restarts; constantTimeEqual
   egress.ts          the ONLY outbound network path: egressFetch({purpose}, url), allow-list, logs/network.jsonl;
-                     plus probeLoopback()/loopbackAccepts(), the CLI's unlogged 127.0.0.1-only readiness probe (D47)
+                     plus probeLoopback()/loopbackAccepts(), the CLI's unlogged 127.0.0.1-only readiness probe (D48)
   proc.ts            the ONLY way to run a program: run(), runAttached() (forwards SIGINT/TERM/HUP), launch()
                      (detached, for --open); allow-listed binaries, no shell
   events.ts          the event bus + the SSE stream (GET /api/events)

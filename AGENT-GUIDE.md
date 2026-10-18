@@ -116,6 +116,7 @@ site doesn't. What's there for agents today:
 | GET | `/api/events` | Server-sent events: what changed, as it changes |
 | GET | `/agent-guide.md`, `/llms.txt`, `/llms-full.txt` | This guide, with live facts |
 | POST | `/mcp` | MCP (needs the bearer token) |
+| POST | `/api/import/plan`, `/api/import/apply` | A hosted-app export (the JSON file as the body): what importing it would do, or do it |
 
 To write without MCP, edit the files (below).
 
@@ -194,6 +195,7 @@ A company you worked at.
 | `role` | string |  | Your role there. |
 | `start` | date |  | When you started, YYYY-MM-DD. |
 | `end` | date or empty | default `null` | When you left; empty while you still work there. |
+| `legacyId` | string |  | Its id in the hosted BragDoc, for imported companies (re-importing skips it). |
 | `example` | boolean |  | `true` on example data, which Settings can remove in one go. |
 
 ### `projects/<id>.yaml`
@@ -212,6 +214,7 @@ A project: dates, a colour, optionally a company and linked repos.
 | `status` | one of the values given | default `"active"` | `active`, `paused`, `done` or `archived` (hidden from pickers). |
 | `companyId` | id or empty | default `null` | The company it was for (a company id), or empty. |
 | `repoIds` | list of id | default `[]` | Linked repos (repo ids). |
+| `legacyId` | string |  | Its id in the hosted BragDoc, for imported projects (re-importing skips it). |
 | `example` | boolean |  | `true` on example data, which Settings can remove in one go. |
 
 ### `repos/<id>.yaml`
