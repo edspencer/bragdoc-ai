@@ -34,6 +34,8 @@ export const ARRIVAL_DEBOUNCE_MS = 30_000;
 export const ARRIVAL_MAX_WAIT_MS = 5 * MIN;
 /** How often it looks at the clock, the window and the power. */
 export const TICK_MS = 30_000;
+/** While a background run is going, the power is read this often (so unplugging stops it after the item in progress). */
+export const RUN_POWER_MS = 5_000;
 export const BACKOFF_MS = 15 * MIN;
 export const BACKOFF_MAX_MS = 6 * HOUR;
 /** A run that ended with one of these couldn't reach (or use) its model: background runs back off. */
@@ -213,6 +215,14 @@ export function createJudgeSchedule(deps: ScheduleDeps): JudgeSchedule {
     }
     try {
       const r = judge.start({ trigger, until: () => conditions()?.code ?? null });
+      // its `until` reads the power reading: keep it fresh while the run goes on
+      let live = true;
+      const poll = () => {
+        if (!live) return;
+        void refreshPower(0).finally(() => live && clock.setTimeout(poll, RUN_POWER_MS));
+      };
+      clock.setTimeout(poll, RUN_POWER_MS);
+      void r.done.finally(() => (live = false));
       if (trigger === 'schedule') save({ lastScheduledAt: now().toISOString() });
       // this run takes them; one stopped early (or cut at maxPerRun) puts them back (onRunEnd)
       if (trigger === 'arrival') arrivalsWaiting = false;
@@ -228,8 +238,8 @@ export function createJudgeSchedule(deps: ScheduleDeps): JudgeSchedule {
   async function tick(): Promise<void> {
     if (clock.now() - powerAt >= tickMs / 2) await refreshPower(0);
     const j = settings();
-    if (!j.enabled) {
-      arrivalsWaiting = false;
+    if (!j.enabled || !config.get().ai.enabled) {
+      arrivalsWaiting = resumeSchedule = false;
       return;
     }
     if (arrivalsWaiting && j.when.onArrival && !debounce && tryRun('arrival')) return;
@@ -256,7 +266,8 @@ export function createJudgeSchedule(deps: ScheduleDeps): JudgeSchedule {
     const c = store.get('found', id);
     if (!c || c.status !== 'pending' || c.verdict) return;
     const j = settings();
-    if (!j.enabled || !j.when.onArrival) return;
+    // nothing gathers while AI or the judge is off: switching them back on mustn't start a burst over what came meanwhile
+    if (!config.get().ai.enabled || !j.enabled || !j.when.onArrival) return;
     if (!judge.eligible([id]).length) return; // a kind it doesn't judge (MCP, PRs without the tick)
     const t = clock.now();
     if (!arrivalsWaiting) firstArrival = t;
@@ -304,8 +315,9 @@ export function createJudgeSchedule(deps: ScheduleDeps): JudgeSchedule {
       const unBus = bus?.subscribe((e) => {
         if (e.type !== 'config') return;
         const j = settings();
-        // background judging switched off: arrivals gathered so far are forgotten (Judge now still takes them)
-        if (!j.enabled || !j.when.onArrival) {
+        // AI, the judge or background judging switched off: arrivals gathered so far are forgotten (Judge now still takes
+        // them)
+        if (!config.get().ai.enabled || !j.enabled || !j.when.onArrival) {
           arrivalsWaiting = false;
           if (debounce) clock.clearTimeout(debounce);
           debounce = null;

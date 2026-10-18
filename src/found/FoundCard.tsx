@@ -208,7 +208,7 @@ function VerdictNote({ v, rulesQuote, earlier }: { v: Verdict; rulesQuote: strin
       )}
       {otherQuote && (
         <p className="m-0 mt-2 text-[13px] text-muted break-words" data-testid="found-verdict-quote">
-          It went on: <mark className="rounded bg-sticky px-1 text-ink">“{otherQuote}”</mark>
+          The words it judged: <mark className="rounded bg-sticky px-1 text-ink">“{otherQuote}”</mark>
           {v.from ? <> ({v.from})</> : null}
         </p>
       )}

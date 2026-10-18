@@ -31,7 +31,8 @@ export function groupFound(items: readonly FoundCandidate[]): FoundGroups {
 /** "14:20", or "Tue 14:20" when it isn't today, in this browser's time zone. */
 export function when(iso: string, now = new Date()): string {
   const d = new Date(iso);
-  const t = d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hourCycle: 'h23' });
+  // the browser's own clock style, as its time inputs show it (17:52 or 5:52 PM)
+  const t = d.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
   return d.toDateString() === now.toDateString() ? t : `${d.toLocaleDateString([], { weekday: 'short' })} ${t}`;
 }
 

@@ -330,7 +330,7 @@ describe('the schedule', () => {
       // wait until it's on its second item, then pull the plug
       for (let i = 0; i < 200 && (r.ctx.judge.status().running?.done ?? 0) < 1; i++) await new Promise((x) => setTimeout(x, 10));
       r.pw.state = 'battery';
-      await r.ctx.judgeSchedule.refreshPower(0);
+      await r.clock.advance(5_000); // the run's own power check: no tick needed
       await r.settle();
       const run = r.runs()[0]!;
       assert.equal(run.outcome, 'cancelled');
@@ -421,6 +421,22 @@ describe('the schedule', () => {
       await r.clock.advance(5 * 60_000);
       assert.equal(r.runs().length, 0);
       assert.equal(r.ctx.judgeSchedule.status().arrivalsWaiting, false);
+    } finally {
+      await r.close();
+    }
+  });
+
+  test('arrivals while AI is off are never gathered: switching it back on starts nothing', async () => {
+    const r = await rig({ when: { onArrival: true } });
+    try {
+      r.config.update({ ai: { enabled: false } });
+      for (let i = 0; i < 3; i++) r.shot();
+      await r.clock.advance(60_000);
+      assert.equal(r.ctx.judgeSchedule.status().arrivalsWaiting, false);
+      r.config.update({ ai: { enabled: true } });
+      await r.clock.advance(10 * 60_000);
+      assert.equal(r.runs().length, 0);
+      assert.equal(r.ctx.judge.status().waiting, 3, 'they wait for Judge now');
     } finally {
       await r.close();
     }

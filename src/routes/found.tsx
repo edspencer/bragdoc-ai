@@ -191,7 +191,7 @@ function DismissThese({ items }: { items: FoundCandidate[] }) {
     onSettled: refresh,
   });
   return (
-    <Btn size="sm" kind="ghost" onClick={() => go.mutate()} disabled={go.isPending || !items.length} data-testid="found-dismiss-these">
+    <Btn size="sm" kind="paper" onClick={() => go.mutate()} disabled={go.isPending || !items.length} data-testid="found-dismiss-these">
       Dismiss these {items.length}
     </Btn>
   );

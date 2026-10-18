@@ -44,7 +44,7 @@ export function JudgeCard({ status, readiness }: FeatureCardProps) {
   const turn = (on: boolean) => save.mutate({ enabled: on }, { onSuccess: () => setAsking(on && !f.when.onArrival && !f.when.everyHours) });
 
   return (
-    <div className="rounded-2xl bg-surface p-4 shadow-sm ring-1 ring-line" data-testid="ai-feature-judge">
+    <div className="rounded-2xl bg-surface p-4 shadow-sm ring-1 ring-line lg:col-span-3" data-testid="ai-feature-judge">
       <div className="flex items-start gap-3">
         <div className="min-w-0 flex-1">
           <div className="font-grotesk text-[15px] font-bold">The judge, in Found</div>
@@ -62,6 +62,8 @@ export function JudgeCard({ status, readiness }: FeatureCardProps) {
 
       {f.enabled && asking && <SecondQuestion cloud={cloud} host={conn?.host ?? null} status={j} onAnswer={(yes) => (yes ? save.mutate({ when: { onArrival: true } }, { onSuccess: () => setAsking(false) }) : setAsking(false))} saving={save.isPending} />}
 
+      <div className="lg:grid lg:grid-cols-2 lg:gap-8">
+      <div>
       <div className="mt-3 text-[13px]" data-testid="ai-judge-model">
         <Kicker>Model</Kicker>
         {slot && conn ? (
@@ -93,7 +95,11 @@ export function JudgeCard({ status, readiness }: FeatureCardProps) {
           </div>
 
           <When f={f} cloud={cloud} host={conn?.host ?? null} status={j} saving={save.isPending} onSave={(p) => save.mutate(p)} />
-
+        </>
+      )}
+      </div>
+      {f.enabled && (
+        <div>
           <div className="mt-4">
             <Kicker>What counts as a win for me</Kicker>
             <p className="m-0 mb-1.5 mt-0.5 text-[12.5px] text-muted">The judge reads this with every candidate. It’s ai/what-counts.md in your data folder, written for you from your profile when you first switched the judge on: saving it sends nothing anywhere.</p>
@@ -101,8 +107,9 @@ export function JudgeCard({ status, readiness }: FeatureCardProps) {
           </div>
 
           <RunPanel status={j} ready={readiness.ready} />
-        </>
+        </div>
       )}
+      </div>
     </div>
   );
 }
@@ -154,9 +161,9 @@ function When({ f, cloud, host, status, saving, onSave }: { f: AiJudgeSettings; 
       <Tick on={w.onArrival} onChange={(v) => onSave({ when: { onArrival: v } })} testId="ai-judge-on-arrival" disabled={saving}>
         As new candidates arrive <span className="text-muted">(30 s after the last of a burst)</span>
       </Tick>
-      <label className="flex flex-wrap items-center gap-2">
+      <label className="flex items-center gap-2">
         <span>Every</span>
-        <select value={w.everyHours ?? ''} onChange={(e) => onSave({ when: { everyHours: e.target.value ? (Number(e.target.value) as AiJudgeSettings['when']['everyHours']) : null } })} disabled={saving} className={`${inputCls} w-auto py-1 text-[13px]`} aria-label="Every N hours" data-testid="ai-judge-every">
+        <select value={w.everyHours ?? ''} onChange={(e) => onSave({ when: { everyHours: e.target.value ? (Number(e.target.value) as AiJudgeSettings['when']['everyHours']) : null } })} disabled={saving} className={`${inputCls} max-w-[9rem] py-1 text-[13px]`} aria-label="Every N hours" data-testid="ai-judge-every">
           <option value="">— (off)</option>
           {HOURS.map((h) => (
             <option key={h} value={h}>
@@ -170,9 +177,9 @@ function When({ f, cloud, host, status, saving, onSave }: { f: AiJudgeSettings; 
         <Tick on={!!w.onlyBetween} onChange={(v) => onSave({ when: { onlyBetween: v ? { from, to } : null } })} testId="ai-judge-between" disabled={saving}>
           between
         </Tick>
-        <input type="time" value={from} onChange={(e) => setFrom(e.target.value)} onBlur={() => w.onlyBetween && from && onSave({ when: { onlyBetween: { from, to } } })} className={`${inputCls} w-auto py-0.5 text-[13px]`} aria-label="From" data-testid="ai-judge-from" />
+        <input type="time" value={from} onChange={(e) => setFrom(e.target.value)} onBlur={() => w.onlyBetween && from && onSave({ when: { onlyBetween: { from, to } } })} className={`${inputCls} max-w-[8.5rem] py-0.5 text-[13px]`} aria-label="From" data-testid="ai-judge-from" />
         <span>and</span>
-        <input type="time" value={to} onChange={(e) => setTo(e.target.value)} onBlur={() => w.onlyBetween && to && onSave({ when: { onlyBetween: { from, to } } })} className={`${inputCls} w-auto py-0.5 text-[13px]`} aria-label="To" data-testid="ai-judge-to" />
+        <input type="time" value={to} onChange={(e) => setTo(e.target.value)} onBlur={() => w.onlyBetween && to && onSave({ when: { onlyBetween: { from, to } } })} className={`${inputCls} max-w-[8.5rem] py-0.5 text-[13px]`} aria-label="To" data-testid="ai-judge-to" />
         <span className="text-muted">(local time; across midnight is fine)</span>
       </div>
       <Tick on={w.onlyOnAC} onChange={(v) => onSave({ when: { onlyOnAC: v } })} testId="ai-judge-ac" disabled={saving}>
