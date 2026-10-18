@@ -11,7 +11,7 @@ import os from 'node:os';
 import path from 'node:path';
 
 /** The binaries BragDoc may run, by name (found on PATH). Anything else is refused before it's started. */
-export const ALLOWED_BINS = ['gh', 'git', 'osascript', 'defaults', 'launchctl', 'systemctl', 'journalctl', 'claude', 'open', 'xdg-open'] as const;
+export const ALLOWED_BINS = ['gh', 'git', 'osascript', 'defaults', 'launchctl', 'systemctl', 'journalctl', 'claude', 'open', 'xdg-open', 'pmset'] as const;
 export type AllowedBin = (typeof ALLOWED_BINS)[number];
 
 export const DEFAULT_TIMEOUT_MS = 30_000;

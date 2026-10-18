@@ -577,6 +577,19 @@ export interface FoundDecided<F = Record<string, unknown>> {
   missingFiles?: string[];
 }
 
+/** `POST /api/found/dismiss` and `POST /api/found/undo` (PR25): many at once ("Dismiss these N", and its Undo). */
+export interface FoundBulkRequest {
+  ids: string[];
+  /** Dismiss only: leave any the judge no longer calls "probably not" (Judge again since the list was shown). */
+  only?: 'probably-not';
+}
+
+/** What a bulk dismiss or undo did: the ones it changed, and the ones it left (decided meanwhile, gone, too old to undo). */
+export interface FoundBulkResponse {
+  done: string[];
+  skipped: { id: string; message: string }[];
+}
+
 /**
  * Why a GitHub check (or connecting) failed, in a word a program can switch on; the `message` says it for people.
  * `gh_missing`: no gh on PATH. `gh_logged_out`: gh isn't logged in. `token_missing`/`token_invalid`/`token_scope`: the
@@ -1338,6 +1351,39 @@ export interface AiJudgeStatus {
   running: { runId: string; trigger: AiTrigger; startedAt: string; total: number; done: number; counts: AiJudgeCounts } | null;
   /** The last run that finished since BragDoc started. */
   last: { runId: string; trigger: AiTrigger; startedAt: string; endedAt: string; total: number; done: number; counts: AiJudgeCounts; outcome: 'ok' | 'error' | 'cancelled'; error: string | null } | null;
+  /** When it runs by itself (PR25, D75). Absent from an app that doesn't schedule (tests' createApp). */
+  schedule?: AiJudgeSchedule;
+  /** How often your keep or dismiss matched the verdict (PR25): counts only, from cache/ai/judge-stats.json. */
+  agreement?: { agreed: number; of: number };
+}
+
+/**
+ * Why a background run isn't happening right now, as a code (the card words it): `off` (neither "as they arrive" nor
+ * "every N hours"), `not-ready` (AI, the judge or its model), `cloud` (a cloud model without "also in the background"),
+ * `window` (outside "only between": `until` is when it opens), `battery` (on battery with "only on power"), `backoff`
+ * (the last run failed: `until`), `running` (a run is in progress), `nothing` (nothing is waiting).
+ */
+export type AiJudgeHold = 'off' | 'not-ready' | 'cloud' | 'window' | 'battery' | 'backoff' | 'running' | 'nothing';
+
+export interface AiJudgeSchedule {
+  /** Either background trigger is on. */
+  background: boolean;
+  onArrival: boolean;
+  everyHours: 1 | 3 | 6 | 12 | 24 | null;
+  /** The judge's model is on the internet: background runs need `backgroundCloud`. */
+  cloud: boolean;
+  /** What the power reading says now (unknown counts as plugged in). */
+  power: 'ac' | 'battery' | 'unknown';
+  /** Why it wouldn't start a background run now; null when it would (or is). */
+  hold: { code: AiJudgeHold; until: string | null } | null;
+  /** The next "every N hours" run, if that's on. */
+  nextRunAt: string | null;
+  /** New candidates arrived while it was held: they're judged when the hold lifts. */
+  arrivalsWaiting: boolean;
+  /** The last background run failed to reach the model: runs wait until `until` (15 minutes, doubling to 6 hours). */
+  backoff: { until: string; failures: number; error: string } | null;
+  /** The last run of any kind, kept across restarts. */
+  lastRun: { at: string; trigger: AiTrigger; outcome: 'ok' | 'error' | 'cancelled'; error: string | null; counts: AiJudgeCounts; total: number; done: number } | null;
 }
 
 /** `GET /api/ai/judge/preview?candidate=<id>`: exactly what the judge would send for it (nothing is sent). */

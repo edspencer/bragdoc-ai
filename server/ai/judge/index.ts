@@ -86,6 +86,12 @@ export interface RunOptions {
   /** `now` when someone pressed Judge now and is watching (the default for `trigger: 'now'`). */
   priority?: Priority;
   signal?: AbortSignal;
+  /**
+   * Asked before each item after the first: a code to stop the run with (it ends after the item in progress, as
+   * `cancelled`), or null to go on. The schedule's conditions (on battery, the window closed, background judging
+   * switched off: D75) stop a background run this way.
+   */
+  until?: () => string | null;
 }
 
 export interface RunSummary {
@@ -122,6 +128,8 @@ export interface JudgeEngine extends Judge {
   prepare(c: FoundCandidate): Promise<Prepared>;
   /** Write ai/what-counts.md from your profile if there's none (the judge switched on for the first time). */
   ensureInstructions(): void;
+  /** Hear every run as it ends, whatever started it (the schedule's backoff and its last-run line, D75). */
+  onRunEnd(fn: (summary: RunSummary & { trigger: AiTrigger; startedAt: string; endedAt: string }) => void): () => void;
   /** Stop listening for config changes. */
   close(): void;
 }
@@ -188,6 +196,7 @@ export function createJudge(deps: JudgeDeps): JudgeEngine {
   let last: AiJudgeStatus['last'] = null;
   let current: Promise<unknown> = Promise.resolve();
   const changed = () => bus?.emitSoon('ai-judge', { type: 'ai-judge' }, 100, 500);
+  const runEnd = new Set<Parameters<JudgeEngine['onRunEnd']>[0]>();
 
   const unStarter = services.instructions.setStarter('what-counts', () => whatCountsStarter(store.profile()));
 
@@ -272,7 +281,9 @@ export function createJudge(deps: JudgeDeps): JudgeEngine {
     if (c.source !== 'screenshots' && c.source !== 'github') throw new NotJudgeable(`the judge doesn't judge ${c.source} candidates`);
     const profile: Profile | null = store.profile();
     const projects = judgeProjects(store);
-    const instructions = services.instructions.forPrompt('what-counts');
+    // a broken file with no last good copy (BragDoc started with it broken): the starter from your profile, as the card
+    // says, never nothing at all (PR25)
+    const instructions = services.instructions.forPrompt('what-counts') ?? (store.entry('instructions', 'what-counts')?.problems.length ? whatCountsStarter(profile) : null);
     const base: Omit<JudgePromptInput, 'input'> = { profile, projects: projects.map((p) => p.name), instructions };
     const promptOf = c.source === 'github' ? judgeGithubPrompt : judgeScreenshotPrompt;
     let input: JudgeInput;
@@ -327,7 +338,7 @@ export function createJudge(deps: JudgeDeps): JudgeEngine {
     return (await ask({ kind, input, instructions, system, prompt, inputHash: inputHashOf(kind, input.text, instructions), projects: projectMap(context.projects), ...(decision ? { decision } : {}) }, {})).verdict;
   }
 
-  function start({ ids, trigger, priority, signal }: RunOptions): { runId: string; queued: number; done: Promise<RunSummary> } {
+  function start({ ids, trigger, priority, signal, until }: RunOptions): { runId: string; queued: number; done: Promise<RunSummary> } {
     if (running) throw new JudgeRunning(running.runId);
     const { gate } = ai.readiness('judge');
     if (gate) throw new AiError(gate.code, gate.message);
@@ -365,6 +376,13 @@ export function createJudge(deps: JudgeDeps): JudgeEngine {
             cancelled = g.code === 'ai_off';
             break;
           }
+          // the schedule's conditions stopped holding (D75): what's judged stays, the rest waits for the next run
+          const stop = state.done > 0 ? (until?.() ?? null) : null;
+          if (stop) {
+            error = stop;
+            cancelled = true;
+            break;
+          }
           // decided, or its kind unticked, since the run started: leave it
           const now = store.get('found', c.id);
           if (!now || !judgeable(now)) {
@@ -376,6 +394,13 @@ export function createJudge(deps: JudgeDeps): JudgeEngine {
           try {
             const p = await prepare(now);
             const { verdict, by } = await ask(p, { runId: run.id, priority: prio, signal: controller.signal });
+            // switched off while the model answered: nothing more is written (SPEC R22)
+            const late = ai.readiness('judge').gate;
+            if (late || controller.signal.aborted) {
+              error = late?.code ?? 'cancelled';
+              cancelled = !late || late.code === 'ai_off';
+              break;
+            }
             const w = services.found.setVerdict(c.id, { ...verdict, by, at: new Date(store.now().getTime()).toISOString() } as Verdict);
             count(!w.written ? 'skipped' : verdict.keep ? 'win' : 'probably-not');
           } catch (e) {
@@ -399,6 +424,13 @@ export function createJudge(deps: JudgeDeps): JudgeEngine {
         const outcome: RunSummary['outcome'] = cancelled ? 'cancelled' : error ? 'error' : 'ok';
         last = { runId: run.id, trigger, startedAt: state.startedAt, endedAt: new Date(store.now().getTime()).toISOString(), total: state.total, done: state.done, counts: { ...counts }, outcome, error };
         running = null;
+        for (const fn of runEnd) {
+          try {
+            fn({ runId: run.id, total: last.total, done: last.done, counts: { ...counts }, outcome: last.outcome, error, trigger, startedAt: last.startedAt, endedAt: last.endedAt });
+          } catch {
+            /* a listener's problem isn't the run's */
+          }
+        }
         changed();
       }
       return { runId: run.id, total: state.total, done: state.done, counts: { ...counts }, outcome: last!.outcome, error };
@@ -412,6 +444,10 @@ export function createJudge(deps: JudgeDeps): JudgeEngine {
     start,
     judgePending: async (opts) => start(opts).done,
     cancel: () => running?.controller.abort(),
+    onRunEnd(fn) {
+      runEnd.add(fn);
+      return () => runEnd.delete(fn);
+    },
     idle: () => current.then(() => {}),
     eligible,
     prepare,

@@ -74,7 +74,7 @@ server/              the server and CLI (Node, TypeScript ESM, Hono)
                      what `serve` prints at startup ("BragDoc on <url>" first, always); node-version.ts the Node check
   commands/          every other command, one file each, one line in commands/index.ts (Hallway's shape); context.ts
                      is the injectable Ctx (runner, probe, clock), ready.ts the /api/health probe and readiness wait
-  platform/          `bragdoc service`: spec.ts (what the service is), launchd.ts / systemd.ts (the writers, pinned by
+  platform/          power.ts (is it plugged in? the judge's "only on power", PR25); `bragdoc service`: spec.ts (what the service is), launchd.ts / systemd.ts (the writers, pinned by
                      test/fixtures/services/), path.ts (the PATH captured at install), runner.ts (the injectable Runner
                      / Streamer, defaulting to proc.ts), index.ts (which manager this OS has; Windows: not yet)
   index.ts           createApp (routes → JSON 404 for /api/* → static files → SPA fallback) and startServer
@@ -108,7 +108,8 @@ server/              the server and CLI (Node, TypeScript ESM, Hono)
                      confirmed Ollama download; PR23), errors.ts (AiError, the fixed codes), sdk.ts
                      (the ONLY place the AI SDK is loaded, by import()), providers.ts (connection → model), ollama.ts
                      (Ollama's native /api/chat as a model), activity.ts (ctx.aiActivity: logs/ai-runs.jsonl, PR22),
-                     judge/ (the Found judge, PR24: index.ts ctx.judge, input.ts what it reads, starter.ts),
+                     judge/ (the Found judge, PR24: index.ts ctx.judge, input.ts what it reads, starter.ts; PR25:
+                     schedule.ts ctx.judgeSchedule, stats.ts ctx.judgeStats),
                      prompts/ (one file per prompt: judge-screenshot.ts, judge-github.ts)
   discover.ts        Welcome's "Your code": the bounded scan of one named folder (4 levels, 5 s, stops at .git,
                      symlink-loop safe), opt-in editor hints, recency from each repo's own .git (D60)
@@ -408,6 +409,7 @@ is the folder choice on its own. The source reads nothing until profile.yaml has
 |---|---|
 | `GET /api/found?source=` | `FoundListResponse`: pending candidates, newest first (one check's newest-merged first), and `counts` per source (unfiltered) |
 | `POST /api/found/:id/{keep,merge,dismiss,undo}` | `FoundDecided`; keep takes an optional `FoundKeep` body, merge `{ achievementId }`; a decided one is 409 |
+| `POST /api/found/{dismiss,undo}` | `{ ids }` → `FoundBulkResponse` (`done`, `skipped`): many at once, Found's "Dismiss these N" and its Undo (PR25) |
 | `GET /api/found/count` | `{ pending }` for the badge and the board strip |
 | `GET /api/sources` | `SourcesResponse` (`github: GithubSourceStatus`, `screenshots: ScreenshotsSourceStatus`) |
 | `GET /api/sources/github/gh` | `{ installed }`: gh on PATH? (a look, nothing runs) |
@@ -590,6 +592,24 @@ PR24 added **the Found judge** (SPEC R21; D72–D74). It only ever writes a pend
   (0.86), sarcasm markers → probably not, "(the user)"'s own message → probably not; a PR titled bump/chore/typo/revert
   → routine (impact 1), else notable (5). **`e2e/judge.spec.ts`** runs its own server and fake.
 - **Recordings** `test/fixtures/ai-recordings/judge/<model>.json` (perfect text) are replayed in `test/ai-judge-replay.test.ts`.
+
+PR25 added **when the judge runs, and Found's verdicts** (SPEC R21, R22; D75–D77):
+
+- **`ctx.judgeSchedule`** (`server/ai/judge/schedule.ts`, started only by `startServer`): as they arrive (30 s
+  debounce), every N hours, only between, only on power, the cloud tick, the backoff. `status()` → `AiJudgeSchedule`
+  (`hold.code`: `off` · `not-ready` · `cloud` · `window` · `battery` · `backoff` · `running` · `nothing`). A background
+  run passes `until` (a new `RunOptions` hook on the engine) and stops after the item in progress when it returns a
+  code. `judge.onRunEnd(fn)` hears every run. Tests drive it with a fake `Clock` and `power` (`createAppWithContext({
+  scheduleClock, power })`): `test/ai-judge-schedule.test.ts`.
+- **Power:** `onAC()` in `server/platform/power.ts` (`pmset`, now in `ALLOWED_BINS`; `/sys/class/power_supply`, or
+  `BRAGDOC_POWER_SUPPLY_DIR`, internal, for a fixture).
+- **Agreement:** `ctx.judgeStats` (`server/ai/judge/stats.ts`) over `services.found.onDecided(fn)`, the one hook for
+  keep, merge, dismiss and undo. Counts only, `cache/ai/judge-stats.json`.
+- **Found:** `POST /api/found/dismiss|undo { ids }` (`dismissMany` / `undoMany`, at most 500). Keep without `projects`
+  takes the rules' and the verdict's suggestions together. In the web app: `groupFound()` and the plain words
+  (`scheduleLine`, `errorWords`, `countsLine`) in `src/found/judge.ts`; `JudgePreviewDialog`; the Settings card is
+  `src/settings/ai/JudgeCard.tsx`. **For PR28:** a verdict without `why` already reads "answers only with how sure it
+  is"; the card's model picker lists every connection, so filter a decision-only one out of the other pickers there.
 
 PR28 added **Jev as the judge's model** (SPEC R25; D82):
 

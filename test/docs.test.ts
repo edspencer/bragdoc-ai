@@ -102,6 +102,7 @@ describe('docs site', () => {
       'BRAGDOC_OFFICIAL_BUILD', // release.yml only: marks build-info.json official (D36)
       'BRAGDOC_BUILD_RUN_URL', // release.yml only: the run, passed into the Docker build (D36)
       'BRAGDOC_LIVE_AI', // scripts/eval/: the live evals' opt-in to calling a real model (never in CI; D68)
+      'BRAGDOC_POWER_SUPPLY_DIR', // server/platform/power.ts: a stand-in for /sys/class/power_supply, for tests and QA (D75)
     ]);
     const used = new Set(envSources().flatMap((f) => [...fs.readFileSync(f, 'utf8').matchAll(/\bBRAGDOC_[A-Z][A-Z0-9_]*\b/g)].map((m) => m[0])));
     const page = read('website/src/content/docs/reference/environment.md');

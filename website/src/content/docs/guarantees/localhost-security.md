@@ -41,5 +41,6 @@ listen on all interfaces inside the container; that is why the docs always publi
 - What you write is shown as plain text, never rendered as HTML, so a note or a title can't put a script or a
   tracking pixel on the page.
 - BragDoc runs other programs only through one module, with fixed argument lists and no shell, and only these:
-  `gh`, `git`, `osascript`, `launchctl`, `systemctl`, `journalctl`, `claude`, `defaults`, and `open` / `xdg-open` (for
-  `bragdoc --open`).
+  `gh`, `git`, `osascript`, `launchctl`, `systemctl`, `journalctl`, `claude`, `defaults`, `pmset` (on a Mac, to ask
+  whether it's plugged in, only while the AI judge runs in the background on power alone), and `open` / `xdg-open`
+  (for `bragdoc --open`).

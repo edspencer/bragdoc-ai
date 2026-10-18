@@ -8,6 +8,7 @@
 import type { ComponentType } from 'react';
 import type { AiFeatureName, AiFeatureReadiness, AiStatus } from '../../../shared/api.ts';
 import { DraftCard } from './DraftCard.tsx';
+import { JudgeCard } from './JudgeCard.tsx';
 import { TidyCard } from './TidyCard.tsx';
 
 export interface FeatureCardProps {
@@ -25,7 +26,7 @@ export interface FeatureCardEntry {
 }
 
 export const FEATURE_CARDS: readonly FeatureCardEntry[] = [
-  { feature: 'judge', title: 'The judge, in Found', what: 'Reads what Found picks up and says whether it looks like a win for you, and why. It never keeps or dismisses anything.', Card: null }, // PR24/PR25
+  { feature: 'judge', title: 'The judge, in Found', what: 'Reads what Found picks up and says whether it looks like a win for you, and why. It never keeps or dismisses anything.', Card: JudgeCard }, // PR24/PR25
   { feature: 'tidy', title: 'Tidy this up, on the board', what: 'Turns something you pasted into a title, a summary and the right project, for you to accept field by field.', Card: TidyCard }, // PR26
   { feature: 'draft', title: 'Draft with AI, in Folio', what: 'Writes a draft from the achievements in a folio, citing each one, for you to edit.', Card: DraftCard }, // PR27
 ];

@@ -76,7 +76,7 @@ import type { Achievement, AchievementCreate, AchievementUpdate, Evidence, Found
 import type { AiActivityResponse, AiInstructionsName, AiInstructionsReset, AiInstructionsResponse } from '../../shared/api.ts';
 import type { AiDraftCheck, AiDraftCheckRequest, AiDraftEvent, AiDraftPreview, AiDraftRequest } from '../../shared/api.ts';
 // the judge (PR24)
-import type { AiJudgePreview, AiJudgeRunResponse, AiJudgeStatus } from '../../shared/api.ts';
+import type { AiJudgePreview, AiJudgeRunResponse, AiJudgeStatus, FoundBulkRequest, FoundBulkResponse } from '../../shared/api.ts';
 
 /** A failed API call: the HTTP status (0 when the server couldn't be reached) and the envelope's code and message. */
 export class ApiRequestError extends Error {
@@ -350,6 +350,9 @@ export const keepFound = (id: string, body: FoundKeep = {}) => api.post<FoundDec
 export const mergeFound = (id: string, achievementId: string) => api.post<FoundDecided<FoundCandidate>>(`/api/found/${seg(id)}/merge`, { achievementId });
 export const dismissFound = (id: string) => api.post<FoundDecided<FoundCandidate>>(`/api/found/${seg(id)}/dismiss`);
 export const undoFound = (id: string) => api.post<FoundDecided<FoundCandidate>>(`/api/found/${seg(id)}/undo`);
+/** "Dismiss these N" (PR25): many at once, and its Undo. */
+export const dismissFoundMany = (ids: string[], only?: 'probably-not') => api.post<FoundBulkResponse>('/api/found/dismiss', { ids, ...(only ? { only } : {}) } satisfies FoundBulkRequest);
+export const undoFoundMany = (ids: string[]) => api.post<FoundBulkResponse>('/api/found/undo', { ids } satisfies FoundBulkRequest);
 
 /** `GET /api/sources` */
 export const getSources = (signal?: AbortSignal) => api.get<SourcesResponse>('/api/sources', { signal });

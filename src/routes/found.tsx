@@ -1,17 +1,22 @@
 // Found (SPEC R7): what the sources spotted, waiting for a yes or no. A filter row by source, the candidates newest
 // first, Keep · Merge into… · Dismiss with Undo, and the two empty states. Live: a check that finds something, an agent's
 // suggestion, or a decision in another tab shows up here by itself (the `found` and `sources` events). With the judge
-// on (v0.2), Judge now asks it about what's waiting; its verdicts arrive on the cards as they're written. PR25 adds the
-// grouping, the schedule and Judge again. Adapted from the Scrapbook prototype's Found.tsx.
+// on (v0.2), Judge now asks it about what's waiting; its verdicts arrive on the cards as they're written. Once there
+// are verdicts the list is grouped (SPEC R21): "Looks like a win" (surest first), then not judged yet, then "Probably
+// not", collapsed, with an explicit "Dismiss these N" (one request; Undo brings them all back). The judge never
+// dismisses anything itself. Without a verdict (AI never on: the default) it's v0.1's list exactly. Adapted from the
+// Scrapbook prototype's Found.tsx.
 import { useMemo, useState } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { createFileRoute, Link } from '@tanstack/react-router';
-import type { FoundSourceName } from '../../shared/api.ts';
-import { runJudge } from '../api/client.ts';
+import type { AiJudgeStatus, FoundSourceName, ProjectEntry, RepoEntry } from '../../shared/api.ts';
+import type { FoundCandidate } from '../../shared/schema/index.ts';
+import { dismissFoundMany, isApiError, runJudge, undoFoundMany } from '../api/client.ts';
 import { queryKeys, useFound, useJudgeStatus, useProjects, useRepos, useSources } from '../api/queries.ts';
 import { EmptyFound } from '../found/EmptyFound.tsx';
 import { FoundCard, PROVENANCE_OF } from '../found/FoundCard.tsx';
 import { useDecide } from '../found/decide.ts';
+import { groupFound, scheduleLine } from '../found/judge.ts';
 import { Btn, FilterChip, PageTitle, PROVENANCE, useToast } from '../kit/index.ts';
 import { LoadError } from '../settings/common.tsx';
 
@@ -53,6 +58,8 @@ function Found() {
         Found
       </PageTitle>
 
+      {judgeOn && judge.data?.schedule && <JudgeLine status={judge.data} />}
+
       {!!counts?.all && (
         <div className="mt-7 flex flex-wrap items-center gap-2" role="group" aria-label="Show" data-testid="found-filters">
           <FilterChip on={!filter} onClick={() => setFilter(undefined)} label="Everything" count={counts.all} />
@@ -69,15 +76,154 @@ function Found() {
       ) : found.isPending ? (
         <div className="mt-10 text-[14px] text-faint">Loading…</div>
       ) : items.length === 0 ? (
-        <EmptyFound sources={sources.data} filtered={filter && counts?.all ? label(filter) : undefined} />
+        <EmptyFound sources={sources.data} filtered={filter && counts?.all ? label(filter) : undefined} judge={judgeOn ? judge.data! : null} />
       ) : (
-        <div className="mt-8 gap-8 lg:columns-2" data-testid="found-list">
-          {items.map((c) => (
-            <FoundCard key={c.id} c={c} projects={projectMap} repos={repoMap} busy={decide.isPending && decide.variables?.c.id === c.id} onDecide={(d) => decide.mutate({ c, d })} judgedEarlier={judgedEarlier} />
-          ))}
-        </div>
+        <FoundList
+          items={items}
+          projects={projectMap}
+          repos={repoMap}
+          decide={decide}
+          judgedEarlier={judgedEarlier}
+          judge={judge.data && judgeOn ? judge.data : null}
+        />
       )}
     </div>
+  );
+}
+
+type Decider = ReturnType<typeof useDecide>;
+
+/**
+ * The candidates: v0.1's list until any has a verdict, then the three groups. "Probably not" stays collapsed until you
+ * open it, and stays in Found until you dismiss it: there's no timer and no rule that empties it (SPEC R21).
+ */
+function FoundList({ items, projects, repos, decide, judgedEarlier, judge }: { items: FoundCandidate[]; projects: ReadonlyMap<string, ProjectEntry>; repos: ReadonlyMap<string, RepoEntry>; decide: Decider; judgedEarlier: string | null; judge: AiJudgeStatus | null }) {
+  const g = useMemo(() => groupFound(items), [items]);
+  const [openNo, setOpenNo] = useState(false);
+  const again = useJudgeAgain();
+  const running = !!judge?.running;
+  const kindOn = (c: FoundCandidate) => !!judge && ((c.source === 'screenshots' && judge.kinds.screenshots) || (c.source === 'github' && judge.kinds.github));
+  const card = (c: FoundCandidate) => (
+    <FoundCard
+      key={c.id}
+      c={c}
+      projects={projects}
+      repos={repos}
+      busy={decide.isPending && decide.variables?.c.id === c.id}
+      onDecide={(d) => decide.mutate({ c, d })}
+      judgedEarlier={judgedEarlier}
+      judge={kindOn(c) ? { again: () => again.mutate(c.id), busy: running || again.isPending } : null}
+    />
+  );
+  if (!g.grouped)
+    return (
+      <div className="mt-8 gap-8 lg:columns-2" data-testid="found-list">
+        {items.map(card)}
+      </div>
+    );
+  return (
+    <div className="mt-8 space-y-10" data-testid="found-list" data-grouped="true">
+      {g.wins.length > 0 && (
+        <section data-testid="found-group-wins" aria-label="Looks like a win">
+          <GroupTitle title="Looks like a win" count={g.wins.length} sub="The judge thinks these are worth keeping, surest first. Nothing is kept until you press Keep." />
+          <div className="mt-4 gap-8 lg:columns-2">{g.wins.map(card)}</div>
+        </section>
+      )}
+      {g.unjudged.length > 0 && (
+        <section data-testid="found-group-unjudged" aria-label="Not judged yet">
+          <GroupTitle title="Not judged yet" count={g.unjudged.length} />
+          <div className="mt-4 gap-8 lg:columns-2">{g.unjudged.map(card)}</div>
+        </section>
+      )}
+      {g.probablyNot.length > 0 && (
+        <section data-testid="found-group-no" aria-label="Probably not">
+          <div className="flex flex-wrap items-center gap-3">
+            <button type="button" onClick={() => setOpenNo((x) => !x)} aria-expanded={openNo} className="flex items-baseline gap-2 text-left" data-testid="found-group-no-toggle">
+              <h2 className="m-0 font-grotesk text-[20px] font-bold">Probably not</h2>
+              <span className="rounded-full bg-sunk px-2 text-[13px] font-semibold text-muted" data-testid="found-group-no-count">
+                {g.probablyNot.length}
+              </span>
+              <span className="text-[13px] font-semibold text-muted underline decoration-dotted underline-offset-2">{openNo ? 'Hide' : 'Show'}</span>
+            </button>
+            <DismissThese items={g.probablyNot} />
+          </div>
+          <p className="m-0 mt-1 text-[13px] text-muted">The judge doesn’t think these are wins. They stay here until you decide: it never dismisses anything.</p>
+          {openNo && <div className="mt-4 gap-8 lg:columns-2">{g.probablyNot.map(card)}</div>}
+        </section>
+      )}
+    </div>
+  );
+}
+
+function GroupTitle({ title, count, sub }: { title: string; count: number; sub?: string | undefined }) {
+  return (
+    <div>
+      <div className="flex items-baseline gap-2">
+        <h2 className="m-0 font-grotesk text-[20px] font-bold">{title}</h2>
+        <span className="rounded-full bg-sunk px-2 text-[13px] font-semibold text-muted">{count}</span>
+      </div>
+      {sub && <p className="m-0 mt-1 text-[13px] text-muted">{sub}</p>}
+    </div>
+  );
+}
+
+/** "Dismiss these N": every candidate in Probably not, in one request, with one Undo for them all. */
+function DismissThese({ items }: { items: FoundCandidate[] }) {
+  const qc = useQueryClient();
+  const toast = useToast();
+  const refresh = () => {
+    void qc.invalidateQueries({ queryKey: ['found'] });
+    void qc.invalidateQueries({ queryKey: queryKeys.judgeStatus });
+  };
+  const undo = useMutation({
+    mutationFn: undoFoundMany,
+    onSuccess: (r) => toast({ msg: r.skipped.length ? `Put ${r.done.length} back in Found; ${r.skipped.length} couldn’t be: ${r.skipped[0]!.message}` : `Put ${r.done.length} back in Found.` }),
+    onError: (e) => toast({ msg: isApiError(e) ? e.message : 'Couldn’t undo that. Is BragDoc still running?', tone: 'bad' }),
+    onSettled: refresh,
+  });
+  // one request holds at most what Undo can bring back (D56's 500); a longer group takes two presses
+  const batch = items.slice(0, 500);
+  const go = useMutation({
+    // only ones the judge still calls probably not: a Judge again since this list was drawn may have changed its mind
+    mutationFn: () => dismissFoundMany(batch.map((c) => c.id), 'probably-not'),
+    onSuccess: (r) => {
+      const n = r.done.length;
+      const left = r.skipped.length ? ` ${r.skipped.length === 1 ? 'One was' : `${r.skipped.length} were`} left: ${r.skipped[0]!.message}.` : '';
+      toast({ msg: `${n === 1 ? 'Dismissed it. It won’t' : `Dismissed ${n}. They won’t`} come back.${left}`, ...(n ? { undo: () => undo.mutate(r.done) } : {}) });
+    },
+    onError: (e) => toast({ msg: isApiError(e) ? e.message : 'Couldn’t dismiss those. Is BragDoc still running?', tone: 'bad' }),
+    onSettled: refresh,
+  });
+  return (
+    <Btn size="sm" kind="paper" onClick={() => go.mutate()} disabled={go.isPending || !items.length} data-testid="found-dismiss-these">
+      Dismiss {batch.length === 1 ? 'this one' : `these ${batch.length}`}
+    </Btn>
+  );
+}
+
+/** Judge again: one candidate, verdict or not (after you've changed your instructions, say). */
+function useJudgeAgain() {
+  const qc = useQueryClient();
+  const toast = useToast();
+  return useMutation({
+    mutationFn: (id: string) => runJudge([id]),
+    onSuccess: () => void qc.invalidateQueries({ queryKey: queryKeys.judgeStatus }),
+    onError: (e) => toast({ msg: `The judge couldn’t start: ${(e as Error).message}`, tone: 'bad' }),
+  });
+}
+
+/** One line about when the judge runs by itself (and why it isn't now), under the title. */
+function JudgeLine({ status }: { status: AiJudgeStatus }) {
+  const line = scheduleLine(status.schedule!);
+  if (!line) return null;
+  return (
+    <p className="m-0 mt-3 text-[13px] text-muted" data-testid="found-judge-line">
+      <span className="mr-1.5 text-[11px] font-bold uppercase tracking-[0.12em] text-faint">The judge</span>
+      {line}{' '}
+      <Link to="/settings/$tab" params={{ tab: 'ai' }} className="font-semibold underline decoration-dotted underline-offset-2 hover:text-ink">
+        Change
+      </Link>
+    </p>
   );
 }
 
