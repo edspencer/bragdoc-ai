@@ -103,7 +103,7 @@ test('Judge now puts the verdict on the card; with AI off it stays, marked "judg
   const card = page.getByTestId('found-card').filter({ hasText: QUOTE });
   await expect(card).toBeVisible();
   await expect(card.getByTestId('found-verdict')).toHaveCount(0);
-  await expect(card).toContainText('plain rules, no AI');
+  await expect(card).not.toContainText('AI off'); // AI is on here (PR23's footer)
   await page.getByTestId('judge-now').click();
   await expect(card.getByTestId('found-verdict-stamp')).toHaveText('Looks like a win · 86%', { timeout: 30_000 });
   await expect(card.getByTestId('found-verdict-why')).toHaveText('Specific praise for something the user did.');
@@ -121,6 +121,7 @@ test('Judge now puts the verdict on the card; with AI off it stays, marked "judg
   await expect(card.getByTestId('found-verdict-stamp')).toHaveText('Looks like a win · 86%');
   await expect(card.getByTestId('found-verdict-by')).toHaveText('judged by qwen3.5:4b on this computer · judged earlier (the judge is off now)');
   await expect(page.getByTestId('judge-now')).toHaveCount(0);
+  await expect(card).toContainText('plain rules · AI off');
   const refused = await api('POST', '/api/ai/judge/run', {});
   expect([refused.status, refused.body.error.code]).toEqual([409, 'ai_off']);
   expect(errors).toEqual([]);
