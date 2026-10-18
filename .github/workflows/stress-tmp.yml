@@ -10,7 +10,7 @@ jobs:
       fail-fast: false
       matrix:
         which: [old, new]
-        shard: [1, 2, 3]
+        shard: [1, 2, 3, 4]
     runs-on: macos-latest
     timeout-minutes: 50
     steps:
@@ -29,6 +29,6 @@ jobs:
             npm test > out.txt 2>&1 || true
             grep -q '^not ok .*hand edit is picked up live' out.txt && flaky=$((flaky+1))
             grep -E '^not ok' out.txt | grep -v 'hand edit is picked up live' && other=$((other+1))
-            grep -E '^# (pass|fail)' out.txt
+            grep -E "^# (pass|fail)" out.txt; grep -B2 -A12 "^not ok" out.txt | grep -E "not ok|error:|timed out|never saw" | head -8
           done
           echo "${{ matrix.which }} shard ${{ matrix.shard }}: instructions-watch failures=$flaky/4, runs with other failures=$other" | tee -a "$GITHUB_STEP_SUMMARY"
