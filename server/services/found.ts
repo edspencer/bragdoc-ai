@@ -17,7 +17,7 @@ import {
   VerdictSchema,
 } from '../../shared/schema/index.js';
 import { ulid } from '../../shared/ulid.js';
-import { ConflictError, keyHash, NotFoundError, type Store } from '../store/index.js';
+import { ConflictError, keyHash, NotFoundError, ValidationError, type Store } from '../store/index.js';
 import type { AchievementService } from './achievements.js';
 import { ATTACHABLE, type EvidenceService } from './evidence.js';
 import { defined, nowIso, today, validate, withEvidenceIds } from './util.js';
@@ -53,15 +53,44 @@ const DISMISSED_TITLE = 'Dismissed';
 /** How many dismissals can still be undone (the newest). */
 const UNDO_KEEP = 500;
 
+/** A decision, as `onDecided` listeners hear it: the candidate as it was just before (verdict included). */
+export interface FoundDecision {
+  before: FoundCandidate;
+  action: 'keep' | 'merge' | 'dismiss' | 'undo';
+}
+
+/** What a bulk dismiss or undo did (PR25): the ids it changed, and why it left the others. */
+export interface BulkResult {
+  done: string[];
+  skipped: { id: string; message: string }[];
+}
+
 export class FoundService {
   /** Dismissed candidates as they were, by id, for undo while this server runs (D56). */
   private dismissed = new Map<string, FoundCandidate>();
+  private listeners = new Set<(d: FoundDecision) => void>();
 
   constructor(
     private store: Store,
     private achievements: AchievementService,
     private evidence: EvidenceService,
   ) {}
+
+  /** Hear every keep, merge, dismiss and undo (the judge's agreement counts, PR25). Returns a function that stops it. */
+  onDecided(fn: (d: FoundDecision) => void): () => void {
+    this.listeners.add(fn);
+    return () => this.listeners.delete(fn);
+  }
+
+  private told(before: FoundCandidate, action: FoundDecision['action']): void {
+    for (const fn of this.listeners) {
+      try {
+        fn({ before, action });
+      } catch {
+        /* a listener's problem isn't the decision's */
+      }
+    }
+  }
 
   get(id: string): FoundCandidate {
     const f = this.store.get('found', id);
@@ -164,7 +193,8 @@ export class FoundService {
         body: o.body ?? f.body,
         happenedAt: o.happenedAt ?? f.happenedAt,
         impact: o.impact ?? f.impact,
-        projects: (o.projects ?? f.suggestedProjects).filter((p) => this.store.get('project', p)),
+        // the rules' suggestions and the judge's, as the card shows them (SPEC R21)
+        projects: (o.projects ?? [...new Set([...f.suggestedProjects, ...(f.verdict?.suggestedProjects ?? [])])]).filter((p) => this.store.get('project', p)),
         repos: (o.repos ?? f.suggestedRepos).filter((r) => this.store.get('repo', r)),
         evidence: [...f.evidence, ...files.evidence],
         source: SOURCE_FOR[f.source],
@@ -173,6 +203,7 @@ export class FoundService {
       }),
     );
     const candidate = this.decide(id, { action: 'keep', at: nowIso(this.store), achievementId: achievement.id });
+    this.told(f, 'keep');
     return { candidate, achievementId: achievement.id, missingFiles: files.missing };
   }
 
@@ -184,6 +215,7 @@ export class FoundService {
     this.pending(id);
     const { added } = this.achievements.addEvidence(achievementId, [...f.evidence, ...files.evidence]);
     const candidate = this.decide(id, { action: 'merge', at: nowIso(this.store), achievementId, evidenceIds: added });
+    this.told(f, 'merge');
     return { candidate, achievementId, missingFiles: files.missing };
   }
 
@@ -250,6 +282,36 @@ export class FoundService {
     this.dismissed.set(id, structuredClone(f));
     // the toast's Undo needs the last few, not every dismissal since the server started
     if (this.dismissed.size > UNDO_KEEP) this.dismissed.delete(this.dismissed.keys().next().value!);
+    this.told(f, 'dismiss');
+    return out;
+  }
+
+  /**
+   * "Dismiss these N" (PR25): each one as dismiss() would, one request. One that's no longer pending (or can't be
+   * written) is left and said; the rest still go. At most the undo memory's worth (D56), so Undo brings back them all.
+   */
+  dismissMany(ids: string[]): BulkResult {
+    if (ids.length > UNDO_KEEP) throw new ValidationError(`dismiss at most ${UNDO_KEEP} at once (so Undo can bring them all back)`);
+    return this.each(ids, (id) => this.dismiss(id));
+  }
+
+  /** Undo many decisions at once: Undo after "Dismiss these N". */
+  undoMany(ids: string[]): BulkResult {
+    if (ids.length > UNDO_KEEP) throw new ValidationError(`undo at most ${UNDO_KEEP} at once`);
+    return this.each(ids, (id) => this.undo(id));
+  }
+
+  private each(ids: string[], fn: (id: string) => unknown): BulkResult {
+    const out: BulkResult = { done: [], skipped: [] };
+    for (const id of new Set(ids)) {
+      try {
+        fn(id);
+        out.done.push(id);
+      } catch (e) {
+        if (!(e instanceof ConflictError || e instanceof NotFoundError)) throw e;
+        out.skipped.push({ id, message: e.message });
+      }
+    }
     return out;
   }
 
@@ -262,6 +324,7 @@ export class FoundService {
     const d = f.decision;
     if (f.status === 'pending' || !d) throw new ConflictError('there is nothing to undo: it is still pending');
     this.writable(id);
+    if (d.action !== 'dismiss' || this.dismissed.has(id)) this.told(f, 'undo');
     if (d.action === 'keep' && d.achievementId && this.store.get('achievement', d.achievementId)) this.achievements.remove(d.achievementId);
     if (d.action === 'merge' && d.achievementId && d.evidenceIds?.length && this.store.get('achievement', d.achievementId))
       this.achievements.removeEvidence(d.achievementId, d.evidenceIds);

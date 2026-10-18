@@ -2,12 +2,14 @@
 //   POST /api/ai/judge/run                   { ids? } → 202 AiJudgeRunResponse: judge what's waiting (or these ids
 //                                            again), in the background. 409 with a gate's code while AI or the judge
 //                                            is off (nothing is sent), or `running` while a run is in progress
-//   GET  /api/ai/judge/status                AiJudgeStatus: ready or why not, what's waiting, the run in progress, the last
+//   GET  /api/ai/judge/status                AiJudgeStatus: ready or why not, what's waiting, the run in progress, the last,
+//                                            and (PR25) the schedule (what holds a background run, the next one, the
+//                                            backoff, the power) and the agreement count
 //   GET  /api/ai/judge/preview?candidate=    AiJudgePreview: exactly what would be sent for one candidate; sends nothing
 // The judge only ever writes a pending candidate's `verdict`: never its status (SPEC R21).
 import type { Hono } from 'hono';
 import { z } from 'zod';
-import type { AiJudgeRunResponse } from '../../shared/api.js';
+import type { AiJudgeRunResponse, AiJudgeStatus } from '../../shared/api.js';
 import { AiError } from '../ai/errors.js';
 import { JudgeRunning, NotJudgeable } from '../ai/judge/index.js';
 import type { AppContext } from '../context.js';
@@ -38,7 +40,10 @@ export function registerAiJudge(app: Hono, ctx: AppContext): void {
     }
   });
 
-  app.get('/api/ai/judge/status', (c) => c.json(ctx.judge.status()));
+  app.get('/api/ai/judge/status', async (c) => {
+    await ctx.judgeSchedule.refreshPower(); // a reading at most 30 s old
+    return c.json({ ...ctx.judge.status(), schedule: ctx.judgeSchedule.status(), agreement: ctx.judgeStats.get() } satisfies AiJudgeStatus);
+  });
 
   app.get('/api/ai/judge/preview', async (c) => {
     const id = c.req.query('candidate');

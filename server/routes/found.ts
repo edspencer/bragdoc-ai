@@ -8,13 +8,15 @@
 //   POST /api/found/:id/merge     { achievementId } → FoundDecided
 //   POST /api/found/:id/dismiss   → FoundDecided
 //   POST /api/found/:id/undo      → FoundDecided (pending again)
+//   POST /api/found/dismiss       { ids } → FoundBulkResponse: "Dismiss these N" (PR25), at most 500 (D56's undo memory)
+//   POST /api/found/undo          { ids } → FoundBulkResponse: its Undo, all of them back
 //   GET  /api/found/:id/picture   a screenshot candidate's picture, read from where it is (it's only copied into
 //                                 evidence/ on keep): 404 `gone` if it was moved, deleted or replaced
 // GET /api/found/count (found-count.ts) is the nav badge's and the board strip's.
 import { createHash } from 'node:crypto';
 import fs from 'node:fs';
-import type { Hono } from 'hono';
-import type { FoundDecided, FoundListResponse } from '../../shared/api.js';
+import type { Context, Hono } from 'hono';
+import type { FoundBulkResponse, FoundDecided, FoundListResponse } from '../../shared/api.js';
 import { FOUND_SOURCES, type FoundCandidate, type FoundSource } from '../../shared/schema/index.js';
 import type { AppContext } from '../context.js';
 import { apiError, handle, jsonBody } from '../http.js';
@@ -83,4 +85,16 @@ export function registerFound(app: Hono, ctx: AppContext): void {
   app.post('/api/found/:id/dismiss', (c) => handle(c, () => ({ candidate: svc().dismiss(c.req.param('id')) }) satisfies FoundDecided<FoundCandidate>));
 
   app.post('/api/found/:id/undo', (c) => handle(c, () => ({ candidate: svc().undo(c.req.param('id')) }) satisfies FoundDecided<FoundCandidate>));
+
+  // many at once: the "Probably not" group's Dismiss these N, and its Undo. Each id as the one-at-a-time route would do
+  // it; one decided meanwhile is skipped and said, never an error for the rest
+  const bulk = (fn: (ids: string[]) => FoundBulkResponse) => async (c: Context) =>
+    handle(c, async () => {
+      const b = (await jsonBody(c.req)) as { ids?: unknown } | undefined;
+      if (!b || !Array.isArray(b.ids) || !b.ids.length || b.ids.some((x) => typeof x !== 'string' || !x || x.length > 64) || Object.keys(b).some((k) => k !== 'ids'))
+        throw new ValidationError('send { "ids": ["<id>", …] }: the candidates', [{ key: 'ids', message: 'a list of ids' }]);
+      return fn(b.ids as string[]) satisfies FoundBulkResponse;
+    });
+  app.post('/api/found/dismiss', bulk((ids) => svc().dismissMany(ids)));
+  app.post('/api/found/undo', bulk((ids) => svc().undoMany(ids)));
 }
