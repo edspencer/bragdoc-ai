@@ -1,0 +1,48 @@
+/* Folio's print stylesheet: printing the Folio page prints the folio sheet and nothing else (no header, filters or
+   clippings), in black on white whatever the theme, without the sheet's tilt and shadow, and with links showing where
+   they go (paper can't be clicked). */
+
+/* a long clippings list stays smooth: rows off screen skip layout and paint until they scroll near */
+.folio-clip {
+  content-visibility: auto;
+  contain-intrinsic-size: auto 76px;
+}
+
+@media print {
+  @page {
+    margin: 16mm 14mm;
+  }
+  html,
+  body {
+    background: #fff !important;
+  }
+  /* everything that neither holds the sheet nor is inside it goes; what holds it lays out as plain blocks */
+  body *:not(:has(.folio-sheet)):not(.folio-sheet):not(.folio-sheet *) {
+    display: none !important;
+  }
+  body :has(.folio-sheet) {
+    display: block !important;
+    position: static !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    max-width: none !important;
+    width: auto !important;
+    box-shadow: none !important;
+    background: none !important;
+  }
+  .folio-sheet {
+    rotate: none !important;
+    box-shadow: none !important;
+    background: #fff !important;
+    color: #000 !important;
+    padding: 0 !important;
+  }
+  .folio-clip-top {
+    display: none;
+  }
+  .folio-sheet a[href]::after {
+    content: ' (' attr(href) ')';
+    font-size: 0.85em;
+    word-break: break-all;
+  }
+}

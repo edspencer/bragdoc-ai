@@ -471,3 +471,54 @@ export interface ImportReport {
   /** The snapshot taken before importing (`backups/<name>`); null in a dry run, or when there was nothing to snapshot. */
   snapshot: string | null;
 }
+
+// ---------------------------------------------------------------- Folio (PR14): GET /api/folio
+// The window's achievements cut down to what a folio may show (D55): shared/folio.ts makes them (toClipping) and turns
+// them into the document.
+
+/** Evidence as a folio shows it: already safe to put in a document that leaves this machine. */
+export type FolioEvidence =
+  | { kind: 'github_pr'; ref: string; url?: string; title?: string }
+  | { kind: 'url'; url?: string; domain?: string; title?: string }
+  | { kind: 'quote'; text: string; from?: string; where?: string }
+  | { kind: 'image' | 'pdf' | 'file'; name?: string };
+
+/** One achievement, cut out for the folio. `id` is for the page's include/exclude only; it never reaches the document. */
+export interface FolioItem {
+  id: string;
+  title: string;
+  summary?: string;
+  /** YYYY-MM-DD */
+  happenedAt: string;
+  endedAt?: string;
+  impact?: number;
+  /** Project ids, existing ones only (a dangling reference is dropped, as if it weren't there). */
+  projects: string[];
+  /** Its own company, else none (projects carry theirs). Existing companies only. */
+  companyId?: string;
+  evidence: FolioEvidence[];
+}
+
+export interface FolioProject {
+  id: string;
+  name: string;
+  color: string;
+  companyId: string | null;
+}
+
+export interface FolioCompany {
+  id: string;
+  name: string;
+}
+
+/** `GET /api/folio?from=YYYY-MM-DD&to=YYYY-MM-DD`: the window's achievements (archived ones left out), newest first. */
+export interface FolioResponse {
+  from: string;
+  to: string;
+  /** The profile's name, for the document's heading; null before onboarding. */
+  author: string | null;
+  items: FolioItem[];
+  /** Every project and company (so a filter in the URL still has a name when nothing in the window uses it). */
+  projects: FolioProject[];
+  companies: FolioCompany[];
+}
