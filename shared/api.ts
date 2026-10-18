@@ -1210,6 +1210,100 @@ export interface AiTidyPreview {
   readiness: AiFeatureReadiness;
 }
 
+// ---------------------------------------------------------------- Folio "Draft with AI" (PR27)
+//
+// A review draft from exactly what a folio shows (SPEC R24, D80–D81). The page sends the folio's state, never its text:
+// the server rebuilds the clippings with the same functions as GET /api/folio (shared/folio.ts). Nothing is written to
+// the data home. Routes: server/routes/ai-draft.ts.
+
+/** The folio's state, as the page holds it (shared/folio.ts FolioFilter, restated: this file has no imports). */
+export interface AiDraftFolio {
+  from: string;
+  to: string;
+  projects: string[];
+  company?: string;
+  minImpact: number;
+  exclude: string[];
+  group: 'project' | 'month' | 'week';
+}
+
+/** `POST /api/ai/draft`: draft from this folio. `purpose` is the "What's this for?" note (up to 300 characters). */
+export interface AiDraftRequest {
+  folio: AiDraftFolio;
+  purpose?: string;
+}
+
+/** One flag on a draft: the line it's on (1-based, in the draft as checked) and what was found there. */
+export interface AiDraftFlag {
+  line: number;
+  text: string;
+}
+
+/**
+ * What the check found (`POST /api/ai/draft/check`, and the end of every draft). Each is a suggestion to look, not an
+ * error: `ungrounded` facts (numbers, dates, names) in none of the clippings that line cites; `uncited` bullets;
+ * `filler` phrases; `badCitations`, a `[n]` with no clipping n.
+ */
+export interface AiDraftCheck {
+  ungrounded: AiDraftFlag[];
+  uncited: AiDraftFlag[];
+  filler: AiDraftFlag[];
+  badCitations: AiDraftFlag[];
+}
+
+/**
+ * `POST /api/ai/draft/check`: check an (edited) draft against the clippings it was made from. `cited`: the draft's own
+ * numbering (its `start` line's ids, in [n] order), so [3] keeps meaning what it meant even if the store or the model
+ * changed since; without it, the folio's clippings as a draft would number them now.
+ */
+export interface AiDraftCheckRequest {
+  draft: string;
+  folio: AiDraftFolio;
+  purpose?: string;
+  cited?: string[];
+}
+
+/** Which achievement each `[n]` is, for the page's links back to its clippings. Ids never reach the model. */
+export interface AiDraftCited {
+  n: number;
+  id: string;
+  title: string;
+}
+
+/**
+ * One line of `POST /api/ai/draft`'s answer (application/x-ndjson): `start`, then `text` as it arrives, then one
+ * `done`. A refusal before anything is sent (a gate, an empty folio) is a plain JSON error instead.
+ */
+export type AiDraftEvent =
+  | {
+      type: 'start';
+      model: string;
+      connection: string;
+      where: AiWhere;
+      /** How many clippings were sent, and how many lower-impact ones were left out to fit the model's context. */
+      sent: number;
+      omitted: number;
+      cited: AiDraftCited[];
+      /** Calls ahead of this one on the same connection (a busy local runner). */
+      ahead: number;
+      /** "How I write" was cut short to leave room for the clippings. */
+      styleCut: boolean;
+    }
+  | { type: 'text'; text: string }
+  | { type: 'done'; ok: true; ms: number; tokensIn: number | null; tokensOut: number | null; check: AiDraftCheck }
+  | { type: 'done'; ok: false; error: { code: AiErrorCode | AiGateCode; message: string } };
+
+/** `GET /api/ai/draft/preview` (optionally with a folio's URL params): exactly what a draft sends. */
+export interface AiDraftPreview {
+  system: string;
+  prompt: string;
+  /** Null for the template (no folio given): the clippings' place is marked. */
+  sent: number | null;
+  omitted: number | null;
+  /** The input budget, in estimated tokens, and the room left for the answer. */
+  budget: { inputTokens: number; answerTokens: number; contextTokens: number } | null;
+}
+
 // ---------------------------------------------------------------- AI judge (PR24)
 //
 // The Found judge's engine (SPEC R21, D72–D74): it fills a pending candidate's `verdict`, never its status. Runs are

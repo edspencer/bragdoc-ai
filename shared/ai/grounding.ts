@@ -140,11 +140,25 @@ function containsWord(hay: string, needle: string): boolean {
   return false;
 }
 
-/** The distinct facts (numbers, amounts, dates, capitalised names) in `output` found in none of `sources`, in order. */
-export function ungrounded(output: string, sources: string | string[]): string[] {
+/** Sources made ready once, for checking many outputs against them (a draft's lines): normalised text and fact keys. */
+export interface GroundingIndex {
+  haystacks: string[];
+  keys: Set<string>;
+}
+
+export function groundingIndex(sources: string | string[]): GroundingIndex {
   const texts = (Array.isArray(sources) ? sources : [sources]).map((s) => clean(s));
-  const haystacks = texts.map((s) => normaliseForMatch(s));
-  const keys = new Set(texts.flatMap((s) => [...dates(s), ...numbers(s)].flatMap((f) => f.keys)));
+  return { haystacks: texts.map((s) => normaliseForMatch(s)), keys: new Set(texts.flatMap((s) => [...dates(s), ...numbers(s)].flatMap((f) => f.keys))) };
+}
+
+/** Several indexes as one (a line's cited clippings plus the shared context), without re-reading any source. */
+export function joinIndexes(...ix: GroundingIndex[]): GroundingIndex {
+  return { haystacks: ix.flatMap((i) => i.haystacks), keys: new Set(ix.flatMap((i) => [...i.keys])) };
+}
+
+/** The distinct facts (numbers, amounts, dates, capitalised names) in `output` found in none of `sources`, in order. */
+export function ungrounded(output: string, sources: string | string[] | GroundingIndex): string[] {
+  const { haystacks, keys } = typeof sources === 'object' && !Array.isArray(sources) ? sources : groundingIndex(sources);
   const appears = (fact: string) => haystacks.some((h) => containsWord(h, normaliseForMatch(fact)));
 
   const text = clean(output);

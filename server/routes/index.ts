@@ -14,6 +14,7 @@ import type { AppContext } from '../context.js';
 import { registerAchievements } from './achievements.js';
 import { registerAi } from './ai.js';
 import { registerAiActivity } from './ai-activity.js';
+import { registerAiDraft } from './ai-draft.js';
 import { registerAiInstructions } from './ai-instructions.js';
 import { registerAiJudge } from './ai-judge.js';
 import { registerAiLocal } from './ai-local.js';
@@ -45,6 +46,7 @@ export function registerRoutes(app: Hono, ctx: AppContext): void {
   registerAchievements(app, ctx);
   registerAi(app, ctx);
   registerAiActivity(app, ctx);
+  registerAiDraft(app, ctx);
   registerAiInstructions(app, ctx);
   registerAiJudge(app, ctx);
   registerAiLocal(app, ctx);

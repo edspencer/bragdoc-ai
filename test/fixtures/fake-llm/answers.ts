@@ -62,11 +62,46 @@ export const ANSWERS: AnswerRule[] = [
   // sarcastic trap a small model falls for: praise words, aimed at you, meant the other way)
   { name: 'judge-pr', when: (r) => r.json && (r.schemaName === 'found_judge_pr' || asks(r, 'keep', 'impact') || /Is this pull request notable/.test(r.prompt)), answer: (r) => judgePr(r.prompt) },
   { name: 'judge', when: (r) => r.json && (r.schemaName === 'found_judge' || asks(r, 'keep', 'quote', 'why') || /Is the message to judge a win/.test(r.prompt)), answer: (r) => judgeMessage(r.prompt) },
+  // Folio's Draft with AI (PR27): a draft made from the prompt's own clippings, best first, citing each, plus the two
+  // mistakes the check must catch: one bullet with no citation, and one planted number ("by 37%") no clipping has.
+  // A note containing "(clean)" leaves both out.
+  { name: 'draft', when: (r) => !r.json && /^You draft the achievements section/.test(r.system), answer: (r) => fakeDraft(r.prompt) },
   // ---- feature rows go above this line ----
   { name: 'schema', when: (r) => r.json && !!r.schema, answer: (r) => synthesize(r.schema!, r.schema!) },
   { name: 'json', when: (r) => r.json, answer: () => ({ answer: FALLBACK_TEXT }) },
   { name: 'text', when: () => true, answer: () => FALLBACK_TEXT },
 ];
+
+/** The fake's draft: the clippings in the prompt grouped by project, each a bullet citing it. */
+function fakeDraft(prompt: string): string {
+  const block = /<<<CLIPPINGS\n([\s\S]*?)\nCLIPPINGS>>>/.exec(prompt)?.[1] ?? '';
+  const clips = block
+    .split(/\n\n(?=\[\d+\] )/)
+    .map((c) => {
+      const m = /^\[(\d+)\] (.*)$/m.exec(c);
+      const project = /^Project: ([^(\n]*?)(?: \(|$)/m.exec(c)?.[1]?.trim() ?? 'Other work';
+      return m ? { n: Number(m[1]), title: m[2]!.trim(), project } : null;
+    })
+    .filter((c): c is { n: number; title: string; project: string } => !!c);
+  if (!clips.length) return 'There was nothing to draft from.';
+  const clean = /\(clean\)/.test(prompt);
+  const groups = new Map<string, typeof clips>();
+  for (const c of clips) groups.set(c.project, [...(groups.get(c.project) ?? []), c]);
+  const out = [`This period was mostly about ${[...groups.keys()].slice(0, 2).join(' and ')}. This draft came from the fake model server, not a real model.`];
+  let planted = clean;
+  for (const [project, cs] of groups) {
+    out.push('', `## ${project}`, '');
+    for (const c of cs) {
+      const lower = c.title.charAt(0).toLowerCase() + c.title.slice(1);
+      if (!planted) {
+        out.push(`- I ${lower}, cutting review time by 37% [${c.n}]`);
+        planted = true;
+      } else out.push(`- I ${lower} [${c.n}]`);
+    }
+  }
+  if (!clean) out.push('', '## Also', '', '- I helped wherever I was needed');
+  return `${out.join('\n')}\n`;
+}
 
 /** The judge's fake opinion of the message to judge in the material (server/ai/judge/input.ts's layout). */
 function judgeMessage(prompt: string) {
