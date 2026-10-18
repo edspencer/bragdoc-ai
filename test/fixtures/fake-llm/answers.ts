@@ -72,7 +72,7 @@ function lastLine(prompt: string): string {
 /** The fake's tidy (PR26), from the prompt alone: deterministic, and only the material's own words unless planted. */
 export function tidyAnswer(prompt: string): Record<string, unknown> {
   const material = /<<<MATERIAL\n([\s\S]*?)\nMATERIAL>>>/.exec(prompt)?.[1] ?? '';
-  const today = /Today is (\d{4}-\d{2}-\d{2})/.exec(prompt)?.[1] ?? '2026-01-01';
+  const today = /Today is (?:\w+ )?(\d{4}-\d{2}-\d{2})/.exec(prompt)?.[1] ?? '2026-01-01';
   const projects = [.../Their projects: (.*)\.\n/.exec(prompt)?.[1]?.matchAll(/"([^"]+)"/g) ?? []].map((m) => m[1]!);
   // each part (and line) a sentence of its own, so an achievement's title and summary don't run together
   const text = material

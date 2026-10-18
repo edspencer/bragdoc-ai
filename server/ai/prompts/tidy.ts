@@ -77,7 +77,7 @@ Rules:
 - The title is one line saying what they did, at most 90 characters, with no full stop.
 - The summary is one or two sentences, at most 280 characters: what they did and what came of it, if the material says.
 - The body is optional markdown (at most 1,500 characters) for detail worth keeping that doesn't fit the summary. Usually leave it null.
-- Dates: give happenedAt (YYYY-MM-DD) only if the material states the date, or says something like "yesterday" or "last Tuesday" that you can work out from today's date. Give endedAt only for work stated to span a period. Otherwise null.
+- Dates: give happenedAt (YYYY-MM-DD) only if the material states the date, or says something like "yesterday", "this morning" or "on Tuesday" that you can work out from today's date: if today is Saturday 2026-10-17, "yesterday" is 2026-10-16 and "on Tuesday" is 2026-10-13. Give endedAt only for work stated to span a period. Otherwise null.
 - Impact is 1 to 10 on the scale below, with impactWhy: one short line on why, from what the material says. If you can't tell, null for both.
 - Projects: name only projects from their list that the material is clearly about, spelled exactly as listed. None is fine.
 - Praise someone else wrote about them is still their achievement: say what they did, not what was said.
@@ -88,11 +88,13 @@ Rules:
 The impact scale:
 ${scale}`;
 
+const weekday = (iso: string) => ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'][new Date(`${iso}T00:00:00Z`).getUTCDay()];
+
 /** The system prompt and the user prompt for one tidy. */
 export function tidyPrompt(input: TidyPromptInput): { system: string; prompt: string } {
   const who = input.name?.trim() ? `${input.name.trim()}${input.role?.trim() ? `, ${input.role.trim()}` : ''}` : null;
   const lines = [
-    `Today is ${input.today}.`,
+    `Today is ${weekday(input.today)} ${input.today}.`,
     who ? `The person is ${who}. "I", "me" and their name in the material are them.` : 'The person wrote or pasted this about their own work.',
     input.projects.length ? `Their projects: ${input.projects.map((p) => `"${p}"`).join(', ')}.` : 'They have no projects yet: leave projects empty.',
   ];

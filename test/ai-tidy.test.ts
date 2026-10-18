@@ -52,7 +52,7 @@ const answer = (over: Partial<TidyAnswer> = {}): TidyAnswer => ({ title: 'Moved 
 test('the prompt: the material delimited as data, today, who, projects by name, the style; never ids, paths or URLs', () => {
   const { system, prompt } = tidyPrompt({ text: tidyMaterial([{ label: 'pasted', text: 'shipped the importer yesterday' }]), today: '2026-10-17', name: 'Alex Marlowe', role: 'Staff engineer', projects: ['Atlas Migration', 'Quill'], style: 'Short titles. British spelling.' });
   assert.equal(system, TIDY_SYSTEM);
-  assert.match(prompt, /^Today is 2026-10-17\./);
+  assert.match(prompt, /^Today is Saturday 2026-10-17\./);
   assert.match(prompt, /Alex Marlowe, Staff engineer/);
   assert.match(prompt, /Their projects: "Atlas Migration", "Quill"\./);
   assert.match(prompt, /Short titles\. British spelling\./);
@@ -375,5 +375,5 @@ test("the day: the browser's within two days, else the server's; a bad time zone
   assert.match(localToday(new Date(), 'Not/AZone'), /^\d{4}-\d{2}-\d{2}$/);
   const { h } = setup();
   await tidy(h, { text: 'shipped it yesterday', today: '2001-01-02' });
-  assert.match(lastPrompt(), new RegExp(`^Today is ${localToday(new Date())}\\.`));
+  assert.match(lastPrompt(), new RegExp(`^Today is \\w+ ${localToday(new Date())}\\.`));
 });
