@@ -146,7 +146,7 @@ test('lengths, nulls, impact and projects: clipped, cleaned, clamped, and mapped
 // ---------------------------------------------------------------- the route
 
 const tidy = (h: AiHome, body: unknown) => h.req('POST', '/api/ai/tidy', body);
-const lastPrompt = () => fake.requests.at(-1)!.body.messages.at(-1).content as string;
+const lastPrompt = () => (fake.requests.at(-1)!.body as { messages: { content: string }[] }).messages.at(-1)!.content;
 
 test('AI off, or tidy off: 409 ai_off, before anything is read or sent, and no network log line', async () => {
   const { h } = setup({ ...on(), enabled: false });
@@ -172,9 +172,9 @@ test('a paste: one call through egress to the fake, a grounded suggestion, proje
   assert.deepEqual(r.body.ungrounded, {});
   assert.deepEqual([r.body.model, r.body.where], ['qwen3.5:4b', 'this-computer']);
   // the request asked for the tidy schema, by name, with thinking off
-  const sent = fake.requests.at(-1)!;
-  assert.equal(sent.body.think, false);
-  assert.ok(sent.body.format?.properties?.notAnAchievement, 'the schema was sent');
+  const sent = fake.requests.at(-1)!.body as { think?: boolean; format?: { properties?: Record<string, unknown> } };
+  assert.equal(sent.think, false);
+  assert.ok(sent.format?.properties?.notAnAchievement, 'the schema was sent');
   // the prompt has project names and the user, never an id or a path
   const prompt = lastPrompt();
   assert.match(prompt, /"Atlas Migration", "Quill"/);

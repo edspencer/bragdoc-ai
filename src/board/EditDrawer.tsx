@@ -6,7 +6,7 @@
 // the save is refused with a 409 and the drawer offers to load the new version rather than overwrite it.
 import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { Archive, ArchiveRestore, Link2, Loader2, Paperclip, Quote, Trash2, X } from 'lucide-react';
-import type { EvidenceFile, ProjectEntry as Project, RepoEntry as Repo } from '../../shared/api.ts';
+import type { AiTidyResponse, EvidenceFile, ProjectEntry as Project, RepoEntry as Repo } from '../../shared/api.ts';
 import { isHttpUrl } from '../../shared/links.ts';
 import type { AchievementUpdate, Evidence, EvidenceInput } from '../../shared/schema/index.ts';
 import { NETWORK_ERROR, isApiError, previewLink, updateAchievement, uploadEvidence, type AchievementItem } from '../api/client.ts';
@@ -14,6 +14,8 @@ import { Btn, Field, TextArea, TextInput, inputCls, useToast } from '../kit/inde
 import { MAX_UPLOAD_BYTES, linkEvidence, localPreview } from './composer.ts';
 import { describe } from './evidence.ts';
 import { ImpactPicker, ProjectPicker, RepoPicker } from './pickers.tsx';
+import { TidyButton, TidySheet, TidyStatus } from './TidySheet.tsx';
+import { useTidy, useTidyAvailability, type TidyKey } from './tidy.ts';
 
 interface Draft {
   title: string;
@@ -76,6 +78,25 @@ export function EditDrawer({
   const fileRef = useRef<HTMLInputElement>(null);
   const editable = !base.broken && !base.readOnly;
   const set = <K extends keyof Draft>(k: K, v: Draft[K]) => setD((x) => ({ ...x, [k]: v }));
+  // Tidy this up (v0.2): only while AI and Tidy are on. It reads the achievement as saved, and changes only these
+  // fields: your notes stay, under a suggested body (D78); nothing is saved until Save
+  const avail = useTidyAvailability();
+  const tidy = useTidy();
+  const saved = draftOf(base);
+  const unsaved = d.title !== saved.title || d.summary !== saved.summary || d.body !== saved.body;
+  const applyTidy = (keys: TidyKey[], r: AiTidyResponse) => {
+    const s = r.suggestion;
+    setD((x) => ({
+      ...x,
+      ...(keys.includes('title') && s.title ? { title: s.title } : {}),
+      ...(keys.includes('summary') && s.summary ? { summary: s.summary } : {}),
+      ...(keys.includes('body') && s.body ? { body: x.body.trim() ? `${s.body}\n\n${x.body}` : s.body } : {}),
+      ...(keys.includes('dates') && s.happenedAt ? { happenedAt: s.happenedAt, endedAt: s.endedAt ?? '' } : {}),
+      ...(keys.includes('impact') && s.impact !== null ? { impact: s.impact } : {}),
+      ...(keys.includes('projects') ? { projects: [...new Set([...x.projects, ...s.suggestedProjects])] } : {}),
+    }));
+    tidy.markUsed(keys);
+  };
 
   useEffect(() => {
     const dlg = ref.current;
@@ -221,6 +242,17 @@ export function EditDrawer({
             </div>
           </div>
         )}
+
+        {avail.show && (
+          <div className="mt-3" data-testid="edit-tidy-area">
+            <div className="flex flex-wrap items-center gap-2">
+              <TidyButton avail={avail} tidy={tidy} can={editable && !saving} onTidy={() => void tidy.run({ achievementId: base.id }, avail.label)} testId="edit-tidy" />
+              {unsaved && avail.ready && <span className="text-[11.5px] text-faint">It reads this as last saved.</span>}
+            </div>
+            <TidyStatus tidy={tidy} />
+          </div>
+        )}
+        <TidySheet tidy={tidy} projects={projects} inert={avail.show ? null : 'AI or Tidy was switched off, so this suggestion can’t be used now. Nothing was changed.'} saveLabel="Save" onUse={applyTidy} />
 
         <fieldset disabled={!editable || saving} className="m-0 mt-4 space-y-4 border-0 p-0">
           <Field label="Title">
