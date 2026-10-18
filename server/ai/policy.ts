@@ -7,7 +7,7 @@
 // - `no_model`: no model chosen for it, or the connection it names is gone or has no address;
 // - `not_consented`: a cloud connection (by host: shared/ai/hosts.ts) without current consent;
 // - `no_key`: a kind that needs a key has none.
-import { baseUrlOf, isCloud, KEY_REQUIRED, keyOwner, type AiCallFeature, type AiConnectionConfig, type AiFeature } from '../../shared/ai/connections.js';
+import { baseUrlOf, decisionOnly, isCloud, KEY_REQUIRED, keyOwner, type AiCallFeature, type AiConnectionConfig, type AiFeature } from '../../shared/ai/connections.js';
 import { consentCurrent } from '../../shared/ai/consent.js';
 import { hostClass } from '../../shared/ai/hosts.js';
 import type { Config } from '../config.js';
@@ -109,6 +109,9 @@ export function featureGate(config: Config, feature: AiCallFeature, slot: Slot |
   if ((feature === 'judge' || feature === 'tidy' || feature === 'draft') && !config.ai.features[feature].enabled)
     return { code: 'ai_off', message: `${feature} is off (Settings → AI).` };
   if (!slot) return { code: 'no_model', message: 'no model is chosen (Settings → AI).' };
+  // Jev answers typed decisions, not text: it can judge, and be tested, and nothing else (D82)
+  if (decisionOnly(config.ai.connections[slot.connection]?.kind) && feature !== 'judge' && feature !== 'test')
+    return { code: 'no_model', message: `${slot.connection} is Jev, which only judges Found candidates: choose another model for ${feature} (Settings → AI).` };
   return connectionGate(config, slot.connection, opts);
 }
 

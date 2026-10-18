@@ -7,6 +7,7 @@
 import { useEffect, useState } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import type { AiJudgeSettings, AiJudgeStatus, AiStatus } from '../../../shared/api.ts';
+import { decisionOnly, JEV_MODEL } from '../../../shared/ai/connections.ts';
 import { HOST_CLASS_LABEL } from '../../../shared/ai/hosts.ts';
 import { isApiError, putAiFeature, putAiInstructions, resetAiInstructions, runJudge } from '../../api/client.ts';
 import { queryKeys, useAiInstructions, useAiModels, useFound, useJudgeStatus } from '../../api/queries.ts';
@@ -340,7 +341,8 @@ function ModelChoice({ status, own, saving, onSave }: { status: FeatureCardProps
   const [connection, setConnection] = useState(status.connections[0]?.id ?? '');
   const [model, setModel] = useState('');
   const c = status.connections.find((x) => x.id === connection);
-  const models = useAiModels(c?.id ?? '-', c?.baseUrl ?? null, open && !!c && !c.blocked && !c.cloud);
+  const jev = decisionOnly(c?.kind);
+  const models = useAiModels(c?.id ?? '-', c?.baseUrl ?? null, open && !!c && !c.blocked && !c.cloud && !jev);
   const known = models.data?.models.map((m) => m.name) ?? [];
   return (
     <>
@@ -362,20 +364,26 @@ function ModelChoice({ status, own, saving, onSave }: { status: FeatureCardProps
             <select value={connection} onChange={(e) => setConnection(e.target.value)} className={`${inputCls} w-auto py-1 text-[13px]`} aria-label="Connection">
               {status.connections.map((x) => (
                 <option key={x.id} value={x.id}>
-                  {connectionName(x)}
+                  {decisionOnly(x.kind) ? 'Jev (cloud)' : connectionName(x)}
                 </option>
               ))}
             </select>
+            {jev ? (
+              // Jev has one model, and answers with a probability only (D82)
+              <span className="font-mono text-[13px]">{JEV_MODEL}</span>
+            ) : (
             <input value={model} onChange={(e) => setModel(e.target.value)} placeholder="model, e.g. qwen3.5:4b" aria-label="Model" list="ai-judge-models" className={`${inputCls} w-48 py-1 font-mono text-[13px]`} />
+            )}
             <datalist id="ai-judge-models">
               {known.map((m) => (
                 <option key={m} value={m} />
               ))}
             </datalist>
-            <Btn size="sm" kind="go" onClick={() => (onSave({ connection, model: model.trim() }), setOpen(false))} disabled={!connection || !model.trim() || saving}>
+            <Btn size="sm" kind="go" onClick={() => (onSave({ connection, model: jev ? JEV_MODEL : model.trim() }), setOpen(false))} disabled={!connection || (!jev && !model.trim()) || saving}>
               Use for the judge
             </Btn>
-            {!!model.trim() && models.isSuccess && !known.includes(model.trim()) && <span className="basis-full text-[12px] text-warn">{connectionName(c!)} doesn’t list “{model.trim()}”: check the name, or a run will say the model is missing.</span>}
+            {jev && <span className="basis-full text-[12px] text-muted">Jev answers with a probability only: Found shows how sure it is, with no reason.</span>}
+            {!jev && !!model.trim() && models.isSuccess && !known.includes(model.trim()) && <span className="basis-full text-[12px] text-warn">{connectionName(c!)} doesn’t list “{model.trim()}”: check the name, or a run will say the model is missing.</span>}
           </div>
         ))}
     </>

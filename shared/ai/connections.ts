@@ -56,6 +56,17 @@ export const KEY_REQUIRED: readonly AiKind[] = ['anthropic', 'openai', 'openrout
 
 /** The context size a local connection is budgeted against when it doesn't say (SPEC R20). */
 export const DEFAULT_CONTEXT_TOKENS = 8192;
+
+/**
+ * Kinds that answer typed decisions (yes or no as a probability, a choice), not text: Jev. Such a connection can be
+ * the judge's model and nothing else (D82): never the text slot, Tidy's or Draft's.
+ */
+export const decisionOnly = (kind: AiKind | undefined): boolean => kind === 'jev';
+
+/** Jev's one model, at OpenRouter's `/systemone` endpoint (not `typesafe/jev-router`, a chat model; D82). */
+export const JEV_MODEL = 'typesafe/jev-1.14';
+/** Jev's models (`typesafe/jev-1.14`, a later `typesafe/jev-1.15`); never `typesafe/jev-router`. */
+export const isJevModel = (model: string | undefined): boolean => /^typesafe\/jev-\d[\w.-]*$/.test(model ?? '');
 /** A cloud model's budget (SPEC R24). */
 export const CLOUD_CONTEXT_TOKENS = 30_000;
 

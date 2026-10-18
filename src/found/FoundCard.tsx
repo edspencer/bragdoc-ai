@@ -8,6 +8,7 @@
 // prototype's FoundCard (Found.tsx), without its Slack body.
 import { useState } from 'react';
 import type { ProjectEntry, RepoEntry } from '../../shared/api.ts';
+import { probabilityOnly } from '../../shared/judge.ts';
 import type { FoundCandidate, Verdict } from '../../shared/schema/index.ts';
 import { foundPictureUrl } from '../api/client.ts';
 import { useAiState } from '../api/queries.ts';
@@ -212,9 +213,9 @@ function VerdictNote({ v, rulesQuote, earlier }: { v: Verdict; rulesQuote: strin
         </div>
       )}
       {!v.why && (
-        // a judge that answers with a probability alone (Jev, PR28) gives no reason: say so rather than leave a gap
+        // a judge that answers with a probability alone (Jev, D82) gives no reason: say so rather than leave a gap
         <p className="m-0 text-[13px] text-muted" data-testid="found-verdict-no-why">
-          No reason given: this judge answers only with how sure it is.
+          {probabilityOnly(v) ? 'Jev answers with a probability only: no reason, no quote.' : 'No reason given: this judge answered only with how sure it is.'}
         </p>
       )}
       {otherQuote && (

@@ -611,6 +611,25 @@ PR25 added **when the judge runs, and Found's verdicts** (SPEC R21, R22; D75–D
   `src/settings/ai/JudgeCard.tsx`. **For PR28:** a verdict without `why` already reads "answers only with how sure it
   is"; the card's model picker lists every connection, so filter a decision-only one out of the other pickers there.
 
+PR28 added **Jev as the judge's model** (SPEC R25; D82):
+
+- **A `jev` connection** goes through an OpenRouter one (`via`: its key), with **its own consent** (statement v2).
+  `decisionOnly(kind)` (`shared/ai/connections.ts`): it's the judge's model only, never the text slot, Tidy's or
+  Draft's (the routes refuse it, and the `no_model` gate catches a hand edit). Its model is `JEV_MODEL`
+  (`typesafe/jev-1.14`; never `typesafe/jev-router`).
+- **`ctx.ai.decide({ feature, purpose, state, questions, … })`** (run.ts): typed questions through the SDK's
+  `experimental_decide` and `server/ai/decide.ts` (the adapter to OpenRouter's `/systemone`: `boolean` → `noul`), in the
+  same line with the same gates, timeouts, egress and log. `test()` and `models()` know Jev.
+- **The judge** (`judge/index.ts`): when its slot is a `jev` connection, `prepare()` builds `decision` (state +
+  questions, `prompts/judge-jev.ts`), the preview renders it, and `ask()` sends it with `ai.decide`. `jevAnswer()`:
+  keep at P ≥ 0.5, confidence `max(p, 1 − p)`, the chosen project; no why, quote or from.
+- **For the Found card and the judge card (PR25):** `probabilityOnly(verdict)` (`shared/judge.ts`) is true for a Jev
+  verdict: say "Jev answers with a probability only" instead of a why. A `jev` connection's models list is `[JEV_MODEL]`
+  with no request: offer it as "Jev (cloud)" in the judge's model picker, and nowhere else.
+- **Tests:** `test/ai-jev.test.ts` (a recorded real response in `test/fixtures/jev/`), the fake's `/systemone`
+  (`answers.ts` row `jev`; every scenario), `e2e/jev.spec.ts`, and the judge eval's Jev recording
+  (`npm run eval:judge -- --jev …`, replayed through a Jev connection in `test/ai-judge-replay.test.ts`).
+
 **Adding an AI feature** (five steps):
 1. Its settings already exist under `ai.features.<name>` (PR21 laid down all of them); read them with
    `ctx.ai.readiness(feature)`, never by checking `enabled` yourself.

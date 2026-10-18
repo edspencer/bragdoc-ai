@@ -4,6 +4,7 @@
 // with a placeholder where a folio's achievements go.
 import { useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { decisionOnly } from '../../../shared/ai/connections.ts';
 import { HOST_CLASS_LABEL } from '../../../shared/ai/hosts.ts';
 import { getAiDraftPreview, isApiError, putAiFeature } from '../../api/client.ts';
 import { queryKeys } from '../../api/queries.ts';
@@ -92,13 +93,15 @@ export function DraftCard({ status, readiness }: FeatureCardProps) {
 }
 
 function ModelChooser({ status, onSave }: { status: FeatureCardProps['status']; onSave: (m: { connection: string; model: string }) => void }) {
-  const [connection, setConnection] = useState(status.connections[0]?.id ?? '');
+  // Jev answers yes-or-no decisions for the judge only: it can't write (D82)
+  const conns = status.connections.filter((c) => !decisionOnly(c.kind));
+  const [connection, setConnection] = useState(conns[0]?.id ?? '');
   const [model, setModel] = useState('');
-  if (!status.connections.length) return <Hand className="mt-2 block text-[16px] text-faint">add a connection above first</Hand>;
+  if (!conns.length) return <Hand className="mt-2 block text-[16px] text-faint">add a connection above first</Hand>;
   return (
     <div className="mt-2 flex flex-wrap items-center gap-2" data-testid="ai-draft-chooser">
       <select value={connection} onChange={(e) => setConnection(e.target.value)} className={`${inputCls} w-auto py-1 text-[13px]`} aria-label="Connection">
-        {status.connections.map((c) => (
+        {conns.map((c) => (
           <option key={c.id} value={c.id}>
             {connectionName(c)}
           </option>

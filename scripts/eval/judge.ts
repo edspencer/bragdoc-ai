@@ -17,12 +17,16 @@
 //   --judge-all     judge every message, skipping the rules (the judge alone, as the spike's hosted table measured it)
 //   --only          just the messages, or just the PRs
 //   --instructions <file>  judge by this what-counts.md instead of the starter (try your own; not with --record)
+//   --jev           the connection is Jev (D82): ask its typed questions (prompts/judge-jev.ts) through ctx.ai.decide,
+//                   not the chat prompt. Its recording replays through a Jev connection (test/ai-judge-replay.test.ts):
+//     BRAGDOC_LIVE_AI=1 npm run eval:judge -- --jev --data-dir <home> --connection jev --model typesafe/jev-1.14 --perfect-text
 import fs from 'node:fs';
 import path from 'node:path';
-import { checkAnswer, inputHashOf, type Prepared } from '../../server/ai/judge/index.ts';
+import { checkAnswer, inputHashOf, jevAnswer, type Prepared } from '../../server/ai/judge/index.ts';
 import { githubInput, inputBudget, screenshotInput } from '../../server/ai/judge/input.ts';
 import { whatCountsStarter } from '../../server/ai/judge/starter.ts';
 import { JUDGE_GITHUB_SCHEMA_NAME, JudgeGithubAnswer, judgeGithubPrompt } from '../../server/ai/prompts/judge-github.ts';
+import { judgeJevRequest } from '../../server/ai/prompts/judge-jev.ts';
 import { JUDGE_SCREENSHOT_SCHEMA_NAME, JudgeScreenshotAnswer, judgeScreenshotPrompt } from '../../server/ai/prompts/judge-screenshot.ts';
 import { DEFAULT_CONTEXT_TOKENS } from '../../shared/ai/connections.ts';
 import { compileRules } from '../../shared/rules/screenshot.ts';
@@ -81,10 +85,12 @@ export interface JudgeEvalOptions {
   only?: 'messages' | 'prs';
   /** Instead of the starter what-counts.md. */
   instructions?: string;
+  /** Ask Jev's typed questions instead of the chat prompt (D82). */
+  jev?: boolean;
 }
 
 /** Build the spec for these options. Exported for the replay tests (perfect text: the recordings' mode). */
-export function judgeSpec({ perfectText, judgeAll, only, instructions = INSTRUCTIONS }: JudgeEvalOptions): EvalSpec<Input, Answer> & { close(): Promise<void> } {
+export function judgeSpec({ perfectText, judgeAll, only, instructions = INSTRUCTIONS, jev = false }: JudgeEvalOptions): EvalSpec<Input, Answer> & { close(): Promise<void> } {
   const INSTRUCTIONS = instructions;
   const rules = compileRules(PROFILE);
   let ocr: { read(i: { bytes: Uint8Array }): Promise<{ text: string }> } | null = null;
@@ -101,12 +107,16 @@ export function judgeSpec({ perfectText, judgeAll, only, instructions = INSTRUCT
   return {
     name: 'judge',
     feature: 'judge',
-    description: `The Found judge on the spike's 218 labelled messages (drawn, ${perfectText ? 'perfect text' : 'read by OCR'}, ${judgeAll ? 'every one judged' : 'then the rules'}) and 20 synthetic PRs.`,
+    description: `The Found judge${jev ? ' (Jev)' : ''} on the spike's 218 labelled messages (drawn, ${perfectText ? 'perfect text' : 'read by OCR'}, ${judgeAll ? 'every one judged' : 'then the rules'}) and 20 synthetic PRs.`,
     cases,
     async run(c, ask) {
       if (c.input.kind === 'pr') {
         const { pr } = c.input;
         const input = githubInput({ repo: pr.repo, title: pr.title, body: pr.body, mergedAt: '2026-10-14' });
+        if (jev) {
+          const v = checkAnswer(jevAnswer(await ask.decide(judgeJevRequest('github', { profile: PROFILE, projects: PROJECTS, instructions: INSTRUCTIONS, input: input.text })) as Parameters<typeof jevAnswer>[0]), { kind: 'github', input, inputHash: inputHashOf('github', input.text, INSTRUCTIONS), projects: PROJECT_IDS });
+          return { rules: true, judged: true, keep: v.keep, quote: 'none' };
+        }
         const { system, prompt } = judgeGithubPrompt({ profile: PROFILE, projects: PROJECTS, instructions: INSTRUCTIONS, input: input.text });
         const a = await ask.object({ system, prompt, schema: JudgeGithubAnswer, schemaName: JUDGE_GITHUB_SCHEMA_NAME, maxOutputTokens: 400 });
         const v = checkAnswer({ ...a, quote: '', from: '' }, { kind: 'github', input, inputHash: inputHashOf('github', input.text, INSTRUCTIONS), projects: PROJECT_IDS });
@@ -119,6 +129,10 @@ export function judgeSpec({ perfectText, judgeAll, only, instructions = INSTRUCT
       const quote = r.pass && r.quote ? { text: r.quote, ...(r.from ? { from: r.from } : {}), ...(r.where ? { where: r.where } : {}) } : { text: datasetShot(m).text.split('\n').at(-1)! };
       const systemChars = judgeScreenshotPrompt({ profile: PROFILE, projects: PROJECTS, instructions: INSTRUCTIONS, input: '' }).system.length;
       const input = screenshotInput({ ocrText: text, quote, profile: PROFILE, maxChars: inputBudget({ contextTokens: DEFAULT_CONTEXT_TOKENS, systemChars }) ?? 0 });
+      if (jev) {
+        const v = checkAnswer(jevAnswer(await ask.decide(judgeJevRequest('screenshots', { profile: PROFILE, projects: PROJECTS, instructions: INSTRUCTIONS, input: input.text })) as Parameters<typeof jevAnswer>[0]), { kind: 'screenshots', input, inputHash: inputHashOf('screenshots', input.text, INSTRUCTIONS), projects: PROJECT_IDS });
+        return { rules: r.pass, judged: true, keep: v.keep, quote: 'none' };
+      }
       const { system, prompt } = judgeScreenshotPrompt({ profile: PROFILE, projects: PROJECTS, instructions: INSTRUCTIONS, input: input.text });
       const a = await ask.object({ system, prompt, schema: JudgeScreenshotAnswer, schemaName: JUDGE_SCREENSHOT_SCHEMA_NAME, maxOutputTokens: 400 });
       const p: Pick<Prepared, 'kind' | 'input' | 'inputHash' | 'projects'> = { kind: 'screenshots', input, inputHash: inputHashOf('screenshots', input.text, INSTRUCTIONS), projects: PROJECT_IDS };
@@ -200,6 +214,7 @@ if (isMain(import.meta.url)) {
   const judgeAll = take('--judge-all');
   const only = value('--only');
   const instructionsFile = value('--instructions');
+  const jev = take('--jev');
   if (only !== undefined && only !== 'messages' && only !== 'prs') {
     process.stderr.write('--only is messages or prs\n');
     process.exitCode = 2;
@@ -208,7 +223,7 @@ if (isMain(import.meta.url)) {
     process.stderr.write(`--record needs --perfect-text, and no --judge-all, --only or --instructions (${path.basename(import.meta.url)})\n`);
     process.exitCode = 2;
   } else {
-    const spec = judgeSpec({ perfectText, judgeAll, ...(only ? { only: only as 'messages' | 'prs' } : {}), ...(instructionsFile ? { instructions: fs.readFileSync(instructionsFile, 'utf8') } : {}) });
+    const spec = judgeSpec({ perfectText, judgeAll, jev, ...(only ? { only: only as 'messages' | 'prs' } : {}), ...(instructionsFile ? { instructions: fs.readFileSync(instructionsFile, 'utf8') } : {}) });
     process.exitCode = await main(spec, argv);
     await spec.close();
   }

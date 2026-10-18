@@ -15,12 +15,15 @@
 //   a `from` that isn't in the input; project names map to ids (unknown ones dropped); `why` is trimmed to 160
 //   characters; `confidence` and `impact` are clamped. `by` is "<model> on <where>", `inputHash` the sha256 of the input
 //   and your instructions.
+// - **Jev** (D82), when the judge's model is a `jev` connection: the same input, sent as a state and typed questions
+//   (prompts/judge-jev.ts) through ctx.ai.decide. It answers P(win) and a project, never a reason: the verdict is
+//   `keep` at P ≥ 0.5 with `confidence` how sure either way, and no `why`, `quote` or `from` (none is made up).
 //
 // No SDK import here: createApp builds this with AI off, and only ctx.ai loads the SDK, on the first call.
 import crypto from 'node:crypto';
 import fs from 'node:fs/promises';
 import type { AiGateCode, AiJudgeCounts, AiJudgePreview, AiJudgeStatus, AiTrigger } from '../../../shared/api.js';
-import { contextTokensOf } from '../../../shared/ai/connections.js';
+import { contextTokensOf, decisionOnly } from '../../../shared/ai/connections.js';
 import { isVerbatim } from '../../../shared/ai/grounding.js';
 import type { Judge, JudgeAnswer, JudgeContext } from '../../../shared/judge.js';
 import { parsePrKey, parsePrUrl } from '../../../shared/links.js';
@@ -37,6 +40,7 @@ import { AiError } from '../errors.js';
 import { connectionHost } from '../policy.js';
 import type { Ai, Priority } from '../run.js';
 import { JUDGE_GITHUB_SCHEMA_NAME, JudgeGithubAnswer, judgeGithubPrompt } from '../prompts/judge-github.js';
+import { JEV_NO_PROJECT, jevPreview, judgeJevRequest, type JevRequest } from '../prompts/judge-jev.js';
 import { JUDGE_SCREENSHOT_SCHEMA_NAME, JudgeScreenshotAnswer, judgeScreenshotPrompt, type JudgePromptInput } from '../prompts/judge-screenshot.js';
 import { githubInput, inputBudget, screenshotInput, cut, type JudgeInput } from './input.js';
 import { whatCountsStarter } from './starter.js';
@@ -71,6 +75,8 @@ export interface Prepared {
   inputHash: string;
   /** Project name (lower case) → id, for the answer's names. */
   projects: Map<string, string>;
+  /** For Jev (D82): the state and questions sent instead of `system` and `prompt` (which then render them). */
+  decision?: JevRequest;
 }
 
 export interface RunOptions {
@@ -147,6 +153,17 @@ export function whereLabel(where: string, host: string | null): string {
 
 /** The projects a judge may name: the active and paused ones (the ones you'd still file things under). */
 export const judgeProjects = (store: Store): Project[] => store.all('project').filter((p) => p.status === 'active' || p.status === 'paused');
+
+/**
+ * Jev's answers → a JudgeAnswer (D82): `keep` at P(win) ≥ 0.5, `confidence` how sure of that either way (PR24's
+ * meaning: 0.07 is "probably not, 93%"), the project it chose. No why, quote or from: it gives none.
+ */
+export function jevAnswer(answers: Record<string, { type: string; probability?: number; choice?: string }>): JudgeAnswer {
+  const p = answers.keep?.type === 'boolean' && typeof answers.keep.probability === 'number' ? answers.keep.probability : NaN;
+  const choice = answers.project?.type === 'choice' ? answers.project.choice : undefined;
+  const keep = p >= 0.5;
+  return { keep, confidence: Number.isFinite(p) ? (keep ? p : 1 - p) : NaN, quote: '', from: '', why: '', projects: choice && choice !== JEV_NO_PROJECT ? [choice] : [] };
+}
 
 /** A model's answer → the verdict that's written (without `by` and `at`). Exported for the unit tests and Jev (PR28). */
 export function checkAnswer(a: JudgeAnswer, p: Pick<Prepared, 'kind' | 'input' | 'inputHash' | 'projects'>): Omit<Verdict, 'at' | 'by'> {
@@ -243,6 +260,21 @@ export function createJudge(deps: JudgeDeps): JudgeEngine {
     }
   }
 
+  /** Is the judge's model a decision model (Jev)? Then it's asked typed questions, not a prompt. */
+  function jevSlot(): boolean {
+    const slot = ai.readiness('judge').slot;
+    return !!slot && decisionOnly(config.get().ai.connections[slot.connection]?.kind);
+  }
+
+  /** The prompt or, for Jev, the state and questions (with their rendering as the prompt, for the preview). */
+  function compose(kind: JudgeKind, base: Omit<JudgePromptInput, 'input'>, input: string): { system: string; prompt: string; decision?: JevRequest } {
+    if (jevSlot()) {
+      const decision = judgeJevRequest(kind, { ...base, input });
+      return { ...jevPreview(decision), decision };
+    }
+    return (kind === 'github' ? judgeGithubPrompt : judgeScreenshotPrompt)({ ...base, input });
+  }
+
   const projectMap = (projects: Pick<Project, 'name' | 'id'>[]) => new Map(projects.map((p) => [p.name.replace(/\s+/g, ' ').trim().toLowerCase(), p.id]));
 
   async function prepare(c: FoundCandidate): Promise<Prepared> {
@@ -272,13 +304,19 @@ export function createJudge(deps: JudgeDeps): JudgeEngine {
         maxChars,
       });
     }
-    const { system, prompt } = promptOf({ ...base, input: input.text });
-    return { kind: c.source, input, instructions, system, prompt, inputHash: inputHashOf(c.source, input.text, instructions), projects: projectMap(projects) };
+    const { system, prompt, decision } = compose(c.source, base, input.text);
+    return { kind: c.source, input, instructions, system, prompt, inputHash: inputHashOf(c.source, input.text, instructions), projects: projectMap(projects), ...(decision ? { decision } : {}) };
   }
 
   /** One call: the prepared prompt → the checked verdict, and where it came from. */
   async function ask(p: Prepared, call: { runId?: string; priority?: Priority; signal?: AbortSignal; trigger?: AiTrigger }): Promise<{ verdict: Omit<Verdict, 'at' | 'by'>; by: string }> {
-    const common = { feature: 'judge' as const, purpose: 'ai.judge', system: p.system, prompt: p.prompt, maxOutputTokens: 400, ...(call.runId ? { runId: call.runId } : {}), ...(call.trigger ? { trigger: call.trigger } : {}), ...(call.priority ? { priority: call.priority } : {}), ...(call.signal ? { signal: call.signal } : {}) };
+    const meta = { feature: 'judge' as const, purpose: 'ai.judge', ...(call.runId ? { runId: call.runId } : {}), ...(call.trigger ? { trigger: call.trigger } : {}), ...(call.priority ? { priority: call.priority } : {}), ...(call.signal ? { signal: call.signal } : {}) };
+    if (p.decision) {
+      const r = await ai.decide({ ...meta, state: p.decision.state, questions: p.decision.questions, ...(p.decision.fallbacks ? { fallbacks: p.decision.fallbacks } : {}) });
+      const host = connectionHost(config.get().ai, r.connection);
+      return { verdict: checkAnswer(jevAnswer(r.answers as Parameters<typeof jevAnswer>[0]), p), by: `${r.model} on ${whereLabel(r.where, host ?? r.connection)}` };
+    }
+    const common = { ...meta, system: p.system, prompt: p.prompt, maxOutputTokens: 400 };
     const r =
       p.kind === 'github'
         ? await ai.object({ ...common, schema: JudgeGithubAnswer, schemaName: JUDGE_GITHUB_SCHEMA_NAME })
@@ -296,8 +334,8 @@ export function createJudge(deps: JudgeDeps): JudgeEngine {
     const kind = candidate.source;
     const instructions = context.instructions ?? null;
     const input: JudgeInput = { text: context.input, target: context.input, from: kind === 'github' ? 'github' : 'quote', truncated: false };
-    const { system, prompt } = (kind === 'github' ? judgeGithubPrompt : judgeScreenshotPrompt)({ profile: context.profile, projects: context.projects.map((x) => x.name), instructions, input: input.text });
-    return (await ask({ kind, input, instructions, system, prompt, inputHash: inputHashOf(kind, input.text, instructions), projects: projectMap(context.projects) }, {})).verdict;
+    const { system, prompt, decision } = compose(kind, { profile: context.profile, projects: context.projects.map((x) => x.name), instructions }, input.text);
+    return (await ask({ kind, input, instructions, system, prompt, inputHash: inputHashOf(kind, input.text, instructions), projects: projectMap(context.projects), ...(decision ? { decision } : {}) }, {})).verdict;
   }
 
   function start({ ids, trigger, priority, signal, until }: RunOptions): { runId: string; queued: number; done: Promise<RunSummary> } {

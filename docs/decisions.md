@@ -1398,3 +1398,50 @@ PR27 (SPEC R24, R26).
   memory for the newest 500, like D56's undo).
 - **Counts only**, in `cache/ai/judge-stats.json`: never which candidate, never its text. Served as
   `AiJudgeStatus.agreement`.
+
+### D82 — Jev as the judge's model, through the AI SDK's experimental_decide
+
+- **Jev is a decision model, not a chat model.** TypeSafe's Jev answers typed questions about a state (yes or no as a
+  probability, a choice) and never writes a reason. It's reached at OpenRouter's `POST /api/v1/systemone` with
+  `typesafe/jev-1.14`; OpenRouter's `typesafe/jev-router` is a chat model, not Jev, and the server refuses it as Jev's
+  model.
+- **Through the SDK, with a small adapter.** `ai@7`'s `experimental_decide` is the interface, and it ships no Jev
+  provider, so `server/ai/decide.ts` is a `DecisionModelV4` over egress's `fetchFor`: the SDK's `boolean` question is
+  Jev's `noul` on the wire (the endpoint refuses `boolean`), `choice` is `choice`. HTTP failures are `APICallError`s
+  (classified like any provider's), and answers that aren't one per question are the SDK's `InvalidResponseDataError`
+  (`bad_output`). A choice's distribution isn't passed on (nothing reads it, and a sloppy one would fail the SDK's
+  checks and lose the yes/no with it), and a project answer outside the options becomes "(none of these)": a project
+  dropped, never one invented, and never a lost verdict. `decide.ts` is loaded by `sdk.ts` with the rest of the SDK, so nothing of it loads with AI off, and
+  `AI_SDK_DEFAULT_PROVIDER` now refuses `decisionModel` too (a model named by string would go to a hosted gateway).
+- **`ctx.ai.decide({ feature, purpose, state, questions, … })`** runs it in the connection's line, with the same gates,
+  timeouts, egress and activity record as `object()`. There's no repair retry: a decision model's answer is valid or
+  it isn't. `test()` asks a Jev connection one yes/no question about nothing of yours; `models()` returns Jev's one
+  model without a request.
+- **What the judge sends** (`server/ai/prompts/judge-jev.ts`, a pure function): a state of plain text fields (who the user
+  is, `ai/what-counts.md` verbatim or the default guidance, and the same normalised input the chat judge gets), a
+  `keep` yes/no with fixed criteria, and a `project` choice among your projects plus "(none of these)". **Deviation
+  from the brief:** it asked for criteria "written from the instructions". Writing criteria from free text would take
+  a model, so the instructions go into the state verbatim and the criteria are fixed definitions of a win. The
+  preview renders exactly this.
+- **The verdict:** `keep` at P(win) ≥ 0.5. **Deviation from the brief:** it said `confidence` = p. PR24's `confidence` is
+  "how sure, either way", and the card shows "Probably not · N%", so a raw p of 0.07 would read "Probably not · 7%".
+  Jev's `confidence` is therefore `max(p, 1 − p)`. A Jev verdict has no `why`, `quote` or `from`, and none is made up;
+  `probabilityOnly(verdict)` (`shared/judge.ts`) tells the card so. No `impact` for PRs: Jev isn't asked for one.
+- **Where Jev may be used:** as the judge's model only (`decisionOnly(kind)`, `shared/ai/connections.ts`). The server
+  refuses it as the text slot or as Tidy's or Draft's model (400). A Jev that reaches a text feature some other way
+  (a hand edit of config.yaml) is the `no_model` gate, with the reason, before anything is sent.
+- **Consent:** Jev's own, separate from the OpenRouter connection's (revoking either one stops only that one). Its
+  statement is version 2: it now lists everything the judge sends (a PR's details and your names too) and says that
+  OpenRouter passes it on to TypeSafe AI and that Jev gives no reason. Deleting the OpenRouter connection a Jev goes
+  through clears the Jev's consent, so a new OpenRouter connection under the same id asks again; so do pointing the Jev
+  at another OpenRouter connection and replacing that connection's key (each may be another account). A Jev with
+  nothing to go through has no host, and no consent can be given to it (409). Its own `baseUrl` or `contextTokens`
+  are refused: it has none.
+- **Tests and evals:** CI uses a response recorded from the real endpoint (`test/fixtures/jev/`), the fake model
+  server's `/systemone` (`answers.ts` row `jev`, its scenarios), and the judge eval's Jev recording
+  (`eval:judge -- --jev`), replayed through a Jev connection. A recorded decision is hashed with `noul` read as
+  `boolean` (`scripts/eval/decision.ts`), so the SDK's request and Jev's wire request match.
+- **The header chip** names the cloud when any switched-on feature's model is there (a judge on Jev with a local text
+  slot reads "AI · OpenRouter"), not only the text slot.
+- **Rejected:** a Jev chat path through `jev-router` (it's not Jev, and costs 30× more); `confidence` = p (it misreads
+  on the card); a repair retry for decisions (a second paid request for a provider bug).

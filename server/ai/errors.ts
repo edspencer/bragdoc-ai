@@ -87,6 +87,7 @@ export function classify(e: unknown, ctx: { connection: string; host: string | n
   let said = upstreamMessage(err.responseBody ?? inner.responseBody) || err.message || '';
   if (ctx.key) said = said.split(ctx.key).join('…');
   said = said.replace(/\b(sk|key|pk)-[\w-]{8,}/gi, '…');
+  said = said.trim().replace(/[.\s]+$/, ''); // the sentences below end with their own full stop
   if (status === undefined) {
     if (err.name === 'AbortError' || err.name === 'TimeoutError') return new AiError(ctx.timedOut ? 'timeout' : 'cancelled', 'cancelled');
     const text = `${err.message ?? ''} ${(inner as { code?: string }).code ?? ''} ${String((err.cause as { cause?: { code?: string } })?.cause?.code ?? '')}`;
@@ -95,6 +96,9 @@ export function classify(e: unknown, ctx: { connection: string; host: string | n
       return new AiError('unreachable', `${host} isn't answering. Is the model runner running?`);
     if (err.name === 'AI_NoObjectGeneratedError' || err.name === 'AI_JSONParseError' || err.name === 'AI_TypeValidationError')
       return new AiError('bad_output', "the model's answer wasn't what was asked for");
+    // a decision model (Jev, D82): an answer that isn't one per question as asked, or a question it declined
+    if (err.name === 'AI_InvalidResponseDataError') return new AiError('bad_output', `${host}'s answer wasn't what was asked for${err.message ? ` (${err.message.slice(0, 200)})` : ''}`);
+    if (err.name === 'AI_DecisionRefusalError') return new AiError('bad_output', `${host} declined to answer`);
     return new AiError('failed', said || 'the call failed');
   }
   if (status === 401 || status === 403) return new AiError('key_refused', `${host} refused the key${said ? `: ${said}` : ''}.`);
