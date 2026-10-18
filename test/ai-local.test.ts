@@ -167,7 +167,7 @@ test('pull: with the confirm, Ollama’s progress streams back, the model is ins
     assert.equal(lines[0].status, 'pulling manifest');
     assert.ok(lines.some((l) => l.total && l.completed));
     assert.deepEqual(lines.at(-1), { done: true, ok: true });
-    const tags = await (await fetch(`${fake.url}/api/tags`)).json();
+    const tags = (await (await fetch(`${fake.url}/api/tags`)).json()) as { models: { name: string }[] };
     assert.ok(tags.models.some((m: { name: string }) => m.name === 'qwen3.5:4b'));
     const log = home.log();
     const local = log.find((l) => l.via === 'fetch' && l.feature === 'pull');
@@ -194,7 +194,7 @@ test('pull: Cancel (the request closed) stops Ollama’s stream; the registry li
     ac.abort();
     await reader.cancel().catch(() => {});
     await new Promise((r) => setTimeout(r, 600));
-    const tags = await (await fetch(`${fake.url}/api/tags`)).json();
+    const tags = (await (await fetch(`${fake.url}/api/tags`)).json()) as { models: { name: string }[] };
     assert.ok(!tags.models.some((m: { name: string }) => m.name === 'gemma4:e4b'), 'not installed');
     const via = home.log().find((l) => l.via === 'ollama');
     assert.equal(via?.outcome, 'error');
