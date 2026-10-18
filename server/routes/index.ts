@@ -28,6 +28,7 @@ import { registerNetwork } from './network.js';
 import { registerProblems } from './problems.js';
 import { registerProjects } from './projects.js';
 import { registerRepos } from './repos.js';
+import { registerSettings } from './settings.js';
 
 export function registerRoutes(app: Hono, ctx: AppContext): void {
   registerAchievements(app, ctx);
@@ -47,4 +48,5 @@ export function registerRoutes(app: Hono, ctx: AppContext): void {
   registerProblems(app, ctx);
   registerProjects(app, ctx);
   registerRepos(app, ctx);
+  registerSettings(app, ctx);
 }

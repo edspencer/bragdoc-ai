@@ -18,6 +18,10 @@ import { useQueryClient, type QueryClient } from '@tanstack/react-query';
 
 /** `change` type (ServerEvent['type']) → the first segments of the query keys it makes stale. */
 export const CHANGE_INVALIDATES: Record<string, readonly string[]> = {
+  config: ['meta', 'settings'],
+  'mcp-token': ['mcp-token'],
+  network: ['network-log'],
+  notices: ['meta'],
   // the store (PR7, D48): one type per kind of data file, plus the Problems list
   // projects too: their achievement counts and piles (PR8)
   // folio too: its clippings are achievements, with evidence names, projects' and companies' names and the profile's

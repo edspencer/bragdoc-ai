@@ -1,5 +1,5 @@
 // Folio (PR14): presets, the URL state, filters and exclusions, grouping, the markdown (pinned in full below), what a
-// clipping may carry (no paths, no localhost URLs, no ids: D53), and GET /api/folio over a real store.
+// clipping may carry (no paths, no localhost URLs, no ids: D55), and GET /api/folio over a real store.
 import { afterEach, beforeEach, describe, test } from 'node:test';
 import assert from 'node:assert/strict';
 import type { Hono } from 'hono';
@@ -282,7 +282,7 @@ _Project: Pre-flight checklist · Impact 7 and up_
   });
 });
 
-describe('clippings carry nothing that points back at this machine (D53)', () => {
+describe('clippings carry nothing that points back at this machine (D55)', () => {
   const has = { project: (id: string) => id === P1, company: () => false };
 
   test('urls: only http(s), and never a local address', () => {

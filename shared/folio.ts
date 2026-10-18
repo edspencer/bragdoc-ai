@@ -2,7 +2,7 @@
 // self-review. Everything here is pure (no Node, no DOM), so the server (GET /api/folio reduces achievements to
 // clippings), the page (filters, the printout, Copy and Export) and the tests share one copy.
 //
-// What a folio may contain is deliberately narrow (D53): titles, summaries, dates, impact, project and company names,
+// What a folio may contain is deliberately narrow (D55): titles, summaries, dates, impact, project and company names,
 // and evidence as something a reviewer can follow. PRs and links are links; quotes are blockquotes; files are named,
 // never located. No ids, no file paths, no URLs of this machine (`localhost`, the evidence routes), since the
 // document is made to leave it. No AI: it's exactly what you picked (D8).
@@ -464,7 +464,7 @@ const PR_KEY = new RegExp(`^github_pr:(${REPO})#(\\d{1,9})$`);
 const PR_URL = new RegExp(`^https?:\\/\\/(?:www\\.)?github\\.com\\/(${REPO})\\/pull\\/(\\d{1,9})(?:[/?#].*)?$`, 'i');
 
 /**
- * An achievement cut down to what a folio may show (D53): every piece of text scrubbed (`scrubText`), files by name
+ * An achievement cut down to what a folio may show (D55): every piece of text scrubbed (`scrubText`), files by name
  * only, links only if anyone could open them. `fileName(sha)` is the evidence file's original name, from its sidecar;
  * `has` says whether a project or company still exists.
  */

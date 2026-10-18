@@ -106,6 +106,7 @@ export interface NetworkLogResponse {
  */
 export type ServerEvent =
   | { type: 'config' }
+  | { type: 'mcp-token' }
   | { type: 'network' }
   | { type: 'notices' }
   // the store (PR7 forwards every change to a data file, BragDoc's own or a hand edit, as its entity's type; D48)
@@ -116,7 +117,7 @@ export type ServerEvent =
   | { type: 'company' }
   | { type: 'found' }
   | { type: 'profile' }
-  /** The Problems list may have changed (sent with every store change). */
+  /** The Problems list may have changed (sent with every store change, and when a misnamed file comes or goes). */
   | { type: 'problems' };
 
 // ---------------------------------------------------------------- board (PR7): achievements, evidence, links, problems
@@ -231,6 +232,69 @@ export interface ProblemsResponse<P = Record<string, unknown>> {
 /** `GET /api/found/count`: how many candidates are waiting in Found (the board strip, the nav badge). */
 export interface FoundCountResponse {
   pending: number;
+}
+
+// ---------------------------------------------------------------- settings (PR10): problems, backups, MCP, guard check
+
+/**
+ * A problem with a file in the data home (Settings → Data): the store's `Problem` (shared/schema/problem.ts), restated
+ * here so this file stays import-free. `file` is relative to the data home, with `/`.
+ */
+export interface FileProblem {
+  severity: 'error' | 'warning';
+  code: 'syntax' | 'invalid' | 'future-version' | 'dangling' | 'stray';
+  file: string;
+  line?: number;
+  col?: number;
+  key?: string;
+  message: string;
+}
+
+/** One snapshot in `backups/`. */
+export interface BackupSnapshot {
+  /** The directory's name (`2026-10-17T09-30-00Z`), relative to `backups/`. */
+  name: string;
+  /** When it was taken (ISO 8601), from its name. */
+  at: string;
+}
+
+/** `GET /api/backups`: newest first. */
+export interface BackupsResponse {
+  /** `backups/`, as people write it (`~/.bragdoc/backups`). */
+  dirDisplay: string;
+  snapshots: BackupSnapshot[];
+  /** The retention rule, in numbers: the newest `keepRecent`, plus one a day for `keepDays` days. */
+  keepRecent: number;
+  keepDays: number;
+}
+
+/** `GET /api/settings`: the settings the Settings pages edit or show (config.yaml, live: a `config` event). */
+export interface SettingsResponse {
+  mcp: { writeTo: 'board' | 'found' };
+  sources: { github: { enabled: boolean; auth: 'gh' | 'token' } };
+}
+
+/** `PUT /api/settings/mcp`: where MCP agents' achievements go. Answers with the new SettingsResponse. */
+export interface McpSettingsRequest {
+  writeTo: 'board' | 'found';
+}
+
+/** `GET /api/mcp/token` and `POST /api/mcp/token/rotate`: the MCP bearer token (rotating ends the old one at once). */
+export interface McpTokenResponse {
+  token: string;
+  /** Where MCP clients connect. */
+  url: string;
+}
+
+/**
+ * `POST /api/network-log/guard-check`: ask the egress module for a request to a host that isn't on the allow-list (a
+ * `.invalid` name, which can never resolve anyway). It's refused before anything is sent, and the refusal is logged
+ * like any other, so the receipt shows it. `refused: false` would mean the guard is broken.
+ */
+export interface GuardCheckResponse {
+  refused: boolean;
+  host: string;
+  message: string;
 }
 
 // ---------------------------------------------------------------- projects, companies, repos (PR8)
@@ -409,7 +473,7 @@ export interface ImportReport {
 }
 
 // ---------------------------------------------------------------- Folio (PR14): GET /api/folio
-// The window's achievements cut down to what a folio may show (D53): shared/folio.ts makes them (toClipping) and turns
+// The window's achievements cut down to what a folio may show (D55): shared/folio.ts makes them (toClipping) and turns
 // them into the document.
 
 /** Evidence as a folio shows it: already safe to put in a document that leaves this machine. */

@@ -1,5 +1,5 @@
 // Folio (SPEC R9): GET /api/folio?from=YYYY-MM-DD&to=YYYY-MM-DD, the window's achievements (archived ones left out)
-// cut down to what a folio may show (shared/folio.ts toClipping, D53), plus every project and company and the
+// cut down to what a folio may show (shared/folio.ts toClipping, D55), plus every project and company and the
 // profile's name. The page does the rest (filters, include/exclude, the printout, the markdown) from that, so changing
 // a filter never waits on the server. Read-only: a folio is made in the browser and downloaded from there.
 import type { Hono } from 'hono';

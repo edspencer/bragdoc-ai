@@ -1,5 +1,6 @@
 // GET /api/problems: everything wrong with the data home's files (SPEC R2), errors first: the board's banner and
-// Settings → Data (PR10) both read it. It changes with every store change (`{ type: 'problems' }` on the bus).
+// Settings → Data (PR10) both read it. It changes with every store change and a misnamed file
+// coming or going (`{ type: 'problems' }` on the bus, from server/live.ts).
 import type { Hono } from 'hono';
 import type { ProblemsResponse } from '../../shared/api.js';
 import type { Problem } from '../../shared/schema/index.js';
