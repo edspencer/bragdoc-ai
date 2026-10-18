@@ -215,7 +215,12 @@ test('an achievement moved by hand to another month folder stays indexed; restor
   await w.ready;
   fs.mkdirSync(`${h.home}/achievements/2023/09`, { recursive: true });
   fs.renameSync(`${h.home}/${from}`, `${h.home}/${to}`);
-  await new Promise((r) => setTimeout(r, 400));
+  // wait for the watcher to see it, not a fixed time: macOS's FSEvents on a busy CI runner sometimes took longer than
+  // the 400 ms this used to sleep (the file was still at its old path: the known flake). Then a little longer, so a late
+  // spurious change would still be caught below.
+  for (const end = Date.now() + 10_000; h.store.entry('achievement', achievement.id)?.file !== to && Date.now() < end; )
+    await new Promise((r) => setTimeout(r, 25));
+  await new Promise((r) => setTimeout(r, 300));
   await w.close();
   assert.equal(h.store.entry('achievement', achievement.id)!.file, to);
   assert.deepEqual(changes, [], 'the same bytes under a new name: nothing to announce');

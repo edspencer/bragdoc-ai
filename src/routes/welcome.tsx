@@ -138,9 +138,14 @@ function Nav({ onBack, onNext, next = 'Next', onSkip, skip = 'Skip for now', bus
 /** Chips you type: Enter, comma or Tab adds one, Backspace on an empty box takes the last off. */
 function ChipInput({ value, onChange, placeholder, label, testId }: { value: string[]; onChange: (v: string[]) => void; placeholder: string; label: string; testId: string }) {
   const [text, setText] = useState('');
+  // a pasted (or autofilled) "Alex M, @alex, AM" is three names, not one
   const add = (t: string) => {
-    const v = t.trim().replace(/,$/, '').trim();
-    if (v && !value.some((x) => x.toLowerCase() === v.toLowerCase())) onChange([...value, v]);
+    const next = [...value];
+    for (const part of t.split(',')) {
+      const v = part.trim();
+      if (v && !next.some((x) => x.toLowerCase() === v.toLowerCase())) next.push(v);
+    }
+    if (next.length !== value.length) onChange(next);
     setText('');
   };
   const onKey = (e: KeyboardEvent<HTMLInputElement>) => {

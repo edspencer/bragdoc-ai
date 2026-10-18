@@ -23,7 +23,7 @@ import { queryKeys, useAchievements, useFoundCount, useProblems, useProjects, us
 import { AchievementCard } from '../board/AchievementCard.tsx';
 import { DropTray } from '../board/DropTray.tsx';
 import { EditDrawer } from '../board/EditDrawer.tsx';
-import { fallbackTitle, linkEvidence, useComposer } from '../board/composer.ts';
+import { fallbackTitle, linkEvidence, pasteKeys, useComposer } from '../board/composer.ts';
 import { Btn, FilterChip, GithubMark, Masonry, Tape, WeekHeader, inputCls, useToast } from '../kit/index.ts';
 import { groupByWeek, todayIso } from '../lib/dates.ts';
 import { ExampleBanner, useAddExample } from '../onboarding/ExampleData.tsx';
@@ -395,7 +395,7 @@ function EmptyBoard({ onArchived }: { onArchived: () => void }) {
   const example = useAddExample();
   const watching = [sources?.github.enabled && 'GitHub', sources?.screenshots.enabled && 'your screenshots folder'].filter((x): x is string => !!x);
   const ideas = [
-    { icon: ImageIcon, tone: '#3b6cf6', title: 'Paste a screenshot of praise', line: 'A thank-you message, a kind email, a chart that went the right way. ⌘V anywhere on this page.' },
+    { icon: ImageIcon, tone: '#3b6cf6', title: 'Paste a screenshot of praise', line: `A thank-you message, a kind email, a chart that went the right way. ${pasteKeys()} anywhere on this page.` },
     { icon: GithubMark, tone: '#1d1a17', title: 'Paste a PR link', line: 'The one you were quietly proud of. It becomes a card with owner/repo#number.' },
     { icon: PenLine, tone: '#2fb37e', title: 'Write one line', line: '“Unblocked the release on Tuesday.” Small counts. Future-you will thank you.' },
   ];

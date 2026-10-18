@@ -2,7 +2,7 @@
 /**
  * Overrides Starlight's Banner (astro.config.mjs → `components`) so that EVERY docs page says where v0.1 stands,
  * without each page having to remember a `banner:` frontmatter entry. A page that does set one gets its own instead.
- * Reword it at the first release (and flip RELEASED in src/site.mjs).
+ * It has both wordings: RELEASED in src/site.mjs picks one, and the version PR flips it (scripts/whats-new-release.mjs).
  */
 import { RELEASED } from '../site.mjs';
 

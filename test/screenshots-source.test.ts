@@ -169,6 +169,19 @@ describe('one file, start to finish', () => {
     assert.equal(r.ctx.services.found.list().length, 1);
   });
 
+  // GNOME's Print Screen saves to the folder and copies to the clipboard: pasted on the board, it's already there
+  test('a screenshot already pasted onto the board (the same picture) is not sent to Found again', async () => {
+    const r = rig();
+    await r.call('PUT', '/api/sources/screenshots', { folder: '~/Screenshots', enabled: true });
+    const up = await r.app.request('/api/evidence', { method: 'POST', headers: { 'Content-Type': 'image/png', 'X-Filename': 'image.png' }, body: PRAISE.bytes });
+    assert.equal(up.status, 201);
+    r.ctx.services.achievements.create({ title: 'Billing cutover', evidence: [{ kind: 'image', blob: sha256Of(PRAISE.bytes) }] });
+    const out = await r.src.process(r.write(NAME, PRAISE.bytes));
+    assert.deepEqual(out, { kind: 'skipped', why: 'already in Found or on your board' });
+    assert.equal(r.ctx.services.found.list().length, 0);
+    assert.equal(r.ocr.reads, 0, 'not even read');
+  });
+
   test("praise for someone else, and a plain message: counted, nothing stored, their text kept nowhere", async () => {
     const r = rig();
     for (const s of [OTHER, DEPLOY]) assert.equal((await r.src.process(r.write(`Screenshot 2026-10-17 at 9.4${s === OTHER ? 1 : 2}.00 PM.png`, s.bytes))).kind, 'looked');

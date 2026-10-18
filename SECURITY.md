@@ -2,8 +2,7 @@
 
 ## Supported versions
 
-BragDoc Local is pre-release: v0.1 is being built and nothing has been published yet. Once it is, fixes go into the
-latest minor release only.
+Fixes go into the latest minor release only (0.1.x for now).
 
 ## Reporting a vulnerability
 
@@ -18,8 +17,8 @@ days for a first response.
 ## What BragDoc protects
 
 BragDoc runs on your machine as your user and keeps your achievements, and the evidence for them, as files in
-`~/.bragdoc`. What it's built to guarantee, and so what counts as a vulnerability if broken. This list grows as v0.1
-is built; each guarantee names the file that enforces it.
+`~/.bragdoc`. What it's built to guarantee, and so what counts as a vulnerability if broken; each guarantee names the
+file that enforces it.
 
 - **Only you can reach it.** The server binds 127.0.0.1 only, and refuses any other address unless you set
   `BRAGDOC_DANGEROUSLY_ALLOW_OPEN=1` (`server/bind-safety.ts`).
@@ -40,8 +39,17 @@ is built; each guarantee names the file that enforces it.
 - **Secrets stay private.** `runtime.json`, which holds the MCP bearer token, is written mode 0600; the data home's
   `.gitignore` keeps it, `secrets.yaml`, logs and backups out of git (`server/runtime.ts`, `server/home.ts`).
 
-Coming with v0.1, each with its enforcing file: writes that are atomic and never delete (`server/store/`), and an MCP
-endpoint that needs the per-install token (`/mcp`).
+- **Agents need the token.** `/mcp` answers only a request carrying the per-install bearer token from `runtime.json`
+  (compared in constant time), refuses another site's `Origin` like every other route, and a new token from Settings
+  stops the old one at once (`server/routes/mcp.ts`, `server/runtime.ts`).
+- **Your entries are never lost or clobbered.** Achievements, projects, companies, repos, evidence and your profile are
+  written only through the store, atomically; removing one moves its file to `backups/removed/` rather than deleting
+  it, a file you broke by hand is shown as a Problem and never overwritten, and an edit made against a stale copy is
+  refused (`server/store/`, `server/store/safefs.ts`). BragDoc's own files (config.yaml, secrets.yaml, runtime.json) are
+  written atomically too (`server/atomic.ts`); the only things it deletes are old backup snapshots, by the retention
+  rule, and a rotated network log. `test/guard-fs.test.ts` fails CI if any other code deletes, renames or writes there.
+- **No AI, no telemetry.** v0.1 contains no model, no AI dependency and nothing that downloads one; there's no update
+  check. Screenshots are read on your computer (`server/ocr/`).
 
 Out of scope: anything that needs an attacker who can already run code as you, or write to your `~/.bragdoc`.
 `BRAGDOC_DANGEROUSLY_ALLOW_OPEN` deliberately relaxes the first guarantee (Docker uses it, publishing on 127.0.0.1

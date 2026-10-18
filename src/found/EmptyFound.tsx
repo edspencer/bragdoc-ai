@@ -51,7 +51,7 @@ export function EmptyFound({ sources, filtered }: { sources: SourcesResponse | u
       <div className="mx-auto mt-16 max-w-xl text-center" data-testid="found-empty-off">
         <div className="font-hand text-[34px] leading-tight text-muted">Found is quiet because every source is switched off.</div>
         <p className="mt-3 text-[14.5px] text-muted">
-          That’s fine. You can still pin things to your board by hand, and your coding agent can still suggest things over MCP. If you want BragDoc to spot your merged pull requests, or praise you screenshot, turn on GitHub or the screenshots folder.
+          That’s fine. You can still pin things to your board by hand, and your coding agent can still suggest things over MCP. If you want BragDoc to spot your merged pull requests, or praise for you in your screenshots, turn on GitHub or the screenshots folder.
         </p>
         <LinkBtn to="/settings/$tab" params={{ tab: 'sources' }} kind="accent" className="mt-5" data-testid="found-choose-sources">
           Choose sources

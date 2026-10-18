@@ -18,7 +18,8 @@ afterEach(async () => {
   h?.cleanup();
 });
 
-const until = async (cond: () => boolean, ms = 2000) => {
+// 10 s, not 2: it returns as soon as cond holds, and macOS's FSEvents on a busy CI runner was sometimes slower than 2 s
+const until = async (cond: () => boolean, ms = 10_000) => {
   const start = Date.now();
   while (!cond()) {
     if (Date.now() - start > ms) throw new Error('timed out');

@@ -77,7 +77,8 @@ merged, however useful the rest of it is.
 ## Changesets
 
 Versions and the changelog come from [changesets](https://github.com/changesets/changesets). A PR that changes
-something a user would notice adds one: run `npm run changeset`, pick the bump (`patch` for everything before 1.0),
+something a user would notice adds one: run `npm run changeset`, pick the bump (`patch` for everything before 1.0; the one exception is the `minor` that made the first release 0.1.0,
+RELEASING.md),
 and write a sentence or two for users, not reviewers: what they can now do, or what no longer goes wrong. Commit the
 `.changeset/*.md` file it writes with the PR. Internal changes (tests, CI, refactors, docs for contributors) don't
 need one.

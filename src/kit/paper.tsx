@@ -120,7 +120,9 @@ export function Print({ src, alt, caption, tiltId, small, full, brokenText = "Th
         // `rotate`, not `transform`, so Tailwind's hover:rotate-0 (which sets `rotate`) can straighten it
         style={tiltId ? { rotate: `${tilt(tiltId, small ? 0.8 : 1.6)}deg` } : undefined}
       >
-        <img src={src} alt={alt} loading="lazy" decoding="async" onError={() => setBroken(true)} className="block w-full" />
+        {/* a very tall picture (a long scroll capture, a 40×3000 strip) is cropped from the top, not drawn metres long
+            over the rest of the board; the lightbox shows all of it */}
+        <img src={src} alt={alt} loading="lazy" decoding="async" onError={() => setBroken(true)} className="block max-h-[40rem] w-full object-cover object-top" />
         {!small && <span className="block px-1 pb-1 pt-1.5 text-left font-hand text-[17px] leading-tight text-print-ink">{caption ?? alt}</span>}
       </button>
       {open && <Lightbox src={full ?? src} alt={alt} caption={caption} onClose={() => setOpen(false)} />}
