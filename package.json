@@ -30,6 +30,7 @@
     "dist/shared/",
     "dist/web/",
     "dist/build-info.json",
+    "fixtures/example/",
     "AGENT-GUIDE.md",
     "CHANGELOG.md"
   ],

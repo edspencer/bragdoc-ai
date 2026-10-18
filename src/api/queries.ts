@@ -3,7 +3,7 @@
 // segment. Feature PRs add their key and hook here, one block each.
 import { QueryClient, keepPreviousData, useInfiniteQuery, useQuery } from '@tanstack/react-query';
 import type { FoundSourceName } from '../../shared/api.ts';
-import { getAchievements, getBackups, getCompanies, getFolio, getFound, getFoundCount, getGhInstalled, getSources, getHealth, getMcpToken, getMeta, getNetworkLog, getProblems, getProjectSummary, getProjects, getRepos, getSettings, isApiError, type AchievementFilters } from './client.ts';
+import { getDiscoverSuggestions, getExample, getProfile, getWelcome, getAchievements, getBackups, getCompanies, getFolio, getFound, getFoundCount, getGhInstalled, getSources, getHealth, getMcpToken, getMeta, getNetworkLog, getProblems, getProjectSummary, getProjects, getRepos, getSettings, isApiError, type AchievementFilters } from './client.ts';
 
 export const queryKeys = {
   health: ['health'] as const,
@@ -28,6 +28,11 @@ export const queryKeys = {
   mcpToken: ['mcp-token'] as const,
   // Folio (PR14)
   folio: (from: string, to: string) => ['folio', from, to] as const,
+  // onboarding (PR16)
+  welcome: ['welcome'] as const,
+  profile: ['profile'] as const,
+  discoverSuggestions: ['discover', 'suggestions'] as const,
+  example: ['example'] as const,
 };
 
 export function createQueryClient(): QueryClient {
@@ -151,4 +156,25 @@ export function useSources() {
 /** Is gh on PATH? (A look at the file system, nothing runs.) */
 export function useGhInstalled(enabled: boolean) {
   return useQuery({ queryKey: queryKeys.ghInstalled, queryFn: ({ signal }) => getGhInstalled(signal), enabled, select: (r) => r.installed });
+}
+
+// onboarding (PR16)
+
+/** Should Welcome open? (no profile.yaml and not skipped) */
+export function useWelcome() {
+  return useQuery({ queryKey: queryKeys.welcome, queryFn: ({ signal }) => getWelcome(signal) });
+}
+
+export function useProfile() {
+  return useQuery({ queryKey: queryKeys.profile, queryFn: ({ signal }) => getProfile(signal) });
+}
+
+/** The usual code folders that exist here, and the hint sources there are (a look at names; nothing is read). */
+export function useDiscoverSuggestions() {
+  return useQuery({ queryKey: queryKeys.discoverSuggestions, queryFn: ({ signal }) => getDiscoverSuggestions(signal), staleTime: 60_000 });
+}
+
+/** Is there example data, and how much. */
+export function useExample() {
+  return useQuery({ queryKey: queryKeys.example, queryFn: ({ signal }) => getExample(signal) });
 }

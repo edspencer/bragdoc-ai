@@ -56,6 +56,8 @@ RUN npm ci --omit=dev --ignore-scripts --no-audit --no-fund && npm cache clean -
 # The image redistributes BragDoc, so it carries the licence text.
 COPY LICENSE README.md ./
 COPY --from=build /app/dist dist
+# the example data ("Fill it with example data", PR16): read by the server, never written
+COPY fixtures/example fixtures/example
 
 # The data home is /data (mount ~/.bragdoc there). BragDoc runs as the image's `node` user (uid 1000), not root, so
 # what it writes into your ~/.bragdoc is yours; compose.yaml's `user:` maps another uid. The directory is made here so

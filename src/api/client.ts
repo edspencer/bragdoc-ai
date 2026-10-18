@@ -16,7 +16,14 @@ import type {
   CompanyEntry,
   DeleteResponse,
   Detached,
+  DiscoverAddRequest,
+  DiscoverAddResponse,
+  DiscoverScanRequest,
+  DiscoverScanResponse,
+  DiscoverSuggestions,
   EvidenceUploaded,
+  ExampleChanged,
+  ExampleStatus,
   FolioResponse,
   FoundCountResponse,
   FoundDecided,
@@ -35,6 +42,7 @@ import type {
   MetaResponse,
   NetworkLogResponse,
   ProblemsResponse,
+  ProfileResponse,
   ProjectEntry,
   ProjectReposRequest,
   ProjectsResponse,
@@ -44,8 +52,9 @@ import type {
   ReposResponse,
   SettingsResponse,
   SourcesResponse,
+  WelcomeResponse,
 } from '../../shared/api.ts';
-import type { Achievement, AchievementCreate, AchievementUpdate, Evidence, FoundCandidate, FoundKeep, Problem } from '../../shared/schema/index.ts';
+import type { Achievement, AchievementCreate, AchievementUpdate, Evidence, FoundCandidate, FoundKeep, Problem, Profile, ProfileUpdate } from '../../shared/schema/index.ts';
 
 /** A failed API call: the HTTP status (0 when the server couldn't be reached) and the envelope's code and message. */
 export class ApiRequestError extends Error {
@@ -329,3 +338,18 @@ export const putGithub = (body: GithubSettingsRequest) => api.put<GithubSourceSt
 /** Check now: resolves when the check has finished. */
 export const runGithub = () => api.post<GithubSourceStatus>('/api/sources/github/run');
 export const disconnectGithub = (forgetToken = false) => api.post<GithubSourceStatus>('/api/sources/github/disconnect', { forgetToken });
+
+// ---------------------------------------------------------------- onboarding (PR16)
+
+/** `GET /api/welcome`: open Welcome? (no profile.yaml, and it wasn't skipped) */
+export const getWelcome = (signal?: AbortSignal) => api.get<WelcomeResponse>('/api/welcome', { signal });
+/** Skip Welcome (or, with `false`, show it again on the next visit to the board). */
+export const skipWelcome = (skipped = true) => api.post<WelcomeResponse>('/api/welcome/skip', { skipped });
+export const getProfile = (signal?: AbortSignal) => api.get<ProfileResponse<Profile>>('/api/profile', { signal });
+export const putProfile = (body: ProfileUpdate) => api.put<ProfileResponse<Profile>>('/api/profile', body);
+export const getDiscoverSuggestions = (signal?: AbortSignal) => api.get<DiscoverSuggestions>('/api/discover/suggestions', { signal });
+export const scanForRepos = (body: DiscoverScanRequest, signal?: AbortSignal) => api.post<DiscoverScanResponse>('/api/discover/scan', body, { signal });
+export const addDiscoveredRepos = (body: DiscoverAddRequest) => api.post<DiscoverAddResponse>('/api/discover/add', body);
+export const getExample = (signal?: AbortSignal) => api.get<ExampleStatus>('/api/example', { signal });
+export const addExample = () => api.post<ExampleChanged>('/api/example', {});
+export const removeExample = () => api.post<ExampleChanged>('/api/example/remove', {});

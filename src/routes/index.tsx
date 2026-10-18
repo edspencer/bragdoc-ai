@@ -19,13 +19,14 @@ import {
   type AchievementFilters,
   type AchievementItem,
 } from '../api/client.ts';
-import { queryKeys, useAchievements, useFoundCount, useProblems, useProjects, useRepos } from '../api/queries.ts';
+import { queryKeys, useAchievements, useFoundCount, useProblems, useProjects, useRepos, useSources } from '../api/queries.ts';
 import { AchievementCard } from '../board/AchievementCard.tsx';
 import { DropTray } from '../board/DropTray.tsx';
 import { EditDrawer } from '../board/EditDrawer.tsx';
 import { fallbackTitle, linkEvidence, useComposer } from '../board/composer.ts';
 import { Btn, FilterChip, GithubMark, Masonry, Tape, WeekHeader, inputCls, useToast } from '../kit/index.ts';
 import { groupByWeek, todayIso } from '../lib/dates.ts';
+import { ExampleBanner, useAddExample } from '../onboarding/ExampleData.tsx';
 
 interface BoardSearch {
   q?: string;
@@ -272,6 +273,8 @@ function Board() {
         )}
       </div>
 
+      <ExampleBanner />
+
       {problems.data && problems.data.length > 0 && (
         <div className="sb-sticky relative mt-6 px-5 py-4" role="status" data-testid="problems-banner" style={{ transform: 'rotate(-0.3deg)' }}>
           <div className="flex items-start gap-2.5">
@@ -378,10 +381,16 @@ function Board() {
   );
 }
 
-/** A brand-new board: a taped card with three ways to start. Onboarding's version (PR16) adds example data. */
+/**
+ * A brand-new board (SPEC R10): a taped card with three ways to start, what Found is keeping an eye on (or that every
+ * source is off, and where to turn one on), and the example data. Adapted from the prototype's EmptyBoard.
+ */
 function EmptyBoard({ onArchived }: { onArchived: () => void }) {
   // an empty board may still have an archive: say so, or archiving the last card would strand it out of sight
   const archived = useQuery({ queryKey: queryKeys.achievements({ archived: 'only', weeks: 1 }), queryFn: ({ signal }) => getAchievements({ archived: 'only', weeks: 1 }, signal), select: (r) => r.total }).data;
+  const sources = useSources().data;
+  const example = useAddExample();
+  const watching = [sources?.github.enabled && 'GitHub', sources?.screenshots.enabled && 'your screenshots folder'].filter((x): x is string => !!x);
   const ideas = [
     { icon: ImageIcon, tone: '#3b6cf6', title: 'Paste a screenshot of praise', line: 'A thank-you message, a kind email, a chart that went the right way. ⌘V anywhere on this page.' },
     { icon: GithubMark, tone: '#1d1a17', title: 'Paste a PR link', line: 'The one you were quietly proud of. It becomes a card with owner/repo#number.' },
@@ -405,6 +414,31 @@ function EmptyBoard({ onArchived }: { onArchived: () => void }) {
                 <div className="mt-1 text-[13px] leading-relaxed text-muted">{i.line}</div>
               </div>
             ))}
+          </div>
+          <div className="mt-7 flex flex-wrap items-center gap-3 border-t-2 border-dashed border-line pt-5 text-[13.5px]">
+            <span className="min-w-0 flex-1 basis-64 text-muted" data-testid="board-empty-watching">
+              {!sources ? null : watching.length ? (
+                <>
+                  Meanwhile, Found is keeping an eye on <b className="text-ink">{watching.join(' and ')}</b>, and your coding agent can suggest things over MCP.
+                </>
+              ) : (
+                <>
+                  Every source is off, so nothing turns up in Found by itself.{' '}
+                  <Link to="/settings/$tab" params={{ tab: 'sources' }} className="font-semibold text-accent underline decoration-dotted underline-offset-2" data-testid="board-empty-sources">
+                    Turn one on
+                  </Link>
+                </>
+              )}
+            </span>
+            <button
+              type="button"
+              onClick={() => example.mutate()}
+              disabled={example.isPending}
+              className="ml-auto rounded-full px-3 py-1.5 text-[12.5px] font-semibold text-muted ring-2 ring-line hover:text-ink disabled:opacity-60"
+              data-testid="example-add"
+            >
+              {example.isPending ? 'Filling it…' : 'Fill it with example data'}
+            </button>
           </div>
         </div>
         {!!archived && (
