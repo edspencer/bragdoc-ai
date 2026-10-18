@@ -109,6 +109,8 @@ export interface NetworkLogResponse {
   entries: NetworkLogEntry[];
   /** How many entries the log holds in all (for paging). */
   total: number;
+  /** v0.2: the request bytes sent to AI providers on the internet, over the whole log (never content; SPEC R19). */
+  toAiInternet?: number;
 }
 
 /**
