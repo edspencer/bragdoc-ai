@@ -1035,6 +1035,57 @@ Export is a download of a blob made in the page; nothing about a folio is writte
 - Cloud hosts can't be pointed at it (and no release build gets a way to redirect one), so cloud paths are tested with
   an injected egress `fetchImpl` (`test/ai-fixture.ts`).
 
+### D69 — Settings → AI: off means nothing that could reach a runner; local models are listed on sight, cloud ones on a click
+
+- With AI off the tab shows the master switch, what being off means, and the connections you've saved, and nothing
+  that could contact a runner. Looking for one, listing models, testing and downloading all wait until AI is on, and the
+  server refuses them too (`ai_off`, 409): "nothing is contacted" (SPEC principle 3) holds for the setup screens, not
+  only the features. Adding, editing and allowing a connection send nothing, so the API still accepts them with AI off
+  (PR21); the tab just doesn't offer them until it's on.
+- A connection on this computer or your network is asked which models it has when its card appears (one logged GET).
+  One on the internet is asked only when you click: opening a settings page must never send a request to a provider.
+  Model lists are cached per connection *and address*, so pointing a connection elsewhere asks again.
+- After a connection on the internet is added, the consent dialog opens at once; "Not now" leaves it saved and blocked.
+  The dialog is made from `shared/ai/consent.ts`, so the page and the docs' provider pages can't disagree.
+- Feature cards are a registry, `FEATURE_CARDS` in `src/settings/ai/index.ts`: each feature PR replaces its `Card: null`
+  with its component, one line, like a route. Until then the tab lists each feature as off with what it will do.
+- AI activity is PR22's log (`GET /api/ai/activity`) as a receipt like Network activity's: one line per run, never content.
+- The header chip appears only while AI is on: "AI · this computer" / "AI · your network" for a local text model, the
+  provider's name (or a typed-in server's host) for one on the internet, "AI · no model yet" before one is chosen.
+
+### D70 — Looking for a runner: a fixed loopback probe through egress, and a look at PATH that runs nothing
+
+- `egress.probe()` is the only way to reach an address that isn't a configured connection (`fetchFor` only reaches a
+  connection's own origin). It allows only loopback names and `host.docker.internal`, only a GET with no body, no
+  query string and no credentials, never follows a redirect, refuses while AI is off, and logs each probe as
+  `feature: detect` with where it went. The probes are the presets' addresses (Ollama 11434, LM Studio 1234, llama.cpp
+  8080) and, when `BRAGDOC_IN_DOCKER=1` (the image sets it), the host's Ollama through `host.docker.internal:11434`.
+- Whether `ollama` is installed is `proc.onPath()`: a stat of PATH's absolute entries. Ollama is not in `ALLOWED_BINS`
+  and never will be: BragDoc doesn't run it, start it or install it. When it's on PATH but nothing answered, the page
+  says to start it; otherwise it says BragDoc doesn't install model runners and links to ollama.com.
+- The last result is kept in `cache/ai/detect.json` (derived, deletable); which runner is already a connection is worked
+  out when it's read, against the connections as they are then.
+- A runner on another port (this project's own dev box runs one on 11500) isn't found, by design: probing a range of
+  ports would be a port scan. Adding it by hand is the path, and the "none found" panel says so.
+
+### D71 — Asking Ollama to download: recommended models only, a server-side confirm, a warning not a wall for disk
+
+- `POST /api/ai/connections/:id/pull` takes only `{ confirm: true, model }` (400 `confirm_needed` otherwise) and only a
+  model from the recommended table whose size is known (`gemma4:e4b`, `qwen3.5:4b`): the confirm has to state the size
+  (SPEC principle 2), and the "better" tier's varies. Anything else is `ollama pull` in a terminal; the command is
+  always shown, with Copy.
+- The confirm restates the download, the free space in your home folder and the RAM it wants against what this machine
+  has. Too little free space or RAM is a red warning and the button becomes "Download anyway", not a block: free space
+  is the home folder's, and Ollama may keep its models on another disk (`OLLAMA_MODELS`), which BragDoc can't see.
+- The answer is Ollama's progress as NDJSON lines, then one `{ done }` line. Cancel closes the request, which closes
+  Ollama's stream (Ollama may keep the part it fetched, to resume; the dialog says so). Turning AI off or revoking the
+  connection stops a download in progress too (`ctx.localAi.cancelAll`, and a once-a-second check for a hand edit of
+  config.yaml), the same as ctx.ai's calls. The pull is logged twice: the
+  loopback request (`this computer`) and "registry (via Ollama)" (`internet`, outcome and error), because the download
+  leaves through Ollama, outside BragDoc's process (D9's honesty, as for gh).
+- The network log also totals the request bytes sent to AI providers on the internet (`toAiInternet` on
+  `GET /api/network-log`), for the receipt's "To AI providers on the internet" line beside "To BragDoc's makers: 0 B".
+  Refused requests and local ones don't count; content is never logged.
 ### D67 — Instructions files: a store kind, written whole, capped, never overwritten unseen
 
 - `ai/what-counts.md` (the judge's) and `ai/style.md` (tidy's and draft's) are user data, so they're a store file kind,
@@ -1109,6 +1160,47 @@ Export is a download of a blob made in the page; nothing about a folio is writte
   - `npm run eval:smoke` is the harness's own check (a date and a percentage from each of eight synthetic sentences,
     feature `test`), with a committed real-model recording that CI replays.
 
+### D78 — Tidy this up: a suggestion beside your fields, and what you wrote is kept
+
+- **The server gathers the text** (`POST /api/ai/tidy { text?, evidenceShas?, achievementId?, today? }`): pasted text,
+  the OCR sidecar of named board pictures (waiting up to 8 s for a read in progress, then `409 not_read_yet`), and an
+  achievement's title, summary, notes and the words of its quotes and read pictures. Each part goes to the model under
+  a label saying what it is, inside one delimited block that the prompt calls material, not instructions. The browser
+  can't put words in a picture's mouth, and the preview (`GET /api/ai/tidy/preview`) is built by the same function.
+  The edit drawer tidies the achievement **as last saved** (it says so when you have unsaved edits).
+- **10,000 characters** of material at most (`400 too_long`, with the count, in the error), so a tidy fits the default
+  8,192-token local context with room for the answer.
+- **A lenient answer schema, strict checks after** (`finishTidy`): small local models get lengths and nulls wrong often
+  enough (PR22 saw the string `"null"`) that refusing over them costs a repair round-trip of 20 s on a CPU. So the
+  schema asks for the shape, and BragDoc clips the title (90), summary (280) and body (1,500) at a word, turns
+  `"null"`/`"none"` into null, clamps impact to 1–10, maps project **names** to your ids (an unknown one is dropped
+  and said), and flags every number, amount, date or capitalised name in a text field that isn't in the material
+  (`shared/ai/grounding.ts`; your name, role and project names count as yours).
+- **Nothing is written by a tidy.** In the composer, whose text is "first line title, the rest notes": using a title
+  the first time moves everything you wrote down into the notes under it (later titles replace the first line), and a
+  suggested body goes under the title, above your words. So **your original text survives Use all**, and Pin it saves
+  it as the achievement's notes. The composer gains a Summary and an Until field, shown only once a suggestion has set
+  them, so with AI off it's v0.1's composer exactly. In the drawer, a suggested body goes above your notes the same
+  way; title and summary replace theirs (they're on screen, and Cancel throws it all away). An accepted impact is
+  yours (`impactSource: user`), as any impact you set.
+- **Shown only while AI and Tidy are on** (SPEC R26): the board reads `GET /api/ai` (the same query key as Settings →
+  AI). On but not ready (no model, no consent) → the button is disabled with the reason and a link to Settings → AI.
+  A suggestion open when AI is switched off stays readable and goes inert, with the reason.
+- `notAnAchievement` shows its reason and offers nothing to use.
+
+### D79 — A date is kept only if the material states it or a relative date in it resolves to it
+
+R23 allows a date "only when stated, or resolvable from a relative date against the day it was pasted". A model that
+makes one up is the commonest invention (it reaches for today, or a plausible past date), and a wrong date files the
+achievement in the wrong week, where nobody re-reads it. So `allowedDates(material, today)` lists the dates the text
+supports, generously: ISO dates; "March 4" / "4 March" (this year, or last year if that's still to come); "October
+2025" and "Q3 2026" as ranges; either reading of 10/11; "today", "yesterday", "N days/weeks ago" (with slack); a
+weekday as any such day in the last two weeks; "last week" as the last fortnight; "last month" from the start of the
+previous month. A `happenedAt` or `endedAt` outside all of them is **dropped and said** ("The date 2019-03-14 isn't in
+your text, so it was left out"), and an end not after the start goes too. `today` is the browser's day (its time
+zone), accepted within two days of the server's, else the server's (the profile's time zone). The model gets the same
+rule in its prompt; this is the check, not the instruction.
+
 ### D72 — What the judge reads: the screenshot re-read and marked, a PR's start, fenced as material
 
 - **A screenshot** (`server/ai/judge/input.ts`, pure): the picture is read again through `ctx.ocr`, **only if the file
@@ -1157,7 +1249,7 @@ Export is a download of a blob made in the page; nothing about a folio is writte
   - `GET /api/ai/judge/status` keeps the run in progress and the last one **in memory only**; the activity log is the
     record. An `ai-judge` event refreshes open tabs.
 - **Checks before writing** (`checkAnswer`): a `quote` is kept only if it's verbatim in **the message judged** (not the
-  context) and the verdict is a keep; `from` only if it's in the input; project names map to the active and paused
+  context) and the verdict is a keep; `from` only if it's the judged message's author; project names map to the active and paused
   projects' ids, others dropped; `why` is cut to 160 characters; `confidence` is clamped to 0–1 (a whole number up to
   100 is read as a percentage); a PR's `impact` is rounded and clamped to 1–10. `by` is "<model> on <this computer ·
   your network · host>"; `inputHash` is the sha256 of the kind, the input and the instructions, so the preview's hash

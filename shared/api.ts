@@ -109,6 +109,8 @@ export interface NetworkLogResponse {
   entries: NetworkLogEntry[];
   /** How many entries the log holds in all (for paging). */
   total: number;
+  /** v0.2: the request bytes sent to AI providers on the internet, over the whole log (never content; SPEC R19). */
+  toAiInternet?: number;
 }
 
 /**
@@ -1017,6 +1019,65 @@ export interface AiModelsResponse {
 /** `PUT /api/ai/features/:feature`: any of that feature's settings (a merge patch). */
 export type AiFeatureUpdate = Partial<AiJudgeSettings> | Partial<AiFeatureSettings['tidy']>;
 
+// ---------------------------------------------------------------- Settings → AI (PR23)
+//
+// Looking for a model runner on this computer, the hardware readings behind "Recommended for this computer", and asking
+// Ollama to download a recommended model (SPEC R18, D69–D71). Routes: server/routes/ai-local.ts.
+
+/** A local runner kind detection looks for. */
+export type AiRunnerKind = 'ollama' | 'lmstudio' | 'llamacpp';
+
+/** `GET /api/ai/hardware`: what this computer (or, under Docker, this container) has. */
+export interface AiHardware {
+  ramBytes: number;
+  cpu: string;
+  cores: number;
+  /** `arm64`, `x64`… */
+  arch: string;
+  appleSilicon: boolean;
+  /** Free space in the home folder (where Ollama keeps models by default): BragDoc can't know where a runner stores them. */
+  freeDiskBytes: number | null;
+  /** The readings are a container's (BRAGDOC_IN_DOCKER=1), not the machine's. */
+  inDocker: boolean;
+  /** The recommended model for this RAM (shared/ai/models.ts recommendFor), or null under 8 GB. */
+  recommended: string | null;
+  /** "roughly 15–20 s per item without a GPU", for a computer that isn't Apple silicon. */
+  speedNote: string | null;
+  /** The recommendations table's date. */
+  modelsAsOf: string;
+}
+
+/** One runner detection found answering. */
+export interface AiDetectedRunner {
+  kind: AiRunnerKind;
+  baseUrl: string;
+  where: AiWhere;
+  version: string | null;
+  models: { name: string; sizeBytes: number | null }[];
+  /** The id of a connection that already points here, or null. */
+  connectionId: string | null;
+}
+
+/** `POST /api/ai/detect` (and `GET`, the last result, or null before the first look). */
+export interface AiDetectResult {
+  at: string;
+  runners: AiDetectedRunner[];
+  /** An `ollama` program on BragDoc's PATH (a look; nothing ran). */
+  ollamaOnPath: boolean;
+  inDocker: boolean;
+}
+
+/** `POST /api/ai/connections/:id/pull`: Ollama only, and only with the confirm. */
+export interface AiPullRequest {
+  confirm: true;
+  model: string;
+}
+
+/** One line of the pull's answer (application/x-ndjson): progress, then one `done`. */
+export type AiPullEvent =
+  | { done?: false; status: string; completed?: number; total?: number }
+  | { done: true; ok: true }
+  | { done: true; ok: false; error: { code: string; message: string } };
 // ---------------------------------------------------------------- AI plumbing (PR22): instructions, activity
 //
 // The instructions files (ai/what-counts.md, ai/style.md; D67) and the AI activity log (logs/ai-runs.jsonl; D68).
@@ -1087,6 +1148,66 @@ export interface AiActivityEntry {
 export interface AiActivityResponse {
   entries: AiActivityEntry[];
   total: number;
+}
+
+// ---------------------------------------------------------------- AI tidy (PR26): POST /api/ai/tidy
+//
+// "Tidy this up" on the board (SPEC R23, D78–D79): a messy paste, a picture's text or an achievement as written, turned
+// into a suggestion you accept field by field. Nothing is saved by the call: the board saves only when you press Save.
+
+/** `POST /api/ai/tidy`: what to tidy. The server gathers the text itself; give at least one. */
+export interface AiTidyRequest {
+  /** Pasted or typed text. */
+  text?: string;
+  /** Board pictures (evidence sha256s) whose text, once read, is part of what's tidied. */
+  evidenceShas?: string[];
+  /** An achievement on the board: its title, summary, notes and the text of its quotes and pictures. */
+  achievementId?: string;
+  /** The day it was pasted, in the browser's own time zone (YYYY-MM-DD): relative dates resolve against it. */
+  today?: string;
+}
+
+export type AiTidyField = 'title' | 'summary' | 'body' | 'impactWhy';
+
+/** What the model suggested, after BragDoc's checks (lengths, dates, projects). Every field is a suggestion only. */
+export interface AiTidySuggestion {
+  title: string;
+  summary: string;
+  body: string | null;
+  happenedAt: string | null;
+  endedAt: string | null;
+  impact: number | null;
+  impactWhy: string | null;
+  /** Project ids, from your projects only (the model names them; unknown names are dropped). */
+  suggestedProjects: string[];
+  /** Set when it doesn't read like an achievement: the reason. The UI fills nothing then. */
+  notAnAchievement: string | null;
+  /** What it couldn't tell from the text. */
+  unclear: string | null;
+}
+
+/** `POST /api/ai/tidy` → the suggestion, what in it isn't in your text, and what BragDoc took out. */
+export interface AiTidyResponse {
+  suggestion: AiTidySuggestion;
+  /** Numbers, amounts, dates and names in a field that aren't in what you gave it ("not in your text"). */
+  ungrounded: Partial<Record<AiTidyField, string[]>>;
+  /** What the model said that BragDoc dropped, in words (a date it made up, a project you don't have). */
+  dropped: string[];
+  model: string;
+  where: AiWhere;
+  ms: number;
+  /** How many characters were tidied. */
+  chars: number;
+}
+
+/** `GET /api/ai/tidy/preview[?achievementId=]`: exactly what a tidy sends, with a placeholder for your text. */
+export interface AiTidyPreview {
+  system: string;
+  prompt: string;
+  /** The most characters a tidy takes. */
+  maxChars: number;
+  /** The model it would use, and where, when it's ready. */
+  readiness: AiFeatureReadiness;
 }
 
 // ---------------------------------------------------------------- AI judge (PR24)

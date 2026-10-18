@@ -9,7 +9,7 @@ import type { AppContext } from '../server/context.ts';
 import { Egress, readNetworkLog } from '../server/egress.ts';
 import { EventBus } from '../server/events.ts';
 import { initHome } from '../server/home.ts';
-import { createAppWithContext } from '../server/index.ts';
+import { createAppWithContext, type AppOptions } from '../server/index.ts';
 import { rmTmp, tmpDir } from './fixture.ts';
 
 export interface NetCall {
@@ -61,7 +61,7 @@ export interface AiHome {
 }
 
 /** A data home (laid out, with the starter config.yaml) and the app on it. `ai` is merged into config.yaml first. */
-export function aiHome({ ai, fetchImpl }: { ai?: Record<string, unknown>; fetchImpl?: Impl } = {}): AiHome {
+export function aiHome({ ai, fetchImpl, app: appOpts = {} }: { ai?: Record<string, unknown>; fetchImpl?: Impl; app?: Pick<AppOptions, 'hardware' | 'detectTargets' | 'env' | 'homedir'> } = {}): AiHome {
   const root = tmpDir('bragdoc-ai-');
   const dir = path.join(root, '.bragdoc');
   initHome(dir);
@@ -70,7 +70,7 @@ export function aiHome({ ai, fetchImpl }: { ai?: Record<string, unknown>; fetchI
   config.load();
   if (ai) config.update({ ai });
   const egress = new Egress({ dataDir: dir, config: () => config.get(), ...(fetchImpl ? { fetchImpl } : {}) });
-  const { app, ctx } = createAppWithContext({ dataDir: dir, webDist: null, config, bus, egress });
+  const { app, ctx } = createAppWithContext({ dataDir: dir, webDist: null, config, bus, egress, ...appOpts });
   return {
     dir,
     app,

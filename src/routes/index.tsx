@@ -154,7 +154,9 @@ function Board() {
     const input: AchievementCreate = {
       title: first?.trim() || fallbackTitle(c.pending) || 'Untitled',
       ...(rest.join('\n').trim() ? { body: rest.join('\n').trim() } : {}),
+      ...(c.summary?.trim() ? { summary: c.summary.trim() } : {}),
       happenedAt: c.date,
+      ...(c.endedAt && c.endedAt > c.date ? { endedAt: c.endedAt } : {}),
       ...(c.impact ? { impact: c.impact, impactSource: 'user' as const } : {}),
       projects: c.projects.filter((id) => projectMap.has(id)),
       repos: c.repos.filter((id) => repoMap.has(id)),

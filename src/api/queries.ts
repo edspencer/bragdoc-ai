@@ -5,6 +5,7 @@ import { QueryClient, keepPreviousData, useInfiniteQuery, useQuery } from '@tans
 import type { AiInstructionsName, FoundSourceName } from '../../shared/api.ts';
 import { getDiscoverSuggestions, getExample, getProfile, getWelcome, getAchievements, getBackups, getCompanies, getFolio, getFound, getFoundCount, getGhInstalled, getSources, getHealth, getMcpToken, getMeta, getNetworkLog, getProblems, getProjectSummary, getProjects, getRepos, getSettings, getEvidenceOcr, getScreenshotSuggestions, isApiError, type AchievementFilters } from './client.ts';
 import { getAiActivity, getAiInstructions } from './client.ts';
+import { getAi, getAiDetect, getAiHardware, getAiModels } from './client.ts';
 import { getJudgeStatus } from './client.ts';
 
 export const queryKeys = {
@@ -38,6 +39,13 @@ export const queryKeys = {
   profile: ['profile'] as const,
   discoverSuggestions: ['discover', 'suggestions'] as const,
   example: ['example'] as const,
+  // AI (PR23): the `ai` event refreshes these. A connection's models are asked of the runner itself, so they're under
+  // their own prefix and refreshed only when asked (each ask is a line in Network activity)
+  ai: ['ai'] as const,
+  aiHardware: ['ai', 'hardware'] as const,
+  aiDetect: ['ai', 'detect'] as const,
+  /** by address too: pointed somewhere else, a connection is asked again */
+  aiModels: (id: string, baseUrl: string | null) => ['ai-models', id, baseUrl ?? ''] as const,
   // AI plumbing (PR22): refreshed by the `instructions` and `ai-activity` events
   aiInstructions: (name: string) => ['ai-instructions', name] as const,
   aiActivity: (limit: number) => ['ai-activity', limit] as const,
@@ -205,6 +213,36 @@ export function useDiscoverSuggestions() {
 /** Is there example data, and how much. */
 export function useExample() {
   return useQuery({ queryKey: queryKeys.example, queryFn: ({ signal }) => getExample(signal) });
+}
+
+// ---------------------------------------------------------------- AI (PR23)
+
+/** `GET /api/ai`: refreshed by the `ai` and `config` events (another tab, a hand edit of config.yaml). */
+export function useAi() {
+  return useQuery({ queryKey: queryKeys.ai, queryFn: ({ signal }) => getAi(signal) });
+}
+
+/** Is AI on? False while unknown: nothing AI shows until the server says so (SPEC R26). */
+export function useAiOn(): boolean {
+  return useAiState() === true;
+}
+
+/** AI on (true), off (false), or not known yet (undefined): for copy that says either way. */
+export function useAiState(): boolean | undefined {
+  return useQuery({ queryKey: queryKeys.ai, queryFn: ({ signal }) => getAi(signal), select: (s) => s.enabled }).data;
+}
+
+export function useAiHardware(enabled: boolean) {
+  return useQuery({ queryKey: queryKeys.aiHardware, queryFn: ({ signal }) => getAiHardware(signal), enabled, staleTime: Infinity });
+}
+
+export function useAiDetect(enabled: boolean) {
+  return useQuery({ queryKey: queryKeys.aiDetect, queryFn: ({ signal }) => getAiDetect(signal), enabled });
+}
+
+/** What a connection offers, asked of it once per page (a cloud one only when `enabled` says so: a click). */
+export function useAiModels(id: string, baseUrl: string | null, enabled: boolean) {
+  return useQuery({ queryKey: queryKeys.aiModels(id, baseUrl), queryFn: ({ signal }) => getAiModels(id, signal), enabled, staleTime: Infinity, retry: false });
 }
 
 // AI plumbing (PR22)

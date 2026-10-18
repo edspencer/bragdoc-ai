@@ -2,6 +2,7 @@
 // Later PRs add what their routes need as new fields here, in their own lines, so parallel PRs rebase cleanly. Keep
 // it a plain bag of dependencies: no logic.
 import type { Notice } from '../shared/api.js';
+import type { LocalAi } from './ai/local.js';
 import type { AiActivity } from './ai/activity.js';
 import type { JudgeEngine } from './ai/judge/index.js';
 import type { Ai } from './ai/run.js';
@@ -51,6 +52,8 @@ export interface AppContext {
   evidenceText: EvidenceText;
   /** Every model call (v0.2): `ctx.ai.object/stream/test/models`, gated, queued, through egress. Loads no SDK until used. */
   ai: Ai;
+  /** Settings → AI's local runners (PR23): hardware, "look for a model runner", and an Ollama download after a confirm. */
+  localAi: LocalAi;
   /** The AI activity log (logs/ai-runs.jsonl): every ctx.ai call lands here; `start()` groups a feature's run (PR22). */
   aiActivity: AiActivity;
   /** The Found judge (PR24): `start()`/`judgePending()` fill pending candidates' verdicts, `status()`, `preview(id)`. */

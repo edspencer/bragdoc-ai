@@ -104,7 +104,8 @@ server/              the server and CLI (Node, TypeScript ESM, Hono)
   secrets.ts         secrets.yaml (0600): the GitHub token and AI keys (aiKey, setAiKey, aiKeyHint), written through
                      atomic.ts, never logged, returned or backed up
   ai/                v0.2's AI runtime (see "AI (v0.2)"): policy.ts (the gates and the AI allow-list hosts, pure),
-                     run.ts (ctx.ai: queue, object/stream/test/models), errors.ts (AiError, the fixed codes), sdk.ts
+                     run.ts (ctx.ai: queue, object/stream/test/models), local.ts (ctx.localAi: hardware, detection, the
+                     confirmed Ollama download; PR23), errors.ts (AiError, the fixed codes), sdk.ts
                      (the ONLY place the AI SDK is loaded, by import()), providers.ts (connection → model), ollama.ts
                      (Ollama's native /api/chat as a model), activity.ts (ctx.aiActivity: logs/ai-runs.jsonl, PR22),
                      judge/ (the Found judge, PR24: index.ts ctx.judge, input.ts what it reads, starter.ts),
@@ -163,7 +164,7 @@ src/                 the web app (React 19, Vite, Tailwind v4, TanStack Router +
                      decide.ts (keep / merge / dismiss with the Undo toast)
   onboarding/        steps.ts (Welcome's steps), ExampleData.tsx (the board's example strip, Settings → Data's panel,
                      useAddExample); routes/welcome.tsx is Welcome itself
-  settings/          Settings' tabs (SourcesTab + GithubCard, NetworkTab, DataTab, AboutTab) and what they share (common.tsx:
+  settings/          Settings' tabs (SourcesTab + GithubCard, AiTab + ai/ (v0.2), NetworkTab, DataTab, AboutTab) and what they share (common.tsx:
                      CopyButton, CommandSlab, LoadError, Slot); routes/settings/$tab.tsx picks one
   api/               client.ts (the typed `api` wrapper), queries.ts (query keys + hooks), events.ts (live updates)
   theme/theme.tsx    light / system / dark: ThemeProvider + useTheme()
@@ -183,7 +184,7 @@ e2e/                 Playwright specs, run against the built server (playwright.
 fixtures/example/    the example dataset (example.json + evidence/), shipped in the package and the image (D61)
 scripts/             gen-example.ts (npm run gen:example: the example evidence files), start.mjs (npm start), dev.mjs (npm run dev), check-no-nul-bytes.mjs, sync-reference.ts,
                      store-demo.ts, whats-new-release.mjs (heads the docs site's What's new at `changeset:version`),
-                     eval/ (v0.2's live evals: lib.ts is the harness, one spec per eval: smoke.ts);
+                     eval/ (v0.2's live evals: lib.ts is the harness, one spec per eval: smoke.ts, tidy.ts);
                      the release's: build-info.mjs (dist/build-info.json), strip-maps.mjs,
                      smoke-pack.mjs (npm run smoke:pack), smoke-image.sh (a built Docker image, in CI)
 .changeset/          pending changelog entries (`npm run changeset`); config.json versions against next
@@ -222,6 +223,7 @@ npm run eval:screenshots -- --ocr   # the screenshot rules' precision and recall
 npm run bragdoc -- dev ocr <image>  # which OCR engine ran, the text, and what the rules made of it
 BRAGDOC_LIVE_AI=1 npm run eval:smoke -- --connection ollama@http://127.0.0.1:11434 --model qwen3.5:4b [--record]
                        # a live eval on a REAL model (refuses under CI); --record saves answers for replay tests
+BRAGDOC_LIVE_AI=1 npm run eval:tidy -- --connection … --model …   # Tidy this up on 30 synthetic blobs (PR26)
 BRAGDOC_LIVE_AI=1 npm run eval:judge -- --connection … --model … [--perfect-text] [--judge-all] [--only messages|prs]
                        # the Found judge on the 218 labelled screenshots and 20 PRs (record with --perfect-text)
 npm run gen:example    # remake fixtures/example/evidence/ after changing a picture in scripts/gen-example.ts
@@ -427,7 +429,7 @@ folder unreadable: test a denied folder with a stand-in (the unit test) or a ser
 
 ### AI (v0.2)
 
-PR21 built the runtime every AI feature stands on (SPEC R17–R20, R28; D62–D66). It has no UI: Settings → AI is PR23.
+PR21 built the runtime every AI feature stands on (SPEC R17–R20, R28; D62–D66); PR23 built Settings → AI on it (D69–D71).
 **The rules:** nothing AI runs *or loads* unless AI and that feature are on; every model call goes through `ctx.ai` →
 `egress.fetchFor()`; local or cloud is decided by **host**, and cloud needs consent; nothing is installed or downloaded
 without a confirm; nothing a model says reaches the board or changes a Found candidate's status without a click.
@@ -480,6 +482,15 @@ without a confirm; nothing a model says reaches the board or changes a Found can
   `think`, `num_ctx`, headers). On the box: `node --import tsx test/fixtures/fake-llm/server.ts --port <p>`. Cloud
   paths can't point at it: test them with an injected egress `fetchImpl` (`test/ai-fixture.ts`).
 - **`bragdoc dev ai --connection <id> --model <m> [--schema ok] "<prompt>"`** makes one call through all of the above.
+- **Settings → AI (PR23, D69–D71)** is `src/settings/AiTab.tsx` plus `src/settings/ai/` (ConnectionCard, AddConnection,
+  ConsentDialog, Detect, Models with the download confirm, `words.ts` for the plain words and the header chip). With AI
+  off it offers nothing that could reach a runner. In the web app: `useAi()` / `useAiOn()` (the `ai` event refreshes
+  them), `useAiModels(id, baseUrl, enabled)`, `useAiHardware`, `useAiDetect`; client functions in `src/api/client.ts`
+  ("AI"). Its own routes are `server/routes/ai-local.ts` over `ctx.localAi` (`server/ai/local.ts`): `GET
+  /api/ai/hardware`, `GET|POST /api/ai/detect` (through `egress.probe()`, loopback and `host.docker.internal` only),
+  `POST /api/ai/connections/:id/pull` (`{ confirm: true, model }`, recommended models only; NDJSON progress; logged
+  twice). **A feature's card**: a component in `src/settings/ai/`, then replace its `Card: null` in `FEATURE_CARDS`
+  (`src/settings/ai/index.ts`) with it: one line. It gets `{ status, readiness }` and owns its feature's switch.
 
 PR22 added the plumbing the three features share (D67, D68):
 
@@ -521,6 +532,17 @@ PR22 added the plumbing the three features share (D67, D68):
     or a schema makes its recordings stale**: re-record on a machine with the model (`--record`), never by hand. `node --import tsx
     test/fixtures/fake-llm/server.ts --recording <file>` serves one for box QA.
 
+PR26 added **Tidy this up** on the board (SPEC R23; D78, D79): `POST /api/ai/tidy` and `GET /api/ai/tidy/preview`
+(`server/routes/ai-tidy.ts`), the prompt in `server/ai/prompts/tidy.ts` (`tidyPrompt`, `tidyMaterial`: labelled parts
+in one delimited block), and `server/ai/tidy.ts`: `gatherTidy` (the server collects the text: pasted, board pictures'
+OCR, an achievement's fields), `runTidy`, and the pure `finishTidy` (clips, nulls, impact, project names → ids,
+`allowedDates` for dates, `ungrounded` flags). Nothing it does writes anything. On the board: `src/board/tidy.ts`
+(`useTidyAvailability`: shown only while AI and Tidy are on; `useTidy`: the call with Cancel; `applyTitle`/`applyBody`,
+which keep what you wrote in the notes) and `src/board/TidySheet.tsx` (the button, the thinking sticky, the sheet).
+The composer's Summary and Until fields appear only once a suggestion sets them. **For PR27:** `ai/style.md` reaches a
+prompt through `services.instructions.forPrompt('style')`, as Tidy does; the fake's `tidy` row (answers.ts) is keyed on
+the schema name `achievement_tidy`.
+
 PR24 added **the Found judge** (SPEC R21; D72–D74). It only ever writes a pending candidate's `verdict`
 (through `services.found.setVerdict`), never its status. **For PR25 (schedule, Found UI) and PR28 (Jev):**
 
@@ -534,8 +556,8 @@ PR24 added **the Found judge** (SPEC R21; D72–D74). It only ever writes a pend
   - `status()` → `AiJudgeStatus` (`ready`/`reason`, `kinds`, `waiting`, `running`, `last`), `preview(id)` →
     `AiJudgePreview` (the exact system and prompt, nothing sent; `NotJudgeable` for a decided or MCP candidate),
     `prepare(c)` → `Prepared` (input, prompt, `inputHash`, project map), `decide(c, context)` (the `Judge` seam).
-  - `checkAnswer(answer, prepared)`: the checks every verdict passes (quote verbatim in the message judged, `from` in
-    the input, projects to ids, `why` ≤ 160, clamps). **Jev (PR28) runs its answer through it too.**
+  - `checkAnswer(answer, prepared)`: the checks every verdict passes (quote verbatim in the message judged, `from` its
+    author, projects to ids, `why` ≤ 160, clamps). **Jev (PR28) runs its answer through it too.**
   - Counts are `win` · `probably-not` · `failed` · `skipped`. A run emits `{ type: 'ai-judge' }` as it goes; the store
     forwards `found` as each verdict is written.
 - **Routes** (`server/routes/ai-judge.ts`): `POST /api/ai/judge/run` (`{ ids? }` → 202), `GET /api/ai/judge/status`,

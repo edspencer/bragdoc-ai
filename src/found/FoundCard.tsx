@@ -1,11 +1,13 @@
 // One candidate in Found (SPEC R7): where it came from, what it is (a PR slab, an agent's text, evidence), which rules
 // it passed, the projects and repos it probably goes with, and Keep · Merge into… · Dismiss. The rules that let it
-// through are always shown. With the judge on (v0.2, opt-in), a judged card also shows its verdict: the stamp, the why
-// and which model judged it (SPEC R21); PR25 adds the rest. With AI off, a verdict from before stays, marked "judged
-// earlier". Adapted from the Scrapbook prototype's FoundCard (Found.tsx), without its Slack body.
+// through are always shown. With AI off (the default, D8) the card says so (SPEC R26). With the judge on (v0.2, opt-in),
+// a judged card also shows its verdict: the stamp, the why and which model judged it (SPEC R21); PR25 adds the rest. A
+// verdict from before stays while the judge can't run, marked "judged earlier". Adapted from the Scrapbook prototype's
+// FoundCard (Found.tsx), without its Slack body.
 import type { ProjectEntry, RepoEntry } from '../../shared/api.ts';
 import type { FoundCandidate, Verdict } from '../../shared/schema/index.ts';
 import { foundPictureUrl } from '../api/client.ts';
+import { useAiState } from '../api/queries.ts';
 import { toView } from '../board/evidence.ts';
 import { Btn, EvidenceBit, Hand, ImpactBadge, Kicker, Print, ProjectPill, ProvenanceBadge, RepoTag, Stamp, StickyQuote, type Provenance } from '../kit/index.ts';
 import { fmt, todayIso } from '../lib/dates.ts';
@@ -39,6 +41,7 @@ export function FoundCard({
   const pills = c.suggestedProjects.map((id) => projects.get(id)).filter((p): p is ProjectEntry => !!p);
   const repoTags = c.suggestedRepos.map((id) => repos.get(id)).filter((r): r is RepoEntry => !!r);
   const blurb = c.summary || c.body?.trim();
+  const ai = useAiState();
   return (
     <article className="sb-card relative mb-8 inline-block w-full break-inside-avoid rounded-3xl p-5" data-testid="found-card" data-id={c.id} data-key={c.externalKey} aria-labelledby={`f-${c.id}`}>
       <div className="flex flex-wrap items-center gap-2">
@@ -90,9 +93,7 @@ export function FoundCard({
           </ul>
         </div>
       )}
-      <div className="mt-3 text-[11.5px] text-faint">
-        Found by {FOUND_BY[c.source]} · plain rules{c.verdict ? '' : ', no AI'}
-      </div>
+      <div className="mt-3 text-[11.5px] text-faint">Found by {FOUND_BY[c.source]} · plain rules{ai === false ? ' · AI off' : ''}</div>
 
       {(pills.length > 0 || repoTags.length > 0 || c.impact) && (
         <div className="mt-4 flex flex-wrap items-center gap-1.5">

@@ -157,6 +157,30 @@ export class Egress {
     };
   }
 
+  /**
+   * Settings → AI's "look for a model runner on this computer" (SPEC R18, D69): one GET to a runner's default address,
+   * which isn't a configured connection, so fetchFor can't carry it. It is only ever this computer (or, in Docker, the
+   * host through host.docker.internal), only a GET with no body and no credentials, only while AI is on, and never
+   * follows a redirect. Logged like any AI call: `feature: detect`, and where it went.
+   */
+  probe({ purpose, feature }: { purpose: string; feature: 'detect' }, input: string | URL, { signal }: { signal?: AbortSignal } = {}): Promise<Response> {
+    const url = new URL(input);
+    const where = hostnameClass(url.hostname);
+    const extra = { feature, where, sent: 0 };
+    const refuse = !this.opts.config().ai.enabled
+      ? 'AI is off (Settings → AI).'
+      : !LOOPBACK.includes(url.hostname) && url.hostname !== 'host.docker.internal'
+        ? 'a runner is only looked for on this computer'
+        : url.protocol !== 'http:' || url.username || url.password || url.search
+          ? 'a probe is a plain GET to a runner’s address'
+          : null;
+    if (refuse) {
+      this.log({ at: this.now().toISOString(), purpose, via: 'fetch', method: 'GET', host: url.host, path: url.pathname, outcome: 'denied', status: null, bytes: null, error: refuse, ...extra });
+      return Promise.reject(new EgressDenied(url.host, purpose, `BragDoc won't send a request to ${url.host} (${purpose}): ${refuse}`, this.opts.config().ai.enabled ? undefined : 'ai_off'));
+    }
+    return this.send(purpose, extra, url, { method: 'GET', headers: { 'user-agent': AI_USER_AGENT, accept: 'application/json' }, redirect: 'manual', ...(signal ? { signal } : {}) }, [url.hostname]);
+  }
+
   /** Record a download a model runner makes itself (Ollama pulling a model): it leaves outside BragDoc, like gh's. */
   logVia(via: 'ollama', { purpose, feature, model, outcome, error }: { purpose: string; feature: AiCallFeature; model?: string; outcome: 'ok' | 'error'; error?: string }): void {
     this.log({
@@ -176,14 +200,15 @@ export class Egress {
     });
   }
 
-  private async send(purpose: string, extra: Partial<NetworkLogEntry>, input: string | URL, init: RequestInit): Promise<Response> {
+  /** `alsoAllow`: hosts a caller has already vouched for (probe's), on top of the allow-list. */
+  private async send(purpose: string, extra: Partial<NetworkLogEntry>, input: string | URL, init: RequestInit, alsoAllow: string[] = []): Promise<Response> {
     let url = new URL(input);
     let method = (init.method ?? 'GET').toUpperCase();
     let body = init.body;
     let headers = new Headers(init.headers);
     for (let hop = 0; ; hop++) {
       const at = this.now().toISOString();
-      const denied = this.check(url);
+      const denied = this.check(url, alsoAllow);
       if (denied) {
         this.log({ at, purpose, via: 'fetch', method, host: url.host, path: url.pathname, outcome: 'denied', status: null, bytes: null, error: denied, ...extra });
         throw new EgressDenied(url.host, purpose, `BragDoc won't send a request to ${url.host} (${purpose}): ${denied}`);
@@ -261,9 +286,9 @@ export class Egress {
   }
 
   /** Why `url` isn't allowed, or null if it is. */
-  private check(url: URL): string | null {
+  private check(url: URL, alsoAllow: string[] = []): string | null {
     if (url.protocol !== 'https:' && url.protocol !== 'http:') return `${url.protocol} isn't allowed`;
-    const allowed = this.allowList();
+    const allowed = [...this.allowList(), ...alsoAllow];
     if (!allowed.includes(url.hostname.toLowerCase())) return `${url.hostname} isn't on the allow-list (${allowed.join(', ')})`;
     // plain http to this computer, or to a model runner on your network (SPEC R19); https everywhere else
     if (url.protocol === 'http:' && !LOOPBACK.includes(url.hostname) && !isLocalClass(hostnameClass(url.hostname))) return 'only https leaves this computer';
@@ -353,5 +378,7 @@ export function readNetworkLog(dataDir: string, { limit = 100, offset = 0 }: { l
     }
   }
   entries.reverse();
-  return { entries: entries.slice(offset, offset + limit), total: entries.length };
+  // what the Network tab's "To AI providers on the internet" line adds up: request bodies only, never content (SPEC R19)
+  const toAiInternet = entries.reduce((n, e) => n + (e.where === 'internet' && e.via === 'fetch' && e.outcome === 'ok' && typeof e.sent === 'number' ? e.sent : 0), 0);
+  return { entries: entries.slice(offset, offset + limit), total: entries.length, toAiInternet };
 }

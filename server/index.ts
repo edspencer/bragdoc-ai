@@ -10,6 +10,7 @@ import { Hono } from 'hono';
 import { serve } from '@hono/node-server';
 import { serveStatic } from '@hono/node-server/serve-static';
 import type { Notice } from '../shared/api.js';
+import { createLocalAi, type LocalAiOptions } from './ai/local.js';
 import { AiActivity } from './ai/activity.js';
 import { createJudge } from './ai/judge/index.js';
 import { createAi, type Ai } from './ai/run.js';
@@ -63,6 +64,10 @@ export interface AppOptions {
   homedir?: string;
   /** ctx.ai (tests: a fake). Default: createAi() over this app's config, egress and secrets. */
   ai?: Ai;
+  /** Settings → AI's hardware readings (tests: fixtures). */
+  hardware?: LocalAiOptions['hardware'];
+  /** Where "look for a model runner" looks (tests: a fake runner on a free port). */
+  detectTargets?: LocalAiOptions['targets'];
   /** The AI activity log (tests: a small rotation size). Default: logs/ai-runs.jsonl in the data home. */
   aiActivity?: AiActivity;
 }
@@ -118,6 +123,7 @@ export function createAppWithContext({ dataDir, webDist = WEB_DIST, version = VE
     // a thin shell: the AI SDK is loaded by the first model call, never at start (SPEC R20)
     ai,
     aiActivity,
+    localAi: createLocalAi({ dataDir, config: () => config.get(), egress, env: o.env, hardware: o.hardware, targets: o.detectTargets, homedir: o.homedir }),
     // nothing runs until asked: no model call, and no SDK, while AI is off (SPEC R20)
     judge: createJudge({ config, ai, aiActivity, store, services, ocr, bus }),
   };
