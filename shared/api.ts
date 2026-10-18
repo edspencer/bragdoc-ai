@@ -137,7 +137,9 @@ export type ServerEvent =
   /** An instructions file (ai/<name>.md) changed: saved, reset, or edited by hand (PR22). */
   | { type: 'instructions' }
   /** A line was added to the AI activity log (PR22): refetch GET /api/ai/activity. */
-  | { type: 'ai-activity' };
+  | { type: 'ai-activity' }
+  /** The judge started, finished or moved on a run (PR24): refetch GET /api/ai/judge/status. */
+  | { type: 'ai-judge' };
 
 // ---------------------------------------------------------------- board (PR7): achievements, evidence, links, problems
 //
@@ -1085,4 +1087,56 @@ export interface AiActivityEntry {
 export interface AiActivityResponse {
   entries: AiActivityEntry[];
   total: number;
+}
+
+// ---------------------------------------------------------------- AI judge (PR24)
+//
+// The Found judge's engine (SPEC R21, D72–D74): it fills a pending candidate's `verdict`, never its status. Runs are
+// one at a time; the schedule, the Settings card and Found's grouping are PR25's.
+
+/** `POST /api/ai/judge/run`: judge what's waiting (pending, of the ticked kinds, without a verdict), or these ids again. */
+export interface AiJudgeRunRequest {
+  ids?: string[];
+}
+
+/** `POST /api/ai/judge/run` → 202: the run started in the background; its id is the activity log's. */
+export interface AiJudgeRunResponse {
+  runId: string;
+  /** How many candidates it will judge (0: nothing was waiting, and nothing will be sent). */
+  queued: number;
+}
+
+/** A judge run's own outcomes, by code: `win`, `probably-not`, `failed` (that item), `skipped` (decided meanwhile). */
+export type AiJudgeCounts = Partial<Record<'win' | 'probably-not' | 'failed' | 'skipped', number>>;
+
+/** `GET /api/ai/judge/status`. */
+export interface AiJudgeStatus {
+  /** Could a run start now (AI and the judge on, a model chosen and allowed)? */
+  ready: boolean;
+  reason: AiGateCode | null;
+  message: string | null;
+  /** The kinds it judges: screenshots, and merged PRs only when ticked. Never MCP candidates. */
+  kinds: { screenshots: boolean; github: boolean };
+  /** Pending candidates of those kinds without a verdict (what Judge now would take, up to maxPerRun). */
+  waiting: number;
+  maxPerRun: number;
+  running: { runId: string; trigger: AiTrigger; startedAt: string; total: number; done: number; counts: AiJudgeCounts } | null;
+  /** The last run that finished since BragDoc started. */
+  last: { runId: string; trigger: AiTrigger; startedAt: string; endedAt: string; total: number; done: number; counts: AiJudgeCounts; outcome: 'ok' | 'error' | 'cancelled'; error: string | null } | null;
+}
+
+/** `GET /api/ai/judge/preview?candidate=<id>`: exactly what the judge would send for it (nothing is sent). */
+export interface AiJudgePreview {
+  candidate: string;
+  kind: 'screenshots' | 'github';
+  /** What the input was made from: the picture read again, the stored quote (the picture is gone), or the PR. */
+  input: 'ocr' | 'quote' | 'github';
+  system: string;
+  prompt: string;
+  /** The model it would use, if one is chosen. */
+  model: string | null;
+  /** Context was left out to fit the model's context size. */
+  truncated: boolean;
+  /** `sha256:` of the input and your instructions: equal to the verdict's when nothing changed since it was judged. */
+  inputHash: string;
 }

@@ -44,6 +44,8 @@ export const CHANGE_INVALIDATES: Record<string, readonly string[]> = {
   // v0.2's AI (PR22): an instructions file (store), and a new line in the AI activity log
   instructions: ['ai-instructions'],
   'ai-activity': ['ai-activity'],
+  // the judge's runs (PR24): Found's Judge now and its progress
+  'ai-judge': ['ai-judge'],
 };
 
 /** What to refresh for one event: a list of key prefixes, or 'all'. Null: nothing (pings, unknown event types). */

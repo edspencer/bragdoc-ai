@@ -11,6 +11,7 @@ import { serve } from '@hono/node-server';
 import { serveStatic } from '@hono/node-server/serve-static';
 import type { Notice } from '../shared/api.js';
 import { AiActivity } from './ai/activity.js';
+import { createJudge } from './ai/judge/index.js';
 import { createAi, type Ai } from './ai/run.js';
 import { ConfigStore } from './config.js';
 import type { AppContext } from './context.js';
@@ -117,6 +118,8 @@ export function createAppWithContext({ dataDir, webDist = WEB_DIST, version = VE
     // a thin shell: the AI SDK is loaded by the first model call, never at start (SPEC R20)
     ai,
     aiActivity,
+    // nothing runs until asked: no model call, and no SDK, while AI is off (SPEC R20)
+    judge: createJudge({ config, ai, aiActivity, store, services, ocr, bus }),
   };
   const ctx: AppContext = { ...base, sources: createSources(base, { env: o.env, now: o.now, homedir: o.homedir }) };
   // every change to a data file (ours, an agent's over MCP, a hand edit the watcher saw) reaches open tabs, projects,
@@ -193,6 +196,7 @@ export async function startServer(port: number, { hostname = '127.0.0.1', ...opt
         stopSnapshots();
         stopSources();
         stopEvidenceText();
+        ctx.judge.cancel(); // a run in progress stops; what it judged stays
         await watcher.close();
         // a screenshot or a picture being read finishes (and, switched off, adds nothing) before OCR is let go
         await Promise.all([ctx.sources.screenshots.idle(), ctx.evidenceText.idle()]);
