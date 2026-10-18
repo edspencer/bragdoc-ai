@@ -84,6 +84,8 @@ export const ConfigSchema = z.object({
       })
       .prefault({}),
   ),
+  /** The welcome steps (PR16): shown on first run, while there's no profile.yaml, unless you skipped them. */
+  welcome: section(z.object({ skipped: z.boolean().default(false) }).prefault({})),
 });
 export type Config = z.infer<typeof ConfigSchema>;
 
@@ -112,6 +114,9 @@ sources:
     enabled: false
     folder: null     # the folder to watch for new screenshots, e.g. ~/Screenshots
     onlyScreenshots: true # only files named like screenshots; false: every picture in the folder
+
+welcome:
+  skipped: false   # true once you skip the welcome steps (they show while there's no profile.yaml)
 `;
 
 /** config.yaml was written by a newer BragDoc: refuse to start (the CLI prints the message and exits 1). */

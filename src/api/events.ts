@@ -19,7 +19,7 @@ import { useQueryClient, type QueryClient } from '@tanstack/react-query';
 /** `change` type (ServerEvent['type']) → the first segments of the query keys it makes stale. */
 export const CHANGE_INVALIDATES: Record<string, readonly string[]> = {
   // the GitHub source's options live in config.yaml, and Found's empty state says what's on
-  config: ['meta', 'settings', 'sources'],
+  config: ['meta', 'settings', 'sources', 'welcome'],
   // a source's status: a check started or finished, connected or disconnected (PR13)
   sources: ['sources'],
   'mcp-token': ['mcp-token'],
@@ -28,17 +28,18 @@ export const CHANGE_INVALIDATES: Record<string, readonly string[]> = {
   // the store (PR7, D48): one type per kind of data file, plus the Problems list
   // projects too: their achievement counts and piles (PR8)
   // folio too: its clippings are achievements, with evidence names, projects' and companies' names and the profile's
-  achievement: ['achievements', 'projects', 'folio'],
+  achievement: ['achievements', 'projects', 'folio', 'example'],
   // a sidecar: OCR text (searchable) and sizes shown on cards
   evidence: ['achievements', 'folio', 'evidence-ocr'],
   // a project's colour and name show on the Gantt, its summary, and the board's tape and pills
-  project: ['projects', 'folio'],
+  project: ['projects', 'folio', 'example'],
   // a company's or repo's name shows in project summaries; deleting one detaches it from projects
-  company: ['companies', 'projects', 'folio'],
-  repo: ['repos', 'projects'],
+  company: ['companies', 'projects', 'folio', 'example'],
+  repo: ['repos', 'projects', 'example'],
   found: ['found'],
-  // the screenshot rules read your name: a picture's quote, and the screenshots card's "needs your name"
-  profile: ['profile', 'folio', 'evidence-ocr', 'sources'],
+  // Welcome's first-run state is "is there a profile.yaml?" (PR16); the screenshot rules read your name: a picture's
+  // quote, and the screenshots card's "needs your name" (PR15)
+  profile: ['profile', 'folio', 'welcome', 'evidence-ocr', 'sources'],
   problems: ['problems'],
 };
 

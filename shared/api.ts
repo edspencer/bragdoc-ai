@@ -746,3 +746,108 @@ export interface EvidenceOcrResponse {
   error?: string;
   quote?: { text: string; from?: string; where?: string };
 }
+
+// ---------------------------------------------------------------- onboarding (PR16): welcome, profile, discover, example data
+
+/**
+ * `GET /api/welcome`: should the web app open Welcome? `firstRun` is true while there's no profile.yaml and Welcome
+ * wasn't skipped (`welcome.skipped` in config.yaml, `POST /api/welcome/skip`). `legacyCli`: the old CLI's files were
+ * moved into legacy-cli/, so the import offer is shown.
+ */
+export interface WelcomeResponse {
+  firstRun: boolean;
+  skipped: boolean;
+  hasProfile: boolean;
+  legacyCli: boolean;
+  /** The data home, as people write it (`~/.bragdoc`). */
+  dataDirDisplay: string;
+}
+
+/** `GET /api/profile`: profile.yaml (null before onboarding) and its ETag for `PUT /api/profile` (If-Match). */
+export interface ProfileResponse<P = Record<string, unknown>> {
+  profile: P | null;
+  etag: string | null;
+}
+
+/** Why a folder can't be scanned. */
+export type DiscoverErrorCode = 'no_such_folder' | 'not_a_folder' | 'unreadable' | 'too_broad' | 'not_absolute';
+
+/** Other places that already know your recent projects, each read only when you tick it. */
+export type DiscoverHintId = 'vscode' | 'jetbrains' | 'claude';
+
+/** `GET /api/discover/suggestions`: which usual code folders exist, and which hint sources have something to read. */
+export interface DiscoverSuggestions {
+  home: string;
+  folders: string[];
+  hints: { id: DiscoverHintId; label: string; line: string; available: boolean }[];
+}
+
+/** `POST /api/discover/scan`: the folder you name (bounded: 4 levels, 5 s) and/or the hints you tick. Nothing is stored. */
+export interface DiscoverScanRequest {
+  root?: string | null;
+  hints?: DiscoverHintId[];
+}
+
+export interface DiscoveredRepo {
+  /** As people write it (`~/Code/my-app`). */
+  path: string;
+  name: string;
+  remoteUrl: string | null;
+  lastActivity: string | null;
+  signal: 'push' | 'commit' | 'pull' | 'fetch' | 'checkout' | 'merge' | 'other' | null;
+  /** In words: "you pushed 3 days ago". */
+  why: string;
+  via: ('folder' | DiscoverHintId)[];
+  linked?: boolean;
+  /** Already one of your repos. */
+  known: boolean;
+}
+
+export interface DiscoverScanResponse {
+  root: string | null;
+  repos: DiscoveredRepo[];
+  looked: number;
+  unreadable: number;
+  elapsedMs: number;
+  /** The 5 s time box ran out: partial results. */
+  timedOut: boolean;
+  /** It stopped at 500 repos. */
+  capped: boolean;
+  emptyHints: DiscoverHintId[];
+}
+
+/** `POST /api/discover/add`: the repos you ticked, each optionally with a project (a new name, or an existing project's id). */
+export interface DiscoverAddRequest {
+  repos: { path: string; project?: { name: string } | { id: string } | null }[];
+}
+
+export interface DiscoverAddResponse {
+  /** One per requested repo, in order: the repo (new or already there), or why it couldn't be added. */
+  results: ({ path: string; repo: RepoEntry; created: boolean; projectId: string | null } | { path: string; error: string })[];
+}
+
+/** How many example entries there are (or were added or removed), by kind. */
+export interface ExampleCounts {
+  achievements: number;
+  projects: number;
+  companies: number;
+  repos: number;
+}
+
+/** `GET /api/example`: is there example data (anything marked `example: true`)? */
+export interface ExampleStatus {
+  present: boolean;
+  counts: ExampleCounts;
+}
+
+/** `POST /api/example`: add it (what isn't there yet). `asOf` places the dates (default today). */
+export interface ExampleAddRequest {
+  asOf?: string;
+}
+
+/** `POST /api/example` → what was added; `DELETE /api/example` → what was removed (+ files left alone). */
+export interface ExampleChanged {
+  changed: ExampleCounts;
+  skipped?: string[];
+  status: ExampleStatus;
+}

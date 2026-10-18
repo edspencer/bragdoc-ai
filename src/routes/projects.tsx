@@ -1,7 +1,7 @@
 // Projects (SPEC R6): the career timeline (a Gantt of projects in company swimlanes), the selected project's pile
 // under it, and the repos list. `?p=<id>` is the selected project, so a link (or a reload) keeps it.
 import { useMemo, useState } from 'react';
-import { createFileRoute, useNavigate } from '@tanstack/react-router';
+import { Link, createFileRoute, useNavigate } from '@tanstack/react-router';
 import { useQueryClient } from '@tanstack/react-query';
 import { Building2, Plus } from 'lucide-react';
 import type { CompanyEntry, ProjectEntry, ProjectsResponse } from '../../shared/api.ts';
@@ -14,6 +14,7 @@ import { Gantt } from '../projects/Gantt.tsx';
 import { Pile } from '../projects/Pile.tsx';
 import { ProjectDialog } from '../projects/ProjectDialog.tsx';
 import { ReposPanel } from '../projects/ReposPanel.tsx';
+import { ExampleBanner } from '../onboarding/ExampleData.tsx';
 
 export const Route = createFileRoute('/projects')({
   component: Projects,
@@ -105,6 +106,7 @@ function Projects() {
       >
         Projects
       </PageTitle>
+      <ExampleBanner />
 
       {failed ? (
         <p role="alert" className="mt-10 text-[15px] font-semibold text-bad">
@@ -129,6 +131,13 @@ function Projects() {
               </Btn>
             )}
           </div>
+          <p className="m-0 mt-4 text-[13px] text-muted">
+            Projects can start from your repos:{' '}
+            <Link to="/welcome" search={{ step: 'code' }} className="font-semibold text-accent underline decoration-dotted underline-offset-2" data-testid="projects-find-repos">
+              look for the ones on this computer
+            </Link>
+            , and give each a project as you add it.
+          </p>
         </Card>
       ) : (
         <>

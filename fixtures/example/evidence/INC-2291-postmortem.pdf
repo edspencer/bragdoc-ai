@@ -1,0 +1,42 @@
+%PDF-1.4
+1 0 obj
+<< /Type /Catalog /Pages 2 0 R >>
+endobj
+2 0 obj
+<< /Type /Pages /Kids [3 0 R] /Count 1 >>
+endobj
+3 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Resources << /Font << /F1 5 0 R >> >> /Contents 4 0 R >>
+endobj
+4 0 obj
+<< /Length 632 >>
+stream
+BT /F1 20 Tf 72 720 Td (INC-2291 postmortem: ops-api brownout) Tj ET
+BT /F1 12 Tf 72 680 Td (Duration: 47 minutes. Impact: roster and duty reports slow or failing.) Tj ET
+BT /F1 12 Tf 72 658 Td (Cause: a connection-pool leak in the roster endpoint after a deploy.) Tj ET
+BT /F1 12 Tf 72 636 Td (Detection: pager-bot alert on p95 latency, 4 minutes after deploy.) Tj ET
+BT /F1 12 Tf 72 614 Td (Fix: rollback, then a patch closing connections on the error path.) Tj ET
+BT /F1 12 Tf 72 592 Td (Follow-ups: pool saturation alert; load test in CI.) Tj ET
+BT /F1 9 Tf 72 72 Td (Example data: everything in this document is made up.) Tj ET
+endstream
+endobj
+5 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>
+endobj
+6 0 obj
+<< /Title (INC-2291 postmortem: ops-api brownout) /Producer (BragDoc example data) >>
+endobj
+xref
+0 7
+0000000000 65535 f 
+0000000009 00000 n 
+0000000058 00000 n 
+0000000115 00000 n 
+0000000241 00000 n 
+0000000924 00000 n 
+0000000994 00000 n 
+trailer
+<< /Size 7 /Root 1 0 R /Info 6 0 R >>
+startxref
+1095
+%%EOF

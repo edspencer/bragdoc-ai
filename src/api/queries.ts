@@ -3,7 +3,7 @@
 // segment. Feature PRs add their key and hook here, one block each.
 import { QueryClient, keepPreviousData, useInfiniteQuery, useQuery } from '@tanstack/react-query';
 import type { FoundSourceName } from '../../shared/api.ts';
-import { getAchievements, getBackups, getCompanies, getFolio, getFound, getFoundCount, getGhInstalled, getSources, getHealth, getMcpToken, getMeta, getNetworkLog, getProblems, getProjectSummary, getProjects, getRepos, getSettings, getEvidenceOcr, getScreenshotSuggestions, isApiError, type AchievementFilters } from './client.ts';
+import { getDiscoverSuggestions, getExample, getProfile, getWelcome, getAchievements, getBackups, getCompanies, getFolio, getFound, getFoundCount, getGhInstalled, getSources, getHealth, getMcpToken, getMeta, getNetworkLog, getProblems, getProjectSummary, getProjects, getRepos, getSettings, getEvidenceOcr, getScreenshotSuggestions, isApiError, type AchievementFilters } from './client.ts';
 
 export const queryKeys = {
   health: ['health'] as const,
@@ -31,6 +31,11 @@ export const queryKeys = {
   mcpToken: ['mcp-token'] as const,
   // Folio (PR14)
   folio: (from: string, to: string) => ['folio', from, to] as const,
+  // onboarding (PR16)
+  welcome: ['welcome'] as const,
+  profile: ['profile'] as const,
+  discoverSuggestions: ['discover', 'suggestions'] as const,
+  example: ['example'] as const,
 };
 
 export function createQueryClient(): QueryClient {
@@ -171,4 +176,26 @@ export function useEvidenceOcr(sha: string | undefined) {
     enabled: !!sha,
     refetchInterval: (q) => (q.state.data?.status === 'pending' ? 1500 : false),
   });
+}
+
+// onboarding (PR16)
+
+/** Should Welcome open? (no profile.yaml and not skipped) */
+export function useWelcome() {
+  // the board waits for this (so it doesn't flash on the way to Welcome): answer at once if the server is down
+  return useQuery({ queryKey: queryKeys.welcome, queryFn: ({ signal }) => getWelcome(signal), retry: false });
+}
+
+export function useProfile() {
+  return useQuery({ queryKey: queryKeys.profile, queryFn: ({ signal }) => getProfile(signal) });
+}
+
+/** The usual code folders that exist here, and the hint sources there are (a look at names; nothing is read). */
+export function useDiscoverSuggestions() {
+  return useQuery({ queryKey: queryKeys.discoverSuggestions, queryFn: ({ signal }) => getDiscoverSuggestions(signal), staleTime: 60_000 });
+}
+
+/** Is there example data, and how much. */
+export function useExample() {
+  return useQuery({ queryKey: queryKeys.example, queryFn: ({ signal }) => getExample(signal) });
 }

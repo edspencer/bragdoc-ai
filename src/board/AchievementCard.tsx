@@ -96,7 +96,7 @@ export function AchievementCard({
           ))}
         </div>
       )}
-      {(a.projects.length > 0 || a.repos.length > 0 || provenanceOf(a.source) !== 'manual') && (
+      {(a.projects.length > 0 || a.repos.length > 0 || provenanceOf(a.source) !== 'manual' || a.example) && (
         <div className="mt-4 flex flex-wrap items-center gap-1.5">
           {a.projects.map((id) => {
             const p = projects.get(id);
@@ -106,6 +106,12 @@ export function AchievementCard({
             <RepoTag key={id} repo={repos.get(id)?.name ?? 'missing repo'} />
           ))}
           <ProvenanceBadge source={provenanceOf(a.source)} agent={a.sourceAgent} />
+          {/* example data (PR16): made up, and removable in one go */}
+          {a.example && (
+            <span className="rounded-full border border-dashed border-line px-2 py-0.5 text-[11px] font-semibold text-faint" data-testid="example-chip" title="Example data: made up, for trying BragDoc out">
+              example
+            </span>
+          )}
         </div>
       )}
     </Card>

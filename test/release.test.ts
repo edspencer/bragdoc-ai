@@ -109,7 +109,7 @@ describe('strip-maps', () => {
 
 describe('the package', () => {
   test('ships dist/ and the docs, and builds before packing', () => {
-    assert.deepEqual(pkg.files, ['dist/server/', 'dist/shared/', 'dist/web/', 'dist/build-info.json', 'AGENT-GUIDE.md', 'CHANGELOG.md']);
+    assert.deepEqual(pkg.files, ['dist/server/', 'dist/shared/', 'dist/web/', 'dist/build-info.json', 'fixtures/example/', 'AGENT-GUIDE.md', 'CHANGELOG.md']);
     assert.equal(pkg.scripts.prepack, 'npm run build');
     assert.match(pkg.scripts.build, /strip-maps\.mjs.*build-info\.mjs$/, 'build strips maps, then writes build-info.json last');
     assert.deepEqual(pkg.publishConfig, { access: 'public', provenance: true });

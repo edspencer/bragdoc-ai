@@ -83,7 +83,7 @@ try {
   const tarball = path.join(tmp, packed.filename);
   const files = packed.files.map((f) => f.path);
   step(`${packed.filename}: ${files.length} files, ${(packed.size / 1024).toFixed(1)} kB packed, ${(packed.unpackedSize / 1024).toFixed(1)} kB unpacked`);
-  for (const f of ['package.json', 'LICENSE', 'README.md', 'AGENT-GUIDE.md', 'dist/build-info.json', 'dist/server/cli.js', 'dist/web/index.html', 'dist/web/favicon.svg'])
+  for (const f of ['package.json', 'LICENSE', 'README.md', 'AGENT-GUIDE.md', 'dist/build-info.json', 'dist/server/cli.js', 'dist/web/index.html', 'dist/web/favicon.svg', 'fixtures/example/example.json'])
     assert.ok(files.includes(f), `the package includes ${f}`);
   for (const f of files) {
     assert.ok(!/^(src|server|shared|test|e2e|scripts|website|docs|public|tools|brand|\.github|\.changeset)\//.test(f), `the package shouldn't include ${f}`);
@@ -233,6 +233,18 @@ dns.lookup = no('dns'); http.request = http.get = no('http'); https.request = ht
     const listed = fs.readdirSync(path.join(data, 'projects'));
     assert.equal(listed.length, 4, `projects: ${listed}`);
     assert.match(run('import', exportFile), /achievements\s+0\s+8\s+0[\s\S]*Everything in it was already here/);
+  }
+
+  step('example data from the installed package (fixtures/example/): add it, then remove exactly it');
+  {
+    const post = (p) => fetch(`${base}${p}`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: '{}' }).then(async (r) => (assert.equal(r.status, 200, `${p}: ${await r.clone().text()}`), r.json()));
+    const added = await post('/api/example');
+    assert.ok(added.changed.achievements >= 30 && added.status.present, `added: ${JSON.stringify(added.changed)}`);
+    const removed = await post('/api/example/remove');
+    assert.deepEqual(removed.changed, added.changed);
+    assert.equal(removed.status.present, false);
+    // the imported (non-example) projects are still there
+    assert.equal(fs.readdirSync(path.join(data, 'projects')).length, 4);
   }
 
   step('MCP through the stdio bridge (bragdoc mcp)');

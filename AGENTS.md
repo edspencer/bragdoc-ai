@@ -21,7 +21,9 @@ exported as markdown, copied or printed. PR11 added OCR and the screenshot rules
 library (`server/ocr/`, `shared/rules/screenshot.ts`) that the screenshots source builds on. PR13 built **Found** and
 the **GitHub source**: the Found page, its API, the source framework (`server/sources/`) and the GitHub card in
 Settings → Sources (see "Found and sources" below). PR15 added the **screenshots folder** (a source) and reads the
-board's pictures in the background, so their text is searchable. Everything else arrives
+board's pictures in the background, so their text is searchable. PR16 built **onboarding**: Welcome (the first run, and its steps
+again from Settings → Data), the bounded repo scan, and the example data (see "Onboarding and example data" below).
+Everything else arrives
 PR by PR, in the waves #411 lays out.
 
 Before changing behaviour, read, in order:
@@ -95,6 +97,9 @@ server/              the server and CLI (Node, TypeScript ESM, Hono)
   live.ts            forwards every store change onto the bus as a ServerEvent named after its entity (D48)
   link-preview.ts    LinkPreviews: the GitHub PR lookup POST /api/link-preview uses (the GitHub source registers it)
   secrets.ts         secrets.yaml (0600): the GitHub token, written through atomic.ts, never logged or backed up
+  discover.ts        Welcome's "Your code": the bounded scan of one named folder (4 levels, 5 s, stops at .git,
+                     symlink-loop safe), opt-in editor hints, recency from each repo's own .git (D60)
+  example.ts         the example dataset (fixtures/example/): add (create-only, `example: true`), remove exactly it (D61)
   sources/           what fills Found by itself (D15): index.ts (Sources: createSources, start()), github.ts (gh or a
                      token, windowed search, dedup by prKey, backoff, the hourly check; D57), screenshots.ts (a folder
                      watched for new screenshots: name/size filters, OCR, the rules, Found; D58)
@@ -109,6 +114,7 @@ server/              the server and CLI (Node, TypeScript ESM, Hono)
   routes/{achievements,evidence,link-preview,problems,found-count}.ts   the board's API (see "The board's API")
   routes/folio.ts    GET /api/folio: a window's achievements as clippings, safe to export (D55)
   routes/{found,sources}.ts   Found's list and decisions, the sources' status and the GitHub card's actions
+  routes/{welcome,discover,example}.ts   first run + profile.yaml (D59), the repo scan and adding repos, example data
   paths.ts           package root, VERSION, WEB_DIST, the data home (resolveDataDir), tildify
   port.ts            DEFAULT_PORT (2724 = BRAG), alone so vite.config.ts can import it
   store/             the only code that touches the data home's files (D5, D24): index.ts (Store: load, index,
@@ -140,6 +146,8 @@ src/                 the web app (React 19, Vite, Tailwind v4, TanStack Router +
                      pickers (projects, repos, impact), evidence.ts (stored evidence → the kit's EvidenceView)
   found/             Found's pieces: FoundCard, MergeInto (the search picker), EmptyFound (both empty states),
                      decide.ts (keep / merge / dismiss with the Undo toast)
+  onboarding/        steps.ts (Welcome's steps), ExampleData.tsx (the board's example strip, Settings → Data's panel,
+                     useAddExample); routes/welcome.tsx is Welcome itself
   settings/          Settings' tabs (SourcesTab + GithubCard, NetworkTab, DataTab, AboutTab) and what they share (common.tsx:
                      CopyButton, CommandSlab, LoadError, Slot); routes/settings/$tab.tsx picks one
   api/               client.ts (the typed `api` wrapper), queries.ts (query keys + hooks), events.ts (live updates)
@@ -157,7 +165,8 @@ brand/               the mark (mark.svg) and generate.mjs, which makes the favic
 tools/docs-media/    the screenshot rig: `npm run docs:media` (shots.ts lists the shots; it scans each for leaks)
 test/                node:test suites, run from source via tsx; fixture.ts has the throwaway-dir helpers
 e2e/                 Playwright specs, run against the built server (playwright.config.ts)
-scripts/             start.mjs (npm start), dev.mjs (npm run dev), check-no-nul-bytes.mjs, sync-reference.ts,
+fixtures/example/    the example dataset (example.json + evidence/), shipped in the package and the image (D61)
+scripts/             gen-example.ts (npm run gen:example: the example evidence files), start.mjs (npm start), dev.mjs (npm run dev), check-no-nul-bytes.mjs, sync-reference.ts,
                      store-demo.ts, whats-new-release.mjs (heads the docs site's What's new at `changeset:version`);
                      the release's: build-info.mjs (dist/build-info.json), strip-maps.mjs,
                      smoke-pack.mjs (npm run smoke:pack), smoke-image.sh (a built Docker image, in CI)
@@ -194,6 +203,7 @@ npm run store:demo     # the file store end to end on a throwaway data home (see
 npm run eval:screenshots -- --ocr   # the screenshot rules' precision and recall on the synthetic screenshots
                        # (test/screenshots.ts), read by real OCR; without --ocr, on perfect text (fast)
 npm run bragdoc -- dev ocr <image>  # which OCR engine ran, the text, and what the rules made of it
+npm run gen:example    # remake fixtures/example/evidence/ after changing a picture in scripts/gen-example.ts
 ```
 
 **The definition of done** for every PR: `npm run check:nul && npm run typecheck && npm test && npm run build &&
@@ -392,6 +402,20 @@ egress module. The screenshots source is tested with a fake `Ocr` (`createAppWit
 text each rendered screenshot was drawn with (test/screenshots-source.test.ts); found.spec.ts drives it end to end with
 real OCR (serially, so its candidates can't land while that spec counts the badge). As root, `chmod 000` doesn't make a
 folder unreadable: test a denied folder with a stand-in (the unit test) or a server run as another user.
+
+### Onboarding and example data (PR16)
+
+- **First run** (D59): `GET /api/welcome` → `firstRun` while there's no profile.yaml and `welcome.skipped` is false.
+  Only the board (`/`) redirects to `/welcome` (`src/routes/__root.tsx`). `GET/PUT /api/profile` read and write
+  profile.yaml (If-Match optional; the first write needs a name). **The shared e2e server's home has a profile.yaml**
+  (playwright.config.ts), so its board stays the board; `e2e/welcome.spec.ts` runs its own servers on fresh homes.
+- **Welcome's steps:** `/welcome?step=you|sources|code` (`src/onboarding/steps.ts`). The Sources step reuses
+  `GithubCard` and PR15's `ScreenshotsCard` as they are, so a change to either card shows in both places.
+- **Repo scan** (D60): `GET /api/discover/suggestions`, `POST /api/discover/scan {root?, hints?}` (stores nothing),
+  `POST /api/discover/add {repos: [{path, project?}]}` (re-checks each path, then `services.repos.create`).
+- **Example data** (D61): `GET /api/example`, `POST /api/example {asOf?}`, `POST /api/example/remove`. Everything it
+  adds is `example: true`; anything that lists entries for the user (a page, an export, an agent's view) may want to
+  say so. Deterministic for a given `asOf`, for the docs' captures (PR19) and the release candidate (PR17).
 
 ### Code
 

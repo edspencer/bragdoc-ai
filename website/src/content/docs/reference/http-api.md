@@ -55,5 +55,14 @@ These are enforced for every request (see [Localhost security](/guarantees/local
 | `POST /api/sources/screenshots/look-back` | `{ "days": 7 }` (1 to 30): read the folder's pictures from those days, once. **409** `busy` while one is running. |
 | `GET /api/found/:id/picture` | A screenshot candidate's picture, read from where it is; **404** `gone` if it was moved, deleted or replaced. |
 | `GET /api/evidence/:sha/ocr` | The text read from a picture on the board, in the background after it's added: `pending`, `done` (with `text`, and the `quote` when it's praise for you), `failed`, or `none` (not a picture). |
+| `GET /api/welcome` | Whether the board should open [Welcome](/getting-started/quickstart/): `firstRun` is true while there's no `profile.yaml` and Welcome wasn't skipped. Also says whether the old CLI's files were moved into `legacy-cli/`. |
+| `POST /api/welcome/skip` | `{}` (or `{ "skipped": false }` to undo): remember that you skipped Welcome, as `welcome.skipped` in `config.yaml`. |
+| `GET /api/profile`, `PUT /api/profile` | Your `profile.yaml` (`null` before you've written one) and its ETag; `PUT` changes fields (`null` clears one; the first write needs a `name`). `If-Match` is optional. |
+| `GET /api/discover/suggestions` | Which usual code folders exist (`~/Code`, `~/src`, `~/dev`, `~/projects`, `~/work`, …) and which editors' recent-project lists are there to read. A look at names only: nothing is opened. |
+| `POST /api/discover/scan` | `{ "root": "~/Code" }` and/or `{ "hints": ["vscode", "jetbrains", "claude"] }`: the git repos in that folder, at most 4 levels down and for at most 5 seconds (`timedOut` says if it stopped), plus those the ticked hints name, each with what its `.git` says about when you last worked in it. Nothing is stored. A folder that can't be scanned is a **400** (`no_such_folder`, `not_a_folder`, `unreadable`, `too_broad`, `not_absolute`). |
+| `POST /api/discover/add` | `{ "repos": [{ "path": "~/Code/my-app", "project": { "name": "My app" } }] }`: save these repos (each checked again: it must be a git checkout), optionally each with a new or existing (`{ "id": "…" }`) project. Answers per repo. |
+| `GET /api/example` | Whether there's [example data](/getting-started/quickstart/#example-data), and how much of each kind. |
+| `POST /api/example` | `{}` (or `{ "asOf": "YYYY-MM-DD" }` to place its dates): add the example data that isn't there yet. Adding it twice adds nothing. |
+| `POST /api/example/remove` | `{}`: remove every entry marked `example: true`, into `backups/removed/`. Your own entries stay; a project of the example data is taken off any of yours that you tagged with it. |
 
 Achievements, evidence, projects and settings get their endpoints as those features are built.

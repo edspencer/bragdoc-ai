@@ -14,8 +14,10 @@ import type { AppContext } from '../context.js';
 import { registerAchievements } from './achievements.js';
 import { registerCatalog } from './catalog.js';
 import { registerCompanies } from './companies.js';
+import { registerDiscover } from './discover.js';
 import { registerEvents } from './events.js';
 import { registerEvidence } from './evidence.js';
+import { registerExample } from './example.js';
 import { registerFolio } from './folio.js';
 import { registerFound } from './found.js';
 import { registerFoundCount } from './found-count.js';
@@ -31,13 +33,16 @@ import { registerProjects } from './projects.js';
 import { registerRepos } from './repos.js';
 import { registerSettings } from './settings.js';
 import { registerSources } from './sources.js';
+import { registerWelcome } from './welcome.js';
 
 export function registerRoutes(app: Hono, ctx: AppContext): void {
   registerAchievements(app, ctx);
   registerCatalog(app, ctx);
   registerCompanies(app, ctx);
+  registerDiscover(app, ctx);
   registerEvents(app, ctx);
   registerEvidence(app, ctx);
+  registerExample(app, ctx);
   registerFolio(app, ctx);
   registerFound(app, ctx);
   registerFoundCount(app, ctx);
@@ -53,4 +58,5 @@ export function registerRoutes(app: Hono, ctx: AppContext): void {
   registerRepos(app, ctx);
   registerSettings(app, ctx);
   registerSources(app, ctx);
+  registerWelcome(app, ctx);
 }

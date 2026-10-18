@@ -1,13 +1,15 @@
 // Settings → Data (SPEC R2, R13): where the data folder is, what BragDoc couldn't read in it (Problems, live), its
-// backups, anything it has to tell you (the old CLI's files moved aside, a broken config.yaml), and the slots the
-// example data (PR16) fills, and the importer (PR12's ImportPanel).
+// backups, anything it has to tell you (the old CLI's files moved aside, a broken config.yaml), the importer (PR12's
+// ImportPanel), the example data and the welcome steps again (PR16).
 import { useState } from 'react';
 import { AlertTriangle, FolderOpen, Info } from 'lucide-react';
 import type { FileProblem } from '../../shared/api.ts';
 import { useBackups, useMeta, useProblems } from '../api/queries.ts';
-import { Btn, Dot, Kicker, Panel, SectionTitle } from '../kit/index.ts';
+import { Btn, Dot, Kicker, LinkBtn, Panel, SectionTitle } from '../kit/index.ts';
 import { ImportPanel } from '../import/ImportPanel.tsx';
-import { CopyButton, LoadError, Loading, Slot } from './common.tsx';
+import { ExampleDataPanel } from '../onboarding/ExampleData.tsx';
+import { STEPS } from '../onboarding/steps.ts';
+import { CopyButton, LoadError, Loading } from './common.tsx';
 
 const CODE_LABEL: Record<FileProblem['code'], string> = {
   syntax: 'YAML error',
@@ -31,10 +33,9 @@ export function DataTab() {
       <Backups />
       {/* the hosted-export importer (PR12): dry run, then import */}
       <ImportPanel />
-      {/* PR16 replaces this with "Remove example data" (shown only while example data is present) */}
-      <Slot title="Example data" testId="slot-example-data">
-        If you filled the board with example data to try BragDoc out, you’ll be able to remove all of it here in one click.
-      </Slot>
+      {/* the made-up Alex Marlowe dataset (PR16): add it, or remove exactly it */}
+      <ExampleDataPanel />
+      <WelcomeAgain />
     </div>
   );
 }
@@ -188,4 +189,22 @@ function Backups() {
 function fmtWhen(iso: string): string {
   const d = new Date(iso);
   return Number.isNaN(d.getTime()) ? iso : whenFmt.format(d);
+}
+
+/** The welcome steps, again (SPEC R10: Settings re-runs them): each one opens on its own. */
+function WelcomeAgain() {
+  return (
+    <Panel tape="#2fb37e">
+      <div data-testid="welcome-again">
+        <SectionTitle sub="The steps you saw on the first run: about you (the names BragDoc looks for), where wins come from, and looking for your repos.">Welcome steps</SectionTitle>
+        <div className="mt-4 flex flex-wrap gap-2">
+          {STEPS.map((s) => (
+            <LinkBtn key={s.id} to="/welcome" search={{ step: s.id }} size="sm" data-testid={`welcome-again-${s.id}`}>
+              {s.label}
+            </LinkBtn>
+          ))}
+        </div>
+      </div>
+    </Panel>
+  );
 }

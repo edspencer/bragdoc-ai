@@ -32,6 +32,9 @@ sources:
     enabled: false
     folder: null     # the folder to watch for new screenshots, e.g. ~/Screenshots
     onlyScreenshots: true # only files named like screenshots; false: every picture in the folder
+
+welcome:
+  skipped: false   # true once you skip the welcome steps (they show while there's no profile.yaml)
 ```
 
 ## Keys
@@ -49,6 +52,7 @@ sources:
 | `sources.screenshots.enabled` | `false` | Whether the [screenshots folder](/concepts/found-and-sources/#a-screenshots-folder) is watched. |
 | `sources.screenshots.folder` | `null` | The folder to watch: a full path, or one starting `~/`. Not BragDoc's data folder, and not a hidden folder. |
 | `sources.screenshots.onlyScreenshots` | `true` | Read only files named like screenshots. `false`: every picture that lands in the folder. |
+| `welcome.skipped` | `false` | `true` once you skip [Welcome](/getting-started/quickstart/). The board opens Welcome while there's no `profile.yaml` and this is `false`. |
 
 Settings → Sources writes these for you. The GitHub source's own state (where the next check starts, the last check,
 how long GitHub asked it to wait) is in `cache/sources/github.json`: delete it and the next check simply looks back the
