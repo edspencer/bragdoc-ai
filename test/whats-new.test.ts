@@ -8,7 +8,7 @@ import path from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { ROOT } from './fixture.ts';
 
-const { WHATS_NEW, SITE, releaseWhatsNew, releaseSite } = await import(pathToFileURL(path.join(ROOT, 'scripts', 'whats-new-release.mjs')).href);
+const { WHATS_NEW, SITE, STALE_PROSE, docsPages, releaseWhatsNew, releaseSite, releaseDocsPage } = await import(pathToFileURL(path.join(ROOT, 'scripts', 'whats-new-release.mjs')).href);
 const VERSION: string = JSON.parse(fs.readFileSync(path.join(ROOT, 'package.json'), 'utf8')).version;
 const semver = (v: string) => v.split('.').map(Number);
 const newer = (a: string, b: string) => {
@@ -35,6 +35,18 @@ describe("What's new", () => {
     for (const v of ['0.1.0', '0.1.3', '1.0.0']) assert.match(releaseSite(before, v), /^export const RELEASED = true;$/m, v);
     assert.equal(releaseSite(before, '0.0.1'), before);
     assert.equal(releaseSite(releaseSite(before, '0.1.0'), '0.0.1'), releaseSite(before, '0.1.0'), 'never back to false');
+  });
+
+  // the version PR can't be hand-edited: whatever the pages say before the release, the script must leave none of it
+  // standing at 0.1.0 (the check test/docs.test.ts runs on that PR)
+  test('at 0.1.0 the release leaves no docs page saying it is unreleased; before that it changes nothing', () => {
+    const stale = docsPages()
+      .filter((f: string) => path.basename(f) !== 'whats-new.md')
+      .filter((f: string) => STALE_PROSE.test(releaseDocsPage(fs.readFileSync(f, 'utf8'), '0.1.0')));
+    assert.deepEqual(stale.map((f: string) => path.relative(ROOT, f)), []);
+    for (const f of docsPages() as string[]) assert.equal(releaseDocsPage(fs.readFileSync(f, 'utf8'), '0.0.1'), fs.readFileSync(f, 'utf8'));
+    const md = 'a\n\n:::note[Not on npm yet]\nSoon.\n:::\n\nb\n\n:::note[Tip]\nKeep me.\n:::\n';
+    assert.equal(releaseDocsPage(md, '0.1.0'), 'a\n\nb\n\n:::note[Tip]\nKeep me.\n:::\n', 'only the "Not …" asides go');
   });
 
   test(`no released version (package.json: ${VERSION}) is "coming" or "not released yet"`, () => {

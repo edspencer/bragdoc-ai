@@ -8,8 +8,9 @@ throw anything at. When review season comes round, it's all there.
 - **Nothing leaves your computer** except calls to services you connect yourself, and every one is logged.
 - **AI is off.** v0.1 has no AI features at all, and nothing is ever downloaded or installed behind your back.
 
-> **Status: v0.1.** Built on the `next` branch ([#411](https://github.com/edspencer/bragdoc-ai/issues/411)). Until
-> the first release reaches npm, `npx @bragdoc/local` won't find it: run it from a checkout instead (below).
+> **v0.1** is the first release, built on the `next` branch ([#411](https://github.com/edspencer/bragdoc-ai/issues/411)).
+> If `npx @bragdoc/local` says it "could not determine executable to run", or `docker pull` finds no image, the
+> release you're reading about isn't published yet: [run it from a checkout](#run-it-from-a-checkout).
 
 ## What it does
 

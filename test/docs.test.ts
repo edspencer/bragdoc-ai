@@ -41,10 +41,9 @@ const envSources = () => [
 ];
 
 const VERSION: string = JSON.parse(read('package.json')).version;
-const released = () => {
-  const [major = 0, minor = 0] = VERSION.split('.').map(Number);
-  return major > 0 || minor >= 1;
-};
+// the release script's own test of "is this a release", so the two can't drift
+const { isReleased, STALE_PROSE } = await import(pathToFileURL(path.join(ROOT, 'scripts', 'whats-new-release.mjs')).href);
+const released = (): boolean => isReleased(VERSION);
 
 describe('docs site', () => {
   test("website/src/site.mjs's DEFAULT_PORT is server/port.ts's", async () => {
@@ -228,9 +227,11 @@ describe('docs site', () => {
     if (!released()) return;
     const left = prose().filter((f) => /Coming in v0\.1\b/.test(fs.readFileSync(f, 'utf8')));
     assert.deepEqual(left.map((f) => path.relative(ROOT, f)), [], 'v0.1 is out: these pages still say "Coming in v0.1"');
-    // the components follow RELEASED by themselves; a page's own "not on npm yet" note doesn't (PR17). What's new is
-    // released by scripts/whats-new-release.mjs, and a blog post is dated, so it may say what was true that day.
-    const stale = files(DOCS, /\.mdx?$/).filter((f) => path.basename(f) !== 'whats-new.md' && /on npm yet|(?:isn['’]t|not) released yet/i.test(fs.readFileSync(f, 'utf8')));
+    // the components follow RELEASED by themselves, and scripts/whats-new-release.mjs takes the pages' `:::note[Not …]`
+    // asides out (PR17); anything else saying "not on npm yet" would still say it. What's new is released by the same
+    // script, a blog post is dated (it may say what was true that day), and the README and SECURITY.md ship on npm.
+    const pages = [...files(DOCS, /\.mdx?$/).filter((f) => path.basename(f) !== 'whats-new.md'), path.join(ROOT, 'README.md'), path.join(ROOT, 'SECURITY.md')];
+    const stale = pages.filter((f) => STALE_PROSE.test(fs.readFileSync(f, 'utf8')));
     assert.deepEqual(stale.map((f) => path.relative(ROOT, f)), [], `${VERSION} is out: these pages still say it isn't on npm or released`);
   });
 });

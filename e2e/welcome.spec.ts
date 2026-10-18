@@ -109,6 +109,9 @@ test('the steps again from Settings: the profile, then only the repos you tick',
   const aliases = page.getByTestId('welcome-aliases').locator('input');
   await aliases.pressSequentially('Alex M,@alex');
   await aliases.press('Enter');
+  // pasted (or autofilled) in one go, a list is still separate names (PR17)
+  await aliases.fill('AM, Marlowe');
+  await aliases.press('Enter');
   await page.getByTestId('welcome-next').click();
   await expect(page.getByTestId('welcome-sources')).toBeVisible();
   await expect(page.getByTestId('source-github')).toContainText('Off');
@@ -150,7 +153,7 @@ test('the steps again from Settings: the profile, then only the repos you tick',
 
   const profile = fs.readFileSync(path.join(server.data, 'profile.yaml'), 'utf8');
   expect(profile).toContain('name: Alex Marlowe');
-  expect(profile).toMatch(/aliases: \[ Alex M, "@alex" \]/);
+  expect(profile).toMatch(/aliases: \[ Alex M, "@alex", AM, Marlowe \]/);
   const repos = (await (await fetch(`${server.url}/api/repos`)).json()).repos.map((r: { name: string }) => r.name).sort();
   expect(repos).toEqual(['acme/app', 'service']);
   const projects = (await (await fetch(`${server.url}/api/projects`)).json()).projects.map((p: { name: string }) => p.name);

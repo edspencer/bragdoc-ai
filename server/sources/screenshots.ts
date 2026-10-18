@@ -705,8 +705,9 @@ export class ScreenshotsSource {
     if (size && (size.width < MIN_SIDE || size.height < MIN_SIDE)) return this.note(name, 'ignored', `too small to be a screenshot (${size.width}×${size.height})`);
     const sha = sha256Of(bytes);
     const key = `screenshot:${sha}`;
-    // the same picture pasted onto the board is on the board too, under its sha rather than this key: GNOME's Print
-    // Screen both saves to the folder and copies to the clipboard, so paste-then-watch is the common case
+    // the same picture already on the board (dragged there from this folder, say) is on the board under its sha, not this
+    // key. A clipboard paste may be re-encoded by the browser, so its sha can differ; and a picture pinned after its
+    // Found card was made doesn't take that card away (a known gap, PR17)
     if (this.o.store.foundIdByKey(key) || this.o.store.achievementIdByKey(key) || this.o.store.achievementIdsIn('blob', sha).size) return this.note(name, 'skipped', 'already in Found or on your board');
     const profile = this.o.store.profile();
     if (!profile?.name?.trim()) return this.note(name, 'ignored', 'not read: BragDoc doesn’t know your name yet');

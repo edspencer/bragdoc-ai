@@ -2,8 +2,7 @@
 
 ## Supported versions
 
-Fixes go into the latest minor release only (0.1.x for now). Until the first release reaches npm, that means the `next`
-branch.
+Fixes go into the latest minor release only (0.1.x for now).
 
 ## Reporting a vulnerability
 
@@ -41,12 +40,14 @@ file that enforces it.
   `.gitignore` keeps it, `secrets.yaml`, logs and backups out of git (`server/runtime.ts`, `server/home.ts`).
 
 - **Agents need the token.** `/mcp` answers only a request carrying the per-install bearer token from `runtime.json`
-  (compared in constant time), refuses a browser `Origin` like every other route, and a new token from Settings stops
-  the old one at once (`server/routes/mcp.ts`, `server/runtime.ts`).
-- **Your files are never lost or clobbered.** Every write to the data home is atomic and goes through the store; nothing
-  is deleted (a removed entry moves to `backups/removed/`), a file you broke by hand is shown as a Problem and never
-  overwritten, and an edit made against a stale copy is refused (`server/store/`, `server/store/safefs.ts`).
-  `test/guard-fs.test.ts` fails CI if other code deletes, renames or writes there.
+  (compared in constant time), refuses another site's `Origin` like every other route, and a new token from Settings
+  stops the old one at once (`server/routes/mcp.ts`, `server/runtime.ts`).
+- **Your entries are never lost or clobbered.** Achievements, projects, companies, repos, evidence and your profile are
+  written only through the store, atomically; removing one moves its file to `backups/removed/` rather than deleting
+  it, a file you broke by hand is shown as a Problem and never overwritten, and an edit made against a stale copy is
+  refused (`server/store/`, `server/store/safefs.ts`). BragDoc's own files (config.yaml, secrets.yaml, runtime.json) are
+  written atomically too (`server/atomic.ts`); the only things it deletes are old backup snapshots, by the retention
+  rule, and a rotated network log. `test/guard-fs.test.ts` fails CI if any other code deletes, renames or writes there.
 - **No AI, no telemetry.** v0.1 contains no model, no AI dependency and nothing that downloads one; there's no update
   check. Screenshots are read on your computer (`server/ocr/`).
 
