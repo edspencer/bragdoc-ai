@@ -1,0 +1,21 @@
+{
+  "version": "1.0",
+  "exportedAt": "2026-01-15T20:16:17.782Z",
+  "userId": "0000aaaa-0000-4000-8000-000000000001",
+  "companies": [
+    {
+      "id": "00000001-0000-4000-8000-000000000001",
+      "userId": "0000aaaa-0000-4000-8000-000000000001",
+      "name": "Northwind Labs",
+      "domain": "northwind.example.com",
+      "role": "Senior Engineer",
+      "startDate": "2021-03-01T00:00:00.000Z",
+      "endDate": "2024-05-31T00:00:00.000Z"
+    },
+    {
+      "id": "00000001-0000-4000-8000-000000000002",
+      "userId": "0000aaaa-0000-4000-8000-000000000001",
+      "name": "Acme Robotics",
+      "domain": "acme.example.com",
+      "role": "Staff Engineer",
+      "startDate": "2024-06-03T00:

@@ -47,6 +47,12 @@ Commands
     --port <n>           the port to register (default: the one BragDoc last ran on)
     --data-dir <dir>     the data home whose token to use
 
+  import <export.json>   Bring an export from the hosted BragDoc app across: companies, projects
+                         (with their repos), achievements, and documents as read-only files.
+                         Importing the same file again adds nothing new.
+    --dry-run            say what it would add, skip and leave behind, and why; write nothing
+    --data-dir <dir>     the data home to import into (default $BRAGDOC_HOME, else ~/.bragdoc)
+
   guide                  The guide for coding agents (AGENT-GUIDE.md): how to log achievements.
     --snippet            just the paragraph for your agent's instruction file (CLAUDE.md, AGENTS.md)
 

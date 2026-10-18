@@ -550,3 +550,47 @@ D17 onwards are decisions made while building.
 - The folder is stored as people write it (`~/Code/my-app`) and compared that way, so adding it twice finds the first.
 - A project's dates are checked on the way in (`end` on or after `start`); a hand-edited file that breaks the rule
   still loads and still draws (the Gantt clamps it), since files are never rejected for what the UI wouldn't allow.
+
+### D47 — The importer: lenient per item, strict on the envelope; `legacyId` on companies and projects; 50 MB of JSON
+
+- `server/import/` reads the hosted app's export version 1.0 (its format only, D2). The envelope is all-or-nothing:
+  not JSON, not an object, no `version`, another `version`, or a list that isn't a list, and nothing is imported, with a
+  sentence saying which. Each item is then checked on its own and more forgivingly than the hosted app's schema (any
+  non-empty id, any date Date can read, a nullable field may be missing): one that still fails is an error in the
+  report and the rest import. Items that need a small change import with a warning (an unusable colour gets a swatch,
+  an unknown status becomes `active`/`done` by its end date, a reference to something not in the export is dropped and
+  kept under `meta.legacy`, an empty title takes the summary's first line, an impact off the 1–10 scale is kept only in
+  `meta.legacy`).
+- Idempotency is by the hosted id: `legacyId` on achievements (already in the schema), and now on **companies and
+  projects** too (optional fields, no version bump, D23); repos by their normalised remote; documents and reviews by
+  the `legacyId` in their front-matter under `imports/`. A project that's already here isn't re-linked to its repo.
+- `impactSource`: `user` stays `user`; anything else (the hosted app's `llm`) becomes `import`. The original is kept
+  in `meta.legacy`. Dates are the calendar day of the hosted timestamps in the user's zone (the profile's, else the
+  machine's): the hosted app's date picker stored local midnight and showed dates in the browser's zone, so the UTC day
+  would move everyone east of Greenwich a day early. An achievement's company is written only when its project
+  doesn't already imply it.
+- Every field the export carries is either mapped, kept in `meta.legacy`, or reported as left behind with a reason, so
+  the dry run accounts for all of it; a key that isn't in version 1.0 at all is reported as left behind too.
+- Writes go through the services (D24); documents through `Store.writeImportFile` (create-only, 0444; the route calls
+  the store for these directly, as there's no service for files nothing else writes). `apply` takes a snapshot first
+  (if that fails, nothing is imported), re-checks each `legacyId` as it writes, and yields to the event loop every 200
+  writes, so the server keeps answering during a large import (5,000 achievements: about 3 s). An item whose project,
+  company or repo failed to import fails too, rather than come in unlinked, so re-running the import (once the cause is
+  fixed) brings both, linked. One import at a time per data home: `cache/import.lock` holds the importer's pid and
+  start time, and an in-process flag says whether this process holds it; a lock naming a dead process, our own pid
+  without the flag (a restarted container reuses its pid), or more than an hour old is taken over. Releasing it is the
+  one new `unlink` in test/guard-fs.test.ts.
+- What was imported and then deleted (moved to `backups/removed/`) comes back if the same export is imported again:
+  the importer only knows what's in the data home. The docs say so.
+- `bragdoc import` sends the file to the running server (`POST /api/import/{plan,apply}`, via egress, loopback) when
+  runtime.json names a live process, so the server stays the one writer (if nothing listens on its port, that pid has
+  been reused, and the import goes direct); otherwise it lays out the data home as `serve`
+  would and writes through the store itself, under the lock. A dry run on a data home that doesn't exist creates
+  nothing.
+- **The 50 MB body.** SPEC R3 caps JSON at 1 MB; an export of a few thousand achievements is several MB. Rather than
+  make the export a typed upload (a JSON file is still JSON), `UploadRegistry.acceptLargeJson()` lets one route take
+  `application/json` up to `LARGE_JSON_LIMIT` (50 MB); every other check (Host, Origin, Fetch Metadata, content type)
+  applies as usual, and every other route keeps 1 MB. The CLI refuses a file over 50 MB before reading it.
+- **Considered:** importing in one transaction that rolls back on any error (the store has no transactions, and a
+  partial import is safe to finish by re-running it); matching companies and projects by name (would merge two
+  different "Platform" projects); writing documents as achievements (they're reviews and reports, not things you did).

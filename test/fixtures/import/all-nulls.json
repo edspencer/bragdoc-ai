@@ -1,0 +1,67 @@
+{
+  "version": "1.0",
+  "exportedAt": "2026-01-15T20:16:17.782Z",
+  "userId": "0000aaaa-0000-4000-8000-000000000001",
+  "companies": [
+    {
+      "id": "00000001-0000-4000-8000-000000000001",
+      "userId": "0000aaaa-0000-4000-8000-000000000001",
+      "name": "Company 1",
+      "domain": null,
+      "role": "",
+      "startDate": "2021-01-04T00:00:00.000Z",
+      "endDate": null
+    }
+  ],
+  "projects": [
+    {
+      "id": "00000002-0000-4000-8000-000000000001",
+      "userId": "0000aaaa-0000-4000-8000-000000000001",
+      "companyId": null,
+      "name": "Project 1",
+      "description": null,
+      "status": "",
+      "color": "",
+      "startDate": "2022-02-01T00:00:00.000Z",
+      "endDate": null,
+      "repoRemoteUrl": null,
+      "createdAt": "2022-02-01T00:00:00.000Z",
+      "updatedAt": "2022-02-01T00:00:00.000Z"
+    }
+  ],
+  "achievements": [
+    {
+      "id": "00000003-0000-4000-8000-000000000001",
+      "userId": "0000aaaa-0000-4000-8000-000000000001",
+      "companyId": null,
+      "projectId": null,
+      "userMessageId": null,
+      "title": "Achievement 1",
+      "summary": null,
+      "details": null,
+      "eventStart": null,
+      "eventEnd": null,
+      "eventDuration": "week",
+      "isArchived": null,
+      "source": "manual",
+      "impact": null,
+      "impactSource": null,
+      "impactUpdatedAt": null,
+      "createdAt": "2023-01-03T00:00:00.000Z",
+      "updatedAt": "2023-01-03T00:00:00.000Z"
+    }
+  ],
+  "documents": [
+    {
+      "id": "00000004-0000-4000-8000-000000000001",
+      "createdAt": "2025-01-06T00:00:00.000Z",
+      "updatedAt": "2025-01-06T00:00:00.000Z",
+      "title": "Notes",
+      "content": null,
+      "userId": "0000aaaa-0000-4000-8000-000000000001",
+      "companyId": null,
+      "type": null,
+      "shareToken": null
+    }
+  ]
+}
