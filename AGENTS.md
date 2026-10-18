@@ -16,8 +16,9 @@ service`. And the **web foundation** (PR4): the Scrapbook component kit, the lig
 shell with placeholder pages, the typed API client and the screenshot rig. PR9 added the MCP server (`/mcp`), the
 stdio bridge (`bragdoc mcp`), `bragdoc mcp install claude` and the agent guide (`AGENT-GUIDE.md`, `bragdoc guide`).
 PR7 built the **Board**: the achievements and evidence API, link previews, store changes forwarded live to the
-browser, and the board page (composer, cards, edit drawer, search). Everything else arrives PR by PR, in the waves #411
-lays out.
+browser, and the board page (composer, cards, edit drawer, search). PR11 added OCR and the screenshot rules, as a
+library (`server/ocr/`, `shared/rules/screenshot.ts`) that the screenshots source builds on. Everything else arrives
+PR by PR, in the waves #411 lays out.
 
 Before changing behaviour, read, in order:
 
@@ -63,8 +64,8 @@ server/              the server and CLI (Node, TypeScript ESM, Hono)
   commands/          every other command, one file each, one line in commands/index.ts (Hallway's shape); context.ts
                      is the injectable Ctx (runner, probe, clock), ready.ts the /api/health probe and readiness wait
   platform/          `bragdoc service`: spec.ts (what the service is), launchd.ts / systemd.ts (the writers, pinned by
-                     test/fixtures/services/), path.ts (the PATH captured at install), runner.ts (its subprocesses;
-                     interim, until it moves onto proc.ts: D32), index.ts (which manager this OS has; Windows: not yet)
+                     test/fixtures/services/), path.ts (the PATH captured at install), runner.ts (the injectable Runner
+                     / Streamer, defaulting to proc.ts), index.ts (which manager this OS has; Windows: not yet)
   index.ts           createApp (routes → JSON 404 for /api/* → static files → SPA fallback) and startServer
   context.ts         AppContext: what every route module gets (version, dataDir, config, bus, egress, runtime,
                      uploads, notices, store, services)
@@ -81,8 +82,10 @@ server/              the server and CLI (Node, TypeScript ESM, Hono)
   config.ts          config.yaml: Zod schema, defaults, the schemaVersion downgrade guard, live re-read (ConfigStore)
   home.ts            the data home's layout and .gitignore on first run; moves the old CLI's files into legacy-cli/
   runtime.ts         runtime.json (0600): pid, port, url and the MCP token, which survives restarts; constantTimeEqual
-  egress.ts          the ONLY outbound network path: egressFetch({purpose}, url), allow-list, logs/network.jsonl
-  proc.ts            the ONLY way to run a program: run()/runAttached(), allow-listed binaries, no shell
+  egress.ts          the ONLY outbound network path: egressFetch({purpose}, url), allow-list, logs/network.jsonl;
+                     plus probeLoopback()/loopbackAccepts(), the CLI's unlogged 127.0.0.1-only readiness probe (D51)
+  proc.ts            the ONLY way to run a program: run(), runAttached() (forwards SIGINT/TERM/HUP), launch()
+                     (detached, for --open); allow-listed binaries, no shell
   events.ts          the event bus + the SSE stream (GET /api/events)
   live.ts            forwards every store change onto the bus as a ServerEvent named after its entity (D48)
   link-preview.ts    LinkPreviews: the GitHub PR lookup POST /api/link-preview uses, once a GitHub source registers one
@@ -102,12 +105,17 @@ server/              the server and CLI (Node, TypeScript ESM, Hono)
                      (MiniSearch), watch.ts (chokidar), backups.ts (snapshots), errors.ts
   services/          the operations HTTP and MCP both call: achievements, projects/companies/repos (catalog.ts),
                      evidence, found, profile; createServices(store)
+  ocr/               reading text in images, locally (D52): index.ts (createOcr: engine choice and fallback, one read
+                     at a time, cache by sha256; evidenceOcrCache keeps evidence text in its sidecar), tesseract.ts
+                     (tesseract.js + the package's English data) and tesseract-worker.ts (its worker, with no network),
+                     vision-macos.ts (Apple Vision through a JXA script on osascript), image.ts (upscaling small PNGs)
 shared/              code used by both server/ and src/: no Node or DOM APIs
   api.ts             the HTTP API contract (request/response types, ApiError)
   schema/            the data files' Zod schemas and types (PR3 owns it), the services' input schemas (inputs.ts), the
                      Problem and StoreChange types, and the generated file-format reference (reference.ts)
   ulid.ts, impact.ts, judge.ts   ids; the 1–10 impact scale; the (unimplemented) AI judge seam (D8)
   links.ts           parsePrUrl (→ owner/repo#n and `github_pr:` key), isHttpUrl, githubRepoOf, parsePrKey
+  rules/screenshot.ts "is this screenshot praise for me?" from OCR text: plain rules, never a model (D52)
 src/                 the web app (React 19, Vite, Tailwind v4, TanStack Router + Query), built into dist/web
   main.tsx           fonts, ThemeProvider, QueryClient, router
   routes/            file-based routes (TanStack Router; tsr.config.json); __root.tsx is the shell
@@ -163,6 +171,9 @@ npm run sync:reference # regenerate the reference tables in docs/data-format.md,
                        # copy after a schema change
 (cd website && npm install && npm run build && npm run check-links && npm run check-external)   # the docs site
 npm run store:demo     # the file store end to end on a throwaway data home (seed, index stats, watcher events)
+npm run eval:screenshots -- --ocr   # the screenshot rules' precision and recall on the synthetic screenshots
+                       # (test/screenshots.ts), read by real OCR; without --ocr, on perfect text (fast)
+npm run bragdoc -- dev ocr <image>  # which OCR engine ran, the text, and what the rules made of it
 ```
 
 **The definition of done** for every PR: `npm run check:nul && npm run typecheck && npm test && npm run build &&

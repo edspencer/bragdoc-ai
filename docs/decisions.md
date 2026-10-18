@@ -346,6 +346,10 @@ D17 onwards are decisions made while building.
   `logs/network.jsonl`. So `test/guard-egress.test.ts` lists these two files with exact counts, marked interim, and
   the move is a follow-up PR with its own review. Until then nothing else may import `node:child_process` or call
   `fetch`.
+- **Done in PR20.** `proc.ts` gained `launch()` (detached, no stdio, unref'd; resolves once started), and
+  `runAttached()` forwards SIGINT/SIGTERM/SIGHUP to its child while it runs. `runner.ts` keeps the injectable
+  `Runner`/`Streamer` types with proc.ts as their defaults (a `journalctl` stopped by one of those signals still counts
+  as exit 0, as before). The probe moved into egress.ts (D48). guard-egress has no interim entries left.
 
 ### D33 — `/dev/kit` exists in dev and `BRAGDOC_KIT=1` builds, never in a release
 
@@ -634,3 +638,78 @@ D17 onwards are decisions made while building.
   (a `.key`, a `.txt` sent as octet-stream) is stored as a file and served as a download.
 - **Considered:** uploading on "Pin it" (a refusal would only show at the end, and a slow upload would block saving);
   rejecting every type mismatch (a `.key` is a zip; a type the browser doesn't know is not a lie).
+
+### D51 — The CLI's readiness probe lives in egress.ts, is fixed to 127.0.0.1, and isn't logged
+
+- `bragdoc service start|restart|status` polls `GET /api/health` every 250 ms for up to 20 s, and `serve` asks the
+  same question once when its port is taken; when that request fails, a plain TCP connect tells "nothing there"
+  from "something that isn't HTTP". Both now live in `server/egress.ts` as `probeLoopback(port, path, timeoutMs)` and
+  `loopbackAccepts(port, timeoutMs)`, so `node:net` and the real `fetch` are still in one file only (SPEC R4).
+- **They don't write to `logs/network.jsonl`.** A deviation from R4's "every request is logged", on purpose: the
+  network log is the record of what BragDoc sends (or tried to send) somewhere, and a poll would fill it (up to 80 lines
+  per start) with BragDoc asking itself whether it's up, burying the entries it exists to show. The exemption is safe by
+  construction rather than by policy: the host is a constant (`127.0.0.1`), the caller gives only a port (checked as an
+  integer, 1–65535) and a path (must start with a single `/`), no body or headers can be passed, redirects aren't
+  followed, and the TCP check sends nothing. The CLI also has no data home's config or `Egress` instance at that point
+  (it's probing a server that may not exist yet).
+- Everything else to loopback (the `bragdoc mcp` stdio bridge, D44) still goes through `egressFetch` and is logged:
+  it carries data.
+- **Considered:** `egressFetch` with a "don't log" flag (a flag any caller could set, to any allowed host); logging
+  only the first and last poll (still the CLI writing into the server's log, from another process); a separate
+  `server/platform/probe.ts` allowed `node:net` (a second network file for the guard to trust).
+
+### D52 — OCR: tesseract.js with its English data in the package and no network; Vision through JXA; rules you can read
+
+PR11 (SPEC R7, R8, R4). The library is `server/ocr/` and `shared/rules/screenshot.ts`; the screenshots source and
+pasted images (PR15) are its callers.
+
+- **The language data ships with the package, never fetched.** `@tesseract.js-data/eng` is a runtime dependency, and
+  tesseract.js reads its LSTM-only `4.0.0_best_int` model (2.9 MB) from disk. Fetching it from tesseract.js's default
+  CDN would be a download nobody asked for, and an egress call; an opt-in download was the alternative and buys
+  nothing for one language. Other languages, if ever, are an explicit opt-in download through `egress`.
+- **tesseract.js can't reach the network or write a file.** Images go in as bytes (a string is fetched if it looks like
+  a URL), `langPath` is a local directory, `cacheMethod: 'none'` (by default it caches the data in the current
+  directory). And the worker thread runs `server/ocr/tesseract-worker.ts`, our copy of tesseract.js's 15-line Node
+  worker entry, whose adapter's `fetch` only fails and whose cache writes are no-ops. That file is the egress guard's
+  one reviewed `node:worker_threads` import, and tesseract.js itself is allowed only in the two OCR files (it can
+  fetch). The worker also ends its thread when language data fails to load or initialise: tesseract.js 7's
+  `createWorker()` otherwise never settles, and the stray thread keeps the process alive. The engine listens for the
+  thread's own `error`/`exit` (tesseract.js's `onerror` does nothing on a Node Worker, so an error in the thread would
+  otherwise crash the server). tesseract.js is pinned `~7.0.0`, because the worker loads its internals. Checked by
+  test/ocr.test.ts (the worker pointed at the CDN fails; the global fetch throws throughout), `smoke:pack` (the
+  installed package with every socket, DNS lookup and fetch made to throw) and the Docker smoke (`--network none`).
+- **Small screenshots are scaled up.** A PNG narrower than 1600 px is decoded (pngjs, pure JS), flattened onto white
+  and scaled 2× before tesseract reads it: a non-Retina chat screenshot went from mean confidence 33 to 85. Over 40 MP
+  is refused. Other formats go in as they are.
+- **Apple Vision is a JXA script, not a binary.** `osascript -l JavaScript` bridging to `VNRecognizeTextRequest`, run
+  through `proc.run`, with the image as base64 on stdin (no temp file) and JSON lines back. A capability probe runs
+  once; a failure on any image falls back to tesseract.js, and the result says which engine ran and why another
+  didn't. It is checked for real on the macOS CI runners only; the Linux box tests its contract with a fake osascript.
+- **One read at a time, cached by sha256.** At most 100 waiting (then `busy`); the same image queued twice is read
+  once; a read past its timeout (60 s) terminates the worker. The cache is in memory, except that evidence files keep
+  their text in their sidecar's `ocr` (where search reads it): a screenshot that isn't kept leaves no text on disk.
+- **The rules, as built.** `pass` = (a) your name, surname, handle or a non-initials alias, OCR-tolerant
+  (`AIex` is Alex), minus `notMe`; or (b) your initials, case-sensitive, never a time (`9 AM`, `AM PT`, `AM/PM`) or
+  capitals; **and** (c) praise, or an impact (a number with a unit, money, customers, a promotion), **in the same
+  message**. Messages are split at chat author lines (`Dana Whitfield 4:52 PM`); without any, a name and a praise word
+  must be within three lines. (d), the chat cues (`#channel`, replies, timestamps, @-mentions), only lift borderline
+  cases: a lone "thanks"/"great" or an impact number counts in a chat window, not on a dashboard. Additions to the brief
+  from testing on OCR text: your own messages and bots' never pass; a bare acknowledgement ("thx AM") is dropped, as in
+  the spike, but only when nothing after the thanks praises; a reply in a thread under your own message counts as
+  (a) when it names nobody else on screen; avatar initials and emoji debris that OCR reads into a message are cleaned
+  off. A name of three letters or fewer is matched as written ("Al" isn't every "AI"); a bot is a lower-case `…bot`
+  author or an `APP`/`BOT` tag, not any name ending in "bot"; a `#` needs a letter to be a channel (`#412` is a PR).
+- **Measured** (`npm run eval:screenshots`, the Found spike's 218 messages drawn as screenshots): perfect text, recall
+  83% / precision 70% (96% without sarcasm); through tesseract (`-- --ocr`), recall 79% / precision 69% (95% without
+  sarcasm). **These are in-sample:** the praise and impact vocabulary was tuned on these same messages, so a fresh set
+  will do worse; they're a regression floor (test/screenshot-rules.test.ts pins them), not a forecast. The
+  misses are DMs that never name you; nearly every false pass is sarcasm, which rules can't read and the future judge
+  is for (`shared/judge.ts`, unchanged: the seam already had the right shape). All 18 hand-made screenshots (Slack light,
+  dark, small and Retina; an email; a dashboard; a code editor; a standup invite; a blank image) give their expected
+  outcome; "praise for someone else, naming you in passing" passes, and is documented as a limit.
+- **Size:** the installed package grows from about 24 MB to 80 MB: tesseract.js-core is 43 MB (six wasm builds, of
+  which one runs) and the language package 13 MB (two models, of which the 2.9 MB one is read). Vendoring just the
+  model and one wasm build would save about 50 MB but means maintaining tesseract.js's loader ourselves; not worth it
+  for v0.1.
+- **Considered:** a compiled Swift helper for Vision (a binary to build, sign and ship per arch); the CDN or an opt-in
+  download for the data; sharp for scaling (native, large); counting impact numbers anywhere (every dashboard passed).
