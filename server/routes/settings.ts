@@ -1,5 +1,4 @@
 // What Settings needs beyond /api/meta and /api/network-log (SPEC R13):
-//   a `problems` event when a misnamed file comes or goes (GET /api/problems is routes/problems.ts, PR7's)
 //   GET  /api/backups             the snapshots in backups/, newest first
 //   GET  /api/settings            the config.yaml settings the pages show; PUT /api/settings/mcp edits mcp.writeTo
 //   GET  /api/mcp/token           the MCP bearer token, for "Copy"; POST /api/mcp/token/rotate makes a new one
@@ -30,23 +29,6 @@ const settingsOf = (c: Config): SettingsResponse => ({
 });
 
 export function registerSettings(app: Hono, ctx: AppContext): void {
-  // Problems can change with any file (a fix, a break, a deletion that leaves a reference dangling) and with a misnamed
-  // file arriving. Checked 150 ms after the first change of a burst (a `git pull` is many changes; a steady stream of
-  // them can't postpone the check forever), and pushed only when the list really changed.
-  let last = JSON.stringify(ctx.store.problems());
-  let timer: NodeJS.Timeout | null = null;
-  ctx.store.subscribeProblems(() => {
-    if (timer) return;
-    timer = setTimeout(() => {
-      timer = null;
-      const now = JSON.stringify(ctx.store.problems());
-      if (now === last) return;
-      last = now;
-      ctx.bus.emit({ type: 'problems' });
-    }, 150);
-    timer.unref?.();
-  });
-
   app.get('/api/backups', (c) => {
     const dir = homePaths(ctx.dataDir).backups;
     const snapshots = listSnapshots(dir)

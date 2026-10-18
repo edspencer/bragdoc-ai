@@ -27,10 +27,15 @@ const TYPE: Record<ChangeEntity, ServerEvent['type']> = {
 
 /** Forward every store change to the bus. Returns the unsubscribe function. */
 export function forwardStoreChanges(store: Store, bus: EventBus): () => void {
-  return store.subscribe((c) => {
+  const offChanges = store.subscribe((c) => {
     const type = TYPE[c.entity];
     if (!type) return;
     bus.emitSoon(`store:${type}`, { type } as ServerEvent, DEBOUNCE_MS, MAX_WAIT_MS);
-    bus.emitSoon('store:problems', { type: 'problems' }, DEBOUNCE_MS, MAX_WAIT_MS);
   });
+  // every change, plus a misnamed file coming or going (a Problem with no entity, so no StoreChange; PR10's Data tab)
+  const offProblems = store.subscribeProblems(() => bus.emitSoon('store:problems', { type: 'problems' }, DEBOUNCE_MS, MAX_WAIT_MS));
+  return () => {
+    offChanges();
+    offProblems();
+  };
 }

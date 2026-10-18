@@ -196,7 +196,7 @@ describe('Problems', () => {
     const get = async () => ((await (await app.request('/api/problems')).json()) as ProblemsResponse).problems;
     assert.deepEqual(await get(), []);
 
-    const settle = () => new Promise((r) => setTimeout(r, 250)); // the route debounces bursts (150 ms)
+    const settle = () => new Promise((r) => setTimeout(r, 250)); // server/live.ts debounces bursts (150 ms)
     const n = () => events.filter((e) => e.type === 'problems').length;
 
     // what the watcher does on a hand edit: the file changes, then the store re-reads that path
