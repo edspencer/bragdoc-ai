@@ -46,7 +46,9 @@ const GITHUB_KEEP: JevQuestion = {
 
 /** The state and questions for one candidate. */
 export function judgeJevRequest(kind: 'screenshots' | 'github', { profile, projects, instructions, input }: JudgePromptInput): JevRequest {
-  const names = [...new Map(projects.map((p) => p.replace(/\s+/g, ' ').trim()).filter(Boolean).map((p) => [p.toLowerCase(), p] as const)).values()];
+  // each project once (the first spelling: the judge maps names back case-blind), in your order
+  const names: string[] = [];
+  for (const n of projects.map((p) => p.replace(/\s+/g, ' ').trim())) if (n && !names.some((x) => x.toLowerCase() === n.toLowerCase())) names.push(n);
   const state: Record<string, string> = {
     user: whoIsTheUser(profile),
     user_instructions: instructions?.trim() || DEFAULT_GUIDANCE,
