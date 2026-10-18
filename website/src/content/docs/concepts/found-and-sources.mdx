@@ -15,18 +15,19 @@ Each candidate in Found shows where it came from, what it is (a pull request, a 
 on a sticky note, or what your agent wrote), **which rules it passed**, and the projects it probably belongs to. The
 chips at the top show one source at a time. Then:
 
-<Shot name="docs-found" alt="Found with five candidates: a screenshot of a chat message with the praise quoted on a sticky note and the rules it passed (Says your name, Praise, Looks like a chat), and four merged pull requests, each listing You opened it and Merged, with Keep, Merge into and Dismiss buttons." caption="Found on the example data: one screenshot and four merged pull requests, each with the rules it passed." />
+<Shot name="docs-found" alt="Found with five candidates: a screenshot of a chat message with the praise quoted on a sticky note and the rules it passed (Says your name, Praise, Looks like a chat), and four merged pull requests, each listing You opened it and Merged, with Keep, Merge into and Dismiss buttons." caption="Found with one screenshot and four merged pull requests, each with the rules it passed. Staged for the screenshot: the pull requests come from a stand-in for GitHub, and all of it is made up." />
 
 
 - **Keep** makes it an achievement, with its evidence attached. (If the same pull request is already on your board,
   keeping it adds to that achievement instead.)
 - **Merge into…** attaches its evidence to an achievement you already have.
 - **Dismiss** sets it aside. The same pull request or screenshot never comes back. Of a dismissed candidate, BragDoc
-  keeps only hashes of its keys (such as `github_pr:owner/repo#123`), which are enough to recognise it again, and when
-  it was found: its title, words and picture are gone.
+  keeps only hashes of its keys (such as `github_pr:owner/repo#123`), which are enough to recognise it again, its
+  source and dates: its title, words and picture are gone.
 
 Each of these can be undone from the message that appears. Undoing a keep moves the new achievement into
-`backups/removed/`. Undoing a dismissal works until BragDoc restarts: after that, nothing is left to bring back.
+`backups/removed/`. Undoing a dismissal works until BragDoc restarts (for the latest 500 dismissals): after that, nothing is left to
+bring back.
 
 There's no "confidence score": v0.1 has no AI, so candidates are chosen by plain rules you can read, and each card
 lists the ones it passed, in words: "You opened it", "Merged", "In a repo you track" for a pull request;
@@ -40,7 +41,7 @@ Finds the pull requests you opened that were merged. Connect it in **Settings �
 
 - **Through the [GitHub CLI](https://cli.github.com/)** (`gh`, version 2.20 or later), if you have it and are logged
   in (`gh auth login`). BragDoc stores no token: it runs `gh auth status` when you connect, then
-  `gh search prs --author=@me --merged` for each check.
+  `gh search prs --author=@me --merged` for each check (and `gh pr view` for a pasted link's title).
 - **With a token**, if you'd rather not use `gh`: a fine-grained personal access token with read-only access to
   "Pull requests" and "Metadata" (a classic token works too). It's stored in `secrets.yaml` (readable only by you,
   never backed up), checked with GitHub when you paste it, and not kept if GitHub refuses it. Disconnecting can delete
@@ -66,7 +67,7 @@ While GitHub is connected, pasting a pull request link on the board also asks Gi
 GitHub is the one service v0.1 can talk to, and only once you connect it. Every request appears in
 [Network activity](/guarantees/network-activity/).
 
-<Shot name="docs-sources" alt="Settings, Sources: the GitHub card, on, connected through the gh CLI, with Check now, Check every hour, how far back to look and where; and the Screenshots folder card, on, watching ~/Screenshots, with 1 looked at and 1 sent to Found." caption="Settings → Sources with both sources on." />
+<Shot name="docs-sources" alt="Settings, Sources: the GitHub card, on, connected through the gh CLI, with Check now, Check every hour, how far back to look and where; and the Screenshots folder card, on, watching ~/Screenshots, with 1 looked at and 1 sent to Found." caption="Settings → Sources with both sources on (GitHub through a stand-in for the gh CLI, for the screenshot)." />
 
 ### A screenshots folder
 
@@ -76,7 +77,8 @@ in a chat, you take a screenshot, and it turns up in Found.
 Switch it on in **Settings → Sources** and choose a folder. BragDoc suggests where this computer saves screenshots:
 on a Mac, wherever you've told it to (`defaults read com.apple.screencapture location`), else your Desktop; on Linux,
 `~/Pictures/Screenshots`, where GNOME and KDE put them. A folder just for screenshots works best. BragDoc won't watch a
-hidden folder, your home folder itself, or its own data folder.
+hidden folder, its own data folder, or any folder that holds it (so not your home folder itself, with the data
+folder in its usual place).
 
 From then on, BragDoc watches that folder for **new** files only, while it's running. It never reads what's already
 there unless you press **Look at the last 7 days**, which reads that week's screenshots once (the newest 1,000 at

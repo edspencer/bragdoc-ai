@@ -25,8 +25,8 @@ remembers that you skipped, and doesn't ask again. You can run any step again la
 1. **About you:** your name, what you do, where (a company, optional) and since when, your GitHub username
    (optional), and **what people call you at work**: nicknames, chat handles, initials. BragDoc uses these to tell when a screenshot or a message is about you.
    If someone at work has a name like yours, say so too, and BragDoc won't mistake them for you. This becomes
-   `profile.yaml` in your data folder. If you're coming from the hosted app, this step points you at the importer
-   (see [Moving from the hosted app](/moving-from-the-hosted-app/)).
+   `profile.yaml` in your data folder. The first time, this step also points you at the importer, if you're coming
+   from the hosted app (see [Moving from the hosted app](/moving-from-the-hosted-app/)).
 2. **Where wins come from:** each source, **off until you switch it on**, with a line on what it does. You can connect
    [GitHub](/concepts/found-and-sources/#github) here (through the `gh` CLI if you have it, or a token), or later.
    You can also switch on the [screenshots folder](/concepts/found-and-sources/#a-screenshots-folder): pick the folder your screenshots
@@ -45,8 +45,8 @@ remembers that you skipped, and doesn't ask again. You can run any step again la
      can't trap it.
 
    Each repository is listed with **why**, from its own `.git`: "you pushed 3 days ago", "you committed yesterday",
-   "fetched 3 days ago; your last commit was 6 weeks ago". The ones in that folder you worked in during the last 30
-   days start ticked. Tick or untick, give any of them a project (an existing one, or a new one named after the repo)
+   "fetched 3 days ago; your last commit was 6 weeks ago". The ones in that folder with any git activity in the last 30 days (a
+   commit, push, pull, or even a fetch) start ticked. Tick or untick, give any of them a project (an existing one, or a new one named after the repo)
    if you like, and press **Add 3 repos** (or however many): only the repositories you add are saved (as
    `repos/<id>.yaml`); nothing else from the scan is kept. Then **Open my board**.
 

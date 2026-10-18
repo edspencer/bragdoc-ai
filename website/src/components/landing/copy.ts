@@ -42,9 +42,9 @@ export const HERO_LINKS = [
 
 /** The board print under the hero: a real capture of the app (tools/docs-media, shots landing-board-light/-dark). */
 export const SHOT = {
-	alt: 'The BragDoc board: a "Drop it here." box for screenshots, PDFs and links, a strip saying 5 things found by your sources are waiting for a yes or no, a note that this is example data, and this week’s achievements as taped cards, one with a sticky-note quote and one with a screenshot of a chat message praising the work. Every name in it is invented.',
+	alt: 'The BragDoc board: a "Drop it here." box for screenshots, PDFs and links, a strip saying 5 things found by your sources are waiting for a yes or no (staged for the picture), a note that this is example data, and this week’s achievements as taped cards, one with a sticky-note quote and one with a screenshot of a chat message praising the work. Every name in it is invented.',
 	tag: 'Real capture · example data',
-	caption: 'The board, filled with BragDoc’s made-up example data.',
+	caption: 'The board, filled with BragDoc’s made-up example data (the five things found were staged for the picture).',
 };
 
 /**

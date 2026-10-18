@@ -47,7 +47,6 @@ Split the test suite across four runners and cached the dependency install.
 - **Snapshots.** BragDoc copies your data (everything but secrets, the running server's details, logs and caches)
   into `backups/<timestamp>/` when it starts and then hourly, each time only if something changed. It keeps the newest
   50, plus one a day for 30 days.
-- **Newer files are respected.** A file written by a newer version of BragDoc (or with no `schemaVersion`) is opened
-  read-only rather than rewritten in an older format.
+- **Newer files are respected.** A file written by a newer version of BragDoc is opened read-only rather than rewritten in an older format.
 
 The full layout and every field are in [The data folder](/reference/data-folder/).

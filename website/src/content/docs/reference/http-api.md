@@ -26,12 +26,12 @@ These are enforced for every request (see [Localhost security](/guarantees/local
   type, never `text/plain`, `application/x-www-form-urlencoded` or `multipart/form-data`. Otherwise: **415**. JSON
   bodies are capped at 1 MB (50 MB for a hosted-app export sent to `/api/import/*`), uploads at 25 MB; more is a
   **413**.
-- JSON bodies are checked strictly: an unknown key is a **400**, whose error says which.
+- Request bodies for creating and changing things are checked strictly: an unknown key is a **400**.
 - Errors are JSON: `{ "error": { "code": "…", "message": "…" } }`. An unknown `/api/…` path is a JSON **404**
   (`not_found`).
 - Entries you can edit come with an `etag`. Send it back as `If-Match` on a change (`PATCH`, `DELETE`, remove), and a
   change made against a stale copy is a **409** (`conflict`) rather than a silent overwrite. A store error maps to
-  **404** (not found), **400** (invalid, with the keys at fault) or **409** (conflict, or a file that's read-only
+  **404** (not found), **400** (invalid; for achievements, with the keys at fault in `issues`) or **409** (conflict, or a file that's read-only
   because it's broken or from a newer BragDoc).
 
 
@@ -147,7 +147,7 @@ These are enforced for every request (see [Localhost security](/guarantees/local
 
 | Method and path | What it does |
 | --- | --- |
-| `POST /mcp` | The [MCP server](/agents/mcp/) (stateless Streamable HTTP). Every request needs `Authorization: Bearer <token>`: without it, or with an old one, a **401**. `GET /mcp` and `DELETE /mcp` are **405** (it's stateless). `GET /.well-known/oauth-*` is a **404**: it uses a token, not OAuth. |
+| `POST /mcp` | The [MCP server](/agents/mcp/) (stateless Streamable HTTP). Every request needs `Authorization: Bearer <token>`: without it, or with an old one, a **401** (checked first). With it, `GET /mcp` and `DELETE /mcp` are **405** (it's stateless). `GET /.well-known/oauth-*` is a **404**: it uses a token, not OAuth. |
 | `GET /agent-guide.md` | The [agent guide](/agents/agent-guide/), with this BragDoc's live facts. |
 | `GET /llms.txt` | The [llms.txt](https://llmstxt.org) for agents: where the guide and the MCP server are. |
 | `GET /llms-full.txt` | The same, with the whole guide in it. |

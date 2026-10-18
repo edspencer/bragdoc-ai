@@ -33,7 +33,7 @@ listen on all interfaces inside the container; that is why the docs always publi
 ## It's careful with what you store
 
 - The app's pages carry a strict Content Security Policy with no inline scripts: they load scripts, styles, images
-  and fonts only from BragDoc itself, and can't be framed by another site. A missing file is a 404, never the app's
+  and fonts only from BragDoc itself (images may also be drawn from the page's own data), and can't be framed by another site. A missing file is a 404, never the app's
   page.
 - Stored evidence is served sandboxed. PNG, JPEG, GIF, WebP, AVIF and SVG pictures are only ever shown as pictures
   (so an SVG can't run a script), and anything else, other picture formats included, downloads instead of opening.
