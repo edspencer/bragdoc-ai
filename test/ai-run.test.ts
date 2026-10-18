@@ -215,6 +215,33 @@ describe('the queue', () => {
     }
   });
 
+  test('OpenRouter: reasoning off; a model that insists gets low effort once, remembered (not the repair retry)', async () => {
+    const net = fakeNetwork(async (url, body) => {
+      const { cannedAnswer } = await import('./ai-fixture.ts');
+      if (body.model === 'thinker' && body.reasoning?.effort === 'none')
+        return new Response(JSON.stringify({ error: { message: 'Reasoning is mandatory for this endpoint and cannot be disabled.', code: 400 } }), { status: 400, headers: { 'content-type': 'application/json' } });
+      return cannedAnswer(url, body, { ok: true, confidence: 0.9 });
+    });
+    const home = aiHome({ ai: { enabled: true, connections: { or: { kind: 'openrouter' } } }, fetchImpl: net.impl });
+    try {
+      await home.req('POST', '/api/ai/connections/or/consent', CONSENT);
+      await home.req('PUT', '/api/ai/connections/or/key', { key: 'sk-or-v1-test-not-a-real-key' });
+      const r = await ask(home, 'or', { slot: { connection: 'or', model: 'plain' } });
+      assert.equal(r.repaired, false);
+      assert.deepEqual(net.calls.map((c) => c.body.reasoning), [{ effort: 'none', exclude: true }]);
+      const t = await ask(home, 'or', { slot: { connection: 'or', model: 'thinker' } });
+      assert.equal(t.repaired, false);
+      await ask(home, 'or', { slot: { connection: 'or', model: 'thinker' } });
+      assert.deepEqual(
+        net.calls.slice(1).map((c) => c.body.reasoning.effort),
+        ['none', 'low', 'low'],
+        'refused once, then low effort, and remembered',
+      );
+    } finally {
+      home.close();
+    }
+  });
+
   test('AI switched off mid-call: the running call stops (ai_off), the waiting ones too, and nothing more is sent', async () => {
     const home = aiHome({ ai: { enabled: true, connections: { slow: { kind: 'ollama', baseUrl: `${fake.url}/s/timeout` } } } });
     try {

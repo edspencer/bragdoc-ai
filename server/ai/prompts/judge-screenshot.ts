@@ -9,8 +9,16 @@
 import { z } from 'zod';
 import type { Profile } from '../../../shared/schema/profile.js';
 
+/** What the prompts read from profile.yaml. */
+export interface JudgeProfile {
+  name: Profile['name'];
+  aliases?: readonly string[];
+  notMe?: readonly string[];
+  role?: string;
+}
+
 export interface JudgePromptInput {
-  profile: Pick<Profile, 'name' | 'aliases' | 'notMe' | 'role'> | null;
+  profile: JudgeProfile | null;
   /** Your active projects, by name (code maps the answer's names back to ids). */
   projects: readonly string[];
   /** ai/what-counts.md, or null when there's none (or it's empty). */

@@ -149,6 +149,8 @@ export function createAi({ config, egress, secrets, load = loadSdk, now = Date.n
   const listeners = new Set<(r: CallRecord) => void>();
   /** connection + model pairs that refused a schema once: asked in JSON mode from then on. */
   const schemaless = new Set<string>();
+  /** OpenRouter models that refused to turn reasoning off ("reasoning is mandatory"): asked with low effort from then on. */
+  const mustReason = new Set<string>();
   let sdkLoaded = false;
   let watcher: ReturnType<typeof setInterval> | null = null;
 
@@ -341,6 +343,11 @@ export function createAi({ config, egress, secrets, load = loadSdk, now = Date.n
       const send = egress.fetchFor({ purpose: call.purpose, feature: call.feature, model: slot.model, connectionId: slot.connection });
       const apiKey = keyFor(slot.connection);
       const pairKey = `${slot.connection}\0${slot.model}`;
+      // OpenRouter: reasoning off (SPEC R20), as the spike ran it. A reasoning model spends a small answer budget on
+      // thinking and returns nothing (Haiku through OpenRouter did, on a long OCR text); some insist on reasoning, and
+      // get the least (D74)
+      const openrouter = config().ai.connections[slot.connection]?.kind === 'openrouter';
+      const reasoning = (): Record<string, { reasoning: { effort: string; exclude: boolean } }> => (openrouter ? { openrouter: { reasoning: { effort: mustReason.has(pairKey) ? 'low' : 'none', exclude: true } } } : {});
       let tokensIn = 0;
       let tokensOut = 0;
       const count = (u: { inputTokens?: number; outputTokens?: number } | undefined) => {
@@ -365,7 +372,7 @@ export function createAi({ config, egress, secrets, load = loadSdk, now = Date.n
             experimental_download: noDownloads,
             // the schema guides the model; strict mode would refuse a schema with optional fields at some providers,
             // and our own Zod check below is the strict one
-            providerOptions: { openaiCompatible: { strictJsonSchema: false }, openai: { strictJsonSchema: false } },
+            providerOptions: { openaiCompatible: { strictJsonSchema: false }, openai: { strictJsonSchema: false }, ...reasoning() },
           });
           count(r.usage as { inputTokens?: number; outputTokens?: number });
           return r.text;
@@ -375,6 +382,12 @@ export function createAi({ config, egress, secrets, load = loadSdk, now = Date.n
           if (err.name === 'AI_NoObjectGeneratedError' && typeof err.text === 'string') {
             count(err.usage);
             return err.text;
+          }
+          // a model that won't answer without reasoning: once more with the least of it, and remember (not the repair)
+          const said = `${(e as { message?: string }).message ?? ''} ${(e as { responseBody?: string }).responseBody ?? ''}`;
+          if (openrouter && !mustReason.has(pairKey) && /reasoning is mandatory/i.test(said)) {
+            mustReason.add(pairKey);
+            return ask(mode, messages);
           }
           throw e;
         }

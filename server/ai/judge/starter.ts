@@ -1,11 +1,11 @@
 // The starter ai/what-counts.md (SPEC R21): "what counts as a win for me", written from your profile the first time the
 // judge is switched on, and what Reset puts back. Yours to edit; the judge sends it with every call. Adapted from the
 // Found spike's instructions file, written fresh and generic (D2): no names but yours, from profile.yaml.
-import type { Profile } from '../../../shared/schema/profile.js';
+import type { JudgeProfile } from '../prompts/judge-screenshot.js';
 
 const quoted = (xs: readonly string[]) => xs.map((x) => `"${x}"`).join(', ').replace(/, ([^,]*)$/, ' or $1');
 
-export function whatCountsStarter(profile: Pick<Profile, 'name' | 'aliases' | 'notMe' | 'role'> | null): string {
+export function whatCountsStarter(profile: JudgeProfile | null): string {
   const name = profile?.name?.trim();
   const aliases = [...new Set((profile?.aliases ?? []).map((a) => a.trim()).filter((a) => a && a !== name))];
   const notMe = (profile?.notMe ?? []).map((n) => n.trim()).filter(Boolean);
