@@ -129,6 +129,8 @@ export function createJudgeSchedule(deps: ScheduleDeps): JudgeSchedule {
   /** Candidates already seen (so an Undo isn't an arrival). */
   const known = new Set<string>();
   let arrivalsWaiting = false;
+  /** A scheduled run stopped by its conditions (or cut at maxPerRun): it carries on when they lift. */
+  let resumeSchedule = false;
   let firstArrival = 0;
   let debounce: unknown = null;
   let tickTimer: unknown = null;
@@ -212,7 +214,9 @@ export function createJudgeSchedule(deps: ScheduleDeps): JudgeSchedule {
     try {
       const r = judge.start({ trigger, until: () => conditions()?.code ?? null });
       if (trigger === 'schedule') save({ lastScheduledAt: now().toISOString() });
-      arrivalsWaiting = false; // this run takes them (up to maxPerRun; the rest are still eligible next time)
+      // this run takes them; one stopped early (or cut at maxPerRun) puts them back (onRunEnd)
+      if (trigger === 'arrival') arrivalsWaiting = false;
+      else resumeSchedule = false;
       running = r.done.catch(() => {}).finally(() => (running = null));
       changed();
       return true;
@@ -229,6 +233,7 @@ export function createJudgeSchedule(deps: ScheduleDeps): JudgeSchedule {
       return;
     }
     if (arrivalsWaiting && j.when.onArrival && !debounce && tryRun('arrival')) return;
+    if (resumeSchedule && j.when.everyHours && tryRun('schedule')) return;
     const next = nextScheduled();
     if (next && next.getTime() <= clock.now()) tryRun('schedule');
   }
@@ -266,6 +271,16 @@ export function createJudgeSchedule(deps: ScheduleDeps): JudgeSchedule {
   }
 
   function onRunEnd(r: RunSummary & { trigger: AiTrigger; startedAt: string; endedAt: string }): void {
+    // a background run its conditions stopped, or one that took maxPerRun with more waiting: the rest go next, once
+    // nothing holds them (not after a failure: the backoff decides that, and a failing item isn't retried every tick)
+    if (r.trigger === 'arrival' || r.trigger === 'schedule') {
+      const stopped = r.outcome === 'cancelled' && r.error !== null && ['battery', 'window', 'cloud', 'off'].includes(r.error);
+      const capped = r.outcome === 'ok' && r.total >= settings().maxPerRun;
+      if ((stopped || capped) && judge.eligible().length) {
+        if (r.trigger === 'arrival') arrivalsWaiting = true;
+        else resumeSchedule = true;
+      }
+    }
     const lastRun: AiJudgeSchedule['lastRun'] = { at: r.endedAt, trigger: r.trigger, outcome: r.outcome, error: r.error, counts: r.counts, total: r.total, done: r.done };
     if (r.outcome === 'error' && r.error && BACKOFF_CODES.has(r.error)) {
       const failures = load().failures + 1;
