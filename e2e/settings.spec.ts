@@ -11,20 +11,28 @@ test.describe.configure({ mode: 'serial' });
 const HOME = path.join(process.env.BRAGDOC_E2E_HOME!, '.bragdoc');
 
 test('Network activity: the empty receipt, then a refused request shows up live, in red', async ({ page }) => {
+  // the empty state, served as a brand-new install sees it (other browsers' runs share this server's log)
+  await page.route('**/api/network-log?*', (route) => route.fulfill({ json: { entries: [], total: 0 } }));
   await page.goto('/settings/network');
   await expect(page.getByTestId('network-empty')).toContainText('Nothing has left this computer.');
   await expect(page.getByTestId('network-makers')).toContainText('0 B');
   await expect(page.getByTestId('allowlist')).toContainText('this computer');
+  await page.unroute('**/api/network-log?*');
+
+  await page.reload();
+  const before = ((await (await page.request.get('/api/network-log?limit=1')).json()) as { total: number }).total;
+  const onRecord = (n: number) => page.getByText(`${n.toLocaleString('en-US')} on record`);
   await page.getByTestId('guard-check-run').click();
   await expect(page.getByTestId('guard-check-ok')).toBeVisible();
   const line = page.getByTestId('network-line').first();
   await expect(line).toHaveAttribute('data-outcome', 'denied');
   await expect(line).toContainText('REFUSED · NOT SENT');
-  await expect(page.getByTestId('network-empty')).toHaveCount(0);
+  await expect(line).toContainText('Guard check from Settings');
+  await expect(onRecord(before + 1)).toBeVisible();
 
   // another tab's guard check arrives over the event stream, without a reload
   await page.request.post('/api/network-log/guard-check', { data: {} });
-  await expect(page.getByTestId('network-line')).toHaveCount(2);
+  await expect(onRecord(before + 2)).toBeVisible();
 });
 
 test('Data: a hand-broken file appears on the Problems list live, and goes when it is dealt with', async ({ page }) => {
