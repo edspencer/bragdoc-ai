@@ -6,6 +6,8 @@ import type { ConfigStore } from './config.js';
 import type { Egress } from './egress.js';
 import type { EventBus } from './events.js';
 import type { LinkPreviews } from './link-preview.js';
+import type { EvidenceText } from './ocr/evidence-text.js';
+import type { Ocr } from './ocr/index.js';
 import type { Runtime } from './runtime.js';
 import type { Secrets } from './secrets.js';
 import type { UploadRegistry } from './security.js';
@@ -38,6 +40,10 @@ export interface AppContext {
   linkPreviews: LinkPreviews;
   /** secrets.yaml (0600): the GitHub token, when GitHub is connected with one. */
   secrets: Secrets;
-  /** The sources that fill Found by themselves: `ctx.sources.github` (PR13); PR15 adds the screenshots folder. */
+  /** The sources that fill Found by themselves: `ctx.sources.github` (PR13) and `ctx.sources.screenshots` (PR15). */
   sources: Sources;
+  /** OCR, one read at a time for everything (the screenshots folder and the board's pictures); evidence text in sidecars. */
+  ocr: Ocr;
+  /** The board's pictures, read in the background (started by startServer): `status(sha)` for GET /api/evidence/:sha/ocr. */
+  evidenceText: EvidenceText;
 }

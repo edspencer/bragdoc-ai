@@ -20,7 +20,8 @@ browser, and the board page (composer, cards, edit drawer, search). PR14 built *
 exported as markdown, copied or printed. PR11 added OCR and the screenshot rules, as a
 library (`server/ocr/`, `shared/rules/screenshot.ts`) that the screenshots source builds on. PR13 built **Found** and
 the **GitHub source**: the Found page, its API, the source framework (`server/sources/`) and the GitHub card in
-Settings → Sources (see "Found and sources" below). PR16 built **onboarding**: Welcome (the first run, and its steps
+Settings → Sources (see "Found and sources" below). PR15 added the **screenshots folder** (a source) and reads the
+board's pictures in the background, so their text is searchable. PR16 built **onboarding**: Welcome (the first run, and its steps
 again from Settings → Data), the bounded repo scan, and the example data (see "Onboarding and example data" below).
 Everything else arrives
 PR by PR, in the waves #411 lays out.
@@ -97,10 +98,11 @@ server/              the server and CLI (Node, TypeScript ESM, Hono)
   link-preview.ts    LinkPreviews: the GitHub PR lookup POST /api/link-preview uses (the GitHub source registers it)
   secrets.ts         secrets.yaml (0600): the GitHub token, written through atomic.ts, never logged or backed up
   discover.ts        Welcome's "Your code": the bounded scan of one named folder (4 levels, 5 s, stops at .git,
-                     symlink-loop safe), opt-in editor hints, recency from each repo's own .git (D59)
-  example.ts         the example dataset (fixtures/example/): add (create-only, `example: true`), remove exactly it (D60)
+                     symlink-loop safe), opt-in editor hints, recency from each repo's own .git (D60)
+  example.ts         the example dataset (fixtures/example/): add (create-only, `example: true`), remove exactly it (D61)
   sources/           what fills Found by itself (D15): index.ts (Sources: createSources, start()), github.ts (gh or a
-                     token, windowed search, dedup by prKey, backoff, the hourly check; D57)
+                     token, windowed search, dedup by prKey, backoff, the hourly check; D57), screenshots.ts (a folder
+                     watched for new screenshots: name/size filters, OCR, the rules, Found; D58)
   views.ts           how achievements look in the API: achievementView() (+ etag, files, broken), evidenceFile()
   atomic.ts          the platform's own writes (runtime.json, the network log, starter files): atomic, create-only (D27)
   routes/index.ts    registerRoutes(): one line per feature module (D18)
@@ -112,7 +114,7 @@ server/              the server and CLI (Node, TypeScript ESM, Hono)
   routes/{achievements,evidence,link-preview,problems,found-count}.ts   the board's API (see "The board's API")
   routes/folio.ts    GET /api/folio: a window's achievements as clippings, safe to export (D55)
   routes/{found,sources}.ts   Found's list and decisions, the sources' status and the GitHub card's actions
-  routes/{welcome,discover,example}.ts   first run + profile.yaml (D58), the repo scan and adding repos, example data
+  routes/{welcome,discover,example}.ts   first run + profile.yaml (D59), the repo scan and adding repos, example data
   paths.ts           package root, VERSION, WEB_DIST, the data home (resolveDataDir), tildify
   port.ts            DEFAULT_PORT (2724 = BRAG), alone so vite.config.ts can import it
   store/             the only code that touches the data home's files (D5, D24): index.ts (Store: load, index,
@@ -124,7 +126,8 @@ server/              the server and CLI (Node, TypeScript ESM, Hono)
   ocr/               reading text in images, locally (D52): index.ts (createOcr: engine choice and fallback, one read
                      at a time, cache by sha256; evidenceOcrCache keeps evidence text in its sidecar), tesseract.ts
                      (tesseract.js + the package's English data) and tesseract-worker.ts (its worker, with no network),
-                     vision-macos.ts (Apple Vision through a JXA script on osascript), image.ts (upscaling small PNGs)
+                     vision-macos.ts (Apple Vision through a JXA script on osascript), image.ts (upscaling small PNGs),
+                     evidence-text.ts (the board's pictures, read in the background into their sidecars; D58)
 shared/              code used by both server/ and src/: no Node or DOM APIs
   api.ts             the HTTP API contract (request/response types, ApiError)
   schema/            the data files' Zod schemas and types (PR3 owns it), the services' input schemas (inputs.ts), the
@@ -162,7 +165,7 @@ brand/               the mark (mark.svg) and generate.mjs, which makes the favic
 tools/docs-media/    the screenshot rig: `npm run docs:media` (shots.ts lists the shots; it scans each for leaks)
 test/                node:test suites, run from source via tsx; fixture.ts has the throwaway-dir helpers
 e2e/                 Playwright specs, run against the built server (playwright.config.ts)
-fixtures/example/    the example dataset (example.json + evidence/), shipped in the package and the image (D60)
+fixtures/example/    the example dataset (example.json + evidence/), shipped in the package and the image (D61)
 scripts/             gen-example.ts (npm run gen:example: the example evidence files), start.mjs (npm start), dev.mjs (npm run dev), check-no-nul-bytes.mjs, sync-reference.ts,
                      store-demo.ts, whats-new-release.mjs (heads the docs site's What's new at `changeset:version`);
                      the release's: build-info.mjs (dist/build-info.json), strip-maps.mjs,
@@ -229,9 +232,9 @@ npm run smoke:pack` pass locally (and `npm run test:e2e` if you touched anything
   `server/config.ts`, then write it with `ctx.config.update({ sources: { … } })` (a merge patch on the file as it is
   on disk; it keeps comments, refuses a broken file with `ConfigWriteError` → 409, and fires the `config` event).
   Expose it in `SettingsResponse` (`GET /api/settings`). Never write config.yaml any other way (D53).
-- **A Sources card's insides** (PR15 screenshots): replace the `SourceCard` placeholder in
-  `src/settings/SourcesTab.tsx` (marked with a comment); GitHub's is `GithubCard.tsx`. Data → the Example data `Slot`
-  (marked) is PR16's; the importer is PR12's `ImportPanel` (`src/import/`).
+- **A Sources card:** a component next to `GithubCard.tsx` and `ScreenshotsCard.tsx`, mounted in
+  `src/settings/SourcesTab.tsx`. Data → the Example data `Slot` (marked) is PR16's; the importer is PR12's
+  `ImportPanel` (`src/import/`).
 - **A source** (something that fills Found by itself): see "Found and sources" below.
 - **Something the web app should refetch when it changes:** add a member to `ServerEvent` in `shared/api.ts` and
   `ctx.bus.emit(…)` (or `emitSoon` for bursts).
@@ -365,38 +368,53 @@ changes, and it reports in `GET /api/sources` (`SourcesResponse`: PR15 replaces 
 own status). Its Settings card is a component next to `GithubCard.tsx`. Found's empty state (`EmptyFound.tsx`) lists
 what's watching: add a line for the new source.
 
-**The API** (types in shared/api.ts, "Found + sources (PR13)"):
+**The screenshots folder (PR15, D58)** is `ctx.sources.screenshots` (`ScreenshotsSource`): `status()`, `update({
+enabled, folder, onlyScreenshots })` (checks the folder first; throws `ScreenshotsSourceError` with a
+`ScreenshotsErrorCode`), `suggestions()`, `lookBack(days)`, `process(file)` (one file through the filters, OCR and the
+rules; tests call it directly), `handles()` (what's open: nothing once it's off) and `idle()`. OCR goes through
+`ctx.ocr`, the app's one queue, which `ctx.evidenceText` (the board's pictures) shares. **For onboarding (PR16):**
+`PUT /api/sources/screenshots { folder, enabled: true }` is the whole of "turn it on" (`putScreenshots()` in
+`src/api/client.ts`), `GET /api/sources/screenshots/suggestions` lists folders worth offering
+(`useScreenshotSuggestions()`), and `<ScreenshotsFolderPicker onSaved saveLabel />` (src/settings/ScreenshotsCard.tsx)
+is the folder choice on its own. The source reads nothing until profile.yaml has a name (`needsProfile` in its status).
+
+**The API** (types in shared/api.ts, "Found + sources (PR13)" and "the screenshots folder (PR15)"):
 
 | Route | What |
 |---|---|
 | `GET /api/found?source=` | `FoundListResponse`: pending candidates, newest first (one check's newest-merged first), and `counts` per source (unfiltered) |
 | `POST /api/found/:id/{keep,merge,dismiss,undo}` | `FoundDecided`; keep takes an optional `FoundKeep` body, merge `{ achievementId }`; a decided one is 409 |
 | `GET /api/found/count` | `{ pending }` for the badge and the board strip |
-| `GET /api/sources` | `SourcesResponse` (`github: GithubSourceStatus`) |
+| `GET /api/sources` | `SourcesResponse` (`github: GithubSourceStatus`, `screenshots: ScreenshotsSourceStatus`) |
 | `GET /api/sources/github/gh` | `{ installed }`: gh on PATH? (a look, nothing runs) |
+| `GET /api/sources/screenshots/suggestions` · `PUT /api/sources/screenshots` · `POST /api/sources/screenshots/look-back` | folders to offer; choose/switch on/off (`ScreenshotsSettingsRequest`, the folder checked first: 400/409 with a `ScreenshotsErrorCode`); read the last `days` once |
+| `GET /api/found/:id/picture` · `GET /api/evidence/:sha/ocr` | a screenshot candidate's picture from where it is (404 `gone`); a board picture's text (`EvidenceOcrResponse`, with the quote when the rules pass) |
 | `POST /api/sources/github/{connect,run,disconnect}`, `PUT /api/sources/github` | connect (`{ auth: 'gh' }` or `{ auth: 'token', token }`, + `lookBackDays`, `repos`), Check now (waits; 429 while rate limited), disconnect (`forgetToken`), options (`lookBackDays`, `repos`, `hourly`). Errors: `GithubErrorCode` |
 
-In the web app: `useFound(source)`, `useSources()`, `useGhInstalled()`; `useDecide()` (src/found/decide.ts) does a
+In the web app: `useFound(source)`, `useSources()`, `useGhInstalled()`, `useScreenshotSuggestions()`, `useEvidenceOcr(sha)`; `useDecide()` (src/found/decide.ts) does a
 decision with its toast. Query keys start `found` / `sources`; the `found`, `sources` and `config` events refresh them.
 
 **Testing a source:** never with a real login. `test/fixtures/fake-gh/gh` is a fake GitHub CLI (invented repos in
 `prs.json`, dates in days-ago); its scenario comes from `FAKE_GH_SCENARIO` or `$HOME/.fake-gh/scenario` (`ok`,
 `logged-out`, `rate-limited`, `offline`, `zero`, `many`, `not-json`). test/github-source.test.ts builds a PATH with only
 it and node; the e2e server has it first on PATH. The token path is tested with a fake `fetchImpl` behind the real
-egress module.
+egress module. The screenshots source is tested with a fake `Ocr` (`createAppWithContext({ ocr })`) that "reads" the
+text each rendered screenshot was drawn with (test/screenshots-source.test.ts); found.spec.ts drives it end to end with
+real OCR (serially, so its candidates can't land while that spec counts the badge). As root, `chmod 000` doesn't make a
+folder unreadable: test a denied folder with a stand-in (the unit test) or a server run as another user.
 
 ### Onboarding and example data (PR16)
 
-- **First run** (D58): `GET /api/welcome` → `firstRun` while there's no profile.yaml and `welcome.skipped` is false.
+- **First run** (D59): `GET /api/welcome` → `firstRun` while there's no profile.yaml and `welcome.skipped` is false.
   Only the board (`/`) redirects to `/welcome` (`src/routes/__root.tsx`). `GET/PUT /api/profile` read and write
   profile.yaml (If-Match optional; the first write needs a name). **The shared e2e server's home has a profile.yaml**
   (playwright.config.ts), so its board stays the board; `e2e/welcome.spec.ts` runs its own servers on fresh homes.
 - **Welcome's steps:** `/welcome?step=you|sources|code` (`src/onboarding/steps.ts`). The Sources step reuses
   `GithubCard`; **PR15:** its screenshots card is a disabled placeholder in `src/routes/welcome.tsx` (`welcome-
   screenshots`, marked): put the screenshots source's own card there.
-- **Repo scan** (D59): `GET /api/discover/suggestions`, `POST /api/discover/scan {root?, hints?}` (stores nothing),
+- **Repo scan** (D60): `GET /api/discover/suggestions`, `POST /api/discover/scan {root?, hints?}` (stores nothing),
   `POST /api/discover/add {repos: [{path, project?}]}` (re-checks each path, then `services.repos.create`).
-- **Example data** (D60): `GET /api/example`, `POST /api/example {asOf?}`, `POST /api/example/remove`. Everything it
+- **Example data** (D61): `GET /api/example`, `POST /api/example {asOf?}`, `POST /api/example/remove`. Everything it
   adds is `example: true`; anything that lists entries for the user (a page, an export, an agent's view) may want to
   say so. Deterministic for a given `asOf`, for the docs' captures (PR19) and the release candidate (PR17).
 

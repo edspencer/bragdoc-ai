@@ -119,7 +119,8 @@ site doesn't. What's there for agents today:
 | POST | `/api/import/plan`, `/api/import/apply` | A hosted-app export (the JSON file as the body): what importing it would do, or do it |
 | GET | `/api/folio?from=YYYY-MM-DD&to=YYYY-MM-DD` | A date window's achievements as Folio shows them (safe to share: no ids, file locations or local links), with project and company names |
 | GET | `/api/found` | What's waiting in Found (newest first); `POST /api/found/:id/{keep,merge,dismiss,undo}` decides |
-| GET | `/api/sources` | Each source's state (GitHub: on or off, the last check, any error) |
+| GET | `/api/sources` | Each source's state (GitHub: on or off, the last check, any error; the screenshots folder: which folder, watching or what's wrong, what it looked at) |
+| GET | `/api/evidence/:sha/ocr` | The text read from a picture on the board (in the background, after it's added) |
 | GET | `/api/profile` | The user's profile.yaml: name, role, what people call them, GitHub login (`null` before onboarding) |
 | GET | `/api/example` | Whether the board holds example data (made-up entries marked `example: true`: never treat them as the user's work) |
 

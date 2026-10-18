@@ -617,8 +617,7 @@ export interface GithubSourceStatus {
 /** `GET /api/sources`: every source's state. */
 export interface SourcesResponse {
   github: GithubSourceStatus;
-  /** PR15 fills this in. */
-  screenshots: { enabled: boolean };
+  screenshots: ScreenshotsSourceStatus;
   /** Agents over MCP: always listening (with the token); `writeTo` says where their achievements go. */
   mcp: { writeTo: 'board' | 'found' };
 }
@@ -644,6 +643,108 @@ export interface GithubSettingsRequest {
 /** `POST /api/sources/github/disconnect`: switch it off; with `forgetToken`, the token in secrets.yaml is removed too. */
 export interface GithubDisconnectRequest {
   forgetToken?: boolean;
+}
+
+// ---------------------------------------------------------------- the screenshots folder (PR15)
+//
+// A folder you pick is watched for new screenshots; each is read on this computer (OCR, no AI) and checked against the
+// screenshot rules (shared/rules/screenshot.ts). Those that pass wait in Found; the rest are counted, and their text is
+// never stored. Off until you turn it on.
+
+/**
+ * Why the folder can't be watched (or chosen), in a word a program can switch on; the `message` says it for people.
+ * `missing`: there's nothing there (or it was deleted). `not_a_folder`: it's a file. `denied`: the system said no
+ * (on macOS, the privacy permission for Desktop, Documents and Downloads). `not_allowed`: inside BragDoc's data folder
+ * or a hidden folder. `not_set`: no folder chosen yet. `invalid`: a bad request. `busy`: a look back is already running.
+ * `config_invalid`: config.yaml is broken, so nothing could be saved. `failed`: anything else.
+ */
+export type ScreenshotsErrorCode = 'missing' | 'not_a_folder' | 'denied' | 'not_allowed' | 'not_set' | 'invalid' | 'busy' | 'config_invalid' | 'failed';
+
+export interface ScreenshotsError {
+  code: ScreenshotsErrorCode;
+  message: string;
+}
+
+/** What the source has done since it was first turned on (kept across restarts, in cache/sources/screenshots.json). */
+export interface ScreenshotsCounts {
+  /** Pictures it read. */
+  looked: number;
+  /** Of those, how many passed the rules and went to Found. */
+  sent: number;
+  /** Files it passed over without reading: not a picture, not named like a screenshot, too small or too big. */
+  ignored: number;
+  /** Pictures it couldn't read (damaged, a format OCR can't open). */
+  failed: number;
+}
+
+/** The screenshots folder, for its Settings card and Found's empty state. */
+export interface ScreenshotsSourceStatus {
+  enabled: boolean;
+  /** The folder as configured (`~/Screenshots`), or null if none is chosen. */
+  folder: string | null;
+  /** Only files named like screenshots. */
+  onlyScreenshots: boolean;
+  /** `off`; `watching`; `error` (see `error`: it looks again by itself every half minute). */
+  state: 'off' | 'watching' | 'error';
+  error: ScreenshotsError | null;
+  /** Pictures waiting to be read, and the one being read now (its file name). */
+  queued: number;
+  reading: string | null;
+  counts: ScreenshotsCounts;
+  /** The last screenshot that went to Found. */
+  lastMatch: { at: string; name: string } | null;
+  /** The last file it passed over or read, and what became of it, in words ("not named like a screenshot"). */
+  lastSeen: { at: string; name: string; outcome: string } | null;
+  /** A look back over the last days that's running (or the last one, `running: false`). */
+  lookBack: { running: boolean; days: number; total: number; done: number; at: string } | null;
+  /** profile.yaml has no name yet, so no screenshot can pass the rules (they look for your name). */
+  needsProfile: boolean;
+  /** The server's platform (`darwin`, `linux`), for the card's advice about permissions. */
+  platform: string;
+}
+
+/** A folder worth suggesting, and why. */
+export interface ScreenshotsFolderSuggestion {
+  /** As the user would write it (`~/Desktop`). */
+  folder: string;
+  why: string;
+  exists: boolean;
+  /** The macOS Desktop, Documents and Downloads are protected: watching one asks for permission. */
+  protected: boolean;
+}
+
+/** `GET /api/sources/screenshots/suggestions`: where screenshots probably go on this computer, best first. */
+export interface ScreenshotsSuggestionsResponse {
+  platform: string;
+  suggestions: ScreenshotsFolderSuggestion[];
+}
+
+/**
+ * `PUT /api/sources/screenshots`: choose the folder, switch it on or off, or the name filter. A folder (or turning it on)
+ * is checked first: a 400/409 `ScreenshotsError` says what's wrong, and nothing is saved. Answers with the status.
+ */
+export interface ScreenshotsSettingsRequest {
+  enabled?: boolean;
+  folder?: string;
+  onlyScreenshots?: boolean;
+}
+
+/** `POST /api/sources/screenshots/look-back`: read the screenshots of the last `days` (1–30, default 7) once. */
+export interface ScreenshotsLookBackRequest {
+  days?: number;
+}
+
+/**
+ * `GET /api/evidence/:sha/ocr`: the text read from a picture on the board, in the background after it's added.
+ * `pending`: not read yet; `done`: read (`text`, and when the screenshot rules pass, the `quote` to offer as a sticky);
+ * `failed`: it couldn't be read (`error`); `none`: not a picture.
+ */
+export interface EvidenceOcrResponse {
+  status: 'pending' | 'done' | 'failed' | 'none';
+  text?: string;
+  engine?: string;
+  error?: string;
+  quote?: { text: string; from?: string; where?: string };
 }
 
 // ---------------------------------------------------------------- onboarding (PR16): welcome, profile, discover, example data

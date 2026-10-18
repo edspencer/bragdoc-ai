@@ -3,7 +3,7 @@
 // segment. Feature PRs add their key and hook here, one block each.
 import { QueryClient, keepPreviousData, useInfiniteQuery, useQuery } from '@tanstack/react-query';
 import type { FoundSourceName } from '../../shared/api.ts';
-import { getDiscoverSuggestions, getExample, getProfile, getWelcome, getAchievements, getBackups, getCompanies, getFolio, getFound, getFoundCount, getGhInstalled, getSources, getHealth, getMcpToken, getMeta, getNetworkLog, getProblems, getProjectSummary, getProjects, getRepos, getSettings, isApiError, type AchievementFilters } from './client.ts';
+import { getDiscoverSuggestions, getExample, getProfile, getWelcome, getAchievements, getBackups, getCompanies, getFolio, getFound, getFoundCount, getGhInstalled, getSources, getHealth, getMcpToken, getMeta, getNetworkLog, getProblems, getProjectSummary, getProjects, getRepos, getSettings, getEvidenceOcr, getScreenshotSuggestions, isApiError, type AchievementFilters } from './client.ts';
 
 export const queryKeys = {
   health: ['health'] as const,
@@ -20,6 +20,9 @@ export const queryKeys = {
   found: (source?: string) => ['found', 'list', source ?? 'all'] as const,
   sources: ['sources'] as const,
   ghInstalled: ['sources', 'gh'] as const,
+  // the screenshots folder (PR15)
+  screenshotSuggestions: ['sources', 'screenshots', 'suggestions'] as const,
+  evidenceOcr: (sha: string) => ['evidence-ocr', sha] as const,
   // settings (PR10)
   meta: ['meta'] as const,
   networkLog: ['network-log'] as const,
@@ -156,6 +159,23 @@ export function useSources() {
 /** Is gh on PATH? (A look at the file system, nothing runs.) */
 export function useGhInstalled(enabled: boolean) {
   return useQuery({ queryKey: queryKeys.ghInstalled, queryFn: ({ signal }) => getGhInstalled(signal), enabled, select: (r) => r.installed });
+}
+
+// the screenshots folder (PR15)
+
+/** Folders worth suggesting for screenshots (macOS: where it saves them; Linux: Pictures/Screenshots). */
+export function useScreenshotSuggestions(enabled = true) {
+  return useQuery({ queryKey: queryKeys.screenshotSuggestions, queryFn: ({ signal }) => getScreenshotSuggestions(signal), enabled, staleTime: 60_000 });
+}
+
+/** A board picture's text, read in the background: asked again every 1.5 s until it's read (or can't be). */
+export function useEvidenceOcr(sha: string | undefined) {
+  return useQuery({
+    queryKey: queryKeys.evidenceOcr(sha ?? ''),
+    queryFn: ({ signal }) => getEvidenceOcr(sha!, signal),
+    enabled: !!sha,
+    refetchInterval: (q) => (q.state.data?.status === 'pending' ? 1500 : false),
+  });
 }
 
 // onboarding (PR16)

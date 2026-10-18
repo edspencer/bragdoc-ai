@@ -342,7 +342,7 @@ describe('example data', () => {
     for (const f of named) assert.ok(fs.existsSync(path.join(EXAMPLE_DIR, f)), f);
     assert.deepEqual([...named].map((f) => path.basename(f)).sort(), Object.keys(files).sort());
     for (const [name, bytes] of Object.entries(files)) assert.ok(fs.readFileSync(path.join(EXAMPLE_DIR, 'evidence', name)).equals(bytes), `${name} differs: run npm run gen:example`);
-    // invented owners only: never a real account's name (D58)
+    // invented owners only: never a real account's name (D61)
     for (const r of d.repos) assert.match(r.remoteUrl, /^https:\/\/github\.com\/(altimetry|quillfeather)-example\//);
     for (const a of d.achievements) for (const e of a.evidence) if (e.kind === 'url') assert.match(new URL(e.url).hostname, /\.example$/);
   });
