@@ -37,10 +37,14 @@ export function providerOf(c: Pick<AiConnectionView, 'kind' | 'host'>): string {
   return c.kind === 'anthropic' || c.kind === 'openai' || c.kind === 'openrouter' ? KIND_LABEL[c.kind] : c.kind === 'jev' ? 'OpenRouter' : (c.host ?? 'a server you typed in');
 }
 
-/** The header chip (SPEC R26): "AI · this computer", "AI · Anthropic"; null while AI is off (no chip at all). */
-export function chipLabel(s: { enabled: boolean; text: AiStatus['text']; connections: Pick<AiConnectionView, 'id' | 'kind' | 'class' | 'host' | 'blocked'>[] } | undefined): string | null {
+/**
+ * The header chip (SPEC R26): "AI · this computer", "AI · Anthropic"; null while AI is off (no chip at all). Without a
+ * text slot, a switched-on feature's own model counts: Jev (D82) is only ever the judge's, never the text slot.
+ */
+export function chipLabel(s: { enabled: boolean; text: AiStatus['text']; features?: AiStatus['features']; connections: Pick<AiConnectionView, 'id' | 'kind' | 'class' | 'host' | 'blocked'>[] } | undefined): string | null {
   if (!s?.enabled) return null;
-  const c = s.text ? s.connections.find((x) => x.id === s.text!.connection) : undefined;
+  const slot = s.text ?? (s.features ? [s.features.judge, s.features.tidy, s.features.draft].find((f) => f.enabled && f.model)?.model : null) ?? null;
+  const c = slot ? s.connections.find((x) => x.id === slot.connection) : undefined;
   if (!c) return 'AI · no model yet';
   const where = c.class === 'internet' ? providerOf(c) : HOST_CLASS_LABEL[c.class];
   return c.blocked ? `AI · ${where} (not ready)` : `AI · ${where}`;

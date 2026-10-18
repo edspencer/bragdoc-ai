@@ -23,6 +23,7 @@ import { readActivity } from '../server/ai/activity.ts';
 import { JEV_MODEL } from '../shared/ai/connections.ts';
 import { consentStatement } from '../shared/ai/consent.ts';
 import { probabilityOnly } from '../shared/judge.ts';
+import { chipLabel } from '../src/settings/ai/words.ts';
 import { aiHome, fakeNetwork, withoutGlobalFetch } from './ai-fixture.ts';
 import { startFakeLlm } from './fixtures/fake-llm/server.ts';
 import { rmTmp, tmpDir } from './fixture.ts';
@@ -273,6 +274,13 @@ describe('where Jev may be used', () => {
     assert.deepEqual([t2.body.ok, t2.body.error.code], [false, 'key_refused']);
     home.close();
     bad.home.close();
+  });
+
+  test('the header chip counts the judge on Jev, with no text slot', () => {
+    const conn = { id: 'jev', kind: 'jev' as const, class: 'internet' as const, host: 'openrouter.ai', blocked: null };
+    const features = { judge: { enabled: true, model: { connection: 'jev', model: JEV_MODEL } }, tidy: { enabled: false, model: null }, draft: { enabled: false, model: null } } as never;
+    assert.equal(chipLabel({ enabled: true, text: null, features, connections: [conn] }), 'AI · OpenRouter');
+    assert.equal(chipLabel({ enabled: true, text: null, features: { ...(features as object), judge: { enabled: false, model: { connection: 'jev', model: JEV_MODEL } } } as never, connections: [conn] }), 'AI · no model yet', 'a feature that is off does not count');
   });
 
   test("the consent statement says what's sent and to whom, and that Jev gives no reason", () => {
