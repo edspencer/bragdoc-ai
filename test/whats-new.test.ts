@@ -8,7 +8,7 @@ import path from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { ROOT } from './fixture.ts';
 
-const { WHATS_NEW, releaseWhatsNew } = await import(pathToFileURL(path.join(ROOT, 'scripts', 'whats-new-release.mjs')).href);
+const { WHATS_NEW, SITE, releaseWhatsNew, releaseSite } = await import(pathToFileURL(path.join(ROOT, 'scripts', 'whats-new-release.mjs')).href);
 const VERSION: string = JSON.parse(fs.readFileSync(path.join(ROOT, 'package.json'), 'utf8')).version;
 const semver = (v: string) => v.split('.').map(Number);
 const newer = (a: string, b: string) => {
@@ -25,6 +25,16 @@ describe("What's new", () => {
     const released = releaseWhatsNew(md, '0.8.0');
     assert.equal(releaseWhatsNew(released, '0.8.0'), released, 'running it again changes nothing');
     assert.equal(releaseWhatsNew('## 0.7.0\n\n- y\n', '0.7.1'), '## 0.7.0\n\n- y\n', 'no "Coming in" section: unchanged');
+  });
+
+  // the bot's version PR can't be hand-edited, so the first release has to flip RELEASED by itself (docs.test checks it)
+  test('releasing 0.1.0 or later flips RELEASED in website/src/site.mjs; 0.0.x leaves it, and it never flips back', () => {
+    const site: string = fs.readFileSync(SITE, 'utf8');
+    assert.match(site, /^export const RELEASED = (true|false);$/m, 'site.mjs has the `export const RELEASED = …;` line this rewrites');
+    const before = site.replace(/^export const RELEASED = true;$/m, 'export const RELEASED = false;');
+    for (const v of ['0.1.0', '0.1.3', '1.0.0']) assert.match(releaseSite(before, v), /^export const RELEASED = true;$/m, v);
+    assert.equal(releaseSite(before, '0.0.1'), before);
+    assert.equal(releaseSite(releaseSite(before, '0.1.0'), '0.0.1'), releaseSite(before, '0.1.0'), 'never back to false');
   });
 
   test(`no released version (package.json: ${VERSION}) is "coming" or "not released yet"`, () => {

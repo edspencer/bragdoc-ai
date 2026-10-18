@@ -90,9 +90,9 @@ When the release channel is decided (#411 Q1), a push trigger can replace step 2
 `changeset:version` also runs `scripts/whats-new-release.mjs` (Local Review's), which gives the docs site's What's new
 page (`website/src/content/docs/whats-new.md`) its released heading: write the upcoming section by hand as
 `## Coming in <version>: <title>` with "Not released yet." under it, and the version PR renames it to the version
-actually released. `test/whats-new.test.ts` fails if a released version is still "coming". **For 0.1.0**, the version
-PR also needs `RELEASED` flipped in `website/src/site.mjs` and every "Coming in v0.1" note on the site replaced
-(PR19); `test/docs.test.ts` fails it until both are done.
+actually released. `test/whats-new.test.ts` fails if a released version is still "coming". **For 0.1.0**, the same script
+flips `RELEASED` in `website/src/site.mjs` (the site stops saying "not on npm yet"), and the site must have no
+"Coming in v0.1" note left (PR19 replaced them); `test/docs.test.ts` fails the version PR otherwise.
 
 ### Build info: "official" is a claim, not a proof
 

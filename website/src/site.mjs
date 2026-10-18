@@ -33,7 +33,8 @@ export const INSTALL_COMMAND = `npx ${PACKAGE}`;
 /**
  * Is a release on npm yet? While this is false, every page that shows the
  * install command says it doesn't work yet (the Banner, the landing page and
- * getting-started/installation.md). Flip it with the first release, and reword
- * the Banner (src/components/Banner.astro).
+ * getting-started/installation.md; the Banner has both wordings). The first
+ * release flips it by itself: `npm run changeset:version` (the version PR) runs
+ * scripts/whats-new-release.mjs, which sets it once package.json is 0.1.0 or later.
  */
 export const RELEASED = false;
