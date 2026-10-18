@@ -3,10 +3,11 @@ title: Installation
 description: "Run BragDoc with npx, install it globally with npm, run it in Docker, or keep it running as a login service."
 ---
 
-:::note[Coming in v0.1]
-None of these commands work yet: `@bragdoc/local` isn't on npm, and there is no Docker image. This page describes
-how v0.1 will install. To try the work in progress, build it from the
-[`next` branch](https://github.com/edspencer/bragdoc-ai/tree/next) (see [Contributing](/contributing/)).
+:::note[Not released yet]
+`@bragdoc/local` isn't on npm yet and the Docker image isn't published, so the `npx`, `npm install -g` and
+`docker run` commands below won't work until the v0.1 release. Everything else on this page is how the built app
+behaves. To try it now, run it from the [`next` branch](https://github.com/edspencer/bragdoc-ai/tree/next) (see
+[Contributing](/contributing/)), or build the image yourself from a checkout with `docker compose up -d --build`.
 :::
 
 BragDoc needs **Node.js 22.12 or later** and runs on **macOS and Linux**. Windows isn't supported yet. It is one npm
@@ -18,10 +19,11 @@ package, `@bragdoc/local`, and one command, `bragdoc`.
 npx @bragdoc/local
 ```
 
-That downloads BragDoc, starts it, and prints the address to open:
+That downloads BragDoc, starts it, and prints the address to open, then where your data is:
 
 ```
 BragDoc on http://localhost:2724
+Data home: ~/.bragdoc
 ```
 
 It keeps running until you press Ctrl+C. Your data is saved in `~/.bragdoc` either way, so stopping it loses nothing.
@@ -46,13 +48,13 @@ npm install -g @bragdoc/local
 bragdoc service install
 ```
 
-It starts at login, not at boot, and runs as you, never as root. `bragdoc service status` says whether it's running
+It starts at login, not at boot, and runs as the user who installed it (so install it as yourself, not with `sudo`). `bragdoc service status` says whether it's running
 and on which port, and `bragdoc service uninstall` removes it; your data stays. A service needs an installed
 `bragdoc`, not `npx`, because npx's copy can disappear from its cache.
 
 ## Docker
 
-There will be a multi-architecture image on the GitHub Container Registry. Bind it to your own machine only:
+The image is built for amd64 and arm64, for the GitHub Container Registry. Bind it to your own machine only:
 
 ```sh
 docker run --rm -p 127.0.0.1:2724:2724 -v ~/.bragdoc:/data ghcr.io/edspencer/bragdoc
@@ -63,8 +65,8 @@ anyone on your network read and change your data. Inside the container BragDoc l
 for Docker's port forwarding to reach it), which is why the image sets `BRAGDOC_DANGEROUSLY_ALLOW_OPEN=1`; see
 [Localhost security](/guarantees/localhost-security/).
 
-The image runs as an ordinary user (uid 1000), never root, keeps its data in `/data`, and has a health check on
-`/api/health`. For day-to-day use, the repository's `compose.yaml` does the same with less typing:
+The image runs as an ordinary user (uid 1000), never root, keeps its data in `/data`, includes `git` and `gh` for the
+GitHub source, and has a health check on `/api/health`. For day-to-day use, the repository's `compose.yaml` does the same with less typing:
 
 ```sh
 docker compose up -d
@@ -78,9 +80,11 @@ the same path inside the container (so repository paths mean the same thing insi
 | `BRAGDOC_CODE_DIR` | `~/Code` | The code folder to mount read-only. |
 | `BRAGDOC_UID`, `BRAGDOC_GID` | `1000` | The user the container runs as, so the files it writes in `~/.bragdoc` are yours. |
 | `BRAGDOC_TAG` | `latest` | The image tag; `next` for preview releases. |
+| `BRAGDOC_SCREENSHOTS_DIR` | `~/Desktop` | The screenshots folder, for the commented-out mount below. |
+| `TZ` | `UTC` | The container's time zone. |
 
 Commented-out lines in it mount a screenshots folder and your GitHub CLI login, read-only, for the screenshot and
-GitHub sources.
+GitHub sources (or pass a `GH_TOKEN` for `gh` to use).
 
 ## Ports and folders
 

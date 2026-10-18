@@ -56,6 +56,7 @@
     "prepack": "npm run build",
     "brand": "node brand/generate.mjs",
     "docs:media": "tsx tools/docs-media/capture.ts",
+    "docs:media:sync": "tsx tools/docs-media/sync.ts",
     "smoke:pack": "node scripts/smoke-pack.mjs",
     "changeset": "changeset",
     "changeset:version": "changeset version && node scripts/whats-new-release.mjs && npm install --package-lock-only --ignore-scripts",

@@ -4,7 +4,7 @@ description: "BragDoc's settings file: allowed hosts, where MCP writes go, and w
 ---
 
 :::note[Tracking `next`]
-This is the settings format as it stands in review for v0.1.
+This is the settings format of v0.1, as built on the [`next` branch](https://github.com/edspencer/bragdoc-ai/tree/next).
 :::
 
 `config.yaml` sits at the top of your [data folder](/reference/data-folder/). BragDoc writes a starter copy the first
@@ -42,19 +42,19 @@ welcome:
 | Key | Default | Meaning |
 | --- | --- | --- |
 | `schemaVersion` | `1` | The file format version. Leave it alone. A `config.yaml` from a newer BragDoc refuses to start, rather than lose the settings this version doesn't understand. |
-| `allowedHosts` | `[]` | Hostnames BragDoc answers to besides `localhost`, `127.0.0.1` and `[::1]`, e.g. `[bragdoc.example.com]`. Also settable with `BRAGDOC_ALLOWED_HOSTS`. See [Localhost security](/guarantees/localhost-security/). |
+| `allowedHosts` | `[]` | Hostnames BragDoc answers to besides `localhost`, `127.0.0.1` and `[::1]`, e.g. `[bragdoc.example.com]`. `BRAGDOC_ALLOWED_HOSTS` adds to them. Matched in lower case, without a port. See [Localhost security](/guarantees/localhost-security/). |
 | `mcp.writeTo` | `board` | Where achievements from your MCP agents go: `board` or `found`. See [MCP](/agents/mcp/). |
 | `sources.github.enabled` | `false` | Whether the [GitHub source](/concepts/found-and-sources/#github) is on. |
 | `sources.github.auth` | `gh` | `gh` uses the GitHub CLI's own login; `token` uses a personal access token from `secrets.yaml`. Only `token` adds `api.github.com` to BragDoc's [network allow-list](/guarantees/network-activity/). |
 | `sources.github.lookBackDays` | `90` | How far back the first check looks, in days (1 to 3650). Changing it makes the next check look back the whole window again; nothing already found comes back. |
-| `sources.github.repos` | `[]` | Where to look: owners (`acme`) and repositories (`acme/app`). Empty: every repository you merged into. |
+| `sources.github.repos` | `[]` | Where to look: owners (`acme`) and repositories (`acme/app`); anything else is an error. Empty: every repository you merged into. |
 | `sources.github.hourly` | `false` | Check GitHub by itself every hour while BragDoc runs. Off: it checks only when you connect it or press **Check now**. |
 | `sources.screenshots.enabled` | `false` | Whether the [screenshots folder](/concepts/found-and-sources/#a-screenshots-folder) is watched. |
 | `sources.screenshots.folder` | `null` | The folder to watch: a full path, or one starting `~/`. Not BragDoc's data folder, and not a hidden folder. |
 | `sources.screenshots.onlyScreenshots` | `true` | Read only files named like screenshots. `false`: every picture that lands in the folder. |
 | `welcome.skipped` | `false` | `true` once you skip [Welcome](/getting-started/quickstart/). The board opens Welcome while there's no `profile.yaml` and this is `false`. |
 
-Settings → Sources writes these for you. The GitHub source's own state (where the next check starts, the last check,
+A section left empty falls back to its defaults. Settings → Sources writes these for you (and keeps your comments). The GitHub source's own state (where the next check starts, the last check,
 how long GitHub asked it to wait) is in `cache/sources/github.json`: delete it and the next check simply looks back the
 whole window again. The screenshots folder's counts ("40 looked at · 3 sent to Found") are in
 `cache/sources/screenshots.json`: names and numbers, never a screenshot's text.

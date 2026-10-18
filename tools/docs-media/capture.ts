@@ -6,8 +6,20 @@
 //   npm run docs:media -- --base http://localhost:5050    a server you started yourself (skips the build)
 //   npm run docs:media -- --no-build                       reuse dist/ as it is
 //
+//   npm run docs:media:sync                                copy the shots the docs site uses into website/src/assets/
+//
 // Output: tools/docs-media/out/<name>.png (2x), provenance.json, and contact-sheet.png (every shot on one page).
 // Needs Chromium: `npx playwright install chromium`.
+//
+// Two rigs: an empty data home (first run, empty states, /dev/kit), and the example world (`data: 'example'`): PR16's
+// example dataset, Alex Marlowe's profile, the GitHub source connected through the fake gh (with
+// tools/docs-media/fake-gh-prs.json), and one screenshot in a watched folder, so Found has both kinds of candidate.
+// The example rig runs on the default port (2724) when it's free, because Settings shows BragDoc's own address.
+//
+// The example world lives at the time of the run, not SHOT_NOW: the server stamps some things itself (when a candidate
+// was found, when GitHub was checked, the network log) with the real clock, which can't be pinned, so a browser clock
+// at SHOT_NOW would show them as "in the future". So the example data is placed at today, and the browser's clock is
+// frozen just after seeding (rig.now).
 //
 // It builds the web app with /dev/kit for the shots, and puts the release build (without it) back afterwards, so
 // dist/ is never left with the kit in it.
@@ -18,6 +30,7 @@ import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { chromium, type Browser, type Page } from '@playwright/test';
+import { DEFAULT_PORT } from '../../server/port.ts';
 import { leakPattern } from './leaks.ts';
 import { DEFAULT_VIEWPORT, SHOTS, SHOT_NOW, type Crop, type Shot } from './shots.ts';
 
@@ -38,13 +51,18 @@ const SCALE = 2;
 
 // ------------------------------------------------------------------------------------------------ the rig
 
-const freePort = () =>
-  new Promise<number>((res) => {
-    const s = net.createServer().listen(0, '127.0.0.1', () => {
+const freePort = (want = 0) =>
+  new Promise<number>((res, rej) => {
+    const s = net.createServer();
+    s.once('error', rej);
+    s.listen(want, '127.0.0.1', () => {
       const p = (s.address() as net.AddressInfo).port;
       s.close(() => res(p));
     });
   });
+
+type Data = NonNullable<Shot['data']>;
+type Rig = { base: string; proc: ChildProcess; home: string; now: Date };
 
 /** `npm run <script>`, with or without /dev/kit (BRAGDOC_KIT, D33). */
 function build(script: 'build' | 'build:web', kit: boolean) {
@@ -54,25 +72,77 @@ function build(script: 'build' | 'build:web', kit: boolean) {
   execFileSync('npm', ['run', script], { cwd: ROOT, env, stdio: ['ignore', 'ignore', 'inherit'] });
 }
 
-async function bootRig(): Promise<{ base: string; proc: ChildProcess; home: string }> {
+async function bootRig(data: Data): Promise<Rig> {
   const home = fs.mkdtempSync(path.join(os.tmpdir(), 'bragdoc-docs-media-'));
-  const port = await freePort();
-  const proc = spawn(path.join(HERE, 'serve.sh'), [home, '--port', String(port)], { stdio: ['ignore', 'pipe', 'pipe'] });
-  let log = '';
-  proc.stdout!.on('data', (d) => (log += d));
-  proc.stderr!.on('data', (d) => (log += d));
-  const base = `http://localhost:${port}`;
-  for (let i = 0; i < 150; i++) {
-    if (proc.exitCode !== null) throw new Error(`the rig exited (${proc.exitCode}):\n${log}`);
-    try {
-      if ((await fetch(`${base}/api/health`)).ok) return { base, proc, home };
-    } catch {
-      /* not up yet */
+  let proc: ChildProcess | undefined;
+  try {
+    // The example world shows BragDoc's own address (Settings → Sources), so it runs on the default port if it can.
+    const port = data === 'example' ? await freePort(DEFAULT_PORT).catch(() => freePort()) : await freePort();
+    if (data === 'example' && port !== DEFAULT_PORT) console.warn(`  ! port ${DEFAULT_PORT} is taken: shots that show BragDoc's address will fail the leak scan`);
+    const args = [home, '--port', String(port)];
+    if (data === 'example') args.push('--fake-gh', path.join(HERE, 'fake-gh-prs.json'), new Date().toISOString());
+    const child = spawn(path.join(HERE, 'serve.sh'), args, { stdio: ['ignore', 'pipe', 'pipe'] });
+    proc = child;
+    let log = '';
+    child.stdout!.on('data', (d) => (log += d));
+    child.stderr!.on('data', (d) => (log += d));
+    const base = `http://localhost:${port}`;
+    let up = false;
+    for (let i = 0; i < 150 && !up; i++) {
+      if (child.exitCode !== null) throw new Error(`the rig exited (${child.exitCode}):\n${log}`);
+      up = await fetch(`${base}/api/health`).then((r) => r.ok, () => false);
+      if (!up) await new Promise((r) => setTimeout(r, 200));
     }
-    await new Promise((r) => setTimeout(r, 200));
+    if (!up) throw new Error(`the rig didn't start:\n${log}`);
+    const rig = { base, proc: child, home, now: new Date(SHOT_NOW) };
+    if (data === 'example') {
+      await seedExample(rig); // outside the health poll: a seed error is reported as itself, and never retried
+      rig.now = new Date(Date.now() + 10 * 60_000); // a little after everything the seed stamped
+    }
+    return rig;
+  } catch (e) {
+    proc?.kill();
+    fs.rmSync(home, { recursive: true, force: true });
+    throw e;
   }
-  proc.kill();
-  throw new Error(`the rig didn't start:\n${log}`);
+}
+
+/** The example world, set up through BragDoc's own API, the way a person would (Welcome, Settings → Sources). */
+async function seedExample({ base, home }: Rig) {
+  const call = async (method: string, route: string, body?: unknown) => {
+    const r = await fetch(base + route, { method, headers: { 'content-type': 'application/json' }, body: body === undefined ? undefined : JSON.stringify(body) });
+    if (!r.ok) throw new Error(`seed: ${method} ${route} → ${r.status} ${await r.text()}`);
+    return r.json();
+  };
+  const until = async (what: string, ok: () => Promise<boolean>) => {
+    for (let i = 0; i < 300; i++) {
+      if (await ok()) return;
+      await new Promise((r) => setTimeout(r, 200));
+    }
+    throw new Error(`seed: timed out waiting for ${what}`);
+  };
+  const now = Date.now();
+  const day = new Date(now).toISOString().slice(0, 10);
+  console.log('  seeding the example world…');
+  await call('PUT', '/api/profile', { name: 'Alex Marlowe', role: 'Senior Software Engineer', aliases: ['Alex', 'AM', 'alexm'] });
+  await call('POST', '/api/example', { asOf: day });
+  // GitHub through the fake gh (its PRs are "days ago" from now)
+  await call('POST', '/api/sources/github/connect', { auth: 'gh', lookBackDays: 90 });
+  await until('the first GitHub check', async () => (await call('GET', '/api/sources')).github.lastRun !== null);
+  // A screenshot of praise, saved into the watched folder yesterday (written aside, dated, then moved in, as a
+  // screenshot tool does), so it's read as a new file.
+  const shots = path.join(home, 'Screenshots');
+  fs.mkdirSync(shots, { recursive: true });
+  await call('PUT', '/api/sources/screenshots', { folder: '~/Screenshots', enabled: true });
+  const aside = path.join(home, 'incoming.png');
+  fs.copyFileSync(path.join(ROOT, 'fixtures', 'example', 'evidence', 'slack-design.png'), aside);
+  const when = new Date(now - 86_400_000 - 3 * 3_600_000);
+  fs.utimesSync(aside, when, when);
+  const name = `Screenshot ${when.toISOString().slice(0, 10)} at 9.12.09 AM.png`; // macOS's naming, dated as the file is
+  fs.renameSync(aside, path.join(shots, name));
+  await until('the screenshot to reach Found', async () => (await call('GET', '/api/found')).counts.screenshots > 0);
+  // "Test the guard", once, so Network activity shows a refusal (as a per-shot click it would add one per theme)
+  await call('POST', '/api/network-log/guard-check', {});
 }
 
 // ------------------------------------------------------------------------------------------------ hygiene
@@ -107,7 +177,9 @@ async function settle(page: Page) {
   await page.locator('h1').first().waitFor({ state: 'visible', timeout: 30_000 });
   await page.evaluate(async () => {
     await document.fonts.ready;
-    await Promise.all([...document.images].map((i) => (i.complete ? null : i.decode().catch(() => null))));
+    // a lazy image below the fold never loads, so its decode() never settles: give each one a few seconds at most
+    const atMost = (p: Promise<unknown>) => Promise.race([p, new Promise((r) => setTimeout(r, 3000))]);
+    await Promise.all([...document.images].map((i) => (i.complete ? null : atMost(i.decode().catch(() => null)))));
   });
   await page.waitForTimeout(250);
 }
@@ -133,7 +205,7 @@ async function cropBox(page: Page, crop: Crop) {
   return { x: Math.round(x), y: Math.round(y), width: Math.round(right - x), height: Math.round(bottom - y) };
 }
 
-async function takeShot(browser: Browser, shot: Shot, base: string) {
+async function takeShot(browser: Browser, shot: Shot, base: string, now: Date) {
   const port = new URL(base).port;
   const crop = typeof shot.capture === 'object' ? shot.capture : null;
   const viewport = shot.viewport ?? DEFAULT_VIEWPORT;
@@ -148,7 +220,7 @@ async function takeShot(browser: Browser, shot: Shot, base: string) {
     // STILL_CSS goes in as an inline <style>, which the app's CSP (style-src 'self') would refuse
     bypassCSP: true,
   });
-  await context.clock.setFixedTime(new Date(SHOT_NOW));
+  await context.clock.setFixedTime(now);
   // tsx (esbuild) wraps named functions in __name(); functions sent to the page need it to exist there too
   await context.addInitScript('globalThis.__name = (f) => f;');
   await context.addInitScript((t: string) => localStorage.setItem('bragdoc.theme', t), theme);
@@ -212,14 +284,24 @@ async function main() {
   if (ONLY) for (const n of ONLY) if (!SHOTS.some((s) => s.name === n)) throw new Error(`no shot named ${n}`);
   fs.mkdirSync(OUT, { recursive: true });
 
-  let rig: Awaited<ReturnType<typeof bootRig>> | undefined;
+  const rigs = new Map<Data, Rig>();
   const building = !BASE && !argv.includes('--no-build');
-  if (!BASE) {
-    if (building) build('build', true);
-    console.log('Booting the rig (serve.sh)…');
-    rig = await bootRig();
-    BASE = rig.base;
-  }
+  if (!BASE && building) build('build', true);
+  const broken = new Map<Data, Error>(); // a rig that failed to boot isn't tried again for every shot
+  const rigFor = async (data: Data): Promise<{ base: string; now: Date }> => {
+    if (BASE) return { base: BASE, now: new Date(SHOT_NOW) };
+    if (broken.has(data)) throw broken.get(data)!;
+    if (!rigs.has(data)) {
+      console.log(`Booting the ${data} rig (serve.sh)…`);
+      try {
+        rigs.set(data, await bootRig(data));
+      } catch (e) {
+        broken.set(data, e as Error);
+        throw e;
+      }
+    }
+    return rigs.get(data)!;
+  };
   const browser = await chromium.launch();
   const provenance: Record<string, unknown> = {};
   const pkg = JSON.parse(fs.readFileSync(path.join(ROOT, 'package.json'), 'utf8'));
@@ -227,9 +309,10 @@ async function main() {
   try {
     for (const shot of shots) {
       try {
-        const r = await takeShot(browser, shot, BASE);
+        const rig = await rigFor(shot.data ?? 'empty');
+        const r = await takeShot(browser, shot, rig.base, rig.now);
         console.log(`  ✓ ${path.relative(process.cwd(), r.file)}`);
-        provenance[`${shot.name}.png`] = { doc: shot.doc, route: shot.route, theme: r.theme, viewport: r.viewport, scale: r.scale, ...(r.clip ? { clip: r.clip } : {}), now: SHOT_NOW };
+        provenance[`${shot.name}.png`] = { doc: shot.doc, route: shot.route, data: shot.data ?? 'empty', theme: r.theme, viewport: r.viewport, scale: r.scale, ...(r.clip ? { clip: r.clip } : {}), now: rig.now.toISOString() };
       } catch (e) {
         failures.push(`${shot.name}: ${(e as Error).message.split('\n')[0]}`);
         console.error(`  ✗ ${shot.name}: ${(e as Error).message}`);
@@ -239,7 +322,7 @@ async function main() {
     console.log(`  ✓ ${path.relative(process.cwd(), await contactSheet(browser, all))}`);
   } finally {
     await browser.close();
-    if (rig) {
+    for (const rig of rigs.values()) {
       rig.proc.kill();
       fs.rmSync(rig.home, { recursive: true, force: true });
     }

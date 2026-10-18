@@ -12,11 +12,10 @@ make a promotion case or update your CV, the evidence is already in one place, w
 It runs on your own computer. You start it with one command, open it in your browser at `http://localhost:2724`, and
 everything you put in it is saved as plain Markdown and YAML files in a folder you own, `~/.bragdoc`.
 
-:::note[Coming in v0.1]
-BragDoc v0.1 is being built in the open, on the
-[`next` branch](https://github.com/edspencer/bragdoc-ai/tree/next), and isn't on npm yet. These pages describe what
-v0.1 is being built to do. Pages marked like this one describe features that don't exist yet; they are written from
-the specification and will be checked against the real thing before the release.
+:::note[Not on npm yet]
+BragDoc v0.1 is built, in the open, on the [`next` branch](https://github.com/edspencer/bragdoc-ai/tree/next), but it
+isn't released yet, so `npx @bragdoc/local` won't find it. These pages describe v0.1 as it is on `next`, with
+screenshots of the real app. Until the release, you can run it from source: see [Contributing](/contributing/).
 :::
 
 ## What it is
@@ -27,15 +26,17 @@ the specification and will be checked against the real thing before the release.
   keeping and leave them in Found. You say yes, merge it into something you already have, or dismiss it. Nothing a
   source finds reaches the board without you. (Your own coding agent is the exception you choose: its writes go
   straight on, labelled as its own, or to Found if you'd rather.)
-- **Folio.** Pick a date range, filter it, and export it as Markdown for a review.
+- **Folio.** Pick a date range, filter it, and take it away as Markdown (export or copy) or print it, for a review.
 - **Files.** Everything is a file you can read, edit, back up or keep in git. There's no database to export from.
 
 ## What it promises
 
-- **Your data stays on your computer.** There is no BragDoc server and no account. BragDoc sends nothing off your
-  machine on its own: no telemetry, no analytics, no update check. The only outbound requests go to services you
-  connect yourself, and it shows you every one. See [Network activity](/guarantees/network-activity/).
-- **AI is off unless you turn it on.** v0.1 has no AI features at all. See [AI is opt-in](/guarantees/ai-is-opt-in/).
+- **Your data stays on your computer.** There is no BragDoc server of ours and no account, and BragDoc never sends your data
+  to us or to anyone else: no telemetry, no analytics, no update check. The only network calls it makes are to
+  services you connect yourself (in v0.1, GitHub), and it shows you every one. See
+  [Network activity](/guarantees/network-activity/).
+- **AI is off unless you turn it on.** v0.1 has no AI features at all; any that come later will each be off until you
+  switch them on. See [AI is opt-in](/guarantees/ai-is-opt-in/).
 - **It's open source.** MIT licensed, free, with nothing to buy.
 
 <CardGrid>
