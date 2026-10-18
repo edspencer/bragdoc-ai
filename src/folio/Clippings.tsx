@@ -21,7 +21,8 @@ export function Clipping({ a, on, projects, toggle }: { a: FolioItem; on: boolea
         data-testid="folio-clip"
         className={`sb-card relative flex w-full items-start gap-3 rounded-xl p-3.5 pl-5 text-left transition ${on ? '' : 'opacity-45'}`}
       >
-        <span aria-hidden className="absolute inset-y-0 left-0 w-1.5 rounded-l-xl" style={{ background: p ? safeColour(p.color) : 'var(--line)' }} />
+        {/* a faint edge in the dark theme, so a near-black project colour still shows (as ProjectPill does) */}
+        <span aria-hidden className="absolute inset-y-0 left-0 w-1.5 rounded-l-xl dark:ring-1 dark:ring-white/15" style={{ background: p ? safeColour(p.color) : 'var(--line)' }} />
         <span aria-hidden className={`mt-0.5 flex size-5 shrink-0 items-center justify-center rounded-md ring-2 ${on ? 'bg-good text-[#10241a] ring-good' : 'ring-line'}`}>
           {on && <Check className="size-3.5" strokeWidth={3} />}
         </span>
