@@ -215,6 +215,18 @@ describe('the folder scan', () => {
     assert.ok(r.repos.some((x) => x.why.startsWith('you committed')));
   }));
 
+  test('a folder that eats the time box still leaves time for the hints you ticked', withTree(async (root) => {
+    fakeRepo(path.join(root, 'side'), { commitDaysAgo: 1 });
+    const storage = path.join(root, '.config', 'Code', 'User', 'globalStorage');
+    fs.mkdirSync(storage, { recursive: true });
+    fs.writeFileSync(path.join(storage, 'storage.json'), JSON.stringify({ w: `file://${path.join(root, 'side')}` }));
+    for (let i = 0; i < 300; i++) fs.mkdirSync(path.join(root, 'big', `d${i}`, 'x'), { recursive: true });
+    let t = NOW.getTime();
+    const r = await scan({ root: '~/big', hints: ['vscode'] }, { ...opts(root), env: { XDG_CONFIG_HOME: path.join(root, '.config') }, now: () => new Date((t += 5)), timeMs: 500 });
+    assert.equal(r.timedOut, true);
+    assert.deepEqual(r.repos.map((x) => x.name), ['side']);
+  }));
+
   test('a hint naming a folder inside a repo counts as that repo', withTree(async (root) => {
     fakeRepo(path.join(root, 'mono'), { commitDaysAgo: 2 });
     fs.mkdirSync(path.join(root, 'mono', 'packages', 'web'), { recursive: true });

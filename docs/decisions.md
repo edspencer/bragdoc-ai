@@ -851,7 +851,8 @@ Export is a download of a blob made in the page; nothing about a folio is writte
   insides are still looked through. `/` is refused (`too_broad`); `~` is allowed (the bounds hold), and on macOS the
   folders under home that raise a privacy prompt (Desktop, Documents, Downloads, Pictures, Movies, Music, Public) are
   skipped unless one is the folder named.
-- **One deadline** covers the walk, the hints and reading each repo's history; the scan yields to the event loop as it
+- **One deadline** covers the walk, the hints and reading each repo's history (the walk leaves a fifth of it for any
+  ticked hints); the scan yields to the event loop as it
   goes. Repos it runs out of time for are still listed ("not looked at: out of time"), with `timedOut`.
 - **Recency without git:** the last line of `.git/logs/HEAD` (time and kind: commit, checkout, pull, merge), the
   remote-tracking reflogs ("update by push"), and `FETCH_HEAD`'s mtime; `HEAD`'s mtime when there's no reflog. Only

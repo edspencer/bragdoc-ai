@@ -595,7 +595,9 @@ export async function scan(input: { root?: string | null; hints?: HintId[] }, o:
   const byPath = new Map<string, { abs: string; linked: boolean; via: FoundRepo['via'] }>();
   let walked: Walked = { repos: [], looked: 0, unreadable: 0, timedOut: false, capped: false };
   if (realRoot) {
-    walked = await walk(realRoot, started + (o.timeMs ?? SCAN_MS), () => now().getTime(), { home, platform });
+    // the walk leaves a fifth of the time for the hints you ticked, which are a few small files
+    const budget = (o.timeMs ?? SCAN_MS) * (input.hints?.length ? 0.8 : 1);
+    walked = await walk(realRoot, started + budget, () => now().getTime(), { home, platform });
     for (const r of walked.repos) byPath.set(r.abs, { ...r, via: ['folder'] });
   }
   // one deadline for the whole scan: the walk, then the hints, then reading each repo's history
