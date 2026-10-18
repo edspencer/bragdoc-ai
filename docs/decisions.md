@@ -713,3 +713,32 @@ pasted images (PR15) are its callers.
   for v0.1.
 - **Considered:** a compiled Swift helper for Vision (a binary to build, sign and ship per arch); the CDN or an opt-in
   download for the data; sharp for scaling (native, large); counting impact numbers anywhere (every dashboard passed).
+
+### D53 — Folio: made in the browser, from clippings that can't point back at this machine
+
+PR14 (SPEC R9). `GET /api/folio?from&to` returns the window's achievements (archived ones left out) already cut down
+to "clippings" (`toClipping` in `shared/folio.ts`), plus every project and company and the profile's name. Filters,
+include/exclude, the printout and the markdown are all worked out in the browser from that one answer, by the same pure
+functions the tests pin, so changing a filter never waits on the server and Copy, Export and Print can't disagree.
+Export is a download of a blob made in the page; nothing about a folio is written to the data home.
+
+- **What a folio may contain.** Titles, summaries (or, with none, the body's first paragraph on one line), dates,
+  impact, project and company names, and evidence as something a reviewer can follow: pull requests as
+  `owner/repo#n` links to github.com, links as links, quotes as blockquotes, and files (pictures, PDFs, anything else)
+  **by name only** (a caption, else the name it was added with, with any folder stripped). Never an id, a sha, a
+  file's location, or a URL that only works on this machine: `localhost`, `127.*`, `[::1]`, `0.0.0.0`, `*.localhost`
+  and `*.local` links are named and marked "a local address, left out"; anything but http(s) is dropped. The
+  server makes the clippings, so the page never holds what it mustn't export.
+- **Order and grouping.** Best first: impact, then newest (unrated last). Grouped by project (default; a
+  multi-project achievement goes under the first project the filter kept, once), by month or by week (newest first;
+  each line then names its projects). "At least N impact" leaves unrated achievements out, as the board's filter does.
+- **State lives in the URL** (`from`, `to`, `p`, `c`, `min`, `out`, `group`, `view`): a reload, Back or a bookmark
+  gives the same folio. A malformed value is dropped rather than refused; a filter on a project or company that has
+  since been deleted counts for nothing.
+- **Presets** are worked out from the user's local today: this quarter (to today), last quarter, the last six months,
+  this year (to today), last year. No window in the URL means the last six months.
+- **No AI, and no AI affordance** (D8, SPEC R9): no "Draft with AI" button, locked or otherwise. The page says the
+  folio is exactly what you picked, nothing added or rewritten.
+- **Considered:** generating the markdown on the server (`GET /api/folio.md`): one more place the format lives, and a
+  long `out=` list in a URL either way; rendering the printout from the markdown (a markdown renderer in the bundle
+  for one page); grouping by week only (a six-month review would have 26 headings).

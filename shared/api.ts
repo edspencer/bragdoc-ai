@@ -409,7 +409,7 @@ export interface ImportReport {
 }
 
 // ---------------------------------------------------------------- Folio (PR14): GET /api/folio
-// The window's achievements cut down to what a folio may show (D51): shared/folio.ts makes them (toClipping) and turns
+// The window's achievements cut down to what a folio may show (D53): shared/folio.ts makes them (toClipping) and turns
 // them into the document.
 
 /** Evidence as a folio shows it: already safe to put in a document that leaves this machine. */
