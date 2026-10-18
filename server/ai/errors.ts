@@ -69,7 +69,7 @@ const MODEL_RE = /model[^.]*(?:not found|does not exist|not installed|unknown)|n
 export const SCHEMA_UNSUPPORTED_RE = /response_format|json_schema|structured output|format.*(?:not supported|unsupported|invalid)|(?:not supported|unsupported).*(?:format|schema)/i;
 
 /** An error from a model call, as an AiError. `where` and `connection` make the sentence specific. */
-export function classify(e: unknown, ctx: { connection: string; host: string | null; timedOut?: boolean; cancelled?: boolean }): AiError {
+export function classify(e: unknown, ctx: { connection: string; host: string | null; timedOut?: boolean; cancelled?: boolean; key?: string | null }): AiError {
   if (e instanceof AiError) return e;
   const host = ctx.host ?? ctx.connection;
   if (ctx.timedOut) return new AiError('timeout', `${host} didn't answer in time; it may be busy or the model too slow on this machine.`);
@@ -83,11 +83,15 @@ export function classify(e: unknown, ctx: { connection: string; host: string | n
   const inner = (err.cause ?? {}) as HttpLike;
   if (inner instanceof EgressDenied) return classify(inner, ctx);
   const status = err.statusCode ?? inner.statusCode;
-  const said = upstreamMessage(err.responseBody ?? inner.responseBody) || err.message || '';
+  // a server may echo the key it refused ("Invalid API key: sk-…"): never pass it on
+  let said = upstreamMessage(err.responseBody ?? inner.responseBody) || err.message || '';
+  if (ctx.key) said = said.split(ctx.key).join('…');
+  said = said.replace(/\b(sk|key|pk)-[\w-]{8,}/gi, '…');
   if (status === undefined) {
     if (err.name === 'AbortError' || err.name === 'TimeoutError') return new AiError(ctx.timedOut ? 'timeout' : 'cancelled', 'cancelled');
     const text = `${err.message ?? ''} ${(inner as { code?: string }).code ?? ''} ${String((err.cause as { cause?: { code?: string } })?.cause?.code ?? '')}`;
-    if (/ECONNREFUSED|ECONNRESET|ENOTFOUND|EAI_AGAIN|EHOSTUNREACH|ENETUNREACH|socket|fetch failed|other side closed|terminated|UND_ERR/i.test(text) || err.name === 'TypeError')
+    // a network failure says so (undici's TypeError "fetch failed" and its cause's code); any other TypeError is a bug of ours, not the runner
+    if (/ECONNREFUSED|ECONNRESET|ENOTFOUND|EAI_AGAIN|EHOSTUNREACH|ENETUNREACH|ETIMEDOUT|socket|fetch failed|other side closed|terminated|UND_ERR/i.test(text))
       return new AiError('unreachable', `${host} isn't answering. Is the model runner running?`);
     if (err.name === 'AI_NoObjectGeneratedError' || err.name === 'AI_JSONParseError' || err.name === 'AI_TypeValidationError')
       return new AiError('bad_output', "the model's answer wasn't what was asked for");

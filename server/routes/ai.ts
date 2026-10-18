@@ -230,8 +230,12 @@ export function registerAi(app: Hono, ctx: AppContext): void {
           return null;
         }
       })();
-      if (conn.consent && after !== before) patch.consent = null;
+      // consent and a key are for a host (and a Jev's for its OpenRouter account): pointed somewhere else, both go,
+      // so a key entered for one provider is never sent to another (SPEC R17)
+      const moved = after !== before || (b.via !== undefined && b.via !== conn.via);
+      if (moved && conn.consent) patch.consent = null;
       update({ connections: { [id]: patch } });
+      if (moved && conn.kind !== 'jev') ctx.secrets.setAiKey(id, null);
     }),
   );
 
@@ -242,13 +246,9 @@ export function registerAi(app: Hono, ctx: AppContext): void {
       const cfg = ctx.config.get();
       const feats: Record<string, unknown> = {};
       for (const f of AI_FEATURES) if (cfg.ai.features[f].model?.connection === id) feats[f] = { model: null };
+      // its key first: with secrets.yaml broken, refuse (409) rather than leave a key a new connection of that id would inherit
+      ctx.secrets.setAiKey(id, null);
       update({ connections: { [id]: null }, ...(cfg.ai.text?.connection === id ? { text: null } : {}), ...(Object.keys(feats).length ? { features: feats } : {}) });
-      try {
-        ctx.secrets.setAiKey(id, null);
-      } catch (e) {
-        // secrets.yaml is broken: the connection is gone, its key can't be removed until the file is fixed (aiStatus says so)
-        if (!(e instanceof SecretsError)) throw e;
-      }
     }),
   );
 

@@ -66,7 +66,7 @@ export const AiConnectionSchema = z.object({
   /** `jev`: the OpenRouter connection whose key it uses. */
   via: z.string().regex(CONNECTION_ID_RE).optional(),
   /** A cloud connection's consent: the statement's version you accepted, for which host, and when (SPEC R17). */
-  consent: z.object({ at: z.string(), version: z.number().int().min(1), host: z.string().optional() }).nullable().optional(),
+  consent: z.object({ at: z.string(), version: z.number().int().min(1), host: z.string().optional() }).nullable().optional(), // a consent without its host covers none (consent.ts)
 });
 
 /** Which model on which connection: `{ connection: <id>, model: <name> }`. */

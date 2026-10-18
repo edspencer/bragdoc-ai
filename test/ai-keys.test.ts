@@ -67,6 +67,21 @@ test('other secrets (a GitHub token, keys this build doesn’t know) are kept; r
   }
 });
 
+test('a key is for its host: pointing the connection elsewhere forgets the key along with the consent', async () => {
+  const home = aiHome({ ai: { enabled: true } });
+  try {
+    await home.req('POST', '/api/ai/connections', { kind: 'openai-compatible', id: 'c', baseUrl: 'https://llm.example.com/v1' });
+    await home.req('POST', '/api/ai/connections/c/consent', CONSENT);
+    await home.req('PUT', '/api/ai/connections/c/key', { key: KEY });
+    const samehost = await home.req('PUT', '/api/ai/connections/c', { baseUrl: 'https://llm.example.com/v2' });
+    assert.deepEqual([samehost.body.connections[0].hasKey, samehost.body.connections[0].consent.current], [true, true], 'same host: both stay');
+    const moved = await home.req('PUT', '/api/ai/connections/c', { baseUrl: 'https://proxy.example.net/v1' });
+    assert.deepEqual([moved.body.connections[0].hasKey, moved.body.connections[0].consent], [false, null]);
+  } finally {
+    home.close();
+  }
+});
+
 test('a broken secrets.yaml is never overwritten: saving a key says why, and GET /api/ai says so', async () => {
   const home = aiHome({ ai: { enabled: true, connections: { or: { kind: 'openrouter' } } } });
   try {
@@ -79,10 +94,17 @@ test('a broken secrets.yaml is never overwritten: saving a key says why, and GET
     assert.match(r.body.error.message, /isn't valid YAML.*won't overwrite it/);
     assert.equal(fs.readFileSync(file, 'utf8'), broken);
     assert.equal((await home.req('DELETE', '/api/ai/connections/or/key')).status, 409);
+    assert.equal((await home.req('DELETE', '/api/ai/connections/or')).status, 409, "removing it would leave a key a new connection of that id inherits");
+    assert.equal((await home.req('GET', '/api/ai')).body.connections.length, 1, 'nothing was removed');
     assert.equal(fs.readFileSync(file, 'utf8'), broken);
     const s = (await home.req('GET', '/api/ai')).body;
     assert.match(s.secretsProblem, /isn't valid YAML/);
     assert.equal(s.connections[0].hasKey, false);
+    // a file that parses but whose ai: isn't a mapping is refused too, never rewritten
+    fs.writeFileSync(file, 'ai: oops\n');
+    assert.equal((await home.req('PUT', '/api/ai/connections/or/key', { key: KEY })).body.error.code, 'secrets_invalid');
+    assert.equal(fs.readFileSync(file, 'utf8'), 'ai: oops\n');
+    assert.match((await home.req('GET', '/api/ai')).body.secretsProblem, /should be a mapping/);
   } finally {
     home.close();
   }

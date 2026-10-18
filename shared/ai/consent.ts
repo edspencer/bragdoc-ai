@@ -72,7 +72,7 @@ export function consentStatement(kind: AiKind): ConsentStatement {
 
 /** Does stored consent still cover this connection (same host, a version at least the statement's)? */
 export function consentCurrent(kind: AiKind, consent: { version: number; host?: string } | null | undefined, host: string | null): boolean {
-  if (!consent || !host) return false;
-  if (consent.host !== undefined && consent.host !== host) return false;
+  // a consent that doesn't say which host it was for covers none: the address can change under it
+  if (!consent || !host || consent.host !== host) return false;
   return consent.version >= consentStatement(kind).version;
 }

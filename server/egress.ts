@@ -26,7 +26,7 @@ import net from 'node:net';
 import type { NetworkLogEntry, NetworkLogResponse } from '../shared/api.js';
 import type { AiCallFeature } from '../shared/ai/connections.js';
 import { hostnameClass, isLocalClass } from '../shared/ai/hosts.js';
-import { aiHosts, connectionGate, connectionHost, type GateCode } from './ai/policy.js';
+import { aiHosts, connectionGate, connectionOrigin, type GateCode } from './ai/policy.js';
 import { appendLine } from './atomic.js';
 import type { Config } from './config.js';
 import { homePaths } from './home.js';
@@ -143,8 +143,9 @@ export class Egress {
       const extra = { feature, ...(model ? { model } : {}), where: hostnameClass(url.hostname), sent: bodyBytes(init.body) };
       const config = this.opts.config();
       const gate = connectionGate(config, connectionId);
-      const own = connectionHost(config.ai, connectionId);
-      const refuse = gate?.message ?? (own !== url.hostname.toLowerCase() ? `${url.hostname} isn't where ${connectionId} points (${own ?? 'nowhere'})` : null);
+      // its own origin only (scheme, host and port): a provider can't be pointed at another service on the same machine
+      const own = connectionOrigin(config.ai, connectionId);
+      const refuse = gate?.message ?? (own !== url.origin ? `${url.origin} isn't where ${connectionId} points (${own ?? 'nowhere'})` : null);
       if (refuse) {
         this.log({ at: this.now().toISOString(), purpose, via: 'fetch', method: (init.method ?? 'GET').toUpperCase(), host: url.host, path: url.pathname, outcome: 'denied', status: null, bytes: null, error: refuse, ...extra });
         throw new EgressDenied(url.host, purpose, `BragDoc won't send a request to ${url.host} (${purpose}): ${refuse}`, gate?.code);
@@ -208,6 +209,8 @@ export class Egress {
         const refuse =
           !LOOPBACK.includes(url.hostname) && LOOPBACK.includes(next.hostname)
             ? 'a remote host may not redirect to this computer'
+            : isLocalClass(hostnameClass(next.hostname)) && hostnameClass(next.hostname) !== hostnameClass(url.hostname)
+              ? 'a host may not redirect to this computer or your network'
             : !toGet && body != null
               ? "a request body isn't re-sent to another host"
               : null;

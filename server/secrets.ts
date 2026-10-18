@@ -56,7 +56,7 @@ export class Secrets {
    */
   aiKey(id: string, connections?: Record<string, AiConnectionConfig>): string | null {
     const owner = connections ? keyOwner(id, connections) : id;
-    const k = (((this.read().ai as Record<string, unknown> | undefined)?.[owner]) as Record<string, unknown> | undefined)?.apiKey;
+    const k = (this.aiSection(this.read(), owner)[owner] as Record<string, unknown> | undefined)?.apiKey;
     return typeof k === 'string' && k.trim() ? k.trim() : null;
   }
 
@@ -75,7 +75,7 @@ export class Secrets {
   /** Save (or, with null, forget: removed from the file) an AI connection's key. */
   setAiKey(id: string, key: string | null): void {
     const doc = this.read();
-    const ai = { ...((doc.ai as Record<string, unknown> | undefined) ?? {}) };
+    const ai = { ...this.aiSection(doc, id) };
     const entry = { ...((ai[id] as Record<string, unknown> | undefined) ?? {}) };
     if (key === null) delete entry.apiKey;
     else entry.apiKey = key;
@@ -84,6 +84,14 @@ export class Secrets {
     if (Object.keys(ai).length) doc.ai = ai;
     else delete doc.ai;
     this.write(doc);
+  }
+
+  /** `ai:`, checked: a mapping of connections, each a mapping (or absent). Anything else is the user's to fix. */
+  private aiSection(doc: Record<string, unknown>, id: string): Record<string, unknown> {
+    const isMap = (v: unknown) => v === undefined || v === null || (typeof v === 'object' && !Array.isArray(v));
+    const ai = doc.ai as Record<string, unknown> | null | undefined;
+    if (!isMap(ai) || !isMap(ai?.[id])) throw new SecretsError(`${tildify(this.file)}: \`ai\` should be a mapping of connections, each a mapping. Fix it by hand; BragDoc won't overwrite it.`);
+    return ai ?? {};
   }
 
   private write(doc: Record<string, unknown>): void {

@@ -41,6 +41,17 @@ export function connectionHost(ai: AiConfig, id: string): string | null {
   return c ? hostOf(baseUrlOf(c, ai.connections)) : null;
 }
 
+/** A connection's origin (`http://127.0.0.1:11434`), what fetchFor lets its provider reach, or null. */
+export function connectionOrigin(ai: AiConfig, id: string): string | null {
+  const c = ai.connections[id];
+  const url = c ? baseUrlOf(c, ai.connections) : null;
+  try {
+    return url ? new URL(url).origin : null;
+  } catch {
+    return null;
+  }
+}
+
 /** Does this cloud connection have consent for the statement shown today, for the host it points at now? */
 export function hasConsent(ai: AiConfig, id: string): boolean {
   const c = ai.connections[id];

@@ -246,6 +246,27 @@ describe('the queue', () => {
     }
   });
 
+  test('a waiting call failed by cancelAll is reported once, even when its caller then goes away', async () => {
+    const home = aiHome({ ai: { enabled: true, connections: { slow: { kind: 'ollama', baseUrl: `${fake.url}/s/timeout` } } } });
+    try {
+      const seen: string[] = [];
+      home.ctx.ai.onCall((r) => seen.push(r.outcome));
+      const running = ask(home, 'slow');
+      const ac = new AbortController();
+      const waiting = ask(home, 'slow', { signal: ac.signal });
+      await new Promise((r) => setTimeout(r, 50));
+      home.ctx.ai.cancelAll('ai_off', 'AI was switched off.');
+      await assert.rejects(waiting, code('ai_off'));
+      await assert.rejects(running, code('ai_off'));
+      ac.abort();
+      await new Promise((r) => setTimeout(r, 20));
+      assert.deepEqual(seen.sort(), ['error', 'error']);
+      assert.deepEqual(home.ctx.ai.queue(), {}, 'no empty lines left behind');
+    } finally {
+      home.close();
+    }
+  });
+
   test('every call is reported to listeners (the activity log’s seam), with no content', async () => {
     const home = aiHome({ ai: { enabled: true, connections: { ok: { kind: 'ollama', baseUrl: fake.url }, down: { kind: 'ollama', baseUrl: `${fake.url}/s/down` } } } });
     try {
@@ -285,4 +306,43 @@ describe('gates', () => {
       home.close();
     }
   });
+});
+
+test('a client that goes away cancels its call, over a real socket, and frees the line', async () => {
+  const fs = await import('node:fs');
+  const path = await import('node:path');
+  const { startServer } = await import('../server/index.ts');
+  const { tmpHome } = await import('./fixture.ts');
+  const h = tmpHome();
+  fs.mkdirSync(h.dataDir, { recursive: true });
+  fs.writeFileSync(path.join(h.dataDir, 'config.yaml'), `ai:\n  enabled: true\n  connections:\n    f: { kind: ollama, baseUrl: "${fake.url}/s/timeout" }\n`);
+  const { port, close } = await startServer(0, { dataDir: h.dataDir, webDist: null, homedir: h.home, env: { PATH: '' } });
+  try {
+    const post = (p: string, body: unknown, signal?: AbortSignal) => fetch(`http://127.0.0.1:${port}${p}`, { method: p.endsWith('/f') ? 'PUT' : 'POST', body: JSON.stringify(body), headers: { 'content-type': 'application/json' }, ...(signal ? { signal } : {}) });
+    const ac = new AbortController();
+    const first = post('/api/ai/connections/f/test', { model: 'qwen3.5:4b' }, ac.signal).catch((e) => e.name);
+    await new Promise((r) => setTimeout(r, 300));
+    ac.abort(); // the tab was closed
+    assert.equal(await first, 'AbortError');
+    // the same connection (the same line), now answering: it runs at once, so the first call is gone
+    await post('/api/ai/connections/f', { baseUrl: fake.url });
+    const t0 = Date.now();
+    const second = (await (await post('/api/ai/connections/f/test', { model: 'qwen3.5:4b' })).json()) as { ok: boolean };
+    assert.equal(second.ok, true);
+    assert.ok(Date.now() - t0 < 2000, `waited ${Date.now() - t0} ms behind a call nobody was waiting for`);
+  } finally {
+    await close();
+    h.cleanup();
+  }
+});
+
+test('an upstream error that echoes the key never passes it on', async () => {
+  const { classify } = await import('../server/ai/errors.ts');
+  const key = 'sk-or-v1-abcdef0123456789';
+  const e = classify({ statusCode: 401, responseBody: JSON.stringify({ error: { message: `Invalid API key: ${key}` } }) }, { connection: 'or', host: 'openrouter.ai', key });
+  assert.equal(e.code, 'key_refused');
+  assert.ok(!e.message.includes('abcdef0123456789'), e.message);
+  // and a bug of ours (a TypeError that isn't a network failure) isn't blamed on the runner
+  assert.equal(classify(new TypeError("Cannot read properties of undefined (reading 'x')"), { connection: 'o', host: '127.0.0.1' }).code, 'failed');
+  assert.equal(classify(Object.assign(new TypeError('fetch failed'), { cause: { code: 'ECONNREFUSED' } }), { connection: 'o', host: '127.0.0.1' }).code, 'unreachable');
 });

@@ -223,16 +223,21 @@ export function createAi({ config, egress, secrets, load = loadSdk, now = Date.n
     const host = connectionHost(cfg.ai, id);
     const priority = call.priority ?? (call.feature === 'judge' ? 'background' : 'now');
     const timeoutMs = call.timeoutMs ?? (where === 'internet' ? CLOUD_TIMEOUT_MS : LOCAL_TIMEOUT_MS);
-    const l = lane(id);
     if (call.signal?.aborted) return Promise.reject(new AiError('cancelled', 'cancelled'));
-    if (l.waiting.length >= MAX_WAITING) return Promise.reject(new AiError('busy', `${MAX_WAITING} calls are already waiting for ${id}; try again later`));
+    if ((lanes.get(id)?.waiting.length ?? 0) >= MAX_WAITING) return Promise.reject(new AiError('busy', `${MAX_WAITING} calls are already waiting for ${id}; try again later`));
+    const l = lane(id);
     return new Promise<T>((resolve, reject) => {
       const controller = new AbortController();
+      // settled once, however it ends: a job failed by cancelAll must not be reported again when its caller aborts
+      let settled = false;
       let timedOut = false;
       let started = false;
       const startedAt = new Date(now()).toISOString();
       const t0 = { v: 0 };
       const report = (outcome: CallRecord['outcome'], extra: Partial<CallRecord>) => {
+        if (settled) return;
+        settled = true;
+        call.signal?.removeEventListener('abort', onAbort);
         const r: CallRecord = { feature: call.feature, purpose: call.purpose, ...(call.runId ? { runId: call.runId } : {}), connection: id, model: slot.model, where, startedAt, ms: started ? now() - t0.v : 0, outcome, tokensIn: null, tokensOut: null, ...extra };
         for (const f of listeners) {
           try {
@@ -243,6 +248,7 @@ export function createAi({ config, egress, secrets, load = loadSdk, now = Date.n
         }
       };
       const onAbort = () => {
+        if (settled) return;
         if (!started) {
           const i = l.waiting.indexOf(job);
           if (i >= 0) l.waiting.splice(i, 1);
@@ -292,7 +298,7 @@ export function createAi({ config, egress, secrets, load = loadSdk, now = Date.n
               finish();
               const err = job.killedBy
                 ? new AiError(job.killedBy.code, `${job.killedBy.message} (stopped mid-call)`)
-                : classify(e, { connection: id, host, timedOut, cancelled: !timedOut && (call.signal?.aborted ?? false) });
+                : classify(e, { connection: id, host, timedOut, cancelled: !timedOut && (call.signal?.aborted ?? false), key: keyFor(id) });
               report(err.code === 'cancelled' ? 'cancelled' : 'error', { error: err.code });
               reject(err);
             });
@@ -536,7 +542,7 @@ export function createAi({ config, egress, secrets, load = loadSdk, now = Date.n
       if (c.kind === 'ollama') return (j.models ?? []).filter((x) => typeof x.name === 'string').map((x) => ({ name: x.name!, sizeBytes: typeof x.size === 'number' ? x.size : null }));
       return (j.data ?? []).filter((x) => typeof x.id === 'string').map((x) => ({ name: x.id!, sizeBytes: null }));
     } catch (e) {
-      throw classify(e, { connection: connectionId, host: connectionHost(cfg.ai, connectionId), timedOut: timeout.aborted });
+      throw classify(e, { connection: connectionId, host: connectionHost(cfg.ai, connectionId), timedOut: timeout.aborted, key });
     }
   }
 

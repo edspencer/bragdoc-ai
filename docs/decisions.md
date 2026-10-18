@@ -972,10 +972,16 @@ Export is a download of a blob made in the page; nothing about a folio is writte
 - **Local or cloud is decided by the connection's host, never its kind** (`shared/ai/hosts.ts`): loopback is *this
   computer*; RFC 1918, ULA, link-local, `.local` and `host.docker.internal` are *your network*; everything else is the
   *internet*, including a hosted "OpenAI-compatible" server and a public name that resolves to a private address (the
-  host as written is all we can vouch for). Plain http only to the first two.
+  host as written is all we can vouch for). Plain http only to the first two. `*.localhost` and `*.local` are trusted
+  by name, without a DNS lookup (BragDoc never resolves a host itself); a resolver that answered them with public
+  addresses would defeat that, and that's the one edge left.
 - **Consent is stored as `{ at, version, host }`.** It counts while the statement's version is no newer and the
-  connection still points at that host: changing the address to another host withdraws it, and so does a statement
-  that grows. Egress checks *the connection*, not just the host, on every request, so revoking one of two connections
+  connection still points at that host (a consent that names no host, written by hand, covers none): changing the
+  address to another host withdraws it, and so does a statement that grows. **A key goes with it:** pointing a
+  connection at another host (or a Jev at another OpenRouter connection) forgets its key, so a key entered for one
+  provider is never sent to another.
+- `fetchFor` allows only the connection's own origin (scheme, host and port), and a cross-host redirect into this
+  computer or your network is refused for every egress request, now that AI can put a LAN host on the allow-list. Egress checks *the connection*, not just the host, on every request, so revoking one of two connections
   on the same host (an OpenRouter one and a Jev one) stops that one even mid-run.
 - `connections` is a map keyed by id, so two tabs editing different connections both keep their edit.
 - Keys go in `secrets.yaml` under `ai.<id>.apiKey`. The API returns `hasKey` and `keyHint` (the last four characters,
@@ -1007,7 +1013,7 @@ Export is a download of a blob made in the page; nothing about a folio is writte
   it. `PUT /api/ai { enabled: false }` also cancels everything at once.
 - **Errors** are a fixed set (`server/ai/errors.ts`), each with a sentence: the brief's ten, plus `cancelled` (the
   caller went away: a closed tab, Cancel) and `busy` (200 calls already waiting on one connection). An error's words
-  never quote the model's answer.
+  never quote the model's answer, and a key a provider echoes back (`Invalid API key: sk-…`) is scrubbed.
 - **Considered:** loading the SDK at start when AI is on (a hand edit can turn AI on at any moment, and loading on
   first use costs about 0.3 s once); the SDK's own retries (a 429 would quietly become three requests).
 

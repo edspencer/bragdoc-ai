@@ -81,7 +81,8 @@ describe('every provider kind sends through egress', () => {
     // the canned answer isn't a stream: what matters is that the request went out through egress, nowhere else
     assert.equal(net.calls.length, before + 1);
     assert.equal(new URL(net.calls.at(-1)!.url).host, 'api.anthropic.com');
-    assert.ok(s.text.length > 0);
+    assert.equal(net.calls.at(-1)!.body.stream, true, 'a streaming request');
+    void s;
   });
 });
 
@@ -97,6 +98,8 @@ test('egress strips attribution headers and sets its own User-Agent, whatever a 
     for (const k of ['http-referer', 'x-title', 'x-stainless-lang', 'referer']) assert.equal(h[k], undefined, k);
     // and it won't follow a provider anywhere: its own host only, no redirects
     await assert.rejects(send('http://localhost:1234/v1/models'), EgressDenied, 'another host, even loopback');
+    await assert.rejects(send('http://127.0.0.1:2724/api/ai'), EgressDenied, 'another port on the same host: BragDoc itself');
+    await assert.rejects(send('https://127.0.0.1:1234/v1/models'), EgressDenied, 'another scheme');
     assert.equal(net.calls.length, 1);
   } finally {
     home.close();
@@ -192,6 +195,9 @@ test('Egress keeps its own rules for everything else (plain http only to this co
     assert.equal(net.calls.length, 1);
     // …and the GitHub source's egressFetch still can't use plain http to anything that isn't
     await assert.rejects(eg.egressFetch({ purpose: 'test' }, 'http://example.com/'), EgressDenied);
+    // nor be redirected by a remote host into a model runner on your network, though AI put it on the allow-list
+    const gh = new Egress({ dataDir: cfg.dir, config: () => ({ ...cfg.config.get(), sources: { ...cfg.config.get().sources, github: { ...cfg.config.get().sources.github, enabled: true, auth: 'token' } } }), fetchImpl: async () => new Response(null, { status: 302, headers: { location: 'http://192.168.1.5:11434/api/tags' } }) });
+    await assert.rejects(gh.egressFetch({ purpose: 'github.user' }, 'https://api.github.com/user'), /may not redirect to this computer or your network/);
   } finally {
     cfg.close();
   }

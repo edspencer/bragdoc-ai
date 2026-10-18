@@ -67,6 +67,7 @@ describe('consent statements', () => {
     assert.equal(consentCurrent('openrouter', { version: 1, host: 'openrouter.ai' }, 'llm.example.com'), false, 'pointed elsewhere');
     assert.equal(consentCurrent('openrouter', { version: 0, host: 'openrouter.ai' }, 'openrouter.ai'), false, 'an older statement');
     assert.equal(consentCurrent('openrouter', null, 'openrouter.ai'), false);
+    assert.equal(consentCurrent('openrouter', { version: 1 }, 'openrouter.ai'), false, 'a consent that names no host covers none');
   });
 });
 
@@ -126,6 +127,8 @@ describe('a cloud connection sends nothing until you consent', () => {
       // and by hand: a consent written for one host doesn't cover another
       home.config.update({ ai: { connections: { custom: { consent: { at: '2026-10-18T00:00:00Z', version: 1, host: 'llm.example.com' } } } } });
       assert.equal((await home.req('GET', '/api/ai')).body.connections[0].consent.current, false);
+      home.config.update({ ai: { connections: { custom: { consent: { at: '2026-10-18T00:00:00Z', version: 1, host: null } } } } });
+      assert.equal((await home.req('GET', '/api/ai')).body.connections[0].consent.current, false, 'hand-written without a host: covers none');
     } finally {
       home.close();
     }
