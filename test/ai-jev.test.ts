@@ -146,7 +146,8 @@ async function cloudRig(answer: (url: URL, body: any) => Response | Promise<Resp
   assert.equal((await home.req('POST', '/api/ai/connections/or/consent', { version: 1 })).status, 200);
   assert.equal((await home.req('PUT', '/api/ai/connections/or/key', { key: KEY })).status, 200);
   if (opts.jevConsent !== false) assert.equal((await home.req('POST', '/api/ai/connections/jev/consent', { version: 2 })).status, 200);
-  const shot = (quote: string) => home.ctx.services.found.add({ source: 'screenshots', externalKey: `screenshot:${'a'.repeat(63)}${Math.floor(Math.random() * 10)}`, title: quote.slice(0, 40), quote: { text: quote, from: 'Jordan Kim', where: '#payments' }, files: [{ path: path.join(home.dir, 'gone.png'), title: 'gone.png' }], matchedRules: ['Says your name: "Alex"'] }).candidate!;
+  let shots = 0;
+  const shot = (quote: string) => home.ctx.services.found.add({ source: 'screenshots', externalKey: `screenshot:${String(++shots).padStart(64, 'a')}`, title: quote.slice(0, 40), quote: { text: quote, from: 'Jordan Kim', where: '#payments' }, files: [{ path: path.join(home.dir, 'gone.png'), title: 'gone.png' }], matchedRules: ['Says your name: "Alex"'] }).candidate!;
   return { home, net, shot };
 }
 
