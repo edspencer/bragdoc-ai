@@ -206,7 +206,7 @@ test('a draft streams from the fake model server, cites its clippings, and the c
   assert.deepEqual(d.check.ungrounded.map((f) => f.text), ['37%']);
   assert.deepEqual(d.check.uncited.map((f) => f.text), ['I helped wherever I was needed']);
   // the request: Ollama's native chat, its context size, the answer's cap, no ids
-  const req = fake.requests.filter((x) => x.path === '/api/chat').at(-1)!;
+  const req = fake.requests.filter((x) => x.path === '/api/chat').at(-1)! as { body: any };
   assert.equal(req.body.options.num_ctx, 8192);
   assert.equal(req.body.options.num_predict, 2048);
   assert.equal(req.body.stream, true);
@@ -319,7 +319,7 @@ test('the preview: the template holds no achievement; a folio’s holds exactly 
   assert.ok(pv.body.sent > 0);
   assert.match(pv.body.prompt, /"promo case"/);
   const r = await draft(home, { folio: f, purpose: 'promo case' });
-  const sent = fake.requests.filter((x) => x.path === '/api/chat').at(-1)!.body.messages.at(-1).content;
+  const sent = (fake.requests.filter((x) => x.path === '/api/chat').at(-1)!.body as any).messages.at(-1).content;
   assert.equal(sent, pv.body.prompt, 'the preview is exactly what is sent');
   assert.ok(done(r.events).ok);
   assert.equal((await home.req('GET', '/api/ai/draft/preview?bogus=1')).status, 400);

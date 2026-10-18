@@ -8,6 +8,26 @@
   contain-intrinsic-size: auto 76px;
 }
 
+/* a draft's [n], clicked: its clipping lights up for a moment */
+.folio-clip-flash > button {
+  animation: folio-clip-flash 1.6s ease-out;
+}
+@keyframes folio-clip-flash {
+  0%,
+  35% {
+    box-shadow: 0 0 0 3px var(--accent);
+  }
+  100% {
+    box-shadow: 0 0 0 3px transparent;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .folio-clip-flash > button {
+    animation: none;
+    outline: 3px solid var(--accent);
+  }
+}
+
 @media print {
   @page {
     margin: 16mm 14mm;

@@ -12,7 +12,7 @@ export function Clipping({ a, on, projects, toggle }: { a: FolioItem; on: boolea
   const p = a.projects.map((id) => projects.get(id)).find(Boolean);
   const names = a.projects.map((id) => projects.get(id)?.name).filter(Boolean);
   return (
-    <li className="folio-clip">
+    <li className="folio-clip" data-clip-id={a.id}>
       <button
         type="button"
         role="checkbox"
