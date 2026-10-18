@@ -316,6 +316,9 @@ class TokenClient implements Client {
       const res = await this.get('github.search', `/search/issues?q=${encodeURIComponent(q)}&per_page=${PER_PAGE}&page=${page}`);
       const j = (await res.json()) as { total_count?: number; items?: SearchItem[] };
       total = j.total_count ?? 0;
+      // more than GitHub will page through: say so at once, and the window is split, rather than fetch ten pages to
+      // throw away (the search API allows 30 requests a minute)
+      if (total > SEARCH_CAP) return { items: [], complete: false };
       const got = j.items ?? [];
       for (const it of got) {
         const repo = /\/repos\/([^/]+\/[^/]+)$/.exec(it.repository_url ?? '')?.[1];
@@ -380,6 +383,11 @@ export class GithubSource {
   private readonly env: NodeJS.ProcessEnv;
   private readonly now: () => Date;
   private running: Promise<GithubRun> | null = null;
+  /**
+   * Bumped by connect, disconnect and a change of where or how far back to look. A check that started under an older
+   * generation finishes without adding candidates or moving the cursor: its search no longer matches the settings.
+   */
+  private generation = 0;
 
   constructor(private readonly o: GithubSourceOptions) {
     this.file = path.join(homePaths(o.dataDir).cache, 'sources', 'github.json');
@@ -468,6 +476,9 @@ export class GithubSource {
    */
   async connect(req: GithubConnectRequest): Promise<GithubSourceStatus> {
     const opts = validOptions(req);
+    // GitHub asked us to wait: connecting again doesn't skip that (nothing is sent until then)
+    const waitUntil = this.state().retryAt;
+    if (waitUntil && Date.parse(waitUntil) > this.now().getTime()) throw err('rate_limited', 'GitHub asked BragDoc to wait before asking again. Try again after the time shown.', waitUntil);
     let login: string | null;
     if (req.auth === 'gh') {
       if (!this.ghInstalled()) throw err('gh_missing', MESSAGES.gh_missing);
@@ -480,29 +491,44 @@ export class GithubSource {
       // token in place and everything is put back as it was if GitHub says no
       const before = this.settings();
       const prevToken = this.o.secrets.githubToken();
-      this.o.secrets.setGithubToken(token);
-      this.update({ enabled: true, auth: 'token' });
       try {
+        this.o.secrets.setGithubToken(token);
+        this.update({ enabled: true, auth: 'token' });
         login = await new TokenClient(this.o.egress, token, null).whoami();
       } catch (e) {
-        this.update({ enabled: before.enabled, auth: before.auth });
-        this.o.secrets.setGithubToken(prevToken);
+        // the token first: whatever else fails, one GitHub didn't accept is never left behind
+        try {
+          this.o.secrets.setGithubToken(prevToken);
+        } catch {
+          /* secrets.yaml is unreadable: setGithubToken wrote nothing in the first place */
+        }
+        try {
+          this.update({ enabled: before.enabled, auth: before.auth });
+        } catch {
+          /* config.yaml is broken: update() wrote nothing in the first place */
+        }
         throw e;
       }
       this.update(opts);
     }
     // a fresh connection looks back the whole window again: anything already in Found, dismissed or on the board stays
     // as it is (keys), so this only finds what's new
+    this.generation++;
     this.save({ login, cursor: null, retryAt: null, strikes: 0 });
-    void this.run().catch(() => {}); // its outcome is on the card (lastRun), live
+    // a check still running from before finishes without effect (generation); this one starts after it
+    void this.idle()
+      .then(() => this.run())
+      .catch(() => {}); // its outcome is on the card (lastRun), live
     return { ...this.status(), running: true };
   }
 
   /** Switch it off. With `forgetToken`, the token is removed from secrets.yaml too. A check that's running finishes but adds nothing. */
   disconnect({ forgetToken = false }: { forgetToken?: boolean } = {}): GithubSourceStatus {
-    this.update({ enabled: false });
+    // the token first: if secrets.yaml can't be written, nothing has changed yet
     if (forgetToken) this.o.secrets.setGithubToken(null);
-    this.save({ retryAt: null, strikes: 0 });
+    this.update({ enabled: false });
+    this.generation++;
+    this.o.bus.emit({ type: 'sources' }); // a rate limit's wait is kept: reconnecting doesn't skip it
     return this.status();
   }
 
@@ -515,8 +541,10 @@ export class GithubSource {
     }
     const before = this.settings();
     const after = this.update(opts);
-    if (after.lookBackDays !== before.lookBackDays || JSON.stringify(after.repos) !== JSON.stringify(before.repos)) this.save({ cursor: null });
-    else this.o.bus.emit({ type: 'sources' });
+    if (after.lookBackDays !== before.lookBackDays || JSON.stringify(after.repos) !== JSON.stringify(before.repos)) {
+      this.generation++;
+      this.save({ cursor: null });
+    } else this.o.bus.emit({ type: 'sources' });
     return this.status();
   }
 
@@ -544,6 +572,7 @@ export class GithubSource {
   }
 
   private async check(): Promise<GithubRun> {
+    const gen = this.generation;
     const started = this.now();
     const c = this.settings();
     const st = this.state();
@@ -562,13 +591,27 @@ export class GithubSource {
         for (const pr of await windowedSearch((f, t) => cl.search(f, t, g), from, to)) if (inScope(pr.repo, scope)) found.set(prKey(pr.repo, pr.number), pr);
       }
       result.seen = found.size;
-      // disconnected while it ran: say what it saw, keep nothing
+      // disconnected, reconnected or pointed somewhere else while it ran: say what it saw, keep nothing, and leave the
+      // cursor where the change put it
+      const current = gen === this.generation && this.settings().enabled;
       // oldest first, so Found (newest first) lists the most recently merged at the top
       const byMerged = [...found].sort(([, a], [, b]) => (a.mergedAt < b.mergedAt ? -1 : a.mergedAt > b.mergedAt ? 1 : 0));
-      if (this.settings().enabled) for (const [key, pr] of byMerged) if (this.addCandidate(key, pr, scope)) result.added++;
+      let skipped = 0;
+      if (current)
+        for (const [key, pr] of byMerged) {
+          // one PR that can't be added (a file that won't write) mustn't stop the rest, or every later check
+          try {
+            if (this.addCandidate(key, pr, scope)) result.added++;
+          } catch {
+            skipped++;
+          }
+        }
+      if (skipped) result.skipped = skipped;
       result.requests = client.requests;
       result.finishedAt = this.now().toISOString();
-      this.save({ cursor: to, lastRun: result, retryAt: null, strikes: 0 });
+      // the next check starts a day back: GitHub's search can lag a merge just before UTC midnight, and dedup by key makes
+      // the overlap free
+      this.save({ ...(current ? { cursor: addDays(to, -1) } : {}), lastRun: result, retryAt: null, strikes: 0 });
     } catch (e) {
       const ge = e instanceof GithubSourceError ? e : err('failed', `Something went wrong checking GitHub: ${(e as Error).message}`);
       result.requests = client?.requests ?? 0;

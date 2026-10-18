@@ -114,7 +114,7 @@ describe('GitHub through the gh CLI', () => {
     assert.equal(s.login, 'alexmarlowe');
     assert.equal(s.lastRun?.added, IN_WINDOW);
     assert.equal(s.lastRun?.from, '2026-07-19', '90 days back');
-    assert.equal(s.cursor, '2026-10-17');
+    assert.equal(s.cursor, '2026-10-16', 'a day back: a merge just before UTC midnight can show up late');
     assert.equal(s.hourly, false, 'no polling unless you turn it on');
     assert.equal(s.nextRunAt, null);
     const f = await found(r);
@@ -135,7 +135,7 @@ describe('GitHub through the gh CLI', () => {
     const again = await r.send<GithubSourceStatus>('POST', '/api/sources/github/run');
     assert.equal(again.status, 200);
     assert.equal(again.body.lastRun?.added, 0);
-    assert.equal(again.body.lastRun?.from, '2026-10-17', 'from the cursor');
+    assert.equal(again.body.lastRun?.from, '2026-10-16', 'from the cursor');
     assert.equal((await found(r)).counts.all, IN_WINDOW);
 
     // Network activity: one line per gh run, and exactly as many as it ran
@@ -434,6 +434,117 @@ describe('GitHub with a personal access token (through egress)', () => {
       assert.equal(off.log().at(-1)?.outcome, 'error');
     } finally {
       off.cleanup();
+    }
+  });
+});
+
+describe('what the review found', () => {
+  const TOKEN = 'github_pat_' + 'B'.repeat(40);
+  const pr = (n: number) => ({
+    number: n,
+    title: `PR ${n}`,
+    html_url: `https://github.com/northwind-labs/ledger/pull/${n}`,
+    closed_at: '2026-10-10T10:00:00Z',
+    repository_url: 'https://api.github.com/repos/northwind-labs/ledger',
+    pull_request: { merged_at: '2026-10-10T10:00:00Z' },
+  });
+
+  test('a check that was running when you changed where to look adds nothing and leaves the cursor reset', async () => {
+    let release!: () => void;
+    const gate = new Promise<void>((res) => (release = res));
+    let searches = 0;
+    const r = rig({
+      gh: false,
+      fetchImpl: async (url) => {
+        if (url.pathname === '/user') return Response.json({ login: 'alexmarlowe' });
+        searches++;
+        if (searches === 1) await gate; // the first check hangs until released
+        return Response.json({ total_count: 1, items: [pr(searches)] });
+      },
+    });
+    try {
+      await r.send('POST', '/api/sources/github/connect', { auth: 'token', token: TOKEN });
+      await new Promise((res) => setTimeout(res, 20));
+      assert.equal((await status(r)).running, true);
+      await r.send('PUT', '/api/sources/github', { repos: ['acme-corp'] });
+      release();
+      await r.ctx.sources.github.idle();
+      const s = await status(r);
+      assert.equal(s.cursor, null, 'the reset stands');
+      assert.equal(s.lastRun?.added, 0, 'what it found under the old settings is not kept');
+      assert.equal((await found(r)).counts.all, 0);
+    } finally {
+      release();
+      await r.ctx.sources.github.idle();
+      r.cleanup();
+    }
+  });
+
+  test('a broken config.yaml or secrets.yaml: connecting keeps no token, and says what is wrong (no bare 500)', async () => {
+    const r = rig({ gh: false, fetchImpl: async () => Response.json({ login: 'alexmarlowe' }) });
+    try {
+      fs.writeFileSync(path.join(r.dir, 'config.yaml'), 'sources: [broken\n');
+      const res = await r.send<{ error: { code: string } }>('POST', '/api/sources/github/connect', { auth: 'token', token: TOKEN });
+      assert.deepEqual([res.status, res.body.error.code], [409, 'config_invalid']);
+      assert.equal(r.ctx.secrets.githubToken(), null, 'the token is not left behind');
+      fs.writeFileSync(path.join(r.dir, 'config.yaml'), 'schemaVersion: 1\n');
+      fs.writeFileSync(path.join(r.dir, 'secrets.yaml'), 'github: [broken\n');
+      const bad = await r.send<{ error: { code: string; message: string } }>('POST', '/api/sources/github/connect', { auth: 'token', token: TOKEN });
+      assert.deepEqual([bad.status, bad.body.error.code], [409, 'secrets_invalid']);
+      assert.match(bad.body.error.message, /by hand/);
+      assert.equal((await status(r)).enabled, false);
+      assert.equal(fs.readFileSync(path.join(r.dir, 'secrets.yaml'), 'utf8'), 'github: [broken\n', 'never overwritten');
+    } finally {
+      r.cleanup();
+    }
+  });
+
+  test('reconnecting doesn\'t skip a rate limit; a full window is split after one page, not ten', async () => {
+    const asked: string[] = [];
+    let limited = true;
+    const r = rig({
+      gh: false,
+      fetchImpl: async (url) => {
+        if (url.pathname === '/user') return Response.json({ login: 'alexmarlowe' });
+        asked.push(url.searchParams.get('q')!);
+        if (limited) return Response.json({ message: 'API rate limit exceeded' }, { status: 403, headers: { 'x-ratelimit-remaining': '0', 'x-ratelimit-reset': String(Math.floor(Date.parse('2026-10-17T16:00:00Z') / 1000)) } });
+        const q = url.searchParams.get('q')!;
+        // the whole window has too many; any smaller one has one PR
+        return Response.json(q.includes('2026-07-19..2026-10-17') ? { total_count: 5000, items: [pr(1)] } : { total_count: 1, items: [pr(asked.length)] });
+      },
+    });
+    try {
+      await r.send('POST', '/api/sources/github/connect', { auth: 'token', token: TOKEN });
+      await r.ctx.sources.github.idle();
+      assert.equal((await status(r)).lastRun?.error?.code, 'rate_limited');
+      await r.send('POST', '/api/sources/github/disconnect');
+      const before = asked.length;
+      const again = await r.send<{ error: { code: string } }>('POST', '/api/sources/github/connect', { auth: 'token', token: TOKEN });
+      assert.deepEqual([again.status, again.body.error.code], [429, 'rate_limited']);
+      assert.equal(asked.length, before, 'nothing sent while it waits');
+    } finally {
+      await r.ctx.sources.github.idle();
+      r.cleanup();
+    }
+    limited = false;
+    asked.length = 0;
+    const r2 = rig({
+      gh: false,
+      fetchImpl: async (url) => {
+        if (url.pathname === '/user') return Response.json({ login: 'alexmarlowe' });
+        const q = url.searchParams.get('q')!;
+        asked.push(q);
+        return Response.json(q.includes('2026-07-19..2026-10-17') ? { total_count: 5000, items: [pr(1)] } : { total_count: 1, items: [pr(asked.length)] });
+      },
+    });
+    try {
+      await r2.send('POST', '/api/sources/github/connect', { auth: 'token', token: TOKEN });
+      await r2.ctx.sources.github.idle();
+      assert.equal(asked.filter((q) => q.includes('2026-07-19..2026-10-17')).length, 1, 'one page of the full window, then split');
+      assert.equal(asked.length, 3);
+    } finally {
+      await r2.ctx.sources.github.idle();
+      r2.cleanup();
     }
   });
 });

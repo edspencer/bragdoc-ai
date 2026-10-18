@@ -33,6 +33,10 @@ export function GithubCard() {
   const on = !!g?.enabled;
   const qc = useQueryClient();
   const toast = useToast();
+  // once connected, a later disconnect shows the Connect button again, not the old form
+  useEffect(() => {
+    if (on) setConnecting(false);
+  }, [on]);
   const off = useMutation({
     mutationFn: () => disconnectGithub(false),
     onSuccess: () => toast({ msg: 'GitHub is disconnected. What it found stays in Found.' }),
@@ -58,7 +62,7 @@ export function GithubCard() {
           disabled={!g || off.isPending}
           onChange={(v) => {
             if (on && !v) off.mutate();
-            else setConnecting(v || !connecting);
+            else setConnecting(!connecting); // off: it opens (or closes) the connect form
           }}
         />
       </div>

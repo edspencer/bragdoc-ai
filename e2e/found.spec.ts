@@ -14,12 +14,16 @@ test.skip(({ browserName }) => browserName !== 'chromium', 'runs once: the data 
 
 const E2E_HOME = process.env.BRAGDOC_E2E_HOME!;
 const HOME = path.join(E2E_HOME, '.bragdoc');
-/** Ids this spec owns (ULIDs from 2026-10, made up, so they never collide with what the app makes). */
-const IDS = ['01JAFND0000000000000000001', '01JAFND0000000000000000002', '01JAFND0000000000000000003'];
-const MARK = 'e2e-found';
+/**
+ * Per run (CI retries once, on the same data home): titles, keys and ids that a first attempt's leftovers can't match.
+ * Ids are ULIDs: a made-up prefix and the run in Crockford base32 digits.
+ */
+const RUN = Date.now().toString(32).toUpperCase().replace(/[ILOU]/g, 'X').padStart(10, '0').slice(-10);
+const IDS = [1, 2, 3].map((n) => `01JAFND${RUN}00000000${n}`);
+const MARK = `e2e-found-${RUN.toLowerCase()}`;
 
 function candidate(id: string, n: number, source: 'github' | 'mcp' = 'github'): string {
-  const repo = 'e2e-found-org/ledger';
+  const repo = `e2e-found-org/${MARK}`;
   return [
     'schemaVersion: 1',
     `id: ${id}`,
@@ -43,13 +47,16 @@ test.beforeAll(() => {
   fs.mkdirSync(path.join(HOME, 'found'), { recursive: true });
   IDS.forEach((id, i) => fs.writeFileSync(path.join(HOME, 'found', `${id}.yaml`), candidate(id, i + 1, i === 2 ? 'mcp' : 'github')));
 });
-test.afterAll(() => {
+let targetId: string | undefined;
+test.afterAll(async ({ request }) => {
+  if (targetId) await request.post(`/api/achievements/${targetId}/remove`, { data: {} });
   for (const id of IDS) fs.rmSync(path.join(HOME, 'found', `${id}.yaml`), { force: true });
   fs.rmSync(path.join(E2E_HOME, '.fake-gh'), { recursive: true, force: true });
 });
 
 test('candidates show with their rules; keep, merge and dismiss each undo; the badge follows', async ({ page, request }) => {
   const target = await (await request.post('/api/achievements', { data: { title: `${MARK} merge target`, happenedAt: '2026-10-10' } })).json();
+  targetId = target.achievement.id;
   await page.goto('/found');
   await expect(card(page, 1)).toBeVisible({ timeout: 10_000 });
   await expect(card(page, 1).getByTestId('found-rules')).toContainText('You opened it');

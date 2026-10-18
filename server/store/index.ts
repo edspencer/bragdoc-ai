@@ -140,13 +140,14 @@ const delFromSet = (m: Map<string, Set<string>>, k: string, v: string) => {
 
 const first = (s: Set<string> | undefined) => (s ? s.values().next().value : undefined);
 
-/** The keys a file claims, from its value or (while it's broken) whatever of it parsed: strings only. */
 /**
  * What a dismissed candidate keeps of its keys: `sha256:<hex>` of each (D55). Enough to know the same PR or screenshot
  * when a source finds it again, without keeping what it was.
  */
 export const keyHash = (key: string) => `sha256:${crypto.createHash('sha256').update(key).digest('hex')}`;
 const KEY_HASH_RE = /^sha256:[0-9a-f]{64}$/;
+
+/** The keys a file claims, from its value or (while it's broken) whatever of it parsed: strings only. */
 
 function keysOf(kind: EntityKind, v: unknown): string[] {
   if (kind !== 'achievement' && kind !== 'found') return [];

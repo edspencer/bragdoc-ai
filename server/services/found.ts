@@ -41,6 +41,8 @@ export interface DecideResult {
 
 /** What a dismissed candidate's file keeps: its id, source and dates, and `keyHashes`. Everything else is cleared. */
 const DISMISSED_TITLE = 'Dismissed';
+/** How many dismissals can still be undone (the newest). */
+const UNDO_KEEP = 500;
 
 export class FoundService {
   /** Dismissed candidates as they were, by id, for undo while this server runs (D55). */
@@ -201,6 +203,8 @@ export class FoundService {
       { mustExist: true },
     );
     this.dismissed.set(id, structuredClone(f));
+    // the toast's Undo needs the last few, not every dismissal since the server started
+    if (this.dismissed.size > UNDO_KEEP) this.dismissed.delete(this.dismissed.keys().next().value!);
     return out;
   }
 

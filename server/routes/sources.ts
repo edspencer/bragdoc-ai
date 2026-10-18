@@ -15,6 +15,7 @@ import type { Context, Hono } from 'hono';
 import type { GhDetectResponse, GithubConnectRequest, GithubSettingsRequest, SourcesResponse } from '../../shared/api.js';
 import type { AppContext } from '../context.js';
 import { apiError, jsonBody } from '../http.js';
+import { SecretsError } from '../secrets.js';
 import { GithubSourceError } from '../sources/github.js';
 import { ValidationError } from '../store/errors.js';
 
@@ -38,6 +39,8 @@ async function answer(c: Context, fn: () => unknown): Promise<Response> {
   } catch (e) {
     if (e instanceof GithubSourceError) return c.json({ ...apiError(e.code, e.message), ...(e.retryAt ? { retryAt: e.retryAt } : {}) }, STATUS[e.code]);
     if (e instanceof ValidationError) return c.json(apiError('invalid', e.message), 400);
+    // a hand-broken secrets.yaml: say so (it's never overwritten), rather than a bare 500 that reads as "not running"
+    if (e instanceof SecretsError) return c.json(apiError('secrets_invalid', e.message), 409);
     throw e;
   }
 }

@@ -533,6 +533,8 @@ export interface GithubRun {
   added: number;
   /** Requests it made (gh runs or HTTP requests): each is one line in Network activity. */
   requests: number;
+  /** Pull requests it couldn't add to Found (a file that couldn't be written): they're tried again next time. */
+  skipped?: number;
   error?: GithubError;
 }
 

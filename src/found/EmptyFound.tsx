@@ -59,7 +59,7 @@ export function EmptyFound({ sources, filtered }: { sources: SourcesResponse | u
               </li>
             )}
             <li>
-              <b>Your coding agent</b> <span className="text-muted">· listening on MCP</span>
+              <b>Your coding agent</b> <span className="text-muted">· can suggest things over MCP</span>
             </li>
           </ul>
         </div>
