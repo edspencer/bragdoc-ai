@@ -1159,3 +1159,44 @@ Export is a download of a blob made in the page; nothing about a folio is writte
     silently passed on yesterday's prompt would measure nothing.
   - `npm run eval:smoke` is the harness's own check (a date and a percentage from each of eight synthetic sentences,
     feature `test`), with a committed real-model recording that CI replays.
+
+### D78 — Tidy this up: a suggestion beside your fields, and what you wrote is kept
+
+- **The server gathers the text** (`POST /api/ai/tidy { text?, evidenceShas?, achievementId?, today? }`): pasted text,
+  the OCR sidecar of named board pictures (waiting up to 8 s for a read in progress, then `409 not_read_yet`), and an
+  achievement's title, summary, notes and the words of its quotes and read pictures. Each part goes to the model under
+  a label saying what it is, inside one delimited block that the prompt calls material, not instructions. The browser
+  can't put words in a picture's mouth, and the preview (`GET /api/ai/tidy/preview`) is built by the same function.
+  The edit drawer tidies the achievement **as last saved** (it says so when you have unsaved edits).
+- **10,000 characters** of material at most (`400 too_long`, with the count, in the error), so a tidy fits the default
+  8,192-token local context with room for the answer.
+- **A lenient answer schema, strict checks after** (`finishTidy`): small local models get lengths and nulls wrong often
+  enough (PR22 saw the string `"null"`) that refusing over them costs a repair round-trip of 20 s on a CPU. So the
+  schema asks for the shape, and BragDoc clips the title (90), summary (280) and body (1,500) at a word, turns
+  `"null"`/`"none"` into null, clamps impact to 1–10, maps project **names** to your ids (an unknown one is dropped
+  and said), and flags every number, amount, date or capitalised name in a text field that isn't in the material
+  (`shared/ai/grounding.ts`; your name, role and project names count as yours).
+- **Nothing is written by a tidy.** In the composer, whose text is "first line title, the rest notes": using a title
+  the first time moves everything you wrote down into the notes under it (later titles replace the first line), and a
+  suggested body goes under the title, above your words. So **your original text survives Use all**, and Pin it saves
+  it as the achievement's notes. The composer gains a Summary and an Until field, shown only once a suggestion has set
+  them, so with AI off it's v0.1's composer exactly. In the drawer, a suggested body goes above your notes the same
+  way; title and summary replace theirs (they're on screen, and Cancel throws it all away). An accepted impact is
+  yours (`impactSource: user`), as any impact you set.
+- **Shown only while AI and Tidy are on** (SPEC R26): the board reads `GET /api/ai` (the same query key as Settings →
+  AI). On but not ready (no model, no consent) → the button is disabled with the reason and a link to Settings → AI.
+  A suggestion open when AI is switched off stays readable and goes inert, with the reason.
+- `notAnAchievement` shows its reason and offers nothing to use.
+
+### D79 — A date is kept only if the material states it or a relative date in it resolves to it
+
+R23 allows a date "only when stated, or resolvable from a relative date against the day it was pasted". A model that
+makes one up is the commonest invention (it reaches for today, or a plausible past date), and a wrong date files the
+achievement in the wrong week, where nobody re-reads it. So `allowedDates(material, today)` lists the dates the text
+supports, generously: ISO dates; "March 4" / "4 March" (this year, or last year if that's still to come); "October
+2025" and "Q3 2026" as ranges; either reading of 10/11; "today", "yesterday", "N days/weeks ago" (with slack); a
+weekday as any such day in the last two weeks; "last week" as the last fortnight; "last month" from the start of the
+previous month. A `happenedAt` or `endedAt` outside all of them is **dropped and said** ("The date 2019-03-14 isn't in
+your text, so it was left out"), and an end not after the start goes too. `today` is the browser's day (its time
+zone), accepted within two days of the server's, else the server's (the profile's time zone). The model gets the same
+rule in its prompt; this is the check, not the instruction.

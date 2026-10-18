@@ -7,11 +7,12 @@
 // Adapted from the Scrapbook prototype's shared/composer.ts: its classification and PR regex (now shared/links.ts),
 // with real uploads and previews in place of the simulated ones.
 import { useCallback, useEffect, useRef, useState } from 'react';
-import type { LinkPreview } from '../../shared/api.ts';
+import type { AiTidyResponse, LinkPreview } from '../../shared/api.ts';
 import { isHttpUrl } from '../../shared/links.ts';
 import { NETWORK_ERROR, isApiError, previewLink, uploadEvidence } from '../api/client.ts';
 import { todayIso } from '../lib/dates.ts';
 import { localPreview, type Pending } from './links.ts';
+import { applyBody, applyTitle, withoutTidy, type TidyKey } from './tidy.ts';
 
 export { fallbackTitle, linkEvidence, localPreview, type Pending } from './links.ts';
 
@@ -44,6 +45,15 @@ export function useComposer({ notify }: ComposerOptions) {
   const [date, setDate] = useState(todayIso());
   // quotes read from pasted screenshots (OCR + the rules) that you chose to pin as stickies, by the picture's sha
   const [stickies, setStickies] = useState<Sticky[]>([]);
+  // only ever set by an accepted Tidy suggestion (v0.2): null keeps the composer exactly as it was without AI
+  const [summary, setSummary] = useState<string | null>(null);
+  const [endedAt, setEndedAt] = useState<string | null>(null);
+  // what Tidy put in the text (D78): the title on the first line and the body under it. A second tidy reads the text
+  // without them, so it reads your words, including any you added since, and never Tidy's own as yours
+  const tidyTitle = useRef<string | null>(null);
+  const tidyBody = useRef<string | null>(null);
+  const textRef = useRef(text);
+  textRef.current = text;
   const aborts = useRef(new Map<number, AbortController>());
   const urls = useRef(new Set<string>());
   // the latest pending list, for the unmount cleanup
@@ -206,6 +216,35 @@ export function useComposer({ notify }: ComposerOptions) {
     setImpact(undefined);
     setDate(todayIso());
     setStickies([]);
+    setSummary(null);
+    setEndedAt(null);
+    tidyTitle.current = null;
+    tidyBody.current = null;
+  }, []);
+
+  /** Use some of a Tidy suggestion (D78): what you wrote stays, in the notes; nothing is pinned until you Pin it. */
+  const applyTidy = useCallback((keys: TidyKey[], r: AiTidyResponse) => {
+    const s = r.suggestion;
+    let t = textRef.current;
+    if (keys.includes('title') && s.title) {
+      t = applyTitle(t, s.title, tidyTitle.current);
+      tidyTitle.current = s.title;
+    }
+    if (keys.includes('body') && s.body) {
+      t = applyBody(t, s.body);
+      tidyBody.current = s.body;
+    }
+    if (t !== textRef.current) setText(t);
+    if (keys.includes('summary') && s.summary) setSummary(s.summary);
+    if (keys.includes('dates') && s.happenedAt) {
+      setDate(s.happenedAt);
+      setEndedAt(s.endedAt);
+    }
+    if (keys.includes('impact') && s.impact !== null) setImpact(s.impact);
+    if (keys.includes('projects') && s.suggestedProjects.length) {
+      setProjects((p) => [...new Set([...p, ...s.suggestedProjects])]);
+      setSuggestedProjects((p) => [...new Set([...p, ...s.suggestedProjects])]);
+    }
   }, []);
 
   const addSticky = useCallback((q: Sticky) => setStickies((xs) => (xs.some((x) => x.sha === q.sha) ? xs : [...xs, q])), []);
@@ -256,6 +295,13 @@ export function useComposer({ notify }: ComposerOptions) {
     date,
     setDate,
     stickies,
+    summary,
+    setSummary,
+    endedAt,
+    setEndedAt,
+    applyTidy,
+    /** What a tidy reads: the text without what Tidy put there. */
+    tidySource: () => withoutTidy(textRef.current, tidyTitle.current, tidyBody.current),
     addSticky,
     removeSticky,
     addFiles,

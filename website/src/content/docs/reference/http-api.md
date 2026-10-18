@@ -193,6 +193,16 @@ saving one sends nothing anywhere. A change to one, here or by hand, refreshes o
 | `POST /api/ai/instructions/:name/reset` | Put the feature's starter text back. Your file, if it's different, is moved into `backups/removed/` first (`removedTo` says where); the starter is checked before anything moves. **404** until the feature that reads the file has a starter. |
 | `GET /api/ai/activity` | The AI activity log, newest first: `limit` (1–500, default 50) and `offset`. One line per run (a judge pass, an eval) or per single call (a tidy, a draft, a connection test): when, the feature, what started it (`trigger`), the model and where it went, how many items and calls, the feature's own counts, tokens (when the provider reports them), and an error code. **Never any content**: no prompt, answer or message. A new line refreshes open tabs (an `ai-activity` event). |
 
+### Tidy this up
+
+The board's "Tidy this up": a suggestion for something you pasted, a picture's text, or an achievement as you wrote it.
+It **saves nothing**: the board shows the suggestion beside your fields, and only Save changes anything.
+
+| Method and path | What it does |
+| --- | --- |
+| `POST /api/ai/tidy` | `{ "text", "evidenceShas", "achievementId", "today" }`, at least one of the first three. BragDoc gathers the text itself: what you typed, the text read from those board pictures (it waits a few seconds for one still being read, then **409** `not_read_yet`), and the achievement's title, summary, notes and the words of its quotes and read pictures. `today` (YYYY-MM-DD, your browser's day) is what "yesterday" is worked out from. Answers `suggestion` (`title`, `summary`, `body`, `happenedAt`, `endedAt`, `impact`, `impactWhy`, `suggestedProjects` as your project ids, `notAnAchievement` with its reason, `unclear`), `ungrounded` (per field, the numbers, amounts, dates and names that aren't in your text), `dropped` (what BragDoc took out, in words: a date that isn't in your text, a project you don't have), and the `model` and `where` it ran. **400** `empty` when there's nothing to tidy, `too_long` over 10,000 characters (the error says how many). **409** when AI or Tidy is off, no model is chosen, or a cloud connection lacks consent or a key: nothing is sent. A model's failure is its code (`unreachable`, `timeout`, `bad_output`, …); closing the request cancels the call. |
+| `GET /api/ai/tidy/preview` | Exactly what a tidy sends (`system` and `prompt`), with a placeholder where your text goes: your name and role, your project names, your "How I write" notes and the impact scale. Never an id or a path. Sends nothing, AI on or off; `readiness` says whether a tidy could run now, and with which model. |
+
 ## For agents
 
 | Method and path | What it does |
