@@ -109,8 +109,9 @@ const list = (v: unknown): string[] => (typeof v === 'string' && ID_LIST.test(v)
  */
 export function readSearch(s: FolioSearch, today: string): FolioFilter {
   const def = presets(today).find((p) => p.id === 'last-6-months')!;
-  let from = isDay(s.from) ? s.from : def.from;
+  // one end alone: from that day to today, or the six months up to that day
   let to = isDay(s.to) ? s.to : isDay(s.from) ? today : def.to;
+  let from = isDay(s.from) ? s.from : isDay(s.to) ? sixMonthsBefore(s.to) : def.from;
   if (from > to) [from, to] = [to, from];
   const min = Number(s.min);
   return {
@@ -124,7 +125,7 @@ export function readSearch(s: FolioSearch, today: string): FolioFilter {
   };
 }
 
-/** The filter as URL search params: only what differs from the defaults, so a plain /folio stays plain. */
+/** The filter as URL search params: the window always, the rest only when it isn't the default. */
 export function writeSearch(f: FolioFilter): Record<string, string | number> {
   return {
     from: f.from,
@@ -142,6 +143,18 @@ export function writeSearch(f: FolioFilter): Record<string, string | number> {
 /** Highest impact first (unrated last), then newest. The order a reviewer wants to read in (PR14 brief). */
 export function byImpactThenDate(a: FolioItem, b: FolioItem): number {
   return (b.impact ?? 0) - (a.impact ?? 0) || b.happenedAt.localeCompare(a.happenedAt) || a.title.localeCompare(b.title);
+}
+
+/**
+ * The filter with references to projects and companies that no longer exist taken out (one deleted while the page was
+ * open, or a stale link), so it means what the page shows: a filter on nothing that's left is no filter.
+ */
+export function pruneFilter(f: FolioFilter, data: FolioResponse): FolioFilter {
+  const projects = f.projects.filter((p) => p === NO_PROJECT || data.projects.some((x) => x.id === p));
+  const company = f.company && data.companies.some((c) => c.id === f.company) ? f.company : undefined;
+  if (projects.length === f.projects.length && company === f.company) return f;
+  const { company: _drop, ...rest } = f;
+  return { ...rest, projects, ...(company ? { company } : {}) };
 }
 
 /** The items the filters let through (exclusions not applied: the clippings list shows those, unticked), best first. */
@@ -202,7 +215,11 @@ export function folioDoc(data: FolioResponse, f: FolioFilter): FolioDoc {
   };
   for (const a of picked) {
     if (f.group === 'project') {
-      const pid = a.projects.find((p) => !want.size || want.has(p)) ?? a.projects[0];
+      // the first of its projects the filters kept (by project, then by company), else its first
+      const pid =
+        a.projects.find((p) => (!want.size || want.has(p)) && (!f.company || projects.get(p)?.companyId === f.company)) ??
+        a.projects.find((p) => !want.size || want.has(p)) ??
+        a.projects[0];
       const p = pid ? projects.get(pid) : undefined;
       if (!p) add(NO_PROJECT, () => ({ heading: 'No project' }), a);
       else {
@@ -252,6 +269,17 @@ export function mdText(s: string): string {
   return s.replace(/\s+/g, ' ').trim().replace(/[\\`*_[\]<>|]/g, (c) => `\\${c}`);
 }
 
+/**
+ * A line of text that sits on a line of its own in the document (a summary, a line of a quote): inline syntax escaped,
+ * and whatever would start a block (a heading, a list, a quote, a rule, a setext underline) escaped too.
+ */
+export function mdLine(s: string): string {
+  // an ordered list's marker is escaped after its digits (`1\.`): a backslash before a digit is just a backslash
+  return mdText(s)
+    .replace(/^(#{1,6}(?=\s|$)|[+=-])/, (m) => `\\${m}`)
+    .replace(/^(\d+)([.)])/, '$1\\$2');
+}
+
 /** When it happened: `13 Oct 2026`, or `13 Oct 2026 – 2 Nov 2026` for something that took a while. */
 export function whenOf(a: Pick<FolioItem, 'happenedAt' | 'endedAt'>): string {
   return a.endedAt && a.endedAt > a.happenedAt ? `${shortDate(a.happenedAt)} – ${shortDate(a.endedAt)}` : shortDate(a.happenedAt);
@@ -272,7 +300,7 @@ function evidenceLines(e: FolioEvidence): string[] {
       return [`- Link: ${e.url ? `[${label}](${mdUrl(e.url)})` : `${label} (a local address, left out)`}`];
     }
     case 'quote': {
-      const said = e.text.split(/\r?\n/).map((l) => `> ${mdText(l) || ''}`.trimEnd());
+      const said = e.text.split(/\r?\n/).map((l) => `> ${mdLine(l)}`.trimEnd());
       const who = [e.from, e.where].filter(Boolean).map((s) => mdText(s!)).join(', ');
       return [...said, ...(who ? ['>', `> — ${who}`] : [])];
     }
@@ -297,7 +325,7 @@ export function toMarkdown(doc: FolioDoc): string {
       if (doc.group !== 'project' && a.projectNames.length) bits.push(mdText(a.projectNames.join(', ')));
       if (a.impact) bits.push(`impact ${a.impact}/10`);
       lines.push(`- **${mdText(a.title)}** · ${bits.join(' · ')}`);
-      if (a.summary) lines.push(`  ${mdText(a.summary)}`);
+      if (a.summary) lines.push(`  ${mdLine(a.summary)}`);
       // links and files as a list, then quotes as blockquotes (as the printout draws them)
       const ev = [...a.evidence.filter((e) => e.kind !== 'quote'), ...a.evidence.filter((e) => e.kind === 'quote')];
       for (const e of ev) for (const l of evidenceLines(e)) lines.push(l === '>' ? '  >' : `  ${l}`);
@@ -311,10 +339,30 @@ export const exportName = (f: Pick<FolioFilter, 'from' | 'to'>) => `bragdoc-${f.
 
 // ---------------------------------------------------------------- the server's side: achievement → clipping
 
-/** Hosts that only mean something on this machine: a link to one is useless in a document that leaves it. */
+/**
+ * Hosts that only mean something on this machine or its network: a link to one is useless (and telling) in a document
+ * that leaves it. Loopback in every spelling, the unspecified address, private and link-local ranges (IPv4, and IPv6
+ * including IPv4-mapped), and the local-only names (`localhost`, `.local`, `.lan`, `.internal`, `.home.arpa`).
+ */
 export function isLocalUrl(u: URL): boolean {
-  const h = u.hostname.toLowerCase().replace(/^\[|\]$/g, '');
-  return h === 'localhost' || h.endsWith('.localhost') || h === '0.0.0.0' || h === '::1' || h === '::' || /^127\./.test(h) || h.endsWith('.local');
+  const h = u.hostname.toLowerCase().replace(/^\[|\]$/g, '').replace(/\.$/, '');
+  if (!h.includes('.') && !h.includes(':')) return true; // a bare name (`localhost`, `intranet`): only resolves locally
+  if (/(^|\.)(localhost|local|lan|internal|home\.arpa)$/.test(h)) return true;
+  const v4 = /^(\d+)\.(\d+)\.\d+\.\d+$/.exec(h);
+  if (v4) {
+    const [a, b] = [Number(v4[1]), Number(v4[2])];
+    return a === 0 || a === 10 || a === 127 || (a === 169 && b === 254) || (a === 172 && b >= 16 && b <= 31) || (a === 192 && b === 168) || (a === 100 && b >= 64 && b <= 127);
+  }
+  if (h.includes(':')) {
+    const mapped = /^::ffff:(?:([0-9a-f]{1,4}):[0-9a-f]{1,4}|(\d+\.\d+\.\d+\.\d+))$/.exec(h);
+    if (mapped) {
+      if (mapped[2]) return isLocalUrl(new URL(`http://${mapped[2]}/`));
+      const hi = parseInt(mapped[1], 16);
+      return isLocalUrl(new URL(`http://${hi >> 8}.${hi & 255}.0.0/`));
+    }
+    return h === '::' || h === '::1' || /^f[cd]/.test(h) || /^fe[89ab]/.test(h);
+  }
+  return false;
 }
 
 /** An http(s) URL that isn't a local one, or undefined. (Never `file:`, `javascript:` or the like.) */
@@ -329,26 +377,72 @@ export function shareableUrl(raw: string | undefined): string | undefined {
   }
 }
 
+/** An http(s) URL whose host is a local one (a link worth naming, marked as left out), as opposed to no link at all. */
+function isLocalHttp(raw: string | undefined): boolean {
+  try {
+    const u = new URL((raw ?? '').trim());
+    return (u.protocol === 'http:' || u.protocol === 'https:') && isLocalUrl(u);
+  } catch {
+    return false;
+  }
+}
+
 /** A file's name without any folder (a hand-edited sidecar could hold a path; Windows ones too). */
 export function baseName(name: string | undefined): string | undefined {
   const b = name?.split(/[\\/]/).pop()?.trim();
   return b || undefined;
 }
 
-/** The first paragraph of a markdown body, on one line: what a folio shows when there's no summary. */
+// A file's location in running text: home-ish absolute paths (`/Users/…`, `/home/…`, `~/…`, …), relative ones
+// (`./…`, `../…`), Windows (`C:\…`, `\\server\…`) and `file:` URLs. Ordinary slashes ("PDF/CSV", "and/or") don't match.
+const PATH_IN_TEXT =
+  /(?:file:\/\/\S+|(?:~|\.{1,2}|\/(?:Users|home|root|private|Volumes|var|tmp|mnt|media|opt|srv|data|etc))\/[^\s)\]>"'`]+|[A-Za-z]:\\[^\s)\]>"'`]+|\\\\[^\s)\]>"'`]+)/g;
+/** BragDoc's own routes (`/api/evidence/<sha>`, …): a link back into this app. */
+const OWN_ROUTE = /(?<![\w/])\/api\/[^\s)\]>"'`]*/g;
+const URL_IN_TEXT = /\bhttps?:\/\/[^\s)\]>"'`]+/gi;
+const SHA = /\b[0-9a-f]{64}\b/gi;
+
+/**
+ * Text written by the user (or an agent, or an import), made safe to leave this machine: links to a local address
+ * become "(a local link)", file locations become the file's name, BragDoc's own routes and content hashes go. Links
+ * anyone can open are kept as they are.
+ */
+export function scrubText(text: string): string {
+  return text
+    .replace(URL_IN_TEXT, (u) => (shareableUrl(u) ? u : '(a local link)'))
+    .replace(PATH_IN_TEXT, (p) => baseName(p.replace(/^file:\/\//, '')) ?? '')
+    .replace(OWN_ROUTE, '')
+    .replace(SHA, '')
+    .replace(/[ \t]{2,}/g, ' ')
+    .trim();
+}
+
+/**
+ * The first paragraph of a markdown body as plain text on one line: what a folio shows when there's no summary.
+ * Headings, code, tables and pictures are skipped; links keep their words; emphasis and code marks go.
+ */
 export function firstParagraph(body: string): string | undefined {
   const para = body
     .trim()
     .split(/\n\s*\n/)
     .map((p) => p.trim())
-    .find((p) => p && !/^(#|```|<!--|!\[|\|)/.test(p));
+    .find((p) => p && !/^(#|```|~~~|<!--|!\[|\||---|\*\*\*)/.test(p));
   if (!para) return undefined;
-  const one = para.replace(/^[-*+>]\s+/gm, '').replace(/\s+/g, ' ').trim();
+  const one = para
+    .replace(/^(?:[-*+>]|\d+[.)])\s+/gm, '')
+    .replace(/!\[[^\]]*\]\([^)]*\)/g, '')
+    .replace(/\[([^\]]*)\]\([^)]*\)/g, '$1')
+    .replace(/(\*\*|__|`)/g, '')
+    .replace(/(^|\W)[*_](\S[^*_]*\S|\S)[*_](?=\W|$)/g, '$1$2')
+    .replace(/<[^>]+>/g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+  if (!one) return undefined;
   return one.length > 400 ? `${one.slice(0, 399).trimEnd()}…` : one;
 }
 
-/** `/x`, `~/x`, `C:\x`, `\\server\x`, `file:…`: a caption that is really a file's location. */
-const LOOKS_LIKE_PATH = /^(?:~?[\\/]|[A-Za-z]:[\\/]|file:)/;
+/** `/x`, `~/x`, `./x`, `C:\x`, `\\server\x`, `file:…`, or one word with a slash in it: a caption that is really a location. */
+const LOOKS_LIKE_PATH = /^(?:~?[\\/]|\.{1,2}[\\/]|[A-Za-z]:[\\/]|file:|\S*[\\/]\S*$)/;
 
 /** What `toClipping` needs from an achievement: its file's fields, loosely (shared/schema's Achievement fits). */
 export interface ClippingSource {
@@ -364,41 +458,51 @@ export interface ClippingSource {
   evidence: { kind: string; blob?: string; url?: string; externalKey?: string; title?: string; quote?: { text: string; from?: string; where?: string } }[];
 }
 
+/** GitHub's own shape for `owner/repo`. Anything else in a hand-edited key is not a pull request we can name. */
+const REPO = '[A-Za-z0-9-]{1,39}\\/[A-Za-z0-9._-]{1,100}';
+const PR_KEY = new RegExp(`^github_pr:(${REPO})#(\\d{1,9})$`);
+const PR_URL = new RegExp(`^https?:\\/\\/(?:www\\.)?github\\.com\\/(${REPO})\\/pull\\/(\\d{1,9})(?:[/?#].*)?$`, 'i');
+
 /**
- * An achievement cut down to what a folio may show (D53). `fileName(sha)` is the evidence file's original name, from
- * its sidecar; `has` says whether a project or company still exists.
+ * An achievement cut down to what a folio may show (D53): every piece of text scrubbed (`scrubText`), files by name
+ * only, links only if anyone could open them. `fileName(sha)` is the evidence file's original name, from its sidecar;
+ * `has` says whether a project or company still exists.
  */
 export function toClipping(a: ClippingSource, fileName: (sha: string) => string | undefined, has: { project: (id: string) => boolean; company: (id: string) => boolean }): FolioItem {
+  const clean = (t: string | undefined) => (t ? scrubText(t) || undefined : undefined);
   const evidence: FolioEvidence[] = [];
   for (const e of a.evidence) {
+    const title = clean(e.title);
     if (e.kind === 'github_pr') {
-      const key = /^github_pr:([^#\s]+\/[^#\s]+)#(\d+)$/.exec(e.externalKey ?? '');
-      const fromUrl = /github\.com\/([^/\s]+\/[^/\s]+)\/pull\/(\d+)/i.exec(e.url ?? '');
-      const ref = key ? `${key[1]}#${key[2]}` : fromUrl ? `${fromUrl[1]}#${fromUrl[2]}` : 'a pull request';
-      const url = shareableUrl(e.url) ?? (key ? `https://github.com/${key[1]}/pull/${key[2]}` : undefined);
-      evidence.push({ kind: 'github_pr', ref, ...(url ? { url } : {}), ...(e.title ? { title: e.title } : {}) });
+      const key = PR_KEY.exec(e.externalKey ?? '');
+      const fromUrl = PR_URL.exec(e.url?.trim() ?? '');
+      const m = key ?? fromUrl;
+      const ref = m ? `${m[1]}#${m[2]}` : 'a pull request';
+      const url = fromUrl ? shareableUrl(e.url) : key ? `https://github.com/${key[1]}/pull/${key[2]}` : undefined;
+      evidence.push({ kind: 'github_pr', ref, ...(url ? { url } : {}), ...(title ? { title } : {}) });
     } else if (e.kind === 'url') {
       const url = shareableUrl(e.url);
-      let domain: string | undefined;
-      try {
-        domain = url ? new URL(url).hostname.replace(/^www\./, '') : undefined;
-      } catch {
-        /* no domain */
-      }
-      evidence.push({ kind: 'url', ...(url ? { url } : {}), ...(domain ? { domain } : {}), ...(e.title ? { title: e.title } : {}) });
+      // a link nobody else could follow: named and marked if it's a local web address, dropped if it isn't the web
+      if (!url && !isLocalHttp(e.url)) continue;
+      const domain = url ? new URL(url).hostname.replace(/^www\./, '') : undefined;
+      evidence.push({ kind: 'url', ...(url ? { url } : {}), ...(domain ? { domain } : {}), ...(title ? { title } : {}) });
     } else if (e.kind === 'quote' && e.quote?.text) {
-      evidence.push({ kind: 'quote', text: e.quote.text, ...(e.quote.from ? { from: e.quote.from } : {}), ...(e.quote.where ? { where: e.quote.where } : {}) });
+      const text = clean(e.quote.text);
+      if (!text) continue;
+      const from = clean(e.quote.from);
+      const where = clean(e.quote.where);
+      evidence.push({ kind: 'quote', text, ...(from ? { from } : {}), ...(where ? { where } : {}) });
     } else if (e.kind === 'image' || e.kind === 'pdf' || e.kind === 'file') {
       // the caption the user gave it, else the name it was added with; never where it lives
       const caption = e.title?.trim();
-      const name = (caption && LOOKS_LIKE_PATH.test(caption) ? baseName(caption) : caption) || baseName(e.blob ? fileName(e.blob) : undefined);
+      const name = (caption && LOOKS_LIKE_PATH.test(caption) ? baseName(caption) : clean(caption)) || baseName(e.blob ? fileName(e.blob) : undefined);
       evidence.push({ kind: e.kind, ...(name ? { name } : {}) });
     }
   }
-  const summary = a.summary?.trim() || firstParagraph(a.body);
+  const summary = clean(a.summary?.trim() || firstParagraph(a.body));
   return {
     id: a.id,
-    title: a.title,
+    title: clean(a.title) ?? a.title,
     ...(summary ? { summary } : {}),
     happenedAt: a.happenedAt,
     ...(a.endedAt ? { endedAt: a.endedAt } : {}),

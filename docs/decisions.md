@@ -726,9 +726,16 @@ Export is a download of a blob made in the page; nothing about a folio is writte
   impact, project and company names, and evidence as something a reviewer can follow: pull requests as
   `owner/repo#n` links to github.com, links as links, quotes as blockquotes, and files (pictures, PDFs, anything else)
   **by name only** (a caption, else the name it was added with, with any folder stripped). Never an id, a sha, a
-  file's location, or a URL that only works on this machine: `localhost`, `127.*`, `[::1]`, `0.0.0.0`, `*.localhost`
-  and `*.local` links are named and marked "a local address, left out"; anything but http(s) is dropped. The
-  server makes the clippings, so the page never holds what it mustn't export.
+  file's location, or a URL that only works on this machine or its network: loopback in any spelling, private and
+  link-local ranges (IPv4 and IPv6, IPv4-mapped included), single-label hosts and `.local`, `.lan`, `.internal`,
+  `.home.arpa`, `*.localhost`. A link evidence item to such an address is named and marked "a local address, left
+  out"; a non-web one (`mailto:`, `ftp:`, `file:`) is dropped; a PR key or URL that isn't GitHub's
+  `owner/repo#n` shape becomes "a pull request", unlinked. **Text people wrote is scrubbed too** (`scrubText`: titles,
+  summaries, the body's first paragraph, quotes, captions): local links become "(a local link)", home-ish, relative,
+  Windows and `file:` paths become the file's name, and BragDoc's own `/api/…` routes and content hashes go. Ordinary
+  slashes ("PDF/CSV") are left alone. Lines that would start a markdown block (a heading, list, quote, rule, setext
+  underline) are escaped, so a summary of `---` can't restructure the document. The server makes the clippings, so
+  the page never holds what it mustn't export.
 - **Order and grouping.** Best first: impact, then newest (unrated last). Grouped by project (default; a
   multi-project achievement goes under the first project the filter kept, once), by month or by week (newest first;
   each line then names its projects). "At least N impact" leaves unrated achievements out, as the board's filter does.

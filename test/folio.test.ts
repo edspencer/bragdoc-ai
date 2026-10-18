@@ -14,10 +14,13 @@ import {
   folioDoc,
   isDay,
   matching,
+  mdLine,
   mdText,
   presetOf,
   presets,
+  pruneFilter,
   readSearch,
+  scrubText,
   shareableUrl,
   toClipping,
   toMarkdown,
@@ -114,6 +117,7 @@ describe('the URL state', () => {
     assert.equal(readSearch({ from: '2026-02-30' }, '2026-10-17').from, '2026-04-17');
     assert.equal(readSearch({ from: '2026-01-01' }, '2026-10-17').to, '2026-10-17'); // from alone: to today
     assert.equal(readSearch({ min: 7 }, '2026-10-17').minImpact, 7); // the router hands numbers over as numbers
+    assert.deepEqual([readSearch({ to: '2020-01-31' }, '2026-10-17').from, readSearch({ to: '2020-01-31' }, '2026-10-17').to], ['2019-07-31', '2020-01-31']); // to alone: the six months up to it
   });
 });
 
@@ -135,6 +139,20 @@ describe('filters and exclusions', () => {
     assert.equal(matching(DATA, filter({ projects: [gone] })).length, 4);
     assert.equal(matching(DATA, filter({ company: '01JCOMPANY00000000000000XX' })).length, 4);
     assert.deepEqual(folioDoc(DATA, filter({ projects: [gone] })).scope, []);
+  });
+
+  test('pruneFilter drops what no longer exists, so the page shows no filter rather than an empty one', () => {
+    const gone = '01JPROJECT0000000000000GON';
+    const f = filter({ projects: [gone, P1, NO_PROJECT], company: '01JCOMPANY00000000000000XX' });
+    assert.deepEqual(pruneFilter(f, DATA), { ...filter(), projects: [P1, NO_PROJECT] });
+    const same = filter({ projects: [P1] });
+    assert.equal(pruneFilter(same, DATA), same);
+  });
+
+  test('by project with a company filter, an item goes under its project of that company', () => {
+    const data: FolioResponse = { ...DATA, items: [item('m', { impact: 3, projects: [P2, P1] })], projects: DATA.projects };
+    assert.equal(folioDoc(data, filter({ company: C1 })).sections[0].heading, 'Pre-flight checklist');
+    assert.equal(folioDoc(data, filter()).sections[0].heading, 'Incident tooling');
   });
 
   test('excluded items stay in the list but leave the document', () => {
@@ -237,6 +255,24 @@ _Project: Pre-flight checklist · Impact 7 and up_
     assert.match(md, /\n {2}> Line one\n {2}> Line two\n$/);
   });
 
+  test('a summary or quote line that looks like a block (a heading, list, quote, rule) stays text', () => {
+    for (const [inp, out] of [
+      ['---', '\\---'],
+      ['# not a heading', '\\# not a heading'],
+      ['- not a list', '\\- not a list'],
+      ['+ nor this', '\\+ nor this'],
+      ['1. nor this', '1\\. nor this'],
+      ['2) nor this', '2\\) nor this'],
+      ['> nor this', '\\> nor this'],
+      ['===', '\\==='],
+      ['#hashtag is fine', '#hashtag is fine'],
+      ['10 people came', '10 people came'],
+    ])
+      assert.equal(mdLine(inp), out, inp);
+    const md = toMarkdown(folioDoc({ ...DATA, items: [item('s', { title: 'T', summary: '---', evidence: [{ kind: 'quote', text: '# h\n---' }] })] }, filter()));
+    assert.match(md, /- \*\*T\*\* · 1 Sep 2026\n {2}\\---\n {2}> \\# h\n {2}> \\---\n$/);
+  });
+
   test('500 items: the document is built quickly', () => {
     const items = Array.from({ length: 500 }, (_, i) => item(`b${i}`, { title: `Bulk ${i}`, happenedAt: `2026-08-${String(1 + (i % 28)).padStart(2, '0')}`, impact: 1 + (i % 10), projects: [i % 2 ? P1 : P2] }));
     const t = performance.now();
@@ -251,8 +287,46 @@ describe('clippings carry nothing that points back at this machine (D53)', () =>
 
   test('urls: only http(s), and never a local address', () => {
     assert.equal(shareableUrl('https://github.com/a/b/pull/1'), 'https://github.com/a/b/pull/1');
-    for (const u of ['http://localhost:2724/api/evidence/abc', 'http://127.0.0.1/x', 'http://[::1]:3000/', 'http://0.0.0.0/', 'http://app.localhost/', 'http://printer.local/', 'file:///Users/alex/a.pdf', 'javascript:alert(1)', 'not a url'])
+    for (const u of ['https://example.com/', 'http://8.8.8.8/', 'http://172.32.0.1/', 'https://[2001:db8::1]/', 'https://docs.example.com./x'])
+      assert.ok(shareableUrl(u), u);
+    for (const u of [
+      'http://localhost:2724/api/evidence/abc',
+      'http://LOCALHOST/',
+      'http://localhost./x',
+      'http://127.0.0.1/x',
+      'http://127.1/',
+      'http://2130706433/',
+      'http://[::1]:3000/',
+      'http://[::ffff:127.0.0.1]/',
+      'http://[fe80::1]/',
+      'http://[fd00::1]/',
+      'http://0.0.0.0/',
+      'http://10.1.2.3/',
+      'http://172.16.0.1/',
+      'http://192.168.1.20:8080/',
+      'http://169.254.169.254/',
+      'http://app.localhost/',
+      'http://printer.local/',
+      'http://printer.local./',
+      'http://nas.lan/',
+      'http://wiki.internal/',
+      'http://router.home.arpa/',
+      'http://intranet/',
+      'file:///Users/alex/a.pdf',
+      'javascript:alert(1)',
+      'mailto:a@example.com',
+      'not a url',
+    ])
       assert.equal(shareableUrl(u), undefined, u);
+  });
+
+  test('text written by people is scrubbed of local links, file locations, our routes and hashes', () => {
+    const sha = 'a'.repeat(64);
+    assert.equal(
+      scrubText(`See shot at http://localhost:5173/x and /Users/alex/Desktop/a.png, ~/Code/app/notes.md, C:\\Users\\alex\\b.pdf, ./rel/c.txt and /api/evidence/${sha} or ${sha}; https://example.com/ok stays, as do PDF/CSV and and/or.`),
+      'See shot at (a local link) and a.png, notes.md, b.pdf, c.txt and or ; https://example.com/ok stays, as do PDF/CSV and and/or.',
+    );
+    assert.equal(scrubText('file:///home/alex/report.pdf'), 'report.pdf');
   });
 
   test('files by name only; ids and dangling references dropped; summary from the body when there is none', () => {
@@ -298,6 +372,41 @@ describe('clippings carry nothing that points back at this machine (D53)', () =>
     });
     const md = toMarkdown(folioDoc({ ...DATA, items: [c] }, filter({ from: '2026-01-01', to: '2026-12-31' })));
     assert.doesNotMatch(md, /01J[0-9A-Z]{23}|localhost|Users|\\\\|[a-f0-9]{64}/);
+  });
+
+  test('malformed PR keys and URLs never become a ref or a link; a local or non-web link is marked or dropped', () => {
+    const c = toClipping(
+      {
+        id: 'x',
+        title: 'T',
+        body: 'Read [the notes](/Users/alex/notes.md) and **this** `code`, see http://localhost:3000/a.',
+        happenedAt: '2026-09-01',
+        projects: [],
+        evidence: [
+          { kind: 'github_pr', externalKey: 'github_pr:/Users/ed/secret#1' },
+          { kind: 'github_pr', url: 'http://localhost:3000/github.com/a/b/pull/1' },
+          { kind: 'github_pr', url: 'https://github.com/a/b/pull/2', title: 'Fix /Users/alex/x.ts' },
+          { kind: 'url', url: 'mailto:someone@example.com', title: 'Mail' },
+          { kind: 'url', url: 'ftp://files.example.com/a', title: 'FTP' },
+          { kind: 'url', url: 'http://192.168.1.5/grafana', title: 'Dashboard' },
+          { kind: 'image', blob: 'a'.repeat(64), title: './Desktop/secret/shot.png' },
+          { kind: 'image', blob: 'a'.repeat(64), title: 'Shot from /Users/ed/x.png' },
+          { kind: 'quote', quote: { text: 'From http://127.0.0.1/x', from: '/Users/sam' } },
+        ],
+      },
+      () => undefined,
+      { project: () => true, company: () => true },
+    );
+    assert.equal(c.summary, 'Read the notes and this code, see (a local link)');
+    assert.deepEqual(c.evidence, [
+      { kind: 'github_pr', ref: 'a pull request' },
+      { kind: 'github_pr', ref: 'a pull request' },
+      { kind: 'github_pr', ref: 'a/b#2', url: 'https://github.com/a/b/pull/2', title: 'Fix x.ts' },
+      { kind: 'url', title: 'Dashboard' },
+      { kind: 'image', name: 'shot.png' },
+      { kind: 'image', name: 'Shot from x.png' },
+      { kind: 'quote', text: 'From (a local link)', from: 'sam' },
+    ]);
   });
 
   test('helpers', () => {

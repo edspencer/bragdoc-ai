@@ -48,8 +48,11 @@ _1 July 2026 – 30 September 2026 · 12 achievements_
 - **Pull requests and links stay links.** Quotes become blockquotes.
 - **Files are named, never located.** Screenshots, PDFs and other files appear by their caption or file name only:
   no folder, and no link to BragDoc, which nobody you send the document to could open.
-- **Nothing that only works on your computer** goes in: a link to `localhost` or another local address is named and
-  marked as left out. Internal ids never appear.
+- **Nothing that only works on your computer or your network** goes in: a link to `localhost`, a private address
+  (`192.168.…`, `10.…`) or a local name (`.local`, `.lan`) is named and marked as left out, and links that aren't web
+  pages (`mailto:`, `file:`) are dropped. The same goes for text you wrote: a local link in a summary or a quote
+  becomes "(a local link)", and a file's location (`/Users/…`, `~/…`, `C:\…`) becomes just its name. Internal ids
+  never appear.
 
 Folio writes nothing to your [data folder](/reference/data-folder/): the document is made in your browser.
 

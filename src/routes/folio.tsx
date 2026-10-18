@@ -3,10 +3,10 @@
 // folio lives in the URL (?from&to&p&c&min&out&group&view), so a reload, Back or a bookmark brings the same one back.
 // No AI: the folio is exactly what you picked, nothing added or rewritten (D8).
 // Adapted from the Scrapbook prototype's Folio.tsx, with its AI draft removed.
-import { useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { createFileRoute, useNavigate } from '@tanstack/react-router';
 import { Copy, Download, Printer } from 'lucide-react';
-import { exportName, folioDoc, matching, readSearch, toMarkdown, writeSearch, type FolioFilter, type FolioSearch } from '../../shared/folio.ts';
+import { exportName, folioDoc, matching, pruneFilter, readSearch, toMarkdown, writeSearch, type FolioFilter, type FolioSearch } from '../../shared/folio.ts';
 import { useFolio } from '../api/queries.ts';
 import { Clipping } from '../folio/Clippings.tsx';
 import { Filters } from '../folio/Filters.tsx';
@@ -66,19 +66,27 @@ function Folio() {
   const navigate = useNavigate({ from: '/folio' });
   const toast = useToast();
   const today = todayIso();
-  const f = useMemo(() => readSearch(search, today), [search, today]);
-  const q = useFolio(f.from, f.to);
-  // while a new window loads, the last one stays up (filtered to the new dates below), so the page doesn't flash empty
+  const asked = useMemo(() => readSearch(search, today), [search, today]);
+  const q = useFolio(asked.from, asked.to);
+  // while a new window loads, the last one stays on screen, faded, so the page doesn't flash empty; but nothing is
+  // claimed about it (no empty state) and nothing can be taken from it (the actions wait)
   const data = q.data;
+  const loading = q.isPlaceholderData || (!data && q.isPending);
+  // what the filter means given what exists now: a project or company deleted mid-session drops out of it
+  const f = useMemo(() => (data ? pruneFilter(asked, data) : asked), [asked, data]);
   const [showAll, setShowAll] = useState(false);
   const [copied, setCopied] = useState(false);
   const copiedTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
+  useEffect(() => () => clearTimeout(copiedTimer.current), []);
+  // a new window or filter starts with the first page of clippings again
+  const scope = `${f.from}|${f.to}|${f.projects.join()}|${f.company ?? ''}|${f.minImpact}`;
+  useEffect(() => setShowAll(false), [scope]);
 
   const set = (patch: Partial<FolioFilter>) => {
     const next = { ...f, ...patch };
     if (next.from > next.to) [next.from, next.to] = [next.to, next.from];
     // forget exclusions that fall outside a new window: they'd only lengthen the URL
-    if (data && (patch.from || patch.to)) next.exclude = next.exclude.filter((id) => data.items.some((a) => a.id === id && a.happenedAt >= next.from && a.happenedAt <= next.to));
+    if (data && !q.isPlaceholderData && (patch.from || patch.to)) next.exclude = next.exclude.filter((id) => data.items.some((a) => a.id === id && a.happenedAt >= next.from && a.happenedAt <= next.to));
     void navigate({ search: { ...writeSearch(next), ...(search.view ? { view: search.view } : {}) }, replace: true, resetScroll: false });
   };
   const setView = (view?: 'md') => void navigate({ search: (s: Search) => ({ ...s, view }), replace: true, resetScroll: false });
@@ -106,19 +114,20 @@ function Folio() {
   }
 
   const shown = showAll ? list : list.slice(0, FIRST_PAGE);
-  const nothing = !!data && list.length === 0;
+  const nothing = !!data && !loading && list.length === 0;
+  const canTake = picked > 0 && !loading;
 
   // Copy, Print, Export: beside the sheet on wide screens; on a phone also above the clippings, so they're not a
   // 300-card scroll away
   const actions = (
     <div className="flex flex-wrap items-center gap-2">
-      <Btn kind="paper" onClick={() => void copy()} disabled={!picked} data-testid="folio-copy">
+      <Btn kind="paper" onClick={() => void copy()} disabled={!canTake} data-testid="folio-copy">
         <Copy aria-hidden className="size-4" /> {copied ? 'Copied' : 'Copy'}
       </Btn>
-      <Btn kind="paper" onClick={() => window.print()} disabled={!picked} data-testid="folio-print">
+      <Btn kind="paper" onClick={() => window.print()} disabled={!canTake} data-testid="folio-print">
         <Printer aria-hidden className="size-4" /> Print
       </Btn>
-      <Btn kind="go" onClick={() => download(exportName(f), md)} disabled={!picked} className="ml-auto" data-testid="folio-export">
+      <Btn kind="go" onClick={() => download(exportName(f), md)} disabled={!canTake} className="ml-auto" data-testid="folio-export">
         <Download aria-hidden className="size-4" /> Export .md
       </Btn>
     </div>
@@ -136,7 +145,7 @@ function Folio() {
         <div>
           <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
             <span className="font-grotesk text-[22px] font-extrabold" data-testid="folio-count">
-              {data ? (list.length ? `${picked} of ${list.length} picked` : 'Nothing to pick') : q.isError ? 'Folio' : 'Loading…'}
+              {loading ? 'Loading…' : data ? (list.length ? `${picked} of ${list.length} picked` : 'Nothing to pick') : 'Folio'}
             </span>
             {list.length > 0 && <Hand className="text-[19px] text-muted">untick anything that doesn’t belong</Hand>}
             {list.length > 1 && (
@@ -180,7 +189,7 @@ function Folio() {
             </div>
           ) : (
             <>
-              <ul className="m-0 mt-4 list-none space-y-3 p-0" data-testid="folio-clippings">
+              <ul className={`m-0 mt-4 list-none space-y-3 p-0 transition-opacity ${loading ? 'opacity-50' : ''}`} aria-busy={loading} data-testid="folio-clippings">
                 {shown.map((a) => (
                   <Clipping key={a.id} a={a} on={!out.has(a.id)} projects={projects} toggle={toggle} />
                 ))}
@@ -201,14 +210,17 @@ function Folio() {
             <FilterChip label="Markdown" on={search.view === 'md'} onClick={() => setView('md')} />
           </div>
 
-          {doc &&
-            (search.view === 'md' ? (
-              <pre className="sb-card mt-4 max-h-[75vh] overflow-auto whitespace-pre-wrap break-words rounded-2xl p-5 font-mono text-[12.5px] leading-relaxed text-ink" data-testid="folio-markdown">
-                {md}
-              </pre>
-            ) : (
+          {doc && search.view === 'md' && (
+            <pre className="sb-card mt-4 max-h-[75vh] overflow-auto whitespace-pre-wrap break-words rounded-2xl p-5 font-mono text-[12.5px] leading-relaxed text-ink print:hidden" data-testid="folio-markdown">
+              {md}
+            </pre>
+          )}
+          {/* the printout is what Print prints, so it's there in the Markdown view too, for paper only */}
+          {doc && (
+            <div className={`transition-opacity ${loading ? 'opacity-50' : ''} ${search.view === 'md' ? 'hidden print:block' : ''}`}>
               <Sheet doc={doc} empty={nothing} />
-            ))}
+            </div>
+          )}
           <p className="mt-5 text-[12.5px] text-muted">Exactly what you picked, nothing added or rewritten. Pull requests and links stay links; files are named, never located, so the document is safe to send on.</p>
         </div>
       </div>
