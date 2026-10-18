@@ -182,12 +182,20 @@ function dayIn(d: Date, tz: string | undefined): string {
   }
 }
 
-/** A quote as an achievement's title: whole if short, else cut at a word. */
-function titleOf(quote: string): string {
+/** A quote as an achievement's title: its first sentence (the whole quote is on the sticky), cut at a word if long. */
+export function titleOf(quote: string): string {
   const q = quote.replace(/\s+/g, ' ').trim();
-  if (q.length <= 110) return q;
-  const cut = q.slice(0, 110);
+  const first = /^.{20,}?[.!?](?=\s|$)/u.exec(q)?.[0] ?? q;
+  if (first.length <= 110) return first;
+  const cut = first.slice(0, 110);
   return `${cut.slice(0, Math.max(60, cut.lastIndexOf(' '))).trimEnd()}…`;
+}
+
+/** The card's "passed the rules" chips: one per match, but the chat cues (the window, not the message) as one. */
+export function reasonsOf(r: RulesResult): string[] {
+  const chat = r.matched.filter((m) => m.rule === 'chat').map((m) => m.text);
+  const rest = r.matched.filter((m) => m.rule !== 'chat').map(describeMatch);
+  return [...new Set([...rest, ...(chat.length ? [`Looks like a chat: ${chat.slice(0, 2).map((t) => `"${t}"`).join(', ')}`] : [])])];
 }
 
 export class ScreenshotsSource {
@@ -638,7 +646,6 @@ export class ScreenshotsSource {
       return this.note(name, 'looked', `didn’t pass the rules (${text.trim() ? missing : 'no text in it'})`);
     }
     this.st.counts.looked++;
-    const reasons = [...new Set(r.matched.map(describeMatch))];
     const added = this.o.services.found.add({
       source: 'screenshots',
       externalKey: key,
@@ -647,7 +654,7 @@ export class ScreenshotsSource {
       happenedAt: dayIn(st.mtime, profile.timezone),
       quote: { text: r.quote, ...(r.from ? { from: r.from } : {}), ...(r.where ? { where: r.where } : {}) },
       files: [{ path: file, title: name }],
-      matchedRules: reasons,
+      matchedRules: reasonsOf(r),
     });
     if (!added.created || !added.candidate) {
       this.st.lastSeen = { at: this.now().toISOString(), name, outcome: 'already in Found or on your board' };
