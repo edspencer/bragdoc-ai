@@ -94,6 +94,7 @@ test('the runner down: it stops at once with the reason, exit 1, and no recordin
   assert.equal(report.stopped?.code, 'unreachable');
   assert.equal(report.rows.length, 1);
   assert.match(formatReport(report), /stopped early: unreachable/);
+  assert.match(formatReport(report), /valid answers\s+0 of 1/);
   assert.deepEqual([readActivity(a.dataDir).entries[0]!.outcome, readActivity(a.dataDir).entries[0]!.error], ['error', 'unreachable']);
   // the command line says so, and writes nothing
   const h = tmpHome();

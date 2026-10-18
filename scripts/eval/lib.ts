@@ -224,15 +224,15 @@ const quantile = (xs: number[], q: number) => {
 };
 
 function summarise(rows: EvalRow[], planned: number): Record<string, Cell> {
+  // answered: a valid answer came back and was scored (a row that failed, for whatever reason, didn't)
   const answered = rows.filter((r) => r.pass !== null);
-  const invalid = rows.filter((r) => r.error === 'bad_output' || r.error === 'no_structured_output').length;
   const ms = answered.map((r) => r.ms);
   const sum = (k: 'tokensIn' | 'tokensOut') => (rows.some((r) => r[k] !== null) ? rows.reduce((a, r) => a + (r[k] ?? 0), 0) : null);
   return {
     cases: `${rows.length} of ${planned}`,
     passed: `${answered.filter((r) => r.pass).length} (${pct(answered.filter((r) => r.pass).length, rows.length)})`,
     'failed calls': rows.filter((r) => r.error).length,
-    'valid answers': `${rows.length - invalid} of ${rows.length}${rows.some((r) => r.repaired) ? ` (${rows.filter((r) => r.repaired).length} after a repair)` : ''}`,
+    'valid answers': `${answered.length} of ${rows.length}${rows.some((r) => r.repaired) ? ` (${rows.filter((r) => r.repaired).length} after a repair)` : ''}`,
     'p50 / p90': ms.length ? `${(quantile(ms, 0.5)! / 1000).toFixed(1)} s / ${(quantile(ms, 0.9)! / 1000).toFixed(1)} s` : '–',
     tokens: sum('tokensIn') !== null ? `${sum('tokensIn')} in, ${sum('tokensOut') ?? '?'} out` : 'not reported',
   };

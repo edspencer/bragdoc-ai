@@ -315,7 +315,7 @@ if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.me
   }
   const port = Number(arg('port') ?? process.env.PORT ?? 0);
   const recording = arg('recording');
-  const rules = recording ? (await import('../../ai-replay.ts')).replayRules((await import('../../../scripts/eval/lib.ts')).readRecording(recording)) : [];
+  const rules = recording ? (await import('./replay.ts')).replayRules((await import('../../../scripts/eval/lib.ts')).readRecording(recording)) : [];
   const f = await startFakeLlm({ port, rules, ...(scenario ? { scenario } : {}) });
   process.stdout.write(`fake-llm on ${f.url} (scenario: ${scenario ?? 'from FAKE_LLM_SCENARIO or ~/.fake-llm/scenario, else ok'})\n`);
 }
