@@ -18,7 +18,7 @@ import fs from 'node:fs';
 import http from 'node:http';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { answerFor, type FakeRequest } from './answers.ts';
+import { answerFor, type AnswerRule, type FakeRequest } from './answers.ts';
 
 export const SCENARIOS = ['ok', 'slow', 'down', 'bad-json', 'bad-json-once', 'no-schema', 'timeout', 'rate-limited', 'refused-key', 'quota', 'context-too-long', 'no-models'] as const;
 export type Scenario = (typeof SCENARIOS)[number];
@@ -41,6 +41,8 @@ export interface FakeLlmOptions {
   slowMs?: number;
   /** Each step of a fake pull (ms). Default 150. */
   pullStepMs?: number;
+  /** Rows checked before answers.ts's: a replayed recording (test/ai-replay.ts replayRules). */
+  rules?: AnswerRule[];
   env?: NodeJS.ProcessEnv;
 }
 
@@ -109,8 +111,8 @@ function normalise(api: FakeRequest['api'], b: Record<string, any>): FakeRequest
 }
 
 /** A structured answer as the scenario shapes it: valid JSON, or (bad-json) not. */
-function answerText(r: FakeRequest, scenario: Scenario): { rule: string; out: string } {
-  const { rule, value } = answerFor(r);
+function answerText(r: FakeRequest, scenario: Scenario, rules: AnswerRule[] = []): { rule: string; out: string } {
+  const { rule, value } = answerFor(r, rules);
   const repairing = r.messages.some((m) => m.role === 'user' && /wasn't valid/.test(m.content));
   if (r.json && (scenario === 'bad-json' || (scenario === 'bad-json-once' && !repairing))) return { rule, out: 'Sure! Here is what you asked for: {"ok": tru' };
   return { rule, out: typeof value === 'string' && !r.json ? value : JSON.stringify(value) };
@@ -215,7 +217,7 @@ export function createFakeLlm(opts: FakeLlmOptions = {}): FakeLlm {
     if (scenario === 'no-schema' && r.schemaSent) return error(400, api === 'ollama' ? 'format: structured outputs are not supported by this server' : "response_format 'json_schema' is not supported by this server");
     if (api === 'anthropic' && !headers['x-api-key'] && !headers.authorization) return error(401, 'x-api-key header is required', 'authentication_error');
 
-    const { rule, out } = answerText(r, scenario);
+    const { rule, out } = answerText(r, scenario, opts.rules);
     rec.rule = rule;
     const usage = { in: Math.ceil(raw.length / 4), out: Math.ceil(out.length / 4) };
     const gap = scenario === 'slow' ? Math.min(slowMs / 4, 400) : 0;
@@ -299,7 +301,8 @@ export async function startFakeLlm(opts: FakeLlmOptions & { port?: number } = {}
   };
 }
 
-// run directly: `node --import tsx test/fixtures/fake-llm/server.ts --port 5150 [--scenario slow] [--pull-step-ms 1000]`
+// run directly: `node --import tsx test/fixtures/fake-llm/server.ts --port 5150 [--scenario slow] [--recording <file>] [--pull-step-ms 1000]`
+// (--recording: answer what a recording was asked with what it recorded, as the replay tests do)
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
   const arg = (n: string) => {
     const i = process.argv.indexOf(`--${n}`);
@@ -311,8 +314,10 @@ if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.me
     process.exit(2);
   }
   const port = Number(arg('port') ?? process.env.PORT ?? 0);
+  const recording = arg('recording');
+  const rules = recording ? (await import('./replay.ts')).replayRules((await import('../../../scripts/eval/lib.ts')).readRecording(recording)) : [];
   // --pull-step-ms: a slower fake download, for trying Cancel and "AI off mid-download" by hand
   const step = Number(arg('pull-step-ms') ?? NaN);
-  const f = await startFakeLlm({ port, ...(scenario ? { scenario } : {}), ...(Number.isFinite(step) ? { pullStepMs: step } : {}) });
+  const f = await startFakeLlm({ port, rules, ...(scenario ? { scenario } : {}), ...(Number.isFinite(step) ? { pullStepMs: step } : {}) });
   process.stdout.write(`fake-llm on ${f.url} (scenario: ${scenario ?? 'from FAKE_LLM_SCENARIO or ~/.fake-llm/scenario, else ok'})\n`);
 }

@@ -3,6 +3,7 @@
 // it a plain bag of dependencies: no logic.
 import type { Notice } from '../shared/api.js';
 import type { LocalAi } from './ai/local.js';
+import type { AiActivity } from './ai/activity.js';
 import type { Ai } from './ai/run.js';
 import type { ConfigStore } from './config.js';
 import type { Egress } from './egress.js';
@@ -52,4 +53,6 @@ export interface AppContext {
   ai: Ai;
   /** Settings → AI's local runners (PR23): hardware, "look for a model runner", and an Ollama download after a confirm. */
   localAi: LocalAi;
+  /** The AI activity log (logs/ai-runs.jsonl): every ctx.ai call lands here; `start()` groups a feature's run (PR22). */
+  aiActivity: AiActivity;
 }

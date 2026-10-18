@@ -13,6 +13,8 @@ import type { Hono } from 'hono';
 import type { AppContext } from '../context.js';
 import { registerAchievements } from './achievements.js';
 import { registerAi } from './ai.js';
+import { registerAiActivity } from './ai-activity.js';
+import { registerAiInstructions } from './ai-instructions.js';
 import { registerAiLocal } from './ai-local.js';
 import { registerCatalog } from './catalog.js';
 import { registerCompanies } from './companies.js';
@@ -40,6 +42,8 @@ import { registerWelcome } from './welcome.js';
 export function registerRoutes(app: Hono, ctx: AppContext): void {
   registerAchievements(app, ctx);
   registerAi(app, ctx);
+  registerAiActivity(app, ctx);
+  registerAiInstructions(app, ctx);
   registerAiLocal(app, ctx);
   registerCatalog(app, ctx);
   registerCompanies(app, ctx);

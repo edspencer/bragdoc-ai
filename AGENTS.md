@@ -26,7 +26,8 @@ again from Settings → Data), the bounded repo scan, and the example data (see 
 PR19 brought the docs site up to date with what was built, with real screenshots from the capture rig's example world.
 PR17 is the v0.1 release candidate: an end-to-end pass over all of it, the fixes it turned up, and the 0.1.0 changeset.
 v0.1's feature set is complete. **v0.2 adds opt-in AI** (epic [#434](https://github.com/edspencer/bragdoc-ai/issues/434)),
-built on the `v0.2` branch: PR21 laid down the AI core (see "AI (v0.2)" below); its UI and features follow.
+built on the `v0.2` branch: PR21 laid down the AI core and PR22 the shared plumbing the features use (instructions
+files, the AI activity log, live evals; see "AI (v0.2)" below); its UI and features follow.
 
 Before changing behaviour, read, in order:
 
@@ -105,7 +106,7 @@ server/              the server and CLI (Node, TypeScript ESM, Hono)
                      run.ts (ctx.ai: queue, object/stream/test/models), local.ts (ctx.localAi: hardware, detection, the
                      confirmed Ollama download; PR23), errors.ts (AiError, the fixed codes), sdk.ts
                      (the ONLY place the AI SDK is loaded, by import()), providers.ts (connection → model), ollama.ts
-                     (Ollama's native /api/chat as a model)
+                     (Ollama's native /api/chat as a model), activity.ts (ctx.aiActivity: logs/ai-runs.jsonl, PR22)
   discover.ts        Welcome's "Your code": the bounded scan of one named folder (4 levels, 5 s, stops at .git,
                      symlink-loop safe), opt-in editor hints, recency from each repo's own .git (D60)
   example.ts         the example dataset (fixtures/example/): add (create-only, `example: true`), remove exactly it (D61)
@@ -148,7 +149,7 @@ shared/              code used by both server/ and src/: no Node or DOM APIs
   rules/screenshot.ts "is this screenshot praise for me?" from OCR text: plain rules, never a model (D52)
   ai/                v0.2: hosts.ts (hostClass: this computer · your network · internet), connections.ts (kinds,
                      presets, isCloud), consent.ts (the versioned statements), models.ts (the recommended models),
-                     grounding.ts (ungrounded, isVerbatim)
+                     grounding.ts (ungrounded, isVerbatim), instructions.ts (the instructions files' names and cap)
 src/                 the web app (React 19, Vite, Tailwind v4, TanStack Router + Query), built into dist/web
   main.tsx           fonts, ThemeProvider, QueryClient, router
   routes/            file-based routes (TanStack Router; tsr.config.json); __root.tsx is the shell
@@ -179,7 +180,8 @@ test/                node:test suites, run from source via tsx; fixture.ts has t
 e2e/                 Playwright specs, run against the built server (playwright.config.ts)
 fixtures/example/    the example dataset (example.json + evidence/), shipped in the package and the image (D61)
 scripts/             gen-example.ts (npm run gen:example: the example evidence files), start.mjs (npm start), dev.mjs (npm run dev), check-no-nul-bytes.mjs, sync-reference.ts,
-                     store-demo.ts, whats-new-release.mjs (heads the docs site's What's new at `changeset:version`);
+                     store-demo.ts, whats-new-release.mjs (heads the docs site's What's new at `changeset:version`),
+                     eval/ (v0.2's live evals: lib.ts is the harness, one spec per eval: smoke.ts);
                      the release's: build-info.mjs (dist/build-info.json), strip-maps.mjs,
                      smoke-pack.mjs (npm run smoke:pack), smoke-image.sh (a built Docker image, in CI)
 .changeset/          pending changelog entries (`npm run changeset`); config.json versions against next
@@ -216,6 +218,8 @@ npm run store:demo     # the file store end to end on a throwaway data home (see
 npm run eval:screenshots -- --ocr   # the screenshot rules' precision and recall on the synthetic screenshots
                        # (test/screenshots.ts), read by real OCR; without --ocr, on perfect text (fast)
 npm run bragdoc -- dev ocr <image>  # which OCR engine ran, the text, and what the rules made of it
+BRAGDOC_LIVE_AI=1 npm run eval:smoke -- --connection ollama@http://127.0.0.1:11434 --model qwen3.5:4b [--record]
+                       # a live eval on a REAL model (refuses under CI); --record saves answers for replay tests
 npm run gen:example    # remake fixtures/example/evidence/ after changing a picture in scripts/gen-example.ts
 ```
 
@@ -482,16 +486,58 @@ without a confirm; nothing a model says reaches the board or changes a Found can
   twice). **A feature's card**: a component in `src/settings/ai/`, then replace its `Card: null` in `FEATURE_CARDS`
   (`src/settings/ai/index.ts`) with it: one line. It gets `{ status, readiness }` and owns its feature's switch.
 
+PR22 added the plumbing the three features share (D67, D68):
+
+- **Instructions files** (`ai/what-counts.md` for the judge, `ai/style.md` for tidy and draft): a store kind,
+  `instructions`, owned by the store like every data file (backed up, watched, never gitignored). Through
+  `ctx.services.instructions`:
+  - `forPrompt(name)` → the markdown a prompt includes (after any front-matter, trimmed; the last good copy while the
+    file is broken), or null. **A prompt reads instructions only this way**, and a feature that needs them checks
+    `get(name).problems` too: a server started with the file already broken has no last good copy.
+  - `setStarter(name, () => text)` registers the feature's starter (do it where the feature is created; PR24 makes the
+    judge's from the profile). `ensure(name, text)` writes it only if there's no file (a first switch-on);
+    `reset(name)` puts it back, moving the user's version to `backups/removed/` first.
+  - `get(name)` / `put(name, { text }, { ifMatch })`: the whole file, for an editor. A broken file is a Problem and is
+    replaced only with its ETag; over 20,000 characters (`INSTRUCTIONS_MAX_CHARS`) is a Problem too.
+  - Routes `GET/PUT /api/ai/instructions/:name`, `POST …/reset` (`server/routes/ai-instructions.ts`); types
+    `AiInstructions*` in `shared/api.ts`; the `instructions` event refreshes query keys starting `ai-instructions`.
+    Not gated on AI: they're files.
+- **The AI activity log** (`logs/ai-runs.jsonl`, `ctx.aiActivity`, `server/ai/activity.ts`): every `ctx.ai` call is a
+  line by itself, unless it belongs to a run. **A feature that makes several calls for one job opens a run:**
+  ```ts
+  const run = ctx.aiActivity.start({ feature: 'judge', trigger: 'schedule' }); // now · arrival · schedule · eval · cli
+  try {
+    for (const c of items) { await ctx.ai.object({ …, runId: run.id }); run.count('win'); }
+  } finally {
+    run.end({ error: code, cancelled }); // one line; nothing at all if it never called a model
+  }
+  ```
+  A single call can say what started it with `trigger` (default `now`). Counts and errors are **codes**
+  (`probably-not`, `unreachable`), never sentences. `GET /api/ai/activity?limit&offset` (`AiActivityResponse`, newest
+  first) and the `ai-activity` event are what PR23's receipt shows (`getAiActivity` / `useAiActivity`).
+- **Live evals** (`scripts/eval/lib.ts`): a feature's eval is a spec (`EvalSpec`: synthetic `cases`, `run(case, ask)`
+  using `ask.object()` / `ask.text()`, `score()`, optional `summarise()`) in `scripts/eval/<name>.ts` ending
+  `if (isMain(import.meta.url)) process.exitCode = await main(SPEC)`, plus an `eval:<name>` script. The harness does
+  the rest: the refusal (no `BRAGDOC_LIVE_AI=1`, or `CI` set), `--connection <id | kind@url>`, `--model`, `--limit`,
+  `--record`, the table, stopping on a run-level failure, one activity run (trigger `eval`). `smoke.ts` is the example.
+  - **Recordings** go to `test/fixtures/ai-recordings/<eval>/<model>.json`, keyed by a hash of exactly what was asked.
+    `replay(spec, recording)` (`test/ai-replay.ts`) runs the spec against the fake model server answering from it:
+    assert `stale`, `missing` and `unanswered` are empty and the scores are what you expect. **Changing a prompt
+    or a schema makes its recordings stale**: re-record on a machine with the model (`--record`), never by hand. `node --import tsx
+    test/fixtures/fake-llm/server.ts --recording <file>` serves one for box QA.
+
 **Adding an AI feature** (five steps):
 1. Its settings already exist under `ai.features.<name>` (PR21 laid down all of them); read them with
    `ctx.ai.readiness(feature)`, never by checking `enabled` yourself.
-2. A prompt in `server/ai/prompts/<feature>.ts`: a pure function of its inputs, tested for what it includes and what
-   it leaves out (never a path, an id or a local URL); the same function feeds the "what's sent" preview.
+2. A prompt in `server/ai/prompts/<feature>.ts`: a pure function of its inputs (instructions from
+   `services.instructions.forPrompt()`), tested for what it includes and what it leaves out (never a path, an id or a
+   local URL); the same function feeds the "what's sent" preview. Several calls for one job are one activity run.
 3. A Zod schema for the answer, and one call: `ctx.ai.object({ feature, purpose: 'ai.<feature>', schema, system,
    prompt, signal: c.req.raw.signal })` (or `stream`). Map an `AiError` to `c.json(apiError(e.code, e.message),
    e.status)`. Check the output with `shared/ai/grounding.ts` before showing it.
 4. A route module (`server/routes/ai-<feature>.ts`, one line in `routes/index.ts`), documented on the HTTP API page,
-   and rows in the fake's `answers.ts` for its tests and e2e.
+   and rows in the fake's `answers.ts` for its tests and e2e. Its live eval (`scripts/eval/<feature>.ts`) and a
+   recording from each recommended model, replayed in a test.
 5. Its card in Settings → AI (`src/settings/ai/`, one line in `FEATURE_CARDS`, after PR23), and its affordance shown
    only while `readiness` says it's on.
 

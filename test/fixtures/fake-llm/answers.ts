@@ -44,6 +44,16 @@ export const ANSWERS: AnswerRule[] = [
   // the end of a long prompt (QA's context-size check): names the last line
   { name: 'last-line', when: (r) => /what is the last line/i.test(r.prompt), answer: (r) => (r.json ? { lastLine: lastLine(r.prompt) } : `The last line is: ${lastLine(r.prompt)}`) },
   { name: 'ok-schema', when: (r) => r.json && asks(r, 'ok') && props(r).length === 1, answer: () => ({ ok: true }) },
+  // `npm run eval:smoke` (PR22): the date and the percentage in the sentence between the markers, always right
+  {
+    name: 'eval-smoke',
+    when: (r) => r.json && (r.schemaName === 'eval_smoke' || (asks(r, 'date', 'percent') && /<<<\n/.test(r.prompt))),
+    answer: (r) => {
+      const s = /<<<\n([\s\S]*?)\n>>>/.exec(r.prompt)?.[1] ?? '';
+      const pct = /(\d+(?:\.\d+)?)%/.exec(s);
+      return { date: /\d{4}-\d{2}-\d{2}/.exec(s)?.[0] ?? null, percent: pct ? Number(pct[1]) : null };
+    },
+  },
   // ---- feature rows go above this line ----
   { name: 'schema', when: (r) => r.json && !!r.schema, answer: (r) => synthesize(r.schema!, r.schema!) },
   { name: 'json', when: (r) => r.json, answer: () => ({ answer: FALLBACK_TEXT }) },
@@ -55,8 +65,9 @@ function lastLine(prompt: string): string {
   return lines.filter((l) => !/what is the last line/i.test(l)).at(-1) ?? '';
 }
 
-export function answerFor(r: FakeRequest): { rule: string; value: unknown } {
-  const rule = ANSWERS.find((a) => a.when(r))!;
+/** The answer for a request: from `extra` first (a replayed recording's rows; test/ai-replay.ts), then the table. */
+export function answerFor(r: FakeRequest, extra: AnswerRule[] = []): { rule: string; value: unknown } {
+  const rule = extra.find((a) => a.when(r)) ?? ANSWERS.find((a) => a.when(r))!;
   return { rule: rule.name, value: rule.answer(r) };
 }
 

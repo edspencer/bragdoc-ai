@@ -251,9 +251,10 @@ dns.lookup = no('dns'); http.request = http.get = no('http'); https.request = ht
   // AI (v0.2, PR21): the installed package carries the AI SDK (a model call works, through egress, against the fake
   // model server on loopback), refuses with AI off, and never even loads the SDK in an AI-off session (the loader-hook
   // check from test/ai-lazy.test.ts, run against this packed build's dist/)
-  step('dev ai: refused with AI off; works against the fake model server; the SDK never loaded with AI off');
+  step('dev ai: refused with AI off; works against the fake model server, in the AI activity log; the SDK never loaded with AI off');
   {
     fails(['dev', 'ai', '--connection', 'fake', '--model', 'qwen3.5:4b', 'hello'], 1, /ai_off/);
+    assert.ok(!fs.existsSync(path.join(data, 'logs', 'ai-runs.jsonl')), 'AI off: nothing in the AI activity log, not even the file');
     fake = spawn(process.execPath, ['--import', 'tsx', path.join(root, 'test', 'fixtures', 'fake-llm', 'server.ts'), '--port', '0'], { cwd: root, env: { ...env, FAKE_LLM_SCENARIO: 'ok' }, stdio: ['ignore', 'pipe', 'inherit'] });
     const fakeUrl = await new Promise((resolve, reject) => {
       let said = '';
@@ -271,6 +272,10 @@ dns.lookup = no('dns'); http.request = http.get = no('http'); https.request = ht
     assert.deepEqual([answer.answer, answer.where, answer.mode], [{ ok: true }, 'this-computer', 'schema'], JSON.stringify(answer));
     const logged = fs.readFileSync(path.join(aiData, 'logs', 'network.jsonl'), 'utf8').trim().split('\n').map((l) => JSON.parse(l));
     assert.deepEqual(logged.map((e) => [e.where, e.feature, e.model, e.outcome]), [['this-computer', 'test', 'qwen3.5:4b', 'ok']]);
+    const runsText = fs.readFileSync(path.join(aiData, 'logs', 'ai-runs.jsonl'), 'utf8');
+    const runs = runsText.trim().split('\n').map((l) => JSON.parse(l));
+    assert.deepEqual(runs.map((e) => [e.feature, e.trigger, e.model, e.where, e.outcome]), [['test', 'cli', 'qwen3.5:4b', 'this-computer', 'ok']]);
+    assert.ok(!runsText.includes('Reply with'), 'no prompt in the AI activity log');
     const lazyLog = path.join(tmp, 'ai-lazy.log');
     fs.writeFileSync(lazyLog, '');
     const lazy = path.join(root, 'test', 'fixtures', 'ai-lazy');
