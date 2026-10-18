@@ -10,6 +10,7 @@ import { Hono } from 'hono';
 import { serve } from '@hono/node-server';
 import { serveStatic } from '@hono/node-server/serve-static';
 import type { Notice } from '../shared/api.js';
+import { createLocalAi, type LocalAiOptions } from './ai/local.js';
 import { createAi, type Ai } from './ai/run.js';
 import { ConfigStore } from './config.js';
 import type { AppContext } from './context.js';
@@ -61,6 +62,10 @@ export interface AppOptions {
   homedir?: string;
   /** ctx.ai (tests: a fake). Default: createAi() over this app's config, egress and secrets. */
   ai?: Ai;
+  /** Settings → AI's hardware readings (tests: fixtures). */
+  hardware?: LocalAiOptions['hardware'];
+  /** Where "look for a model runner" looks (tests: a fake runner on a free port). */
+  detectTargets?: LocalAiOptions['targets'];
 }
 
 /**
@@ -109,6 +114,7 @@ export function createAppWithContext({ dataDir, webDist = WEB_DIST, version = VE
     evidenceText: new EvidenceText({ store, services, ocr }),
     // a thin shell: the AI SDK is loaded by the first model call, never at start (SPEC R20)
     ai: o.ai ?? createAi({ config: () => config.get(), egress, secrets }),
+    localAi: createLocalAi({ dataDir, config: () => config.get(), egress, env: o.env, hardware: o.hardware, targets: o.detectTargets, homedir: o.homedir }),
   };
   const ctx: AppContext = { ...base, sources: createSources(base, { env: o.env, now: o.now, homedir: o.homedir }) };
   // every change to a data file (ours, an agent's over MCP, a hand edit the watcher saw) reaches open tabs, projects,
