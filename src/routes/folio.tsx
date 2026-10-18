@@ -108,11 +108,29 @@ function Folio() {
   const shown = showAll ? list : list.slice(0, FIRST_PAGE);
   const nothing = !!data && list.length === 0;
 
+  // Copy, Print, Export: beside the sheet on wide screens; on a phone also above the clippings, so they're not a
+  // 300-card scroll away
+  const actions = (
+    <div className="flex flex-wrap items-center gap-2">
+      <Btn kind="paper" onClick={() => void copy()} disabled={!picked} data-testid="folio-copy">
+        <Copy aria-hidden className="size-4" /> {copied ? 'Copied' : 'Copy'}
+      </Btn>
+      <Btn kind="paper" onClick={() => window.print()} disabled={!picked} data-testid="folio-print">
+        <Printer aria-hidden className="size-4" /> Print
+      </Btn>
+      <Btn kind="go" onClick={() => download(exportName(f), md)} disabled={!picked} className="ml-auto" data-testid="folio-export">
+        <Download aria-hidden className="size-4" /> Export .md
+      </Btn>
+    </div>
+  );
+
   return (
     <div data-testid="folio-page">
       <PageTitle sub="Pick a stretch of time, choose the best bits, and take away a markdown document you can paste into a self-review.">Folio</PageTitle>
 
       <Filters f={f} set={set} data={data} inWindow={inWindow} today={today} />
+
+      <div className="mt-6 lg:hidden">{actions}</div>
 
       <div className="mt-8 grid items-start gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.15fr)]">
         <div>
@@ -177,17 +195,7 @@ function Folio() {
         </div>
 
         <div className="lg:sticky lg:top-6">
-          <div className="flex flex-wrap items-center gap-2">
-            <Btn kind="paper" onClick={() => void copy()} disabled={!picked} data-testid="folio-copy">
-              <Copy aria-hidden className="size-4" /> {copied ? 'Copied' : 'Copy'}
-            </Btn>
-            <Btn kind="paper" onClick={() => window.print()} disabled={!picked} data-testid="folio-print">
-              <Printer aria-hidden className="size-4" /> Print
-            </Btn>
-            <Btn kind="go" onClick={() => download(exportName(f), md)} disabled={!picked} className="ml-auto" data-testid="folio-export">
-              <Download aria-hidden className="size-4" /> Export .md
-            </Btn>
-          </div>
+          <div className="hidden lg:block">{actions}</div>
           <div className="mt-4 flex gap-2" role="group" aria-label="Preview as">
             <FilterChip label="Printout" on={search.view !== 'md'} onClick={() => setView(undefined)} />
             <FilterChip label="Markdown" on={search.view === 'md'} onClick={() => setView('md')} />

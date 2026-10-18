@@ -57,7 +57,7 @@ export function Filters({ f, set, data, inWindow, today }: { f: FolioFilter; set
         {ps.map((p) => (
           <FilterChip key={p.id} label={p.label} on={f.from === p.from && f.to === p.to} onClick={() => set({ from: p.from, to: p.to })} />
         ))}
-        <span className="flex items-center gap-2">
+        <span className="flex w-full min-w-0 items-center gap-2 sm:w-auto">
           <input
             type="date"
             aria-label="From"
@@ -65,7 +65,7 @@ export function Filters({ f, set, data, inWindow, today }: { f: FolioFilter; set
             value={f.from}
             max={f.to}
             onChange={(e) => e.target.value && set({ from: e.target.value })}
-            className={`${inputCls} !w-auto py-1.5 text-[13px]`}
+            className={`${inputCls} min-w-0 flex-1 py-1.5 text-[13px] sm:!w-auto sm:flex-none`}
           />
           <span aria-hidden className="text-faint">
             →
@@ -77,7 +77,7 @@ export function Filters({ f, set, data, inWindow, today }: { f: FolioFilter; set
             value={f.to}
             min={f.from}
             onChange={(e) => e.target.value && set({ to: e.target.value })}
-            className={`${inputCls} !w-auto py-1.5 text-[13px]`}
+            className={`${inputCls} min-w-0 flex-1 py-1.5 text-[13px] sm:!w-auto sm:flex-none`}
           />
         </span>
       </Row>
