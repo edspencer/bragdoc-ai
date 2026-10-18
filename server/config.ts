@@ -69,6 +69,18 @@ export const ConfigSchema = z.object({
             })
             .prefault({}),
         ),
+        screenshots: section(
+          z
+            .object({
+              /** Watch `folder` for new screenshots (SPEC R7). Off until you pick a folder and turn it on. */
+              enabled: z.boolean().default(false),
+              /** The folder to watch: absolute, or starting with `~/`. Null until you choose one. */
+              folder: z.string().trim().min(1).nullable().default(null),
+              /** Only files named like screenshots ("Screenshot 2026-10-17 at 9.41.03 PM.png"); off: every picture in the folder. */
+              onlyScreenshots: z.boolean().default(true),
+            })
+            .prefault({}),
+        ),
       })
       .prefault({}),
   ),
@@ -96,6 +108,10 @@ sources:
     lookBackDays: 90 # how far back the first check looks
     repos: []        # owners or owner/repo to look in, e.g. [acme, my-org/my-app]; empty: everywhere you merged
     hourly: false    # check by itself every hour while BragDoc runs (off: only when you press Check now)
+  screenshots:
+    enabled: false
+    folder: null     # the folder to watch for new screenshots, e.g. ~/Screenshots
+    onlyScreenshots: true # only files named like screenshots; false: every picture in the folder
 `;
 
 /** config.yaml was written by a newer BragDoc: refuse to start (the CLI prints the message and exits 1). */

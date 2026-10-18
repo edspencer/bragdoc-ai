@@ -18,6 +18,8 @@ import { initHome } from './home.js';
 import { apiError } from './http.js';
 import { LinkPreviews } from './link-preview.js';
 import { forwardStoreChanges } from './live.js';
+import { EvidenceText } from './ocr/evidence-text.js';
+import { createOcr, evidenceOcrCache, type Ocr } from './ocr/index.js';
 import { VERSION, WEB_DIST } from './paths.js';
 import { registerRoutes } from './routes/index.js';
 import { Runtime, displayUrl } from './runtime.js';
@@ -52,6 +54,10 @@ export interface AppOptions {
   env?: NodeJS.ProcessEnv;
   /** The clock the sources use (tests). */
   now?: () => Date;
+  /** OCR (tests: fake engines). Default: createOcr() with evidence text cached in sidecars. */
+  ocr?: Ocr;
+  /** The home folder the screenshots source expands `~/` in and suggests folders from (tests). */
+  homedir?: string;
 }
 
 /**
@@ -78,6 +84,9 @@ export function createAppWithContext({ dataDir, webDist = WEB_DIST, version = VE
   const bus = o.bus ?? new EventBus();
   const config = o.config ?? new ConfigStore(dataDir, { onChange: () => bus.emit({ type: 'config' }) });
   const store = o.store ?? openStore(dataDir);
+  const services = createServices(store);
+  // one OCR queue for the whole app (SPEC R8): a burst of screenshots and a pasted picture take turns
+  const ocr = o.ocr ?? createOcr({ cache: evidenceOcrCache(store, services) });
   const base: Omit<AppContext, 'sources'> = {
     version,
     dataDir,
@@ -88,11 +97,13 @@ export function createAppWithContext({ dataDir, webDist = WEB_DIST, version = VE
     uploads: new UploadRegistry(),
     notices: () => [...startupNotices, ...config.notices()],
     store,
-    services: createServices(store),
+    services,
     linkPreviews: o.linkPreviews ?? new LinkPreviews(),
     secrets: new Secrets(dataDir),
+    ocr,
+    evidenceText: new EvidenceText({ store, services, ocr }),
   };
-  const ctx: AppContext = { ...base, sources: createSources(base, { env: o.env, now: o.now }) };
+  const ctx: AppContext = { ...base, sources: createSources(base, { env: o.env, now: o.now, homedir: o.homedir }) };
   // every change to a data file (ours, an agent's over MCP, a hand edit the watcher saw) reaches open tabs, projects,
   // companies and repos included (PR8's pages), as one event per kind per burst (D48): the one forwarder
   forwardStoreChanges(store, bus);
@@ -150,11 +161,14 @@ export async function startServer(port: number, { hostname = '127.0.0.1', ...opt
   const version = opts.version ?? VERSION;
   const watcher = watchStore(store);
   const stopSnapshots = startSnapshots(opts.dataDir);
-  const stopSources = ctx.sources.start(); // the hourly GitHub check, only if you turned it on (D57)
+  const stopSources = ctx.sources.start(); // the hourly GitHub check (D57) and the screenshots folder, only if you turned them on
+  const stopEvidenceText = ctx.evidenceText.start(); // the board's pictures, read in the background
   const bound = await new Promise<{ port: number; close: () => Promise<void> }>((resolve, reject) => {
     const failed = (e: Error) => {
       stopSnapshots();
       stopSources();
+      stopEvidenceText();
+      void ctx.ocr.close();
       void watcher.close();
       reject(e);
     };
@@ -163,7 +177,9 @@ export async function startServer(port: number, { hostname = '127.0.0.1', ...opt
       const close = async () => {
         stopSnapshots();
         stopSources();
+        stopEvidenceText();
         await watcher.close();
+        await ctx.ocr.close(); // the tesseract worker thread
         await new Promise<void>((res) => {
           server.close(() => res());
           // idle keep-alive connections (and, later, open event streams) would otherwise hold close() open

@@ -8,13 +8,20 @@
 //   POST /api/found/:id/merge     { achievementId } → FoundDecided
 //   POST /api/found/:id/dismiss   → FoundDecided
 //   POST /api/found/:id/undo      → FoundDecided (pending again)
+//   GET  /api/found/:id/picture   a screenshot candidate's picture, read from where it is (it's only copied into
+//                                 evidence/ on keep): 404 `gone` if it was moved or deleted
 // GET /api/found/count (found-count.ts) is the nav badge's and the board strip's.
+import fs from 'node:fs';
 import type { Hono } from 'hono';
 import type { FoundDecided, FoundListResponse } from '../../shared/api.js';
 import { FOUND_SOURCES, type FoundCandidate, type FoundSource } from '../../shared/schema/index.js';
 import type { AppContext } from '../context.js';
 import { apiError, handle, jsonBody } from '../http.js';
+import { blobHeaders } from '../security.js';
 import { ValidationError } from '../store/errors.js';
+
+/** What a screenshot card may show. */
+const PICTURES = new Set(['image/png', 'image/jpeg', 'image/gif', 'image/webp', 'image/avif', 'image/bmp', 'image/tiff', 'image/heic']);
 
 export function registerFound(app: Hono, ctx: AppContext): void {
   const svc = () => ctx.services.found;
@@ -29,6 +36,23 @@ export function registerFound(app: Hono, ctx: AppContext): void {
     for (const f of pending) counts[f.source]++;
     const items = q.source ? pending.filter((f) => f.source === (q.source as FoundSource)) : pending;
     return c.json({ items, counts } satisfies FoundListResponse<FoundCandidate>);
+  });
+
+  // a screenshot's picture, for its card. Only a picture is ever served (the bytes decide, as for evidence), only for a
+  // pending screenshots candidate, and only from where a kept one could be copied from (inspectPath: never the data
+  // folder or a hidden folder), since found/<id>.yaml is a file anyone can edit
+  app.get('/api/found/:id/picture', async (c) => {
+    const f = ctx.store.get('found', c.req.param('id'));
+    const file = f?.source === 'screenshots' && f.status === 'pending' ? f.files[0] : undefined;
+    if (!file) return c.json(apiError('not_found', 'There is no screenshot for that.'), 404);
+    try {
+      const { real, mime } = await ctx.services.evidence.inspectPath(file.path);
+      if (!PICTURES.has(mime)) return c.json(apiError('not_found', 'That file isn’t a picture any more.'), 404);
+      const headers = { ...blobHeaders(mime, file.title ?? 'screenshot'), 'Cache-Control': 'no-store' };
+      return c.body(new Uint8Array(fs.readFileSync(real)), 200, headers);
+    } catch {
+      return c.json(apiError('gone', 'The screenshot isn’t where it was: it was moved or deleted.'), 404);
+    }
   });
 
   app.post('/api/found/:id/keep', (c) =>

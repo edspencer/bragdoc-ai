@@ -50,7 +50,7 @@ const ALLOWED_IMPORTS: Record<string, string> = {
   '@hono/node-server': "binds the inbound server (its node:http use is the listening socket, not egress)",
   yaml: 'parses config.yaml; writes the data files (comment-preserving)',
   'js-yaml': 'parses the data files (PR3, D25)',
-  chokidar: 'watches the data home for hand edits (fs events only; its one dependency, readdirp, is fs only)',
+  chokidar: 'watches the data home for hand edits, and the screenshots folder (fs events only; its one dependency, readdirp, is fs only)',
   minisearch: 'the in-memory search index (pure JS; its `fetch` is a SearchableMap method)',
   'file-type': "sniffs an evidence file's type from its bytes (strtok3/token-types: buffers and fs only)",
   zod: 'validation',

@@ -8,15 +8,19 @@
 //   PUT  /api/sources/github               GithubSettingsRequest → GithubSourceStatus
 //   POST /api/sources/github/run           Check now: waits for the check → GithubSourceStatus
 //   POST /api/sources/github/disconnect    GithubDisconnectRequest → GithubSourceStatus
+//   GET  /api/sources/screenshots/suggestions   ScreenshotsSuggestionsResponse: where screenshots probably go here
+//   PUT  /api/sources/screenshots               ScreenshotsSettingsRequest → ScreenshotsSourceStatus (folder checked first)
+//   POST /api/sources/screenshots/look-back     ScreenshotsLookBackRequest → ScreenshotsSourceStatus (a one-off read)
 //
 // A failure is an ApiError whose code is a GithubErrorCode (gh_missing, gh_logged_out, token_invalid, rate_limited, …)
-// with the plain-words message the card shows.
+// or a ScreenshotsErrorCode (missing, denied, not_allowed, …) with the plain-words message the card shows.
 import type { Context, Hono } from 'hono';
-import type { GhDetectResponse, GithubConnectRequest, GithubSettingsRequest, SourcesResponse } from '../../shared/api.js';
+import type { GhDetectResponse, GithubConnectRequest, GithubSettingsRequest, ScreenshotsLookBackRequest, ScreenshotsSettingsRequest, SourcesResponse } from '../../shared/api.js';
 import type { AppContext } from '../context.js';
 import { apiError, jsonBody } from '../http.js';
 import { SecretsError } from '../secrets.js';
 import { GithubSourceError } from '../sources/github.js';
+import { ScreenshotsSourceError } from '../sources/screenshots.js';
 import { ValidationError } from '../store/errors.js';
 
 const STATUS: Record<GithubSourceError['code'], 400 | 409 | 429 | 502 | 503> = {
@@ -33,11 +37,23 @@ const STATUS: Record<GithubSourceError['code'], 400 | 409 | 429 | 502 | 503> = {
   failed: 502,
 };
 
+const SHOT_STATUS: Record<ScreenshotsSourceError['code'], 400 | 409> = {
+  invalid: 400,
+  missing: 400,
+  not_a_folder: 400,
+  not_allowed: 400,
+  not_set: 409,
+  denied: 409,
+  failed: 409,
+  config_invalid: 409,
+};
+
 async function answer(c: Context, fn: () => unknown): Promise<Response> {
   try {
     return c.json((await fn()) as object);
   } catch (e) {
     if (e instanceof GithubSourceError) return c.json({ ...apiError(e.code, e.message), ...(e.retryAt ? { retryAt: e.retryAt } : {}) }, STATUS[e.code]);
+    if (e instanceof ScreenshotsSourceError) return c.json(apiError(e.code, e.message), SHOT_STATUS[e.code]);
     if (e instanceof ValidationError) return c.json(apiError('invalid', e.message), 400);
     // a hand-broken secrets.yaml: say so (it's never overwritten), rather than a bare 500 that reads as "not running"
     if (e instanceof SecretsError) return c.json(apiError('secrets_invalid', e.message), 409);
@@ -49,7 +65,7 @@ export function registerSources(app: Hono, ctx: AppContext): void {
   const github = () => ctx.sources.github;
 
   app.get('/api/sources', (c) =>
-    c.json({ github: github().status(), screenshots: { enabled: false }, mcp: { writeTo: ctx.config.get().mcp.writeTo } } satisfies SourcesResponse),
+    c.json({ github: github().status(), screenshots: ctx.sources.screenshots.status(), mcp: { writeTo: ctx.config.get().mcp.writeTo } } satisfies SourcesResponse),
   );
 
   app.get('/api/sources/github/gh', (c) => c.json({ installed: github().ghInstalled() } satisfies GhDetectResponse));
@@ -83,6 +99,26 @@ export function registerSources(app: Hono, ctx: AppContext): void {
       const b = ((await jsonBody(c.req)) ?? {}) as { forgetToken?: unknown };
       if (b.forgetToken !== undefined && typeof b.forgetToken !== 'boolean') throw new ValidationError('forgetToken is true or false');
       return github().disconnect({ forgetToken: b.forgetToken === true });
+    }),
+  );
+
+  const shots = () => ctx.sources.screenshots;
+
+  app.get('/api/sources/screenshots/suggestions', (c) => answer(c, () => shots().suggestions()));
+
+  app.put('/api/sources/screenshots', (c) =>
+    answer(c, async () => {
+      const b = (await jsonBody(c.req)) as ScreenshotsSettingsRequest | undefined;
+      const extra = Object.keys(b ?? {}).filter((k) => !['enabled', 'folder', 'onlyScreenshots'].includes(k));
+      if (!b || typeof b !== 'object' || Array.isArray(b) || extra.length) throw new ValidationError(`send any of enabled, folder, onlyScreenshots${extra.length ? ` (not ${extra.join(', ')})` : ''}`);
+      return shots().update(b);
+    }),
+  );
+
+  app.post('/api/sources/screenshots/look-back', (c) =>
+    answer(c, async () => {
+      const b = ((await jsonBody(c.req)) ?? {}) as ScreenshotsLookBackRequest;
+      return shots().lookBack(b.days ?? 7);
     }),
   );
 }
