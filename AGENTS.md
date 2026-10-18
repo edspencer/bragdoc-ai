@@ -103,7 +103,8 @@ server/              the server and CLI (Node, TypeScript ESM, Hono)
   secrets.ts         secrets.yaml (0600): the GitHub token and AI keys (aiKey, setAiKey, aiKeyHint), written through
                      atomic.ts, never logged, returned or backed up
   ai/                v0.2's AI runtime (see "AI (v0.2)"): policy.ts (the gates and the AI allow-list hosts, pure),
-                     run.ts (ctx.ai: queue, object/stream/test/models), errors.ts (AiError, the fixed codes), sdk.ts
+                     run.ts (ctx.ai: queue, object/stream/test/models), local.ts (ctx.localAi: hardware, detection, the
+                     confirmed Ollama download; PR23), errors.ts (AiError, the fixed codes), sdk.ts
                      (the ONLY place the AI SDK is loaded, by import()), providers.ts (connection → model), ollama.ts
                      (Ollama's native /api/chat as a model), activity.ts (ctx.aiActivity: logs/ai-runs.jsonl, PR22)
   discover.ts        Welcome's "Your code": the bounded scan of one named folder (4 levels, 5 s, stops at .git,
@@ -160,7 +161,7 @@ src/                 the web app (React 19, Vite, Tailwind v4, TanStack Router +
                      decide.ts (keep / merge / dismiss with the Undo toast)
   onboarding/        steps.ts (Welcome's steps), ExampleData.tsx (the board's example strip, Settings → Data's panel,
                      useAddExample); routes/welcome.tsx is Welcome itself
-  settings/          Settings' tabs (SourcesTab + GithubCard, NetworkTab, DataTab, AboutTab) and what they share (common.tsx:
+  settings/          Settings' tabs (SourcesTab + GithubCard, AiTab + ai/ (v0.2), NetworkTab, DataTab, AboutTab) and what they share (common.tsx:
                      CopyButton, CommandSlab, LoadError, Slot); routes/settings/$tab.tsx picks one
   api/               client.ts (the typed `api` wrapper), queries.ts (query keys + hooks), events.ts (live updates)
   theme/theme.tsx    light / system / dark: ThemeProvider + useTheme()
@@ -423,7 +424,7 @@ folder unreadable: test a denied folder with a stand-in (the unit test) or a ser
 
 ### AI (v0.2)
 
-PR21 built the runtime every AI feature stands on (SPEC R17–R20, R28; D62–D66). It has no UI: Settings → AI is PR23.
+PR21 built the runtime every AI feature stands on (SPEC R17–R20, R28; D62–D66); PR23 built Settings → AI on it (D69–D71).
 **The rules:** nothing AI runs *or loads* unless AI and that feature are on; every model call goes through `ctx.ai` →
 `egress.fetchFor()`; local or cloud is decided by **host**, and cloud needs consent; nothing is installed or downloaded
 without a confirm; nothing a model says reaches the board or changes a Found candidate's status without a click.
@@ -476,6 +477,15 @@ without a confirm; nothing a model says reaches the board or changes a Found can
   `think`, `num_ctx`, headers). On the box: `node --import tsx test/fixtures/fake-llm/server.ts --port <p>`. Cloud
   paths can't point at it: test them with an injected egress `fetchImpl` (`test/ai-fixture.ts`).
 - **`bragdoc dev ai --connection <id> --model <m> [--schema ok] "<prompt>"`** makes one call through all of the above.
+- **Settings → AI (PR23, D69–D71)** is `src/settings/AiTab.tsx` plus `src/settings/ai/` (ConnectionCard, AddConnection,
+  ConsentDialog, Detect, Models with the download confirm, `words.ts` for the plain words and the header chip). With AI
+  off it offers nothing that could reach a runner. In the web app: `useAi()` / `useAiOn()` (the `ai` event refreshes
+  them), `useAiModels(id, baseUrl, enabled)`, `useAiHardware`, `useAiDetect`; client functions in `src/api/client.ts`
+  ("AI"). Its own routes are `server/routes/ai-local.ts` over `ctx.localAi` (`server/ai/local.ts`): `GET
+  /api/ai/hardware`, `GET|POST /api/ai/detect` (through `egress.probe()`, loopback and `host.docker.internal` only),
+  `POST /api/ai/connections/:id/pull` (`{ confirm: true, model }`, recommended models only; NDJSON progress; logged
+  twice). **A feature's card**: a component in `src/settings/ai/`, then replace its `Card: null` in `FEATURE_CARDS`
+  (`src/settings/ai/index.ts`) with it: one line. It gets `{ status, readiness }` and owns its feature's switch.
 
 PR22 added the plumbing the three features share (D67, D68):
 

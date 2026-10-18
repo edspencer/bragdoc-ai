@@ -19,7 +19,9 @@ import { useQueryClient, type QueryClient } from '@tanstack/react-query';
 /** `change` type (ServerEvent['type']) → the first segments of the query keys it makes stale. */
 export const CHANGE_INVALIDATES: Record<string, readonly string[]> = {
   // the GitHub source's options live in config.yaml, and Found's empty state says what's on
-  config: ['meta', 'settings', 'sources', 'welcome'],
+  config: ['meta', 'settings', 'sources', 'welcome', 'ai'],
+  // an AI setting, connection, key or consent changed (PR21's routes); the allow-list on the Network tab is in meta
+  ai: ['ai', 'meta'],
   // a source's status: a check started or finished, connected or disconnected (PR13)
   sources: ['sources'],
   'mcp-token': ['mcp-token'],

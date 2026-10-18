@@ -1,10 +1,12 @@
 // One candidate in Found (SPEC R7): where it came from, what it is (a PR slab, an agent's text, evidence), which rules
 // it passed, the projects and repos it probably goes with, and Keep · Merge into… · Dismiss. No confidence stamp and no
-// verdict: v0.1 has no AI (D8), so the card shows the plain rules that let it through. Adapted from the Scrapbook
+// verdict: with AI off (the default, D8) the card shows the plain rules that let it through, and says AI is off (SPEC
+// R26); the judge's verdicts are PR25's. Adapted from the Scrapbook
 // prototype's FoundCard (Found.tsx), without its Slack body and its judge.
 import type { ProjectEntry, RepoEntry } from '../../shared/api.ts';
 import type { FoundCandidate } from '../../shared/schema/index.ts';
 import { foundPictureUrl } from '../api/client.ts';
+import { useAiState } from '../api/queries.ts';
 import { toView } from '../board/evidence.ts';
 import { Btn, EvidenceBit, Hand, ImpactBadge, Kicker, Print, ProjectPill, ProvenanceBadge, RepoTag, StickyQuote, type Provenance } from '../kit/index.ts';
 import { fmt, todayIso } from '../lib/dates.ts';
@@ -35,6 +37,7 @@ export function FoundCard({
   const pills = c.suggestedProjects.map((id) => projects.get(id)).filter((p): p is ProjectEntry => !!p);
   const repoTags = c.suggestedRepos.map((id) => repos.get(id)).filter((r): r is RepoEntry => !!r);
   const blurb = c.summary || c.body?.trim();
+  const ai = useAiState();
   return (
     <article className="sb-card relative mb-8 inline-block w-full break-inside-avoid rounded-3xl p-5" data-testid="found-card" data-id={c.id} data-key={c.externalKey} aria-labelledby={`f-${c.id}`}>
       <div className="flex flex-wrap items-center gap-2">
@@ -85,7 +88,7 @@ export function FoundCard({
           </ul>
         </div>
       )}
-      <div className="mt-3 text-[11.5px] text-faint">Found by {FOUND_BY[c.source]} · plain rules, no AI</div>
+      <div className="mt-3 text-[11.5px] text-faint">Found by {FOUND_BY[c.source]} · plain rules{ai === false ? ' · AI off' : ''}</div>
 
       {(pills.length > 0 || repoTags.length > 0 || c.impact) && (
         <div className="mt-4 flex flex-wrap items-center gap-1.5">

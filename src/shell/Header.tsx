@@ -1,12 +1,14 @@
 // The app's chrome: the header (mark, pill nav with the Found badge, theme toggle, settings) and, below 768 px, a
-// floating tab bar at the bottom instead of the pill nav. Ported from the Scrapbook prototype's Scrapbook.tsx, minus
-// its AI chip: AI is off in v0.1 and every AI feature is opt-in (D8), so the header says nothing about AI at all.
+// floating tab bar at the bottom instead of the pill nav. Ported from the Scrapbook prototype's Scrapbook.tsx. Its AI
+// chip shows only while AI is on (SPEC R26: "AI · this computer", "AI · Anthropic", linking to Settings → AI); with AI
+// off, the header says nothing about AI at all (D8).
 import { forwardRef, type AnchorHTMLAttributes, type CSSProperties } from 'react';
 import { Link, createLink, useRouterState } from '@tanstack/react-router';
-import { Settings } from 'lucide-react';
+import { Settings, Sparkles } from 'lucide-react';
 import { CountBadge } from '../kit/index.ts';
 import { inkOn } from '../lib/colour.ts';
-import { useFoundCount } from '../api/queries.ts';
+import { useAi, useFoundCount } from '../api/queries.ts';
+import { chipLabel } from '../settings/ai/words.ts';
 import { Mark, Wordmark } from './Logo.tsx';
 import { NAV } from './nav.ts';
 import { ThemeToggle } from './ThemeToggle.tsx';
@@ -39,6 +41,7 @@ export function Header() {
         ))}
       </nav>
       <div className="ml-auto flex items-center gap-2">
+        <AiChip />
         <ThemeToggle />
         <Link
           to="/settings/$tab"
@@ -52,6 +55,24 @@ export function Header() {
         </Link>
       </div>
     </header>
+  );
+}
+
+/** "AI · this computer": only while AI is on. */
+function AiChip() {
+  const label = chipLabel(useAi().data);
+  if (!label) return null;
+  return (
+    <Link
+      to="/settings/$tab"
+      params={{ tab: 'ai' }}
+      title={`${label}: Settings → AI`}
+      data-testid="ai-chip"
+      className="sb-glass flex h-9 items-center gap-1.5 rounded-full px-3 font-grotesk text-[12.5px] font-bold text-ink no-underline shadow-[0_4px_14px_-8px_rgba(0,0,0,.35)] ring-1 ring-good/50"
+    >
+      <Sparkles aria-hidden className="size-3.5 text-good" />
+      <span className="max-sm:sr-only">{label}</span>
+    </Link>
   );
 }
 

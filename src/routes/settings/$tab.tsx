@@ -2,6 +2,7 @@
 import { createFileRoute, notFound } from '@tanstack/react-router';
 import { isSettingsTab, type SettingsTab } from '../../shell/nav.ts';
 import { AboutTab } from '../../settings/AboutTab.tsx';
+import { AiTab } from '../../settings/AiTab.tsx';
 import { DataTab } from '../../settings/DataTab.tsx';
 import { NetworkTab } from '../../settings/NetworkTab.tsx';
 import { SourcesTab } from '../../settings/SourcesTab.tsx';
@@ -15,6 +16,7 @@ export const Route = createFileRoute('/settings/$tab')({
 
 const TABS: Record<SettingsTab, () => React.JSX.Element> = {
   sources: SourcesTab,
+  ai: AiTab,
   network: NetworkTab,
   data: DataTab,
   about: AboutTab,
