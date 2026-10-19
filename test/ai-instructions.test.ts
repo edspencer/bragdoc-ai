@@ -86,20 +86,28 @@ test('only the two names exist; a misspelt file in ai/ is a Problem, anything no
 });
 
 /**
- * Prime a just-started watcher: write by hand (again each second, up to 10 s) until it's seen. macOS's FSEvents can
- * drop the first events of a stream that has only just begun, even after chokidar's `ready`: a flake on macOS CI under
- * the full suite's load (PR30 reproduced it in 4 of 12 runs). What a test then asserts is a later edit, with no retry.
+ * Start the watcher and prove it's live before a test asserts anything: write by hand (again each second) until the
+ * store sees it. On macOS CI under the full suite's load, FSEvents could drop a new stream's first events, and now and
+ * then a stream never delivered anything at all, even after chokidar's `ready` (PR30 reproduced both). So a watcher
+ * that sees nothing for 5 s is closed and started again, at most 3 times. Only the start is retried: the edit a test
+ * then asserts on gets no retry.
  */
-const primed = async (write: (attempt: number) => void, seen: (attempt: number) => boolean) => {
-  for (let i = 0; i < 10; i++) {
-    write(i);
-    try {
-      return await until(() => seen(i), 'the watcher to start', 1000);
-    } catch {
-      // not seen yet: write again
+const live = async (write: (attempt: number) => void, seen: (attempt: number) => boolean) => {
+  let attempt = 0;
+  for (let start = 0; start < 3; start++) {
+    await w?.close();
+    w = watchStore(h!.store);
+    await w.ready;
+    for (let i = 0; i < 5; i++, attempt++) {
+      write(attempt);
+      try {
+        return await until(() => seen(attempt), 'the watcher to start', 1000);
+      } catch {
+        // not seen yet: write again
+      }
     }
   }
-  throw new Error('the watcher never saw a hand edit');
+  throw new Error('three watchers in a row never saw a hand edit');
 };
 
 test('a hand edit is picked up live, and announced to open tabs as an `instructions` event', async () => {
@@ -110,9 +118,7 @@ test('a hand edit is picked up live, and announced to open tabs as an `instructi
   const sent: string[] = [];
   bus.subscribe((e) => sent.push(e.type));
   forwardStoreChanges(h.store, bus);
-  w = watchStore(h.store);
-  await w.ready;
-  await primed(
+  await live(
     (i) => h!.put('ai/what-counts.md', `${WINS}<!-- ${i} -->\n`),
     (i) => h!.services.instructions.get('what-counts').text === `${WINS}<!-- ${i} -->\n`,
   );
@@ -126,9 +132,7 @@ test('a hand-made ai/ folder is picked up too, once the watcher is running', asy
   h = storeHome();
   const { achievement } = h.services.achievements.create({ title: 'Before' });
   const rel = relPathFor('achievement', achievement.id);
-  w = watchStore(h.store);
-  await w.ready;
-  await primed(
+  await live(
     (i) => h!.put(rel, h!.read(rel).replace(/title: .*/, `title: Edited ${i}`)),
     (i) => h!.store.get('achievement', achievement.id)?.title === `Edited ${i}`,
   );
