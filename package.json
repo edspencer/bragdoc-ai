@@ -1,6 +1,6 @@
 {
   "name": "@bragdoc/local",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "A local-first, open-source tracker for the things you've done at work: your achievements and the evidence for them, kept as plain files on your own machine.",
   "keywords": [
     "brag-document",

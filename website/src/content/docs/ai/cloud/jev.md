@@ -3,11 +3,6 @@ title: Jev, through OpenRouter
 description: "Jev, TypeSafe’s hosted decision model, as BragDoc’s Found judge through your OpenRouter key: what it sends, its own consent, and its limits (a probability, never a reason)."
 ---
 
-:::note[Coming in 0.2.0]
-The AI features are built on the [`v0.2` branch](https://github.com/edspencer/bragdoc-ai/tree/v0.2) and will be in
-BragDoc 0.2.0.
-:::
-
 **Jev** is TypeSafe AI's hosted **decision model**: rather than writing text, it answers typed questions with a
 probability ("a win: 93%", and which project). BragDoc can use it as [the judge](/ai/the-judge/), and only as the
 judge: it can't tidy or draft, because it doesn't write.

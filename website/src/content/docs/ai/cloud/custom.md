@@ -3,11 +3,6 @@ title: Any other server
 description: "Using an OpenAI-compatible server you type in (hosted, or on your network) with BragDoc: when it counts as local, when it needs consent, and exactly what it sends."
 ---
 
-:::note[Coming in 0.2.0]
-The AI features are built on the [`v0.2` branch](https://github.com/edspencer/bragdoc-ai/tree/v0.2) and will be in
-BragDoc 0.2.0.
-:::
-
 **OpenAI-compatible server** is for anything else that speaks OpenAI's Chat Completions API: a hosted service, a
 gateway of your company's, or a runner on a machine of yours. You type its address.
 

@@ -3,11 +3,6 @@ title: OpenRouter
 description: "Using many providers’ models through one OpenRouter key with BragDoc: exactly what each AI feature sends to openrouter.ai, where your key is kept, and how to stop it."
 ---
 
-:::note[Coming in 0.2.0]
-The AI features are built on the [`v0.2` branch](https://github.com/edspencer/bragdoc-ai/tree/v0.2) and will be in
-BragDoc 0.2.0.
-:::
-
 [OpenRouter](https://openrouter.ai) is one API, and one key, in front of many providers' models (Anthropic's, Google's,
 open models and more). BragDoc talks to it (`https://openrouter.ai/api/v1`) directly from your computer: there's no
 BragDoc server in between, and BragDoc's makers see nothing. OpenRouter receives what's sent under your account and

@@ -3,11 +3,6 @@ title: OpenAI
 description: "Using GPT models through your own OpenAI key with BragDoc: exactly what each AI feature sends to api.openai.com, where your key is kept, and how to stop it."
 ---
 
-:::note[Coming in 0.2.0]
-The AI features are built on the [`v0.2` branch](https://github.com/edspencer/bragdoc-ai/tree/v0.2) and will be in
-BragDoc 0.2.0.
-:::
-
 BragDoc can use **OpenAI** models through your own OpenAI account. It talks to OpenAI's Chat Completions API
 (`https://api.openai.com/v1`) directly from your computer: there's no BragDoc server in between, and BragDoc's makers
 see nothing. OpenAI receives what's sent under your account and their terms.

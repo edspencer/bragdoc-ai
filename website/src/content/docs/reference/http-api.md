@@ -147,12 +147,6 @@ These are enforced for every request (see [Localhost security](/guarantees/local
 
 ## AI (v0.2, off unless you turn it on)
 
-:::note[Coming in 0.2.0]
-These endpoints are 0.2.0's opt-in AI, built on the `v0.2` branch (see [AI](/ai/overview/)). AI is off, and every AI
-feature is off, until you switch it on, and nothing here switches anything on by itself. With AI off, every model call
-is refused before anything is sent, and the AI library isn't even loaded. Settings → AI is the screen for all of this.
-:::
-
 Keys are never returned: a connection shows `hasKey` and the last four characters of its key, `keyHint` (`…abcd`). A
 connection on the internet (by its host: anything that isn't this computer or your network) sends **nothing, not even
 a test**, until you accept its consent statement. Plain `http://` is accepted only for this computer and your network.
