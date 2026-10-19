@@ -1,18 +1,16 @@
-# TEMPORARY (PR30): stress the macOS instructions-watch flake under the full suite, old test vs new. Removed before
-# the PR is ready.
+# TEMPORARY (PR30): diagnose the macOS instructions-watch flake under load. Removed before the PR is ready.
 name: stress-tmp
 on:
   push:
     branches: [v02/30-release-candidate]
 jobs:
-  stress:
+  diag:
     strategy:
       fail-fast: false
       matrix:
-        which: [old, new]
         shard: [1, 2, 3, 4]
     runs-on: macos-latest
-    timeout-minutes: 50
+    timeout-minutes: 40
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-node@v7
@@ -20,15 +18,14 @@ jobs:
           node-version: '22'
           cache: npm
       - run: npm ci
-      - name: the full suite, 4 times
+      - name: the diagnostic beside the full suite (load)
         shell: bash
         run: |
-          [ "${{ matrix.which }}" = old ] && cp test/zz-old-instructions.stress.ts test/ai-instructions.test.ts
-          flaky=0; other=0
-          for i in 1 2 3 4; do
-            npm test > out.txt 2>&1 || true
-            grep -q '^not ok .*hand edit is picked up live' out.txt && flaky=$((flaky+1))
-            grep -E '^not ok' out.txt | grep -v 'hand edit is picked up live' && other=$((other+1))
-            grep -E "^# (pass|fail)" out.txt; grep -B2 -A12 "^not ok" out.txt | grep -E "not ok|error:|timed out|never saw" | head -8
+          set +e +o pipefail
+          for i in 1 2 3; do
+            (npm test > suite-$i.txt 2>&1 &)
+            DIAG_N=25 node --import tsx test/zz-diag.stress.ts 2>&1 | tail -c 20000
+            wait
+            sleep 20
           done
-          echo "${{ matrix.which }} shard ${{ matrix.shard }}: instructions-watch failures=$flaky/4, runs with other failures=$other" | tee -a "$GITHUB_STEP_SUMMARY"
+          exit 0
