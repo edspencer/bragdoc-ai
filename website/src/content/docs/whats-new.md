@@ -29,7 +29,7 @@ and doesn't even load the AI library it talks to models with. See [AI, off unles
 - **[Jev](/ai/cloud/jev/)**, TypeSafe's hosted decision model, as an optional cloud judge through OpenRouter.
 - **[AI is opt-in](/guarantees/ai-is-opt-in/)**, rule by rule, with the code that enforces each.
 
-## 0.1: the first local release
+## 0.1.0: the first local release
 
 :::note[Not on npm yet]
 0.1.0 hasn't been published yet either: it will be, from the

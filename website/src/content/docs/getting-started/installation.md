@@ -3,13 +3,6 @@ title: Installation
 description: "Run BragDoc with npx, install it globally with npm, run it in Docker, or keep it running as a login service."
 ---
 
-:::note[Not released yet]
-`@bragdoc/local` isn't on npm yet and the Docker image isn't published, so the `npx`, `npm install -g` and
-`docker run` commands below won't work until the v0.1 release. Everything else on this page is how the built app
-behaves. To try it now, run it from the [`next` branch](https://github.com/edspencer/bragdoc-ai/tree/next) (see
-[Contributing](/contributing/)), or build the image yourself from a checkout with `docker compose up -d --build`.
-:::
-
 BragDoc needs **Node.js 22.12 or later** and runs on **macOS and Linux**. Windows isn't supported yet. It is one npm
 package, `@bragdoc/local`, and one command, `bragdoc`.
 
