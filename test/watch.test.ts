@@ -8,7 +8,7 @@ import type { StoreChange } from '../shared/schema/index.ts';
 import { ulid } from '../shared/ulid.ts';
 import { relPathFor } from '../server/store/files.ts';
 import { watchStore, type StoreWatcher } from '../server/store/watch.ts';
-import { storeHome, type StoreHome } from './store-fixture.ts';
+import { liveWatcher, storeHome, type StoreHome } from './store-fixture.ts';
 
 let h: StoreHome;
 let w: StoreWatcher | undefined;
@@ -32,8 +32,9 @@ async function watching() {
   h = storeHome();
   const events: StoreChange[] = [];
   h.store.subscribe((c) => events.push(c));
-  w = watchStore(h.store);
-  await w.ready;
+  // a watcher that's provably live first (macOS FSEvents, D84); its primer's own events don't count
+  w = await liveWatcher(h);
+  events.length = 0;
   return events;
 }
 

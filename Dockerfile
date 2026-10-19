@@ -74,6 +74,7 @@ ENV NODE_ENV=production \
     HOME=/home/node \
     BRAGDOC_HOME=/data \
     BRAGDOC_DANGEROUSLY_ALLOW_OPEN=1 \
+    BRAGDOC_IN_DOCKER=1 \
     PORT=2724
 RUN mkdir -p /data && chown node:node /data
 USER node

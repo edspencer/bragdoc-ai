@@ -49,4 +49,8 @@ services:
       #   read_only: true
       # Your gh login, so BragDoc can find your pull requests without a token of its own:
       # - ${HOME}/.config/gh:/home/node/.config/gh:ro
+    # Ollama on this computer, for Settings → AI (AI is off unless you turn it on): Docker Desktop knows
+    # host.docker.internal already; on Linux, uncomment this so the name reaches the host. Ollama there must listen
+    # beyond 127.0.0.1 for a container to reach it (OLLAMA_HOST=0.0.0.0; see Ollama's docs).
+    # extra_hosts: ["host.docker.internal:host-gateway"]
     restart: unless-stopped

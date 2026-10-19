@@ -12,6 +12,13 @@
 import type { Hono } from 'hono';
 import type { AppContext } from '../context.js';
 import { registerAchievements } from './achievements.js';
+import { registerAi } from './ai.js';
+import { registerAiActivity } from './ai-activity.js';
+import { registerAiDraft } from './ai-draft.js';
+import { registerAiInstructions } from './ai-instructions.js';
+import { registerAiJudge } from './ai-judge.js';
+import { registerAiLocal } from './ai-local.js';
+import { registerAiTidy } from './ai-tidy.js';
 import { registerCatalog } from './catalog.js';
 import { registerCompanies } from './companies.js';
 import { registerDiscover } from './discover.js';
@@ -37,6 +44,13 @@ import { registerWelcome } from './welcome.js';
 
 export function registerRoutes(app: Hono, ctx: AppContext): void {
   registerAchievements(app, ctx);
+  registerAi(app, ctx);
+  registerAiActivity(app, ctx);
+  registerAiDraft(app, ctx);
+  registerAiInstructions(app, ctx);
+  registerAiJudge(app, ctx);
+  registerAiLocal(app, ctx);
+  registerAiTidy(app, ctx);
   registerCatalog(app, ctx);
   registerCompanies(app, ctx);
   registerDiscover(app, ctx);

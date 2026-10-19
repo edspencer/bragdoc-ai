@@ -1,6 +1,7 @@
 // Found's two empty states (SPEC R7, R10): "All caught up" with what's still watching, or "every source is off" with
 // the way to Settings → Sources. Adapted from the Scrapbook prototype's EmptyFound, with v0.1's sources (no Slack).
-import type { SourcesResponse } from '../../shared/api.ts';
+import type { AiJudgeStatus, SourcesResponse } from '../../shared/api.ts';
+import { judgeEmptyLine } from './judge.ts';
 import { Kicker, LinkBtn } from '../kit/index.ts';
 import { fmt, todayIso } from '../lib/dates.ts';
 import { clock } from './FoundCard.tsx';
@@ -38,7 +39,7 @@ export function screenshotsLine(s: SourcesResponse['screenshots']): string {
   return `watching ${s.folder}${s.lastMatch ? `; last sent to Found ${when(s.lastMatch.at)}` : ''}`;
 }
 
-export function EmptyFound({ sources, filtered }: { sources: SourcesResponse | undefined; filtered?: string }) {
+export function EmptyFound({ sources, filtered, judge = null }: { sources: SourcesResponse | undefined; filtered?: string | undefined; judge?: AiJudgeStatus | null }) {
   if (filtered)
     return (
       <div className="mx-auto mt-14 max-w-xl text-center" data-testid="found-empty-filter">
@@ -78,6 +79,12 @@ export function EmptyFound({ sources, filtered }: { sources: SourcesResponse | u
             <li>
               <b>Your coding agent</b> <span className="text-muted">· can suggest things over MCP</span>
             </li>
+            {judge && (
+              // one line about the judge, only while it's on (SPEC R26: with AI off, nothing about AI)
+              <li data-testid="watching-judge">
+                <b>The judge</b> <span className="text-muted">· {judgeEmptyLine(judge)}</span>
+              </li>
+            )}
           </ul>
         </div>
       )}

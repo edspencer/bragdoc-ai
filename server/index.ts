@@ -10,6 +10,13 @@ import { Hono } from 'hono';
 import { serve } from '@hono/node-server';
 import { serveStatic } from '@hono/node-server/serve-static';
 import type { Notice } from '../shared/api.js';
+import { createLocalAi, type LocalAiOptions } from './ai/local.js';
+import { AiActivity } from './ai/activity.js';
+import { createJudge } from './ai/judge/index.js';
+import { createJudgeSchedule, type Clock } from './ai/judge/schedule.js';
+import { createJudgeStats } from './ai/judge/stats.js';
+import { onAC, type PowerState } from './platform/power.js';
+import { createAi, type Ai } from './ai/run.js';
 import { ConfigStore } from './config.js';
 import type { AppContext } from './context.js';
 import { Egress } from './egress.js';
@@ -58,6 +65,18 @@ export interface AppOptions {
   ocr?: Ocr;
   /** The home folder the screenshots source expands `~/` in and suggests folders from (tests). */
   homedir?: string;
+  /** ctx.ai (tests: a fake). Default: createAi() over this app's config, egress and secrets. */
+  ai?: Ai;
+  /** Settings → AI's hardware readings (tests: fixtures). */
+  hardware?: LocalAiOptions['hardware'];
+  /** Where "look for a model runner" looks (tests: a fake runner on a free port). */
+  detectTargets?: LocalAiOptions['targets'];
+  /** The AI activity log (tests: a small rotation size). Default: logs/ai-runs.jsonl in the data home. */
+  aiActivity?: AiActivity;
+  /** Is this computer plugged in? (tests: a fixed answer). Default: platform/power.ts. */
+  power?: () => Promise<PowerState>;
+  /** The judge's schedule's clock (tests: a fake one). */
+  scheduleClock?: Clock;
 }
 
 /**
@@ -87,21 +106,40 @@ export function createAppWithContext({ dataDir, webDist = WEB_DIST, version = VE
   const services = createServices(store);
   // one OCR queue for the whole app (SPEC R8): a burst of screenshots and a pasted picture take turns
   const ocr = o.ocr ?? createOcr({ cache: evidenceOcrCache(store, services) });
+  const egress = o.egress ?? new Egress({ dataDir, config: () => config.get(), onLog: () => bus.emitSoon('network', { type: 'network' }) });
+  const secrets = new Secrets(dataDir);
+  const ai = o.ai ?? createAi({ config: () => config.get(), egress, secrets });
+  // every model call, logged without content once it's over; nothing is written until one is made (D68)
+  const aiActivity = o.aiActivity ?? new AiActivity({ dataDir, onLine: () => bus.emitSoon('ai-activity', { type: 'ai-activity' }) });
+  aiActivity.listen(ai);
+  const judge = createJudge({ config, ai, aiActivity, store, services, ocr, bus });
+  // counts only, and only when you decide a judged candidate (D77)
+  const judgeStats = createJudgeStats({ dataDir, found: services.found, bus });
+  judgeStats.start();
   const base: Omit<AppContext, 'sources'> = {
     version,
     dataDir,
     config,
     bus,
-    egress: o.egress ?? new Egress({ dataDir, config: () => config.get(), onLog: () => bus.emitSoon('network', { type: 'network' }) }),
+    egress,
     runtime: o.runtime ?? new Runtime(dataDir),
     uploads: new UploadRegistry(),
     notices: () => [...startupNotices, ...config.notices()],
     store,
     services,
     linkPreviews: o.linkPreviews ?? new LinkPreviews(),
-    secrets: new Secrets(dataDir),
+    secrets,
     ocr,
     evidenceText: new EvidenceText({ store, services, ocr }),
+    // a thin shell: the AI SDK is loaded by the first model call, never at start (SPEC R20)
+    ai,
+    aiActivity,
+    localAi: createLocalAi({ dataDir, config: () => config.get(), egress, env: o.env, hardware: o.hardware, targets: o.detectTargets, homedir: o.homedir }),
+    // nothing runs until asked: no model call, and no SDK, while AI is off (SPEC R20)
+    judge,
+    // built here so routes can report it; it runs only once startServer starts it (D75)
+    judgeSchedule: createJudgeSchedule({ dataDir, config, judge, ai, store, bus, power: o.power ?? (() => onAC({ env: o.env })), ...(o.scheduleClock ? { clock: o.scheduleClock } : {}) }),
+    judgeStats,
   };
   const ctx: AppContext = { ...base, sources: createSources(base, { env: o.env, now: o.now, homedir: o.homedir }) };
   // every change to a data file (ours, an agent's over MCP, a hand edit the watcher saw) reaches open tabs, projects,
@@ -163,11 +201,13 @@ export async function startServer(port: number, { hostname = '127.0.0.1', ...opt
   const stopSnapshots = startSnapshots(opts.dataDir);
   const stopSources = ctx.sources.start(); // the hourly GitHub check (D57) and the screenshots folder, only if you turned them on
   const stopEvidenceText = ctx.evidenceText.start(); // the board's pictures, read in the background
+  const stopSchedule = ctx.judgeSchedule.start(); // the judge's background runs: none unless you chose them (D75)
   const bound = await new Promise<{ port: number; close: () => Promise<void> }>((resolve, reject) => {
     const failed = (e: Error) => {
       stopSnapshots();
       stopSources();
       stopEvidenceText();
+      stopSchedule();
       void ctx.ocr.close();
       void watcher.close();
       reject(e);
@@ -178,6 +218,10 @@ export async function startServer(port: number, { hostname = '127.0.0.1', ...opt
         stopSnapshots();
         stopSources();
         stopEvidenceText();
+        stopSchedule();
+        ctx.judge.cancel(); // a run in progress stops; what it judged stays
+        await ctx.judge.idle();
+        ctx.judge.close();
         await watcher.close();
         // a screenshot or a picture being read finishes (and, switched off, adds nothing) before OCR is let go
         await Promise.all([ctx.sources.screenshots.idle(), ctx.evidenceText.idle()]);

@@ -18,6 +18,7 @@ export const SCHEMA_VERSIONS = {
   achievement: 1,
   evidence: 1,
   found: 1,
+  instructions: 1,
 } as const;
 export type FileKind = keyof typeof SCHEMA_VERSIONS;
 

@@ -11,7 +11,7 @@ import os from 'node:os';
 import path from 'node:path';
 
 /** The binaries BragDoc may run, by name (found on PATH). Anything else is refused before it's started. */
-export const ALLOWED_BINS = ['gh', 'git', 'osascript', 'defaults', 'launchctl', 'systemctl', 'journalctl', 'claude', 'open', 'xdg-open'] as const;
+export const ALLOWED_BINS = ['gh', 'git', 'osascript', 'defaults', 'launchctl', 'systemctl', 'journalctl', 'claude', 'open', 'xdg-open', 'pmset'] as const;
 export type AllowedBin = (typeof ALLOWED_BINS)[number];
 
 export const DEFAULT_TIMEOUT_MS = 30_000;
@@ -57,9 +57,19 @@ function assertAllowed(bin: string, args: readonly string[]): asserts bin is All
  */
 export function resolveBin(bin: AllowedBin, env: NodeJS.ProcessEnv = process.env): string | null {
   if (process.platform === 'win32') return bin;
+  return onPath(bin, env);
+}
+
+/**
+ * Is there an executable called `name` on PATH (absolute entries only)? A look at the file system and nothing more:
+ * Settings → AI uses it to say "Ollama is installed" for a program BragDoc is never allowed to run (it isn't in
+ * ALLOWED_BINS). Returns its path, or null.
+ */
+export function onPath(name: string, env: NodeJS.ProcessEnv = process.env): string | null {
+  if (!/^[\w.-]+$/.test(name)) return null;
   for (const dir of (env.PATH ?? '').split(path.delimiter)) {
     if (!path.isAbsolute(dir)) continue;
-    const p = path.join(dir, bin);
+    const p = path.join(dir, name);
     try {
       if (fs.statSync(p).isFile()) {
         fs.accessSync(p, fs.constants.X_OK);

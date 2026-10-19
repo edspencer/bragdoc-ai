@@ -1,18 +1,47 @@
 // The composer, drawn: a dashed tray ("Drop it here."), the text box, what's been added (prints, PDF pages, PR slabs,
 // link and file chips, each with its upload state), and, once there's something, the footer: projects, repos, impact,
 // the date and "Pin it". Adapted from the Scrapbook prototype's Board.tsx DropTray, without its demo buttons.
-import { useRef, type KeyboardEvent, type ReactNode } from 'react';
+import { useEffect, useRef, type KeyboardEvent, type ReactNode } from 'react';
+import { useQueries } from '@tanstack/react-query';
 import { AlertTriangle, FileText, ImageIcon, Link2, Loader2, Paperclip, RotateCw, X } from 'lucide-react';
 import type { ProjectEntry as Project, RepoEntry as Repo } from '../../shared/api.ts';
-import { useEvidenceOcr } from '../api/queries.ts';
+import { getEvidenceOcr } from '../api/client.ts';
+import { queryKeys, useEvidenceOcr } from '../api/queries.ts';
 import { GithubMark, PdfPage, StickyQuote, formatBytes, inputCls } from '../kit/index.ts';
 import { pasteKeys, type Composer, type Pending } from './composer.ts';
 import { stem } from './evidence.ts';
 import { ImpactPicker, ProjectPicker, RepoPicker } from './pickers.tsx';
+import { TidyButton, TidySheet, TidyStatus } from './TidySheet.tsx';
+import { useTidy, useTidyAvailability } from './tidy.ts';
 
 export function DropTray({ c, dragging, projects, repos, onSubmit, saving }: { c: Composer; dragging: boolean; projects: Project[]; repos: Repo[]; onSubmit: () => void; saving: boolean }) {
   const fileRef = useRef<HTMLInputElement>(null);
   const has = c.text.length > 0 || c.pending.length > 0;
+  // Tidy this up (v0.2): only while AI and Tidy are on; it works from your text and the pictures whose text is read
+  const avail = useTidyAvailability();
+  const tidy = useTidy();
+  const pictures = c.pending.flatMap((p) => (p.kind === 'file' && p.status === 'ready' && p.file?.mime?.startsWith('image/') && p.evidence?.blob ? [p.evidence.blob] : []));
+  const ocr = useQueries({
+    queries: pictures.map((sha) => ({
+      queryKey: queryKeys.evidenceOcr(sha),
+      queryFn: ({ signal }: { signal: AbortSignal }) => getEvidenceOcr(sha, signal),
+      enabled: avail.show,
+      refetchInterval: (q: { state: { data?: { status: string } } }) => (q.state.data?.status === 'pending' ? 1500 : false),
+    })),
+  });
+  const readPictures = pictures.filter((_, i) => ocr[i]?.data?.status === 'done' && !!ocr[i]?.data?.text?.trim());
+  const canTidy = !!c.text.trim() || readPictures.length > 0;
+  const { close: closeTidy, phase } = tidy;
+  // pinned (or emptied): the suggestion goes with what it was for
+  useEffect(() => {
+    if (!has && phase.kind !== 'idle') closeTidy();
+  }, [has, phase.kind, closeTidy]);
+  // still being read: asked and waiting, or answered "pending" (a failed request isn't "being read": it's said nowhere)
+  const reading = pictures.filter((_, i) => !ocr[i]?.isError && (!ocr[i]?.data || ocr[i]?.data?.status === 'pending')).length;
+  const startTidy = () => {
+    const text = c.tidySource();
+    void tidy.run({ ...(text.trim() ? { text } : {}), ...(readPictures.length ? { evidenceShas: readPictures } : {}) }, avail.label);
+  };
   const submit = () => c.canSubmit && !saving && onSubmit();
   const onKey = (e: KeyboardEvent) => {
     if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) {
@@ -68,6 +97,8 @@ export function DropTray({ c, dragging, projects, repos, onSubmit, saving }: { c
               ))}
             </ul>
           )}
+          <TidyStatus tidy={tidy} quiet={!avail.show} />
+          <TidySheet tidy={tidy} projects={projects} inert={avail.show ? null : `AI or Tidy was switched off, so this suggestion can’t be used now.${phase.kind === 'done' && phase.used.length ? ' What you already used stays until you change it.' : ' Your text is as you left it.'}`} saveLabel="Pin it" onUse={(keys, r) => (c.applyTidy(keys, r), tidy.markUsed(keys))} />
         </div>
         <div className="flex shrink-0 flex-wrap items-center gap-2 lg:w-[240px] lg:flex-col lg:items-stretch">
           <Hint icon={<ImageIcon className="size-3.5" />} bg="#3b6cf6" label="Paste a screenshot" sub={pasteKeys()} onClick={() => void c.pasteFromClipboard('image')} />
@@ -89,6 +120,12 @@ export function DropTray({ c, dragging, projects, repos, onSubmit, saving }: { c
       </div>
       {has && (
         <div className="mt-4 space-y-3 border-t-2 border-dashed border-line pt-4">
+          {c.summary !== null && (
+            <label className="flex items-center gap-2 text-[12px] font-semibold text-muted">
+              Summary
+              <input value={c.summary} onChange={(e) => c.setSummary(e.target.value)} readOnly={saving} className={`${inputCls} py-1.5 text-[13.5px] font-normal text-ink`} data-testid="composer-summary" />
+            </label>
+          )}
           <ProjectPicker projects={projects} value={c.projects} onChange={c.setProjects} suggested={c.suggestedProjects} />
           <RepoPicker repos={repos} value={c.repos} onChange={c.setRepos} suggested={c.suggestedRepos} />
           <div className="flex flex-wrap items-center gap-x-5 gap-y-3">
@@ -97,7 +134,19 @@ export function DropTray({ c, dragging, projects, repos, onSubmit, saving }: { c
               When?
               <input type="date" value={c.date} required onChange={(e) => e.target.value && c.setDate(e.target.value)} className={`${inputCls} w-auto px-2.5 py-1 text-[13px]`} data-testid="composer-date" />
             </label>
-            <span className="ml-auto flex items-center gap-3">
+            {c.endedAt !== null && (
+              <label className="flex items-center gap-2 text-[12px] font-semibold text-muted">
+                Until
+                <input type="date" value={c.endedAt} min={c.date} onChange={(e) => c.setEndedAt(e.target.value)} className={`${inputCls} w-auto px-2.5 py-1 text-[13px]`} data-testid="composer-ended" />
+              </label>
+            )}
+            <span className="ml-auto flex flex-wrap items-center justify-end gap-3">
+              {avail.show && reading > 0 && (
+                <span className="text-[11.5px] text-faint" data-testid="composer-tidy-reading">
+                  {reading === 1 ? 'A picture is still being read: Tidy leaves its text out until it is.' : `${reading} pictures are still being read: Tidy leaves their text out until they are.`}
+                </span>
+              )}
+              <TidyButton avail={avail} tidy={tidy} can={canTidy && !saving} onTidy={startTidy} testId="composer-tidy" />
               {c.busy && <span className="text-[12px] font-semibold text-muted">Adding…</span>}
               {c.failed && <span className="text-[12px] font-semibold text-bad">Retry or remove what didn&apos;t upload</span>}
               <span className="hidden text-[11px] text-faint sm:inline">⌘/Ctrl+Enter</span>

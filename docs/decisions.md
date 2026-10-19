@@ -933,3 +933,604 @@ Export is a download of a blob made in the page; nothing about a folio is writte
   (content-addressed; nothing is unlinked).
 - **Considered:** importing it as a hosted export (PR12's importer: `legacyId`s and an "Imported" badge on every card);
   random sample data (not repeatable for captures and tests).
+
+### D62 — v0.2 is built on its own integration branch, `v0.2`, with D-numbers reserved per PR
+
+- v0.2 (opt-in AI, #434) is built as PRs into a long-lived `v0.2` branch, cut from `next` at the v0.1 release candidate
+  (95338b9) with one commit that adds it to CI's branch lists. `next` stays exactly the v0.1 that was QA'd, so 0.1.0
+  can be published from it at any time; Changesets' `baseBranch` stays `next`. A v0.1 fix lands on `next` and is
+  merged forward into `v0.2` (a merge, never a rebase). When the release candidate (PR30) is green and approved,
+  `v0.2` merges into `next` and 0.2.0 is released from there.
+- **Decision numbers are reserved per PR** (#434's plan: PR21 D62–D66, PR22 D67–D68, PR23 D69–D71, PR24 D72–D74,
+  PR25 D75–D77, PR26 D78–D79, PR27 D80–D81, PR28 D82, PR29 D83, PR30 D84). A PR uses only its own and never renumbers,
+  so this file's order may not be numeric. A decision made on `next` while v0.2 is open takes D100 and up.
+- **Considered:** building on `next` (0.1.0 would need a release branch cut from an older commit); waiting for 0.1.0
+  first (ties the AI work to release chores); v0.1's renumber-at-rebase rule (it cost several renumberings and one
+  missed cross-reference, #428).
+
+### D63 — Ollama through its native `/api/chat`, behind a thin adapter
+
+- Ollama is a language model of its own (`server/ai/ollama.ts`), not `@ai-sdk/openai-compatible` over its `/v1`. Every
+  call sends `options.num_ctx` (the connection's `contextTokens`, 8192 unless set), `think: false`, and the JSON schema
+  as `format` (grammar-constrained output): the Found spike's settings (`eval-judge.js`). Streaming reads its NDJSON.
+- **Why not `/v1`:** it can't set the context size per request, and it can't turn thinking off. Measured on the dev
+  box's Ollama 0.40.5 with `qwen3.5:4b` and one ~5,900-token synthetic prompt (a codename on its first line, a city on
+  its last, a question about both):
+  - native `/api/chat` with `num_ctx` 8192: all 5,875 prompt tokens read, the answer "BLUEHERON / Lisbon", 154 s;
+  - `/v1/chat/completions` (JSON mode): the runner loaded the model at its default 4,096 context, read only 2,050 prompt
+    tokens (the rest cut without a word), spent the other 2,046 thinking, and returned an empty answer, after 337 s.
+
+  The judge would see only part of a screenshot's text, and a folio draft only part of its clippings.
+- Thinking is turned off only where we know how to (Ollama's `think`). Other OpenAI-compatible runners and the cloud
+  get their provider's default: an unknown `reasoning_effort` is an error at some providers.
+- **Considered:** `/v1` with `OLLAMA_CONTEXT_LENGTH` set by the user (a setting outside BragDoc that it can't see or
+  check); a community Ollama provider package (another dependency that can fetch, for a 200-line adapter).
+
+### D64 — AI settings: their own API, and consent decided by host, per connection, per version
+
+- AI settings live in `config.yaml`'s `ai:` section (SPEC R17), written only through `ctx.config.update()` (D53), but
+  they're served by `GET /api/ai` rather than `SettingsResponse` (AGENTS.md's convention for settings). AI carries
+  more than settings: each connection's class, consent and key state, each feature's readiness and why not, and the
+  hosts it has added to the allow-list. One `AiStatus` answers every AI write, and an `ai` event refreshes it.
+- **Local or cloud is decided by the connection's host, never its kind** (`shared/ai/hosts.ts`): loopback is *this
+  computer*; RFC 1918, ULA, link-local, `.local` and `host.docker.internal` are *your network*; everything else is the
+  *internet*, including a hosted "OpenAI-compatible" server and a public name that resolves to a private address (the
+  host as written is all we can vouch for). Plain http only to the first two. `*.localhost` and `*.local` are trusted
+  by name, without a DNS lookup (BragDoc never resolves a host itself); a resolver that answered them with public
+  addresses would defeat that, and that's the one edge left.
+- **Consent is stored as `{ at, version, host }`.** It counts while the statement's version is no newer and the
+  connection still points at that host (a consent that names no host, written by hand, covers none): changing the
+  address to another host withdraws it, and so does a statement that grows. **A key goes with it:** pointing a
+  connection at another host (or a Jev at another OpenRouter connection) forgets its key, so a key entered for one
+  provider is never sent to another.
+- `fetchFor` allows only the connection's own origin (scheme, host and port), and a cross-host redirect into this
+  computer or your network is refused for every egress request, now that AI can put a LAN host on the allow-list. Egress checks *the connection*, not just the host, on every request, so revoking one of two connections
+  on the same host (an OpenRouter one and a Jev one) stops that one even mid-run.
+- `connections` is a map keyed by id, so two tabs editing different connections both keep their edit.
+- Keys go in `secrets.yaml` under `ai.<id>.apiKey`. The API returns `hasKey` and `keyHint` (the last four characters,
+  or just `…` for a key under 16 characters). Removing a connection forgets its key.
+- **Considered:** consent by kind (a custom URL would slip through as "local" or need its own rule); consent per host
+  only (revoking Jev would need revoking OpenRouter too).
+
+### D65 — The AI runtime: one lazy loader, one fetch, one queue, a fixed set of errors
+
+- **The SDK is loaded once, on the first model call**, by `import()` in `server/ai/sdk.ts`, the only file that names it
+  outside `providers.ts` and (from PR28) `decide.ts`; the guard confines each package to those files. On load it sets
+  `AI_SDK_DEFAULT_PROVIDER` to a provider that throws (a model given as a string can't reach the hosted gateway) and
+  `AI_SDK_LOG_WARNINGS` to false (one `Object.assign`, so the guard counts one use of `globalThis`). Telemetry is
+  never registered. `test/ai-lazy.test.ts` and `smoke:pack` prove an AI-off session (source and packed) never
+  resolves `ai`.
+- **The only fetch a provider gets is `egress.fetchFor()`.** Providers are built per call with it; the SDK's own
+  downloader (it fetches URLs in prompts, outside egress, with undici) is replaced by one that refuses, and prompts are
+  text only. Keys and base URLs are always passed as strings, so the providers never read `*_API_KEY` or `*_BASE_URL`
+  from the environment.
+- **No hidden retries:** the SDK's `maxRetries` is 0. The one retry is ours: when an answer doesn't validate, the model
+  is shown its answer and the problem once. A server that refuses a schema is asked again in JSON mode (the schema in
+  the instructions, then our own Zod check), and that model is remembered as schemaless for the process. json_schema
+  is sent non-strict: strict mode refuses optional fields at some providers, and our check is the strict one.
+- **OpenAI goes through Chat Completions** (`.chat()`), the API every OpenAI-compatible server shares, so one fake
+  covers it; the Responses API adds nothing a text-only, tool-less call needs.
+- **The queue** is per connection: one call at a time on this computer or your network, two to the internet; `now`
+  before `background`; timeouts count from the start (180 s local, 60 s cloud by default). A job re-checks its gates
+  when it starts and once a second while it runs, so AI switched off (in the app or by hand) or consent revoked stops
+  it. `PUT /api/ai { enabled: false }` also cancels everything at once.
+- **Errors** are a fixed set (`server/ai/errors.ts`), each with a sentence: the brief's ten, plus `cancelled` (the
+  caller went away: a closed tab, Cancel) and `busy` (200 calls already waiting on one connection). An error's words
+  never quote the model's answer, and a key a provider echoes back (`Invalid API key: sk-…`) is scrubbed.
+- **Considered:** loading the SDK at start when AI is on (a hand edit can turn AI on at any moment, and loading on
+  first use costs about 0.3 s once); the SDK's own retries (a 429 would quietly become three requests).
+
+### D66 — The fake model server: three APIs, scenarios by path, answers by rule
+
+- `test/fixtures/fake-llm/` answers Ollama's, an OpenAI-compatible server's and Anthropic's APIs on 127.0.0.1, so tests,
+  e2e, the docs' captures and box QA never call a real model (SPEC R28). Like the fake `gh`, its scenario comes from
+  `FAKE_LLM_SCENARIO` or `$HOME/.fake-llm/scenario` (re-read on every request, so QA can switch it live), and also
+  from a `/s/<scenario>/` prefix on the path, so one server can be many connections, each misbehaving its own way
+  (`http://127.0.0.1:<port>/s/bad-json/v1`).
+- Scenarios: the brief's nine, plus `bad-json-once` (wrong until it's shown its mistake: the repair retry's happy path),
+  `quota` and `no-models`.
+- Answers come from a rule table (`answers.ts`), first match wins, keyed on the schema's name or properties and the
+  prompt; a structured request nothing matches gets a valid answer made from its schema. Feature PRs add their rows.
+  In JSON mode it reads the schema from the instructions, as a model would.
+- Cloud hosts can't be pointed at it (and no release build gets a way to redirect one), so cloud paths are tested with
+  an injected egress `fetchImpl` (`test/ai-fixture.ts`).
+
+### D69 — Settings → AI: off means nothing that could reach a runner; local models are listed on sight, cloud ones on a click
+
+- With AI off the tab shows the master switch, what being off means, and the connections you've saved, and nothing
+  that could contact a runner. Looking for one, listing models, testing and downloading all wait until AI is on, and the
+  server refuses them too (`ai_off`, 409): "nothing is contacted" (SPEC principle 3) holds for the setup screens, not
+  only the features. Adding, editing and allowing a connection send nothing, so the API still accepts them with AI off
+  (PR21); the tab just doesn't offer them until it's on.
+- A connection on this computer or your network is asked which models it has when its card appears (one logged GET).
+  One on the internet is asked only when you click: opening a settings page must never send a request to a provider.
+  Model lists are cached per connection *and address*, so pointing a connection elsewhere asks again.
+- After a connection on the internet is added, the consent dialog opens at once; "Not now" leaves it saved and blocked.
+  The dialog is made from `shared/ai/consent.ts`, so the page and the docs' provider pages can't disagree.
+- Feature cards are a registry, `FEATURE_CARDS` in `src/settings/ai/index.ts`: each feature PR replaces its `Card: null`
+  with its component, one line, like a route. Until then the tab lists each feature as off with what it will do.
+- AI activity is PR22's log (`GET /api/ai/activity`) as a receipt like Network activity's: one line per run, never content.
+- The header chip appears only while AI is on: "AI · this computer" / "AI · your network" for a local text model, the
+  provider's name (or a typed-in server's host) for one on the internet, "AI · no model yet" before one is chosen.
+
+### D70 — Looking for a runner: a fixed loopback probe through egress, and a look at PATH that runs nothing
+
+- `egress.probe()` is the only way to reach an address that isn't a configured connection (`fetchFor` only reaches a
+  connection's own origin). It allows only loopback names and `host.docker.internal`, only a GET with no body, no
+  query string and no credentials, never follows a redirect, refuses while AI is off, and logs each probe as
+  `feature: detect` with where it went. The probes are the presets' addresses (Ollama 11434, LM Studio 1234, llama.cpp
+  8080) and, when `BRAGDOC_IN_DOCKER=1` (the image sets it), the host's Ollama through `host.docker.internal:11434`.
+- Whether `ollama` is installed is `proc.onPath()`: a stat of PATH's absolute entries. Ollama is not in `ALLOWED_BINS`
+  and never will be: BragDoc doesn't run it, start it or install it. When it's on PATH but nothing answered, the page
+  says to start it; otherwise it says BragDoc doesn't install model runners and links to ollama.com.
+- The last result is kept in `cache/ai/detect.json` (derived, deletable); which runner is already a connection is worked
+  out when it's read, against the connections as they are then.
+- A runner on another port (this project's own dev box runs one on 11500) isn't found, by design: probing a range of
+  ports would be a port scan. Adding it by hand is the path, and the "none found" panel says so.
+
+### D71 — Asking Ollama to download: recommended models only, a server-side confirm, a warning not a wall for disk
+
+- `POST /api/ai/connections/:id/pull` takes only `{ confirm: true, model }` (400 `confirm_needed` otherwise) and only a
+  model from the recommended table whose size is known (`gemma4:e4b`, `qwen3.5:4b`): the confirm has to state the size
+  (SPEC principle 2), and the "better" tier's varies. Anything else is `ollama pull` in a terminal; the command is
+  always shown, with Copy.
+- The confirm restates the download, the free space in your home folder and the RAM it wants against what this machine
+  has. Too little free space or RAM is a red warning and the button becomes "Download anyway", not a block: free space
+  is the home folder's, and Ollama may keep its models on another disk (`OLLAMA_MODELS`), which BragDoc can't see.
+- The answer is Ollama's progress as NDJSON lines, then one `{ done }` line. Cancel closes the request, which closes
+  Ollama's stream (Ollama may keep the part it fetched, to resume; the dialog says so). Turning AI off or revoking the
+  connection stops a download in progress too (`ctx.localAi.cancelAll`, and a once-a-second check for a hand edit of
+  config.yaml), the same as ctx.ai's calls. The pull is logged twice: the
+  loopback request (`this computer`) and "registry (via Ollama)" (`internet`, outcome and error), because the download
+  leaves through Ollama, outside BragDoc's process (D9's honesty, as for gh).
+- The network log also totals the request bytes sent to AI providers on the internet (`toAiInternet` on
+  `GET /api/network-log`), for the receipt's "To AI providers on the internet" line beside "To BragDoc's makers: 0 B".
+  Refused requests and local ones don't count; content is never logged.
+### D67 — Instructions files: a store kind, written whole, capped, never overwritten unseen
+
+- `ai/what-counts.md` (the judge's) and `ai/style.md` (tidy's and draft's) are user data, so they're a store file kind,
+  `instructions` (D5), named by those two names only. Markdown, with front-matter only when the file starts with a
+  `---` line; a model is given the markdown after it (`services.instructions.forPrompt(name)`). Front-matter has no
+  keys of its own beyond `schemaVersion`; anything else in it is kept, unread.
+- **Written whole** (`Store.writeText`, `PUT /api/ai/instructions/:name { text }`): an editor shows the file and saves
+  the file, rather than patching YAML as the other kinds are. What's saved is checked exactly as a hand edit is read,
+  and refused (400) if it would be a Problem.
+- **A broken file is a Problem and keeps its last good copy** for prompts, as every store file does. It's replaced only
+  by a PUT carrying its current ETag (`If-Match`, and not `*`): proof that whoever is writing has seen what's there.
+  Without one, 409. "Last good copy" is this process's: a server started with the file already broken has none, so
+  `forPrompt` is null and a feature should look at the file's `problems` and say so. That's D5's "never overwritten" kept for the case where the user is the one fixing it in the editor.
+- **Capped at 20,000 characters** (`INSTRUCTIONS_MAX_CHARS`): the file goes with every call of its feature, and a
+  local model's context is 8192 tokens by default. Longer is a Problem ("shorten it"), not a silent truncation.
+- **Reset** (`POST …/reset`, `services.instructions.reset`) puts back a starter that the feature registers
+  (`setStarter(name, () => text)`; PR24 makes the judge's from your profile). Your file, if it's different, is moved to
+  `backups/removed/` first, broken or not: nothing is deleted. The starter is checked before anything moves, and if
+  the write still fails your file is put back. `ensure(name, starter)` writes the starter only if
+  there's no file, for a feature's first switch-on. The brief listed only GET and PUT; reset is here so the three
+  features share one, instead of each adding its own.
+- `ai/` is in backups' `EDITABLE` and the boot scan, the watcher already sees it (it isn't in `IGNORED_TOP`), and it is
+  **not** in `GITIGNORED`: your instructions belong in your data home's repo. A misspelt `.md` in `ai/` is a stray
+  Problem; `what-counts.txt` is told to be renamed; anything else there is left alone.
+- **What a 0.1 build does with `ai/`:** nothing at all. Checked on the `next` store: it isn't scanned (no Problem, no
+  stray notice), isn't in a snapshot, and isn't gitignored. So a data home used by 0.2 and then opened by 0.1 keeps
+  the files untouched, just unread and unbacked-up.
+- **The instructions routes aren't gated on AI.** They read and write your own files and make no model call: with AI
+  off, nothing is sent and the SDK isn't loaded (the test checks both).
+
+### D68 — The AI activity log, and live evals with recordings
+
+- **`logs/ai-runs.jsonl`** (`server/ai/activity.ts`, `ctx.aiActivity`): one line per run, for Settings → AI's receipt.
+  It hears every finished `ctx.ai` call (`Ai.onCall`). A feature that makes many calls opens a run
+  (`ctx.aiActivity.start({ feature, trigger })`), passes its `id` as each call's `runId`, counts its own outcomes
+  (`run.count('win')`) and ends it in a `finally`; that's one line. Any other call is a line of its own, with the
+  `trigger` it was given (default `now`; `bragdoc dev ai` says `cli`).
+  - Fields: id, feature, trigger (`now` · `arrival` · `schedule` · `eval` · `cli`), start, end, ms, connection, model,
+    where, items, calls by outcome, the feature's counts, tokens in and out (summed, when reported), the run's outcome
+    and an error **code**. Never a message: a message can quote what was sent. A count or an error that isn't a code
+    is dropped (`failed`).
+  - **A run that made no calls writes nothing.** It's the log of what asked a model; a judge run with nothing to judge
+    didn't, and "Nothing has asked a model anything" stays true with AI on and idle.
+  - Rotated at 1 MB to `ai-runs.1.jsonl`, like the network log (its own one-line rotate, with a guard-fs entry, rather
+    than reshaping `egress.ts`, which PR21 owns). Nothing is created until a line is written. `{ type: 'ai-activity' }`
+    follows each line this server writes; lines another process wrote (`dev ai`, an eval) appear on the next read.
+  - A run left open for 6 hours is written as `abandoned` the next time the log is touched, so a feature's bug can't
+    hold it forever. A run still open when the process stops isn't written.
+  - Two processes on one data home (the server and an eval) can, rarely, both rotate at the same moment and lose a
+    line or the older half. Accepted: it's a bounded record of recent activity, like the network log, not an audit
+    trail.
+- **Live evals** (`scripts/eval/lib.ts`; `npm run eval:<name>`): a feature supplies a spec (its synthetic cases, how to
+  ask, how to score); the harness refuses without `BRAGDOC_LIVE_AI=1` and whenever `CI` is set, and runs every call
+  through `ctx.ai` (gates, queue, egress).
+  - `--connection <id>` uses a data home's connection, key and consent, with its **master switch read live** (turning
+    AI off mid-eval stops it, and the run is logged as cancelled). The feature's own switch is taken as on: running an
+    eval is the opt-in. `--connection kind@url` makes one up for the run, **this computer or your network only**: a
+    cloud connection needs consent, given in Settings.
+  - Run-level failures (unreachable, model missing, AI off, a refused key…) stop it with the reason, exit 1, and no
+    recording; an item's own failure (an answer that's still invalid after the repair, a timeout) is its row.
+  - **Recordings** (`--record`, every case: not with `--limit`, which would shrink what replay covers):
+    `test/fixtures/ai-recordings/<eval>/<model>.json`, each answer keyed by a sha256 of exactly what was asked (system
+    prompt and prompt), with a second hash of the call's shape (the schema, its name, the output options). A case
+    that failed when recorded keeps its error code and is skipped on replay (`unanswered`). They hold the model's name, where it ran and the answers;
+    `writeRecording` refuses one containing the connection's host or hostname, its key, or any address that isn't on
+    the internet.
+  - **Replay** (`test/ai-replay.ts`): the fake model server answers each recorded request with the recorded answer
+    (its new `rules` option, also `--recording <file>` on the command line), so CI runs a feature's whole pipeline on a
+    real model's answers. A request whose hash isn't in the recording (the prompt changed) gets the fake's own answer
+    and its case is reported **stale** (as is one whose shape changed): re-record it on a machine with the model. That's deliberate: a replay that
+    silently passed on yesterday's prompt would measure nothing.
+  - `npm run eval:smoke` is the harness's own check (a date and a percentage from each of eight synthetic sentences,
+    feature `test`), with a committed real-model recording that CI replays.
+
+### D78 — Tidy this up: a suggestion beside your fields, and what you wrote is kept
+
+- **The server gathers the text** (`POST /api/ai/tidy { text?, evidenceShas?, achievementId?, today? }`): pasted text,
+  the OCR sidecar of named board pictures (waiting up to 8 s for a read in progress, then `409 not_read_yet`), and an
+  achievement's title, summary, notes and the words of its quotes and read pictures. Each part goes to the model under
+  a label saying what it is, inside one delimited block that the prompt calls material, not instructions. The browser
+  can't put words in a picture's mouth, and the preview (`GET /api/ai/tidy/preview`) is built by the same function.
+  The edit drawer tidies the achievement **as last saved** (it says so when you have unsaved edits).
+- **10,000 characters** of material at most (`400 too_long`, with the count, in the error), so a tidy fits the default
+  8,192-token local context with room for the answer.
+- **A lenient answer schema, strict checks after** (`finishTidy`): small local models get lengths and nulls wrong often
+  enough (PR22 saw the string `"null"`) that refusing over them costs a repair round-trip of 20 s on a CPU. So the
+  schema asks for the shape, and BragDoc clips the title (90), summary (280) and body (1,500) at a word, turns
+  `"null"`/`"none"` into null, clamps impact to 1–10, maps project **names** to your ids (an unknown one is dropped
+  and said), and flags every number, amount, date or capitalised name in a text field that isn't in the material
+  (`shared/ai/grounding.ts`; your name, role and project names count as yours).
+- **Nothing is written by a tidy.** In the composer, whose text is "first line title, the rest notes": using a title
+  the first time moves everything you wrote down into the notes under it (later titles replace the first line), and a
+  suggested body goes under the title, above your words. So **your original text survives Use all**, and Pin it saves
+  it as the achievement's notes. The composer gains a Summary and an Until field, shown only once a suggestion has set
+  them, so with AI off it's v0.1's composer exactly. In the drawer, a suggested body goes above your notes the same
+  way; title and summary replace theirs (they're on screen, and Cancel throws it all away). An accepted impact is
+  yours (`impactSource: user`), as any impact you set.
+- **Shown only while AI and Tidy are on** (SPEC R26): the board reads `GET /api/ai` (the same query key as Settings →
+  AI). On but not ready (no model, no consent) → the button is disabled with the reason and a link to Settings → AI.
+  A suggestion open when AI is switched off stays readable and goes inert, with the reason.
+- `notAnAchievement` shows its reason and offers nothing to use.
+
+### D79 — A date is kept only if the material states it or a relative date in it resolves to it
+
+R23 allows a date "only when stated, or resolvable from a relative date against the day it was pasted". A model that
+makes one up is the commonest invention (it reaches for today, or a plausible past date), and a wrong date files the
+achievement in the wrong week, where nobody re-reads it. So `allowedDates(material, today)` lists the dates the text
+supports, generously: ISO dates; "March 4" / "4 March" (this year, or last year if that's still to come); "October
+2025" and "Q3 2026" as ranges; either reading of 10/11; "today", "yesterday", "N days/weeks ago" (with slack); a
+weekday as any such day in the last two weeks; "last week" as the last fortnight; "last month" from the start of the
+previous month. A `happenedAt` or `endedAt` outside all of them is **dropped and said** ("The date 2019-03-14 isn't in
+your text, so it was left out"), and an end not after the start goes too. `today` is the browser's day (its time
+zone), accepted within two days of the server's, else the server's (the profile's time zone). The model gets the same
+rule in its prompt; this is the check, not the instruction.
+
+### D80 — Draft with AI: the folio's state in, a streamed draft out, and a check on every line
+
+PR27 (SPEC R24). The page sends the folio's **state** (`AiDraftFolio`: the window, filters and unticked ids), never its
+text, and the server rebuilds the clippings with `folioData()` (shared with `GET /api/folio`, now in `server/folio.ts`)
+and `matching()`, so a draft is made from exactly what the page shows (D55's cut-down clippings: no ids, paths or local
+URLs), and a client can't slip anything else into a prompt.
+
+- **Numbered, best first, and cited.** The clippings go in impact order as `[1]`, `[2]`…; the prompt asks for every
+  bullet to end with the numbers it comes from. The `start` line maps each number to its achievement for the page's
+  links; ids never reach the model.
+- **The check** (`checkDraft`, shared/ai/draft.ts, pure) is line by line, and stricter than "somewhere in the folio":
+  a line's numbers, dates and capitalised names must be in **the clippings that line cites**: their content, not the
+  scaffolding the prompt adds (a clipping's own `[n]` and impact score ground nothing), or the context the prompt
+  states about the person, the window (and its quarter or year) and the note. Project and company names are not
+  context: each is in its own clippings, so "for Atlas [3]" has to be Atlas's clipping. A line citing nothing (the
+  opening) is checked against all of it; prose under a heading must cite like a bullet. Bullets with no citation, citations to a number that wasn't sent,
+  and a short list of filler phrases (only those the user's own clippings don't use) are flagged too. Headings are
+  checked for numbers only (a theme is the model's word). A run like "Shipped Preflight" at the start of a line is
+  grounded if the name after the verb is; "410ms" is "410 ms". `POST /api/ai/draft/check` runs the same check on an
+  edited draft, against the draft's **own numbering** (the `cited` ids from its `start` line, rebuilt from the store
+  and kept only if the folio still picks them), so a new achievement or a smaller model since can't renumber it. It
+  makes no model call, so it's ungated. Sources are indexed once per check (`groundingIndex()`), and at most 2,000
+  lines are read: it runs after every pause in typing, on a single-threaded server.
+- **Only the sent clippings' projects and companies are named** in the prompt, never the rest of the catalog: a folio
+  filtered to one company doesn't tell a cloud model about the last one. Clipping text can't forge the markers (NFKC,
+  zero-width characters stripped) or a citation (`[7]` in a title becomes `(7)`).
+- **Streamed as NDJSON, not text/plain** (a deviation from the plan's brief). A plain-text stream has no way to say
+  "the runner died", "timed out" or "AI was switched off" after the first byte, and a draft can fail minutes in.
+  `start` / `text` / `done` lines, like PR23's pull, carry the model and where, what was sent and left out, the error
+  in words, and the check. Refusals before anything is sent stay plain JSON errors (409 gates, 400 `empty`).
+- **One activity run per draft** (`sent` and `omitted` counts), so a cancelled or closed tab is a `cancelled` line.
+  15 minutes local, 3 to the internet (SPEC R20); `maxOutputTokens` is the budget's answer room; temperature 0.2.
+- **Considered:** sending the page's markdown (simpler, but the server would have to trust it, and a hand-crafted
+  request could send anything to a cloud host under Draft's consent); checking only "anywhere in the folio" (misses a
+  real number pinned on the wrong achievement); a check in the browser alone (the server owns the clippings as sent).
+
+### D81 — Draft's budget, and the Draft panel
+
+PR27 (SPEC R24, R26).
+
+- **Budget** (`server/ai/draft/budget.ts`): a quarter of the connection's `contextTokens` (1,024–4,096) is kept for
+  the answer and sent as its cap; the rest holds the instructions and the clippings, estimated at 3.5 characters a
+  token for ASCII and one token for every other character (deliberately high: no tokenizer is bundled, and a prompt
+  Ollama silently truncates is worse than one that leaves an item out). "How I write" may take a fifth of the input
+  at most; past that it's cut ("cut short to fit"), and the panel says so. Clippings are added best first until the next doesn't fit; the rest (always the lowest-impact
+  tail) are counted, told to the model ("don't say it covers everything"), and shown: "N lower-impact items weren't
+  sent". One clipping is capped at 900 characters ("cut short") so a long note can't crowd the rest out. With the
+  default 8,192 that's about 5k tokens of clippings; with a cloud connection's 30k, about 25k.
+- **The panel is a third view beside Printout and Markdown** (a "Draft" chip), not a third column: the clippings stay
+  on the left so `[n]` can scroll to and light up its clipping, and the plain export stays one click away and the
+  default. On a phone it's the same chip, i.e. a tab. Draft with AI and the "What's this for?" note sit with Copy,
+  Print and Export.
+- **Shown only while AI and Draft are on** (SPEC R26, Ed's default 6). On but not ready: the button is disabled with
+  the reason and a link to Settings → AI. **A draft already written is the user's text**: if AI is switched off
+  mid-draft it stops with the reason, and what arrived stays editable, copyable and exportable until they leave the
+  page (Draft again is gone). Losing it would punish the user for turning AI off.
+- **Nothing is saved** (D55): the draft lives in the page. Leaving Folio (or reloading) with a draft not yet copied or
+  exported asks first; changing the folio's own filters or view (URL changes on the same page) never asks, and the
+  draft keeps meaning what it was made from ("the folio has changed since this draft"). Draft again over an edited
+  draft asks too.
+
+### D72 — What the judge reads: the screenshot re-read and marked, a PR's start, fenced as material
+
+- **A screenshot** (`server/ai/judge/input.ts`, pure): the picture is read again through `ctx.ocr`, **only if the file
+  is still the picture that passed** (its sha256 is the candidate's `screenshot:` key); its text is held in memory and
+  never written (R7). It's split into messages at author lines by the rules' own splitter
+  (`compileMessages`, exported from `shared/rules/screenshot.ts` without changing a rule: `eval:screenshots` gives
+  identical numbers). Unlike the rules, `notMe` names are kept and **marked**: an author who is you is "(the user)", one
+  of `notMe` is "(not the user)", and a `notMe` name inside a message gets the same mark.
+  - **The message to judge** is the one holding the rules' quote (`isVerbatim`), else the one sharing most of its
+    words. The rest is context, labelled as such, **nearest first** until the budget runs out (`truncated` says so).
+    Text with no author lines is one block: then the rules' quote is "the part to judge" and the block is context.
+  - **The budget** is the connection's `contextTokens`, less the system prompt and room for the answer, at 2.5
+    characters a token (OCR text, names and emoji tokenise worse than prose), because Ollama cuts an over-long prompt
+    silently from the front, fence and all: `inputBudget()`. Instructions so long they leave no room fail the item with
+    `context_too_long` before anything is sent.
+  - **`from`** is kept only if it's the judged message's own author (as shown, or the rules' `from`).
+  - **A picture that's gone** (or replaced since) is judged from the stored quote alone. **Known gap (v0.1's):** the
+    rules blank `notMe` names out before taking their quote, so a stored quote has lost "Alex P" and can't be marked;
+    and a `notMe` author line isn't a header to the rules (it's blanked) but is to the judge's split. Both only matter
+    when the picture is gone; changing the rules' quote is out of this PR (no rule changes).
+- **A merged PR**: repo, title, merge date and the first 2,000 characters of its description, HTML comments removed.
+  The question is different: notable or routine, plus an impact on BragDoc's 1–10 scale.
+- **The prompts** (`server/ai/prompts/judge-screenshot.ts`, `judge-github.ts`) are pure functions of `{ profile,
+  projects, instructions, input }`, written fresh (D2) after the spike's. The input goes between `<material>` markers
+  and the prompt says it's material to judge, never instructions; the markers (and `<instructions>`) are taken out of
+  the input so it can't close the fence. Projects are names (code maps them back). With no instructions (no file, or an
+  empty one) a short built-in guidance stands in. The screenshot prompt also says the user took the screenshot, so
+  "you" in someone else's message usually means them: the spike told the model a DM was "between the user and X", a
+  fact OCR can't recover.
+- **Rejected:** sending the whole OCR text unmarked (the spike's biggest prompt fix was "(the user)"); a separate
+  splitter for the judge (two definitions of "a message" would drift); storing the OCR text to skip the re-read (R7).
+
+### D73 — Judge runs: what's waiting, one at a time, what's checked before it's written
+
+- **What's judged** (`eligible`): pending candidates of the ticked kinds (screenshots; merged PRs only with
+  `judge.github`; never MCP), **without a verdict**, newest first, at most `maxPerRun`. "Judge again" names ids, and
+  then an existing verdict doesn't matter; decided candidates and unticked kinds still do. A candidate decided, or its
+  kind unticked, while a run is under way is skipped when its turn comes (`skipped`).
+- **One run at a time** (409 `running`), started in the background (`POST /api/ai/judge/run` → 202 `{ runId,
+  queued }`; the id is the activity log's). Judge now runs at `now` priority, everything else at `background`. Each item
+  is one call; the run is one line in the AI activity log, counted `win` · `probably-not` · `failed` · `skipped`.
+  - **Run-level failures stop it** (the same set as the eval harness: a gate, unreachable, a missing model, a refused
+    key, quota, rate limit, busy, cancelled); turning AI off mid-run is `cancelled` with `ai_off`. **An item's own
+    failure** (an answer still wrong after the repair, a timeout, a file that can't be written) is counted and the run
+    goes on. A run in which every item failed reports the last item's code, as the activity log does.
+  - `GET /api/ai/judge/status` keeps the run in progress and the last one **in memory only**; the activity log is the
+    record. An `ai-judge` event refreshes open tabs.
+- **Checks before writing** (`checkAnswer`): a `quote` is kept only if it's verbatim in **the message judged** (not the
+  context) and the verdict is a keep; `from` only if it's the judged message's author; project names map to the active and paused
+  projects' ids, others dropped; `why` is cut to 160 characters; `confidence` is clamped to 0–1 (a whole number up to
+  100 is read as a percentage); a PR's `impact` is rounded and clamped to 1–10. `by` is "<model> on <this computer ·
+  your network · host>"; `inputHash` is the sha256 of the kind, the input and the instructions, so the preview's hash
+  equals the verdict's when nothing changed.
+- **The starter `ai/what-counts.md`** is written from the profile when the judge is first on (AI and the judge both),
+  however it was switched on (the `config` event), and again at a run's start if it's missing; never over a file that
+  exists, even an empty one. `bragdoc_get_context` returns the same file as `winInstructions`.
+- **Rejected:** "current verdict" meaning "same inputHash" for what's waiting (it means re-reading every picture to
+  find out); a judge that writes anything but `verdict` (SPEC R21).
+
+### D74 — The judge's eval, and reasoning off for OpenRouter
+
+- **`npm run eval:judge`** (`scripts/eval/judge.ts`): the spike's 218 labelled messages, drawn as screenshots, read by
+  the real OCR (or `--perfect-text`), then the rules, then the judge; plus 20 synthetic merged PRs on
+  `altimetry-example/*`. It reports the pipeline's precision and recall, the judge's on what the rules passed, sarcasm
+  kept, valid answers, verbatim quotes, p50/p90 per call and PR accuracy. `--judge-all` judges every message (the judge
+  alone, as the spike's hosted table measured it).
+  - **Recordings are made with `--perfect-text`** (and only then): the replay tests run in CI, which has no OCR to
+    spare, and perfect text is the same on every machine.
+  - **Deviation from the brief:** it asked for "≥ 100 of the prefiltered messages" per local model. The screenshot
+    rules pass **70** of the 218 (the spike's Slack prefilter passed 108, from metadata a picture doesn't have: DMs,
+    threads, mentions), so a local run judges 70 messages and 20 PRs. The rules' own recall (83% on perfect text) caps
+    the pipeline's, so the comparison with the spike is the judge's numbers **on what the rules passed**.
+- **OpenRouter calls ask for no reasoning** (`reasoning: { effort: 'none', exclude: true }`, SPEC R20's "thinking off
+  where the runner allows it"), and a model that answers "reasoning is mandatory" is asked once more with `low`, which
+  is remembered per connection and model (not the repair retry). Found by this eval: Claude Haiku through OpenRouter
+  spent the judge's 400-token answer budget on reasoning and returned nothing for a long OCR text. Structured calls
+  (`ctx.ai.object`) only; streaming (Draft) is unchanged.
+
+### D75 — When the judge runs by itself: the second choice, the conditions, one run, the backoff
+
+- **Turning the judge on gives Judge now and nothing else** (SPEC R22, Ed's default). The card then asks one question,
+  "Also judge new candidates as they arrive?", with what it costs here (the last run's seconds per candidate, else
+  about 20 s of CPU per screenshot for a small local model; for a cloud model, where the text goes). "Every N hours" is
+  a second background trigger. **With a cloud model, background runs need one more tick** (`backgroundCloud`); without
+  it the schedule holds (`cloud`) and only Judge now sends.
+- **As they arrive** (`server/ai/judge/schedule.ts`): a found change for a candidate new to Found (not one an Undo
+  brought back, not one our own verdict write touched, not a kind the judge doesn't take) starts a run 30 s after the
+  last of a burst, at most 5 minutes after the first. A run takes what's waiting, newest first, up to `maxPerRun`; an
+  arrival run that hit that cap goes on with the rest next, and one that couldn't reach its model is tried again when
+  the backoff ends. **"Every N hours" takes at most `maxPerRun` per slot**: the rest wait for the next slot, so a big
+  backlog never goes to a cloud model all at once. **Nothing is gathered while AI or the judge is off, and a slot that
+  fell due meanwhile waits a whole period**, so switching them back on starts nothing (found on the box and in review).
+- **Conditions**, for background runs only: "only between" two local times (from = to is all day; across midnight is
+  fine) and "only on power" (on by default). The schedule looks every 30 s; arrivals and a due "every N hours" slot
+  held back by a condition run when it lifts. **Judge now ignores every condition and the backoff.**
+- **Stopping:** a background run asks before each item whether its conditions still hold (`RunOptions.until`, a hook
+  on PR24's engine, which already stops when a gate closes): unplugged, the window closed, background judging or the
+  judge or AI switched off. It stops after the item in progress, logged as `cancelled` with the reason's code
+  (`battery`, `window`, `off`, `cloud`), and what's left is put back to run when the condition lifts. While a
+  background run goes, the power is read every 5 s (the 30 s tick alone missed a short run: found on the box). The
+  engine also re-checks the gates after a model answers and before writing, so AI switched off mid-call writes
+  nothing more. This replaces a generation counter (D57, D58): the run asks the live conditions, which is the same
+  guarantee without a counter to keep in step.
+- **Backoff:** a run that ended with an error that would fail every item (`unreachable`, `timeout`, `model_missing`,
+  `key_refused`, `quota`, `rate_limited`, …) holds background runs 15 minutes, doubling to 6 hours (D57's numbers);
+  any run that judged something clears it. A failed Judge now counts too (the runner is down either way), but Judge now
+  itself is never held by it. State, including the last run of any kind, is `cache/ai/judge.json`
+  (derived, deletable; written only once the judge has run).
+- **Power** (`server/platform/power.ts`): `pmset -g batt` on macOS (`pmset` joins proc's allow-list), the mains / USB
+  supplies and the battery's status under `/sys/class/power_supply` on Linux (a `scope: Device` battery is a
+  peripheral's), else `unknown`, which counts as plugged in; the card says it can't tell. It's read only while it
+  decides something (AI and the judge on, "only on power" ticked, and a background trigger set or the card open), one
+  read at a time: with AI off (the default) `pmset` never runs. `BRAGDOC_POWER_SUPPLY_DIR`
+  (internal) points the Linux reading at a fixture, for the tests and box QA.
+- **Rejected:** judging only the new arrivals in an arrival run (the newest are first anyway, and a second list of
+  "arrived" ids would have to survive restarts); retrying failed items on every tick (a broken answer would spin).
+
+### D76 — Found once there are verdicts: three groups, Dismiss these N, Judge again
+
+- **Without a verdict Found is v0.1's list**, unchanged (AI never on is the default, and the AI-off control). Once any
+  candidate has one: **Looks like a win** (surest first), **Not judged yet** (newest first), **Probably not**
+  (collapsed, with its count). Verdicts are data: they keep their groups while AI is off, marked "judged earlier",
+  with Judge again, the judge line and Judge now hidden (SPEC R26).
+- **Dismiss these N** is one request (`POST /api/found/dismiss { ids }`) and its Undo another (`POST /api/found/undo
+  { ids }`), at most 500 (D56's undo memory), each id as the one-at-a-time route does it: one decided meanwhile is
+  skipped and said, never an error for the rest. **The judge never dismisses**: nothing empties Probably not but you.
+- **The card:** the stamp in the header, the why ("Why the judge picked it" / "passed on it"), the model's quote only
+  when it isn't the rules' (highlighted), "judged by …", Judge again and What's sent (`GET /api/ai/judge/preview`, the
+  same prompt function). A verdict with no why (a probability-only judge, PR28) says so. Nothing on the card depends on
+  which judge wrote the verdict. **Keep files it under the rules' and the judge's projects together** (the server's
+  default for a keep without `projects`), shown on the card first; the judge's ones are marked.
+- **A broken `ai/what-counts.md`** is a Problem, and the editor says what the judge uses meanwhile: the last good copy,
+  or, if BragDoc started with it broken, the starter written from the profile (never nothing at all).
+
+### D77 — "You agreed with the judge on N of M"
+
+- Counted when you keep, merge or dismiss a candidate that has a verdict: keep or merge agrees with a win, dismiss with
+  probably not. `FoundService.onDecided()` is the one hook (HTTP and any later caller alike); undecided, unjudged
+  candidates never count. An Undo while BragDoc runs takes its count back (which way each decision went is held in
+  memory for the newest 500, like D56's undo).
+- **Counts only**, in `cache/ai/judge-stats.json`: never which candidate, never its text. Served as
+  `AiJudgeStatus.agreement`.
+
+### D82 — Jev as the judge's model, through the AI SDK's experimental_decide
+
+- **Jev is a decision model, not a chat model.** TypeSafe's Jev answers typed questions about a state (yes or no as a
+  probability, a choice) and never writes a reason. It's reached at OpenRouter's `POST /api/v1/systemone` with
+  `typesafe/jev-1.14`; OpenRouter's `typesafe/jev-router` is a chat model, not Jev, and the server refuses it as Jev's
+  model.
+- **Through the SDK, with a small adapter.** `ai@7`'s `experimental_decide` is the interface, and it ships no Jev
+  provider, so `server/ai/decide.ts` is a `DecisionModelV4` over egress's `fetchFor`: the SDK's `boolean` question is
+  Jev's `noul` on the wire (the endpoint refuses `boolean`), `choice` is `choice`. HTTP failures are `APICallError`s
+  (classified like any provider's), and answers that aren't one per question are the SDK's `InvalidResponseDataError`
+  (`bad_output`). A choice's distribution isn't passed on (nothing reads it, and a sloppy one would fail the SDK's
+  checks and lose the yes/no with it), and a project answer outside the options becomes "(none of these)": a project
+  dropped, never one invented, and never a lost verdict. `decide.ts` is loaded by `sdk.ts` with the rest of the SDK, so nothing of it loads with AI off, and
+  `AI_SDK_DEFAULT_PROVIDER` now refuses `decisionModel` too (a model named by string would go to a hosted gateway).
+- **`ctx.ai.decide({ feature, purpose, state, questions, … })`** runs it in the connection's line, with the same gates,
+  timeouts, egress and activity record as `object()`. There's no repair retry: a decision model's answer is valid or
+  it isn't. `test()` asks a Jev connection one yes/no question about nothing of yours; `models()` returns Jev's one
+  model without a request.
+- **What the judge sends** (`server/ai/prompts/judge-jev.ts`, a pure function): a state of plain text fields (who the user
+  is, `ai/what-counts.md` verbatim or the default guidance, and the same normalised input the chat judge gets), a
+  `keep` yes/no with fixed criteria, and a `project` choice among your projects plus "(none of these)". **Deviation
+  from the brief:** it asked for criteria "written from the instructions". Writing criteria from free text would take
+  a model, so the instructions go into the state verbatim and the criteria are fixed definitions of a win. The
+  preview renders exactly this.
+- **The verdict:** `keep` at P(win) ≥ 0.5. **Deviation from the brief:** it said `confidence` = p. PR24's `confidence` is
+  "how sure, either way", and the card shows "Probably not · N%", so a raw p of 0.07 would read "Probably not · 7%".
+  Jev's `confidence` is therefore `max(p, 1 − p)`. A Jev verdict has no `why`, `quote` or `from`, and none is made up;
+  `probabilityOnly(verdict)` (`shared/judge.ts`) tells the card so. No `impact` for PRs: Jev isn't asked for one.
+- **Where Jev may be used:** as the judge's model only (`decisionOnly(kind)`, `shared/ai/connections.ts`). The server
+  refuses it as the text slot or as Tidy's or Draft's model (400). A Jev that reaches a text feature some other way
+  (a hand edit of config.yaml) is the `no_model` gate, with the reason, before anything is sent.
+- **Consent:** Jev's own, separate from the OpenRouter connection's (revoking either one stops only that one). Its
+  statement is version 2: it now lists everything the judge sends (a PR's details and your names too) and says that
+  OpenRouter passes it on to TypeSafe AI and that Jev gives no reason. Deleting the OpenRouter connection a Jev goes
+  through clears the Jev's consent, so a new OpenRouter connection under the same id asks again; so do pointing the Jev
+  at another OpenRouter connection and replacing that connection's key (each may be another account). A Jev with
+  nothing to go through has no host, and no consent can be given to it (409). Its own `baseUrl` or `contextTokens`
+  are refused: it has none.
+- **Tests and evals:** CI uses a response recorded from the real endpoint (`test/fixtures/jev/`), the fake model
+  server's `/systemone` (`answers.ts` row `jev`, its scenarios), and the judge eval's Jev recording
+  (`eval:judge -- --jev`), replayed through a Jev connection. A recorded decision is hashed with `noul` read as
+  `boolean` (`scripts/eval/decision.ts`), so the SDK's request and Jev's wire request match.
+- **The header chip** names the cloud when any switched-on feature's model is there (a judge on Jev with a local text
+  slot reads "AI · OpenRouter"), not only the text slot.
+- **Rejected:** a Jev chat path through `jev-router` (it's not Jev, and costs 30× more); `confidence` = p (it misreads
+  on the card); a repair retry for decisions (a second paid request for a provider bug).
+
+### D83 — The AI docs: tables made from the code, captures from the fake, and "Coming in 0.2.0"
+
+PR29 (SPEC R27).
+
+- **What can drift is generated.** `scripts/ai-reference.ts` writes three kinds of block into the docs pages, between
+  `ai-reference:<block>:start/end` markers (an HTML comment in `.md`, `{/* … */}` in `.mdx`), whenever
+  `npm run sync:reference` runs, and `test/docs.test.ts` fails while one is stale:
+  - `models`: the recommended models and the RAM bands, from `shared/ai/models.ts` (what Settings → AI recommends from);
+  - `measured`: what the judge scored, from **`scripts/eval/measured.ts`**, a new one-table module. The replay test
+    (`test/ai-judge-replay.test.ts`) now asserts each recorded model's scores from that table rather than its own
+    copy, so the number on the page is the number CI checks. Cloud rows that were one live run (Haiku, Gemini
+    flash-lite, PR24) are in the table too, marked as not replayed;
+  - `consent-<kind>`: each provider's consent statement, word for word, from `shared/ai/consent.ts`. The dialog's
+    per-feature titles and its "never sent" line moved there from `ConsentDialog.tsx` (`CONSENT_FEATURE_WORDS`,
+    `CONSENT_NEVER_SENT`; no visible change), so the page and the dialog share every word.
+- **Captures of AI answers come from the fake model server, and say so.** The rig gains an AI world (`data: 'ai'` in
+  `tools/docs-media/shots.ts`): the example world, plus the fake model server on **Ollama's preset address,
+  127.0.0.1:11434** (the rig refuses to start if anything already listens there, so a real Ollama can never answer a
+  docs shot), AI on, the judge, Tidy and Draft on, synthetic-dataset screenshots (three wins, one sarcastic), one
+  Judge now, and an Anthropic connection with no key or consent for the consent dialog. Every caption with an AI
+  answer says it was staged with the test model server. The leak scan now also allows the runner presets' ports
+  (11434, 1234, 8080: everyone's defaults, not this machine's), and its port lookahead no longer needs a word
+  boundary (`127.0.0.1:11434THIS COMPUTER` is how a stamp reads as text). The docs test allows the same ports on pages.
+- **The example world's own seed was broken** since 95338b9: its screenshot was one of the example data's pictures,
+  which the screenshots source now skips as "already on your board", so the seed timed out. It's now a picture drawn
+  from the synthetic dataset (`m036`), and every docs and landing shot was re-taken in one run.
+- **"Coming in 0.2.0".** The AI pages carry `:::note[Coming in 0.2.0]`, not a `Not …` note: the release script strips
+  `:::note[Not …]` at 0.1.0, and `next` may publish 0.1.0 while `v0.2` is still unreleased. `docs.test.ts` fails while
+  a `Coming in X` note once package.json is X or later, and **the release script takes them out by itself**
+  (`releaseDocsPage` in `scripts/whats-new-release.mjs` now drops a `:::note[Coming in X]` from X on, as it drops
+  `:::note[Not …]` from 0.1.0), since the bot's version PR can't be hand-edited. **This needs v0.2's release to be
+  0.2.0**: every v0.2 changeset is `patch`, so PR30's `minor` changeset is what makes it so (otherwise a release from
+  `v0.2` after 0.1.0 would be 0.1.1, and the notes would keep saying 0.2.0). What's new has one "Coming in 0.2.0: opt-in AI" section above a plain
+  "0.1: the first local release" one (`whats-new.test.ts` allows one "Coming in"). If 0.1.0 is published from `next`
+  first, the merge forward takes `next`'s "## 0.1.0" heading for the second section.
+- **Not documented as fact:** anything not measured. The page says under 8 GB there's no recommendation, gives the
+  spike's Apple-silicon speed as published figures, and says plainly that a runner's own traffic (Ollama's included)
+  is outside BragDoc's log.
+- **The consent statements were corrected, at their versions** (found by fact-checking the provider pages against the
+  prompts): the judge also sends your role and your paused projects' names; Tidy, run from an achievement's edit
+  drawer, sends its title, summary, notes, quotes and pictures' text; Draft sends evidence word for word (quotes with
+  who and where, PR numbers and titles, link sites and titles), not "by name", and the folio's dates. The rule is to
+  bump `version` when `sends` grows, but this isn't growth, it's the statement catching up with what the prompts
+  already send, and **v0.2 is unreleased, so nobody has consented to the old words**: no bump. After 0.2.0, any
+  change like this bumps.
+- **A Jev's consent now also goes when its OpenRouter connection's key is forgotten, or set where there was none**
+  (it went only on replacing a key), as Jev's statement already said: Forget, then another account's key, kept the
+  old consent (`server/routes/ai.ts`, `forgetJevConsent`; `test/ai-jev.test.ts`).
+
+### D84 — 0.2.0 comes after 0.1.0: the release order, and v0.2's merge into next
+
+PR30, the v0.2 release candidate (SPEC open question 9).
+
+- **v0.2 is released as 0.2.0, after 0.1.0, and only in that order.** `package.json` says 0.0.0 on both branches, and
+  Changesets releases the largest pending bump once. `v0.2` carries `next`'s pending changesets (`v0-1-release.md`, a
+  `minor`, and v0.1's patches) plus its own patches and `v0-2-release.md` (the `minor` D83 asked for). So:
+  1. **0.1.0 is published from `next` first** (RELEASING.md, unchanged). Its version PR consumes v0.1's changesets and
+     sets 0.1.0, and What's new gets `## 0.1.0`.
+  2. **`next` is merged forward into `v0.2`** (a merge, as for any v0.1 fix): v0.1's changesets go, the version
+     becomes 0.1.0. What's new conflicts, and the merge-forward PR (an ordinary PR) resolves it by hand: keep v0.2's
+     "Coming in 0.2.0" section on top, and replace its "## 0.1: the first local release" heading and its "Not on npm
+     yet" note with `next`'s "## 0.1.0: the first local release" (D83).
+  3. **`v0.2` merges into `next`** with a merge commit, once Ed approves. Its changesets (v0.2's patches plus one
+     `minor`) make the next version PR **0.2.0**, which turns "Coming in 0.2.0" into `## 0.2.0: opt-in AI` and takes
+     the AI pages' `:::note[Coming in 0.2.0]` out (D83).
+
+  PR30 simulated both orders in a scratch worktree (never pushed). In this order: 0.1.0's version step on `next`, the
+  merge forward resolved as above, then the version step again gives 0.2.0, "## 0.2.0: opt-in AI" above "## 0.1.0", no
+  "Coming in" note left on any page, and `docs`, `whats-new` and `release` tests 32/32. Merged into `next` *before*
+  0.1.0 is published, the same changesets would make **0.1.0, with AI in it**, under a "## 0.1.0: opt-in AI" heading
+  above "0.1: the first local release". That's wrong, so don't merge `v0.2` into `next` until 0.1.0 is out. If Ed
+  would rather skip a separate 0.1.0, the clean way is to delete `v0-1-release.md` in the merge, fold its text into
+  `v0-2-release.md` and accept that the first release is 0.1.0 with AI, with What's new rewritten by hand to match.
+  Not recommended: Q9's answer was 0.1.0 first.
+- **No reserved number went unused:** D62–D83 are all taken, and this is D84.
+- **Watcher tests start their watcher until it's live** (`liveWatcher()` in `test/store-fixture.ts`, used by
+  `test/ai-instructions.test.ts` and `test/watch.test.ts`). On macOS CI under the full suite, FSEvents could drop a new
+  stream's first events, and once a stream delivered nothing at all after chokidar's `ready`: PR30 reproduced the
+  instructions-watch failure in 4 of 12 full runs of the old test, and saw `watch.test`'s new-directory case fail the
+  same way. The helper writes by hand until the store sees an edit (restarting a watcher that stays silent for 5 s, at
+  most 3 times); the edits a test then asserts on get no retry. The app isn't changed: its watcher runs for hours,
+  and a hand edit in the first second after it starts is the only one at risk.

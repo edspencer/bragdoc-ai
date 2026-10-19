@@ -25,7 +25,10 @@ board's pictures in the background, so their text is searchable. PR16 built **on
 again from Settings → Data), the bounded repo scan, and the example data (see "Onboarding and example data" below).
 PR19 brought the docs site up to date with what was built, with real screenshots from the capture rig's example world.
 PR17 is the v0.1 release candidate: an end-to-end pass over all of it, the fixes it turned up, and the 0.1.0 changeset.
-v0.1's feature set is complete; what comes next is tracked in issues.
+v0.1's feature set is complete. **v0.2 adds opt-in AI** (epic [#434](https://github.com/edspencer/bragdoc-ai/issues/434)),
+built on the `v0.2` branch: PR21 laid down the AI core and PR22 the shared plumbing the features use (instructions
+files, the AI activity log, live evals; see "AI (v0.2)" below); PR24 the Found judge's engine. Its UI and the other
+features follow.
 
 Before changing behaviour, read, in order:
 
@@ -39,9 +42,10 @@ The human-facing version of these conventions is [CONTRIBUTING.md](CONTRIBUTING.
 
 These are the product principles from the specification. They are not up for negotiation in a PR.
 
-- **AI is off by default, and every AI feature is an explicit opt-in (D8).** v0.1 has no AI features and no AI
-  dependencies. Never install Ollama or download a model; at most detect an existing install, explain what it would
-  download, and act only after the user confirms. Every non-AI path must work fully on its own.
+- **AI is off by default, and every AI feature is an explicit opt-in (D8).** v0.1 has no AI features; v0.2 adds them
+  behind a master switch and a switch per feature, all off (see "AI (v0.2)"). With AI off, no AI code runs and the AI
+  SDK isn't even loaded. Never install Ollama or download a model; at most detect an existing install, explain what it
+  would download, and act only after the user confirms. Every non-AI path must work fully on its own.
 - **No telemetry, no update check (D9).** All outbound HTTP goes through `server/egress.ts` (PR2) and is logged;
   subprocesses run only through `server/proc.ts` (PR2). The guard tests enforce both. **Never weaken a guard test to
   make something pass.**
@@ -70,7 +74,7 @@ server/              the server and CLI (Node, TypeScript ESM, Hono)
                      what `serve` prints at startup ("BragDoc on <url>" first, always); node-version.ts the Node check
   commands/          every other command, one file each, one line in commands/index.ts (Hallway's shape); context.ts
                      is the injectable Ctx (runner, probe, clock), ready.ts the /api/health probe and readiness wait
-  platform/          `bragdoc service`: spec.ts (what the service is), launchd.ts / systemd.ts (the writers, pinned by
+  platform/          power.ts (is it plugged in? the judge's "only on power", PR25); `bragdoc service`: spec.ts (what the service is), launchd.ts / systemd.ts (the writers, pinned by
                      test/fixtures/services/), path.ts (the PATH captured at install), runner.ts (the injectable Runner
                      / Streamer, defaulting to proc.ts), index.ts (which manager this OS has; Windows: not yet)
   index.ts           createApp (routes → JSON 404 for /api/* → static files → SPA fallback) and startServer
@@ -97,7 +101,16 @@ server/              the server and CLI (Node, TypeScript ESM, Hono)
   events.ts          the event bus + the SSE stream (GET /api/events)
   live.ts            forwards every store change onto the bus as a ServerEvent named after its entity (D48)
   link-preview.ts    LinkPreviews: the GitHub PR lookup POST /api/link-preview uses (the GitHub source registers it)
-  secrets.ts         secrets.yaml (0600): the GitHub token, written through atomic.ts, never logged or backed up
+  secrets.ts         secrets.yaml (0600): the GitHub token and AI keys (aiKey, setAiKey, aiKeyHint), written through
+                     atomic.ts, never logged, returned or backed up
+  ai/                v0.2's AI runtime (see "AI (v0.2)"): policy.ts (the gates and the AI allow-list hosts, pure),
+                     run.ts (ctx.ai: queue, object/stream/test/models), local.ts (ctx.localAi: hardware, detection, the
+                     confirmed Ollama download; PR23), errors.ts (AiError, the fixed codes), sdk.ts
+                     (the ONLY place the AI SDK is loaded, by import()), providers.ts (connection → model), ollama.ts
+                     (Ollama's native /api/chat as a model), activity.ts (ctx.aiActivity: logs/ai-runs.jsonl, PR22),
+                     judge/ (the Found judge, PR24: index.ts ctx.judge, input.ts what it reads, starter.ts; PR25:
+                     schedule.ts ctx.judgeSchedule, stats.ts ctx.judgeStats),
+                     prompts/ (one file per prompt: judge-screenshot.ts, judge-github.ts)
   discover.ts        Welcome's "Your code": the bounded scan of one named folder (4 levels, 5 s, stops at .git,
                      symlink-loop safe), opt-in editor hints, recency from each repo's own .git (D60)
   example.ts         the example dataset (fixtures/example/): add (create-only, `example: true`), remove exactly it (D61)
@@ -138,6 +151,9 @@ shared/              code used by both server/ and src/: no Node or DOM APIs
                      folio may show: no ids, paths or local URLs)
   links.ts           parsePrUrl (→ owner/repo#n and `github_pr:` key), isHttpUrl, githubRepoOf, parsePrKey
   rules/screenshot.ts "is this screenshot praise for me?" from OCR text: plain rules, never a model (D52)
+  ai/                v0.2: hosts.ts (hostClass: this computer · your network · internet), connections.ts (kinds,
+                     presets, isCloud), consent.ts (the versioned statements), models.ts (the recommended models),
+                     grounding.ts (ungrounded, isVerbatim), instructions.ts (the instructions files' names and cap)
 src/                 the web app (React 19, Vite, Tailwind v4, TanStack Router + Query), built into dist/web
   main.tsx           fonts, ThemeProvider, QueryClient, router
   routes/            file-based routes (TanStack Router; tsr.config.json); __root.tsx is the shell
@@ -149,7 +165,7 @@ src/                 the web app (React 19, Vite, Tailwind v4, TanStack Router +
                      decide.ts (keep / merge / dismiss with the Undo toast)
   onboarding/        steps.ts (Welcome's steps), ExampleData.tsx (the board's example strip, Settings → Data's panel,
                      useAddExample); routes/welcome.tsx is Welcome itself
-  settings/          Settings' tabs (SourcesTab + GithubCard, NetworkTab, DataTab, AboutTab) and what they share (common.tsx:
+  settings/          Settings' tabs (SourcesTab + GithubCard, AiTab + ai/ (v0.2), NetworkTab, DataTab, AboutTab) and what they share (common.tsx:
                      CopyButton, CommandSlab, LoadError, Slot); routes/settings/$tab.tsx picks one
   api/               client.ts (the typed `api` wrapper), queries.ts (query keys + hooks), events.ts (live updates)
   theme/theme.tsx    light / system / dark: ThemeProvider + useTheme()
@@ -168,7 +184,8 @@ test/                node:test suites, run from source via tsx; fixture.ts has t
 e2e/                 Playwright specs, run against the built server (playwright.config.ts)
 fixtures/example/    the example dataset (example.json + evidence/), shipped in the package and the image (D61)
 scripts/             gen-example.ts (npm run gen:example: the example evidence files), start.mjs (npm start), dev.mjs (npm run dev), check-no-nul-bytes.mjs, sync-reference.ts,
-                     store-demo.ts, whats-new-release.mjs (heads the docs site's What's new at `changeset:version`);
+                     store-demo.ts, whats-new-release.mjs (heads the docs site's What's new at `changeset:version`),
+                     eval/ (v0.2's live evals: lib.ts is the harness, one spec per eval: smoke.ts, tidy.ts);
                      the release's: build-info.mjs (dist/build-info.json), strip-maps.mjs,
                      smoke-pack.mjs (npm run smoke:pack), smoke-image.sh (a built Docker image, in CI)
 .changeset/          pending changelog entries (`npm run changeset`); config.json versions against next
@@ -205,6 +222,11 @@ npm run store:demo     # the file store end to end on a throwaway data home (see
 npm run eval:screenshots -- --ocr   # the screenshot rules' precision and recall on the synthetic screenshots
                        # (test/screenshots.ts), read by real OCR; without --ocr, on perfect text (fast)
 npm run bragdoc -- dev ocr <image>  # which OCR engine ran, the text, and what the rules made of it
+BRAGDOC_LIVE_AI=1 npm run eval:smoke -- --connection ollama@http://127.0.0.1:11434 --model qwen3.5:4b [--record]
+                       # a live eval on a REAL model (refuses under CI); --record saves answers for replay tests
+BRAGDOC_LIVE_AI=1 npm run eval:tidy -- --connection … --model …   # Tidy this up on 30 synthetic blobs (PR26)
+BRAGDOC_LIVE_AI=1 npm run eval:judge -- --connection … --model … [--perfect-text] [--judge-all] [--only messages|prs]
+                       # the Found judge on the 218 labelled screenshots and 20 PRs (record with --perfect-text)
 npm run gen:example    # remake fixtures/example/evidence/ after changing a picture in scripts/gen-example.ts
 ```
 
@@ -297,7 +319,8 @@ project-colour tape, on an oat board (light) or a dim cork board under a desk la
   page under the production CSP.
 - **Theme:** `useTheme()` gives `{ pref, setPref, dark }`. The choice is in localStorage (`bragdoc.theme`);
   `public/theme-init.js` applies it before first paint, so keep the two in step (`test/web.test.ts` checks).
-- **AI is off** and v0.1 has none: no AI badge, chip, score or "confidence" anywhere in the UI (D8).
+- **AI is off** unless you turn it on: with AI off, no AI badge, chip, score or "confidence" anywhere in the UI (D8).
+  v0.2's affordances appear only when their feature is on (SPEC R26).
 
 **The kit** (`src/kit/index.ts`; see each on `/dev/kit` under `npm run dev`):
 
@@ -386,6 +409,7 @@ is the folder choice on its own. The source reads nothing until profile.yaml has
 |---|---|
 | `GET /api/found?source=` | `FoundListResponse`: pending candidates, newest first (one check's newest-merged first), and `counts` per source (unfiltered) |
 | `POST /api/found/:id/{keep,merge,dismiss,undo}` | `FoundDecided`; keep takes an optional `FoundKeep` body, merge `{ achievementId }`; a decided one is 409 |
+| `POST /api/found/{dismiss,undo}` | `{ ids }` → `FoundBulkResponse` (`done`, `skipped`): many at once, Found's "Dismiss these N" and its Undo (PR25) |
 | `GET /api/found/count` | `{ pending }` for the badge and the board strip |
 | `GET /api/sources` | `SourcesResponse` (`github: GithubSourceStatus`, `screenshots: ScreenshotsSourceStatus`) |
 | `GET /api/sources/github/gh` | `{ installed }`: gh on PATH? (a look, nothing runs) |
@@ -404,6 +428,228 @@ egress module. The screenshots source is tested with a fake `Ocr` (`createAppWit
 text each rendered screenshot was drawn with (test/screenshots-source.test.ts); found.spec.ts drives it end to end with
 real OCR (serially, so its candidates can't land while that spec counts the badge). As root, `chmod 000` doesn't make a
 folder unreadable: test a denied folder with a stand-in (the unit test) or a server run as another user.
+
+### AI (v0.2)
+
+PR21 built the runtime every AI feature stands on (SPEC R17–R20, R28; D62–D66); PR23 built Settings → AI on it (D69–D71).
+**The rules:** nothing AI runs *or loads* unless AI and that feature are on; every model call goes through `ctx.ai` →
+`egress.fetchFor()`; local or cloud is decided by **host**, and cloud needs consent; nothing is installed or downloaded
+without a confirm; nothing a model says reaches the board or changes a Found candidate's status without a click.
+
+- **Settings** are config.yaml's `ai:` section (`server/config.ts`: `enabled`, `connections` (a map by id), `text`,
+  `vision`, `features.{judge,tidy,draft}`), every default off, written only with `ctx.config.update({ ai: … })`. They're
+  served by `GET /api/ai` (`AiStatus`), not `SettingsResponse` (D64): connections with `class`, `cloud`, `consent`,
+  `hasKey`/`keyHint` and `blocked`, readiness per feature, and the AI hosts on the allow-list. Types: `shared/api.ts`
+  "AI (PR21)". Routes: `server/routes/ai.ts` (the table is on the docs site's HTTP API page).
+- **Where a call goes is its host** (`shared/ai/hosts.ts` `hostClass(url)`): `this-computer` (loopback),
+  `your-network` (RFC 1918, ULA, link-local, `.local`, `host.docker.internal`) or `internet`. `isCloud(connection)`
+  (`shared/ai/connections.ts`) is "its base URL's host is on the internet", whatever its kind. Plain http only to the
+  first two. Consent (`shared/ai/consent.ts`) is versioned per kind and stored as `{ at, version, host }`: it counts
+  only for that host and a version at least the statement's.
+- **Keys:** `ctx.secrets.aiKey(id, connections?)` (a `jev` reads its `via`'s), `setAiKey(id, key | null)`,
+  `aiKeyHint(id)` (`…abcd`). Never anywhere else.
+- **Egress:** `egressAllowList()` adds AI hosts only while `ai.enabled` (local ones; cloud ones with consent).
+  `ctx.egress.fetchFor({ purpose, feature, model, connectionId })` is the only fetch a provider gets: it re-checks
+  *that* connection on every request (so revoking one of two on the same host stops it), refuses any other host,
+  follows no redirect, sends `User-Agent: BragDoc` and no attribution headers, and logs `where`, `feature`, `model`
+  and `sent` (bytes; never content). `ctx.egress.logVia('ollama', …)` logs a download Ollama makes itself (a pull).
+- **The SDK** (`ai` + `@ai-sdk/*`) is imported only in `server/ai/sdk.ts` (by `import()`), `providers.ts` and
+  `decide.ts` (Jev, PR28); `@ai-sdk/provider` also in `ollama.ts` (guard-egress's `AI_SDK_FILES`). Anything that
+  `createApp` imports statically may only `import type` from them. `test/ai-lazy.test.ts` runs an AI-off session under
+  a loader hook and fails if `ai` is ever resolved: keep it green.
+- **`ctx.ai`** (`server/ai/run.ts`):
+  - `object({ feature, purpose, slot?, schema, schemaName?, system, prompt, signal?, priority?, timeoutMs?, runId? })`
+    → `{ object, connection, model, where, ms, tokensIn, tokensOut, mode, repaired }`: the provider's own schema
+    support, then Zod, then ONE repair retry; JSON mode (schema in the instructions) for a server that refuses schemas.
+  - `stream({ … })` → `{ textStream, done }`; breaking out of `textStream` cancels the call.
+  - `test(connectionId, model?)`, `models(connectionId)`, `readiness(feature)`, `cancelAll(code, message)`,
+    `onCall(fn)` (every finished call as a `CallRecord`, no content: PR22's activity log listens here), `queue()`.
+  - Gates (409, checked before queueing, when a job starts, and every second while it runs): `ai_off`, `no_model`,
+    `not_consented`, `no_key`. Errors (`AiError.code`): `unreachable`, `model_missing`, `key_refused`, `quota`,
+    `rate_limited`, `timeout`, `no_structured_output`, `bad_output`, `context_too_long`, `cancelled`, `busy`,
+    `failed`. `AiError.status` is the HTTP status to answer with.
+  - The queue: per connection, one at a time locally and two to the internet; `priority: 'now'` (default; the judge's
+    default is `background`) goes first; timeouts count from the start: 180 s local, 60 s cloud, or `timeoutMs`.
+- **Found:** `VerdictSchema` has `from`, `impact`, `inputHash`. `ctx.services.found.setVerdict(id, verdict)` writes
+  only a pending candidate's verdict (replacing it whole) and never its status; a decided one is left alone
+  (`written: false, reason: 'decided'`). `dismiss()` clears `verdict`; undo brings it back.
+- **The fake model server** (`test/fixtures/fake-llm/`): Ollama (`/api/version`, `/api/tags`, `/api/chat`,
+  `/api/pull`), OpenAI-compatible (`/v1/models`, `/v1/chat/completions`) and Anthropic (`/v1/messages`). Scenarios
+  `ok`, `slow`, `down`, `bad-json`, `bad-json-once`, `no-schema`, `timeout`, `rate-limited`, `refused-key`, `quota`,
+  `context-too-long`, `no-models`, picked per request by a `/s/<scenario>/` path prefix (so one server can be several
+  connections), else `--scenario`, `FAKE_LLM_SCENARIO`, `$HOME/.fake-llm/scenario` (re-read each request). A model
+  named `missing…`, or an unpulled one on the Ollama side, is a 404. Answers come from the rule table in `answers.ts`
+  (by schema name, the properties asked for, or the prompt): **add your feature's rows there**, above the catch-alls.
+  In tests: `startFakeLlm({ scenario?, slowMs? })` → `{ url, requests, close }`; `requests` records each body (check
+  `think`, `num_ctx`, headers). On the box: `node --import tsx test/fixtures/fake-llm/server.ts --port <p>`. Cloud
+  paths can't point at it: test them with an injected egress `fetchImpl` (`test/ai-fixture.ts`).
+- **`bragdoc dev ai --connection <id> --model <m> [--schema ok] "<prompt>"`** makes one call through all of the above.
+- **Settings → AI (PR23, D69–D71)** is `src/settings/AiTab.tsx` plus `src/settings/ai/` (ConnectionCard, AddConnection,
+  ConsentDialog, Detect, Models with the download confirm, `words.ts` for the plain words and the header chip). With AI
+  off it offers nothing that could reach a runner. In the web app: `useAi()` / `useAiOn()` (the `ai` event refreshes
+  them), `useAiModels(id, baseUrl, enabled)`, `useAiHardware`, `useAiDetect`; client functions in `src/api/client.ts`
+  ("AI"). Its own routes are `server/routes/ai-local.ts` over `ctx.localAi` (`server/ai/local.ts`): `GET
+  /api/ai/hardware`, `GET|POST /api/ai/detect` (through `egress.probe()`, loopback and `host.docker.internal` only),
+  `POST /api/ai/connections/:id/pull` (`{ confirm: true, model }`, recommended models only; NDJSON progress; logged
+  twice). **A feature's card**: a component in `src/settings/ai/`, then replace its `Card: null` in `FEATURE_CARDS`
+  (`src/settings/ai/index.ts`) with it: one line. It gets `{ status, readiness }` and owns its feature's switch.
+
+PR22 added the plumbing the three features share (D67, D68):
+
+- **Instructions files** (`ai/what-counts.md` for the judge, `ai/style.md` for tidy and draft): a store kind,
+  `instructions`, owned by the store like every data file (backed up, watched, never gitignored). Through
+  `ctx.services.instructions`:
+  - `forPrompt(name)` → the markdown a prompt includes (after any front-matter, trimmed; the last good copy while the
+    file is broken), or null. **A prompt reads instructions only this way**, and a feature that needs them checks
+    `get(name).problems` too: a server started with the file already broken has no last good copy.
+  - `setStarter(name, () => text)` registers the feature's starter (do it where the feature is created; PR24 makes the
+    judge's from the profile). `ensure(name, text)` writes it only if there's no file (a first switch-on);
+    `reset(name)` puts it back, moving the user's version to `backups/removed/` first.
+  - `get(name)` / `put(name, { text }, { ifMatch })`: the whole file, for an editor. A broken file is a Problem and is
+    replaced only with its ETag; over 20,000 characters (`INSTRUCTIONS_MAX_CHARS`) is a Problem too.
+  - Routes `GET/PUT /api/ai/instructions/:name`, `POST …/reset` (`server/routes/ai-instructions.ts`); types
+    `AiInstructions*` in `shared/api.ts`; the `instructions` event refreshes query keys starting `ai-instructions`.
+    Not gated on AI: they're files.
+- **The AI activity log** (`logs/ai-runs.jsonl`, `ctx.aiActivity`, `server/ai/activity.ts`): every `ctx.ai` call is a
+  line by itself, unless it belongs to a run. **A feature that makes several calls for one job opens a run:**
+  ```ts
+  const run = ctx.aiActivity.start({ feature: 'judge', trigger: 'schedule' }); // now · arrival · schedule · eval · cli
+  try {
+    for (const c of items) { await ctx.ai.object({ …, runId: run.id }); run.count('win'); }
+  } finally {
+    run.end({ error: code, cancelled }); // one line; nothing at all if it never called a model
+  }
+  ```
+  A single call can say what started it with `trigger` (default `now`). Counts and errors are **codes**
+  (`probably-not`, `unreachable`), never sentences. `GET /api/ai/activity?limit&offset` (`AiActivityResponse`, newest
+  first) and the `ai-activity` event are what PR23's receipt shows (`getAiActivity` / `useAiActivity`).
+- **Live evals** (`scripts/eval/lib.ts`): a feature's eval is a spec (`EvalSpec`: synthetic `cases`, `run(case, ask)`
+  using `ask.object()` / `ask.text()`, `score()`, optional `summarise()`) in `scripts/eval/<name>.ts` ending
+  `if (isMain(import.meta.url)) process.exitCode = await main(SPEC)`, plus an `eval:<name>` script. The harness does
+  the rest: the refusal (no `BRAGDOC_LIVE_AI=1`, or `CI` set), `--connection <id | kind@url>`, `--model`, `--limit`,
+  `--record`, the table, stopping on a run-level failure, one activity run (trigger `eval`). `smoke.ts` is the example.
+  - **Recordings** go to `test/fixtures/ai-recordings/<eval>/<model>.json`, keyed by a hash of exactly what was asked.
+    `replay(spec, recording)` (`test/ai-replay.ts`) runs the spec against the fake model server answering from it:
+    assert `stale`, `missing` and `unanswered` are empty and the scores are what you expect. **Changing a prompt
+    or a schema makes its recordings stale**: re-record on a machine with the model (`--record`), never by hand. `node --import tsx
+    test/fixtures/fake-llm/server.ts --recording <file>` serves one for box QA.
+
+PR26 added **Tidy this up** on the board (SPEC R23; D78, D79): `POST /api/ai/tidy` and `GET /api/ai/tidy/preview`
+(`server/routes/ai-tidy.ts`), the prompt in `server/ai/prompts/tidy.ts` (`tidyPrompt`, `tidyMaterial`: labelled parts
+in one delimited block), and `server/ai/tidy.ts`: `gatherTidy` (the server collects the text: pasted, board pictures'
+OCR, an achievement's fields), `runTidy`, and the pure `finishTidy` (clips, nulls, impact, project names → ids,
+`allowedDates` for dates, `ungrounded` flags). Nothing it does writes anything. On the board: `src/board/tidy.ts`
+(`useTidyAvailability`: shown only while AI and Tidy are on; `useTidy`: the call with Cancel; `applyTitle`/`applyBody`,
+which keep what you wrote in the notes) and `src/board/TidySheet.tsx` (the button, the thinking sticky, the sheet).
+The composer's Summary and Until fields appear only once a suggestion sets them. **For PR27:** `ai/style.md` reaches a
+prompt through `services.instructions.forPrompt('style')`, as Tidy does; the fake's `tidy` row (answers.ts) is keyed on
+the schema name `achievement_tidy`.
+
+PR27 added **Draft with AI** in Folio (SPEC R24, D80–D81):
+
+- `POST /api/ai/draft { folio: AiDraftFolio, purpose? }` streams NDJSON (`AiDraftEvent`: `start`, `text`…, `done`);
+  `POST /api/ai/draft/check` and `GET /api/ai/draft/preview` make no model call (`server/routes/ai-draft.ts`). The
+  server rebuilds the clippings from the folio's state: `folioData()` (`server/folio.ts`, shared with `GET
+  /api/folio`) → `prepareDraft()` (`server/ai/draft/prepare.ts`: numbering, the budget in `budget.ts`, the prompt in
+  `prompts/draft.ts`, and the check's sources). One activity run per draft (`sent`, `omitted`).
+- The check is `checkDraft(draft, sources)` in `shared/ai/draft.ts` (pure): per line, against the clippings that line
+  cites. `draftExportName()` names the download. The fake's `draft` row plants `37%` and one uncited bullet; a note
+  containing `(clean)` leaves them out (handy for screenshots).
+- In the web app: `streamDraft()` / `checkAiDraft()` / `getAiDraftPreview()` (`src/api/client.ts`), `useDraft()`
+  (`src/folio/draft.ts`), `DraftPanel` (`src/folio/DraftPanel.tsx`), `DraftCard` in Settings → AI. The Folio page's
+  leave guard asks only when leaving `/folio` (its filters are URL changes too). `StyleEditor.tsx` is PR26's, copied
+  byte for byte.
+- `npm run eval:draft` (live): three example-data folios (a quarter, six months, a year on a 4k context that hits the
+  budget); `EVAL_SHOW=1` prints each draft.
+
+PR24 added **the Found judge** (SPEC R21; D72–D74). It only ever writes a pending candidate's `verdict`
+(through `services.found.setVerdict`), never its status. **For PR25 (schedule, Found UI) and PR28 (Jev):**
+
+- **`ctx.judge`** (`server/ai/judge/index.ts`, `createJudge(deps)`; no SDK import, so createApp builds it with AI off):
+  - `start({ ids?, trigger, priority?, signal? })` → `{ runId, queued, done }`: a run in the background. Throws an
+    `AiError` for a gate (409) or `JudgeRunning` (one run at a time). `trigger` is the activity log's (`now` ·
+    `arrival` · `schedule`); priority defaults to `now` for `trigger: 'now'`, else `background`. `done` resolves to a
+    `RunSummary` (`total`, `done`, `counts`, `outcome`, `error`); it never rejects for a model's failure.
+  - `judgePending(opts)`: `start()` and wait. `cancel()` stops the run in progress (what's judged stays).
+  - `eligible(ids?)`: what a run would take (pending, ticked kinds, no verdict unless `ids`, newest first, `maxPerRun`).
+  - `status()` → `AiJudgeStatus` (`ready`/`reason`, `kinds`, `waiting`, `running`, `last`), `preview(id)` →
+    `AiJudgePreview` (the exact system and prompt, nothing sent; `NotJudgeable` for a decided or MCP candidate),
+    `prepare(c)` → `Prepared` (input, prompt, `inputHash`, project map), `decide(c, context)` (the `Judge` seam).
+  - `checkAnswer(answer, prepared)`: the checks every verdict passes (quote verbatim in the message judged, `from` its
+    author, projects to ids, `why` ≤ 160, clamps). **Jev (PR28) runs its answer through it too.**
+  - Counts are `win` · `probably-not` · `failed` · `skipped`. A run emits `{ type: 'ai-judge' }` as it goes; the store
+    forwards `found` as each verdict is written.
+- **Routes** (`server/routes/ai-judge.ts`): `POST /api/ai/judge/run` (`{ ids? }` → 202), `GET /api/ai/judge/status`,
+  `GET /api/ai/judge/preview?candidate=`. Web: `runJudge`, `getJudgeStatus`, `getJudgePreview`, `useJudgeStatus()`.
+- **The input** (`judge/input.ts`): `screenshotInput`, `githubInput`, `inputBudget`. Messages come from
+  `compileMessages(profile)` in `shared/rules/screenshot.ts`: the rules' own split, with `notMe` kept and flagged.
+- **The starter** `ai/what-counts.md` (`judge/starter.ts`, from the profile) is registered with
+  `services.instructions.setStarter` when the app is made, and written when the judge is first switched on.
+- **Found's card** shows the verdict (`VerdictNote` in `src/found/FoundCard.tsx`: stamp, why, "judged by …", "judged
+  earlier" while the judge is off) and the page has a minimal Judge now. Grouping, "Probably not" and Judge again are
+  PR25's.
+- **The fake's judge rows** (`answers.ts`, schema names `found_judge` and `found_judge_pr`): praise words → a win
+  (0.86), sarcasm markers → probably not, "(the user)"'s own message → probably not; a PR titled bump/chore/typo/revert
+  → routine (impact 1), else notable (5). **`e2e/judge.spec.ts`** runs its own server and fake.
+- **Recordings** `test/fixtures/ai-recordings/judge/<model>.json` (perfect text) are replayed in `test/ai-judge-replay.test.ts`.
+
+PR25 added **when the judge runs, and Found's verdicts** (SPEC R21, R22; D75–D77):
+
+- **`ctx.judgeSchedule`** (`server/ai/judge/schedule.ts`, started only by `startServer`): as they arrive (30 s
+  debounce), every N hours, only between, only on power, the cloud tick, the backoff. `status()` → `AiJudgeSchedule`
+  (`hold.code`: `off` · `not-ready` · `cloud` · `window` · `battery` · `backoff` · `running` · `nothing`). A background
+  run passes `until` (a new `RunOptions` hook on the engine) and stops after the item in progress when it returns a
+  code. `judge.onRunEnd(fn)` hears every run. Tests drive it with a fake `Clock` and `power` (`createAppWithContext({
+  scheduleClock, power })`): `test/ai-judge-schedule.test.ts`.
+- **Power:** `onAC()` in `server/platform/power.ts` (`pmset`, now in `ALLOWED_BINS`; `/sys/class/power_supply`, or
+  `BRAGDOC_POWER_SUPPLY_DIR`, internal, for a fixture).
+- **Agreement:** `ctx.judgeStats` (`server/ai/judge/stats.ts`) over `services.found.onDecided(fn)`, the one hook for
+  keep, merge, dismiss and undo. Counts only, `cache/ai/judge-stats.json`.
+- **Found:** `POST /api/found/dismiss|undo { ids }` (`dismissMany` / `undoMany`, at most 500). Keep without `projects`
+  takes the rules' and the verdict's suggestions together. In the web app: `groupFound()` and the plain words
+  (`scheduleLine`, `errorWords`, `countsLine`) in `src/found/judge.ts`; `JudgePreviewDialog`; the Settings card is
+  `src/settings/ai/JudgeCard.tsx`. **For PR28:** a verdict without `why` already reads "answers only with how sure it
+  is"; the card's model picker lists every connection, so filter a decision-only one out of the other pickers there.
+
+PR28 added **Jev as the judge's model** (SPEC R25; D82):
+
+- **A `jev` connection** goes through an OpenRouter one (`via`: its key), with **its own consent** (statement v2).
+  `decisionOnly(kind)` (`shared/ai/connections.ts`): it's the judge's model only, never the text slot, Tidy's or
+  Draft's (the routes refuse it, and the `no_model` gate catches a hand edit). Its model is `JEV_MODEL`
+  (`typesafe/jev-1.14`; never `typesafe/jev-router`).
+- **`ctx.ai.decide({ feature, purpose, state, questions, … })`** (run.ts): typed questions through the SDK's
+  `experimental_decide` and `server/ai/decide.ts` (the adapter to OpenRouter's `/systemone`: `boolean` → `noul`), in the
+  same line with the same gates, timeouts, egress and log. `test()` and `models()` know Jev.
+- **The judge** (`judge/index.ts`): when its slot is a `jev` connection, `prepare()` builds `decision` (state +
+  questions, `prompts/judge-jev.ts`), the preview renders it, and `ask()` sends it with `ai.decide`. `jevAnswer()`:
+  keep at P ≥ 0.5, confidence `max(p, 1 − p)`, the chosen project; no why, quote or from.
+- **For the Found card and the judge card (PR25):** `probabilityOnly(verdict)` (`shared/judge.ts`) is true for a Jev
+  verdict: say "Jev answers with a probability only" instead of a why. A `jev` connection's models list is `[JEV_MODEL]`
+  with no request: offer it as "Jev (cloud)" in the judge's model picker, and nowhere else.
+- **Tests:** `test/ai-jev.test.ts` (a recorded real response in `test/fixtures/jev/`), the fake's `/systemone`
+  (`answers.ts` row `jev`; every scenario), `e2e/jev.spec.ts`, and the judge eval's Jev recording
+  (`npm run eval:judge -- --jev …`, replayed through a Jev connection in `test/ai-judge-replay.test.ts`).
+
+PR29 documented it (D83): the docs site's `ai/` section. **Its tables are generated** (`scripts/ai-reference.ts`, run
+by `npm run sync:reference`): the models from `shared/ai/models.ts`, the judge's scores from `scripts/eval/measured.ts`
+(which `test/ai-judge-replay.test.ts` asserts), and each provider's consent statement from `shared/ai/consent.ts`.
+Change any of those and re-run `sync:reference`; `docs.test.ts` fails until you do. New eval numbers go in
+`measured.ts`. AI captures come from the rig's `data: 'ai'` world (the fake model server on 127.0.0.1:11434).
+
+**Adding an AI feature** (five steps):
+1. Its settings already exist under `ai.features.<name>` (PR21 laid down all of them); read them with
+   `ctx.ai.readiness(feature)`, never by checking `enabled` yourself.
+2. A prompt in `server/ai/prompts/<feature>.ts`: a pure function of its inputs (instructions from
+   `services.instructions.forPrompt()`), tested for what it includes and what it leaves out (never a path, an id or a
+   local URL); the same function feeds the "what's sent" preview. Several calls for one job are one activity run.
+3. A Zod schema for the answer, and one call: `ctx.ai.object({ feature, purpose: 'ai.<feature>', schema, system,
+   prompt, signal: c.req.raw.signal })` (or `stream`). Map an `AiError` to `c.json(apiError(e.code, e.message),
+   e.status)`. Check the output with `shared/ai/grounding.ts` before showing it.
+4. A route module (`server/routes/ai-<feature>.ts`, one line in `routes/index.ts`), documented on the HTTP API page,
+   and rows in the fake's `answers.ts` for its tests and e2e. Its live eval (`scripts/eval/<feature>.ts`) and a
+   recording from each recommended model, replayed in a test.
+5. Its card in Settings → AI (`src/settings/ai/`, one line in `FEATURE_CARDS`, after PR23), and its affordance shown
+   only while `readiness` says it's on.
 
 ### Onboarding and example data (PR16)
 

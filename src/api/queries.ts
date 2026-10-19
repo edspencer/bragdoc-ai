@@ -2,8 +2,11 @@
 // `['achievements', filters]`, …), so the live-update hook (events.ts) can refresh a whole resource by its first
 // segment. Feature PRs add their key and hook here, one block each.
 import { QueryClient, keepPreviousData, useInfiniteQuery, useQuery } from '@tanstack/react-query';
-import type { FoundSourceName } from '../../shared/api.ts';
+import type { AiInstructionsName, FoundSourceName } from '../../shared/api.ts';
 import { getDiscoverSuggestions, getExample, getProfile, getWelcome, getAchievements, getBackups, getCompanies, getFolio, getFound, getFoundCount, getGhInstalled, getSources, getHealth, getMcpToken, getMeta, getNetworkLog, getProblems, getProjectSummary, getProjects, getRepos, getSettings, getEvidenceOcr, getScreenshotSuggestions, isApiError, type AchievementFilters } from './client.ts';
+import { getAiActivity, getAiInstructions } from './client.ts';
+import { getAi, getAiDetect, getAiHardware, getAiModels } from './client.ts';
+import { getJudgeStatus } from './client.ts';
 
 export const queryKeys = {
   health: ['health'] as const,
@@ -36,6 +39,18 @@ export const queryKeys = {
   profile: ['profile'] as const,
   discoverSuggestions: ['discover', 'suggestions'] as const,
   example: ['example'] as const,
+  // AI (PR23): the `ai` event refreshes these. A connection's models are asked of the runner itself, so they're under
+  // their own prefix and refreshed only when asked (each ask is a line in Network activity)
+  ai: ['ai'] as const,
+  aiHardware: ['ai', 'hardware'] as const,
+  aiDetect: ['ai', 'detect'] as const,
+  /** by address too: pointed somewhere else, a connection is asked again */
+  aiModels: (id: string, baseUrl: string | null) => ['ai-models', id, baseUrl ?? ''] as const,
+  // AI plumbing (PR22): refreshed by the `instructions` and `ai-activity` events
+  aiInstructions: (name: string) => ['ai-instructions', name] as const,
+  aiActivity: (limit: number) => ['ai-activity', limit] as const,
+  // the judge (PR24): refreshed by the `ai-judge` event (a run's progress) and by `found` (what's waiting)
+  judgeStatus: ['ai-judge', 'status'] as const,
 };
 
 export function createQueryClient(): QueryClient {
@@ -198,4 +213,53 @@ export function useDiscoverSuggestions() {
 /** Is there example data, and how much. */
 export function useExample() {
   return useQuery({ queryKey: queryKeys.example, queryFn: ({ signal }) => getExample(signal) });
+}
+
+// ---------------------------------------------------------------- AI (PR23)
+
+/** `GET /api/ai`: refreshed by the `ai` and `config` events (another tab, a hand edit of config.yaml). */
+export function useAi() {
+  return useQuery({ queryKey: queryKeys.ai, queryFn: ({ signal }) => getAi(signal) });
+}
+
+/** Is AI on? False while unknown: nothing AI shows until the server says so (SPEC R26). */
+export function useAiOn(): boolean {
+  return useAiState() === true;
+}
+
+/** AI on (true), off (false), or not known yet (undefined): for copy that says either way. */
+export function useAiState(): boolean | undefined {
+  return useQuery({ queryKey: queryKeys.ai, queryFn: ({ signal }) => getAi(signal), select: (s) => s.enabled }).data;
+}
+
+export function useAiHardware(enabled: boolean) {
+  return useQuery({ queryKey: queryKeys.aiHardware, queryFn: ({ signal }) => getAiHardware(signal), enabled, staleTime: Infinity });
+}
+
+export function useAiDetect(enabled: boolean) {
+  return useQuery({ queryKey: queryKeys.aiDetect, queryFn: ({ signal }) => getAiDetect(signal), enabled });
+}
+
+/** What a connection offers, asked of it once per page (a cloud one only when `enabled` says so: a click). */
+export function useAiModels(id: string, baseUrl: string | null, enabled: boolean) {
+  return useQuery({ queryKey: queryKeys.aiModels(id, baseUrl), queryFn: ({ signal }) => getAiModels(id, signal), enabled, staleTime: Infinity, retry: false });
+}
+
+// AI plumbing (PR22)
+
+/** An instructions file (ai/<name>.md), for its editor. Live: a hand edit refreshes it. */
+export function useAiInstructions(name: AiInstructionsName, enabled = true) {
+  return useQuery({ queryKey: queryKeys.aiInstructions(name), queryFn: ({ signal }) => getAiInstructions(name, signal), enabled });
+}
+
+/** The newest `limit` lines of the AI activity log. Live: each new line refreshes it. */
+export function useAiActivity(limit = 50) {
+  return useQuery({ queryKey: queryKeys.aiActivity(limit), queryFn: ({ signal }) => getAiActivity({ limit }, signal) });
+}
+
+// the judge (PR24)
+
+/** Can the judge run, what's waiting, and the run in progress. Live: the `ai-judge` event refreshes it. */
+export function useJudgeStatus() {
+  return useQuery({ queryKey: queryKeys.judgeStatus, queryFn: ({ signal }) => getJudgeStatus(signal), retry: false });
 }

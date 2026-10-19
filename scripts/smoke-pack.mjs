@@ -34,6 +34,7 @@ const step = (s) => console.log(`smoke:pack: ${s}`);
 // npm sets npm_execpath when it runs this script: use that npm, with this Node
 const npm = (args, opts) => (process.env.npm_execpath ? execFileSync(process.execPath, [process.env.npm_execpath, ...args], opts) : execFileSync('npm', args, opts));
 let server;
+let fake;
 
 // the installed bin, run as a user would: a fresh HOME and data home, none of this checkout's environment. XDG_* would
 // otherwise point a real ~/.config at the run; PORT/HOST are what a dev shell (or this box) may export.
@@ -247,6 +248,51 @@ dns.lookup = no('dns'); http.request = http.get = no('http'); https.request = ht
     assert.equal(fs.readdirSync(path.join(data, 'projects')).length, 4);
   }
 
+  // AI (v0.2, PR21): the installed package carries the AI SDK (a model call works, through egress, against the fake
+  // model server on loopback), refuses with AI off, and never even loads the SDK in an AI-off session (the loader-hook
+  // check from test/ai-lazy.test.ts, run against this packed build's dist/)
+  step('dev ai: refused with AI off; works against the fake model server, in the AI activity log; the SDK never loaded with AI off');
+  {
+    fails(['dev', 'ai', '--connection', 'fake', '--model', 'qwen3.5:4b', 'hello'], 1, /ai_off/);
+    assert.ok(!fs.existsSync(path.join(data, 'logs', 'ai-runs.jsonl')), 'AI off: nothing in the AI activity log, not even the file');
+    fake = spawn(process.execPath, ['--import', 'tsx', path.join(root, 'test', 'fixtures', 'fake-llm', 'server.ts'), '--port', '0'], { cwd: root, env: { ...env, FAKE_LLM_SCENARIO: 'ok' }, stdio: ['ignore', 'pipe', 'inherit'] });
+    const fakeUrl = await new Promise((resolve, reject) => {
+      let said = '';
+      const timer = setTimeout(() => reject(new Error(`the fake model server didn't start: ${said}`)), 20000);
+      fake.stdout.on('data', (d) => {
+        said += d;
+        const m = said.match(/fake-llm on (http:\/\/127\.0\.0\.1:\d+)/);
+        if (m) (clearTimeout(timer), resolve(m[1]));
+      });
+    });
+    const aiData = path.join(tmp, 'data-ai');
+    fs.mkdirSync(aiData);
+    fs.writeFileSync(path.join(aiData, 'config.yaml'), `ai:\n  enabled: true\n  connections:\n    fake: { kind: ollama, baseUrl: "${fakeUrl}" }\n`);
+    const answer = JSON.parse(run('dev', 'ai', '--data-dir', aiData, '--connection', 'fake', '--model', 'qwen3.5:4b', '--schema', 'ok', '--json', 'Reply with {"ok": true}.'));
+    assert.deepEqual([answer.answer, answer.where, answer.mode], [{ ok: true }, 'this-computer', 'schema'], JSON.stringify(answer));
+    const logged = fs.readFileSync(path.join(aiData, 'logs', 'network.jsonl'), 'utf8').trim().split('\n').map((l) => JSON.parse(l));
+    assert.deepEqual(logged.map((e) => [e.where, e.feature, e.model, e.outcome]), [['this-computer', 'test', 'qwen3.5:4b', 'ok']]);
+    const runsText = fs.readFileSync(path.join(aiData, 'logs', 'ai-runs.jsonl'), 'utf8');
+    const runs = runsText.trim().split('\n').map((l) => JSON.parse(l));
+    assert.deepEqual(runs.map((e) => [e.feature, e.trigger, e.model, e.where, e.outcome]), [['test', 'cli', 'qwen3.5:4b', 'this-computer', 'ok']]);
+    assert.ok(!runsText.includes('Reply with'), 'no prompt in the AI activity log');
+    const lazyLog = path.join(tmp, 'ai-lazy.log');
+    fs.writeFileSync(lazyLog, '');
+    const lazy = path.join(root, 'test', 'fixtures', 'ai-lazy');
+    const session = (mode) =>
+      execFileSync(process.execPath, ['--import', 'tsx', '--import', path.join(lazy, 'register.mjs'), path.join(lazy, 'session.ts')], {
+        cwd: root,
+        env: { ...env, AI_LAZY_LOG: lazyLog, AI_LAZY_MODE: mode, AI_LAZY_FAKE: fakeUrl, AI_LAZY_SERVER: path.join(installed, 'dist', 'server', 'index.js') },
+        encoding: 'utf8',
+      });
+    session('off');
+    assert.equal(fs.readFileSync(lazyLog, 'utf8'), '', 'an AI-off session of the packed build resolved the AI SDK');
+    session('on');
+    assert.match(fs.readFileSync(lazyLog, 'utf8'), /^ai$/m, 'the control: with AI on, the hook sees the SDK load');
+    fake.kill();
+    fake = null;
+  }
+
   step('MCP through the stdio bridge (bragdoc mcp)');
   const bridged = execFileSync(bin, ['mcp'], {
     cwd: work,
@@ -270,5 +316,6 @@ dns.lookup = no('dns'); http.request = http.get = no('http'); https.request = ht
   step('ok');
 } finally {
   server?.kill();
+  fake?.kill();
   fs.rmSync(tmp, { recursive: true, force: true });
 }

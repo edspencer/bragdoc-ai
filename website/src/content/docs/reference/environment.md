@@ -15,6 +15,7 @@ A command-line option always wins over its environment variable.
 | `PORT` | `2724` | The port to serve on, if `--port` isn't given. |
 | `BRAGDOC_HOME` | `~/.bragdoc` | The data folder, if `--data-dir` isn't given. |
 | `BRAGDOC_ALLOWED_HOSTS` | (none) | Extra hostnames BragDoc answers to, comma separated, added to `allowedHosts` in [config.yaml](/reference/config-yaml/). For Docker or a reverse proxy. |
+| `BRAGDOC_IN_DOCKER` | (unset; `1` in the image) | Says BragDoc is running in a container: Settings → AI also looks for Ollama on the host (`host.docker.internal:11434`), and says its hardware readings are the container's. |
 | `BRAGDOC_DANGEROUSLY_ALLOW_OPEN` | (unset) | Set to `1` to let BragDoc listen on an address other networks can reach. BragDoc has no login, so only do this when something else limits who can connect, such as Docker publishing the port on `127.0.0.1` only. See [Localhost security](/guarantees/localhost-security/). |
 
 ## Read from your environment

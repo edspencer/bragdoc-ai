@@ -1,7 +1,7 @@
 // A static guard (adapted from Local Review's fsguard.test.ts): no server code may delete, truncate, overwrite or rename
 // files except the reviewed call sites below: temp-file cleanup and no-clobber renames in server/store/safefs.ts,
 // snapshot copying and pruning in server/store/backups.ts, and the platform's own files in server/atomic.ts,
-// server/egress.ts (the network log) and server/home.ts (the legacy move-aside). If this fails, you've added a way to lose data: route it
+// server/egress.ts (the network log), server/ai/activity.ts (the AI activity log) and server/home.ts (the legacy move-aside). If this fails, you've added a way to lose data: route it
 // through server/store/safefs.ts instead (atomicWrite, renameNoClobber, moveToRemoved), or, after careful review,
 // update ALLOWED with a comment saying why it can't destroy anything. Never loosen it just to make a test pass (D9's
 // rule for guards holds here too).
@@ -47,6 +47,9 @@ const ALLOWED: Record<string, Record<string, number>> = {
   },
   'server/egress.ts': {
     rename: 1, // rotating logs/network.jsonl to network.1.jsonl at LOG_MAX_BYTES (the older log is replaced)
+  },
+  'server/ai/activity.ts': {
+    rename: 1, // rotating logs/ai-runs.jsonl to ai-runs.1.jsonl at LOG_MAX_BYTES, as the network log does (D68)
   },
   // `bragdoc service` (PR5): the unit file lives outside the store, in the service manager's own directory (D31)
   'server/platform/services.ts': {

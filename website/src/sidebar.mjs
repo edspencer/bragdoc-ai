@@ -44,6 +44,23 @@ export const SIDEBAR = [
 		],
 	},
 	{
+		label: 'AI (opt-in)',
+		collapsed: false,
+		items: [
+			{ label: 'Off unless you turn it on', slug: 'ai/overview' },
+			{ label: 'Setting up a local model', slug: 'ai/local-models' },
+			{ label: 'Choosing a model', slug: 'ai/choosing-a-model' },
+			{ label: 'The judge, in Found', slug: 'ai/the-judge' },
+			{ label: 'Tidy this up', slug: 'ai/tidy' },
+			{ label: 'Draft with AI', slug: 'ai/draft' },
+			{ label: 'Cloud: Anthropic', slug: 'ai/cloud/anthropic' },
+			{ label: 'Cloud: OpenAI', slug: 'ai/cloud/openai' },
+			{ label: 'Cloud: OpenRouter', slug: 'ai/cloud/openrouter' },
+			{ label: 'Cloud: Jev', slug: 'ai/cloud/jev' },
+			{ label: 'Cloud: any other server', slug: 'ai/cloud/custom' },
+		],
+	},
+	{
 		label: 'Guarantees',
 		collapsed: false,
 		items: [

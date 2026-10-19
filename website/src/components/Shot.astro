@@ -23,9 +23,14 @@ interface Props {
 	caption?: string;
 	/** The widest it is shown, in CSS px (default: the column, 760). */
 	max?: number;
+	/**
+	 * The AI answers in it came from BragDoc's test model server (the rig's AI world), not a real model: the tag says
+	 * so, as well as the caption (D83).
+	 */
+	staged?: boolean;
 }
 
-const { name, alt, caption, max = 760 } = Astro.props;
+const { name, alt, caption, max = 760, staged = false } = Astro.props;
 const all = import.meta.glob<{ default: ImageMetadata }>('../assets/shots/*.png', { eager: true });
 const pick = (theme: 'light' | 'dark') => {
 	const hit = all[`../assets/shots/${name}-${theme}.png`];
@@ -42,7 +47,7 @@ const width = Math.min(Math.round(light.width / 2), max);
 	<Image class="shot-dark" src={dark} alt={alt} width={width} densities={[1, 2]} loading="lazy" />
 	<figcaption>
 		{caption && <span>{caption}</span>}
-		<span class="shot-tag">Real capture · example data</span>
+		<span class="shot-tag">{staged ? 'Real capture · example data · AI answers staged' : 'Real capture · example data'}</span>
 	</figcaption>
 </figure>
 

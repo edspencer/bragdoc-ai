@@ -78,8 +78,11 @@ export interface NetworkLogEntry {
   at: string;
   /** Why BragDoc made it, e.g. `github.pulls`. */
   purpose: string;
-  /** `fetch`: through BragDoc's own egress module. `gh`: a GitHub CLI run, whose traffic leaves outside BragDoc. */
-  via: 'fetch' | 'gh';
+  /**
+   * `fetch`: through BragDoc's own egress module. `gh`: a GitHub CLI run, whose traffic leaves outside BragDoc.
+   * `ollama`: a download Ollama makes itself when asked to pull a model (v0.2), also outside BragDoc.
+   */
+  via: 'fetch' | 'gh' | 'ollama';
   method: string;
   host: string;
   /** The path only: never the query string, which can carry secrets. For `gh`, the subcommand. */
@@ -91,6 +94,14 @@ export interface NetworkLogEntry {
   bytes: number | null;
   /** Why it was denied or failed. */
   error?: string;
+  /** AI calls (v0.2, SPEC R19): where it went, by host. */
+  where?: AiWhere;
+  /** AI calls: what for (`judge`, `tidy`, `draft`, `test`, `detect`, `pull`). */
+  feature?: AiCallFeature;
+  /** AI calls: which model, when there is one. */
+  model?: string;
+  /** AI calls: the request body's size in bytes (never its content); null when it couldn't be measured. */
+  sent?: number | null;
 }
 
 /** `GET /api/network-log?limit=&offset=`: newest first. */
@@ -98,6 +109,8 @@ export interface NetworkLogResponse {
   entries: NetworkLogEntry[];
   /** How many entries the log holds in all (for paging). */
   total: number;
+  /** v0.2: the request bytes sent to AI providers on the internet, over the whole log (never content; SPEC R19). */
+  toAiInternet?: number;
 }
 
 /**
@@ -120,7 +133,15 @@ export type ServerEvent =
   /** A source's status changed: a check started or finished, it was connected or disconnected (PR13). */
   | { type: 'sources' }
   /** The Problems list may have changed (sent with every store change, and when a misnamed file comes or goes). */
-  | { type: 'problems' };
+  | { type: 'problems' }
+  /** AI settings, a connection, a key or consent changed (PR21): refetch GET /api/ai. */
+  | { type: 'ai' }
+  /** An instructions file (ai/<name>.md) changed: saved, reset, or edited by hand (PR22). */
+  | { type: 'instructions' }
+  /** A line was added to the AI activity log (PR22): refetch GET /api/ai/activity. */
+  | { type: 'ai-activity' }
+  /** The judge started, finished or moved on a run (PR24): refetch GET /api/ai/judge/status. */
+  | { type: 'ai-judge' };
 
 // ---------------------------------------------------------------- board (PR7): achievements, evidence, links, problems
 //
@@ -556,6 +577,19 @@ export interface FoundDecided<F = Record<string, unknown>> {
   missingFiles?: string[];
 }
 
+/** `POST /api/found/dismiss` and `POST /api/found/undo` (PR25): many at once ("Dismiss these N", and its Undo). */
+export interface FoundBulkRequest {
+  ids: string[];
+  /** Dismiss only: leave any the judge no longer calls "probably not" (Judge again since the list was shown). */
+  only?: 'probably-not';
+}
+
+/** What a bulk dismiss or undo did: the ones it changed, and the ones it left (decided meanwhile, gone, too old to undo). */
+export interface FoundBulkResponse {
+  done: string[];
+  skipped: { id: string; message: string }[];
+}
+
 /**
  * Why a GitHub check (or connecting) failed, in a word a program can switch on; the `message` says it for people.
  * `gh_missing`: no gh on PATH. `gh_logged_out`: gh isn't logged in. `token_missing`/`token_invalid`/`token_scope`: the
@@ -850,4 +884,520 @@ export interface ExampleChanged {
   changed: ExampleCounts;
   skipped?: string[];
   status: ExampleStatus;
+}
+
+// ---------------------------------------------------------------- AI (PR21)
+//
+// v0.2's opt-in AI (SPEC R17–R20). Settings live in config.yaml's `ai:` section but are served here, not in
+// SettingsResponse, because they carry their own readiness and consent (D64). Keys are never returned: only `hasKey`
+// and `keyHint` (the last four characters). The literal unions restate shared/ai/ (this file has no imports).
+
+/** Where a call goes, by host (shared/ai/hosts.ts). */
+export type AiWhere = 'this-computer' | 'your-network' | 'internet';
+export type AiKindName = 'ollama' | 'lmstudio' | 'llamacpp' | 'openai-compatible' | 'anthropic' | 'openai' | 'openrouter' | 'jev';
+export type AiFeatureName = 'judge' | 'tidy' | 'draft';
+export type AiCallFeature = AiFeatureName | 'test' | 'detect' | 'pull';
+/** Why something can't run now: the gates (all 409). */
+export type AiGateCode = 'ai_off' | 'no_model' | 'not_consented' | 'no_key';
+/** How a model call failed (server/ai/errors.ts). */
+export type AiErrorCode =
+  | 'unreachable'
+  | 'model_missing'
+  | 'key_refused'
+  | 'quota'
+  | 'rate_limited'
+  | 'timeout'
+  | 'no_structured_output'
+  | 'bad_output'
+  | 'context_too_long'
+  | 'cancelled'
+  | 'busy'
+  | 'failed';
+
+/** Which model on which connection. */
+export interface AiSlot {
+  connection: string;
+  model: string;
+}
+
+export interface AiJudgeSettings {
+  enabled: boolean;
+  screenshots: boolean;
+  github: boolean;
+  model: AiSlot | null;
+  when: { onArrival: boolean; everyHours: 1 | 3 | 6 | 12 | 24 | null; onlyBetween: { from: string; to: string } | null; onlyOnAC: boolean };
+  backgroundCloud: boolean;
+  maxPerRun: number;
+}
+
+export interface AiFeatureSettings {
+  judge: AiJudgeSettings;
+  tidy: { enabled: boolean; model: AiSlot | null };
+  draft: { enabled: boolean; model: AiSlot | null };
+}
+
+/** One connection, as the API shows it. */
+export interface AiConnectionView {
+  id: string;
+  kind: AiKindName;
+  name: string | null;
+  /** The address its requests go to (its own, or the kind's preset); null when it has none yet. */
+  baseUrl: string | null;
+  /** Its host, as the allow-list has it. */
+  host: string | null;
+  class: AiWhere;
+  /** Needs consent before any request (its host is on the internet). */
+  cloud: boolean;
+  contextTokens: number;
+  via: string | null;
+  /** Stored consent, and whether it still covers this host and the statement shown today. */
+  consent: { at: string; version: number; current: boolean } | null;
+  /** The consent statement's version to accept (POST …/consent { version }). Null for a local connection. */
+  consentVersion: number | null;
+  needsKey: boolean;
+  hasKey: boolean;
+  /** `…abcd`: never the key. */
+  keyHint: string | null;
+  /** Why it can't be used right now, or null. */
+  blocked: { code: AiGateCode; message: string } | null;
+}
+
+export interface AiFeatureReadiness {
+  ready: boolean;
+  /** Why not, when it isn't. */
+  reason: AiGateCode | null;
+  message: string | null;
+  /** The model it would use. */
+  slot: AiSlot | null;
+  where: AiWhere | null;
+}
+
+/** `GET /api/ai` (and every AI write's answer). */
+export interface AiStatus {
+  enabled: boolean;
+  text: AiSlot | null;
+  connections: AiConnectionView[];
+  features: AiFeatureSettings;
+  readiness: Record<AiFeatureName, AiFeatureReadiness>;
+  /** The hosts AI adds to the egress allow-list right now (none while AI is off). */
+  egressHosts: string[];
+  /** secrets.yaml can't be read: keys can't be used or saved until it's fixed by hand. */
+  secretsProblem: string | null;
+}
+
+/** `PUT /api/ai`: the master switch and the text slot. */
+export interface AiSettingsRequest {
+  enabled?: boolean;
+  text?: AiSlot | null;
+}
+
+/** `POST /api/ai/connections`. `id` defaults to the kind (`ollama`, then `ollama-2`…). */
+export interface AiConnectionCreate {
+  id?: string;
+  kind: AiKindName;
+  name?: string;
+  baseUrl?: string;
+  contextTokens?: number;
+  via?: string;
+}
+
+/** `PUT /api/ai/connections/:id` (the kind can't change). A changed host clears consent. Null clears a field. */
+export interface AiConnectionUpdate {
+  name?: string | null;
+  baseUrl?: string | null;
+  contextTokens?: number | null;
+  via?: string | null;
+}
+
+/** `PUT /api/ai/connections/:id/key`. */
+export interface AiKeyRequest {
+  key: string;
+}
+
+/** `POST /api/ai/connections/:id/consent`: the version of the statement the user was shown. */
+export interface AiConsentRequest {
+  version: number;
+}
+
+/** `POST /api/ai/connections/:id/test` (optional `{ model }`): one tiny structured request, logged like any call. */
+export type AiTestResult =
+  | { ok: true; model: string; where: AiWhere; ms: number; structured: boolean }
+  | { ok: false; model: string | null; where: AiWhere | null; error: { code: AiErrorCode | AiGateCode; message: string } };
+
+/** `GET /api/ai/connections/:id/models`. */
+export interface AiModelsResponse {
+  models: { name: string; sizeBytes: number | null }[];
+}
+
+/** `PUT /api/ai/features/:feature`: any of that feature's settings (a merge patch). */
+export type AiFeatureUpdate = Partial<AiJudgeSettings> | Partial<AiFeatureSettings['tidy']>;
+
+// ---------------------------------------------------------------- Settings → AI (PR23)
+//
+// Looking for a model runner on this computer, the hardware readings behind "Recommended for this computer", and asking
+// Ollama to download a recommended model (SPEC R18, D69–D71). Routes: server/routes/ai-local.ts.
+
+/** A local runner kind detection looks for. */
+export type AiRunnerKind = 'ollama' | 'lmstudio' | 'llamacpp';
+
+/** `GET /api/ai/hardware`: what this computer (or, under Docker, this container) has. */
+export interface AiHardware {
+  ramBytes: number;
+  cpu: string;
+  cores: number;
+  /** `arm64`, `x64`… */
+  arch: string;
+  appleSilicon: boolean;
+  /** Free space in the home folder (where Ollama keeps models by default): BragDoc can't know where a runner stores them. */
+  freeDiskBytes: number | null;
+  /** The readings are a container's (BRAGDOC_IN_DOCKER=1), not the machine's. */
+  inDocker: boolean;
+  /** The recommended model for this RAM (shared/ai/models.ts recommendFor), or null under 8 GB. */
+  recommended: string | null;
+  /** "roughly 15–20 s per item without a GPU", for a computer that isn't Apple silicon. */
+  speedNote: string | null;
+  /** The recommendations table's date. */
+  modelsAsOf: string;
+}
+
+/** One runner detection found answering. */
+export interface AiDetectedRunner {
+  kind: AiRunnerKind;
+  baseUrl: string;
+  where: AiWhere;
+  version: string | null;
+  models: { name: string; sizeBytes: number | null }[];
+  /** The id of a connection that already points here, or null. */
+  connectionId: string | null;
+}
+
+/** `POST /api/ai/detect` (and `GET`, the last result, or null before the first look). */
+export interface AiDetectResult {
+  at: string;
+  runners: AiDetectedRunner[];
+  /** An `ollama` program on BragDoc's PATH (a look; nothing ran). */
+  ollamaOnPath: boolean;
+  inDocker: boolean;
+}
+
+/** `POST /api/ai/connections/:id/pull`: Ollama only, and only with the confirm. */
+export interface AiPullRequest {
+  confirm: true;
+  model: string;
+}
+
+/** One line of the pull's answer (application/x-ndjson): progress, then one `done`. */
+export type AiPullEvent =
+  | { done?: false; status: string; completed?: number; total?: number }
+  | { done: true; ok: true }
+  | { done: true; ok: false; error: { code: string; message: string } };
+// ---------------------------------------------------------------- AI plumbing (PR22): instructions, activity
+//
+// The instructions files (ai/what-counts.md, ai/style.md; D67) and the AI activity log (logs/ai-runs.jsonl; D68).
+
+export type AiInstructionsName = 'what-counts' | 'style';
+
+/** `GET /api/ai/instructions/:name` (and PUT's answer). The ETag is also the response's `ETag` header. */
+export interface AiInstructionsResponse {
+  name: AiInstructionsName;
+  /** Relative to the data home: `ai/what-counts.md`. */
+  file: string;
+  exists: boolean;
+  /** The whole file as it is on disk (front-matter included), for an editor; null when there's no file. */
+  text: string | null;
+  /** What a model is given: the markdown after any front-matter, from the last good copy; null if there's none. */
+  body: string | null;
+  etag: string | null;
+  /** The file's Problems. A broken file keeps its last good `body`, and a PUT replaces it only with `If-Match`. */
+  problems: FileProblem[];
+  readOnly: boolean;
+  /** A feature has registered a starter: POST …/reset puts it back. */
+  hasStarter: boolean;
+  /** The longest the file may be, in characters. */
+  maxChars: number;
+}
+
+/** `PUT /api/ai/instructions/:name` (If-Match optional; required over a broken file): the whole new file. */
+export interface AiInstructionsRequest {
+  text: string;
+}
+
+/** `POST /api/ai/instructions/:name/reset`: where your previous file went (backups/removed/…), if it was replaced. */
+export interface AiInstructionsReset extends AiInstructionsResponse {
+  removedTo: string | null;
+}
+
+/** What started an AI run: someone asked, a candidate arrived, the schedule, an eval script, `bragdoc dev ai`. */
+export type AiTrigger = 'now' | 'arrival' | 'schedule' | 'eval' | 'cli';
+
+/** One line of the AI activity log: a run (a judge pass, an eval) or a single call (a tidy, a test). Never content. */
+export interface AiActivityEntry {
+  id: string;
+  feature: AiCallFeature;
+  trigger: AiTrigger;
+  startedAt: string;
+  endedAt: string;
+  ms: number;
+  /** The first call's connection, model and where it went; null for a run whose calls never got that far. */
+  connection: string | null;
+  model: string | null;
+  where: AiWhere | null;
+  /** What was processed: the feature's own count if it kept one (`counts`), else the calls made. */
+  items: number;
+  /** The model calls, by how they ended. */
+  calls: { ok: number; error: number; cancelled: number };
+  /** The feature's own outcomes, e.g. the judge's `{ win: 3, 'probably-not': 5, failed: 1 }`. */
+  counts: Record<string, number>;
+  /** Summed over the calls, when the provider reports them. */
+  tokensIn: number | null;
+  tokensOut: number | null;
+  /** How it ended overall. */
+  outcome: 'ok' | 'error' | 'cancelled';
+  /** An error code (AiErrorCode, a gate, or the feature's own), never a message: messages can quote what was sent. */
+  error: string | null;
+}
+
+/** `GET /api/ai/activity?limit=&offset=`: newest first. */
+export interface AiActivityResponse {
+  entries: AiActivityEntry[];
+  total: number;
+}
+
+// ---------------------------------------------------------------- AI tidy (PR26): POST /api/ai/tidy
+//
+// "Tidy this up" on the board (SPEC R23, D78–D79): a messy paste, a picture's text or an achievement as written, turned
+// into a suggestion you accept field by field. Nothing is saved by the call: the board saves only when you press Save.
+
+/** `POST /api/ai/tidy`: what to tidy. The server gathers the text itself; give at least one. */
+export interface AiTidyRequest {
+  /** Pasted or typed text. */
+  text?: string;
+  /** Board pictures (evidence sha256s) whose text, once read, is part of what's tidied. */
+  evidenceShas?: string[];
+  /** An achievement on the board: its title, summary, notes and the text of its quotes and pictures. */
+  achievementId?: string;
+  /** The day it was pasted, in the browser's own time zone (YYYY-MM-DD): relative dates resolve against it. */
+  today?: string;
+}
+
+export type AiTidyField = 'title' | 'summary' | 'body' | 'impactWhy';
+
+/** What the model suggested, after BragDoc's checks (lengths, dates, projects). Every field is a suggestion only. */
+export interface AiTidySuggestion {
+  title: string;
+  summary: string;
+  body: string | null;
+  happenedAt: string | null;
+  endedAt: string | null;
+  impact: number | null;
+  impactWhy: string | null;
+  /** Project ids, from your projects only (the model names them; unknown names are dropped). */
+  suggestedProjects: string[];
+  /** Set when it doesn't read like an achievement: the reason. The UI fills nothing then. */
+  notAnAchievement: string | null;
+  /** What it couldn't tell from the text. */
+  unclear: string | null;
+}
+
+/** `POST /api/ai/tidy` → the suggestion, what in it isn't in your text, and what BragDoc took out. */
+export interface AiTidyResponse {
+  suggestion: AiTidySuggestion;
+  /** Numbers, amounts, dates and names in a field that aren't in what you gave it ("not in your text"). */
+  ungrounded: Partial<Record<AiTidyField, string[]>>;
+  /** What the model said that BragDoc dropped, in words (a date it made up, a project you don't have). */
+  dropped: string[];
+  model: string;
+  where: AiWhere;
+  ms: number;
+  /** How many characters were tidied. */
+  chars: number;
+}
+
+/** `GET /api/ai/tidy/preview[?achievementId=]`: exactly what a tidy sends, with a placeholder for your text. */
+export interface AiTidyPreview {
+  system: string;
+  prompt: string;
+  /** The most characters a tidy takes. */
+  maxChars: number;
+  /** The model it would use, and where, when it's ready. */
+  readiness: AiFeatureReadiness;
+}
+
+// ---------------------------------------------------------------- Folio "Draft with AI" (PR27)
+//
+// A review draft from exactly what a folio shows (SPEC R24, D80–D81). The page sends the folio's state, never its text:
+// the server rebuilds the clippings with the same functions as GET /api/folio (shared/folio.ts). Nothing is written to
+// the data home. Routes: server/routes/ai-draft.ts.
+
+/** The folio's state, as the page holds it (shared/folio.ts FolioFilter, restated: this file has no imports). */
+export interface AiDraftFolio {
+  from: string;
+  to: string;
+  projects: string[];
+  company?: string;
+  minImpact: number;
+  exclude: string[];
+  group: 'project' | 'month' | 'week';
+}
+
+/** `POST /api/ai/draft`: draft from this folio. `purpose` is the "What's this for?" note (up to 300 characters). */
+export interface AiDraftRequest {
+  folio: AiDraftFolio;
+  purpose?: string;
+}
+
+/** One flag on a draft: the line it's on (1-based, in the draft as checked) and what was found there. */
+export interface AiDraftFlag {
+  line: number;
+  text: string;
+}
+
+/**
+ * What the check found (`POST /api/ai/draft/check`, and the end of every draft). Each is a suggestion to look, not an
+ * error: `ungrounded` facts (numbers, dates, names) in none of the clippings that line cites; `uncited` bullets;
+ * `filler` phrases; `badCitations`, a `[n]` with no clipping n.
+ */
+export interface AiDraftCheck {
+  ungrounded: AiDraftFlag[];
+  uncited: AiDraftFlag[];
+  filler: AiDraftFlag[];
+  badCitations: AiDraftFlag[];
+}
+
+/**
+ * `POST /api/ai/draft/check`: check an (edited) draft against the clippings it was made from. `cited`: the draft's own
+ * numbering (its `start` line's ids, in [n] order), so [3] keeps meaning what it meant even if the store or the model
+ * changed since; without it, the folio's clippings as a draft would number them now.
+ */
+export interface AiDraftCheckRequest {
+  draft: string;
+  folio: AiDraftFolio;
+  purpose?: string;
+  cited?: string[];
+}
+
+/** Which achievement each `[n]` is, for the page's links back to its clippings. Ids never reach the model. */
+export interface AiDraftCited {
+  n: number;
+  id: string;
+  title: string;
+}
+
+/**
+ * One line of `POST /api/ai/draft`'s answer (application/x-ndjson): `start`, then `text` as it arrives, then one
+ * `done`. A refusal before anything is sent (a gate, an empty folio) is a plain JSON error instead.
+ */
+export type AiDraftEvent =
+  | {
+      type: 'start';
+      model: string;
+      connection: string;
+      where: AiWhere;
+      /** How many clippings were sent, and how many lower-impact ones were left out to fit the model's context. */
+      sent: number;
+      omitted: number;
+      cited: AiDraftCited[];
+      /** Calls ahead of this one on the same connection (a busy local runner). */
+      ahead: number;
+      /** "How I write" was cut short to leave room for the clippings. */
+      styleCut: boolean;
+    }
+  | { type: 'text'; text: string }
+  | { type: 'done'; ok: true; ms: number; tokensIn: number | null; tokensOut: number | null; check: AiDraftCheck }
+  | { type: 'done'; ok: false; error: { code: AiErrorCode | AiGateCode; message: string } };
+
+/** `GET /api/ai/draft/preview` (optionally with a folio's URL params): exactly what a draft sends. */
+export interface AiDraftPreview {
+  system: string;
+  prompt: string;
+  /** Null for the template (no folio given): the clippings' place is marked. */
+  sent: number | null;
+  omitted: number | null;
+  /** The input budget, in estimated tokens, and the room left for the answer. */
+  budget: { inputTokens: number; answerTokens: number; contextTokens: number } | null;
+}
+
+// ---------------------------------------------------------------- AI judge (PR24)
+//
+// The Found judge's engine (SPEC R21, D72–D74): it fills a pending candidate's `verdict`, never its status. Runs are
+// one at a time; the schedule, the Settings card and Found's grouping are PR25's.
+
+/** `POST /api/ai/judge/run`: judge what's waiting (pending, of the ticked kinds, without a verdict), or these ids again. */
+export interface AiJudgeRunRequest {
+  ids?: string[];
+}
+
+/** `POST /api/ai/judge/run` → 202: the run started in the background; its id is the activity log's. */
+export interface AiJudgeRunResponse {
+  runId: string;
+  /** How many candidates it will judge (0: nothing was waiting, and nothing will be sent). */
+  queued: number;
+}
+
+/** A judge run's own outcomes, by code: `win`, `probably-not`, `failed` (that item), `skipped` (decided meanwhile). */
+export type AiJudgeCounts = Partial<Record<'win' | 'probably-not' | 'failed' | 'skipped', number>>;
+
+/** `GET /api/ai/judge/status`. */
+export interface AiJudgeStatus {
+  /** Could a run start now (AI and the judge on, a model chosen and allowed)? */
+  ready: boolean;
+  reason: AiGateCode | null;
+  message: string | null;
+  /** The kinds it judges: screenshots, and merged PRs only when ticked. Never MCP candidates. */
+  kinds: { screenshots: boolean; github: boolean };
+  /** Pending candidates of those kinds without a verdict (what Judge now would take, up to maxPerRun). */
+  waiting: number;
+  maxPerRun: number;
+  running: { runId: string; trigger: AiTrigger; startedAt: string; total: number; done: number; counts: AiJudgeCounts } | null;
+  /** The last run that finished since BragDoc started. */
+  last: { runId: string; trigger: AiTrigger; startedAt: string; endedAt: string; total: number; done: number; counts: AiJudgeCounts; outcome: 'ok' | 'error' | 'cancelled'; error: string | null } | null;
+  /** When it runs by itself (PR25, D75). Absent from an app that doesn't schedule (tests' createApp). */
+  schedule?: AiJudgeSchedule;
+  /** How often your keep or dismiss matched the verdict (PR25): counts only, from cache/ai/judge-stats.json. */
+  agreement?: { agreed: number; of: number };
+}
+
+/**
+ * Why a background run isn't happening right now, as a code (the card words it): `off` (neither "as they arrive" nor
+ * "every N hours"), `not-ready` (AI, the judge or its model), `cloud` (a cloud model without "also in the background"),
+ * `window` (outside "only between": `until` is when it opens), `battery` (on battery with "only on power"), `backoff`
+ * (the last run failed: `until`), `running` (a run is in progress), `nothing` (nothing is waiting).
+ */
+export type AiJudgeHold = 'off' | 'not-ready' | 'cloud' | 'window' | 'battery' | 'backoff' | 'running' | 'nothing';
+
+export interface AiJudgeSchedule {
+  /** Either background trigger is on. */
+  background: boolean;
+  onArrival: boolean;
+  everyHours: 1 | 3 | 6 | 12 | 24 | null;
+  /** The judge's model is on the internet: background runs need `backgroundCloud`. */
+  cloud: boolean;
+  /** What the power reading says now (unknown counts as plugged in). */
+  power: 'ac' | 'battery' | 'unknown';
+  /** Why it wouldn't start a background run now; null when it would (or is). */
+  hold: { code: AiJudgeHold; until: string | null } | null;
+  /** The next "every N hours" run, if that's on. */
+  nextRunAt: string | null;
+  /** New candidates arrived while it was held: they're judged when the hold lifts. */
+  arrivalsWaiting: boolean;
+  /** The last background run failed to reach the model: runs wait until `until` (15 minutes, doubling to 6 hours). */
+  backoff: { until: string; failures: number; error: string } | null;
+  /** The last run of any kind, kept across restarts. */
+  lastRun: { at: string; trigger: AiTrigger; outcome: 'ok' | 'error' | 'cancelled'; error: string | null; counts: AiJudgeCounts; total: number; done: number } | null;
+}
+
+/** `GET /api/ai/judge/preview?candidate=<id>`: exactly what the judge would send for it (nothing is sent). */
+export interface AiJudgePreview {
+  candidate: string;
+  kind: 'screenshots' | 'github';
+  /** What the input was made from: the picture read again, the stored quote (the picture is gone), or the PR. */
+  input: 'ocr' | 'quote' | 'github';
+  system: string;
+  prompt: string;
+  /** The model it would use, if one is chosen. */
+  model: string | null;
+  /** Context was left out to fit the model's context size. */
+  truncated: boolean;
+  /** `sha256:` of the input and your instructions: equal to the verdict's when nothing changed since it was judged. */
+  inputHash: string;
 }

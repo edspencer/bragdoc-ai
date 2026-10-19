@@ -1,13 +1,15 @@
 // Settings → Network activity (SPEC R4, R13): the proof of "nothing leaves your machine". The egress module's log as a
 // till receipt, newest first and a page at a time, live as requests happen; the allow-list as stamps; and a button
 // that asks for a forbidden request so you can watch it be refused. Adapted from the prototype's Network (Settings.tsx):
-// its receipt and stamps, without its Slack and AI lines.
+// its receipt and stamps, without its Slack lines. v0.2 (SPEC R19, R26): a model call is stamped with where it went
+// (this computer, your network, internet), its feature and model, and the bytes sent (never the content); a download
+// Ollama makes itself is marked "via Ollama"; and the receipt totals what went to AI providers on the internet.
 import { Fragment } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { ShieldCheck } from 'lucide-react';
 import type { GuardCheckResponse, NetworkLogEntry } from '../../shared/api.ts';
 import { checkEgressGuard } from '../api/client.ts';
-import { queryKeys, useMeta, useNetworkLog } from '../api/queries.ts';
+import { queryKeys, useAiOn, useMeta, useNetworkLog } from '../api/queries.ts';
 import { Btn, Kicker, Receipt, SectionTitle, Stamp, Sticky, formatBytes } from '../kit/index.ts';
 import { LoadError, Loading } from './common.tsx';
 
@@ -20,7 +22,24 @@ const PURPOSE: Record<string, string> = {
 };
 
 const hostname = (host: string) => (host.startsWith('[') ? host.slice(0, host.indexOf(']') + 1) : host.replace(/:\d+$/, ''));
-const isLocal = (e: NetworkLogEntry) => e.via === 'fetch' && LOOPBACK.has(hostname(e.host));
+const isLocal = (e: NetworkLogEntry) => e.via === 'fetch' && !e.where && LOOPBACK.has(hostname(e.host));
+
+/** A model call's stamp: where it went, in the receipt's fixed colours (it's light paper in both themes). */
+const WHERE_TAG: Record<NonNullable<NetworkLogEntry['where']>, { label: string; className: string }> = {
+  'this-computer': { label: 'THIS COMPUTER', className: 'bg-[#2fb37e]/20 text-[#1f6b48]' },
+  'your-network': { label: 'YOUR NETWORK', className: 'bg-[#3b6cf6]/15 text-[#2648a8]' },
+  internet: { label: 'INTERNET', className: 'bg-[#e9961a]/20 text-[#8a5200]' },
+};
+
+/** What an AI call was for, in words. */
+const AI_FEATURE: Record<NonNullable<NetworkLogEntry['feature']>, string> = {
+  judge: 'the judge',
+  tidy: 'Tidy this up',
+  draft: 'Draft with AI',
+  test: 'Test connection',
+  detect: 'looking for a model runner',
+  pull: 'a model download',
+};
 
 const timeFmt = new Intl.DateTimeFormat(undefined, { hour: '2-digit', minute: '2-digit', hourCycle: 'h23' });
 const dayFmt = new Intl.DateTimeFormat(undefined, { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' });
@@ -69,6 +88,8 @@ function NetworkReceipt() {
   const log = useNetworkLog();
   const entries = log.data?.pages.flatMap((p) => p.entries) ?? [];
   const total = log.data?.pages.at(-1)?.total ?? 0;
+  const toAi = log.data?.pages[0]?.toAiInternet ?? 0;
+  const aiOn = useAiOn();
   return (
     <Receipt className="w-full max-w-[720px] px-4 shadow-[var(--print-shadow)] sm:rotate-[0.3deg] sm:px-7">
       <div data-testid="network-receipt">
@@ -124,6 +145,12 @@ function NetworkReceipt() {
           <span>Telemetry · update checks</span>
           <span>none</span>
         </div>
+        {(aiOn || toAi > 0) && (
+          <div className="mt-1 flex justify-between font-bold" data-testid="network-ai-internet">
+            <span>TO AI PROVIDERS ON THE INTERNET</span>
+            <span>{formatBytes(toAi)}</span>
+          </div>
+        )}
       </div>
     </Receipt>
   );
@@ -146,13 +173,22 @@ function Line({ e, time }: { e: NetworkLogEntry; time: string }) {
       <span className="min-w-0">
         <span className="font-bold">{e.method}</span> <span className="break-all">{e.host}</span>
         {isLocal(e) && <Tag className="bg-[#2fb37e]/20 text-[#1f6b48]">LOCAL</Tag>}
+        {e.where && (
+          <span data-testid="network-where" data-where={e.where}>
+            <Tag className={WHERE_TAG[e.where].className}>{WHERE_TAG[e.where].label}</Tag>
+          </span>
+        )}
         {e.via === 'gh' && <Tag className="bg-black/10">VIA GH CLI</Tag>}
+        {e.via === 'ollama' && <Tag className="bg-black/10">VIA OLLAMA</Tag>}
         {refused && <Tag className="bg-[#b42318]/15 text-[#b42318]">REFUSED · NOT SENT</Tag>}
         {failed && <Tag className="bg-[#b42318]/15 text-[#b42318]">FAILED</Tag>}
         <span className="block truncate opacity-60" title={e.path}>
           {e.path}
         </span>
-        <span className="block font-sans text-[12px] opacity-80">{PURPOSE[e.purpose] ?? e.purpose}</span>
+        <span className="block font-sans text-[12px] opacity-80">
+          {e.feature ? `AI · ${e.purpose === 'ai.models' ? 'listing its models' : (AI_FEATURE[e.feature] ?? e.feature)}${e.model ? ` · ${e.model}` : ''}` : (PURPOSE[e.purpose] ?? e.purpose)}
+          {typeof e.sent === 'number' && e.sent > 0 && <span className="opacity-70"> · sent {formatBytes(e.sent)}</span>}
+        </span>
         {e.error && <span className="block break-words font-sans text-[12px]">{e.error}</span>}
       </span>
       <span className="text-right">
@@ -167,6 +203,7 @@ const Tag = ({ children, className }: { children: string; className: string }) =
 
 function WhereItGoes() {
   const qc = useQueryClient();
+  const aiOn = useAiOn();
   // refetch the receipt ourselves too: the live event is the usual way, but the stream may be reconnecting
   const check = useMutation({ mutationFn: checkEgressGuard, onSettled: () => qc.invalidateQueries({ queryKey: queryKeys.networkLog }) });
   const r: GuardCheckResponse | undefined = check.data;
@@ -180,7 +217,11 @@ function WhereItGoes() {
             GitHub through the <span className="font-mono text-[12px]">gh</span> CLI: gh makes those requests itself. BragDoc logs each time it runs gh, marked “via gh CLI”, but can’t see
             inside them.
           </li>
-          <li>There’s no AI in this version, so no model is ever contacted.</li>
+          <li data-testid="network-ai-sentence">
+            {aiOn
+              ? 'AI is on. Each call to a model is stamped this computer, your network or internet, with what it was for. A model download is Ollama’s own, marked “via Ollama”: BragDoc can’t see inside it.'
+              : 'AI is off, so no model is contacted.'}
+          </li>
         </ul>
       </Sticky>
       <div className="rounded-2xl bg-surface/70 p-4 text-[13px] leading-relaxed ring-1 ring-line" data-testid="guard-check">

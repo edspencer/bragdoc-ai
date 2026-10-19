@@ -3,9 +3,9 @@ name: CI
 # `next` is where v0.1 is built (#411); `main` is listed now so nothing needs editing when next merges into it.
 on:
   push:
-    branches: [next, main]
+    branches: [next, main, v0.2]
   pull_request:
-    branches: [next, main]
+    branches: [next, main, v0.2]
 
 # A new push to a PR cancels that PR's older run. Pushes get a group per commit, so they never cancel each other: the
 # release workflow (PR6) waits for the CI run on the exact commit it releases, and a cancelled run there would block it.

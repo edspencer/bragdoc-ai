@@ -1,18 +1,23 @@
 // Folio (SPEC R9): review season in two minutes. Pick a window, narrow it by project, company and impact, untick what
 // doesn't belong, and take the rest away as markdown (Export .md, Copy) or on paper (Print). Everything about the
 // folio lives in the URL (?from&to&p&c&min&out&group&view), so a reload, Back or a bookmark brings the same one back.
-// No AI: the folio is exactly what you picked, nothing added or rewritten (D8).
-// Adapted from the Scrapbook prototype's Folio.tsx, with its AI draft removed.
+// The folio is exactly what you picked, nothing added or rewritten (D8). With AI and its Draft feature on (v0.2, SPEC
+// R24, D80–D81), Draft with AI beside Copy and Export writes a suggested review draft from the same picks, in a Draft
+// panel beside the printout and the markdown; with Draft off there's no trace of it (SPEC R26).
+// Adapted from the Scrapbook prototype's Folio.tsx (its AI draft rebuilt for v0.2).
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { createFileRoute, useNavigate } from '@tanstack/react-router';
-import { Copy, Download, Printer } from 'lucide-react';
+import { createFileRoute, Link, useBlocker, useNavigate } from '@tanstack/react-router';
+import { Copy, Download, Printer, Sparkles } from 'lucide-react';
 import { exportName, folioDoc, matching, pruneFilter, readSearch, toMarkdown, writeSearch, type FolioFilter, type FolioSearch } from '../../shared/folio.ts';
-import { useFolio } from '../api/queries.ts';
+import { useAi, useFolio } from '../api/queries.ts';
 import { Clipping } from '../folio/Clippings.tsx';
+import { useDraft, useRecheck } from '../folio/draft.ts';
+import { DraftPanel } from '../folio/DraftPanel.tsx';
 import { Filters } from '../folio/Filters.tsx';
 import { Sheet } from '../folio/Sheet.tsx';
 import '../folio/folio.css';
-import { Btn, FilterChip, Hand, LinkBtn, PageTitle, useToast } from '../kit/index.ts';
+import { copyText, download } from '../folio/take.ts';
+import { Btn, FilterChip, Hand, LinkBtn, PageTitle, TextInput, useToast } from '../kit/index.ts';
 import { fmt, todayIso } from '../lib/dates.ts';
 
 type Search = FolioSearch & { view?: 'md' };
@@ -27,36 +32,6 @@ export const Route = createFileRoute('/folio')({
     ...(s.view === 'md' ? { view: 'md' as const } : {}),
   }),
 });
-
-/** Copy text, with a fallback for browsers that refuse the async clipboard (an insecure origin, a denied permission). */
-async function copyText(text: string): Promise<boolean> {
-  try {
-    await navigator.clipboard.writeText(text);
-    return true;
-  } catch {
-    const ta = document.createElement('textarea');
-    ta.value = text;
-    ta.setAttribute('readonly', '');
-    ta.className = 'fixed -left-[9999px] top-0';
-    document.body.append(ta);
-    ta.select();
-    const ok = document.execCommand('copy');
-    ta.remove();
-    return ok;
-  }
-}
-
-/** Save text as a file: a download of a blob made here, so nothing goes back to the server. */
-function download(name: string, text: string) {
-  const url = URL.createObjectURL(new Blob([text], { type: 'text/markdown;charset=utf-8' }));
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = name;
-  document.body.append(a);
-  a.click();
-  a.remove();
-  setTimeout(() => URL.revokeObjectURL(url), 1000);
-}
 
 /** How many clippings to draw before "Show all": past this, a list is for scrolling, not reading. */
 const FIRST_PAGE = 300;
@@ -100,6 +75,47 @@ function Folio() {
   const projects = useMemo(() => new Map((data?.projects ?? []).map((p) => [p.id, p])), [data]);
   const filtered = f.projects.length > 0 || !!f.company || f.minImpact > 0;
 
+  // Draft with AI: only while AI and Draft are both on (SPEC R26); on but not ready, disabled with the reason
+  const ai = useAi().data;
+  const draftOn = !!ai?.enabled && !!ai.features.draft.enabled;
+  const ready = draftOn && !!ai?.readiness.draft.ready;
+  const notReady = draftOn && !ready ? (ai?.readiness.draft.message ?? 'Draft isn’t ready.') : null;
+  const { draft, start, cancel, edit, taken, discard, setCheck } = useDraft();
+  useRecheck(draft, setCheck);
+  const [purpose, setPurpose] = useState('');
+  const [showDraft, setShowDraft] = useState(false);
+  const panel = useRef<HTMLDivElement>(null);
+  const sameFolio = (a: FolioFilter, b: FolioFilter) => JSON.stringify(writeSearch(a)) === JSON.stringify(writeSearch(b));
+  const changed = !!draft && !sameFolio(draft.folio, f);
+  // a draft you haven't copied or exported took minutes to write: leaving (or reloading) asks first. Changing the
+  // folio's own filters or view is a navigation too (they live in the URL), and keeps the draft: that never asks.
+  const unsaved = !!draft?.text && !draft.taken;
+  useBlocker({ shouldBlockFn: ({ next }) => unsaved && next.pathname !== '/folio' && !window.confirm('Leave Folio? Your draft isn’t saved anywhere: copy or export it first to keep it.'), enableBeforeUnload: () => unsaved });
+  const doDraft = () => {
+    if (unsaved && !window.confirm(`Draft again? This draft${draft?.edited ? ', with your edits,' : ''} will be replaced, and it isn’t saved anywhere.`)) return;
+    void start(f, purpose);
+    setShowDraft(true);
+    requestAnimationFrame(() => panel.current?.scrollIntoView({ block: 'nearest', behavior: 'smooth' }));
+  };
+  const discardDraft = () => {
+    if (draft?.edited && !draft.taken && !window.confirm('Discard your edited draft? It isn’t saved anywhere.')) return;
+    discard();
+    setShowDraft(false);
+  };
+  /** A [n] in the draft: scroll to its clipping and flash it. */
+  const cite = (id: string) => {
+    if (!list.some((a) => a.id === id)) return toast({ msg: 'That achievement isn’t in this folio’s list any more (the window or the filters changed).' });
+    if (!shown.some((a) => a.id === id)) setShowAll(true);
+    requestAnimationFrame(() => {
+      const el = document.querySelector<HTMLElement>(`[data-clip-id="${CSS.escape(id)}"]`);
+      if (!el) return;
+      el.scrollIntoView({ block: 'center', behavior: 'smooth' });
+      el.classList.remove('folio-clip-flash');
+      void el.offsetWidth; // restart the animation
+      el.classList.add('folio-clip-flash');
+    });
+  };
+
   const toggle = (id: string) => set({ exclude: out.has(id) ? f.exclude.filter((x) => x !== id) : [...f.exclude, id] });
   const tickAll = () => set({ exclude: f.exclude.filter((id) => !list.some((a) => a.id === id)) });
   const untickAll = () => set({ exclude: [...new Set([...f.exclude, ...list.map((a) => a.id)])] });
@@ -120,6 +136,7 @@ function Folio() {
   // Copy, Print, Export: beside the sheet on wide screens; on a phone also above the clippings, so they're not a
   // 300-card scroll away
   const actions = (
+    <div className="space-y-3">
     <div className="flex flex-wrap items-center gap-2">
       <Btn kind="paper" onClick={() => void copy()} disabled={!canTake} data-testid="folio-copy">
         <Copy aria-hidden className="size-4" /> {copied ? 'Copied' : 'Copy'}
@@ -130,6 +147,41 @@ function Folio() {
       <Btn kind="go" onClick={() => download(exportName(f), md)} disabled={!canTake} className="ml-auto" data-testid="folio-export">
         <Download aria-hidden className="size-4" /> Export .md
       </Btn>
+    </div>
+    {draftOn && (
+      <div className="flex flex-wrap items-center gap-2" data-testid="folio-drafter">
+        <TextInput
+          value={purpose}
+          onChange={(e) => setPurpose(e.target.value)}
+          maxLength={300}
+          placeholder="What’s this for? e.g. my self-review"
+          aria-label="What’s this draft for?"
+          className="min-w-0 flex-1 basis-56 py-2 text-[14px]"
+          data-testid="folio-draft-purpose"
+        />
+        <Btn
+          kind="accent"
+          onClick={doDraft}
+          disabled={!canTake || !ready || draft?.phase === 'waiting' || draft?.phase === 'streaming'}
+          title={!canTake ? 'Pick something first: there’s nothing to draft from.' : (notReady ?? undefined)}
+          data-testid="folio-draft-button"
+        >
+          <Sparkles aria-hidden className="size-4" /> {draft ? 'Draft again' : 'Draft with AI'}
+        </Btn>
+        {notReady ? (
+          <p className="m-0 w-full text-[12.5px] text-warn" role="status" data-testid="folio-draft-why">
+            Draft with AI isn’t ready: {notReady}{' '}
+            <Link to="/settings/$tab" params={{ tab: 'ai' }} className="font-semibold underline">
+              Settings → AI
+            </Link>
+          </p>
+        ) : !canTake && !loading ? (
+          <p className="m-0 w-full text-[12.5px] text-muted" data-testid="folio-draft-why">
+            Nothing is picked, so there’s nothing to draft from.
+          </p>
+        ) : null}
+      </div>
+    )}
     </div>
   );
 
@@ -206,22 +258,42 @@ function Folio() {
         <div className="lg:sticky lg:top-6">
           <div className="hidden lg:block">{actions}</div>
           <div className="mt-4 flex gap-2" role="group" aria-label="Preview as">
-            <FilterChip label="Printout" on={search.view !== 'md'} onClick={() => setView(undefined)} />
-            <FilterChip label="Markdown" on={search.view === 'md'} onClick={() => setView('md')} />
+            <FilterChip label="Printout" on={!(draft && showDraft) && search.view !== 'md'} onClick={() => (setShowDraft(false), setView(undefined))} />
+            <FilterChip label="Markdown" on={!(draft && showDraft) && search.view === 'md'} onClick={() => (setShowDraft(false), setView('md'))} />
+            {draft && <FilterChip label="Draft" on={showDraft} onClick={() => setShowDraft(true)} />}
           </div>
 
-          {doc && search.view === 'md' && (
+          <div ref={panel} className="scroll-mt-4">
+            {draft && showDraft && (
+              <DraftPanel
+                d={draft}
+                canDraft={ready && canTake}
+                why={!draftOn ? 'AI is off now, so it can’t draft again.' : notReady}
+                changed={changed}
+                onEdit={edit}
+                onCancel={cancel}
+                onAgain={doDraft}
+                onDiscard={discardDraft}
+                onTaken={taken}
+                onCite={cite}
+              />
+            )}
+          </div>
+
+          {doc && search.view === 'md' && !(draft && showDraft) && (
             <pre className="sb-card mt-4 max-h-[75vh] overflow-auto whitespace-pre-wrap break-words rounded-2xl p-5 font-mono text-[12.5px] leading-relaxed text-ink print:hidden" data-testid="folio-markdown">
               {md}
             </pre>
           )}
           {/* the printout is what Print prints, so it's there in the Markdown view too, for paper only */}
           {doc && (
-            <div className={`transition-opacity ${loading ? 'opacity-50' : ''} ${search.view === 'md' ? 'hidden print:block' : ''}`}>
+            <div className={`transition-opacity ${loading ? 'opacity-50' : ''} ${search.view === 'md' || (draft && showDraft) ? 'hidden print:block' : ''}`}>
               <Sheet doc={doc} empty={nothing} />
             </div>
           )}
-          <p className="mt-5 text-[12.5px] text-muted">Exactly what you picked, nothing added or rewritten. Pull requests and links stay links; files are named, never located, so the document is safe to send on.</p>
+          <p className="mt-5 text-[12.5px] text-muted" data-testid="folio-promise">
+            {draftOn ? 'The plain export (Copy, Print, Export .md) is exactly what you picked, nothing added or rewritten.' : 'Exactly what you picked, nothing added or rewritten.'} Pull requests and links stay links; files are named, never located, so the document is safe to send on.
+          </p>
         </div>
       </div>
     </div>

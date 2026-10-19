@@ -42,7 +42,7 @@ These are enforced for every request (see [Localhost security](/guarantees/local
 | `GET /api/health` | `{ "ok": true, "version": "…" }`. Used by the service's readiness check and Docker's health check. |
 | `GET /api/events` | A Server-Sent Events stream: a `change` event (`{ "type": "achievement" }`, `"found"`, `"config"`, …) whenever something changes, on disk or through the app, so pages refresh themselves. |
 | `GET /api/meta` | What this server is: its version and build (commit, time, and whether it's an official release build), its data folder, MCP address, allowed hosts, the current outbound allow-list, and any notices. |
-| `GET /api/network-log` | Recent outbound requests, newest first, for [Network activity](/guarantees/network-activity/): `{ entries, total }`. `?limit=` (default 100, at most 500) and `&offset=`. |
+| `GET /api/network-log` | Recent outbound requests, newest first, for [Network activity](/guarantees/network-activity/): `{ entries, total, toAiInternet }` (`toAiInternet`: the request bytes sent to AI providers on the internet, over the whole log). `?limit=` (default 100, at most 500) and `&offset=`. |
 | `POST /api/network-log/guard-check` | **Test the guard**: asks the egress module to send a request to a host that isn't allowed. It's refused and logged, and nothing is sent. |
 | `GET /api/problems` | The files in your data folder that BragDoc can't use as they are (broken YAML, a missing reference, a misnamed file), errors first, with what's wrong and where. |
 | `GET /api/backups` | The snapshots in `backups/`, newest first, and how many are kept. |
@@ -104,6 +104,8 @@ These are enforced for every request (see [Localhost security](/guarantees/local
 | `POST /api/found/:id/merge` | `{ "achievementId": "…" }`: attach the candidate's evidence to an achievement you already have. |
 | `POST /api/found/:id/dismiss` | Set it aside for good: its file keeps only hashes of its keys, so the same pull request never comes back. |
 | `POST /api/found/:id/undo` | Undo keep, merge or dismiss (a dismissal only until BragDoc restarts). A decision on one already decided is a **409**. |
+| `POST /api/found/dismiss` | `{ "ids": […], "only"?: "probably-not" }`: dismiss many at once (Found's **Dismiss these N**), at most 500. Answers `{ done, skipped }`: one that was decided meanwhile, or is gone (or, with `only`, that the judge no longer calls probably not), is skipped with the reason, and the rest are still dismissed. |
+| `POST /api/found/undo` | `{ "ids": […] }`: undo many decisions at once (the Undo after **Dismiss these N**), at most 500. Answers `{ done, skipped }`. |
 | `GET /api/found/:id/picture` | A screenshot candidate's picture, read from where it is; **404** `gone` if it was moved, deleted or replaced. |
 | `GET /api/sources` | Each source's state: for GitHub, whether it's on and how (the gh CLI or a token), where it looks, the last check and what it found, and any error (with `retryAt` when GitHub asked it to wait); for the screenshots folder, which folder, whether it's watching (or what's wrong), and what it has looked at and sent to Found; and where MCP writes go. |
 | `GET /api/sources/github/gh` | `{ "installed": true }`: whether `gh` is on your `PATH` (it isn't run). |
@@ -142,6 +144,81 @@ These are enforced for every request (see [Localhost security](/guarantees/local
 | --- | --- |
 | `POST /api/import/plan` | A dry run of importing a [hosted-app export](/moving-from-the-hosted-app/): the export file is the JSON body (up to 50 MB). Returns what would be added, what's already here, what can't be imported, the fields left behind and why, and any problems. Writes nothing. A file that isn't a version 1.0 export is a **400** (`invalid_export`, `unsupported_version`). |
 | `POST /api/import/apply` | The same, for real: it imports the export and returns the same report of what it did, plus the snapshot it took first. Importing the same export again adds nothing. **409** `import_running` while another import is running. |
+
+## AI (v0.2, off unless you turn it on)
+
+:::note[Coming in 0.2.0]
+These endpoints are 0.2.0's opt-in AI, built on the `v0.2` branch (see [AI](/ai/overview/)). AI is off, and every AI
+feature is off, until you switch it on, and nothing here switches anything on by itself. With AI off, every model call
+is refused before anything is sent, and the AI library isn't even loaded. Settings → AI is the screen for all of this.
+:::
+
+Keys are never returned: a connection shows `hasKey` and the last four characters of its key, `keyHint` (`…abcd`). A
+connection on the internet (by its host: anything that isn't this computer or your network) sends **nothing, not even
+a test**, until you accept its consent statement. Plain `http://` is accepted only for this computer and your network.
+Every write answers with the new status and refreshes open tabs (an `ai` event).
+
+| Method and path | What it does |
+| --- | --- |
+| `GET /api/ai` | The AI settings: the master switch, the text model, each connection (its kind, address, host, `class` (`this-computer`, `your-network` or `internet`), whether it needs consent and has it, `hasKey` and `keyHint`, and what's blocking it), each feature's settings and whether it's ready (or why not), and the hosts AI has added to the outbound allow-list (none while AI is off). |
+| `PUT /api/ai` | `{ "enabled": true }` (the master switch; turning it on turns no feature on) and/or `{ "text": { "connection": "ollama", "model": "qwen3.5:4b" } }` (the model features use). Switching off stops any call in progress. A `jev` connection as `text` is **400** `invalid` (Jev is the judge's model only). |
+| `POST /api/ai/connections` | Add a connection: `{ "kind": "ollama" }` (also `lmstudio`, `llamacpp`, `openai-compatible`, `anthropic`, `openai`, `openrouter`, `jev`), with optional `id` (default: the kind), `name`, `baseUrl` (default: the kind's usual address; required for `openai-compatible`), `contextTokens` (default 8192 on this computer or your network, 30,000 in the cloud) and, for `jev`, `via` (an OpenRouter connection). **400** `plain_http` for `http://` to the internet, `bad_url` for an address that isn't one. |
+| `PUT /api/ai/connections/:id` | Change `name`, `baseUrl` or `contextTokens` (`null` clears one), or a Jev's `via` (another OpenRouter connection; it can't be cleared). Pointing it at another host, or a Jev at another OpenRouter connection, withdraws its consent. A Jev has no `baseUrl` or `contextTokens` of its own (**400**). |
+| `DELETE /api/ai/connections/:id` | Remove it, and forget its key. A model choice that used it is cleared. |
+| `PUT /api/ai/connections/:id/key` | `{ "key": "…" }`: save its key in `secrets.yaml` (readable only by you). **409** `secrets_invalid` if `secrets.yaml` is broken (it's never overwritten). |
+| `DELETE /api/ai/connections/:id/key` | Forget its key (removed from `secrets.yaml`). |
+| `POST /api/ai/connections/:id/consent` | `{ "version": 1 }`: accept the consent statement you were shown, for a connection on the internet. Its host joins the allow-list while AI is on. **409** `stale_consent` if the statement has changed since (Jev's is version 2), `no_model` for a Jev with no OpenRouter connection to go through. Replacing an OpenRouter connection's key, or removing it, withdraws the consent of a Jev that goes through it. |
+| `DELETE /api/ai/connections/:id/consent` | Revoke it: nothing more is sent, from the next request. Another connection on the same host keeps its own consent. |
+| `POST /api/ai/connections/:id/test` | `{ "model": "…" }` (optional: default the model chosen for it): one tiny request that asks for a structured answer (for a Jev, one yes-or-no question, and only Jev's models). `{ "ok": true, "ms", "structured", "where" }`, or `{ "ok": false, "error": { "code", "message" } }` in plain words (`unreachable`, `model_missing`, `key_refused`, `quota`, `rate_limited`, `timeout`, `no_structured_output`, …). **409** (`ai_off`, `not_consented`, `no_key`) when it would have to send something it may not: nothing is sent. |
+| `GET /api/ai/connections/:id/models` | The models the connection offers (Ollama's installed models, or an OpenAI-style list). Logged like any call; the same **409**s. |
+| `GET /api/ai/hardware` | What Settings → AI recommends from: `ramBytes`, `cpu`, `cores`, `arch`, `appleSilicon`, `freeDiskBytes` (free space in your home folder), `inDocker` (the readings are the container's), `recommended` (a model, or `null` under 8 GB), `speedNote` and `modelsAsOf`. Read from this computer; nothing is sent. |
+| `POST /api/ai/detect` | **Look for a model runner on this computer**: a GET to Ollama, LM Studio and llama.cpp at their usual addresses (and, in Docker, Ollama on the host through `host.docker.internal`), each logged as `detect`, plus a look for an `ollama` program on the PATH (nothing runs). `{ at, runners: [{ kind, baseUrl, where, version, models, connectionId }], ollamaOnPath, inDocker }`. **409** `ai_off` while AI is off. |
+| `GET /api/ai/detect` | The last look's result (kept in `cache/ai/detect.json`), or `null`. |
+| `POST /api/ai/connections/:id/pull` | `{ "confirm": true, "model": "qwen3.5:4b" }`: ask that Ollama connection to download a recommended model. Answers `application/x-ndjson`: Ollama's progress lines (`status`, `completed`, `total`), then `{ "done": true, "ok": true }` or `{ "done": true, "ok": false, "error" }`. Closing the request cancels it. **400** `confirm_needed` without the confirm, `not_recommended` for any other model, `not_ollama`; **409** `ai_off`. Logged twice: the request to Ollama, and the download itself as "registry (via Ollama)". |
+| `PUT /api/ai/features/:feature` | `judge`, `tidy` or `draft`: change its settings (`enabled`, `model`, and the judge's `screenshots`, `github`, `when`, `backgroundCloud`, `maxPerRun`), as a merge patch. Unknown settings are a **400**. A `jev` connection is **400** `invalid` as Tidy's or Draft's `model`, and as the judge's with any model but Jev's (`typesafe/jev-1.14`). |
+
+### Draft with AI (Folio)
+
+A review draft from what a folio picks (Settings → AI → Draft with AI). The page sends the folio's **state**, never its
+text: the server rebuilds the same achievements `GET /api/folio` gives the page, already cut down to what a folio may
+show (no ids, no file locations, no links to your computer). Nothing is written to your data folder.
+
+| Method and path | What it does |
+| --- | --- |
+| `POST /api/ai/draft` | `{ "folio": { "from", "to", "projects", "company", "minImpact", "exclude", "group" }, "purpose": "…" }` (the folio's filters as Folio's URL holds them; `purpose` is the optional "What's this for?" note, up to 300 characters). Answers `application/x-ndjson`: a `start` line (`model`, `connection`, `where`, `sent`, `omitted`, `cited`: which `[n]` is which achievement, and `ahead`: calls waiting before it), `text` lines as the draft arrives, then `{ "type": "done", "ok": true, "ms", "tokensIn", "tokensOut", "check" }`, or `{ "type": "done", "ok": false, "error": { "code", "message" } }` if the model failed or AI was switched off mid-draft. If the folio is too big for the model's context, its lowest-impact achievements are left out and counted (`omitted`, and the `X-BragDoc-Omitted` header). Closing the request cancels it. Time limits: 15 minutes on your computer or network, 3 on the internet. **400** `empty` when nothing is picked, `context_too_long` when not even one achievement fits, `invalid` for a bad body; **409** `ai_off`, `no_model`, `not_consented` or `no_key` before anything is sent. |
+| `POST /api/ai/draft/check` | `{ "draft": "…", "folio": { … }, "purpose": "…" }`: check a draft (an edited one, say) against the achievements it was made from: `{ "ungrounded", "uncited", "filler", "badCitations" }`, each a list of `{ "line", "text" }`. `ungrounded`: a number, date or name in none of the achievements that line cites; `uncited`: a bullet that cites none; `filler`: a stock phrase your own achievements don't use; `badCitations`: a `[n]` with no achievement `n`. Makes no model call, so it works with AI off. |
+| `GET /api/ai/draft/preview` | Exactly what a draft sends: `{ "system", "prompt", "sent", "omitted", "budget" }`. With no parameters, the template (the achievements' place marked); with a folio's URL parameters (`from`, `to`, `p`, `c`, `min`, `out`, `group`, and `purpose`), that folio's prompt. No model call. |
+
+Every model call, local ones included, is in [Network activity](/guarantees/network-activity/) with where it went
+(`this computer`, `your network` or `internet`), what it was for, the model and how many bytes were sent: never what
+was sent.
+
+### Instructions and AI activity
+
+The instructions files are markdown you write for the models, in the data folder's [`ai/` folder](/reference/data-folder/):
+`what-counts` (`ai/what-counts.md`, "What counts as a win for me", which the judge reads) and `style` (`ai/style.md`,
+"How I write", for tidying and drafting). They're your files, so these work whether AI is on or off, and reading or
+saving one sends nothing anywhere. A change to one, here or by hand, refreshes open tabs (an `instructions` event).
+
+| Method and path | What it does |
+| --- | --- |
+| `GET /api/ai/instructions/:name` | The file: `text` (all of it, front-matter included), `body` (what a model is given: the markdown after any front-matter), `exists`, `etag` (also the `ETag` header), its `problems`, and `maxChars` (20,000). A broken file keeps its last good `body`. **404** for any other name. |
+| `PUT /api/ai/instructions/:name` | `{ "text": "…" }`: the whole new file, with `If-Match` optional. **400** if it would be a Problem (too long, front-matter that isn't closed or isn't YAML), and nothing is written. **409** if it changed since your `If-Match` (or doesn't exist when you sent one), if the file on disk is broken and you didn't send `If-Match` with its current ETag (`*` doesn't count: it's never overwritten unseen), or if it's from a newer BragDoc (read-only). |
+| `POST /api/ai/instructions/:name/reset` | Put the feature's starter text back. Your file, if it's different, is moved into `backups/removed/` first (`removedTo` says where); the starter is checked before anything moves. **404** until the feature that reads the file has a starter. |
+| `GET /api/ai/activity` | The AI activity log, newest first: `limit` (1–500, default 50) and `offset`. One line per run (a judge pass, an eval) or per single call (a tidy, a draft, a connection test): when, the feature, what started it (`trigger`), the model and where it went, how many items and calls, the feature's own counts, tokens (when the provider reports them), and an error code. **Never any content**: no prompt, answer or message. A new line refreshes open tabs (an `ai-activity` event). |
+| `POST /api/ai/judge/run` | Judge now: `{}` judges what's waiting in Found (pending screenshots, and merged PRs if you ticked them; never an agent's), newest first, up to `maxPerRun`; `{ "ids": […] }` judges those again. **202** `{ runId, queued }`: it runs in the background, one candidate at a time, and only ever fills in each candidate's `verdict`. **409** with the reason (`ai_off`, `no_model`, `not_consented`, `no_key`) when the judge can't run, and nothing is sent; **409** `running` while a run is in progress. |
+| `GET /api/ai/judge/status` | Whether the judge can run now (`ready`, or the `reason`), which kinds it judges, how many candidates are `waiting`, the run in progress (`done` of `total`, and its counts: `win`, `probably-not`, `failed`, `skipped`) and the last one since BragDoc started. `schedule` says when it runs by itself: whether either background trigger is on, the power reading (`ac`, `battery`, `unknown`), what holds a background run back now (`hold.code`: `off`, `not-ready`, `cloud`, `window`, `battery`, `backoff`, `running`, `nothing`, with `until` when it's a time), the next "every N hours" run, a backoff after a failed run, and the last run of any kind (kept across restarts). `agreement` is `{ agreed, of }`: how often your keep or dismiss matched a verdict. An `ai-judge` event refreshes open tabs. |
+| `GET /api/ai/judge/preview` | `?candidate=<id>`: exactly what the judge would send for one pending candidate: the `system` and `prompt` text, the model, what the input was made from (`ocr`: the picture read again; `quote`: the picture is gone; `github`), and its `inputHash`. Sends nothing. **404** for an unknown id, **409** for a decided candidate or an agent's. |
+
+### Tidy this up
+
+The board's "Tidy this up": a suggestion for something you pasted, a picture's text, or an achievement as you wrote it.
+It **saves nothing**: the board shows the suggestion beside your fields, and only Save changes anything.
+
+| Method and path | What it does |
+| --- | --- |
+| `POST /api/ai/tidy` | `{ "text", "evidenceShas", "achievementId", "today" }`, at least one of the first three. BragDoc gathers the text itself: what you typed, the text read from those board pictures (it waits a few seconds for one still being read, then **409** `not_read_yet`), and the achievement's title, summary, notes and the words of its quotes and read pictures. `today` (YYYY-MM-DD, your browser's day) is what "yesterday" is worked out from. Answers `suggestion` (`title`, `summary`, `body`, `happenedAt`, `endedAt`, `impact`, `impactWhy`, `suggestedProjects` as your project ids, `notAnAchievement` with its reason, `unclear`), `ungrounded` (per field, the numbers, amounts, dates and names that aren't in your text), `dropped` (what BragDoc took out, in words: a date that isn't in your text, a project you don't have), and the `model` and `where` it ran. **400** `empty` when there's nothing to tidy, `too_long` over 10,000 characters (the error says how many). **409** when AI or Tidy is off, no model is chosen, or a cloud connection lacks consent or a key: nothing is sent. A model's failure is its code (`unreachable`, `timeout`, `bad_output`, …); closing the request cancels the call. |
+| `GET /api/ai/tidy/preview` | Exactly what a tidy sends (`system` and `prompt`), with a placeholder where your text goes: your name and role, your project names, your "How I write" notes and the impact scale. Never an id or a path. Sends nothing, AI on or off; `readiness` says whether a tidy could run now, and with which model. |
 
 ## For agents
 

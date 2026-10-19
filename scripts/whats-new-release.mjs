@@ -43,9 +43,22 @@ export function releaseSite(src, version) {
 /** What a page, the README or SECURITY.md mustn't still say once a version is out (test/docs.test.ts checks). */
 export const STALE_PROSE = /on npm yet|(?:isn['’]t|not) released yet|^:::note\[Not /im;
 
-/** A docs page without its "not released" asides (`:::note[Not …]` … `:::`), from 0.1.0 on. */
+/** Is version `a` at least version `b` (both x.y.z)? */
+const atLeast = (a, b) => {
+  const [x, y] = [a, b].map((v) => String(v).split('.').map(Number));
+  for (let i = 0; i < 3; i++) if ((x[i] ?? 0) !== (y[i] ?? 0)) return (x[i] ?? 0) > (y[i] ?? 0);
+  return true;
+};
+
+/**
+ * A docs page without its "not released" asides (`:::note[Not …]` … `:::`), from 0.1.0 on, and without each
+ * `:::note[Coming in X]` aside (the AI pages', D83) once `version` is X or later.
+ */
 export function releaseDocsPage(md, version) {
-  return isReleased(version) ? md.replace(/^:::note\[Not [^\]\n]*\]\n[\s\S]*?^:::\n(?:\n)?/gm, '') : md;
+  if (!isReleased(version)) return md;
+  return md
+    .replace(/^:::note\[Not [^\]\n]*\]\n[\s\S]*?^:::\n(?:\n)?/gm, '')
+    .replace(/^:::note\[Coming in ([0-9]+\.[0-9]+\.[0-9]+)\]\n[\s\S]*?^:::\n(?:\n)?/gm, (note, v) => (atLeast(version, v) ? '' : note));
 }
 
 /** Every docs page, .md and .mdx, under `dir`. */

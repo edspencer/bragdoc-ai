@@ -192,5 +192,8 @@ export function buildContext(store: Store, config: Config, focus: ContextFocus =
     impactScale: IMPACT_SCALE.map((l) => `${l.value} ${l.label}: ${l.guidance}`),
     houseStyle: HOUSE_STYLE,
     rules: RULES,
+    // what the user told the Found judge counts as a win for them (ai/what-counts.md, v0.2): the same file, so an agent
+    // logging on their behalf judges by the same lights. Null when there's none
+    winInstructions: store.get('instructions', 'what-counts')?.body.trim() || null,
   };
 }

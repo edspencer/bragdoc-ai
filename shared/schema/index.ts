@@ -8,6 +8,7 @@ export * from './repo.js';
 export * from './evidence.js';
 export * from './achievement.js';
 export * from './found.js';
+export * from './instructions.js';
 export * from './problem.js';
 export * from './change.js';
 export * from './inputs.js';

@@ -9,6 +9,8 @@ import path from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { DEFAULT_PORT } from '../server/port.ts';
 import { withReference } from '../shared/schema/reference.ts';
+import { aiReferenceBlocks, withAiReference } from '../scripts/ai-reference.ts';
+import { PRESET_PORTS } from '../tools/docs-media/leaks.ts';
 import { ROOT } from './fixture.ts';
 import { SHOTS } from '../tools/docs-media/shots.ts';
 import { referencedShots } from '../tools/docs-media/sync.ts';
@@ -44,6 +46,11 @@ const VERSION: string = JSON.parse(read('package.json')).version;
 // the release script's own test of "is this a release", so the two can't drift
 const { isReleased, STALE_PROSE } = await import(pathToFileURL(path.join(ROOT, 'scripts', 'whats-new-release.mjs')).href);
 const released = (): boolean => isReleased(VERSION);
+const newer = (a: string, b: string): boolean => {
+  const [x, y] = [a, b].map((v) => v.split('.').map(Number));
+  for (let i = 0; i < 3; i++) if ((x![i] ?? 0) !== (y![i] ?? 0)) return (x![i] ?? 0) > (y![i] ?? 0);
+  return false;
+};
 
 describe('docs site', () => {
   test("website/src/site.mjs's DEFAULT_PORT is server/port.ts's", async () => {
@@ -53,12 +60,13 @@ describe('docs site', () => {
     assert.equal(site.PACKAGE, JSON.parse(read('package.json')).name);
   });
 
-  // Pages write the port out (code blocks can't interpolate it), so every localhost/127.0.0.1 port must be the default.
-  test(`every localhost:<port> on the site is ${DEFAULT_PORT}`, () => {
+  // Pages write the port out (code blocks can't interpolate it), so every localhost/127.0.0.1 port must be the default,
+  // or a local model runner's preset address (Ollama 11434, LM Studio 1234, llama.cpp 8080: shared/ai/connections.ts).
+  test(`every localhost:<port> on the site is ${DEFAULT_PORT}, or a model runner's preset`, () => {
     const bad: string[] = [];
     for (const f of prose()) {
       for (const m of fs.readFileSync(f, 'utf8').matchAll(/(?:localhost|127\.0\.0\.1):(\d+)/g)) {
-        if (Number(m[1]) !== DEFAULT_PORT) bad.push(`${path.relative(ROOT, f)}: ${m[0]}`);
+        if (!PRESET_PORTS.includes(m[1]!)) bad.push(`${path.relative(ROOT, f)}: ${m[0]}`);
       }
     }
     assert.deepEqual(bad, []);
@@ -90,6 +98,20 @@ describe('docs site', () => {
     assert.equal(withReference(page), page, 'website/src/content/docs/reference/data-folder.md is stale: npm run sync:reference');
   });
 
+  // The AI pages' tables (the recommended models, what the judge measured, each provider's consent statement) are
+  // generated from the code the app runs on (scripts/ai-reference.ts, D83), so the docs and the consent dialog can't
+  // disagree.
+  test("the AI pages' generated tables match the code (npm run sync:reference)", () => {
+    const pages = files(DOCS, /\.mdx?$/).filter((f) => aiReferenceBlocks(fs.readFileSync(f, 'utf8')).length);
+    const blocks = pages.flatMap((f) => aiReferenceBlocks(fs.readFileSync(f, 'utf8')));
+    for (const want of ['models', 'measured', 'consent-anthropic', 'consent-openai', 'consent-openrouter', 'consent-jev', 'consent-custom'])
+      assert.ok(blocks.includes(want), `no docs page has the ai-reference block ${want}`);
+    for (const f of pages) {
+      const page = fs.readFileSync(f, 'utf8');
+      assert.equal(withAiReference(page), page, `${path.relative(ROOT, f)} is stale: npm run sync:reference`);
+    }
+  });
+
   // Every BRAGDOC_* variable the code reads is documented. A few are for the project's own tests and CI, not users.
   test('every BRAGDOC_* environment variable is in reference/environment.md', () => {
     // The project's own test and capture plumbing, never set by someone running BragDoc
@@ -101,6 +123,8 @@ describe('docs site', () => {
       'BRAGDOC_LEAK_EXTRA', // tools/docs-media: extra strings the capture rig's leak scan refuses
       'BRAGDOC_OFFICIAL_BUILD', // release.yml only: marks build-info.json official (D36)
       'BRAGDOC_BUILD_RUN_URL', // release.yml only: the run, passed into the Docker build (D36)
+      'BRAGDOC_LIVE_AI', // scripts/eval/: the live evals' opt-in to calling a real model (never in CI; D68)
+      'BRAGDOC_POWER_SUPPLY_DIR', // server/platform/power.ts: a stand-in for /sys/class/power_supply, for tests and QA (D75)
     ]);
     const used = new Set(envSources().flatMap((f) => [...fs.readFileSync(f, 'utf8').matchAll(/\bBRAGDOC_[A-Z][A-Z0-9_]*\b/g)].map((m) => m[0])));
     const page = read('website/src/content/docs/reference/environment.md');
@@ -136,6 +160,14 @@ describe('docs site', () => {
     for (const r of refs) {
       assert.ok(names.has(r.name), `${r.from}: ${r.name} isn't a shot in shots.ts`);
       assert.ok(fs.existsSync(path.join(WEBSITE, 'src', 'assets', r.dir, `${r.name}.png`)), `${r.from}: website/src/assets/${r.dir}/${r.name}.png is missing (npm run docs:media:sync)`);
+    }
+    // a shot from the rig's AI world shows answers from the test model server, never a real model: its tag says so (D83)
+    // (the consent dialog shows no answer: it's what you see before anything is sent)
+    const aiWorld = new Set(SHOTS.filter((s) => s.data === 'ai').map((s) => s.name.replace(/-(light|dark)$/, '')).filter((n) => n !== 'docs-ai-consent'));
+    for (const f of prose().filter((x) => x.endsWith('.mdx'))) {
+      for (const m of fs.readFileSync(f, 'utf8').matchAll(/<Shot\b[^>]*?name="([^"]+)"[^>]*>/g)) {
+        if (aiWorld.has(m[1]!)) assert.match(m[0], /\sstaged\b/, `${path.relative(ROOT, f)}: <Shot name="${m[1]}"> is from the AI world: mark it staged`);
+      }
     }
     // nothing still pretends to be a mock-up
     assert.deepEqual(prose().filter((f) => /Mock-up/i.test(fs.readFileSync(f, 'utf8'))).map((f) => path.relative(ROOT, f)), []);
@@ -227,6 +259,11 @@ describe('docs site', () => {
     if (!released()) return;
     const left = prose().filter((f) => /Coming in v0\.1\b/.test(fs.readFileSync(f, 'utf8')));
     assert.deepEqual(left.map((f) => path.relative(ROOT, f)), [], 'v0.1 is out: these pages still say "Coming in v0.1"');
+    // a `:::note[Coming in X]` aside (the AI pages', D83) is gone once X is out: the release script takes it out
+    const outNow = prose().flatMap((f) =>
+      [...fs.readFileSync(f, 'utf8').matchAll(/^:::note\[Coming in ([0-9.]+)\]/gm)].filter((m) => !newer(m[1]!, VERSION)).map((m) => `${path.relative(ROOT, f)}: ${m[0]}`),
+    );
+    assert.deepEqual(outNow, [], `${VERSION} is out: these still say it's coming`);
     // the components follow RELEASED by themselves, and scripts/whats-new-release.mjs takes the pages' `:::note[Not …]`
     // asides out (PR17); anything else saying "not on npm yet" would still say it. What's new is released by the same
     // script, a blog post is dated (it may say what was true that day), and the README and SECURITY.md ship on npm.

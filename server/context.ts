@@ -2,6 +2,12 @@
 // Later PRs add what their routes need as new fields here, in their own lines, so parallel PRs rebase cleanly. Keep
 // it a plain bag of dependencies: no logic.
 import type { Notice } from '../shared/api.js';
+import type { LocalAi } from './ai/local.js';
+import type { AiActivity } from './ai/activity.js';
+import type { JudgeEngine } from './ai/judge/index.js';
+import type { JudgeSchedule } from './ai/judge/schedule.js';
+import type { JudgeStats } from './ai/judge/stats.js';
+import type { Ai } from './ai/run.js';
 import type { ConfigStore } from './config.js';
 import type { Egress } from './egress.js';
 import type { EventBus } from './events.js';
@@ -46,4 +52,16 @@ export interface AppContext {
   ocr: Ocr;
   /** The board's pictures, read in the background (started by startServer): `status(sha)` for GET /api/evidence/:sha/ocr. */
   evidenceText: EvidenceText;
+  /** Every model call (v0.2): `ctx.ai.object/stream/test/models`, gated, queued, through egress. Loads no SDK until used. */
+  ai: Ai;
+  /** Settings → AI's local runners (PR23): hardware, "look for a model runner", and an Ollama download after a confirm. */
+  localAi: LocalAi;
+  /** The AI activity log (logs/ai-runs.jsonl): every ctx.ai call lands here; `start()` groups a feature's run (PR22). */
+  aiActivity: AiActivity;
+  /** The Found judge (PR24): `start()`/`judgePending()` fill pending candidates' verdicts, `status()`, `preview(id)`. */
+  judge: JudgeEngine;
+  /** When the judge runs by itself (PR25, D75): started by startServer only; `status()` for the card and Found. */
+  judgeSchedule: JudgeSchedule;
+  /** "You agreed with the judge on N of M" (PR25, D77): counts from Found's decisions. */
+  judgeStats: JudgeStats;
 }

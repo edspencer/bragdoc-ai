@@ -61,8 +61,24 @@ _1 July 2026 – 30 September 2026 · 12 achievements_
 
 Folio writes nothing to your [data folder](/reference/data-folder/): the document is made in your browser.
 
-## No AI
+## The plain document, and an optional draft
 
-Folio doesn't write anything for you: v0.1 has no AI. The document is exactly what you picked, in order, nothing added
-or rewritten: the facts to write your review from. An optional, opt-in drafting feature may come later; see
-[AI is opt-in](/guarantees/ai-is-opt-in/).
+Copy, Print and Export .md give exactly what you picked, in order, nothing added or rewritten: the facts to write your
+review from. That never changes, and it's always the default.
+
+If you turn on AI and its [**Draft with AI**](/ai/draft/) feature (Settings → AI; both are off until you do: see
+[AI is opt-in](/guarantees/ai-is-opt-in/)), Folio also offers **Draft with AI** beside Copy and Export, with an
+optional "What's this for?" note (a self-review, a promotion case, a 1:1). It writes a first draft from the same picks,
+highest impact first, grouped by theme, in a Draft panel beside the printout and the markdown:
+
+- **Every bullet cites what it came from** as `[3]`; click one to find that achievement in your list.
+- **It's checked line by line.** Anything a line states that isn't in what it cites (a number, a date, a name) is
+  flagged, as are bullets that cite nothing and stock phrases like "went above and beyond". Click a flag to select its
+  line. It's a suggestion: you edit it, then **Copy draft** or **Export draft .md** (`bragdoc-draft-<from>-<to>.md`).
+- **Only what the folio picks is sent**, cut down the same way as the document: no ids, no file locations, no links to
+  your computer. If that's more than the model can read at once, the lowest-impact achievements are left out, and the
+  panel says how many.
+- **Nothing is saved.** The draft lives in the page; leaving Folio with one you haven't copied or exported asks first.
+  Cancel stops it at once; a model on a computer without a GPU can take a few minutes.
+
+With AI or Draft off, Folio looks and works exactly as it did before: no button, no hint.

@@ -234,7 +234,7 @@ describe('the network log', () => {
     const d = tmpDir('bragdoc-eg-');
     try {
       const app = createApp({ dataDir: d, webDist: null });
-      assert.deepEqual(await (await app.request('/api/network-log')).json(), { entries: [], total: 0 });
+      assert.deepEqual(await (await app.request('/api/network-log')).json(), { entries: [], total: 0, toAiInternet: 0 });
       const eg = new Egress({ dataDir: d, config: () => DEFAULT_CONFIG });
       for (let i = 0; i < 5; i++) eg.logProcess({ purpose: `p${i}`, bin: 'gh', args: [], exitCode: 0 });
       const page = (await (await app.request('/api/network-log?limit=2&offset=1')).json()) as { entries: NetworkLogEntry[]; total: number };

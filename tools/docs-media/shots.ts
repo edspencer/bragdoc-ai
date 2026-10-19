@@ -8,7 +8,9 @@
 // capture:   'viewport' (default), 'page' (the whole scrollable page) or a crop: the box around one or more
 //            elements, with `pad` CSS px around it and `zoom` (device pixels per CSS px, on top of the 2x default)
 // data:      'empty' (default: a fresh data home) or 'example': the example world capture.ts seeds (PR16's example
-//            data at SHOT_NOW, Alex Marlowe's profile, GitHub through the fake gh, a screenshot in a watched folder)
+//            data at SHOT_NOW, Alex Marlowe's profile, GitHub through the fake gh, a screenshot in a watched folder), or
+//            'ai': the example world with AI on against the FAKE model server (capture.ts says how; PR29). Every AI
+//            answer in an 'ai' shot is the fake's, and a page that uses one says so in its caption
 //
 // The docs site uses the `docs-*` and `landing-*` shots: a page refers to website/src/assets/shots/<name>.png (or
 // assets/landing/), and `npm run docs:media:sync` copies exactly those out of out/. test/docs.test.ts fails on a page
@@ -37,7 +39,7 @@ export interface Shot {
   viewport?: { width: number; height: number };
   actions?: Action[];
   capture?: 'viewport' | 'page' | Crop;
-  data?: 'empty' | 'example';
+  data?: 'empty' | 'example' | 'ai';
 }
 
 export const DEFAULT_VIEWPORT = { width: 1440, height: 900 };
@@ -75,5 +77,17 @@ export const SHOTS: Shot[] = [
   ...both({ name: 'docs-sources', doc: 'Settings → Sources: the GitHub and screenshots folder cards, both on (concepts/found-and-sources)', route: '/settings/sources', data: 'example', capture: { selector: ['[data-testid="source-github"]', '[data-testid="source-screenshots"]'], pad: 20 }, viewport: { width: 1440, height: 1100 } }),
   ...both({ name: 'docs-agents', doc: 'Settings → Sources: the agents card, MCP address, hidden token and the install command (agents/mcp)', route: '/settings/sources', data: 'example', capture: { selector: '[data-testid="source-agents"]', pad: 20 }, viewport: { width: 1440, height: 1500 } }),
   ...both({ name: 'docs-network', doc: 'Settings → Network activity after a GitHub check and a "Test the guard" refusal, both made while seeding (guarantees/network-activity)', route: '/settings/network', data: 'example', viewport: { width: 1440, height: 1000 } }),
+  ...both({ name: 'docs-ai-off', doc: 'Settings → AI with AI off, the default: what off means (ai/overview, guarantees/ai-is-opt-in)', route: '/settings/ai', data: 'example', capture: { selector: '[data-testid="settings-ai"]', pad: 20 }, viewport: { width: 1440, height: 1100 } }),
   ...both({ name: 'docs-welcome', doc: 'Welcome, the first run (getting-started/quickstart)', route: '/welcome', viewport: { width: 1440, height: 1000 } }),
+
+  // The AI pages (PR29): the AI world, every AI answer from the FAKE model server. Their captions say so.
+  ...both({ name: 'docs-ai-connections', doc: 'Settings → AI: an Ollama connection on this computer in use, and an Anthropic one not allowed yet (ai/local-models, ai/cloud/*)', route: '/settings/ai', data: 'ai', capture: { selector: '[data-testid="ai-connections"]', pad: 20 }, viewport: { width: 1440, height: 2000 } }),
+  ...both({ name: 'docs-ai-consent', doc: 'The consent dialog for Anthropic: where it goes, what each feature sends, whose terms, how to stop (ai/cloud/*)', route: '/settings/ai', data: 'ai', actions: [{ click: '[data-testid="ai-connection-anthropic"] [data-testid="ai-connection-allow"]' }, { waitFor: '[data-testid="ai-consent"]' }], capture: { selector: '[data-testid="ai-consent"]', pad: 12 }, viewport: { width: 1440, height: 1500 } }),
+  ...both({ name: 'docs-ai-judge-card', doc: 'Settings → AI: the judge\'s card, on, with its schedule and power options (ai/the-judge)', route: '/settings/ai', data: 'ai', capture: { selector: '[data-testid="ai-feature-judge"]', pad: 16 }, viewport: { width: 1440, height: 4000 } }),
+  ...both({ name: 'docs-found-judged', doc: 'Found after Judge now: Looks like a win, Not judged yet, Probably not (ai/the-judge)', route: '/found', data: 'ai', viewport: { width: 1440, height: 1100 } }),
+  ...both({ name: 'docs-found-judged-mobile', doc: 'Found with verdicts at 390 px (ai/the-judge)', route: '/found', data: 'ai', viewport: MOBILE }),
+  ...both({ name: 'docs-tidy', doc: 'The composer\'s Tidy this up: the suggestion beside your text, field by field (ai/tidy)', route: '/', data: 'ai', actions: [{ fill: '[data-testid="composer-text"]', text: 'paired with the two new hires on the checklist sync bug yesterday, the retry was dropping edits. fixed it and they both shipped their first PR. dana said thanks in standup' }, { click: '[data-testid="composer-tidy"]' }, { waitFor: '[data-testid="tidy-use-all"]' }], viewport: { width: 1440, height: 1000 } }),
+  ...both({ name: 'docs-draft', doc: 'Folio\'s Draft with AI: the cited draft and its check (ai/draft)', route: '/folio', data: 'ai', actions: [{ click: '[data-testid="folio-draft-button"] >> visible=true' }, { waitFor: '[data-testid="draft-check"]' }], capture: { selector: '[data-testid="folio-draft"]', pad: 16 }, viewport: { width: 1440, height: 3200 } }),
+  ...both({ name: 'docs-ai-activity', doc: 'Settings → AI: the AI activity receipt after a judge run and the tidies and drafts of the shots before it (shot last, so light and dark match) (ai/overview)', route: '/settings/ai', data: 'ai', actions: [{ waitFor: '[data-testid="ai-activity-line"]' }], capture: { selector: '[data-testid="ai-activity"]', pad: 16 }, viewport: { width: 1440, height: 6000 } }),
+  ...both({ name: 'docs-network-ai', doc: 'Network activity with AI on: each model call stamped this computer, with its feature, model and bytes (guarantees/network-activity)', route: '/settings/network', data: 'ai', viewport: { width: 1440, height: 1100 } }),
 ];

@@ -6,6 +6,18 @@
 //
 // Requests are same-origin and relative (`/api/...`): the CSP allows `connect-src 'self'` and nothing else.
 import type {
+  AiConnectionCreate,
+  AiConnectionUpdate,
+  AiConnectionView,
+  AiDetectResult,
+  AiFeatureName,
+  AiFeatureUpdate,
+  AiHardware,
+  AiModelsResponse,
+  AiPullEvent,
+  AiSettingsRequest,
+  AiStatus,
+  AiTestResult,
   AchievementCreated,
   AchievementRemoved,
   AchievementsPage,
@@ -60,6 +72,11 @@ import type {
   WelcomeResponse,
 } from '../../shared/api.ts';
 import type { Achievement, AchievementCreate, AchievementUpdate, Evidence, FoundCandidate, FoundKeep, Problem, Profile, ProfileUpdate } from '../../shared/schema/index.ts';
+// v0.2's AI plumbing (PR22), on a line of its own so the AI PRs' imports don't collide
+import type { AiActivityResponse, AiInstructionsName, AiInstructionsReset, AiInstructionsResponse } from '../../shared/api.ts';
+import type { AiDraftCheck, AiDraftCheckRequest, AiDraftEvent, AiDraftPreview, AiDraftRequest } from '../../shared/api.ts';
+// the judge (PR24)
+import type { AiJudgePreview, AiJudgeRunResponse, AiJudgeStatus, FoundBulkRequest, FoundBulkResponse } from '../../shared/api.ts';
 
 /** A failed API call: the HTTP status (0 when the server couldn't be reached) and the envelope's code and message. */
 export class ApiRequestError extends Error {
@@ -333,6 +350,9 @@ export const keepFound = (id: string, body: FoundKeep = {}) => api.post<FoundDec
 export const mergeFound = (id: string, achievementId: string) => api.post<FoundDecided<FoundCandidate>>(`/api/found/${seg(id)}/merge`, { achievementId });
 export const dismissFound = (id: string) => api.post<FoundDecided<FoundCandidate>>(`/api/found/${seg(id)}/dismiss`);
 export const undoFound = (id: string) => api.post<FoundDecided<FoundCandidate>>(`/api/found/${seg(id)}/undo`);
+/** "Dismiss these N" (PR25): many at once, and its Undo. */
+export const dismissFoundMany = (ids: string[], only?: 'probably-not') => api.post<FoundBulkResponse>('/api/found/dismiss', { ids, ...(only ? { only } : {}) } satisfies FoundBulkRequest);
+export const undoFoundMany = (ids: string[]) => api.post<FoundBulkResponse>('/api/found/undo', { ids } satisfies FoundBulkRequest);
 
 /** `GET /api/sources` */
 export const getSources = (signal?: AbortSignal) => api.get<SourcesResponse>('/api/sources', { signal });
@@ -370,3 +390,163 @@ export const addDiscoveredRepos = (body: DiscoverAddRequest) => api.post<Discove
 export const getExample = (signal?: AbortSignal) => api.get<ExampleStatus>('/api/example', { signal });
 export const addExample = () => api.post<ExampleChanged>('/api/example', {});
 export const removeExample = () => api.post<ExampleChanged>('/api/example/remove', {});
+
+// ---------------------------------------------------------------- AI (PR21's routes, PR23's Settings → AI)
+
+/** `GET /api/ai`: settings, connections (never a key: `hasKey`, `keyHint`), consent, readiness, the AI hosts allowed. */
+export const getAi = (signal?: AbortSignal) => api.get<AiStatus>('/api/ai', { signal });
+/** The master switch and the text slot. */
+export const putAi = (body: AiSettingsRequest) => api.put<AiStatus>('/api/ai', body);
+export const addAiConnection = (body: AiConnectionCreate) => api.post<{ connection: AiConnectionView; status: AiStatus }>('/api/ai/connections', body);
+export const putAiConnection = (id: string, body: AiConnectionUpdate) => api.put<AiStatus>(`/api/ai/connections/${seg(id)}`, body);
+export const deleteAiConnection = (id: string) => api.delete<AiStatus>(`/api/ai/connections/${seg(id)}`);
+/** Save a key (never returned: the answer is only whether there is one, and its last four characters). */
+export const putAiKey = (id: string, key: string) => api.put<AiKeyStatus>(`/api/ai/connections/${seg(id)}/key`, { key });
+export const forgetAiKey = (id: string) => api.delete<AiKeyStatus>(`/api/ai/connections/${seg(id)}/key`);
+interface AiKeyStatus {
+  id: string;
+  hasKey: boolean;
+  keyHint: string | null;
+}
+/** Allow a cloud connection: the version of the statement the user read (409 `stale_consent` if it moved on). */
+export const allowAiConnection = (id: string, version: number) => api.post<AiStatus>(`/api/ai/connections/${seg(id)}/consent`, { version });
+export const revokeAiConnection = (id: string) => api.delete<AiStatus>(`/api/ai/connections/${seg(id)}/consent`);
+/** One tiny structured request (logged). A gate (AI off, not allowed, no key) is a 409: nothing was sent. */
+export const testAiConnection = (id: string, model?: string) => api.post<AiTestResult>(`/api/ai/connections/${seg(id)}/test`, model ? { model } : {});
+export const getAiModels = (id: string, signal?: AbortSignal) => api.get<AiModelsResponse>(`/api/ai/connections/${seg(id)}/models`, { signal });
+export const putAiFeature = (feature: AiFeatureName, body: AiFeatureUpdate) => api.put<AiStatus>(`/api/ai/features/${seg(feature)}`, body);
+export const getAiHardware = (signal?: AbortSignal) => api.get<AiHardware>('/api/ai/hardware', { signal });
+export const getAiDetect = (signal?: AbortSignal) => api.get<AiDetectResult | null>('/api/ai/detect', { signal });
+/** Look for a model runner on this computer (each probe logged; 409 ai_off while AI is off). */
+export const detectAi = () => api.post<AiDetectResult>('/api/ai/detect', {});
+
+/**
+ * Ask a connection's Ollama to download `model`, after the confirm. Calls `onEvent` for each progress line; resolves
+ * with the last (`done`) line. Aborting `signal` cancels the download (the server closes Ollama's stream). Rejects with
+ * an ApiRequestError when the server refused before starting (the gates, a missing confirm).
+ */
+export async function pullAiModel(id: string, model: string, onEvent: (e: AiPullEvent) => void, signal: AbortSignal): Promise<AiPullEvent> {
+  let res: Response;
+  try {
+    res = await fetch(`/api/ai/connections/${seg(id)}/pull`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ confirm: true, model }), signal });
+  } catch (e) {
+    if (signal.aborted) throw e;
+    throw new ApiRequestError(0, NETWORK_ERROR, "Couldn't reach BragDoc. Is it still running?");
+  }
+  if (!res.ok || !res.body) {
+    const text = await res.text().catch(() => '');
+    let data: unknown;
+    try {
+      data = JSON.parse(text);
+    } catch {
+      /* not JSON */
+    }
+    if (isEnvelope(data)) throw new ApiRequestError(res.status, data.error.code, data.error.message);
+    throw new ApiRequestError(res.status, `http_${res.status}`, `The download didn't start (${res.status}).`);
+  }
+  const reader = res.body.pipeThrough(new TextDecoderStream()).getReader();
+  let buf = '';
+  let last: AiPullEvent = { done: true, ok: false, error: { code: 'failed', message: 'The download stopped before it finished.' } };
+  for (;;) {
+    const { value, done } = await reader.read();
+    if (done) break;
+    buf += value;
+    let i: number;
+    while ((i = buf.indexOf('\n')) >= 0) {
+      const line = buf.slice(0, i).trim();
+      buf = buf.slice(i + 1);
+      if (!line) continue;
+      try {
+        const e = JSON.parse(line) as AiPullEvent;
+        if (e.done) last = e;
+        else onEvent(e);
+      } catch {
+        /* a torn line: skip it */
+      }
+    }
+  }
+  return last;
+}
+// ---------------------------------------------------------------- AI plumbing (PR22): instructions, activity
+
+/** `GET /api/ai/instructions/:name`: the file (all of it, for an editor), what a model is given, its Problems. */
+export const getAiInstructions = (name: AiInstructionsName, signal?: AbortSignal) => api.get<AiInstructionsResponse>(`/api/ai/instructions/${seg(name)}`, { signal });
+/** Save the whole file. Send the ETag you read: a stale one is a 409, and a broken file needs it to be replaced. */
+export const putAiInstructions = (name: AiInstructionsName, text: string, etag?: string | null) =>
+  api.put<AiInstructionsResponse>(`/api/ai/instructions/${seg(name)}`, { text }, etag ? { headers: { 'If-Match': etag } } : undefined);
+/** Put the feature's starter back (your version is moved to backups/removed/). */
+export const resetAiInstructions = (name: AiInstructionsName) => api.post<AiInstructionsReset>(`/api/ai/instructions/${seg(name)}/reset`, {});
+/** `GET /api/ai/activity`: the AI activity log, newest first. */
+export const getAiActivity = (opts: { limit?: number; offset?: number } = {}, signal?: AbortSignal) =>
+  api.get<AiActivityResponse>(`/api/ai/activity?limit=${opts.limit ?? 50}&offset=${opts.offset ?? 0}`, { signal });
+
+// ---------------------------------------------------------------- Folio "Draft with AI" (PR27)
+
+/**
+ * `POST /api/ai/draft`: a draft, read as it streams. `onEvent` hears `start` and each `text`; the promise settles with
+ * the `done` line (a model's failure mid-draft is a `done` with `ok: false`, not a throw). Throws an ApiRequestError
+ * when the server refused before starting (a gate, an empty folio), and the abort when `signal` cancels it.
+ */
+export async function streamDraft(body: AiDraftRequest, onEvent: (e: Exclude<AiDraftEvent, { type: 'done' }>) => void, signal: AbortSignal): Promise<Extract<AiDraftEvent, { type: 'done' }>> {
+  let res: Response;
+  try {
+    res = await fetch('/api/ai/draft', { method: 'POST', headers: { 'Content-Type': 'application/json', Accept: 'application/x-ndjson' }, body: JSON.stringify(body), signal });
+  } catch (e) {
+    if (signal.aborted) throw e;
+    throw new ApiRequestError(0, NETWORK_ERROR, "Couldn't reach BragDoc. Is it still running?");
+  }
+  if (!res.ok || !res.body || !res.headers.get('content-type')?.includes('ndjson')) {
+    const text = await res.text().catch(() => '');
+    let data: unknown;
+    try {
+      data = JSON.parse(text);
+    } catch {
+      /* not JSON */
+    }
+    if (isEnvelope(data)) throw new ApiRequestError(res.status, data.error.code, data.error.message);
+    throw new ApiRequestError(res.status, `http_${res.status}`, `The draft didn't start (${res.status}).`);
+  }
+  const reader = res.body.pipeThrough(new TextDecoderStream()).getReader();
+  let buf = '';
+  let last: Extract<AiDraftEvent, { type: 'done' }> = { type: 'done', ok: false, error: { code: 'failed', message: 'The draft stopped before it finished: BragDoc went away mid-answer.' } };
+  for (;;) {
+    let chunk: Awaited<ReturnType<typeof reader.read>>;
+    try {
+      chunk = await reader.read();
+    } catch (e) {
+      if (signal.aborted) throw e;
+      break;
+    }
+    if (chunk.done) break;
+    buf += chunk.value;
+    let i: number;
+    while ((i = buf.indexOf('\n')) >= 0) {
+      const line = buf.slice(0, i).trim();
+      buf = buf.slice(i + 1);
+      if (!line) continue;
+      try {
+        const e = JSON.parse(line) as AiDraftEvent;
+        if (e.type === 'done') last = e;
+        else onEvent(e);
+      } catch {
+        /* a torn line: skip it */
+      }
+    }
+  }
+  return last;
+}
+
+/** `POST /api/ai/draft/check`: the flags on an (edited) draft. No model call. */
+export const checkAiDraft = (body: AiDraftCheckRequest, signal?: AbortSignal) => api.post<AiDraftCheck>('/api/ai/draft/check', body, { signal });
+
+/** `GET /api/ai/draft/preview`: what a draft sends (the template, without params). */
+export const getAiDraftPreview = (params?: Record<string, string>, signal?: AbortSignal) => api.get<AiDraftPreview>(`/api/ai/draft/preview${params ? `?${new URLSearchParams(params)}` : ''}`, { signal });
+
+// ---------------------------------------------------------------- the judge (PR24)
+
+/** `GET /api/ai/judge/status`: can it run, what's waiting, the run in progress and the last one. */
+export const getJudgeStatus = (signal?: AbortSignal) => api.get<AiJudgeStatus>('/api/ai/judge/status', { signal });
+/** `POST /api/ai/judge/run`: Judge now (what's waiting), or `ids` again. It runs in the background. */
+export const runJudge = (ids?: string[]) => api.post<AiJudgeRunResponse>('/api/ai/judge/run', ids ? { ids } : {});
+/** `GET /api/ai/judge/preview?candidate=`: what would be sent for one candidate (nothing is sent). */
+export const getJudgePreview = (id: string, signal?: AbortSignal) => api.get<AiJudgePreview>(`/api/ai/judge/preview?candidate=${encodeURIComponent(id)}`, { signal });

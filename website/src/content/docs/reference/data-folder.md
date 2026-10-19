@@ -26,13 +26,18 @@ evidence/<aa>/<sha256>.<ext>    # a stored file (screenshot, PDF, …), named by
 evidence/<aa>/<sha256>.yaml     # its sidecar: type, original name, size, dimensions, text read from it
 found/<id>.yaml                 # a candidate in Found: pending, kept or dismissed
 imports/<timestamp>/            # documents carried over from a hosted-app export (read-only)
-secrets.yaml                    # readable only by you: a GitHub token, if you use one
+ai/what-counts.md               # v0.2: what counts as a win for you, for the AI judge (yours to edit)
+ai/style.md                     # v0.2: how you write, for tidying and drafting (optional)
+secrets.yaml                    # readable only by you: a GitHub token, and AI providers' keys, if you use them
 runtime.json                    # readable only by you: the running server's port, URL, version and MCP token
 logs/network.jsonl              # every outbound request
+logs/ai-runs.jsonl              # v0.2: every AI run, without its content (only once you use AI; ai-runs.1.jsonl is the older half)
 backups/<timestamp>/            # automatic snapshots
 backups/removed/                # "deleted" files, moved here, never erased
 .gitignore                      # keeps machine-written files out of git
-cache/                          # derived and safe to delete
+cache/                          # derived and safe to delete (cache/ai/detect.json: the last look for a model runner;
+                                #   cache/ai/judge.json: the judge's last run and any backoff; cache/ai/judge-stats.json:
+                                #   how often you agreed with it, as two counts)
 legacy-cli/                     # the old BragDoc CLI's files, moved aside on first run
 ```
 
@@ -80,6 +85,21 @@ Evidence lives in an achievement's `evidence:` list (and in Found candidates). L
 written inline. Files are stored once in `evidence/`, named by their sha256 and typed by their content, whatever their
 name said; the item refers to them with `blob: <sha256>`. Each stored file has a sidecar next to it, and text read
 from it there is searchable.
+
+## Instructions for the AI (v0.2)
+
+If you use v0.2's opt-in AI, what you tell the models lives in `ai/`, as Markdown you write, and it's yours like the
+rest of the folder: backed up, picked up live when you edit it by hand, and never ignored by `.gitignore`.
+
+- `ai/what-counts.md` is "what counts as a win for me": the AI judge reads it. A starter, made from your profile, is
+  written when you first switch the [judge](/ai/the-judge/) on; after that it's only changed by you.
+- `ai/style.md` is "how I write", if you want one: [Tidy](/ai/tidy/) and [Draft](/ai/draft/) read it.
+
+Each is plain Markdown. It may start with front-matter (a `---` line, YAML, another `---` line), which the models
+aren't shown. A file over 20,000 characters, or with front-matter that isn't closed or isn't YAML, is a Problem. While
+BragDoc keeps running it uses the last good version it read; started with the file already broken, it has none, and
+the feature says so until you fix it. To start the Markdown itself with a horizontal rule, use `***`, not `---`. Any other `.md` file in `ai/` is listed as a Problem too (most likely a
+misspelt name), and otherwise ignored. A v0.1 BragDoc ignores the folder entirely.
 
 ## Hand edits, Problems and versions
 
@@ -248,7 +268,7 @@ A candidate in Found.
 | `matchedRules` | list of string | default `[]` | Which rules it passed, in words (shown on its card). |
 | `suggestedProjects` | list of id | default `[]` | Projects it probably belongs to. |
 | `suggestedRepos` | list of id | default `[]` | Repos it probably touched. |
-| `verdict` | mapping or empty | default `null` | A judge's decision. Always empty in v0.1 (no AI). |
+| `verdict` | mapping or empty | default `null` | An AI judge's opinion, when you have the judge on (v0.2). It never keeps or dismisses anything. |
 | `decision` | mapping or empty | default `null` | What you decided, once you have. |
 | `foundAt` | date-time | yes | When it was spotted. |
 | `meta` | mapping |  | Extra data kept by an importer or a source. |
