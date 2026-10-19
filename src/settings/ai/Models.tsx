@@ -10,7 +10,7 @@ import type { AiConnectionView, AiHardware, AiPullEvent, AiStatus } from '../../
 import { MIN_LOCAL_RAM_GB, RECOMMENDED_MODELS, type RecommendedModel } from '../../../shared/ai/models.ts';
 import { isApiError, pullAiModel, putAi } from '../../api/client.ts';
 import { queryKeys, useAiHardware, useAiModels } from '../../api/queries.ts';
-import { Btn, Dialog, Kicker, inputCls, useToast } from '../../kit/index.ts';
+import { Btn, Dialog, Kicker, useToast } from '../../kit/index.ts';
 import { CommandSlab, CopyButton } from '../common.tsx';
 import { connectionName, gb, ramGb } from './words.ts';
 
@@ -80,7 +80,7 @@ export function Recommended({ status }: { status: AiStatus }) {
         ) : ollamas.length > 1 ? (
           <>
             Installed means installed on{' '}
-            <select value={target.id} onChange={(e) => setPicked(e.target.value)} className={`${inputCls} inline-block w-auto py-0.5 text-[12px]`} aria-label="Which Ollama" data-testid="ai-recommended-target">
+            <select value={target.id} onChange={(e) => setPicked(e.target.value)} className="rounded-lg bg-sunk px-2 py-0.5 text-[12px] text-ink outline-none ring-2 ring-transparent focus-visible:ring-accent/60" aria-label="Which Ollama" data-testid="ai-recommended-target">
               {ollamas.map((c) => (
                 <option key={c.id} value={c.id}>
                   {connectionName(c)}
