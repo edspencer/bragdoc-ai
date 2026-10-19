@@ -166,6 +166,12 @@ export function registerAi(app: Hono, ctx: AppContext): void {
 
   const update = (patch: Record<string, unknown>) => ctx.config.update({ ai: patch });
 
+  /** A Jev going through OpenRouter connection `via` has to be allowed again (its key changed or went). */
+  const forgetJevConsent = (via: string) => {
+    const jevs = Object.entries(ctx.config.get().ai.connections).filter(([, x]) => x.kind === 'jev' && x.via === via && x.consent);
+    if (jevs.length) update({ connections: Object.fromEntries(jevs.map(([j]) => [j, { consent: null }])) });
+  };
+
   app.get('/api/ai', (c) => c.json(aiStatus(ctx)));
 
   app.put('/api/ai', (c) =>
@@ -267,13 +273,10 @@ export function registerAi(app: Hono, ctx: AppContext): void {
       const conn = connection(id);
       if (conn.kind === 'jev') throw new Refused(400, 'invalid', `Jev uses its OpenRouter connection's key (${conn.via ?? 'none set'})`);
       const { key } = await body(c, KeySchema, 'a key');
-      const replaced = !!ctx.secrets.aiKeyHint(id).hasKey;
       ctx.secrets.setAiKey(id, key);
-      // a different key may be a different account: a Jev going through this connection asks again (D82)
-      if (replaced) {
-        const jevs = Object.entries(ctx.config.get().ai.connections).filter(([, x]) => x.kind === 'jev' && x.via === id && x.consent);
-        if (jevs.length) update({ connections: Object.fromEntries(jevs.map(([j]) => [j, { consent: null }])) });
-      }
+      // a new key may be a different account: a Jev going through this connection asks again (D82; D83: on any new key,
+      // not only a replaced one, so Forget then another account's key asks too)
+      forgetJevConsent(id);
       return { id, ...ctx.secrets.aiKeyHint(id) };
     }),
   );
@@ -283,6 +286,8 @@ export function registerAi(app: Hono, ctx: AppContext): void {
       const id = c.req.param('id');
       if (connection(id).kind === 'jev') throw new Refused(400, 'invalid', "Jev uses its OpenRouter connection's key: forget that one's");
       ctx.secrets.setAiKey(id, null);
+      // the statement says removing the key asks again (D83): whatever key comes next may be another account's
+      forgetJevConsent(id);
       return { id, ...ctx.secrets.aiKeyHint(id) };
     }),
   );

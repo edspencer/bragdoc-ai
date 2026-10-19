@@ -22,8 +22,9 @@ their terms before you allow it.
 
 ## Setting it up
 
-1. In **Settings → AI** (with AI on), under **Add another**, pick **OpenAI-compatible server**.
-2. **The consent dialog opens at once.** It says where the connection would send (the host you typed), what each feature would
+1. In **Settings → AI** (with AI on), under **Add one** (or **Add another**), pick **OpenAI-compatible server**, then
+   **Add, then read what's sent** (type its address first).
+2. **The consent dialog opens next.** It says where the connection would send (the host you typed), what each feature would
    send there, field by field, whose terms apply, and how to stop. **Until you press Allow, nothing at all is sent**,
    not even a test or a request for the list of models. **Not now** leaves the connection saved and blocked.
 3. Paste your **key**, pick a **model**, and press **Test connection** (one tiny question with nothing of yours in it).
@@ -40,23 +41,24 @@ A server that refuses BragDoc's structured-answer format is asked again in plain
 This is the statement the consent dialog shows, word for word: both are made from the same file in BragDoc's code.
 
 <!-- ai-reference:consent-custom:start -->
-**Where it goes.** Straight from this computer to the host in the address you typed in. BragDoc can’t tell who runs it.
+**Where it goes.** Straight from this computer to the host you typed in: a server you typed in. BragDoc can’t tell who runs it.
 
 **What each feature would send there:**
 
 - **The judge (Found)**, only once you switch the judge on:
   - The text of a screenshot Found picked up (read on this computer), with your own messages marked
   - For a merged pull request (if you tick it): its repository, title, the first 2,000 characters of its description, and the date
-  - Your name, the other names you go by, and the names to ignore
-  - Your active projects' names
+  - Your name and role, the other names you go by, and the names to ignore
+  - Your active and paused projects' names
   - Your “what counts as a win” instructions
 - **Tidy this up (the board)**, only when you press Tidy on something:
   - The text you pasted, or the text read from a picture you added
+  - For an achievement you tidy in its edit drawer: its title, summary, notes, quotes (with who said them, and where) and its pictures’ text
   - Today's date, and your name and role
   - Your projects' names
   - Your “how I write” notes, if you wrote some
 - **Draft with AI (Folio)**, only when you press Draft:
-  - The achievements in the folio you picked: titles, summaries, dates, impact, project and company names, and evidence by name
+  - The achievements in the folio you picked, and its dates: titles, summaries, dates, impact, project and company names, and their evidence (quotes word for word, with who said them and where; pull request numbers and titles; link sites and titles; file names)
   - Your name and role
   - Your note on what the draft is for, if you wrote one
   - Your “how I write” notes, if you wrote some
@@ -80,7 +82,7 @@ _This is version 1 of the statement. If a later BragDoc would send more, it asks
 
 If the server wants a key, paste it into the connection's **Key** field. It's kept in `secrets.yaml` in your data
 folder, which only you can read, is never logged, backed up or returned by BragDoc's API (the card shows its last four
-characters), and is sent only to that server's host. **Forget key** deletes it.
+characters), and is sent only to that server's host. **Forget** deletes it.
 
 ## The judge in the background
 

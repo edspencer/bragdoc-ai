@@ -25,7 +25,7 @@ Upgrading from 0.1 changes nothing until you act.
 *Enforced by* the settings' defaults (`server/config.ts`), and every call is checked against the switches before it's
 queued, when it starts, and every second while it runs (`server/ai/run.ts`).
 
-**2. With AI off, the AI code isn't even loaded, and nothing is contacted.** No model is asked anything, on this
+**2. With AI off, the AI library isn't even loaded, and nothing is contacted.** No model is asked anything, on this
 computer or anywhere else; Settings → AI offers nothing that could reach a runner, and the server refuses it too.
 *Enforced by* one dynamic import on the first model call (`server/ai/sdk.ts`); a test runs a whole AI-off session
 under a module loader hook and fails if the AI library is ever even resolved (`test/ai-lazy.test.ts`), and the
@@ -42,7 +42,8 @@ BragDoc is allowed to run at all (`ALLOWED_BINS` in `server/proc.ts`).
 included, each stamped *this computer*, *your network* or *internet*, with its feature, model and bytes sent. The
 browser never talks to a model: the server does.
 *Enforced by* the egress module (`server/egress.ts`), whose per-connection fetch is the only one a model provider is
-given; the CI guard (`test/guard-egress.test.ts`) confines the AI library to three files in `server/ai/`.
+given; the CI guard (`test/guard-egress.test.ts`) confines the AI library to `server/ai/` (`sdk.ts`, `providers.ts` and
+`decide.ts`, plus `ollama.ts` for the provider interface).
 
 **5. A cloud provider sends nothing until you've read what it would send, and allowed it.** Whether a connection is
 local or cloud is decided by its address, never its kind. A connection on the internet makes no request at all, not

@@ -38,14 +38,14 @@ rest without a word.
    `ollama pull qwen3.5:4b`, say: see [Choosing a model](/ai/choosing-a-model/)).
 2. In BragDoc, open **Settings → AI** and switch AI on.
 3. Press **Look for a model runner on this computer**. BragDoc asks each runner's usual address once (each ask is a
-   line in Network activity, stamped *this computer*), and checks whether an `ollama` program is on your `PATH`. That
+   line in Network activity, stamped *this computer*; in Docker, the ask to the host's Ollama is *your network*), and checks whether an `ollama` program is on your `PATH`. That
    is a look at the folders, not a run: BragDoc never starts, runs or installs Ollama. What it finds is listed with its
    version and its installed models; **Use it** adds it as a connection.
 
    Nothing found? If Ollama is installed but not answering, it says to start it. If there's no runner at all, it says
    BragDoc doesn't install model runners, links to ollama.com, and stops there. **A runner on another port isn't found
-   by design** (looking through a range of ports would be a port scan): add it by hand under **Add another**, with its
-   address.
+   by design** (looking through a range of ports would be a port scan): add it by hand under **Add one** (**Add another** once you have one), with
+   its address.
 4. **Pick a model** on its card (the models it has are listed), and **Test connection**: one tiny request, which says
    in plain words whether it works, how long it took, and whether the model can return structured answers.
 5. **Switch on the features you want**, each on its own card.
@@ -66,8 +66,10 @@ model, so set the connection's size to match.
 
 For the two recommended models, whose download sizes are known, an Ollama connection offers **Ask Ollama to download
 it**. It opens a confirm that restates the download size, the free space in your home folder, and the RAM the model
-wants against what this computer has. Too little of either is a red warning, not a block (Ollama may keep its models
-on another disk, which BragDoc can't see), and the button becomes **Download anyway**. The progress streams in, with
+wants against what this computer has. Too little disk is a red warning and too little RAM an amber one, not a block
+(Ollama may keep its models on another disk, which BragDoc can't see), and the button becomes **Download anyway**. If
+Ollama is on another machine, or BragDoc runs in Docker, the readings are BragDoc's own, the confirm says so, and it
+doesn't warn. The progress streams in, with
 Cancel; Ollama may keep the part it already fetched.
 
 Every other model, and the copy-paste command for these two, is `ollama pull <name>` in a terminal.
@@ -106,6 +108,6 @@ BragDoc can't see inside it. It's the same honesty as for the [`gh` CLI](/guaran
 ## What it's like on a CPU
 
 A local runner does one call at a time, and BragDoc queues for it: something you pressed (Tidy, Draft, a test) goes
-ahead of the judge's background work. Without a GPU, expect roughly 15–20 seconds per judged screenshot and a few
+ahead of the judge's background work. Without a GPU, expect roughly 10–20 seconds per judged screenshot and a few
 minutes for a draft; Apple silicon and a GPU are much faster. A call that takes longer than 3 minutes is stopped (a
 draft gets 15 minutes, with its progress streaming in, so it never looks stuck).

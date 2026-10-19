@@ -1480,10 +1480,23 @@ PR29 (SPEC R27).
   from the synthetic dataset (`m036`), and every docs and landing shot was re-taken in one run.
 - **"Coming in 0.2.0".** The AI pages carry `:::note[Coming in 0.2.0]`, not a `Not …` note: the release script strips
   `:::note[Not …]` at 0.1.0, and `next` may publish 0.1.0 while `v0.2` is still unreleased. `docs.test.ts` fails while
-  any page but What's new still says "Coming in 0.2.0" once package.json is 0.2.0 or later: **the 0.2.0 release
-  (PR30's release prep) takes them out.** What's new has one "Coming in 0.2.0: opt-in AI" section above a plain
+  a `Coming in X` note once package.json is X or later, and **the release script takes them out by itself**
+  (`releaseDocsPage` in `scripts/whats-new-release.mjs` now drops a `:::note[Coming in X]` from X on, as it drops
+  `:::note[Not …]` from 0.1.0), since the bot's version PR can't be hand-edited. **This needs v0.2's release to be
+  0.2.0**: every v0.2 changeset is `patch`, so PR30's `minor` changeset is what makes it so (otherwise a release from
+  `v0.2` after 0.1.0 would be 0.1.1, and the notes would keep saying 0.2.0). What's new has one "Coming in 0.2.0: opt-in AI" section above a plain
   "0.1: the first local release" one (`whats-new.test.ts` allows one "Coming in"). If 0.1.0 is published from `next`
   first, the merge forward takes `next`'s "## 0.1.0" heading for the second section.
 - **Not documented as fact:** anything not measured. The page says under 8 GB there's no recommendation, gives the
   spike's Apple-silicon speed as published figures, and says plainly that a runner's own traffic (Ollama's included)
   is outside BragDoc's log.
+- **The consent statements were corrected, at their versions** (found by fact-checking the provider pages against the
+  prompts): the judge also sends your role and your paused projects' names; Tidy, run from an achievement's edit
+  drawer, sends its title, summary, notes, quotes and pictures' text; Draft sends evidence word for word (quotes with
+  who and where, PR numbers and titles, link sites and titles), not "by name", and the folio's dates. The rule is to
+  bump `version` when `sends` grows, but this isn't growth, it's the statement catching up with what the prompts
+  already send, and **v0.2 is unreleased, so nobody has consented to the old words**: no bump. After 0.2.0, any
+  change like this bumps.
+- **A Jev's consent now also goes when its OpenRouter connection's key is forgotten, or set where there was none**
+  (it went only on replacing a key), as Jev's statement already said: Forget, then another account's key, kept the
+  old consent (`server/routes/ai.ts`, `forgetJevConsent`; `test/ai-jev.test.ts`).

@@ -12,7 +12,7 @@ BragDoc 0.2.0. Everything else in BragDoc works without them, and keeps working 
 
 **AI is off by default, and BragDoc works fully without it.** Pasting, Found, the board, Projects and Folio all work
 with AI off. While it's off, no model is asked anything, on this computer or anywhere else, and BragDoc doesn't even
-load its AI code. Upgrading to a version with AI changes nothing until you act.
+load the AI library it talks to models with. Upgrading to a version with AI changes nothing until you act.
 
 There are two levels of switch, and each one starts off:
 
@@ -32,9 +32,9 @@ There are two levels of switch, and each one starts off:
 
 Turning a feature on is what makes its button appear: with Tidy off there's no Tidy button on the board, with Draft
 off there's no Draft in Folio, and with the judge off Found has no Judge now (and, until the judge has ever run, no
-verdicts). When a feature is on but can't
-run yet (no model chosen, a runner that isn't answering, a cloud connection you haven't allowed), its button shows
-disabled, with the reason and a link to Settings → AI.
+verdicts). When a feature is on but can't run yet (no model chosen, a runner that isn't answering, a cloud
+connection you haven't allowed), Tidy's and Draft's buttons show disabled, with the reason and a link to Settings → AI;
+Found leaves out Judge now, and the judge's card in Settings → AI says why.
 
 **AI suggests; you decide.** Nothing a model writes reaches your board, an achievement or a file of yours without a
 click from you:
@@ -77,12 +77,14 @@ or your folio's achievements go. In short:
 
 - **The judge:** the screenshot's text (read on this computer), with your own messages marked; for a merged pull
   request, if you tick that, its repository, title, merge date and the first 2,000 characters of its description; your
-  name, the other names you go by and the names to ignore; your active projects' names; and your
+  name and role, the other names you go by and the names to ignore; your active and paused projects' names; and your
   [what counts as a win](/ai/the-judge/#what-counts-as-a-win-for-me) instructions.
-- **Tidy:** the text you pasted, or the text read from a picture you added; today's date; your name and role; your
+- **Tidy:** the text you pasted, or the text read from a picture you added (or, from an achievement's edit drawer, its
+  title, summary, notes and quotes); today's date; your name and role; your
   projects' names; and your optional "how I write" notes.
-- **Draft:** the achievements in the folio (titles, summaries, dates, impact, project and company names, and evidence
-  by name); your name and role; your note on what the draft is for; and your "how I write" notes.
+- **Draft:** the achievements in the folio (titles, summaries, dates, impact, project and company names, and their
+  evidence: a quote's words and who said it, a pull request's number and title, a link's site and title, a file's
+  name); the folio's dates; your name and role; your note on what the draft is for; and your "how I write" notes.
 
 Never sent: file paths, BragDoc's ids, or BragDoc's own addresses. The picture itself never goes to a model either:
 the judge and Tidy read the text BragDoc read from it, on your machine.

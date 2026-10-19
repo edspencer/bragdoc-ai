@@ -38,6 +38,7 @@ export const SARCASM_PASSED = 17;
 export const JUDGE_MEASURED: readonly JudgeMeasurement[] = [
   { model: 'gemma4:e4b', ranOn: 'Ollama, CPU only (a 2020 desktop, no GPU)', where: 'this-computer', input: 'perfect text', precision: 83, recall: 100, wins: [44, 44], sarcasmKept: 8, prsRight: 20, p50s: 10.2, recording: 'gemma4-e4b.json' },
   { model: 'qwen3.5:4b', ranOn: 'Ollama, CPU only (a 2020 desktop, no GPU)', where: 'this-computer', input: 'perfect text', precision: 89, recall: 95, wins: [41, 43], sarcasmKept: 5, prsRight: 20, p50s: null, recording: 'qwen3.5-4b.json' },
+  // Jev: one sarcastic message is borderline for it (P(win) 0.54 in an earlier run, below 0.5 in the recorded one)
   { model: 'typesafe/jev-1.14', ranOn: 'Jev, through OpenRouter', where: 'internet', input: 'perfect text', precision: 100, recall: 100, wins: [44, 44], sarcasmKept: 0, prsRight: 20, p50s: 0.2, recording: 'typesafe-jev-1.14.json' },
   { model: 'anthropic/claude-haiku-5.5', ranOn: 'OpenRouter', where: 'internet', input: 'real OCR', precision: 100, recall: 98, wins: null, sarcasmKept: 0, prsRight: 20, p50s: 1.6, recording: null },
   { model: 'google/gemini-3.5-flash-lite', ranOn: 'OpenRouter', where: 'internet', input: 'real OCR', precision: 95, recall: 100, wins: null, sarcasmKept: 1, prsRight: 20, p50s: 0.8, recording: null },

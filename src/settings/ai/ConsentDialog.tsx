@@ -7,7 +7,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { ExternalLink, ShieldCheck } from 'lucide-react';
 import type { AiCallFeature, AiConnectionView } from '../../../shared/api.ts';
-import { CONSENT_FEATURE_WORDS as FEATURE_WORDS, CONSENT_NEVER_SENT, consentStatement } from '../../../shared/ai/consent.ts';
+import { CONSENT_FEATURE_WORDS as FEATURE_WORDS, CONSENT_NEVER_SENT, consentStatement, consentWhereTail } from '../../../shared/ai/consent.ts';
 import { allowAiConnection, isApiError } from '../../api/client.ts';
 import { queryKeys } from '../../api/queries.ts';
 import { Btn, Dialog, Kicker, useToast } from '../../kit/index.ts';
@@ -74,7 +74,7 @@ export function ConsentDialog({ connection: c, open, onClose }: { connection: Ai
           <Kicker>Where it goes</Kicker>
           <p className="m-0 mt-1">
             Straight from this computer to <span className="font-mono text-[13px] font-semibold" data-testid="ai-consent-host">{host}</span>
-            {st.provider ? <>, run by {st.provider}.</> : <>: a server you typed in. BragDoc can’t tell who runs it.</>}
+            {consentWhereTail(st)}
           </p>
         </section>
         <section>

@@ -7,9 +7,8 @@
 // Markers, in a .md page `<!-- ai-reference:<block>:start -->` … `<!-- ai-reference:<block>:end -->`, and in an .mdx
 // page (which has no HTML comments) `{/* ai-reference:<block>:start */}` … `{/* ai-reference:<block>:end */}`.
 // Blocks: `models`, `measured`, and `consent-<anthropic | openai | openrouter | jev | custom>`.
-import { CONSENT, CONSENT_FEATURE_WORDS, CONSENT_NEVER_SENT, type ConsentStatement } from '../shared/ai/consent.ts';
+import { CONSENT, CONSENT_FEATURE_WORDS, CONSENT_NEVER_SENT, consentWhereTail, type ConsentStatement } from '../shared/ai/consent.ts';
 import { KIND_BASE_URL } from '../shared/ai/connections.ts';
-import { HOST_CLASS_LABEL } from '../shared/ai/hosts.ts';
 import { MIN_LOCAL_RAM_GB, MODELS_AS_OF, RECOMMENDED_MODELS, recommendFor } from '../shared/ai/models.ts';
 import type { AiCallFeature } from '../shared/api.ts';
 import { JUDGE_MEASURED, SARCASM_PASSED, SARCASM_TOTAL } from './eval/measured.ts';
@@ -39,7 +38,7 @@ export function measuredBlock(): string {
   const rows = JUDGE_MEASURED.map((m) =>
     [
       `\`${m.model}\``,
-      HOST_CLASS_LABEL[m.where],
+      m.where === 'this-computer' ? 'local runner' : 'cloud',
       m.ranOn,
       m.input,
       pct(m.precision),
@@ -72,9 +71,7 @@ const CONSENT_HOST: Record<keyof typeof CONSENT, string | null> = {
 export function consentBlock(kind: keyof typeof CONSENT): string {
   const st: ConsentStatement = CONSENT[kind];
   const host = CONSENT_HOST[kind];
-  const where = host
-    ? `Straight from this computer to \`${host}\`, run by ${st.provider}.`
-    : 'Straight from this computer to the host in the address you typed in. BragDoc can’t tell who runs it.';
+  const where = `Straight from this computer to ${host ? `\`${host}\`` : 'the host you typed in'}${consentWhereTail(st)}`;
   const sends = (Object.keys(st.sends) as AiCallFeature[]).flatMap((f) => {
     const w = CONSENT_FEATURE_WORDS[f];
     return [`- **${w?.title ?? f}**, ${w?.when ?? ''}:`, ...st.sends[f]!.map((x) => `  - ${x}`)];

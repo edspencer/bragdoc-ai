@@ -28,7 +28,8 @@ What Settings → AI suggests from this computer's RAM: **16 GB or more**, `gemm
 The table is as of 2026-10-18. Only `gemma4:e4b` and `qwen3.5:4b` have a known download size, so they're the only two BragDoc offers to ask Ollama to download (after a confirm). Any other model is `ollama pull <name>` in a terminal.
 <!-- ai-reference:models:end -->
 
-"The spike" is the experiment BragDoc's AI design came from, run before any of it was built; "recall" there is the
+"The spike" is the experiment BragDoc's AI design came from, run before any of it was built (its findings are
+summarised in [issue #434](https://github.com/edspencer/bragdoc-ai/issues/434)); "recall" there is the
 share of real wins the whole pipeline kept. **Avoid general models of 3B parameters or fewer as the judge**: in the
 spike, the smallest general models kept almost everything or answered at random. Gemma 4 E4B and Qwen 3.5 4B are the
 exceptions that were measured.
@@ -43,11 +44,11 @@ differ.
 <!-- ai-reference:measured:start -->
 | Model | Where | Ran on | Screenshots read as | Precision | Recall | Sarcasm kept | Merged PRs right | Median per message | Replayed in CI |
 |---|---|---|---|---|---|---|---|---|---|
-| `gemma4:e4b` | this computer | Ollama, CPU only (a 2020 desktop, no GPU) | perfect text | 83% | 100% | 8 of 20 | 20 of 20 | 10.2 s | yes |
-| `qwen3.5:4b` | this computer | Ollama, CPU only (a 2020 desktop, no GPU) | perfect text | 89% | 95% | 5 of 20 | 20 of 20 | — | yes |
-| `typesafe/jev-1.14` | internet | Jev, through OpenRouter | perfect text | 100% | 100% | 0 of 20 | 20 of 20 | 0.2 s | yes |
-| `anthropic/claude-haiku-5.5` | internet | OpenRouter | real OCR | 100% | 98% | 0 of 20 | 20 of 20 | 1.6 s | no: one live run |
-| `google/gemini-3.5-flash-lite` | internet | OpenRouter | real OCR | 95% | 100% | 1 of 20 | 20 of 20 | 0.8 s | no: one live run |
+| `gemma4:e4b` | local runner | Ollama, CPU only (a 2020 desktop, no GPU) | perfect text | 83% | 100% | 8 of 20 | 20 of 20 | 10.2 s | yes |
+| `qwen3.5:4b` | local runner | Ollama, CPU only (a 2020 desktop, no GPU) | perfect text | 89% | 95% | 5 of 20 | 20 of 20 | — | yes |
+| `typesafe/jev-1.14` | cloud | Jev, through OpenRouter | perfect text | 100% | 100% | 0 of 20 | 20 of 20 | 0.2 s | yes |
+| `anthropic/claude-haiku-5.5` | cloud | OpenRouter | real OCR | 100% | 98% | 0 of 20 | 20 of 20 | 1.6 s | no: one live run |
+| `google/gemini-3.5-flash-lite` | cloud | OpenRouter | real OCR | 95% | 100% | 1 of 20 | 20 of 20 | 0.8 s | no: one live run |
 
 Precision and recall are the judge's own, on the messages the screenshot rules let through, which is all it's ever asked about. "Sarcasm kept" counts sarcastic messages it called a win, of the set's 20 (the rules let 17 of them through on perfect text). A median of "—" means the runner was shared with another job at the time, so its timing says nothing.
 <!-- ai-reference:measured:end -->
@@ -75,12 +76,14 @@ answers with a probability, never a reason.
 
 The same two local models were measured on Tidy and Draft, on synthetic text and the example data:
 
-- **Tidy**: both answered in valid structured form every time (30 of 30). The checks then flag anything invented, and
+- **Tidy**: both answered in valid structured form every time (30 of 30, in one live run each; `qwen3.5:4b`'s
+  answers are recorded and replayed in CI). The checks then flag anything invented, and
   drop a date your text doesn't support, so a small model's slip shows up as a flag rather than in your achievement.
-- **Draft**: `gemma4:e4b` cited a clipping for every bullet; `qwen3.5:4b` sometimes wrote cited prose instead of bullets.
+- **Draft**: `gemma4:e4b` cited a clipping for every bullet; `qwen3.5:4b` wrote cited prose instead of bullets, every time (both are recorded and replayed in CI).
   Every line is checked against the clippings it cites, and anything that can't be traced back is flagged.
 
-On a CPU with no GPU, a tidy takes a minute or two and a draft a few minutes.
+On a shared desktop CPU with no GPU, a tidy took around two minutes and a draft a few minutes; a laptop with Apple
+silicon or a GPU is much faster.
 
 ## Cloud models
 

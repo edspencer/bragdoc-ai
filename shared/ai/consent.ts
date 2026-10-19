@@ -25,18 +25,19 @@ export interface ConsentStatement {
 const JUDGE = [
   "The text of a screenshot Found picked up (read on this computer), with your own messages marked",
   "For a merged pull request (if you tick it): its repository, title, the first 2,000 characters of its description, and the date",
-  'Your name, the other names you go by, and the names to ignore',
-  "Your active projects' names",
+  'Your name and role, the other names you go by, and the names to ignore',
+  "Your active and paused projects' names",
   "Your “what counts as a win” instructions",
 ];
 const TIDY = [
   'The text you pasted, or the text read from a picture you added',
+  'For an achievement you tidy in its edit drawer: its title, summary, notes, quotes (with who said them, and where) and its pictures’ text',
   "Today's date, and your name and role",
   "Your projects' names",
   "Your “how I write” notes, if you wrote some",
 ];
 const DRAFT = [
-  'The achievements in the folio you picked: titles, summaries, dates, impact, project and company names, and evidence by name',
+  'The achievements in the folio you picked, and its dates: titles, summaries, dates, impact, project and company names, and their evidence (quotes word for word, with who said them and where; pull request numbers and titles; link sites and titles; file names)',
   'Your name and role',
   "Your note on what the draft is for, if you wrote one",
   "Your “how I write” notes, if you wrote some",
@@ -81,6 +82,9 @@ export const CONSENT_FEATURE_WORDS: Partial<Record<AiCallFeature, { title: strin
   draft: { title: 'Draft with AI (Folio)', when: 'only when you press Draft' },
   test: { title: 'Test connection', when: 'when you press Test' },
 };
+
+/** What follows "Straight from this computer to <host>" under "Where it goes": who runs it, if BragDoc knows. */
+export const consentWhereTail = (st: ConsentStatement): string => (st.provider ? `, run by ${st.provider}.` : ': a server you typed in. BragDoc can’t tell who runs it.');
 
 /** Said under every statement's list. */
 export const CONSENT_NEVER_SENT = 'Every feature is off until you switch it on. File paths, ids and BragDoc’s own addresses are never sent.';

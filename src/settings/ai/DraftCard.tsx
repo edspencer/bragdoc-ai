@@ -122,7 +122,7 @@ function Preview() {
   return (
     <div className="mt-2 space-y-2" data-testid="ai-draft-preview">
       <p className="m-0 text-[12px] text-muted">
-        A folio’s achievements go where the placeholder is, as Folio shows them: titles, summaries, dates, impact, project and company names, and evidence by name. Nothing else is sent: no achievement you unticked or filtered out, no file’s location, no link to this computer.
+        A folio’s achievements go where the placeholder is, as Folio shows them: titles, summaries, dates, impact, project and company names, and their evidence (quotes word for word, with who said them; pull request numbers and titles; link sites and titles; file names). Nothing else is sent: no achievement you unticked or filtered out, no file’s location, no link to this computer.
       </p>
       <pre className="max-h-72 overflow-auto whitespace-pre-wrap rounded-xl bg-sunk p-3 font-mono text-[11.5px] leading-relaxed">{`${q.data.system}\n\n────────\n\n${q.data.prompt}`}</pre>
     </div>

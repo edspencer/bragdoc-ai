@@ -46,6 +46,11 @@ const VERSION: string = JSON.parse(read('package.json')).version;
 // the release script's own test of "is this a release", so the two can't drift
 const { isReleased, STALE_PROSE } = await import(pathToFileURL(path.join(ROOT, 'scripts', 'whats-new-release.mjs')).href);
 const released = (): boolean => isReleased(VERSION);
+const newer = (a: string, b: string): boolean => {
+  const [x, y] = [a, b].map((v) => v.split('.').map(Number));
+  for (let i = 0; i < 3; i++) if ((x![i] ?? 0) !== (y![i] ?? 0)) return (x![i] ?? 0) > (y![i] ?? 0);
+  return false;
+};
 
 describe('docs site', () => {
   test("website/src/site.mjs's DEFAULT_PORT is server/port.ts's", async () => {
@@ -254,12 +259,11 @@ describe('docs site', () => {
     if (!released()) return;
     const left = prose().filter((f) => /Coming in v0\.1\b/.test(fs.readFileSync(f, 'utf8')));
     assert.deepEqual(left.map((f) => path.relative(ROOT, f)), [], 'v0.1 is out: these pages still say "Coming in v0.1"');
-    // the AI pages' `:::note[Coming in 0.2.0]` (D83), once 0.2.0 or later is out (What's new has its own release step)
-    const [major = 0, minor = 0] = VERSION.split('.').map(Number);
-    if (major > 0 || minor >= 2) {
-      const ai = prose().filter((f) => path.basename(f) !== 'whats-new.md' && /Coming in 0\.2\.0/.test(fs.readFileSync(f, 'utf8')));
-      assert.deepEqual(ai.map((f) => path.relative(ROOT, f)), [], `${VERSION} is out: these pages still say "Coming in 0.2.0"`);
-    }
+    // a `:::note[Coming in X]` aside (the AI pages', D83) is gone once X is out: the release script takes it out
+    const outNow = prose().flatMap((f) =>
+      [...fs.readFileSync(f, 'utf8').matchAll(/^:::note\[Coming in ([0-9.]+)\]/gm)].filter((m) => !newer(m[1]!, VERSION)).map((m) => `${path.relative(ROOT, f)}: ${m[0]}`),
+    );
+    assert.deepEqual(outNow, [], `${VERSION} is out: these still say it's coming`);
     // the components follow RELEASED by themselves, and scripts/whats-new-release.mjs takes the pages' `:::note[Not …]`
     // asides out (PR17); anything else saying "not on npm yet" would still say it. What's new is released by the same
     // script, a blog post is dated (it may say what was true that day), and the README and SECURITY.md ship on npm.

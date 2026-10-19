@@ -27,8 +27,9 @@ a candidate's status. Once there are verdicts, Found sorts them into three group
 **Dismiss these N** on the Probably not group is the one way to clear it in bulk, and it's an explicit click, with
 **Undo**. Nothing is ever dismissed automatically, whatever the judge thinks.
 
-Each judged card shows the verdict ("Looks like a win · 86%" or "Probably not · 70%"), **why** the judge thinks so,
-the words it judged (and who wrote them), which model judged it and where ("judged by qwen3.5:4b on this computer"),
+Each judged card shows the verdict ("Looks like a win · 86%" or "Probably not · 70%"), **why** the judge thinks so
+([Jev](/ai/cloud/jev/) gives no reason), the words it judged when they differ from the rules' quote, which model
+judged it and where ("judged by qwen3.5:4b on this computer"),
 and the plain rules' chips, which stay. **Keep** files the achievement under the projects the rules and the judge
 suggested together, shown on the card first. **Judge again** asks once more, and **What's sent** shows exactly what
 that would send.
@@ -37,7 +38,7 @@ that would send.
 
 <Shot name="docs-found-judged-mobile" alt="Found with verdicts on a phone: one column, a screenshot card stamped Looks like a win with the judge's reason, and the tabs along the bottom." caption="The same, at phone width. Verdicts staged with BragDoc's test model server." max={300} staged />
 
-When you keep or dismiss a judged candidate, BragDoc counts whether you agreed with it, and Settings → AI says "You
+When you keep, merge or dismiss a judged candidate, BragDoc counts whether you agreed with it, and Settings → AI says "You
 agreed with the judge on 18 of 20". Only the counts are kept (`cache/ai/judge-stats.json`), never which candidate.
 
 If you turn the judge or AI off, verdicts already written stay on their cards, marked "judged earlier", with Judge
@@ -61,7 +62,7 @@ The judge can use the model your other features share, or one of its own (**Use 
 
 The judge reads a short Markdown file of yours with every candidate: **what counts as a win for me**. It's
 `ai/what-counts.md` in your data folder. When you first switch the judge on, BragDoc writes a starter from your
-profile (your name, the names you go by, the names to ignore); after that only you change it, in the editor on the
+profile (your name and role, the names you go by, the names to ignore); after that only you change it, in the editor on the
 judge's card or in any text editor. Saving it sends nothing anywhere. **Reset to the starter** moves your version to
 `backups/removed/` first: nothing is deleted.
 
@@ -85,7 +86,8 @@ And two conditions, for those background runs only:
 - **Only when this computer is plugged in** (ticked by default). BragDoc reads the power with `pmset` on a Mac and
   from `/sys/class/power_supply` on Linux. Where it can't tell (a desktop, or Docker), it counts as plugged in, and the
   card says it can't tell. It reads the power only while that decides something (the judge on, with a background
-  trigger set or its card open): with AI off, `pmset` never runs.
+  trigger set or its card open, and **only when this computer is plugged in** ticked): with AI off, `pmset` never
+  runs.
 
 <Shot name="docs-ai-judge-card" alt="The judge's card in Settings, AI: on, using qwen3.5:4b on Ollama on this computer; what it judges (screenshots the rules let through, and merged PRs); when it runs by itself (as new candidates arrive, every N hours, only between two times, only when plugged in); the what counts as a win for me editor; and Judge now." caption="The judge's card, on, with nothing in the background yet. The model is BragDoc's test model server standing in for a real runner." staged />
 
@@ -96,11 +98,12 @@ screenshots to the internet when you switch models.
 How a background run behaves:
 
 - **One run at a time**, newest candidates first, at most 50 per run (`maxPerRun`); the rest wait for the next run.
-- **It stops** after the item in progress if AI or the judge is switched off, the window closes, or this computer goes
-  onto battery, and picks up when the condition lifts. What's judged stays judged.
+- **It stops** at once if AI or the judge is switched off (the item in progress isn't written), and after the item in
+  progress if the window closes or this computer goes onto battery, picking up when that lifts. What's judged stays
+  judged.
 - **If the model can't be reached** (the runner is down, a key is refused, out of credit), background runs back off:
   15 minutes, doubling up to 6 hours. The card says so in plain words, and any run that judges something clears it.
-- An answer that's still malformed after one retry is counted as failed and skipped; the run goes on.
+- An answer that's still malformed after one retry is counted as failed; the run goes on.
 - **Judge now ignores the conditions and the backoff**: you asked.
 
 Turning the judge on with nothing in the background, then adding a schedule later, never judges a backlog all at once:
@@ -116,8 +119,8 @@ the rules' stored quote is judged instead.
 
 For a merged pull request: its repository, title, merge date and the first 2,000 characters of its description.
 
-With either, it sends your name, the other names you go by and the names to ignore, your active projects' names, and
-`ai/what-counts.md`. The text is fenced off and labelled as material to judge, never as instructions to follow, and
+With either, it sends your name and role, the other names you go by and the names to ignore, the names of your active
+and paused projects, `ai/what-counts.md`, and (for a pull request) BragDoc's 1–10 impact scale. The text is fenced off and labelled as material to judge, never as instructions to follow, and
 the model has no tools. Its answer is checked before it's written: the quote is dropped unless it's word for word in
 the message judged, project names that aren't yours are dropped, and the reason is cut to 160 characters.
 

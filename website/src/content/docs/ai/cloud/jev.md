@@ -13,7 +13,8 @@ probability ("a win: 93%", and which project). BragDoc can use it as [the judge]
 judge: it can't tidy or draft, because it doesn't write.
 
 In the measurements on [Choosing a model](/ai/choosing-a-model/#what-the-judge-scored), Jev scored best of everything
-tried (100% precision and recall on the synthetic set, no sarcasm kept), in about 0.2 seconds a message. But:
+tried (100% precision and recall on the synthetic set, no sarcasm kept; on perfect text, while the cloud chat models
+were measured on real OCR), in about 0.2 seconds a message. But:
 
 - **it's cloud only**: there's no local Jev;
 - **it never says why.** A Jev verdict on a Found card reads "Jev answers with a probability only": no reason, no
@@ -29,7 +30,8 @@ a router to chat models, and BragDoc won't use it as Jev.)
 2. Under **Add another**, pick **Jev (via OpenRouter)**, and choose the OpenRouter connection it goes through.
 3. **Jev has its own consent**, separate from the OpenRouter connection's: read its statement, and press **Allow**.
    Until you do, nothing is sent to Jev, even though the OpenRouter connection is allowed.
-4. On the judge's card, pick **Jev (cloud)** as the judge's model. It isn't offered anywhere else.
+4. On the judge's card, pick **Jev (cloud)** as the judge's model (or press **Use for the judge** on Jev's card). It
+   can only ever be the judge's model.
 
 Jev's consent is asked again if you point it at another OpenRouter connection, replace that connection's key, or
 remove that connection (each may be another account).
@@ -46,8 +48,8 @@ This is the statement the consent dialog shows, word for word: both are made fro
 - **The judge (Found)**, only once you switch the judge on:
   - The text of a screenshot Found picked up (read on this computer), with your own messages marked
   - For a merged pull request (if you tick it): its repository, title, the first 2,000 characters of its description, and the date
-  - Your name, the other names you go by, and the names to ignore
-  - Your active projects' names
+  - Your name and role, the other names you go by, and the names to ignore
+  - Your active and paused projects' names
   - Your “what counts as a win” instructions
 - **Test connection**, when you press Test:
   - A one-line test question (nothing of yours)
@@ -82,7 +84,7 @@ without it, only **Judge now** sends. See [The judge](/ai/the-judge/#when-it-run
 - **Revoke**, on the connection's card: nothing more is sent to it from that moment, even mid-run, and nothing is
   sent again until you allow it again.
 - **AI off**, the master switch: everything stops at once, and no cloud host stays on BragDoc's allow-list.
-- **Remove**, on the card: the connection and its key are both gone.
+- **Remove**, on Jev's card: the Jev connection is gone; the OpenRouter connection and its key stay.
 
 ## Seeing what it sent
 

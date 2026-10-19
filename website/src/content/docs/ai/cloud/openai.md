@@ -16,8 +16,9 @@ A small, fast model is plenty for the judge, Tidy and Draft; see [Choosing a mod
 
 ## Setting it up
 
-1. In **Settings → AI** (with AI on), under **Add another**, pick **OpenAI**.
-2. **The consent dialog opens at once.** It says where the connection would send (`api.openai.com`), what each feature would
+1. In **Settings → AI** (with AI on), under **Add one** (or **Add another**), pick **OpenAI**, then
+   **Add, then read what's sent**.
+2. **The consent dialog opens next.** It says where the connection would send (`api.openai.com`), what each feature would
    send there, field by field, whose terms apply, and how to stop. **Until you press Allow, nothing at all is sent**,
    not even a test or a request for the list of models. **Not now** leaves the connection saved and blocked.
 3. Paste your **key**, pick a **model**, and press **Test connection** (one tiny question with nothing of yours in it).
@@ -39,16 +40,17 @@ This is the statement the consent dialog shows, word for word: both are made fro
 - **The judge (Found)**, only once you switch the judge on:
   - The text of a screenshot Found picked up (read on this computer), with your own messages marked
   - For a merged pull request (if you tick it): its repository, title, the first 2,000 characters of its description, and the date
-  - Your name, the other names you go by, and the names to ignore
-  - Your active projects' names
+  - Your name and role, the other names you go by, and the names to ignore
+  - Your active and paused projects' names
   - Your “what counts as a win” instructions
 - **Tidy this up (the board)**, only when you press Tidy on something:
   - The text you pasted, or the text read from a picture you added
+  - For an achievement you tidy in its edit drawer: its title, summary, notes, quotes (with who said them, and where) and its pictures’ text
   - Today's date, and your name and role
   - Your projects' names
   - Your “how I write” notes, if you wrote some
 - **Draft with AI (Folio)**, only when you press Draft:
-  - The achievements in the folio you picked: titles, summaries, dates, impact, project and company names, and evidence by name
+  - The achievements in the folio you picked, and its dates: titles, summaries, dates, impact, project and company names, and their evidence (quotes word for word, with who said them and where; pull request numbers and titles; link sites and titles; file names)
   - Your name and role
   - Your note on what the draft is for, if you wrote one
   - Your “how I write” notes, if you wrote some
@@ -75,7 +77,7 @@ which only you can read (permissions 0600). It's never written to `config.yaml`,
 returned by BragDoc's API (the card shows only its last four characters), and it's sent only to ``api.openai.com``. BragDoc
 never reads a key from your environment either: only from what you paste here.
 
-**Forget key** deletes it from `secrets.yaml`. To make a key useless everywhere, revoke it in your OpenAI
+**Forget** deletes it from `secrets.yaml`. To make a key useless everywhere, revoke it in your OpenAI
 account as well.
 
 ## The judge in the background

@@ -178,7 +178,13 @@ async function startFakeLlm(home: string): Promise<ChildProcess> {
   child.stderr!.on('data', (d) => (log += d));
   for (let i = 0; i < 100; i++) {
     if (child.exitCode !== null) throw new Error(`the fake model server exited (${child.exitCode}):\n${log}`);
-    if (await fetch(`http://127.0.0.1:${FAKE_LLM_PORT}/api/version`).then((r) => r.ok, () => false)) return child;
+    // and it must be the fake that answers (its version is 0.0.0-fake), never a runner listening on another address
+    const version = await fetch(`http://127.0.0.1:${FAKE_LLM_PORT}/api/version`).then((r) => (r.ok ? r.json() : null), () => null);
+    if (version?.version === '0.0.0-fake') return child;
+    if (version) {
+      child.kill();
+      throw new Error(`something other than the fake model server answers on ${FAKE_LLM_PORT} (version ${JSON.stringify(version.version)}): stop it and try again`);
+    }
     await new Promise((r) => setTimeout(r, 200));
   }
   child.kill();
@@ -238,6 +244,16 @@ async function seedAi({ base, home }: Rig) {
     const s = await call('GET', '/api/ai/judge/status');
     return !s.running && s.last?.outcome === 'ok';
   });
+  // one tidy and one draft, so AI activity and Network activity show every feature whatever shots run
+  await call('POST', '/api/ai/tidy', { text: 'paired with the two new hires on the checklist sync bug yesterday, fixed it' });
+  const day = (ms: number) => new Date(ms).toISOString().slice(0, 10);
+  const r = await fetch(base + '/api/ai/draft', {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ folio: { from: day(now - 90 * 86_400_000), to: day(now), projects: [], minImpact: 1, exclude: [], group: 'project' } }),
+  });
+  const lines = (await r.text()).trim().split('\n').map((l) => JSON.parse(l) as { type: string; error?: unknown });
+  if (!r.ok || lines.at(-1)?.type !== 'done' || lines.at(-1)?.error) throw new Error(`seed: the draft didn't finish: ${r.status} ${JSON.stringify(lines.at(-1))}`);
 }
 
 // ------------------------------------------------------------------------------------------------ hygiene
@@ -387,8 +403,9 @@ async function main() {
     if (BASE) return { base: BASE, now: new Date(SHOT_NOW) };
     if (broken.has(data)) throw broken.get(data)!;
     if (!rigs.has(data)) {
-      // the example and AI worlds both want the default port: one rig at a time (shots.ts keeps each world's together)
+      // the example and AI worlds both want the default port: one of them at a time (shots.ts keeps each world's together)
       for (const [d, r] of rigs) {
+        if (d === 'empty' || data === 'empty') continue;
         await Promise.all([r.proc, r.llm].map((p) => (p && p.exitCode === null ? new Promise((res) => (p.once('exit', res), p.kill())) : null)));
         fs.rmSync(r.home, { recursive: true, force: true });
         rigs.delete(d);

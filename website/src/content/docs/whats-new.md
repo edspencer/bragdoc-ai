@@ -9,7 +9,7 @@ Not released yet.
 
 Built on the [`v0.2` branch](https://github.com/edspencer/bragdoc-ai/tree/v0.2), on top of the first local release
 below. Three optional AI features, **each off until you switch it on**; with AI off, BragDoc works exactly as before
-and doesn't even load its AI code. See [AI, off unless you turn it on](/ai/overview/).
+and doesn't even load the AI library it talks to models with. See [AI, off unless you turn it on](/ai/overview/).
 
 - **Settings → AI:** a master switch and a switch per feature. Connections to a model runner on your computer or
   network ([Ollama, LM Studio, llama.cpp](/ai/local-models/), or any OpenAI-compatible server) or to a cloud provider
