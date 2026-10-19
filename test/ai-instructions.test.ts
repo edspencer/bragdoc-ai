@@ -97,15 +97,21 @@ test('a hand edit is picked up live, and announced to open tabs as an `instructi
     write: (i) => void h!.put('ai/what-counts.md', `${WINS}<!-- ${i} -->\n`),
     seen: (i) => h!.services.instructions.get('what-counts').text === `${WINS}<!-- ${i} -->\n`,
   });
-  h.put('ai/what-counts.md', WINS + '- Mentoring someone through their first launch.\n');
-  await until(() => /Mentoring/.test(h!.services.instructions.forPrompt('what-counts') ?? ''), 'the hand edit');
-  assert.ok(events.every((e) => e.entity === 'instructions' && e.id === 'what-counts'), JSON.stringify(events));
+  // the primer's own announcement goes out first (debounced); only what the edit below causes counts
+  await until(() => sent.includes('instructions'), 'the primer\'s instructions event');
+  await new Promise((r) => setTimeout(r, 300));
+  events.length = 0;
+  sent.length = 0;
+  const edited = WINS + '- Mentoring someone through their first launch.\n';
+  h.put('ai/what-counts.md', edited);
+  await until(() => h!.services.instructions.forPrompt('what-counts') === edited.trim(), 'the hand edit');
+  assert.deepEqual(events, [{ entity: 'instructions', id: 'what-counts', op: 'upsert' }]);
   await until(() => sent.includes('instructions'), 'the instructions event');
 });
 
 test('a hand-made ai/ folder is picked up too, once the watcher is running', async () => {
   h = storeHome();
-  w = await liveWatcher(h); // primed by an achievement of its own (macOS, D84)
+  w = await liveWatcher(h); // primed by a project of its own (macOS, D84)
   h.put('ai/style.md', 'Write plainly.\n');
   await until(() => h!.services.instructions.forPrompt('style') === 'Write plainly.', 'the new ai/ folder');
 });

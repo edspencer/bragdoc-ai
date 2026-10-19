@@ -6,14 +6,14 @@ throw anything at. When review season comes round, it's all there.
 
 - **Your data is just files**: markdown and YAML in `~/.bragdoc`, readable and editable by you or your coding agent.
 - **Nothing leaves your computer** except calls to services you connect yourself, and every one is logged.
-- **AI is off unless you turn it on.** With it off, BragDoc doesn't even load its AI code. Turned on, it uses a model
-  runner you already have, or a cloud provider with your own key once you've read exactly what it would send; nothing
-  is ever installed or downloaded behind your back.
+- **AI is off unless you turn it on.** With it off, no model is contacted and the AI SDK isn't even loaded. Turned on,
+  it uses a model runner you already have, or a cloud provider with your own key once you've read exactly what it
+  would send; nothing is ever installed or downloaded behind your back.
 
 > **0.2** adds opt-in AI ([#434](https://github.com/edspencer/bragdoc-ai/issues/434)) to the first local release,
-> **0.1** ([#411](https://github.com/edspencer/bragdoc-ai/issues/411)), both built on the `next` branch. If
-> `npx @bragdoc/local` says it "could not determine executable to run", or `docker pull` finds no image, the release
-> you're reading about isn't published yet: [run it from a checkout](#run-it-from-a-checkout).
+> **0.1** ([#411](https://github.com/edspencer/bragdoc-ai/issues/411)). If `npx @bragdoc/local` says it "could not
+> determine executable to run", or `docker pull` finds no image, the release you're reading about isn't published yet:
+> [run it from a checkout](#run-it-from-a-checkout).
 
 ## What it does
 
@@ -31,7 +31,7 @@ throw anything at. When review season comes round, it's all there.
   up** on the board, which suggests a title, summary, date, impact and projects for what you pasted; and **Draft with
   AI** in Folio, a self-review draft whose every bullet cites the achievement it came from. Each uses a model runner
   on your computer or network (Ollama, LM Studio, llama.cpp, any OpenAI-compatible server) or a cloud provider with
-  your own key (Anthropic, OpenAI, OpenRouter). See [the AI docs](https://github.com/edspencer/bragdoc-ai/blob/next/website/src/content/docs/ai/overview.mdx).
+  your own key (Anthropic, OpenAI, OpenRouter). The docs site's AI section says what each sends, and where.
 
 ## Install
 
@@ -108,10 +108,11 @@ Nothing, unless you connect GitHub or turn AI on:
   installs a runner, and asks Ollama to download a model only after a confirm that states the size. A runner is its
   own software: what it contacts by itself is outside BragDoc's log.
 
-That's all. **No telemetry, no update check, no analytics, and no fonts or scripts from a CDN.** Screenshots are read with OCR on your computer (Apple Vision on macOS, a bundled tesseract.js elsewhere).
-Every outbound request goes through one module that refuses anything not on the allow-list, and a test fails the
-build if any other code reaches the network or starts a process. Settings → Network activity shows every request,
-and "Test the guard" lets you watch a forbidden one being refused.
+That's all. **No telemetry, no update check, no analytics, and no fonts or scripts from a CDN.** Screenshots are read
+with OCR on your computer (Apple Vision on macOS, a bundled tesseract.js elsewhere). Every outbound request goes
+through one module that refuses anything not on the allow-list, and a test fails the build if any other code reaches
+the network or starts a process. Settings → Network activity shows every request, and "Test the guard" lets you watch
+a forbidden one being refused.
 
 ## Run it from a checkout
 

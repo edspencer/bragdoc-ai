@@ -45,7 +45,8 @@ export function TextSlot({ status }: { status: AiStatus }) {
 
 export function Recommended({ status }: { status: AiStatus }) {
   const hw = useAiHardware(true);
-  // the Ollama a download would go to: the one you pick here (with more than one), else the one in use, else the first
+  // the Ollama a download would go to: the one you pick here (with more than one), else the one in use, else the first.
+  // A pick lasts while the page is open, even if another runner becomes the one in use; a removed one falls back.
   const ollamas = status.connections.filter((c) => c.kind === 'ollama');
   const [picked, setPicked] = useState<string | null>(null);
   const target = ollamas.find((c) => c.id === picked) ?? ollamas.find((c) => c.id === status.text?.connection) ?? ollamas[0];
@@ -83,7 +84,8 @@ export function Recommended({ status }: { status: AiStatus }) {
             <select value={target.id} onChange={(e) => setPicked(e.target.value)} className="rounded-lg bg-sunk px-2 py-0.5 text-[12px] text-ink outline-none ring-2 ring-transparent focus-visible:ring-accent/60" aria-label="Which Ollama" data-testid="ai-recommended-target">
               {ollamas.map((c) => (
                 <option key={c.id} value={c.id}>
-                  {connectionName(c)}
+                  {/* two runners with the same name (two unnamed Ollamas) are told apart by address */}
+                  {ollamas.some((o) => o !== c && connectionName(o) === connectionName(c)) ? `${connectionName(c)} (${c.baseUrl ?? c.host})` : connectionName(c)}
                 </option>
               ))}
             </select>

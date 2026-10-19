@@ -1519,12 +1519,13 @@ PR30, the v0.2 release candidate (SPEC open question 9).
      the AI pages' `:::note[Coming in 0.2.0]` out (D83).
 
   PR30 simulated both orders in a scratch worktree (never pushed). In this order: 0.1.0's version step on `next`, the
-  merge forward resolved as above, then the version step again gives 0.2.0, "## 0.2.0: opt-in AI" above "## 0.1.0",
-  no "Coming in" note left on any page, and `docs`, `whats-new` and `release` tests 32/32. Merged into `next` *before* 0.1.0 is published, the same changesets would make
-  **0.1.0, with AI in it**, under a "## 0.1.0: opt-in AI" heading above "0.1: the first local release". That's wrong,
-  so don't merge `v0.2` into `next` until 0.1.0 is out. If Ed would rather skip a separate 0.1.0, the clean way is to
-  delete `v0-1-release.md` in the merge, fold its text into `v0-2-release.md` and accept that the first release is
-  0.1.0 with AI, with What's new rewritten by hand to match. Not recommended: Q9's answer was 0.1.0 first.
+  merge forward resolved as above, then the version step again gives 0.2.0, "## 0.2.0: opt-in AI" above "## 0.1.0", no
+  "Coming in" note left on any page, and `docs`, `whats-new` and `release` tests 32/32. Merged into `next` *before*
+  0.1.0 is published, the same changesets would make **0.1.0, with AI in it**, under a "## 0.1.0: opt-in AI" heading
+  above "0.1: the first local release". That's wrong, so don't merge `v0.2` into `next` until 0.1.0 is out. If Ed
+  would rather skip a separate 0.1.0, the clean way is to delete `v0-1-release.md` in the merge, fold its text into
+  `v0-2-release.md` and accept that the first release is 0.1.0 with AI, with What's new rewritten by hand to match.
+  Not recommended: Q9's answer was 0.1.0 first.
 - **No reserved number went unused:** D62–D83 are all taken, and this is D84.
 - **Watcher tests start their watcher until it's live** (`liveWatcher()` in `test/store-fixture.ts`, used by
   `test/ai-instructions.test.ts` and `test/watch.test.ts`). On macOS CI under the full suite, FSEvents could drop a new

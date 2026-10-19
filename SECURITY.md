@@ -51,14 +51,14 @@ file that enforces it.
 - **No telemetry.** There's no update check, and screenshots are read on your computer (`server/ocr/`).
 - **AI is off unless you turn it on, and then it reaches only what you allowed.** With AI off, no model is contacted
   and the AI SDK isn't even loaded (`test/ai-lazy.test.ts` runs an AI-off session under a loader hook). Every model
-  call goes through `server/ai/run.ts` and `egress.fetchFor()` (`server/egress.ts`), which re-checks that connection on
-  every request: where a call goes is decided by its host (`shared/ai/hosts.ts`), plain http only to this computer or
-  your network, and an internet host only after you've accepted its statement of what's sent there
-  (`shared/ai/consent.ts`, `server/ai/policy.ts`). Revoking one connection refuses its next request before anything
-  is sent, even when another allowed connection shares the host. Keys live in `secrets.yaml` (mode 0600), are never
-  returned by the API or written to a log or backup, and are sent only to their own host (`server/secrets.ts`). No
-  runner is installed, and a model is downloaded only through Ollama after a confirm the server checks too
-  (`server/ai/local.ts`). `test/guard-egress.test.ts` confines the AI SDK to `server/ai/`.
+  call goes through `server/ai/run.ts` and `egress.fetchFor()` (`server/egress.ts`), which re-checks that connection
+  on every request: where a call goes is decided by its host (`shared/ai/hosts.ts`), plain http only to this computer
+  or your network, and an internet host only after you've accepted its statement of what's sent there
+  (`shared/ai/consent.ts`, `server/ai/policy.ts`). Revoking one connection refuses its next request before anything is
+  sent, even when another allowed connection shares the host. Keys live in `secrets.yaml` (mode 0600): the API shows
+  only a key's last four characters, no key is written to a log or a backup, and each is sent only to its own host
+  (`server/secrets.ts`). No runner is installed, and a model is downloaded only through Ollama after a confirm the
+  server checks too (`server/ai/local.ts`). `test/guard-egress.test.ts` confines the AI SDK to `server/ai/`.
 - **A model can't act on your data.** What it reads (a screenshot's text, a PR, your paste) is fenced as material,
   never instructions. What it answers is shown as text and checked against what it was given: the judge only writes a
   pending candidate's verdict and never keeps, merges or dismisses anything; Tidy and Draft write nothing until you

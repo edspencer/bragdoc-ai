@@ -63,6 +63,17 @@ test('the window from the URL; untick one, and a reload keeps it out', async ({ 
   await expect(page.getByTestId('folio-sheet')).toContainText(`Offline sync shipped ${YEAR}`);
 });
 
+test('the sheet is tilted only on wider screens: on a phone a long one would poke out sideways (PR30)', async ({ page }) => {
+  // a tilted sheet's corner sticks out by about half its height × sin(0.4°): 3 px past a 390 px screen on a year's folio
+  const tilt = () => page.getByTestId('folio-sheet').evaluate((el) => getComputedStyle(el).rotate);
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto(`/folio?from=${from}&to=${to}`);
+  await expect(page.getByTestId('folio-sheet')).toContainText(`Offline sync shipped ${YEAR}`);
+  expect(await tilt()).toBe('none');
+  await page.setViewportSize({ width: 1440, height: 900 });
+  expect(await tilt()).not.toBe('none');
+});
+
 test('Export downloads bragdoc-<from>-<to>.md with links kept and nothing local in it', async ({ page }) => {
   await page.goto(`/folio?from=${from}&to=${to}&out=${ids.none}`);
   await expect(page.getByTestId('folio-count')).toHaveText('3 of 4 picked');

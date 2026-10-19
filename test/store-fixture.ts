@@ -68,28 +68,34 @@ export interface Primer {
  * the store sees it. On macOS CI under the full suite's load, FSEvents could drop a new stream's first events, and now
  * and then a stream delivered nothing at all, even after chokidar's `ready` (PR30, D84: 4 of 12 full runs). So a
  * watcher that sees nothing for 5 s is closed and started again, at most 3 times. Only the start is retried: the edits
- * a test then asserts on get no retry. The default primer is an achievement of its own, edited by hand.
+ * a test then asserts on get no retry. The default primer is a project of its own, renamed by hand: a project, so that
+ * a test's first achievement still makes a brand-new month folder.
  */
 export async function liveWatcher(h: StoreHome, primer?: Primer): Promise<StoreWatcher> {
   if (!primer) {
-    const { achievement } = h.services.achievements.create({ title: 'Primer' });
-    const rel = relPathFor('achievement', achievement.id);
+    const project = h.services.projects.create({ name: 'Primer' });
+    const rel = relPathFor('project', project.id);
     primer = {
-      write: (i) => void h.put(rel, h.read(rel).replace(/^title: .*$/m, `title: Primer ${i}`)),
-      seen: (i) => h.store.get('achievement', achievement.id)?.title === `Primer ${i}`,
+      write: (i) => void h.put(rel, h.read(rel).replace(/^name: .*$/m, `name: Primer ${i}`)),
+      seen: (i) => h.store.get('project', project.id)?.name === `Primer ${i}`,
     };
   }
   let attempt = 0;
   for (let start = 0; start < 3; start++) {
     const w = watchStore(h.store);
-    await w.ready;
-    for (let i = 0; i < 5; i++, attempt++) {
-      primer.write(attempt);
-      const until = Date.now() + 1000;
-      while (Date.now() < until) {
-        if (primer.seen(attempt)) return w;
-        await new Promise((r) => setTimeout(r, 10));
+    try {
+      await w.ready;
+      for (let i = 0; i < 5; i++, attempt++) {
+        primer.write(attempt);
+        const until = Date.now() + 1000;
+        while (Date.now() < until) {
+          if (primer.seen(attempt)) return w;
+          await new Promise((r) => setTimeout(r, 10));
+        }
       }
+    } catch (e) {
+      await w.close();
+      throw e;
     }
     await w.close();
   }

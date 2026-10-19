@@ -445,7 +445,7 @@ function TestAndUse({ c, allowed, inUse, status, put }: { c: AiConnectionView; a
                 ? `Couldn’t list its models: ${errorText(models.error)} You can still type a name.`
                 : names.length
                   ? `${names.length} model${names.length === 1 ? '' : 's'} available${c.cloud ? '' : ' (installed)'}: pick one, or type a name.`
-                  : `It has no models yet. See Recommended for this computer below${c.kind === 'ollama' && status.connections.filter((x) => x.kind === 'ollama').length > 1 ? ', and pick this runner there' : ''}.`}
+                  : `It has no models yet. See Recommended for this computer below${pickThere(c, status) ? ', and pick this runner there' : ''}.`}
       </div>
       {test.isError && (
         <Outcome bad title={isApiError(test.error) && test.error.code in OUTCOME_HEADLINE ? OUTCOME_HEADLINE[test.error.code as keyof typeof OUTCOME_HEADLINE] : 'It didn’t work'}>
@@ -473,4 +473,12 @@ function Outcome({ title, children, bad }: { title: string; children: ReactNode;
       <div className="mt-0.5 text-muted">{children}</div>
     </div>
   );
+}
+
+/** With several Ollamas, Recommended reports on the one in use (else the first): any other has to be picked there. */
+function pickThere(c: AiConnectionView, status: AiStatus): boolean {
+  const ollamas = status.connections.filter((x) => x.kind === 'ollama');
+  if (c.kind !== 'ollama' || c.cloud || ollamas.length < 2) return false;
+  const shown = ollamas.find((x) => x.id === status.text?.connection) ?? ollamas[0];
+  return shown?.id !== c.id;
 }
