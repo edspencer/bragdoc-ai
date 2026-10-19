@@ -1526,8 +1526,10 @@ PR30, the v0.2 release candidate (SPEC open question 9).
   delete `v0-1-release.md` in the merge, fold its text into `v0-2-release.md` and accept that the first release is
   0.1.0 with AI, with What's new rewritten by hand to match. Not recommended: Q9's answer was 0.1.0 first.
 - **No reserved number went unused:** D62–D83 are all taken, and this is D84.
-- **The macOS instructions-watch test starts its watcher until it's live** (`test/ai-instructions.test.ts`). On macOS
-  CI under the full suite, FSEvents could drop a new stream's first events, and once a stream delivered nothing at
-  all after chokidar's `ready`; PR30 reproduced the failure in 4 of 12 full runs of the old test. The test now writes
-  by hand until the store sees an edit (restarting a watcher that stays silent for 5 s, at most 3 times), then asserts
-  a later edit with no retry. A watcher that's already running isn't affected, so the app isn't changed.
+- **Watcher tests start their watcher until it's live** (`liveWatcher()` in `test/store-fixture.ts`, used by
+  `test/ai-instructions.test.ts` and `test/watch.test.ts`). On macOS CI under the full suite, FSEvents could drop a new
+  stream's first events, and once a stream delivered nothing at all after chokidar's `ready`: PR30 reproduced the
+  instructions-watch failure in 4 of 12 full runs of the old test, and saw `watch.test`'s new-directory case fail the
+  same way. The helper writes by hand until the store sees an edit (restarting a watcher that stays silent for 5 s, at
+  most 3 times); the edits a test then asserts on get no retry. The app isn't changed: its watcher runs for hours,
+  and a hand edit in the first second after it starts is the only one at risk.

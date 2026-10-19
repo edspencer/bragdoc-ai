@@ -11,11 +11,10 @@ import { forwardStoreChanges } from '../server/live.ts';
 import { EventBus } from '../server/events.ts';
 import { GITIGNORED } from '../server/home.ts';
 import { takeSnapshot } from '../server/store/backups.ts';
-import { relPathFor } from '../server/store/files.ts';
 import { ConflictError, NotFoundError, ValidationError } from '../server/store/index.ts';
-import { watchStore, type StoreWatcher } from '../server/store/watch.ts';
+import type { StoreWatcher } from '../server/store/watch.ts';
 import { aiHome, type AiHome } from './ai-fixture.ts';
-import { storeHome, type StoreHome } from './store-fixture.ts';
+import { liveWatcher, storeHome, type StoreHome } from './store-fixture.ts';
 
 let h: StoreHome | undefined;
 let w: StoreWatcher | undefined;
@@ -85,31 +84,6 @@ test('only the two names exist; a misspelt file in ai/ is a Problem, anything no
   assert.match(stray.find((p) => p.file === 'ai/style.txt')!.message, /rename it to style\.md/);
 });
 
-/**
- * Start the watcher and prove it's live before a test asserts anything: write by hand (again each second) until the
- * store sees it. On macOS CI under the full suite's load, FSEvents could drop a new stream's first events, and now and
- * then a stream never delivered anything at all, even after chokidar's `ready` (PR30 reproduced both). So a watcher
- * that sees nothing for 5 s is closed and started again, at most 3 times. Only the start is retried: the edit a test
- * then asserts on gets no retry.
- */
-const live = async (write: (attempt: number) => void, seen: (attempt: number) => boolean) => {
-  let attempt = 0;
-  for (let start = 0; start < 3; start++) {
-    await w?.close();
-    w = watchStore(h!.store);
-    await w.ready;
-    for (let i = 0; i < 5; i++, attempt++) {
-      write(attempt);
-      try {
-        return await until(() => seen(attempt), 'the watcher to start', 1000);
-      } catch {
-        // not seen yet: write again
-      }
-    }
-  }
-  throw new Error('three watchers in a row never saw a hand edit');
-};
-
 test('a hand edit is picked up live, and announced to open tabs as an `instructions` event', async () => {
   h = storeHome();
   const events: StoreChange[] = [];
@@ -118,10 +92,11 @@ test('a hand edit is picked up live, and announced to open tabs as an `instructi
   const sent: string[] = [];
   bus.subscribe((e) => sent.push(e.type));
   forwardStoreChanges(h.store, bus);
-  await live(
-    (i) => h!.put('ai/what-counts.md', `${WINS}<!-- ${i} -->\n`),
-    (i) => h!.services.instructions.get('what-counts').text === `${WINS}<!-- ${i} -->\n`,
-  );
+  // a watcher that's provably live (macOS, D84), primed by hand edits to this very file
+  w = await liveWatcher(h, {
+    write: (i) => void h!.put('ai/what-counts.md', `${WINS}<!-- ${i} -->\n`),
+    seen: (i) => h!.services.instructions.get('what-counts').text === `${WINS}<!-- ${i} -->\n`,
+  });
   h.put('ai/what-counts.md', WINS + '- Mentoring someone through their first launch.\n');
   await until(() => /Mentoring/.test(h!.services.instructions.forPrompt('what-counts') ?? ''), 'the hand edit');
   assert.ok(events.every((e) => e.entity === 'instructions' && e.id === 'what-counts'), JSON.stringify(events));
@@ -130,12 +105,7 @@ test('a hand edit is picked up live, and announced to open tabs as an `instructi
 
 test('a hand-made ai/ folder is picked up too, once the watcher is running', async () => {
   h = storeHome();
-  const { achievement } = h.services.achievements.create({ title: 'Before' });
-  const rel = relPathFor('achievement', achievement.id);
-  await live(
-    (i) => h!.put(rel, h!.read(rel).replace(/title: .*/, `title: Edited ${i}`)),
-    (i) => h!.store.get('achievement', achievement.id)?.title === `Edited ${i}`,
-  );
+  w = await liveWatcher(h); // primed by an achievement of its own (macOS, D84)
   h.put('ai/style.md', 'Write plainly.\n');
   await until(() => h!.services.instructions.forPrompt('style') === 'Write plainly.', 'the new ai/ folder');
 });
