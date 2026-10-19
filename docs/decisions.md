@@ -1511,13 +1511,16 @@ PR30, the v0.2 release candidate (SPEC open question 9).
   1. **0.1.0 is published from `next` first** (RELEASING.md, unchanged). Its version PR consumes v0.1's changesets and
      sets 0.1.0, and What's new gets `## 0.1.0`.
   2. **`next` is merged forward into `v0.2`** (a merge, as for any v0.1 fix): v0.1's changesets go, the version
-     becomes 0.1.0, and `next`'s 0.1.0 What's new section replaces v0.2's copy of it (D83).
+     becomes 0.1.0. What's new conflicts, and the merge-forward PR (an ordinary PR) resolves it by hand: keep v0.2's
+     "Coming in 0.2.0" section on top, and replace its "## 0.1: the first local release" heading and its "Not on npm
+     yet" note with `next`'s "## 0.1.0: the first local release" (D83).
   3. **`v0.2` merges into `next`** with a merge commit, once Ed approves. Its changesets (v0.2's patches plus one
      `minor`) make the next version PR **0.2.0**, which turns "Coming in 0.2.0" into `## 0.2.0: opt-in AI` and takes
      the AI pages' `:::note[Coming in 0.2.0]` out (D83).
 
-  PR30 simulated both orders in a scratch worktree: in this one, `changeset status` says 0.2.0 and the release
-  script and docs tests pass; merged into `next` *before* 0.1.0 is published, the same changesets would make
+  PR30 simulated both orders in a scratch worktree (never pushed). In this order: 0.1.0's version step on `next`, the
+  merge forward resolved as above, then the version step again gives 0.2.0, "## 0.2.0: opt-in AI" above "## 0.1.0",
+  no "Coming in" note left on any page, and `docs`, `whats-new` and `release` tests 32/32. Merged into `next` *before* 0.1.0 is published, the same changesets would make
   **0.1.0, with AI in it**, under a "## 0.1.0: opt-in AI" heading above "0.1: the first local release". That's wrong,
   so don't merge `v0.2` into `next` until 0.1.0 is out. If Ed would rather skip a separate 0.1.0, the clean way is to
   delete `v0-1-release.md` in the merge, fold its text into `v0-2-release.md` and accept that the first release is
