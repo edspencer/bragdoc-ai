@@ -37,4 +37,4 @@ export const INSTALL_COMMAND = `npx ${PACKAGE}`;
  * release flips it by itself: `npm run changeset:version` (the version PR) runs
  * scripts/whats-new-release.mjs, which sets it once package.json is 0.1.0 or later.
  */
-export const RELEASED = false;
+export const RELEASED = true;
