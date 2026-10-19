@@ -12,9 +12,9 @@ import { EventBus } from '../server/events.ts';
 import { GITIGNORED } from '../server/home.ts';
 import { takeSnapshot } from '../server/store/backups.ts';
 import { ConflictError, NotFoundError, ValidationError } from '../server/store/index.ts';
-import { watchStore, type StoreWatcher } from '../server/store/watch.ts';
+import type { StoreWatcher } from '../server/store/watch.ts';
 import { aiHome, type AiHome } from './ai-fixture.ts';
-import { storeHome, type StoreHome } from './store-fixture.ts';
+import { liveWatcher, storeHome, type StoreHome } from './store-fixture.ts';
 
 let h: StoreHome | undefined;
 let w: StoreWatcher | undefined;
@@ -28,10 +28,10 @@ afterEach(async () => {
   a = undefined;
 });
 
-const until = async (cond: () => boolean, ms = 10_000) => {
+const until = async (cond: () => boolean, what: string, ms = 10_000) => {
   const start = Date.now();
   while (!cond()) {
-    if (Date.now() - start > ms) throw new Error('timed out');
+    if (Date.now() - start > ms) throw new Error(`timed out waiting for ${what}`);
     await new Promise((r) => setTimeout(r, 10));
   }
 };
@@ -92,14 +92,28 @@ test('a hand edit is picked up live, and announced to open tabs as an `instructi
   const sent: string[] = [];
   bus.subscribe((e) => sent.push(e.type));
   forwardStoreChanges(h.store, bus);
-  w = watchStore(h.store);
-  await w.ready;
-  h.put('ai/what-counts.md', WINS);
-  await until(() => h!.services.instructions.forPrompt('what-counts') === WINS.trim());
-  h.put('ai/what-counts.md', WINS + '- Mentoring someone through their first launch.\n');
-  await until(() => /Mentoring/.test(h!.services.instructions.forPrompt('what-counts') ?? ''));
-  assert.ok(events.every((e) => e.entity === 'instructions' && e.id === 'what-counts'), JSON.stringify(events));
-  await until(() => sent.includes('instructions'));
+  // a watcher that's provably live (macOS, D84), primed by hand edits to this very file
+  w = await liveWatcher(h, {
+    write: (i) => void h!.put('ai/what-counts.md', `${WINS}<!-- ${i} -->\n`),
+    seen: (i) => h!.services.instructions.get('what-counts').text === `${WINS}<!-- ${i} -->\n`,
+  });
+  // the primer's own announcement goes out first (debounced); only what the edit below causes counts
+  await until(() => sent.includes('instructions'), 'the primer\'s instructions event');
+  await new Promise((r) => setTimeout(r, 300));
+  events.length = 0;
+  sent.length = 0;
+  const edited = WINS + '- Mentoring someone through their first launch.\n';
+  h.put('ai/what-counts.md', edited);
+  await until(() => h!.services.instructions.forPrompt('what-counts') === edited.trim(), 'the hand edit');
+  assert.deepEqual(events, [{ entity: 'instructions', id: 'what-counts', op: 'upsert' }]);
+  await until(() => sent.includes('instructions'), 'the instructions event');
+});
+
+test('a hand-made ai/ folder is picked up too, once the watcher is running', async () => {
+  h = storeHome();
+  w = await liveWatcher(h); // primed by a project of its own (macOS, D84)
+  h.put('ai/style.md', 'Write plainly.\n');
+  await until(() => h!.services.instructions.forPrompt('style') === 'Write plainly.', 'the new ai/ folder');
 });
 
 test('a hand-broken file is a Problem: the last good copy is used, and it is never overwritten unseen', () => {

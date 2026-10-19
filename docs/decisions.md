@@ -1500,3 +1500,37 @@ PR29 (SPEC R27).
 - **A Jev's consent now also goes when its OpenRouter connection's key is forgotten, or set where there was none**
   (it went only on replacing a key), as Jev's statement already said: Forget, then another account's key, kept the
   old consent (`server/routes/ai.ts`, `forgetJevConsent`; `test/ai-jev.test.ts`).
+
+### D84 — 0.2.0 comes after 0.1.0: the release order, and v0.2's merge into next
+
+PR30, the v0.2 release candidate (SPEC open question 9).
+
+- **v0.2 is released as 0.2.0, after 0.1.0, and only in that order.** `package.json` says 0.0.0 on both branches, and
+  Changesets releases the largest pending bump once. `v0.2` carries `next`'s pending changesets (`v0-1-release.md`, a
+  `minor`, and v0.1's patches) plus its own patches and `v0-2-release.md` (the `minor` D83 asked for). So:
+  1. **0.1.0 is published from `next` first** (RELEASING.md, unchanged). Its version PR consumes v0.1's changesets and
+     sets 0.1.0, and What's new gets `## 0.1.0`.
+  2. **`next` is merged forward into `v0.2`** (a merge, as for any v0.1 fix): v0.1's changesets go, the version
+     becomes 0.1.0. What's new conflicts, and the merge-forward PR (an ordinary PR) resolves it by hand: keep v0.2's
+     "Coming in 0.2.0" section on top, and replace its "## 0.1: the first local release" heading and its "Not on npm
+     yet" note with `next`'s "## 0.1.0: the first local release" (D83).
+  3. **`v0.2` merges into `next`** with a merge commit, once Ed approves. Its changesets (v0.2's patches plus one
+     `minor`) make the next version PR **0.2.0**, which turns "Coming in 0.2.0" into `## 0.2.0: opt-in AI` and takes
+     the AI pages' `:::note[Coming in 0.2.0]` out (D83).
+
+  PR30 simulated both orders in a scratch worktree (never pushed). In this order: 0.1.0's version step on `next`, the
+  merge forward resolved as above, then the version step again gives 0.2.0, "## 0.2.0: opt-in AI" above "## 0.1.0", no
+  "Coming in" note left on any page, and `docs`, `whats-new` and `release` tests 32/32. Merged into `next` *before*
+  0.1.0 is published, the same changesets would make **0.1.0, with AI in it**, under a "## 0.1.0: opt-in AI" heading
+  above "0.1: the first local release". That's wrong, so don't merge `v0.2` into `next` until 0.1.0 is out. If Ed
+  would rather skip a separate 0.1.0, the clean way is to delete `v0-1-release.md` in the merge, fold its text into
+  `v0-2-release.md` and accept that the first release is 0.1.0 with AI, with What's new rewritten by hand to match.
+  Not recommended: Q9's answer was 0.1.0 first.
+- **No reserved number went unused:** D62–D83 are all taken, and this is D84.
+- **Watcher tests start their watcher until it's live** (`liveWatcher()` in `test/store-fixture.ts`, used by
+  `test/ai-instructions.test.ts` and `test/watch.test.ts`). On macOS CI under the full suite, FSEvents could drop a new
+  stream's first events, and once a stream delivered nothing at all after chokidar's `ready`: PR30 reproduced the
+  instructions-watch failure in 4 of 12 full runs of the old test, and saw `watch.test`'s new-directory case fail the
+  same way. The helper writes by hand until the store sees an edit (restarting a watcher that stays silent for 5 s, at
+  most 3 times); the edits a test then asserts on get no retry. The app isn't changed: its watcher runs for hours,
+  and a hand edit in the first second after it starts is the only one at risk.

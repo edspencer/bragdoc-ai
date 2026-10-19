@@ -45,9 +45,11 @@ export function TextSlot({ status }: { status: AiStatus }) {
 
 export function Recommended({ status }: { status: AiStatus }) {
   const hw = useAiHardware(true);
-  // the Ollama a download would go to: the one in use, else the first one
+  // the Ollama a download would go to: the one you pick here (with more than one), else the one in use, else the first.
+  // A pick lasts while the page is open, even if another runner becomes the one in use; a removed one falls back.
   const ollamas = status.connections.filter((c) => c.kind === 'ollama');
-  const target = ollamas.find((c) => c.id === status.text?.connection) ?? ollamas[0];
+  const [picked, setPicked] = useState<string | null>(null);
+  const target = ollamas.find((c) => c.id === picked) ?? ollamas.find((c) => c.id === status.text?.connection) ?? ollamas[0];
   // a runner on the internet is asked only on a click (on its card), never by opening the page (D69)
   const models = useAiModels(target?.id ?? '-', target?.baseUrl ?? null, !!target && !target.blocked && !target.cloud);
   const installed = new Set(models.data?.models.map((m) => m.name) ?? []);
@@ -73,7 +75,25 @@ export function Recommended({ status }: { status: AiStatus }) {
         ))}
       </div>
       <p className="m-0 text-[12px] text-faint">
-        Recommendations as of {h.modelsAsOf}, from measurements on a laptop CPU. {target ? `Installed means installed on ${connectionName(target)}.` : 'Add an Ollama connection to see what’s installed.'}
+        Recommendations as of {h.modelsAsOf}, from measurements on a laptop CPU.{' '}
+        {!target ? (
+          'Add an Ollama connection to see what’s installed.'
+        ) : ollamas.length > 1 ? (
+          <>
+            Installed means installed on{' '}
+            <select value={target.id} onChange={(e) => setPicked(e.target.value)} className="rounded-lg bg-sunk px-2 py-0.5 text-[12px] text-ink outline-none ring-2 ring-transparent focus-visible:ring-accent/60" aria-label="Which Ollama" data-testid="ai-recommended-target">
+              {ollamas.map((c) => (
+                <option key={c.id} value={c.id}>
+                  {/* two runners with the same name (two unnamed Ollamas) are told apart by address */}
+                  {ollamas.some((o) => o !== c && connectionName(o) === connectionName(c)) ? `${connectionName(c)} (${c.baseUrl ?? c.host})` : connectionName(c)}
+                </option>
+              ))}
+            </select>
+            .
+          </>
+        ) : (
+          `Installed means installed on ${connectionName(target)}.`
+        )}
       </p>
     </div>
   );

@@ -264,6 +264,35 @@ test('download: nothing without the confirm; Cancel stops the fake’s stream; b
   await expect.poll(async () => (await aiLines(page, server)).filter((l) => l.feature === 'pull').map((l) => `${l.via}:${l.outcome}`).sort()).toEqual(['fetch:ok', 'ollama:error']);
 });
 
+test('several Ollama runners: Recommended reports on (and would download to) the one you pick (PR30)', async ({ page }) => {
+  // `ollama` (the one in use, emptied by the download test) plus a full runner and a second empty one
+  const add = (id: string, name: string, baseUrl: string) => page.request.post(`${server.url}/api/ai/connections`, { data: { kind: 'ollama', id, name, baseUrl } });
+  try {
+    expect((await add('ollama-2', 'Full runner', fake.url)).status()).toBe(201);
+    expect((await add('ollama-3', 'Empty runner', `${fake.url}/s/no-models`)).status()).toBe(201);
+    await page.goto(server.url + '/settings/ai');
+    const row = page.getByTestId('ai-model-qwen3.5:4b');
+    const pick = page.getByTestId('ai-recommended-target');
+    const status = (await (await page.request.get(`${server.url}/api/ai`)).json()) as { text: { connection: string } | null };
+    await expect(pick).toHaveValue(status.text?.connection ?? 'ollama'); // until you pick, the one in use
+    await pick.selectOption('ollama-2');
+    await expect(row.getByTestId('ai-model-state')).toHaveText('installed');
+    await expect(page.getByTestId('ai-pull-qwen3.5:4b')).toHaveCount(0);
+    // an empty runner that isn't the one shown says to pick it; then the download is offered, and goes, to it
+    await expect(page.getByTestId('ai-connection-ollama-3').getByTestId('ai-connection-models')).toContainText('pick this runner there');
+    await pick.selectOption('ollama-3');
+    await expect(row.getByTestId('ai-model-state')).toHaveText('not installed');
+    await page.getByTestId('ai-pull-qwen3.5:4b').click();
+    const d = page.getByTestId('ai-pull-dialog');
+    await expect(d).toContainText('Ollama on Empty runner would fetch it');
+    await d.getByTestId('ai-pull-no').click();
+  } finally {
+    for (const id of ['ollama-2', 'ollama-3']) await page.request.delete(`${server.url}/api/ai/connections/${id}`);
+  }
+  await page.reload();
+  await expect(page.getByTestId('ai-recommended-target')).toHaveCount(0);
+});
+
 test('390 px and dark: the tab fits, and turning AI off hides the chip again', async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.emulateMedia({ colorScheme: 'dark' });

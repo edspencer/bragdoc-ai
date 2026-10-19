@@ -6,11 +6,14 @@ throw anything at. When review season comes round, it's all there.
 
 - **Your data is just files**: markdown and YAML in `~/.bragdoc`, readable and editable by you or your coding agent.
 - **Nothing leaves your computer** except calls to services you connect yourself, and every one is logged.
-- **AI is off.** v0.1 has no AI features at all, and nothing is ever downloaded or installed behind your back.
+- **AI is off unless you turn it on.** With it off, no model is contacted and the AI SDK isn't even loaded. Turned on,
+  it uses a model runner you already have, or a cloud provider with your own key once you've read exactly what it
+  would send; nothing is ever installed or downloaded behind your back.
 
-> **v0.1** is the first release, built on the `next` branch ([#411](https://github.com/edspencer/bragdoc-ai/issues/411)).
-> If `npx @bragdoc/local` says it "could not determine executable to run", or `docker pull` finds no image, the
-> release you're reading about isn't published yet: [run it from a checkout](#run-it-from-a-checkout).
+> **0.2** adds opt-in AI ([#434](https://github.com/edspencer/bragdoc-ai/issues/434)) to the first local release,
+> **0.1** ([#411](https://github.com/edspencer/bragdoc-ai/issues/411)). If `npx @bragdoc/local` says it "could not
+> determine executable to run", or `docker pull` finds no image, the release you're reading about isn't published yet:
+> [run it from a checkout](#run-it-from-a-checkout).
 
 ## What it does
 
@@ -23,6 +26,12 @@ throw anything at. When review season comes round, it's all there.
 - **Folio**: a date window of your achievements, filtered and exported as markdown for a self-review.
 - **MCP**: your coding agent (Claude Code, Cursor, …) can read your projects and log what you did.
 - **Import** an export from the hosted BragDoc app; importing it again adds nothing.
+- **AI, if you want it** (Settings → AI, every feature off until you switch it on): a **judge** in Found that says
+  whether a candidate looks like a win for you, and why (it never keeps or dismisses anything itself); **Tidy this
+  up** on the board, which suggests a title, summary, date, impact and projects for what you pasted; and **Draft with
+  AI** in Folio, a self-review draft whose every bullet cites the achievement it came from. Each uses a model runner
+  on your computer or network (Ollama, LM Studio, llama.cpp, any OpenAI-compatible server) or a cloud provider with
+  your own key (Anthropic, OpenAI, OpenRouter). The docs site's AI section says what each sends, and where.
 
 ## Install
 
@@ -81,7 +90,7 @@ can send it to Found for review instead. `bragdoc guide` prints the agent guide.
 
 ## What leaves your machine
 
-Nothing, unless you connect GitHub:
+Nothing, unless you connect GitHub or turn AI on:
 
 - **GitHub, through the gh CLI** (recommended): BragDoc runs `gh auth status`, `gh search prs` and `gh pr view`; `gh`
   makes its own requests to GitHub with its own login. Each run is a line in Settings → Network activity, marked
@@ -91,11 +100,19 @@ Nothing, unless you connect GitHub:
 - GitHub is only asked when you press **Check now**, connect, or turn on the hourly check, and for a PR link's title
   once it's connected.
 
-That's all. **No telemetry, no update check, no analytics, no fonts or scripts from a CDN, and no AI or model of any
-kind.** Screenshots are read with OCR on your computer (Apple Vision on macOS, a bundled tesseract.js elsewhere).
-Every outbound request goes through one module that refuses anything not on the allow-list, and a test fails the
-build if any other code reaches the network or starts a process. Settings → Network activity shows every request,
-and "Test the guard" lets you watch a forbidden one being refused.
+- **A model, only with AI on** (Settings → AI). A runner on this computer or your network gets each request at the
+  address you gave it, logged as *this computer* or *your network*. A cloud provider (any address on the internet,
+  whatever kind of connection it is) gets **nothing, not even a test, until you've read what each feature would send
+  there and pressed Allow**; then requests go straight to that host with your key, from `secrets.yaml`, logged as
+  *internet* with their size but never their content. Revoke, or turning AI off, stops it at once. BragDoc never
+  installs a runner, and asks Ollama to download a model only after a confirm that states the size. A runner is its
+  own software: what it contacts by itself is outside BragDoc's log.
+
+That's all. **No telemetry, no update check, no analytics, and no fonts or scripts from a CDN.** Screenshots are read
+with OCR on your computer (Apple Vision on macOS, a bundled tesseract.js elsewhere). Every outbound request goes
+through one module that refuses anything not on the allow-list, and a test fails the build if any other code reaches
+the network or starts a process. Settings → Network activity shows every request, and "Test the guard" lets you watch
+a forbidden one being refused.
 
 ## Run it from a checkout
 

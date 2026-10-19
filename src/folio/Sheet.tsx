@@ -65,7 +65,7 @@ export function Sheet({ doc, empty }: { doc: FolioDoc; empty?: boolean }) {
       <div aria-hidden className="folio-clip-top absolute -top-4 left-1/2 z-10 h-8 w-24 -translate-x-1/2 rounded-t-lg bg-gradient-to-b from-[#6e6a64] to-[#3a3733] shadow-md dark:from-[#5a554e] dark:to-[#2a2723]">
         <div className="mx-auto mt-2 h-1.5 w-14 rounded-full bg-black/30" />
       </div>
-      <article className="folio-sheet sb-print rotate-[0.4deg] rounded-sm px-6 pb-10 pt-10 text-[#24201b] sm:px-10" data-testid="folio-sheet">
+      <article className="folio-sheet sb-print rounded-sm sm:rotate-[0.4deg] px-6 pb-10 pt-10 text-[#24201b] sm:px-10" data-testid="folio-sheet">
         <div className="text-[11px] font-bold uppercase tracking-[0.18em] text-[#8c8478]">Folio</div>
         <h2 className="m-0 mt-1 break-words font-grotesk text-[26px] font-extrabold leading-tight">{doc.title}</h2>
         <div className="font-hand mt-1 text-[19px] text-[#6d655a]">{doc.dates}</div>
