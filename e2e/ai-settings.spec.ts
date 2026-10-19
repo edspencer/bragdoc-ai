@@ -264,6 +264,24 @@ test('download: nothing without the confirm; Cancel stops the fake’s stream; b
   await expect.poll(async () => (await aiLines(page, server)).filter((l) => l.feature === 'pull').map((l) => `${l.via}:${l.outcome}`).sort()).toEqual(['fetch:ok', 'ollama:error']);
 });
 
+test('two Ollama runners: Recommended reports on (and would download to) the one you pick (PR30)', async ({ page }) => {
+  const add = await page.request.post(`${server.url}/api/ai/connections`, { data: { kind: 'ollama', id: 'ollama-2', name: 'Second runner', baseUrl: fake.url } });
+  expect(add.status()).toBe(201);
+  await page.goto(server.url + '/settings/ai');
+  const row = page.getByTestId('ai-model-qwen3.5:4b');
+  const pick = page.getByTestId('ai-recommended-target');
+  await pick.selectOption('ollama-2');
+  await expect(row.getByTestId('ai-model-state')).toHaveText('installed');
+  await expect(page.getByTestId('ai-pull-qwen3.5:4b')).toHaveCount(0);
+  await pick.selectOption('ollama');
+  await expect(row.getByTestId('ai-model-state')).toHaveText('not installed');
+  await expect(page.getByTestId('ai-pull-qwen3.5:4b')).toBeVisible();
+  // the empty runner's own card says to pick it there
+  await expect(page.getByTestId('ai-connection-ollama').getByTestId('ai-connection-models')).toContainText('pick this runner there');
+  expect((await page.request.delete(`${server.url}/api/ai/connections/ollama-2`)).status()).toBe(200);
+  await expect(pick).toHaveCount(0);
+});
+
 test('390 px and dark: the tab fits, and turning AI off hides the chip again', async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.emulateMedia({ colorScheme: 'dark' });
