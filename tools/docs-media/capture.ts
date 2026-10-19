@@ -16,6 +16,15 @@
 // tools/docs-media/fake-gh-prs.json), and one screenshot in a watched folder, so Found has both kinds of candidate.
 // The example rig runs on the default port (2724) when it's free, because Settings shows BragDoc's own address.
 //
+// A third, the AI world (`data: 'ai'`, PR29): the example world with AI switched on against the repo's FAKE model
+// server (test/fixtures/fake-llm), never a real model. The fake answers on Ollama's own preset address
+// (127.0.0.1:11434), so the shots show the address a reader would see, and the rig refuses to start when something
+// already listens there (a real Ollama must never answer a docs shot). Seeded the way a person would: AI on, an
+// Ollama connection, qwen3.5:4b as the model, the judge (screenshots and merged PRs), Tidy and Draft on, a few
+// screenshots from the synthetic dataset (praise, and one sarcastic message), one Judge now, and an Anthropic
+// connection with no key and no consent, for the consent dialog. Every AI answer in these shots is the fake's, and
+// the pages that use them say so.
+//
 // The example world lives at the time of the run, not SHOT_NOW: the server stamps some things itself (when a candidate
 // was found, when GitHub was checked, the network log) with the real clock, which can't be pinned, so a browser clock
 // at SHOT_NOW would show them as "in the future". So the example data is placed at today, and the browser's clock is
@@ -62,7 +71,10 @@ const freePort = (want = 0) =>
   });
 
 type Data = NonNullable<Shot['data']>;
-type Rig = { base: string; proc: ChildProcess; home: string; now: Date };
+type Rig = { base: string; proc: ChildProcess; home: string; now: Date; llm?: ChildProcess };
+
+/** Where the AI world's fake model server answers: Ollama's preset address, so a connection needs no address typed. */
+const FAKE_LLM_PORT = 11434;
 
 /** `npm run <script>`, with or without /dev/kit (BRAGDOC_KIT, D33). */
 function build(script: 'build' | 'build:web', kit: boolean) {
@@ -75,12 +87,14 @@ function build(script: 'build' | 'build:web', kit: boolean) {
 async function bootRig(data: Data): Promise<Rig> {
   const home = fs.mkdtempSync(path.join(os.tmpdir(), 'bragdoc-docs-media-'));
   let proc: ChildProcess | undefined;
+  let llm: ChildProcess | undefined;
   try {
+    if (data === 'ai') llm = await startFakeLlm(home);
     // The example world shows BragDoc's own address (Settings → Sources), so it runs on the default port if it can.
-    const port = data === 'example' ? await freePort(DEFAULT_PORT).catch(() => freePort()) : await freePort();
-    if (data === 'example' && port !== DEFAULT_PORT) console.warn(`  ! port ${DEFAULT_PORT} is taken: shots that show BragDoc's address will fail the leak scan`);
+    const port = data !== 'empty' ? await freePort(DEFAULT_PORT).catch(() => freePort()) : await freePort();
+    if (data !== 'empty' && port !== DEFAULT_PORT) console.warn(`  ! port ${DEFAULT_PORT} is taken: shots that show BragDoc's address will fail the leak scan`);
     const args = [home, '--port', String(port)];
-    if (data === 'example') args.push('--fake-gh', path.join(HERE, 'fake-gh-prs.json'), new Date().toISOString());
+    if (data !== 'empty') args.push('--fake-gh', path.join(HERE, 'fake-gh-prs.json'), new Date().toISOString());
     const child = spawn(path.join(HERE, 'serve.sh'), args, { stdio: ['ignore', 'pipe', 'pipe'] });
     proc = child;
     let log = '';
@@ -94,14 +108,16 @@ async function bootRig(data: Data): Promise<Rig> {
       if (!up) await new Promise((r) => setTimeout(r, 200));
     }
     if (!up) throw new Error(`the rig didn't start:\n${log}`);
-    const rig = { base, proc: child, home, now: new Date(SHOT_NOW) };
-    if (data === 'example') {
+    const rig: Rig = { base, proc: child, home, now: new Date(SHOT_NOW), llm };
+    if (data !== 'empty') {
       await seedExample(rig); // outside the health poll: a seed error is reported as itself, and never retried
+      if (data === 'ai') await seedAi(rig);
       rig.now = new Date(Date.now() + 10 * 60_000); // a little after everything the seed stamped
     }
     return rig;
   } catch (e) {
     proc?.kill();
+    llm?.kill();
     fs.rmSync(home, { recursive: true, force: true });
     throw e;
   }
@@ -130,12 +146,13 @@ async function seedExample({ base, home }: Rig) {
   await call('POST', '/api/sources/github/connect', { auth: 'gh', lookBackDays: 90 });
   await until('the first GitHub check', async () => (await call('GET', '/api/sources')).github.lastRun !== null);
   // A screenshot of praise, saved into the watched folder yesterday (written aside, dated, then moved in, as a
-  // screenshot tool does), so it's read as a new file.
+  // screenshot tool does), so it's read as a new file. Drawn from the synthetic dataset (test/screenshots.ts): one of
+  // the example data's own pictures would be skipped as "already on your board" (since 95338b9).
   const shots = path.join(home, 'Screenshots');
   fs.mkdirSync(shots, { recursive: true });
   await call('PUT', '/api/sources/screenshots', { folder: '~/Screenshots', enabled: true });
   const aside = path.join(home, 'incoming.png');
-  fs.copyFileSync(path.join(ROOT, 'fixtures', 'example', 'evidence', 'slack-design.png'), aside);
+  fs.writeFileSync(aside, await datasetPng(EXAMPLE_WORLD_MESSAGE));
   const when = new Date(now - 86_400_000 - 3 * 3_600_000);
   fs.utimesSync(aside, when, when);
   const name = `Screenshot ${when.toISOString().slice(0, 10)} at 9.12.09 AM.png`; // macOS's naming, dated as the file is
@@ -143,6 +160,100 @@ async function seedExample({ base, home }: Rig) {
   await until('the screenshot to reach Found', async () => (await call('GET', '/api/found')).counts.screenshots > 0);
   // "Test the guard", once, so Network activity shows a refusal (as a per-shot click it would add one per theme)
   await call('POST', '/api/network-log/guard-check', {});
+}
+
+/** The repo's fake model server on Ollama's preset port, with a throwaway HOME and nothing inherited. */
+async function startFakeLlm(home: string): Promise<ChildProcess> {
+  // something already answering there could be a real Ollama: never let it answer a docs shot
+  await freePort(FAKE_LLM_PORT).catch(() => {
+    throw new Error(`port ${FAKE_LLM_PORT} (Ollama's) is taken: the AI world's fake model server needs it. Stop whatever runs there (a real Ollama?) and try again`);
+  });
+  const child = spawn(process.execPath, ['--import', 'tsx', path.join(ROOT, 'test', 'fixtures', 'fake-llm', 'server.ts'), '--port', String(FAKE_LLM_PORT)], {
+    cwd: ROOT,
+    env: { PATH: process.env.PATH ?? '', HOME: home },
+    stdio: ['ignore', 'pipe', 'pipe'],
+  });
+  let log = '';
+  child.stdout!.on('data', (d) => (log += d));
+  child.stderr!.on('data', (d) => (log += d));
+  for (let i = 0; i < 100; i++) {
+    if (child.exitCode !== null) throw new Error(`the fake model server exited (${child.exitCode}):\n${log}`);
+    // and it must be the fake that answers (its version is 0.0.0-fake), never a runner listening on another address
+    const version = await fetch(`http://127.0.0.1:${FAKE_LLM_PORT}/api/version`).then((r) => (r.ok ? r.json() : null), () => null);
+    if (version?.version === '0.0.0-fake') return child;
+    if (version) {
+      child.kill();
+      throw new Error(`something other than the fake model server answers on ${FAKE_LLM_PORT} (version ${JSON.stringify(version.version)}): stop it and try again`);
+    }
+    await new Promise((r) => setTimeout(r, 200));
+  }
+  child.kill();
+  throw new Error(`the fake model server didn't start:\n${log}`);
+}
+
+/** The synthetic dataset's message the example world's screenshot shows (a win for Alex). */
+const EXAMPLE_WORLD_MESSAGE = 'm036';
+/** And the ones the AI world adds: three more wins, and one sarcastic one. */
+const AI_WORLD_MESSAGES = ['m016', 'm053', 'm010', 'm019'];
+
+/** One of the synthetic dataset's messages (test/fixtures/screenshots/messages.json), drawn as a chat screenshot. */
+async function datasetPng(id: string): Promise<Buffer> {
+  const { DATASET, datasetShot, png } = await import('../../test/screenshots.ts');
+  const m = DATASET.messages.find((x) => x.id === id);
+  if (!m) throw new Error(`seed: no message ${id} in the dataset`);
+  return png(datasetShot(m).svg, 2);
+}
+
+/** AI on in the example world, against the fake model server (see the top of this file). */
+async function seedAi({ base, home }: Rig) {
+  const call = async (method: string, route: string, body?: unknown) => {
+    const r = await fetch(base + route, { method, headers: { 'content-type': 'application/json' }, body: body === undefined ? undefined : JSON.stringify(body) });
+    if (!r.ok) throw new Error(`seed: ${method} ${route} → ${r.status} ${await r.text()}`);
+    return r.status === 204 ? null : r.json();
+  };
+  const until = async (what: string, ok: () => Promise<boolean>) => {
+    for (let i = 0; i < 300; i++) {
+      if (await ok()) return;
+      await new Promise((r) => setTimeout(r, 200));
+    }
+    throw new Error(`seed: timed out waiting for ${what}`);
+  };
+  console.log('  switching AI on, against the fake model server…');
+  // screenshots from the synthetic dataset, saved into the watched folder over the last few hours
+  const before = (await call('GET', '/api/found')).counts.screenshots as number;
+  const now = Date.now();
+  for (const [i, id] of AI_WORLD_MESSAGES.entries()) {
+    const when = new Date(now - (i + 1) * 3_600_000);
+    const aside = path.join(home, `incoming-${id}.png`);
+    fs.writeFileSync(aside, await datasetPng(id));
+    fs.utimesSync(aside, when, when);
+    // macOS's naming; the time is made up (a "10.35.00" would read as an address to the leak scan)
+    const name = `Screenshot ${when.toISOString().slice(0, 10)} at 4.2${i}.1${i} PM.png`;
+    fs.renameSync(aside, path.join(home, 'Screenshots', name));
+  }
+  await until('the screenshots to reach Found', async () => (await call('GET', '/api/found')).counts.screenshots >= before + AI_WORLD_MESSAGES.length - 1);
+  await call('PUT', '/api/ai', { enabled: true });
+  await call('POST', '/api/ai/connections', { kind: 'ollama' }); // its preset address: the fake, on 11434
+  await call('PUT', '/api/ai', { text: { connection: 'ollama', model: 'qwen3.5:4b' } });
+  await call('PUT', '/api/ai/features/judge', { enabled: true, github: true });
+  await call('PUT', '/api/ai/features/tidy', { enabled: true });
+  await call('PUT', '/api/ai/features/draft', { enabled: true });
+  await call('POST', '/api/ai/connections', { kind: 'anthropic' }); // no key, no consent: it sends nothing
+  await call('POST', '/api/ai/judge/run', {});
+  await until('the judge to finish', async () => {
+    const s = await call('GET', '/api/ai/judge/status');
+    return !s.running && s.last?.outcome === 'ok';
+  });
+  // one tidy and one draft, so AI activity and Network activity show every feature whatever shots run
+  await call('POST', '/api/ai/tidy', { text: 'paired with the two new hires on the checklist sync bug yesterday, fixed it' });
+  const day = (ms: number) => new Date(ms).toISOString().slice(0, 10);
+  const r = await fetch(base + '/api/ai/draft', {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ folio: { from: day(now - 90 * 86_400_000), to: day(now), projects: [], minImpact: 1, exclude: [], group: 'project' } }),
+  });
+  const lines = (await r.text()).trim().split('\n').map((l) => JSON.parse(l) as { type: string; error?: unknown });
+  if (!r.ok || lines.at(-1)?.type !== 'done' || lines.at(-1)?.error) throw new Error(`seed: the draft didn't finish: ${r.status} ${JSON.stringify(lines.at(-1))}`);
 }
 
 // ------------------------------------------------------------------------------------------------ hygiene
@@ -292,6 +403,13 @@ async function main() {
     if (BASE) return { base: BASE, now: new Date(SHOT_NOW) };
     if (broken.has(data)) throw broken.get(data)!;
     if (!rigs.has(data)) {
+      // the example and AI worlds both want the default port: one of them at a time (shots.ts keeps each world's together)
+      for (const [d, r] of rigs) {
+        if (d === 'empty' || data === 'empty') continue;
+        await Promise.all([r.proc, r.llm].map((p) => (p && p.exitCode === null ? new Promise((res) => (p.once('exit', res), p.kill())) : null)));
+        fs.rmSync(r.home, { recursive: true, force: true });
+        rigs.delete(d);
+      }
       console.log(`Booting the ${data} rig (serve.sh)…`);
       try {
         rigs.set(data, await bootRig(data));
@@ -324,6 +442,7 @@ async function main() {
     await browser.close();
     for (const rig of rigs.values()) {
       rig.proc.kill();
+      rig.llm?.kill();
       fs.rmSync(rig.home, { recursive: true, force: true });
     }
     if (building) build('build:web', false);

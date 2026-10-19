@@ -196,7 +196,7 @@ export function registerAiDraft(app: Hono, ctx: AppContext): void {
     // the template: a folio's clippings go where the marker is
     const p = prepare({ from: '2026-07-01', to: '2026-09-30', projects: [], minImpact: 0, exclude: [], group: 'project' }, purpose.data, true);
     const prompt = p.prompt
-      .replace(/<<<CLIPPINGS\n[\s\S]*?\nCLIPPINGS>>>/, '<<<CLIPPINGS\n(the folio’s achievements, numbered [1], [2], … best first: each one’s title, date, impact, projects and company, summary, and evidence by name)\nCLIPPINGS>>>')
+      .replace(/<<<CLIPPINGS\n[\s\S]*?\nCLIPPINGS>>>/, '<<<CLIPPINGS\n(the folio’s achievements, numbered [1], [2], … best first: each one’s title, date, impact, projects and company, summary, and evidence: quotes word for word with who said them, pull request numbers and titles, link sites and titles, file names)\nCLIPPINGS>>>')
       .replace(/^The period: .*$/m, 'The period: (the folio’s window).')
       .replace(/^There (?:is|are) \d+ clippings?\.$/m, 'There are (how many) clippings.');
     return c.json({ system: p.system, prompt, sent: null, omitted: null, budget: p.budget } satisfies AiDraftPreview);

@@ -47,6 +47,11 @@ describe("What's new", () => {
     for (const f of docsPages() as string[]) assert.equal(releaseDocsPage(fs.readFileSync(f, 'utf8'), '0.0.1'), fs.readFileSync(f, 'utf8'));
     const md = 'a\n\n:::note[Not on npm yet]\nSoon.\n:::\n\nb\n\n:::note[Tip]\nKeep me.\n:::\n';
     assert.equal(releaseDocsPage(md, '0.1.0'), 'a\n\nb\n\n:::note[Tip]\nKeep me.\n:::\n', 'only the "Not …" asides go');
+    // the AI pages' "Coming in 0.2.0" (D83): kept by 0.1.x, gone from 0.2.0 on
+    const coming = 'a\n\n:::note[Coming in 0.2.0]\nSoon.\n:::\n\nb\n';
+    assert.equal(releaseDocsPage(coming, '0.1.3'), coming);
+    assert.equal(releaseDocsPage(coming, '0.2.0'), 'a\n\nb\n');
+    assert.equal(releaseDocsPage(coming, '1.0.0'), 'a\n\nb\n');
   });
 
   test(`no released version (package.json: ${VERSION}) is "coming" or "not released yet"`, () => {

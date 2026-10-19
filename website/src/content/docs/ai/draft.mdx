@@ -1,0 +1,73 @@
+---
+title: Draft with AI
+description: "Folio's optional Draft with AI writes a review draft from exactly the achievements a folio picks, citing each one, and flags anything it can't trace back. It saves nothing; the plain export stays the default."
+---
+
+import Shot from '../../../components/Shot.astro';
+
+:::note[Coming in 0.2.0]
+The AI features are built on the [`v0.2` branch](https://github.com/edspencer/bragdoc-ai/tree/v0.2) and will be in
+BragDoc 0.2.0.
+:::
+
+[Folio](/concepts/folio/) gathers the achievements in a date window, filtered as you like, and exports exactly what you
+picked. **Draft with AI** is an optional extra beside it: a model writes a first draft of the achievements section of a
+self-review, a promotion case or a 1:1, from those same achievements.
+
+**The plain export is unchanged, and stays the default.** Copy, Print and Export .md still give exactly what you picked,
+with nothing added or rewritten.
+
+## Turning it on
+
+Switch on **Draft with AI, in Folio** in Settings → AI (with AI on and a model set up). Folio then shows **Draft with
+AI**, with an optional **What's this for?** note (self-review, promotion case, 1:1…), beside Copy, Print and Export.
+With Draft off, Folio is exactly as it was.
+
+## The draft
+
+The draft streams into a **Draft** view beside Printout and Markdown, with how long it's taken and **Cancel**. It's a
+short opening paragraph, then themed sections of bullets, highest impact first, and **every bullet cites the
+achievements it came from**: `[3]` links back to that clipping in the list, and lights it up.
+
+<Shot name="docs-draft" alt="Folio's Draft view: a draft by qwen3.5:4b on this computer, an opening line and bullets grouped by project, each ending with the numbers of the clippings it cites; then a note of two things to look at, a number not in the clippings it cites and a line with no citation; then Copy draft, Export draft .md, Draft again and Discard." caption="A draft in Folio, flagged. The draft was staged with BragDoc's test model server, not a real model; it plants a made-up number and an uncited line on purpose, to show the checks." staged />
+
+Then it's yours to edit, with **Copy draft**, **Export draft .md** (`bragdoc-draft-<from>-<to>.md`), **Draft again**
+and **Discard**.
+
+- **Nothing is saved.** Like the folio itself, a draft lives in the page, and nothing is written to your data folder.
+  Leaving Folio (or reloading) with a draft you haven't copied or exported asks first.
+- **A draft you have is yours.** If AI is switched off mid-draft, it stops, and what arrived stays editable, copyable
+  and exportable until you leave.
+
+## Checked, line by line
+
+The model is told to use only what's in the clippings. BragDoc then checks every line against **the clippings that
+line cites**, not just "somewhere in the folio", and lists what to look at:
+
+- a number, date or capitalised name that isn't in the clippings it cites ("Not in the clippings it cites");
+- a bullet with no citation ("No citation"), or a citation to something that wasn't sent;
+- a short list of filler phrases, unless your own achievements use them.
+
+Click one to select its line. The check runs again as you edit, against the draft's own numbering, and makes no model
+call.
+
+## What it sends
+
+The folio exactly as the page shows it: BragDoc rebuilds the clippings on its side from the folio's window and filters,
+so nothing else can slip in. That's each achievement's title, summary, dates, impact, project and company names, and
+its evidence (a quote's words, with who said it and where; a pull request's number and title; a link's site and
+title; a file's name), numbered best first, each cut at 900 characters, plus BragDoc's 1–10 impact scale. Plus your name and role, your **What's this for?** note, and your
+**how I write** notes (`ai/style.md`, shared with [Tidy](/ai/tidy/)). Only the projects and companies of the
+achievements sent are named, never the rest of your list. Paths, ids and BragDoc's addresses are never in a clipping.
+
+**It fits the model.** With a local model's default context of 8,192 tokens, about 5,000 go to the clippings (about
+25,000 with a cloud model). A bigger folio leaves out its lowest-impact achievements, tells the model it's not
+everything, and tells you: "12 lower-impact items weren't sent (the 40 highest-impact ones were, to fit the model's
+context)", with how to include them: narrow the window or the projects, untick some, or use a model with a larger
+context.
+
+On a CPU with no GPU, a draft takes a few minutes (it's given up to 15; a cloud model, 3).
+
+**See exactly what's sent** on Draft's card shows the exact instructions, with your name and role and a placeholder
+where a folio's achievements go, and sends nothing. Each
+draft is one line in AI activity, and its calls are in Network activity, without their content.

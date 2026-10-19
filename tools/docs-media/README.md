@@ -36,6 +36,10 @@ never left holding the kit. With `--no-build` it shoots whatever `dist/` has.
   GitHub source connected through the fake `gh` (never a real login or the network), and one screenshot in a watched
   folder, so Found has both kinds of candidate. It runs on port 2724 when that's free, because Settings shows
   BragDoc's own address.
+- **The AI world** (`data: 'ai'`, PR29): the example world with AI on against the repo's **fake model server**,
+  never a real model, answering on Ollama's preset address (127.0.0.1:11434; the rig refuses to start if something
+  already listens there). It switches on the judge, Tidy and Draft, adds screenshots from the synthetic dataset and
+  runs Judge now. A page that shows one of its shots says the AI answers were staged.
 - **The clock:** the empty-home shots are fixed at `SHOT_NOW` (`shots.ts`), so "This week" never drifts. The example
   world can't be: the server stamps some times itself (when something was found, the network log) with the real clock,
   so its data is placed at the day of the run and the browser's clock is frozen just after seeding.

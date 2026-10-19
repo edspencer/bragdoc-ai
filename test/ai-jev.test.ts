@@ -233,7 +233,7 @@ describe('Judge now with Jev (cloud, through egress)', () => {
     home.close();
   });
 
-  test("consent is asked again: Jev pointed at another OpenRouter, that OpenRouter's key replaced, an older statement; none to give with nothing to go through", async () => {
+  test("consent is asked again: Jev pointed at another OpenRouter, that OpenRouter's key replaced or forgotten, an older statement; none to give with nothing to go through", async () => {
     const { home } = await cloudRig();
     const jevConsent = () => home.config.get().ai.connections.jev!.consent ?? null;
     const blocked = async () => (await home.req('GET', '/api/ai')).body.connections.find((x: { id: string }) => x.id === 'jev').blocked?.code ?? null;
@@ -241,6 +241,13 @@ describe('Judge now with Jev (cloud, through egress)', () => {
     assert.equal((await home.req('PUT', '/api/ai/connections/or/key', { key: `${KEY}-2` })).status, 200);
     assert.equal(jevConsent(), null);
     assert.equal(await blocked(), 'not_consented');
+    assert.equal((await home.req('POST', '/api/ai/connections/jev/consent', { version: 2 })).status, 200);
+    // Forget, then another key (maybe another account's): asked again at the Forget, as the statement says (D83)
+    assert.equal((await home.req('DELETE', '/api/ai/connections/or/key')).status, 200);
+    assert.equal(jevConsent(), null, 'removing the key asks again');
+    assert.equal((await home.req('POST', '/api/ai/connections/jev/consent', { version: 2 })).status, 200);
+    assert.equal((await home.req('PUT', '/api/ai/connections/or/key', { key: `${KEY}-3` })).status, 200);
+    assert.equal(jevConsent(), null, 'a key where there was none asks again too');
     assert.equal((await home.req('POST', '/api/ai/connections/jev/consent', { version: 2 })).status, 200);
     // through another OpenRouter connection
     assert.equal((await home.req('POST', '/api/ai/connections', { kind: 'openrouter', id: 'or2' })).status, 201);

@@ -41,7 +41,7 @@ export function JudgePreviewDialog({ id, open, onClose }: { id: string | null; o
       ) : (
         <div className="space-y-2">
           <p className="m-0 text-[12.5px] text-muted">
-            Made from {FROM[q.data.input]}, with your name and aliases, your active projects’ names and “What counts as a win for me”. No file names, paths or ids.
+            Made from {FROM[q.data.input]}, with your name, role and aliases, your active and paused projects’ names and “What counts as a win for me”. No file names, paths or ids.
             {q.data.model ? <> It goes to <span className="font-mono font-semibold">{q.data.model}</span>.</> : null}
             {q.data.truncated ? ' Some of the screenshot’s other messages were left out to fit the model.' : ''}
           </p>
