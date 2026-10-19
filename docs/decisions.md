@@ -1500,3 +1500,31 @@ PR29 (SPEC R27).
 - **A Jev's consent now also goes when its OpenRouter connection's key is forgotten, or set where there was none**
   (it went only on replacing a key), as Jev's statement already said: Forget, then another account's key, kept the
   old consent (`server/routes/ai.ts`, `forgetJevConsent`; `test/ai-jev.test.ts`).
+
+### D84 — 0.2.0 comes after 0.1.0: the release order, and v0.2's merge into next
+
+PR30, the v0.2 release candidate (SPEC open question 9).
+
+- **v0.2 is released as 0.2.0, after 0.1.0, and only in that order.** `package.json` says 0.0.0 on both branches, and
+  Changesets releases the largest pending bump once. `v0.2` carries `next`'s pending changesets (`v0-1-release.md`, a
+  `minor`, and v0.1's patches) plus its own patches and `v0-2-release.md` (the `minor` D83 asked for). So:
+  1. **0.1.0 is published from `next` first** (RELEASING.md, unchanged). Its version PR consumes v0.1's changesets and
+     sets 0.1.0, and What's new gets `## 0.1.0`.
+  2. **`next` is merged forward into `v0.2`** (a merge, as for any v0.1 fix): v0.1's changesets go, the version
+     becomes 0.1.0, and `next`'s 0.1.0 What's new section replaces v0.2's copy of it (D83).
+  3. **`v0.2` merges into `next`** with a merge commit, once Ed approves. Its changesets (v0.2's patches plus one
+     `minor`) make the next version PR **0.2.0**, which turns "Coming in 0.2.0" into `## 0.2.0: opt-in AI` and takes
+     the AI pages' `:::note[Coming in 0.2.0]` out (D83).
+
+  PR30 simulated both orders in a scratch worktree: in this one, `changeset status` says 0.2.0 and the release
+  script and docs tests pass; merged into `next` *before* 0.1.0 is published, the same changesets would make
+  **0.1.0, with AI in it**, under a "## 0.1.0: opt-in AI" heading above "0.1: the first local release". That's wrong,
+  so don't merge `v0.2` into `next` until 0.1.0 is out. If Ed would rather skip a separate 0.1.0, the clean way is to
+  delete `v0-1-release.md` in the merge, fold its text into `v0-2-release.md` and accept that the first release is
+  0.1.0 with AI, with What's new rewritten by hand to match. Not recommended: Q9's answer was 0.1.0 first.
+- **No reserved number went unused:** D62–D83 are all taken, and this is D84.
+- **The macOS instructions-watch test starts its watcher until it's live** (`test/ai-instructions.test.ts`). On macOS
+  CI under the full suite, FSEvents could drop a new stream's first events, and once a stream delivered nothing at
+  all after chokidar's `ready`; PR30 reproduced the failure in 4 of 12 full runs of the old test. The test now writes
+  by hand until the store sees an edit (restarting a watcher that stays silent for 5 s, at most 3 times), then asserts
+  a later edit with no retry. A watcher that's already running isn't affected, so the app isn't changed.
