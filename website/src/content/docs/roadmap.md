@@ -9,10 +9,6 @@ BragDoc is being rebuilt as a local-first app. The work is tracked in
 
 ## v0.1: the first release
 
-:::note[Not on npm yet]
-Everything here is built on `next`, but it isn't released yet.
-:::
-
 Everything here is in v0.1, the first release.
 
 - **Run it your way:** `npx @bragdoc/local`, a global install, a login service (macOS and Linux), or Docker.

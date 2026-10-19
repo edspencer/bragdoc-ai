@@ -3,9 +3,7 @@ title: What's new
 description: "What changed in each BragDoc release, newest first."
 ---
 
-## Coming in 0.1.0: the first local release
-
-Not released yet.
+## 0.1.0: the first local release
 
 The first release of BragDoc as a local-first app you run on your own computer, built on the
 [`next` branch](https://github.com/edspencer/bragdoc-ai/tree/next):
