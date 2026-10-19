@@ -630,6 +630,12 @@ PR28 added **Jev as the judge's model** (SPEC R25; D82):
   (`answers.ts` row `jev`; every scenario), `e2e/jev.spec.ts`, and the judge eval's Jev recording
   (`npm run eval:judge -- --jev …`, replayed through a Jev connection in `test/ai-judge-replay.test.ts`).
 
+PR29 documented it (D83): the docs site's `ai/` section. **Its tables are generated** (`scripts/ai-reference.ts`, run
+by `npm run sync:reference`): the models from `shared/ai/models.ts`, the judge's scores from `scripts/eval/measured.ts`
+(which `test/ai-judge-replay.test.ts` asserts), and each provider's consent statement from `shared/ai/consent.ts`.
+Change any of those and re-run `sync:reference`; `docs.test.ts` fails until you do. New eval numbers go in
+`measured.ts`. AI captures come from the rig's `data: 'ai'` world (the fake model server on 127.0.0.1:11434).
+
 **Adding an AI feature** (five steps):
 1. Its settings already exist under `ai.features.<name>` (PR21 laid down all of them); read them with
    `ctx.ai.readiness(feature)`, never by checking `enabled` yourself.

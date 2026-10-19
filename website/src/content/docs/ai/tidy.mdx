@@ -1,0 +1,66 @@
+---
+title: Tidy this up
+description: "The optional Tidy this up button on the board turns something you pasted, or a picture's text, into a suggested title, summary, date, impact and projects that you use field by field. Nothing invented, nothing saved without you."
+---
+
+import Shot from '../../../components/Shot.astro';
+
+:::note[Coming in 0.2.0]
+The AI features are built on the [`v0.2` branch](https://github.com/edspencer/bragdoc-ai/tree/v0.2) and will be in
+BragDoc 0.2.0.
+:::
+
+What you paste in a hurry is rarely what you'd want in a review: a run-on line, a forwarded message, a screenshot of
+someone thanking you. **Tidy this up** asks a model to turn it into a suggested **title**, **summary**, **date**,
+**impact** (with a one-line reason) and **projects**, which you then use field by field, or not at all.
+
+## Turning it on
+
+Switch on **Tidy this up, on the board** in Settings → AI (with AI on and a model set up). Then a **Tidy this up**
+button appears:
+
+- **in the composer** on the board, once it has text, or a picture whose text has been read;
+- **in the edit drawer** of an achievement you already have. It tidies the achievement as last saved (its title,
+  summary, notes, and the words of its quotes and read pictures), and says so if you have unsaved edits.
+
+With Tidy off, there's no button, and the composer is exactly as it was.
+
+## A suggestion, beside your text
+
+The suggestion opens beside what you wrote, with **Use** on each field, **Use all**, and **Keep mine**. **Cancel**
+works while it's thinking.
+
+<Shot name="docs-tidy" alt="The composer with a hurried line typed in, and below it a panel headed A tidier version, suggested by qwen3.5:4b on this computer: a title, a summary, a date of 17 October, and an impact of 3 with its reason, whose first word is underlined as not in your text; each with a Use button, and Use all and Keep mine." caption="A tidy in the composer. The suggestion was staged with BragDoc's test model server, not a real model." staged />
+
+- **Nothing is saved** until you press **Pin it** (or **Save** in the edit drawer), as always.
+- **What you wrote survives Use all.** In the composer, using a suggested title moves what you'd typed down into the
+  notes under it, so your own words are kept with the achievement. In the drawer, a suggested body goes above your
+  notes.
+- An impact you accept is yours, like any impact you set.
+- If it doesn't think the text is an achievement at all (a calendar invite, say), it says so, and offers nothing to
+  use. If it couldn't tell something ("who 'we' is"), it says that too.
+
+## Nothing invented
+
+The model is told to use only the facts in your text, keep your voice and first person, and leave a field empty rather
+than guess. BragDoc then checks what came back:
+
+- **Any number, amount, percentage or capitalised name that isn't in your text is underlined**: "not in your text.
+  Check it, or leave it out." Your name, the names you go by, your role and your project names count as yours.
+- **A date is kept only if your text states it**, or a relative date in it ("yesterday", "last week", "March 4")
+  resolves to it. Any other date is left out, and it says so.
+- Titles, summaries and bodies are cut to length at a word, and project names that aren't yours are dropped.
+
+## What it sends
+
+The text you pasted, or the text read from a picture you added (read on your machine: the picture itself is never
+sent); today's date; your name and role; your projects' names; BragDoc's 1–10 impact scale; and your **how I write**
+notes, if you wrote some. Tidy takes up to 10,000 characters, so a tidy fits a small local model: given more, it
+says so and asks you to tidy the part that matters, or trim it first.
+
+**How I write** is an optional Markdown file, `ai/style.md` in your data folder, with an editor on Tidy's card (Draft
+uses it too). Write in it how you like your achievements phrased.
+
+**See exactly what's sent** on Tidy's card shows the exact instructions, with a placeholder where your text goes, and
+sends nothing.
+Each tidy is a line in AI activity and in Network activity, without its content.

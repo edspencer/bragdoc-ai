@@ -92,8 +92,8 @@ If you use v0.2's opt-in AI, what you tell the models lives in `ai/`, as Markdow
 rest of the folder: backed up, picked up live when you edit it by hand, and never ignored by `.gitignore`.
 
 - `ai/what-counts.md` is "what counts as a win for me": the AI judge reads it. A starter, made from your profile, is
-  written when you first switch the judge on (as v0.2's judge is built); after that it's only changed by you.
-- `ai/style.md` is "how I write", if you want one: tidying and drafting read it.
+  written when you first switch the [judge](/ai/the-judge/) on; after that it's only changed by you.
+- `ai/style.md` is "how I write", if you want one: [Tidy](/ai/tidy/) and [Draft](/ai/draft/) read it.
 
 Each is plain Markdown. It may start with front-matter (a `---` line, YAML, another `---` line), which the models
 aren't shown. A file over 20,000 characters, or with front-matter that isn't closed or isn't YAML, is a Problem. While

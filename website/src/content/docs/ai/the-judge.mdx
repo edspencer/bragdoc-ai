@@ -1,0 +1,135 @@
+---
+title: The judge, in Found
+description: "The optional AI judge reads what Found picks up and says whether it looks like a win for you, how sure it is, and why. It never keeps or dismisses anything. When it runs, on what power, and what it sends."
+---
+
+import Shot from '../../../components/Shot.astro';
+
+:::note[Coming in 0.2.0]
+The AI features are built on the [`v0.2` branch](https://github.com/edspencer/bragdoc-ai/tree/v0.2) and will be in
+BragDoc 0.2.0.
+:::
+
+[Found](/concepts/found-and-sources/) collects candidates your sources spot by themselves: screenshots that pass the
+plain rules, and your merged pull requests. The rules are blunt. They see "great work, Alex" and can't tell praise for
+you from praise for someone else, your own message, or sarcasm. **The judge** is an optional second look: a language
+model reads each candidate and gives its opinion, with a reason and how sure it is. You still decide.
+
+## The judge never dismisses anything
+
+**The judge only ever writes its opinion on a candidate.** It never keeps one, never dismisses one, and never changes
+a candidate's status. Once there are verdicts, Found sorts them into three groups:
+
+- **Looks like a win**, surest first. Nothing is kept until you press **Keep**.
+- **Not judged yet**, newest first.
+- **Probably not**, collapsed, with a count. They stay there until you decide.
+
+**Dismiss these N** on the Probably not group is the one way to clear it in bulk, and it's an explicit click, with
+**Undo**. Nothing is ever dismissed automatically, whatever the judge thinks.
+
+Each judged card shows the verdict ("Looks like a win · 86%" or "Probably not · 70%"), **why** the judge thinks so
+([Jev](/ai/cloud/jev/) gives no reason), the words it judged when they differ from the rules' quote, which model
+judged it and where ("judged by qwen3.5:4b on this computer"),
+and the plain rules' chips, which stay. **Keep** files the achievement under the projects the rules and the judge
+suggested together, shown on the card first. **Judge again** asks once more, and **What's sent** shows exactly what
+that would send.
+
+<Shot name="docs-found-judged" alt="Found with the judge on: a group headed Looks like a win, with a screenshot card stamped Looks like a win 86%, the quote read on this computer, why the judge picked it, judged by qwen3.5:4b on this computer, Judge again and What's sent, the rules it passed, and Keep, Merge and Dismiss; beside it a GitHub pull request card, also judged." caption="Found after Judge now. The verdicts were staged with BragDoc's test model server, not a real model; the people and messages are the made-up example data." staged />
+
+<Shot name="docs-found-judged-mobile" alt="Found with verdicts on a phone: one column, a screenshot card stamped Looks like a win with the judge's reason, and the tabs along the bottom." caption="The same, at phone width. Verdicts staged with BragDoc's test model server." max={300} staged />
+
+When you keep, merge or dismiss a judged candidate, BragDoc counts whether you agreed with it, and Settings → AI says "You
+agreed with the judge on 18 of 20". Only the counts are kept (`cache/ai/judge-stats.json`), never which candidate.
+
+If you turn the judge or AI off, verdicts already written stay on their cards, marked "judged earlier", with Judge
+again hidden. Dismissing a candidate clears its verdict.
+
+## Turning it on
+
+1. Set up a model in **Settings → AI** (a [local runner](/ai/local-models/) or a [cloud provider](/ai/cloud/anthropic/)).
+2. Switch on **The judge, in Found**. By default it judges the screenshots the rules let through. Tick **Also judge
+   merged PRs** to have it look at your pull requests too, with a different question: "worth a brag, or routine?"
+   (dependency bumps, version bumps, typo fixes and reverts are routine), plus a suggested impact.
+3. Press **Judge now**, in Found or on the card.
+
+That's all it does at first: **turning the judge on gives you Judge now and nothing else.** It never judges MCP
+candidates (your agent is already a model), or anything the rules turned down.
+
+The judge can use the model your other features share, or one of its own (**Use a different model for the judge**).
+[Jev](/ai/cloud/jev/) can only be the judge's model.
+
+## What counts as a win for me
+
+The judge reads a short Markdown file of yours with every candidate: **what counts as a win for me**. It's
+`ai/what-counts.md` in your data folder. When you first switch the judge on, BragDoc writes a starter from your
+profile (your name and role, the names you go by, the names to ignore); after that only you change it, in the editor on the
+judge's card or in any text editor. Saving it sends nothing anywhere. **Reset to the starter** moves your version to
+`backups/removed/` first: nothing is deleted.
+
+If the file is broken (over 20,000 characters, say), it's a [Problem](/concepts/your-data-is-files/), and the judge
+uses the last good copy until it's fixed. Your [MCP agent](/agents/mcp/) sees the same file, through
+`bragdoc_get_context`.
+
+## When it runs by itself, and on what power
+
+Judging in the background is **a second, explicit choice**. Right after you switch the judge on, its card asks **Also
+judge new candidates as they arrive?**, and says what that costs here (on a laptop's CPU, about 20 seconds of CPU per
+screenshot; for a cloud model, where the text would go). Under **When it runs by itself**:
+
+- **As new candidates arrive**: a run starts 30 seconds after the last of a burst (never more than 5 minutes after the
+  first).
+- **Every** 1, 3, 6, 12 or 24 hours.
+
+And two conditions, for those background runs only:
+
+- **Only between** two times, in your local time (19:00 to 08:00, say, for after hours; across midnight is fine).
+- **Only when this computer is plugged in** (ticked by default). BragDoc reads the power with `pmset` on a Mac and
+  from `/sys/class/power_supply` on Linux. Where it can't tell (a desktop, or Docker), it counts as plugged in, and the
+  card says it can't tell. It reads the power only while that decides something (the judge on, with a background
+  trigger set or its card open, and **only when this computer is plugged in** ticked): with AI off, `pmset` never
+  runs.
+
+<Shot name="docs-ai-judge-card" alt="The judge's card in Settings, AI: on, using qwen3.5:4b on Ollama on this computer; what it judges (screenshots the rules let through, and merged PRs); when it runs by itself (as new candidates arrive, every N hours, only between two times, only when plugged in); the what counts as a win for me editor; and Judge now." caption="The judge's card, on, with nothing in the background yet. The model is BragDoc's test model server standing in for a real runner." staged />
+
+**With a cloud model, background runs need one more tick:** **Also send to *host* in the background.** Without it,
+the schedule holds and only Judge now sends anything, so a schedule you set for a local model can't start sending your
+screenshots to the internet when you switch models.
+
+How a background run behaves:
+
+- **One run at a time**, newest candidates first, at most 50 per run (`maxPerRun`); the rest wait for the next run.
+- **It stops** at once if AI or the judge is switched off (the item in progress isn't written), and after the item in
+  progress if the window closes or this computer goes onto battery, picking up when that lifts. What's judged stays
+  judged.
+- **If the model can't be reached** (the runner is down, a key is refused, out of credit), background runs back off:
+  15 minutes, doubling up to 6 hours. The card says so in plain words, and any run that judges something clears it.
+- An answer that's still malformed after one retry is counted as failed; the run goes on.
+- **Judge now ignores the conditions and the backoff**: you asked.
+
+Turning the judge on with nothing in the background, then adding a schedule later, never judges a backlog all at once:
+each run takes at most 50, and a slot that fell due while the judge was off waits a whole period.
+
+## What it sends
+
+For a screenshot, BragDoc reads the picture's text again, on your machine, only if the file is still the picture
+that passed the rules (the text isn't stored, so it's re-read). It splits the text into messages, marks yours "(the
+user)" and the names you said to ignore "(not the user)", and labels the message the rules matched as the one to
+judge, with the messages around it as context, nearest first, up to the model's context size. If the picture has gone,
+the rules' stored quote is judged instead.
+
+For a merged pull request: its repository, title, merge date and the first 2,000 characters of its description.
+
+With either, it sends your name and role, the other names you go by and the names to ignore, the names of your active
+and paused projects, `ai/what-counts.md`, and (for a pull request) BragDoc's 1–10 impact scale. The text is fenced off and labelled as material to judge, never as instructions to follow, and
+the model has no tools. Its answer is checked before it's written: the quote is dropped unless it's word for word in
+the message judged, project names that aren't yours are dropped, and the reason is cut to 160 characters.
+
+**Show me what's sent** on the card (and **What's sent** on a judged Found card) shows the exact prompt for one of your
+candidates, and sends nothing.
+
+## Its log
+
+Every run is one line in **AI activity** (Settings → AI): when, what started it (Judge now, an arrival or the
+schedule), which model, where, how many it judged, how many looked like wins or probably not, how many failed, and how
+long it took. Each model call is also a line in [Network activity](/guarantees/network-activity/). Neither ever holds
+the text.

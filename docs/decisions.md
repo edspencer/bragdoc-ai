@@ -1451,3 +1451,52 @@ PR27 (SPEC R24, R26).
   slot reads "AI · OpenRouter"), not only the text slot.
 - **Rejected:** a Jev chat path through `jev-router` (it's not Jev, and costs 30× more); `confidence` = p (it misreads
   on the card); a repair retry for decisions (a second paid request for a provider bug).
+
+### D83 — The AI docs: tables made from the code, captures from the fake, and "Coming in 0.2.0"
+
+PR29 (SPEC R27).
+
+- **What can drift is generated.** `scripts/ai-reference.ts` writes three kinds of block into the docs pages, between
+  `ai-reference:<block>:start/end` markers (an HTML comment in `.md`, `{/* … */}` in `.mdx`), whenever
+  `npm run sync:reference` runs, and `test/docs.test.ts` fails while one is stale:
+  - `models`: the recommended models and the RAM bands, from `shared/ai/models.ts` (what Settings → AI recommends from);
+  - `measured`: what the judge scored, from **`scripts/eval/measured.ts`**, a new one-table module. The replay test
+    (`test/ai-judge-replay.test.ts`) now asserts each recorded model's scores from that table rather than its own
+    copy, so the number on the page is the number CI checks. Cloud rows that were one live run (Haiku, Gemini
+    flash-lite, PR24) are in the table too, marked as not replayed;
+  - `consent-<kind>`: each provider's consent statement, word for word, from `shared/ai/consent.ts`. The dialog's
+    per-feature titles and its "never sent" line moved there from `ConsentDialog.tsx` (`CONSENT_FEATURE_WORDS`,
+    `CONSENT_NEVER_SENT`; no visible change), so the page and the dialog share every word.
+- **Captures of AI answers come from the fake model server, and say so.** The rig gains an AI world (`data: 'ai'` in
+  `tools/docs-media/shots.ts`): the example world, plus the fake model server on **Ollama's preset address,
+  127.0.0.1:11434** (the rig refuses to start if anything already listens there, so a real Ollama can never answer a
+  docs shot), AI on, the judge, Tidy and Draft on, synthetic-dataset screenshots (three wins, one sarcastic), one
+  Judge now, and an Anthropic connection with no key or consent for the consent dialog. Every caption with an AI
+  answer says it was staged with the test model server. The leak scan now also allows the runner presets' ports
+  (11434, 1234, 8080: everyone's defaults, not this machine's), and its port lookahead no longer needs a word
+  boundary (`127.0.0.1:11434THIS COMPUTER` is how a stamp reads as text). The docs test allows the same ports on pages.
+- **The example world's own seed was broken** since 95338b9: its screenshot was one of the example data's pictures,
+  which the screenshots source now skips as "already on your board", so the seed timed out. It's now a picture drawn
+  from the synthetic dataset (`m036`), and every docs and landing shot was re-taken in one run.
+- **"Coming in 0.2.0".** The AI pages carry `:::note[Coming in 0.2.0]`, not a `Not …` note: the release script strips
+  `:::note[Not …]` at 0.1.0, and `next` may publish 0.1.0 while `v0.2` is still unreleased. `docs.test.ts` fails while
+  a `Coming in X` note once package.json is X or later, and **the release script takes them out by itself**
+  (`releaseDocsPage` in `scripts/whats-new-release.mjs` now drops a `:::note[Coming in X]` from X on, as it drops
+  `:::note[Not …]` from 0.1.0), since the bot's version PR can't be hand-edited. **This needs v0.2's release to be
+  0.2.0**: every v0.2 changeset is `patch`, so PR30's `minor` changeset is what makes it so (otherwise a release from
+  `v0.2` after 0.1.0 would be 0.1.1, and the notes would keep saying 0.2.0). What's new has one "Coming in 0.2.0: opt-in AI" section above a plain
+  "0.1: the first local release" one (`whats-new.test.ts` allows one "Coming in"). If 0.1.0 is published from `next`
+  first, the merge forward takes `next`'s "## 0.1.0" heading for the second section.
+- **Not documented as fact:** anything not measured. The page says under 8 GB there's no recommendation, gives the
+  spike's Apple-silicon speed as published figures, and says plainly that a runner's own traffic (Ollama's included)
+  is outside BragDoc's log.
+- **The consent statements were corrected, at their versions** (found by fact-checking the provider pages against the
+  prompts): the judge also sends your role and your paused projects' names; Tidy, run from an achievement's edit
+  drawer, sends its title, summary, notes, quotes and pictures' text; Draft sends evidence word for word (quotes with
+  who and where, PR numbers and titles, link sites and titles), not "by name", and the folio's dates. The rule is to
+  bump `version` when `sends` grows, but this isn't growth, it's the statement catching up with what the prompts
+  already send, and **v0.2 is unreleased, so nobody has consented to the old words**: no bump. After 0.2.0, any
+  change like this bumps.
+- **A Jev's consent now also goes when its OpenRouter connection's key is forgotten, or set where there was none**
+  (it went only on replacing a key), as Jev's statement already said: Forget, then another account's key, kept the
+  old consent (`server/routes/ai.ts`, `forgetJevConsent`; `test/ai-jev.test.ts`).

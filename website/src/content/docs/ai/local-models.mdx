@@ -1,0 +1,113 @@
+---
+title: Setting up a local model
+description: "Run BragDoc's AI features on a model runner of your own (Ollama, LM Studio, llama.cpp, or one in Docker's reach), so nothing leaves your computer or your network. BragDoc never installs a runner."
+---
+
+import Shot from '../../../components/Shot.astro';
+
+:::note[Coming in 0.2.0]
+The AI features are built on the [`v0.2` branch](https://github.com/edspencer/bragdoc-ai/tree/v0.2) and will be in
+BragDoc 0.2.0.
+:::
+
+A **model runner** is a program that runs open-weight language models on your own hardware. With one, every AI
+feature runs on this computer (or a machine on your network), and nothing it sends leaves your network.
+
+**BragDoc never installs a model runner, and never downloads a model by itself.** It can look for a runner you
+already have, tell you what a model would download and whether this computer has the room, and, after you confirm,
+ask Ollama to download one of the two recommended models. That's as far as it goes.
+
+## The runners it knows
+
+| Runner | Kind in Settings → AI | Its usual address | How BragDoc talks to it |
+|---|---|---|---|
+| [Ollama](https://ollama.com) | Ollama | `http://127.0.0.1:11434` | Ollama's own API (`/api/chat`), so it can set the context size and turn "thinking" off on every call |
+| [LM Studio](https://lmstudio.ai) | LM Studio | `http://127.0.0.1:1234/v1` | Its OpenAI-compatible local server |
+| [llama.cpp](https://github.com/ggml-org/llama.cpp) | llama.cpp | `http://127.0.0.1:8080/v1` | `llama-server`'s OpenAI-compatible API |
+| Anything else that speaks OpenAI's API | OpenAI-compatible server | the address you type | Its `/v1` API |
+
+**Ollama is the easiest start**, and the one the recommended models are measured on. Ollama goes through its own API
+rather than its OpenAI-compatible one for a reason: the OpenAI-compatible endpoint can't set the context size per
+request, so Ollama loads the model with its default of about 4,000 tokens and silently cuts anything longer from the
+front. Measured on a long prompt, the native API read all 5,875 tokens; the `/v1` endpoint read 2,050 and dropped the
+rest without a word.
+
+## Setting one up
+
+1. **Install and start the runner yourself**, from its own site, and get a model into it (for Ollama,
+   `ollama pull qwen3.5:4b`, say: see [Choosing a model](/ai/choosing-a-model/)).
+2. In BragDoc, open **Settings → AI** and switch AI on.
+3. Press **Look for a model runner on this computer**. BragDoc asks each runner's usual address once (each ask is a
+   line in Network activity, stamped *this computer*; in Docker, the ask to the host's Ollama is *your network*), and checks whether an `ollama` program is on your `PATH`. That
+   is a look at the folders, not a run: BragDoc never starts, runs or installs Ollama. What it finds is listed with its
+   version and its installed models; **Use it** adds it as a connection.
+
+   Nothing found? If Ollama is installed but not answering, it says to start it. If there's no runner at all, it says
+   BragDoc doesn't install model runners, links to ollama.com, and stops there. **A runner on another port isn't found
+   by design** (looking through a range of ports would be a port scan): add it by hand under **Add one** (**Add another** once you have one), with
+   its address.
+4. **Pick a model** on its card (the models it has are listed), and **Test connection**: one tiny request, which says
+   in plain words whether it works, how long it took, and whether the model can return structured answers.
+5. **Switch on the features you want**, each on its own card.
+
+<Shot name="docs-ai-connections" alt="Settings, AI, Where models run: an Ollama connection stamped this computer, ready, in use, with its address, context size and model; and an Anthropic connection stamped internet, not allowed yet, with nothing sent, a button to read what's sent and allow, and a key field; then the list of kinds to add." caption="An Ollama connection on this computer in use, and an Anthropic one not allowed yet. The Ollama here is BragDoc's test model server standing in for a real runner." staged />
+
+### The context size
+
+Each local connection has a **context size**: how much text the model is asked to read at once, prompt and answer
+together. It's 8,192 tokens unless you change it, which suits a small model on a laptop. BragDoc fits every prompt to
+it (the judge keeps the messages nearest the one it judges and leaves out the rest; Draft leaves out the lowest-impact
+achievements, and says how many), rather than let a runner cut it silently.
+
+With Ollama, BragDoc sends the size with every call. LM Studio and llama.cpp take theirs from how you loaded the
+model, so set the connection's size to match.
+
+### Asking Ollama to download a model
+
+For the two recommended models, whose download sizes are known, an Ollama connection offers **Ask Ollama to download
+it**. It opens a confirm that restates the download size, the free space in your home folder, and the RAM the model
+wants against what this computer has. Too little disk is a red warning and too little RAM an amber one, not a block
+(Ollama may keep its models on another disk, which BragDoc can't see), and the button becomes **Download anyway**. If
+Ollama is on another machine, or BragDoc runs in Docker, the readings are BragDoc's own, the confirm says so, and it
+doesn't warn. The progress streams in, with
+Cancel; Ollama may keep the part it already fetched.
+
+Every other model, and the copy-paste command for these two, is `ollama pull <name>` in a terminal.
+
+## A runner on another machine, or Docker
+
+A runner on another machine on your network works the same way: add it by hand with its address (say
+`http://192.168.1.20:11434`). It's stamped *your network*, needs no consent, and can use plain `http:`, as can
+`host.docker.internal` and `.local` names. Anything that isn't this computer or your network is the internet, must
+use `https:`, and asks for [consent](/ai/cloud/custom/) first.
+
+**In Docker**, BragDoc's image sets `BRAGDOC_IN_DOCKER=1`, so **Look for a model runner** also asks Ollama on the
+host, at `http://host.docker.internal:11434`. For that to reach it:
+
+- on Linux, uncomment the `extra_hosts: ["host.docker.internal:host-gateway"]` line in BragDoc's `compose.yaml`
+  (Docker Desktop on a Mac knows the name already);
+- Ollama on the host has to listen beyond `127.0.0.1` for a container to reach it (`OLLAMA_HOST=0.0.0.0`; see
+  [Ollama's FAQ](https://docs.ollama.com/faq)). That makes it reachable from your network too, so think about whether
+  you want that.
+
+Settings → AI's hardware readings inside Docker are the container's, and the page says so.
+
+## A runner is its own software
+
+**What a runner contacts by itself is outside BragDoc's process, and outside its Network activity log.** Ollama, LM
+Studio and llama.cpp are programs of their own: whatever they reach on their own account (a model registry when you
+pull, a check for updates, their own cloud features) goes from their process, not BragDoc's, and BragDoc can't see it,
+log it or stop it. Ollama, for example, can make requests of its own to ollama.com, and has cloud features of its own
+that are separate from anything BragDoc does. Look at, and configure, what your runner does in the runner's own
+settings and documentation.
+
+What BragDoc logs is what BragDoc sends: each call it makes to the runner (*this computer*), and, for a download it
+asked Ollama for, a second line marked **registry (via Ollama)**, because that download leaves through Ollama, where
+BragDoc can't see inside it. It's the same honesty as for the [`gh` CLI](/guarantees/network-activity/).
+
+## What it's like on a CPU
+
+A local runner does one call at a time, and BragDoc queues for it: something you pressed (Tidy, Draft, a test) goes
+ahead of the judge's background work. Without a GPU, expect roughly 10–20 seconds per judged screenshot and a few
+minutes for a draft; Apple silicon and a GPU are much faster. A call that takes longer than 3 minutes is stopped (a
+draft gets 15 minutes, with its progress streaming in, so it never looks stuck).

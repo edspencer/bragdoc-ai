@@ -13,11 +13,17 @@ that is one service: GitHub, if you connect the [GitHub source](/concepts/found-
 connected, BragDoc talks to it when it checks for your merged pull requests, and when you paste a pull request link on
 the board (to fetch its title).
 
+From 0.2.0, the other is a model you set up for the [opt-in AI features](/ai/overview/), only while AI is on: a model
+runner on this computer or your network, or a cloud provider you've explicitly allowed. Both go through the same door
+and the same log, below.
+
 ## How that's enforced
 
 - **One door out.** Exactly one module in BragDoc (`server/egress.ts`) is allowed to make network requests. Before
   every request it rebuilds its allow-list from your settings (this computer, plus `api.github.com` only if you
-  connected GitHub with a token) and refuses anything else.
+  connected GitHub with a token, plus, only while AI is on, the hosts of your AI connections: a cloud one only once
+  you've allowed it) and refuses anything else. An AI call is also checked against its own connection on every
+  request, so revoking one of two connections to the same host stops that one at once.
 - **A test that fails the build.** BragDoc's CI scans the server code for any other way of making a network request
   or starting a process, and fails if it finds one.
 - **The pages can't phone home either.** The app's Content Security Policy only lets its pages talk to BragDoc
@@ -39,9 +45,27 @@ is refused before anything is sent, and the refusal appears on the receipt.
 
 <Shot name="docs-network" alt="Settings, Network activity: a receipt titled BragDoc outbound listing a refused request from Test the guard and two runs of the gh CLI (gh search prs and gh auth status) marked via gh CLI, then To BragDoc's makers: 0 B; beside it a note on where your data goes and the Test the guard box." caption="Network activity after connecting GitHub through gh (a stand-in, for the screenshot) and pressing Test the guard." />
 
+## AI calls
+
+With AI on, every call to a model is on the receipt too, local ones included. Each is stamped where it went:
+**this computer** (a runner on `127.0.0.1`), **your network** (a private address, a `.local` name, Docker's
+`host.docker.internal`) or **internet** (a cloud provider), with what it was for (the judge, Tidy, Draft, a test,
+looking for a runner, a download), the model, and how many bytes were sent. **The content is never logged.** Beside
+"To BragDoc's makers: 0 B", the receipt totals what went **to AI providers on the internet**.
+
+<Shot name="docs-network-ai" alt="Settings, Network activity with AI on: POST requests to 127.0.0.1:11434 stamped this computer, each labelled AI with its feature (the judge, Tidy this up, Draft with AI), the model qwen3.5:4b and the kilobytes sent, and GET requests listing the runner's models; then To BragDoc's makers 0 B and To AI providers on the internet 0 B." caption="Network activity with AI on and a runner on this computer. The model answering on 127.0.0.1:11434 is BragDoc's test model server, standing in for Ollama." staged />
+
+## What BragDoc can't see
+
 There's one honest exception to "every request". If you connect GitHub through the `gh` CLI, it is `gh` that talks
 to GitHub, not BragDoc. BragDoc logs each time it runs `gh` ("via gh CLI"), but it can't see inside `gh`'s own
 traffic. If you'd rather everything went through BragDoc's own logged path, use a personal access token instead.
+
+The same goes for a **model runner** (Ollama, LM Studio, llama.cpp): it's a program of its own, and whatever it
+contacts by itself (its model registry, update checks, its own cloud features) goes from its process, outside
+BragDoc's log. BragDoc logs every call it makes to the runner, and a model download it asked Ollama for is marked
+"registry (via Ollama)", but it can't see inside the runner. Ollama, for one, makes requests of its own. Configure that
+in the runner: see [Setting up a local model](/ai/local-models/#a-runner-is-its-own-software).
 
 One thing isn't listed because it never leaves your computer: when the `bragdoc` command checks whether BragDoc is
 up (`bragdoc service start` waits for it, asking several times a second), it asks only `127.0.0.1`, and sends

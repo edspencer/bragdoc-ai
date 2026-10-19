@@ -7,19 +7,11 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { ExternalLink, ShieldCheck } from 'lucide-react';
 import type { AiCallFeature, AiConnectionView } from '../../../shared/api.ts';
-import { consentStatement } from '../../../shared/ai/consent.ts';
+import { CONSENT_FEATURE_WORDS as FEATURE_WORDS, CONSENT_NEVER_SENT, consentStatement, consentWhereTail } from '../../../shared/ai/consent.ts';
 import { allowAiConnection, isApiError } from '../../api/client.ts';
 import { queryKeys } from '../../api/queries.ts';
 import { Btn, Dialog, Kicker, useToast } from '../../kit/index.ts';
 import { connectionName } from './words.ts';
-
-/** What each feature is called on this page, in the order the statement lists them. */
-const FEATURE_WORDS: Partial<Record<AiCallFeature, { title: string; when: string }>> = {
-  judge: { title: 'The judge (Found)', when: 'only once you switch the judge on' },
-  tidy: { title: 'Tidy this up (the board)', when: 'only when you press Tidy on something' },
-  draft: { title: 'Draft with AI (Folio)', when: 'only when you press Draft' },
-  test: { title: 'Test connection', when: 'when you press Test' },
-};
 
 export function ConsentDialog({ connection: c, open, onClose }: { connection: AiConnectionView; open: boolean; onClose: (allowed: boolean) => void }) {
   const qc = useQueryClient();
@@ -82,7 +74,7 @@ export function ConsentDialog({ connection: c, open, onClose }: { connection: Ai
           <Kicker>Where it goes</Kicker>
           <p className="m-0 mt-1">
             Straight from this computer to <span className="font-mono text-[13px] font-semibold" data-testid="ai-consent-host">{host}</span>
-            {st.provider ? <>, run by {st.provider}.</> : <>: a server you typed in. BragDoc can’t tell who runs it.</>}
+            {consentWhereTail(st)}
           </p>
         </section>
         <section>
@@ -103,7 +95,7 @@ export function ConsentDialog({ connection: c, open, onClose }: { connection: Ai
               );
             })}
           </div>
-          <p className="m-0 mt-2 text-[12.5px] text-muted">Every feature is off until you switch it on. File paths, ids and BragDoc’s own addresses are never sent.</p>
+          <p className="m-0 mt-2 text-[12.5px] text-muted">{CONSENT_NEVER_SENT}</p>
         </section>
         <section>
           <Kicker>Whose terms</Kicker>

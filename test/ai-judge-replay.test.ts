@@ -8,28 +8,11 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { formatReport, readRecording, RECORDINGS } from '../scripts/eval/lib.ts';
 import { judgeSpec } from '../scripts/eval/judge.ts';
+import { JUDGE_MEASURED, reportedScores } from '../scripts/eval/measured.ts';
 import { replay } from './ai-replay.ts';
 
-/** What each model scored live on the box: a replay must score the same. */
-const EXPECTED: Record<string, Record<string, string>> = {
-  'gemma4-e4b.json': {
-    'judge P / R on passed': '83% / 100% (44 of 44 wins the rules passed)',
-    'sarcasm kept': '8 of 20 (the rules passed 17)',
-    'PR accuracy': '100% (20 of 20)',
-  },
-  // Jev (D82), through a Jev connection: the fake's /systemone answers from the recording. (One sarcastic message is
-  // borderline for Jev: it came back at P(win) 0.54 in an earlier run, and below 0.5 in this one.)
-  'typesafe-jev-1.14.json': {
-    'judge P / R on passed': '100% / 100% (44 of 44 wins the rules passed)',
-    'sarcasm kept': '0 of 20 (the rules passed 17)',
-    'PR accuracy': '100% (20 of 20)',
-  },
-  'qwen3.5-4b.json': {
-    'judge P / R on passed': '89% / 95% (41 of 43 wins the rules passed)',
-    'sarcasm kept': '5 of 20 (the rules passed 17)',
-    'PR accuracy': '100% (20 of 20)',
-  },
-};
+/** What each model scored live on the box (scripts/eval/measured.ts, which the docs' table is made from too): a replay must score the same. */
+const EXPECTED: Record<string, Record<string, string>> = Object.fromEntries(JUDGE_MEASURED.filter((m) => m.recording).map((m) => [m.recording!, reportedScores(m)]));
 
 test('the judge recordings from real models replay: nothing stale, the same scores as live', async () => {
   const dir = path.join(RECORDINGS, 'judge');
@@ -46,6 +29,7 @@ test('the judge recordings from real models replay: nothing stale, the same scor
     // a case that failed when it was recorded (a timeout on a shared CPU) is skipped, and there are few
     assert.ok(r.unanswered.length <= 3, `${f}: ${r.unanswered.length} unanswered`);
     assert.ok(r.report.rows.every((x) => x.error === null), `${f}:\n${formatReport(r.report)}`);
-    for (const [k, v] of Object.entries(EXPECTED[f] ?? {})) assert.equal(r.report.summary[k], v, `${f}: ${k}`);
+    assert.ok(EXPECTED[f], `${f}: no row in scripts/eval/measured.ts`);
+    for (const [k, v] of Object.entries(EXPECTED[f]!)) assert.equal(r.report.summary[k], v, `${f}: ${k}`);
   }
 });
