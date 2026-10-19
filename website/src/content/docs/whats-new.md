@@ -3,9 +3,7 @@ title: What's new
 description: "What changed in each BragDoc release, newest first."
 ---
 
-## Coming in 0.2.0: opt-in AI
-
-Not released yet.
+## 0.2.0: opt-in AI
 
 Built on the [`v0.2` branch](https://github.com/edspencer/bragdoc-ai/tree/v0.2), on top of the first local release
 below. Three optional AI features, **each off until you switch it on**; with AI off, BragDoc works exactly as before
@@ -30,11 +28,6 @@ and doesn't even load the AI library it talks to models with. See [AI, off unles
 - **[AI is opt-in](/guarantees/ai-is-opt-in/)**, rule by rule, with the code that enforces each.
 
 ## 0.1.0: the first local release
-
-:::note[Not on npm yet]
-0.1.0 hasn't been published yet either: it will be, from the
-[`next` branch](https://github.com/edspencer/bragdoc-ai/tree/next).
-:::
 
 The first release of BragDoc as a local-first app you run on your own computer, built on the
 [`next` branch](https://github.com/edspencer/bragdoc-ai/tree/next):

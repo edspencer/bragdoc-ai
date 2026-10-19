@@ -30,10 +30,6 @@ Everything here is in v0.1, the first release.
 
 ## 0.2: opt-in AI
 
-:::note[Coming in 0.2.0]
-Built on the `v0.2` branch, after v0.1.
-:::
-
 Three optional AI features, each off until you switch it on, best run on a model on your own computer (BragDoc never
 installs one), or a cloud provider you explicitly allow. See [AI, off unless you turn it on](/ai/overview/).
 

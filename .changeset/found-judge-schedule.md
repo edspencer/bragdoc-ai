@@ -1,5 +1,0 @@
----
-"@bragdoc/local": patch
----
-
-The Found judge gets its card in Settings → AI and its place in Found. Switching it on gives you Judge now and nothing else; it then asks whether to also judge new things as they arrive, and says what that costs on this computer. You can also have it run every few hours, only between two times of day, and only when your computer is plugged in; a cloud model needs one more tick before anything is sent in the background. Each run is in AI activity, in plain words (including why one stopped or is waiting). Found groups what's waiting into "Looks like a win", "Not judged yet" and "Probably not", which stays collapsed and is never dismissed for you: "Dismiss these N" does it in one go, with Undo. Each card shows why the judge thinks so, a Judge again button and exactly what's sent, and Keep files it under the judge's suggested projects too. Edit "What counts as a win for me" right on the card; Settings shows how often you agreed with the judge. With AI off, none of it appears.

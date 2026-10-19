@@ -3,11 +3,6 @@ title: Choosing a model
 description: "Which local model to run for BragDoc's AI features, by how much RAM you have, and what each one actually scored as the judge on a synthetic test set. Under 8 GB there's no local recommendation."
 ---
 
-:::note[Coming in 0.2.0]
-The AI features are built on the [`v0.2` branch](https://github.com/edspencer/bragdoc-ai/tree/v0.2) and will be in
-BragDoc 0.2.0.
-:::
-
 Settings → AI reads this computer's RAM, processor and the free space in your home folder (on this computer; they're
 never sent anywhere) and suggests a model from the table below. The tables on this page are generated from the same
 code the app uses, so the two can't disagree.
