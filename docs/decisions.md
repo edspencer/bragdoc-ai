@@ -81,6 +81,8 @@ D17 onwards are decisions made while building.
 
 - No telemetry and no update check. All outbound network traffic goes through `server/egress.ts`, with an allow-list
   derived from the integrations the user turned on, and every request is logged for Settings → Network activity.
+  _Amended by D87: a registry check that a person runs (`bragdoc update`, `update --check`, `doctor`) is allowed, as
+  its own egress purpose; nothing checks by itself._
 - Subprocesses run only through `server/proc.ts` (`execFile`, no shell, allow-listed binaries).
 - A static guard test fails CI if any other file opens a network connection or spawns a process (PR2).
 
@@ -1618,3 +1620,28 @@ need, are D3b's, after the contract's reference code for them exists.
   nothing), so nothing else moved; the conformance runner's `serve-banner` check runs on a genuinely fresh home.
 - **The conformance runner** (`@edspencer/cli-conformance`, a devDependency) runs in CI with every check on, now that
   `busy`, `busy-json` and `serve-banner` pass; `cli-contract.json` lists them.
+
+### D87 — D9 amended: a registry check a person runs is allowed; nothing checks by itself
+
+Ed approved this on 4 November 2026, for the CLI contract's `update` and `doctor` (cli-contract SPEC 0.2 §1, §3, §5).
+
+- **Allowed:** `bragdoc update`, `bragdoc update --check` and `bragdoc doctor` ask the npm registry which version is
+  current (two GETs: `/-/package/@bragdoc%2flocal/dist-tags` and `/@bragdoc%2flocal/<version>`, for `engines`), and
+  `update` then has npm install it. Only when a person runs one of those commands.
+- **Still banned:** any check in the background, on startup, on a timer, from the server, or from the web app. The
+  server never asks the registry; nothing is shown in the UI about new versions. `service status` may repeat what the
+  last `update --check` or `doctor` found (`<data home>/update-check.json`), and never asks itself.
+- **`doctor --offline`** skips its registry check, so `doctor` can be run with nothing leaving the machine.
+- **Through egress.ts**, as everything else is: a new purpose, `update.registry`, by its own method
+  (`Egress.registry()`), not by adding the registry to the allow-list for everyone. It's GET only, no body, no
+  credentials in the URL, no cookies or tokens, only those two paths for BragDoc's own package, https (or plain http
+  to this computer, for a local registry), and each hop of a redirect is re-checked. Every request is logged in
+  `logs/network.jsonl`, so Settings → Network activity shows it like any other.
+- **Which registry:** `npm_config_registry`, else `npm config get registry`, else `https://registry.npmjs.org`
+  (SPEC §5 step 3): the one npm itself would install from, so a company mirror is asked rather than the public one.
+- **npm's own traffic** (`npm cache add`, `npm install -g`) leaves from npm's process, like gh's: it's run through
+  `proc.ts`, and logged as `via: npm` (`Egress.logProcess`), honestly marked as traffic BragDoc can only say it started.
+- **Considered:** keeping D9 whole and printing "run `npm i -g @bragdoc/local@latest`" (no rollback, no service
+  hand-over, no busy check: what the contract exists to replace); `npm view` (a second process, with output that isn't
+  a contract); a check on `service status` (exactly the background check D9 forbids, only slower).
+
