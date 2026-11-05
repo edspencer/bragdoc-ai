@@ -136,12 +136,19 @@ try {
   assert.equal(statusJson(4).installed, false);
   for (const sub of ['start', 'stop', 'restart', 'logs']) assert.equal(bdx('service', sub).code, 4, `service ${sub} with nothing installed`);
 
-  step('service install --dry-run writes nothing');
-  assert.match(bd('service', 'install', '--dry-run', '--port', String(port)), /Dry run/);
+  // this is a checkout's build, so every install here says --from-checkout (cli-contract SPEC §1, D90); a refresh doesn't
+  step('service install from a checkout without --from-checkout: refused (exit 1), nothing written');
+  const refused = bdx('service', 'install', '--port', String(port));
+  assert.equal(refused.code, 1, refused.stdout);
+  assert.match(refused.stderr, /git checkout.*add --from-checkout\./s);
   assert.equal(fs.existsSync(unitFile), false);
 
-  step('service install');
-  const installed = bd('service', 'install', '--port', String(port));
+  step('service install --dry-run writes nothing');
+  assert.match(bd('service', 'install', '--dry-run', '--from-checkout', '--port', String(port)), /Dry run/);
+  assert.equal(fs.existsSync(unitFile), false);
+
+  step('service install --from-checkout');
+  const installed = bd('service', 'install', '--from-checkout', '--port', String(port));
   console.log(installed);
   assert.match(installed, new RegExp(`is running at ${url}`));
   assert.ok(fs.existsSync(unitFile));
@@ -187,7 +194,7 @@ try {
   step('service install again, the unit unchanged: the running process is replaced (enable --now alone would not: D88)');
   const before = await until('a pid in status', pidOf);
   const unitBefore = fs.readFileSync(unitFile, 'utf8');
-  assert.match(bd('service', 'install', '--port', String(port)), new RegExp(`is running at ${url}`));
+  assert.match(bd('service', 'install', '--from-checkout', '--port', String(port)), new RegExp(`is running at ${url}`));
   assert.equal(fs.readFileSync(unitFile, 'utf8'), unitBefore, 'the same unit');
   const after = await until('a pid in status', pidOf);
   assert.notEqual(after, before, 'a new process');
@@ -210,9 +217,12 @@ try {
   await killAndWait(url, 'SIGKILL');
   await killAndWait(url, 'SIGTERM');
 
-  step('service stop, then start');
+  step('service stop --json, then start --json: one document on stdout each, the prose on stderr');
   assert.ok(enabled(), 'enabled after install');
-  assert.match(bd('service', 'stop'), /Stopped BragDoc/);
+  const stopDoc = bdx('service', 'stop', '--json');
+  assert.equal(stopDoc.code, 0, stopDoc.stderr);
+  const sd = JSON.parse(stopDoc.stdout);
+  assert.deepEqual([sd.ok, sd.action, sd.wasRunning, sd.running, sd.installed], [true, 'stop', true, false, true], stopDoc.stdout);
   await until('the service to stop', () => down(url));
   const stopped = bdx('service', 'status');
   assert.equal(stopped.code, 3, 'a stopped service: exit 3');
@@ -224,7 +234,10 @@ try {
   assert.ok(fs.existsSync(unitFile), 'stop keeps the unit');
   await sleep(2000);
   assert.ok(await down(url), 'a stopped service stays stopped');
-  assert.match(bd('service', 'start'), new RegExp(`is running at ${url}`));
+  const startDoc = bdx('service', 'start', '--json');
+  assert.equal(startDoc.code, 0, startDoc.stderr);
+  const sj = JSON.parse(startDoc.stdout);
+  assert.deepEqual([sj.ok, sj.action, sj.wasRunning, sj.running, sj.answering, sj.runningVersion], [true, 'start', false, true, true, version], startDoc.stdout);
 
   step('service logs: the file, on both OSes (D85)');
   const log = path.join(data, 'service', 'bragdoc.log');

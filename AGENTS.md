@@ -720,7 +720,8 @@ npm run build && node dist/server/cli.js serve --port 5050
 ```
 
 - Never run a real `bragdoc service install` or `bragdoc mcp install claude` against your own user: use a throwaway
-  `HOME` / `XDG_CONFIG_HOME`, `--dry-run` or `--print`. The service's real lifecycle runs only in CI
+  `HOME` / `XDG_CONFIG_HOME`, `--dry-run` or `--print` (from a checkout, `service install` needs `--from-checkout`
+  too, even with `--dry-run`: D90). The service's real lifecycle runs only in CI
   (`scripts/services-real.mjs`, which refuses to run elsewhere); test/service.test.ts covers it with the manager mocked.
 - Use a fake `gh` on `PATH` with fixture output, not your own GitHub login.
 - To reach a dev build through a reverse proxy: `--host 0.0.0.0` with `BRAGDOC_DANGEROUSLY_ALLOW_OPEN=1`, and (from

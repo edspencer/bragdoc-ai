@@ -27,12 +27,14 @@ Commands
   service install        Run BragDoc in the background as a login service (a LaunchAgent on macOS,
                          a systemd user unit on Linux): it starts when you log in, not when the
                          computer boots, and is restarted if it exits. Needs an installed bragdoc
-                         (npm i -g @bragdoc/local), not npx.
+                         (npm i -g @bragdoc/local), not npx or a git checkout.
     --port <n>           the port it serves on (default ${DEFAULT_PORT})
     --data-dir <dir>     its data home (default $BRAGDOC_HOME, else ~/.bragdoc)
     --dry-run            print the service definition it would write, and write nothing
     --refresh            re-write the installed service for this BragDoc, keeping its port and data
                          home (what \`bragdoc update\` runs); exits 4 if there's none
+    --from-checkout      run a git checkout's build (dist/) as the service, on purpose
+    --json               the outcome and the service's status as one JSON document on stdout
   service status         Is it installed and running, which version, and on which port. Exits 0
                          when it's answering, 3 when it isn't running, 4 when it isn't installed.
     --json               the same as one JSON document on stdout
@@ -42,10 +44,12 @@ Commands
                          (exit 75) while BragDoc is busy: an import, a judge run, AI requests.
                          restart re-writes the service first if its Node or BragDoc has gone.
     --force              stop or restart all the same
+    --json               the outcome and the service's status as one JSON document on stdout
   service logs           The last 50 lines of its log (<data home>/service/bragdoc.log).
     -f, --follow         keep printing what it writes, until Ctrl-C
     -n, --lines <n>      how many lines (default 50)
-  service uninstall      Stop it and remove the service. Your data stays.
+  service uninstall      Stop it and remove the service. Your data and its log stay.
+    --json               the outcome and the service's status as one JSON document on stdout
 
   update                 Update BragDoc to the latest version, from npm: checks it's safe, stops the
                          service, installs, starts it again and checks it answers, and puts the old

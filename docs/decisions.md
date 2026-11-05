@@ -1725,3 +1725,30 @@ writers (`server/platform/systemd.ts`, `launchd.ts`).
   the caveat, as before): the manager accepted it, and it may still be starting.
 - `busy-client.ts`'s header now says `@ 0.2`: the reference's file didn't change between 0.1 and 0.2, and the header
   lists every local change (it also guards `update`, since D88).
+
+### D90 — `service install` refuses a git checkout without `--from-checkout`; `--json` on the other service commands
+
+cli-contract SPEC §1: `install` must refuse to run from a checkout unless `--from-checkout` is given, and `--json`
+should be on every `service` command, not just `status`. BragDoc refused only a checkout's unbuilt `server/cli.ts` and
+npx's cache; a built checkout (`node dist/server/cli.js service install`) installed without a word, and a service that
+runs a checkout runs whatever it last built, and breaks when it's cleaned or rebuilt.
+
+- **A checkout is a package root outside any `node_modules` folder** (`underNodeModules` from
+  `server/update/install-method.ts`, the reference's own test, as Local Review does). That includes an `npm link`.
+  `install` refuses it, `--dry-run` included, with exit 1 and the global-install command, unless `--from-checkout`.
+  npx's cache is refused even with the flag, and so is the unbuilt CLI (a unit can't run TypeScript), whose message now
+  says to build and add the flag.
+- **A service installed from a checkout on purpose stays one:** `install --refresh` and `restart`'s re-render of a stale
+  unit go ahead without the flag when the unit already runs a checkout's `cli.js`. A refresh from a checkout over a unit
+  that runs an installed package is refused: it would swap what the service runs.
+- **`--json` on `install`, `uninstall`, `start`, `stop` and `restart`**, in Hallway's shape: one document on stdout,
+  `{ ok, action, error?, …what the action adds, …the fields of status --json }`, and the prose on stderr. What an action
+  adds: `wasInstalled` (uninstall), `wasRunning` (start, stop, restart), and for `install --dry-run`, `dryRun`,
+  `wouldWrite`, `definition` and `commands`. A failure still writes the document (`ok: false`, the message in `error`, or
+  `"busy"` for a refused `stop` or `restart`) and then exits as it would have: the exit codes don't change with
+  `--json`. A usage error writes none. `ok` is true exactly when the exit code is 0, so `install`'s readiness timeout,
+  a caveat with exit 0, is `ok: true` with `answering: false`.
+- **`logs --json` stays a usage error** (exit 2): there's no document to make of a log.
+- `uninstall`'s message names the log on Linux too: since D85 both OSes keep it in `<data home>/service/`.
+- `scripts/services-real.mjs` runs the built checkout, so it installs with `--from-checkout`, checks the refusal
+  without it, and drives `stop --json` and `start --json` against the real managers.

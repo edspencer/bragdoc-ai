@@ -20,7 +20,10 @@ interface Fake {
   ctx: Ctx;
   home: string;
   calls: string[];
+  /** stdout and stderr together, in order. */
   out: () => string;
+  /** Each stream on its own, for `--json`: what's been written since the last `streams()`, then cleared. */
+  streams: () => { stdout: string; stderr: string };
   /** What the fake service manager thinks. */
   state: { loaded: boolean; running: boolean; pid: number };
   probes: number[];
@@ -40,6 +43,8 @@ function fake(platform: NodeJS.Platform, o: { answer?: (port: number, f: Fake) =
   const h = tmpHome();
   homes.push(h.cleanup);
   let out = '';
+  let stdout = '';
+  let stderr = '';
   let clock = 0;
   let bootstrapFailures = o.bootstrapFailures ?? 0;
   // how many `launchctl print`s still find the job after a bootout (launchd removing it asynchronously)
@@ -48,6 +53,11 @@ function fake(platform: NodeJS.Platform, o: { answer?: (port: number, f: Fake) =
     home: h.home,
     calls: [],
     out: () => out,
+    streams: () => {
+      const r = { stdout, stderr };
+      stdout = stderr = '';
+      return r;
+    },
     state: { loaded: false, running: false, pid: 0 },
     probes: [],
     streamed: [],
@@ -101,8 +111,14 @@ function fake(platform: NodeJS.Platform, o: { answer?: (port: number, f: Fake) =
   };
   f.ctx = makeCtx({
     env: { ...h.env, ...o.env },
-    out: (s) => (out += s),
-    err: (s) => (out += s),
+    out: (s) => {
+      out += s;
+      stdout += s;
+    },
+    err: (s) => {
+      out += s;
+      stderr += s;
+    },
     platform,
     homedir: h.home,
     uid: 501,
@@ -447,7 +463,7 @@ test('Windows (and anything else) says "not supported yet", after usage errors a
 
 test('usage errors: no subcommand, an unknown one, a flag it does not take, an argument, a bad port', async () => {
   const f = fake('linux');
-  for (const [pos, flags] of [[[], {}], [['nonsense'], {}], [['status'], { port: '1' }], [['install', 'extra'], {}], [['install'], { port: '0' }], [['install'], { port: 'abc' }], [['install'], { 'data-dir': '' }]] as const)
+  for (const [pos, flags] of [[[], {}], [['nonsense'], {}], [['status'], { port: '1' }], [['install', 'extra'], {}], [['install'], { port: '0' }], [['install'], { port: 'abc' }], [['install'], { 'data-dir': '' }], [['logs'], { json: '1' }], [['start'], { 'from-checkout': '1' }]] as const)
     await assert.rejects(service(f.ctx, [...pos], { ...flags }, undefined), UsageError, JSON.stringify([pos, flags]));
   assert.deepEqual(f.calls, []);
 });
@@ -687,4 +703,143 @@ test("status repeats the last update check: in --json as `update` (left out, nev
   assert.ok(!('update' in (await json())), 'a cache about another version than this one is ignored');
   cache(VERSION, '99.0.0', '2020-01-01T00:00:00.000Z');
   assert.ok(!('update' in (await json())), 'nor a stale one');
+});
+
+// ---------------------------------------------------------------------------------------------------------------
+// --from-checkout (cli-contract SPEC §1; D90)
+// ---------------------------------------------------------------------------------------------------------------
+
+const CHECKOUT = '/home/someone/Code/bragdoc';
+const checkout = (platform: NodeJS.Platform = 'linux') => fake(platform, { packageRoot: CHECKOUT, cliScript: `${CHECKOUT}/dist/server/cli.js` });
+
+test("install refuses a git checkout's build without --from-checkout, writing nothing; with it, the unit runs the checkout", async () => {
+  for (const platform of ['linux', 'darwin'] as const) {
+    const f = checkout(platform);
+    for (const flags of [{}, { 'dry-run': '1' }] as Record<string, string>[])
+      await assert.rejects(service(f.ctx, ['install'], { ...flags }, undefined), /this BragDoc is a git checkout \(\/home\/someone\/Code\/bragdoc\).*npm i -g @bragdoc\/local.*add --from-checkout\.$/s);
+    assert.deepEqual(f.calls, [], 'nothing asked of the manager');
+    assert.equal(fs.existsSync(platform === 'linux' ? unitFile(f) : plistFile(f)), false, 'nothing written');
+
+    // --dry-run and --from-checkout together: the unit it would write, still nothing written
+    assert.equal(await service(f.ctx, ['install'], { 'dry-run': '1', 'from-checkout': '1' }, undefined), 0);
+    assert.match(f.out(), /^Dry run: nothing is written/m);
+    assert.ok(f.out().includes(`${CHECKOUT}/dist/server/cli.js`), f.out());
+    assert.equal(fs.existsSync(platform === 'linux' ? unitFile(f) : plistFile(f)), false);
+
+    assert.equal(await service(f.ctx, ['install'], { 'from-checkout': '1' }, undefined), 0);
+    assert.ok(fs.readFileSync(platform === 'linux' ? unitFile(f) : plistFile(f), 'utf8').includes(`${CHECKOUT}/dist/server/cli.js`));
+  }
+});
+
+test('--from-checkout never lets npx through, and the unbuilt CLI says how to build and use it', async () => {
+  const npx = fake('linux', { packageRoot: '/home/someone/.npm/_npx/1a2b/node_modules/@bragdoc/local', cliScript: '/home/someone/.npm/_npx/1a2b/node_modules/@bragdoc/local/dist/server/cli.js' });
+  await assert.rejects(service(npx.ctx, ['install'], { 'from-checkout': '1' }, undefined), /npx's cache/);
+  const src = fake('linux', { packageRoot: CHECKOUT, cliScript: `${CHECKOUT}/server/cli.ts` });
+  await assert.rejects(service(src.ctx, ['install'], { 'from-checkout': '1' }, undefined), /npm run build`, then `node dist\/server\/cli\.js service install --from-checkout`/);
+  // the control: an installed package needs no flag
+  assert.equal(await service(fake('linux').ctx, ['install'], {}, undefined), 0);
+});
+
+test('a service installed from a checkout on purpose is refreshed, and re-rendered on restart, without the flag again', async () => {
+  const f = checkout();
+  assert.equal(await service(f.ctx, ['install'], { 'from-checkout': '1' }, undefined), 0);
+  assert.equal(await service(f.ctx, ['install'], { refresh: '1' }, undefined), 0);
+  // a plain install from it still refuses
+  await assert.rejects(service(f.ctx, ['install'], {}, undefined), /add --from-checkout/);
+  // an installed package's unit refreshed from a checkout is refused: that would swap what the service runs
+  const g = fake('linux');
+  await service(g.ctx, ['install'], {}, undefined);
+  const co = checkout();
+  fs.mkdirSync(path.dirname(unitFile(co)), { recursive: true });
+  fs.copyFileSync(unitFile(g), unitFile(co));
+  co.state.loaded = co.state.running = true;
+  await assert.rejects(service(co.ctx, ['install'], { refresh: '1' }, undefined), /add --from-checkout/);
+});
+
+// ---------------------------------------------------------------------------------------------------------------
+// --json on install, uninstall, start, stop and restart (cli-contract SPEC §1)
+// ---------------------------------------------------------------------------------------------------------------
+
+/** stdout is exactly one JSON document; returns it, with stderr. */
+function oneDocument(f: Fake): { doc: Record<string, unknown>; stderr: string } {
+  const { stdout, stderr } = f.streams();
+  assert.match(stdout, /^\{\n[\s\S]*\n\}\n$/, `one document, nothing else:\n${stdout}`);
+  return { doc: JSON.parse(stdout) as Record<string, unknown>, stderr };
+}
+
+test('--json: one document on stdout ({ ok, action, …, the status }), the prose on stderr, the same exit codes', async () => {
+  for (const platform of ['linux', 'darwin'] as const) {
+    const f = fake(platform);
+    assert.equal(await service(f.ctx, ['install'], { json: '1', port: '5151' }, undefined), 0);
+    let { doc, stderr } = oneDocument(f);
+    assert.deepEqual([doc.ok, doc.action, doc.installed, doc.running, doc.answering, doc.port, doc.runningVersion], [true, 'install', true, true, true, 5151, '0.0.0']);
+    assert.equal(doc.unit, platform === 'linux' ? unitFile(f) : plistFile(f));
+    assert.match(stderr, /BragDoc 0\.0\.0 is running at http:\/\/localhost:5151/);
+
+    assert.equal(await service(f.ctx, ['stop'], { json: '1' }, undefined), 0);
+    ({ doc, stderr } = oneDocument(f));
+    assert.deepEqual([doc.ok, doc.action, doc.wasRunning, doc.running, doc.stopped], [true, 'stop', true, false, true]);
+    assert.match(stderr, /^Stopped BragDoc/);
+
+    assert.equal(await service(f.ctx, ['start'], { json: '1' }, undefined), 0);
+    ({ doc } = oneDocument(f));
+    assert.deepEqual([doc.ok, doc.action, doc.wasRunning, doc.running, doc.answering], [true, 'start', false, true, true]);
+
+    assert.equal(await service(f.ctx, ['restart'], { json: '1' }, undefined), 0);
+    ({ doc } = oneDocument(f));
+    assert.deepEqual([doc.ok, doc.action, doc.wasRunning, doc.answering], [true, 'restart', true, true]);
+
+    assert.equal(await service(f.ctx, ['uninstall'], { json: '1' }, undefined), 0);
+    ({ doc, stderr } = oneDocument(f));
+    assert.deepEqual([doc.ok, doc.action, doc.wasInstalled, doc.installed], [true, 'uninstall', true, false]);
+    assert.match(stderr, /Your data in .* is untouched, and so is the service's log/);
+    assert.ok(!('error' in doc));
+  }
+});
+
+test('--json when it fails: the document still comes (ok: false, the error), then the usual exit code; busy is 75', async () => {
+  const f = fake('linux', { busy: busyAnswer({ import: 1, judge: 0, ai: 0 }) });
+  // not installed: exit 4 (ExitError), and a document saying so
+  await assert.rejects(service(f.ctx, ['start'], { json: '1' }, undefined), (e) => e instanceof ExitError && e.exitCode === 4);
+  let { doc } = oneDocument(f);
+  assert.deepEqual([doc.ok, doc.action, doc.installed], [false, 'start', false]);
+  assert.match(String(doc.error), /isn't installed as a service/);
+
+  await service(f.ctx, ['install'], {}, undefined);
+  f.streams();
+  // busy: exit 75, error "busy", the sentence on stderr only
+  assert.equal(await service(f.ctx, ['stop'], { json: '1' }, undefined), 75);
+  let stderr: string;
+  ({ doc, stderr } = oneDocument(f));
+  assert.deepEqual([doc.ok, doc.action, doc.error, doc.running], [false, 'stop', 'busy', true]);
+  assert.match(stderr, /^bragdoc: BragDoc is busy: 1 import is running\./);
+  // --force: Overriding on stderr, the document on stdout
+  assert.equal(await service(f.ctx, ['restart'], { json: '1', force: '1' }, undefined), 0);
+  ({ doc, stderr } = oneDocument(f));
+  assert.equal(doc.ok, true);
+  assert.match(stderr, /^Overriding: BragDoc is busy/);
+
+  // a refused install (a checkout without the flag): exit 1, a document with the reason
+  const co = checkout();
+  await assert.rejects(service(co.ctx, ['install'], { json: '1' }, undefined), /git checkout/);
+  ({ doc } = oneDocument(co));
+  assert.deepEqual([doc.ok, doc.action, doc.installed], [false, 'install', false]);
+  assert.match(String(doc.error), /add --from-checkout/);
+
+  // a usage error writes no document
+  await assert.rejects(service(f.ctx, ['start'], { json: '1', force: '1' }, undefined), UsageError);
+  assert.equal(f.streams().stdout, '');
+});
+
+test('install --dry-run --json: the definition and commands in the document, and nothing written', async () => {
+  const f = fake('linux');
+  const before = fs.readdirSync(f.home);
+  assert.equal(await service(f.ctx, ['install'], { json: '1', 'dry-run': '1', port: '5151' }, undefined), 0);
+  const { doc, stderr } = oneDocument(f);
+  assert.deepEqual([doc.ok, doc.action, doc.dryRun, doc.installed, doc.wouldWrite], [true, 'install', true, false, unitFile(f)]);
+  assert.match(String(doc.definition), /^ExecStart=.* serve --port 5151/m);
+  assert.ok(Array.isArray(doc.commands));
+  assert.match(stderr, /^Dry run: nothing is written/);
+  assert.deepEqual(fs.readdirSync(f.home), before, 'nothing written');
+  assert.ok(!f.calls.some((c) => !c.includes(' show ')), f.calls.join('\n'));
 });

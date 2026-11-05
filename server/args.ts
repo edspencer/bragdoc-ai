@@ -25,7 +25,7 @@ export const EXIT_BUSY = 75;
 /** Options that take a value (`--port 5050` or `--port=5050`). */
 const VALUE_FLAGS = ['port', 'host', 'data-dir', 'engine', 'name', 'aliases', 'not-me', 'connection', 'model', 'schema', 'file', 'system', 'lines', 'to'];
 /** Options that don't. */
-const BOOLEAN_FLAGS = ['open', 'dry-run', 'stdio', 'print', 'snippet', 'json', 'follow', 'force', 'check', 'yes', 'refresh', 'offline'];
+const BOOLEAN_FLAGS = ['open', 'dry-run', 'stdio', 'print', 'snippet', 'json', 'follow', 'force', 'check', 'yes', 'refresh', 'offline', 'from-checkout'];
 
 export interface ParsedArgs {
   pos: string[];

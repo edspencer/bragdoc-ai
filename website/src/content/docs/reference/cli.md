@@ -29,17 +29,23 @@ prints `BragDoc 0.4.0: http://localhost:2724` (its version, then its address) on
 
 Runs BragDoc in the background as a login service: a LaunchAgent on macOS, a systemd user unit on Linux. It starts
 when you log in (not when the computer boots), runs as you, and is restarted if it exits. It needs an installed
-`bragdoc` (`npm install -g @bragdoc/local`), not `npx`. Not supported on Windows yet.
+`bragdoc` (`npm install -g @bragdoc/local`), not `npx`, and *from 0.6.0* not a git checkout unless you add
+`--from-checkout`. Not supported on Windows yet.
 
 | Command | What it does |
 | --- | --- |
-| `bragdoc service install` | Install and start it. Takes `--port`, `--data-dir`, and `--dry-run` (print the service definition and write nothing). Over a running service, it replaces it. *From 0.5.0,* `--refresh` re-writes the installed service for this BragDoc, keeping the port and data folder it records (what [`bragdoc update`](#bragdoc-update) runs); with none installed it exits 4. |
+| `bragdoc service install` | Install and start it. Takes `--port`, `--data-dir`, and `--dry-run` (print the service definition and write nothing). Over a running service, it replaces it. *From 0.5.0,* `--refresh` re-writes the installed service for this BragDoc, keeping the port and data folder it records (what [`bragdoc update`](#bragdoc-update) runs); with none installed it exits 4. *From 0.6.0,* `--from-checkout` lets a git checkout's build (`dist/`) be the service, on purpose; without it, a checkout is refused. |
 | `bragdoc service status` | Whether it's installed, running and answering; the version installed and the version running; the port, the data folder and the log. `--json` prints the same as one JSON document. |
 | `bragdoc service start` | Start it, and wait until it answers. |
 | `bragdoc service stop` | Stop it until the next login. It stays installed and enabled, as `systemctl --user stop` and `launchctl bootout` leave it; to keep it off for good, uninstall it. Refused while BragDoc is [busy](#bragdoc-busy), unless `--force`. |
 | `bragdoc service restart` | Restart it. Refused while BragDoc is [busy](#bragdoc-busy), unless `--force`. *From 0.5.0,* if the Node or the BragDoc the service runs has gone (or it's an older format), it re-writes the service for this BragDoc first. |
 | `bragdoc service logs` | Print the last 50 lines of its log. `-f` (`--follow`) keeps printing what it writes; `-n <lines>` (`--lines`) prints another number of lines. |
 | `bragdoc service uninstall` | Stop it and remove the service. Your data and its log stay. |
+
+*From 0.6.0,* `install`, `uninstall`, `start`, `stop` and `restart` take `--json` too: one JSON document on stdout,
+`{ "ok": …, "action": "stop", … }` followed by the same fields as `service status --json` (and `"error"` when it
+failed: `"busy"` for a refused `stop` or `restart`), and everything else on stderr. The exit code is the same as
+without it. `logs` doesn't take `--json`.
 
 **Its log** is one file, `<data folder>/service/bragdoc.log`, on macOS and Linux alike: the service's output is
 appended to it, not sent to the systemd journal. BragDoc rotates it itself: past 10 MB it's copied to `bragdoc.1.log`

@@ -65,8 +65,9 @@ bragdoc service logs      # the last 50 lines of its log; -f to follow
 bragdoc service uninstall # removes the service; your data stays
 ```
 
-A service needs the installed `bragdoc`, not `npx` (npx's copy can vanish from its cache), and refuses to install
-from there. `bragdoc service install --dry-run` shows what it would write.
+A service needs the installed `bragdoc`, not `npx` (npx's copy can vanish from its cache) or a git checkout, and
+refuses to install from there (from a checkout, `--from-checkout` says you mean it). `bragdoc service install
+--dry-run` shows what it would write.
 
 ### Docker
 
