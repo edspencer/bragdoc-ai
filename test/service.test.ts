@@ -31,6 +31,8 @@ interface Fake {
   followed: string[];
   /** Every busy check: `<port>/api/busy`. */
   busyAsked: string[];
+  /** What ran through proc.ts (loginctl). */
+  procs: string[];
   /** Make the manager refuse from now on: systemctl's `enable`, launchctl's `bootstrap` (as 125, no login session). */
   refuse: { enable: boolean; bootstrap: boolean };
 }
@@ -39,7 +41,7 @@ interface Fake {
  * A ctx on a throwaway home with a fake service manager. `answer(port)` is what the health probe sees; by default
  * BragDoc answers exactly while the fake manager has it running.
  */
-function fake(platform: NodeJS.Platform, o: { answer?: (port: number, f: Fake) => Probe; busy?: (port: number) => Response; lingerPrints?: number; bootstrapFailures?: number; bootstrapCode?: number; failed?: boolean; env?: NodeJS.ProcessEnv; cliScript?: string; packageRoot?: string; noBus?: boolean; gone?: string[] } = {}): Fake {
+function fake(platform: NodeJS.Platform, o: { answer?: (port: number, f: Fake) => Probe; busy?: (port: number) => Response; linger?: 'yes' | 'no'; lingerPrints?: number; bootstrapFailures?: number; bootstrapCode?: number; failed?: boolean; env?: NodeJS.ProcessEnv; cliScript?: string; packageRoot?: string; noBus?: boolean; gone?: string[] } = {}): Fake {
   const h = tmpHome();
   homes.push(h.cleanup);
   let out = '';
@@ -63,6 +65,7 @@ function fake(platform: NodeJS.Platform, o: { answer?: (port: number, f: Fake) =
     streamed: [],
     followed: [],
     busyAsked: [],
+    procs: [],
     refuse: { enable: false, bootstrap: false },
     ctx: undefined as unknown as Ctx,
   };
@@ -126,6 +129,12 @@ function fake(platform: NodeJS.Platform, o: { answer?: (port: number, f: Fake) =
     cliScript: o.cliScript ?? '/usr/local/lib/node_modules/@bragdoc/local/dist/server/cli.js',
     packageRoot: o.packageRoot ?? '/usr/local/lib/node_modules/@bragdoc/local',
     run,
+    // loginctl, through proc.ts: what `linger` says, else it can't answer (no logind, as in a container or this test)
+    proc: async (bin, args) => {
+      f.procs.push([bin, ...args].join(' '));
+      if (bin === 'loginctl' && o.linger) return { code: 0, stdout: `Linger=${o.linger}\n`, stderr: '' };
+      return { code: 1, stdout: '', stderr: 'Failed to connect to bus: No such file or directory' };
+    },
     stream: async (cmd, args) => {
       f.streamed.push([cmd, ...args]);
       return 0;
@@ -201,7 +210,7 @@ test('install on Linux: writes the unit, reloads, enables, starts, waits for /ap
   );
   assert.match(f.out(), /BragDoc 0\.0\.0 is running at http:\/\/localhost:2724/);
   assert.match(f.out(), /not when the computer boots/);
-  assert.match(f.out(), /loginctl enable-linger/);
+  assert.doesNotMatch(f.out(), /linger/i, "loginctl couldn't answer, so not a word about it");
   assert.match(f.out(), /Logs: {6}bragdoc service logs \(~\/\.bragdoc\/service\/bragdoc\.log\)/);
 
   // again, unchanged: no reload, but the running service is still replaced: `enable --now` and `start` leave an active
@@ -214,6 +223,53 @@ test('install on Linux: writes the unit, reloads, enables, starts, waits for /ap
   f.calls.length = 0;
   assert.equal(await service(f.ctx, ['install'], { port: '5151' }, undefined), 0);
   assert.ok(f.calls.includes('systemctl --user daemon-reload') && f.calls.includes('systemctl --user restart bragdoc.service'), f.calls.join('\n'));
+});
+
+test('install on Linux checks linger (cli-contract SPEC §7, D92): off prints why and the sudo line; on, or no answer, nothing', async () => {
+  const advice =
+    'Lingering is off for someone-example, so the service stops when you log out (SSH sessions included), and starts at your next login. To keep BragDoc running, once:\n  sudo loginctl enable-linger someone-example\n';
+  for (const linger of ['no', 'yes', undefined] as const) {
+    const f = fake('linux', { linger, env: { USER: 'someone-example' } });
+    assert.equal(await service(f.ctx, ['install'], {}, undefined), 0);
+    const { stdout, stderr } = f.streams();
+    assert.deepEqual(f.procs, ['loginctl show-user someone-example -p Linger'], `linger ${linger}: asked once`);
+    if (linger === 'no') {
+      assert.ok(stdout.includes(`is restarted if it exits.\n\n${advice}`), stdout);
+      assert.equal(stdout.split('enable-linger').length, 2, 'once');
+    } else assert.doesNotMatch(stdout + stderr, /linger|sudo/i, `linger ${linger}: not a word`);
+    assert.ok(!f.calls.some((c) => /sudo|loginctl/.test(c)), 'never runs sudo');
+  }
+});
+
+test("linger isn't asked on macOS, by a dry run, or by `update`'s --refresh", async () => {
+  const mac = fake('darwin', { linger: 'no', env: { USER: 'someone-example' } });
+  assert.equal(await service(mac.ctx, ['install'], {}, undefined), 0);
+  assert.doesNotMatch(mac.out(), /linger/i);
+  const f = fake('linux', { linger: 'no', env: { USER: 'someone-example' } });
+  assert.equal(await service(f.ctx, ['install'], { 'dry-run': '1' }, undefined), 0);
+  assert.equal(await service(f.ctx, ['install'], {}, undefined), 0);
+  f.procs.length = 0;
+  f.streams();
+  assert.equal(await service(f.ctx, ['install'], { refresh: '1' }, undefined), 0);
+  assert.deepEqual([mac.procs, f.procs], [[], []]);
+  assert.doesNotMatch(f.streams().stdout, /linger/i);
+});
+
+test("install --json with linger off: the advice is in the document's warnings; on, or no answer, it isn't", async () => {
+  for (const linger of ['no', 'yes', undefined] as const) {
+    const f = fake('linux', { linger, env: { USER: 'someone-example' } });
+    assert.equal(await service(f.ctx, ['install'], { json: '1' }, undefined), 0);
+    const { doc, stderr } = oneDocument(f);
+    const said = (doc.warnings as string[]).filter((w) => /linger/i.test(w));
+    if (linger === 'no') {
+      assert.equal(said.length, 1);
+      assert.match(said[0], /^Lingering is off for someone-example, so the service stops when you log out.*\n {2}sudo loginctl enable-linger someone-example$/s);
+      assert.match(stderr, /^ {2}sudo loginctl enable-linger someone-example$/m, 'the prose too, on stderr');
+    } else {
+      assert.deepEqual(said, [], `linger ${linger}`);
+      assert.doesNotMatch(stderr, /linger/i);
+    }
+  }
 });
 
 test('install without $BRAGDOC_HOME names no data home in the unit (the service and a terminal share ~/.bragdoc)', async () => {

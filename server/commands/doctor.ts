@@ -23,6 +23,7 @@ import { RegistryError, resolveRegistry, resolveTarget } from '../update/registr
 import { compareVersions, isPrerelease, satisfies, satisfiesEngines } from '../update/semver.js';
 import { updateNotice, writeUpdateCheck, type UpdateCheck } from '../update/update-check.js';
 import type { Ctx } from './context.js';
+import { askLinger } from './linger.js';
 import { installedVersion, manager } from './service.js';
 import { IMAGE, PACKAGE_NAME, changelogUrl, serviceOf, viaEgress } from './update.js';
 
@@ -191,14 +192,12 @@ function configCheck(dataDir: string, show: (p: string) => string): DoctorCheck 
     : fail('config', r.message, `fix ${show(file)} by hand (Settings shows what's wrong), or move it aside and BragDoc writes the defaults`);
 }
 
-/** `loginctl show-user <user> -p Linger` (cli-contract SPEC §7): without it, a user service stops at logout. */
+/** `loginctl show-user <user> -p Linger` (cli-contract SPEC §7, linger.ts): without it, a user service stops at logout. */
 async function linger(ctx: Ctx): Promise<DoctorCheck> {
-  const user = ctx.env.USER || ctx.env.LOGNAME;
+  const { user, enabled } = await askLinger(ctx);
   if (!user) return skip('linger', "Couldn't tell who you are ($USER isn't set).");
-  const r = await ctx.proc('loginctl', ['show-user', user, '-p', 'Linger'], { env: ctx.env, timeoutMs: 5000 }).catch(() => null);
-  const m = r && /^Linger=(yes|no)$/m.exec(r.stdout);
-  if (!r || r.code !== 0 || !m) return skip('linger', "Couldn't ask loginctl about lingering.");
-  return m[1] === 'yes'
+  if (enabled === null) return skip('linger', "Couldn't ask loginctl about lingering.");
+  return enabled
     ? pass('linger', `Lingering is on for ${user}: the service keeps running after you log out.`)
     : warn('linger', `Lingering is off for ${user}: the service stops when you log out, and starts at your next login.`, `sudo loginctl enable-linger ${user}`);
 }

@@ -1,7 +1,6 @@
 // The platform layer: which service manager this OS has (launchd on macOS, systemd's user instance on Linux, none yet
 // on Windows, D14), and how to open a URL in the browser. The rest of the CLI asks here and never branches on
 // process.platform itself.
-import os from 'node:os';
 import { posix as path } from 'node:path';
 import type { AllowedBin } from '../proc.js';
 import { launchdManager } from './launchd.js';
@@ -29,18 +28,10 @@ export function managerFor(o: ManagerOptions): ServiceManager {
   if (o.platform === 'linux') {
     // $XDG_CONFIG_HOME is where systemd's user instance looks; an empty or relative value means "not set" (XDG spec)
     const xdg = o.env.XDG_CONFIG_HOME && path.isAbsolute(o.env.XDG_CONFIG_HOME) ? o.env.XDG_CONFIG_HOME : path.join(o.homedir, '.config');
-    return systemdManager({ dir: path.join(xdg, 'systemd', 'user'), run: o.run, user: safeUser() });
+    return systemdManager({ dir: path.join(xdg, 'systemd', 'user'), run: o.run });
   }
   if (o.platform === 'win32') throw new UnsupportedPlatformError("`bragdoc service` isn't supported on Windows yet. Run `bragdoc` in a terminal instead.");
   throw new UnsupportedPlatformError(`\`bragdoc service\` supports macOS (launchd) and Linux (systemd), not ${o.platform}. Run \`bragdoc\` in a terminal instead.`);
-}
-
-function safeUser(): string {
-  try {
-    return os.userInfo().username;
-  } catch {
-    return '$USER';
-  }
 }
 
 /** The command that opens a URL in the default browser, or null where there isn't one we know (`--open`). */

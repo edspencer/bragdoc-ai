@@ -1765,3 +1765,20 @@ the service. Only `--refresh` (D88) kept them.
   option says otherwise. That's `--refresh`'s rule too, apart from `--refresh` refusing when nothing is installed.
 - **The settings are read from the unit's file** (`parseArgv`), not asked of the manager, so `--dry-run` still runs
   nothing and shows what a reinstall would write.
+
+### D92 — `service install` checks linger, and mentions it only when it's off
+
+cli-contract SPEC §7: on Linux, `install` and `doctor` must check `loginctl show-user $USER -p Linger`, and only if
+it's off print `sudo loginctl enable-linger <user>` and why. `doctor` did (D88); `install` printed `loginctl
+enable-linger <user>` (without `sudo`) to everybody, as part of the unit's lifetime line (D31), so a machine with
+lingering on was told to turn it on, and `service status` repeated it.
+
+- **One check, `server/commands/linger.ts`:** `askLinger` (doctor's code, moved: `$USER` or `$LOGNAME`, `loginctl`
+  through proc.ts with a 5 s timeout) and `lingerAdvice`, the reference's wording. `doctor`'s `linger` check is
+  unchanged.
+- **`install` asks after the service is up** and prints the advice under the lifetime line only when lingering is
+  off. On, or an answer it can't read (no `loginctl`, no logind, no `$USER`: a container), it says nothing. It never
+  runs `sudo`. With `--json`, the advice leads the document's `warnings`. macOS, `--dry-run` and `--refresh` (what
+  `bragdoc update` runs) don't ask.
+- The systemd lifetime line (`install` and `status`) no longer mentions linger, and `systemdManager` no longer takes
+  the user's name.

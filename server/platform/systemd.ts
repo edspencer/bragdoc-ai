@@ -9,8 +9,9 @@
 //
 // A user unit, not a system one: it runs as you, with your manager. That manager starts at your first login and stops
 // at your last logout, so by default BragDoc stops when you log out (SSH sessions included). `loginctl enable-linger`
-// keeps it, and starts it at boot; that's said after an install rather than done, because it changes how the machine
-// behaves after you leave it and needs a privilege `bragdoc` otherwise never asks for.
+// keeps it, and starts it at boot; `service install` checks it and, only when it's off, says so (commands/linger.ts,
+// D92) rather than doing it, because it changes how the machine behaves after you leave it and needs `sudo`, which
+// `bragdoc` never runs.
 import fs from 'node:fs';
 // POSIX paths whatever OS this runs on, so this platform's logic is tested anywhere
 import { posix as path } from 'node:path';
@@ -101,13 +102,11 @@ export interface SystemdOptions {
   /** ~/.config/systemd/user (or $XDG_CONFIG_HOME/systemd/user). */
   dir: string;
   run: Runner;
-  /** The user's login name, for the enable-linger hint. */
-  user: string;
 }
 
 const SHOW_PROPS = 'LoadState,ActiveState,SubState,MainPID,ExecMainStatus,ExecMainPID';
 
-export function systemdManager({ dir, run, user }: SystemdOptions): ServiceManager {
+export function systemdManager({ dir, run }: SystemdOptions): ServiceManager {
   const file = path.join(dir, SYSTEMD_UNIT);
 
   // our own unit file (a fixed name): the one removal here, by `uninstall` and by a first install the manager refused
@@ -156,10 +155,8 @@ export function systemdManager({ dir, run, user }: SystemdOptions): ServiceManag
     noun: 'systemd user unit',
     name: SYSTEMD_UNIT,
     file,
-    lifetime:
-      'It starts when you log in (not when the computer boots), and is restarted if it exits.\n' +
-      "A user service stops when you log out. To keep it running while you're logged out, and start it at boot,\n" +
-      `enable lingering once: loginctl enable-linger ${user}`,
+    // linger is `service install`'s to mention, and only when it's off (commands/linger.ts, D92)
+    lifetime: 'It starts when you log in (not when the computer boots), and is restarted if it exits.',
     render: renderUnit,
     parseArgv: parseUnitArgv,
     installCommands: () => ['systemctl --user daemon-reload', `systemctl --user enable --quiet ${SYSTEMD_UNIT}`, `systemctl --user start ${SYSTEMD_UNIT}`],
