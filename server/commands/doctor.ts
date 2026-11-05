@@ -45,7 +45,8 @@ const SYMBOL = { pass: '✓', warn: '!', fail: '✗' } as const;
 export async function doctor(ctx: Ctx, args: string[], flags: Record<string, string>, rest: string[] | undefined): Promise<number> {
   check('doctor', flags, ['json', 'offline'], args, 0, rest);
   const json = !!flags.json;
-  const checks = await runChecks(ctx, { offline: !!flags.offline, notice: (s) => ctx.err(s + '\n') });
+  const notices: string[] = [];
+  const checks = await runChecks(ctx, { offline: !!flags.offline, notice: (s) => notices.push(s) });
   const ok = !checks.some((c) => c.status === 'fail');
   if (json) ctx.out(JSON.stringify({ ok, version: VERSION, checks }, null, 2) + '\n');
   // with --json, the prose goes to stderr (cli-contract SPEC §1)
@@ -56,6 +57,8 @@ export async function doctor(ctx: Ctx, args: string[], flags: Record<string, str
   }
   const counts = (s: DoctorCheck['status']) => checks.filter((c) => c.status === s).length;
   say(`\n${ok ? 'No problems found' : `${counts('fail')} problem${counts('fail') === 1 ? '' : 's'}`}${counts('warn') ? `, ${counts('warn')} warning${counts('warn') === 1 ? '' : 's'}` : ''}.\n`);
+  // SPEC §3's update notice: stderr, always, after the list it belongs to
+  for (const n of notices) ctx.err(`\n${n}\n`);
   return ok ? 0 : 1;
 }
 
@@ -82,7 +85,9 @@ export async function runChecks(ctx: Ctx, o: CheckOptions): Promise<DoctorCheck[
 
   // ---- install-method
   const info = detectInstall({ packageName: PACKAGE_NAME, envPrefix: 'BRAGDOC', entry: process.argv[1] ?? ctx.cliScript, env: ctx.env, npmGlobalRoot: () => npmGlobalRoot(npm) });
-  const how = `Installed as ${describeInstall(info, PACKAGE_NAME)}${info.packageRoot ? ` (${show(info.packageRoot)})` : ''}.`;
+  // describeInstall says "installed globally with npm", "running from a checkout at …": it reads after "BragDoc is"
+  const where = info.packageRoot && info.method !== 'checkout' ? ` (${show(info.packageRoot)})` : '';
+  const how = `BragDoc is ${describeInstall(info, PACKAGE_NAME)}${where}.`;
   checks.push(info.canUpdate ? pass('install-method', `${how} \`bragdoc update\` can update it.`) : warn('install-method', `${how} \`bragdoc update\` can't update it itself; it says what to run instead.`));
 
   // ---- unit, running-version, port, linger: the service

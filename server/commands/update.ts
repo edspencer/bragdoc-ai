@@ -12,7 +12,7 @@ import { posix as path } from 'node:path';
 import { check } from '../args.js';
 import { CONFIG_SCHEMA_VERSION, DEFAULT_CONFIG } from '../config.js';
 import { Egress } from '../egress.js';
-import { VERSION, resolveDataDir } from '../paths.js';
+import { VERSION, resolveDataDir, tildify } from '../paths.js';
 import { UnsupportedPlatformError } from '../platform/index.js';
 import { readArgv } from '../platform/spec.js';
 import { runSync } from '../proc.js';
@@ -180,7 +180,13 @@ export function updateProduct(ctx: Ctx, { dataDir, svc }: { dataDir: string; svc
       async stop() {
         await manager(ctx).stop();
       },
-      refresh: (cli) => runSync(process.execPath, [cli, 'service', 'install', '--refresh'], { env: ctx.env, timeoutMs: REFRESH_TIMEOUT_MS }),
+      refresh(cli) {
+        const r = runSync(process.execPath, [cli, 'service', 'install', '--refresh'], { env: ctx.env, timeoutMs: REFRESH_TIMEOUT_MS });
+        // a version that doesn't start fails here, at the refresh's own readiness wait, and update.ts shows the log's
+        // tail only for a failed health poll: so the refresh's failure carries it (SPEC §5 step 13's 20 lines)
+        const tail = r.status === 0 ? '' : lastLines(log, 20).trimEnd();
+        return tail ? { ...r, stderr: `${r.stderr.trimEnd()}\n\nThe last 20 lines of ${tildify(log, ctx.homedir)}:\n${tail}\n` } : r;
+      },
       tail: (lines) => lastLines(log, lines),
     },
     beforeStart({ cli, version }) {
