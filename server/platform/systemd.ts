@@ -3,7 +3,9 @@
 //   RunAtLoad          → `[Install] WantedBy=default.target`, and `systemctl --user enable`
 //   KeepAlive <true/>  → `Restart=always` (Paddock #872; systemd never restarts a unit it was asked to stop)
 //   ThrottleInterval   → `RestartSec=10`
-//   the log file       → the journal: a Linux user looks there, `bragdoc service logs` runs journalctl
+//   the log file       → the same file: `StandardOutput=append:` and `StandardError=append:` name it, as
+//                        StandardOutPath and StandardErrorPath do on macOS (cli-contract SPEC §7), so `bragdoc service
+//                        logs` is one file reader on both, and works where the user journal isn't readable (D85)
 //
 // A user unit, not a system one: it runs as you, with your manager. That manager starts at your first login and stops
 // at your last logout, so by default BragDoc stops when you log out (SSH sessions included). `loginctl enable-linger`
@@ -27,9 +29,9 @@ export function execWord(a: string): string {
 }
 
 /**
- * The unit. Pure: test/fixtures/services/bragdoc.service pins it. No `StandardOutput=`: a user unit's output goes to
- * the journal, which is where a Linux user looks, and a second copy in a file would be two answers to "where are the
- * logs" (Paddock).
+ * The unit. Pure: test/fixtures/services/bragdoc.service pins it. Its output is appended to the log file rather than
+ * sent to the journal (D85): one answer to "where are the logs" on every OS. `append:` needs systemd 240 (2019).
+ * The path is the rest of the line, so a space in it needs no quoting; `%` is still a specifier.
  */
 export function renderUnit(spec: ServiceSpec): string {
   return [
@@ -44,6 +46,8 @@ export function renderUnit(spec: ServiceSpec): string {
     `WorkingDirectory=${pct(spec.cwd)}`,
     `ExecStart=${spec.program.map(execWord).join(' ')}`,
     ...Object.entries(spec.env).map(([k, v]) => `Environment="${cEscape(pct(`${k}=${v}`))}"`),
+    `StandardOutput=append:${pct(spec.log)}`,
+    `StandardError=append:${pct(spec.log)}`,
     'Restart=always',
     'RestartSec=10',
     '',
@@ -79,6 +83,9 @@ export function parseUnitArgv(text: string): string[] {
   }
   return out;
 }
+
+/** Does a unit BragDoc wrote send its output to the log file (D85), or (written by an older BragDoc) to the journal? */
+export const logsToFile = (text: string | null) => text !== null && /^StandardOutput=append:/m.test(text);
 
 /** `systemctl --user show -p …` output: KEY=VALUE lines. */
 export function parseShow(text: string): Record<string, string> {
@@ -117,7 +124,14 @@ export function systemdManager({ dir, run, user }: SystemdOptions): ServiceManag
   const status = async (): Promise<ServiceStatus> => {
     const text = readIfExists(file);
     const argv = text === null ? [] : parseUnitArgv(text);
-    const r = await systemctl(['show', SYSTEMD_UNIT, `--property=${SHOW_PROPS}`], [0, 1, 4]);
+    let r: Awaited<ReturnType<typeof systemctl>>;
+    try {
+      r = await systemctl(['show', SYSTEMD_UNIT, `--property=${SHOW_PROPS}`], [0, 1, 4]);
+    } catch (e) {
+      // no unit and no systemd to ask (a container, a CI job): plainly not installed, so `status` exits 4, not 1
+      if (text === null && e instanceof ServiceManagerError) return { installed: false, argv, loaded: false, running: false, pid: null, lastExitCode: null, state: null };
+      throw e;
+    }
     const p = parseShow(r.stdout);
     const running = p.ActiveState === 'active' || p.ActiveState === 'reloading';
     const pid = Number(p.MainPID) || null;
@@ -179,6 +193,11 @@ export function systemdManager({ dir, run, user }: SystemdOptions): ServiceManag
       await systemctl(['reset-failed', SYSTEMD_UNIT], [0, 1, 5]);
       return existed;
     },
-    logs: () => ({ command: ['journalctl', ['--user', '-u', SYSTEMD_UNIT, '-f']] }),
+    // a unit written before D85 still sends its output to the journal, until `service install` rewrites it
+    logs: (spec) => (logsToFile(readIfExists(file)) ? { file: spec.log } : { command: ['journalctl', ['--user', '-u', SYSTEMD_UNIT, '-f']] }),
+    stale: () => {
+      const text = readIfExists(file);
+      return text !== null && !logsToFile(text) ? "the service still logs to the systemd journal (it was installed by an older BragDoc). Run `bragdoc service install` again to log to a file." : null;
+    },
   };
 }

@@ -5,7 +5,7 @@
 //
 // Everything imported statically here must load on an old Node, so the version check below gets to say so: the server,
 // Hono and the commands are imported lazily, after it.
-import { LOOPBACK, UsageError, check, parseArgs, parseHost } from './args.js';
+import { ExitError, LOOPBACK, UsageError, check, parseArgs, parseHost } from './args.js';
 import { evaluateBindSafety } from './bind-safety.js';
 import { MIN_NODE, nodeTooOld } from './node-version.js';
 import { DEFAULT_PORT, parsePort } from './port.js';
@@ -31,10 +31,15 @@ Commands
     --port <n>           the port it serves on (default ${DEFAULT_PORT})
     --data-dir <dir>     its data home (default $BRAGDOC_HOME, else ~/.bragdoc)
     --dry-run            print the service definition it would write, and write nothing
-  service status         Is it installed and running, and on which port.
+  service status         Is it installed and running, which version, and on which port. Exits 0
+                         when it's answering, 3 when it isn't running, 4 when it isn't installed.
+    --json               the same as one JSON document on stdout
   service start | stop | restart
-                         Start it, stop it until the next login, or restart it.
-  service logs           Follow its output.
+                         Start it, stop it until the next login, or restart it. Stopping doesn't
+                         disable it: it starts again at your next login.
+  service logs           The last 50 lines of its log (<data home>/service/bragdoc.log).
+    -f, --follow         keep printing what it writes, until Ctrl-C
+    -n, --lines <n>      how many lines (default 50)
   service uninstall      Stop it and remove the service. Your data stays.
 
   mcp                    An MCP server on stdio, for coding agents: a bridge to the running BragDoc
@@ -59,7 +64,7 @@ Commands
   --version, -v          Print the version.
   --help, -h             Print this help.
 
-Exit codes: 0 ok, 1 error, 2 usage error.`;
+Exit codes: 0 ok, 1 error, 2 usage error, 3 not running, 4 not installed (\`service\`).`;
 
 /** Resolves with an exit code when there's nothing to run, else undefined while the server runs. */
 async function serve(flags: Record<string, string>): Promise<number | undefined> {
@@ -167,6 +172,6 @@ main(process.argv.slice(2)).then(
   (e) => {
     process.stderr.write(`bragdoc: ${(e as Error).message}\n`);
     if (e instanceof UsageError) process.stderr.write(`\n${USAGE}\n`);
-    process.exitCode = e instanceof UsageError ? 2 : 1;
+    process.exitCode = e instanceof UsageError ? 2 : e instanceof ExitError ? e.exitCode : 1;
   },
 );

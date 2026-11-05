@@ -8,9 +8,10 @@ import { openCommand } from '../server/platform/index.ts';
 import { parseLaunchctlPrint, parsePlistArgv, renderPlist } from '../server/platform/launchd.ts';
 import { pathProblem, servicePath } from '../server/platform/path.ts';
 import { type ServiceSpec, buildSpec, readArgv, stableNodePath, transientInstall } from '../server/platform/spec.ts';
-import { execWord, parseShow, parseUnitArgv, renderUnit } from '../server/platform/systemd.ts';
+import { execWord, logsToFile, parseShow, parseUnitArgv, renderUnit } from '../server/platform/systemd.ts';
 import { DEFAULT_PORT } from '../server/port.ts';
-import { ROOT } from './fixture.ts';
+import { rotateServiceLog, serviceLogFile } from '../server/platform/service-log.ts';
+import { ROOT, tmpDir } from './fixture.ts';
 
 const fixture = (name: string) => fs.readFileSync(path.join(ROOT, 'test', 'fixtures', 'services', name), 'utf8');
 
@@ -33,9 +34,15 @@ test('the plist matches the golden file: KeepAlive and RunAtLoad unconditional, 
   assert.match(text, /<string>ai\.bragdoc\.local<\/string>/);
 });
 
-test('the systemd unit matches the golden file: Restart=always, WantedBy=default.target, quoted ExecStart', () => {
+test('the systemd unit matches the golden file: Restart=always, WantedBy=default.target, quoted ExecStart, a log file', () => {
   const text = renderUnit(SPEC);
   assert.equal(text, fixture('bragdoc.service'));
+  // the same file the plist names, appended, not the journal (cli-contract SPEC §7, D85)
+  assert.match(text, /^StandardOutput=append:\/home\/someone\/My Data\/bragdoc\/service\/bragdoc\.log$/m);
+  assert.match(text, /^StandardError=append:\/home\/someone\/My Data\/bragdoc\/service\/bragdoc\.log$/m);
+  assert.ok(logsToFile(text));
+  assert.ok(!logsToFile(text.replace(/^Standard.*\n/gm, '')), 'a unit from before D85 logs to the journal');
+  assert.match(renderUnit({ ...SPEC, log: '/x/100%/bragdoc.log' }), /^StandardOutput=append:\/x\/100%%\/bragdoc\.log$/m);
   assert.match(text, /^Restart=always$/m);
   assert.match(text, /^WantedBy=default\.target$/m);
   assert.match(text, /^ExecStart="\/opt\/node 22\/bin\/node" /m);
@@ -105,4 +112,32 @@ test("Homebrew's versioned Cellar Node becomes its opt/ symlink, which survives 
   assert.equal(stableNodePath('/usr/local/Cellar/node@22/22.12.0/bin/node', yes), '/usr/local/opt/node@22/bin/node');
   assert.equal(stableNodePath('/opt/homebrew/Cellar/node/24.1.0/bin/node', () => false), '/opt/homebrew/Cellar/node/24.1.0/bin/node');
   assert.equal(stableNodePath('/home/someone/.nvm/versions/node/v24.1.0/bin/node', yes), '/home/someone/.nvm/versions/node/v24.1.0/bin/node');
+});
+
+test("the service's log is rotated past its limit: copied to bragdoc.1.log and emptied in place (D85)", () => {
+  const data = tmpDir();
+  try {
+    assert.equal(rotateServiceLog(data, 10), false, 'no log (not run as a service): nothing to do');
+    const log = serviceLogFile(data);
+    assert.equal(log, path.join(data, 'service', 'bragdoc.log'));
+    fs.mkdirSync(path.dirname(log), { recursive: true });
+    fs.writeFileSync(log, 'short\n');
+    assert.equal(rotateServiceLog(data, 10), false, 'under the limit: left alone');
+    // the manager's own handle, opened for appending, as launchd and systemd open it
+    const fd = fs.openSync(log, 'a');
+    fs.writeSync(fd, 'a longer line\n');
+    assert.equal(rotateServiceLog(data, 10), true);
+    assert.equal(fs.readFileSync(path.join(data, 'service', 'bragdoc.1.log'), 'utf8'), 'short\na longer line\n');
+    assert.equal(fs.statSync(log).size, 0);
+    // the same inode, so the manager keeps writing to it, from the start
+    fs.writeSync(fd, 'after\n');
+    fs.closeSync(fd);
+    assert.equal(fs.readFileSync(log, 'utf8'), 'after\n');
+    // the next rotation replaces the older copy
+    fs.appendFileSync(log, 'x'.repeat(20));
+    assert.equal(rotateServiceLog(data, 10), true);
+    assert.equal(fs.readFileSync(path.join(data, 'service', 'bragdoc.1.log'), 'utf8'), 'after\n' + 'x'.repeat(20));
+  } finally {
+    fs.rmSync(data, { recursive: true, force: true });
+  }
 });

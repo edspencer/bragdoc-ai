@@ -53,6 +53,19 @@ test('service install from a checkout refuses (a unit runs the built CLI) before
   assert.match(r.stderr, /npm run build/);
 });
 
+test('service status exits 4 with nothing installed, and --json is one document on stdout (cli-contract SPEC §1, §2)', () => {
+  if (process.platform === 'win32') return;
+  const r = run('service', 'status');
+  assert.equal(r.status, 4, r.stderr);
+  assert.match(r.stdout, /isn't installed as a service/);
+  const j = run('service', 'status', '--json');
+  assert.equal(j.status, 4, j.stderr);
+  const doc = JSON.parse(j.stdout);
+  assert.equal(doc.installed, false);
+  assert.equal(doc.running, false);
+  assert.equal(j.stderr, '');
+});
+
 test('a non-loopback --host is refused (exit 1) without the dangerous opt-in', () => {
   const r = run('serve', '--host', '0.0.0.0', '--port', '0');
   assert.equal(r.status, 1);

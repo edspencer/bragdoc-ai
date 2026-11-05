@@ -9,6 +9,8 @@ Type=simple
 WorkingDirectory=/home/someone/My Data/bragdoc/service
 ExecStart="/opt/node 22/bin/node" /home/someone/.npm-global/lib/node_modules/@bragdoc/local/dist/server/cli.js serve --port 2724 --data-dir "/home/someone/My Data/bragdoc"
 Environment="PATH=/opt/node 22/bin:/usr/local/bin:/usr/bin:/bin"
+StandardOutput=append:/home/someone/My Data/bragdoc/service/bragdoc.log
+StandardError=append:/home/someone/My Data/bragdoc/service/bragdoc.log
 Restart=always
 RestartSec=10
 

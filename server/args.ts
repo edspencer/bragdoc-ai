@@ -1,14 +1,29 @@
 // Command-line parsing for `bragdoc`, kept apart from cli.ts (which runs on import) so it can be unit-tested.
-// Exit codes (SPEC R1): 0 success, 1 error, 2 usage error (with the usage printed): a UsageError is the 2.
+// Exit codes (SPEC R1, cli-contract SPEC §2): 0 success, 1 error, 2 usage error (with the usage printed): a UsageError
+// is the 2. An ExitError carries one of the contract's others (3 not running, 4 not installed).
 // A new flag goes in VALUE_FLAGS or BOOLEAN_FLAGS and in the `check` of each command that takes it.
 
 /** Bad usage: exit 2, with the usage. Anything else thrown exits 1. */
 export class UsageError extends Error {}
 
+/** A failure with its own exit code from the cli-contract table (D85): 3 not running, 4 not installed. */
+export class ExitError extends Error {
+  constructor(
+    message: string,
+    readonly exitCode: number,
+  ) {
+    super(message);
+  }
+}
+
+/** cli-contract SPEC §2's codes beyond 0, 1 and 2, by name. */
+export const EXIT_NOT_RUNNING = 3;
+export const EXIT_NOT_INSTALLED = 4;
+
 /** Options that take a value (`--port 5050` or `--port=5050`). */
-const VALUE_FLAGS = ['port', 'host', 'data-dir', 'engine', 'name', 'aliases', 'not-me', 'connection', 'model', 'schema', 'file', 'system'];
+const VALUE_FLAGS = ['port', 'host', 'data-dir', 'engine', 'name', 'aliases', 'not-me', 'connection', 'model', 'schema', 'file', 'system', 'lines'];
 /** Options that don't. */
-const BOOLEAN_FLAGS = ['open', 'dry-run', 'stdio', 'print', 'snippet', 'json'];
+const BOOLEAN_FLAGS = ['open', 'dry-run', 'stdio', 'print', 'snippet', 'json', 'follow'];
 
 export interface ParsedArgs {
   pos: string[];
@@ -26,6 +41,12 @@ export function parseArgs(argv: string[]): ParsedArgs {
     if (a === '-h' || a === '--help') flags.help = '1';
     else if (a === '-v' || a === '--version') flags.version = '1';
     else if (a === '-q' || a === '--quiet') flags.quiet = '1';
+    else if (a === '-f') flags.follow = '1';
+    else if (a === '-n') {
+      const v = argv[++i];
+      if (v === undefined) throw new UsageError('-n needs a value');
+      flags.lines = v;
+    }
     else if (a.startsWith('--')) {
       if (BOOLEAN_FLAGS.includes(a.slice(2))) {
         flags[a.slice(2)] = '1';

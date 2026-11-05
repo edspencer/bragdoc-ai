@@ -34,12 +34,21 @@ when you log in (not when the computer boots), runs as you, and is restarted if 
 | Command | What it does |
 | --- | --- |
 | `bragdoc service install` | Install and start it. Takes `--port`, `--data-dir`, and `--dry-run` (print the service definition and write nothing). |
-| `bragdoc service status` | Whether it's installed and running, and on which port. |
-| `bragdoc service start` | Start it. |
-| `bragdoc service stop` | Stop it until the next login. |
+| `bragdoc service status` | Whether it's installed, running and answering; the version installed and the version running; the port, the data folder and the log. `--json` prints the same as one JSON document. |
+| `bragdoc service start` | Start it, and wait until it answers. |
+| `bragdoc service stop` | Stop it until the next login. It stays installed and enabled, as `systemctl --user stop` and `launchctl bootout` leave it; to keep it off for good, uninstall it. |
 | `bragdoc service restart` | Restart it. |
-| `bragdoc service logs` | Follow its output. |
-| `bragdoc service uninstall` | Stop it and remove the service. Your data stays. |
+| `bragdoc service logs` | Print the last 50 lines of its log. `-f` (`--follow`) keeps printing what it writes; `-n <lines>` (`--lines`) prints another number of lines. |
+| `bragdoc service uninstall` | Stop it and remove the service. Your data and its log stay. |
+
+**Its log** is one file, `<data folder>/service/bragdoc.log`, on macOS and Linux alike: the service's output is
+appended to it, not sent to the systemd journal. BragDoc rotates it itself: past 10 MB it's copied to `bragdoc.1.log`
+(replacing the older copy) and emptied. A Linux service installed by BragDoc 0.2 or earlier still logs to the journal,
+and `bragdoc service logs` reads it from there, until you run `bragdoc service install` again.
+
+**Exit codes:** `service status` exits 0 when BragDoc is answering, 3 when it's installed but not running or not
+answering, and 4 when it isn't installed, with or without `--json`. `start`, `stop`, `restart` and `logs` exit 4 when
+it isn't installed. These are the same codes `systemctl status` uses, so a script can tell the cases apart.
 
 ## `bragdoc guide`
 
@@ -127,7 +136,8 @@ It exits 1 when the call is refused or fails, with the reason (`ai_off`, `not_co
 | `--version`, `-v` | Print the version. |
 | `--help`, `-h` | Print the help. |
 
-**Exit codes:** 0 success, 1 error, 2 usage error (with the usage printed).
+**Exit codes:** 0 success, 1 error, 2 usage error (with the usage printed). `bragdoc service` adds 3 (not running)
+and 4 (not installed), above.
 
 **What `serve` prints:** the first line is always `BragDoc on <url>`, then `Data home: <folder>`. In a terminal (or
 with `FORCE_COLOR` set) a banner and a hint follow, and, when it's running from npx's cache, how to keep it running

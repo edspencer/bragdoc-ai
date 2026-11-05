@@ -56,6 +56,11 @@ const ALLOWED: Record<string, Record<string, number>> = {
     writeFile: 1, // writeIfChanged's dot-file temp next to the plist/unit (launchd never reads a half-written one)
     rename: 1, // that temp -> the plist/unit (~/Library/LaunchAgents/ai.bragdoc.local.plist, ~/.config/systemd/user/)
   },
+  // the service's log (D85): outside the store, written by launchd / systemd, rotated by BragDoc
+  'server/platform/service-log.ts': {
+    copy: 1, // service/bragdoc.log -> service/bragdoc.1.log, replacing the previous rotated copy (a log, not data)
+    truncate: 1, // then service/bragdoc.log itself, emptied in place: the manager holds it open for appending
+  },
   'server/platform/launchd.ts': {
     rm: 1, // `service uninstall`: our own plist (a fixed name), after bootout
   },

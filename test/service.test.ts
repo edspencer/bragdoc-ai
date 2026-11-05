@@ -5,10 +5,10 @@ import { after, test } from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
-import { UsageError } from '../server/args.ts';
+import { ExitError, UsageError } from '../server/args.ts';
 import { type Ctx, makeCtx } from '../server/commands/context.ts';
 import type { Probe } from '../server/commands/ready.ts';
-import { service } from '../server/commands/service.ts';
+import { installedVersion, service } from '../server/commands/service.ts';
 import type { RunResult } from '../server/platform/runner.ts';
 import { tmpHome } from './fixture.ts';
 
@@ -162,7 +162,7 @@ test('install on Linux: writes the unit, reloads, enables, starts, waits for /ap
   assert.match(f.out(), /BragDoc 0\.0\.0 is running at http:\/\/localhost:2724/);
   assert.match(f.out(), /not when the computer boots/);
   assert.match(f.out(), /loginctl enable-linger/);
-  assert.match(f.out(), /journalctl --user -u bragdoc\.service -f/);
+  assert.match(f.out(), /Logs: {6}bragdoc service logs \(~\/\.bragdoc\/service\/bragdoc\.log\)/);
 
   // again, unchanged: no reload, no restart
   f.calls.length = 0;
@@ -210,10 +210,10 @@ test('install refuses a port something else holds, BragDoc in a terminal or not,
   }
 });
 
-test('status with nothing installed says so and how to install (exit 0)', async () => {
+test('status with nothing installed says so and how to install (exit 4)', async () => {
   for (const platform of ['linux', 'darwin'] as const) {
     const f = fake(platform);
-    assert.equal(await service(f.ctx, ['status'], {}, undefined), 0);
+    assert.equal(await service(f.ctx, ['status'], {}, undefined), 4);
     assert.match(f.out(), /^BragDoc isn't installed as a service \(there's no ~\//);
     assert.match(f.out(), /`bragdoc service install` sets it up/);
   }
@@ -260,13 +260,16 @@ test('stop, start, restart and uninstall on macOS: bootout, bootstrap, re-read',
   assert.match(f.out(), /nothing to do/);
 });
 
-test('stop and uninstall on Linux: stop keeps it enabled; uninstall disables, removes, reloads', async () => {
+// cli-contract SPEC §1: `stop` follows the managers' own convention and never disables; uninstall is for good
+test('stop and uninstall on Linux: stop keeps it enabled and installed; uninstall disables, removes, reloads', async () => {
   const f = fake('linux');
   await service(f.ctx, ['install'], {}, undefined);
   f.calls.length = 0;
-  await service(f.ctx, ['stop'], {}, undefined);
-  assert.ok(f.calls.includes('systemctl --user stop bragdoc.service'));
+  assert.equal(await service(f.ctx, ['stop'], {}, undefined), 0);
+  assert.deepEqual(f.calls.filter((c) => !c.includes(' show ')), ['systemctl --user stop bragdoc.service'], 'stop, and nothing else');
   assert.ok(!f.calls.some((c) => c.includes('disable')), 'stop is for now, not for the next login');
+  assert.equal(fs.existsSync(unitFile(f)), true, 'stop keeps the unit');
+  assert.match(f.out(), /still installed, so it starts again at your next login/);
   f.calls.length = 0;
   await service(f.ctx, ['uninstall'], {}, undefined);
   assert.ok(f.calls.includes('systemctl --user disable --now --quiet bragdoc.service'));
@@ -274,25 +277,137 @@ test('stop and uninstall on Linux: stop keeps it enabled; uninstall disables, re
   assert.equal(fs.existsSync(unitFile(f)), false);
 });
 
-test('start, stop, restart and logs need it installed (exit 1, with the install hint)', async () => {
+test('start, stop, restart and logs need it installed (exit 4, with the install hint)', async () => {
   const f = fake('linux');
-  for (const sub of ['start', 'stop', 'restart', 'logs']) await assert.rejects(service(f.ctx, [sub], {}, undefined), /isn't installed as a service.*bragdoc service install/);
+  for (const sub of ['start', 'stop', 'restart', 'logs'])
+    await assert.rejects(service(f.ctx, [sub], {}, undefined), (e: unknown) => {
+      assert.ok(e instanceof ExitError, sub);
+      assert.equal(e.exitCode, 4, sub);
+      assert.match(e.message, /isn't installed as a service.*bragdoc service install/);
+      return true;
+    });
 });
 
-test('logs: journalctl --user -u bragdoc.service -f on Linux; the log file followed on macOS', async () => {
-  const l = fake('linux');
-  await service(l.ctx, ['install'], {}, undefined);
-  assert.equal(await service(l.ctx, ['logs'], {}, undefined), 0);
-  assert.deepEqual(l.streamed, [['journalctl', '--user', '-u', 'bragdoc.service', '-f']]);
+test('logs: the last 50 lines of the log file on both OSes (D85); -f follows it; -n sets how many', async () => {
+  for (const platform of ['linux', 'darwin'] as const) {
+    const f = fake(platform);
+    await service(f.ctx, ['install'], {}, undefined);
+    const log = path.join(f.home, '.bragdoc', 'service', 'bragdoc.log');
+    fs.writeFileSync(log, Array.from({ length: 60 }, (_, i) => `line ${i}`).join('\n') + '\n');
+    const start = f.out().length;
+    assert.equal(await service(f.ctx, ['logs'], {}, undefined), 0, 'without -f it prints and exits');
+    assert.deepEqual(f.followed, []);
+    assert.deepEqual(f.streamed, [], 'no journalctl');
+    const printed = f.out().slice(start);
+    assert.match(printed, /^line 10\n[\s\S]*line 59\n$/);
+    assert.doesNotMatch(printed, /line 9\n/);
 
-  const m = fake('darwin');
-  await service(m.ctx, ['install'], {}, undefined);
-  const log = path.join(m.home, '.bragdoc', 'service', 'bragdoc.log');
-  fs.writeFileSync(log, Array.from({ length: 60 }, (_, i) => `line ${i}`).join('\n') + '\n');
-  assert.equal(await service(m.ctx, ['logs'], {}, undefined), undefined, 'it keeps running');
-  assert.deepEqual(m.followed, [log]);
-  assert.match(m.out(), /line 10\n[\s\S]*line 59\n$/);
-  assert.doesNotMatch(m.out(), /line 9\n/);
+    const again = f.out().length;
+    assert.equal(await service(f.ctx, ['logs'], { follow: '1', lines: '3' }, undefined), undefined, 'with -f it keeps running');
+    assert.deepEqual(f.followed, [log]);
+    assert.equal(f.out().slice(again), 'line 57\nline 58\nline 59\n');
+  }
+  const f = fake('linux');
+  await assert.rejects(service(f.ctx, ['logs'], { lines: 'lots' }, undefined), UsageError);
+  await assert.rejects(service(f.ctx, ['logs'], { json: '1' }, undefined), UsageError);
+});
+
+test('logs and status: a systemd unit from before D85 still logs to the journal, and says to reinstall', async () => {
+  const f = fake('linux');
+  await service(f.ctx, ['install'], {}, undefined);
+  // what an older BragDoc wrote: no StandardOutput=
+  fs.writeFileSync(unitFile(f), fs.readFileSync(unitFile(f), 'utf8').replace(/^Standard.*\n/gm, ''));
+  assert.equal(await service(f.ctx, ['logs'], { lines: '20' }, undefined), 0);
+  assert.deepEqual(f.streamed, [['journalctl', '--user', '-u', 'bragdoc.service', '-n', '20']]);
+  assert.match(f.out(), /still logs to the systemd journal.*Run `bragdoc service install` again/);
+  await service(f.ctx, ['logs'], { follow: '1' }, undefined);
+  assert.deepEqual(f.streamed[1], ['journalctl', '--user', '-u', 'bragdoc.service', '-n', '50', '-f']);
+  const start = f.out().length;
+  await service(f.ctx, ['status'], { json: '1' }, undefined);
+  const r = JSON.parse(f.out().slice(start));
+  assert.equal(r.log, null);
+  assert.ok(r.warnings.some((w: string) => /systemd journal/.test(w)));
+});
+
+test('status --json: one document on stdout, the same exit codes (4 not installed, 0 answering, 3 stopped)', async () => {
+  for (const platform of ['linux', 'darwin'] as const) {
+    const f = fake(platform);
+    const json = async (code: number) => {
+      const start = f.out().length;
+      assert.equal(await service(f.ctx, ['status'], { json: '1' }, undefined), code);
+      return JSON.parse(f.out().slice(start));
+    };
+    const none = await json(4);
+    assert.equal(none.installed, false);
+    assert.equal(none.running, false);
+    assert.equal(none.port, null);
+    assert.equal(none.unit, platform === 'linux' ? unitFile(f) : plistFile(f));
+    assert.equal(none.manager, platform === 'linux' ? 'systemd' : 'launchd');
+
+    await service(f.ctx, ['install'], { port: '5151' }, undefined);
+    const up = await json(0);
+    assert.deepEqual(
+      { ...up, pid: typeof up.pid, warnings: up.warnings.length > 0, state: typeof up.state },
+      {
+        installed: true,
+        running: true,
+        answering: true,
+        stopped: false,
+        manager: platform === 'linux' ? 'systemd' : 'launchd',
+        unit: platform === 'linux' ? unitFile(f) : plistFile(f),
+        state: 'string',
+        pid: 'number',
+        lastExitCode: null,
+        installedVersion: null, // the fake cli.js has no package.json beside it
+        runningVersion: '0.0.0',
+        port: 5151,
+        url: 'http://localhost:5151',
+        dataDir: path.join(f.home, '.bragdoc'),
+        log: path.join(f.home, '.bragdoc', 'service', 'bragdoc.log'),
+        warnings: true, // the placeholder Node and CLI paths don't exist here
+      },
+    );
+
+    await service(f.ctx, ['stop'], {}, undefined);
+    const stopped = await json(3);
+    assert.equal(stopped.installed, true, 'stop leaves it installed');
+    assert.equal(stopped.running, false);
+    assert.equal(stopped.stopped, true);
+    assert.equal(stopped.answering, false);
+    assert.equal(stopped.runningVersion, null);
+  }
+});
+
+test('status exits 3 when the service runs but BragDoc doesn\'t answer (still starting, or something else holds the port)', async () => {
+  const f = fake('linux', { answer: () => ({ kind: 'other' }) });
+  f.state.running = false;
+  fs.mkdirSync(path.dirname(unitFile(f)), { recursive: true });
+  fs.writeFileSync(unitFile(f), 'ExecStart=/n/node /p/cli.js serve --port 2724\nStandardOutput=append:/x.log\n');
+  Object.assign(f.state, { loaded: true, running: true, pid: 9 });
+  assert.equal(await service(f.ctx, ['status'], {}, undefined), 3);
+  assert.match(f.out(), /something that isn't BragDoc is answering/);
+});
+
+test('status shows the installed version, from the package.json above the cli.js the unit runs', async () => {
+  const h = tmpHome();
+  homes.push(h.cleanup);
+  const root = path.join(h.home, 'lib', 'node_modules', '@bragdoc', 'local');
+  fs.mkdirSync(path.join(root, 'dist', 'server'), { recursive: true });
+  fs.writeFileSync(path.join(root, 'dist', 'server', 'cli.js'), '');
+  fs.writeFileSync(path.join(root, 'package.json'), JSON.stringify({ name: '@bragdoc/local', version: '9.8.7' }));
+  const cli = path.join(root, 'dist', 'server', 'cli.js');
+  assert.equal(installedVersion(cli), '9.8.7');
+  assert.equal(installedVersion('/nowhere/dist/server/cli.js'), null);
+  fs.writeFileSync(path.join(root, 'package.json'), JSON.stringify({ name: 'something-else', version: '1.0.0' }));
+  assert.equal(installedVersion(cli), null, "a package.json that isn't BragDoc's says nothing");
+
+  fs.writeFileSync(path.join(root, 'package.json'), JSON.stringify({ name: '@bragdoc/local', version: '9.8.7' }));
+  const f = fake('linux', { cliScript: cli, packageRoot: root });
+  await service(f.ctx, ['install'], {}, undefined);
+  await service(f.ctx, ['status'], {}, undefined);
+  // the fake answers 0.0.0: the service hasn't been restarted since an upgrade
+  assert.match(f.out(), /BragDoc 0\.0\.0 is answering \(9\.8\.7 is installed: `bragdoc service restart`\)/);
+  assert.match(f.out(), /Version: {3}9\.8\.7/);
 });
 
 test('Windows (and anything else) says "not supported yet", after usage errors and before touching anything', async () => {
@@ -313,7 +428,12 @@ test('usage errors: no subcommand, an unknown one, a flag it does not take, an a
 
 test("Linux without a reachable user manager: one clear error naming XDG_RUNTIME_DIR", async () => {
   const f = fake('linux', { noBus: true });
+  fs.mkdirSync(path.dirname(unitFile(f)), { recursive: true });
+  fs.writeFileSync(unitFile(f), 'ExecStart=/n/node /p/cli.js serve --port 2724\n');
   await assert.rejects(service(f.ctx, ['status'], {}, undefined), /can't reach systemd's per-user instance.*XDG_RUNTIME_DIR/);
+  // with no unit either, it's plainly not installed (a container, a CI job): exit 4, not an error
+  fs.rmSync(unitFile(f));
+  assert.equal(await service(f.ctx, ['status'], {}, undefined), 4);
 });
 
 test('macOS over ssh with nobody logged in at the screen (bootstrap 125): one clear error, no retrying', async () => {
@@ -327,6 +447,6 @@ test('a failed systemd unit is shown as not running, with its exit status, not a
   fs.mkdirSync(path.dirname(unitFile(f)), { recursive: true });
   fs.writeFileSync(unitFile(f), 'ExecStart=/n/node /p/cli.js serve --port 2724\n');
   f.state.loaded = true;
-  await service(f.ctx, ['status'], {}, undefined);
+  assert.equal(await service(f.ctx, ['status'], {}, undefined), 3);
   assert.match(f.out(), /State: {5}not running \(failed \(failed\)\), last exit status 1/);
 });

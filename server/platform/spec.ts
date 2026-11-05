@@ -35,7 +35,7 @@ export interface ServiceSpec {
   cwd: string;
   /** The whole environment the job gets: PATH. Nothing secret: a plist and a unit are readable files. */
   env: Record<string, string>;
-  /** launchd only: where stdout and stderr go. systemd sends both to the journal. */
+  /** Where stdout and stderr go, appended, on both managers (D85): `<data home>/service/bragdoc.log`. */
   log: string;
   /** The Node that runs it, recorded in a comment so a reader can tell when it has been uninstalled. */
   node: { path: string; version: string };

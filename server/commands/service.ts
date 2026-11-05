@@ -5,7 +5,7 @@
 // "running", reading the port back from the installed unit, "starts at login, not boot").
 import fs from 'node:fs';
 import { posix as path } from 'node:path';
-import { UsageError, check } from '../args.js';
+import { EXIT_NOT_INSTALLED, EXIT_NOT_RUNNING, ExitError, UsageError, check } from '../args.js';
 import { DEFAULT_PORT, parsePort } from '../port.js';
 import { resolveDataDir } from '../paths.js';
 import { type ServiceManager, type ServiceStatus, managerFor } from '../platform/index.js';
@@ -23,15 +23,22 @@ export async function service(ctx: Ctx, pos: string[], flags: Record<string, str
     case 'install':
       check('service install', flags, ['port', 'data-dir', 'dry-run'], args, 0, rest);
       return install(ctx, flags);
-    case 'uninstall':
     case 'status':
+      check('service status', flags, ['json'], args, 0, rest);
+      return status(ctx, manager(ctx), !!flags.json);
+    case 'logs': {
+      check('service logs', flags, ['follow', 'lines'], args, 0, rest);
+      const n = flags.lines === undefined ? 50 : Number(flags.lines);
+      if (!Number.isInteger(n) || n < 0) throw new UsageError(`--lines must be a whole number, not '${flags.lines}'`);
+      return logs(ctx, manager(ctx), { follow: !!flags.follow, lines: n });
+    }
+    case 'uninstall':
     case 'start':
     case 'stop':
-    case 'restart':
-    case 'logs': {
+    case 'restart': {
       check(`service ${sub}`, flags, [], args, 0, rest);
       const mgr = manager(ctx);
-      return { uninstall, status, start: startOrRestart, restart: startOrRestart, stop, logs }[sub](ctx, mgr, sub);
+      return { uninstall, start: startOrRestart, restart: startOrRestart, stop }[sub](ctx, mgr, sub);
     }
     default:
       throw new UsageError(sub ? `unknown service command '${sub}'; ${SERVICE_USAGE}` : SERVICE_USAGE);
@@ -62,8 +69,23 @@ function isStopped(mgr: ServiceManager, st: ServiceStatus): boolean {
   return mgr.kind === 'launchd' ? !st.loaded : !st.loaded || /^inactive\b/.test(st.state ?? 'inactive');
 }
 
+/** start, stop, restart and logs on a service that isn't there: exit 4 (cli-contract SPEC §2, D85). */
 function notInstalled(ctx: Ctx, mgr: ServiceManager): Error {
-  return new Error(`BragDoc isn't installed as a service (there's no ${show(mgr.file, ctx.homedir)}). \`bragdoc service install\` sets it up.`);
+  return new ExitError(`BragDoc isn't installed as a service (there's no ${show(mgr.file, ctx.homedir)}). \`bragdoc service install\` sets it up.`, EXIT_NOT_INSTALLED);
+}
+
+/**
+ * The version of the BragDoc a unit runs, from the package.json above its cli.js (`<root>/dist/server/cli.js`), or null
+ * when that's gone or isn't BragDoc's. It can differ from the running one: an upgrade the service hasn't restarted for.
+ */
+export function installedVersion(cli: string | undefined): string | null {
+  if (!cli) return null;
+  try {
+    const pkg = JSON.parse(fs.readFileSync(path.join(path.dirname(path.dirname(path.dirname(cli))), 'package.json'), 'utf8')) as { name?: string; version?: string };
+    return pkg.name === '@bragdoc/local' && typeof pkg.version === 'string' ? pkg.version : null;
+  } catch {
+    return null;
+  }
 }
 
 // ---------------------------------------------------------------------------------------------------------------
@@ -175,42 +197,111 @@ async function uninstall(ctx: Ctx, mgr: ServiceManager): Promise<number> {
   return 0;
 }
 
-async function status(ctx: Ctx, mgr: ServiceManager): Promise<number> {
+/** `service status --json` (cli-contract SPEC §1). Every path is absolute; null where it doesn't apply. */
+export interface ServiceStatusReport {
+  installed: boolean;
+  /** The manager knows it and it has a process. */
+  running: boolean;
+  /** BragDoc answers /api/health on the unit's port. */
+  answering: boolean;
+  manager: ServiceManager['kind'];
+  /** The plist or unit. */
+  unit: string;
+  /** The manager's own word for its state (`running`, `active (running)`, `inactive (dead)`), or null. */
+  state: string | null;
+  /** Stopped on purpose (`service stop`), rather than failing or between restarts. */
+  stopped: boolean;
+  pid: number | null;
+  lastExitCode: number | null;
+  /** The version the unit runs (its package.json), and the version that's answering. */
+  installedVersion: string | null;
+  runningVersion: string | null;
+  port: number | null;
+  url: string | null;
+  dataDir: string | null;
+  /** The file `service logs` reads; null while an older systemd unit still logs to the journal. */
+  log: string | null;
+  warnings: string[];
+}
+
+export async function statusReport(ctx: Ctx, mgr: ServiceManager): Promise<ServiceStatusReport> {
   const st = await mgr.status();
   if (!st.installed) {
-    ctx.out(
-      `BragDoc isn't installed as a service (there's no ${show(mgr.file, ctx.homedir)}).\n` +
-        `\`bragdoc service install\` sets it up as a ${mgr.noun}. ${AT_LOGIN}\n`,
-    );
-    return 0;
+    return { installed: false, running: false, answering: false, stopped: false, manager: mgr.kind, unit: mgr.file, state: null, pid: null, lastExitCode: null, installedVersion: null, runningVersion: null, port: null, url: null, dataDir: null, log: null, warnings: [] };
   }
   // everything here is read back out of the INSTALLED unit, not recomputed from today's flags (Paddock): the port in
   // the file is the port the service is on
   const { port } = readArgv(st.argv);
   const dataDir = installedDataDir(ctx, st);
   const p = await ctx.probe(port);
-  const state = st.running
-    ? `running${st.pid ? `, pid ${st.pid}` : ''}`
-    : isStopped(mgr, st)
-      ? 'stopped (`bragdoc service start` starts it)'
-      : `not running${st.state ? ` (${st.state})` : ''}${st.lastExitCode !== null ? `, last exit status ${st.lastExitCode}` : ''}`;
-  const answer = p.kind === 'bragdoc' ? `BragDoc ${p.version} is answering` : p.kind === 'other' ? "something that isn't BragDoc is answering" : 'nothing is answering';
+  const src = mgr.logs({ log: buildLog(dataDir) });
+  const warnings: string[] = [];
   // the Node or the CLI the unit runs has gone (a Node upgrade, an uninstalled package): it can't start any more
-  const gone = st.argv.slice(0, 2).filter((f) => !fs.existsSync(f));
+  for (const f of st.argv.slice(0, 2).filter((f) => !fs.existsSync(f))) warnings.push(`the service runs ${f}, which no longer exists. Run \`bragdoc service install\` again.`);
+  if (p.kind === 'other') warnings.push(otherAnswering(port));
+  const stale = mgr.stale();
+  if (stale) warnings.push(stale);
+  return {
+    installed: true,
+    running: st.running,
+    answering: p.kind === 'bragdoc',
+    stopped: isStopped(mgr, st),
+    manager: mgr.kind,
+    unit: mgr.file,
+    state: st.state,
+    pid: st.pid,
+    lastExitCode: st.lastExitCode,
+    installedVersion: installedVersion(st.argv[1]),
+    runningVersion: p.kind === 'bragdoc' ? p.version : null,
+    port,
+    url: urlOf(port),
+    dataDir,
+    log: 'file' in src ? src.file : null,
+    warnings,
+  };
+}
+
+const otherAnswering = (port: number) => `something that isn't BragDoc is answering on port ${port}.`;
+
+/** Exit 0 answering, 3 not running or not answering, 4 not installed (cli-contract SPEC §2, D85), with or without --json. */
+async function status(ctx: Ctx, mgr: ServiceManager, json: boolean): Promise<number> {
+  const r = await statusReport(ctx, mgr);
+  const code = !r.installed ? EXIT_NOT_INSTALLED : r.running && r.answering ? 0 : EXIT_NOT_RUNNING;
+  if (json) {
+    ctx.out(JSON.stringify(r, null, 2) + '\n');
+    return code;
+  }
+  if (!r.installed) {
+    ctx.out(
+      `BragDoc isn't installed as a service (there's no ${show(mgr.file, ctx.homedir)}).\n` +
+        `\`bragdoc service install\` sets it up as a ${mgr.noun}. ${AT_LOGIN}\n`,
+    );
+    return code;
+  }
+  const state = r.running
+    ? `running${r.pid ? `, pid ${r.pid}` : ''}`
+    : r.stopped
+      ? 'stopped (`bragdoc service start` starts it)'
+      : `not running${r.state ? ` (${r.state})` : ''}${r.lastExitCode !== null ? `, last exit status ${r.lastExitCode}` : ''}`;
+  const other = otherAnswering(r.port!);
+  const answer = r.answering ? `BragDoc ${r.runningVersion} is answering` : r.warnings.includes(other) ? "something that isn't BragDoc is answering" : 'nothing is answering';
+  // an upgrade the service hasn't been restarted for
+  const behind = r.answering && r.installedVersion && r.installedVersion !== r.runningVersion ? ` (${r.installedVersion} is installed: \`bragdoc service restart\`)` : '';
   ctx.out(
     [
       `Service:   ${show(mgr.file, ctx.homedir)} (a ${mgr.noun})`,
       `State:     ${state}`,
-      `URL:       ${urlOf(port)}: ${answer}`,
-      `Data home: ${show(dataDir, ctx.homedir)}`,
-      `Logs:      ${logsHint(ctx, mgr, dataDir)}`,
-      ...gone.map((f) => `Warning:   the service runs ${f}, which no longer exists. Run \`bragdoc service install\` again.`),
+      `URL:       ${r.url}: ${answer}${behind}`,
+      `Version:   ${r.installedVersion ?? 'unknown (its package.json is missing)'}`,
+      `Data home: ${show(r.dataDir!, ctx.homedir)}`,
+      `Logs:      ${logsHint(ctx, mgr, r.dataDir!)}`,
+      ...r.warnings.filter((w) => w !== other).map((w) => `Warning:   ${w}`),
       '',
       mgr.lifetime,
       '',
     ].join('\n'),
   );
-  return 0;
+  return code;
 }
 
 /** start and restart: both WAIT for /api/health before saying "running", since neither manager's "started" means that. */
@@ -246,17 +337,23 @@ async function stop(ctx: Ctx, mgr: ServiceManager): Promise<number> {
   return 0;
 }
 
-async function logs(ctx: Ctx, mgr: ServiceManager): Promise<number | undefined> {
+/** The last `lines` of the log file and, with -f, what's appended after (cli-contract SPEC §1). */
+async function logs(ctx: Ctx, mgr: ServiceManager, o: { follow: boolean; lines: number }): Promise<number | undefined> {
   const st = await mgr.status();
   if (!st.installed) throw notInstalled(ctx, mgr);
   const src = mgr.logs({ log: buildLog(installedDataDir(ctx, st)) });
   if ('command' in src) {
-    const code = await ctx.stream(...src.command);
-    if (code === 127) throw new Error(`${src.command[0]} isn't installed; the service's output is in the systemd journal`);
+    // a systemd unit from before D85 logs to the journal until it's reinstalled
+    ctx.err(`bragdoc: ${mgr.stale()}\n`);
+    const [bin, args] = src.command;
+    const code = await ctx.stream(bin, [...args.filter((a) => a !== '-f'), '-n', String(o.lines), ...(o.follow ? ['-f'] : [])]);
+    if (code === 127) throw new Error(`${bin} isn't installed; the service's output is in the systemd journal`);
     return code;
   }
-  const tail = lastLines(src.file, 50);
-  ctx.out(tail || `(nothing in ${show(src.file, ctx.homedir)} yet; waiting for more)\n`);
+  const tail = o.lines > 0 ? lastLines(src.file, o.lines) : '';
+  if (tail) ctx.out(tail);
+  else if (!fs.existsSync(src.file)) ctx.err(`bragdoc: nothing in ${show(src.file, ctx.homedir)} yet${o.follow ? '; waiting for more' : ''}\n`);
+  if (!o.follow) return 0;
   ctx.follow(src.file, (s) => ctx.out(s));
   return undefined; // runs until interrupted, like tail -f
 }
