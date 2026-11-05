@@ -70,6 +70,19 @@ const ALLOWED: Record<string, Record<string, number>> = {
   'server/home.ts': {
     rename: 2, // the old CLI's config.yml/cache/logs into legacy-cli.partial/, then that into legacy-cli/ (D28)
   },
+  // `bragdoc update` (D88), the cli-contract's reference code: its own two files in the data home, and a probe
+  'server/update/lock.ts': {
+    writeFile: 1, // update.lock, created with flag 'wx' (O_EXCL: the create is the lock)
+    rm: 2, // update.lock again: a stale one (its pid is dead), and our own on release, only while it names our pid
+  },
+  'server/update/update-check.ts': {
+    writeFile: 1, // update-check.json's temp file (<file>.<pid>.tmp)
+    rename: 1, // that temp -> update-check.json
+    rm: 1, // the temp file, if the rename failed
+  },
+  'server/update/package-manager.ts': {
+    rm: 1, // isWritable's probe: the empty folder it made a moment before with mkdtempSync, and nothing else
+  },
   'server/import/lock.ts': {
     unlink: 1, // releasing cache/import.lock: a fixed name, and only while it still holds our own pid (D47)
   },

@@ -33,7 +33,7 @@ interface Fake {
  * A ctx on a throwaway home with a fake service manager. `answer(port)` is what the health probe sees; by default
  * BragDoc answers exactly while the fake manager has it running.
  */
-function fake(platform: NodeJS.Platform, o: { answer?: (port: number, f: Fake) => Probe; busy?: (port: number) => Response; lingerPrints?: number; bootstrapFailures?: number; bootstrapCode?: number; failed?: boolean; env?: NodeJS.ProcessEnv; cliScript?: string; packageRoot?: string; noBus?: boolean } = {}): Fake {
+function fake(platform: NodeJS.Platform, o: { answer?: (port: number, f: Fake) => Probe; busy?: (port: number) => Response; lingerPrints?: number; bootstrapFailures?: number; bootstrapCode?: number; failed?: boolean; env?: NodeJS.ProcessEnv; cliScript?: string; packageRoot?: string; noBus?: boolean; gone?: string[] } = {}): Fake {
   const h = tmpHome();
   homes.push(h.cleanup);
   let out = '';
@@ -126,6 +126,8 @@ function fake(platform: NodeJS.Platform, o: { answer?: (port: number, f: Fake) =
       clock += ms;
     },
     now: () => clock,
+    // the made-up Node and CLI below exist, unless the test says they've gone
+    exists: (p) => !(o.gone ?? []).includes(p) && (p.startsWith('/opt/node/') || p.startsWith('/usr/local/lib/node_modules/') || fs.existsSync(p)),
     follow: (file) => {
       f.followed.push(file);
     },
@@ -180,10 +182,12 @@ test('install on Linux: writes the unit, reloads, enables, starts, waits for /ap
   assert.match(f.out(), /loginctl enable-linger/);
   assert.match(f.out(), /Logs: {6}bragdoc service logs \(~\/\.bragdoc\/service\/bragdoc\.log\)/);
 
-  // again, unchanged: no reload, no restart
+  // again, unchanged: no reload, but the running service is still replaced: `enable --now` and `start` leave an active
+  // unit alone, and `bragdoc update`'s refresh writes an identical unit for a new version (cli-contract SPEC §1)
   f.calls.length = 0;
   assert.equal(await service(f.ctx, ['install'], {}, undefined), 0);
-  assert.ok(!f.calls.some((c) => c.includes('daemon-reload') || c.includes('restart')), f.calls.join('\n'));
+  assert.ok(!f.calls.some((c) => c.includes('daemon-reload')), f.calls.join('\n'));
+  assert.ok(f.calls.includes('systemctl --user restart bragdoc.service'), f.calls.join('\n'));
   // again on another port: rewritten, reloaded, restarted
   f.calls.length = 0;
   assert.equal(await service(f.ctx, ['install'], { port: '5151' }, undefined), 0);

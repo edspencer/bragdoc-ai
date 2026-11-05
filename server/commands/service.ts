@@ -83,8 +83,8 @@ function busyGuard(ctx: Ctx, st: ServiceStatus, force: boolean): Promise<number 
 }
 
 /** Why the installed unit is stale (its Node or CLI has gone, or it's an older format), or null. */
-function staleUnit(mgr: ServiceManager, st: ServiceStatus): string | null {
-  const gone = st.argv.slice(0, 2).find((f) => !fs.existsSync(f));
+function staleUnit(ctx: Ctx, mgr: ServiceManager, st: ServiceStatus): string | null {
+  const gone = st.argv.slice(0, 2).find((f) => !ctx.exists(f));
   if (gone) return `the service runs ${gone}, which no longer exists.`;
   const older = mgr.stale();
   // its first sentence: the "run `service install` again" that follows is what this restart is about to do
@@ -412,7 +412,7 @@ async function startOrRestart(ctx: Ctx, mgr: ServiceManager, action: string, for
     const refused = await busyGuard(ctx, before, force);
     if (refused !== null) return refused;
   }
-  const stale = action === 'restart' ? staleUnit(mgr, before) : null;
+  const stale = action === 'restart' ? staleUnit(ctx, mgr, before) : null;
   if (action === 'start') await mgr.start();
   else if (stale && installable(ctx)) {
     // restart re-renders a stale unit first (cli-contract SPEC §1): one whose Node or CLI has gone, or an older format.

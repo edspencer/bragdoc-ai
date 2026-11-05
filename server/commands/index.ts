@@ -24,6 +24,7 @@ export const COMMANDS: Record<string, Command> = {
   mcp,
   service,
   update,
-  // a hidden alias (cli-contract SPEC §1): it works, and the help names only `update`
-  upgrade: update,
 };
+
+/** Hidden aliases (cli-contract SPEC §1): they work, and the help and the docs name only the command. */
+export const ALIASES: Record<string, string> = { upgrade: 'update' };

@@ -178,8 +178,8 @@ async function main(argv: string[]): Promise<number | undefined> {
     check(cmd, flags, ['port', 'host', 'data-dir', 'open', 'quiet'], args, 0, rest);
     return serve(flags);
   }
-  const { COMMANDS, makeCtx } = await import('./commands/index.js');
-  const run = COMMANDS[cmd];
+  const { ALIASES, COMMANDS, makeCtx } = await import('./commands/index.js');
+  const run = COMMANDS[ALIASES[cmd] ?? cmd];
   if (!run) throw new UsageError(`unknown command '${cmd}'`);
   return run(makeCtx(), args, flags, rest);
 }

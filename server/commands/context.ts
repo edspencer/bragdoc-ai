@@ -37,6 +37,8 @@ export interface Ctx {
   loopback: LoopbackGet;
   sleep(ms: number): Promise<void>;
   now(): number;
+  /** Does this path exist? (fs.existsSync; injected so a test's made-up unit paths can be told apart from gone ones.) */
+  exists(p: string): boolean;
   /** Follow a growing file, calling `write` with what's appended, until the process is interrupted. */
   follow(file: string, write: (s: string) => void): void;
 }
@@ -79,6 +81,7 @@ export function makeCtx(o: CtxOptions = {}): Ctx {
     loopback: probeLoopback,
     sleep: (ms) => new Promise((r) => setTimeout(r, ms)),
     now: Date.now,
+    exists: (p) => fs.existsSync(p),
     follow: followFile,
     ...o,
   };
