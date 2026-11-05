@@ -1,17 +1,36 @@
 // The one way to run another program (SPEC R3, D9): run() collects output, runAttached() hands it this terminal,
-// launch() starts one and lets it go. execFile with an argument array, never a shell, so nothing in an
+// launch() starts one and lets it go, and runSync() is run() that blocks, for `bragdoc update`'s npm steps. execFile with an argument array, never a shell, so nothing in an
 // argument (a repo path, a branch name) can be read as shell syntax; and only the allow-listed binaries below.
 // test/guard-egress.test.ts fails CI if any other file in server/ or shared/ imports node:child_process.
 //
 // The gh CLI makes network requests outside BragDoc's egress module, so whoever runs it also logs it through
 // Egress.logProcess() (honestly marked "via gh CLI" in Settings → Network activity).
-import { execFile, spawn } from 'node:child_process';
+import { execFile, spawn, spawnSync } from 'node:child_process';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 
 /** The binaries BragDoc may run, by name (found on PATH). Anything else is refused before it's started. */
-export const ALLOWED_BINS = ['gh', 'git', 'osascript', 'defaults', 'launchctl', 'systemctl', 'journalctl', 'claude', 'open', 'xdg-open', 'pmset'] as const;
+export const ALLOWED_BINS = [
+  'gh',
+  'git',
+  'osascript',
+  'defaults',
+  'launchctl',
+  'systemctl',
+  'journalctl',
+  'loginctl',
+  'claude',
+  'open',
+  'xdg-open',
+  'pmset',
+  // `bragdoc update` (D87): the package manager this install came from (npm itself is run as `node <npm-cli.js>`,
+  // the one beside this Node; `npm` by name only where a distribution ships it separately)
+  'npm',
+  'pnpm',
+  'bun',
+  'volta',
+] as const;
 export type AllowedBin = (typeof ALLOWED_BINS)[number];
 
 export const DEFAULT_TIMEOUT_MS = 30_000;
@@ -165,4 +184,47 @@ export function launch(bin: AllowedBin, args: readonly string[], { cwd, env = pr
       resolve();
     });
   });
+}
+
+/** What runSync() returns: the cli-contract reference's shape (`status` null when it didn't run or was killed). */
+export interface SyncResult {
+  status: number | null;
+  stdout: string;
+  stderr: string;
+}
+
+/** Is `file` the Node running this, by its own path or its real one? */
+function isThisNode(file: string): boolean {
+  if (file === process.execPath) return true;
+  try {
+    return fs.realpathSync(file) === fs.realpathSync(process.execPath);
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * run(), but blocking, for `bragdoc update` (D87) and `doctor`: the cli-contract reference's npm steps are synchronous.
+ * `cmd` is either the Node running this (by path: `node <npm-cli.js> install -g …`, `node <new cli.js> service install
+ * --refresh`) or an allow-listed binary by name. Never a shell. It doesn't throw: a refusal, a missing binary or a
+ * timeout is `status: null` with the reason in `stderr`.
+ */
+export function runSync(cmd: string, args: readonly string[], { env = process.env, timeoutMs = DEFAULT_TIMEOUT_MS, maxOutput = 32 * 1024 * 1024 }: Pick<RunOptions, 'env' | 'timeoutMs' | 'maxOutput'> = {}): SyncResult {
+  let file: string | null;
+  if (path.isAbsolute(cmd)) {
+    if (!isThisNode(cmd)) return { status: null, stdout: '', stderr: `BragDoc runs no program by path but its own Node (${process.execPath}), not ${cmd}` };
+    file = cmd;
+  } else {
+    try {
+      assertAllowed(cmd, args);
+    } catch (e) {
+      return { status: null, stdout: '', stderr: (e as Error).message };
+    }
+    file = resolveBin(cmd, env);
+    if (!file) return { status: null, stdout: '', stderr: notFound(cmd).message };
+  }
+  for (const a of args) if (typeof a !== 'string' || a.includes('\0')) return { status: null, stdout: '', stderr: 'a bad argument' };
+  const r = spawnSync(file, [...args], { env, timeout: timeoutMs, maxBuffer: maxOutput, encoding: 'utf8', shell: false, windowsHide: true, killSignal: 'SIGKILL' });
+  const why = r.error ? ((r.error as NodeJS.ErrnoException).code === 'ETIMEDOUT' ? `${cmd} took longer than ${timeoutMs} ms` : r.error.message) : '';
+  return { status: r.error ? null : r.status, stdout: r.stdout ?? '', stderr: (r.stderr ?? '') + (why ? `${r.stderr ? '\n' : ''}${why}` : '') };
 }

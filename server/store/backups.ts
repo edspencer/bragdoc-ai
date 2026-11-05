@@ -97,7 +97,14 @@ export function takeSnapshot(home: string, now = new Date()): string | null {
   const newest = existing[existing.length - 1];
   if (newest && fingerprint(path.join(backupsDir, newest)) === fp) return null;
   fs.mkdirSync(backupsDir, { recursive: true });
-  const base = snapshotName(now);
+  return copyInto(home, backupsDir, snapshotName(now));
+}
+
+/**
+ * Copy the editable files into `backupsDir/<base>/` (or `<base>-2`, `-3`… if that's taken): built under a dot-name and
+ * renamed into place, so the copy is always complete. Returns the name used.
+ */
+function copyInto(home: string, backupsDir: string, base: string): string {
   let name = base;
   for (let n = 2; fs.existsSync(path.join(backupsDir, name)); n++) name = `${base}-${n}`;
   const partial = path.join(backupsDir, `.partial-${name}-${process.pid}`);
@@ -109,9 +116,22 @@ export function takeSnapshot(home: string, now = new Date()): string | null {
     fs.copyFileSync(src, dst, fs.constants.COPYFILE_EXCL); // EXCL: never over anything (the dir is brand new anyway)
   }
   const dest = path.join(backupsDir, name);
-  if (fs.existsSync(dest)) throw new Error(`${dest} appeared while snapshotting; leaving the copy at ${partial}`);
+  if (fs.existsSync(dest)) throw new Error(`${dest} appeared while copying; leaving the copy at ${partial}`);
   fs.renameSync(partial, dest); // a fresh dot-dir onto a name we just checked is free
   return name;
+}
+
+/**
+ * Before `bragdoc update` starts a version that raises a file kind's `schemaVersion` (cli-contract SPEC §5 step 14,
+ * D88): the same copy as a snapshot, into `backups/pre-<version>/`. That isn't a snapshot name, so pruning never
+ * removes it; it's there until you do. Returns its path, or null when there's nothing to copy.
+ */
+export function backupBeforeUpdate(home: string, version: string): string | null {
+  if (!/^\d+\.\d+\.\d+[\w.+-]*$/.test(version)) throw new Error(`not a version: ${JSON.stringify(version)}`);
+  if (!editableFiles(home).length) return null;
+  const backupsDir = path.join(home, 'backups');
+  fs.mkdirSync(backupsDir, { recursive: true });
+  return path.join(backupsDir, copyInto(home, backupsDir, `pre-${version}`));
 }
 
 /** Hard-link a blob into the snapshot being made; false (so it's copied instead) if that isn't possible. */

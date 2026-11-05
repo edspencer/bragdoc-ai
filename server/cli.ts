@@ -31,6 +31,8 @@ Commands
     --port <n>           the port it serves on (default ${DEFAULT_PORT})
     --data-dir <dir>     its data home (default $BRAGDOC_HOME, else ~/.bragdoc)
     --dry-run            print the service definition it would write, and write nothing
+    --refresh            re-write the installed service for this BragDoc, keeping its port and data
+                         home (what \`bragdoc update\` runs); exits 4 if there's none
   service status         Is it installed and running, which version, and on which port. Exits 0
                          when it's answering, 3 when it isn't running, 4 when it isn't installed.
     --json               the same as one JSON document on stdout
@@ -38,11 +40,27 @@ Commands
                          Start it, stop it until the next login, or restart it. Stopping doesn't
                          disable it: it starts again at your next login. stop and restart refuse
                          (exit 75) while BragDoc is busy: an import, a judge run, AI requests.
+                         restart re-writes the service first if its Node or BragDoc has gone.
     --force              stop or restart all the same
   service logs           The last 50 lines of its log (<data home>/service/bragdoc.log).
     -f, --follow         keep printing what it writes, until Ctrl-C
     -n, --lines <n>      how many lines (default 50)
   service uninstall      Stop it and remove the service. Your data stays.
+
+  update                 Update BragDoc to the latest version, from npm: checks it's safe, stops the
+                         service, installs, starts it again and checks it answers, and puts the old
+                         version back if it doesn't. Only asks npm when you run it (or doctor).
+    --check              say whether there's a newer version, and change nothing
+    --to <version|tag>   go to this version or dist-tag (next); the only way to an older one
+    --yes                don't ask first (needed without a terminal)
+    --force              go ahead while BragDoc is busy
+    --json               one JSON document on stdout
+
+  doctor                 Check this install: Node, how it was installed, the service, the port,
+                         the data home, config.yaml, git, and whether there's a newer version. A fix
+                         for each problem; exits 1 if there's one.
+    --offline            don't ask npm about a newer version
+    --json               the checks as one JSON document on stdout
 
   busy                   Is the running BragDoc in the middle of something a restart would cut
                          short? Exits 0 when it isn't, 75 when it is, 3 when nothing is running.
@@ -72,7 +90,9 @@ Commands
   --version, -v          Print the version.
   --help, -h             Print this help.
 
-Exit codes: 0 ok, 1 error, 2 usage error, 3 not running, 4 not installed (\`service\`), 75 busy.`;
+Exit codes: 0 ok, 1 error, 2 usage error, 3 not running, 4 not installed (\`service\`), 5 can't update
+itself (the command to run instead is printed), 6 the update failed and the old version is back, 7 the update
+failed and couldn't be undone (what to run is printed), 75 busy.`;
 
 /** Resolves with an exit code when there's nothing to run, else undefined while the server runs. */
 async function serve(flags: Record<string, string>): Promise<number | undefined> {

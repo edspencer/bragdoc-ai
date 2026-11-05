@@ -161,10 +161,10 @@ export function launchdManager({ dir, uid, run, sleep = (ms) => new Promise((r) 
       fs.mkdirSync(spec.cwd, { recursive: true });
       const changed = writeIfChanged(file, renderPlist(spec));
       const st = await status();
-      // a changed plist is only read at bootstrap
-      if (st.loaded && changed) await bootout();
-      if (!st.loaded || changed) await bootstrap(); // RunAtLoad starts it
-      else if (!st.running) await launchctl(['kickstart', target]);
+      // a plist is only read at bootstrap, and a reinstall replaces what's running even when the plist is unchanged
+      // (`bragdoc update`'s refresh writes an identical one for a new version: cli-contract SPEC §1). RunAtLoad starts it
+      if (st.loaded) await bootout();
+      await bootstrap();
       return { changed };
     },
     async start() {

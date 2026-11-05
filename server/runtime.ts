@@ -34,6 +34,33 @@ export function displayUrl(hostname: string, port: number): string {
   return `http://${shown}:${port}`;
 }
 
+/** Is there a process with this pid? EPERM means there is, and it's someone else's. */
+export function isPidAlive(pid: number): boolean {
+  if (!Number.isInteger(pid) || pid <= 0) return false;
+  try {
+    process.kill(pid, 0);
+    return true;
+  } catch (e) {
+    return (e as NodeJS.ErrnoException).code === 'EPERM';
+  }
+}
+
+/**
+ * Where runtime.json says a server is, without the token: what the cli-contract's `{ pid, port, url, version,
+ * startedAt }` promises (SPEC §4), so the busy check also finds a file that has no `mcpToken`. Null if it's missing or
+ * unreadable. `running` is whether its process is still alive.
+ */
+export function readRuntimeAddress(dataDir: string): { pid: number; port: number; url: string; version?: string; running: boolean } | null {
+  let r: Partial<RuntimeRecord>;
+  try {
+    r = JSON.parse(fs.readFileSync(homePaths(dataDir).runtime, 'utf8')) as Partial<RuntimeRecord>;
+  } catch {
+    return null;
+  }
+  if (!Number.isInteger(r.pid) || !Number.isInteger(r.port) || typeof r.url !== 'string') return null;
+  return { pid: r.pid!, port: r.port!, url: r.url, ...(typeof r.version === 'string' ? { version: r.version } : {}), running: isPidAlive(r.pid!) };
+}
+
 /** runtime.json as written, or null if it's missing or not ours. `running` is whether its process is still alive. */
 export function readRuntime(dataDir: string): (RuntimeRecord & { running: boolean }) | null {
   let r: Partial<RuntimeRecord>;
@@ -43,13 +70,7 @@ export function readRuntime(dataDir: string): (RuntimeRecord & { running: boolea
     return null;
   }
   if (!Number.isInteger(r.pid) || !Number.isInteger(r.port) || typeof r.url !== 'string' || typeof r.mcpToken !== 'string' || !TOKEN.test(r.mcpToken)) return null;
-  let running = true;
-  try {
-    process.kill(r.pid!, 0);
-  } catch (e) {
-    running = (e as NodeJS.ErrnoException).code === 'EPERM';
-  }
-  return { ...(r as RuntimeRecord), running };
+  return { ...(r as RuntimeRecord), running: isPidAlive(r.pid!) };
 }
 
 /** The running server's runtime.json: the token is loaded (or made) at construction; write() records where we listen. */

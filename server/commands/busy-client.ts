@@ -1,5 +1,5 @@
 // From edspencer/cli-contract reference/busy-client.ts @ 0.1; local changes: the instance is found through BragDoc's
-// own runtime.json (server/runtime.ts readRuntime, which also holds the MCP token) or a port the caller names, and
+// own runtime.json (server/runtime.ts readRuntimeAddress: the file also holds the MCP token, which isn't needed here) or a port the caller names, and
 // asked through egress.ts's probeLoopback (127.0.0.1 only, unlogged: D9, D51) rather than fetch; the Output object is
 // BragDoc's `out`/`err` pair; the nouns are BragDoc's (D86).
 //
@@ -8,7 +8,7 @@
 // `service stop` and `service restart`.
 import { EXIT_BUSY, EXIT_NOT_RUNNING } from '../args.js';
 import { probeLoopback } from '../egress.js';
-import { readRuntime } from '../runtime.js';
+import { readRuntimeAddress } from '../runtime.js';
 
 /** What `/api/busy` answers (SPEC §4). Counts only, until §10's first question is settled. */
 export interface BusyAnswer {
@@ -48,7 +48,7 @@ export async function checkBusy(o: FindOptions): Promise<BusyResult> {
   if (port === undefined) {
     // runtime.json stays behind after a clean exit (its token outlives the server: runtime.ts); its pid says whether
     // the server it describes is still running
-    const r = readRuntime(o.dataDir);
+    const r = readRuntimeAddress(o.dataDir);
     if (!r?.running) return { state: 'not-running' };
     ({ port, url } = r);
   }

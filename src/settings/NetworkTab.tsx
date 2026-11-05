@@ -180,6 +180,7 @@ function Line({ e, time }: { e: NetworkLogEntry; time: string }) {
         )}
         {e.via === 'gh' && <Tag className="bg-black/10">VIA GH CLI</Tag>}
         {e.via === 'ollama' && <Tag className="bg-black/10">VIA OLLAMA</Tag>}
+        {e.via === 'npm' && <Tag className="bg-black/10">VIA NPM</Tag>}
         {refused && <Tag className="bg-[#b42318]/15 text-[#b42318]">REFUSED · NOT SENT</Tag>}
         {failed && <Tag className="bg-[#b42318]/15 text-[#b42318]">FAILED</Tag>}
         <span className="block truncate opacity-60" title={e.path}>
