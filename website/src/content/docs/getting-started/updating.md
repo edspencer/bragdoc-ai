@@ -162,7 +162,7 @@ bragdoc doctor
 
 ```
 ✓ Node 22.12.0 (BragDoc needs >=22.12).
-✓ Installed as a global npm install (~/.npm-global/lib/node_modules/@bragdoc/local). `bragdoc update` can update it.
+✓ BragDoc is installed globally with npm (~/.npm-global/lib/node_modules/@bragdoc/local). `bragdoc update` can update it.
 ✓ The service (~/.config/systemd/user/bragdoc.service) runs this BragDoc, with Node /usr/bin/node.
 ✓ The service is running 0.5.0, the installed version.
 ✓ Port 2724 is BragDoc's (0.5.0).
