@@ -1,11 +1,13 @@
-// From edspencer/cli-contract reference/busy-client.ts @ 0.1; local changes: the instance is found through BragDoc's
-// own runtime.json (server/runtime.ts readRuntimeAddress: the file also holds the MCP token, which isn't needed here) or a port the caller names, and
-// asked through egress.ts's probeLoopback (127.0.0.1 only, unlogged: D9, D51) rather than fetch; the Output object is
-// BragDoc's `out`/`err` pair; the nouns are BragDoc's (D86).
+// From edspencer/cli-contract reference/busy-client.ts @ 0.2 (unchanged since 0.1); local changes: the instance is
+// found through BragDoc's own runtime.json (server/runtime.ts readRuntimeAddress: the file also holds the MCP token,
+// which isn't needed here) or a port the caller names, not a URL, and asked through egress.ts's probeLoopback
+// (127.0.0.1 only, unlogged: D9, D51) rather than fetch (`get`, injectable, in place of `fetch`); the exit codes are
+// args.ts's; the Output object is BragDoc's `out`/`err` pair (`io`), with `bragdoc: ` before an error; the name and the
+// nouns are BragDoc's, so `busyMessage` and `describeCounts` take no name (D86).
 //
 // The CLI's side of the busy check (SPEC §4): find the running instance, ask its `/api/busy`, and map the answer to
 // exit 0 (idle), 75 (busy) or 3 (nothing answers), with §4's messages. Used by `bragdoc busy`, and before
-// `service stop` and `service restart`.
+// `service stop`, `service restart` and `update`.
 import { EXIT_BUSY, EXIT_NOT_RUNNING } from '../args.js';
 import { probeLoopback } from '../egress.js';
 import { readRuntimeAddress } from '../runtime.js';
@@ -160,9 +162,10 @@ export async function runBusyCommand(o: FindOptions & { io: Say; json: boolean }
 }
 
 /**
- * The check before `service stop` and `service restart` (SPEC §4). Returns null to go ahead, or 75 after printing the
- * refusal. With `--force` it prints the same message, prefixed `Overriding:`, and goes ahead. Nothing answering, or
- * an answer that isn't a busy answer (an older BragDoc), goes ahead: there's nothing it can say is cut short.
+ * The check before `service stop`, `service restart` and `update` (SPEC §4). Returns null to go ahead, or 75 after
+ * printing the refusal. With `--force` it prints the same message, prefixed `Overriding:`, and goes ahead. Nothing
+ * answering, or an answer that isn't a busy answer (an older BragDoc), goes ahead: there's nothing it can say is cut
+ * short.
  */
 export async function guardBusy(o: FindOptions & { io: Say; force?: boolean; hint?: string }): Promise<number | null> {
   const result = await checkBusy(o);

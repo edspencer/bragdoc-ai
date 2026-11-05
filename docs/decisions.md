@@ -1708,3 +1708,20 @@ The rollout's D3b, on top of D87's amendment of D9.
   run); an async rewrite of the reference's npm calls (a bigger local change than `runSync`); backing up on every
   update (copies nobody needs, and a reason to stop reading the message); reading the target's schema versions from
   the registry's manifest (a field to keep in step by hand in package.json).
+
+### D89 — A first install the service manager refuses leaves no unit behind (cli-contract d5ddc0e)
+
+`service install` writes the unit (or plist) before asking the manager to load it. When systemd refused (no user bus,
+`enable` or `start` failing) or launchd did (`bootstrap` with no login session at the screen), the file stayed, so
+`service status` said BragDoc was installed (exit 3, not 4) and the next login tried to start it. The contract's
+reference fixed the same thing in `reference/service/` (cli-contract#7, `d5ddc0e`); this is that fix in BragDoc's own
+writers (`server/platform/systemd.ts`, `launchd.ts`).
+
+- **A first install the manager refuses removes what it wrote:** systemd's unit is disabled again (best effort), removed
+  and the manager reloaded; launchd's plist is removed. The error is still the manager's, and still exit 1.
+- **A reinstall the manager refuses keeps its unit.** The unit on disk is what's installed either way, and removing it
+  would turn a failed reinstall into an uninstall.
+- **Not covered:** a service that loads but doesn't answer within the readiness wait is still installed (exit 0 with
+  the caveat, as before): the manager accepted it, and it may still be starting.
+- `busy-client.ts`'s header now says `@ 0.2`: the reference's file didn't change between 0.1 and 0.2, and the header
+  lists every local change (it also guards `update`, since D88).

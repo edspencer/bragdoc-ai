@@ -97,6 +97,9 @@ export function launchdManager({ dir, uid, run, sleep = (ms) => new Promise((r) 
   const file = path.join(dir, `${LAUNCHD_LABEL}.plist`);
   const missing = () => new ServiceManagerError('launchctl is not available: BragDoc runs as a service with launchd on macOS');
 
+  // our own unit file (a fixed name): the one removal here, by `uninstall` and by a first install the manager refused
+  const removeUnit = () => fs.rmSync(file, { force: true });
+
   const launchctl = async (args: string[], okCodes: number[] = [0]) => {
     const r = await run('launchctl', args);
     if (r.code === 127) throw missing();
@@ -158,13 +161,23 @@ export function launchdManager({ dir, uid, run, sleep = (ms) => new Promise((r) 
     parseArgv: parsePlistArgv,
     installCommands: () => [`launchctl enable ${target}`, `launchctl bootstrap ${domain} ${file}`],
     async install(spec) {
+      const existed = fs.existsSync(file);
       fs.mkdirSync(spec.cwd, { recursive: true });
       const changed = writeIfChanged(file, renderPlist(spec));
-      const st = await status();
-      // a plist is only read at bootstrap, and a reinstall replaces what's running even when the plist is unchanged
-      // (`bragdoc update`'s refresh writes an identical one for a new version: cli-contract SPEC §1). RunAtLoad starts it
-      if (st.loaded) await bootout();
-      await bootstrap();
+      try {
+        const st = await status();
+        // a plist is only read at bootstrap, and a reinstall replaces what's running even when the plist is unchanged
+        // (`bragdoc update`'s refresh writes an identical one for a new version: cli-contract SPEC §1). RunAtLoad
+        // starts it
+        if (st.loaded) await bootout();
+        await bootstrap();
+      } catch (err) {
+        // A first install launchd refused (no login session at the screen, say) mustn't leave a plist behind: `status`
+        // would then say it's installed, and the next login would try it again. A reinstall keeps its plist
+        // (cli-contract d5ddc0e)
+        if (!existed) removeUnit();
+        throw err;
+      }
       return { changed };
     },
     async start() {
@@ -189,7 +202,7 @@ export function launchdManager({ dir, uid, run, sleep = (ms) => new Promise((r) 
     async uninstall() {
       const existed = fs.existsSync(file);
       await bootout();
-      fs.rmSync(file, { force: true });
+      removeUnit();
       return existed;
     },
     logs: (spec) => ({ file: spec.log }),

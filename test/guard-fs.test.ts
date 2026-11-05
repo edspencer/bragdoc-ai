@@ -62,10 +62,10 @@ const ALLOWED: Record<string, Record<string, number>> = {
     truncate: 1, // then service/bragdoc.log itself, emptied in place: the manager holds it open for appending
   },
   'server/platform/launchd.ts': {
-    rm: 1, // `service uninstall`: our own plist (a fixed name), after bootout
+    rm: 1, // our own plist (a fixed name): `service uninstall`, after bootout, and a first install launchd refused (D89)
   },
   'server/platform/systemd.ts': {
-    rm: 1, // `service uninstall`: our own unit file (a fixed name), after disable --now
+    rm: 1, // our own unit file (a fixed name): `service uninstall`, after disable --now, and a first install systemd refused (D89)
   },
   'server/home.ts': {
     rename: 2, // the old CLI's config.yml/cache/logs into legacy-cli.partial/, then that into legacy-cli/ (D28)

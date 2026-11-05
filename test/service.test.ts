@@ -28,6 +28,8 @@ interface Fake {
   followed: string[];
   /** Every busy check: `<port>/api/busy`. */
   busyAsked: string[];
+  /** Make the manager refuse from now on: systemctl's `enable`, launchctl's `bootstrap` (as 125, no login session). */
+  refuse: { enable: boolean; bootstrap: boolean };
 }
 
 /**
@@ -51,6 +53,7 @@ function fake(platform: NodeJS.Platform, o: { answer?: (port: number, f: Fake) =
     streamed: [],
     followed: [],
     busyAsked: [],
+    refuse: { enable: false, bootstrap: false },
     ctx: undefined as unknown as Ctx,
   };
   const ok = (stdout = ''): RunResult => ({ code: 0, stdout, stderr: '' });
@@ -66,6 +69,7 @@ function fake(platform: NodeJS.Platform, o: { answer?: (port: number, f: Fake) =
           }
           return f.state.loaded ? ok(`x = {\n\tstate = ${f.state.running ? 'running' : 'waiting'}\n${f.state.running ? `\tpid = ${f.state.pid}\n` : ''}}\n`) : { code: 113, stdout: '', stderr: 'Could not find service' };
         case 'bootstrap':
+          if (f.refuse.bootstrap) return { code: 125, stdout: '', stderr: 'Bootstrap failed: 125: Domain does not support specified action' };
           if (bootstrapFailures-- > 0) return { code: o.bootstrapCode ?? 5, stdout: '', stderr: `Bootstrap failed: ${o.bootstrapCode ?? 5}: Input/output error` };
           up();
           return ok();
@@ -86,6 +90,7 @@ function fake(platform: NodeJS.Platform, o: { answer?: (port: number, f: Fake) =
       const verb = args[1];
       if (verb === 'show')
         return ok(`LoadState=${f.state.loaded ? 'loaded' : 'not-found'}\nActiveState=${f.state.running ? 'active' : o.failed ? 'failed' : 'inactive'}\nSubState=${f.state.running ? 'running' : o.failed ? 'failed' : 'dead'}\nMainPID=${f.state.running ? f.state.pid : 0}\nExecMainPID=${o.failed ? 77 : 0}\nExecMainStatus=${o.failed ? 1 : 0}\n`);
+      if (verb === 'enable' && f.refuse.enable) return { code: 1, stdout: '', stderr: 'Failed to enable unit: Unit file bragdoc.service does not exist.' };
       if (verb === 'start' || verb === 'restart') up();
       if (verb === 'stop') f.state.running = false;
       if (verb === 'disable' && args.includes('--now')) Object.assign(f.state, { loaded: false, running: false });
@@ -461,6 +466,33 @@ test('macOS over ssh with nobody logged in at the screen (bootstrap 125): one cl
   const f = fake('darwin', { bootstrapFailures: 99, bootstrapCode: 125 });
   await assert.rejects(service(f.ctx, ['install'], {}, undefined), /no login session for this user at the screen/);
   assert.equal(f.calls.filter((c) => c.startsWith('launchctl bootstrap')).length, 1);
+});
+
+test('a first install the manager refuses leaves no unit behind (status: not installed); a refused reinstall keeps its unit', async () => {
+  // systemd: enable refused on a first install. The unit is disabled again, removed, and the manager reloaded
+  const s = fake('linux');
+  s.refuse.enable = true;
+  await assert.rejects(service(s.ctx, ['install'], {}, undefined), /systemctl --user enable --quiet bragdoc\.service failed \(exit 1\)/);
+  assert.equal(fs.existsSync(unitFile(s)), false, 'status would otherwise say it is installed');
+  assert.deepEqual(s.calls.filter((c) => !c.includes(' show ')).slice(-2), ['systemctl --user disable --quiet bragdoc.service', 'systemctl --user daemon-reload']);
+  assert.equal(await service(s.ctx, ['status'], {}, undefined), 4);
+  // launchd: bootstrap refused (no login session at the screen)
+  const l = fake('darwin');
+  l.refuse.bootstrap = true;
+  await assert.rejects(service(l.ctx, ['install'], {}, undefined), /no login session/);
+  assert.equal(fs.existsSync(plistFile(l)), false, 'status would otherwise say it is installed');
+  assert.equal(await service(l.ctx, ['status'], {}, undefined), 4);
+
+  // the control: a reinstall the manager refuses keeps the unit it had, which is what's installed either way
+  for (const platform of ['linux', 'darwin'] as const) {
+    const f = fake(platform);
+    assert.equal(await service(f.ctx, ['install'], {}, undefined), 0);
+    const file = platform === 'linux' ? unitFile(f) : plistFile(f);
+    f.refuse.enable = f.refuse.bootstrap = true;
+    await assert.rejects(service(f.ctx, ['install'], { port: '5151' }, undefined));
+    assert.ok(fs.existsSync(file), `${platform}: a reinstall keeps its unit`);
+    assert.ok(!f.calls.some((c) => / disable /.test(c)), `${platform}: and doesn't disable it`);
+  }
 });
 
 test('a failed systemd unit is shown as not running, with its exit status, not as "stopped"', async () => {
