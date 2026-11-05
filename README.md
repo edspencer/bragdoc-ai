@@ -60,7 +60,8 @@ untouched.
 
 ```sh
 bragdoc service install   # a LaunchAgent on macOS, a systemd user unit on Linux: starts when you log in
-bragdoc service status    # running? on which port?
+bragdoc service status    # running? on which port? (exit 0 yes, 3 not running, 4 not installed; --json)
+bragdoc service logs      # the last 50 lines of its log; -f to follow
 bragdoc service uninstall # removes the service; your data stays
 ```
 

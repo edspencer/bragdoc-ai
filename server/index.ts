@@ -32,6 +32,7 @@ import { registerRoutes } from './routes/index.js';
 import { Runtime, displayUrl } from './runtime.js';
 import { Secrets } from './secrets.js';
 import { UploadRegistry, security } from './security.js';
+import { startServiceLogRotation } from './platform/service-log.js';
 import { createServices } from './services/index.js';
 import { createSources } from './sources/index.js';
 import { startSnapshots } from './store/backups.js';
@@ -202,8 +203,10 @@ export async function startServer(port: number, { hostname = '127.0.0.1', ...opt
   const stopSources = ctx.sources.start(); // the hourly GitHub check (D57) and the screenshots folder, only if you turned them on
   const stopEvidenceText = ctx.evidenceText.start(); // the board's pictures, read in the background
   const stopSchedule = ctx.judgeSchedule.start(); // the judge's background runs: none unless you chose them (D75)
+  const stopLogRotation = startServiceLogRotation(opts.dataDir); // the service's own log, if it runs as one (D85)
   const bound = await new Promise<{ port: number; close: () => Promise<void> }>((resolve, reject) => {
     const failed = (e: Error) => {
+      stopLogRotation();
       stopSnapshots();
       stopSources();
       stopEvidenceText();
@@ -215,6 +218,7 @@ export async function startServer(port: number, { hostname = '127.0.0.1', ...opt
     const server = serve({ fetch: app.fetch, port, hostname }, (info) => {
       server.off('error', failed);
       const close = async () => {
+        stopLogRotation();
         stopSnapshots();
         stopSources();
         stopEvidenceText();

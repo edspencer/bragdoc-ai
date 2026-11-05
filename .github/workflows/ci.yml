@@ -85,8 +85,9 @@ jobs:
           path: test-results/
           retention-days: 7
 
-  # `bragdoc service` against the runner's real launchd / systemd user instance: install, health, restart, a crash and a
-  # graceful stop brought back by KeepAlive / Restart=always, stop, start, logs, uninstall (scripts/services-real.mjs).
+  # `bragdoc service` against the runner's real launchd / systemd user instance: install, health, status (and --json,
+  # with its exit codes 0 / 3 / 4), restart, a crash and a graceful stop brought back by KeepAlive / Restart=always,
+  # stop (still enabled), start, logs (the log file, -n and -f), uninstall (scripts/services-real.mjs).
   # The unit tests cover the same code with the service manager mocked; this is the only place it runs for real.
   services:
     name: Services (real ${{ matrix.os == 'macos-latest' && 'launchd' || 'systemd' }})

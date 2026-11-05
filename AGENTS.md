@@ -76,7 +76,8 @@ server/              the server and CLI (Node, TypeScript ESM, Hono)
                      is the injectable Ctx (runner, probe, clock), ready.ts the /api/health probe and readiness wait
   platform/          power.ts (is it plugged in? the judge's "only on power", PR25); `bragdoc service`: spec.ts (what the service is), launchd.ts / systemd.ts (the writers, pinned by
                      test/fixtures/services/), path.ts (the PATH captured at install), runner.ts (the injectable Runner
-                     / Streamer, defaulting to proc.ts), index.ts (which manager this OS has; Windows: not yet)
+                     / Streamer, defaulting to proc.ts), index.ts (which manager this OS has; Windows: not yet),
+                     service-log.ts (service/bragdoc.log, which both managers append to, rotated by the server: D85)
   index.ts           createApp (routes → JSON 404 for /api/* → static files → SPA fallback) and startServer
   context.ts         AppContext: what every route module gets (version, dataDir, config, bus, egress, runtime,
                      uploads, notices, store, services)
@@ -669,8 +670,10 @@ Change any of those and re-run `sync:reference`; `docs.test.ts` fails until you 
 
 - **Server imports use `.js` extensions** (NodeNext); tests and `src/` import `.ts` files directly. The build
   rewrites them.
-- **CLI exit codes:** 0 success, 1 error, 2 usage error (with the usage printed). Throw `UsageError`
-  (`server/args.ts`) for bad usage, a plain `Error` otherwise; `cli.ts` turns them into messages and exit codes. Set
+- **CLI exit codes:** 0 success, 1 error, 2 usage error (with the usage printed), and `bragdoc service`'s 3 (not
+  running) and 4 (not installed), from the [CLI contract](https://github.com/edspencer/cli-contract) (D85). Throw
+  `UsageError` (`server/args.ts`) for bad usage, `ExitError` for one of the contract's other codes, a plain `Error`
+  otherwise; `cli.ts` turns them into messages and exit codes. Set
   `process.exitCode`, never call `process.exit()` (it can cut off piped output).
 - **The default port is one constant**, `DEFAULT_PORT` in `server/port.ts`. Never auto-pick another port (D6).
 - **No environment variable is required** for normal operation: services and agents' shells start with an empty

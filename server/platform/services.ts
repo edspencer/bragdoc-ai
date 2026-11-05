@@ -23,7 +23,7 @@ export interface ServiceStatus {
   state: string | null;
 }
 
-/** Where `bragdoc service logs` reads: a file it follows (launchd), or a command it runs (journalctl). */
+/** Where `bragdoc service logs` reads: the log file (D85), or journalctl for a systemd unit an older BragDoc wrote. */
 export type LogSource = { file: string } | { command: [AllowedBin, string[]] };
 
 export class ServiceManagerError extends Error {}
@@ -56,6 +56,8 @@ export interface ServiceManager {
   /** Stop it and delete the definition. True if there was one. */
   uninstall(): Promise<boolean>;
   logs(spec: Pick<ServiceSpec, 'log'>): LogSource;
+  /** Why the installed definition is older than this BragDoc writes, or null. */
+  stale(): string | null;
 }
 
 /** Write `text` to `file` via a temp file and rename; false if it already had exactly that text. */

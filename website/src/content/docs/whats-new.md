@@ -3,6 +3,20 @@ title: What's new
 description: "What changed in each BragDoc release, newest first."
 ---
 
+## Coming in 0.3.0: the service, by the CLI contract
+
+Not released yet.
+
+`bragdoc service` now follows the same [CLI contract](https://github.com/edspencer/cli-contract) as Ed's other local
+tools. See [the CLI reference](/reference/cli/#bragdoc-service).
+
+- **`bragdoc service status` has exit codes a script can use:** 0 when BragDoc is answering, 3 when it's installed but
+  not running, and 4 when it isn't installed. `--json` prints the report as JSON, with the installed and running
+  versions. `start`, `stop`, `restart` and `logs` exit 4 when there's no service.
+- **On Linux, the service logs to a file**, `~/.bragdoc/service/bragdoc.log`, as on macOS, rotated at 10 MB. Run
+  `bragdoc service install` once to switch an existing service over.
+- **`bragdoc service logs` prints the last 50 lines.** `-f` follows the log, and `-n` sets how many lines.
+
 ## 0.2.0: opt-in AI
 
 Built on the [`v0.2` branch](https://github.com/edspencer/bragdoc-ai/tree/v0.2), on top of the first local release

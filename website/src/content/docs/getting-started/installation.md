@@ -42,7 +42,7 @@ bragdoc service install
 ```
 
 It starts at login, not at boot, and runs as the user who installed it (so install it as yourself, not with `sudo`). `bragdoc service status` says whether it's running
-and on which port, and `bragdoc service uninstall` removes it; your data stays. A service needs an installed
+and on which port, `bragdoc service logs` shows its log, and `bragdoc service uninstall` removes it; your data stays. A service needs an installed
 `bragdoc`, not `npx`, because npx's copy can disappear from its cache.
 
 ## Docker

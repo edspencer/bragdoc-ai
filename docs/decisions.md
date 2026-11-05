@@ -1534,3 +1534,43 @@ PR30, the v0.2 release candidate (SPEC open question 9).
   same way. The helper writes by hand until the store sees an edit (restarting a watcher that stays silent for 5 s, at
   most 3 times); the edits a test then asserts on get no retry. The app isn't changed: its watcher runs for hours,
   and a hand edit in the first second after it starts is the only one at risk.
+
+### D85 — `bragdoc service` follows the CLI contract (SPEC 0.1): status's exit codes and `--json`, a log file on Linux
+
+The [CLI contract](https://github.com/edspencer/cli-contract) (`SPEC.md` 0.1) is the lifecycle that all of Ed's local
+tools share: running, the service, status, logs, `update`. This is its alignment PR for BragDoc (the rollout's B4).
+Nothing beyond what the spec already covers; `busy`, `update` and `doctor` come later, with the D9 amendment they need.
+
+- **`service status` exits 0 when BragDoc answers, 3 when it's installed but not running or not answering, and 4 when
+  it isn't installed** (SPEC §2, after `systemctl status` and LSB). It used to exit 0 for all three. `start`, `stop`,
+  `restart` and `logs` exit 4 when it isn't installed (they exited 1). These change what a script sees, so the
+  changeset is a `minor` and says so. An `ExitError` (`server/args.ts`) carries the code. A Linux machine with no unit
+  file *and* no systemd to ask (a container, a CI job) is "not installed", exit 4, not an error.
+- **`service status --json`**: one document on stdout, the same exit codes. Its fields are SPEC §1's list: `installed`,
+  `running`, `answering`, `stopped`, `manager`, `unit`, `state`, `pid`, `lastExitCode`, `installedVersion` (the
+  package.json above the `cli.js` the unit runs), `runningVersion` (from `/api/health`), `port`, `url`, `dataDir`,
+  `log` and `warnings`. The contract's JSON schema (its task A3) didn't exist yet; the names follow Local Review's
+  `status --json` where it had one, and the sweep at the end of the rollout reconciles them.
+- **On Linux the service's output goes to the log file, not the journal** (SPEC §7): `StandardOutput=append:` and
+  `StandardError=append:` name `<data home>/service/bragdoc.log`, the file the plist already names on macOS. So
+  `service logs` is one file reader everywhere, and works on machines where the user journal isn't readable (CI
+  runners were one). It needs systemd 240 (2019). A unit written before this still logs to the journal: `logs` reads it
+  from there, and `status` warns, until `service install` rewrites it.
+- **The log keeps its path,** `<data home>/service/bragdoc.log`, not the spec's `<home>/logs/service.log`. It has been
+  there since PR5, it's in the service's own directory (its working directory), and moving it would split an existing
+  macOS install's log across two files until it's reinstalled. The spec's point (one file the tool writes, on every
+  OS) holds; the path is BragDoc's own.
+- **BragDoc rotates it** (SPEC §7: "the tool rotates its own log"), since the journal no longer does on Linux: the
+  server checks at start and hourly, and past 10 MB copies it to `bragdoc.1.log` and truncates it in place
+  (`server/platform/service-log.ts`). Copy-and-truncate, because the manager holds the file open for appending; a
+  rename would leave it writing to the old name. The fs guard lists the copy and the truncate.
+- **`service logs` prints the last 50 lines and exits; `-f` follows, `-n <lines>` sets how many** (SPEC §1). It used to
+  always follow.
+- **`stop` doesn't disable** (SPEC §1). It already didn't: `systemctl --user stop` and `launchctl bootout` leave the
+  unit installed and enabled, so the next login starts it again. The unit tests pin it, and the real-service CI job now
+  checks `systemctl --user is-enabled` and `launchctl print-disabled` after a stop.
+- **Real-service CI** already existed (`scripts/services-real.mjs`, from Hallway's); it now checks the exit codes,
+  `--json` against the real manager, the log file on both OSes, `logs -n` and `-f`, and that `stop` leaves it enabled.
+- **Not here:** `serve`'s first line is still `BragDoc on <url>`, not the spec's `BragDoc <version>: <url>`, and
+  `restart` doesn't re-render a stale unit; neither was in B4's brief. The conformance runner (`@edspencer/cli-conformance`)
+  wasn't on npm yet, so CI doesn't run it; the rollout's G3 wires it.

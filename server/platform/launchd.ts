@@ -177,5 +177,6 @@ export function launchdManager({ dir, uid, run, sleep = (ms) => new Promise((r) 
       return existed;
     },
     logs: (spec) => ({ file: spec.log }),
+    stale: () => null,
   };
 }

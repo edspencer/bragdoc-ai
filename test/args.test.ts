@@ -10,6 +10,10 @@ test('parses positionals, value flags in both forms, and the short flags', () =>
   });
   assert.deepEqual(parseArgs(['-h']).flags, { help: '1' });
   assert.deepEqual(parseArgs(['-v']).flags, { version: '1' });
+  // `service logs [-f] [-n <lines>]` (cli-contract SPEC §1)
+  assert.deepEqual(parseArgs(['service', 'logs', '-f', '-n', '20']).flags, { follow: '1', lines: '20' });
+  assert.deepEqual(parseArgs(['service', 'logs', '--follow', '--lines=5']).flags, { follow: '1', lines: '5' });
+  assert.throws(() => parseArgs(['service', 'logs', '-n']), /-n needs a value/);
 });
 
 test('keeps everything after a bare -- untouched', () => {
