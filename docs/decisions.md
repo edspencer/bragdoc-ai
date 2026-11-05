@@ -1645,3 +1645,66 @@ Ed approved this on 4 November 2026, for the CLI contract's `update` and `doctor
   hand-over, no busy check: what the contract exists to replace); `npm view` (a second process, with output that isn't
   a contract); a check on `service status` (exactly the background check D9 forbids, only slower).
 
+
+### D88 — `bragdoc update` and `doctor` from the cli-contract reference (SPEC 0.2 §1, §5, §6)
+
+The rollout's D3b, on top of D87's amendment of D9.
+
+- **The sequence is the contract's,** copied into `server/update/` with headers saying what's local: `update.ts`
+  (SPEC §5), `registry.ts`, `install-method.ts`, `package-manager.ts`, `lock.ts`, `update-check.ts`, `health.ts`,
+  `semver.ts`, `exit-codes.ts` and `output.ts`, and the reference's tests for them (`test/update-*.test.ts`). BragDoc's
+  side, its `UpdateProduct`, is `server/commands/update.ts`. Keep the copies in step with the reference rather than
+  editing them; the local changes are few:
+  - **No default `fetch`.** The reference falls back to `globalThis.fetch`; here a missing one rejects (`noFetch`). The
+    only fetch `update` and `doctor` pass is `viaEgress`: `/api/health` on 127.0.0.1 through `probeLoopback` (D51),
+    everything else through `Egress.registry()` (D87), which refuses anything but the registry's two GETs. The egress
+    guard counts the three `fetch?:` option names.
+  - **Processes through proc.ts.** `package-manager.ts` runs npm through `runSync()`, a blocking `run()`: this Node by
+    path (npm is `node <npm-cli.js>`, the one beside it; the new CLI's `service install --refresh`), or an
+    allow-listed binary by name (`npm`, `pnpm`, `bun`, `volta` and, for `doctor`, `loginctl` joined the list). No
+    shell: Windows isn't supported (D14). npm's fetches and installs are recorded with `Egress.logProcess()` as
+    `via: npm`, since they leave from npm's process (Settings → Network activity shows "VIA NPM").
+  - **The service hooks may be async,** since BragDoc's service manager is.
+  - **`beforeStart`**, for SPEC §5 step 14 (below).
+- **The data home** `update` works on is the installed unit's (the one `service status` reads `update-check.json`
+  from), else `$BRAGDOC_HOME` or `~/.bragdoc`. `update.lock` and `update-check.json` live there, and are in the
+  generated `.gitignore`.
+- **The busy check** asks the unit's port when there's a service (as `stop` and `restart` do, D86), else
+  `runtime.json`. `readRuntimeAddress()` reads it without requiring the MCP token, so a contract-shaped
+  `{ pid, port, url, version, startedAt }` (the conformance runner's stand-in) is found too.
+- **Step 14, the backup.** BragDoc doesn't migrate files on boot, but a newer `schemaVersion` of a kind makes the
+  files it writes read-only to the older BragDoc a rollback brings back (D23). So once the target is installed and
+  before it starts, `update` reads the new package's `dist/server/schema-versions.json` (written by the build from the
+  built code, `scripts/schema-versions.mjs`: every kind's version and config.yaml's) and, if any is higher than this
+  BragDoc's, or the file isn't there (an older BragDoc: nothing shows it's safe), copies the editable files into
+  `backups/pre-<version>/` (`backupBeforeUpdate`: a snapshot's copy, blobs hard-linked, never pruned, `-2` on a second
+  attempt). A rollback that needs a person (exit 7) names it. Nothing is restored automatically.
+- **`service install --refresh`** re-renders from what the unit records (`--port`, and `--data-dir` if it names one),
+  not from the shell's flags or `$BRAGDOC_HOME`; a flag given with it wins. Nothing installed is exit 4. Unlike a plain
+  install, a refresh that doesn't answer within the readiness wait exits 1, because `update` rolls back on it.
+- **A reinstall replaces what's running** (SPEC §1, Paddock C2's first bug): systemd's install restarts an active
+  unit even when the unit is byte for byte the same, which is what `update`'s refresh writes for a global npm
+  install, and launchd's boots out a loaded job before bootstrapping. Previously an unchanged unit left the old
+  process serving.
+- **`restart` re-renders a stale unit first** (the Node or CLI it names has gone, or it still logs to the journal),
+  from its recorded settings, with this CLI; from a checkout, where a unit can't run the CLI, it just restarts.
+  `start` and `restart` run `systemctl --user reset-failed` first (SPEC §1's should).
+- **`service status`** repeats the last check: `update` in `--json` (left out, never null, when there's no cache, it's
+  for another version, or it's over a week old), and the notice on stderr. It never asks the registry.
+- **`doctor`** has the contract's checks (`node-engines`, `install-method`, `unit`, `running-version`, `port`,
+  `linger`, `data-home`, `update`) and BragDoc's (`config`: valid, not from the future; `git`; `gh` when the GitHub
+  source uses it). A port held by something else, a unit whose Node or CLI has gone, an unwritable data home, a bad
+  config.yaml and a missing `gh` fail; the rest warn. Skipped checks are in `--json` only. Its registry check writes
+  `update-check.json` too.
+- **`upgrade`** is a hidden alias: `ALIASES` in `commands/index.ts`, outside `COMMANDS`, so the help and the CLI
+  reference (whose test reads `COMMANDS`) name only `update`.
+- **The image** has `bragdoc` on `PATH` (`/usr/local/bin/bragdoc` → `dist/server/cli.js`), so Watchtower's
+  pre-update hook can run `bragdoc busy`; `smoke-image.sh` checks it. `BRAGDOC_IN_DOCKER=1` makes `update` print the
+  image to pull (exit 5).
+- **Conformance:** `@edspencer/cli-conformance` ^0.2.0 with every update check on. Nine run in the smoke-pack job;
+  `update-service` and `update-rollback` run in the real-service jobs (`CI_REAL_SERVICE=1`), after
+  `services-real.mjs`, which now also checks that a reinstall replaces the process and that `--refresh` keeps the unit.
+- **Considered:** writing BragDoc's own `update` (two to drift apart; the reference is what the other five tools
+  run); an async rewrite of the reference's npm calls (a bigger local change than `runSync`); backing up on every
+  update (copies nobody needs, and a reason to stop reading the message); reading the target's schema versions from
+  the registry's manifest (a field to keep in step by hand in package.json).
