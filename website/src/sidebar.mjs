@@ -19,6 +19,7 @@ export const SIDEBAR = [
 			// NOT `link: '/'`: `/` is the landing page, which renders outside Starlight with no sidebar and no way back.
 			{ label: 'Introduction', slug: 'introduction' },
 			{ label: 'Installation', slug: 'getting-started/installation' },
+			{ label: 'Running as a service', slug: 'getting-started/running-as-a-service' },
 			{ label: 'Updating', slug: 'getting-started/updating' },
 			{ label: 'Quickstart', slug: 'getting-started/quickstart' },
 		],

@@ -34,16 +34,15 @@ The same server, with the `bragdoc` command on your path. `bragdoc --help` lists
 ## Keep it running
 
 To have BragDoc start whenever you log in, and restart if it ever exits, install it as a login service (a
-LaunchAgent on macOS, a systemd user unit on Linux):
+LaunchAgent on macOS, a systemd user service on Linux):
 
 ```sh
 npm install -g @bragdoc/local
 bragdoc service install
 ```
 
-It starts at login, not at boot, and runs as the user who installed it (so install it as yourself, not with `sudo`). `bragdoc service status` says whether it's running
-and on which port, `bragdoc service logs` shows its log, and `bragdoc service uninstall` removes it; your data stays. A service needs an installed
-`bragdoc`, not `npx`, because npx's copy can disappear from its cache.
+[Running as a service](/getting-started/running-as-a-service/) has the rest: what `install` takes, where the service
+and its log are, the commands, and their exit codes.
 
 ## Docker
 

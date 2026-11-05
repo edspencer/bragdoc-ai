@@ -7,9 +7,9 @@ description: "`bragdoc update` checks it's safe, installs the new version, start
 bragdoc update
 ```
 
-That's the whole thing. It asks npm which version is the latest, asks you to confirm, stops your service, installs
-the new version, starts it again, and waits until BragDoc answers as the version it just installed. If that never
-happens, it reinstalls the version you were on and says so.
+That's the whole thing. It **asks the registry for the latest version, checks whether BragDoc is busy, asks you to
+confirm, downloads the new version first (while the old one is still running), stops the service, installs, starts the
+new version and waits until it answers.** If anything from the install on fails, it puts the old version back.
 
 ```
 BragDoc 0.6.0 is available (you have 0.5.0).
@@ -17,9 +17,18 @@ BragDoc 0.6.0 is available (you have 0.5.0).
   Changes: https://github.com/edspencer/bragdoc-ai/releases/tag/v0.6.0
 ```
 
-It works with or without the [login service](/getting-started/installation/#keep-it-running). Without one, it
-installs the new version, and the next `bragdoc` you start is the new one; if a BragDoc is running in a terminal, it
-asks you to stop it first (Ctrl+C), then run `bragdoc update` again.
+It works with or without the [login service](/getting-started/running-as-a-service/). Without one, it
+installs the new version, and the next `bragdoc` you start is the new one. If a BragDoc is answering in a terminal, it
+asks you to stop it first (Ctrl+C) and exits 3; run `bragdoc update` again once it's stopped.
+
+## Options
+
+- **`--check`** reports and changes nothing. It exits 0 whether or not there's an update; with `--json`, read
+  `updateAvailable`.
+- **`--to <version|tag>`**: a version or a dist-tag (`next`). It's the only way to move to a lower version.
+- **`--yes`** skips the question. Without a terminal (a script, cron), `--yes` is required, or `update` exits 2.
+- **`--force`** skips the busy check, and nothing else: the health check and the rollback still run.
+- **`--json`**: one JSON document on stdout; prose on stderr.
 
 ## Look first
 
@@ -34,9 +43,9 @@ bragdoc update --check --json
 
 ## Nothing checks by itself
 
-BragDoc never asks for a new version on its own: not the server, not at startup, not in the background, and the app
-never shows you one. Only `bragdoc update`, `bragdoc update --check` and `bragdoc doctor` ask, and only when you run
-them. `bragdoc doctor --offline` skips that question.
+**BragDoc never checks for updates by itself. Only `update`, `update --check` and `doctor` ask the registry, and only
+when you run them. `service status` repeats what the last of those found.** Not the server, not at startup, not in
+the background, and the app never shows you a new version. `bragdoc doctor --offline` skips that question.
 
 When they do ask, it's two requests to the npm registry (the one npm itself uses: `npm config get registry`, usually
 `registry.npmjs.org`), for which version is the latest and which Node that version needs. Both go through BragDoc's
@@ -51,13 +60,14 @@ from there without asking anything.
 ## While BragDoc is busy
 
 Before it stops anything, `update` asks the running BragDoc whether it's in the middle of something a restart would
-cut short: an import, a judge run, or AI requests running or waiting. If it is, it refuses, and says what's running:
+cut short: an import, a judge run, or AI requests running or waiting. **If BragDoc is busy, `update` refuses with exit
+75 before anything is stopped**, and says what's running:
 
 ```
 bragdoc: BragDoc is busy: 1 judge run and 3 AI requests are running. Try again once it has finished, or use --force.
 ```
 
-Wait, or use `--force`. `--force` skips only that check: the health check and the putting back still happen.
+Wait, or use `--force`, which skips the busy check, and nothing else: the health check and the rollback still run.
 `bragdoc busy` asks the same question on its own (exit 0 not busy, 75 busy, 3 not running).
 
 ## Your data, if the new version changes its format
@@ -85,12 +95,18 @@ a `latest` that points at a prerelease isn't installed unless `--to` names it.
 
 ## Without a terminal
 
-`update` asks before it does anything, and asking needs a terminal. In a script, a cron job or an Ansible task, it
-exits 2 and says `--yes` is needed, rather than guessing:
+`update` asks before it does anything, and asking needs a terminal. **Without a terminal (a script, cron, an Ansible
+task), `--yes` is required, or `update` exits 2** and says so, rather than guessing:
 
 ```sh
 bragdoc update --yes
 ```
+
+## If the new version doesn't start
+
+**`update` waits up to 30 seconds for the new version to answer. If it doesn't, it prints the last 20 lines of the
+log, reinstalls the old version and checks that it answers: exit 6, "0.6.0 didn't start; 0.5.0 is running again." If
+the old version doesn't come back either, it exits 7 and prints the commands to run by hand.**
 
 ## When it goes wrong
 
@@ -100,15 +116,15 @@ The exit code says what happened:
 | --- | --- | --- |
 | 0 | Updated, or already up to date | Nothing. |
 | 1 | It couldn't start: npm unreachable, another update running, a Node too old for the new version | Read the message. |
-| 2 | There's no terminal to ask, so `--yes` is needed | Add `--yes`. |
+| 2 | Usage: an unknown option or a bad value; or there's no terminal to ask, so `--yes` is needed | Read the message; add `--yes`. |
 | 3 | A BragDoc is running in a terminal, and there's no service to stop | Stop it (Ctrl+C), and run `update` again. |
 | 5 | This install can't update itself; the command that would was printed | Run that command. |
 | 6 | The new version didn't start. **The old one is running again** | Read the log lines it printed, and [report it](https://github.com/edspencer/bragdoc-ai/issues). |
 | 7 | The new version didn't start, **and the old one couldn't be put back** | Run the commands it printed. |
 | 75 | BragDoc is busy | Wait, or use `--force`. |
 
-On a failure, `update` prints the last 20 lines of the service's log before it puts the old version back, which is
-usually enough to see why the new one didn't come up. A 7 also names the backup from above, if it made one.
+The log lines `update` prints on a failure are usually enough to see why the new one didn't come up. A 7 also names
+the backup from above, if it made one.
 
 ## Installs that can't update themselves (exit 5)
 
@@ -121,11 +137,19 @@ would work instead:
 | Something else manages it (`BRAGDOC_UPDATE_HINT` is set) | Whatever that variable says. |
 | `npx` (or `pnpm dlx`, `bunx`) | Nothing to update: `npx @bragdoc/local@latest` already runs the latest. |
 | A checkout of the repository | `git pull && npm install && npm run build` |
+| A global folder you can't write to | The same command with `sudo`. |
+| yarn global | `yarn global add @bragdoc/local@<version>`: update it the way you installed it. |
 | A dependency of another project | Update it in that project. |
 
-A global install with **npm**, **pnpm**, **bun** or **volta** updates in place, with the same package manager. If
-npm's global folder isn't yours to write to, `update` prints the command with `sudo` and exits 5. **It never runs
-`sudo` itself.**
+A global install with **npm**, **pnpm**, **bun** or **volta** updates in place, with the same package manager.
+**BragDoc never runs `sudo` itself.**
+
+**A managed install: if `BRAGDOC_UPDATE_HINT` is set, `update` prints it and exits 5.** Set it in the environment of
+an install something else manages (an Ansible role, a NixOS module), so nobody updates it by hand:
+
+```sh
+export BRAGDOC_UPDATE_HINT="This BragDoc is managed by Ansible: run the bragdoc playbook to update it."
+```
 
 ## In Docker
 
@@ -144,15 +168,15 @@ BragDoc 0.6.0 is available (you have 0.5.0).
 ### Watchtower
 
 [Watchtower](https://containrrr.dev/watchtower/) can wait for a quiet moment. Turn on its lifecycle hooks
-(`WATCHTOWER_LIFECYCLE_HOOKS=1`) and give the BragDoc container this label (`compose.yaml` has it, commented out):
+(`WATCHTOWER_LIFECYCLE_HOOKS=true`) and give the BragDoc container this label (`compose.yaml` has it, commented out):
 
 ```yaml
 labels:
   com.centurylinklabs.watchtower.lifecycle.pre-update: "bragdoc busy"
 ```
 
-Before it replaces the container, Watchtower runs `bragdoc busy` inside it. While BragDoc is busy, that exits 75, and
-Watchtower skips the update until its next run.
+Before it replaces the container, Watchtower runs `bragdoc busy` inside it. **When BragDoc is busy the hook exits 75
+and Watchtower skips the update until its next run.**
 
 ## Checking an install: `bragdoc doctor`
 

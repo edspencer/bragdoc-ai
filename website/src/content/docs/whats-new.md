@@ -3,6 +3,22 @@ title: What's new
 description: "What changed in each BragDoc release, newest first."
 ---
 
+## Coming in 0.6.0: running as a service, tidied up
+
+Not released yet.
+
+The last of the [CLI contract](https://github.com/edspencer/cli-contract) for `bragdoc service`. The new page
+[Running as a service](/getting-started/running-as-a-service/) has the whole story.
+
+- **`bragdoc service install` from a git checkout refuses unless you add `--from-checkout`**: a service that runs a
+  checkout breaks when it's cleaned or rebuilt. Install BragDoc with npm instead, or add the flag if you mean it.
+- **Running `service install` again keeps the port and data folder** the service already has, unless you give new
+  ones. Before, it went back to port 2724.
+- **`install`, `uninstall`, `start`, `stop` and `restart` take `--json`**, as `status` does: one JSON document on
+  stdout, the messages on stderr, and the same exit codes.
+- **A first install that systemd or launchd refuses leaves no service file behind**, so `service status` no longer
+  says it's installed.
+
 ## 0.4.0: busy, and serve's first line
 
 More of the [CLI contract](https://github.com/edspencer/cli-contract) Ed's local tools share.
