@@ -1,6 +1,6 @@
 // Command-line parsing for `bragdoc`, kept apart from cli.ts (which runs on import) so it can be unit-tested.
 // Exit codes (SPEC R1, cli-contract SPEC §2): 0 success, 1 error, 2 usage error (with the usage printed): a UsageError
-// is the 2. An ExitError carries one of the contract's others (3 not running, 4 not installed).
+// is the 2. An ExitError carries one of the contract's others (3 not running, 4 not installed, 75 busy).
 // A new flag goes in VALUE_FLAGS or BOOLEAN_FLAGS and in the `check` of each command that takes it.
 
 /** Bad usage: exit 2, with the usage. Anything else thrown exits 1. */
@@ -19,11 +19,13 @@ export class ExitError extends Error {
 /** cli-contract SPEC §2's codes beyond 0, 1 and 2, by name. */
 export const EXIT_NOT_RUNNING = 3;
 export const EXIT_NOT_INSTALLED = 4;
+/** Busy (`EX_TEMPFAIL`): `bragdoc busy`, and `service stop` / `restart` refusing without --force (D86). */
+export const EXIT_BUSY = 75;
 
 /** Options that take a value (`--port 5050` or `--port=5050`). */
 const VALUE_FLAGS = ['port', 'host', 'data-dir', 'engine', 'name', 'aliases', 'not-me', 'connection', 'model', 'schema', 'file', 'system', 'lines'];
 /** Options that don't. */
-const BOOLEAN_FLAGS = ['open', 'dry-run', 'stdio', 'print', 'snippet', 'json', 'follow'];
+const BOOLEAN_FLAGS = ['open', 'dry-run', 'stdio', 'print', 'snippet', 'json', 'follow', 'force'];
 
 export interface ParsedArgs {
   pos: string[];

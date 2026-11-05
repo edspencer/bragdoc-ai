@@ -73,17 +73,17 @@ test('a non-loopback --host is refused (exit 1) without the dangerous opt-in', (
 });
 
 /**
- * Start `bragdoc serve …` and wait for its "BragDoc on <url>" line. Rejects, with everything the child printed, if it
+ * Start `bragdoc serve …` and wait for its first line, "BragDoc <version>: <url>" (SPEC §3). Rejects, with everything the child printed, if it
  * exits first or hasn't said anything within `ms`: a hung child fails this test, not the whole CI job's timeout.
  */
 function startServe(args: string[], ms = 15_000): { child: ReturnType<typeof spawn>; ready: Promise<string> } {
   const child = spawn(process.execPath, [...CLI, 'serve', ...args], { cwd: ROOT, env: h.env });
   const ready = new Promise<string>((resolve, reject) => {
     let out = '';
-    const timer = setTimeout(() => reject(new Error(`no "BragDoc on" line after ${ms} ms; output so far: ${JSON.stringify(out)}`)), ms);
+    const timer = setTimeout(() => reject(new Error(`no "BragDoc <version>:" line after ${ms} ms; output so far: ${JSON.stringify(out)}`)), ms);
     child.stdout!.on('data', (d) => {
       out += d;
-      const m = /^BragDoc on (http:\/\/\S+)\n/.exec(out);
+      const m = new RegExp(`^BragDoc ${VERSION.replace(/\./g, '\\.')}: (http://\\S+)\n`).exec(out);
       if (m) {
         clearTimeout(timer);
         resolve(m[1]!);
@@ -112,7 +112,7 @@ test('--host [::1] binds the IPv6 loopback, or fails to bind cleanly where there
   }
 });
 
-test('serve prints "BragDoc on <url>" first, then answers /api/health; a taken port is an error, not a new port', async () => {
+test('serve prints "BragDoc <version>: <url>" first, then answers /api/health; a taken port is an error, not a new port', async () => {
   const { child, ready } = startServe(['--port', '0', '--data-dir', h.dataDir]);
   try {
     const url = await ready;
@@ -126,7 +126,7 @@ test('serve prints "BragDoc on <url>" first, then answers /api/health; a taken p
     assert.match(taken.stderr, new RegExp(`port ${port} is already in use by BragDoc ${VERSION.replace(/\./g, '\\.')}`));
     assert.match(taken.stderr, /--port <n>/);
     assert.equal(taken.stderr.trim().split('\n').length, 1, 'exactly one line');
-    assert.equal(taken.stdout, '', 'never "BragDoc on" another port');
+    assert.equal(taken.stdout, '', 'never a first line for another port');
   } finally {
     await stopChild(child);
   }
@@ -191,8 +191,8 @@ test('--open launches the opener through proc.ts, and says so when there is none
     child.stdout!.on('data', (d) => (out += d));
     child.stderr!.on('data', (d) => (err += d));
     try {
-      await waitFor(() => /^BragDoc on http:\/\/\S+\n/.test(out) || child.exitCode !== null);
-      const url = /^BragDoc on (http:\/\/\S+)\n/.exec(out)?.[1];
+      await waitFor(() => /^BragDoc \S+: http:\/\/\S+\n/.test(out) || child.exitCode !== null);
+      const url = /^BragDoc \S+: (http:\/\/\S+)\n/.exec(out)?.[1];
       assert.ok(url, `no banner: ${out}${err}`);
       if (opens) {
         await waitFor(() => fs.existsSync(mark));
@@ -208,7 +208,7 @@ test('--open launches the opener through proc.ts, and says so when there is none
 });
 
 test('serve exits 0 on SIGTERM (a clean stop; the service is restarted after it anyway)', async () => {
-  // the signal is sent the instant "BragDoc on" arrives, several times over: the handler must already exist by then
+  // the signal is sent the instant the first line arrives, several times over: the handler must already exist by then
   for (let i = 0; i < 10; i++) {
     const { child, ready } = startServe(['--port', '0']);
     try {

@@ -137,6 +137,10 @@ jobs:
       - run: npm ci
       - name: smoke:pack
         run: npm run smoke:pack
+      # the CLI contract's black-box checks (cli-contract.json lists them), on the packed tarball in a throwaway prefix
+      # and HOME: exit codes, --version, service status, busy, serve's first line and /api/health (D85, D86)
+      - name: cli-conformance
+        run: npx cli-conformance
 
   # The Docker image, on native amd64 and arm64 runners, as the release builds it: built, started on loopback with a
   # data folder, healthy, and serving (scripts/smoke-image.sh). Every PR, not just ones that touch the Dockerfile: the

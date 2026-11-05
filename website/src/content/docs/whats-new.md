@@ -3,6 +3,23 @@ title: What's new
 description: "What changed in each BragDoc release, newest first."
 ---
 
+## Coming in 0.4.0: busy, and serve's first line
+
+Not released yet.
+
+More of the [CLI contract](https://github.com/edspencer/cli-contract) Ed's local tools share.
+
+- **`bragdoc busy`** says whether the running BragDoc is in the middle of something a restart would cut short: an
+  import, a judge run, or AI requests. It exits 0 when it isn't, 75 when it is, and 3 when nothing is running, for
+  scripts and Docker update hooks. See [the CLI reference](/reference/cli/#bragdoc-busy).
+- **`bragdoc service stop` and `restart` won't cut that work short:** while BragDoc is busy they say what's running
+  and exit 75. `--force` stops or restarts it all the same.
+- **`serve`'s first line is now `BragDoc <version>: <url>`**, where it was `BragDoc on <url>`. A script that waits for
+  the old line needs to look for the new one. The `Version:` line after the data folder has gone: the version is in
+  the first line.
+- **`bragdoc service restart` on macOS** waits for launchd to let the old process go before starting the new one,
+  rather than retrying until it has.
+
 ## 0.3.0: the service, by the CLI contract
 
 `bragdoc service` now follows the same [CLI contract](https://github.com/edspencer/cli-contract) as Ed's other local

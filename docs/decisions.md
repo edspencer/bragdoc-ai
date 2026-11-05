@@ -1574,3 +1574,47 @@ Nothing beyond what the spec already covers; `busy`, `update` and `doctor` come 
 - **Not here:** `serve`'s first line is still `BragDoc on <url>`, not the spec's `BragDoc <version>: <url>`, and
   `restart` doesn't re-render a stale unit; neither was in B4's brief. The conformance runner (`@edspencer/cli-conformance`)
   wasn't on npm yet, so CI doesn't run it; the rollout's G3 wires it.
+
+### D86 — The busy check, and `serve`'s first line (cli-contract SPEC 0.1 §3, §4)
+
+The rollout's D3a: the busy half of SPEC §4 and the banner of §3. `update` and `doctor`, and the D9 amendment they
+need, are D3b's, after the contract's reference code for them exists.
+
+- **`GET /api/busy`** answers `{ busy, version, counts: { import, judge, ai } }` (ROADMAP's "Busy, per tool"):
+  - `import` is 1 while an import writes to the store: this server's own (`POST /api/import/apply`, the in-memory flag
+    in `import/lock.ts`), or a terminal's `bragdoc import`, whose `cache/import.lock` is fresh and names a live pid;
+  - `judge` is 1 while a judge run is in progress (`ctx.judge.busy()`, which is `status()` without its walk over Found);
+  - `ai` is every AI request running or waiting in `ctx.ai.queue()`, on every connection. A judge run's own requests
+    are among them, so a run shows in both counts; that's honest about what's under way, and it's only ever a count.
+  - OCR waiting in its queue isn't busy: the board's pictures are read again after a restart.
+  It's cheap (in-memory state and one small file read), counts only, and has no auth, as the contract says until it
+  settles how a caller proves it's local. `busy` is true when any count is above 0.
+- **`bragdoc busy [--json] [--data-dir] [--port]`** is the contract's `reference/busy-client.ts`, copied with its
+  header. It exits 0 idle, 75 busy, 3 when nothing answers, and 1 for an answer that isn't a busy answer. It finds the
+  server through runtime.json, as the reference does, and never guesses the default port. Two local changes: it asks
+  through `egress.ts`'s `probeLoopback` (127.0.0.1 only and unlogged, D51) rather than `fetch`, so the egress guard
+  holds; and runtime.json is BragDoc's own (below).
+- **runtime.json needed no new fields.** It already held the reference's `{ pid, port, url, version, startedAt }`,
+  written 0600, plus BragDoc's `mcpToken`, which stays. Unlike the reference's file it isn't removed on a clean exit,
+  because the token outlives the server (PR2); a reader checks that `pid` is alive, as the reference's
+  `readLiveRuntimeFile` does, and a stale file whose pid has been reused just finds nothing answering on its port.
+  There's no busy token in it: the contract has set that aside.
+- **`service stop` and `service restart` run the busy check first** (SPEC §1): busy is exit 75 with what's running
+  and "Try again once it has finished, or use --force." `--force` prints the same sentence after `Overriding:` and
+  carries on. They ask on the port the **installed unit** names, not through runtime.json, which a BragDoc in a
+  terminal on the same data home may have written since. Nothing answering, an older BragDoc with no `/api/busy` (a
+  404), or a service that's already stopped goes ahead without asking. `uninstall` doesn't ask (SPEC §1). `--force`
+  anywhere else is a usage error.
+- **The launchd race.** `launchctl bootout` returns before launchd has finished removing the job, so a bootstrap
+  straight after can fail with 5 (Input/output error); Paddock 0.80.0's release CI hit it on `restart`. BragDoc already
+  retried that bootstrap ten times, 500 ms apart (from Hallway). Now `bootout()` also waits, polling `launchctl print`
+  every 250 ms for up to 10 s, until the job has gone, and the retries cover what's left.
+- **`serve`'s first stdout line is `BragDoc <version>: <url>`** (SPEC §3), where it was `BragDoc on <url>`. `Data
+  home:` still follows it; the plain `Version:` line that followed outside a terminal is gone, since the version is in
+  the first line now. A `minor` changeset, because scripts wait for that line; everything in the repo that did
+  (`test/`, `smoke-pack`, `services-real`) waits for the new one. B1 found that Paddock's first run put its welcome
+  notice and its logger's lines on stdout ahead of the banner. BragDoc's server writes nothing to stdout but the
+  banner (the bind warning and `--open`'s were already stderr's, and `server.test.ts` pins that a missing build prints
+  nothing), so nothing else moved; the conformance runner's `serve-banner` check runs on a genuinely fresh home.
+- **The conformance runner** (`@edspencer/cli-conformance`, a devDependency) runs in CI with every check on, now that
+  `busy`, `busy-json` and `serve-banner` pass; `cli-contract.json` lists them.

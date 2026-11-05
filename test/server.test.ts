@@ -82,7 +82,7 @@ test('with no build, the fallback says how to build instead of a blank page', as
   }
 });
 
-test('a missing build prints nothing (scripts wait for "BragDoc on" as the first line)', async (t) => {
+test('a missing build prints nothing (scripts wait for "BragDoc <version>: <url>" as the first line)', async (t) => {
   const log = t.mock.method(console, 'log');
   const warn = t.mock.method(console, 'warn');
   const error = t.mock.method(console, 'error');

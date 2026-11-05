@@ -12,6 +12,7 @@ import { type ServiceManager, type ServiceStatus, managerFor } from '../platform
 import { servicePath } from '../platform/path.js';
 import { buildSpec, readArgv, serviceDir, stableNodePath, transientInstall, transientRefusal } from '../platform/spec.js';
 import { type Ctx, lastLines, show } from './context.js';
+import { guardBusy } from './busy-client.js';
 import { READY_TIMEOUT_LABEL, waitForReady } from './ready.js';
 
 const SERVICE_USAGE = 'service needs one of: install, uninstall, status, start, stop, restart, logs';
@@ -36,9 +37,11 @@ export async function service(ctx: Ctx, pos: string[], flags: Record<string, str
     case 'start':
     case 'stop':
     case 'restart': {
-      check(`service ${sub}`, flags, [], args, 0, rest);
+      // --force is stop's and restart's: they're the two that ask whether BragDoc is busy first (SPEC §1, §4).
+      // uninstall doesn't ask: removing the service is an explicit act
+      check(`service ${sub}`, flags, sub === 'stop' || sub === 'restart' ? ['force'] : [], args, 0, rest);
       const mgr = manager(ctx);
-      return { uninstall, start: startOrRestart, restart: startOrRestart, stop }[sub](ctx, mgr, sub);
+      return { uninstall, start: startOrRestart, restart: startOrRestart, stop }[sub](ctx, mgr, sub, !!flags.force);
     }
     default:
       throw new UsageError(sub ? `unknown service command '${sub}'; ${SERVICE_USAGE}` : SERVICE_USAGE);
@@ -67,6 +70,15 @@ const installedDataDir = (ctx: Ctx, st: ServiceStatus) => readArgv(st.argv).data
 function isStopped(mgr: ServiceManager, st: ServiceStatus): boolean {
   if (st.running) return false;
   return mgr.kind === 'launchd' ? !st.loaded : !st.loaded || /^inactive\b/.test(st.state ?? 'inactive');
+}
+
+/**
+ * Before stop and restart: is the service's BragDoc busy (D86)? Asked on the port the INSTALLED unit names, not
+ * through runtime.json, which a BragDoc in a terminal on the same data home may have written since. Exit 75 when it is,
+ * unless --force. Nothing answering, or an older BragDoc with no /api/busy, goes ahead.
+ */
+function busyGuard(ctx: Ctx, st: ServiceStatus, force: boolean): Promise<number | null> {
+  return guardBusy({ dataDir: installedDataDir(ctx, st), port: readArgv(st.argv).port, get: ctx.loopback, io: ctx, force });
 }
 
 /** start, stop, restart and logs on a service that isn't there: exit 4 (cli-contract SPEC §2, D85). */
@@ -305,7 +317,7 @@ async function status(ctx: Ctx, mgr: ServiceManager, json: boolean): Promise<num
 }
 
 /** start and restart: both WAIT for /api/health before saying "running", since neither manager's "started" means that. */
-async function startOrRestart(ctx: Ctx, mgr: ServiceManager, action: string): Promise<number> {
+async function startOrRestart(ctx: Ctx, mgr: ServiceManager, action: string, force = false): Promise<number> {
   const before = await mgr.status();
   if (!before.installed) throw notInstalled(ctx, mgr);
   const { port } = readArgv(before.argv);
@@ -313,6 +325,10 @@ async function startOrRestart(ctx: Ctx, mgr: ServiceManager, action: string): Pr
   if (action === 'start' && before.running) {
     ctx.out(`BragDoc is already running${before.pid ? ` (pid ${before.pid})` : ''} at ${url}\n`);
     return 0;
+  }
+  if (action === 'restart') {
+    const refused = await busyGuard(ctx, before, force);
+    if (refused !== null) return refused;
   }
   if (action === 'start') await mgr.start();
   else await mgr.restart();
@@ -323,13 +339,15 @@ async function startOrRestart(ctx: Ctx, mgr: ServiceManager, action: string): Pr
   return 0;
 }
 
-async function stop(ctx: Ctx, mgr: ServiceManager): Promise<number> {
+async function stop(ctx: Ctx, mgr: ServiceManager, _action: string, force = false): Promise<number> {
   const st = await mgr.status();
   if (!st.installed) throw notInstalled(ctx, mgr);
   if (isStopped(mgr, st)) {
     ctx.out('BragDoc is already stopped.\n');
     return 0;
   }
+  const refused = await busyGuard(ctx, st, force);
+  if (refused !== null) return refused;
   await mgr.stop();
   ctx.out(
     `Stopped BragDoc. The service is still installed, so it starts again at your next login${mgr.kind === 'systemd' ? ' (or the next boot, with lingering on)' : ''}, or now with \`bragdoc service start\`.\n`,

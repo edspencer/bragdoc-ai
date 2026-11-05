@@ -8,20 +8,20 @@ import { ROOT } from './fixture.ts';
 
 const o = { version: '1.2.3', url: 'http://localhost:2724', home: '~/.bragdoc' };
 
-test('"BragDoc on <url>" is the FIRST line, banner or not, with "Data home:" right after it', () => {
+test('"BragDoc <version>: <url>" is the FIRST line, banner or not, with "Data home:" right after it (SPEC §3)', () => {
   for (const t of [{ env: {} }, { isTTY: true, env: {}, depth: 24 }, { isTTY: true, columns: 20, env: {}, depth: 1 }, { env: { FORCE_COLOR: '1' }, depth: 8 }]) {
     const lines = startupMessage(o, t).split('\n');
-    assert.equal(lines[0], 'BragDoc on http://localhost:2724', JSON.stringify(t));
+    assert.equal(lines[0], 'BragDoc 1.2.3: http://localhost:2724', JSON.stringify(t));
     assert.equal(lines[1], 'Data home: ~/.bragdoc');
   }
 });
 
-test('not a terminal: three plain lines, no art, no colour, no hints', () => {
-  assert.equal(startupMessage(o, { env: {} }), 'BragDoc on http://localhost:2724\nData home: ~/.bragdoc\nVersion: 1.2.3\n');
+test('not a terminal: two plain lines, no art, no colour, no hints', () => {
+  assert.equal(startupMessage(o, { env: {} }), 'BragDoc 1.2.3: http://localhost:2724\nData home: ~/.bragdoc\n');
 });
 
 test('--quiet: the first line alone, even on a terminal', () => {
-  assert.equal(startupMessage({ ...o, quiet: true }, { isTTY: true, env: {} }), 'BragDoc on http://localhost:2724\n');
+  assert.equal(startupMessage({ ...o, quiet: true }, { isTTY: true, env: {} }), 'BragDoc 1.2.3: http://localhost:2724\n');
 });
 
 test('a terminal: the BRAGDOC art (fits 80 columns), the version, the agent hint, and the npx hint when transient', () => {

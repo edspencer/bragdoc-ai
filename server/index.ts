@@ -162,8 +162,8 @@ export function createAppWithContext({ dataDir, webDist = WEB_DIST, version = VE
       if (c.res.ok && !c.req.path.startsWith('/api/') && !c.res.headers.has('Cache-Control'))
         c.res.headers.set('Cache-Control', HASHED_ASSET.test(c.req.path) ? 'public, max-age=31536000, immutable' : 'no-cache');
     });
-    // Only when there's a build: on a missing root, serveStatic prints a warning to stdout, ahead of the "BragDoc on
-    // <url>" line that scripts wait for (banner.ts). Without one, the fallback below says how to build.
+    // Only when there's a build: on a missing root, serveStatic prints a warning to stdout, ahead of the "BragDoc
+    // <version>: <url>" line that scripts wait for (banner.ts). Without one, the fallback below says how to build.
     if (fs.existsSync(webDist)) app.use('*', serveStatic({ root: webDist }));
     app.on(['GET', 'HEAD'], '*', (c) => {
       // /assets/ is Vite's output and nothing else: a path there that serveStatic didn't find is a missing file

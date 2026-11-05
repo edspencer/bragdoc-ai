@@ -15,7 +15,7 @@ npx @bragdoc/local
 That downloads BragDoc, starts it, and prints the address to open, then where your data is:
 
 ```
-BragDoc on http://localhost:2724
+BragDoc 0.4.0: http://localhost:2724
 Data home: ~/.bragdoc
 ```
 

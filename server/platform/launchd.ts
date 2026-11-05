@@ -87,6 +87,10 @@ export interface LaunchdOptions {
   sleep?: (ms: number) => Promise<void>;
 }
 
+/** How long bootout() waits for launchd to finish removing the job: 40 × 250 ms. */
+const GONE_POLLS = 40;
+const GONE_POLL_MS = 250;
+
 export function launchdManager({ dir, uid, run, sleep = (ms) => new Promise((r) => setTimeout(r, ms)) }: LaunchdOptions): ServiceManager {
   const domain = `gui/${uid}`;
   const target = `${domain}/${LAUNCHD_LABEL}`;
@@ -110,8 +114,8 @@ export function launchdManager({ dir, uid, run, sleep = (ms) => new Promise((r) 
     return { installed: text !== null, argv, loaded: true, running: p.state === 'running' && p.pid !== null, pid: p.pid, lastExitCode: p.lastExitCode, state: p.state };
   };
 
-  // Right after a bootout the job may still be on its way out, and bootstrap fails with "5: Input/output error";
-  // retrying for a few seconds is the usual cure (Hallway). `enable` first: a job someone disabled by hand would
+  // Right after a bootout the job may still be on its way out, and bootstrap fails with "5: Input/output error".
+  // bootout() waits for it to go first (D86); retrying for a few seconds is the cure for what's left (Hallway). `enable` first: a job someone disabled by hand would
   // otherwise make bootstrap refuse.
   const bootstrap = async () => {
     await launchctl(['enable', target]);
@@ -129,8 +133,20 @@ export function launchdManager({ dir, uid, run, sleep = (ms) => new Promise((r) 
     }
   };
 
-  // exit 3 / 36 / 113: "No such process" / "Could not find service": it wasn't loaded, which is what was wanted
-  const bootout = () => launchctl(['bootout', target], [0, 3, 36, 113]);
+  // exit 3 / 36 / 113: "No such process" / "Could not find service": it wasn't loaded, which is what was wanted.
+  // launchctl bootout returns before launchd has finished removing the job (it sends SIGTERM and waits for the exit
+  // asynchronously), so a bootstrap straight after races it: the "bootstrap failed: 5" that Paddock 0.80.0's release
+  // CI hit on `restart`. So wait until `launchctl print` no longer finds it, for up to 10 s; past that, bootstrap's
+  // retries carry on as before.
+  const bootout = async () => {
+    const r = await launchctl(['bootout', target], [0, 3, 36, 113]);
+    if (r.code !== 0) return;
+    for (let i = 0; i < GONE_POLLS; i++) {
+      const p = await run('launchctl', ['print', target]);
+      if (p.code !== 0) return;
+      await sleep(GONE_POLL_MS);
+    }
+  };
 
   return {
     kind: 'launchd',

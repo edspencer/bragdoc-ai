@@ -112,6 +112,7 @@ site doesn't. What's there for agents today:
 | Method | Path | What it does |
 |--------|------|--------------|
 | GET | `/api/health` | Is it running, and which version |
+| GET | `/api/busy` | Is it in the middle of something a restart would cut short (an import, a judge run, AI requests): counts only |
 | GET | `/api/meta` | The version, the data home, the MCP address, and what's allowed out |
 | GET | `/api/events` | Server-sent events: what changed, as it changes |
 | GET | `/agent-guide.md`, `/llms.txt`, `/llms-full.txt` | This guide, with live facts |

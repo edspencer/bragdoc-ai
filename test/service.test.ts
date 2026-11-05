@@ -25,18 +25,22 @@ interface Fake {
   probes: number[];
   streamed: string[][];
   followed: string[];
+  /** Every busy check: `<port>/api/busy`. */
+  busyAsked: string[];
 }
 
 /**
  * A ctx on a throwaway home with a fake service manager. `answer(port)` is what the health probe sees; by default
  * BragDoc answers exactly while the fake manager has it running.
  */
-function fake(platform: NodeJS.Platform, o: { answer?: (port: number, f: Fake) => Probe; bootstrapFailures?: number; bootstrapCode?: number; failed?: boolean; env?: NodeJS.ProcessEnv; cliScript?: string; packageRoot?: string; noBus?: boolean } = {}): Fake {
+function fake(platform: NodeJS.Platform, o: { answer?: (port: number, f: Fake) => Probe; busy?: (port: number) => Response; lingerPrints?: number; bootstrapFailures?: number; bootstrapCode?: number; failed?: boolean; env?: NodeJS.ProcessEnv; cliScript?: string; packageRoot?: string; noBus?: boolean } = {}): Fake {
   const h = tmpHome();
   homes.push(h.cleanup);
   let out = '';
   let clock = 0;
   let bootstrapFailures = o.bootstrapFailures ?? 0;
+  // how many `launchctl print`s still find the job after a bootout (launchd removing it asynchronously)
+  let lingering = 0;
   const f: Fake = {
     home: h.home,
     calls: [],
@@ -45,6 +49,7 @@ function fake(platform: NodeJS.Platform, o: { answer?: (port: number, f: Fake) =
     probes: [],
     streamed: [],
     followed: [],
+    busyAsked: [],
     ctx: undefined as unknown as Ctx,
   };
   const ok = (stdout = ''): RunResult => ({ code: 0, stdout, stderr: '' });
@@ -54,6 +59,10 @@ function fake(platform: NodeJS.Platform, o: { answer?: (port: number, f: Fake) =
     if (cmd === 'launchctl') {
       switch (args[0]) {
         case 'print':
+          if (lingering > 0) {
+            lingering--;
+            return ok('x = {\n\tstate = running\n}\n');
+          }
           return f.state.loaded ? ok(`x = {\n\tstate = ${f.state.running ? 'running' : 'waiting'}\n${f.state.running ? `\tpid = ${f.state.pid}\n` : ''}}\n`) : { code: 113, stdout: '', stderr: 'Could not find service' };
         case 'bootstrap':
           if (bootstrapFailures-- > 0) return { code: o.bootstrapCode ?? 5, stdout: '', stderr: `Bootstrap failed: ${o.bootstrapCode ?? 5}: Input/output error` };
@@ -62,6 +71,7 @@ function fake(platform: NodeJS.Platform, o: { answer?: (port: number, f: Fake) =
         case 'bootout':
           if (!f.state.loaded) return { code: 3, stdout: '', stderr: 'No such process' };
           Object.assign(f.state, { loaded: false, running: false });
+          lingering = o.lingerPrints ?? 0;
           return ok();
         case 'kickstart':
           up();
@@ -105,6 +115,12 @@ function fake(platform: NodeJS.Platform, o: { answer?: (port: number, f: Fake) =
       const unit = [unitFile(f), plistFile(f)].filter((p) => fs.existsSync(p)).map((p) => fs.readFileSync(p, 'utf8'))[0] ?? '';
       const served = Number(/--port(?:<\/string>\s*<string>| )(\d+)/.exec(unit)?.[1]);
       return f.state.running && served === port ? { kind: 'bragdoc', version: '0.0.0' } : { kind: 'none' };
+    },
+    // /api/busy: nothing answers unless the test says what does (never a real request to 127.0.0.1)
+    loopback: async (port, pathname) => {
+      f.busyAsked.push(`${port}${pathname}`);
+      if (!o.busy) throw new TypeError('fetch failed');
+      return o.busy(port);
     },
     sleep: async (ms) => {
       clock += ms;
@@ -449,4 +465,87 @@ test('a failed systemd unit is shown as not running, with its exit status, not a
   f.state.loaded = true;
   assert.equal(await service(f.ctx, ['status'], {}, undefined), 3);
   assert.match(f.out(), /State: {5}not running \(failed \(failed\)\), last exit status 1/);
+});
+
+// ---------------------------------------------------------------------------------------------------------------
+// the busy check before stop and restart (cli-contract SPEC §1, §4; D86)
+// ---------------------------------------------------------------------------------------------------------------
+
+const busyAnswer = (counts: Record<string, number>) => () => Response.json({ busy: Object.values(counts).some((n) => n > 0), version: '0.0.0', counts });
+
+test('stop and restart refuse with exit 75 while BragDoc is busy, and say what is running', async () => {
+  for (const platform of ['linux', 'darwin'] as const) {
+    const f = fake(platform, { busy: busyAnswer({ import: 0, judge: 1, ai: 2 }) });
+    await service(f.ctx, ['install'], { port: '5151' }, undefined);
+    for (const sub of ['stop', 'restart']) {
+      f.calls.length = 0;
+      f.busyAsked.length = 0;
+      const before = f.out().length;
+      assert.equal(await service(f.ctx, [sub], {}, undefined), 75, `${platform} ${sub}`);
+      assert.deepEqual(f.busyAsked, ['5151/api/busy'], "asked on the installed unit's port");
+      assert.equal(f.out().slice(before), 'bragdoc: BragDoc is busy: 1 judge run and 2 AI requests are running. Try again once it has finished, or use --force.\n');
+      assert.ok(!f.calls.some((c) => /bootout|bootstrap|kickstart| stop | restart /.test(` ${c} `)), f.calls.join('\n'));
+      assert.ok(f.state.running, 'still running');
+    }
+  }
+});
+
+test('--force stops or restarts all the same, saying "Overriding:" first', async () => {
+  const f = fake('linux', { busy: busyAnswer({ import: 1, judge: 0, ai: 0 }) });
+  await service(f.ctx, ['install'], {}, undefined);
+  let before = f.out().length;
+  assert.equal(await service(f.ctx, ['restart'], { force: '1' }, undefined), 0);
+  assert.match(f.out().slice(before), /^Overriding: BragDoc is busy: 1 import is running\.\nBragDoc 0\.0\.0 is running at/);
+  before = f.out().length;
+  assert.equal(await service(f.ctx, ['stop'], { force: '1' }, undefined), 0);
+  assert.match(f.out().slice(before), /^Overriding: BragDoc is busy: 1 import is running\.\nStopped BragDoc/);
+  assert.equal(f.state.running, false);
+});
+
+test('the busy check lets stop and restart through when BragDoc is idle, not answering, or too old to say', async () => {
+  for (const busy of [busyAnswer({ import: 0, judge: 0, ai: 0 }), undefined, () => Response.json({ error: { code: 'not_found', message: 'no' } }, { status: 404 })]) {
+    const f = fake('linux', { busy });
+    await service(f.ctx, ['install'], {}, undefined);
+    assert.equal(await service(f.ctx, ['restart'], {}, undefined), 0);
+    assert.equal(await service(f.ctx, ['stop'], {}, undefined), 0);
+    assert.doesNotMatch(f.out(), /busy|Overriding/);
+    assert.equal(f.state.running, false);
+  }
+});
+
+test('a stopped or missing service is never asked: exit 0 "already stopped", exit 4 not installed', async () => {
+  const f = fake('linux', { busy: busyAnswer({ import: 1, judge: 0, ai: 0 }) });
+  assert.equal(await service(f.ctx, ['stop'], {}, undefined).catch((e: { exitCode?: number }) => e.exitCode), 4);
+  await service(f.ctx, ['install'], {}, undefined);
+  await service(f.ctx, ['stop'], { force: '1' }, undefined);
+  f.busyAsked.length = 0;
+  assert.equal(await service(f.ctx, ['stop'], {}, undefined), 0);
+  assert.match(f.out(), /already stopped/);
+  assert.deepEqual(f.busyAsked, []);
+});
+
+test('--force is only for stop and restart: anywhere else it is a usage error', async () => {
+  const f = fake('linux');
+  for (const sub of ['start', 'uninstall', 'status', 'install', 'logs'])
+    await assert.rejects(service(f.ctx, [sub], { force: '1' }, undefined), (e: Error) => e instanceof UsageError && /doesn't take --force/.test(e.message), sub);
+});
+
+test("launchd: bootout waits until launchd has let the job go before bootstrapping it again (D86)", async () => {
+  const f = fake('darwin', { lingerPrints: 3 });
+  await service(f.ctx, ['install'], {}, undefined);
+  f.calls.length = 0;
+  assert.equal(await service(f.ctx, ['restart'], {}, undefined), 0);
+  const seq = f.calls.filter((c) => /bootout|bootstrap|kickstart|print/.test(c)).map((c) => c.split(' ')[1]);
+  const out = seq.indexOf('bootout');
+  // the job is still there for three prints after the bootout, and gone on the fourth; only then the bootstrap, once
+  assert.deepEqual(seq.slice(out, out + 6), ['bootout', 'print', 'print', 'print', 'print', 'bootstrap']);
+  assert.equal(seq.filter((s) => s === 'bootstrap').length, 1, 'no failed bootstrap to retry');
+});
+
+test("launchd: a job that never goes is waited for 10 s, then left to bootstrap's retries", async () => {
+  const f = fake('darwin', { lingerPrints: 1000 });
+  await service(f.ctx, ['install'], {}, undefined);
+  f.calls.length = 0;
+  assert.equal(await service(f.ctx, ['stop'], {}, undefined), 0);
+  assert.equal(f.calls.filter((c) => c.startsWith('launchctl print')).length, 1 + 40, 'status, then 40 polls');
 });

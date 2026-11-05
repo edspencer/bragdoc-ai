@@ -8,6 +8,8 @@ import { fileURLToPath } from 'node:url';
 import { PACKAGE_ROOT, tildify } from '../paths.js';
 import { type Runner, type Streamer, defaultRunner, defaultStreamer } from '../platform/runner.js';
 import { type AllowedBin, type RunOptions, type RunResult, run as procRun } from '../proc.js';
+import { probeLoopback } from '../egress.js';
+import type { LoopbackGet } from './busy-client.js';
 import { type Probe, probeHealth } from './ready.js';
 
 export interface Ctx {
@@ -31,6 +33,8 @@ export interface Ctx {
   /** Run an allow-listed program (proc.ts run()): `claude` for `mcp install`. */
   proc(bin: AllowedBin, args: readonly string[], opts?: RunOptions): Promise<RunResult>;
   probe(port: number): Promise<Probe>;
+  /** GET a path on 127.0.0.1 (egress.ts probeLoopback): the busy check's request. */
+  loopback: LoopbackGet;
   sleep(ms: number): Promise<void>;
   now(): number;
   /** Follow a growing file, calling `write` with what's appended, until the process is interrupted. */
@@ -72,6 +76,7 @@ export function makeCtx(o: CtxOptions = {}): Ctx {
     stream: defaultStreamer,
     proc: procRun,
     probe: (port) => probeHealth(port),
+    loopback: probeLoopback,
     sleep: (ms) => new Promise((r) => setTimeout(r, ms)),
     now: Date.now,
     follow: followFile,

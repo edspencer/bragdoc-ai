@@ -71,9 +71,12 @@ These are the product principles from the specification. They are not up for neg
 ```
 server/              the server and CLI (Node, TypeScript ESM, Hono)
   cli.ts             `bragdoc` entry point (the package's bin) and `serve`; args.ts parses arguments; banner.ts is
-                     what `serve` prints at startup ("BragDoc on <url>" first, always); node-version.ts the Node check
+                     what `serve` prints at startup ("BragDoc <version>: <url>" first, always; nothing else the server
+                     says goes to stdout: D86); node-version.ts the Node check
   commands/          every other command, one file each, one line in commands/index.ts (Hallway's shape); context.ts
-                     is the injectable Ctx (runner, probe, clock), ready.ts the /api/health probe and readiness wait
+                     is the injectable Ctx (runner, probe, loopback, clock), ready.ts the /api/health probe and readiness
+                     wait; busy.ts `bragdoc busy`, over busy-client.ts (the cli-contract reference's busy check: exit
+                     0 / 75 / 3, and the guard before `service stop` / `restart`, D86)
   platform/          power.ts (is it plugged in? the judge's "only on power", PR25); `bragdoc service`: spec.ts (what the service is), launchd.ts / systemd.ts (the writers, pinned by
                      test/fixtures/services/), path.ts (the PATH captured at install), runner.ts (the injectable Runner
                      / Streamer, defaulting to proc.ts), index.ts (which manager this OS has; Windows: not yet),
@@ -122,6 +125,7 @@ server/              the server and CLI (Node, TypeScript ESM, Hono)
   atomic.ts          the platform's own writes (runtime.json, the network log, starter files): atomic, create-only (D27)
   routes/index.ts    registerRoutes(): one line per feature module (D18)
   routes/health.ts   GET /api/health
+  routes/busy.ts     GET /api/busy: counts of an import, a judge run and AI requests; cheap, no auth (D86)
   routes/{events,meta,network}.ts   GET /api/events, /api/meta, /api/network-log (+ POST …/guard-check, D54)
   routes/settings.ts /api/backups, /api/settings (+ PUT /api/settings/mcp), /api/mcp/token (+ rotate)
   routes/mcp.ts      /mcp: the bearer token (runtime.json), 405 on GET/DELETE, then server/mcp/
@@ -670,8 +674,9 @@ Change any of those and re-run `sync:reference`; `docs.test.ts` fails until you 
 
 - **Server imports use `.js` extensions** (NodeNext); tests and `src/` import `.ts` files directly. The build
   rewrites them.
-- **CLI exit codes:** 0 success, 1 error, 2 usage error (with the usage printed), and `bragdoc service`'s 3 (not
-  running) and 4 (not installed), from the [CLI contract](https://github.com/edspencer/cli-contract) (D85). Throw
+- **CLI exit codes:** 0 success, 1 error, 2 usage error (with the usage printed), `bragdoc service`'s 3 (not
+  running) and 4 (not installed), and 75 (busy: `bragdoc busy`, `service stop` / `restart` without `--force`), from
+  the [CLI contract](https://github.com/edspencer/cli-contract) (D85, D86). Throw
   `UsageError` (`server/args.ts`) for bad usage, `ExitError` for one of the contract's other codes, a plain `Error`
   otherwise; `cli.ts` turns them into messages and exit codes. Set
   `process.exitCode`, never call `process.exit()` (it can cut off piped output).
