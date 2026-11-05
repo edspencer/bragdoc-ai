@@ -15,6 +15,7 @@ import { buildSpec, readArgv, serviceDir, stableNodePath, transientInstall, tran
 import { underNodeModules } from '../update/install-method.js';
 import { type Ctx, lastLines, show } from './context.js';
 import { guardBusy } from './busy-client.js';
+import { askLinger, lingerAdvice } from './linger.js';
 import { readUpdateCheck, updateNotice, updateSummary, type UpdateSummary } from '../update/update-check.js';
 import { READY_TIMEOUT_LABEL, waitForReady } from './ready.js';
 
@@ -75,7 +76,9 @@ async function withJson(ctx: Ctx, action: string, json: boolean, run: (c: Ctx, e
   const error = failed !== undefined ? (failed instanceof Error ? failed.message : String(failed)) : code === EXIT_BUSY ? 'busy' : undefined;
   // the status as it is now; a manager that can't be asked (no systemd at all) leaves it out rather than hiding the outcome
   const report = await (async () => statusReport(ctx, manager(ctx)))().catch(() => null);
-  ctx.out(JSON.stringify({ ok: failed === undefined && code === 0, action, ...(error !== undefined ? { error } : {}), ...extra, ...report }, null, 2) + '\n');
+  // an action's own warnings (install's linger, D92) first, then the status report's
+  const warnings = [...((extra.warnings as string[] | undefined) ?? []), ...(report?.warnings ?? [])];
+  ctx.out(JSON.stringify({ ok: failed === undefined && code === 0, action, ...(error !== undefined ? { error } : {}), ...extra, ...report, ...(extra.warnings || report ? { warnings } : {}) }, null, 2) + '\n');
   if (failed !== undefined) throw failed;
   return code;
 }
@@ -285,6 +288,9 @@ async function install(ctx: Ctx, flags: Record<string, string>, extra: Extra): P
     ctx.out(`BragDoc ${w.version} is running at ${url}\n`);
     return 0;
   }
+  // Linux: linger is checked, never set (it takes sudo, which bragdoc never runs), and mentioned only when it's off
+  const linger = mgr.kind === 'systemd' ? lingerAdvice(await askLinger(ctx)) : undefined;
+  if (linger) extra.warnings = [linger];
   ctx.out(
     [
       '',
@@ -295,6 +301,7 @@ async function install(ctx: Ctx, flags: Record<string, string>, extra: Extra): P
       `Logs:      ${logsHint(ctx, mgr, dataDir)}`,
       '',
       mgr.lifetime,
+      ...(linger ? ['', linger] : []),
       '',
       '  bragdoc service status      is it up, and where',
       '  bragdoc service restart     restart it (after an upgrade, say)',

@@ -60,8 +60,17 @@ while you're logged out, and starts at boot. Turn it on once:
 sudo loginctl enable-linger $USER
 ```
 
-`install` reminds you of it, and [`bragdoc doctor`](/getting-started/updating/#checking-an-install-bragdoc-doctor)
-checks, and prints `sudo loginctl enable-linger <user>` when it's off. **BragDoc never runs `sudo` itself.**
+**`install` and [`bragdoc doctor`](/getting-started/updating/#checking-an-install-bragdoc-doctor) check**
+(`loginctl show-user <user> -p Linger`), and print `sudo loginctl enable-linger <user>` when it's off. **BragDoc never
+runs `sudo` itself.** When lingering is on, or `loginctl` can't answer (in a container, say), `install` says nothing
+about it. With `--json`, the advice is in the document's `warnings`.
+
+```text
+It starts when you log in (not when the computer boots), and is restarted if it exits.
+
+Lingering is off for alex, so the service stops when you log out (SSH sessions included), and starts at your next login. To keep BragDoc running, once:
+  sudo loginctl enable-linger alex
+```
 
 ### Not from npx
 
