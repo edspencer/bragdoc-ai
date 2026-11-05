@@ -2,6 +2,12 @@
   "$schema": "./node_modules/@edspencer/cli-conformance/schemas/cli-contract.schema.json",
   "name": "BragDoc",
   "serve": { "args": ["serve", "--port", "{port}", "--data-dir", "{home}/.bragdoc"] },
+  "env": { "HOST": null, "PORT": null, "BRAGDOC_HOME": null },
+  "update": {
+    "runtimeFile": "{home}/.bragdoc/runtime.json",
+    "serviceInstall": ["service", "install", "--port", "{port}"],
+    "timeoutMs": 600000
+  },
   "checks": {
     "version": true,
     "help": true,
@@ -11,6 +17,17 @@
     "busy": true,
     "busy-json": true,
     "serve-banner": true,
-    "serve-health": true
+    "serve-health": true,
+    "update-up-to-date": true,
+    "update-check-json": true,
+    "update-no-tty": true,
+    "update-busy": true,
+    "update-npx": true,
+    "update-checkout": true,
+    "update-not-writable": true,
+    "update": true,
+    "update-to-lower": true,
+    "update-service": true,
+    "update-rollback": true
   }
 }

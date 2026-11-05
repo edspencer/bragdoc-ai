@@ -117,6 +117,13 @@ jobs:
         env:
           BRAGDOC_REAL_SERVICES: '1'
         run: node scripts/services-real.mjs
+      # the conformance runner's update checks that need a real service manager: install the packed tarball's service at
+      # A, `bragdoc update --yes` to B from a local registry (B must answer, and status agree), then to a C that can't
+      # start, which must roll back to A with exit 6 (D88). The rest of the update checks run in smoke-pack's job
+      - name: The update checks, against the real service (cli-conformance)
+        env:
+          CI_REAL_SERVICE: '1'
+        run: npx cli-conformance --only update-service,update-rollback
 
   # The npm package as a user gets it: pack (prepack builds), check the tarball (no source maps, no sources), install it
   # globally into a temp prefix with a throwaway HOME, then run it and fetch from it (scripts/smoke-pack.mjs).
@@ -138,7 +145,8 @@ jobs:
       - name: smoke:pack
         run: npm run smoke:pack
       # the CLI contract's black-box checks (cli-contract.json lists them), on the packed tarball in a throwaway prefix
-      # and HOME: exit codes, --version, service status, busy, serve's first line and /api/health (D85, D86)
+      # and HOME: exit codes, --version, service status, busy, serve's first line and /api/health (D85, D86), and
+      # `update` against a local registry (D88; the two that need a real service run in the services job)
       - name: cli-conformance
         run: npx cli-conformance
 
