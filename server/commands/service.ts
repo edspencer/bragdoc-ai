@@ -9,6 +9,7 @@ import { EXIT_BUSY, EXIT_NOT_INSTALLED, EXIT_NOT_RUNNING, ExitError, UsageError,
 import { DEFAULT_PORT, parsePort } from '../port.js';
 import { VERSION, resolveDataDir } from '../paths.js';
 import { type ServiceManager, type ServiceStatus, managerFor } from '../platform/index.js';
+import { readIfExists } from '../platform/services.js';
 import { servicePath } from '../platform/path.js';
 import { buildSpec, readArgv, serviceDir, stableNodePath, transientInstall, transientRefusal } from '../platform/spec.js';
 import { underNodeModules } from '../update/install-method.js';
@@ -227,9 +228,15 @@ async function install(ctx: Ctx, flags: Record<string, string>, extra: Extra): P
     chosen = flags['data-dir'] !== undefined || r.chosen;
     dataDir = flags['data-dir'] !== undefined ? resolveDataDir(flags['data-dir'], {}, ctx.homedir) : r.dataDir;
   } else {
-    // a data home named on the command line or in $BRAGDOC_HOME is written into the unit, since the service won't
-    // inherit this shell's environment; with neither, the unit names none, so it and a terminal `bragdoc` share ~/.bragdoc
-    const named = flags['data-dir'] || ctx.env.BRAGDOC_HOME || undefined;
+    // a reinstall keeps the port and data home the installed unit records, unless they're given again (cli-contract
+    // SPEC §1, D91). Read from the file, not asked of the manager, so a dry run still runs nothing
+    const text = readIfExists(mgr.file);
+    const prior = text === null ? null : readArgv(mgr.parseArgv(text));
+    if (flags.port === undefined && prior) port = prior.port;
+    // a data home named on the command line or (on a first install) in $BRAGDOC_HOME is written into the unit, since the
+    // service won't inherit this shell's environment; with neither, the unit names none, so it and a terminal `bragdoc`
+    // share ~/.bragdoc. A reinstall's unit is what it finds, not this shell's $BRAGDOC_HOME: options say otherwise
+    const named = flags['data-dir'] || (prior ? prior.dataDir : ctx.env.BRAGDOC_HOME) || undefined;
     dataDir = resolveDataDir(named, {}, ctx.homedir);
     chosen = named !== undefined;
   }
