@@ -33,6 +33,9 @@ runtime.json                    # readable only by you: the running server's por
 logs/network.jsonl              # every outbound request
 logs/ai-runs.jsonl              # v0.2: every AI run, without its content (only once you use AI; ai-runs.1.jsonl is the older half)
 backups/<timestamp>/            # automatic snapshots
+backups/pre-<version>/          # a copy made by `bragdoc update` before a version that changes a file format starts
+update-check.json               # what the last `bragdoc update --check` or `doctor` found (`service status` repeats it)
+update.lock                     # only while `bragdoc update` runs, so two can't run at once
 backups/removed/                # "deleted" files, moved here, never erased
 .gitignore                      # keeps machine-written files out of git
 cache/                          # derived and safe to delete (cache/ai/detect.json: the last look for a model runner;
@@ -112,7 +115,9 @@ misspelt name), and otherwise ignored. A v0.1 BragDoc ignores the folder entirel
 - **Writes are atomic**: a temporary file renamed into place. Nothing is deleted: removing something moves its file
   into `backups/removed/<timestamp>/`.
 - **Backups**: a snapshot (not secrets, logs or cache) goes into `backups/<timestamp>/` when the server starts and
-  hourly while it runs, if anything changed. The newest 50 are kept, plus the first of each day for 30 days.
+  hourly while it runs, if anything changed. The newest 50 are kept, plus the first of each day for 30 days. Before
+  it starts a version that writes a newer `schemaVersion` of anything, `bragdoc update` copies the same files into
+  `backups/pre-<version>/`, which is never pruned ([Updating](/getting-started/updating/)).
 
 ## Reference
 

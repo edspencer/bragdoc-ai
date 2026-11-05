@@ -166,13 +166,19 @@ export function systemdManager({ dir, run, user }: SystemdOptions): ServiceManag
       // without it the manager keeps serving its cached copy of the old unit, and an upgrade silently changes nothing
       if (changed) await systemctl(['daemon-reload']);
       await systemctl(['enable', '--quiet', SYSTEMD_UNIT]);
+      // `enable --now` and `start` leave an active unit alone, so a reinstall over a running service restarts it, even
+      // when the unit is byte for byte the same (a global npm install's path carries no version, so `bragdoc update`'s
+      // refresh writes an identical unit, and the old process would go on serving). Only then: systemd allows five
+      // starts in ten seconds (cli-contract SPEC §1, §7)
       const st = await status();
-      await systemctl([st.running && changed ? 'restart' : 'start', SYSTEMD_UNIT]);
+      await systemctl([st.running ? 'restart' : 'start', SYSTEMD_UNIT]);
       return { changed };
     },
     // start, stop and restart never touch enable/disable: those decide whether it comes back at the next login, a
     // different question from whether it runs now (Paddock). uninstall is where that link is cut.
     async start() {
+      // a unit that hit the start limit stays `failed` until this (cli-contract SPEC §1)
+      await systemctl(['reset-failed', SYSTEMD_UNIT], [0, 1, 5]);
       await systemctl(['start', SYSTEMD_UNIT]);
     },
     async stop() {
@@ -181,6 +187,7 @@ export function systemdManager({ dir, run, user }: SystemdOptions): ServiceManag
     async restart() {
       // an edited unit takes effect, rather than the manager's cached copy
       await systemctl(['daemon-reload']);
+      await systemctl(['reset-failed', SYSTEMD_UNIT], [0, 1, 5]);
       await systemctl(['restart', SYSTEMD_UNIT]);
     },
     status,

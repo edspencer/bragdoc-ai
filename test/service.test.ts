@@ -9,6 +9,7 @@ import { ExitError, UsageError } from '../server/args.ts';
 import { type Ctx, makeCtx } from '../server/commands/context.ts';
 import type { Probe } from '../server/commands/ready.ts';
 import { installedVersion, service } from '../server/commands/service.ts';
+import { VERSION } from '../server/paths.ts';
 import type { RunResult } from '../server/platform/runner.ts';
 import { tmpHome } from './fixture.ts';
 
@@ -33,7 +34,7 @@ interface Fake {
  * A ctx on a throwaway home with a fake service manager. `answer(port)` is what the health probe sees; by default
  * BragDoc answers exactly while the fake manager has it running.
  */
-function fake(platform: NodeJS.Platform, o: { answer?: (port: number, f: Fake) => Probe; busy?: (port: number) => Response; lingerPrints?: number; bootstrapFailures?: number; bootstrapCode?: number; failed?: boolean; env?: NodeJS.ProcessEnv; cliScript?: string; packageRoot?: string; noBus?: boolean } = {}): Fake {
+function fake(platform: NodeJS.Platform, o: { answer?: (port: number, f: Fake) => Probe; busy?: (port: number) => Response; lingerPrints?: number; bootstrapFailures?: number; bootstrapCode?: number; failed?: boolean; env?: NodeJS.ProcessEnv; cliScript?: string; packageRoot?: string; noBus?: boolean; gone?: string[] } = {}): Fake {
   const h = tmpHome();
   homes.push(h.cleanup);
   let out = '';
@@ -126,6 +127,8 @@ function fake(platform: NodeJS.Platform, o: { answer?: (port: number, f: Fake) =
       clock += ms;
     },
     now: () => clock,
+    // the made-up Node and CLI below exist, unless the test says they've gone
+    exists: (p) => !(o.gone ?? []).includes(p) && (p.startsWith('/opt/node/') || p.startsWith('/usr/local/lib/node_modules/') || fs.existsSync(p)),
     follow: (file) => {
       f.followed.push(file);
     },
@@ -180,10 +183,12 @@ test('install on Linux: writes the unit, reloads, enables, starts, waits for /ap
   assert.match(f.out(), /loginctl enable-linger/);
   assert.match(f.out(), /Logs: {6}bragdoc service logs \(~\/\.bragdoc\/service\/bragdoc\.log\)/);
 
-  // again, unchanged: no reload, no restart
+  // again, unchanged: no reload, but the running service is still replaced: `enable --now` and `start` leave an active
+  // unit alone, and `bragdoc update`'s refresh writes an identical unit for a new version (cli-contract SPEC §1)
   f.calls.length = 0;
   assert.equal(await service(f.ctx, ['install'], {}, undefined), 0);
-  assert.ok(!f.calls.some((c) => c.includes('daemon-reload') || c.includes('restart')), f.calls.join('\n'));
+  assert.ok(!f.calls.some((c) => c.includes('daemon-reload')), f.calls.join('\n'));
+  assert.ok(f.calls.includes('systemctl --user restart bragdoc.service'), f.calls.join('\n'));
   // again on another port: rewritten, reloaded, restarted
   f.calls.length = 0;
   assert.equal(await service(f.ctx, ['install'], { port: '5151' }, undefined), 0);
@@ -548,4 +553,106 @@ test("launchd: a job that never goes is waited for 10 s, then left to bootstrap'
   f.calls.length = 0;
   assert.equal(await service(f.ctx, ['stop'], {}, undefined), 0);
   assert.equal(f.calls.filter((c) => c.startsWith('launchctl print')).length, 1 + 40, 'status, then 40 polls');
+});
+
+// ---------------------------------------------------------------------------------------------------------------
+// D88: install --refresh, restart re-rendering a stale unit, the reinstall that replaces what's running, `update`
+// ---------------------------------------------------------------------------------------------------------------
+
+test('install --refresh re-renders the installed unit from what it records, not from this shell; flags still win', async () => {
+  const f = fake('linux');
+  await assert.rejects(service(f.ctx, ['install'], { refresh: '1' }, undefined), (e: ExitError) => e.exitCode === 4 && /isn't installed/.test(e.message));
+  assert.equal(fs.existsSync(unitFile(f)), false, 'nothing installed is exit 4, not a first install with defaults');
+
+  await service(f.ctx, ['install'], { port: '5151', 'data-dir': path.join(f.home, 'work') }, undefined);
+  // a shell whose $BRAGDOC_HOME and default port now say something else
+  f.ctx.env = { ...f.ctx.env, BRAGDOC_HOME: path.join(f.home, 'elsewhere'), PORT: '9999' };
+  f.ctx.cliScript = '/usr/local/lib/node_modules/@bragdoc/local/dist/server/cli.js';
+  f.calls.length = 0;
+  assert.equal(await service(f.ctx, ['install'], { refresh: '1' }, undefined), 0);
+  const unit = fs.readFileSync(unitFile(f), 'utf8');
+  assert.match(unit, new RegExp(`serve --port 5151 --data-dir ${path.join(f.home, 'work').replace(/[/.]/g, '\\$&')}$`, 'm'));
+  assert.ok(f.calls.includes('systemctl --user restart bragdoc.service'), 'the running service is replaced');
+  assert.match(f.out(), /Re-writing BragDoc's systemd user unit/);
+
+  assert.equal(await service(f.ctx, ['install'], { refresh: '1', port: '6161' }, undefined), 0);
+  assert.match(fs.readFileSync(unitFile(f), 'utf8'), /serve --port 6161 --data-dir /);
+});
+
+test("install --refresh fails (exit 1) when the service doesn't answer: `bragdoc update` rolls back on it", async () => {
+  const f = fake('linux', { answer: () => ({ kind: 'none' }) });
+  await service(f.ctx, ['install'], {}, undefined);
+  await assert.rejects(service(f.ctx, ['install'], { refresh: '1' }, undefined), /didn't answer within 20 seconds/);
+});
+
+test('a reinstall over a running service replaces it, even when the unit is unchanged (launchd: bootout, bootstrap)', async () => {
+  const f = fake('darwin');
+  await service(f.ctx, ['install'], {}, undefined);
+  f.calls.length = 0;
+  assert.equal(await service(f.ctx, ['install'], {}, undefined), 0);
+  assert.deepEqual(f.calls.filter((c) => /bootout|bootstrap|kickstart/.test(c)).map((c) => c.split(' ')[1]), ['bootout', 'bootstrap']);
+});
+
+test('systemd: start and restart clear a failed state first (the start limit), and stop leaves it alone', async () => {
+  const f = fake('linux');
+  await service(f.ctx, ['install'], {}, undefined);
+  await service(f.ctx, ['stop'], {}, undefined);
+  f.calls.length = 0;
+  await service(f.ctx, ['start'], {}, undefined);
+  assert.deepEqual(f.calls.filter((c) => !c.includes(' show ')), ['systemctl --user reset-failed bragdoc.service', 'systemctl --user start bragdoc.service']);
+  f.calls.length = 0;
+  await service(f.ctx, ['restart'], {}, undefined);
+  assert.deepEqual(f.calls.filter((c) => !c.includes(' show ')), ['systemctl --user daemon-reload', 'systemctl --user reset-failed bragdoc.service', 'systemctl --user restart bragdoc.service']);
+});
+
+test("restart re-renders a stale unit first: its Node has gone (a version manager's), and the new one runs it", async () => {
+  for (const platform of ['linux', 'darwin'] as const) {
+    const f = fake(platform);
+    await service(f.ctx, ['install'], { port: '5151' }, undefined);
+    // the Node it was installed with has been removed; this CLI runs on another
+    f.ctx.exists = (p) => p !== '/opt/node/bin/node' && (p.startsWith('/opt/') || p.startsWith('/usr/local/lib/node_modules/') || fs.existsSync(p));
+    f.ctx.node = { path: '/opt/node-24.2/bin/node', version: 'v24.2.0' };
+    assert.equal(await service(f.ctx, ['restart'], {}, undefined), 0);
+    const text = fs.readFileSync(platform === 'linux' ? unitFile(f) : plistFile(f), 'utf8');
+    assert.ok(text.includes('/opt/node-24.2/bin/node') && !text.includes('/opt/node/bin/node'), text);
+    assert.ok(text.includes('5151'), 'its port is kept');
+    assert.match(f.out(), /the service runs \/opt\/node\/bin\/node, which no longer exists\. Re-writing it for this BragDoc/);
+    assert.match(f.out(), /is running at http:\/\/localhost:5151/);
+  }
+});
+
+test('restart of a stale unit from a checkout leaves the unit alone (a unit can only run a built CLI)', async () => {
+  const f = fake('linux');
+  await service(f.ctx, ['install'], {}, undefined);
+  const before = fs.readFileSync(unitFile(f), 'utf8');
+  f.ctx.exists = (p) => p !== '/opt/node/bin/node' && fs.existsSync(p);
+  f.ctx.cliScript = '/home/someone/Code/bragdoc/server/cli.ts';
+  assert.equal(await service(f.ctx, ['restart'], {}, undefined), 0);
+  assert.equal(fs.readFileSync(unitFile(f), 'utf8'), before);
+});
+
+test("status repeats the last update check: in --json as `update` (left out, never null, when there's none), the notice on stderr", async () => {
+  const f = fake('linux');
+  const dataDir = path.join(f.home, '.bragdoc');
+  const json = async () => {
+    const start = f.out().length;
+    await service(f.ctx, ['status'], { json: '1' }, undefined);
+    return JSON.parse(f.out().slice(start));
+  };
+  assert.ok(!('update' in (await json())), 'no cache: no key at all');
+  fs.mkdirSync(dataDir, { recursive: true });
+  const cache = (current: string, target: string, at = new Date().toISOString()) =>
+    fs.writeFileSync(
+      path.join(dataDir, 'update-check.json'),
+      JSON.stringify({ name: '@bragdoc/local', current, target, tag: 'latest', updateAvailable: target !== current, installMethod: 'npm-global', canUpdate: true, command: 'bragdoc update', engines: '>=22.12', nodeOk: true, changelog: `https://github.com/edspencer/bragdoc-ai/releases/tag/v${target}`, checkedAt: at }),
+    );
+  cache(VERSION, '99.0.0');
+  assert.deepEqual((await json()).update, { latest: '99.0.0', updateAvailable: true, checkedAt: JSON.parse(fs.readFileSync(path.join(dataDir, 'update-check.json'), 'utf8')).checkedAt });
+  const start = f.out().length;
+  assert.equal(await service(f.ctx, ['status'], {}, undefined), 4);
+  assert.match(f.out().slice(start), /BragDoc 99\.0\.0 is available \(you have [\d.]+\)\.\n {2}Run: bragdoc update\n {2}Changes: https:\/\/github\.com\/edspencer\/bragdoc-ai\/releases\/tag\/v99\.0\.0/);
+  cache('0.0.1', '99.0.0');
+  assert.ok(!('update' in (await json())), 'a cache about another version than this one is ignored');
+  cache(VERSION, '99.0.0', '2020-01-01T00:00:00.000Z');
+  assert.ok(!('update' in (await json())), 'nor a stale one');
 });

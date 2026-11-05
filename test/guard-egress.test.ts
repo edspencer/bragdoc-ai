@@ -146,6 +146,18 @@ const ALLOWED: Record<string, Record<string, number>> = {
   'shared/ulid.ts': {
     globalObject: 1, // globalThis.crypto.getRandomValues(bytes): shared/ runs in the browser too, so no node:crypto
   },
+  // the cli-contract's update reference (D87, D88): each names an injected `fetch?:` option, and has no default but
+  // health.ts's noFetch, which rejects. The only fetch they're ever given is commands/update.ts's viaEgress: the
+  // registry through Egress.registry(), and /api/health through probeLoopback
+  'server/update/health.ts': {
+    fetch: 1, // HealthOptions' `fetch?: Fetch`
+  },
+  'server/update/registry.ts': {
+    fetch: 1, // RegistryOptions' `fetch?: Fetch`
+  },
+  'server/update/update.ts': {
+    fetch: 1, // UpdateEnvironment's `fetch?: Fetch`
+  },
 };
 
 function files(dir: string): string[] {

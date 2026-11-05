@@ -44,7 +44,7 @@
   "scripts": {
     "start": "node scripts/start.mjs",
     "dev": "node scripts/dev.mjs",
-    "build": "npm run build:web && npm run build:server && node scripts/strip-maps.mjs && node scripts/build-info.mjs",
+    "build": "npm run build:web && npm run build:server && node scripts/strip-maps.mjs && node scripts/schema-versions.mjs && node scripts/build-info.mjs",
     "build:web": "vite build",
     "build:server": "node -e \"fs.rmSync('dist/server',{recursive:true,force:true});fs.rmSync('dist/shared',{recursive:true,force:true})\" && tsc -p tsconfig.build.json",
     "routes": "tsr generate",
@@ -91,7 +91,7 @@
   "devDependencies": {
     "@changesets/changelog-github": "^1.0.1",
     "@changesets/cli": "^3.0.3",
-    "@edspencer/cli-conformance": "^0.1.0",
+    "@edspencer/cli-conformance": "^0.2.0",
     "@fontsource-variable/bricolage-grotesque": "^5.3.0",
     "@fontsource-variable/geist-mono": "^5.3.0",
     "@fontsource-variable/instrument-sans": "^5.3.0",

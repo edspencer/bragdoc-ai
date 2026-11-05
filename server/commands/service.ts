@@ -7,12 +7,13 @@ import fs from 'node:fs';
 import { posix as path } from 'node:path';
 import { EXIT_NOT_INSTALLED, EXIT_NOT_RUNNING, ExitError, UsageError, check } from '../args.js';
 import { DEFAULT_PORT, parsePort } from '../port.js';
-import { resolveDataDir } from '../paths.js';
+import { VERSION, resolveDataDir } from '../paths.js';
 import { type ServiceManager, type ServiceStatus, managerFor } from '../platform/index.js';
 import { servicePath } from '../platform/path.js';
 import { buildSpec, readArgv, serviceDir, stableNodePath, transientInstall, transientRefusal } from '../platform/spec.js';
 import { type Ctx, lastLines, show } from './context.js';
 import { guardBusy } from './busy-client.js';
+import { readUpdateCheck, updateNotice, updateSummary, type UpdateSummary } from '../update/update-check.js';
 import { READY_TIMEOUT_LABEL, waitForReady } from './ready.js';
 
 const SERVICE_USAGE = 'service needs one of: install, uninstall, status, start, stop, restart, logs';
@@ -22,7 +23,7 @@ export async function service(ctx: Ctx, pos: string[], flags: Record<string, str
   // usage first (exit 2 on any OS), then the platform (Windows: exit 1, "not supported yet")
   switch (sub) {
     case 'install':
-      check('service install', flags, ['port', 'data-dir', 'dry-run'], args, 0, rest);
+      check('service install', flags, ['port', 'data-dir', 'dry-run', 'refresh'], args, 0, rest);
       return install(ctx, flags);
     case 'status':
       check('service status', flags, ['json'], args, 0, rest);
@@ -48,8 +49,8 @@ export async function service(ctx: Ctx, pos: string[], flags: Record<string, str
   }
 }
 
-const manager = (ctx: Ctx) => managerFor({ platform: ctx.platform, homedir: ctx.homedir, env: ctx.env, uid: ctx.uid, run: ctx.run, sleep: ctx.sleep });
-const urlOf = (port: number) => `http://localhost:${port}`;
+export const manager = (ctx: Ctx) => managerFor({ platform: ctx.platform, homedir: ctx.homedir, env: ctx.env, uid: ctx.uid, run: ctx.run, sleep: ctx.sleep });
+export const urlOf = (port: number) => `http://localhost:${port}`;
 const AT_LOGIN = 'BragDoc starts when you log in, not when the computer boots.';
 
 /** How to read the logs, for people. */
@@ -57,10 +58,10 @@ function logsHint(ctx: Ctx, mgr: ServiceManager, dataDir: string): string {
   const src = mgr.logs({ log: buildLog(dataDir) });
   return 'file' in src ? `bragdoc service logs (${show(src.file, ctx.homedir)})` : `bragdoc service logs (${[src.command[0], ...src.command[1]].join(' ')})`;
 }
-const buildLog = (dataDir: string) => `${serviceDir(dataDir)}/bragdoc.log`;
+export const buildLog = (dataDir: string) => `${serviceDir(dataDir)}/bragdoc.log`;
 
 /** The data home an installed unit serves: the one it names, else the default (the service's env names none). */
-const installedDataDir = (ctx: Ctx, st: ServiceStatus) => readArgv(st.argv).dataDir ?? resolveDataDir(undefined, {}, ctx.homedir);
+export const installedDataDir = (ctx: Ctx, st: ServiceStatus) => readArgv(st.argv).dataDir ?? resolveDataDir(undefined, {}, ctx.homedir);
 
 /**
  * Stopped on purpose (or never started), as opposed to between restarts: launchd's booted-out job isn't loaded at all;
@@ -79,6 +80,25 @@ function isStopped(mgr: ServiceManager, st: ServiceStatus): boolean {
  */
 function busyGuard(ctx: Ctx, st: ServiceStatus, force: boolean): Promise<number | null> {
   return guardBusy({ dataDir: installedDataDir(ctx, st), port: readArgv(st.argv).port, get: ctx.loopback, io: ctx, force });
+}
+
+/** Why the installed unit is stale (its Node or CLI has gone, or it's an older format), or null. */
+function staleUnit(ctx: Ctx, mgr: ServiceManager, st: ServiceStatus): string | null {
+  const gone = st.argv.slice(0, 2).find((f) => !ctx.exists(f));
+  if (gone) return `the service runs ${gone}, which no longer exists.`;
+  const older = mgr.stale();
+  // its first sentence: the "run `service install` again" that follows is what this restart is about to do
+  return older ? `${older.split('. Run ')[0]}.` : null;
+}
+
+/** assertInstallable, as a yes or no. */
+function installable(ctx: Ctx): boolean {
+  try {
+    assertInstallable(ctx);
+    return true;
+  } catch {
+    return false;
+  }
 }
 
 /** start, stop, restart and logs on a service that isn't there: exit 4 (cli-contract SPEC §2, D85). */
@@ -104,6 +124,39 @@ export function installedVersion(cli: string | undefined): string | null {
 // install
 // ---------------------------------------------------------------------------------------------------------------
 
+/** Refuses (throws) where this CLI can't be what a unit runs: a checkout's server/cli.ts, or npx's cache. */
+function assertInstallable(ctx: Ctx): void {
+  // from a checkout, the CLI is server/cli.ts, which only runs under tsx: a unit can't run it
+  if (!ctx.cliScript.endsWith('.js'))
+    throw new Error(`a service runs the built CLI, and this is ${show(ctx.cliScript, ctx.homedir)}. Run \`npm run build\`, then \`node dist/server/cli.js service install\`.`);
+  const transient = transientInstall(ctx.packageRoot) ?? transientInstall(ctx.cliScript);
+  if (transient) throw new Error(transientRefusal(transient));
+}
+
+/** The unit this CLI writes, run by this Node, for `port` and `dataDir` (written in only when `chosen`). */
+function specFor(ctx: Ctx, port: number, dataDir: string, chosen: boolean) {
+  const nodePath = stableNodePath(ctx.node.path, fs.existsSync);
+  return buildSpec({
+    nodePath,
+    nodeVersion: ctx.node.version,
+    cliScript: ctx.cliScript,
+    dataDir,
+    dataDirChosen: chosen,
+    port,
+    pathEnv: servicePath(path.dirname(nodePath), ctx.env.PATH),
+  });
+}
+
+/**
+ * The settings an installed unit records (D88): its port and, if it names one, its data home. Not the invoking
+ * shell's flags or $BRAGDOC_HOME: `--refresh` (which `bragdoc update` runs through the new CLI) and a restart of a
+ * stale unit re-render the service that's there, not a new one.
+ */
+function recorded(ctx: Ctx, st: ServiceStatus): { port: number; dataDir: string; chosen: boolean } {
+  const { port, dataDir } = readArgv(st.argv);
+  return { port, dataDir: dataDir ?? resolveDataDir(undefined, {}, ctx.homedir), chosen: dataDir !== null };
+}
+
 async function install(ctx: Ctx, flags: Record<string, string>): Promise<number> {
   let port = DEFAULT_PORT;
   if (flags.port !== undefined) {
@@ -113,26 +166,27 @@ async function install(ctx: Ctx, flags: Record<string, string>): Promise<number>
   }
   if (flags['data-dir'] === '') throw new UsageError('--data-dir needs a directory');
   const mgr = manager(ctx);
-  // from a checkout, the CLI is server/cli.ts, which only runs under tsx: a unit can't run it
-  if (!ctx.cliScript.endsWith('.js'))
-    throw new Error(`a service runs the built CLI, and this is ${show(ctx.cliScript, ctx.homedir)}. Run \`npm run build\`, then \`node dist/server/cli.js service install\`.`);
-  const transient = transientInstall(ctx.packageRoot) ?? transientInstall(ctx.cliScript);
-  if (transient) throw new Error(transientRefusal(transient));
-
-  // a data home named on the command line or in $BRAGDOC_HOME is written into the unit, since the service won't
-  // inherit this shell's environment; with neither, the unit names none, so it and a terminal `bragdoc` share ~/.bragdoc
-  const chosen = flags['data-dir'] || ctx.env.BRAGDOC_HOME || undefined;
-  const dataDir = resolveDataDir(chosen, {}, ctx.homedir);
-  const nodePath = stableNodePath(ctx.node.path, fs.existsSync);
-  const spec = buildSpec({
-    nodePath,
-    nodeVersion: ctx.node.version,
-    cliScript: ctx.cliScript,
-    dataDir,
-    dataDirChosen: chosen !== undefined,
-    port,
-    pathEnv: servicePath(path.dirname(nodePath), ctx.env.PATH),
-  });
+  const refresh = !!flags.refresh;
+  let dataDir: string;
+  let chosen: boolean;
+  if (refresh) {
+    // re-render what's installed (cli-contract SPEC 0.2 §1): its port and data home, with any flag given winning.
+    // Nothing installed is exit 4, not a first install with defaults
+    const st = await mgr.status();
+    if (!st.installed) throw notInstalled(ctx, mgr);
+    const r = recorded(ctx, st);
+    if (flags.port === undefined) port = r.port;
+    chosen = flags['data-dir'] !== undefined || r.chosen;
+    dataDir = flags['data-dir'] !== undefined ? resolveDataDir(flags['data-dir'], {}, ctx.homedir) : r.dataDir;
+  } else {
+    // a data home named on the command line or in $BRAGDOC_HOME is written into the unit, since the service won't
+    // inherit this shell's environment; with neither, the unit names none, so it and a terminal `bragdoc` share ~/.bragdoc
+    const named = flags['data-dir'] || ctx.env.BRAGDOC_HOME || undefined;
+    dataDir = resolveDataDir(named, {}, ctx.homedir);
+    chosen = named !== undefined;
+  }
+  assertInstallable(ctx);
+  const spec = specFor(ctx, port, dataDir, chosen);
   const url = urlOf(port);
 
   if (flags['dry-run']) {
@@ -163,12 +217,18 @@ async function install(ctx: Ctx, flags: Record<string, string>): Promise<number>
     if (p.kind === 'other') throw new Error(`port ${port} is already in use by something that isn't BragDoc. Stop it, or install on another port with --port <n>.`);
   }
 
-  ctx.out(`Installing BragDoc as a ${mgr.noun} (${show(mgr.file, ctx.homedir)})…\n`);
+  ctx.out(`${refresh ? 'Re-writing' : 'Installing BragDoc as'} ${refresh ? `BragDoc's ${mgr.noun}` : `a ${mgr.noun}`} (${show(mgr.file, ctx.homedir)})…\n`);
   // bootstrap is followed by macOS registering the background item, a few silent seconds (Paddock #861)
   if (mgr.kind === 'launchd') ctx.out('macOS may take a few seconds to approve the background item.\n');
   await mgr.install(spec);
   ctx.out(`Waiting for ${url} to answer…\n`);
   const w = await waitForReady(port, { probe: ctx.probe, sleep: ctx.sleep, now: ctx.now });
+  if (refresh) {
+    // `bragdoc update` hands over through this, and rolls back when it fails: so "it didn't answer" is a failure here
+    if (!w.ready) throw new Error(`the service was re-written, but ${url} didn't answer within ${READY_TIMEOUT_LABEL}. ${logsHint(ctx, mgr, dataDir)} says why.`);
+    ctx.out(`BragDoc ${w.version} is running at ${url}\n`);
+    return 0;
+  }
   ctx.out(
     [
       '',
@@ -234,12 +294,23 @@ export interface ServiceStatusReport {
   /** The file `service logs` reads; null while an older systemd unit still logs to the journal. */
   log: string | null;
   warnings: string[];
+  /**
+   * What the last `bragdoc update --check` or `doctor` found (`<data home>/update-check.json`), never asked of the
+   * registry here (D87). Left out, not null, when there's nothing to repeat (cli-contract SPEC §1).
+   */
+  update?: UpdateSummary;
 }
+
+/** The cached update check worth repeating for this data home, as `{ update }`, or `{}`. */
+const updateOf = (dataDir: string): { update?: UpdateSummary } => {
+  const update = updateSummary(dataDir, { currentVersion: VERSION });
+  return update ? { update } : {};
+};
 
 export async function statusReport(ctx: Ctx, mgr: ServiceManager): Promise<ServiceStatusReport> {
   const st = await mgr.status();
   if (!st.installed) {
-    return { installed: false, running: false, answering: false, stopped: false, manager: mgr.kind, unit: mgr.file, state: null, pid: null, lastExitCode: null, installedVersion: null, runningVersion: null, port: null, url: null, dataDir: null, log: null, warnings: [] };
+    return { installed: false, running: false, answering: false, stopped: false, manager: mgr.kind, unit: mgr.file, state: null, pid: null, lastExitCode: null, installedVersion: null, runningVersion: null, port: null, url: null, dataDir: null, log: null, warnings: [], ...updateOf(resolveDataDir(undefined, ctx.env, ctx.homedir)) };
   }
   // everything here is read back out of the INSTALLED unit, not recomputed from today's flags (Paddock): the port in
   // the file is the port the service is on
@@ -270,7 +341,17 @@ export async function statusReport(ctx: Ctx, mgr: ServiceManager): Promise<Servi
     dataDir,
     log: 'file' in src ? src.file : null,
     warnings,
+    ...updateOf(dataDir),
   };
+}
+
+/** SPEC §3's notice, on stderr, when the last check found a newer version: the prose `status` repeats from the cache. */
+function sayUpdate(ctx: Ctx, r: ServiceStatusReport): void {
+  if (!r.update?.updateAvailable) return;
+  const cached = readUpdateCheck(r.dataDir ?? resolveDataDir(undefined, ctx.env, ctx.homedir));
+  ctx.err(
+    updateNotice({ name: 'BragDoc', current: VERSION, target: r.update.latest, command: cached?.command ?? 'bragdoc update', changelog: cached?.changelog ?? null }) + '\n',
+  );
 }
 
 const otherAnswering = (port: number) => `something that isn't BragDoc is answering on port ${port}.`;
@@ -283,6 +364,7 @@ async function status(ctx: Ctx, mgr: ServiceManager, json: boolean): Promise<num
     ctx.out(JSON.stringify(r, null, 2) + '\n');
     return code;
   }
+  sayUpdate(ctx, r);
   if (!r.installed) {
     ctx.out(
       `BragDoc isn't installed as a service (there's no ${show(mgr.file, ctx.homedir)}).\n` +
@@ -330,8 +412,15 @@ async function startOrRestart(ctx: Ctx, mgr: ServiceManager, action: string, for
     const refused = await busyGuard(ctx, before, force);
     if (refused !== null) return refused;
   }
+  const stale = action === 'restart' ? staleUnit(ctx, mgr, before) : null;
   if (action === 'start') await mgr.start();
-  else await mgr.restart();
+  else if (stale && installable(ctx)) {
+    // restart re-renders a stale unit first (cli-contract SPEC §1): one whose Node or CLI has gone, or an older format.
+    // From the settings it records, by this CLI; install() restarts what's running
+    ctx.err(`bragdoc: ${stale} Re-writing it for this BragDoc (${VERSION}) first.\n`);
+    const r = recorded(ctx, before);
+    await mgr.install(specFor(ctx, r.port, r.dataDir, r.chosen));
+  } else await mgr.restart();
   const w = await waitForReady(port, { probe: ctx.probe, sleep: ctx.sleep, now: ctx.now });
   const verb = action === 'start' ? 'started' : 'restarted';
   if (w.ready) ctx.out(`BragDoc ${w.version} is running at ${url}\n`);

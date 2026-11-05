@@ -97,9 +97,10 @@ export interface NetworkLogEntry {
   purpose: string;
   /**
    * `fetch`: through BragDoc's own egress module. `gh`: a GitHub CLI run, whose traffic leaves outside BragDoc.
-   * `ollama`: a download Ollama makes itself when asked to pull a model (v0.2), also outside BragDoc.
+   * `ollama`: a download Ollama makes itself when asked to pull a model (v0.2), also outside BragDoc. `npm`: npm
+   * fetching or installing BragDoc itself, during a `bragdoc update` someone ran (D87).
    */
-  via: 'fetch' | 'gh' | 'ollama';
+  via: 'fetch' | 'gh' | 'ollama' | 'npm';
   method: string;
   host: string;
   /** The path only: never the query string, which can carry secrets. For `gh`, the subcommand. */

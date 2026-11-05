@@ -109,7 +109,8 @@ Nothing, unless you connect GitHub or turn AI on:
   installs a runner, and asks Ollama to download a model only after a confirm that states the size. A runner is its
   own software: what it contacts by itself is outside BragDoc's log.
 
-That's all. **No telemetry, no update check, no analytics, and no fonts or scripts from a CDN.** Screenshots are read
+That's all. **No telemetry, no automatic update check, no analytics, and no fonts or scripts from a CDN.** (`bragdoc
+update` and `bragdoc doctor` ask the npm registry for the latest version when you run them, and only then.) Screenshots are read
 with OCR on your computer (Apple Vision on macOS, a bundled tesseract.js elsewhere). Every outbound request goes
 through one module that refuses anything not on the allow-list, and a test fails the build if any other code reaches
 the network or starts a process. Settings → Network activity shows every request, and "Test the guard" lets you watch

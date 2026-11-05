@@ -17,8 +17,9 @@ document. Your coding agent can read and write it over MCP. All of it is plain f
 ## 2. Product principles
 
 1. **AI is off by default, and every AI feature is an explicit opt-in** (D8). v0.1 has none.
-2. **No telemetry, no update check.** All outbound traffic goes through one egress module, and every request is shown
-   in Settings → Network activity (D9).
+2. **No telemetry, and nothing checks for updates by itself** (a registry check a person runs, `bragdoc update` or
+   `doctor`, is allowed: D87). All outbound traffic goes through one egress module, and every request is shown in
+   Settings → Network activity (D9).
 3. **Localhost security, single user, no login** (D10).
 4. **Your data is just files**, readable and editable by hand or by an agent (D5).
 5. **Nothing reaches the board without you**; MCP writes from your own agent are the configurable exception (D11).

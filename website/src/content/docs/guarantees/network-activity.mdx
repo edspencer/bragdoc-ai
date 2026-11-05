@@ -6,7 +6,7 @@ description: "BragDoc sends nothing off your machine on its own. The only outbou
 import Shot from '../../../components/Shot.astro';
 
 **There is no BragDoc server of ours, and BragDoc never sends your data to us or to anyone else.** It sends nothing off your machine on its own: no
-telemetry, no analytics, no crash reports, no update check.
+telemetry, no analytics, no crash reports, and nothing that checks for updates by itself.
 
 The only network calls BragDoc makes are to services **you connect yourself**, and it shows you every one. In v0.1
 that is one service: GitHub, if you connect the [GitHub source](/concepts/found-and-sources/#github). Once it's
@@ -16,6 +16,10 @@ the board (to fetch its title).
 From 0.2.0, the other is a model you set up for the [opt-in AI features](/ai/overview/), only while AI is on: a model
 runner on this computer or your network, or a cloud provider you've explicitly allowed. Both go through the same door
 and the same log, below.
+
+And when **you** run `bragdoc update` or `bragdoc doctor`, they ask the npm registry which version is the latest: two
+small requests, through the same door and on the same log ("Checking for a new version"), and never at any other time.
+See [Updating](/getting-started/updating/#nothing-checks-by-itself).
 
 ## How that's enforced
 
@@ -37,7 +41,7 @@ and the same log, below.
 
 **Settings → Network activity** lists every outbound request, allowed or refused, with when, why, where and how
 much, as a receipt, newest first. It also shows what's allowed right now, and a line for BragDoc's makers: 0 B,
-telemetry and update checks none. The log is kept in `logs/network.jsonl` in your data folder (when it reaches 1 MB,
+telemetry and automatic update checks none. The log is kept in `logs/network.jsonl` in your data folder (when it reaches 1 MB,
 it is renamed `network.1.jsonl`, replacing the previous one, and a new log starts).
 
 **Test the guard**, under "Don't take our word for it", asks BragDoc to send a request somewhere it isn't allowed: it
@@ -60,6 +64,9 @@ looking for a runner, a download), the model, and how many bytes were sent. **Th
 There's one honest exception to "every request". If you connect GitHub through the `gh` CLI, it is `gh` that talks
 to GitHub, not BragDoc. BragDoc logs each time it runs `gh` ("via gh CLI"), but it can't see inside `gh`'s own
 traffic. If you'd rather everything went through BragDoc's own logged path, use a personal access token instead.
+
+The same is true of **npm** during `bragdoc update`: npm downloads the new version from its own process. BragDoc
+logs each time it runs npm to fetch or install ("via npm"), but can't see inside it.
 
 The same goes for a **model runner** (Ollama, LM Studio, llama.cpp): it's a program of its own, and whatever it
 contacts by itself (its model registry, update checks, its own cloud features) goes from its process, outside

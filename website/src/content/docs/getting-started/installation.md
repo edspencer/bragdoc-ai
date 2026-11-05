@@ -79,6 +79,11 @@ the same path inside the container (so repository paths mean the same thing insi
 Commented-out lines in it mount a screenshots folder and your GitHub CLI login, read-only, for the screenshot and
 GitHub sources (or pass a `GH_TOKEN` for `gh` to use).
 
+`bragdoc` is on the image's `PATH`, so `docker exec bragdoc bragdoc busy` asks the running BragDoc whether it's in the
+middle of something. That's what lets [Watchtower](/getting-started/updating/#watchtower) wait for a quiet moment
+before it replaces the container: give it the label `com.centurylinklabs.watchtower.lifecycle.pre-update=bragdoc
+busy` (commented out in `compose.yaml`), and turn on Watchtower's lifecycle hooks.
+
 ## Ports and folders
 
 - **The port** is 2724 (it spells BRAG on a phone keypad). Change it with `--port` or `PORT`. BragDoc never picks
@@ -86,10 +91,11 @@ GitHub sources (or pass a `GH_TOKEN` for `gh` to use).
 - **The data folder** is `~/.bragdoc`. Change it with `--data-dir` or `BRAGDOC_HOME`. See
   [The data folder](/reference/data-folder/).
 
-## Upgrading and uninstalling
+## Updating and uninstalling
 
-`npx @bragdoc/local@latest` always runs the newest release. For a global install, `npm install -g @bragdoc/local`
-again. To uninstall, run `bragdoc service uninstall` if you installed the service, then
+`bragdoc update` updates a global install, and the service with it: see [Updating](/getting-started/updating/).
+`npx @bragdoc/local@latest` always runs the newest release, and the Docker image updates with
+`docker compose pull && docker compose up -d`. To uninstall, run `bragdoc service uninstall` if you installed the service, then
 `npm uninstall -g @bragdoc/local`. Your data folder is never touched; delete `~/.bragdoc` yourself if you want it gone.
 
 ## Used the old BragDoc CLI?

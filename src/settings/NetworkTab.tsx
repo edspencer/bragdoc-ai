@@ -19,6 +19,9 @@ const LOOPBACK = new Set(['localhost', '127.0.0.1', '[::1]']);
 /** Purposes people should be able to read without knowing the code. Anything else is shown as it is. */
 const PURPOSE: Record<string, string> = {
   'settings.guard-check': 'Guard check from Settings',
+  // D87: only when someone runs `bragdoc update` or `bragdoc doctor`
+  'update.registry': 'Checking for a new version (bragdoc update, doctor)',
+  'update.install': 'Installing an update (bragdoc update)',
 };
 
 const hostname = (host: string) => (host.startsWith('[') ? host.slice(0, host.indexOf(']') + 1) : host.replace(/:\d+$/, ''));
@@ -142,7 +145,7 @@ function NetworkReceipt() {
           <span>0 B</span>
         </div>
         <div className="flex justify-between opacity-70">
-          <span>Telemetry · update checks</span>
+          <span>Telemetry · automatic update checks</span>
           <span>none</span>
         </div>
         {(aiOn || toAi > 0) && (
@@ -180,6 +183,7 @@ function Line({ e, time }: { e: NetworkLogEntry; time: string }) {
         )}
         {e.via === 'gh' && <Tag className="bg-black/10">VIA GH CLI</Tag>}
         {e.via === 'ollama' && <Tag className="bg-black/10">VIA OLLAMA</Tag>}
+        {e.via === 'npm' && <Tag className="bg-black/10">VIA NPM</Tag>}
         {refused && <Tag className="bg-[#b42318]/15 text-[#b42318]">REFUSED · NOT SENT</Tag>}
         {failed && <Tag className="bg-[#b42318]/15 text-[#b42318]">FAILED</Tag>}
         <span className="block truncate opacity-60" title={e.path}>
@@ -212,7 +216,11 @@ function WhereItGoes() {
       <Sticky rotate={1.2} className="p-4 text-[13px] leading-relaxed">
         <div className="font-grotesk text-[15px] font-extrabold">Where your data goes</div>
         <ul className="m-0 mt-2 list-disc space-y-1.5 pl-4">
-          <li>Nothing goes to BragDoc’s makers. There’s no telemetry, no update check, and no server of ours to send anything to.</li>
+          <li>Nothing goes to BragDoc’s makers. There’s no telemetry, nothing that checks for updates by itself, and no server of ours to send anything to.</li>
+          <li>
+            <span className="font-mono text-[12px]">bragdoc update</span> and <span className="font-mono text-[12px]">bragdoc doctor</span> ask the npm registry for the latest version, only when you
+            run them. Those requests are listed here; npm’s own downloads are marked “via npm”.
+          </li>
           <li>
             GitHub through the <span className="font-mono text-[12px]">gh</span> CLI: gh makes those requests itself. BragDoc logs each time it runs gh, marked “via gh CLI”, but can’t see
             inside them.

@@ -182,6 +182,29 @@ try {
   assert.match(bd('service', 'restart'), new RegExp(`is running at ${url}`));
   assert.match(bd('service', 'restart', '--force'), new RegExp(`is running at ${url}`));
 
+  // systemd allows five starts in ten seconds (its default start limit): let that window pass before four more
+  await sleep(11_000);
+  step('service install again, the unit unchanged: the running process is replaced (enable --now alone would not: D88)');
+  const before = await until('a pid in status', pidOf);
+  const unitBefore = fs.readFileSync(unitFile, 'utf8');
+  assert.match(bd('service', 'install', '--port', String(port)), new RegExp(`is running at ${url}`));
+  assert.equal(fs.readFileSync(unitFile, 'utf8'), unitBefore, 'the same unit');
+  const after = await until('a pid in status', pidOf);
+  assert.notEqual(after, before, 'a new process');
+
+  step("service install --refresh: the unit's own port and data home, not this shell's (cli-contract SPEC 0.2 §1)");
+  const bare = { ...env };
+  delete bare.BRAGDOC_HOME;
+  const mtime = fs.statSync(unitFile).mtimeMs;
+  await sleep(1100); // so a rewrite's mtime is visibly later
+  const refreshed = execFileSync(process.execPath, [cli, 'service', 'install', '--refresh'], { cwd: tmp, env: bare, encoding: 'utf8' });
+  assert.match(refreshed, new RegExp(`is running at ${url}`));
+  const unitAfter = fs.readFileSync(unitFile, 'utf8');
+  assert.equal(unitAfter, unitBefore, 'a faithful refresh is byte for byte the same unit: the port and data home it recorded');
+  assert.ok(fs.statSync(unitFile).mtimeMs >= mtime, 'and it was written');
+  assert.notEqual(await until('a pid in status', pidOf), after, 'and the service was restarted onto it');
+  assert.equal(statusJson(0).dataDir, data);
+
   // serve exits 0 on SIGTERM, so the second is the case a conditional KeepAlive / Restart=on-failure would leave down
   step('KeepAlive / Restart=always: a crash (SIGKILL) and a clean exit (SIGTERM, exit 0) both come back');
   await killAndWait(url, 'SIGKILL');

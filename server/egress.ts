@@ -1,5 +1,6 @@
-// The one way out (SPEC R4, D9). BragDoc has no telemetry and no update check; the only outbound requests are to the
-// services you connected, and they all go through egressFetch() here. test/guard-egress.test.ts fails CI if any
+// The one way out (SPEC R4, D9). BragDoc has no telemetry and nothing that checks for updates by itself; the only
+// outbound requests are to the services you connected, and to the npm registry when you run `bragdoc update` or
+// `bragdoc doctor` (registry() below, D87), and they all go through here. test/guard-egress.test.ts fails CI if any
 // other file in server/ or shared/ touches fetch, http(s), net, tls, dgram, undici or WebSocket.
 //
 // - Each request declares a `purpose` ("github.pulls"), which is what Settings → Network activity shows.
@@ -181,6 +182,39 @@ export class Egress {
     return this.send(purpose, extra, url, { method: 'GET', headers: { 'user-agent': AI_USER_AGENT, accept: 'application/json' }, redirect: 'manual', ...(signal ? { signal } : {}) }, [url.hostname]);
   }
 
+  /**
+   * `bragdoc update`, `update --check` and `doctor`'s question to the npm registry (D87): which version a dist-tag
+   * names, and that version's `engines`. Only ever run by a person (D9 as amended: nothing asks by itself). Not via the
+   * allow-list, which would let anything reach the registry: the fetch this returns allows exactly two GETs, for
+   * `packageName` only, at `registryUrl`'s origin and under its path. No body, no credentials, no cookies; https, or
+   * plain http only to this computer or your network (a local registry or a mirror). Logged as `update.registry`.
+   */
+  registry({ registryUrl, packageName }: { registryUrl: string; packageName: string }): (input: string, init?: RequestInit) => Promise<Response> {
+    const purpose = 'update.registry';
+    const base = new URL(registryUrl);
+    const prefix = base.pathname.replace(/\/+$/, '');
+    const name = packageName.replace(/\//g, '%2f').toLowerCase();
+    return async (input, init = {}) => {
+      const url = new URL(input);
+      const rest = url.pathname.startsWith(`${prefix}/`) ? url.pathname.slice(prefix.length).toLowerCase() : null;
+      const refuse =
+        url.origin !== base.origin || rest === null
+          ? `${url.origin}${url.pathname} isn't the registry (${base.origin}${prefix})`
+          : rest !== `/-/package/${name}/dist-tags` && !(rest.startsWith(`/${name}/`) && /^[\w.+-]+$/.test(rest.slice(name.length + 2)))
+            ? "only BragDoc's own dist-tags and version manifests are asked for"
+            : (init.method ?? 'GET').toUpperCase() !== 'GET' || init.body != null
+              ? 'a registry check is a plain GET'
+              : url.search
+                ? 'a registry check has no query'
+                : null;
+      if (refuse) {
+        this.log({ at: this.now().toISOString(), purpose, via: 'fetch', method: (init.method ?? 'GET').toUpperCase(), host: url.host, path: url.pathname, outcome: 'denied', status: null, bytes: null, error: refuse });
+        throw new EgressDenied(url.host, purpose, `BragDoc won't send a request to ${url.host} (${purpose}): ${refuse}`);
+      }
+      return this.send(purpose, {}, url, { method: 'GET', headers: { accept: 'application/json' }, ...(init.signal ? { signal: init.signal } : {}) }, [url.hostname.toLowerCase()]);
+    };
+  }
+
   /** Record a download a model runner makes itself (Ollama pulling a model): it leaves outside BragDoc, like gh's. */
   logVia(via: 'ollama', { purpose, feature, model, outcome, error }: { purpose: string; feature: AiCallFeature; model?: string; outcome: 'ok' | 'error'; error?: string }): void {
     this.log({
@@ -257,8 +291,11 @@ export class Egress {
     }
   }
 
-  /** Record a subprocess that talks to the network itself (the gh CLI): call it after the run, with how it went. */
-  logProcess({ purpose, bin, args, exitCode, error }: { purpose: string; bin: 'gh'; args: string[]; exitCode: number | null; error?: string }): void {
+  /**
+   * Record a subprocess that talks to the network itself (the gh CLI; npm during `bragdoc update`, D87): call it after
+   * the run, with how it went.
+   */
+  logProcess({ purpose, bin, args, exitCode, error }: { purpose: string; bin: 'gh' | 'npm'; args: string[]; exitCode: number | null; error?: string }): void {
     // `gh api repos/o/r/pulls?state=closed --jq …` → `gh api repos/o/r/pulls`: only the leading positional arguments,
     // up to the first flag (a flag's value can be a header or a GraphQL query), only if they look like a subcommand or a
     // path, and without a query string
@@ -276,7 +313,7 @@ export class Egress {
       purpose,
       via: bin,
       method: 'RUN',
-      host: 'github.com (via gh CLI)',
+      host: bin === 'gh' ? 'github.com (via gh CLI)' : 'the npm registry (via npm)',
       path: `${bin} ${cmd}`.trim(),
       outcome: error ? 'error' : 'ok',
       status: exitCode,
