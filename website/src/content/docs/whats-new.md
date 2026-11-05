@@ -3,9 +3,7 @@ title: What's new
 description: "What changed in each BragDoc release, newest first."
 ---
 
-## Coming in 0.3.0: the service, by the CLI contract
-
-Not released yet.
+## 0.3.0: the service, by the CLI contract
 
 `bragdoc service` now follows the same [CLI contract](https://github.com/edspencer/cli-contract) as Ed's other local
 tools. See [the CLI reference](/reference/cli/#bragdoc-service).
