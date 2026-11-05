@@ -54,3 +54,8 @@ services:
     # beyond 127.0.0.1 for a container to reach it (OLLAMA_HOST=0.0.0.0; see Ollama's docs).
     # extra_hosts: ["host.docker.internal:host-gateway"]
     restart: unless-stopped
+    # Watchtower (or anything that runs a pre-update hook) can wait for a quiet moment: `bragdoc busy` exits 75 while an
+    # import, a judge run or AI requests are under way, and Watchtower skips the update until its next run. It needs
+    # WATCHTOWER_LIFECYCLE_HOOKS=1 on Watchtower's side. See https://bragdoc.ai/getting-started/updating/
+    # labels:
+    #   com.centurylinklabs.watchtower.lifecycle.pre-update: "bragdoc busy"

@@ -45,6 +45,11 @@ check "a foreign Host is refused"
 # the data home was laid out, as the node user
 [ -n "$(ls -A "${data}")" ] || { echo "nothing was written to /data" >&2; exit 1; }
 check "the data home was laid out"
+# `bragdoc` is on PATH, and `bragdoc busy` answers from inside: what Watchtower's pre-update hook runs (SPEC §9)
+[ "$(docker exec "${name}" sh -c 'command -v bragdoc')" = /usr/local/bin/bragdoc ] || { echo "bragdoc isn't on the image's PATH" >&2; exit 1; }
+busy=0; docker exec "${name}" bragdoc busy >/dev/null || busy=$?
+[ "${busy}" = 0 ] || { echo "bragdoc busy in the container exited ${busy}, not 0" >&2; exit 1; }
+check "bragdoc busy in the container: not busy (exit 0)"
 docker stop "${name}" >/dev/null
 # the wrong uid (a data folder that isn't the container user's) is explained, not blamed on the port
 # (bounded: if a regression made /data writable, the server would start and run forever)

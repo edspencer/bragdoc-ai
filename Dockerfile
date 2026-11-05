@@ -56,6 +56,10 @@ RUN npm ci --omit=dev --ignore-scripts --no-audit --no-fund && npm cache clean -
 # The image redistributes BragDoc, so it carries the licence text.
 COPY LICENSE README.md ./
 COPY --from=build /app/dist dist
+# `bragdoc` on PATH (cli-contract SPEC §9), for `docker exec bragdoc bragdoc busy` (Watchtower's pre-update hook) and
+# `bragdoc update --check`, which here prints the image to pull: BRAGDOC_IN_DOCKER=1 below means nothing installs
+# anything inside the container
+RUN chmod 755 dist/server/cli.js && ln -s /app/dist/server/cli.js /usr/local/bin/bragdoc
 # the example data ("Fill it with example data", PR16): read by the server, never written
 COPY fixtures/example fixtures/example
 

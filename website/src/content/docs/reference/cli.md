@@ -1,6 +1,6 @@
 ---
 title: CLI
-description: "Every bragdoc command and option: serve, service, busy, guide, mcp, import and dev, with exit codes."
+description: "Every bragdoc command and option: serve, service, update, doctor, busy, guide, mcp, import and dev, with exit codes."
 ---
 
 :::note[Tracking `next`]
@@ -33,11 +33,11 @@ when you log in (not when the computer boots), runs as you, and is restarted if 
 
 | Command | What it does |
 | --- | --- |
-| `bragdoc service install` | Install and start it. Takes `--port`, `--data-dir`, and `--dry-run` (print the service definition and write nothing). |
+| `bragdoc service install` | Install and start it. Takes `--port`, `--data-dir`, and `--dry-run` (print the service definition and write nothing). Over a running service, it replaces it. *From 0.5.0,* `--refresh` re-writes the installed service for this BragDoc, keeping the port and data folder it records (what [`bragdoc update`](#bragdoc-update) runs); with none installed it exits 4. |
 | `bragdoc service status` | Whether it's installed, running and answering; the version installed and the version running; the port, the data folder and the log. `--json` prints the same as one JSON document. |
 | `bragdoc service start` | Start it, and wait until it answers. |
 | `bragdoc service stop` | Stop it until the next login. It stays installed and enabled, as `systemctl --user stop` and `launchctl bootout` leave it; to keep it off for good, uninstall it. Refused while BragDoc is [busy](#bragdoc-busy), unless `--force`. |
-| `bragdoc service restart` | Restart it. Refused while BragDoc is [busy](#bragdoc-busy), unless `--force`. |
+| `bragdoc service restart` | Restart it. Refused while BragDoc is [busy](#bragdoc-busy), unless `--force`. *From 0.5.0,* if the Node or the BragDoc the service runs has gone (or it's an older format), it re-writes the service for this BragDoc first. |
 | `bragdoc service logs` | Print the last 50 lines of its log. `-f` (`--follow`) keeps printing what it writes; `-n <lines>` (`--lines`) prints another number of lines. |
 | `bragdoc service uninstall` | Stop it and remove the service. Your data and its log stay. |
 
@@ -54,6 +54,38 @@ it isn't installed. These are the same codes `systemctl status` uses, so a scrip
 restart would cut short, the same question as [`bragdoc busy`](#bragdoc-busy). If it is, they say what, change
 nothing, and exit 75: `BragDoc is busy: 1 judge run is running. Try again once it has finished, or use --force.` With
 `--force` they print the same sentence, starting `Overriding:`, and go ahead. `uninstall` doesn't ask.
+
+## `bragdoc update`
+
+*From 0.5.0.* Updates BragDoc to the latest version from npm: checks it's safe, stops the service, installs, starts
+it again, waits until the new version answers, and puts the old version back if it doesn't. It asks npm only when you
+run it. The whole story, exit codes included, is [Updating](/getting-started/updating/). `upgrade` works too.
+
+| Option | Meaning |
+| --- | --- |
+| `--check` | Say whether there's a newer version, and change nothing. Exits 0 either way. |
+| `--to <version\|tag>` | Go to this version, or this dist-tag (`next`). The only way to go to an older version. |
+| `--yes` | Don't ask first. Needed without a terminal (a script): without it, `update` exits 2. |
+| `--force` | Go ahead while BragDoc is [busy](#bragdoc-busy). The health check and the putting back still happen. |
+| `--json` | One JSON document on stdout; everything else on stderr. |
+
+**Exit codes:** 0 updated or up to date, 1 failed before changing anything, 2 `--yes` needed, 3 a BragDoc in a
+terminal is running (stop it first), 5 this install can't update itself (the command that would is printed), 6 the
+new version didn't start and the old one is running again, 7 it didn't start and the old one couldn't be put back
+(what to run is printed), 75 busy.
+
+## `bragdoc doctor`
+
+*From 0.5.0.* Checks this install, with a `fix:` for each problem: the Node, how it was installed, the service (its
+Node and BragDoc still there, and the BragDoc you're running), that the running version is the installed one, the
+port, lingering (Linux), that the data folder is writable, `config.yaml`, `git` (and `gh`, if the GitHub source uses
+it), and whether there's a newer version. Each line starts `✓`, `!` (a warning) or `✗` (a problem). Exits 1 if
+there's a problem; warnings don't change that.
+
+| Option | Meaning |
+| --- | --- |
+| `--offline` | Don't ask npm about a newer version: nothing leaves this computer. |
+| `--json` | The checks as one JSON document on stdout (`ok`, `version`, and each check's `id`, `status`, `message` and `fix`). |
 
 ## `bragdoc busy`
 
@@ -156,8 +188,9 @@ It exits 1 when the call is refused or fails, with the reason (`ai_off`, `not_co
 | `--version`, `-v` | Print the version. |
 | `--help`, `-h` | Print the help. |
 
-**Exit codes:** 0 success, 1 error, 2 usage error (with the usage printed). `bragdoc service` adds 3 (not running)
-and 4 (not installed), and `busy`, `service stop` and `service restart` add 75 (busy), above.
+**Exit codes:** 0 success, 1 error, 2 usage error (with the usage printed): an unknown option, or one the command
+doesn't take. `bragdoc service` adds 3 (not running) and 4 (not installed), `update` adds 5, 6 and 7, and `busy`,
+`update`, `service stop` and `service restart` add 75 (busy), above.
 
 **What `serve` prints:** the first line is always `BragDoc <version>: <url>` (`BragDoc 0.4.0: http://localhost:2724`),
 then `Data home: <folder>`. In a terminal (or with `FORCE_COLOR` set) a banner and a hint follow, and, when it's

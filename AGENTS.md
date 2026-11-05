@@ -46,7 +46,9 @@ These are the product principles from the specification. They are not up for neg
   behind a master switch and a switch per feature, all off (see "AI (v0.2)"). With AI off, no AI code runs and the AI
   SDK isn't even loaded. Never install Ollama or download a model; at most detect an existing install, explain what it
   would download, and act only after the user confirms. Every non-AI path must work fully on its own.
-- **No telemetry, no update check (D9).** All outbound HTTP goes through `server/egress.ts` (PR2) and is logged;
+- **No telemetry, and nothing checks for updates by itself (D9, D87).** `bragdoc update`, `update --check` and
+  `doctor` may ask the npm registry, when a person runs them, through `Egress.registry()`; nothing else ever does (no
+  background, startup or server-side check). All outbound HTTP goes through `server/egress.ts` (PR2) and is logged;
   subprocesses run only through `server/proc.ts` (PR2). The guard tests enforce both. **Never weaken a guard test to
   make something pass.**
 - **Localhost security (D10).** Bind `127.0.0.1`; Host allow-list; Origin checks on writes and SSE; JSON or typed
@@ -76,7 +78,12 @@ server/              the server and CLI (Node, TypeScript ESM, Hono)
   commands/          every other command, one file each, one line in commands/index.ts (Hallway's shape); context.ts
                      is the injectable Ctx (runner, probe, loopback, clock), ready.ts the /api/health probe and readiness
                      wait; busy.ts `bragdoc busy`, over busy-client.ts (the cli-contract reference's busy check: exit
-                     0 / 75 / 3, and the guard before `service stop` / `restart`, D86)
+                     0 / 75 / 3, and the guard before `service stop` / `restart`, D86); update.ts `bragdoc update`
+                     (and the hidden alias `upgrade`, commands/index.ts ALIASES) and doctor.ts `bragdoc doctor` (D88)
+  update/            the cli-contract's reference `update` code, copied with headers saying what's local (D88):
+                     update.ts (SPEC §5's sequence), registry.ts, install-method.ts, package-manager.ts (npm through
+                     proc.ts runSync), lock.ts, update-check.ts, health.ts, semver.ts, exit-codes.ts, output.ts. Keep
+                     them in step with the reference; put BragDoc's side in commands/update.ts, not here
   platform/          power.ts (is it plugged in? the judge's "only on power", PR25); `bragdoc service`: spec.ts (what the service is), launchd.ts / systemd.ts (the writers, pinned by
                      test/fixtures/services/), path.ts (the PATH captured at install), runner.ts (the injectable Runner
                      / Streamer, defaulting to proc.ts), index.ts (which manager this OS has; Windows: not yet),
@@ -675,8 +682,10 @@ Change any of those and re-run `sync:reference`; `docs.test.ts` fails until you 
 - **Server imports use `.js` extensions** (NodeNext); tests and `src/` import `.ts` files directly. The build
   rewrites them.
 - **CLI exit codes:** 0 success, 1 error, 2 usage error (with the usage printed), `bragdoc service`'s 3 (not
-  running) and 4 (not installed), and 75 (busy: `bragdoc busy`, `service stop` / `restart` without `--force`), from
-  the [CLI contract](https://github.com/edspencer/cli-contract) (D85, D86). Throw
+  running) and 4 (not installed), `bragdoc update`'s 5 (can't update itself), 6 (rolled back) and 7 (couldn't roll
+  back), and 75 (busy: `bragdoc busy`, `update`, `service stop` / `restart` without `--force`), from the
+  [CLI contract](https://github.com/edspencer/cli-contract) (D85, D86, D88). A flag a command can't act on is a usage
+  error: list each command's flags in its `check()`. Throw
   `UsageError` (`server/args.ts`) for bad usage, `ExitError` for one of the contract's other codes, a plain `Error`
   otherwise; `cli.ts` turns them into messages and exit codes. Set
   `process.exitCode`, never call `process.exit()` (it can cut off piped output).
