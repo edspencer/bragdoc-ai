@@ -1752,3 +1752,16 @@ runs a checkout runs whatever it last built, and breaks when it's cleaned or reb
 - `uninstall`'s message names the log on Linux too: since D85 both OSes keep it in `<data home>/service/`.
 - `scripts/services-real.mjs` runs the built checkout, so it installs with `--from-checkout`, checks the refusal
   without it, and drives `stop --json` and `start --json` against the real managers.
+
+### D91 — A reinstall keeps the installed unit's port and data home
+
+cli-contract SPEC §1: "a reinstall must keep the port and environment it finds in the existing unit, unless options
+say otherwise". `bragdoc service install` without `--port` went back to 2724, and without `--data-dir` took the
+shell's `$BRAGDOC_HOME` (or none), whatever the installed service had: a reinstall to pick up a new Node quietly moved
+the service. Only `--refresh` (D88) kept them.
+
+- **Without `--port`, a reinstall keeps the unit's port; without `--data-dir`, its data home** (or its lack of one).
+  The shell's `$BRAGDOC_HOME` counts on a first install only: on a reinstall the unit is what's found, and only an
+  option says otherwise. That's `--refresh`'s rule too, apart from `--refresh` refusing when nothing is installed.
+- **The settings are read from the unit's file** (`parseArgv`), not asked of the manager, so `--dry-run` still runs
+  nothing and shows what a reinstall would write.

@@ -843,3 +843,32 @@ test('install --dry-run --json: the definition and commands in the document, and
   assert.deepEqual(fs.readdirSync(f.home), before, 'nothing written');
   assert.ok(!f.calls.some((c) => !c.includes(' show ')), f.calls.join('\n'));
 });
+
+test("a reinstall keeps the installed unit's port and data home unless they're given again (not this shell's $BRAGDOC_HOME)", async () => {
+  const f = fake('linux');
+  const other = path.join(f.home, 'elsewhere');
+  assert.equal(await service(f.ctx, ['install'], { port: '5151', 'data-dir': other }, undefined), 0);
+  // again with no options, from a shell whose $BRAGDOC_HOME (tmpHome's) names another data home: the unit is unchanged
+  const before = fs.readFileSync(unitFile(f), 'utf8');
+  f.calls.length = 0;
+  assert.equal(await service(f.ctx, ['install'], {}, undefined), 0);
+  assert.equal(fs.readFileSync(unitFile(f), 'utf8'), before);
+  assert.ok(!f.calls.includes('systemctl --user daemon-reload'), 'unchanged, so not reloaded');
+  // --dry-run shows the same, still running nothing
+  f.calls.length = 0;
+  await service(f.ctx, ['install'], { 'dry-run': '1' }, undefined);
+  assert.deepEqual(f.calls, []);
+  assert.ok(f.out().includes(`serve --port 5151 --data-dir ${other}`));
+  // a new port is a new port; the data home stays
+  assert.equal(await service(f.ctx, ['install'], { port: '5252' }, undefined), 0);
+  assert.match(fs.readFileSync(unitFile(f), 'utf8'), new RegExp(`serve --port 5252 --data-dir ${other.replace(/[/.]/g, '\\$&')}$`, 'm'));
+  // the control: a first install still takes $BRAGDOC_HOME and the default port
+  const g = fake('linux');
+  await service(g.ctx, ['install'], {}, undefined);
+  assert.match(fs.readFileSync(unitFile(g), 'utf8'), new RegExp(`serve --port 2724 --data-dir ${g.home.replace(/[/.]/g, '\\$&')}/\\.bragdoc$`, 'm'));
+  // and on macOS, from the plist
+  const m = fake('darwin');
+  await service(m.ctx, ['install'], { port: '5151' }, undefined);
+  await service(m.ctx, ['install'], {}, undefined);
+  assert.match(fs.readFileSync(plistFile(m), 'utf8'), /<string>--port<\/string>\s*<string>5151<\/string>/);
+});
