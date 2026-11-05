@@ -3,9 +3,7 @@ title: What's new
 description: "What changed in each BragDoc release, newest first."
 ---
 
-## Coming in 0.4.0: busy, and serve's first line
-
-Not released yet.
+## 0.4.0: busy, and serve's first line
 
 More of the [CLI contract](https://github.com/edspencer/cli-contract) Ed's local tools share.
 
