@@ -3,9 +3,7 @@ title: What's new
 description: "What changed in each BragDoc release, newest first."
 ---
 
-## Coming in 0.6.0: running as a service, tidied up
-
-Not released yet.
+## 0.6.0: running as a service, tidied up
 
 The last of the [CLI contract](https://github.com/edspencer/cli-contract) for `bragdoc service`. The new page
 [Running as a service](/getting-started/running-as-a-service/) has the whole story.
