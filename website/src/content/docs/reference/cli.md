@@ -30,7 +30,8 @@ prints `BragDoc 0.4.0: http://localhost:2724` (its version, then its address) on
 Runs BragDoc in the background as a login service: a LaunchAgent on macOS, a systemd user unit on Linux. It starts
 when you log in (not when the computer boots), runs as you, and is restarted if it exits. It needs an installed
 `bragdoc` (`npm install -g @bragdoc/local`), not `npx`, and *from 0.6.0* not a git checkout unless you add
-`--from-checkout`. Not supported on Windows yet.
+`--from-checkout`. Not supported on Windows yet. [Running as a service](/getting-started/running-as-a-service/)
+has the whole story.
 
 | Command | What it does |
 | --- | --- |
