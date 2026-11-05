@@ -79,7 +79,8 @@ server/              the server and CLI (Node, TypeScript ESM, Hono)
                      is the injectable Ctx (runner, probe, loopback, clock), ready.ts the /api/health probe and readiness
                      wait; busy.ts `bragdoc busy`, over busy-client.ts (the cli-contract reference's busy check: exit
                      0 / 75 / 3, and the guard before `service stop` / `restart`, D86); update.ts `bragdoc update`
-                     (and the hidden alias `upgrade`, commands/index.ts ALIASES) and doctor.ts `bragdoc doctor` (D88)
+                     (and the hidden alias `upgrade`, commands/index.ts ALIASES) and doctor.ts `bragdoc doctor` (D88); linger.ts
+                     the linger check `service install` and `doctor` share (D92)
   update/            the cli-contract's reference `update` code, copied with headers saying what's local (D88):
                      update.ts (SPEC §5's sequence), registry.ts, install-method.ts, package-manager.ts (npm through
                      proc.ts runSync), lock.ts, update-check.ts, health.ts, semver.ts, exit-codes.ts, output.ts. Keep
