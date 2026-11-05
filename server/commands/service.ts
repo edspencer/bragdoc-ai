@@ -5,12 +5,13 @@
 // "running", reading the port back from the installed unit, "starts at login, not boot").
 import fs from 'node:fs';
 import { posix as path } from 'node:path';
-import { EXIT_NOT_INSTALLED, EXIT_NOT_RUNNING, ExitError, UsageError, check } from '../args.js';
+import { EXIT_BUSY, EXIT_NOT_INSTALLED, EXIT_NOT_RUNNING, ExitError, UsageError, check } from '../args.js';
 import { DEFAULT_PORT, parsePort } from '../port.js';
 import { VERSION, resolveDataDir } from '../paths.js';
 import { type ServiceManager, type ServiceStatus, managerFor } from '../platform/index.js';
 import { servicePath } from '../platform/path.js';
 import { buildSpec, readArgv, serviceDir, stableNodePath, transientInstall, transientRefusal } from '../platform/spec.js';
+import { underNodeModules } from '../update/install-method.js';
 import { type Ctx, lastLines, show } from './context.js';
 import { guardBusy } from './busy-client.js';
 import { readUpdateCheck, updateNotice, updateSummary, type UpdateSummary } from '../update/update-check.js';
@@ -23,8 +24,8 @@ export async function service(ctx: Ctx, pos: string[], flags: Record<string, str
   // usage first (exit 2 on any OS), then the platform (Windows: exit 1, "not supported yet")
   switch (sub) {
     case 'install':
-      check('service install', flags, ['port', 'data-dir', 'dry-run', 'refresh'], args, 0, rest);
-      return install(ctx, flags);
+      check('service install', flags, ['port', 'data-dir', 'dry-run', 'refresh', 'from-checkout', 'json'], args, 0, rest);
+      return withJson(ctx, 'install', !!flags.json, (c, extra) => install(c, flags, extra));
     case 'status':
       check('service status', flags, ['json'], args, 0, rest);
       return status(ctx, manager(ctx), !!flags.json);
@@ -40,13 +41,42 @@ export async function service(ctx: Ctx, pos: string[], flags: Record<string, str
     case 'restart': {
       // --force is stop's and restart's: they're the two that ask whether BragDoc is busy first (SPEC §1, §4).
       // uninstall doesn't ask: removing the service is an explicit act
-      check(`service ${sub}`, flags, sub === 'stop' || sub === 'restart' ? ['force'] : [], args, 0, rest);
+      check(`service ${sub}`, flags, sub === 'stop' || sub === 'restart' ? ['force', 'json'] : ['json'], args, 0, rest);
       const mgr = manager(ctx);
-      return { uninstall, start: startOrRestart, restart: startOrRestart, stop }[sub](ctx, mgr, sub, !!flags.force);
+      const run = { uninstall, start: startOrRestart, restart: startOrRestart, stop }[sub];
+      return withJson(ctx, sub, !!flags.json, (c, extra) => run(c, mgr, sub, !!flags.force, extra));
     }
     default:
       throw new UsageError(sub ? `unknown service command '${sub}'; ${SERVICE_USAGE}` : SERVICE_USAGE);
   }
+}
+
+/** What an action adds to its `--json` document, beside `ok`, `action` and the status report. */
+type Extra = Record<string, unknown>;
+
+/**
+ * `--json` on install, uninstall, start, stop and restart (cli-contract SPEC §1's should; Hallway's shape): one document
+ * on stdout, `{ ok, action, error?, …what the action adds, …the service's status (as \`status --json\`) }`, and the
+ * prose people read on stderr. The exit code is the same as without it. A failure still writes the document, then
+ * fails as it would have (the message on stderr, its exit code); a usage error writes none.
+ */
+async function withJson(ctx: Ctx, action: string, json: boolean, run: (c: Ctx, extra: Extra) => Promise<number | undefined>): Promise<number | undefined> {
+  const extra: Extra = {};
+  if (!json) return run(ctx, extra);
+  let code: number | undefined;
+  let failed: unknown;
+  try {
+    code = await run({ ...ctx, out: ctx.err }, extra);
+  } catch (e) {
+    if (e instanceof UsageError) throw e;
+    failed = e;
+  }
+  const error = failed !== undefined ? (failed instanceof Error ? failed.message : String(failed)) : code === EXIT_BUSY ? 'busy' : undefined;
+  // the status as it is now; a manager that can't be asked (no systemd at all) leaves it out rather than hiding the outcome
+  const report = await (async () => statusReport(ctx, manager(ctx)))().catch(() => null);
+  ctx.out(JSON.stringify({ ok: failed === undefined && code === 0, action, ...(error !== undefined ? { error } : {}), ...extra, ...report }, null, 2) + '\n');
+  if (failed !== undefined) throw failed;
+  return code;
 }
 
 export const manager = (ctx: Ctx) => managerFor({ platform: ctx.platform, homedir: ctx.homedir, env: ctx.env, uid: ctx.uid, run: ctx.run, sleep: ctx.sleep });
@@ -92,9 +122,9 @@ function staleUnit(ctx: Ctx, mgr: ServiceManager, st: ServiceStatus): string | n
 }
 
 /** assertInstallable, as a yes or no. */
-function installable(ctx: Ctx): boolean {
+function installable(ctx: Ctx, o: { fromCheckout: boolean }): boolean {
   try {
-    assertInstallable(ctx);
+    assertInstallable(ctx, o);
     return true;
   } catch {
     return false;
@@ -124,14 +154,29 @@ export function installedVersion(cli: string | undefined): string | null {
 // install
 // ---------------------------------------------------------------------------------------------------------------
 
-/** Refuses (throws) where this CLI can't be what a unit runs: a checkout's server/cli.ts, or npx's cache. */
-function assertInstallable(ctx: Ctx): void {
-  // from a checkout, the CLI is server/cli.ts, which only runs under tsx: a unit can't run it
-  if (!ctx.cliScript.endsWith('.js'))
-    throw new Error(`a service runs the built CLI, and this is ${show(ctx.cliScript, ctx.homedir)}. Run \`npm run build\`, then \`node dist/server/cli.js service install\`.`);
+/** A git checkout (or an `npm link` to one) rather than an installed package: not inside a node_modules folder. */
+const isCheckout = (p: string) => !underNodeModules(p);
+
+/**
+ * Refuses (throws) where this CLI can't, or shouldn't, be what a unit runs (cli-contract SPEC §1, D90): npx's cache,
+ * always; a checkout's unbuilt server/cli.ts, always; a checkout's build, unless `fromCheckout` (`--from-checkout`).
+ */
+function assertInstallable(ctx: Ctx, { fromCheckout }: { fromCheckout: boolean }): void {
   const transient = transientInstall(ctx.packageRoot) ?? transientInstall(ctx.cliScript);
   if (transient) throw new Error(transientRefusal(transient));
+  // from a checkout, the CLI is server/cli.ts, which only runs under tsx: a unit can't run it
+  if (!ctx.cliScript.endsWith('.js'))
+    throw new Error(
+      `a service runs the built CLI, and this is ${show(ctx.cliScript, ctx.homedir)}. Install BragDoc (\`npm i -g @bragdoc/local\`), or to run this checkout as the service on purpose: \`npm run build\`, then \`node dist/server/cli.js service install --from-checkout\`.`,
+    );
+  if (isCheckout(ctx.packageRoot) && !fromCheckout)
+    throw new Error(
+      `this BragDoc is a git checkout (${show(ctx.packageRoot, ctx.homedir)}), not an installed package: a service would run whatever it last built, and break when it's cleaned or rebuilt. Install BragDoc first (\`npm i -g @bragdoc/local\`), then run \`bragdoc service install\` again. To run the checkout as the service on purpose, add --from-checkout.`,
+    );
 }
+
+/** The installed unit runs a checkout: it was installed with --from-checkout, so a refresh or a re-render keeps it. */
+const unitRunsCheckout = (st: ServiceStatus) => !!st.argv[1] && isCheckout(st.argv[1]);
 
 /** The unit this CLI writes, run by this Node, for `port` and `dataDir` (written in only when `chosen`). */
 function specFor(ctx: Ctx, port: number, dataDir: string, chosen: boolean) {
@@ -157,7 +202,7 @@ function recorded(ctx: Ctx, st: ServiceStatus): { port: number; dataDir: string;
   return { port, dataDir: dataDir ?? resolveDataDir(undefined, {}, ctx.homedir), chosen: dataDir !== null };
 }
 
-async function install(ctx: Ctx, flags: Record<string, string>): Promise<number> {
+async function install(ctx: Ctx, flags: Record<string, string>, extra: Extra): Promise<number> {
   let port = DEFAULT_PORT;
   if (flags.port !== undefined) {
     const p = parsePort(flags.port);
@@ -169,12 +214,15 @@ async function install(ctx: Ctx, flags: Record<string, string>): Promise<number>
   const refresh = !!flags.refresh;
   let dataDir: string;
   let chosen: boolean;
+  let fromCheckout = !!flags['from-checkout'];
   if (refresh) {
     // re-render what's installed (cli-contract SPEC 0.2 §1): its port and data home, with any flag given winning.
     // Nothing installed is exit 4, not a first install with defaults
     const st = await mgr.status();
     if (!st.installed) throw notInstalled(ctx, mgr);
     const r = recorded(ctx, st);
+    // a service installed from a checkout on purpose is refreshed from it without the flag again (Local Review)
+    fromCheckout ||= unitRunsCheckout(st);
     if (flags.port === undefined) port = r.port;
     chosen = flags['data-dir'] !== undefined || r.chosen;
     dataDir = flags['data-dir'] !== undefined ? resolveDataDir(flags['data-dir'], {}, ctx.homedir) : r.dataDir;
@@ -185,11 +233,12 @@ async function install(ctx: Ctx, flags: Record<string, string>): Promise<number>
     dataDir = resolveDataDir(named, {}, ctx.homedir);
     chosen = named !== undefined;
   }
-  assertInstallable(ctx);
+  assertInstallable(ctx, { fromCheckout });
   const spec = specFor(ctx, port, dataDir, chosen);
   const url = urlOf(port);
 
   if (flags['dry-run']) {
+    Object.assign(extra, { dryRun: true, wouldWrite: mgr.file, definition: mgr.render(spec), commands: mgr.installCommands() });
     ctx.out(
       [
         `Dry run: nothing is written and nothing is started.`,
@@ -253,8 +302,9 @@ async function install(ctx: Ctx, flags: Record<string, string>): Promise<number>
 // uninstall, status, start, restart, stop, logs
 // ---------------------------------------------------------------------------------------------------------------
 
-async function uninstall(ctx: Ctx, mgr: ServiceManager): Promise<number> {
+async function uninstall(ctx: Ctx, mgr: ServiceManager, _action: string, _force: boolean, extra: Extra): Promise<number> {
   const st = await mgr.status();
+  extra.wasInstalled = st.installed || st.loaded;
   // a loaded job without its file (deleted by hand) is still removed from the manager
   if (!st.installed && !st.loaded) {
     ctx.out(`BragDoc isn't installed as a service (there's no ${show(mgr.file, ctx.homedir)}); nothing to do.\n`);
@@ -264,7 +314,7 @@ async function uninstall(ctx: Ctx, mgr: ServiceManager): Promise<number> {
   const dataDir = installedDataDir(ctx, st);
   ctx.out(
     `Stopped BragDoc's service and removed ${show(mgr.file, ctx.homedir)}.\n` +
-      `Your data in ${show(dataDir, ctx.homedir)} is untouched${mgr.kind === 'launchd' ? `, and so is the service's log in ${show(serviceDir(dataDir), ctx.homedir)}/` : ''}.\n`,
+      `Your data in ${show(dataDir, ctx.homedir)} is untouched, and so is the service's log in ${show(serviceDir(dataDir), ctx.homedir)}/.\n`,
   );
   return 0;
 }
@@ -399,9 +449,10 @@ async function status(ctx: Ctx, mgr: ServiceManager, json: boolean): Promise<num
 }
 
 /** start and restart: both WAIT for /api/health before saying "running", since neither manager's "started" means that. */
-async function startOrRestart(ctx: Ctx, mgr: ServiceManager, action: string, force = false): Promise<number> {
+async function startOrRestart(ctx: Ctx, mgr: ServiceManager, action: string, force: boolean, extra: Extra): Promise<number> {
   const before = await mgr.status();
   if (!before.installed) throw notInstalled(ctx, mgr);
+  extra.wasRunning = before.running;
   const { port } = readArgv(before.argv);
   const url = urlOf(port);
   if (action === 'start' && before.running) {
@@ -414,7 +465,7 @@ async function startOrRestart(ctx: Ctx, mgr: ServiceManager, action: string, for
   }
   const stale = action === 'restart' ? staleUnit(ctx, mgr, before) : null;
   if (action === 'start') await mgr.start();
-  else if (stale && installable(ctx)) {
+  else if (stale && installable(ctx, { fromCheckout: unitRunsCheckout(before) })) {
     // restart re-renders a stale unit first (cli-contract SPEC §1): one whose Node or CLI has gone, or an older format.
     // From the settings it records, by this CLI; install() restarts what's running
     ctx.err(`bragdoc: ${stale} Re-writing it for this BragDoc (${VERSION}) first.\n`);
@@ -428,9 +479,10 @@ async function startOrRestart(ctx: Ctx, mgr: ServiceManager, action: string, for
   return 0;
 }
 
-async function stop(ctx: Ctx, mgr: ServiceManager, _action: string, force = false): Promise<number> {
+async function stop(ctx: Ctx, mgr: ServiceManager, _action: string, force: boolean, extra: Extra): Promise<number> {
   const st = await mgr.status();
   if (!st.installed) throw notInstalled(ctx, mgr);
+  extra.wasRunning = st.running;
   if (isStopped(mgr, st)) {
     ctx.out('BragDoc is already stopped.\n');
     return 0;
